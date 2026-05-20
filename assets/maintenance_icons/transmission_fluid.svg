@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <defs>
+    <radialGradient id="badge" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#164566"/><stop offset="1" stop-color="#07131c"/></radialGradient>
+    <linearGradient id="metal" x1="20" y1="18" x2="78" y2="78"><stop offset="0" stop-color="#eef3f4"/><stop offset=".5" stop-color="#84929a"/><stop offset="1" stop-color="#2b363d"/></linearGradient>
+    <linearGradient id="drop" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#76ddff"/><stop offset="1" stop-color="#0076c8"/></linearGradient>
+  </defs>
+  <circle cx="48" cy="48" r="44" fill="url(#badge)" stroke="#56d8ff" stroke-width="4"/>
+  <g transform="translate(11 10)" fill="url(#metal)" stroke="#071116" stroke-width="3">
+    <path d="M37 3l5 8 10-1 2 10 9 5-5 9 5 9-9 5-2 10-10-1-5 8-8-6-10 3-4-9-9-3 3-10-6-8 8-7 1-10 10-1 7-7Z"/>
+    <circle cx="35" cy="35" r="18"/><circle cx="35" cy="35" r="8" fill="#071116"/>
+  </g>
+  <path d="M70 44c12 16 14 29 0 35-14-6-12-19 0-35Z" fill="url(#drop)" stroke="#022a43" stroke-width="3"/>
+</svg>

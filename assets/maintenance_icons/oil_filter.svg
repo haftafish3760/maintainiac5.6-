@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <defs>
+    <radialGradient id="badge" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#164566"/><stop offset="1" stop-color="#07131c"/></radialGradient>
+    <linearGradient id="pleat" x1="0" y1="20" x2="0" y2="76"><stop offset="0" stop-color="#ffd45a"/><stop offset="1" stop-color="#b67500"/></linearGradient>
+    <linearGradient id="cap" x1="20" y1="18" x2="76" y2="80"><stop offset="0" stop-color="#f2f6f7"/><stop offset=".55" stop-color="#8e9aa0"/><stop offset="1" stop-color="#263137"/></linearGradient>
+  </defs>
+  <circle cx="48" cy="48" r="44" fill="url(#badge)" stroke="#56d8ff" stroke-width="4"/>
+  <ellipse cx="48" cy="24" rx="24" ry="10" fill="url(#cap)" stroke="#071116" stroke-width="4"/>
+  <path d="M24 24v44c0 6 11 11 24 11s24-5 24-11V24" fill="url(#pleat)" stroke="#071116" stroke-width="4"/>
+  <ellipse cx="48" cy="68" rx="24" ry="11" fill="#56646b" stroke="#071116" stroke-width="4"/>
+  <g stroke="#704800" stroke-width="3">
+    <path d="M31 30v36"/><path d="M38 32v39"/><path d="M45 33v40"/><path d="M52 33v40"/><path d="M59 32v39"/><path d="M66 30v36"/>
+  </g>
+  <circle cx="48" cy="24" r="6" fill="#182126" stroke="#071116" stroke-width="3"/>
+</svg>

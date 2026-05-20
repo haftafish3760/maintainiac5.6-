@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <defs>
+    <radialGradient id="badge" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#164566"/><stop offset="1" stop-color="#07131c"/></radialGradient>
+    <linearGradient id="metal" x1="18" y1="16" x2="76" y2="82"><stop offset="0" stop-color="#f4f7f7"/><stop offset=".5" stop-color="#89949a"/><stop offset="1" stop-color="#273238"/></linearGradient>
+  </defs>
+  <circle cx="48" cy="48" r="44" fill="url(#badge)" stroke="#56d8ff" stroke-width="4"/>
+  <g transform="rotate(-35 48 48)">
+    <path d="M39 15h18v30H39Z" fill="#f1f4f4" stroke="#071116" stroke-width="4"/>
+    <path d="M34 45h28v20H34Z" fill="url(#metal)" stroke="#071116" stroke-width="4"/>
+    <path d="M38 65h20v16H38Z" fill="url(#metal)" stroke="#071116" stroke-width="4"/>
+    <path d="M32 50h32M32 57h32" stroke="#071116" stroke-width="3"/>
+    <path d="M43 81v8M53 81v8" stroke="#071116" stroke-width="4" stroke-linecap="round"/>
+    <path d="M48 89c7-5 10-5 16-1" stroke="#47cfff" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

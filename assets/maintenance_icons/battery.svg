@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <defs><radialGradient id="badge" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#164566"/><stop offset="1" stop-color="#07131c"/></radialGradient><linearGradient id="case" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#36d46b"/><stop offset="1" stop-color="#0b7130"/></linearGradient></defs>
+  <circle cx="48" cy="48" r="44" fill="url(#badge)" stroke="#56d8ff" stroke-width="4"/>
+  <rect x="17" y="34" width="62" height="36" rx="6" fill="url(#case)" stroke="#071116" stroke-width="4"/>
+  <rect x="28" y="25" width="12" height="10" rx="2" fill="#e8eef0" stroke="#071116" stroke-width="3"/>
+  <rect x="57" y="25" width="12" height="10" rx="2" fill="#e8eef0" stroke="#071116" stroke-width="3"/>
+  <path d="M27 52h16M53 52h18M62 43v18" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+</svg>
