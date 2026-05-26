@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/widgets/app_back_button.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/industrial_panel.dart';
+import '../../shared/widgets/record_text_field.dart';
 import 'maintenance_item_setup_screen.dart';
 import 'maintenance_models.dart';
 import 'maintenance_receipt_line_form_screen.dart';
@@ -41,7 +44,6 @@ class _MaintenanceReceiptItemsScreenState
   Widget build(BuildContext context) {
     final allEntries = _entries.values.expand((entry) => entry).toList();
     return Scaffold(
-      appBar: AppBar(title: const Text('Receipt Items')),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -54,6 +56,8 @@ class _MaintenanceReceiptItemsScreenState
           child: ListView(
             padding: const EdgeInsets.all(10),
             children: [
+              const AppScreenHeader(title: 'Receipt Items'),
+              const SizedBox(height: 10),
               IndustrialPanel(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,7 +109,7 @@ class _MaintenanceReceiptItemsScreenState
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEDEAE0),
+                        color: const Color(0xFFAAB4B9),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Column(
@@ -186,8 +190,9 @@ class _MaintenanceReceiptItemsScreenState
                         tone: AppButtonTone.commit,
                         compact: true,
                         onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => MaintenanceItemSetupScreen(
+                          appNativeRoute(
+                            context,
+                            MaintenanceItemSetupScreen(
                               items: widget.items,
                               entries: allEntries,
                             ),
@@ -207,9 +212,7 @@ class _MaintenanceReceiptItemsScreenState
 
   Future<void> _openLineForm(MaintenanceCatalogItem item) async {
     final entry = await Navigator.of(context).push<ReceiptLineEntry>(
-      MaterialPageRoute(
-        builder: (_) => MaintenanceReceiptLineFormScreen(item: item),
-      ),
+      appNativeRoute(context, MaintenanceReceiptLineFormScreen(item: item)),
     );
     if (entry == null) return;
     setState(() => _entries.putIfAbsent(item.name, () => []).add(entry));
@@ -231,13 +234,13 @@ class _ReceiptItemRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(5),
       child: Ink(
         height: 54,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
           color: AppColors.fieldAlt,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(5),
         ),
         child: Row(
           children: [
@@ -281,12 +284,11 @@ class _MoneyField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return RecordTextField(
+      label: label,
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       textInputAction: action,
-      style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800),
-      decoration: InputDecoration(labelText: label),
     );
   }
 }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../shared/navigation/app_page_routes.dart';
 import 'calendar_day_flow.dart';
-import 'calendar_month_year_picker.dart';
+import '../../shared/widgets/calendar_month_year_picker.dart';
 
 class DashboardMonthCalendar extends StatefulWidget {
   const DashboardMonthCalendar({super.key});
@@ -179,9 +180,9 @@ class _DashboardMonthCalendarState extends State<DashboardMonthCalendar> {
   }
 
   void _openCalendarDay(BuildContext context, DateTime day) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => CalendarDayFlowScreen(day: day)),
-    );
+    Navigator.of(
+      context,
+    ).push(appNativeRoute<void>(context, CalendarDayFlowScreen(day: day)));
   }
 
   Future<void> _openMonthYearPicker(BuildContext context) async {

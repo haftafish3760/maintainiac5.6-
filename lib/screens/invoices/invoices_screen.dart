@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../shared/widgets/action_tile.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../../shared/widgets/industrial_panel.dart';
+import '../../shared/navigation/app_page_routes.dart';
+import '../work_supplies/work_supply_screen.dart';
 
 class InvoicesScreen extends StatelessWidget {
   const InvoicesScreen({super.key});
@@ -19,7 +21,7 @@ class InvoicesScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Invoice Workspace',
+                  'Invoices, Estimates, and Payments',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
                 ),
                 SizedBox(height: 6),
@@ -40,6 +42,13 @@ class InvoicesScreen extends StatelessWidget {
             children: [
               ActionTile(label: 'Create Estimate', icon: '📋', onTap: () {}),
               ActionTile(label: 'Create Invoice', icon: '🧾', onTap: () {}),
+              ActionTile(
+                label: 'Work Supplies',
+                icon: '📦',
+                onTap: () => Navigator.of(
+                  context,
+                ).push(appNativeRoute(context, const WorkSupplyScreen())),
+              ),
               ActionTile(label: 'Record Payment', icon: '💵', onTap: () {}),
               ActionTile(label: 'Sign Document', icon: '✍️', onTap: () {}),
             ],

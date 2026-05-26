@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/app_action_colors.dart';
 import '../state/global_odometer.dart';
@@ -64,13 +65,17 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
               autofocus: true,
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.done,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(7),
+              ],
               onSubmitted: (_) => _saveReading(),
               decoration: InputDecoration(
                 labelText: 'Current odometer reading',
                 hintText: '298150',
                 errorText: _errorText,
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: const Color(0xFFAAB4B9),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),

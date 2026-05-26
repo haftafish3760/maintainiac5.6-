@@ -56,7 +56,7 @@ class LitMachineButton extends StatelessWidget {
                     ],
                     stops: [0, 0.5, 1],
                   ),
-                  borderRadius: BorderRadius.circular(13),
+                  borderRadius: BorderRadius.circular(5),
                   border: Border.all(color: Colors.black, width: 2),
                   boxShadow: const [
                     BoxShadow(
@@ -69,7 +69,7 @@ class LitMachineButton extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: Colors.black,
-                    borderRadius: BorderRadius.circular(9),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(4),

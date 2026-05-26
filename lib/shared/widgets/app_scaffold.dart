@@ -5,6 +5,7 @@ import '../../screens/expenses/expenses_screen.dart';
 import '../../screens/invoices/invoices_screen.dart';
 import '../../screens/maintenance/maintenance_screen.dart';
 import '../theme/app_theme.dart';
+import 'app_back_button.dart';
 import 'global_odometer_header.dart';
 
 class AppScaffold extends StatelessWidget {
@@ -22,22 +23,6 @@ class AppScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications_active_rounded),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.settings_rounded),
-          ),
-        ],
-      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -53,6 +38,26 @@ class AppScaffold extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 720),
               child: Column(
                 children: [
+                  AppScreenHeader(
+                    title: title,
+                    showBack: false,
+                    actions: [
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icons.notifications_active_rounded,
+                          color: Color(0xFFE2E8EA),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icons.settings_rounded,
+                          color: Color(0xFFE2E8EA),
+                        ),
+                      ),
+                    ],
+                  ),
                   const Padding(
                     padding: EdgeInsets.fromLTRB(10, 4, 10, 8),
                     child: GlobalOdometerHeader(),

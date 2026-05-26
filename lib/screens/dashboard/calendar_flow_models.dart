@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 enum CalendarDayMode { past, today, future }
 
+enum CalendarFlowSource { dashboard, expenses, invoices, maintenance }
+
 enum CalendarEntryType {
   tripEntry,
   stop,
@@ -143,6 +145,20 @@ String calendarSelectorTitle(CalendarDayMode mode) {
   };
 }
 
+String calendarSelectorTitleFor(
+  CalendarDayMode mode,
+  CalendarFlowSource source,
+) {
+  if (source == CalendarFlowSource.expenses) {
+    return switch (mode) {
+      CalendarDayMode.past => 'Add Missed Expense',
+      CalendarDayMode.today => 'Add Expense',
+      CalendarDayMode.future => 'Plan Expense',
+    };
+  }
+  return calendarSelectorTitle(mode);
+}
+
 String calendarDraftSubtitle(CalendarDayMode mode) {
   return switch (mode) {
     CalendarDayMode.past =>
@@ -191,6 +207,31 @@ List<CalendarEntryType> calendarTypesForMode(CalendarDayMode mode) {
       CalendarEntryType.materials,
     ],
   };
+}
+
+List<CalendarEntryType> calendarTypesForSource(
+  CalendarDayMode mode,
+  CalendarFlowSource source,
+) {
+  if (source == CalendarFlowSource.expenses) {
+    return switch (mode) {
+      CalendarDayMode.past || CalendarDayMode.today => const [
+        CalendarEntryType.expense,
+        CalendarEntryType.receiptPhoto,
+        CalendarEntryType.payment,
+        CalendarEntryType.materials,
+        CalendarEntryType.note,
+        CalendarEntryType.reminderSchedule,
+      ],
+      CalendarDayMode.future => const [
+        CalendarEntryType.reminderSchedule,
+        CalendarEntryType.expense,
+        CalendarEntryType.payment,
+        CalendarEntryType.note,
+      ],
+    };
+  }
+  return calendarTypesForMode(mode);
 }
 
 CalendarEntryMeta calendarEntryMeta(CalendarEntryType type) {

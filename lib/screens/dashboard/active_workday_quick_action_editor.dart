@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/widgets/app_back_button.dart';
 import 'active_workday_actions.dart';
 
 class ActiveWorkdayQuickActionEditor extends StatelessWidget {
@@ -13,16 +14,14 @@ class ActiveWorkdayQuickActionEditor extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
-      appBar: AppBar(
-        title: const Text('Edit Quick Actions'),
-        backgroundColor: const Color(0xFF101416),
-        foregroundColor: const Color(0xFFE2E8EA),
-      ),
+
       body: SafeArea(
         top: false,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(12, 16, 12, 18),
           children: [
+            const AppScreenHeader(title: 'Edit Quick Actions'),
+            const SizedBox(height: 12),
             const _EditorIntroPanel(),
             const SizedBox(height: 14),
             const _EditorSectionTitle('ACTIVE BUTTONS'),
@@ -47,7 +46,7 @@ class _EditorIntroPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFD2D9DC),
+        color: const Color(0xFFAAB4B9),
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: const Color(0xFF101416), width: 1.3),
       ),
@@ -128,7 +127,7 @@ class _EditorActionTile extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: action.color,
-              borderRadius: BorderRadius.circular(11),
+              borderRadius: BorderRadius.circular(5),
               boxShadow: [
                 BoxShadow(
                   color: action.color.withValues(alpha: 0.35),
@@ -138,7 +137,6 @@ class _EditorActionTile extends StatelessWidget {
             ),
             child: Text(
               action.emoji,
-              textScaler: TextScaler.noScaling,
               style: const TextStyle(fontSize: 24, height: 1),
             ),
           ),

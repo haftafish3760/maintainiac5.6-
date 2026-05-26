@@ -15,8 +15,9 @@ void main() {
       ),
     );
 
-    expect(find.text('ODOMETER'), findsOneWidget);
-    expect(find.text('WEEKLY RECAP'), findsOneWidget);
+    expect(find.text('ACTIVE VEHICLE'), findsOneWidget);
     expect(find.text('READY TO TRACK'), findsOneWidget);
+    expect(find.text('Profit'), findsOneWidget);
+    expect(find.text('Fuel'), findsOneWidget);
   });
 }

@@ -92,7 +92,7 @@ class SavedVehicleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? const Color(0xFFE8EDEF) : const Color(0xFFD2D9DC),
+      color: selected ? const Color(0xFFAAB4B9) : const Color(0xFF8F9BA1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(4),
         side: BorderSide(

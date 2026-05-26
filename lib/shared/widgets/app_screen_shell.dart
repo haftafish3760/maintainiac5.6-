@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../../screens/expenses/expense_settings_screen.dart';
 import '../../screens/expenses/expenses_screen.dart';
+import '../../screens/invoices/invoice_settings_screen.dart';
 import '../../screens/invoices/invoices_screen.dart';
+import '../../screens/maintenance/maintenance_settings_screen.dart';
 import '../../screens/maintenance/maintenance_screen.dart';
+import '../../screens/work_supplies/work_supply_screen.dart';
+import '../../screens/work_supplies/work_supply_settings_screen.dart';
+import '../../screens/settings/dashboard_settings.dart';
+import '../../screens/settings/system_settings.dart';
 import '../navigation/app_page_routes.dart';
+import '../state/app_state.dart';
 import '../state/global_odometer.dart';
-import 'flow_placeholder_screen.dart';
+import 'app_banner_ad_reserve.dart';
 import 'industrial_panel_surface.dart';
-import 'odometer_entry_sheet.dart';
 
 class AppScreenShell extends StatelessWidget {
   const AppScreenShell({
@@ -15,11 +22,13 @@ class AppScreenShell extends StatelessWidget {
     required this.body,
     this.maxWidth = 600,
     this.section = AppSection.dashboard,
+    this.floatingActionButton,
   });
 
   final Widget body;
   final double maxWidth;
   final AppSection section;
+  final Widget? floatingActionButton;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +42,7 @@ class AppScreenShell extends StatelessWidget {
           AppBottomNavigation(currentSection: section),
         ],
       ),
+      floatingActionButton: floatingActionButton,
       body: AppTexturedBackground(
         child: SafeArea(
           bottom: false,
@@ -63,10 +73,15 @@ class AppTexturedBackground extends StatelessWidget {
 }
 
 class GlobalOdometerHeader extends StatelessWidget {
-  const GlobalOdometerHeader({super.key});
+  const GlobalOdometerHeader({super.key, this.section = AppSection.dashboard});
+
+  final AppSection section;
 
   @override
   Widget build(BuildContext context) {
+    final appState = AppStateScope.of(context);
+    final vehicle = appState.activeVehicle;
+    final hasMultipleVehicles = appState.vehicles.length > 1;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: IndustrialPanelSurface(
@@ -74,8 +89,9 @@ class GlobalOdometerHeader extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              'ODOMETER',
+              'ACTIVE VEHICLE',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: const Color(0xFF101416),
                 fontSize: 12,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 0,
@@ -88,39 +104,37 @@ class GlobalOdometerHeader extends StatelessWidget {
                   width: 34,
                   height: 34,
                   child: IconButton(
-                    onPressed: () => _openUtilityFlow(
-                      context,
-                      title: 'Main Menu',
-                      icon: Icons.menu_rounded,
-                      summary:
-                          'This will become the app-wide menu for alerts, records, profile tools, exports, and app-level shortcuts.',
-                    ),
+                    onPressed: () => _openSystemSettings(context),
                     constraints: const BoxConstraints.tightFor(
                       width: 34,
                       height: 34,
                     ),
                     padding: EdgeInsets.zero,
-                    icon: const Icon(Icons.menu_rounded, size: 24),
+                    icon: const Icon(
+                      Icons.menu_rounded,
+                      color: Color(0xFF101416),
+                      size: 24,
+                    ),
                   ),
                 ),
                 Expanded(
-                  child: Center(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
+                  child: InkWell(
+                    onTap: () => _openVehiclePicker(context),
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const _GlobalOdometerDigits(),
+                          Expanded(child: _ActiveVehicleText(vehicle: vehicle)),
                           const SizedBox(width: 6),
-                          IconButton(
-                            onPressed: () => _openOdometerEditor(context),
-                            constraints: const BoxConstraints.tightFor(
-                              width: 30,
-                              height: 30,
-                            ),
-                            padding: EdgeInsets.zero,
-                            tooltip: 'Edit odometer',
-                            icon: const Icon(Icons.edit_rounded, size: 18),
+                          const _CompactOdometerText(),
+                          const SizedBox(width: 3),
+                          Icon(
+                            hasMultipleVehicles
+                                ? Icons.keyboard_arrow_down_rounded
+                                : Icons.expand_more_rounded,
+                            color: const Color(0xFF101416),
+                            size: 23,
                           ),
                         ],
                       ),
@@ -131,19 +145,17 @@ class GlobalOdometerHeader extends StatelessWidget {
                   width: 34,
                   height: 34,
                   child: IconButton(
-                    onPressed: () => _openUtilityFlow(
-                      context,
-                      title: 'Settings',
-                      icon: Icons.settings_rounded,
-                      summary:
-                          'This will hold global settings, trip tracking preferences, screen options, privacy controls, and quick-action setup.',
-                    ),
+                    onPressed: () => _openDashboardSettings(context),
                     constraints: const BoxConstraints.tightFor(
                       width: 34,
                       height: 34,
                     ),
                     padding: EdgeInsets.zero,
-                    icon: const Icon(Icons.settings_rounded, size: 24),
+                    icon: const Icon(
+                      Icons.settings_rounded,
+                      color: Color(0xFF101416),
+                      size: 24,
+                    ),
                   ),
                 ),
               ],
@@ -154,28 +166,283 @@ class GlobalOdometerHeader extends StatelessWidget {
     );
   }
 
-  void _openOdometerEditor(BuildContext context) {
-    showModalBottomSheet<void>(
+  void _openVehiclePicker(BuildContext context) {
+    final state = AppStateScope.of(context);
+    showDialog<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFFE2E8EA),
-      builder: (context) => const OdometerEntrySheet(
-        title: 'Edit Odometer',
-        saveLabel: 'Save Reading',
+      builder: (context) => Dialog(
+        backgroundColor: const Color(0xFF1F2528),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Select Active Vehicle',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFFE8ECEE),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const _CompanyStockOption(),
+              const SizedBox(height: 8),
+              for (final vehicle in state.vehicles) ...[
+                _ActiveVehicleOption(
+                  vehicle: vehicle,
+                  selected:
+                      vehicle.displayName == state.activeVehicle?.displayName,
+                  onTap: () {
+                    state.selectVehicle(vehicle);
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  void _openUtilityFlow(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required String summary,
-  }) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) =>
-            FlowPlaceholderScreen(title: title, icon: icon, summary: summary),
+  void _openSystemSettings(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(appDrawerRoute<void>(const SystemSettingsScreen()));
+  }
+
+  void _openDashboardSettings(BuildContext context) {
+    final Widget screen = switch (section) {
+      AppSection.dashboard => const DashboardSettingsScreen(),
+      AppSection.expenses => const ExpenseSettingsScreen(),
+      AppSection.invoices => const InvoiceSettingsScreen(),
+      AppSection.maintenance => const MaintenanceSettingsScreen(),
+      AppSection.materials => const WorkSupplySettingsScreen(),
+    };
+    Navigator.of(context).push(appDrawerRoute<void>(screen));
+  }
+}
+
+class _ActiveVehicleText extends StatelessWidget {
+  const _ActiveVehicleText({required this.vehicle});
+
+  final VehicleProfile? vehicle;
+
+  @override
+  Widget build(BuildContext context) {
+    final active = vehicle;
+    final title = active?.nickname ?? 'Vehicle Required';
+    final details = active == null
+        ? 'Add or select a vehicle'
+        : [
+            active.year,
+            active.make,
+            active.model,
+          ].where((part) => part.trim().isNotEmpty).join(' ');
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Color(0xFF101416),
+            fontSize: 15,
+            fontWeight: FontWeight.w900,
+            height: 1.05,
+          ),
+        ),
+        if (details.trim().isNotEmpty) ...[
+          const SizedBox(height: 2),
+          Text(
+            details,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFF2F383D),
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              height: 1,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _CompactOdometerText extends StatelessWidget {
+  const _CompactOdometerText();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = GlobalOdometerScope.of(context);
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) => Text(
+        controller.displayValue,
+        style: const TextStyle(
+          color: Color(0xFF1D5A3E),
+          fontSize: 13,
+          fontWeight: FontWeight.w900,
+          height: 1,
+        ),
+      ),
+    );
+  }
+}
+
+class _ActiveVehicleOption extends StatelessWidget {
+  const _ActiveVehicleOption({
+    required this.vehicle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final VehicleProfile vehicle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(5),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(5),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 62),
+          padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: selected
+                  ? const [Color(0xFF245C3C), Color(0xFF12301F)]
+                  : const [Color(0xFF2D3B42), Color(0xFF172126)],
+            ),
+            borderRadius: BorderRadius.circular(5),
+            border: Border.all(
+              color: selected
+                  ? const Color(0xFF58D67D)
+                  : const Color(0xFF66737A),
+              width: 1.1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      vehicle.nickname,
+                      style: const TextStyle(
+                        color: Color(0xFFE8ECEE),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      [
+                        vehicle.year,
+                        vehicle.make,
+                        vehicle.model,
+                      ].where((part) => part.trim().isNotEmpty).join(' '),
+                      style: const TextStyle(
+                        color: Color(0xFFCAD2D5),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (selected)
+                const Icon(Icons.check_rounded, color: Color(0xFF58D67D)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompanyStockOption extends StatelessWidget {
+  const _CompanyStockOption();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(5),
+      child: InkWell(
+        onTap: () => Navigator.of(context).pop(),
+        borderRadius: BorderRadius.circular(5),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 72),
+          padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF1E5A78), Color(0xFF102D3D)],
+            ),
+            borderRadius: BorderRadius.circular(5),
+            border: Border.all(color: const Color(0xFF55C7F0), width: 1.2),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black45,
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: const Row(
+            children: [
+              Icon(Icons.inventory_2_rounded, color: Color(0xFFFFD166)),
+              SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'All / Company Stock',
+                      style: TextStyle(
+                        color: Color(0xFFE8ECEE),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      'Use this when the record belongs to general stock instead of one vehicle.',
+                      style: TextStyle(
+                        color: Color(0xFFCAD2D5),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        height: 1.15,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: Color(0xFFE8ECEE)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -201,6 +468,12 @@ class AppBottomNavigation extends StatelessWidget {
         'Invoices',
         AppSection.invoices,
         InvoicesScreen(),
+      ),
+      const _AppNavItem(
+        '📦',
+        'Work Supplies',
+        AppSection.materials,
+        WorkSupplyScreen(),
       ),
       const _AppNavItem(
         '🛠️',
@@ -235,7 +508,6 @@ class AppBottomNavigation extends StatelessWidget {
                             children: [
                               Text(
                                 item.icon,
-                                textScaler: TextScaler.noScaling,
                                 style: TextStyle(
                                   fontSize: iconSize + 4,
                                   height: 1,
@@ -272,23 +544,28 @@ class AppBottomNavigation extends StatelessWidget {
   }
 
   void _openSection(BuildContext context, _AppNavItem item) {
-    if (item.section == currentSection) {
-      return;
-    }
-
-    final navigator = Navigator.of(context);
-    if (item.section == AppSection.dashboard) {
-      navigator.popUntil((route) => route.isFirst);
-      return;
-    }
-
-    final route = appSlideRoute<void>(item.screen!);
-    if (navigator.canPop()) {
-      navigator.pushReplacement(route);
-      return;
-    }
-    navigator.push(route);
+    openAppSectionRoot(context, item.section);
   }
+}
+
+void openAppSectionRoot(BuildContext context, AppSection section) {
+  final navigator = Navigator.of(context);
+  if (section == AppSection.dashboard) {
+    navigator.popUntil((route) => route.isFirst);
+    return;
+  }
+
+  final screen = switch (section) {
+    AppSection.dashboard => null,
+    AppSection.expenses => const ExpensesScreen(),
+    AppSection.invoices => const InvoicesScreen(),
+    AppSection.materials => const WorkSupplyScreen(),
+    AppSection.maintenance => const MaintenanceScreen(),
+  };
+  navigator.pushAndRemoveUntil(
+    appSlideRoute<void>(screen!),
+    (route) => route.isFirst,
+  );
 }
 
 class _AppNavItem {
@@ -300,39 +577,7 @@ class _AppNavItem {
   final Widget? screen;
 }
 
-enum AppSection { dashboard, expenses, invoices, maintenance }
-
-class AppBannerAdReserve extends StatelessWidget {
-  const AppBannerAdReserve({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 54,
-      width: double.infinity,
-      alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF222A2E), Color(0xFF151B1E)],
-        ),
-        border: Border(
-          top: BorderSide(color: Color(0xFF4E5A60)),
-          bottom: BorderSide(color: Color(0xFF050607)),
-        ),
-      ),
-      child: const Text(
-        'Ad space',
-        style: TextStyle(
-          color: Color(0xFFC4CED3),
-          fontSize: 12,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
-}
+enum AppSection { dashboard, expenses, invoices, maintenance, materials }
 
 class AppSectionScreen extends StatelessWidget {
   const AppSectionScreen({
@@ -362,7 +607,7 @@ class AppSectionScreen extends StatelessWidget {
               constraints: const BoxConstraints(minHeight: 130),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFD2D9DC),
+                color: const Color(0xFFAAB4B9),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: const Color(0xFF101416), width: 1.3),
               ),
@@ -395,70 +640,6 @@ class AppSectionScreen extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GlobalOdometerDigits extends StatelessWidget {
-  const _GlobalOdometerDigits();
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = GlobalOdometerScope.of(context);
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) => _OdometerDigits(value: controller.displayValue),
-    );
-  }
-}
-
-class _OdometerDigits extends StatelessWidget {
-  const _OdometerDigits({required this.value});
-
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFF101112),
-        borderRadius: BorderRadius.circular(3),
-        border: Border.all(color: const Color(0xFF050606), width: 2),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var index = 0; index < value.length; index++)
-            Container(
-              width: 23,
-              height: 32,
-              alignment: Alignment.center,
-              margin: EdgeInsets.only(right: index == value.length - 1 ? 0 : 2),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: index == value.length - 1
-                      ? const [Color(0xFFE44A3B), Color(0xFF8E140F)]
-                      : const [Color(0xFFFBF8EC), Color(0xFFD9D3BF)],
-                ),
-                border: Border.all(color: const Color(0xFF17191B), width: 1.2),
-              ),
-              child: Text(
-                value[index],
-                textScaler: TextScaler.noScaling,
-                style: TextStyle(
-                  color: index == value.length - 1
-                      ? Colors.white
-                      : const Color(0xFF16191B),
-                  fontSize: 23,
-                  fontWeight: FontWeight.w900,
-                  height: 1,
-                ),
-              ),
-            ),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/state/app_state.dart';
 import '../../shared/theme/app_action_colors.dart';
 import '../../shared/widgets/app_screen_shell.dart';
@@ -132,7 +133,7 @@ class _ActiveVehicleChip extends StatelessWidget {
             height: 36,
             padding: const EdgeInsets.symmetric(horizontal: 9),
             decoration: BoxDecoration(
-              color: const Color(0xFFD7E0E3),
+              color: const Color(0xFFAAB4B9),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: const Color(0xFF87949A)),
             ),
@@ -142,7 +143,6 @@ class _ActiveVehicleChip extends StatelessWidget {
                 Flexible(
                   child: Text(
                     vehicle?.nickname ?? 'Vehicle',
-                    textScaler: TextScaler.noScaling,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -169,7 +169,7 @@ class _ActiveVehicleChip extends StatelessWidget {
   Future<void> _selectVehicle(BuildContext context) async {
     final selected = await showModalBottomSheet<VehicleProfile>(
       context: context,
-      backgroundColor: const Color(0xFFE2E8EA),
+      backgroundColor: const Color(0xFF2E3A40),
       showDragHandle: true,
       builder: (context) => SafeArea(
         child: ListView(
@@ -475,9 +475,7 @@ class _MaintenanceActionGrid extends StatelessWidget {
         '🧰',
         AppActionColors.positive,
         () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => const MaintenanceWorkSourceScreen(),
-          ),
+          appNativeRoute<void>(context, const MaintenanceWorkSourceScreen()),
         ),
       ),
       _ActionSpec('Log Service', '🔧', AppActionColors.primary, () {}),
@@ -543,11 +541,7 @@ class _FlowButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            emoji,
-            textScaler: TextScaler.noScaling,
-            style: const TextStyle(fontSize: 19, height: 1),
-          ),
+          Text(emoji, style: const TextStyle(fontSize: 19, height: 1)),
           const SizedBox(width: 6),
           Flexible(
             child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -573,7 +567,7 @@ class _Panel extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: const Color(0xFFD3DBDE),
+        color: const Color(0xFFAAB4B9),
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: const Color(0xFF78858B)),
         boxShadow: const [

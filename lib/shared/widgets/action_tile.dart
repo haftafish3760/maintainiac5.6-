@@ -24,13 +24,13 @@ class ActionTile extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(5),
         onTap: onTap,
         child: Ink(
           height: height,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(5),
             border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
             boxShadow: [
               BoxShadow(

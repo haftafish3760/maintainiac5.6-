@@ -109,7 +109,7 @@ class _CalendarMonthYearPickerSheetState
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: const Color(0xFF20282C),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(5),
             border: Border.all(color: const Color(0xFF5E6A70), width: 1.2),
           ),
           child: Padding(

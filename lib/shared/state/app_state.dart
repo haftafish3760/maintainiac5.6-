@@ -64,25 +64,26 @@ class AppStateController extends ChangeNotifier {
       model: 'F-150',
     ),
     VehicleProfile(
-      nickname: 'Service Van',
-      year: '2020',
-      make: 'Chevrolet',
-      model: 'Express',
+      nickname: 'Work Truck 2',
+      year: '2021',
+      make: 'Ram',
+      model: '2500',
     ),
     VehicleProfile(
-      nickname: 'Backup SUV',
+      nickname: 'Backup Truck 1',
+      year: '2019',
+      make: 'Chevrolet',
+      model: 'Silverado',
+    ),
+    VehicleProfile(
+      nickname: 'Backup Truck 2',
       year: '2017',
       make: 'Toyota',
-      model: 'Highlander',
+      model: 'Tacoma',
     ),
   ];
   final List<MaintenanceRecord> _maintenance = <MaintenanceRecord>[];
-  VehicleProfile? _activeVehicle = VehicleProfile(
-    nickname: 'Work Truck 1',
-    year: '2018',
-    make: 'Ford',
-    model: 'F-150',
-  );
+  late VehicleProfile? _activeVehicle = _vehicles.first;
   WorkProfile? _activeWorkProfile = WorkProfile(name: 'Main Work');
 
   int get odometer => _odometer;

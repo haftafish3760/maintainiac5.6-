@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/navigation/app_page_routes.dart';
+import 'dashboard_detail_screen.dart';
+
 class PreDayStartContent extends StatelessWidget {
   const PreDayStartContent({super.key, required this.onStartDay});
 
@@ -7,162 +10,265 @@ class PreDayStartContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _StartMyDayPanel(onStartDay: onStartDay),
-        const SizedBox(height: 8),
-        const _WeeklyRecapPanel(),
-      ],
-    );
-  }
-}
-
-class _WeeklyRecapPanel extends StatelessWidget {
-  const _WeeklyRecapPanel();
-
-  @override
-  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(9, 8, 9, 9),
-        decoration: BoxDecoration(
-          color: const Color(0xFF242C30),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: const Color(0xFF566269)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x66000000),
-              blurRadius: 9,
-              offset: Offset(0, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const _TopReadouts(),
+          const SizedBox(height: 12),
+          const Text(
+            'READY TO TRACK',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFFE2E8EA),
+              fontSize: 13,
+              fontWeight: FontWeight.w900,
+              height: 1,
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            const Row(
-              children: [
-                Expanded(child: _SectionPlateTitle('Weekly recap')),
-                Text(
-                  'May 18-24',
-                  style: TextStyle(
-                    color: Color(0xFFC6D0D4),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 7),
-            const Row(
-              children: [
-                Expanded(
-                  child: _CompactRecapReadout(
-                    label: 'Gross',
-                    value: r'$2,184',
-                    color: Color(0xFF27D56B),
-                  ),
-                ),
-                SizedBox(width: 6),
-                Expanded(
-                  child: _CompactRecapReadout(
-                    label: 'Expenses',
-                    value: r'$421',
-                    color: Color(0xFFFF3B30),
-                  ),
-                ),
-                SizedBox(width: 6),
-                Expanded(
-                  child: _CompactRecapReadout(
-                    label: 'Profit',
-                    value: r'$1,763',
-                    color: Color(0xFF27D56B),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            const Row(
-              children: [
-                Expanded(
-                  child: _CompactRecapReadout(
-                    label: 'Miles',
-                    value: '386.4',
-                    color: Color(0xFF34A9E8),
-                  ),
-                ),
-                SizedBox(width: 6),
-                Expanded(
-                  child: _CompactRecapReadout(
-                    label: 'Pay/Hr',
-                    value: r'$44.80',
-                    color: Color(0xFF27D56B),
-                  ),
-                ),
-                SizedBox(width: 6),
-                Expanded(
-                  child: _CompactRecapReadout(
-                    label: 'Pay/Mi',
-                    value: r'$4.56',
-                    color: Color(0xFF27D56B),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          Center(child: _RoundStartDayButton(onPressed: onStartDay)),
+          const SizedBox(height: 14),
+          const _ActionReadoutRow(),
+        ],
       ),
     );
   }
 }
 
-class _StartMyDayPanel extends StatelessWidget {
-  const _StartMyDayPanel({required this.onStartDay});
-
-  final VoidCallback onStartDay;
+class _TopReadouts extends StatelessWidget {
+  const _TopReadouts();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFF20282C),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: const Color(0xFF536068)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x66000000),
-              blurRadius: 10,
-              offset: Offset(0, 4),
-            ),
-          ],
+    return const Row(
+      children: [
+        Expanded(
+          child: _MetricReadout(
+            label: 'Profit',
+            value: r'$1,763',
+            color: _green,
+          ),
         ),
-        child: Row(
-          children: [
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        SizedBox(width: 12),
+        Expanded(
+          child: _MetricReadout(label: 'Miles', value: '386.4', color: _blue),
+        ),
+      ],
+    );
+  }
+}
+
+class _MetricReadout extends StatelessWidget {
+  const _MetricReadout({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 76,
+      padding: const EdgeInsets.fromLTRB(12, 9, 12, 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF141A1D),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF627077), width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x55000000),
+            blurRadius: 7,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFFCAD2D5),
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 7),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: TextStyle(
+                color: color,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                height: 1,
+                shadows: [
+                  Shadow(color: color.withValues(alpha: 0.45), blurRadius: 8),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionReadoutRow extends StatelessWidget {
+  const _ActionReadoutRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        Expanded(
+          child: _ActionReadoutBlock(
+            title: 'Fuel',
+            icon: Icons.local_gas_station_rounded,
+            value: r'$126',
+            color: _red,
+            kind: DashboardDetailKind.fuel,
+          ),
+        ),
+        SizedBox(width: 12),
+        Expanded(
+          child: _ActionReadoutBlock(
+            title: 'Expenses',
+            icon: Icons.receipt_long_rounded,
+            value: r'$421',
+            color: _yellow,
+            kind: DashboardDetailKind.expenses,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionReadoutBlock extends StatelessWidget {
+  const _ActionReadoutBlock({
+    required this.title,
+    required this.icon,
+    required this.value,
+    required this.color,
+    required this.kind,
+  });
+
+  final String title;
+  final IconData icon;
+  final String value;
+  final Color color;
+  final DashboardDetailKind kind;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 6),
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFFE2E8EA),
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
+          ),
+        ),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _openAdd(context),
+            borderRadius: BorderRadius.circular(6),
+            child: Ink(
+              height: 78,
+              padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+              decoration: BoxDecoration(
+                color: const Color(0xFF151B1E),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFF627077), width: 1.2),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x66000000),
+                    blurRadius: 7,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
                 children: [
-                  _PanelTitle('Ready to track'),
-                  SizedBox(height: 4),
-                  Text(
-                    'Start the work day when you are ready to log miles, stops, fuel, and expenses.',
-                    style: TextStyle(
-                      color: Color(0xFFCAD2D5),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      height: 1.18,
+                  Icon(icon, color: color, size: 34),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Weekly total',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Color(0xFFCAD2D5),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            height: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 7),
+                        Text(
+                          value,
+                          maxLines: 1,
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            height: 1,
+                            shadows: [
+                              Shadow(
+                                color: color.withValues(alpha: 0.45),
+                                blurRadius: 8,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.add_rounded,
+                    color: Color(0xFFE2E8EA),
+                    size: 22,
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
-            _RoundStartDayButton(onPressed: onStartDay),
-          ],
+          ),
         ),
+      ],
+    );
+  }
+
+  void _openAdd(BuildContext context) {
+    Navigator.of(context).push(
+      appNativeRoute<void>(
+        context,
+        DashboardDetailScreen(kind: kind, startsInAddMode: true),
       ),
     );
   }
@@ -182,11 +288,11 @@ class _RoundStartDayButtonState extends State<_RoundStartDayButton> {
 
   @override
   Widget build(BuildContext context) {
-    final buttonSize = (MediaQuery.sizeOf(context).width * 0.24).clamp(
-      92.0,
-      108.0,
+    final buttonSize = (MediaQuery.sizeOf(context).width * 0.3).clamp(
+      116.0,
+      138.0,
     );
-    final innerSize = buttonSize - 12;
+    final innerSize = buttonSize - 16;
 
     return Semantics(
       button: true,
@@ -201,14 +307,12 @@ class _RoundStartDayButtonState extends State<_RoundStartDayButton> {
           onTapUp: (_) async {
             setState(() => _pressed = true);
             await Future<void>.delayed(const Duration(milliseconds: 120));
-            if (!mounted) {
-              return;
-            }
+            if (!mounted) return;
             setState(() => _pressed = false);
             widget.onPressed();
           },
           child: AnimatedScale(
-            scale: _pressed ? 0.92 : 1,
+            scale: _pressed ? 0.94 : 1,
             duration: const Duration(milliseconds: 90),
             curve: Curves.easeOut,
             child: AnimatedContainer(
@@ -218,15 +322,13 @@ class _RoundStartDayButtonState extends State<_RoundStartDayButton> {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _pressed
-                    ? const Color(0xFF0A0D0E)
-                    : const Color(0xFF121719),
+                color: const Color(0xFF121719),
                 border: Border.all(color: const Color(0xFFE3E8EA), width: 3),
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
-                    color: const Color(0xCC000000),
-                    blurRadius: _pressed ? 5 : 14,
-                    offset: Offset(0, _pressed ? 2 : 6),
+                    color: Color(0xCC000000),
+                    blurRadius: 14,
+                    offset: Offset(0, 6),
                   ),
                 ],
               ),
@@ -236,41 +338,27 @@ class _RoundStartDayButtonState extends State<_RoundStartDayButton> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _pressed
-                      ? const Color(0xFF101416)
-                      : const Color(0xFF171D20),
-                  border: Border.all(color: const Color(0xFF20F060), width: 5),
-                  boxShadow: [
+                  color: const Color(0xFF171D20),
+                  border: Border.all(color: _green, width: 5),
+                  boxShadow: const [
                     BoxShadow(
-                      color: const Color(0xAA20F060),
-                      blurRadius: _pressed ? 5 : 12,
-                      spreadRadius: _pressed ? 0 : 1,
-                    ),
-                    BoxShadow(
-                      color: const Color(0xAA000000),
-                      blurRadius: _pressed ? 3 : 5,
-                      offset: Offset(0, _pressed ? 1 : 3),
+                      color: Color(0xAA20F060),
+                      blurRadius: 12,
+                      spreadRadius: 1,
                     ),
                   ],
                 ),
-                child: const Padding(
-                  padding: EdgeInsets.fromLTRB(8, 11, 8, 5),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _StartButtonText(
-                        'START',
-                        color: Color(0xFFF2F6F7),
-                        fontSize: 18,
-                      ),
-                      SizedBox(height: 3),
-                      _StartButtonText(
-                        'DAY',
-                        color: Color(0xFF20F060),
-                        fontSize: 20,
-                      ),
-                    ],
-                  ),
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _StartButtonText(
+                      'START',
+                      color: Color(0xFFF2F6F7),
+                      fontSize: 20,
+                    ),
+                    SizedBox(height: 4),
+                    _StartButtonText('DAY', color: _green, fontSize: 23),
+                  ],
                 ),
               ),
             ),
@@ -296,7 +384,6 @@ class _StartButtonText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      textScaler: TextScaler.noScaling,
       maxLines: 1,
       style: TextStyle(
         color: color,
@@ -314,120 +401,7 @@ class _StartButtonText extends StatelessWidget {
   }
 }
 
-class _PanelTitle extends StatelessWidget {
-  const _PanelTitle(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      textAlign: TextAlign.center,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-        color: const Color(0xFFE2E8EA),
-        fontWeight: FontWeight.w900,
-        letterSpacing: 0,
-      ),
-    );
-  }
-}
-
-class _SectionPlateTitle extends StatelessWidget {
-  const _SectionPlateTitle(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text.toUpperCase(),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: const Color(0xFFE2E8EA),
-          fontSize: 13,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 0,
-        ),
-      ),
-    );
-  }
-}
-
-class _CompactRecapReadout extends StatelessWidget {
-  const _CompactRecapReadout({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final String label;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 50,
-      padding: const EdgeInsets.fromLTRB(5, 4, 5, 5),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A2023),
-        borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: const Color(0xFF4D5960)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Color(0xFFE2E8EA),
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Expanded(
-            child: Container(
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              decoration: BoxDecoration(
-                color: const Color(0xFF050806),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: const Color(0xFF26331E), width: 1.1),
-              ),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  value,
-                  maxLines: 1,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    height: 1,
-                    letterSpacing: 0,
-                    shadows: [
-                      Shadow(
-                        color: color.withValues(alpha: 0.38),
-                        blurRadius: 7,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+const _green = Color(0xFF20F060);
+const _blue = Color(0xFF34A9E8);
+const _red = Color(0xFFFF5750);
+const _yellow = Color(0xFFFFD166);

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../shared/state/app_state.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/widgets/app_back_button.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/industrial_panel.dart';
+import '../../shared/widgets/record_form_fields.dart' show RecordDropdownField;
 import '../../shared/widgets/record_text_field.dart';
 import 'maintenance_models.dart';
 
@@ -39,7 +41,6 @@ class _MaintenanceItemSetupScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Maintenance Item Setup')),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -52,6 +53,8 @@ class _MaintenanceItemSetupScreenState
           child: ListView(
             padding: const EdgeInsets.all(10),
             children: [
+              const AppScreenHeader(title: 'Maintenance Item Setup'),
+              const SizedBox(height: 10),
               for (final item in widget.items)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -160,26 +163,17 @@ class _ItemSetupPanelState extends State<_ItemSetupPanel> {
           ],
           const SizedBox(height: 10),
           if (state.vehicles.length > 1)
-            DropdownButtonFormField<String>(
-              initialValue: draft.vehicleName.isEmpty
-                  ? state.activeVehicle?.nickname
+            RecordDropdownField<String>(
+              label: 'Vehicle',
+              value: draft.vehicleName.isEmpty
+                  ? state.activeVehicle?.nickname ??
+                        state.vehicles.first.nickname
                   : draft.vehicleName,
-              decoration: const InputDecoration(labelText: 'Vehicle'),
-              dropdownColor: AppColors.field,
-              style: const TextStyle(
-                color: AppColors.ink,
-                fontWeight: FontWeight.w800,
-              ),
-              items: state.vehicles
-                  .map(
-                    (vehicle) => DropdownMenuItem(
-                      value: vehicle.nickname,
-                      child: Text(vehicle.displayName),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) =>
-                  setState(() => draft.vehicleName = value ?? ''),
+              items: state.vehicles.map((vehicle) => vehicle.nickname).toList(),
+              itemLabel: (nickname) => state.vehicles
+                  .firstWhere((vehicle) => vehicle.nickname == nickname)
+                  .displayName,
+              onChanged: (value) => setState(() => draft.vehicleName = value),
             ),
           const SizedBox(height: 8),
           const Text(
@@ -327,19 +321,14 @@ class _MilesDropdown extends StatelessWidget {
       60000,
       100000,
     ];
-    return DropdownButtonFormField<int>(
-      initialValue: values.contains(draft.intervalMiles)
+    return RecordDropdownField<int>(
+      label: 'Miles interval',
+      value: values.contains(draft.intervalMiles)
           ? draft.intervalMiles
-          : null,
-      decoration: const InputDecoration(labelText: 'Miles interval'),
-      dropdownColor: AppColors.field,
-      style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800),
-      items: values
-          .map((value) => DropdownMenuItem(value: value, child: Text('$value')))
-          .toList(),
-      onChanged: (value) {
-        if (value != null) draft.intervalMiles = value;
-      },
+          : values.first,
+      items: values,
+      itemLabel: (value) => '$value',
+      onChanged: (value) => draft.intervalMiles = value,
     );
   }
 }
@@ -352,22 +341,14 @@ class _MonthsDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final values = [3, 6, 9, 12, 18, 24, 36, 48, 60];
-    return DropdownButtonFormField<int>(
-      initialValue: values.contains(draft.intervalMonths)
+    return RecordDropdownField<int>(
+      label: 'Time interval',
+      value: values.contains(draft.intervalMonths)
           ? draft.intervalMonths
-          : null,
-      decoration: const InputDecoration(labelText: 'Time interval'),
-      dropdownColor: AppColors.field,
-      style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800),
-      items: values
-          .map(
-            (value) =>
-                DropdownMenuItem(value: value, child: Text('$value months')),
-          )
-          .toList(),
-      onChanged: (value) {
-        if (value != null) draft.intervalMonths = value;
-      },
+          : values.first,
+      items: values,
+      itemLabel: (value) => '$value months',
+      onChanged: (value) => draft.intervalMonths = value,
     );
   }
 }
@@ -389,7 +370,7 @@ class _DueRecap extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(5),
       ),
       child: Text(
         '$remaining miles remaining • Due at odometer $dueOdometer',

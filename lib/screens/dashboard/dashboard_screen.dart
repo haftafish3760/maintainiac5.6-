@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/state/app_state.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/widgets/action_tile.dart';
+import '../../shared/widgets/app_back_button.dart';
 import '../../shared/widgets/app_scaffold.dart';
-import '../../shared/widgets/dashboard_calendar.dart';
 import '../../shared/widgets/industrial_panel.dart';
+import 'calendar.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -29,9 +31,9 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _QuickActions(
             onMaintenance: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) =>
-                    const _QuickActionPlaceholder(title: 'Maintenance Event'),
+              appNativeRoute(
+                context,
+                const _QuickActionPlaceholder(title: 'Maintenance Event'),
               ),
             ),
           ),
@@ -43,23 +45,9 @@ class DashboardScreen extends StatelessWidget {
   }
 
   void _startDay(BuildContext context) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 350),
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _ActiveDayScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final slide =
-              Tween<Offset>(
-                begin: const Offset(0, -1),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-              );
-          return SlideTransition(position: slide, child: child);
-        },
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(appNativeRoute(context, const _ActiveDayScreen()));
   }
 }
 
@@ -400,8 +388,12 @@ class _QuickActionPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: const Center(child: Text('Flow shell')),
+      body: Column(
+        children: [
+          AppScreenHeader(title: title),
+          const Expanded(child: Center(child: Text('Flow shell'))),
+        ],
+      ),
     );
   }
 }

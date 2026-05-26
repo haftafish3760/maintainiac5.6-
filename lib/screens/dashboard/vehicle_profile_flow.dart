@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/theme/app_action_colors.dart';
-import 'vehicle_profile_detail_screen.dart';
+import '../../shared/widgets/app_back_button.dart';
+import 'vehicle_profile_detail.dart';
 import 'vehicle_profile_widgets.dart';
 
 const _savedVehiclePreviews = [
@@ -51,11 +53,7 @@ class ActiveVehicleDrawer extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
             child: Row(
               children: [
-                const Text(
-                  '🚚',
-                  textScaler: TextScaler.noScaling,
-                  style: TextStyle(fontSize: 20, height: 1),
-                ),
+                const Text('🚚', style: TextStyle(fontSize: 20, height: 1)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -89,7 +87,10 @@ class ActiveVehicleDrawer extends StatelessWidget {
 
   Future<void> _openSavedVehicles(BuildContext context) async {
     final selected = await Navigator.of(context).push<VehicleProfilePreview>(
-      _vehicleRoute(SavedVehiclesScreen(activeVehicle: activeVehicle)),
+      appNativeRoute(
+        context,
+        SavedVehiclesScreen(activeVehicle: activeVehicle),
+      ),
     );
 
     if (selected != null) {
@@ -116,15 +117,13 @@ class _SavedVehiclesScreenState extends State<SavedVehiclesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
-      appBar: AppBar(
-        title: const Text('Saved Vehicles'),
-        backgroundColor: const Color(0xFF101416),
-        foregroundColor: const Color(0xFFE2E8EA),
-      ),
+
       body: VehicleFormBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(12, 16, 12, 18),
           children: [
+            const AppScreenHeader(title: 'Saved Vehicles'),
+            const SizedBox(height: 12),
             const VehicleSectionPlateTitle('VEHICLE PROFILES'),
             const SizedBox(height: 12),
             const VehicleHelperText(
@@ -146,7 +145,7 @@ class _SavedVehiclesScreenState extends State<SavedVehiclesScreen> {
                   _openVehicleProfile(context, _selectedVehicle),
               onAddVehicle: () => Navigator.of(
                 context,
-              ).push(_vehicleRoute(const AddVehicleProfileScreen())),
+              ).push(appNativeRoute(context, const AddVehicleProfileScreen())),
             ),
           ],
         ),
@@ -166,9 +165,9 @@ class _SavedVehiclesScreenState extends State<SavedVehiclesScreen> {
     BuildContext context,
     VehicleProfilePreview vehicle,
   ) {
-    Navigator.of(
-      context,
-    ).push(_vehicleRoute(VehicleProfileDetailScreen(vehicle: vehicle)));
+    Navigator.of(context).push(
+      appNativeRoute(context, VehicleProfileDetailScreen(vehicle: vehicle)),
+    );
   }
 }
 
@@ -281,15 +280,13 @@ class _AddVehicleProfileScreenState extends State<AddVehicleProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
-      appBar: AppBar(
-        title: const Text('Add Vehicle'),
-        backgroundColor: const Color(0xFF101416),
-        foregroundColor: const Color(0xFFE2E8EA),
-      ),
+
       body: VehicleFormBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(12, 16, 12, 18),
           children: [
+            const AppScreenHeader(title: 'Add Vehicle'),
+            const SizedBox(height: 12),
             const VehicleSectionPlateTitle('MANUAL VEHICLE DETAILS'),
             const SizedBox(height: 18),
             const VehicleHelperText(
@@ -365,20 +362,4 @@ class _AddVehicleProfileScreenState extends State<AddVehicleProfileScreen> {
       ),
     );
   }
-}
-
-Route<T> _vehicleRoute<T>(Widget screen) {
-  return PageRouteBuilder<T>(
-    pageBuilder: (context, animation, secondaryAnimation) => screen,
-    reverseTransitionDuration: const Duration(milliseconds: 220),
-    transitionDuration: const Duration(milliseconds: 260),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final tween = Tween<Offset>(
-        begin: const Offset(1, 0),
-        end: Offset.zero,
-      ).chain(CurveTween(curve: Curves.easeOutCubic));
-
-      return SlideTransition(position: animation.drive(tween), child: child);
-    },
-  );
 }

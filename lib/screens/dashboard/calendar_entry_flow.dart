@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/theme/app_action_colors.dart';
+import '../../shared/widgets/app_back_button.dart';
 import 'calendar_flow_models.dart';
 import 'calendar_flow_widgets.dart';
 
@@ -9,35 +11,41 @@ class CalendarEntryTypeSelectorScreen extends StatelessWidget {
     super.key,
     required this.day,
     required this.mode,
+    this.source = CalendarFlowSource.dashboard,
   });
 
   final DateTime day;
   final CalendarDayMode mode;
+  final CalendarFlowSource source;
 
   @override
   Widget build(BuildContext context) {
-    final types = calendarTypesForMode(mode);
+    final types = calendarTypesForSource(mode, source);
 
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
-      appBar: AppBar(
-        title: Text(calendarSelectorTitle(mode)),
-        backgroundColor: const Color(0xFF101416),
-        foregroundColor: const Color(0xFFE2E8EA),
-      ),
+
       body: SafeArea(
         top: false,
         child: ListView(
           padding: const EdgeInsets.all(12),
           children: [
+            AppScreenHeader(title: calendarSelectorTitleFor(mode, source)),
+            const SizedBox(height: 12),
             CalendarStatusPanel(
               icon: Icons.calendar_month_rounded,
               title: calendarDateTitle(day),
-              subtitle:
-                  'Anything added here stays attached to this selected date.',
+              subtitle: source == CalendarFlowSource.expenses
+                  ? 'Add receipts, payments, reminders, and expense corrections for this date.'
+                  : 'Anything added here stays attached to this selected date.',
             ),
             const SizedBox(height: 12),
-            CalendarEntryTypeGrid(day: day, mode: mode, types: types),
+            CalendarEntryTypeGrid(
+              day: day,
+              mode: mode,
+              source: source,
+              types: types,
+            ),
           ],
         ),
       ),
@@ -51,11 +59,13 @@ class CalendarEntryDraftScreen extends StatelessWidget {
     required this.day,
     required this.mode,
     required this.type,
+    this.source = CalendarFlowSource.dashboard,
   });
 
   final DateTime day;
   final CalendarDayMode mode;
   final CalendarEntryType type;
+  final CalendarFlowSource source;
 
   @override
   Widget build(BuildContext context) {
@@ -63,20 +73,20 @@ class CalendarEntryDraftScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
-      appBar: AppBar(
-        title: Text(meta.label),
-        backgroundColor: const Color(0xFF101416),
-        foregroundColor: const Color(0xFFE2E8EA),
-      ),
+
       body: SafeArea(
         top: false,
         child: ListView(
           padding: const EdgeInsets.all(12),
           children: [
+            AppScreenHeader(title: meta.label),
+            const SizedBox(height: 12),
             CalendarStatusPanel(
               icon: meta.icon,
               title: '${meta.label} for ${calendarDateTitle(day)}',
-              subtitle: calendarDraftSubtitle(mode),
+              subtitle: source == CalendarFlowSource.expenses
+                  ? 'Expense calendar entry: keep this date, category, receipt, and reminder history together.'
+                  : calendarDraftSubtitle(mode),
             ),
             const SizedBox(height: 14),
             CalendarSectionTitle(_draftSectionTitle(mode)),
@@ -196,11 +206,13 @@ class CalendarEntryDetailScreen extends StatelessWidget {
     required this.day,
     required this.mode,
     required this.entry,
+    this.source = CalendarFlowSource.dashboard,
   });
 
   final DateTime day;
   final CalendarDayMode mode;
   final CalendarTimelineEntry entry;
+  final CalendarFlowSource source;
 
   @override
   Widget build(BuildContext context) {
@@ -208,25 +220,25 @@ class CalendarEntryDetailScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
-      appBar: AppBar(
-        title: Text(meta.label),
-        backgroundColor: const Color(0xFF101416),
-        foregroundColor: const Color(0xFFE2E8EA),
-      ),
+
       body: SafeArea(
         top: false,
         child: ListView(
           padding: const EdgeInsets.all(12),
           children: [
+            AppScreenHeader(title: meta.label),
+            const SizedBox(height: 12),
             CalendarEntryDetailPanel(
               entry: entry,
               onEdit: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => CalendarEntryDraftScreen(
+                  appNativeRoute<void>(
+                    context,
+                    CalendarEntryDraftScreen(
                       day: day,
                       mode: mode,
                       type: entry.type,
+                      source: source,
                     ),
                   ),
                 );
@@ -240,11 +252,13 @@ class CalendarEntryDetailScreen extends StatelessWidget {
               label: 'Edit / Correct',
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => CalendarEntryDraftScreen(
+                  appNativeRoute<void>(
+                    context,
+                    CalendarEntryDraftScreen(
                       day: day,
                       mode: mode,
                       type: entry.type,
+                      source: source,
                     ),
                   ),
                 );
@@ -255,10 +269,13 @@ class CalendarEntryDetailScreen extends StatelessWidget {
               label: 'Attach related entry',
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    fullscreenDialog: true,
-                    builder: (_) =>
-                        CalendarEntryTypeSelectorScreen(day: day, mode: mode),
+                  appNativeRoute<void>(
+                    context,
+                    CalendarEntryTypeSelectorScreen(
+                      day: day,
+                      mode: mode,
+                      source: source,
+                    ),
                   ),
                 );
               },
@@ -305,11 +322,13 @@ class CalendarEntryTypeGrid extends StatelessWidget {
     super.key,
     required this.day,
     required this.mode,
+    required this.source,
     required this.types,
   });
 
   final DateTime day;
   final CalendarDayMode mode;
+  final CalendarFlowSource source;
   final List<CalendarEntryType> types;
 
   @override
@@ -332,6 +351,7 @@ class CalendarEntryTypeGrid extends StatelessWidget {
                 child: _CalendarEntryTypeButton(
                   day: day,
                   mode: mode,
+                  source: source,
                   type: type,
                 ),
               ),
@@ -346,11 +366,13 @@ class _CalendarEntryTypeButton extends StatelessWidget {
   const _CalendarEntryTypeButton({
     required this.day,
     required this.mode,
+    required this.source,
     required this.type,
   });
 
   final DateTime day;
   final CalendarDayMode mode;
+  final CalendarFlowSource source;
   final CalendarEntryType type;
 
   @override
@@ -366,9 +388,14 @@ class _CalendarEntryTypeButton extends StatelessWidget {
       child: InkWell(
         onTap: () {
           Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) =>
-                  CalendarEntryDraftScreen(day: day, mode: mode, type: type),
+            appNativeRoute<void>(
+              context,
+              CalendarEntryDraftScreen(
+                day: day,
+                mode: mode,
+                source: source,
+                type: type,
+              ),
             ),
           );
         },

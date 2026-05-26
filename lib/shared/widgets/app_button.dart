@@ -31,7 +31,7 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textScale = MediaQuery.textScalerOf(context).scale(1);
-    final radius = BorderRadius.circular(8);
+    final radius = BorderRadius.circular(5);
     final child = Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,

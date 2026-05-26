@@ -1,7 +1,30 @@
 import 'calendar_flow_models.dart';
 
-CalendarDayData calendarDummyDataFor(DateTime day, CalendarDayMode mode) {
+CalendarDayData calendarDummyDataFor(
+  DateTime day,
+  CalendarDayMode mode, {
+  CalendarFlowSource source = CalendarFlowSource.dashboard,
+}) {
   final normalized = DateTime(day.year, day.month, day.day);
+
+  if (source == CalendarFlowSource.expenses) {
+    return CalendarDayData(
+      recapItems: switch (mode) {
+        CalendarDayMode.future => const [],
+        CalendarDayMode.past || CalendarDayMode.today => const [
+          CalendarRecapItem(label: 'Business', value: r'$485'),
+          CalendarRecapItem(label: 'Personal', value: r'$62'),
+          CalendarRecapItem(label: 'Receipts', value: '4'),
+          CalendarRecapItem(label: 'Drafts', value: '1'),
+        ],
+      },
+      entries: switch (mode) {
+        CalendarDayMode.past => _expenseEntries(normalized),
+        CalendarDayMode.today => _expenseTodayEntries(normalized),
+        CalendarDayMode.future => _expenseFutureEntries(normalized),
+      },
+    );
+  }
 
   return CalendarDayData(
     recapItems: switch (mode) {
@@ -19,6 +42,115 @@ CalendarDayData calendarDummyDataFor(DateTime day, CalendarDayMode mode) {
       CalendarDayMode.future => _futureEntries(normalized),
     },
   );
+}
+
+List<CalendarTimelineEntry> _expenseEntries(DateTime day) {
+  return [
+    _entry(
+      day: day,
+      hour: 8,
+      minute: 20,
+      type: CalendarEntryType.expense,
+      status: CalendarEntryStatus.completed,
+      title: 'Vehicle payment',
+      source: 'Expenses',
+      summary: r'Business - $485.00',
+      details: [
+        'Category: Vehicle Payment',
+        'Classification: Business',
+        r'Amount: $485.00',
+      ],
+    ),
+    _entry(
+      day: day,
+      hour: 10,
+      minute: 15,
+      type: CalendarEntryType.expense,
+      status: CalendarEntryStatus.needsAttention,
+      title: 'Fuel receipt',
+      source: 'Expenses',
+      summary: r'Shell - $45.00 total',
+      details: [
+        'Category: Fuel',
+        'Merchant: Shell',
+        r'Amount: $45.00',
+        'Receipt photos: 2',
+        'Fill status: Partial fill',
+      ],
+    ),
+    _entry(
+      day: day,
+      hour: 13,
+      minute: 5,
+      type: CalendarEntryType.payment,
+      status: CalendarEntryStatus.completed,
+      title: 'Platform fee',
+      source: 'Expenses',
+      summary: r'Square - $6.42 fee',
+      details: [
+        'Category: Fees / Licenses',
+        r'Amount: $6.42',
+        'Linked payout: Today',
+      ],
+    ),
+  ];
+}
+
+List<CalendarTimelineEntry> _expenseTodayEntries(DateTime day) {
+  return [
+    _entry(
+      day: day,
+      hour: 9,
+      minute: 0,
+      type: CalendarEntryType.reminderSchedule,
+      status: CalendarEntryStatus.planned,
+      title: 'Insurance payment reminder',
+      source: 'Expenses',
+      summary: 'Due this afternoon',
+      details: [
+        'Category: Insurance',
+        'Reminder: In app',
+        'Repeats monthly when enabled',
+      ],
+    ),
+    _entry(
+      day: day,
+      hour: 10,
+      minute: 10,
+      type: CalendarEntryType.expense,
+      status: CalendarEntryStatus.needsAttention,
+      title: 'Fuel receipt',
+      source: 'Expenses',
+      summary: r'Shell - $45.00 total',
+      details: [
+        'Category: Fuel',
+        'Merchant: Shell',
+        r'Amount: $45.00',
+        'Receipt photos: 1',
+        'Fill status: Topped off',
+      ],
+    ),
+  ];
+}
+
+List<CalendarTimelineEntry> _expenseFutureEntries(DateTime day) {
+  return [
+    _entry(
+      day: day,
+      hour: 8,
+      minute: 30,
+      type: CalendarEntryType.reminderSchedule,
+      status: CalendarEntryStatus.planned,
+      title: 'Recurring vehicle payment',
+      source: 'Expenses',
+      summary: 'Monthly reminder',
+      details: [
+        'Category: Vehicle Payment',
+        'Repeats monthly',
+        'Can create expense draft when due',
+      ],
+    ),
+  ];
 }
 
 List<CalendarTimelineEntry> _pastEntries(DateTime day) {
@@ -74,12 +206,15 @@ List<CalendarTimelineEntry> _pastEntries(DateTime day) {
       minute: 15,
       type: CalendarEntryType.expense,
       status: CalendarEntryStatus.needsAttention,
-      title: 'Fuel expense',
+      title: 'Fuel receipt',
       source: 'Expenses',
-      summary: r'$45.00, receipt photo missing',
+      summary: r'Shell - $45.00 total',
       details: [
         'Category: Fuel',
+        'Merchant: Shell',
         r'Amount: $45.00',
+        'Receipt photos: 2',
+        'Fill status: Partial fill',
         'Needs receipt photo attached',
       ],
     ),
@@ -169,12 +304,15 @@ List<CalendarTimelineEntry> _todayEntries(DateTime day) {
       minute: 10,
       type: CalendarEntryType.expense,
       status: CalendarEntryStatus.needsAttention,
-      title: 'Fuel expense',
+      title: 'Fuel receipt',
       source: 'Expenses',
-      summary: r'$45.00, receipt needed',
+      summary: r'Shell - $45.00 total',
       details: [
         'Category: Fuel',
+        'Merchant: Shell',
         r'Amount: $45.00',
+        'Receipt photos: 1',
+        'Fill status: Topped off',
         'Receipt photo not attached yet',
       ],
     ),

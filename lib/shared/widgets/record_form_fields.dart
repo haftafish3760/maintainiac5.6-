@@ -14,7 +14,7 @@ class RecordFormPanel extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFF2E3A40),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(3),
         border: Border.all(color: const Color(0xFF66737A)),
         boxShadow: const [
           BoxShadow(
@@ -45,6 +45,7 @@ class RecordTextField extends StatelessWidget {
     this.nextFocusNode,
     this.validator,
     this.onFieldSubmitted,
+    this.onChanged,
     this.inputFormatters,
   });
 
@@ -58,6 +59,7 @@ class RecordTextField extends StatelessWidget {
   final FocusNode? nextFocusNode;
   final String? Function(String? value)? validator;
   final ValueChanged<String>? onFieldSubmitted;
+  final ValueChanged<String>? onChanged;
   final List<TextInputFormatter>? inputFormatters;
 
   @override
@@ -87,6 +89,7 @@ class RecordTextField extends StatelessWidget {
               textInputAction: textInputAction,
               inputFormatters: inputFormatters,
               validator: validator,
+              onChanged: onChanged,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               onFieldSubmitted: (value) {
                 if (nextFocusNode != null) {
@@ -102,35 +105,35 @@ class RecordTextField extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: hintText,
                 filled: true,
-                fillColor: const Color(0xFFC0C8CC),
+                fillColor: const Color(0xFFAAB4B9),
                 contentPadding: const EdgeInsets.fromLTRB(12, 14, 12, 10),
                 errorStyle: const TextStyle(
                   color: Color(0xFFFFD4D4),
                   fontWeight: FontWeight.w800,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(3),
                   borderSide: const BorderSide(color: Color(0xFF879299)),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(3),
                   borderSide: const BorderSide(
                     color: Color(0xFFE2E8EA),
                     width: 2,
                   ),
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(3),
                 ),
                 errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(3),
                   borderSide: const BorderSide(
                     color: Color(0xFFD32222),
                     width: 2,
                   ),
                 ),
                 focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(3),
                   borderSide: const BorderSide(
                     color: Color(0xFFD32222),
                     width: 2,
@@ -149,6 +152,82 @@ class RecordTextField extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+class RecordDropdownField<T> extends StatelessWidget {
+  const RecordDropdownField({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.itemLabel,
+    required this.onChanged,
+  });
+
+  final String label;
+  final T value;
+  final List<T> items;
+  final String Function(T item) itemLabel;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        DropdownButtonFormField<T>(
+          initialValue: value,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: const Color(0xFFAAB4B9),
+            contentPadding: const EdgeInsets.fromLTRB(12, 14, 12, 10),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(3),
+              borderSide: const BorderSide(color: Color(0xFF879299)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(3),
+              borderSide: const BorderSide(color: Color(0xFFE2E8EA), width: 2),
+            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(3)),
+          ),
+          dropdownColor: const Color(0xFFAAB4B9),
+          iconEnabledColor: const Color(0xFF101416),
+          style: const TextStyle(
+            color: Color(0xFF101416),
+            fontWeight: FontWeight.w800,
+          ),
+          items: items
+              .map(
+                (item) => DropdownMenuItem<T>(
+                  value: item,
+                  child: Text(
+                    itemLabel(item),
+                    style: const TextStyle(
+                      color: Color(0xFF101416),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: (selected) {
+            if (selected != null) onChanged(selected);
+          },
+        ),
+        Positioned(
+          left: 8,
+          right: 8,
+          top: -8,
+          child: StructuralBorderLabel(
+            label: label,
+            alignment: Alignment.centerLeft,
+            maxWidthFactor: 0.48,
+          ),
         ),
       ],
     );

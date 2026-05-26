@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../../shared/widgets/flow_placeholder_screen.dart';
 import 'active_workday_actions.dart';
@@ -85,9 +86,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                     const Expanded(child: _SectionLabel('QUICK ACTIONS')),
                     IconButton(
                       onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) =>
-                              const ActiveWorkdayQuickActionEditor(),
+                        appNativeRoute<void>(
+                          context,
+                          const ActiveWorkdayQuickActionEditor(),
                         ),
                       ),
                       tooltip: 'Edit quick actions',
@@ -186,11 +187,7 @@ class _WorkProfilePanel extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(8, 8, 7, 8),
           child: Row(
             children: [
-              const Text(
-                '💼',
-                textScaler: TextScaler.noScaling,
-                style: TextStyle(fontSize: 18, height: 1),
-              ),
+              const Text('💼', style: TextStyle(fontSize: 18, height: 1)),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -284,7 +281,7 @@ class _QuickActionButton extends StatelessWidget {
         summary: action.flowSummary,
         requiresOdometer: action.requiresOdometer,
       ),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(5),
       child: Column(
         children: [
           Container(
@@ -293,7 +290,7 @@ class _QuickActionButton extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: action.color,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(5),
               boxShadow: [
                 BoxShadow(
                   color: action.color.withValues(alpha: 0.42),
@@ -304,7 +301,6 @@ class _QuickActionButton extends StatelessWidget {
             ),
             child: Text(
               action.emoji,
-              textScaler: TextScaler.noScaling,
               style: const TextStyle(fontSize: 29, height: 1),
             ),
           ),
@@ -415,8 +411,9 @@ void _openFlow(
   required bool requiresOdometer,
 }) {
   Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => FlowPlaceholderScreen(
+    appNativeRoute<void>(
+      context,
+      FlowPlaceholderScreen(
         title: title,
         icon: icon,
         summary: summary,

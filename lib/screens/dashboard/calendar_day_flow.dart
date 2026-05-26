@@ -1,29 +1,32 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/navigation/app_page_routes.dart';
+import '../../shared/widgets/app_back_button.dart';
 import 'calendar_dummy_data.dart';
 import 'calendar_entry_flow.dart';
 import 'calendar_flow_models.dart';
 import 'calendar_flow_widgets.dart';
 
 class CalendarDayFlowScreen extends StatelessWidget {
-  const CalendarDayFlowScreen({super.key, required this.day});
+  const CalendarDayFlowScreen({
+    super.key,
+    required this.day,
+    this.source = CalendarFlowSource.dashboard,
+  });
 
   final DateTime day;
+  final CalendarFlowSource source;
 
   @override
   Widget build(BuildContext context) {
     final selectedDay = DateUtils.dateOnly(day);
     final mode = calendarModeFor(selectedDay);
     final profile = calendarModeProfileFor(mode);
-    final data = calendarDummyDataFor(selectedDay, mode);
+    final data = calendarDummyDataFor(selectedDay, mode, source: source);
 
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
-      appBar: AppBar(
-        title: Text(calendarDateTitle(selectedDay)),
-        backgroundColor: const Color(0xFF101416),
-        foregroundColor: const Color(0xFFE2E8EA),
-      ),
+
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: profile.fabColor,
         foregroundColor: profile.fabForeground,
@@ -36,6 +39,8 @@ class CalendarDayFlowScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 92),
           children: [
+            AppScreenHeader(title: _screenTitle(selectedDay)),
+            const SizedBox(height: 12),
             CalendarModeHeader(day: selectedDay, profile: profile),
             const SizedBox(height: 12),
             ..._sectionsForMode(context, selectedDay, mode, data),
@@ -70,7 +75,9 @@ class CalendarDayFlowScreen extends StatelessWidget {
       CalendarRecapStrip(items: data.recapItems),
       const SizedBox(height: 14),
       CalendarSectionTitle.withAction(
-        label: 'CHRONOLOGICAL ENTRIES',
+        label: source == CalendarFlowSource.expenses
+            ? 'EXPENSE ENTRIES'
+            : 'CHRONOLOGICAL ENTRIES',
         actionLabel: 'Add missed entry',
         onPressed: () => _openEntrySelector(context, day, mode),
       ),
@@ -172,8 +179,11 @@ class CalendarDayFlowScreen extends StatelessWidget {
       ];
     }
 
+    final sortedEntries = [...entries]
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
     return [
-      for (final entry in entries)
+      for (final entry in sortedEntries)
         CalendarTimelineItem(
           entry: entry,
           onTap: () => _openEntryDetail(context, day, mode, entry),
@@ -187,9 +197,9 @@ class CalendarDayFlowScreen extends StatelessWidget {
     CalendarDayMode mode,
   ) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        fullscreenDialog: true,
-        builder: (_) => CalendarEntryTypeSelectorScreen(day: day, mode: mode),
+      appNativeRoute<void>(
+        context,
+        CalendarEntryTypeSelectorScreen(day: day, mode: mode, source: source),
       ),
     );
   }
@@ -201,9 +211,14 @@ class CalendarDayFlowScreen extends StatelessWidget {
     CalendarEntryType type,
   ) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) =>
-            CalendarEntryDraftScreen(day: day, mode: mode, type: type),
+      appNativeRoute<void>(
+        context,
+        CalendarEntryDraftScreen(
+          day: day,
+          mode: mode,
+          type: type,
+          source: source,
+        ),
       ),
     );
   }
@@ -215,10 +230,20 @@ class CalendarDayFlowScreen extends StatelessWidget {
     CalendarTimelineEntry entry,
   ) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) =>
-            CalendarEntryDetailScreen(day: day, mode: mode, entry: entry),
+      appNativeRoute<void>(
+        context,
+        CalendarEntryDetailScreen(
+          day: day,
+          mode: mode,
+          entry: entry,
+          source: source,
+        ),
       ),
     );
+  }
+
+  String _screenTitle(DateTime selectedDay) {
+    final prefix = source == CalendarFlowSource.expenses ? 'Expenses ' : '';
+    return '$prefix${calendarDateTitle(selectedDay)}';
   }
 }

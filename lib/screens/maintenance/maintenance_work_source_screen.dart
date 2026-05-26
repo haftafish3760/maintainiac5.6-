@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/theme/app_action_colors.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/widgets/app_back_button.dart';
 import '../../shared/widgets/app_button.dart';
 import 'maintenance_models.dart';
 import 'maintenance_setup_screen.dart';
@@ -20,7 +22,6 @@ class _MaintenanceWorkSourceScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Maintenance Setup')),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -60,6 +61,8 @@ class _MaintenanceTrackingSelectionPanelState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const AppScreenHeader(title: 'Maintenance Setup'),
+          const SizedBox(height: 10),
           const Text(
             'Welcome to Maintenance',
             style: TextStyle(
@@ -142,8 +145,9 @@ class _MaintenanceTrackingSelectionPanelState
 
   void _continue() {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => MaintenanceSetupScreen(
+      appNativeRoute<void>(
+        context,
+        MaintenanceSetupScreen(
           workSource: WorkSource.me,
           initialItems: _selected.toList(),
         ),
@@ -169,7 +173,7 @@ class _MaintenanceSetupSurface extends StatelessWidget {
           colors: [Color(0xFF303A3E), Color(0xFF20282B), Color(0xFF151B1D)],
           stops: [0, 0.55, 1],
         ),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(5),
         border: Border.all(color: const Color(0xFF67747A), width: 1.4),
         boxShadow: const [
           BoxShadow(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/widgets/flow_placeholder_screen.dart';
 import 'vehicle_profile_flow.dart';
 import 'vehicle_profile_widgets.dart';
@@ -37,11 +38,11 @@ class DashboardContextSelectors extends StatelessWidget {
   }
 }
 
-class AlertCenterStrip extends StatefulWidget {
-  const AlertCenterStrip({super.key});
+class MessageBoardStrip extends StatefulWidget {
+  const MessageBoardStrip({super.key});
 
   @override
-  State<AlertCenterStrip> createState() => _AlertCenterStripState();
+  State<MessageBoardStrip> createState() => _MessageBoardStripState();
 }
 
 class _WorkProfileDrawer extends StatelessWidget {
@@ -60,11 +61,7 @@ class _WorkProfileDrawer extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(8, 8, 7, 8),
           child: Row(
             children: [
-              const Text(
-                '💼',
-                textScaler: TextScaler.noScaling,
-                style: TextStyle(fontSize: 18, height: 1),
-              ),
+              const Text('💼', style: TextStyle(fontSize: 18, height: 1)),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -88,8 +85,9 @@ class _WorkProfileDrawer extends StatelessWidget {
 
   void _openWorkProfiles(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const FlowPlaceholderScreen(
+      appNativeRoute<void>(
+        context,
+        const FlowPlaceholderScreen(
           title: 'Work Profiles',
           icon: Icons.work_rounded,
           summary:
@@ -105,7 +103,7 @@ class _WorkProfileDrawer extends StatelessWidget {
   }
 }
 
-class _AlertCenterStripState extends State<AlertCenterStrip> {
+class _MessageBoardStripState extends State<MessageBoardStrip> {
   var _visible = true;
 
   @override
@@ -118,22 +116,18 @@ class _AlertCenterStripState extends State<AlertCenterStrip> {
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
-          const Icon(
-            Icons.warning_amber_rounded,
-            color: Color(0xFFFFD166),
-            size: 24,
-          ),
+          const Icon(Icons.forum_rounded, color: Color(0xFFFFD166), size: 24),
           const SizedBox(width: 8),
           Expanded(
             child: InkWell(
               onTap: () => _openAlertDetails(context),
               borderRadius: BorderRadius.circular(4),
-              child: const _AlertReadout(),
+              child: const _MessageBoardReadout(),
             ),
           ),
           IconButton(
             onPressed: () => setState(() => _visible = false),
-            tooltip: 'Hide alerts',
+            tooltip: 'Hide message board',
             icon: const Icon(Icons.close_rounded),
             color: const Color(0xFFDCE4E7),
           ),
@@ -146,7 +140,7 @@ class _AlertCenterStripState extends State<AlertCenterStrip> {
     showGeneralDialog<void>(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Close alerts',
+      barrierLabel: 'Close message board',
       barrierColor: Colors.black.withValues(alpha: 0.28),
       pageBuilder: (context, animation, secondaryAnimation) {
         return SafeArea(
@@ -156,7 +150,7 @@ class _AlertCenterStripState extends State<AlertCenterStrip> {
               padding: const EdgeInsets.fromLTRB(12, 188, 12, 0),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 560),
-                child: const _AlertDetailsPanel(),
+                child: const _MessageBoardDetailsPanel(),
               ),
             ),
           ),
@@ -166,14 +160,14 @@ class _AlertCenterStripState extends State<AlertCenterStrip> {
   }
 }
 
-class _AlertDetailsPanel extends StatelessWidget {
-  const _AlertDetailsPanel();
+class _MessageBoardDetailsPanel extends StatelessWidget {
+  const _MessageBoardDetailsPanel();
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFFE2E8EA),
-      borderRadius: BorderRadius.circular(8),
+      color: const Color(0xFFAAB4B9),
+      borderRadius: BorderRadius.circular(5),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
         child: Column(
@@ -183,7 +177,7 @@ class _AlertDetailsPanel extends StatelessWidget {
               children: [
                 const Expanded(
                   child: Text(
-                    'Alerts',
+                    'Message Board',
                     style: TextStyle(
                       color: Color(0xFF101416),
                       fontSize: 18,
@@ -197,7 +191,7 @@ class _AlertDetailsPanel extends StatelessWidget {
                 ),
               ],
             ),
-            const _AlertCard(
+            const _MessageCard(
               number: 1,
               appArea: 'Maintenance',
               title: 'Engine oil service approaching',
@@ -207,7 +201,7 @@ class _AlertDetailsPanel extends StatelessWidget {
               threshold: 'Approximately 420 miles remaining',
             ),
             const SizedBox(height: 8),
-            const _AlertCard(
+            const _MessageCard(
               number: 2,
               appArea: 'Expenses',
               title: 'Fuel receipt needs attachment',
@@ -223,8 +217,8 @@ class _AlertDetailsPanel extends StatelessWidget {
   }
 }
 
-class _AlertCard extends StatelessWidget {
-  const _AlertCard({
+class _MessageCard extends StatelessWidget {
+  const _MessageCard({
     required this.number,
     required this.appArea,
     required this.title,
@@ -245,7 +239,7 @@ class _AlertCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F7F8),
+        color: const Color(0xFFAAB4B9),
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: const Color(0xFF101416), width: 1.2),
       ),
@@ -253,7 +247,7 @@ class _AlertCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Alert $number • $appArea',
+            'Message $number • $appArea',
             style: const TextStyle(
               color: Color(0xFF101416),
               fontSize: 13,
@@ -294,21 +288,21 @@ class _AlertCard extends StatelessWidget {
             spacing: 7,
             runSpacing: 7,
             children: [
-              _AlertActionButton(
+              _MessageActionButton(
                 icon: Icons.open_in_new_rounded,
                 label: appArea == 'Maintenance'
                     ? 'Review Service'
                     : 'Open Record',
               ),
-              const _AlertActionButton(
+              const _MessageActionButton(
                 icon: Icons.schedule_rounded,
                 label: 'Remind Later',
               ),
-              const _AlertActionButton(
+              const _MessageActionButton(
                 icon: Icons.push_pin_rounded,
                 label: 'Keep Visible',
               ),
-              const _AlertActionButton(
+              const _MessageActionButton(
                 icon: Icons.archive_rounded,
                 label: 'Archive',
               ),
@@ -320,8 +314,8 @@ class _AlertCard extends StatelessWidget {
   }
 }
 
-class _AlertActionButton extends StatelessWidget {
-  const _AlertActionButton({required this.icon, required this.label});
+class _MessageActionButton extends StatelessWidget {
+  const _MessageActionButton({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
@@ -346,8 +340,8 @@ class _AlertActionButton extends StatelessWidget {
   }
 }
 
-class _AlertReadout extends StatelessWidget {
-  const _AlertReadout();
+class _MessageBoardReadout extends StatelessWidget {
+  const _MessageBoardReadout();
 
   @override
   Widget build(BuildContext context) {
@@ -366,10 +360,10 @@ class _AlertReadout extends StatelessWidget {
       child: Row(
         children: [
           const Text(
-            'ALERTS',
+            'MESSAGE BOARD',
             style: TextStyle(
               color: Color(0xFFFFD166),
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w900,
               height: 1,
             ),

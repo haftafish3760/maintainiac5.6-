@@ -62,12 +62,7 @@ class _VehicleProfileDetailScreenState
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF1F2528),
-        appBar: AppBar(
-          title: Text(widget.vehicle.nickname),
-          backgroundColor: const Color(0xFF101416),
-          foregroundColor: const Color(0xFFE2E8EA),
-          leading: BackButton(onPressed: _handleBackNavigation),
-        ),
+
         body: VehicleFormBackground(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(12, 16, 12, 18),
@@ -224,7 +219,7 @@ class _UnsavedVehicleChangesDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFFE2E8EA),
+      backgroundColor: const Color(0xFF2E3A40),
       title: const Text('Save vehicle changes?'),
       content: const Text(
         'You have unsaved vehicle profile changes. Save them before leaving?',
@@ -267,7 +262,7 @@ class _ProfileFactRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFD3DBDE),
+        color: const Color(0xFFAAB4B9),
         borderRadius: BorderRadius.circular(5),
         border: Border.all(color: const Color(0xFF59636A)),
       ),

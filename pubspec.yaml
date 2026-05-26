@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.2.3
   table_calendar: ^3.2.0
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +63,15 @@ flutter:
 
   assets:
     - assets/maintenance_icons/
+    - assets/expense_icons/
+    - assets/material_icons/
+    - assets/material_icons/electrical/
+    - assets/material_icons/electrical/wire/
+    - assets/material_icons/plumbing/
+    - assets/material_icons/plumbing/fittings/
+    - assets/material_icons/plumbing/fittings/materials/
+    - assets/material_icons/hvac/
+    - assets/material_icons/carpentry/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

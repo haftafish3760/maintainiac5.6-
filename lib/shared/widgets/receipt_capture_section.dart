@@ -111,14 +111,14 @@ class _CompressionOption extends StatelessWidget {
     final clarity = [0.96, 0.84, 0.72, 0.58, 0.42][index];
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(5),
       child: Ink(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: selected
               ? AppColors.green.withValues(alpha: 0.25)
               : Colors.black.withValues(alpha: 0.28),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(5),
           border: Border.all(
             color: selected ? AppColors.green : Colors.white24,
           ),
@@ -153,7 +153,7 @@ class _MiniReceiptPreview extends StatelessWidget {
       height: 72,
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: const Color(0xFFECE9DD),
+        color: const Color(0xFFAAB4B9),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Column(

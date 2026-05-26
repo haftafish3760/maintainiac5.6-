@@ -37,7 +37,7 @@ class CalendarTimelineItem extends StatelessWidget {
     final meta = calendarEntryMeta(entry.type);
 
     return SizedBox(
-      height: 52,
+      height: 64,
       child: Padding(
         padding: const EdgeInsets.only(bottom: 6),
         child: Material(
@@ -50,7 +50,7 @@ class CalendarTimelineItem extends StatelessWidget {
             onTap: onTap,
             borderRadius: BorderRadius.circular(5),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               child: Row(
                 children: [
                   SizedBox(
@@ -87,7 +87,7 @@ class CalendarTimelineItem extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${entry.source} - ${entry.summary}',
+                          entry.summary,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -372,7 +372,7 @@ class CalendarDraftField extends StatelessWidget {
     return TextField(
       decoration: InputDecoration(
         filled: true,
-        fillColor: const Color(0xFFE8EDEF),
+        fillColor: const Color(0xFFAAB4B9),
         labelText: label,
         border: const OutlineInputBorder(),
       ),

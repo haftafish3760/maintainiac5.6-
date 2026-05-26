@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/theme/app_theme.dart';
+import '../../shared/widgets/app_back_button.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/industrial_panel.dart';
+import '../../shared/widgets/record_form_fields.dart' show RecordDropdownField;
 import '../../shared/widgets/record_text_field.dart';
 import 'maintenance_models.dart';
 
@@ -41,7 +43,6 @@ class _MaintenanceReceiptLineFormScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.item.name)),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -54,6 +55,8 @@ class _MaintenanceReceiptLineFormScreenState
           child: ListView(
             padding: const EdgeInsets.all(10),
             children: [
+              AppScreenHeader(title: widget.item.name),
+              const SizedBox(height: 10),
               IndustrialPanel(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,27 +85,13 @@ class _MaintenanceReceiptLineFormScreenState
                         const SizedBox(width: 8),
                         Expanded(
                           child: _isEngineOil
-                              ? DropdownButtonFormField<String>(
-                                  initialValue: _oilWeight,
-                                  decoration: InputDecoration(
-                                    labelText: widget.item.detailB,
-                                  ),
-                                  dropdownColor: AppColors.field,
-                                  style: const TextStyle(
-                                    color: AppColors.ink,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                  items: engineOilWeights
-                                      .map(
-                                        (weight) => DropdownMenuItem(
-                                          value: weight,
-                                          child: Text(weight),
-                                        ),
-                                      )
-                                      .toList(),
-                                  onChanged: (value) => setState(
-                                    () => _oilWeight = value ?? _oilWeight,
-                                  ),
+                              ? RecordDropdownField<String>(
+                                  label: widget.item.detailB,
+                                  value: _oilWeight,
+                                  items: engineOilWeights,
+                                  itemLabel: (weight) => weight,
+                                  onChanged: (value) =>
+                                      setState(() => _oilWeight = value),
                                 )
                               : RecordTextField(
                                   label: widget.item.detailB,
@@ -115,35 +104,20 @@ class _MaintenanceReceiptLineFormScreenState
                     Row(
                       children: [
                         Expanded(
-                          child: DropdownButtonFormField<String>(
-                            initialValue: _measurement,
-                            decoration: const InputDecoration(
-                              labelText: 'Measurement',
-                            ),
-                            dropdownColor: AppColors.field,
-                            style: const TextStyle(
-                              color: AppColors.ink,
-                              fontWeight: FontWeight.w800,
-                            ),
-                            items:
-                                const [
-                                      'Quarts',
-                                      'Gallons',
-                                      'Liters',
-                                      'Each',
-                                      'Set',
-                                      'Pack',
-                                    ]
-                                    .map(
-                                      (item) => DropdownMenuItem(
-                                        value: item,
-                                        child: Text(item),
-                                      ),
-                                    )
-                                    .toList(),
-                            onChanged: (value) => setState(
-                              () => _measurement = value ?? _measurement,
-                            ),
+                          child: RecordDropdownField<String>(
+                            label: 'Measurement',
+                            value: _measurement,
+                            items: const [
+                              'Quarts',
+                              'Gallons',
+                              'Liters',
+                              'Each',
+                              'Set',
+                              'Pack',
+                            ],
+                            itemLabel: (item) => item,
+                            onChanged: (value) =>
+                                setState(() => _measurement = value),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -251,7 +225,7 @@ class _Recap extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.42),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(5),
       ),
       child: Text(
         'Total: ${totalUnits.toStringAsFixed(2)} $measurement • \$${totalCost.toStringAsFixed(2)}',

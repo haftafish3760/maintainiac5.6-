@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/widgets/app_back_button.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/industrial_panel.dart';
+import '../../shared/widgets/record_text_field.dart';
 import '../../shared/widgets/receipt_capture_section.dart';
 import 'maintenance_models.dart';
 import 'maintenance_receipt_items_screen.dart';
@@ -37,7 +40,6 @@ class _MaintenanceSetupScreenState extends State<MaintenanceSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Manual Maintenance Setup')),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -50,6 +52,8 @@ class _MaintenanceSetupScreenState extends State<MaintenanceSetupScreen> {
           child: ListView(
             padding: const EdgeInsets.all(10),
             children: [
+              const AppScreenHeader(title: 'Manual Maintenance Setup'),
+              const SizedBox(height: 10),
               IndustrialPanel(
                 child: Row(
                   children: [
@@ -160,8 +164,9 @@ class _MaintenanceSetupScreenState extends State<MaintenanceSetupScreen> {
     final items = _selected.toList();
     if (_hasReceipt || _storeName.trim().isNotEmpty) {
       Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => MaintenanceReceiptItemsScreen(
+        appNativeRoute(
+          context,
+          MaintenanceReceiptItemsScreen(
             items: items,
             workSource: widget.workSource,
           ),
@@ -169,9 +174,9 @@ class _MaintenanceSetupScreenState extends State<MaintenanceSetupScreen> {
       );
     } else {
       Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) =>
-              MaintenanceItemSetupScreen(items: items, entries: const []),
+        appNativeRoute(
+          context,
+          MaintenanceItemSetupScreen(items: items, entries: const []),
         ),
       );
     }
@@ -198,15 +203,10 @@ class _MaintenanceSetupScreenState extends State<MaintenanceSetupScreen> {
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 12),
-            TextField(
+            RecordTextField(
+              label: 'Store name',
               controller: controller,
-              autofocus: true,
               textInputAction: TextInputAction.done,
-              style: const TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.w800,
-              ),
-              decoration: const InputDecoration(labelText: 'Store name'),
               onSubmitted: (_) =>
                   Navigator.pop(context, controller.text.trim()),
             ),
@@ -258,14 +258,14 @@ class _MaintenanceChoice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(5),
       onTap: onTap,
       child: Ink(
         height: 54,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
           color: selected ? AppColors.green : AppColors.fieldAlt,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(5),
         ),
         child: Row(
           children: [

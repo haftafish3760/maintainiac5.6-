@@ -25,7 +25,7 @@ class _PreDayDashboardBody extends StatefulWidget {
 }
 
 class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
-  var _activeVehicle = defaultVehicleProfile;
+  final _activeVehicle = defaultVehicleProfile;
   final _workProfile = 'Business';
 
   @override
@@ -34,21 +34,11 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
       slivers: [
         const SliverToBoxAdapter(child: SizedBox(height: 10)),
         const SliverToBoxAdapter(child: GlobalOdometerHeader()),
-        const SliverToBoxAdapter(child: SizedBox(height: 10)),
-        SliverToBoxAdapter(
-          child: DashboardContextSelectors(
-            activeVehicle: _activeVehicle,
-            workProfile: _workProfile,
-            onVehicleChanged: (vehicle) {
-              setState(() => _activeVehicle = vehicle);
-            },
-          ),
-        ),
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        const SliverToBoxAdapter(child: AlertCenterStrip()),
+        const SliverToBoxAdapter(child: MessageBoardStrip()),
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         SliverToBoxAdapter(child: PreDayStartContent(onStartDay: _startDay)),
-        const SliverToBoxAdapter(child: SizedBox(height: 10)),
+        const SliverToBoxAdapter(child: SizedBox(height: 76)),
         const SliverToBoxAdapter(child: DashboardMonthCalendar()),
         const SliverToBoxAdapter(child: SizedBox(height: 18)),
       ],

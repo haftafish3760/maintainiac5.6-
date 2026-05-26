@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_back_button.dart';
 import 'odometer_entry_sheet.dart';
 
 class FlowPlaceholderScreen extends StatelessWidget {
@@ -22,20 +23,18 @@ class FlowPlaceholderScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
-      appBar: AppBar(
-        title: Text(title),
-        backgroundColor: const Color(0xFF101416),
-        foregroundColor: const Color(0xFFE2E8EA),
-      ),
+
       body: SafeArea(
         top: false,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(12, 16, 12, 18),
           children: [
+            AppScreenHeader(title: title),
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFD2D9DC),
+                color: const Color(0xFFAAB4B9),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: const Color(0xFF101416), width: 1.3),
               ),
@@ -97,7 +96,7 @@ class FlowPlaceholderScreen extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFFE2E8EA),
+      backgroundColor: const Color(0xFF2E3A40),
       builder: (_) => OdometerEntrySheet(
         title: requiresOdometer
             ? 'Odometer Required'

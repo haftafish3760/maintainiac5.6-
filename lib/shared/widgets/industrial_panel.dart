@@ -26,7 +26,7 @@ class IndustrialPanel extends StatelessWidget {
           colors: [Color(0xFF61675F), Color(0xFF363C38), Color(0xFF4A504A)],
           stops: [0, 0.55, 1],
         ),
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(5),
         border: Border.all(color: const Color(0xFF8B9089), width: 1.2),
         boxShadow: const [
           BoxShadow(
@@ -77,10 +77,10 @@ class BorderLabel extends StatelessWidget {
           letterSpacing: 0,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(3),
           borderSide: const BorderSide(color: Color(0xFF9A9D94), width: 1.2),
         ),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(3)),
         contentPadding: padding,
       ),
       child: child,

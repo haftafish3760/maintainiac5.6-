@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 const _labelScale = 0.03;
-const _minLabelFontSize = 8.25;
-const _maxLabelFontSize = 10.0;
+const _minLabelFontSize = 9.5;
+const _maxLabelFontSize = 11.25;
 const _labelPaddingScale = 0.02;
 const _minHorizontalPadding = 5.0;
 const _maxHorizontalPadding = 8.0;
@@ -43,9 +43,9 @@ class StructuralBorderLabel extends StatelessWidget {
             ),
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: const Color(0xFF1F2528),
+                color: const Color(0xFFAAB4B9),
                 borderRadius: BorderRadius.circular(3),
-                border: Border.all(color: const Color(0xFF7F8B91), width: 0.8),
+                border: Border.all(color: const Color(0xFF101416), width: 1),
               ),
               child: Padding(
                 padding: EdgeInsets.symmetric(
@@ -54,11 +54,10 @@ class StructuralBorderLabel extends StatelessWidget {
                 ),
                 child: Text(
                   label,
-                  textScaler: TextScaler.noScaling,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: const Color(0xFFE2E8EA),
+                    color: const Color(0xFF101416),
                     fontSize: fontSize,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0,

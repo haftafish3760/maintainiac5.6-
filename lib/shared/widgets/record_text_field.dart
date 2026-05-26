@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'structural_border_label.dart';
+
 class RecordTextField extends StatelessWidget {
   const RecordTextField({
     required this.label,
@@ -18,13 +20,44 @@ class RecordTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      onSubmitted: onSubmitted,
-      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
-      decoration: InputDecoration(labelText: label),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          onSubmitted: onSubmitted,
+          style: const TextStyle(
+            color: Color(0xFF101416),
+            fontWeight: FontWeight.w800,
+          ),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: const Color(0xFFAAB4B9),
+            contentPadding: const EdgeInsets.fromLTRB(12, 14, 12, 10),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(6),
+              borderSide: const BorderSide(color: Color(0xFF879299)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(6),
+              borderSide: const BorderSide(color: Color(0xFFE2E8EA), width: 2),
+            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+          ),
+        ),
+        Positioned(
+          left: 8,
+          right: 8,
+          top: -8,
+          child: StructuralBorderLabel(
+            label: label,
+            alignment: Alignment.centerLeft,
+            maxWidthFactor: 0.48,
+          ),
+        ),
+      ],
     );
   }
 }
