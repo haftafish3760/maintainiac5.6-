@@ -10,6 +10,7 @@ import '../../work_supplies/jobs/work_supply_jobs_screen.dart';
 import '../../work_supplies/work_supply_screen.dart';
 import '../calendar.dart';
 import '../calendar_flow_models.dart';
+import 'contractor_active_job_panel.dart';
 import 'contractor_dashboard_models.dart';
 import 'contractor_dashboard_sections.dart';
 
@@ -22,11 +23,10 @@ class ContractorDashboardScreen extends StatefulWidget {
 }
 
 class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
-  var _mode = ContractorDayMode.preDay;
+  var _dayStarted = false;
 
   @override
   Widget build(BuildContext context) {
-    final active = _mode == ContractorDayMode.activeDay;
     return AppScreenShell(
       section: AppSection.dashboard,
       body: ListView(
@@ -39,19 +39,9 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
           const SizedBox(height: 8),
           const GlobalOdometerHeader(),
           const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: ContractorModeSwitch(
-              mode: _mode,
-              onChanged: (mode) => setState(() => _mode = mode),
-            ),
-          ),
+          const ContractorAttentionPanel(),
           const SizedBox(height: 10),
-          ContractorCommandHeader(mode: _mode),
-          const SizedBox(height: 10),
-          const ContractorMetricsStrip(),
-          const SizedBox(height: 10),
-          if (active) ...[
+          if (_dayStarted) ...[
             const ContractorActiveJobPanel(),
             const SizedBox(height: 10),
             ContractorCommandGrid(
@@ -59,13 +49,15 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
               onCommand: _handleCommand,
             ),
           ] else ...[
+            ContractorStartDayPanel(onStartDay: _startContractorDay),
+            const SizedBox(height: 10),
             ContractorCommandGrid(
               commands: contractorPreDayCommands,
               onCommand: _handleCommand,
             ),
-            const SizedBox(height: 10),
-            const ContractorAttentionPanel(),
           ],
+          const SizedBox(height: 10),
+          const ContractorMetricsStrip(),
           const SizedBox(height: 10),
           const ContractorJobsPanel(),
           const SizedBox(height: 76),
@@ -74,6 +66,10 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
         ],
       ),
     );
+  }
+
+  void _startContractorDay() {
+    setState(() => _dayStarted = true);
   }
 
   void _handleCommand(ContractorCommand command) {

@@ -5,96 +5,6 @@ import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/industrial_panel.dart';
 import 'contractor_dashboard_models.dart';
 
-class ContractorModeSwitch extends StatelessWidget {
-  const ContractorModeSwitch({
-    required this.mode,
-    required this.onChanged,
-    super.key,
-  });
-
-  final ContractorDayMode mode;
-  final ValueChanged<ContractorDayMode> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return SegmentedButton<ContractorDayMode>(
-      segments: const [
-        ButtonSegment(
-          value: ContractorDayMode.preDay,
-          icon: Icon(Icons.wb_sunny_rounded),
-          label: Text('Pre-Day'),
-        ),
-        ButtonSegment(
-          value: ContractorDayMode.activeDay,
-          icon: Icon(Icons.timer_rounded),
-          label: Text('Active Day'),
-        ),
-      ],
-      selected: {mode},
-      onSelectionChanged: (value) => onChanged(value.first),
-      style: ButtonStyle(
-        visualDensity: VisualDensity.compact,
-        backgroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return AppColors.blue;
-          return const Color(0xFF1B2428);
-        }),
-        foregroundColor: const WidgetStatePropertyAll(Colors.white),
-      ),
-    );
-  }
-}
-
-class ContractorCommandHeader extends StatelessWidget {
-  const ContractorCommandHeader({required this.mode, super.key});
-
-  final ContractorDayMode mode;
-
-  @override
-  Widget build(BuildContext context) {
-    final active = mode == ContractorDayMode.activeDay;
-    return IndustrialPanel(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
-      padding: const EdgeInsets.all(10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _HeaderStat(
-                  label: 'Work Profile',
-                  value: 'Independent Contractor',
-                  icon: Icons.handyman_rounded,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _HeaderStat(
-                  label: active ? 'Shift Status' : 'Day Status',
-                  value: active ? 'Running' : 'Not Started',
-                  icon: active ? Icons.timer_rounded : Icons.schedule_rounded,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            active
-                ? 'Current job, mileage, materials, expenses, payments, and proof records stay tied to today.'
-                : 'Review the day before rolling. Start from the vehicle, then work jobs, receipts, estimates, and material needs.',
-            style: const TextStyle(
-              color: AppColors.text,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              height: 1.25,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class ContractorMetricsStrip extends StatelessWidget {
   const ContractorMetricsStrip({super.key});
 
@@ -111,9 +21,9 @@ class ContractorMetricsStrip extends StatelessWidget {
               width: 133,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF11191D),
+                  color: const Color(0xFFF1F5F2),
                   borderRadius: BorderRadius.circular(5),
-                  border: Border.all(color: metric.color, width: 1.1),
+                  border: Border.all(color: metric.color, width: 1.5),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
@@ -125,9 +35,9 @@ class ContractorMetricsStrip extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: Color(0xFFC7D0D4),
+                          color: Color(0xFF172126),
                           fontSize: 11,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                       const SizedBox(height: 3),
@@ -147,6 +57,72 @@ class ContractorMetricsStrip extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class ContractorStartDayPanel extends StatelessWidget {
+  const ContractorStartDayPanel({required this.onStartDay, super.key});
+
+  final VoidCallback onStartDay;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFF0E2518),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: AppColors.green, width: 1.6),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x66000000),
+              blurRadius: 9,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 11),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Start Contractor Day',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Begin mileage, job tracking, receipts, materials, and invoices for this vehicle.',
+                      style: TextStyle(
+                        color: Color(0xFFE4F7E9),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              AppButton(
+                label: 'Start Day',
+                tone: AppButtonTone.commit,
+                icon: const Icon(Icons.play_arrow_rounded, color: Colors.white),
+                onPressed: onStartDay,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -224,105 +200,6 @@ class ContractorCommandGrid extends StatelessWidget {
                 onTap: () => onCommand(command),
               ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-class ContractorActiveJobPanel extends StatelessWidget {
-  const ContractorActiveJobPanel({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: BorderLabel(
-        label: 'Active Job',
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Oak Street repair',
-              style: TextStyle(
-                color: AppColors.text,
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Truck 1 - Owner assigned - 14.2 miles logged - invoice draft open',
-              style: TextStyle(
-                color: Color(0xFFC7D0D4),
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                height: 1.25,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: AppButton(
-                    label: 'Pause',
-                    compact: true,
-                    icon: const Icon(Icons.pause_rounded, color: Colors.white),
-                    onPressed: () {},
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: AppButton(
-                    label: 'End Day',
-                    compact: true,
-                    tone: AppButtonTone.destructive,
-                    icon: const Icon(Icons.stop_rounded, color: Colors.white),
-                    onPressed: () {},
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HeaderStat extends StatelessWidget {
-  const _HeaderStat({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return BorderLabel(
-      label: label,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.yellow, size: 20),
-          const SizedBox(width: 7),
-          Expanded(
-            child: Text(
-              value,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppColors.text,
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                height: 1.1,
-              ),
-            ),
-          ),
         ],
       ),
     );

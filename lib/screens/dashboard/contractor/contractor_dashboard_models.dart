@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-enum ContractorDayMode { preDay, activeDay }
-
 enum ContractorCommandTarget {
   createJob,
   jobs,
@@ -72,23 +70,19 @@ class ContractorCommand {
 }
 
 const contractorMetrics = [
+  ContractorMetric(label: 'Jobs Today', value: '3', color: Color(0xFF4DA3FF)),
   ContractorMetric(
-    label: 'Open Jobs',
-    value: '3',
-    color: Color(0xFF4DA3FF),
-  ),
-  ContractorMetric(
-    label: 'Unpaid',
+    label: 'Unpaid Invoices',
     value: r'$1,725',
     color: Color(0xFFFFC44D),
   ),
   ContractorMetric(
-    label: 'Job Cost',
+    label: 'Material Cost',
     value: r'$312',
     color: Color(0xFFFF8552),
   ),
   ContractorMetric(
-    label: 'Miles',
+    label: 'Business Miles',
     value: '42.8',
     color: Color(0xFF55D68A),
   ),
@@ -140,12 +134,6 @@ const contractorJobsToday = [
 ];
 
 const contractorPreDayCommands = [
-  ContractorCommand(
-    label: 'Start Day',
-    icon: Icons.play_arrow_rounded,
-    color: Color(0xFF19C15F),
-    target: ContractorCommandTarget.note,
-  ),
   ContractorCommand(
     label: 'Create Job',
     icon: Icons.work_rounded,

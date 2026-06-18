@@ -35,9 +35,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Contractor Command Center'), findsOneWidget);
-    expect(find.text('Pre-Day'), findsOneWidget);
-    expect(find.text('Active Day'), findsOneWidget);
     expect(find.text('Needs Attention'), findsOneWidget);
+    expect(find.text('Start Contractor Day'), findsOneWidget);
 
     await tester.dragUntilVisible(
       find.text('Today Jobs'),
@@ -60,7 +59,7 @@ void main() {
 
     await tester.tap(find.text('Contractor Dashboard'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Active Day'));
+    await tester.tap(find.text('Start Day'));
     await tester.pumpAndSettle();
 
     expect(find.text('Active Job'), findsOneWidget);
