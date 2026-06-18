@@ -12,59 +12,32 @@ class ContractorMetricsStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Wrap(
-        spacing: 7,
-        runSpacing: 7,
-        children: [
-          for (final metric in contractorMetrics)
-            SizedBox(
-              width: 133,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F2),
-                  borderRadius: BorderRadius.circular(5),
-                  border: Border.all(color: metric.color, width: 1.5),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        metric.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFF172126),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        metric.value,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: metric.color,
-                          fontSize: 19,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-        ],
+      child: BorderLabel(
+        label: 'Business Snapshot',
+        child: GridView.count(
+          crossAxisCount: 2,
+          childAspectRatio: 2.45,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            for (final metric in contractorMetrics) _MetricTile(metric: metric),
+          ],
+        ),
       ),
     );
   }
 }
 
-class ContractorStartDayPanel extends StatelessWidget {
-  const ContractorStartDayPanel({required this.onStartDay, super.key});
+class ContractorDayControlPanel extends StatelessWidget {
+  const ContractorDayControlPanel({
+    required this.dayStarted,
+    required this.onStartDay,
+    super.key,
+  });
 
+  final bool dayStarted;
   final VoidCallback onStartDay;
 
   @override
@@ -73,9 +46,12 @@ class ContractorStartDayPanel extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: const Color(0xFF0E2518),
+          color: dayStarted ? const Color(0xFF101B23) : const Color(0xFF0E2518),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppColors.green, width: 1.6),
+          border: Border.all(
+            color: dayStarted ? const Color(0xFF4DA3FF) : AppColors.green,
+            width: 1.7,
+          ),
           boxShadow: const [
             BoxShadow(
               color: Color(0x66000000),
@@ -91,20 +67,22 @@ class ContractorStartDayPanel extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      'Start Contractor Day',
-                      style: TextStyle(
+                      dayStarted ? 'Current Job' : 'Start Contractor Day',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Begin mileage, job tracking, receipts, materials, and invoices for this vehicle.',
-                      style: TextStyle(
-                        color: Color(0xFFE4F7E9),
+                      dayStarted
+                          ? 'Oak Street repair - 14.2 miles logged - invoice draft open.'
+                          : 'Begin mileage, jobs, receipts, materials, and invoices for this vehicle.',
+                      style: const TextStyle(
+                        color: Color(0xFFF1F7F3),
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         height: 1.25,
@@ -114,12 +92,39 @@ class ContractorStartDayPanel extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              AppButton(
-                label: 'Start Day',
-                tone: AppButtonTone.commit,
-                icon: const Icon(Icons.play_arrow_rounded, color: Colors.white),
-                onPressed: onStartDay,
-              ),
+              if (dayStarted)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AppButton(
+                      label: 'Pause',
+                      compact: true,
+                      icon: const Icon(
+                        Icons.pause_rounded,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {},
+                    ),
+                    const SizedBox(height: 7),
+                    AppButton(
+                      label: 'End',
+                      compact: true,
+                      tone: AppButtonTone.destructive,
+                      icon: const Icon(Icons.stop_rounded, color: Colors.white),
+                      onPressed: () {},
+                    ),
+                  ],
+                )
+              else
+                AppButton(
+                  label: 'Start Day',
+                  tone: AppButtonTone.commit,
+                  icon: const Icon(
+                    Icons.play_arrow_rounded,
+                    color: Colors.white,
+                  ),
+                  onPressed: onStartDay,
+                ),
             ],
           ),
         ),
@@ -135,16 +140,45 @@ class ContractorAttentionPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: BorderLabel(
-        label: 'Needs Attention',
-        child: Column(
-          children: [
-            for (final item in contractorAttentionItems) ...[
-              _AttentionRow(item: item),
-              if (item != contractorAttentionItems.last)
-                const Divider(height: 12, color: Color(0x668B9089)),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFF2A170A),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFFFFC44D), width: 1.6),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Row(
+                children: [
+                  Icon(
+                    Icons.priority_high_rounded,
+                    color: Color(0xFFFFC44D),
+                    size: 22,
+                  ),
+                  SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                      'Needs Attention',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              for (final item in contractorAttentionItems) ...[
+                _AttentionRow(item: item),
+                if (item != contractorAttentionItems.last)
+                  const Divider(height: 12, color: Color(0x66FFC44D)),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -159,7 +193,7 @@ class ContractorJobsPanel extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: BorderLabel(
-        label: 'Today Jobs',
+        label: 'Today Work Queue',
         child: Column(
           children: [
             for (final job in contractorJobsToday) ...[
@@ -188,19 +222,22 @@ class ContractorCommandGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final command in commands)
-            SizedBox(
-              width: 133,
-              child: _CommandTile(
-                command: command,
-                onTap: () => onCommand(command),
+      child: BorderLabel(
+        label: 'Quick Actions',
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final command in commands)
+              SizedBox(
+                width: 133,
+                child: _CommandTile(
+                  command: command,
+                  onTap: () => onCommand(command),
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -224,7 +261,7 @@ class _AttentionRow extends StatelessWidget {
               Text(
                 item.title,
                 style: const TextStyle(
-                  color: AppColors.text,
+                  color: Colors.white,
                   fontSize: 13,
                   fontWeight: FontWeight.w900,
                 ),
@@ -233,9 +270,9 @@ class _AttentionRow extends StatelessWidget {
               Text(
                 item.detail,
                 style: const TextStyle(
-                  color: Color(0xFFC7D0D4),
+                  color: Color(0xFFFFE5B8),
                   fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   height: 1.2,
                 ),
               ),
@@ -308,7 +345,7 @@ class _JobRow extends StatelessWidget {
             Text(
               job.status,
               style: const TextStyle(
-                color: Color(0xFFC7D0D4),
+                color: Color(0xFFE8ECEE),
                 fontSize: 10.5,
                 fontWeight: FontWeight.w800,
               ),
@@ -316,6 +353,53 @@ class _JobRow extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _MetricTile extends StatelessWidget {
+  const _MetricTile({required this.metric});
+
+  final ContractorMetric metric;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F7F4),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: metric.color, width: 1.5),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(9, 7, 9, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              metric.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFF172126),
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              metric.value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: metric.color,
+                fontSize: 19,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

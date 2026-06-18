@@ -10,7 +10,6 @@ import '../../work_supplies/jobs/work_supply_jobs_screen.dart';
 import '../../work_supplies/work_supply_screen.dart';
 import '../calendar.dart';
 import '../calendar_flow_models.dart';
-import 'contractor_active_job_panel.dart';
 import 'contractor_dashboard_models.dart';
 import 'contractor_dashboard_sections.dart';
 
@@ -42,14 +41,20 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
           const ContractorAttentionPanel(),
           const SizedBox(height: 10),
           if (_dayStarted) ...[
-            const ContractorActiveJobPanel(),
+            ContractorDayControlPanel(
+              dayStarted: true,
+              onStartDay: _startContractorDay,
+            ),
             const SizedBox(height: 10),
             ContractorCommandGrid(
               commands: contractorActiveCommands,
               onCommand: _handleCommand,
             ),
           ] else ...[
-            ContractorStartDayPanel(onStartDay: _startContractorDay),
+            ContractorDayControlPanel(
+              dayStarted: false,
+              onStartDay: _startContractorDay,
+            ),
             const SizedBox(height: 10),
             ContractorCommandGrid(
               commands: contractorPreDayCommands,
@@ -57,9 +62,9 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
             ),
           ],
           const SizedBox(height: 10),
-          const ContractorMetricsStrip(),
-          const SizedBox(height: 10),
           const ContractorJobsPanel(),
+          const SizedBox(height: 10),
+          const ContractorMetricsStrip(),
           const SizedBox(height: 76),
           const DashboardMonthCalendar(source: CalendarFlowSource.contractor),
           const SizedBox(height: 18),

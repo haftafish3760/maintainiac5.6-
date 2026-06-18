@@ -39,11 +39,11 @@ void main() {
     expect(find.text('Start Contractor Day'), findsOneWidget);
 
     await tester.dragUntilVisible(
-      find.text('Today Jobs'),
+      find.text('Today Work Queue'),
       find.byType(ListView).last,
       const Offset(0, -220),
     );
-    expect(find.text('Today Jobs'), findsOneWidget);
+    expect(find.text('Today Work Queue'), findsOneWidget);
   });
 
   testWidgets('contractor dashboard exposes active day tools', (tester) async {
@@ -62,7 +62,7 @@ void main() {
     await tester.tap(find.text('Start Day'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Active Job'), findsOneWidget);
+    expect(find.text('Current Job'), findsOneWidget);
     await tester.dragUntilVisible(
       find.text('Use Materials'),
       find.byType(ListView).last,
