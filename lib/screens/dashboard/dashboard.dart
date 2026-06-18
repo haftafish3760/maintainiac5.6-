@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'active_workday_screen.dart';
 import 'calendar.dart';
+import 'contractor/contractor_dashboard_screen.dart';
 import 'dashboard_panels.dart';
 import 'start_day_panel.dart';
 import 'vehicle_profile_flow.dart';
@@ -40,6 +41,8 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
         const SliverToBoxAdapter(child: GlobalOdometerHeader()),
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         const SliverToBoxAdapter(child: MessageBoardStrip()),
+        const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        const SliverToBoxAdapter(child: ContractorDashboardLauncher()),
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         SliverToBoxAdapter(child: PreDayStartContent(onStartDay: _startDay)),
         const SliverToBoxAdapter(child: SizedBox(height: 76)),
