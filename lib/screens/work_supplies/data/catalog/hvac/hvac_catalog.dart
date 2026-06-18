@@ -1,0 +1,13 @@
+part of '../../work_supply_catalog.dart';
+
+final hvacCatalog = _trade('HVAC', const Color(0xFF4EB7C4), [
+  hvacAirFiltersCategory,
+  hvacControlsAndElectricalCategory,
+  hvacRefrigerantLinesCategory,
+  hvacDuctworkAndAirDistributionCategory,
+  hvacCondensateCategory,
+  hvacTapeAndSealantsCategory,
+  hvacMotorsAndBlowerPartsCategory,
+  hvacIgnitionAndGasHeatCategory,
+  hvacRefrigerantServiceCategory,
+]);

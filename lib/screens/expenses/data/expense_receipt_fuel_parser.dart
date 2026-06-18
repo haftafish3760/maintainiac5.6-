@@ -1,0 +1,165 @@
+part of 'expense_receipt_parser.dart';
+
+class _FuelLineDetails {
+  const _FuelLineDetails({
+    required this.quantity,
+    required this.fuelType,
+    required this.fillType,
+    this.unitPrice,
+    this.odometerReading,
+  });
+
+  final _ParsedQuantity quantity;
+  final String fuelType;
+  final String fillType;
+  final double? unitPrice;
+  final int? odometerReading;
+}
+
+_FuelLineDetails _fuelDetailsFor({
+  required String rawRow,
+  required String description,
+  required double amount,
+  required List<String> receiptRows,
+}) {
+  final rawText = rawRow.toLowerCase();
+  final descriptionText = description.toLowerCase();
+  final receiptText = receiptRows.join(' ').toLowerCase();
+  final combinedText = '$rawText $descriptionText $receiptText';
+  final quantity = _fuelQuantityFor(rawText, amount: amount);
+  final unitPrice = _fuelUnitPriceFor(
+    text: '$rawText $descriptionText',
+    quantity: quantity,
+    amount: amount,
+  );
+  return _FuelLineDetails(
+    quantity: quantity,
+    fuelType: _fuelTypeFor(combinedText),
+    fillType: _fuelFillTypeFor(combinedText),
+    unitPrice: unitPrice,
+    odometerReading: _fuelOdometerFor(combinedText),
+  );
+}
+
+_ParsedQuantity _fuelQuantityFor(String text, {required double amount}) {
+  final gallonAfterNumber = RegExp(
+    r'(\d+(?:\.\d+)?)\s*(?:gal|gals|gallon|gallons|gl|g)\b',
+  ).firstMatch(text);
+  if (gallonAfterNumber != null) {
+    return _ParsedQuantity(
+      quantity: double.parse(gallonAfterNumber.group(1)!),
+      unitsPerPackage: 1,
+      unit: 'gallon',
+    );
+  }
+
+  final gallonBeforeNumber = RegExp(
+    r'\b(?:gal|gals|gallon|gallons|gl|volume|qty|quantity)\s*[:#]?\s*(\d+(?:\.\d+)?)\b',
+  ).firstMatch(text);
+  if (gallonBeforeNumber != null) {
+    return _ParsedQuantity(
+      quantity: double.parse(gallonBeforeNumber.group(1)!),
+      unitsPerPackage: 1,
+      unit: 'gallon',
+    );
+  }
+
+  final kwhAfterNumber = RegExp(r'(\d+(?:\.\d+)?)\s*kwh\b').firstMatch(text);
+  if (kwhAfterNumber != null) {
+    return _ParsedQuantity(
+      quantity: double.parse(kwhAfterNumber.group(1)!),
+      unitsPerPackage: 1,
+      unit: 'kWh',
+    );
+  }
+
+  final kwhBeforeNumber = RegExp(
+    r'\bkwh\s*[:#]?\s*(\d+(?:\.\d+)?)\b',
+  ).firstMatch(text);
+  if (kwhBeforeNumber != null) {
+    return _ParsedQuantity(
+      quantity: double.parse(kwhBeforeNumber.group(1)!),
+      unitsPerPackage: 1,
+      unit: 'kWh',
+    );
+  }
+
+  final literAfterNumber = RegExp(
+    r'(\d+(?:\.\d+)?)\s*(?:l|liter|liters|litre|litres)\b',
+  ).firstMatch(text);
+  if (literAfterNumber != null) {
+    return _ParsedQuantity(
+      quantity: double.parse(literAfterNumber.group(1)!),
+      unitsPerPackage: 1,
+      unit: 'liter',
+    );
+  }
+
+  final decimalCandidates = RegExp(
+    r'\b(\d{1,3}\.\d{1,4})\b',
+  ).allMatches(text).map((match) => double.parse(match.group(1)!));
+  for (final candidate in decimalCandidates) {
+    final isAmount = (candidate - amount).abs() < .01;
+    final looksLikeUnitPrice = candidate > 1 && candidate < 10;
+    if (!isAmount && !looksLikeUnitPrice && candidate > 0 && candidate < 300) {
+      return _ParsedQuantity(
+        quantity: candidate,
+        unitsPerPackage: 1,
+        unit: 'gallon',
+      );
+    }
+  }
+
+  return const _ParsedQuantity(quantity: 1, unitsPerPackage: 1, unit: 'gallon');
+}
+
+double? _fuelUnitPriceFor({
+  required String text,
+  required _ParsedQuantity quantity,
+  required double amount,
+}) {
+  final labeledPrice = RegExp(
+    r'(?:price\s*/\s*(?:gal|gallon|kwh)|price\s*per\s*(?:gal|gallon|kwh)|unit\s*price|ppu|ppg|@\s*)\s*\$?(\d+(?:\.\d{2,4})?)',
+  ).firstMatch(text);
+  if (labeledPrice != null) return double.tryParse(labeledPrice.group(1)!);
+
+  final slashPrice = RegExp(
+    r'\$?(\d+\.\d{3,4})\s*/\s*(?:gal|gallon|g|kwh)\b',
+  ).firstMatch(text);
+  if (slashPrice != null) return double.tryParse(slashPrice.group(1)!);
+
+  if (quantity.quantity > 1) return amount / quantity.quantity;
+  return null;
+}
+
+String _fuelTypeFor(String text) {
+  if (RegExp(r'\b(def|diesel exhaust fluid)\b').hasMatch(text)) return 'DEF';
+  if (RegExp(
+    r'\b(reefer|tractor diesel|truck diesel|diesel|dsl|ulsd|b20|b10)\b',
+  ).hasMatch(text)) {
+    return 'Diesel';
+  }
+  if (RegExp(
+    r'\b(ev|kwh|electric|chargepoint|supercharger|charging)\b',
+  ).hasMatch(text)) {
+    return 'Electric';
+  }
+  if (RegExp(r'\b(kerosene|kero)\b').hasMatch(text)) return 'Kerosene';
+  if (RegExp(r'\b(e85|flex fuel|ethanol)\b').hasMatch(text)) return 'E85';
+  return 'Gasoline';
+}
+
+String _fuelFillTypeFor(String text) {
+  if (RegExp(r'\b(partial|part fill|partial fill|not full)\b').hasMatch(text)) {
+    return 'Partial fill';
+  }
+  return 'Full fill-up';
+}
+
+int? _fuelOdometerFor(String text) {
+  final match = RegExp(
+    r'\b(?:odometer|odo|mileage|miles)\s*[:#]?\s*(\d{3,8})\b',
+  ).firstMatch(text);
+  if (match == null) return null;
+  return int.tryParse(match.group(1)!);
+}

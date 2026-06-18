@@ -1,0 +1,124 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/backup/cloud_backup_quota.dart';
+import 'package:maintaniac/shared/backup/cloud_backup_service.dart';
+import 'package:maintaniac/shared/backup/cloud_backup_status.dart';
+
+void main() {
+  group('CloudBackupQuotaPolicy', () {
+    test('free cloud backup tier is 25 MB', () {
+      expect(
+        CloudBackupQuotaPolicy.defaultTrialTier,
+        CloudBackupTier.freeTrial,
+      );
+      expect(CloudBackupTier.freeTrial.quotaBytes, 25 * 1024 * 1024);
+      expect(CloudBackupTier.freeTrial.quotaLabel, '25 MB');
+    });
+
+    test('local-only mode never treats pending files as cloud uploads', () {
+      final check = CloudBackupQuotaPolicy.check(
+        tier: CloudBackupTier.freeTrial,
+        usedBytes: 24 * 1024 * 1024,
+        pendingBytes: 4 * 1024 * 1024,
+      );
+
+      expect(check.isLocalOnly, isTrue);
+      expect(check.allowsLocalSave, isTrue);
+      expect(check.willAttemptCloudBackup, isFalse);
+      expect(check.statusLabel, 'Off');
+      expect(check.detailLabel, contains('Cloud backup is off'));
+      expect(check.detailLabel, contains('25 MB'));
+    });
+
+    test('enabled backup detects files that fit the current tier', () {
+      final check = CloudBackupQuotaPolicy.check(
+        tier: CloudBackupTier.freeTrial,
+        usedBytes: 10 * 1024 * 1024,
+        pendingBytes: 5 * 1024 * 1024,
+        backupEnabled: true,
+      );
+
+      expect(check.isLocalOnly, isFalse);
+      expect(check.wouldFitCloudTier, isTrue);
+      expect(check.wouldExceedCloudTier, isFalse);
+      expect(check.allowsLocalSave, isTrue);
+      expect(check.willAttemptCloudBackup, isTrue);
+      expect(check.remainingAfterSaveLabel, '10 MB');
+      expect(check.statusLabel, 'Ready');
+    });
+
+    test(
+      'enabled backup flags over-limit saves without blocking local save',
+      () {
+        final check = CloudBackupQuotaPolicy.check(
+          tier: CloudBackupTier.freeTrial,
+          usedBytes: 24 * 1024 * 1024,
+          pendingBytes: 3 * 1024 * 1024,
+          backupEnabled: true,
+        );
+
+        expect(check.wouldFitCloudTier, isFalse);
+        expect(check.wouldExceedCloudTier, isTrue);
+        expect(check.allowsLocalSave, isTrue);
+        expect(check.willAttemptCloudBackup, isFalse);
+        expect(check.statusLabel, 'Over limit');
+        expect(check.detailLabel, contains('27 MB of 25 MB'));
+      },
+    );
+
+    test('paid tiers keep separate quotas from the free tier', () {
+      expect(CloudBackupTier.adFreeStarter.quotaLabel, '250 MB');
+      expect(CloudBackupTier.oneGig.quotaLabel, '1.0 GB');
+      expect(CloudBackupTier.fleet.quotaLabel, '50.0 GB');
+    });
+
+    test('negative byte inputs are sanitized', () {
+      final check = CloudBackupQuotaPolicy.check(
+        tier: CloudBackupTier.freeTrial,
+        usedBytes: -1,
+        pendingBytes: -1,
+        backupEnabled: true,
+      );
+
+      expect(check.usedBytes, 0);
+      expect(check.pendingBytes, 0);
+      expect(check.remainingLabel, '25 MB');
+    });
+  });
+
+  group('CloudBackupStatusSnapshot', () {
+    test('not connected snapshot is local-only with the trial tier ready', () {
+      const status = CloudBackupStatusSnapshot.notConnected();
+      final check = status.checkPendingBytes(1024);
+
+      expect(status.isEnabled, isFalse);
+      expect(status.connectionState.label, 'Not connected');
+      expect(status.tier, CloudBackupTier.freeTrial);
+      expect(check.isLocalOnly, isTrue);
+    });
+
+    test('unavailable cloud keeps receipt save local-first', () {
+      const status = CloudBackupStatusSnapshot.unavailable(
+        usedBytes: 24 * 1024 * 1024,
+      );
+      final check = status.checkPendingBytes(4 * 1024 * 1024);
+
+      expect(status.connectionState, CloudBackupConnectionState.unavailable);
+      expect(status.isEnabled, isFalse);
+      expect(check.isLocalOnly, isTrue);
+      expect(check.allowsLocalSave, isTrue);
+      expect(check.willAttemptCloudBackup, isFalse);
+      expect(check.detailLabel, contains('Cloud backup is off'));
+    });
+  });
+
+  group('LocalOnlyCloudBackupService', () {
+    test('does not upload or connect to a backend', () async {
+      const service = LocalOnlyCloudBackupService();
+      final status = await service.currentStatus();
+
+      expect(status.connectionState, CloudBackupConnectionState.notConnected);
+      expect(status.usedBytes, 0);
+      expect(status.isEnabled, isFalse);
+    });
+  });
+}
