@@ -4,6 +4,7 @@ import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/industrial_panel.dart';
 import 'contractor_dashboard_models.dart';
+import 'contractor_dashboard_tiles.dart';
 
 class ContractorMetricsStrip extends StatelessWidget {
   const ContractorMetricsStrip({super.key});
@@ -22,7 +23,8 @@ class ContractorMetricsStrip extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           children: [
-            for (final metric in contractorMetrics) _MetricTile(metric: metric),
+            for (final metric in contractorMetrics)
+              ContractorMetricTile(metric: metric),
           ],
         ),
       ),
@@ -46,10 +48,10 @@ class ContractorDayControlPanel extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: dayStarted ? const Color(0xFF101B23) : const Color(0xFF0E2518),
+          color: dayStarted ? const Color(0xFF1E1010) : const Color(0xFF0E2518),
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: dayStarted ? const Color(0xFF4DA3FF) : AppColors.green,
+            color: dayStarted ? const Color(0xFFE3342F) : AppColors.green,
             width: 1.7,
           ),
           boxShadow: const [
@@ -69,7 +71,7 @@ class ContractorDayControlPanel extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      dayStarted ? 'Current Job' : 'Start Contractor Day',
+                      dayStarted ? 'Day Controls' : 'Start Contractor Day',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -79,7 +81,7 @@ class ContractorDayControlPanel extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       dayStarted
-                          ? 'Oak Street repair - 14.2 miles logged - invoice draft open.'
+                          ? 'Pause the shift, end the day, or keep adding job records above.'
                           : 'Begin mileage, jobs, receipts, materials, and invoices for this vehicle.',
                       style: const TextStyle(
                         color: Color(0xFFF1F7F3),
@@ -97,7 +99,7 @@ class ContractorDayControlPanel extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     AppButton(
-                      label: 'Pause',
+                      label: 'Pause Day',
                       compact: true,
                       icon: const Icon(
                         Icons.pause_rounded,
@@ -107,7 +109,7 @@ class ContractorDayControlPanel extends StatelessWidget {
                     ),
                     const SizedBox(height: 7),
                     AppButton(
-                      label: 'End',
+                      label: 'End Day',
                       compact: true,
                       tone: AppButtonTone.destructive,
                       icon: const Icon(Icons.stop_rounded, color: Colors.white),
@@ -125,6 +127,90 @@ class ContractorDayControlPanel extends StatelessWidget {
                   ),
                   onPressed: onStartDay,
                 ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ContractorActiveShiftPanel extends StatelessWidget {
+  const ContractorActiveShiftPanel({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFF081A22),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFF4DA3FF), width: 1.8),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x77000000),
+              blurRadius: 10,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 11),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.timer_rounded, color: Color(0xFF7CC7FF), size: 24),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Active Contractor Day',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Oak Street repair is active. Add stops, notes, expenses, receipts, materials, invoices, and payments from here.',
+                style: TextStyle(
+                  color: Color(0xFFE6F5FF),
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                  height: 1.25,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: const [
+                  Expanded(
+                    child: ContractorShiftReadout(
+                      label: 'Shift Time',
+                      value: '00:00',
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: ContractorShiftReadout(
+                      label: 'Miles Today',
+                      value: '14.2',
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: ContractorShiftReadout(
+                      label: 'Current Job',
+                      value: '1',
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -224,17 +310,18 @@ class ContractorCommandGrid extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: BorderLabel(
         label: 'Quick Actions',
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        child: GridView.count(
+          crossAxisCount: 3,
+          childAspectRatio: 1.18,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           children: [
             for (final command in commands)
-              SizedBox(
-                width: 133,
-                child: _CommandTile(
-                  command: command,
-                  onTap: () => onCommand(command),
-                ),
+              ContractorCommandTile(
+                command: command,
+                onTap: () => onCommand(command),
               ),
           ],
         ),
@@ -353,94 +440,6 @@ class _JobRow extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-class _MetricTile extends StatelessWidget {
-  const _MetricTile({required this.metric});
-
-  final ContractorMetric metric;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF4F7F4),
-        borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: metric.color, width: 1.5),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(9, 7, 9, 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              metric.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFF172126),
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              metric.value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: metric.color,
-                fontSize: 19,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CommandTile extends StatelessWidget {
-  const _CommandTile({required this.command, required this.onTap});
-
-  final ContractorCommand command;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: command.color,
-      borderRadius: BorderRadius.circular(5),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(5),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(command.icon, color: Colors.white, size: 20),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  command.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

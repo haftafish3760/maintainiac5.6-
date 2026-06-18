@@ -38,17 +38,17 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
           const SizedBox(height: 8),
           const GlobalOdometerHeader(),
           const SizedBox(height: 10),
-          const ContractorAttentionPanel(),
-          const SizedBox(height: 10),
           if (_dayStarted) ...[
-            ContractorDayControlPanel(
-              dayStarted: true,
-              onStartDay: _startContractorDay,
-            ),
+            const ContractorActiveShiftPanel(),
             const SizedBox(height: 10),
             ContractorCommandGrid(
               commands: contractorActiveCommands,
               onCommand: _handleCommand,
+            ),
+            const SizedBox(height: 10),
+            ContractorDayControlPanel(
+              dayStarted: true,
+              onStartDay: _startContractorDay,
             ),
           ] else ...[
             ContractorDayControlPanel(
@@ -63,6 +63,8 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
           ],
           const SizedBox(height: 10),
           const ContractorJobsPanel(),
+          const SizedBox(height: 10),
+          const ContractorAttentionPanel(),
           const SizedBox(height: 10),
           const ContractorMetricsStrip(),
           const SizedBox(height: 76),

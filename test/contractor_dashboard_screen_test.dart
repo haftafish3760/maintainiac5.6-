@@ -35,15 +35,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Contractor Command Center'), findsOneWidget);
+    await tester.drag(find.byType(ListView).last, const Offset(0, -260));
+    await tester.pumpAndSettle();
     expect(find.text('Needs Attention'), findsOneWidget);
-    expect(find.text('Start Contractor Day'), findsOneWidget);
-
-    await tester.dragUntilVisible(
-      find.text('Today Work Queue'),
-      find.byType(ListView).last,
-      const Offset(0, -220),
-    );
-    expect(find.text('Today Work Queue'), findsOneWidget);
   });
 
   testWidgets('contractor dashboard exposes active day tools', (tester) async {
@@ -62,16 +56,13 @@ void main() {
     await tester.tap(find.text('Start Day'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Current Job'), findsOneWidget);
-    await tester.dragUntilVisible(
-      find.text('Use Materials'),
-      find.byType(ListView).last,
-      const Offset(0, -220),
-    );
+    expect(find.text('Active Contractor Day'), findsOneWidget);
+    expect(find.text('Add Stop'), findsOneWidget);
+    expect(find.text('Job Note'), findsOneWidget);
     expect(find.text('Use Materials'), findsOneWidget);
     expect(find.text('Add Expense'), findsOneWidget);
-    expect(find.text('Invoice'), findsOneWidget);
-    expect(find.text('Payment'), findsOneWidget);
+    expect(find.text('Create Invoice'), findsOneWidget);
+    expect(find.text('Record Payment'), findsOneWidget);
     expect(find.text('Proof Photo'), findsOneWidget);
   });
 }

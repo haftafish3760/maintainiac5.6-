@@ -141,10 +141,10 @@ const contractorPreDayCommands = [
     target: ContractorCommandTarget.createJob,
   ),
   ContractorCommand(
-    label: 'Add Receipt',
+    label: 'Add Expense',
     icon: Icons.receipt_long_rounded,
     color: Color(0xFFFF8552),
-    target: ContractorCommandTarget.addReceipt,
+    target: ContractorCommandTarget.addExpense,
   ),
   ContractorCommand(
     label: 'Create Estimate',
@@ -162,6 +162,18 @@ const contractorActiveCommands = [
     target: ContractorCommandTarget.note,
   ),
   ContractorCommand(
+    label: 'Job Note',
+    icon: Icons.note_alt_rounded,
+    color: Color(0xFF607D8B),
+    target: ContractorCommandTarget.note,
+  ),
+  ContractorCommand(
+    label: 'Add Receipt',
+    icon: Icons.receipt_long_rounded,
+    color: Color(0xFFFFC44D),
+    target: ContractorCommandTarget.addReceipt,
+  ),
+  ContractorCommand(
     label: 'Use Materials',
     icon: Icons.inventory_2_rounded,
     color: Color(0xFF8F6CEB),
@@ -174,13 +186,13 @@ const contractorActiveCommands = [
     target: ContractorCommandTarget.addExpense,
   ),
   ContractorCommand(
-    label: 'Invoice',
+    label: 'Create Invoice',
     icon: Icons.description_rounded,
     color: Color(0xFF607D8B),
     target: ContractorCommandTarget.createInvoice,
   ),
   ContractorCommand(
-    label: 'Payment',
+    label: 'Record Payment',
     icon: Icons.attach_money_rounded,
     color: Color(0xFF19C15F),
     target: ContractorCommandTarget.recordPayment,
