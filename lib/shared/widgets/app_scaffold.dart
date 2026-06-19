@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../screens/dashboard/dashboard_screen.dart';
+import '../../screens/dashboard/dashboard.dart';
 import '../../screens/expenses/expenses_screen.dart';
 import '../../screens/invoices/invoices_screen.dart';
 import '../../screens/maintenance/maintenance_screen.dart';
