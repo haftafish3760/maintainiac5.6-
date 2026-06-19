@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import 'calendar_day_flow.dart';
-import 'calendar_month_year_picker.dart';
+import '../../shared/widgets/calendar_month_year_picker.dart';
 
 class DashboardMonthCalendar extends StatefulWidget {
   const DashboardMonthCalendar({super.key});

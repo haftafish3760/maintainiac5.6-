@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/theme/app_action_colors.dart';
-import 'vehicle_profile_detail_screen.dart';
+import 'vehicle_profile_detail.dart';
 import 'vehicle_profile_widgets.dart';
 
 const _savedVehiclePreviews = [
