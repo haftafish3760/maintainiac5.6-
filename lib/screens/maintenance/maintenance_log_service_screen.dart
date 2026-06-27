@@ -16,6 +16,7 @@ import 'maintenance_form_surface.dart';
 import 'maintenance_svg_icon.dart';
 
 part 'maintenance_log_service_widgets.dart';
+part 'maintenance_log_service_draft_restore.dart';
 
 class MaintenanceLogServiceScreen extends StatefulWidget {
   const MaintenanceLogServiceScreen({required this.records, super.key});
@@ -47,6 +48,11 @@ class _MaintenanceLogServiceScreenState
     super.initState();
     _odometer.addListener(_refreshFormState);
     _totalCost.addListener(_refreshFormState);
+    _restoreLogDraft();
+  }
+
+  void _applyRestoredLogDraft(VoidCallback apply) {
+    if (mounted) setState(apply);
   }
 
   @override

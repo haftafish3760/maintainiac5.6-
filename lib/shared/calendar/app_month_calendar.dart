@@ -219,8 +219,9 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
     DateTime focusedDay,
   ) {
     final normalized = DateTime.utc(day.year, day.month, day.day);
-    final hasScheduled = _scheduledDays.contains(normalized);
-    final hasCompleted = _completedDays.contains(normalized);
+    final showDemoMarkers = widget.source != CalendarFlowSource.maintenance;
+    final hasScheduled = showDemoMarkers && _scheduledDays.contains(normalized);
+    final hasCompleted = showDemoMarkers && _completedDays.contains(normalized);
     final isSelected = isSameDay(_selectedDay, day);
     final isToday = isSameDay(DateTime.now(), day);
     final entryCount = widget.dayEntryCounts[normalized] ?? 0;

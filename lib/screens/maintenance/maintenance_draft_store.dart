@@ -1,5 +1,19 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
+class MaintenanceDraftSummary {
+  const MaintenanceDraftSummary({
+    required this.kind,
+    required this.vehicleName,
+    required this.title,
+    required this.updatedAt,
+  });
+
+  final String kind;
+  final String vehicleName;
+  final String title;
+  final DateTime updatedAt;
+}
+
 class MaintenanceDraftStore {
   const MaintenanceDraftStore._();
 
@@ -21,6 +35,16 @@ class MaintenanceDraftStore {
     });
   }
 
+  static Future<Map<String, dynamic>?> loadSetupDraft({
+    required String vehicleName,
+    required String itemName,
+  }) async {
+    final box = await Hive.openBox<dynamic>(boxName);
+    final value = box.get(_key(setupPrefix, vehicleName, itemName));
+    if (value is! Map) return null;
+    return Map<String, dynamic>.from(value);
+  }
+
   static Future<void> saveLogDraft({
     required String vehicleName,
     required Map<String, Object?> values,
@@ -31,6 +55,15 @@ class MaintenanceDraftStore {
       'vehicleName': vehicleName,
       'updatedAt': DateTime.now().toIso8601String(),
     });
+  }
+
+  static Future<Map<String, dynamic>?> loadLogDraft({
+    required String vehicleName,
+  }) async {
+    final box = await Hive.openBox<dynamic>(boxName);
+    final value = box.get(_key(logPrefix, vehicleName, 'active'));
+    if (value is! Map) return null;
+    return Map<String, dynamic>.from(value);
   }
 
   static Future<void> clearSetupDraft({
@@ -44,6 +77,51 @@ class MaintenanceDraftStore {
   static Future<void> clearLogDraft({required String vehicleName}) async {
     final box = await Hive.openBox<dynamic>(boxName);
     await box.delete(_key(logPrefix, vehicleName, 'active'));
+  }
+
+  static Future<List<MaintenanceDraftSummary>> loadDrafts({
+    String? vehicleName,
+  }) async {
+    final box = await Hive.openBox<dynamic>(boxName);
+    final normalizedVehicle = vehicleName?.trim().toLowerCase();
+    final drafts = <MaintenanceDraftSummary>[];
+    for (final value in box.values) {
+      if (value is! Map) continue;
+      final draftVehicle = value['vehicleName']?.toString() ?? '';
+      if (normalizedVehicle != null &&
+          draftVehicle.trim().toLowerCase() != normalizedVehicle) {
+        continue;
+      }
+      final itemName = value['itemName']?.toString();
+      final selectedItems = value['selectedItems'];
+      final updatedAt =
+          DateTime.tryParse(value['updatedAt']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0);
+      if (itemName != null && itemName.trim().isNotEmpty) {
+        drafts.add(
+          MaintenanceDraftSummary(
+            kind: 'Setup draft',
+            vehicleName: draftVehicle,
+            title: itemName,
+            updatedAt: updatedAt,
+          ),
+        );
+        continue;
+      }
+      final title = selectedItems is Iterable && selectedItems.isNotEmpty
+          ? selectedItems.map((item) => item.toString()).join(', ')
+          : 'Maintenance service log';
+      drafts.add(
+        MaintenanceDraftSummary(
+          kind: 'Log draft',
+          vehicleName: draftVehicle,
+          title: title,
+          updatedAt: updatedAt,
+        ),
+      );
+    }
+    drafts.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    return drafts;
   }
 
   static String _key(String prefix, String vehicleName, String itemName) {

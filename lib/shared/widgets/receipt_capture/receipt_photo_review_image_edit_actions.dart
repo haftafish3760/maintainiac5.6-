@@ -39,10 +39,22 @@ extension _ReceiptPhotoReviewImageEditActions
         _photoPaths.length <= 1) {
       return;
     }
+    if (_reviewMode == mode) {
+      _resetToolControlsScrollPosition();
+      return;
+    }
     _updateReviewState(() {
       _reviewMode = mode;
       _controlsVisible = true;
     });
+    _resetToolControlsScrollPosition();
+  }
+
+  void _resetToolControlsScrollPosition() {
+    if (!_toolControlsScrollController.hasClients) return;
+    _toolControlsScrollController.jumpTo(
+      _toolControlsScrollController.position.minScrollExtent,
+    );
   }
 
   Future<void> _applyCrop() async {
@@ -142,7 +154,10 @@ extension _ReceiptPhotoReviewImageEditActions
     _updateReviewState(() => _cropRect = displayRect);
   }
 
-  void _replaceCurrentPhotoPath(String path, ReceiptPhotoQualityCheck? quality) {
+  void _replaceCurrentPhotoPath(
+    String path,
+    ReceiptPhotoQualityCheck? quality,
+  ) {
     final previousPath = _photoPaths[_selectedIndex];
     final staleDataSaverPreviewPaths = _removePhotoReviewCachesForPath(
       previousPath,

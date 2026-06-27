@@ -8,6 +8,7 @@ import '../../shared/calendar/maintenance_calendar.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../dashboard/vehicle_profile_detail.dart';
 import '../dashboard/vehicle_profile_widgets.dart';
+import 'maintenance_draft_store.dart';
 import 'maintenance_item_detail_screen.dart';
 import 'maintenance_models.dart';
 import 'maintenance_log_service_screen.dart';
@@ -19,6 +20,7 @@ part 'maintenance_header_section.dart';
 part 'maintenance_recap_strip.dart';
 part 'maintenance_tracked_list.dart';
 part 'maintenance_action_grid.dart';
+part 'maintenance_draft_panel.dart';
 part 'maintenance_priority_helpers.dart';
 part 'maintenance_vehicle_overview.dart';
 
@@ -67,6 +69,14 @@ class MaintenanceScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: _MaintenanceHeader(
               state: state,
+              activeVehicle: activeVehicle,
+              records: records,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: _MaintenanceDraftPanel(
               activeVehicle: activeVehicle,
               records: records,
             ),

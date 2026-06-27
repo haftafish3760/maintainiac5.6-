@@ -358,6 +358,9 @@ void main() {
     final reviewScreen = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart',
     ).readAsString();
+    final controls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
+    ).readAsString();
 
     expect(
       reviewScreen,
@@ -376,6 +379,28 @@ void main() {
       reviewScreen,
       contains('return proportional < absolute ? proportional : absolute;'),
     );
+    expect(
+      reviewScreen,
+      contains('double _reviewSurfaceBottomPadding(BuildContext context)'),
+    );
+    expect(
+      reviewScreen,
+      contains('return _reviewBottomControlsMaxHeight(context) + 8;'),
+    );
+    expect(
+      reviewScreen,
+      contains('_controlsVisible ? _reviewSurfaceBottomPadding(context) : 0'),
+    );
+    expect(
+      reviewScreen,
+      contains('final _toolControlsScrollController = ScrollController()'),
+    );
+    expect(reviewScreen, contains('_toolControlsScrollController.dispose();'));
+    expect(reviewScreen, contains('toolControlsScrollController:'));
+    expect(controls, contains('Scrollbar('));
+    expect(controls, contains('thumbVisibility: true'));
+    expect(controls, contains('trackVisibility: true'));
+    expect(controls, contains('controller: toolControlsScrollController'));
   });
 
   test('photo review tray uses explicit next-photo receipt language', () async {
@@ -390,6 +415,82 @@ void main() {
     expect(controls, contains('Retake Clearer Photo'));
     expect(controls, isNot(contains("label: hasMultiplePhotos ? 'Add Photo'")));
     expect(controls, isNot(contains('Check order and match, then tap Next')));
+  });
+
+  test('tool mode context actions use labeled phone-visible buttons', () async {
+    final controls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
+    ).readAsString();
+
+    expect(controls, contains('class _MiniReceiptActionButton'));
+    expect(controls, contains('FilledButton.icon('));
+    expect(controls, contains('label: photoCount > 1'));
+    expect(controls, contains("'Add Next Photo'"));
+    expect(controls, contains("'Add Another Photo'"));
+    expect(controls, contains("label: 'Retake'"));
+    expect(controls, contains("label: 'Remove'"));
+    expect(controls, contains('height: 34'));
+    expect(
+      controls.indexOf('class _ReceiptReviewContextRow'),
+      lessThan(controls.indexOf('class _MiniReceiptActionButton')),
+    );
+  });
+
+  test('tool mode next button stays outside scrollable controls', () async {
+    final controls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
+    ).readAsString();
+    final reviewScreen = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart',
+    ).readAsString();
+
+    expect(reviewScreen, contains('toolControlsScrollController:'));
+    expect(
+      controls,
+      contains('final ScrollController toolControlsScrollController'),
+    );
+    expect(controls, contains('class _ReceiptPersistentContinueButton'));
+    expect(controls, contains('Flexible('));
+    expect(controls, contains('Scrollbar('));
+    expect(controls, contains('SingleChildScrollView('));
+    expect(
+      controls.indexOf('Scrollbar('),
+      lessThan(controls.indexOf('_ReceiptPersistentContinueButton(')),
+    );
+    expect(
+      controls.indexOf('SingleChildScrollView('),
+      lessThan(controls.indexOf('_ReceiptPersistentContinueButton(')),
+    );
+  });
+
+  test('review mode transitions reset tool scroll position', () async {
+    final screen = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart',
+    ).readAsString();
+    final editActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_image_edit_actions.dart',
+    ).readAsString();
+
+    expect(
+      editActions,
+      contains('void _setReviewMode(_ReceiptReviewMode mode)'),
+    );
+    expect(editActions, contains('_resetToolControlsScrollPosition();'));
+    expect(editActions, contains('void _resetToolControlsScrollPosition()'));
+    expect(editActions, contains('!_toolControlsScrollController.hasClients'));
+    expect(editActions, contains('_toolControlsScrollController.jumpTo('));
+    expect(editActions, contains('position.minScrollExtent'));
+    expect(screen, contains('onClose: _reviewMode == _ReceiptReviewMode.crop'));
+    expect(
+      screen,
+      contains('? () => _setReviewMode(_ReceiptReviewMode.preview)'),
+    );
+    expect(
+      screen,
+      contains(
+        'onCancelCrop: () => _setReviewMode(_ReceiptReviewMode.preview)',
+      ),
+    );
   });
 
   test('photo review top controls stay edge anchored', () async {

@@ -133,7 +133,136 @@ The plan is intentionally numbered. Every receipt-hardening pass should be repor
 - **Receipt Camera Reopen Pass 121: Capability-Based Camera Settings** is complete.
 - **Receipt Camera Reopen Pass 122: First-Use Camera Setup** is complete.
 - **Receipt Camera Reopen Pass 123: Camera UI Device Batch** is complete.
-- Next receipt step is **Receipt Camera Reopen Pass 124: Review Surface Real-Device Polish Batch**.
+- **Receipt Camera Reopen Pass 124: Review Surface Real-Device Polish Batch** is complete.
+- **Receipt Camera Reopen Pass 125: Review Surface Tool Affordance Batch** is complete.
+- **Receipt Camera Reopen Pass 126: Review Tool Mode Height And Scroll Batch** is complete.
+- **Receipt Camera Reopen Pass 127: Review Continue Button Persistence Batch** is complete.
+- **Receipt Camera Reopen Pass 128: Receipt Review Mode Transition Polish Batch** is complete.
+- Next receipt step is **Receipt Camera Reopen Pass 129: Crop Mode Readability And Edge Controls Batch**.
+
+### Receipt Camera Reopen Pass 128: Receipt Review Mode Transition Polish Batch
+
+Status: completed.
+
+Goal:
+- Keep receipt-review mode switches predictable by preventing stale scroll
+  positions from carrying between Review, Crop, Order, Match, and Save Space.
+
+Completed:
+- Added a mode-transition scroll reset so each tool mode starts at the top of
+  its controls.
+- Guarded the scroll reset so it only touches the controller when attached.
+- Routed crop top-bar close through the shared review-mode switch.
+- Routed crop cancel through the shared review-mode switch.
+- Added source guards proving mode changes reset the tool scroll position and
+  crop exits use the shared transition path.
+
+Verification:
+- `dart format lib/shared/widgets/receipt_capture/receipt_photo_review_image_edit_actions.dart lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart test/receipt_camera_capture_layout_test.dart`
+- `flutter test test/receipt_camera_capture_layout_test.dart`
+- `flutter analyze lib/shared/widgets/receipt_capture/receipt_photo_review_image_edit_actions.dart lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart test/receipt_camera_capture_layout_test.dart`
+- `git diff --check`
+
+### Receipt Camera Reopen Pass 127: Review Continue Button Persistence Batch
+
+Status: completed.
+
+Goal:
+- Keep the `Next` / receipt-review handoff action visible in tool modes even
+  when the crop/order/match/save-space details need to scroll.
+
+Completed:
+- Passed the receipt-review tool scroll controller into the bottom-controls
+  widget instead of wrapping the whole tray from the screen.
+- Moved the visible scrollbar and scroll view inside the non-preview tool
+  content area only.
+- Added a persistent continue button below the scrollable tool details so the
+  user does not have to hunt for `Next`.
+- Preserved the waiting-for-stitch disable behavior and the saving spinner/copy
+  on the persistent action.
+- Added source guards proving the scrollbar appears before the persistent
+  continue button and that the screen wires the scroll controller into the
+  controls.
+
+Verification:
+- `dart format lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart test/receipt_camera_capture_layout_test.dart`
+- `flutter test test/receipt_camera_capture_layout_test.dart`
+- `flutter analyze lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart test/receipt_camera_capture_layout_test.dart`
+- `git diff --check`
+
+### Receipt Camera Reopen Pass 126: Review Tool Mode Height And Scroll Batch
+
+Status: completed.
+
+Goal:
+- Make capped tool trays usable on phone screens when crop/order/match/save-space
+  controls are taller than the available review tray height.
+
+Completed:
+- Added a dedicated scroll controller for receipt-review tool controls.
+- Wrapped non-preview review tool trays in a visible `Scrollbar` so scrollable
+  controls are discoverable instead of silently clipped.
+- Kept preview mode unwrapped so the primary review tray remains direct and
+  compact.
+- Disposed the tool-control scroll controller with the review screen lifecycle.
+- Added source guards for the controller, disposal, and visible scrollbar
+  contract.
+
+Verification:
+- `dart format lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart test/receipt_camera_capture_layout_test.dart`
+- `flutter test test/receipt_camera_capture_layout_test.dart`
+- `flutter analyze lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart test/receipt_camera_capture_layout_test.dart`
+- `git diff --check`
+
+### Receipt Camera Reopen Pass 125: Review Surface Tool Affordance Batch
+
+Status: completed.
+
+Goal:
+- Make secondary receipt-review tools understandable on a phone without relying
+  on tooltip-only icon buttons.
+
+Completed:
+- Reworked the non-preview tool context row into a compact labeled action card.
+- Replaced the icon-only Add/Retake/Remove controls in tool modes with labeled
+  mini action buttons.
+- The Add action now says Add Next Photo when multiple receipt sections exist
+  and Add Another Photo for a single receipt section.
+- Kept the action strip horizontally scrollable and compact so crop/order/match
+  tools remain usable without taking over the receipt preview.
+- Added guards that the tool-mode action row uses visible labels instead of
+  tooltip-only icons.
+
+Verification:
+- `dart format lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart test/receipt_camera_capture_layout_test.dart`
+- `flutter test test/receipt_camera_capture_layout_test.dart`
+- `flutter analyze lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart test/receipt_camera_capture_layout_test.dart`
+- `git diff --check`
+
+### Receipt Camera Reopen Pass 124: Review Surface Real-Device Polish Batch
+
+Status: completed.
+
+Goal:
+- Keep the receipt photo itself dominant and fully reviewable on real phone
+  screens by preventing the bottom control tray from covering the bottom of the
+  receipt image.
+
+Completed:
+- Replaced the separate hard-coded review-image bottom padding values with a
+  single padding calculation tied to the actual capped bottom controls height.
+- The photo preview surface now reserves the same height as the visible controls
+  plus a small gutter.
+- The crop surface now uses the same controls-aware bottom padding, so crop
+  handles and receipt edges are less likely to be hidden behind the tray.
+- Added source guards proving the review surface padding is derived from
+  `_reviewBottomControlsMaxHeight(context)` instead of a stale fixed value.
+
+Verification:
+- `dart format lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart test/receipt_camera_capture_layout_test.dart`
+- `flutter test test/receipt_camera_capture_layout_test.dart`
+- `flutter analyze lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart test/receipt_camera_capture_layout_test.dart`
+- `git diff --check`
 
 ### Receipt Camera Reopen Pass 123: Camera UI Device Batch
 

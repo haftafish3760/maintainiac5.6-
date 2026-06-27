@@ -12,6 +12,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
     required this.stitchPreviewInFlight,
     required this.stitchPairIndex,
     required this.manualOverlapFraction,
+    required this.toolControlsScrollController,
     required this.bestShotCandidateMode,
     required this.canRemove,
     required this.openingCamera,
@@ -48,6 +49,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
   final bool stitchPreviewInFlight;
   final int stitchPairIndex;
   final double? manualOverlapFraction;
+  final ScrollController toolControlsScrollController;
   final bool bestShotCandidateMode;
   final bool canRemove;
   final bool openingCamera;
@@ -132,102 +134,103 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _ReceiptReviewStepStrip(
-              selected: reviewMode,
-              photoCount: photoPaths.length,
-              onSelected: onModeChanged,
-            ),
-            const SizedBox(height: 6),
-            _ReceiptToolModeHeader(
-              reviewMode: reviewMode,
-              photoCount: photoPaths.length,
-              onBackToPreview: () => onModeChanged(_ReceiptReviewMode.preview),
-            ),
-            const SizedBox(height: 6),
-            _ReceiptReviewContextRow(
-              photoCount: photoPaths.length,
-              reviewMode: reviewMode,
-              dataSaverLevel: dataSaverLevel,
-              storagePreview: storagePreview,
-              selectedQualityCheck: selectedQualityCheck,
-              bestShotCandidateMode: bestShotCandidateMode,
-              openingCamera: openingCamera || savingPhotos,
-              canRemove: canRemove,
-              onAddPhoto: onAddPhoto,
-              onRetake: onRetake,
-              onRemove: onRemove,
-            ),
-            if (reviewMode == _ReceiptReviewMode.dataSaver) ...[
-              const SizedBox(height: 6),
-              _ReceiptDataSaverPreviewCard(preview: storagePreview),
-              const SizedBox(height: 6),
-              _ReceiptDataSaverStrip(
-                selected: dataSaverLevel,
-                onSelected: onDataSaverSelected,
-              ),
-            ],
-            if (reviewMode == _ReceiptReviewMode.order) ...[
-              const SizedBox(height: 6),
-              _ReceiptOrderToolControls(
-                photoPaths: photoPaths,
-                selectedIndex: selectedIndex,
-                openingCamera: openingCamera || savingPhotos,
-                onPhotoSelected: onPhotoSelected,
-                onMoveEarlier: onMoveEarlier,
-                onMoveLater: onMoveLater,
-                onAddPhoto: onAddPhoto,
-                onRetake: onRetake,
-              ),
-            ],
-            if (reviewMode == _ReceiptReviewMode.stitch &&
-                photoPaths.length > 1) ...[
-              const SizedBox(height: 6),
-              _ReceiptManualStitchControls(
-                pairIndex: stitchPairIndex,
-                totalPairs: photoPaths.length - 1,
-                manualOverlapFraction: manualOverlapFraction,
-                stitchPreview: stitchPreview,
-                stitchPreviewInFlight: stitchPreviewInFlight,
-                disabled: savingPhotos,
-                onPairSelected: onStitchPairSelected,
-                onOverlapChanged: onManualOverlapChanged,
-                onClear: onClearManualOverlap,
-                onOpenOrder: () => onModeChanged(_ReceiptReviewMode.order),
-              ),
-            ],
-            if (openingCamera || savingPhotos) ...[
-              const SizedBox(height: 6),
-              savingPhotos
-                  ? const ReceiptPickerStatus(
-                      label: 'Preparing receipt for app-assisted review...',
-                    )
-                  : const ReceiptPickerStatus(),
-            ],
-            const SizedBox(height: 6),
-            FilledButton.icon(
-              onPressed: continueEnabled ? onContinue : null,
-              icon: savingPhotos
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+            Flexible(
+              child: Scrollbar(
+                controller: toolControlsScrollController,
+                thumbVisibility: true,
+                trackVisibility: true,
+                child: SingleChildScrollView(
+                  controller: toolControlsScrollController,
+                  primary: false,
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _ReceiptReviewStepStrip(
+                        selected: reviewMode,
+                        photoCount: photoPaths.length,
+                        onSelected: onModeChanged,
                       ),
-                    )
-                  : const Icon(Icons.document_scanner_rounded),
-              label: Text(
-                savingPhotos ? 'Preparing Receipt Review' : continueLabel,
-              ),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(42),
-                backgroundColor: const Color(0xFF28A745),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
+                      const SizedBox(height: 6),
+                      _ReceiptToolModeHeader(
+                        reviewMode: reviewMode,
+                        photoCount: photoPaths.length,
+                        onBackToPreview: () =>
+                            onModeChanged(_ReceiptReviewMode.preview),
+                      ),
+                      const SizedBox(height: 6),
+                      _ReceiptReviewContextRow(
+                        photoCount: photoPaths.length,
+                        reviewMode: reviewMode,
+                        dataSaverLevel: dataSaverLevel,
+                        storagePreview: storagePreview,
+                        selectedQualityCheck: selectedQualityCheck,
+                        bestShotCandidateMode: bestShotCandidateMode,
+                        openingCamera: openingCamera || savingPhotos,
+                        canRemove: canRemove,
+                        onAddPhoto: onAddPhoto,
+                        onRetake: onRetake,
+                        onRemove: onRemove,
+                      ),
+                      if (reviewMode == _ReceiptReviewMode.dataSaver) ...[
+                        const SizedBox(height: 6),
+                        _ReceiptDataSaverPreviewCard(preview: storagePreview),
+                        const SizedBox(height: 6),
+                        _ReceiptDataSaverStrip(
+                          selected: dataSaverLevel,
+                          onSelected: onDataSaverSelected,
+                        ),
+                      ],
+                      if (reviewMode == _ReceiptReviewMode.order) ...[
+                        const SizedBox(height: 6),
+                        _ReceiptOrderToolControls(
+                          photoPaths: photoPaths,
+                          selectedIndex: selectedIndex,
+                          openingCamera: openingCamera || savingPhotos,
+                          onPhotoSelected: onPhotoSelected,
+                          onMoveEarlier: onMoveEarlier,
+                          onMoveLater: onMoveLater,
+                          onAddPhoto: onAddPhoto,
+                          onRetake: onRetake,
+                        ),
+                      ],
+                      if (reviewMode == _ReceiptReviewMode.stitch &&
+                          photoPaths.length > 1) ...[
+                        const SizedBox(height: 6),
+                        _ReceiptManualStitchControls(
+                          pairIndex: stitchPairIndex,
+                          totalPairs: photoPaths.length - 1,
+                          manualOverlapFraction: manualOverlapFraction,
+                          stitchPreview: stitchPreview,
+                          stitchPreviewInFlight: stitchPreviewInFlight,
+                          disabled: savingPhotos,
+                          onPairSelected: onStitchPairSelected,
+                          onOverlapChanged: onManualOverlapChanged,
+                          onClear: onClearManualOverlap,
+                          onOpenOrder: () =>
+                              onModeChanged(_ReceiptReviewMode.order),
+                        ),
+                      ],
+                      if (openingCamera || savingPhotos) ...[
+                        const SizedBox(height: 6),
+                        savingPhotos
+                            ? const ReceiptPickerStatus(
+                                label:
+                                    'Preparing receipt for app-assisted review...',
+                              )
+                            : const ReceiptPickerStatus(),
+                      ],
+                    ],
+                  ),
                 ),
-                textStyle: const TextStyle(fontWeight: FontWeight.w900),
               ),
+            ),
+            const SizedBox(height: 6),
+            _ReceiptPersistentContinueButton(
+              enabled: continueEnabled,
+              savingPhotos: savingPhotos,
+              label: continueLabel,
+              onContinue: onContinue,
             ),
           ],
         ),
@@ -415,6 +418,45 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
       return '$score Tap Next to review the filled receipt.';
     }
     return 'If the receipt continues, tap Add Another Photo. Otherwise tap Next to review the filled receipt.';
+  }
+}
+
+class _ReceiptPersistentContinueButton extends StatelessWidget {
+  const _ReceiptPersistentContinueButton({
+    required this.enabled,
+    required this.savingPhotos,
+    required this.label,
+    required this.onContinue,
+  });
+
+  final bool enabled;
+  final bool savingPhotos;
+  final String label;
+  final VoidCallback onContinue;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.icon(
+      onPressed: enabled ? onContinue : null,
+      icon: savingPhotos
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+          : const Icon(Icons.document_scanner_rounded),
+      label: Text(savingPhotos ? 'Preparing Receipt Review' : label),
+      style: FilledButton.styleFrom(
+        minimumSize: const Size.fromHeight(42),
+        backgroundColor: const Color(0xFF28A745),
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w900),
+      ),
+    );
   }
 }
 
@@ -757,59 +799,69 @@ class _ReceiptReviewContextRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = _statusText;
-    return Row(
-      children: [
-        Expanded(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: const Color(0xFF11181B),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: const Color(0xFF344047)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(9, 7, 9, 7),
-              child: Row(
-                children: [
-                  Icon(_statusIcon, color: const Color(0xFFFFD166), size: 18),
-                  const SizedBox(width: 7),
-                  Expanded(
-                    child: Text(
-                      status,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFFE8ECEE),
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w800,
-                        height: 1.18,
-                        letterSpacing: 0,
-                      ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0D1316),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: const Color(0xFF344047)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Icon(_statusIcon, color: const Color(0xFFFFD166), size: 18),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    status,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFFE8ECEE),
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                      height: 1.18,
+                      letterSpacing: 0,
                     ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 7),
+            SizedBox(
+              height: 34,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _MiniReceiptActionButton(
+                    icon: Icons.add_a_photo_rounded,
+                    label: photoCount > 1
+                        ? 'Add Next Photo'
+                        : 'Add Another Photo',
+                    emphasized: true,
+                    onPressed: openingCamera ? null : onAddPhoto,
+                  ),
+                  const SizedBox(width: 6),
+                  _MiniReceiptActionButton(
+                    icon: Icons.camera_alt_rounded,
+                    label: 'Retake',
+                    onPressed: openingCamera ? null : onRetake,
+                  ),
+                  const SizedBox(width: 6),
+                  _MiniReceiptActionButton(
+                    icon: Icons.delete_outline_rounded,
+                    label: 'Remove',
+                    onPressed: canRemove ? onRemove : null,
                   ),
                 ],
               ),
             ),
-          ),
+          ],
         ),
-        const SizedBox(width: 7),
-        _MiniReceiptIconButton(
-          icon: Icons.add_a_photo_rounded,
-          label: 'Add Another Photo',
-          onPressed: openingCamera ? null : onAddPhoto,
-        ),
-        const SizedBox(width: 6),
-        _MiniReceiptIconButton(
-          icon: Icons.camera_alt_rounded,
-          label: 'Retake',
-          onPressed: openingCamera ? null : onRetake,
-        ),
-        const SizedBox(width: 6),
-        _MiniReceiptIconButton(
-          icon: Icons.delete_outline_rounded,
-          label: 'Remove',
-          onPressed: canRemove ? onRemove : null,
-        ),
-      ],
+      ),
     );
   }
 
@@ -844,6 +896,44 @@ class _ReceiptReviewContextRow extends StatelessWidget {
       return quality.reviewGuidance;
     }
     return 'If the receipt continues, add another photo. Otherwise tap Next to review the filled receipt.';
+  }
+}
+
+class _MiniReceiptActionButton extends StatelessWidget {
+  const _MiniReceiptActionButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.emphasized = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+  final bool emphasized;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 15),
+      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(0, 32),
+        backgroundColor: emphasized
+            ? const Color(0xFFFFD166)
+            : const Color(0xFF172126),
+        disabledBackgroundColor: const Color(0xFF11181B),
+        foregroundColor: emphasized
+            ? const Color(0xFF101416)
+            : const Color(0xFFE8ECEE),
+        disabledForegroundColor: const Color(0xFF6F7A80),
+        padding: const EdgeInsets.symmetric(horizontal: 9),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+      ),
+    );
   }
 }
 

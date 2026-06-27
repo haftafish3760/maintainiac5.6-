@@ -17,6 +17,7 @@ import 'maintenance_svg_icon.dart';
 part 'maintenance_item_detail_widgets.dart';
 part 'maintenance_item_detail_controls.dart';
 part 'maintenance_item_detail_last_service.dart';
+part 'maintenance_item_detail_draft_restore.dart';
 part 'maintenance_item_detail_leave_guard.dart';
 part 'maintenance_item_detail_utils.dart';
 
@@ -83,6 +84,16 @@ class _MaintenanceItemDetailScreenState
   );
   late final _customMiles = TextEditingController();
   late final _customMonths = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreSetupDraft();
+  }
+
+  void _applyRestoredSetupDraft(VoidCallback apply) {
+    if (mounted) setState(apply);
+  }
 
   @override
   void dispose() {

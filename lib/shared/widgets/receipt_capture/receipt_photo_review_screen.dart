@@ -87,6 +87,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   Rect? _cropRect;
   Rect? _cropDisplayRect;
   String? _cropSourcePath;
+  final _toolControlsScrollController = ScrollController();
 
   ReceiptDeviceCapability get _deviceCapability {
     return ReceiptCaptureSettingsScope.maybeOf(context)?.deviceCapability ??
@@ -112,6 +113,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   @override
   void dispose() {
     _stitchPreviewDebounce?.cancel();
+    _toolControlsScrollController.dispose();
     unawaited(_deleteGeneratedStitchPreview());
     unawaited(_deleteGeneratedDataSaverPreviews());
     unawaited(_deleteGeneratedEditPhotos(const {}));
@@ -169,9 +171,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
                     reviewMode: _reviewMode,
                     bestShotCandidateMode: widget.bestShotCandidateMode,
                     onClose: _reviewMode == _ReceiptReviewMode.crop
-                        ? () => setState(
-                            () => _reviewMode = _ReceiptReviewMode.preview,
-                          )
+                        ? () => _setReviewMode(_ReceiptReviewMode.preview)
                         : _leaveReceiptReviewWithoutSaving,
                     onHideControls: () =>
                         setState(() => _controlsVisible = false),
@@ -300,6 +300,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
       manualOverlapFraction: _manualOverlapFractions.isEmpty
           ? null
           : _manualOverlapFractions[_selectedStitchPairIndex],
+      toolControlsScrollController: _toolControlsScrollController,
       bestShotCandidateMode: widget.bestShotCandidateMode,
       canRemove: _photoPaths.length > 1,
       openingCamera: _openingCamera,
@@ -320,19 +321,13 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
       onRotateRight: () => _rotateCurrentPhoto(90),
       onResetCrop: _resetCrop,
       onApplyCrop: _applyCrop,
-      onCancelCrop: () =>
-          setState(() => _reviewMode = _ReceiptReviewMode.preview),
+      onCancelCrop: () => _setReviewMode(_ReceiptReviewMode.preview),
       onAddPhoto: _addAnotherPhoto,
       onRetake: _retakeCurrentPhoto,
       onRemove: () => unawaited(_removeCurrentPhoto()),
       onContinue: _continue,
     );
-    if (_reviewMode == _ReceiptReviewMode.preview) return controls;
-    return SingleChildScrollView(
-      primary: false,
-      padding: EdgeInsets.zero,
-      child: controls,
-    );
+    return controls;
   }
 
   double _reviewBottomControlsMaxHeight(BuildContext context) {
@@ -363,7 +358,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
                 0,
                 56,
                 0,
-                _controlsVisible ? _reviewSurfaceBottomPadding : 0,
+                _controlsVisible ? _reviewSurfaceBottomPadding(context) : 0,
               ),
               child: InteractiveViewer(
                 minScale: 1,
@@ -400,14 +395,8 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
     );
   }
 
-  double get _reviewSurfaceBottomPadding {
-    return switch (_reviewMode) {
-      _ReceiptReviewMode.crop => 70,
-      _ReceiptReviewMode.preview => _photoPaths.length > 1 ? 126 : 96,
-      _ReceiptReviewMode.order => 118,
-      _ReceiptReviewMode.stitch => 142,
-      _ReceiptReviewMode.dataSaver => 126,
-    };
+  double _reviewSurfaceBottomPadding(BuildContext context) {
+    return _reviewBottomControlsMaxHeight(context) + 8;
   }
 
   Widget _buildCropSurface(String photoPath) {
@@ -427,7 +416,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
             0,
             58,
             0,
-            _controlsVisible ? _reviewSurfaceBottomPadding : 0,
+            _controlsVisible ? _reviewSurfaceBottomPadding(context) : 0,
           ),
           child: ReceiptEdgeCropper(
             imageBytes: imageBytes,

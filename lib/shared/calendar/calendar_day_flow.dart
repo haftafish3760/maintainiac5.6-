@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../navigation/app_page_routes.dart';
+import '../state/app_state.dart';
 import '../widgets/app_back_button.dart';
 import 'month_year_picker.dart';
 import 'calendar_dummy_data.dart';
@@ -29,11 +30,9 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
   Widget build(BuildContext context) {
     final mode = calendarModeFor(_selectedDay);
     final profile = calendarModeProfileFor(mode);
-    final data = calendarDummyDataFor(
-      _selectedDay,
-      mode,
-      source: widget.source,
-    );
+    final data = widget.source == CalendarFlowSource.maintenance
+        ? _maintenanceDataFor(context, _selectedDay, mode)
+        : calendarDummyDataFor(_selectedDay, mode, source: widget.source);
 
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
@@ -137,6 +136,10 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
         subtitle:
             'Today can show scheduled work and completed records together.',
       ),
+      if (data.recapItems.isNotEmpty) ...[
+        const SizedBox(height: 12),
+        CalendarRecapStrip(items: data.recapItems),
+      ],
       const SizedBox(height: 14),
       CalendarSectionTitle.withAction(
         label: 'PLANNED TODAY',
@@ -279,11 +282,79 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
   String _screenTitle() {
     return switch (widget.source) {
       CalendarFlowSource.expenses => 'Expense Calendar',
+      CalendarFlowSource.maintenance => 'Maintenance Calendar',
       CalendarFlowSource.contractor => 'Contractor Calendar',
       CalendarFlowSource.employee => 'Employee Calendar',
       _ => 'Calendar',
     };
   }
+}
+
+CalendarDayData _maintenanceDataFor(
+  BuildContext context,
+  DateTime day,
+  CalendarDayMode mode,
+) {
+  if (mode == CalendarDayMode.future) {
+    return const CalendarDayData(recapItems: [], entries: []);
+  }
+  final state = AppStateScope.of(context);
+  final normalized = DateUtils.dateOnly(day);
+  final events =
+      state.maintenanceEvents
+          .where((event) => DateUtils.isSameDay(event.serviceDate, normalized))
+          .toList()
+        ..sort((a, b) => a.serviceDate.compareTo(b.serviceDate));
+  final totalCost = events.fold<double>(
+    0,
+    (sum, event) => sum + event.totalCost,
+  );
+  final receiptProofs = events.fold<int>(
+    0,
+    (sum, event) => sum + event.receiptProofCount,
+  );
+  final vehicles = events.map((event) => event.vehicleName).toSet().length;
+  return CalendarDayData(
+    recapItems: [
+      CalendarRecapItem(label: 'Services', value: events.length.toString()),
+      CalendarRecapItem(label: 'Vehicles', value: vehicles.toString()),
+      CalendarRecapItem(label: 'Receipts', value: receiptProofs.toString()),
+      CalendarRecapItem(label: 'Cost', value: _moneyLabel(totalCost)),
+    ],
+    entries: [
+      for (var index = 0; index < events.length; index++)
+        _maintenanceEntry(events[index], index),
+    ],
+  );
+}
+
+CalendarTimelineEntry _maintenanceEntry(
+  MaintenanceServiceEvent event,
+  int index,
+) {
+  return CalendarTimelineEntry(
+    id: 'maintenance-${event.vehicleName}-${event.itemName}-$index',
+    timestamp: event.serviceDate,
+    type: CalendarEntryType.maintenance,
+    status: CalendarEntryStatus.completed,
+    title: event.itemName,
+    source: 'Maintenance',
+    summary: '${event.vehicleName} - ${event.odometer} miles',
+    details: [
+      'Vehicle: ${event.vehicleName}',
+      'Odometer: ${event.odometer}',
+      if (event.provider.trim().isNotEmpty) 'Provider: ${event.provider}',
+      if (event.totalCost > 0) 'Cost: ${_moneyLabel(event.totalCost)}',
+      if (event.receiptProofCount > 0)
+        'Receipt proof: ${event.receiptProofCount}',
+      if (event.notes.trim().isNotEmpty) 'Notes: ${event.notes}',
+    ],
+  );
+}
+
+String _moneyLabel(double amount) {
+  if (amount <= 0) return r'$0';
+  return '\$${amount.toStringAsFixed(2)}';
 }
 
 class _CalendarDayNavigation extends StatelessWidget {
