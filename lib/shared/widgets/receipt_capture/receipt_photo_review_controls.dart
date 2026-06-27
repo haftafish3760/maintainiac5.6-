@@ -384,6 +384,9 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
               hasMultiplePhotos: hasMultiplePhotos,
               canRemove: canRemove,
               openingCamera: openingCamera,
+              hasQualityWarning:
+                  selectedQualityCheck?.needsReview == true ||
+                  selectedQualityCheck?.hasCriticalIssue == true,
               onAddPhoto: onAddPhoto,
               onRetake: onRetake,
               onRemove: onRemove,
@@ -398,7 +401,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
   String get _statusText {
     final photoCount = photoPaths.length;
     if (photoCount > 1) {
-      return '$photoCount receipt photos ready. Check order and match, then tap Next to review the filled receipt.';
+      return '$photoCount receipt photos ready. Tap Add Next Photo if the receipt continues, or Next to review the filled receipt.';
     }
     final quality = selectedQualityCheck;
     if (quality != null) {
@@ -411,7 +414,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
       }
       return '$score Tap Next to review the filled receipt.';
     }
-    return 'If the receipt continues, add another photo. Otherwise tap Next to review the filled receipt.';
+    return 'If the receipt continues, tap Add Another Photo. Otherwise tap Next to review the filled receipt.';
   }
 }
 
@@ -420,6 +423,7 @@ class _ReceiptPreviewActionRail extends StatelessWidget {
     required this.hasMultiplePhotos,
     required this.canRemove,
     required this.openingCamera,
+    required this.hasQualityWarning,
     required this.onAddPhoto,
     required this.onRetake,
     required this.onRemove,
@@ -429,6 +433,7 @@ class _ReceiptPreviewActionRail extends StatelessWidget {
   final bool hasMultiplePhotos;
   final bool canRemove;
   final bool openingCamera;
+  final bool hasQualityWarning;
   final VoidCallback onAddPhoto;
   final VoidCallback onRetake;
   final VoidCallback onRemove;
@@ -439,13 +444,13 @@ class _ReceiptPreviewActionRail extends StatelessWidget {
     final actions = <Widget>[
       _ReceiptActionRailButton(
         icon: Icons.add_a_photo_rounded,
-        label: hasMultiplePhotos ? 'Add Photo' : 'Add Another Photo',
+        label: hasMultiplePhotos ? 'Add Next Photo' : 'Add Another Photo',
         emphasized: true,
         onPressed: openingCamera ? null : onAddPhoto,
       ),
       _ReceiptActionRailButton(
         icon: Icons.camera_alt_rounded,
-        label: 'Retake',
+        label: hasQualityWarning ? 'Retake Clearer Photo' : 'Retake',
         onPressed: openingCamera ? null : onRetake,
       ),
       _ReceiptActionRailButton(

@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/maintenance/maintenance_screen.dart';
 import 'package:maintaniac/screens/maintenance/maintenance_models.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
@@ -8,15 +11,22 @@ import 'package:maintaniac/shared/state/global_odometer.dart';
 void main() {
   late AppStateController appState;
   late GlobalOdometerController odometer;
+  late Directory hiveDirectory;
 
-  setUp(() {
+  setUp(() async {
+    hiveDirectory = await Directory.systemTemp.createTemp(
+      'maintenance_tracking_test_',
+    );
+    Hive.init(hiveDirectory.path);
     appState = AppStateController();
     odometer = GlobalOdometerController();
   });
 
-  tearDown(() {
+  tearDown(() async {
     appState.dispose();
     odometer.dispose();
+    await Hive.close();
+    await hiveDirectory.delete(recursive: true);
   });
 
   testWidgets(

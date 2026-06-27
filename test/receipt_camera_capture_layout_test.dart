@@ -378,6 +378,20 @@ void main() {
     );
   });
 
+  test('photo review tray uses explicit next-photo receipt language', () async {
+    final controls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
+    ).readAsString();
+
+    expect(controls, contains('Add Another Photo'));
+    expect(controls, contains('Add Next Photo'));
+    expect(controls, contains('tap Add Another Photo'));
+    expect(controls, contains('Tap Add Next Photo'));
+    expect(controls, contains('Retake Clearer Photo'));
+    expect(controls, isNot(contains("label: hasMultiplePhotos ? 'Add Photo'")));
+    expect(controls, isNot(contains('Check order and match, then tap Next')));
+  });
+
   test('photo review top controls stay edge anchored', () async {
     final topBar = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',

@@ -132,7 +132,34 @@ The plan is intentionally numbered. Every receipt-hardening pass should be repor
 - **Receipt Camera Reopen Pass 120: Live Guidance Tone And Timing** is complete.
 - **Receipt Camera Reopen Pass 121: Capability-Based Camera Settings** is complete.
 - **Receipt Camera Reopen Pass 122: First-Use Camera Setup** is complete.
-- Next receipt step is **Receipt Camera Reopen Pass 123: Camera UI Device Batch**.
+- **Receipt Camera Reopen Pass 123: Camera UI Device Batch** is complete.
+- Next receipt step is **Receipt Camera Reopen Pass 124: Review Surface Real-Device Polish Batch**.
+
+### Receipt Camera Reopen Pass 123: Camera UI Device Batch
+
+Status: completed.
+
+Goal:
+- Tighten the first photo-review decision surface so the next step is obvious
+  on a phone-sized screen without relying on tiny icons or vague scan wording.
+
+Completed:
+- Changed the single-photo review prompt to explicitly say to tap Add Another
+  Photo when the receipt continues, otherwise tap Next.
+- Changed the multi-photo prompt to explicitly say Add Next Photo for long
+  receipts, otherwise Next moves into the filled receipt review.
+- Changed the multi-photo add action label from Add Photo to Add Next Photo so
+  it matches the long-receipt workflow instead of sounding like a generic
+  gallery action.
+- Changed the retake action to Retake Clearer Photo when the selected quality
+  check indicates the photo needs review.
+- Added source guards to keep the explicit Add Another Photo/Add Next Photo
+  language from regressing back to vague review wording.
+
+Verification:
+- `dart format lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart test/receipt_camera_capture_layout_test.dart`
+- `flutter test test/receipt_camera_capture_layout_test.dart`
+- `flutter analyze lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart test/receipt_camera_capture_layout_test.dart`
 
 ### Receipt Camera Reopen Pass 122: First-Use Camera Setup
 
