@@ -1,0 +1,24 @@
+Firestore data model and production guardrails
+
+Source: visible user message, 2026-06-20 Batch 2
+
+"All right, for the Firestore data model, I went on Firebase and I turned that
+on. I'm using NAM7."
+
+"So, what we need to probably do for my Firebase right now, we would need to do
+Firestore data model."
+
+"We're working on security rules, obviously emulator only testing, cloud
+functions, contracts, quota and abuse controls, indexes, seed data, production
+deploy checklist."
+
+"The killer feature would be rules like never seed production, never deploy
+without approval, never use test mode for a beta slash production, always use
+emulator first, respect NAM7, respect no VINs, no plates, no passenger data."
+
+"If the person might be a non-emergency medical transporter, no patient data."
+
+"Enforce workspace isolation, enforce employee permissions."
+
+"We honestly probably need to create a plugin for just doing that alone to
+make sure everything is good to go."

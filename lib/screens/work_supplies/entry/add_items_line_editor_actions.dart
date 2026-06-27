@@ -64,6 +64,11 @@ extension _WorkSupplyAddItemsLineEditorActions
               showDestinationPicker: isInventoryLine,
               scrollController: _lineEditorScrollController,
               canSave: _canSave,
+              canStepBack: _canLineEditorStepBack,
+              onStepBack: () {
+                _goBackOneLevel();
+                setEditorState(() {});
+              },
               onSave: () async {
                 await _save();
                 if (!context.mounted) return;
@@ -212,6 +217,13 @@ extension _WorkSupplyAddItemsLineEditorActions
                   setState(() {
                     _selectedItem = item;
                     _search.text = item.name;
+                  });
+                  setEditorState(() {});
+                },
+                onCreateInventoryItem: () {
+                  setState(() {
+                    _itemEntryMode = _ItemEntryMode.newInventory;
+                    _selectedItem = null;
                   });
                   setEditorState(() {});
                 },

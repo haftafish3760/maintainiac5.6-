@@ -1,0 +1,28 @@
+Batch 3 notes for Firebase backup and employee flow
+
+Related files:
+- docs/firestore_data_model.md
+- firestore.rules
+- screen_notes/firestore_data_model.txt
+
+Source: visible user message, 2026-06-20 Batch 3
+
+"All of these permissions that we are creating, you must wire this stuff into
+Firebase, Firestore, whatever it's called."
+
+"You've got to do the schema stuff as well, the collections for the Firestore
+database."
+
+"Everything on here has got to be wired into Firebase for backup."
+
+"Now, not every user is going to select Firebase. You got to know that."
+
+"This is local first, Hive is the truth, Firebase is the mirror."
+
+"Creating the UI for all of this is one thing. Backing it all up to Firebase,
+Firestore, and all that good stuff is a totally different ballgame."
+
+"We need, we are gonna have to back up this entire app."
+
+"This is gonna be a massive undertaking just for the back end itself."
+

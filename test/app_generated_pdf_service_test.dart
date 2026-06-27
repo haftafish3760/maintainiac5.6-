@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/expenses/data/expense_export_handoff.dart';
 import 'package:maintaniac/screens/expenses/data/expense_export_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
+import 'package:maintaniac/screens/invoices/data/invoice_ledger_models.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_pdf_preview_factory.dart';
+import 'package:maintaniac/screens/invoices/data/invoice_record.dart';
 import 'package:maintaniac/shared/documents/app_document_models.dart';
 import 'package:maintaniac/shared/documents/app_document_store.dart';
 import 'package:maintaniac/shared/documents/app_generated_pdf_archive_service.dart';
@@ -92,6 +94,73 @@ void main() {
     expect(await File(generated.path).length(), document.byteSize);
   });
 
+  test('generated PDF model validates sendable PDF bytes and filenames', () {
+    final document = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName:
+          ' ACME:/invoice*with?bad<characters>|and a very very very very very very very very very very very long customer name ',
+      bytes: Uint8List.fromList('%PDF-1.7\n1 0 obj\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 6, 15),
+    );
+
+    expect(document.validation.isValid, isTrue);
+    expect(document.isSendablePdf, isTrue);
+    expect(document.safeFileName, endsWith('.pdf'));
+    expect(document.safeFileName, isNot(contains(':')));
+    expect(document.safeFileName, isNot(contains('*')));
+    expect(document.safeFileName.length, lessThanOrEqualTo(120));
+  });
+
+  test('generated PDF validation rejects invalid and active PDF bytes', () {
+    final invalid = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList('not a pdf'.codeUnits),
+      createdAt: DateTime(2026, 6, 15),
+    );
+    final active = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\n1 0 obj << /JavaScript (bad) >> endobj\n%%EOF'.codeUnits,
+      ),
+      createdAt: DateTime(2026, 6, 15),
+    );
+
+    expect(invalid.validation.isValid, isFalse);
+    expect(invalid.validation.hasIssue('missing_pdf_header'), isTrue);
+    expect(invalid.validation.hasIssue('missing_pdf_end_marker'), isTrue);
+    expect(active.validation.isValid, isFalse);
+    expect(active.validation.hasIssue('active_javascript'), isTrue);
+  });
+
+  test(
+    'generated PDF service refuses incomplete PDFs before writing',
+    () async {
+      final document = AppGeneratedPdfDocument(
+        kind: AppGeneratedPdfKind.invoice,
+        title: 'Invoice INV-BAD',
+        fileName: 'invoice_bad.pdf',
+        bytes: Uint8List.fromList('%PDF-1.7\nmissing end marker'.codeUnits),
+        createdAt: DateTime(2026, 6, 15),
+      );
+
+      await expectLater(
+        const AppGeneratedPdfService().writeTemporary(document),
+        throwsA(isA<AppGeneratedPdfException>()),
+      );
+      expect(
+        await Directory(
+          '${temporaryDirectory.path}/maintaniac_generated_pdfs',
+        ).exists(),
+        isFalse,
+      );
+    },
+  );
+
   test('generated PDF service cleans only old generated files', () async {
     final document = await const InvoicePdfPreviewFactory()
         .buildEstimatePreview();
@@ -143,4 +212,145 @@ void main() {
     );
     expect(store.recordById('DOC-invoice-invoice_42'), isNotNull);
   });
+
+  test(
+    'record invoice PDF is sendable, safe-named, archived, and not stored in ledger',
+    () async {
+      final store = AppDocumentStore.memory();
+      final record = _invoiceRecord(
+        id: 'invoice_lifecycle',
+        number: 'INV/42:ACME*June?',
+      );
+
+      final document = await const InvoicePdfPreviewFactory()
+          .buildRecordPreview(record: record);
+      final recordMap = record.toMap();
+
+      expect(document.kind, AppGeneratedPdfKind.invoice);
+      expect(document.title, 'Invoice INV/42:ACME*June?');
+      expect(document.sourceModule, 'invoices');
+      expect(document.sourceRecordId, 'invoice_lifecycle');
+      expect(document.safeFileName, endsWith('.pdf'));
+      expect(document.safeFileName, isNot(contains('/')));
+      expect(document.safeFileName, isNot(contains(':')));
+      expect(document.safeFileName, isNot(contains('*')));
+      expect(document.validation.isValid, isTrue);
+      expect(recordMap.containsKey('pdfBytes'), isFalse);
+      expect(recordMap.containsKey('pdfPath'), isFalse);
+
+      final generated = await const AppGeneratedPdfService().writeTemporary(
+        document,
+      );
+      expect(await File(generated.path).length(), document.byteSize);
+
+      final archived = await AppGeneratedPdfArchiveService(
+        store: store,
+      ).archive(document);
+
+      expect(archived.document.kind, AppDocumentKind.invoiceDocument);
+      expect(archived.document.id, 'DOC-invoice-invoice_lifecycle');
+      expect(archived.attachment.linkedModule, 'invoices');
+      expect(archived.attachment.linkedRecordId, 'invoice_lifecycle');
+      expect(archived.attachment.originalFileName, document.safeFileName);
+      expect(archived.attachment.byteSize, document.byteSize);
+      expect(archived.fileHashSha256, hasLength(64));
+      expect(await File(archived.attachment.path).exists(), isTrue);
+      expect(store.recordById(archived.document.id), isNotNull);
+    },
+  );
+
+  test('record estimate PDF archives as invoice document proof', () async {
+    final store = AppDocumentStore.memory();
+    final record = _invoiceRecord(
+      id: 'estimate_lifecycle',
+      number: 'EST-12',
+      type: InvoiceDocumentType.estimate,
+    );
+
+    final document = await const InvoicePdfPreviewFactory().buildRecordPreview(
+      record: record,
+    );
+    final archived = await AppGeneratedPdfArchiveService(
+      store: store,
+    ).archive(document);
+
+    expect(document.kind, AppGeneratedPdfKind.estimate);
+    expect(document.title, 'Estimate EST-12');
+    expect(document.sourceRecordId, 'estimate_lifecycle');
+    expect(document.validation.isValid, isTrue);
+    expect(archived.document.kind, AppDocumentKind.invoiceDocument);
+    expect(archived.document.id, 'DOC-estimate-estimate_lifecycle');
+    expect(archived.attachment.linkedRecordId, 'estimate_lifecycle');
+    expect(archived.fileHashSha256, hasLength(64));
+  });
+
+  test(
+    'generated PDF archive refuses invalid PDFs before permanent save',
+    () async {
+      final store = AppDocumentStore.memory();
+      final document = AppGeneratedPdfDocument(
+        kind: AppGeneratedPdfKind.invoice,
+        title: 'Invoice INV-BAD',
+        fileName: 'invoice_bad.pdf',
+        bytes: Uint8List.fromList('not a pdf'.codeUnits),
+        createdAt: DateTime(2026, 6, 15),
+        sourceModule: 'invoices',
+        sourceRecordId: 'invoice_bad',
+      );
+
+      await expectLater(
+        AppGeneratedPdfArchiveService(store: store).archive(document),
+        throwsA(isA<AppGeneratedPdfArchiveException>()),
+      );
+      expect(store.recordById('DOC-invoice-invoice_bad'), isNull);
+    },
+  );
+}
+
+InvoiceRecord _invoiceRecord({
+  required String id,
+  required String number,
+  InvoiceDocumentType type = InvoiceDocumentType.invoice,
+}) {
+  final now = DateTime(2026, 6, 15, 9);
+  return InvoiceRecord(
+    id: id,
+    documentType: type,
+    invoiceNumber: number,
+    numberMode: InvoiceNumberMode.manual,
+    status: InvoiceRecordStatus.draft,
+    title: 'Panel replacement',
+    issueDate: now,
+    dueDate: type == InvoiceDocumentType.invoice
+        ? now.add(const Duration(days: 30))
+        : null,
+    company: const InvoicePartySnapshot(companyName: 'Jane Doe Services'),
+    client: const InvoicePartySnapshot(
+      displayName: 'Alex Customer',
+      street: '987 Oak Road',
+      phone: '(555) 123-5512',
+    ),
+    lines: const [
+      InvoiceLineItemRecord(
+        id: 'labor',
+        name: 'Labor',
+        details: 'Troubleshooting and repair time.',
+        quantity: 2,
+        unit: 'hour',
+        unitPrice: 85,
+        taxable: false,
+      ),
+      InvoiceLineItemRecord(
+        id: 'materials',
+        name: 'Materials',
+        details: 'Breakers, wire, and small supplies.',
+        quantity: 1,
+        unit: 'job',
+        unitPrice: 125,
+        taxRate: 6,
+      ),
+    ],
+    terms: 'Payment due on receipt.',
+    meta: InvoiceSyncMetadata(createdAt: now, updatedAt: now),
+  );
 }

@@ -8,7 +8,7 @@ final carpentryLumberCategory = _category('Lumber', [
         'Dimensional Lumber',
         'piece',
         ['2 x 4 x 8 ft', '2 x 4 x 10 ft', '2 x 6 x 8 ft', '2 x 6 x 12 ft'],
-        ['stud', 'framing lumber'],
+        ['stud', 'kd stud', 'kiln dried stud', 'framing lumber'],
       ),
     ),
     _type(

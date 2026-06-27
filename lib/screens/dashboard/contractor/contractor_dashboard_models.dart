@@ -71,20 +71,35 @@ class ContractorCommand {
 
 const contractorMetrics = [
   ContractorMetric(label: 'Jobs Today', value: '3', color: Color(0xFF4DA3FF)),
+  ContractorMetric(label: 'Money In', value: r'$725', color: Color(0xFF55D68A)),
   ContractorMetric(
-    label: 'Unpaid Invoices',
-    value: r'$1,725',
-    color: Color(0xFFFFC44D),
-  ),
-  ContractorMetric(
-    label: 'Material Cost',
+    label: 'Money Out',
     value: r'$312',
-    color: Color(0xFFFF8552),
+    color: Color(0xFFFF5C5C),
   ),
   ContractorMetric(
     label: 'Business Miles',
     value: '42.8',
+    color: Color(0xFFFFD166),
+  ),
+];
+
+const contractorOperationsPulse = [
+  ContractorMetric(
+    label: 'Today Status',
+    value: 'Ready',
     color: Color(0xFF55D68A),
+  ),
+  ContractorMetric(label: 'Next Job', value: '8:30', color: Color(0xFFFFD166)),
+  ContractorMetric(
+    label: 'Cloud Backup',
+    value: 'Local',
+    color: Color(0xFF7CC7FF),
+  ),
+  ContractorMetric(
+    label: 'Vehicle Scope',
+    value: '1',
+    color: Color(0xFFB48CFF),
   ),
 ];
 

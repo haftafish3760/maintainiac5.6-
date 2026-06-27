@@ -32,6 +32,116 @@ class MaintenanceCatalogItem {
   final bool timeOnly;
 }
 
+extension MaintenanceCatalogSetup on MaintenanceCatalogItem {
+  List<int> get mileageIntervalOptions {
+    final lower = name.toLowerCase();
+    if (timeOnly) return const [0];
+    if (lower.contains('engine oil') || lower.contains('oil filter')) {
+      return const [3000, 5000, 7500, 10000];
+    }
+    if (lower.contains('tire')) return const [5000, 6000, 7500, 10000];
+    if (lower.contains('air filter') || lower.contains('wiper')) {
+      return const [12000, 15000, 20000, 30000];
+    }
+    if (lower.contains('brake')) return const [15000, 30000, 45000, 60000];
+    if (lower.contains('coolant')) {
+      return const [25000, 50000, 75000, 100000];
+    }
+    if (lower.contains('transmission')) {
+      return const [25000, 50000, 75000, 100000];
+    }
+    if (lower.contains('spark') ||
+        lower.contains('belt') ||
+        lower.contains('hose')) {
+      return const [30000, 60000, 90000, 100000];
+    }
+    return [defaultMiles == 0 ? 12000 : defaultMiles];
+  }
+
+  List<int> get monthIntervalOptions {
+    final lower = name.toLowerCase();
+    if (lower.contains('engine oil') || lower.contains('oil filter')) {
+      return const [3, 6, 9, 12];
+    }
+    if (timeOnly) return const [3, 6, 12, 24, 48];
+    if (lower.contains('registration') || lower.contains('inspection')) {
+      return const [6, 12, 24];
+    }
+    return const [6, 12, 24, 36, 48, 60];
+  }
+
+  List<String> get detailAOptions {
+    final lower = name.toLowerCase();
+    if (lower.contains('engine oil')) {
+      return const [
+        'Conventional',
+        'Synthetic blend',
+        'Full synthetic',
+        'High mileage',
+      ];
+    }
+    if (lower.contains('transmission')) {
+      return const [
+        'ATF',
+        'CVT fluid',
+        'Manual transmission fluid',
+        'Dual-clutch fluid',
+      ];
+    }
+    if (lower.contains('coolant')) {
+      return const [
+        'IAT',
+        'OAT',
+        'HOAT',
+        'Asian blue',
+        'Asian red/pink',
+        'Dex-Cool',
+      ];
+    }
+    if (lower.contains('brake fluid')) {
+      return const ['DOT 3', 'DOT 4', 'DOT 5.1'];
+    }
+    if (lower.contains('brake pad')) {
+      return const ['Front', 'Rear', 'Front and rear'];
+    }
+    if (lower.contains('air filter')) {
+      return const ['Standard', 'Premium', 'HEPA', 'Carbon'];
+    }
+    if (lower.contains('spark')) {
+      return const ['Copper', 'Platinum', 'Double platinum', 'Iridium'];
+    }
+    if (lower.contains('tire')) {
+      return const ['Rotation', 'Replacement', 'Balance', 'Alignment'];
+    }
+    return const [];
+  }
+
+  List<String> get detailBOptions {
+    final lower = name.toLowerCase();
+    if (lower.contains('engine oil')) return engineOilWeights;
+    if (lower.contains('transmission')) {
+      return const [
+        'Dexron/Mercon',
+        'ATF+4',
+        'Type F',
+        'Honda DW-1',
+        'Toyota WS',
+        'Other',
+      ];
+    }
+    if (lower.contains('coolant')) {
+      return const ['50/50 premix', 'Concentrate', 'Universal', 'OEM spec'];
+    }
+    if (lower.contains('brake pad')) {
+      return const ['Ceramic', 'Semi-metallic', 'Organic'];
+    }
+    if (lower.contains('wiper')) {
+      return const ['Driver side', 'Passenger side', 'Rear', 'Full set'];
+    }
+    return const [];
+  }
+}
+
 const maintenanceCatalog = <MaintenanceCatalogItem>[
   MaintenanceCatalogItem(
     name: 'Engine Oil',
@@ -127,15 +237,6 @@ const maintenanceCatalog = <MaintenanceCatalogItem>[
     name: 'Radiator Hose',
     icon: '〰️',
     importance: 82,
-    defaultMiles: 60000,
-    defaultMonths: 48,
-    detailA: 'Hose position',
-    detailB: 'Part detail',
-  ),
-  MaintenanceCatalogItem(
-    name: 'Heater Hose',
-    icon: '〰️',
-    importance: 80,
     defaultMiles: 60000,
     defaultMonths: 48,
     detailA: 'Hose position',
@@ -264,55 +365,9 @@ const engineOilWeights = <String>[
   'Other',
 ];
 
-class ReceiptLineEntry {
-  ReceiptLineEntry({
-    required this.itemName,
-    this.productName = '',
-    this.detailA = '',
-    this.detailB = '',
-    this.measurement = 'Quarts',
-    this.unitsPerContainer = 1,
-    this.containerCount = 1,
-    this.unitCost = 0,
-  });
-
-  final String itemName;
-  final String productName;
-  final String detailA;
-  final String detailB;
-  final String measurement;
-  final double unitsPerContainer;
-  final double containerCount;
-  final double unitCost;
-
-  double get totalUnits => unitsPerContainer * containerCount;
-  double get totalCost => unitCost * containerCount;
-
-  ReceiptLineEntry copyWith({
-    String? productName,
-    String? detailA,
-    String? detailB,
-    String? measurement,
-    double? unitsPerContainer,
-    double? containerCount,
-    double? unitCost,
-  }) {
-    return ReceiptLineEntry(
-      itemName: itemName,
-      productName: productName ?? this.productName,
-      detailA: detailA ?? this.detailA,
-      detailB: detailB ?? this.detailB,
-      measurement: measurement ?? this.measurement,
-      unitsPerContainer: unitsPerContainer ?? this.unitsPerContainer,
-      containerCount: containerCount ?? this.containerCount,
-      unitCost: unitCost ?? this.unitCost,
-    );
-  }
-}
-
 Color thresholdColor(int milesRemaining) {
-  if (milesRemaining <= 299) return const Color(0xFFE3342F);
-  if (milesRemaining <= 599) return const Color(0xFFFF7A00);
+  if (milesRemaining <= 300) return const Color(0xFFE3342F);
+  if (milesRemaining <= 600) return const Color(0xFFFF7A00);
   if (milesRemaining <= 900) return const Color(0xFFFFC928);
   return const Color(0xFF20B24A);
 }

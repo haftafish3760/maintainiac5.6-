@@ -5,6 +5,7 @@ part of 'work_supply_add_items_screen.dart';
 extension _WorkSupplyAddItemsReceiptActions on _WorkSupplyAddItemsScreenState {
   Future<void> _openInventoryReceiptLine() async {
     setState(() {
+      _clearInventoryPickerState();
       _businessUse = _LineBusinessUse.business;
       _businessPercent.text = '100';
       if (widget.initialStorageArea == null &&
@@ -13,7 +14,16 @@ extension _WorkSupplyAddItemsReceiptActions on _WorkSupplyAddItemsScreenState {
         _storageArea = workSupplyCompanyInventoryLabel;
       }
     });
-    await _openLineEditor(_ItemEntryMode.newInventory);
+    await _openLineEditor(_ItemEntryMode.catalogInventory);
+  }
+
+  void _clearInventoryPickerState() {
+    _selectedItem = null;
+    _trade = null;
+    _category = null;
+    _system = null;
+    _itemType = null;
+    _search.clear();
   }
 
   Future<void> _openBusinessReceiptLine() async {
@@ -28,6 +38,219 @@ extension _WorkSupplyAddItemsReceiptActions on _WorkSupplyAddItemsScreenState {
       _applyLineBusinessUse(_LineBusinessUse.personal);
     });
     await _openLineEditor(_ItemEntryMode.nonInventory);
+  }
+
+  Future<void> _openSplitReceiptLine() async {
+    setState(() {
+      _applyLineBusinessUse(_LineBusinessUse.split);
+    });
+    await _openLineEditor(_ItemEntryMode.nonInventory);
+  }
+
+  void _parseImportedMaterialsReceiptText(String text) {
+    unawaited(_parseImportedMaterialsReceiptTextWithMemory(text));
+  }
+
+  Future<void> _parseImportedMaterialsReceiptTextWithMemory(String text) async {
+    final sourceText = text.trim();
+    if (sourceText.isEmpty || sourceText == _lastImportedReceiptText) return;
+    final capability =
+        ReceiptCaptureSettingsScope.maybeOf(context)?.deviceCapability ??
+        const ReceiptDeviceCapability.standard();
+    final parsed = await parseExpenseReceiptTextWithLocalMemory(
+      sourceText,
+      fallbackDate: _selectedDate,
+      parserDepth: capability.parserDepth,
+      maxCatalogCandidates: capability.maxLocalCatalogMatches,
+    );
+    unawaited(_recordMaterialsPrivacySafeParseEvent(parsed));
+    if (!mounted) return;
+    if (!parsed.hasUsableData) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No usable receipt fields were found in that text.'),
+        ),
+      );
+      return;
+    }
+    final inventoryStorageArea = _parsedReceiptInventoryStorageArea;
+    final staged = buildWorkSupplyParsedReceiptDraft(
+      parsed: parsed,
+      receiptId: _intakeId,
+      loggedAt: _loggedAt,
+      storageArea: inventoryStorageArea,
+      merchantName: (parsed.merchantName ?? _storeController.text).trim(),
+      startingLineNumber: _lineSequence + 1,
+      customCatalogItems: widget.customCatalogItems,
+    );
+    if (!staged.hasLines) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Receipt text was read, but no line items were ready to stage.',
+          ),
+        ),
+      );
+      return;
+    }
+    setState(() {
+      _lastImportedReceiptText = sourceText;
+      _hasReceipt = true;
+      final merchant = parsed.merchantName?.trim();
+      if (merchant != null && merchant.isNotEmpty) {
+        _storeController.text = merchant;
+      }
+      final parsedDate = parsed.receiptDate;
+      if (parsedDate != null) {
+        _selectedDate = DateTime(
+          parsedDate.year,
+          parsedDate.month,
+          parsedDate.day,
+        );
+      }
+      final parsedTime = parsed.receiptTimeMinutes;
+      if (parsedTime != null) {
+        _selectedTime = TimeOfDay(
+          hour: parsedTime ~/ 60,
+          minute: parsedTime % 60,
+        );
+      }
+      if (_storageArea == _chooseInventoryDestinationLabel) {
+        _storageArea = inventoryStorageArea;
+      }
+      _stagedReceiptLines.addAll(staged.lines);
+      _stagedInventoryLines.addAll(staged.inventoryRecords);
+      _lineSequence += staged.lines.length;
+      _parsedReceiptReview = _ParsedMaterialsReceiptReviewSummary(
+        qualityLabel: parsed.quality.label,
+        confidenceLabel: parsed.quality.confidencePercentLabel,
+        needsReview:
+            parsed.quality.needsReview ||
+            unconfirmedAssistedInventoryLineCount(staged.lines) > 0,
+        warning: parsed.warnings.isEmpty ? null : parsed.warnings.first,
+      );
+    });
+    final warning = parsed.warnings.isEmpty ? null : parsed.warnings.first;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          warning == null
+              ? _parsedReceiptStageMessage(staged)
+              : '$warning ${_parsedReceiptStageMessage(staged)}',
+        ),
+      ),
+    );
+  }
+
+  String get _parsedReceiptInventoryStorageArea {
+    final resolved = _resolvedStorageArea.trim();
+    if (resolved.isEmpty || resolved == _chooseInventoryDestinationLabel) {
+      return workSupplyCompanyInventoryLabel;
+    }
+    return resolved;
+  }
+
+  Future<void> _recordMaterialsPrivacySafeParseEvent(
+    ExpenseReceiptParseResult result,
+  ) async {
+    try {
+      final store = await PrivacySafeReceiptEventStore.create();
+      await store.enqueue(
+        PrivacySafeReceiptEvent.fromParseResult(
+          result: result,
+          featureArea: 'materials_inventory',
+        ),
+      );
+    } catch (_) {
+      // Receipt diagnostics must never interrupt the inventory receipt flow.
+    }
+  }
+
+  String _parsedReceiptStageMessage(WorkSupplyParsedReceiptDraft staged) {
+    return [
+      'Staged ${staged.lines.length} receipt line${staged.lines.length == 1 ? '' : 's'} for review.',
+      if (staged.inventoryLineCount > 0)
+        '${staged.inventoryLineCount} inventory',
+      if (staged.businessOnlyLineCount > 0)
+        '${staged.businessOnlyLineCount} business-only',
+      if (staged.personalLineCount > 0) '${staged.personalLineCount} personal',
+      if (staged.splitLineCount > 0) '${staged.splitLineCount} split',
+    ].join(' ');
+  }
+
+  void _confirmParsedReceiptLine(int index) {
+    if (index < 0 || index >= _stagedReceiptLines.length) return;
+    final line = _stagedReceiptLines[index];
+    if (!line.canConfirmAssistedReview) return;
+    setState(() {
+      final confirmed = line.confirmedAssistedReview();
+      _stagedReceiptLines[index] = confirmed;
+      _syncStagedInventoryLine(confirmed);
+      _refreshParsedReceiptReviewSummary();
+    });
+  }
+
+  void _confirmAllParsedReceiptLines() {
+    var changed = 0;
+    setState(() {
+      for (var index = 0; index < _stagedReceiptLines.length; index++) {
+        final line = _stagedReceiptLines[index];
+        if (!line.canConfirmAssistedReview) continue;
+        final confirmed = line.confirmedAssistedReview();
+        _stagedReceiptLines[index] = confirmed;
+        _syncStagedInventoryLine(confirmed);
+        changed++;
+      }
+      if (changed > 0) {
+        _refreshParsedReceiptReviewSummary();
+      }
+    });
+    if (changed == 0) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Confirmed $changed parsed receipt line${changed == 1 ? '' : 's'}.',
+        ),
+      ),
+    );
+  }
+
+  void _syncStagedInventoryLine(ReceiptLineDraft line) {
+    if (!line.isInventory) return;
+    final index = stagedInventoryRecordIndexForLine(
+      _stagedInventoryLines,
+      line,
+    );
+    if (index == -1) return;
+    _stagedInventoryLines[index] = syncedInventoryRecordForLine(
+      record: _stagedInventoryLines[index],
+      line: line,
+    );
+  }
+
+  void _refreshParsedReceiptReviewSummary() {
+    final parsedLines = _stagedReceiptLines
+        .where((line) => line.hasAssistedReview)
+        .toList(growable: false);
+    if (parsedLines.isEmpty) {
+      _parsedReceiptReview = null;
+      return;
+    }
+    final needsReview =
+        parsedLines.any((line) => line.parserNeedsReview) ||
+        unconfirmedAssistedInventoryLineCount(parsedLines) > 0;
+    final averageConfidence =
+        parsedLines.fold<double>(
+          0,
+          (sum, line) => sum + (line.parserConfidence ?? 0),
+        ) /
+        parsedLines.length;
+    _parsedReceiptReview = _ParsedMaterialsReceiptReviewSummary(
+      qualityLabel: needsReview ? 'Review' : 'Good',
+      confidenceLabel: '${(averageConfidence * 100).round()}%',
+      needsReview: needsReview,
+      warning: needsReview ? _parsedReceiptReview?.warning : null,
+    );
   }
 
   void _applyLineBusinessUse(_LineBusinessUse value) {
@@ -98,9 +321,14 @@ extension _WorkSupplyAddItemsReceiptActions on _WorkSupplyAddItemsScreenState {
     setState(() {
       final line = _stagedReceiptLines.removeAt(index);
       if (line.isInventory) {
-        _stagedInventoryLines.removeWhere(
-          (record) => record.item.id == line.inventoryItemId,
+        final recordIndex = stagedInventoryRecordIndexForLine(
+          _stagedInventoryLines,
+          line,
         );
+        if (recordIndex != -1) _stagedInventoryLines.removeAt(recordIndex);
+      }
+      if (_stagedReceiptLines.isEmpty) {
+        _parsedReceiptReview = null;
       }
     });
   }
@@ -111,9 +339,14 @@ extension _WorkSupplyAddItemsReceiptActions on _WorkSupplyAddItemsScreenState {
     setState(() {
       _stagedReceiptLines.removeAt(index);
       if (line.isInventory) {
-        _stagedInventoryLines.removeWhere(
-          (record) => record.item.id == line.inventoryItemId,
+        final recordIndex = stagedInventoryRecordIndexForLine(
+          _stagedInventoryLines,
+          line,
         );
+        if (recordIndex != -1) _stagedInventoryLines.removeAt(recordIndex);
+      }
+      if (_stagedReceiptLines.isEmpty) {
+        _parsedReceiptReview = null;
       }
       _loadLineForEditing(line);
     });
@@ -125,6 +358,23 @@ extension _WorkSupplyAddItemsReceiptActions on _WorkSupplyAddItemsScreenState {
   }
 
   void _commitStagedReceipt() {
+    final blockedCount = unconfirmedAssistedInventoryLineCount(
+      _stagedReceiptLines,
+    );
+    if (blockedCount > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Confirm $blockedCount parsed inventory line${blockedCount == 1 ? '' : 's'} before updating inventory.',
+          ),
+        ),
+      );
+      return;
+    }
+    final inventoryRecords = inventoryRecordsReadyForCommit(
+      lines: _stagedReceiptLines,
+      records: _stagedInventoryLines,
+    );
     Navigator.of(context).pop(
       WorkSupplyAddItemsResult(
         receiptId: _intakeId,
@@ -139,7 +389,7 @@ extension _WorkSupplyAddItemsReceiptActions on _WorkSupplyAddItemsScreenState {
           _zipController.text.trim(),
         ].where((value) => value.isNotEmpty).join(', '),
         inventoryRecords: List<WorkSupplyInventoryRecord>.unmodifiable(
-          _stagedInventoryLines,
+          inventoryRecords,
         ),
         lines: List<ReceiptLineDraft>.unmodifiable(_stagedReceiptLines),
       ),
@@ -169,6 +419,17 @@ extension _WorkSupplyAddItemsReceiptActions on _WorkSupplyAddItemsScreenState {
     _threshold.text = '1';
     _barcodeValue.clear();
     _barcodePackageLabel.clear();
+    _activeLineRawReceiptText = '';
+    _activeLineCatalogMatchConfidence = null;
+    _activeLineCatalogMatchedTerms = const [];
+    _activeLineParserConfidence = null;
+    _activeLineParserReviewLabel = null;
+    _activeLineParserReviewReason = null;
+    _activeLineParserNeedsReview = false;
+    _activeLineOriginalParsedDescription = '';
+    _activeLineOriginalParsedInventoryItemId = '';
+    _activeLineOriginalParsedInventoryPath = '';
+    _activeLineReviewAction = 'manual';
     _applyLineBusinessUse(_LineBusinessUse.business);
     _itemEntryMode = null;
     if (widget.initialStorageArea == null) {
@@ -201,6 +462,18 @@ extension _WorkSupplyAddItemsReceiptActions on _WorkSupplyAddItemsScreenState {
       _ => _LineBusinessUse.business,
     };
     _businessPercent.text = _formatEditableNumber(line.businessPercent * 100);
+    _activeLineRawReceiptText = line.rawReceiptText;
+    _activeLineCatalogMatchConfidence = line.catalogMatchConfidence;
+    _activeLineCatalogMatchedTerms = line.catalogMatchedTerms;
+    _activeLineParserConfidence = line.parserConfidence;
+    _activeLineParserReviewLabel = line.parserReviewLabel;
+    _activeLineParserReviewReason = line.parserReviewReason;
+    _activeLineParserNeedsReview = line.parserNeedsReview;
+    _activeLineOriginalParsedDescription = line.originalParsedDescription;
+    _activeLineOriginalParsedInventoryItemId =
+        line.originalParsedInventoryItemId;
+    _activeLineOriginalParsedInventoryPath = line.originalParsedInventoryPath;
+    _activeLineReviewAction = line.reviewAction;
     _purchaseType = _purchaseTypeFromValue(line.purchaseType);
     _customUnit = line.unit.isEmpty ? _customUnit : line.unit;
     _itemEntryMode = line.isInventory

@@ -47,6 +47,11 @@ Future<void> _editFullReceipt(
   BuildContext context,
   ExpenseReceiptRecord receipt,
 ) async {
+  ExpenseScreenTelemetryRecorder.record(
+    context,
+    ExpenseTelemetryEventType.editExpenseOpened,
+    categoryGroup: receipt.lines.isEmpty ? null : receipt.lines.first.category,
+  );
   await Navigator.of(context).push(
     appNativeRoute<void>(
       context,
@@ -64,18 +69,14 @@ Future<void> _editFullReceipt(
   );
 }
 
-void _openReceiptFormFromEntry(
+void _openReceiptDetailFromEntry(
   BuildContext context,
   _CalendarExpenseData entry,
 ) {
   Navigator.of(context).push(
     appNativeRoute<void>(
       context,
-      ExpenseReceiptEntryScreen(
-        initialCategory: entry.category,
-        initialDate: entry.date,
-        receiptId: entry.receiptId,
-      ),
+      ExpenseReceiptDetailScreen(receiptId: entry.receiptId),
     ),
   );
 }
@@ -84,6 +85,11 @@ Future<void> _deleteReceipt(
   BuildContext context,
   ExpenseReceiptRecord receipt,
 ) async {
+  ExpenseScreenTelemetryRecorder.record(
+    context,
+    ExpenseTelemetryEventType.deleteExpenseRequested,
+    categoryGroup: receipt.lines.isEmpty ? null : receipt.lines.first.category,
+  );
   final remove = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -112,7 +118,38 @@ Future<void> _deleteReceipt(
     ),
   );
   if (remove != true || !context.mounted) return;
-  await ExpenseLedgerScope.of(context).deleteReceipt(receipt.id);
+  try {
+    await ExpenseLedgerScope.of(context).deleteReceipt(receipt.id);
+  } catch (_) {
+    if (context.mounted) {
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.saveFailure,
+        failureKind: 'calendar_delete_receipt_failed',
+        diagnostic: const ExpenseFailureDiagnostic(
+          workflowStep: ExpenseWorkflowStep.deleteExpense,
+          failedAt: 'calendar_delete_receipt',
+          confirmedCause: 'cause_not_confirmed_calendar_delete_receipt_failed',
+          causeStatus: ExpenseFailureCauseStatus.notConfirmed,
+          evidence: 'delete_receipt_threw_exception',
+          missingEvidence: 'exception_type_and_hive_box_state',
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('That receipt could not be deleted.')),
+      );
+    }
+    return;
+  }
+  if (context.mounted) {
+    ExpenseScreenTelemetryRecorder.record(
+      context,
+      ExpenseTelemetryEventType.deleteExpenseConfirmed,
+      categoryGroup: receipt.lines.isEmpty
+          ? null
+          : receipt.lines.first.category,
+    );
+  }
   if (context.mounted) Navigator.of(context).maybePop();
 }
 
@@ -130,13 +167,42 @@ Future<void> _editReceiptLine(
     lineNumber: lineNumber <= 0 ? receipt.lines.length + 1 : lineNumber,
   );
   if (savedLine == null || !context.mounted) return;
+  ExpenseScreenTelemetryRecorder.record(
+    context,
+    line == null
+        ? ExpenseTelemetryEventType.categorySelected
+        : ExpenseTelemetryEventType.categoryChanged,
+    categoryGroup: savedLine.category,
+  );
   final ledger = ExpenseLedgerScope.of(context);
-  if (line == null) {
-    final updated = receipt.copyWith(lines: [...receipt.lines, savedLine]);
-    await ledger.saveReceipt(updated);
-    return;
+  try {
+    if (line == null) {
+      final updated = receipt.copyWith(lines: [...receipt.lines, savedLine]);
+      await ledger.saveReceipt(updated);
+      return;
+    }
+    await ledger.replaceLine(receiptId: receipt.id, line: savedLine);
+  } catch (_) {
+    if (context.mounted) {
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.saveFailure,
+        failureKind: 'calendar_edit_line_failed',
+        diagnostic: const ExpenseFailureDiagnostic(
+          workflowStep: ExpenseWorkflowStep.calendarEdit,
+          failedAt: 'calendar_receipt_line_save',
+          confirmedCause: 'cause_not_confirmed_calendar_edit_line_failed',
+          causeStatus: ExpenseFailureCauseStatus.notConfirmed,
+          evidence: 'calendar_line_save_threw_exception',
+          missingEvidence: 'exception_type_and_receipt_line_state',
+        ),
+        categoryGroup: savedLine.category,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('That receipt line could not be saved.')),
+      );
+    }
   }
-  await ledger.replaceLine(receiptId: receipt.id, line: savedLine);
 }
 
 Future<void> _copyReceiptLine(
@@ -159,9 +225,31 @@ Future<void> _copyReceiptLine(
     fillType: line.fillType,
     unitPrice: line.unitPrice,
   );
-  await ExpenseLedgerScope.of(
-    context,
-  ).saveReceipt(receipt.copyWith(lines: [...receipt.lines, copy]));
+  try {
+    await ExpenseLedgerScope.of(
+      context,
+    ).saveReceipt(receipt.copyWith(lines: [...receipt.lines, copy]));
+  } catch (_) {
+    if (context.mounted) {
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.saveFailure,
+        failureKind: 'calendar_copy_line_failed',
+        diagnostic: const ExpenseFailureDiagnostic(
+          workflowStep: ExpenseWorkflowStep.calendarEdit,
+          failedAt: 'calendar_receipt_line_copy',
+          confirmedCause: 'cause_not_confirmed_calendar_copy_line_failed',
+          causeStatus: ExpenseFailureCauseStatus.notConfirmed,
+          evidence: 'calendar_line_copy_threw_exception',
+          missingEvidence: 'exception_type_and_receipt_line_state',
+        ),
+        categoryGroup: line.category,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('That receipt line could not be copied.')),
+      );
+    }
+  }
 }
 
 Future<void> _deleteReceiptLine(
@@ -197,7 +285,31 @@ Future<void> _deleteReceiptLine(
     ),
   );
   if (remove != true || !context.mounted) return;
-  await ExpenseLedgerScope.of(
-    context,
-  ).deleteLine(receiptId: receipt.id, lineId: line.id);
+  try {
+    await ExpenseLedgerScope.of(
+      context,
+    ).deleteLine(receiptId: receipt.id, lineId: line.id);
+  } catch (_) {
+    if (context.mounted) {
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.saveFailure,
+        failureKind: 'calendar_delete_line_failed',
+        diagnostic: const ExpenseFailureDiagnostic(
+          workflowStep: ExpenseWorkflowStep.deleteExpense,
+          failedAt: 'calendar_receipt_line_delete',
+          confirmedCause: 'cause_not_confirmed_calendar_delete_line_failed',
+          causeStatus: ExpenseFailureCauseStatus.notConfirmed,
+          evidence: 'delete_line_threw_exception',
+          missingEvidence: 'exception_type_and_receipt_line_state',
+        ),
+        categoryGroup: line.category,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('That receipt line could not be deleted.'),
+        ),
+      );
+    }
+  }
 }

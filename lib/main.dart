@@ -13,6 +13,7 @@ import 'screens/invoices/data/invoice_ledger_store.dart';
 import 'shared/state/app_state.dart';
 import 'shared/state/expense_settings_store.dart';
 import 'shared/firebase/maintainiac_firebase.dart';
+import 'shared/context/operational_context_store.dart';
 import 'shared/profiles/user_profile_store.dart';
 import 'shared/signatures/app_signature_store.dart';
 import 'shared/state/global_odometer.dart';
@@ -58,6 +59,13 @@ Future<void> main() async {
   final activeVehicleId = odometerVehicleIdForLabel(
     appState.activeVehicle?.nickname,
   );
+  final operationalContext = await OperationalContextController.create(
+    profile: userProfiles.activeProfile,
+    activeVehicleId: activeVehicleId,
+    activeVehicleLabel: appState.activeVehicle?.nickname ?? 'Active vehicle',
+    activeVehicleUsage:
+        appState.activeVehicle?.usage ?? VehicleUsage.businessPersonal,
+  );
   final odometerSnapshot = odometerStore.snapshotForVehicle(activeVehicleId);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(maintaniacSystemUiStyle);
@@ -91,9 +99,12 @@ Future<void> main() async {
                         store: signatureStore,
                         child: UserProfileScope(
                           controller: userProfiles,
-                          child: InvoiceLedgerScope(
-                            controller: invoiceLedger,
-                            child: const MaintaniacApp(),
+                          child: OperationalContextScope(
+                            controller: operationalContext,
+                            child: InvoiceLedgerScope(
+                              controller: invoiceLedger,
+                              child: const MaintaniacApp(),
+                            ),
                           ),
                         ),
                       ),

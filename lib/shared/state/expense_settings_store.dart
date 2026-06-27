@@ -1,6 +1,34 @@
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+enum ExpenseReceiptReviewStyle {
+  simpleAmounts,
+  fullItemDetails;
+
+  static ExpenseReceiptReviewStyle fromName(String? value) {
+    return switch (value) {
+      'fullItemDetails' => ExpenseReceiptReviewStyle.fullItemDetails,
+      _ => ExpenseReceiptReviewStyle.simpleAmounts,
+    };
+  }
+
+  String get label {
+    return switch (this) {
+      ExpenseReceiptReviewStyle.simpleAmounts => 'Simple receipt review',
+      ExpenseReceiptReviewStyle.fullItemDetails => 'Full item detail review',
+    };
+  }
+
+  String get description {
+    return switch (this) {
+      ExpenseReceiptReviewStyle.simpleAmounts =>
+        'Fastest. Keep the receipt photo as proof, review each detected amount, and mark it Business, Personal, or Split.',
+      ExpenseReceiptReviewStyle.fullItemDetails =>
+        'Best when you need item names, quantities, fuel details, materials, packages, or inventory tracking.',
+    };
+  }
+}
+
 class ExpenseSettingsController extends ChangeNotifier {
   ExpenseSettingsController._(this._box);
 
@@ -25,6 +53,10 @@ class ExpenseSettingsController extends ChangeNotifier {
   bool get pushNotifications => _readBool(_Keys.pushNotifications, false);
   bool get audibleNotifications => _readBool(_Keys.audibleNotifications, false);
   bool get draftReminder => _readBool(_Keys.draftReminder, true);
+  ExpenseReceiptReviewStyle get receiptReviewStyle =>
+      ExpenseReceiptReviewStyle.fromName(
+        _box.get(_Keys.receiptReviewStyle) as String?,
+      );
 
   List<String> get quickCategoryOrder =>
       _readStringList(_Keys.quickCategoryOrder);
@@ -32,6 +64,35 @@ class ExpenseSettingsController extends ChangeNotifier {
     _Keys.topThreeCategories,
     fallback: const ['Fuel', 'Meals', 'Materials'],
   );
+  List<String> get hiddenRecapTiles => _readStringList(_Keys.hiddenRecapTiles);
+
+  Map<String, Object?> toBackupMap({
+    required String ownerUid,
+    required DateTime exportedAtUtc,
+  }) {
+    return {
+      'schema': 'expense_settings_v1',
+      'ownerUid': ownerUid,
+      'exportedAtUtc': exportedAtUtc.toUtc().toIso8601String(),
+      'autoTrackTopThree': autoTrackTopThree,
+      'autoTrackQuickCategories': autoTrackQuickCategories,
+      'confirmOcrTotals': confirmOcrTotals,
+      'allowMultipleReceiptPhotos': allowMultipleReceiptPhotos,
+      'saveOptimizedReceiptCopy': saveOptimizedReceiptCopy,
+      'inAppNotifications': inAppNotifications,
+      'pushNotifications': pushNotifications,
+      'audibleNotifications': audibleNotifications,
+      'draftReminder': draftReminder,
+      'receiptReviewStyle': receiptReviewStyle.name,
+      'quickCategoryOrder': quickCategoryOrder,
+      'topThreeCategories': topThreeCategories,
+      'hiddenRecapTiles': hiddenRecapTiles,
+    };
+  }
+
+  bool recapTileVisible(String tileId) {
+    return !hiddenRecapTiles.contains(tileId);
+  }
 
   Future<void> setAutoTrackTopThree(bool value) =>
       _writeBool(_Keys.autoTrackTopThree, value);
@@ -51,6 +112,10 @@ class ExpenseSettingsController extends ChangeNotifier {
       _writeBool(_Keys.audibleNotifications, value);
   Future<void> setDraftReminder(bool value) =>
       _writeBool(_Keys.draftReminder, value);
+  Future<void> setReceiptReviewStyle(ExpenseReceiptReviewStyle value) async {
+    await _box.put(_Keys.receiptReviewStyle, value.name);
+    notifyListeners();
+  }
 
   Future<void> setQuickCategoryOrder(List<String> categories) async {
     final normalized = _uniqueCategories(categories);
@@ -81,6 +146,24 @@ class ExpenseSettingsController extends ChangeNotifier {
   Future<void> setTopThreeCategories(List<String> categories) async {
     final normalized = _uniqueCategories(categories).take(3).toList();
     await _box.put(_Keys.topThreeCategories, normalized);
+    notifyListeners();
+  }
+
+  Future<void> setRecapTileVisible(String tileId, bool visible) async {
+    final clean = tileId.trim();
+    if (clean.isEmpty) return;
+    final hidden = [...hiddenRecapTiles];
+    if (visible) {
+      hidden.removeWhere((item) => item == clean);
+    } else if (!hidden.contains(clean)) {
+      hidden.add(clean);
+    }
+    await _box.put(_Keys.hiddenRecapTiles, List.unmodifiable(hidden));
+    notifyListeners();
+  }
+
+  Future<void> resetRecapTiles() async {
+    await _box.delete(_Keys.hiddenRecapTiles);
     notifyListeners();
   }
 
@@ -156,6 +239,17 @@ class ExpenseSettingsScope
     );
     return scope!.notifier!;
   }
+
+  static ExpenseSettingsController? maybeOf(BuildContext context) {
+    try {
+      final widget = context
+          .getElementForInheritedWidgetOfExactType<ExpenseSettingsScope>()
+          ?.widget;
+      return widget is ExpenseSettingsScope ? widget.notifier : null;
+    } on FlutterError {
+      return null;
+    }
+  }
 }
 
 class _Keys {
@@ -170,6 +264,8 @@ class _Keys {
   static const pushNotifications = 'push_notifications';
   static const audibleNotifications = 'audible_notifications';
   static const draftReminder = 'draft_reminder';
+  static const receiptReviewStyle = 'receipt_review_style';
   static const quickCategoryOrder = 'quick_category_order';
   static const topThreeCategories = 'top_three_categories';
+  static const hiddenRecapTiles = 'hidden_recap_tiles';
 }

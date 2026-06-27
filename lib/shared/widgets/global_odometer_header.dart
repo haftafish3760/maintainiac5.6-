@@ -64,6 +64,7 @@ class GlobalOdometerHeader extends StatelessWidget {
                                     vertical: 2,
                                   ),
                                   child: _ActiveVehicleText(
+                                    section: section,
                                     vehicle: vehicle,
                                     canOpenPicker: hasMultipleVehicles,
                                   ),
@@ -113,6 +114,7 @@ class GlobalOdometerHeader extends StatelessWidget {
 
   void _openVehiclePicker(BuildContext context) {
     final state = AppStateScope.of(context);
+    final operationalContext = OperationalContextScope.maybeOf(context);
     showDialog<void>(
       context: context,
       builder: (context) => Dialog(
@@ -134,7 +136,14 @@ class GlobalOdometerHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              _CompanyScopeOption(section: section),
+              _CompanyScopeOption(
+                section: section,
+                selected: state.activeVehicle == null,
+                onTap: () {
+                  state.selectCompanyScope();
+                  Navigator.of(context).pop();
+                },
+              ),
               const SizedBox(height: 8),
               for (final vehicle in state.vehicles) ...[
                 _ActiveVehicleOption(
@@ -143,6 +152,13 @@ class GlobalOdometerHeader extends StatelessWidget {
                       vehicle.displayName == state.activeVehicle?.displayName,
                   onTap: () {
                     state.selectVehicle(vehicle);
+                    unawaited(
+                      operationalContext?.setActiveVehicle(
+                        vehicleId: odometerVehicleIdForLabel(vehicle.nickname),
+                        vehicleLabel: vehicle.nickname,
+                        usage: vehicle.usage,
+                      ),
+                    );
                     unawaited(
                       GlobalOdometerScope.of(context).switchVehicleById(
                         odometerVehicleIdForLabel(vehicle.nickname),
@@ -190,19 +206,21 @@ String _headerLabelFor(AppSection section) {
 
 class _ActiveVehicleText extends StatelessWidget {
   const _ActiveVehicleText({
+    required this.section,
     required this.vehicle,
     required this.canOpenPicker,
   });
 
+  final AppSection section;
   final VehicleProfile? vehicle;
   final bool canOpenPicker;
 
   @override
   Widget build(BuildContext context) {
     final active = vehicle;
-    final title = active?.nickname ?? 'Vehicle Required';
+    final title = active?.nickname ?? _companyScopeLabel(section);
     final details = active == null
-        ? 'Add or select a vehicle'
+        ? _companyScopeDetail(section)
         : [
             active.year,
             active.make,
@@ -383,9 +401,15 @@ class _ActiveVehicleOption extends StatelessWidget {
 }
 
 class _CompanyScopeOption extends StatelessWidget {
-  const _CompanyScopeOption({required this.section});
+  const _CompanyScopeOption({
+    required this.section,
+    required this.selected,
+    required this.onTap,
+  });
 
   final AppSection section;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -419,7 +443,7 @@ class _CompanyScopeOption extends StatelessWidget {
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(5),
       child: InkWell(
-        onTap: () => Navigator.of(context).pop(),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(5),
         child: Container(
           constraints: const BoxConstraints(minHeight: 72),
@@ -431,7 +455,12 @@ class _CompanyScopeOption extends StatelessWidget {
               colors: [Color(0xFF1E5A78), Color(0xFF102D3D)],
             ),
             borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: const Color(0xFF55C7F0), width: 1.2),
+            border: Border.all(
+              color: selected
+                  ? const Color(0xFF58D67D)
+                  : const Color(0xFF55C7F0),
+              width: 1.2,
+            ),
             boxShadow: const [
               BoxShadow(
                 color: Colors.black45,
@@ -469,11 +498,36 @@ class _CompanyScopeOption extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: Color(0xFFE8ECEE)),
+              Icon(
+                selected ? Icons.check_rounded : Icons.chevron_right_rounded,
+                color: selected
+                    ? const Color(0xFF58D67D)
+                    : const Color(0xFFE8ECEE),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+}
+
+String _companyScopeLabel(AppSection section) {
+  return switch (section) {
+    AppSection.expenses => 'All Company Expenses',
+    AppSection.materials => 'All Company Inventory',
+    AppSection.invoices => 'All Company Invoices',
+    AppSection.maintenance => 'All Company Maintenance',
+    AppSection.dashboard => 'Company Overview',
+  };
+}
+
+String _companyScopeDetail(AppSection section) {
+  return switch (section) {
+    AppSection.expenses => 'Company-wide expense recap and records',
+    AppSection.materials => 'Company-wide inventory records',
+    AppSection.invoices => 'Company-wide invoice records',
+    AppSection.maintenance => 'Company-wide maintenance records',
+    AppSection.dashboard => 'All vehicles and work profiles',
+  };
 }

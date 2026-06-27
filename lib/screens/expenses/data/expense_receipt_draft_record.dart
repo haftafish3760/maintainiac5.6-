@@ -18,47 +18,46 @@ class ExpenseReceiptDraftRecord {
     this.hasReceiptProof = false,
     this.attachments = const [],
     this.rawOcrText = '',
+    this.ocrReview = const ExpenseReceiptOcrReview(),
     this.enteredSubtotal,
     this.enteredTax,
     this.enteredTotal,
     this.trackMaterialsInInventory = false,
+    this.odometerReading,
     this.sourceScreen = 'expenses',
     this.lines = const [],
   });
 
   factory ExpenseReceiptDraftRecord.fromMap(Map<dynamic, dynamic> map) {
     return ExpenseReceiptDraftRecord(
-      id: map['id'] as String? ?? '',
-      receiptDate:
-          DateTime.tryParse(map['receiptDate'] as String? ?? '') ??
-          DateTime.now(),
-      receiptTimeMinutes: map['receiptTimeMinutes'] as int?,
-      merchantName: map['merchantName'] as String? ?? '',
-      phone: map['phone'] as String? ?? '',
-      street: map['street'] as String? ?? '',
-      city: map['city'] as String? ?? '',
-      state: map['state'] as String? ?? '',
-      zip: map['zip'] as String? ?? '',
-      email: map['email'] as String? ?? '',
-      website: map['website'] as String? ?? '',
-      notes: map['notes'] as String? ?? '',
-      hasReceiptProof: map['hasReceiptProof'] as bool? ?? false,
+      id: _expenseString(map['id']),
+      receiptDate: _expenseDateTime(map['receiptDate']) ?? DateTime.now(),
+      receiptTimeMinutes: _expenseInt(map['receiptTimeMinutes']),
+      merchantName: _expenseString(map['merchantName']),
+      phone: _expenseString(map['phone']),
+      street: _expenseString(map['street']),
+      city: _expenseString(map['city']),
+      state: _expenseString(map['state']),
+      zip: _expenseString(map['zip']),
+      email: _expenseString(map['email']),
+      website: _expenseString(map['website']),
+      notes: _expenseString(map['notes']),
+      hasReceiptProof: _expenseBool(map['hasReceiptProof']),
       attachments:
           (map['attachments'] as List?)
               ?.whereType<Map>()
               .map(ReceiptAttachmentRecord.fromMap)
               .toList(growable: false) ??
           const [],
-      rawOcrText: map['rawOcrText'] as String? ?? '',
-      enteredSubtotal: (map['enteredSubtotal'] as num?)?.toDouble(),
-      enteredTax: (map['enteredTax'] as num?)?.toDouble(),
-      enteredTotal: (map['enteredTotal'] as num?)?.toDouble(),
-      trackMaterialsInInventory:
-          map['trackMaterialsInInventory'] as bool? ?? false,
-      sourceScreen: map['sourceScreen'] as String? ?? 'expenses',
-      updatedAt:
-          DateTime.tryParse(map['updatedAt'] as String? ?? '') ??
-          DateTime.now(),
+      rawOcrText: _expenseString(map['rawOcrText']),
+      ocrReview: ExpenseReceiptOcrReview.fromMap(_expenseMap(map['ocrReview'])),
+      enteredSubtotal: _expenseDouble(map['enteredSubtotal']),
+      enteredTax: _expenseDouble(map['enteredTax']),
+      enteredTotal: _expenseDouble(map['enteredTotal']),
+      trackMaterialsInInventory: _expenseBool(map['trackMaterialsInInventory']),
+      odometerReading: _expenseInt(map['odometerReading']),
+      sourceScreen: _expenseString(map['sourceScreen'], fallback: 'expenses'),
+      updatedAt: _expenseDateTime(map['updatedAt']) ?? DateTime.now(),
       lines:
           (map['lines'] as List?)
               ?.whereType<Map>()
@@ -83,10 +82,12 @@ class ExpenseReceiptDraftRecord {
   final bool hasReceiptProof;
   final List<ReceiptAttachmentRecord> attachments;
   final String rawOcrText;
+  final ExpenseReceiptOcrReview ocrReview;
   final double? enteredSubtotal;
   final double? enteredTax;
   final double? enteredTotal;
   final bool trackMaterialsInInventory;
+  final int? odometerReading;
   final String sourceScreen;
   final DateTime updatedAt;
   final List<ExpenseReceiptLineRecord> lines;
@@ -107,6 +108,7 @@ class ExpenseReceiptDraftRecord {
         enteredSubtotal != null ||
         enteredTax != null ||
         enteredTotal != null ||
+        odometerReading != null ||
         lines.isNotEmpty;
   }
 
@@ -144,10 +146,12 @@ class ExpenseReceiptDraftRecord {
       'hasReceiptProof': hasReceiptProof,
       'attachments': [for (final attachment in attachments) attachment.toMap()],
       'rawOcrText': rawOcrText,
+      'ocrReview': ocrReview.toMap(),
       'enteredSubtotal': enteredSubtotal,
       'enteredTax': enteredTax,
       'enteredTotal': enteredTotal,
       'trackMaterialsInInventory': trackMaterialsInInventory,
+      'odometerReading': odometerReading,
       'sourceScreen': sourceScreen,
       'updatedAt': updatedAt.toIso8601String(),
       'lines': [for (final line in lines) line.toMap()],

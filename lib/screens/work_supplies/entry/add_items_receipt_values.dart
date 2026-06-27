@@ -13,6 +13,7 @@ extension _WorkSupplyAddItemsReceiptValues on _WorkSupplyAddItemsScreenState {
       return ReceiptLineDraft(
         kind: ReceiptLineKind.expense,
         description: description,
+        receiptLineId: _nextLineId,
         expenseCategory: _nonInventoryExpenseCategory,
         quantity: packages,
         unitsPerPackage: unitsPerPackage,
@@ -24,6 +25,17 @@ extension _WorkSupplyAddItemsReceiptValues on _WorkSupplyAddItemsScreenState {
         businessUse: _effectiveBusinessUse.storageValue,
         businessPercent: _resolvedBusinessPercent,
         note: 'Created from Work Supplies receipt flow.',
+        rawReceiptText: _activeLineRawReceiptText,
+        catalogMatchConfidence: _activeLineCatalogMatchConfidence,
+        catalogMatchedTerms: _activeLineCatalogMatchedTerms,
+        parserConfidence: _activeLineParserConfidence,
+        parserReviewLabel: _activeLineParserReviewLabel,
+        parserReviewReason: _activeLineParserReviewReason,
+        parserNeedsReview: _activeLineParserNeedsReview,
+        originalParsedDescription: _activeLineOriginalParsedDescription,
+        originalParsedInventoryItemId: _activeLineOriginalParsedInventoryItemId,
+        originalParsedInventoryPath: _activeLineOriginalParsedInventoryPath,
+        reviewAction: _resolvedLineReviewAction(description, ''),
       );
     }
 
@@ -32,6 +44,7 @@ extension _WorkSupplyAddItemsReceiptValues on _WorkSupplyAddItemsScreenState {
     return ReceiptLineDraft(
       kind: ReceiptLineKind.inventory,
       description: item.name,
+      receiptLineId: _nextLineId,
       inventoryItemId: item.id,
       inventoryPath: item.path,
       quantity: packages,
@@ -45,6 +58,17 @@ extension _WorkSupplyAddItemsReceiptValues on _WorkSupplyAddItemsScreenState {
       businessUse: _effectiveBusinessUse.storageValue,
       businessPercent: _resolvedBusinessPercent,
       note: item.variant,
+      rawReceiptText: _activeLineRawReceiptText,
+      catalogMatchConfidence: _activeLineCatalogMatchConfidence,
+      catalogMatchedTerms: _activeLineCatalogMatchedTerms,
+      parserConfidence: _activeLineParserConfidence,
+      parserReviewLabel: _activeLineParserReviewLabel,
+      parserReviewReason: _activeLineParserReviewReason,
+      parserNeedsReview: _activeLineParserNeedsReview,
+      originalParsedDescription: _activeLineOriginalParsedDescription,
+      originalParsedInventoryItemId: _activeLineOriginalParsedInventoryItemId,
+      originalParsedInventoryPath: _activeLineOriginalParsedInventoryPath,
+      reviewAction: _resolvedLineReviewAction(item.name, item.id),
     );
   }
 
@@ -164,5 +188,18 @@ extension _WorkSupplyAddItemsReceiptValues on _WorkSupplyAddItemsScreenState {
   String get _resolvedInventoryUnit {
     if (_purchaseType.asksUnitsPerContainer) return _customUnit;
     return _purchaseType.storageValue;
+  }
+
+  String _resolvedLineReviewAction(String description, String inventoryItemId) {
+    if (_activeLineReviewAction == 'manual') return 'manual';
+    final originalDescription = _activeLineOriginalParsedDescription.trim();
+    final originalItemId = _activeLineOriginalParsedInventoryItemId.trim();
+    final descriptionChanged =
+        originalDescription.isNotEmpty &&
+        originalDescription != description.trim();
+    final itemChanged =
+        originalItemId.isNotEmpty && originalItemId != inventoryItemId.trim();
+    if (descriptionChanged || itemChanged) return 'edited';
+    return _activeLineReviewAction;
   }
 }

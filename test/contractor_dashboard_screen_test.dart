@@ -19,15 +19,7 @@ void main() {
   });
 
   testWidgets('dashboard opens contractor command center', (tester) async {
-    await tester.pumpWidget(
-      AppStateScope(
-        controller: appState,
-        child: GlobalOdometerScope(
-          controller: odometer,
-          child: const MaterialApp(home: DashboardScreen()),
-        ),
-      ),
-    );
+    await _pumpDashboard(tester, appState, odometer);
 
     expect(find.text('Contractor Dashboard'), findsOneWidget);
 
@@ -35,24 +27,31 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Contractor Command Center'), findsOneWidget);
-    await tester.drag(find.byType(ListView).last, const Offset(0, -260));
-    await tester.pumpAndSettle();
+    expect(find.text('Mode'), findsOneWidget);
+    expect(find.text('Solo'), findsOneWidget);
+    expect(find.text('Operations Pulse'), findsOneWidget);
+    expect(find.text('Today Status'), findsOneWidget);
+    expect(find.text('Cloud Backup'), findsOneWidget);
     expect(find.text('Needs Attention'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Money In'),
+      360,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Money In'), findsOneWidget);
+    expect(find.text('Money Out'), findsOneWidget);
   });
 
   testWidgets('contractor dashboard exposes active day tools', (tester) async {
-    await tester.pumpWidget(
-      AppStateScope(
-        controller: appState,
-        child: GlobalOdometerScope(
-          controller: odometer,
-          child: const MaterialApp(home: DashboardScreen()),
-        ),
-      ),
-    );
+    await _pumpDashboard(tester, appState, odometer);
 
     await tester.tap(find.text('Contractor Dashboard'));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Start Day'),
+      220,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.tap(find.text('Start Day'));
     await tester.pumpAndSettle();
 
@@ -65,4 +64,25 @@ void main() {
     expect(find.text('Record Payment'), findsOneWidget);
     expect(find.text('Proof Photo'), findsOneWidget);
   });
+}
+
+Future<void> _pumpDashboard(
+  WidgetTester tester,
+  AppStateController appState,
+  GlobalOdometerController odometer,
+) async {
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = const Size(900, 1500);
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    AppStateScope(
+      controller: appState,
+      child: GlobalOdometerScope(
+        controller: odometer,
+        child: const MaterialApp(home: DashboardScreen()),
+      ),
+    ),
+  );
 }

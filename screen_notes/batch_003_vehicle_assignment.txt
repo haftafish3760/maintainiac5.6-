@@ -1,0 +1,59 @@
+Batch 3 notes for vehicle assignment
+
+Related screens:
+- lib/screens/profiles/employee_permissions_screen.dart
+- lib/screens/dashboard/vehicle_profile_detail.dart
+- lib/screens/dashboard/vehicle_profile_flow.dart
+
+Source: /Users/rbbie/.codex/attachments/d3ca09cd-0e0c-4793-bc26-c789fc634100/pasted-text.txt
+
+"Assigning vehicles to that user needs to be a button that says assign
+vehicle."
+
+"When you click assign vehicle, you need to have a list of all the vehicles
+that I've got that I've registered to the app so far."
+
+"They click add to that vehicle."
+
+"From the vehicle page, it needs to be like, you know, linked to a driver."
+
+Source: /Users/rbbie/.codex/attachments/8ef5a5a7-c599-4001-91c7-b7ccad7b6490/pasted-text.txt
+
+"For the vehicle profile, that's tied to inventory. That vehicle has inventory,
+so that's tied directly to a vehicle."
+
+"When I look at a vehicle profile, I'm getting ahead of myself, I know. I'm
+just telling you for later, when we get to it."
+
+"You must remind me when we finally get to vehicle profiles, which we will
+probably work on next."
+
+"We gotta see everything about that vehicle. Absolutely all the recaps,
+everything."
+
+"Top of the page needs to be employee name. I'm sorry, vehicle row. Active
+vehicle row must be up top."
+
+"We've got to have a way on here for the employee to add or assign a vehicle."
+
+"We've got to be able to assign a vehicle somehow or another."
+
+"When you click on a vehicle, you ought to be able to see who is assigned to
+that vehicle."
+
+"It would have a calendar so you can look through each day to see who used that
+vehicle each day."
+
+"Bluetooth for here would be absolutely priceless for some companies,
+especially if they switch vehicles between employees all the time."
+
+"Once it notices that vehicle, it could automatically, you know, if the
+contractor sets it up, we got to have that permission in there too. Or setting,
+rather."
+
+Source: /Users/rbbie/.codex/attachments/2aa41955-16f5-49d0-bea9-37befb007585/pasted-text.txt
+
+"Assigned vehicle. What about, why is assigned vehicle not hooked up?"
+
+"Then when I click on assign vehicle, it doesn't work."
+

@@ -57,42 +57,48 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
         const _ReceiptImportSource(
           action: _ReceiptImportAction.camera,
           icon: Icons.photo_camera_rounded,
-          label: 'Camera',
+          label: 'Take Receipt Photo',
+          detail: 'Use the phone camera for a paper receipt.',
           color: Color(0xFF8EF6A4),
         ),
       const _ReceiptImportSource(
         action: _ReceiptImportAction.image,
         icon: Icons.photo_library_rounded,
-        label: 'Gallery',
+        label: 'Gallery Photos',
+        detail: 'Use saved receipt photos.',
         color: Color(0xFFFFD166),
       ),
       const _ReceiptImportSource(
         action: _ReceiptImportAction.pdf,
         icon: Icons.folder_rounded,
-        label: 'Files',
+        label: 'PDF Or File',
+        detail: 'Import downloaded receipts.',
         color: Color(0xFFA9DFFF),
       ),
       const _ReceiptImportSource(
         action: _ReceiptImportAction.savedText,
         icon: Icons.description_rounded,
         label: 'Text File',
+        detail: 'Use copied receipt text.',
         color: Color(0xFFFF8FA3),
       ),
       const _ReceiptImportSource(
         action: _ReceiptImportAction.pasteText,
         icon: Icons.content_paste_rounded,
         label: 'Paste Text',
+        detail: 'Paste receipt text here.',
         color: Color(0xFF8FD3FF),
       ),
       const _ReceiptImportSource(
         action: _ReceiptImportAction.shareHelp,
         icon: Icons.ios_share_rounded,
-        label: 'Share',
+        label: 'Share Help',
+        detail: 'Send receipts into the app.',
         color: Color(0xFFC7B8FF),
       ),
     ];
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(14, 0, 14, 18),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -119,16 +125,17 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (final source in sources) ...[
-                    _ReceiptImportTile(source: source),
-                    const SizedBox(width: 12),
-                  ],
-                ],
-              ),
+            GridView.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 1.75,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                for (final source in sources)
+                  _ReceiptImportTile(source: source),
+              ],
             ),
             const SizedBox(height: 14),
             const _ReceiptImportShareHint(),
@@ -144,12 +151,14 @@ class _ReceiptImportSource {
     required this.action,
     required this.icon,
     required this.label,
+    required this.detail,
     required this.color,
   });
 
   final _ReceiptImportAction action;
   final IconData icon;
   final String label;
+  final String detail;
   final Color color;
 }
 
@@ -167,7 +176,7 @@ class _ReceiptImportShareHint extends StatelessWidget {
       child: const Padding(
         padding: EdgeInsets.fromLTRB(10, 9, 10, 9),
         child: Text(
-          'For emailed or texted receipts, use the phone Share button and choose Maintainiac, or save the receipt to your device and choose Files or Text File here.',
+          'For emailed or texted receipts, use the phone Share button and choose Maintainiac, or save the receipt to your device and choose PDF Or File or Text File here.',
           style: TextStyle(
             color: Color(0xFFC8D0D3),
             fontSize: 12,
@@ -214,19 +223,19 @@ class _ReceiptShareHelpSheet extends StatelessWidget {
                     children: [
                       _ReceiptHelpRow(
                         icon: Icons.photo_camera_rounded,
-                        title: 'Camera',
+                        title: 'Take Receipt Photo',
                         text:
-                            'Take a new receipt photo and review it before saving.',
+                            'Use the phone camera for a new paper receipt, then review the accepted photo before reading it.',
                       ),
                       _ReceiptHelpRow(
                         icon: Icons.photo_library_rounded,
                         title: 'Gallery',
                         text:
-                            'Choose a receipt image that is already on this device.',
+                            'Choose one or more receipt photos already on this device. Use this for long receipts captured in multiple photos.',
                       ),
                       _ReceiptHelpRow(
                         icon: Icons.folder_rounded,
-                        title: 'Files',
+                        title: 'PDF Or File',
                         text:
                             'Choose a PDF receipt from device storage, Drive, Files, or another document provider.',
                       ),
@@ -244,7 +253,7 @@ class _ReceiptShareHelpSheet extends StatelessWidget {
                       ),
                       _ReceiptHelpRow(
                         icon: Icons.ios_share_rounded,
-                        title: 'Share',
+                        title: 'Share Help',
                         text:
                             'From email, messages, photos, Drive, or Files, use the phone Share button and choose Maintainiac.',
                       ),

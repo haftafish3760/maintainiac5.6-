@@ -1,0 +1,16 @@
+Screen: lib/screens/invoices/home/invoice_form_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"As far as estimates go, that's how everything starts, is would be an
+estimate, but yet the user could also begin with an invoice."
+
+"So you got the estimate, the customer signs it, says, yes, go ahead and do
+that job."
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"The contractor and the, well, I don't want them really communicating through
+here, but they could absolutely have it, we could have it set up so the
+contractor sends over an estimate to the customer, they agree or disagree."
+

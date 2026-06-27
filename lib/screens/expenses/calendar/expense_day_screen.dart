@@ -77,6 +77,7 @@ class _ExpenseDayScreenState extends State<ExpenseDayScreen> {
             const SizedBox(height: 4),
             _CalendarRecapPeriodSelector(
               selected: _recapPeriod,
+              selectedDay: _day,
               onSelected: (period) => setState(() => _recapPeriod = period),
             ),
             const SizedBox(height: 8),
@@ -126,7 +127,7 @@ class _ExpenseDayScreenState extends State<ExpenseDayScreen> {
   }
 }
 
-enum _CalendarRecapPeriod { day, week, month, yearToDate }
+enum _CalendarRecapPeriod { day, week, month, ninetyDays, yearToDate }
 
 extension _CalendarRecapPeriodLabels on _CalendarRecapPeriod {
   String get label {
@@ -134,7 +135,8 @@ extension _CalendarRecapPeriodLabels on _CalendarRecapPeriod {
       _CalendarRecapPeriod.day => 'Daily',
       _CalendarRecapPeriod.week => 'Weekly',
       _CalendarRecapPeriod.month => 'Monthly',
-      _CalendarRecapPeriod.yearToDate => 'YTD',
+      _CalendarRecapPeriod.ninetyDays => '90 Days',
+      _CalendarRecapPeriod.yearToDate => 'Year-to-Date',
     };
   }
 
@@ -146,6 +148,8 @@ extension _CalendarRecapPeriodLabels on _CalendarRecapPeriod {
         '${_shortCalendarDate(range.start)} - ${_shortCalendarDate(range.end)}',
       _CalendarRecapPeriod.month =>
         '${_monthName(anchor.month)} ${anchor.year}',
+      _CalendarRecapPeriod.ninetyDays =>
+        '${_shortCalendarDate(range.start)} - ${_shortCalendarDate(range.end)}',
       _CalendarRecapPeriod.yearToDate =>
         'Jan 1 - ${_shortCalendarDate(anchor)}',
     };
@@ -165,6 +169,10 @@ extension _CalendarRecapPeriodLabels on _CalendarRecapPeriod {
       _CalendarRecapPeriod.month => ExpenseDateRange(
         start: DateTime(day.year, day.month),
         end: DateTime(day.year, day.month + 1, 0),
+      ),
+      _CalendarRecapPeriod.ninetyDays => ExpenseDateRange(
+        start: day.subtract(const Duration(days: 89)),
+        end: day,
       ),
       _CalendarRecapPeriod.yearToDate => ExpenseDateRange(
         start: DateTime(day.year),

@@ -1,0 +1,159 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
+import 'package:maintaniac/screens/expenses/data/expense_receipt_parser.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_parsed_receipt_bridge.dart';
+import 'package:maintaniac/shared/receipts/receipt_line_models.dart';
+import 'package:maintaniac/shared/receipts/receipt_processing_contract.dart';
+
+void main() {
+  test('catalog matched material receipt lines become inventory drafts', () {
+    final copperElbow = workSupplyCatalogItems.firstWhere(
+      (item) =>
+          item.name.contains('Copper 90 Elbow') && item.variant.contains('1/2'),
+    );
+    final parsed = ExpenseReceiptParseResult(
+      sourceText: 'LOWES 1/2 COPPER 90 12.00 SHOP TOWELS 4.00',
+      merchantName: 'LOWES',
+      enteredSubtotal: 16,
+      enteredTax: 1.28,
+      lineReviews: const [
+        ExpenseReceiptLineReview(
+          lineId: 'L1',
+          confidence: .88,
+          needsReview: false,
+          reason: 'Catalog match found from receipt text.',
+          catalogItemName: '1/2 in Copper 90 Elbow',
+          catalogItemPath: 'Plumbing / Fittings / Copper / 90 Elbows',
+          catalogMatchConfidence: .91,
+          catalogMatchedTerms: ['1/2', 'copper', '90'],
+        ),
+        ExpenseReceiptLineReview(
+          lineId: 'L2',
+          confidence: .67,
+          needsReview: true,
+          reason: 'No inventory catalog match was found.',
+        ),
+      ],
+      lines: [
+        ExpenseReceiptLineRecord(
+          id: 'L1',
+          description: '1/2 COPPER 90',
+          category: 'Materials',
+          use: ExpenseLineUse.business,
+          quantity: 2,
+          unitsPerPackage: 1,
+          unit: 'each',
+          subtotal: 12,
+          catalogItemId: copperElbow.id,
+          catalogItemName: copperElbow.name,
+          catalogItemPath: copperElbow.path,
+          catalogMatchConfidence: .91,
+        ),
+        const ExpenseReceiptLineRecord(
+          id: 'L2',
+          description: 'SHOP TOWELS',
+          category: 'Supplies',
+          use: ExpenseLineUse.business,
+          quantity: 1,
+          unitsPerPackage: 1,
+          unit: 'each',
+          subtotal: 4,
+        ),
+      ],
+    );
+
+    final draft = buildWorkSupplyParsedReceiptDraft(
+      parsed: parsed,
+      receiptId: 'RCP-1',
+      loggedAt: DateTime(2026, 6, 23),
+      storageArea: 'Company inventory',
+      merchantName: 'LOWES',
+      source: ReceiptProcessingSource.photo,
+    );
+
+    expect(draft.lines, hasLength(2));
+    expect(draft.inventoryRecords, hasLength(1));
+    expect(draft.processingSnapshot.source, ReceiptProcessingSource.photo);
+    expect(
+      draft.processingSnapshot.stage,
+      ReceiptProcessingStage.stagedForReview,
+    );
+    expect(
+      draft.processingSnapshot.destination,
+      ReceiptSaveDestination.inventoryReview,
+    );
+    expect(draft.canCommitInventory, isFalse);
+    expect(draft.inventoryLineCount, 1);
+    expect(draft.businessOnlyLineCount, 1);
+    expect(draft.lines.first.kind, ReceiptLineKind.inventory);
+    expect(draft.lines.first.receiptLineId, 'RCP-1-L1');
+    expect(draft.lines.first.inventoryItemId, copperElbow.id);
+    expect(draft.lines.first.taxRate, closeTo(.08, .001));
+    expect(draft.lines.first.receiptLaneLabel, 'Inventory');
+    expect(draft.lines.first.rawReceiptText, '1/2 COPPER 90');
+    expect(draft.lines.first.catalogMatchConfidence, .91);
+    expect(draft.lines.first.catalogMatchedTerms, ['1/2', 'copper', '90']);
+    expect(draft.lines.first.parserReviewLabel, 'Good');
+    expect(
+      draft.lines.first.parserReviewReason,
+      'Catalog match found from receipt text.',
+    );
+    expect(draft.lines.last.kind, ReceiptLineKind.expense);
+    expect(draft.lines.last.receiptLaneLabel, 'Business expense only');
+    expect(draft.lines.last.parserNeedsReview, isTrue);
+    expect(draft.inventoryRecords.single.sourceReceiptLineId, 'RCP-1-L1');
+  });
+
+  test('personal and split parsed lines stay out of inventory', () {
+    final copperElbow = workSupplyCatalogItems.firstWhere(
+      (item) =>
+          item.name.contains('Copper 90 Elbow') && item.variant.contains('1/2'),
+    );
+    final parsed = ExpenseReceiptParseResult(
+      sourceText: 'mixed receipt',
+      lines: [
+        ExpenseReceiptLineRecord(
+          id: 'L1',
+          description: 'PERSONAL COPPER 90',
+          category: 'Materials',
+          use: ExpenseLineUse.personal,
+          quantity: 1,
+          unitsPerPackage: 1,
+          unit: 'each',
+          subtotal: 8,
+          catalogItemId: copperElbow.id,
+          catalogItemName: copperElbow.name,
+          catalogItemPath: copperElbow.path,
+        ),
+        const ExpenseReceiptLineRecord(
+          id: 'L2',
+          description: 'SHARED CLEANER',
+          category: 'Supplies',
+          use: ExpenseLineUse.split,
+          businessPercent: .4,
+          quantity: 1,
+          unitsPerPackage: 1,
+          unit: 'each',
+          subtotal: 5,
+        ),
+      ],
+    );
+
+    final draft = buildWorkSupplyParsedReceiptDraft(
+      parsed: parsed,
+      receiptId: 'RCP-2',
+      loggedAt: DateTime(2026, 6, 23),
+      storageArea: 'Company inventory',
+      merchantName: 'Home Depot',
+      startingLineNumber: 4,
+    );
+
+    expect(draft.inventoryRecords, isEmpty);
+    expect(draft.personalLineCount, 1);
+    expect(draft.splitLineCount, 1);
+    expect(draft.lines.first.receiptLaneLabel, 'Personal');
+    expect(draft.lines.last.receiptLaneLabel, 'Split business/personal');
+    expect(draft.lines.last.businessUseLabel, 'Split 40% business');
+  });
+}

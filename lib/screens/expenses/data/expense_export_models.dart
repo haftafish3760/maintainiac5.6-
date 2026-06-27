@@ -88,6 +88,13 @@ class ExpenseExportSnapshot {
         'email',
         'website',
         'has_receipt_proof',
+        'receipt_proof_count',
+        'receipt_proof_types',
+        'saved_proof_bytes',
+        'ocr_review_status',
+        'ocr_warning_count',
+        'ocr_parser_line_count',
+        'ocr_pdf_pages_requested',
         'line_subtotal',
         'receipt_subtotal',
         'sales_tax',
@@ -96,6 +103,7 @@ class ExpenseExportSnapshot {
         'business_total',
         'personal_total',
         'vehicle_id',
+        'odometer_reading',
         'source_screen',
         'notes',
         'created_at',
@@ -114,7 +122,14 @@ class ExpenseExportSnapshot {
           receipt.zip,
           receipt.email,
           receipt.website,
-          receipt.hasReceiptProof,
+          receipt.hasReceiptAttachment,
+          receipt.attachments.length,
+          _proofTypes(receipt),
+          _attachmentBytes(receipt),
+          receipt.ocrReview.hasData ? receipt.ocrReview.severity : '',
+          receipt.ocrReview.warningCount,
+          receipt.ocrReview.parserLineCount,
+          receipt.ocrReview.pdfPagesRequested,
           _moneyValue(receipt.lineSubtotal),
           _moneyValue(receipt.receiptSubtotal),
           _moneyValue(receipt.receiptTax),
@@ -123,6 +138,7 @@ class ExpenseExportSnapshot {
           _moneyValue(_filteredBusinessTotal(receipt)),
           _moneyValue(_filteredPersonalTotal(receipt)),
           receipt.vehicleId,
+          receipt.odometerReading,
           receipt.sourceScreen,
           receipt.notes,
           _date(receipt.createdAt),
@@ -187,7 +203,7 @@ class ExpenseExportSnapshot {
 
   Map<String, Object?> toManifest() {
     return {
-      'app': 'Maintaniac',
+      'app': 'Maintainiac',
       'exportType': 'expenses',
       'exportedAt': exportedAt.toIso8601String(),
       'rangeStart': range.start.toIso8601String(),
@@ -197,9 +213,36 @@ class ExpenseExportSnapshot {
       'destination': destination.name,
       'receiptCount': receiptCount,
       'lineCount': lineCount,
+      'receiptProofCount': receiptProofCount,
+      'receiptProofBytes': receiptProofBytes,
+      'receiptsMissingProof': receiptsMissingProof,
+      'receiptsWithOcrReview': receiptsWithOcrReview,
+      'receiptsNeedingOcrReview': receiptsNeedingOcrReview,
       'total': total,
       'files': fileNames,
+      'privacyNote':
+          'Receipt exports include proof metadata and totals only. Raw OCR text and receipt images are not embedded by default.',
     };
+  }
+
+  int get receiptProofCount {
+    return receipts.fold(0, (sum, receipt) => sum + receipt.attachments.length);
+  }
+
+  int get receiptProofBytes {
+    return receipts.fold(0, (sum, receipt) => sum + _attachmentBytes(receipt));
+  }
+
+  int get receiptsMissingProof {
+    return receipts.where((receipt) => !receipt.hasReceiptAttachment).length;
+  }
+
+  int get receiptsWithOcrReview {
+    return receipts.where((receipt) => receipt.ocrReview.hasData).length;
+  }
+
+  int get receiptsNeedingOcrReview {
+    return receipts.where((receipt) => receipt.ocrReview.needsReview).length;
   }
 
   List<String> get fileNames => const [
@@ -273,6 +316,17 @@ String _quantityValue(num value) {
   return value == value.roundToDouble()
       ? value.toInt().toString()
       : value.toString();
+}
+
+int _attachmentBytes(ExpenseReceiptRecord receipt) {
+  return receipt.attachments.fold(0, (sum, attachment) {
+    return sum + (attachment.byteSize ?? 0);
+  });
+}
+
+String _proofTypes(ExpenseReceiptRecord receipt) {
+  final types = receipt.attachments.map((attachment) => attachment.kind.name);
+  return types.toSet().join('|');
 }
 
 String _normalized(String value) {

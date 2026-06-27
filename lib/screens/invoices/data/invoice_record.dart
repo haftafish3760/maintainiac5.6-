@@ -1,4 +1,5 @@
 import 'invoice_ledger_models.dart';
+import '../../../shared/pdf/app_generated_pdf_models.dart';
 
 class InvoiceRecord {
   const InvoiceRecord({
@@ -25,6 +26,7 @@ class InvoiceRecord {
     this.ownerSignature = InvoiceSignatureSnapshot.nullSnapshot,
     this.customerSignature = InvoiceSignatureSnapshot.nullSnapshot,
     this.documentHashSha256 = '',
+    this.pdfEvents = const [],
     this.auditEvents = const [],
   });
 
@@ -72,6 +74,9 @@ class InvoiceRecord {
         map['customerSignature'] as Map?,
       ),
       documentHashSha256: map['documentHashSha256'] as String? ?? '',
+      pdfEvents: _listOfMaps(
+        map['pdfEvents'],
+      ).map(InvoicePdfDeliveryEvent.fromMap).toList(growable: false),
       auditEvents:
           (map['auditEvents'] as List?)?.whereType<String>().toList() ??
           const [],
@@ -101,6 +106,7 @@ class InvoiceRecord {
   final InvoiceSignatureSnapshot ownerSignature;
   final InvoiceSignatureSnapshot customerSignature;
   final String documentHashSha256;
+  final List<InvoicePdfDeliveryEvent> pdfEvents;
   final List<String> auditEvents;
   final InvoiceSyncMetadata meta;
 
@@ -148,6 +154,7 @@ class InvoiceRecord {
     InvoiceSignatureSnapshot? ownerSignature,
     InvoiceSignatureSnapshot? customerSignature,
     String? documentHashSha256,
+    List<InvoicePdfDeliveryEvent>? pdfEvents,
     List<String>? auditEvents,
     InvoiceSyncMetadata? meta,
   }) {
@@ -174,8 +181,137 @@ class InvoiceRecord {
       ownerSignature: ownerSignature ?? this.ownerSignature,
       customerSignature: customerSignature ?? this.customerSignature,
       documentHashSha256: documentHashSha256 ?? this.documentHashSha256,
+      pdfEvents: pdfEvents ?? this.pdfEvents,
       auditEvents: auditEvents ?? this.auditEvents,
       meta: meta ?? this.meta,
+    );
+  }
+
+  InvoiceRecord recordPdfGenerated(
+    AppGeneratedPdfDocument document, {
+    DateTime? at,
+    String fileHashSha256 = '',
+  }) {
+    return _withPdfEvent(
+      InvoicePdfDeliveryEvent.generatedFrom(
+        document,
+        at: at,
+        fileHashSha256: fileHashSha256,
+      ),
+    );
+  }
+
+  InvoiceRecord recordPdfPreviewed(
+    AppGeneratedPdfDocument document, {
+    DateTime? at,
+  }) {
+    return _withPdfEvent(InvoicePdfDeliveryEvent.previewed(document, at: at));
+  }
+
+  InvoiceRecord recordPdfArchived({
+    required String pdfKind,
+    required String fileName,
+    required int byteSize,
+    required String fileHashSha256,
+    DateTime? at,
+  }) {
+    return _withPdfEvent(
+      InvoicePdfDeliveryEvent.archived(
+        sourceRecordId: id,
+        pdfKind: pdfKind,
+        fileName: fileName,
+        byteSize: byteSize,
+        fileHashSha256: fileHashSha256,
+        at: at,
+      ),
+    );
+  }
+
+  InvoiceRecord recordPdfShared({
+    String pdfKind = '',
+    String fileName = '',
+    int byteSize = 0,
+    DateTime? at,
+  }) {
+    return _withPdfEvent(
+      InvoicePdfDeliveryEvent.action(
+        type: InvoicePdfDeliveryEventType.shared,
+        sourceRecordId: id,
+        pdfKind: pdfKind.isEmpty ? documentType.name : pdfKind,
+        fileName: fileName,
+        byteSize: byteSize,
+        at: at,
+      ),
+    );
+  }
+
+  InvoiceRecord recordPdfPrinted({
+    String pdfKind = '',
+    String fileName = '',
+    int byteSize = 0,
+    DateTime? at,
+  }) {
+    return _withPdfEvent(
+      InvoicePdfDeliveryEvent.action(
+        type: InvoicePdfDeliveryEventType.printed,
+        sourceRecordId: id,
+        pdfKind: pdfKind.isEmpty ? documentType.name : pdfKind,
+        fileName: fileName,
+        byteSize: byteSize,
+        at: at,
+      ),
+    );
+  }
+
+  InvoiceRecord recordPdfDeliveryCancelled({
+    required String reasonCode,
+    String pdfKind = '',
+    String fileName = '',
+    int byteSize = 0,
+    DateTime? at,
+  }) {
+    return _withPdfEvent(
+      InvoicePdfDeliveryEvent.cancelled(
+        sourceRecordId: id,
+        pdfKind: pdfKind.isEmpty ? documentType.name : pdfKind,
+        fileName: fileName,
+        byteSize: byteSize,
+        reasonCode: reasonCode,
+        at: at,
+      ),
+    );
+  }
+
+  InvoiceRecord recordPdfDeliveryFailed({
+    required String reasonCode,
+    String pdfKind = '',
+    String fileName = '',
+    DateTime? at,
+  }) {
+    return _withPdfEvent(
+      InvoicePdfDeliveryEvent.failed(
+        sourceRecordId: id,
+        pdfKind: pdfKind.isEmpty ? documentType.name : pdfKind,
+        fileName: fileName,
+        reasonCode: reasonCode,
+        at: at,
+      ),
+    );
+  }
+
+  InvoiceRecord _withPdfEvent(InvoicePdfDeliveryEvent event) {
+    final nextEvents = [...pdfEvents, event];
+    final boundedEvents =
+        nextEvents.length <= invoicePdfDeliveryEventHistoryLimit
+        ? nextEvents
+        : nextEvents.sublist(
+            nextEvents.length - invoicePdfDeliveryEventHistoryLimit,
+          );
+    return copyWith(
+      documentHashSha256: event.hasFileHash
+          ? event.fileHashSha256
+          : documentHashSha256,
+      pdfEvents: boundedEvents,
     );
   }
 
@@ -203,6 +339,7 @@ class InvoiceRecord {
       'ownerSignature': ownerSignature.toMap(),
       'customerSignature': customerSignature.toMap(),
       'documentHashSha256': documentHashSha256,
+      'pdfEvents': [for (final event in pdfEvents) event.toMap()],
       'auditEvents': auditEvents,
       'meta': meta.toMap(),
     };

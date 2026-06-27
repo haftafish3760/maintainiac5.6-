@@ -8,6 +8,8 @@ import '../data/expense_export_models.dart';
 import '../data/expense_export_store.dart';
 import '../data/expense_ledger_models.dart';
 import '../data/expense_ledger_store.dart';
+import '../data/expense_screen_telemetry.dart';
+import '../data/expense_screen_telemetry_recorder.dart';
 
 part 'expense_export_header_range.dart';
 part 'expense_export_panels.dart';
@@ -152,16 +154,76 @@ class _ExpenseExportScreenState extends State<ExpenseExportScreen> {
     ExpenseExportController exportStore,
   ) async {
     if (!exportStore.canRunExport(snapshot, DateTime.now())) {
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.exportBlocked,
+        failureKind: 'monthly_export_limit_used',
+        diagnostic: const ExpenseFailureDiagnostic(
+          workflowStep: ExpenseWorkflowStep.export,
+          failedAt: 'before_export_file_write',
+          confirmedCause: 'monthly_export_limit_used',
+          causeStatus: ExpenseFailureCauseStatus.confirmed,
+          evidence: 'export_store_can_run_export_false',
+          missingEvidence: 'none',
+        ),
+        metadata: {
+          'exportDestination': snapshot.destination.name,
+          'lineCount': snapshot.lineCount,
+          'receiptCount': snapshot.receiptCount,
+        },
+      );
       await _showExportBlockedDialog();
       return;
     }
-    final files = await const ExpenseExportFileWriter().writeExpenseExport(
-      snapshot,
+    ExpenseScreenTelemetryRecorder.record(
+      context,
+      ExpenseTelemetryEventType.exportStarted,
+      metadata: {
+        'exportDestination': snapshot.destination.name,
+        'lineCount': snapshot.lineCount,
+        'receiptCount': snapshot.receiptCount,
+      },
     );
-    final handoffResult = await const ExpenseExportHandoff().send(
-      snapshot: snapshot,
-      files: files,
-    );
+    final ExpenseExportFileSet files;
+    final ExpenseExportHandoffResult handoffResult;
+    try {
+      files = await const ExpenseExportFileWriter().writeExpenseExport(
+        snapshot,
+      );
+      handoffResult = await const ExpenseExportHandoff().send(
+        snapshot: snapshot,
+        files: files,
+      );
+    } catch (_) {
+      if (mounted) {
+        ExpenseScreenTelemetryRecorder.record(
+          context,
+          ExpenseTelemetryEventType.exportFailed,
+          failureKind: 'export_write_or_handoff_failed',
+          diagnostic: const ExpenseFailureDiagnostic(
+            workflowStep: ExpenseWorkflowStep.export,
+            failedAt: 'export_file_write_or_handoff',
+            confirmedCause:
+                'cause_not_confirmed_export_write_or_handoff_failed',
+            causeStatus: ExpenseFailureCauseStatus.notConfirmed,
+            evidence: 'export_write_or_handoff_threw_exception',
+            missingEvidence: 'exception_type_and_export_stage',
+          ),
+          metadata: {
+            'exportDestination': snapshot.destination.name,
+            'lineCount': snapshot.lineCount,
+            'receiptCount': snapshot.receiptCount,
+          },
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('That export could not be prepared. Try again.'),
+          ),
+        );
+      }
+      return;
+    }
+    if (!mounted) return;
     ExpenseExportRecord? saved;
     if (handoffResult.completed) {
       saved = await exportStore.markExported(
@@ -169,8 +231,39 @@ class _ExpenseExportScreenState extends State<ExpenseExportScreen> {
         outputDirectory: handoffResult.savedPath ?? files.directoryPath,
         fileNames: files.files,
       );
+    } else {
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.exportFailed,
+        failureKind: 'export_handoff_not_completed',
+        diagnostic: const ExpenseFailureDiagnostic(
+          workflowStep: ExpenseWorkflowStep.export,
+          failedAt: 'export_handoff',
+          confirmedCause: 'export_handoff_not_completed',
+          causeStatus: ExpenseFailureCauseStatus.confirmed,
+          evidence: 'handoff_result_completed_false',
+          missingEvidence: 'none',
+          abandoned: true,
+        ),
+        metadata: {
+          'exportDestination': snapshot.destination.name,
+          'lineCount': snapshot.lineCount,
+          'receiptCount': snapshot.receiptCount,
+        },
+      );
     }
     if (!mounted) return;
+    if (handoffResult.completed) {
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.exportCompleted,
+        metadata: {
+          'exportDestination': snapshot.destination.name,
+          'lineCount': snapshot.lineCount,
+          'receiptCount': snapshot.receiptCount,
+        },
+      );
+    }
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(

@@ -3,6 +3,7 @@ part of 'receipt_attachment_panel.dart';
 class _ReceiptAttachmentList extends StatelessWidget {
   const _ReceiptAttachmentList({
     required this.photoPaths,
+    required this.photoQualityByPath,
     required this.documents,
     required this.dataSaverLevel,
     required this.onReviewPhotos,
@@ -13,6 +14,7 @@ class _ReceiptAttachmentList extends StatelessWidget {
   });
 
   final List<String> photoPaths;
+  final Map<String, ReceiptPhotoQualityCheck> photoQualityByPath;
   final List<ReceiptAttachmentRecord> documents;
   final ReceiptDataSaverLevel dataSaverLevel;
   final VoidCallback onReviewPhotos;
@@ -27,9 +29,12 @@ class _ReceiptAttachmentList extends StatelessWidget {
       for (var index = 0; index < photoPaths.length; index++)
         _ReceiptAttachmentRow(
           icon: Icons.photo_rounded,
-          title: 'Receipt photo ${index + 1}',
-          subtitle:
-              '${dataSaverLevel.label} copy${_fileDetail(photoPaths[index])}',
+          title: _photoTitle(index: index, total: photoPaths.length),
+          subtitle: _photoDetail(
+            path: photoPaths[index],
+            dataSaverLevel: dataSaverLevel,
+            quality: photoQualityByPath[photoPaths[index]],
+          ),
           onTap: onReviewPhotos,
           onRemove: () => onRemovePhoto(index),
         ),
@@ -53,6 +58,27 @@ class _ReceiptAttachmentList extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  static String _photoTitle({required int index, required int total}) {
+    if (total <= 1) return 'Receipt photo';
+    return 'Receipt photo ${index + 1}';
+  }
+
+  static String _photoDetail({
+    required String path,
+    required ReceiptDataSaverLevel dataSaverLevel,
+    required ReceiptPhotoQualityCheck? quality,
+  }) {
+    final parts = [
+      '${dataSaverLevel.label} saved proof${_fileDetail(path)}',
+      if (quality != null)
+        quality.needsReview
+            ? 'Photo needs review: ${quality.primaryIssueLabel}'
+            : 'Photo looks readable',
+      'Next reads the clear photo first',
+    ];
+    return parts.join(' | ');
   }
 
   static IconData _iconFor(ReceiptAttachmentKind kind) {
@@ -261,12 +287,14 @@ class _ReceiptAttachmentSummary extends StatelessWidget {
     required this.photoCount,
     required this.documents,
     required this.dataSaverLevel,
+    required this.appAssistedEnabled,
     required this.onReview,
   });
 
   final int photoCount;
   final List<ReceiptAttachmentRecord> documents;
   final ReceiptDataSaverLevel dataSaverLevel;
+  final bool appAssistedEnabled;
   final VoidCallback onReview;
 
   @override
@@ -274,7 +302,8 @@ class _ReceiptAttachmentSummary extends StatelessWidget {
     final documentCount = documents.length;
     final hasPhotos = photoCount > 0;
     final labelParts = [
-      if (hasPhotos) '$photoCount ${photoCount == 1 ? 'photo' : 'photos'}',
+      if (hasPhotos)
+        '$photoCount receipt ${photoCount == 1 ? 'photo' : 'photos'}',
       if (documentCount > 0)
         '$documentCount imported ${documentCount == 1 ? 'receipt' : 'receipts'}',
     ];
@@ -283,8 +312,17 @@ class _ReceiptAttachmentSummary extends StatelessWidget {
         .where((attachment) => attachment.isImportedText)
         .length;
     final pdfCount = documents.where((attachment) => attachment.isPdf).length;
+    final photoDetail = hasPhotos
+        ? [
+            if (photoCount > 1) 'Photos kept in receipt order',
+            'Saved proof size: ${dataSaverLevel.label}',
+            appAssistedEnabled
+                ? 'Next reads the clear photo before using the smaller proof'
+                : 'Receipt proof only',
+          ].join(' | ')
+        : null;
     final detailParts = [
-      if (hasPhotos) 'Data saver: ${dataSaverLevel.label}',
+      ?photoDetail,
       if (pdfCount > 0) '$pdfCount PDF ${pdfCount == 1 ? 'file' : 'files'}',
       if (textCount > 0)
         '$textCount pasted ${textCount == 1 ? 'receipt' : 'receipts'}',

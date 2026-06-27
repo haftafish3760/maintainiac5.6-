@@ -9,6 +9,8 @@ class _ReceiptLineEditorScreen extends StatelessWidget {
     required this.child,
     required this.canSave,
     required this.onSave,
+    required this.canStepBack,
+    required this.onStepBack,
   });
 
   final _ItemEntryMode mode;
@@ -18,47 +20,55 @@ class _ReceiptLineEditorScreen extends StatelessWidget {
   final Widget child;
   final bool canSave;
   final Future<void> Function() onSave;
+  final bool canStepBack;
+  final VoidCallback onStepBack;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundBottom,
-      appBar: AppBar(
-        backgroundColor: AppColors.backgroundTop,
-        foregroundColor: const Color(0xFFE8ECEE),
-        title: Text(_title),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.backgroundTop, AppColors.backgroundBottom],
-          ),
+    return PopScope(
+      canPop: !canStepBack,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && canStepBack) onStepBack();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundBottom,
+        appBar: AppBar(
+          backgroundColor: AppColors.backgroundTop,
+          foregroundColor: const Color(0xFFE8ECEE),
+          title: Text(_title),
         ),
-        child: SafeArea(
-          child: ListView(
-            controller: scrollController,
-            padding: const EdgeInsets.fromLTRB(10, 12, 10, 24),
-            children: [
-              _LineEditorIntro(
-                mode: mode,
-                lineNumber: lineNumber,
-                showDestinationPicker: showDestinationPicker,
-              ),
-              const SizedBox(height: 14),
-              child,
-              const SizedBox(height: 12),
-              AppButton(
-                label: 'Save Line And Continue',
-                tone: AppButtonTone.commit,
-                icon: const Icon(
-                  Icons.add_circle_outline_rounded,
-                  color: Colors.white,
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [AppColors.backgroundTop, AppColors.backgroundBottom],
+            ),
+          ),
+          child: SafeArea(
+            child: ListView(
+              controller: scrollController,
+              padding: const EdgeInsets.fromLTRB(10, 12, 10, 24),
+              children: [
+                _LineEditorIntro(
+                  mode: mode,
+                  lineNumber: lineNumber,
+                  showDestinationPicker: showDestinationPicker,
                 ),
-                onPressed: canSave ? () => onSave() : null,
-              ),
-            ],
+                const SizedBox(height: 14),
+                child,
+                const SizedBox(height: 12),
+                AppButton(
+                  label: 'Save Line And Continue',
+                  tone: AppButtonTone.commit,
+                  icon: const Icon(
+                    Icons.add_circle_outline_rounded,
+                    color: Colors.white,
+                  ),
+                  onPressed: canSave ? () => onSave() : null,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -68,8 +78,8 @@ class _ReceiptLineEditorScreen extends StatelessWidget {
   String get _title {
     return switch (mode) {
       _ItemEntryMode.newInventory => 'Add Inventory Item',
-      _ItemEntryMode.catalogInventory => 'Use Saved Item',
-      _ItemEntryMode.nonInventory => 'Add Expense Line',
+      _ItemEntryMode.catalogInventory => 'Inventory Item',
+      _ItemEntryMode.nonInventory => 'Additional Receipt Item',
     };
   }
 }
@@ -145,9 +155,10 @@ class _LineEditorIntro extends StatelessWidget {
     return switch (mode) {
       _ItemEntryMode.newInventory =>
         'Add one inventory item from this receipt.',
-      _ItemEntryMode.catalogInventory => 'Use an item that is already saved.',
+      _ItemEntryMode.catalogInventory =>
+        'Choose the item from the catalog, or create it if it is not listed.',
       _ItemEntryMode.nonInventory =>
-        'Record a receipt line without adding inventory.',
+        'Label a receipt line as business, personal, or mixed without adding it to inventory.',
     };
   }
 }

@@ -51,20 +51,16 @@ enum _ExpenseViewPeriod {
   }
 }
 
-class _ExpensePeriodSelectorPanel extends StatelessWidget {
-  const _ExpensePeriodSelectorPanel({
-    required this.period,
+class _ExpenseDayNavigatorPanel extends StatelessWidget {
+  const _ExpenseDayNavigatorPanel({
     required this.anchorDate,
     required this.scopeLabel,
-    required this.onChanged,
     required this.onShift,
     required this.onToday,
   });
 
-  final _ExpenseViewPeriod period;
   final DateTime anchorDate;
   final String scopeLabel;
-  final ValueChanged<_ExpenseViewPeriod> onChanged;
   final ValueChanged<int> onShift;
   final VoidCallback onToday;
 
@@ -78,36 +74,14 @@ class _ExpensePeriodSelectorPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _SectionHeader(
-            eyebrow: 'VIEW',
-            title: 'Expense records:',
-            detail: scopeLabel,
-          ),
-          const SizedBox(height: 8),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final spacing = 6.0;
-              final width = (constraints.maxWidth - spacing * 3) / 4;
-              return Wrap(
-                spacing: spacing,
-                runSpacing: 6,
-                children: [
-                  for (final option in _ExpenseViewPeriod.values)
-                    SizedBox(
-                      width: width,
-                      child: _PeriodChoiceButton(
-                        label: option.buttonLabel,
-                        selected: option == period,
-                        onTap: () => onChanged(option),
-                      ),
-                    ),
-                ],
-              );
-            },
+            eyebrow: 'TODAY',
+            title: 'Daily expenses',
+            detail: '$scopeLabel | ${_longDate(anchorDate)}',
           ),
           const SizedBox(height: 8),
           _PeriodNavigator(
-            period: period,
-            label: period.rangeLabel(anchorDate),
+            period: _ExpenseViewPeriod.day,
+            label: _ExpenseViewPeriod.day.rangeLabel(anchorDate),
             onPrevious: () => onShift(-1),
             onNext: () => onShift(1),
             onToday: onToday,
@@ -209,52 +183,6 @@ class _ArrowButton extends StatelessWidget {
         onPressed: onTap,
         padding: EdgeInsets.zero,
         icon: Icon(icon, color: _gold, size: 24),
-      ),
-    );
-  }
-}
-
-class _PeriodChoiceButton extends StatelessWidget {
-  const _PeriodChoiceButton({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: selected ? _gold : const Color(0xFF101719),
-      borderRadius: BorderRadius.circular(6),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
-          height: 38,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: selected ? const Color(0xFFFFE3A0) : _line,
-              width: 1.1,
-            ),
-          ),
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: selected ? const Color(0xFF11181B) : Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0,
-            ),
-          ),
-        ),
       ),
     );
   }

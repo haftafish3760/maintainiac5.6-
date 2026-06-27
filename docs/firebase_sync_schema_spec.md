@@ -1,10 +1,14 @@
 # Firebase Sync And Trade Pack Schema Spec
 
-Maintaniac is local-first. Firebase is an optional hosted sync, backup, account, fleet, and trade-pack delivery layer. Hive-backed local records remain the first source of truth on the device until a user explicitly enables hosted sync.
+Maintaniac is local-first. Firebase is a required release capability for hosted
+sync, backup, account, fleet, customer portal, and trade-pack delivery. The
+user can still choose local-only operation, and Hive-backed local records remain
+the first source of truth on the device until hosted sync is enabled.
 
 ## Goals
 
 - Keep offline-only users fully supported.
+- Back up every enabled app module, not only receipt proof files.
 - Let users download only the trade packs they need.
 - Keep parser knowledge packs cheap to read and update.
 - Support solo users first without blocking future fleet accounts.
@@ -33,6 +37,16 @@ Hosted source:
 - Firestore stores synced record envelopes, metadata, role grants, and audit pointers.
 - Cloud Storage stores proof files and downloadable pack files.
 - Sync must be append-friendly and conflict-aware. It must not silently overwrite local records.
+
+First-release hosted backup scope:
+
+- Mileage and trip records.
+- Expenses, receipt metadata, and proof files.
+- Jobs, estimates, invoices, payments, and customer-visible job progress.
+- Inventory items, material usage, transfers, adjustments, and trade-pack state.
+- Maintenance records and vehicle metadata.
+- Employee profiles, role templates, permission grants, and invite state.
+- Calendar timeline records, app settings, audit events, and export requests.
 
 ## Account Model
 
@@ -142,37 +156,41 @@ Inside-location details such as bin, drawer, tray, shelf, or trailer compartment
 
 Large trade/catalog/parser data should not be stored as thousands of Firestore documents for normal app reads.
 
-Firestore stores manifests only:
+Firestore stores pack metadata and manifests only:
 
 ```text
-tradePacks/{packId}
+catalogPacks/{packId}
+catalogPacks/{packId}/manifests/{versionId}
 ```
 
 Fields:
 
 - `packId`
+- `packVersion`
 - `trade`
 - `displayName`
-- `version`
 - `status`
 - `minAppVersion`
-- `storagePath`
-- `compressedSizeBytes`
-- `uncompressedSizeBytes`
-- `checksum`
-- `recordCount`
+- `storagePrefix`
+- `itemCount`
+- `tradeCount`
+- `chunkCount`
+- `firestoreManifestReadCount`
+- `firestoreItemDocumentReadCount`
+- `estimatedCompressedBytes`
+- `chunks`: Storage chunk metadata only, never item bodies
 - `dependsOnPackIds`
 - `companionPackIds`
 - `createdAt`
 - `updatedAt`
 
-Cloud Storage stores pack files:
+Cloud Storage stores chunk files:
 
 ```text
-trade-packs/{packId}/{version}/pack.json.gz
-trade-packs/{packId}/{version}/pack.sqlite.gz
-trade-packs/{packId}/{version}/manifest.json
+catalog-packs/work-supplies/{version}/{trade}/{chunkId}.json.gz
 ```
+
+Normal app catalog download should read one Firestore manifest document, then download the referenced Storage chunks. It must not read one Firestore document per catalog item.
 
 Recommended pack split:
 
@@ -440,6 +458,31 @@ These modules need their own full specs later, but inventory/receipt schema must
 - `businessPercent`
 
 Invoices should reference receipt line ids, not only whole receipt ids, so customer proof can show only relevant lines.
+
+Expense receipt backups use one Firestore document per receipt:
+
+```text
+orgs/{orgId}/expenses/{expenseId}
+```
+
+The expense document embeds bounded receipt lines and stores money values in
+cents. It can include the user's private merchant, receipt number, notes,
+categories, and line descriptions because this is the user's own backed-up
+record behind org membership rules. It must not include raw OCR text, imported
+receipt text, local device file paths, proof image bytes, PDF bytes, VINs,
+license plates, passenger data, or patient data. Receipt proof files use Cloud
+Storage and Firestore keeps only proof pointers, hashes, sizes, and storage
+state.
+
+Expense recap settings use one member-scoped settings document:
+
+```text
+orgs/{orgId}/settings/expenses_{uid}
+```
+
+Default recap behavior is show every tile. User-hidden recap tiles are stored
+as `hiddenRecapTiles` so a restored device can reproduce the user's recap
+layout without reading multiple settings documents.
 
 ## Sync Envelopes
 

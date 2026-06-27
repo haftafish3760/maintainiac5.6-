@@ -171,9 +171,62 @@ void main() {
     );
     expect(find.text('Save Read-Only Document'), findsOneWidget);
   });
+
+  testWidgets('incoming invoice PDF routes to job document proof', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: IncomingReceiptDestinationScreen(
+          attachments: [
+            _pdfAttachment(
+              'invoice-shared',
+              originalFileName: 'invoice_INV-2026-0042.pdf',
+            ),
+          ],
+          importedText:
+              'Invoice # INV-2026-0042 Bill To Alex Customer Payment Terms Net 30 Balance Due 937.74',
+        ),
+      ),
+    );
+
+    expect(find.text('Suggested: Job / Contractor Document'), findsOneWidget);
+    expect(find.textContaining('invoice, estimate, job'), findsOneWidget);
+
+    await tester.tap(find.text('Suggested: Job / Contractor Document'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Job / contractor document'), findsOneWidget);
+    expect(find.text('Save As Document Proof'), findsOneWidget);
+  });
+
+  testWidgets('incoming estimate PDF does not get mistaken for receipt', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: IncomingReceiptDestinationScreen(
+          attachments: [
+            _pdfAttachment(
+              'estimate-shared',
+              originalFileName: 'estimate_panel_replacement.pdf',
+            ),
+          ],
+          importedText:
+              'Estimate # EST-12 Scope of Work panel replacement Amount Due 1200.00',
+        ),
+      ),
+    );
+
+    expect(find.text('Suggested: Job / Contractor Document'), findsOneWidget);
+    expect(find.text('Suggested: Receipt / Expense'), findsNothing);
+  });
 }
 
-ReceiptAttachmentRecord _pdfAttachment(String id) {
+ReceiptAttachmentRecord _pdfAttachment(
+  String id, {
+  String originalFileName = '',
+}) {
   return ReceiptAttachmentRecord(
     id: id,
     path: '/tmp/$id.pdf',
@@ -182,5 +235,6 @@ ReceiptAttachmentRecord _pdfAttachment(String id) {
     createdAt: DateTime(2026, 6, 14),
     storageState: ReceiptAttachmentStorageState.staged,
     sourceLabel: 'Shared',
+    originalFileName: originalFileName,
   );
 }

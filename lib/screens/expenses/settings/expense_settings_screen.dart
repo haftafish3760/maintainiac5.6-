@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../categories/expense_categories.dart';
+import '../reports/expense_recap_models.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../../../shared/widgets/industrial_panel_surface.dart';
@@ -8,6 +9,7 @@ import '../../../shared/widgets/industrial_panel_surface.dart';
 part 'expense_top_three_settings.dart';
 part 'expense_category_settings_sections.dart';
 part 'expense_settings_switch_panels.dart';
+part 'expense_recap_tile_settings.dart';
 part 'expense_settings_helpers.dart';
 
 class ExpenseSettingsScreen extends StatefulWidget {
@@ -66,6 +68,10 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          _RecapTileSettingsPanel(settings: settings),
+          const SizedBox(height: 12),
+          _ReceiptReviewStyleSettingsPanel(settings: settings),
           const SizedBox(height: 12),
           _SettingsSwitchPanel(
             title: 'Receipts And OCR',

@@ -1,0 +1,23 @@
+Screen: lib/screens/dashboard/dashboard_screen.dart
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"I've already got a dashboard of sorts on here as we speak, but that's more for
+rideshare drivers."
+
+"The other users, like the ones, what we have now for the start day button on
+the dashboard, that is for a driver that just does like DoorDash, Uber, and
+things like that. That is what that dashboard is for."
+
+"I really and truly want this dashboard to be a command center for both gig
+drivers and a contractor."
+
+Source: /Users/rbbie/.codex/attachments/c8afdb36-f51f-452e-b314-109f5c4bb0d0/pasted-text.txt
+
+"All of the other calendars in the app need to talk to a central hub of sorts,
+and that to me would be the dashboard."
+
+"I'm thinking that the other screens needs to talk to the dashboard calendar.
+That needs to be mom and dad right there, mom, dad, grandpa, whatever. That is
+the mac daddy of all of them."
+

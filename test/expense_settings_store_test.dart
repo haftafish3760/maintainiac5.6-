@@ -64,4 +64,75 @@ void main() {
     expect(settings.quickCategoryOrder, isEmpty);
     expect(settings.topThreeCategories, ['Fuel', 'Meals', 'Materials']);
   });
+
+  test('recap tiles are visible by default and can be hidden', () async {
+    final settings = await ExpenseSettingsController.create();
+
+    expect(settings.recapTileVisible('fuelSpend'), isTrue);
+    expect(settings.hiddenRecapTiles, isEmpty);
+
+    await settings.setRecapTileVisible('fuelSpend', false);
+
+    expect(settings.recapTileVisible('fuelSpend'), isFalse);
+    expect(settings.hiddenRecapTiles, ['fuelSpend']);
+
+    await settings.setRecapTileVisible('fuelSpend', true);
+
+    expect(settings.recapTileVisible('fuelSpend'), isTrue);
+    expect(settings.hiddenRecapTiles, isEmpty);
+  });
+
+  test('recap tile reset shows everything again', () async {
+    final settings = await ExpenseSettingsController.create();
+
+    await settings.setRecapTileVisible('fuelSpend', false);
+    await settings.setRecapTileVisible('materialsSpend', false);
+    await settings.resetRecapTiles();
+
+    expect(settings.hiddenRecapTiles, isEmpty);
+    expect(settings.recapTileVisible('fuelSpend'), isTrue);
+    expect(settings.recapTileVisible('materialsSpend'), isTrue);
+  });
+
+  test('receipt review style saves the expense receipt default', () async {
+    final settings = await ExpenseSettingsController.create();
+
+    expect(
+      settings.receiptReviewStyle,
+      ExpenseReceiptReviewStyle.simpleAmounts,
+    );
+
+    await settings.setReceiptReviewStyle(
+      ExpenseReceiptReviewStyle.fullItemDetails,
+    );
+
+    expect(
+      settings.receiptReviewStyle,
+      ExpenseReceiptReviewStyle.fullItemDetails,
+    );
+    expect(
+      settings.toBackupMap(
+        ownerUid: 'owner',
+        exportedAtUtc: DateTime.utc(2026),
+      ),
+      containsPair('receiptReviewStyle', 'fullItemDetails'),
+    );
+  });
+
+  test(
+    'expense settings scope can be optional for shared receipt widgets',
+    () async {
+      final source = await File(
+        'lib/shared/state/expense_settings_store.dart',
+      ).readAsString();
+
+      expect(source, contains('static ExpenseSettingsController? maybeOf'));
+      expect(
+        source,
+        contains(
+          'getElementForInheritedWidgetOfExactType<ExpenseSettingsScope>',
+        ),
+      );
+    },
+  );
 }

@@ -5,11 +5,13 @@ class _ReceiptCameraError extends StatelessWidget {
     required this.message,
     required this.onRetry,
     required this.onClose,
+    this.onOpenSettings,
   });
 
   final String message;
   final VoidCallback onRetry;
   final VoidCallback onClose;
+  final VoidCallback? onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +60,21 @@ class _ReceiptCameraError extends StatelessWidget {
                 ),
               ],
             ),
+            if (onOpenSettings != null) ...[
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: onOpenSettings,
+                  icon: const Icon(Icons.settings_rounded),
+                  label: const Text('Open Camera Permission'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFD166),
+                    foregroundColor: const Color(0xFF101416),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

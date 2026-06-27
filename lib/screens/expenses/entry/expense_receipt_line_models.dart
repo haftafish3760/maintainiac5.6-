@@ -1,5 +1,7 @@
 part of 'expense_receipt_entry_screen.dart';
 
+const Object _noBusinessPercentChange = Object();
+
 enum _ExpenseLineUse {
   business('Business'),
   personal('Personal'),
@@ -35,6 +37,12 @@ class _ExpenseReceiptLine {
     this.fuelType,
     this.fillType,
     this.unitPrice,
+    this.rawReceiptText = '',
+    this.catalogItemId,
+    this.catalogItemName,
+    this.catalogItemPath,
+    this.catalogMatchConfidence,
+    this.catalogMatchedTerms = const [],
     this.parserConfidence,
     this.parserReviewLabel,
     this.parserReviewReason,
@@ -77,6 +85,12 @@ class _ExpenseReceiptLine {
       fuelType: line.fuelType,
       fillType: line.fillType,
       unitPrice: line.unitPrice,
+      rawReceiptText: line.rawReceiptText,
+      catalogItemId: line.catalogItemId,
+      catalogItemName: line.catalogItemName,
+      catalogItemPath: line.catalogItemPath,
+      catalogMatchConfidence: line.catalogMatchConfidence,
+      catalogMatchedTerms: line.catalogMatchedTerms,
       parserConfidence: line.parserConfidence,
       parserReviewLabel: line.parserReviewLabel,
       parserReviewReason: line.parserReviewReason,
@@ -97,6 +111,12 @@ class _ExpenseReceiptLine {
   final String? fuelType;
   final String? fillType;
   final double? unitPrice;
+  final String rawReceiptText;
+  final String? catalogItemId;
+  final String? catalogItemName;
+  final String? catalogItemPath;
+  final double? catalogMatchConfidence;
+  final List<String> catalogMatchedTerms;
   final double? parserConfidence;
   final String? parserReviewLabel;
   final String? parserReviewReason;
@@ -104,28 +124,102 @@ class _ExpenseReceiptLine {
 
   _ExpenseReceiptLine copyWith({
     String? category,
+    String? description,
+    _ExpenseLineUse? use,
     String? fuelType,
     String? fillType,
     String? stockUnit,
+    String? rawReceiptText,
+    String? catalogItemId,
+    String? catalogItemName,
+    String? catalogItemPath,
+    double? catalogMatchConfidence,
+    List<String>? catalogMatchedTerms,
+    Object? businessPercent = _noBusinessPercentChange,
+    double? parserConfidence,
+    String? parserReviewLabel,
+    String? parserReviewReason,
+    bool? parserNeedsReview,
   }) {
     return _ExpenseReceiptLine(
       id: id,
-      description: description,
+      description: description ?? this.description,
       category: category ?? this.category,
-      use: use,
+      use: use ?? this.use,
       quantity: quantity,
       unitsPerPackage: unitsPerPackage,
       stockUnit: stockUnit ?? this.stockUnit,
       subtotal: subtotal,
-      businessPercent: businessPercent,
+      businessPercent: identical(businessPercent, _noBusinessPercentChange)
+          ? this.businessPercent
+          : businessPercent as double?,
       odometerReading: odometerReading,
       fuelType: fuelType ?? this.fuelType,
       fillType: fillType ?? this.fillType,
       unitPrice: unitPrice,
+      rawReceiptText: rawReceiptText ?? this.rawReceiptText,
+      catalogItemId: catalogItemId ?? this.catalogItemId,
+      catalogItemName: catalogItemName ?? this.catalogItemName,
+      catalogItemPath: catalogItemPath ?? this.catalogItemPath,
+      catalogMatchConfidence:
+          catalogMatchConfidence ?? this.catalogMatchConfidence,
+      catalogMatchedTerms: catalogMatchedTerms ?? this.catalogMatchedTerms,
+      parserConfidence: parserConfidence ?? this.parserConfidence,
+      parserReviewLabel: parserReviewLabel ?? this.parserReviewLabel,
+      parserReviewReason: parserReviewReason ?? this.parserReviewReason,
+      parserNeedsReview: parserNeedsReview ?? this.parserNeedsReview,
+    );
+  }
+
+  _ExpenseReceiptLine confirmParserReview() {
+    return _ExpenseReceiptLine(
+      id: id,
+      description: description,
+      category: category,
+      use: use,
+      quantity: quantity,
+      unitsPerPackage: unitsPerPackage,
+      stockUnit: stockUnit,
+      subtotal: subtotal,
+      businessPercent: businessPercent,
+      odometerReading: odometerReading,
+      fuelType: fuelType,
+      fillType: fillType,
+      unitPrice: unitPrice,
+      rawReceiptText: rawReceiptText,
+      catalogItemId: catalogItemId,
+      catalogItemName: catalogItemName,
+      catalogItemPath: catalogItemPath,
+      catalogMatchConfidence: catalogMatchConfidence,
+      catalogMatchedTerms: catalogMatchedTerms,
+      parserConfidence: parserConfidence ?? catalogMatchConfidence ?? .9,
+      parserReviewLabel: 'Good',
+      parserReviewReason: 'User confirmed this parsed receipt line.',
+      parserNeedsReview: false,
+    );
+  }
+
+  _ExpenseReceiptLine markExpenseOnly() {
+    final nextCategory = category == 'Materials' ? 'Supplies' : category;
+    return _ExpenseReceiptLine(
+      id: id,
+      description: description,
+      category: nextCategory,
+      use: use == _ExpenseLineUse.personal ? use : _ExpenseLineUse.business,
+      quantity: quantity,
+      unitsPerPackage: unitsPerPackage,
+      stockUnit: stockUnit,
+      subtotal: subtotal,
+      businessPercent: null,
+      odometerReading: odometerReading,
+      fuelType: fuelType,
+      fillType: fillType,
+      unitPrice: unitPrice,
+      rawReceiptText: rawReceiptText,
       parserConfidence: parserConfidence,
-      parserReviewLabel: parserReviewLabel,
-      parserReviewReason: parserReviewReason,
-      parserNeedsReview: parserNeedsReview,
+      parserReviewLabel: 'Good',
+      parserReviewReason: 'Marked as expense-only from receipt review.',
+      parserNeedsReview: false,
     );
   }
 
@@ -146,6 +240,19 @@ class _ExpenseReceiptLine {
   }
 
   double get totalUnits => quantity * unitsPerPackage;
+
+  String get displayDescription {
+    final clean = description.trim();
+    if (clean.isNotEmpty && clean.toLowerCase() != 'receipt item') {
+      return clean;
+    }
+    return switch (use) {
+      _ExpenseLineUse.business => 'Business receipt items',
+      _ExpenseLineUse.personal => 'Personal receipt items',
+      _ExpenseLineUse.split => 'Split receipt items',
+    };
+  }
+
   double get effectiveBusinessPercent {
     return switch (use) {
       _ExpenseLineUse.business => 1,
@@ -161,11 +268,24 @@ class _ExpenseReceiptLine {
     return 'Split ${_percent(effectiveBusinessPercent)} business';
   }
 
+  String get allocationDetail {
+    return switch (use) {
+      _ExpenseLineUse.business => 'Business ${_money(subtotal)}',
+      _ExpenseLineUse.personal => 'Personal ${_money(subtotal)}',
+      _ExpenseLineUse.split =>
+        'Business ${_money(businessAmount)} | Personal ${_money(personalAmount)}',
+    };
+  }
+
   bool get hasParserReview {
     return parserConfidence != null ||
         (parserReviewLabel ?? '').trim().isNotEmpty ||
         (parserReviewReason ?? '').trim().isNotEmpty ||
         parserNeedsReview;
+  }
+
+  bool get cameFromAppAssistedReceiptRead {
+    return rawReceiptText.trim().isNotEmpty || hasParserReview;
   }
 
   String get parserReviewSummary {
@@ -175,6 +295,26 @@ class _ExpenseReceiptLine {
     final confidence = parserConfidence;
     if (confidence == null) return label;
     return '$label ${(confidence * 100).round()}%';
+  }
+
+  String get receiptEvidenceText {
+    final raw = rawReceiptText.trim();
+    if (raw.isNotEmpty) return raw;
+    return description.trim();
+  }
+
+  bool get hasReceiptEvidence {
+    final evidence = receiptEvidenceText;
+    return evidence.isNotEmpty && evidence != description.trim();
+  }
+
+  String get parserReviewActionText {
+    if (parserNeedsReview) return 'Review before saving';
+    final label = (parserReviewLabel ?? '').trim().toLowerCase();
+    if (label == 'good') return 'Looks matched';
+    if (label == 'poor') return 'Needs correction';
+    if (hasParserReview) return 'Check line';
+    return 'Manual line';
   }
 
   Color get parserBadgeColor {
@@ -232,6 +372,12 @@ class _ExpenseReceiptLine {
       fuelType: fuelType,
       fillType: fillType,
       unitPrice: unitPrice,
+      rawReceiptText: rawReceiptText,
+      catalogItemId: catalogItemId,
+      catalogItemName: catalogItemName,
+      catalogItemPath: catalogItemPath,
+      catalogMatchConfidence: catalogMatchConfidence,
+      catalogMatchedTerms: catalogMatchedTerms,
       parserConfidence: parserConfidence,
       parserReviewLabel: parserReviewLabel,
       parserReviewReason: parserReviewReason,

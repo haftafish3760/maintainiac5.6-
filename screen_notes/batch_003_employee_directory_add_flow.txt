@@ -1,0 +1,53 @@
+Batch 3 notes for employee directory add flow
+
+Related screen:
+lib/screens/profiles/employee_permissions_screen.dart
+
+Source: visible user message, 2026-06-20 Batch 3
+
+"Why wouldn't you put add employee on the top row, then down below that, have
+active and inactive on the same row, so you can make that whole header
+smaller."
+
+"Or honestly, you could almost put them all three on the same row."
+
+"It needs to be up higher, I mean, there's no need to have that top container
+so big."
+
+"The save employee needs to be at the bottom. I don't wanna have to scroll all
+the way back up through everything I've just clicked on."
+
+"Expand one module, no, no, no, you need to say expand each category."
+
+"I need to see dummy data so that I don't have to create an employee and do
+this and everything else."
+
+Source: visible user message, 2026-06-20 Batch 3
+
+"Man, another thing I noticed, for the phone number, I can enter as many digits
+as I want. You got that to fix as well."
+
+"I need dummy data, please."
+
+"Dummy, you need to probably create five or six different types of employees,
+but not before you fix the layout stuff with the current stuff."
+
+"Every time you push to my phone, I don't know what is going on, but it's
+turning my screen rotation on every time you push."
+
+"It only happens when you send the build to my phone. It doesn't do it whenever
+I run it on VS code."
+
+Source: visible user message, 2026-06-20 Batch 3
+
+"I'm tapping on add new employee. That isn't working."
+
+"I'm tapping on each of these users. It does absolutely nothing."
+
+"You need to fix the ability for me to add employee."
+
+"Ask me questions. Don't go into playing mode because I will not do that
+multiple choice."
+
+"If you've got questions, two questions at a time. Most important first."
+

@@ -34,6 +34,11 @@ extension _ReceiptPhotoReviewImageEditActions
   }
 
   void _setReviewMode(_ReceiptReviewMode mode) {
+    if ((mode == _ReceiptReviewMode.order ||
+            mode == _ReceiptReviewMode.stitch) &&
+        _photoPaths.length <= 1) {
+      return;
+    }
     _updateReviewState(() {
       _reviewMode = mode;
       _controlsVisible = true;
@@ -81,6 +86,7 @@ extension _ReceiptPhotoReviewImageEditActions
         _cropProcessing = false;
         _reviewMode = _ReceiptReviewMode.preview;
       });
+      _invalidateStitchPreview();
     } catch (_) {
       if (!mounted) return;
       _updateReviewState(() => _cropProcessing = false);
@@ -122,6 +128,7 @@ extension _ReceiptPhotoReviewImageEditActions
         _replaceCurrentPhotoPath(path, quality);
         _cropProcessing = false;
       });
+      _invalidateStitchPreview();
     } catch (_) {
       if (!mounted) return;
       _updateReviewState(() => _cropProcessing = false);
@@ -135,20 +142,48 @@ extension _ReceiptPhotoReviewImageEditActions
     _updateReviewState(() => _cropRect = displayRect);
   }
 
-  void _replaceCurrentPhotoPath(String path, ReceiptPhotoQualityCheck quality) {
+  void _replaceCurrentPhotoPath(String path, ReceiptPhotoQualityCheck? quality) {
     final previousPath = _photoPaths[_selectedIndex];
-    _photoPaths[_selectedIndex] = path;
-    _qualityChecksByPath
-      ..remove(previousPath)
-      ..[path] = quality;
-    _storagePreviews.removeWhere((key, _) => key.startsWith('$previousPath|'));
-    _dataSaverPreviewPaths.removeWhere(
-      (key, _) => key.startsWith('$previousPath::'),
+    final staleDataSaverPreviewPaths = _removePhotoReviewCachesForPath(
+      previousPath,
     );
+    _photoPaths[_selectedIndex] = path;
+    if (quality != null) _qualityChecksByPath[path] = quality;
+    unawaited(_deleteStaleDataSaverPreviewFiles(staleDataSaverPreviewPaths));
     _cropSourcePath = null;
     _cropImageBytes = null;
     _cropImageSize = null;
     _cropRect = null;
     _cropDisplayRect = null;
+  }
+
+  Set<String> _removePhotoReviewCachesForPath(String photoPath) {
+    final staleDataSaverPreviewPaths = _dataSaverPreviewPaths.entries
+        .where((entry) => entry.key.startsWith('$photoPath::'))
+        .map((entry) => entry.value)
+        .toSet();
+    _qualityChecksByPath.remove(photoPath);
+    _storagePreviews.removeWhere((key, _) => key.startsWith('$photoPath|'));
+    _previewKeysInFlight.removeWhere((key) => key.startsWith('$photoPath|'));
+    _dataSaverPreviewPaths.removeWhere(
+      (key, _) => key.startsWith('$photoPath::'),
+    );
+    _dataSaverPreviewKeysInFlight.removeWhere(
+      (key) => key.startsWith('$photoPath::'),
+    );
+    return staleDataSaverPreviewPaths;
+  }
+
+  Future<void> _deleteStaleDataSaverPreviewFiles(Set<String> paths) async {
+    final retained = _photoPaths.toSet()..addAll(_dataSaverPreviewPaths.values);
+    for (final path in paths) {
+      if (retained.contains(path)) continue;
+      try {
+        final file = File(path);
+        if (await file.exists()) await file.delete();
+      } catch (_) {
+        // Best effort cleanup for app-created saved proof previews.
+      }
+    }
   }
 }

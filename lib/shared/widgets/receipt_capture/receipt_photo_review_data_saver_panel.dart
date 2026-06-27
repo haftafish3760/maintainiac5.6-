@@ -11,29 +11,29 @@ class _ReceiptDataSaverPreviewCard extends StatelessWidget {
     if (current == null) {
       return const _DataSaverMessageCard(
         icon: Icons.hourglass_top_rounded,
-        title: 'Checking Photo Size',
-        detail: 'Maintaniac is estimating how much space this copy will use.',
+        title: 'Preparing Saved Proof Preview',
+        detail: 'Building the smaller receipt image that would be kept.',
       );
     }
     final quality = current.quality;
-    final grayscaleNote = current.level.usesGrayscale
-        ? ' Black-and-white copy is on for this level.'
-        : '';
-    final detail = quality.isLikelyReadable
-        ? 'Original ${current.originalLabel}. Saved copy about ${current.estimatedLabel}. Saves ${current.savedLabel}.$grayscaleNote'
-        : 'This photo may be hard to read. Zoom in and check the store name, date, and totals before saving.';
+    final mode = current.level.usesGrayscale ? 'black and white' : 'color';
+    final detail = !quality.needsReview
+        ? '${current.estimatedLabel} saved proof, ${current.savedLabel} saved, $mode.'
+        : '${current.estimatedLabel} saved proof, $mode. ${quality.reviewGuidance}';
     return _DataSaverMessageCard(
-      icon: quality.isLikelyReadable
+      icon: !quality.needsReview
           ? Icons.savings_rounded
-          : Icons.center_focus_weak_rounded,
-      title: quality.isLikelyReadable
-          ? '${current.level.label}: ${(current.savedPercent * 100).round()}% Less Storage'
-          : 'Check This Photo',
+          : quality.hasCriticalIssue
+          ? Icons.replay_rounded
+          : Icons.fact_check_rounded,
+      title: !quality.needsReview
+          ? '${current.level.label} Saved Proof'
+          : quality.reviewTitle,
       detail: detail,
-      footer: quality.isLikelyReadable
-          ? '${quality.resolutionLabel} | ${quality.focusLabel}'
-          : 'Tip: if photos keep coming out blurry, record a short video, pause on a clear frame, screenshot it, then upload that image.',
-      warning: !quality.isLikelyReadable,
+      footer: !quality.needsReview
+          ? 'The image behind this panel is the saved proof preview. OCR already uses the clear photo first. Original ${current.originalLabel}.'
+          : 'OCR already uses the clear photo first. This setting only controls the smaller saved proof copy.',
+      warning: quality.needsReview,
       onDetails: () => _showDataSaverDetails(context, current),
     );
   }
@@ -61,16 +61,16 @@ class _DataSaverMessageCard extends StatelessWidget {
     final color = warning ? const Color(0xFFFFD166) : const Color(0xFF58D67D);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+      padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
       decoration: BoxDecoration(
         color: const Color(0xFF101719),
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: color.withValues(alpha: .85)),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 22),
+          Icon(icon, color: color, size: 20),
           const SizedBox(width: 9),
           Expanded(
             child: Column(
@@ -80,7 +80,7 @@ class _DataSaverMessageCard extends StatelessWidget {
                   title,
                   style: TextStyle(
                     color: color,
-                    fontSize: 13,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0,
                   ),
@@ -90,7 +90,7 @@ class _DataSaverMessageCard extends StatelessWidget {
                   detail,
                   style: const TextStyle(
                     color: Color(0xFFE8ECEE),
-                    fontSize: 11.5,
+                    fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0,
                   ),
@@ -107,30 +107,22 @@ class _DataSaverMessageCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (onDetails != null) ...[
-                  const SizedBox(height: 6),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton.icon(
-                      onPressed: onDetails,
-                      icon: const Icon(Icons.info_outline_rounded, size: 16),
-                      label: const Text('Details'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: color,
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size(0, 32),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        textStyle: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
+          if (onDetails != null) ...[
+            const SizedBox(width: 4),
+            IconButton(
+              tooltip: 'Storage details',
+              onPressed: onDetails,
+              icon: const Icon(Icons.info_outline_rounded, size: 20),
+              style: IconButton.styleFrom(
+                foregroundColor: color,
+                minimumSize: const Size(38, 38),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -169,7 +161,7 @@ Future<void> _showDataSaverDetails(
               value: preview.originalLabel,
             ),
             _StorageDetailRow(
-              label: 'Saved copy',
+              label: 'Saved proof image',
               value: preview.estimatedLabel,
             ),
             _StorageDetailRow(
@@ -191,7 +183,8 @@ Future<void> _showDataSaverDetails(
             ),
             _StorageDetailRow(
               label: 'Cloud backup',
-              value: '${cloudStatus.connectionState.label} (${cloud.statusLabel})',
+              value:
+                  '${cloudStatus.connectionState.label} (${cloud.statusLabel})',
             ),
             _StorageDetailRow(
               label: 'Cloud allowance',

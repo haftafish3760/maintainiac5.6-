@@ -1,0 +1,23 @@
+Batch 2 notes for work supply catalog screen
+
+Related screen:
+lib/screens/work_supplies/catalog/work_supply_catalog_screen.dart
+
+Source: visible user message, 2026-06-20 Batch 2
+
+"We have to still finish inventory and all of the catalogs for inventory, and
+I'm gonna tell you what the purpose of the inventory catalogs are."
+
+"That is to help with parsing of receipts, is the main number one thing, so
+people can keep track of their inventory, and when they take a picture of the
+receipt, this application will be able to parse whatever that item is."
+
+"So there are over 12,000 plumbing items that you and I will need to go
+through, or I need you to go through, rather, and to make sure that this
+application can parse them correctly."
+
+"We would start off with a basic inventory catalog in the app itself with the
+most popular stuff."
+
+"I'm going to allow users to be able to download those packs."
+

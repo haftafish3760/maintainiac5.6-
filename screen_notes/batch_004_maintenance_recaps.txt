@@ -1,0 +1,19 @@
+Batch 4 notes for maintenance and repair recaps
+
+Related screens:
+- lib/screens/maintenance/maintenance_screen.dart
+- lib/screens/maintenance/maintenance_settings_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/2466b528-ffc1-46eb-a3a1-d0dd58b42045/pasted-text.txt
+
+"Like how much am I spending for maintenance? We gotta have recaps for that.
+Repairs."
+
+"We haven't, I haven't even really done, I mean, I've worked on maintenance,
+screened some."
+
+"Yes, but it is way, way beyond even, it's not even remotely close to being
+done. Not even remotely."
+
+"It's gotta be redone."
+

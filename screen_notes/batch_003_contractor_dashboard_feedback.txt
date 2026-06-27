@@ -1,0 +1,20 @@
+Batch 3 notes for contractor dashboard feedback
+
+Related screen:
+lib/screens/dashboard/contractor/contractor_dashboard_screen.dart
+
+Source: visible user message, 2026-06-20 Batch 3
+
+"I can tell you now the contractor layout I'm not fond of at all."
+
+"It does not match the dashboard that I have with the dark, with the black
+background for the entry fields. Not the entry, the display fields."
+
+"For when I am on the dashboard, I click open the contractor dashboard. Oh
+yeah, today's status, it says ready. Cloud backup local. I mean, what the hell
+is that?"
+
+"Those four boxes are supposed to be other demographics, not that."
+
+"That page is getting there, but it's not nearly quite there."
+

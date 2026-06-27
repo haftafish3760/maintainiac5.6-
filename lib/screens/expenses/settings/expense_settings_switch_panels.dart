@@ -26,6 +26,114 @@ class _SettingsSwitchPanel extends StatelessWidget {
   }
 }
 
+class _ReceiptReviewStyleSettingsPanel extends StatelessWidget {
+  const _ReceiptReviewStyleSettingsPanel({required this.settings});
+
+  final ExpenseSettingsController settings;
+
+  @override
+  Widget build(BuildContext context) {
+    return IndustrialPanelSurface(
+      dark: true,
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Receipt Review Style',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Choose what Maintainiac shows after it reads or imports a receipt.',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 10),
+          for (final style in ExpenseReceiptReviewStyle.values) ...[
+            _ReceiptReviewStyleChoice(
+              style: style,
+              selected: settings.receiptReviewStyle == style,
+              onTap: () => settings.setReceiptReviewStyle(style),
+            ),
+            if (style != ExpenseReceiptReviewStyle.values.last)
+              const SizedBox(height: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ReceiptReviewStyleChoice extends StatelessWidget {
+  const _ReceiptReviewStyleChoice({
+    required this.style,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final ExpenseReceiptReviewStyle style;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final border = selected ? const Color(0xFFFFD166) : const Color(0xFF445159);
+    final fill = selected ? const Color(0xFF3A3016) : const Color(0xFF101719);
+    return Material(
+      color: fill,
+      borderRadius: BorderRadius.circular(7),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(7),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(color: border),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                selected
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                color: selected
+                    ? const Color(0xFFFFD166)
+                    : const Color(0xFFC8D0D3),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      style.label,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      style.description,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 sealed class _SettingsPanelRowData {
   const _SettingsPanelRowData(this.label);
 

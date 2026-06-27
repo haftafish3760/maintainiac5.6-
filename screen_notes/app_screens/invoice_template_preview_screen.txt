@@ -1,0 +1,5 @@
+Screen: lib/screens/invoices/home/invoice_template_preview_screen.dart
+
+Batch 1 status:
+No recovered Batch 1 notes yet for this exact screen.
+

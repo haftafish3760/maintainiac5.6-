@@ -44,6 +44,48 @@ extension _MaintenanceItemIconBodyPainter on _MaintenanceItemIconPainter {
     );
   }
 
+  void _paintKeyFob(Canvas canvas, Size size) {
+    final stroke = _stroke(const Color(0xFF111719), size.width * .055);
+    final fob = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        size.width * .30,
+        size.height * .16,
+        size.width * .40,
+        size.height * .68,
+      ),
+      Radius.circular(size.width * .12),
+    );
+    canvas.drawRRect(fob, _paint(const Color(0xFF222A2D)));
+    canvas.drawRRect(fob, stroke);
+    canvas.drawCircle(
+      Offset(size.width * .50, size.height * .30),
+      size.width * .055,
+      _paint(const Color(0xFFE9EEF1)),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * .38,
+          size.height * .45,
+          size.width * .24,
+          size.height * .11,
+        ),
+        Radius.circular(size.width * .04),
+      ),
+      _paint(const Color(0xFFE9EEF1)),
+    );
+    canvas.drawLine(
+      Offset(size.width * .50, size.height * .67),
+      Offset(size.width * .50, size.height * .77),
+      _stroke(const Color(0xFFE9EEF1), size.width * .04),
+    );
+    canvas.drawLine(
+      Offset(size.width * .45, size.height * .72),
+      Offset(size.width * .55, size.height * .72),
+      _stroke(const Color(0xFFE9EEF1), size.width * .04),
+    );
+  }
+
   void _paintWrench(Canvas canvas, Size size) {
     final stroke = _stroke(const Color(0xFF111719), size.width * .075);
     canvas.drawLine(

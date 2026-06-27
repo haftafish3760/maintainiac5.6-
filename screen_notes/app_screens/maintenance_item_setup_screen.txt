@@ -1,0 +1,7 @@
+Screen: lib/screens/maintenance/maintenance_item_setup_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/e117ca5d-e0b2-4104-8f8f-2b550e4bc7be/pasted-text.txt
+
+"I'm gonna tell you what, you better change that oil. It's turning thicker than
+molasses. You know, different things like that."
+

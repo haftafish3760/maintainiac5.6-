@@ -117,7 +117,7 @@ class ReceiptStorageCheck {
     return 'There is not enough free storage to $action. '
         'Available: $availableLabel. Minimum needed: $minimumLabel '
         '($operationLabel for this action plus a $reserveLabel device safety reserve). '
-        'Please free up storage space first. Maintaniac will not delete anything from your phone without your approval.';
+        'Please free up storage space first. Maintainiac will not delete anything from your phone without your approval.';
   }
 
   String unknownMessage(ReceiptStoragePurpose purpose) {
@@ -126,12 +126,12 @@ class ReceiptStorageCheck {
       ReceiptStoragePurpose.savePhotos => 'saving receipt photos',
       ReceiptStoragePurpose.importPdf => 'saving this PDF receipt proof',
     };
-    return 'Maintaniac could not verify free storage before $action. '
+    return 'Maintainiac could not verify free storage before $action. '
         'Minimum recommended free space: $minimumLabel, including a $reserveLabel device safety reserve. '
         'If saving fails, free up storage and try again.';
   }
 
   String warningMessage() {
-    return 'Your device is getting low on storage. Maintaniac can continue, but saving receipt photos, PDFs, or exports may fail until more space is available.';
+    return 'Your device is getting low on storage. Maintainiac can continue, but saving receipt photos, PDFs, or exports may fail until more space is available.';
   }
 }

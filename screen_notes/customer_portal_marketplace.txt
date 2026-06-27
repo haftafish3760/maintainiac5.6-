@@ -1,0 +1,59 @@
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"Plus, there's another add-on that we are going to add, and that would be a
+small customer portal. Just to start off with, it'll be, you know, the basics."
+
+"Eventually what I want it to be is almost like a marketplace for people to be
+able to even locate contractors."
+
+"We need to make it useful for contractors first. Then we will make it useful
+for the customer after that to tie everything in."
+
+"There will be a customer-facing profile that the contractor can create so
+people can see that. They can upload pictures of jobs. You know, show their
+stuff off."
+
+"I do know that I want to be fair for everyone. So, like, the maximum amount you
+could actually pay per month, we need to have a max of what you can pay per
+month for the advertisement of your company on whatever marketplace we decide to
+create."
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"Customer is common sense. It's a customer profile. It would be a customer
+portal."
+
+"The customer is the same way. They would only be, they would basically be like
+read-only essentially, except for messaging the contractor back and forth."
+
+"If they wish to actually have their scheduling for customers to be able to see
+how far they are booked out."
+
+"There would need to actually be a contractor profile page that the customer
+could actually see."
+
+"The contractor would have to be able to create their profile. What is on there,
+all of their information."
+
+"The user could upload their company logo or just their company name, whatever
+they want to do."
+
+"We could have several different designs even for the contractors to use."
+
+Source: /Users/rbbie/.codex/attachments/0033c4ad-9f3e-426c-bd00-8fbc98c13b44/pasted-text.txt
+
+"Plus, it'll be for customer-facing stuff as well, which we haven't even talked
+about the customer portal yet and how that would be set up and how the user
+would be able to even talk to the customer if we even allow messages and things
+like that."
+
+"We would have to do a customer-facing profile, a profile setup page. All of
+that stuff would have to be on here, a profile preview page so the contractor
+can preview what their page looks like to the customer, who is able to add to
+that page, take away from that page, who can add videos, who can add photos or
+both, all that stuff."
+
+"I've considered a rating system, however, we've got to have things in place to
+make sure... That customer isn't just giving a bad rating because they don't
+like the shirt the guy wore that day or something stupid like that."
+

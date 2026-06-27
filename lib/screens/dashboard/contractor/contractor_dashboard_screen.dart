@@ -8,9 +8,9 @@ import '../../invoices/home/invoice_workspace_screen.dart';
 import '../../invoices/home/invoice_home_models.dart';
 import '../../work_supplies/jobs/work_supply_jobs_screen.dart';
 import '../../work_supplies/work_supply_screen.dart';
-import '../calendar.dart';
-import '../calendar_flow_models.dart';
+import '../../../shared/calendar/calendar.dart';
 import 'contractor_dashboard_models.dart';
+import 'contractor_dashboard_pulse.dart';
 import 'contractor_dashboard_sections.dart';
 
 class ContractorDashboardScreen extends StatefulWidget {
@@ -38,6 +38,12 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
           const SizedBox(height: 8),
           const GlobalOdometerHeader(),
           const SizedBox(height: 10),
+          const ContractorScaleStrip(),
+          const SizedBox(height: 10),
+          const ContractorOperationsPulse(),
+          const SizedBox(height: 10),
+          const ContractorAttentionPanel(),
+          const SizedBox(height: 10),
           if (_dayStarted) ...[
             const ContractorActiveShiftPanel(),
             const SizedBox(height: 10),
@@ -64,11 +70,9 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
           const SizedBox(height: 10),
           const ContractorJobsPanel(),
           const SizedBox(height: 10),
-          const ContractorAttentionPanel(),
-          const SizedBox(height: 10),
           const ContractorMetricsStrip(),
           const SizedBox(height: 76),
-          const DashboardMonthCalendar(source: CalendarFlowSource.contractor),
+          const ContractorCalendar(),
           const SizedBox(height: 18),
         ],
       ),

@@ -110,6 +110,10 @@ class WorkSupplyInventoryReceiptLine {
     this.invoiceProofMode = WorkSupplyInvoiceProofMode.hidden,
     this.invoiceProofCrop,
     this.note = '',
+    this.originalParsedDescription = '',
+    this.originalParsedInventoryItemId = '',
+    this.originalParsedInventoryPath = '',
+    this.reviewAction = 'manual',
   });
 
   final String id;
@@ -134,6 +138,10 @@ class WorkSupplyInventoryReceiptLine {
   final WorkSupplyInvoiceProofMode invoiceProofMode;
   final WorkSupplyLineProofCrop? invoiceProofCrop;
   final String note;
+  final String originalParsedDescription;
+  final String originalParsedInventoryItemId;
+  final String originalParsedInventoryPath;
+  final String reviewAction;
 
   double get totalUnits => quantity * unitsPerPackage;
   double get taxAmount => subtotal * taxRate;
@@ -150,6 +158,7 @@ class WorkSupplyInventoryReceiptLine {
   bool get needsReview =>
       reviewStatus == WorkSupplyLineReviewStatus.needsReview ||
       confidenceLevel != ReceiptConfidenceLevel.good;
+  bool get wasCorrectedFromParser => reviewAction == 'edited';
 
   WorkSupplyInventoryReceiptLine copyWith({
     WorkSupplyItem? item,
@@ -173,6 +182,10 @@ class WorkSupplyInventoryReceiptLine {
     WorkSupplyInvoiceProofMode? invoiceProofMode,
     WorkSupplyLineProofCrop? invoiceProofCrop,
     String? note,
+    String? originalParsedDescription,
+    String? originalParsedInventoryItemId,
+    String? originalParsedInventoryPath,
+    String? reviewAction,
   }) {
     return WorkSupplyInventoryReceiptLine(
       id: id,
@@ -197,6 +210,13 @@ class WorkSupplyInventoryReceiptLine {
       invoiceProofMode: invoiceProofMode ?? this.invoiceProofMode,
       invoiceProofCrop: invoiceProofCrop ?? this.invoiceProofCrop,
       note: note ?? this.note,
+      originalParsedDescription:
+          originalParsedDescription ?? this.originalParsedDescription,
+      originalParsedInventoryItemId:
+          originalParsedInventoryItemId ?? this.originalParsedInventoryItemId,
+      originalParsedInventoryPath:
+          originalParsedInventoryPath ?? this.originalParsedInventoryPath,
+      reviewAction: reviewAction ?? this.reviewAction,
     );
   }
 
@@ -225,6 +245,10 @@ class WorkSupplyInventoryReceiptLine {
       'invoiceProofMode': invoiceProofMode.name,
       'invoiceProofCrop': invoiceProofCrop?.toMap(),
       'note': note,
+      'originalParsedDescription': originalParsedDescription,
+      'originalParsedInventoryItemId': originalParsedInventoryItemId,
+      'originalParsedInventoryPath': originalParsedInventoryPath,
+      'reviewAction': reviewAction,
     };
   }
 
@@ -254,6 +278,14 @@ class WorkSupplyInventoryReceiptLine {
           ? WorkSupplyLineProofCrop.fromMap(value['invoiceProofCrop'] as Map)
           : null,
       note: _string(value['note']),
+      originalParsedDescription: _string(value['originalParsedDescription']),
+      originalParsedInventoryItemId: _string(
+        value['originalParsedInventoryItemId'],
+      ),
+      originalParsedInventoryPath: _string(
+        value['originalParsedInventoryPath'],
+      ),
+      reviewAction: _string(value['reviewAction'], fallback: 'manual'),
     );
   }
 }

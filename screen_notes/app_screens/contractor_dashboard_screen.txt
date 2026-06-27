@@ -1,0 +1,34 @@
+Screen: lib/screens/dashboard/contractor/contractor_dashboard_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"Now, we need to honestly probably get the dashboard for contractors built.
+That needs to actually be like a control or a command center of sorts."
+
+"Mainly starting with the contractor dashboard."
+
+"What if they have a delivery company? Rideshare and contractor mode is going
+to be slightly different. A delivery company or whatnot isn't really going to
+care so much about other things that a contractor would."
+
+"We've basically got several different types of user profiles with essentially
+kind of the same, mostly the same dashboard, just different elements on each
+one, I guess, or different widgets or whatever they're called."
+
+"I need for you to help me out building a true blue contractor dashboard. It's
+got to have a way for them to be able to start their day."
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"I really and truly want this dashboard to be a command center for both gig
+drivers and a contractor."
+
+"That contractor profile needs to grow with that contractor."
+
+"It would be a different dashboard for somebody that has a fleet versus
+somebody that only has a couple of vehicles."
+
+"Honestly, we need to have it so my users can customize the dashboard and the
+layout themselves. And obviously, we would have a way for them to be able to
+reset it back to default. That's a must."
+

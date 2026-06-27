@@ -1,0 +1,82 @@
+Batch 3 notes for employee permissions model
+
+Related screens:
+- lib/screens/profiles/employee_permissions_screen.dart
+- lib/screens/profiles/employee_permissions_editor_route.dart
+
+Source: /Users/rbbie/.codex/attachments/8ef5a5a7-c599-4001-91c7-b7ccad7b6490/pasted-text.txt
+
+"If that stuff is still there, no access, view only, standard, or full, then
+you gotta get rid of that stuff."
+
+"For each individual item, I'm thinking the user, the contractor, or the owner
+of the app will have to choose for each and every one of those pieces whether
+that employee can just view, edit, modify, can they view, can they read, can
+they write to it."
+
+"Every single last one of those permissions is gonna likely need that."
+
+Source: /Users/rbbie/.codex/attachments/b2bb2dd3-93ab-4799-b871-e76ae6d8dc1d/pasted-text.txt
+
+"For each employee at the top of the screen, there needs to say active and
+then there needs to be a button that says deactivate or, you know, deactivate,
+and then delete."
+
+"The contractor needs to delete that employee or edit that employee, their
+information because people's phone numbers change all the time."
+
+"People's email sometimes changes from time to time."
+
+"Another thing that we would need to have set up on Firestore or some kind of
+functions or whatever would be the ability for my users to even be able to send
+the invite to begin with."
+
+"When they send that invite, it needs to be tied directly to that my user's
+account."
+
+"Approved workflow, some records may need owner approval. Hours are submitted,
+expenses are submitted, materials used."
+
+"A simple on/off toggle for each permission isn't enough."
+
+"Can view invoices and Can edit invoices are two completely different
+permissions."
+
+"If you only have one toggle: Invoices: ON What does that mean? Can they:
+View? Create? Edit? Delete? Export? Approve?"
+
+"What most enterprise systems do is break permissions into actions."
+
+"Expenses: View Create Edit Delete Approve Export"
+
+"Invoices: View Create Edit Delete Send Approve Export"
+
+"Employees: View Create Edit Delete Invite Manage Permissions"
+
+"There is an Advanced button."
+
+"If the owner clicks Advanced: Now they see: View Create Edit Own Edit All
+Delete Own Delete All Approve Export"
+
+"Now they can get as granular as they want."
+
+"The employee permission screen is going to become one of the most important
+screens in the entire contractor side of Maintainiac."
+
+"Because jobs, invoices, expenses, inventory, vehicles, reports, and employees
+are all going to flow through that system eventually."
+
+"If the permission system sucks, the entire contractor side sucks."
+
+"If the permission system is good, everything downstream becomes easier."
+
+"That's one of those foundation pieces I'd spend a lot of time getting right
+before worrying about fancy UI."
+
+Source: visible user message, 2026-06-20 Batch 3
+
+"Why would you have four containers labeled no access, view only, standard, and
+full? What is that about?"
+
+"That should be a toggle if you're gonna have it there."
+

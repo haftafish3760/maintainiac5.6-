@@ -6,6 +6,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
     required this.materialMode,
     required this.maintenanceRepairMode,
     required this.fuelMode,
+    required this.detailedMode,
     required this.onAddBusiness,
     required this.onAddPersonal,
     required this.onAddShared,
@@ -17,6 +18,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
   final bool materialMode;
   final bool maintenanceRepairMode;
   final bool fuelMode;
+  final bool detailedMode;
   final VoidCallback onAddBusiness;
   final VoidCallback onAddPersonal;
   final VoidCallback onAddShared;
@@ -28,11 +30,13 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
     final label = nextLineNumber == 1
         ? 'Add Receipt Items'
         : 'Add Another Receipt Item';
-    final helper = fuelMode
+    final helper = !detailedMode && !fuelMode && !maintenanceRepairMode
+        ? 'Simple review: enter each amount and choose Business, Personal, or Split.'
+        : fuelMode
         ? 'Enter the fuel line from this receipt.'
         : maintenanceRepairMode
         ? 'Enter the service or repair line from this receipt.'
-        : 'Add the items listed on this receipt, one line at a time.';
+        : 'Full detail review: add names, quantities, categories, and amounts.';
     return _ReceiptActionButton(
       label: label,
       helper: helper,
@@ -51,7 +55,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
       onAddMaintenanceRepair();
       return;
     }
-    if (materialMode) {
+    if (materialMode && detailedMode) {
       onAddMaterial();
       return;
     }
@@ -69,7 +73,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'How should this receipt item count?',
+                    'How should this receipt line count?',
                     style: TextStyle(
                       color: Color(0xFFE8ECEE),
                       fontSize: 18,
@@ -81,7 +85,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
                 const SizedBox(height: 8),
                 _ReceiptActionButton(
                   label: 'Business Item',
-                  helper: 'For an item bought for work.',
+                  helper: 'For a receipt line bought for work.',
                   icon: Icons.business_center_rounded,
                   color: const Color(0xFF2E78B7),
                   onTap: () => Navigator.of(context).pop(onAddBusiness),
@@ -89,7 +93,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
                 const SizedBox(height: 8),
                 _ReceiptActionButton(
                   label: 'Personal Item',
-                  helper: 'For a personal item on the same receipt.',
+                  helper: 'For a personal receipt line.',
                   icon: Icons.person_rounded,
                   color: const Color(0xFF59636A),
                   onTap: () => Navigator.of(context).pop(onAddPersonal),
@@ -97,7 +101,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
                 const SizedBox(height: 8),
                 _ReceiptActionButton(
                   label: 'Shared Item',
-                  helper: 'For one item split between business and personal.',
+                  helper: 'For one line split between business and personal.',
                   icon: Icons.call_split_rounded,
                   color: const Color(0xFF3B7C73),
                   onTap: () => Navigator.of(context).pop(onAddShared),

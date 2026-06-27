@@ -4,12 +4,18 @@ class _InventoryReceiptPreview extends StatelessWidget {
   const _InventoryReceiptPreview({
     required this.lines,
     required this.currentLine,
+    required this.parsedReview,
+    required this.onConfirmAll,
+    required this.onConfirmLine,
     required this.onEdit,
     required this.onRemove,
   });
 
   final List<ReceiptLineDraft> lines;
   final ReceiptLineDraft? currentLine;
+  final _ParsedMaterialsReceiptReviewSummary? parsedReview;
+  final VoidCallback onConfirmAll;
+  final ValueChanged<int> onConfirmLine;
   final ValueChanged<int> onEdit;
   final ValueChanged<int> onRemove;
 
@@ -26,6 +32,19 @@ class _InventoryReceiptPreview extends StatelessWidget {
     );
     final total = subtotal + tax;
     final inferredTaxRate = subtotal <= 0 ? 0.0 : (tax / subtotal) * 100;
+    final inventoryCount = previewLines
+        .where((line) => line.isInventory)
+        .length;
+    final businessOnlyCount = previewLines
+        .where((line) => line.isExpense && line.isBusinessUse)
+        .length;
+    final personalCount = previewLines
+        .where((line) => line.isExpense && line.isPersonalUse)
+        .length;
+    final splitCount = previewLines.where((line) => line.isSplitUse).length;
+    final confirmNeededCount = previewLines
+        .where((line) => line.requiresInventoryConfirmation)
+        .length;
     return _BorderPanel(
       label: 'Receipt Preview',
       surfaceColor: const Color(0xFF1F241D),
@@ -44,7 +63,7 @@ class _InventoryReceiptPreview extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           const Text(
-            'This preview keeps the receipt readable while you add items. Save the receipt after every line is listed.',
+            'Review each receipt line as inventory, business-only, personal, or split before saving.',
             style: TextStyle(
               color: Color(0xFFC7D0D4),
               fontSize: 11.5,
@@ -56,6 +75,21 @@ class _InventoryReceiptPreview extends StatelessWidget {
           if (previewLines.isEmpty)
             const _EmptyReceiptPreview()
           else ...[
+            if (parsedReview != null) ...[
+              _ParsedReceiptReviewBanner(
+                summary: parsedReview!,
+                onConfirmAll: onConfirmAll,
+              ),
+              const SizedBox(height: 10),
+            ],
+            _ReceiptPreviewBreakdown(
+              inventoryCount: inventoryCount,
+              businessOnlyCount: businessOnlyCount,
+              personalCount: personalCount,
+              splitCount: splitCount,
+              confirmNeededCount: confirmNeededCount,
+            ),
+            const SizedBox(height: 10),
             for (var index = 0; index < previewLines.length; index++)
               _ReceiptPreviewLine(
                 index: index,
@@ -66,6 +100,7 @@ class _InventoryReceiptPreview extends StatelessWidget {
                     !lines.contains(previewLines[index]),
                 onEdit: onEdit,
                 onRemove: onRemove,
+                onConfirm: onConfirmLine,
               ),
             const Divider(color: Color(0xFF59666D), height: 18),
             _ReceiptPreviewTotalRow(label: 'Subtotal', value: _money(subtotal)),
@@ -77,6 +112,90 @@ class _InventoryReceiptPreview extends StatelessWidget {
               label: 'Total',
               value: _money(total),
               emphasized: true,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ParsedReceiptReviewBanner extends StatelessWidget {
+  const _ParsedReceiptReviewBanner({
+    required this.summary,
+    required this.onConfirmAll,
+  });
+
+  final _ParsedMaterialsReceiptReviewSummary summary;
+  final VoidCallback onConfirmAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = summary.needsReview
+        ? const Color(0xFFFFD166)
+        : const Color(0xFF7EE0A1);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+      decoration: BoxDecoration(
+        color: const Color(0xFF171C14),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: color),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            summary.needsReview
+                ? Icons.manage_search_rounded
+                : Icons.fact_check_outlined,
+            color: color,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'App-assisted receipt review',
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  [
+                    '${summary.qualityLabel} read',
+                    summary.confidenceLabel,
+                    if ((summary.warning ?? '').trim().isNotEmpty)
+                      summary.warning!.trim(),
+                  ].join(' - '),
+                  style: const TextStyle(
+                    color: Color(0xFFD6DEE2),
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (summary.needsReview) ...[
+            const SizedBox(width: 8),
+            IconButton(
+              tooltip: 'Confirm all parsed lines',
+              onPressed: onConfirmAll,
+              icon: const Icon(Icons.done_all_rounded),
+              color: const Color(0xFF07100A),
+              style: IconButton.styleFrom(
+                backgroundColor: color,
+                minimumSize: const Size(34, 34),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
             ),
           ],
         ],
@@ -116,6 +235,7 @@ class _ReceiptPreviewLine extends StatelessWidget {
     required this.pending,
     required this.onEdit,
     required this.onRemove,
+    required this.onConfirm,
   });
 
   final int index;
@@ -123,6 +243,7 @@ class _ReceiptPreviewLine extends StatelessWidget {
   final bool pending;
   final ValueChanged<int> onEdit;
   final ValueChanged<int> onRemove;
+  final ValueChanged<int> onConfirm;
 
   @override
   Widget build(BuildContext context) {
@@ -130,10 +251,18 @@ class _ReceiptPreviewLine extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.fromLTRB(10, 9, 8, 9),
       decoration: BoxDecoration(
-        color: pending ? const Color(0xFF173143) : const Color(0xFF141811),
+        color: pending
+            ? const Color(0xFF173143)
+            : line.requiresInventoryConfirmation
+            ? const Color(0xFF201B10)
+            : const Color(0xFF141811),
         borderRadius: BorderRadius.circular(7),
         border: Border.all(
-          color: pending ? const Color(0xFF8FD3FF) : const Color(0xFF786A35),
+          color: pending
+              ? const Color(0xFF8FD3FF)
+              : line.requiresInventoryConfirmation
+              ? const Color(0xFFFFD166)
+              : const Color(0xFF786A35),
         ),
       ),
       child: Column(
@@ -156,7 +285,7 @@ class _ReceiptPreviewLine extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      line.description,
+                      line.displayDescription,
                       style: const TextStyle(
                         color: Color(0xFFE8ECEE),
                         fontSize: 13,
@@ -165,7 +294,14 @@ class _ReceiptPreviewLine extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 5),
-                    _ReceiptUseBadge(line: line),
+                    Wrap(
+                      spacing: 5,
+                      runSpacing: 5,
+                      children: [
+                        _ReceiptLaneBadge(line: line),
+                        _ReceiptUseBadge(line: line),
+                      ],
+                    ),
                     const SizedBox(height: 3),
                     Text(
                       '${_formatNumber(line.quantity)} ${line.purchaseType} x ${_formatNumber(line.unitsPerPackage)} ${line.unit} = ${_formatNumber(line.totalUnits)} ${line.unit}',
@@ -194,6 +330,10 @@ class _ReceiptPreviewLine extends StatelessWidget {
                         ),
                       ),
                     ],
+                    if (line.hasAssistedReview) ...[
+                      const SizedBox(height: 6),
+                      _ReceiptLineReviewDetail(line: line),
+                    ],
                   ],
                 ),
               ),
@@ -213,6 +353,22 @@ class _ReceiptPreviewLine extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (line.canConfirmAssistedReview)
+                      IconButton(
+                        tooltip: 'Confirm parsed line',
+                        onPressed: () => onConfirm(index),
+                        icon: const Icon(
+                          Icons.check_circle_outline_rounded,
+                          color: Color(0xFF7EE0A1),
+                          size: 18,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 30,
+                          minHeight: 30,
+                        ),
+                      ),
                     IconButton(
                       tooltip: 'Edit line',
                       onPressed: () => onEdit(index),
@@ -271,13 +427,240 @@ class _ReceiptPreviewLine extends StatelessWidget {
               Expanded(
                 child: _MiniReceiptStat(
                   label: 'Use',
-                  value: _businessUsePreviewLabel(line),
+                  value: line.businessUseLabel,
                 ),
               ),
             ],
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ReceiptLineReviewDetail extends StatelessWidget {
+  const _ReceiptLineReviewDetail({required this.line});
+
+  final ReceiptLineDraft line;
+
+  @override
+  Widget build(BuildContext context) {
+    final reviewColor = switch (line.assistedReviewLabel) {
+      'Good' => const Color(0xFF7EE0A1),
+      'Poor' => const Color(0xFFFF8A8A),
+      _ => const Color(0xFFFFD166),
+    };
+    final statusColor = line.requiresInventoryConfirmation
+        ? const Color(0xFFFFD166)
+        : switch (line.reviewState) {
+            ReceiptLineReviewState.corrected => const Color(0xFFFFD166),
+            ReceiptLineReviewState.confirmed => const Color(0xFF7EE0A1),
+            ReceiptLineReviewState.needsReview => const Color(0xFFFF8A8A),
+            _ => const Color(0xFFA9DFFF),
+          };
+    final terms = line.catalogMatchedTerms.take(4).toList(growable: false);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(8, 7, 8, 7),
+      decoration: BoxDecoration(
+        color: const Color(0xFF10161A),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF46545C)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 5,
+            runSpacing: 5,
+            children: [
+              _ReceiptPillBadge(
+                label: 'Review: ${line.assistedReviewLabel}',
+                color: reviewColor,
+              ),
+              _ReceiptPillBadge(
+                label: line.reviewStatusLabel,
+                color: statusColor,
+              ),
+              if (line.catalogMatchLabel.isNotEmpty)
+                _ReceiptPillBadge(
+                  label: line.catalogMatchLabel,
+                  color: const Color(0xFFA9DFFF),
+                ),
+              if (line.hasCorrectionAudit)
+                _ReceiptPillBadge(
+                  label: line.reviewActionLabel,
+                  color: line.wasChangedFromParsedGuess
+                      ? const Color(0xFFFFD166)
+                      : const Color(0xFF7EE0A1),
+                ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Text(
+            line.receiptReviewSummary,
+            style: const TextStyle(
+              color: Color(0xFFD6DEE2),
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              height: 1.25,
+            ),
+          ),
+          if (line.assistedReviewDetail.trim().isNotEmpty &&
+              line.assistedReviewDetail.trim() !=
+                  line.receiptReviewSummary.trim()) ...[
+            const SizedBox(height: 4),
+            Text(
+              line.assistedReviewDetail,
+              style: const TextStyle(
+                color: Color(0xFFB8C4C9),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+              ),
+            ),
+          ],
+          if (terms.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Matched: ${terms.join(', ')}',
+              style: const TextStyle(
+                color: Color(0xFFB8C4C9),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+              ),
+            ),
+          ],
+          if (line.rawReceiptText.trim().isNotEmpty &&
+              line.rawReceiptText.trim() != line.displayDescription.trim()) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Receipt text: ${line.rawReceiptText.trim()}',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFF9EA9AE),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+              ),
+            ),
+          ],
+          if (line.wasChangedFromParsedGuess) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Original guess: ${line.originalParsedDescription.trim()}',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFFFFD166),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w800,
+                height: 1.25,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ReceiptPreviewBreakdown extends StatelessWidget {
+  const _ReceiptPreviewBreakdown({
+    required this.inventoryCount,
+    required this.businessOnlyCount,
+    required this.personalCount,
+    required this.splitCount,
+    required this.confirmNeededCount,
+  });
+
+  final int inventoryCount;
+  final int businessOnlyCount;
+  final int personalCount;
+  final int splitCount;
+  final int confirmNeededCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        _ReceiptCountPill(
+          label: 'Inventory',
+          value: inventoryCount,
+          color: const Color(0xFF63B3E6),
+        ),
+        _ReceiptCountPill(
+          label: 'Business only',
+          value: businessOnlyCount,
+          color: const Color(0xFFFFC46B),
+        ),
+        _ReceiptCountPill(
+          label: 'Personal',
+          value: personalCount,
+          color: const Color(0xFFE0A7FF),
+        ),
+        _ReceiptCountPill(
+          label: 'Split',
+          value: splitCount,
+          color: const Color(0xFFFFD166),
+        ),
+        if (confirmNeededCount > 0)
+          _ReceiptCountPill(
+            label: 'Confirm',
+            value: confirmNeededCount,
+            color: const Color(0xFFFF8A8A),
+          ),
+      ],
+    );
+  }
+}
+
+class _ReceiptCountPill extends StatelessWidget {
+  const _ReceiptCountPill({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final int value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFF151811),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color),
+      ),
+      child: Text(
+        '$label: $value',
+        style: const TextStyle(
+          color: Color(0xFFE8ECEE),
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiptLaneBadge extends StatelessWidget {
+  const _ReceiptLaneBadge({required this.line});
+
+  final ReceiptLineDraft line;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ReceiptPillBadge(
+      label: line.receiptLaneLabel,
+      color: _receiptLaneColor(line),
     );
   }
 }
@@ -289,39 +672,50 @@ class _ReceiptUseBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = _businessUsePreviewLabel(line);
-    final color = switch (line.businessUse) {
-      'personal' => const Color(0xFFE0A7FF),
-      'split' => const Color(0xFFFFD166),
-      _ => const Color(0xFF63B3E6),
-    };
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFF07100A),
-            fontSize: 10.5,
-            fontWeight: FontWeight.w900,
-          ),
+    return _ReceiptPillBadge(
+      label: line.businessUseLabel,
+      color: _businessUseColor(line),
+    );
+  }
+}
+
+class _ReceiptPillBadge extends StatelessWidget {
+  const _ReceiptPillBadge({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Color(0xFF07100A),
+          fontSize: 10.5,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );
   }
 }
 
-String _businessUsePreviewLabel(ReceiptLineDraft line) {
-  return switch (line.businessUse) {
-    'personal' => 'Personal',
-    'split' => 'Split ${_formatPercent(line.businessPercent * 100)}',
-    _ => 'Business',
-  };
+Color _receiptLaneColor(ReceiptLineDraft line) {
+  if (line.isInventory) return const Color(0xFF63B3E6);
+  if (line.isPersonalUse) return const Color(0xFFE0A7FF);
+  if (line.isSplitUse) return const Color(0xFFFFD166);
+  return const Color(0xFFFFC46B);
+}
+
+Color _businessUseColor(ReceiptLineDraft line) {
+  if (line.isPersonalUse) return const Color(0xFFE0A7FF);
+  if (line.isSplitUse) return const Color(0xFFFFD166);
+  return const Color(0xFF63B3E6);
 }
 
 class _MiniReceiptStat extends StatelessWidget {

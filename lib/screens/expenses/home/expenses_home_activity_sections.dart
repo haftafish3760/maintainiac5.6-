@@ -1,11 +1,13 @@
 part of 'expenses_home_screen.dart';
 
 class _RecentLedgerPanel extends StatelessWidget {
-  const _RecentLedgerPanel();
+  const _RecentLedgerPanel({required this.day});
+
+  final DateTime day;
 
   @override
   Widget build(BuildContext context) {
-    final receipts = ExpenseLedgerScope.of(context).receipts.take(5).toList();
+    final receipts = ExpenseLedgerScope.of(context).receiptsForDay(day);
     return _SolidSection(
       backgroundColor: _paper,
       borderColor: const Color(0xFF3E4A50),
@@ -15,11 +17,11 @@ class _RecentLedgerPanel extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: _SectionHeader(
                   eyebrow: 'LEDGER',
-                  title: 'Recent entries',
-                  detail: 'Newest expenses for the active vehicle.',
+                  title: 'Daily entries',
+                  detail: 'Saved expenses for ${_longDate(day)}.',
                 ),
               ),
               _SmallTextButton(

@@ -1,0 +1,11 @@
+Screen/helper: lib/screens/work_supplies/entry/add_items_screen_helpers.dart
+
+Batch 1 status:
+No recovered Batch 1 notes yet for this exact helper file.
+
+Related module notes:
+See screen_notes/inventory_materials.txt and
+screen_notes/app_screens/work_supply_add_items_screen.txt for recovered Batch 1
+requirements about inventory/materials intake, receipts, parsing, and trade
+packs.
+

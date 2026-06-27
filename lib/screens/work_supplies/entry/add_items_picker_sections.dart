@@ -17,6 +17,7 @@ class _ItemPicker extends StatelessWidget {
     required this.onItemType,
     required this.onBack,
     required this.onItemSelected,
+    required this.onCreateInventoryItem,
   });
 
   final TextEditingController search;
@@ -34,6 +35,7 @@ class _ItemPicker extends StatelessWidget {
   final ValueChanged<WorkSupplyItemType> onItemType;
   final VoidCallback onBack;
   final ValueChanged<WorkSupplyItem> onItemSelected;
+  final VoidCallback onCreateInventoryItem;
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +77,24 @@ class _ItemPicker extends StatelessWidget {
             onItemSelected: onItemSelected,
           ),
         ],
+        const SizedBox(height: 10),
+        OutlinedButton.icon(
+          onPressed: onCreateInventoryItem,
+          icon: const Icon(Icons.add_box_outlined),
+          label: const Text('Item not listed? Create new inventory item'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFFE8ECEE),
+            side: const BorderSide(color: Color(0xFF8FD3FF), width: 1.2),
+            minimumSize: const Size.fromHeight(42),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(7),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
       ],
     );
   }

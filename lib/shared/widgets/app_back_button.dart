@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const appBackButtonLeadingWidth = 84.0;
+const appBackButtonLeadingWidth = 64.0;
 
 class AppBackButton extends StatelessWidget {
   const AppBackButton({super.key, this.onPressed});
@@ -16,20 +16,20 @@ class AppBackButton extends StatelessWidget {
         onTap: onPressed ?? () => Navigator.of(context).maybePop(),
         borderRadius: BorderRadius.circular(4),
         child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+          padding: EdgeInsets.symmetric(horizontal: 7, vertical: 5),
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.arrow_back_rounded, size: 18, color: Colors.white),
-                SizedBox(width: 4),
+                Icon(Icons.arrow_back_rounded, size: 16, color: Colors.white),
+                SizedBox(width: 3),
                 Text(
                   'Back',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
@@ -63,8 +63,8 @@ class AppScreenHeader extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 52),
-        padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+        constraints: const BoxConstraints(minHeight: 42),
+        padding: const EdgeInsets.fromLTRB(8, 5, 8, 5),
         decoration: const BoxDecoration(color: Color(0xFF101416)),
         child: Row(
           children: [

@@ -1,0 +1,17 @@
+Screen: lib/screens/expenses/entry/expense_receipt_entry_screen.dart
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"Don't get rid of any placeholder stuff yet, because I think I may actually
+like some of that placeholder text, like on the dashboard that we have right
+now. When I tap fuel, it actually pulls up a screen all about my fuel stuff. I
+love that part of it."
+
+Source: /Users/rbbie/.codex/attachments/0033c4ad-9f3e-426c-bd00-8fbc98c13b44/pasted-text.txt
+
+"I've also considered integrating Google Vision for receipt stuff, but as long
+as we have a good parser, and I can tell you now that we have or are supposed
+to have a really good camera system in here, and if it isn't, we will harden
+that as well to make sure that is state-of-the-art camera system to help the
+user actually get good pictures."
+

@@ -4,6 +4,7 @@ import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../../shared/receipts/receipt_line_models.dart';
+import '../expenses/data/expense_receipt_item_memory_store.dart';
 import 'data/work_supply_custom_catalog_store.dart';
 import 'data/work_supply_inventory_receipt_models.dart';
 import 'data/work_supply_inventory_receipt_store.dart';
@@ -179,11 +180,15 @@ class _WorkSupplyScreenState extends State<WorkSupplyScreen> {
       final item = savedRecord?.item ?? _expenseReceiptItem(draft);
       lines.add(
         WorkSupplyInventoryReceiptLine(
-          id: '${result.receiptId}-L${index + 1}',
+          id: draft.receiptLineId.trim().isEmpty
+              ? '${result.receiptId}-L${index + 1}'
+              : draft.receiptLineId.trim(),
           item: item,
           displayName: draft.description,
           kind: _receiptLineKindForDraft(draft),
-          rawReceiptText: draft.description,
+          rawReceiptText: draft.rawReceiptText.trim().isEmpty
+              ? draft.description
+              : draft.rawReceiptText,
           expenseCategory: draft.expenseCategory,
           quantity: draft.quantity,
           unitsPerPackage: draft.unitsPerPackage,
@@ -196,8 +201,17 @@ class _WorkSupplyScreenState extends State<WorkSupplyScreen> {
           inventoryRecordId: savedRecord?.id ?? '',
           businessUse: draft.businessUse,
           businessPercent: draft.businessPercent,
+          confidence:
+              draft.parserConfidence ?? draft.catalogMatchConfidence ?? 1,
+          reviewStatus: draft.parserNeedsReview
+              ? WorkSupplyLineReviewStatus.needsReview
+              : WorkSupplyLineReviewStatus.confirmed,
           invoiceProofMode: WorkSupplyInvoiceProofMode.hidden,
           note: draft.note,
+          originalParsedDescription: draft.originalParsedDescription,
+          originalParsedInventoryItemId: draft.originalParsedInventoryItemId,
+          originalParsedInventoryPath: draft.originalParsedInventoryPath,
+          reviewAction: draft.reviewAction,
         ),
       );
     }
@@ -214,12 +228,39 @@ class _WorkSupplyScreenState extends State<WorkSupplyScreen> {
         lines: lines,
       ),
     );
+    await _rememberMaterialsReceiptCorrections(result);
+  }
+
+  Future<void> _rememberMaterialsReceiptCorrections(
+    WorkSupplyAddItemsResult result,
+  ) async {
+    if (result.merchantName.trim().isEmpty || result.lines.isEmpty) return;
+    try {
+      final memory = await ExpenseReceiptItemMemoryStore.create();
+      await memory.rememberMaterialsReceiptLines(
+        merchantName: result.merchantName,
+        lines: result.lines.where(
+          (line) =>
+              line.hasAssistedReview &&
+              (line.reviewState == ReceiptLineReviewState.confirmed ||
+                  line.reviewState == ReceiptLineReviewState.corrected),
+        ),
+      );
+    } catch (_) {
+      return;
+    }
   }
 
   WorkSupplyInventoryRecord? _savedRecordForDraft(
     ReceiptLineDraft draft,
     List<WorkSupplyInventoryRecord> savedRecords,
   ) {
+    final lineId = draft.receiptLineId.trim();
+    if (lineId.isNotEmpty) {
+      for (final record in savedRecords) {
+        if (record.sourceReceiptLineId == lineId) return record;
+      }
+    }
     for (final record in savedRecords) {
       if (record.item.id == draft.inventoryItemId) return record;
     }

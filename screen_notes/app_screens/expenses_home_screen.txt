@@ -1,0 +1,16 @@
+Screen: lib/screens/expenses/home/expenses_home_screen.dart
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"When I tap fuel, it actually pulls up a screen all about my fuel stuff. I love
+that part of it."
+
+Source: current visible user message, 2026-06-20 Batch 1
+
+"If you're able to view other people's expenses, then which role are you able
+to view?"
+
+"Can they edit their expense after they have entered it. Then it's still up to
+the employer whose expense can they see, can they edit and read other people's
+expenses? If so, which role can they edit and which role can they not edit?"
+

@@ -1,25 +1,29 @@
 part of 'work_supply_add_items_screen.dart';
 
 class _AddHeader extends StatelessWidget {
-  const _AddHeader();
+  const _AddHeader({required this.receiptInfoComplete});
+
+  final bool receiptInfoComplete;
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Add Items',
-          style: TextStyle(
+          receiptInfoComplete ? 'Add Receipt Items' : 'Receipt Information',
+          style: const TextStyle(
             color: Color(0xFFE8ECEE),
             fontSize: 24,
             fontWeight: FontWeight.w900,
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
-          'Add receipt proof and store details if you have them, then add each numbered line as inventory, expense, or personal.',
-          style: TextStyle(
+          receiptInfoComplete
+              ? 'Add each receipt line as inventory or as an additional business, personal, or mixed-use item.'
+              : 'Start with the receipt date, proof, and store. Then continue to review or add the receipt items.',
+          style: const TextStyle(
             color: Color(0xFFC7D0D4),
             fontSize: 13,
             fontWeight: FontWeight.w700,
@@ -50,6 +54,7 @@ class _ReceiptSection extends StatelessWidget {
     required this.onSelectTime,
     required this.onClearTime,
     required this.onReceiptChanged,
+    required this.onImportedText,
     required this.onStoreChanged,
   });
 
@@ -70,6 +75,7 @@ class _ReceiptSection extends StatelessWidget {
   final VoidCallback onSelectTime;
   final VoidCallback onClearTime;
   final ValueChanged<bool> onReceiptChanged;
+  final ValueChanged<String> onImportedText;
   final VoidCallback onStoreChanged;
 
   @override
@@ -90,6 +96,7 @@ class _ReceiptSection extends StatelessWidget {
           showCamera: showCamera,
           area: ReceiptCaptureArea.materialsInventory,
           onChanged: onReceiptChanged,
+          onImportedText: onImportedText,
         ),
         const SizedBox(height: 12),
         SharedReceiptStorePanel(

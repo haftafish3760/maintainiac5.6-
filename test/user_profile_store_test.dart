@@ -56,6 +56,63 @@ void main() {
     expect(reloaded.activeProfile.primaryVehicleId, 'truck-1');
   });
 
+  test(
+    'corrupt stored profile value falls back and repairs the Hive record',
+    () async {
+      final box = await Hive.openBox<dynamic>(UserProfileController.boxName);
+      await box.put('activeProfile', 'not a profile map');
+      await box.close();
+
+      final controller = await UserProfileController.create();
+
+      expect(controller.recoveredFromStorageError, isTrue);
+      expect(controller.activeProfile.type, UserProfileType.contractor);
+      expect(controller.activeProfile.role, UserRole.owner);
+      final repairedBox = Hive.box<dynamic>(UserProfileController.boxName);
+      expect(repairedBox.get('activeProfile'), isA<Map>());
+    },
+  );
+
+  test(
+    'malformed stored profile map is sanitized instead of trusted',
+    () async {
+      final box = await Hive.openBox<dynamic>(UserProfileController.boxName);
+      await box.put('activeProfile', {
+        'id': '   ',
+        'name': '',
+        'type': 'driver',
+        'role': 'helper',
+        'permissions': ['recordMileage', 400, 'notARealPermission'],
+        'businessName': '  My Route  ',
+        'cloudBackupEnabled': 'yes',
+        'customerFacingEnabled': true,
+        'activeVehicleIds': [' truck-1 ', '', 'truck-1', 7, 'van-2'],
+      });
+      await box.close();
+
+      final controller = await UserProfileController.create();
+      final profile = controller.activeProfile;
+
+      expect(controller.recoveredFromStorageError, isTrue);
+      expect(profile.id, 'local-owner');
+      expect(profile.name, 'Owner');
+      expect(profile.type, UserProfileType.driver);
+      expect(profile.role, UserRole.helper);
+      expect(profile.businessName, 'My Route');
+      expect(profile.cloudBackupEnabled, isFalse);
+      expect(profile.customerFacingEnabled, isFalse);
+      expect(profile.activeVehicleIds, ['truck-1', 'van-2']);
+      expect(profile.can(UserPermission.recordMileage), isTrue);
+
+      final repaired =
+          Hive.box<dynamic>(UserProfileController.boxName).get('activeProfile')
+              as Map<dynamic, dynamic>;
+      expect(repaired['id'], 'local-owner');
+      expect(repaired['customerFacingEnabled'], isFalse);
+      expect(repaired['activeVehicleIds'], ['truck-1', 'van-2']);
+    },
+  );
+
   test('helper role does not inherit owner-only financial access', () {
     final helper = UserProfileRecord(
       id: 'helper',

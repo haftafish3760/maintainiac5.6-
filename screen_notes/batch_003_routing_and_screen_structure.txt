@@ -1,0 +1,75 @@
+Batch 3 notes for routing and screen structure
+
+Related screens:
+- lib/screens/profiles/employee_permissions_screen.dart
+- lib/screens/profiles/employee_profile_routes.dart
+- lib/screens/dashboard/calendar_day_flow.dart
+
+Source: visible user message, 2026-06-20 Batch 3
+
+"Absolutely do not do it as a screen state. It needs to be a new screen."
+
+"For something this big, where you have employee information, everything that
+employee has done, you got a calendar at the bottom of the screen for that
+page."
+
+"Honestly, the first screen would be more like an info screen, so to speak."
+
+"If the user clicks on permissions, it would actually drop down for
+permissions."
+
+"Now, the calendar day, on the other hand, is where all the magic happens."
+
+"That's where it needs to shine because that is where you see absolutely every
+entry that employee has made."
+
+"That is where you can edit and add information."
+
+"This is why permissions are so important because you will be able to add
+stuff, add hours for that employee, take away hours for that employee."
+
+"Right now, we are just doing the contractor side, then we will have to do the
+employee side of things, which will basically be a mirror of what the
+contractor sees with some subtle differences."
+
+"Don't be changing the state of the screens to a profile."
+
+"It needs to be a profile screen."
+
+"You changing one screen to like three or four different states, I don't think
+that's a good idea. It's a good way to have a bug."
+
+"The calendar screen is a shared widget anyways across the entire app."
+
+"Every single page has a calendar screen. It is a shared component."
+
+"When you tap on a calendar screen, whether you're an employee or you are the
+owner of the company, that is where you see what you have done or where you see
+what the employee has done, which vehicle they drove for that day."
+
+"The active vehicle row will be up top. But it is a read-only for this page,
+because it's the employee profile page."
+
+"The employee might have to change multiple vehicles during the day."
+
+"If they change the vehicles, it'll show the first vehicle they started out
+with, and the second, below that's the third, below that's the fourth, so on
+and so forth."
+
+"Everything they've done from top to bottom is in chronological order."
+
+"If there is no timestamp for it, then it's first come, first serve. Whatever
+way I entered it into it, whatever the last one I entered, that would be the
+top one."
+
+Source: visible user message, 2026-06-20 Batch 3
+
+"Should there be employee permissions and then an employee profile separate?"
+
+"When you tap the hamburger menu, I'm thinking, one screen for all is what I'm
+thinking."
+
+"It makes it a lot easier. You can see the employee, everything about them and
+their permissions all in one setting instead of having to go back to the
+hamburger menu to get into the info page."
+

@@ -1,0 +1,14 @@
+Screen: lib/screens/work_supplies/jobs/work_supply_jobs_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"Then we need a job page as well. That job page is to keep track of everything
+that's being used, all of the hours, who's been working on it, all of the
+above."
+
+"There is a job page that needs to be linked up to the invoice page itself so
+that I can add materials, take materials away, whatever."
+
+"So you got the estimate, the customer signs it, says, yes, go ahead, do that
+job."
+

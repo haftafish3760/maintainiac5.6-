@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 
+import 'receipt_assistance_policy.dart';
 import 'receipt_pdf_inspector.dart';
 import 'receipt_pdf_limits.dart';
 
@@ -27,6 +28,9 @@ class ReceiptPdfViewerScreen extends StatelessWidget {
   static const previewPageLimit = 10;
   static const longPreviewPageLimit = 5;
   static const hugePreviewPageLimit = 3;
+  static const highCapacityPreviewPageLimit = 12;
+  static const highCapacityLongPreviewPageLimit = 8;
+  static const highCapacityHugePreviewPageLimit = 5;
   static const lowPowerPreviewPageLimit = 4;
   static const lowPowerLongPreviewPageLimit = 2;
   static const lowPowerHugePreviewPageLimit = 1;

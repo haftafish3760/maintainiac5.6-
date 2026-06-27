@@ -1,0 +1,32 @@
+Calendar requirements and follow-up notes
+
+The shared calendar day screen is the operational timeline for the owner,
+employee, contractor, and app-specific modules.
+
+Must preserve:
+- Every calendar day needs previous-day and next-day navigation.
+- The date should appear once in the day navigation row, not duplicated in the
+  page title/header.
+- Employee and contractor calendar days must show which vehicle or vehicles
+  were used that day.
+- Vehicle use can be plural. An employee may start in one vehicle and switch to
+  another during the same day.
+- Day entries must stay chronological when timestamps exist.
+- Entries without a timestamp should use entry-created order, newest first.
+- Calendar day recap must include every important operational metric the user
+  can reasonably need for record keeping.
+- Recaps eventually need miles, business miles, personal miles, MPG, fuel cost,
+  cost per mile, revenue per mile, expenses, invoices/payments, gross pay,
+  materials used, receipts, maintenance, repairs, and profit where permissions
+  allow it.
+- Employees should only see recap fields their permissions allow.
+- Owners and authorized managers can correct employee entries, hours, expenses,
+  vehicle assignments, materials, and job links.
+- Corrections that affect pay, money, records, or permissions must eventually
+  create audit events.
+- No VINs, plates, passenger data, patient data, or other unnecessary private
+  data should be placed in cloud-backed calendar records.
+
+Current UI note:
+- The active vehicle display in the employee calendar is preview-only until the
+  real vehicle/day assignment model is wired.

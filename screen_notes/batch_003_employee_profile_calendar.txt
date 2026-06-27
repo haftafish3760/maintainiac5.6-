@@ -1,0 +1,90 @@
+Batch 3 notes for employee profile calendar
+
+Related screens:
+- lib/screens/profiles/employee_permissions_screen.dart
+- lib/screens/profiles/employee_profile_routes.dart
+- lib/screens/dashboard/calendar_day_flow.dart
+- lib/screens/dashboard/calendar_flow_widgets.dart
+
+Source: visible user message, 2026-06-20 Batch 3
+
+"You need to make sure you are importing the same calendar that's showing up at
+the bottom of the screen for every screen for this employee."
+
+"That calendar is very vital for all of these employees."
+
+"So when I click on one of those days, it needs to show me all of what that
+employee has done for that day."
+
+"It needs to be like it is on every other screen, but this is gonna be even
+more."
+
+"You need to be able to add and edit information for each day, for each
+employee."
+
+"So when I tap on that, at the top of the screen, obviously it will show the
+day and the time, the date, month, day, year."
+
+"At the top, it needs to show what the active, honestly, the active vehicle for
+that person, yeah, that active vehicle row needs to be up there too."
+
+"We need to be able to do everything for that day, for that employee.
+Absolutely everything for that employee."
+
+"We need all the records, like all the averages, all the recaps."
+
+"What jobs they've been on, how many hours for each of those jobs that they've
+been on."
+
+"That calendar layout itself is supposed to be shared across the entire app."
+
+"That needs to be at the bottom like it is on every other screen."
+
+"That calendar, that's what that's for, is seeing all the entries in
+chronological order, by the way, for that day."
+
+Source: /Users/rbbie/.codex/attachments/8ef5a5a7-c599-4001-91c7-b7ccad7b6490/pasted-text.txt
+
+"The calendar does not go on the goddamn page for the list of employees. It
+goes on the page when I tap that employee name on that employee profile."
+
+"I've got to be able to see what that employee has done for every calendar
+day."
+
+"For the calendar, there must be daily at the top of the calendar for the
+recap itself, or wherever that recap is."
+
+"At the top of the page, we need to see all of the entries that the user made.
+I'm sorry, employee made."
+
+"For right now, we're working in on employees. It's the same for my independent
+contractors as well."
+
+"We got to see what everybody does each day. Not just the employee, but the
+contractor as well."
+
+"When you're on the employee screen, though, you're seeing what each employee
+does."
+
+"When you're on the regular dashboard and click on the calendar, you're seeing
+what you did as the owner of the company."
+
+Source: /Users/rbbie/.codex/attachments/2aa41955-16f5-49d0-bea9-37befb007585/pasted-text.txt
+
+"When I tap on the calendar day for that employee, that calendar at the bottom,
+when I tap on that day, all right, the 20th."
+
+"The entries for that day does not belong on the employee profile page. It
+belongs inside of the calendar screen."
+
+"Now, that calendar day screen is for just that."
+
+Source: visible user message, 2026-06-20 Batch 3
+
+"The calendar, when you tap a calendar day, that needs to be pretty much the
+same stuff. I can see all the entries for that day."
+
+"I need to see the information for that day, how much total expenses I've
+incurred, if I had any invoices come through for that day that I created. In
+other words, money coming in and money going out."
+

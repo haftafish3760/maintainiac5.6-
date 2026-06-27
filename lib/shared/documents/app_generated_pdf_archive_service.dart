@@ -69,6 +69,7 @@ class AppGeneratedPdfArchiveService {
     AppGeneratedPdfDocument document,
     AppDocumentKind kind,
   ) async {
+    _ensureArchivablePdf(document);
     final check = await AppStorageGuard.checkForBytes(
       operationBytes: document.byteSize + (1024 * 1024),
       purpose: AppStoragePurpose.exportFile,
@@ -136,14 +137,13 @@ class AppGeneratedPdfArchiveService {
   }
 
   static String _safeFileName(String fileName) {
-    final cleaned = fileName
-        .replaceAll(RegExp(r'[\\/:*?"<>|]+'), '-')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-    final normalized = cleaned.isEmpty ? 'maintaniac-document.pdf' : cleaned;
-    return normalized.length <= 120
-        ? normalized
-        : '${normalized.substring(0, 116)}.pdf';
+    return AppGeneratedPdfFileName.clean(fileName);
+  }
+
+  static void _ensureArchivablePdf(AppGeneratedPdfDocument document) {
+    final validation = document.validation;
+    if (validation.isValid) return;
+    throw AppGeneratedPdfArchiveException(validation.userMessage);
   }
 
   static Future<void> _createDirectory(Directory directory) async {

@@ -1,0 +1,93 @@
+Screen: lib/screens/profiles/employee_permissions_screen.dart
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"On the hamburger menu, I think that's where the employee profiles need to
+live, obviously."
+
+"When I click on Employee, all right, I don't mind the fact you have employees
+and permissions. That's perfect. When I click on that at the top, I need to
+have the ability to add an employee."
+
+"When I add that employee, that is when I add their name, all their
+information, how much they get paid, whether they're, you know, it might even
+be salary."
+
+"When I go to add an employee, We need to walk the user through how to actually
+set this stuff up."
+
+"For permissions, I'm thinking those need to actually be toggles. We need to
+have categories and then toggles whether they have permission or not per
+title."
+
+"We're not fooling with taxes, with how much withholdings or anything like
+that except for a gross pay."
+
+"We cannot hard code things. We've got to be able to let that user make up
+their mind what permissions each employee gets themselves. And we've got to
+provide those permissions to that user and lock it all down."
+
+Source: current visible user message, 2026-06-20 Batch 1
+
+"Whatever this app does, it must be a permission for each of the features of
+this app. Absolutely, positively, every bit of this app must be accounted for,
+for permissions."
+
+"When it comes to hours, is that employee allowed to write down their own
+hours? We gotta have permission for that. Is that employee allowed to write
+other people's hours? Are they able to read other people's hours? Are they able
+to be able to read what that employee makes per hour?"
+
+Source: current visible user message, 2026-06-22 permission setup clarity pass
+
+- Add Employee must start with employee identity fields first. Permissions are
+  part of the setup flow, but they should not appear before name, phone, and
+  email.
+- Permission starter packs are not hard templates. Users need to review them,
+  customize them, and save their own permission packs or presets.
+- Permission review must show the actual granted permissions, grouped by app
+  area, instead of only showing counts such as app areas enabled or high-impact
+  access.
+- Yes/No permission choices must have an unmistakable selected state. Use both
+  visible highlighting and a checkbox or check indicator so the user is never
+  guessing which answer is active.
+- Employee rows must avoid ambiguous text like "Drew Office" where the role can
+  look like part of the name. Name and role need a clear separator.
+- Dummy or preview employee profiles should be available during this UI phase so
+  other-employee permission targeting can be tested without manually creating a
+  whole crew first.
+
+Source: current visible user message, 2026-06-22 add employee permission setup
+
+- Add Employee should keep name, phone number, and email as the clear first
+  section.
+- Pay setup and vehicle assignment can stay in the Add Employee flow, but
+  vehicle assignment needs to become extremely fast and easy.
+- The permission setup should not overwhelm the Add Employee form. A dedicated
+  Set Up Permissions action or flow is preferred over dumping every permission
+  row directly into the add screen.
+- Do not turn permission setup into a wizard. The UI still needs to guide users
+  who do not know what they are doing.
+- Small contractors with roughly three to seven employees need a professional
+  setup that starts from practical roles but still lets the owner review and
+  change every permission.
+- Every meaningful app item needs permissions defined around whether an
+  employee can view, create, edit, or otherwise act on that item.
+- Permissions and security are foundational to the contractor side of the app,
+  even though some downstream UI is still unfinished.
+
+Source: current visible user message, 2026-06-22 Add Employee permission setup refinement
+
+- Quick setup must not use Own and Team as the permission buttons.
+- Quick setup should show scope as rows: whether the employee can act on their
+  own or assigned records, and whether they can act on other employees or team
+  records.
+- The visible action controls should be View, Create, and Edit.
+- If View is turned off for a scope, Create and Edit for that same scope should
+  not remain granted.
+- Each quick setup category needs an Advanced control so individual items inside
+  that category can be handled more precisely.
+- A quick setup category's Advanced control must open only that exact category,
+  not the entire permission catalog.
+- Employers need a future way to create and name their own saved permission
+  setups so they can reuse a company-specific setup by position or workflow.

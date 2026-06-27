@@ -1,0 +1,137 @@
+Batch 3 notes for employee profile layout and data
+
+Related screens:
+- lib/screens/profiles/employee_permissions_screen.dart
+- lib/screens/profiles/employee_profile_panels.dart
+- lib/screens/profiles/employee_profile_recap_panels.dart
+
+Source: /Users/rbbie/.codex/attachments/d3ca09cd-0e0c-4793-bc26-c789fc634100/pasted-text.txt
+
+"Oh, we also need to have the rate to pay for that employee as well."
+
+"This needs to be a true legit information center for the employee."
+
+"This needs to be a true blue employee profile page."
+
+"It needs to show what job, it needs to show everything about this employee."
+
+"What jobs they have worked on for the week."
+
+"It needs, honestly, a calendar for each employee."
+
+"Now, this needs to be a complete and total information overload about that
+employee."
+
+"What is their hourly rate? How many hours have they worked?"
+
+"It needs to say everything. Like, how much, what were their expenses for each
+day? What is the total expenses they incurred for the week?"
+
+"Invoices. How much, how many, how much did they make on invoices? What
+invoices did they submit for the week?"
+
+"For the permissions stuff, there needs to be a button, and when you click on
+that button, that could be a complete page on its own."
+
+"All the other user information, like what they've worked and things like that,
+could be a different screen."
+
+"We don't need to put all that on one screen. It'd be way too much. It'd be
+cluttered."
+
+"That's what we need to do, is an employee profile, like how much have they
+worked for that week, all of their information, how much are they making per
+hour."
+
+"I need to be able to edit that amount."
+
+"Show how much the user has worked, what their paycheck would be as of right
+then for what their hours have been and versus how much they get paid per
+hour."
+
+"Or if they salary, then it'd be different. It'd be just one flat rate every
+week."
+
+"We gotta have pay period for that employee as well."
+
+"For pay period, I don't know. Probably need to have it per employee, whether
+it's once a week. When does their pay period begin? When does it end? or we
+could have a master setting for everybody."
+
+"We're not doing pay period on the employee profile, I don't think, not yet
+anyways."
+
+Source: /Users/rbbie/.codex/attachments/8ef5a5a7-c599-4001-91c7-b7ccad7b6490/pasted-text.txt
+
+"You've got to create the data for each one of those users. I don't want just
+a name."
+
+"I wanna see all the data. Every last bit of it, exactly how it would be if I
+had employees working for me with different roles and different setups."
+
+"If it's a phone number, you need to title it phone number."
+
+"If it's an ID for Firebase, you need to hide that because the user don't need
+to see the ID."
+
+"If there is a phone number on there, you need to say phone number, and then
+you need to do the proper layout for a phone number."
+
+"Area code inside of parentheses, and then the first three digits, dash, last
+four digits."
+
+"I need data for these employees. You need to load this up to the brim.
+Permissions, all the whole nine yards."
+
+"Information, what they have done, what jobs they've done, exactly how it would
+look for a owner of the app."
+
+"That employee profile has got to actually work. How else am I gonna know what
+the layout is if it doesn't actually work?"
+
+"You know what a contractor needs if they've got employees. They've got to have
+every, all the demographics, all the information, what that employee has done."
+
+"If that contractor wants to hide some of that stuff, let them hide it. It's up
+to them. It's their app."
+
+"If we make this customizable, then we gotta have a revert to default button
+somewhere, so it will revert to back to the way we had it."
+
+Source: /Users/rbbie/.codex/attachments/2aa41955-16f5-49d0-bea9-37befb007585/pasted-text.txt
+
+"You've got back, edit permissions, and edit info stacked on top of each
+other."
+
+"Plus, the back button is already at the top, right above the active vehicle
+profile."
+
+"When I tap on like money in, when I tap on that, I told you, that needs to
+open up to that page so I can see that money coming in."
+
+"Money out, no, it's called expenses."
+
+"It's called invoices."
+
+"Jobs slash stops. Are you kidding?"
+
+"It doesn't say, okay, you've got all that information. Okay, well, what is
+that for? Is that for the day, for the week, for the month, for the year?"
+
+"You need to look at the expense screen itself and see how the recap is, but
+there's one thing that needs to be added is 90 day."
+
+"You got daily, weekly, monthly, year to date, but there needs to be the past
+90 days."
+
+"Current permissions. That is an entirely different screen."
+
+"Permissions is an entirely different screen."
+
+"And that needs to be up top, inside of the employee information box, just like
+we talked about."
+
+"The back button inside of the employee information box needs to be gone."
+
+"Any information inside of this application. Must be accurate to the penny."
+

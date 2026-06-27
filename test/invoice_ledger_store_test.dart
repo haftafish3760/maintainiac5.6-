@@ -1,8 +1,12 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_ledger_models.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_ledger_store.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_record.dart';
 import 'package:maintaniac/shared/media/app_media_asset.dart';
+import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
 
 void main() {
   test(
@@ -182,6 +186,118 @@ void main() {
       expect(deleted.status, InvoiceRecordStatus.voided);
       expect(deleted.meta.syncStatus, InvoiceSyncStatus.pendingDelete);
       expect(deleted.meta.deletedAt, DateTime(2026, 6, 16));
+    },
+  );
+
+  test(
+    'pdf delivery events store structured metadata without private pdf content',
+    () {
+      const hash =
+          '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+      final record = _record().copyWith(
+        client: const InvoicePartySnapshot(
+          displayName: 'Alex Customer',
+          street: '987 Oak Road',
+          email: 'alex@example.com',
+          notes: 'Gate code 1234',
+        ),
+        terms: 'Payment due on receipt for Alex Customer.',
+      );
+      final pdf = AppGeneratedPdfDocument(
+        kind: AppGeneratedPdfKind.invoice,
+        title: 'Invoice for Alex Customer at 987 Oak Road',
+        fileName: 'invoice_INV-0001.pdf',
+        bytes: Uint8List.fromList('%PDF-1.4\n%%EOF'.codeUnits),
+        createdAt: DateTime(2026, 6, 15, 10),
+        sourceModule: 'invoices',
+        sourceRecordId: record.id,
+        shareSubject: 'Invoice for Alex Customer',
+        shareText: 'Please pay the attached invoice for 987 Oak Road.',
+      );
+
+      final updated = record
+          .recordPdfGenerated(pdf, fileHashSha256: hash)
+          .recordPdfShared(
+            pdfKind: pdf.kind.name,
+            fileName: pdf.safeFileName,
+            byteSize: pdf.byteSize,
+            at: DateTime(2026, 6, 15, 10, 5),
+          )
+          .recordPdfDeliveryFailed(
+            reasonCode: 'share_sheet_unavailable',
+            pdfKind: pdf.kind.name,
+            fileName: pdf.safeFileName,
+            at: DateTime(2026, 6, 15, 10, 6),
+          );
+
+      final eventMaps = updated.pdfEvents
+          .map((event) => event.toMap())
+          .toList(growable: false);
+      final encodedEvents = jsonEncode(eventMaps);
+
+      expect(updated.documentHashSha256, hash);
+      expect(updated.pdfEvents.map((event) => event.type), [
+        InvoicePdfDeliveryEventType.generated,
+        InvoicePdfDeliveryEventType.shared,
+        InvoicePdfDeliveryEventType.failed,
+      ]);
+      expect(eventMaps.first['byteSize'], pdf.byteSize);
+      expect(eventMaps.first['fileHashSha256'], hash);
+      expect(eventMaps.last['reasonCode'], 'share_sheet_unavailable');
+      expect(encodedEvents, isNot(contains('Alex Customer')));
+      expect(encodedEvents, isNot(contains('987 Oak Road')));
+      expect(encodedEvents, isNot(contains('alex@example.com')));
+      expect(encodedEvents, isNot(contains('Gate code')));
+      expect(encodedEvents, isNot(contains('Please pay')));
+      expect(updated.toMap().containsKey('pdfBytes'), isFalse);
+      expect(updated.toMap().containsKey('pdfPath'), isFalse);
+
+      final reloaded = InvoiceRecord.fromMap(updated.toMap());
+      expect(reloaded.pdfEvents, hasLength(3));
+      expect(
+        reloaded.pdfEvents.first.type,
+        InvoicePdfDeliveryEventType.generated,
+      );
+      expect(reloaded.pdfEvents.first.fileHashSha256, hash);
+    },
+  );
+
+  test(
+    'invoice backup batches keep pdf metadata bounded and cloud safe',
+    () async {
+      final store = InvoiceLedgerStore.memory();
+      final draft = await store.createDraft(
+        type: InvoiceDocumentType.invoice,
+        now: DateTime(2026, 6, 15, 8),
+      );
+      var record = draft;
+      for (
+        var index = 0;
+        index < invoicePdfDeliveryEventHistoryLimit + 7;
+        index++
+      ) {
+        record = record.recordPdfShared(
+          pdfKind: 'invoice',
+          fileName: 'invoice_INV-0001.pdf',
+          byteSize: 45000 + index,
+          at: DateTime(2026, 6, 15, 9).add(Duration(minutes: index)),
+        );
+      }
+      await store.saveRecord(record, now: DateTime(2026, 6, 15, 10));
+
+      final batchMap = store.dirtyDailyBatches().single.toMap();
+      final recordMap = (batchMap['records'] as List).whereType<Map>().single;
+      final pdfEvents = (recordMap['pdfEvents'] as List).whereType<Map>();
+      final encodedBatch = jsonEncode(batchMap);
+
+      expect(pdfEvents, hasLength(invoicePdfDeliveryEventHistoryLimit));
+      expect(pdfEvents.first['byteSize'], 45007);
+      expect(pdfEvents.last['byteSize'], 45056);
+      expect(encodedBatch, contains('"pdfEvents"'));
+      expect(encodedBatch, isNot(contains('pdfBytes')));
+      expect(encodedBatch, isNot(contains('pdfPath')));
+      expect(encodedBatch, isNot(contains('/var/mobile')));
+      expect(encodedBatch, isNot(contains('/Users/')));
     },
   );
 }

@@ -1,0 +1,28 @@
+Source: /Users/rbbie/.codex/attachments/0033c4ad-9f3e-426c-bd00-8fbc98c13b44/pasted-text.txt
+
+"Now, I want to actually initiate an AI agent into the app itself, and the way
+that would work is it would be an assistant to the user."
+
+"We've got to find which model is the best to use. and things like that."
+
+"I've got to figure out my monetization, how I want to do that, how I want to
+integrate that AI in here, but we are a long ways from integrating AI in here
+unless, unless, unless you say otherwise."
+
+"I'm thinking about each user being able to get a certain amount free every
+month worth of AI usage and as well selling packs."
+
+"If you have a subscription $10 a month, the chances are I'll do, well, consider
+it unlimited, however, I will probably have the limit how much usage a person
+can use every day."
+
+"Pay-as-you-go, honestly, to me, seems like the best way."
+
+"I'm not going to tell a user, okay, you get a million tokens, because they
+aren't going to know how many tokens or what. But instead, what we could do is
+say, okay, you get X amount of receipt stuff per month or X amount of whatever
+help per month that is free."
+
+"Each user, I'm thinking, would probably wind up with like 100,000, maybe
+200,000 tokens free per month."
+

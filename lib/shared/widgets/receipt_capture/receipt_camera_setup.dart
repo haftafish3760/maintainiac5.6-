@@ -6,11 +6,9 @@ extension _ReceiptCameraSetup on _ReceiptCameraScreenState {
   ) async {
     CameraException? lastCameraError;
     Object? lastOtherError;
-    for (final preset in const [
-      ResolutionPreset.max,
-      ResolutionPreset.high,
-      ResolutionPreset.medium,
-    ]) {
+    for (final preset in _resolutionFallbacksFor(
+      _capturePolicy.resolutionTier,
+    )) {
       final controller = CameraController(
         camera,
         preset,
@@ -37,14 +35,44 @@ extension _ReceiptCameraSetup on _ReceiptCameraScreenState {
     );
   }
 
+  List<ResolutionPreset> _resolutionFallbacksFor(
+    ReceiptCameraResolutionTier tier,
+  ) {
+    return switch (tier) {
+      ReceiptCameraResolutionTier.medium => const [
+        ResolutionPreset.high,
+        ResolutionPreset.medium,
+      ],
+      ReceiptCameraResolutionTier.high => const [
+        ResolutionPreset.veryHigh,
+        ResolutionPreset.high,
+        ResolutionPreset.medium,
+      ],
+      ReceiptCameraResolutionTier.max => const [
+        ResolutionPreset.max,
+        ResolutionPreset.veryHigh,
+        ResolutionPreset.high,
+        ResolutionPreset.medium,
+      ],
+    };
+  }
+
   String _cameraErrorMessage(CameraException error) {
-    final code = error.code.toLowerCase();
-    if (code.contains('access') || code.contains('permission')) {
+    if (_isCameraPermissionError(error)) {
       return 'Camera permission is needed to photograph a receipt.';
     }
     final description = error.description?.trim();
     return description == null || description.isEmpty
         ? 'The receipt camera could not be opened.'
         : description;
+  }
+
+  bool _isCameraPermissionError(CameraException error) {
+    final code = error.code.toLowerCase();
+    final description = error.description?.toLowerCase() ?? '';
+    return code.contains('access') ||
+        code.contains('permission') ||
+        description.contains('permission') ||
+        description.contains('denied');
   }
 }

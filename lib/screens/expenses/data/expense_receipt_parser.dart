@@ -1,7 +1,13 @@
 import 'expense_ledger_models.dart';
 import 'expense_receipt_category_rules.dart';
+import '../../work_supplies/data/work_supply_receipt_parser.dart';
+import '../../../shared/receipts/receipt_processing_contract.dart';
+import '../../../shared/widgets/receipt_capture/receipt_assistance_policy.dart';
+import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
+import '../../../shared/widgets/receipt_capture/receipt_ocr_service.dart';
 
 part 'expense_receipt_parse_models.dart';
+part 'expense_receipt_privacy_event.dart';
 part 'expense_receipt_parser_logic.dart';
 part 'expense_receipt_parse_quality.dart';
 part 'expense_receipt_fuel_parser.dart';

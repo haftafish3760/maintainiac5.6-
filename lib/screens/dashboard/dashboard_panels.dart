@@ -45,6 +45,49 @@ class MessageBoardStrip extends StatefulWidget {
   State<MessageBoardStrip> createState() => _MessageBoardStripState();
 }
 
+class OperationalContextStrip extends StatelessWidget {
+  const OperationalContextStrip({super.key, required this.contextLabel});
+
+  final String contextLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 7, 10, 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF162229),
+          borderRadius: BorderRadius.circular(5),
+          border: Border.all(color: const Color(0xFF4D6370)),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.account_tree_rounded,
+              color: Color(0xFF7CC7FF),
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                contextLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFFE8ECEE),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _WorkProfileDrawer extends StatelessWidget {
   const _WorkProfileDrawer({required this.workProfile});
 

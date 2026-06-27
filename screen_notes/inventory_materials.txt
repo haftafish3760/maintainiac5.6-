@@ -1,0 +1,78 @@
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"Inventory, which is materials."
+
+"The invoice, I'm sorry, inventory screen needs to be the best of the best."
+
+"We need to build trade packs and things like that for each, you know, each
+trade will get its own pack that somebody can download from. It'll be on
+Firebase for me for them to download it on my side, but it could still live
+locally on their device."
+
+"It would need to tell the user how many megabytes it is."
+
+"We need to probably have several different levels of it. Probably three, at
+least three, if not four different levels."
+
+"Level one is gonna actually be on this app itself. It'll be all of the main,
+most popular stuff that a plumber or whatever that trade does, right? Whatever
+their inventory stuff is."
+
+"It needs to be an inventory system is what it needs to be, a proper inventory
+system."
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"The inventory layout and things like that needs to be a little bit different."
+
+"There's some things that needs to be arranged, like for inventory for the
+receipt flow, that's got to be changed."
+
+Source: visible user message, 2026-06-20 Batch 2
+
+"All of this stuff on here needs to be backed up, all their mileage, invoices,
+inventory, everything would have to be backed up for number one."
+
+"Number two, we have to still finish inventory and all of the catalogs for
+inventory, and I'm gonna tell you what the purpose of the inventory catalogs
+are."
+
+"That is to help with parsing of receipts, is the main number one thing, so
+people can keep track of their inventory, and when they take a picture of the
+receipt, this application will be able to parse whatever that item is."
+
+"So there are over 12,000 plumbing items that you and I will need to go
+through, or I need you to go through, rather, and to make sure that this
+application can parse them correctly."
+
+"This needs to be a true blue inventory system."
+
+"This needs to be a bulletproof, top-of-the-line, state-of-the-art invoicing
+system, maybe even using barcodes, and I'm not 100% sure about that one yet."
+
+"For the inventory, I was going to have packs that people could download."
+
+"We would start off with a basic inventory catalog in the app itself with the
+most popular stuff."
+
+"The reason I don't want to put all of that stuff on here is because it would
+make the size of this app too large for older phones, and it would slow them
+down."
+
+"So instead, I'm going to allow users to be able to download those packs."
+
+"I'm thinking what we could do is split them up by popularity. The most popular
+stuff on the app already, and then probably three other levels."
+
+Source: visible user message, 2026-06-23
+
+"The Materials section may ultimately be named Inventory because that is the
+clearer user-facing purpose. For shipped app size, include only the most
+popular items for each trade/category by default, then offer downloadable
+catalog/data packs for deeper coverage. The starting target is to keep the
+installed trade catalog footprint roughly in the 30 MB range, with 40 MB as a
+hard upper comfort limit if possible, so the full app can stay under about
+150 MB release size. Receipt parsing accuracy still needs broad aliases,
+common names, and trade-pack data, but the complete tens-of-thousands item
+catalog should not bloat the base Play Store install if downloadable packs can
+avoid it."

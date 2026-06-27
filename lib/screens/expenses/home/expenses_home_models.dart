@@ -30,27 +30,6 @@ ExpenseDateRange _weekRange(DateTime day) {
   );
 }
 
-DateTime _shiftDateForPeriod(
-  DateTime anchorDate,
-  _ExpenseViewPeriod period,
-  int direction,
-) {
-  return switch (period) {
-    _ExpenseViewPeriod.day => anchorDate.add(Duration(days: direction)),
-    _ExpenseViewPeriod.week => anchorDate.add(Duration(days: 7 * direction)),
-    _ExpenseViewPeriod.month => DateTime(
-      anchorDate.year,
-      anchorDate.month + direction,
-      1,
-    ),
-    _ExpenseViewPeriod.yearToDate => DateTime(
-      anchorDate.year + direction,
-      1,
-      1,
-    ),
-  };
-}
-
 DateTime _dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);
 
 String _shortDate(DateTime date) => '${date.month}/${date.day}/${date.year}';

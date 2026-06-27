@@ -1,0 +1,14 @@
+Batch 2 notes for maintenance screen
+
+Related screen:
+lib/screens/maintenance/maintenance_screen.dart
+
+Source: visible user message, 2026-06-20 Batch 2
+
+"I don't want any kind of interstitial ads, but we definitely have banner ads
+at the bottom, and I definitely want to add inline ads in areas that's not
+gonna interfere with the user's workflow for surely."
+
+"Something like inside of the maintenance where there's a list or calendar
+where there might be a list, or you know, just random areas."
+

@@ -1,0 +1,85 @@
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"Now, we need to honestly probably get the dashboard for contractors built. That
+needs to actually be like a control or a command center of sorts."
+
+"Mainly starting with the contractor dashboard."
+
+"What if they have a delivery company? Rideshare and contractor mode is going to
+be slightly different. A delivery company or whatnot isn't really going to care
+so much about other things that a contractor would."
+
+"We've basically got several different types of user profiles with essentially
+kind of the same, mostly the same dashboard, just different elements on each
+one, I guess, or different widgets or whatever they're called."
+
+"I need for you to help me out building a true blue contractor dashboard. It's
+got to have a way for them to be able to start their day."
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"Now, for the independent contractor, they will need to have the ability to
+start their day so they can keep track of all their miles and things like that."
+
+"The other users, like the ones, what we have now for the start day button on
+the dashboard, that is for a driver that just does like DoorDash, Uber, and
+things like that. That is what that dashboard is for."
+
+"Fleet mode and individual mode. we've got to have two different dashboards.
+Actually, we might even need three different dashboards, three more dashboards."
+
+"I really and truly want this dashboard to be a command center for both gig
+drivers and a contractor."
+
+"That contractor profile needs to grow with that contractor."
+
+"For a contractor, a small guy is gonna need the start my day button, but
+somebody that owns 20 or 30 trucks, they might not need the start my day button
+unless they need to keep up with the miles on their vehicle. for business
+purposes."
+
+"It would be a different dashboard for somebody that has a fleet versus somebody
+that only has a couple of vehicles."
+
+"Honestly, we need to have it so my users can customize the dashboard and the
+layout themselves. And obviously, we would have a way for them to be able to
+reset it back to default. That's a must."
+
+Source: visible user message, 2026-06-20 Batch 2
+
+"We need to make sure that the dashboard system is rock solid for number one."
+
+"I do not like the layout of the contractor dashboard as of right now."
+
+"It is not. Exactly what I would consider a true contractor command center or
+control center as of yet."
+
+"You need to look at how the current dashboard is for the ride share."
+
+"You need to look at the containers for like expenses and things like that, how
+it's set up."
+
+"It's got a black background and then the numbers themselves are like green or
+red."
+
+"It's just trying to color code stuff if I can."
+
+"That contractor dashboard, we probably almost need two setups, one for the
+independent."
+
+"The contractor dashboard needs to grow with the contractor."
+
+"If it's just them and no employees, it's one way."
+
+"If they have employees added to there, then I guess we need to add employee
+demographics to there and other demographics."
+
+"It needs to be easy to understand for the user, is all I can tell you. So it's
+not confusing."
+
+"It needs to be higher contrast."
+
+"We need to make sure that everything is consistent as far as layout stuff.
+Consistency is huge for number one."
+
+"This app needs to feel smart without using AI."

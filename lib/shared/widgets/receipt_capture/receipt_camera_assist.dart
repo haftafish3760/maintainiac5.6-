@@ -24,15 +24,16 @@ class _ReceiptCameraAssistState {
   );
 
   static const starting = _ReceiptCameraAssistState(
-    title: 'Assisted Mode',
-    message: 'Aim at the receipt. Maintaniac will guide light and focus.',
+    title: 'Receipt Assist',
+    message:
+        'Aim at the receipt. Maintainiac will guide light, focus, and fit.',
     icon: Icons.crop_free_rounded,
     color: Color(0xFFFFD166),
   );
 
   static const steady = _ReceiptCameraAssistState(
     title: 'Hold Still',
-    message: 'Maintaniac is letting the camera settle before capture.',
+    message: 'Hold steady while the camera settles.',
     icon: Icons.timer_rounded,
     color: Color(0xFFA9DFFF),
   );
@@ -62,31 +63,31 @@ class _ReceiptCameraAssistState {
     return switch (index) {
       0 => const _ReceiptCameraAssistState(
         title: 'Hold Still',
-        message: 'Keep the whole receipt inside the guide.',
+        message: 'Keep the receipt centered and easy to read.',
         icon: Icons.pan_tool_alt_rounded,
         color: Color(0xFFFFD166),
       ),
       1 => const _ReceiptCameraAssistState(
-        title: 'Checking Focus',
+        title: 'Check Focus',
         message: 'Tap the receipt text if the image looks soft.',
         icon: Icons.center_focus_strong_rounded,
         color: Color(0xFFA9DFFF),
       ),
       2 => const _ReceiptCameraAssistState(
         title: 'Watch Glare',
-        message: 'Tilt the phone or receipt if bright spots cover the print.',
+        message: 'Tilt the phone or receipt if shine covers the print.',
         icon: Icons.light_mode_rounded,
         color: Color(0xFFFFD166),
       ),
       3 => const _ReceiptCameraAssistState(
-        title: 'Keep It Flat',
-        message: 'Flatten long receipts so the lines stay readable.',
+        title: 'Long Receipt',
+        message: 'Take readable photos instead of squeezing tiny text.',
         icon: Icons.straighten_rounded,
         color: Color(0xFFA9DFFF),
       ),
       _ => const _ReceiptCameraAssistState(
-        title: 'Final Check',
-        message: 'Stay still while Maintaniac keeps the clearest shots.',
+        title: 'Final Shot',
+        message: 'Stay still while Maintainiac keeps the clearest photo.',
         icon: Icons.auto_awesome_rounded,
         color: Color(0xFF8EF6A4),
       ),
@@ -105,12 +106,45 @@ class _ReceiptCameraAssistState {
         color: Color(0xFFFF8FA3),
       );
     }
+    if (quality.isTooDark) {
+      return const _ReceiptCameraAssistState(
+        title: 'Too Dark',
+        message: 'Turn on the light or move the receipt into brighter light.',
+        icon: Icons.flashlight_on_rounded,
+        color: Color(0xFFFF8FA3),
+      );
+    }
+    if (quality.isTooBright) {
+      return const _ReceiptCameraAssistState(
+        title: 'Glare',
+        message: 'Tilt the phone or receipt so shine leaves the printed text.',
+        icon: Icons.light_mode_rounded,
+        color: Color(0xFFFF8FA3),
+      );
+    }
     if (quality.focusScore < 8) {
       return const _ReceiptCameraAssistState(
         title: 'Too Blurry',
-        message: 'Hold still, tap the receipt text, and try Best Shot again.',
+        message:
+            'Hold still, tap the receipt text, and try Guided Capture again.',
         icon: Icons.blur_on_rounded,
         color: Color(0xFFFF8FA3),
+      );
+    }
+    if (quality.isPoorlyFramed) {
+      return const _ReceiptCameraAssistState(
+        title: 'Check Framing',
+        message: 'If all receipt text is visible, you can continue.',
+        icon: Icons.crop_free_rounded,
+        color: Color(0xFFFFD166),
+      );
+    }
+    if (quality.isLowContrast || quality.isMissingTextBands) {
+      return const _ReceiptCameraAssistState(
+        title: 'Text Too Weak',
+        message: 'Move closer or improve light so receipt lines stand out.',
+        icon: Icons.subject_rounded,
+        color: Color(0xFFFFD166),
       );
     }
     if (quality.width < 900 || quality.height < 900) {
@@ -135,7 +169,7 @@ class _ReceiptCameraAssistState {
   ) {
     if (quality.isTooDark) {
       return const _ReceiptCameraAssistState(
-        title: 'Not Ready: Low Light',
+        title: 'Add Light',
         message: 'Turn on the light or move to a brighter spot.',
         icon: Icons.flashlight_on_rounded,
         color: Color(0xFFFF4D5E),
@@ -143,31 +177,39 @@ class _ReceiptCameraAssistState {
     }
     if (quality.isTooBright) {
       return const _ReceiptCameraAssistState(
-        title: 'Not Ready: Glare',
-        message: 'Tilt the receipt or move away from direct shine.',
+        title: 'Reduce Glare',
+        message: 'Tilt the phone or receipt so shine leaves the print.',
         icon: Icons.light_mode_rounded,
         color: Color(0xFFFF4D5E),
       );
     }
     if (quality.isPoorlyFramed) {
       return const _ReceiptCameraAssistState(
-        title: 'Not Ready: Frame It',
-        message: 'Put the receipt inside the guide and fill more of it.',
+        title: 'Check Full Receipt',
+        message: 'Keep all receipt text visible. Capture still works.',
         icon: Icons.crop_free_rounded,
-        color: Color(0xFFFF4D5E),
+        color: Color(0xFFFFD166),
       );
     }
     if (quality.isSoft) {
       return const _ReceiptCameraAssistState(
-        title: 'Not Ready: Focus',
+        title: 'Tap To Focus',
         message: 'Tap printed lines and hold the phone still.',
         icon: Icons.center_focus_strong_rounded,
         color: Color(0xFFFF4D5E),
       );
     }
+    if (quality.mayBeCutOffAtBottom) {
+      return const _ReceiptCameraAssistState(
+        title: 'Show More Receipt',
+        message: 'The receipt may continue below the view. Move back slightly.',
+        icon: Icons.vertical_align_bottom_rounded,
+        color: Color(0xFFFFD166),
+      );
+    }
     if (quality.isLowContrast) {
       return const _ReceiptCameraAssistState(
-        title: 'Almost Ready: Contrast',
+        title: 'Improve Contrast',
         message: 'Move closer or improve light so printed lines stand out.',
         icon: Icons.zoom_in_rounded,
         color: Color(0xFFFFD166),
@@ -175,23 +217,23 @@ class _ReceiptCameraAssistState {
     }
     if (quality.isMissingEdges) {
       return const _ReceiptCameraAssistState(
-        title: 'Almost Ready: Edges',
-        message: 'Show the receipt edges so the app can judge the document.',
+        title: 'Fill The View',
+        message: 'Center the receipt with readable space around it.',
         icon: Icons.document_scanner_rounded,
         color: Color(0xFFFFD166),
       );
     }
     if (quality.isMissingLineBands) {
       return const _ReceiptCameraAssistState(
-        title: 'Almost Ready: Lines',
-        message: 'Move closer until the printed receipt lines are visible.',
+        title: 'Move Closer',
+        message: 'Move closer until the receipt text is easy to read.',
         icon: Icons.subject_rounded,
         color: Color(0xFFFFD166),
       );
     }
     if (quality.isSkewed) {
       return const _ReceiptCameraAssistState(
-        title: 'Almost Ready: Angle',
+        title: 'Square It Up',
         message: 'Square up the phone with the receipt.',
         icon: Icons.straighten_rounded,
         color: Color(0xFFFFD166),
@@ -199,109 +241,17 @@ class _ReceiptCameraAssistState {
     }
     if (quality.readiness == _ReceiptCameraReadiness.almostReady) {
       return const _ReceiptCameraAssistState(
-        title: 'Almost Ready: Hold',
-        message: 'Keep it steady for a moment, then capture.',
+        title: 'Hold Steady',
+        message: 'Keep it steady for a moment. Capture still works.',
         icon: Icons.pan_tool_alt_rounded,
         color: Color(0xFFFFD166),
       );
     }
     return const _ReceiptCameraAssistState(
       title: 'Ready',
-      message: 'Receipt looks readable. Tap capture when ready.',
+      message: 'Receipt looks readable. Hold steady or tap capture.',
       icon: Icons.check_circle_rounded,
       color: Color(0xFF8EF6A4),
-    );
-  }
-
-  static _ReceiptCameraAssistState needsRetake(
-    ReceiptPhotoQualityCheck quality,
-  ) {
-    if (quality.focusScore < 8) {
-      return const _ReceiptCameraAssistState(
-        title: 'Retake Needed',
-        message:
-            'The sharpest photo still looks blurry. Tap receipt text, turn on the light, and try again.',
-        icon: Icons.replay_rounded,
-        color: Color(0xFFFF8FA3),
-      );
-    }
-    return const _ReceiptCameraAssistState(
-      title: 'Retake Needed',
-      message:
-          'The receipt did not have enough readable detail. Move closer and fill the guide.',
-      icon: Icons.zoom_in_rounded,
-      color: Color(0xFFFFD166),
-    );
-  }
-}
-
-class _ReceiptCameraAssistCard extends StatelessWidget {
-  const _ReceiptCameraAssistCard({required this.state});
-
-  final _ReceiptCameraAssistState state;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: state.visible ? 1 : 0,
-      duration: const Duration(milliseconds: 180),
-      child: IgnorePointer(
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: const Color(0xDD050607),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: state.color, width: 1.2),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x88000000),
-                blurRadius: 12,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-            child: Row(
-              children: [
-                Icon(state.icon, color: state.color, size: 24),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        state.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFFE8ECEE),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        state.message,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFFC8D0D3),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          height: 1.2,
-                          letterSpacing: 0,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

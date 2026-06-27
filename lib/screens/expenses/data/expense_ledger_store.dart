@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import 'expense_dummy_data.dart';
 import 'expense_ledger_models.dart';
 import 'expense_receipt_item_memory_store.dart';
 import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
@@ -22,9 +21,6 @@ class ExpenseLedgerController extends ChangeNotifier {
 
   List<ExpenseReceiptRecord> get receipts {
     final records = storedReceipts;
-    if (records.isEmpty) {
-      records.addAll(expenseDummyReceipts);
-    }
     records.sort((a, b) => b.sortDate.compareTo(a.sortDate));
     return records;
   }
@@ -33,10 +29,14 @@ class ExpenseLedgerController extends ChangeNotifier {
     final source = _box == null ? _memoryRecords.values : _box.values;
     final records = <ExpenseReceiptRecord>[];
     for (final value in source) {
-      if (value is ExpenseReceiptRecord) {
-        records.add(value);
-      } else if (value is Map) {
-        records.add(ExpenseReceiptRecord.fromMap(value));
+      try {
+        if (value is ExpenseReceiptRecord) {
+          records.add(value);
+        } else if (value is Map) {
+          records.add(ExpenseReceiptRecord.fromMap(value));
+        }
+      } catch (_) {
+        continue;
       }
     }
     records.sort((a, b) => b.sortDate.compareTo(a.sortDate));
@@ -46,11 +46,11 @@ class ExpenseLedgerController extends ChangeNotifier {
   ExpenseReceiptRecord? receiptById(String id) {
     final value = _box == null ? _memoryRecords[id] : _box.get(id);
     if (value is ExpenseReceiptRecord) return value;
-    if (value is Map) return ExpenseReceiptRecord.fromMap(value);
-    final source = _box == null ? _memoryRecords.values : _box.values;
-    if (source.isEmpty) {
-      for (final receipt in expenseDummyReceipts) {
-        if (receipt.id == id) return receipt;
+    if (value is Map) {
+      try {
+        return ExpenseReceiptRecord.fromMap(value);
+      } catch (_) {
+        return null;
       }
     }
     return null;
@@ -179,7 +179,7 @@ class ExpenseLedgerController extends ChangeNotifier {
       );
       return receiptDay == key;
     }).toList();
-    records.sort((a, b) => a.sortDate.compareTo(b.sortDate));
+    records.sort(_compareReceiptsForCalendarDay);
     return records;
   }
 
@@ -305,6 +305,39 @@ class ExpenseLedgerController extends ChangeNotifier {
     await _box?.clear();
     notifyListeners();
   }
+}
+
+int _compareReceiptsForCalendarDay(
+  ExpenseReceiptRecord left,
+  ExpenseReceiptRecord right,
+) {
+  final leftMinutes = left.receiptTimeMinutes;
+  final rightMinutes = right.receiptTimeMinutes;
+  if (leftMinutes != null && rightMinutes != null) {
+    final byEnteredTime = leftMinutes.compareTo(rightMinutes);
+    if (byEnteredTime != 0) return byEnteredTime;
+    return _compareCreatedOrder(left, right);
+  }
+  if (leftMinutes != null) return -1;
+  if (rightMinutes != null) return 1;
+  return _compareCreatedOrder(left, right);
+}
+
+int _compareCreatedOrder(
+  ExpenseReceiptRecord left,
+  ExpenseReceiptRecord right,
+) {
+  final leftCreated = left.createdAt;
+  final rightCreated = right.createdAt;
+  if (leftCreated != null && rightCreated != null) {
+    final byCreated = leftCreated.compareTo(rightCreated);
+    if (byCreated != 0) return byCreated;
+  } else if (leftCreated != null) {
+    return -1;
+  } else if (rightCreated != null) {
+    return 1;
+  }
+  return left.id.compareTo(right.id);
 }
 
 String _normalizeReceiptFingerprintText(String value) {

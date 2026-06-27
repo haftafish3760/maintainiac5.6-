@@ -3,10 +3,50 @@ part of 'expense_receipt_entry_screen.dart';
 extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
   Future<void> _saveReceipt() async {
     if (_lines.isEmpty) {
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.validationError,
+        validationErrorKind: 'missing_receipt_lines',
+        diagnostic: const ExpenseFailureDiagnostic(
+          workflowStep: ExpenseWorkflowStep.lineReview,
+          failedAt: 'before_receipt_save',
+          confirmedCause: 'missing_receipt_lines',
+          causeStatus: ExpenseFailureCauseStatus.confirmed,
+          evidence: 'receipt_line_count_zero',
+          missingEvidence: 'none',
+        ),
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Add at least one receipt line first.')),
       );
       return;
+    }
+    final readinessIssues = _receiptSaveReadinessIssues();
+    if (readinessIssues.isNotEmpty) {
+      final shouldSave = await _showReceiptSaveReadinessDialog(readinessIssues);
+      if (!mounted) return;
+      if (!shouldSave) {
+        if (_isEditingReceipt) return;
+        final issueKinds = readinessIssues.map((issue) => issue.kind).join(',');
+        ExpenseScreenTelemetryRecorder.record(
+          context,
+          ExpenseTelemetryEventType.addExpenseAbandoned,
+          diagnostic: ExpenseFailureDiagnostic(
+            workflowStep: ExpenseWorkflowStep.lineReview,
+            failedAt: 'receipt_save_readiness_dialog',
+            confirmedCause: 'user_left_receipt_save_readiness',
+            causeStatus: ExpenseFailureCauseStatus.confirmed,
+            evidence: issueKinds,
+            missingEvidence: 'none',
+            abandoned: true,
+          ),
+          metadata: {
+            'entryMode': _detailEntryMode.name,
+            'source': _receiptPrivacyFeatureArea,
+          },
+        );
+        return;
+      }
     }
     final ledger = ExpenseLedgerScope.of(context);
     var receipt = _buildReceiptForSave();
@@ -34,6 +74,7 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
     }
     final promotedAttachments = await _persistReceiptProofs(receipt);
     if (promotedAttachments == null) return;
+    if (!mounted) return;
     receipt = receipt.copyWith(
       attachments: List.unmodifiable(promotedAttachments),
       hasReceiptProof:
@@ -48,14 +89,204 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
     final saved = await _saveReceiptToLedger(ledger, receipt);
     if (saved == null) return;
     await _syncMaterialsReceipt(saved);
+    if (!mounted) return;
     _savedReceipt = true;
+    _telemetryAddFlowFinished = true;
+    ExpenseScreenTelemetryRecorder.record(
+      context,
+      _isEditingReceipt
+          ? ExpenseTelemetryEventType.editExpenseSaved
+          : ExpenseTelemetryEventType.addExpenseCompleted,
+      metadata: {
+        'entryMode': _detailEntryMode.name,
+        'source': _receiptPrivacyFeatureArea,
+      },
+    );
+    if (!_isEditingReceipt) {
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.receiptExpenseCreated,
+        categoryGroup: saved.lines.isEmpty ? null : saved.lines.first.category,
+        metadata: {'saveDestination': 'local_first'},
+      );
+    }
     await _drafts?.deleteDraft(_draftId);
     if (!mounted) return;
     Navigator.of(context).pop();
   }
 
+  List<_ReceiptSaveReadinessIssue> _receiptSaveReadinessIssues() {
+    final issues = <_ReceiptSaveReadinessIssue>[];
+    final unreviewedCount = _unreviewedParsedLineCount;
+    if (unreviewedCount > 0) {
+      issues.add(
+        _ReceiptSaveReadinessIssue(
+          kind: 'unreviewed_app_filled_lines',
+          title: 'App-filled lines still need review',
+          detail: unreviewedCount == 1
+              ? 'One receipt line was filled by the app and has not been confirmed or corrected yet.'
+              : '$unreviewedCount receipt lines were filled by the app and have not been confirmed or corrected yet.',
+        ),
+      );
+    }
+
+    final ocrDiagnostics = _lastOcrDiagnostics;
+    if (ocrDiagnostics != null) {
+      if (!ocrDiagnostics.hasText) {
+        issues.add(
+          const _ReceiptSaveReadinessIssue(
+            kind: 'receipt_ocr_no_readable_text',
+            title: 'No readable receipt text was found',
+            detail:
+                'The receipt proof can still be saved, but the app could not fill the receipt from OCR.',
+          ),
+        );
+      } else if (ocrDiagnostics.hasBlockingWarnings) {
+        issues.add(
+          _ReceiptSaveReadinessIssue(
+            kind: 'receipt_ocr_blocking_warnings',
+            title: 'Receipt reading needs attention',
+            detail: _firstOcrWarningMessage(
+              fallback:
+                  'The receipt was attached, but at least one source could not be read safely.',
+            ),
+          ),
+        );
+      } else if (ocrDiagnostics.hasPartialWarnings) {
+        issues.add(
+          _ReceiptSaveReadinessIssue(
+            kind: 'receipt_ocr_partial_read',
+            title: 'Only part of the receipt was read',
+            detail: _firstOcrWarningMessage(
+              fallback:
+                  'Some receipt proof was saved without being used for app-assisted filling.',
+            ),
+          ),
+        );
+      } else if (ocrDiagnostics.hasReviewWarnings) {
+        issues.add(
+          _ReceiptSaveReadinessIssue(
+            kind: 'receipt_ocr_review_warnings',
+            title: 'Receipt reading should be checked',
+            detail: _firstOcrWarningMessage(
+              fallback:
+                  'The app found receipt text, but it flagged something worth reviewing before save.',
+            ),
+          ),
+        );
+      }
+    }
+
+    final subtotalIssue = _receiptSubtotalReadinessIssue();
+    if (subtotalIssue != null) issues.add(subtotalIssue);
+
+    return issues;
+  }
+
+  _ReceiptSaveReadinessIssue? _receiptSubtotalReadinessIssue() {
+    final enteredSubtotal = _enteredReceiptSubtotal;
+    if (enteredSubtotal == null || _lines.isEmpty) return null;
+    final delta = enteredSubtotal - _lineSubtotal;
+    if (delta.abs() < .02) return null;
+    return _ReceiptSaveReadinessIssue(
+      kind: 'receipt_subtotal_line_mismatch',
+      title: 'Receipt subtotal does not match the lines',
+      detail:
+          'Line subtotal is ${_money(_lineSubtotal)}, but the receipt subtotal is ${_money(enteredSubtotal)}. Check for missing items, discounts, fees, or returns.',
+    );
+  }
+
+  String _firstOcrWarningMessage({required String fallback}) {
+    if (_lastOcrWarnings.isEmpty) return fallback;
+    return _lastOcrWarnings.first.reviewMessage;
+  }
+
+  Future<bool> _showReceiptSaveReadinessDialog(
+    List<_ReceiptSaveReadinessIssue> issues,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1F2528),
+        title: const Text(
+          'Review receipt before saving?',
+          style: TextStyle(
+            color: Color(0xFFE8ECEE),
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Maintainiac found something that should be checked before this receipt is saved. You can review it now or save anyway if you already verified the receipt.',
+                style: TextStyle(
+                  color: Color(0xFFC8D0D3),
+                  fontWeight: FontWeight.w700,
+                  height: 1.25,
+                ),
+              ),
+              const SizedBox(height: 14),
+              for (final issue in issues.take(5))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        color: Color(0xFFFFD166),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              issue.title,
+                              style: const TextStyle(
+                                color: Color(0xFFE8ECEE),
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              issue.detail,
+                              style: const TextStyle(
+                                color: Color(0xFFAEB9BE),
+                                fontWeight: FontWeight.w700,
+                                height: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Review Receipt'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Save Anyway'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
   ExpenseReceiptRecord _buildReceiptForSave() {
     final editing = _editingReceipt;
+    final activeVehicle = AppStateScope.of(context).activeVehicle;
     return ExpenseReceiptRecord(
       id: editing?.id ?? 'EXP-${DateTime.now().microsecondsSinceEpoch}',
       receiptDate: _selectedDate,
@@ -74,11 +305,16 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
       hasReceiptProof: _hasReceipt || _receiptAttachments.isNotEmpty,
       attachments: List.unmodifiable(_receiptAttachments),
       rawOcrText: _rawReceiptText,
+      ocrReview: _currentOcrReview(),
       enteredSubtotal: _enteredReceiptSubtotal,
       enteredTax: _enteredReceiptTax,
       enteredTotal: _enteredReceiptTotal,
       trackMaterialsInInventory: _trackMaterialsInInventory,
-      vehicleId: editing?.vehicleId,
+      vehicleId:
+          editing?.vehicleId ??
+          (activeVehicle == null
+              ? null
+              : odometerVehicleIdForLabel(activeVehicle.nickname)),
       sourceScreen:
           editing?.sourceScreen ??
           (_isMaterialsFlow
@@ -116,12 +352,38 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
       );
     } on ReceiptProofStorageException catch (error) {
       if (!mounted) return null;
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.imageAttachFailure,
+        failureKind: 'proof_storage',
+        diagnostic: const ExpenseFailureDiagnostic(
+          workflowStep: ExpenseWorkflowStep.receiptAttachment,
+          failedAt: 'persist_receipt_proofs',
+          confirmedCause: 'proof_storage',
+          causeStatus: ExpenseFailureCauseStatus.confirmed,
+          evidence: 'receipt_proof_storage_exception',
+          missingEvidence: 'none',
+        ),
+      );
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(error.message)));
       return null;
     } catch (_) {
       if (!mounted) return null;
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.imageAttachFailure,
+        failureKind: 'proof_storage_unknown',
+        diagnostic: const ExpenseFailureDiagnostic(
+          workflowStep: ExpenseWorkflowStep.receiptAttachment,
+          failedAt: 'persist_receipt_proofs',
+          confirmedCause: 'cause_not_confirmed_proof_storage_unknown',
+          causeStatus: ExpenseFailureCauseStatus.notConfirmed,
+          evidence: 'untyped_exception',
+          missingEvidence: 'exception_type_and_storage_state',
+        ),
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('That receipt proof could not be saved.')),
       );
@@ -137,6 +399,19 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
       return ledger.saveReceipt(receipt);
     } catch (_) {
       if (!mounted) return null;
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.saveFailure,
+        failureKind: 'ledger_save_failed',
+        diagnostic: const ExpenseFailureDiagnostic(
+          workflowStep: ExpenseWorkflowStep.saveExpense,
+          failedAt: 'ledger_save_receipt',
+          confirmedCause: 'cause_not_confirmed_ledger_save_failed',
+          causeStatus: ExpenseFailureCauseStatus.notConfirmed,
+          evidence: 'ledger_save_threw_exception',
+          missingEvidence: 'exception_type_and_hive_box_state',
+        ),
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('That receipt could not be saved. Try again.'),
@@ -148,7 +423,46 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
 
   Future<void> _syncMaterialsReceipt(ExpenseReceiptRecord saved) async {
     try {
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.syncPending,
+        metadata: {'syncState': 'materials_bridge'},
+      );
       await (await ExpenseMaterialsReceiptBridge.create()).syncReceipt(saved);
-    } catch (_) {}
+      if (!mounted) return;
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.synced,
+        metadata: {'syncState': 'materials_bridge'},
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.syncFailed,
+        failureKind: 'materials_bridge',
+        diagnostic: const ExpenseFailureDiagnostic(
+          workflowStep: ExpenseWorkflowStep.materialsBridge,
+          failedAt: 'after_expense_save_materials_sync',
+          confirmedCause: 'cause_not_confirmed_materials_bridge',
+          causeStatus: ExpenseFailureCauseStatus.notConfirmed,
+          evidence: 'materials_bridge_sync_threw_exception',
+          missingEvidence: 'exception_type_and_bridge_stage',
+        ),
+        metadata: {'syncState': 'materials_bridge'},
+      );
+    }
   }
+}
+
+class _ReceiptSaveReadinessIssue {
+  const _ReceiptSaveReadinessIssue({
+    required this.kind,
+    required this.title,
+    required this.detail,
+  });
+
+  final String kind;
+  final String title;
+  final String detail;
 }

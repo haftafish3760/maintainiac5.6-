@@ -1,0 +1,37 @@
+Screen: lib/screens/work_supplies/entry/work_supply_add_items_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"There is a job page that needs to be linked up to the invoice page itself so
+that I can add materials, take materials away, whatever."
+
+Source: /Users/rbbie/.codex/attachments/0033c4ad-9f3e-426c-bd00-8fbc98c13b44/pasted-text.txt
+
+"I've also considered integrating Google Vision for receipt stuff, but as long
+as we have a good parser, and I can tell you now that we have or are supposed
+to have a really good camera system in here, and if it isn't, we will harden
+that as well to make sure that is state-of-the-art camera system to help the
+user actually get good pictures."
+
+Source: visible user message, 2026-06-23
+
+"The Materials/Inventory add flow should not start by making the receipt
+metadata feel like the first job. For contractor mode, the screen should lead
+with what the user is adding: new stocked material, existing stocked material,
+or a non-inventory line on the same receipt. Date/time, receipt attachment, and
+store information are still needed, but they support the intake instead of
+driving the first screen. Inventory lines from a receipt must update inventory
+when the receipt is saved."
+
+Source: visible user message, 2026-06-23
+
+"Receipt intake for Inventory should be a two-step flow. Step one is receipt
+information only: receipt date/time, attachment or photo/PDF proof, and store
+information, followed by Save And Continue. Step two is the repeating receipt
+line workflow. Each line starts from Inventory item or Additional receipt item.
+Inventory item should search/browse the catalog first and allow creating a new
+inventory item if the item is not listed. Additional receipt item should ask
+whether the line is business, personal, or mixed business/personal. The line
+item details collect packaging, quantity, price, tax, and optional inventory
+details. The bottom of step two should recap the receipt lines already added,
+and the user can repeat line entry until the receipt is complete."

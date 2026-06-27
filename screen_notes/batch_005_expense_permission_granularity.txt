@@ -1,0 +1,70 @@
+Batch 5 notes for expense permission granularity
+
+Related screens/files:
+- lib/screens/profiles/employee_permissions_screen.dart
+- lib/screens/profiles/employee_permissions_editor_route.dart
+- lib/shared/profiles/user_permissions.dart
+- screen_notes/expenses_receipts.txt
+
+Source: visible user message, 2026-06-20 Batch 5
+
+"As far as permissions are concerned, I mean, I don't know if that's how a
+professional team would set things up or not."
+
+"I've got a bad feeling that's not nearly as many permissions that are needed."
+
+"Expenses, why do you have fuel, materials, tools, maintenance, meals, lodging?
+They're highlighted."
+
+"You don't even tell the person you need it."
+
+"If we're gonna have highlighting the way to select expenses, then that's one
+thing."
+
+"For each individual permission, like for a few, do I have the ability to add a
+fuel receipt?"
+
+"Do I have the ability to edit a fuel receipt?"
+
+"Do I have the ability to add, edit, and view my own stuff?"
+
+"Do I have the ability to add, view, or edit other people's information?"
+
+"How am I to know you wrote the security rules correctly when you can't even
+get the permissions correct?"
+
+"This needs to be set up exactly the same way a multi-billion dollar industry
+would have theirs set up."
+
+"What about the fuel? Can I add fuel?"
+
+"Can I add an expense?"
+
+"Can I see other people's fuel information?"
+
+"Office and an office worker more than likely is not going to be writing fuel
+receipts."
+
+"It's up to them whether the office workers can do fuel receipts or not."
+
+"Whether they can add that expense or not."
+
+"For these permissions, all right, all right, for that particular employee, can
+that employee add, edit, and view their own stuff, is question number one."
+
+"Can they add, edit, add, edit, or view somebody else's information?"
+
+"And if so, what is it?"
+
+"For each and every single permission, you know this."
+
+"Is it a read-only? Is it a read or write?"
+
+"The who, the what, the when, the where, and the how."
+
+"You need to do one category at a time."
+
+"We're gonna break this down one category at a time."
+
+"Expenses, three of nine enabled."
+

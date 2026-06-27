@@ -9,15 +9,44 @@ import '../widgets/receipt_capture/receipt_pdf_viewer_screen.dart';
 import 'app_generated_pdf_models.dart';
 import 'app_generated_pdf_service.dart';
 
+enum AppGeneratedPdfPreviewAction {
+  prepared,
+  preparationFailed,
+  previewOpened,
+  shareCompleted,
+  shareDismissed,
+  shareFailed,
+  printOpened,
+  printDismissed,
+  printFailed,
+}
+
+class AppGeneratedPdfPreviewActionEvent {
+  const AppGeneratedPdfPreviewActionEvent({
+    required this.action,
+    this.reasonCode = '',
+  });
+
+  final AppGeneratedPdfPreviewAction action;
+  final String reasonCode;
+
+  bool get isFailure =>
+      action == AppGeneratedPdfPreviewAction.preparationFailed ||
+      action == AppGeneratedPdfPreviewAction.shareFailed ||
+      action == AppGeneratedPdfPreviewAction.printFailed;
+}
+
 class AppGeneratedPdfPreviewScreen extends StatefulWidget {
   const AppGeneratedPdfPreviewScreen({
     super.key,
     required this.document,
     this.service = const AppGeneratedPdfService(),
+    this.onAction,
   });
 
   final AppGeneratedPdfDocument document;
   final AppGeneratedPdfService service;
+  final ValueChanged<AppGeneratedPdfPreviewActionEvent>? onAction;
 
   @override
   State<AppGeneratedPdfPreviewScreen> createState() =>
@@ -31,7 +60,7 @@ class _AppGeneratedPdfPreviewScreenState
   @override
   void initState() {
     super.initState();
-    _fileFuture = widget.service.writeTemporary(widget.document);
+    _fileFuture = _prepare();
   }
 
   @override
@@ -49,13 +78,13 @@ class _AppGeneratedPdfPreviewScreenState
             );
           }
           if (snapshot.hasError || !snapshot.hasData) {
-            return _PdfGenerationError(error: snapshot.error);
+            return _PdfGenerationError(error: snapshot.error, onRetry: _retry);
           }
           final generated = snapshot.data!;
           return _GeneratedPdfReady(
             generated: generated,
             onPreview: () => _openPreview(context, generated),
-            onShare: _share,
+            onShare: () => _share(generated),
             onPrint: _print,
           );
         },
@@ -64,6 +93,11 @@ class _AppGeneratedPdfPreviewScreenState
   }
 
   void _openPreview(BuildContext context, AppGeneratedPdfFile generated) {
+    _notify(
+      const AppGeneratedPdfPreviewActionEvent(
+        action: AppGeneratedPdfPreviewAction.previewOpened,
+      ),
+    );
     Navigator.of(context).push(
       appNativeRoute(
         context,
@@ -75,18 +109,80 @@ class _AppGeneratedPdfPreviewScreenState
     );
   }
 
-  Future<void> _share() async {
+  void _retry() {
+    setState(() {
+      _fileFuture = _prepare();
+    });
+  }
+
+  Future<AppGeneratedPdfFile> _prepare() async {
+    try {
+      final generated = await widget.service.writeTemporary(widget.document);
+      _notify(
+        const AppGeneratedPdfPreviewActionEvent(
+          action: AppGeneratedPdfPreviewAction.prepared,
+        ),
+      );
+      return generated;
+    } on AppGeneratedPdfException {
+      _notify(
+        const AppGeneratedPdfPreviewActionEvent(
+          action: AppGeneratedPdfPreviewAction.preparationFailed,
+          reasonCode: 'prepare_pdf_validation_failed',
+        ),
+      );
+      rethrow;
+    } catch (_) {
+      _notify(
+        const AppGeneratedPdfPreviewActionEvent(
+          action: AppGeneratedPdfPreviewAction.preparationFailed,
+          reasonCode: 'prepare_platform_failed',
+        ),
+      );
+      rethrow;
+    }
+  }
+
+  Future<void> _share(AppGeneratedPdfFile generated) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final status = await widget.service.share(widget.document);
+      final status = await widget.service.shareGeneratedFile(generated);
       if (!mounted) return;
       final message = status == ShareResultStatus.dismissed
           ? 'The share sheet was closed.'
           : 'Choose where to send or save this PDF.';
+      _notify(
+        AppGeneratedPdfPreviewActionEvent(
+          action: status == ShareResultStatus.dismissed
+              ? AppGeneratedPdfPreviewAction.shareDismissed
+              : AppGeneratedPdfPreviewAction.shareCompleted,
+        ),
+      );
       messenger.showSnackBar(SnackBar(content: Text(message)));
     } on AppGeneratedPdfException catch (error) {
       if (!mounted) return;
+      _notify(
+        const AppGeneratedPdfPreviewActionEvent(
+          action: AppGeneratedPdfPreviewAction.shareFailed,
+          reasonCode: 'share_pdf_validation_failed',
+        ),
+      );
       messenger.showSnackBar(SnackBar(content: Text(error.message)));
+    } catch (_) {
+      if (!mounted) return;
+      _notify(
+        const AppGeneratedPdfPreviewActionEvent(
+          action: AppGeneratedPdfPreviewAction.shareFailed,
+          reasonCode: 'share_platform_failed',
+        ),
+      );
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Maintaniac could not open sharing for this PDF. Try again or save it from the preview.',
+          ),
+        ),
+      );
     }
   }
 
@@ -102,10 +198,42 @@ class _AppGeneratedPdfPreviewScreenState
           ),
         ),
       );
+      _notify(
+        AppGeneratedPdfPreviewActionEvent(
+          action: printed
+              ? AppGeneratedPdfPreviewAction.printOpened
+              : AppGeneratedPdfPreviewAction.printDismissed,
+        ),
+      );
     } on AppGeneratedPdfException catch (error) {
       if (!mounted) return;
+      _notify(
+        const AppGeneratedPdfPreviewActionEvent(
+          action: AppGeneratedPdfPreviewAction.printFailed,
+          reasonCode: 'print_pdf_validation_failed',
+        ),
+      );
       messenger.showSnackBar(SnackBar(content: Text(error.message)));
+    } catch (_) {
+      if (!mounted) return;
+      _notify(
+        const AppGeneratedPdfPreviewActionEvent(
+          action: AppGeneratedPdfPreviewAction.printFailed,
+          reasonCode: 'print_platform_failed',
+        ),
+      );
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Maintaniac could not open printing for this PDF. Try again or share the PDF instead.',
+          ),
+        ),
+      );
     }
+  }
+
+  void _notify(AppGeneratedPdfPreviewActionEvent event) {
+    widget.onAction?.call(event);
   }
 }
 
@@ -202,9 +330,10 @@ class _PdfActionButton extends StatelessWidget {
 }
 
 class _PdfGenerationError extends StatelessWidget {
-  const _PdfGenerationError({required this.error});
+  const _PdfGenerationError({required this.error, required this.onRetry});
 
   final Object? error;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -214,10 +343,27 @@ class _PdfGenerationError extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(18),
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.w800),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.picture_as_pdf_rounded,
+              color: Color(0xFFFFD166),
+              size: 38,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Try Again'),
+            ),
+          ],
         ),
       ),
     );

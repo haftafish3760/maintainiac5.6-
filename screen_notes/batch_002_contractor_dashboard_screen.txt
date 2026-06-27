@@ -1,0 +1,30 @@
+Batch 2 notes for contractor dashboard screen
+
+Related screen:
+lib/screens/dashboard/contractor/contractor_dashboard_screen.dart
+
+Source: visible user message, 2026-06-20 Batch 2
+
+"It is not. Exactly what I would consider a true contractor command center or
+control center as of yet."
+
+"You need to look at how the current dashboard is for the ride share."
+
+"It's got a black background and then the numbers themselves are like green or
+red."
+
+"That contractor dashboard, we probably almost need two setups, one for the
+independent."
+
+"The contractor dashboard needs to grow with the contractor."
+
+"If it's just them and no employees, it's one way."
+
+"If they have employees added to there, then I guess we need to add employee
+demographics to there and other demographics."
+
+"It needs to be easy to understand for the user, is all I can tell you. So it's
+not confusing."
+
+"It needs to be higher contrast."
+

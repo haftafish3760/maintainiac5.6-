@@ -195,7 +195,7 @@ class _WorkSupplyPrimaryActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _PrimaryActionButton(
-      label: 'Add Items To Inventory',
+      label: 'Add Inventory / Receipt',
       icon: Icons.add_box_outlined,
       color: const Color(0xFF2F7D4B),
       onTap: onAddSupplies,

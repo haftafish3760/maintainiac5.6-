@@ -20,11 +20,13 @@ class ExpenseReceiptRecord {
     this.hasReceiptProof = false,
     this.attachments = const [],
     this.rawOcrText = '',
+    this.ocrReview = const ExpenseReceiptOcrReview(),
     this.enteredSubtotal,
     this.enteredTax,
     this.enteredTotal,
     this.trackMaterialsInInventory = false,
     this.vehicleId,
+    this.odometerReading,
     this.sourceScreen = 'expenses',
     this.createdAt,
     this.updatedAt,
@@ -39,47 +41,48 @@ class ExpenseReceiptRecord {
 
   factory ExpenseReceiptRecord.fromMap(Map<dynamic, dynamic> map) {
     return ExpenseReceiptRecord(
-      id: map['id'] as String? ?? '',
-      receiptDate:
-          DateTime.tryParse(map['receiptDate'] as String? ?? '') ??
-          DateTime.now(),
-      receiptTimeMinutes: map['receiptTimeMinutes'] as int?,
-      merchantName: map['merchantName'] as String? ?? '',
-      phone: map['phone'] as String? ?? '',
-      street: map['street'] as String? ?? '',
-      city: map['city'] as String? ?? '',
-      state: map['state'] as String? ?? '',
-      zip: map['zip'] as String? ?? '',
-      email: map['email'] as String? ?? '',
-      website: map['website'] as String? ?? '',
-      notes: map['notes'] as String? ?? '',
-      receiptNumber: map['receiptNumber'] as String? ?? '',
-      paymentMethod: map['paymentMethod'] as String? ?? '',
-      hasReceiptProof: map['hasReceiptProof'] as bool? ?? false,
+      id: _expenseString(map['id']),
+      receiptDate: _expenseDateTime(map['receiptDate']) ?? DateTime.now(),
+      receiptTimeMinutes: _expenseInt(map['receiptTimeMinutes']),
+      merchantName: _expenseString(map['merchantName']),
+      phone: _expenseString(map['phone']),
+      street: _expenseString(map['street']),
+      city: _expenseString(map['city']),
+      state: _expenseString(map['state']),
+      zip: _expenseString(map['zip']),
+      email: _expenseString(map['email']),
+      website: _expenseString(map['website']),
+      notes: _expenseString(map['notes']),
+      receiptNumber: _expenseString(map['receiptNumber']),
+      paymentMethod: _expenseString(map['paymentMethod']),
+      hasReceiptProof: _expenseBool(map['hasReceiptProof']),
       attachments:
           (map['attachments'] as List?)
               ?.whereType<Map>()
               .map(ReceiptAttachmentRecord.fromMap)
               .toList(growable: false) ??
           const [],
-      rawOcrText: map['rawOcrText'] as String? ?? '',
-      enteredSubtotal: (map['enteredSubtotal'] as num?)?.toDouble(),
-      enteredTax: (map['enteredTax'] as num?)?.toDouble(),
-      enteredTotal: (map['enteredTotal'] as num?)?.toDouble(),
-      trackMaterialsInInventory:
-          map['trackMaterialsInInventory'] as bool? ?? false,
-      vehicleId: map['vehicleId'] as String?,
-      sourceScreen: map['sourceScreen'] as String? ?? 'expenses',
-      createdAt: DateTime.tryParse(map['createdAt'] as String? ?? ''),
-      updatedAt: DateTime.tryParse(map['updatedAt'] as String? ?? ''),
+      rawOcrText: _expenseString(map['rawOcrText']),
+      ocrReview: ExpenseReceiptOcrReview.fromMap(_expenseMap(map['ocrReview'])),
+      enteredSubtotal: _expenseDouble(map['enteredSubtotal']),
+      enteredTax: _expenseDouble(map['enteredTax']),
+      enteredTotal: _expenseDouble(map['enteredTotal']),
+      trackMaterialsInInventory: _expenseBool(map['trackMaterialsInInventory']),
+      vehicleId: _expenseString(map['vehicleId']).trim().isEmpty
+          ? null
+          : _expenseString(map['vehicleId']),
+      odometerReading: _expenseInt(map['odometerReading']),
+      sourceScreen: _expenseString(map['sourceScreen'], fallback: 'expenses'),
+      createdAt: _expenseDateTime(map['createdAt']),
+      updatedAt: _expenseDateTime(map['updatedAt']),
       auditEvents:
           (map['auditEvents'] as List?)?.whereType<String>().toList(
             growable: false,
           ) ??
           const [],
-      fileHashSha256: map['fileHashSha256'] as String? ?? '',
+      fileHashSha256: _expenseString(map['fileHashSha256']),
       duplicateCheckStatus: ExpenseDuplicateCheckStatus.fromName(
-        map['duplicateCheckStatus'] as String?,
+        _expenseString(map['duplicateCheckStatus']),
       ),
       duplicateCandidates:
           (map['duplicateCandidates'] as List?)
@@ -87,11 +90,9 @@ class ExpenseReceiptRecord {
               .map(ExpenseReceiptDuplicateCandidate.fromMap)
               .toList(growable: false) ??
           const [],
-      duplicateOverride: map['duplicateOverride'] as bool? ?? false,
-      duplicateOverrideReason: map['duplicateOverrideReason'] as String? ?? '',
-      duplicateCheckedAt: DateTime.tryParse(
-        map['duplicateCheckedAt'] as String? ?? '',
-      ),
+      duplicateOverride: _expenseBool(map['duplicateOverride']),
+      duplicateOverrideReason: _expenseString(map['duplicateOverrideReason']),
+      duplicateCheckedAt: _expenseDateTime(map['duplicateCheckedAt']),
       lines:
           (map['lines'] as List?)
               ?.whereType<Map>()
@@ -118,11 +119,13 @@ class ExpenseReceiptRecord {
   final bool hasReceiptProof;
   final List<ReceiptAttachmentRecord> attachments;
   final String rawOcrText;
+  final ExpenseReceiptOcrReview ocrReview;
   final double? enteredSubtotal;
   final double? enteredTax;
   final double? enteredTotal;
   final bool trackMaterialsInInventory;
   final String? vehicleId;
+  final int? odometerReading;
   final String sourceScreen;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -245,11 +248,13 @@ class ExpenseReceiptRecord {
     Object? hasReceiptProof = _unset,
     List<ReceiptAttachmentRecord>? attachments,
     Object? rawOcrText = _unset,
+    Object? ocrReview = _unset,
     Object? enteredSubtotal = _unset,
     Object? enteredTax = _unset,
     Object? enteredTotal = _unset,
     Object? trackMaterialsInInventory = _unset,
     Object? vehicleId = _unset,
+    Object? odometerReading = _unset,
     Object? sourceScreen = _unset,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -292,6 +297,9 @@ class ExpenseReceiptRecord {
           : hasReceiptProof as bool,
       attachments: attachments ?? this.attachments,
       rawOcrText: rawOcrText == _unset ? this.rawOcrText : rawOcrText as String,
+      ocrReview: ocrReview == _unset
+          ? this.ocrReview
+          : ocrReview as ExpenseReceiptOcrReview,
       enteredSubtotal: enteredSubtotal == _unset
           ? this.enteredSubtotal
           : enteredSubtotal as double?,
@@ -305,6 +313,9 @@ class ExpenseReceiptRecord {
           ? this.trackMaterialsInInventory
           : trackMaterialsInInventory as bool,
       vehicleId: vehicleId == _unset ? this.vehicleId : vehicleId as String?,
+      odometerReading: odometerReading == _unset
+          ? this.odometerReading
+          : odometerReading as int?,
       sourceScreen: sourceScreen == _unset
           ? this.sourceScreen
           : sourceScreen as String,
@@ -350,11 +361,13 @@ class ExpenseReceiptRecord {
       'hasReceiptProof': hasReceiptProof,
       'attachments': [for (final attachment in attachments) attachment.toMap()],
       'rawOcrText': rawOcrText,
+      'ocrReview': ocrReview.toMap(),
       'enteredSubtotal': enteredSubtotal,
       'enteredTax': enteredTax,
       'enteredTotal': enteredTotal,
       'trackMaterialsInInventory': trackMaterialsInInventory,
       'vehicleId': vehicleId,
+      'odometerReading': odometerReading,
       'sourceScreen': sourceScreen,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),

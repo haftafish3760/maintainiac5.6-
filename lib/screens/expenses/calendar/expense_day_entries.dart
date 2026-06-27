@@ -49,7 +49,7 @@ class _CalendarExpenseEntry extends StatelessWidget {
         color: const Color(0xFF101719),
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
-          onTap: () => _openReceiptFormFromEntry(context, entry),
+          onTap: () => _openReceiptDetailFromEntry(context, entry),
           borderRadius: BorderRadius.circular(8),
           child: Container(
             padding: const EdgeInsets.fromLTRB(10, 9, 8, 10),

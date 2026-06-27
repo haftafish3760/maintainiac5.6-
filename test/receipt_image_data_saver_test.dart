@@ -6,19 +6,27 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_image_processor.dart';
 
 void main() {
-  test('receipt data saver levels are user-facing levels 1 through 5', () {
+  test('receipt data saver levels are receipt backup choices', () {
     expect(ReceiptDataSaverLevel.values.map((level) => level.label), [
-      'Level 1',
-      'Level 2',
-      'Level 3',
-      'Level 4',
-      'Level 5',
+      'Original',
+      'High Quality',
+      'Normal',
+      'Low Storage',
+      'Tiny Backup',
     ]);
     expect(ReceiptDataSaverLevel.original.usesGrayscale, isFalse);
     expect(ReceiptDataSaverLevel.light.usesGrayscale, isFalse);
     expect(ReceiptDataSaverLevel.balanced.usesGrayscale, isTrue);
     expect(ReceiptDataSaverLevel.strong.usesGrayscale, isTrue);
     expect(ReceiptDataSaverLevel.maximum.usesGrayscale, isTrue);
+    expect(
+      ReceiptDataSaverLevel.balanced.description,
+      contains('saved proof copy'),
+    );
+    expect(
+      ReceiptDataSaverLevel.maximum.description,
+      contains('Smallest saved proof'),
+    );
   });
 
   test(
@@ -92,6 +100,307 @@ void main() {
     expect(rotatedImage!.width, 1800);
     expect(rotatedImage.height, 1200);
   });
+
+  test('receipt source prep creates cropped enhanced OCR copy', () async {
+    final dir = await Directory.systemTemp.createTemp('receipt_prep_');
+    addTearDown(() async {
+      if (await dir.exists()) await dir.delete(recursive: true);
+    });
+
+    final source = File('${dir.path}/counter_receipt.jpg');
+    await source.writeAsBytes(
+      img.encodeJpg(_receiptOnCounterImage(), quality: 96),
+      flush: true,
+    );
+
+    final preparedPath = await ReceiptImageProcessor.prepareReceiptSourceFile(
+      path: source.path,
+    );
+    final prepared = img.decodeImage(await File(preparedPath).readAsBytes());
+    final originalQuality = await ReceiptImageProcessor.qualityCheckFile(
+      source.path,
+    );
+    final preparedQuality = await ReceiptImageProcessor.qualityCheckFile(
+      preparedPath,
+    );
+
+    expect(preparedPath, isNot(source.path));
+    expect(prepared, isNotNull);
+    expect(prepared!.width, lessThanOrEqualTo(1800));
+    expect(prepared.height, lessThanOrEqualTo(2400));
+    expect(
+      preparedQuality.reviewScore,
+      greaterThanOrEqualTo(originalQuality.reviewScore),
+    );
+    expect(
+      preparedQuality.textBandScore,
+      greaterThanOrEqualTo(originalQuality.textBandScore),
+    );
+  });
+
+  test('receipt source prep avoids unsafe off-center auto crop', () async {
+    final dir = await Directory.systemTemp.createTemp('receipt_crop_guard_');
+    addTearDown(() async {
+      if (await dir.exists()) await dir.delete(recursive: true);
+    });
+
+    final source = File('${dir.path}/tiny_corner_receipt.jpg');
+    await source.writeAsBytes(
+      img.encodeJpg(_tinyCornerReceiptLikeImage(), quality: 96),
+      flush: true,
+    );
+
+    final preparedPath = await ReceiptImageProcessor.prepareReceiptSourceFile(
+      path: source.path,
+    );
+    final prepared = img.decodeImage(await File(preparedPath).readAsBytes());
+
+    expect(prepared, isNotNull);
+    expect(prepared!.width, 1800);
+    expect(prepared.height, 2400);
+  });
+
+  test(
+    'receipt quality check catches dark, glare, and blank captures',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('receipt_quality_');
+      addTearDown(() async {
+        if (await dir.exists()) await dir.delete(recursive: true);
+      });
+
+      final readable = await _writeImage(
+        dir,
+        'readable.jpg',
+        _receiptLikeImage(),
+      );
+      final dark = await _writeImage(dir, 'dark.jpg', _darkReceiptLikeImage());
+      final glare = await _writeImage(
+        dir,
+        'glare.jpg',
+        _glareReceiptLikeImage(),
+      );
+      final blank = await _writeImage(dir, 'blank.jpg', _blankImage());
+
+      final readableQuality = await ReceiptImageProcessor.qualityCheckFile(
+        readable.path,
+      );
+      final darkQuality = await ReceiptImageProcessor.qualityCheckFile(
+        dark.path,
+      );
+      final glareQuality = await ReceiptImageProcessor.qualityCheckFile(
+        glare.path,
+      );
+      final blankQuality = await ReceiptImageProcessor.qualityCheckFile(
+        blank.path,
+      );
+
+      expect(readableQuality.isLikelyReadable, isTrue);
+      expect(readableQuality.reviewScore, greaterThan(darkQuality.reviewScore));
+      expect(readableQuality.textBandScore, greaterThan(6));
+      expect(darkQuality.isTooDark, isTrue);
+      expect(darkQuality.primaryIssueLabel, 'too dark');
+      expect(glareQuality.isTooBright, isTrue);
+      expect(glareQuality.qualityWarnings.join(' '), contains('bright'));
+      expect(blankQuality.isLikelyReadable, isFalse);
+      expect(blankQuality.isMissingTextBands, isTrue);
+    },
+  );
+
+  test(
+    'receipt enhancement improves faded thermal and shadowed receipts',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('receipt_hard_photos_');
+      addTearDown(() async {
+        if (await dir.exists()) await dir.delete(recursive: true);
+      });
+
+      final faded = await _writeImage(
+        dir,
+        'faded.jpg',
+        _fadedReceiptLikeImage(),
+      );
+      final thermal = await _writeImage(
+        dir,
+        'thermal.jpg',
+        _thermalReceiptLikeImage(),
+      );
+      final shadow = await _writeImage(
+        dir,
+        'shadow.jpg',
+        _shadowedReceiptLikeImage(),
+      );
+
+      for (final source in [faded, thermal, shadow]) {
+        final before = await ReceiptImageProcessor.qualityCheckFile(
+          source.path,
+        );
+        final preparedPath =
+            await ReceiptImageProcessor.prepareReceiptSourceFile(
+              path: source.path,
+            );
+        final after = await ReceiptImageProcessor.qualityCheckFile(
+          preparedPath,
+        );
+
+        expect(preparedPath, isNot(source.path));
+        expect(after.reviewScore, greaterThanOrEqualTo(before.reviewScore));
+        expect(after.textBandScore, greaterThanOrEqualTo(before.textBandScore));
+        expect(after.contrast, greaterThanOrEqualTo(before.contrast * .72));
+      }
+    },
+  );
+
+  test('saved-copy preview quality is measured from the saved copy', () async {
+    final dir = await Directory.systemTemp.createTemp('receipt_preview_copy_');
+    addTearDown(() async {
+      if (await dir.exists()) await dir.delete(recursive: true);
+    });
+
+    final source = await _writeImage(dir, 'receipt.jpg', _receiptLikeImage());
+    final preview = await ReceiptImageProcessor.previewFile(
+      path: source.path,
+      level: ReceiptDataSaverLevel.maximum,
+    );
+    final savedCopy = await ReceiptImageProcessor.optimizeFile(
+      path: source.path,
+      level: ReceiptDataSaverLevel.maximum,
+    );
+    final savedQuality = await ReceiptImageProcessor.qualityCheckFile(
+      savedCopy,
+    );
+
+    expect(preview.estimatedBytes, lessThan(await source.length()));
+    expect(preview.quality.width, savedQuality.width);
+    expect(preview.quality.height, savedQuality.height);
+    expect(preview.quality.reviewScore, savedQuality.reviewScore);
+  });
+
+  test(
+    'receipt preparation keeps OCR source separate from backup copy',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('receipt_ocr_backup_');
+      addTearDown(() async {
+        if (await dir.exists()) await dir.delete(recursive: true);
+      });
+
+      final source = await _writeImage(dir, 'receipt.jpg', _receiptLikeImage());
+      final prepared = await ReceiptImageProcessor.prepareForOcrAndBackup(
+        path: source.path,
+        level: ReceiptDataSaverLevel.maximum,
+      );
+
+      expect(prepared.ocrSourcePath, isNotEmpty);
+      expect(prepared.backupPath, isNotEmpty);
+      expect(prepared.usesSeparateBackupCopy, isTrue);
+      expect(await File(prepared.ocrSourcePath).exists(), isTrue);
+      expect(await File(prepared.backupPath).exists(), isTrue);
+      expect(
+        await File(prepared.backupPath).length(),
+        lessThanOrEqualTo(await File(prepared.ocrSourcePath).length()),
+      );
+      expect(prepared.quality.reviewScore, greaterThan(0));
+    },
+  );
+
+  test(
+    'prepared saved-proof preview matches the final backup pipeline',
+    () async {
+      final dir = await Directory.systemTemp.createTemp(
+        'receipt_prepared_preview_',
+      );
+      addTearDown(() async {
+        if (await dir.exists()) await dir.delete(recursive: true);
+      });
+
+      final source = await _writeImage(
+        dir,
+        'receipt_on_counter.jpg',
+        _receiptOnCounterImage(),
+      );
+
+      final preview = await ReceiptImageProcessor.previewPreparedBackupFile(
+        path: source.path,
+        level: ReceiptDataSaverLevel.maximum,
+      );
+      final prepared = await ReceiptImageProcessor.prepareForOcrAndBackup(
+        path: source.path,
+        level: ReceiptDataSaverLevel.maximum,
+      );
+      final backupQuality = await ReceiptImageProcessor.qualityCheckFile(
+        prepared.backupPath,
+      );
+
+      expect(prepared.ocrSourcePath, isNot(prepared.backupPath));
+      expect(preview.level, ReceiptDataSaverLevel.maximum);
+      expect(preview.estimatedBytes, await File(prepared.backupPath).length());
+      expect(preview.quality.width, backupQuality.width);
+      expect(preview.quality.height, backupQuality.height);
+      expect(
+        (preview.quality.reviewScore - backupQuality.reviewScore).abs(),
+        lessThanOrEqualTo(1),
+      );
+      expect(
+        prepared.quality.reviewScore,
+        greaterThanOrEqualTo(backupQuality.reviewScore),
+      );
+    },
+  );
+
+  test(
+    'prepared backup preview cleans temporary OCR source artifacts',
+    () async {
+      final dir = await Directory.systemTemp.createTemp(
+        'receipt_prepared_cleanup_',
+      );
+      addTearDown(() async {
+        if (await dir.exists()) await dir.delete(recursive: true);
+      });
+
+      final source = await _writeImage(
+        dir,
+        'receipt_on_counter.jpg',
+        _receiptOnCounterImage(),
+      );
+      final enhancedBefore = _tempReceiptArtifactPaths('enhanced');
+
+      final preview = await ReceiptImageProcessor.previewPreparedBackupFile(
+        path: source.path,
+        level: ReceiptDataSaverLevel.strong,
+      );
+      final backupPath = await ReceiptImageProcessor.optimizePreparedBackupFile(
+        path: source.path,
+        level: ReceiptDataSaverLevel.strong,
+      );
+      addTearDown(() async {
+        final backup = File(backupPath);
+        if (await backup.exists()) await backup.delete();
+      });
+
+      final leakedEnhanced = _tempReceiptArtifactPaths(
+        'enhanced',
+      ).difference(enhancedBefore);
+      expect(preview.estimatedBytes, greaterThan(0));
+      expect(await File(backupPath).exists(), isTrue);
+      expect(backupPath, contains('maintaniac_receipt_optimized_'));
+      expect(leakedEnhanced, isEmpty);
+    },
+  );
+}
+
+Future<File> _writeImage(Directory dir, String name, img.Image image) async {
+  final file = File('${dir.path}/$name');
+  await file.writeAsBytes(img.encodeJpg(image, quality: 96), flush: true);
+  return file;
+}
+
+Set<String> _tempReceiptArtifactPaths(String prefix) {
+  final needle = 'maintaniac_receipt_${prefix}_';
+  return Directory.systemTemp
+      .listSync()
+      .whereType<File>()
+      .map((file) => file.path)
+      .where((path) => path.contains(needle))
+      .toSet();
 }
 
 img.Image _receiptLikeImage() {
@@ -119,5 +428,102 @@ img.Image _receiptLikeImage() {
       );
     }
   }
+  return image;
+}
+
+img.Image _receiptOnCounterImage() {
+  final image = img.Image(width: 1800, height: 2400);
+  img.fill(image, color: img.ColorRgb8(76, 72, 68));
+  final receipt = _receiptLikeImage();
+  img.compositeImage(image, receipt, dstX: 300, dstY: 280);
+  return image;
+}
+
+img.Image _tinyCornerReceiptLikeImage() {
+  final image = img.Image(width: 1800, height: 2400);
+  img.fill(image, color: img.ColorRgb8(64, 61, 58));
+  final receipt = img.copyResize(_receiptLikeImage(), width: 360);
+  img.compositeImage(image, receipt, dstX: 60, dstY: 90);
+  return image;
+}
+
+img.Image _darkReceiptLikeImage() {
+  final image = _receiptLikeImage();
+  for (final pixel in image) {
+    pixel
+      ..r = (pixel.r * .18).round()
+      ..g = (pixel.g * .18).round()
+      ..b = (pixel.b * .18).round();
+  }
+  return image;
+}
+
+img.Image _glareReceiptLikeImage() {
+  final image = _receiptLikeImage();
+  img.fillRect(
+    image,
+    x1: 0,
+    y1: 0,
+    x2: image.width,
+    y2: image.height,
+    color: img.ColorRgb8(250, 250, 246),
+  );
+  for (var y = 120; y < 1680; y += 64) {
+    img.drawLine(
+      image,
+      x1: 80,
+      y1: y,
+      x2: 1120,
+      y2: y,
+      color: img.ColorRgb8(248, 248, 248),
+      thickness: 1,
+    );
+  }
+  return image;
+}
+
+img.Image _fadedReceiptLikeImage() {
+  final image = _receiptLikeImage();
+  for (final pixel in image) {
+    final luma = (pixel.r * .299 + pixel.g * .587 + pixel.b * .114);
+    final faded = (210 + (luma - 128) * .22).round().clamp(0, 255);
+    pixel
+      ..r = faded
+      ..g = faded
+      ..b = faded;
+  }
+  return image;
+}
+
+img.Image _thermalReceiptLikeImage() {
+  final image = _receiptLikeImage();
+  for (final pixel in image) {
+    final luma = (pixel.r * .299 + pixel.g * .587 + pixel.b * .114);
+    final warm = (190 + (luma - 128) * .34).round().clamp(0, 255);
+    pixel
+      ..r = (warm + 18).clamp(0, 255)
+      ..g = (warm + 6).clamp(0, 255)
+      ..b = (warm - 12).clamp(0, 255);
+  }
+  return image;
+}
+
+img.Image _shadowedReceiptLikeImage() {
+  final image = _receiptLikeImage();
+  for (final pixel in image) {
+    final vertical = pixel.y / image.height;
+    final horizontal = pixel.x / image.width;
+    final shadow = (.42 + vertical * .42 + horizontal * .18).clamp(.38, 1.05);
+    pixel
+      ..r = (pixel.r * shadow).round().clamp(0, 255)
+      ..g = (pixel.g * shadow).round().clamp(0, 255)
+      ..b = (pixel.b * shadow).round().clamp(0, 255);
+  }
+  return image;
+}
+
+img.Image _blankImage() {
+  final image = img.Image(width: 1200, height: 1800);
+  img.fill(image, color: img.ColorRgb8(244, 244, 240));
   return image;
 }

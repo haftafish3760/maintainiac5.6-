@@ -156,6 +156,10 @@ void main() {
       rawReceiptText: 'LOWES COP EL',
       confidence: .68,
       reviewStatus: WorkSupplyLineReviewStatus.needsReview,
+      originalParsedDescription: '3/4 in Copper 90 Elbow',
+      originalParsedInventoryItemId: 'MI-999',
+      originalParsedInventoryPath: 'Plumbing / Fittings / Copper',
+      reviewAction: 'edited',
     );
 
     await store.saveReceipt(
@@ -172,6 +176,10 @@ void main() {
     expect(loaded.confidenceLabel, 'Review');
     expect(loaded.confidenceGuidance, 'Review this line before saving.');
     expect(loaded.needsReview, isTrue);
+    expect(loaded.wasCorrectedFromParser, isTrue);
+    expect(loaded.originalParsedInventoryItemId, 'MI-999');
+    expect(loaded.reviewAction, 'edited');
     expect(loaded.toMap()['confidenceLevel'], 'okay');
+    expect(loaded.toMap()['reviewAction'], 'edited');
   });
 }

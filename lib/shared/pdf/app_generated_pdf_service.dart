@@ -23,6 +23,7 @@ class AppGeneratedPdfService {
   Future<AppGeneratedPdfFile> writeTemporary(
     AppGeneratedPdfDocument document,
   ) async {
+    _ensureSendablePdf(document);
     await _ensureStorage(document);
     final directory = await _generatedPdfDirectory();
     await _createDirectory(directory);
@@ -50,6 +51,7 @@ class AppGeneratedPdfService {
   }
 
   Future<bool> print(AppGeneratedPdfDocument document) {
+    _ensureSendablePdf(document);
     return Printing.layoutPdf(
       name: document.safeFileName,
       onLayout: (_) async => document.bytes,
@@ -58,13 +60,34 @@ class AppGeneratedPdfService {
 
   Future<ShareResultStatus> share(AppGeneratedPdfDocument document) async {
     final generated = await writeTemporary(document);
+    return shareGeneratedFile(generated);
+  }
+
+  Future<ShareResultStatus> shareGeneratedFile(
+    AppGeneratedPdfFile generated,
+  ) async {
+    _ensureSendablePdf(generated.document);
+    final file = File(generated.path);
+    if (!await file.exists()) {
+      throw const AppGeneratedPdfException(
+        'Maintaniac could not find that prepared PDF. Please create it again.',
+      );
+    }
+    final actualBytes = await file.length();
+    if (actualBytes != generated.byteSize) {
+      throw const AppGeneratedPdfException(
+        'Maintaniac stopped this PDF because the prepared file was incomplete.',
+      );
+    }
     final result = await SharePlus.instance.share(
       ShareParams(
-        title: document.title,
-        subject: document.shareSubject.isEmpty
-            ? document.title
-            : document.shareSubject,
-        text: document.shareText.isEmpty ? document.title : document.shareText,
+        title: generated.document.title,
+        subject: generated.document.shareSubject.isEmpty
+            ? generated.document.title
+            : generated.document.shareSubject,
+        text: generated.document.shareText.isEmpty
+            ? generated.document.title
+            : generated.document.shareText,
         files: [XFile(generated.path)],
       ),
     );
@@ -101,6 +124,12 @@ class AppGeneratedPdfService {
     }
   }
 
+  void _ensureSendablePdf(AppGeneratedPdfDocument document) {
+    final validation = document.validation;
+    if (validation.isValid) return;
+    throw AppGeneratedPdfException(validation.userMessage);
+  }
+
   Future<Directory> _generatedPdfDirectory() async {
     final directory = await getTemporaryDirectory();
     return Directory(path.join(directory.path, 'maintaniac_generated_pdfs'));
@@ -116,9 +145,13 @@ class AppGeneratedPdfService {
     }
   }
 
-  Future<File> _availableDestination(Directory directory, String fileName) async {
+  Future<File> _availableDestination(
+    Directory directory,
+    String fileName,
+  ) async {
     final first = File(path.join(directory.path, fileName));
-    if (!await first.exists() && !await File('${first.path}.partial').exists()) {
+    if (!await first.exists() &&
+        !await File('${first.path}.partial').exists()) {
       return first;
     }
     final extension = path.extension(fileName);
@@ -138,14 +171,7 @@ class AppGeneratedPdfService {
   }
 
   String _safeFileName(String fileName) {
-    final cleaned = fileName
-        .replaceAll(RegExp(r'[\\/:*?"<>|]+'), '-')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-    final normalized = cleaned.isEmpty ? 'maintaniac-document.pdf' : cleaned;
-    return normalized.length <= 120
-        ? normalized
-        : '${normalized.substring(0, 116)}.pdf';
+    return AppGeneratedPdfFileName.clean(fileName);
   }
 
   Future<void> _deleteIfExists(File file) async {

@@ -1,0 +1,18 @@
+Batch 2 notes for work supply inventory screen
+
+Related screen:
+lib/screens/work_supplies/inventory/work_supply_inventory_screen.dart
+
+Source: visible user message, 2026-06-20 Batch 2
+
+"This needs to be a true blue inventory system."
+
+"For the inventory, I was going to have packs that people could download."
+
+"We would start off with a basic inventory catalog in the app itself with the
+most popular stuff."
+
+"The reason I don't want to put all of that stuff on here is because it would
+make the size of this app too large for older phones, and it would slow them
+down."
+

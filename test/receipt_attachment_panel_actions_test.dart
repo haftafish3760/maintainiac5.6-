@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_attachment_panel.dart';
@@ -5,6 +7,39 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_inspector.dart';
 
 void main() {
+  test('receipt attachment panel has plain recovery states', () {
+    final panelSource = File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart',
+    ).readAsStringSync();
+    final ocrSource = File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_actions.dart',
+    ).readAsStringSync();
+
+    expect(panelSource, contains('_ReceiptReadStatusKind.failed'));
+    expect(panelSource, contains('_ReceiptReadStatusKind.warning'));
+    expect(panelSource, contains('Receipt Could Not Be Read'));
+    expect(
+      panelSource,
+      contains(
+        'Use a clearer photo, add another photo for a long receipt, or keep the proof and fill the receipt by hand.',
+      ),
+    );
+    expect(panelSource, contains('Receipt Ready For Review'));
+    expect(panelSource, contains('Add More Proof'));
+    expect(
+      ocrSource,
+      contains(
+        'Receipt reading failed before the review fields could be filled.',
+      ),
+    );
+    expect(
+      ocrSource,
+      contains(
+        'No readable receipt text was found. Keep the proof, add another photo, or retake with brighter light.',
+      ),
+    );
+  });
+
   testWidgets('removing an imported proof asks before deleting it', (
     tester,
   ) async {
@@ -117,6 +152,105 @@ void main() {
     expect(find.textContaining('Saved, not readable'), findsOneWidget);
     expect(find.textContaining('Scanned/image PDF'), findsOneWidget);
     expect(find.textContaining('Review PDF warnings'), findsOneWidget);
+    expect(find.text('Add More Proof'), findsOneWidget);
+  });
+
+  testWidgets('multiple receipt photos are shown in receipt order', (
+    tester,
+  ) async {
+    var hasAttachment = true;
+    List<ReceiptAttachmentRecord> published = const [];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: SharedReceiptAttachmentPanel(
+              hasReceipt: true,
+              initialAttachments: [
+                _photoAttachment(
+                  id: 'photo-top',
+                  path: '/tmp/top.jpg',
+                  quality: const ReceiptPhotoQualityCheck(
+                    width: 1800,
+                    height: 2400,
+                    focusScore: 15,
+                    brightness: 148,
+                    contrast: 40,
+                    cropScore: .78,
+                    textBandScore: 14,
+                    isLikelyReadable: true,
+                  ),
+                ),
+                _photoAttachment(id: 'photo-middle', path: '/tmp/middle.jpg'),
+                _photoAttachment(id: 'photo-bottom', path: '/tmp/bottom.jpg'),
+              ],
+              onChanged: (value) => hasAttachment = value,
+              onAttachmentsChanged: (attachments) => published = attachments,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('3 receipt photos attached'), findsOneWidget);
+    expect(find.textContaining('Photos kept in receipt order'), findsOneWidget);
+    expect(
+      find.textContaining('Next reads the clear photo first'),
+      findsWidgets,
+    );
+    expect(find.textContaining('saved proof'), findsWidgets);
+    expect(find.text('Receipt photo 1'), findsOneWidget);
+    expect(find.text('Receipt photo 2'), findsOneWidget);
+    expect(find.text('Receipt photo 3'), findsOneWidget);
+    expect(find.textContaining('Photo looks readable'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.more_vert_rounded).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Remove receipt photo?'), findsOneWidget);
+    expect(
+      find.textContaining('make sure the remaining photos still cover'),
+      findsOneWidget,
+    );
+    expect(find.text('Remove Photo'), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('3 receipt photos attached'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.more_vert_rounded).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove Photo'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('2 receipt photos attached'), findsOneWidget);
+    expect(find.text('Receipt photo 1'), findsOneWidget);
+    expect(find.text('Receipt photo 2'), findsOneWidget);
+    expect(hasAttachment, isTrue);
+    final publishedPhotos = published
+        .where((attachment) => attachment.isPhoto)
+        .toList();
+    expect(publishedPhotos, hasLength(2));
+    expect(publishedPhotos.map((attachment) => attachment.id), [
+      'photo-middle',
+      'photo-bottom',
+    ]);
+    expect(publishedPhotos.map((attachment) => attachment.path), [
+      '/tmp/middle.jpg',
+      '/tmp/bottom.jpg',
+    ]);
+    expect(
+      published.any(
+        (attachment) =>
+            attachment.path == '/tmp/top.jpg' &&
+            attachment.photoQualityScore != null,
+      ),
+      isFalse,
+    );
   });
 }
 
@@ -141,4 +275,19 @@ ReceiptAttachmentRecord _pdfAttachment({
     storageState: ReceiptAttachmentStorageState.permanent,
     readState: readState,
   );
+}
+
+ReceiptAttachmentRecord _photoAttachment({
+  required String id,
+  required String path,
+  ReceiptPhotoQualityCheck? quality,
+}) {
+  return ReceiptAttachmentRecord(
+    id: id,
+    path: path,
+    kind: ReceiptAttachmentKind.photo,
+    dataSaverLevel: ReceiptDataSaverLevel.balanced,
+    createdAt: DateTime(2026, 6, 14),
+    storageState: ReceiptAttachmentStorageState.permanent,
+  ).withPhotoQuality(quality);
 }

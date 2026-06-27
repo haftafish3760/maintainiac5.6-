@@ -1,0 +1,19 @@
+Batch 4 notes for owner admin security center
+
+Related module:
+screen_notes/admin_app.txt
+
+Source: /Users/rbbie/.codex/attachments/14a759af-51f1-48fa-85e9-445d4851ee51/pasted-text.txt
+
+"All of the security rules, all of the security layers, with my admin, or, you
+know, my, you know, the app owner stuff on my dashboard that I have that I
+create for myself that's attached or that's connected to the app itself, I'm
+going to have a security center in there for myself so I can get alerts about
+security stuff, so I'll know that I got something potentially going on."
+
+"I will have that stuff set up so that I get an alert, like really, really
+loud alert on my phone that will wake me up if I'm asleep if it's bad enough or
+something."
+
+"But that's something we need to worry about later."
+

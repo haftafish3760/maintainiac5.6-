@@ -87,6 +87,7 @@ const _amountOnlyCategories = {
   'postage',
   'registration',
   'rent',
+  'receipt_adjustment',
   'roadside_help',
   'subscriptions',
   'tolls',

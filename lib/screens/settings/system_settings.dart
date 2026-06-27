@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/context/operational_context_store.dart';
 import '../../shared/navigation/app_page_routes.dart';
+import '../../shared/profiles/user_profile_models.dart';
 import '../../shared/widgets/app_back_button.dart';
 import '../../shared/widgets/app_screen_shell.dart';
+import '../profiles/employee_permissions_screen.dart';
 import '../work_supplies/jobs/work_supply_jobs_screen.dart';
 import 'master_export_screen.dart';
 
@@ -37,9 +40,17 @@ class _SystemSettingsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final operationalContext = OperationalContextScope.maybeOf(context);
+    final canManagePeople =
+        operationalContext?.can(UserPermission.manageProfiles) == true ||
+        operationalContext?.can(UserPermission.manageRoles) == true;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (canManagePeople) ...[
+          const _AccountAccessPanel(),
+          const SizedBox(height: 12),
+        ],
         const _ScreenNavigationPanel(),
         const SizedBox(height: 12),
         const _SettingsSurface(
@@ -58,6 +69,52 @@ class _SystemSettingsContent extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _AccountAccessPanel extends StatelessWidget {
+  const _AccountAccessPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 11, 12, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF172023),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF5D6A71)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Account Access',
+            style: TextStyle(
+              color: Color(0xFFE2E8EA),
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Company profile, employee access, role templates, and permission controls.',
+            style: TextStyle(
+              color: Color(0xFFCAD2D5),
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _ScreenButton(
+            label: 'Employee Profiles and Permissions',
+            onTap: () => Navigator.of(
+              context,
+            ).push(appNativeRoute(context, const EmployeePermissionsScreen())),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,0 +1,89 @@
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"Each of these screens in here are apps. They're individual apps. You got
+mileage tracker, expense tracking, obviously, inventory, which is materials,
+invoices, maintenance."
+
+Source: /Users/rbbie/.codex/attachments/c8afdb36-f51f-452e-b314-109f5c4bb0d0/pasted-text.txt
+
+"Each vehicle gets its own mileage and maintenance, all that good stuff."
+
+Source: /Users/rbbie/.codex/attachments/e117ca5d-e0b2-4104-8f8f-2b550e4bc7be/pasted-text.txt
+
+"There are two sides to this app. One is the normal, everyday application that's
+serious. Then, we need to have a sarcastic mode as well."
+
+"Everything would be sarcastic, like for maintenance. I'm gonna tell you what,
+you better change that oil. It's turning thicker than molasses."
+
+Batch 2026-06-26 maintenance rebuild requirements:
+
+- First-time Maintenance opens with a tracked-item selector only when the
+  current vehicle has no tracked maintenance. Selecting items and tapping
+  Continue must land on the Maintenance home screen, not the main Dashboard.
+- The active vehicle block/header decides which vehicle's maintenance records
+  are being viewed and edited. Maintenance setup, status, service logging, and
+  odometer values are vehicle-specific.
+- Maintenance home must behave like a professional maintenance tracker, not a
+  contractor command-center clone. Avoid nested containers around tracked
+  maintenance items. Tracked rows themselves carry the visual status.
+- Mileage thresholds are mandatory: green is 901+ miles remaining, yellow is
+  601-900, orange is 301-600, and red is 300 miles down through overdue.
+  When an item enters a threshold, the visible tracked item row/container
+  should reflect that threshold color.
+- The most urgent maintenance item must be sorted to the top of the home list.
+  Attention level wins first, then item importance.
+- Each maintenance item needs Basic setup and Detailed setup. Basic setup is
+  last service date, last service odometer when mileage matters, mileage
+  interval, and time interval. Detailed setup contains item-specific fields such
+  as engine oil type/weight, coolant type/mix, transmission fluid type/spec,
+  brake fluid rating, tire service type, filter details, and similar details.
+- Engine oil basic presets should include mileage intervals of 3,000, 5,000,
+  7,500, and 10,000 miles, plus time intervals of 3, 6, 9, and 12 months.
+  Other maintenance items should use presets appropriate to their normal
+  industry/service interval.
+- Tapping a tracked maintenance item opens that item's setup/detail screen so
+  the user can review status, adjust intervals, enter last service details, and
+  log service for that exact item.
+- Log Maintenance must ask what item or items were serviced before asking for
+  service odometer/date/provider/notes. A single service event may apply to
+  multiple selected maintenance items.
+- Maintenance receipt parsing and Firebase backup/sync will be handled later;
+  UI work should provide clean hooks without building the receipt backend in
+  this pass.
+
+Batch 2026-06-27 maintenance setup screen requirements:
+
+- Maintenance setup/detail must be a full screen for the selected maintenance
+  item, not a popup. The top of the screen shows the item title such as Engine
+  Oil, Oil Filter, Transmission Fluid and Filter, Registration, or Inspection.
+- Engine oil artwork should resemble a classic pump oil can with long metal
+  spout, handle, and clear oil/engine-oil identity. It must be original artwork,
+  compressed for app size, and reviewed by actual data size as well as visual
+  clarity.
+- The item setup screen should start with last-service context: estimated or
+  exact last service date/day information, then estimated or exact odometer or
+  distance since last service. The UI must not be ambiguous about whether a
+  number is exact or estimated.
+- Basic and Advanced are separate screen states. Basic setup is distance and
+  time only. Advanced setup adds item-specific details, such as oil type and oil
+  weight for Engine Oil, or fluid family and specification for transmission
+  fluid. Switching modes changes what is shown without changing route.
+- Mileage interval and time interval controls should sit side by side where the
+  phone width allows. They should not be stacked by default on normal phones.
+- Engine Oil and Oil Filter are related. Engine Oil setup/logging should offer a
+  paired oil-filter option because users commonly service both together.
+- Interval presets should be appropriate to the selected item, with a Custom
+  option that lets the user enter a custom mileage or time interval.
+- After interval selection, show a next-due preview for both odometer and date
+  based on the entered last-service data and selected interval.
+- Maintenance thresholds are part of item setup. Thresholds are enabled by
+  default and must be customizable. Mileage threshold defaults are Green 901+
+  miles, Yellow 601-900, Orange 301-600, Red 300 down through overdue.
+- Time thresholds are also required. Long-interval defaults are Red 0-14 days,
+  Orange 15-30 days, Yellow 31-60 days, Green 61+ days. Short-interval defaults
+  are Red 0-10 days, Orange 11-20 days, Yellow 21-30 days, Green 31+ days.
+- Notifications are off by default and independent by channel. In-app
+  maintenance notices, push notifications, and audible notifications must be
+  separately toggleable. Push and audible channels need permission handling when
+  implemented; the UI must not pretend permission was already granted.

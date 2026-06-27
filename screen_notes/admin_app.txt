@@ -1,0 +1,13 @@
+Maintainiac owner/admin app
+
+Source: visible user message, 2026-06-20 Batch 2
+
+"Now here's another thing, I'm going to need an admin app for this app myself
+so that I can do, you know, help users, you know, all sorts of stuff, whatever
+an admin needs."
+
+"We will worry about my admin part later on, after the app is built."
+
+"I'll figure out what kind of layout I need and we will go from there."
+
+"But for now, let's keep doing this foundational stuff."

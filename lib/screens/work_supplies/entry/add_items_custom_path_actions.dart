@@ -133,7 +133,8 @@ extension _WorkSupplyAddItemsCustomPathActions
         _system != null ||
         _category != null ||
         _trade != null ||
-        _itemEntryMode != null;
+        _itemEntryMode != null ||
+        _receiptInfoComplete;
   }
 
   void _stepBack() {
@@ -150,6 +151,8 @@ extension _WorkSupplyAddItemsCustomPathActions
         _trade = null;
       } else if (_itemEntryMode != null) {
         _itemEntryMode = null;
+      } else if (_receiptInfoComplete) {
+        _receiptInfoComplete = false;
       }
     });
   }
@@ -208,5 +211,13 @@ extension _WorkSupplyAddItemsCustomPathActions
         _trade = null;
       }
     });
+  }
+
+  bool get _canLineEditorStepBack {
+    return _selectedItem != null ||
+        _itemType != null ||
+        _system != null ||
+        _category != null ||
+        _trade != null;
   }
 }

@@ -1,0 +1,83 @@
+Screen: lib/screens/maintenance/maintenance_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"You got mileage tracker, expense tracking, obviously, inventory, which is
+materials, invoices, maintenance."
+
+Source: /Users/rbbie/.codex/attachments/e117ca5d-e0b2-4104-8f8f-2b550e4bc7be/pasted-text.txt
+
+"Sarcastic mode, that is going to be only roasting the situation. We can roast
+the user a little bit, but we are not gonna be offensive."
+
+"I'm gonna tell you what, you better change that oil. It's turning thicker than
+molasses. You know, different things like that."
+
+Batch 2026-06-27 maintenance UI/UX requirements:
+
+- Work on maintenance UI/UX first. Do not wire Firebase, backend persistence,
+  notification permissions, or expense behavior during this pass.
+- Icons are last. Do not spend this pass replacing maintenance artwork.
+- The first-time maintenance flow starts with the tracked-item selection screen.
+  After the user taps Continue, the app must land at the top of the maintenance
+  home screen.
+- The maintenance app must look like the rest of Maintainiac, not like a
+  cartoon. Avoid bright oversized borders, heavy outlines, and loud container
+  styling except where color is functional.
+- Use the app's existing dark industrial surfaces, thin structural borders,
+  compact labels, filled readable controls, and consistent spacing.
+- Layout must be responsive. Put related fields side by side whenever feasible
+  on normal phone widths and larger screens. Stack them only when the device is
+  too narrow, such as an iPhone SE class layout.
+- The active vehicle row/header is the vehicle selector. Do not make the
+  maintenance vehicle overview act as the vehicle chooser.
+- Maintenance item setup/detail screens must show the active vehicle header so
+  the user knows which vehicle's mileage and maintenance record they are editing.
+- Vehicle overview on the maintenance home is an alert/message area only. Hide
+  it unless there is maintenance attention needed or setup missing on a vehicle.
+  If a vehicle alert row is tapped, it should open that vehicle's page/details,
+  not silently switch the active vehicle.
+- Last service information uses professional helper text, not separate
+  exact/estimated selection controls. Tell the user they can enter an exact date
+  or an honest estimate. Do the same for odometer/mileage.
+- Basic/advanced mode is not a segmented selector. Use a compact disclosure row
+  such as Show Advanced Details with a chevron. Tapping it expands/collapses the
+  advanced details.
+- Advanced details are item-specific and paired fields must sit side by side
+  when space allows. Examples: Engine Oil uses Oil type + Oil weight.
+  Transmission Fluid uses Fluid family + Specification.
+- Mileage interval and time interval are paired. They belong on the same row
+  when space allows: mileage on the left, time on the right.
+- Custom miles and custom months must not be separate always-visible fields.
+  Custom belongs inside the same dropdown/selector as the presets. Choosing
+  Custom opens numeric entry with the device keypad.
+- Engine oil interval presets: 3,000 miles, 5,000 miles, 7,500 miles,
+  10,000 miles, plus Custom. Time presets: 3, 6, 9, 12 months, plus Custom.
+- Transmission/coolant/longer-service mileage presets must include practical
+  values such as 25,000, 50,000, 75,000, 100,000 miles, plus Custom where
+  appropriate.
+- Threshold UI must use solid functional bands, not text fields. Mileage and
+  time thresholds should be paired on the same row when space allows.
+- Mileage threshold bands:
+  Green: 900+ miles.
+  Yellow: 601-900 miles.
+  Orange: 301-600 miles.
+  Red: 0-300 miles.
+- Short time threshold bands for engine oil and items under one year:
+  Green: 31+ days.
+  Yellow: 21-30 days.
+  Orange: 11-20 days.
+  Red: 0-10 days.
+- Long time threshold bands for items over 12 months:
+  Green: 43+ days.
+  Yellow: 29-42 days.
+  Orange: 15-28 days.
+  Red: 0-14 days.
+- Threshold section must explain that these bands control when the maintenance
+  item changes color on the maintenance home screen.
+- Item-level notifications belong above the threshold section on each
+  maintenance item because each item may need different reminder behavior. The
+  item setup can show in-app, push, and audible reminder toggles as UI state. Do
+  not wire OS permission requests in this UI pass.
+- App-level notification channel rules and permission explanations belong in
+  maintenance settings later. Do not remove item-level reminder preferences.

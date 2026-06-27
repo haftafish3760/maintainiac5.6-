@@ -1,0 +1,13 @@
+Screen: lib/screens/settings/master_export_screen.dart
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"Then if I tap weekly total, it shows me about all of my weekly totals for
+everything. I love that as well. We need to wire that up and get it working."
+
+Source: /Users/rbbie/.codex/attachments/0033c4ad-9f3e-426c-bd00-8fbc98c13b44/pasted-text.txt
+
+"AI/OCR calls" and "Exports using live backend services" were listed by the
+user as things that could cost money and must not happen in production during
+foundation testing.
+

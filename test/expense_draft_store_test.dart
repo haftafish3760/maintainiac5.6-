@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_draft_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_ocr_service.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_proof_storage.dart';
 
 import 'helpers/receipt_pdf_test_support.dart';
@@ -70,6 +71,55 @@ void main() {
     expect(loaded.total, 44.94);
     expect(loaded.rawOcrText, 'LOWES MATERIALS 42.00');
     expect(drafts.drafts.map((item) => item.id), ['draft-1']);
+  });
+
+  test('drafts keep OCR review metadata for resumed receipt review', () async {
+    final ocr = await const ReceiptOcrService().recognizeTextFromAttachments([
+      ReceiptAttachmentRecord(
+        id: 'email-1',
+        path: '',
+        kind: ReceiptAttachmentKind.emailText,
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        createdAt: DateTime(2026, 6, 11, 12),
+        importedText: 'LOWES\nPVC GLUE 7.99',
+      ),
+      ReceiptAttachmentRecord(
+        id: 'email-2',
+        path: '',
+        kind: ReceiptAttachmentKind.emailText,
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        createdAt: DateTime(2026, 6, 11, 12),
+        importedText: 'PVC GLUE 7.99\nTOTAL 7.99',
+      ),
+    ]);
+    final drafts = await ExpenseDraftController.create();
+    final draft = ExpenseReceiptDraftRecord(
+      id: 'draft-ocr',
+      receiptDate: DateTime(2026, 6, 11),
+      updatedAt: DateTime(2026, 6, 11, 12),
+      rawOcrText: ocr.rawText,
+      ocrReview: ExpenseReceiptOcrReview.fromDiagnostics(
+        diagnostics: ocr.diagnostics,
+        warnings: ocr.structuredWarnings,
+      ),
+    );
+
+    await drafts.saveDraft(draft);
+
+    final loaded = drafts.draftById('draft-ocr')!;
+    expect(loaded.ocrReview.hasData, isTrue);
+    expect(loaded.ocrReview.severity, ReceiptOcrReviewSeverity.review.name);
+    expect(loaded.ocrReview.warningKinds, [
+      ReceiptOcrWarningKind.duplicateText.name,
+    ]);
+    expect(
+      loaded.ocrReview.countForWarningKind(
+        ReceiptOcrWarningKind.duplicateText.name,
+      ),
+      1,
+    );
+    expect(loaded.ocrReview.primaryWarningLabel, 'Duplicate lines ignored');
+    expect(loaded.ocrReview.hadDuplicateOrOverlapText, isTrue);
   });
 
   test(

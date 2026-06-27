@@ -1,17 +1,20 @@
-# maintaniac
+# Maintaniac
 
-A new Flutter project.
+Maintaniac is a local-first Flutter record-keeping app for drivers,
+contractors, small crews, vehicles, expenses, mileage, invoices, inventory,
+maintenance, employees, and related business records.
 
-## Getting Started
+## Project Documentation
 
-This project is a starting point for a Flutter application.
+- Build rules: `PROJECT_RULES.md`
+- Screen/module requirement notes: `screen_notes/`
+- How to use those notes: `docs/screen_notes_usage.md`
 
-A few resources to get you started if this is your first Flutter project:
+The screens in this app often behave like individual apps under one roof. Before
+changing a screen or module, read the matching TXT notes in `screen_notes/`.
+Those files capture app requirements and feature decisions from prior
+conversation. They should not include unrelated rambling or duplicated venting.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Flutter
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Use the normal Flutter toolchain for analysis, tests, builds, and device runs.

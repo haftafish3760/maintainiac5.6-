@@ -51,11 +51,25 @@ app.*.map.json
 # Codex/local review artifacts
 .codex_screenshots/
 asset_reviews/
+firebase_emulator_tests/node_modules/
+firebase_emulator_tests/.firebase/
 
 # Local Firebase app configuration. Recreate from Firebase console per machine.
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 lib/firebase_options.dart
+
+# Local secrets and server credentials must never be committed.
+.env
+.env.*
+*.pem
+*.p8
+*.key
+*service-account*.json
+*service_account*.json
+firebase-adminsdk*.json
+google-application-credentials*.json
+service-account*.json
 
 # Generated invoice/template artwork is backed up locally and regenerated later.
 assets/invoice_templates/

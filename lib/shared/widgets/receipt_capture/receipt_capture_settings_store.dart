@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'receipt_assistance_policy.dart';
 import 'receipt_capture_models.dart';
+import 'receipt_device_capability_service.dart';
 
 enum ReceiptCaptureArea {
   expenses('Expenses'),
@@ -14,16 +16,53 @@ enum ReceiptCaptureArea {
 }
 
 class ReceiptCaptureSettingsController extends ChangeNotifier {
-  ReceiptCaptureSettingsController._(this._box);
+  ReceiptCaptureSettingsController._(
+    this._box, {
+    required ReceiptHardwareProfile hardwareProfile,
+    required ReceiptDeviceCapability deviceCapability,
+    ReceiptDeviceCapabilityService capabilityService =
+        const ReceiptDeviceCapabilityService(),
+  }) : _hardwareProfile = hardwareProfile,
+       _deviceCapability = deviceCapability,
+       _capabilityService = capabilityService;
 
   static const boxName = 'receipt_capture_settings';
 
   static Future<ReceiptCaptureSettingsController> create() async {
     final box = await Hive.openBox<dynamic>(boxName);
-    return ReceiptCaptureSettingsController._(box);
+    const service = ReceiptDeviceCapabilityService();
+    final mode = ReceiptPerformanceMode.fromName(
+      box.get(_Keys.receiptPerformanceMode) as String?,
+    );
+    final hardware = await service.detectHardwareProfile();
+    final capability = ReceiptDeviceCapability.fromHardware(
+      hardware: hardware,
+      mode: mode,
+    );
+    return ReceiptCaptureSettingsController._(
+      box,
+      hardwareProfile: hardware,
+      deviceCapability: capability,
+      capabilityService: service,
+    );
   }
 
   final Box<dynamic> _box;
+  final ReceiptDeviceCapabilityService _capabilityService;
+  ReceiptHardwareProfile _hardwareProfile;
+  ReceiptDeviceCapability _deviceCapability;
+
+  ReceiptHardwareProfile get hardwareProfile => _hardwareProfile;
+  ReceiptDeviceCapability get deviceCapability => _deviceCapability;
+  ReceiptCapabilityTier get receiptCapabilityTier => _deviceCapability.tier;
+  ReceiptCameraRuntimeProfile get effectiveCameraRuntimeProfile {
+    return _deviceCapability.cameraRuntimeProfileFor(
+      guidanceRequested: cameraGuidanceEnabled,
+      startAssistedRequested: cameraStartAssisted,
+      autoCaptureRequested: cameraAutoCapture,
+      longReceiptTipsRequested: cameraLongReceiptTips,
+    );
+  }
 
   bool get appAssistedReceiptFill =>
       _readBool(_Keys.appAssistedReceiptFill, true);
@@ -34,7 +73,7 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
   bool get cameraSetupComplete => _readBool(_Keys.cameraSetupComplete, false);
   bool get cameraGuidanceEnabled =>
       _readBool(_Keys.cameraGuidanceEnabled, true);
-  bool get cameraStartAssisted => _readBool(_Keys.cameraStartAssisted, true);
+  bool get cameraStartAssisted => _readBool(_Keys.cameraStartAssisted, false);
   bool get cameraAutoCapture => _readBool(_Keys.cameraAutoCapture, false);
   bool get cameraVoiceCapture => _readBool(_Keys.cameraVoiceCapture, false);
   bool get cameraLongReceiptTips =>
@@ -42,10 +81,28 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
   bool get googleVisionAccess => _readBool(_Keys.googleVisionAccess, false);
   int get monthlyGoogleVisionLimit =>
       _readInt(_Keys.monthlyGoogleVisionLimit, 30);
-  ReceiptDataSaverLevel get defaultDataSaverLevel {
-    return ReceiptDataSaverLevel.fromName(
-      _box.get(_Keys.defaultDataSaverLevel) as String?,
+  ReceiptPerformanceMode get receiptPerformanceMode {
+    return ReceiptPerformanceMode.fromName(
+      _box.get(_Keys.receiptPerformanceMode) as String?,
     );
+  }
+
+  ReceiptDataSaverLevel get defaultDataSaverLevel {
+    final saved = _box.get(_Keys.defaultDataSaverLevel) as String?;
+    if (saved == null || saved.isEmpty) {
+      return _deviceCapability.recommendedDataSaverLevel;
+    }
+    return ReceiptDataSaverLevel.fromName(saved);
+  }
+
+  bool get defaultDataSaverUsesDeviceRecommendation {
+    final saved = _box.get(_Keys.defaultDataSaverLevel) as String?;
+    return saved == null || saved.isEmpty;
+  }
+
+  Future<void> useRecommendedDataSaverLevel() async {
+    await _box.delete(_Keys.defaultDataSaverLevel);
+    notifyListeners();
   }
 
   Future<void> setAppAssistedReceiptFill(bool value) =>
@@ -64,6 +121,12 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
       _writeBool(_Keys.cameraStartAssisted, value);
   Future<void> setCameraAutoCapture(bool value) =>
       _writeBool(_Keys.cameraAutoCapture, value);
+  Future<void> setCameraAutoCapturePreference(bool value) async {
+    if (value) await _box.put(_Keys.cameraStartAssisted, true);
+    await _box.put(_Keys.cameraAutoCapture, value);
+    notifyListeners();
+  }
+
   Future<void> setCameraVoiceCapture(bool value) =>
       _writeBool(_Keys.cameraVoiceCapture, value);
   Future<void> setCameraLongReceiptTips(bool value) =>
@@ -75,8 +138,46 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setReceiptPerformanceMode(ReceiptPerformanceMode mode) async {
+    await _box.put(_Keys.receiptPerformanceMode, mode.name);
+    _hardwareProfile = await _capabilityService.detectHardwareProfile();
+    _deviceCapability = ReceiptDeviceCapability.fromHardware(
+      hardware: _hardwareProfile,
+      mode: mode,
+    );
+    notifyListeners();
+  }
+
   Future<void> setDefaultDataSaverLevel(ReceiptDataSaverLevel level) async {
     await _box.put(_Keys.defaultDataSaverLevel, level.name);
+    notifyListeners();
+  }
+
+  Future<void> resetReceiptPhotoDefaultsFor(ReceiptCaptureArea area) async {
+    await _box.put(_Keys.appAssistedReceiptFill, true);
+    switch (area) {
+      case ReceiptCaptureArea.expenses:
+        await _box.put(_Keys.appAssistedExpenses, true);
+      case ReceiptCaptureArea.materialsInventory:
+        await _box.put(_Keys.appAssistedMaterials, true);
+      case ReceiptCaptureArea.maintenanceRepair:
+        await _box.put(_Keys.appAssistedMaintenance, true);
+    }
+    await _box.put(_Keys.cameraGuidanceEnabled, true);
+    await _box.put(_Keys.cameraStartAssisted, false);
+    await _box.put(_Keys.cameraAutoCapture, false);
+    await _box.put(_Keys.cameraVoiceCapture, false);
+    await _box.put(_Keys.cameraLongReceiptTips, true);
+    await _box.delete(_Keys.defaultDataSaverLevel);
+    await _box.put(
+      _Keys.receiptPerformanceMode,
+      ReceiptPerformanceMode.automatic.name,
+    );
+    _hardwareProfile = await _capabilityService.detectHardwareProfile();
+    _deviceCapability = ReceiptDeviceCapability.fromHardware(
+      hardware: _hardwareProfile,
+      mode: ReceiptPerformanceMode.automatic,
+    );
     notifyListeners();
   }
 
@@ -124,9 +225,16 @@ class ReceiptCaptureSettingsScope
   }
 
   static ReceiptCaptureSettingsController? maybeOf(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<ReceiptCaptureSettingsScope>()
-        ?.notifier;
+    try {
+      final widget = context
+          .getElementForInheritedWidgetOfExactType<
+            ReceiptCaptureSettingsScope
+          >()
+          ?.widget;
+      return widget is ReceiptCaptureSettingsScope ? widget.notifier : null;
+    } on FlutterError {
+      return null;
+    }
   }
 }
 
@@ -144,6 +252,7 @@ class _Keys {
   static const cameraVoiceCapture = 'camera_voice_capture';
   static const cameraLongReceiptTips = 'camera_long_receipt_tips';
   static const defaultDataSaverLevel = 'default_data_saver_level';
+  static const receiptPerformanceMode = 'receipt_performance_mode';
   static const googleVisionAccess = 'google_vision_access';
   static const monthlyGoogleVisionLimit = 'monthly_google_vision_limit';
 }

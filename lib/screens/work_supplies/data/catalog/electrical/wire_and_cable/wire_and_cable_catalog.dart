@@ -8,7 +8,7 @@ final electricalWireAndCableCategory = _category('Wire and Cable', [
         'NM-B Cable',
         'roll',
         ['14/2', '14/3', '12/2', '12/3', '10/2', '10/3'],
-        ['romex', 'house wire'],
+        ['romex', 'house wire', 'with ground', 'w ground', 'wg'],
       ),
     ),
   ]),

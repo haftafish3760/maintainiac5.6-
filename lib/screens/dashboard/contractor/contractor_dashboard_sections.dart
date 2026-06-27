@@ -32,6 +32,42 @@ class ContractorMetricsStrip extends StatelessWidget {
   }
 }
 
+class ContractorScaleStrip extends StatelessWidget {
+  const ContractorScaleStrip({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFF101719),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFF5B6A70), width: 1.4),
+        ),
+        child: const Padding(
+          padding: EdgeInsets.fromLTRB(10, 9, 10, 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: ContractorShiftReadout(label: 'Mode', value: 'Solo'),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: ContractorShiftReadout(label: 'Employees', value: '0'),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: ContractorShiftReadout(label: 'Fleet', value: '1'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class ContractorDayControlPanel extends StatelessWidget {
   const ContractorDayControlPanel({
     required this.dayStarted,

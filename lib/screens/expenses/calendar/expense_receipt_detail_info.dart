@@ -81,6 +81,198 @@ class _ReceiptInfoPanel extends StatelessWidget {
   }
 }
 
+class _ReceiptAllocationPanel extends StatelessWidget {
+  const _ReceiptAllocationPanel({required this.receipt});
+
+  final ExpenseReceiptRecord receipt;
+
+  @override
+  Widget build(BuildContext context) {
+    final businessLines = receipt.lines
+        .where((line) => line.use != ExpenseLineUse.personal)
+        .length;
+    final personalLines = receipt.lines
+        .where((line) => line.use != ExpenseLineUse.business)
+        .length;
+    final splitLines = receipt.lines
+        .where((line) => line.use == ExpenseLineUse.split)
+        .length;
+    final status = receipt.ocrReview.hasData
+        ? (receipt.ocrReview.needsReview ? 'Read needs review' : 'Read saved')
+        : 'Manual or proof-only';
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF101719),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF445159)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Receipt breakdown',
+            style: TextStyle(
+              color: Color(0xFFF0F4F2),
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _ReceiptBreakdownTile(
+                  label: 'Business',
+                  value: _money(receipt.businessTotal),
+                  detail: '$businessLines lines',
+                  color: const Color(0xFF8EF6A4),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _ReceiptBreakdownTile(
+                  label: 'Personal',
+                  value: _money(receipt.personalTotal),
+                  detail: '$personalLines lines',
+                  color: const Color(0xFFFFD166),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _ReceiptContextChip(
+                label: splitLines == 0
+                    ? 'No split lines'
+                    : '$splitLines split ${splitLines == 1 ? 'line' : 'lines'}',
+                icon: Icons.call_split_rounded,
+              ),
+              _ReceiptContextChip(
+                label: receipt.hasReceiptAttachment
+                    ? '${receipt.attachments.length} proof ${receipt.attachments.length == 1 ? 'file' : 'files'}'
+                    : 'No proof attached',
+                icon: receipt.hasReceiptAttachment
+                    ? Icons.verified_rounded
+                    : Icons.error_outline_rounded,
+              ),
+              _ReceiptContextChip(
+                label: status,
+                icon: receipt.ocrReview.needsReview
+                    ? Icons.manage_search_rounded
+                    : Icons.document_scanner_rounded,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReceiptBreakdownTile extends StatelessWidget {
+  const _ReceiptBreakdownTile({
+    required this.label,
+    required this.value,
+    required this.detail,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final String detail;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(9, 8, 9, 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .08),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: .36)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFFF0F4F2),
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            detail,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFFC8D0D3),
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReceiptContextChip extends StatelessWidget {
+  const _ReceiptContextChip({required this.label, required this.icon});
+
+  final String label;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(7, 5, 8, 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A2226),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: const Color(0xFF3E4A50)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: const Color(0xFFC8D0D3), size: 14),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFFE8ECEE),
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _InfoLine extends StatelessWidget {
   const _InfoLine({required this.label, required this.value});
 
@@ -118,6 +310,159 @@ class _InfoLine extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ReceiptOcrReviewPanel extends StatelessWidget {
+  const _ReceiptOcrReviewPanel({required this.review});
+
+  final ExpenseReceiptOcrReview review;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _statusColor(review.severity);
+    final chips = [
+      if (review.attachmentsRead > 0) '${review.attachmentsRead} read',
+      if (review.attachmentsSkipped > 0)
+        '${review.attachmentsSkipped} proof only',
+      if (review.parserLineCount > 0)
+        '${review.parserLineCount} receipt ${review.parserLineCount == 1 ? 'line' : 'lines'} ready',
+      if (review.warningCount > 0)
+        '${review.warningCount} OCR ${review.warningCount == 1 ? 'warning' : 'warnings'}',
+    ];
+    final warning = review.primaryWarningLabel;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF101719),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: .72)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(_statusIcon(review.severity), color: color, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Receipt read review',
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0,
+                  ),
+                ),
+              ),
+              Text(
+                _statusLabel(review.severity),
+                style: TextStyle(
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            warning.isEmpty
+                ? _statusDetail(review.severity)
+                : '$warning. ${_statusDetail(review.severity)}',
+            style: const TextStyle(
+              color: Color(0xFFC8D0D3),
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              height: 1.25,
+              letterSpacing: 0,
+            ),
+          ),
+          if (chips.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final chip in chips)
+                  _ReceiptOcrReviewChip(label: chip, color: color),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  static Color _statusColor(String severity) {
+    return switch (severity) {
+      'good' => const Color(0xFF8EF6A4),
+      'blocked' => const Color(0xFFFF8FA3),
+      'partial' || 'review' => const Color(0xFFFFD166),
+      _ => const Color(0xFF34A9E8),
+    };
+  }
+
+  static IconData _statusIcon(String severity) {
+    return switch (severity) {
+      'good' => Icons.verified_rounded,
+      'blocked' => Icons.error_outline_rounded,
+      'partial' => Icons.warning_amber_rounded,
+      'review' => Icons.manage_search_rounded,
+      _ => Icons.document_scanner_rounded,
+    };
+  }
+
+  static String _statusLabel(String severity) {
+    return switch (severity) {
+      'good' => 'Good',
+      'blocked' => 'Blocked',
+      'partial' => 'Partial',
+      'review' => 'Review',
+      _ => 'Saved',
+    };
+  }
+
+  static String _statusDetail(String severity) {
+    return switch (severity) {
+      'good' => 'The saved receipt read did not need extra review.',
+      'blocked' => 'This receipt was saved, but OCR could not complete.',
+      'partial' => 'Part of the receipt was saved as proof only.',
+      'review' =>
+        'The receipt was readable, but the app flagged it for review.',
+      _ => 'Receipt read details were saved with this record.',
+    };
+  }
+}
+
+class _ReceiptOcrReviewChip extends StatelessWidget {
+  const _ReceiptOcrReviewChip({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .1),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: color.withValues(alpha: .42)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 10.5,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0,
+        ),
       ),
     );
   }
@@ -170,15 +515,28 @@ class _ReceiptImagePreview extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index) {
                   final attachment = photoAttachments[index];
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: Image.file(
-                      File(attachment.path),
-                      width: 116,
-                      height: 168,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const _ReceiptProofUnavailable(),
+                  return Semantics(
+                    button: true,
+                    label: 'Open ${attachment.label}',
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(6),
+                        onTap: () =>
+                            _openReceiptPhotoProof(context, attachment),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.file(
+                            File(attachment.path),
+                            width: 116,
+                            height: 168,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const _ReceiptProofUnavailable(),
+                          ),
+                        ),
+                      ),
                     ),
                   );
                 },
@@ -198,6 +556,90 @@ class _ReceiptImagePreview extends StatelessWidget {
       ),
     );
   }
+}
+
+void _openReceiptPhotoProof(
+  BuildContext context,
+  ReceiptAttachmentRecord attachment,
+) {
+  Navigator.of(context).push<void>(
+    appNativeRoute(
+      context,
+      _ReceiptPhotoProofViewerScreen(attachment: attachment),
+    ),
+  );
+}
+
+class _ReceiptPhotoProofViewerScreen extends StatelessWidget {
+  const _ReceiptPhotoProofViewerScreen({required this.attachment});
+
+  final ReceiptAttachmentRecord attachment;
+
+  @override
+  Widget build(BuildContext context) {
+    final file = File(attachment.path);
+    return Scaffold(
+      backgroundColor: const Color(0xFF0B0F11),
+      body: SafeArea(
+        child: Column(
+          children: [
+            AppScreenHeader(
+              title: attachment.label,
+              actions: [
+                IconButton(
+                  tooltip: 'Close receipt proof',
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: Color(0xFFE2E8EA),
+                  ),
+                ),
+              ],
+            ),
+            Expanded(
+              child: Center(
+                child: file.existsSync()
+                    ? InteractiveViewer(
+                        minScale: .75,
+                        maxScale: 5,
+                        child: Image.file(
+                          file,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const _ReceiptProofUnavailable(),
+                        ),
+                      )
+                    : const _ReceiptProofUnavailable(),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
+              child: Text(
+                _receiptPhotoProofDetail(attachment),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFFC8D0D3),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _receiptPhotoProofDetail(ReceiptAttachmentRecord attachment) {
+  final parts = [
+    attachment.proofAccessLabel,
+    attachment.dataSaverLevel.label,
+    if (attachment.byteSize != null)
+      ReceiptStorageFormatter.formatBytes(attachment.byteSize!),
+  ];
+  return parts.join(' | ');
 }
 
 class _ReceiptNoProof extends StatelessWidget {

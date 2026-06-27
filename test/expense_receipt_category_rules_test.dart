@@ -18,6 +18,7 @@ void main() {
       'Loan/Lease',
       'Registration',
       'Meals',
+      'Receipt Adjustment',
       'Subscriptions',
       'Business License',
     ]) {

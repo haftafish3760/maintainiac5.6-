@@ -9,6 +9,7 @@ int _compareMaintenancePriority(MaintenanceRecord a, MaintenanceRecord b) {
 }
 
 int _attentionScore(MaintenanceRecord record) {
+  if (!record.setupComplete) return 5000 + record.importance;
   if (record.timeOnly) {
     if (record.monthsRemaining <= 0) return 4000 + record.importance;
     if (record.monthsRemaining <= 1) return 3000 + record.importance;
@@ -17,23 +18,28 @@ int _attentionScore(MaintenanceRecord record) {
     return record.importance;
   }
   if (record.milesRemaining <= 0) return 4000 + record.importance;
-  if (record.milesRemaining <= 299) return 3000 + record.importance;
-  if (record.milesRemaining <= 599) return 2000 + record.importance;
+  if (record.milesRemaining <= 300) return 3000 + record.importance;
+  if (record.milesRemaining <= 600) return 2000 + record.importance;
   if (record.milesRemaining <= 900) return 1000 + record.importance;
   return record.importance;
 }
 
 Color _recordColor(MaintenanceRecord record) {
+  if (!record.setupComplete) return const Color(0xFF4D5860);
+  if (!record.thresholdsEnabled) return AppActionColors.primary;
   if (record.timeOnly) {
-    if (record.monthsRemaining <= 1) return const Color(0xFFE3342F);
-    if (record.monthsRemaining <= 3) return const Color(0xFFFF7A00);
-    if (record.monthsRemaining <= 6) return const Color(0xFFFFC928);
-    return const Color(0xFF20B24A);
+    if (record.monthsRemaining <= 1) return AppColors.red;
+    if (record.monthsRemaining <= 3) return AppColors.orange;
+    if (record.monthsRemaining <= 6) return AppColors.yellow;
+    return AppActionColors.positive;
   }
   return thresholdColor(record.milesRemaining);
 }
 
 String _recordStatus(MaintenanceRecord record) {
+  if (!record.setupComplete) {
+    return 'Not set up yet - tap to add last service and intervals';
+  }
   final months = record.monthsRemaining.clamp(-99, 999);
   if (record.timeOnly) {
     return '$months months remaining • time-based renewal';

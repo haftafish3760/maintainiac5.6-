@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../shared/navigation/app_page_routes.dart';
@@ -12,16 +14,22 @@ import '../../../shared/receipts/receipt_line_models.dart';
 import '../../dashboard/vehicle_profile_flow.dart';
 import '../../dashboard/vehicle_profile_widgets.dart';
 import '../../expenses/categories/expense_categories.dart';
+import '../../expenses/data/expense_receipt_item_memory_store.dart';
+import '../../expenses/data/expense_receipt_parser.dart';
+import '../../expenses/data/expense_receipt_privacy_event_store.dart';
 import '../data/work_supply_catalog.dart';
 import '../data/work_supply_custom_catalog_store.dart';
 import '../data/work_supply_item_identity_store.dart';
 import '../data/work_supply_inventory_destination.dart';
 import '../data/work_supply_models.dart';
+import '../data/work_supply_parsed_receipt_bridge.dart';
+import '../data/work_supply_receipt_staging.dart';
 import '../data/work_supply_receipt_parser.dart';
 
 part 'receipt_destination_section.dart';
 part 'receipt_preview_section.dart';
 part 'add_items_receipt_sections.dart';
+part 'add_items_receipt_command_sections.dart';
 part 'add_items_picker_sections.dart';
 part 'add_items_picker_choice_sections.dart';
 part 'add_items_line_editor_sections.dart';
@@ -65,64 +73,64 @@ enum _PurchaseType {
     'Package',
     'Box, pack, or bundle',
     'Packages bought',
-    'Units/package',
+    'Items per package',
   ),
   roll(
     'roll',
     'Roll',
     'Wire, tubing, tape, or duct',
     'Rolls bought',
-    'Units/roll',
+    'Items per roll',
   ),
-  caseBox('case', 'Case', 'Cases or cartons', 'Cases bought', 'Units/case'),
+  caseBox('case', 'Case', 'Cases or cartons', 'Cases bought', 'Items per case'),
   bag(
     'bag',
     'Bag',
     'Bags of mix, fasteners, or supplies',
     'Bags bought',
-    'Units/bag',
+    'Items per bag',
   ),
   can(
     'can',
     'Can',
     'Paint, spray, adhesive, or chemical can',
     'Cans bought',
-    'Units/can',
+    'Items per can',
   ),
   gallon(
     'gallon',
     'Gallon',
     'Paint, herbicide, sealant, or liquid',
     'Gallons bought',
-    'Units/gallon',
+    'Items per gallon',
   ),
   quart(
     'quart',
     'Quart',
     'Small paint, primer, cleaner, or liquid',
     'Quarts bought',
-    'Units/quart',
+    'Items per quart',
   ),
   ounce(
     'ounce',
     'Ounce',
     'Liquid, sealant, adhesive, or chemical',
     'Ounces bought',
-    'Units/ounce',
+    'Items per ounce',
   ),
   pound(
     'pound',
     'Pound',
     'Seed, mortar, fasteners, or bulk material',
     'Pounds bought',
-    'Units/pound',
+    'Items per pound',
   ),
   foot(
     'foot',
     'Foot',
     'Cable, pipe, tubing, trim, or rolls',
     'Feet bought',
-    'Units/foot',
+    'Items per foot',
   );
 
   const _PurchaseType(
@@ -192,6 +200,20 @@ class WorkSupplyAddItemsResult {
   final List<ReceiptLineDraft> lines;
 }
 
+class _ParsedMaterialsReceiptReviewSummary {
+  const _ParsedMaterialsReceiptReviewSummary({
+    required this.qualityLabel,
+    required this.confidenceLabel,
+    required this.needsReview,
+    this.warning,
+  });
+
+  final String qualityLabel;
+  final String confidenceLabel;
+  final bool needsReview;
+  final String? warning;
+}
+
 class _WorkSupplyAddItemsScreenState extends State<WorkSupplyAddItemsScreen> {
   _ItemEntryMode? _itemEntryMode;
   WorkSupplyItem? _selectedItem;
@@ -224,10 +246,12 @@ class _WorkSupplyAddItemsScreenState extends State<WorkSupplyAddItemsScreen> {
   final _scrollController = ScrollController();
   final _lineEditorScrollController = ScrollController();
   final _searchFocus = FocusNode();
+  final _receiptDetailsKey = GlobalKey();
   WorkSupplyItem? _typedCatalogSuggestion;
   late DateTime _selectedDate = DateTime.now();
   TimeOfDay? _selectedTime;
   var _hasReceipt = false;
+  var _receiptInfoComplete = false;
   late String _storageArea =
       widget.initialStorageArea ?? workSupplyActiveVehicleInventoryLabel;
   var _customTrade = '';
@@ -244,6 +268,19 @@ class _WorkSupplyAddItemsScreenState extends State<WorkSupplyAddItemsScreen> {
   var _lineSequence = 0;
   final List<ReceiptLineDraft> _stagedReceiptLines = [];
   final List<WorkSupplyInventoryRecord> _stagedInventoryLines = [];
+  var _lastImportedReceiptText = '';
+  var _activeLineRawReceiptText = '';
+  double? _activeLineCatalogMatchConfidence;
+  List<String> _activeLineCatalogMatchedTerms = const [];
+  double? _activeLineParserConfidence;
+  String? _activeLineParserReviewLabel;
+  String? _activeLineParserReviewReason;
+  var _activeLineParserNeedsReview = false;
+  var _activeLineOriginalParsedDescription = '';
+  var _activeLineOriginalParsedInventoryItemId = '';
+  var _activeLineOriginalParsedInventoryPath = '';
+  var _activeLineReviewAction = 'manual';
+  _ParsedMaterialsReceiptReviewSummary? _parsedReceiptReview;
   WorkSupplyTrade? _trade;
   WorkSupplyCategory? _category;
   WorkSupplySystem? _system;
@@ -316,54 +353,92 @@ class _WorkSupplyAddItemsScreenState extends State<WorkSupplyAddItemsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const _AddHeader(),
+                      _AddHeader(receiptInfoComplete: _receiptInfoComplete),
                       const SizedBox(height: 10),
-                      _ReceiptSection(
-                        selectedDate: _selectedDate,
-                        selectedTime: _selectedTime,
-                        hasReceipt: _hasReceipt,
-                        showCamera: true,
-                        store: _storeController,
-                        phone: _phoneController,
-                        street: _streetController,
-                        city: _cityController,
-                        state: _stateController,
-                        zip: _zipController,
-                        email: _emailController,
-                        website: _websiteController,
-                        storeNotes: _storeNotesController,
-                        onSelectDate: _selectDate,
-                        onSelectTime: _selectTime,
-                        onClearTime: () => setState(() => _selectedTime = null),
-                        onReceiptChanged: (value) =>
-                            setState(() => _hasReceipt = value),
-                        onStoreChanged: () => setState(() {}),
-                      ),
-                      const SizedBox(height: 12),
-                      _ReceiptEntryLanes(
-                        nextLineNumber: _stagedReceiptLines.length + 1,
-                        onInventoryLine: _openInventoryReceiptLine,
-                        onBusinessLine: _openBusinessReceiptLine,
-                        onPersonalLine: _openPersonalReceiptLine,
-                      ),
-                      const SizedBox(height: 12),
-                      _InventoryReceiptPreview(
-                        lines: _stagedReceiptLines,
-                        currentLine: null,
-                        onEdit: _editStagedLine,
-                        onRemove: _removeStagedLine,
-                      ),
-                      if (_stagedReceiptLines.isNotEmpty) ...[
+                      if (!_receiptInfoComplete) ...[
+                        KeyedSubtree(
+                          key: _receiptDetailsKey,
+                          child: _ReceiptSection(
+                            selectedDate: _selectedDate,
+                            selectedTime: _selectedTime,
+                            hasReceipt: _hasReceipt,
+                            showCamera: true,
+                            store: _storeController,
+                            phone: _phoneController,
+                            street: _streetController,
+                            city: _cityController,
+                            state: _stateController,
+                            zip: _zipController,
+                            email: _emailController,
+                            website: _websiteController,
+                            storeNotes: _storeNotesController,
+                            onSelectDate: _selectDate,
+                            onSelectTime: _selectTime,
+                            onClearTime: () =>
+                                setState(() => _selectedTime = null),
+                            onReceiptChanged: (value) =>
+                                setState(() => _hasReceipt = value),
+                            onImportedText: _parseImportedMaterialsReceiptText,
+                            onStoreChanged: () => setState(() {}),
+                          ),
+                        ),
                         const SizedBox(height: 12),
                         AppButton(
-                          label: 'Save Receipt',
+                          label: 'Save And Continue',
                           tone: AppButtonTone.commit,
                           icon: const Icon(
-                            Icons.receipt_long_outlined,
+                            Icons.arrow_forward_rounded,
                             color: Colors.white,
                           ),
-                          onPressed: _commitStagedReceipt,
+                          onPressed: _continueToReceiptLines,
                         ),
+                      ] else ...[
+                        _ReceiptEntryLanes(
+                          nextLineNumber: _stagedReceiptLines.length + 1,
+                          onReceiptDetails: _editReceiptInfo,
+                          onInventoryLine: _openInventoryReceiptLine,
+                          onBusinessLine: _openBusinessReceiptLine,
+                          onPersonalLine: _openPersonalReceiptLine,
+                          onSplitLine: _openSplitReceiptLine,
+                        ),
+                        const SizedBox(height: 12),
+                        _InventoryReceiptPreview(
+                          lines: _stagedReceiptLines,
+                          currentLine: null,
+                          parsedReview: _parsedReceiptReview,
+                          onConfirmAll: _confirmAllParsedReceiptLines,
+                          onConfirmLine: _confirmParsedReceiptLine,
+                          onEdit: _editStagedLine,
+                          onRemove: _removeStagedLine,
+                        ),
+                        if (_stagedReceiptLines.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: AppButton(
+                                  label: 'Save Receipt',
+                                  tone: AppButtonTone.commit,
+                                  icon: const Icon(
+                                    Icons.receipt_long_outlined,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: _commitStagedReceipt,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              AppButton(
+                                label: 'Edit Info',
+                                compact: true,
+                                icon: const Icon(
+                                  Icons.edit_note_rounded,
+                                  color: Colors.white,
+                                ),
+                                onPressed: _editReceiptInfo,
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ],
                   ),
@@ -373,6 +448,30 @@ class _WorkSupplyAddItemsScreenState extends State<WorkSupplyAddItemsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _continueToReceiptLines() {
+    if (_hasReceipt && _storeController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Add the store name before continuing.')),
+      );
+      return;
+    }
+    setState(() => _receiptInfoComplete = true);
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _editReceiptInfo() {
+    setState(() => _receiptInfoComplete = false);
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
     );
   }
 }

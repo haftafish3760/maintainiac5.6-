@@ -1,0 +1,9 @@
+Screen: lib/screens/work_supplies/home/work_supply_home_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"The inventory screen needs to be the best of the best."
+
+"That needs to have, it needs to be an inventory system is what it needs to be,
+a proper inventory system."
+

@@ -1,0 +1,32 @@
+Source: visible user message, 2026-06-20 Batch 1
+
+"I don't have a profile system for like work profiles, user profiles. It
+wouldn't even be work profiles at this point. It would be more of like a user
+profile."
+
+"Originally, I was gonna call it work profiles, but now I need to call it more
+like a user profile."
+
+"There will be three different, well, several different types of profiles. A
+contractor profile, rideshare driver profile, and then customer profile."
+
+"Contractor is self-explanatory, you know, it's landscapers, plumbers,
+electricians, et cetera, et cetera."
+
+"Driver profile for them to keep track of mileage and things like that."
+
+"These are just user profiles. Now, a company will be, there'll be an owner
+profile, then they will need to have the ability to give permissions to the
+employees on, you know, whatever that employee is allowed to do."
+
+Source: /Users/rbbie/.codex/attachments/c8afdb36-f51f-452e-b314-109f5c4bb0d0/pasted-text.txt
+
+"There should also be work profiles for people that have multiple jobs."
+
+"This almost needs to be taken care of within the onboarding process itself,
+asking the user, are you a contractor or a gig driver or both?"
+
+"If you are both, then you would need to have both dashboards, I would imagine,
+or that dashboard needs to morph or mutate into the proper command center for
+that person that has multiple jobs too."
+

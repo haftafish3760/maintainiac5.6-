@@ -11,7 +11,10 @@ import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
 import '../../../shared/widgets/receipt_capture/receipt_pdf_viewer_screen.dart';
 import '../data/expense_ledger_models.dart';
 import '../data/expense_ledger_store.dart';
+import '../data/expense_screen_telemetry.dart';
+import '../data/expense_screen_telemetry_recorder.dart';
 import '../entry/expense_receipt_entry_screen.dart';
+import '../reports/expense_recap_screen.dart';
 
 part 'expense_month_calendar.dart';
 part 'expense_day_screen.dart';

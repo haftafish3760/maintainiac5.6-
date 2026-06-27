@@ -109,4 +109,46 @@ extension _MaintenanceItemIconChassisPainter on _MaintenanceItemIconPainter {
       _paint(const Color(0xFF111719)),
     );
   }
+
+  void _paintSteeringFluid(Canvas canvas, Size size) {
+    final stroke = _stroke(const Color(0xFF111719), size.width * .055);
+    final blue = _paint(const Color(0xFF3DA5FF));
+    final wheelCenter = Offset(size.width * .43, size.height * .45);
+    canvas.drawCircle(
+      wheelCenter,
+      size.width * .25,
+      _stroke(const Color(0xFF111719), size.width * .075),
+    );
+    canvas.drawLine(
+      wheelCenter,
+      Offset(size.width * .43, size.height * .72),
+      stroke,
+    );
+    canvas.drawLine(
+      wheelCenter,
+      Offset(size.width * .22, size.height * .38),
+      stroke,
+    );
+    canvas.drawLine(
+      wheelCenter,
+      Offset(size.width * .64, size.height * .38),
+      stroke,
+    );
+    final drop = Path()
+      ..moveTo(size.width * .76, size.height * .38)
+      ..quadraticBezierTo(
+        size.width * .62,
+        size.height * .60,
+        size.width * .76,
+        size.height * .75,
+      )
+      ..quadraticBezierTo(
+        size.width * .90,
+        size.height * .60,
+        size.width * .76,
+        size.height * .38,
+      );
+    canvas.drawPath(drop, blue);
+    canvas.drawPath(drop, stroke);
+  }
 }

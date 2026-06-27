@@ -1,12 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../shared/documents/app_generated_pdf_archive_service.dart';
 import '../../../shared/navigation/app_page_routes.dart';
+import '../../../shared/pdf/app_generated_pdf_models.dart';
+import '../../../shared/pdf/app_generated_pdf_preview_screen.dart';
 import '../../../shared/pdf/app_generated_pdf_service.dart';
 import '../../../shared/signatures/app_signature_models.dart';
 import '../../../shared/signatures/app_signature_store.dart';
 import '../../../shared/widgets/app_back_button.dart';
-import '../../../shared/widgets/receipt_capture/receipt_pdf_viewer_screen.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../../../shared/widgets/industrial_panel_surface.dart';
 import '../data/invoice_ledger_models.dart';
@@ -22,11 +25,17 @@ class InvoiceFormScreen extends StatefulWidget {
   const InvoiceFormScreen({
     this.documentType = InvoiceDocumentType.invoice,
     this.recordId,
+    this.pdfPreviewFactory = const InvoicePdfPreviewFactory(),
+    this.pdfPreviewService = const AppGeneratedPdfService(),
+    this.pdfArchiveService = const AppGeneratedPdfArchiveService(),
     super.key,
   });
 
   final InvoiceDocumentType documentType;
   final String? recordId;
+  final InvoicePdfPreviewFactory pdfPreviewFactory;
+  final AppGeneratedPdfService pdfPreviewService;
+  final AppGeneratedPdfArchiveService pdfArchiveService;
 
   @override
   State<InvoiceFormScreen> createState() => _InvoiceFormScreenState();
@@ -56,7 +65,15 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
     _ledger ??=
         InvoiceLedgerScope.maybeOf(context) ??
         InvoiceLedgerStore.memory(canPersist: false);
-    _ensureDraft();
+    _scheduleEnsureDraft();
+  }
+
+  void _scheduleEnsureDraft() {
+    if (_creatingDraft || _record != null) return;
+    _creatingDraft = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_ensureDraft());
+    });
   }
 
   @override
@@ -266,10 +283,12 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   }
 
   Future<void> _ensureDraft() async {
-    if (_creatingDraft || _record != null) return;
+    if (_record != null) return;
     final ledger = _ledger;
-    if (ledger == null) return;
-    _creatingDraft = true;
+    if (ledger == null) {
+      _creatingDraft = false;
+      return;
+    }
     final existingId = widget.recordId;
     final existing = existingId == null ? null : ledger.recordById(existingId);
     final draft =
@@ -326,14 +345,25 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
       );
       if (!mounted) return false;
       setState(() => _record = saved);
-      final document = await const InvoicePdfPreviewFactory()
-          .buildRecordPreview(record: saved);
-      final archived = await const AppGeneratedPdfArchiveService().archive(
+      final document = await widget.pdfPreviewFactory.buildRecordPreview(
+        record: saved,
+      );
+      final generatedRecord = await _ledger!.saveRecord(
+        saved.recordPdfGenerated(document),
+      );
+      if (!mounted) return false;
+      setState(() => _record = generatedRecord);
+      final archived = await widget.pdfArchiveService.archive(
         document,
         title: document.title,
       );
       final linked = await _ledger!.saveRecord(
-        saved.copyWith(documentHashSha256: archived.fileHashSha256),
+        generatedRecord.recordPdfArchived(
+          pdfKind: document.kind.name,
+          fileName: document.safeFileName,
+          byteSize: archived.attachment.byteSize ?? document.byteSize,
+          fileHashSha256: archived.fileHashSha256,
+        ),
       );
       if (!mounted) return false;
       setState(() => _record = linked);
@@ -345,10 +375,18 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
       return true;
     } on AppGeneratedPdfArchiveException catch (error) {
       if (!mounted) return false;
+      await _recordPdfFailure(
+        record: _record ?? record,
+        reasonCode: 'archive_validation_failed',
+      );
       _showMessage(error.message);
       return false;
     } catch (_) {
       if (!mounted) return false;
+      await _recordPdfFailure(
+        record: _record ?? record,
+        reasonCode: 'archive_unknown_failure',
+      );
       _showMessage('That invoice PDF could not be saved.');
       return false;
     }
@@ -368,20 +406,107 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
     );
     if (!mounted) return;
     setState(() => _record = saved);
-    final document = await const InvoicePdfPreviewFactory().buildRecordPreview(
-      record: saved,
-    );
-    if (!mounted) return;
-    final generated = await const AppGeneratedPdfService().writeTemporary(
-      document,
-    );
-    if (!mounted) return;
-    Navigator.of(context).push(
-      appNativeRoute(
-        context,
-        ReceiptPdfViewerScreen(path: generated.path, title: document.title),
+    try {
+      final document = await widget.pdfPreviewFactory.buildRecordPreview(
+        record: saved,
+      );
+      if (!mounted) return;
+      Navigator.of(context).push(
+        appNativeRoute(
+          context,
+          AppGeneratedPdfPreviewScreen(
+            document: document,
+            service: widget.pdfPreviewService,
+            onAction: (event) {
+              unawaited(_recordPdfPreviewAction(document, event));
+            },
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      await _recordPdfFailure(
+        record: _record ?? saved,
+        reasonCode: 'preview_unknown_failure',
+      );
+      _showMessage('That invoice PDF could not be prepared.');
+    }
+  }
+
+  Future<void> _recordPdfPreviewAction(
+    AppGeneratedPdfDocument document,
+    AppGeneratedPdfPreviewActionEvent event,
+  ) async {
+    final record = _record;
+    if (record == null) return;
+    final updated = switch (event.action) {
+      AppGeneratedPdfPreviewAction.prepared => record.recordPdfGenerated(
+        document,
       ),
+      AppGeneratedPdfPreviewAction.preparationFailed =>
+        record.recordPdfDeliveryFailed(
+          reasonCode: event.reasonCode.isEmpty
+              ? 'preview_prepare_failed'
+              : event.reasonCode,
+          pdfKind: document.kind.name,
+          fileName: document.safeFileName,
+        ),
+      AppGeneratedPdfPreviewAction.previewOpened => record.recordPdfPreviewed(
+        document,
+      ),
+      AppGeneratedPdfPreviewAction.shareCompleted => record.recordPdfShared(
+        pdfKind: document.kind.name,
+        fileName: document.safeFileName,
+        byteSize: document.byteSize,
+      ),
+      AppGeneratedPdfPreviewAction.shareDismissed =>
+        record.recordPdfDeliveryCancelled(
+          reasonCode: 'share_sheet_dismissed',
+          pdfKind: document.kind.name,
+          fileName: document.safeFileName,
+          byteSize: document.byteSize,
+        ),
+      AppGeneratedPdfPreviewAction.shareFailed =>
+        record.recordPdfDeliveryFailed(
+          reasonCode: event.reasonCode.isEmpty
+              ? 'preview_share_failed'
+              : event.reasonCode,
+          pdfKind: document.kind.name,
+          fileName: document.safeFileName,
+        ),
+      AppGeneratedPdfPreviewAction.printOpened => record.recordPdfPrinted(
+        pdfKind: document.kind.name,
+        fileName: document.safeFileName,
+        byteSize: document.byteSize,
+      ),
+      AppGeneratedPdfPreviewAction.printDismissed =>
+        record.recordPdfDeliveryCancelled(
+          reasonCode: 'print_flow_dismissed',
+          pdfKind: document.kind.name,
+          fileName: document.safeFileName,
+          byteSize: document.byteSize,
+        ),
+      AppGeneratedPdfPreviewAction.printFailed =>
+        record.recordPdfDeliveryFailed(
+          reasonCode: event.reasonCode.isEmpty
+              ? 'preview_print_failed'
+              : event.reasonCode,
+          pdfKind: document.kind.name,
+          fileName: document.safeFileName,
+        ),
+    };
+    final saved = await _ledger!.saveRecord(updated);
+    if (mounted) setState(() => _record = saved);
+  }
+
+  Future<void> _recordPdfFailure({
+    required InvoiceRecord record,
+    required String reasonCode,
+  }) async {
+    final failed = await _ledger!.saveRecord(
+      record.recordPdfDeliveryFailed(reasonCode: reasonCode),
     );
+    if (mounted) setState(() => _record = failed);
   }
 
   String get _signatureDetail {

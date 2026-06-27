@@ -3,11 +3,13 @@ part of 'expense_receipt_entry_screen.dart';
 class _ReceiptSavePanel extends StatelessWidget {
   const _ReceiptSavePanel({
     required this.lineCount,
+    required this.reviewCount,
     required this.total,
     required this.onSave,
   });
 
   final int lineCount;
+  final int reviewCount;
   final double total;
   final VoidCallback onSave;
 
@@ -17,8 +19,46 @@ class _ReceiptSavePanel extends StatelessWidget {
       title: 'Save Receipt',
       subtitle: 'Save these lines to the expense ledger for this vehicle.',
       icon: Icons.save_rounded,
-      accentColor: const Color(0xFF58D67D),
+      accentColor: reviewCount > 0
+          ? const Color(0xFFFFD166)
+          : const Color(0xFF58D67D),
       children: [
+        if (reviewCount > 0) ...[
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF17140B),
+              borderRadius: BorderRadius.circular(7),
+              border: Border.all(color: const Color(0xFFFFD166)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  color: Color(0xFFFFD166),
+                  size: 19,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    reviewCount == 1
+                        ? 'One app-filled line still needs review.'
+                        : '$reviewCount app-filled lines still need review.',
+                    style: const TextStyle(
+                      color: Color(0xFFFFD166),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      height: 1.25,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
         FilledButton.icon(
           onPressed: onSave,
           icon: const Icon(Icons.check_rounded),

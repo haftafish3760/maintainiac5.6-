@@ -1,0 +1,29 @@
+Batch 5 notes for vehicle assignment drawer
+
+Related screens:
+- lib/screens/profiles/employee_vehicle_assignment_panel.dart
+- lib/screens/profiles/employee_profile_panels.dart
+- lib/screens/dashboard/vehicle_profile_flow.dart
+
+Source: visible user message, 2026-06-20 Batch 5
+
+"For the vehicle assignment, instead of saying assign vehicle, I'm thinking
+maybe it could be called vehicle assignment."
+
+"It needs to be a drawer."
+
+"So when you click on it, drops down all of the vehicles."
+
+"It'll have highlighted the current vehicle that the user is actually assigned
+to."
+
+"That needs to be highlighted."
+
+"I don't know if it would be better to have the vehicle that has been assigned
+to the user at the top. I'm guessing so."
+
+"That way, just in case there's a company out there with, say, 20 or 30
+vehicles, they don't have to scroll through 20 or 30 listings."
+
+"We need more helper text and stuff like that on here."
+

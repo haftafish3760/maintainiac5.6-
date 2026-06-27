@@ -1,22 +1,187 @@
 part of 'work_supply_settings_screen.dart';
 
 class _SettingsIntro extends StatelessWidget {
-  const _SettingsIntro({required this.itemCount, required this.tradeCount});
+  const _SettingsIntro({required this.audit});
 
-  final int itemCount;
-  final int tradeCount;
+  final WorkSupplyCatalogAuditSummary audit;
 
   @override
   Widget build(BuildContext context) {
     return _SettingsPanel(
       title: 'Inventory Database',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            '${audit.itemCount} starter recognition nodes across ${audit.tradeCount} trades. Trade packs are local data sets for search, receipt review, and add-item suggestions.',
+            style: const TextStyle(
+              color: Color(0xFFC7D0D4),
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _CatalogHealthStrip(audit: audit),
+          const SizedBox(height: 10),
+          _CatalogCoverageSummary(audit: audit),
+        ],
+      ),
+    );
+  }
+}
+
+class _CatalogCoverageSummary extends StatelessWidget {
+  const _CatalogCoverageSummary({required this.audit});
+
+  final WorkSupplyCatalogAuditSummary audit;
+
+  @override
+  Widget build(BuildContext context) {
+    final weakest = audit.weakestTrades;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          'Parser coverage watchlist',
+          style: TextStyle(
+            color: Color(0xFFE8ECEE),
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 6),
+        for (final trade in weakest) ...[
+          _TradeCoverageRow(coverage: trade),
+          const SizedBox(height: 6),
+        ],
+      ],
+    );
+  }
+}
+
+class _TradeCoverageRow extends StatelessWidget {
+  const _TradeCoverageRow({required this.coverage});
+
+  final WorkSupplyCatalogTradeCoverage coverage;
+
+  @override
+  Widget build(BuildContext context) {
+    final score = (coverage.parserReadinessScore * 100).round();
+    final color = switch (coverage.parserReadinessLabel) {
+      'Strong' => const Color(0xFF7EE0A1),
+      'Needs aliases' => const Color(0xFFFFD166),
+      _ => const Color(0xFFFF8A8A),
+    };
+    return Container(
+      padding: const EdgeInsets.fromLTRB(9, 8, 9, 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF10171B),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF34434A)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              coverage.tradeName,
+              style: const TextStyle(
+                color: Color(0xFFE8ECEE),
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          Text(
+            '${coverage.itemCount} items',
+            style: const TextStyle(
+              color: Color(0xFFC7D0D4),
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Text(
+              '$score%',
+              style: const TextStyle(
+                color: Color(0xFF07100A),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CatalogHealthStrip extends StatelessWidget {
+  const _CatalogHealthStrip({required this.audit});
+
+  final WorkSupplyCatalogAuditSummary audit;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = audit.passesCoreIntegrity
+        ? const Color(0xFF7EE0A1)
+        : const Color(0xFFFFD166);
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        _HealthPill(label: 'Stable IDs', value: audit.itemCount, color: color),
+        _HealthPill(
+          label: 'Duplicate IDs',
+          value: audit.duplicateIdCount,
+          color: audit.duplicateIdCount == 0
+              ? const Color(0xFF7EE0A1)
+              : const Color(0xFFFF8A8A),
+        ),
+        _HealthPill(
+          label: 'Missing fields',
+          value: audit.incompleteItemCount,
+          color: audit.incompleteItemCount == 0
+              ? const Color(0xFF7EE0A1)
+              : const Color(0xFFFF8A8A),
+        ),
+      ],
+    );
+  }
+}
+
+class _HealthPill extends StatelessWidget {
+  const _HealthPill({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final int value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFF10171B),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color),
+      ),
       child: Text(
-        '$itemCount starter recognition nodes across $tradeCount trades. Trade packs are local data sets for search, receipt review, and add-item suggestions. They are not a screen the user has to browse.',
+        '$label: $value',
         style: const TextStyle(
-          color: Color(0xFFC7D0D4),
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          height: 1.35,
+          color: Color(0xFFE8ECEE),
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );

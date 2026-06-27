@@ -1,0 +1,464 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function memberPath(orgId, uid) {
+      return /databases/$(database)/documents/orgs/$(orgId)/members/$(uid);
+    }
+
+    function memberDoc(orgId) {
+      return get(memberPath(orgId, request.auth.uid));
+    }
+
+    function isActiveMember(orgId) {
+      return signedIn() &&
+        exists(memberPath(orgId, request.auth.uid)) &&
+        memberDoc(orgId).data.status == 'active';
+    }
+
+    function hasRole(orgId, roles) {
+      return isActiveMember(orgId) && memberDoc(orgId).data.role in roles;
+    }
+
+    function isOwnerOrAdmin(orgId) {
+      return hasRole(orgId, ['owner', 'admin']);
+    }
+
+    function hasPermission(orgId, permission) {
+      return isActiveMember(orgId) &&
+        permission in memberDoc(orgId).data.permissions;
+    }
+
+    function hasModule(orgId, module) {
+      return isActiveMember(orgId) &&
+        module in memberDoc(orgId).data.allowedModules;
+    }
+
+    function writesOwnCreate() {
+      return signedIn() &&
+        request.resource.data.createdByUid == request.auth.uid &&
+        request.resource.data.updatedByUid == request.auth.uid;
+    }
+
+    function keepsCreator() {
+      return signedIn() &&
+        request.resource.data.createdByUid == resource.data.createdByUid &&
+        request.resource.data.updatedByUid == request.auth.uid;
+    }
+
+    function assignedToMember() {
+      return signedIn() &&
+        request.auth.uid in resource.data.assignedMemberIds;
+    }
+
+    function incomingAssignedToMember() {
+      return signedIn() &&
+        request.auth.uid in request.resource.data.assignedMemberIds;
+    }
+
+    function hasForbiddenSensitiveFields() {
+      return request.resource.data.keys().hasAny([
+        'vin',
+        'VIN',
+        'vehicleIdentificationNumber',
+        'licensePlate',
+        'plate',
+        'plateNumber',
+        'tagNumber',
+        'passengerName',
+        'passengerPhone',
+        'passengerAddress',
+        'patientName',
+        'patientPhone',
+        'patientAddress',
+        'medicalRecordNumber',
+        'diagnosis',
+        'dateOfBirth',
+        'dob',
+      ]);
+    }
+
+    function noForbiddenSensitiveFields() {
+      return !hasForbiddenSensitiveFields();
+    }
+
+    function noServerManagedFieldsOnCreate() {
+      return !request.resource.data.keys().hasAny([
+        'plan',
+        'cloudBytesUsed',
+        'monthlyCloudBytesLimit',
+        'exportCount',
+        'monthlyExportLimit',
+        'aiInputTokens',
+        'aiOutputTokens',
+        'functionCallCount',
+        'billingStatus',
+        'blockedReason',
+        'riskScore',
+        'abuseFlags',
+        'quotaOverride',
+      ]);
+    }
+
+    function keepsServerManagedFields() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'plan',
+        'cloudBytesUsed',
+        'monthlyCloudBytesLimit',
+        'exportCount',
+        'monthlyExportLimit',
+        'aiInputTokens',
+        'aiOutputTokens',
+        'functionCallCount',
+        'billingStatus',
+        'blockedReason',
+        'riskScore',
+        'abuseFlags',
+        'quotaOverride',
+      ]);
+    }
+
+    match /users/{uid} {
+      allow read: if isSelf(uid);
+      allow create: if isSelf(uid) &&
+        request.resource.data.uid == uid &&
+        noServerManagedFieldsOnCreate() &&
+        noForbiddenSensitiveFields();
+      allow update: if isSelf(uid) &&
+        request.resource.data.uid == resource.data.uid &&
+        keepsServerManagedFields() &&
+        noForbiddenSensitiveFields();
+      allow delete: if false;
+    }
+
+    match /usage/{uid}/months/{monthId} {
+      allow read: if isSelf(uid);
+      allow write: if false;
+    }
+
+    match /abuseSignals/{signalId} {
+      allow read, write: if false;
+    }
+
+    match /aiAbuseSecurityEvents/{eventId} {
+      allow read, write: if false;
+    }
+
+    match /aiEnforcementActions/{actionId} {
+      allow read, write: if false;
+    }
+
+    match /accountAbuseInstalls/{installId} {
+      allow read, write: if false;
+    }
+
+    match /accountAbuseIpWindows/{ipWindowId} {
+      allow read, write: if false;
+    }
+
+    match /accountCreationReviews/{reviewId} {
+      allow read, write: if false;
+    }
+
+    match /orgs/{orgId} {
+      allow create: if signedIn() &&
+        request.resource.data.ownerUid == request.auth.uid &&
+        noServerManagedFieldsOnCreate();
+      allow read: if isActiveMember(orgId);
+      allow update: if isOwnerOrAdmin(orgId) &&
+        request.resource.data.ownerUid == resource.data.ownerUid &&
+        keepsServerManagedFields();
+      allow delete: if false;
+
+      match /members/{memberUid} {
+        allow read: if isSelf(memberUid) || isOwnerOrAdmin(orgId);
+        allow create: if isOwnerOrAdmin(orgId) &&
+          request.resource.data.uid == memberUid &&
+          request.resource.data.orgId == orgId;
+        allow update: if isOwnerOrAdmin(orgId) &&
+          request.resource.data.uid == resource.data.uid &&
+          request.resource.data.orgId == resource.data.orgId;
+        allow delete: if false;
+      }
+
+      match /invites/{inviteId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          (signedIn() && resource.data.email == request.auth.token.email);
+        allow create: if isOwnerOrAdmin(orgId) &&
+          request.resource.data.orgId == orgId &&
+          request.resource.data.invitedByUid == request.auth.uid;
+        allow update: if isOwnerOrAdmin(orgId) &&
+          request.resource.data.orgId == resource.data.orgId &&
+          request.resource.data.invitedByUid == resource.data.invitedByUid;
+        allow delete: if false;
+      }
+
+      match /uploadGrants/{grantId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          resource.data.uid == request.auth.uid;
+        allow write: if false;
+      }
+
+      match /exports/{exportId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          resource.data.uid == request.auth.uid;
+        allow write: if false;
+      }
+
+      match /auditEvents/{eventId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          hasPermission(orgId, 'viewAuditLog');
+        allow write: if false;
+      }
+
+      match /syncManifests/{manifestId} {
+        allow read: if isActiveMember(orgId);
+        allow write: if false;
+      }
+
+      match /settings/{settingsId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          resource.data.ownerUid == request.auth.uid ||
+          resource.data.createdByUid == request.auth.uid;
+        allow create: if isActiveMember(orgId) &&
+          request.resource.data.orgId == orgId &&
+          (
+            isOwnerOrAdmin(orgId) ||
+            request.resource.data.ownerUid == request.auth.uid ||
+            request.resource.data.createdByUid == request.auth.uid
+          ) &&
+          writesOwnCreate() &&
+          noForbiddenSensitiveFields();
+        allow update: if isActiveMember(orgId) &&
+          request.resource.data.orgId == resource.data.orgId &&
+          (
+            isOwnerOrAdmin(orgId) ||
+            resource.data.ownerUid == request.auth.uid ||
+            resource.data.createdByUid == request.auth.uid
+          ) &&
+          keepsCreator() &&
+          noForbiddenSensitiveFields();
+        allow delete: if false;
+      }
+
+      match /expenseTelemetrySummaries/{summaryId} {
+        allow read: if isOwnerOrAdmin(orgId);
+        allow write: if false;
+      }
+
+      match /vehicles/{vehicleId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          hasPermission(orgId, 'viewAllVehicles') ||
+          (hasPermission(orgId, 'viewAssignedVehicles') && assignedToMember());
+        allow create: if hasPermission(orgId, 'manageVehicles') &&
+          writesOwnCreate() &&
+          noForbiddenSensitiveFields();
+        allow update: if hasPermission(orgId, 'editVehicleProfiles') &&
+          keepsCreator() &&
+          noForbiddenSensitiveFields();
+        allow delete: if false;
+      }
+
+      match /expenses/{expenseId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          hasPermission(orgId, 'viewAllExpenses') ||
+          resource.data.createdByUid == request.auth.uid;
+        allow create: if hasModule(orgId, 'expenses') &&
+          (
+            hasPermission(orgId, 'recordExpenses') ||
+            hasPermission(orgId, 'addOwnReceipts') ||
+            hasPermission(orgId, 'addCompanyExpenses')
+          ) &&
+          writesOwnCreate();
+        allow update: if (
+            hasPermission(orgId, 'editCompanyExpenses') ||
+            (
+              hasPermission(orgId, 'editOwnReceipts') &&
+              resource.data.createdByUid == request.auth.uid
+            )
+          ) &&
+          keepsCreator();
+        allow delete: if isOwnerOrAdmin(orgId);
+      }
+
+      match /mileageRecords/{recordId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          hasPermission(orgId, 'viewFleetMileageReports') ||
+          resource.data.createdByUid == request.auth.uid;
+        allow create: if hasPermission(orgId, 'recordMileage') &&
+          writesOwnCreate();
+        allow update: if (
+            hasPermission(orgId, 'editTeamMileage') ||
+            (
+              hasPermission(orgId, 'editOwnMileage') &&
+              resource.data.createdByUid == request.auth.uid
+            )
+          ) &&
+          keepsCreator();
+        allow delete: if false;
+      }
+
+      match /jobs/{jobId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          hasPermission(orgId, 'viewAllJobs') ||
+          (
+            hasPermission(orgId, 'viewAssignedJobs') &&
+            request.auth.uid in resource.data.assignedMemberIds
+          );
+        allow create: if hasPermission(orgId, 'createJobs') &&
+          writesOwnCreate() &&
+          noForbiddenSensitiveFields();
+        allow update: if hasPermission(orgId, 'editJobs') &&
+          keepsCreator() &&
+          noForbiddenSensitiveFields();
+        allow delete: if false;
+      }
+
+      match /estimates/{estimateId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          hasPermission(orgId, 'createEstimates') ||
+          hasPermission(orgId, 'sendEstimates') ||
+          resource.data.createdByUid == request.auth.uid;
+        allow create: if hasPermission(orgId, 'createEstimates') &&
+          writesOwnCreate();
+        allow update: if (
+            hasPermission(orgId, 'createEstimates') ||
+            hasPermission(orgId, 'approveEstimates') ||
+            hasPermission(orgId, 'sendEstimates')
+          ) &&
+          keepsCreator();
+        allow delete: if false;
+      }
+
+      match /invoices/{invoiceId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          hasPermission(orgId, 'createInvoices') ||
+          hasPermission(orgId, 'sendInvoices') ||
+          resource.data.createdByUid == request.auth.uid;
+        allow create: if hasPermission(orgId, 'createInvoices') &&
+          writesOwnCreate();
+        allow update: if (
+            hasPermission(orgId, 'createInvoices') ||
+            hasPermission(orgId, 'approveInvoices') ||
+            hasPermission(orgId, 'recordPayments') ||
+            hasPermission(orgId, 'sendInvoices')
+          ) &&
+          keepsCreator();
+        allow delete: if false;
+      }
+
+      match /inventoryItems/{itemId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          hasPermission(orgId, 'viewAllInventory') ||
+          hasPermission(orgId, 'viewAssignedInventory');
+        allow create: if hasPermission(orgId, 'manageInventory') &&
+          writesOwnCreate();
+        allow update: if (
+            hasPermission(orgId, 'manageInventory') ||
+            hasPermission(orgId, 'addStock') ||
+            hasPermission(orgId, 'useMaterials') ||
+            hasPermission(orgId, 'transferMaterials') ||
+            hasPermission(orgId, 'adjustInventoryCounts')
+          ) &&
+          keepsCreator();
+        allow delete: if false;
+      }
+
+      match /inventoryTransactions/{transactionId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          hasPermission(orgId, 'viewAllInventory') ||
+          hasPermission(orgId, 'viewAssignedInventory');
+        allow create: if (
+            hasPermission(orgId, 'addStock') ||
+            hasPermission(orgId, 'useMaterials') ||
+            hasPermission(orgId, 'transferMaterials') ||
+            hasPermission(orgId, 'adjustInventoryCounts')
+          ) &&
+          writesOwnCreate();
+        allow update, delete: if false;
+      }
+
+      match /maintenanceRecords/{recordId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          hasPermission(orgId, 'viewAllMaintenance') ||
+          (
+            hasPermission(orgId, 'viewAssignedMaintenance') &&
+            request.auth.uid in resource.data.assignedMemberIds
+          );
+        allow create: if hasPermission(orgId, 'logMaintenance') &&
+          writesOwnCreate();
+        allow update: if hasPermission(orgId, 'editMaintenanceRecords') &&
+          keepsCreator();
+        allow delete: if false;
+      }
+
+      match /financialSummaries/{summaryId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          hasPermission(orgId, 'viewFinancials') ||
+          hasPermission(orgId, 'viewProfitLoss');
+        allow write: if isOwnerOrAdmin(orgId);
+      }
+
+      match /records/{recordId} {
+        allow read: if isActiveMember(orgId) &&
+          resource.data.privateToOwner != true;
+        allow create: if isActiveMember(orgId) &&
+          writesOwnCreate() &&
+          noForbiddenSensitiveFields();
+        allow update: if isActiveMember(orgId) &&
+          keepsCreator() &&
+          noForbiddenSensitiveFields();
+        allow delete: if false;
+      }
+    }
+
+    match /catalogPacks/{packId} {
+      allow read: if true;
+      allow write: if false;
+
+      match /manifests/{versionId} {
+        allow read: if true;
+        allow write: if false;
+      }
+    }
+
+    match /vendorRegistry/{vendorId} {
+      allow read: if true;
+      allow write: if false;
+
+      match /profiles/{profileId} {
+        allow read: if true;
+        allow write: if false;
+      }
+
+      match /aliases/{aliasId} {
+        allow read: if true;
+        allow write: if false;
+      }
+    }
+
+    match /parserHealth/{parserVersion} {
+      allow read, write: if false;
+    }
+
+    match /catalogHealth/{healthId} {
+      allow read, write: if false;
+    }
+
+    match /sharedCorrectionCandidates/{candidateId} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

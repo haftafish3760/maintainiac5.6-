@@ -9,11 +9,30 @@ final _timePattern = RegExp(
 );
 
 class _ReceiptTotals {
-  const _ReceiptTotals({this.subtotal, this.tax, this.total});
+  const _ReceiptTotals({
+    this.subtotal,
+    this.tax,
+    this.total,
+    this.hasExplicitSubtotal = false,
+    this.hasExplicitTax = false,
+    this.hasExplicitTotal = false,
+  });
 
   final double? subtotal;
   final double? tax;
   final double? total;
+  final bool hasExplicitSubtotal;
+  final bool hasExplicitTax;
+  final bool hasExplicitTotal;
+
+  bool get hasCompleteExplicitMath {
+    return hasExplicitSubtotal &&
+        hasExplicitTax &&
+        hasExplicitTotal &&
+        subtotal != null &&
+        tax != null &&
+        total != null;
+  }
 }
 
 class _ParsedQuantity {

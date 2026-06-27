@@ -28,6 +28,8 @@ void main() {
       ExpenseReceiptRecord(
         id: 'EXP-fuel',
         receiptDate: DateTime(2026, 6, 12),
+        vehicleId: 'truck-1',
+        odometerReading: 298225,
         lines: const [
           ExpenseReceiptLineRecord(
             id: 'LINE-fuel',
@@ -47,8 +49,11 @@ void main() {
       ),
     );
 
-    final loaded = ledger.receiptById('EXP-fuel')!.lines.single;
+    final loadedReceipt = ledger.receiptById('EXP-fuel')!;
+    final loaded = loadedReceipt.lines.single;
 
+    expect(loadedReceipt.vehicleId, 'truck-1');
+    expect(loadedReceipt.odometerReading, 298225);
     expect(loaded.odometerReading, 298225);
     expect(loaded.fuelType, 'Diesel');
     expect(loaded.fillType, 'Partial fill');

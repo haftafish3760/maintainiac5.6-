@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:maintaniac/shared/receipts/receipt_processing_contract.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_ocr_service.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_inspector.dart';
@@ -118,6 +120,67 @@ void main() {
     expect(restored.proofAccessLabel, 'read-only PDF proof');
   });
 
+  test('receipt photo quality metadata survives storage maps', () {
+    const quality = ReceiptPhotoQualityCheck(
+      width: 1800,
+      height: 2400,
+      focusScore: 15,
+      brightness: 148,
+      contrast: 40,
+      cropScore: .78,
+      textBandScore: 14,
+      isLikelyReadable: true,
+    );
+    final attachment = ReceiptAttachmentRecord(
+      id: 'photo-1',
+      path: '/tmp/receipt.jpg',
+      kind: ReceiptAttachmentKind.photo,
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      createdAt: DateTime(2026, 6, 13),
+      byteSize: 2200,
+    ).withPhotoQuality(quality);
+
+    final restored = ReceiptAttachmentRecord.fromMap(attachment.toMap());
+
+    expect(restored.hasPhotoQualityReview, isTrue);
+    expect(restored.photoQualityNeedsReview, isFalse);
+    expect(restored.photoQualityScore, quality.reviewScore);
+    expect(restored.photoQualityIssueLabel, 'looks readable');
+    expect(restored.photoQualityWarnings, isEmpty);
+    expect(restored.photoWidth, 1800);
+    expect(restored.photoHeight, 2400);
+    expect(restored.photoBrightness, 148);
+    expect(restored.photoContrast, 40);
+    expect(restored.photoFocusScore, 15);
+    expect(restored.photoCropScore, .78);
+    expect(restored.photoTextBandScore, 14);
+    expect(restored.photoQualityLabel, contains('Photo quality'));
+  });
+
+  test('photo quality warning does not erase read-into-form proof state', () {
+    const quality = ReceiptPhotoQualityCheck(
+      width: 900,
+      height: 1200,
+      focusScore: 5,
+      brightness: 84,
+      contrast: 18,
+      cropScore: .45,
+      textBandScore: 4,
+      isLikelyReadable: false,
+    );
+    final attachment = ReceiptAttachmentRecord(
+      id: 'photo-read',
+      path: '/tmp/read.jpg',
+      kind: ReceiptAttachmentKind.photo,
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      createdAt: DateTime(2026, 6, 13),
+      readState: ReceiptAttachmentReadState.readIntoForm,
+    ).withPhotoQuality(quality);
+
+    expect(attachment.photoQualityNeedsReview, isTrue);
+    expect(attachment.readState, ReceiptAttachmentReadState.readIntoForm);
+  });
+
   test(
     'imported text remains editable while original proof files stay locked',
     () {
@@ -151,6 +214,26 @@ void main() {
     );
 
     expect(result.hasText, isFalse);
+    expect(result.source, ReceiptProcessingSource.none);
+    expect(result.processingSnapshot.stage, ReceiptProcessingStage.noSource);
+    expect(result.stats.attachmentsRead, 0);
+    expect(result.stats.attachmentsSkipped, 0);
+    expect(result.diagnostics.severity, ReceiptOcrReviewSeverity.blocked);
+    expect(result.diagnostics.reviewSummaryLabel, contains('Blocked'));
+    expect(result.diagnostics.textSummaryLabel, 'No readable text');
+    expect(
+      result.structuredWarnings.single.kind,
+      ReceiptOcrWarningKind.noSource,
+    );
+    expect(result.structuredWarnings.single.isBlocking, isTrue);
+    expect(result.structuredWarnings.single.label, 'No receipt attached');
+    expect(
+      result.structuredWarnings.single.actionLabel,
+      contains('Attach a receipt'),
+    );
+    expect(result.diagnostics.hasBlockingWarnings, isTrue);
+    expect(result.diagnostics.blockingWarningCount, 1);
+    expect(result.diagnostics.warningSummaryLabel, '1 blocked OCR warning');
     expect(
       result.warnings.single,
       contains('Attach at least one receipt photo'),
@@ -175,6 +258,11 @@ void main() {
       expect(result.hasText, isFalse);
       expect(result.textByAttachmentId, isEmpty);
       expect(result.warnings.single, contains('could not be found'));
+      expect(
+        result.structuredWarnings.single.kind,
+        ReceiptOcrWarningKind.pdfUnreadable,
+      );
+      expect(result.diagnostics.hasBlockingWarnings, isTrue);
     },
   );
 
@@ -196,11 +284,309 @@ void main() {
           ]);
 
       expect(result.hasText, isTrue);
+      expect(result.source, ReceiptProcessingSource.importedText);
+      expect(
+        result.processingSnapshot.stage,
+        ReceiptProcessingStage.textExtracted,
+      );
       expect(result.rawText, contains('OIL FILTER'));
       expect(result.textByAttachmentId['email-1'], contains('TOTAL 12.99'));
+      expect(result.stats.importedTextRead, 1);
+      expect(result.stats.attachmentsRead, 1);
+      expect(result.stats.usedLocalOcr, isFalse);
+      expect(result.diagnostics.severity, ReceiptOcrReviewSeverity.good);
+      expect(result.diagnostics.sourceLabel, 'Imported text');
+      expect(result.diagnostics.readSummaryLabel, '1 source read');
+      expect(
+        result.diagnostics.textSummaryLabel,
+        '3 receipt lines ready for review',
+      );
+      expect(result.diagnostics.warningSummaryLabel, 'No OCR warnings');
       expect(result.warnings, isEmpty);
+      expect(result.structuredWarnings, isEmpty);
     },
   );
+
+  test(
+    'ocr service can skip photo reading for a limited device profile',
+    () async {
+      final result = await const ReceiptOcrService(maxPhotoOcrAttachments: 0)
+          .recognizeTextFromAttachments([
+            ReceiptAttachmentRecord(
+              id: 'photo-1',
+              path: '/tmp/lowes.jpg',
+              kind: ReceiptAttachmentKind.photo,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime(2026, 6, 12),
+            ),
+          ]);
+
+      expect(result.hasText, isFalse);
+      expect(result.source, ReceiptProcessingSource.photo);
+      expect(result.textByAttachmentId, isEmpty);
+      expect(result.stats.photosRead, 0);
+      expect(result.stats.photosSkipped, 1);
+      expect(result.stats.hadSkippedWork, isTrue);
+      expect(result.warnings.single, contains('turned off'));
+      expect(
+        result.structuredWarnings.single.kind,
+        ReceiptOcrWarningKind.sourceSkipped,
+      );
+      expect(result.structuredWarnings.single.isBlocking, isTrue);
+      expect(result.structuredWarnings.single.label, 'Receipt reading off');
+      expect(result.diagnostics.hasBlockingWarnings, isTrue);
+    },
+  );
+
+  test('ocr service surfaces photo quality warnings before reading', () async {
+    const poorQuality = ReceiptPhotoQualityCheck(
+      width: 1800,
+      height: 2400,
+      focusScore: 13,
+      brightness: 242,
+      contrast: 30,
+      cropScore: .76,
+      textBandScore: 12,
+      isLikelyReadable: false,
+    );
+    final result = await const ReceiptOcrService(maxPhotoOcrAttachments: 0)
+        .recognizeTextFromAttachments([
+          ReceiptAttachmentRecord(
+            id: 'photo-glare',
+            path: '/tmp/glare.jpg',
+            kind: ReceiptAttachmentKind.photo,
+            dataSaverLevel: ReceiptDataSaverLevel.balanced,
+            createdAt: DateTime(2026, 6, 12),
+          ).withPhotoQuality(poorQuality),
+        ]);
+
+    expect(result.hasText, isFalse);
+    expect(result.stats.photosSkipped, 1);
+    expect(
+      result.warnings.join(' '),
+      contains('Receipt photo quality needs review'),
+    );
+    expect(result.warnings.join(' '), contains('glare'));
+    expect(
+      result.structuredWarnings.map((warning) => warning.kind),
+      contains(ReceiptOcrWarningKind.photoQuality),
+    );
+    expect(
+      result.structuredWarnings
+          .firstWhere(
+            (warning) => warning.kind == ReceiptOcrWarningKind.photoQuality,
+          )
+          .needsReview,
+      isTrue,
+    );
+  });
+
+  test(
+    'ocr service keeps imported text while capping extra photo reads',
+    () async {
+      final result = await const ReceiptOcrService(maxPhotoOcrAttachments: 0)
+          .recognizeTextFromAttachments([
+            ReceiptAttachmentRecord(
+              id: 'email-1',
+              path: '',
+              kind: ReceiptAttachmentKind.emailText,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime(2026, 6, 12),
+              importedText: 'LOWES\nPVC COUPLING 2.49\nTOTAL 2.49',
+            ),
+            ReceiptAttachmentRecord(
+              id: 'photo-1',
+              path: '/tmp/lowes-front.jpg',
+              kind: ReceiptAttachmentKind.photo,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime(2026, 6, 12),
+            ),
+            ReceiptAttachmentRecord(
+              id: 'photo-2',
+              path: '/tmp/lowes-back.jpg',
+              kind: ReceiptAttachmentKind.photo,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime(2026, 6, 12),
+            ),
+          ]);
+
+      expect(result.hasText, isTrue);
+      expect(result.source, ReceiptProcessingSource.mixed);
+      expect(result.appFillText, contains('PVC COUPLING'));
+      expect(result.textByAttachmentId, contains('email-1'));
+      expect(result.textByAttachmentId, isNot(contains('photo-1')));
+      expect(result.stats.importedTextRead, 1);
+      expect(result.stats.photosRead, 0);
+      expect(result.stats.photosSkipped, 2);
+      expect(result.stats.attachmentsRead, 1);
+      expect(result.diagnostics.severity, ReceiptOcrReviewSeverity.review);
+      expect(result.diagnostics.readSummaryLabel, contains('2 saved as proof'));
+      expect(result.diagnostics.reviewSummaryLabel, contains('Review'));
+      expect(
+        result.structuredWarnings.single.kind,
+        ReceiptOcrWarningKind.sourceSkipped,
+      );
+      expect(result.structuredWarnings.single.isBlocking, isTrue);
+      expect(
+        result.structuredWarnings.single.reviewMessage,
+        contains('Turn on receipt reading'),
+      );
+      expect(result.diagnostics.blockingWarningCount, 1);
+      expect(
+        result.reviewMessage(successMessage: 'Receipt text read.'),
+        contains('Read 1 pasted/imported text source.'),
+      );
+      expect(
+        result.reviewMessage(successMessage: 'Receipt text read.'),
+        contains('2 extra photos were saved as proof only.'),
+      );
+      expect(result.warnings.single, contains('turned off'));
+    },
+  );
+
+  test(
+    'ocr service caps PDFs without inspecting proof-only overflow',
+    () async {
+      final readable = File(
+        '${Directory.systemTemp.path}/ocr_readable_cap.pdf',
+      );
+      final overflow = File(
+        '${Directory.systemTemp.path}/ocr_overflow_cap.pdf',
+      );
+      await readable.writeAsString(
+        '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
+        flush: true,
+      );
+      await overflow.writeAsString('not actually a pdf', flush: true);
+      addTearDown(() {
+        if (readable.existsSync()) readable.deleteSync();
+        if (overflow.existsSync()) overflow.deleteSync();
+      });
+
+      final result =
+          await const ReceiptOcrService(
+            maxPdfOcrAttachments: 1,
+            maxPdfOcrPages: 0,
+          ).recognizeTextFromAttachments([
+            ReceiptAttachmentRecord(
+              id: 'pdf-readable',
+              path: readable.path,
+              kind: ReceiptAttachmentKind.pdf,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime(2026, 6, 12),
+            ),
+            ReceiptAttachmentRecord(
+              id: 'pdf-overflow',
+              path: overflow.path,
+              kind: ReceiptAttachmentKind.pdf,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime(2026, 6, 12),
+            ),
+          ]);
+
+      expect(result.hasText, isFalse);
+      expect(result.stats.pdfsRead, 1);
+      expect(result.stats.pdfsSkipped, 1);
+      expect(result.diagnostics.severity, ReceiptOcrReviewSeverity.blocked);
+      expect(result.diagnostics.pdfWorkLabel, 'No PDF pages requested');
+      expect(result.textByAttachmentId, isEmpty);
+      expect(
+        result.structuredWarnings.map((warning) => warning.kind),
+        contains(ReceiptOcrWarningKind.sourceSkipped),
+      );
+      expect(result.diagnostics.partialWarningCount, 1);
+      expect(
+        result.reviewMessage(successMessage: 'Receipt text read.'),
+        contains('Only the first 1 receipt PDFs'),
+      );
+      expect(
+        result.warnings.join('\n'),
+        contains('Only the first 1 receipt PDFs'),
+      );
+      expect(result.warnings.join('\n'), isNot(contains('valid PDF')));
+    },
+  );
+
+  test(
+    'ocr service can disable PDF reading for a limited device profile',
+    () async {
+      final file = File('${Directory.systemTemp.path}/ocr_pdf_disabled.pdf');
+      await file.writeAsString(
+        '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
+        flush: true,
+      );
+      addTearDown(() {
+        if (file.existsSync()) file.deleteSync();
+      });
+
+      final result = await const ReceiptOcrService(maxPdfOcrAttachments: 0)
+          .recognizeTextFromAttachments([
+            ReceiptAttachmentRecord(
+              id: 'pdf-disabled',
+              path: file.path,
+              kind: ReceiptAttachmentKind.pdf,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime(2026, 6, 12),
+            ),
+          ]);
+
+      expect(result.hasText, isFalse);
+      expect(result.source, ReceiptProcessingSource.pdf);
+      expect(result.stats.pdfsRead, 0);
+      expect(result.stats.pdfsSkipped, 1);
+      expect(
+        result.structuredWarnings.single.kind,
+        ReceiptOcrWarningKind.sourceSkipped,
+      );
+      expect(result.structuredWarnings.single.isBlocking, isTrue);
+      expect(
+        result.warnings.single,
+        contains('PDF receipt reading is turned off'),
+      );
+    },
+  );
+
+  test('ocr service limits are built from receipt capability tiers', () {
+    final light = ReceiptOcrService.forDevice(
+      const ReceiptDeviceCapability.olderPhone(),
+    );
+    final medium = ReceiptOcrService.forDevice(
+      const ReceiptDeviceCapability.standard(),
+    );
+    final heavy = ReceiptOcrService.forDevice(
+      const ReceiptDeviceCapability.highCapacity(),
+    );
+
+    expect(light.maxPhotoOcrAttachments, 4);
+    expect(light.maxPdfOcrAttachments, 1);
+    expect(light.pdfPageReadTimeout, const Duration(seconds: 8));
+    expect(medium.maxPhotoOcrAttachments, 8);
+    expect(medium.maxPdfOcrAttachments, 2);
+    expect(heavy.maxPhotoOcrAttachments, 12);
+    expect(heavy.maxPdfOcrAttachments, 3);
+    expect(heavy.pdfPageReadTimeout, const Duration(seconds: 16));
+  });
+
+  test('ocr diagnostics explain device-specific PDF page caps', () {
+    const result = ReceiptOcrResult(
+      rawText: '',
+      parserText: '',
+      textByAttachmentId: {},
+      source: ReceiptProcessingSource.pdf,
+      stats: ReceiptOcrReadStats(pdfPagesRequested: 2, pdfsRead: 1),
+      warnings: [
+        'Only the first 2 pages of this PDF will be read on this device. The full PDF stays saved as read-only proof.',
+      ],
+    );
+
+    expect(result.stats.pdfPagesRequested, 2);
+    expect(result.diagnostics.pdfWorkLabel, '2 PDF pages requested');
+    expect(
+      result.structuredWarnings.single.kind,
+      ReceiptOcrWarningKind.sourceSkipped,
+    );
+    expect(result.structuredWarnings.single.isPartial, isTrue);
+  });
 
   test('pdf inspector estimates page count for receipt proof files', () async {
     final pdf = pw.Document();
@@ -321,6 +707,17 @@ void main() {
       expect(result.hasText, isFalse);
       expect(result.textByAttachmentId, isEmpty);
       expect(result.warnings.single, contains('encrypted'));
+      expect(
+        result.structuredWarnings.single.kind,
+        ReceiptOcrWarningKind.pdfSafety,
+      );
+      expect(result.structuredWarnings.single.label, 'PDF safety warning');
+      expect(
+        result.structuredWarnings.single.actionLabel,
+        contains('safe copy'),
+      );
+      expect(result.diagnostics.severity, ReceiptOcrReviewSeverity.blocked);
+      expect(result.diagnostics.blockingWarningCount, 1);
     },
   );
 
@@ -363,6 +760,13 @@ void main() {
       expect(result.textByAttachmentId, contains('email-1'));
       expect(result.textByAttachmentId, isNot(contains('encrypted-pdf')));
       expect(result.warnings.single, contains('encrypted'));
+      expect(
+        result.structuredWarnings.single.kind,
+        ReceiptOcrWarningKind.pdfSafety,
+      );
+      expect(result.diagnostics.severity, ReceiptOcrReviewSeverity.review);
+      expect(result.diagnostics.hasBlockingWarnings, isTrue);
+      expect(result.diagnostics.warningSummaryLabel, '1 blocked OCR warning');
     },
   );
 
@@ -390,6 +794,10 @@ void main() {
         ]);
 
     expect(result.warnings.join('\n'), contains('scripts'));
+    expect(
+      result.structuredWarnings.single.kind,
+      ReceiptOcrWarningKind.pdfSafety,
+    );
   });
 
   test('ocr service skips PDFs above the local assisted read size', () async {
@@ -421,5 +829,10 @@ void main() {
     expect(result.hasText, isFalse);
     expect(result.textByAttachmentId, isEmpty);
     expect(result.warnings.single, contains('smaller file'));
+    expect(
+      result.structuredWarnings.single.kind,
+      ReceiptOcrWarningKind.pdfTooLarge,
+    );
+    expect(result.diagnostics.blockingWarningCount, 1);
   });
 }

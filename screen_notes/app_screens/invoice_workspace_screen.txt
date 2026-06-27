@@ -1,0 +1,10 @@
+Screen: lib/screens/invoices/home/invoice_workspace_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"There is a job page that needs to be linked up to the invoice page itself so
+that I can add materials, take materials away, whatever."
+
+"As far as estimates go, that's how everything starts, is would be an
+estimate, but yet the user could also begin with an invoice."
+

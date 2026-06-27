@@ -26,11 +26,16 @@ _FuelLineDetails _fuelDetailsFor({
   final descriptionText = description.toLowerCase();
   final receiptText = receiptRows.join(' ').toLowerCase();
   final combinedText = '$rawText $descriptionText $receiptText';
-  final quantity = _fuelQuantityFor(rawText, amount: amount);
+  final quantity = _fuelQuantityFor(
+    rawText,
+    amount: amount,
+    fallbackText: receiptText,
+  );
   final unitPrice = _fuelUnitPriceFor(
     text: '$rawText $descriptionText',
     quantity: quantity,
     amount: amount,
+    fallbackText: receiptText,
   );
   return _FuelLineDetails(
     quantity: quantity,
@@ -41,7 +46,29 @@ _FuelLineDetails _fuelDetailsFor({
   );
 }
 
-_ParsedQuantity _fuelQuantityFor(String text, {required double amount}) {
+_ParsedQuantity _fuelQuantityFor(
+  String text, {
+  required double amount,
+  String? fallbackText,
+}) {
+  final direct = _fuelQuantityIn(text, amount: amount, allowLooseDecimal: true);
+  if (direct != null) return direct;
+  if (fallbackText != null && fallbackText.trim().isNotEmpty) {
+    final fallback = _fuelQuantityIn(
+      fallbackText,
+      amount: amount,
+      allowLooseDecimal: false,
+    );
+    if (fallback != null) return fallback;
+  }
+  return const _ParsedQuantity(quantity: 1, unitsPerPackage: 1, unit: 'gallon');
+}
+
+_ParsedQuantity? _fuelQuantityIn(
+  String text, {
+  required double amount,
+  required bool allowLooseDecimal,
+}) {
   final gallonAfterNumber = RegExp(
     r'(\d+(?:\.\d+)?)\s*(?:gal|gals|gallon|gallons|gl|g)\b',
   ).firstMatch(text);
@@ -54,7 +81,7 @@ _ParsedQuantity _fuelQuantityFor(String text, {required double amount}) {
   }
 
   final gallonBeforeNumber = RegExp(
-    r'\b(?:gal|gals|gallon|gallons|gl|volume|qty|quantity)\s*[:#]?\s*(\d+(?:\.\d+)?)\b',
+    r'\b(?:gal|gals|gallon|gallons|gl|volume|vol|qty|qnty|quantity|fuel\s+qty|fuel\s+volume)\s*[:#]?\s*(\d+(?:\.\d+)?)\b',
   ).firstMatch(text);
   if (gallonBeforeNumber != null) {
     return _ParsedQuantity(
@@ -95,6 +122,7 @@ _ParsedQuantity _fuelQuantityFor(String text, {required double amount}) {
     );
   }
 
+  if (!allowLooseDecimal) return null;
   final decimalCandidates = RegExp(
     r'\b(\d{1,3}\.\d{1,4})\b',
   ).allMatches(text).map((match) => double.parse(match.group(1)!));
@@ -110,16 +138,28 @@ _ParsedQuantity _fuelQuantityFor(String text, {required double amount}) {
     }
   }
 
-  return const _ParsedQuantity(quantity: 1, unitsPerPackage: 1, unit: 'gallon');
+  return null;
 }
 
 double? _fuelUnitPriceFor({
   required String text,
   required _ParsedQuantity quantity,
   required double amount,
+  String? fallbackText,
 }) {
+  final direct = _fuelUnitPriceIn(text);
+  if (direct != null) return direct;
+  if (fallbackText != null && fallbackText.trim().isNotEmpty) {
+    final fallback = _fuelUnitPriceIn(fallbackText);
+    if (fallback != null) return fallback;
+  }
+  if (quantity.quantity > 1) return amount / quantity.quantity;
+  return null;
+}
+
+double? _fuelUnitPriceIn(String text) {
   final labeledPrice = RegExp(
-    r'(?:price\s*/\s*(?:gal|gallon|kwh)|price\s*per\s*(?:gal|gallon|kwh)|unit\s*price|ppu|ppg|@\s*)\s*\$?(\d+(?:\.\d{2,4})?)',
+    r'(?:price\s*/\s*(?:gal|gallon|kwh)|price\s*per\s*(?:gal|gallon|kwh)|unit\s*price|fuel\s*price|price|rate|ppu|ppg|ppl|@\s*)\s*\$?(\d+(?:\.\d{2,4})?)',
   ).firstMatch(text);
   if (labeledPrice != null) return double.tryParse(labeledPrice.group(1)!);
 
@@ -128,7 +168,6 @@ double? _fuelUnitPriceFor({
   ).firstMatch(text);
   if (slashPrice != null) return double.tryParse(slashPrice.group(1)!);
 
-  if (quantity.quantity > 1) return amount / quantity.quantity;
   return null;
 }
 

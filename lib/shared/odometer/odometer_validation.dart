@@ -147,7 +147,7 @@ class OdometerValidationPolicy {
     this.defaultReviewMiles = 500,
     this.minimumReviewBufferMiles = 100,
     this.extremeJumpMiles = 2500,
-    this.drivingPatternReviewEnabled = false,
+    this.drivingPatternReviewEnabled = true,
   });
 
   final int maxSupportedReading;
@@ -194,6 +194,8 @@ class OdometerValidationPolicy {
       enteredAt: enteredAt,
     );
     final expectedMiles = trend.expectedMilesUntil(enteredAt);
+    final expectedDailyMiles =
+        trend.expectedDailyMilesFor(enteredAt) ?? trend.averageDailyMiles ?? 0;
     final reviewThreshold = trend.hasEnoughHistory
         ? expectedMiles + trend.reviewBufferMiles(minimumReviewBufferMiles)
         : defaultReviewMiles.toDouble();
@@ -202,7 +204,7 @@ class OdometerValidationPolicy {
       final average = trend.averageDailyMiles;
       final averageText = average == null
           ? 'No daily mileage average is available yet.'
-          : 'Average daily miles: ${average.toStringAsFixed(1)}.';
+          : 'Average daily miles: ${average.toStringAsFixed(1)}. Typical miles for this day: ${expectedDailyMiles.toStringAsFixed(1)}.';
       return OdometerValidationResult.needsConfirmation(
         message:
             'This odometer jump is ${_comma(delta)} miles, which is outside the expected range. $averageText Confirm the vehicle reading before saving.',
@@ -218,7 +220,7 @@ class OdometerValidationPolicy {
       final average = trend.averageDailyMiles;
       return OdometerValidationResult.needsConfirmation(
         message:
-            'This reading only adds ${_comma(delta)} miles, which is lower than the vehicle usually records for this time range. Average daily miles: ${average?.toStringAsFixed(1) ?? 'not available'}. Confirm the vehicle reading before saving.',
+            'This reading only adds ${_comma(delta)} miles, which is lower than the vehicle usually records for this time range. Average daily miles: ${average?.toStringAsFixed(1) ?? 'not available'}. Typical miles for this day: ${expectedDailyMiles.toStringAsFixed(1)}. Confirm the vehicle reading before saving.',
         averageDailyMiles: average,
         expectedMiles: expectedMiles,
       );
@@ -232,7 +234,11 @@ class OdometerValidationPolicy {
 }
 
 class OdometerTrend {
-  const OdometerTrend({required this.samples, required this.lastReadingAt});
+  const OdometerTrend({
+    required this.samples,
+    required this.weekdaySamples,
+    required this.lastReadingAt,
+  });
 
   factory OdometerTrend.fromHistory(
     List<OdometerReadingEvent> history, {
@@ -242,6 +248,7 @@ class OdometerTrend {
     final sorted = [...history]
       ..sort((left, right) => left.recordedAt.compareTo(right.recordedAt));
     final samples = <double>[];
+    final weekdaySamples = <int, List<double>>{};
     for (var index = 1; index < sorted.length; index++) {
       final previous = sorted[index - 1];
       final current = sorted[index];
@@ -250,13 +257,32 @@ class OdometerTrend {
       if (miles <= 0 || hours <= 0) continue;
       final days = hours / 24;
       if (days <= 0 || days > 45) continue;
-      samples.add(miles / days);
+      final dailyMiles = miles / days;
+      samples.add(dailyMiles);
+      final bucket = weekdaySamples.putIfAbsent(
+        current.recordedAt.weekday,
+        () => <double>[],
+      );
+      bucket.add(dailyMiles);
     }
     final lastAt = sorted.isEmpty ? enteredAt : sorted.last.recordedAt;
-    return OdometerTrend(samples: samples, lastReadingAt: lastAt);
+    final immutableWeekdaySamples = <int, List<double>>{};
+    for (final entry in weekdaySamples.entries) {
+      immutableWeekdaySamples[entry.key] = List<double>.unmodifiable(
+        entry.value,
+      );
+    }
+    return OdometerTrend(
+      samples: samples,
+      weekdaySamples: Map<int, List<double>>.unmodifiable(
+        immutableWeekdaySamples,
+      ),
+      lastReadingAt: lastAt,
+    );
   }
 
   final List<double> samples;
+  final Map<int, List<double>> weekdaySamples;
   final DateTime lastReadingAt;
 
   bool get hasEnoughHistory => samples.length >= 2;
@@ -281,11 +307,22 @@ class OdometerTrend {
   }
 
   double expectedMilesUntil(DateTime enteredAt) {
-    final average = averageDailyMiles;
+    final average = expectedDailyMilesFor(enteredAt);
     if (average == null) return 0;
     final hours = enteredAt.difference(lastReadingAt).inHours;
     final days = hours <= 0 ? 1.0 : hours / 24;
     return average * days;
+  }
+
+  double? expectedDailyMilesFor(DateTime enteredAt) {
+    final weekdayAverage = averageDailyMilesForWeekday(enteredAt.weekday);
+    return weekdayAverage ?? averageDailyMiles;
+  }
+
+  double? averageDailyMilesForWeekday(int weekday) {
+    final values = weekdaySamples[weekday];
+    if (values == null || values.length < 2) return null;
+    return values.reduce((sum, value) => sum + value) / values.length;
   }
 
   double reviewBufferMiles(int minimumBufferMiles) {

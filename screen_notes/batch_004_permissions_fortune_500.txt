@@ -1,0 +1,125 @@
+Batch 4 notes for permissions model and presentation
+
+Related screens:
+- lib/screens/profiles/employee_permissions_screen.dart
+- lib/screens/profiles/employee_permissions_editor_route.dart
+- lib/shared/profiles/user_permissions.dart
+
+Source: /Users/rbbie/.codex/attachments/14a759af-51f1-48fa-85e9-445d4851ee51/pasted-text.txt
+
+"Permissions and edit permissions, edit info permissions and then edit
+permissions. You know well and good that is not how a professional team would
+lay that out these days."
+
+"When I click on edit info, here it is again. You got really long nested
+boxes."
+
+"Jobs, I mean, all those permissions and stuff. It's a container, I mean, it's
+containers inside of a container."
+
+"You got a whole list of containers inside of one long nested container."
+
+"I get it, you're trying to keep the sections together, but you can keep them
+together with a title, like permission categories."
+
+"What's the purpose of having like standard access? Then I gotta expand the
+advanced actions."
+
+"We need to get rid of that standard stuff and just label each and every one of
+the permissions like a professional company would."
+
+"I want these permissions done like a Fortune 500 multi-billion dollar
+industry."
+
+"How would they set it up? That's what you need to ask yourself, and that's how
+you need to lay it out and set things up."
+
+"Absolutely everything needs to be set up like a multi-billion dollar company."
+
+"These permissions need to be set up like a multi-billion dollar company would
+set theirs up."
+
+"That engineering team for that company, how would they do it? Answer that
+question and that's your answer."
+
+Source: /Users/rbbie/.codex/attachments/b62ba0e1-b507-44a8-b877-58ed941a7ac5/pasted-text.txt
+
+"For the expenses, here's the thing, we are a record-keeping application only."
+
+"That's all we can do is create records."
+
+"It's entirely up to that employer to tell that user or that employee what they
+can do with the company expenses in that card."
+
+"We are just recording the activity that is recorded."
+
+"We can't see that card statement, and I don't wanna see that card statement."
+
+"But for now, we are only record-keeping."
+
+"If Johnny gets, just Johnny, you know, Johnny, he's who's it, Joe Blow,
+whoever, gets a company card, once I hire that employee and I add them to this
+app, that is when, you know, are they able to create an expense?"
+
+"If so, then by default, all expenses are turned on for them to be able to
+create that expense."
+
+"Are they able to edit what they have already put in? Entirely on the employer
+to decide that."
+
+"Are they able to view it? Entirely on the employer to do it."
+
+"Are they able to edit, view, and add stuff for the other employees?"
+
+"If so, we've got to have which role are they able to add, edit, view, share,
+export, all that stuff. for each employee title, for each and every one of
+them, features."
+
+"If you're able to view other people's expenses, then which role are you able
+to view?"
+
+"I've got more however many expense categories I have, guess what? That's how
+many expense categories need to be underneath of the expense tab."
+
+"Each one of those, all right, is the user able to read and write his or her
+own expense?"
+
+"Are they able to edit their own expense records?"
+
+"If they have permission for expenses to create them, then, you know, it's
+still up to the employer whether they can edit their expense after they have
+entered it."
+
+"Then it's still up to the employer whose expense can they see, can they edit
+and read other people's expenses?"
+
+"If so, which role can they edit and which role can they not edit?"
+
+"A foreman may need to, you know, be able to go in and add expenses for a
+helper."
+
+"A helper may or may not have permission to add expenses."
+
+"When it comes to hours, is that employee allowed to write down their own
+hours?"
+
+"Is that employee allowed to write other people's hours?"
+
+"Are they able to read other people's hours?"
+
+"Are they able to be able to read what that employee makes per hour?"
+
+"Are they able to see what that user makes per week, per month, all of that
+stuff?"
+
+"Absolutely everything has to be answered inside of this permission list."
+
+"Every single record that is kept on this app needs a perma- all of these
+permissions."
+
+"Whatever this app does, it must be a permission for each of the features of
+this app."
+
+"Absolutely, positively, every bit of this app must be accounted for, for
+permissions."
+

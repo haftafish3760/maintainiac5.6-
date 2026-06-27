@@ -10,10 +10,10 @@ import '../categories/expense_categories.dart';
 import '../data/expense_draft_store.dart';
 import '../data/expense_ledger_models.dart';
 import '../data/expense_ledger_store.dart';
+import '../data/expense_screen_telemetry.dart';
+import '../data/expense_screen_telemetry_recorder.dart';
 import '../entry/expense_receipt_entry_screen.dart';
 import '../reminders/expense_reminder_screen.dart';
-import '../reports/expense_allocation_screen.dart';
-import '../reports/expense_export_screen.dart';
 
 part 'expenses_home_period.dart';
 part 'expenses_home_totals.dart';
@@ -37,8 +37,44 @@ class ExpensesScreen extends StatefulWidget {
 }
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
-  var _period = _ExpenseViewPeriod.day;
   var _anchorDate = _dateOnly(DateTime.now());
+  late final DateTime _screenOpenedAtUtc;
+
+  @override
+  void initState() {
+    super.initState();
+    _screenOpenedAtUtc = DateTime.now().toUtc();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.screenOpened,
+        metadata: {'source': 'expenses_home'},
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    final elapsedMs = DateTime.now()
+        .toUtc()
+        .difference(_screenOpenedAtUtc)
+        .inMilliseconds
+        .clamp(0, 86400000);
+    ExpenseScreenTelemetryRecorder.record(
+      context,
+      ExpenseTelemetryEventType.screenClosed,
+      durationMs: elapsedMs,
+      metadata: {'source': 'expenses_home'},
+    );
+    ExpenseScreenTelemetryRecorder.record(
+      context,
+      ExpenseTelemetryEventType.timeSpentOnScreen,
+      durationMs: elapsedMs,
+      metadata: {'source': 'expenses_home'},
+    );
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,10 +87,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           const GlobalOdometerHeader(section: AppSection.expenses),
           const SizedBox(height: 8),
           _ExpenseHomeContent(
-            period: _period,
             anchorDate: _anchorDate,
-            onPeriodChanged: (period) => setState(() => _period = period),
-            onShiftPeriod: _shiftPeriod,
+            onShiftDay: _shiftDay,
             onToday: () =>
                 setState(() => _anchorDate = _dateOnly(DateTime.now())),
           ),
@@ -63,26 +97,22 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     );
   }
 
-  void _shiftPeriod(int direction) {
+  void _shiftDay(int direction) {
     setState(() {
-      _anchorDate = _shiftDateForPeriod(_anchorDate, _period, direction);
+      _anchorDate = _anchorDate.add(Duration(days: direction));
     });
   }
 }
 
 class _ExpenseHomeContent extends StatelessWidget {
   const _ExpenseHomeContent({
-    required this.period,
     required this.anchorDate,
-    required this.onPeriodChanged,
-    required this.onShiftPeriod,
+    required this.onShiftDay,
     required this.onToday,
   });
 
-  final _ExpenseViewPeriod period;
   final DateTime anchorDate;
-  final ValueChanged<_ExpenseViewPeriod> onPeriodChanged;
-  final ValueChanged<int> onShiftPeriod;
+  final ValueChanged<int> onShiftDay;
   final VoidCallback onToday;
 
   @override
@@ -95,24 +125,28 @@ class _ExpenseHomeContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _ExpensePeriodSelectorPanel(
-                period: period,
+              _ExpenseDayNavigatorPanel(
                 anchorDate: anchorDate,
                 scopeLabel: _expenseScopeLabel(context),
-                onChanged: onPeriodChanged,
-                onShift: onShiftPeriod,
+                onShift: onShiftDay,
                 onToday: onToday,
               ),
               const SizedBox(height: 8),
-              _ExpenseTotalsPanel(period: period, anchorDate: anchorDate),
-              const SizedBox(height: 8),
-              _FrequentActionsPanel(period: period, anchorDate: anchorDate),
+              _ExpenseTotalsPanel(
+                period: _ExpenseViewPeriod.day,
+                anchorDate: anchorDate,
+              ),
               const SizedBox(height: 8),
               const _UpcomingExpensesPanel(),
               const SizedBox(height: 8),
+              _FrequentActionsPanel(
+                period: _ExpenseViewPeriod.day,
+                anchorDate: anchorDate,
+              ),
+              const SizedBox(height: 8),
               const _ReceiptDraftsPanel(),
               const SizedBox(height: 8),
-              const _RecentLedgerPanel(),
+              _RecentLedgerPanel(day: anchorDate),
               const SizedBox(height: 10),
               const ExpenseMonthCalendar(),
             ],

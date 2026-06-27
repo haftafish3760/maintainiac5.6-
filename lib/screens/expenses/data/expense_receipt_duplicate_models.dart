@@ -166,20 +166,18 @@ class ExpenseReceiptDuplicateCandidate {
 
   factory ExpenseReceiptDuplicateCandidate.fromMap(Map<dynamic, dynamic> map) {
     return ExpenseReceiptDuplicateCandidate(
-      receiptId: map['receiptId'] as String? ?? '',
-      merchantName: map['merchantName'] as String? ?? '',
-      receiptDate:
-          DateTime.tryParse(map['receiptDate'] as String? ?? '') ??
-          DateTime.now(),
-      total: (map['total'] as num?)?.toDouble() ?? 0,
-      tax: (map['tax'] as num?)?.toDouble() ?? 0,
-      category: map['category'] as String? ?? '',
-      vehicleId: map['vehicleId'] as String? ?? '',
+      receiptId: _expenseString(map['receiptId']),
+      merchantName: _expenseString(map['merchantName']),
+      receiptDate: _expenseDateTime(map['receiptDate']) ?? DateTime.now(),
+      total: _expenseDouble(map['total']) ?? 0,
+      tax: _expenseDouble(map['tax']) ?? 0,
+      category: _expenseString(map['category']),
+      vehicleId: _expenseString(map['vehicleId']),
       confidence: ExpenseDuplicateConfidence.fromName(
-        map['confidence'] as String?,
+        _expenseString(map['confidence']),
       ),
-      reason: map['reason'] as String? ?? '',
-      matchedFileHashSha256: map['matchedFileHashSha256'] as String? ?? '',
+      reason: _expenseString(map['reason']),
+      matchedFileHashSha256: _expenseString(map['matchedFileHashSha256']),
     );
   }
 

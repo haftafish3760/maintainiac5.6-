@@ -19,6 +19,76 @@ equipment, inventory, or a home office for personal and business purposes.
 The app must help users keep accurate records without forcing them to understand
 the internal accounting structure.
 
+## 1.1 Expense Diagnostics And Privacy
+
+The expense screen is not complete unless it saves expenses correctly, handles
+errors, logs diagnostics, queues offline telemetry, and exposes summary metrics
+for the future Command Center.
+
+Expense telemetry must be local-first. The app writes privacy-safe events to
+Hive first, then uploads summarized telemetry later when sync allows. Telemetry
+is for health and reliability only: average time on screen, save failures,
+validation errors, OCR success, correction rates, attachment problems, storage
+mode issues, sync state, and abandonment rate.
+
+The cloud shape for Expense screen telemetry is one privacy-safe summary
+document, not one Firestore write per local event. The summary lives at
+`orgs/{orgId}/expenseTelemetrySummaries/{summaryId}` and includes aggregate
+counts, rates, platform/device buckets, and capped failure breakdowns. Raw
+receipt text, receipt images, store names, item descriptions, customer data,
+addresses, notes, and line item content must never be uploaded in this summary.
+
+Expense telemetry summary queueing is throttled. The first implementation uses
+a 15-minute minimum interval and replaces any pending summary for the same
+Firestore path before adding a newer one. That keeps Command 1 health data fresh
+without turning frequent screen activity into repeated Firestore writes.
+
+Expense receipt diagnostics must also expose Command Center summary rates for
+OCR readable rate, OCR fail rate, parser success rate, parser problem rate,
+catalog match rate, correction rate, and review rate. These rates are computed
+from privacy-safe counts and quality buckets. They must not include raw receipt
+text, item descriptions, store names, customer data, addresses, notes, or
+receipt images.
+
+Expense telemetry may track:
+
+- screen opened, screen closed, and time spent on screen.
+- add expense started, completed, or abandoned.
+- manual expense created and receipt expense created.
+- edit opened/saved and delete requested/confirmed.
+- category selected or changed.
+- validation errors, save failures, image attach success/failure.
+- OCR started, completed, failed, correction opened, and safe correction field
+  names such as vendor/date/tax/total/category.
+- storage mode used, local image removed, cloud backup success/failure, and
+  sync pending/synced/failed.
+- app version, platform, device tier, profile type, storage mode, plan status,
+  and online/offline status.
+
+Expense telemetry must never track receipt images, receipt text, customer names,
+addresses, phone numbers, notes, full item descriptions, or other private user
+content. If a telemetry event attempts to include private content, the event
+must be rejected before storage.
+
+Expense diagnostics must be built into each meaningful workflow step so Command
+1 can explain failures in plain English. A failure event is not complete unless
+it can say:
+
+- what feature failed
+- which workflow step failed
+- where in the process it failed
+- confirmed cause when the app has evidence
+- cause not confirmed when the app does not have enough evidence
+- exact missing evidence needed to confirm the cause
+- retry count
+- abandonment status
+- app version, platform, device tier, profile type, storage mode, plan status,
+  and online/offline status
+
+Command 1 must never guess. It may show `Confirmed cause` only when the app
+diagnostic proves the cause. Otherwise it must show `Cause not confirmed` and
+list the missing diagnostic evidence.
+
 ## 2. Exact Screen Structure
 
 ### Expense Home Screen
@@ -465,6 +535,12 @@ Returns to the previous screen in the stack.
 - [ ] Fuel form changes fields based on gas, diesel, or electric.
 - [ ] Receipt capture exists as part of forms, not as a category.
 - [ ] Reminder opens a reminder workflow, not a receipt form.
+- [ ] Expense diagnostics are logged locally without private user content.
+- [ ] Offline telemetry can be queued for later summarized upload.
+- [ ] Command Center summary metrics can report expense health.
+- [ ] Command Center summary metrics can report OCR readable rate, OCR fail
+      rate, parser success rate, parser problem rate, and average time on
+      Expense screen.
 - [ ] Files stay maintainable and split by responsibility.
 - [ ] Analyzer passes.
 - [ ] Tests pass.

@@ -84,32 +84,18 @@ class _ExpenseTotalsPanel extends StatelessWidget {
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
-            child: Wrap(
-              spacing: 7,
-              runSpacing: 7,
-              alignment: WrapAlignment.end,
-              children: [
-                _SmallTextButton(
-                  label: 'Export',
-                  icon: Icons.file_download_rounded,
-                  backgroundColor: const Color(0xFF28A745),
-                  foregroundColor: Colors.white,
-                  iconColor: Colors.white,
-                  onTap: () => _openExpenseExport(context),
+            child: _SmallTextButton(
+              label: 'View Day',
+              icon: Icons.calendar_today_rounded,
+              backgroundColor: _gold,
+              foregroundColor: _ink,
+              iconColor: _ink,
+              onTap: () => Navigator.of(context).push(
+                appNativeRoute<void>(
+                  context,
+                  ExpenseDayScreen(day: anchorDate),
                 ),
-                _SmallTextButton(
-                  label: 'Business vs Personal',
-                  icon: Icons.compare_arrows_rounded,
-                  backgroundColor: _gold,
-                  foregroundColor: _ink,
-                  iconColor: _ink,
-                  onTap: () => _openExpenseAllocationReport(
-                    context,
-                    range: range,
-                    rangeLabel: detailLabel,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],

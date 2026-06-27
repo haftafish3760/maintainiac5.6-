@@ -1,0 +1,31 @@
+Source: /Users/rbbie/.codex/attachments/c8afdb36-f51f-452e-b314-109f5c4bb0d0/pasted-text.txt
+
+"Each and every screen talks to the calendar. It's custom to that screen or app,
+rather. It's an app. Each screen is an application."
+
+"That calendar for that screen is for that app."
+
+"All of the other calendars in the app need to talk to a central hub of sorts,
+and that to me would be the dashboard. I'm thinking that the other screens needs
+to talk to the dashboard calendar."
+
+"You'll see all of your entries for that day in chronological order."
+
+"You will be able to add whatever you need to add, take away whatever you need
+to take away, all that stuff underneath that one screen."
+
+"So there would be a floating action button at the top bottom. I'm going to say
+top. No, it's not at the top. It's at the bottom. You click that, and it would
+say, you know, what do you need to add for this day?"
+
+"When you click on an entry, you will be able to see all the information about
+that entry."
+
+"Each entry needs to be its own container inside of the calendar screen itself."
+
+"The calendar screen also needs a settings menu so that I can choose when my pay
+period ends and begins and how often do I get paid."
+
+"This would be ideal for gig drivers, delivery drivers like UPS, things like
+that."
+

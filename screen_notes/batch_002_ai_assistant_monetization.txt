@@ -1,0 +1,32 @@
+Batch 2 notes for AI assistant and monetization
+
+Source: visible user message, 2026-06-20 Batch 2
+
+"I haven't figured monetization totally out, but I do know each person gets 25
+megabytes worth of free data, 100,000 to free tokens a month for the AI that I
+use, one of the lighter-weight AI models, like GPT-4o mini or something."
+
+Source: /Users/rbbie/.codex/attachments/21647db5-5b91-469f-b992-06ab87d55883/pasted-text.txt
+
+"Now, I want to actually initiate an AI agent into the app itself, and the way
+that would work is it would be an assistant to the user."
+
+"We've got to find which model is the best to use."
+
+"I don't mind using OpenAI Agent 4.0 Mini, and I don't mind using Google,
+either one, whichever one you can help me set up the most as far as all of the
+prompts to give to it depending on what it's doing and things like that."
+
+"I'm thinking about each user being able to get a certain amount free every
+month worth of AI usage and as well selling packs."
+
+"I will probably have the limit how much usage a person can use every day."
+
+"Pay-as-you-go, honestly, to me, seems like the best way."
+
+"I'm not going to tell a user, okay, you get a million tokens, because they
+aren't going to know how many tokens or what."
+
+"But instead, what we could do is say, okay, you get X amount of receipt stuff
+per month or X amount of whatever help per month that is free."
+

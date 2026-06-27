@@ -224,9 +224,12 @@ void main() {
     expect(controller.reading, 1000);
   });
 
-  test('daily average review is off by default', () {
+  test('daily average review can be disabled when needed', () {
     final controller = GlobalOdometerController(
       initialReading: 1300,
+      validationPolicy: const OdometerValidationPolicy(
+        drivingPatternReviewEnabled: false,
+      ),
       initialHistory: [
         OdometerReadingEvent(
           reading: 1000,
@@ -301,6 +304,43 @@ void main() {
       expect(controller.reading, 1300);
     },
   );
+
+  test('daily average review is enabled by default', () {
+    final controller = GlobalOdometerController(
+      initialReading: 1300,
+      initialHistory: [
+        OdometerReadingEvent(
+          reading: 1000,
+          recordedAt: DateTime(2026, 6, 1, 8),
+        ),
+        OdometerReadingEvent(
+          reading: 1100,
+          recordedAt: DateTime(2026, 6, 2, 8),
+        ),
+        OdometerReadingEvent(
+          reading: 1200,
+          recordedAt: DateTime(2026, 6, 3, 8),
+        ),
+        OdometerReadingEvent(
+          reading: 1300,
+          recordedAt: DateTime(2026, 6, 4, 8),
+        ),
+      ],
+    );
+
+    final result = controller.updateFromText(
+      '2100',
+      enteredAt: DateTime(2026, 6, 5, 8),
+      mileageReview: const OdometerMileageReview(
+        use: OdometerMileageUse.business,
+      ),
+    );
+
+    expect(result.ok, isFalse);
+    expect(result.requiresConfirmation, isTrue);
+    expect(result.message, contains('outside the expected range'));
+    expect(controller.reading, 1300);
+  });
 
   test(
     'opt-in daily average review flags unusually low mileage for the trend',

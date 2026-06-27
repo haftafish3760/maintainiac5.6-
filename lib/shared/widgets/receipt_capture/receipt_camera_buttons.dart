@@ -24,7 +24,8 @@ class _CameraIconButton extends StatelessWidget {
             ? const Color(0xFFFFD166)
             : const Color(0xDD11181B),
         foregroundColor: active ? const Color(0xFF101416) : Colors.white,
-        minimumSize: const Size(46, 46),
+        minimumSize: const Size(42, 42),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
           side: const BorderSide(color: Color(0xFF526168), width: .8),

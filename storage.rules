@@ -1,0 +1,84 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function memberPath(orgId) {
+      return /databases/(default)/documents/orgs/$(orgId)/members/$(request.auth.uid);
+    }
+
+    function isActiveMember(orgId) {
+      return signedIn() &&
+        firestore.exists(memberPath(orgId)) &&
+        firestore.get(memberPath(orgId)).data.status == 'active';
+    }
+
+    function isOwnerOrAdmin(orgId) {
+      return isActiveMember(orgId) &&
+        firestore.get(memberPath(orgId)).data.role in ['owner', 'admin'];
+    }
+
+    function hasPermission(orgId, permission) {
+      return isActiveMember(orgId) &&
+        permission in firestore.get(memberPath(orgId)).data.permissions;
+    }
+
+    function uploadGrantPath(orgId, grantId) {
+      return /databases/(default)/documents/orgs/$(orgId)/uploadGrants/$(grantId);
+    }
+
+    function uploadGrant(orgId, grantId) {
+      return firestore.get(uploadGrantPath(orgId, grantId)).data;
+    }
+
+    function hasValidUploadGrant(orgId, uid, grantId) {
+      return signedIn() &&
+        request.auth.uid == uid &&
+        isActiveMember(orgId) &&
+        firestore.exists(uploadGrantPath(orgId, grantId)) &&
+        uploadGrant(orgId, grantId).uid == uid &&
+        uploadGrant(orgId, grantId).status == 'open' &&
+        request.resource.size <= uploadGrant(orgId, grantId).maxBytes;
+    }
+
+    match /orgs/{orgId}/proofs/{module}/{recordId}/{fileName} {
+      allow read: if isOwnerOrAdmin(orgId) ||
+        hasPermission(orgId, 'viewAllExpenses') ||
+        hasPermission(orgId, 'viewAllJobs') ||
+        hasPermission(orgId, 'viewAllInventory') ||
+        hasPermission(orgId, 'viewAllMaintenance') ||
+        request.auth.uid == resource.metadata.ownerUid;
+      allow write: if false;
+    }
+
+    match /orgs/{orgId}/proof-uploads/{uid}/{grantId}/{fileName} {
+      allow read: if isOwnerOrAdmin(orgId) || request.auth.uid == uid;
+      allow create: if hasValidUploadGrant(orgId, uid, grantId) &&
+        (
+          hasPermission(orgId, 'addOwnReceipts') ||
+          hasPermission(orgId, 'addCompanyExpenses') ||
+          hasPermission(orgId, 'editJobs') ||
+          hasPermission(orgId, 'useMaterials') ||
+          hasPermission(orgId, 'logMaintenance')
+        );
+      allow update, delete: if false;
+    }
+
+    match /orgs/{orgId}/exports/{uid}/{fileName} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /trade-packs/{packId}/{version}/{fileName} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -59,13 +59,38 @@ class ReceiptParserLearningMemory {
   }
 
   WorkSupplyItem? learnedMatchFor(String receiptLine) {
-    final learnedId = _learnedItemIds[_normalize(receiptLine)];
+    final normalized = _normalize(receiptLine);
+    final learnedId =
+        _learnedItemIds[normalized] ??
+        _learnedItemIds[_withoutTrailingReceiptPrice(normalized)] ??
+        _learnedPrefixMatchId(normalized, _learnedItemIds);
     if (learnedId == null) return null;
     for (final item in workSupplyCatalogItems) {
       if (item.id == learnedId) return item;
     }
     return null;
   }
+}
+
+String? _learnedPrefixMatchId(
+  String normalized,
+  Map<String, String> learnedItemIds,
+) {
+  final clean = _withoutTrailingReceiptPrice(normalized);
+  for (final entry in learnedItemIds.entries) {
+    final key = entry.key.trim();
+    if (key.length < 5) continue;
+    if (clean == key ||
+        clean.startsWith('$key ') ||
+        key.startsWith('$clean ')) {
+      return entry.value;
+    }
+  }
+  return null;
+}
+
+String _withoutTrailingReceiptPrice(String normalized) {
+  return normalized.replaceFirst(RegExp(r'\s+\d+\s+\d{2}$'), '').trim();
 }
 
 const receiptMerchantAliases = {
@@ -127,6 +152,8 @@ const receiptTermAliases = {
   'breaker': ['brkr', 'breaker'],
   'receptacle': ['recept', 'receptacle', 'outlet', 'wall socket'],
   'capacitor': ['cap', 'capacitor', 'run cap'],
+  'pleated filter': ['pleated filter', 'furnace filter', 'ac filter'],
+  'foil tape': ['foil tape', 'hvac tape', 'metal tape'],
   'adapter': ['adapt', 'adptr', 'adapter'],
   'tile': ['tile', 'ceramic', 'porcelain'],
   'thinset': ['thinset', 'thin set', 'tile mortar'],
@@ -136,6 +163,7 @@ const receiptTermAliases = {
 ReceiptLineMatch? matchReceiptLineToCatalog(
   String rawText, {
   ReceiptParserLearningMemory? memory,
+  int maxCandidates = 80,
 }) {
   final learned = memory?.learnedMatchFor(rawText);
   if (learned != null) {
@@ -147,12 +175,19 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
       source: ReceiptMatchSource.learnedCorrection,
     );
   }
+  if (maxCandidates <= 0) return null;
   final normalized = _normalize(rawText);
   final expanded = _expandAliases(normalized);
-  final fallbackCandidates = _fallbackReceiptCandidates(expanded);
+  final fallbackCandidates = _fallbackReceiptCandidates(
+    expanded,
+    maxCandidates: maxCandidates,
+  );
+  final searchLimit = maxCandidates < 16 ? maxCandidates : 16;
   final candidatePool = fallbackCandidates.isNotEmpty
       ? fallbackCandidates
-      : searchWorkSupplies(_parserSearchText(expanded)).take(16).toList();
+      : searchWorkSupplies(
+          _parserSearchText(expanded),
+        ).take(searchLimit).toList();
   if (candidatePool.isEmpty) return null;
   final scored =
       [
@@ -164,14 +199,25 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
         return a.item.name.compareTo(b.item.name);
       });
   final best = scored.first;
-  if (best.terms.length < 3) return null;
-  final confidence = _confidence(best.terms.length, expanded, best.item);
+  if (best.terms.length < 3 && !_isStrongShortCatalogMatch(best.score)) {
+    return null;
+  }
+  final confidence = _confidence(
+    best.terms.length,
+    expanded,
+    best.item,
+    score: best.score,
+  );
   return ReceiptLineMatch(
     rawText: rawText,
     item: best.item,
     confidence: confidence,
     matchedTerms: best.terms,
   );
+}
+
+bool _isStrongShortCatalogMatch(int score) {
+  return score >= 28;
 }
 
 String normalizeMerchantName(String rawText) {
@@ -192,6 +238,11 @@ String _normalize(String value) {
       .replaceAll(RegExp(r'\bsch\s*40\b'), 'schedule 40')
       .replaceAll(RegExp(r'\bsched\s*40\b'), 'schedule 40')
       .replaceAll(RegExp(r'\bs\s*40\b'), 'schedule 40')
+      .replaceAllMapped(
+        RegExp(r'\b(\d{1,3})\s*a\b'),
+        (match) => '${match.group(1)} amp',
+      )
+      .replaceAll(RegExp(r'\bw\s*/\s*g\b'), 'with ground')
       .replaceAll(RegExp(r'\bm\.?i\.?p\.?\b'), 'mip')
       .replaceAll(RegExp(r'\bf\.?i\.?p\.?\b'), 'fip')
       .replaceAll(RegExp(r'\bm\.?p\.?t\.?\b'), 'mpt')
@@ -205,9 +256,17 @@ String _normalize(String value) {
 String _expandAliases(String value) {
   var expanded = value;
   for (final entry in receiptTermAliases.entries) {
-    if (entry.value.any(value.contains)) expanded = '$expanded ${entry.key}';
+    if (entry.value.any((alias) => _containsAlias(value, alias))) {
+      expanded = '$expanded ${entry.key}';
+    }
   }
   return expanded;
+}
+
+bool _containsAlias(String text, String alias) {
+  final normalizedAlias = _normalize(alias);
+  if (normalizedAlias.isEmpty) return false;
+  return RegExp('(^| )${RegExp.escape(normalizedAlias)}( |\$)').hasMatch(text);
 }
 
 String _parserSearchText(String value) {
@@ -229,12 +288,16 @@ bool _isParserNoiseToken(String token) {
     'sku' ||
     'item' ||
     'qty' ||
-    'ea' => true,
+    'ea' ||
+    'ft' => true,
     _ => false,
   };
 }
 
-List<WorkSupplyItem> _fallbackReceiptCandidates(String text) {
+List<WorkSupplyItem> _fallbackReceiptCandidates(
+  String text, {
+  required int maxCandidates,
+}) {
   final tokens = text
       .split(RegExp(r'\s+'))
       .where(
@@ -256,6 +319,7 @@ List<WorkSupplyItem> _fallbackReceiptCandidates(String text) {
     if (entry.variantText.isNotEmpty && text.contains(entry.variantText)) {
       score += 20;
     }
+    score += _tradeContextScore(text, entry.item);
     if (score > 0) scored.add((item: entry.item, score: score));
   }
   scored.sort((a, b) {
@@ -263,7 +327,7 @@ List<WorkSupplyItem> _fallbackReceiptCandidates(String text) {
     if (score != 0) return score;
     return a.item.name.compareTo(b.item.name);
   });
-  return scored.map((entry) => entry.item).take(80).toList();
+  return scored.map((entry) => entry.item).take(maxCandidates).toList();
 }
 
 List<String> _receiptTokenAlternates(String token) {
@@ -281,10 +345,16 @@ List<String> _receiptTokenAlternates(String token) {
 
 List<String> _matchedTerms(String text, WorkSupplyItem item) {
   final haystack = _indexedReceiptTextFor(item);
-  return [
-    for (final token in text.split(RegExp(r'\s+')))
-      if (token.isNotEmpty && _containsTerm(haystack, token)) token,
-  ];
+  final terms = <String>{};
+  for (final token in text.split(RegExp(r'\s+'))) {
+    if (token.isNotEmpty &&
+        !_isParserNoiseToken(token) &&
+        token != 'x' &&
+        _containsTerm(haystack, token)) {
+      terms.add(token);
+    }
+  }
+  return terms.toList();
 }
 
 String _indexedReceiptTextFor(WorkSupplyItem item) {
@@ -310,6 +380,110 @@ int _receiptItemScore(String text, WorkSupplyItem item, List<String> terms) {
   if (_containsExactPhrase(text, item.name)) score += 8;
   if (_containsExactPhrase(text, item.itemType)) score += 4;
   if (_containsExactPhrase(text, item.system)) score += 4;
+  score += _tradeContextScore(text, item);
+  return score;
+}
+
+int _tradeContextScore(String text, WorkSupplyItem item) {
+  final trade = item.trade.toLowerCase();
+  final category = item.category.toLowerCase();
+  final system = item.system.toLowerCase();
+  var score = 0;
+  if (trade == 'carpentry' &&
+      RegExp(
+        r'\b(stud|lumber|kd|kiln|wood|board|treated|pt)\b',
+      ).hasMatch(text)) {
+    score += 16;
+  }
+  if (category == 'fasteners' &&
+      RegExp(
+        r'\b(screw|screws|nail|nails|fastener|fasteners)\b',
+      ).hasMatch(text)) {
+    score += 12;
+  }
+  if (category == 'fasteners') {
+    final itemType = item.itemType.toLowerCase();
+    final systemText = system.toLowerCase();
+    final isScrewItem =
+        itemType.contains('screw') || systemText.contains('screw');
+    final isNailItem = itemType.contains('nail') || systemText.contains('nail');
+    final receiptSaysScrew = RegExp(r'\b(screw|screws)\b').hasMatch(text);
+    final receiptSaysNail = RegExp(r'\b(nail|nails)\b').hasMatch(text);
+    if (receiptSaysScrew && isScrewItem) score += 18;
+    if (receiptSaysNail && isNailItem) score += 18;
+    if (receiptSaysScrew && isNailItem) score -= 24;
+    if (receiptSaysNail && isScrewItem) score -= 24;
+    if (text.contains('wood') && itemType.contains('wood screw')) score += 10;
+    if (text.contains('drywall') && itemType.contains('drywall')) score += 10;
+    if (text.contains('deck') && itemType.contains('deck')) score += 10;
+    if (text.contains('framing') && itemType.contains('framing')) score += 10;
+  }
+  if (trade == 'electrical' &&
+      RegExp(
+        r'\b(gfci|gfi|receptacle|outlet|romex|nm-b|nmb|emt|conduit|awg|wire|breaker)\b',
+      ).hasMatch(text)) {
+    score += 16;
+  }
+  if (trade == 'electrical') {
+    final variant = _normalize(item.variant);
+    final ampRating = RegExp(r'\b(\d{1,3})\s*amp\b').firstMatch(text);
+    if (ampRating != null) {
+      final rating = '${ampRating.group(1)} amp';
+      if (variant == rating) {
+        score += 24;
+      } else if (variant.endsWith('amp')) {
+        score -= 18;
+      }
+    }
+  }
+  if (trade == 'plumbing' &&
+      RegExp(
+        r'\b(copper|pvc|cpvc|pex|dwv|pipe|fitting|coupling|elbow|tee|valve|brass)\b',
+      ).hasMatch(text)) {
+    score += 12;
+  }
+  if (trade == 'plumbing') {
+    final itemType = item.itemType.toLowerCase();
+    final receiptSaysTee = RegExp(r'\b(tee|t)\b').hasMatch(text);
+    final receiptSaysCoupling = RegExp(
+      r'\b(coupling|coup|cplg|coupler)\b',
+    ).hasMatch(text);
+    final receiptSaysPipe = RegExp(r'\b(pipe|stick)\b').hasMatch(text);
+    if (receiptSaysTee && itemType.contains('tee')) score += 18;
+    if (receiptSaysCoupling && itemType.contains('coupling')) score += 18;
+    if (receiptSaysPipe && category == 'pipe and tubing') score += 24;
+    if (receiptSaysPipe && category == 'fittings') score -= 24;
+    if (receiptSaysTee && itemType.contains('coupling')) score -= 22;
+    if (receiptSaysCoupling && itemType.contains('tee')) score -= 22;
+  }
+  if (trade == 'plumbing' &&
+      RegExp(
+        r'\b(stud|lumber|kd|wood|romex|gfci|emt|conduit)\b',
+      ).hasMatch(text)) {
+    score -= 18;
+  }
+  if (system == 'nm-b cable' && text.contains('with ground')) score += 8;
+  if (trade == 'hvac' &&
+      RegExp(
+        r'\b(capacitor|mfd|run cap|pleated|filter|furnace filter|ac filter|foil tape|hvac tape|mastic|duct|condensate|thermostat|contactor)\b',
+      ).hasMatch(text)) {
+    score += 16;
+  }
+  if (trade == 'hvac') {
+    final itemType = item.itemType.toLowerCase();
+    if (RegExp(r'\b(capacitor|mfd|run cap)\b').hasMatch(text) &&
+        itemType.contains('capacitor')) {
+      score += 18;
+    }
+    if (RegExp(r'\b(pleated|filter)\b').hasMatch(text) &&
+        itemType.contains('filter')) {
+      score += 18;
+    }
+    if (RegExp(r'\b(foil tape|hvac tape|metal tape)\b').hasMatch(text) &&
+        itemType.contains('tape')) {
+      score += 18;
+    }
+  }
   return score;
 }
 
@@ -324,13 +498,19 @@ bool _containsTerm(String haystack, String token) {
     return RegExp('(^| )${RegExp.escape(token)}( |\$)').hasMatch(haystack);
   }
   if (token.length <= 2) {
-    return haystack.contains(token);
+    return RegExp('(^| )${RegExp.escape(token)}( |\$)').hasMatch(haystack);
   }
   return RegExp('(^| )${RegExp.escape(token)}( |\$)').hasMatch(haystack);
 }
 
-double _confidence(int matchedTermCount, String text, WorkSupplyItem item) {
+double _confidence(
+  int matchedTermCount,
+  String text,
+  WorkSupplyItem item, {
+  int score = 0,
+}) {
   var confidence = (matchedTermCount / 8).clamp(0.15, 0.86);
+  if (_isStrongShortCatalogMatch(score)) confidence = confidence.clamp(.86, 1);
   final normalizedName = _normalize(item.name);
   if (text.contains(normalizedName)) confidence += 0.08;
   if (item.aliases.any((alias) => text.contains(_normalize(alias)))) {

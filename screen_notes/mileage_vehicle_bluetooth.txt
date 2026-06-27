@@ -1,0 +1,46 @@
+Source: /Users/rbbie/.codex/attachments/c8afdb36-f51f-452e-b314-109f5c4bb0d0/pasted-text.txt
+
+"A solo contractor is absolutely gonna need to track their miles, and so would
+even somebody that has even 20 vehicles."
+
+"You gotta have a way to start tracking miles."
+
+"Here's one thing that we could actually do to help with all tracking of miles,
+is Bluetooth, and being able to identify the vehicle via Bluetooth and have it
+set up if the user wishes to identify that vehicle."
+
+"If you hook up Bluetooth from that vehicle to the phone, or all of the vehicles
+need to have identification through Bluetooth, once that Bluetooth is connected
+to that phone, it needs to tie that user to that vehicle."
+
+"That would absolutely be an opt-in only feature for this app that could
+absolutely change, they could be a game changer for people."
+
+"Mileage tracking part of the app yet, which is huge. It is a huge part of this
+app. It's a must, so the user can keep track of business-slash-personal miles
+every day."
+
+"It's supposed to keep up with percentages. It's supposed to already do all that
+stuff to do proper percentages. You know, what's the percentage of use of
+personal versus business?"
+
+"On the vehicle profile, you need to have year, make, model, and vehicle
+nickname. That would automatically be in the top active vehicle row, right?"
+
+"We need to also add the proper UI on that vehicle profile for Bluetooth
+identification on or off."
+
+"Bluetooth, you know, keeping up with mileage and using Bluetooth and tying a
+user with their phone and an employee with their phone to the Bluetooth of that
+vehicle, and once they start that vehicle, boom, it automatically tracks the
+miles for that user."
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"I will tell you that we already have an active vehicle profile row that lives
+at the top of every screen. It's supposed to anyways. It lives at the top of
+each of these apps."
+
+"I'm sure, as you already know, each vehicle gets its own mileage and
+maintenance, all that good stuff."
+

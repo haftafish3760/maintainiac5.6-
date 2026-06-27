@@ -32,6 +32,12 @@ class ExpenseReceiptLineRecord {
     this.fuelType,
     this.fillType,
     this.unitPrice,
+    this.rawReceiptText = '',
+    this.catalogItemId,
+    this.catalogItemName,
+    this.catalogItemPath,
+    this.catalogMatchConfidence,
+    this.catalogMatchedTerms = const [],
     this.parserConfidence,
     this.parserReviewLabel,
     this.parserReviewReason,
@@ -40,27 +46,37 @@ class ExpenseReceiptLineRecord {
 
   factory ExpenseReceiptLineRecord.fromMap(Map<dynamic, dynamic> map) {
     return ExpenseReceiptLineRecord(
-      id: map['id'] as String? ?? '',
-      description: map['description'] as String? ?? '',
-      category: map['category'] as String? ?? 'Uncategorized',
-      use: ExpenseLineUse.fromName(map['use'] as String?),
-      quantity: (map['quantity'] as num?)?.toDouble() ?? 1,
-      unitsPerPackage: (map['unitsPerPackage'] as num?)?.toDouble() ?? 1,
-      unit: map['unit'] as String? ?? 'each',
-      subtotal: (map['subtotal'] as num?)?.toDouble() ?? 0,
-      businessPercent: _clampedPercent(
-        (map['businessPercent'] as num?)?.toDouble(),
+      id: _expenseString(map['id']),
+      description: _expenseString(map['description']),
+      category: _expenseString(map['category'], fallback: 'Uncategorized'),
+      use: ExpenseLineUse.fromName(_expenseString(map['use'])),
+      quantity: _expenseDouble(map['quantity']) ?? 1,
+      unitsPerPackage: _expenseDouble(map['unitsPerPackage']) ?? 1,
+      unit: _expenseString(map['unit'], fallback: 'each'),
+      subtotal: _expenseDouble(map['subtotal']) ?? 0,
+      businessPercent: _clampedPercent(_expenseDouble(map['businessPercent'])),
+      odometerReading: _expenseInt(map['odometerReading']),
+      fuelType: _nullableExpenseString(map['fuelType']),
+      fillType: _nullableExpenseString(map['fillType']),
+      unitPrice: _expenseDouble(map['unitPrice']),
+      rawReceiptText: _expenseString(map['rawReceiptText']),
+      catalogItemId: _nullableExpenseString(map['catalogItemId']),
+      catalogItemName: _nullableExpenseString(map['catalogItemName']),
+      catalogItemPath: _nullableExpenseString(map['catalogItemPath']),
+      catalogMatchConfidence: _clampedPercent(
+        _expenseDouble(map['catalogMatchConfidence']),
       ),
-      odometerReading: (map['odometerReading'] as num?)?.toInt(),
-      fuelType: map['fuelType'] as String?,
-      fillType: map['fillType'] as String?,
-      unitPrice: (map['unitPrice'] as num?)?.toDouble(),
+      catalogMatchedTerms:
+          (map['catalogMatchedTerms'] as List?)?.whereType<String>().toList(
+            growable: false,
+          ) ??
+          const [],
       parserConfidence: _clampedPercent(
-        (map['parserConfidence'] as num?)?.toDouble(),
+        _expenseDouble(map['parserConfidence']),
       ),
-      parserReviewLabel: map['parserReviewLabel'] as String?,
-      parserReviewReason: map['parserReviewReason'] as String?,
-      parserNeedsReview: map['parserNeedsReview'] as bool? ?? false,
+      parserReviewLabel: _nullableExpenseString(map['parserReviewLabel']),
+      parserReviewReason: _nullableExpenseString(map['parserReviewReason']),
+      parserNeedsReview: _expenseBool(map['parserNeedsReview']),
     );
   }
 
@@ -77,10 +93,66 @@ class ExpenseReceiptLineRecord {
   final String? fuelType;
   final String? fillType;
   final double? unitPrice;
+  final String rawReceiptText;
+  final String? catalogItemId;
+  final String? catalogItemName;
+  final String? catalogItemPath;
+  final double? catalogMatchConfidence;
+  final List<String> catalogMatchedTerms;
   final double? parserConfidence;
   final String? parserReviewLabel;
   final String? parserReviewReason;
   final bool parserNeedsReview;
+
+  bool get hasCatalogMatch => (catalogItemId ?? '').trim().isNotEmpty;
+  bool get hasParserReview =>
+      parserConfidence != null || parserReviewReason != null;
+
+  String get receiptEvidenceText {
+    final raw = rawReceiptText.trim();
+    if (raw.isNotEmpty) return raw;
+    return description.trim();
+  }
+
+  String get parserReviewLabelText {
+    final label = parserReviewLabel?.trim();
+    if (label != null && label.isNotEmpty) return label;
+    final confidence = parserConfidence;
+    if (confidence == null) return parserNeedsReview ? 'Review' : 'Manual';
+    if (confidence >= .84 && !parserNeedsReview) return 'Good';
+    if (confidence >= .58) return 'Review';
+    return 'Poor';
+  }
+
+  String get parserReviewActionText {
+    if (parserNeedsReview) return 'Review before saving';
+    final label = parserReviewLabelText.toLowerCase();
+    if (label == 'good') return 'Looks matched';
+    if (label == 'poor') return 'Needs correction';
+    if (hasParserReview) return 'Check line';
+    return 'Manual line';
+  }
+
+  String get displayDescription {
+    final clean = description.trim();
+    if (clean.isNotEmpty && clean.toLowerCase() != 'receipt item') {
+      return clean;
+    }
+    return switch (use) {
+      ExpenseLineUse.business => 'Business receipt items',
+      ExpenseLineUse.personal => 'Personal receipt items',
+      ExpenseLineUse.split => 'Split receipt items',
+    };
+  }
+
+  bool get isAllocationOnlyLine {
+    final clean = description.trim().toLowerCase();
+    return clean.isEmpty ||
+        clean == 'receipt item' ||
+        clean == 'business receipt items' ||
+        clean == 'personal receipt items' ||
+        clean == 'split receipt items';
+  }
 
   double get effectiveBusinessPercent {
     return switch (use) {
@@ -128,6 +200,12 @@ class ExpenseReceiptLineRecord {
       'fuelType': fuelType,
       'fillType': fillType,
       'unitPrice': unitPrice,
+      'rawReceiptText': rawReceiptText,
+      'catalogItemId': catalogItemId,
+      'catalogItemName': catalogItemName,
+      'catalogItemPath': catalogItemPath,
+      'catalogMatchConfidence': catalogMatchConfidence,
+      'catalogMatchedTerms': catalogMatchedTerms,
       'parserConfidence': parserConfidence,
       'parserReviewLabel': parserReviewLabel,
       'parserReviewReason': parserReviewReason,

@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'dart:typed_data';
+
+const int appGeneratedPdfMaxBytes = 25 * 1024 * 1024;
 
 enum AppGeneratedPdfKind {
   estimate,
@@ -46,10 +49,124 @@ class AppGeneratedPdfDocument {
   String get safeFileName {
     final trimmed = fileName.trim();
     if (trimmed.isEmpty) return 'maintaniac-document.pdf';
-    return trimmed.toLowerCase().endsWith('.pdf') ? trimmed : '$trimmed.pdf';
+    final withExtension = trimmed.toLowerCase().endsWith('.pdf')
+        ? trimmed
+        : '$trimmed.pdf';
+    return AppGeneratedPdfFileName.clean(withExtension);
   }
 
   int get byteSize => bytes.lengthInBytes;
+
+  AppGeneratedPdfValidationReport get validation =>
+      AppGeneratedPdfValidationReport.inspect(bytes);
+
+  bool get isSendablePdf => validation.isValid;
+}
+
+class AppGeneratedPdfFileName {
+  const AppGeneratedPdfFileName._();
+
+  static String clean(String fileName) {
+    final cleaned = fileName
+        .replaceAll(RegExp(r'[\\/:*?"<>|]+'), '-')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    final normalized = cleaned.isEmpty ? 'maintaniac-document.pdf' : cleaned;
+    final withExtension = normalized.toLowerCase().endsWith('.pdf')
+        ? normalized
+        : '$normalized.pdf';
+    if (withExtension.length <= 120) return withExtension;
+    final baseName = withExtension.substring(0, withExtension.length - 4);
+    return '${baseName.substring(0, 116)}.pdf';
+  }
+}
+
+class AppGeneratedPdfValidationReport {
+  const AppGeneratedPdfValidationReport({
+    required this.byteSize,
+    required this.issues,
+  });
+
+  factory AppGeneratedPdfValidationReport.inspect(Uint8List bytes) {
+    final issues = <String>[];
+    if (bytes.isEmpty) {
+      issues.add('empty');
+      return AppGeneratedPdfValidationReport(byteSize: 0, issues: issues);
+    }
+    if (bytes.lengthInBytes > appGeneratedPdfMaxBytes) {
+      issues.add('too_large');
+    }
+    if (!_hasPdfHeader(bytes)) {
+      issues.add('missing_pdf_header');
+    }
+    if (!_hasPdfEndMarker(bytes)) {
+      issues.add('missing_pdf_end_marker');
+    }
+    final content = latin1.decode(bytes);
+    final lower = content.toLowerCase();
+    const activeMarkers = {
+      '/javascript': 'active_javascript',
+      '/js': 'active_javascript',
+      '/launch': 'active_launch_action',
+      '/embeddedfile': 'embedded_file',
+      '/xfa': 'dynamic_form_content',
+    };
+    for (final entry in activeMarkers.entries) {
+      if (lower.contains(entry.key)) issues.add(entry.value);
+    }
+    return AppGeneratedPdfValidationReport(
+      byteSize: bytes.lengthInBytes,
+      issues: issues.toSet().toList(growable: false),
+    );
+  }
+
+  final int byteSize;
+  final List<String> issues;
+
+  bool get isValid => issues.isEmpty;
+
+  bool hasIssue(String issue) => issues.contains(issue);
+
+  String get userMessage {
+    if (isValid) return 'PDF is ready.';
+    if (hasIssue('empty')) {
+      return 'Maintaniac could not create that PDF because the generated file was empty.';
+    }
+    if (hasIssue('too_large')) {
+      return 'Maintaniac could not create that PDF because it is too large to safely send or save.';
+    }
+    if (hasIssue('missing_pdf_header') || hasIssue('missing_pdf_end_marker')) {
+      return 'Maintaniac could not create that PDF because the generated file was incomplete.';
+    }
+    return 'Maintaniac stopped this PDF because it contained unsupported active PDF features.';
+  }
+
+  static bool _hasPdfHeader(Uint8List bytes) {
+    var index = 0;
+    while (index < bytes.length && index < 32) {
+      final value = bytes[index];
+      if (value != 0x00 &&
+          value != 0x09 &&
+          value != 0x0A &&
+          value != 0x0D &&
+          value != 0x20) {
+        break;
+      }
+      index += 1;
+    }
+    if (bytes.length - index < 5) return false;
+    return bytes[index] == 0x25 &&
+        bytes[index + 1] == 0x50 &&
+        bytes[index + 2] == 0x44 &&
+        bytes[index + 3] == 0x46 &&
+        bytes[index + 4] == 0x2D;
+  }
+
+  static bool _hasPdfEndMarker(Uint8List bytes) {
+    final start = bytes.length > 2048 ? bytes.length - 2048 : 0;
+    final tail = latin1.decode(bytes.sublist(start));
+    return tail.contains('%%EOF');
+  }
 }
 
 class AppGeneratedPdfFile {

@@ -267,31 +267,11 @@ void _showExpenseScopeSheet(
   );
 }
 
-void _openExpenseAllocationReport(
-  BuildContext context, {
-  required ExpenseDateRange range,
-  required String rangeLabel,
-}) {
-  Navigator.of(context).push(
-    appNativeRoute<void>(
-      context,
-      ExpenseAllocationScreen(range: range, rangeLabel: rangeLabel),
-    ),
-  );
-}
-
-void _openExpenseExport(BuildContext context) {
-  Navigator.of(context).push(appSlideRoute(const ExpenseExportScreen()));
-}
-
 void _showReceiptDetail(BuildContext context, _LedgerEntryData entry) {
   Navigator.of(context).push(
     appNativeRoute<void>(
       context,
-      ExpenseReceiptEntryScreen(
-        initialCategory: entry.category,
-        receiptId: entry.receiptId,
-      ),
+      ExpenseReceiptDetailScreen(receiptId: entry.receiptId),
     ),
   );
 }

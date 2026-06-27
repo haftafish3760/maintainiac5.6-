@@ -3,7 +3,16 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-enum _ReceiptCropEdge { left, right, top, bottom }
+enum _ReceiptCropHandle {
+  left,
+  right,
+  top,
+  bottom,
+  topLeft,
+  topRight,
+  bottomLeft,
+  bottomRight,
+}
 
 class ReceiptEdgeCropper extends StatelessWidget {
   const ReceiptEdgeCropper({
@@ -27,12 +36,10 @@ class ReceiptEdgeCropper extends StatelessWidget {
       builder: (context, constraints) {
         final canvasSize = Size(constraints.maxWidth, constraints.maxHeight);
         final imageRect = _containedImageRect(canvasSize, imageSize);
-        onDisplayRectChanged(imageRect);
+        _notifyAfterLayout(context, () => onDisplayRectChanged(imageRect));
         final activeCropRect = cropRect ?? imageRect;
         if (cropRect == null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            onCropRectChanged(imageRect);
-          });
+          _notifyAfterLayout(context, () => onCropRectChanged(imageRect));
         }
         return Stack(
           fit: StackFit.expand,
@@ -49,12 +56,12 @@ class ReceiptEdgeCropper extends StatelessWidget {
                 ),
               ),
             ),
-            for (final edge in _ReceiptCropEdge.values)
-              _CropEdgeHandle(
+            for (final handle in _ReceiptCropHandle.values)
+              _CropHandle(
                 imageRect: imageRect,
                 cropRect: activeCropRect,
-                edge: edge,
-                onDrag: _dragCropEdge,
+                handle: handle,
+                onDrag: _dragCropHandle,
               ),
           ],
         );
@@ -82,8 +89,15 @@ class ReceiptEdgeCropper extends StatelessWidget {
     );
   }
 
-  void _dragCropEdge(
-    _ReceiptCropEdge edge,
+  void _notifyAfterLayout(BuildContext context, VoidCallback callback) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      callback();
+    });
+  }
+
+  void _dragCropHandle(
+    _ReceiptCropHandle handle,
     DragUpdateDetails details,
     Rect imageRect,
     Rect current,
@@ -93,17 +107,41 @@ class ReceiptEdgeCropper extends StatelessWidget {
     var right = current.right;
     var top = current.top;
     var bottom = current.bottom;
-    switch (edge) {
-      case _ReceiptCropEdge.left:
+    switch (handle) {
+      case _ReceiptCropHandle.left:
         left = (left + details.delta.dx).clamp(imageRect.left, right - minSize);
-      case _ReceiptCropEdge.right:
+      case _ReceiptCropHandle.right:
         right = (right + details.delta.dx).clamp(
           left + minSize,
           imageRect.right,
         );
-      case _ReceiptCropEdge.top:
+      case _ReceiptCropHandle.top:
         top = (top + details.delta.dy).clamp(imageRect.top, bottom - minSize);
-      case _ReceiptCropEdge.bottom:
+      case _ReceiptCropHandle.bottom:
+        bottom = (bottom + details.delta.dy).clamp(
+          top + minSize,
+          imageRect.bottom,
+        );
+      case _ReceiptCropHandle.topLeft:
+        left = (left + details.delta.dx).clamp(imageRect.left, right - minSize);
+        top = (top + details.delta.dy).clamp(imageRect.top, bottom - minSize);
+      case _ReceiptCropHandle.topRight:
+        right = (right + details.delta.dx).clamp(
+          left + minSize,
+          imageRect.right,
+        );
+        top = (top + details.delta.dy).clamp(imageRect.top, bottom - minSize);
+      case _ReceiptCropHandle.bottomLeft:
+        left = (left + details.delta.dx).clamp(imageRect.left, right - minSize);
+        bottom = (bottom + details.delta.dy).clamp(
+          top + minSize,
+          imageRect.bottom,
+        );
+      case _ReceiptCropHandle.bottomRight:
+        right = (right + details.delta.dx).clamp(
+          left + minSize,
+          imageRect.right,
+        );
         bottom = (bottom + details.delta.dy).clamp(
           top + minSize,
           imageRect.bottom,
@@ -170,19 +208,19 @@ class _ReceiptCropOverlayPainter extends CustomPainter {
   }
 }
 
-class _CropEdgeHandle extends StatelessWidget {
-  const _CropEdgeHandle({
+class _CropHandle extends StatelessWidget {
+  const _CropHandle({
     required this.imageRect,
     required this.cropRect,
-    required this.edge,
+    required this.handle,
     required this.onDrag,
   });
 
   final Rect imageRect;
   final Rect cropRect;
-  final _ReceiptCropEdge edge;
+  final _ReceiptCropHandle handle;
   final void Function(
-    _ReceiptCropEdge edge,
+    _ReceiptCropHandle handle,
     DragUpdateDetails details,
     Rect imageRect,
     Rect cropRect,
@@ -190,48 +228,77 @@ class _CropEdgeHandle extends StatelessWidget {
   onDrag;
 
   static const _hitSize = 46.0;
-  static const _visibleSize = 6.0;
+  static const _edgeVisibleSize = 6.0;
+  static const _cornerVisibleSize = 18.0;
 
   @override
   Widget build(BuildContext context) {
-    final rect = switch (edge) {
-      _ReceiptCropEdge.left => Rect.fromLTWH(
+    final rect = switch (handle) {
+      _ReceiptCropHandle.left => Rect.fromLTWH(
         cropRect.left - _hitSize / 2,
         cropRect.top,
         _hitSize,
         cropRect.height,
       ),
-      _ReceiptCropEdge.right => Rect.fromLTWH(
+      _ReceiptCropHandle.right => Rect.fromLTWH(
         cropRect.right - _hitSize / 2,
         cropRect.top,
         _hitSize,
         cropRect.height,
       ),
-      _ReceiptCropEdge.top => Rect.fromLTWH(
+      _ReceiptCropHandle.top => Rect.fromLTWH(
         cropRect.left,
         cropRect.top - _hitSize / 2,
         cropRect.width,
         _hitSize,
       ),
-      _ReceiptCropEdge.bottom => Rect.fromLTWH(
+      _ReceiptCropHandle.bottom => Rect.fromLTWH(
         cropRect.left,
         cropRect.bottom - _hitSize / 2,
         cropRect.width,
         _hitSize,
       ),
+      _ReceiptCropHandle.topLeft => Rect.fromLTWH(
+        cropRect.left - _hitSize / 2,
+        cropRect.top - _hitSize / 2,
+        _hitSize,
+        _hitSize,
+      ),
+      _ReceiptCropHandle.topRight => Rect.fromLTWH(
+        cropRect.right - _hitSize / 2,
+        cropRect.top - _hitSize / 2,
+        _hitSize,
+        _hitSize,
+      ),
+      _ReceiptCropHandle.bottomLeft => Rect.fromLTWH(
+        cropRect.left - _hitSize / 2,
+        cropRect.bottom - _hitSize / 2,
+        _hitSize,
+        _hitSize,
+      ),
+      _ReceiptCropHandle.bottomRight => Rect.fromLTWH(
+        cropRect.right - _hitSize / 2,
+        cropRect.bottom - _hitSize / 2,
+        _hitSize,
+        _hitSize,
+      ),
     };
     final vertical =
-        edge == _ReceiptCropEdge.left || edge == _ReceiptCropEdge.right;
+        handle == _ReceiptCropHandle.left || handle == _ReceiptCropHandle.right;
+    final horizontal =
+        handle == _ReceiptCropHandle.top || handle == _ReceiptCropHandle.bottom;
     return Positioned.fromRect(
       rect: rect,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onPanUpdate: (details) => onDrag(edge, details, imageRect, cropRect),
+        onPanUpdate: (details) => onDrag(handle, details, imageRect, cropRect),
         child: Center(
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: const Color(0xFFFFD166),
-              borderRadius: BorderRadius.circular(3),
+              borderRadius: BorderRadius.circular(
+                vertical || horizontal ? 3 : 5,
+              ),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0xAA000000),
@@ -241,8 +308,16 @@ class _CropEdgeHandle extends StatelessWidget {
               ],
             ),
             child: SizedBox(
-              width: vertical ? _visibleSize : 92,
-              height: vertical ? 92 : _visibleSize,
+              width: vertical
+                  ? _edgeVisibleSize
+                  : horizontal
+                  ? 92
+                  : _cornerVisibleSize,
+              height: vertical
+                  ? 92
+                  : horizontal
+                  ? _edgeVisibleSize
+                  : _cornerVisibleSize,
             ),
           ),
         ),

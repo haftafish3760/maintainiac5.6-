@@ -1,0 +1,9 @@
+Screen: lib/screens/work_supplies/work_supply_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"You got mileage tracker, expense tracking, obviously, inventory, which is
+materials, invoices, maintenance."
+
+"The inventory screen needs to be the best of the best."
+

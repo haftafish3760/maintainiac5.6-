@@ -3,6 +3,15 @@ part of '../../../work_supply_catalog.dart';
 final carpentryFastenersCategory = _category('Fasteners', [
   _system('Screws', [
     _type(
+      'Wood Screws',
+      _variants(
+        'Wood Screws',
+        'box',
+        ['#8 x 1-1/4 in', '#8 x 1-5/8 in', '#10 x 2 in'],
+        ['wood screw', 'wood screws'],
+      ),
+    ),
+    _type(
       'Deck Screws',
       _variants(
         'Deck Screws',

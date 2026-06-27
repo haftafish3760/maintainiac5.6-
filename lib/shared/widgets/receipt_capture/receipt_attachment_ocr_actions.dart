@@ -39,30 +39,99 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
         _ReceiptAttachmentReadOutcome.skipped,
       );
     }
-    final result = await const ReceiptOcrService().recognizeTextFromAttachments(
-      readable,
-    );
+    final capability =
+        settings?.deviceCapability ?? const ReceiptDeviceCapability.standard();
+    final policy = ReceiptAssistancePolicy(device: capability);
+    final decision = policy.decideForAttachments(readable);
+    if (decision.mode == ReceiptAssistanceMode.proofOnly ||
+        decision.mode == ReceiptAssistanceMode.cloudCandidate) {
+      final warning = decision.warnings.isEmpty
+          ? decision.reason
+          : '${decision.reason} ${decision.warnings.first}';
+      _updateAttachmentState(() {
+        _receiptReadStatus = _ReceiptReadStatusKind.warning;
+        _receiptReadStatusMessage =
+            'Receipt proof saved. This file is too large or not suitable for app-assisted filling on this device.';
+      });
+      if (showNoTextMessage || showDisabledMessage) {
+        _showPickerError(warning);
+      }
+      return _ReceiptAttachmentReadResult(
+        _ReceiptAttachmentReadOutcome.skipped,
+        warning,
+      );
+    }
+    _updateAttachmentState(() {
+      _readingForReview = true;
+      _receiptReadStatus = _ReceiptReadStatusKind.reading;
+      _receiptReadStatusMessage =
+          'Reading the clear receipt image now. If text is found, the filled receipt review appears below.';
+    });
+    widget.onReceiptReadStarted?.call();
+    late final ReceiptOcrResult result;
+    try {
+      result = await ReceiptOcrService.forDevice(
+        capability,
+      ).recognizeTextFromAttachments(readable);
+    } catch (_) {
+      if (mounted) {
+        _updateAttachmentState(() {
+          _readingForReview = false;
+          _receiptReadStatus = _ReceiptReadStatusKind.failed;
+          _receiptReadStatusMessage =
+              'Receipt reading failed before the review fields could be filled. Keep the proof or try a clearer photo.';
+        });
+        if (showNoTextMessage) {
+          _showPickerError('Receipt reading failed. Try another photo.');
+        }
+      }
+      widget.onReceiptReadFinished?.call(false);
+      return const _ReceiptAttachmentReadResult(
+        _ReceiptAttachmentReadOutcome.unreadable,
+        'Receipt reading failed.',
+      );
+    }
     if (!mounted) {
       return const _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.skipped,
       );
     }
     if (!result.hasText) {
-      final warning = result.warnings.isEmpty
+      final warning = result.structuredWarnings.isEmpty
           ? 'No readable text was found in that receipt.'
-          : result.warnings.first;
+          : result.structuredWarnings.first.reviewMessage;
+      _updateAttachmentState(() {
+        _readingForReview = false;
+        _receiptReadStatus = _ReceiptReadStatusKind.failed;
+        _receiptReadStatusMessage =
+            'No readable receipt text was found. Keep the proof, add another photo, or retake with brighter light.';
+      });
       if (showNoTextMessage) {
         _showPickerError(warning);
       }
+      widget.onReceiptReadFinished?.call(false);
       return _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.unreadable,
         warning,
       );
     }
-    widget.onImportedText?.call(result.appFillText);
-    _showPickerMessage(
-      result.warnings.isEmpty ? successMessage : result.warnings.first,
-    );
+    final message = result.reviewMessage(successMessage: successMessage);
+    final onImportedText = widget.onImportedText;
+    if (onImportedText != null) {
+      await Future<void>.sync(() => onImportedText(result.appFillText));
+    }
+    _updateAttachmentState(() {
+      _readingForReview = false;
+      _receiptReadStatus =
+          result.structuredWarnings.any(
+            (warning) => warning.isBlocking || warning.isPartial,
+          )
+          ? _ReceiptReadStatusKind.warning
+          : _ReceiptReadStatusKind.success;
+      _receiptReadStatusMessage = message;
+    });
+    _showPickerMessage(message);
+    widget.onReceiptReadFinished?.call(true);
     return const _ReceiptAttachmentReadResult(
       _ReceiptAttachmentReadOutcome.read,
     );

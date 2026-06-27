@@ -1,4 +1,5 @@
 export 'receipt_attachment_panel.dart';
+export 'receipt_assistance_policy.dart';
 export 'receipt_capture_models.dart';
 export 'receipt_capture_settings_store.dart';
 export 'receipt_edge_cropper.dart';
@@ -7,4 +8,6 @@ export 'receipt_image_processor.dart';
 export 'receipt_ocr_service.dart';
 export 'receipt_photo_review_screen.dart';
 export 'receipt_pdf_viewer_screen.dart';
+export 'receipt_picker_status.dart';
+export 'receipt_scanner_service.dart';
 export 'receipt_storage_guard.dart';

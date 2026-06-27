@@ -1,0 +1,68 @@
+Batch 4 notes for calendar recaps and navigation
+
+Related screens:
+- lib/screens/dashboard/calendar_day_flow.dart
+- lib/screens/dashboard/calendar_flow_widgets.dart
+- lib/screens/profiles/employee_profile_routes.dart
+- lib/screens/expenses/calendar/expense_day_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/14a759af-51f1-48fa-85e9-445d4851ee51/pasted-text.txt
+
+"This calendar screen for the date, how am I gonna switch days if there's no
+arrows to switch the days?"
+
+"I told it to make you do the arrows and stuff like that, and it never did."
+
+"When I say we need a recap, you think I'm playing with you when I tell you
+that I need to be able to see absolutely positively everything that my
+employee, that that employer is gonna wanna see everything that that employee
+did."
+
+Source: /Users/rbbie/.codex/attachments/2466b528-ffc1-46eb-a3a1-d0dd58b42045/pasted-text.txt
+
+"For each employee and even for each of my users, for the calendar screen
+itself, and this is for everybody on this app."
+
+"Some employees may or may not be able to see all of their recap, like profit
+and everything else."
+
+"We've got to make sure that we're gonna have miles per gallon, cost per mile."
+
+"Every recap that you can possibly come up with for a vehicle or an employee."
+
+"This is a true blue record-keeping application."
+
+"We are doing all the recaps."
+
+"I need to know how much money I'm making per mile on the vehicle, before and
+after expenses, like CPM, cents per mile, or DPM, dollars and cents per mile,
+rather."
+
+"Like all the recaps you could possibly come up with."
+
+"Like how much am I spending for maintenance? We gotta have recaps for that.
+Repairs."
+
+"The recap on the calendar screen."
+
+"I told you to add arrows."
+
+"Employee, you've got a date up top on the top row where the back row is, and
+then you've got the date down on the, down below that. Get rid of it on the top
+row on the calendar screen, please."
+
+"The back button. How many times have I got to tell you you need to change that
+to something? Not so big and bulky, taking up an entire 50-pixel row."
+
+"All you need is the word back up there."
+
+"It does not need to take up that much blasted room."
+
+"The calendar day, where is the active vehicle at for that day?"
+
+"What vehicle did I use for that day, or what vehicles, plural, did I use for
+that day?"
+
+"This is stuff that I don't want to forget, so you need to create a
+calendar.txt file and put that in there."
+

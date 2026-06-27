@@ -14,7 +14,7 @@ class _InventoryTrackingPrompt extends StatelessWidget {
     return ReceiptFormPanel(
       title: 'Save Materials Receipt',
       subtitle:
-          'Choose whether this is only an expense record or should also be prepared for Materials inventory.',
+          'Choose whether this receipt stays expense-only or also creates review lines for Materials.',
       icon: Icons.inventory_2_rounded,
       accentColor: const Color(0xFF58D67D),
       children: [
@@ -22,7 +22,8 @@ class _InventoryTrackingPrompt extends StatelessWidget {
           selected: !value,
           icon: Icons.receipt_long_rounded,
           title: 'Expense only',
-          subtitle: 'Save the receipt in Expenses. Do not add inventory items.',
+          subtitle:
+              'Save the receipt in Expenses. No inventory review or stock update is created.',
           onTap: () => onChanged(false),
         ),
         const SizedBox(height: 8),
@@ -31,7 +32,7 @@ class _InventoryTrackingPrompt extends StatelessWidget {
           icon: Icons.inventory_rounded,
           title: 'Also prepare Materials inventory',
           subtitle:
-              'Create review lines in Materials so stock can be confirmed later.',
+              'Create Materials review lines. Inventory changes only after confirmation.',
           onTap: () => onChanged(true),
         ),
       ],

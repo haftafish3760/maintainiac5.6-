@@ -111,7 +111,7 @@ final _materialMerchantProfiles = [
   ),
   _MerchantProfile(
     displayName: 'PPG Paints',
-    pattern: RegExp(r'\b(ppg paints?|ppg)\b'),
+    pattern: RegExp(r'\b(ppg paints?|ppg paint store|ppg architectural)\b'),
     defaultCategory: 'Materials',
     secondaryCategories: const ['Tools', 'Safety Gear'],
   ),

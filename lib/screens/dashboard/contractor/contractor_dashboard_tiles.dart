@@ -11,9 +11,16 @@ class ContractorMetricTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F7F4),
+        color: const Color(0xFF050909),
         borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: metric.color, width: 1.5),
+        border: Border.all(color: metric.color, width: 1.7),
+        boxShadow: [
+          BoxShadow(
+            color: metric.color.withValues(alpha: 0.18),
+            blurRadius: 9,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(9, 7, 9, 8),
@@ -26,7 +33,7 @@ class ContractorMetricTile extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                color: Color(0xFF172126),
+                color: Color(0xFFC9D1D4),
                 fontSize: 11,
                 fontWeight: FontWeight.w900,
               ),
@@ -38,7 +45,7 @@ class ContractorMetricTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: metric.color,
-                fontSize: 19,
+                fontSize: 20,
                 fontWeight: FontWeight.w900,
               ),
             ),

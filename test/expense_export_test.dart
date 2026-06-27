@@ -7,6 +7,7 @@ import 'package:maintaniac/screens/expenses/data/expense_export_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_export_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 void main() {
   late Directory hiveDirectory;
@@ -37,6 +38,33 @@ void main() {
           enteredSubtotal: 100,
           enteredTax: 7,
           enteredTotal: 107,
+          vehicleId: 'truck-1',
+          odometerReading: 151000,
+          hasReceiptProof: true,
+          attachments: [
+            ReceiptAttachmentRecord(
+              id: 'proof-photo',
+              path: '/tmp/receipt-proof.jpg',
+              kind: ReceiptAttachmentKind.photo,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime.utc(2026, 6, 11, 14),
+              byteSize: 248000,
+            ),
+            ReceiptAttachmentRecord(
+              id: 'proof-pdf',
+              path: '/tmp/receipt-proof.pdf',
+              kind: ReceiptAttachmentKind.pdf,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime.utc(2026, 6, 11, 14, 1),
+              byteSize: 520000,
+            ),
+          ],
+          ocrReview: const ExpenseReceiptOcrReview(
+            severity: 'review',
+            warningCount: 1,
+            parserLineCount: 2,
+            pdfPagesRequested: 1,
+          ),
           lines: const [
             ExpenseReceiptLineRecord(
               id: 'LINE-business',
@@ -77,11 +105,26 @@ void main() {
       expect(snapshot.lineCount, 2);
       expect(snapshot.total, 107);
       expect(snapshot.toReceiptsCsv(), contains('sales_tax'));
+      expect(snapshot.toReceiptsCsv(), contains('receipt_proof_count'));
+      expect(snapshot.toReceiptsCsv(), contains('saved_proof_bytes'));
+      expect(snapshot.toReceiptsCsv(), contains('ocr_review_status'));
+      expect(snapshot.toReceiptsCsv(), contains('ocr_warning_count'));
+      expect(snapshot.toReceiptsCsv(), contains('photo|pdf'));
+      expect(snapshot.toReceiptsCsv(), contains('768000'));
+      expect(snapshot.toReceiptsCsv(), contains('review'));
+      expect(snapshot.toReceiptsCsv(), contains('odometer_reading'));
+      expect(snapshot.toReceiptsCsv(), contains('151000'));
       expect(snapshot.toReceiptsCsv(), contains('107.00'));
       expect(snapshot.toLineItemsCsv(), contains('85.60'));
       expect(snapshot.toLineItemsCsv(), contains('21.40'));
       expect(snapshot.toManifest()['source'], 'localDevice');
       expect(snapshot.toManifest()['destination'], 'email');
+      expect(snapshot.toManifest()['receiptProofCount'], 2);
+      expect(snapshot.toManifest()['receiptProofBytes'], 768000);
+      expect(snapshot.toManifest()['receiptsMissingProof'], 0);
+      expect(snapshot.toManifest()['receiptsWithOcrReview'], 1);
+      expect(snapshot.toManifest()['receiptsNeedingOcrReview'], 1);
+      expect(snapshot.toManifest()['privacyNote'], contains('Raw OCR text'));
     },
   );
 
@@ -141,7 +184,7 @@ void main() {
       exportedAt: DateTime.utc(2026, 6, 12, 12),
     );
 
-    expect(ledger.receipts, isNotEmpty);
+    expect(ledger.receipts, isEmpty);
     expect(ledger.storedReceipts, isEmpty);
     expect(snapshot.receiptCount, 0);
     expect(snapshot.lineCount, 0);

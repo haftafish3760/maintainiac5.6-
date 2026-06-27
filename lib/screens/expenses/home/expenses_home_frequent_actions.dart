@@ -15,8 +15,8 @@ class _FrequentActionsPanel extends StatelessWidget {
         ? _topExpenseCategories(ledger, range)
         : _quickCategoriesFromSettings(settings);
     final detail = settings.autoTrackQuickCategories
-        ? 'Showing the top 10 categories for this period. Tap one to review matching entries.'
-        : 'Showing your 10 home categories. Tap one to review matching entries.';
+        ? 'Showing category totals for ${period.rangeLabel(anchorDate)}. Tap one to review matching entries.'
+        : 'Showing your home categories for ${period.rangeLabel(anchorDate)}. Tap one to review matching entries.';
     return _SolidSection(
       backgroundColor: _coolPanel,
       borderColor: const Color(0xFF295E73),
@@ -25,7 +25,7 @@ class _FrequentActionsPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _SectionHeader(
-            eyebrow: 'CATEGORY TOTALS',
+            eyebrow: 'DAILY TOTALS',
             title: 'Expense categories',
             detail: detail,
           ),

@@ -1,0 +1,69 @@
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"The expense part of things, just on the receipt portion, I spent four days on
+for just the receipt portion, telling Codex that one of the other models, I'm
+like, keep going, keep going, keep going for four days to harden that thing."
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"There's some things that needs to be arranged, like for inventory for the
+receipt flow, that's got to be changed. I already know that."
+
+"Right now, at the moment, I'm trying to think about all of the expense records.
+We are a record-keeping application only. That's it. That's all we can do is
+create records."
+
+"If Johnny gets, just Johnny, you know, Johnny, he's who's it, Joe Blow,
+whoever, gets a company card, once I hire that employee and I add them to this
+app, that is when, you know, are they able to create an expense? If so, then by
+default, all expenses are turned on for them to be able to create that expense."
+
+"Are they able to edit what they have already put in? Entirely on the employer
+to decide that. Are they able to view it? Entirely on the employer to do it."
+
+"Are they able to edit, view, and add stuff for the other employees? And if so,
+we've got to have which role are they able to add, edit, view, share, export,
+all that stuff."
+
+"For each and every one of them, features."
+
+"I've got more however many expense categories I have, guess what? That's how
+many goddamn expense categories need to be underneath of the goddamn expense
+tab."
+
+"Each one of those, all right, is the user able to read and write his or her own
+expense? Are they able to edit their own expense records?"
+
+"We can't see that card statement, and I don't wanna see that card statement. I
+don't have the proper authority for that stuff yet."
+
+"For now, we are only record-keeping."
+
+Source: /Users/rbbie/.codex/attachments/0033c4ad-9f3e-426c-bd00-8fbc98c13b44/pasted-text.txt
+
+"I've also considered integrating Google Vision for receipt stuff, but as long
+as we have a good parser, and I can tell you now that we have or are supposed to
+have a really good camera system in here, and if it isn't, we will harden that
+as well to make sure that is state-of-the-art camera system to help the user
+actually get good pictures."
+
+Source: visible user message, 2026-06-23
+
+"Every receipt flow needs a fast classification option, not only detailed
+line-item entry. Most users may only want to mark a whole receipt or each line
+as business, personal, or mixed business/personal because the attached receipt
+photo/PDF is already proof of the item details. Detailed item fields should be
+optional for users who want item names, quantities, packages, categories, fuel
+details, or inventory tracking. If a materials/inventory-looking receipt is
+entered from Expenses, saving the expense should not automatically track
+inventory; the user must explicitly choose whether to also prepare or save the
+receipt into Inventory/Materials."
+
+Source: visible user message, 2026-06-23
+
+"Receipt capture quality is part of the OCR/parsing system. The camera should
+guide the user toward readable receipt photos with focus, lighting, framing,
+glare, long-receipt, and retake guidance instead of leaving blurry or cropped
+photos for OCR/parser logic to guess through. Camera capture, OCR, PDF parsing,
+receipt parsing, catalog matching, and related heavy app workflows should scale
+from a runtime device capability tier rather than hardcoded phone models."

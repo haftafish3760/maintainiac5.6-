@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../shared/navigation/app_page_routes.dart';
+import '../../shared/state/app_state.dart';
 import '../../shared/theme/app_action_colors.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/widgets/app_back_button.dart';
 import '../../shared/widgets/app_button.dart';
 import 'maintenance_models.dart';
-import 'maintenance_setup_screen.dart';
 import 'maintenance_svg_icon.dart';
 
 class MaintenanceWorkSourceScreen extends StatefulWidget {
@@ -84,7 +83,7 @@ class _MaintenanceTrackingSelectionPanelState
           ),
           const SizedBox(height: 4),
           const Text(
-            'Select the maintenance items you want Mainteniac to help you track.',
+            'Select the maintenance items you want Maintainiac to help you track.',
             style: TextStyle(
               color: Color(0xFFCAD4D8),
               fontSize: 12,
@@ -144,15 +143,63 @@ class _MaintenanceTrackingSelectionPanelState
   }
 
   void _continue() {
-    Navigator.of(context).push(
-      appNativeRoute<void>(
-        context,
-        MaintenanceSetupScreen(
-          workSource: WorkSource.me,
-          initialItems: _selected.toList(),
+    final state = AppStateScope.of(context);
+    final activeVehicle =
+        state.activeVehicle ??
+        (state.vehicles.isEmpty ? null : state.vehicles.first);
+    final vehicleName = activeVehicle?.nickname ?? 'Current Vehicle';
+    final existingForVehicle = state.maintenance
+        .where((record) => record.vehicleName == vehicleName)
+        .map((record) => record.itemName)
+        .toSet();
+
+    final selectedItems = maintenanceCatalog
+        .where(_selected.contains)
+        .where((item) => !existingForVehicle.contains(item.name))
+        .toList();
+
+    if (selectedItems.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Those maintenance items are already being tracked.'),
+        ),
+      );
+      if (widget.showCancel && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      return;
+    }
+
+    state.addMaintenanceRecords(
+      selectedItems
+          .map(
+            (item) => MaintenanceRecord(
+              itemName: item.name,
+              vehicleName: vehicleName,
+              intervalMiles: item.defaultMiles,
+              milesSinceService: 0,
+              intervalMonths: item.defaultMonths,
+              monthsSinceService: 0,
+              importance: item.importance,
+              timeOnly: item.timeOnly,
+            ),
+          )
+          .toList(),
+    );
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          selectedItems.length == 1
+              ? '${selectedItems.first.name} is now tracked for $vehicleName.'
+              : '${selectedItems.length} maintenance items are now tracked for $vehicleName.',
         ),
       ),
     );
+    if (widget.showCancel && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
   }
 }
 
@@ -174,7 +221,7 @@ class _MaintenanceSetupSurface extends StatelessWidget {
           stops: [0, 0.55, 1],
         ),
         borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: const Color(0xFF67747A), width: 1.4),
+        border: Border.all(color: const Color(0xFF4C5A61), width: 1),
         boxShadow: const [
           BoxShadow(
             color: Color(0x99000000),
@@ -211,20 +258,20 @@ class _MaintenanceTrackOption extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(5),
         onTap: onTap,
         child: Ink(
           height: 58,
           padding: const EdgeInsets.fromLTRB(8, 0, 9, 0),
           decoration: BoxDecoration(
             color: background,
-            borderRadius: BorderRadius.circular(7),
-            border: Border.all(color: border, width: selected ? 2 : 1),
+            borderRadius: BorderRadius.circular(5),
+            border: Border.all(color: border, width: 1),
             boxShadow: selected
                 ? [
                     BoxShadow(
-                      color: AppActionColors.positive.withValues(alpha: 0.20),
-                      blurRadius: 8,
+                      color: Colors.black.withValues(alpha: 0.18),
+                      blurRadius: 5,
                     ),
                   ]
                 : null,
@@ -288,7 +335,7 @@ class _SelectionBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(5),
         border: Border.all(
           color: selected ? AppActionColors.positive : const Color(0xFFE2E8EA),
-          width: 2,
+          width: 1.4,
         ),
       ),
       child: selected

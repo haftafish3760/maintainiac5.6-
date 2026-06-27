@@ -1,0 +1,270 @@
+Source: visible user message, 2026-06-20 Batch 1
+
+"On the hamburger menu, I think that's where the employee profiles need to live,
+obviously."
+
+"Then for all of the employees, this would be for a company, maybe they got
+three trucks, five trucks, 10 trucks, whatever, 30, 50, however many trucks. We
+got to build the employee side of things too."
+
+"The employee side of things is basically the same exact application with some
+caveats is the main thing. I don't want the employees with a totally different
+UI. That's the whole point. I'm not trying to double build this app."
+
+"This is why permissions needs to drive what that employee actually is able to
+see, what they're able to do, all of that stuff. And it needs to be tied in to
+Firebase functions, stuff like that."
+
+"If I turn a permission off, then that user needs to not even see it. Not tease
+them with it, they don't even see it. And then once the contractor turns that on,
+if they turn that permission on for that user, then it needs to update on that
+user's phone, like, pretty much immediately."
+
+"When I click on Employee, all right, I don't mind the fact you have employees
+and permissions. That's perfect. When I click on that at the top, I need to have
+the ability to add an employee. When I add that employee, that is when I add
+their name, all their information, how much they get paid, whether they're, you
+know, it might even be salary."
+
+"When I go to add an employee, We need to walk the user through how to actually
+set this stuff up."
+
+"For permissions, I'm thinking those need to actually be toggles. We need to
+have categories and then toggles whether they have permission or not per title."
+
+"The main application needs to be the same for both owner and employee, but that
+employee is absolutely gonna wanna keep up with their pay, especially if they
+are hourly."
+
+"This application should be a way they could honestly start their day and kind
+of clock in, especially if they are hourly pay."
+
+"I would need to be able to enter how much do they get paid per hour, how many
+hours they've worked, all that good stuff."
+
+"We're not fooling with taxes, with how much withholdings or anything like that
+except for a gross pay."
+
+"We've gotta have an entire laundry list of permissions with whatever
+professional applications need."
+
+"I'm not trying to do this like some people do and hardwire permissions. That
+user must be able to customize permissions for each of their employees."
+
+"We've got to make it the ability for the app owner or user to make up their own
+mind what they want that employee to be able to do."
+
+"We cannot hard code things. We've got to be able to let that user make up their
+mind what permissions each employee gets themselves. And we've got to provide
+those permissions to that user and lock it all down."
+
+Source: current visible user message, 2026-06-20 Batch 1
+
+"Every fucking screen in this app needs a goddamn TXT file, and if I mention
+something about that screen in these goddamn messages that you see right here,
+you must write down what I said into those TXT files, word for word, what I
+said."
+
+"Whatever this app does, it must be a permission for each of the features of
+this app. Absolutely, positively, every bit of this app must be accounted for,
+for permissions."
+
+"For each individual permission, like for a few, do I have the ability to add a
+fuel receipt? Do I have the ability to edit a fuel receipt? Do I have the
+ability to add, edit, and view my own stuff? Do I have the ability to add, view,
+or edit other people's information?"
+
+"If you're able to view other people's expenses, then which role are you able to
+view?"
+
+"Can they edit their expense after they have entered it. Then it's still up to
+the employer whose expense can they see, can they edit and read other people's
+expenses? If so, which role can they edit and which role can they not edit?"
+
+"When it comes to hours, is that employee allowed to write down their own hours?
+We gotta have permission for that. Is that employee allowed to write other
+people's hours? Are they able to read other people's hours? Are they able to be
+able to read what that employee makes per hour?"
+
+Source: /Users/rbbie/.codex/attachments/9c91ecb5-6994-4e27-8699-47cf8632afd5/pasted-text.txt
+
+"Add employee needs to be the very first goddamn thing that you see."
+
+"This is where you look at your employee information."
+
+"Add employee should always be at the top."
+
+"When I click that, it opens up a form so I can add their information."
+
+"It doesn't stay on the goddamn screen where I add their information."
+
+"I don't see that until I actually click add employee."
+
+"At the top of the page would be add employee."
+
+"All right, below that would be a list of my employees, their name and job
+fucking role or their job title."
+
+"You'll see the employee name, you click on it at the top of the screen, it'll
+tell you their name and all their information, phone number, email address."
+
+"That's it. We're not doing addresses and all that bullshit. It's private
+information. No need to have all that stuff."
+
+"Say we can have it local on the app, but it is not to be saved on Firebase."
+
+"And it needs to be encrypted to that phone so it is freaking secure."
+
+"We're not doing birthdays or anything like that."
+
+"At the top of the page, it'll have employee name. Like I said, all their
+demographics in the first container, along with their role."
+
+"There needs to be an edit button for the role."
+
+"Underneath that would be a list of all the permissions they have."
+
+"Then I need to be able to edit that and add more if I want or take some away
+if I want to."
+
+Source: /Users/rbbie/.codex/attachments/514a85f9-8be0-4c0d-a82f-ca7132fd1077/pasted-text.txt
+
+"Top of the page, add new employee."
+
+"It doesn't have to be full goddamn width either."
+
+"It only needs to be about 50 pixels to, you know, maybe 60 pixels tall, and
+like half of the width of the screen or something."
+
+"Make it actually look good."
+
+"Below that is in alphabetical order, a list of all of the employees."
+
+"You got the name and the role, what their role, what the title is, what their
+title."
+
+"Their title represents the role, okay?"
+
+"Top of main, I mean page, of course, add new employee."
+
+"Below that in alphabetical order, employee list."
+
+"Each employee card shows employee name, role label, phone number or email
+preview, active slash disabled status."
+
+"Active employees, it needs to have a button for active and inactive at the top
+of the screen."
+
+"Inactive would be former employees."
+
+"I don't want somebody having to scroll through the entire list before they get
+to the active and inactive switch."
+
+"For the list, all it really needs is the employee name and title."
+
+"Employee detail, when you click it, at the top of the screen, it'll say
+employee name, and then with the name."
+
+"Then below that needs to be all the stuff for, you know, phone number, email,
+their role, their status, assigned to vehicle, if any."
+
+"Role row. The row for the role itself is tappable. Opens permissions, summary.
+All the permissions they have been granted."
+
+"An edit permission button opens full permission editor."
+
+"It needs to go back into the appropriate categories, if that makes sense."
+
+"Each drop-down, it needs to say total permissions. available and total
+permissions granted for that actual block or that actual container."
+
+"That way a user could see how many permissions are in that block and how many
+permissions that user has been granted."
+
+"Permissions summary shows permission currently granted."
+
+"Edit permission button opens full permission editor."
+
+"Permission editor shows all available permission categories in order."
+
+"Existing permissions already toggled in or on."
+
+"User can toggle permissions on and off."
+
+"Admin mode. All right, this is almost like God mode, but God damn it, you
+better not call it God mode is all I can tell you."
+
+"It needs to have warning text for that button."
+
+"Full admin access allows this employee to manage employees. Change
+permissions, view company records, edit company records, edit business data,
+and perform high-impact account actions. Only grant this to someone you fully
+trust."
+
+"Hidden UI is not security."
+
+"Every permission must be enforced by Firestore rules or Cloud Functions."
+
+"Every permission change must create an audit event."
+
+"Owner cannot remove their own owner/admin access."
+
+"Disabled employees cannot access workspace data, no VINs, plates, passenger
+data, or whatever."
+
+"This needs to be state-of-the-art."
+
+"It needs to be good for somebody just working by themselves, which they don't
+have to worry about permissions. They have all permissions to begin with."
+
+"Or somebody with three employees, five employees, two employees, whatever."
+
+"We have to have permissions for subscription and stuff like that as well."
+
+"Gotta have permissions for what expenses that employee is allowed to spend
+money on too."
+
+"Or what expenses they can add to the company, I would say."
+
+"We're not, we are absolutely not storing any kind of credit card information."
+
+Source: current visible user message, 2026-06-22 add employee permission setup
+
+"What I need from you is to look at the employee, how the add employee, add new
+employee. We need to work on that flow."
+
+"So, when I click add new employee, it's got name, phone number, and email.
+Perfect."
+
+"Then, it's got the pay setup and things like that. That's at the bottom, which
+is not a big deal. We can rearrange that later."
+
+"Then it's got vehicle assignment, which I've already told the other codex
+model that we need to have that to be super fast and super easy on that one."
+
+"But for the permissions and what role that person has, think about what a
+small contractor with like three to maybe six or seven employees, I don't know,
+a small contractor, whatever you want to consider that as."
+
+"How are they going to want or what would be the easiest way for them to go
+through all of the permissions?"
+
+"And then you and I need to actually work on absolutely every permission in
+this app."
+
+"What it is being, we got to define that permission. Can somebody view, create,
+or edit that permission, or that not permission, whatever, that item itself,
+within the app itself?"
+
+"I also know that permissions and security is the foundation of this app."
+
+"I need your help to make this a lot easier to deal with."
+
+"I'm thinking maybe it needs to be a button where you click to say, uh, set up
+permissions, and it needs to be an entire flow itself."
+
+"And maybe it should be a questionnaire or something. I don't know, I hate
+wizards though, and so does everybody else. I don't wanna do a wizard."
+
+"However, we've still gotta help the user through it, because they aren't gonna
+have a clue what they're doing."

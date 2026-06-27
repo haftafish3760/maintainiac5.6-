@@ -1,0 +1,21 @@
+Batch 5 notes for wired UI elements
+
+Source: visible user message, 2026-06-20 Batch 5
+
+"If you are going to create the UI element inside of here, it must be wired up
+so I can access the UI element."
+
+"Whatever it is, I've got to be able to access it and see it."
+
+"So, if I have a trip where I start from point A from when I start in the
+morning, say my mileage is 10,000, and then I arrive, my mileage is 10,100."
+
+"You click arrived at first job, whatever it is."
+
+"When I click on that entry for that job, first thing I would see, mileage,
+start and finish, total miles, X amount of miles."
+
+"Then the rest of the stuff, see, we're not even worried about that crap."
+
+"We're getting so far ahead of ourselves, it is ridiculous."
+

@@ -1,0 +1,18 @@
+Screen: lib/screens/dashboard/active_workday_screen.dart
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"Now, for the independent contractor, they will need to have the ability to
+start their day so they can keep track of all their miles and things like
+that."
+
+"The employee needs to have a way to start their day."
+
+"The employer might need to have a way to start their day too, I don't really
+know."
+
+"For a contractor, a small guy is gonna need the start my day button, but
+somebody that owns 20 or 30 trucks, they might not need the start my day button
+unless they need to keep up with the miles on their vehicle. for business
+purposes."
+

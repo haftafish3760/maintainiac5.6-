@@ -86,11 +86,12 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
       }
     }
     if (!mounted) return;
+    final description = _descriptionController.text.trim();
     Navigator.of(context).pop(
       _ExpenseReceiptLine(
-        description: _descriptionController.text.trim().isEmpty
-            ? 'Receipt item'
-            : _descriptionController.text.trim(),
+        description: description.isEmpty
+            ? _defaultReceiptLineDescription(_use)
+            : description,
         category: category,
         use: _use,
         quantity: rule.usesQuantityFields
@@ -108,12 +109,26 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
         fuelType: isFuel ? _fuelType : null,
         fillType: isFuel ? _fillType : null,
         unitPrice: isFuel ? double.tryParse(_unitPriceController.text) : null,
+        rawReceiptText: widget.initial.rawReceiptText,
+        catalogItemId: widget.initial.catalogItemId,
+        catalogItemName: widget.initial.catalogItemName,
+        catalogItemPath: widget.initial.catalogItemPath,
+        catalogMatchConfidence: widget.initial.catalogMatchConfidence,
+        catalogMatchedTerms: widget.initial.catalogMatchedTerms,
         parserConfidence: widget.initial.parserConfidence,
         parserReviewLabel: widget.initial.parserReviewLabel,
         parserReviewReason: widget.initial.parserReviewReason,
         parserNeedsReview: widget.initial.parserNeedsReview,
       ),
     );
+  }
+
+  String _defaultReceiptLineDescription(_ExpenseLineUse use) {
+    return switch (use) {
+      _ExpenseLineUse.business => 'Business receipt items',
+      _ExpenseLineUse.personal => 'Personal receipt items',
+      _ExpenseLineUse.split => 'Split receipt items',
+    };
   }
 
   Future<bool> _confirmSuspiciousOdometer(String? message) async {

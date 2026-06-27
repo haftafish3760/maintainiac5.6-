@@ -1,0 +1,21 @@
+Ads and monetization notes
+
+Source: visible user message, 2026-06-20 Batch 2
+
+"I don't want any kind of interstitial ads, but we definitely have banner ads
+at the bottom, and I definitely want to add inline ads in areas that's not
+gonna interfere with the user's workflow for surely."
+
+"Something like inside of the maintenance where there's a list or calendar
+where there might be a list or, you know, just random areas."
+
+"Nothing that's gonna, like I said, I don't want it inside of any kind of...
+Like form or anything like that, it's actually important."
+
+"Interstitials, I might let a user watch an interstitial for a free export or
+something like that, you know, rewarded interstitials."
+
+"Or maybe watch an interstitial for an extra 5 megabytes of storage or
+something."
+
+"Interstitials, I know, pay a lot more, but I really don't like them."

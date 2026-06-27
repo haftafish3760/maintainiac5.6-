@@ -33,7 +33,7 @@ class _NonInventoryInlineForm extends StatelessWidget {
         _Field(
           controller: description,
           label: 'Description (optional)',
-          hint: 'Leave blank to save this line as business or personal only',
+          hint: 'Optional because the receipt photo is the proof',
           onChanged: onChanged,
         ),
       ],

@@ -78,34 +78,105 @@ class _CalendarDaySummary extends StatelessWidget {
 class _CalendarRecapPeriodSelector extends StatelessWidget {
   const _CalendarRecapPeriodSelector({
     required this.selected,
+    required this.selectedDay,
     required this.onSelected,
   });
 
   final _CalendarRecapPeriod selected;
+  final DateTime selectedDay;
   final ValueChanged<_CalendarRecapPeriod> onSelected;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
       decoration: BoxDecoration(
         color: const Color(0xFF101719),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFF445159)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final period in _CalendarRecapPeriod.values) ...[
-            Expanded(
-              child: _CalendarRecapPeriodButton(
-                period: period,
-                selected: selected == period,
-                onTap: () => onSelected(period),
-              ),
+          const Text(
+            'VIEW',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Color(0xFF9FAAAF),
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
             ),
-            if (period != _CalendarRecapPeriod.values.last)
-              const SizedBox(width: 5),
-          ],
+          ),
+          const SizedBox(height: 2),
+          const Text(
+            'Expense records',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Color(0xFFF0F4F2),
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              height: 1.05,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            selected.rangeLabel(selectedDay),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFFC8D0D3),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 8),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const spacing = 5.0;
+              final columns = constraints.maxWidth < 430 ? 3 : 5;
+              final width =
+                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: 5,
+                children: [
+                  for (final period in _CalendarRecapPeriod.values)
+                    SizedBox(
+                      width: width,
+                      child: _CalendarRecapPeriodButton(
+                        period: period,
+                        selected: selected == period,
+                        onTap: () => onSelected(period),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: _SmallCalendarButton(
+              label: 'Recap',
+              icon: Icons.insights_rounded,
+              onTap: () {
+                Navigator.of(context).push(
+                  appNativeRoute<void>(
+                    context,
+                    ExpenseRecapScreen(
+                      initialDate: selectedDay,
+                      initialRange: selected.rangeFor(selectedDay),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );

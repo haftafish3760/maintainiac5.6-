@@ -1,0 +1,15 @@
+Screen: lib/screens/work_supplies/catalog/work_supply_catalog_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"We need to build trade packs and things like that for each, you know, each
+trade will get its own pack that somebody can download from."
+
+"It'll be on Firebase for me for them to download it on my side, but it could
+still live locally on their device."
+
+"It would need to tell the user how many megabytes it is."
+
+"And we need to probably have several different levels of it. Probably three,
+at least three, if not four different levels."
+

@@ -1,0 +1,79 @@
+Batch 2 notes for employee permissions screen
+
+Related screen:
+lib/screens/profiles/employee_permissions_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/9c91ecb5-6994-4e27-8699-47cf8632afd5/pasted-text.txt
+
+"Add employee needs to be the very first goddamn thing that you see."
+
+"When I click that, it opens up a form so I can add their information."
+
+"It doesn't stay on the goddamn screen where I add their information."
+
+"At the top of the page would be add employee."
+
+"All right, below that would be a list of my employees, their name and job
+fucking role or their job title."
+
+"You'll see the employee name, you click on it at the top of the screen, it'll
+tell you their name and all their information, phone number, email address."
+
+"That's it. We're not doing addresses and all that bullshit. It's private
+information. No need to have all that stuff."
+
+"Say we can have it local on the app, but it is not to be saved on Firebase."
+
+"And it needs to be encrypted to that phone so it is freaking secure."
+
+"We're not doing birthdays or anything like that."
+
+Source: /Users/rbbie/.codex/attachments/514a85f9-8be0-4c0d-a82f-ca7132fd1077/pasted-text.txt
+
+"Top of the page, add new employee."
+
+"Below that is in alphabetical order, a list of all of the employees."
+
+"Each employee card shows employee name, role label, phone number or email
+preview, active slash disabled status."
+
+"Active employees, it needs to have a button for active and inactive at the top
+of the screen."
+
+"Inactive would be former employees."
+
+"Role row. The row for the role itself is tappable. Opens permissions, summary.
+All the permissions they have been granted."
+
+"An edit permission button opens full permission editor."
+
+"Each drop-down, it needs to say total permissions. available and total
+permissions granted for that actual block or that actual container."
+
+"Permissions summary shows permission currently granted."
+
+"Permission editor shows all available permission categories in order."
+
+"Existing permissions already toggled in or on."
+
+"User can toggle permissions on and off."
+
+"Admin mode. All right, this is almost like God mode, but God damn it, you
+better not call it God mode is all I can tell you."
+
+"Full admin access allows this employee to manage employees. Change
+permissions, view company records, edit company records, edit business data,
+and perform high-impact account actions. Only grant this to someone you fully
+trust."
+
+"Hidden UI is not security."
+
+"Every permission must be enforced by Firestore rules or Cloud Functions."
+
+"Every permission change must create an audit event."
+
+"Owner cannot remove their own owner/admin access."
+
+"Disabled employees cannot access workspace data, no VINs, plates, passenger
+data, or whatever."
+

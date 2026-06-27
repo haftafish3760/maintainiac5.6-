@@ -9,7 +9,10 @@ class _ReceiptLineData {
     required this.total,
   });
 
-  factory _ReceiptLineData.fromLedger(ExpenseReceiptLineRecord line) {
+  factory _ReceiptLineData.fromReceiptLine(
+    ExpenseReceiptRecord receipt,
+    ExpenseReceiptLineRecord line,
+  ) {
     return _ReceiptLineData(
       description: line.description,
       scope: line.use == ExpenseLineUse.split
@@ -17,7 +20,7 @@ class _ReceiptLineData {
           : line.use.label,
       category: line.category,
       quantityLabel: line.quantityLabel,
-      total: line.subtotal,
+      total: receipt.totalForLine(line),
     );
   }
 
@@ -71,7 +74,8 @@ class _CalendarExpenseData {
           ? null
           : TimeOfDay(hour: timeMinutes ~/ 60, minute: timeMinutes % 60),
       lines: [
-        for (final line in receipt.lines) _ReceiptLineData.fromLedger(line),
+        for (final line in receipt.lines)
+          _ReceiptLineData.fromReceiptLine(receipt, line),
       ],
     );
   }

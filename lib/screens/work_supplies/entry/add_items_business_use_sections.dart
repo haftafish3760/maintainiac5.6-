@@ -24,7 +24,7 @@ class _BusinessUsePicker extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'Change this only when this line is different from the receipt choice above.',
+            'Set how much of this line belongs to the business.',
             style: TextStyle(
               color: Color(0xFFD6DEE2),
               fontSize: 11.5,

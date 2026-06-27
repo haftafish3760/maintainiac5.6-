@@ -4,12 +4,18 @@ class _ReceiptClassificationReviewPanel extends StatelessWidget {
   const _ReceiptClassificationReviewPanel({
     required this.classification,
     required this.parseQuality,
+    required this.fieldConfidences,
+    required this.ocrDiagnostics,
+    required this.ocrWarnings,
     required this.maintenanceHints,
     required this.onApplyCategory,
   });
 
   final ExpenseReceiptClassification classification;
   final ExpenseReceiptParseQuality? parseQuality;
+  final Map<String, ExpenseReceiptFieldConfidence> fieldConfidences;
+  final ReceiptOcrDiagnostics? ocrDiagnostics;
+  final List<ReceiptOcrWarning> ocrWarnings;
   final List<ExpenseReceiptMaintenanceHint> maintenanceHints;
   final ValueChanged<String> onApplyCategory;
 
@@ -22,8 +28,9 @@ class _ReceiptClassificationReviewPanel extends StatelessWidget {
         : const Color(0xFFFF8FA3);
     final category = classification.category;
     return ReceiptFormPanel(
-      title: 'Receipt Fill Review',
-      subtitle: 'Maintainiac made a best guess. You stay in control.',
+      title: 'What Maintainiac Found',
+      subtitle:
+          'Review the store, date, totals, and line confidence before saving.',
       icon: Icons.fact_check_rounded,
       accentColor: color,
       children: [
@@ -117,10 +124,15 @@ class _ReceiptClassificationReviewPanel extends StatelessWidget {
                   ),
                 ),
               ],
-              if (parseQuality != null || maintenanceHints.isNotEmpty) ...[
+              if (parseQuality != null ||
+                  ocrDiagnostics != null ||
+                  maintenanceHints.isNotEmpty) ...[
                 const SizedBox(height: 9),
                 _ReceiptParseReviewDetails(
                   quality: parseQuality,
+                  fieldConfidences: fieldConfidences,
+                  ocrDiagnostics: ocrDiagnostics,
+                  ocrWarnings: ocrWarnings,
                   maintenanceHints: maintenanceHints,
                 ),
               ],
@@ -148,29 +160,178 @@ class _ReceiptClassificationReviewPanel extends StatelessWidget {
   }
 }
 
+class _ReceiptWholeUseReviewPanel extends StatelessWidget {
+  const _ReceiptWholeUseReviewPanel({
+    required this.lines,
+    required this.onMarkBusiness,
+    required this.onMarkPersonal,
+    required this.onMarkMixed,
+  });
+
+  final List<_ExpenseReceiptLine> lines;
+  final VoidCallback onMarkBusiness;
+  final VoidCallback onMarkPersonal;
+  final VoidCallback onMarkMixed;
+
+  @override
+  Widget build(BuildContext context) {
+    final businessCount = lines
+        .where((line) => line.use == _ExpenseLineUse.business)
+        .length;
+    final personalCount = lines
+        .where((line) => line.use == _ExpenseLineUse.personal)
+        .length;
+    final splitCount = lines
+        .where((line) => line.use == _ExpenseLineUse.split)
+        .length;
+    final hasLines = lines.isNotEmpty;
+    return ReceiptFormPanel(
+      title: 'Classify This Receipt',
+      subtitle:
+          'Choose Business, Personal, or Mixed. If it is Mixed, review each line below.',
+      icon: Icons.rule_folder_rounded,
+      accentColor: const Color(0xFFFFD166),
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _ReceiptWholeUseButton(
+                label: 'All Business',
+                helper: 'Every parsed line counts for work.',
+                icon: Icons.business_center_rounded,
+                color: const Color(0xFF34A9E8),
+                onPressed: hasLines ? onMarkBusiness : null,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ReceiptWholeUseButton(
+                label: 'All Personal',
+                helper: 'Nothing on this receipt counts for work.',
+                icon: Icons.person_rounded,
+                color: const Color(0xFF8F9BA1),
+                onPressed: hasLines ? onMarkPersonal : null,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        _ReceiptWholeUseButton(
+          label: 'Mixed Receipt',
+          helper:
+              'Review each line below and mark Business, Personal, or Split. Split starts at 50/50 and can be edited.',
+          icon: Icons.call_split_rounded,
+          color: const Color(0xFF3B7C73),
+          onPressed: hasLines ? onMarkMixed : null,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          hasLines
+              ? 'Current lines: $businessCount business, $personalCount personal, $splitCount split.'
+              : 'After the receipt is read, the parsed lines will appear here for review.',
+          style: const TextStyle(
+            color: Color(0xFFC8D0D3),
+            fontSize: 11.5,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReceiptWholeUseButton extends StatelessWidget {
+  const _ReceiptWholeUseButton({
+    required this.label,
+    required this.helper,
+    required this.icon,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final String label;
+  final String helper;
+  final IconData icon;
+  final Color color;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      label: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(
+            helper,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: color,
+        disabledForegroundColor: const Color(0xFF76848A),
+        side: BorderSide(
+          color: onPressed == null
+              ? const Color(0xFF526168)
+              : color.withValues(alpha: .72),
+        ),
+        alignment: Alignment.centerLeft,
+        minimumSize: const Size(0, 54),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        textStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0,
+        ),
+      ),
+    );
+  }
+}
+
 class _ReceiptRecapPanel extends StatelessWidget {
   const _ReceiptRecapPanel({
     required this.lines,
+    required this.storeName,
+    required this.storeAddress,
+    required this.receiptDateLabel,
+    required this.receiptSubtotal,
+    required this.salesTax,
     required this.receiptTotal,
     required this.businessTotal,
     required this.personalTotal,
     required this.onEdit,
+    required this.onSetUse,
     required this.onDelete,
   });
 
   final List<_ExpenseReceiptLine> lines;
+  final String storeName;
+  final String storeAddress;
+  final String receiptDateLabel;
+  final double? receiptSubtotal;
+  final double? salesTax;
   final double receiptTotal;
   final double businessTotal;
   final double personalTotal;
   final ValueChanged<int> onEdit;
+  final FutureOr<void> Function(int index, _ExpenseLineUse use) onSetUse;
   final ValueChanged<int> onDelete;
 
   @override
   Widget build(BuildContext context) {
+    final showLineUseControls = _showLineUseControls(lines);
     return ReceiptFormPanel(
       title: 'Receipt Recap',
-      subtitle:
-          'Tap a line to edit it. This preview is laid out like a receipt.',
+      subtitle: showLineUseControls
+          ? 'Mixed receipt: classify each line. Tap a line to edit details.'
+          : 'Tap Mixed Receipt above if only some lines are for work.',
       icon: Icons.receipt_rounded,
       accentColor: const Color(0xFF34A9E8),
       children: [
@@ -185,32 +346,64 @@ class _ReceiptRecapPanel extends StatelessWidget {
         else
           _ReceiptPaperRecap(
             lines: lines,
+            storeName: storeName,
+            storeAddress: storeAddress,
+            receiptDateLabel: receiptDateLabel,
+            receiptSubtotal: receiptSubtotal,
+            salesTax: salesTax,
             receiptTotal: receiptTotal,
             businessTotal: businessTotal,
             personalTotal: personalTotal,
+            showLineUseControls: showLineUseControls,
             onEdit: onEdit,
+            onSetUse: onSetUse,
             onDelete: onDelete,
           ),
       ],
     );
+  }
+
+  static bool _showLineUseControls(List<_ExpenseReceiptLine> lines) {
+    final hasBusiness = lines.any(
+      (line) => line.use == _ExpenseLineUse.business,
+    );
+    final hasPersonal = lines.any(
+      (line) => line.use == _ExpenseLineUse.personal,
+    );
+    final hasSplit = lines.any((line) => line.use == _ExpenseLineUse.split);
+    return hasSplit || (hasBusiness && hasPersonal);
   }
 }
 
 class _ReceiptPaperRecap extends StatelessWidget {
   const _ReceiptPaperRecap({
     required this.lines,
+    required this.storeName,
+    required this.storeAddress,
+    required this.receiptDateLabel,
+    required this.receiptSubtotal,
+    required this.salesTax,
     required this.receiptTotal,
     required this.businessTotal,
     required this.personalTotal,
+    required this.showLineUseControls,
     required this.onEdit,
+    required this.onSetUse,
     required this.onDelete,
   });
 
   final List<_ExpenseReceiptLine> lines;
+  final String storeName;
+  final String storeAddress;
+  final String receiptDateLabel;
+  final double? receiptSubtotal;
+  final double? salesTax;
   final double receiptTotal;
   final double businessTotal;
   final double personalTotal;
+  final bool showLineUseControls;
   final ValueChanged<int> onEdit;
+  final FutureOr<void> Function(int index, _ExpenseLineUse use) onSetUse;
   final ValueChanged<int> onDelete;
 
   @override
@@ -226,11 +419,50 @@ class _ReceiptPaperRecap extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'RECEIPT LINES',
+            'SCANNED RECEIPT REVIEW',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Color(0xFF25211A),
               fontSize: 13,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            storeName.trim().isEmpty ? 'STORE NOT FILLED YET' : storeName,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFF25211A),
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+          if (storeAddress.trim().isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              storeAddress,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFF62584C),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0,
+              ),
+            ),
+          ],
+          const SizedBox(height: 2),
+          Text(
+            receiptDateLabel,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFF62584C),
+              fontSize: 10.5,
               fontWeight: FontWeight.w900,
               letterSpacing: 0,
             ),
@@ -240,13 +472,22 @@ class _ReceiptPaperRecap extends StatelessWidget {
             _ReceiptPaperLineRow(
               lineNumber: index + 1,
               line: lines[index],
+              showLineUseControls: showLineUseControls,
               onEdit: () => onEdit(index),
+              onSetUse: (use) => onSetUse(index, use),
               onDelete: () => onDelete(index),
             ),
             if (index != lines.length - 1)
               const Divider(height: 9, color: Color(0x66756B5D)),
           ],
           const Divider(height: 16, color: Color(0x99756B5D), thickness: 1.1),
+          if (receiptSubtotal != null)
+            _ReceiptPaperTotalLine(
+              label: 'Subtotal',
+              value: _money(receiptSubtotal!),
+            ),
+          if (salesTax != null)
+            _ReceiptPaperTotalLine(label: 'Tax', value: _money(salesTax!)),
           _ReceiptPaperTotalLine(
             label: 'Business',
             value: _money(businessTotal),
@@ -261,6 +502,20 @@ class _ReceiptPaperRecap extends StatelessWidget {
             value: _money(receiptTotal),
             strong: true,
           ),
+          if (showLineUseControls) ...[
+            const SizedBox(height: 4),
+            const Text(
+              'Mixed totals include each line share plus allocated tax or receipt adjustment. Returns reduce their side but do not receive extra tax allocation.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF62584C),
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                height: 1.2,
+                letterSpacing: 0,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -314,13 +569,17 @@ class _ReceiptPaperLineRow extends StatelessWidget {
   const _ReceiptPaperLineRow({
     required this.lineNumber,
     required this.line,
+    required this.showLineUseControls,
     required this.onEdit,
+    required this.onSetUse,
     required this.onDelete,
   });
 
   final int lineNumber;
   final _ExpenseReceiptLine line;
+  final bool showLineUseControls;
   final VoidCallback onEdit;
+  final FutureOr<void> Function(_ExpenseLineUse use) onSetUse;
   final VoidCallback onDelete;
 
   @override
@@ -378,6 +637,25 @@ class _ReceiptPaperLineRow extends StatelessWidget {
                       const SizedBox(height: 3),
                       _ReceiptParserBadge(line: line),
                     ],
+                    if (showLineUseControls) ...[
+                      const SizedBox(height: 6),
+                      _ReceiptLineUseSegment(
+                        selected: line.use,
+                        onSelected: onSetUse,
+                      ),
+                    ],
+                    const SizedBox(height: 4),
+                    Text(
+                      line.allocationDetail,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF62584C),
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -439,6 +717,90 @@ class _ReceiptParserBadge extends StatelessWidget {
           fontSize: 9.5,
           fontWeight: FontWeight.w900,
           letterSpacing: 0,
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiptLineUseSegment extends StatelessWidget {
+  const _ReceiptLineUseSegment({
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final _ExpenseLineUse selected;
+  final FutureOr<void> Function(_ExpenseLineUse use) onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 4,
+      runSpacing: 4,
+      children: [
+        _ReceiptLineUseChip(
+          label: 'Business',
+          use: _ExpenseLineUse.business,
+          selected: selected == _ExpenseLineUse.business,
+          color: const Color(0xFF1F6FA8),
+          onSelected: onSelected,
+        ),
+        _ReceiptLineUseChip(
+          label: 'Personal',
+          use: _ExpenseLineUse.personal,
+          selected: selected == _ExpenseLineUse.personal,
+          color: const Color(0xFF5D666D),
+          onSelected: onSelected,
+        ),
+        _ReceiptLineUseChip(
+          label: 'Split',
+          use: _ExpenseLineUse.split,
+          selected: selected == _ExpenseLineUse.split,
+          color: const Color(0xFF2E756C),
+          onSelected: onSelected,
+        ),
+      ],
+    );
+  }
+}
+
+class _ReceiptLineUseChip extends StatelessWidget {
+  const _ReceiptLineUseChip({
+    required this.label,
+    required this.use,
+    required this.selected,
+    required this.color,
+    required this.onSelected,
+  });
+
+  final String label;
+  final _ExpenseLineUse use;
+  final bool selected;
+  final Color color;
+  final FutureOr<void> Function(_ExpenseLineUse use) onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => unawaited(Future<void>.value(onSelected(use))),
+      borderRadius: BorderRadius.circular(4),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: selected ? color : const Color(0x1A25211A),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: selected ? color : const Color(0x66756B5D)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? Colors.white : const Color(0xFF25211A),
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
         ),
       ),
     );

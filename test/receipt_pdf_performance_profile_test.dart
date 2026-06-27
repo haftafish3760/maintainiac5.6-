@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_inspector.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_limits.dart';
@@ -59,6 +60,49 @@ void main() {
       expect(huge.pageLimit, 1);
       expect(huge.dpi, 96);
       expect(huge.isReduced, isTrue);
+    });
+
+    test('high-capacity profile can preview a larger local sample', () {
+      final normal = receiptPdfPreviewPlanForPageCount(
+        null,
+        performanceProfile: ReceiptPdfPerformanceProfile.highCapacity,
+      );
+      final long = receiptPdfPreviewPlanForPageCount(
+        ReceiptPdfInspector.localAssistedReadPageLimit + 1,
+        performanceProfile: ReceiptPdfPerformanceProfile.highCapacity,
+      );
+      final huge = receiptPdfPreviewPlanForPageCount(
+        ReceiptPdfLimits.hardPdfPageLimit + 1,
+        performanceProfile: ReceiptPdfPerformanceProfile.highCapacity,
+      );
+
+      expect(normal.pageLimit, 12);
+      expect(normal.dpi, 170);
+      expect(long.pageLimit, 8);
+      expect(long.dpi, 150);
+      expect(huge.pageLimit, 5);
+      expect(huge.dpi, 132);
+    });
+
+    test('PDF profile maps directly from receipt capability tier', () {
+      expect(
+        ReceiptPdfPerformanceProfile.fromCapability(
+          const ReceiptDeviceCapability.olderPhone(),
+        ),
+        ReceiptPdfPerformanceProfile.lowPower,
+      );
+      expect(
+        ReceiptPdfPerformanceProfile.fromCapability(
+          const ReceiptDeviceCapability.standard(),
+        ),
+        ReceiptPdfPerformanceProfile.standard,
+      );
+      expect(
+        ReceiptPdfPerformanceProfile.fromCapability(
+          const ReceiptDeviceCapability.highCapacity(),
+        ),
+        ReceiptPdfPerformanceProfile.highCapacity,
+      );
     });
 
     test('inspection-based plan follows low-power profile', () {

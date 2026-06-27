@@ -7,43 +7,62 @@ class _TrackedMaintenanceList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Panel(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 9),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
-            child: Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Tracked Maintenance',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Color(0xFF101416),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-                Text(
-                  '${records.length}',
-                  style: const TextStyle(
-                    color: Color(0xFF2F383D),
-                    fontSize: 14,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(2, 0, 2, 8),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Tracked Maintenance',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Color(0xFFE7EEF1),
+                    fontSize: 18,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-              ],
-            ),
+              ),
+              Text(
+                '${records.length}',
+                style: const TextStyle(
+                  color: Color(0xFFC8D2D6),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
           ),
-          for (final record in records) ...[
-            _MaintenanceRow(record: record),
-            if (record != records.last) const SizedBox(height: 8),
-          ],
+        ),
+        if (records.isEmpty) const _TrackedMaintenanceEmptyState(),
+        for (final record in records) ...[
+          _MaintenanceRow(record: record),
+          if (record != records.last) const SizedBox(height: 8),
         ],
+      ],
+    );
+  }
+}
+
+class _TrackedMaintenanceEmptyState extends StatelessWidget {
+  const _TrackedMaintenanceEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF111719),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF5D6A71)),
+      ),
+      child: const Text(
+        'No maintenance items are tracked for this vehicle yet.',
+        style: TextStyle(color: Color(0xFFE2E8EA), fontWeight: FontWeight.w900),
       ),
     );
   }
@@ -57,28 +76,32 @@ class _MaintenanceRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _recordColor(record);
+    final textColor = _rowTextColor(color);
     return InkWell(
-      onTap: () {},
+      onTap: () => Navigator.of(context).push(
+        appNativeRoute<void>(
+          context,
+          MaintenanceItemDetailScreen(record: record),
+        ),
+      ),
       borderRadius: BorderRadius.circular(6),
       child: Container(
-        constraints: const BoxConstraints(minHeight: 68),
-        padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
+        constraints: const BoxConstraints(minHeight: 76),
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF111719),
+          color: color,
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: color, width: 1.6),
+          border: Border.all(color: const Color(0xFF101416), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: .22),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            Container(
-              width: 8,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: const BorderRadius.horizontal(
-                  left: Radius.circular(5),
-                ),
-              ),
-            ),
             SizedBox(
               width: 48,
               child: Center(
@@ -96,8 +119,8 @@ class _MaintenanceRow extends StatelessWidget {
                       record.itemName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFFF3F7F8),
+                      style: TextStyle(
+                        color: textColor,
                         fontSize: 15,
                         fontWeight: FontWeight.w900,
                         height: 1.08,
@@ -108,8 +131,8 @@ class _MaintenanceRow extends StatelessWidget {
                       _recordStatus(record),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFFC8D2D6),
+                      style: TextStyle(
+                        color: textColor.withValues(alpha: .86),
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         height: 1.1,
@@ -120,7 +143,7 @@ class _MaintenanceRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            _ThresholdBadge(record: record, color: color),
+            _ThresholdBadge(record: record, textColor: textColor),
           ],
         ),
       ),
@@ -129,10 +152,10 @@ class _MaintenanceRow extends StatelessWidget {
 }
 
 class _ThresholdBadge extends StatelessWidget {
-  const _ThresholdBadge({required this.record, required this.color});
+  const _ThresholdBadge({required this.record, required this.textColor});
 
   final MaintenanceRecord record;
-  final Color color;
+  final Color textColor;
 
   @override
   Widget build(BuildContext context) {
@@ -143,16 +166,17 @@ class _ThresholdBadge extends StatelessWidget {
       constraints: const BoxConstraints(minWidth: 54),
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
       decoration: BoxDecoration(
-        color: color,
+        color: textColor.withValues(alpha: .14),
         borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: textColor.withValues(alpha: .65)),
       ),
       child: Text(
         label,
         textAlign: TextAlign.center,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: textColor,
           fontSize: 11,
           fontWeight: FontWeight.w900,
           height: 1,
@@ -160,4 +184,9 @@ class _ThresholdBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+Color _rowTextColor(Color color) {
+  final luminance = color.computeLuminance();
+  return luminance > .43 ? const Color(0xFF101416) : Colors.white;
 }

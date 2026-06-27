@@ -1,5 +1,6 @@
 import '../../work_supplies/data/work_supply_inventory_receipt_models.dart';
 import '../../work_supplies/data/work_supply_inventory_receipt_store.dart';
+import '../../work_supplies/data/work_supply_catalog.dart';
 import '../../work_supplies/data/work_supply_models.dart';
 import 'expense_ledger_models.dart';
 
@@ -18,10 +19,10 @@ class ExpenseMaterialsReceiptBridge {
     ExpenseReceiptRecord receipt,
   ) async {
     if (!_shouldTrackMaterials(receipt)) return null;
-    final materialLines = receipt.lines
-        .where((line) => line.category == 'Materials')
+    final reviewLines = receipt.lines
+        .where((line) => line.subtotal > 0)
         .toList(growable: false);
-    if (materialLines.isEmpty) return null;
+    if (reviewLines.isEmpty) return null;
 
     final record = WorkSupplyInventoryReceiptRecord(
       id: _workSupplyReceiptId(receipt.id),
@@ -47,15 +48,13 @@ class ExpenseMaterialsReceiptBridge {
         if (receipt.notes.trim().isNotEmpty) receipt.notes.trim(),
       ].join(' '),
       lines: [
-        for (final line in materialLines)
+        for (final line in reviewLines)
           WorkSupplyInventoryReceiptLine(
             id: _workSupplyLineId(receipt.id, line.id),
-            item: _placeholderItemForLine(line),
-            displayName: line.description.trim().isEmpty
-                ? 'Material line'
-                : line.description.trim(),
-            kind: WorkSupplyReceiptLineKind.inventory,
-            rawReceiptText: line.description,
+            item: _itemForLine(line),
+            displayName: line.displayDescription,
+            kind: _kindForLine(line),
+            rawReceiptText: line.receiptEvidenceText,
             expenseCategory: line.category,
             quantity: line.quantity,
             unitsPerPackage: line.unitsPerPackage,
@@ -65,10 +64,9 @@ class ExpenseMaterialsReceiptBridge {
             taxRate: receipt.effectiveTaxRate ?? 0,
             businessUse: line.use.name,
             businessPercent: line.effectiveBusinessPercent,
-            confidence: line.parserConfidence ?? .55,
-            reviewStatus: WorkSupplyLineReviewStatus.needsReview,
-            note:
-                'Confirm exact catalog item and storage before adding to stock.',
+            confidence: _confidenceForLine(line),
+            reviewStatus: _reviewStatusForLine(line),
+            note: _reviewNoteForLine(line),
           ),
       ],
     );
@@ -90,15 +88,80 @@ class ExpenseMaterialsReceiptBridge {
     ].where((part) => part.trim().isNotEmpty).join(', ');
   }
 
+  WorkSupplyReceiptLineKind _kindForLine(ExpenseReceiptLineRecord line) {
+    if (line.use == ExpenseLineUse.personal) {
+      return WorkSupplyReceiptLineKind.personal;
+    }
+    if (line.category == 'Materials') {
+      return WorkSupplyReceiptLineKind.inventory;
+    }
+    return WorkSupplyReceiptLineKind.businessExpense;
+  }
+
+  WorkSupplyLineReviewStatus _reviewStatusForLine(
+    ExpenseReceiptLineRecord line,
+  ) {
+    if (_kindForLine(line) == WorkSupplyReceiptLineKind.inventory ||
+        line.use == ExpenseLineUse.split ||
+        line.parserNeedsReview) {
+      return WorkSupplyLineReviewStatus.needsReview;
+    }
+    return WorkSupplyLineReviewStatus.confirmed;
+  }
+
+  double _confidenceForLine(ExpenseReceiptLineRecord line) {
+    return line.catalogMatchConfidence ??
+        line.parserConfidence ??
+        (_kindForLine(line) == WorkSupplyReceiptLineKind.inventory ? .55 : .9);
+  }
+
+  String _reviewNoteForLine(ExpenseReceiptLineRecord line) {
+    return switch (_kindForLine(line)) {
+      WorkSupplyReceiptLineKind.inventory =>
+        'Confirm exact catalog item and storage before adding to stock.',
+      WorkSupplyReceiptLineKind.businessExpense =>
+        line.use == ExpenseLineUse.split
+            ? 'Confirm the business percentage before saving this non-inventory line.'
+            : 'Business-only receipt line. It stays out of inventory.',
+      WorkSupplyReceiptLineKind.personal =>
+        'Personal receipt line. It stays out of business inventory and totals.',
+    };
+  }
+
+  WorkSupplyItem _itemForLine(ExpenseReceiptLineRecord line) {
+    final catalogItem = _catalogItemForLine(line);
+    if (catalogItem != null) return catalogItem;
+    return _placeholderItemForLine(line);
+  }
+
+  WorkSupplyItem? _catalogItemForLine(ExpenseReceiptLineRecord line) {
+    final itemId = line.catalogItemId?.trim();
+    if (itemId == null || itemId.isEmpty) return null;
+    for (final item in workSupplyCatalogItems) {
+      if (item.id == itemId) return item;
+    }
+    return null;
+  }
+
   WorkSupplyItem _placeholderItemForLine(ExpenseReceiptLineRecord line) {
-    final description = line.description.trim();
+    final kind = _kindForLine(line);
+    final trade = switch (kind) {
+      WorkSupplyReceiptLineKind.inventory => 'Needs Review',
+      WorkSupplyReceiptLineKind.businessExpense => 'Business Expense',
+      WorkSupplyReceiptLineKind.personal => 'Personal',
+    };
+    final itemType = switch (kind) {
+      WorkSupplyReceiptLineKind.inventory => line.category,
+      WorkSupplyReceiptLineKind.businessExpense => 'Expense line',
+      WorkSupplyReceiptLineKind.personal => 'Personal line',
+    };
     return WorkSupplyItem(
       id: 'EXP-MATERIAL-${line.id}',
-      name: description.isEmpty ? 'Material line' : description,
-      trade: 'Needs Review',
-      category: 'Materials',
+      name: line.displayDescription,
+      trade: trade,
+      category: line.category.trim().isEmpty ? 'Uncategorized' : line.category,
       system: 'Expense Receipt',
-      itemType: line.category,
+      itemType: itemType,
       variant: '',
       unit: line.unit,
     );

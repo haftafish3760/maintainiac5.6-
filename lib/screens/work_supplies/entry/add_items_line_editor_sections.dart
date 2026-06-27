@@ -67,6 +67,7 @@ class _LineItemForm extends StatelessWidget {
     required this.onItemType,
     required this.onBack,
     required this.onItemSelected,
+    required this.onCreateInventoryItem,
   });
 
   final int receiptLineNumber;
@@ -134,6 +135,7 @@ class _LineItemForm extends StatelessWidget {
   final ValueChanged<WorkSupplyItemType> onItemType;
   final VoidCallback onBack;
   final ValueChanged<WorkSupplyItem> onItemSelected;
+  final VoidCallback onCreateInventoryItem;
 
   @override
   Widget build(BuildContext context) {
@@ -273,6 +275,7 @@ class _LineItemForm extends StatelessWidget {
                     onItemType: onItemType,
                     onBack: onBack,
                     onItemSelected: onItemSelected,
+                    onCreateInventoryItem: onCreateInventoryItem,
                   )
                 : _InventoryItemDetailsSummary(
                     complete: true,

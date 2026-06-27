@@ -1,6 +1,7 @@
 import '../documents/app_document_models.dart';
 import '../media/app_media_asset.dart';
 import '../widgets/receipt_capture/receipt_capture_models.dart';
+import 'cloud_backup_pdf_policy.dart';
 
 enum CloudBackupPrivacyScope { normal, customerProtected }
 
@@ -46,6 +47,10 @@ class CloudBackupManifest {
     return entries.fold(0, (sum, entry) => sum + entry.byteSize);
   }
 
+  int get estimatedCloudBytes {
+    return entries.fold(0, (sum, entry) => sum + entry.estimatedCloudBytes);
+  }
+
   int get entryCount => entries.length;
 
   bool get hasEntries => entries.isNotEmpty;
@@ -54,6 +59,7 @@ class CloudBackupManifest {
     return {
       'createdAt': createdAt.toIso8601String(),
       'pendingBytes': pendingBytes,
+      'estimatedCloudBytes': estimatedCloudBytes,
       'entryCount': entryCount,
       'entries': [for (final entry in entries) entry.toMap()],
     };
@@ -78,10 +84,13 @@ class CloudBackupManifestEntry {
     required this.recordId,
     required this.kind,
     required this.byteSize,
+    required this.estimatedCloudBytes,
     required this.fileHashSha256,
     required this.privacyScope,
+    required this.cloudBackupAction,
     this.mimeType = '',
     this.displayName = '',
+    this.cloudBackupReason = '',
   });
 
   static CloudBackupManifestEntry? fromMediaAsset(AppMediaAsset asset) {
@@ -93,10 +102,13 @@ class CloudBackupManifestEntry {
       recordId: asset.id,
       kind: asset.purpose.name,
       byteSize: asset.byteSize ?? 0,
+      estimatedCloudBytes: asset.byteSize ?? 0,
       fileHashSha256: asset.fileHash,
       privacyScope: CloudBackupPrivacyScope.normal,
+      cloudBackupAction: CloudBackupFileAction.uploadAsIs,
       mimeType: asset.mimeType,
       displayName: asset.displayName,
+      cloudBackupReason: 'Media asset is cloud eligible.',
     );
   }
 
@@ -109,6 +121,10 @@ class CloudBackupManifestEntry {
     final byteSize = attachment.byteSize ?? 0;
     final localPath = attachment.path.trim();
     if (hash.isEmpty || byteSize <= 0 || localPath.isEmpty) return null;
+    final plan = CloudBackupPdfPolicy.planAttachment(
+      attachment: attachment,
+      generatedPdf: document.sourceLabel == 'Generated PDF',
+    );
     return CloudBackupManifestEntry(
       id: attachment.id,
       localPath: localPath,
@@ -116,10 +132,13 @@ class CloudBackupManifestEntry {
       recordId: document.id,
       kind: attachment.kind.name,
       byteSize: byteSize,
+      estimatedCloudBytes: plan.estimatedCloudBytes,
       fileHashSha256: hash,
       privacyScope: privacyScope,
+      cloudBackupAction: plan.action,
       mimeType: attachment.mimeType,
       displayName: attachment.displayName,
+      cloudBackupReason: plan.reason,
     );
   }
 
@@ -129,10 +148,13 @@ class CloudBackupManifestEntry {
   final String recordId;
   final String kind;
   final int byteSize;
+  final int estimatedCloudBytes;
   final String fileHashSha256;
   final CloudBackupPrivacyScope privacyScope;
+  final CloudBackupFileAction cloudBackupAction;
   final String mimeType;
   final String displayName;
+  final String cloudBackupReason;
 
   bool get isCustomerProtected =>
       privacyScope == CloudBackupPrivacyScope.customerProtected;
@@ -145,10 +167,13 @@ class CloudBackupManifestEntry {
       'recordId': recordId,
       'kind': kind,
       'byteSize': byteSize,
+      'estimatedCloudBytes': estimatedCloudBytes,
       'fileHashSha256': fileHashSha256,
       'privacyScope': privacyScope.name,
+      'cloudBackupAction': cloudBackupAction.name,
       'mimeType': mimeType,
       'displayName': displayName,
+      'cloudBackupReason': cloudBackupReason,
     };
   }
 

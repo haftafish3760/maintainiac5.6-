@@ -8,7 +8,7 @@ import '../../shared/widgets/action_tile.dart';
 import '../../shared/widgets/app_back_button.dart';
 import '../../shared/widgets/app_scaffold.dart';
 import '../../shared/widgets/industrial_panel.dart';
-import 'calendar.dart';
+import '../../shared/calendar/calendar.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -39,7 +39,7 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const DashboardMonthCalendar(),
+          const DashboardCalendar(),
         ],
       ),
     );

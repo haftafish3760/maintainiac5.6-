@@ -1,0 +1,94 @@
+Batch 4 notes for employee profile layout, recaps, and pay history
+
+Related screens:
+- lib/screens/profiles/employee_permissions_screen.dart
+- lib/screens/profiles/employee_profile_panels.dart
+- lib/screens/profiles/employee_profile_recap_panels.dart
+- lib/screens/profiles/employee_metric_detail_panels.dart
+
+Source: /Users/rbbie/.codex/attachments/14a759af-51f1-48fa-85e9-445d4851ee51/pasted-text.txt
+
+"This week recap, you need to, you need to look on the expense screen, which
+you have not done, and you need to see that recap for number one."
+
+"Employee information is supervisor, then you got the person, the other
+information, like all the demographics and stuff, work truck."
+
+"Why wouldn't you bunch that together?"
+
+"It only makes sense to put the user's information inside one container if
+that's what you're going to use."
+
+"We gotta be consistent."
+
+"You need to look at the rest of the code."
+
+"We need to be consistent throughout this entire app."
+
+"I've got layout rules for a reason."
+
+"Some nested containers are okay, but these ones that's like taking up like
+most of a screen and stuff, I'm not very crazy about them."
+
+"Like employee information, obviously that should be nested."
+
+"When I edit info, it should be inside of the employee information box on the
+same row or somewhere in that same box and not separate."
+
+"It doesn't even need a container, all it needs is text inside of that black
+box."
+
+"The name, phone, email, role, status, vehicle, and pay. Need to be in the same
+block as employee information."
+
+"It needs to say employee information."
+
+"It should say the user's name. It should have the employee's name right there
+at the top, right underneath of the word employee information or something."
+
+"Then, the phone number, right there underneath of it."
+
+"Then, email address, right up underneath of it. Title."
+
+"There's nowhere near enough information on those recaps at all."
+
+"When I look at that user's pay, we also need to have pay history on there
+too."
+
+"Me, as the contractor themselves, would need to, you know, have the pay
+history for each of his or her employees."
+
+"I got to have a pay history in here."
+
+"We also got to have pay periods in here too, which we haven't gotten to yet."
+
+Source: /Users/rbbie/.codex/attachments/2466b528-ffc1-46eb-a3a1-d0dd58b42045/pasted-text.txt
+
+"How am I supposed to know something is going to actually work properly when on
+one page, this is jobs 60, this is 14 records up top, but I only see three."
+
+"It doesn't match what, nothing matches up."
+
+"You need to make sure everything is matching up."
+
+"I know nothing is wired up yet, but it's got to be accurate."
+
+"My user's safety and the accuracy of this app are paramount."
+
+"Where is the, like, payment history, like, you know, where I've paid my
+employee?"
+
+"Expenses. It says zero. Supply house receipt $312."
+
+"Supply house receipt would not be anything real. It would be more like Lowe's,
+Home Depot, Ace, Mom and Dad's."
+
+"When I click edit permissions does it bring up the employee information stuff
+again, like the name and stuff like that?"
+
+"If I click edit permissions, then that means I need to see only edit
+permission-related stuff, not that screen."
+
+"It needs to stay right there on the permissions screen and just open
+everything up for me."
+

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
@@ -173,13 +174,20 @@ class IncomingReceiptShareController extends ChangeNotifier {
   IncomingReceiptShare? get pending => _pending;
 
   Future<void> start() async {
-    _subscription ??= ReceiveSharingIntent.instance.getMediaStream().listen(
-      (media) => unawaited(_acceptMedia(media)),
-      onError: (_) {},
-    );
-    final initialMedia = await ReceiveSharingIntent.instance.getInitialMedia();
-    await _acceptMedia(initialMedia);
-    await ReceiveSharingIntent.instance.reset();
+    if (!_supportsReceiveSharingIntent) return;
+    try {
+      _subscription ??= ReceiveSharingIntent.instance.getMediaStream().listen(
+        (media) => unawaited(_acceptMedia(media)),
+        onError: (_) {},
+      );
+      final initialMedia = await ReceiveSharingIntent.instance
+          .getInitialMedia();
+      await _acceptMedia(initialMedia);
+      await ReceiveSharingIntent.instance.reset();
+    } on MissingPluginException {
+      await _subscription?.cancel();
+      _subscription = null;
+    }
   }
 
   void clearPending() {
@@ -214,6 +222,8 @@ class IncomingReceiptShareController extends ChangeNotifier {
     super.dispose();
   }
 }
+
+bool get _supportsReceiveSharingIntent => Platform.isAndroid || Platform.isIOS;
 
 class IncomingReceiptShareScope
     extends InheritedNotifier<IncomingReceiptShareController> {

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog_audit.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_inventory_destination.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_item_identity_resolver.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
@@ -73,6 +74,145 @@ void main() {
         .length;
 
     expect(plumbingCount, greaterThanOrEqualTo(10000));
+  });
+
+  test('catalog item ids are stable, unique, and app-owned', () {
+    final audit = auditWorkSupplyCatalog();
+
+    expect(audit.itemCount, greaterThanOrEqualTo(11000));
+    expect(audit.invalidIdCount, 0);
+    expect(audit.duplicateIdCount, 0);
+  });
+
+  test('catalog items have complete inventory identity fields', () {
+    final audit = auditWorkSupplyCatalog();
+
+    expect(audit.incompleteItemCount, 0);
+  });
+
+  test('catalog items expose parser-searchable identity text', () {
+    final audit = auditWorkSupplyCatalog();
+
+    expect(audit.weakSearchTextCount, 0);
+    expect(audit.passesCoreIntegrity, isTrue);
+  });
+
+  test('catalog audit reports trade parser coverage watchlist', () {
+    final audit = auditWorkSupplyCatalog();
+
+    expect(audit.packReadiness.packId, workSupplyCatalogPackId);
+    expect(audit.packReadiness.packVersion, workSupplyCatalogPackVersion);
+    expect(audit.packReadiness.hasStableAppIds, isTrue);
+    expect(audit.packReadiness.parserTermCoverage, greaterThan(.95));
+    expect(audit.packReadiness.averageParserTermsPerItem, greaterThan(5));
+    expect(audit.packReadiness.parserReadinessLabel, 'Parser ready');
+    expect(audit.packReadiness.estimatedPackedBytes, greaterThan(100000));
+    expect(audit.packReadiness.estimatedPackSizeLabel, isNotEmpty);
+    expect(audit.deliveryPlan.packId, workSupplyCatalogPackId);
+    expect(audit.deliveryPlan.packVersion, workSupplyCatalogPackVersion);
+    expect(audit.deliveryPlan.deliveryModeLabel, 'Manifest + Storage chunks');
+    expect(audit.deliveryPlan.estimatedCompressedSizeLabel, isNotEmpty);
+    expect(audit.tradeCoverage, hasLength(workSupplyTrades.length));
+    expect(
+      audit.tradeCoverage.map((coverage) => coverage.tradeName),
+      containsAll(workSupplyTrades.map((trade) => trade.name)),
+    );
+    expect(
+      audit.tradeCoverage
+          .firstWhere((coverage) => coverage.tradeName == 'Plumbing')
+          .itemCount,
+      greaterThanOrEqualTo(10000),
+    );
+    final plumbing = audit.tradeCoverage.firstWhere(
+      (coverage) => coverage.tradeName == 'Plumbing',
+    );
+    expect(plumbing.systemCount, greaterThan(5));
+    expect(plumbing.itemTypeCount, greaterThan(10));
+    expect(plumbing.parserTermCount, greaterThan(plumbing.itemCount * 4));
+    expect(audit.weakestTrades, hasLength(4));
+    expect(
+      audit.weakestTrades.map((coverage) => coverage.parserReadinessScore),
+      orderedEquals(
+        audit.weakestTrades
+            .map((coverage) => coverage.parserReadinessScore)
+            .toList()
+          ..sort(),
+      ),
+    );
+  });
+
+  test('catalog delivery plan is Firestore-read safe for hosted packs', () {
+    final audit = auditWorkSupplyCatalog();
+    final delivery = audit.deliveryPlan;
+
+    expect(
+      delivery.manifestDocumentPath,
+      workSupplyCatalogManifestDocumentPath,
+    );
+    expect(delivery.storagePrefix, workSupplyCatalogStoragePrefix);
+    expect(delivery.isFirestoreReadSafe, isTrue);
+    expect(delivery.firestoreManifestReadCount, 1);
+    expect(delivery.firestoreItemDocumentReadCount, 0);
+    expect(delivery.chunkCount, greaterThan(1));
+    expect(delivery.hasValidChunkPlan, isTrue);
+    expect(
+      delivery.chunks.map((chunk) => chunk.tradeName).toSet(),
+      containsAll(workSupplyTrades.map((trade) => trade.name)),
+    );
+    expect(
+      delivery.chunks.every((chunk) => chunk.storagePath.endsWith('.json.gz')),
+      isTrue,
+    );
+    expect(
+      delivery.chunks.every(
+        (chunk) =>
+            chunk.itemCount > 0 &&
+            chunk.itemCount <= workSupplyCatalogMaxChunkItemCount,
+      ),
+      isTrue,
+    );
+    expect(
+      delivery.chunks.every(
+        (chunk) =>
+            chunk.estimatedCompressedBytes <=
+            workSupplyCatalogMaxCompressedChunkBytes,
+      ),
+      isTrue,
+    );
+  });
+
+  test('catalog audit catches broken inventory identity samples', () {
+    final audit = auditWorkSupplyCatalog(
+      items: const [
+        WorkSupplyItem(
+          id: 'bad-id',
+          name: 'Mystery',
+          trade: '',
+          category: 'General',
+          system: 'General',
+          itemType: 'Part',
+          variant: '',
+          unit: 'each',
+        ),
+        WorkSupplyItem(
+          id: 'bad-id',
+          name: 'Mystery',
+          trade: 'Plumbing',
+          category: 'General',
+          system: 'General',
+          itemType: 'Part',
+          variant: 'small',
+          unit: 'each',
+        ),
+      ],
+    );
+
+    expect(audit.invalidIdCount, 2);
+    expect(audit.duplicateIdCount, 1);
+    expect(audit.packReadiness.hasStableAppIds, isFalse);
+    expect(audit.packReadiness.parserReadinessLabel, 'Fix IDs');
+    expect(audit.incompleteItemCount, 1);
+    expect(audit.passesCoreIntegrity, isFalse);
   });
 
   test('plumbing catalog has no duplicate trade-scoped item identities', () {

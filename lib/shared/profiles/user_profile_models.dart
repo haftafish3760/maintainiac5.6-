@@ -1,38 +1,13 @@
+import 'user_permissions.dart';
+
+export 'user_permissions.dart';
+
 enum UserProfileType {
   contractor('Contractor'),
   driver('Driver'),
   customer('Customer');
 
   const UserProfileType(this.label);
-
-  final String label;
-}
-
-enum UserRole {
-  owner('Owner'),
-  admin('Admin'),
-  manager('Manager'),
-  helper('Helper'),
-  viewer('Viewer');
-
-  const UserRole(this.label);
-
-  final String label;
-}
-
-enum UserPermission {
-  manageProfiles('Manage profiles'),
-  manageVehicles('Manage vehicles'),
-  manageJobs('Manage jobs'),
-  createInvoices('Create invoices'),
-  approveInvoices('Approve invoices'),
-  viewFinancials('View financials'),
-  manageInventory('Manage inventory'),
-  recordMileage('Record mileage'),
-  recordExpenses('Record expenses'),
-  viewOnly('View only');
-
-  const UserPermission(this.label);
 
   final String label;
 }
@@ -106,6 +81,45 @@ class UserProfileRecord {
     'activeVehicleIds': activeVehicleIds,
   };
 
+  UserProfileRecord sanitized() {
+    final safeRole = role;
+    final safeType = type;
+    final basePermissions = permissionsForRole(safeRole);
+    final cleanedVehicles = <String>[];
+    for (final vehicleId in activeVehicleIds) {
+      final normalized = vehicleId.trim();
+      if (normalized.isEmpty || cleanedVehicles.contains(normalized)) continue;
+      cleanedVehicles.add(normalized);
+    }
+    return UserProfileRecord(
+      id: id.trim().isEmpty ? 'local-owner' : id.trim(),
+      name: name.trim().isEmpty ? 'Owner' : name.trim(),
+      type: safeType,
+      role: safeRole,
+      permissions: {...basePermissions, ...permissions},
+      businessName: businessName.trim(),
+      cloudBackupEnabled: cloudBackupEnabled,
+      customerFacingEnabled:
+          safeType == UserProfileType.contractor && customerFacingEnabled,
+      activeVehicleIds: cleanedVehicles,
+    );
+  }
+
+  bool wasRepairedFrom(Map<dynamic, dynamic> source) {
+    final repaired = sanitized().toMap();
+    return _string(source['id'], fallback: 'local-owner') != repaired['id'] ||
+        _string(source['name'], fallback: 'Owner') != repaired['name'] ||
+        source['type'] != repaired['type'] ||
+        source['role'] != repaired['role'] ||
+        source['businessName'] != repaired['businessName'] ||
+        source['cloudBackupEnabled'] != repaired['cloudBackupEnabled'] ||
+        source['customerFacingEnabled'] != repaired['customerFacingEnabled'] ||
+        !_sameStringList(
+          _stringList(source['activeVehicleIds']),
+          repaired['activeVehicleIds'] as List<String>,
+        );
+  }
+
   factory UserProfileRecord.fromMap(Map<dynamic, dynamic> map) {
     final role = _enumByName(UserRole.values, map['role']) ?? UserRole.owner;
     return UserProfileRecord(
@@ -115,8 +129,8 @@ class UserProfileRecord {
           _enumByName(UserProfileType.values, map['type']) ??
           UserProfileType.contractor,
       role: role,
-      permissions: _permissionsForRole(role)
-        ..addAll(_permissionSet(map['permissions'])),
+      permissions: permissionsForRole(role).toSet()
+        ..addAll(_permissionSet(map)),
       businessName: _string(map['businessName']),
       cloudBackupEnabled: map['cloudBackupEnabled'] == true,
       customerFacingEnabled: map['customerFacingEnabled'] == true,
@@ -130,46 +144,15 @@ class UserProfileRecord {
       name: 'Owner',
       type: UserProfileType.contractor,
       role: UserRole.owner,
-      permissions: _permissionsForRole(UserRole.owner),
+      permissions: permissionsForRole(UserRole.owner),
       businessName: 'My Company',
       cloudBackupEnabled: false,
     );
   }
 }
 
-Set<UserPermission> permissionsForRole(UserRole role) =>
-    Set.unmodifiable(_permissionsForRole(role));
-
-Set<UserPermission> _permissionsForRole(UserRole role) {
-  return switch (role) {
-    UserRole.owner => UserPermission.values.toSet(),
-    UserRole.admin => {
-      UserPermission.manageVehicles,
-      UserPermission.manageJobs,
-      UserPermission.createInvoices,
-      UserPermission.approveInvoices,
-      UserPermission.viewFinancials,
-      UserPermission.manageInventory,
-      UserPermission.recordMileage,
-      UserPermission.recordExpenses,
-    },
-    UserRole.manager => {
-      UserPermission.manageJobs,
-      UserPermission.createInvoices,
-      UserPermission.manageInventory,
-      UserPermission.recordMileage,
-      UserPermission.recordExpenses,
-    },
-    UserRole.helper => {
-      UserPermission.recordMileage,
-      UserPermission.recordExpenses,
-      UserPermission.manageInventory,
-    },
-    UserRole.viewer => {UserPermission.viewOnly},
-  };
-}
-
-Set<UserPermission> _permissionSet(Object? value) {
+Set<UserPermission> _permissionSet(Map<dynamic, dynamic> map) {
+  final value = map['permissions'];
   if (value is! Iterable) return {};
   return value
       .whereType<String>()
@@ -193,8 +176,19 @@ String _string(Object? value, {String fallback = ''}) {
 
 List<String> _stringList(Object? value) {
   if (value is! Iterable) return const [];
-  return value
-      .whereType<String>()
-      .where((item) => item.trim().isNotEmpty)
-      .toList();
+  final items = <String>[];
+  for (final item in value.whereType<String>()) {
+    final normalized = item.trim();
+    if (normalized.isEmpty || items.contains(normalized)) continue;
+    items.add(normalized);
+  }
+  return items;
+}
+
+bool _sameStringList(List<String> left, List<String> right) {
+  if (left.length != right.length) return false;
+  for (var index = 0; index < left.length; index++) {
+    if (left[index] != right[index]) return false;
+  }
+  return true;
 }

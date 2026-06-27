@@ -1,0 +1,139 @@
+Source: /Users/rbbie/.codex/attachments/056875e2-e27b-4d96-905b-4547debe5686/pasted-text.txt
+
+"Local first, obviously, you got that part correct. Firebase and all that other
+stuff is not optional. We have got to include, well, Firebase is the number one
+cloud backup."
+
+"I need you to know that this needs to be enterprise-grade application. It must
+grow with the user. That is huge. Anyways, my user's safety is absolutely
+paramount. Their employees' safety is paramount. The safety of everybody is
+paramount."
+
+"This needs to be, everything in here needs to be state-of-the-art and
+absolutely the best it could possibly be. It needs to be bulletproof. Not
+resistant, but bulletproof."
+
+"If I ask you to... Let's build whatever it is. That doesn't mean just the
+basics. That means absolutely, positively everything that that feature would
+need."
+
+Source: visible user message, 2026-06-20 Batch 1
+
+"We need to make sure that one user cannot see another user of this app on
+another account's their information, obviously."
+
+"These toggles are not just hidden UI, but actual locked. Yeah, you need to make
+sure it's the actual lockdown access rules. Absolutely, you gotta make sure of
+that. And you've gotta actually test it as well to make sure it is legit."
+
+"I will need your help wiring up absolutely everything, permitting with
+permissions and stuff like that, all the schemas, all of the roles, and things
+like that."
+
+Source: /Users/rbbie/.codex/attachments/0033c4ad-9f3e-426c-bd00-8fbc98c13b44/pasted-text.txt
+
+"I'm just making sure nothing goes runaway is my biggest concern."
+
+"Absolutely, we got to make sure everything is going to scale up for, you know,
+me having one user or 500,000 users. We got to make sure that this is going to
+work. However, we got to do it the smart way so that I'm not spending money
+that I don't have."
+
+"I absolutely wanna do security checks, and I absolutely don't mind you using
+emulators just so you monitor and look up what Firebase does for free every day
+and make sure that we don't go over like $20 per day, and it's covered
+underneath that under that credit that Firebase gives you for whatever it is."
+
+"I just need to make sure this stuff is not running away on us is all."
+
+Source: visible user message, 2026-06-20 Batch 2
+
+"All right, another thing we've got to prevent is bot abuse, things like that,
+preventing abuse on my Firebase account in the first place."
+
+"Free users get 25 megabits of data a month, one upload or one export per
+month, as we speak for right now, until I, you know, until I get big enough."
+
+"Don't be doing screenshots, and do not be saving any screenshots to this
+codebase either."
+
+"Don't be storing all the tests in the codebase that you have been doing
+either. Any of the scripts for those tests need to be gone."
+
+"We need to prevent these bots as much as we can."
+
+"We gotta make sure, you know, somebody isn't creating like 25 or 30 accounts
+from the same device."
+
+"So we gotta do like device tracking and things like that. We're not trying to
+track the user, we're trying to just keep track of the event."
+
+"It's got to be protections and layers in place to just prevent that crap."
+
+"I've already got multi-factor MFA, but I probably need to disable text, SMS."
+
+"Anyways, I've got Google enabled, but I probably, what do I need to do to
+prevent, to block as much as I can AI bots and whatever people just trying to
+abuse this app?"
+
+"All of this stuff on here needs to be backed up, all their mileage, invoices,
+inventory, everything would have to be backed up for number one."
+
+"I've got to make sure that the user, all of this stuff needs to be able to be
+backed up on Firebase."
+
+"All of the user's actions need to be recorded on Firebase."
+
+"That's the thing, but we've got to do it the smart way. caching whenever
+possible, making sure that there's minimal reads and writes when possible."
+
+"So if we could bundle multiple stuff together and make the reads and the
+writes even less, that would even be way better."
+
+"We also need something in here to prevent multiple accounts from a single
+device."
+
+"I would say two free accounts, and then after that it would need additional
+verification per device and IP address."
+
+"Only two per IP address as well is what I would think."
+
+"I know having a Google account reduces it a lot, but we've got to have other
+layers of protection in here."
+
+"We need to have whatever is necessary to prevent any more than two accounts
+per device."
+
+"I don't want to see it on my end, but Firebase or whatever Firebase,
+Firestore functions or whatever it is, needs to do its job to prevent multiple
+accounts per device itself."
+
+"That way, it'll help prevent people from generating, you know, 10 accounts
+thinking they are gonna get around the 25 megabyte storage cost and stuff."
+
+Source: /Users/rbbie/.codex/attachments/21647db5-5b91-469f-b992-06ab87d55883/pasted-text.txt
+
+"I'm just making sure nothing goes runaway is my biggest concern."
+
+"I've seen you were doing something with emulators and things like that, and
+I've just had ChatGPT before in the past tell me that there are people out
+there that would forget or something would happen, and next thing you know,
+they've got millions of reads per day or something, just trying to do a test of
+sorts."
+
+"Anyways, we do need to make sure we stress test it, absolutely, making sure
+it's going to work properly."
+
+"Absolutely, we got to make sure everything is going to scale up for, you
+know, me having one user or 500,000 users."
+
+"However, we got to do it the smart way so that I'm not spending money that I
+don't have."
+
+"As far as I know, I get 50,000 reads per day, but I don't know how much
+writes and things like that I get."
+
+"I absolutely wanna do security checks, and I absolutely don't mind you using
+emulators just so you monitor and look up what Firebase does for free every
+day and make sure that we don't go over like $20 per day, and it's covered
+underneath that under that credit that Firebase gives you for whatever it is."

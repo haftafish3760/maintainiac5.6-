@@ -1,0 +1,19 @@
+Screen: lib/screens/expenses/calendar/expense_day_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/c8afdb36-f51f-452e-b314-109f5c4bb0d0/pasted-text.txt
+
+"You'll see all of your entries for that day in chronological order."
+
+"You will be able to add whatever you need to add, take away whatever you need
+to take away, all that stuff underneath that one screen."
+
+"So there would be a floating action button at the top bottom. I'm going to
+say top. No, it's not at the top. It's at the bottom. You click that, and it
+would say, you know, what do you need to add for this day?"
+
+"Or when you click on an entry, you will be able to see all the information
+about that entry."
+
+"And each entry needs to be its own container inside of the calendar screen
+itself."
+

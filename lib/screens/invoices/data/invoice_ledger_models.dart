@@ -1,4 +1,5 @@
 import '../../../shared/media/app_media_asset.dart';
+import '../../../shared/pdf/app_generated_pdf_models.dart';
 
 enum InvoiceDocumentType { invoice, estimate }
 
@@ -19,6 +20,222 @@ enum InvoiceRecordStatus {
 enum InvoiceDiscountType { none, amount, percent }
 
 enum InvoiceSyncStatus { dirty, synced, conflict, pendingDelete }
+
+const int invoicePdfDeliveryEventHistoryLimit = 50;
+
+enum InvoicePdfDeliveryEventType {
+  generated,
+  previewed,
+  archived,
+  shared,
+  sent,
+  printed,
+  cancelled,
+  failed,
+}
+
+class InvoicePdfDeliveryEvent {
+  const InvoicePdfDeliveryEvent({
+    required this.id,
+    required this.type,
+    required this.at,
+    this.pdfKind = '',
+    this.sourceRecordId = '',
+    this.fileName = '',
+    this.byteSize = 0,
+    this.fileHashSha256 = '',
+    this.reasonCode = '',
+  });
+
+  factory InvoicePdfDeliveryEvent.generatedFrom(
+    AppGeneratedPdfDocument document, {
+    DateTime? at,
+    String fileHashSha256 = '',
+  }) {
+    final happenedAt = at ?? document.createdAt;
+    return InvoicePdfDeliveryEvent(
+      id: _pdfEventId(
+        InvoicePdfDeliveryEventType.generated,
+        happenedAt,
+        document.sourceRecordId,
+      ),
+      type: InvoicePdfDeliveryEventType.generated,
+      at: happenedAt,
+      pdfKind: document.kind.name,
+      sourceRecordId: _safeEventText(document.sourceRecordId, maxLength: 80),
+      fileName: AppGeneratedPdfFileName.clean(document.safeFileName),
+      byteSize: document.byteSize,
+      fileHashSha256: _safeHash(fileHashSha256),
+    );
+  }
+
+  factory InvoicePdfDeliveryEvent.previewed(
+    AppGeneratedPdfDocument document, {
+    DateTime? at,
+  }) {
+    final happenedAt = at ?? DateTime.now();
+    return InvoicePdfDeliveryEvent(
+      id: _pdfEventId(
+        InvoicePdfDeliveryEventType.previewed,
+        happenedAt,
+        document.sourceRecordId,
+      ),
+      type: InvoicePdfDeliveryEventType.previewed,
+      at: happenedAt,
+      pdfKind: document.kind.name,
+      sourceRecordId: _safeEventText(document.sourceRecordId, maxLength: 80),
+      fileName: AppGeneratedPdfFileName.clean(document.safeFileName),
+      byteSize: document.byteSize,
+    );
+  }
+
+  factory InvoicePdfDeliveryEvent.archived({
+    required String sourceRecordId,
+    required String pdfKind,
+    required String fileName,
+    required int byteSize,
+    required String fileHashSha256,
+    DateTime? at,
+  }) {
+    final happenedAt = at ?? DateTime.now();
+    return InvoicePdfDeliveryEvent(
+      id: _pdfEventId(
+        InvoicePdfDeliveryEventType.archived,
+        happenedAt,
+        sourceRecordId,
+      ),
+      type: InvoicePdfDeliveryEventType.archived,
+      at: happenedAt,
+      pdfKind: _safeEventText(pdfKind, maxLength: 40),
+      sourceRecordId: _safeEventText(sourceRecordId, maxLength: 80),
+      fileName: AppGeneratedPdfFileName.clean(fileName),
+      byteSize: byteSize < 0 ? 0 : byteSize,
+      fileHashSha256: _safeHash(fileHashSha256),
+    );
+  }
+
+  factory InvoicePdfDeliveryEvent.action({
+    required InvoicePdfDeliveryEventType type,
+    required String sourceRecordId,
+    required String pdfKind,
+    String fileName = '',
+    int byteSize = 0,
+    DateTime? at,
+  }) {
+    assert(
+      type != InvoicePdfDeliveryEventType.failed,
+      'Use InvoicePdfDeliveryEvent.failed for failure events.',
+    );
+    final happenedAt = at ?? DateTime.now();
+    return InvoicePdfDeliveryEvent(
+      id: _pdfEventId(type, happenedAt, sourceRecordId),
+      type: type,
+      at: happenedAt,
+      pdfKind: _safeEventText(pdfKind, maxLength: 40),
+      sourceRecordId: _safeEventText(sourceRecordId, maxLength: 80),
+      fileName: fileName.trim().isEmpty
+          ? ''
+          : AppGeneratedPdfFileName.clean(fileName),
+      byteSize: byteSize < 0 ? 0 : byteSize,
+    );
+  }
+
+  factory InvoicePdfDeliveryEvent.failed({
+    required String sourceRecordId,
+    required String pdfKind,
+    required String reasonCode,
+    String fileName = '',
+    DateTime? at,
+  }) {
+    final happenedAt = at ?? DateTime.now();
+    return InvoicePdfDeliveryEvent(
+      id: _pdfEventId(
+        InvoicePdfDeliveryEventType.failed,
+        happenedAt,
+        sourceRecordId,
+      ),
+      type: InvoicePdfDeliveryEventType.failed,
+      at: happenedAt,
+      pdfKind: _safeEventText(pdfKind, maxLength: 40),
+      sourceRecordId: _safeEventText(sourceRecordId, maxLength: 80),
+      fileName: fileName.trim().isEmpty
+          ? ''
+          : AppGeneratedPdfFileName.clean(fileName),
+      reasonCode: _safeEventText(reasonCode, maxLength: 80),
+    );
+  }
+
+  factory InvoicePdfDeliveryEvent.cancelled({
+    required String sourceRecordId,
+    required String pdfKind,
+    required String reasonCode,
+    String fileName = '',
+    int byteSize = 0,
+    DateTime? at,
+  }) {
+    final happenedAt = at ?? DateTime.now();
+    return InvoicePdfDeliveryEvent(
+      id: _pdfEventId(
+        InvoicePdfDeliveryEventType.cancelled,
+        happenedAt,
+        sourceRecordId,
+      ),
+      type: InvoicePdfDeliveryEventType.cancelled,
+      at: happenedAt,
+      pdfKind: _safeEventText(pdfKind, maxLength: 40),
+      sourceRecordId: _safeEventText(sourceRecordId, maxLength: 80),
+      fileName: fileName.trim().isEmpty
+          ? ''
+          : AppGeneratedPdfFileName.clean(fileName),
+      byteSize: byteSize < 0 ? 0 : byteSize,
+      reasonCode: _safeEventText(reasonCode, maxLength: 80),
+    );
+  }
+
+  factory InvoicePdfDeliveryEvent.fromMap(Map<dynamic, dynamic> map) {
+    return InvoicePdfDeliveryEvent(
+      id: map['id'] as String? ?? '',
+      type: _enumByName(
+        InvoicePdfDeliveryEventType.values,
+        map['type'],
+        InvoicePdfDeliveryEventType.generated,
+      ),
+      at: _dateValue(map['at']) ?? DateTime.now(),
+      pdfKind: map['pdfKind'] as String? ?? '',
+      sourceRecordId: map['sourceRecordId'] as String? ?? '',
+      fileName: map['fileName'] as String? ?? '',
+      byteSize: _intValue(map['byteSize']),
+      fileHashSha256: map['fileHashSha256'] as String? ?? '',
+      reasonCode: map['reasonCode'] as String? ?? '',
+    );
+  }
+
+  final String id;
+  final InvoicePdfDeliveryEventType type;
+  final DateTime at;
+  final String pdfKind;
+  final String sourceRecordId;
+  final String fileName;
+  final int byteSize;
+  final String fileHashSha256;
+  final String reasonCode;
+
+  bool get hasFileHash => fileHashSha256.trim().isNotEmpty;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'type': type.name,
+      'at': at.toIso8601String(),
+      'pdfKind': pdfKind,
+      'sourceRecordId': sourceRecordId,
+      'fileName': fileName,
+      'byteSize': byteSize,
+      'fileHashSha256': fileHashSha256,
+      'reasonCode': reasonCode,
+    };
+  }
+}
 
 class InvoiceNumberSettings {
   const InvoiceNumberSettings({
@@ -513,3 +730,28 @@ DateTime? _dateValue(Object? value) {
 }
 
 double _money(num value) => (value * 100).roundToDouble() / 100;
+
+String _pdfEventId(
+  InvoicePdfDeliveryEventType type,
+  DateTime at,
+  String sourceRecordId,
+) {
+  final safeSource = _safeEventText(sourceRecordId, maxLength: 40);
+  final source = safeSource.isEmpty ? 'invoice' : safeSource;
+  return '${type.name}_${at.microsecondsSinceEpoch}_$source';
+}
+
+String _safeEventText(String value, {required int maxLength}) {
+  final cleaned = value
+      .replaceAll(RegExp(r'[^A-Za-z0-9_.-]+'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_+|_+$'), '');
+  if (cleaned.length <= maxLength) return cleaned;
+  return cleaned.substring(0, maxLength);
+}
+
+String _safeHash(String value) {
+  final trimmed = value.trim().toLowerCase();
+  if (RegExp(r'^[a-f0-9]{64}$').hasMatch(trimmed)) return trimmed;
+  return '';
+}

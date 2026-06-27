@@ -50,7 +50,13 @@ class ExpenseReceiptDetailScreen extends StatelessWidget {
             const SizedBox(height: 8),
             _ReceiptSummaryPanel(entry: currentEntry),
             const SizedBox(height: 8),
+            _ReceiptAllocationPanel(receipt: receipt),
+            const SizedBox(height: 8),
             _ReceiptInfoPanel(receipt: receipt),
+            if (receipt.ocrReview.hasData) ...[
+              const SizedBox(height: 8),
+              _ReceiptOcrReviewPanel(review: receipt.ocrReview),
+            ],
             const SizedBox(height: 8),
             _ReceiptImagePreview(receipt: receipt),
             const SizedBox(height: 8),

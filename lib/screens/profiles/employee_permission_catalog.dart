@@ -1,0 +1,495 @@
+import 'employee_permission_expenses.dart';
+import 'employee_permission_models.dart';
+
+List<EmployeePermissionArea> get employeePermissionCatalog => [
+  _area('admin', 'Admin Settings', 'Company setup, billing, backup, roles.', [
+    _item(
+      'companyProfile',
+      'company profile',
+      'Business name and account setup.',
+      [PermissionVerb.view, PermissionVerb.edit, PermissionVerb.manage],
+      true,
+    ),
+    _item(
+      'employeeInvites',
+      'employee invites',
+      'Invite links tied to this company account.',
+      [PermissionVerb.view, PermissionVerb.create, PermissionVerb.manage],
+      true,
+    ),
+    _item(
+      'roleTemplates',
+      'role templates',
+      'Default permissions for job titles.',
+      [
+        PermissionVerb.view,
+        PermissionVerb.create,
+        PermissionVerb.edit,
+        PermissionVerb.delete,
+      ],
+      true,
+    ),
+    _item(
+      'cloudBackup',
+      'cloud backup settings',
+      'Local-first backup and restore controls.',
+      [PermissionVerb.view, PermissionVerb.edit, PermissionVerb.manage],
+      true,
+    ),
+  ], true),
+  _area('employees', 'Employees', 'Profiles, status, pay setup, schedules.', [
+    _item(
+      'employeeProfiles',
+      'employee profiles',
+      'Names, phones, emails, roles, and status.',
+      fullPermissionVerbs,
+      true,
+    ),
+    _item(
+      'employeePermissions',
+      'employee permissions',
+      'What each employee can use in the app.',
+      [PermissionVerb.view, PermissionVerb.edit, PermissionVerb.manage],
+      true,
+    ),
+    _item(
+      'employeePayInfo',
+      'employee pay information',
+      'Rates, pay frequency, overtime setup.',
+      [PermissionVerb.view, PermissionVerb.edit],
+      true,
+    ),
+    _item(
+      'employeeTimeCards',
+      'employee hours and time cards',
+      'Hours entered for payroll records.',
+      corePermissionVerbs,
+      true,
+    ),
+    _item(
+      'employeePayHistory',
+      'employee payment history',
+      'Payments already recorded for employees.',
+      corePermissionVerbs,
+      true,
+    ),
+    _item(
+      'employeeStatus',
+      'active or inactive employee status',
+      'Deactivate/reactivate employees.',
+      [PermissionVerb.view, PermissionVerb.edit, PermissionVerb.deactivate],
+      true,
+    ),
+  ], true),
+  _area('jobs', 'Jobs', 'Accepted work between estimate and invoice.', [
+    _item(
+      'jobs',
+      'jobs',
+      'The work order itself after an estimate becomes work.',
+      sharePermissionVerbs,
+      true,
+    ),
+    _item(
+      'jobSchedule',
+      'job schedules',
+      'Dates, times, and crew assignments.',
+      corePermissionVerbs,
+      true,
+    ),
+    _item(
+      'jobEmployees',
+      'job employee assignments',
+      'Workers assigned to the job.',
+      [PermissionVerb.view, PermissionVerb.assign, PermissionVerb.edit],
+      true,
+    ),
+    _item(
+      'jobVehicles',
+      'job vehicle assignments',
+      'Vehicles used for the job.',
+      [PermissionVerb.view, PermissionVerb.assign, PermissionVerb.edit],
+      true,
+    ),
+    _item(
+      'jobExpenses',
+      'job expenses',
+      'Expenses tied to the job.',
+      fullPermissionVerbs,
+      true,
+    ),
+    _item(
+      'jobMaterials',
+      'job materials',
+      'Inventory and materials used on the job.',
+      corePermissionVerbs,
+    ),
+    _item(
+      'jobHours',
+      'job hours',
+      'Time logged against the job.',
+      corePermissionVerbs,
+      true,
+    ),
+    _item('jobProfit', 'job profit', 'Bid, cost, and profit recap.', [
+      PermissionVerb.view,
+      PermissionVerb.export,
+    ], true),
+    _item(
+      'jobProof',
+      'job photos and proof files',
+      'Photos, signatures, notes, and attached proof.',
+      sharePermissionVerbs,
+    ),
+  ], true),
+  _area('estimates', 'Estimates', 'Quotes sent before work becomes a job.', [
+    _item(
+      'estimates',
+      'estimates',
+      'Estimate documents and line items.',
+      sharePermissionVerbs,
+      true,
+    ),
+    _item(
+      'estimateApprovals',
+      'accepted estimates',
+      'Customer signed or accepted estimates.',
+      [PermissionVerb.view, PermissionVerb.edit, PermissionVerb.manage],
+      true,
+    ),
+    _item(
+      'estimateTemplates',
+      'estimate templates',
+      'Reusable estimate layouts.',
+      fullPermissionVerbs,
+    ),
+    _item(
+      'estimateConversion',
+      'estimate to job conversion',
+      'Turning an accepted estimate into a job.',
+      [PermissionVerb.view, PermissionVerb.create, PermissionVerb.manage],
+      true,
+    ),
+  ], true),
+  _area(
+    'invoices',
+    'Invoices',
+    'Bills sent to customers after or during work.',
+    [
+      _item(
+        'invoices',
+        'invoices',
+        'Invoice totals, line items, and customer copy.',
+        sharePermissionVerbs,
+        true,
+      ),
+      _item(
+        'invoicePdfFiles',
+        'invoice PDF files',
+        'Generated PDF files for invoices.',
+        [
+          PermissionVerb.view,
+          PermissionVerb.share,
+          PermissionVerb.export,
+          PermissionVerb.delete,
+        ],
+        true,
+      ),
+      _item(
+        'invoiceTemplates',
+        'invoice templates',
+        'Reusable invoice layouts.',
+        fullPermissionVerbs,
+      ),
+      _item(
+        'invoiceStatus',
+        'invoice status',
+        'Draft, sent, paid, void, and overdue state.',
+        [PermissionVerb.view, PermissionVerb.edit, PermissionVerb.manage],
+        true,
+      ),
+    ],
+    true,
+  ),
+  _area(
+    'payments',
+    'Company Payments',
+    'Money paid by customers to the company.',
+    [
+      _item(
+        'customerPayments',
+        'customer payments',
+        'Payments recorded against invoices.',
+        corePermissionVerbs,
+        true,
+      ),
+      _item('unpaidBalances', 'unpaid balances', 'Open balances and aging.', [
+        PermissionVerb.view,
+        PermissionVerb.export,
+      ], true),
+      _item(
+        'paymentProof',
+        'payment proof files',
+        'Receipts, signatures, and attachments.',
+        sharePermissionVerbs,
+        true,
+      ),
+    ],
+    true,
+  ),
+  expensePermissionArea(),
+  _area('receipts', 'Receipts', 'Receipt capture, OCR, and proof storage.', [
+    _item(
+      'receiptCapture',
+      'receipt capture',
+      'Camera, file upload, and attached receipt images.',
+      fullPermissionVerbs,
+    ),
+    _item(
+      'receiptParsing',
+      'receipt parsing',
+      'Reviewing OCR text and parsed line items.',
+      [PermissionVerb.view, PermissionVerb.edit, PermissionVerb.manage],
+      true,
+    ),
+    _item(
+      'receiptExports',
+      'receipt exports',
+      'Receipt PDFs and proof packets.',
+      [PermissionVerb.view, PermissionVerb.export],
+      true,
+    ),
+  ]),
+  _area(
+    'inventory',
+    'Inventory / Materials',
+    'Stock, materials, trade packs, and usage.',
+    [
+      _item(
+        'materials',
+        'materials',
+        'Materials available or used for work.',
+        fullPermissionVerbs,
+      ),
+      _item(
+        'stockCounts',
+        'inventory counts',
+        'On-hand counts and count adjustments.',
+        corePermissionVerbs,
+        true,
+      ),
+      _item(
+        'materialTransfers',
+        'material transfers',
+        'Moving material between vehicles or locations.',
+        corePermissionVerbs,
+      ),
+      _item('tradePacks', 'trade packs', 'Downloadable material catalogs.', [
+        PermissionVerb.view,
+        PermissionVerb.create,
+        PermissionVerb.manage,
+      ]),
+      _item(
+        'materialCosts',
+        'material cost history',
+        'Purchase history and cost changes.',
+        [PermissionVerb.view, PermissionVerb.export],
+        true,
+      ),
+    ],
+  ),
+  _area(
+    'vehicles',
+    'Vehicles / Mileage',
+    'Vehicles, assignments, trips, and mileage.',
+    [
+      _item(
+        'vehicles',
+        'vehicle profiles',
+        'Vehicle names, type, status, and assignment.',
+        fullPermissionVerbs,
+        true,
+      ),
+      _item(
+        'vehicleAssignments',
+        'vehicle assignments',
+        'Which employee is assigned to which vehicle.',
+        [PermissionVerb.view, PermissionVerb.assign, PermissionVerb.edit],
+        true,
+      ),
+      _item(
+        'mileageTrips',
+        'mileage trips',
+        'Start, stop, arrival mileage, and total miles.',
+        fullPermissionVerbs,
+        true,
+      ),
+      _item(
+        'fuelEconomy',
+        'fuel economy recap',
+        'MPG, cost per mile, and fuel totals.',
+        [PermissionVerb.view, PermissionVerb.export],
+        true,
+      ),
+    ],
+    true,
+  ),
+  _area(
+    'maintenance',
+    'Maintenance',
+    'Maintenance, repairs, reminders, and costs.',
+    [
+      _item(
+        'maintenanceEntries',
+        'maintenance entries',
+        'Oil changes, tires, inspections, and service.',
+        fullPermissionVerbs,
+      ),
+      _item(
+        'repairEntries',
+        'repair entries',
+        'Repair costs and proof.',
+        fullPermissionVerbs,
+      ),
+      _item(
+        'maintenanceSchedule',
+        'maintenance schedule',
+        'Upcoming maintenance reminders.',
+        corePermissionVerbs,
+      ),
+      _item(
+        'maintenanceCostRecap',
+        'maintenance cost recap',
+        'Repair and maintenance totals.',
+        [PermissionVerb.view, PermissionVerb.export],
+        true,
+      ),
+    ],
+  ),
+  _area('calendar', 'Calendar', 'Daily work records by employee and vehicle.', [
+    _item(
+      'calendarDays',
+      'calendar days',
+      'Daily timeline and entries.',
+      corePermissionVerbs,
+      true,
+    ),
+    _item(
+      'pastCalendarDays',
+      'past calendar days',
+      'Backdated entries and corrections.',
+      corePermissionVerbs,
+      true,
+    ),
+    _item(
+      'calendarSettings',
+      'calendar settings',
+      'Pay period, week start, and date behavior.',
+      [PermissionVerb.view, PermissionVerb.edit, PermissionVerb.manage],
+      true,
+    ),
+  ], true),
+  _area(
+    'reports',
+    'Recaps / Reports',
+    'Daily, weekly, monthly, 90-day, and year-to-date recaps.',
+    [
+      _item(
+        'financialRecaps',
+        'financial recaps',
+        'Invoices, payments, expenses, profit, and loss.',
+        [PermissionVerb.view, PermissionVerb.export],
+        true,
+      ),
+      _item(
+        'employeeRecaps',
+        'employee recaps',
+        'Hours, pay, miles, and work completed.',
+        [PermissionVerb.view, PermissionVerb.export],
+        true,
+      ),
+      _item(
+        'vehicleRecaps',
+        'vehicle recaps',
+        'Miles, MPG, cost per mile, maintenance, and repairs.',
+        [PermissionVerb.view, PermissionVerb.export],
+        true,
+      ),
+      _item(
+        'auditExports',
+        'audit exports',
+        'Export packets and proof bundles.',
+        [PermissionVerb.view, PermissionVerb.export],
+        true,
+      ),
+    ],
+    true,
+  ),
+  _area(
+    'customerPortal',
+    'Customer Portal',
+    'Customer-facing job, estimate, and invoice sharing.',
+    [
+      _item(
+        'customerProfiles',
+        'customer profiles',
+        'Customer contact records.',
+        fullPermissionVerbs,
+        true,
+      ),
+      _item(
+        'customerJobProgress',
+        'customer job progress',
+        'Customer-visible progress updates.',
+        sharePermissionVerbs,
+        true,
+      ),
+      _item(
+        'customerProofFiles',
+        'customer proof files',
+        'Receipts, photos, and selected proof shared to customers.',
+        sharePermissionVerbs,
+        true,
+      ),
+      _item(
+        'portalSettings',
+        'customer portal settings',
+        'What customers can see.',
+        [PermissionVerb.view, PermissionVerb.edit, PermissionVerb.manage],
+        true,
+      ),
+    ],
+    true,
+  ),
+];
+
+EmployeePermissionArea _area(
+  String key,
+  String title,
+  String summary,
+  List<EmployeePermissionItem> items, [
+  bool highImpact = false,
+]) {
+  return EmployeePermissionArea(
+    key: key,
+    title: title,
+    summary: summary,
+    items: items,
+    highImpact: highImpact,
+  );
+}
+
+EmployeePermissionItem _item(
+  String key,
+  String title,
+  String description,
+  List<PermissionVerb> verbs, [
+  bool highImpact = false,
+]) {
+  return EmployeePermissionItem(
+    key: key,
+    title: title,
+    description: description,
+    verbs: verbs,
+    highImpact: highImpact,
+  );
+}

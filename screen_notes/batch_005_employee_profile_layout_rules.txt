@@ -1,0 +1,44 @@
+Batch 5 notes for employee profile layout rules
+
+Related screens:
+- lib/screens/profiles/employee_permissions_screen.dart
+- lib/screens/profiles/employee_profile_panels.dart
+- lib/screens/profiles/employee_profile_recap_panels.dart
+
+Source: visible user message, 2026-06-20 Batch 5
+
+"No daily chronological entries on the profile."
+
+"Absolutely no chronological entries on the profile screen at all."
+
+"That profile page is there to see the employee's information for number one,
+which needs to be, you know, at the top of the screen, below the active vehicle
+profile."
+
+"We need to do something about the very top row, that back button row."
+
+"That back button has got to go."
+
+"We do not need to take up an entire row for a back button."
+
+"The back button needs to stay, but we don't need an entire row for it."
+
+"The employee's name up there, but that's not where the name goes."
+
+"It goes in the box that says employee information."
+
+"The employee information, name, phone, email, that box should be, that
+information needs to be inside of the employee information box."
+
+"Get rid of the nested parent container going all the way down the screen."
+
+"Make everything 100% width of the screen with only 10 pixels on either side of
+the containers."
+
+"If you read the spec files, you would know what the layout rules are."
+
+Source: visible user message, 2026-06-20 Batch 5
+
+"Would it did make more sense to have the edit info button on the same row as
+employee information?"
+

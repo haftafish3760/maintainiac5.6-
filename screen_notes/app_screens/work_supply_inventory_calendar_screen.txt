@@ -1,0 +1,10 @@
+Screen: lib/screens/work_supplies/calendar/work_supply_inventory_calendar_screen.dart
+
+Source: /Users/rbbie/.codex/attachments/c8afdb36-f51f-452e-b314-109f5c4bb0d0/pasted-text.txt
+
+"Each and every screen talks to the calendar. It's custom to that screen or
+app, rather."
+
+"Each screen is an application. All right, now, that calendar for that screen
+is for that app."
+
