@@ -23,6 +23,8 @@ void main() {
       expect(diagnostic.causeStatus, ExpenseFailureCauseStatus.confirmed);
       expect(diagnostic.evidence, contains('warning_photoQuality'));
       expect(diagnostic.evidence, contains('source_photo'));
+      expect(diagnostic.evidence, contains('recovery_retake_or_review_photo'));
+      expect(diagnostic.evidence, contains('target_receipt_photo'));
     });
 
     test('uses PDF safety as a stronger cause than unreadable text', () {
@@ -39,6 +41,8 @@ void main() {
       expect(diagnostic.failedAt, 'during_pdf_ocr_read');
       expect(diagnostic.confirmedCause, 'pdf_safety_blocked');
       expect(diagnostic.evidence, contains('warning_pdfSafety'));
+      expect(diagnostic.evidence, contains('recovery_attach_safe_pdf'));
+      expect(diagnostic.evidence, contains('target_receipt_pdf'));
     });
 
     test(
@@ -51,6 +55,11 @@ void main() {
         expect(diagnostic.failedAt, 'after_attachment_read_before_parser');
         expect(diagnostic.confirmedCause, 'no_readable_text');
         expect(diagnostic.evidence, contains('warning_none'));
+        expect(
+          diagnostic.evidence,
+          contains('recovery_retake_photo_or_add_section'),
+        );
+        expect(diagnostic.evidence, contains('target_receipt_photo'));
       },
     );
 
@@ -67,6 +76,89 @@ void main() {
       expect(diagnostic.confirmedCause, 'possible_missing_receipt_section');
       expect(diagnostic.failedAt, 'after_attachment_read_before_parser');
       expect(diagnostic.evidence, contains('warning_sectionGap'));
+      expect(diagnostic.evidence, contains('recovery_add_missing_section'));
+      expect(diagnostic.evidence, contains('target_receipt_sections'));
+    });
+
+    test('uses prioritized warnings instead of raw warning order', () {
+      final result = _ocrResult(
+        source: ReceiptProcessingSource.pdf,
+        warnings: const [
+          'Repeated receipt text was ignored.',
+          'PDF receipt reading could not read one PDF.',
+        ],
+      );
+
+      expect(
+        result.structuredWarnings.first.kind,
+        ReceiptOcrWarningKind.duplicateText,
+      );
+      expect(result.primaryWarning?.kind, ReceiptOcrWarningKind.pdfReadFailure);
+
+      final diagnostic = ExpenseOcrFailureDiagnostics.fromOcrResult(result);
+
+      expect(diagnostic.failedAt, 'during_pdf_ocr_read');
+      expect(diagnostic.confirmedCause, 'pdf_read_failed');
+      expect(diagnostic.evidence, contains('warning_pdfReadFailure'));
+      expect(diagnostic.evidence, contains('source_pdf'));
+      expect(
+        diagnostic.evidence,
+        contains('recovery_scan_receipt_with_photos'),
+      );
+      expect(diagnostic.evidence, contains('target_receipt_pdf'));
+    });
+
+    test('photo read failures outrank review-only photo warnings', () {
+      final result = _ocrResult(
+        source: ReceiptProcessingSource.photo,
+        warnings: const [
+          'Receipt photo quality needs review: bottom section may be soft.',
+          'Receipt photo reading failed for one photo.',
+          'Repeated receipt text was ignored.',
+        ],
+      );
+
+      expect(
+        result.structuredWarnings.first.kind,
+        ReceiptOcrWarningKind.photoQuality,
+      );
+      expect(
+        result.primaryWarning?.kind,
+        ReceiptOcrWarningKind.photoReadFailure,
+      );
+
+      final diagnostic = ExpenseOcrFailureDiagnostics.fromOcrResult(result);
+
+      expect(diagnostic.failedAt, 'during_photo_ocr_read');
+      expect(diagnostic.confirmedCause, 'receipt_photo_read_failed');
+      expect(diagnostic.evidence, contains('warning_photoReadFailure'));
+      expect(diagnostic.evidence, contains('recovery_retake_photo'));
+      expect(diagnostic.evidence, contains('target_receipt_photo'));
+    });
+
+    test('uses source-specific recovery when warning kind is generic', () {
+      final pdfDiagnostic = ExpenseOcrFailureDiagnostics.fromOcrResult(
+        _ocrResult(source: ReceiptProcessingSource.pdf),
+      );
+      final textDiagnostic = ExpenseOcrFailureDiagnostics.fromOcrResult(
+        _ocrResult(source: ReceiptProcessingSource.importedText),
+      );
+      final mixedDiagnostic = ExpenseOcrFailureDiagnostics.fromOcrResult(
+        _ocrResult(source: ReceiptProcessingSource.mixed),
+      );
+
+      expect(
+        pdfDiagnostic.evidence,
+        contains('recovery_scan_receipt_with_photos'),
+      );
+      expect(pdfDiagnostic.evidence, contains('target_receipt_pdf'));
+      expect(textDiagnostic.evidence, contains('recovery_paste_cleaner_text'));
+      expect(textDiagnostic.evidence, contains('target_receipt_text'));
+      expect(
+        mixedDiagnostic.evidence,
+        contains('recovery_choose_clearest_source'),
+      );
+      expect(mixedDiagnostic.evidence, contains('target_receipt_sources'));
     });
   });
 }

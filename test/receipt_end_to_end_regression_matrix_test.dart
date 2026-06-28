@@ -85,8 +85,11 @@ void main() {
     expect(snapshot.receiptsMissingProof, 0);
     expect(snapshot.receiptsWithOcrReview, receipts.length);
     expect(snapshot.receiptsNeedingOcrReview, greaterThan(0));
+    expect(manifest['ocrWarningCount'], greaterThan(0));
+    expect(manifest['ocrPrimaryWarningKindCounts'], isA<Map<String, int>>());
     expect(receiptsCsv, contains('receipt_proof_count'));
     expect(receiptsCsv, contains('ocr_review_status'));
+    expect(receiptsCsv, contains('ocr_primary_issue'));
     expect(receiptsCsv, isNot(contains('LOWES H0ME IMPR0VEMENT')));
     expect(receiptsCsv, isNot(contains('PUMP O4 UNLEADED')));
     expect(linesCsv, contains('business_percent'));

@@ -23,6 +23,7 @@ import '../data/work_supply_item_identity_store.dart';
 import '../data/work_supply_inventory_destination.dart';
 import '../data/work_supply_models.dart';
 import '../data/work_supply_parsed_receipt_bridge.dart';
+import '../data/work_supply_parser_device_profile.dart';
 import '../data/work_supply_receipt_staging.dart';
 import '../data/work_supply_receipt_parser.dart';
 
@@ -30,6 +31,7 @@ part 'receipt_destination_section.dart';
 part 'receipt_preview_section.dart';
 part 'add_items_receipt_sections.dart';
 part 'add_items_receipt_command_sections.dart';
+part 'add_items_receipt_parser_actions.dart';
 part 'add_items_picker_sections.dart';
 part 'add_items_picker_choice_sections.dart';
 part 'add_items_line_editor_sections.dart';

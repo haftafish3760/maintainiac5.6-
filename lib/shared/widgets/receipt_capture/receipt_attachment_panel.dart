@@ -10,9 +10,13 @@ import '../../state/expense_settings_store.dart';
 import '../receipt_form/receipt_form_panel.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_capture_settings_store.dart';
+import 'receipt_camera_permission.dart';
 import 'receipt_image_processor.dart';
 import 'receipt_image_picker.dart';
 import 'receipt_assistance_policy.dart';
+import 'receipt_native_capture_staging.dart';
+import 'receipt_native_camera_contract.dart';
+import 'receipt_native_camera_service.dart';
 import 'receipt_ocr_service.dart';
 import 'receipt_photo_review_screen.dart';
 import 'receipt_pdf_inspector.dart';
@@ -46,6 +50,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
     this.initialAttachments = const [],
     this.onAttachmentsChanged,
     this.onImportedText,
+    this.onReceiptPhotoReviewAccepted,
     this.onReceiptReadStarted,
     this.onReceiptReadFinished,
   });
@@ -57,6 +62,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
   final List<ReceiptAttachmentRecord> initialAttachments;
   final ValueChanged<List<ReceiptAttachmentRecord>>? onAttachmentsChanged;
   final FutureOr<void> Function(String text)? onImportedText;
+  final ValueChanged<ReceiptPhotoReviewResult>? onReceiptPhotoReviewAccepted;
   final VoidCallback? onReceiptReadStarted;
   final ValueChanged<bool>? onReceiptReadFinished;
 
@@ -76,8 +82,12 @@ class _SharedReceiptAttachmentPanelState
   var _readingForReview = false;
   var _receiptReadStatus = _ReceiptReadStatusKind.success;
   var _receiptReadStatusMessage = '';
+  var _loadingRecoverableNativeCaptures = false;
+  List<ReceiptNativeCaptureRecoveryRecord> _recoverableNativeCaptures =
+      const [];
   ReceiptDataSaverLevel _dataSaverLevel = ReceiptDataSaverLevel.balanced;
   var _settingsApplied = false;
+  var _panelDisposed = false;
 
   bool get _hasAttachment =>
       _photoPaths.isNotEmpty || _documentAttachments.isNotEmpty;
@@ -86,6 +96,13 @@ class _SharedReceiptAttachmentPanelState
   void initState() {
     super.initState();
     _applyInitialAttachments(widget.initialAttachments);
+    unawaited(_loadRecoverableNativeCaptures());
+  }
+
+  @override
+  void dispose() {
+    _panelDisposed = true;
+    super.dispose();
   }
 
   @override
@@ -189,6 +206,28 @@ class _SharedReceiptAttachmentPanelState
           const SizedBox(height: 8),
           const ReceiptPickerStatus(),
         ],
+        if (_recoverableNativeCaptures.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _ReceiptInterruptedCaptureBanner(
+            record: _recoverableNativeCaptures.first,
+            total: _recoverableNativeCaptures.length,
+            loading: _loadingRecoverableNativeCaptures,
+            onResume: _openingPicker
+                ? null
+                : () => unawaited(
+                    _resumeRecoverableNativeCapture(
+                      _recoverableNativeCaptures.first,
+                    ),
+                  ),
+            onDismiss: _openingPicker
+                ? null
+                : () => unawaited(
+                    _dismissRecoverableNativeCapture(
+                      _recoverableNativeCaptures.first,
+                    ),
+                  ),
+          ),
+        ],
         if (_readingForReview || _receiptReadStatusMessage.isNotEmpty) ...[
           const SizedBox(height: 8),
           _ReceiptReadReviewStatus(
@@ -244,6 +283,58 @@ class _SharedReceiptAttachmentPanelState
     );
   }
 
+  Future<void> _loadRecoverableNativeCaptures() async {
+    if (_loadingRecoverableNativeCaptures) return;
+    _updateAttachmentState(() => _loadingRecoverableNativeCaptures = true);
+    try {
+      final records = await const ReceiptNativeCaptureStaging()
+          .recoverableNativeCaptures();
+      _updateAttachmentState(() {
+        _recoverableNativeCaptures = records;
+        _loadingRecoverableNativeCaptures = false;
+      });
+    } catch (_) {
+      _updateAttachmentState(() {
+        _recoverableNativeCaptures = const [];
+        _loadingRecoverableNativeCaptures = false;
+      });
+    }
+  }
+
+  Future<void> _resumeRecoverableNativeCapture(
+    ReceiptNativeCaptureRecoveryRecord record,
+  ) async {
+    if (_openingPicker) return;
+    if (!_updateAttachmentState(() => _openingPicker = true)) return;
+    try {
+      final photoPaths = record.recoverablePhotoPaths;
+      final accepted = await _reviewPickedPhotoPaths(
+        photoPaths,
+        initialQualityChecksByPath: await _qualityChecksForPhotoPaths(
+          photoPaths,
+        ),
+        initialCaptureDiagnosticsByPath: {
+          for (final path in photoPaths) path: record.captureDiagnostics,
+        },
+      );
+      if (accepted) {
+        await const ReceiptNativeCaptureStaging().clearRecoveryRecord(record);
+      }
+    } finally {
+      if (_updateAttachmentState(() => _openingPicker = false)) {
+        unawaited(_loadRecoverableNativeCaptures());
+      }
+    }
+  }
+
+  Future<void> _dismissRecoverableNativeCapture(
+    ReceiptNativeCaptureRecoveryRecord record,
+  ) async {
+    await const ReceiptNativeCaptureStaging().discardRecoveryRecord(record);
+    if (!mounted) return;
+    unawaited(_loadRecoverableNativeCaptures());
+  }
+
   Future<void> _requestClearAttachments() async {
     final count = _photoPaths.length + _documentAttachments.length;
     final confirmed = await _confirmProofRemoval(
@@ -263,7 +354,7 @@ class _SharedReceiptAttachmentPanelState
         ReceiptProofStorage.instance.deleteStagedAttachment(attachment),
       );
     }
-    setState(() {
+    _updateAttachmentState(() {
       _photoPaths.clear();
       _photoIdByPath.clear();
       _photoQualityByPath.clear();
@@ -286,7 +377,7 @@ class _SharedReceiptAttachmentPanelState
       confirmLabel: 'Remove Photo',
     );
     if (!mounted || !confirmed) return;
-    setState(() {
+    _updateAttachmentState(() {
       final removed = _photoPaths.removeAt(index);
       _photoIdByPath.remove(removed);
       _photoQualityByPath.remove(removed);
@@ -304,7 +395,7 @@ class _SharedReceiptAttachmentPanelState
     );
     if (!mounted || !confirmed) return;
     unawaited(ReceiptProofStorage.instance.deleteStagedAttachment(attachment));
-    setState(() {
+    _updateAttachmentState(() {
       _documentAttachments.removeWhere(
         (current) => current.id == attachment.id,
       );
@@ -359,8 +450,10 @@ class _SharedReceiptAttachmentPanelState
     return generated;
   }
 
-  void _updateAttachmentState(VoidCallback update) {
+  bool _updateAttachmentState(VoidCallback update) {
+    if (!mounted || _panelDisposed) return false;
     setState(update);
+    return true;
   }
 
   Future<bool> _openReceiptCaptureSettings() async {
@@ -376,7 +469,9 @@ class _SharedReceiptAttachmentPanelState
       ),
     );
     if (!mounted) return false;
-    setState(() => _dataSaverLevel = settings.defaultDataSaverLevel);
+    _updateAttachmentState(
+      () => _dataSaverLevel = settings.defaultDataSaverLevel,
+    );
     return result ?? true;
   }
 
@@ -391,12 +486,14 @@ class _SharedReceiptAttachmentPanelState
   }
 
   void _showPickerError(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
   void _showPickerMessage(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
@@ -422,6 +519,135 @@ class _SharedReceiptAttachmentPanelState
 
 enum _ReceiptReadStatusKind { reading, success, warning, failed }
 
+class _ReceiptInterruptedCaptureBanner extends StatelessWidget {
+  const _ReceiptInterruptedCaptureBanner({
+    required this.record,
+    required this.total,
+    required this.loading,
+    required this.onResume,
+    required this.onDismiss,
+  });
+
+  final ReceiptNativeCaptureRecoveryRecord record;
+  final int total;
+  final bool loading;
+  final VoidCallback? onResume;
+  final VoidCallback? onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final countLabel = record.recoveredCountLabel;
+    final engineLabel = record.engine.label;
+    final extraLabel = total > 1 ? ' $total interrupted captures found.' : '';
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+      decoration: BoxDecoration(
+        color: const Color(0xFF12191C),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFFFFD166)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          loading
+              ? const SizedBox(
+                  width: 19,
+                  height: 19,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Color(0xFFFFD166),
+                  ),
+                )
+              : const Icon(
+                  Icons.restore_rounded,
+                  color: Color(0xFFFFD166),
+                  size: 20,
+                ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Resume Interrupted Receipt Photos',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Color(0xFFE8ECEE),
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$countLabel from $engineLabel were saved locally before the receipt review finished. ${record.recoveryResumeDetail} Resume them or discard the staged receipt copies.$extraLabel',
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFC7D0D4),
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    height: 1.2,
+                    letterSpacing: 0,
+                  ),
+                ),
+                const SizedBox(height: 7),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: onResume,
+                        icon: const Icon(Icons.play_arrow_rounded, size: 17),
+                        label: const Text('Resume'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF28A745),
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(0, 34),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: onDismiss,
+                        icon: const Icon(Icons.close_rounded, size: 16),
+                        label: const Text('Discard'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFE8ECEE),
+                          minimumSize: const Size(0, 34),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          side: const BorderSide(color: Color(0xFF56666E)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ReceiptReadReviewStatus extends StatelessWidget {
   const _ReceiptReadReviewStatus({
     required this.reading,
@@ -436,18 +662,18 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = message.trim().isEmpty
-        ? 'Reading receipt for app-assisted review...'
+        ? 'Preparing receipt for app-assisted review...'
         : message;
     final effectiveStatus = reading ? _ReceiptReadStatusKind.reading : status;
     final title = switch (effectiveStatus) {
-      _ReceiptReadStatusKind.reading => 'Reading Receipt',
+      _ReceiptReadStatusKind.reading => 'Preparing Receipt',
       _ReceiptReadStatusKind.success => 'Receipt Ready For Review',
       _ReceiptReadStatusKind.warning => 'Receipt Needs Review',
       _ReceiptReadStatusKind.failed => 'Receipt Could Not Be Read',
     };
     final recoveryHint = switch (effectiveStatus) {
       _ReceiptReadStatusKind.reading =>
-        'Keep this screen open. The filled receipt review will appear below.',
+        'Keep this screen open. Maintainiac will show the receipt details as soon as the text is ready.',
       _ReceiptReadStatusKind.success =>
         'Check the store, date, totals, Business/Personal choice, and receipt lines.',
       _ReceiptReadStatusKind.warning =>

@@ -99,6 +99,18 @@ class _ParserReviewNotice extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (line.parserNeedsReview) ...[
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Saving this line marks it reviewed. Change anything that looks wrong before saving.',
+                    style: TextStyle(
+                      color: Color(0xFFFFD166),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

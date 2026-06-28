@@ -32,3 +32,11 @@ somebody that only has a couple of vehicles."
 layout themselves. And obviously, we would have a way for them to be able to
 reset it back to default. That's a must."
 
+Source: visible user message, 2026-06-27
+
+The contractor dashboard button/launcher must stay active from the main
+dashboard. Contractor mode should be its own screen for business operations,
+employees, vehicles, jobs, materials, invoices, expenses, and the contractor
+calendar. Avoid placeholder pulse boxes like cloud backup/local status; use
+useful operating metrics such as active vehicles, active employees, jobs today,
+records needing review, money in, money out, business miles, and open jobs.

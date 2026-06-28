@@ -11,8 +11,6 @@ PODS:
     - PromisesObjC (~> 2.4)
     - PromisesSwift (~> 2.4)
     - RecaptchaInterop (~> 101.0)
-  - camera_avfoundation (0.0.1):
-    - Flutter
   - device_info_plus (0.0.1):
     - Flutter
   - disk_space_plus (0.0.1):
@@ -212,7 +210,6 @@ PODS:
   - SwiftyGif (5.4.5)
 
 DEPENDENCIES:
-  - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - disk_space_plus (from `.symlinks/plugins/disk_space_plus/ios`)
   - doc_scan_kit (from `.symlinks/plugins/doc_scan_kit/ios`)
@@ -267,8 +264,6 @@ SPEC REPOS:
     - SwiftyGif
 
 EXTERNAL SOURCES:
-  camera_avfoundation:
-    :path: ".symlinks/plugins/camera_avfoundation/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   disk_space_plus:
@@ -311,7 +306,6 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   AppAuth: ef4da5a3fc2e10b90c09a0a94a9baeaedc0341d5
   AppCheckCore: 214137f5c378d1dec88a68425c467fe65aaff637
-  camera_avfoundation: 968a9a5323c79a99c166ad9d7866bfd2047b5a9b
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   disk_space_plus: a36391fb5f732dbdd29628b0bac5a1acbd43aaef
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c

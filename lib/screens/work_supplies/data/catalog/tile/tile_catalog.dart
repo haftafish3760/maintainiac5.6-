@@ -5,4 +5,8 @@ final tileCatalog = _trade('Tile', const Color(0xFF5FA58E), [
   tileSettingMaterialsCategory,
   tileWaterproofingCategory,
   tileToolsAndAccessoriesCategory,
+  tileGeneratedServiceCatalogCategory,
+  tileGeneratedSurfaceCatalogCategory,
+  tileGeneratedInstallCatalogCategory,
+  tileGeneratedFieldCatalogCategory,
 ]);

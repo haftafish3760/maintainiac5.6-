@@ -70,7 +70,7 @@ class ContractorCommand {
 }
 
 const contractorMetrics = [
-  ContractorMetric(label: 'Jobs Today', value: '3', color: Color(0xFF4DA3FF)),
+  ContractorMetric(label: 'Open Jobs', value: '3', color: Color(0xFF4DA3FF)),
   ContractorMetric(label: 'Money In', value: r'$725', color: Color(0xFF55D68A)),
   ContractorMetric(
     label: 'Money Out',
@@ -86,21 +86,17 @@ const contractorMetrics = [
 
 const contractorOperationsPulse = [
   ContractorMetric(
-    label: 'Today Status',
-    value: 'Ready',
+    label: 'Vehicles Active',
+    value: '2',
     color: Color(0xFF55D68A),
   ),
-  ContractorMetric(label: 'Next Job', value: '8:30', color: Color(0xFFFFD166)),
   ContractorMetric(
-    label: 'Cloud Backup',
-    value: 'Local',
-    color: Color(0xFF7CC7FF),
+    label: 'Employees Active',
+    value: '5',
+    color: Color(0xFFFFD166),
   ),
-  ContractorMetric(
-    label: 'Vehicle Scope',
-    value: '1',
-    color: Color(0xFFB48CFF),
-  ),
+  ContractorMetric(label: 'Jobs Today', value: '3', color: Color(0xFF7CC7FF)),
+  ContractorMetric(label: 'Needs Review', value: '4', color: Color(0xFFB48CFF)),
 ];
 
 const contractorAttentionItems = [

@@ -171,6 +171,7 @@ Map<String, int> _useSummary(ExpenseReceiptRecord receipt) {
 }
 
 Map<String, Object?> _ocrReviewFor(ExpenseReceiptOcrReview review) {
+  final commandSummary = review.commandCenterSummary;
   return {
     'severity': _token(review.severity, fallback: 'none'),
     'source': _token(review.source, fallback: 'unknown'),
@@ -180,6 +181,26 @@ Map<String, Object?> _ocrReviewFor(ExpenseReceiptOcrReview review) {
     'partialWarningCount': review.partialWarningCount,
     'reviewWarningCount': review.reviewWarningCount,
     'warningKindCounts': review.warningKindCounts,
+    'primaryWarningKind': _pathToken(review.primaryWarningKind),
+    'primaryWarningLabel': _summaryText(
+      review.primaryWarningLabel,
+      fallback: 'none',
+    ),
+    'primaryWarningTargetLabel': _summaryText(
+      review.primaryWarningTargetLabel,
+      fallback: 'none',
+    ),
+    'primaryWarningTargetInstruction': _summaryText(
+      review.primaryWarningTargetInstruction,
+      fallback: 'none',
+    ),
+    'recoveryAction': _pathToken('${commandSummary['recoveryAction']}'),
+    'recoveryTarget': _pathToken('${commandSummary['recoveryTarget']}'),
+    'recoverySummary': _summaryText(
+      '${commandSummary['primaryAction']}',
+      fallback: 'none',
+    ),
+    'commandCenterSummary': _ocrCommandCenterSummary(review),
     'attachmentsRead': review.attachmentsRead,
     'attachmentsSkipped': review.attachmentsSkipped,
     'rawLineCount': review.rawLineCount,
@@ -187,6 +208,33 @@ Map<String, Object?> _ocrReviewFor(ExpenseReceiptOcrReview review) {
     'pdfPagesRequested': review.pdfPagesRequested,
     'usedLocalOcr': review.usedLocalOcr,
     'hadDuplicateOrOverlapText': review.hadDuplicateOrOverlapText,
+  };
+}
+
+Map<String, Object?> _ocrCommandCenterSummary(ExpenseReceiptOcrReview review) {
+  final summary = review.commandCenterSummary;
+  return {
+    'severity': _token('${summary['severity']}', fallback: 'none'),
+    'source': _token(review.source, fallback: 'unknown'),
+    'needsReview': summary['needsReview'],
+    'warningCount': summary['warningCount'],
+    'blockingWarningCount': summary['blockingWarningCount'],
+    'partialWarningCount': summary['partialWarningCount'],
+    'reviewWarningCount': summary['reviewWarningCount'],
+    'attachmentsRead': summary['attachmentsRead'],
+    'attachmentsSkipped': summary['attachmentsSkipped'],
+    'parserLineCount': summary['parserLineCount'],
+    'primaryWarningKind': _pathToken('${summary['primaryWarningKind']}'),
+    'recoveryAction': _pathToken('${summary['recoveryAction']}'),
+    'recoveryTarget': _pathToken('${summary['recoveryTarget']}'),
+    'primaryIssue': _summaryText(
+      '${summary['primaryIssue']}',
+      fallback: 'none',
+    ),
+    'primaryAction': _summaryText(
+      '${summary['primaryAction']}',
+      fallback: 'none',
+    ),
   };
 }
 
@@ -251,6 +299,12 @@ String _token(String value, {String fallback = 'unknown'}) {
       .replaceAll(RegExp(r'^_|_$'), '');
   if (safe.isEmpty) return fallback;
   return safe.length > 80 ? safe.substring(0, 80) : safe;
+}
+
+String _summaryText(String value, {String fallback = 'unknown'}) {
+  final safe = value.trim().replaceAll(RegExp(r'\s+'), ' ');
+  if (safe.isEmpty) return fallback;
+  return safe.length > 180 ? safe.substring(0, 180) : safe;
 }
 
 String _readable(String value, {int maxLength = 240}) {

@@ -22,6 +22,7 @@ extension _ReceiptAttachmentImportActions
         final ready = await _showFirstUseReceiptCameraIntro(settings);
         if (!mounted || !ready) return;
       }
+      if (await _takeMaintainiacNativeCameraPhoto(settings)) return;
       if (NativeReceiptScannerService.documentScannerAllowedOnThisPlatform) {
         final scanResult = await const NativeReceiptScannerService()
             .scanReceipt(
@@ -68,6 +69,62 @@ extension _ReceiptAttachmentImportActions
     }
   }
 
+  Future<bool> _takeMaintainiacNativeCameraPhoto(
+    ReceiptCaptureSettingsController? settings,
+  ) async {
+    final permission = await const ReceiptCameraPermission().ensureReady();
+    if (!mounted) return false;
+    if (!permission.canUseCamera) {
+      _showPickerError(permission.userMessage);
+      return false;
+    }
+    final service = const ReceiptNativeCameraService();
+    final nativeCapabilities = await service.readCapabilities();
+    if (!nativeCapabilities.canOpenReceiptCamera) return false;
+    final deviceCapability =
+        settings?.deviceCapability ?? const ReceiptDeviceCapability.standard();
+    final cameraSettings = ReceiptNativeCameraSettings(
+      assistedReceiptFill: settings?.appAssistedEnabledFor(widget.area) ?? true,
+      longReceiptMode: settings?.cameraLongReceiptTips ?? true,
+      autoCaptureEnabled: settings?.cameraAutoCapture ?? false,
+      dataSaverLevel: settings?.defaultDataSaverLevel ?? _dataSaverLevel,
+    );
+    try {
+      final result = await service.captureReceipt(
+        cameraSettings.sessionFor(
+          deviceCapability: deviceCapability,
+          nativeCapabilities: nativeCapabilities,
+        ),
+      );
+      if (!mounted || !result.hasPhotos) return false;
+      final staged = await const ReceiptNativeCaptureStaging().stage(
+        result,
+        dataSaverLevel: _dataSaverLevel,
+      );
+      if (!mounted || !staged.hasPhotos) return false;
+      await _reviewPickedPhotoPaths(
+        staged.photoPaths,
+        initialQualityChecksByPath: await _qualityChecksForPhotoPaths(
+          staged.photoPaths,
+        ),
+        initialCaptureDiagnosticsByPath: staged.captureDiagnosticsByPhotoPath,
+      );
+      return true;
+    } on ReceiptNativeCameraCanceledException {
+      return false;
+    } on ReceiptNativeCameraUnavailableException catch (error) {
+      if (mounted && nativeCapabilities.available) {
+        _showPickerError(
+          '${error.message} Opening the backup receipt photo option.',
+        );
+      }
+      return false;
+    } on ReceiptProofStorageException catch (error) {
+      if (mounted) _showPickerError(error.message);
+      return false;
+    }
+  }
+
   Future<bool> _showFirstUseReceiptCameraIntro(
     ReceiptCaptureSettingsController settings,
   ) async {
@@ -107,8 +164,8 @@ extension _ReceiptAttachmentImportActions
     if (!mounted || result.status == ReceiptNativeScanStatus.scanned) return;
     final detail = result.message.trim();
     final message = detail.isEmpty
-        ? 'Document scanner was not available. Opening the phone camera instead so you can still capture the receipt.'
-        : '$detail Opening the phone camera instead so you can still capture the receipt.';
+        ? 'Document scanner was not available. Opening the backup receipt photo option instead.'
+        : '$detail Opening the backup receipt photo option instead.';
     _showPickerError(message);
   }
 
@@ -127,7 +184,7 @@ extension _ReceiptAttachmentImportActions
     if (message != null && message.isNotEmpty) {
       return '$message Try Take Receipt Photo again, or choose an existing receipt image instead.';
     }
-    return 'The phone camera could not open. Try Take Receipt Photo again, or choose an existing receipt image instead.';
+    return 'The backup receipt photo option could not open. Try Take Receipt Photo again, or choose an existing receipt image instead.';
   }
 
   Future<void> _uploadImage() async {
@@ -176,9 +233,11 @@ extension _ReceiptAttachmentImportActions
     }
   }
 
-  Future<void> _reviewPickedPhotoPaths(
+  Future<bool> _reviewPickedPhotoPaths(
     List<String> paths, {
     Map<String, ReceiptPhotoQualityCheck> initialQualityChecksByPath = const {},
+    Map<String, Map<String, Object?>> initialCaptureDiagnosticsByPath =
+        const {},
   }) async {
     final firstNewPhotoIndex = _photoPaths.length;
     final previousPhotoIdByPath = {..._photoIdByPath};
@@ -193,10 +252,11 @@ extension _ReceiptAttachmentImportActions
             ..._photoQualityByPath,
             ...initialQualityChecksByPath,
           },
+          initialCaptureDiagnosticsByPath: initialCaptureDiagnosticsByPath,
         ),
       ),
     );
-    if (result == null || !mounted) return;
+    if (result == null || !mounted) return false;
     _updateAttachmentState(() {
       _photoPaths
         ..clear()
@@ -221,9 +281,13 @@ extension _ReceiptAttachmentImportActions
       _dataSaverLevel = result.dataSaverLevel;
     });
     _publishAttachmentChange();
+    widget.onReceiptPhotoReviewAccepted?.call(result);
+    _startReviewedPhotoReadStatus(result);
     final readResult = await _readReviewedPhotosForReceiptForm(result);
+    if (!mounted) return false;
     _markReviewedPhotosReadState(result, readResult);
     unawaited(_deleteTemporaryOcrPhotos(result.ocrSourcePhotoPaths));
+    return true;
   }
 
   Future<void> _reviewPhotos() async {
@@ -269,9 +333,56 @@ extension _ReceiptAttachmentImportActions
       _dataSaverLevel = result.dataSaverLevel;
     });
     _publishAttachmentChange();
+    widget.onReceiptPhotoReviewAccepted?.call(result);
+    _startReviewedPhotoReadStatus(result);
     final readResult = await _readReviewedPhotosForReceiptForm(result);
+    if (!mounted) return;
     _markReviewedPhotosReadState(result, readResult);
     unawaited(_deleteTemporaryOcrPhotos(result.ocrSourcePhotoPaths));
+  }
+
+  void _startReviewedPhotoReadStatus(ReceiptPhotoReviewResult result) {
+    if (widget.onImportedText == null) return;
+    final settings = ReceiptCaptureSettingsScope.maybeOf(context);
+    if (settings?.appAssistedEnabledFor(widget.area) == false) return;
+    final reviewDecision = result.stitchResult.reviewDecisionLabel;
+    final proofCount = result.savedProofCountLabel;
+    final ocrSourceCount = result.ocrSourceCountLabel;
+    final qualitySummary = _reviewedPhotoOcrSourceQualitySummary(result);
+    _updateAttachmentState(() {
+      _readingForReview = true;
+      _receiptReadStatus = _ReceiptReadStatusKind.reading;
+      _receiptReadStatusMessage =
+          'Backup image saved: $proofCount. Preparing $ocrSourceCount so you can review what Maintainiac read. $qualitySummary Decision: $reviewDecision.';
+    });
+  }
+
+  String _reviewedPhotoOcrSourceQualitySummary(
+    ReceiptPhotoReviewResult result,
+  ) {
+    final qualities = <ReceiptPhotoQualityCheck>[
+      for (var index = 0; index < result.ocrSourcePhotoPaths.length; index++)
+        if (_qualityForOcrSourceIndex(result, index) != null)
+          _qualityForOcrSourceIndex(result, index)!,
+    ];
+    if (qualities.isEmpty) return 'Photo quality was not measured.';
+    var needsReview = 0;
+    ReceiptPhotoQualityCheck? weakest;
+    for (final quality in qualities) {
+      if (quality.needsReview) needsReview += 1;
+      if (weakest == null || quality.reviewScore < weakest.reviewScore) {
+        weakest = quality;
+      }
+    }
+    final weakestQuality = weakest;
+    if (weakestQuality == null) return 'Photo quality was not measured.';
+    if (needsReview <= 0) {
+      return 'OCR source quality ${weakestQuality.reviewScoreLabel}: looks readable.';
+    }
+    final sourceLabel = qualities.length == 1
+        ? 'OCR source'
+        : '$needsReview of ${qualities.length} OCR sources';
+    return '$sourceLabel may need review: ${weakestQuality.primaryIssueLabel} (${weakestQuality.reviewScoreLabel}).';
   }
 
   Future<_ReceiptAttachmentReadResult> _readReviewedPhotosForReceiptForm(
@@ -283,7 +394,7 @@ extension _ReceiptAttachmentImportActions
       _updateAttachmentState(() {
         _receiptReadStatus = _ReceiptReadStatusKind.warning;
         _receiptReadStatusMessage =
-            'Receipt photo saved as proof. App-assisted filling is turned off for this area.';
+            'Receipt backup image saved. App-assisted receipt filling is turned off for this area.';
       });
       return const _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.skipped,
@@ -293,7 +404,7 @@ extension _ReceiptAttachmentImportActions
       _updateAttachmentState(() {
         _receiptReadStatus = _ReceiptReadStatusKind.warning;
         _receiptReadStatusMessage =
-            'Receipt photo saved as proof. No clear OCR source was available for app-assisted filling.';
+            'Receipt backup image saved: ${result.savedProofCountLabel}. No clear OCR source was available for app-assisted receipt filling.';
       });
       return const _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.skipped,
@@ -367,15 +478,15 @@ extension _ReceiptAttachmentImportActions
 
   String _reviewedPhotoReadSuccessMessage(ReceiptStitchResult stitch) {
     if (stitch.didStitch) {
-      return 'The matched receipt photo was read. Review the filled fields below.';
+      return 'One combined receipt image was read. Review what Maintainiac filled in below.';
     }
     if (stitch.usedFallback && stitch.hasMultipleSections) {
-      return 'Receipt photos were read from top to bottom. Review the filled fields below.';
+      return 'Receipt photos were read from top to bottom. Review what Maintainiac filled in below.';
     }
     if (stitch.hasMultipleSections) {
-      return 'Receipt photos were read together. Review the filled fields below.';
+      return 'Receipt photos were read together. Review what Maintainiac filled in below.';
     }
-    return 'Receipt photo was read. Review the filled fields below.';
+    return 'Receipt photo was read. Review what Maintainiac filled in below.';
   }
 
   Map<String, ReceiptPhotoQualityCheck> _qualityChecksByPathForCameraResult(

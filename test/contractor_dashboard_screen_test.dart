@@ -28,10 +28,10 @@ void main() {
 
     expect(find.text('Contractor Command Center'), findsOneWidget);
     expect(find.text('Mode'), findsOneWidget);
-    expect(find.text('Solo'), findsOneWidget);
+    expect(find.text('Contractor'), findsOneWidget);
     expect(find.text('Operations Pulse'), findsOneWidget);
-    expect(find.text('Today Status'), findsOneWidget);
-    expect(find.text('Cloud Backup'), findsOneWidget);
+    expect(find.text('Vehicles Active'), findsOneWidget);
+    expect(find.text('Employees Active'), findsOneWidget);
     expect(find.text('Needs Attention'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Money In'),

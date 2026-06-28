@@ -58,11 +58,17 @@ extension _ReceiptPhotoReviewImageEditActions
   }
 
   Future<void> _applyCrop() async {
-    if (_cropProcessing ||
-        _cropImageBytes == null ||
+    if (_cropProcessing) {
+      return;
+    }
+    final bytes = _cropImageBytes;
+    final displayRect = _cropDisplayRect;
+    final cropRect = _cropRect;
+    if (bytes == null ||
         _cropImageSize == null ||
-        _cropDisplayRect == null ||
-        _cropRect == null) {
+        displayRect == null ||
+        cropRect == null) {
+      _showCameraError('Crop is still getting this receipt photo ready.');
       return;
     }
     _updateReviewState(() => _cropProcessing = true);
@@ -71,6 +77,10 @@ extension _ReceiptPhotoReviewImageEditActions
         ReceiptStoragePurpose.savePhotos,
       );
       if (!mounted) return;
+      if (_reviewMode != _ReceiptReviewMode.crop) {
+        _updateReviewState(() => _cropProcessing = false);
+        return;
+      }
       if (!storage.hasEnoughSpace) {
         _updateReviewState(() => _cropProcessing = false);
         await _showStorageDialog(
@@ -86,18 +96,18 @@ extension _ReceiptPhotoReviewImageEditActions
         _showCameraError(storage.warningMessage());
       }
       final path = await ReceiptImageProcessor.cropFile(
-        bytes: _cropImageBytes!,
-        displayImageRect: _cropDisplayRect!,
-        cropRect: _cropRect!,
+        bytes: bytes,
+        displayImageRect: displayRect,
+        cropRect: cropRect,
       );
       final quality = await ReceiptImageProcessor.qualityCheckFile(path);
       if (!mounted) return;
       _updateReviewState(() {
         _generatedEditPaths.add(path);
-        _replaceCurrentPhotoPath(path, quality);
+        _replaceCurrentPhotoPath(path, quality, editAction: 'manual_crop');
         _cropProcessing = false;
-        _reviewMode = _ReceiptReviewMode.preview;
       });
+      _setReviewMode(_ReceiptReviewMode.preview);
       _invalidateStitchPreview();
     } catch (_) {
       if (!mounted) return;
@@ -137,7 +147,7 @@ extension _ReceiptPhotoReviewImageEditActions
       if (!mounted) return;
       _updateReviewState(() {
         _generatedEditPaths.add(path);
-        _replaceCurrentPhotoPath(path, quality);
+        _replaceCurrentPhotoPath(path, quality, editAction: 'manual_rotate');
         _cropProcessing = false;
       });
       _invalidateStitchPreview();
@@ -154,16 +164,38 @@ extension _ReceiptPhotoReviewImageEditActions
     _updateReviewState(() => _cropRect = displayRect);
   }
 
+  void _cancelCropReview() {
+    _updateReviewState(() {
+      _cropProcessing = false;
+      _cropSourcePath = null;
+      _cropImageBytes = null;
+      _cropImageSize = null;
+      _cropRect = null;
+      _cropDisplayRect = null;
+    });
+    _setReviewMode(_ReceiptReviewMode.preview);
+  }
+
   void _replaceCurrentPhotoPath(
     String path,
-    ReceiptPhotoQualityCheck? quality,
-  ) {
+    ReceiptPhotoQualityCheck? quality, {
+    String? editAction,
+  }) {
     final previousPath = _photoPaths[_selectedIndex];
+    final previousCaptureDiagnostics = _captureDiagnosticsByPath[previousPath];
     final staleDataSaverPreviewPaths = _removePhotoReviewCachesForPath(
       previousPath,
     );
     _photoPaths[_selectedIndex] = path;
     if (quality != null) _qualityChecksByPath[path] = quality;
+    if (previousCaptureDiagnostics != null) {
+      final updatedDiagnostics = {...previousCaptureDiagnostics};
+      if (editAction != null) {
+        updatedDiagnostics['userEditedPhoto'] = true;
+        updatedDiagnostics['photoEditAction'] = editAction;
+      }
+      _captureDiagnosticsByPath[path] = updatedDiagnostics;
+    }
     unawaited(_deleteStaleDataSaverPreviewFiles(staleDataSaverPreviewPaths));
     _cropSourcePath = null;
     _cropImageBytes = null;
@@ -178,6 +210,7 @@ extension _ReceiptPhotoReviewImageEditActions
         .map((entry) => entry.value)
         .toSet();
     _qualityChecksByPath.remove(photoPath);
+    _captureDiagnosticsByPath.remove(photoPath);
     _storagePreviews.removeWhere((key, _) => key.startsWith('$photoPath|'));
     _previewKeysInFlight.removeWhere((key) => key.startsWith('$photoPath|'));
     _dataSaverPreviewPaths.removeWhere(
@@ -190,15 +223,8 @@ extension _ReceiptPhotoReviewImageEditActions
   }
 
   Future<void> _deleteStaleDataSaverPreviewFiles(Set<String> paths) async {
-    final retained = _photoPaths.toSet()..addAll(_dataSaverPreviewPaths.values);
     for (final path in paths) {
-      if (retained.contains(path)) continue;
-      try {
-        final file = File(path);
-        if (await file.exists()) await file.delete();
-      } catch (_) {
-        // Best effort cleanup for app-created saved proof previews.
-      }
+      await _deleteDataSaverPreviewPath(path);
     }
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_inventory_settings_store.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_tiers.dart';
 
 void main() {
   late Directory hiveDirectory;
@@ -84,4 +85,23 @@ void main() {
     expect(settings.hiddenCategories, isEmpty);
     expect(settings.hiddenItems, isEmpty);
   });
+
+  test(
+    'tracks installed trade pack choices separately from visibility',
+    () async {
+      final settings = await WorkSupplyInventorySettingsController.create();
+      final option = buildWorkSupplyTradePackOptions('Plumbing').first;
+
+      expect(settings.hasInstalledTradePackOption(option), isFalse);
+
+      await settings.setTradePackOptionInstalled(option, true);
+
+      expect(settings.hasInstalledTradePackOption(option), isTrue);
+      expect(settings.installedTradePackOptions, contains('plumbing:core'));
+
+      await settings.setTradePackOptionInstalled(option, false);
+
+      expect(settings.hasInstalledTradePackOption(option), isFalse);
+    },
+  );
 }

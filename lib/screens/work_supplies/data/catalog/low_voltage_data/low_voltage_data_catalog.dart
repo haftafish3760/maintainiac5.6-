@@ -6,4 +6,6 @@ final lowVoltageDataCatalog =
       lowVoltageDataTerminationsCategory,
       lowVoltageDataBoxesAndPlatesCategory,
       lowVoltageDataTestersAndToolsCategory,
+      lowVoltageDataGeneratedServiceCatalogCategory,
+      lowVoltageDataGeneratedDetailCatalogCategory,
     ]);

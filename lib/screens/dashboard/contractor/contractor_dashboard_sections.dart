@@ -50,15 +50,18 @@ class ContractorScaleStrip extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: ContractorShiftReadout(label: 'Mode', value: 'Solo'),
+                child: ContractorShiftReadout(
+                  label: 'Mode',
+                  value: 'Contractor',
+                ),
               ),
               SizedBox(width: 8),
               Expanded(
-                child: ContractorShiftReadout(label: 'Employees', value: '0'),
+                child: ContractorShiftReadout(label: 'Employees', value: '7'),
               ),
               SizedBox(width: 8),
               Expanded(
-                child: ContractorShiftReadout(label: 'Fleet', value: '1'),
+                child: ContractorShiftReadout(label: 'Vehicles', value: '4'),
               ),
             ],
           ),

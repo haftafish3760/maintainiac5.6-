@@ -227,9 +227,10 @@ class _CropHandle extends StatelessWidget {
   )
   onDrag;
 
-  static const _hitSize = 46.0;
-  static const _edgeVisibleSize = 6.0;
-  static const _cornerVisibleSize = 18.0;
+  static const _hitSize = 56.0;
+  static const _edgeVisibleSize = 8.0;
+  static const _edgeVisibleLength = 112.0;
+  static const _cornerVisibleSize = 24.0;
 
   @override
   Widget build(BuildContext context) {
@@ -287,41 +288,74 @@ class _CropHandle extends StatelessWidget {
         handle == _ReceiptCropHandle.left || handle == _ReceiptCropHandle.right;
     final horizontal =
         handle == _ReceiptCropHandle.top || handle == _ReceiptCropHandle.bottom;
+    final corner = !vertical && !horizontal;
     return Positioned.fromRect(
       rect: rect,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onPanUpdate: (details) => onDrag(handle, details, imageRect, cropRect),
         child: Center(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFD166),
-              borderRadius: BorderRadius.circular(
-                vertical || horizontal ? 3 : 5,
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0xAA000000),
-                  blurRadius: 6,
-                  offset: Offset(0, 1),
+          child: Semantics(
+            button: true,
+            label: _semanticLabel,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: corner
+                    ? const Color(0xFFFFF2BD)
+                    : const Color(0xFFFFD166),
+                borderRadius: BorderRadius.circular(corner ? 7 : 4),
+                border: Border.all(
+                  color: const Color(0xFF050607),
+                  width: corner ? 2 : 1.2,
                 ),
-              ],
-            ),
-            child: SizedBox(
-              width: vertical
-                  ? _edgeVisibleSize
-                  : horizontal
-                  ? 92
-                  : _cornerVisibleSize,
-              height: vertical
-                  ? 92
-                  : horizontal
-                  ? _edgeVisibleSize
-                  : _cornerVisibleSize,
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0xDD000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: SizedBox(
+                width: vertical
+                    ? _edgeVisibleSize
+                    : horizontal
+                    ? _edgeVisibleLength
+                    : _cornerVisibleSize,
+                height: vertical
+                    ? _edgeVisibleLength
+                    : horizontal
+                    ? _edgeVisibleSize
+                    : _cornerVisibleSize,
+                child: corner
+                    ? const Center(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Color(0xFF050607),
+                            shape: BoxShape.circle,
+                          ),
+                          child: SizedBox(width: 6, height: 6),
+                        ),
+                      )
+                    : null,
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  String get _semanticLabel {
+    return switch (handle) {
+      _ReceiptCropHandle.left => 'Move left receipt crop edge',
+      _ReceiptCropHandle.right => 'Move right receipt crop edge',
+      _ReceiptCropHandle.top => 'Move top receipt crop edge',
+      _ReceiptCropHandle.bottom => 'Move bottom receipt crop edge',
+      _ReceiptCropHandle.topLeft => 'Move top left receipt crop corner',
+      _ReceiptCropHandle.topRight => 'Move top right receipt crop corner',
+      _ReceiptCropHandle.bottomLeft => 'Move bottom left receipt crop corner',
+      _ReceiptCropHandle.bottomRight => 'Move bottom right receipt crop corner',
+    };
   }
 }

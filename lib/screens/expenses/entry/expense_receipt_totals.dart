@@ -4,26 +4,29 @@ class _ReceiptSavePanel extends StatelessWidget {
   const _ReceiptSavePanel({
     required this.lineCount,
     required this.reviewCount,
+    required this.splitPercentIssueCount,
     required this.total,
     required this.onSave,
   });
 
   final int lineCount;
   final int reviewCount;
+  final int splitPercentIssueCount;
   final double total;
   final VoidCallback onSave;
 
   @override
   Widget build(BuildContext context) {
+    final issueCount = reviewCount + splitPercentIssueCount;
     return ReceiptFormPanel(
       title: 'Save Receipt',
       subtitle: 'Save these lines to the expense ledger for this vehicle.',
       icon: Icons.save_rounded,
-      accentColor: reviewCount > 0
+      accentColor: issueCount > 0
           ? const Color(0xFFFFD166)
           : const Color(0xFF58D67D),
       children: [
-        if (reviewCount > 0) ...[
+        if (issueCount > 0) ...[
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -41,17 +44,36 @@ class _ReceiptSavePanel extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    reviewCount == 1
-                        ? 'One app-filled line still needs review.'
-                        : '$reviewCount app-filled lines still need review.',
-                    style: const TextStyle(
-                      color: Color(0xFFFFD166),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      height: 1.25,
-                      letterSpacing: 0,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (reviewCount > 0)
+                        Text(
+                          reviewCount == 1
+                              ? 'One app-filled line still needs review.'
+                              : '$reviewCount app-filled lines still need review.',
+                          style: const TextStyle(
+                            color: Color(0xFFFFD166),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            height: 1.25,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                      if (splitPercentIssueCount > 0)
+                        Text(
+                          splitPercentIssueCount == 1
+                              ? 'One mixed line needs a business percent.'
+                              : '$splitPercentIssueCount mixed lines need business percents.',
+                          style: const TextStyle(
+                            color: Color(0xFFFFD166),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            height: 1.25,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ],

@@ -2,6 +2,20 @@ import '../../../shared/firebase/maintainiac_firestore_documents.dart';
 import '../../../shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'expense_screen_telemetry.dart';
 
+class ExpenseTelemetryFirestoreWriteBudget {
+  const ExpenseTelemetryFirestoreWriteBudget._();
+
+  static const dailyFirestoreWriteSafetyTarget = 20000;
+  static const rawEventUploadCount = 0;
+  static const uploadShape = 'single_summary_document';
+
+  static int estimatedScheduledSummaryWritesPerDay(Duration minInterval) {
+    if (minInterval <= Duration.zero) return dailyFirestoreWriteSafetyTarget;
+    return (const Duration(days: 1).inMicroseconds / minInterval.inMicroseconds)
+        .ceil();
+  }
+}
+
 class ExpenseTelemetryFirestoreBridgeResult {
   const ExpenseTelemetryFirestoreBridgeResult({
     required this.queuedDocument,
@@ -33,6 +47,7 @@ class ExpenseTelemetryFirestoreBridge {
     required String orgId,
     String summaryId = 'latest',
     DateTime? nowUtc,
+    Map<String, Object?>? commandCenterOcrContract,
   }) async {
     final generatedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
     final snapshot = _telemetryStore.buildHealthSnapshot(nowUtc: generatedAt);
@@ -41,6 +56,7 @@ class ExpenseTelemetryFirestoreBridge {
         orgId: orgId,
         summaryId: summaryId,
         snapshot: snapshot,
+        commandCenterOcrContract: commandCenterOcrContract,
       ),
       queuedAtUtc: generatedAt,
     );

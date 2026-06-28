@@ -35,22 +35,60 @@ class ReceiptOcrResult {
     return warnings.map(ReceiptOcrWarning.fromMessage).toList(growable: false);
   }
 
+  List<ReceiptOcrWarning> get prioritizedWarnings {
+    final structured = structuredWarnings.toList(growable: false);
+    structured.sort(_compareWarningsForResult);
+    return List.unmodifiable(structured);
+  }
+
+  int _compareWarningsForResult(
+    ReceiptOcrWarning left,
+    ReceiptOcrWarning right,
+  ) {
+    if (!hasText) {
+      final leftIsNoReadable =
+          left.kind == ReceiptOcrWarningKind.noReadableText;
+      final rightIsNoReadable =
+          right.kind == ReceiptOcrWarningKind.noReadableText;
+      if (leftIsNoReadable != rightIsNoReadable) {
+        final concrete = leftIsNoReadable ? right : left;
+        if (concrete.isConcreteNoTextCause) {
+          return leftIsNoReadable ? 1 : -1;
+        }
+      }
+    }
+    return ReceiptOcrWarning.compareByPriority(left, right);
+  }
+
+  ReceiptOcrWarning? get primaryWarning {
+    final prioritized = prioritizedWarnings;
+    if (prioritized.isEmpty) return null;
+    return prioritized.first;
+  }
+
+  String get strongestActionMessage {
+    final warning = primaryWarning;
+    if (warning != null) return warning.reviewMessage;
+    if (!hasText) {
+      return 'No readable text. Retake the photo or enter it by hand.';
+    }
+    return 'Review the filled receipt before saving.';
+  }
+
   String reviewMessage({required String successMessage}) {
     final read = stats.readSummaryLabel;
     final skipped = stats.skippedSummaryLabel;
+    final warning = primaryWarning;
     if (!hasText) {
-      return warnings.isEmpty
-          ? 'No readable receipt text was found.'
-          : warnings.first;
+      return warning?.reviewMessage ?? 'No readable receipt text was found.';
     }
     final parts = <String>[
       successMessage,
       if (read.isNotEmpty) 'Read $read.',
       if (skipped.isNotEmpty) '$skipped saved as proof only.',
-      if (structuredWarnings.isNotEmpty)
-        structuredWarnings.first.reviewMessage
-      else if (warnings.isNotEmpty)
-        warnings.first,
+      if (warning != null) warning.reviewMessage,
+      if (warning != null && warning.reviewInstruction.isNotEmpty)
+        warning.reviewInstruction,
     ];
     return parts.join(' ');
   }
@@ -122,6 +160,58 @@ class ReceiptOcrWarning {
   bool get isPartial => severity == ReceiptOcrReviewSeverity.partial;
   bool get needsReview => severity == ReceiptOcrReviewSeverity.review;
 
+  int get priorityRank => _severityPriority + _kindPriority;
+
+  int get _severityPriority {
+    return switch (severity) {
+      ReceiptOcrReviewSeverity.blocked => 0,
+      ReceiptOcrReviewSeverity.partial => 100,
+      ReceiptOcrReviewSeverity.review => 200,
+      ReceiptOcrReviewSeverity.good => 300,
+    };
+  }
+
+  int get _kindPriority {
+    return switch (kind) {
+      ReceiptOcrWarningKind.noSource => 0,
+      ReceiptOcrWarningKind.photoReadFailure => 10,
+      ReceiptOcrWarningKind.pdfReadFailure => 12,
+      ReceiptOcrWarningKind.pdfSafety => 15,
+      ReceiptOcrWarningKind.pdfUnreadable => 20,
+      ReceiptOcrWarningKind.pdfTooLarge => 25,
+      ReceiptOcrWarningKind.pluginUnavailable => 30,
+      ReceiptOcrWarningKind.sectionGap => 35,
+      ReceiptOcrWarningKind.probableOverlap => 40,
+      ReceiptOcrWarningKind.duplicateText => 45,
+      ReceiptOcrWarningKind.sourceSkipped => 50,
+      ReceiptOcrWarningKind.photoQuality => 55,
+      ReceiptOcrWarningKind.noReadableText => 5,
+      ReceiptOcrWarningKind.unknown => 90,
+    };
+  }
+
+  bool get isConcreteNoTextCause {
+    return switch (kind) {
+      ReceiptOcrWarningKind.photoQuality ||
+      ReceiptOcrWarningKind.photoReadFailure ||
+      ReceiptOcrWarningKind.pdfReadFailure ||
+      ReceiptOcrWarningKind.pdfSafety ||
+      ReceiptOcrWarningKind.pdfUnreadable ||
+      ReceiptOcrWarningKind.pdfTooLarge ||
+      ReceiptOcrWarningKind.pluginUnavailable => true,
+      _ => false,
+    };
+  }
+
+  static int compareByPriority(
+    ReceiptOcrWarning left,
+    ReceiptOcrWarning right,
+  ) {
+    final priority = left.priorityRank.compareTo(right.priorityRank);
+    if (priority != 0) return priority;
+    return left.label.compareTo(right.label);
+  }
+
   String get label {
     return switch (kind) {
       ReceiptOcrWarningKind.noSource => 'No receipt attached',
@@ -178,6 +268,70 @@ class ReceiptOcrWarning {
 
   String get reviewMessage => '$label. $actionLabel';
 
+  String get reviewInstruction {
+    return switch (severity) {
+      ReceiptOcrReviewSeverity.blocked =>
+        'Do not save until this is fixed or the receipt is entered manually.',
+      ReceiptOcrReviewSeverity.partial =>
+        'Some receipt content may be missing. Compare the filled form with the receipt proof before saving.',
+      ReceiptOcrReviewSeverity.review =>
+        'Compare the filled form with the receipt proof before saving.',
+      ReceiptOcrReviewSeverity.good => '',
+    };
+  }
+
+  String get reviewTargetLabel {
+    return switch (kind) {
+      ReceiptOcrWarningKind.noSource => 'Check receipt attachment',
+      ReceiptOcrWarningKind.noReadableText => 'Check receipt photo/PDF clarity',
+      ReceiptOcrWarningKind.sourceSkipped => 'Check saved proof',
+      ReceiptOcrWarningKind.duplicateText => 'Check long receipt overlap',
+      ReceiptOcrWarningKind.probableOverlap => 'Check overlapping line items',
+      ReceiptOcrWarningKind.sectionGap => 'Check missing receipt section',
+      ReceiptOcrWarningKind.pdfSafety => 'Check PDF proof safety',
+      ReceiptOcrWarningKind.pdfTooLarge => 'Check PDF size',
+      ReceiptOcrWarningKind.pdfUnreadable => 'Check PDF readability',
+      ReceiptOcrWarningKind.pluginUnavailable => 'Check manual entry',
+      ReceiptOcrWarningKind.photoQuality => 'Check photo proof',
+      ReceiptOcrWarningKind.photoReadFailure => 'Check receipt photo',
+      ReceiptOcrWarningKind.pdfReadFailure => 'Check receipt PDF',
+      ReceiptOcrWarningKind.unknown => 'Check receipt review',
+    };
+  }
+
+  String get reviewTargetInstruction {
+    return switch (kind) {
+      ReceiptOcrWarningKind.noSource =>
+        'Attach proof before trusting any filled receipt fields.',
+      ReceiptOcrWarningKind.noReadableText =>
+        'Look at the proof first; if the text is blurry or tiny, retake it or add another photo.',
+      ReceiptOcrWarningKind.sourceSkipped =>
+        'Open the saved proof and make sure any skipped pages are not needed for totals or line items.',
+      ReceiptOcrWarningKind.duplicateText =>
+        'Check the stitch/overlap area and make sure the same charge was not counted twice.',
+      ReceiptOcrWarningKind.probableOverlap =>
+        'Check the nearby line items around the overlap and confirm duplicates or missing charges.',
+      ReceiptOcrWarningKind.sectionGap =>
+        'Check the receipt photos from top to bottom and add the missing middle section if needed.',
+      ReceiptOcrWarningKind.pdfSafety =>
+        'Keep unsafe PDFs as proof only unless the user attaches a safe copy.',
+      ReceiptOcrWarningKind.pdfTooLarge =>
+        'Use photos or a smaller PDF before app-assisted filling.',
+      ReceiptOcrWarningKind.pdfUnreadable =>
+        'Replace the PDF with a valid PDF, photo, or pasted receipt text.',
+      ReceiptOcrWarningKind.pluginUnavailable =>
+        'Use manual entry for this build and keep the receipt proof attached.',
+      ReceiptOcrWarningKind.photoQuality =>
+        'Zoom into the proof and check store, date, total, tax, and item prices.',
+      ReceiptOcrWarningKind.photoReadFailure =>
+        'Retake the photo or attach another clear receipt photo.',
+      ReceiptOcrWarningKind.pdfReadFailure =>
+        'Attach a clearer PDF or scan the receipt with photos.',
+      ReceiptOcrWarningKind.unknown =>
+        'Review the filled receipt fields against the proof before saving.',
+    };
+  }
+
   static ReceiptOcrWarningKind _kindFor(String lower) {
     if (lower.contains('attach at least one receipt')) {
       return ReceiptOcrWarningKind.noSource;
@@ -222,13 +376,19 @@ class ReceiptOcrWarning {
         lower.contains('missingplugin')) {
       return ReceiptOcrWarningKind.pluginUnavailable;
     }
-    if (lower.contains('receipt photo quality needs review')) {
+    if (lower.contains('receipt photo quality needs review') ||
+        lower.contains('receipt photo quality warning') ||
+        lower.contains('photo quality warning')) {
       return ReceiptOcrWarningKind.photoQuality;
     }
-    if (lower.contains('receipt photo reading could not read')) {
+    if (lower.contains('receipt photo reading could not read') ||
+        lower.contains('receipt photo reading failed') ||
+        lower.contains('photo reading failed')) {
       return ReceiptOcrWarningKind.photoReadFailure;
     }
-    if (lower.contains('pdf receipt reading could not read')) {
+    if (lower.contains('pdf receipt reading could not read') ||
+        lower.contains('pdf receipt reading failed') ||
+        lower.contains('pdf reading failed')) {
       return ReceiptOcrWarningKind.pdfReadFailure;
     }
     return ReceiptOcrWarningKind.unknown;
@@ -277,6 +437,10 @@ class ReceiptOcrDiagnostics {
     required this.partialWarningCount,
     required this.reviewWarningCount,
     required this.warningKindCounts,
+    required this.primaryWarningKind,
+    required this.primaryWarningLabel,
+    required this.primaryWarningTargetLabel,
+    required this.primaryWarningTargetInstruction,
   });
 
   factory ReceiptOcrDiagnostics.fromResult(ReceiptOcrResult result) {
@@ -295,6 +459,7 @@ class ReceiptOcrDiagnostics {
       stats: result.stats,
       duplicateOrOverlap: duplicateOrOverlap,
     );
+    final primaryWarning = result.primaryWarning;
     return ReceiptOcrDiagnostics(
       severity: severity,
       source: result.source,
@@ -319,6 +484,11 @@ class ReceiptOcrDiagnostics {
       warningKindCounts: Map.unmodifiable(
         _warningKindCounts(structuredWarnings),
       ),
+      primaryWarningKind: primaryWarning?.kind.name ?? '',
+      primaryWarningLabel: primaryWarning?.label ?? '',
+      primaryWarningTargetLabel: primaryWarning?.reviewTargetLabel ?? '',
+      primaryWarningTargetInstruction:
+          primaryWarning?.reviewTargetInstruction ?? '',
     );
   }
 
@@ -337,6 +507,10 @@ class ReceiptOcrDiagnostics {
   final int partialWarningCount;
   final int reviewWarningCount;
   final Map<ReceiptOcrWarningKind, int> warningKindCounts;
+  final String primaryWarningKind;
+  final String primaryWarningLabel;
+  final String primaryWarningTargetLabel;
+  final String primaryWarningTargetInstruction;
 
   bool get hasBlockingWarnings => blockingWarningCount > 0;
   bool get hasPartialWarnings => partialWarningCount > 0;

@@ -5,4 +5,6 @@ final roofingCatalog = _trade('Roofing', const Color(0xFF6D7A84), [
   roofingFlashingAndSealantsCategory,
   roofingVentsAndRoofAccessoriesCategory,
   roofingGuttersAndDrainageCategory,
+  roofingGeneratedServiceCatalogCategory,
+  roofingGeneratedDetailCatalogCategory,
 ]);

@@ -153,4 +153,7 @@ final fencingCatalog = _trade('Fencing', const Color(0xFF8A704D), [
       ]),
     ]),
   ]),
+  fencingGeneratedServiceCatalogCategory,
+  fencingGeneratedDetailCatalogCategory,
+  fencingGeneratedFieldCatalogCategory,
 ]);

@@ -7,16 +7,15 @@ import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_screen_shell.dart'
     show AppSection, GlobalOdometerHeader;
 import '../../shared/widgets/record_text_field.dart';
-import '../../shared/widgets/receipt_capture/receipt_attachment_panel.dart';
-import '../../shared/widgets/receipt_capture/receipt_capture_models.dart';
-import '../../shared/widgets/receipt_capture/receipt_capture_settings_store.dart';
 import '../../shared/widgets/structural_border_label.dart';
 import 'maintenance_draft_store.dart';
 import 'maintenance_form_surface.dart';
+import 'maintenance_item_detail_screen.dart';
 import 'maintenance_svg_icon.dart';
 
 part 'maintenance_log_service_widgets.dart';
 part 'maintenance_log_service_draft_restore.dart';
+part 'maintenance_log_service_steps.dart';
 
 class MaintenanceLogServiceScreen extends StatefulWidget {
   const MaintenanceLogServiceScreen({required this.records, super.key});
@@ -34,25 +33,30 @@ class _MaintenanceLogServiceScreenState
       ? {widget.records.first}
       : <MaintenanceRecord>{};
   late var _step = widget.records.length == 1 ? 1 : 0;
+  var _activeItemIndex = 0;
   var _serviceDate = DateTime.now();
   final _odometer = TextEditingController();
   final _provider = TextEditingController();
-  final _totalCost = TextEditingController();
   final _notes = TextEditingController();
-  var _hasReceipt = false;
-  var _receiptAttachments = <ReceiptAttachmentRecord>[];
   var _seededOdometer = false;
 
   @override
   void initState() {
     super.initState();
     _odometer.addListener(_refreshFormState);
-    _totalCost.addListener(_refreshFormState);
     _restoreLogDraft();
   }
 
   void _applyRestoredLogDraft(VoidCallback apply) {
     if (mounted) setState(apply);
+  }
+
+  void _updateLogState(VoidCallback apply) {
+    if (mounted) setState(apply);
+  }
+
+  void _goToStep(int step) {
+    _updateLogState(() => _step = step);
   }
 
   @override
@@ -66,10 +70,8 @@ class _MaintenanceLogServiceScreenState
   @override
   void dispose() {
     _odometer.removeListener(_refreshFormState);
-    _totalCost.removeListener(_refreshFormState);
     _odometer.dispose();
     _provider.dispose();
-    _totalCost.dispose();
     _notes.dispose();
     super.dispose();
   }
@@ -105,8 +107,6 @@ class _MaintenanceLogServiceScreenState
                 const SizedBox(height: 10),
                 const AppScreenHeader(title: 'Log Maintenance'),
                 const SizedBox(height: 10),
-                _LogFlowProgress(step: _step),
-                const SizedBox(height: 10),
                 if (_step == 0) _buildItemStep(),
                 if (_step == 1) _buildDetailsStep(),
                 if (_step == 2) _buildReviewStep(),
@@ -114,182 +114,6 @@ class _MaintenanceLogServiceScreenState
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildItemStep() {
-    return _LogSection(
-      title: 'What Was Serviced?',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const _InlineNotice(
-            text:
-                'Select every item handled during this visit. One service event can update several maintenance records.',
-          ),
-          const SizedBox(height: 10),
-          for (final record in widget.records) ...[
-            _ServiceChoice(
-              record: record,
-              selected: _selected.contains(record),
-              onTap: () => _toggle(record),
-            ),
-            const SizedBox(height: 8),
-          ],
-          if (_oilFilterSuggestion != null) ...[
-            const SizedBox(height: 2),
-            _CompanionServicePrompt(
-              label: 'Oil filter usually goes with engine oil.',
-              actionLabel: 'Add Oil Filter',
-              onPressed: () => _toggle(_oilFilterSuggestion!),
-            ),
-          ],
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerRight,
-            child: AppButton(
-              label: 'Continue',
-              tone: AppButtonTone.commit,
-              onPressed: _selected.isEmpty
-                  ? null
-                  : () => setState(() => _step = 1),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailsStep() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _LogSection(
-          title: 'Service Details',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _SelectedServiceSummary(
-                records: _selected.toList(),
-                onChangeItems: widget.records.length == 1
-                    ? null
-                    : () => setState(() => _step = 0),
-              ),
-              const SizedBox(height: 12),
-              _ResponsiveLogPair(
-                left: _DateButton(
-                  label: 'Service Date',
-                  date: _serviceDate,
-                  onTap: _pickServiceDate,
-                ),
-                right: RecordTextField(
-                  label: 'Service Odometer',
-                  controller: _odometer,
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-              const SizedBox(height: 8),
-              _InlineNotice(text: _odometerHelperText),
-              const SizedBox(height: 12),
-              _ResponsiveLogPair(
-                left: RecordTextField(
-                  label: 'Shop / Provider',
-                  controller: _provider,
-                ),
-                right: RecordTextField(
-                  label: 'Total Cost',
-                  controller: _totalCost,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              RecordTextField(
-                label: 'Service Notes',
-                controller: _notes,
-                textInputAction: TextInputAction.done,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 10),
-        SharedReceiptAttachmentPanel(
-          hasReceipt: _hasReceipt,
-          area: ReceiptCaptureArea.maintenanceRepair,
-          onChanged: (value) => setState(() => _hasReceipt = value),
-          onAttachmentsChanged: (attachments) =>
-              setState(() => _receiptAttachments = attachments),
-          onImportedText: (_) async {
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Receipt proof attached. Maintenance parsing comes later.',
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            if (widget.records.length > 1)
-              AppButton(
-                label: 'Back',
-                tone: AppButtonTone.general,
-                onPressed: () => setState(() => _step = 0),
-              ),
-            const Spacer(),
-            AppButton(
-              label: 'Review',
-              tone: AppButtonTone.commit,
-              onPressed: _canReview ? () => setState(() => _step = 2) : null,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReviewStep() {
-    return _LogSection(
-      title: 'Review Service',
-      child: Column(
-        children: [
-          _ReviewLine(
-            label: 'Items serviced',
-            value: _selected.map((item) => item.itemName).join(', '),
-          ),
-          _ReviewLine(label: 'Vehicle', value: _vehicleLabel),
-          _ReviewLine(label: 'Service date', value: _formatDate(_serviceDate)),
-          _ReviewLine(label: 'Odometer', value: _odometerReviewLabel),
-          _ReviewLine(label: 'Provider', value: _providerReviewLabel),
-          _ReviewLine(label: 'Cost', value: _costReviewLabel),
-          _ReviewLine(
-            label: 'Receipt proof',
-            value: _receiptAttachments.isEmpty
-                ? 'Not attached'
-                : '${_receiptAttachments.length} attached',
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              AppButton(
-                label: 'Back',
-                tone: AppButtonTone.general,
-                onPressed: () => setState(() => _step = 1),
-              ),
-              const Spacer(),
-              AppButton(
-                label: 'Save Service',
-                tone: AppButtonTone.commit,
-                onPressed: _canSave ? _save : null,
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -304,7 +128,8 @@ class _MaintenanceLogServiceScreenState
 
   bool get _canReview =>
       _selected.isNotEmpty &&
-      (!_requiresOdometer || _odometer.text.trim().isNotEmpty);
+      (!_requiresOdometer || _odometer.text.trim().isNotEmpty) &&
+      _detailsIssueText == null;
 
   bool get _canSave => _canReview;
 
@@ -318,15 +143,48 @@ class _MaintenanceLogServiceScreenState
     return !untouchedSelection ||
         _step != (widget.records.length == 1 ? 1 : 0) ||
         _provider.text.trim().isNotEmpty ||
-        _totalCost.text.trim().isNotEmpty ||
-        _notes.text.trim().isNotEmpty ||
-        _receiptAttachments.isNotEmpty ||
-        _hasReceipt;
+        _notes.text.trim().isNotEmpty;
   }
 
   String get _odometerHelperText => _requiresOdometer
       ? 'Enter the odometer from when this service was done.'
       : 'Odometer is optional for time-only items such as registration or inspection.';
+
+  String? get _detailsIssueText {
+    final today = DateTime.now();
+    final serviceDay = DateTime(
+      _serviceDate.year,
+      _serviceDate.month,
+      _serviceDate.day,
+    );
+    final todayOnly = DateTime(today.year, today.month, today.day);
+    if (serviceDay.isAfter(todayOnly)) {
+      return 'Service date cannot be in the future.';
+    }
+    final odometerText = _odometer.text.trim();
+    if (_requiresOdometer && odometerText.isEmpty) {
+      return 'Enter the odometer from the day this service was done.';
+    }
+    if (odometerText.isNotEmpty) {
+      final odometer = int.tryParse(odometerText);
+      if (odometer == null || odometer < 0) {
+        return 'Enter a valid odometer reading.';
+      }
+    }
+    return null;
+  }
+
+  String? get _odometerAttentionText {
+    final odometer = int.tryParse(_odometer.text.trim());
+    if (odometer == null) return null;
+    final knownOdometers = _selected
+        .map((record) => record.lastServiceOdometer)
+        .where((value) => value > 0);
+    if (knownOdometers.isEmpty) return null;
+    final highestKnown = knownOdometers.reduce((a, b) => a > b ? a : b);
+    if (odometer >= highestKnown) return null;
+    return 'This is below the last saved service odometer. That may be right for a back-dated record, but check it before saving.';
+  }
 
   String get _odometerReviewLabel {
     final value = _odometer.text.trim();
@@ -338,9 +196,22 @@ class _MaintenanceLogServiceScreenState
     return value.isEmpty ? 'Not entered' : value;
   }
 
-  String get _costReviewLabel {
-    final value = _totalCost.text.trim();
-    return value.isEmpty ? 'Not entered' : '\$$value';
+  List<MaintenanceRecord> get _selectedList =>
+      _selected.toList()..sort((a, b) => b.importance.compareTo(a.importance));
+
+  MaintenanceRecord? get _activeManualItem {
+    final items = _selectedList;
+    if (items.isEmpty) return null;
+    final index = _activeItemIndex.clamp(0, items.length - 1);
+    return items[index];
+  }
+
+  void _changeActiveItem(int offset) {
+    final items = _selectedList;
+    if (items.isEmpty) return;
+    _updateLogState(() {
+      _activeItemIndex = (_activeItemIndex + offset).clamp(0, items.length - 1);
+    });
   }
 
   MaintenanceRecord? get _oilFilterSuggestion {
@@ -375,7 +246,7 @@ class _MaintenanceLogServiceScreenState
       context: context,
       initialDate: _serviceDate,
       firstDate: DateTime(2000),
-      lastDate: DateTime(2035, 12, 31),
+      lastDate: DateTime.now(),
     );
     if (picked == null) return;
     setState(() => _serviceDate = picked);
@@ -414,15 +285,12 @@ class _MaintenanceLogServiceScreenState
         'serviceDate': _serviceDate.toIso8601String(),
         'odometer': _odometer.text.trim(),
         'provider': _provider.text.trim(),
-        'totalCost': _totalCost.text.trim(),
         'notes': _notes.text.trim(),
-        'hasReceipt': _hasReceipt,
-        'receiptProofCount': _receiptAttachments.length,
       },
     );
   }
 
-  void _save() {
+  Future<void> _save() async {
     final odometerText = _odometer.text.trim();
     final odometer = odometerText.isEmpty
         ? AppStateScope.of(context).odometer
@@ -430,14 +298,6 @@ class _MaintenanceLogServiceScreenState
     if (odometer == null || odometer < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Enter a valid service odometer.')),
-      );
-      return;
-    }
-    final costText = _totalCost.text.trim().replaceAll(',', '');
-    final totalCost = costText.isEmpty ? 0.0 : double.tryParse(costText);
-    if (totalCost == null || totalCost < 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid service cost.')),
       );
       return;
     }
@@ -450,13 +310,11 @@ class _MaintenanceLogServiceScreenState
           serviceDate: _serviceDate,
           odometer: odometer,
           provider: _provider.text.trim(),
-          totalCost: totalCost,
-          receiptProofCount: _receiptAttachments.length,
           notes: _notes.text.trim(),
         ),
       );
     }
-    MaintenanceDraftStore.clearLogDraft(vehicleName: _vehicleLabel);
+    await MaintenanceDraftStore.clearLogDraft(vehicleName: _vehicleLabel);
     if (!mounted) return;
     Navigator.of(context).popUntil((route) => route.isFirst);
   }

@@ -44,10 +44,57 @@ void main() {
     expect(stitched.stitchedPixelCount, 5040000);
     expect(stitched.pairs.first.summaryLabel, contains('Photo 1 to 2'));
     expect(stitched.pairs.last.summaryLabel, contains('straighten 0.8 deg'));
+    expect(stitched.pairs.first.diagnosticCode, 'overlap_matched');
+    expect(stitched.pairs.last.diagnosticCode, 'straighten_adjusted');
+    expect(stitched.pairs.last.userCheckLabel, contains('slight tilt'));
+    expect(stitched.diagnosticCodeLabel, 'overlap_matched,straighten_adjusted');
+    expect(stitched.pairDiagnosticsLabel, contains('Photo 1 to 2 matched'));
+    const zoomAndTilt = ReceiptStitchPairResult(
+      pairIndex: 2,
+      overlapPixels: 180,
+      confidence: .73,
+      scaleCorrection: 1.12,
+      rotationCorrectionDegrees: 1.2,
+    );
+    expect(zoomAndTilt.diagnosticCode, 'zoom_and_straighten_adjusted');
+    expect(zoomAndTilt.userCheckLabel, contains('zoom difference'));
+    expect(zoomAndTilt.userCheckLabel, contains('slight tilt'));
     expect(fallback.summaryLabel, contains('reviewed separately'));
     expect(fallback.ocrSourcePaths, ['/tmp/a.jpg', '/tmp/b.jpg']);
     expect(fallback.failedPairLabel, 'Photo 1 to 2');
+    expect(fallback.diagnosticReasonLabel, 'unknown');
+    expect(fallback.diagnosticCodeLabel, 'unknown');
+    expect(fallback.userFallbackReasonLabel, 'Stitching was not trusted');
     expect(fallback.detailLabel, 'Photo 1 to 2: Overlap was not clear enough.');
+  });
+
+  test('stitch fallback reasons have user-safe plain labels', () {
+    ReceiptStitchResult fallback(String reason) => ReceiptStitchResult.fallback(
+      inputPaths: const ['/tmp/a.jpg', '/tmp/b.jpg'],
+      warning: 'Fallback for test.',
+      fallbackReasonCode: reason,
+    );
+
+    expect(
+      fallback('decode_failed').userFallbackReasonLabel,
+      'One photo could not be read',
+    );
+    expect(
+      fallback('manual_overlap_unsafe').userFallbackReasonLabel,
+      'Manual overlap was outside the safe range',
+    );
+    expect(
+      fallback('overlap_confidence_low').userFallbackReasonLabel,
+      'Overlap was not clear enough',
+    );
+    expect(
+      fallback('output_too_large').userFallbackReasonLabel,
+      'Receipt is too long for this device',
+    );
+    expect(
+      fallback('stitch_exception').userFallbackReasonLabel,
+      'Stitching hit a safe fallback',
+    );
   });
 
   test('stitch result can be rebound to final OCR artifact paths', () {
@@ -128,6 +175,8 @@ void main() {
       expect(result.overlapPixels, [260]);
       expect(result.pairs.single.usedManualAdjustment, isTrue);
       expect(result.pairs.single.summaryLabel, contains('manual match'));
+      expect(result.pairs.single.diagnosticCode, 'manual_overlap');
+      expect(result.pairs.single.userCheckLabel, contains('manual overlap'));
       expect(result.ocrSourcePaths, hasLength(1));
       expect(result.detailLabel, contains('Manual match was used'));
     },
@@ -173,6 +222,8 @@ void main() {
 
       expect(result.usedFallback, isTrue);
       expect(result.warning, contains('outside the safe range'));
+      expect(result.fallbackReasonCode, 'manual_overlap_unsafe');
+      expect(result.diagnosticReasonLabel, 'manual_overlap_unsafe');
       expect(result.failedPairIndex, 0);
       expect(result.ocrSourcePaths, [first.path, second.path]);
     },
@@ -217,6 +268,8 @@ void main() {
 
     expect(result.didStitch, isTrue, reason: result.detailLabel);
     expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+    expect(result.pairs.single.diagnosticCode, isNotEmpty);
+    expect(result.pairs.single.userCheckLabel, contains('Photo 1 to 2'));
     expect(result.ocrSourcePaths, hasLength(1));
   });
 
@@ -237,6 +290,7 @@ void main() {
 
       expect(result.didStitch, isTrue, reason: result.detailLabel);
       expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.pairs.single.diagnosticCode, isNotEmpty);
       expect(result.ocrSourcePaths, hasLength(1));
     },
   );
@@ -257,6 +311,7 @@ void main() {
     expect(result.didStitch, isTrue, reason: result.detailLabel);
     expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
     expect(result.pairs.single.summaryLabel, contains('%'));
+    expect(result.pairs.single.diagnosticCode, isNotEmpty);
     expect(result.ocrSourcePaths, hasLength(1));
   });
 
@@ -277,6 +332,8 @@ void main() {
 
       expect(result.usedFallback, isTrue);
       expect(result.warning, contains('too long'));
+      expect(result.fallbackReasonCode, 'output_too_large');
+      expect(result.diagnosticReasonLabel, 'output_too_large');
       expect(result.stitchedWidth, greaterThan(0));
       expect(result.stitchedHeight, greaterThan(100));
       expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
@@ -306,6 +363,8 @@ void main() {
       );
       expect(result.ocrSourcePaths, [first.path, second.path]);
       expect(result.failedPairIndex, 0);
+      expect(result.fallbackReasonCode, 'overlap_confidence_low');
+      expect(result.diagnosticReasonLabel, 'overlap_confidence_low');
       expect(result.warning, isNotEmpty);
       expect(result.pairs, hasLength(1));
       expect(result.pairs.single.confidence, lessThan(.50));

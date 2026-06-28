@@ -46,6 +46,7 @@ String _percent(double value) => '${(value * 100).toStringAsFixed(2)}%';
 
 class _CalendarExpenseData {
   const _CalendarExpenseData({
+    required this.sourceReceipt,
     required this.receiptId,
     required this.title,
     required this.scope,
@@ -54,6 +55,8 @@ class _CalendarExpenseData {
     required this.color,
     required this.date,
     required this.lines,
+    this.ocrStatusLabel = '',
+    this.ocrRecoveryHintLabel = '',
     this.time,
   });
 
@@ -62,7 +65,9 @@ class _CalendarExpenseData {
     final category = firstLine?.category ?? 'Uncategorized';
     final use = firstLine?.use.label ?? 'Business';
     final timeMinutes = receipt.receiptTimeMinutes;
+    final ocrReview = receipt.ocrReview;
     return _CalendarExpenseData(
+      sourceReceipt: receipt,
       receiptId: receipt.id,
       title: receipt.title,
       scope: use,
@@ -70,6 +75,8 @@ class _CalendarExpenseData {
       amount: receipt.total,
       color: _colorForCategory(category),
       date: receipt.receiptDate,
+      ocrStatusLabel: _calendarOcrStatusLabel(ocrReview),
+      ocrRecoveryHintLabel: _calendarOcrRecoveryHintLabel(ocrReview),
       time: timeMinutes == null
           ? null
           : TimeOfDay(hour: timeMinutes ~/ 60, minute: timeMinutes % 60),
@@ -81,6 +88,7 @@ class _CalendarExpenseData {
   }
 
   final String receiptId;
+  final ExpenseReceiptRecord sourceReceipt;
   final String title;
   final String scope;
   final String category;
@@ -89,9 +97,18 @@ class _CalendarExpenseData {
   final DateTime date;
   final TimeOfDay? time;
   final List<_ReceiptLineData> lines;
+  final String ocrStatusLabel;
+  final String ocrRecoveryHintLabel;
 
   String get timeLabel => _timeLabel(time);
   String get dateLabel => _dateLabel(date);
+  bool get hasOcrSummary => ocrStatusLabel.trim().isNotEmpty;
+  String get ocrSummaryLabel {
+    final status = ocrStatusLabel.trim();
+    if (status.isEmpty) return '';
+    final hint = ocrRecoveryHintLabel.trim();
+    return hint.isEmpty ? status : '$status: $hint';
+  }
 }
 
 class _VehicleExpenseMetrics {
@@ -195,6 +212,97 @@ class _VehicleExpenseMetrics {
   String get totalCostPerMileLabel => _perMileLabel(totalCostPerMile);
 }
 
+class _CalendarOcrDayRecap {
+  const _CalendarOcrDayRecap({
+    required this.receiptCount,
+    required this.readCount,
+    required this.reviewCount,
+    required this.savedReadCount,
+    required this.topRecoveryHint,
+  });
+
+  factory _CalendarOcrDayRecap.fromEntries(List<_CalendarExpenseData> entries) {
+    return _CalendarOcrDayRecap.fromReceipts([
+      for (final entry in entries) entry.sourceReceipt,
+    ]);
+  }
+
+  factory _CalendarOcrDayRecap.fromLedgerRange(
+    ExpenseLedgerController ledger,
+    ExpenseDateRange range,
+  ) {
+    return _CalendarOcrDayRecap.fromReceipts(
+      ledger.receipts.where((receipt) => range.contains(receipt.receiptDate)),
+    );
+  }
+
+  factory _CalendarOcrDayRecap.fromReceipts(
+    Iterable<ExpenseReceiptRecord> receipts,
+  ) {
+    final hintCounts = <String, int>{};
+    var receiptCount = 0;
+    var readCount = 0;
+    var reviewCount = 0;
+    var savedReadCount = 0;
+    for (final receipt in receipts) {
+      receiptCount++;
+      final review = receipt.ocrReview;
+      final status = _calendarOcrStatusLabel(review);
+      if (status.isEmpty) continue;
+      readCount++;
+      if (status == 'Read needs review') {
+        reviewCount++;
+        final hint = _calendarOcrRecoveryHintLabel(review);
+        if (hint.isNotEmpty) {
+          hintCounts[hint] = (hintCounts[hint] ?? 0) + 1;
+        }
+      } else if (status == 'Read saved') {
+        savedReadCount++;
+      }
+    }
+    return _CalendarOcrDayRecap(
+      receiptCount: receiptCount,
+      readCount: readCount,
+      reviewCount: reviewCount,
+      savedReadCount: savedReadCount,
+      topRecoveryHint: _topCalendarOcrHint(hintCounts),
+    );
+  }
+
+  final int receiptCount;
+  final int readCount;
+  final int reviewCount;
+  final int savedReadCount;
+  final String topRecoveryHint;
+
+  bool get hasReceipts => receiptCount > 0;
+  bool get hasOcrReads => readCount > 0;
+  bool get needsReview => reviewCount > 0;
+  String get statusLabel {
+    if (!hasReceipts) return 'No receipts yet';
+    if (!hasOcrReads) return 'No receipt reads saved';
+    if (needsReview) return '$reviewCount need review';
+    return 'All reads saved';
+  }
+
+  String get detailLabel {
+    if (!hasReceipts) return 'Add a receipt to start tracking read health.';
+    if (!hasOcrReads) {
+      return '$receiptCount ${receiptCount == 1 ? 'receipt' : 'receipts'} saved without receipt reading.';
+    }
+    final readText = '$readCount ${readCount == 1 ? 'read' : 'reads'} saved';
+    final reviewText = '$reviewCount need review';
+    final savedText = '$savedReadCount saved clean';
+    final parts = [
+      readText,
+      if (reviewCount > 0) reviewText,
+      if (savedReadCount > 0) savedText,
+      if (topRecoveryHint.isNotEmpty) 'Top check: $topRecoveryHint',
+    ];
+    return parts.join(' | ');
+  }
+}
+
 const _blue = Color(0xFF34A9E8);
 const _green = Color(0xFF58D67D);
 const _gold = Color(0xFFFFD166);
@@ -212,6 +320,33 @@ Color _colorForCategory(String category) {
 String _perMileLabel(double? value) {
   if (value == null) return '--';
   return '\$${value.toStringAsFixed(2)}';
+}
+
+String _calendarOcrStatusLabel(ExpenseReceiptOcrReview review) {
+  if (!review.hasData) return '';
+  return review.needsReview ? 'Read needs review' : 'Read saved';
+}
+
+String _calendarOcrRecoveryHintLabel(ExpenseReceiptOcrReview review) {
+  if (!review.hasData || !review.needsReview) return '';
+  final issue = review.commandCenterPrimaryIssue.trim();
+  if (issue.isEmpty ||
+      issue == 'No OCR review data' ||
+      issue == 'Receipt OCR looks healthy') {
+    return '';
+  }
+  return issue;
+}
+
+String _topCalendarOcrHint(Map<String, int> counts) {
+  if (counts.isEmpty) return '';
+  final entries = counts.entries.toList()
+    ..sort((left, right) {
+      final byCount = right.value.compareTo(left.value);
+      if (byCount != 0) return byCount;
+      return left.key.compareTo(right.key);
+    });
+  return entries.first.key;
 }
 
 bool _isVehicleExpenseCategory(String category) {

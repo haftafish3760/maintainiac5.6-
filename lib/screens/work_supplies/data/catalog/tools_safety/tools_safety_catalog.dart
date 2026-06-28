@@ -5,4 +5,6 @@ final toolsSafetyCatalog = _trade('Tools and Safety', const Color(0xFFD05D4B), [
   toolsSafetySafetyCategory,
   toolsSafetyMeasuringAndLayoutCategory,
   toolsSafetyAdhesivesAndGeneralConsumablesCategory,
+  toolsSafetyGeneratedServiceCatalogCategory,
+  toolsSafetyGeneratedDetailCatalogCategory,
 ]);

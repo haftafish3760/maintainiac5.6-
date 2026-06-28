@@ -43,6 +43,28 @@ class ExpenseLedgerController extends ChangeNotifier {
     return records;
   }
 
+  List<ExpenseReceiptRecord> get receiptsNeedingOcrReview {
+    return storedReceipts
+        .where((receipt) => receipt.ocrReview.needsReview)
+        .toList(growable: false);
+  }
+
+  Map<String, int> get ocrRecoveryActionCounts {
+    return _ocrRecoveryCountBy('recoveryAction');
+  }
+
+  Map<String, int> get ocrRecoveryTargetCounts {
+    return _ocrRecoveryCountBy('recoveryTarget');
+  }
+
+  String get topOcrRecoveryAction {
+    return _topOcrRecoveryToken(ocrRecoveryActionCounts);
+  }
+
+  String get topOcrRecoveryTarget {
+    return _topOcrRecoveryToken(ocrRecoveryTargetCounts);
+  }
+
   ExpenseReceiptRecord? receiptById(String id) {
     final value = _box == null ? _memoryRecords[id] : _box.get(id);
     if (value is ExpenseReceiptRecord) return value;
@@ -305,6 +327,28 @@ class ExpenseLedgerController extends ChangeNotifier {
     await _box?.clear();
     notifyListeners();
   }
+
+  Map<String, int> _ocrRecoveryCountBy(String key) {
+    final counts = <String, int>{};
+    for (final receipt in storedReceipts) {
+      final token = '${receipt.ocrReview.commandCenterSummary[key] ?? ''}'
+          .trim();
+      if (token.isEmpty) continue;
+      counts[token] = (counts[token] ?? 0) + 1;
+    }
+    return Map.unmodifiable(counts);
+  }
+}
+
+String _topOcrRecoveryToken(Map<String, int> counts) {
+  if (counts.isEmpty) return '';
+  final entries = counts.entries.toList()
+    ..sort((left, right) {
+      final byCount = right.value.compareTo(left.value);
+      if (byCount != 0) return byCount;
+      return left.key.compareTo(right.key);
+    });
+  return entries.first.key;
 }
 
 int _compareReceiptsForCalendarDay(

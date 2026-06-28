@@ -183,6 +183,85 @@ class _CalendarRecapPeriodSelector extends StatelessWidget {
   }
 }
 
+class _CalendarOcrDayRecapPanel extends StatelessWidget {
+  const _CalendarOcrDayRecapPanel({required this.recap});
+
+  final _CalendarOcrDayRecap recap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = recap.needsReview
+        ? const Color(0xFFFFD166)
+        : recap.hasOcrReads
+        ? const Color(0xFF8EF6A4)
+        : const Color(0xFFC8D0D3);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF101719),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: .42)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            recap.needsReview
+                ? Icons.manage_search_rounded
+                : Icons.document_scanner_rounded,
+            color: color,
+            size: 22,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Receipt read health',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  recap.statusLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFF0F4F2),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  recap.detailLabel,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFC8D0D3),
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    height: 1.22,
+                    letterSpacing: 0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CalendarRecapPeriodButton extends StatelessWidget {
   const _CalendarRecapPeriodButton({
     required this.period,
@@ -228,6 +307,7 @@ class _VehicleExpenseMetricsPanel extends StatelessWidget {
     required this.selectedDay,
     required this.dayEntryCount,
     required this.dayTotal,
+    required this.ocrRecap,
     required this.period,
   });
 
@@ -235,6 +315,7 @@ class _VehicleExpenseMetricsPanel extends StatelessWidget {
   final DateTime selectedDay;
   final int dayEntryCount;
   final double dayTotal;
+  final _CalendarOcrDayRecap ocrRecap;
   final _CalendarRecapPeriod period;
 
   @override
@@ -295,6 +376,37 @@ class _VehicleExpenseMetricsPanel extends StatelessWidget {
             value: _money(metrics.personalExpense),
             color: const Color(0xFF79C8FF),
           ),
+          const _CalendarRecapDivider('Receipt Reads'),
+          _CalendarRecapRow(
+            label: 'Receipt Read Status',
+            value: ocrRecap.statusLabel,
+            color: ocrRecap.needsReview
+                ? const Color(0xFFFFD166)
+                : const Color(0xFF8EF6A4),
+          ),
+          _CalendarRecapRow(
+            label: 'Reads Saved',
+            value: '${ocrRecap.readCount}',
+            color: const Color(0xFF34A9E8),
+          ),
+          _CalendarRecapRow(
+            label: 'Needs Review',
+            value: '${ocrRecap.reviewCount}',
+            color: ocrRecap.needsReview
+                ? const Color(0xFFFFD166)
+                : const Color(0xFF8EF6A4),
+          ),
+          _CalendarRecapRow(
+            label: 'Read Summary',
+            value: ocrRecap.detailLabel,
+            color: const Color(0xFF79C8FF),
+          ),
+          if (ocrRecap.topRecoveryHint.isNotEmpty)
+            _CalendarRecapRow(
+              label: 'Top Check',
+              value: ocrRecap.topRecoveryHint,
+              color: const Color(0xFFFFD166),
+            ),
           const _CalendarRecapDivider('Vehicle'),
           _CalendarRecapRow(
             label: 'Vehicle Expenses',
@@ -376,13 +488,19 @@ class _CalendarRecapRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            value,
-            style: TextStyle(
-              color: color,
-              fontSize: 14,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0,
+          Flexible(
+            flex: 2,
+            child: Text(
+              value,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: color,
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0,
+              ),
             ),
           ),
         ],

@@ -76,7 +76,7 @@ class _ReceiptAttachmentList extends StatelessWidget {
         quality.needsReview
             ? 'Photo needs review: ${quality.primaryIssueLabel}'
             : 'Photo looks readable',
-      'Next reads the clear photo first',
+      'Next checks the clear photo first',
     ];
     return parts.join(' | ');
   }
@@ -317,7 +317,7 @@ class _ReceiptAttachmentSummary extends StatelessWidget {
             if (photoCount > 1) 'Photos kept in receipt order',
             'Saved proof size: ${dataSaverLevel.label}',
             appAssistedEnabled
-                ? 'Next reads the clear photo before using the smaller proof'
+                ? 'Next checks the clear photo before using the smaller proof'
                 : 'Receipt proof only',
           ].join(' | ')
         : null;

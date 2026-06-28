@@ -27,6 +27,8 @@ enum ExpenseTelemetryEventType {
   parserNeedsReview,
   parserFailed,
   ocrCorrectionOpened,
+  appFilledReceiptLineConfirmed,
+  appFilledReceiptLineCorrected,
   userCorrectedVendor,
   userCorrectedDate,
   userCorrectedTax,
@@ -230,6 +232,74 @@ class ExpenseTelemetryPolicy {
     'rangePreset',
     'receiptCount',
     'lineCount',
+    'parsedCategoryBuckets',
+    'reviewCategoryBuckets',
+    'parserFieldConfidenceBuckets',
+    'parseQualityBucket',
+    'parserLineReviewCount',
+    'parserMatchedMaterialCount',
+    'parserUnmatchedMaterialCount',
+    'subtotalReconciliationStatus',
+    'taxMathStatus',
+    'summaryStatus',
+    'ocrContractQueued',
+    'ocrContractSource',
+    'ocrContractSkippedReason',
+    'captureFlow',
+    'savedProofCount',
+    'ocrSourceCount',
+    'captureDiagnosticsCount',
+    'capturedPhotoMegapixelBuckets',
+    'capturedPhotoByteBuckets',
+    'capturedPhotoBrightnessBuckets',
+    'capturedPhotoSharpnessBuckets',
+    'capturedPhotoQualitySignals',
+    'capturedPhotoExposureMismatches',
+    'capturedPhotoWidthMax',
+    'capturedPhotoHeightMax',
+    'brightnessBuckets',
+    'readabilitySignalBuckets',
+    'autoExposureDecisionBuckets',
+    'autoExposureBrightnessBuckets',
+    'autoExposureCandidateBuckets',
+    'autoExposureCandidateFrameTotal',
+    'exposureAssistStatuses',
+    'framingConfidenceBuckets',
+    'perspectiveReadinessBuckets',
+    'focusStatusBuckets',
+    'autoCaptureStatusBuckets',
+    'closeActionBuckets',
+    'pendingCloseAfterCaptureCount',
+    'closeResultDeliveredCount',
+    'autoCaptureAllowedCount',
+    'autoCaptureCurrentlyAllowedCount',
+    'storageSafetyLevelBuckets',
+    'storageSafetyReasonBuckets',
+    'storageConstrainedCount',
+    'photoEditActions',
+    'userEditedPhotoCount',
+    'edgeDetectionEnabledCount',
+    'edgeOverlayEnabledCount',
+    'tapFocusEnabledCount',
+    'pinchZoomEnabledCount',
+    'brightnessSliderEnabledCount',
+    'shadowWarningEnabledCount',
+    'textTooSmallWarningEnabledCount',
+    'autoCropSuggestionEnabledCount',
+    'grayscalePreviewEnabledCount',
+    'contrastBoostEnabledCount',
+    'shadowReductionEnabledCount',
+    'orientationCorrectionEnabledCount',
+    'tapFocusTotal',
+    'zoomChangeTotal',
+    'manualBrightnessChangeTotal',
+    'autoCaptureTriggerTotal',
+    'scannerCleanupUsedCount',
+    'cleanupActionCount',
+    'cleanupActions',
+    'stitchStatus',
+    'stitchFallbackReason',
+    'stitchConfidenceBucket',
   };
 
   static const blockedSensitiveKeys = <String>{
@@ -307,9 +377,41 @@ class ExpenseTelemetryPolicy {
     }
     if (value is String) return _sanitizeToken(key, value);
     if (value is Map) {
-      return sanitizeMetadata(Map<String, Object?>.from(value));
+      if (key == 'metadata') {
+        return sanitizeMetadata(Map<String, Object?>.from(value));
+      }
+      return _sanitizeTokenMap(key, Map<String, Object?>.from(value));
+    }
+    if (value is Iterable) {
+      return value
+          .map((item) => _sanitizeToken(key, item.toString()))
+          .toList(growable: false);
     }
     throw ArgumentError.value(value, key, 'Unsupported telemetry value.');
+  }
+
+  static Map<String, Object?> _sanitizeTokenMap(
+    String parentKey,
+    Map<String, Object?> source,
+  ) {
+    final sanitized = <String, Object?>{};
+    for (final entry in source.entries) {
+      final key = _sanitizeToken(parentKey, entry.key);
+      final value = entry.value;
+      if (value is bool || value == null) {
+        sanitized[key] = value;
+      } else if (value is int) {
+        if (value < 0) {
+          throw ArgumentError.value(value, key, 'Counts must be non-negative.');
+        }
+        sanitized[key] = value;
+      } else if (value is String) {
+        sanitized[key] = _sanitizeToken(key, value);
+      } else {
+        throw ArgumentError.value(value, key, 'Unsupported telemetry value.');
+      }
+    }
+    return Map.unmodifiable(sanitized);
   }
 
   static String _sanitizeToken(String key, String value) {
@@ -406,17 +508,39 @@ class ExpenseTelemetryHealthSnapshot {
     required this.parserCompletedCount,
     required this.parserNeedsReviewCount,
     required this.parserFailedCount,
+    required this.parserCategoryCounts,
+    required this.parserNeedsReviewCategoryCounts,
+    required this.parserFailedCategoryCounts,
+    required this.parserFieldConfidenceCounts,
+    required this.topParserCategory,
+    required this.topParserNeedsReviewCategory,
+    required this.topParserFailedCategory,
     required this.ocrCorrectionOpenedCount,
+    required this.appFilledReceiptLineConfirmedCount,
+    required this.appFilledReceiptLineCorrectedCount,
     required this.userCorrectionCount,
     required this.cloudBackupSuccessCount,
     required this.cloudBackupFailureCount,
     required this.syncPendingCount,
     required this.syncedCount,
     required this.syncFailedCount,
+    required this.expenseSummaryQueuedCount,
+    required this.expenseSummaryOcrContractQueuedCount,
+    required this.expenseSummaryOcrContractSkippedCount,
+    required this.expenseSummaryOcrContractSourceCounts,
+    required this.topExpenseSummaryOcrContractSource,
+    required this.expenseSummaryOcrContractSkippedReasonCounts,
+    required this.topExpenseSummaryOcrContractSkippedReason,
     required this.exportStartedCount,
     required this.exportCompletedCount,
     required this.exportBlockedCount,
     required this.exportFailedCount,
+    required this.ocrFailureCauseCounts,
+    required this.topOcrFailureCause,
+    required this.ocrFailureSourceCounts,
+    required this.topOcrFailureSource,
+    required this.ocrFailureStageCounts,
+    required this.topOcrFailureStage,
     required this.failureBreakdowns,
     required this.recentFailureDetails,
   });
@@ -450,13 +574,24 @@ class ExpenseTelemetryHealthSnapshot {
     var parserCompletedCount = 0;
     var parserNeedsReviewCount = 0;
     var parserFailedCount = 0;
+    final parserCategoryCounts = <String, int>{};
+    final parserNeedsReviewCategoryCounts = <String, int>{};
+    final parserFailedCategoryCounts = <String, int>{};
+    final parserFieldConfidenceCounts = <String, int>{};
     var ocrCorrectionOpenedCount = 0;
+    var appFilledReceiptLineConfirmedCount = 0;
+    var appFilledReceiptLineCorrectedCount = 0;
     var userCorrectionCount = 0;
     var cloudBackupSuccessCount = 0;
     var cloudBackupFailureCount = 0;
     var syncPendingCount = 0;
     var syncedCount = 0;
     var syncFailedCount = 0;
+    var expenseSummaryQueuedCount = 0;
+    var expenseSummaryOcrContractQueuedCount = 0;
+    var expenseSummaryOcrContractSkippedCount = 0;
+    final expenseSummaryOcrContractSourceCounts = <String, int>{};
+    final expenseSummaryOcrContractSkippedReasonCounts = <String, int>{};
     var exportStartedCount = 0;
     var exportCompletedCount = 0;
     var exportBlockedCount = 0;
@@ -512,12 +647,44 @@ class ExpenseTelemetryHealthSnapshot {
           parserStartedCount += 1;
         case 'parserCompleted':
           parserCompletedCount += 1;
+          final completedMetadata = _metadataValue(payload['metadata']);
+          _mergeCountMap(
+            parserCategoryCounts,
+            _metadataValue(completedMetadata['parsedCategoryBuckets']),
+          );
+          _mergeCountMap(
+            parserFieldConfidenceCounts,
+            _metadataValue(completedMetadata['parserFieldConfidenceBuckets']),
+          );
         case 'parserNeedsReview':
           parserNeedsReviewCount += 1;
+          final reviewMetadata = _metadataValue(payload['metadata']);
+          _mergeCountMap(
+            parserCategoryCounts,
+            _metadataValue(reviewMetadata['parsedCategoryBuckets']),
+          );
+          _mergeCountMap(
+            parserNeedsReviewCategoryCounts,
+            _metadataValue(reviewMetadata['reviewCategoryBuckets']),
+          );
+          _mergeCountMap(
+            parserFieldConfidenceCounts,
+            _metadataValue(reviewMetadata['parserFieldConfidenceBuckets']),
+          );
         case 'parserFailed':
           parserFailedCount += 1;
+          final failedMetadata = _metadataValue(payload['metadata']);
+          _mergeCountMap(
+            parserFailedCategoryCounts,
+            _metadataValue(failedMetadata['parsedCategoryBuckets']),
+          );
         case 'ocrCorrectionOpened':
           ocrCorrectionOpenedCount += 1;
+        case 'appFilledReceiptLineConfirmed':
+          appFilledReceiptLineConfirmedCount += 1;
+        case 'appFilledReceiptLineCorrected':
+          appFilledReceiptLineCorrectedCount += 1;
+          userCorrectionCount += 1;
         case 'userCorrectedVendor':
         case 'userCorrectedDate':
         case 'userCorrectedTax':
@@ -530,6 +697,21 @@ class ExpenseTelemetryHealthSnapshot {
           cloudBackupFailureCount += 1;
         case 'syncPending':
           syncPendingCount += 1;
+          final metadata = _metadataValue(payload['metadata']);
+          if (_stringValue(metadata['syncState']) == 'expense_summary_queued') {
+            expenseSummaryQueuedCount += 1;
+            final source = _stringValue(metadata['ocrContractSource']);
+            _increment(expenseSummaryOcrContractSourceCounts, source);
+            if (_boolValue(metadata['ocrContractQueued'])) {
+              expenseSummaryOcrContractQueuedCount += 1;
+            } else {
+              expenseSummaryOcrContractSkippedCount += 1;
+              _increment(
+                expenseSummaryOcrContractSkippedReasonCounts,
+                _stringValue(metadata['ocrContractSkippedReason']),
+              );
+            }
+          }
         case 'synced':
           syncedCount += 1;
         case 'syncFailed':
@@ -547,6 +729,34 @@ class ExpenseTelemetryHealthSnapshot {
       final failureDetail = _failureDetailFor(record, payload);
       if (failureDetail != null) recentFailures.add(failureDetail);
     }
+
+    final failureBreakdowns =
+        failureStats.values.map((stats) => stats.toBreakdown()).toList()
+          ..sort((a, b) => b.count.compareTo(a.count));
+    final ocrFailureCauseCounts = <String, int>{};
+    final ocrFailureSourceCounts = <String, int>{};
+    final ocrFailureStageCounts = <String, int>{};
+    for (final failure in failureBreakdowns) {
+      if (failure.workflowStep != ExpenseWorkflowStep.receiptOcr.name) {
+        continue;
+      }
+      ocrFailureCauseCounts[failure.confirmedCause] =
+          (ocrFailureCauseCounts[failure.confirmedCause] ?? 0) + failure.count;
+      final ocrSource = _ocrSourceFromEvidence(failure.evidence);
+      ocrFailureSourceCounts[ocrSource] =
+          (ocrFailureSourceCounts[ocrSource] ?? 0) + failure.count;
+      ocrFailureStageCounts[failure.failedAt] =
+          (ocrFailureStageCounts[failure.failedAt] ?? 0) + failure.count;
+    }
+    final topOcrFailureCause = _topCountKey(ocrFailureCauseCounts);
+    final topOcrFailureSource = _topCountKey(ocrFailureSourceCounts);
+    final topOcrFailureStage = _topCountKey(ocrFailureStageCounts);
+    final topExpenseSummaryOcrContractSource = _topCountKey(
+      expenseSummaryOcrContractSourceCounts,
+    );
+    final topExpenseSummaryOcrContractSkippedReason = _topCountKey(
+      expenseSummaryOcrContractSkippedReasonCounts,
+    );
 
     return ExpenseTelemetryHealthSnapshot(
       generatedAtUtc: (generatedAtUtc ?? DateTime.now().toUtc()).toUtc(),
@@ -576,21 +786,53 @@ class ExpenseTelemetryHealthSnapshot {
       parserCompletedCount: parserCompletedCount,
       parserNeedsReviewCount: parserNeedsReviewCount,
       parserFailedCount: parserFailedCount,
+      parserCategoryCounts: Map.unmodifiable(parserCategoryCounts),
+      parserNeedsReviewCategoryCounts: Map.unmodifiable(
+        parserNeedsReviewCategoryCounts,
+      ),
+      parserFailedCategoryCounts: Map.unmodifiable(parserFailedCategoryCounts),
+      parserFieldConfidenceCounts: Map.unmodifiable(
+        parserFieldConfidenceCounts,
+      ),
+      topParserCategory: _topCountKey(parserCategoryCounts),
+      topParserNeedsReviewCategory: _topCountKey(
+        parserNeedsReviewCategoryCounts,
+      ),
+      topParserFailedCategory: _topCountKey(parserFailedCategoryCounts),
       ocrCorrectionOpenedCount: ocrCorrectionOpenedCount,
+      appFilledReceiptLineConfirmedCount: appFilledReceiptLineConfirmedCount,
+      appFilledReceiptLineCorrectedCount: appFilledReceiptLineCorrectedCount,
       userCorrectionCount: userCorrectionCount,
       cloudBackupSuccessCount: cloudBackupSuccessCount,
       cloudBackupFailureCount: cloudBackupFailureCount,
       syncPendingCount: syncPendingCount,
       syncedCount: syncedCount,
       syncFailedCount: syncFailedCount,
+      expenseSummaryQueuedCount: expenseSummaryQueuedCount,
+      expenseSummaryOcrContractQueuedCount:
+          expenseSummaryOcrContractQueuedCount,
+      expenseSummaryOcrContractSkippedCount:
+          expenseSummaryOcrContractSkippedCount,
+      expenseSummaryOcrContractSourceCounts: Map.unmodifiable(
+        expenseSummaryOcrContractSourceCounts,
+      ),
+      topExpenseSummaryOcrContractSource: topExpenseSummaryOcrContractSource,
+      expenseSummaryOcrContractSkippedReasonCounts: Map.unmodifiable(
+        expenseSummaryOcrContractSkippedReasonCounts,
+      ),
+      topExpenseSummaryOcrContractSkippedReason:
+          topExpenseSummaryOcrContractSkippedReason,
       exportStartedCount: exportStartedCount,
       exportCompletedCount: exportCompletedCount,
       exportBlockedCount: exportBlockedCount,
       exportFailedCount: exportFailedCount,
-      failureBreakdowns: List.unmodifiable(
-        failureStats.values.map((stats) => stats.toBreakdown()).toList()
-          ..sort((a, b) => b.count.compareTo(a.count)),
-      ),
+      ocrFailureCauseCounts: Map.unmodifiable(ocrFailureCauseCounts),
+      topOcrFailureCause: topOcrFailureCause,
+      ocrFailureSourceCounts: Map.unmodifiable(ocrFailureSourceCounts),
+      topOcrFailureSource: topOcrFailureSource,
+      ocrFailureStageCounts: Map.unmodifiable(ocrFailureStageCounts),
+      topOcrFailureStage: topOcrFailureStage,
+      failureBreakdowns: List.unmodifiable(failureBreakdowns),
       recentFailureDetails: List.unmodifiable(
         recentFailures.reversed.take(100).toList(growable: false),
       ),
@@ -624,17 +866,39 @@ class ExpenseTelemetryHealthSnapshot {
   final int parserCompletedCount;
   final int parserNeedsReviewCount;
   final int parserFailedCount;
+  final Map<String, int> parserCategoryCounts;
+  final Map<String, int> parserNeedsReviewCategoryCounts;
+  final Map<String, int> parserFailedCategoryCounts;
+  final Map<String, int> parserFieldConfidenceCounts;
+  final String topParserCategory;
+  final String topParserNeedsReviewCategory;
+  final String topParserFailedCategory;
   final int ocrCorrectionOpenedCount;
+  final int appFilledReceiptLineConfirmedCount;
+  final int appFilledReceiptLineCorrectedCount;
   final int userCorrectionCount;
   final int cloudBackupSuccessCount;
   final int cloudBackupFailureCount;
   final int syncPendingCount;
   final int syncedCount;
   final int syncFailedCount;
+  final int expenseSummaryQueuedCount;
+  final int expenseSummaryOcrContractQueuedCount;
+  final int expenseSummaryOcrContractSkippedCount;
+  final Map<String, int> expenseSummaryOcrContractSourceCounts;
+  final String topExpenseSummaryOcrContractSource;
+  final Map<String, int> expenseSummaryOcrContractSkippedReasonCounts;
+  final String topExpenseSummaryOcrContractSkippedReason;
   final int exportStartedCount;
   final int exportCompletedCount;
   final int exportBlockedCount;
   final int exportFailedCount;
+  final Map<String, int> ocrFailureCauseCounts;
+  final String topOcrFailureCause;
+  final Map<String, int> ocrFailureSourceCounts;
+  final String topOcrFailureSource;
+  final Map<String, int> ocrFailureStageCounts;
+  final String topOcrFailureStage;
   final List<ExpenseFailureBreakdown> failureBreakdowns;
   final List<ExpenseFailureEventDetail> recentFailureDetails;
 
@@ -677,6 +941,13 @@ class ExpenseTelemetryHealthSnapshot {
   double get parserFailureRate {
     if (parserStartedCount == 0) return 0;
     return parserFailedCount / parserStartedCount;
+  }
+
+  double get appFilledReceiptLineCorrectionRate {
+    final total =
+        appFilledReceiptLineConfirmedCount + appFilledReceiptLineCorrectedCount;
+    if (total == 0) return 0;
+    return appFilledReceiptLineCorrectedCount / total;
   }
 
   double get cloudBackupFailureRate {
@@ -761,7 +1032,19 @@ class ExpenseTelemetryHealthSnapshot {
       'parserSuccessRate': parserSuccessRate,
       'parserReviewRate': parserReviewRate,
       'parserFailureRate': parserFailureRate,
+      'parserCategoryCounts': parserCategoryCounts,
+      'parserNeedsReviewCategoryCounts': parserNeedsReviewCategoryCounts,
+      'parserFailedCategoryCounts': parserFailedCategoryCounts,
+      'parserFieldConfidenceCounts': parserFieldConfidenceCounts,
+      if (topParserCategory.isNotEmpty) 'topParserCategory': topParserCategory,
+      if (topParserNeedsReviewCategory.isNotEmpty)
+        'topParserNeedsReviewCategory': topParserNeedsReviewCategory,
+      if (topParserFailedCategory.isNotEmpty)
+        'topParserFailedCategory': topParserFailedCategory,
       'ocrCorrectionOpenedCount': ocrCorrectionOpenedCount,
+      'appFilledReceiptLineConfirmedCount': appFilledReceiptLineConfirmedCount,
+      'appFilledReceiptLineCorrectedCount': appFilledReceiptLineCorrectedCount,
+      'appFilledReceiptLineCorrectionRate': appFilledReceiptLineCorrectionRate,
       'userCorrectionCount': userCorrectionCount,
       'cloudBackupSuccessCount': cloudBackupSuccessCount,
       'cloudBackupFailureCount': cloudBackupFailureCount,
@@ -770,12 +1053,42 @@ class ExpenseTelemetryHealthSnapshot {
       'syncedCount': syncedCount,
       'syncFailedCount': syncFailedCount,
       'syncFailureRate': syncFailureRate,
+      'expenseSummaryQueuedCount': expenseSummaryQueuedCount,
+      'expenseSummaryOcrContractQueuedCount':
+          expenseSummaryOcrContractQueuedCount,
+      'expenseSummaryOcrContractSkippedCount':
+          expenseSummaryOcrContractSkippedCount,
+      'expenseSummaryOcrContractSourceCounts':
+          expenseSummaryOcrContractSourceCounts,
+      if (topExpenseSummaryOcrContractSource.isNotEmpty)
+        'topExpenseSummaryOcrContractSource':
+            topExpenseSummaryOcrContractSource,
+      'expenseSummaryOcrContractSkippedReasonCounts':
+          expenseSummaryOcrContractSkippedReasonCounts,
+      if (topExpenseSummaryOcrContractSkippedReason.isNotEmpty)
+        'topExpenseSummaryOcrContractSkippedReason':
+            topExpenseSummaryOcrContractSkippedReason,
       'exportStartedCount': exportStartedCount,
       'exportCompletedCount': exportCompletedCount,
       'exportBlockedCount': exportBlockedCount,
       'exportFailedCount': exportFailedCount,
       'exportCompletionRate': exportCompletionRate,
       'exportFailureRate': exportFailureRate,
+      'ocrFailureCauseCounts': ocrFailureCauseCounts,
+      if (topOcrFailureCause.isNotEmpty)
+        'topOcrFailureCause': topOcrFailureCause,
+      'ocrFailureSourceCounts': ocrFailureSourceCounts,
+      if (topOcrFailureSource.isNotEmpty)
+        'topOcrFailureSource': topOcrFailureSource,
+      if (topOcrFailureSource.isNotEmpty)
+        'topOcrFailureSourceAction': _recommendedOcrSourceAction(
+          topOcrFailureSource,
+        ),
+      'ocrFailureStageCounts': ocrFailureStageCounts,
+      if (topOcrFailureStage.isNotEmpty)
+        'topOcrFailureStage': topOcrFailureStage,
+      if (topOcrFailureStage.isNotEmpty)
+        'topOcrFailureStageLabel': _safeDiagnosticLabel(topOcrFailureStage),
       'failureBreakdowns': [
         for (final failure in failureBreakdowns) failure.toMap(),
       ],
@@ -803,6 +1116,9 @@ class ExpenseFailureBreakdown {
     required this.missingEvidence,
     required this.missingEvidenceLabel,
     required this.recommendedAction,
+    required this.actionSummary,
+    required this.ocrFailureSource,
+    required this.ocrFailureSourceAction,
     required this.count,
     required this.retryCount,
     required this.abandonedCount,
@@ -826,6 +1142,9 @@ class ExpenseFailureBreakdown {
   final String missingEvidence;
   final String missingEvidenceLabel;
   final String recommendedAction;
+  final String actionSummary;
+  final String ocrFailureSource;
+  final String ocrFailureSourceAction;
   final int count;
   final int retryCount;
   final int abandonedCount;
@@ -847,9 +1166,12 @@ class ExpenseFailureBreakdown {
       'causeStatusLabel': causeStatusLabel,
       'evidence': evidence,
       'evidenceLabel': evidenceLabel,
-      if (missingEvidence != 'none') 'missingEvidence': missingEvidence,
+      'missingEvidence': missingEvidence,
       'missingEvidenceLabel': missingEvidenceLabel,
       'recommendedAction': recommendedAction,
+      'actionSummary': actionSummary,
+      'ocrFailureSource': ocrFailureSource,
+      'ocrFailureSourceAction': ocrFailureSourceAction,
       'count': count,
       'retryCount': retryCount,
       'abandonedCount': abandonedCount,
@@ -880,6 +1202,9 @@ class ExpenseFailureEventDetail {
     required this.missingEvidence,
     required this.missingEvidenceLabel,
     required this.recommendedAction,
+    required this.actionSummary,
+    required this.ocrFailureSource,
+    required this.ocrFailureSourceAction,
     required this.retryCount,
     required this.abandoned,
     required this.platform,
@@ -905,6 +1230,9 @@ class ExpenseFailureEventDetail {
   final String missingEvidence;
   final String missingEvidenceLabel;
   final String recommendedAction;
+  final String actionSummary;
+  final String ocrFailureSource;
+  final String ocrFailureSourceAction;
   final int retryCount;
   final bool abandoned;
   final String platform;
@@ -928,9 +1256,12 @@ class ExpenseFailureEventDetail {
       'causeStatusLabel': causeStatusLabel,
       'evidence': evidence,
       'evidenceLabel': evidenceLabel,
-      if (missingEvidence != 'none') 'missingEvidence': missingEvidence,
+      'missingEvidence': missingEvidence,
       'missingEvidenceLabel': missingEvidenceLabel,
       'recommendedAction': recommendedAction,
+      'actionSummary': actionSummary,
+      'ocrFailureSource': ocrFailureSource,
+      'ocrFailureSourceAction': ocrFailureSourceAction,
       'retryCount': retryCount,
       'abandoned': abandoned,
       'platform': platform,
@@ -973,27 +1304,42 @@ class _ExpenseFailureStats {
   }
 
   ExpenseFailureBreakdown toBreakdown() {
+    final ocrFailureSource = _ocrFailureSourceFor(
+      workflowStep: workflowStep,
+      evidence: evidence,
+    );
+    final recommendedAction = _recommendedActionFor(
+      workflowStep: workflowStep,
+      confirmedCause: confirmedCause,
+      causeStatus: causeStatus,
+      missingEvidence: missingEvidence,
+    );
     return ExpenseFailureBreakdown(
       featureArea: 'expenses',
       featureLabel: 'Expenses',
       workflowStep: workflowStep,
       workflowStepLabel: _humanizeToken(workflowStep),
       failedAt: failedAt,
-      failedAtLabel: _humanizeToken(failedAt),
+      failedAtLabel: _safeDiagnosticLabel(failedAt),
       confirmedCause: confirmedCause,
-      causeLabel: _humanizeToken(confirmedCause),
+      causeLabel: _safeDiagnosticLabel(confirmedCause),
       causeStatus: causeStatus,
       causeStatusLabel: _causeStatusLabel(causeStatus),
       evidence: evidence,
-      evidenceLabel: _humanizeToken(evidence),
+      evidenceLabel: _evidenceLabel(evidence),
       missingEvidence: missingEvidence,
       missingEvidenceLabel: _missingEvidenceLabel(missingEvidence),
-      recommendedAction: _recommendedActionFor(
+      recommendedAction: recommendedAction,
+      actionSummary: _failureActionSummary(
         workflowStep: workflowStep,
         confirmedCause: confirmedCause,
         causeStatus: causeStatus,
         missingEvidence: missingEvidence,
+        recommendedAction: recommendedAction,
+        ocrFailureSource: ocrFailureSource,
       ),
+      ocrFailureSource: ocrFailureSource,
+      ocrFailureSourceAction: _recommendedOcrSourceAction(ocrFailureSource),
       count: count,
       retryCount: retryCount,
       abandonedCount: abandonedCount,
@@ -1133,6 +1479,119 @@ void _increment(Map<String, int> counts, String value) {
   counts[value] = (counts[value] ?? 0) + 1;
 }
 
+void _mergeCountMap(Map<String, int> target, Map<String, Object?> source) {
+  for (final entry in source.entries) {
+    final key = _safeToken(entry.key, fallback: '');
+    if (key.isEmpty) continue;
+    final count = _intValue(entry.value);
+    if (count <= 0) continue;
+    target[key] = (target[key] ?? 0) + count;
+  }
+}
+
+String _topCountKey(Map<String, int> counts) {
+  if (counts.isEmpty) return '';
+  final entries = counts.entries.toList()
+    ..sort((left, right) {
+      final count = right.value.compareTo(left.value);
+      if (count != 0) return count;
+      return left.key.compareTo(right.key);
+    });
+  return entries.first.key;
+}
+
+String _ocrSourceFromEvidence(String evidence) {
+  final safeEvidence = _safeToken(evidence, fallback: 'unknown');
+  if (RegExp(
+    r'(?:^|_)source_(?:photo|camera|image|capture)(?:_|$)',
+  ).hasMatch(safeEvidence)) {
+    return 'photo';
+  }
+  if (RegExp(r'(?:^|_)source_(?:pdf|document)(?:_|$)').hasMatch(safeEvidence)) {
+    return 'pdf';
+  }
+  if (RegExp(
+    r'(?:^|_)source_(?:importedtext|imported_text|text|pastedtext|pasted_text)(?:_|$)',
+  ).hasMatch(safeEvidence)) {
+    return 'importedtext';
+  }
+  if (RegExp(
+    r'(?:^|_)source_(?:mixed|combined|multiple)(?:_|$)',
+  ).hasMatch(safeEvidence)) {
+    return 'mixed';
+  }
+  if (RegExp(r'(?:^|_)source_(?:none|missing)(?:_|$)').hasMatch(safeEvidence)) {
+    return 'none';
+  }
+  return 'unknown';
+}
+
+String _ocrFailureSourceFor({
+  required String workflowStep,
+  required String evidence,
+}) {
+  if (workflowStep != ExpenseWorkflowStep.receiptOcr.name) return 'not_ocr';
+  return _ocrSourceFromEvidence(evidence);
+}
+
+String _recommendedOcrSourceAction(String source) {
+  return switch (source) {
+    'photo' =>
+      'Investigate receipt camera focus, exposure, crop coverage, long-receipt section order, and image decode failures.',
+    'pdf' =>
+      'Investigate PDF safety checks, file size limits, render failures, page extraction, and PDF-to-image conversion.',
+    'importedtext' || 'text' =>
+      'Investigate pasted/imported receipt text cleanup and whether the text source was empty or malformed.',
+    'mixed' =>
+      'Investigate mixed receipt sources, section order, duplicate text suppression, stitched-photo fallback, and whether the cleanest source was selected.',
+    'none' =>
+      'Investigate why OCR started without a usable receipt photo, PDF, or pasted text source.',
+    'not_ocr' =>
+      'Use the failure workflow, confirmed cause, evidence summary, and recommended action for this non-OCR failure; do not treat it as a receipt camera/PDF OCR source problem.',
+    'unknown' =>
+      'Investigate source tagging in OCR diagnostics; keep the raw receipt private and add a safe source bucket when the failure path is identified.',
+    _ =>
+      'Inspect OCR diagnostics evidence and add a source-specific action once this source is identified.',
+  };
+}
+
+String _failureActionSummary({
+  required String workflowStep,
+  required String confirmedCause,
+  required String causeStatus,
+  required String missingEvidence,
+  required String recommendedAction,
+  required String ocrFailureSource,
+}) {
+  final workflow = _humanizeToken(workflowStep);
+  final cause = _compactReadableText(
+    _privacySafeFailurePhrase(confirmedCause),
+    52,
+  );
+  if (causeStatus != ExpenseFailureCauseStatus.confirmed.name) {
+    final missing = _compactReadableText(
+      _privacySafeFailurePhrase(missingEvidence),
+      72,
+    );
+    return '$workflow failed, but the cause is not confirmed yet. Capture $missing before deciding what to fix next.';
+  }
+  final sourceContext = switch (ocrFailureSource) {
+    'photo' => 'photo capture or image readability',
+    'pdf' => 'PDF safety, size, rendering, or page extraction',
+    'importedtext' || 'text' => 'imported receipt text cleanup',
+    'mixed' => 'mixed receipt source order or duplicate suppression',
+    'none' => 'missing receipt proof',
+    'not_ocr' => 'the failed workflow, not OCR',
+    'unknown' => 'safe OCR source tagging',
+    _ => 'the recorded workflow evidence',
+  };
+  final firstSentence = recommendedAction.split(RegExp(r'[.!?]')).first.trim();
+  final nextStep = firstSentence.isEmpty
+      ? 'Use the recommended action for this failure.'
+      : _compactReadableText(firstSentence, 72);
+  return '$workflow failed from $cause. Check $sourceContext. $nextStep.';
+}
+
 void _recordFailureDiagnostic(
   Map<String, _ExpenseFailureStats> stats,
   Map<String, Object?> payload,
@@ -1169,6 +1628,16 @@ ExpenseFailureEventDetail? _failureDetailFor(
   final event = _stringValue(payload['event']);
   if (!_isFailureEvent(event)) return null;
   final resolved = _resolvedFailureFor(event: event, payload: payload);
+  final ocrFailureSource = _ocrFailureSourceFor(
+    workflowStep: resolved.workflowStep,
+    evidence: resolved.evidence,
+  );
+  final recommendedAction = _recommendedActionFor(
+    workflowStep: resolved.workflowStep,
+    confirmedCause: resolved.confirmedCause,
+    causeStatus: resolved.causeStatus,
+    missingEvidence: resolved.missingEvidence,
+  );
   return ExpenseFailureEventDetail(
     eventId: record.id,
     queuedAtUtc: record.queuedAtUtc,
@@ -1178,21 +1647,26 @@ ExpenseFailureEventDetail? _failureDetailFor(
     workflowStep: resolved.workflowStep,
     workflowStepLabel: _humanizeToken(resolved.workflowStep),
     failedAt: resolved.failedAt,
-    failedAtLabel: _humanizeToken(resolved.failedAt),
+    failedAtLabel: _safeDiagnosticLabel(resolved.failedAt),
     confirmedCause: resolved.confirmedCause,
-    causeLabel: _humanizeToken(resolved.confirmedCause),
+    causeLabel: _safeDiagnosticLabel(resolved.confirmedCause),
     causeStatus: resolved.causeStatus,
     causeStatusLabel: _causeStatusLabel(resolved.causeStatus),
     evidence: resolved.evidence,
-    evidenceLabel: _humanizeToken(resolved.evidence),
+    evidenceLabel: _evidenceLabel(resolved.evidence),
     missingEvidence: resolved.missingEvidence,
     missingEvidenceLabel: _missingEvidenceLabel(resolved.missingEvidence),
-    recommendedAction: _recommendedActionFor(
+    recommendedAction: recommendedAction,
+    actionSummary: _failureActionSummary(
       workflowStep: resolved.workflowStep,
       confirmedCause: resolved.confirmedCause,
       causeStatus: resolved.causeStatus,
       missingEvidence: resolved.missingEvidence,
+      recommendedAction: recommendedAction,
+      ocrFailureSource: ocrFailureSource,
     ),
+    ocrFailureSource: ocrFailureSource,
+    ocrFailureSourceAction: _recommendedOcrSourceAction(ocrFailureSource),
     retryCount: _intValue(payload['retryCount']),
     abandoned: payload['abandoned'] == true,
     platform: _stringValue(payload['platform']),
@@ -1306,7 +1780,16 @@ String _causeStatusLabel(String status) {
 
 String _missingEvidenceLabel(String missingEvidence) {
   if (missingEvidence == 'none') return 'No missing evidence';
-  return 'Missing evidence: ${_humanizeToken(missingEvidence)}';
+  return 'Missing evidence: ${_compactReadableText(_privacySafeFailurePhrase(missingEvidence), 96)}';
+}
+
+String _evidenceLabel(String evidence) {
+  return _compactReadableText(_privacySafeFailurePhrase(evidence), 96);
+}
+
+String _safeDiagnosticLabel(String value) {
+  final safePhrase = _compactReadableText(_privacySafeFailurePhrase(value), 96);
+  return _displayKnownAcronyms(safePhrase);
 }
 
 String _recommendedActionFor({
@@ -1316,7 +1799,7 @@ String _recommendedActionFor({
   required String missingEvidence,
 }) {
   if (causeStatus != ExpenseFailureCauseStatus.confirmed.name) {
-    return 'Collect ${_humanizeToken(missingEvidence).toLowerCase()} so the app can confirm the cause.';
+    return 'Collect ${_privacySafeFailurePhrase(missingEvidence)} so the app can confirm the cause.';
   }
   final causeAction = switch (confirmedCause) {
     'receipt_photo_quality_needs_review' =>
@@ -1333,12 +1816,18 @@ String _recommendedActionFor({
       'Confirm the OCR plugin is bundled for this build and route the user to manual entry until it is available.',
     'receipt_source_skipped' =>
       'Check device capability limits and whether the skipped attachment was saved as proof only.',
-    'duplicate_receipt_text' || 'receipt_photo_overlap' =>
-      'Review duplicate and overlap suppression so repeated long-receipt sections do not create duplicate charges.',
+    'possible_missing_receipt_section' =>
+      'Ask the user to add the missing middle receipt section, then verify line order from top to bottom before saving.',
+    'receipt_photo_overlap' =>
+      'Review the stitch overlap area and adjust duplicate suppression so charges are not missed or counted twice.',
+    'duplicate_receipt_text' =>
+      'Review duplicate suppression for the overlap area so repeated long-receipt sections do not create duplicate charges.',
     'missing_receipt_attachment' =>
       'Ask the user to attach a receipt photo, PDF, or pasted receipt text before starting OCR.',
     'no_readable_text' =>
       'Check whether the attachment was blank, cropped, dark, or not a receipt, then ask for another section or manual entry.',
+    'ocr_unknown_failure' =>
+      'Open the OCR warning diagnostics, capture the warning kind, source, and device tier, then add a specific detector for this failure.',
     'receipt_parser_no_usable_fields' =>
       'Review OCR text quality and parser rules because no safe merchant, date, total, or line data could be filled.',
     'receipt_line_total_mismatch' =>
@@ -1382,6 +1871,88 @@ String _recommendedActionFor({
   };
 }
 
+String _privacySafeFailurePhrase(String value) {
+  final withoutAmounts = value
+      .replaceAll(RegExp(r'\$+\s*\d+(?:[._\s]\d+)?'), ' amount ')
+      .replaceAll(RegExp(r'\d+[._]\d{2,}'), ' amount ')
+      .replaceAll(RegExp(r'\b\d+\s+\d{2,}\b'), ' amount ')
+      .replaceAll(RegExp(r'(?<![A-Za-z0-9])\d{3,}(?![A-Za-z0-9])'), ' number ')
+      .replaceAll(RegExp(r'[_\-.]+'), ' ');
+  final generic = withoutAmounts
+      .replaceAll(_privateReceiptNotePattern, ' private reference ')
+      .replaceAll(_knownReceiptMerchantPattern, ' merchant ')
+      .replaceAll(_knownReceiptLocationPattern, ' location ')
+      .replaceAll(
+        RegExp(r'\breceipt\s+number\b', caseSensitive: false),
+        ' private reference ',
+      )
+      .replaceAll(_privateReceiptIdentifierPattern, ' private reference ')
+      .replaceAll(
+        RegExp(
+          r'\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b',
+          caseSensitive: false,
+        ),
+        ' email ',
+      )
+      .replaceAll(
+        RegExp(r'\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b'),
+        ' phone ',
+      )
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+  final humanized = _humanizeToken(generic).toLowerCase();
+  return humanized.isEmpty ? 'diagnostic context' : humanized;
+}
+
+String _compactReadableText(String value, int maxChars) {
+  final clean = value.replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (clean.length <= maxChars) return clean;
+  final hardCut = clean.substring(0, maxChars).trimRight();
+  final lastSpace = hardCut.lastIndexOf(' ');
+  if (lastSpace >= (maxChars * 0.65).floor()) {
+    return hardCut.substring(0, lastSpace).trimRight();
+  }
+  return hardCut;
+}
+
+String _displayKnownAcronyms(String value) {
+  final clean = value.replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (clean.isEmpty) return 'Unknown';
+  final words = clean.split(' ');
+  return words
+      .asMap()
+      .entries
+      .map((entry) {
+        final word = entry.value.toLowerCase();
+        if (word == 'ocr') return 'OCR';
+        if (word == 'pdf') return 'PDF';
+        if (word == 'hive') return 'Hive';
+        if (entry.key == 0) return word[0].toUpperCase() + word.substring(1);
+        return word;
+      })
+      .join(' ');
+}
+
+final RegExp _knownReceiptMerchantPattern = RegExp(
+  r"\b(?:lowe\s*s|lowe'?s|walmart|target|home depot|costco|sam\s*s club|sam'?s club|shell|exxon|mobil|chevron|marathon|sheetz|wawa|speedway|circle k|bp|sunoco|pilot|flying j|love\s*s|love'?s|casey\s*s|casey'?s|kwik trip|kum\s*(?:and|&)?\s*go|quicktrip|qt|racetrac|raceway|royal farms|murphy usa|valero|phillips 66|citgo|sinclair|mapco|getgo|thorntons|travelcenters of america|petro|jiffy lube|valvoline|take 5|midas|pep boys|firestone|discount tire|les schwab|goodyear|ntb|autozone|advance auto|oreilly|o'?reilly|napa|carquest|tractor supply|harbor freight|menards|ace hardware|true value|rural king|fleet farm|blain\s*s farm fleet|blain'?s farm fleet)\b",
+  caseSensitive: false,
+);
+
+final RegExp _knownReceiptLocationPattern = RegExp(
+  r'\b(?:austin|atlanta|baltimore|charlotte|chicago|columbus|dallas|denver|detroit|houston|indianapolis|jacksonville|knoxville|las vegas|los angeles|louisville|memphis|miami|nashville|new york|orlando|philadelphia|phoenix|raleigh|richmond|san antonio|san diego|san francisco|seattle|tampa|washington)\b',
+  caseSensitive: false,
+);
+
+final RegExp _privateReceiptIdentifierPattern = RegExp(
+  r'\b(?:auth(?:code)?|approval|barcode|card|customer|client|employee|driver|email|invoice|member|name|note|notes|order|phone|sale|store|terminal|transaction|trans|user)\s+[a-z0-9]+\b',
+  caseSensitive: false,
+);
+
+final RegExp _privateReceiptNotePattern = RegExp(
+  r'\b(?:user|customer|client|employee|driver)?\s*(?:note|notes|name)\s+(?:[a-z0-9]+\s+){0,3}[a-z0-9]+\b',
+  caseSensitive: false,
+);
+
 String _fallbackWorkflowStepFor(String event) {
   return switch (event) {
     'validationError' => ExpenseWorkflowStep.lineReview.name,
@@ -1418,4 +1989,11 @@ String _fallbackFailedAtFor(String event) {
 
 String _stringValue(Object? value) => value is String ? value : '';
 
+bool _boolValue(Object? value) => value is bool && value;
+
 int _intValue(Object? value) => value is int ? value : 0;
+
+Map<String, Object?> _metadataValue(Object? value) {
+  if (value is Map) return Map<String, Object?>.from(value);
+  return const {};
+}

@@ -24,12 +24,11 @@ class ReceiptImagePicker {
   static const receiptCameraImageQuality = 100;
   static final ImagePicker _picker = ImagePicker();
 
-  /// Production receipt capture uses the phone camera/gallery surfaces.
+  /// Backup receipt capture uses the phone camera/gallery surfaces.
   ///
-  /// The custom Flutter camera is kept as a legacy/test surface only. Receipt
-  /// flows should enter through this picker so Android stays on the native
-  /// camera app and iOS can use native scanner/camera behavior without exposing
-  /// raw custom-camera controls to users.
+  /// Production receipt capture should try the Maintainiac native receipt
+  /// camera service first. This picker remains as a fallback/import surface so
+  /// users can still capture a receipt if the native bridge is unavailable.
   static Future<ReceiptPickedPhotoSet> takeReceiptPhotoSet() async {
     final photo = await _picker.pickImage(
       source: ImageSource.camera,

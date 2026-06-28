@@ -13,6 +13,7 @@ import 'maintenance_item_detail_screen.dart';
 import 'maintenance_models.dart';
 import 'maintenance_log_service_screen.dart';
 import 'maintenance_record_list_screen.dart';
+import 'maintenance_service_event_detail_screen.dart';
 import 'maintenance_svg_icon.dart';
 import 'maintenance_work_source_screen.dart';
 
@@ -22,6 +23,7 @@ part 'maintenance_tracked_list.dart';
 part 'maintenance_action_grid.dart';
 part 'maintenance_draft_panel.dart';
 part 'maintenance_priority_helpers.dart';
+part 'maintenance_service_history.dart';
 part 'maintenance_vehicle_overview.dart';
 
 class MaintenanceScreen extends StatelessWidget {
@@ -86,6 +88,13 @@ class MaintenanceScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: _MaintenanceRecapStrip(records: records),
           ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: _MaintenanceServiceHistory(
+              events: _eventsForActiveVehicle(state, activeVehicle),
+            ),
+          ),
           if (_hasMaintenanceAlerts(state)) ...[
             const SizedBox(height: 10),
             Padding(
@@ -126,6 +135,19 @@ bool _hasMaintenanceAlerts(AppStateController state) {
     if (!record.timeOnly && record.milesRemaining <= 900) return true;
   }
   return false;
+}
+
+List<MaintenanceServiceEvent> _eventsForActiveVehicle(
+  AppStateController state,
+  VehicleProfile? activeVehicle,
+) {
+  if (activeVehicle == null) return const <MaintenanceServiceEvent>[];
+  final events =
+      state.maintenanceEvents
+          .where((event) => event.vehicleName == activeVehicle.nickname)
+          .toList()
+        ..sort((a, b) => b.serviceDate.compareTo(a.serviceDate));
+  return events;
 }
 
 class _MaintenanceCalendarPanel extends StatelessWidget {

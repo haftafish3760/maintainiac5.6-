@@ -1,5 +1,8 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'expense_export_models.dart';
+import 'expense_ledger_models.dart';
+import 'expense_ledger_store.dart';
 import 'expense_screen_telemetry_firestore_bridge.dart';
 
 class ExpenseTelemetrySummaryScheduleResult {
@@ -7,11 +10,17 @@ class ExpenseTelemetrySummaryScheduleResult {
     required this.status,
     this.queuedPath,
     this.nextAllowedAtUtc,
+    this.ocrContractQueued = false,
+    this.ocrContractSource = 'none',
+    this.ocrContractSkippedReason = '',
   });
 
   final ExpenseTelemetrySummaryScheduleStatus status;
   final String? queuedPath;
   final DateTime? nextAllowedAtUtc;
+  final bool ocrContractQueued;
+  final String ocrContractSource;
+  final String ocrContractSkippedReason;
 }
 
 enum ExpenseTelemetrySummaryScheduleStatus { skipped, throttled, queued }
@@ -47,6 +56,9 @@ class ExpenseTelemetrySummaryScheduler {
     String summaryId = 'latest',
     DateTime? nowUtc,
     bool force = false,
+    Map<String, Object?>? commandCenterOcrContract,
+    bool includeLedgerOcrContract = true,
+    Duration ocrContractLookback = const Duration(days: 90),
   }) async {
     final cleanOrgId = _safeOrgId(orgId);
     if (cleanOrgId.isEmpty) {
@@ -67,16 +79,73 @@ class ExpenseTelemetrySummaryScheduler {
       }
     }
 
+    final ocrContractBuild = await _resolveOcrContract(
+      nowUtc: now,
+      explicitContract: commandCenterOcrContract,
+      includeLedgerOcrContract: includeLedgerOcrContract,
+      lookback: ocrContractLookback,
+    );
     final result = await _bridge.queueHealthSummary(
       orgId: cleanOrgId,
       summaryId: summaryId,
       nowUtc: now,
+      commandCenterOcrContract: ocrContractBuild.contract,
     );
     await _box.put(key, now.toIso8601String());
     return ExpenseTelemetrySummaryScheduleResult(
       status: ExpenseTelemetrySummaryScheduleStatus.queued,
       queuedPath: result.queuedDocument.path,
+      ocrContractQueued: ocrContractBuild.contract != null,
+      ocrContractSource: ocrContractBuild.source,
+      ocrContractSkippedReason: ocrContractBuild.skippedReason,
     );
+  }
+
+  static Future<_ScheduledOcrContractBuild> _resolveOcrContract({
+    required DateTime nowUtc,
+    required Map<String, Object?>? explicitContract,
+    required bool includeLedgerOcrContract,
+    required Duration lookback,
+  }) async {
+    if (explicitContract != null) {
+      return _ScheduledOcrContractBuild(
+        contract: explicitContract,
+        source: 'explicit',
+      );
+    }
+    if (!includeLedgerOcrContract) {
+      return const _ScheduledOcrContractBuild(
+        source: 'none',
+        skippedReason: 'ledger_ocr_contract_disabled',
+      );
+    }
+    try {
+      final ledger = await ExpenseLedgerController.create();
+      final end = DateTime(nowUtc.year, nowUtc.month, nowUtc.day);
+      final safeLookback = lookback.isNegative ? Duration.zero : lookback;
+      final start = DateTime(
+        end.year,
+        end.month,
+        end.day,
+      ).subtract(safeLookback);
+      final snapshot = buildExpenseExportSnapshot(
+        receipts: ledger.storedReceipts,
+        range: ExpenseDateRange(start: start, end: end),
+        categoryFilter: ExpenseExportCategoryFilter.all,
+        source: ExpenseExportSource.localDevice,
+        destination: ExpenseExportDestination.share,
+        exportedAt: nowUtc,
+      );
+      return _ScheduledOcrContractBuild(
+        contract: snapshot.commandCenterOcrContract,
+        source: 'rolling_local_ledger',
+      );
+    } catch (_) {
+      return const _ScheduledOcrContractBuild(
+        source: 'none',
+        skippedReason: 'ledger_ocr_contract_unavailable',
+      );
+    }
   }
 
   static String _keyFor(String orgId, String summaryId) {
@@ -90,4 +159,16 @@ class ExpenseTelemetrySummaryScheduler {
         .replaceAll(RegExp(r'_+'), '_')
         .replaceAll(RegExp(r'^_|_$'), '');
   }
+}
+
+class _ScheduledOcrContractBuild {
+  const _ScheduledOcrContractBuild({
+    this.contract,
+    required this.source,
+    this.skippedReason = '',
+  });
+
+  final Map<String, Object?>? contract;
+  final String source;
+  final String skippedReason;
 }

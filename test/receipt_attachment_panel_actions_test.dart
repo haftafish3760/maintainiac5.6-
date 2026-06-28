@@ -11,6 +11,9 @@ void main() {
     final panelSource = File(
       'lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart',
     ).readAsStringSync();
+    final importActions = File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_import_actions.dart',
+    ).readAsStringSync();
     final ocrSource = File(
       'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_actions.dart',
     ).readAsStringSync();
@@ -29,15 +32,66 @@ void main() {
     expect(
       ocrSource,
       contains(
-        'Receipt reading failed before the review fields could be filled.',
+        r'The app could not finish reading $sourceSummary before the review fields could be filled.',
+      ),
+    );
+    expect(ocrSource, contains('_receiptReadRecoveryAdvice(readable)'));
+    expect(ocrSource, contains('class _ReceiptReadRecoveryAdvice'));
+    expect(ocrSource, contains('Receipt photo text was not readable enough.'));
+    expect(ocrSource, contains('recoveryAdvice.primaryAction'));
+    expect(ocrSource, contains('recoveryAdvice.shortAction'));
+    expect(panelSource, contains('_ReceiptInterruptedCaptureBanner'));
+    expect(panelSource, contains('_loadRecoverableNativeCaptures'));
+    expect(panelSource, contains('recoverableNativeCaptures()'));
+    expect(panelSource, contains('_resumeRecoverableNativeCapture'));
+    expect(panelSource, contains('var _panelDisposed = false;'));
+    expect(panelSource, contains('_panelDisposed = true;'));
+    expect(
+      panelSource,
+      contains('bool _updateAttachmentState(VoidCallback update)'),
+    );
+    expect(
+      panelSource,
+      contains('if (!mounted || _panelDisposed) return false;'),
+    );
+    expect(
+      panelSource,
+      contains(
+        'if (!_updateAttachmentState(() => _openingPicker = true)) return;',
       ),
     );
     expect(
-      ocrSource,
+      panelSource,
+      contains('if (_updateAttachmentState(() => _openingPicker = false))'),
+    );
+    expect(panelSource, contains('initialCaptureDiagnosticsByPath'));
+    expect(panelSource, contains('record.captureDiagnostics'));
+    expect(
+      panelSource,
+      contains('final photoPaths = record.recoverablePhotoPaths;'),
+    );
+    expect(
+      panelSource,
       contains(
-        'No readable receipt text was found. Keep the proof, add another photo, or retake with brighter light.',
+        'for (final path in photoPaths) path: record.captureDiagnostics',
       ),
     );
+    expect(panelSource, contains('Resume Interrupted Receipt Photos'));
+    expect(
+      panelSource,
+      contains('were saved locally before the receipt review finished'),
+    );
+    expect(panelSource, contains('record.recoveredCountLabel'));
+    expect(panelSource, contains('record.recoveryResumeDetail'));
+    expect(panelSource, contains('discardRecoveryRecord(record)'));
+    expect(panelSource, contains('discard the staged receipt copies'));
+    expect(panelSource, contains("label: const Text('Discard')"));
+    expect(panelSource, contains('void _showPickerError(String message)'));
+    expect(panelSource, contains('void _showPickerMessage(String message)'));
+    expect(panelSource, contains('if (!mounted) return;'));
+    expect(importActions, contains('Future<bool> _reviewPickedPhotoPaths'));
+    expect(importActions, contains('return true;'));
+    expect(importActions, contains('return false;'));
   });
 
   testWidgets('removing an imported proof asks before deleting it', (
@@ -195,7 +249,7 @@ void main() {
     expect(find.text('3 receipt photos attached'), findsOneWidget);
     expect(find.textContaining('Photos kept in receipt order'), findsOneWidget);
     expect(
-      find.textContaining('Next reads the clear photo first'),
+      find.textContaining('Next checks the clear photo first'),
       findsWidgets,
     );
     expect(find.textContaining('saved proof'), findsWidgets);

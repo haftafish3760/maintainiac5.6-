@@ -5,6 +5,10 @@ Maintainiac receipt capture is not a generic scanner. The goal is a worker-grade
 ## Product Targets
 
 - Clear image first, OCR second, storage saving third.
+- Maintainiac owns the production receipt camera UI; Android uses CameraX and
+  iOS uses AVFoundation under a Maintainiac service bridge.
+- Stock phone camera apps are fallback/import paths, not the normal receipt
+  camera.
 - OCR must read from the cleanest prepared source image before any saved-copy size reduction.
 - Saved receipt images are optimized for storage and backup after OCR has had the best available image.
 - The receipt image is the workspace. Controls must stay small, edge-anchored, and out of the way.
@@ -30,8 +34,9 @@ Use this as the image cleanup benchmark.
 Use this as the camera experience benchmark.
 
 - Capture should feel fast and obvious.
-- Android receipt capture should use the phone camera path unless a fully offline native scanner is available; do not send users through a Play Services scanner download before they can photograph a receipt.
-- iOS may use the built-in native document scanner when available.
+- Android receipt capture should use Maintainiac UI backed by CameraX.
+- iOS receipt capture should use Maintainiac UI backed by AVFoundation.
+- Do not send users through a Play Services scanner download before they can photograph a receipt.
 - Camera controls belong on screen edges.
 - Manual shutter must always work, even when automatic guidance is uncertain.
 - Tap-to-focus and pinch-to-zoom should behave like a normal camera app.

@@ -1,17 +1,93 @@
 class ReceiptPhotoReviewResult {
-  const ReceiptPhotoReviewResult({
-    required this.photoPaths,
-    required this.ocrSourcePhotoPaths,
+  ReceiptPhotoReviewResult({
+    required List<String> photoPaths,
+    required List<String> ocrSourcePhotoPaths,
     required this.dataSaverLevel,
     required this.stitchResult,
-    this.photoQualityChecksByPath = const {},
-  });
+    Map<String, ReceiptPhotoQualityCheck> photoQualityChecksByPath = const {},
+    Map<String, Map<String, Object?>> preparationDiagnosticsByOcrPath =
+        const {},
+    Map<String, Map<String, Object?>> captureDiagnosticsByPhotoPath = const {},
+  }) : photoPaths = List.unmodifiable(photoPaths),
+       ocrSourcePhotoPaths = List.unmodifiable(ocrSourcePhotoPaths),
+       photoQualityChecksByPath = Map.unmodifiable(photoQualityChecksByPath),
+       preparationDiagnosticsByOcrPath = _immutableDiagnosticsMap(
+         preparationDiagnosticsByOcrPath,
+       ),
+       captureDiagnosticsByPhotoPath = _immutableDiagnosticsMap(
+         captureDiagnosticsByPhotoPath,
+       );
 
   final List<String> photoPaths;
   final List<String> ocrSourcePhotoPaths;
   final ReceiptDataSaverLevel dataSaverLevel;
   final ReceiptStitchResult stitchResult;
   final Map<String, ReceiptPhotoQualityCheck> photoQualityChecksByPath;
+  final Map<String, Map<String, Object?>> preparationDiagnosticsByOcrPath;
+  final Map<String, Map<String, Object?>> captureDiagnosticsByPhotoPath;
+
+  List<String> get scannerDecisionCodes {
+    final codes = <String>[];
+    for (final diagnostics in preparationDiagnosticsByOcrPath.values) {
+      final rawCodes = diagnostics['scannerDecisionCodes'];
+      if (rawCodes is Iterable) {
+        for (final rawCode in rawCodes) {
+          final code = rawCode.toString().trim();
+          if (code.isNotEmpty) codes.add(code);
+        }
+      }
+    }
+    return List.unmodifiable(codes);
+  }
+
+  Map<String, int> get scannerDecisionCounts {
+    final counts = <String, int>{};
+    for (final code in scannerDecisionCodes) {
+      counts[code] = (counts[code] ?? 0) + 1;
+    }
+    return Map.unmodifiable(counts);
+  }
+
+  bool get scannerKeptOriginalForQuality => scannerDecisionCounts.containsKey(
+    'ocr_source_original_selected_quality_guard',
+  );
+
+  bool get scannerUsedEnhancedOcrSource =>
+      scannerDecisionCounts.containsKey('ocr_source_enhanced_selected');
+
+  bool get scannerNeedsOperatorReview {
+    return scannerDecisionCodes.any(
+      (code) =>
+          code.endsWith('_quality_guard') ||
+          code == 'decode_failed' ||
+          (code.startsWith('crop_skipped_') &&
+              code != 'crop_skipped_setting_off') ||
+          (code.startsWith('perspective_skipped_') &&
+              code != 'perspective_skipped_setting_off'),
+    );
+  }
+
+  String get savedProofCountLabel {
+    final count = photoPaths.length;
+    return count == 1 ? '1 saved proof photo' : '$count saved proof photos';
+  }
+
+  String get ocrSourceCountLabel {
+    final count = ocrSourcePhotoPaths.length;
+    if (count <= 0) return 'no clear OCR source';
+    final source = stitchResult.didStitch ? 'combined OCR image' : 'OCR photo';
+    return count == 1 ? '1 clear $source' : '$count clear ${source}s';
+  }
+
+  static Map<String, Map<String, Object?>> _immutableDiagnosticsMap(
+    Map<String, Map<String, Object?>> values,
+  ) {
+    if (values.isEmpty) return const {};
+    return Map.unmodifiable({
+      for (final entry in values.entries)
+        entry.key: Map<String, Object?>.unmodifiable(entry.value),
+    });
+  }
 }
 
 enum ReceiptStitchStatus { notNeeded, stitched, fallback }
@@ -48,6 +124,50 @@ class ReceiptStitchPairResult {
     }
     return '$pairLabel: ${(confidence * 100).round()}% match, $match$rotationText';
   }
+
+  String get matchEvidenceLabel {
+    if (usedManualAdjustment) return 'manual overlap';
+    if (overlapPixels <= 0) return '${(confidence * 100).round()}% no overlap';
+    if ((scaleCorrection - 1).abs() >= .03) {
+      return '${(confidence * 100).round()}% with zoom fix';
+    }
+    if (rotationCorrectionDegrees.abs() >= .5) {
+      return '${(confidence * 100).round()}% with straightening';
+    }
+    return '${(confidence * 100).round()}% overlap';
+  }
+
+  String get diagnosticCode {
+    if (usedManualAdjustment) return 'manual_overlap';
+    if (overlapPixels <= 0) return 'no_repeated_text';
+    if ((scaleCorrection - 1).abs() >= .03 &&
+        rotationCorrectionDegrees.abs() >= .5) {
+      return 'zoom_and_straighten_adjusted';
+    }
+    if ((scaleCorrection - 1).abs() >= .03) return 'zoom_adjusted';
+    if (rotationCorrectionDegrees.abs() >= .5) return 'straighten_adjusted';
+    return 'overlap_matched';
+  }
+
+  String get userCheckLabel {
+    if (usedManualAdjustment) {
+      return '$pairLabel used your manual overlap. Check repeated lines once.';
+    }
+    if (overlapPixels <= 0) {
+      return '$pairLabel did not show repeated receipt text.';
+    }
+    final adjustments = <String>[];
+    if ((scaleCorrection - 1).abs() >= .03) {
+      adjustments.add('zoom difference');
+    }
+    if (rotationCorrectionDegrees.abs() >= .5) {
+      adjustments.add('slight tilt');
+    }
+    if (adjustments.isEmpty) {
+      return '$pairLabel matched repeated receipt text.';
+    }
+    return '$pairLabel matched repeated text after fixing ${adjustments.join(' and ')}.';
+  }
 }
 
 class ReceiptStitchResult {
@@ -64,6 +184,7 @@ class ReceiptStitchResult {
     this.stitchedHeight = 0,
     this.warning = '',
     this.usedManualAdjustment = false,
+    this.fallbackReasonCode = '',
   });
 
   const ReceiptStitchResult.notNeeded(List<String> paths)
@@ -76,6 +197,7 @@ class ReceiptStitchResult {
   const ReceiptStitchResult.fallback({
     required List<String> inputPaths,
     required String warning,
+    String fallbackReasonCode = 'unknown',
     double confidence = 0,
     int? failedPairIndex,
     List<ReceiptStitchPairResult> pairs = const [],
@@ -91,6 +213,7 @@ class ReceiptStitchResult {
          pairs: pairs,
          stitchedWidth: stitchedWidth,
          stitchedHeight: stitchedHeight,
+         fallbackReasonCode: fallbackReasonCode,
        );
 
   final ReceiptStitchStatus status;
@@ -105,6 +228,7 @@ class ReceiptStitchResult {
   final int stitchedHeight;
   final String warning;
   final bool usedManualAdjustment;
+  final String fallbackReasonCode;
 
   bool get didStitch => status == ReceiptStitchStatus.stitched;
   bool get usedFallback => status == ReceiptStitchStatus.fallback;
@@ -119,6 +243,86 @@ class ReceiptStitchResult {
     final index = failedPairIndex;
     if (index == null) return '';
     return 'Photo ${index + 1} to ${index + 2}';
+  }
+
+  String get diagnosticReasonLabel {
+    if (!usedFallback) return status.name;
+    return fallbackReasonCode.trim().isEmpty ? 'unknown' : fallbackReasonCode;
+  }
+
+  String get userFallbackReasonLabel {
+    if (!usedFallback) return '';
+    return switch (diagnosticReasonLabel) {
+      'decode_failed' => 'One photo could not be read',
+      'manual_overlap_unsafe' => 'Manual overlap was outside the safe range',
+      'overlap_confidence_low' => 'Overlap was not clear enough',
+      'output_too_large' => 'Receipt is too long for this device',
+      'stitch_exception' => 'Stitching hit a safe fallback',
+      _ => 'Stitching was not trusted',
+    };
+  }
+
+  String get matchConfidenceLabel {
+    if (!hasMultipleSections || status == ReceiptStitchStatus.notNeeded) {
+      return 'Match not needed';
+    }
+    if (usedManualAdjustment) return 'Manual match';
+    return '${(confidence * 100).round()}% match';
+  }
+
+  String get pairDiagnosticsLabel {
+    if (pairs.isEmpty) return '';
+    return pairs.map((pair) => pair.userCheckLabel).join(' ');
+  }
+
+  String get diagnosticCodeLabel {
+    if (usedFallback) return diagnosticReasonLabel;
+    if (pairs.isEmpty) return status.name;
+    return pairs.map((pair) => pair.diagnosticCode).join(',');
+  }
+
+  String get reviewPathLabel {
+    return switch (status) {
+      ReceiptStitchStatus.notNeeded =>
+        inputPaths.length <= 1
+            ? '1 photo to review'
+            : '${inputPaths.length} photos to review',
+      ReceiptStitchStatus.stitched => '1 combined receipt image',
+      ReceiptStitchStatus.fallback =>
+        '${inputPaths.length} photos top to bottom',
+    };
+  }
+
+  String get reviewDecisionLabel {
+    return switch (status) {
+      ReceiptStitchStatus.notNeeded => reviewPathLabel,
+      ReceiptStitchStatus.stitched => '$reviewPathLabel, $matchConfidenceLabel',
+      ReceiptStitchStatus.fallback => '$reviewPathLabel, $matchConfidenceLabel',
+    };
+  }
+
+  String get nextStepLabel {
+    return switch (status) {
+      ReceiptStitchStatus.notNeeded =>
+        inputPaths.length <= 1
+            ? 'Next reviews this receipt photo.'
+            : 'Next reviews these receipt sections in order.',
+      ReceiptStitchStatus.stitched =>
+        'Next reviews one combined receipt image.',
+      ReceiptStitchStatus.fallback =>
+        'Next opens the filled receipt review from each section, top to bottom.',
+    };
+  }
+
+  String get stitchSafetyLabel {
+    return switch (status) {
+      ReceiptStitchStatus.notNeeded => 'No stitch needed',
+      ReceiptStitchStatus.stitched =>
+        usedManualAdjustment
+            ? 'Manual match accepted'
+            : 'Automatic match accepted',
+      ReceiptStitchStatus.fallback => 'Stitch not trusted',
+    };
   }
 
   String get summaryLabel {
@@ -141,7 +345,7 @@ class ReceiptStitchResult {
             ? 'One photo was prepared for receipt review.'
             : '${inputPaths.length} photos were prepared for receipt review.',
       ReceiptStitchStatus.stitched =>
-        '${inputPaths.length} photos became 1 receipt image${stitchedSizeLabel.isEmpty ? '' : ' ($stitchedSizeLabel)'}. ${usedManualAdjustment ? 'Manual match was used.' : 'Photo match confidence ${(confidence * 100).round()}%.'}',
+        '${inputPaths.length} photos became 1 receipt image${stitchedSizeLabel.isEmpty ? '' : ' ($stitchedSizeLabel)'}. ${usedManualAdjustment ? 'Manual match was used.' : 'Photo match confidence ${(confidence * 100).round()}%.'}${pairDiagnosticsLabel.isEmpty ? '' : ' $pairDiagnosticsLabel'}',
       ReceiptStitchStatus.fallback =>
         warning.trim().isEmpty
             ? '${inputPaths.length} photos stayed separate because stitching confidence was too low.'
@@ -169,6 +373,7 @@ class ReceiptStitchResult {
       stitchedHeight: stitchedHeight,
       warning: warning,
       usedManualAdjustment: usedManualAdjustment,
+      fallbackReasonCode: fallbackReasonCode,
     );
   }
 }
@@ -180,29 +385,35 @@ class ReceiptCameraResult {
     required this.photoPaths,
     required this.mode,
     this.qualityChecks = const [],
+    this.captureEvidence,
   });
 
   const ReceiptCameraResult.single(
     List<String> photoPaths, {
     List<ReceiptPhotoQualityCheck> qualityChecks = const [],
+    ReceiptCameraCaptureEvidence? captureEvidence,
   }) : this(
          photoPaths: photoPaths,
          mode: ReceiptCameraCaptureMode.singleImage,
          qualityChecks: qualityChecks,
+         captureEvidence: captureEvidence,
        );
 
   const ReceiptCameraResult.bestShotCandidates(
     List<String> photoPaths, {
     List<ReceiptPhotoQualityCheck> qualityChecks = const [],
+    ReceiptCameraCaptureEvidence? captureEvidence,
   }) : this(
          photoPaths: photoPaths,
          mode: ReceiptCameraCaptureMode.bestShotCandidates,
          qualityChecks: qualityChecks,
+         captureEvidence: captureEvidence,
        );
 
   final List<String> photoPaths;
   final ReceiptCameraCaptureMode mode;
   final List<ReceiptPhotoQualityCheck> qualityChecks;
+  final ReceiptCameraCaptureEvidence? captureEvidence;
 
   bool get isBestShotCandidateSet =>
       mode == ReceiptCameraCaptureMode.bestShotCandidates;
@@ -228,6 +439,89 @@ class ReceiptCameraResult {
   ReceiptPhotoQualityCheck? qualityForIndex(int index) {
     if (index < 0 || index >= qualityChecks.length) return null;
     return qualityChecks[index];
+  }
+}
+
+class ReceiptCameraCaptureEvidence {
+  const ReceiptCameraCaptureEvidence({
+    required this.captureSurface,
+    required this.captureFlow,
+    required this.resolutionTier,
+    required this.resolutionPreset,
+    required this.flashMode,
+    required this.exposureMode,
+    required this.focusMode,
+    required this.exposurePointSupported,
+    required this.focusPointSupported,
+    required this.exposureOffset,
+    required this.minExposureOffset,
+    required this.maxExposureOffset,
+    required this.zoomLevel,
+    required this.minZoomLevel,
+    required this.maxZoomLevel,
+    required this.previewWidth,
+    required this.previewHeight,
+    required this.liveBrightness,
+    required this.liveContrast,
+    required this.liveFocusScore,
+    required this.liveReadiness,
+    required this.imageStreamActiveAtCapture,
+    this.selectedExposureOffset,
+    this.candidateExposureOffsets = const [],
+  });
+
+  final String captureSurface;
+  final String captureFlow;
+  final String resolutionTier;
+  final String resolutionPreset;
+  final String flashMode;
+  final String exposureMode;
+  final String focusMode;
+  final bool exposurePointSupported;
+  final bool focusPointSupported;
+  final double? exposureOffset;
+  final double? minExposureOffset;
+  final double? maxExposureOffset;
+  final double zoomLevel;
+  final double minZoomLevel;
+  final double maxZoomLevel;
+  final int previewWidth;
+  final int previewHeight;
+  final double? liveBrightness;
+  final double? liveContrast;
+  final double? liveFocusScore;
+  final String liveReadiness;
+  final bool imageStreamActiveAtCapture;
+  final double? selectedExposureOffset;
+  final List<double?> candidateExposureOffsets;
+
+  bool get usesNativeAutoExposure => exposureMode == 'auto';
+  bool get exposureAtNativeBaseline {
+    final offset = selectedExposureOffset ?? exposureOffset;
+    if (offset == null) return true;
+    return offset.abs() <= .05;
+  }
+
+  bool get hasDarkLiveFrame => (liveBrightness ?? 128) < 72;
+  bool get hasUnderexposedLiveFrame => (liveBrightness ?? 128) < 92;
+  bool get hasBrightLiveFrame => (liveBrightness ?? 128) > 222;
+
+  String get brightnessSummaryLabel {
+    if (liveBrightness == null) return 'Live brightness not measured';
+    if (hasDarkLiveFrame) return 'Live preview was dark';
+    if (hasUnderexposedLiveFrame) return 'Live preview was darker than ideal';
+    if (hasBrightLiveFrame) return 'Live preview had glare';
+    return 'Live preview brightness was normal';
+  }
+
+  String get exposureSummaryLabel {
+    if (selectedExposureOffset == null && exposureOffset == null) {
+      return 'Exposure offset not measured';
+    }
+    if (exposureAtNativeBaseline) return 'Native auto exposure baseline';
+    final selected = selectedExposureOffset ?? exposureOffset ?? 0;
+    final direction = selected > 0 ? 'brighter' : 'darker';
+    return 'Bracketed $direction exposure candidate';
   }
 }
 
@@ -298,6 +592,7 @@ class ReceiptPhotoQualityCheck {
 
   String get reviewScoreLabel => '$reviewScore%';
   bool get isTooDark => brightness < 68;
+  bool get isUnderexposedForReceipt => brightness < 92;
   bool get isTooBright => brightness > 224;
   bool get isLowContrast => contrast < 16;
   bool get isPoorlyFramed => cropScore < .30;
@@ -308,8 +603,51 @@ class ReceiptPhotoQualityCheck {
   bool get isUnreadableImage => width <= 0 || height <= 0;
   bool get hasCriticalIssue =>
       isUnreadableImage || isTooDark || isTooBright || isVerySoft;
-  bool get needsReview => !isLikelyReadable || qualityWarnings.isNotEmpty;
+  bool get isReadableScore => reviewScore >= 70;
+  bool get isExcellentScore => reviewScore >= 85;
+  double get brightnessDistanceFromReceiptIdeal => (brightness - 150).abs();
+  bool get needsReview {
+    if (hasCriticalIssue) return true;
+    if (isReadableScore && isLikelyReadable) return false;
+    if (reviewScore >= 80 && !isSoft && !isLowResolution) return false;
+    return !isLikelyReadable || reviewScore < 70 || qualityWarnings.isNotEmpty;
+  }
+
   bool get canContinueWithReview => !hasCriticalIssue;
+  bool get shouldRetakeBeforeOcr => hasCriticalIssue || reviewScore < 50;
+  String get nextReviewActionLabel {
+    if (shouldRetakeBeforeOcr) return 'Retake before receipt review';
+    if (needsReview) return 'Check photo, then tap Next';
+    return 'Tap Next for filled receipt review';
+  }
+
+  String get userFacingStatusLabel {
+    if (shouldRetakeBeforeOcr) {
+      return '$reviewTitle: $reviewGuidance';
+    }
+    if (needsReview) {
+      return '$reviewTitle: $reviewGuidance';
+    }
+    return reviewGuidance;
+  }
+
+  String get qualityEvidenceLabel {
+    final parts = <String>[
+      '$reviewBandLabel ($reviewScoreLabel)',
+      'light $lightLabel',
+      'focus $focusLabel',
+      framingLabel,
+    ];
+    if (textBandScore < 8) parts.add('receipt lines weak');
+    return parts.join(' • ');
+  }
+
+  String get reviewBandLabel {
+    if (hasCriticalIssue || reviewScore < 50) return 'Retake recommended';
+    if (reviewScore < 70) return 'Check before Next';
+    if (isExcellentScore) return 'Excellent receipt photo';
+    return 'Readable receipt photo';
+  }
 
   String get focusLabel {
     if (focusScore >= 14) return 'sharp';
@@ -319,6 +657,7 @@ class ReceiptPhotoQualityCheck {
 
   String get lightLabel {
     if (isTooDark) return 'too dark';
+    if (isUnderexposedForReceipt) return 'a little dark';
     if (isTooBright) return 'glare/too bright';
     return 'light OK';
   }
@@ -335,6 +674,7 @@ class ReceiptPhotoQualityCheck {
     if (isTooBright) return 'glare or too bright';
     if (isVerySoft) return 'looks blurry';
     if (isSoft) return 'check sharpness';
+    if (isUnderexposedForReceipt) return 'could be brighter';
     if (isLowResolution) return 'move closer';
     if (isLowContrast) return 'low contrast';
     if (isPoorlyFramed) return 'check that no text is cut off';
@@ -344,6 +684,7 @@ class ReceiptPhotoQualityCheck {
 
   String get reviewTitle {
     if (hasCriticalIssue) return 'Retake Recommended';
+    if (reviewScore >= 70) return reviewBandLabel;
     if (needsReview) return 'Check Before Continuing';
     return 'Receipt Looks Readable';
   }
@@ -364,8 +705,11 @@ class ReceiptPhotoQualityCheck {
     if (isSoft) {
       return 'Zoom in and check the store, date, total, and item prices before continuing.';
     }
+    if (isUnderexposedForReceipt) {
+      return 'The receipt is readable but darker than ideal. Add light, turn on the torch, or retake if the bottom text looks dim.';
+    }
     if (isLowResolution) {
-      return 'If item text is too small, add another closer photo. Otherwise continue.';
+      return 'If item text is too small, add another closer photo. If every line is readable, tap Next.';
     }
     if (isLowContrast) {
       return 'Check that the printed text stands out from the paper before continuing.';
@@ -376,13 +720,18 @@ class ReceiptPhotoQualityCheck {
     if (isMissingTextBands) {
       return 'Some printed lines look weak. Check the item prices before saving.';
     }
-    return 'The receipt looks ready. Tap Next, or add another photo if the receipt continues.';
+    if (reviewScore >= 70) {
+      return 'This looks readable. Tap Next for the filled receipt review, or add another photo if the receipt continues.';
+    }
+    return 'Check the store, date, total, and item prices. If they are readable, tap Next; otherwise retake or add another photo.';
   }
 
   List<String> get qualityWarnings {
     return [
       if (isUnreadableImage) 'Image could not be decoded.',
       if (isTooDark) 'Photo is too dark.',
+      if (!isTooDark && isUnderexposedForReceipt)
+        'Photo is darker than ideal for receipt reading.',
       if (isTooBright) 'Photo has glare or is too bright.',
       if (isVerySoft)
         'Photo looks blurry.'
@@ -811,22 +1160,14 @@ enum ReceiptAttachmentKind {
 
 enum ReceiptDataSaverLevel {
   original('Original', 'Local only', 'Keep the full source file locally.'),
-  light(
-    'High Quality',
-    '500-700 KB',
-    'Larger saved proof copy for easier review.',
-  ),
-  balanced(
-    'Normal',
-    '200-300 KB',
-    'Everyday black-and-white saved proof copy.',
-  ),
+  light('High Quality', '500-700 KB', 'Larger backup image for easier review.'),
+  balanced('Normal', '200-300 KB', 'Everyday black-and-white backup image.'),
   strong(
     'Low Storage',
     '100-150 KB',
-    'Smaller saved proof copy with extra contrast.',
+    'Smaller backup image with extra contrast.',
   ),
-  maximum('Tiny Backup', '40-100 KB', 'Smallest saved proof. Review first.');
+  maximum('Tiny Backup', '40-100 KB', 'Smallest backup image. Review first.');
 
   const ReceiptDataSaverLevel(this.label, this.shortLabel, this.description);
 

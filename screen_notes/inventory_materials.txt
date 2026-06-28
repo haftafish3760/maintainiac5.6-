@@ -76,3 +76,16 @@ hard upper comfort limit if possible, so the full app can stay under about
 common names, and trade-pack data, but the complete tens-of-thousands item
 catalog should not bloat the base Play Store install if downloadable packs can
 avoid it."
+
+Source: visible user message, 2026-06-27 Batch trade-pack/parser scale
+
+"The inventory/material catalog must be built the smart way, not by hard-coding
+every item as individual UI/code. Trade packs should be data-driven,
+downloadable, compressed, and validated before any Firebase upload. The parser
+must use aliases, abbreviations, normalized terms, merchant/SKU room, and
+user-confirmed learning so scanned receipts from places such as Lowe's, Home
+Depot, Ace, Ferguson, and similar suppliers can assist inventory entry instead
+of making users type every line manually. Firebase writes must be bundled; do
+not write one document per item during pack generation. Residential and
+light-industrial usefulness is the priority, with each trade pack preferably
+kept around 30-50 MB or less where practical."

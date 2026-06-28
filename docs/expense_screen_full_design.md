@@ -50,6 +50,15 @@ from privacy-safe counts and quality buckets. They must not include raw receipt
 text, item descriptions, store names, customer data, addresses, notes, or
 receipt images.
 
+Expense OCR Command Center health may be attached to the same
+`orgs/{orgId}/expenseTelemetrySummaries/{summaryId}` document as
+`commandCenterOcrContract`. It must pass the OCR contract privacy audit before
+queueing. This preserves the single-summary-document cost shape: no per-receipt
+admin health writes, no Firestore read per receipt, and no raw receipt content
+in Command 1. The uploaded summary keeps `uploadShape` as
+`single_summary_document`.
+Rule: no per-receipt admin health writes.
+
 Expense telemetry may track:
 
 - screen opened, screen closed, and time spent on screen.
@@ -353,6 +362,14 @@ Shows and edits the shared odometer. It is global across Maintainiac.
 Appears only when there are multiple saved vehicles. Shows the active vehicle
 used by the user's most recent workflow.
 
+Every expense created while a vehicle is active must keep an explicit ownership
+context: selected vehicle, employee/person when applicable, work profile, and
+company/fleet scope when applicable. In single-vehicle mode this can default
+quietly. In multi-vehicle, employee, contractor, or fleet-style accounts the
+user must be able to confirm or change which vehicle and person the expense
+belongs to before saving, so vehicle cost, employee activity, business/personal
+split reporting, and future fleet permissions all stay accurate.
+
 ### Expense Totals Strip
 
 Shows weekly and monthly totals. Later expands to business, personal, and mixed
@@ -513,6 +530,8 @@ Returns to the previous screen in the stack.
 - [ ] Odometer is at the top.
 - [ ] Vehicle block appears only for multiple saved vehicles.
 - [ ] Vehicle block shows active vehicle.
+- [ ] Expense save records vehicle/person/work-profile ownership context.
+- [ ] Multi-vehicle and employee accounts can confirm or change expense owner.
 - [ ] Weekly and monthly totals are visible.
 - [ ] Message center is visible.
 - [ ] 12 quick categories are visible.

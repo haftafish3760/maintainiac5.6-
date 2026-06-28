@@ -6,4 +6,6 @@ final masonryConcreteCatalog =
       masonryConcreteMasonryMaterialsCategory,
       masonryConcreteReinforcementAndFormsCategory,
       masonryConcreteAnchorsAndRepairCategory,
+      masonryConcreteGeneratedServiceCatalogCategory,
+      masonryConcreteGeneratedDetailCatalogCategory,
     ]);

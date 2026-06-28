@@ -6,6 +6,22 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart"
+    },
+    {
+      "name": "Maintainiac 5.6 - S24 Ultra",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "R5CX14WC8FA",
+      "flutterMode": "debug"
+    },
+    {
+      "name": "Maintainiac 5.6 - iPhone",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "00008110-001C603A0E2A401E",
+      "flutterMode": "debug"
     }
   ]
 }

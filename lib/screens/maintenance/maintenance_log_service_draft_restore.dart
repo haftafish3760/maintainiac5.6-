@@ -33,11 +33,7 @@ extension _MaintenanceLogServiceDraftRestore
         _seededOdometer = true;
       }
       _provider.text = draft['provider']?.toString() ?? _provider.text;
-      _totalCost.text = draft['totalCost']?.toString() ?? _totalCost.text;
       _notes.text = draft['notes']?.toString() ?? _notes.text;
-      _hasReceipt = draft['hasReceipt'] is bool
-          ? draft['hasReceipt'] as bool
-          : _hasReceipt;
     });
   }
 

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:camera/camera.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:disk_space_plus/disk_space_plus.dart';
 import 'package:flutter/services.dart';
@@ -8,19 +7,22 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'receipt_assistance_policy.dart';
+import 'receipt_native_camera_service.dart';
 
 class ReceiptDeviceCapabilityService {
-  const ReceiptDeviceCapabilityService();
+  const ReceiptDeviceCapabilityService({
+    ReceiptNativeCameraService nativeCameraService =
+        const ReceiptNativeCameraService(),
+  }) : _nativeCameraService = nativeCameraService;
+
+  final ReceiptNativeCameraService _nativeCameraService;
 
   Future<ReceiptHardwareProfile> detectHardwareProfile() async {
     final cpuCores = Platform.numberOfProcessors;
     final device = await _readDeviceInfo();
     final package = await _readPackageInfo();
     final cameraPermission = await _readCameraPermissionGranted();
-    final cameras = await _readCameraDescriptions();
-    final rearCamera = cameras
-        .where((camera) => camera.lensDirection == CameraLensDirection.back)
-        .firstOrNull;
+    final nativeCamera = await _nativeCameraService.readCapabilities();
     return ReceiptHardwareProfile(
       platformName: Platform.operatingSystem,
       platformVersion: Platform.operatingSystemVersion,
@@ -34,12 +36,12 @@ class ReceiptDeviceCapabilityService {
       androidSdk: device.androidSdk ?? _readAndroidSdk(),
       freeStorageMb: await _readFreeStorageMb(),
       cameraPermissionGranted: cameraPermission,
-      cameraCount: cameras.length,
-      hasRearCamera: rearCamera != null,
-      hasFrontCamera: cameras.any(
-        (camera) => camera.lensDirection == CameraLensDirection.front,
-      ),
-      rearCameraName: rearCamera?.name,
+      cameraCount: nativeCamera.cameraCount,
+      hasRearCamera: nativeCamera.hasRearCamera,
+      hasFrontCamera: nativeCamera.hasFrontCamera,
+      maxStillWidth: nativeCamera.maxStillWidth,
+      maxStillHeight: nativeCamera.maxStillHeight,
+      rearCameraName: nativeCamera.engine.label,
     );
   }
 
@@ -157,18 +159,6 @@ class ReceiptDeviceCapabilityService {
       return status.isGranted || status.isLimited;
     } catch (_) {
       return false;
-    }
-  }
-
-  Future<List<CameraDescription>> _readCameraDescriptions() async {
-    try {
-      return await availableCameras();
-    } on CameraException {
-      return const [];
-    } on PlatformException {
-      return const [];
-    } catch (_) {
-      return const [];
     }
   }
 }

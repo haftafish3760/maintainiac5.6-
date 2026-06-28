@@ -333,6 +333,11 @@ class _ReceiptOcrReviewPanel extends StatelessWidget {
         '${review.warningCount} OCR ${review.warningCount == 1 ? 'warning' : 'warnings'}',
     ];
     final warning = review.primaryWarningLabel;
+    final primaryIssue = review.commandCenterPrimaryIssue;
+    final primaryAction = review.commandCenterPrimaryAction;
+    final recoveryAction = _recoveryActionLabel(review.recoveryAction);
+    final recoveryTarget = _recoveryTargetLabel(review.recoveryTarget);
+    final showRecovery = recoveryAction.isNotEmpty || recoveryTarget.isNotEmpty;
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
       decoration: BoxDecoration(
@@ -372,9 +377,12 @@ class _ReceiptOcrReviewPanel extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            warning.isEmpty
-                ? _statusDetail(review.severity)
-                : '$warning. ${_statusDetail(review.severity)}',
+            [
+              if (warning.isNotEmpty) warning,
+              if (primaryIssue.isNotEmpty) primaryIssue,
+              if (primaryAction.isNotEmpty) primaryAction,
+              _statusDetail(review.severity),
+            ].where((part) => part.trim().isNotEmpty).join('. '),
             style: const TextStyle(
               color: Color(0xFFC8D0D3),
               fontSize: 12,
@@ -383,6 +391,36 @@ class _ReceiptOcrReviewPanel extends StatelessWidget {
               letterSpacing: 0,
             ),
           ),
+          if (showRecovery) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: .18),
+                borderRadius: BorderRadius.circular(7),
+                border: Border.all(color: color.withValues(alpha: .24)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (recoveryAction.isNotEmpty)
+                    _ReceiptOcrReviewDetailLine(
+                      label: 'Recovery',
+                      value: recoveryAction,
+                      color: color,
+                    ),
+                  if (recoveryTarget.isNotEmpty) ...[
+                    if (recoveryAction.isNotEmpty) const SizedBox(height: 5),
+                    _ReceiptOcrReviewDetailLine(
+                      label: 'Check area',
+                      value: recoveryTarget,
+                      color: color,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
           if (chips.isNotEmpty) ...[
             const SizedBox(height: 8),
             Wrap(
@@ -437,6 +475,87 @@ class _ReceiptOcrReviewPanel extends StatelessWidget {
         'The receipt was readable, but the app flagged it for review.',
       _ => 'Receipt read details were saved with this record.',
     };
+  }
+
+  static String _recoveryActionLabel(String action) {
+    return switch (action.trim()) {
+      'add_missing_section' => 'Add missing receipt section',
+      'attach_proof' => 'Attach receipt proof',
+      'attach_safe_pdf' => 'Attach a safe PDF or photo',
+      'choose_clearest_source' => 'Choose the clearest receipt source',
+      'manual_entry' || 'manual_receipt_entry' => 'Continue by hand',
+      'paste_cleaner_text' => 'Paste cleaner receipt text',
+      'replace_pdf_or_add_photo' => 'Replace PDF or add a photo',
+      'retake_or_review_photo' => 'Retake or review photo',
+      'retake_photo' => 'Retake photo',
+      'retake_photo_or_add_section' => 'Retake photo or add section',
+      'review_overlap' => 'Check overlap',
+      'review_receipt_manually' => 'Review receipt by hand',
+      'review_saved_proof' => 'Review saved proof',
+      'scan_receipt_with_photos' => 'Scan receipt with photos',
+      'use_smaller_pdf_or_photos' => 'Use a smaller PDF or photos',
+      _ => '',
+    };
+  }
+
+  static String _recoveryTargetLabel(String target) {
+    return switch (target.trim()) {
+      'receipt_attachment' => 'Receipt attachment',
+      'receipt_overlap' => 'Long receipt overlap',
+      'receipt_sections' => 'Receipt sections',
+      'receipt_pdf' => 'Receipt PDF',
+      'receipt_photo' => 'Receipt photo',
+      'receipt_review' => 'Receipt review',
+      'receipt_sources' => 'Receipt sources',
+      'receipt_text' => 'Receipt text',
+      _ => '',
+    };
+  }
+}
+
+class _ReceiptOcrReviewDetailLine extends StatelessWidget {
+  const _ReceiptOcrReviewDetailLine({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 86,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              height: 1.2,
+              letterSpacing: 0,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              color: Color(0xFFE8F0F2),
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+              letterSpacing: 0,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 

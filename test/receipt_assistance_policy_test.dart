@@ -371,6 +371,11 @@ void main() {
       freeStorageMb: 6144,
       lowPowerMode: true,
       hasOnDeviceAcceleration: true,
+      cameraPermissionGranted: true,
+      cameraCount: 4,
+      hasRearCamera: true,
+      maxStillWidth: 4032,
+      maxStillHeight: 3024,
     );
 
     expect(unknown.platformLabel, 'Unknown');
@@ -387,6 +392,8 @@ void main() {
     expect(detected.freeStorageLabel, '6.0 GB');
     expect(detected.lowPowerModeLabel, 'On');
     expect(detected.accelerationLabel, 'Detected');
+    expect(detected.maxStillMegapixels, 12);
+    expect(detected.cameraLabel, '4 cameras detected');
   });
 
   test(

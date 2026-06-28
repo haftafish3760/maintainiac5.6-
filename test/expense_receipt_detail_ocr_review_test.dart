@@ -22,6 +22,14 @@ void main() {
           source: 'mixed',
           warningKinds: ['duplicateText'],
           warningLabels: ['Duplicate lines ignored'],
+          primaryWarningKind: 'duplicateText',
+          primaryWarningLabelOverride: 'Duplicate lines ignored',
+          primaryWarningTargetLabel: 'Check long receipt overlap',
+          primaryWarningTargetInstruction:
+              'Check the stitch/overlap area and make sure the same charge was not counted twice.',
+          recoveryAction: 'review_overlap',
+          recoveryTarget: 'receipt_overlap',
+          recoverySummary: 'Check the long-receipt overlap before saving.',
           warningCount: 1,
           reviewWarningCount: 1,
           attachmentsRead: 2,
@@ -43,7 +51,6 @@ void main() {
         ],
       ),
     );
-
     await tester.pumpWidget(
       MaterialApp(
         home: AppStateScope(
@@ -75,6 +82,17 @@ void main() {
     expect(find.text('Receipt read review'), findsOneWidget);
     expect(find.text('Review'), findsOneWidget);
     expect(find.textContaining('Duplicate lines ignored'), findsOneWidget);
+    expect(find.textContaining('Check long receipt overlap'), findsOneWidget);
+    expect(
+      find.textContaining('same charge was not counted twice'),
+      findsOneWidget,
+    );
+    expect(find.text('Recovery'), findsOneWidget);
+    expect(find.text('Check overlap'), findsOneWidget);
+    expect(find.text('Check area'), findsOneWidget);
+    expect(find.text('Long receipt overlap'), findsOneWidget);
+    expect(find.textContaining('review_overlap'), findsNothing);
+    expect(find.textContaining('receipt_overlap'), findsNothing);
     expect(find.text('2 read'), findsOneWidget);
     expect(find.text('3 receipt lines ready'), findsOneWidget);
     expect(find.textContaining('parser'), findsNothing);
@@ -104,7 +122,6 @@ void main() {
         ],
       ),
     );
-
     await tester.pumpWidget(
       MaterialApp(
         home: AppStateScope(
@@ -125,12 +142,140 @@ void main() {
     expect(find.text('Receipt read review'), findsNothing);
   });
 
+  testWidgets('calendar day entry shows privacy-safe OCR recovery summary', (
+    tester,
+  ) async {
+    final ledger = ExpenseLedgerController.memory();
+    await ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'EXP-calendar-ocr',
+        receiptDate: DateTime(2026, 6, 23),
+        receiptTimeMinutes: 13 * 60,
+        merchantName: 'Receipt',
+        ocrReview: const ExpenseReceiptOcrReview(
+          severity: 'review',
+          source: 'mixed',
+          warningKinds: ['duplicateText'],
+          warningLabels: ['Duplicate lines ignored'],
+          primaryWarningKind: 'duplicateText',
+          primaryWarningLabelOverride: 'Duplicate lines ignored',
+          primaryWarningTargetLabel: 'Check long receipt overlap',
+          primaryWarningTargetInstruction:
+              'Check the stitch/overlap area and make sure the same charge was not counted twice.',
+          recoveryAction: 'review_overlap',
+          recoveryTarget: 'receipt_overlap',
+          recoverySummary: 'Check the long-receipt overlap before saving.',
+          warningCount: 1,
+          reviewWarningCount: 1,
+          attachmentsRead: 2,
+          rawLineCount: 4,
+          parserLineCount: 3,
+          hadDuplicateOrOverlapText: true,
+        ),
+        lines: const [
+          ExpenseReceiptLineRecord(
+            id: 'line-1',
+            description: 'PVC Glue',
+            category: 'Materials',
+            use: ExpenseLineUse.business,
+            quantity: 1,
+            unitsPerPackage: 1,
+            unit: 'each',
+            subtotal: 7.99,
+          ),
+        ],
+      ),
+    );
+
+    await ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'EXP-calendar-clean-read',
+        receiptDate: DateTime(2026, 6, 24),
+        receiptTimeMinutes: 9 * 60,
+        merchantName: 'Receipt',
+        ocrReview: const ExpenseReceiptOcrReview(
+          severity: 'good',
+          source: 'photo',
+          attachmentsRead: 1,
+          rawLineCount: 8,
+          parserLineCount: 4,
+          usedLocalOcr: true,
+        ),
+        lines: const [
+          ExpenseReceiptLineRecord(
+            id: 'line-2',
+            description: 'Shop supplies',
+            category: 'Supplies',
+            use: ExpenseLineUse.business,
+            quantity: 1,
+            unitsPerPackage: 1,
+            unit: 'each',
+            subtotal: 5,
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppStateScope(
+          controller: AppStateController(),
+          child: GlobalOdometerScope(
+            controller: GlobalOdometerController(),
+            child: ExpenseLedgerScope(
+              controller: ledger,
+              child: ExpenseDayScreen(day: DateTime(2026, 6, 23)),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      find.text('Read needs review: Check long receipt overlap'),
+      findsOneWidget,
+    );
+    expect(find.text('Receipt read health'), findsOneWidget);
+    expect(find.text('1 need review'), findsWidgets);
+    expect(
+      find.text(
+        '1 read saved | 1 need review | Top check: Check long receipt overlap',
+      ),
+      findsWidgets,
+    );
+    await tester.scrollUntilVisible(
+      find.text('Weekly'),
+      220,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Weekly'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Read Summary'),
+      220,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(
+      find.text(
+        '2 reads saved | 1 need review | 1 saved clean | Top check: Check long receipt overlap',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('review_overlap'), findsNothing);
+    expect(find.textContaining('receipt_overlap'), findsNothing);
+    expect(find.textContaining('LOWES'), findsNothing);
+    expect(find.textContaining('3.24'), findsNothing);
+  });
+
   test('saved receipt recovery routes preserve detail before edit', () async {
     final calendarActions = await File(
       'lib/screens/expenses/calendar/expense_calendar_actions.dart',
     ).readAsString();
     final dayEntries = await File(
       'lib/screens/expenses/calendar/expense_day_entries.dart',
+    ).readAsString();
+    final daySummarySections = await File(
+      'lib/screens/expenses/calendar/expense_day_summary_sections.dart',
     ).readAsString();
     final homeNavigation = await File(
       'lib/screens/expenses/home/expenses_home_navigation_actions.dart',
@@ -163,7 +308,28 @@ void main() {
     expect(detailInfo, contains('_ReceiptPhotoProofViewerScreen'));
     expect(detailInfo, contains('InteractiveViewer'));
     expect(detailInfo, contains('proofAccessLabel'));
+    expect(detailInfo, contains('_recoveryActionLabel'));
+    expect(detailInfo, contains('_recoveryTargetLabel'));
+    expect(detailInfo, contains('Recovery'));
+    expect(detailInfo, contains('Check area'));
+    expect(detailInfo, contains('Long receipt overlap'));
+    expect(detailInfo, contains('Read needs review'));
     expect(calendarModels, contains('totalForLine(line)'));
+    expect(calendarModels, contains('_calendarOcrStatusLabel'));
+    expect(calendarModels, contains('_calendarOcrRecoveryHintLabel'));
+    expect(calendarModels, contains('ocrSummaryLabel'));
+    expect(calendarModels, contains('_CalendarOcrDayRecap'));
+    expect(calendarModels, contains('fromLedgerRange'));
+    expect(calendarModels, contains('fromReceipts'));
+    expect(calendarModels, contains('_topCalendarOcrHint'));
+    expect(calendarModels, contains('Read needs review'));
+    expect(dayEntries, contains('entry.ocrSummaryLabel'));
+    expect(dayEntries, contains('Read saved'));
+    expect(daySummarySections, contains('_CalendarOcrDayRecapPanel'));
+    expect(daySummarySections, contains('Receipt read health'));
+    expect(daySummarySections, contains('Receipt Read Status'));
+    expect(daySummarySections, contains('Read Summary'));
+    expect(daySummarySections, contains('Top Check'));
     expect(
       calendarActions,
       isNot(contains('ExpenseReceiptEntryScreen(\n        initialCategory')),

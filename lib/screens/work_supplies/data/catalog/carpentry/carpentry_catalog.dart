@@ -8,4 +8,6 @@ final carpentryCatalog = _trade('Carpentry', const Color(0xFFB57742), [
   carpentryConnectorsAndFramingHardwareCategory,
   carpentryAdhesivesAndSealantsCategory,
   carpentryDeckingAndExteriorWoodCategory,
+  carpentryGeneratedServiceCatalogCategory,
+  carpentryGeneratedDetailCatalogCategory,
 ]);

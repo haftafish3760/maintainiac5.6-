@@ -5,4 +5,6 @@ final insulationCatalog = _trade('Insulation', const Color(0xFFDF9A3A), [
   insulationFoamAndAirSealingCategory,
   insulationBlownInsulationCategory,
   insulationVaporBarriersAndAccessoriesCategory,
+  insulationGeneratedServiceCatalogCategory,
+  insulationGeneratedDetailCatalogCategory,
 ]);

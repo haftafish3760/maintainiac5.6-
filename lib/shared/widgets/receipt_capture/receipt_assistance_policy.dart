@@ -99,6 +99,8 @@ class ReceiptHardwareProfile {
     this.cameraCount = 0,
     this.hasRearCamera = false,
     this.hasFrontCamera = false,
+    this.maxStillWidth = 0,
+    this.maxStillHeight = 0,
     this.rearCameraName,
   });
 
@@ -120,7 +122,14 @@ class ReceiptHardwareProfile {
   final int cameraCount;
   final bool hasRearCamera;
   final bool hasFrontCamera;
+  final int maxStillWidth;
+  final int maxStillHeight;
   final String? rearCameraName;
+
+  int get maxStillMegapixels {
+    if (maxStillWidth <= 0 || maxStillHeight <= 0) return 0;
+    return ((maxStillWidth * maxStillHeight) / 1000000).round();
+  }
 
   ReceiptCapabilityTier tierFor(ReceiptPerformanceMode mode) {
     return switch (mode) {
@@ -185,6 +194,7 @@ class ReceiptHardwareProfile {
     }
     if (hasOnDeviceAcceleration) score += 2;
     if (cameraPermissionGranted && hasRearCamera) score += 1;
+    if (maxStillMegapixels >= 12) score += 1;
     final storage = freeStorageMb;
     if (storage != null && storage >= 4096) score += 1;
     return score;

@@ -1,70 +1,5 @@
 part of 'maintenance_log_service_screen.dart';
 
-class _LogFlowProgress extends StatelessWidget {
-  const _LogFlowProgress({required this.step});
-
-  final int step;
-
-  @override
-  Widget build(BuildContext context) {
-    const labels = ['Items', 'Details', 'Review'];
-    return Row(
-      children: [
-        for (var index = 0; index < labels.length; index++) ...[
-          Expanded(
-            child: _ProgressPill(
-              label: labels[index],
-              active: index == step,
-              complete: index < step,
-            ),
-          ),
-          if (index != labels.length - 1) const SizedBox(width: 6),
-        ],
-      ],
-    );
-  }
-}
-
-class _ProgressPill extends StatelessWidget {
-  const _ProgressPill({
-    required this.label,
-    required this.active,
-    required this.complete,
-  });
-
-  final String label;
-  final bool active;
-  final bool complete;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = complete
-        ? AppColors.green
-        : active
-        ? AppColors.blue
-        : const Color(0xFF3B464C);
-    return Container(
-      constraints: const BoxConstraints(minHeight: 34),
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(5),
-      ),
-      child: Text(
-        label,
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    );
-  }
-}
-
 class _LogSection extends StatelessWidget {
   const _LogSection({required this.title, required this.child});
 
@@ -89,31 +24,88 @@ class _LogSection extends StatelessWidget {
   }
 }
 
-class _ResponsiveLogPair extends StatelessWidget {
-  const _ResponsiveLogPair({required this.left, required this.right});
+class _ManualItemNavigator extends StatelessWidget {
+  const _ManualItemNavigator({
+    required this.activeItem,
+    required this.itemIndex,
+    required this.itemCount,
+    required this.onPrevious,
+    required this.onNext,
+    required this.onOpenSetup,
+  });
 
-  final Widget left;
-  final Widget right;
+  final MaintenanceRecord activeItem;
+  final int itemIndex;
+  final int itemCount;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+  final VoidCallback onOpenSetup;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < 300) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [left, const SizedBox(height: 12), right],
-          );
-        }
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: left),
-            const SizedBox(width: 10),
-            Expanded(child: right),
-          ],
-        );
-      },
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF11191C),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: const Color(0xFF4B5960)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              MaintenanceSvgIcon(itemName: activeItem.itemName, size: 40),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Item ${itemIndex + 1} of $itemCount',
+                      style: const TextStyle(
+                        color: Color(0xFFCAD2D5),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      activeItem.itemName,
+                      style: const TextStyle(
+                        color: Color(0xFFE7EEF1),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: onOpenSetup,
+                child: const Text('Open Setup'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              AppButton(
+                label: 'Previous Item',
+                compact: true,
+                onPressed: onPrevious,
+              ),
+              const Spacer(),
+              AppButton(
+                label: 'Next Item',
+                compact: true,
+                tone: AppButtonTone.commit,
+                onPressed: onNext,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -132,6 +124,47 @@ class _InlineNotice extends StatelessWidget {
         fontSize: 12,
         fontWeight: FontWeight.w800,
         height: 1.25,
+      ),
+    );
+  }
+}
+
+class _InlineAlert extends StatelessWidget {
+  const _InlineAlert({required this.text, this.urgent = false});
+
+  final String text;
+  final bool urgent;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = urgent ? AppColors.red : AppColors.orange;
+    final textColor = urgent ? Colors.white : const Color(0xFF101416);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            urgent ? Icons.error_outline_rounded : Icons.warning_amber_rounded,
+            color: textColor,
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                height: 1.2,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

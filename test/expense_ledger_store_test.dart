@@ -348,6 +348,108 @@ void main() {
       1,
     );
     expect(loaded.ocrReview.primaryWarningLabel, 'Receipt reading off');
+    expect(
+      loaded.ocrReview.primaryWarningKind,
+      ReceiptOcrWarningKind.sourceSkipped.name,
+    );
+    expect(loaded.ocrReview.primaryWarningTargetLabel, 'Check saved proof');
+    expect(loaded.ocrReview.recoveryAction, 'review_saved_proof');
+    expect(loaded.ocrReview.recoveryTarget, 'receipt_photo');
+    expect(
+      loaded.ocrReview.recoverySummary,
+      'Review the saved proof or turn receipt reading back on.',
+    );
+    expect(loaded.ocrReview.commandCenterSummary['source'], 'photo');
+    expect(
+      loaded.ocrReview.commandCenterSummary['recoveryAction'],
+      'review_saved_proof',
+    );
+    expect(
+      loaded.ocrReview.commandCenterSummary['recoveryTarget'],
+      'receipt_photo',
+    );
+    expect(
+      loaded.ocrReview.commandCenterPrimaryAction,
+      contains('saved proof'),
+    );
+    expect(ledger.receiptsNeedingOcrReview.map((receipt) => receipt.id), [
+      'EXP-ocr',
+    ]);
+    expect(ledger.ocrRecoveryActionCounts, {'review_saved_proof': 1});
+    expect(ledger.ocrRecoveryTargetCounts, {'receipt_photo': 1});
+    expect(ledger.topOcrRecoveryAction, 'review_saved_proof');
+    expect(ledger.topOcrRecoveryTarget, 'receipt_photo');
+  });
+
+  test('saved receipt OCR recovery aggregates stay privacy-safe', () async {
+    final ledger = ExpenseLedgerController.memory();
+    await ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'EXP-safe-recovery',
+        receiptDate: DateTime(2026, 6, 11),
+        ocrReview: const ExpenseReceiptOcrReview(
+          severity: 'review',
+          source: 'photo',
+          primaryWarningKind: 'sectionGap',
+          recoveryAction: 'add_missing_section',
+          recoveryTarget: 'receipt_sections',
+          recoverySummary: 'Add the missing receipt section.',
+          warningCount: 1,
+        ),
+        lines: const [
+          ExpenseReceiptLineRecord(
+            id: 'LINE-safe',
+            description: 'Receipt total',
+            category: 'Uncategorized',
+            use: ExpenseLineUse.business,
+            quantity: 1,
+            unitsPerPackage: 1,
+            unit: 'each',
+            subtotal: 12,
+          ),
+        ],
+      ),
+    );
+    await ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'EXP-private-recovery',
+        receiptDate: DateTime(2026, 6, 12),
+        ocrReview: const ExpenseReceiptOcrReview(
+          severity: 'review',
+          source: 'photo',
+          primaryWarningKind: 'photoQuality',
+          recoveryAction: 'private_store_total_3_24',
+          recoveryTarget: 'receipt_photo',
+          recoverySummary: 'Lowes total 3.24 needs review.',
+          warningCount: 1,
+        ),
+        lines: const [
+          ExpenseReceiptLineRecord(
+            id: 'LINE-private',
+            description: 'Receipt total',
+            category: 'Uncategorized',
+            use: ExpenseLineUse.business,
+            quantity: 1,
+            unitsPerPackage: 1,
+            unit: 'each',
+            subtotal: 3.24,
+          ),
+        ],
+      ),
+    );
+
+    expect(ledger.receiptsNeedingOcrReview.length, 2);
+    expect(ledger.ocrRecoveryActionCounts, {'add_missing_section': 1});
+    expect(ledger.ocrRecoveryTargetCounts, {
+      'receipt_sections': 1,
+      'receipt_photo': 1,
+    });
+    expect(ledger.topOcrRecoveryAction, 'add_missing_section');
+    expect(ledger.topOcrRecoveryTarget, 'receipt_photo');
+    expect(
+      ledger.ocrRecoveryActionCounts.containsKey('private_store_total_3_24'),
+      isFalse,
+    );
   });
 
   test(

@@ -10,10 +10,15 @@ import '../../storage/app_storage_guard.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_assistance_policy.dart';
 import 'receipt_capture_settings_store.dart';
+import 'receipt_camera_permission.dart';
 import 'receipt_edge_cropper.dart';
 import 'receipt_image_processor.dart';
 import 'receipt_image_picker.dart';
+import 'receipt_native_capture_staging.dart';
+import 'receipt_native_camera_contract.dart';
+import 'receipt_native_camera_service.dart';
 import 'receipt_picker_status.dart';
+import 'receipt_proof_storage.dart';
 import 'receipt_scanner_service.dart';
 import 'receipt_storage_guard.dart';
 
@@ -34,6 +39,8 @@ enum _ReceiptReviewMenuAction {
   remove,
 }
 
+enum _ReceiptReviewExitAction { keepReviewing, saveAndRead, discard }
+
 class ReceiptPhotoReviewScreen extends StatefulWidget {
   const ReceiptPhotoReviewScreen({
     super.key,
@@ -43,6 +50,7 @@ class ReceiptPhotoReviewScreen extends StatefulWidget {
     this.initialSelectedIndex = 0,
     this.initialQualityChecks = const [],
     this.initialQualityChecksByPath = const {},
+    this.initialCaptureDiagnosticsByPath = const {},
   });
 
   final List<String> initialPhotoPaths;
@@ -51,6 +59,7 @@ class ReceiptPhotoReviewScreen extends StatefulWidget {
   final int initialSelectedIndex;
   final List<ReceiptPhotoQualityCheck> initialQualityChecks;
   final Map<String, ReceiptPhotoQualityCheck> initialQualityChecksByPath;
+  final Map<String, Map<String, Object?>> initialCaptureDiagnosticsByPath;
 
   @override
   State<ReceiptPhotoReviewScreen> createState() =>
@@ -75,6 +84,9 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   final _dataSaverPreviewPaths = <String, String>{};
   final _dataSaverPreviewKeysInFlight = <String>{};
   final _generatedEditPaths = <String>{};
+  late final _captureDiagnosticsByPath = <String, Map<String, Object?>>{
+    ...widget.initialCaptureDiagnosticsByPath,
+  };
   final _manualOverlapFractions = <double?>[];
   var _closingReview = false;
   late final _qualityChecksByPath = _initialQualityChecksByPath();
@@ -82,6 +94,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   String? _stitchPreviewKey;
   bool _stitchPreviewInFlight = false;
   Timer? _stitchPreviewDebounce;
+  var _reviewDisposed = false;
   Uint8List? _cropImageBytes;
   Size? _cropImageSize;
   Rect? _cropRect;
@@ -112,6 +125,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
 
   @override
   void dispose() {
+    _reviewDisposed = true;
     _stitchPreviewDebounce?.cancel();
     _toolControlsScrollController.dispose();
     unawaited(_deleteGeneratedStitchPreview());
@@ -171,10 +185,10 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
                     reviewMode: _reviewMode,
                     bestShotCandidateMode: widget.bestShotCandidateMode,
                     onClose: _reviewMode == _ReceiptReviewMode.crop
-                        ? () => _setReviewMode(_ReceiptReviewMode.preview)
+                        ? _cancelCropReview
                         : _leaveReceiptReviewWithoutSaving,
                     onHideControls: () =>
-                        setState(() => _controlsVisible = false),
+                        _updateReviewState(() => _controlsVisible = false),
                     onMenuSelected: _handleMenuAction,
                   ),
                 ),
@@ -207,7 +221,8 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
                     child: _OverlayIconButton(
                       icon: Icons.tune_rounded,
                       label: 'Show controls',
-                      onPressed: () => setState(() => _controlsVisible = true),
+                      onPressed: () =>
+                          _updateReviewState(() => _controlsVisible = true),
                     ),
                   ),
                 ),
@@ -293,6 +308,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
       dataSaverLevel: _dataSaverLevel,
       storagePreview: _storagePreviews[_previewKey(photoPath)],
       selectedQualityCheck: _qualityChecksByPath[photoPath],
+      selectedCaptureDiagnostics: _captureDiagnosticsByPath[photoPath],
       reviewMode: _reviewMode,
       stitchPreview: _stitchPreviewResult,
       stitchPreviewInFlight: _stitchPreviewInFlight,
@@ -306,11 +322,13 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
       openingCamera: _openingCamera,
       cropProcessing: _cropProcessing,
       savingPhotos: _savingPhotos,
-      onPhotoSelected: (index) => setState(() => _selectedIndex = index),
-      onDataSaverSelected: (level) => setState(() => _dataSaverLevel = level),
+      onPhotoSelected: (index) =>
+          _updateReviewState(() => _selectedIndex = index),
+      onDataSaverSelected: (level) =>
+          _updateReviewState(() => _dataSaverLevel = level),
       onModeChanged: _setReviewMode,
       onStitchPairSelected: (index) =>
-          setState(() => _selectedStitchPairIndex = index),
+          _updateReviewState(() => _selectedStitchPairIndex = index),
       onManualOverlapChanged: _setManualOverlapFraction,
       onClearManualOverlap: _clearManualOverlapFraction,
       onMoveEarlier: () => _moveCurrentPhoto(-1),
@@ -321,7 +339,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
       onRotateRight: () => _rotateCurrentPhoto(90),
       onResetCrop: _resetCrop,
       onApplyCrop: _applyCrop,
-      onCancelCrop: () => _setReviewMode(_ReceiptReviewMode.preview),
+      onCancelCrop: _cancelCropReview,
       onAddPhoto: _addAnotherPhoto,
       onRetake: _retakeCurrentPhoto,
       onRemove: () => unawaited(_removeCurrentPhoto()),
@@ -331,13 +349,24 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   }
 
   double _reviewBottomControlsMaxHeight(BuildContext context) {
-    final proportional = MediaQuery.sizeOf(context).height * .22;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    // Keep the receipt itself dominant: the photo/review surface should own
+    // roughly 75-80% of the screen even when deeper tools are open.
+    final proportional =
+        screenHeight *
+        switch (_reviewMode) {
+          _ReceiptReviewMode.preview => .18,
+          _ReceiptReviewMode.crop => .12,
+          _ReceiptReviewMode.order => .17,
+          _ReceiptReviewMode.stitch => .18,
+          _ReceiptReviewMode.dataSaver => .18,
+        };
     final absolute = switch (_reviewMode) {
-      _ReceiptReviewMode.preview => _photoPaths.length > 1 ? 150.0 : 112.0,
-      _ReceiptReviewMode.crop => 96.0,
-      _ReceiptReviewMode.order => 154.0,
-      _ReceiptReviewMode.stitch => 176.0,
-      _ReceiptReviewMode.dataSaver => 170.0,
+      _ReceiptReviewMode.preview => _photoPaths.length > 1 ? 132.0 : 104.0,
+      _ReceiptReviewMode.crop => 88.0,
+      _ReceiptReviewMode.order => 112.0,
+      _ReceiptReviewMode.stitch => 126.0,
+      _ReceiptReviewMode.dataSaver => 142.0,
     };
     return proportional < absolute ? proportional : absolute;
   }
@@ -351,7 +380,8 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
       children: [
         GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () => setState(() => _controlsVisible = !_controlsVisible),
+          onTap: () =>
+              _updateReviewState(() => _controlsVisible = !_controlsVisible),
           child: SafeArea(
             child: Padding(
               padding: EdgeInsets.fromLTRB(
@@ -396,7 +426,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   }
 
   double _reviewSurfaceBottomPadding(BuildContext context) {
-    return _reviewBottomControlsMaxHeight(context) + 8;
+    return _reviewBottomControlsMaxHeight(context) + 4;
   }
 
   Widget _buildCropSurface(String photoPath) {
@@ -433,7 +463,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   void _setCropRectFromCropper(Rect rect) {
     if (!mounted || _reviewMode != _ReceiptReviewMode.crop) return;
     if (_cropRect == rect) return;
-    setState(() => _cropRect = rect);
+    _updateReviewState(() => _cropRect = rect);
   }
 
   void _setCropDisplayRectFromCropper(Rect rect) {
@@ -478,7 +508,9 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
             pairIndex: pairIndex,
             totalPairs: _photoPaths.length - 1,
             overlapFraction: overlap,
-            bottomInset: _controlsVisible ? 154 : 18,
+            bottomInset: _controlsVisible
+                ? _reviewSurfaceBottomPadding(context)
+                : 18,
           ),
           Positioned(
             left: 12,
@@ -499,12 +531,14 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
       pairIndex: pairIndex,
       totalPairs: _photoPaths.length - 1,
       overlapFraction: overlap,
-      bottomInset: _controlsVisible ? 154 : 18,
+      bottomInset: _controlsVisible ? _reviewSurfaceBottomPadding(context) : 18,
     );
   }
 
-  void _updateReviewState(VoidCallback update) {
+  bool _updateReviewState(VoidCallback update) {
+    if (!mounted || _reviewDisposed) return false;
     setState(update);
+    return true;
   }
 
   void _syncManualOverlapSlots() {
@@ -525,7 +559,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   void _setManualOverlapFraction(double value) {
     _syncManualOverlapSlots();
     if (_manualOverlapFractions.isEmpty) return;
-    setState(() {
+    _updateReviewState(() {
       _manualOverlapFractions[_selectedStitchPairIndex] = value.clamp(.08, .48);
     });
     _scheduleStitchPreviewRefresh();
@@ -534,7 +568,9 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   void _clearManualOverlapFraction() {
     _syncManualOverlapSlots();
     if (_manualOverlapFractions.isEmpty) return;
-    setState(() => _manualOverlapFractions[_selectedStitchPairIndex] = null);
+    _updateReviewState(
+      () => _manualOverlapFractions[_selectedStitchPairIndex] = null,
+    );
     _scheduleStitchPreviewRefresh();
   }
 
@@ -566,10 +602,12 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
     }
     _stitchPreviewDebounce?.cancel();
     final previousPreviewPath = _stitchPreviewResult?.stitchedPath;
-    setState(() {
+    if (!_updateReviewState(() {
       _stitchPreviewInFlight = true;
       _stitchPreviewKey = key;
-    });
+    })) {
+      return;
+    }
     try {
       final manualOverlapFractions = _manualOverlapFractions
           .map((value) => value ?? 0)
@@ -587,7 +625,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
         return;
       }
       await _deleteStitchPreviewPath(previousPreviewPath);
-      setState(() {
+      _updateReviewState(() {
         _stitchPreviewResult = result;
         final failedPair = result.failedPairIndex;
         if (failedPair != null &&
@@ -599,7 +637,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() {
+      _updateReviewState(() {
         _stitchPreviewResult = ReceiptStitchResult.fallback(
           inputPaths: _photoPaths,
           warning:
@@ -643,9 +681,16 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
       final preview = await ReceiptImageProcessor.previewPreparedBackupFile(
         path: photoPath,
         level: _dataSaverLevel,
+        cleanupSettings: ReceiptImageCleanupSettings.fromDiagnostics(
+          _captureDiagnosticsByPath[photoPath],
+        ),
       );
-      if (!mounted) return;
-      setState(() => _storagePreviews[key] = preview);
+      if (!mounted ||
+          !_previewKeysInFlight.contains(key) ||
+          !_photoPaths.contains(photoPath)) {
+        return;
+      }
+      _updateReviewState(() => _storagePreviews[key] = preview);
     } catch (_) {
       if (!mounted) return;
     } finally {
@@ -683,9 +728,17 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
           await ReceiptImageProcessor.optimizePreparedBackupFile(
             path: photoPath,
             level: _dataSaverLevel,
+            cleanupSettings: ReceiptImageCleanupSettings.fromDiagnostics(
+              _captureDiagnosticsByPath[photoPath],
+            ),
           );
-      if (!mounted) return;
-      setState(() => _dataSaverPreviewPaths[key] = previewPath);
+      if (!mounted ||
+          !_dataSaverPreviewKeysInFlight.contains(key) ||
+          !_photoPaths.contains(photoPath)) {
+        await _deleteDataSaverPreviewPath(previewPath, sourcePath: photoPath);
+        return;
+      }
+      _updateReviewState(() => _dataSaverPreviewPaths[key] = previewPath);
     } catch (_) {
       if (mounted) _showCameraError('Could not preview this saved proof size.');
     } finally {
@@ -696,15 +749,28 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   String _dataSaverPreviewKey(String path) => '$path::${_dataSaverLevel.name}';
 
   Future<void> _deleteGeneratedDataSaverPreviews() async {
-    final originalPaths = _photoPaths.toSet();
     for (final path in _dataSaverPreviewPaths.values.toSet()) {
-      if (originalPaths.contains(path)) continue;
-      try {
-        final file = File(path);
-        if (await file.exists()) await file.delete();
-      } catch (_) {
-        // Best effort cleanup for app-created saved proof previews.
-      }
+      await _deleteDataSaverPreviewPath(path, keepRetained: false);
+    }
+  }
+
+  Future<void> _deleteDataSaverPreviewPath(
+    String path, {
+    String? sourcePath,
+    bool keepRetained = true,
+  }) async {
+    if (path.isEmpty) return;
+    if (sourcePath != null && path == sourcePath) return;
+    if (keepRetained &&
+        (_photoPaths.contains(path) ||
+            _dataSaverPreviewPaths.containsValue(path))) {
+      return;
+    }
+    try {
+      final file = File(path);
+      if (await file.exists()) await file.delete();
+    } catch (_) {
+      // Best effort cleanup for app-created saved proof previews.
     }
   }
 }
@@ -766,7 +832,7 @@ class _StitchPreviewStatusBanner extends StatelessWidget {
         : 'Combined Receipt Preview';
     final detail = rebuilding
         ? 'Maintainiac is checking whether the receipt photos still line up.'
-        : 'The photos matched safely. Next will review one combined receipt image.';
+        : stitch.nextStepLabel;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xDD050607),
@@ -885,7 +951,7 @@ class _StitchFallbackBanner extends StatelessWidget {
                   ],
                   const SizedBox(height: 4),
                   Text(
-                    '$detail If these two photos show repeated lines, adjust the match below. If not, tap Next and the app reviews each photo from top to bottom.',
+                    '$detail If these two receipt sections show repeated lines, adjust the match below. If not, tap Next and Maintainiac opens the filled receipt review from each section, top to bottom.',
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -951,7 +1017,7 @@ class _ReceiptStitchPairPreview extends StatelessWidget {
                   border: Border.all(color: const Color(0xFFFFE7A8)),
                 ),
                 child: Text(
-                  'Match repeated receipt text: $overlapPercent% guide, ${pairIndex + 1} of $totalPairs',
+                  'Line up repeated receipt text: $overlapPercent% overlap guide, pair ${pairIndex + 1} of $totalPairs',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Color(0xFF11181B),

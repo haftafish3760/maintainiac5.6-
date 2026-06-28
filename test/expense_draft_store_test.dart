@@ -119,8 +119,168 @@ void main() {
       1,
     );
     expect(loaded.ocrReview.primaryWarningLabel, 'Duplicate lines ignored');
+    expect(
+      loaded.ocrReview.primaryWarningKind,
+      ReceiptOcrWarningKind.duplicateText.name,
+    );
+    expect(
+      loaded.ocrReview.primaryWarningTargetLabel,
+      'Check long receipt overlap',
+    );
+    expect(
+      loaded.ocrReview.primaryWarningTargetInstruction,
+      contains('same charge was not counted twice'),
+    );
+    expect(loaded.ocrReview.recoveryAction, 'review_overlap');
+    expect(loaded.ocrReview.recoveryTarget, 'receipt_overlap');
+    expect(
+      loaded.ocrReview.recoverySummary,
+      'Check the long-receipt overlap before saving.',
+    );
+    expect(loaded.ocrReview.commandCenterSummary['source'], 'importedText');
     expect(loaded.ocrReview.hadDuplicateOrOverlapText, isTrue);
   });
+
+  test('OCR review summary stays privacy-safe for Command 1', () {
+    const review = ExpenseReceiptOcrReview(
+      severity: 'review',
+      source: 'photo',
+      primaryWarningKind: 'sectionGap',
+      primaryWarningLabelOverride: 'Possible missing receipt section',
+      primaryWarningTargetLabel: 'Check missing receipt section',
+      primaryWarningTargetInstruction:
+          'Check the receipt photos from top to bottom and add the missing middle section if needed.',
+      warningCount: 2,
+      reviewWarningCount: 2,
+      attachmentsRead: 2,
+      attachmentsSkipped: 1,
+      parserLineCount: 9,
+      recoveryAction: 'add_missing_section',
+      recoveryTarget: 'receipt_sections',
+      recoverySummary:
+          'Add the missing receipt section or confirm the photos are in order.',
+    );
+
+    expect(review.commandCenterPrimaryIssue, 'Check missing receipt section');
+    expect(
+      review.commandCenterPrimaryAction,
+      contains('receipt photos from top to bottom'),
+    );
+    expect(review.commandCenterSummary, {
+      'severity': 'review',
+      'source': 'photo',
+      'needsReview': true,
+      'warningCount': 2,
+      'blockingWarningCount': 0,
+      'partialWarningCount': 0,
+      'reviewWarningCount': 2,
+      'attachmentsRead': 2,
+      'attachmentsSkipped': 1,
+      'parserLineCount': 9,
+      'primaryWarningKind': 'sectionGap',
+      'recoveryAction': 'add_missing_section',
+      'recoveryTarget': 'receipt_sections',
+      'primaryIssue': 'Check missing receipt section',
+      'primaryAction':
+          'Check the receipt photos from top to bottom and add the missing middle section if needed.',
+      'privacyScope': 'summary_only_no_receipt_content',
+    });
+    expect(review.commandCenterSummary.toString(), isNot(contains('LOWES')));
+    expect(review.commandCenterSummary.toString(), isNot(contains('TOTAL')));
+  });
+
+  test('OCR review summary redacts unsafe warning copy for Command 1', () {
+    const review = ExpenseReceiptOcrReview(
+      severity: 'blocked',
+      source: 'photo',
+      primaryWarningKind: 'photoQuality',
+      primaryWarningLabelOverride:
+          'LOWES 6400 Brodie Lane Austin TX total 3.24',
+      primaryWarningTargetLabel: 'Customer receipt at /tmp/private.jpg',
+      primaryWarningTargetInstruction:
+          'Call 512-895-5560 about LOWES invoice 18934 for 3.24',
+      warningLabels: [
+        'LOWES 6400 Brodie Lane Austin TX total 3.24',
+        'Receipt photo quality needs review',
+      ],
+      warningCount: 1,
+      blockingWarningCount: 1,
+      attachmentsRead: 1,
+      rawLineCount: 26,
+      parserLineCount: 0,
+      recoveryAction: 'private_store_total_3_24',
+      recoveryTarget: 'receipt_photo',
+      recoverySummary:
+          'LOWES 6400 Brodie Lane Austin TX total 3.24 private receipt',
+    );
+
+    final summary = review.commandCenterSummary;
+    final encoded = summary.toString().toLowerCase();
+
+    expect(review.commandCenterPrimaryIssue, 'Receipt photo needs review');
+    expect(
+      review.commandCenterPrimaryAction,
+      contains('Retake or crop the receipt'),
+    );
+    expect(summary['privacyScope'], 'summary_only_no_receipt_content');
+    expect(summary['recoveryAction'], '');
+    expect(summary['recoveryTarget'], 'receipt_photo');
+    expect(encoded, isNot(contains('lowes')));
+    expect(encoded, isNot(contains('brodie')));
+    expect(encoded, isNot(contains('austin')));
+    expect(encoded, isNot(contains('512')));
+    expect(encoded, isNot(contains('/tmp')));
+    expect(encoded, isNot(contains('3.24')));
+    expect(encoded, isNot(contains('invoice 18934')));
+    expect(summary['recoveryTarget'], 'receipt_photo');
+  });
+
+  test('OCR review map backfills safe recovery details for older drafts', () {
+    final review = ExpenseReceiptOcrReview.fromMap({
+      'severity': 'blocked',
+      'source': 'pdf',
+      'primaryWarningKind': 'pdfReadFailure',
+      'warningCount': 1,
+      'blockingWarningCount': 1,
+      'attachmentsRead': 0,
+      'attachmentsSkipped': 1,
+    });
+
+    expect(review.recoveryAction, 'scan_receipt_with_photos');
+    expect(review.recoveryTarget, 'receipt_pdf');
+    expect(review.recoverySummary, contains('Scan the receipt with photos'));
+    expect(
+      review.commandCenterSummary['recoveryAction'],
+      'scan_receipt_with_photos',
+    );
+    expect(review.commandCenterSummary['recoveryTarget'], 'receipt_pdf');
+    expect(review.commandCenterPrimaryAction, contains('Scan the receipt'));
+  });
+
+  test(
+    'OCR review summary has safe defaults for healthy and empty records',
+    () {
+      const healthy = ExpenseReceiptOcrReview(
+        severity: 'good',
+        source: 'photo',
+        attachmentsRead: 1,
+        parserLineCount: 4,
+      );
+      const empty = ExpenseReceiptOcrReview();
+
+      expect(healthy.commandCenterPrimaryIssue, 'Receipt OCR looks healthy');
+      expect(healthy.commandCenterPrimaryAction, 'No OCR action needed.');
+      expect(healthy.commandCenterSummary['needsReview'], isFalse);
+      expect(healthy.commandCenterSummary['recoveryAction'], '');
+      expect(healthy.commandCenterSummary['recoveryTarget'], '');
+      expect(empty.commandCenterPrimaryIssue, 'No OCR review data');
+      expect(
+        empty.commandCenterPrimaryAction,
+        'No receipt OCR action is available yet.',
+      );
+      expect(empty.commandCenterSummary['warningCount'], 0);
+    },
+  );
 
   test(
     'empty drafts are removed instead of cluttering the home screen',

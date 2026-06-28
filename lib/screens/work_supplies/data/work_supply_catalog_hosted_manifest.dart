@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 
 import 'work_supply_catalog.dart';
 import 'work_supply_catalog_audit.dart';
+import 'work_supply_catalog_pack_payload.dart';
 import 'work_supply_models.dart';
 
 class WorkSupplyHostedCatalogManifest {
@@ -252,22 +253,12 @@ WorkSupplyHostedCatalogChunkPayload _chunkPayloadForPlan(
 
 Map<String, Object?> _chunkPayloadFor(List<WorkSupplyItem> items) {
   return {
-    'schemaVersion': 1,
+    'schemaVersion': workSupplyCatalogPackSchemaVersion,
     'packId': workSupplyCatalogPackId,
     'packVersion': workSupplyCatalogPackVersion,
     'items': [
       for (final item in items)
-        {
-          'id': item.id,
-          'name': item.name,
-          'trade': item.trade,
-          'category': item.category,
-          'system': item.system,
-          'itemType': item.itemType,
-          'variant': item.variant,
-          'unit': item.unit,
-          'aliases': item.aliases,
-        },
+        buildWorkSupplyCatalogPackItemPayload(item).toMap(),
     ],
   };
 }

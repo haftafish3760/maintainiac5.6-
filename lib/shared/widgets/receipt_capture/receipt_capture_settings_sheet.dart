@@ -311,7 +311,7 @@ class _ReceiptScannerBehaviorSettings extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           const Text(
-            'On iPhone, Maintainiac can use the built-in document scanner. On Android, it opens the phone camera first so receipt capture never waits on a Google Play Services scanner update.',
+            'Maintainiac uses its own receipt camera when available. Backup scanner and photo options stay available so receipt capture does not get stuck.',
             style: TextStyle(
               color: Color(0xFFC7D0D4),
               fontSize: 11.5,
@@ -321,6 +321,12 @@ class _ReceiptScannerBehaviorSettings extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
+          const _ReceiptSettingsNote(
+            icon: Icons.touch_app_rounded,
+            text:
+                'Automatic photo capture stays off unless you turn it on later. You stay in control of when the receipt photo is taken.',
+          ),
+          const SizedBox(height: 6),
           _ReceiptCameraRuntimeSummary(profile: runtime),
           const SizedBox(height: 6),
           _ReceiptSettingsSwitch(
@@ -667,7 +673,7 @@ class _ReceiptDataSaverDefaultPicker extends StatelessWidget {
           const _ReceiptSettingsNote(
             icon: Icons.visibility_rounded,
             text:
-                'You preview the actual saved proof after taking a photo. On the photo review screen, open Saved Proof Size to see what this size looks like before keeping it.',
+                'You preview the actual saved proof after taking a photo. On the photo review screen, open Cleanup And Backup to see what this size looks like before keeping it.',
           ),
           if (settings.defaultDataSaverUsesDeviceRecommendation) ...[
             const SizedBox(height: 6),

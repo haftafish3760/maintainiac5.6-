@@ -13,43 +13,327 @@ class ReceiptPreparedImage {
     required this.backupPath,
     required this.dataSaverLevel,
     required this.quality,
+    required this.preparation,
   });
 
   final String ocrSourcePath;
   final String backupPath;
   final ReceiptDataSaverLevel dataSaverLevel;
   final ReceiptPhotoQualityCheck quality;
+  final ReceiptImagePreparationReport preparation;
 
   bool get usesSeparateBackupCopy => backupPath != ocrSourcePath;
+}
+
+class ReceiptImagePreparationReport {
+  const ReceiptImagePreparationReport({
+    required this.sourcePath,
+    required this.ocrSourcePath,
+    required this.originalQuality,
+    required this.ocrQuality,
+    required this.cleanupActions,
+    required this.usedEnhancedOcrSource,
+    this.scannerDecisionCodes = const [],
+  });
+
+  final String sourcePath;
+  final String ocrSourcePath;
+  final ReceiptPhotoQualityCheck originalQuality;
+  final ReceiptPhotoQualityCheck ocrQuality;
+  final List<String> cleanupActions;
+  final bool usedEnhancedOcrSource;
+  final List<String> scannerDecisionCodes;
+
+  bool get improvedReviewScore =>
+      ocrQuality.reviewScore >= originalQuality.reviewScore;
+
+  bool get improvedTextBands =>
+      ocrQuality.textBandScore >= originalQuality.textBandScore;
+
+  String get ocrSourceLabel {
+    if (usedEnhancedOcrSource) {
+      return 'Enhanced OCR source: ${cleanupActions.join(', ')}';
+    }
+    return 'Original-quality OCR source';
+  }
+
+  Map<String, Object?> toDiagnostics() {
+    return {
+      'usedEnhancedOcrSource': usedEnhancedOcrSource,
+      'cleanupActions': cleanupActions,
+      'originalReviewScore': originalQuality.reviewScore,
+      'ocrReviewScore': ocrQuality.reviewScore,
+      'originalTextBandScore': originalQuality.textBandScore,
+      'ocrTextBandScore': ocrQuality.textBandScore,
+      'originalBrightness': originalQuality.brightness,
+      'ocrBrightness': ocrQuality.brightness,
+      'originalContrast': originalQuality.contrast,
+      'ocrContrast': ocrQuality.contrast,
+      'scannerDecisionCodes': scannerDecisionCodes,
+    };
+  }
+}
+
+class ReceiptImageCleanupSettings {
+  const ReceiptImageCleanupSettings({
+    this.autoCrop = true,
+    this.autoStraighten = true,
+    this.grayscale = true,
+    this.contrastBoost = true,
+    this.sharpening = true,
+    this.shadowReduction = true,
+    this.adaptiveExposure = true,
+    this.orientationCorrection = true,
+  });
+
+  factory ReceiptImageCleanupSettings.fromDiagnostics(
+    Map<String, Object?>? diagnostics,
+  ) {
+    if (diagnostics == null || diagnostics.isEmpty) {
+      return const ReceiptImageCleanupSettings();
+    }
+    return ReceiptImageCleanupSettings(
+      autoCrop: _boolDiagnostic(
+        diagnostics,
+        'autoCropSuggestionEnabled',
+        fallback: true,
+      ),
+      autoStraighten: _boolDiagnostic(
+        diagnostics,
+        'perspectiveCorrectionEnabled',
+        fallback: true,
+      ),
+      grayscale: _boolDiagnostic(
+        diagnostics,
+        'grayscalePreviewEnabled',
+        fallback: true,
+      ),
+      contrastBoost: _boolDiagnostic(
+        diagnostics,
+        'contrastBoostEnabled',
+        fallback: true,
+      ),
+      sharpening: _boolDiagnostic(
+        diagnostics,
+        'sharpeningEnabled',
+        fallback: true,
+      ),
+      shadowReduction: _boolDiagnostic(
+        diagnostics,
+        'shadowReductionEnabled',
+        fallback: true,
+      ),
+      adaptiveExposure: _boolDiagnostic(
+        diagnostics,
+        'adaptiveThresholdEnabled',
+        fallback: true,
+      ),
+      orientationCorrection: _boolDiagnostic(
+        diagnostics,
+        'orientationCorrectionEnabled',
+        fallback: true,
+      ),
+    );
+  }
+
+  final bool autoCrop;
+  final bool autoStraighten;
+  final bool grayscale;
+  final bool contrastBoost;
+  final bool sharpening;
+  final bool shadowReduction;
+  final bool adaptiveExposure;
+  final bool orientationCorrection;
+
+  bool get usesScannerCleanup =>
+      grayscale ||
+      contrastBoost ||
+      sharpening ||
+      shadowReduction ||
+      adaptiveExposure;
+
+  List<String> get enabledDiagnosticLabels => [
+    if (autoCrop) 'auto_crop_enabled',
+    if (autoStraighten) 'auto_straighten_enabled',
+    if (grayscale) 'grayscale_enabled',
+    if (contrastBoost) 'contrast_boost_enabled',
+    if (sharpening) 'sharpening_enabled',
+    if (shadowReduction) 'shadow_cleanup_enabled',
+    if (adaptiveExposure) 'adaptive_exposure_enabled',
+    if (orientationCorrection) 'orientation_cleanup_enabled',
+  ];
+
+  static bool _boolDiagnostic(
+    Map<String, Object?> diagnostics,
+    String key, {
+    required bool fallback,
+  }) {
+    final value = diagnostics[key];
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final normalized = value.trim().toLowerCase();
+      if (normalized == 'true' || normalized == '1' || normalized == 'yes') {
+        return true;
+      }
+      if (normalized == 'false' || normalized == '0' || normalized == 'no') {
+        return false;
+      }
+    }
+    return fallback;
+  }
 }
 
 class ReceiptImageProcessor {
   ReceiptImageProcessor._();
 
-  static Future<String> prepareReceiptSourceFile({required String path}) async {
+  static Future<String> prepareReceiptSourceFile({
+    required String path,
+    ReceiptImageCleanupSettings cleanupSettings =
+        const ReceiptImageCleanupSettings(),
+  }) async {
+    return (await prepareReceiptSourceWithReport(
+      path: path,
+      cleanupSettings: cleanupSettings,
+    )).ocrSourcePath;
+  }
+
+  static Future<ReceiptImagePreparationReport> prepareReceiptSourceWithReport({
+    required String path,
+    ReceiptImageCleanupSettings cleanupSettings =
+        const ReceiptImageCleanupSettings(),
+  }) async {
     final bytes = await File(path).readAsBytes();
     final decoded = img.decodeImage(bytes);
-    if (decoded == null) return path;
+    if (decoded == null) {
+      const failedQuality = ReceiptPhotoQualityCheck(
+        width: 0,
+        height: 0,
+        focusScore: 0,
+        isLikelyReadable: false,
+      );
+      return ReceiptImagePreparationReport(
+        sourcePath: path,
+        ocrSourcePath: path,
+        originalQuality: failedQuality,
+        ocrQuality: failedQuality,
+        cleanupActions: const ['decode_failed_original_used'],
+        usedEnhancedOcrSource: false,
+        scannerDecisionCodes: const ['decode_failed'],
+      );
+    }
+    final originalQuality = _qualityCheck(decoded);
     final baseline = _resizeToMaxSide(decoded, 2600);
-    var processed = _autoCropReceipt(decoded);
-    processed = _autoStraightenReceipt(processed);
-    processed = _enhanceReceiptForReading(processed);
+    final scannerDecisionCodes = <String>[];
+    var processed = decoded;
+    if (cleanupSettings.orientationCorrection) {
+      final orientation = _autoOrientReceiptWithDecision(processed);
+      processed = orientation.image;
+      scannerDecisionCodes.add(orientation.code);
+    } else {
+      scannerDecisionCodes.add('orientation_skipped_setting_off');
+    }
+    final oriented =
+        processed.width != decoded.width || processed.height != decoded.height;
+    final beforeCropWidth = processed.width;
+    final beforeCropHeight = processed.height;
+    if (cleanupSettings.autoCrop) {
+      final crop = _autoCropReceiptWithDecision(processed);
+      processed = crop.image;
+      scannerDecisionCodes.add(crop.code);
+    } else {
+      scannerDecisionCodes.add('crop_skipped_setting_off');
+    }
+    final cropped =
+        processed.width != beforeCropWidth ||
+        processed.height != beforeCropHeight;
+    final beforeStraightenWidth = processed.width;
+    final beforeStraightenHeight = processed.height;
+    if (cleanupSettings.autoStraighten) {
+      final straighten = _autoStraightenReceiptWithDecision(processed);
+      processed = straighten.image;
+      scannerDecisionCodes.add(straighten.code);
+    } else {
+      scannerDecisionCodes.add('straighten_skipped_setting_off');
+    }
+    final straightened =
+        processed.width != beforeStraightenWidth ||
+        processed.height != beforeStraightenHeight;
+    if (cleanupSettings.autoStraighten) {
+      scannerDecisionCodes.add(_perspectiveReadinessCode(processed));
+    } else {
+      scannerDecisionCodes.add('perspective_skipped_setting_off');
+    }
+    final cleanup = _enhanceReceiptForReadingWithDecision(
+      processed,
+      cleanupSettings: cleanupSettings,
+    );
+    processed = cleanup.image;
+    scannerDecisionCodes.add(cleanup.code);
     final safe = _bestReceiptOcrSource([baseline, processed]);
+    final usedEnhanced = !identical(safe, baseline);
+    scannerDecisionCodes.add(
+      usedEnhanced
+          ? 'ocr_source_enhanced_selected'
+          : 'ocr_source_original_selected_quality_guard',
+    );
+    final ocrQuality = _qualityCheck(safe);
+    final cleanupActions = <String>[
+      if (baseline.width != decoded.width || baseline.height != decoded.height)
+        'bounded_resolution',
+      if (oriented) 'auto_orient',
+      if (cropped) 'auto_crop',
+      if (straightened) 'auto_straighten',
+      if (usedEnhanced) 'scanner_cleanup',
+      if (!usedEnhanced) 'original_quality_preserved',
+      ...cleanupSettings.enabledDiagnosticLabels,
+    ];
     if (identical(safe, baseline)) {
       final alreadyBounded =
           decoded.width == baseline.width && decoded.height == baseline.height;
       if (alreadyBounded) {
-        return copyReceiptOcrArtifact(path: path, prefix: 'ocr_original');
+        final ocrPath = await copyReceiptOcrArtifact(
+          path: path,
+          prefix: 'ocr_original',
+        );
+        return ReceiptImagePreparationReport(
+          sourcePath: path,
+          ocrSourcePath: ocrPath,
+          originalQuality: originalQuality,
+          ocrQuality: ocrQuality,
+          cleanupActions: cleanupActions,
+          usedEnhancedOcrSource: false,
+          scannerDecisionCodes: scannerDecisionCodes,
+        );
       }
     }
-    return _writeJpg(safe, prefix: 'enhanced', quality: 94);
+    final ocrPath = await _writeJpg(
+      safe,
+      prefix: usedEnhanced ? 'enhanced' : 'ocr_bounded',
+      quality: 94,
+    );
+    return ReceiptImagePreparationReport(
+      sourcePath: path,
+      ocrSourcePath: ocrPath,
+      originalQuality: originalQuality,
+      ocrQuality: ocrQuality,
+      cleanupActions: cleanupActions,
+      usedEnhancedOcrSource: usedEnhanced,
+      scannerDecisionCodes: scannerDecisionCodes,
+    );
   }
 
   static Future<ReceiptPreparedImage> prepareForOcrAndBackup({
     required String path,
     required ReceiptDataSaverLevel level,
+    ReceiptImageCleanupSettings cleanupSettings =
+        const ReceiptImageCleanupSettings(),
   }) async {
-    final ocrSourcePath = await prepareReceiptSourceFile(path: path);
+    final preparation = await prepareReceiptSourceWithReport(
+      path: path,
+      cleanupSettings: cleanupSettings,
+    );
+    final ocrSourcePath = preparation.ocrSourcePath;
     final backupPath = await optimizeFile(path: ocrSourcePath, level: level);
     final quality = await qualityCheckFile(ocrSourcePath);
     return ReceiptPreparedImage(
@@ -57,14 +341,20 @@ class ReceiptImageProcessor {
       backupPath: backupPath,
       dataSaverLevel: level,
       quality: quality,
+      preparation: preparation,
     );
   }
 
   static Future<ReceiptImageStoragePreview> previewPreparedBackupFile({
     required String path,
     required ReceiptDataSaverLevel level,
+    ReceiptImageCleanupSettings cleanupSettings =
+        const ReceiptImageCleanupSettings(),
   }) async {
-    final ocrSourcePath = await prepareReceiptSourceFile(path: path);
+    final ocrSourcePath = await prepareReceiptSourceFile(
+      path: path,
+      cleanupSettings: cleanupSettings,
+    );
     try {
       return await previewFile(path: ocrSourcePath, level: level);
     } finally {
@@ -77,8 +367,13 @@ class ReceiptImageProcessor {
   static Future<String> optimizePreparedBackupFile({
     required String path,
     required ReceiptDataSaverLevel level,
+    ReceiptImageCleanupSettings cleanupSettings =
+        const ReceiptImageCleanupSettings(),
   }) async {
-    final ocrSourcePath = await prepareReceiptSourceFile(path: path);
+    final ocrSourcePath = await prepareReceiptSourceFile(
+      path: path,
+      cleanupSettings: cleanupSettings,
+    );
     final backupPath = await optimizeFile(path: ocrSourcePath, level: level);
     if (ocrSourcePath != path && backupPath != ocrSourcePath) {
       await _deleteFileQuietly(ocrSourcePath);
@@ -251,6 +546,7 @@ class ReceiptImageProcessor {
           return ReceiptStitchResult.fallback(
             inputPaths: inputPaths,
             warning: 'One receipt photo could not be read.',
+            fallbackReasonCode: 'decode_failed',
           );
         }
         decoded.add(_enhanceReceiptForReading(_autoStraightenReceipt(image)));
@@ -283,6 +579,7 @@ class ReceiptImageProcessor {
             return ReceiptStitchResult.fallback(
               inputPaths: inputPaths,
               warning: 'Manual receipt overlap was outside the safe range.',
+              fallbackReasonCode: 'manual_overlap_unsafe',
               failedPairIndex: pairIndex,
               pairs: pairResults,
             );
@@ -317,6 +614,7 @@ class ReceiptImageProcessor {
               inputPaths: inputPaths,
               warning:
                   'Receipt photos did not match clearly enough to stitch safely.',
+              fallbackReasonCode: 'overlap_confidence_low',
               confidence: match.confidence,
               failedPairIndex: pairIndex,
               pairs: List.unmodifiable([...pairResults, failedPair]),
@@ -345,6 +643,7 @@ class ReceiptImageProcessor {
           inputPaths: inputPaths,
           warning:
               'Receipt is too long to stitch safely on this device. Next will review the photos separately.',
+          fallbackReasonCode: 'output_too_large',
           confidence: confidences.isEmpty ? 0 : confidences.reduce(math.min),
           pairs: pairResults,
           stitchedWidth: targetWidth,
@@ -391,6 +690,7 @@ class ReceiptImageProcessor {
         inputPaths: inputPaths,
         warning:
             'Receipt photos could not be stitched safely. Next will review them separately.',
+        fallbackReasonCode: 'stitch_exception',
       );
     }
   }
@@ -693,11 +993,22 @@ class ReceiptImageProcessor {
   }
 
   static img.Image _autoCropReceipt(img.Image source) {
+    return _autoCropReceiptWithDecision(source).image;
+  }
+
+  static _ScannerImageDecision _autoCropReceiptWithDecision(img.Image source) {
     final bounds = _findReceiptContentBounds(source);
-    if (bounds == null) return source;
+    if (bounds == null) {
+      return _ScannerImageDecision(source, 'crop_skipped_no_receipt_bounds');
+    }
     final minUsefulArea = source.width * source.height * .18;
-    if (bounds.width * bounds.height < minUsefulArea) return source;
-    if (!_receiptBoundsLookSafe(source, bounds)) return source;
+    if (bounds.width * bounds.height < minUsefulArea) {
+      return _ScannerImageDecision(source, 'crop_skipped_bounds_too_small');
+    }
+    final boundsSafetyCode = _receiptBoundsSafetyCode(source, bounds);
+    if (boundsSafetyCode != 'crop_bounds_safe') {
+      return _ScannerImageDecision(source, boundsSafetyCode);
+    }
     final padX = (bounds.width * .045).round().clamp(18, 160);
     final padY = (bounds.height * .035).round().clamp(18, 180);
     final x = (bounds.left - padX).round().clamp(0, source.width - 1);
@@ -721,27 +1032,33 @@ class ReceiptImageProcessor {
     if (cropQuality.reviewScore + 2 < sourceQuality.reviewScore ||
         !cropKeepsText ||
         !cropImprovesFraming) {
-      return source;
+      return _ScannerImageDecision(source, 'crop_skipped_quality_guard');
     }
-    return cropped;
+    return _ScannerImageDecision(cropped, 'crop_applied_safe_bounds');
   }
 
-  static bool _receiptBoundsLookSafe(
+  static String _receiptBoundsSafetyCode(
     img.Image source,
     _ReceiptImageBounds bounds,
   ) {
     final widthRatio = bounds.width / source.width;
     final heightRatio = bounds.height / source.height;
-    if (widthRatio < .34 || heightRatio < .34) return false;
+    if (widthRatio < .34) return 'crop_skipped_bounds_too_narrow';
+    if (heightRatio < .34) return 'crop_skipped_bounds_too_short';
     final aspect = bounds.height / math.max(1, bounds.width);
-    if (aspect < .55 || aspect > 9.5) return false;
+    if (aspect < .55) return 'crop_skipped_aspect_too_wide';
+    if (aspect > 9.5) return 'crop_skipped_aspect_too_tall';
     final centerX = (bounds.left + bounds.right) / 2;
     final centerY = (bounds.top + bounds.bottom) / 2;
     final xOffset = ((centerX / source.width) - .5).abs();
     final yOffset = ((centerY / source.height) - .5).abs();
-    if (widthRatio < .72 && xOffset > .28) return false;
-    if (heightRatio < .72 && yOffset > .30) return false;
-    return true;
+    if (widthRatio < .72 && xOffset > .28) {
+      return 'crop_skipped_bounds_off_center_x';
+    }
+    if (heightRatio < .72 && yOffset > .30) {
+      return 'crop_skipped_bounds_off_center_y';
+    }
+    return 'crop_bounds_safe';
   }
 
   static _ReceiptImageBounds? _findReceiptContentBounds(img.Image source) {
@@ -765,6 +1082,72 @@ class ReceiptImageProcessor {
       bottom: bounds.bottom * scaleY,
       hitCount: bounds.hitCount,
     );
+  }
+
+  static String _perspectiveReadinessCode(img.Image source) {
+    final bounds = _findReceiptContentBounds(source);
+    if (bounds == null) return 'perspective_skipped_no_receipt_bounds';
+    final areaRatio =
+        (bounds.width * bounds.height) /
+        math.max(1, source.width * source.height);
+    if (areaRatio < .18) return 'perspective_skipped_bounds_too_small';
+    final safetyCode = _receiptBoundsSafetyCode(source, bounds);
+    if (safetyCode != 'crop_bounds_safe') {
+      return safetyCode.replaceFirst('crop_', 'perspective_');
+    }
+    final edgeCoverage =
+        ((bounds.width / source.width) * (bounds.height / source.height)).clamp(
+          0.0,
+          1.0,
+        );
+    if (edgeCoverage < .34 || bounds.hitCount < 180) {
+      return 'perspective_skipped_weak_edges';
+    }
+    return 'perspective_ready_safe_bounds';
+  }
+
+  static _ScannerImageDecision _autoOrientReceiptWithDecision(
+    img.Image source,
+  ) {
+    if (source.width <= source.height * 1.15) {
+      return _ScannerImageDecision(
+        source,
+        'orientation_skipped_already_upright',
+      );
+    }
+    final sourceQuality = _qualityCheck(source);
+    var best = source;
+    var bestQuality = sourceQuality;
+    for (final degrees in const [90, -90]) {
+      final candidate = img.copyRotate(
+        source,
+        angle: degrees,
+        interpolation: img.Interpolation.linear,
+      );
+      final candidateQuality = _qualityCheck(candidate);
+      final improvesText =
+          candidateQuality.textBandScore >= sourceQuality.textBandScore + 2;
+      final improvesReview =
+          candidateQuality.reviewScore >= sourceQuality.reviewScore + 8;
+      final safePortraitReceipt =
+          candidate.height > candidate.width &&
+          candidateQuality.textBandScore >= sourceQuality.textBandScore * .72 &&
+          candidateQuality.reviewScore >= sourceQuality.reviewScore * .55;
+      final preservesFocus =
+          candidateQuality.focusScore >= sourceQuality.focusScore * .82;
+      final beatsCurrent =
+          _enhancementScore(candidateQuality) > _enhancementScore(bestQuality);
+      if (preservesFocus &&
+          ((safePortraitReceipt && identical(best, source)) ||
+              ((improvesText || improvesReview) && beatsCurrent))) {
+        best = candidate;
+        bestQuality = candidateQuality;
+      }
+    }
+    if (identical(best, source)) {
+      return _ScannerImageDecision(source, 'orientation_skipped_quality_guard');
+    }
+    return _ScannerImageDecision(best, 'orientation_applied_portrait_receipt');
   }
 
   static _ReceiptImageBounds? _scanReceiptBounds(
@@ -805,6 +1188,12 @@ class ReceiptImageProcessor {
   }
 
   static img.Image _autoStraightenReceipt(img.Image source) {
+    return _autoStraightenReceiptWithDecision(source).image;
+  }
+
+  static _ScannerImageDecision _autoStraightenReceiptWithDecision(
+    img.Image source,
+  ) {
     final sourceQuality = _qualityCheck(source);
     var bestDegrees = 0.0;
     var bestScore = sourceQuality.reviewScore;
@@ -822,7 +1211,7 @@ class ReceiptImageProcessor {
       }
     }
     if (bestDegrees.abs() < .5 || bestScore < sourceQuality.reviewScore + 3) {
-      return source;
+      return _ScannerImageDecision(source, 'straighten_skipped_no_benefit');
     }
     final rotated = img.copyRotate(
       source,
@@ -832,25 +1221,85 @@ class ReceiptImageProcessor {
     final rotatedQuality = _qualityCheck(rotated);
     if (rotatedQuality.reviewScore + 1 < sourceQuality.reviewScore ||
         rotatedQuality.textBandScore < sourceQuality.textBandScore * .92) {
-      return source;
+      return _ScannerImageDecision(source, 'straighten_skipped_quality_guard');
     }
-    return rotated;
+    return _ScannerImageDecision(rotated, 'straighten_applied_text_bands');
   }
 
-  static img.Image _enhanceReceiptForReading(img.Image source) {
+  static img.Image _enhanceReceiptForReading(
+    img.Image source, {
+    ReceiptImageCleanupSettings cleanupSettings =
+        const ReceiptImageCleanupSettings(),
+  }) {
+    return _enhanceReceiptForReadingWithDecision(
+      source,
+      cleanupSettings: cleanupSettings,
+    ).image;
+  }
+
+  static _ScannerImageDecision _enhanceReceiptForReadingWithDecision(
+    img.Image source, {
+    ReceiptImageCleanupSettings cleanupSettings =
+        const ReceiptImageCleanupSettings(),
+  }) {
     final base = _resizeToMaxSide(source, 2600);
     final quality = _qualityCheck(base);
-    final candidates = <img.Image>[
-      _basicReceiptEnhancement(base, quality),
-      _adaptiveExposureReceiptEnhancement(base, quality),
-      _thermalReceiptEnhancement(base, quality),
-      _shadowBalancedEnhancement(base, quality),
-    ];
-    if (quality.isLowContrast || quality.textBandScore < 8) {
+    if (!cleanupSettings.usesScannerCleanup) {
+      return _ScannerImageDecision(base, 'cleanup_skipped_setting_off');
+    }
+    final candidates = <img.Image>[];
+    if (cleanupSettings.grayscale || cleanupSettings.contrastBoost) {
+      candidates.add(
+        _basicReceiptEnhancement(
+          base,
+          quality,
+          grayscale: cleanupSettings.grayscale,
+          contrastBoost: cleanupSettings.contrastBoost,
+        ),
+      );
+      candidates.add(
+        _thermalReceiptEnhancement(
+          base,
+          quality,
+          grayscale: cleanupSettings.grayscale,
+          contrastBoost: cleanupSettings.contrastBoost,
+          sharpening: cleanupSettings.sharpening,
+        ),
+      );
+    }
+    if (cleanupSettings.adaptiveExposure) {
+      candidates.add(
+        _adaptiveExposureReceiptEnhancement(
+          base,
+          quality,
+          grayscale: cleanupSettings.grayscale,
+          contrastBoost: cleanupSettings.contrastBoost,
+          sharpening: cleanupSettings.sharpening,
+          shadowReduction: cleanupSettings.shadowReduction,
+        ),
+      );
+    }
+    if (cleanupSettings.shadowReduction) {
+      candidates.add(
+        _shadowBalancedEnhancement(
+          base,
+          quality,
+          grayscale: cleanupSettings.grayscale,
+          contrastBoost: cleanupSettings.contrastBoost,
+        ),
+      );
+    }
+    if (cleanupSettings.contrastBoost &&
+        (quality.isLowContrast || quality.textBandScore < 8)) {
       candidates.add(_fadedReceiptEnhancement(base, quality));
     }
-    if (quality.isSoft || quality.focusScore < 11) {
+    if (cleanupSettings.sharpening &&
+        candidates.isNotEmpty &&
+        (quality.isSoft || quality.focusScore < 11)) {
       candidates.add(_mildTextSharpen(candidates.last));
+    }
+    if (candidates.isEmpty) {
+      return _ScannerImageDecision(base, 'cleanup_skipped_no_candidates');
     }
 
     var best = candidates.first;
@@ -869,9 +1318,9 @@ class ReceiptImageProcessor {
         bestQuality.textBandScore < quality.textBandScore ||
         bestQuality.contrast < quality.contrast * .72 ||
         bestScore + 2 < baseScore) {
-      return base;
+      return _ScannerImageDecision(base, 'cleanup_skipped_quality_guard');
     }
-    return best;
+    return _ScannerImageDecision(best, _cleanupAppliedCode(quality));
   }
 
   static img.Image _bestReceiptOcrSource(List<img.Image> candidates) {
@@ -898,41 +1347,63 @@ class ReceiptImageProcessor {
     return best;
   }
 
+  static String _cleanupAppliedCode(ReceiptPhotoQualityCheck quality) {
+    if (quality.isTooDark) return 'cleanup_applied_dark_receipt';
+    if (quality.isTooBright) return 'cleanup_applied_glare_receipt';
+    if (quality.isLowContrast || quality.textBandScore < 8) {
+      return 'cleanup_applied_faded_receipt';
+    }
+    if (quality.isSoft || quality.focusScore < 11) {
+      return 'cleanup_applied_soft_text';
+    }
+    return 'cleanup_applied_receipt_readability';
+  }
+
   static img.Image _basicReceiptEnhancement(
     img.Image source,
-    ReceiptPhotoQualityCheck quality,
-  ) {
+    ReceiptPhotoQualityCheck quality, {
+    required bool grayscale,
+    required bool contrastBoost,
+  }) {
     var output = source;
     if (quality.isTooDark) {
       output = img.adjustColor(output, brightness: 1.16, gamma: .92);
     } else if (quality.isTooBright) {
       output = img.adjustColor(output, brightness: .90, gamma: 1.06);
     }
-    output = img.grayscale(output);
+    if (grayscale) output = img.grayscale(output);
+    if (!contrastBoost) return output;
     output = img.normalize(output, min: 8, max: 248);
     return img.contrast(output, contrast: quality.isLowContrast ? 1.35 : 1.18);
   }
 
   static img.Image _thermalReceiptEnhancement(
     img.Image source,
-    ReceiptPhotoQualityCheck quality,
-  ) {
-    var output = img.grayscale(source);
+    ReceiptPhotoQualityCheck quality, {
+    required bool grayscale,
+    required bool contrastBoost,
+    required bool sharpening,
+  }) {
+    var output = grayscale ? img.grayscale(source) : source;
     output = img.adjustColor(
       output,
       brightness: quality.isTooDark ? 1.18 : .98,
       gamma: quality.isTooBright ? 1.12 : .86,
-      contrast: quality.isLowContrast ? 1.42 : 1.24,
+      contrast: contrastBoost ? (quality.isLowContrast ? 1.42 : 1.24) : 1,
     );
-    output = img.normalize(output, min: 18, max: 238);
-    return _mildTextSharpen(output);
+    if (contrastBoost) output = img.normalize(output, min: 18, max: 238);
+    return sharpening ? _mildTextSharpen(output) : output;
   }
 
   static img.Image _adaptiveExposureReceiptEnhancement(
     img.Image source,
-    ReceiptPhotoQualityCheck quality,
-  ) {
-    var output = img.grayscale(source);
+    ReceiptPhotoQualityCheck quality, {
+    required bool grayscale,
+    required bool contrastBoost,
+    required bool sharpening,
+    required bool shadowReduction,
+  }) {
+    var output = grayscale ? img.grayscale(source) : source;
     final exposure = _receiptExposureCurve(output);
     final targetMid = quality.isTooDark
         ? 158
@@ -952,15 +1423,19 @@ class ReceiptImageProcessor {
       output,
       brightness: brightnessFactor,
       gamma: gamma,
-      contrast: quality.isLowContrast ? 1.34 : 1.18,
+      contrast: contrastBoost ? (quality.isLowContrast ? 1.34 : 1.18) : 1,
     );
-    output = _balanceReceiptRows(output, targetBrightness: targetMid);
-    output = img.normalize(
-      output,
-      min: exposure.blackPoint.round().clamp(0, 48),
-      max: exposure.whitePoint.round().clamp(206, 255),
-    );
-    return _mildTextSharpen(output);
+    if (shadowReduction) {
+      output = _balanceReceiptRows(output, targetBrightness: targetMid);
+    }
+    if (contrastBoost) {
+      output = img.normalize(
+        output,
+        min: exposure.blackPoint.round().clamp(0, 48),
+        max: exposure.whitePoint.round().clamp(206, 255),
+      );
+    }
+    return sharpening ? _mildTextSharpen(output) : output;
   }
 
   static _ReceiptExposureCurve _receiptExposureCurve(img.Image source) {
@@ -1049,9 +1524,11 @@ class ReceiptImageProcessor {
 
   static img.Image _shadowBalancedEnhancement(
     img.Image source,
-    ReceiptPhotoQualityCheck quality,
-  ) {
-    final output = img.grayscale(source);
+    ReceiptPhotoQualityCheck quality, {
+    required bool grayscale,
+    required bool contrastBoost,
+  }) {
+    final output = grayscale ? img.grayscale(source) : img.Image.from(source);
     final sampleStep = math.max(1, output.width ~/ 40);
     for (var y = 0; y < output.height; y++) {
       var rowTotal = 0.0;
@@ -1073,6 +1550,7 @@ class ReceiptImageProcessor {
           ..b = value;
       }
     }
+    if (!contrastBoost) return output;
     final normalized = img.normalize(output, min: 12, max: 244);
     return img.contrast(
       normalized,
@@ -1309,6 +1787,13 @@ class _ReceiptExposureCurve {
   final double highlightShare;
 
   bool get isShadowHeavy => shadowShare > .18 && highlightShare < .20;
+}
+
+class _ScannerImageDecision {
+  const _ScannerImageDecision(this.image, this.code);
+
+  final img.Image image;
+  final String code;
 }
 
 class _ReceiptStitchCandidate {

@@ -26,7 +26,7 @@ class MaintenanceDraftStore {
     required String itemName,
     required Map<String, Object?> values,
   }) async {
-    final box = await Hive.openBox<dynamic>(boxName);
+    final box = await _openBox();
     await box.put(_key(setupPrefix, vehicleName, itemName), {
       ...values,
       'vehicleName': vehicleName,
@@ -39,7 +39,7 @@ class MaintenanceDraftStore {
     required String vehicleName,
     required String itemName,
   }) async {
-    final box = await Hive.openBox<dynamic>(boxName);
+    final box = await _openBox();
     final value = box.get(_key(setupPrefix, vehicleName, itemName));
     if (value is! Map) return null;
     return Map<String, dynamic>.from(value);
@@ -49,7 +49,7 @@ class MaintenanceDraftStore {
     required String vehicleName,
     required Map<String, Object?> values,
   }) async {
-    final box = await Hive.openBox<dynamic>(boxName);
+    final box = await _openBox();
     await box.put(_key(logPrefix, vehicleName, 'active'), {
       ...values,
       'vehicleName': vehicleName,
@@ -60,7 +60,7 @@ class MaintenanceDraftStore {
   static Future<Map<String, dynamic>?> loadLogDraft({
     required String vehicleName,
   }) async {
-    final box = await Hive.openBox<dynamic>(boxName);
+    final box = await _openBox();
     final value = box.get(_key(logPrefix, vehicleName, 'active'));
     if (value is! Map) return null;
     return Map<String, dynamic>.from(value);
@@ -70,19 +70,21 @@ class MaintenanceDraftStore {
     required String vehicleName,
     required String itemName,
   }) async {
-    final box = await Hive.openBox<dynamic>(boxName);
+    final box = Hive.isBoxOpen(boxName) ? Hive.box<dynamic>(boxName) : null;
+    if (box == null) return;
     await box.delete(_key(setupPrefix, vehicleName, itemName));
   }
 
   static Future<void> clearLogDraft({required String vehicleName}) async {
-    final box = await Hive.openBox<dynamic>(boxName);
+    final box = Hive.isBoxOpen(boxName) ? Hive.box<dynamic>(boxName) : null;
+    if (box == null) return;
     await box.delete(_key(logPrefix, vehicleName, 'active'));
   }
 
   static Future<List<MaintenanceDraftSummary>> loadDrafts({
     String? vehicleName,
   }) async {
-    final box = await Hive.openBox<dynamic>(boxName);
+    final box = await _openBox();
     final normalizedVehicle = vehicleName?.trim().toLowerCase();
     final drafts = <MaintenanceDraftSummary>[];
     for (final value in box.values) {
@@ -130,5 +132,10 @@ class MaintenanceDraftStore {
       vehicleName.trim().toLowerCase(),
       itemName.trim().toLowerCase(),
     ].join('|');
+  }
+
+  static Future<Box<dynamic>> _openBox() async {
+    if (Hive.isBoxOpen(boxName)) return Hive.box<dynamic>(boxName);
+    return Hive.openBox<dynamic>(boxName);
   }
 }

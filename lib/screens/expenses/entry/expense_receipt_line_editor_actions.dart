@@ -87,6 +87,27 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
     }
     if (!mounted) return;
     final description = _descriptionController.text.trim();
+    final quantity = rule.usesQuantityFields ? _quantityForSave : 1.0;
+    final unitsPerPackage = rule.usesQuantityFields
+        ? _unitsPerPackageForSave
+        : 1.0;
+    final stockUnit = rule.usesQuantityFields ? _stockUnit : 'each';
+    final unitPrice = isFuel ? _unitPriceForSave : null;
+    final parserReviewLabel = _parserReviewLabelForSavedLine(
+      description: description,
+      category: category,
+      subtotal: subtotal,
+      quantity: quantity,
+      unitsPerPackage: unitsPerPackage,
+      stockUnit: stockUnit,
+      odometerReading: isFuel ? odometerReading : null,
+      fuelType: isFuel ? _fuelType : null,
+      fillType: isFuel ? _fillType : null,
+      unitPrice: unitPrice,
+    );
+    final parserReviewReason = _parserReviewReasonForSavedLine(
+      parserReviewLabel,
+    );
     Navigator.of(context).pop(
       _ExpenseReceiptLine(
         description: description.isEmpty
@@ -94,13 +115,9 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
             : description,
         category: category,
         use: _use,
-        quantity: rule.usesQuantityFields
-            ? double.tryParse(_quantityController.text) ?? 1
-            : 1,
-        unitsPerPackage: rule.usesQuantityFields
-            ? double.tryParse(_unitsPerPackageController.text) ?? 1
-            : 1,
-        stockUnit: rule.usesQuantityFields ? _stockUnit : 'each',
+        quantity: quantity,
+        unitsPerPackage: unitsPerPackage,
+        stockUnit: stockUnit,
         subtotal: subtotal,
         businessPercent: _use == _ExpenseLineUse.split
             ? _businessPercent
@@ -108,7 +125,7 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
         odometerReading: isFuel ? odometerReading : null,
         fuelType: isFuel ? _fuelType : null,
         fillType: isFuel ? _fillType : null,
-        unitPrice: isFuel ? double.tryParse(_unitPriceController.text) : null,
+        unitPrice: unitPrice,
         rawReceiptText: widget.initial.rawReceiptText,
         catalogItemId: widget.initial.catalogItemId,
         catalogItemName: widget.initial.catalogItemName,
@@ -116,12 +133,82 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
         catalogMatchConfidence: widget.initial.catalogMatchConfidence,
         catalogMatchedTerms: widget.initial.catalogMatchedTerms,
         parserConfidence: widget.initial.parserConfidence,
-        parserReviewLabel: widget.initial.parserReviewLabel,
-        parserReviewReason: widget.initial.parserReviewReason,
-        parserNeedsReview: widget.initial.parserNeedsReview,
+        parserReviewLabel: parserReviewLabel,
+        parserReviewReason: parserReviewReason,
+        parserNeedsReview: false,
       ),
     );
   }
+
+  String? _parserReviewLabelForSavedLine({
+    required String description,
+    required String category,
+    required double subtotal,
+    required double quantity,
+    required double unitsPerPackage,
+    required String stockUnit,
+    required int? odometerReading,
+    required String? fuelType,
+    required String? fillType,
+    required double? unitPrice,
+  }) {
+    if (!widget.initial.cameFromAppAssistedReceiptRead) return null;
+    return _lineWasChanged(
+          description: description,
+          category: category,
+          subtotal: subtotal,
+          quantity: quantity,
+          unitsPerPackage: unitsPerPackage,
+          stockUnit: stockUnit,
+          odometerReading: odometerReading,
+          fuelType: fuelType,
+          fillType: fillType,
+          unitPrice: unitPrice,
+        )
+        ? 'Corrected'
+        : 'Confirmed';
+  }
+
+  String? _parserReviewReasonForSavedLine(String? label) {
+    return switch (label) {
+      'Corrected' =>
+        'User reviewed and corrected this app-filled receipt line.',
+      'Confirmed' =>
+        'User reviewed and confirmed this app-filled receipt line.',
+      _ => null,
+    };
+  }
+
+  bool _lineWasChanged({
+    required String description,
+    required String category,
+    required double subtotal,
+    required double quantity,
+    required double unitsPerPackage,
+    required String stockUnit,
+    required int? odometerReading,
+    required String? fuelType,
+    required String? fillType,
+    required double? unitPrice,
+  }) {
+    return description.trim() != widget.initial.description.trim() ||
+        category != widget.initial.category ||
+        _use != widget.initial.use ||
+        subtotal != widget.initial.subtotal ||
+        _businessPercent != widget.initial.effectiveBusinessPercent ||
+        quantity != widget.initial.quantity ||
+        unitsPerPackage != widget.initial.unitsPerPackage ||
+        stockUnit != widget.initial.stockUnit ||
+        odometerReading != widget.initial.odometerReading ||
+        fuelType != widget.initial.fuelType ||
+        fillType != widget.initial.fillType ||
+        unitPrice != widget.initial.unitPrice;
+  }
+
+  double get _quantityForSave => double.tryParse(_quantityController.text) ?? 1;
+  double get _unitsPerPackageForSave =>
+      double.tryParse(_unitsPerPackageController.text) ?? 1;
+  double? get _unitPriceForSave => double.tryParse(_unitPriceController.text);
 
   String _defaultReceiptLineDescription(_ExpenseLineUse use) {
     return switch (use) {

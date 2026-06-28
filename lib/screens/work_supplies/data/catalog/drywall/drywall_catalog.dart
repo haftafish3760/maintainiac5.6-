@@ -6,4 +6,6 @@ final drywallCatalog = _trade('Drywall', const Color(0xFF9AA3A8), [
   drywallTapeBeadAndTrimCategory,
   drywallTextureAndPatchCategory,
   drywallFastenersAndAdhesivesCategory,
+  drywallGeneratedServiceCatalogCategory,
+  drywallGeneratedDetailCatalogCategory,
 ]);

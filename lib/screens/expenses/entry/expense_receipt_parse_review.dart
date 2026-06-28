@@ -86,6 +86,252 @@ class _ReceiptNoLineRecoveryChip extends StatelessWidget {
   }
 }
 
+class _ReceiptAppAssistedReviewIntroPanel extends StatelessWidget {
+  const _ReceiptAppAssistedReviewIntroPanel({
+    required this.lineCount,
+    required this.unreviewedLineCount,
+    required this.receiptTotalLabel,
+    required this.detailMode,
+    required this.ocrDiagnostics,
+    required this.ocrWarnings,
+  });
+
+  final int lineCount;
+  final int unreviewedLineCount;
+  final String receiptTotalLabel;
+  final _ReceiptDetailEntryMode detailMode;
+  final ReceiptOcrDiagnostics? ocrDiagnostics;
+  final List<ReceiptOcrWarning> ocrWarnings;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasWarnings = ocrWarnings.isNotEmpty;
+    final needsLineReview = unreviewedLineCount > 0;
+    final accent = hasWarnings || needsLineReview
+        ? const Color(0xFFFFD166)
+        : const Color(0xFF8EF6A4);
+    return ReceiptFormPanel(
+      title: 'Review What The App Filled In',
+      subtitle:
+          'Check the store, date, total, tax, and item prices. Then classify the receipt as Business, Personal, or Mixed before saving.',
+      icon: Icons.fact_check_rounded,
+      accentColor: accent,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _ReceiptReviewStepMetric(
+                label: 'Lines Found',
+                value: '$lineCount',
+                color: const Color(0xFFFFD166),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ReceiptReviewStepMetric(
+                label: 'Needs Review',
+                value: '$unreviewedLineCount',
+                color: needsLineReview
+                    ? const Color(0xFFFFD166)
+                    : const Color(0xFF8EF6A4),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ReceiptReviewStepMetric(
+                label: 'Total',
+                value: receiptTotalLabel,
+                color: const Color(0xFF34A9E8),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 7,
+          runSpacing: 7,
+          children: [
+            _ReceiptReviewInstructionChip(
+              icon: Icons.receipt_long_rounded,
+              label: _modeLabel,
+              color: const Color(0xFF34A9E8),
+            ),
+            _ReceiptReviewInstructionChip(
+              icon: needsLineReview
+                  ? Icons.manage_search_rounded
+                  : Icons.verified_rounded,
+              label: needsLineReview
+                  ? 'Check highlighted lines'
+                  : 'No line warnings',
+              color: needsLineReview
+                  ? const Color(0xFFFFD166)
+                  : const Color(0xFF8EF6A4),
+            ),
+            _ReceiptReviewInstructionChip(
+              icon: hasWarnings
+                  ? Icons.warning_amber_rounded
+                  : Icons.document_scanner_rounded,
+              label: _ocrStatusLabel,
+              color: hasWarnings
+                  ? const Color(0xFFFFD166)
+                  : const Color(0xFF8EF6A4),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          lineCount <= 0
+              ? 'If the app could not build safe line items, use the total buttons below or add lines manually.'
+              : detailMode == _ReceiptDetailEntryMode.quickClassify
+              ? 'Simple review shows prices first. Tap Mixed if any line needs its own business/personal choice.'
+              : 'Detailed review keeps item descriptions visible so you can edit anything the app read wrong.',
+          style: const TextStyle(
+            color: Color(0xFFC8D0D3),
+            fontSize: 11.5,
+            fontWeight: FontWeight.w800,
+            height: 1.22,
+            letterSpacing: 0,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String get _modeLabel {
+    return switch (detailMode) {
+      _ReceiptDetailEntryMode.quickClassify => 'Simple price review',
+      _ReceiptDetailEntryMode.detailedItems => 'Detailed item review',
+    };
+  }
+
+  String get _ocrStatusLabel {
+    final diagnostics = ocrDiagnostics;
+    if (diagnostics == null) return 'OCR not measured';
+    if (ocrWarnings.isNotEmpty) {
+      return '${ocrWarnings.length} OCR ${ocrWarnings.length == 1 ? 'warning' : 'warnings'}';
+    }
+    return diagnostics.severity == ReceiptOcrReviewSeverity.good
+        ? 'OCR looked good'
+        : 'OCR needs review';
+  }
+}
+
+class _ReceiptReviewInstructionChip extends StatelessWidget {
+  const _ReceiptReviewInstructionChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: .65)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: color),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiptReadHandoffPanel extends StatelessWidget {
+  const _ReceiptReadHandoffPanel({
+    required this.savedProofCount,
+    required this.ocrSourceCount,
+    required this.decisionLabel,
+  });
+
+  final int savedProofCount;
+  final int ocrSourceCount;
+  final String decisionLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final proofLabel = savedProofCount <= 0
+        ? 'Receipt photo saved'
+        : savedProofCount == 1
+        ? '1 saved proof photo'
+        : '$savedProofCount saved proof photos';
+    final sourceLabel = ocrSourceCount <= 0
+        ? 'checking readable source'
+        : ocrSourceCount == 1
+        ? '1 clear OCR source'
+        : '$ocrSourceCount clear OCR sources';
+    final decision = decisionLabel.trim();
+    return ReceiptFormPanel(
+      title: 'Reading Receipt Details',
+      subtitle:
+          'Your receipt photo is saved. Maintainiac is reading the clearest image now; next it opens the filled receipt details review.',
+      icon: Icons.document_scanner_rounded,
+      accentColor: const Color(0xFFFFD166),
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _ReceiptReviewStepMetric(
+                label: 'Saved Proof',
+                value: proofLabel,
+                color: const Color(0xFF8EF6A4),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ReceiptReviewStepMetric(
+                label: 'Receipt Reader',
+                value: sourceLabel,
+                color: const Color(0xFF34A9E8),
+              ),
+            ),
+          ],
+        ),
+        if (decision.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _ReceiptReviewInstructionChip(
+            icon: Icons.route_rounded,
+            label: decision,
+            color: const Color(0xFFFFD166),
+          ),
+        ],
+        const SizedBox(height: 8),
+        const Text(
+          'Do not go back unless you want to keep checking the photo. When reading finishes, review the store, date, total, tax, and item prices before saving.',
+          style: TextStyle(
+            color: Color(0xFFC8D0D3),
+            fontSize: 11.5,
+            fontWeight: FontWeight.w800,
+            height: 1.22,
+            letterSpacing: 0,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ReceiptParseReviewDetails extends StatelessWidget {
   const _ReceiptParseReviewDetails({
     required this.quality,
@@ -221,11 +467,33 @@ class _ReceiptOcrReviewRow extends StatelessWidget {
       ReceiptOcrReviewSeverity.partial => const Color(0xFFFFD166),
       ReceiptOcrReviewSeverity.blocked => const Color(0xFFFF8FA3),
     };
-    final warning = warnings.isEmpty ? null : warnings.first;
+    final prioritizedWarnings = warnings.toList(growable: false)
+      ..sort(ReceiptOcrWarning.compareByPriority);
+    final warning = prioritizedWarnings.isEmpty
+        ? null
+        : prioritizedWarnings.first;
+    final secondaryTargets = prioritizedWarnings
+        .skip(1)
+        .take(2)
+        .map((warning) => warning.reviewTargetLabel)
+        .toList(growable: false);
+    final hiddenWarningCount = prioritizedWarnings.length > 1
+        ? prioritizedWarnings.length - 1
+        : 0;
+    final recoverySummary = _ocrRecoverySummaryFor(warning, diagnostics.source);
     final detail = [
       diagnostics.readSummaryLabel,
       if (diagnostics.hasText) diagnostics.textSummaryLabel,
+      if (warning != null) '${warning.reviewTargetLabel}.',
       if (warning != null) warning.reviewMessage,
+      if (recoverySummary.isNotEmpty) 'Next step: $recoverySummary',
+      if (warning != null && warning.reviewInstruction.isNotEmpty)
+        warning.reviewInstruction,
+      if (warning != null) warning.reviewTargetInstruction,
+      if (secondaryTargets.isNotEmpty)
+        'Next checks: ${secondaryTargets.join('; ')}.',
+      if (hiddenWarningCount > 0)
+        '$hiddenWarningCount more OCR ${hiddenWarningCount == 1 ? 'warning needs' : 'warnings need'} review.',
     ].where((part) => part.trim().isNotEmpty).join(' ');
     return _ReceiptParseReviewBox(
       icon: switch (diagnostics.severity) {
@@ -235,9 +503,62 @@ class _ReceiptOcrReviewRow extends StatelessWidget {
         ReceiptOcrReviewSeverity.blocked => Icons.error_outline_rounded,
       },
       color: color,
-      title: 'OCR read: ${diagnostics.severity.label}',
+      title: warnings.isEmpty
+          ? 'OCR read: ${diagnostics.severity.label}'
+          : 'OCR read: ${diagnostics.severity.label} - ${warnings.length} ${warnings.length == 1 ? 'warning' : 'warnings'}',
       detail: detail,
     );
+  }
+
+  String _ocrRecoverySummaryFor(
+    ReceiptOcrWarning? warning,
+    ReceiptProcessingSource source,
+  ) {
+    if (warning == null) {
+      if (diagnostics.hasText) return '';
+      return switch (source) {
+        ReceiptProcessingSource.photo =>
+          'Retake the receipt photo, add the missing long-receipt section, or continue by hand.',
+        ReceiptProcessingSource.pdf =>
+          'Scan the receipt with photos or continue by hand.',
+        ReceiptProcessingSource.importedText =>
+          'Paste cleaner receipt text or continue by hand.',
+        ReceiptProcessingSource.mixed =>
+          'Choose the clearest receipt source, add a clearer photo, or continue by hand.',
+        ReceiptProcessingSource.none =>
+          'Attach a receipt photo, readable PDF, or pasted receipt text.',
+      };
+    }
+    return switch (warning.kind) {
+      ReceiptOcrWarningKind.noSource =>
+        'Attach a receipt photo, readable PDF, or pasted receipt text.',
+      ReceiptOcrWarningKind.noReadableText => _ocrRecoverySummaryFor(
+        null,
+        source,
+      ),
+      ReceiptOcrWarningKind.sourceSkipped =>
+        'Review the saved proof or turn receipt reading back on.',
+      ReceiptOcrWarningKind.duplicateText ||
+      ReceiptOcrWarningKind.probableOverlap =>
+        'Check the long-receipt overlap before saving.',
+      ReceiptOcrWarningKind.sectionGap =>
+        'Add the missing receipt section or confirm the photos are in order.',
+      ReceiptOcrWarningKind.pdfSafety =>
+        'Attach a safe PDF copy, scan with photos, or continue by hand.',
+      ReceiptOcrWarningKind.pdfTooLarge =>
+        'Use a smaller PDF or scan the receipt with photos.',
+      ReceiptOcrWarningKind.pdfUnreadable ||
+      ReceiptOcrWarningKind.pdfReadFailure =>
+        'Scan the receipt with photos, attach a clearer PDF, or continue by hand.',
+      ReceiptOcrWarningKind.pluginUnavailable =>
+        'Continue with manual entry for this build.',
+      ReceiptOcrWarningKind.photoQuality =>
+        'Retake the photo if store, date, total, tax, or item prices are not readable.',
+      ReceiptOcrWarningKind.photoReadFailure =>
+        'Retake the photo, add another clear section, or continue by hand.',
+      ReceiptOcrWarningKind.unknown =>
+        'Review the receipt proof and filled fields before saving.',
+    };
   }
 }
 

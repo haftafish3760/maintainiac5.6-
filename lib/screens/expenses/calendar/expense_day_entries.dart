@@ -110,6 +110,22 @@ class _CalendarExpenseEntry extends StatelessWidget {
                           letterSpacing: 0,
                         ),
                       ),
+                      if (entry.hasOcrSummary) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          entry.ocrSummaryLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: entry.ocrStatusLabel == 'Read saved'
+                                ? const Color(0xFF8EF6A4)
+                                : const Color(0xFFFFD166),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

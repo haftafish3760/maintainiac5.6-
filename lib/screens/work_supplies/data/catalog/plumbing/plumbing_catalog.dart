@@ -13,4 +13,7 @@ final plumbingCatalog = _trade('Plumbing', const Color(0xFF2D7EA7), [
   plumbingPumpsCategory,
   plumbingHangersAndSupportsCategory,
   plumbingConsumablesCategory,
+  plumbingServiceTruckCategory,
+  plumbingDrainFinishServiceCategory,
+  plumbingSealsServiceCategory,
 ]);

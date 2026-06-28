@@ -26,6 +26,14 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
       final shouldSave = await _showReceiptSaveReadinessDialog(readinessIssues);
       if (!mounted) return;
       if (!shouldSave) {
+        _scrollToReceiptReview();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Review the filled receipt lines, then save when everything looks right.',
+            ),
+          ),
+        );
         if (_isEditingReceipt) return;
         final issueKinds = readinessIssues.map((issue) => issue.kind).join(',');
         ExpenseScreenTelemetryRecorder.record(
@@ -130,6 +138,19 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
       );
     }
 
+    final splitPercentMissingCount = _splitLinesMissingBusinessPercentCount;
+    if (splitPercentMissingCount > 0) {
+      issues.add(
+        _ReceiptSaveReadinessIssue(
+          kind: 'mixed_receipt_split_percent_missing',
+          title: 'Mixed receipt split needs a percent',
+          detail: splitPercentMissingCount == 1
+              ? 'One mixed receipt line still needs a business percent before the app can split business and personal totals cleanly.'
+              : '$splitPercentMissingCount mixed receipt lines still need business percents before the app can split business and personal totals cleanly.',
+        ),
+      );
+    }
+
     final ocrDiagnostics = _lastOcrDiagnostics;
     if (ocrDiagnostics != null) {
       if (!ocrDiagnostics.hasText) {
@@ -146,7 +167,7 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
           _ReceiptSaveReadinessIssue(
             kind: 'receipt_ocr_blocking_warnings',
             title: 'Receipt reading needs attention',
-            detail: _firstOcrWarningMessage(
+            detail: _primaryOcrWarningMessage(
               fallback:
                   'The receipt was attached, but at least one source could not be read safely.',
             ),
@@ -157,7 +178,7 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
           _ReceiptSaveReadinessIssue(
             kind: 'receipt_ocr_partial_read',
             title: 'Only part of the receipt was read',
-            detail: _firstOcrWarningMessage(
+            detail: _primaryOcrWarningMessage(
               fallback:
                   'Some receipt proof was saved without being used for app-assisted filling.',
             ),
@@ -168,7 +189,7 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
           _ReceiptSaveReadinessIssue(
             kind: 'receipt_ocr_review_warnings',
             title: 'Receipt reading should be checked',
-            detail: _firstOcrWarningMessage(
+            detail: _primaryOcrWarningMessage(
               fallback:
                   'The app found receipt text, but it flagged something worth reviewing before save.',
             ),
@@ -181,6 +202,18 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
     if (subtotalIssue != null) issues.add(subtotalIssue);
 
     return issues;
+  }
+
+  int get _splitLinesMissingBusinessPercentCount {
+    return _lines
+        .where(
+          (line) =>
+              line.use == _ExpenseLineUse.split &&
+              (line.businessPercent == null ||
+                  line.businessPercent! <= 0 ||
+                  line.businessPercent! >= 1),
+        )
+        .length;
   }
 
   _ReceiptSaveReadinessIssue? _receiptSubtotalReadinessIssue() {
@@ -196,9 +229,21 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
     );
   }
 
-  String _firstOcrWarningMessage({required String fallback}) {
+  String _primaryOcrWarningMessage({required String fallback}) {
     if (_lastOcrWarnings.isEmpty) return fallback;
-    return _lastOcrWarnings.first.reviewMessage;
+    final prioritizedWarnings = _lastOcrWarnings.toList(growable: false)
+      ..sort(ReceiptOcrWarning.compareByPriority);
+    final warning = prioritizedWarnings.first;
+    final extraWarningCount = prioritizedWarnings.length - 1;
+    final parts = <String>[
+      warning.reviewMessage,
+      if (warning.reviewInstruction.isNotEmpty) warning.reviewInstruction,
+      '${warning.reviewTargetLabel}.',
+      warning.reviewTargetInstruction,
+      if (extraWarningCount > 0)
+        '$extraWarningCount more OCR ${extraWarningCount == 1 ? 'warning also needs' : 'warnings also need'} review.',
+    ];
+    return parts.where((part) => part.trim().isNotEmpty).join(' ');
   }
 
   Future<bool> _showReceiptSaveReadinessDialog(

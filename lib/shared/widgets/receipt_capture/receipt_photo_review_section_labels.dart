@@ -14,6 +14,30 @@ class _ReceiptPhotoSectionLabels {
     return '${index + 1} of $total';
   }
 
+  static String sectionNumberLabel({required int index, required int total}) {
+    return 'Section ${index + 1} of $total';
+  }
+
+  static String orderedStripTitle({required int total}) {
+    if (total <= 1) return 'Receipt Photo';
+    return 'Receipt Sections';
+  }
+
+  static String orderedStripHint({
+    required int selectedIndex,
+    required int total,
+  }) {
+    if (total <= 1) {
+      return 'If the receipt continues below this photo, add the next section.';
+    }
+    final selected = sectionNumberLabel(index: selectedIndex, total: total);
+    return '$selected selected. Photo 1 must be the top; every next photo should continue lower with a few repeated lines.';
+  }
+
+  static String addNextSectionLabel({required int total}) {
+    return total <= 1 ? 'Add Next Section' : 'Add Next Receipt Section';
+  }
+
   static String orderHint({required int index, required int total}) {
     if (total <= 1) return 'One receipt photo';
     if (index <= 0) {

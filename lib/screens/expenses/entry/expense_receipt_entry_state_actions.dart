@@ -36,6 +36,7 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
         metadata: {'source': _receiptPrivacyFeatureArea},
       );
     }
+    _recordAppFilledLineReviewTelemetry(initial: initial, reviewed: line);
     _updateReceiptState(() {
       if (index == null) {
         _lines.add(line);
@@ -44,6 +45,39 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
       }
     });
     _scheduleDraftSave();
+  }
+
+  void _recordAppFilledLineReviewTelemetry({
+    required _ExpenseReceiptLine initial,
+    required _ExpenseReceiptLine reviewed,
+  }) {
+    if (!initial.cameFromAppAssistedReceiptRead) return;
+    final label = (reviewed.parserReviewLabel ?? '').trim().toLowerCase();
+    final wasCorrected = label == 'corrected';
+    final wasConfirmed = label == 'confirmed' || label == 'good';
+    if (!wasCorrected && !wasConfirmed) return;
+    ExpenseScreenTelemetryRecorder.record(
+      context,
+      wasCorrected
+          ? ExpenseTelemetryEventType.appFilledReceiptLineCorrected
+          : ExpenseTelemetryEventType.appFilledReceiptLineConfirmed,
+      categoryGroup: reviewed.category,
+      metadata: {
+        'source': _receiptPrivacyFeatureArea,
+        'lineUse': reviewed.use.name,
+        'hadParserReview': initial.hasParserReview,
+        'neededReviewBeforeEdit': initial.parserNeedsReview,
+        'parserConfidenceBucket': _confidenceBucket(initial.parserConfidence),
+      },
+    );
+  }
+
+  String _confidenceBucket(double? confidence) {
+    if (confidence == null) return 'unknown';
+    if (confidence >= .9) return 'high';
+    if (confidence >= .75) return 'medium';
+    if (confidence >= .55) return 'low';
+    return 'very_low';
   }
 
   Future<void> _selectDate() async {
@@ -621,9 +655,7 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
     if (!ocr.hasText) {
       _lastOcrDiagnostics = ocr.diagnostics;
       _lastOcrWarnings = ocr.structuredWarnings;
-      final warning = ocr.structuredWarnings.isEmpty
-          ? 'No readable text was found in the receipt attachment.'
-          : ocr.structuredWarnings.first.reviewMessage;
+      final warning = ocr.strongestActionMessage;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(warning)));
@@ -705,6 +737,9 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
   void _recordParserTelemetry(ExpenseReceiptParseResult result) {
     final outcome = ExpenseParserFailureDiagnostics.outcomeFor(result);
     final diagnostic = ExpenseParserFailureDiagnostics.diagnosticFor(result);
+    final categoryBuckets = _parserCategoryBuckets(result);
+    final reviewCategoryBuckets = _parserReviewCategoryBuckets(result);
+    final fieldConfidenceBuckets = _parserFieldConfidenceBuckets(result);
     ExpenseScreenTelemetryRecorder.record(
       context,
       switch (outcome) {
@@ -717,12 +752,112 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
       },
       failureKind: diagnostic?.confirmedCause,
       diagnostic: diagnostic,
+      categoryGroup: _dominantParserCategoryToken(categoryBuckets),
       metadata: {
         'source': _receiptPrivacyFeatureArea,
         'parserDepth': result.diagnostics.parserDepth.name,
         'lineCount': result.diagnostics.detectedLineCount,
+        if (categoryBuckets.isNotEmpty)
+          'parsedCategoryBuckets': categoryBuckets,
+        if (reviewCategoryBuckets.isNotEmpty)
+          'reviewCategoryBuckets': reviewCategoryBuckets,
+        if (fieldConfidenceBuckets.isNotEmpty)
+          'parserFieldConfidenceBuckets': fieldConfidenceBuckets,
+        'parseQualityBucket': _confidenceBucket(result.quality.confidence),
+        'parserLineReviewCount': result.diagnostics.reviewLineCount,
+        'parserMatchedMaterialCount':
+            result.diagnostics.catalogMatchedLineCount,
+        'parserUnmatchedMaterialCount':
+            result.diagnostics.unmatchedMaterialLineCount,
+        'subtotalReconciliationStatus': result.diagnostics.reconciled
+            ? 'matched'
+            : 'needs_review',
+        'taxMathStatus': result.diagnostics.taxMathReconciled
+            ? 'matched'
+            : result.diagnostics.hasCompleteExplicitTotals
+            ? 'needs_review'
+            : 'not_available',
       },
     );
+  }
+
+  Map<String, int> _parserCategoryBuckets(ExpenseReceiptParseResult result) {
+    final counts = <String, int>{};
+    for (final line in result.lines) {
+      _addTelemetryCategory(counts, line.category);
+    }
+    if (counts.isEmpty) {
+      final category = ExpenseReceiptClassifier.classifyText(
+        result.sourceText,
+      ).category;
+      if (category != null) _addTelemetryCategory(counts, category);
+    }
+    return Map.unmodifiable(counts);
+  }
+
+  Map<String, int> _parserReviewCategoryBuckets(
+    ExpenseReceiptParseResult result,
+  ) {
+    final counts = <String, int>{};
+    for (var index = 0; index < result.lines.length; index++) {
+      if (index >= result.lineReviews.length) continue;
+      if (!result.lineReviews[index].needsReview) continue;
+      _addTelemetryCategory(counts, result.lines[index].category);
+    }
+    return Map.unmodifiable(counts);
+  }
+
+  Map<String, int> _parserFieldConfidenceBuckets(
+    ExpenseReceiptParseResult result,
+  ) {
+    final counts = <String, int>{};
+    for (final entry in result.fieldConfidences.entries) {
+      final field = _telemetryToken(entry.key);
+      if (field.isEmpty) continue;
+      final label = _telemetryToken(entry.value.label);
+      if (label.isEmpty) continue;
+      final bucket = '${field}_$label';
+      counts[bucket] = (counts[bucket] ?? 0) + 1;
+    }
+    return Map.unmodifiable(counts);
+  }
+
+  void _addTelemetryCategory(Map<String, int> counts, String category) {
+    final token = _telemetryCategoryToken(category);
+    if (token.isEmpty) return;
+    counts[token] = (counts[token] ?? 0) + 1;
+  }
+
+  String? _dominantParserCategoryToken(Map<String, int> categoryBuckets) {
+    if (categoryBuckets.isEmpty) return null;
+    final entries = categoryBuckets.entries.toList()
+      ..sort((left, right) {
+        final byCount = right.value.compareTo(left.value);
+        if (byCount != 0) return byCount;
+        return left.key.compareTo(right.key);
+      });
+    return entries.first.key;
+  }
+
+  String _telemetryCategoryToken(String category) {
+    final token = _telemetryToken(category);
+    if (token.isEmpty || token == 'uncategorized' || token == 'no_category') {
+      return '';
+    }
+    return token;
+  }
+
+  String _telemetryToken(String value) {
+    final safe = value
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9_.-]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
+    if (safe.isEmpty) return '';
+    return safe.length > ExpenseTelemetryPolicy.maxStringLength
+        ? safe.substring(0, ExpenseTelemetryPolicy.maxStringLength)
+        : safe;
   }
 
   String get _receiptPrivacyFeatureArea {
@@ -831,13 +966,13 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
     });
     _scheduleDraftSave();
     _scrollToReceiptReview();
-    final warning = parsed.warnings.isEmpty ? null : parsed.warnings.first;
+    final warning = _primaryParsedReceiptWarning(parsed);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           warning == null
-              ? 'Receipt fields filled. Review each field before saving.'
-              : '$warning Review the filled receipt before saving.',
+              ? 'Receipt fields filled. Classify it as Business, Personal, or Mixed, then review the lines before saving.'
+              : '$warning Classify the receipt and review every filled line before saving.',
         ),
       ),
     );
@@ -869,6 +1004,24 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
 
   void _removeAppAssistedReceiptLines() {
     _lines.removeWhere((line) => line.cameFromAppAssistedReceiptRead);
+  }
+
+  String? _primaryParsedReceiptWarning(ExpenseReceiptParseResult parsed) {
+    final warnings = parsed.warnings
+        .map((warning) => warning.trim())
+        .where((warning) => warning.isNotEmpty)
+        .toList(growable: false);
+    if (warnings.isEmpty) return null;
+    final blocking = warnings.where((warning) {
+      final lower = warning.toLowerCase();
+      return lower.contains('missing') ||
+          lower.contains('could not') ||
+          lower.contains('failed') ||
+          lower.contains('low confidence') ||
+          lower.contains('mismatch');
+    });
+    if (blocking.isNotEmpty) return blocking.first;
+    return warnings.first;
   }
 
   _ExpenseReceiptLine _lineFromParsedReceipt(

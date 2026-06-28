@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../shared/navigation/app_page_routes.dart';
+import '../../../shared/receipts/receipt_processing_contract.dart';
 import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../../../shared/widgets/record_form_fields.dart';
@@ -143,12 +144,14 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
   final _receiptTotalController = TextEditingController();
   final _receiptScrollController = ScrollController();
   final _receiptReviewKey = GlobalKey();
+  final _receiptReadHandoffKey = GlobalKey();
   late DateTime _selectedDate;
   TimeOfDay? _selectedTime;
   var _hasReceipt = false;
   final _receiptAttachments = <ReceiptAttachmentRecord>[];
   var _rawReceiptText = '';
   var _scanningReceiptPhotos = false;
+  var _receiptReadAttemptedWithoutText = false;
   var _lastReceiptScanSignature = '';
   ExpenseReceiptClassification? _receiptClassification;
   ExpenseReceiptParseQuality? _lastParseQuality;
@@ -156,6 +159,9 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
   ReceiptOcrDiagnostics? _lastOcrDiagnostics;
   List<ReceiptOcrWarning> _lastOcrWarnings = const [];
   final _maintenanceHints = <ExpenseReceiptMaintenanceHint>[];
+  var _receiptReadHandoffProofCount = 0;
+  var _receiptReadHandoffOcrSourceCount = 0;
+  var _receiptReadHandoffDecision = '';
   var _trackMaterialsInInventory = false;
   var _detailEntryMode = _ReceiptDetailEntryMode.quickClassify;
   var _appliedReceiptReviewStyleDefault = false;
@@ -171,6 +177,17 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
   ExpenseReceiptRecord? _editingReceipt;
 
   bool get _isEditingReceipt => widget.receiptId != null;
+
+  bool get _hasAppAssistedReceiptReview {
+    return _receiptClassification != null ||
+        _lines.isNotEmpty ||
+        _rawReceiptText.trim().isNotEmpty ||
+        _receiptReadAttemptedWithoutText ||
+        _lastParseQuality != null ||
+        _lastFieldConfidences.isNotEmpty ||
+        _lastOcrDiagnostics != null ||
+        _lastOcrWarnings.isNotEmpty;
+  }
 
   int get _unreviewedParsedLineCount {
     return _lines.where((line) => line.parserNeedsReview).length;
@@ -317,11 +334,26 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
     setState(update);
   }
 
-  void _scrollToReceiptReview() {
+  void _scrollToReceiptReview({int attempt = 0}) {
+    _scrollToReceiptFlowKey(_receiptReviewKey, attempt: attempt);
+  }
+
+  void _scrollToReceiptReadHandoff({int attempt = 0}) {
+    _scrollToReceiptFlowKey(_receiptReadHandoffKey, attempt: attempt);
+  }
+
+  void _scrollToReceiptFlowKey(GlobalKey key, {int attempt = 0}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final reviewContext = _receiptReviewKey.currentContext;
-      if (reviewContext == null) return;
+      final reviewContext = key.currentContext;
+      if (reviewContext == null) {
+        if (attempt < 4) {
+          Future<void>.delayed(const Duration(milliseconds: 80), () {
+            if (mounted) _scrollToReceiptFlowKey(key, attempt: attempt + 1);
+          });
+        }
+        return;
+      }
       Scrollable.ensureVisible(
         reviewContext,
         duration: const Duration(milliseconds: 320),
@@ -333,12 +365,369 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
 
   void _markReceiptReadStarted() {
     if (!mounted || _scanningReceiptPhotos) return;
-    _updateReceiptState(() => _scanningReceiptPhotos = true);
+    _updateReceiptState(() {
+      _scanningReceiptPhotos = true;
+      _receiptReadAttemptedWithoutText = false;
+    });
+    _scrollToReceiptReadHandoff();
+  }
+
+  void _markReceiptPhotoReviewAccepted(ReceiptPhotoReviewResult result) {
+    if (!mounted) return;
+    _updateReceiptState(() {
+      _scanningReceiptPhotos = true;
+      _receiptReadAttemptedWithoutText = false;
+      _receiptReadHandoffProofCount = result.photoPaths.length;
+      _receiptReadHandoffOcrSourceCount = result.ocrSourcePhotoPaths.length;
+      _receiptReadHandoffDecision = result.stitchResult.reviewDecisionLabel;
+    });
+    _recordReceiptPhotoPreparationTelemetry(result);
+    _scrollToReceiptReadHandoff();
+  }
+
+  void _recordReceiptPhotoPreparationTelemetry(
+    ReceiptPhotoReviewResult result,
+  ) {
+    final diagnostics = result.preparationDiagnosticsByOcrPath.values.toList(
+      growable: false,
+    );
+    final captureDiagnostics = result.captureDiagnosticsByPhotoPath.values
+        .toList(growable: false);
+    final enhancedCount = diagnostics
+        .where((item) => item['usedEnhancedOcrSource'] == true)
+        .length;
+    final cleanupActions = <String>{};
+    for (final diagnostic in diagnostics) {
+      final actions = diagnostic['cleanupActions'];
+      if (actions is Iterable) {
+        cleanupActions.addAll(
+          actions
+              .map((item) => item.toString().trim())
+              .where((item) => item.isNotEmpty),
+        );
+      }
+    }
+    final brightnessBuckets = _diagnosticStringCounts(
+      captureDiagnostics,
+      'latestBrightnessBucket',
+    );
+    final capturedMegapixels = _diagnosticStringCounts(
+      captureDiagnostics,
+      'latestCapturedMegapixelBucket',
+    );
+    final capturedByteBuckets = _diagnosticStringCounts(
+      captureDiagnostics,
+      'latestCapturedByteBucket',
+    );
+    final capturedBrightnessBuckets = _diagnosticStringCounts(
+      captureDiagnostics,
+      'latestCapturedBrightnessBucket',
+    );
+    final capturedSharpnessBuckets = _diagnosticStringCounts(
+      captureDiagnostics,
+      'latestCapturedSharpnessBucket',
+    );
+    final capturedQualitySignals = _diagnosticStringCounts(
+      captureDiagnostics,
+      'latestCapturedQualitySignal',
+    );
+    final capturedExposureMismatches = _diagnosticStringCounts(
+      captureDiagnostics,
+      'latestCapturedExposureMismatch',
+    );
+    final readabilitySignals = _diagnosticStringCounts(
+      captureDiagnostics,
+      'latestReadabilitySignal',
+    );
+    final exposureStatuses = _diagnosticStringCounts(
+      captureDiagnostics,
+      'exposureAssistStatus',
+    );
+    final autoExposureDecisions = _diagnosticStringCounts(
+      captureDiagnostics,
+      'lastAutoExposureDecision',
+    );
+    final autoExposureBrightness = _diagnosticStringCounts(
+      captureDiagnostics,
+      'lastAutoExposureBrightnessBucket',
+    );
+    final autoExposureCandidates = _diagnosticStringCounts(
+      captureDiagnostics,
+      'lastAutoExposureCandidate',
+    );
+    final framingConfidence = _diagnosticStringCounts(
+      captureDiagnostics,
+      'latestFramingConfidence',
+    );
+    final perspectiveReadiness = _diagnosticStringCounts(
+      captureDiagnostics,
+      'latestPerspectiveReadiness',
+    );
+    final focusStatuses = _diagnosticStringCounts(
+      captureDiagnostics,
+      'lastFocusStatus',
+    );
+    final autoCaptureStatuses = _diagnosticStringCounts(
+      captureDiagnostics,
+      'latestAutoCaptureStatus',
+    );
+    final closeActions = _diagnosticStringCounts(
+      captureDiagnostics,
+      'closeAction',
+    );
+    final storageSafetyLevels = _diagnosticStringCounts(
+      captureDiagnostics,
+      'storageSafetyLevel',
+    );
+    final storageSafetyReasons = _diagnosticStringCounts(
+      captureDiagnostics,
+      'storageSafetyReason',
+    );
+    final photoEditActions = _diagnosticStringCounts(
+      captureDiagnostics,
+      'photoEditAction',
+    );
+    ExpenseScreenTelemetryRecorder.record(
+      context,
+      ExpenseTelemetryEventType.ocrStarted,
+      metadata: {
+        'source': _receiptPrivacyFeatureArea,
+        'captureFlow': 'receipt_photo_review',
+        'savedProofCount': result.photoPaths.length,
+        'ocrSourceCount': result.ocrSourcePhotoPaths.length,
+        'captureDiagnosticsCount': captureDiagnostics.length,
+        if (capturedMegapixels.isNotEmpty)
+          'capturedPhotoMegapixelBuckets': capturedMegapixels,
+        if (capturedByteBuckets.isNotEmpty)
+          'capturedPhotoByteBuckets': capturedByteBuckets,
+        if (capturedBrightnessBuckets.isNotEmpty)
+          'capturedPhotoBrightnessBuckets': capturedBrightnessBuckets,
+        if (capturedSharpnessBuckets.isNotEmpty)
+          'capturedPhotoSharpnessBuckets': capturedSharpnessBuckets,
+        if (capturedQualitySignals.isNotEmpty)
+          'capturedPhotoQualitySignals': capturedQualitySignals,
+        if (capturedExposureMismatches.isNotEmpty)
+          'capturedPhotoExposureMismatches': capturedExposureMismatches,
+        'capturedPhotoWidthMax': _diagnosticIntMax(
+          captureDiagnostics,
+          'latestCapturedPhotoWidth',
+        ),
+        'capturedPhotoHeightMax': _diagnosticIntMax(
+          captureDiagnostics,
+          'latestCapturedPhotoHeight',
+        ),
+        if (brightnessBuckets.isNotEmpty)
+          'brightnessBuckets': brightnessBuckets,
+        if (readabilitySignals.isNotEmpty)
+          'readabilitySignalBuckets': readabilitySignals,
+        if (autoExposureDecisions.isNotEmpty)
+          'autoExposureDecisionBuckets': autoExposureDecisions,
+        if (autoExposureBrightness.isNotEmpty)
+          'autoExposureBrightnessBuckets': autoExposureBrightness,
+        if (autoExposureCandidates.isNotEmpty)
+          'autoExposureCandidateBuckets': autoExposureCandidates,
+        'autoExposureCandidateFrameTotal': _diagnosticIntSum(
+          captureDiagnostics,
+          'autoExposureCandidateFrameCount',
+        ),
+        if (exposureStatuses.isNotEmpty)
+          'exposureAssistStatuses': exposureStatuses,
+        if (framingConfidence.isNotEmpty)
+          'framingConfidenceBuckets': framingConfidence,
+        if (perspectiveReadiness.isNotEmpty)
+          'perspectiveReadinessBuckets': perspectiveReadiness,
+        if (focusStatuses.isNotEmpty) 'focusStatusBuckets': focusStatuses,
+        if (autoCaptureStatuses.isNotEmpty)
+          'autoCaptureStatusBuckets': autoCaptureStatuses,
+        if (closeActions.isNotEmpty) 'closeActionBuckets': closeActions,
+        'pendingCloseAfterCaptureCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'pendingCloseAfterCapture',
+        ),
+        'closeResultDeliveredCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'closeResultDelivered',
+        ),
+        'autoCaptureAllowedCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'autoCaptureAllowed',
+        ),
+        'autoCaptureCurrentlyAllowedCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'autoCaptureCurrentlyAllowed',
+        ),
+        if (storageSafetyLevels.isNotEmpty)
+          'storageSafetyLevelBuckets': storageSafetyLevels,
+        if (storageSafetyReasons.isNotEmpty)
+          'storageSafetyReasonBuckets': storageSafetyReasons,
+        'storageConstrainedCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'storageConstrained',
+        ),
+        if (photoEditActions.isNotEmpty) 'photoEditActions': photoEditActions,
+        'userEditedPhotoCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'userEditedPhoto',
+        ),
+        'edgeDetectionEnabledCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'edgeDetectionEnabled',
+        ),
+        'edgeOverlayEnabledCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'edgeOverlayEnabled',
+        ),
+        'tapFocusEnabledCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'tapFocusEnabled',
+        ),
+        'pinchZoomEnabledCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'pinchZoomEnabled',
+        ),
+        'brightnessSliderEnabledCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'exposureSliderEnabled',
+        ),
+        'shadowWarningEnabledCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'shadowWarningEnabled',
+        ),
+        'textTooSmallWarningEnabledCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'textTooSmallWarningEnabled',
+        ),
+        'autoCropSuggestionEnabledCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'autoCropSuggestionEnabled',
+        ),
+        'grayscalePreviewEnabledCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'grayscalePreviewEnabled',
+        ),
+        'contrastBoostEnabledCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'contrastBoostEnabled',
+        ),
+        'shadowReductionEnabledCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'shadowReductionEnabled',
+        ),
+        'orientationCorrectionEnabledCount': _diagnosticBoolTrueCount(
+          captureDiagnostics,
+          'orientationCorrectionEnabled',
+        ),
+        'tapFocusTotal': _diagnosticIntSum(captureDiagnostics, 'tapFocusCount'),
+        'tapFocusSuppressedAfterZoomTotal': _diagnosticIntSum(
+          captureDiagnostics,
+          'tapFocusSuppressedAfterZoomCount',
+        ),
+        'zoomChangeTotal': _diagnosticIntSum(
+          captureDiagnostics,
+          'zoomChangeCount',
+        ),
+        'manualBrightnessChangeTotal': _diagnosticIntSum(
+          captureDiagnostics,
+          'manualExposureChangeCount',
+        ),
+        'autoCaptureTriggerTotal': _diagnosticIntSum(
+          captureDiagnostics,
+          'autoCaptureTriggerCount',
+        ),
+        'closeRetryTotal': _diagnosticIntSum(
+          captureDiagnostics,
+          'closeRetryCount',
+        ),
+        'scannerCleanupUsedCount': enhancedCount,
+        'cleanupActionCount': cleanupActions.length,
+        'cleanupActions': cleanupActions.toList(growable: false)..sort(),
+        'stitchStatus': result.stitchResult.status.name,
+        'stitchFallbackReason': result.stitchResult.diagnosticReasonLabel,
+        'stitchConfidenceBucket': _ratioBucket(result.stitchResult.confidence),
+      },
+    );
+  }
+
+  Map<String, int> _diagnosticStringCounts(
+    List<Map<String, Object?>> diagnostics,
+    String key,
+  ) {
+    final counts = <String, int>{};
+    for (final diagnostic in diagnostics) {
+      final value = diagnostic[key]?.toString().trim();
+      if (value == null || value.isEmpty) continue;
+      counts[value] = (counts[value] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  int _diagnosticIntSum(List<Map<String, Object?>> diagnostics, String key) {
+    var total = 0;
+    for (final diagnostic in diagnostics) {
+      final value = diagnostic[key];
+      if (value is int) {
+        total += value;
+      } else if (value is num) {
+        total += value.round();
+      } else if (value is String) {
+        total += int.tryParse(value.trim()) ?? 0;
+      }
+    }
+    return total;
+  }
+
+  int _diagnosticIntMax(List<Map<String, Object?>> diagnostics, String key) {
+    var maxValue = 0;
+    for (final diagnostic in diagnostics) {
+      final value = diagnostic[key];
+      final parsed = switch (value) {
+        int() => value,
+        num() => value.round(),
+        String() => int.tryParse(value.trim()) ?? 0,
+        _ => 0,
+      };
+      if (parsed > maxValue) maxValue = parsed;
+    }
+    return maxValue;
+  }
+
+  int _diagnosticBoolTrueCount(
+    List<Map<String, Object?>> diagnostics,
+    String key,
+  ) {
+    var total = 0;
+    for (final diagnostic in diagnostics) {
+      final value = diagnostic[key];
+      if (value == true || value?.toString().trim().toLowerCase() == 'true') {
+        total += 1;
+      }
+    }
+    return total;
+  }
+
+  String _ratioBucket(double value) {
+    if (value <= 0) return 'none';
+    if (value < .5) return 'low';
+    if (value < .75) return 'medium';
+    if (value < .9) return 'high';
+    return 'very_high';
   }
 
   void _markReceiptReadFinished(bool didRead) {
-    if (!mounted || didRead) return;
-    _updateReceiptState(() => _scanningReceiptPhotos = false);
+    if (!mounted) return;
+    if (didRead) {
+      _updateReceiptState(() {
+        _scanningReceiptPhotos = false;
+        _receiptReadAttemptedWithoutText = false;
+      });
+      _scrollToReceiptReview();
+      return;
+    }
+    _updateReceiptState(() {
+      _scanningReceiptPhotos = false;
+      _receiptReadAttemptedWithoutText = true;
+    });
+    _scrollToReceiptReview();
   }
 
   void _setReceiptReviewMode(_ReceiptDetailEntryMode value) {
@@ -777,109 +1166,88 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
               },
             ),
             const SizedBox(height: 8),
-            SharedReceiptAttachmentPanel(
-              hasReceipt: _hasReceipt,
-              area: _receiptCaptureArea,
-              initialAttachments: _receiptAttachments,
-              onChanged: (value) {
-                setState(() => _hasReceipt = value);
-                _scheduleDraftSave();
-              },
-              onAttachmentsChanged: (attachments) {
-                final previousCount = _lastAttachmentCount;
-                setState(() {
-                  _receiptAttachments
-                    ..clear()
-                    ..addAll(attachments);
-                  _hasReceipt = attachments.isNotEmpty;
-                });
-                _lastAttachmentCount = attachments.length;
-                if (attachments.length > previousCount) {
-                  final newest = attachments.last;
-                  ExpenseScreenTelemetryRecorder.record(
-                    context,
-                    ExpenseTelemetryEventType.imageAttachSuccess,
-                    metadata: {
-                      'attachmentKind': newest.kind.name,
-                      'bytesBucket': _byteBucket(newest.byteSize),
+            KeyedSubtree(
+              key: _receiptReadHandoffKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SharedReceiptAttachmentPanel(
+                    hasReceipt: _hasReceipt,
+                    area: _receiptCaptureArea,
+                    initialAttachments: _receiptAttachments,
+                    onChanged: (value) {
+                      setState(() => _hasReceipt = value);
+                      _scheduleDraftSave();
                     },
-                  );
-                  ExpenseScreenTelemetryRecorder.record(
-                    context,
-                    ExpenseTelemetryEventType.storageModeUsed,
-                    metadata: {
-                      'storageAction':
-                          ExpenseScreenTelemetryRecorder.storageModeForAttachment(
-                            newest,
-                          ).name,
+                    onAttachmentsChanged: (attachments) {
+                      final previousCount = _lastAttachmentCount;
+                      setState(() {
+                        _receiptAttachments
+                          ..clear()
+                          ..addAll(attachments);
+                        _hasReceipt = attachments.isNotEmpty;
+                      });
+                      _lastAttachmentCount = attachments.length;
+                      if (attachments.length > previousCount) {
+                        final newest = attachments.last;
+                        ExpenseScreenTelemetryRecorder.record(
+                          context,
+                          ExpenseTelemetryEventType.imageAttachSuccess,
+                          metadata: {
+                            'attachmentKind': newest.kind.name,
+                            'bytesBucket': _byteBucket(newest.byteSize),
+                          },
+                        );
+                        ExpenseScreenTelemetryRecorder.record(
+                          context,
+                          ExpenseTelemetryEventType.storageModeUsed,
+                          metadata: {
+                            'storageAction':
+                                ExpenseScreenTelemetryRecorder.storageModeForAttachment(
+                                  newest,
+                                ).name,
+                          },
+                        );
+                      } else if (attachments.length < previousCount) {
+                        ExpenseScreenTelemetryRecorder.record(
+                          context,
+                          ExpenseTelemetryEventType.localImageRemoved,
+                          metadata: {'storageAction': 'attachment_removed'},
+                        );
+                      }
+                      _scheduleDraftSave();
                     },
-                  );
-                } else if (attachments.length < previousCount) {
-                  ExpenseScreenTelemetryRecorder.record(
-                    context,
-                    ExpenseTelemetryEventType.localImageRemoved,
-                    metadata: {'storageAction': 'attachment_removed'},
-                  );
-                }
-                _scheduleDraftSave();
-              },
-              onImportedText: _parseImportedReceiptText,
-              onReceiptReadStarted: _markReceiptReadStarted,
-              onReceiptReadFinished: _markReceiptReadFinished,
-            ),
-            const SizedBox(height: 8),
-            if (_scanningReceiptPhotos) ...[
-              const ReceiptPickerStatus(
-                label:
-                    'Reading the receipt and preparing the filled review section below...',
+                    onImportedText: _parseImportedReceiptText,
+                    onReceiptPhotoReviewAccepted:
+                        _markReceiptPhotoReviewAccepted,
+                    onReceiptReadStarted: _markReceiptReadStarted,
+                    onReceiptReadFinished: _markReceiptReadFinished,
+                  ),
+                  const SizedBox(height: 8),
+                  if (_scanningReceiptPhotos) ...[
+                    _ReceiptReadHandoffPanel(
+                      savedProofCount: _receiptReadHandoffProofCount,
+                      ocrSourceCount: _receiptReadHandoffOcrSourceCount,
+                      decisionLabel: _receiptReadHandoffDecision,
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ],
               ),
-              const SizedBox(height: 8),
-            ],
-            if (_receiptClassification != null || _lines.isNotEmpty) ...[
+            ),
+            if (_hasAppAssistedReceiptReview) ...[
               KeyedSubtree(
                 key: _receiptReviewKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ReceiptFormPanel(
-                      title: 'App-Assisted Receipt Review',
-                      subtitle:
-                          'This is the filled receipt review from the photo. Check the store, date, totals, and lines, then choose Business, Personal, or Mixed before saving.',
-                      icon: Icons.fact_check_rounded,
-                      accentColor: const Color(0xFF8EF6A4),
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _ReceiptReviewStepMetric(
-                                label: 'Lines',
-                                value: '${_lines.length}',
-                                color: const Color(0xFFFFD166),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: _ReceiptReviewStepMetric(
-                                label: 'Needs Review',
-                                value:
-                                    '${_lines.where((line) => line.parserNeedsReview).length}',
-                                color:
-                                    _lines.any((line) => line.parserNeedsReview)
-                                    ? const Color(0xFFFFD166)
-                                    : const Color(0xFF8EF6A4),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: _ReceiptReviewStepMetric(
-                                label: 'Total',
-                                value: _money(_receiptTotal),
-                                color: const Color(0xFF34A9E8),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                    _ReceiptAppAssistedReviewIntroPanel(
+                      lineCount: _lines.length,
+                      unreviewedLineCount: _unreviewedParsedLineCount,
+                      receiptTotalLabel: _money(_receiptTotal),
+                      detailMode: _detailEntryMode,
+                      ocrDiagnostics: _lastOcrDiagnostics,
+                      ocrWarnings: _lastOcrWarnings,
                     ),
                     const SizedBox(height: 8),
                     if (_receiptClassification != null) ...[
@@ -897,8 +1265,9 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
                     if (_lines.isEmpty) ...[
                       ReceiptFormPanel(
                         title: 'No Line Items Found',
-                        subtitle:
-                            'The receipt text was read, but the app could not safely build line items. Use the receipt total if that is enough, or add line items manually.',
+                        subtitle: _rawReceiptText.trim().isEmpty
+                            ? 'Maintainiac could not read usable receipt text from that photo. Keep the backup image, retake or add another photo if needed, or enter the receipt manually.'
+                            : 'The receipt text was read, but the app could not safely build line items. Use the receipt total if that is enough, or add line items manually.',
                         icon: Icons.edit_note_rounded,
                         accentColor: const Color(0xFFFFD166),
                         children: [
@@ -1096,6 +1465,7 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
               reviewCount: _lines
                   .where((line) => line.parserNeedsReview)
                   .length,
+              splitPercentIssueCount: _splitLinesMissingBusinessPercentCount,
               total: _receiptTotal,
               onSave: _saveReceipt,
             ),

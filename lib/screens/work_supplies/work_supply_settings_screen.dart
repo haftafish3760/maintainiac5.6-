@@ -6,8 +6,15 @@ import 'data/work_supply_catalog.dart';
 import 'data/work_supply_catalog_audit.dart';
 import 'data/work_supply_inventory_settings_store.dart';
 import 'data/work_supply_models.dart';
+import 'data/work_supply_parser_device_profile.dart';
+import 'data/work_supply_trade_pack_install_guard.dart';
+import 'data/work_supply_trade_pack_manifest.dart';
+import 'data/work_supply_trade_pack_tiers.dart';
+import '../../shared/widgets/receipt_capture/receipt_assistance_policy.dart';
+import '../../shared/widgets/receipt_capture/receipt_device_capability_service.dart';
 
 part 'work_supply_settings_controls.dart';
+part 'work_supply_settings_pack_panels.dart';
 part 'work_supply_settings_panels.dart';
 
 class WorkSupplySettingsScreen extends StatefulWidget {
@@ -20,13 +27,16 @@ class WorkSupplySettingsScreen extends StatefulWidget {
 
 class _WorkSupplySettingsScreenState extends State<WorkSupplySettingsScreen> {
   late final Future<WorkSupplyInventorySettingsController> _settingsFuture;
+  late final Future<_TradePackRuntimeContext> _packRuntimeFuture;
   final _itemSearch = TextEditingController();
   String? _selectedTrade;
+  String _selectedPackTrade = 'Plumbing';
 
   @override
   void initState() {
     super.initState();
     _settingsFuture = WorkSupplyInventorySettingsController.create();
+    _packRuntimeFuture = _detectTradePackRuntimeContext();
   }
 
   @override
@@ -60,6 +70,18 @@ class _WorkSupplySettingsScreenState extends State<WorkSupplySettingsScreen> {
                     children: [
                       _SettingsIntro(audit: auditWorkSupplyCatalog()),
                       const SizedBox(height: 10),
+                      FutureBuilder<_TradePackRuntimeContext>(
+                        future: _packRuntimeFuture,
+                        builder: (context, runtimeSnapshot) =>
+                            _TradePackDownloadsPanel(
+                              settings: settings,
+                              runtimeContext: runtimeSnapshot.data,
+                              selectedTrade: _selectedPackTrade,
+                              onSelectTrade: (trade) =>
+                                  setState(() => _selectedPackTrade = trade),
+                            ),
+                      ),
+                      const SizedBox(height: 10),
                       _ReceiptAssistPanel(settings: settings),
                       const SizedBox(height: 10),
                       _CatalogVisibilityPanel(settings: settings),
@@ -91,6 +113,24 @@ class _WorkSupplySettingsScreenState extends State<WorkSupplySettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<_TradePackRuntimeContext> _detectTradePackRuntimeContext() async {
+    const service = ReceiptDeviceCapabilityService();
+    final hardware = await service.detectHardwareProfile();
+    final capability = ReceiptDeviceCapability.fromHardware(
+      hardware: hardware,
+      mode: ReceiptPerformanceMode.automatic,
+    );
+    final freeStorageMb = hardware.freeStorageMb;
+    return _TradePackRuntimeContext(
+      availableStorageBytes: freeStorageMb == null
+          ? null
+          : freeStorageMb * 1024 * 1024,
+      deviceProfile: WorkSupplyParserDeviceProfile.fromCapability(capability),
+      isMeteredNetwork: false,
+      networkVerified: false,
     );
   }
 }

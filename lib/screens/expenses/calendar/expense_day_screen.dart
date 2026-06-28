@@ -21,7 +21,12 @@ class _ExpenseDayScreenState extends State<ExpenseDayScreen> {
         .map(_CalendarExpenseData.fromReceipt)
         .toList();
     final total = entries.fold<double>(0, (sum, entry) => sum + entry.amount);
+    final ocrRecap = _CalendarOcrDayRecap.fromEntries(entries);
     final recapRange = _recapPeriod.rangeFor(_day);
+    final rangeOcrRecap = _CalendarOcrDayRecap.fromLedgerRange(
+      ledger,
+      recapRange,
+    );
     final metrics = _VehicleExpenseMetrics.fromLedger(ledger, recapRange);
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
@@ -70,6 +75,8 @@ class _ExpenseDayScreenState extends State<ExpenseDayScreen> {
               onNextMonth: () => _shiftMonth(1),
             ),
             const SizedBox(height: 8),
+            _CalendarOcrDayRecapPanel(recap: ocrRecap),
+            const SizedBox(height: 8),
             if (entries.isEmpty)
               const _CalendarEmptyState()
             else
@@ -86,6 +93,7 @@ class _ExpenseDayScreenState extends State<ExpenseDayScreen> {
               selectedDay: _day,
               dayEntryCount: entries.length,
               dayTotal: total,
+              ocrRecap: rangeOcrRecap,
               period: _recapPeriod,
             ),
           ],

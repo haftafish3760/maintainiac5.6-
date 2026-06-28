@@ -7,6 +7,8 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_settings_store.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late Directory hiveDirectory;
 
   setUp(() async {
@@ -116,6 +118,8 @@ void main() {
       expect(source, contains('effectiveCameraRuntimeProfile'));
       expect(source, contains('profile.summaryLabel'));
       expect(source, contains('profile.notesLabel'));
+      expect(source, contains('Automatic photo capture stays off'));
+      expect(source, contains('You stay in control'));
       expect(source, isNot(contains('deviceModel')));
       expect(source, isNot(contains('availableRamLabel')));
       expect(source, isNot(contains('Android SDK')));

@@ -58,7 +58,7 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
           action: _ReceiptImportAction.camera,
           icon: Icons.photo_camera_rounded,
           label: 'Take Receipt Photo',
-          detail: 'Use the phone camera for a paper receipt.',
+          detail: 'Open Maintainiac receipt camera.',
           color: Color(0xFF8EF6A4),
         ),
       const _ReceiptImportSource(
@@ -225,7 +225,7 @@ class _ReceiptShareHelpSheet extends StatelessWidget {
                         icon: Icons.photo_camera_rounded,
                         title: 'Take Receipt Photo',
                         text:
-                            'Use the phone camera for a new paper receipt, then review the accepted photo before reading it.',
+                            'Open Maintainiac receipt camera for a new paper receipt, then review the accepted photo before reading it.',
                       ),
                       _ReceiptHelpRow(
                         icon: Icons.photo_library_rounded,

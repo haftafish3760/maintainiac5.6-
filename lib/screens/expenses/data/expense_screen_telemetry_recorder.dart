@@ -86,10 +86,31 @@ class ExpenseScreenTelemetryRecorder {
   static Future<void> _queueSummaryIfDue(String orgId) async {
     try {
       final scheduler = await ExpenseTelemetrySummaryScheduler.create();
-      await scheduler.queueIfDue(orgId: orgId);
+      final result = await scheduler.queueIfDue(orgId: orgId);
+      await recordSummaryScheduleTrace(result);
     } catch (_) {
       // Summary scheduling must never interrupt expense entry.
     }
+  }
+
+  @visibleForTesting
+  static Future<void> recordSummaryScheduleTrace(
+    ExpenseTelemetrySummaryScheduleResult result,
+  ) async {
+    if (result.status != ExpenseTelemetrySummaryScheduleStatus.queued) return;
+    await _enqueue(
+      ExpenseTelemetryEvent(
+        type: ExpenseTelemetryEventType.syncPending,
+        metadata: {
+          'syncState': 'expense_summary_queued',
+          'summaryStatus': result.status.name,
+          'ocrContractQueued': result.ocrContractQueued,
+          'ocrContractSource': result.ocrContractSource,
+          if (result.ocrContractSkippedReason.isNotEmpty)
+            'ocrContractSkippedReason': result.ocrContractSkippedReason,
+        },
+      ),
+    );
   }
 
   static ExpenseTelemetryStorageMode _storageModeFor(

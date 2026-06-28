@@ -1,3 +1,4 @@
+import '../../../shared/receipts/receipt_processing_contract.dart';
 import '../../../shared/widgets/receipt_capture/receipt_capture.dart';
 import 'expense_screen_telemetry.dart';
 
@@ -5,7 +6,9 @@ class ExpenseOcrFailureDiagnostics {
   const ExpenseOcrFailureDiagnostics._();
 
   static ExpenseFailureDiagnostic fromOcrResult(ReceiptOcrResult result) {
-    final selected = _selectedFailureWarning(result.structuredWarnings);
+    final selected = result.prioritizedWarnings.isEmpty
+        ? null
+        : result.prioritizedWarnings.first;
     final cause = _confirmedCauseFor(selected?.kind);
     return ExpenseFailureDiagnostic(
       workflowStep: ExpenseWorkflowStep.receiptOcr,
@@ -19,33 +22,6 @@ class ExpenseOcrFailureDiagnostics {
 
   static String failureKindFor(ReceiptOcrResult result) {
     return fromOcrResult(result).confirmedCause;
-  }
-
-  static ReceiptOcrWarning? _selectedFailureWarning(
-    List<ReceiptOcrWarning> warnings,
-  ) {
-    const priority = <ReceiptOcrWarningKind>[
-      ReceiptOcrWarningKind.pdfSafety,
-      ReceiptOcrWarningKind.pdfTooLarge,
-      ReceiptOcrWarningKind.pdfUnreadable,
-      ReceiptOcrWarningKind.pdfReadFailure,
-      ReceiptOcrWarningKind.pluginUnavailable,
-      ReceiptOcrWarningKind.photoReadFailure,
-      ReceiptOcrWarningKind.photoQuality,
-      ReceiptOcrWarningKind.noSource,
-      ReceiptOcrWarningKind.noReadableText,
-      ReceiptOcrWarningKind.sourceSkipped,
-      ReceiptOcrWarningKind.sectionGap,
-      ReceiptOcrWarningKind.probableOverlap,
-      ReceiptOcrWarningKind.duplicateText,
-      ReceiptOcrWarningKind.unknown,
-    ];
-    for (final kind in priority) {
-      for (final warning in warnings) {
-        if (warning.kind == kind) return warning;
-      }
-    }
-    return warnings.isEmpty ? null : warnings.first;
   }
 
   static String _confirmedCauseFor(ReceiptOcrWarningKind? kind) {
@@ -89,12 +65,82 @@ class ExpenseOcrFailureDiagnostics {
   ) {
     final diagnostics = result.diagnostics;
     final warningKind = selected?.kind.name ?? 'none';
+    final recoveryAction = _recoveryActionFor(selected?.kind, result.source);
+    final recoveryTarget = _recoveryTargetFor(selected?.kind, result.source);
     return [
       'warning_$warningKind',
       'severity_${diagnostics.severity.name}',
       'source_${result.source.name}',
       'read_${diagnostics.attachmentsRead}',
       'skipped_${diagnostics.attachmentsSkipped}',
+      'recovery_$recoveryAction',
+      'target_$recoveryTarget',
     ].join('_');
+  }
+
+  static String _recoveryActionFor(
+    ReceiptOcrWarningKind? kind,
+    ReceiptProcessingSource source,
+  ) {
+    return switch (kind) {
+      ReceiptOcrWarningKind.noSource => 'attach_proof',
+      ReceiptOcrWarningKind.noReadableText => _sourceRecoveryAction(source),
+      ReceiptOcrWarningKind.sourceSkipped => 'review_saved_proof',
+      ReceiptOcrWarningKind.duplicateText => 'review_overlap',
+      ReceiptOcrWarningKind.probableOverlap => 'review_overlap',
+      ReceiptOcrWarningKind.sectionGap => 'add_missing_section',
+      ReceiptOcrWarningKind.pdfSafety => 'attach_safe_pdf',
+      ReceiptOcrWarningKind.pdfTooLarge => 'use_smaller_pdf_or_photos',
+      ReceiptOcrWarningKind.pdfUnreadable => 'replace_pdf_or_add_photo',
+      ReceiptOcrWarningKind.pluginUnavailable => 'manual_entry',
+      ReceiptOcrWarningKind.photoQuality => 'retake_or_review_photo',
+      ReceiptOcrWarningKind.photoReadFailure => 'retake_photo',
+      ReceiptOcrWarningKind.pdfReadFailure => 'scan_receipt_with_photos',
+      ReceiptOcrWarningKind.unknown => 'review_receipt_manually',
+      null => _sourceRecoveryAction(source),
+    };
+  }
+
+  static String _sourceRecoveryAction(ReceiptProcessingSource source) {
+    return switch (source) {
+      ReceiptProcessingSource.photo => 'retake_photo_or_add_section',
+      ReceiptProcessingSource.pdf => 'scan_receipt_with_photos',
+      ReceiptProcessingSource.importedText => 'paste_cleaner_text',
+      ReceiptProcessingSource.mixed => 'choose_clearest_source',
+      ReceiptProcessingSource.none => 'attach_proof',
+    };
+  }
+
+  static String _recoveryTargetFor(
+    ReceiptOcrWarningKind? kind,
+    ReceiptProcessingSource source,
+  ) {
+    return switch (kind) {
+      ReceiptOcrWarningKind.noSource => 'receipt_attachment',
+      ReceiptOcrWarningKind.duplicateText ||
+      ReceiptOcrWarningKind.probableOverlap => 'receipt_overlap',
+      ReceiptOcrWarningKind.sectionGap => 'receipt_sections',
+      ReceiptOcrWarningKind.pdfSafety ||
+      ReceiptOcrWarningKind.pdfTooLarge ||
+      ReceiptOcrWarningKind.pdfUnreadable ||
+      ReceiptOcrWarningKind.pdfReadFailure => 'receipt_pdf',
+      ReceiptOcrWarningKind.pluginUnavailable => 'manual_receipt_entry',
+      ReceiptOcrWarningKind.photoQuality ||
+      ReceiptOcrWarningKind.photoReadFailure => 'receipt_photo',
+      ReceiptOcrWarningKind.sourceSkipped ||
+      ReceiptOcrWarningKind.noReadableText ||
+      ReceiptOcrWarningKind.unknown ||
+      null => _sourceRecoveryTarget(source),
+    };
+  }
+
+  static String _sourceRecoveryTarget(ReceiptProcessingSource source) {
+    return switch (source) {
+      ReceiptProcessingSource.photo => 'receipt_photo',
+      ReceiptProcessingSource.pdf => 'receipt_pdf',
+      ReceiptProcessingSource.importedText => 'receipt_text',
+      ReceiptProcessingSource.mixed => 'receipt_sources',
+      ReceiptProcessingSource.none => 'receipt_attachment',
+    };
   }
 }

@@ -29,13 +29,10 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
           : (_selectedIndex + 1).clamp(0, _photoPaths.length);
       _photoPaths.insertAll(insertIndex, picked.paths);
       _qualityChecksByPath.addAll(picked.qualityChecksByPath);
+      _captureDiagnosticsByPath.addAll(picked.captureDiagnosticsByPath);
       _selectedIndex = insertIndex;
-      if (_photoPaths.length > 1) {
-        _reviewMode = _ReceiptReviewMode.order;
-        _controlsVisible = true;
-      }
     });
-    _invalidateStitchPreview();
+    _recoverReviewAfterPhotoSetChanged();
   }
 
   Future<void> _retakeCurrentPhoto() async {
@@ -60,12 +57,9 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
         _photoPaths.insertAll(_selectedIndex + 1, picked.paths.skip(1));
       }
       _qualityChecksByPath.addAll(picked.qualityChecksByPath);
-      if (_photoPaths.length > 1) {
-        _reviewMode = _ReceiptReviewMode.order;
-        _controlsVisible = true;
-      }
+      _captureDiagnosticsByPath.addAll(picked.captureDiagnosticsByPath);
     });
-    _invalidateStitchPreview();
+    _recoverReviewAfterPhotoSetChanged();
     if (replacedGeneratedPath != null) {
       await _deleteGeneratedEditPhotos(_photoPaths.toSet());
     }
@@ -85,6 +79,11 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
         if (!shouldContinue) return const _PickedReceiptPhotos.empty();
       }
       final settings = ReceiptCaptureSettingsScope.maybeOf(context);
+      final nativePicked = await _pickWithMaintainiacNativeCamera(
+        settings,
+        previousSectionGuidePhotoPath: alignmentGuidePhotoPath,
+      );
+      if (nativePicked.paths.isNotEmpty) return nativePicked;
       if (NativeReceiptScannerService.documentScannerAllowedOnThisPlatform) {
         final scanResult = await const NativeReceiptScannerService()
             .scanReceipt(
@@ -127,7 +126,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       } on MissingPluginException {
         if (mounted) {
           _showCameraError(
-            'The phone camera is not available in this build. Use Add Existing Photo, or reinstall the app and try again.',
+            'The backup receipt photo option is not available in this build. Use Add Existing Photo, or reinstall the app and try again.',
           );
         }
         return const _PickedReceiptPhotos.empty();
@@ -146,6 +145,63 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       return const _PickedReceiptPhotos.empty();
     } finally {
       if (mounted) _updateReviewState(() => _openingCamera = false);
+    }
+  }
+
+  Future<_PickedReceiptPhotos> _pickWithMaintainiacNativeCamera(
+    ReceiptCaptureSettingsController? settings, {
+    String? previousSectionGuidePhotoPath,
+  }) async {
+    final permission = await const ReceiptCameraPermission().ensureReady();
+    if (!mounted) return const _PickedReceiptPhotos.empty();
+    if (!permission.canUseCamera) {
+      _showCameraError(permission.userMessage);
+      return const _PickedReceiptPhotos.empty();
+    }
+    final service = const ReceiptNativeCameraService();
+    final nativeCapabilities = await service.readCapabilities();
+    if (!mounted) return const _PickedReceiptPhotos.empty();
+    if (!nativeCapabilities.canOpenReceiptCamera) {
+      return const _PickedReceiptPhotos.empty();
+    }
+    final deviceCapability =
+        settings?.deviceCapability ?? const ReceiptDeviceCapability.standard();
+    final cameraSettings = ReceiptNativeCameraSettings(
+      assistedReceiptFill: true,
+      longReceiptMode: settings?.cameraLongReceiptTips ?? true,
+      autoCaptureEnabled: settings?.cameraAutoCapture ?? false,
+      dataSaverLevel: _dataSaverLevel,
+    );
+    try {
+      final result = await service.captureReceipt(
+        cameraSettings.sessionFor(
+          deviceCapability: deviceCapability,
+          nativeCapabilities: nativeCapabilities,
+          previousSectionGuidePhotoPath: previousSectionGuidePhotoPath,
+        ),
+      );
+      if (!result.hasPhotos) return const _PickedReceiptPhotos.empty();
+      final staged = await const ReceiptNativeCaptureStaging().stage(
+        result,
+        dataSaverLevel: _dataSaverLevel,
+      );
+      if (!staged.hasPhotos) return const _PickedReceiptPhotos.empty();
+      return _PickedReceiptPhotos.fromNativePhotoPaths(
+        staged.photoPaths,
+        captureDiagnosticsByPath: staged.captureDiagnosticsByPhotoPath,
+      );
+    } on ReceiptNativeCameraCanceledException {
+      return const _PickedReceiptPhotos.empty();
+    } on ReceiptNativeCameraUnavailableException catch (error) {
+      if (mounted && nativeCapabilities.available) {
+        _showCameraError(
+          '${error.message} Opening the backup receipt photo option.',
+        );
+      }
+      return const _PickedReceiptPhotos.empty();
+    } on ReceiptProofStorageException catch (error) {
+      if (mounted) _showCameraError(error.message);
+      return const _PickedReceiptPhotos.empty();
     }
   }
 
@@ -175,7 +231,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Use the bottom of the last photo as your guide. Start the next photo with a few repeated lines so Maintainiac can match the receipt sections.',
+                  'Use the bottom of the last photo as your guide. Start the next photo by repeating 3-5 readable receipt lines so Maintainiac can match the sections.',
                   style: TextStyle(
                     color: Color(0xFFC7D0D4),
                     fontSize: 13,
@@ -202,7 +258,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
                       child: FilledButton.icon(
                         onPressed: () => Navigator.of(context).pop(true),
                         icon: const Icon(Icons.camera_alt_rounded),
-                        label: const Text('Open Camera'),
+                        label: const Text('Open Receipt Camera'),
                         style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xFF28A745),
                           foregroundColor: Colors.white,
@@ -221,6 +277,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
   }
 
   void _showCameraError(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
@@ -230,8 +287,8 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
     if (!mounted || result.status == ReceiptNativeScanStatus.scanned) return;
     final detail = result.message.trim();
     final message = detail.isEmpty
-        ? 'Document scanner was not available. Opening the phone camera instead so you can still capture the receipt.'
-        : '$detail Opening the phone camera instead so you can still capture the receipt.';
+        ? 'Document scanner was not available. Opening the backup receipt photo option instead.'
+        : '$detail Opening the backup receipt photo option instead.';
     _showCameraError(message);
   }
 
@@ -250,7 +307,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
     if (message != null && message.isNotEmpty) {
       return '$message Try Add Another Photo again, or choose an existing receipt image.';
     }
-    return 'The phone camera could not open. Try Add Another Photo again, or choose an existing receipt image.';
+    return 'The backup receipt photo option could not open. Try Add Another Photo again, or choose an existing receipt image.';
   }
 
   Future<void> _showStorageDialog(String message) async {
@@ -302,7 +359,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       }
     });
     unawaited(_deleteStaleDataSaverPreviewFiles(staleDataSaverPreviewPaths));
-    _invalidateStitchPreview();
+    _recoverReviewAfterPhotoSetChanged();
     if (removedGeneratedPath != null) {
       unawaited(_deleteGeneratedEditPhotos(_photoPaths.toSet()));
     }
@@ -382,11 +439,39 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       _photoPaths[targetIndex] = currentPath;
       _selectedIndex = targetIndex;
     });
+    _recoverReviewAfterPhotoSetChanged();
+  }
+
+  void _recoverReviewAfterPhotoSetChanged() {
     _invalidateStitchPreview();
+    if (_photoPaths.isEmpty) return;
+    _updateReviewState(() {
+      if (_selectedIndex < 0) _selectedIndex = 0;
+      if (_selectedIndex >= _photoPaths.length) {
+        _selectedIndex = _photoPaths.length - 1;
+      }
+      final maxPairIndex = _photoPaths.length <= 1 ? 0 : _photoPaths.length - 2;
+      if (_selectedStitchPairIndex > maxPairIndex) {
+        _selectedStitchPairIndex = maxPairIndex;
+      }
+      _reviewMode = _photoPaths.length > 1
+          ? _ReceiptReviewMode.order
+          : _ReceiptReviewMode.preview;
+      _controlsVisible = true;
+      _savingPhotos = false;
+      _cropProcessing = false;
+      _cropSourcePath = null;
+      _cropImageBytes = null;
+      _cropImageSize = null;
+      _cropRect = null;
+      _cropDisplayRect = null;
+    });
+    _resetToolControlsScrollPosition();
   }
 
   Future<void> _continue() async {
     if (_savingPhotos || _closingReview) return;
+    if (_photoPaths.isEmpty) return;
     if (_needsStitchReviewBeforeSave) {
       if (_reviewMode != _ReceiptReviewMode.stitch) {
         _updateReviewState(() {
@@ -408,6 +493,9 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       }
     }
     _updateReviewState(() => _savingPhotos = true);
+    final pathsToSave = widget.bestShotCandidateMode
+        ? [_photoPaths[_selectedIndex]]
+        : List<String>.of(_photoPaths);
     try {
       final storage = await ReceiptStorageGuard.check(
         ReceiptStoragePurpose.savePhotos,
@@ -427,27 +515,43 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       } else if (storage.shouldWarnLowStorage) {
         _showCameraError(storage.warningMessage());
       }
-      final pathsToSave = widget.bestShotCandidateMode
-          ? [_photoPaths[_selectedIndex]]
-          : _photoPaths;
       final savedPaths = <String>[];
       final ocrSourcePaths = <String>[];
       final savedQualityChecks = <String, ReceiptPhotoQualityCheck>{};
+      final preparationDiagnostics = <String, Map<String, Object?>>{};
+      final captureDiagnostics = <String, Map<String, Object?>>{};
       for (final path in pathsToSave) {
+        final cleanupSettings = ReceiptImageCleanupSettings.fromDiagnostics(
+          _captureDiagnosticsByPath[path],
+        );
         final prepared = await ReceiptImageProcessor.prepareForOcrAndBackup(
           path: path,
           level: _dataSaverLevel,
+          cleanupSettings: cleanupSettings,
         ).timeout(const Duration(seconds: 20));
-        if (_closingReview) return;
+        if (_closingReview) {
+          _stopReceiptReviewSave();
+          return;
+        }
         savedPaths.add(prepared.backupPath);
         ocrSourcePaths.add(prepared.ocrSourcePath);
         savedQualityChecks[prepared.backupPath] = prepared.quality;
+        final cameraDiagnostics = _captureDiagnosticsByPath[path];
+        if (cameraDiagnostics != null) {
+          captureDiagnostics[prepared.backupPath] = cameraDiagnostics;
+        }
+        preparationDiagnostics[prepared.ocrSourcePath] = prepared.preparation
+            .toDiagnostics();
       }
       final stitch = await _finalStitchResultForOcr(
         inputPaths: pathsToSave,
         preparedOcrPaths: ocrSourcePaths,
       ).timeout(const Duration(seconds: 24));
-      if (!mounted || _closingReview) return;
+      if (!mounted) return;
+      if (_closingReview) {
+        _stopReceiptReviewSave();
+        return;
+      }
       await _deleteUnusedBestShotCandidatePhotos(pathsToSave.toSet());
       await _deleteGeneratedStitchPreview();
       await _deleteGeneratedEditPhotos({
@@ -457,7 +561,11 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
         ...stitch.ocrSourcePaths,
         if (stitch.stitchedPath != null) stitch.stitchedPath!,
       });
-      if (!mounted || _closingReview) return;
+      if (!mounted) return;
+      if (_closingReview) {
+        _stopReceiptReviewSave();
+        return;
+      }
       Navigator.of(context).pop(
         ReceiptPhotoReviewResult(
           photoPaths: savedPaths,
@@ -465,6 +573,8 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
           dataSaverLevel: _dataSaverLevel,
           stitchResult: stitch,
           photoQualityChecksByPath: savedQualityChecks,
+          preparationDiagnosticsByOcrPath: preparationDiagnostics,
+          captureDiagnosticsByPhotoPath: captureDiagnostics,
         ),
       );
     } on TimeoutException {
@@ -480,8 +590,27 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
     }
   }
 
+  void _stopReceiptReviewSave() {
+    if (!mounted) return;
+    _updateReviewState(() => _savingPhotos = false);
+  }
+
   Future<void> _leaveReceiptReviewWithoutSaving() async {
     if (_closingReview) return;
+    if (_savingPhotos) {
+      _showCameraError('Receipt photo is being prepared. Wait a moment.');
+      return;
+    }
+    if (_cropProcessing) {
+      _showCameraError('Finish or cancel crop before leaving this review.');
+      return;
+    }
+    final action = await _confirmReceiptReviewExit();
+    if (!mounted || action == _ReceiptReviewExitAction.keepReviewing) return;
+    if (action == _ReceiptReviewExitAction.saveAndRead) {
+      await _continue();
+      return;
+    }
     _closingReview = true;
     if (mounted) {
       _updateReviewState(() => _savingPhotos = false);
@@ -491,9 +620,83 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
     unawaited(_cleanupAbandonedReceiptReview());
   }
 
+  Future<_ReceiptReviewExitAction> _confirmReceiptReviewExit() async {
+    if (_photoPaths.isEmpty) return _ReceiptReviewExitAction.discard;
+    final hasMultipleSections = _photoPaths.length > 1;
+    final title = hasMultipleSections
+        ? 'Leave receipt photos?'
+        : 'Leave receipt photo?';
+    final content = hasMultipleSections
+        ? 'These receipt photos have not been saved to the expense yet. Tap Next to review what Maintainiac read, keep checking the photos, or discard them.'
+        : 'This receipt photo has not been saved to the expense yet. Tap Next to review what Maintainiac read, keep checking the photo, or discard it.';
+    final discardLabel = hasMultipleSections
+        ? 'Discard Photos'
+        : 'Discard Photo';
+    final result = await showDialog<_ReceiptReviewExitAction>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF161D20),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFFE8ECEE),
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        content: Text(
+          content,
+          style: const TextStyle(
+            color: Color(0xFFC8D0D3),
+            fontWeight: FontWeight.w700,
+            height: 1.25,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pop(_ReceiptReviewExitAction.discard),
+            child: Text(discardLabel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(
+              context,
+            ).pop(_ReceiptReviewExitAction.keepReviewing),
+            child: const Text('Keep Reviewing'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.of(context).pop(_ReceiptReviewExitAction.saveAndRead),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF28A745),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Next'),
+          ),
+        ],
+      ),
+    );
+    return result ?? _ReceiptReviewExitAction.keepReviewing;
+  }
+
   Future<void> _cleanupAbandonedReceiptReview() async {
     await _deleteUnusedBestShotCandidatePhotos(const {});
     await _deleteGeneratedEditPhotos(const {});
+    await _deleteAbandonedStagedReviewPhotos();
+  }
+
+  Future<void> _deleteAbandonedStagedReviewPhotos() async {
+    final attachments = [
+      for (var index = 0; index < _photoPaths.length; index++)
+        ReceiptAttachmentRecord(
+          id: 'abandoned-review-$index',
+          path: _photoPaths[index],
+          kind: ReceiptAttachmentKind.photo,
+          dataSaverLevel: _dataSaverLevel,
+          createdAt: DateTime.now(),
+          storageState: ReceiptAttachmentStorageState.staged,
+        ),
+    ];
+    await ReceiptProofStorage.instance.deleteStagedAttachments(attachments);
   }
 
   bool get _needsStitchReviewBeforeSave {
@@ -571,11 +774,13 @@ class _PickedReceiptPhotos {
   const _PickedReceiptPhotos({
     required this.paths,
     required this.qualityChecksByPath,
+    required this.captureDiagnosticsByPath,
   });
 
   const _PickedReceiptPhotos.empty()
     : paths = const [],
-      qualityChecksByPath = const {};
+      qualityChecksByPath = const {},
+      captureDiagnosticsByPath = const {};
 
   factory _PickedReceiptPhotos.fromCameraResult(
     ReceiptCameraResult result,
@@ -587,12 +792,17 @@ class _PickedReceiptPhotos {
       final quality = result.qualityForIndex(index);
       if (quality != null) checks[path] = quality;
     }
-    return _PickedReceiptPhotos(paths: paths, qualityChecksByPath: checks);
+    return _PickedReceiptPhotos(
+      paths: paths,
+      qualityChecksByPath: checks,
+      captureDiagnosticsByPath: const {},
+    );
   }
 
   static Future<_PickedReceiptPhotos> fromNativePhotoPaths(
-    List<String> paths,
-  ) async {
+    List<String> paths, {
+    Map<String, Map<String, Object?>> captureDiagnosticsByPath = const {},
+  }) async {
     final checks = <String, ReceiptPhotoQualityCheck>{};
     for (final path in paths) {
       try {
@@ -602,11 +812,16 @@ class _PickedReceiptPhotos {
         // without a quality badge if this lightweight check fails.
       }
     }
-    return _PickedReceiptPhotos(paths: paths, qualityChecksByPath: checks);
+    return _PickedReceiptPhotos(
+      paths: paths,
+      qualityChecksByPath: checks,
+      captureDiagnosticsByPath: captureDiagnosticsByPath,
+    );
   }
 
   final List<String> paths;
   final Map<String, ReceiptPhotoQualityCheck> qualityChecksByPath;
+  final Map<String, Map<String, Object?>> captureDiagnosticsByPath;
 }
 
 class _ReceiptAlignmentGuidePreview extends StatelessWidget {
@@ -677,7 +892,7 @@ class _ReceiptAlignmentGuidePreview extends StatelessWidget {
                     border: Border.all(color: const Color(0xFFFFD166)),
                   ),
                   child: const Text(
-                    'Repeat a few lines from this bottom area in the next photo.',
+                    'Repeat 3-5 readable lines from this bottom area in the next photo.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xFFFFD166),
@@ -716,7 +931,7 @@ class _ReceiptAlignmentGuideNote extends StatelessWidget {
           SizedBox(width: 8),
           Expanded(
             child: Text(
-              'The phone camera opens next. Maintainiac cannot draw over that camera screen, so use this preview as your alignment guide before taking the next photo.',
+              'The receipt camera opens next. Keep the ghost slice near the top of the next photo so repeated lines are easy to match.',
               style: TextStyle(
                 color: Color(0xFFC7D0D4),
                 fontSize: 11.5,

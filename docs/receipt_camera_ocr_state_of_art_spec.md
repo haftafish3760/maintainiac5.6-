@@ -4,6 +4,14 @@ This file is the working spec for finishing Maintainiac's receipt camera, scanne
 
 The goal is not to clone another product. The goal is to combine the best product lessons from strong scanner and expense apps, then add Maintainiac-specific business logic.
 
+## Native Camera Reset
+
+The previous decision to use the phone's stock camera surface as the production receipt capture path is revoked.
+
+Maintainiac must own the receipt camera UI and UX. Android receipt capture should be built on CameraX through a Maintainiac native bridge. iOS receipt capture should be built on AVFoundation through the same Maintainiac service contract. Flutter may render the Maintainiac screen and call the bridge, but Flutter `camera` is not the production camera engine and Samsung/Apple camera apps are not the production capture UI.
+
+The native rebuild contract lives in `docs/receipt_native_camera_service_spec.md`.
+
 ## North Star
 
 Maintainiac should let a driver, contractor, or small business owner:
@@ -151,24 +159,23 @@ That puts the realistic remaining range around **95-140 serious bundled passes**
   sync.
 
 **Pass 114 - Native Capture And Long Receipt Overlay Decision**
-- Confirm production Android receipt capture uses the phone camera path.
-- Confirm legacy Flutter camera surface is not the default production path.
-- Decide how long-receipt ghost overlap works when native camera UI cannot show
-  Maintainiac overlays.
-- Document whether the solution is native camera plus post-capture guidance,
-  in-app guided camera for long receipts, or a hybrid.
+- Confirm production Android receipt capture uses Maintainiac UI over CameraX,
+  not the phone camera app.
+- Confirm production iOS receipt capture uses Maintainiac UI over AVFoundation,
+  not Apple Camera.
+- Confirm Flutter `camera` is not the production engine.
+- Define the native service contract for long-receipt ghost overlap, camera
+  settings, safe capture, and OCR source handoff.
 
 Decision:
-- The production path keeps native phone camera capture for image quality and
-  exposure trust.
-- Maintainiac cannot draw a live ghost overlay inside the external native
-  camera UI.
-- For now, long receipt alignment uses a pre-camera guide that shows the bottom
-  of the previous receipt section, then opens the native camera.
-- After capture, Maintainiac still handles order review, stitch confidence,
-  manual overlap adjustment, and ordered separate OCR fallback.
-- A future in-app guided camera can be added only if native camera quality,
-  exposure, zoom, focus, and lifecycle behavior are proven good enough.
+- The production path is a Maintainiac-native receipt camera.
+- Android uses CameraX through the Maintainiac native bridge.
+- iOS uses AVFoundation through the Maintainiac native bridge.
+- Stock phone camera apps are fallback/import paths only.
+- Long receipt overlap, ghost guides, live edge signals, and capture settings
+  belong in Maintainiac's UI/service contract.
+- Existing OCR, image processing, stitching, and review work should be reused
+  where it is correct.
 
 **Pass 115 - Camera Permission And Fallback UX**
 - Make permission denial, settings recovery, scanner fallback, and camera unavailable states plain and usable.

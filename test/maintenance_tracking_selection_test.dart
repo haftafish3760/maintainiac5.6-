@@ -16,11 +16,18 @@ void main() {
   late GlobalOdometerController odometer;
   late Directory hiveDirectory;
 
-  setUp(() async {
+  setUpAll(() async {
     hiveDirectory = await Directory.systemTemp.createTemp(
       'maintenance_tracking_test_',
     );
     Hive.init(hiveDirectory.path);
+    await Hive.openBox<dynamic>(MaintenanceDraftStore.boxName);
+  });
+
+  setUp(() async {
+    if (Hive.isBoxOpen(MaintenanceDraftStore.boxName)) {
+      await Hive.box<dynamic>(MaintenanceDraftStore.boxName).clear();
+    }
     appState = AppStateController();
     odometer = GlobalOdometerController();
   });
@@ -28,6 +35,9 @@ void main() {
   tearDown(() async {
     appState.dispose();
     odometer.dispose();
+  });
+
+  tearDownAll(() async {
     await Hive.close();
     await hiveDirectory.delete(recursive: true);
   });
@@ -74,24 +84,100 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Log Maintenance'), findsOneWidget);
-    expect(find.text('Items'), findsOneWidget);
-    expect(find.text('Service Details'), findsOneWidget);
-    expect(find.text('Engine Oil'), findsOneWidget);
-    _expectSameRow(tester, 'Service Date', 'Service Odometer');
+    expect(find.text('Manual Service Visit'), findsOneWidget);
+    expect(find.text('Engine Oil'), findsWidgets);
+    expect(find.text('Item 1 of 1'), findsOneWidget);
+    expect(find.text('Open Setup'), findsOneWidget);
+    expect(find.text('Date of Service'), findsOneWidget);
+    expect(find.text('Service Odometer'), findsOneWidget);
+    expect(find.text('Who Did The Work?'), findsOneWidget);
 
     await tester.ensureVisible(find.text('Review').last);
     await tester.pump();
     await tester.tap(find.text('Review').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Review Service'), findsOneWidget);
-    await tester.tap(find.text('Save Service'));
+    expect(find.text('Review Maintenance Visit'), findsOneWidget);
+    expect(find.text('Expense'), findsOneWidget);
+    expect(find.text('Not linked'), findsOneWidget);
+    await tester.tap(find.text('Save Visit'));
     await tester.pumpAndSettle();
 
     expect(appState.maintenanceEvents.length, 1);
     expect(appState.maintenanceEvents.single.itemName, 'Engine Oil');
     expect(appState.maintenance.single.milesSinceService, 0);
     expect(find.text('Tracked Maintenance'), findsOneWidget);
+  });
+
+  testWidgets('manual maintenance visit handles multiple selected items', (
+    tester,
+  ) async {
+    appState.addMaintenanceRecords([
+      MaintenanceRecord(
+        itemName: 'Engine Oil',
+        vehicleName: 'Work Truck 1',
+        intervalMiles: 5000,
+        milesSinceService: 4100,
+        intervalMonths: 6,
+        monthsSinceService: 4,
+        importance: 100,
+      ),
+      MaintenanceRecord(
+        itemName: 'Oil Filter',
+        vehicleName: 'Work Truck 1',
+        intervalMiles: 5000,
+        milesSinceService: 4100,
+        intervalMonths: 6,
+        monthsSinceService: 4,
+        importance: 92,
+      ),
+      MaintenanceRecord(
+        itemName: 'Tire Rotation',
+        vehicleName: 'Work Truck 1',
+        intervalMiles: 6000,
+        milesSinceService: 5400,
+        intervalMonths: 6,
+        monthsSinceService: 5,
+        importance: 90,
+      ),
+    ]);
+
+    await _pumpMaintenance(tester, appState, odometer);
+
+    await tester.tap(find.text('Log Service'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('What Was Serviced?'), findsOneWidget);
+    await tester.tap(find.text('Engine Oil').last);
+    await tester.tap(find.text('Oil Filter').last);
+    await tester.tap(find.text('Tire Rotation').last);
+    await tester.pump();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Manual Service Visit'), findsOneWidget);
+    expect(find.text('Item 1 of 3'), findsOneWidget);
+    expect(find.text('Next Item'), findsOneWidget);
+
+    await tester.tap(find.text('Next Item'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Item 2 of 3'), findsOneWidget);
+    await tester.ensureVisible(find.text('Review'));
+    await tester.tap(find.text('Review'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Review Maintenance Visit'), findsOneWidget);
+    expect(appState.maintenanceEvents, isEmpty);
+
+    await tester.tap(find.text('Save Visit'));
+    await tester.pumpAndSettle();
+
+    expect(appState.maintenanceEvents.length, 3);
+    expect(
+      appState.maintenanceEvents.map((event) => event.itemName),
+      containsAll(['Engine Oil', 'Oil Filter', 'Tire Rotation']),
+    );
   });
 
   testWidgets('tracked maintenance row opens item setup', (tester) async {
@@ -145,6 +231,12 @@ void main() {
         physicalSize: const Size(360, 900),
       );
 
+      await tester.scrollUntilVisible(
+        find.text('Engine Oil').first,
+        180,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pump();
       await tester.tap(find.text('Engine Oil').first);
       await tester.pumpAndSettle();
 
@@ -225,6 +317,51 @@ void main() {
     expect(find.text(r'$74.25'), findsOneWidget);
   });
 
+  testWidgets('maintenance home summarizes saved service history', (
+    tester,
+  ) async {
+    appState.addMaintenanceRecords([
+      MaintenanceRecord(
+        itemName: 'Engine Oil',
+        vehicleName: 'Work Truck 1',
+        intervalMiles: 5000,
+        milesSinceService: 4100,
+        intervalMonths: 6,
+        monthsSinceService: 4,
+        importance: 100,
+      ),
+    ]);
+    appState.logMaintenanceService(
+      MaintenanceServiceEvent(
+        itemName: 'Engine Oil',
+        vehicleName: 'Work Truck 1',
+        serviceDate: DateTime.now(),
+        odometer: 128415,
+        provider: 'Test Shop',
+        totalCost: 74.25,
+        receiptProofCount: 1,
+      ),
+    );
+
+    await _pumpMaintenance(tester, appState, odometer);
+    await tester.pump();
+
+    expect(find.text('Service History'), findsOneWidget);
+    expect(find.text('Spent'), findsOneWidget);
+    expect(find.text(r'$74.25'), findsOneWidget);
+    expect(find.text('Proof'), findsOneWidget);
+    expect(find.text(r'128,415 miles • $74.25 • 1 proof'), findsOneWidget);
+
+    await tester.tap(find.text(r'128,415 miles • $74.25 • 1 proof'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Service Record'), findsOneWidget);
+    expect(find.text('Provider'), findsOneWidget);
+    expect(find.text('Test Shop'), findsOneWidget);
+    expect(find.text('Open Item'), findsOneWidget);
+    expect(find.text('Log Again'), findsOneWidget);
+  });
+
   testWidgets('maintenance home shows setup draft and resumes it', (
     tester,
   ) async {
@@ -239,17 +376,19 @@ void main() {
         importance: 100,
       ),
     ]);
-    await MaintenanceDraftStore.saveSetupDraft(
-      vehicleName: 'Work Truck 1',
-      itemName: 'Engine Oil',
-      values: {
-        'dateEntryMode': 'elapsed',
-        'odometerEntryMode': 'distance',
-        'monthsSinceService': '2',
-        'milesSinceService': '1200',
-        'mileInterval': 7500,
-        'monthInterval': 6,
-      },
+    await tester.runAsync(
+      () => MaintenanceDraftStore.saveSetupDraft(
+        vehicleName: 'Work Truck 1',
+        itemName: 'Engine Oil',
+        values: {
+          'dateEntryMode': 'elapsed',
+          'odometerEntryMode': 'distance',
+          'monthsSinceService': '2',
+          'milesSinceService': '1200',
+          'mileInterval': 7500,
+          'monthInterval': 6,
+        },
+      ),
     );
 
     await _pumpMaintenance(tester, appState, odometer);
@@ -268,6 +407,9 @@ void main() {
     expect(find.text('Estimated miles since'), findsOneWidget);
     expect(_editableTextWithValue('2'), findsOneWidget);
     expect(_editableTextWithValue('1200'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
   });
 }
 

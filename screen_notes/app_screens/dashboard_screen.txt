@@ -21,3 +21,14 @@ and that to me would be the dashboard."
 That needs to be mom and dad right there, mom, dad, grandpa, whatever. That is
 the mac daddy of all of them."
 
+Source: visible user message, 2026-06-27
+
+The dashboard system needs two separate dashboard screens, not one screen with a
+few swapped widgets. The independent dashboard is for the solo/gig/driver user
+who starts a day and tracks mileage, pay, fuel, expenses, trips, and profit.
+The contractor dashboard is for multi-vehicle, multi-employee, crew, job, and
+operations work.
+
+The active vehicle block belongs at the top of the dashboard home and dashboard
+calendar views. Weekly totals, profit, fuel, expenses, pay, trips, and similar
+secondary pages must remain reachable from the dashboard.

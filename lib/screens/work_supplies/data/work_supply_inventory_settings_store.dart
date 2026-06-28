@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'work_supply_models.dart';
+import 'work_supply_trade_pack_tiers.dart';
 
 class WorkSupplyInventorySettingsController extends ChangeNotifier {
   WorkSupplyInventorySettingsController._(this._box);
@@ -32,6 +33,8 @@ class WorkSupplyInventorySettingsController extends ChangeNotifier {
   Set<String> get hiddenCategories => _readStringSet(_Keys.hiddenCategories);
   Set<String> get followedItems => _readStringSet(_Keys.followedItems);
   Set<String> get hiddenItems => _readStringSet(_Keys.hiddenItems);
+  Set<String> get installedTradePackOptions =>
+      _readStringSet(_Keys.installedTradePackOptions);
 
   Future<void> setAppAssistedReceipts(bool value) =>
       _writeBool(_Keys.appAssistedReceipts, value);
@@ -57,6 +60,11 @@ class WorkSupplyInventorySettingsController extends ChangeNotifier {
 
   bool followsItem(WorkSupplyItem item) => followedItems.contains(item.id);
   bool hidesItem(WorkSupplyItem item) => hiddenItems.contains(item.id);
+  bool hasInstalledTradePackOption(WorkSupplyTradePackOption option) {
+    return installedTradePackOptions.contains(
+      workSupplyTradePackOptionKey(option),
+    );
+  }
 
   bool itemIsVisible(WorkSupplyItem item) {
     if (showHiddenCatalogItems) return true;
@@ -117,6 +125,17 @@ class WorkSupplyInventorySettingsController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setTradePackOptionInstalled(
+    WorkSupplyTradePackOption option,
+    bool value,
+  ) {
+    return _toggleString(
+      _Keys.installedTradePackOptions,
+      workSupplyTradePackOptionKey(option),
+      value,
+    );
+  }
+
   bool _readBool(String key, bool fallback) {
     final value = _box.get(key);
     return value is bool ? value : fallback;
@@ -166,4 +185,5 @@ class _Keys {
   static const hiddenCategories = 'hidden_categories';
   static const followedItems = 'followed_items';
   static const hiddenItems = 'hidden_items';
+  static const installedTradePackOptions = 'installed_trade_pack_options';
 }
