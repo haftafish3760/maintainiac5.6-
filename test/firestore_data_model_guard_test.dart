@@ -107,9 +107,10 @@ void main() {
     });
 
     test('docs keep OCR Command Center health on one summary document', () {
-      final syncSpec = File(
+      final syncSpec = [
         'docs/firebase_sync_schema_spec.md',
-      ).readAsStringSync();
+        'docs/firebase_sync_receipt_expense_schema_spec.md',
+      ].map((path) => File(path).readAsStringSync()).join('\n');
       final expenseSpec = File(
         'docs/expense_screen_full_design.md',
       ).readAsStringSync();

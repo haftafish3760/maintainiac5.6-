@@ -8,7 +8,7 @@ This script is for controlled phone testing after a meaningful receipt-camera bu
 - Avoid maintenance-specific receipt paths during this test batch.
 - Use the same receipt on every device when possible so differences are device-related, not receipt-related.
 - Test at least one short receipt and one long receipt that needs more than one photo.
-- Do not judge OCR from a compressed backup copy. OCR must happen from the best prepared image first.
+- Do not judge OCR from the smaller saved proof. OCR must happen from the best prepared image first.
 - A failed read is acceptable only if the app explains what happened and lets the user continue manually with the proof saved.
 
 ## Device Targets

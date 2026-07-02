@@ -1,6 +1,9 @@
 import 'package:flutter/services.dart';
 
+import 'receipt_assistance_policy.dart';
 import 'receipt_native_camera_contract.dart';
+
+part 'receipt_native_camera_service_contract_helpers.dart';
 
 class ReceiptNativeCameraUnavailableException implements Exception {
   const ReceiptNativeCameraUnavailableException(this.message);
@@ -13,8 +16,11 @@ class ReceiptNativeCameraUnavailableException implements Exception {
 
 class ReceiptNativeCameraCanceledException
     extends ReceiptNativeCameraUnavailableException {
-  const ReceiptNativeCameraCanceledException()
-    : super('Receipt photo capture was cancelled.');
+  const ReceiptNativeCameraCanceledException({
+    this.closeAction = 'unknown_cancel',
+  }) : super('Receipt photo capture was cancelled.');
+
+  final String closeAction;
 }
 
 class ReceiptNativeCameraService {
@@ -60,6 +66,10 @@ class ReceiptNativeCameraService {
           'Maintainiac receipt camera did not capture a receipt photo.',
         );
       }
+      final nativeDiagnostics = result['captureDiagnostics'] is Map
+          ? Map<String, Object?>.from(result['captureDiagnostics'] as Map)
+          : <String, Object?>{};
+      _verifyMaintainiacReceiptSurface(config, nativeDiagnostics);
       return ReceiptNativeCaptureResult(
         engine: config.nativeCapabilities.engine,
         originalPhotoPaths: paths,
@@ -67,11 +77,66 @@ class ReceiptNativeCameraService {
         capturedAt:
             DateTime.tryParse(result['capturedAt']?.toString() ?? '') ??
             DateTime.now(),
-        captureDiagnostics: Map<String, Object?>.from(
-          result['captureDiagnostics'] is Map
-              ? result['captureDiagnostics'] as Map
-              : const {},
-        ),
+        captureDiagnostics: {
+          ...nativeDiagnostics,
+          'nativeReceiptCameraSurfaceVerified': true,
+          'nativeReceiptCameraSurfaceVerification':
+              'maintainiac_custom_surface_verified',
+          'nativeReceiptCameraSurfaceActual':
+              nativeDiagnostics['captureSurface']?.toString().trim().isEmpty ==
+                  false
+              ? nativeDiagnostics['captureSurface']
+              : _expectedCaptureSurface(config),
+          ..._nativeControlContract(config),
+          ...config.cloudAssistPlan.toPrivacySafeDiagnostics(),
+          ...config.installRecommendation.toPrivacySafeDiagnostics(),
+          ...config.receiptBrainRecommendation.toPrivacySafeDiagnostics(),
+          ...config.receiptBrainFootprintSummary.toPrivacySafeDiagnostics(),
+          ...config.parserPackRoutingPlan.toPrivacySafeDiagnostics(),
+          'localOnlyCapturePolicy': config.localOnlyCapturePolicy,
+          'localOnlyBaseFlowCanRunNow':
+              config.localOnlyAcceptanceGate.baseFlowCanRunLocallyNow,
+          'localOnlyHeavyPacksMayBlockCapture':
+              config.heavyReceiptPacksMayBlockCapture,
+          'localOnlyCloudAssistMayBlockCapture':
+              config.cloudAssistMayBlockCapture,
+          'localOnlyCameraMustStayAvailableBeforePacks':
+              !config.heavyReceiptPacksMayBlockCapture,
+          'localOnlyProofSaveMustStayAvailableBeforePacks':
+              config.localOnlyAcceptanceGate.canSaveReceiptProof,
+          'localOnlyBasicReviewMustStayAvailableBeforePacks':
+              config.localOnlyAcceptanceGate.canOpenBasicLocalReview,
+          'capabilityPolicyCodes': config.capabilityPolicyCodes,
+          if (config.hasPreviousSectionGuide) ...{
+            'previousSectionReasonCode': config.previousSectionGuideReasonCode,
+            'previousSectionGhostGuidePolicy':
+                config.previousSectionGhostGuidePolicy,
+            'previousSectionGhostGuideRepeatLineTarget':
+                config.previousSectionGhostGuideRepeatLineTarget,
+            'previousSectionGhostGuidePlacement':
+                config.previousSectionGhostGuidePlacement,
+            'previousSectionGhostGuideMatchTarget':
+                config.previousSectionGhostGuideMatchTarget,
+            'previousSectionGhostSourceStartFraction':
+                config.previousSectionGhostSourceStartFractionOrDefault,
+            'previousSectionGhostSourceHeightFraction':
+                config.previousSectionGhostSourceHeightFractionOrDefault,
+            'previousSectionGhostOverlayTopFraction':
+                config.previousSectionGhostOverlayTopFractionOrDefault,
+            'previousSectionGhostOverlayHeightFraction':
+                config.previousSectionGhostOverlayHeightFractionOrDefault,
+            'previousSectionGhostOpacity':
+                config.previousSectionGhostOpacityOrDefault,
+            'previousSectionGhostSlicePercent':
+                config.previousSectionGhostSlicePercent,
+            'previousSectionMissingBottomAndTotals':
+                config.previousSectionGuideMissingBottomAndTotals,
+            'previousSectionGuidanceAvailable': config
+                .previousSectionGuideGuidance
+                .trim()
+                .isNotEmpty,
+          },
+        },
       );
     } on MissingPluginException {
       throw const ReceiptNativeCameraUnavailableException(
@@ -79,80 +144,13 @@ class ReceiptNativeCameraService {
       );
     } on PlatformException catch (error) {
       if (error.code.toLowerCase().contains('cancel')) {
-        throw const ReceiptNativeCameraCanceledException();
+        throw ReceiptNativeCameraCanceledException(
+          closeAction: _platformCloseAction(error.details),
+        );
       }
       throw ReceiptNativeCameraUnavailableException(
         error.message ?? 'Maintainiac receipt camera could not open.',
       );
     }
-  }
-
-  Map<String, Object?> _sessionArguments(
-    ReceiptNativeCameraSessionConfig config,
-  ) {
-    final settings = config.settings;
-    return {
-      'engine': config.nativeCapabilities.engine.name,
-      'manualShutterAlwaysAvailable': settings.manualShutterAlwaysAvailable,
-      'autoCaptureEnabled': config.autoCaptureEnabled,
-      'autoCaptureAllowed': config.autoCaptureAllowed,
-      'assistedReceiptFill': settings.assistedReceiptFill,
-      'reviewDepth': settings.reviewDepth.name,
-      'longReceiptMode': settings.longReceiptMode,
-      'tapFocusEnabled': settings.tapFocusEnabled,
-      'pinchZoomEnabled': settings.pinchZoomEnabled,
-      'exposureSliderEnabled': settings.exposureSliderEnabled,
-      'exposureResetEnabled': settings.exposureResetEnabled,
-      'autoExposureAssistEnabled': settings.autoExposureAssistEnabled,
-      'focusMode': settings.focusMode.name,
-      'exposureMode': settings.exposureMode.name,
-      'whiteBalanceMode': settings.whiteBalanceMode.name,
-      'flashMode': settings.flashMode.name,
-      'preferMacroWhenHelpful': settings.preferMacroWhenHelpful,
-      'imageFormat': settings.imageFormat.name,
-      'liveAnalysisEnabled': config.liveAnalysisEnabled,
-      'edgeDetectionEnabled': config.edgeDetectionEnabled,
-      'edgeOverlayEnabled': settings.edgeOverlayEnabled,
-      'perspectiveCorrectionEnabled': settings.perspectiveCorrectionEnabled,
-      'motionBlurWarningEnabled': settings.motionBlurWarningEnabled,
-      'glareWarningEnabled': settings.glareWarningEnabled,
-      'lowLightWarningEnabled': settings.lowLightWarningEnabled,
-      'shadowWarningEnabled': settings.shadowWarningEnabled,
-      'tooFarTooCloseWarningEnabled': settings.tooFarTooCloseWarningEnabled,
-      'receiptFullyVisibleWarningEnabled':
-          settings.receiptFullyVisibleWarningEnabled,
-      'textTooSmallWarningEnabled': settings.textTooSmallWarningEnabled,
-      'previousSectionGhostGuideEnabled':
-          settings.previousSectionGhostGuideEnabled,
-      'manualCropAfterCapture': settings.manualCropAfterCapture,
-      'autoCropSuggestionEnabled': settings.autoCropSuggestionEnabled,
-      'grayscalePreviewEnabled': settings.grayscalePreviewEnabled,
-      'contrastBoostEnabled': settings.contrastBoostEnabled,
-      'sharpeningEnabled': settings.sharpeningEnabled,
-      'shadowReductionEnabled': settings.shadowReductionEnabled,
-      'adaptiveThresholdEnabled': settings.adaptiveThresholdEnabled,
-      'orientationCorrectionEnabled': settings.orientationCorrectionEnabled,
-      'saveOriginalTemporarily': settings.saveOriginalTemporarily,
-      'queueAcceptedCaptureLocally': settings.queueAcceptedCaptureLocally,
-      'ocrUsesOriginalFirst': settings.ocrUsesOriginalFirst,
-      'dataSaverLevel': settings.dataSaverLevel.name,
-      'storageSafetyLevel': config.storageSafetyLevel.name,
-      'storageConstrained': config.storageConstrained,
-      'storageSafetyReason': config.storageSafetyReason,
-      'maxSectionCount': config.maxSectionCount,
-      'analysisGapMs': config.analysisGapMs,
-      if (config.hasPreviousSectionGuide)
-        'previousSectionGuidePhotoPath': config.previousSectionGuidePhotoPath,
-    };
-  }
-
-  List<String> _stringList(Object? value) {
-    if (value is Iterable) {
-      return value
-          .map((entry) => entry.toString().trim())
-          .where((entry) => entry.isNotEmpty)
-          .toList(growable: false);
-    }
-    return const [];
   }
 }

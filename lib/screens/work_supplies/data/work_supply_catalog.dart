@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-
+import 'work_supply_color.dart';
 import 'work_supply_item_identity_resolver.dart';
 import 'work_supply_models.dart';
 

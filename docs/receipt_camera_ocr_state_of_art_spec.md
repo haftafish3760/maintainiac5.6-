@@ -106,7 +106,7 @@ Maintainiac must go beyond generic scanner apps:
 ## Hard Rules
 
 - Do not block manual capture because automatic guidance is uncertain.
-- Do not OCR the compressed backup image when a cleaner OCR source exists.
+- Do not OCR the smaller saved proof image when a cleaner OCR source exists.
 - Do not hide the receipt behind a large bottom panel.
 - Do not return the user to an attachment list when app-assisted review is expected.
 - Do not require Google Play Services document-scanner downloads before a user can photograph a receipt.
@@ -494,36 +494,6 @@ Decision:
 
 ### Phase 11 - Final Hardening
 
-**Pass 196 - Receipt Flow End-To-End Polish**
-- Walk the full path: capture, add photos, stitch/fallback, OCR, parse, classify, save, calendar recovery.
+Final hardening details were archived to keep the active state-of-art spec under the 500-line file limit.
 
-**Pass 197 - Failure Recovery Polish**
-- Every failure should tell the user what happened and what to do next.
-
-**Pass 198 - Release Readiness Audit**
-- Compare implementation against this spec and product standard line by line.
-
-**Pass 199 - Final Device Build And Manual QA**
-- Install meaningful build to requested devices.
-- Run the manual checklist.
-
-**Pass 200 - Final Receipt System Completion Decision**
-- Decide if the receipt system is complete.
-- If not complete, produce an exact remaining-gap list instead of pretending it is done.
-
-## Completion Evidence
-
-The receipt system is not complete until evidence proves:
-
-- Camera/photo review does not crash or trap the user.
-- Manual capture, tap focus, and pinch zoom work on supported devices.
-- Images are not unnecessarily dark compared with native camera behavior.
-- Long receipts work through stitch or ordered fallback.
-- OCR source image is chosen before backup-size reduction.
-- Parser handles common expense, fuel, retail, return, tax, and negative-line cases.
-- User can classify whole receipt and mixed line items.
-- Split tax math is correct.
-- Expense record saves locally and recovers from calendar/day views.
-- Diagnostics show exact failure step and cause without private content.
-- Android and iOS have acceptable fallback behavior.
-- Real-device and synthetic tests cover the known risk areas.
+- Archive: `docs/receipt_camera_ocr_state_of_art_spec_archive_final_hardening.md`.

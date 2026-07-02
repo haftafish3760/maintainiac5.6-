@@ -2,51 +2,87 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/receipt_camera_source_readers.dart';
+
 void main() {
   test('receipt capture exposes camera help and long receipt guidance', () async {
-    final settingsSheet = await File(
-      'lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart',
-    ).readAsString();
-    final helpSheet = await File(
-      'lib/shared/widgets/receipt_capture/receipt_camera_help_sheet.dart',
-    ).readAsString();
+    final settingsSheet = await readReceiptCaptureSettingsSource();
+    final helpSheet =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_camera_help_sheet.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart',
+        ).readAsString();
     final reviewControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
     ).readAsString();
-    final reviewTopBar = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',
+    final reviewPreviewControls =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_controls.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart',
+        ).readAsString();
+    final reviewPreviewActionTray =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_tray.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_status.dart',
+        ).readAsString();
+    final reviewCropAndProofControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_crop_and_proof_controls.dart',
     ).readAsString();
-    final reviewActions = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart',
+    final contextControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_context_controls.dart',
     ).readAsString();
-    final imagePicker = await File(
-      'lib/shared/widgets/receipt_capture/receipt_image_picker.dart',
+    final modeControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_mode_controls.dart',
     ).readAsString();
-    final reviewScreen = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart',
+    final commonControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart',
     ).readAsString();
+    final reviewActions = await readReceiptPhotoReviewSaveActionsSource();
+    final reviewScreen = await readReceiptPhotoReviewScreenSource();
     final sectionLabels = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_section_labels.dart',
     ).readAsString();
-    final reviewSaveActions = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart',
+    final importActions =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_import_actions.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_native_signal_documents.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_native_signal_helpers.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_continuation_signals.dart',
+        ).readAsString();
+    final attachmentOcrSourceRiskFlags = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_risk_flags.dart',
     ).readAsString();
-    final importActions = await File(
-      'lib/shared/widgets/receipt_capture/receipt_attachment_import_actions.dart',
-    ).readAsString();
+    final attachmentPublishHelpers =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_publish_helpers.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_publish_signals.dart',
+        ).readAsString();
     final dataSaverPanel = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_data_saver_panel.dart',
     ).readAsString();
-    final edgeCropper = await File(
-      'lib/shared/widgets/receipt_capture/receipt_edge_cropper.dart',
-    ).readAsString();
-    final productStandard = await File(
-      'docs/receipt_camera_ocr_product_standard.md',
-    ).readAsString();
-    final realDeviceScript = await File(
-      'docs/receipt_real_device_test_script.md',
-    ).readAsString();
-
     expect(settingsSheet, contains('Receipt Photo Help'));
     expect(settingsSheet, isNot(contains('How Receipt Photos Work')));
     expect(helpSheet, contains('Receipt Photo Help'));
@@ -55,7 +91,17 @@ void main() {
     expect(helpSheet, contains('Open Receipt Settings'));
     expect(helpSheet, contains('Clear Photo First'));
     expect(helpSheet, contains('Review Before Saving'));
+    expect(helpSheet, contains('Receipt Camera Controls'));
+    expect(
+      helpSheet,
+      contains(
+        'Use the in-camera settings for receipt help, long receipt guidance, flash, focus, and saved proof size.',
+      ),
+    );
     expect(helpSheet, contains('Storage And Privacy'));
+    expect(helpSheet, contains('installChoice.userFacingDownloadChoiceLabel'));
+    expect(importActions, contains('parserPackInstallChoice'));
+    expect(attachmentOcrSourceRiskFlags, contains('ocr_source_retake_risk'));
     expect(helpSheet, contains('profile.summaryLabel'));
     expect(helpSheet, isNot(contains('deviceModel')));
     expect(helpSheet, isNot(contains('availableRamLabel')));
@@ -66,7 +112,7 @@ void main() {
       importActions,
       contains('_ReceiptFirstUseCameraAction.openSettings'),
     );
-    expect(importActions, contains('_openReceiptCaptureSettings()'));
+    expect(attachmentPublishHelpers, contains('openReceiptCaptureSettings()'));
     expect(settingsSheet, contains('Expense Receipt Settings'));
     expect(
       settingsSheet,
@@ -78,8 +124,30 @@ void main() {
       contains('Maintainiac uses its own receipt camera when available'),
     );
     expect(settingsSheet, contains('Backup scanner and photo options'));
+    expect(settingsSheet, contains('settings.privacySafeCapabilityLabel'));
+    expect(settingsSheet, contains('Detected safely:'));
+    expect(settingsSheet, isNot(contains('deviceManufacturer')));
+    expect(settingsSheet, isNot(contains('deviceModel')));
+    expect(settingsSheet, isNot(contains('deviceName')));
     expect(settingsSheet, contains('Show Long Receipt Tips'));
-    expect(settingsSheet, contains('Receipt Backup Image Size'));
+    expect(settingsSheet, contains('Saved Receipt Proof Size'));
+    expect(
+      settingsSheet,
+      contains('OCR still uses the clearest receipt source first'),
+    );
+    expect(settingsSheet, contains('Receipt Details And Saved Proof'));
+    expect(
+      settingsSheet,
+      contains('installChoice.userFacingDownloadChoiceLabel'),
+    );
+    expect(settingsSheet, contains('hasOptionalCloudAssist'));
+    expect(
+      settingsSheet,
+      contains('defaultDataSaverShouldOfferOptionalLocalParserPacks'),
+    );
+    _expectNoCloudRequiredCopy(settingsSheet);
+    _expectNoCloudRequiredCopy(helpSheet);
+    _expectNoCloudRequiredCopy(importActions);
     expect(settingsSheet, contains('Expense Receipt Review Detail'));
     expect(settingsSheet, contains('Show Prices Only'));
     expect(settingsSheet, contains('Show Full Item Details'));
@@ -109,34 +177,50 @@ void main() {
     );
     expect(settingsSheet, contains('Reset Receipt Photo Defaults'));
     expect(settingsSheet, contains('Reset Defaults'));
-    expect(settingsSheet, contains('open Cleanup And Backup'));
+    expect(settingsSheet, contains('open Receipt Details And Saved Proof'));
     expect(settingsSheet, contains('You preview the actual saved proof'));
-    expect(reviewControls, contains('Save Space'));
-    expect(reviewControls, contains('Cleanup And Backup'));
-    expect(reviewControls, contains("return 'Next';"));
-    expect(reviewControls, contains('_ReceiptPreviewActionTray'));
-    expect(reviewControls, contains('_ReceiptSectionStripHeader'));
-    expect(reviewControls, contains('_ReceiptActionRailButton'));
+    expect(settingsSheet, contains('static String _choiceTooltip'));
     expect(
-      reviewControls,
+      settingsSheet,
+      contains('Good balance for review, phone space, and cloud backup.'),
+    );
+    expect(
+      settingsSheet,
+      contains('Smallest saved proof. Saves the most space'),
+    );
+    expect(modeControls, contains('Proof Size'));
+    expect(
+      reviewCropAndProofControls,
+      contains('Receipt Details And Saved Proof'),
+    );
+    expect(reviewControls, contains("return 'Next: Review Receipt Details';"));
+    expect(reviewControls, contains('_ReceiptPreviewActionTray'));
+    expect(reviewPreviewControls, contains('_ReceiptMultiPhotoActionRail'));
+    expect(reviewPreviewControls, contains('_ReceiptSectionPositionChip'));
+    expect(commonControls, contains('_ReceiptActionRailButton'));
+    expect(
+      contextControls,
       contains(
-        'Photo captured. Add a photo if the receipt continues, crop or retake if needed, or tap Next to review item prices.',
+        'Photo captured locally. Next opens receipt details. Use Add Another Photo only if the receipt continues.',
       ),
     );
     expect(
-      reviewControls,
-      contains(
-        'receipt photos ready. Check order, add the next section if needed, or tap Next to review item prices.',
-      ),
+      reviewPreviewActionTray,
+      contains('receipt sections are saved locally.'),
+    );
+    expect(reviewPreviewActionTray, contains('Next opens receipt'));
+    expect(
+      reviewPreviewActionTray,
+      contains('details with item prices, totals, and business/personal use.'),
     );
     expect(sectionLabels, contains('Receipt Sections'));
-    expect(reviewControls, contains('addNextSectionLabel'));
-    expect(reviewControls, contains('Backup image'));
-    expect(reviewControls, contains('OCR uses the clear photo first'));
+    expect(reviewPreviewControls, contains('addNextSectionLabel'));
+    expect(contextControls, contains('Saved proof'));
+    expect(contextControls, contains('OCR uses the clear photo first'));
     expect(
       reviewScreen,
       contains(
-        '_ReceiptReviewMode.preview => _photoPaths.length > 1 ? 132.0 : 104.0',
+        '_ReceiptReviewMode.preview => _photoPaths.length > 1 ? 164.0 : 142.0',
       ),
     );
     expect(
@@ -144,30 +228,30 @@ void main() {
       contains('maxHeight: _reviewBottomControlsMaxHeight(context)'),
     );
     expect(reviewScreen, contains('double _reviewBottomControlsMaxHeight'));
-    expect(reviewScreen, contains('132.0 : 104.0'));
-    expect(reviewScreen, contains('_ReceiptReviewMode.preview => .18'));
-    expect(reviewScreen, contains('_ReceiptReviewMode.stitch => 126.0'));
-    expect(reviewScreen, contains('_ReceiptReviewMode.dataSaver => 142.0'));
+    expect(reviewScreen, contains('164.0 : 142.0'));
+    expect(reviewScreen, contains('_ReceiptReviewMode.preview => .20'));
+    expect(reviewScreen, contains('_ReceiptReviewMode.stitch => .20'));
+    expect(reviewScreen, contains('_ReceiptReviewMode.dataSaver => .20'));
+    expect(reviewScreen, contains('_ReceiptReviewMode.stitch => 164.0'));
+    expect(reviewScreen, contains('_ReceiptReviewMode.dataSaver => 168.0'));
     expect(reviewScreen, contains('Widget _buildReviewBottomControls'));
     expect(reviewScreen, contains('return controls;'));
     expect(
       reviewScreen,
-      contains('if (!didPop) _leaveReceiptReviewWithoutSaving();'),
+      contains('if (!didPop) leaveReceiptReviewWithoutSaving();'),
     );
-    expect(reviewActions, contains('Navigator.of(context).pop();'));
+    expect(reviewActions, contains('final navigator = Navigator.of(context);'));
+    expect(reviewActions, contains('ReceiptPhotoReviewResult.keptForLater'));
+    expect(reviewActions, contains('navigator.pop(keptForLaterResult);'));
     expect(
       reviewActions,
-      contains('unawaited(_cleanupAbandonedReceiptReview())'),
+      isNot(contains('Future<void> _cleanupAbandonedReceiptReview()')),
     );
     expect(
       reviewActions,
-      contains('Future<void> _deleteAbandonedStagedReviewPhotos()'),
+      contains('await _deleteGeneratedEditPhotos(_photoPaths.toSet())'),
     );
-    expect(
-      reviewActions,
-      contains('ReceiptProofStorage.instance.deleteStagedAttachments'),
-    );
-    expect(reviewActions, contains('ReceiptAttachmentStorageState.staged'));
+    expect(importActions, contains('ReceiptAttachmentStorageState.staged'));
     expect(reviewScreen, isNot(contains('_confirmExit')));
     expect(
       reviewScreen,
@@ -177,11 +261,20 @@ void main() {
     expect(dataSaverPanel, contains('Saved proof image'));
     expect(
       dataSaverPanel,
-      contains('Receipt reading uses the clear OCR source'),
+      contains('Receipt assistance uses the clear OCR source'),
     );
+    expect(
+      dataSaverPanel,
+      contains(
+        'The image behind this panel is the saved proof preview. Receipt assistance uses the clear OCR source first.',
+      ),
+    );
+    expect(dataSaverPanel, contains('Proof kept after reading'));
+    expect(dataSaverPanel, contains('Backup status'));
+    expect(dataSaverPanel, isNot(contains('Cloud backup copy')));
     expect(dataSaverPanel, isNot(contains('Saved copy')));
     expect(reviewControls, contains('_ReceiptPreviewActionTray'));
-    expect(reviewControls, contains('_ReceiptSinglePhotoActionRow'));
+    expect(reviewPreviewControls, contains('_ReceiptSinglePhotoActionRow'));
     expect(reviewControls, contains('Scrollbar('));
     expect(reviewControls, contains('SingleChildScrollView('));
     expect(reviewControls, isNot(contains('_ReceiptPreviewStatusPill')));
@@ -201,402 +294,15 @@ void main() {
     expect(helpSheet, contains('Storage And Backup'));
     expect(helpSheet, isNot(contains('Live Guidance')));
     expect(helpSheet, isNot(contains('Guided Capture')));
-    expect(reviewControls, isNot(contains('Move Earlier')));
-    expect(reviewControls, isNot(contains('Move Later')));
-    expect(reviewControls, contains('Match'));
-    expect(reviewControls, contains('Order'));
-    expect(reviewControls, contains('Check Photo Order'));
-    expect(reviewControls, contains('_ReceiptOrderToolControls'));
-    expect(reviewControls, contains('_ReceiptToolModeHeader'));
-    expect(reviewControls, contains('Photo 1 should be the top'));
-    expect(
-      reviewControls,
-      contains('_ReceiptPhotoSectionLabels.moveEarlierLabel'),
-    );
-    expect(
-      reviewControls,
-      contains('_ReceiptPhotoSectionLabels.moveLaterLabel'),
-    );
-    expect(
-      reviewControls,
-      contains('_ReceiptPhotoSectionLabels.addNextPhotoLabel'),
-    );
-    expect(reviewControls, contains('_ReceiptPhotoSectionLabels.retakeLabel'));
-    expect(sectionLabels, contains('Retake keeps this spot'));
-    expect(sectionLabels, contains('Add Next Photo'));
-    expect(sectionLabels, contains('Retake Bottom'));
-    expect(reviewControls, contains('Preview'));
-    expect(reviewControls, contains('Manual match'));
-    expect(reviewControls, contains('Line up the repeated receipt text'));
-    expect(reviewControls, contains('Previous Pair'));
-    expect(reviewControls, contains('Next Pair'));
-    expect(
-      reviewControls,
-      contains(r'Sections ${pairIndex + 1}-${pairIndex + 2}'),
-    );
-    expect(reviewControls, contains(r'Bottom of section ${pairIndex + 1}'));
-    expect(reviewControls, contains(r'Top of section ${pairIndex + 2}'));
-    expect(reviewControls, contains('Combined Receipt Ready'));
-    expect(reviewControls, contains('Safe Fallback Ready'));
-    expect(reviewControls, contains('Long Receipt Match'));
-    expect(reviewControls, contains("label: 'Match Photos'"));
-    expect(reviewControls, contains("return 'Next';"));
-    expect(reviewControls, contains('Safe Fallback Ready'));
-    expect(reviewControls, contains('waitingForStitch'));
-    expect(reviewControls, contains('continueEnabled'));
-    expect(reviewControls, contains("return 'Next';"));
-    expect(reviewControls, isNot(contains('Choose The Best Receipt Photo')));
-    expect(reviewControls, isNot(contains('Use This Photo')));
-    expect(reviewActions, contains('_needsStitchReviewBeforeSave'));
-    expect(reviewActions, contains('_reviewMode = _ReceiptReviewMode.stitch'));
-    expect(reviewActions, contains('ReceiptImagePicker.takeReceiptPhotoSet()'));
-    expect(reviewActions, contains('_showLongReceiptAlignmentGuide'));
-    expect(reviewActions, contains('Line Up The Next Receipt Photo'));
-    expect(
-      reviewActions,
-      contains('Use the bottom of the last photo as your guide.'),
-    );
-    expect(reviewActions, contains('_ReceiptAlignmentGuidePreview'));
-    expect(
-      reviewActions,
-      contains('Repeat 3-5 readable lines from this bottom area'),
-    );
-    expect(
-      reviewActions,
-      contains('Keep the ghost slice near the top of the next photo'),
-    );
-    expect(reviewActions, contains('repeating 3-5 readable receipt lines'));
-    expect(reviewActions, contains('Open Receipt Camera'));
-    expect(reviewActions, isNot(contains('Prepare Receipt Review')));
-    expect(reviewActions, isNot(contains('Leave Without Saving')));
-    expect(reviewActions, contains('_confirmRemoveCurrentPhoto'));
-    expect(reviewActions, contains('Remove receipt photo?'));
-    expect(
-      reviewActions,
-      contains('make sure the remaining photos still cover every line'),
-    );
-    expect(
-      reviewActions,
-      contains(
-        'Wait for the photo match check, then choose how the receipt review should be filled.',
-      ),
-    );
-    expect(reviewControls, isNot(contains('Next: Stitch And Review')));
-    expect(
-      reviewScreen,
-      contains('late var _reviewMode = _initialReviewMode()'),
-    );
-    expect(reviewScreen, contains('_buildEmptyReviewRecovery'));
-    expect(reviewScreen, contains('Receipt photo was not available.'));
-    expect(reviewScreen, contains('No receipt fields were changed.'));
-    expect(reviewScreen, contains('_ReceiptReviewMode _initialReviewMode()'));
-    expect(
-      reviewScreen,
-      contains(
-        '!widget.bestShotCandidateMode && widget.initialPhotoPaths.length > 1',
-      ),
-    );
-    expect(reviewScreen, contains('Review Photos Top To Bottom'));
-    expect(reviewScreen, contains('Line up repeated receipt text'));
-    expect(reviewScreen, contains('Combined Receipt Preview'));
-    expect(reviewScreen, contains('Next will review them from top to bottom'));
-    expect(reviewControls, contains('Fix Photo Order'));
-    expect(reviewControls, contains('Next Reviews Top To Bottom'));
-    expect(reviewScreen, contains('ReceiptStitchDeviceLimits'));
-    expect(reviewScreen, contains('_deviceCapability.stitchLimits'));
-    final policySource = await File(
-      'lib/shared/widgets/receipt_capture/receipt_assistance_policy.dart',
-    ).readAsString();
-    expect(policySource, contains('ReceiptCapabilityTier.light'));
-    expect(policySource, contains('maxOutputPixels: 9000000'));
-    expect(policySource, contains('maxOutputHeight: 14000'));
-    expect(
-      reviewScreen,
-      contains('maxOutputPixels: _stitchDeviceLimits.maxOutputPixels'),
-    );
-    expect(
-      reviewSaveActions,
-      contains('maxOutputPixels: _stitchDeviceLimits.maxOutputPixels'),
-    );
-    expect(reviewScreen, contains('bottomInset'));
-    expect(reviewControls, contains('minimumSize: const Size(92, 38)'));
-    expect(reviewControls, contains('minimumSize: const Size(35, 35)'));
-    expect(reviewControls, contains('minimumSize: const Size(0, 34)'));
-    expect(reviewControls, contains("'Add Another Photo'"));
-    expect(reviewControls, contains("label: 'Add Another Photo'"));
-    expect(reviewControls, contains("label: 'Add Photo'"));
-    expect(sectionLabels, contains("'Add Next Photo'"));
-    expect(reviewControls, contains('_ReceiptOrderThumbnail'));
-    expect(reviewScreen, contains('BoxFit.contain'));
-    expect(
-      reviewScreen,
-      contains(
-        '_ReceiptReviewMode.preview => _photoPaths.length > 1 ? 132.0 : 104.0',
-      ),
-    );
-    expect(reviewScreen, contains('_ReceiptReviewMode.order => 112.0'));
-    expect(reviewScreen, contains('_ReceiptReviewMode.stitch => 126.0'));
-    expect(reviewScreen, contains('_ReceiptReviewMode.dataSaver => 142.0'));
-    expect(
-      reviewScreen,
-      isNot(contains('EdgeInsets.fromLTRB(12, 64, 12, 230)')),
-    );
-    expect(reviewTopBar, contains('sectionLabel'));
-    expect(reviewTopBar, contains('Best photo'));
-    expect(reviewTopBar, contains('Check photo order'));
-    expect(reviewTopBar, contains('Match receipt photos'));
-    expect(reviewTopBar, contains('Review receipt photo'));
-    expect(reviewTopBar, contains('Save space preview'));
-    expect(reviewTopBar, contains('Back to receipt form'));
-    expect(reviewTopBar, contains('Icons.arrow_back_rounded'));
-    expect(reviewTopBar, isNot(contains('Close receipt preview')));
-    expect(reviewTopBar, contains('Add Another Photo'));
-    expect(reviewTopBar, contains('Move Photo Up'));
-    expect(reviewTopBar, contains('Move Photo Down'));
-    expect(reviewActions, contains('_moveCurrentPhoto'));
-    expect(
-      await File(
-        'lib/shared/widgets/receipt_capture/receipt_photo_review_image_edit_actions.dart',
-      ).readAsString(),
-      allOf(
-        contains('mode == _ReceiptReviewMode.order'),
-        contains('_deleteStaleDataSaverPreviewFiles'),
-        contains('staleDataSaverPreviewPaths'),
-        contains('_removePhotoReviewCachesForPath'),
-        contains('_previewKeysInFlight.removeWhere'),
-        contains('_dataSaverPreviewKeysInFlight.removeWhere'),
-      ),
-    );
-    expect(reviewActions, contains('_replaceCurrentPhotoPath('));
-    expect(reviewActions, contains('_removePhotoReviewCachesForPath('));
-    expect(edgeCropper, contains('topLeft'));
-    expect(edgeCropper, contains('bottomRight'));
-    expect(edgeCropper, contains('_notifyAfterLayout'));
-    expect(productStandard, contains('## Hardening Pass Map'));
-    expect(productStandard, contains('App-Assisted Handoff'));
-    expect(imagePicker, contains('ReceiptPickedPhotoSet'));
-    expect(imagePicker, contains('receiptCameraImageQuality = 100'));
-    expect(imagePicker, contains('preferredCameraDevice: CameraDevice.rear'));
-    expect(imagePicker, contains('requestFullMetadata: false'));
-    expect(
-      imagePicker,
-      contains('Backup receipt capture uses the phone camera/gallery surfaces'),
-    );
-    expect(productStandard, contains('Long Receipt Capture'));
-    expect(productStandard, contains('Business/Personal/Mixed Classification'));
-    expect(productStandard, contains('fill a reviewable receipt form'));
-    expect(productStandard, contains('fill the receipt review'));
-    expect(productStandard, contains('reviewed separately'));
-    expect(productStandard, isNot(contains('read receipt')));
-    expect(productStandard, isNot(contains('or read receipt')));
-    expect(realDeviceScript, contains('fill the receipt review'));
-    expect(realDeviceScript, contains('App-Assisted Filled Receipt Review'));
-    expect(realDeviceScript, contains('top-to-bottom photo review'));
-    expect(realDeviceScript, isNot(contains('read or use the receipt')));
-    expect(realDeviceScript, isNot(contains('Wait for receipt reading')));
-    expect(
-      productStandard,
-      contains(
-        'Never OCR the compressed backup copy when a cleaner prepared source exists.',
-      ),
-    );
   });
+}
 
-  test('reviewed camera photos read OCR sources before saved copies', () async {
-    final reviewActions = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart',
-    ).readAsString();
-    final importActions = await File(
-      'lib/shared/widgets/receipt_capture/receipt_attachment_import_actions.dart',
-    ).readAsString();
-
-    final imageProcessor = await File(
-      'lib/shared/widgets/receipt_capture/receipt_image_processor.dart',
-    ).readAsString();
-    final models = await File(
-      'lib/shared/widgets/receipt_capture/receipt_capture_models.dart',
-    ).readAsString();
-    final reviewScreen = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart',
-    ).readAsString();
-    final reviewControls = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
-    ).readAsString();
-    final receiptEntryScreen = await File(
-      'lib/screens/expenses/entry/expense_receipt_entry_screen.dart',
-    ).readAsString();
-
-    expect(reviewActions, contains('prepareForOcrAndBackup'));
-    expect(reviewActions, contains('captureDiagnosticsByPath'));
-    expect(reviewActions, contains('staged.captureDiagnosticsByPhotoPath'));
-    expect(reviewActions, contains('preparationDiagnostics'));
-    expect(reviewActions, contains('prepared.preparation'));
-    expect(reviewActions, contains('.toDiagnostics()'));
-    expect(
-      reviewActions,
-      contains('preparationDiagnosticsByOcrPath: preparationDiagnostics'),
-    );
-    expect(
-      reviewActions,
-      contains('captureDiagnosticsByPhotoPath: captureDiagnostics'),
-    );
-    expect(
-      models,
-      contains(
-        'final Map<String, Map<String, Object?>> captureDiagnosticsByPhotoPath',
-      ),
-    );
-    expect(reviewScreen, contains('previewPreparedBackupFile'));
-    expect(reviewScreen, contains('optimizePreparedBackupFile'));
-    expect(reviewControls, contains('_ReceiptOcrProofLaneCard'));
-    expect(reviewControls, contains('_ReceiptDataSaverReviewCopy'));
-    expect(reviewControls, contains('Receipt Details And Backup Image'));
-    expect(reviewScreen, contains('_deleteGeneratedDataSaverPreviews'));
-    expect(reviewScreen, contains('_deleteGeneratedStitchPreview'));
-    expect(reviewActions, contains('_deleteUnusedBestShotCandidatePhotos'));
-    expect(reviewActions, contains('_deleteGeneratedEditPhotos'));
-    expect(imageProcessor, contains('prepareReceiptSourceFile'));
-    expect(imageProcessor, contains('prepareReceiptSourceWithReport'));
-    expect(imageProcessor, contains('ReceiptImagePreparationReport'));
-    expect(imageProcessor, contains('usedEnhancedOcrSource'));
-    expect(imageProcessor, contains('cleanupActions'));
-    expect(imageProcessor, contains('previewPreparedBackupFile'));
-    expect(imageProcessor, contains('optimizePreparedBackupFile'));
-    expect(imageProcessor, contains('_deleteFileQuietly'));
-    expect(imageProcessor, contains('optimizeFile'));
-    expect(
-      imageProcessor.indexOf('prepareReceiptSourceFile'),
-      lessThan(imageProcessor.indexOf('optimizeFile')),
-    );
-    expect(
-      reviewActions,
-      contains('ocrSourcePaths.add(prepared.ocrSourcePath)'),
-    );
-    expect(reviewActions, contains('savedPaths.add(prepared.backupPath)'));
-    expect(reviewActions, contains('...stitch.ocrSourcePaths'));
-    expect(importActions, contains('_readReviewedPhotosForReceiptForm'));
-    expect(importActions, contains('_markReviewedPhotosReadState'));
-    expect(
-      importActions,
-      contains('widget.onReceiptPhotoReviewAccepted?.call(result)'),
-    );
-    expect(
-      receiptEntryScreen,
-      contains('_recordReceiptPhotoPreparationTelemetry(result)'),
-    );
-    expect(
-      receiptEntryScreen,
-      contains('preparationDiagnosticsByOcrPath.values'),
-    );
-    expect(
-      receiptEntryScreen,
-      contains('captureDiagnosticsByPhotoPath.values'),
-    );
-    expect(receiptEntryScreen, contains('captureDiagnosticsCount'));
-    expect(receiptEntryScreen, contains('brightnessBuckets'));
-    expect(receiptEntryScreen, contains('readabilitySignalBuckets'));
-    expect(receiptEntryScreen, contains('exposureAssistStatuses'));
-    expect(receiptEntryScreen, contains('framingConfidenceBuckets'));
-    expect(receiptEntryScreen, contains('focusStatusBuckets'));
-    expect(receiptEntryScreen, contains('autoCaptureStatusBuckets'));
-    expect(receiptEntryScreen, contains('edgeDetectionEnabledCount'));
-    expect(receiptEntryScreen, contains('edgeOverlayEnabledCount'));
-    expect(receiptEntryScreen, contains('tapFocusEnabledCount'));
-    expect(receiptEntryScreen, contains('pinchZoomEnabledCount'));
-    expect(receiptEntryScreen, contains('brightnessSliderEnabledCount'));
-    expect(receiptEntryScreen, contains('shadowWarningEnabledCount'));
-    expect(receiptEntryScreen, contains('textTooSmallWarningEnabledCount'));
-    expect(receiptEntryScreen, contains('autoCropSuggestionEnabledCount'));
-    expect(receiptEntryScreen, contains('grayscalePreviewEnabledCount'));
-    expect(receiptEntryScreen, contains('contrastBoostEnabledCount'));
-    expect(receiptEntryScreen, contains('shadowReductionEnabledCount'));
-    expect(receiptEntryScreen, contains('orientationCorrectionEnabledCount'));
-    expect(receiptEntryScreen, contains('tapFocusTotal'));
-    expect(receiptEntryScreen, contains('zoomChangeTotal'));
-    expect(receiptEntryScreen, contains('manualBrightnessChangeTotal'));
-    expect(receiptEntryScreen, contains('autoCaptureTriggerTotal'));
-    expect(receiptEntryScreen, contains('latestFramingConfidence'));
-    expect(receiptEntryScreen, contains('_diagnosticStringCounts'));
-    expect(receiptEntryScreen, contains('_diagnosticIntSum'));
-    expect(receiptEntryScreen, contains('_diagnosticBoolTrueCount'));
-    expect(receiptEntryScreen, contains('scannerCleanupUsedCount'));
-    expect(receiptEntryScreen, contains('cleanupActions'));
-    expect(receiptEntryScreen, contains('stitchFallbackReason'));
-    expect(receiptEntryScreen, contains('diagnosticReasonLabel'));
-    expect(receiptEntryScreen, contains('stitchConfidenceBucket'));
-    expect(receiptEntryScreen, isNot(contains('receiptText')));
-    expect(importActions, contains('ReceiptAttachmentReadState.readIntoForm'));
-    expect(importActions, contains('ReceiptAttachmentReadState.unreadable'));
-    expect(importActions, contains('appAssistedEnabledFor(widget.area)'));
-    expect(importActions, contains('widget.onImportedText == null'));
-    expect(importActions, contains('result.ocrSourcePhotoPaths.isEmpty'));
-    expect(
-      importActions,
-      contains(
-        'Receipt backup image saved. App-assisted receipt filling is turned off for this area.',
-      ),
-    );
-    expect(
-      importActions,
-      contains(
-        r'Receipt backup image saved: ${result.savedProofCountLabel}. No clear OCR source was available for app-assisted receipt filling.',
-      ),
-    );
-    expect(importActions, contains('result.ocrSourcePhotoPaths'));
-    expect(importActions, contains('_qualityForOcrSourceIndex'));
-    expect(importActions, contains('_weakestPhotoQuality'));
-    expect(importActions, contains('.withPhotoQuality('));
-    final attachmentPanel = await File(
-      'lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart',
-    ).readAsString();
-    expect(attachmentPanel, contains('_photoReadStateByPath'));
-    expect(attachmentPanel, contains('_photoIdByPath'));
-    expect(attachmentPanel, contains('_photoAttachmentIdForPath'));
-    expect(attachmentPanel, contains('readState:'));
-    expect(attachmentPanel, contains('attachment.readState'));
-    expect(attachmentPanel, contains('onReceiptPhotoReviewAccepted'));
-    expect(importActions, contains('previousPhotoIdByPath'));
-    expect(importActions, contains('_deleteTemporaryOcrPhotos'));
-    expect(
-      importActions,
-      contains('final keptReceiptPhotos = _photoPaths.toSet()'),
-    );
-    expect(
-      importActions,
-      contains('if (keptReceiptPhotos.contains(sourcePath)) continue'),
-    );
-    expect(importActions, contains('_reviewedPhotoReadSuccessMessage'));
-    expect(
-      importActions,
-      contains(
-        'One combined receipt image was read. Review what Maintainiac filled in below.',
-      ),
-    );
-    expect(
-      importActions,
-      contains(
-        'Receipt photos were read from top to bottom. Review what Maintainiac filled in below.',
-      ),
-    );
-    expect(
-      importActions,
-      contains(
-        'Receipt photo was read. Review what Maintainiac filled in below.',
-      ),
-    );
-    expect(
-      importActions.indexOf('_readReviewedPhotosForReceiptForm(result)'),
-      lessThan(
-        importActions.indexOf(
-          '_deleteTemporaryOcrPhotos(result.ocrSourcePhotoPaths)',
-        ),
-      ),
-    );
-    expect(
-      importActions.indexOf(
-        'widget.onReceiptPhotoReviewAccepted?.call(result)',
-      ),
-      lessThan(importActions.indexOf('_startReviewedPhotoReadStatus(result)')),
-    );
-  });
+void _expectNoCloudRequiredCopy(String source) {
+  final lower = source.toLowerCase();
+  expect(lower, isNot(contains('cloud required')));
+  expect(lower, isNot(contains('requires cloud')));
+  expect(lower, isNot(contains('must use cloud')));
+  expect(lower, isNot(contains('cloud-only')));
+  expect(lower, isNot(contains('cloud only')));
+  expect(lower, isNot(contains('internet required')));
 }

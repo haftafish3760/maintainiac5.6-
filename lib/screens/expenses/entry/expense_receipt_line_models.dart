@@ -1,27 +1,5 @@
 part of 'expense_receipt_entry_screen.dart';
 
-const Object _noBusinessPercentChange = Object();
-
-enum _ExpenseLineUse {
-  business('Business'),
-  personal('Personal'),
-  split('Split');
-
-  const _ExpenseLineUse(this.label);
-
-  final String label;
-}
-
-extension on _ExpenseLineUse {
-  ExpenseLineUse get ledgerUse {
-    return switch (this) {
-      _ExpenseLineUse.business => ExpenseLineUse.business,
-      _ExpenseLineUse.personal => ExpenseLineUse.personal,
-      _ExpenseLineUse.split => ExpenseLineUse.split,
-    };
-  }
-}
-
 class _ExpenseReceiptLine {
   const _ExpenseReceiptLine({
     this.id,
@@ -47,6 +25,12 @@ class _ExpenseReceiptLine {
     this.parserReviewLabel,
     this.parserReviewReason,
     this.parserNeedsReview = false,
+    this.ocrSourceLineId,
+    this.ocrSourceLineNumber,
+    this.ocrSourceSectionNumber,
+    this.ocrSourceSectionLineNumber,
+    this.parserExpenseFamily,
+    this.parserHint,
   });
 
   factory _ExpenseReceiptLine.blank({
@@ -95,6 +79,12 @@ class _ExpenseReceiptLine {
       parserReviewLabel: line.parserReviewLabel,
       parserReviewReason: line.parserReviewReason,
       parserNeedsReview: line.parserNeedsReview,
+      ocrSourceLineId: line.ocrSourceLineId,
+      ocrSourceLineNumber: line.ocrSourceLineNumber,
+      ocrSourceSectionNumber: line.ocrSourceSectionNumber,
+      ocrSourceSectionLineNumber: line.ocrSourceSectionLineNumber,
+      parserExpenseFamily: line.parserExpenseFamily,
+      parserHint: line.parserHint,
     );
   }
 
@@ -121,6 +111,12 @@ class _ExpenseReceiptLine {
   final String? parserReviewLabel;
   final String? parserReviewReason;
   final bool parserNeedsReview;
+  final String? ocrSourceLineId;
+  final int? ocrSourceLineNumber;
+  final int? ocrSourceSectionNumber;
+  final int? ocrSourceSectionLineNumber;
+  final String? parserExpenseFamily;
+  final String? parserHint;
 
   _ExpenseReceiptLine copyWith({
     String? category,
@@ -140,6 +136,12 @@ class _ExpenseReceiptLine {
     String? parserReviewLabel,
     String? parserReviewReason,
     bool? parserNeedsReview,
+    String? ocrSourceLineId,
+    int? ocrSourceLineNumber,
+    int? ocrSourceSectionNumber,
+    int? ocrSourceSectionLineNumber,
+    String? parserExpenseFamily,
+    String? parserHint,
   }) {
     return _ExpenseReceiptLine(
       id: id,
@@ -168,268 +170,60 @@ class _ExpenseReceiptLine {
       parserReviewLabel: parserReviewLabel ?? this.parserReviewLabel,
       parserReviewReason: parserReviewReason ?? this.parserReviewReason,
       parserNeedsReview: parserNeedsReview ?? this.parserNeedsReview,
+      ocrSourceLineId: ocrSourceLineId ?? this.ocrSourceLineId,
+      ocrSourceLineNumber: ocrSourceLineNumber ?? this.ocrSourceLineNumber,
+      ocrSourceSectionNumber:
+          ocrSourceSectionNumber ?? this.ocrSourceSectionNumber,
+      ocrSourceSectionLineNumber:
+          ocrSourceSectionLineNumber ?? this.ocrSourceSectionLineNumber,
+      parserExpenseFamily: parserExpenseFamily ?? this.parserExpenseFamily,
+      parserHint: parserHint ?? this.parserHint,
     );
   }
 
-  _ExpenseReceiptLine confirmParserReview() {
-    return _ExpenseReceiptLine(
-      id: id,
-      description: description,
-      category: category,
-      use: use,
-      quantity: quantity,
-      unitsPerPackage: unitsPerPackage,
-      stockUnit: stockUnit,
-      subtotal: subtotal,
-      businessPercent: businessPercent,
-      odometerReading: odometerReading,
-      fuelType: fuelType,
-      fillType: fillType,
-      unitPrice: unitPrice,
-      rawReceiptText: rawReceiptText,
-      catalogItemId: catalogItemId,
-      catalogItemName: catalogItemName,
-      catalogItemPath: catalogItemPath,
-      catalogMatchConfidence: catalogMatchConfidence,
-      catalogMatchedTerms: catalogMatchedTerms,
-      parserConfidence: parserConfidence ?? catalogMatchConfidence ?? .9,
-      parserReviewLabel: 'Good',
-      parserReviewReason: 'User confirmed this parsed receipt line.',
-      parserNeedsReview: false,
+  String get receiptProofRedactionAnchorCode {
+    final sourceSection = ocrSourceSectionNumber;
+    final sourceSectionLine = ocrSourceSectionLineNumber;
+    final lineNumber = ocrSourceLineNumber;
+    final lineToken = sourceSectionLine != null && sourceSectionLine > 0
+        ? 's${(sourceSection ?? 1).toString().padLeft(2, '0')}_l${sourceSectionLine.toString().padLeft(4, '0')}'
+        : lineNumber != null && lineNumber > 0
+        ? 'l${lineNumber.toString().padLeft(4, '0')}'
+        : _expenseReceiptSafeToken((ocrSourceLineId ?? id ?? '').trim());
+    final family = _expenseReceiptSafeToken(
+      (parserExpenseFamily ?? category).trim(),
+      fallback: 'expense',
     );
+    return 'receipt_line_${lineToken}_${family}_${use.name}';
   }
 
-  _ExpenseReceiptLine markExpenseOnly() {
-    final nextCategory = category == 'Materials' ? 'Supplies' : category;
-    return _ExpenseReceiptLine(
-      id: id,
-      description: description,
-      category: nextCategory,
-      use: use == _ExpenseLineUse.personal ? use : _ExpenseLineUse.business,
-      quantity: quantity,
-      unitsPerPackage: unitsPerPackage,
-      stockUnit: stockUnit,
-      subtotal: subtotal,
-      businessPercent: null,
-      odometerReading: odometerReading,
-      fuelType: fuelType,
-      fillType: fillType,
-      unitPrice: unitPrice,
-      rawReceiptText: rawReceiptText,
-      parserConfidence: parserConfidence,
-      parserReviewLabel: 'Good',
-      parserReviewReason: 'Marked as expense-only from receipt review.',
-      parserNeedsReview: false,
-    );
+  bool get hasParserClassification {
+    return (parserExpenseFamily ?? '').trim().isNotEmpty ||
+        (parserHint ?? '').trim().isNotEmpty;
   }
 
-  String get quantityText => quantity == quantity.roundToDouble()
-      ? quantity.toInt().toString()
-      : '$quantity';
-  String get unitsPerPackageText =>
-      unitsPerPackage == unitsPerPackage.roundToDouble()
-      ? unitsPerPackage.toInt().toString()
-      : '$unitsPerPackage';
-  String get subtotalText => subtotal == 0 ? '' : subtotal.toStringAsFixed(2);
-  String get businessPercentText {
-    if (use != _ExpenseLineUse.split) return '50';
-    final percent = (businessPercent ?? .5) * 100;
-    return percent == percent.roundToDouble()
-        ? percent.toInt().toString()
-        : percent.toStringAsFixed(2);
+  String get parserExpenseFamilyLabel {
+    final family = (parserExpenseFamily ?? '').trim();
+    if (family.isEmpty) return '';
+    return _expenseReceiptTokenLabel(family);
   }
 
-  double get totalUnits => quantity * unitsPerPackage;
-
-  String get displayDescription {
-    final clean = description.trim();
-    if (clean.isNotEmpty && clean.toLowerCase() != 'receipt item') {
-      return clean;
-    }
-    return switch (use) {
-      _ExpenseLineUse.business => 'Business receipt items',
-      _ExpenseLineUse.personal => 'Personal receipt items',
-      _ExpenseLineUse.split => 'Split receipt items',
-    };
+  String get parserHintLabel {
+    final hint = (parserHint ?? '').trim();
+    if (hint.isEmpty) return '';
+    return _expenseReceiptTokenLabel(hint);
   }
 
-  double get effectiveBusinessPercent {
-    return switch (use) {
-      _ExpenseLineUse.business => 1,
-      _ExpenseLineUse.personal => 0,
-      _ExpenseLineUse.split => businessPercent ?? .5,
-    };
-  }
-
-  double get effectivePersonalPercent => 1 - effectiveBusinessPercent;
-
-  String get allocationSummary {
-    if (use != _ExpenseLineUse.split) return use.label;
-    return 'Split ${_percent(effectiveBusinessPercent)} business';
-  }
-
-  String get allocationDetail {
-    return switch (use) {
-      _ExpenseLineUse.business => 'Business ${_money(subtotal)}',
-      _ExpenseLineUse.personal => 'Personal ${_money(subtotal)}',
-      _ExpenseLineUse.split =>
-        'Business ${_money(businessAmount)} | Personal ${_money(personalAmount)}',
-    };
-  }
-
-  bool get hasParserReview {
-    return parserConfidence != null ||
-        (parserReviewLabel ?? '').trim().isNotEmpty ||
-        (parserReviewReason ?? '').trim().isNotEmpty ||
-        parserNeedsReview;
-  }
-
-  bool get cameFromAppAssistedReceiptRead {
-    return rawReceiptText.trim().isNotEmpty || hasParserReview;
-  }
-
-  String get parserReviewSummary {
-    final label = (parserReviewLabel ?? '').trim().isEmpty
-        ? (parserNeedsReview ? 'Review' : 'App Fill')
-        : parserReviewLabel!.trim();
-    final confidence = parserConfidence;
-    if (confidence == null) return label;
-    return '$label ${(confidence * 100).round()}%';
-  }
-
-  String get receiptEvidenceText {
-    final raw = rawReceiptText.trim();
-    if (raw.isNotEmpty) return raw;
-    return description.trim();
+  String get parserClassificationLabel {
+    final family = parserExpenseFamilyLabel;
+    final hint = parserHintLabel;
+    if (family.isEmpty) return hint;
+    if (hint.isEmpty) return family;
+    return '$family | $hint';
   }
 
   bool get hasReceiptEvidence {
     final evidence = receiptEvidenceText;
     return evidence.isNotEmpty && evidence != description.trim();
   }
-
-  String get parserReviewActionText {
-    if (parserNeedsReview) return 'Review before saving';
-    final label = (parserReviewLabel ?? '').trim().toLowerCase();
-    if (label == 'good') return 'Looks matched';
-    if (label == 'poor') return 'Needs correction';
-    if (hasParserReview) return 'Check line';
-    return 'Manual line';
-  }
-
-  Color get parserBadgeColor {
-    final label = (parserReviewLabel ?? '').trim().toLowerCase();
-    if (parserNeedsReview || label == 'review') return const Color(0xFF8A5D00);
-    if (label == 'poor') return const Color(0xFFA33A2C);
-    return const Color(0xFF1E7A3D);
-  }
-
-  String get packageSummary {
-    if (category == 'Fuel') {
-      final unitLabel = stockUnit == 'kWh' ? 'kWh' : 'gal';
-      final odometer = odometerReading == null ? '' : ' | odo $odometerReading';
-      final fill = fillType == null ? '' : ' | $fillType';
-      return '${fuelType ?? 'Fuel'} | ${_formatNumber(quantity)} $unitLabel$fill$odometer';
-    }
-    if (!expenseCategoryUsesQuantityFields(category)) {
-      return 'Receipt amount only';
-    }
-    if (unitsPerPackage <= 1) {
-      return 'Qty ${_formatNumber(quantity)} $stockUnit';
-    }
-    final eachCost = totalUnits <= 0 ? 0.0 : subtotal / totalUnits;
-    return '${_formatNumber(quantity)} pkg x ${_formatNumber(unitsPerPackage)} $stockUnit | ${_money(eachCost)} each';
-  }
-
-  double get businessAmount {
-    return switch (use) {
-      _ExpenseLineUse.business => subtotal,
-      _ExpenseLineUse.personal => 0,
-      _ExpenseLineUse.split => subtotal * effectiveBusinessPercent,
-    };
-  }
-
-  double get personalAmount {
-    return switch (use) {
-      _ExpenseLineUse.business => 0,
-      _ExpenseLineUse.personal => subtotal,
-      _ExpenseLineUse.split => subtotal * effectivePersonalPercent,
-    };
-  }
-
-  ExpenseReceiptLineRecord toLedgerLine({String? id}) {
-    return ExpenseReceiptLineRecord(
-      id: id ?? this.id ?? 'EXPL-${DateTime.now().microsecondsSinceEpoch}',
-      description: description,
-      category: category,
-      use: use.ledgerUse,
-      quantity: quantity,
-      unitsPerPackage: unitsPerPackage,
-      unit: stockUnit,
-      subtotal: subtotal,
-      businessPercent: businessPercent,
-      odometerReading: odometerReading,
-      fuelType: fuelType,
-      fillType: fillType,
-      unitPrice: unitPrice,
-      rawReceiptText: rawReceiptText,
-      catalogItemId: catalogItemId,
-      catalogItemName: catalogItemName,
-      catalogItemPath: catalogItemPath,
-      catalogMatchConfidence: catalogMatchConfidence,
-      catalogMatchedTerms: catalogMatchedTerms,
-      parserConfidence: parserConfidence,
-      parserReviewLabel: parserReviewLabel,
-      parserReviewReason: parserReviewReason,
-      parserNeedsReview: parserNeedsReview,
-    );
-  }
 }
-
-String _formatNumber(double value) =>
-    value == value.roundToDouble() ? value.toInt().toString() : '$value';
-
-String _money(double value) => '\$${value.toStringAsFixed(2)}';
-String _percent(double value) => '${(value * 100).toStringAsFixed(2)}%';
-
-double? _parseMoneyInput(String value) {
-  final cleaned = value.replaceAll(RegExp(r'[^0-9.\-]'), '');
-  if (cleaned.isEmpty || cleaned == '-' || cleaned == '.') return null;
-  return double.tryParse(cleaned);
-}
-
-String _moneyInputText(double? value) {
-  if (value == null) return '';
-  return value.toStringAsFixed(2);
-}
-
-final _expenseCategoryNames = [
-  'Uncategorized',
-  ...{
-    for (final category in [
-      ...defaultExpenseCategories,
-      ...otherExpenseCategories,
-    ])
-      category.category,
-  },
-];
-
-const _stockUnits = [
-  'each',
-  'bottle',
-  'package',
-  'pack',
-  'box',
-  'case',
-  'roll',
-  'tube',
-  'bag',
-  'gallon',
-  'quart',
-  'ounce',
-  'pound',
-  'foot',
-  'linear foot',
-  'sheet',
-  'set',
-];

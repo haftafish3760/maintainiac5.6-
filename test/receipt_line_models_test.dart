@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/receipts/receipt_line_models.dart';
+import 'package:maintaniac/shared/receipts/receipt_processing_contract.dart';
 
 void main() {
   test('inventory receipt line calculates units, tax, and unit cost', () {
@@ -180,5 +181,173 @@ void main() {
     expect(line.reviewActionLabel, 'Corrected');
     expect(line.toMap()['originalParsedInventoryItemId'], 'MI-999');
     expect(line.toMap()['reviewAction'], 'edited');
+  });
+
+  test('receipt line exposes privacy-safe client proof reference', () {
+    const line = ReceiptLineDraft(
+      kind: ReceiptLineKind.inventory,
+      description: 'Private job material',
+      receiptLineId: 'RCP-44-L3',
+      subtotal: 19.99,
+      businessUse: 'split',
+      rawReceiptText: 'LOWES PRIVATE JOB MATERIAL 19.99',
+      proofLineReferenceLabel: 'Line 3',
+      clientProofDefaultVisibility:
+          ReceiptLineClientProofVisibility.reviewBeforeClientShare,
+      sourceReceiptSectionLabel: 'Photo receipt RCP-44',
+      parserNeedsReview: true,
+    );
+
+    expect(line.proofReferenceLabel, 'Line 3');
+    expect(line.needsClientProofReview, isTrue);
+    expect(line.redactsFromClientProofByDefault, isFalse);
+    expect(line.clientProofReviewLabel, 'Review before sharing');
+
+    final safe = line.privacySafeProofReference;
+    expect(safe['receiptLineId'], 'RCP-44-L3');
+    expect(safe['proofLineReferenceLabel'], 'Line 3');
+    expect(
+      safe['clientProofDefaultVisibility'],
+      ReceiptLineClientProofVisibility.reviewBeforeClientShare,
+    );
+    expect(safe['sourceReceiptSectionLabel'], 'Photo receipt RCP-44');
+    expect(safe['hasAmount'], isTrue);
+    expect(safe['needsParserReview'], isTrue);
+    expect(safe.toString(), isNot(contains('LOWES')));
+    expect(safe.toString(), isNot(contains('Private job material')));
+    expect(safe.toString(), isNot(contains('19.99')));
+
+    final map = line.toMap();
+    expect(map['proofLineReferenceLabel'], 'Line 3');
+    expect(
+      map['clientProofDefaultVisibility'],
+      ReceiptLineClientProofVisibility.reviewBeforeClientShare,
+    );
+    expect(map['privacySafeProofReference'], safe);
+  });
+
+  test('receipt line copy and map preserve client proof fields', () {
+    const line = ReceiptLineDraft(
+      kind: ReceiptLineKind.expense,
+      description: 'Job lunch split',
+      receiptLineId: 'RCP-55-L2',
+      businessUse: 'split',
+      proofLineReferenceLabel: 'Line 2',
+      clientProofDefaultVisibility:
+          ReceiptLineClientProofVisibility.redactByDefault,
+      sourceReceiptSectionLabel: 'Photo 2 bottom',
+      parserNeedsReview: true,
+    );
+
+    final copied = line.copyWith(
+      description: 'Corrected job lunch split',
+      clientProofDefaultVisibility:
+          ReceiptLineClientProofVisibility.reviewBeforeClientShare,
+    );
+
+    expect(copied.receiptLineId, 'RCP-55-L2');
+    expect(copied.proofLineReferenceLabel, 'Line 2');
+    expect(
+      copied.clientProofDefaultVisibility,
+      ReceiptLineClientProofVisibility.reviewBeforeClientShare,
+    );
+    expect(copied.sourceReceiptSectionLabel, 'Photo 2 bottom');
+    expect(
+      copied.privacySafeProofReference['sourceReceiptSectionLabel'],
+      'Photo 2 bottom',
+    );
+    expect(copied.toMap()['proofLineReferenceLabel'], 'Line 2');
+    expect(
+      copied.toMap()['clientProofDefaultVisibility'],
+      ReceiptLineClientProofVisibility.reviewBeforeClientShare,
+    );
+    expect(copied.toMap()['sourceReceiptSectionLabel'], 'Photo 2 bottom');
+  });
+
+  test('multi receipt selection bundle stays privacy safe for job proof', () {
+    const mondayLines = [
+      ReceiptLineDraft(
+        kind: ReceiptLineKind.inventory,
+        description: 'Private plumbing part',
+        receiptLineId: 'LOWES-MON-L1',
+        subtotal: 12,
+        taxRate: .08,
+        rawReceiptText: 'LOWES PRIVATE PLUMBING PART 12.00',
+        proofLineReferenceLabel: 'Line 1',
+        clientProofDefaultVisibility:
+            ReceiptLineClientProofVisibility.reviewBeforeClientShare,
+        sourceReceiptSectionLabel: 'Lowe receipt Monday photo 1',
+      ),
+      ReceiptLineDraft(
+        kind: ReceiptLineKind.expense,
+        description: 'Personal soda',
+        receiptLineId: 'LOWES-MON-L2',
+        subtotal: 2,
+        rawReceiptText: 'PERSONAL SODA 2.00',
+        clientProofDefaultVisibility:
+            ReceiptLineClientProofVisibility.redactByDefault,
+        sourceReceiptSectionLabel: 'Lowe receipt Monday photo 1',
+      ),
+    ];
+    const wednesdayLines = [
+      ReceiptLineDraft(
+        kind: ReceiptLineKind.inventory,
+        description: 'Private pipe strap',
+        receiptLineId: 'HD-WED-L1',
+        subtotal: 8,
+        taxRate: .08,
+        rawReceiptText: 'HOME DEPOT PRIVATE PIPE STRAP 8.00',
+        proofLineReferenceLabel: 'Line 1',
+        clientProofDefaultVisibility:
+            ReceiptLineClientProofVisibility.reviewBeforeClientShare,
+        sourceReceiptSectionLabel: 'Home Depot receipt Wednesday photo 1',
+      ),
+    ];
+
+    final mondayBundle = ReceiptLineSelectionBundle.fromDrafts(
+      receiptId: 'receipt-lowes-monday',
+      purpose: ReceiptLineSelectionPurpose.job,
+      sourceLines: mondayLines,
+      includeLine: (line) => line.isInventory,
+    );
+    final wednesdayBundle = ReceiptLineSelectionBundle.fromDrafts(
+      receiptId: 'receipt-home-depot-wednesday',
+      purpose: ReceiptLineSelectionPurpose.job,
+      sourceLines: wednesdayLines,
+    );
+    final multiReceiptBundle = ReceiptMultiReceiptSelectionBundle(
+      purpose: ReceiptLineSelectionPurpose.job,
+      receiptBundles: [mondayBundle, wednesdayBundle],
+    );
+
+    expect(multiReceiptBundle.receiptCount, 2);
+    expect(multiReceiptBundle.hasMultipleReceipts, isTrue);
+    expect(multiReceiptBundle.selectedLineCount, 2);
+    expect(multiReceiptBundle.totalSourceLineCount, 3);
+    expect(multiReceiptBundle.excludedLineCount, 1);
+    expect(multiReceiptBundle.reviewBeforeShareCount, 2);
+    expect(multiReceiptBundle.hasHiddenClientProofLines, isTrue);
+    expect(multiReceiptBundle.selectedSubtotal, 20);
+    expect(multiReceiptBundle.selectedTax, 1.6);
+    expect(multiReceiptBundle.selectedTotal, 21.6);
+
+    final safe = multiReceiptBundle.toPrivacySafeMap();
+    expect(safe['schema'], 'receipt_multi_receipt_selection_v1');
+    expect(safe['purpose'], 'job');
+    expect(safe['receiptIds'], [
+      'receipt-lowes-monday',
+      'receipt-home-depot-wednesday',
+    ]);
+    expect(safe['hasMultipleReceipts'], isTrue);
+    expect(safe['selectedLineCount'], 2);
+    expect(safe['excludedLineCount'], 1);
+    expect(safe['needsClientProofReview'], isTrue);
+    expect(safe['hasHiddenClientProofLines'], isTrue);
+    expect(safe.toString(), isNot(contains('Private plumbing part')));
+    expect(safe.toString(), isNot(contains('Private pipe strap')));
+    expect(safe.toString(), isNot(contains('PERSONAL SODA')));
+    expect(safe.toString(), isNot(contains('12.00')));
+    expect(safe.toString(), contains('LOWES-MON-L1'));
+    expect(safe.toString(), contains('HD-WED-L1'));
   });
 }

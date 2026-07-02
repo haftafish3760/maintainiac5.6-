@@ -64,6 +64,12 @@ void main() {
       parserReviewLabel: 'Good',
       parserReviewReason: 'Inventory catalog match found.',
       parserNeedsReview: false,
+      ocrSourceLineId: 'ocr_line_002_item',
+      ocrSourceLineNumber: 3,
+      ocrSourceSectionNumber: 2,
+      ocrSourceSectionLineNumber: 4,
+      parserExpenseFamily: 'materials',
+      parserHint: 'materials_item_price',
     );
 
     final restored = ExpenseReceiptLineRecord.fromMap(line.toMap());
@@ -77,6 +83,45 @@ void main() {
     expect(restored.hasParserReview, isTrue);
     expect(restored.parserReviewLabelText, 'Good');
     expect(restored.parserReviewActionText, 'Looks matched');
+    expect(restored.hasOcrSourceLine, isTrue);
+    expect(restored.ocrSourceLineId, 'ocr_line_002_item');
+    expect(restored.ocrSourceLineNumber, 3);
+    expect(restored.ocrSourceSectionNumber, 2);
+    expect(restored.ocrSourceSectionLineNumber, 4);
+    expect(restored.ocrSourceLineLabel, 'OCR section 2 line 4');
+    expect(restored.receiptProofLineReferenceLabel, 'Section 2 line 4');
+    expect(
+      restored.receiptProofRedactionAnchorCode,
+      'receipt_line_s02_l0004_materials_business',
+    );
+    expect(restored.clientProofDefaultVisibility, 'review_for_client_proof');
+    expect(restored.clientProofReviewLabel, 'Review for client proof');
+    expect(restored.privacySafeProofReference['lineId'], 'line-catalog');
+    expect(
+      restored.privacySafeProofReference['redactionAnchorCode'],
+      'receipt_line_s02_l0004_materials_business',
+    );
+    expect(restored.privacySafeProofReference['ocrSourceLineNumber'], 3);
+    expect(restored.privacySafeProofReference['ocrSourceSectionNumber'], 2);
+    expect(restored.privacySafeProofReference['ocrSourceSectionLineNumber'], 4);
+    expect(restored.privacySafeProofReference['hasOcrSourceLine'], isTrue);
+    expect(
+      restored.privacySafeProofReference.toString(),
+      isNot(contains('LOWES')),
+    );
+    expect(
+      restored.toMap()['receiptProofRedactionAnchorCode'],
+      'receipt_line_s02_l0004_materials_business',
+    );
+    expect(restored.hasParserClassification, isTrue);
+    expect(restored.parserExpenseFamily, 'materials');
+    expect(restored.parserHint, 'materials_item_price');
+    expect(restored.parserExpenseFamilyLabel, 'Materials');
+    expect(restored.parserHintLabel, 'Materials Item Price');
+    expect(
+      restored.parserClassificationLabel,
+      'Materials | Materials Item Price',
+    );
     expect(restored.isAllocationOnlyLine, isFalse);
   });
 
@@ -121,5 +166,54 @@ void main() {
     expect(reviewLine.parserReviewActionText, 'Review before saving');
     expect(poorLine.parserReviewActionText, 'Needs correction');
     expect(manualLine.parserReviewActionText, 'Manual line');
+  });
+
+  test('receipt proof visibility protects personal and review lines', () {
+    const personalLine = ExpenseReceiptLineRecord(
+      id: 'line-personal',
+      description: 'Family snack',
+      category: 'Personal',
+      use: ExpenseLineUse.personal,
+      quantity: 1,
+      unitsPerPackage: 1,
+      unit: 'each',
+      subtotal: 5,
+      ocrSourceLineNumber: 9,
+    );
+    const reviewLine = ExpenseReceiptLineRecord(
+      id: 'line-review',
+      description: 'Unknown item',
+      category: 'Uncategorized',
+      use: ExpenseLineUse.business,
+      quantity: 1,
+      unitsPerPackage: 1,
+      unit: 'each',
+      subtotal: 7,
+      parserNeedsReview: true,
+      ocrSourceLineId: 'ocr_line_010_item',
+    );
+
+    expect(personalLine.clientProofDefaultVisibility, 'redact_by_default');
+    expect(personalLine.redactsFromClientProofByDefault, isTrue);
+    expect(personalLine.clientProofReviewLabel, 'Hidden from client proof');
+    expect(
+      personalLine.receiptProofRedactionAnchorCode,
+      'receipt_line_l0009_personal_personal',
+    );
+    expect(
+      personalLine.privacySafeProofReference.toString(),
+      isNot(contains('Family snack')),
+    );
+
+    expect(
+      reviewLine.clientProofDefaultVisibility,
+      'review_before_client_share',
+    );
+    expect(reviewLine.needsClientProofReview, isTrue);
+    expect(reviewLine.clientProofReviewLabel, 'Review before sharing');
+    expect(
+      reviewLine.receiptProofRedactionAnchorCode,
+      'receipt_line_ocr_line_010_item_uncategorized_business',
+    );
   });
 }

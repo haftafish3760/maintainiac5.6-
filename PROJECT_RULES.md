@@ -38,6 +38,12 @@ Maintaniac is a professional-grade record keeping app for people and small crews
 - Every form or capture flow must handle interruption. Phone calls, app switching, camera interruption, low-memory process death, screen lock, notification taps, accidental back, and OS permission dialogs must not destroy important in-progress user work. Save drafts or ask the user whether to save/leave when appropriate.
 - Always check the edge-case checklist in `docs/edge_case_checklist.md` for non-trivial work. If the checklist reveals a known gap, document the gap instead of pretending the feature is complete.
 - Follow `docs/data_export_storage_spec.md` for storage, export, draft, low-storage, and future sync decisions.
+- Follow `docs/maintainiac_production_operating_directive.md` for production
+  trust rules, QA discipline, and bug-to-regression requirements.
+- Follow `docs/expense_release_one_blueprint.md` for the full expense app
+  architecture, milestone gates, and safe two-Codex ownership split.
+- Follow `docs/receipt_camera_release_one_blueprint.md` for release-one receipt
+  camera architecture, scope boundaries, pass lanes, and readiness gates.
 
 ## Architecture
 

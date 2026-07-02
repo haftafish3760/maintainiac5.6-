@@ -1,0 +1,472 @@
+# Receipt Camera Cleanup Pass Log
+
+This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
+receipt pipeline repair work. Times are local to the development machine.
+
+## Pass 473 - 18:46:30 EDT to 18:47:43 EDT
+
+Scope:
+- Expanded the planning lane from camera-only to the full release-one expense
+  app.
+- Added `docs/expense_release_one_blueprint.md` covering expense intake, shared
+  receipt camera, OCR/parser review, fuel specialization, PDF/file intake,
+  records/storage, reports/export, diagnostics/admin health, QA/regressions, and
+  safe two-Codex ownership split.
+- Linked the expense blueprint from `README.md` and `PROJECT_RULES.md`.
+- Added `expense_release_one_blueprint_test.dart` and wired it into the fast
+  receipt/expense guard so the blueprint remains discoverable.
+
+Verification:
+- Passed `dart format` for the new blueprint guard and fast-guard contract.
+- Passed `bash -n tool/receipt_fast_guard_gate.sh`.
+- Passed targeted analyzer for the expense blueprint guard and fast-guard
+  contract.
+- Passed focused Flutter tests for the expense blueprint guard and fast-guard
+  contract.
+- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
+  `--max-line-length=220`, and targeted `git diff --check`.
+
+## Pass 472 - 18:42:27 EDT to 18:43:55 EDT
+
+Scope:
+- Stayed on documentation architecture for the shared release-one receipt camera
+  system before adding more feature code.
+- Added `docs/receipt_camera_release_one_blueprint.md` as the active camera-first
+  map for scope boundaries, architecture lanes, milestones, pass budget, pass
+  discipline, and release-one definition of done.
+- Linked the blueprint from `README.md`, `PROJECT_RULES.md`, and the active
+  receipt camera/OCR master pass plan.
+- Added `receipt_camera_release_one_blueprint_test.dart` and wired it into the
+  fast receipt guard so the camera-first blueprint remains discoverable.
+- Fixed a fast-guard continuation issue so the production directive and new
+  blueprint tests remain inside the `dart analyze` file list.
+
+Verification:
+- Passed `bash -n tool/receipt_fast_guard_gate.sh`.
+- Passed targeted analyzer for the blueprint guard, fast-guard contract, and
+  production directive guard.
+- Passed focused Flutter test batch for the blueprint guard, fast-guard contract,
+  and production directive guard.
+- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
+  `--max-line-length=220`, and targeted `git diff --check`.
+
+## Pass 471 - 18:14:30 EDT to 18:41:59 EDT
+
+Scope:
+- Propagated stitch overlap and source-preservation codes into OCR-source
+  attachment document signals and OCR handoff stitch-signal counts.
+- Added `docs/maintainiac_production_operating_directive.md` as the repo-level
+  production trust, QA discipline, and bug-to-regression directive.
+- Linked the directive from `README.md`, `PROJECT_RULES.md`, and the focused
+  fast receipt guard.
+- Added the production directive guard test so critical rules remain present in
+  the repo.
+
+Failures fixed during this pass:
+- The directive guard initially failed because protected phrases wrapped across
+  Markdown lines; made those policy phrases contiguous and reran the focused
+  tests.
+
+Verification:
+- Passed targeted analyzer and focused Flutter tests for the directive and
+  fast-guard contract files.
+- Passed targeted analyzer and focused Flutter tests for stitch-signal handoff
+  files and camera/OCR handoff regressions.
+- Passed `bash -n tool/receipt_fast_guard_gate.sh`,
+  `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
+  `--max-line-length=220`, and targeted `git diff --check`.
+
+## Pass 470 - 18:10:04 EDT to 18:14:29 EDT
+
+Scope:
+- Stayed on the stitching/overlap slice of the shared receipt camera system.
+- Added explicit stitch overlap coverage and source-preservation contracts to
+  `ReceiptStitchResult`, including matched/missing pair counts, all-pairs
+  evidence, fallback pair code, and original-vs-derived OCR source policy.
+- Exposed stitch coverage/source-preservation codes through receipt review
+  handoff metadata and stitch diagnostic counts so OCR/parser review can verify
+  camera output without guessing.
+- Extended stitch result and camera-result handoff regressions for stitched,
+  fallback, single-photo, and manual-overlap cases.
+
+Verification:
+- Passed targeted analyzer for stitch models, handoff metadata, and focused
+  stitching tests.
+- Passed focused Flutter stitching batch: stitch result contract, manual
+  overlap, full stitching fixtures, and camera-result stitch scanner handoff
+  tests. The batch completed with 20 tests passed.
+- Passed targeted `git diff --check`; touched files remain under 500 lines.
+
+## Pass 469 - 18:06:54 EDT to 18:10:03 EDT
+
+Scope:
+- Stayed on the retake/order slice of the shared receipt camera system.
+- Added result-level rollups for privacy-safe retake diagnostics so preserved
+  slot, inserted extra section, original/final section number, guidance code,
+  retake order policy, and previous/next/two-sided alignment context flow into
+  `receiptSectionOrderCounts`.
+- Added a receipt-result regression proving middle-section retake metadata
+  reaches handoff counts and privacy-safe metadata without leaking file paths or
+  raw receipt text.
+
+Verification:
+- Passed targeted format and analyzer for the retake/order result files and
+  tests.
+- Passed focused Flutter tests for result stitch/scanner handoff, retake order,
+  long-receipt guidance, and camera capture layout.
+- Passed targeted `git diff --check`; touched files remain under 500 lines.
+
+## Pass 468 - 17:56:49 EDT to 18:06:53 EDT
+
+Scope:
+- Reset the active goal to camera-first release-one hardening: clear capture,
+  long-receipt multi-photo flow, retake order, ghost/overlap guidance,
+  stitching handoff, and source preservation before deeper OCR/parser work.
+- Stopped stale failed detached OCR pipeline processes and fixed the quiet
+  pipeline failure cleanup path so it no longer runs `dart run` while already
+  failing.
+- Changed receipt guard scripts to use direct `dart tool/...dart` for local
+  file-audit tools, avoiding unnecessary Flutter/Dart build hooks during fast
+  guard and detached pipeline checks.
+- Split the blended static OCR pipeline phase into named static subphases so a
+  future failure reports the exact guard that failed.
+- Hardened retake ordering so replacement photos preserve the original section
+  slot and emit privacy-safe retake diagnostics for previous/next alignment
+  context and inserted extra sections.
+
+Failures fixed during this pass:
+- Focused quiet-batch policy test failed because it still expected stale phase
+  log cleanup instead of full temp-run cleanup; updated the contract.
+- Long-receipt guidance contract failed because it still expected the old
+  previous-index retake guide logic; updated it to require the new retake
+  alignment context and diagnostic merge.
+
+Verification:
+- Passed `bash -n` for edited receipt guard and quiet-pipeline shell scripts.
+- Passed direct Dart guard scripts for quiet-batch policy, source audit,
+  external fixture schema, camera I/O, and footprint audit.
+- Passed targeted analyzer for edited retake, long-receipt, and guard contract
+  files.
+- Passed focused Flutter tests for quiet-batch policy, fast guard, retake order,
+  long-receipt guidance, and camera capture layout.
+- Passed targeted `git diff --check`; touched files remain under 500 lines.
+- Current receipt camera/OCR source footprint audit reports 293 files and
+  1.68 MB of source, excluding build artifacts and PDF helpers.
+
+## Pass 467 - 17:06:55 EDT to 17:10:28 EDT
+
+Scope:
+- Continued treating the receipt/camera/OCR path as shared app infrastructure:
+  expenses and fuel first, with inventory/work-supply receipt intake as a
+  downstream consumer of the same source-of-truth pipeline.
+- Investigated the detached OCR pipeline after it reached a real static phase
+  failure instead of a launcher failure.
+- Fixed `tool/receipt_ocr_pipeline_run.sh` so repo shell scripts are executed
+  through stdin-safe `run_repo_script` calls in detached contexts, avoiding
+  macOS `Operation not permitted` failures from direct `bash tool/*.sh` paths.
+- Hardened `tool/receipt_quiet_batch_policy_gate.dart` so direct repo shell
+  script execution cannot return to OCR pipeline phases.
+- Audited the current fixture/QA architecture and confirmed the next major
+  shared-system gap: inline QA fixtures are useful, but external/real fixture
+  support is still explicitly marked `externalFixtureFilesReady=false`.
+
+Failures fixed during this pass:
+- `static_guardrails` failed because detached execution could not open
+  `tool/receipt_cleanup_log_gate.sh` directly as a script path.
+- Older detached pipeline children and stale screen sockets were cleaned up so
+  the next OCR pipeline run had clean metadata.
+
+Verification:
+- Passed a detached probe proving `/bin/bash -s < <(sed "" tool/script.sh)` can
+  run `receipt_cleanup_log_gate.sh` under `screen`.
+- Passed `bash -n` for the edited OCR pipeline and launcher scripts.
+- Passed `dart format`, `dart analyze tool/receipt_quiet_batch_policy_gate.dart`,
+  and `dart run tool/receipt_quiet_batch_policy_gate.dart`.
+- Passed `flutter test test/receipt_quiet_batch_policy_gate_contract_test.dart
+  -r compact`.
+- Passed targeted `git diff --check` and line-count checks for touched pipeline,
+  policy, and focused test files.
+- Restarted `receipt_ocr_pipeline`; metadata showed `status=running`,
+  `running=true`, `runner_started=true`, and `runner_finished=false`. Did not
+  tail or watch the long-running pipeline.
+
+## Pass 466 - 17:01:04 EDT to 17:06:54 EDT
+
+Scope:
+- Treated the shared receipt/camera/OCR pipeline as app-wide infrastructure for
+  expenses first, with inventory/work supplies as downstream consumers, not as a
+  one-off OCR text extractor.
+- Fixed the quiet OCR pipeline launcher after repeated detached-run failures:
+  generated runners now preserve command argument boundaries, prefer `screen`,
+  restore the repo working directory, expose runner lifecycle metadata, and use
+  a login-shell payload command that actually stays alive after Codex returns.
+- Changed the OCR pipeline and quality-gate launchers to rewrite payload scripts
+  into the quiet batch directory and execute those payloads through a quoted
+  login-shell command.
+- Hardened `tool/receipt_ocr_pipeline_run.sh` so each run clears stale phase
+  logs/regression task files before writing the current summary.
+- Updated the quiet-batch policy gate and focused contract test so the
+  non-monitoring launcher behavior, copied payload execution, stale-log cleanup,
+  and no-live-log workflow are permanent regression guards.
+
+Failures fixed during this pass:
+- Detached OCR pipeline runs were failing or going stale before meaningful QA
+  because macOS/screen execution treated direct script paths and bad generated
+  command quoting inconsistently.
+- The pipeline phase directory could retain stale phase logs from earlier failed
+  attempts, making failure triage ambiguous.
+- The policy gate initially failed from unescaped Dart shell-string assertions;
+  fixed those before restarting the pipeline.
+
+Verification:
+- Passed `bash -n` for the edited launcher and pipeline shell scripts.
+- Passed `dart format`, `dart analyze tool/receipt_quiet_batch_policy_gate.dart`,
+  and `dart run tool/receipt_quiet_batch_policy_gate.dart`.
+- Passed `flutter test test/receipt_quiet_batch_policy_gate_contract_test.dart
+  -r compact`.
+- Passed targeted `git diff --check` and line-count checks on edited launcher,
+  policy, pipeline, and focused test files.
+- Restarted `receipt_ocr_pipeline` as a detached quiet batch; the metadata check
+  showed `status=running`, `running=true`, `runner_started=true`, and
+  `runner_finished=false`. Did not watch or tail the running pipeline.
+
+## Pass 464 - 16:43:45 EDT to 16:45:20 EDT
+
+Scope:
+- Checked the detached OCR pipeline once using metadata only; the old run showed
+  stale status because pid `37666` was dead with no exit code.
+- Hardened `tool/receipt_quiet_batch.sh` with an EXIT trap so detached batches
+  always write final status and exit code.
+- Hardened `tool/receipt_quiet_batch_status.sh` so dead `running` batches with
+  no exit code report `stale`.
+- Hardened `tool/receipt_ocr_pipeline_run.sh` with an EXIT trap and startup or
+  unhandled-exit failure report path.
+- Updated `tool/receipt_quiet_batch_policy_gate.dart` so those finalization and
+  stale-state protections are required.
+- Restarted the detached OCR pipeline after static verification. The hardened
+  launcher returned immediately with pid `41064`.
+
+Verification:
+- Passed `bash -n` for the quiet batch, status helper, OCR pipeline runner, and
+  OCR pipeline launcher.
+- Passed `dart format`, `dart analyze`, and
+  `dart run tool/receipt_quiet_batch_policy_gate.dart`.
+- Did not read phase logs, poll the restarted pipeline, run Flutter directly, or
+  attach to long OCR pipeline output during this pass.
+
+## Pass 463 - 16:41:30 EDT to 16:43:03 EDT
+
+Scope:
+- Used the larger one-command OCR/camera pipeline instead of another narrow
+  feature pass.
+- Checked the detached quiet-batch status once using metadata only; no previous
+  `receipt_ocr_pipeline` batch existed.
+- Fixed `tool/receipt_start_ocr_pipeline.sh` and
+  `tool/receipt_start_quiet_quality_gate.sh` so they invoke
+  `bash tool/receipt_quiet_batch.sh` instead of requiring executable file bits.
+- Updated `tool/receipt_quiet_batch_policy_gate.dart` so the quiet launchers
+  require that safer `bash` invocation.
+- Started `tool/receipt_start_ocr_pipeline.sh receipt_ocr_pipeline` as a
+  detached quiet batch. The launcher returned immediately with pid `37666`.
+
+Verification:
+- Passed static wrapper checks: `dart format`, `bash -n`, `dart analyze`, and
+  `dart run tool/receipt_quiet_batch_policy_gate.dart`.
+- Did not inspect pipeline logs, poll pipeline progress, run Flutter directly,
+  or attach to the long OCR pipeline output during this pass.
+- Detached pipeline status/log files are under
+  `/tmp/maintainiac_receipt_quiet_batch/receipt_ocr_pipeline/`.
+
+## Pass 462 - 16:38:45 EDT to 16:40:46 EDT
+
+Scope:
+- Strengthened the one-command OCR/camera pipeline failure workflow.
+- Added `tool/receipt_pipeline_failure_to_regression.dart`, which reads a
+  failed pipeline run's `failure_report.txt` and creates a regression task under
+  `/tmp/maintainiac_receipt_ocr_pipeline/<run>/regression_tasks/`.
+- Wired `tool/receipt_ocr_pipeline_run.sh` so a failed phase writes the normal
+  failure report and then generates the regression task automatically.
+- Expanded `tool/receipt_quiet_batch_policy_gate.dart` so the pipeline must
+  include the failure-to-regression generator.
+- Updated `docs/receipt_ocr_pipeline_blueprint.json` and the QA standard with
+  the failure-to-regression command and policy.
+
+Verification:
+- Passed Dart format for the new generator and policy gate.
+- Passed `bash -n tool/receipt_ocr_pipeline_run.sh`.
+- Passed JSON parse for `docs/receipt_ocr_pipeline_blueprint.json`.
+- Passed `dart analyze tool/receipt_pipeline_failure_to_regression.dart
+  tool/receipt_quiet_batch_policy_gate.dart`.
+- Passed `dart run tool/receipt_quiet_batch_policy_gate.dart`.
+- Passed `bash tool/receipt_cleanup_log_gate.sh` and targeted
+  `git diff --check`.
+- Did not start the OCR pipeline, Flutter, or the full receipt QA runner during
+  this pass.
+
+## Pass 461 - 16:34:15 EDT to 16:37:50 EDT
+
+Scope:
+- Responded to the need for a larger one-command OCR/camera control surface
+  instead of tiny manual QA passes.
+- Added `tool/receipt_ocr_pipeline_run.sh`, an unattended phased runner for
+  static guardrails, pure receipt QA, camera pipeline contracts, native compile
+  checks, the full receipt quality gate, and the regression report.
+- Added `tool/receipt_start_ocr_pipeline.sh`, which starts the phased runner
+  through the detached quiet-batch launcher.
+- Added `docs/receipt_ocr_pipeline_blueprint.json`, a machine-readable blueprint
+  for the world-class OCR/camera pipeline scope, phase order, coverage families,
+  and failure policy.
+- Extended `tool/receipt_quiet_batch_policy_gate.dart` so the OCR pipeline
+  launcher and runner are required and must avoid live log streaming.
+- Added the pipeline scripts to fast-guard shell syntax coverage and documented
+  the one-command pipeline in the QA standard.
+
+Failures fixed during this pass:
+- First format check failed because the policy gate used a shell `${...}` string
+  in normal Dart string syntax. Switched it to a raw string and reran static
+  checks green.
+
+Verification:
+- Passed `bash -n tool/receipt_ocr_pipeline_run.sh
+  tool/receipt_start_ocr_pipeline.sh tool/receipt_fast_guard_gate.sh`.
+- Passed JSON parse for `docs/receipt_ocr_pipeline_blueprint.json`.
+- Passed `dart format`, `dart analyze`, and
+  `dart run tool/receipt_quiet_batch_policy_gate.dart`.
+- Passed `bash tool/receipt_cleanup_log_gate.sh` and targeted
+  `git diff --check`.
+- Did not start the OCR pipeline, Flutter, or the full receipt QA runner during
+  this pass.
+
+## Pass 460 - 16:32:00 EDT to 16:33:09 EDT
+
+Scope:
+- Stayed on QA execution guardrails without launching Flutter, the full receipt
+  QA runner, or a detached long batch.
+- Added `tool/receipt_start_quiet_quality_gate.sh`, a tiny wrapper that starts
+  `tool/receipt_quality_gate.sh` through `tool/receipt_quiet_batch.sh`.
+- Extended `tool/receipt_quiet_batch_policy_gate.dart` so the quiet quality-gate
+  wrapper must exist, use the quiet batch launcher, default to the
+  `receipt_quality_gate` batch name, and avoid direct Flutter/log streaming.
+- Added the wrapper to `tool/receipt_fast_guard_gate.sh` shell-syntax coverage.
+- Updated the QA standard to name the quiet quality-gate launcher.
+
+Verification:
+- Passed `dart format tool/receipt_quiet_batch_policy_gate.dart`.
+- Passed `bash -n tool/receipt_start_quiet_quality_gate.sh
+  tool/receipt_fast_guard_gate.sh tool/receipt_quiet_batch.sh
+  tool/receipt_quiet_batch_status.sh`.
+- Passed `dart analyze tool/receipt_quiet_batch_policy_gate.dart`.
+- Passed `dart run tool/receipt_quiet_batch_policy_gate.dart`.
+- Passed `bash tool/receipt_cleanup_log_gate.sh` and targeted
+  `git diff --check`.
+- No Flutter, full receipt QA runner, or detached long batch was run.
+
+## Pass 459 - 16:30:15 EDT to 16:31:23 EDT
+
+Scope:
+- Stayed on QA execution guardrails without launching Flutter or the full
+  receipt QA runner.
+- Added `tool/receipt_quiet_batch_policy_gate.dart`, a pure Dart static gate
+  that protects the detached quiet-batch workflow.
+- The policy gate requires long command output to redirect into `run.log`,
+  requires status and exit-code files, requires background detachment, and fails
+  if the status helper starts tailing or reading `run.log`.
+- Wired the policy gate into `tool/receipt_fast_guard_gate.sh` analyzer coverage
+  and quick static command execution.
+- Updated the QA standard to document the enforced quiet-batch policy.
+
+Verification:
+- Passed `dart format tool/receipt_quiet_batch_policy_gate.dart`.
+- Passed `bash -n tool/receipt_fast_guard_gate.sh tool/receipt_quiet_batch.sh
+  tool/receipt_quiet_batch_status.sh`.
+- Passed `dart analyze tool/receipt_quiet_batch_policy_gate.dart`.
+- Passed `dart run tool/receipt_quiet_batch_policy_gate.dart`.
+- Passed `bash tool/receipt_cleanup_log_gate.sh` and targeted
+  `git diff --check`.
+- No Flutter or long-running receipt QA commands were run during this pass.
+
+## Pass 458 - 16:28:30 EDT to 16:29:32 EDT
+
+Scope:
+- Stayed on QA execution guardrails without launching Flutter or the full
+  receipt QA runner.
+- Added `tool/receipt_quiet_batch_status.sh`, a metadata-only status helper for
+  detached quiet batches.
+- The helper prints status, running flag, pid, exit code, and log path, but it
+  never tails or prints `run.log`.
+- Wired the status helper into `tool/receipt_fast_guard_gate.sh` shell-syntax
+  coverage and documented the quiet-batch/status workflow in the QA standard.
+
+Verification:
+- Passed `bash -n tool/receipt_quiet_batch.sh
+  tool/receipt_quiet_batch_status.sh tool/receipt_fast_guard_gate.sh`.
+- Passed line-count check: quiet launcher 65 lines, status helper 57 lines, and
+  fast guard 56 lines.
+- Passed targeted `git diff --check`.
+- No Flutter or long-running receipt QA commands were run during this pass.
+
+## Pass 457 - 16:25:00 EDT to 16:27:52 EDT
+
+Scope:
+- Stayed on the external fixture migration lane without launching Flutter or the
+  full receipt QA runner.
+- Added `test/fixtures/receipt_qa/fixture_pack_inventory.json`, a no-raw-text
+  migration checklist for all 10 planned external fixture pack files.
+- Added `inventoryFile` to the runner manifest's external fixture plan.
+- Expanded `tool/receipt_external_fixture_schema_gate.dart` so it validates the
+  inventory schema, exact pack list, planned file paths, pending migration
+  status, manifest plan, and raw-token exclusions.
+- Updated the runner contract and world-class QA standard to name the inventory
+  artifact.
+
+Failures fixed during this pass:
+- First static schema-gate run failed because the gate expected generated pack
+  JSON paths to appear literally in the Dart manifest source. Fixed it to check
+  the manifest's path-generation expression while the inventory file checks the
+  concrete per-pack paths.
+
+Verification:
+- Passed targeted Dart format and analyzer for the schema gate, manifest, and
+  runner contract.
+- Passed `bash -n tool/receipt_fast_guard_gate.sh`.
+- Passed `dart run tool/receipt_external_fixture_schema_gate.dart`.
+- Passed `bash tool/receipt_cleanup_log_gate.sh` and targeted
+  `git diff --check`.
+- No Flutter or long-running receipt QA commands were run during this pass.
+
+## Pass 456 - 16:23:30 EDT to 16:24:36 EDT
+
+Scope:
+- Stayed on the external fixture QA lane without launching Flutter or the full
+  receipt QA runner.
+- Added `tool/receipt_external_fixture_schema_gate.dart`, a short pure Dart
+  gate that validates the external receipt QA fixture schema and manifest plan.
+- Wired the schema gate into `tool/receipt_fast_guard_gate.sh` analyzer coverage
+  and quick command execution.
+- Updated the world-class QA standard so the schema gate is discoverable.
+
+Verification:
+- Passed `dart format tool/receipt_external_fixture_schema_gate.dart`.
+- Passed `bash -n tool/receipt_fast_guard_gate.sh`.
+- Passed `dart analyze tool/receipt_external_fixture_schema_gate.dart`.
+- Passed `dart run tool/receipt_external_fixture_schema_gate.dart`.
+- Passed `bash tool/receipt_cleanup_log_gate.sh` and targeted
+  `git diff --check`.
+- No Flutter or long-running receipt QA commands were run during this pass.
+
+## Pass 455 - 16:20:00 EDT to 16:23:00 EDT
+
+Scope:
+- Added `tool/receipt_quiet_batch.sh`, a detached launcher for long receipt QA
+  commands that writes `run.log`, `status.txt`, `exit_code`, and `pid` under
+  `/tmp/maintainiac_receipt_quiet_batch/<name>/`.
+- The launcher returns immediately after starting the background process, so
+  Codex does not stay attached to live test output.
+- Wired the launcher into `tool/receipt_fast_guard_gate.sh` shell-syntax checks.
+
+Verification:
+- Passed `bash -n tool/receipt_quiet_batch.sh tool/receipt_fast_guard_gate.sh`.
+- Passed line-count check: `receipt_quiet_batch.sh` is 65 lines and
+  `receipt_fast_guard_gate.sh` is 53 lines.
+- Passed targeted `git diff --check` for the launcher and fast guard.
+- No Flutter or long-running receipt QA commands were run during this pass.

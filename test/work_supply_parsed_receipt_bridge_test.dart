@@ -86,12 +86,66 @@ void main() {
     expect(draft.canCommitInventory, isFalse);
     expect(draft.inventoryLineCount, 1);
     expect(draft.businessOnlyLineCount, 1);
+    expect(draft.hasInventorySelection, isTrue);
+    expect(
+      draft.inventorySelectionBundle.purpose,
+      ReceiptLineSelectionPurpose.inventory,
+    );
+    expect(draft.inventorySelectionBundle.selectedLineCount, 1);
+    expect(draft.inventorySelectionBundle.totalSourceLineCount, 2);
+    expect(
+      draft.inventorySelectionBundle.selectedLines.single.receiptLineId,
+      'RCP-1-L1',
+    );
+    expect(draft.hasClientProofSelection, isTrue);
+    expect(
+      draft.clientProofSelectionBundle.purpose,
+      ReceiptLineSelectionPurpose.clientProof,
+    );
+    expect(draft.clientProofSelectionBundle.selectedLineCount, 2);
+    expect(draft.clientProofSelectionBundle.excludedLineCount, 0);
+    expect(draft.clientProofSelectionBundle.reviewBeforeShareCount, 2);
+    expect(
+      draft.clientProofSelectionBundle.toPrivacySafeMap().toString(),
+      isNot(contains('LOWES')),
+    );
+    final inventoryEvent = draft.inventorySelectionPrivacyEvent();
+    expect(inventoryEvent.selectedReceiptLinePurpose, 'inventory');
+    expect(inventoryEvent.selectedReceiptLineCount, 1);
+    expect(inventoryEvent.excludedReceiptLineCount, 1);
+    final clientProofEvent = draft.clientProofSelectionPrivacyEvent(
+      featureArea: 'job invoice',
+    );
+    expect(clientProofEvent.featureArea, 'job_invoice');
+    expect(clientProofEvent.selectedReceiptLinePurpose, 'clientProof');
+    expect(clientProofEvent.selectedReceiptLineCount, 2);
+    expect(clientProofEvent.excludedReceiptLineCount, 0);
+    expect(clientProofEvent.toMap().toString(), isNot(contains('LOWES')));
+    expect(clientProofEvent.toMap().toString(), isNot(contains('COPPER')));
     expect(draft.lines.first.kind, ReceiptLineKind.inventory);
     expect(draft.lines.first.receiptLineId, 'RCP-1-L1');
     expect(draft.lines.first.inventoryItemId, copperElbow.id);
     expect(draft.lines.first.taxRate, closeTo(.08, .001));
     expect(draft.lines.first.receiptLaneLabel, 'Inventory');
     expect(draft.lines.first.rawReceiptText, '1/2 COPPER 90');
+    expect(draft.lines.first.proofLineReferenceLabel, 'Line 1');
+    expect(
+      draft.lines.first.clientProofDefaultVisibility,
+      ReceiptLineClientProofVisibility.reviewForClientProof,
+    );
+    expect(draft.lines.first.sourceReceiptSectionLabel, 'Photo receipt RCP-1');
+    expect(
+      draft.lines.first.privacySafeProofReference.toString(),
+      isNot(contains('LOWES')),
+    );
+    expect(
+      draft.lines.first.privacySafeProofReference.toString(),
+      isNot(contains('COPPER')),
+    );
+    expect(
+      draft.lines.first.privacySafeProofReference.toString(),
+      isNot(contains('12')),
+    );
     expect(draft.lines.first.catalogMatchConfidence, .91);
     expect(draft.lines.first.catalogMatchedTerms, ['1/2', 'copper', '90']);
     expect(draft.lines.first.parserReviewLabel, 'Good');
@@ -152,8 +206,57 @@ void main() {
     expect(draft.inventoryRecords, isEmpty);
     expect(draft.personalLineCount, 1);
     expect(draft.splitLineCount, 1);
+    expect(draft.hasInventorySelection, isFalse);
+    expect(draft.inventorySelectionBundle.selectedLineCount, 0);
+    expect(draft.clientProofSelectionBundle.selectedLineCount, 1);
+    expect(draft.clientProofSelectionBundle.excludedLineCount, 1);
+    expect(
+      draft.clientProofSelectionPrivacyEvent().selectedReceiptLineCount,
+      1,
+    );
+    expect(
+      draft.clientProofSelectionPrivacyEvent().excludedReceiptLineCount,
+      1,
+    );
+    expect(draft.clientProofRedactionPlan.reviewLineCount, 1);
+    expect(draft.clientProofRedactionPlan.hiddenLineCount, 1);
+    expect(draft.clientProofRedactionPlan.needsReviewBeforeShare, isTrue);
+    expect(draft.clientProofReviewSummary.status, 'review_required');
+    expect(draft.clientProofReviewSummary.hiddenLineCount, 1);
+    expect(draft.clientProofReviewSummary.reviewLineCount, 1);
+    expect(
+      draft.clientProofReviewSummary.recommendedNextAction,
+      'review_lines_before_client_share',
+    );
+    expect(draft.clientProofImageReviewPlan.sectionCount, 1);
+    expect(draft.clientProofImageReviewPlan.reviewSectionCount, 1);
+    expect(draft.clientProofImageReviewPlan.unassignedHiddenLineCount, 1);
+    expect(
+      draft.clientProofRedactionPlan.toPrivacySafeMap().toString(),
+      isNot(contains('PERSONAL COPPER')),
+    );
+    expect(
+      draft.clientProofRedactionPlan.toPrivacySafeMap().toString(),
+      isNot(contains('SHARED CLEANER')),
+    );
+    expect(
+      draft.clientProofSelectionBundle.selectedLines.single.receiptLineId,
+      'RCP-2-L5',
+    );
     expect(draft.lines.first.receiptLaneLabel, 'Personal');
+    expect(draft.lines.first.proofLineReferenceLabel, 'Line 4');
+    expect(
+      draft.lines.first.clientProofDefaultVisibility,
+      ReceiptLineClientProofVisibility.redactByDefault,
+    );
+    expect(draft.lines.first.redactsFromClientProofByDefault, isTrue);
     expect(draft.lines.last.receiptLaneLabel, 'Split business/personal');
+    expect(draft.lines.last.proofLineReferenceLabel, 'Line 5');
+    expect(
+      draft.lines.last.clientProofDefaultVisibility,
+      ReceiptLineClientProofVisibility.reviewBeforeClientShare,
+    );
+    expect(draft.lines.last.needsClientProofReview, isTrue);
     expect(draft.lines.last.businessUseLabel, 'Split 40% business');
   });
 }

@@ -7,7 +7,7 @@ enum _PdfReceiptReadMode { saveProofOnly, readIntoForm }
 extension _ReceiptPdfImportActions on _SharedReceiptAttachmentPanelState {
   Future<void> _pickPdfFiles() async {
     if (_openingPicker) return;
-    _updateAttachmentState(() => _openingPicker = true);
+    updateAttachmentState(() => _openingPicker = true);
     try {
       final result = await FilePicker.pickFiles(
         type: FileType.custom,
@@ -18,7 +18,7 @@ extension _ReceiptPdfImportActions on _SharedReceiptAttachmentPanelState {
         dialogTitle: 'Choose Receipt PDF',
       );
       if (result == null || result.files.isEmpty || !mounted) {
-        await _returnToReceiptImportOptions();
+        await returnToReceiptImportOptions();
         return;
       }
       final selectedFiles = result.files;
@@ -45,29 +45,29 @@ extension _ReceiptPdfImportActions on _SharedReceiptAttachmentPanelState {
         final blocker = inspection.importBlocker;
         if (blocker != null) {
           blockedCount += 1;
-          _showPickerError(blocker);
+          showPickerError(blocker);
           continue;
         }
         final warning = inspection.userWarning;
         if (warning != null) {
-          _showPickerMessage(warning);
+          showPickerMessage(warning);
         }
         final storageCheck = await ReceiptStorageGuard.checkForBytes(
           requiredBytes: inspection.byteSize + (2 * 1024 * 1024),
           purpose: ReceiptStoragePurpose.importPdf,
         );
         if (!storageCheck.hasEnoughSpace) {
-          _showPickerError(
+          showPickerError(
             storageCheck.blockingMessage(ReceiptStoragePurpose.importPdf),
           );
           continue;
         }
         if (!storageCheck.canVerify) {
-          _showPickerMessage(
+          showPickerMessage(
             storageCheck.unknownMessage(ReceiptStoragePurpose.importPdf),
           );
         } else if (storageCheck.shouldWarnLowStorage) {
-          _showPickerMessage(storageCheck.warningMessage());
+          showPickerMessage(storageCheck.warningMessage());
         }
         late final ReceiptAttachmentRecord attachment;
         try {
@@ -92,7 +92,7 @@ extension _ReceiptPdfImportActions on _SharedReceiptAttachmentPanelState {
           );
         } on ReceiptProofStorageException catch (error) {
           blockedCount += 1;
-          _showPickerError(error.message);
+          showPickerError(error.message);
           continue;
         }
         final duplicateInCurrentForm = _hasDuplicateAttachment(attachment);
@@ -106,7 +106,7 @@ extension _ReceiptPdfImportActions on _SharedReceiptAttachmentPanelState {
           unawaited(
             ReceiptProofStorage.instance.deleteStagedAttachment(attachment),
           );
-          _showPickerMessage('${attachment.label} is already attached.');
+          showPickerMessage('${attachment.label} is already attached.');
         } else {
           _rememberPdfSelection(attachment, selectedHashes, selectedPaths);
           attachments.add(attachment);
@@ -115,25 +115,25 @@ extension _ReceiptPdfImportActions on _SharedReceiptAttachmentPanelState {
       }
       if (attachments.isEmpty) {
         if (duplicateCount > 0 && blockedCount == 0) {
-          _showPickerMessage(
+          showPickerMessage(
             duplicateCount == 1
                 ? 'That PDF is already attached to this receipt.'
                 : 'Those PDFs are already attached to this receipt.',
           );
         } else {
-          _showPickerError('That PDF could not be opened from this device.');
+          showPickerError('That PDF could not be opened from this device.');
         }
         return;
       }
-      _updateAttachmentState(() => _documentAttachments.addAll(attachments));
-      _publishAttachmentChange();
+      updateAttachmentState(() => _documentAttachments.addAll(attachments));
+      publishAttachmentChange();
       final readMode = await _choosePdfReadMode(
         attachments.length,
         inspections,
       );
       if (!mounted) return;
       if (readMode != _PdfReceiptReadMode.readIntoForm) {
-        _showPickerMessage(_pdfAttachedMessage(attachments.length));
+        showPickerMessage(_pdfAttachedMessage(attachments.length));
         return;
       }
       final readableAttachments = <ReceiptAttachmentRecord>[];
@@ -148,7 +148,7 @@ extension _ReceiptPdfImportActions on _SharedReceiptAttachmentPanelState {
         }
       }
       if (readableAttachments.isEmpty) {
-        _showPickerMessage(_pdfAttachedMessage(attachments.length));
+        showPickerMessage(_pdfAttachedMessage(attachments.length));
         return;
       }
       if (proofOnlyAttachments.isNotEmpty) {
@@ -156,20 +156,20 @@ extension _ReceiptPdfImportActions on _SharedReceiptAttachmentPanelState {
           proofOnlyAttachments,
           ReceiptAttachmentReadState.notRead,
         );
-        _showPickerMessage(
+        showPickerMessage(
           '${proofOnlyAttachments.length} PDF${proofOnlyAttachments.length == 1 ? '' : 's'} saved as read-only proof only.',
         );
       }
       final shouldRead = await _confirmLongPdfReading(readableInspections);
       if (!mounted || !shouldRead) {
-        _showPickerMessage(_pdfAttachedMessage(attachments.length));
+        showPickerMessage(_pdfAttachedMessage(attachments.length));
         return;
       }
       final read = await _readAttachmentsForReceiptForm(
         readableAttachments,
         successMessage: readableAttachments.length == 1
-            ? 'PDF receipt proof was read into the form.'
-            : '${readableAttachments.length} PDF receipts were read into the form.',
+            ? 'PDF receipt proof opened receipt details.'
+            : '${readableAttachments.length} PDF receipts opened receipt details.',
       );
       if (read.didRead) {
         _markAttachmentsRead(
@@ -186,33 +186,33 @@ extension _ReceiptPdfImportActions on _SharedReceiptAttachmentPanelState {
         final warning = read.warning.trim().isEmpty
             ? 'PDF attached as proof, but receipt text could not be read.'
             : '${read.warning} PDF attached as proof.';
-        _showPickerError(warning);
+        showPickerError(warning);
         return;
       }
       if (mounted) {
-        _showPickerMessage(_pdfAttachedMessage(attachments.length));
+        showPickerMessage(_pdfAttachedMessage(attachments.length));
       }
     } on MissingPluginException {
       if (!mounted) return;
-      _showPickerError(
+      showPickerError(
         'PDF picking is not available in this build. Reinstall the app and try again.',
       );
     } on ReceiptProofStorageException catch (error) {
       if (!mounted) return;
-      _showPickerError(error.message);
+      showPickerError(error.message);
     } on PlatformException catch (error) {
       if (!mounted) return;
       final message = error.message?.trim();
-      _showPickerError(
+      showPickerError(
         message == null || message.isEmpty
             ? 'The PDF picker could not be opened.'
             : message,
       );
     } catch (_) {
       if (!mounted) return;
-      _showPickerError('The PDF picker did not open correctly.');
+      showPickerError('The PDF picker did not open correctly.');
     } finally {
-      if (mounted) _updateAttachmentState(() => _openingPicker = false);
+      if (mounted) updateAttachmentState(() => _openingPicker = false);
     }
   }
 
@@ -230,7 +230,7 @@ extension _ReceiptPdfImportActions on _SharedReceiptAttachmentPanelState {
   ) {
     if (!mounted || attachments.isEmpty) return;
     final ids = attachments.map((attachment) => attachment.id).toSet();
-    _updateAttachmentState(() {
+    updateAttachmentState(() {
       for (var index = 0; index < _documentAttachments.length; index++) {
         final current = _documentAttachments[index];
         if (ids.contains(current.id)) {
@@ -238,6 +238,6 @@ extension _ReceiptPdfImportActions on _SharedReceiptAttachmentPanelState {
         }
       }
     });
-    _publishAttachmentChange();
+    publishAttachmentChange();
   }
 }

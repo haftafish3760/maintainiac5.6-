@@ -3,10 +3,12 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_pol
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_inspector.dart';
 
+import 'helpers/receipt_assistance_policy_fixtures.dart';
+
 void main() {
   test('imported receipt text uses local reading immediately', () {
     final decision = const ReceiptAssistancePolicy().decideForAttachment(
-      _attachment(
+      receiptAttachmentFixture(
         kind: ReceiptAttachmentKind.emailText,
         importedText: 'LOWES\nTOTAL 12.34',
       ),
@@ -21,7 +23,7 @@ void main() {
         const ReceiptAssistancePolicy(
           device: ReceiptDeviceCapability.olderPhone(),
         ).decideForAttachment(
-          _attachment(
+          receiptAttachmentFixture(
             kind: ReceiptAttachmentKind.pdf,
             byteSize: 12 * 1024 * 1024,
             pageCount: 18,
@@ -33,139 +35,50 @@ void main() {
   });
 
   test(
-    'automatic capability assessment picks a light tier for constrained phones',
+    'critical storage trims flagship receipt workload without requiring cloud',
     () {
-      final capability = ReceiptDeviceCapability.fromHardware(
-        hardware: const ReceiptHardwareProfile(
-          availableRamMb: 3900,
-          cpuCores: 4,
-          androidSdk: 28,
-          freeStorageMb: 900,
-        ),
-      );
+      final capability = const ReceiptDeviceCapability.highCapacity()
+          .withStoragePressure(ReceiptDeviceStorageClass.critical);
+      final plan = capability.cloudAssistPlan;
 
       expect(capability.tier, ReceiptCapabilityTier.light);
       expect(capability.parserDepth, ReceiptParserDepth.proofTotalsOnly);
+      expect(
+        capability.recommendedDataSaverLevel,
+        ReceiptDataSaverLevel.maximum,
+      );
+      expect(capability.maxLocalPhotoBytes, 4 * 1024 * 1024);
       expect(capability.maxLocalPhotoCount, 4);
+      expect(capability.assistedCameraShotCount, 1);
+      expect(capability.bestShotCandidateCount, 1);
+      expect(capability.maxLocalCatalogMatches, 150);
+      expect(capability.maxLocalInventoryCacheItems, 400);
       expect(
-        capability.cameraResolutionTier,
-        ReceiptCameraResolutionTier.medium,
+        capability
+            .cameraRuntimeProfileFor(
+              guidanceRequested: true,
+              startAssistedRequested: true,
+              autoCaptureRequested: true,
+              longReceiptTipsRequested: true,
+            )
+            .autoCaptureEnabled,
+        isFalse,
       );
-      expect(capability.assistedCameraShotCount, 2);
-      expect(capability.liveAnalysisGapMs, greaterThan(700));
-      expect(capability.maxLocalCatalogMatches, lessThan(500));
-      expect(capability.enableAdvancedConfidenceScoring, isFalse);
+      expect(plan.localOcrAvailable, isTrue);
+      expect(plan.localOcrMode, 'lean_local_ocr');
+      expect(plan.cloudOcrOptional, isTrue);
+      expect(plan.cloudInventoryOptional, isTrue);
       expect(
-        capability.recommendedDataSaverLevel,
-        ReceiptDataSaverLevel.strong,
+        plan.toPrivacySafeDiagnostics(),
+        containsPair('cameraCaptureCloudRequired', false),
       );
+      expect(plan.estimatedOptionalLocalPackBytes, 0);
+      expect(plan.parserPackCodes, [
+        'core_receipt_text_v1',
+        'cloud_ocr_assist_v1',
+      ]);
     },
   );
-
-  test(
-    'automatic capability assessment picks a medium tier for midrange phones',
-    () {
-      final capability = ReceiptDeviceCapability.fromHardware(
-        hardware: const ReceiptHardwareProfile(
-          availableRamMb: 6144,
-          cpuCores: 6,
-          androidSdk: 31,
-          freeStorageMb: 2400,
-        ),
-      );
-
-      expect(capability.tier, ReceiptCapabilityTier.medium);
-      expect(capability.parserDepth, ReceiptParserDepth.lineItems);
-      expect(capability.cameraResolutionTier, ReceiptCameraResolutionTier.high);
-      expect(capability.assistedCameraShotCount, 4);
-      expect(capability.enableTradeClassification, isTrue);
-      expect(capability.maxLocalInventoryCacheItems, 5000);
-      expect(
-        capability.recommendedDataSaverLevel,
-        ReceiptDataSaverLevel.balanced,
-      );
-    },
-  );
-
-  test(
-    'automatic capability assessment picks a heavyweight tier for capable phones',
-    () {
-      final capability = ReceiptDeviceCapability.fromHardware(
-        hardware: const ReceiptHardwareProfile(
-          availableRamMb: 12288,
-          cpuCores: 8,
-          androidSdk: 35,
-          androidPerformanceClass: 34,
-          freeStorageMb: 12000,
-          hasOnDeviceAcceleration: true,
-        ),
-      );
-
-      expect(capability.tier, ReceiptCapabilityTier.heavyweight);
-      expect(capability.parserDepth, ReceiptParserDepth.inventoryMatching);
-      expect(capability.cameraResolutionTier, ReceiptCameraResolutionTier.max);
-      expect(capability.assistedCameraShotCount, 5);
-      expect(capability.readyHoldMs, lessThan(650));
-      expect(capability.enableSkuDetection, isTrue);
-      expect(capability.maxLocalCatalogMatches, greaterThan(5000));
-      expect(
-        capability.recommendedDataSaverLevel,
-        ReceiptDataSaverLevel.balanced,
-      );
-    },
-  );
-
-  test('manual performance modes override automatic tier selection safely', () {
-    const strongHardware = ReceiptHardwareProfile(
-      availableRamMb: 12288,
-      cpuCores: 8,
-      androidPerformanceClass: 34,
-      hasOnDeviceAcceleration: true,
-    );
-    const constrainedHardware = ReceiptHardwareProfile(
-      availableRamMb: 3900,
-      cpuCores: 4,
-      androidSdk: 28,
-    );
-
-    expect(
-      ReceiptDeviceCapability.fromHardware(
-        hardware: strongHardware,
-        mode: ReceiptPerformanceMode.batterySaver,
-      ).tier,
-      ReceiptCapabilityTier.light,
-    );
-    expect(
-      ReceiptDeviceCapability.fromHardware(
-        hardware: strongHardware,
-        mode: ReceiptPerformanceMode.balanced,
-      ).tier,
-      ReceiptCapabilityTier.medium,
-    );
-    expect(
-      ReceiptDeviceCapability.fromHardware(
-        hardware: constrainedHardware,
-        mode: ReceiptPerformanceMode.maximumPerformance,
-      ).tier,
-      ReceiptCapabilityTier.light,
-    );
-  });
-
-  test('low storage tightens automatic receipt photo space saving', () {
-    final capability = ReceiptDeviceCapability.fromHardware(
-      hardware: const ReceiptHardwareProfile(
-        availableRamMb: 12288,
-        cpuCores: 8,
-        androidPerformanceClass: 34,
-        freeStorageMb: 320,
-        hasOnDeviceAcceleration: true,
-      ),
-      mode: ReceiptPerformanceMode.maximumPerformance,
-    );
-
-    expect(capability.tier, ReceiptCapabilityTier.light);
-    expect(capability.recommendedDataSaverLevel, ReceiptDataSaverLevel.maximum);
-  });
 
   test(
     'unknown RAM does not automatically force capable devices into light tier',
@@ -181,7 +94,7 @@ void main() {
   test('multi-photo receipts beyond the device tier require review', () {
     final attachments = [
       for (var index = 0; index < 5; index++)
-        _attachment(
+        receiptAttachmentFixture(
           kind: ReceiptAttachmentKind.photo,
           byteSize: 800 * 1024,
           idSuffix: '$index',
@@ -250,7 +163,7 @@ void main() {
     );
 
     final decision = const ReceiptAssistancePolicy().decideForAttachment(
-      _attachment(
+      receiptAttachmentFixture(
         kind: ReceiptAttachmentKind.photo,
       ).withPhotoQuality(poorQuality),
     );
@@ -263,7 +176,7 @@ void main() {
 
   test('unsafe PDF is never opened for app-assisted reading', () {
     final decision = const ReceiptAssistancePolicy().decideForAttachment(
-      _attachment(
+      receiptAttachmentFixture(
         kind: ReceiptAttachmentKind.pdf,
         riskFlags: [ReceiptPdfInspector.embeddedJavaScriptRiskFlag],
       ),
@@ -300,7 +213,7 @@ void main() {
           ),
           cloudAssistedAvailable: true,
         ).decideForAttachment(
-          _attachment(
+          receiptAttachmentFixture(
             kind: ReceiptAttachmentKind.pdf,
             byteSize: 7 * 1024 * 1024,
             pageCount: 8,
@@ -317,12 +230,12 @@ void main() {
         const ReceiptAssistancePolicy(
           device: ReceiptDeviceCapability.olderPhone(),
         ).decideForAttachments([
-          _attachment(
+          receiptAttachmentFixture(
             kind: ReceiptAttachmentKind.pdf,
             byteSize: 14 * 1024 * 1024,
             pageCount: 20,
           ),
-          _attachment(
+          receiptAttachmentFixture(
             kind: ReceiptAttachmentKind.photo,
             byteSize: 2 * 1024 * 1024,
           ),
@@ -358,117 +271,4 @@ void main() {
     expect(heavy.enabledFeaturesLabel, contains('Trade classification'));
     expect(heavy.enabledFeaturesLabel, contains('Advanced confidence scoring'));
   });
-
-  test('hardware diagnostics labels unknown and concrete signals clearly', () {
-    const unknown = ReceiptHardwareProfile();
-    const detected = ReceiptHardwareProfile(
-      platformName: 'android',
-      platformVersion: 'Android 15',
-      availableRamMb: 12288,
-      cpuCores: 8,
-      androidSdk: 35,
-      androidPerformanceClass: 34,
-      freeStorageMb: 6144,
-      lowPowerMode: true,
-      hasOnDeviceAcceleration: true,
-      cameraPermissionGranted: true,
-      cameraCount: 4,
-      hasRearCamera: true,
-      maxStillWidth: 4032,
-      maxStillHeight: 3024,
-    );
-
-    expect(unknown.platformLabel, 'Unknown');
-    expect(unknown.availableRamLabel, 'Unknown');
-    expect(unknown.androidSdkLabel, 'Unavailable');
-    expect(unknown.accelerationLabel, 'Not detected');
-
-    expect(detected.platformLabel, 'android');
-    expect(detected.platformVersionLabel, 'Android 15');
-    expect(detected.availableRamLabel, '12.0 GB');
-    expect(detected.cpuCoresLabel, '8 cores');
-    expect(detected.androidSdkLabel, 'Android SDK 35');
-    expect(detected.androidPerformanceClassLabel, '34');
-    expect(detected.freeStorageLabel, '6.0 GB');
-    expect(detected.lowPowerModeLabel, 'On');
-    expect(detected.accelerationLabel, 'Detected');
-    expect(detected.maxStillMegapixels, 12);
-    expect(detected.cameraLabel, '4 cameras detected');
-  });
-
-  test(
-    'camera defaults scale by capability without exposing raw hardware UI',
-    () {
-      const light = ReceiptDeviceCapability.olderPhone();
-      const standard = ReceiptDeviceCapability.standard();
-      const heavy = ReceiptDeviceCapability.highCapacity();
-
-      expect(light.cameraResolutionTier, ReceiptCameraResolutionTier.medium);
-      expect(light.assistedCameraShotCount, 2);
-      expect(light.bestShotCandidateCount, 1);
-      expect(light.liveAnalysisGapMs, greaterThan(700));
-
-      expect(standard.cameraResolutionTier, ReceiptCameraResolutionTier.high);
-      expect(standard.assistedCameraShotCount, 4);
-      expect(standard.bestShotCandidateCount, 3);
-
-      expect(heavy.cameraResolutionTier, ReceiptCameraResolutionTier.max);
-      expect(heavy.assistedCameraShotCount, 5);
-      expect(heavy.bestShotCandidateCount, 5);
-      expect(heavy.liveAnalysisGapMs, lessThan(standard.liveAnalysisGapMs));
-      expect(
-        light.stitchLimits.maxOutputPixels,
-        lessThan(standard.stitchLimits.maxOutputPixels),
-      );
-      expect(
-        standard.stitchLimits.maxOutputPixels,
-        lessThan(heavy.stitchLimits.maxOutputPixels),
-      );
-    },
-  );
-
-  test('large photos stay readable but force review on older phones', () {
-    final decision =
-        const ReceiptAssistancePolicy(
-          device: ReceiptDeviceCapability.olderPhone(),
-        ).decideForAttachment(
-          _attachment(
-            kind: ReceiptAttachmentKind.photo,
-            byteSize: 9 * 1024 * 1024,
-          ),
-        );
-
-    expect(decision.mode, ReceiptAssistanceMode.localReadWithReview);
-    expect(decision.shouldReadLocally, isTrue);
-    expect(decision.reason, contains('large for Older phone'));
-    expect(decision.warnings.join(' '), contains('slower on older phones'));
-  });
-}
-
-ReceiptAttachmentRecord _attachment({
-  required ReceiptAttachmentKind kind,
-  String importedText = '',
-  int? byteSize,
-  int? pageCount,
-  List<String> riskFlags = const [],
-  String idSuffix = '',
-}) {
-  return ReceiptAttachmentRecord(
-    id: 'att-${kind.name}$idSuffix',
-    path:
-        kind == ReceiptAttachmentKind.photo || kind == ReceiptAttachmentKind.pdf
-        ? '/tmp/receipt'
-        : '',
-    kind: kind,
-    dataSaverLevel: ReceiptDataSaverLevel.balanced,
-    createdAt: DateTime(2026, 6, 22),
-    importedText: importedText,
-    byteSize: byteSize,
-    pageCount: pageCount,
-    pageCountStatus: pageCount == null
-        ? ReceiptPdfPageCountStatus.unknown
-        : ReceiptPdfPageCountStatus.estimated,
-    validationStatus: ReceiptPdfValidationStatus.valid,
-    riskFlags: riskFlags,
-  );
 }

@@ -1,0 +1,242 @@
+part of '../../receipts/receipt_ocr_contract.dart';
+
+extension ReceiptOcrParserHandoffLineMaps on ReceiptOcrParserHandoff {
+  List<String> get stableLineIds =>
+      List.unmodifiable(lines.map((line) => line.stableLineId));
+  List<String> get parserReadyItemLineIds => List.unmodifiable(
+    itemLines
+        .where((line) => !line.needsReview)
+        .map((line) => line.stableLineId),
+  );
+  List<String> get reviewItemLineIds => List.unmodifiable(
+    itemLines
+        .where((line) => line.needsReview)
+        .map((line) => line.stableLineId),
+  );
+  List<String> get separatorlessMoneyInferenceLineIds => List.unmodifiable(
+    lines
+        .where((line) => line.hasSeparatorlessMoneyInference)
+        .map((line) => line.stableLineId),
+  );
+  List<String> get splitCentsMoneyInferenceLineIds => List.unmodifiable(
+    lines
+        .where((line) => line.hasSplitCentsMoneyInference)
+        .map((line) => line.stableLineId),
+  );
+  List<String> get addressContactMetadataLineIds => List.unmodifiable(
+    metadataLines
+        .where((line) => line.hasTrait('address_or_contact_metadata'))
+        .map((line) => line.stableLineId),
+  );
+  List<String> get weakHeaderCandidateLineIds => List.unmodifiable(
+    lines
+        .where((line) => line.hasTrait('weak_header_candidate'))
+        .map((line) => line.stableLineId),
+  );
+  List<String> get knownMerchantHeaderCandidateLineIds => List.unmodifiable(
+    lines
+        .where((line) => line.hasTrait('known_merchant_header_candidate'))
+        .map((line) => line.stableLineId),
+  );
+  List<String> get unknownMerchantHeaderCandidateLineIds => List.unmodifiable(
+    lines
+        .where((line) => line.hasTrait('unknown_merchant_header_candidate'))
+        .map((line) => line.stableLineId),
+  );
+  List<String> get timeCandidateLineIds => List.unmodifiable(
+    lines
+        .where((line) => line.hasTrait('time_present'))
+        .map((line) => line.stableLineId),
+  );
+  List<String> get inventoryPrepLineIds => List.unmodifiable(
+    itemLines
+        .where((line) => line.isInventoryPrepCandidate)
+        .map((line) => line.stableLineId),
+  );
+  List<String> get materialCandidateLineIds => List.unmodifiable(
+    itemLines
+        .where((line) => line.isMaterialCandidate)
+        .map((line) => line.stableLineId),
+  );
+  List<String> get fuelCandidateLineIds => List.unmodifiable(
+    itemLines
+        .where((line) => line.isFuelCandidate)
+        .map((line) => line.stableLineId),
+  );
+  List<String> get fuelReadyLineIds => List.unmodifiable(
+    itemLines
+        .where((line) => line.isFuelCandidate && !line.needsReview)
+        .map((line) => line.stableLineId),
+  );
+  bool get hasFuelContext => lines.any(
+    (line) => line.isFuelCandidate || _looksLikeFuelExpenseLine(line.text),
+  );
+  List<String> get fuelQuantitySignalLineIds => List.unmodifiable(
+    lines
+        .where(
+          (line) =>
+              (line.isFuelCandidate && line.hasFuelQuantitySignal) ||
+              (hasFuelContext &&
+                  _looksLikeFuelReceiptQuantitySignal(line.text)),
+        )
+        .map((line) => line.stableLineId),
+  );
+  List<String> get fuelUnitPriceSignalLineIds => List.unmodifiable(
+    lines
+        .where(
+          (line) =>
+              (line.isFuelCandidate && line.hasFuelUnitPriceSignal) ||
+              (hasFuelContext &&
+                  _looksLikeFuelReceiptUnitPriceSignal(line.text)),
+        )
+        .map((line) => line.stableLineId),
+  );
+  List<String> get fuelDetailReadyLineIds {
+    if (fuelReadyLineIds.isEmpty ||
+        fuelQuantitySignalLineIds.isEmpty ||
+        fuelUnitPriceSignalLineIds.isEmpty) {
+      return const [];
+    }
+    return List<String>.unmodifiable({
+      ...fuelReadyLineIds,
+      ...fuelQuantitySignalLineIds,
+      ...fuelUnitPriceSignalLineIds,
+    });
+  }
+
+  List<String> get vehicleSupplyCandidateLineIds => List.unmodifiable(
+    itemLines
+        .where((line) => line.isVehicleSupplyCandidate)
+        .map((line) => line.stableLineId),
+  );
+  Map<String, String> get primaryFieldLineIds {
+    final result = <String, String>{};
+    final primaryVendor = primaryVendorLine;
+    final primaryDate = primaryDateLine;
+    final primarySubtotal = primarySubtotalLine;
+    final primaryTax = primaryTaxLine;
+    final primaryTotal = primaryTotalLine;
+    if (primaryVendor != null) result['vendor'] = primaryVendor.stableLineId;
+    if (primaryDate != null) result['date'] = primaryDate.stableLineId;
+    if (primarySubtotal != null) {
+      result['subtotal'] = primarySubtotal.stableLineId;
+    }
+    if (primaryTax != null) result['tax'] = primaryTax.stableLineId;
+    if (primaryTotal != null) result['total'] = primaryTotal.stableLineId;
+    return Map.unmodifiable(result);
+  }
+
+  Map<String, List<String>> get lineIdsByRole {
+    final ids = <String, List<String>>{};
+    for (final line in lines) {
+      ids.putIfAbsent(line.roleLabel, () => <String>[]).add(line.stableLineId);
+      if (line.isLikelySummary) {
+        ids.putIfAbsent('summary', () => <String>[]).add(line.stableLineId);
+      } else if (line.isLikelyMetadata) {
+        ids.putIfAbsent('metadata', () => <String>[]).add(line.stableLineId);
+      }
+    }
+    final result = <String, List<String>>{
+      for (final entry in ids.entries)
+        entry.key: List<String>.unmodifiable(entry.value),
+    };
+    return Map<String, List<String>>.unmodifiable(result);
+  }
+
+  Map<String, String> get roleByLineId {
+    return Map<String, String>.unmodifiable({
+      for (final line in lines) line.stableLineId: line.roleLabel,
+    });
+  }
+
+  Map<String, String> get parserBucketByLineId {
+    return Map<String, String>.unmodifiable({
+      for (final line in lines) line.stableLineId: line.parserBucketId,
+    });
+  }
+
+  Map<String, String> get expenseFamilyByLineId {
+    return Map<String, String>.unmodifiable({
+      for (final line in lines)
+        line.stableLineId: _receiptExpenseFamilyToken(line.expenseFamily),
+    });
+  }
+
+  Map<String, String> get parserHintByLineId {
+    return Map<String, String>.unmodifiable({
+      for (final line in lines) line.stableLineId: line.parserHint,
+    });
+  }
+
+  List<ReceiptOcrParserLineDraft> get lineDrafts {
+    return List<ReceiptOcrParserLineDraft>.unmodifiable(
+      lines.map(ReceiptOcrParserLineDraft.fromSignal),
+    );
+  }
+
+  List<ReceiptOcrParserLineDraft> get itemLineDrafts {
+    return List<ReceiptOcrParserLineDraft>.unmodifiable(
+      itemLines.map(ReceiptOcrParserLineDraft.fromSignal),
+    );
+  }
+
+  List<ReceiptOcrParserLineDraft> get parserReadyItemLineDrafts {
+    return List<ReceiptOcrParserLineDraft>.unmodifiable(
+      itemLines
+          .where((line) => !line.needsReview)
+          .map(ReceiptOcrParserLineDraft.fromSignal),
+    );
+  }
+
+  List<ReceiptOcrParserLineDraft> get reviewItemLineDrafts {
+    return List<ReceiptOcrParserLineDraft>.unmodifiable(
+      itemLines
+          .where((line) => line.needsReview)
+          .map(ReceiptOcrParserLineDraft.fromSignal),
+    );
+  }
+
+  Map<String, int> get lineNumberByLineId {
+    return Map<String, int>.unmodifiable({
+      for (final draft in lineDrafts) draft.stableLineId: draft.lineNumber,
+    });
+  }
+
+  Map<String, String> get proofLineReferenceLabelByLineId {
+    return Map<String, String>.unmodifiable({
+      for (final draft in lineDrafts)
+        draft.stableLineId: draft.proofLineReferenceLabel,
+    });
+  }
+
+  Map<String, ReceiptOcrParserLineDraft> get lineDraftsById {
+    return Map<String, ReceiptOcrParserLineDraft>.unmodifiable({
+      for (final draft in lineDrafts) draft.stableLineId: draft,
+    });
+  }
+
+  Map<String, double> get itemAmountsByLineId {
+    return Map<String, double>.unmodifiable({
+      for (final draft in itemLineDrafts)
+        if (draft.amount != null) draft.stableLineId: draft.amount!,
+    });
+  }
+
+  Map<String, String> get itemTextByLineId {
+    return Map<String, String>.unmodifiable({
+      for (final draft in itemLineDrafts) draft.stableLineId: draft.text,
+    });
+  }
+
+  List<Map<String, Object?>> get localReviewLineMaps {
+    return List<Map<String, Object?>>.unmodifiable(
+      lineDrafts.map((draft) => draft.toLocalReviewMap()),
+    );
+  }
+
+  List<Map<String, Object?>> get privacySafeLineSummaryMaps {
+    return List<Map<String, Object?>>.unmodifiable(
+      lineDrafts.map((draft) => draft.toPrivacySafeSummaryMap()),
+    );
+  }
+}

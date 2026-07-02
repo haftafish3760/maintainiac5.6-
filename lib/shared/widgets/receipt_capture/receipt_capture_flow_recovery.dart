@@ -1,0 +1,192 @@
+part of 'receipt_capture_flow.dart';
+
+extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
+  Future<ReceiptCaptureFlowResult> reviewRecoveredCapture(
+    BuildContext context,
+    ReceiptNativeCaptureRecoveryRecord record, {
+    ReceiptCaptureFlowOptions options = const ReceiptCaptureFlowOptions(),
+  }) async {
+    final nativeCapabilities = ReceiptNativeCameraCapabilities(
+      engine: record.engine,
+      available: record.engine != ReceiptNativeCameraEngine.unavailable,
+    );
+    final photoPaths = [
+      for (final photoPath in record.recoverablePhotoPaths)
+        if (File(photoPath).existsSync()) photoPath,
+    ];
+    if (photoPaths.isEmpty) {
+      await _staging.discardRecoveryRecord(record);
+      return _missingRecoveryPhotosResult(record, nativeCapabilities, options);
+    }
+
+    final reviewPhotoPaths = [...options.initialPhotoPaths, ...photoPaths];
+    final firstRecoveredPhotoIndex = options.initialPhotoPaths.length;
+    final recoveryDiagnostics = <String, Object?>{
+      ...record.captureDiagnostics,
+      'nativeRecoveryResumeStatus': 'resume_review_started',
+      'nativeRecoveryResumeSource': 'saved_native_capture',
+      'nativeRecoveryResumeRoute':
+          'receipt_photo_review_before_receipt_details',
+      'nativeRecoveryRecoveredPhotoCount': photoPaths.length,
+      'nativeRecoveryMultipleSections': photoPaths.length > 1,
+      'nativeRecoveryFreshness': record.recoveryFreshnessBucket(),
+      'nativeRecoveryStorageStatus': record.recoveryStorageStatus,
+      'nativeRecoveryReviewOpened': true,
+      'nativeRecoveryOcrPending': true,
+    };
+    if (!context.mounted) {
+      return _recoveryReviewNotOpenedResult(
+        record,
+        nativeCapabilities,
+        options,
+      );
+    }
+
+    await _staging.markRecoveryStage(
+      record.manifestPath,
+      stage: 'recovery_review_opening',
+      reason: 'saved_native_photos_ready_for_review',
+      action: 'open_receipt_photo_review_before_receipt_details',
+      extraMetadata: {
+        'nativeRecoveryReviewOpened': true,
+        'nativeRecoveryOcrPending': true,
+        'nativeRecoveryResumeSource': 'saved_native_capture',
+        'nativeRecoveryResumeRoute':
+            'receipt_photo_review_before_receipt_details',
+        'nativeRecoveryRecoveredPhotoCount': photoPaths.length,
+        'nativeRecoveryMultipleSections': photoPaths.length > 1,
+      },
+    );
+    if (!context.mounted) {
+      return _recoveryReviewNotOpenedResult(
+        record,
+        nativeCapabilities,
+        options,
+      );
+    }
+    final reviewOpeningDiagnostics = _withReviewOpeningDiagnostics(
+      {for (final path in photoPaths) path: recoveryDiagnostics},
+      route: 'native_recovery_to_photo_review',
+      source: 'saved_native_capture_recovery',
+      photoCount: photoPaths.length,
+      options: options,
+    );
+    final reviewResult = await Navigator.of(context)
+        .push<ReceiptPhotoReviewResult>(
+          appNativeRoute(
+            context,
+            ReceiptPhotoReviewScreen(
+              initialPhotoPaths: reviewPhotoPaths,
+              initialSelectedIndex: firstRecoveredPhotoIndex,
+              initialDataSaverLevel:
+                  options.initialDataSaverLevel ?? record.dataSaverLevel,
+              initialQualityChecksByPath: {
+                ...options.initialQualityChecksByPath,
+              },
+              initialCaptureDiagnosticsByPath: {
+                ...options.initialCaptureDiagnosticsByPath,
+                ...reviewOpeningDiagnostics,
+              },
+            ),
+          ),
+        );
+    if (!context.mounted) {
+      await _staging.markRecoveryStage(
+        record.manifestPath,
+        stage: 'recovery_review_interrupted',
+        reason: 'context_closed_after_recovery_review',
+        action: 'keep_staged_receipt_for_recovery',
+        extraMetadata: {
+          'nativeRecoveryReviewClosed': true,
+          'nativeRecoveryOcrPending': true,
+          'nativeRecoveryKeptPhotoCount': photoPaths.length,
+          'nativeRecoveryKeptMultipleSections': photoPaths.length > 1,
+        },
+      );
+      return _recoveryReviewInterruptedResult(
+        record,
+        nativeCapabilities,
+        options,
+      );
+    }
+    if (reviewResult == null) {
+      await _staging.markRecoveryStage(
+        record.manifestPath,
+        stage: 'recovery_review_closed',
+        reason: 'user_closed_recovered_review_before_accept',
+        action: 'keep_staged_receipt_for_recovery',
+        extraMetadata: {
+          'nativeRecoveryReviewClosed': true,
+          'nativeRecoveryOcrPending': true,
+          'nativeRecoveryKeptPhotoCount': photoPaths.length,
+          'nativeRecoveryKeptMultipleSections': photoPaths.length > 1,
+        },
+      );
+      return _recoveryReviewClosedResult(
+        record,
+        nativeCapabilities,
+        options,
+        photoPaths.length,
+      );
+    }
+    if (reviewResult.keptForLater) {
+      await _staging.markRecoveryStage(
+        record.manifestPath,
+        stage: 'recovery_review_closed_kept_for_later',
+        reason: 'user_kept_recovered_review_before_receipt_details',
+        action: 'resume_saved_receipt_photo_review',
+        extraMetadata: {
+          'nativeRecoveryReviewClosed': true,
+          'nativeRecoveryOcrPending': true,
+          'nativeRecoveryKeptPhotoCount': reviewResult.photoPaths.length,
+          'nativeRecoveryKeptMultipleSections':
+              reviewResult.photoPaths.length > 1,
+          'receiptReviewExitAction': reviewResult.reviewExitAction,
+        },
+      );
+      return _recoveryReviewKeptForLaterResult(
+        record,
+        nativeCapabilities,
+        options,
+        reviewResult,
+      );
+    }
+
+    await _staging.markRecoveryStage(
+      record.manifestPath,
+      stage: 'recovery_review_accepted',
+      reason: 'recovered_receipt_photos_accepted_for_receipt_details',
+      action: 'open_filled_review_or_save_proof',
+      extraMetadata: {
+        'nativeRecoveryReviewAccepted': true,
+        'nativeRecoveryOcrPending': true,
+        'nativeRecoveryAcceptedPhotoCount': reviewResult.photoPaths.length,
+        'nativeRecoveryAcceptedMultipleSections':
+            reviewResult.photoPaths.length > 1,
+        'nativeRecoveryOcrSourcePhotoCount':
+            reviewResult.ocrSourcePhotoPaths.length,
+      },
+    );
+    return _recoveryReviewAcceptedResult(
+      record,
+      nativeCapabilities,
+      options,
+      reviewResult,
+      photoPaths.length,
+    );
+  }
+
+  Map<String, Object?> _nativeRecoveryMetadata(
+    ReceiptNativeCaptureRecoveryRecord record,
+  ) {
+    return {
+      'nativeRecoveryFreshness': record.recoveryFreshnessBucket(),
+      'nativeRecoveryStorageStatus': record.recoveryStorageStatus,
+      'nativeRecoveryResumeOutcome': record.recoveryResumeOutcomeCode,
+      'nativeRecoveryResumeOutcomeLabel': record.recoveryResumeOutcomeLabel,
+      'nativeRecoveryExistingPhotoCount': record.existingPhotoCount,
+      'nativeRecoveryMissingPhotoCount': record.missingPhotoCount,
+      'nativeRecoveryEvidence': record.privacySafeRecoveryEvidenceLabel,
+    };
+  }
+}

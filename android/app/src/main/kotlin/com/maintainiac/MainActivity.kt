@@ -40,10 +40,12 @@ class MainActivity : FlutterActivity() {
         val pendingResult = pendingReceiptCameraResult ?: return
         pendingReceiptCameraResult = null
         if (resultCode != RESULT_OK || data == null) {
+            val closeAction = data?.getStringExtra(ReceiptCameraActivity.extraCloseAction)
+                ?: "unknown_cancel"
             pendingResult.error(
                 "native_camera_cancelled",
                 "Receipt photo capture was cancelled.",
-                null,
+                mapOf("closeAction" to closeAction),
             )
             return
         }
@@ -233,6 +235,14 @@ class MainActivity : FlutterActivity() {
                 is Double -> bundle.putDouble(key, value)
                 is Float -> bundle.putFloat(key, value)
                 is String -> bundle.putString(key, value)
+                is Iterable<*> -> {
+                    val strings = ArrayList<String>()
+                    value.forEach { entry ->
+                        val text = entry?.toString()?.trim()
+                        if (!text.isNullOrEmpty()) strings.add(text)
+                    }
+                    if (strings.isNotEmpty()) bundle.putStringArrayList(key, strings)
+                }
             }
         }
         return bundle

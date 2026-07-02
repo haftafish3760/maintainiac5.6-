@@ -1,3 +1,5 @@
+part 'receipt_line_models_serialization.dart';
+
 enum ReceiptLineKind { inventory, expense }
 
 enum ReceiptLineReviewState {
@@ -6,6 +8,14 @@ enum ReceiptLineReviewState {
   needsReview,
   confirmed,
   corrected,
+}
+
+class ReceiptLineClientProofVisibility {
+  const ReceiptLineClientProofVisibility._();
+
+  static const reviewForClientProof = 'review_for_client_proof';
+  static const reviewBeforeClientShare = 'review_before_client_share';
+  static const redactByDefault = 'redact_by_default';
 }
 
 class ReceiptLineDraft {
@@ -38,6 +48,10 @@ class ReceiptLineDraft {
     this.originalParsedInventoryItemId = '',
     this.originalParsedInventoryPath = '',
     this.reviewAction = 'manual',
+    this.proofLineReferenceLabel = '',
+    this.clientProofDefaultVisibility =
+        ReceiptLineClientProofVisibility.reviewForClientProof,
+    this.sourceReceiptSectionLabel = '',
   });
 
   final ReceiptLineKind kind;
@@ -68,6 +82,9 @@ class ReceiptLineDraft {
   final String originalParsedInventoryItemId;
   final String originalParsedInventoryPath;
   final String reviewAction;
+  final String proofLineReferenceLabel;
+  final String clientProofDefaultVisibility;
+  final String sourceReceiptSectionLabel;
 
   bool get isInventory => kind == ReceiptLineKind.inventory;
   bool get isExpense => kind == ReceiptLineKind.expense;
@@ -174,6 +191,49 @@ class ReceiptLineDraft {
     };
   }
 
+  String get proofReferenceLabel {
+    final label = proofLineReferenceLabel.trim();
+    if (label.isNotEmpty) return label;
+    final lineId = receiptLineId.trim();
+    return lineId.isEmpty ? 'Receipt line' : lineId;
+  }
+
+  bool get redactsFromClientProofByDefault {
+    return clientProofDefaultVisibility ==
+        ReceiptLineClientProofVisibility.redactByDefault;
+  }
+
+  bool get needsClientProofReview {
+    return clientProofDefaultVisibility ==
+            ReceiptLineClientProofVisibility.reviewForClientProof ||
+        clientProofDefaultVisibility ==
+            ReceiptLineClientProofVisibility.reviewBeforeClientShare;
+  }
+
+  String get clientProofReviewLabel {
+    if (redactsFromClientProofByDefault) return 'Hidden from client proof';
+    if (clientProofDefaultVisibility ==
+        ReceiptLineClientProofVisibility.reviewBeforeClientShare) {
+      return 'Review before sharing';
+    }
+    return 'Review for client proof';
+  }
+
+  Map<String, Object?> get privacySafeProofReference {
+    return {
+      'receiptLineId': receiptLineId,
+      'proofLineReferenceLabel': proofReferenceLabel,
+      'clientProofDefaultVisibility': clientProofDefaultVisibility,
+      'clientProofReviewLabel': clientProofReviewLabel,
+      if (sourceReceiptSectionLabel.trim().isNotEmpty)
+        'sourceReceiptSectionLabel': sourceReceiptSectionLabel.trim(),
+      'kind': kind.name,
+      'businessUse': businessUse,
+      'hasAmount': subtotal > 0,
+      'needsParserReview': parserNeedsReview,
+    };
+  }
+
   bool get requiresInventoryConfirmation {
     return isInventory && hasAssistedReview && canConfirmAssistedReview;
   }
@@ -209,116 +269,5 @@ class ReceiptLineDraft {
       return 'Saved on the receipt as split business/personal.';
     }
     return 'Saved on the receipt as business-only, not inventory.';
-  }
-
-  ReceiptLineDraft copyWith({
-    ReceiptLineKind? kind,
-    String? description,
-    String? receiptLineId,
-    String? inventoryItemId,
-    String? inventoryPath,
-    String? expenseCategory,
-    double? quantity,
-    double? unitsPerPackage,
-    String? purchaseType,
-    String? unit,
-    double? subtotal,
-    double? taxRate,
-    String? storageArea,
-    String? storageDetail,
-    String? businessUse,
-    double? businessPercent,
-    String? note,
-    String? rawReceiptText,
-    double? catalogMatchConfidence,
-    List<String>? catalogMatchedTerms,
-    double? parserConfidence,
-    String? parserReviewLabel,
-    String? parserReviewReason,
-    bool? parserNeedsReview,
-    String? originalParsedDescription,
-    String? originalParsedInventoryItemId,
-    String? originalParsedInventoryPath,
-    String? reviewAction,
-  }) {
-    return ReceiptLineDraft(
-      kind: kind ?? this.kind,
-      description: description ?? this.description,
-      receiptLineId: receiptLineId ?? this.receiptLineId,
-      inventoryItemId: inventoryItemId ?? this.inventoryItemId,
-      inventoryPath: inventoryPath ?? this.inventoryPath,
-      expenseCategory: expenseCategory ?? this.expenseCategory,
-      quantity: quantity ?? this.quantity,
-      unitsPerPackage: unitsPerPackage ?? this.unitsPerPackage,
-      purchaseType: purchaseType ?? this.purchaseType,
-      unit: unit ?? this.unit,
-      subtotal: subtotal ?? this.subtotal,
-      taxRate: taxRate ?? this.taxRate,
-      storageArea: storageArea ?? this.storageArea,
-      storageDetail: storageDetail ?? this.storageDetail,
-      businessUse: businessUse ?? this.businessUse,
-      businessPercent: businessPercent ?? this.businessPercent,
-      note: note ?? this.note,
-      rawReceiptText: rawReceiptText ?? this.rawReceiptText,
-      catalogMatchConfidence:
-          catalogMatchConfidence ?? this.catalogMatchConfidence,
-      catalogMatchedTerms: catalogMatchedTerms ?? this.catalogMatchedTerms,
-      parserConfidence: parserConfidence ?? this.parserConfidence,
-      parserReviewLabel: parserReviewLabel ?? this.parserReviewLabel,
-      parserReviewReason: parserReviewReason ?? this.parserReviewReason,
-      parserNeedsReview: parserNeedsReview ?? this.parserNeedsReview,
-      originalParsedDescription:
-          originalParsedDescription ?? this.originalParsedDescription,
-      originalParsedInventoryItemId:
-          originalParsedInventoryItemId ?? this.originalParsedInventoryItemId,
-      originalParsedInventoryPath:
-          originalParsedInventoryPath ?? this.originalParsedInventoryPath,
-      reviewAction: reviewAction ?? this.reviewAction,
-    );
-  }
-
-  ReceiptLineDraft confirmedAssistedReview() {
-    return copyWith(
-      parserConfidence: parserConfidence == null
-          ? .98
-          : parserConfidence!.clamp(.84, 1).toDouble(),
-      parserReviewLabel: 'Good',
-      parserReviewReason: 'User confirmed this parsed receipt line.',
-      parserNeedsReview: false,
-      reviewAction: 'confirmed',
-    );
-  }
-
-  Map<String, Object?> toMap() {
-    return {
-      'kind': kind.name,
-      'description': description,
-      'receiptLineId': receiptLineId,
-      'inventoryItemId': inventoryItemId,
-      'inventoryPath': inventoryPath,
-      'expenseCategory': expenseCategory,
-      'quantity': quantity,
-      'unitsPerPackage': unitsPerPackage,
-      'purchaseType': purchaseType,
-      'unit': unit,
-      'subtotal': subtotal,
-      'taxRate': taxRate,
-      'storageArea': storageArea,
-      'storageDetail': storageDetail,
-      'businessUse': businessUse,
-      'businessPercent': businessPercent,
-      'note': note,
-      'rawReceiptText': rawReceiptText,
-      'catalogMatchConfidence': catalogMatchConfidence,
-      'catalogMatchedTerms': catalogMatchedTerms,
-      'parserConfidence': parserConfidence,
-      'parserReviewLabel': parserReviewLabel,
-      'parserReviewReason': parserReviewReason,
-      'parserNeedsReview': parserNeedsReview,
-      'originalParsedDescription': originalParsedDescription,
-      'originalParsedInventoryItemId': originalParsedInventoryItemId,
-      'originalParsedInventoryPath': originalParsedInventoryPath,
-      'reviewAction': reviewAction,
-    };
   }
 }

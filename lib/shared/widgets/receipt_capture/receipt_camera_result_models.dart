@@ -1,0 +1,166 @@
+part of 'receipt_capture_models.dart';
+
+enum ReceiptCameraCaptureMode { singleImage, bestShotCandidates }
+
+class ReceiptCameraResult {
+  const ReceiptCameraResult({
+    required this.photoPaths,
+    required this.mode,
+    this.qualityChecks = const [],
+    this.captureEvidence,
+  });
+
+  const ReceiptCameraResult.single(
+    List<String> photoPaths, {
+    List<ReceiptPhotoQualityCheck> qualityChecks = const [],
+    ReceiptCameraCaptureEvidence? captureEvidence,
+  }) : this(
+         photoPaths: photoPaths,
+         mode: ReceiptCameraCaptureMode.singleImage,
+         qualityChecks: qualityChecks,
+         captureEvidence: captureEvidence,
+       );
+
+  const ReceiptCameraResult.bestShotCandidates(
+    List<String> photoPaths, {
+    List<ReceiptPhotoQualityCheck> qualityChecks = const [],
+    ReceiptCameraCaptureEvidence? captureEvidence,
+  }) : this(
+         photoPaths: photoPaths,
+         mode: ReceiptCameraCaptureMode.bestShotCandidates,
+         qualityChecks: qualityChecks,
+         captureEvidence: captureEvidence,
+       );
+
+  final List<String> photoPaths;
+  final ReceiptCameraCaptureMode mode;
+  final List<ReceiptPhotoQualityCheck> qualityChecks;
+  final ReceiptCameraCaptureEvidence? captureEvidence;
+
+  bool get isBestShotCandidateSet =>
+      mode == ReceiptCameraCaptureMode.bestShotCandidates;
+
+  ReceiptPhotoQualityCheck? get bestQualityCheck {
+    if (qualityChecks.isEmpty) return null;
+    return qualityChecks.reduce(
+      (best, next) => next.reviewScore > best.reviewScore ? next : best,
+    );
+  }
+
+  Map<String, Map<String, Object?>> captureDiagnosticsByPhotoPath(
+    List<String> paths,
+  ) {
+    final evidence = captureEvidence;
+    if (evidence == null) return const {};
+    final diagnostics = <String, Map<String, Object?>>{};
+    for (final path in paths) {
+      final index = photoPaths.indexOf(path);
+      final fallbackIndex = paths.indexOf(path);
+      final photoIndex = index < 0 ? fallbackIndex : index;
+      diagnostics[path] = evidence.toCaptureDiagnostics(
+        quality: qualityForIndex(photoIndex),
+        photoIndex: photoIndex,
+      );
+    }
+    return Map.unmodifiable(diagnostics);
+  }
+
+  bool get hasQuestionablePhoto =>
+      qualityChecks.any((quality) => quality.needsReview);
+
+  String get qualitySummaryLabel {
+    final best = bestQualityCheck;
+    if (best == null) return 'Photo quality not checked';
+    final count = qualityChecks.length;
+    final prefix = count <= 1 ? 'Photo' : 'Best of $count photos';
+    return '$prefix ${best.reviewScoreLabel}: ${best.primaryIssueLabel}';
+  }
+
+  ReceiptPhotoQualityCheck? qualityForIndex(int index) {
+    if (index < 0 || index >= qualityChecks.length) return null;
+    return qualityChecks[index];
+  }
+}
+
+class ReceiptCameraCaptureEvidence {
+  const ReceiptCameraCaptureEvidence({
+    required this.captureSurface,
+    required this.captureFlow,
+    required this.resolutionTier,
+    required this.resolutionPreset,
+    required this.flashMode,
+    required this.exposureMode,
+    required this.focusMode,
+    required this.exposurePointSupported,
+    required this.focusPointSupported,
+    required this.exposureOffset,
+    required this.minExposureOffset,
+    required this.maxExposureOffset,
+    required this.zoomLevel,
+    required this.minZoomLevel,
+    required this.maxZoomLevel,
+    required this.previewWidth,
+    required this.previewHeight,
+    required this.liveBrightness,
+    required this.liveContrast,
+    required this.liveFocusScore,
+    required this.liveReadiness,
+    required this.imageStreamActiveAtCapture,
+    this.selectedExposureOffset,
+    this.candidateExposureOffsets = const [],
+  });
+
+  final String captureSurface;
+  final String captureFlow;
+  final String resolutionTier;
+  final String resolutionPreset;
+  final String flashMode;
+  final String exposureMode;
+  final String focusMode;
+  final bool exposurePointSupported;
+  final bool focusPointSupported;
+  final double? exposureOffset;
+  final double? minExposureOffset;
+  final double? maxExposureOffset;
+  final double zoomLevel;
+  final double minZoomLevel;
+  final double maxZoomLevel;
+  final int previewWidth;
+  final int previewHeight;
+  final double? liveBrightness;
+  final double? liveContrast;
+  final double? liveFocusScore;
+  final String liveReadiness;
+  final bool imageStreamActiveAtCapture;
+  final double? selectedExposureOffset;
+  final List<double?> candidateExposureOffsets;
+
+  bool get usesNativeAutoExposure => exposureMode == 'auto';
+  bool get exposureAtNativeBaseline {
+    final offset = selectedExposureOffset ?? exposureOffset;
+    if (offset == null) return true;
+    return offset.abs() <= .05;
+  }
+
+  bool get hasDarkLiveFrame => (liveBrightness ?? 128) < 72;
+  bool get hasUnderexposedLiveFrame => (liveBrightness ?? 128) < 92;
+  bool get hasBrightLiveFrame => (liveBrightness ?? 128) > 222;
+
+  String get brightnessSummaryLabel {
+    if (liveBrightness == null) return 'Live brightness not measured';
+    if (hasDarkLiveFrame) return 'Live preview was dark';
+    if (hasUnderexposedLiveFrame) return 'Live preview was darker than ideal';
+    if (hasBrightLiveFrame) return 'Live preview had glare';
+    return 'Live preview brightness was normal';
+  }
+
+  String get exposureSummaryLabel {
+    if (selectedExposureOffset == null && exposureOffset == null) {
+      return 'Exposure offset not measured';
+    }
+    if (exposureAtNativeBaseline) return 'Native auto exposure baseline';
+    final selected = selectedExposureOffset ?? exposureOffset ?? 0;
+    final direction = selected > 0 ? 'brighter' : 'darker';
+    return 'Bracketed $direction exposure candidate';
+  }
+}

@@ -161,14 +161,14 @@ import UIKit
     }
     pendingReceiptCameraResult = result
     let controller = ReceiptCameraViewController(arguments: arguments ?? [:])
-    controller.onCancel = { [weak self] in
+    controller.onCancel = { [weak self] closeAction in
       guard let self else { return }
       let pending = self.pendingReceiptCameraResult
       self.pendingReceiptCameraResult = nil
       pending?(FlutterError(
         code: "native_camera_cancelled",
         message: "Receipt photo capture was cancelled.",
-        details: nil
+        details: ["closeAction": closeAction]
       ))
     }
     controller.onCapture = { [weak self] paths, capturedAt, diagnostics in

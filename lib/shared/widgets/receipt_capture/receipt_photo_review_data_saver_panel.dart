@@ -11,15 +11,15 @@ class _ReceiptDataSaverPreviewCard extends StatelessWidget {
     if (current == null) {
       return const _DataSaverMessageCard(
         icon: Icons.hourglass_top_rounded,
-        title: 'Preparing Backup Image Preview',
-        detail: 'Building the smaller receipt image that would be kept.',
+        title: 'Preparing saved proof preview',
+        detail: 'Building the smaller receipt image kept after reading.',
       );
     }
     final quality = current.quality;
     final mode = current.level.usesGrayscale ? 'black and white' : 'color';
     final detail = !quality.needsReview
-        ? '${current.estimatedLabel} backup image, ${current.savedLabel} saved, $mode.'
-        : '${current.estimatedLabel} backup image, $mode. ${quality.reviewGuidance}';
+        ? '${current.estimatedLabel} saved proof image, ${current.savedLabel} saved, $mode.'
+        : '${current.estimatedLabel} saved proof image, $mode. ${quality.reviewGuidance}';
     return _DataSaverMessageCard(
       icon: !quality.needsReview
           ? Icons.savings_rounded
@@ -27,12 +27,12 @@ class _ReceiptDataSaverPreviewCard extends StatelessWidget {
           ? Icons.replay_rounded
           : Icons.fact_check_rounded,
       title: !quality.needsReview
-          ? '${current.level.label} Backup Image'
+          ? '${current.level.label} Saved Proof'
           : quality.reviewTitle,
       detail: detail,
       footer: !quality.needsReview
-          ? 'The image behind this panel is the backup image preview. Receipt reading uses the clear OCR source before this smaller backup. Original ${current.originalLabel}.'
-          : 'Receipt reading uses the clear OCR source first. This setting only controls the smaller backup image.',
+          ? 'The image behind this panel is the saved proof preview. Receipt assistance uses the clear OCR source first. Original ${current.originalLabel}.'
+          : 'Receipt assistance uses the clear OCR source first. This setting only controls the smaller saved proof.',
       warning: quality.needsReview,
       onDetails: () => _showDataSaverDetails(context, current),
     );
@@ -177,11 +177,11 @@ Future<void> _showDataSaverDetails(
               value: preview.level.usesGrayscale ? 'Black and white' : 'Color',
             ),
             const _StorageDetailRow(
-              label: 'Receipt reading',
+              label: 'Receipt assistance',
               value: 'Uses clear photo first',
             ),
             _StorageDetailRow(
-              label: 'Cloud backup copy',
+              label: 'Proof kept after reading',
               value: '${preview.level.label} saved proof',
             ),
             _StorageDetailRow(
@@ -190,7 +190,7 @@ Future<void> _showDataSaverDetails(
               warning: storage.shouldWarnLowStorage || !storage.hasEnoughSpace,
             ),
             _StorageDetailRow(
-              label: 'Cloud backup',
+              label: 'Backup status',
               value:
                   '${cloudStatus.connectionState.label} (${cloud.statusLabel})',
             ),

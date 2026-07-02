@@ -1,0 +1,242 @@
+part of 'receipt_native_camera_contract.dart';
+
+extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
+  bool get protectsInterruptedCapture =>
+      saveOriginalTemporarily && queueAcceptedCaptureLocally;
+
+  ReceiptNativeCameraSessionConfig sessionFor({
+    required ReceiptDeviceCapability deviceCapability,
+    required ReceiptNativeCameraCapabilities nativeCapabilities,
+    String? previousSectionGuidePhotoPath,
+    String? previousSectionReasonCode,
+    String? previousSectionGuidance,
+    double? previousSectionGhostSourceStartFraction,
+    double? previousSectionGhostSourceHeightFraction,
+    double? previousSectionGhostOverlayTopFraction,
+    double? previousSectionGhostOverlayHeightFraction,
+    double? previousSectionGhostOpacity,
+  }) {
+    final deviceTier = deviceCapability.tier;
+    final lightDevice = deviceTier == ReceiptCapabilityTier.light;
+    final heavyweightDevice = deviceTier == ReceiptCapabilityTier.heavyweight;
+    final storageSafetyLevel = _strongerNativeCameraDataSaverLevel(
+      dataSaverLevel,
+      deviceCapability.recommendedDataSaverLevel,
+    );
+    final storageConstrained =
+        storageSafetyLevel == ReceiptDataSaverLevel.strong ||
+        storageSafetyLevel == ReceiptDataSaverLevel.maximum;
+    final maxSectionCount = longReceiptMode
+        ? _nativeCameraSectionLimitForStorage(
+            deviceCapability.maxLocalPhotoCount,
+            storageSafetyLevel,
+          )
+        : 1;
+    final autoCaptureAllowed =
+        edgeDetectionEnabled &&
+        nativeCapabilities.supportsNativeEdgeSignals &&
+        !lightDevice &&
+        !storageConstrained;
+    final liveAnalysisAllowed =
+        liveYuvAnalysisEnabled &&
+        nativeCapabilities.supportsYuvLiveFrames &&
+        !lightDevice;
+    final effectiveEdgeDetection =
+        edgeDetectionEnabled &&
+        (nativeCapabilities.supportsNativeEdgeSignals || !lightDevice);
+    final effectiveAutoCropSuggestion =
+        autoCropSuggestionEnabled && effectiveEdgeDetection && !lightDevice;
+    final heavyCleanupAllowed = !lightDevice && !storageConstrained;
+    final effectiveTapFocus =
+        tapFocusEnabled && nativeCapabilities.supportsTapFocus;
+    final effectivePinchZoom =
+        pinchZoomEnabled &&
+        nativeCapabilities.supportsZoom &&
+        nativeCapabilities.maxZoom > nativeCapabilities.minZoom;
+    final effectiveExposureSlider =
+        exposureSliderEnabled &&
+        nativeCapabilities.supportsExposureCompensation &&
+        nativeCapabilities.maxExposureOffset >
+            nativeCapabilities.minExposureOffset;
+    final effectiveExposureAssist =
+        autoExposureAssistEnabled && effectiveExposureSlider;
+    final effectiveFocusLock =
+        focusMode != ReceiptNativeFocusMode.manual &&
+        nativeCapabilities.supportsFocusLock;
+    final effectiveExposureLock =
+        exposureMode != ReceiptNativeExposureMode.manual &&
+        nativeCapabilities.supportsExposureLock;
+    final effectiveWhiteBalanceLock =
+        whiteBalanceMode != ReceiptNativeWhiteBalanceMode.manual &&
+        nativeCapabilities.supportsWhiteBalanceLock;
+    final effectiveZoomMin = effectivePinchZoom
+        ? nativeCapabilities.minZoom
+        : 1.0;
+    final effectiveZoomMax = effectivePinchZoom
+        ? nativeCapabilities.maxZoom
+        : 1.0;
+    final effectiveExposureMin = effectiveExposureSlider
+        ? nativeCapabilities.minExposureOffset
+        : 0.0;
+    final effectiveExposureMax = effectiveExposureSlider
+        ? nativeCapabilities.maxExposureOffset
+        : 0.0;
+    final workloadTier = storageConstrained
+        ? ReceiptCameraWorkloadTier.light
+        : deviceCapability.cameraWorkloadTier;
+    final maxLiveAnalysisPixels = liveAnalysisAllowed
+        ? workloadTier.maxLiveAnalysisPixels
+        : 0;
+    final maxCleanupPixels = storageConstrained
+        ? ReceiptCameraWorkloadTier.light.maxCleanupPixels
+        : deviceCapability.maxCleanupPixels;
+    final analysisGapMs =
+        deviceCapability.liveAnalysisGapMs +
+        (lightDevice ? 320 : 0) +
+        (storageConstrained ? 160 : 0);
+    final cloudAssistPlan = deviceCapability.cloudAssistPlanFor(
+      dataSaverLevel: storageSafetyLevel,
+    );
+    final installStorageClass = _nativeCameraInstallStorageClassFor(
+      storageSafetyLevel,
+    );
+    final installRecommendation = cloudAssistPlan.footprintPlan
+        .installRecommendationForStorageClass(installStorageClass);
+    final receiptBrainRecommendation = deviceCapability
+        .receiptBrainRecommendationFor(
+          installStorageClass,
+          cloudAssistPlan: cloudAssistPlan,
+        );
+    final receiptBrainFootprintSummary = deviceCapability
+        .receiptBrainFootprintSummaryFor(
+          installStorageClass,
+          cloudAssistPlan: cloudAssistPlan,
+        );
+    final parserPackRoutingPlan = cloudAssistPlan.parserPackRoutingPlan;
+    final readyHoldMs =
+        deviceCapability.readyHoldMs +
+        (lightDevice ? 220 : 0) +
+        (heavyweightDevice && !storageConstrained ? -80 : 0);
+    final capabilityPolicyCodes = _nativeCameraCapabilityPolicyCodes(
+      lightDevice: lightDevice,
+      storageConstrained: storageConstrained,
+      nativeCapabilities: nativeCapabilities,
+      autoCaptureAllowed: autoCaptureAllowed,
+      liveAnalysisAllowed: liveAnalysisAllowed,
+      effectiveEdgeDetection: effectiveEdgeDetection,
+      effectiveTapFocus: effectiveTapFocus,
+      effectivePinchZoom: effectivePinchZoom,
+      effectiveExposureSlider: effectiveExposureSlider,
+      effectiveExposureAssist: effectiveExposureAssist,
+      effectiveFocusLock: effectiveFocusLock,
+      effectiveExposureLock: effectiveExposureLock,
+      effectiveWhiteBalanceLock: effectiveWhiteBalanceLock,
+      heavyCleanupAllowed: heavyCleanupAllowed,
+      longReceiptMode: longReceiptMode,
+    );
+    return ReceiptNativeCameraSessionConfig(
+      settings: this,
+      nativeCapabilities: nativeCapabilities,
+      deviceTier: deviceTier,
+      devicePolicyLabel: _nativeCameraDevicePolicyLabel(
+        tier: deviceTier,
+        storageConstrained: storageConstrained,
+      ),
+      capabilityPolicyCodes: capabilityPolicyCodes,
+      cloudAssistPlan: cloudAssistPlan,
+      installRecommendation: installRecommendation,
+      receiptBrainRecommendation: receiptBrainRecommendation,
+      receiptBrainFootprintSummary: receiptBrainFootprintSummary,
+      parserPackRoutingPlan: parserPackRoutingPlan,
+      storageSafetyLevel: storageSafetyLevel,
+      storageConstrained: storageConstrained,
+      autoCaptureAllowed: autoCaptureAllowed,
+      liveAnalysisEnabled: liveAnalysisAllowed,
+      edgeDetectionEnabled: effectiveEdgeDetection,
+      autoCaptureEnabled: autoCaptureEnabled && autoCaptureAllowed,
+      maxSectionCount: maxSectionCount,
+      analysisGapMs: analysisGapMs,
+      readyHoldMs: readyHoldMs < 500 ? 500 : readyHoldMs,
+      assistedShotCount: deviceCapability.assistedCameraShotCount,
+      bestShotCandidateCount: storageConstrained
+          ? deviceCapability.bestShotCandidateCount.clamp(1, 3).toInt()
+          : deviceCapability.bestShotCandidateCount,
+      cameraResolutionTier: deviceCapability.cameraResolutionTier,
+      cameraWorkloadTier: workloadTier,
+      maxLocalPhotoBytes: deviceCapability.maxLocalPhotoBytes,
+      tapFocusEnabled: effectiveTapFocus,
+      pinchZoomEnabled: effectivePinchZoom,
+      exposureSliderEnabled: effectiveExposureSlider,
+      exposureResetEnabled: exposureResetEnabled && effectiveExposureSlider,
+      autoExposureAssistEnabled: effectiveExposureAssist,
+      focusLockEnabled: effectiveFocusLock,
+      exposureLockEnabled: effectiveExposureLock,
+      whiteBalanceLockEnabled: effectiveWhiteBalanceLock,
+      minZoom: effectiveZoomMin,
+      maxZoom: effectiveZoomMax,
+      minExposureOffset: effectiveExposureMin,
+      maxExposureOffset: effectiveExposureMax,
+      maxLiveAnalysisPixels: maxLiveAnalysisPixels,
+      maxCleanupPixels: maxCleanupPixels,
+      maxStitchOutputPixels: deviceCapability.stitchLimits.maxOutputPixels,
+      maxStitchOutputHeight: deviceCapability.stitchLimits.maxOutputHeight,
+      edgeOverlayEnabled: edgeOverlayEnabled && effectiveEdgeDetection,
+      perspectiveCorrectionEnabled:
+          perspectiveCorrectionEnabled && effectiveEdgeDetection,
+      autoCropSuggestionEnabled: effectiveAutoCropSuggestion,
+      contrastBoostEnabled: contrastBoostEnabled,
+      sharpeningEnabled: sharpeningEnabled && !lightDevice,
+      shadowReductionEnabled: shadowReductionEnabled && heavyCleanupAllowed,
+      adaptiveThresholdEnabled: adaptiveThresholdEnabled,
+      grayscalePreviewEnabled: grayscalePreviewEnabled,
+      orientationCorrectionEnabled: orientationCorrectionEnabled,
+      previousSectionGuidePhotoPath:
+          previousSectionGhostGuideEnabled &&
+              longReceiptMode &&
+              previousSectionGuidePhotoPath != null &&
+              previousSectionGuidePhotoPath.trim().isNotEmpty
+          ? previousSectionGuidePhotoPath.trim()
+          : null,
+      previousSectionReasonCode:
+          previousSectionGhostGuideEnabled &&
+              longReceiptMode &&
+              previousSectionReasonCode != null &&
+              previousSectionReasonCode.trim().isNotEmpty
+          ? previousSectionReasonCode.trim()
+          : null,
+      previousSectionGuidance:
+          previousSectionGhostGuideEnabled &&
+              longReceiptMode &&
+              previousSectionGuidance != null &&
+              previousSectionGuidance.trim().isNotEmpty
+          ? previousSectionGuidance.trim()
+          : null,
+      previousSectionGhostSourceStartFraction:
+          previousSectionGhostGuideEnabled && longReceiptMode
+          ? _boundedNativeCameraFraction(
+              previousSectionGhostSourceStartFraction,
+            )
+          : null,
+      previousSectionGhostSourceHeightFraction:
+          previousSectionGhostGuideEnabled && longReceiptMode
+          ? _boundedNativeCameraFraction(
+              previousSectionGhostSourceHeightFraction,
+            )
+          : null,
+      previousSectionGhostOverlayTopFraction:
+          previousSectionGhostGuideEnabled && longReceiptMode
+          ? _boundedNativeCameraFraction(previousSectionGhostOverlayTopFraction)
+          : null,
+      previousSectionGhostOverlayHeightFraction:
+          previousSectionGhostGuideEnabled && longReceiptMode
+          ? _boundedNativeCameraFraction(
+              previousSectionGhostOverlayHeightFraction,
+            )
+          : null,
+      previousSectionGhostOpacity:
+          previousSectionGhostGuideEnabled && longReceiptMode
+          ? _boundedNativeCameraFraction(previousSectionGhostOpacity)
+          : null,
+    );
+  }
+}

@@ -1,461 +1,312 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:maintaniac/shared/receipts/receipt_processing_contract.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
-import 'package:maintaniac/shared/widgets/receipt_capture/receipt_ocr_service.dart';
 
 void main() {
-  test('photo review results freeze accepted camera diagnostics', () {
-    const quality = ReceiptPhotoQualityCheck(
-      width: 1200,
-      height: 1800,
-      focusScore: 12,
-      isLikelyReadable: true,
-    );
-    final photoPaths = ['/tmp/proof.jpg'];
-    final ocrPaths = ['/tmp/ocr.jpg'];
-    final qualityByPath = {'/tmp/proof.jpg': quality};
-    final prepDiagnostics = {
-      '/tmp/ocr.jpg': {
-        'usedEnhancedOcrSource': true,
-        'cleanupActions': ['grayscale'],
-        'scannerDecisionCodes': [
-          'cleanup_applied_dark_receipt',
-          'ocr_source_enhanced_selected',
-        ],
-      },
-    };
-    final captureDiagnostics = {
-      '/tmp/proof.jpg': {
-        'latestBrightnessBucket': 'good',
-        'pinchZoomEnabled': true,
-      },
-    };
+  test(
+    'photo review result falls back to saved proof paths if OCR paths are missing',
+    () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/proof-top.jpg', '/tmp/proof-bottom.jpg'],
+        ocrSourcePhotoPaths: const [],
+        dataSaverLevel: ReceiptDataSaverLevel.strong,
+        stitchResult: const ReceiptStitchResult.notNeeded([
+          '/tmp/proof-top.jpg',
+          '/tmp/proof-bottom.jpg',
+        ]),
+      );
 
-    final result = ReceiptPhotoReviewResult(
-      photoPaths: photoPaths,
-      ocrSourcePhotoPaths: ocrPaths,
+      expect(result.photoPaths, [
+        '/tmp/proof-top.jpg',
+        '/tmp/proof-bottom.jpg',
+      ]);
+      expect(result.ocrSourcePhotoPaths, [
+        '/tmp/proof-top.jpg',
+        '/tmp/proof-bottom.jpg',
+      ]);
+      expect(result.hasReceiptReaderHandoff, isTrue);
+      expect(result.usesSeparateOcrSourceCopies, isFalse);
+      expect(result.usedSavedProofAsOcrSourceFallback, isTrue);
+      expect(result.ocrReadsClearSourceBeforeSavedProof, isFalse);
+      expect(result.ocrUsesSavedProofOnlyAsFallback, isTrue);
+      expect(
+        result.ocrSourceFirstDecisionCode,
+        'saved_proof_fallback_review_required',
+      );
+      expect(
+        result.ocrSourceFirstReviewCue,
+        contains('saved proof only because a clearer source was not available'),
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair('ocrReadsClearSourceBeforeSavedProof', false),
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair('ocrUsesSavedProofOnlyAsFallback', true),
+      );
+      expect(
+        result.ocrSourceFirstOutcome,
+        'fallback_saved_proof_review_required',
+      );
+      expect(
+        result.ocrSourceFirstActionLabel,
+        'OCR fell back to saved proof; review the filled receipt carefully',
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair('saved_backup_present', 2),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair('ocr_source_present', 2),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair('ocr_source_matches_saved_backup', 1),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair('ocr_source_fallback_saved_proof', 1),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair('ocr_source_ordered_sections', 2),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair('match_readiness_ordered_sections_ready', 1),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair(
+          'native_camera_ui_native_capture_review_transition_ready',
+          1,
+        ),
+      );
+      expect(
+        result.receiptPhotoReviewHandoffPath,
+        'accepted_saved_proof_ocr_fallback',
+      );
+      expect(
+        result.receiptPhotoReviewHandoffPathLabel,
+        'Accepted photo review using saved proof as OCR fallback.',
+      );
+      expect(
+        result.receiptReaderHandoffIntegrityLabel,
+        contains('storage=ocr_source_fallback_saved_proof'),
+      );
+      expect(
+        result.privacySafeOcrHandoffEvidenceLabel,
+        contains('ocr_source_first=fallback_saved_proof'),
+      );
+    },
+  );
+
+  test(
+    'separate OCR source copy is treated as clear source before saved proof',
+    () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/saved-proof.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/prepared-ocr-source.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.maximum,
+        stitchResult: const ReceiptStitchResult.notNeeded([
+          '/tmp/prepared-ocr-source.jpg',
+        ]),
+      );
+
+      expect(result.photoPaths, ['/tmp/saved-proof.jpg']);
+      expect(result.ocrSourcePhotoPaths, ['/tmp/prepared-ocr-source.jpg']);
+      expect(result.usesSeparateOcrSourceCopies, isTrue);
+      expect(result.usedSavedProofAsOcrSourceFallback, isFalse);
+      expect(result.ocrReadsClearSourceBeforeSavedProof, isTrue);
+      expect(result.ocrUsesSavedProofOnlyAsFallback, isFalse);
+      expect(
+        result.ocrSourceFirstDecisionCode,
+        'separate_receipt_source_before_saved_proof',
+      );
+      expect(
+        result.ocrSourceFirstReviewCue,
+        contains(
+          'separate clear receipt sources before the smaller saved proof',
+        ),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair('ocr_source_separate_from_backup', 1),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair(
+          'receipt_proof_storage_policy_clear_ocr_source_read_before_saved_proof_copy',
+          1,
+        ),
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair('ocrReadsClearSourceBeforeSavedProof', true),
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair('ocrUsesSavedProofOnlyAsFallback', false),
+      );
+    },
+  );
+
+  test('kept for later review does not open receipt details input', () {
+    final result = ReceiptPhotoReviewResult.keptForLater(
+      photoPaths: const ['/tmp/staged-top.jpg', '/tmp/staged-bottom.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: ReceiptStitchResult.notNeeded(ocrPaths),
-      photoQualityChecksByPath: qualityByPath,
-      preparationDiagnosticsByOcrPath: prepDiagnostics,
-      captureDiagnosticsByPhotoPath: captureDiagnostics,
-    );
-
-    photoPaths.add('/tmp/late-proof.jpg');
-    ocrPaths.add('/tmp/late-ocr.jpg');
-    qualityByPath.clear();
-    prepDiagnostics['/tmp/ocr.jpg']!['usedEnhancedOcrSource'] = false;
-    captureDiagnostics['/tmp/proof.jpg']!['latestBrightnessBucket'] = 'dark';
-
-    expect(result.photoPaths, ['/tmp/proof.jpg']);
-    expect(result.ocrSourcePhotoPaths, ['/tmp/ocr.jpg']);
-    expect(result.photoQualityChecksByPath['/tmp/proof.jpg'], quality);
-    expect(
-      result
-          .preparationDiagnosticsByOcrPath['/tmp/ocr.jpg']!['usedEnhancedOcrSource'],
-      isTrue,
-    );
-    expect(result.scannerDecisionCodes, [
-      'cleanup_applied_dark_receipt',
-      'ocr_source_enhanced_selected',
-    ]);
-    expect(result.scannerDecisionCounts['cleanup_applied_dark_receipt'], 1);
-    expect(result.scannerUsedEnhancedOcrSource, isTrue);
-    expect(result.scannerKeptOriginalForQuality, isFalse);
-    expect(result.scannerNeedsOperatorReview, isFalse);
-    expect(
-      result
-          .captureDiagnosticsByPhotoPath['/tmp/proof.jpg']!['latestBrightnessBucket'],
-      'good',
-    );
-    expect(
-      () => result.photoPaths.add('/tmp/nope.jpg'),
-      throwsUnsupportedError,
-    );
-    expect(
-      () =>
-          result.captureDiagnosticsByPhotoPath['/tmp/proof.jpg']!['latestBrightnessBucket'] =
-              'changed',
-      throwsUnsupportedError,
-    );
-  });
-
-  test('photo review result summarizes scanner prep concerns', () {
-    final result = ReceiptPhotoReviewResult(
-      photoPaths: const ['/tmp/proof.jpg'],
-      ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
-      dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
-      preparationDiagnosticsByOcrPath: const {
-        '/tmp/ocr.jpg': {
-          'scannerDecisionCodes': [
-            'crop_skipped_bounds_off_center_x',
-            'perspective_skipped_bounds_off_center_x',
-            'cleanup_skipped_quality_guard',
-            'ocr_source_original_selected_quality_guard',
-          ],
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/staged-top.jpg': {
+          'nativeCaptureAttachmentStorageState': 'staged',
+          'receiptBrainRequiredBaseReleaseActionCode':
+              'ship_lean_base_and_defer_optional_receipt_packs',
+          'receiptBrainInstallDistributionModeCode':
+              'base_app_only_optional_cloud_assist',
+          'receiptBrainStorageClass': 'critical',
+          'receiptBrainLocalOcrMode': 'lean_local_ocr',
+        },
+        '/tmp/staged-bottom.jpg': {
+          'receiptBrainRequiredBaseReleaseActionCode':
+              'ship_lean_base_and_defer_optional_receipt_packs',
+          'receiptBrainInstallDistributionModeCode':
+              'base_app_only_optional_cloud_assist',
+          'receiptBrainStorageClass': 'critical',
+          'receiptBrainLocalOcrMode': 'lean_local_ocr',
         },
       },
     );
 
-    expect(result.scannerDecisionCounts['crop_skipped_bounds_off_center_x'], 1);
+    expect(result.keptForLater, isTrue);
+    expect(result.reviewExitAction, 'kept_for_later');
+    expect(result.photoPaths, [
+      '/tmp/staged-top.jpg',
+      '/tmp/staged-bottom.jpg',
+    ]);
+    expect(result.ocrSourcePhotoPaths, isEmpty);
+    expect(result.hasSavedBackupPhotos, isTrue);
+    expect(result.hasOcrSourcePhotos, isFalse);
+    expect(result.hasReceiptReaderHandoff, isFalse);
+    expect(result.usedSavedProofAsOcrSourceFallback, isFalse);
+    expect(result.receiptReaderHandoffCounts['saved_backup_present'], 2);
+    expect(result.receiptReaderHandoffCounts['ocr_source_missing'], 1);
     expect(
-      result.scannerDecisionCounts['perspective_skipped_bounds_off_center_x'],
+      result.receiptReaderHandoffCounts['receipt_review_kept_for_later'],
       1,
     );
-    expect(result.scannerDecisionCounts['cleanup_skipped_quality_guard'], 1);
-    expect(result.scannerKeptOriginalForQuality, isTrue);
-    expect(result.scannerUsedEnhancedOcrSource, isFalse);
-    expect(result.scannerNeedsOperatorReview, isTrue);
-  });
-
-  test('best shot camera results preserve quality checks by index', () {
-    const first = ReceiptPhotoQualityCheck(
-      width: 1800,
-      height: 2400,
-      focusScore: 16,
-      isLikelyReadable: true,
-    );
-    const second = ReceiptPhotoQualityCheck(
-      width: 1200,
-      height: 1600,
-      focusScore: 10,
-      isLikelyReadable: true,
-    );
-
-    const result = ReceiptCameraResult.bestShotCandidates(
-      ['/tmp/best.jpg', '/tmp/backup.jpg'],
-      qualityChecks: [first, second],
-    );
-
-    expect(result.isBestShotCandidateSet, isTrue);
-    expect(result.qualityForIndex(0), first);
-    expect(result.qualityForIndex(1), second);
-    expect(result.qualityForIndex(2), isNull);
-  });
-
-  test(
-    'receipt quality scores rank sharper higher resolution photos higher',
-    () {
-      const strong = ReceiptPhotoQualityCheck(
-        width: 1800,
-        height: 2400,
-        focusScore: 16,
-        isLikelyReadable: true,
-        brightness: 142,
-        contrast: 42,
-        cropScore: .78,
-        textBandScore: 14,
-      );
-      const weak = ReceiptPhotoQualityCheck(
-        width: 700,
-        height: 900,
-        focusScore: 5,
-        isLikelyReadable: false,
-        brightness: 90,
-        contrast: 12,
-        cropScore: .32,
-        textBandScore: 3,
-      );
-
-      expect(strong.reviewScore, greaterThan(weak.reviewScore));
-      expect(strong.reviewScoreLabel, endsWith('%'));
-      expect(weak.reviewScore, inInclusiveRange(0, 100));
-      expect(strong.brightnessDistanceFromReceiptIdeal, 8);
-      expect(weak.qualityWarnings, isNotEmpty);
-      expect(weak.primaryIssueLabel, 'looks blurry');
-      expect(weak.hasCriticalIssue, isTrue);
-      expect(weak.reviewTitle, 'Retake Recommended');
-    },
-  );
-
-  test('camera result summarizes best candidate quality and review state', () {
-    const dim = ReceiptPhotoQualityCheck(
-      width: 1800,
-      height: 2400,
-      focusScore: 15,
-      brightness: 42,
-      contrast: 35,
-      cropScore: .7,
-      textBandScore: 12,
-      isLikelyReadable: false,
-    );
-    const readable = ReceiptPhotoQualityCheck(
-      width: 1600,
-      height: 2200,
-      focusScore: 13,
-      brightness: 150,
-      contrast: 38,
-      cropScore: .76,
-      textBandScore: 12,
-      isLikelyReadable: true,
-    );
-
-    const result = ReceiptCameraResult.bestShotCandidates(
-      ['/tmp/dim.jpg', '/tmp/readable.jpg'],
-      qualityChecks: [dim, readable],
-    );
-
-    expect(result.hasQuestionablePhoto, isTrue);
-    expect(result.bestQualityCheck, readable);
-    expect(result.qualitySummaryLabel, contains('Best of 2 photos'));
-    expect(result.qualitySummaryLabel, contains('looks readable'));
-  });
-
-  test('soft but usable photos warn without becoming retake blockers', () {
-    const soft = ReceiptPhotoQualityCheck(
-      width: 1600,
-      height: 2200,
-      focusScore: 7,
-      brightness: 142,
-      contrast: 34,
-      cropScore: .72,
-      textBandScore: 12,
-      isLikelyReadable: false,
-    );
-
-    expect(soft.needsReview, isTrue);
-    expect(soft.hasCriticalIssue, isFalse);
-    expect(soft.canContinueWithReview, isTrue);
-    expect(soft.primaryIssueLabel, 'check sharpness');
-    expect(soft.reviewTitle, 'Readable receipt photo');
-    expect(soft.reviewGuidance, contains('Zoom in and check'));
-  });
-
-  test('single camera results may carry a photo quality check', () {
-    const quality = ReceiptPhotoQualityCheck(
-      width: 1400,
-      height: 1900,
-      focusScore: 12,
-      isLikelyReadable: true,
-    );
-
-    const result = ReceiptCameraResult.single(
-      ['/tmp/receipt.jpg'],
-      qualityChecks: [quality],
-    );
-
-    expect(result.isBestShotCandidateSet, isFalse);
-    expect(result.qualityForIndex(0), quality);
-  });
-
-  test('camera results carry privacy-safe native capture evidence', () {
-    const evidence = ReceiptCameraCaptureEvidence(
-      captureSurface: 'flutter_camera_native_backend',
-      captureFlow: 'assisted',
-      resolutionTier: 'high',
-      resolutionPreset: 'veryHigh',
-      flashMode: 'off',
-      exposureMode: 'auto',
-      focusMode: 'auto',
-      exposurePointSupported: true,
-      focusPointSupported: true,
-      exposureOffset: 0,
-      minExposureOffset: -2,
-      maxExposureOffset: 2,
-      zoomLevel: 1,
-      minZoomLevel: 1,
-      maxZoomLevel: 10,
-      previewWidth: 1920,
-      previewHeight: 1080,
-      liveBrightness: 54,
-      liveContrast: 24,
-      liveFocusScore: 12,
-      liveReadiness: 'notReady',
-      imageStreamActiveAtCapture: false,
-      selectedExposureOffset: .32,
-      candidateExposureOffsets: [0, .32],
-    );
-
-    const result = ReceiptCameraResult.bestShotCandidates([
-      '/tmp/receipt.jpg',
-    ], captureEvidence: evidence);
-
-    expect(result.captureEvidence, evidence);
-    expect(evidence.usesNativeAutoExposure, isTrue);
-    expect(evidence.exposureAtNativeBaseline, isFalse);
-    expect(evidence.selectedExposureOffset, .32);
-    expect(evidence.candidateExposureOffsets, [0, .32]);
-    expect(evidence.hasDarkLiveFrame, isTrue);
-    expect(evidence.brightnessSummaryLabel, 'Live preview was dark');
+    expect(result.receiptReaderHandoffCounts['receipt_review_ocr_deferred'], 1);
     expect(
-      evidence.exposureSummaryLabel,
-      'Bracketed brighter exposure candidate',
-    );
-
-    const underexposedEvidence = ReceiptCameraCaptureEvidence(
-      captureSurface: 'flutter_camera_native_backend',
-      captureFlow: 'manual',
-      resolutionTier: 'high',
-      resolutionPreset: 'veryHigh',
-      flashMode: 'off',
-      exposureMode: 'auto',
-      focusMode: 'auto',
-      exposurePointSupported: true,
-      focusPointSupported: true,
-      exposureOffset: 0,
-      minExposureOffset: -2,
-      maxExposureOffset: 2,
-      zoomLevel: 1,
-      minZoomLevel: 1,
-      maxZoomLevel: 10,
-      previewWidth: 1920,
-      previewHeight: 1080,
-      liveBrightness: 88,
-      liveContrast: 30,
-      liveFocusScore: 12,
-      liveReadiness: 'ready',
-      imageStreamActiveAtCapture: false,
-    );
-    expect(underexposedEvidence.hasDarkLiveFrame, isFalse);
-    expect(underexposedEvidence.hasUnderexposedLiveFrame, isTrue);
-    expect(
-      underexposedEvidence.brightnessSummaryLabel,
-      'Live preview was darker than ideal',
+      result.receiptReaderHandoffCounts,
+      containsPair(
+        'receipt_brain_release_ship_lean_base_and_defer_optional_receipt_packs',
+        2,
+      ),
     );
     expect(
-      underexposedEvidence.exposureSummaryLabel,
-      'Native auto exposure baseline',
-    );
-  });
-
-  test('photo quality gives clear dark and glare retake guidance', () {
-    const dark = ReceiptPhotoQualityCheck(
-      width: 1400,
-      height: 2200,
-      focusScore: 14,
-      brightness: 48,
-      contrast: 30,
-      isLikelyReadable: false,
-    );
-    const glare = ReceiptPhotoQualityCheck(
-      width: 1400,
-      height: 2200,
-      focusScore: 14,
-      brightness: 235,
-      contrast: 30,
-      isLikelyReadable: false,
-    );
-
-    expect(dark.hasCriticalIssue, isTrue);
-    expect(dark.primaryIssueLabel, 'too dark');
-    expect(dark.reviewTitle, 'Retake Recommended');
-    expect(dark.reviewGuidance, contains('Add light or turn on the torch'));
-    expect(glare.hasCriticalIssue, isTrue);
-    expect(glare.primaryIssueLabel, 'glare or too bright');
-    expect(glare.reviewGuidance, contains('Reduce glare by tilting'));
-  });
-
-  test('ocr result promotes strongest warning into user action copy', () {
-    const result = ReceiptOcrResult(
-      rawText: '',
-      parserText: '',
-      textByAttachmentId: {},
-      source: ReceiptProcessingSource.photo,
-      warnings: [
-        'Repeated receipt text was ignored.',
-        'No readable receipt text was found.',
-      ],
-    );
-
-    expect(result.primaryWarning?.kind, ReceiptOcrWarningKind.noReadableText);
-    expect(result.strongestActionMessage, contains('No readable text'));
-    expect(result.strongestActionMessage, contains('Retake the photo'));
-    expect(
-      result.reviewMessage(successMessage: 'Receipt photo was read.'),
-      contains('No readable text'),
+      result.receiptReaderHandoffCounts,
+      containsPair(
+        'receipt_brain_install_base_app_only_optional_cloud_assist',
+        2,
+      ),
     );
     expect(
-      result.reviewMessage(successMessage: 'Receipt photo was read.'),
-      isNot(contains('Repeated receipt text was ignored.')),
+      result.receiptReaderHandoffCounts,
+      containsPair('receipt_brain_storage_critical', 2),
     );
-  });
-
-  test('ocr result explains warning review burden before saving', () {
-    const result = ReceiptOcrResult(
-      rawText: 'LOWES\nTOTAL 3.24',
-      parserText: 'LOWES\nTOTAL 3.24',
-      textByAttachmentId: {'photo-1': 'LOWES\nTOTAL 3.24'},
-      source: ReceiptProcessingSource.photo,
-      stats: ReceiptOcrReadStats(photosRead: 1),
-      warnings: ['Repeated receipt text was ignored.'],
-    );
-
-    final message = result.reviewMessage(
-      successMessage: 'Receipt photo was read.',
-    );
-
-    expect(result.hasText, isTrue);
-    expect(result.primaryWarning?.kind, ReceiptOcrWarningKind.duplicateText);
-    expect(message, contains('Receipt photo was read.'));
-    expect(message, contains('Read 1 receipt photo.'));
-    expect(message, contains('Duplicate lines ignored.'));
     expect(
-      message,
-      contains('Compare the filled form with the receipt proof before saving.'),
+      result.receiptReaderHandoffCounts,
+      containsPair('receipt_brain_local_ocr_lean_local_ocr', 2),
     );
-  });
-
-  test('ocr warnings target the exact receipt area to review', () {
-    final overlap = ReceiptOcrWarning.fromMessage(
-      'Repeated receipt text was ignored.',
-    );
-    final missingSection = ReceiptOcrWarning.fromMessage(
-      'Possible missing receipt section between photos.',
-    );
-    final photoQuality = ReceiptOcrWarning.fromMessage(
-      'Receipt photo quality warning: bottom section may be soft.',
-    );
-
-    expect(overlap.reviewTargetLabel, 'Check long receipt overlap');
     expect(
-      overlap.reviewTargetInstruction,
-      contains('same charge was not counted twice'),
+      result
+          .receiptReaderHandoffCounts['receipt_review_receipt_details_not_accepted'],
+      1,
     );
-    expect(missingSection.reviewTargetLabel, 'Check missing receipt section');
     expect(
-      missingSection.reviewTargetInstruction,
-      contains('receipt photos from top to bottom'),
+      result.receiptReaderHandoffIntegrityLabel,
+      'saved=2;ocr=0;storage=ocr_source_missing;stitch=notNeeded;coverage=coverage_ok;warnings=saved_photo_ok',
     );
-    expect(photoQuality.reviewTargetLabel, 'Check photo proof');
     expect(
-      photoQuality.reviewTargetInstruction,
-      contains('store, date, total, tax, and item prices'),
+      result.acceptedPhotoHandoffOutcome,
+      'not_accepted_for_receipt_details_yet',
     );
-  });
-
-  test('ocr warning priority puts blockers before review warnings', () {
-    const result = ReceiptOcrResult(
-      rawText: 'LOWES\nTOTAL 3.24',
-      parserText: 'LOWES\nTOTAL 3.24',
-      textByAttachmentId: {'photo-1': 'LOWES\nTOTAL 3.24'},
-      source: ReceiptProcessingSource.photo,
-      warnings: [
-        'Repeated receipt text was ignored.',
-        'Receipt photo quality warning: bottom section may be soft.',
-        'PDF receipt reading could not read one PDF.',
-      ],
-    );
-
     expect(
-      result.structuredWarnings.first.kind,
-      ReceiptOcrWarningKind.duplicateText,
+      result.receiptPhotoReviewHandoffPath,
+      'saved_without_filling_resume_required',
     );
-    expect(result.primaryWarning?.kind, ReceiptOcrWarningKind.pdfReadFailure);
     expect(
-      result.diagnostics.primaryWarningKind,
-      ReceiptOcrWarningKind.pdfReadFailure.name,
+      result.receiptPhotoReviewHandoffPathLabel,
+      'Saved without filling; resume photo review before receipt details.',
     );
-    expect(result.diagnostics.primaryWarningLabel, 'PDF read failed');
-    expect(result.diagnostics.primaryWarningTargetLabel, 'Check receipt PDF');
     expect(
-      result.diagnostics.primaryWarningTargetInstruction,
-      contains('Attach a clearer PDF'),
+      result.acceptedPhotoHandoffActionLabel,
+      'Resume photo review, then tap Next to review receipt details.',
     );
-    expect(result.prioritizedWarnings.map((warning) => warning.kind), [
-      ReceiptOcrWarningKind.pdfReadFailure,
-      ReceiptOcrWarningKind.duplicateText,
-      ReceiptOcrWarningKind.photoQuality,
-    ]);
+    expect(
+      result.acceptedPhotoHandoffRoute,
+      'saved_photo_review_resume_required',
+    );
+    expect(
+      result.acceptedPhotoHandoffNextScreen,
+      'receipt_photo_review_resume',
+    );
+    expect(
+      result.acceptedPhotoHandoffNextStepLabel,
+      'Resume the saved receipt photo review, then tap Next to open receipt details.',
+    );
+    expect(result.acceptedPhotoHandoffMustOpenFilledReview, isFalse);
+    expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, isFalse);
+    expect(result.acceptedPhotoHandoffUserAction, 'resume_saved_photo_review');
+    expect(
+      result.privacySafeOcrHandoffEvidenceLabel,
+      contains('ocr_source_first=not_ready'),
+    );
+    expect(
+      result
+          .captureDiagnosticsByPhotoPath['/tmp/staged-top.jpg']!['receiptReviewKeptForLater'],
+      isTrue,
+    );
+    expect(
+      result
+          .captureDiagnosticsByPhotoPath['/tmp/staged-bottom.jpg']!['receiptReviewNextAction'],
+      'resume_saved_photo_review',
+    );
+    expect(
+      result
+          .captureDiagnosticsByPhotoPath['/tmp/staged-bottom.jpg']!['receiptReviewReaderAccepted'],
+      isFalse,
+    );
+    expect(
+      result
+          .captureDiagnosticsByPhotoPath['/tmp/staged-bottom.jpg']!['receiptReviewReaderOutcome'],
+      'not_accepted_for_receipt_details_yet',
+    );
+    expect(
+      result
+          .captureDiagnosticsByPhotoPath['/tmp/staged-bottom.jpg']!['receiptReviewResumeRequiredBeforeOcr'],
+      isTrue,
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('receiptReviewKeptForLater', true),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair(
+        'receiptReaderHandoffOutcome',
+        'not_accepted_for_receipt_details_yet',
+      ),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair(
+        'receiptReaderHandoffRoute',
+        'saved_photo_review_resume_required',
+      ),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('receiptReaderHandoffMustOpenReceiptDetails', false),
+    );
   });
 }

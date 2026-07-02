@@ -1,0 +1,176 @@
+part of 'receipt_capture_flow.dart';
+
+ReceiptNativeCameraSettings _cameraSettingsFor(
+  ReceiptCaptureSettingsController? settings,
+  ReceiptCaptureFlowOptions options,
+) {
+  final area = options.module.settingsArea;
+  return ReceiptNativeCameraSettings(
+    assistedReceiptFill:
+        options.forceAssistedReceiptFill ??
+        (area == null ? true : settings?.appAssistedEnabledFor(area) ?? true),
+    longReceiptMode:
+        options.forceLongReceiptMode ?? settings?.cameraLongReceiptTips ?? true,
+    autoCaptureEnabled:
+        options.forceAutoCapture ?? settings?.cameraAutoCapture ?? false,
+    dataSaverLevel:
+        options.initialDataSaverLevel ??
+        settings?.defaultDataSaverLevel ??
+        ReceiptDataSaverLevel.balanced,
+  );
+}
+
+ReceiptDataSaverLevel _stagedDataSaverLevelFor(
+  ReceiptNativeCaptureResult capture, {
+  required ReceiptCaptureFlowOptions options,
+  required ReceiptCaptureSettingsController? settings,
+}) {
+  final nativeName = capture.captureDiagnostics['dataSaverLevel']
+      ?.toString()
+      .trim();
+  for (final level in ReceiptDataSaverLevel.values) {
+    if (level.name == nativeName) return level;
+  }
+  return options.initialDataSaverLevel ??
+      settings?.defaultDataSaverLevel ??
+      ReceiptDataSaverLevel.balanced;
+}
+
+Map<String, Map<String, Object?>> _withReviewOpeningDiagnostics(
+  Map<String, Map<String, Object?>> diagnosticsByPath, {
+  required String route,
+  required String source,
+  required int photoCount,
+  required ReceiptCaptureFlowOptions options,
+}) {
+  return {
+    for (final entry in diagnosticsByPath.entries)
+      entry.key: {
+        ...entry.value,
+        'receiptReviewOpeningRoute': route,
+        'receiptReviewOpeningSource': source,
+        'primaryCaptureFlow': 'maintainiac_native_receipt_camera',
+        'maintainiacCustomCameraPrimary': true,
+        'stockCameraUiAllowedAsPrimary': false,
+        'phoneCameraBackupRole': 'fallback_only',
+        'receiptReviewOpeningPolicy':
+            'open_photo_review_before_ocr_or_receipt_form',
+        'receiptReviewOpeningExpectedFirstAction':
+            'next_or_add_photo_visible_before_scroll',
+        'receiptReviewOpeningNextScreen':
+            'receipt_details_store_date_total_tax_items',
+        'receiptReviewOpeningPhotoCount': photoCount,
+        ..._previousSectionGuideDiagnostics(options),
+      },
+  };
+}
+
+Map<String, Object?> _diagnostics({
+  required String stage,
+  required String reason,
+  required String action,
+  required ReceiptNativeCameraCapabilities nativeCapabilities,
+  required ReceiptCaptureFlowOptions options,
+  Map<String, Object?> extraMetadata = const {},
+}) {
+  return {
+    'captureFlow': 'maintainiac_shared_receipt_camera',
+    'primaryCaptureFlow': 'maintainiac_native_receipt_camera',
+    'maintainiacCustomCameraPrimary': true,
+    'stockCameraUiAllowedAsPrimary': false,
+    'phoneCameraBackupAllowed': true,
+    'phoneCameraBackupRole': 'fallback_only',
+    'fallbackCaptureRequiresUserAction': true,
+    'receiptCaptureModule': options.module.storageName,
+    'nativeCaptureFailureStage': stage,
+    'nativeCaptureFailureReason': reason,
+    'nativeCaptureRecoveryAction': action,
+    'nativeCameraEngine': nativeCapabilities.engine.name,
+    'nativeCameraAvailable': nativeCapabilities.available,
+    'nativeCameraPermissionGranted': nativeCapabilities.cameraPermissionGranted,
+    'nativeCameraHasRearCamera': nativeCapabilities.hasRearCamera,
+    ..._previousSectionGuideDiagnostics(options),
+    ...extraMetadata,
+  };
+}
+
+Map<String, Object?> _previousSectionGuideDiagnostics(
+  ReceiptCaptureFlowOptions options,
+) {
+  final reason = _trimmedOrNull(options.previousSectionReasonCode);
+  final guidePhotoPath = _trimmedOrNull(options.previousSectionGuidePhotoPath);
+  final guidance = _trimmedOrNull(options.previousSectionGuidance);
+  final missingBottomAndTotals = reason == 'missing_bottom_edge_and_totals';
+  return {
+    'previousSectionGuideRequested': reason != null || guidePhotoPath != null,
+    'previousSectionGuidePhotoAvailable': guidePhotoPath != null,
+    'previousSectionReasonCode': reason ?? 'none',
+    'previousSectionMissingBottomAndTotals': missingBottomAndTotals,
+    'previousSectionGuidanceAvailable': guidance != null,
+    'previousSectionGhostSourceStartFraction':
+        options.previousSectionGhostSourceStartFraction ?? 0,
+    'previousSectionGhostSourceHeightFraction':
+        options.previousSectionGhostSourceHeightFraction ?? 0,
+    'previousSectionGhostOverlayTopFraction':
+        options.previousSectionGhostOverlayTopFraction ?? 0,
+    'previousSectionGhostOverlayHeightFraction':
+        options.previousSectionGhostOverlayHeightFraction ?? 0,
+    'previousSectionGhostOpacity': options.previousSectionGhostOpacity ?? 0,
+    'previousSectionGhostSlicePercent':
+        ((options.previousSectionGhostSourceHeightFraction ?? 0) * 100).round(),
+    'receiptContinuationSource': missingBottomAndTotals
+        ? 'ocr_missing_bottom_totals'
+        : reason == null
+        ? 'none'
+        : 'review_continuation',
+    'receiptContinuationGhostGuideStatus': reason == null
+        ? 'not_requested'
+        : guidePhotoPath == null
+        ? 'reason_without_prior_photo'
+        : 'ready_with_previous_photo',
+  };
+}
+
+ReceiptPhotoQualityCheck? _qualityForOcrSourceIndex(
+  ReceiptPhotoReviewResult result,
+  int index,
+) {
+  if (result.ocrSourcePhotoPaths.length == 1 && result.photoPaths.length > 1) {
+    return _weakestPhotoQuality(
+      result.photoPaths,
+      result.photoQualityChecksByPath,
+    );
+  }
+  if (index < 0 || index >= result.photoPaths.length) return null;
+  return result.photoQualityChecksByPath[result.photoPaths[index]];
+}
+
+ReceiptPhotoQualityCheck? _weakestPhotoQuality(
+  List<String> paths,
+  Map<String, ReceiptPhotoQualityCheck> qualityByPath,
+) {
+  ReceiptPhotoQualityCheck? weakest;
+  for (final path in paths) {
+    final quality = qualityByPath[path];
+    if (quality == null) continue;
+    if (weakest == null || quality.reviewScore < weakest.reviewScore) {
+      weakest = quality;
+    }
+  }
+  return weakest;
+}
+
+String? _trimmedOrNull(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  return trimmed;
+}
+
+String _nativeCapabilityFailureReason(
+  ReceiptNativeCameraCapabilities capabilities,
+) {
+  if (!capabilities.available) return 'native_camera_not_available';
+  if (!capabilities.cameraPermissionGranted) return 'permission_denied';
+  if (!capabilities.hasRearCamera) return 'rear_camera_missing';
+  return 'native_camera_not_ready';
+}

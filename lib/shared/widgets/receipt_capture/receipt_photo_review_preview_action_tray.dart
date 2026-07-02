@@ -1,0 +1,168 @@
+part of 'receipt_photo_review_screen.dart';
+
+class _ReceiptPreviewActionTray extends StatelessWidget {
+  const _ReceiptPreviewActionTray({
+    required this.photoPaths,
+    required this.selectedIndex,
+    required this.selectedQualityCheck,
+    required this.selectedCaptureDiagnostics,
+    required this.stitchPreview,
+    required this.stitchPreviewInFlight,
+    required this.openingCamera,
+    required this.savingPhotos,
+    required this.continueLabel,
+    required this.onPhotoSelected,
+    required this.onModeChanged,
+    required this.onAddPhoto,
+    required this.onRetake,
+    required this.onContinue,
+  });
+
+  final List<String> photoPaths;
+  final int selectedIndex;
+  final ReceiptPhotoQualityCheck? selectedQualityCheck;
+  final Map<String, Object?>? selectedCaptureDiagnostics;
+  final ReceiptStitchResult? stitchPreview;
+  final bool stitchPreviewInFlight;
+  final bool openingCamera;
+  final bool savingPhotos;
+  final String continueLabel;
+  final ValueChanged<int> onPhotoSelected;
+  final ValueChanged<_ReceiptReviewMode> onModeChanged;
+  final VoidCallback onAddPhoto;
+  final VoidCallback onRetake;
+  final VoidCallback? onContinue;
+
+  @override
+  Widget build(BuildContext context) {
+    final statusText = this.statusText;
+    final statusIcon = this.statusIcon;
+    final statusColor = this.statusColor;
+    final photoCount = photoPaths.length;
+    final hasMultiplePhotos = photoCount > 1;
+    final nativeWarning = nativeCaptureReviewWarning;
+    final coverageDecision = coverageDecisionForSelectedPhoto;
+    final hasCriticalQualityIssue =
+        selectedQualityCheck?.hasCriticalIssue == true ||
+        nativeWarning?.isCritical == true;
+    final hasQualityWarning =
+        selectedQualityCheck?.needsReview == true ||
+        selectedQualityCheck?.hasCriticalIssue == true ||
+        nativeWarning != null ||
+        coverageDecision.shouldPromptForMorePhotos;
+    final deviceCapability =
+        ReceiptCaptureSettingsScope.maybeOf(context)?.deviceCapability ??
+        const ReceiptDeviceCapability.standard();
+    final isOverLocalPhotoLimit =
+        hasMultiplePhotos && photoCount > deviceCapability.maxLocalPhotoCount;
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: Color(0xE8050607),
+        border: Border(top: BorderSide(color: Color(0x99344047))),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 6, 8, 7),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compactControls =
+                constraints.maxHeight.isFinite && constraints.maxHeight < 104;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _ReceiptPreviewPrimaryRow(
+                  current: selectedIndex + 1,
+                  total: photoCount,
+                  statusIcon: statusIcon,
+                  statusColor: statusColor,
+                  statusText: statusText,
+                  compact: compactControls,
+                  coverageDecision: coverageDecision,
+                  savingPhotos: savingPhotos,
+                  continueLabel: continueLabel,
+                  onAddPhoto: openingCamera ? null : onAddPhoto,
+                  onContinue: onContinue,
+                ),
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: SingleChildScrollView(
+                    primary: false,
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isOverLocalPhotoLimit) ...[
+                          const SizedBox(height: 5),
+                          _ReceiptLocalPhotoLimitStrip(
+                            photoCount: photoCount,
+                            deviceCapability: deviceCapability,
+                          ),
+                        ],
+                        if (hasMultiplePhotos) ...[
+                          const SizedBox(height: 5),
+                          _ReceiptMultiPhotoActionRail(
+                            selectedIndex: selectedIndex,
+                            total: photoCount,
+                            onAddPhoto: openingCamera ? null : onAddPhoto,
+                            onOrder: () =>
+                                onModeChanged(_ReceiptReviewMode.order),
+                            onMatch: () =>
+                                onModeChanged(_ReceiptReviewMode.stitch),
+                            onCrop: () =>
+                                onModeChanged(_ReceiptReviewMode.crop),
+                          ),
+                          const SizedBox(height: 5),
+                          SizedBox(
+                            height: compactControls ? 42 : 50,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: photoPaths.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(width: 6),
+                              itemBuilder: (context, index) {
+                                return _ReceiptOrderThumbnail(
+                                  path: photoPaths[index],
+                                  index: index,
+                                  total: photoPaths.length,
+                                  selected: index == selectedIndex,
+                                  onTap: () => onPhotoSelected(index),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                        if (!hasMultiplePhotos && hasQualityWarning) ...[
+                          const SizedBox(height: 5),
+                          _ReceiptPhotoQualityRecoveryStrip(
+                            quality: selectedQualityCheck,
+                            nativeWarning: nativeWarning,
+                            compact: compactControls,
+                            hasCriticalQualityIssue: hasCriticalQualityIssue,
+                            openingCamera: openingCamera,
+                            onAddPhoto: onAddPhoto,
+                            onRetake: onRetake,
+                            onCrop: () =>
+                                onModeChanged(_ReceiptReviewMode.crop),
+                            coverageDecision: coverageDecision,
+                          ),
+                        ],
+                        if (!hasMultiplePhotos && !hasQualityWarning) ...[
+                          const SizedBox(height: 5),
+                          _ReceiptSinglePhotoActionRow(
+                            openingCamera: openingCamera,
+                            onAddPhoto: onAddPhoto,
+                            onRetake: onRetake,
+                            onModeChanged: onModeChanged,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}

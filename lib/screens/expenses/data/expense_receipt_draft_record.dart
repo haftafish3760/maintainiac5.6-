@@ -19,6 +19,17 @@ class ExpenseReceiptDraftRecord {
     this.attachments = const [],
     this.rawOcrText = '',
     this.ocrReview = const ExpenseReceiptOcrReview(),
+    this.receiptReviewFlowStarted = false,
+    this.receiptReadAttemptedWithoutText = false,
+    this.receiptReadHandoffProofCount = 0,
+    this.receiptReadHandoffOcrSourceCount = 0,
+    this.receiptReadHandoffDecision = '',
+    this.receiptReadHandoffAction = '',
+    this.receiptReadHandoffStage = '',
+    this.receiptReadHandoffRouteResult = '',
+    this.receiptReadHandoffCoverageWarning = '',
+    this.receiptReviewMode = '',
+    this.receiptReviewModeChangedByUser = false,
     this.enteredSubtotal,
     this.enteredTax,
     this.enteredTotal,
@@ -51,6 +62,29 @@ class ExpenseReceiptDraftRecord {
           const [],
       rawOcrText: _expenseString(map['rawOcrText']),
       ocrReview: ExpenseReceiptOcrReview.fromMap(_expenseMap(map['ocrReview'])),
+      receiptReviewFlowStarted: _expenseBool(map['receiptReviewFlowStarted']),
+      receiptReadAttemptedWithoutText: _expenseBool(
+        map['receiptReadAttemptedWithoutText'],
+      ),
+      receiptReadHandoffProofCount:
+          _expenseInt(map['receiptReadHandoffProofCount']) ?? 0,
+      receiptReadHandoffOcrSourceCount:
+          _expenseInt(map['receiptReadHandoffOcrSourceCount']) ?? 0,
+      receiptReadHandoffDecision: _expenseString(
+        map['receiptReadHandoffDecision'],
+      ),
+      receiptReadHandoffAction: _expenseString(map['receiptReadHandoffAction']),
+      receiptReadHandoffStage: _expenseString(map['receiptReadHandoffStage']),
+      receiptReadHandoffRouteResult: _expenseString(
+        map['receiptReadHandoffRouteResult'],
+      ),
+      receiptReadHandoffCoverageWarning: _expenseString(
+        map['receiptReadHandoffCoverageWarning'],
+      ),
+      receiptReviewMode: _expenseString(map['receiptReviewMode']),
+      receiptReviewModeChangedByUser: _expenseBool(
+        map['receiptReviewModeChangedByUser'],
+      ),
       enteredSubtotal: _expenseDouble(map['enteredSubtotal']),
       enteredTax: _expenseDouble(map['enteredTax']),
       enteredTotal: _expenseDouble(map['enteredTotal']),
@@ -83,6 +117,17 @@ class ExpenseReceiptDraftRecord {
   final List<ReceiptAttachmentRecord> attachments;
   final String rawOcrText;
   final ExpenseReceiptOcrReview ocrReview;
+  final bool receiptReviewFlowStarted;
+  final bool receiptReadAttemptedWithoutText;
+  final int receiptReadHandoffProofCount;
+  final int receiptReadHandoffOcrSourceCount;
+  final String receiptReadHandoffDecision;
+  final String receiptReadHandoffAction;
+  final String receiptReadHandoffStage;
+  final String receiptReadHandoffRouteResult;
+  final String receiptReadHandoffCoverageWarning;
+  final String receiptReviewMode;
+  final bool receiptReviewModeChangedByUser;
   final double? enteredSubtotal;
   final double? enteredTax;
   final double? enteredTotal;
@@ -105,6 +150,8 @@ class ExpenseReceiptDraftRecord {
         hasReceiptProof ||
         attachments.isNotEmpty ||
         rawOcrText.trim().isNotEmpty ||
+        receiptReviewFlowStarted ||
+        receiptReadAttemptedWithoutText ||
         enteredSubtotal != null ||
         enteredTax != null ||
         enteredTotal != null ||
@@ -147,6 +194,17 @@ class ExpenseReceiptDraftRecord {
       'attachments': [for (final attachment in attachments) attachment.toMap()],
       'rawOcrText': rawOcrText,
       'ocrReview': ocrReview.toMap(),
+      'receiptReviewFlowStarted': receiptReviewFlowStarted,
+      'receiptReadAttemptedWithoutText': receiptReadAttemptedWithoutText,
+      'receiptReadHandoffProofCount': receiptReadHandoffProofCount,
+      'receiptReadHandoffOcrSourceCount': receiptReadHandoffOcrSourceCount,
+      'receiptReadHandoffDecision': receiptReadHandoffDecision,
+      'receiptReadHandoffAction': receiptReadHandoffAction,
+      'receiptReadHandoffStage': receiptReadHandoffStage,
+      'receiptReadHandoffRouteResult': receiptReadHandoffRouteResult,
+      'receiptReadHandoffCoverageWarning': receiptReadHandoffCoverageWarning,
+      'receiptReviewMode': receiptReviewMode,
+      'receiptReviewModeChangedByUser': receiptReviewModeChangedByUser,
       'enteredSubtotal': enteredSubtotal,
       'enteredTax': enteredTax,
       'enteredTotal': enteredTotal,

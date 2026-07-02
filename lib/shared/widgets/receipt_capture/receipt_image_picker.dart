@@ -30,6 +30,10 @@ class ReceiptImagePicker {
   /// camera service first. This picker remains as a fallback/import surface so
   /// users can still capture a receipt if the native bridge is unavailable.
   static Future<ReceiptPickedPhotoSet> takeReceiptPhotoSet() async {
+    return takeBackupReceiptPhotoSet();
+  }
+
+  static Future<ReceiptPickedPhotoSet> takeBackupReceiptPhotoSet() async {
     final photo = await _picker.pickImage(
       source: ImageSource.camera,
       preferredCameraDevice: CameraDevice.rear,

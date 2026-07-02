@@ -1,0 +1,247 @@
+part of 'receipt_native_camera_service.dart';
+
+Map<String, Object?> _sessionArguments(
+  ReceiptNativeCameraSessionConfig config,
+) {
+  final settings = config.settings;
+  return {
+    'engine': config.nativeCapabilities.engine.name,
+    'settingsContractVersion': 'receipt_native_camera_settings_v1',
+    ..._nativeControlContract(config),
+    'deviceTier': config.deviceTier.name,
+    'devicePolicyLabel': config.devicePolicyLabel,
+    'capabilityPolicyCodes': config.capabilityPolicyCodes,
+    ...config.cloudAssistPlan.toPrivacySafeDiagnostics(),
+    ...config.installRecommendation.toPrivacySafeDiagnostics(),
+    ...config.receiptBrainRecommendation.toPrivacySafeDiagnostics(),
+    ...config.receiptBrainFootprintSummary.toPrivacySafeDiagnostics(),
+    ...config.parserPackRoutingPlan.toPrivacySafeDiagnostics(),
+    'localOnlyCapturePolicy': config.localOnlyCapturePolicy,
+    'localOnlyBaseFlowCanRunNow':
+        config.localOnlyAcceptanceGate.baseFlowCanRunLocallyNow,
+    'localOnlyHeavyPacksMayBlockCapture':
+        config.heavyReceiptPacksMayBlockCapture,
+    'localOnlyCloudAssistMayBlockCapture': config.cloudAssistMayBlockCapture,
+    'localOnlyCameraMustStayAvailableBeforePacks':
+        !config.heavyReceiptPacksMayBlockCapture,
+    'localOnlyProofSaveMustStayAvailableBeforePacks':
+        config.localOnlyAcceptanceGate.canSaveReceiptProof,
+    'localOnlyBasicReviewMustStayAvailableBeforePacks':
+        config.localOnlyAcceptanceGate.canOpenBasicLocalReview,
+    'manualShutterAlwaysAvailable': settings.manualShutterAlwaysAvailable,
+    'manualCapturePolicy': 'guidance_advisory_manual_shutter_always_allowed',
+    'guidanceBlockingPolicy':
+        'quality_guidance_warns_never_blocks_manual_capture',
+    'manualCaptureBlockPolicy':
+        'only_busy_closing_no_camera_or_inactive_surface',
+    'closeCapturedPhotoPolicy': config.closeCapturedPhotoPolicy,
+    'closeDuringCapturePolicy': config.closeDuringCapturePolicy,
+    'closeNoPhotoPolicy': config.closeNoPhotoPolicy,
+    'capturedPhotoReviewDestination': config.capturedPhotoReviewDestination,
+    'autoCaptureEnabled': config.autoCaptureEnabled,
+    'autoCaptureAllowed': config.autoCaptureAllowed,
+    'autoCapturePolicy': config.autoCapturePolicy,
+    'assistedReceiptFill': settings.assistedReceiptFill,
+    'reviewDepth': settings.reviewDepth.name,
+    'longReceiptMode': settings.longReceiptMode,
+    'tapFocusEnabled': config.tapFocusEnabled,
+    'tapToFocusPolicy': config.tapToFocusPolicy,
+    'pinchZoomEnabled': config.pinchZoomEnabled,
+    'zoomGesturePolicy': config.zoomGesturePolicy,
+    'exposureSliderEnabled': config.exposureSliderEnabled,
+    'exposureResetEnabled': config.exposureResetEnabled,
+    'autoExposureAssistEnabled': config.autoExposureAssistEnabled,
+    'previewExposurePolicy': config.previewExposurePolicy,
+    'preCaptureExposurePolicy': config.preCaptureExposurePolicy,
+    'previewBrightnessGuardPolicy': config.previewBrightnessGuardPolicy,
+    'shutterSpeedPolicy': config.shutterSpeedPolicy,
+    'focusLockEnabled': config.focusLockEnabled,
+    'exposureLockEnabled': config.exposureLockEnabled,
+    'whiteBalanceLockEnabled': config.whiteBalanceLockEnabled,
+    'minZoom': config.minZoom,
+    'maxZoom': config.maxZoom,
+    'minExposureOffset': config.minExposureOffset,
+    'maxExposureOffset': config.maxExposureOffset,
+    'focusMode': settings.focusMode.name,
+    'exposureMode': settings.exposureMode.name,
+    'whiteBalanceMode': settings.whiteBalanceMode.name,
+    'flashMode': settings.flashMode.name,
+    'preferMacroWhenHelpful': settings.preferMacroWhenHelpful,
+    'imageFormat': settings.imageFormat.name,
+    'liveAnalysisEnabled': config.liveAnalysisEnabled,
+    'edgeDetectionEnabled': config.edgeDetectionEnabled,
+    'edgeOverlayEnabled': config.edgeOverlayEnabled,
+    'perspectiveCorrectionEnabled': config.perspectiveCorrectionEnabled,
+    'motionBlurWarningEnabled': settings.motionBlurWarningEnabled,
+    'glareWarningEnabled': settings.glareWarningEnabled,
+    'dirtyLensWarningEnabled': settings.dirtyLensWarningEnabled,
+    'lowLightWarningEnabled': settings.lowLightWarningEnabled,
+    'shadowWarningEnabled': settings.shadowWarningEnabled,
+    'tooFarTooCloseWarningEnabled': settings.tooFarTooCloseWarningEnabled,
+    'receiptFullyVisibleWarningEnabled':
+        settings.receiptFullyVisibleWarningEnabled,
+    'textTooSmallWarningEnabled': settings.textTooSmallWarningEnabled,
+    'previousSectionGhostGuideEnabled':
+        settings.previousSectionGhostGuideEnabled,
+    'manualCropAfterCapture': settings.manualCropAfterCapture,
+    'autoCropSuggestionEnabled': config.autoCropSuggestionEnabled,
+    'grayscalePreviewEnabled': config.grayscalePreviewEnabled,
+    'contrastBoostEnabled': config.contrastBoostEnabled,
+    'sharpeningEnabled': config.sharpeningEnabled,
+    'shadowReductionEnabled': config.shadowReductionEnabled,
+    'adaptiveThresholdEnabled': config.adaptiveThresholdEnabled,
+    'orientationCorrectionEnabled': config.orientationCorrectionEnabled,
+    'saveOriginalTemporarily': settings.saveOriginalTemporarily,
+    'queueAcceptedCaptureLocally': settings.queueAcceptedCaptureLocally,
+    'ocrUsesOriginalFirst': settings.ocrUsesOriginalFirst,
+    'dataSaverLevel': settings.dataSaverLevel.name,
+    'storageSafetyLevel': config.storageSafetyLevel.name,
+    'storageConstrained': config.storageConstrained,
+    'storageSafetyReason': config.storageSafetyReason,
+    'workloadProtectionPolicy': config.workloadProtectionPolicy,
+    'maxSectionCount': config.maxSectionCount,
+    'analysisGapMs': config.analysisGapMs,
+    'readyHoldMs': config.readyHoldMs,
+    'assistedShotCount': config.assistedShotCount,
+    'bestShotCandidateCount': config.bestShotCandidateCount,
+    'cameraResolutionTier': config.cameraResolutionTier.name,
+    'cameraWorkloadTier': config.cameraWorkloadTier.name,
+    'maxLocalPhotoBytes': config.maxLocalPhotoBytes,
+    'nativeCaptureMemoryPolicy': config.nativeCaptureMemoryPolicy,
+    'maxLiveAnalysisPixels': config.maxLiveAnalysisPixels,
+    'maxCleanupPixels': config.maxCleanupPixels,
+    'maxStitchOutputPixels': config.maxStitchOutputPixels,
+    'maxStitchOutputHeight': config.maxStitchOutputHeight,
+    if (config.hasPreviousSectionGuide) ..._previousSectionArguments(config),
+  };
+}
+
+Map<String, Object?> _previousSectionArguments(
+  ReceiptNativeCameraSessionConfig config,
+) {
+  return {
+    'previousSectionGuidePhotoPath': config.previousSectionGuidePhotoPath,
+    'previousSectionReasonCode': config.previousSectionGuideReasonCode,
+    'previousSectionGhostGuidePolicy': config.previousSectionGhostGuidePolicy,
+    'previousSectionGhostGuideRepeatLineTarget':
+        config.previousSectionGhostGuideRepeatLineTarget,
+    'previousSectionGhostGuidePlacement':
+        config.previousSectionGhostGuidePlacement,
+    'previousSectionGhostGuideMatchTarget':
+        config.previousSectionGhostGuideMatchTarget,
+    'previousSectionGhostSourceStartFraction':
+        config.previousSectionGhostSourceStartFractionOrDefault,
+    'previousSectionGhostSourceHeightFraction':
+        config.previousSectionGhostSourceHeightFractionOrDefault,
+    'previousSectionGhostOverlayTopFraction':
+        config.previousSectionGhostOverlayTopFractionOrDefault,
+    'previousSectionGhostOverlayHeightFraction':
+        config.previousSectionGhostOverlayHeightFractionOrDefault,
+    'previousSectionGhostOpacity': config.previousSectionGhostOpacityOrDefault,
+    'previousSectionGhostSlicePercent': config.previousSectionGhostSlicePercent,
+    'previousSectionGuidance': config.previousSectionGuideGuidance,
+    'previousSectionMissingBottomAndTotals':
+        config.previousSectionGuideMissingBottomAndTotals,
+  };
+}
+
+Map<String, Object?> _nativeControlContract(
+  ReceiptNativeCameraSessionConfig config,
+) {
+  return {
+    'nativeCameraSurfaceContractVersion': 'receipt_native_surface_v1',
+    'captureSurfaceExpected': _expectedCaptureSurface(config),
+    'nativeCameraIdentityExpected': 'maintainiac_in_app_receipt_camera',
+    'nativeCaptureUiContractExpected':
+        'maintainiac_custom_receipt_capture_ui_v1',
+    'nativePreviewOwnership': 'maintainiac_owns_preview_and_controls',
+    'stockCameraUiAllowed': false,
+    'stockCameraUiUsed': false,
+    'stockCameraUiPolicy': 'blocked_as_primary_backup_path_labels_if_used',
+    'phoneCameraBackupAllowed': true,
+    'phoneCameraBackupRole': 'fallback_only',
+    'nativeControlContractVersion': 'receipt_native_controls_v1',
+    'controlDiagnosticsPrivacyScope': 'summary_only_no_receipt_content',
+    'nativeControlContractTags': config.nativeControlContractTags,
+    'manualCapturePolicy': 'guidance_advisory_manual_shutter_always_allowed',
+    'guidanceBlockingPolicy':
+        'quality_guidance_warns_never_blocks_manual_capture',
+    'manualCaptureBlockPolicy':
+        'only_busy_closing_no_camera_or_inactive_surface',
+    'closeCapturedPhotoPolicy': config.closeCapturedPhotoPolicy,
+    'closeDuringCapturePolicy': config.closeDuringCapturePolicy,
+    'closeNoPhotoPolicy': config.closeNoPhotoPolicy,
+    'capturedPhotoReviewDestination': config.capturedPhotoReviewDestination,
+    'tapFocusControlExpected': config.tapFocusEnabled,
+    'tapToFocusPolicy': config.tapToFocusPolicy,
+    'pinchZoomControlExpected': config.pinchZoomEnabled,
+    'zoomGesturePolicy': config.zoomGesturePolicy,
+    'exposureSliderControlExpected': config.exposureSliderEnabled,
+    'exposureResetControlExpected': config.exposureResetEnabled,
+    'previewExposurePolicy': config.previewExposurePolicy,
+    'preCaptureExposurePolicy': config.preCaptureExposurePolicy,
+    'previewBrightnessGuardPolicy': config.previewBrightnessGuardPolicy,
+    'shutterSpeedPolicy': config.shutterSpeedPolicy,
+    'autoCapturePolicy': config.autoCapturePolicy,
+    'settingsControlExpected': true,
+    'backControlExpected': true,
+    'torchControlExpected': config.nativeCapabilities.supportsTorch,
+    'focusLockControlExpected': config.focusLockEnabled,
+    'exposureLockControlExpected': config.exposureLockEnabled,
+    'whiteBalanceLockControlExpected': config.whiteBalanceLockEnabled,
+  };
+}
+
+String _expectedCaptureSurface(ReceiptNativeCameraSessionConfig config) {
+  return switch (config.nativeCapabilities.engine) {
+    ReceiptNativeCameraEngine.cameraX => 'maintainiac_native_android',
+    ReceiptNativeCameraEngine.avFoundation => 'maintainiac_native_ios',
+    ReceiptNativeCameraEngine.unavailable => 'maintainiac_native_unavailable',
+  };
+}
+
+void _verifyMaintainiacReceiptSurface(
+  ReceiptNativeCameraSessionConfig config,
+  Map<String, Object?> nativeDiagnostics,
+) {
+  if (nativeDiagnostics['stockCameraUiUsed'] == true) {
+    throw const ReceiptNativeCameraUnavailableException(
+      'Maintainiac receipt camera cannot accept a stock camera UI capture.',
+    );
+  }
+  final expectedSurface = _expectedCaptureSurface(config);
+  final actualSurface = nativeDiagnostics['captureSurface']?.toString().trim();
+  if (actualSurface != null &&
+      actualSurface.isNotEmpty &&
+      actualSurface != expectedSurface) {
+    throw ReceiptNativeCameraUnavailableException(
+      'Maintainiac receipt camera expected $expectedSurface but received $actualSurface.',
+    );
+  }
+  final identity = nativeDiagnostics['nativeCameraIdentity']?.toString().trim();
+  if (identity != null &&
+      identity.isNotEmpty &&
+      identity != 'maintainiac_in_app_receipt_camera') {
+    throw ReceiptNativeCameraUnavailableException(
+      'Maintainiac receipt camera expected the in-app receipt camera but received $identity.',
+    );
+  }
+}
+
+List<String> _stringList(Object? value) {
+  if (value is Iterable) {
+    return value
+        .map((entry) => entry.toString().trim())
+        .where((entry) => entry.isNotEmpty)
+        .toList(growable: false);
+  }
+  return const [];
+}
+
+String _platformCloseAction(Object? details) {
+  if (details is Map) {
+    final value = details['closeAction']?.toString().trim();
+    if (value != null && value.isNotEmpty) return value;
+  }
+  return 'unknown_cancel';
+}

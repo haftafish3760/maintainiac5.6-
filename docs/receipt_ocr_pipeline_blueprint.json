@@ -1,0 +1,69 @@
+{
+  "schema": "maintainiac_receipt_ocr_pipeline_blueprint_v1",
+  "workspace": "/Users/rbbie/Documents/Maintainiac_5.6",
+  "goal": "world_class_local_receipt_camera_ocr_pipeline",
+  "execution": {
+    "startCommand": "tool/receipt_start_ocr_pipeline.sh",
+    "runner": "tool/receipt_ocr_pipeline_run.sh",
+    "mode": "detached_quiet_batch",
+    "liveMonitoringAllowed": false,
+    "statusCommand": "tool/receipt_quiet_batch_status.sh receipt_ocr_pipeline",
+    "logsRoot": "/tmp/maintainiac_receipt_ocr_pipeline/receipt_ocr_pipeline",
+    "failureToRegressionCommand": "dart run tool/receipt_pipeline_failure_to_regression.dart receipt_ocr_pipeline"
+  },
+  "phases": [
+    {
+      "id": "static_guardrails",
+      "purpose": "prove script syntax, source size, log size, external fixture schema, quiet-batch policy, and receipt source audit before expensive checks"
+    },
+    {
+      "id": "pure_receipt_qa",
+      "purpose": "run pure Dart receipt QA at perfect fail-under with compact summary output"
+    },
+    {
+      "id": "camera_pipeline_contracts",
+      "purpose": "run receipt camera, capture, OCR-source, stitching, native bridge, and storage contract tests"
+    },
+    {
+      "id": "native_camera_compile",
+      "purpose": "compile/check Android CameraX and iOS AVFoundation receipt camera bridge code"
+    },
+    {
+      "id": "full_receipt_quality_gate",
+      "purpose": "run the full expensive receipt quality gate"
+    },
+    {
+      "id": "regression_report",
+      "purpose": "produce the receipt regression report after all gates pass"
+    }
+  ],
+  "coverageFamilies": [
+    "native_android_camerax",
+    "native_ios_avfoundation",
+    "capture_quality_guidance",
+    "dirty_lens_glare_blur_low_light",
+    "long_receipt_ordering_overlap_retake",
+    "bottom_edge_total_continuation",
+    "ocr_original_source_before_compressed_proof",
+    "stitch_and_ordered_section_handoff",
+    "business_personal_mixed_line_review",
+    "fuel_receipts",
+    "maintenance_receipts",
+    "contractor_supply_receipts",
+    "privacy_safe_admin_diagnostics",
+    "device_storage_policy",
+    "external_fixture_schema_and_inventory",
+    "quiet_non_monitoring_qa_execution"
+  ],
+  "failurePolicy": {
+    "stopOnFirstFailedPhase": true,
+    "writeFailureReport": true,
+    "writeRegressionTask": true,
+    "requiredAfterFailure": [
+      "inspect the failed phase log",
+      "fix the root cause",
+      "add or extend regression coverage for the failure family",
+      "rerun the detached pipeline"
+    ]
+  }
+}

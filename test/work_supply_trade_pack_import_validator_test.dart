@@ -1,59 +1,35 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_export_writer.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog_pack_payload.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_import_validator.dart';
-import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_tiers.dart';
 
 void main() {
-  test('validator accepts exported parser-ready trade pack', () async {
-    final base = await Directory.systemTemp.createTemp(
-      'maintainiac_trade_pack_validator_test_',
-    );
+  test('validator accepts parser-ready trade pack', () async {
+    final pack = await _writePackFixture();
     addTearDown(() async {
-      if (await base.exists()) await base.delete(recursive: true);
+      if (await pack.exists()) await pack.delete(recursive: true);
     });
-    final option = buildWorkSupplyTradePackOptions(
-      'Plumbing',
-    ).firstWhere((candidate) => candidate.tier == WorkSupplyTradePackTier.core);
-    final fileSet = await WorkSupplyTradePackExportWriter(baseDirectory: base)
-        .writeTradePack(
-          option: option,
-          generatedAt: DateTime.utc(2026, 6, 27, 12),
-        );
 
     final result = await const WorkSupplyTradePackImportValidator()
-        .validateDirectory(Directory(fileSet.directoryPath));
+        .validateDirectory(pack);
 
     expect(result.isReady, isTrue);
-    expect(result.checkedChunkCount, fileSet.manifest.chunkCount);
-    expect(result.checkedItemCount, fileSet.manifest.itemCount);
+    expect(result.checkedChunkCount, 1);
+    expect(result.checkedItemCount, 1);
     expect(result.issues, isEmpty);
   });
 
   test('validator rejects per-item Firestore shaped manifest', () async {
-    final base = await Directory.systemTemp.createTemp(
-      'maintainiac_trade_pack_unsafe_manifest_test_',
-    );
+    final pack = await _writePackFixture(firestoreItemDocumentReadCount: 2000);
     addTearDown(() async {
-      if (await base.exists()) await base.delete(recursive: true);
+      if (await pack.exists()) await pack.delete(recursive: true);
     });
-    final option = buildWorkSupplyTradePackOptions(
-      'Electrical',
-    ).firstWhere((candidate) => candidate.tier == WorkSupplyTradePackTier.full);
-    final fileSet = await WorkSupplyTradePackExportWriter(baseDirectory: base)
-        .writeTradePack(
-          option: option,
-          generatedAt: DateTime.utc(2026, 6, 27, 12),
-        );
-    final manifestFile = File(fileSet.manifestPath);
-    final manifest = jsonDecode(await manifestFile.readAsString()) as Map;
-    manifest['firestoreItemDocumentReadCount'] = 2000;
-    await manifestFile.writeAsString(jsonEncode(manifest));
 
     final result = await const WorkSupplyTradePackImportValidator()
-        .validateDirectory(Directory(fileSet.directoryPath));
+        .validateDirectory(pack);
 
     expect(
       result.status,
@@ -61,4 +37,71 @@ void main() {
     );
     expect(result.issues.single, contains('per-item Firestore reads'));
   });
+}
+
+Future<Directory> _writePackFixture({
+  int firestoreItemDocumentReadCount = 0,
+}) async {
+  final directory = await Directory.systemTemp.createTemp(
+    'maintainiac_trade_pack_validator_test_',
+  );
+  final payloadJson = jsonEncode({
+    'schemaVersion': workSupplyCatalogPackSchemaVersion,
+    'items': [
+      {
+        'canonicalKey': 'plumbing|fittings|elbow',
+        'id': 'plumbing-elbow',
+        'name': 'PVC Elbow',
+        'trade': 'Plumbing',
+        'category': 'Fittings',
+        'system': 'PVC',
+        'itemType': 'Elbow',
+        'variant': '3/4 in',
+        'unit': 'each',
+        'searchTerms': ['pvc', 'elbow'],
+        'aliases': [
+          {'value': 'PVC Elbow', 'normalized': 'pvc elbow', 'source': 'test'},
+        ],
+        'merchantAliases': [],
+        'barcodeAliases': [],
+        'merchantSkuAliases': [],
+        'packageHints': ['unit:each'],
+      },
+    ],
+  });
+  final payloadBytes = utf8.encode(payloadJson);
+  final compressed = gzip.encode(payloadBytes);
+  final chunkPath = 'chunks/plumbing_core_0001.json.gz';
+  final chunkFile = File('${directory.path}/$chunkPath');
+  await chunkFile.parent.create(recursive: true);
+  await chunkFile.writeAsBytes(compressed);
+  final manifest = {
+    'schemaVersion': 1,
+    'packId': 'plumbing_core_test',
+    'packVersion': 'test',
+    'generatedAtIso': DateTime.utc(2026, 6, 27, 12).toIso8601String(),
+    'tradeName': 'Plumbing',
+    'tier': 'core',
+    'displayName': 'Plumbing Core Test',
+    'itemCount': 1,
+    'chunkCount': 1,
+    'firestoreManifestReadCount': 1,
+    'firestoreItemDocumentReadCount': firestoreItemDocumentReadCount,
+    'estimatedCompressedBytes': compressed.length,
+    'chunks': [
+      {
+        'chunkId': 'plumbing_core_0001',
+        'itemCount': 1,
+        'storagePath': chunkPath,
+        'contentEncoding': 'gzip',
+        'uncompressedByteSize': payloadBytes.length,
+        'estimatedCompressedByteSize': compressed.length,
+        'sha256': sha256.convert(payloadBytes).toString(),
+      },
+    ],
+  };
+  await File('${directory.path}/manifest.json').writeAsString(
+    jsonEncode(manifest),
+  );
+  return directory;
 }

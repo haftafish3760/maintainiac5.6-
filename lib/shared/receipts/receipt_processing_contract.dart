@@ -1,3 +1,8 @@
+import 'receipt_line_models.dart';
+
+part 'receipt_client_proof_contract.dart';
+part 'receipt_line_selection_contract.dart';
+
 enum ReceiptProcessingSource { none, photo, pdf, importedText, mixed }
 
 enum ReceiptProcessingStage {
@@ -24,6 +29,17 @@ enum ReceiptReviewLane {
   personal,
   split,
 }
+
+enum ReceiptLineSelectionPurpose {
+  expense,
+  inventory,
+  estimate,
+  job,
+  invoice,
+  clientProof,
+}
+
+enum ReceiptClientProofRedactionAction { show, hide, review }
 
 class ReceiptProcessingSnapshot {
   const ReceiptProcessingSnapshot({

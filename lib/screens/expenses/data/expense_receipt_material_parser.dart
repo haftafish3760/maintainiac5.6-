@@ -52,6 +52,11 @@ double? _materialExplicitQuantity(String text) {
   final atPrice = RegExp(r'^\s*(\d+(?:\.\d+)?)\s*@\s*\d').firstMatch(text);
   if (atPrice != null) return double.parse(atPrice.group(1)!);
 
+  final eachAtPrice = RegExp(
+    r'\b(\d+(?:\.\d+)?)\s*(?:ea|each)\s*@\s*\d',
+  ).firstMatch(text);
+  if (eachAtPrice != null) return double.parse(eachAtPrice.group(1)!);
+
   final xPrice = RegExp(r'^\s*(\d+(?:\.\d+)?)\s+x\s+\$?\d').firstMatch(text);
   if (xPrice != null) return double.parse(xPrice.group(1)!);
 

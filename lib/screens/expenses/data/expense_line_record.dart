@@ -42,6 +42,12 @@ class ExpenseReceiptLineRecord {
     this.parserReviewLabel,
     this.parserReviewReason,
     this.parserNeedsReview = false,
+    this.ocrSourceLineId,
+    this.ocrSourceLineNumber,
+    this.ocrSourceSectionNumber,
+    this.ocrSourceSectionLineNumber,
+    this.parserExpenseFamily,
+    this.parserHint,
   });
 
   factory ExpenseReceiptLineRecord.fromMap(Map<dynamic, dynamic> map) {
@@ -77,6 +83,14 @@ class ExpenseReceiptLineRecord {
       parserReviewLabel: _nullableExpenseString(map['parserReviewLabel']),
       parserReviewReason: _nullableExpenseString(map['parserReviewReason']),
       parserNeedsReview: _expenseBool(map['parserNeedsReview']),
+      ocrSourceLineId: _nullableExpenseString(map['ocrSourceLineId']),
+      ocrSourceLineNumber: _expenseInt(map['ocrSourceLineNumber']),
+      ocrSourceSectionNumber: _expenseInt(map['ocrSourceSectionNumber']),
+      ocrSourceSectionLineNumber: _expenseInt(
+        map['ocrSourceSectionLineNumber'],
+      ),
+      parserExpenseFamily: _nullableExpenseString(map['parserExpenseFamily']),
+      parserHint: _nullableExpenseString(map['parserHint']),
     );
   }
 
@@ -103,10 +117,135 @@ class ExpenseReceiptLineRecord {
   final String? parserReviewLabel;
   final String? parserReviewReason;
   final bool parserNeedsReview;
+  final String? ocrSourceLineId;
+  final int? ocrSourceLineNumber;
+  final int? ocrSourceSectionNumber;
+  final int? ocrSourceSectionLineNumber;
+  final String? parserExpenseFamily;
+  final String? parserHint;
 
   bool get hasCatalogMatch => (catalogItemId ?? '').trim().isNotEmpty;
   bool get hasParserReview =>
       parserConfidence != null || parserReviewReason != null;
+  bool get hasOcrSourceLine =>
+      (ocrSourceLineId ?? '').trim().isNotEmpty || ocrSourceLineNumber != null;
+  bool get hasParserClassification =>
+      (parserExpenseFamily ?? '').trim().isNotEmpty ||
+      (parserHint ?? '').trim().isNotEmpty;
+
+  String get parserExpenseFamilyLabel {
+    final family = (parserExpenseFamily ?? '').trim();
+    if (family.isEmpty) return '';
+    return _expenseTokenLabel(family);
+  }
+
+  String get parserHintLabel {
+    final hint = (parserHint ?? '').trim();
+    if (hint.isEmpty) return '';
+    return _expenseTokenLabel(hint);
+  }
+
+  String get parserClassificationLabel {
+    final family = parserExpenseFamilyLabel;
+    final hint = parserHintLabel;
+    if (family.isEmpty) return hint;
+    if (hint.isEmpty) return family;
+    return '$family | $hint';
+  }
+
+  String get ocrSourceLineLabel {
+    final sectionLine = ocrSourceSectionLineNumber;
+    final section = ocrSourceSectionNumber;
+    if (sectionLine != null && sectionLine > 0) {
+      if (section != null && section > 1) {
+        return 'OCR section $section line $sectionLine';
+      }
+      return 'OCR source line $sectionLine';
+    }
+    final lineNumber = ocrSourceLineNumber;
+    if (lineNumber != null && lineNumber > 0) return 'OCR line $lineNumber';
+    final id = (ocrSourceLineId ?? '').trim();
+    if (id.isNotEmpty) return id;
+    return '';
+  }
+
+  String get receiptProofLineReferenceLabel {
+    final sectionLine = ocrSourceSectionLineNumber;
+    final section = ocrSourceSectionNumber;
+    if (sectionLine != null && sectionLine > 0) {
+      if (section != null && section > 1) {
+        return 'Section $section line $sectionLine';
+      }
+      return 'Source line $sectionLine';
+    }
+    final lineNumber = ocrSourceLineNumber;
+    if (lineNumber != null && lineNumber > 0) return 'Line $lineNumber';
+    final sourceId = (ocrSourceLineId ?? '').trim();
+    if (sourceId.isNotEmpty) return sourceId;
+    return id.trim().isEmpty ? 'Receipt line' : id.trim();
+  }
+
+  String get receiptProofRedactionAnchorCode {
+    final sourceSection = ocrSourceSectionNumber;
+    final sourceSectionLine = ocrSourceSectionLineNumber;
+    final lineNumber = ocrSourceLineNumber;
+    final lineToken = sourceSectionLine != null && sourceSectionLine > 0
+        ? 's${(sourceSection ?? 1).toString().padLeft(2, '0')}_l${sourceSectionLine.toString().padLeft(4, '0')}'
+        : lineNumber != null && lineNumber > 0
+        ? 'l${lineNumber.toString().padLeft(4, '0')}'
+        : _expenseSafeToken((ocrSourceLineId ?? id).trim());
+    final family = _expenseSafeToken(
+      (parserExpenseFamily ?? category).trim(),
+      fallback: 'expense',
+    );
+    return 'receipt_line_${lineToken}_${family}_${use.name}';
+  }
+
+  String get clientProofDefaultVisibility {
+    if (use == ExpenseLineUse.personal) return 'redact_by_default';
+    if (parserNeedsReview ||
+        category.trim().toLowerCase() == 'uncategorized' ||
+        parserReviewLabelText == 'Poor') {
+      return 'review_before_client_share';
+    }
+    return 'review_for_client_proof';
+  }
+
+  bool get redactsFromClientProofByDefault =>
+      clientProofDefaultVisibility == 'redact_by_default';
+
+  bool get needsClientProofReview =>
+      clientProofDefaultVisibility != 'redact_by_default';
+
+  String get clientProofReviewLabel {
+    if (redactsFromClientProofByDefault) return 'Hidden from client proof';
+    if (clientProofDefaultVisibility == 'review_before_client_share') {
+      return 'Review before sharing';
+    }
+    return 'Review for client proof';
+  }
+
+  Map<String, Object?> get privacySafeProofReference {
+    return {
+      'lineId': id,
+      'proofLineReferenceLabel': receiptProofLineReferenceLabel,
+      'redactionAnchorCode': receiptProofRedactionAnchorCode,
+      'clientProofDefaultVisibility': clientProofDefaultVisibility,
+      'clientProofReviewLabel': clientProofReviewLabel,
+      'use': use.name,
+      'categoryToken': _expenseSafeToken(category),
+      'parserExpenseFamily': parserExpenseFamily,
+      'hasAmount': subtotal != 0,
+      'needsParserReview': parserNeedsReview,
+      'hasOcrSourceLine': hasOcrSourceLine,
+      if (ocrSourceLineNumber != null)
+        'ocrSourceLineNumber': ocrSourceLineNumber,
+      if (ocrSourceSectionNumber != null)
+        'ocrSourceSectionNumber': ocrSourceSectionNumber,
+      if (ocrSourceSectionLineNumber != null)
+        'ocrSourceSectionLineNumber': ocrSourceSectionLineNumber,
+    };
+  }
 
   String get receiptEvidenceText {
     final raw = rawReceiptText.trim();
@@ -184,32 +323,31 @@ class ExpenseReceiptLineRecord {
     if (unitsPerPackage <= 1) return 'Qty ${_formatNumber(quantity)} $unit';
     return '${_formatNumber(quantity)} pkg x ${_formatNumber(unitsPerPackage)} $unit';
   }
+}
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'description': description,
-      'category': category,
-      'use': use.name,
-      'quantity': quantity,
-      'unitsPerPackage': unitsPerPackage,
-      'unit': unit,
-      'subtotal': subtotal,
-      'businessPercent': businessPercent,
-      'odometerReading': odometerReading,
-      'fuelType': fuelType,
-      'fillType': fillType,
-      'unitPrice': unitPrice,
-      'rawReceiptText': rawReceiptText,
-      'catalogItemId': catalogItemId,
-      'catalogItemName': catalogItemName,
-      'catalogItemPath': catalogItemPath,
-      'catalogMatchConfidence': catalogMatchConfidence,
-      'catalogMatchedTerms': catalogMatchedTerms,
-      'parserConfidence': parserConfidence,
-      'parserReviewLabel': parserReviewLabel,
-      'parserReviewReason': parserReviewReason,
-      'parserNeedsReview': parserNeedsReview,
-    };
-  }
+String _expenseTokenLabel(String value) {
+  final cleaned = value
+      .trim()
+      .replaceAll(RegExp(r'[_\-]+'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ');
+  if (cleaned.isEmpty) return '';
+  return cleaned
+      .split(' ')
+      .where((part) => part.isNotEmpty)
+      .map(
+        (part) => part.length == 1
+            ? part.toUpperCase()
+            : '${part[0].toUpperCase()}${part.substring(1).toLowerCase()}',
+      )
+      .join(' ');
+}
+
+String _expenseSafeToken(String value, {String fallback = 'unknown'}) {
+  final token = value
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_|_$'), '');
+  return token.isEmpty ? fallback : token;
 }

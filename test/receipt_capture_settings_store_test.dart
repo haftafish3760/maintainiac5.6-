@@ -110,11 +110,17 @@ void main() {
   test(
     'receipt scanner settings include capability summary without raw hardware',
     () async {
-      final source = await File(
-        'lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart',
-      ).readAsString();
+      final source = await _readReceiptCaptureSettingsSource();
 
       expect(source, contains('_ReceiptCameraRuntimeSummary'));
+      expect(source, contains('defaultDataSaverLocalOnlyReadinessSummary'));
+      expect(source, contains('defaultDataSaverFirstInstallBoundarySummary'));
+      expect(source, contains('defaultDataSaverInstallFootprintSummary'));
+      expect(source, contains('defaultDataSaverProofTargetSummary'));
+      expect(
+        source,
+        contains('defaultDataSaverCanRunBaseReceiptFlowLocallyNow'),
+      );
       expect(source, contains('effectiveCameraRuntimeProfile'));
       expect(source, contains('profile.summaryLabel'));
       expect(source, contains('profile.notesLabel'));
@@ -151,4 +157,18 @@ void main() {
     expect(settings.defaultDataSaverUsesDeviceRecommendation, isTrue);
     expect(settings.receiptPerformanceMode, ReceiptPerformanceMode.automatic);
   });
+}
+
+Future<String> _readReceiptCaptureSettingsSource() async {
+  final paths = [
+    'lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart',
+    'lib/shared/widgets/receipt_capture/receipt_capture_runtime_settings.dart',
+    'lib/shared/widgets/receipt_capture/receipt_expense_review_default_picker.dart',
+    'lib/shared/widgets/receipt_capture/receipt_capture_review_storage_settings.dart',
+  ];
+  final contents = <String>[];
+  for (final path in paths) {
+    contents.add(await File(path).readAsString());
+  }
+  return contents.join('\n');
 }

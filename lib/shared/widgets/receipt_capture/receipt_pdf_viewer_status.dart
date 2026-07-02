@@ -37,7 +37,7 @@ enum ReceiptPdfPreviewStatus {
       ReceiptPdfPreviewStatus.tooLargeForPreview =>
         'The PDF is saved as read-only proof, but it is too large to preview automatically on this phone.',
       ReceiptPdfPreviewStatus.proofOnlyPreviewSkipped =>
-        'The PDF is saved as read-only proof. Maintainiac skipped automatic preview for this file because it is proof-only for app-assisted receipt reading.',
+        'The PDF is saved as read-only proof. Maintainiac skipped automatic preview for this file because it is proof-only for app-assisted receipt assistance.',
       ReceiptPdfPreviewStatus.noPreviewPages =>
         'The PDF was saved as read-only proof, but no page image was available to preview.',
     };

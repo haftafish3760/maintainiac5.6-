@@ -277,11 +277,20 @@ void main() {
     final daySummarySections = await File(
       'lib/screens/expenses/calendar/expense_day_summary_sections.dart',
     ).readAsString();
+    final daySummaryRecapPanels = await File(
+      'lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart',
+    ).readAsString();
     final homeNavigation = await File(
       'lib/screens/expenses/home/expenses_home_navigation_actions.dart',
     ).readAsString();
     final detailInfo = await File(
       'lib/screens/expenses/calendar/expense_receipt_detail_info.dart',
+    ).readAsString();
+    final detailProofPreview = await File(
+      'lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart',
+    ).readAsString();
+    final detailOcrReview = await File(
+      'lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart',
     ).readAsString();
     final calendarModels = await File(
       'lib/screens/expenses/calendar/expense_calendar_models.dart',
@@ -304,15 +313,15 @@ void main() {
     expect(homeNavigation, contains('ExpenseReceiptDetailScreen'));
     expect(detailInfo, contains('_ReceiptAllocationPanel'));
     expect(detailInfo, contains('Receipt breakdown'));
-    expect(detailInfo, contains('_openReceiptPhotoProof'));
-    expect(detailInfo, contains('_ReceiptPhotoProofViewerScreen'));
-    expect(detailInfo, contains('InteractiveViewer'));
-    expect(detailInfo, contains('proofAccessLabel'));
-    expect(detailInfo, contains('_recoveryActionLabel'));
-    expect(detailInfo, contains('_recoveryTargetLabel'));
-    expect(detailInfo, contains('Recovery'));
-    expect(detailInfo, contains('Check area'));
-    expect(detailInfo, contains('Long receipt overlap'));
+    expect(detailProofPreview, contains('_openReceiptPhotoProof'));
+    expect(detailProofPreview, contains('_ReceiptPhotoProofViewerScreen'));
+    expect(detailProofPreview, contains('InteractiveViewer'));
+    expect(detailProofPreview, contains('proofAccessLabel'));
+    expect(detailOcrReview, contains('_recoveryActionLabel'));
+    expect(detailOcrReview, contains('_recoveryTargetLabel'));
+    expect(detailOcrReview, contains('Recovery'));
+    expect(detailOcrReview, contains('Check area'));
+    expect(detailOcrReview, contains('Long receipt overlap'));
     expect(detailInfo, contains('Read needs review'));
     expect(calendarModels, contains('totalForLine(line)'));
     expect(calendarModels, contains('_calendarOcrStatusLabel'));
@@ -327,9 +336,9 @@ void main() {
     expect(dayEntries, contains('Read saved'));
     expect(daySummarySections, contains('_CalendarOcrDayRecapPanel'));
     expect(daySummarySections, contains('Receipt read health'));
-    expect(daySummarySections, contains('Receipt Read Status'));
-    expect(daySummarySections, contains('Read Summary'));
-    expect(daySummarySections, contains('Top Check'));
+    expect(daySummaryRecapPanels, contains('Receipt Read Status'));
+    expect(daySummaryRecapPanels, contains('Read Summary'));
+    expect(daySummaryRecapPanels, contains('Top Check'));
     expect(
       calendarActions,
       isNot(contains('ExpenseReceiptEntryScreen(\n        initialCategory')),

@@ -1,0 +1,56 @@
+{
+  "schema": "receipt_qa_fixture_pack_inventory_v1",
+  "fixtureSchema": "receipt_qa_fixture_v1",
+  "fixtureRoot": "test/fixtures/receipt_qa",
+  "textPolicy": "raw_text_allowed_only_in_fixture_files_not_reports",
+  "externalFixtureFilesReady": false,
+  "realFixtureSupport": {
+    "status": "schema_ready_no_real_samples",
+    "privacyPolicy": "synthetic_or_redacted_only",
+    "expectedOutputsEditable": true,
+    "sensitiveThirdPartyDataAllowed": false,
+    "artifactPolicy": "original_capture_preserved_derived_artifacts_separate"
+  },
+  "packs": {
+    "adjustment": {
+      "plannedFile": "test/fixtures/receipt_qa/adjustment.json",
+      "status": "pending_inline_migration"
+    },
+    "contractor_supply": {
+      "plannedFile": "test/fixtures/receipt_qa/contractor_supply.json",
+      "status": "pending_inline_migration"
+    },
+    "damaged_ocr": {
+      "plannedFile": "test/fixtures/receipt_qa/damaged_ocr.json",
+      "status": "pending_inline_migration"
+    },
+    "device_tiers": {
+      "plannedFile": "test/fixtures/receipt_qa/device_tiers.json",
+      "status": "pending_inline_migration"
+    },
+    "fuel": {
+      "plannedFile": "test/fixtures/receipt_qa/fuel.json",
+      "status": "pending_inline_migration"
+    },
+    "long_receipt": {
+      "plannedFile": "test/fixtures/receipt_qa/long_receipt.json",
+      "status": "pending_inline_migration"
+    },
+    "maintenance": {
+      "plannedFile": "test/fixtures/receipt_qa/maintenance.json",
+      "status": "pending_inline_migration"
+    },
+    "noisy": {
+      "plannedFile": "test/fixtures/receipt_qa/noisy.json",
+      "status": "pending_inline_migration"
+    },
+    "privacy_admin": {
+      "plannedFile": "test/fixtures/receipt_qa/privacy_admin.json",
+      "status": "pending_inline_migration"
+    },
+    "retail": {
+      "plannedFile": "test/fixtures/receipt_qa/retail.json",
+      "status": "pending_inline_migration"
+    }
+  }
+}

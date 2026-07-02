@@ -5,6 +5,8 @@ import 'receipt_assistance_policy.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_device_capability_service.dart';
 
+part 'receipt_capture_settings_data_saver.dart';
+
 enum ReceiptCaptureArea {
   expenses('Expenses'),
   materialsInventory('Materials / Inventory'),
@@ -55,6 +57,18 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
   ReceiptHardwareProfile get hardwareProfile => _hardwareProfile;
   ReceiptDeviceCapability get deviceCapability => _deviceCapability;
   ReceiptCapabilityTier get receiptCapabilityTier => _deviceCapability.tier;
+  String get privacySafeCapabilityLabel {
+    return _hardwareProfile.privacySafeCapabilityLabel(
+      mode: receiptPerformanceMode,
+    );
+  }
+
+  Map<String, Object?> get privacySafeCapabilityDiagnostics {
+    return _hardwareProfile.privacySafeCapabilityDiagnostics(
+      mode: receiptPerformanceMode,
+    );
+  }
+
   ReceiptCameraRuntimeProfile get effectiveCameraRuntimeProfile {
     return _deviceCapability.cameraRuntimeProfileFor(
       guidanceRequested: cameraGuidanceEnabled,
@@ -85,14 +99,6 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
     return ReceiptPerformanceMode.fromName(
       _box.get(_Keys.receiptPerformanceMode) as String?,
     );
-  }
-
-  ReceiptDataSaverLevel get defaultDataSaverLevel {
-    final saved = _box.get(_Keys.defaultDataSaverLevel) as String?;
-    if (saved == null || saved.isEmpty) {
-      return _deviceCapability.recommendedDataSaverLevel;
-    }
-    return ReceiptDataSaverLevel.fromName(saved);
   }
 
   bool get defaultDataSaverUsesDeviceRecommendation {
@@ -204,6 +210,18 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
     await _box.put(key, value);
     notifyListeners();
   }
+}
+
+ReceiptDeviceStorageClass storageClassForDataSaverLevel(
+  ReceiptDataSaverLevel level,
+) {
+  return switch (level) {
+    ReceiptDataSaverLevel.maximum => ReceiptDeviceStorageClass.critical,
+    ReceiptDataSaverLevel.strong => ReceiptDeviceStorageClass.low,
+    ReceiptDataSaverLevel.original ||
+    ReceiptDataSaverLevel.light ||
+    ReceiptDataSaverLevel.balanced => ReceiptDeviceStorageClass.comfortable,
+  };
 }
 
 class ReceiptCaptureSettingsScope

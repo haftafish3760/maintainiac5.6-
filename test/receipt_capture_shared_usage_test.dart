@@ -4,8 +4,16 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('maintenance setup uses the shared receipt capture system', () async {
-    final file = File('lib/screens/maintenance/maintenance_setup_screen.dart');
-    final source = await file.readAsString();
+    final source =
+        await File(
+          'lib/screens/expenses/entry/expense_receipt_entry_screen.dart',
+        ).readAsString() +
+        await File(
+          'lib/screens/expenses/entry/expense_receipt_entry_core_helpers.dart',
+        ).readAsString() +
+        await File(
+          'lib/screens/expenses/entry/expense_receipt_entry_attachment_panel.dart',
+        ).readAsString();
 
     expect(
       source,

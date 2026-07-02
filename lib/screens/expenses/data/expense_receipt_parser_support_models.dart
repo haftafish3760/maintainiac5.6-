@@ -1,10 +1,10 @@
 part of 'expense_receipt_parser.dart';
 
 final _datePattern = RegExp(
-  r'\b(?:\d{4}[/-]\d{1,2}[/-]\d{1,2}|\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\b',
+  r'\b(?:\d{4}[./-]\d{1,2}[./-]\d{1,2}|\d{1,2}[./-]\d{1,2}[./-]\d{2,4})\b',
 );
 final _timePattern = RegExp(
-  r'\b(\d{1,2}):(\d{2})\s*(am|pm)?\b',
+  r'\b([0-2]?\d)([:.])(\d{2})(?::\d{2})?\s*(a\.?m\.?|p\.?m\.?)?\b',
   caseSensitive: false,
 );
 
@@ -16,6 +16,8 @@ class _ReceiptTotals {
     this.hasExplicitSubtotal = false,
     this.hasExplicitTax = false,
     this.hasExplicitTotal = false,
+    this.splitTenderTotal,
+    this.splitTenderCount = 0,
   });
 
   final double? subtotal;
@@ -24,6 +26,11 @@ class _ReceiptTotals {
   final bool hasExplicitSubtotal;
   final bool hasExplicitTax;
   final bool hasExplicitTotal;
+  final double? splitTenderTotal;
+  final int splitTenderCount;
+
+  bool get hasSplitTenderEvidence =>
+      splitTenderCount > 1 && splitTenderTotal != null;
 
   bool get hasCompleteExplicitMath {
     return hasExplicitSubtotal &&
@@ -71,7 +78,11 @@ class _ReceiptParseContext {
     final text = rows.join(' ').toLowerCase();
     return _ReceiptParseContext(
       looksLikeFuelReceipt: RegExp(
-        r'\b(pump|island|fuel|motor fuel|diesel|dsl|ulsd|reefer|unl\b|unleaded|regular|midgrade|premium|gasoline|gallons?|gal\b|def fluid|diesel exhaust fluid|kwh|ev charge|chargepoint|supercharger|octane|grade|price per gallon|price/gal|ppu|ppg)\b',
+        r'\b(pump|island|fuel|motor fuel|diesel|dsl|ulsd|reefer|'
+        r'unl\b|unleaded|regular|midgrade|premium|gasoline|gallons?|'
+        r'gal\b|def fluid|diesel exhaust fluid|kwh|ev charge|'
+        r'chargepoint|supercharger|octane|grade|price per gallon|'
+        r'price/gal|ppu|ppg)\b',
       ).hasMatch(text),
       looksLikeFoodReceipt: RegExp(
         r'\b(combo|meal|sandwich|burger|fries|drink|coffee|breakfast|lunch|dinner|taco|biscuit|restaurant)\b',

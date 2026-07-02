@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'work_supply_color.dart';
 
 class WorkSupplyTrade {
   const WorkSupplyTrade({

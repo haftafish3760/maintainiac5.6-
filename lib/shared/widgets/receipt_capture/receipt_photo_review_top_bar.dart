@@ -6,18 +6,24 @@ class _ReceiptReviewTopBar extends StatelessWidget {
     required this.total,
     required this.reviewMode,
     required this.bestShotCandidateMode,
+    required this.savingPhotos,
+    required this.continueLabel,
     required this.onClose,
     required this.onHideControls,
     required this.onMenuSelected,
+    required this.onContinue,
   });
 
   final int current;
   final int total;
   final _ReceiptReviewMode reviewMode;
   final bool bestShotCandidateMode;
+  final bool savingPhotos;
+  final String continueLabel;
   final VoidCallback onClose;
   final VoidCallback onHideControls;
   final ValueChanged<_ReceiptReviewMenuAction> onMenuSelected;
+  final VoidCallback? onContinue;
 
   @override
   Widget build(BuildContext context) {
@@ -67,10 +73,10 @@ class _ReceiptReviewTopBar extends StatelessWidget {
         bestShotCandidateMode
             ? total > 1
                   ? 'Best photo $current/$total'
-                  : 'Review receipt photo'
+                  : 'Review Receipt Photo'
             : total > 1
             ? '$sectionLabel $current/$total'
-            : 'Review receipt photo',
+            : 'Review Receipt Photo',
       _ReceiptReviewMode.order => 'Check photo order',
       _ReceiptReviewMode.stitch => 'Match receipt photos',
       _ReceiptReviewMode.dataSaver => 'Save space preview',
@@ -82,7 +88,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
         children: [
           _OverlayIconButton(
             icon: Icons.arrow_back_rounded,
-            label: 'Back to receipt form',
+            label: 'Leave photo review',
             onPressed: onClose,
           ),
           const SizedBox(width: 8),
@@ -118,6 +124,12 @@ class _ReceiptReviewTopBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
+          _ReceiptTopBarNextButton(
+            label: continueLabel,
+            savingPhotos: savingPhotos,
+            onPressed: continueLabel == 'Checking' ? null : onContinue,
+          ),
+          const SizedBox(width: 4),
           _OverlayIconButton(
             icon: Icons.fullscreen_rounded,
             label: 'Hide controls',
@@ -154,11 +166,14 @@ class _ReceiptReviewTopBar extends StatelessWidget {
                     style: TextStyle(color: Color(0xFFE8ECEE)),
                   ),
                 ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: _ReceiptReviewMenuAction.retake,
                 child: Text(
-                  'Retake Current Photo',
-                  style: TextStyle(color: Color(0xFFE8ECEE)),
+                  _ReceiptPhotoSectionLabels.retakeLabel(
+                    index: current - 1,
+                    total: total,
+                  ),
+                  style: const TextStyle(color: Color(0xFFE8ECEE)),
                 ),
               ),
               const PopupMenuItem(
@@ -176,32 +191,62 @@ class _ReceiptReviewTopBar extends StatelessWidget {
   }
 }
 
-class _OverlayIconButton extends StatelessWidget {
-  const _OverlayIconButton({
-    required this.icon,
+class _ReceiptTopBarNextButton extends StatelessWidget {
+  const _ReceiptTopBarNextButton({
     required this.label,
+    required this.savingPhotos,
     required this.onPressed,
   });
 
-  final IconData icon;
   final String label;
+  final bool savingPhotos;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: onPressed,
-      tooltip: label,
-      icon: Icon(icon),
-      style: IconButton.styleFrom(
-        backgroundColor: const Color(0xDD11181B),
-        foregroundColor: Colors.white,
-        disabledBackgroundColor: const Color(0x6611181B),
-        disabledForegroundColor: const Color(0xFF6E7B81),
-        minimumSize: const Size(44, 44),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-          side: const BorderSide(color: Color(0xFF526168), width: .8),
+    final needsBottomCheck = label.trim() == 'Add Bottom Section';
+    return Tooltip(
+      message: savingPhotos
+          ? 'Opening receipt details'
+          : needsBottomCheck
+          ? 'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice before receipt details'
+          : 'Next: review the receipt details',
+      child: Semantics(
+        button: true,
+        label: savingPhotos
+            ? 'Opening receipt details'
+            : needsBottomCheck
+            ? 'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice before receipt details'
+            : 'Next: review the receipt details',
+        child: FilledButton.icon(
+          onPressed: savingPhotos ? null : onPressed,
+          icon: savingPhotos
+              ? const SizedBox(
+                  width: 15,
+                  height: 15,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Icon(Icons.arrow_forward_rounded, size: 17),
+          label: _ReceiptNextReviewLabel(label: label),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(76, 42),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            backgroundColor: const Color(0xFF28A745),
+            disabledBackgroundColor: const Color(0xFF253138),
+            foregroundColor: Colors.white,
+            disabledForegroundColor: const Color(0xFF96A2A8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
         ),
       ),
     );

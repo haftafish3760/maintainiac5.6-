@@ -104,7 +104,7 @@ int? _maintenanceOdometerFor(String text) {
 int? _maintenanceDueOdometerFor(String text) {
   final normalized = text.replaceAll(',', '');
   final match = RegExp(
-    r'\b(?:next service due|next due|due at|service due at|next oil change)\D{0,24}(\d{4,8})\b',
+    r'\b(?:next service due|next service|next due|due at|service due at|next oil change)\D{0,24}(\d{4,8})\b',
   ).firstMatch(normalized);
   if (match == null) return null;
   return int.tryParse(match.group(1)!);

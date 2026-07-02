@@ -278,6 +278,13 @@ int _receiptFallbackSpecificityScore(String text, _ReceiptCatalogEntry entry) {
   final itemName = entry.item.name.toLowerCase();
   final normalizedText = entry.normalizedText;
   var score = 0;
+  if (RegExp(r'\bwood\s+screws?\b').hasMatch(text)) {
+    if (normalizedText.contains('wood screw')) {
+      score += 1000;
+    } else if (normalizedText.contains('screw')) {
+      score -= 500;
+    }
+  }
   if (RegExp(r'\b(anode|anode rod)\b').hasMatch(text)) {
     if (itemName.contains('water heater repair part') ||
         normalizedText.contains('anode')) {
@@ -398,6 +405,24 @@ String _indexedReceiptTextFor(WorkSupplyItem item) {
 
 int _receiptItemScore(String text, WorkSupplyItem item, List<String> terms) {
   var score = terms.length;
+  final indexedText = _indexedReceiptTextFor(item);
+  final screwLine = RegExp(
+    r'\b(?:deck|drywall|machine|sheet\s*metal|wood)?\s*screws?\b',
+  ).hasMatch(text);
+  if (screwLine) {
+    if (indexedText.contains('screw')) {
+      score += 80;
+    } else {
+      score -= 40;
+    }
+    if (RegExp(r'\bwood\s+screws?\b').hasMatch(text)) {
+      if (indexedText.contains('wood screw')) {
+        score += 120;
+      } else {
+        score -= 100;
+      }
+    }
+  }
   if (_containsExactPhrase(text, item.variant)) score += 20;
   if (_containsBareSingleInchSize(text, item.variant)) score += 18;
   if (_containsExactPhrase(text, item.name)) score += 8;

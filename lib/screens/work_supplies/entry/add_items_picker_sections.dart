@@ -246,7 +246,7 @@ class _BrowseLevel extends StatelessWidget {
     }
     if (system != null) {
       return _ChoiceGrid(
-        accent: trade!.color,
+        accent: Color(trade!.color.value),
         choices: [
           for (final type in system!.itemTypes)
             _Choice(
@@ -259,7 +259,7 @@ class _BrowseLevel extends StatelessWidget {
     }
     if (category != null) {
       return _ChoiceGrid(
-        accent: trade!.color,
+        accent: Color(trade!.color.value),
         choices: [
           for (final system in category!.systems)
             _Choice(
@@ -272,7 +272,7 @@ class _BrowseLevel extends StatelessWidget {
     }
     if (trade != null) {
       return _ChoiceGrid(
-        accent: trade!.color,
+        accent: Color(trade!.color.value),
         choices: [
           for (final category in trade!.categories)
             _Choice(
@@ -290,7 +290,7 @@ class _BrowseLevel extends StatelessWidget {
           _Choice(
             label: trade.name,
             detail: '${_countTradeItems(trade)} items',
-            color: trade.color,
+            color: Color(trade.color.value),
             onTap: () => onTrade(trade),
           ),
       ],

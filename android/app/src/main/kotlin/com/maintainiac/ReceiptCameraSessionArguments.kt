@@ -1,0 +1,145 @@
+package com.maintainiac
+
+import android.os.Build
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
+
+
+internal fun ReceiptCameraActivity.readSessionArguments() {
+    assistedReceiptFill = intent.getBooleanExtra("assistedReceiptFill", true)
+    longReceiptMode = intent.getBooleanExtra("longReceiptMode", true)
+    autoCaptureEnabled = intent.getBooleanExtra("autoCaptureEnabled", false)
+    autoCaptureAllowed = intent.getBooleanExtra("autoCaptureAllowed", autoCaptureEnabled)
+    if (!autoCaptureAllowed) autoCaptureEnabled = false
+    deviceTier = intent.getStringExtra("deviceTier") ?: "medium"
+    settingsContractVersion = intent.getStringExtra("settingsContractVersion")
+        ?: "receipt_native_camera_settings_v1"
+    devicePolicyLabel = intent.getStringExtra("devicePolicyLabel") ?: "balanced_receipt_camera"
+    reviewDepth = intent.getStringExtra("reviewDepth") ?: "pricesOnly"
+    focusMode = intent.getStringExtra("focusMode") ?: "continuous"
+    exposureMode = intent.getStringExtra("exposureMode") ?: "auto"
+    whiteBalanceMode = intent.getStringExtra("whiteBalanceMode") ?: "auto"
+    whiteBalanceLockEnabled = intent.getBooleanExtra("whiteBalanceLockEnabled", whiteBalanceMode == "locked")
+    dataSaverLevel = intent.getStringExtra("dataSaverLevel") ?: "balanced"
+    storageSafetyLevel = intent.getStringExtra("storageSafetyLevel") ?: dataSaverLevel
+    storageConstrained = intent.getBooleanExtra("storageConstrained", false)
+    storageSafetyReason = intent.getStringExtra("storageSafetyReason") ?: "normal"
+    workloadProtectionPolicy = intent.getStringExtra("workloadProtectionPolicy")
+        ?: "balanced_workload"
+    maxLocalPhotoBytes = intent.getIntExtra("maxLocalPhotoBytes", maxLocalPhotoBytes)
+    nativeCaptureMemoryPolicy = intent.getStringExtra("nativeCaptureMemoryPolicy")
+        ?: nativeCaptureMemoryPolicy
+    nativeControlContractTags = intent.getStringArrayListExtra("nativeControlContractTags")
+        ?: arrayListOf()
+    liveAnalysisEnabled = intent.getBooleanExtra("liveAnalysisEnabled", true)
+    edgeDetectionEnabled = intent.getBooleanExtra("edgeDetectionEnabled", true)
+    edgeOverlayEnabled = intent.getBooleanExtra("edgeOverlayEnabled", true)
+    tapFocusEnabled = intent.getBooleanExtra("tapFocusEnabled", true)
+    pinchZoomEnabled = intent.getBooleanExtra("pinchZoomEnabled", true)
+    exposureSliderEnabled = intent.getBooleanExtra("exposureSliderEnabled", true)
+    exposureResetEnabled = intent.getBooleanExtra("exposureResetEnabled", true)
+    lowLightWarningEnabled = intent.getBooleanExtra("lowLightWarningEnabled", true)
+    glareWarningEnabled = intent.getBooleanExtra("glareWarningEnabled", true)
+    dirtyLensWarningEnabled = intent.getBooleanExtra("dirtyLensWarningEnabled", true)
+    motionBlurWarningEnabled = intent.getBooleanExtra("motionBlurWarningEnabled", true)
+    shadowWarningEnabled = intent.getBooleanExtra("shadowWarningEnabled", true)
+    tooFarTooCloseWarningEnabled = intent.getBooleanExtra("tooFarTooCloseWarningEnabled", true)
+    receiptFullyVisibleWarningEnabled = intent.getBooleanExtra("receiptFullyVisibleWarningEnabled", true)
+    textTooSmallWarningEnabled = intent.getBooleanExtra("textTooSmallWarningEnabled", true)
+    autoExposureAssistEnabled = intent.getBooleanExtra("autoExposureAssistEnabled", true)
+    perspectiveCorrectionEnabled = intent.getBooleanExtra("perspectiveCorrectionEnabled", true)
+    manualCropAfterCapture = intent.getBooleanExtra("manualCropAfterCapture", true)
+    autoCropSuggestionEnabled = intent.getBooleanExtra("autoCropSuggestionEnabled", true)
+    grayscalePreviewEnabled = intent.getBooleanExtra("grayscalePreviewEnabled", true)
+    contrastBoostEnabled = intent.getBooleanExtra("contrastBoostEnabled", true)
+    sharpeningEnabled = intent.getBooleanExtra("sharpeningEnabled", true)
+    shadowReductionEnabled = intent.getBooleanExtra("shadowReductionEnabled", true)
+    adaptiveThresholdEnabled = intent.getBooleanExtra("adaptiveThresholdEnabled", true)
+    orientationCorrectionEnabled = intent.getBooleanExtra("orientationCorrectionEnabled", true)
+    saveOriginalTemporarily = intent.getBooleanExtra("saveOriginalTemporarily", true)
+    queueAcceptedCaptureLocally = intent.getBooleanExtra("queueAcceptedCaptureLocally", true)
+    ocrUsesOriginalFirst = intent.getBooleanExtra("ocrUsesOriginalFirst", true)
+    analysisGapMs = intent.getIntExtra("analysisGapMs", 720).coerceIn(250, 2500).toLong()
+    readyHoldMs = intent.getIntExtra("readyHoldMs", 700).coerceIn(250, 3000).toLong()
+    assistedShotCount = intent.getIntExtra("assistedShotCount", 4).coerceIn(1, 12)
+    bestShotCandidateCount = intent.getIntExtra("bestShotCandidateCount", 3).coerceIn(1, 12)
+    cameraResolutionTier = intent.getStringExtra("cameraResolutionTier") ?: "high"
+    cameraWorkloadTier = intent.getStringExtra("cameraWorkloadTier") ?: "balanced"
+    previewExposurePolicy = intent.getStringExtra("previewExposurePolicy")
+        ?: previewExposurePolicy
+    previewBrightnessGuardPolicy = intent.getStringExtra("previewBrightnessGuardPolicy")
+        ?: previewBrightnessGuardPolicy
+    shutterSpeedPolicy = intent.getStringExtra("shutterSpeedPolicy") ?: shutterSpeedPolicy
+    tapToFocusPolicy = intent.getStringExtra("tapToFocusPolicy") ?: tapToFocusPolicy
+    zoomGesturePolicy = intent.getStringExtra("zoomGesturePolicy") ?: zoomGesturePolicy
+    autoCapturePolicy = intent.getStringExtra("autoCapturePolicy") ?: autoCapturePolicy
+    preCaptureExposurePolicy = intent.getStringExtra("preCaptureExposurePolicy")
+        ?: preCaptureExposurePolicy
+    maxLiveAnalysisPixels = intent.getIntExtra("maxLiveAnalysisPixels", 0).coerceAtLeast(0)
+    maxCleanupPixels = intent.getIntExtra("maxCleanupPixels", 10000000).coerceAtLeast(0)
+    maxStitchOutputPixels = intent.getIntExtra("maxStitchOutputPixels", 14000000).coerceAtLeast(0)
+    maxStitchOutputHeight = intent.getIntExtra("maxStitchOutputHeight", 18000).coerceAtLeast(0)
+    sessionMinZoom = intent.getDoubleExtra("minZoom", 1.0)
+    sessionMaxZoom = intent.getDoubleExtra("maxZoom", 1.0)
+    sessionMinExposureOffset = intent.getDoubleExtra("minExposureOffset", 0.0)
+    sessionMaxExposureOffset = intent.getDoubleExtra("maxExposureOffset", 0.0)
+    maxSectionCount = intent.getIntExtra("maxSectionCount", 8).coerceIn(1, 24)
+    if (!canUseLongReceiptMode()) {
+        longReceiptMode = false
+    }
+    previousSectionGuidePhotoPath = intent
+        .getStringExtra("previousSectionGuidePhotoPath")
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
+    previousSectionReasonCode = intent
+        .getStringExtra("previousSectionReasonCode")
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: if (previousSectionGuidePhotoPath != null) "continue_long_receipt" else "none"
+    previousSectionGuidance = intent
+        .getStringExtra("previousSectionGuidance")
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: ""
+    previousSectionGhostSourceStartFraction = boundedFraction(
+        intent.getDoubleExtra("previousSectionGhostSourceStartFraction", previousSectionGhostSourceStartFraction),
+        previousSectionGhostSourceStartFraction,
+    )
+    previousSectionGhostSourceHeightFraction = boundedFraction(
+        intent.getDoubleExtra("previousSectionGhostSourceHeightFraction", previousSectionGhostSourceHeightFraction),
+        previousSectionGhostSourceHeightFraction,
+    )
+    previousSectionGhostOverlayTopFraction = boundedFraction(
+        intent.getDoubleExtra("previousSectionGhostOverlayTopFraction", previousSectionGhostOverlayTopFraction),
+        previousSectionGhostOverlayTopFraction,
+    )
+    previousSectionGhostOverlayHeightFraction = boundedFraction(
+        intent.getDoubleExtra("previousSectionGhostOverlayHeightFraction", previousSectionGhostOverlayHeightFraction),
+        previousSectionGhostOverlayHeightFraction,
+    )
+    previousSectionGhostOpacity = boundedFraction(
+        intent.getDoubleExtra("previousSectionGhostOpacity", previousSectionGhostOpacity),
+        previousSectionGhostOpacity,
+    )
+}
+
+internal fun ReceiptCameraActivity.registerSystemBackHandler() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+    val callback = OnBackInvokedCallback {
+        requestCloseCamera(backDispatchPath = "system_on_back_invoked")
+    }
+    onBackInvokedDispatcher.registerOnBackInvokedCallback(
+        OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+        callback,
+    )
+    systemBackCallback = callback
+}
+
+internal fun ReceiptCameraActivity.unregisterSystemBackHandler() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+    val callback = systemBackCallback ?: return
+    runCatching {
+        onBackInvokedDispatcher.unregisterOnBackInvokedCallback(callback)
+    }
+    systemBackCallback = null
+}

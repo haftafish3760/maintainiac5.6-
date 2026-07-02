@@ -4,7 +4,13 @@ final _categoryRules = [
   _CategoryKeywordRule(
     category: 'Fuel',
     pattern: RegExp(
-      r'\b(diesel|dsl|ulsd|b20|b10|reefer fuel|tractor diesel|truck diesel|def fluid|diesel exhaust fluid|gasoline|gas |fuel|fuel sale|motor fuel|unl\b|reg unl|unleaded|plus unleaded|premium|regular|midgrade|super unleaded|no ethanol|ethanol free|e85|flex fuel|ethanol|octane|87 octane|89 octane|91 octane|93 octane|pump|island|ev charge|charging|chargepoint|tesla supercharger|supercharger|kerosene|kero)\b',
+      r'\b(diesel|dsl|ulsd|b20|b10|reefer fuel|tractor diesel|'
+      r'truck diesel|def fluid|diesel exhaust fluid|gasoline|gas |fuel|'
+      r'fuel sale|motor fuel|unl\b|reg unl|unleaded|plus unleaded|'
+      r'premium|regular|midgrade|super unleaded|no ethanol|ethanol free|'
+      r'e85|flex fuel|ethanol|octane|87 octane|89 octane|91 octane|'
+      r'93 octane|pump|island|ev charge|charging|chargepoint|'
+      r'tesla supercharger|supercharger|kerosene|kero)\b',
     ),
     confidence: .94,
     reason: 'Fuel keyword matched.',
@@ -12,7 +18,13 @@ final _categoryRules = [
   _CategoryKeywordRule(
     category: 'Maintenance',
     pattern: RegExp(
-      r'\b(oil change|lube service|motor oil|engine oil|full synthetic|synthetic blend|oil filter|air filter|cabin filter|brake pads?|brake fluid|tire|tires|tire rotation|tpms|wiper|wiper blades?|coolant|antifreeze|washer fluid|battery|spark plug|transmission fluid|fuel filter|serpentine belt|headlight|taillight|bulb)\b',
+      r'\b(oil change|lube service|motor oil|engine oil|full synthetic|'
+      r'synthetic oil|synthetic motor oil|synthetic blend|oil filter|'
+      r'air filter|cabin filter|brake pads?|'
+      r'brake fluid|tire|tires|tire rotation|tpms|wiper|wiper blades?|'
+      r'coolant|antifreeze|washer fluid|battery|spark plug|'
+      r'transmission fluid|fuel filter|serpentine belt|headlight|'
+      r'taillight|bulb)\b',
     ),
     confidence: .9,
     reason: 'Maintenance keyword matched.',
@@ -28,7 +40,11 @@ final _categoryRules = [
   _CategoryKeywordRule(
     category: 'Vehicle Parts',
     pattern: RegExp(
-      r'\b(rotor|caliper|alternator|starter|radiator|thermostat|water pump|fuel pump|sensor|oxygen sensor|o2 sensor|strut|shock|bearing|hub assembly|cv axle|tie rod|control arm|muffler|catalytic|brake shoes?|brake hardware|hose assembly|belt tensioner)\b',
+      r'\b(rotor|caliper|alternator|starter|radiator|thermostat|'
+      r'water pump|fuel pump|sensor|oxygen sensor|o2 sensor|strut|shock|'
+      r'bearing|hub assembly|cv axle|tie rod|control arm|muffler|'
+      r'catalytic|brake shoes?|brake hardware|hose assembly|'
+      r'belt tensioner)\b',
     ),
     confidence: .86,
     reason: 'Vehicle parts keyword matched.',
@@ -36,7 +52,10 @@ final _categoryRules = [
   _CategoryKeywordRule(
     category: 'Vehicle Supplies',
     pattern: RegExp(
-      r'\b(car wash|wash wax|microfiber|funnel|tire shine|glass cleaner|degreaser|floor mat|phone mount|charger cable|jumper cable|booster cable|ratchet strap|bungee|cargo strap|air freshener|ice scraper|snow brush|shop towels?)\b',
+      r'\b(car wash|wash wax|microfiber|funnel|tire shine|'
+      r'glass cleaner|degreaser|floor mat|phone mount|charger cable|'
+      r'jumper cable|booster cable|ratchet strap|bungee|cargo strap|'
+      r'air freshener|ice scraper|snow brush|shop towels?)\b',
     ),
     confidence: .82,
     reason: 'Vehicle supply keyword matched.',
@@ -80,7 +99,23 @@ final _categoryRules = [
   _CategoryKeywordRule(
     category: 'Materials',
     pattern: RegExp(
-      r'\b(lumber|stud|2x4|2x6|2x8|2x10|2x12|deck board|treated board|pressure treated|trim board|baseboard|moulding|molding|pipe|pvc|cpvc|pex|copper|cop|cu|black iron|galvanized|sharkbite|fitting|elbow|street elbow|tee|wye|coupling|adapter|bushing|reducer|union|valve|ball valve|gate valve|supply line|wax ring|paint|primer|stain|polyurethane|caulk|silicone|sealant|adhesive|liquid nails|thinset|grout|mortar|concrete mix|cement|screws?|nails?|fasteners?|anchors?|lag bolt|washer|nut|plywood|osb|drywall|sheetrock|joint compound|spackle|mud pan|corner bead|conduit|emt|romex|nm-b|uf-b|thhn|wire|breaker|gfci|outlet|receptacle|switch|junction box|cover plate|capacitor|run capacitor|dual run capacitor|mfd|pleated filter|furnace filter|ac filter|hvac filter|duct|ductwork|mastic|foil tape|hvac tape|painters? tape|masking tape|filter grille|register|vent cover|line set|refrigerant line|shingle|roofing|flashing|drip edge|underlayment|housewrap|flashing tape)\b',
+      r'\b(lumber|stud|2x4|2x6|2x8|2x10|2x12|deck board|'
+      r'treated board|pressure treated|trim board|baseboard|moulding|'
+      r'molding|pipe|pvc|cpvc|pex|copper|cop|cu|black iron|'
+      r'galvanized|sharkbite|fitting|elbow|street elbow|tee|wye|'
+      r'coupling|adapter|bushing|reducer|union|valve|ball valve|'
+      r'gate valve|supply line|wax ring|plumbers? putty|plumbing putty|'
+      r'putty|paint|primer|stain|polyurethane|caulk|silicone|sealant|'
+      r'adhesive|liquid nails|thinset|grout|mortar|concrete mix|cement|'
+      r'screws?|scrws?|nails?|fasteners?|anchors?|lag bolt|washer|nut|'
+      r'plywood|osb|drywall|sheetrock|joint compound|spackle|mud pan|'
+      r'corner bead|conduit|emt|romex|nm-b|uf-b|thhn|wire|breaker|'
+      r'gfci|outlet|receptacle|switch|junction box|cover plate|'
+      r'capacitor|run capacitor|dual run capacitor|mfd|pleated filter|'
+      r'furnace filter|ac filter|hvac filter|duct|ductwork|mastic|'
+      r'foil tape|hvac tape|painters? tape|masking tape|filter grille|'
+      r'register|vent cover|line set|refrigerant line|shingle|roofing|'
+      r'flashing|drip edge|underlayment|housewrap|flashing tape)\b',
     ),
     confidence: .88,
     reason: 'Material keyword matched.',
@@ -88,7 +123,9 @@ final _categoryRules = [
   _CategoryKeywordRule(
     category: 'Tools',
     pattern: RegExp(
-      r'\b(tool|drill|impact|driver|blade|bit|wrench|saw|socket|ratchet|plier|pliers|level|laser level|tape measure|hammer|sander|grinder|multimeter|tester|snips|knife|toolbox|tool box)\b',
+      r'\b(tool|drill|impact|driver|blade|bit|wrench|saw|socket|'
+      r'ratchet|plier|pliers|level|laser level|tape measure|hammer|'
+      r'sander|grinder|multimeter|tester|snips|knife|toolbox|tool box)\b',
     ),
     confidence: .88,
     reason: 'Tool keyword matched.',
@@ -96,7 +133,10 @@ final _categoryRules = [
   _CategoryKeywordRule(
     category: 'Groceries',
     pattern: RegExp(
-      r'\b(grocery|groceries|produce|milk|bread|eggs|cheese|meat|chicken breast|water case|case water|bottled water|soda|fruit|banana|apple|lettuce|paper towels|toilet paper|snack pack|granola|yogurt)\b',
+      r'\b(grocery|groceries|produce|plu|milk|bread|eggs|cheese|meat|'
+      r'chicken breast|water case|case water|bottled water|soda|fruit|'
+      r'bananas?|apples?|lettuce|paper towels|toilet paper|snack pack|'
+      r'granola|yogurt)\b',
     ),
     confidence: .82,
     reason: 'Grocery keyword matched.',
@@ -104,7 +144,9 @@ final _categoryRules = [
   _CategoryKeywordRule(
     category: 'Meals',
     pattern: RegExp(
-      r'\b(meal|food|coffee|snack|restaurant|sandwich|sub\b|burger|pizza|breakfast|lunch|dinner|combo|fries|drink|biscuit|chicken|taco|burrito|wrap|salad|donut|doughnut|latte)\b',
+      r'\b(meal|food|coffee|snacks?|restaurant|sandwich|sub\b|burger|'
+      r'pizza|breakfast|lunch|dinner|combo|fries|drink|biscuit|chicken|'
+      r'taco|burrito|wrap|salad|donut|doughnut|latte)\b',
     ),
     confidence: .84,
     reason: 'Meal keyword matched.',

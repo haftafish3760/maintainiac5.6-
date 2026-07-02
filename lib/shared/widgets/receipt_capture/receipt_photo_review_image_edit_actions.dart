@@ -13,9 +13,18 @@ extension _ReceiptPhotoReviewImageEditActions
     _cropImageSize = null;
     _cropRect = null;
     _cropDisplayRect = null;
-    final bytes = await File(photoPath).readAsBytes();
-    final decoded = img.decodeImage(bytes);
-    if (!mounted || _cropSourcePath != photoPath) return;
+    Uint8List bytes;
+    try {
+      bytes = await File(photoPath).readAsBytes();
+    } on FileSystemException {
+      bytes = Uint8List(0);
+    }
+    final decoded = ReceiptImageProcessor.decodeReceiptImageBytes(bytes);
+    if (!_reviewWorkActive ||
+        _reviewMode != _ReceiptReviewMode.crop ||
+        _cropSourcePath != photoPath) {
+      return;
+    }
     if (decoded == null) {
       _showCameraError('This receipt photo could not be loaded for cropping.');
       _updateReviewState(() {
@@ -43,6 +52,7 @@ extension _ReceiptPhotoReviewImageEditActions
       _resetToolControlsScrollPosition();
       return;
     }
+    _resetPhotoPreviewZoom();
     _updateReviewState(() {
       _reviewMode = mode;
       _controlsVisible = true;
@@ -51,7 +61,7 @@ extension _ReceiptPhotoReviewImageEditActions
   }
 
   void _resetToolControlsScrollPosition() {
-    if (!_toolControlsScrollController.hasClients) return;
+    if (!_reviewInteractiveControlsActive) return;
     _toolControlsScrollController.jumpTo(
       _toolControlsScrollController.position.minScrollExtent,
     );
@@ -76,7 +86,7 @@ extension _ReceiptPhotoReviewImageEditActions
       final storage = await ReceiptStorageGuard.check(
         ReceiptStoragePurpose.savePhotos,
       );
-      if (!mounted) return;
+      if (!_reviewWorkActive) return;
       if (_reviewMode != _ReceiptReviewMode.crop) {
         _updateReviewState(() => _cropProcessing = false);
         return;
@@ -101,7 +111,7 @@ extension _ReceiptPhotoReviewImageEditActions
         cropRect: cropRect,
       );
       final quality = await ReceiptImageProcessor.qualityCheckFile(path);
-      if (!mounted) return;
+      if (!_reviewWorkActive) return;
       _updateReviewState(() {
         _generatedEditPaths.add(path);
         _replaceCurrentPhotoPath(path, quality, editAction: 'manual_crop');
@@ -110,7 +120,7 @@ extension _ReceiptPhotoReviewImageEditActions
       _setReviewMode(_ReceiptReviewMode.preview);
       _invalidateStitchPreview();
     } catch (_) {
-      if (!mounted) return;
+      if (!_reviewWorkActive) return;
       _updateReviewState(() => _cropProcessing = false);
       _showCameraError('Could not crop this receipt photo.');
     }
@@ -123,7 +133,7 @@ extension _ReceiptPhotoReviewImageEditActions
       final storage = await ReceiptStorageGuard.check(
         ReceiptStoragePurpose.savePhotos,
       );
-      if (!mounted) return;
+      if (!_reviewWorkActive) return;
       if (!storage.hasEnoughSpace) {
         _updateReviewState(() => _cropProcessing = false);
         await _showStorageDialog(
@@ -144,7 +154,7 @@ extension _ReceiptPhotoReviewImageEditActions
         degrees: degrees,
       );
       final quality = await ReceiptImageProcessor.qualityCheckFile(path);
-      if (!mounted) return;
+      if (!_reviewWorkActive) return;
       _updateReviewState(() {
         _generatedEditPaths.add(path);
         _replaceCurrentPhotoPath(path, quality, editAction: 'manual_rotate');
@@ -152,7 +162,7 @@ extension _ReceiptPhotoReviewImageEditActions
       });
       _invalidateStitchPreview();
     } catch (_) {
-      if (!mounted) return;
+      if (!_reviewWorkActive) return;
       _updateReviewState(() => _cropProcessing = false);
       _showCameraError('Could not straighten this receipt photo.');
     }
@@ -182,6 +192,8 @@ extension _ReceiptPhotoReviewImageEditActions
     String? editAction,
   }) {
     final previousPath = _photoPaths[_selectedIndex];
+    final replacedGeneratedEdit =
+        previousPath != path && _generatedEditPaths.contains(previousPath);
     final previousCaptureDiagnostics = _captureDiagnosticsByPath[previousPath];
     final staleDataSaverPreviewPaths = _removePhotoReviewCachesForPath(
       previousPath,
@@ -193,10 +205,14 @@ extension _ReceiptPhotoReviewImageEditActions
       if (editAction != null) {
         updatedDiagnostics['userEditedPhoto'] = true;
         updatedDiagnostics['photoEditAction'] = editAction;
+        updatedDiagnostics['photoEditReplacedOriginal'] = previousPath != path;
       }
       _captureDiagnosticsByPath[path] = updatedDiagnostics;
     }
     unawaited(_deleteStaleDataSaverPreviewFiles(staleDataSaverPreviewPaths));
+    if (replacedGeneratedEdit) {
+      unawaited(_deleteGeneratedEditPhotos(_photoPaths.toSet()));
+    }
     _cropSourcePath = null;
     _cropImageBytes = null;
     _cropImageSize = null;

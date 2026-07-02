@@ -138,7 +138,7 @@ class ReceiptPdfInspection {
     final blocker = importBlocker;
     if (blocker != null) return blocker;
     if (exceedsHardReceiptPageLimit) {
-      return 'This PDF has $pageCount pages. It was attached as proof, but it is too long for app-assisted receipt reading.';
+      return 'This PDF has $pageCount pages. It was attached as proof, but it is too long for app-assisted receipt assistance.';
     }
     if (hasEncryptionSecurity) {
       return 'This PDF appears to be password protected or encrypted. It can be saved as proof, but app-assisted reading cannot open it safely.';
@@ -156,7 +156,10 @@ class ReceiptPdfInspection {
     final count = pageCount;
     if (count == null) return null;
     if (exceedsHardReceiptPageLimit) {
-      return 'This PDF has $count pages. It can be saved as read-only proof, but it is too long to treat as a normal receipt. Save it without app-assisted reading unless you are sure the receipt details are near the front.';
+      return 'This PDF has $count pages. It can be saved as read-only proof, '
+          'but it is too long to treat as a normal receipt. Save it without '
+          'app-assisted reading unless you are sure the receipt details are '
+          'near the front.';
     }
     if (exceedsAssistedReadPageLimit) {
       return 'This PDF has $count pages. It can be saved as proof, but app-assisted reading will only read the first ${ReceiptPdfInspector.localAssistedReadPageLimit} pages.';
@@ -173,10 +176,10 @@ class ReceiptPdfInspection {
   String? get cloudCostWarning {
     final count = pageCount;
     if (count != null && exceedsCloudReadPageLimit) {
-      return 'Cloud receipt reading should use a smaller PDF or selected pages. This file has $count pages.';
+      return 'Cloud receipt assistance should use a smaller PDF or selected pages. This file has $count pages.';
     }
     if (exceedsCloudReadSizeLimit) {
-      return 'Cloud receipt reading should use a smaller PDF. This file is $sizeLabel.';
+      return 'Cloud receipt assistance should use a smaller PDF. This file is $sizeLabel.';
     }
     return null;
   }

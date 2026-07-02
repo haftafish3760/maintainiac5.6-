@@ -29,6 +29,7 @@ import '../data/work_supply_receipt_parser.dart';
 
 part 'receipt_destination_section.dart';
 part 'receipt_preview_section.dart';
+part 'receipt_preview_support_widgets.dart';
 part 'add_items_receipt_sections.dart';
 part 'add_items_receipt_command_sections.dart';
 part 'add_items_receipt_parser_actions.dart';

@@ -1,0 +1,212 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
+
+import 'helpers/receipt_stitching_image_helpers.dart';
+
+void main() {
+  test('stitch result labels explain stitched and fallback OCR handoff', () {
+    const stitched = ReceiptStitchResult(
+      status: ReceiptStitchStatus.stitched,
+      inputPaths: ['/tmp/a.jpg', '/tmp/b.jpg', '/tmp/c.jpg'],
+      ocrSourcePaths: ['/tmp/stitched.jpg'],
+      stitchedPath: '/tmp/stitched.jpg',
+      confidence: .86,
+      overlapPixels: [240, 260],
+      stitchedWidth: 1200,
+      stitchedHeight: 4200,
+      pairs: [
+        ReceiptStitchPairResult(
+          pairIndex: 0,
+          overlapPixels: 240,
+          confidence: .86,
+        ),
+        ReceiptStitchPairResult(
+          pairIndex: 1,
+          overlapPixels: 260,
+          confidence: .9,
+          rotationCorrectionDegrees: .8,
+        ),
+      ],
+    );
+    const fallback = ReceiptStitchResult.fallback(
+      inputPaths: ['/tmp/a.jpg', '/tmp/b.jpg'],
+      warning: 'Overlap was not clear enough.',
+      confidence: .34,
+      failedPairIndex: 0,
+    );
+
+    expect(stitched.summaryLabel, contains('combined'));
+    expect(stitched.detailLabel, contains('3 photos became 1 receipt image'));
+    expect(stitched.detailLabel, contains('1200 x 4200'));
+    expect(stitched.detailLabel, contains('86%'));
+    expect(stitched.stitchedPixelCount, 5040000);
+    expect(stitched.matchedPairCount, 2);
+    expect(stitched.missingPairCount, 0);
+    expect(stitched.allPairsHaveOverlapEvidence, isTrue);
+    expect(stitched.overlapCoverageCode, 'all_pairs_have_overlap_evidence');
+    expect(
+      stitched.sourcePreservationCode,
+      'original_sections_preserved_derived_stitched_ocr_artifact',
+    );
+    expect(
+      stitched.overlapCoverageLabel,
+      'Every adjacent receipt section has overlap evidence.',
+    );
+    expect(stitched.pairs.first.summaryLabel, contains('Photo 1 to 2'));
+    expect(stitched.pairs.last.summaryLabel, contains('straighten 0.8 deg'));
+    expect(stitched.pairs.first.diagnosticCode, 'overlap_matched');
+    expect(stitched.pairs.last.diagnosticCode, 'straighten_adjusted');
+    expect(stitched.pairs.last.userCheckLabel, contains('slight tilt'));
+    expect(stitched.diagnosticCodeLabel, 'overlap_matched,straighten_adjusted');
+    expect(stitched.pairDiagnosticsLabel, contains('Photo 1 to 2 matched'));
+    const zoomAndTilt = ReceiptStitchPairResult(
+      pairIndex: 2,
+      overlapPixels: 180,
+      confidence: .73,
+      scaleCorrection: 1.12,
+      rotationCorrectionDegrees: 1.2,
+    );
+    expect(zoomAndTilt.diagnosticCode, 'zoom_and_straighten_adjusted');
+    expect(zoomAndTilt.userCheckLabel, contains('zoom difference'));
+    expect(zoomAndTilt.userCheckLabel, contains('slight tilt'));
+    expect(fallback.summaryLabel, contains('reviewed separately'));
+    expect(fallback.ocrSourcePaths, ['/tmp/a.jpg', '/tmp/b.jpg']);
+    expect(fallback.failedPairLabel, 'Photo 1 to 2');
+    expect(fallback.matchedPairCount, 0);
+    expect(fallback.missingPairCount, 1);
+    expect(fallback.allPairsHaveOverlapEvidence, isFalse);
+    expect(fallback.overlapCoverageCode, 'fallback_pair_1_to_2');
+    expect(
+      fallback.sourcePreservationCode,
+      'original_sections_preserved_ordered_ocr_sources',
+    );
+    expect(
+      fallback.overlapCoverageLabel,
+      'Photo 1 to 2 did not have trusted overlap; OCR keeps sections ordered.',
+    );
+    expect(fallback.diagnosticReasonLabel, 'unknown');
+    expect(fallback.diagnosticCodeLabel, 'unknown');
+    expect(fallback.userFallbackReasonLabel, 'Stitching was not trusted');
+    expect(fallback.detailLabel, 'Photo 1 to 2: Overlap was not clear enough.');
+  });
+
+  test('single and manual stitch overlap coverage stay explicit', () {
+    const single = ReceiptStitchResult.notNeeded(['/tmp/single.jpg']);
+    const manual = ReceiptStitchResult(
+      status: ReceiptStitchStatus.stitched,
+      inputPaths: ['/tmp/a.jpg', '/tmp/b.jpg'],
+      ocrSourcePaths: ['/tmp/stitched.jpg'],
+      stitchedPath: '/tmp/stitched.jpg',
+      confidence: 1,
+      overlapPixels: [260],
+      usedManualAdjustment: true,
+      pairs: [
+        ReceiptStitchPairResult(
+          pairIndex: 0,
+          overlapPixels: 260,
+          confidence: 1,
+          usedManualAdjustment: true,
+        ),
+      ],
+    );
+
+    expect(single.pairCount, 0);
+    expect(single.overlapCoverageCode, 'single_section_no_overlap_needed');
+    expect(single.preservesOriginalSectionSources, isTrue);
+    expect(
+      single.sourcePreservationCode,
+      'original_sections_preserved_ordered_ocr_sources',
+    );
+    expect(manual.pairs.single.hasTrustedOverlapEvidence, isTrue);
+    expect(manual.matchedPairCount, 1);
+    expect(manual.overlapCoverageCode, 'all_pairs_have_overlap_evidence');
+    expect(manual.overlapExpectationLabel, 'Manual overlap accepted');
+  });
+
+  test('stitch fallback reasons have user-safe plain labels', () {
+    ReceiptStitchResult fallback(String reason) => ReceiptStitchResult.fallback(
+      inputPaths: const ['/tmp/a.jpg', '/tmp/b.jpg'],
+      warning: 'Fallback for test.',
+      fallbackReasonCode: reason,
+    );
+
+    expect(
+      fallback('decode_failed').userFallbackReasonLabel,
+      'One photo could not be read',
+    );
+    expect(
+      fallback('manual_overlap_unsafe').userFallbackReasonLabel,
+      'Manual overlap was outside the safe range',
+    );
+    expect(
+      fallback('overlap_confidence_low').userFallbackReasonLabel,
+      'Overlap was not clear enough',
+    );
+    expect(
+      fallback('output_too_large').userFallbackReasonLabel,
+      'Receipt is too long for this device',
+    );
+    expect(
+      fallback('stitch_exception').userFallbackReasonLabel,
+      'Stitching hit a safe fallback',
+    );
+  });
+
+  test('stitch result can be rebound to final OCR artifact paths', () {
+    const preview = ReceiptStitchResult(
+      status: ReceiptStitchStatus.stitched,
+      inputPaths: ['/tmp/raw_a.jpg', '/tmp/raw_b.jpg'],
+      ocrSourcePaths: ['/tmp/preview_stitched.jpg'],
+      stitchedPath: '/tmp/preview_stitched.jpg',
+      confidence: .91,
+      overlapPixels: [244],
+      stitchedWidth: 900,
+      stitchedHeight: 2100,
+      pairs: [
+        ReceiptStitchPairResult(
+          pairIndex: 0,
+          overlapPixels: 244,
+          confidence: .91,
+        ),
+      ],
+    );
+
+    final finalResult = preview.copyForFinalOcr(
+      inputPaths: const ['/tmp/prepared_a.jpg', '/tmp/prepared_b.jpg'],
+      ocrSourcePaths: const ['/tmp/final_stitched.jpg'],
+      stitchedPath: '/tmp/final_stitched.jpg',
+    );
+
+    expect(finalResult.didStitch, isTrue);
+    expect(finalResult.inputPaths, [
+      '/tmp/prepared_a.jpg',
+      '/tmp/prepared_b.jpg',
+    ]);
+    expect(finalResult.ocrSourcePaths, ['/tmp/final_stitched.jpg']);
+    expect(finalResult.stitchedPath, '/tmp/final_stitched.jpg');
+    expect(finalResult.stitchedSizeLabel, '900 x 2100');
+    expect(finalResult.pairs.single.summaryLabel, contains('91%'));
+  });
+
+  test(
+    'copies a verified stitch preview into a durable OCR artifact',
+    () async {
+      final source = await writeTempReceiptStitchingImage(
+        receiptStitchingSection(seed: 22, topTextOffset: 0),
+        'copy_source',
+      );
+
+      final copy = await ReceiptImageProcessor.copyReceiptOcrArtifact(
+        path: source.path,
+        prefix: 'copy_test',
+      );
+
+      expect(copy, isNot(source.path));
+      expect(await File(copy).exists(), isTrue);
+      expect(await File(copy).length(), await source.length());
+      await File(copy).delete();
+    },
+  );
+}

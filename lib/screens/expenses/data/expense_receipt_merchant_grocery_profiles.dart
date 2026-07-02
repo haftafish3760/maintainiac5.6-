@@ -24,6 +24,7 @@ final _groceryMerchantProfiles = [
       'Office Supplies',
       'Cleaning Supplies',
       'Vehicle Supplies',
+      'Safety Gear',
     ],
   ),
   for (final merchant in _groceryFuelMerchantSeeds)

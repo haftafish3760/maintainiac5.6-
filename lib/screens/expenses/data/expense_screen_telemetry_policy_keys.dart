@@ -1,0 +1,28 @@
+part of 'expense_screen_telemetry.dart';
+
+const _expenseTelemetryBlockedSensitiveKeys = <String>{
+  'receiptImage',
+  'receiptText',
+  'ocrText',
+  'rawOcrText',
+  'customerName',
+  'employeeName',
+  'merchantName',
+  'vendorName',
+  'storeName',
+  'address',
+  'street',
+  'phone',
+  'email',
+  'notes',
+  'note',
+  'itemDescription',
+  'lineDescription',
+  'fullItemDescription',
+  'description',
+  'receiptNumber',
+  'deviceId',
+  'rawDeviceId',
+  'deviceModel',
+  'rawDeviceModel',
+};

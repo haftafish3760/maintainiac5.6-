@@ -85,7 +85,7 @@ void main() {
         source: ReceiptProcessingSource.pdf,
         warnings: const [
           'Repeated receipt text was ignored.',
-          'PDF receipt reading could not read one PDF.',
+          'PDF receipt assistance could not find text in one PDF.',
         ],
       );
 
@@ -113,7 +113,7 @@ void main() {
         source: ReceiptProcessingSource.photo,
         warnings: const [
           'Receipt photo quality needs review: bottom section may be soft.',
-          'Receipt photo reading failed for one photo.',
+          'Receipt photo assistance could not find text in one photo.',
           'Repeated receipt text was ignored.',
         ],
       );
@@ -160,12 +160,80 @@ void main() {
       );
       expect(mixedDiagnostic.evidence, contains('target_receipt_sources'));
     });
+
+    test('includes prepared source-first evidence for OCR failures', () {
+      final diagnostic = ExpenseOcrFailureDiagnostics.fromOcrResult(
+        _ocrResult(
+          source: ReceiptProcessingSource.photo,
+          warnings: const ['No readable receipt text was found.'],
+          sourceHandoffSummary: ReceiptOcrSourceHandoffSummary.fromAttachments([
+            ReceiptAttachmentRecord(
+              id: 'prepared-source',
+              path: '/tmp/prepared-source.jpg',
+              kind: ReceiptAttachmentKind.photo,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime(2026, 6, 30),
+              documentSignals: const [
+                'ocr_source_first_prepared_receipt_source_before_saved_proof',
+                'ocr_source_first_outcome_prepared_source_ready',
+              ],
+            ),
+          ]),
+        ),
+      );
+
+      expect(
+        diagnostic.evidence,
+        contains(
+          'sourceFirst_ocr_source_first_prepared_receipt_source_before_saved_proof',
+        ),
+      );
+      expect(diagnostic.evidence, contains('target_receipt_photo'));
+    });
+
+    test('includes saved-proof fallback evidence for review-required OCR', () {
+      final diagnostic = ExpenseOcrFailureDiagnostics.fromOcrResult(
+        _ocrResult(
+          source: ReceiptProcessingSource.photo,
+          warnings: const [
+            'Receipt photo assistance could not find text in one photo.',
+          ],
+          sourceHandoffSummary: ReceiptOcrSourceHandoffSummary.fromAttachments([
+            ReceiptAttachmentRecord(
+              id: 'fallback-source',
+              path: '/tmp/fallback-source.jpg',
+              kind: ReceiptAttachmentKind.photo,
+              dataSaverLevel: ReceiptDataSaverLevel.maximum,
+              createdAt: DateTime(2026, 6, 30),
+              documentSignals: const [
+                'ocr_source_first_saved_proof_fallback_review_required',
+                'ocr_source_first_outcome_fallback_saved_proof_review_required',
+              ],
+              riskFlags: const [
+                'ocr_source_first_saved_proof_fallback_review_required',
+              ],
+            ),
+          ]),
+        ),
+      );
+
+      expect(diagnostic.confirmedCause, 'receipt_photo_read_failed');
+      expect(
+        diagnostic.evidence,
+        contains(
+          'sourceFirst_ocr_source_first_saved_proof_fallback_review_required',
+        ),
+      );
+      expect(diagnostic.evidence, contains('recovery_retake_photo'));
+    });
   });
 }
 
 ReceiptOcrResult _ocrResult({
   required ReceiptProcessingSource source,
   List<String> warnings = const [],
+  ReceiptOcrSourceHandoffSummary sourceHandoffSummary =
+      const ReceiptOcrSourceHandoffSummary.empty(),
 }) {
   return ReceiptOcrResult(
     rawText: '',
@@ -173,6 +241,7 @@ ReceiptOcrResult _ocrResult({
     textByAttachmentId: const {},
     source: source,
     stats: const ReceiptOcrReadStats(photosRead: 1),
+    sourceHandoffSummary: sourceHandoffSummary,
     warnings: warnings,
   );
 }

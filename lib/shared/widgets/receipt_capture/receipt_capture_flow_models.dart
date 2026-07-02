@@ -1,0 +1,235 @@
+part of 'receipt_capture_flow.dart';
+
+enum ReceiptCaptureFlowModule {
+  expenses('expenses'),
+  materialsInventory('materials_inventory'),
+  maintenanceRepair('maintenance_repair'),
+  shared('shared');
+
+  const ReceiptCaptureFlowModule(this.storageName);
+
+  final String storageName;
+
+  ReceiptCaptureArea? get settingsArea {
+    return switch (this) {
+      ReceiptCaptureFlowModule.expenses => ReceiptCaptureArea.expenses,
+      ReceiptCaptureFlowModule.materialsInventory =>
+        ReceiptCaptureArea.materialsInventory,
+      ReceiptCaptureFlowModule.maintenanceRepair =>
+        ReceiptCaptureArea.maintenanceRepair,
+      ReceiptCaptureFlowModule.shared => null,
+    };
+  }
+}
+
+enum ReceiptCaptureFlowStatus {
+  accepted,
+  canceled,
+  permissionDenied,
+  nativeUnavailable,
+  stagingFailed,
+  reviewUnavailable,
+}
+
+class ReceiptCaptureFlowOptions {
+  const ReceiptCaptureFlowOptions({
+    this.module = ReceiptCaptureFlowModule.shared,
+    this.initialPhotoPaths = const [],
+    this.initialQualityChecksByPath = const {},
+    this.initialCaptureDiagnosticsByPath = const {},
+    this.initialSelectedIndex = 0,
+    this.initialDataSaverLevel,
+    this.forceAssistedReceiptFill,
+    this.forceLongReceiptMode,
+    this.forceAutoCapture,
+    this.previousSectionGuidePhotoPath,
+    this.previousSectionReasonCode,
+    this.previousSectionGuidance,
+    this.previousSectionGhostSourceStartFraction,
+    this.previousSectionGhostSourceHeightFraction,
+    this.previousSectionGhostOverlayTopFraction,
+    this.previousSectionGhostOverlayHeightFraction,
+    this.previousSectionGhostOpacity,
+  });
+
+  final ReceiptCaptureFlowModule module;
+  final List<String> initialPhotoPaths;
+  final Map<String, ReceiptPhotoQualityCheck> initialQualityChecksByPath;
+  final Map<String, Map<String, Object?>> initialCaptureDiagnosticsByPath;
+  final int initialSelectedIndex;
+  final ReceiptDataSaverLevel? initialDataSaverLevel;
+  final bool? forceAssistedReceiptFill;
+  final bool? forceLongReceiptMode;
+  final bool? forceAutoCapture;
+  final String? previousSectionGuidePhotoPath;
+  final String? previousSectionReasonCode;
+  final String? previousSectionGuidance;
+  final double? previousSectionGhostSourceStartFraction;
+  final double? previousSectionGhostSourceHeightFraction;
+  final double? previousSectionGhostOverlayTopFraction;
+  final double? previousSectionGhostOverlayHeightFraction;
+  final double? previousSectionGhostOpacity;
+}
+
+class ReceiptCaptureContinuationGuide {
+  const ReceiptCaptureContinuationGuide({
+    this.guidePhotoPath,
+    this.reasonCode,
+    this.guidance,
+    this.ghostSourceStartFraction,
+    this.ghostSourceHeightFraction,
+    this.ghostOverlayTopFraction,
+    this.ghostOverlayHeightFraction,
+    this.ghostOpacity,
+  });
+
+  factory ReceiptCaptureContinuationGuide.fromPreviousPhotos({
+    required List<String> previousPhotoPaths,
+    String? reasonCode,
+    String? guidance,
+  }) {
+    final normalizedReason = _trimmedOrNull(reasonCode);
+    if (normalizedReason == null) {
+      return const ReceiptCaptureContinuationGuide();
+    }
+    String? previousGuidePath;
+    for (final path in previousPhotoPaths) {
+      final normalizedPath = _trimmedOrNull(path);
+      if (normalizedPath != null) previousGuidePath = normalizedPath;
+    }
+    return ReceiptCaptureContinuationGuide(
+      guidePhotoPath: previousGuidePath,
+      reasonCode: normalizedReason,
+      guidance: _trimmedOrNull(guidance),
+      ghostSourceStartFraction: _ghostSourceStartFractionFor(normalizedReason),
+      ghostSourceHeightFraction: _ghostHeightFractionFor(normalizedReason),
+      ghostOverlayTopFraction: 0,
+      ghostOverlayHeightFraction: _ghostHeightFractionFor(normalizedReason),
+      ghostOpacity: _ghostOpacityFor(normalizedReason),
+    );
+  }
+
+  final String? guidePhotoPath;
+  final String? reasonCode;
+  final String? guidance;
+  final double? ghostSourceStartFraction;
+  final double? ghostSourceHeightFraction;
+  final double? ghostOverlayTopFraction;
+  final double? ghostOverlayHeightFraction;
+  final double? ghostOpacity;
+
+  bool get hasGuidePhoto => guidePhotoPath != null;
+  bool get hasReason => reasonCode != null;
+
+  ReceiptCaptureFlowOptions applyTo(ReceiptCaptureFlowOptions options) {
+    if (!hasReason) return options;
+    return ReceiptCaptureFlowOptions(
+      module: options.module,
+      initialPhotoPaths: options.initialPhotoPaths,
+      initialQualityChecksByPath: options.initialQualityChecksByPath,
+      initialCaptureDiagnosticsByPath: options.initialCaptureDiagnosticsByPath,
+      initialSelectedIndex: options.initialSelectedIndex,
+      initialDataSaverLevel: options.initialDataSaverLevel,
+      forceAssistedReceiptFill: options.forceAssistedReceiptFill,
+      forceLongReceiptMode: options.forceLongReceiptMode,
+      forceAutoCapture: options.forceAutoCapture,
+      previousSectionGuidePhotoPath: guidePhotoPath,
+      previousSectionReasonCode: reasonCode,
+      previousSectionGuidance: guidance,
+      previousSectionGhostSourceStartFraction: ghostSourceStartFraction,
+      previousSectionGhostSourceHeightFraction: ghostSourceHeightFraction,
+      previousSectionGhostOverlayTopFraction: ghostOverlayTopFraction,
+      previousSectionGhostOverlayHeightFraction: ghostOverlayHeightFraction,
+      previousSectionGhostOpacity: ghostOpacity,
+    );
+  }
+
+  static double _ghostSourceStartFractionFor(String reasonCode) {
+    if (reasonCode == 'missing_bottom_edge_and_totals') return .80;
+    return .78;
+  }
+
+  static double _ghostHeightFractionFor(String reasonCode) {
+    if (reasonCode == 'missing_bottom_edge_and_totals') return .20;
+    return .22;
+  }
+
+  static double _ghostOpacityFor(String reasonCode) {
+    if (reasonCode == 'missing_bottom_edge_and_totals') return .36;
+    return .32;
+  }
+
+  static String? _trimmedOrNull(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    return trimmed;
+  }
+}
+
+class ReceiptCaptureFlowResult {
+  const ReceiptCaptureFlowResult._({
+    required this.status,
+    this.reviewResult,
+    this.ocrResult,
+    this.message = '',
+    this.nativeCapabilities,
+    this.recoveryManifestPath = '',
+    this.diagnostics = const {},
+  });
+
+  factory ReceiptCaptureFlowResult.accepted({
+    required ReceiptPhotoReviewResult reviewResult,
+    ReceiptOcrResult? ocrResult,
+    ReceiptNativeCameraCapabilities? nativeCapabilities,
+    String recoveryManifestPath = '',
+    Map<String, Object?> diagnostics = const {},
+  }) {
+    return ReceiptCaptureFlowResult._(
+      status: ReceiptCaptureFlowStatus.accepted,
+      reviewResult: reviewResult,
+      ocrResult: ocrResult,
+      nativeCapabilities: nativeCapabilities,
+      recoveryManifestPath: recoveryManifestPath,
+      diagnostics: diagnostics,
+    );
+  }
+
+  factory ReceiptCaptureFlowResult.canceled({
+    String message = '',
+    ReceiptNativeCameraCapabilities? nativeCapabilities,
+    Map<String, Object?> diagnostics = const {},
+  }) {
+    return ReceiptCaptureFlowResult._(
+      status: ReceiptCaptureFlowStatus.canceled,
+      message: message,
+      nativeCapabilities: nativeCapabilities,
+      diagnostics: diagnostics,
+    );
+  }
+
+  factory ReceiptCaptureFlowResult.failed({
+    required ReceiptCaptureFlowStatus status,
+    required String message,
+    ReceiptNativeCameraCapabilities? nativeCapabilities,
+    Map<String, Object?> diagnostics = const {},
+  }) {
+    assert(status != ReceiptCaptureFlowStatus.accepted);
+    return ReceiptCaptureFlowResult._(
+      status: status,
+      message: message,
+      nativeCapabilities: nativeCapabilities,
+      diagnostics: diagnostics,
+    );
+  }
+
+  final ReceiptCaptureFlowStatus status;
+  final ReceiptPhotoReviewResult? reviewResult;
+  final ReceiptOcrResult? ocrResult;
+  final String message;
+  final ReceiptNativeCameraCapabilities? nativeCapabilities;
+  final String recoveryManifestPath;
+  final Map<String, Object?> diagnostics;
+
+  bool get accepted => status == ReceiptCaptureFlowStatus.accepted;
+  bool get hasOcrText => ocrResult?.hasText == true;
+}

@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "maintainiac.receipt_qa_fixture_v1",
+  "title": "Maintainiac Receipt QA Fixture Pack",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "pack",
+    "fixtures"
+  ],
+  "properties": {
+    "schema": {
+      "const": "receipt_qa_fixture_v1"
+    },
+    "pack": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "fixtures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/fixture"
+      }
+    }
+  },
+  "$defs": {
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "merchantNeedle",
+        "text",
+        "expected"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "merchantNeedle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fixtureKind": {
+          "enum": [
+            "synthetic_text",
+            "synthetic_image",
+            "real_redacted",
+            "real_anonymized"
+          ]
+        },
+        "sourcePolicy": {
+          "const": "synthetic_or_redacted_only"
+        },
+        "redaction": {
+          "$ref": "#/$defs/redaction"
+        },
+        "degradationTags": {
+          "$ref": "#/$defs/stringList"
+        },
+        "expectedEditable": {
+          "type": "boolean"
+        },
+        "artifactManifestId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "imageArtifacts": {
+          "$ref": "#/$defs/imageArtifacts"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected": {
+          "$ref": "#/$defs/expected"
+        }
+      }
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "sensitiveFieldsRemoved"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "none_required",
+            "redacted",
+            "anonymized",
+            "synthetic"
+          ]
+        },
+        "sensitiveFieldsRemoved": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "imageArtifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "originalPreserved",
+        "sourceTruth"
+      ],
+      "properties": {
+        "originalPreserved": {
+          "type": "boolean"
+        },
+        "sourceTruth": {
+          "enum": [
+            "original_capture",
+            "synthetic_render",
+            "redacted_real_capture",
+            "derived_negative_case"
+          ]
+        },
+        "artifactRoles": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "merchantName": {
+          "type": "string"
+        },
+        "dateIso": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "subtotal": {
+          "type": "number"
+        },
+        "tax": {
+          "type": "number"
+        },
+        "total": {
+          "type": "number"
+        },
+        "lineCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lineCategories": {
+          "$ref": "#/$defs/stringList"
+        },
+        "lineFamilies": {
+          "$ref": "#/$defs/stringList"
+        },
+        "lineUses": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

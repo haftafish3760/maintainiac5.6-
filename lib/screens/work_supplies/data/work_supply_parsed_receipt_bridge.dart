@@ -14,6 +14,8 @@ class WorkSupplyParsedReceiptDraft {
     required this.personalLineCount,
     required this.splitLineCount,
     required this.processingSnapshot,
+    required this.inventorySelectionBundle,
+    required this.clientProofSelectionBundle,
   });
 
   final List<ReceiptLineDraft> lines;
@@ -23,9 +25,47 @@ class WorkSupplyParsedReceiptDraft {
   final int personalLineCount;
   final int splitLineCount;
   final ReceiptProcessingSnapshot processingSnapshot;
+  final ReceiptLineSelectionBundle inventorySelectionBundle;
+  final ReceiptLineSelectionBundle clientProofSelectionBundle;
+  ReceiptClientProofRedactionPlan get clientProofRedactionPlan {
+    return ReceiptClientProofRedactionPlan.fromBundle(
+      clientProofSelectionBundle,
+    );
+  }
+
+  ReceiptClientProofReviewSummary get clientProofReviewSummary {
+    return ReceiptClientProofReviewSummary.fromPlan(clientProofRedactionPlan);
+  }
+
+  ReceiptClientProofImageReviewPlan get clientProofImageReviewPlan {
+    return ReceiptClientProofImageReviewPlan.fromRedactionPlan(
+      clientProofRedactionPlan,
+    );
+  }
 
   bool get hasLines => lines.isNotEmpty;
   bool get canCommitInventory => processingSnapshot.canCommitInventory;
+  bool get hasInventorySelection => inventorySelectionBundle.hasSelectedLines;
+  bool get hasClientProofSelection =>
+      clientProofSelectionBundle.hasSelectedLines;
+
+  PrivacySafeReceiptEvent inventorySelectionPrivacyEvent({
+    String featureArea = 'materials_inventory',
+  }) {
+    return PrivacySafeReceiptEvent.fromLineSelectionBundle(
+      bundle: inventorySelectionBundle,
+      featureArea: featureArea,
+    );
+  }
+
+  PrivacySafeReceiptEvent clientProofSelectionPrivacyEvent({
+    String featureArea = 'materials_inventory',
+  }) {
+    return PrivacySafeReceiptEvent.fromLineSelectionBundle(
+      bundle: clientProofSelectionBundle,
+      featureArea: featureArea,
+    );
+  }
 }
 
 WorkSupplyParsedReceiptDraft buildWorkSupplyParsedReceiptDraft({
@@ -101,6 +141,12 @@ WorkSupplyParsedReceiptDraft buildWorkSupplyParsedReceiptDraft({
           ? (sourceLine.catalogItemPath ?? catalogItem.path)
           : '',
       reviewAction: 'parsed',
+      proofLineReferenceLabel: 'Line $lineNumber',
+      clientProofDefaultVisibility: _clientProofVisibilityFor(sourceLine.use),
+      sourceReceiptSectionLabel: _sourceSectionLabelFor(
+        source: source,
+        receiptId: receiptId,
+      ),
     );
     lines.add(draft);
 
@@ -136,8 +182,9 @@ WorkSupplyParsedReceiptDraft buildWorkSupplyParsedReceiptDraft({
     }
   }
 
+  final immutableLines = List<ReceiptLineDraft>.unmodifiable(lines);
   return WorkSupplyParsedReceiptDraft(
-    lines: List.unmodifiable(lines),
+    lines: immutableLines,
     inventoryRecords: List.unmodifiable(inventoryRecords),
     inventoryLineCount: inventoryCount,
     businessOnlyLineCount: businessOnlyCount,
@@ -151,7 +198,43 @@ WorkSupplyParsedReceiptDraft buildWorkSupplyParsedReceiptDraft({
       needsReview: lines.any((line) => line.parserNeedsReview),
       warningCount: parsed.warnings.length,
     ),
+    inventorySelectionBundle: ReceiptLineSelectionBundle.fromDrafts(
+      receiptId: receiptId,
+      purpose: ReceiptLineSelectionPurpose.inventory,
+      sourceLines: immutableLines,
+      includeLine: (line) => line.isInventory,
+    ),
+    clientProofSelectionBundle: ReceiptLineSelectionBundle.fromDrafts(
+      receiptId: receiptId,
+      purpose: ReceiptLineSelectionPurpose.clientProof,
+      sourceLines: immutableLines,
+    ),
   );
+}
+
+String _clientProofVisibilityFor(ExpenseLineUse use) {
+  return switch (use) {
+    ExpenseLineUse.personal => ReceiptLineClientProofVisibility.redactByDefault,
+    ExpenseLineUse.split =>
+      ReceiptLineClientProofVisibility.reviewBeforeClientShare,
+    ExpenseLineUse.business =>
+      ReceiptLineClientProofVisibility.reviewForClientProof,
+  };
+}
+
+String _sourceSectionLabelFor({
+  required ReceiptProcessingSource source,
+  required String receiptId,
+}) {
+  final id = receiptId.trim();
+  final sourceLabel = switch (source) {
+    ReceiptProcessingSource.photo => 'Photo receipt',
+    ReceiptProcessingSource.pdf => 'PDF receipt',
+    ReceiptProcessingSource.importedText => 'Imported receipt text',
+    ReceiptProcessingSource.mixed => 'Mixed receipt source',
+    ReceiptProcessingSource.none => 'Receipt source',
+  };
+  return id.isEmpty ? sourceLabel : '$sourceLabel $id';
 }
 
 double _inferredTaxRate(ExpenseReceiptParseResult parsed) {

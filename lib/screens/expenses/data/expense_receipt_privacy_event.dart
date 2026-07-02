@@ -1,21 +1,5 @@
 part of 'expense_receipt_parser.dart';
 
-enum PrivacySafeReceiptEventType {
-  receiptCaptureStarted,
-  receiptCaptureCompleted,
-  receiptCaptureAbandoned,
-  receiptCaptureFailed,
-  receiptOcrGood,
-  receiptOcrReview,
-  receiptOcrPartial,
-  receiptOcrBlocked,
-  receiptParserGood,
-  receiptParserReview,
-  receiptParserPoor,
-  inventoryCatalogMatchWeak,
-  receiptTotalsMismatch,
-}
-
 class PrivacySafeReceiptEvent {
   const PrivacySafeReceiptEvent({
     required this.type,
@@ -34,6 +18,19 @@ class PrivacySafeReceiptEvent {
     this.readabilityBucket,
     this.errorKind,
     this.warningKinds = const [],
+    this.parserLineRoleCounts = const {},
+    this.parserTaskCounts = const {},
+    this.parserCategoryCounts = const {},
+    this.parserCategoryHealthCounts = const {},
+    this.parserCategoryReviewActionCode,
+    this.parserRequiredFieldStatusCounts = const {},
+    this.parserRequiredFieldStatusLabel,
+    this.parserDownstreamReadinessStatus,
+    this.parserDownstreamReadinessCounts = const {},
+    this.localReceiptParserRoutingCode,
+    this.localReceiptParserRoutingCounts = const {},
+    this.localReceiptParserKeptLocalCount = 0,
+    this.localReceiptParserOptionalPackOfferCount = 0,
     this.photoSectionCount = 0,
     this.retakeCount = 0,
     this.captureDurationMs = 0,
@@ -41,6 +38,68 @@ class PrivacySafeReceiptEvent {
     this.attachmentsSkipped = 0,
     this.rawLineCount = 0,
     this.parserLineCount = 0,
+    this.ocrItemCandidateLineCount = 0,
+    this.ocrPricedLineCount = 0,
+    this.ocrParserReadyLineCount = 0,
+    this.ocrParserReviewSignalCount = 0,
+    this.ocrParserReadinessStatus,
+    this.ocrDownstreamReadinessStatus,
+    this.ocrDownstreamReadinessCounts = const {},
+    this.ocrHighConfidenceItemLineCount = 0,
+    this.ocrReviewItemLineCount = 0,
+    this.ocrQuantitySignalItemLineCount = 0,
+    this.ocrSkuSignalItemLineCount = 0,
+    this.ocrGenericItemLineCount = 0,
+    this.ocrInventoryPrepLineIdCount = 0,
+    this.ocrParserReadyFieldCount = 0,
+    this.ocrParserReviewFieldCount = 0,
+    this.ocrSummaryMathStatus,
+    this.ocrSummaryMathReconciled = false,
+    this.ocrLineSequenceStatus,
+    this.ocrReceiptStructureStatus,
+    this.ocrSourceSectionContinuityStatus,
+    this.ocrSourceSectionCount = 0,
+    this.ocrSourceSectionContinuityReviewNeeded = false,
+    this.ocrSubtotalCandidateLineCount = 0,
+    this.ocrTaxCandidateLineCount = 0,
+    this.ocrTotalCandidateLineCount = 0,
+    this.ocrTenderCandidateLineCount = 0,
+    this.ocrMetadataCandidateLineCount = 0,
+    this.ocrParserLineRoleCounts = const {},
+    this.ocrDominantParserLineRole,
+    this.ocrStableLineIdCount = 0,
+    this.ocrParserReadyItemLineIdCount = 0,
+    this.ocrReviewItemLineIdCount = 0,
+    this.ocrParserBucketCounts = const {},
+    this.ocrParserTaskCounts = const {},
+    this.ocrSourceHandoffStatus,
+    this.ocrSourceHandoffSignalCounts = const {},
+    this.ocrSourceStitchSignalCounts = const {},
+    this.ocrSourceScannerDecisionCounts = const {},
+    this.ocrSourceCaptureSourceSignalCounts = const {},
+    this.ocrSourcePhotoQualityRiskCounts = const {},
+    this.clientProofRedactionStatus,
+    this.clientProofVisibilityCounts = const {},
+    this.selectedReceiptLinePurpose,
+    this.selectedReceiptLineCount = 0,
+    this.excludedReceiptLineCount = 0,
+    this.clientProofReviewLineCount = 0,
+    this.redactedReceiptLineCount = 0,
+    this.clientProofRedactionPlanStatus,
+    this.clientProofVisibleLineCount = 0,
+    this.clientProofHiddenLineCount = 0,
+    this.clientProofPlanReviewLineCount = 0,
+    this.clientProofImageReviewStatus,
+    this.clientProofImageSectionCount = 0,
+    this.clientProofImageVisibleSectionCount = 0,
+    this.clientProofImageHiddenSectionCount = 0,
+    this.clientProofImageReviewSectionCount = 0,
+    this.clientProofImageUnassignedLineCount = 0,
+    this.clientProofImageUnassignedHiddenLineCount = 0,
+    this.clientProofImageUnassignedReviewLineCount = 0,
+    this.ocrFieldReadinessCounts = const {},
+    this.ocrRequiredFieldStatusCounts = const {},
+    this.ocrRequiredFieldStatusLabel,
     this.detectedLineCount = 0,
     this.reviewLineCount = 0,
     this.materialLineCount = 0,
@@ -69,21 +128,17 @@ class PrivacySafeReceiptEvent {
     int captureDurationMs = 0,
     String? errorKind,
   }) {
-    return PrivacySafeReceiptEvent(
+    return _privacySafeReceiptEventFromCapture(
       type: type,
-      featureArea: _safeToken(featureArea),
-      capabilityTier: capability?.tier.name,
-      parserDepth: capability?.parserDepth.name,
-      captureMode: _safeToken(captureMode),
-      captureOutcome: _safeToken(captureOutcome),
-      focusBucket: quality == null ? null : _focusBucket(quality.focusScore),
-      readabilityBucket: quality == null
-          ? null
-          : _readabilityBucket(quality.reviewScore),
+      featureArea: featureArea,
+      capability: capability,
+      captureMode: captureMode,
+      captureOutcome: captureOutcome,
+      quality: quality,
       photoSectionCount: photoSectionCount,
       retakeCount: retakeCount,
       captureDurationMs: captureDurationMs,
-      errorKind: errorKind == null ? null : _safeToken(errorKind),
+      errorKind: errorKind,
     );
   }
 
@@ -92,23 +147,10 @@ class PrivacySafeReceiptEvent {
     String featureArea = 'receipts',
     ReceiptDeviceCapability? capability,
   }) {
-    final diagnostics = result.diagnostics;
-    return PrivacySafeReceiptEvent(
-      type: _typeForOcrSeverity(diagnostics.severity),
-      featureArea: _safeToken(featureArea),
-      capabilityTier: capability?.tier.name,
-      parserDepth: capability?.parserDepth.name,
-      ocrSeverity: diagnostics.severity.name,
-      warningKinds: [
-        for (final warning in result.structuredWarnings) warning.kind.name,
-      ],
-      attachmentsRead: diagnostics.attachmentsRead,
-      attachmentsSkipped: diagnostics.attachmentsSkipped,
-      rawLineCount: diagnostics.rawLineCount,
-      parserLineCount: diagnostics.parserLineCount,
-      pdfPagesRequested: diagnostics.pdfPagesRequested,
-      usedLocalOcr: diagnostics.usedLocalOcr,
-      hadDuplicateOrOverlapText: diagnostics.hadDuplicateOrOverlapText,
+    return _privacySafeReceiptEventFromOcrResult(
+      result: result,
+      featureArea: featureArea,
+      capability: capability,
     );
   }
 
@@ -116,27 +158,29 @@ class PrivacySafeReceiptEvent {
     required ExpenseReceiptParseResult result,
     String featureArea = 'receipts',
   }) {
-    final diagnostics = result.diagnostics;
-    return PrivacySafeReceiptEvent(
-      type: _typeForParseResult(result),
-      featureArea: _safeToken(featureArea),
-      parserDepth: diagnostics.parserDepth.name,
-      parseQuality: _qualityBucket(result.quality.confidence),
-      parserTrust: _safeToken(diagnostics.trustLabel),
-      parserReviewCause: _parserReviewCause(result),
-      totalsMathStatus: _totalsMathStatus(diagnostics),
-      fieldReviewKeys: _fieldReviewKeys(result),
-      detectedLineCount: diagnostics.detectedLineCount,
-      reviewLineCount: diagnostics.reviewLineCount,
-      materialLineCount: diagnostics.materialLineCount,
-      catalogMatchedLineCount: diagnostics.catalogMatchedLineCount,
-      unmatchedMaterialLineCount: diagnostics.unmatchedMaterialLineCount,
-      negativeLineCount: diagnostics.negativeLineCount,
-      adjustmentLineCount: diagnostics.adjustmentLineCount,
-      reconciled: diagnostics.reconciled,
-      taxMathReconciled: diagnostics.taxMathReconciled,
-      explicitTotalsComplete: diagnostics.hasCompleteExplicitTotals,
-      needsHeavyReview: diagnostics.needsHeavyReview,
+    return _privacySafeReceiptEventFromParseResult(
+      result: result,
+      featureArea: featureArea,
+    );
+  }
+
+  factory PrivacySafeReceiptEvent.fromLineSelectionBundle({
+    required ReceiptLineSelectionBundle bundle,
+    String featureArea = 'receipts',
+  }) {
+    return _privacySafeReceiptEventFromLineSelectionBundle(
+      bundle: bundle,
+      featureArea: featureArea,
+    );
+  }
+
+  factory PrivacySafeReceiptEvent.fromClientProofImageReviewPlan({
+    required ReceiptClientProofImageReviewPlan plan,
+    String featureArea = 'receipts',
+  }) {
+    return _privacySafeReceiptEventFromClientProofImageReviewPlan(
+      plan: plan,
+      featureArea: featureArea,
     );
   }
 
@@ -156,6 +200,19 @@ class PrivacySafeReceiptEvent {
   final String? readabilityBucket;
   final String? errorKind;
   final List<String> warningKinds;
+  final Map<String, int> parserLineRoleCounts;
+  final Map<String, int> parserTaskCounts;
+  final Map<String, int> parserCategoryCounts;
+  final Map<String, int> parserCategoryHealthCounts;
+  final String? parserCategoryReviewActionCode;
+  final Map<String, int> parserRequiredFieldStatusCounts;
+  final String? parserRequiredFieldStatusLabel;
+  final String? parserDownstreamReadinessStatus;
+  final Map<String, int> parserDownstreamReadinessCounts;
+  final String? localReceiptParserRoutingCode;
+  final Map<String, int> localReceiptParserRoutingCounts;
+  final int localReceiptParserKeptLocalCount;
+  final int localReceiptParserOptionalPackOfferCount;
   final int photoSectionCount;
   final int retakeCount;
   final int captureDurationMs;
@@ -163,6 +220,68 @@ class PrivacySafeReceiptEvent {
   final int attachmentsSkipped;
   final int rawLineCount;
   final int parserLineCount;
+  final int ocrItemCandidateLineCount;
+  final int ocrPricedLineCount;
+  final int ocrParserReadyLineCount;
+  final int ocrParserReviewSignalCount;
+  final String? ocrParserReadinessStatus;
+  final String? ocrDownstreamReadinessStatus;
+  final Map<String, int> ocrDownstreamReadinessCounts;
+  final int ocrHighConfidenceItemLineCount;
+  final int ocrReviewItemLineCount;
+  final int ocrQuantitySignalItemLineCount;
+  final int ocrSkuSignalItemLineCount;
+  final int ocrGenericItemLineCount;
+  final int ocrInventoryPrepLineIdCount;
+  final int ocrParserReadyFieldCount;
+  final int ocrParserReviewFieldCount;
+  final String? ocrSummaryMathStatus;
+  final bool ocrSummaryMathReconciled;
+  final String? ocrLineSequenceStatus;
+  final String? ocrReceiptStructureStatus;
+  final String? ocrSourceSectionContinuityStatus;
+  final int ocrSourceSectionCount;
+  final bool ocrSourceSectionContinuityReviewNeeded;
+  final int ocrSubtotalCandidateLineCount;
+  final int ocrTaxCandidateLineCount;
+  final int ocrTotalCandidateLineCount;
+  final int ocrTenderCandidateLineCount;
+  final int ocrMetadataCandidateLineCount;
+  final Map<String, int> ocrParserLineRoleCounts;
+  final String? ocrDominantParserLineRole;
+  final int ocrStableLineIdCount;
+  final int ocrParserReadyItemLineIdCount;
+  final int ocrReviewItemLineIdCount;
+  final Map<String, int> ocrParserBucketCounts;
+  final Map<String, int> ocrParserTaskCounts;
+  final String? ocrSourceHandoffStatus;
+  final Map<String, int> ocrSourceHandoffSignalCounts;
+  final Map<String, int> ocrSourceStitchSignalCounts;
+  final Map<String, int> ocrSourceScannerDecisionCounts;
+  final Map<String, int> ocrSourceCaptureSourceSignalCounts;
+  final Map<String, int> ocrSourcePhotoQualityRiskCounts;
+  final String? clientProofRedactionStatus;
+  final Map<String, int> clientProofVisibilityCounts;
+  final String? selectedReceiptLinePurpose;
+  final int selectedReceiptLineCount;
+  final int excludedReceiptLineCount;
+  final int clientProofReviewLineCount;
+  final int redactedReceiptLineCount;
+  final String? clientProofRedactionPlanStatus;
+  final int clientProofVisibleLineCount;
+  final int clientProofHiddenLineCount;
+  final int clientProofPlanReviewLineCount;
+  final String? clientProofImageReviewStatus;
+  final int clientProofImageSectionCount;
+  final int clientProofImageVisibleSectionCount;
+  final int clientProofImageHiddenSectionCount;
+  final int clientProofImageReviewSectionCount;
+  final int clientProofImageUnassignedLineCount;
+  final int clientProofImageUnassignedHiddenLineCount;
+  final int clientProofImageUnassignedReviewLineCount;
+  final Map<String, int> ocrFieldReadinessCounts;
+  final Map<String, int> ocrRequiredFieldStatusCounts;
+  final String? ocrRequiredFieldStatusLabel;
   final int detectedLineCount;
   final int reviewLineCount;
   final int materialLineCount;
@@ -177,175 +296,4 @@ class PrivacySafeReceiptEvent {
   final bool needsHeavyReview;
   final bool usedLocalOcr;
   final bool hadDuplicateOrOverlapText;
-
-  Map<String, Object?> toMap() {
-    return {
-      'event': type.name,
-      'featureArea': featureArea,
-      if (capabilityTier != null) 'capabilityTier': capabilityTier,
-      if (parserDepth != null) 'parserDepth': parserDepth,
-      if (ocrSeverity != null) 'ocrSeverity': ocrSeverity,
-      if (parseQuality != null) 'parseQuality': parseQuality,
-      if (parserTrust != null) 'parserTrust': parserTrust,
-      if (parserReviewCause != null) 'parserReviewCause': parserReviewCause,
-      if (totalsMathStatus != null) 'totalsMathStatus': totalsMathStatus,
-      if (fieldReviewKeys.isNotEmpty) 'fieldReviewKeys': fieldReviewKeys,
-      if (captureMode != null) 'captureMode': captureMode,
-      if (captureOutcome != null) 'captureOutcome': captureOutcome,
-      if (focusBucket != null) 'focusBucket': focusBucket,
-      if (readabilityBucket != null) 'readabilityBucket': readabilityBucket,
-      if (errorKind != null) 'errorKind': errorKind,
-      if (warningKinds.isNotEmpty) 'warningKinds': warningKinds,
-      'photoSectionCount': photoSectionCount,
-      'retakeCount': retakeCount,
-      'captureDurationMs': captureDurationMs,
-      'attachmentsRead': attachmentsRead,
-      'attachmentsSkipped': attachmentsSkipped,
-      'rawLineCount': rawLineCount,
-      'parserLineCount': parserLineCount,
-      'detectedLineCount': detectedLineCount,
-      'reviewLineCount': reviewLineCount,
-      'materialLineCount': materialLineCount,
-      'catalogMatchedLineCount': catalogMatchedLineCount,
-      'unmatchedMaterialLineCount': unmatchedMaterialLineCount,
-      'negativeLineCount': negativeLineCount,
-      'adjustmentLineCount': adjustmentLineCount,
-      'pdfPagesRequested': pdfPagesRequested,
-      'reconciled': reconciled,
-      'taxMathReconciled': taxMathReconciled,
-      'explicitTotalsComplete': explicitTotalsComplete,
-      'needsHeavyReview': needsHeavyReview,
-      'usedLocalOcr': usedLocalOcr,
-      'hadDuplicateOrOverlapText': hadDuplicateOrOverlapText,
-    };
-  }
-
-  static PrivacySafeReceiptEventType _typeForOcrSeverity(
-    ReceiptOcrReviewSeverity severity,
-  ) {
-    return switch (severity) {
-      ReceiptOcrReviewSeverity.good =>
-        PrivacySafeReceiptEventType.receiptOcrGood,
-      ReceiptOcrReviewSeverity.review =>
-        PrivacySafeReceiptEventType.receiptOcrReview,
-      ReceiptOcrReviewSeverity.partial =>
-        PrivacySafeReceiptEventType.receiptOcrPartial,
-      ReceiptOcrReviewSeverity.blocked =>
-        PrivacySafeReceiptEventType.receiptOcrBlocked,
-    };
-  }
-
-  static PrivacySafeReceiptEventType _typeForParseResult(
-    ExpenseReceiptParseResult result,
-  ) {
-    final diagnostics = result.diagnostics;
-    if (!diagnostics.reconciled &&
-        diagnostics.detectedLineCount > 0 &&
-        diagnostics.expectedSubtotalOrTotal != null) {
-      return PrivacySafeReceiptEventType.receiptTotalsMismatch;
-    }
-    if (diagnostics.hasCompleteExplicitTotals &&
-        !diagnostics.taxMathReconciled) {
-      return PrivacySafeReceiptEventType.receiptTotalsMismatch;
-    }
-    if (diagnostics.materialLineCount > 0 &&
-        diagnostics.hasUnmatchedMaterials) {
-      return PrivacySafeReceiptEventType.inventoryCatalogMatchWeak;
-    }
-    return switch (result.quality.label) {
-      'Good' => PrivacySafeReceiptEventType.receiptParserGood,
-      'Review' => PrivacySafeReceiptEventType.receiptParserReview,
-      _ => PrivacySafeReceiptEventType.receiptParserPoor,
-    };
-  }
-
-  static String _qualityBucket(double confidence) {
-    if (confidence >= .84) return 'high';
-    if (confidence >= .58) return 'medium';
-    return 'low';
-  }
-
-  static String _totalsMathStatus(ExpenseReceiptParseDiagnostics diagnostics) {
-    if (!diagnostics.hasCompleteExplicitTotals) return 'incomplete';
-    return diagnostics.taxMathReconciled ? 'matched' : 'mismatch';
-  }
-
-  static String? _parserReviewCause(ExpenseReceiptParseResult result) {
-    final diagnostics = result.diagnostics;
-    if (!result.hasUsableData) return 'receipt_parser_no_usable_fields';
-    if (diagnostics.detectedLineCount > 0 &&
-        diagnostics.expectedSubtotalOrTotal != null &&
-        !diagnostics.reconciled) {
-      return 'receipt_line_total_mismatch';
-    }
-    if (diagnostics.hasCompleteExplicitTotals &&
-        !diagnostics.taxMathReconciled) {
-      return 'receipt_subtotal_tax_total_mismatch';
-    }
-    if (diagnostics.detectedLineCount == 0) {
-      return 'receipt_totals_only_no_line_items';
-    }
-    if (result.enteredTotal == null && result.enteredSubtotal == null) {
-      return 'receipt_total_missing';
-    }
-    if (_wasFieldInferred(result.fieldConfidences['subtotal'])) {
-      return 'receipt_subtotal_inferred';
-    }
-    if (_wasFieldInferred(result.fieldConfidences['tax'])) {
-      return 'receipt_tax_inferred';
-    }
-    if (_wasFieldInferred(result.fieldConfidences['total'])) {
-      return 'receipt_total_inferred';
-    }
-    if (result.receiptDate == null) return 'receipt_date_missing';
-    if (_usedFallbackDate(result)) return 'receipt_date_used_fallback';
-    if ((result.merchantName ?? '').trim().isEmpty) {
-      return 'receipt_merchant_missing';
-    }
-    if (diagnostics.hasUnmatchedMaterials) {
-      return 'inventory_catalog_match_weak';
-    }
-    if (diagnostics.reviewRatio > .5) return 'receipt_lines_need_review';
-    if (result.quality.needsReview) return 'receipt_parser_low_confidence';
-    return null;
-  }
-
-  static List<String> _fieldReviewKeys(ExpenseReceiptParseResult result) {
-    return List<String>.unmodifiable(
-      result.fieldConfidences.values
-          .where((field) => field.needsReview)
-          .map((field) => _safeToken(field.fieldKey))
-          .take(12),
-    );
-  }
-
-  static bool _wasFieldInferred(ExpenseReceiptFieldConfidence? field) {
-    return field != null && field.reason.toLowerCase().contains('inferred');
-  }
-
-  static bool _usedFallbackDate(ExpenseReceiptParseResult result) {
-    final field = result.fieldConfidences['date'];
-    return field != null &&
-        field.reason.toLowerCase().contains('selected day as a fallback');
-  }
-
-  static String _focusBucket(double focusScore) {
-    if (focusScore >= 14) return 'sharp';
-    if (focusScore >= 8) return 'usable';
-    if (focusScore > 0) return 'soft';
-    return 'unknown';
-  }
-
-  static String _readabilityBucket(int reviewScore) {
-    if (reviewScore >= 82) return 'high';
-    if (reviewScore >= 58) return 'review';
-    if (reviewScore > 0) return 'poor';
-    return 'unknown';
-  }
-
-  static String _safeToken(String value) {
-    final clean = value.trim().toLowerCase();
-    if (clean.isEmpty) return 'receipts';
-    return clean.replaceAll(RegExp(r'[^a-z0-9_]+'), '_');
-  }
 }

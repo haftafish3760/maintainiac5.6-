@@ -10,18 +10,32 @@ void main() {
     final topBar = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',
     ).readAsString();
-    final controls = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
-    ).readAsString();
+    final controls =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_context_controls.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_order_controls.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_order_thumbnail.dart',
+        ).readAsString();
     final picker = await File(
       'lib/shared/widgets/receipt_capture/receipt_image_picker.dart',
     ).readAsString();
     final importActions = await File(
       'lib/shared/widgets/receipt_capture/receipt_attachment_import_actions.dart',
     ).readAsString();
-    final attachmentList = await File(
-      'lib/shared/widgets/receipt_capture/receipt_attachment_list.dart',
-    ).readAsString();
+    final attachmentList =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_list.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_summary.dart',
+        ).readAsString();
 
     expect(labels, contains("return 'Top Photo'"));
     expect(labels, contains("return 'Bottom Photo'"));
@@ -30,15 +44,20 @@ void main() {
     expect(labels, contains('orderHint'));
     expect(labels, contains('moveEarlierLabel'));
     expect(labels, contains('moveLaterLabel'));
+    expect(labels, contains("return 'Retake Section \${index + 1}'"));
     expect(topBar, contains('sectionLabel'));
     expect(topBar, contains('Add Another Photo'));
     expect(topBar, contains('Move Photo Up'));
     expect(topBar, contains('Move Photo Down'));
+    expect(topBar, contains('_ReceiptPhotoSectionLabels.retakeLabel'));
+    expect(topBar, isNot(contains('Retake Current Photo')));
     expect(controls, isNot(contains('_ReceiptPageOrderActions')));
     expect(controls, contains('class _ReceiptOrderToolControls'));
     expect(controls, contains('_ReceiptPhotoSectionLabels.orderHint'));
     expect(controls, contains('_ReceiptPhotoSectionLabels.moveEarlierLabel'));
     expect(controls, contains('_ReceiptPhotoSectionLabels.moveLaterLabel'));
+    expect(controls, contains('_ReceiptPhotoSectionLabels.retakeLabel'));
+    expect(controls, isNot(contains("label: 'Retake',")));
     expect(picker, contains('pickMultiImage'));
     expect(importActions, contains('_pickAndReviewMultiple'));
     expect(attachmentList, contains('Photos kept in receipt order'));

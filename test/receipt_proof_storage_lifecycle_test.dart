@@ -155,52 +155,58 @@ void main() {
     expect(await source.exists(), isTrue);
   });
 
-  test('failed batch save restores staged PDFs and removes orphan proof', () async {
-    final source = File('${Directory.systemTemp.path}/batch_receipt.pdf');
-    final bad = File('${Directory.systemTemp.path}/batch_bad.pdf');
-    final pdf = pw.Document()
-      ..addPage(pw.Page(build: (_) => pw.Text('Batch receipt')));
-    await source.writeAsBytes(await pdf.save(), flush: true);
-    await bad.writeAsString('not a pdf', flush: true);
-    addTearDown(() {
-      if (source.existsSync()) source.deleteSync();
-      if (bad.existsSync()) bad.deleteSync();
-    });
+  test(
+    'failed batch save restores staged PDFs and removes orphan proof',
+    () async {
+      final source = File('${Directory.systemTemp.path}/batch_receipt.pdf');
+      final bad = File('${Directory.systemTemp.path}/batch_bad.pdf');
+      final pdf = pw.Document()
+        ..addPage(pw.Page(build: (_) => pw.Text('Batch receipt')));
+      await source.writeAsBytes(await pdf.save(), flush: true);
+      await bad.writeAsString('not a pdf', flush: true);
+      addTearDown(() {
+        if (source.existsSync()) source.deleteSync();
+        if (bad.existsSync()) bad.deleteSync();
+      });
 
-    final staged = await ReceiptProofStorage.instance.stageAttachment(
-      ReceiptAttachmentRecord(
-        id: 'pdf-batch-good',
-        path: source.path,
-        kind: ReceiptAttachmentKind.pdf,
-        dataSaverLevel: ReceiptDataSaverLevel.original,
-        createdAt: DateTime(2026, 6, 13),
-      ),
-    );
-    final stagedPath = staged.path;
-
-    await expectLater(
-      ReceiptProofStorage.instance.persistAttachments([
-        staged.copyWith(linkedModule: 'expenses', linkedRecordId: 'EXP-batch'),
+      final staged = await ReceiptProofStorage.instance.stageAttachment(
         ReceiptAttachmentRecord(
-          id: 'pdf-batch-bad',
-          path: bad.path,
+          id: 'pdf-batch-good',
+          path: source.path,
           kind: ReceiptAttachmentKind.pdf,
           dataSaverLevel: ReceiptDataSaverLevel.original,
           createdAt: DateTime(2026, 6, 13),
         ),
-      ]),
-      throwsA(isA<ReceiptProofStorageException>()),
-    );
+      );
+      final stagedPath = staged.path;
 
-    expect(await File(stagedPath).exists(), isTrue);
-    final permanentPdfDir = Directory(
-      '${documentsDirectory.path}/receipt_proofs/pdfs',
-    );
-    final permanentFiles = permanentPdfDir.existsSync()
-        ? permanentPdfDir.listSync().whereType<File>().toList()
-        : <File>[];
-    expect(permanentFiles, isEmpty);
-  });
+      await expectLater(
+        ReceiptProofStorage.instance.persistAttachments([
+          staged.copyWith(
+            linkedModule: 'expenses',
+            linkedRecordId: 'EXP-batch',
+          ),
+          ReceiptAttachmentRecord(
+            id: 'pdf-batch-bad',
+            path: bad.path,
+            kind: ReceiptAttachmentKind.pdf,
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+            createdAt: DateTime(2026, 6, 13),
+          ),
+        ]),
+        throwsA(isA<ReceiptProofStorageException>()),
+      );
+
+      expect(await File(stagedPath).exists(), isTrue);
+      final permanentPdfDir = Directory(
+        '${documentsDirectory.path}/receipt_proofs/pdfs',
+      );
+      final permanentFiles = permanentPdfDir.existsSync()
+          ? permanentPdfDir.listSync().whereType<File>().toList()
+          : <File>[];
+      expect(permanentFiles, isEmpty);
+    },
+  );
 
   test('failed batch save removes copied external PDFs', () async {
     final source = File('${Directory.systemTemp.path}/batch_external.pdf');

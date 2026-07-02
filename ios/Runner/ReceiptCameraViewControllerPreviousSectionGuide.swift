@@ -1,0 +1,96 @@
+import UIKit
+
+extension ReceiptCameraViewController {
+  func buildPreviousSectionGuide() -> UIView {
+    previousSectionGuidePanel.axis = .vertical
+    previousSectionGuidePanel.spacing = 4
+    previousSectionGuidePanel.backgroundColor = UIColor(white: 0.02, alpha: 0.52)
+    previousSectionGuidePanel.layoutMargins = UIEdgeInsets(top: 7, left: 10, bottom: 7, right: 10)
+    previousSectionGuidePanel.isLayoutMarginsRelativeArrangement = true
+    previousSectionGuidePanel.translatesAutoresizingMaskIntoConstraints = false
+    previousSectionGuidePanel.isHidden = true
+
+    let title = UILabel()
+    title.text = previousSectionGhostGuideTitle()
+    title.textColor = .white
+    title.font = .boldSystemFont(ofSize: 12)
+    previousSectionGuidePanel.addArrangedSubview(title)
+
+    previousSectionGuideImageView.contentMode = .scaleAspectFill
+    previousSectionGuideImageView.alpha = previousSectionGhostOpacity
+    previousSectionGuideImageView.clipsToBounds = true
+    previousSectionGuideImageView.accessibilityLabel = "Previous receipt section overlap guide"
+    previousSectionGuidePanel.addArrangedSubview(previousSectionGuideImageView)
+
+    let detail = UILabel()
+    detail.text = previousSectionGhostGuideInstruction()
+    detail.textColor = UIColor(red: 1.0, green: 0.82, blue: 0.40, alpha: 1)
+    detail.textAlignment = .center
+    detail.font = .boldSystemFont(ofSize: 11)
+    previousSectionGuidePanel.addArrangedSubview(detail)
+    updatePreviousSectionGuide(previousSectionGuidePhotoPath)
+    return previousSectionGuidePanel
+  }
+
+  func updatePreviousSectionGuide(_ path: String?) {
+    guard
+      let path,
+      !path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+      FileManager.default.fileExists(atPath: path),
+      let image = UIImage(contentsOfFile: path)
+    else {
+      previousSectionGuidePanel.isHidden = true
+      return
+    }
+    previousSectionGuideImageView.image = previousSectionGhostSliceImage(image) ?? image
+    previousSectionGuideImageView.alpha = previousSectionGhostOpacity
+    previousSectionGuideImageView.accessibilityLabel =
+      "\(previousSectionGhostGuideTitle()). \(previousSectionGhostGuideInstruction())"
+    previousSectionGuidePanel.isHidden = false
+  }
+
+  func previousSectionGhostSliceImage(_ image: UIImage) -> UIImage? {
+    guard let cgImage = image.cgImage else { return nil }
+    let height = CGFloat(cgImage.height)
+    let width = CGFloat(cgImage.width)
+    guard width > 0, height > 0 else { return image }
+    let startY = min(max(floor(height * previousSectionGhostSourceStartFraction), 0), height - 1)
+    let requestedHeight = max(ceil(height * previousSectionGhostSourceHeightFraction), 1)
+    let sliceHeight = min(requestedHeight, height - startY)
+    let rect = CGRect(x: 0, y: startY, width: width, height: sliceHeight)
+    guard let cropped = cgImage.cropping(to: rect) else { return nil }
+    return UIImage(cgImage: cropped, scale: image.scale, orientation: image.imageOrientation)
+  }
+
+  func previousSectionGhostGuideTitle() -> String {
+    if previousSectionReasonCode == "missing_bottom_edge_and_totals" {
+      return "Match the bottom section"
+    }
+    return "Match receipt sections"
+  }
+
+  func previousSectionGhostGuideInstruction() -> String {
+    let trimmed = previousSectionGuidance.trimmingCharacters(in: .whitespacesAndNewlines)
+    if !trimmed.isEmpty {
+      return trimmed
+    }
+    if previousSectionReasonCode == "missing_bottom_edge_and_totals" {
+      return "Keep the last readable lines in the top ghost slice, then repeat 3-5 readable lines so subtotal, total, and final lines can be matched."
+    }
+    return "Repeat 3-5 readable lines near the top ghost slice of this photo."
+  }
+
+  func addSectionButtonTitle() -> String {
+    if previousSectionReasonCode == "missing_bottom_edge_and_totals" {
+      return "Add Bottom"
+    }
+    return "Add Section \(nextReceiptSectionNumber())"
+  }
+
+  func addSectionButtonAccessibilityLabel() -> String {
+    if previousSectionReasonCode == "missing_bottom_edge_and_totals" {
+      return "Add bottom receipt section with overlap from this photo"
+    }
+    return "Add receipt section \(nextReceiptSectionNumber()) if this receipt continues"
+  }
+}

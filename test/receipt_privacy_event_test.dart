@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/expenses/data/expense_receipt_parser.dart';
+import 'package:maintaniac/shared/receipts/receipt_line_models.dart';
+import 'package:maintaniac/shared/receipts/receipt_processing_contract.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_ocr_service.dart';
@@ -31,145 +33,204 @@ void main() {
       expect(map['warningKinds'], [ReceiptOcrWarningKind.duplicateText.name]);
       expect(map['rawLineCount'], 4);
       expect(map['parserLineCount'], 3);
+      expect(map['ocrItemCandidateLineCount'], 1);
+      expect(map['ocrPricedLineCount'], greaterThanOrEqualTo(1));
+      expect(map['ocrParserReadyLineCount'], 1);
+      expect(map['ocrParserReviewSignalCount'], 0);
+      expect(map['ocrParserReadinessStatus'], 'receipt_ready');
+      expect(map['ocrDownstreamReadinessStatus'], 'inventory_material_ready');
+      final downstreamCounts =
+          map['ocrDownstreamReadinessCounts'] as Map<String, int>;
+      expect(
+        downstreamCounts,
+        containsPair('downstreamReadiness_inventory_material_ready', 1),
+      );
+      expect(downstreamCounts, containsPair('downstreamReadyItemLineCount', 1));
+      expect(map['ocrStableLineIdCount'], 3);
+      expect(map['ocrParserReadyItemLineIdCount'], 1);
+      expect(map['ocrReviewItemLineIdCount'], 0);
+      expect(map['ocrInventoryPrepLineIdCount'], 1);
+      expect(map['ocrParserReadyFieldCount'], greaterThanOrEqualTo(2));
+      expect(map['ocrParserReviewFieldCount'], greaterThanOrEqualTo(1));
+      final bucketCounts = map['ocrParserBucketCounts'] as Map<String, int>;
+      expect(bucketCounts, containsPair('item_ready', 1));
+      expect(bucketCounts, containsPair('summary_ready', 1));
+      final taskCounts = map['ocrParserTaskCounts'] as Map<String, int>;
+      expect(taskCounts, containsPair('vendor_candidate', 1));
+      expect(taskCounts, containsPair('item_price_ready', 1));
+      expect(taskCounts, containsPair('long_receipt_duplicate_text', 1));
+      final readinessCounts =
+          map['ocrFieldReadinessCounts'] as Map<String, int>;
+      expect(readinessCounts, containsPair('vendor_needs_review', 1));
+      expect(readinessCounts, containsPair('total_ready', 1));
+      expect(readinessCounts, containsPair('item_price_ready', 1));
+      final requiredCounts =
+          map['ocrRequiredFieldStatusCounts'] as Map<String, int>;
+      expect(requiredCounts, containsPair('vendor_needs_review', 1));
+      expect(requiredCounts, containsPair('total_ready', 1));
+      expect(requiredCounts, containsPair('item_price_ready', 1));
+      expect(requiredCounts, containsPair('required_ready_total', 2));
+      expect(requiredCounts, containsPair('required_needs_review_total', 1));
+      expect(requiredCounts, containsPair('required_missing_total', 1));
+      expect(
+        map['ocrRequiredFieldStatusLabel'],
+        contains('structure=ready_for_parser'),
+      );
+      final roleCounts = map['ocrParserLineRoleCounts'] as Map<String, int>;
+      expect(roleCounts, containsPair('item', 1));
+      expect(roleCounts, containsPair('vendor', 1));
+      expect(roleCounts, containsPair('summary', 1));
+      expect(map['ocrDominantParserLineRole'], isNotEmpty);
+      expect(map['ocrHighConfidenceItemLineCount'], 1);
+      expect(map['ocrReviewItemLineCount'], 0);
+      expect(map['ocrQuantitySignalItemLineCount'], 0);
+      expect(map['ocrSkuSignalItemLineCount'], 0);
+      expect(map['ocrGenericItemLineCount'], 0);
+      expect(map['ocrSummaryMathStatus'], 'incomplete');
+      expect(map['ocrSummaryMathReconciled'], isFalse);
+      expect(map['ocrLineSequenceStatus'], 'expected_order');
+      expect(map['ocrReceiptStructureStatus'], 'ready_for_parser');
+      expect(map['clientProofRedactionStatus'], 'ready_for_client_proof');
+      final clientProofCounts =
+          map['clientProofVisibilityCounts'] as Map<String, int>;
+      expect(clientProofCounts, containsPair('review_for_client_proof', 3));
+      expect(clientProofCounts.containsKey('redact_by_default'), isFalse);
+      expect(map['ocrSubtotalCandidateLineCount'], 0);
+      expect(map['ocrTaxCandidateLineCount'], 0);
+      expect(map['ocrTotalCandidateLineCount'], 1);
+      expect(map['ocrTenderCandidateLineCount'], 0);
+      expect(map['ocrMetadataCandidateLineCount'], 0);
       expect(map['hadDuplicateOrOverlapText'], isTrue);
       expect(encoded, isNot(contains('lowes')));
       expect(encoded, isNot(contains('pvc')));
       expect(encoded, isNot(contains('7.99')));
+      expect(encoded, isNot(contains('ocr_line_')));
+      expect(encoded, isNot(contains('customer')));
     },
   );
 
   test(
-    'parser privacy event reports counts without merchant items or prices',
+    'line selection privacy event reports counts without receipt content',
     () {
-      final parsed = parseExpenseReceiptText('''
-LOWE'S HOME IMPROVEMENT
-06/12/2026
-25PK #8 X 1-1/4 WOOD SCREWS 6.98
-COPPER ELBOW 7.48
-Subtotal 14.46
-Tax 1.01
-Total 15.47
-''', parserDepth: ReceiptParserDepth.lineItems);
+      const businessLine = ReceiptLineDraft(
+        kind: ReceiptLineKind.inventory,
+        description: 'Private copper elbow',
+        receiptLineId: 'RCP-77-L1',
+        subtotal: 12,
+        rawReceiptText: 'LOWES PRIVATE COPPER ELBOW 12.00',
+        proofLineReferenceLabel: 'Line 1',
+      );
+      const personalLine = ReceiptLineDraft(
+        kind: ReceiptLineKind.expense,
+        description: 'Personal snack',
+        receiptLineId: 'RCP-77-L2',
+        subtotal: 4,
+        businessUse: 'personal',
+        rawReceiptText: 'LOWES PERSONAL SNACK 4.00',
+        proofLineReferenceLabel: 'Line 2',
+        clientProofDefaultVisibility:
+            ReceiptLineClientProofVisibility.redactByDefault,
+      );
+      final bundle = ReceiptLineSelectionBundle.fromDrafts(
+        receiptId: 'RCP-77',
+        purpose: ReceiptLineSelectionPurpose.clientProof,
+        sourceLines: const [businessLine, personalLine],
+      );
 
-      final event = PrivacySafeReceiptEvent.fromParseResult(
-        result: parsed,
-        featureArea: 'expenses',
+      final event = PrivacySafeReceiptEvent.fromLineSelectionBundle(
+        bundle: bundle,
+        featureArea: 'job invoice',
       );
       final map = event.toMap();
       final encoded = map.toString().toLowerCase();
 
       expect(
         map['event'],
-        PrivacySafeReceiptEventType.inventoryCatalogMatchWeak.name,
+        PrivacySafeReceiptEventType.receiptParserReview.name,
       );
-      expect(map['featureArea'], 'expenses');
-      expect(map['parserDepth'], ReceiptParserDepth.lineItems.name);
-      expect(map['parseQuality'], isIn(['high', 'medium', 'low']));
-      expect(map['parserTrust'], isA<String>());
-      expect(map['totalsMathStatus'], 'matched');
-      expect(map['explicitTotalsComplete'], isTrue);
-      expect(map['taxMathReconciled'], isTrue);
-      expect(map['needsHeavyReview'], isTrue);
-      expect(map['detectedLineCount'], greaterThanOrEqualTo(2));
-      expect(map['materialLineCount'], greaterThanOrEqualTo(1));
-      expect(map['unmatchedMaterialLineCount'], greaterThanOrEqualTo(1));
-      expect(encoded, isNot(contains('lowe')));
-      expect(encoded, isNot(contains('wood')));
-      expect(encoded, isNot(contains('screws')));
-      expect(encoded, isNot(contains('copper')));
-      expect(encoded, isNot(contains('15.47')));
-    },
-  );
-
-  test('parser privacy event reports total mismatch without amounts', () {
-    final parsed = parseExpenseReceiptText('''
-PRIVATE STORE
-06/12/2026
-SERVICE ITEM 10.00
-Total 99.99
-''');
-
-    final event = PrivacySafeReceiptEvent.fromParseResult(result: parsed);
-    final encoded = event.toMap().toString().toLowerCase();
-
-    expect(event.type, PrivacySafeReceiptEventType.receiptTotalsMismatch);
-    expect(encoded, isNot(contains('private store')));
-    expect(encoded, isNot(contains('service item')));
-    expect(encoded, isNot(contains('99.99')));
-    expect(encoded, isNot(contains('10.00')));
-  });
-
-  test('parser privacy event reports tax math review without amounts', () {
-    final parsed = parseExpenseReceiptText('''
-PRIVATE STORE
-06/12/2026
-SERVICE ITEM 10.00
-Subtotal 10.00
-Tax 0.80
-Total 12.80
-''');
-
-    final event = PrivacySafeReceiptEvent.fromParseResult(result: parsed);
-    final map = event.toMap();
-    final encoded = map.toString().toLowerCase();
-
-    expect(event.type, PrivacySafeReceiptEventType.receiptTotalsMismatch);
-    expect(map['explicitTotalsComplete'], isTrue);
-    expect(map['taxMathReconciled'], isFalse);
-    expect(map['needsHeavyReview'], isTrue);
-    expect(map['parserTrust'], 'needs_receipt_math_review');
-    expect(map['totalsMathStatus'], 'mismatch');
-    expect(encoded, isNot(contains('private store')));
-    expect(encoded, isNot(contains('service item')));
-    expect(encoded, isNot(contains('12.80')));
-    expect(encoded, isNot(contains('10.00')));
-    expect(encoded, isNot(contains('0.80')));
-  });
-
-  test(
-    'camera capture privacy event reports buckets without image content',
-    () {
-      const quality = ReceiptPhotoQualityCheck(
-        width: 1600,
-        height: 2200,
-        focusScore: 15,
-        brightness: 142,
-        contrast: 38,
-        cropScore: .76,
-        textBandScore: 12,
-        isLikelyReadable: true,
-      );
-
-      final event = PrivacySafeReceiptEvent.fromCapture(
-        type: PrivacySafeReceiptEventType.receiptCaptureCompleted,
-        featureArea: 'expense receipts',
-        capability: const ReceiptDeviceCapability.standard(),
-        captureMode: 'assisted_auto',
-        captureOutcome: 'completed',
-        quality: quality,
-        photoSectionCount: 2,
-        retakeCount: 1,
-        captureDurationMs: 3200,
-      );
-      final map = event.toMap();
-      final encoded = map.toString().toLowerCase();
-
-      expect(
-        map['event'],
-        PrivacySafeReceiptEventType.receiptCaptureCompleted.name,
-      );
-      expect(map['featureArea'], 'expense_receipts');
-      expect(map['capabilityTier'], ReceiptCapabilityTier.medium.name);
-      expect(map['captureMode'], 'assisted_auto');
-      expect(map['captureOutcome'], 'completed');
-      expect(map['focusBucket'], 'sharp');
-      expect(map['readabilityBucket'], 'high');
-      expect(map['photoSectionCount'], 2);
-      expect(map['retakeCount'], 1);
-      expect(map['captureDurationMs'], 3200);
+      expect(map['featureArea'], 'job_invoice');
+      expect(map['selectedReceiptLinePurpose'], 'clientProof');
+      expect(map['selectedReceiptLineCount'], 1);
+      expect(map['excludedReceiptLineCount'], 1);
+      expect(map['clientProofReviewLineCount'], 1);
+      expect(map['redactedReceiptLineCount'], 0);
+      expect(map['clientProofRedactionPlanStatus'], 'review_required');
+      expect(map['clientProofVisibleLineCount'], 0);
+      expect(map['clientProofHiddenLineCount'], 1);
+      expect(map['clientProofPlanReviewLineCount'], 1);
       expect(encoded, isNot(contains('lowes')));
-      expect(encoded, isNot(contains('/tmp')));
-      expect(encoded, isNot(contains('.jpg')));
+      expect(encoded, isNot(contains('copper')));
+      expect(encoded, isNot(contains('snack')));
+      expect(encoded, isNot(contains('12.00')));
+      expect(encoded, isNot(contains('4.00')));
+    },
+  );
+
+  test(
+    'client proof image review privacy event reports section counts only',
+    () {
+      const reviewLine = ReceiptLineDraft(
+        kind: ReceiptLineKind.inventory,
+        description: 'Private repair part',
+        receiptLineId: 'RCP-88-L1',
+        subtotal: 18,
+        rawReceiptText: 'LOWES PRIVATE REPAIR PART 18.00',
+        proofLineReferenceLabel: 'Line 1',
+        sourceReceiptSectionLabel: 'Photo 1',
+        clientProofDefaultVisibility:
+            ReceiptLineClientProofVisibility.reviewBeforeClientShare,
+      );
+      const hiddenLine = ReceiptLineDraft(
+        kind: ReceiptLineKind.expense,
+        description: 'Personal drink',
+        receiptLineId: 'RCP-88-L2',
+        subtotal: 2,
+        businessUse: 'personal',
+        rawReceiptText: 'LOWES PERSONAL DRINK 2.00',
+        proofLineReferenceLabel: 'Line 2',
+        sourceReceiptSectionLabel: 'Photo 2',
+        clientProofDefaultVisibility:
+            ReceiptLineClientProofVisibility.redactByDefault,
+      );
+      final bundle = ReceiptLineSelectionBundle.fromDrafts(
+        receiptId: 'RCP-88',
+        purpose: ReceiptLineSelectionPurpose.clientProof,
+        sourceLines: const [reviewLine, hiddenLine],
+        includeLine: (_) => true,
+      );
+      final plan = ReceiptClientProofImageReviewPlan.fromRedactionPlan(
+        ReceiptClientProofRedactionPlan.fromBundle(bundle),
+      );
+
+      final event = PrivacySafeReceiptEvent.fromClientProofImageReviewPlan(
+        plan: plan,
+        featureArea: 'job invoice',
+      );
+      final map = event.toMap();
+      final encoded = map.toString().toLowerCase();
+
+      expect(
+        map['event'],
+        PrivacySafeReceiptEventType.receiptParserReview.name,
+      );
+      expect(map['featureArea'], 'job_invoice');
+      expect(map['selectedReceiptLinePurpose'], 'clientProof');
+      expect(
+        map['clientProofImageReviewStatus'],
+        'manual_image_review_required',
+      );
+      expect(map['clientProofImageSectionCount'], 2);
+      expect(map['clientProofImageVisibleSectionCount'], 0);
+      expect(map['clientProofImageHiddenSectionCount'], 1);
+      expect(map['clientProofImageReviewSectionCount'], 1);
+      expect(map['clientProofImageUnassignedLineCount'], 0);
+      expect(map['clientProofImageUnassignedHiddenLineCount'], 0);
+      expect(map['clientProofImageUnassignedReviewLineCount'], 0);
+      expect(encoded, isNot(contains('lowes')));
+      expect(encoded, isNot(contains('repair')));
+      expect(encoded, isNot(contains('drink')));
+      expect(encoded, isNot(contains('18.00')));
+      expect(encoded, isNot(contains('2.00')));
     },
   );
 }
@@ -177,6 +238,8 @@ Total 12.80
 ReceiptAttachmentRecord _textAttachment({
   required String id,
   required String text,
+  List<String> documentSignals = const [],
+  List<String> riskFlags = const [],
 }) {
   return ReceiptAttachmentRecord(
     id: id,
@@ -185,5 +248,7 @@ ReceiptAttachmentRecord _textAttachment({
     dataSaverLevel: ReceiptDataSaverLevel.balanced,
     createdAt: DateTime(2026, 6, 23),
     importedText: text,
+    documentSignals: documentSignals,
+    riskFlags: riskFlags,
   );
 }

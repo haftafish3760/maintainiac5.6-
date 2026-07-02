@@ -285,7 +285,7 @@ class _TradeSettingsPanel extends StatelessWidget {
               selected: selectedTrade == trade.name,
               followed: settings.followsTrade(trade.name),
               hidden: settings.hidesTrade(trade.name),
-              color: trade.color,
+              color: Color(trade.color.value),
               onTap: () => onSelectTrade(trade.name),
               onFollow: () => settings.setTradeFollowed(
                 trade.name,
@@ -326,7 +326,7 @@ class _CategorySettingsPanel extends StatelessWidget {
               selected: false,
               followed: settings.followsCategory(trade, category.name),
               hidden: settings.hidesCategory(trade, category.name),
-              color: definition.color,
+              color: Color(definition.color.value),
               onTap: () => settings.setCategoryFollowed(
                 trade,
                 category.name,

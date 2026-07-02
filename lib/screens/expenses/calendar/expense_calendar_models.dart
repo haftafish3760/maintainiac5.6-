@@ -288,7 +288,7 @@ class _CalendarOcrDayRecap {
   String get detailLabel {
     if (!hasReceipts) return 'Add a receipt to start tracking read health.';
     if (!hasOcrReads) {
-      return '$receiptCount ${receiptCount == 1 ? 'receipt' : 'receipts'} saved without receipt reading.';
+      return '$receiptCount ${receiptCount == 1 ? 'receipt' : 'receipts'} saved without receipt assistance.';
     }
     final readText = '$readCount ${readCount == 1 ? 'read' : 'reads'} saved';
     final reviewText = '$reviewCount need review';

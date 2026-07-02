@@ -87,7 +87,7 @@ Maintainiac wins by adding business context the scanner apps do not own.
 
 - Never hide the receipt behind a large bottom sheet during review.
 - Never require scrolling a control panel just to find the continue action.
-- Never OCR the compressed backup copy when a cleaner prepared source exists.
+- Never OCR the smaller saved proof when a cleaner prepared source exists.
 - Never silently update inventory from a receipt without review.
 - Never show raw developer diagnostics to normal users.
 - Never rely on cloud/AI to make basic receipt capture work.

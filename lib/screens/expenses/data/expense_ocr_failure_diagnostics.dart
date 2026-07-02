@@ -67,15 +67,28 @@ class ExpenseOcrFailureDiagnostics {
     final warningKind = selected?.kind.name ?? 'none';
     final recoveryAction = _recoveryActionFor(selected?.kind, result.source);
     final recoveryTarget = _recoveryTargetFor(selected?.kind, result.source);
+    final sourceFirst = _sourceFirstEvidenceFor(diagnostics);
     return [
       'warning_$warningKind',
       'severity_${diagnostics.severity.name}',
       'source_${result.source.name}',
+      'sourceFirst_$sourceFirst',
       'read_${diagnostics.attachmentsRead}',
       'skipped_${diagnostics.attachmentsSkipped}',
       'recovery_$recoveryAction',
       'target_$recoveryTarget',
     ].join('_');
+  }
+
+  static String _sourceFirstEvidenceFor(ReceiptOcrDiagnostics diagnostics) {
+    final contract = diagnostics.ocrSourceHandoffContract;
+    final rawDecision = contract['sourceFirstDecisionStatus'];
+    final rawOutcome = contract['sourceFirstOutcomeStatus'];
+    final decision = rawDecision is String ? rawDecision.trim() : '';
+    if (decision.isNotEmpty) return decision;
+    final outcome = rawOutcome is String ? rawOutcome.trim() : '';
+    if (outcome.isNotEmpty) return outcome;
+    return diagnostics.ocrSourceHandoffStatus;
   }
 
   static String _recoveryActionFor(

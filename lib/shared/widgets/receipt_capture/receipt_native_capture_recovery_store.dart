@@ -15,6 +15,7 @@ class ReceiptNativeCaptureRecoveryIndexEntry {
     required this.stagedPhotoPaths,
     required this.attachments,
     required this.captureDiagnostics,
+    this.recoverySafety = const {},
   });
 
   factory ReceiptNativeCaptureRecoveryIndexEntry.fromMap(
@@ -46,6 +47,9 @@ class ReceiptNativeCaptureRecoveryIndexEntry {
             ? map['captureDiagnostics'] as Map
             : const {},
       ),
+      recoverySafety: Map<String, Object?>.from(
+        map['recoverySafety'] is Map ? map['recoverySafety'] as Map : const {},
+      ),
     );
   }
 
@@ -58,6 +62,7 @@ class ReceiptNativeCaptureRecoveryIndexEntry {
   final List<String> stagedPhotoPaths;
   final List<ReceiptAttachmentRecord> attachments;
   final Map<String, Object?> captureDiagnostics;
+  final Map<String, Object?> recoverySafety;
 
   bool get hasExistingManifest {
     return manifestPath.trim().isNotEmpty && File(manifestPath).existsSync();
@@ -79,6 +84,7 @@ class ReceiptNativeCaptureRecoveryIndexEntry {
       'stagedPhotoPaths': stagedPhotoPaths,
       'attachments': [for (final attachment in attachments) attachment.toMap()],
       'captureDiagnostics': captureDiagnostics,
+      if (recoverySafety.isNotEmpty) 'recoverySafety': recoverySafety,
       'privacy': {
         'storesReceiptImageContent': false,
         'storesReceiptText': false,
@@ -116,6 +122,30 @@ class ReceiptNativeCaptureRecoveryStore {
       _keyFor(entry.sessionId, entry.manifestPath),
       entry.toMap(),
     );
+  }
+
+  Future<void> updateDiagnosticsByManifestPath(
+    String manifestPath,
+    Map<String, Object?> diagnostics,
+  ) async {
+    final normalized = manifestPath.trim();
+    if (normalized.isEmpty) return;
+    for (final key in _box.keys) {
+      final value = _box.get(key);
+      if (value is! Map || value['schema'] != entrySchema) continue;
+      if ((value['manifestPath'] as String? ?? '').trim() != normalized) {
+        continue;
+      }
+      final updated = Map<dynamic, dynamic>.from(value);
+      final existingDiagnostics = Map<String, Object?>.from(
+        updated['captureDiagnostics'] is Map
+            ? updated['captureDiagnostics'] as Map
+            : const {},
+      );
+      updated['captureDiagnostics'] = {...existingDiagnostics, ...diagnostics};
+      await _box.put(key, updated);
+      return;
+    }
   }
 
   Future<void> deleteByManifestPath(String manifestPath) async {
@@ -166,6 +196,32 @@ class ReceiptNativeCaptureRecoveryStore {
       if (!entry.hasExistingManifest && !entry.hasExistingPhotos) {
         keysToDelete.add(key);
       }
+    }
+    for (final key in keysToDelete) {
+      await _box.delete(key);
+    }
+  }
+
+  Future<void> deleteOldEntries({
+    Iterable<String> retainedPaths = const [],
+    Duration olderThan = const Duration(days: 7),
+    DateTime? now,
+  }) async {
+    final retained = retainedPaths
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toSet();
+    final reference = now ?? DateTime.now();
+    final cutoff = reference.subtract(olderThan);
+    final keysToDelete = <dynamic>[];
+    for (final key in _box.keys) {
+      final value = _box.get(key);
+      if (value is! Map || value['schema'] != entrySchema) continue;
+      final entry = ReceiptNativeCaptureRecoveryIndexEntry.fromMap(value);
+      final hasRetainedPhoto = entry.stagedPhotoPaths.any(retained.contains);
+      if (hasRetainedPhoto) continue;
+      if (entry.capturedAt.isAfter(cutoff)) continue;
+      keysToDelete.add(key);
     }
     for (final key in keysToDelete) {
       await _box.delete(key);
