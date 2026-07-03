@@ -121,6 +121,17 @@ class MaintainiacQaCaseRegistry {
             'flutter test test/maintainiac_device_capability_test.dart',
         tags: {'device', 'storage', 'pack-delivery'},
       ),
+      MaintainiacQaCase(
+        id: 'QA-SCOPE-001',
+        title: 'Account company employee and vehicle scoping',
+        module: MaintainiacQaModule.security,
+        behavior:
+            'Records are accessible only when account, company, employee, assigned vehicle, and required permission rules pass.',
+        evidenceTarget: 'maintainiac_scope_policy_test',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand: 'flutter test test/maintainiac_scope_policy_test.dart',
+        tags: {'security', 'permissions', 'fleet'},
+      ),
     ]);
   }
 

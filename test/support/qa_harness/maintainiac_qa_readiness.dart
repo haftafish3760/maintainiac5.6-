@@ -106,6 +106,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_device_capability.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'scope_policy_probe',
+        module: MaintainiacQaModule.security,
+        description:
+            'Reusable account, company, employee, vehicle, and permission scoping probe.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_scope_policy.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:
