@@ -304,6 +304,35 @@ void main() {
     );
   });
 
+  test('bottom soft or missing status prompts without a boolean edge flag', () {
+    final decision = ReceiptPhotoCoverageDecision.fromSignals(
+      quality: const ReceiptPhotoQualityCheck(
+        width: 1200,
+        height: 1800,
+        focusScore: 18,
+        isLikelyReadable: true,
+      ),
+      diagnostics: const {
+        ReceiptCaptureDiagnosticKeys.receiptBottomEdgeStatus:
+            'bottom_soft_or_missing',
+        ReceiptCaptureDiagnosticKeys.receiptSubtotalDetected: false,
+        ReceiptCaptureDiagnosticKeys.receiptTotalDetected: false,
+        ReceiptCaptureDiagnosticKeys.receiptTotalAmountDetected: false,
+        'subtotalCandidateLineCount': 0,
+        'totalCandidateLineCount': 0,
+        ReceiptCaptureDiagnosticKeys.receiptTotalsTextEvidenceStatus: 'missing',
+      },
+    );
+
+    expect(decision.status, ReceiptPhotoCoverageStatus.likelyCutOff);
+    expect(decision.reasonCode, 'missing_bottom_edge_and_totals');
+    expect(decision.shouldPromptForMorePhotos, isTrue);
+    expect(
+      decision.continuationCaptureContractCode,
+      'bottom_edge_totals_missing_use_ghost_overlap',
+    );
+  });
+
   test('tax line alone does not satisfy bottom totals completion evidence', () {
     final decision = ReceiptPhotoCoverageDecision.fromSignals(
       quality: const ReceiptPhotoQualityCheck(

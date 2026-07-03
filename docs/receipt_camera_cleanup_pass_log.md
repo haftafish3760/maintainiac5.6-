@@ -24,6 +24,25 @@ Verification:
   rejects duplicate current section paths"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
 
+## Pass 524 - 01:41:00 EDT to 01:45:00 EDT
+
+Scope:
+- Hardened receipt coverage bottom-edge evidence so native
+  `bottom_soft_or_missing` status alone is treated as missing bottom edge.
+- Added a coverage regression proving status-only bottom-soft evidence still
+  prompts for a bottom section when totals are missing.
+- Recorded `BUG-RECEIPT-0042` under `camera_capture_quality`.
+- Archived Pass 499 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for coverage evidence helpers and
+  coverage totals regression coverage.
+- Passed focused Flutter test
+  `test/receipt_camera_result_coverage_totals_test.dart`.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 523 - 01:36:00 EDT to 01:40:00 EDT
 
 Scope:
@@ -459,41 +478,4 @@ Verification:
 - Passed focused Flutter test
   `test/expense_receipt_line_record_test.dart --plain-name "privacy-safe receipt
   line contracts never expose generated item ids"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 500 - 00:44:25 EDT to 00:45:01 EDT
-
-Scope:
-- Hardened stitched receipt handoff metadata so source preservation includes
-  privacy-safe input-source counts, OCR-source counts, overlap totals, and manual
-  adjustment state without exposing raw paths.
-- Added regression coverage proving the stitched OCR artifact reports its source
-  counts while keeping private file paths out of privacy-safe metadata.
-- Recorded `BUG-RECEIPT-0019` under `source_preservation`.
-- Archived Pass 487 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for stitched receipt metadata,
-  stitch result contracts, and focused stitch scanner regression coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_result_stitch_scanner_test.dart --plain-name "photo
-  review result explains stitched and fallback handoffs"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 499 - 01:33:00 EDT to 01:38:00 EDT
-
-Scope:
-- Hardened long-receipt manual overlap stitching so non-finite overlap fractions
-  cannot escape the safe manual-overlap fallback path.
-- Added regression coverage proving non-finite manual overlap uses
-  `manual_overlap_unsafe` and preserves ordered OCR source paths.
-- Recorded `BUG-RECEIPT-0018` under `ghost_overlap_stitching`.
-
-Verification:
-- Passed targeted Dart format and analyzer for stitch helpers and focused manual
-  overlap regression coverage.
-- Passed focused Flutter test
-  `test/receipt_stitching_manual_overlap_test.dart --plain-name "manual overlap
-  fraction rejects non-finite values safely"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.

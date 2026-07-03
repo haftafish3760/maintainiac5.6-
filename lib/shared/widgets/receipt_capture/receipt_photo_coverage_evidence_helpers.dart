@@ -142,6 +142,9 @@ const Set<String> _missingBottomEdgeStatuses = {
   'outside_frame',
   'needs_next_section',
   'continues',
+  'bottom_soft_or_missing',
+  'bottom_missing',
+  'soft_or_missing',
 };
 
 const Set<String> _presentBottomEdgeStatuses = {
