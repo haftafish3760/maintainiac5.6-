@@ -72,6 +72,32 @@ void main() {
     }
   });
 
+  test(
+    'individual QA command tool resolves every selector id exactly once',
+    () {
+      const registry = maintainiacSurgicalTestSelectorRegistry;
+
+      for (final selector in registry.selectors) {
+        final result = resolveMaintainiacIndividualQaCommand([
+          '--id',
+          selector.id,
+        ]);
+
+        expect(
+          result.exitCode,
+          0,
+          reason: 'Expected ${selector.id} to resolve.',
+        );
+        expect(result.stdout.trim(), selector.command);
+        expect(
+          result.stdout.trim().split('\n'),
+          hasLength(1),
+          reason: '${selector.id} must stay surgical and return one command.',
+        );
+      }
+    },
+  );
+
   test('individual QA command tool rejects unknown selectors', () {
     final result = resolveMaintainiacIndividualQaCommand([
       '--id',

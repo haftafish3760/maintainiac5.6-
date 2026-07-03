@@ -1637,6 +1637,15 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'tooling', 'parser-consumer', 'regression', 'release-gate'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'individual_command_tool_all_selector_ids',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_individual_qa_command_tool_test.dart',
+    plainName:
+        'individual QA command tool resolves every selector id exactly once',
+    reason: 'Run only the command-tool all-selector-id exact lookup check.',
+    tags: {'tooling', 'parser-consumer', 'regression', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'individual_command_tool_rejects_unknown',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_individual_qa_command_tool_test.dart',
