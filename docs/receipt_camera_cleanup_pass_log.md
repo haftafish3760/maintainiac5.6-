@@ -24,6 +24,24 @@ Verification:
   rejects duplicate current section paths"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
 
+## Pass 519 - 01:43:00 EDT to 01:48:00 EDT
+
+Scope:
+- Updated the receipt photo review lifecycle regression so it now requires the
+  safer add/remove order-plan path from Pass 518.
+- Added source-level coverage proving the old `indexOf(targetPhotoPath)`
+  removal pattern does not come back.
+- Recorded `BUG-RECEIPT-0037` under `qa_harness`.
+- Archived Pass 494 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for the lifecycle source regression.
+- Passed focused Flutter test
+  `test/receipt_photo_review_save_lifecycle_test.dart`.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 518 - 01:31:00 EDT to 01:39:00 EDT
 
 Scope:
@@ -471,25 +489,6 @@ Scope:
 Verification:
 - Passed targeted Dart format and analyzer for the receipt line editor derived
   fields and assisted-review source regression coverage.
-- Passed focused Flutter test
-  `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
-  receipt review exposes classification and attachment flow"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 494 - 00:49:00 EDT to 00:54:00 EDT
-
-Scope:
-- Hardened the active receipt entry draft line model so review previews and
-  in-progress totals use bounded split percentages before save.
-- Added source-level regression coverage for the private entry computed fields
-  that drive line review labels and mixed business/personal totals.
-- Recorded `BUG-RECEIPT-0013` under `business_personal_split`.
-- Archived Pass 485 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for receipt entry computed fields and
-  assisted-review source regression coverage.
 - Passed focused Flutter test
   `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
   receipt review exposes classification and attachment flow"`.

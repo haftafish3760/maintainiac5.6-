@@ -78,8 +78,13 @@ void main() {
       contains('if (picked.paths.isEmpty || !_reviewWorkActive) return;'),
     );
     expect(saveActions, contains('final guidePhotoPath = _photoPaths.isEmpty'));
-    expect(saveActions, contains('final guideIndex = guidePhotoPath == null'));
-    expect(saveActions, contains('? _photoPaths.length'));
+    expect(saveActions, contains('final guideIndex = _photoPaths.isEmpty'));
+    expect(saveActions, contains('final insertPlan = guidePhotoPath == null'));
+    expect(saveActions, contains('ReceiptPhotoInsertAfterOrderPlan.build('));
+    expect(
+      saveActions,
+      contains('if (guidePhotoPath != null && insertPlan == null) return;'),
+    );
     expect(
       saveActions,
       contains('final targetPhotoPath = _photoPaths[_selectedIndex];'),
@@ -109,13 +114,17 @@ void main() {
     );
     expect(
       saveActions,
-      contains('final removeIndex = _photoPaths.indexOf(targetPhotoPath);'),
+      contains('final removalPlan = ReceiptPhotoRemovalOrderPlan.build('),
+    );
+    expect(saveActions, contains('if (removalPlan == null) return;'));
+    expect(
+      saveActions,
+      contains('_selectedIndex = removalPlan.selectedIndex;'),
     );
     expect(
       saveActions,
-      contains('if (removeIndex < 0 || _photoPaths.length <= 1) return;'),
+      isNot(contains('_photoPaths.indexOf(targetPhotoPath)')),
     );
-    expect(saveActions, contains('_selectedIndex = removeIndex;'));
     expect(
       saveActions,
       contains('final currentPathOrderMatches = _sameReceiptPhotoOrder'),
