@@ -154,16 +154,15 @@ ExpenseReceiptParseResult _withOcrParserLineEvidence(
   ReceiptOcrParserHandoff handoff,
 ) {
   if (parsed.lines.isEmpty || handoff.lineDrafts.isEmpty) return parsed;
-  final draftsByLineNumber = {
-    for (final draft in handoff.lineDrafts) draft.lineNumber: draft,
-  };
+  final draftsByLineNumber = _ocrLineDraftsByLineNumber(handoff.lineDrafts);
   var changed = false;
   final enrichedLines = <ExpenseReceiptLineRecord>[];
   for (final line in parsed.lines) {
-    final sourceLineNumber = line.ocrSourceLineNumber;
-    final draft = sourceLineNumber == null
-        ? null
-        : draftsByLineNumber[sourceLineNumber];
+    final draft = _ocrLineDraftForParsedLine(
+      line: line,
+      handoff: handoff,
+      draftsByLineNumber: draftsByLineNumber,
+    );
     if (draft == null) {
       enrichedLines.add(line);
       continue;
@@ -193,6 +192,30 @@ ExpenseReceiptParseResult _withOcrParserLineEvidence(
   }
   if (!changed) return parsed;
   return parsed.copyWith(lines: List.unmodifiable(enrichedLines));
+}
+
+Map<int, ReceiptOcrParserLineDraft> _ocrLineDraftsByLineNumber(
+  List<ReceiptOcrParserLineDraft> drafts,
+) {
+  final mapped = <int, ReceiptOcrParserLineDraft>{};
+  for (final draft in drafts) {
+    mapped.putIfAbsent(draft.lineNumber, () => draft);
+  }
+  return Map<int, ReceiptOcrParserLineDraft>.unmodifiable(mapped);
+}
+
+ReceiptOcrParserLineDraft? _ocrLineDraftForParsedLine({
+  required ExpenseReceiptLineRecord line,
+  required ReceiptOcrParserHandoff handoff,
+  required Map<int, ReceiptOcrParserLineDraft> draftsByLineNumber,
+}) {
+  final sourceLineId = (line.ocrSourceLineId ?? '').trim();
+  if (sourceLineId.isNotEmpty) {
+    final draft = handoff.lineDraftsById[sourceLineId];
+    if (draft != null) return draft;
+  }
+  final sourceLineNumber = line.ocrSourceLineNumber;
+  return sourceLineNumber == null ? null : draftsByLineNumber[sourceLineNumber];
 }
 
 String? _preferSpecificParserExpenseFamily({

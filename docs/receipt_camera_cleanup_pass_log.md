@@ -3,6 +3,28 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 537 - 03:11:21 EDT to 03:12:50 EDT
+
+Scope:
+- Hardened OCR parser enrichment so parsed receipt lines prefer stable OCR line
+  IDs before falling back to line numbers.
+- Made line-number fallback first-source-wins so duplicate or replayed line
+  numbers cannot replace earlier receipt proof evidence.
+- Added regression coverage for stable receipt line evidence and the duplicate
+  line-number overwrite guard.
+- Recorded `BUG-RECEIPT-0055` under `receipt_line_numbering`.
+- Archived Pass 512 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for OCR handoff enrichment and OCR
+  diagnostics regression coverage.
+- Passed focused Flutter test
+  `test/expense_receipt_parser_ocr_diagnostics_test.dart`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+- Passed cleanup log gate, doc-size gate, receipt source audit, and
+  `git diff --check`.
+
 ## Pass 517 - 01:17:01 EDT to 01:17:58 EDT
 
 Scope:
@@ -475,26 +497,4 @@ Verification:
 - Passed focused Flutter test
   `test/receipt_native_capture_staging_test.dart --plain-name "native staging
   treats non-finite edge evidence as cut off"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 512 - 01:04:59 EDT to 01:06:18 EDT
-
-Scope:
-- Hardened receipt coverage evidence parsing so non-finite diagnostic numbers
-  cannot fake bottom-edge or totals completion evidence.
-- Added a coverage regression proving malformed native numbers still produce a
-  conservative missing-bottom-and-totals continuation decision.
-- Recorded `BUG-RECEIPT-0030` under `camera_capture_quality`.
-- Archived Pass 475 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Fixed an initial analyzer failure from a wrong diagnostic key in the new
-  regression, then fixed the app logic after the corrected regression exposed a
-  false likely-complete decision.
-- Passed targeted Dart format and analyzer for receipt coverage evidence helpers
-  and coverage totals regression coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_result_coverage_totals_test.dart --plain-name
-  "non-finite coverage diagnostics are treated as missing evidence"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.

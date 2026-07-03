@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/expenses/data/expense_receipt_parser.dart';
 import 'package:maintaniac/shared/receipts/receipt_processing_contract.dart';
@@ -238,6 +240,64 @@ VISA 5.41
       parsed.diagnostics.ocrSourceSectionReviewInstruction,
       contains('Review the receipt photos from top to bottom before saving'),
     );
+  });
+
+  test('OCR parser enrichment keeps stable line IDs ahead of line numbers', () {
+    const ocr = ReceiptOcrResult(
+      rawText: '''
+STORE
+06/12/2026
+PVC PIPE 14.50
+TOTAL 14.50
+''',
+      parserText: '''
+STORE
+06/12/2026
+PVC PIPE 14.50
+TOTAL 14.50
+''',
+      textByAttachmentId: {'photo-1': 'stable line receipt text omitted'},
+      source: ReceiptProcessingSource.photo,
+      parserLineSourceLocations: [
+        ReceiptOcrParserLineLocation(sectionNumber: 1, sectionLineNumber: 1),
+        ReceiptOcrParserLineLocation(sectionNumber: 1, sectionLineNumber: 2),
+        ReceiptOcrParserLineLocation(sectionNumber: 4, sectionLineNumber: 7),
+        ReceiptOcrParserLineLocation(sectionNumber: 4, sectionLineNumber: 8),
+      ],
+    );
+
+    final parsed = parseExpenseReceiptOcrResult(
+      ocr,
+      capability: const ReceiptDeviceCapability.highCapacity(),
+    );
+
+    expect(parsed.lines, hasLength(1));
+    expect(parsed.lines.single.ocrSourceLineId, 'ocr_line_002_item');
+    expect(parsed.lines.single.ocrSourceLineNumber, 3);
+    expect(parsed.lines.single.ocrSourceSectionNumber, 4);
+    expect(parsed.lines.single.ocrSourceSectionLineNumber, 7);
+    expect(
+      parsed.lines.single.receiptProofLineReferenceLabel,
+      'Section 4 line 7',
+    );
+  });
+
+  test('OCR parser enrichment rejects duplicate line-number overwrite shape', () {
+    final source = File(
+      'lib/screens/expenses/data/expense_receipt_parser_ocr_handoff_logic.dart',
+    ).readAsStringSync();
+    final enrichmentStart = source.indexOf(
+      'ExpenseReceiptParseResult _withOcrParserLineEvidence',
+    );
+    final enrichmentEnd = source.indexOf(
+      'String? _preferSpecificParserExpenseFamily',
+      enrichmentStart,
+    );
+    final enrichment = source.substring(enrichmentStart, enrichmentEnd);
+
+    expect(enrichment, contains('handoff.lineDraftsById[sourceLineId]'));
+    expect(enrichment, contains('mapped.putIfAbsent(draft.lineNumber'));
+    expect(enrichment, isNot(contains('draft.lineNumber: draft')));
   });
 }
 
