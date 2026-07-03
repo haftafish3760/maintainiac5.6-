@@ -116,6 +116,7 @@ import 'work_supply_parser_release_one_cell_manifest_qa.dart';
 import 'work_supply_parser_release_one_command_manifest_qa.dart';
 import 'work_supply_parser_release_one_pack_balance_qa.dart';
 import 'work_supply_parser_release_one_residential_qa.dart';
+import 'work_supply_parser_release_one_service_family_qa.dart';
 import 'work_supply_parser_release_manifest_qa.dart';
 import 'work_supply_parser_release_orchestration_qa.dart';
 import 'work_supply_parser_release_shard_qa.dart';
@@ -178,6 +179,7 @@ QaHarness buildWorkSupplyParserQaHarness() {
       WorkSupplyParserProductNormalizationSuite(),
       WorkSupplyParserServiceTruckCoreSuite(),
       WorkSupplyParserReleaseOneResidentialSuite(),
+      WorkSupplyParserReleaseOneServiceFamilySuite(),
       WorkSupplyParserReleaseOnePackBalanceSuite(),
       WorkSupplyParserItemMetadataDepthSuite(),
       WorkSupplyParserItemPromotionGateSuite(),

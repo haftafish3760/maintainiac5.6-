@@ -58,6 +58,19 @@ scope still enforced by adjacent suites.
 - focusedRerun: flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.service_truck_core_contract,inventory.release_one_residential_contract,inventory.release_one_pack_balance,inventory.spanish_release_one,qa.threshold_gate
 - doNotRerunUnless: service-truck signals, release-one pack balance, Spanish release-one coverage, catalog Core/Standard metadata, or progress memory changes
 
+Essential release-one service-family validation completed locally for
+Core/Standard Plumbing, Electrical, and HVAC.
+
+- suiteId: inventory.release_one_service_family_contract
+- status: focused-validated
+- lastEvidence: build/parser_qa_reports/work_supply_inventory_parser_2026-07-03T145246005001.json
+- checked: 16863
+- actualFailures: 0
+- durationMs: 82350
+- coveredFamilies: plumbing common pipe fittings, plumbing toilet repair, plumbing sink/faucet repair, electrical wire/cable, electrical boxes/devices, electrical conduit/support, HVAC filter/airflow, HVAC condensate/drain, HVAC service fasteners/sealants
+- focusedRerun: flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_service_family_contract,qa.threshold_gate
+- doNotRerunUnless: release-one service-family thresholds, catalog Core/Standard family rows, or progress memory changes
+
 Focused rerun routes for recently hardened release-one contracts:
 
 - inventory.vendor_sku_matrix_contract:
@@ -72,6 +85,8 @@ Focused rerun routes for recently hardened release-one contracts:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_pack_balance,qa.threshold_gate`
 - inventory.release_one_residential_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_residential_contract,qa.threshold_gate`
+- inventory.release_one_service_family_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_service_family_contract,qa.threshold_gate`
 - inventory.release_one_cell_manifest:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_cell_manifest,qa.threshold_gate`
 - inventory.language_pack_separation_contract:

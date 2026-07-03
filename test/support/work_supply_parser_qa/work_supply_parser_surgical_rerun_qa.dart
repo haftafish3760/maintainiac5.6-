@@ -30,6 +30,8 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
     'inventory.release_one_pack_balance': 'inventory.release_one_pack_balance',
     'inventory.release_one_residential_contract':
         'inventory.release_one_residential_contract',
+    'inventory.release_one_service_family_contract':
+        'inventory.release_one_service_family_contract',
     'inventory.release_one_cell_manifest':
         'inventory.release_one_cell_manifest',
     'inventory.language_pack_separation_contract':
