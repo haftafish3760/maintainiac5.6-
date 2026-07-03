@@ -78,6 +78,7 @@ class WorkSupplyParserRegistrySuite extends QaSuite {
     'inventory.release_one_pack_balance',
     'inventory.release_one_residential_contract',
     'inventory.release_one_service_family_contract',
+    'inventory.release_one_tier_role_contract',
     'inventory.search_indexing_contract',
     'inventory.service_truck_core_contract',
     'inventory.sku_collision_contract',

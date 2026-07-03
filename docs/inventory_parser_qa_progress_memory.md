@@ -87,6 +87,8 @@ Focused rerun routes for recently hardened release-one contracts:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_residential_contract,qa.threshold_gate`
 - inventory.release_one_service_family_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_service_family_contract,qa.threshold_gate`
+- inventory.release_one_tier_role_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_tier_role_contract,qa.threshold_gate`
 - inventory.release_one_cell_manifest:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_cell_manifest,qa.threshold_gate`
 - inventory.language_pack_separation_contract:
@@ -2307,6 +2309,8 @@ Do not rerun unless:
 ## Release-One Residential Gates
 
 Release one is residential-first inventory parser work. Core and Standard must favor service truck, everyday, most common, and normal residential items stocked or commonly bought through Lowe, Home Depot, Ace, Menards, Ferguson, Grainger, Walmart, True Value, and local/supply-house equivalents.
+
+Core comes before Standard, Standard comes before Professional, and Professional/Complete later tiers must not pull attention away from release-one Core/Standard readiness. No special order appliance bloat in Core; Core is for normal residential service-truck parts and common store-run materials.
 
 Named release gates:
 
