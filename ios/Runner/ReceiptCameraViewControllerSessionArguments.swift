@@ -98,10 +98,10 @@ extension ReceiptCameraViewController {
     maxCleanupPixels = max(arguments["maxCleanupPixels"] as? Int ?? 10000000, 0)
     maxStitchOutputPixels = max(arguments["maxStitchOutputPixels"] as? Int ?? 14000000, 0)
     maxStitchOutputHeight = max(arguments["maxStitchOutputHeight"] as? Int ?? 18000, 0)
-    sessionMinZoom = arguments["minZoom"] as? Double ?? 1.0
-    sessionMaxZoom = arguments["maxZoom"] as? Double ?? 1.0
-    sessionMinExposureOffset = arguments["minExposureOffset"] as? Double ?? 0.0
-    sessionMaxExposureOffset = arguments["maxExposureOffset"] as? Double ?? 0.0
+    sessionMinZoom = max(doubleArgument("minZoom", fallback: 1.0), 1.0)
+    sessionMaxZoom = max(doubleArgument("maxZoom", fallback: 1.0), sessionMinZoom)
+    sessionMinExposureOffset = doubleArgument("minExposureOffset", fallback: 0.0)
+    sessionMaxExposureOffset = doubleArgument("maxExposureOffset", fallback: 0.0)
     if let sectionLimit = arguments["maxSectionCount"] as? Int {
       maxSectionCount = min(max(sectionLimit, 1), 24)
     }
@@ -150,13 +150,13 @@ extension ReceiptCameraViewController {
 
   private func doubleArgument(_ key: String, fallback: Double) -> Double {
     if let value = arguments[key] as? Double {
-      return value
+      return value.isFinite ? value : fallback
     }
     if let value = arguments[key] as? Int {
       return Double(value)
     }
     if let value = arguments[key] as? NSNumber {
-      return value.doubleValue
+      return value.doubleValue.isFinite ? value.doubleValue : fallback
     }
     return fallback
   }

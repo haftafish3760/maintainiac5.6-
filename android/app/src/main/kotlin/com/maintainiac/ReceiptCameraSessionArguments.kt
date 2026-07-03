@@ -77,15 +77,15 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
         "autoCaptureStableFrameTarget",
         autoCaptureStableFrameTarget,
     ).coerceIn(2, 8)
-    autoCaptureMaxMotionScore = intent.getDoubleExtra(
+    autoCaptureMaxMotionScore = finiteDoubleExtra(
         "autoCaptureMaxMotionScore",
         autoCaptureMaxMotionScore,
     ).coerceIn(3.0, 18.0)
-    autoCaptureMinBrightness = intent.getDoubleExtra(
+    autoCaptureMinBrightness = finiteDoubleExtra(
         "autoCaptureMinBrightness",
         autoCaptureMinBrightness,
     ).coerceIn(72.0, 180.0)
-    autoCaptureMaxBrightness = intent.getDoubleExtra(
+    autoCaptureMaxBrightness = finiteDoubleExtra(
         "autoCaptureMaxBrightness",
         autoCaptureMaxBrightness,
     ).coerceIn(autoCaptureMinBrightness + 20.0, 252.0)
@@ -99,10 +99,10 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     maxCleanupPixels = intent.getIntExtra("maxCleanupPixels", 10000000).coerceAtLeast(0)
     maxStitchOutputPixels = intent.getIntExtra("maxStitchOutputPixels", 14000000).coerceAtLeast(0)
     maxStitchOutputHeight = intent.getIntExtra("maxStitchOutputHeight", 18000).coerceAtLeast(0)
-    sessionMinZoom = intent.getDoubleExtra("minZoom", 1.0)
-    sessionMaxZoom = intent.getDoubleExtra("maxZoom", 1.0)
-    sessionMinExposureOffset = intent.getDoubleExtra("minExposureOffset", 0.0)
-    sessionMaxExposureOffset = intent.getDoubleExtra("maxExposureOffset", 0.0)
+    sessionMinZoom = finiteDoubleExtra("minZoom", 1.0).coerceAtLeast(1.0)
+    sessionMaxZoom = finiteDoubleExtra("maxZoom", 1.0).coerceAtLeast(sessionMinZoom)
+    sessionMinExposureOffset = finiteDoubleExtra("minExposureOffset", 0.0)
+    sessionMaxExposureOffset = finiteDoubleExtra("maxExposureOffset", 0.0)
     maxSectionCount = intent.getIntExtra("maxSectionCount", 8).coerceIn(1, 24)
     if (!canUseLongReceiptMode()) {
         longReceiptMode = false
@@ -141,6 +141,11 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
         intent.getDoubleExtra("previousSectionGhostOpacity", previousSectionGhostOpacity),
         previousSectionGhostOpacity,
     )
+}
+
+internal fun ReceiptCameraActivity.finiteDoubleExtra(key: String, fallback: Double): Double {
+    val value = intent.getDoubleExtra(key, fallback)
+    return if (value.isFinite()) value else fallback
 }
 
 internal fun ReceiptCameraActivity.registerSystemBackHandler() {

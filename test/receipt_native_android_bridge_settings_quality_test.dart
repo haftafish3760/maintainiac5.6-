@@ -344,6 +344,23 @@ void main() {
       expect(cameraActivity, contains('maxSectionCount'));
       expect(cameraActivity, contains('captureQualityMode'));
       expect(cameraActivity, contains('exposureCompensationIndex'));
+      expect(
+        cameraActivity,
+        contains(
+          'internal fun ReceiptCameraActivity.finiteDoubleExtra(key: String, fallback: Double): Double',
+        ),
+      );
+      expect(
+        cameraActivity,
+        contains('return if (value.isFinite()) value else fallback'),
+      );
+      expect(cameraActivity, contains('finiteDoubleExtra("minZoom", 1.0)'));
+      expect(cameraActivity, contains('finiteDoubleExtra("maxZoom", 1.0)'));
+      expect(
+        cameraActivity,
+        contains('autoCaptureMaxMotionScore = finiteDoubleExtra('),
+      );
+      expect(cameraActivity, contains('"autoCaptureMaxMotionScore"'));
       expect(cameraActivity, contains('zoomRatio'));
       expect(
         cameraActivity,

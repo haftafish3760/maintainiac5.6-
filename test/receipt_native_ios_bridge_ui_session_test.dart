@@ -172,6 +172,28 @@ void main() {
         'var zoomGesturePolicy = "avfoundation_video_zoom_factor_clamped_to_capability"',
       ),
     );
+    expect(
+      cameraController,
+      contains(
+        'sessionMinZoom = max(doubleArgument("minZoom", fallback: 1.0), 1.0)',
+      ),
+    );
+    expect(
+      cameraController,
+      contains(
+        'sessionMaxZoom = max(doubleArgument("maxZoom", fallback: 1.0), sessionMinZoom)',
+      ),
+    );
+    expect(
+      cameraController,
+      contains('return value.isFinite ? value : fallback'),
+    );
+    expect(
+      cameraController,
+      contains(
+        'return value.doubleValue.isFinite ? value.doubleValue : fallback',
+      ),
+    );
     expect(cameraController, contains('"pinchZoomPolicy": zoomGesturePolicy'));
     expect(cameraController, contains('func visibleControlSet()'));
     expect(
