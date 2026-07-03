@@ -10,8 +10,12 @@ void main() {
     final commands = router.commandsForChangedPaths([
       'test/support/qa_harness/maintainiac_inventory_parser_consumer_contract.dart',
     ]);
+    final selectorIds = router.selectorIdsForChangedPaths([
+      'test/support/qa_harness/maintainiac_inventory_parser_consumer_contract.dart',
+    ]);
 
     expect(commands, isNotEmpty);
+    expect(selectorIds, contains('inventory_consumer_family_labels'));
     expect(
       commands.every((command) => command.contains('--plain-name')),
       isTrue,
@@ -64,5 +68,21 @@ void main() {
       commands.every((command) => command.contains('--plain-name')),
       isTrue,
     );
+  });
+
+  test('surgical rerun router dedupes overlapping changed paths', () {
+    final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
+      'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
+      'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
+    ]);
+    final ids = maintainiacSurgicalRerunRouter.selectorIdsForChangedPaths([
+      'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
+      'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
+    ]);
+
+    expect(commands.length, ids.length);
+    expect(commands.toSet(), hasLength(commands.length));
+    expect(ids, contains('surgical_granularity_individual'));
+    expect(ids, contains('surgical_granularity_rejects_batch'));
   });
 }

@@ -82,16 +82,21 @@ class MaintainiacSurgicalRerunRouter {
   }
 
   List<String> commandsForChangedPaths(Iterable<String> changedPaths) {
+    final selectorIds = selectorIdsForChangedPaths(changedPaths);
+    return [
+      for (final selector in registry.selectors)
+        if (selectorIds.contains(selector.id)) selector.command,
+    ];
+  }
+
+  Set<String> selectorIdsForChangedPaths(Iterable<String> changedPaths) {
     final selectorIds = <String>{};
     for (final path in changedPaths) {
       for (final rule in rules) {
         if (rule.matches(path)) selectorIds.addAll(rule.selectorIds);
       }
     }
-    return [
-      for (final selector in registry.selectors)
-        if (selectorIds.contains(selector.id)) selector.command,
-    ];
+    return selectorIds;
   }
 
   Map<String, Object?> toJson() {
