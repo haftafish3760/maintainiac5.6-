@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 558 - 07:01:13 EDT to 07:04:21 EDT
+
+Scope:
+- Hardened retake capture diagnostics so stale picked diagnostics cannot be
+  re-added for paths outside the accepted retake order plan.
+- Added lifecycle source regression coverage requiring retake diagnostics to
+  emit only accepted retake-plan keys.
+- Recorded `BUG-RECEIPT-0074` under `multi_photo_ordering`.
+- Archived Pass 542 out of the live cleanup log.
+
+Verification:
+- Passed targeted Dart format/analyzer for retake capture actions and lifecycle
+  source coverage.
+- Passed focused Flutter lifecycle contract test.
+
 ## Pass 557 - 06:46:00 EDT to 06:59:56 EDT
 
 Scope:
@@ -230,21 +245,6 @@ Verification:
 - Passed focused Flutter test
   `test/receipt_camera_ocr_source_attachment_read_test.dart --plain-name
   "reviewed OCR source attachments preserve read state and cleanup safety"`.
-
-## Pass 542 - 04:58:57 EDT to 04:59:58 EDT
-
-Scope:
-- Hardened picked receipt-photo factories so camera, native, and phone-backup
-  paths are normalized and de-duplicated before entering review state.
-- Filtered picked native diagnostics to the normalized picked path list.
-- Added lifecycle source regression coverage for the normalized picked-path
-  handoff.
-- Recorded `BUG-RECEIPT-0059` under `source_preservation`.
-- Archived Pass 518 out of the live cleanup log.
-
-Verification:
-- Passed targeted format/analyzer and focused lifecycle regression.
-- Passed bug-ledger, cleanup-log, doc-size, source-audit, and diff gates.
 
 ## Pass 541 - 04:56:14 EDT to 04:57:00 EDT
 

@@ -307,8 +307,6 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
     return {
       for (final path in retakeDiagnostics.keys)
         path: {...?pickedDiagnostics[path], ...?retakeDiagnostics[path]},
-      for (final entry in pickedDiagnostics.entries)
-        if (!retakeDiagnostics.containsKey(entry.key)) entry.key: entry.value,
     };
   }
 }

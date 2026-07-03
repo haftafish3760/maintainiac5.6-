@@ -166,6 +166,15 @@ void main() {
     );
     expect(saveActions, contains('paths: pickedPaths'));
     expect(saveActions, contains('_pickedReceiptDiagnosticsForPaths('));
+    expect(saveActions, contains('for (final path in retakeDiagnostics.keys)'));
+    expect(
+      saveActions,
+      isNot(
+        contains(
+          'if (!retakeDiagnostics.containsKey(entry.key)) entry.key: entry.value',
+        ),
+      ),
+    );
     expect(saveActions, contains('for (final path in pickedPaths)'));
     expect(saveActions, contains('final trimmed = path.trim();'));
     expect(saveActions, contains('trimmed.isEmpty || trimmed != path'));
