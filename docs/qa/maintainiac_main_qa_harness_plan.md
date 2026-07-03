@@ -208,6 +208,7 @@ The backbone includes a release gate plan:
 - Defines a parser candidate contract so inventory and expense parsers return review-only candidates with preserved evidence, confidence reasons, warnings, missing fields, and explicit user confirmation before writes.
 - Governs parser fixture sets with locale, country, merchant, trade, owner, source type, expected behavior, review date, and privacy/review tags.
 - Converts user corrections into reviewable alias, negative-rule, merchant-rule, category-mapping, or regression-fixture proposals without silently mutating official packs or confirmed source records.
+- Proves local-first write ordering: Hive/local source writes must happen before Firestore mirror writes, and derived outputs must not point at or mutate source collections.
 
 Print the release gate with:
 

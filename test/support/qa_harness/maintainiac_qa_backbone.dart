@@ -12,6 +12,7 @@ import 'maintainiac_regression_registry.dart';
 import 'maintainiac_parser_candidate_contract.dart';
 import 'maintainiac_parser_fixture_manifest.dart';
 import 'maintainiac_correction_learning_contract.dart';
+import 'maintainiac_local_first_contract.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
@@ -279,10 +280,31 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in correctionLearning.validate()) {
       failures.add(_failure('correction_learning_$issue', issue));
     }
+    const localFirst = MaintainiacLocalFirstContract([
+      MaintainiacWriteStep(
+        order: 0,
+        target: MaintainiacWriteTarget.localHive,
+        collection: 'inventory',
+        recordId: 'seed_item',
+        sourceOperation: 'confirm_inventory_item',
+        mutatesSource: true,
+      ),
+      MaintainiacWriteStep(
+        order: 1,
+        target: MaintainiacWriteTarget.firestoreMirror,
+        collection: 'inventory',
+        recordId: 'seed_item',
+        sourceOperation: 'confirm_inventory_item',
+        mirrorOnly: true,
+      ),
+    ]);
+    for (final issue in localFirst.validate()) {
+      failures.add(_failure('local_first_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 164,
+      checked: 174,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -307,6 +329,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'parserCandidateContract': parserContract.toJson(),
         'parserFixtureManifest': fixtureManifest.toJson(),
         'correctionLearning': correctionLearning.toJson(),
+        'localFirstContract': localFirst.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

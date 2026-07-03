@@ -210,6 +210,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_correction_learning_contract.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'local_first_contract',
+        module: MaintainiacQaModule.sync,
+        description:
+            'Reusable local-first contract proves Hive/local source writes happen before Firestore mirror writes and derived outputs stay read-only.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_local_first_contract.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:

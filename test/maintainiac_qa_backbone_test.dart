@@ -58,6 +58,10 @@ void main() {
       report.results.single.metrics['correctionLearning'].toString(),
       contains('seed_inventory_alias_proposal'),
     );
+    expect(
+      report.results.single.metrics['localFirstContract'].toString(),
+      contains('localHive'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {
