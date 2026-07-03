@@ -1,6 +1,7 @@
 enum MaintainiacEvidenceKind {
   analyzer,
   individualTest,
+  individualCommandResolver,
   backboneVisibility,
   privacyGate,
   sourceTruthGate,
@@ -32,6 +33,12 @@ class MaintainiacReleaseEvidence {
     if (kind == MaintainiacEvidenceKind.individualTest &&
         !commandOrArtifact.contains('--plain-name')) {
       failures.add('$id individual test evidence must use --plain-name');
+    }
+    if (kind == MaintainiacEvidenceKind.individualCommandResolver &&
+        !commandOrArtifact.startsWith(
+          'dart run tool/maintainiac_individual_qa_command.dart --id ',
+        )) {
+      failures.add('$id must prove exact individual command lookup by id');
     }
     if (kind == MaintainiacEvidenceKind.gitPush &&
         !commandOrArtifact.startsWith('git push')) {
@@ -108,6 +115,15 @@ const maintainiacReleaseEvidenceBundle = MaintainiacReleaseEvidenceBundle([
         'flutter test test/maintainiac_surgical_selector_coverage_test.dart --plain-name "surgical selector coverage requires selectors for every focused behavior"',
     proves:
         'Every focused parser-consumer behavior has an individual selector.',
+    requiredForRelease: true,
+  ),
+  MaintainiacReleaseEvidence(
+    id: 'individual_command_resolver',
+    kind: MaintainiacEvidenceKind.individualCommandResolver,
+    commandOrArtifact:
+        'dart run tool/maintainiac_individual_qa_command.dart --id qa_environment_local_truth',
+    proves:
+        'A single selector id resolves to one exact focused test command without running a batch.',
     requiredForRelease: true,
   ),
   MaintainiacReleaseEvidence(

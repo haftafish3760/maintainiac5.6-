@@ -10,6 +10,12 @@ void main() {
     expect(bundle.toJson()['evidenceCount'], greaterThanOrEqualTo(6));
     expect(bundle.requiredCommands(), contains('git push'));
     expect(
+      bundle.requiredCommands(),
+      contains(
+        'dart run tool/maintainiac_individual_qa_command.dart --id qa_environment_local_truth',
+      ),
+    );
+    expect(
       bundle.requiredCommands().where(
         (command) => command.contains('--plain-name'),
       ),
@@ -34,6 +40,13 @@ void main() {
         proves: 'bad push',
         requiredForRelease: true,
       ),
+      MaintainiacReleaseEvidence(
+        id: 'bad_resolver',
+        kind: MaintainiacEvidenceKind.individualCommandResolver,
+        commandOrArtifact: 'flutter test test/all.dart',
+        proves: 'bad resolver',
+        requiredForRelease: true,
+      ),
     ]);
 
     final failures = bundle.validate().join('\n');
@@ -44,6 +57,10 @@ void main() {
       contains('bad_individual individual test evidence must use --plain-name'),
     );
     expect(failures, contains('bad_push git push evidence must use git push'));
+    expect(
+      failures,
+      contains('bad_resolver must prove exact individual command lookup by id'),
+    );
     expect(
       failures,
       contains('release evidence missing required kind analyzer'),
