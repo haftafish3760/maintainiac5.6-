@@ -286,6 +286,13 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_source_truth_gate_test.dart',
+      plainNames: {
+        'source truth gate protects local truth and derived outputs',
+        'source truth gate rejects mirror suggestion and derived mutations',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_environment_test.dart',
       plainNames: {
         'QA environment fakes preserve local truth and mirror copies',

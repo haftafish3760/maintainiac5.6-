@@ -735,6 +735,23 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'local-first', 'source-of-truth', 'sync', 'security'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'source_truth_gate_protects_roles',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_source_truth_gate_test.dart',
+    plainName: 'source truth gate protects local truth and derived outputs',
+    reason: 'Run only the source-truth positive role coverage check.',
+    tags: {'source-of-truth', 'sync', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'source_truth_gate_rejects_mutations',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_source_truth_gate_test.dart',
+    plainName:
+        'source truth gate rejects mirror suggestion and derived mutations',
+    reason: 'Run only the source-truth mutation negative check.',
+    tags: {'source-of-truth', 'sync', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'qa_environment_local_truth',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_environment_test.dart',

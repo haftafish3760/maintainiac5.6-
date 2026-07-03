@@ -68,6 +68,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_surgical_granularity_contract.dart',
       'maintainiac_local_first_contract.dart',
       'maintainiac_mutation_guard.dart',
+      'maintainiac_source_truth_gate.dart',
       'maintainiac_payment_contract.dart',
       'maintainiac_operating_directive_contract.dart',
       'maintainiac_qa_artifact_policy.dart',
@@ -407,6 +408,17 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Local-first contract changes need Hive-before-mirror, negative, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'source_truth_gate_changed',
+      changedPathContains: 'maintainiac_source_truth_gate.dart',
+      selectorIds: {
+        'source_truth_gate_protects_roles',
+        'source_truth_gate_rejects_mutations',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Source-truth gate changes need role coverage, negative mutation, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'qa_environment_changed',
