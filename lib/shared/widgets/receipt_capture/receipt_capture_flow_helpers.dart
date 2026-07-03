@@ -13,6 +13,8 @@ ReceiptNativeCameraSettings _cameraSettingsFor(
         options.forceLongReceiptMode ?? settings?.cameraLongReceiptTips ?? true,
     autoCaptureEnabled:
         options.forceAutoCapture ?? settings?.cameraAutoCapture ?? false,
+    reviewDepth:
+        options.forceReviewDepth ?? ReceiptNativeReviewDepth.pricesOnly,
     dataSaverLevel:
         options.initialDataSaverLevel ??
         settings?.defaultDataSaverLevel ??

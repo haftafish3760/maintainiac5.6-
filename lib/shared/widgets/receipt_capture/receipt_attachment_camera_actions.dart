@@ -80,6 +80,7 @@ extension _ReceiptAttachmentCameraActions
           ),
           forceLongReceiptMode: _nextReceiptForceLongReceiptMode(settings),
           forceAutoCapture: _nextReceiptForceAutoCapture(settings),
+          forceReviewDepth: _receiptNativeReviewDepthForCurrentCapture(),
         ),
       ),
     );
@@ -137,6 +138,26 @@ extension _ReceiptAttachmentCameraActions
         }
         return _MaintainiacNativeCameraPhotoOutcome.canceled;
     }
+  }
+
+  ReceiptNativeReviewDepth _receiptNativeReviewDepthForCurrentCapture() {
+    if (widget.area == ReceiptCaptureArea.expenses) {
+      return _receiptNativeReviewDepthForExpenseStyle(
+        ExpenseSettingsScope.maybeOf(context)?.receiptReviewStyle,
+      );
+    }
+    return ReceiptNativeReviewDepth.detailedLines;
+  }
+
+  ReceiptNativeReviewDepth _receiptNativeReviewDepthForExpenseStyle(
+    ExpenseReceiptReviewStyle? style,
+  ) {
+    return switch (style) {
+      ExpenseReceiptReviewStyle.fullItemDetails =>
+        ReceiptNativeReviewDepth.detailedLines,
+      ExpenseReceiptReviewStyle.simpleAmounts ||
+      null => ReceiptNativeReviewDepth.pricesOnly,
+    };
   }
 
   String? _nextReceiptContinuationReasonCode() {

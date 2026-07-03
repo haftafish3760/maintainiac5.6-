@@ -42,6 +42,7 @@ class ReceiptCaptureFlowOptions {
     this.forceAssistedReceiptFill,
     this.forceLongReceiptMode,
     this.forceAutoCapture,
+    this.forceReviewDepth,
     this.previousSectionGuidePhotoPath,
     this.previousSectionReasonCode,
     this.previousSectionGuidance,
@@ -61,6 +62,7 @@ class ReceiptCaptureFlowOptions {
   final bool? forceAssistedReceiptFill;
   final bool? forceLongReceiptMode;
   final bool? forceAutoCapture;
+  final ReceiptNativeReviewDepth? forceReviewDepth;
   final String? previousSectionGuidePhotoPath;
   final String? previousSectionReasonCode;
   final String? previousSectionGuidance;
@@ -133,6 +135,7 @@ class ReceiptCaptureContinuationGuide {
       forceAssistedReceiptFill: options.forceAssistedReceiptFill,
       forceLongReceiptMode: options.forceLongReceiptMode,
       forceAutoCapture: options.forceAutoCapture,
+      forceReviewDepth: options.forceReviewDepth,
       previousSectionGuidePhotoPath: guidePhotoPath,
       previousSectionReasonCode: reasonCode,
       previousSectionGuidance: guidance,

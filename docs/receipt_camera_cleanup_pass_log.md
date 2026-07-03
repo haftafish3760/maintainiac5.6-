@@ -22,15 +22,21 @@ Scope:
   sections carry privacy-safe original/final section and direction evidence.
 - Locked manual reorder plans to adjacent one-section moves so future UI
   controls cannot silently skip receipt sections.
+- Added an explicit capture-flow review-depth override so detailed-line intent
+  reaches the native camera session.
+- Mapped expense simple/full review style to native price-only/detailed-line
+  capture, while inventory and maintenance capture request detailed lines.
 - Added focused retake/order and source-contract regressions for inserted
   section metadata and stale inserted-path rejection.
 - Added a focused regression for non-adjacent manual reorder requests.
+- Added focused shared camera flow regressions for review-depth propagation.
 - Split section-order helper logic out of native-signal summaries after the
   source audit caught the file over the line cap.
 - Recorded `BUG-RECEIPT-0106` and `BUG-RECEIPT-0107` under
   `multi_photo_ordering`.
 - Recorded `BUG-RECEIPT-0108` and `BUG-RECEIPT-0109` under
   `multi_photo_ordering`.
+- Recorded `BUG-RECEIPT-0110` under `receipt_line_review_mode`.
 - Archived Pass 564 out of the live cleanup log to keep the active log under the
   project line-count cap.
 - Archived Pass 565 out of the live cleanup log after this pass grew the active
@@ -51,6 +57,7 @@ Verification:
   malformed insert-after metadata.
 - Passed focused manual reorder regressions and source contract coverage.
 - Passed focused adjacent manual reorder regression coverage.
+- Passed focused shared capture-flow review-depth regression coverage.
 - Passed the receipt QA runner after the source-audit and long-receipt ordering
   cleanup batch.
 - Passed scoped receipt source audit and cleanup/doc size gates.

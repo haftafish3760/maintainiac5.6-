@@ -10,10 +10,12 @@ void main() {
     const options = ReceiptCaptureFlowOptions(
       module: ReceiptCaptureFlowModule.materialsInventory,
       forceAssistedReceiptFill: true,
+      forceReviewDepth: ReceiptNativeReviewDepth.detailedLines,
     );
 
     expect(options.module.storageName, 'materials_inventory');
     expect(options.module.settingsArea, ReceiptCaptureArea.materialsInventory);
+    expect(options.forceReviewDepth, ReceiptNativeReviewDepth.detailedLines);
     expect(ReceiptCaptureFlowStatus.accepted.name, 'accepted');
     expect(const ReceiptCaptureFlow(), isA<ReceiptCaptureFlow>());
   });
@@ -36,6 +38,7 @@ void main() {
           module: ReceiptCaptureFlowModule.expenses,
           forceAssistedReceiptFill: true,
           forceLongReceiptMode: true,
+          forceReviewDepth: ReceiptNativeReviewDepth.detailedLines,
         ),
       );
 
@@ -44,6 +47,7 @@ void main() {
       expect(options.module, ReceiptCaptureFlowModule.expenses);
       expect(options.forceAssistedReceiptFill, isTrue);
       expect(options.forceLongReceiptMode, isTrue);
+      expect(options.forceReviewDepth, ReceiptNativeReviewDepth.detailedLines);
       expect(options.previousSectionGuidePhotoPath, '/tmp/receipt-middle.jpg');
       expect(
         options.previousSectionReasonCode,
@@ -74,10 +78,31 @@ void main() {
     expect(source, contains('ReceiptNativeCameraService'));
     expect(source, contains('ReceiptOcrService'));
     expect(source, contains('ReceiptPhotoReviewScreen'));
+    expect(source, contains('reviewDepth:'));
+    expect(source, contains('options.forceReviewDepth'));
     expect(source, isNot(contains("screens/expenses")));
     expect(source, isNot(contains("screens/work_supplies")));
     expect(source, isNot(contains("screens/maintenance")));
   });
+
+  test(
+    'shared camera passes receipt review-depth intent from attachment UI',
+    () async {
+      final actions = await File(
+        'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
+      ).readAsString();
+
+      expect(
+        actions,
+        contains(
+          'forceReviewDepth: _receiptNativeReviewDepthForCurrentCapture()',
+        ),
+      );
+      expect(actions, contains('ExpenseReceiptReviewStyle.fullItemDetails'));
+      expect(actions, contains('ReceiptNativeReviewDepth.detailedLines'));
+      expect(actions, contains('ReceiptNativeReviewDepth.pricesOnly'));
+    },
+  );
 
   test(
     'accepted receipt camera photos publish source and module metadata',
