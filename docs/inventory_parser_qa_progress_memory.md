@@ -2482,6 +2482,15 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated Spanish after the faucet repair kit locale expansion:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.spanish_release_one,qa.threshold_gate`
   passed 101847 checks with 0 failures.
+- Added a protected app-file baseline to `inventory.file_size_contract` for
+  `generated_plumbing_service_truck_catalog.dart` at its current 549 lines so
+  future passes fail if this already-over-target file grows instead of being
+  split.
+- Updated the trade-pack handoff line-count note from the stale 474-line value
+  to the current 549-line protected baseline.
+- Validated the file-size guard:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.file_size_contract,qa.threshold_gate`
+  passed 203 checks with 0 failures.
 
 Named release gates:
 

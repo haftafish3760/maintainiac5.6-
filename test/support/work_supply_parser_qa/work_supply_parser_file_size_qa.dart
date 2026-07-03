@@ -7,6 +7,10 @@ class WorkSupplyParserFileSizeSuite extends QaSuite {
 
   static const _softLimit = 500;
   static const _hardLimit = 1000;
+  static const _protectedAppFileBaselines = {
+    'lib/screens/work_supplies/data/catalog/plumbing/generated_plumbing_service_truck_catalog.dart':
+        549,
+  };
 
   @override
   Future<QaSuiteResult> run(QaContext context) async {
@@ -46,6 +50,43 @@ class WorkSupplyParserFileSizeSuite extends QaSuite {
         );
       }
     }
+    for (final entry in _protectedAppFileBaselines.entries) {
+      final file = File(entry.key);
+      if (!file.existsSync()) {
+        failures.add(
+          QaFailure(
+            suite: name,
+            id: 'protected_app_file_missing:${entry.key}',
+            message: 'Protected app file size baseline target is missing.',
+            severity: QaSeverity.warning,
+            expected: entry.key,
+            actual: 'not found',
+            suggestedFix:
+                'Update the protected app file baseline when catalog files are intentionally moved or split.',
+            metadata: const {'triageCategory': QaFailureTriage.governance},
+          ),
+        );
+        continue;
+      }
+      checked++;
+      final lineCount = file.readAsLinesSync().length;
+      largestFiles.add({'path': file.path, 'lines': lineCount});
+      if (lineCount <= entry.value) continue;
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'protected_app_file_grew:${entry.key}',
+          message:
+              'Known over-target app catalog file grew instead of being split.',
+          severity: QaSeverity.error,
+          expected: '<= ${entry.value} lines until this file is split',
+          actual: '$lineCount lines',
+          suggestedFix:
+              'Move new catalog rows into a focused sibling file or split this generated catalog instead of adding to it.',
+          metadata: const {'triageCategory': QaFailureTriage.governance},
+        ),
+      );
+    }
     largestFiles.sort(
       (left, right) =>
           (right['lines']! as int).compareTo(left['lines']! as int),
@@ -62,6 +103,7 @@ class WorkSupplyParserFileSizeSuite extends QaSuite {
         'softOverageCount': softOverages.length,
         'softOverages': softOverages.take(12).toList(),
         'largestFiles': largestFiles.take(12).toList(),
+        'protectedAppFileBaselines': _protectedAppFileBaselines,
       },
     );
   }

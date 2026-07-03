@@ -159,9 +159,9 @@ Current Plumbing files include:
 
 Do not dump more into `generated_plumbing_service_truck_catalog.dart`; it is already near the 500-line target.
 
-Line counts seen at handoff:
+Line counts seen at handoff, with later protected-baseline updates noted:
 
-- `generated_plumbing_service_truck_catalog.dart`: `474` lines
+- `generated_plumbing_service_truck_catalog.dart`: `549` lines as of 2026-07-03; this file is over the preferred 500-line target and is protected by `inventory.file_size_contract` so it should not grow further before being split.
 - `generated_plumbing_drain_finish_catalog.dart`: `276` lines
 - `generated_plumbing_seals_service_catalog.dart`: `246` lines
 - `test/work_supply_plumbing_receipt_parser_test.dart`: `364` lines
