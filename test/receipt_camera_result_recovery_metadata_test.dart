@@ -8,7 +8,9 @@ void main() {
     final result = buildNativeRecoveryReviewResult();
 
     expect(result.editedPhotoActionCounts, {'manual_crop': 1});
-    expect(result.editedPhotoSourceSelectionCounts, {'manual_crop': 1});
+    expect(result.editedPhotoSourceSelectionCounts, {
+      'edited_copy_selected': 1,
+    });
     expect(result.editedPhotoReplacedOriginalCounts, {'manual_crop': 1});
     expect(result.nativeRecoveryFreshnessCounts, {'stale': 2});
     expect(result.nativeRecoveryStorageStatusCounts, {
@@ -72,7 +74,7 @@ void main() {
     );
     expect(
       result.receiptReaderHandoffCounts,
-      containsPair('review_photo_edit_source_selected_manual_crop', 1),
+      containsPair('review_photo_edit_source_selected_edited_copy_selected', 1),
     );
     expect(
       result.receiptReaderHandoffCounts,
@@ -106,7 +108,9 @@ void main() {
     );
     expect(
       result.privacySafeReceiptReaderHandoffMetadata,
-      containsPair('reviewPhotoEditSourceSelectionCounts', {'manual_crop': 1}),
+      containsPair('reviewPhotoEditSourceSelectionCounts', {
+        'edited_copy_selected': 1,
+      }),
     );
     expect(
       result.privacySafeReceiptReaderHandoffMetadata,
