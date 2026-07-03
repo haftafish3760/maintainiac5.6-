@@ -139,6 +139,14 @@ The backbone includes a local-only sync lifecycle probe:
 - Successful mirror writes go to the fake Firestore mirror only.
 - Failed records remain in a pending retry queue.
 
+## Device Capability Probe
+
+The backbone includes a deterministic device/storage policy probe:
+
+- Classifies legacy, standard, modern, and high-end devices by coarse model bucket.
+- Chooses local, compact-local, cloud-assisted, or blocked pack mode.
+- Blocks cloud/local pack decisions when App Check is invalid or the device lacks space and cannot go online.
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:
