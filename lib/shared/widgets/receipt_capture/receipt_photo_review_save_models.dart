@@ -24,19 +24,22 @@ class _PickedReceiptPhotos {
     ReceiptCameraResult result,
     List<String> paths,
   ) {
+    final pickedPaths = _pickedReceiptPhotoUniquePaths(paths);
     final checks = <String, ReceiptPhotoQualityCheck>{};
     if (_pickedReceiptPhotoPathsAreUnique(result.photoPaths) &&
-        _pickedReceiptPhotoPathsAreUnique(paths)) {
-      for (final path in paths) {
+        _pickedReceiptPhotoPathsAreUnique(pickedPaths)) {
+      for (final path in pickedPaths) {
         final index = result.photoPaths.indexOf(path);
         final quality = result.qualityForIndex(index);
         if (quality != null) checks[path] = quality;
       }
     }
     return _PickedReceiptPhotos(
-      paths: paths,
+      paths: pickedPaths,
       qualityChecksByPath: checks,
-      captureDiagnosticsByPath: result.captureDiagnosticsByPhotoPath(paths),
+      captureDiagnosticsByPath: result.captureDiagnosticsByPhotoPath(
+        pickedPaths,
+      ),
       wasCanceled: false,
     );
   }
@@ -45,10 +48,14 @@ class _PickedReceiptPhotos {
     List<String> paths, {
     Map<String, Map<String, Object?>> captureDiagnosticsByPath = const {},
   }) {
+    final pickedPaths = _pickedReceiptPhotoUniquePaths(paths);
     return _PickedReceiptPhotos(
-      paths: paths,
+      paths: pickedPaths,
       qualityChecksByPath: const {},
-      captureDiagnosticsByPath: captureDiagnosticsByPath,
+      captureDiagnosticsByPath: _pickedReceiptDiagnosticsForPaths(
+        captureDiagnosticsByPath,
+        pickedPaths,
+      ),
       wasCanceled: false,
     );
   }
@@ -58,11 +65,12 @@ class _PickedReceiptPhotos {
     required bool hadPreviousSectionGuide,
     ReceiptPhotoCoverageDecision? previousSectionCoverageDecision,
   }) {
+    final pickedPaths = _pickedReceiptPhotoUniquePaths(paths);
     return _PickedReceiptPhotos(
-      paths: paths,
+      paths: pickedPaths,
       qualityChecksByPath: const {},
       captureDiagnosticsByPath: {
-        for (final path in paths)
+        for (final path in pickedPaths)
           path: {
             'captureFlow': 'phone_camera_backup_receipt_photo',
             'primaryCaptureFlow': 'maintainiac_native_receipt_camera',
@@ -105,6 +113,29 @@ class _PickedReceiptPhotos {
   final Map<String, ReceiptPhotoQualityCheck> qualityChecksByPath;
   final Map<String, Map<String, Object?>> captureDiagnosticsByPath;
   final bool wasCanceled;
+}
+
+List<String> _pickedReceiptPhotoUniquePaths(List<String> paths) {
+  final pickedPaths = <String>[];
+  final seen = <String>{};
+  for (final rawPath in paths) {
+    final path = rawPath.trim();
+    if (path.isEmpty || !seen.add(path)) continue;
+    pickedPaths.add(path);
+  }
+  return List<String>.unmodifiable(pickedPaths);
+}
+
+Map<String, Map<String, Object?>> _pickedReceiptDiagnosticsForPaths(
+  Map<String, Map<String, Object?>> diagnosticsByPath,
+  List<String> paths,
+) {
+  if (diagnosticsByPath.isEmpty || paths.isEmpty) return const {};
+  return Map<String, Map<String, Object?>>.unmodifiable({
+    for (final path in paths)
+      if (diagnosticsByPath[path] != null)
+        path: Map<String, Object?>.unmodifiable(diagnosticsByPath[path]!),
+  });
 }
 
 bool _pickedReceiptPhotoPathsAreUnique(List<String> paths) {
