@@ -347,6 +347,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'QA readiness ledger tracks completed backbone and remaining gaps',
         'QA readiness ledger dart evidence references existing files',
+        'QA readiness ledger ready claims include dart evidence',
         'QA readiness ledger rejects fake ready claims without evidence',
         'QA readiness ledger rejects duplicate blank or placeholder evidence',
       },

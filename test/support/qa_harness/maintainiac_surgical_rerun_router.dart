@@ -509,12 +509,13 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       selectorIds: {
         'qa_readiness_tracks_gaps',
         'qa_readiness_evidence_files_exist',
+        'qa_readiness_ready_claims_dart_evidence',
         'qa_readiness_rejects_fake_ready',
         'qa_readiness_rejects_weak_evidence',
         'main_backbone_parser_visibility',
       },
       reason:
-          'QA readiness changes need gap tracking, evidence-file, fake-ready, weak-evidence, and backbone checks.',
+          'QA readiness changes need gap tracking, evidence-file, ready-claim, fake-ready, weak-evidence, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'qa_checkpoint_policy_changed',

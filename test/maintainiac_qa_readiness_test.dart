@@ -55,6 +55,25 @@ void main() {
     );
   });
 
+  test('QA readiness ledger ready claims include dart evidence', () {
+    final ledger = MaintainiacQaReadinessLedger.currentBackbone();
+    final readyWithoutDartEvidence = <String>[];
+
+    for (final item in ledger.items) {
+      if (item.status != MaintainiacQaReadinessStatus.ready) continue;
+      final dartEvidence = item.evidence.where((entry) {
+        return entry.endsWith('.dart') && _evidenceFileExists(entry);
+      });
+      if (dartEvidence.isEmpty) readyWithoutDartEvidence.add(item.id);
+    }
+
+    expect(
+      readyWithoutDartEvidence,
+      isEmpty,
+      reason: 'Ready QA backbone claims need at least one real Dart artifact.',
+    );
+  });
+
   test('QA readiness ledger rejects fake ready claims without evidence', () {
     const ledger = MaintainiacQaReadinessLedger([
       MaintainiacQaReadinessItem(

@@ -931,6 +931,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'qa-readiness', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_readiness_ready_claims_dart_evidence',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_readiness_test.dart',
+    plainName: 'QA readiness ledger ready claims include dart evidence',
+    reason: 'Run only the readiness ready-claim evidence strength check.',
+    tags: {'qa-readiness', 'regression', 'evidence'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'qa_readiness_rejects_fake_ready',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_readiness_test.dart',
