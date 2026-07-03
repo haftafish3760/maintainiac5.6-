@@ -71,6 +71,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_source_truth_gate.dart',
       'maintainiac_sync_lifecycle.dart',
       'maintainiac_sync_transport_policy.dart',
+      'maintainiac_sync_conflict_contract.dart',
       'maintainiac_payment_contract.dart',
       'maintainiac_financial_ledger.dart',
       'maintainiac_financial_formula_registry.dart',
@@ -469,6 +470,19 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Sync transport changes need allowed-path, blocked-network, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'sync_conflict_contract_changed',
+      changedPathContains: 'maintainiac_sync_conflict_contract.dart',
+      selectorIds: {
+        'sync_conflict_allows_safe_merge',
+        'sync_conflict_protects_confirmed_financial',
+        'sync_conflict_requires_review_audit',
+        'sync_conflict_rejects_unsafe_remote',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Sync conflict changes need safe-merge, local-financial, review-audit, unsafe-remote, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'qa_environment_changed',

@@ -835,6 +835,40 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'sync', 'cost-quota', 'security', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'sync_conflict_allows_safe_merge',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_sync_conflict_contract_test.dart',
+    plainName: 'sync conflict contract allows different-field safe merge',
+    reason: 'Run only the safe different-field merge conflict check.',
+    tags: {'sync', 'source-of-truth', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'sync_conflict_protects_confirmed_financial',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_sync_conflict_contract_test.dart',
+    plainName: 'sync conflict contract protects confirmed financial local data',
+    reason: 'Run only the confirmed financial local-wins conflict check.',
+    tags: {'sync', 'financial', 'source-of-truth', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'sync_conflict_requires_review_audit',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_sync_conflict_contract_test.dart',
+    plainName:
+        'sync conflict contract requires review audit for ambiguous conflicts',
+    reason: 'Run only the ambiguous conflict review/audit check.',
+    tags: {'sync', 'audit', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'sync_conflict_rejects_unsafe_remote',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_sync_conflict_contract_test.dart',
+    plainName:
+        'sync conflict contract rejects unsafe remote wins and source mutation',
+    reason: 'Run only the unsafe remote-wins/source-mutation conflict guard.',
+    tags: {'sync', 'security', 'source-of-truth', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'qa_environment_local_truth',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_environment_test.dart',

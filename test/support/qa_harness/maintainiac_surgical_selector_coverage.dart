@@ -323,6 +323,15 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_sync_conflict_contract_test.dart',
+      plainNames: {
+        'sync conflict contract allows different-field safe merge',
+        'sync conflict contract protects confirmed financial local data',
+        'sync conflict contract requires review audit for ambiguous conflicts',
+        'sync conflict contract rejects unsafe remote wins and source mutation',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_environment_test.dart',
       plainNames: {
         'QA environment fakes preserve local truth and mirror copies',
