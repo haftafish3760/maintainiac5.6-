@@ -155,6 +155,10 @@ void main() {
       contains('inventory_parser_lane'),
     );
     expect(
+      report.results.single.metrics['scopePolicyMatrix'].toString(),
+      contains('vehicle_assignment_denied'),
+    );
+    expect(
       report.results.single.metrics['performanceBudgetRegistry'].toString(),
       contains('surgical_rerun_router_budget'),
     );

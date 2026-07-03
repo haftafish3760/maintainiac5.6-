@@ -40,6 +40,7 @@ import 'maintainiac_source_audit_policy.dart';
 import 'maintainiac_surgical_rerun_router.dart';
 import 'maintainiac_surgical_selector_coverage.dart';
 import 'maintainiac_surgical_test_selector.dart';
+import 'maintainiac_scope_policy.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
@@ -444,13 +445,16 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacModuleBoundaryGate.validate()) {
       failures.add(_failure('module_boundary_gate_$issue', issue));
     }
+    for (final issue in maintainiacScopePolicyMatrix.validate()) {
+      failures.add(_failure('scope_policy_matrix_$issue', issue));
+    }
     for (final issue in maintainiacPerformanceBudgetRegistry.validate()) {
       failures.add(_failure('performance_budget_registry_$issue', issue));
     }
 
     return timer.finish(
       suite: name,
-      checked: 676,
+      checked: 696,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -510,6 +514,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'fixtureGovernanceGate': maintainiacFixtureGovernanceGate.toJson(),
         'restartLifecycleGate': maintainiacRestartLifecycleGate.toJson(),
         'moduleBoundaryGate': maintainiacModuleBoundaryGate.toJson(),
+        'scopePolicyMatrix': maintainiacScopePolicyMatrix.toJson(),
         'performanceBudgetRegistry': maintainiacPerformanceBudgetRegistry
             .toJson(),
         'qualityGates': qualityGates.toJson(),

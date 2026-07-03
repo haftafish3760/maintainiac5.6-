@@ -64,4 +64,48 @@ void main() {
     expect(probe.canAccess(subject, record), isFalse);
     expect(probe.deniedReasons(subject, record), ['permission_missing']);
   });
+
+  test(
+    'scope policy matrix covers fleet company employee and vehicle denials',
+    () {
+      const matrix = maintainiacScopePolicyMatrix;
+
+      expect(matrix.validate(), isEmpty);
+      expect(matrix.toJson()['caseCount'], greaterThanOrEqualTo(6));
+      expect(matrix.toJson().toString(), contains('cross_account_denied'));
+      expect(matrix.toJson().toString(), contains('employee_mismatch_denied'));
+      expect(matrix.toJson().toString(), contains('vehicle_not_assigned'));
+    },
+  );
+
+  test('scope policy matrix rejects missing denial explanations', () {
+    const matrix = MaintainiacScopePolicyMatrix([
+      MaintainiacScopePolicyCase(
+        id: 'bad',
+        subject: MaintainiacScopeSubject(
+          userId: 'user_1',
+          accountId: 'acct_1',
+          permissions: {'read'},
+        ),
+        record: MaintainiacScopedRecord(
+          id: 'expense_1',
+          accountId: 'acct_2',
+          requiredPermission: 'read',
+        ),
+        expectedAllowed: false,
+        expectedDeniedReasons: {},
+        reason: '',
+      ),
+    ]);
+
+    final failures = matrix.validate().join('\n');
+
+    expect(failures, contains('bad missing reason'));
+    expect(failures, contains('bad denied reasons do not match expected'));
+    expect(failures, contains('bad denied case must explain why'));
+    expect(
+      failures,
+      contains('scope policy matrix missing denial company_mismatch'),
+    );
+  });
 }
