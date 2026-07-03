@@ -1,0 +1,91 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+
+import '../tool/work_supply_parser_qa_next_action.dart';
+
+void main() {
+  test('next action allows the next local batch when evidence is ready', () {
+    final root = Directory.systemTemp.createTempSync('maintainiac_next_');
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeJson('build/parser_qa_pipeline/release_one_commands.json', {
+      'commands': [
+        {'cellId': 'plumbing.residential.core.en-US'},
+      ],
+    });
+    _writeJson('build/parser_qa_pass_evidence/evidence_summary.json', {
+      'missingArtifactNames': <String>[],
+      'unsafeFindings': <String>[],
+    });
+    final stdout = _MemorySink();
+
+    final exit = runWorkSupplyParserQaNextAction(
+      const [],
+      stdout: stdout,
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    expect(stdout.content, contains('QA_NEXT_ACTION'));
+    final summary = _readJson('build/parser_qa_pass_evidence/next_action.json');
+    expect(summary['readyForNextBatch'], isTrue);
+    expect(summary['releaseOneCellCount'], 1);
+    expect(summary['nextActions'].toString(), contains('next local-only'));
+  });
+
+  test('next action blocks unsafe evidence before release progression', () {
+    final root = Directory.systemTemp.createTempSync('maintainiac_next_bad_');
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeJson('build/parser_qa_pipeline/release_one_commands.json', {
+      'commands': [
+        {'cellId': 'plumbing.residential.core.en-US'},
+      ],
+    });
+    _writeJson('build/parser_qa_pass_evidence/evidence_summary.json', {
+      'missingArtifactNames': <String>[],
+      'unsafeFindings': ['firebaseWritesAllowed=true'],
+    });
+
+    final exit = runWorkSupplyParserQaNextAction(
+      const [],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 1);
+    final summary = _readJson('build/parser_qa_pass_evidence/next_action.json');
+    expect(summary['readyForNextBatch'], isFalse);
+    expect(summary['nextActions'].toString(), contains('unsafe'));
+  });
+}
+
+void _writeJson(String path, Map<String, Object?> value) {
+  final file = File(path)..parent.createSync(recursive: true);
+  file.writeAsStringSync(jsonEncode(value));
+}
+
+Map<String, Object?> _readJson(String path) {
+  return jsonDecode(File(path).readAsStringSync()) as Map<String, Object?>;
+}
+
+class _MemorySink implements IOSink {
+  final _buffer = StringBuffer();
+
+  String get content => _buffer.toString();
+
+  @override
+  void write(Object? object) => _buffer.write(object);
+
+  @override
+  void writeln([Object? object = '']) => _buffer.writeln(object);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}

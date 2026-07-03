@@ -1,0 +1,38 @@
+[
+  {
+    "fixtureId": "plumbing_clear_pvc_sch40_coupling",
+    "expectedTrade": "Plumbing",
+    "expectedTopCandidateContains": "PVC Schedule 40 Coupling",
+    "maxCandidateCount": 500
+  },
+  {
+    "fixtureId": "plumbing_clear_pex_crimp_tee",
+    "expectedTrade": "Plumbing",
+    "expectedTopCandidateContains": "PEX Tee",
+    "maxCandidateCount": 500
+  },
+  {
+    "fixtureId": "quantity_price_two_pack_supply_lines",
+    "expectedTrade": "Plumbing",
+    "expectedTopCandidateContains": "Supply Line",
+    "maxCandidateCount": 500
+  },
+  {
+    "fixtureId": "ace_clear_brass_angle_stop",
+    "expectedTrade": "Plumbing",
+    "expectedTopCandidateContains": "Supply Stop",
+    "maxCandidateCount": 500
+  },
+  {
+    "fixtureId": "ferguson_clear_no_hub_coupling",
+    "expectedTrade": "Plumbing",
+    "expectedTopCandidateContains": "No-Hub",
+    "maxCandidateCount": 500
+  },
+  {
+    "fixtureId": "grainger_clear_threaded_rod",
+    "expectedTrade": "Plumbing",
+    "expectedTopCandidateContains": "Threaded Rod",
+    "maxCandidateCount": 500
+  }
+]

@@ -1,0 +1,431 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+
+import '../tool/work_supply_parser_qa_generate_fixtures.dart';
+
+void main() {
+  test(
+    'fixture generator writes synthetic English batch and manifest',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_fixture_generator_en_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+
+      final stdout = _MemorySink();
+      final stderr = _MemorySink();
+      final exit = await runWorkSupplyParserFixtureGenerator(
+        [
+          '--trade',
+          'plumbing',
+          '--scope',
+          'residential',
+          '--tier',
+          'core',
+          '--locale',
+          'en-US',
+          '--limit',
+          '24',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: stdout,
+        stderr: stderr,
+      );
+
+      expect(exit, 0, reason: stderr.content);
+      expect(stdout.content, contains('QA_GENERATED_FIXTURES'));
+
+      final generatedRoot = Directory(
+        '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+      );
+      final fixtures =
+          jsonDecode(
+                File(
+                  '${generatedRoot.path}/generated_fixtures.json',
+                ).readAsStringSync(),
+              )
+              as List;
+      final manifest =
+          jsonDecode(
+                File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+              )
+              as Map;
+
+      expect(fixtures, hasLength(24));
+      expect(manifest['generatedCount'], 24);
+      expect(manifest['parserCalls'], 0);
+      expect(manifest['liveServicesAllowed'], isFalse);
+      expect(manifest['generationSeed'], contains('fixture-generator-v1'));
+      expect(manifest['riskTags'].toString(), contains('generated_batch'));
+      expect(fixtures.first['sourceType'], 'synthetic');
+      expect(fixtures.first['reviewStatus'], 'generated-not-release-approved');
+      expect(fixtures.any((entry) => entry['expectUnknown'] == true), isTrue);
+    },
+  );
+
+  test('fixture generator writes Spanish locale cases separately', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_es_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      ['--locale', 'es-US', '--limit', '12', '--output-dir', output.path],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final fixtureFile = File(
+      '${output.path}/work_supply_parser/plumbing/residential/core/es-US/'
+      'generated_fixtures.json',
+    );
+    final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
+    expect(fixtures, hasLength(12));
+    expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
+    expect(
+      fixtures.map((entry) => entry['rawLine'].toString()).join(' '),
+      contains('CODO'),
+    );
+  });
+
+  test('fixture generator supports top residential core trades', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_trades_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    for (final trade in ['plumbing', 'electrical', 'hvac']) {
+      for (final locale in ['en-US', 'es-US']) {
+        final exit = await runWorkSupplyParserFixtureGenerator(
+          [
+            '--trade',
+            trade,
+            '--scope',
+            'residential',
+            '--tier',
+            'core',
+            '--locale',
+            locale,
+            '--limit',
+            '10',
+            '--output-dir',
+            output.path,
+          ],
+          stdout: _MemorySink(),
+          stderr: _MemorySink(),
+        );
+        expect(exit, 0);
+        final fixtureFile = File(
+          '${output.path}/work_supply_parser/$trade/residential/core/$locale/'
+          'generated_fixtures.json',
+        );
+        final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
+        expect(fixtures, hasLength(10));
+        expect(fixtures.first['sourceType'], 'synthetic');
+        expect(fixtures.any((entry) => entry['expectUnknown'] == true), isTrue);
+      }
+    }
+  });
+
+  test('fixture generator rejects unsafe empty batches', () async {
+    final stderr = _MemorySink();
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      ['--limit', '0'],
+      stdout: _MemorySink(),
+      stderr: stderr,
+    );
+
+    expect(exit, 64);
+    expect(stderr.content, contains('--limit must be greater than zero'));
+  });
+
+  test('fixture generator supports plumbing standard tier', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_standard_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'plumbing',
+        '--scope',
+        'residential',
+        '--tier',
+        'standard',
+        '--locale',
+        'es-US',
+        '--limit',
+        '18',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final fixtureFile = File(
+      '${output.path}/work_supply_parser/plumbing/residential/standard/es-US/'
+      'generated_fixtures.json',
+    );
+    final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
+    expect(fixtures, hasLength(18));
+    expect(fixtures.toString(), contains('PERNO SANITARIO'));
+    expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
+  });
+
+  test('fixture generator supports electrical standard spanish tier', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_electrical_standard_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'electrical',
+        '--scope',
+        'residential',
+        '--tier',
+        'standard',
+        '--locale',
+        'es-US',
+        '--limit',
+        '20',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final fixtureFile = File(
+      '${output.path}/work_supply_parser/electrical/residential/standard/es-US/'
+      'generated_fixtures.json',
+    );
+    final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
+    expect(fixtures, hasLength(20));
+    expect(fixtures.toString(), contains('TOMACORRIENTE GFI'));
+    expect(fixtures.toString(), contains('CLAMP TIERRA'));
+    expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
+  });
+
+  test('fixture generator supports hvac standard spanish tier', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_hvac_standard_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'hvac',
+        '--scope',
+        'residential',
+        '--tier',
+        'standard',
+        '--locale',
+        'es-US',
+        '--limit',
+        '22',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final fixtureFile = File(
+      '${output.path}/work_supply_parser/hvac/residential/standard/es-US/'
+      'generated_fixtures.json',
+    );
+    final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
+    expect(fixtures, hasLength(22));
+    expect(fixtures.toString(), contains('BOMBA COND'));
+    expect(fixtures.toString(), contains('DUCTO FLEX'));
+    expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
+  });
+
+  test('fixture generator supports hvac professional spanish tier', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_hvac_professional_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'hvac',
+        '--scope',
+        'residential',
+        '--tier',
+        'professional',
+        '--locale',
+        'es-US',
+        '--limit',
+        '24',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final fixtureFile = File(
+      '${output.path}/work_supply_parser/hvac/residential/professional/es-US/'
+      'generated_fixtures.json',
+    );
+    final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
+    expect(fixtures, hasLength(24));
+    expect(fixtures.toString(), contains('SENSOR FLAMA'));
+    expect(fixtures.toString(), contains('AISLAMIENTO LINEA'));
+    expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
+  });
+
+  test('fixture generator supports hvac complete spanish tier', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_hvac_complete_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'hvac',
+        '--scope',
+        'residential',
+        '--tier',
+        'complete',
+        '--locale',
+        'es-US',
+        '--limit',
+        '28',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final fixtureFile = File(
+      '${output.path}/work_supply_parser/hvac/residential/complete/es-US/'
+      'generated_fixtures.json',
+    );
+    final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
+    expect(fixtures, hasLength(28));
+    expect(fixtures.toString(), contains('SWITCH FLOTADOR'));
+    expect(fixtures.toString(), contains('TARJETA DESCONGELAR'));
+    expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
+  });
+
+  test('fixture generator supports plumbing professional spanish tier', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_plumbing_professional_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'plumbing',
+        '--scope',
+        'residential',
+        '--tier',
+        'professional',
+        '--locale',
+        'es-US',
+        '--limit',
+        '18',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final fixtureFile = File(
+      '${output.path}/work_supply_parser/plumbing/residential/professional/'
+      'es-US/generated_fixtures.json',
+    );
+    final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
+    expect(fixtures, hasLength(18));
+    expect(fixtures.toString(), contains('TRAMPA P'));
+    expect(fixtures.toString(), contains('MANGUERA LAVANDERIA'));
+    expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
+  });
+
+  test('fixture generator supports plumbing complete spanish tier', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_plumbing_complete_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'plumbing',
+        '--scope',
+        'residential',
+        '--tier',
+        'complete',
+        '--locale',
+        'es-US',
+        '--limit',
+        '24',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final fixtureFile = File(
+      '${output.path}/work_supply_parser/plumbing/residential/complete/'
+      'es-US/generated_fixtures.json',
+    );
+    final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
+    expect(fixtures, hasLength(24));
+    expect(fixtures.toString(), contains('TAPON CLEANOUT'));
+    expect(fixtures.toString(), contains('VALVULA PRV'));
+    expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
+  });
+
+  test('fixture generator rejects unsupported tier cells', () async {
+    final stderr = _MemorySink();
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      ['--trade', 'garage', '--scope', 'residential', '--tier', 'standard'],
+      stdout: _MemorySink(),
+      stderr: stderr,
+    );
+
+    expect(exit, 65);
+    expect(stderr.content, contains('trade=garage'));
+    expect(stderr.content, contains('tier=standard'));
+  });
+}
+
+class _MemorySink implements IOSink {
+  final _buffer = StringBuffer();
+
+  String get content => _buffer.toString();
+
+  @override
+  void write(Object? object) => _buffer.write(object);
+
+  @override
+  void writeln([Object? object = '']) => _buffer.writeln(object);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
