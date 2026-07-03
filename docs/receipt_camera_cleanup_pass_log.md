@@ -137,6 +137,24 @@ Verification:
 - Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
   diff check.
 
+## Pass 534 - 02:50:38 EDT to 02:54:00 EDT
+
+Scope:
+- Hardened attachment-panel photo risk flags so native bottom-missing statuses
+  recommend adding more receipt photos, not just mark partial risk.
+- Extended attachment read contract coverage for the normalized status branch.
+- Recorded `BUG-RECEIPT-0052` under `camera_capture_quality`.
+- Archived Pass 509 to keep the active log under the line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for attachment panel publish signals
+  and attachment read contract coverage.
+- Passed focused Flutter test
+  `test/receipt_camera_ocr_source_attachment_read_test.dart --plain-name
+  "reviewed OCR source attachments preserve read state and cleanup safety"`.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 527 - 01:56:00 EDT to 02:00:00 EDT
 
 Scope:
@@ -477,24 +495,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart format and analyzer for capture diagnostic telemetry and
-  OCR source handoff regression coverage.
-- Passed focused Flutter test `test/receipt_camera_ocr_source_handoff_test.dart`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 509 - 01:00:37 EDT to 01:01:44 EDT
-
-Scope:
-- Hardened receipt camera diagnostic bucket helpers so non-finite numeric
-  payloads from the native bridge cannot crash telemetry or create fake quality
-  evidence.
-- Added regression coverage proving diagnostic integer parsing goes through a
-  finite-value helper.
-- Recorded `BUG-RECEIPT-0027` under `camera_capture_quality`.
-
-Verification:
-- Fixed an initial focused-test failure caused by the regression fixture not
-  reading the diagnostic helper implementation, then reran the focused chain.
-- Passed targeted Dart format and analyzer for diagnostic bucket helpers and
   OCR source handoff regression coverage.
 - Passed focused Flutter test `test/receipt_camera_ocr_source_handoff_test.dart`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.

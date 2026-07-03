@@ -108,6 +108,7 @@ extension _ReceiptAttachmentPublishSignals
             .trim();
     if (coverageStatusNeedsMorePhotos(coverageStatus)) {
       flags.add('possible_partial_receipt');
+      flags.add('add_more_photos_recommended');
     }
     final savedWarning =
         ReceiptNativeSavedPhotoReviewWarning.maybeFromDiagnostics(diagnostics);

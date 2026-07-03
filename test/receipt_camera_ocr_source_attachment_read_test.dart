@@ -97,7 +97,8 @@ void main() {
       attachmentPanel,
       contains(
         "if (coverageStatusNeedsMorePhotos(coverageStatus)) {\n"
-        "      flags.add('possible_partial_receipt');",
+        "      flags.add('possible_partial_receipt');\n"
+        "      flags.add('add_more_photos_recommended');",
       ),
     );
     expect(importActions, contains('previousPhotoIdByPath'));
