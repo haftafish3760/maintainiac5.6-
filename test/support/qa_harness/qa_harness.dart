@@ -1,6 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+export 'maintainiac_qa_assertions.dart';
+export 'maintainiac_qa_backbone.dart';
+export 'maintainiac_qa_builders.dart';
+export 'maintainiac_qa_environment.dart';
+export 'maintainiac_qa_fixtures.dart';
+export 'maintainiac_regression_registry.dart';
+
 enum QaSeverity { info, warning, error, critical }
 
 class QaFailure {
