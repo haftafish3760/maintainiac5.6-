@@ -1,6 +1,7 @@
 part of 'expense_receipt_entry_screen.dart';
 
-extension _ExpenseReceiptEntryDiagnosticBucketHelpers on _ExpenseReceiptEntryScreenState {
+extension _ExpenseReceiptEntryDiagnosticBucketHelpers
+    on _ExpenseReceiptEntryScreenState {
   Map<String, int> _diagnosticStringCounts(
     List<Map<String, Object?>> diagnostics,
     String key,
@@ -39,14 +40,7 @@ extension _ExpenseReceiptEntryDiagnosticBucketHelpers on _ExpenseReceiptEntryScr
   int _diagnosticIntSum(List<Map<String, Object?>> diagnostics, String key) {
     var total = 0;
     for (final diagnostic in diagnostics) {
-      final value = diagnostic[key];
-      if (value is int) {
-        total += value;
-      } else if (value is num) {
-        total += value.round();
-      } else if (value is String) {
-        total += int.tryParse(value.trim()) ?? 0;
-      }
+      total += _diagnosticIntValue(diagnostic[key]);
     }
     return total;
   }
@@ -54,13 +48,7 @@ extension _ExpenseReceiptEntryDiagnosticBucketHelpers on _ExpenseReceiptEntryScr
   int _diagnosticIntMax(List<Map<String, Object?>> diagnostics, String key) {
     var maxValue = 0;
     for (final diagnostic in diagnostics) {
-      final value = diagnostic[key];
-      final parsed = switch (value) {
-        int() => value,
-        num() => value.round(),
-        String() => int.tryParse(value.trim()) ?? 0,
-        _ => 0,
-      };
+      final parsed = _diagnosticIntValue(diagnostic[key]);
       if (parsed > maxValue) maxValue = parsed;
     }
     return maxValue;
@@ -120,12 +108,25 @@ extension _ExpenseReceiptEntryDiagnosticBucketHelpers on _ExpenseReceiptEntryScr
   }
 
   double? _diagnosticDoubleValue(Object? value) {
-    return switch (value) {
+    final parsed = switch (value) {
       int() => value.toDouble(),
       num() => value.toDouble(),
       String() => double.tryParse(value.trim()),
       _ => null,
     };
+    if (parsed == null || !parsed.isFinite) return null;
+    return parsed;
+  }
+
+  int _diagnosticIntValue(Object? value) {
+    final parsed = switch (value) {
+      int() => value,
+      num() when value.isFinite => value.round(),
+      String() => double.tryParse(value.trim()),
+      _ => null,
+    };
+    if (parsed == null || !parsed.isFinite) return 0;
+    return parsed.round();
   }
 
   String _ratioBucket(double value) {

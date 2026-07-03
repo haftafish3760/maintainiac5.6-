@@ -61,6 +61,12 @@ void main() {
           'lib/screens/expenses/entry/expense_receipt_entry_photo_preparation_telemetry_tail.dart',
         ).readAsString() +
         await File(
+          'lib/screens/expenses/entry/expense_receipt_entry_diagnostic_bucket_helpers.dart',
+        ).readAsString() +
+        await File(
+          'lib/screens/expenses/entry/expense_receipt_entry_capture_diagnostic_helpers.dart',
+        ).readAsString() +
+        await File(
           'lib/screens/expenses/entry/expense_receipt_entry_read_handoff_helpers.dart',
         ).readAsString() +
         await File(
@@ -231,6 +237,8 @@ void main() {
     expect(receiptEntryScreen, contains('latestFramingConfidence'));
     expect(receiptEntryScreen, contains('_diagnosticStringCounts'));
     expect(receiptEntryScreen, contains('_diagnosticIntSum'));
+    expect(receiptEntryScreen, contains('_diagnosticIntValue'));
+    expect(receiptEntryScreen, contains('!parsed.isFinite'));
     expect(receiptEntryScreen, contains('_diagnosticBoolTrueCount'));
     expect(receiptEntryScreen, contains('scannerCleanupUsedCount'));
     expect(receiptEntryScreen, contains('cleanupActions'));
