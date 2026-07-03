@@ -23,10 +23,7 @@ class ReceiptNativeCaptureRecoveryRecord {
     return ReceiptNativeCaptureRecoveryRecord(
       manifestPath: manifestPath,
       sessionId: manifest['sessionId'] as String? ?? '',
-      engine: ReceiptNativeCameraEngine.values.firstWhere(
-        (engine) => engine.name == (manifest['engine'] as String? ?? ''),
-        orElse: () => ReceiptNativeCameraEngine.unavailable,
-      ),
+      engine: receiptNativeCameraEngineFromName(manifest['engine'] as String?),
       capturedAt:
           DateTime.tryParse(manifest['capturedAt'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),

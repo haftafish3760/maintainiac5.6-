@@ -60,10 +60,7 @@ extension _ReceiptNativeCaptureStagingRecoveryIndex
     return ReceiptNativeCaptureRecoveryRecord(
       manifestPath: entry.manifestPath,
       sessionId: entry.sessionId,
-      engine: ReceiptNativeCameraEngine.values.firstWhere(
-        (engine) => engine.name == entry.engineName,
-        orElse: () => ReceiptNativeCameraEngine.unavailable,
-      ),
+      engine: receiptNativeCameraEngineFromName(entry.engineName),
       capturedAt: entry.capturedAt,
       dataSaverLevel: dataSaverLevel,
       stagedPhotoPaths: entry.stagedPhotoPaths,

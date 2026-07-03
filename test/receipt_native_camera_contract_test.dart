@@ -147,6 +147,18 @@ void main() {
     expect(config.orientationCorrectionEnabled, isTrue);
   });
 
+  test('native camera capability restore trims engine names', () {
+    final capabilities = ReceiptNativeCameraCapabilities.fromMap(const {
+      'engine': ' cameraX ',
+      'available': true,
+      'cameraPermissionGranted': true,
+      'hasRearCamera': true,
+    });
+
+    expect(capabilities.engine, ReceiptNativeCameraEngine.cameraX);
+    expect(capabilities.canOpenReceiptCamera, isTrue);
+  });
+
   test(
     'native coverage diagnostic vocabulary is shared by bridge and review',
     () {

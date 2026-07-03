@@ -222,6 +222,60 @@ void main() {
     expect(indexMap.toString(), isNot(contains('Private Customer')));
   });
 
+  test(
+    'native recovery restores padded engine names from saved state',
+    () async {
+      final staging = const ReceiptNativeCaptureStaging();
+      final source = File(
+        '${Directory.systemTemp.path}/native-padded-engine.jpg',
+      );
+      await source.writeAsBytes(List<int>.filled(96, 12), flush: true);
+      addTearDown(() {
+        if (source.existsSync()) source.deleteSync();
+      });
+
+      final staged = await staging.stage(
+        ReceiptNativeCaptureResult(
+          engine: ReceiptNativeCameraEngine.avFoundation,
+          originalPhotoPaths: [source.path],
+          temporaryCaptureIds: const ['padded-engine'],
+          capturedAt: DateTime(2026, 7, 3, 5, 8),
+        ),
+      );
+
+      final manifestFile = File(staged.recoveryManifestPath);
+      final manifest = jsonDecode(await manifestFile.readAsString()) as Map;
+      await manifestFile.writeAsString(
+        jsonEncode({...manifest, 'engine': ' avFoundation '}),
+        flush: true,
+      );
+
+      var records = await staging.recoverableNativeCaptures();
+      expect(records.single.engine, ReceiptNativeCameraEngine.avFoundation);
+
+      await manifestFile.delete();
+      final store = await ReceiptNativeCaptureRecoveryStore.create();
+      final indexEntry = store.entries.single;
+      await store.save(
+        ReceiptNativeCaptureRecoveryIndexEntry(
+          sessionId: indexEntry.sessionId,
+          manifestPath: indexEntry.manifestPath,
+          engineName: ' avFoundation ',
+          capturedAt: indexEntry.capturedAt,
+          dataSaverLevelName: indexEntry.dataSaverLevelName,
+          photoCount: indexEntry.photoCount,
+          stagedPhotoPaths: indexEntry.stagedPhotoPaths,
+          attachments: indexEntry.attachments,
+          captureDiagnostics: indexEntry.captureDiagnostics,
+          recoverySafety: indexEntry.recoverySafety,
+        ),
+      );
+
+      records = await staging.recoverableNativeCaptures();
+      expect(records.single.engine, ReceiptNativeCameraEngine.avFoundation);
+    },
+  );
+
   test('recoverable captures skip corrupt or missing staged work', () async {
     final staging = const ReceiptNativeCaptureStaging();
     final source = File(

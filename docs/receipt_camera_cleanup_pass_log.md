@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 544 - 05:07:44 EDT to 05:11:43 EDT
+
+Scope:
+- Hardened native camera engine restore so padded bridge, manifest, or Hive
+  index values do not downgrade captured receipts to the unavailable engine.
+- Added capability and interrupted-capture recovery regressions for padded
+  native engine names.
+- Recorded `BUG-RECEIPT-0061` under `native_bridge`.
+- Archived Pass 538 out of the live cleanup log.
+
+Verification:
+- Passed targeted format/analyzer for native camera contract and recovery
+  restore files.
+- Passed focused capability and recovery-index Flutter regressions.
+
 ## Pass 543 - 05:01:39 EDT to 05:02:14 EDT
 
 Scope:
@@ -80,27 +95,6 @@ Verification:
   `test/receipt_attachment_panel_recovery_contract_test.dart`.
 - Passed targeted format/analyzer, bug-ledger, log, doc-size, audit, and diff
   gates.
-
-## Pass 538 - 03:24:04 EDT to 03:24:37 EDT
-
-Scope:
-- Hardened camera capture diagnostics so stale requested paths outside the
-  source camera result cannot inherit capture evidence by request index.
-- Added regression coverage proving mixed current/stale path requests return no
-  capture diagnostics.
-- Recorded `BUG-RECEIPT-0056` under `source_preservation`.
-- Archived Pass 517 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for camera result models and focused
-  stale-path regression coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_result_best_shot_ocr_test.dart --plain-name "camera
-  result rejects stale diagnostic paths outside the result"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-- Passed cleanup log gate, doc-size gate, receipt source audit, and
-  `git diff --check`.
 
 ## Pass 537 - 03:11:21 EDT to 03:12:50 EDT
 

@@ -18,6 +18,14 @@ enum ReceiptNativeCameraEngine {
   final String label;
 }
 
+ReceiptNativeCameraEngine receiptNativeCameraEngineFromName(String? name) {
+  final normalized = name?.trim() ?? '';
+  return ReceiptNativeCameraEngine.values.firstWhere(
+    (value) => value.name == normalized,
+    orElse: () => ReceiptNativeCameraEngine.unavailable,
+  );
+}
+
 enum ReceiptNativeSettingGroup {
   capture('Capture'),
   cameraControl('Camera controls'),
@@ -147,11 +155,7 @@ class ReceiptNativeCameraCapabilities {
   }
 
   factory ReceiptNativeCameraCapabilities.fromMap(Map<dynamic, dynamic> map) {
-    final engineName = map['engine']?.toString();
-    final engine = ReceiptNativeCameraEngine.values.firstWhere(
-      (value) => value.name == engineName,
-      orElse: () => ReceiptNativeCameraEngine.unavailable,
-    );
+    final engine = receiptNativeCameraEngineFromName(map['engine']?.toString());
     return ReceiptNativeCameraCapabilities(
       engine: engine,
       available: map['available'] == true,
