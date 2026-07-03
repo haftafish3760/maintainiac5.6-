@@ -27,7 +27,11 @@ class _PickedReceiptPhotos {
     final pickedPaths = _pickedReceiptPhotoUniquePaths(paths);
     final checks = <String, ReceiptPhotoQualityCheck>{};
     if (_pickedReceiptPhotoPathsAreUnique(result.photoPaths) &&
-        _pickedReceiptPhotoPathsAreUnique(pickedPaths)) {
+        _pickedReceiptPhotoPathsAreUnique(pickedPaths) &&
+        _pickedReceiptPhotoPathsAreCameraResultMembers(
+          result.photoPaths,
+          pickedPaths,
+        )) {
       for (final path in pickedPaths) {
         final index = result.photoPaths.indexOf(path);
         final quality = result.qualityForIndex(index);
@@ -144,6 +148,17 @@ bool _pickedReceiptPhotoPathsAreUnique(List<String> paths) {
     final trimmed = path.trim();
     if (trimmed.isEmpty || trimmed != path) return false;
     if (!seen.add(path)) return false;
+  }
+  return true;
+}
+
+bool _pickedReceiptPhotoPathsAreCameraResultMembers(
+  List<String> resultPaths,
+  List<String> pickedPaths,
+) {
+  final resultPathSet = resultPaths.toSet();
+  for (final pickedPath in pickedPaths) {
+    if (!resultPathSet.contains(pickedPath)) return false;
   }
   return true;
 }

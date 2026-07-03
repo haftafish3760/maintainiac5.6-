@@ -158,6 +158,10 @@ void main() {
     );
     expect(
       saveActions,
+      contains('_pickedReceiptPhotoPathsAreCameraResultMembers('),
+    );
+    expect(
+      saveActions,
       contains('final pickedPaths = _pickedReceiptPhotoUniquePaths(paths);'),
     );
     expect(saveActions, contains('paths: pickedPaths'));

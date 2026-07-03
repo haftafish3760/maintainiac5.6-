@@ -66,6 +66,24 @@ Verification:
 - Passed targeted format/analyzer and focused recovery handoff, quality
   handoff, and shared-flow recovery contract tests.
 
+## Pass 548 - 05:28:20 EDT to 05:30:30 EDT
+
+Scope:
+- Hardened picked camera-result quality handoff so stale or foreign picked
+  paths cannot leave partial quality evidence after diagnostics reject the
+  batch.
+- Added lifecycle source regression coverage requiring the camera-result member
+  guard beside the picked-path uniqueness guard.
+- Recorded `BUG-RECEIPT-0064` under `source_preservation`.
+- Archived Pass 531 out of the live cleanup log.
+
+Verification:
+- Passed targeted format/analyzer for picked review save models and lifecycle
+  source regression coverage.
+- Passed focused Flutter test
+  `test/receipt_photo_review_save_lifecycle_test.dart --plain-name "photo
+  review save and close actions respect lifecycle state"`.
+
 ## Pass 543 - 05:01:39 EDT to 05:02:14 EDT
 
 Scope:
@@ -143,26 +161,6 @@ Verification:
   `test/receipt_attachment_panel_recovery_contract_test.dart`.
 - Passed targeted format/analyzer, bug-ledger, log, doc-size, audit, and diff
   gates.
-
-## Pass 531 - 02:37:30 EDT to 02:42:00 EDT
-
-Scope:
-- Hardened OCR source preservation metadata so original-source quality guards
-  are not hidden behind the normal data-saver proof storage outcome.
-- Preserved saved-proof fallback as the highest review-risk storage outcome,
-  then promoted original-quality guard before ordinary data-saver proof storage.
-- Extended scanner-prep regression coverage to assert the storage outcome and
-  downstream attachment risk flag.
-- Recorded `BUG-RECEIPT-0049` under `ocr_handoff_contract`.
-
-Verification:
-- Passed targeted Dart format and analyzer for OCR source storage outcome
-  priority and scanner preparation regression coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_result_stitch_scanner_test.dart --plain-name "photo
-  review result summarizes scanner prep concerns"`.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
 
 ## Pass 532 - 02:41:43 EDT to 02:46:00 EDT
 
