@@ -332,6 +332,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'privacy', 'security', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'sensitive_field_registry_rejects_placeholders',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_sensitive_field_registry_test.dart',
+    plainName: 'sensitive field registry rejects placeholder field names',
+    reason: 'Run only the sensitive field placeholder-name guard.',
+    tags: {'privacy', 'security', 'regression', 'evidence'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'source_boundary_catches_live_services',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_source_boundary_test.dart',

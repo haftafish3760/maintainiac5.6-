@@ -40,4 +40,30 @@ void main() {
       contains('sensitive field registry missing kind receiptRaw'),
     );
   });
+
+  test('sensitive field registry rejects placeholder field names', () {
+    const registry = MaintainiacSensitiveFieldRegistry([
+      MaintainiacSensitiveField(
+        name: 'private',
+        kind: MaintainiacSensitiveFieldKind.secret,
+        reason: 'Too generic to enforce safely.',
+      ),
+      MaintainiacSensitiveField(
+        name: 'TODO',
+        kind: MaintainiacSensitiveFieldKind.secret,
+        reason: 'Placeholder values must never become real policy.',
+      ),
+    ]);
+
+    final failures = registry.validate().join('\n');
+
+    expect(
+      failures,
+      contains('private is too generic for a sensitive field name'),
+    );
+    expect(
+      failures,
+      contains('TODO is too generic for a sensitive field name'),
+    );
+  });
 }

@@ -24,10 +24,24 @@ class MaintainiacSensitiveField {
     if (name.trim().isEmpty) {
       failures.add('sensitive field missing name');
     }
+    if (_isPlaceholderName(name)) {
+      failures.add('$name is too generic for a sensitive field name');
+    }
     if (reason.trim().isEmpty) {
       failures.add('$name missing reason');
     }
     return failures;
+  }
+
+  bool _isPlaceholderName(String value) {
+    final normalized = MaintainiacSensitiveFieldRegistry.normalize(value);
+    return normalized == 'data' ||
+        normalized == 'field' ||
+        normalized == 'private' ||
+        normalized == 'sensitive' ||
+        normalized == 'unknown' ||
+        normalized == 'todo' ||
+        normalized == 'placeholder';
   }
 
   Map<String, Object?> toJson() {

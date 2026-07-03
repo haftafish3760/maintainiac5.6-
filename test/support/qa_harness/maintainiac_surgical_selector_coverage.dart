@@ -157,6 +157,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'sensitive field registry covers privacy forbidden data classes',
         'sensitive field registry rejects duplicates and missing classes',
+        'sensitive field registry rejects placeholder field names',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
