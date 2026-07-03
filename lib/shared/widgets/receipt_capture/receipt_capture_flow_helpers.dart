@@ -141,8 +141,15 @@ ReceiptPhotoQualityCheck? _qualityForOcrSourceIndex(
       result.photoQualityChecksByPath,
     );
   }
-  if (index < 0 || index >= result.photoPaths.length) return null;
-  return result.photoQualityChecksByPath[result.photoPaths[index]];
+  if (index < 0 || index >= result.ocrSourcePhotoPaths.length) return null;
+  final ocrSourcePath = result.ocrSourcePhotoPaths[index];
+  final ocrQuality = result.photoQualityChecksByPath[ocrSourcePath];
+  if (ocrQuality != null) return ocrQuality;
+  if (index < result.photoPaths.length &&
+      result.photoPaths[index] == ocrSourcePath) {
+    return result.photoQualityChecksByPath[result.photoPaths[index]];
+  }
+  return null;
 }
 
 ReceiptPhotoQualityCheck? _weakestPhotoQuality(

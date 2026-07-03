@@ -26,9 +26,17 @@ extension _ReceiptAttachmentNativeSignalHelpers
             result.captureDiagnosticsByPhotoPath[path]!,
       ];
     }
-    if (index < 0 || index >= result.photoPaths.length) return const [];
-    final diagnostics =
-        result.captureDiagnosticsByPhotoPath[result.photoPaths[index]];
+    if (index < 0 || index >= result.ocrSourcePhotoPaths.length) {
+      return const [];
+    }
+    final ocrSourcePath = result.ocrSourcePhotoPaths[index];
+    var diagnostics = result.captureDiagnosticsByPhotoPath[ocrSourcePath];
+    if (diagnostics == null &&
+        index < result.photoPaths.length &&
+        result.photoPaths[index] == ocrSourcePath) {
+      diagnostics =
+          result.captureDiagnosticsByPhotoPath[result.photoPaths[index]];
+    }
     return diagnostics == null ? const [] : [diagnostics];
   }
 
@@ -94,8 +102,15 @@ extension _ReceiptAttachmentNativeSignalHelpers
         result.photoQualityChecksByPath,
       );
     }
-    if (index < 0 || index >= result.photoPaths.length) return null;
-    return result.photoQualityChecksByPath[result.photoPaths[index]];
+    if (index < 0 || index >= result.ocrSourcePhotoPaths.length) return null;
+    final ocrSourcePath = result.ocrSourcePhotoPaths[index];
+    final ocrQuality = result.photoQualityChecksByPath[ocrSourcePath];
+    if (ocrQuality != null) return ocrQuality;
+    if (index < result.photoPaths.length &&
+        result.photoPaths[index] == ocrSourcePath) {
+      return result.photoQualityChecksByPath[result.photoPaths[index]];
+    }
+    return null;
   }
 
   ReceiptPhotoQualityCheck? _weakestPhotoQuality(

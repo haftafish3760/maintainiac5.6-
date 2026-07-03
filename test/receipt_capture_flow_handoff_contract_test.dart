@@ -94,6 +94,15 @@ void main() {
 
     expect(flow, contains('result.ocrSourcePhotoPaths[index]'));
     expect(actions, contains('result.ocrSourcePhotoPaths[index]'));
+    expect(
+      flow,
+      contains('final ocrSourcePath = result.ocrSourcePhotoPaths[index];'),
+    );
+    expect(
+      flow,
+      contains('result.captureDiagnosticsByPhotoPath[ocrSourcePath]'),
+    );
+    expect(flow, contains('result.photoPaths[index] == ocrSourcePath'));
     expect(actions, contains('ocr_source_retake_risk'));
     expect(flow, contains("'ocr_reads_prepared_source_not_saved_backup'"));
     expect(actions, contains("'ocr_reads_prepared_source_not_saved_backup'"));

@@ -62,6 +62,19 @@ void main() {
     expect(captureFlow, isNot(contains('read_receipt_or_save_proof')));
     expect(importActions, contains('qualityForOcrSourceIndex'));
     expect(importActions, contains('_weakestPhotoQuality'));
+    expect(importActions, contains('result.ocrSourcePhotoPaths.length'));
+    expect(
+      importActions,
+      contains('final ocrSourcePath = result.ocrSourcePhotoPaths[index];'),
+    );
+    expect(
+      importActions,
+      contains('result.captureDiagnosticsByPhotoPath[ocrSourcePath]'),
+    );
+    expect(
+      importActions,
+      contains('result.photoPaths[index] == ocrSourcePath'),
+    );
     expect(importActions, contains('.withPhotoQuality('));
     expect(captureFlow, contains('_receiptBrainDocumentSignalsFor'));
     expect(captureFlow, contains('_receiptBrainRiskFlagsFor'));

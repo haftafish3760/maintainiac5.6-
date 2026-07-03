@@ -84,6 +84,23 @@ Verification:
   `test/receipt_photo_review_save_lifecycle_test.dart --plain-name "photo
   review save and close actions respect lifecycle state"`.
 
+## Pass 549 - 05:30:31 EDT to 05:37:07 EDT
+
+Scope:
+- Hardened OCR source quality and diagnostics helpers so derived OCR paths do
+  not inherit original-photo evidence just because the list indexes match.
+- Added attachment and shared-flow source contract coverage requiring direct
+  OCR-source path lookup with aligned original-photo fallback only.
+- Recorded `BUG-RECEIPT-0065` under `source_preservation`.
+- Archived Pass 532 out of the live cleanup log.
+
+Verification:
+- Passed targeted format/analyzer for attachment native signal helpers,
+  capture-flow helpers, OCR source risk helpers, and source contracts.
+- Passed focused Flutter tests
+  `test/receipt_camera_ocr_source_attachment_read_test.dart` and
+  `test/receipt_capture_flow_handoff_contract_test.dart`.
+
 ## Pass 543 - 05:01:39 EDT to 05:02:14 EDT
 
 Scope:
@@ -161,24 +178,6 @@ Verification:
   `test/receipt_attachment_panel_recovery_contract_test.dart`.
 - Passed targeted format/analyzer, bug-ledger, log, doc-size, audit, and diff
   gates.
-
-## Pass 532 - 02:41:43 EDT to 02:46:00 EDT
-
-Scope:
-- Hardened receipt completion coverage so native bottom-missing statuses keep
-  the user in add-next-section flow before receipt details.
-- Added regression coverage proving `bottom_soft_or_missing` triggers another
-  section even without an explicit `photoCoverageNeedsMorePhotos` boolean.
-- Recorded `BUG-RECEIPT-0050` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart format and analyzer for completion coverage logic and
-  focused completion coverage regression coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_result_completion_coverage_test.dart --plain-name
-  "native bottom soft status requests another section before details"`.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
 
 ## Pass 533 - 02:43:56 EDT to 02:48:00 EDT
 
