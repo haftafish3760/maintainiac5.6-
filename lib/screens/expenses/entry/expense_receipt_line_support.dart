@@ -55,6 +55,40 @@ String _expenseReceiptSafeToken(String value, {String fallback = 'unknown'}) {
   return token.isEmpty ? fallback : token;
 }
 
+String _expenseReceiptPrivateSafeLineToken(
+  String? ocrSourceLineId,
+  String fallbackId,
+) {
+  final sourceId = (ocrSourceLineId ?? '').trim();
+  if (_expenseReceiptLooksLikeSafeOcrLineId(sourceId)) {
+    return _expenseReceiptSafeToken(sourceId);
+  }
+  return _expenseReceiptPrivateSafeIdToken(
+    sourceId.isEmpty ? fallbackId : sourceId,
+  );
+}
+
+String _expenseReceiptPrivateSafeLineReferenceLabel(String value) {
+  final sourceId = value.trim();
+  if (_expenseReceiptLooksLikeSafeOcrLineId(sourceId)) return sourceId;
+  return 'Receipt line';
+}
+
+bool _expenseReceiptLooksLikeSafeOcrLineId(String value) {
+  return RegExp(r'^ocr_line_[0-9]{3,5}(_[a-z0-9_]+)?$').hasMatch(value.trim());
+}
+
+String _expenseReceiptPrivateSafeIdToken(String value) {
+  final cleaned = value.trim();
+  if (cleaned.isEmpty) return 'manual_unknown';
+  var hash = 0x811c9dc5;
+  for (final unit in cleaned.codeUnits) {
+    hash ^= unit;
+    hash = (hash * 0x01000193) & 0xffffffff;
+  }
+  return 'manual_${hash.toRadixString(16).padLeft(8, '0')}';
+}
+
 double? _parseMoneyInput(String value) {
   final cleaned = value.replaceAll(RegExp(r'[^0-9.\-]'), '');
   if (cleaned.isEmpty || cleaned == '-' || cleaned == '.') return null;

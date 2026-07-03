@@ -101,7 +101,9 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
     final lineNumber = ocrSourceLineNumber;
     if (lineNumber != null && lineNumber > 0) return 'OCR line $lineNumber';
     final sourceId = (ocrSourceLineId ?? '').trim();
-    if (sourceId.isNotEmpty) return sourceId;
+    if (sourceId.isNotEmpty) {
+      return _expenseReceiptPrivateSafeLineReferenceLabel(sourceId);
+    }
     return '';
   }
 

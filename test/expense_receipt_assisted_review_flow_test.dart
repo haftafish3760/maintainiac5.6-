@@ -77,6 +77,23 @@ void main() {
         contains('_ExpenseLineUse.split => _boundedBusinessPercent'),
       );
       expect(
+        lineModels,
+        contains('_expenseReceiptPrivateSafeLineToken(ocrSourceLineId'),
+      );
+      expect(
+        entryScreen,
+        contains('_expenseReceiptPrivateSafeLineReferenceLabel(sourceId)'),
+      );
+      expect(entryScreen, contains('_expenseReceiptPrivateSafeIdToken'));
+      expect(
+        lineModels,
+        isNot(
+          contains(
+            "_expenseReceiptSafeToken((ocrSourceLineId ?? id ?? '').trim())",
+          ),
+        ),
+      );
+      expect(
         entryScreen,
         isNot(contains("replaceAll(RegExp(r'[^0-9.]'), '')")),
       );

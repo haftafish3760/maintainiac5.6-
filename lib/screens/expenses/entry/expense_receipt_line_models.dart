@@ -189,7 +189,7 @@ class _ExpenseReceiptLine {
         ? 's${(sourceSection ?? 1).toString().padLeft(2, '0')}_l${sourceSectionLine.toString().padLeft(4, '0')}'
         : lineNumber != null && lineNumber > 0
         ? 'l${lineNumber.toString().padLeft(4, '0')}'
-        : _expenseReceiptSafeToken((ocrSourceLineId ?? id ?? '').trim());
+        : _expenseReceiptPrivateSafeLineToken(ocrSourceLineId, id ?? '');
     final family = _expenseReceiptSafeToken(
       (parserExpenseFamily ?? category).trim(),
       fallback: 'expense',

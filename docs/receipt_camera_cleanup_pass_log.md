@@ -3,6 +3,29 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 515 - 01:13:06 EDT to 01:14:21 EDT
+
+Scope:
+- Hardened in-entry receipt draft line redaction anchors so unsaved/manual line
+  IDs that include typed descriptions use deterministic private-safe tokens.
+- Hardened draft OCR line labels so unsafe source IDs fall back to a generic
+  receipt-line label.
+- Added source regression coverage proving the old raw draft-line ID fallback is
+  gone from the assisted review entry model.
+- Recorded `BUG-RECEIPT-0033` under `privacy_redaction`.
+- Archived Pass 478 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Fixed an initial focused-test failure caused by asserting helper placement in
+  the wrong source bundle, then tightened draft OCR line labels and reran.
+- Passed targeted Dart format and analyzer for draft line models, computed
+  fields, support helpers, and assisted-review regression coverage.
+- Passed focused Flutter test
+  `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
+  receipt review exposes classification and attachment flow"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 514 - 01:09:30 EDT to 01:11:50 EDT
 
 Scope:
@@ -468,23 +491,5 @@ Verification:
 - Passed targeted Dart format and analyzer for the native signals result helper
   and focused native quality test.
 - Passed focused Flutter test `test/receipt_camera_result_native_quality_test.dart`.
-- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
-  `--max-line-length=220`, and targeted `git diff --check`.
-
-## Pass 478 - 21:45:00 EDT to 21:54:41 EDT
-
-Scope:
-- Stayed on the clear-photo native staging path.
-- Added a permanent staging regression proving capture-readiness diagnostics
-  survive from native capture into staged photo diagnostics, recovery manifest,
-  and recovery index.
-- Covered readiness code, readiness label, manual capture allowance, stable
-  frame count, and required stable frames.
-- Kept the privacy guard in the same path proving private receipt text is not
-  retained in safe diagnostics.
-
-Verification:
-- Passed targeted Dart format and analyzer for the native staging test/helpers.
-- Passed focused Flutter test `test/receipt_native_capture_staging_test.dart`.
 - Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
   `--max-line-length=220`, and targeted `git diff --check`.
