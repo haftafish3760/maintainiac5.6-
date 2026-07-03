@@ -15,6 +15,7 @@ export 'maintainiac_regression_registry.dart';
 export 'maintainiac_financial_ledger.dart';
 export 'maintainiac_source_boundary.dart';
 export 'maintainiac_sync_lifecycle.dart';
+export 'maintainiac_scope_policy.dart';
 
 enum QaSeverity { info, warning, error, critical }
 

@@ -147,6 +147,15 @@ The backbone includes a deterministic device/storage policy probe:
 - Chooses local, compact-local, cloud-assisted, or blocked pack mode.
 - Blocks cloud/local pack decisions when App Check is invalid or the device lacks space and cannot go online.
 
+## Scope Policy Probe
+
+The backbone includes a reusable permission and ownership probe:
+
+- Account isolation.
+- Company and employee scoping.
+- Vehicle assignment checks.
+- Required permission checks with admin override.
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:
