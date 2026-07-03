@@ -451,6 +451,19 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/work_supply_parser_qa_pipeline_test.dart',
+      plainNames: {
+        'economical pipeline dry-run plans every local step safely',
+        'economical pipeline execute creates and validates local artifacts',
+        'economical pipeline resume reuses existing local artifacts',
+        'economical pipeline can cap parser fixture runs separately',
+        'economical pipeline supports English and Spanish locales together',
+        'economical pipeline plans release-one residential priority cells',
+        'economical pipeline rejects unsupported cells before writing files',
+        'economical pipeline rejects unsupported locales before multi-run',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_parser_release_command_plan_test.dart',
       plainNames: {
         'parser release command plan covers every parser consumer family',

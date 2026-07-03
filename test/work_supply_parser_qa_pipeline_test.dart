@@ -170,6 +170,53 @@ void main() {
   );
 
   test(
+    'economical pipeline plans release-one residential priority cells',
+    () async {
+      const trades = ['plumbing', 'electrical', 'hvac'];
+      const tiers = ['core', 'standard'];
+      const locales = ['en-US,es-US'];
+
+      for (final trade in trades) {
+        for (final tier in tiers) {
+          final stdout = _MemorySink();
+          final stderr = _MemorySink();
+          final exit = await runWorkSupplyParserQaPipeline(
+            [
+              '--trade',
+              trade,
+              '--scope',
+              'residential',
+              '--tier',
+              tier,
+              '--locales',
+              locales.single,
+              '--limit',
+              '25',
+            ],
+            stdout: stdout,
+            stderr: stderr,
+          );
+
+          expect(
+            exit,
+            0,
+            reason: '$trade residential $tier en-US/es-US should be planned.',
+          );
+          expect(stderr.content, isEmpty);
+          expect(stdout.content, contains('QA_ECONOMICAL_PIPELINE_MULTI_LOCALE'));
+          expect(stdout.content, contains('"trade": "$trade"'));
+          expect(stdout.content, contains('"tier": "$tier"'));
+          expect(stdout.content, contains('"localePackId": "en-US"'));
+          expect(stdout.content, contains('"localePackId": "es-US"'));
+          expect(stdout.content, contains('"liveServicesAllowed": false'));
+          expect(stdout.content, contains('"firebaseWritesAllowed": false'));
+          expect(stdout.content, contains('"dryRun": true'));
+        }
+      }
+    },
+  );
+
+  test(
     'economical pipeline rejects unsupported cells before writing files',
     () async {
       final output = await Directory.systemTemp.createTemp(
