@@ -72,6 +72,8 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_sync_lifecycle.dart',
       'maintainiac_sync_transport_policy.dart',
       'maintainiac_payment_contract.dart',
+      'maintainiac_financial_ledger.dart',
+      'maintainiac_financial_formula_registry.dart',
       'maintainiac_operating_directive_contract.dart',
       'maintainiac_qa_artifact_policy.dart',
       'maintainiac_qa_quality_gates.dart',
@@ -294,6 +296,29 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Payment contract changes need financial balance, cross-account safety, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'financial_ledger_changed',
+      changedPathContains: 'maintainiac_financial_ledger.dart',
+      selectorIds: {
+        'financial_ledger_expense_totals',
+        'financial_ledger_inventory_consumption',
+        'financial_ledger_rejects_unsafe_money',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Financial ledger changes need deterministic totals, inventory cost, unsafe money, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'financial_formula_registry_changed',
+      changedPathContains: 'maintainiac_financial_formula_registry.dart',
+      selectorIds: {
+        'financial_formula_registry_labels',
+        'financial_formula_registry_rejects_unsafe',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Financial formula registry changes need deterministic formula and unsafe formula checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'operating_directive_contract_changed',

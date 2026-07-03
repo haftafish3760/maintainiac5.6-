@@ -460,6 +460,48 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'payments', 'financial', 'security', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'financial_ledger_expense_totals',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_financial_ledger_test.dart',
+    plainName: 'financial ledger probe totals expenses deterministically',
+    reason: 'Run only the expense-total ledger math check after ledger edits.',
+    tags: {'financial', 'expenses', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'financial_ledger_inventory_consumption',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_financial_ledger_test.dart',
+    plainName: 'financial ledger probe models inventory consumption cost',
+    reason: 'Run only the inventory consumption cost check after ledger edits.',
+    tags: {'financial', 'inventory', 'jobs', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'financial_ledger_rejects_unsafe_money',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_financial_ledger_test.dart',
+    plainName: 'financial ledger probe rejects unsafe money lines',
+    reason: 'Run only the unsafe money-line guard after ledger edits.',
+    tags: {'financial', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'financial_formula_registry_labels',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_financial_formula_registry_test.dart',
+    plainName: 'financial formula registry labels deterministic money formulas',
+    reason:
+        'Run only the deterministic formula registry check after formula edits.',
+    tags: {'financial', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'financial_formula_registry_rejects_unsafe',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_financial_formula_registry_test.dart',
+    plainName: 'financial formula registry rejects mutable or broad formulas',
+    reason:
+        'Run only the mutable/broad formula rejection check after formula edits.',
+    tags: {'financial', 'source-of-truth', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'operating_directive_matches_docs',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_operating_directive_contract_test.dart',

@@ -199,6 +199,21 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_financial_ledger_test.dart',
+      plainNames: {
+        'financial ledger probe totals expenses deterministically',
+        'financial ledger probe models inventory consumption cost',
+        'financial ledger probe rejects unsafe money lines',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_financial_formula_registry_test.dart',
+      plainNames: {
+        'financial formula registry labels deterministic money formulas',
+        'financial formula registry rejects mutable or broad formulas',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_operating_directive_contract_test.dart',
       plainNames: {
         'operating directive contract matches production docs',
