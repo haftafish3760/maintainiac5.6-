@@ -94,6 +94,12 @@ void main() {
         entryScreen,
         isNot(contains('double.tryParse(businessPercent.text.trim())')),
       );
+      expect(stateActions, contains('_customSplitBusinessPercent'));
+      expect(stateActions, contains("value.replaceAll('%', '').trim()"));
+      expect(
+        stateActions,
+        isNot(contains('double.tryParse(customController.text.trim())')),
+      );
       expect(entryScreen, contains('String get _receiptDateLabel'));
       expect(entryScreen, contains('String get _receiptStoreAddressLabel'));
       expect(entryScreen, contains('_receiptFilledReviewDecisionLabel'));

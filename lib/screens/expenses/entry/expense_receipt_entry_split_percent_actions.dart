@@ -89,10 +89,10 @@ extension _ExpenseReceiptEntrySplitPercentActions
                       const SizedBox(height: 12),
                       FilledButton.icon(
                         onPressed: () {
-                          final entered = double.tryParse(
-                            customController.text.trim(),
+                          final entered = _customSplitBusinessPercent(
+                            customController.text,
                           );
-                          if (entered == null || entered < 0 || entered > 100) {
+                          if (entered == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
@@ -102,7 +102,7 @@ extension _ExpenseReceiptEntrySplitPercentActions
                             );
                             return;
                           }
-                          Navigator.of(context).pop(entered / 100);
+                          Navigator.of(context).pop(entered);
                         },
                         icon: const Icon(Icons.check_rounded),
                         label: const Text('Use Custom Split'),
@@ -127,4 +127,13 @@ extension _ExpenseReceiptEntrySplitPercentActions
       customController.dispose();
     }
   }
+}
+
+double? _customSplitBusinessPercent(String value) {
+  final normalized = value.replaceAll('%', '').trim();
+  final parsed = double.tryParse(normalized);
+  if (parsed == null || !parsed.isFinite || parsed < 0 || parsed > 100) {
+    return null;
+  }
+  return parsed / 100;
 }
