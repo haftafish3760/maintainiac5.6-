@@ -8,6 +8,7 @@ const _usage =
 
 const _trades = ['plumbing', 'electrical', 'hvac'];
 const _tiers = ['core', 'standard', 'professional', 'complete'];
+const _priorityTiers = {'core', 'standard'};
 const _locales = ['en-US', 'es-US'];
 
 Future<void> main(List<String> args) async {
@@ -45,6 +46,7 @@ int runWorkSupplyParserQaReleaseOneCommands(
             'marketScope': 'residential',
             'tier': tier,
             'localePackId': locale,
+            'priorityCell': _priorityTiers.contains(tier),
             'command': [
               'dart',
               'run',
@@ -75,6 +77,9 @@ int runWorkSupplyParserQaReleaseOneCommands(
     'schemaVersion': 1,
     'report': 'work_supply_parser_qa_release_one_commands',
     'cellCount': commands.length,
+    'priorityCellCount': commands
+        .where((command) => command['priorityCell'] == true)
+        .length,
     'limit': limit,
     'fixtureRunLimit': fixtureRunLimit,
     'executionPolicy':

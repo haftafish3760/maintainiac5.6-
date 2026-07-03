@@ -9,6 +9,8 @@ class WorkSupplyParserReleaseOneCommandManifestSuite extends QaSuite {
   static const _requiredTokens = {
     'QA_RELEASE_ONE_COMMANDS',
     'cellCount',
+    'priorityCellCount',
+    'priorityCell',
     'executionPolicy',
     'executeFlagRequired',
     'runFixturesFlagOptional',

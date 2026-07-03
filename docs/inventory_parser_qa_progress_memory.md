@@ -2442,6 +2442,15 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the master matrix after adding the priority-cell row:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.master_coverage_matrix_contract,qa.threshold_gate`
   passed 111 checks with 0 failures.
+- Added priority-cell reporting to the release-one command manifest tool so the
+  12 Core/Standard residential Plumbing, Electrical, and HVAC en-US/es-US cells
+  are visible apart from the full 24-cell all-tier command list.
+- Validated release command priority-cell reporting:
+  `flutter test test\work_supply_parser_qa_release_one_commands_test.dart`
+  passed 2 tests with 0 failures.
+- Validated the release command manifest contract:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_command_manifest,qa.threshold_gate`
+  passed 24 checks with 0 failures.
 
 Named release gates:
 

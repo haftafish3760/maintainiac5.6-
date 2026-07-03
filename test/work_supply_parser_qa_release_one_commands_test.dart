@@ -20,6 +20,7 @@ void main() {
       expect(exit, 0);
       final summary = _extract(stdout.content);
       expect(summary['cellCount'], 24);
+      expect(summary['priorityCellCount'], 12);
       expect(summary['limit'], 250);
       expect(summary['fixtureRunLimit'], 25);
       expect(summary['liveServicesAllowed'], isFalse);
@@ -33,6 +34,18 @@ void main() {
         contains('electrical.residential.standard.es-US'),
       );
       expect(commands.toString(), contains('hvac.residential.complete.es-US'));
+      final priorityCommands = commands
+          .where((entry) => (entry as Map)['priorityCell'] == true)
+          .toList();
+      expect(priorityCommands, hasLength(12));
+      expect(
+        priorityCommands.toString(),
+        contains('plumbing.residential.core.es-US'),
+      );
+      expect(
+        priorityCommands.toString(),
+        contains('hvac.residential.standard.en-US'),
+      );
       expect(
         commands.every(
           (entry) => (entry as Map)['executeFlagRequired'] == true,
@@ -60,6 +73,7 @@ void main() {
     expect(file.existsSync(), isTrue);
     final summary = jsonDecode(file.readAsStringSync()) as Map;
     expect(summary['cellCount'], 24);
+    expect(summary['priorityCellCount'], 12);
     expect(summary['executionPolicy'].toString(), contains('--execute'));
   });
 }
