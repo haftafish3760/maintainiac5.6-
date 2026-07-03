@@ -83,6 +83,16 @@ The second reusable slice adds `maintainiac_qa_scenario_runners.dart` so modules
 
 These runners are still harness infrastructure. They do not touch OCR/camera implementation and do not hit live Firebase.
 
+## Parser Platform Consumers
+
+The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:
+
+- Inventory/material parser: maps receipt text into catalog/inventory/estimate/job/invoice material suggestions.
+- Expense receipt parser: maps OCR/plain receipt text into expense drafts, review records, ledger entries, recap, and exports.
+- Maintenance parser: maps service/maintenance text into maintenance tasks, service history, work orders, and fleet maintenance.
+
+Each adapter declares forbidden implementation boundaries. Expense receipt parsing may consume text produced by OCR later, but this QA thread must not implement camera capture, ML Kit, Google Vision, or OCR provider code.
+
 ## Quality Gate Matrix
 
 The reusable quality gate matrix must cover:

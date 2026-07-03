@@ -7,20 +7,28 @@ void main() {
     'domain adapters keep inventory and maintenance on the shared platform',
     () {
       final inventory = workSupplyParserDomainAdapter.toJson();
+      final expense = expenseReceiptParserDomainAdapter.toJson();
       final maintenance = maintenanceParserDomainAdapter.toJson();
 
       expect(inventory['domain'], 'work_supply_inventory_parser');
+      expect(expense['domain'], 'expense_receipt_parser');
       expect(maintenance['domain'], 'maintenance_parser');
       expect(inventory['artifactPrefix'], isNot(maintenance['artifactPrefix']));
+      expect(expense['artifactPrefix'], isNot(inventory['artifactPrefix']));
       expect(
         inventory['supportedResultUses'].toString(),
         contains('estimate_materials'),
+      );
+      expect(
+        expense['supportedResultUses'].toString(),
+        contains('expense_ledger'),
       );
       expect(
         maintenance['supportedResultUses'].toString(),
         contains('work_order'),
       );
       expect(inventory['firebaseWritesAllowed'], isFalse);
+      expect(expense['liveServicesAllowed'], isFalse);
       expect(maintenance['ocrCameraExpensesTouched'], isFalse);
     },
   );
@@ -41,6 +49,21 @@ void main() {
       expect(adapter.toJson()['firebaseWritesAllowed'], isFalse);
       expect(adapter.toJson()['ocrCameraExpensesTouched'], isFalse);
     }
+  });
+
+  test('expense parser adapter stays out of camera and OCR implementation', () {
+    expect(
+      expenseReceiptParserDomainAdapter.forbiddenBoundaryTokens,
+      containsAll(['CameraController', 'GoogleVision', 'MLKit']),
+    );
+    expect(
+      expenseReceiptParserDomainAdapter.supportedResultUses,
+      containsAll(['expense_draft', 'expense_review', 'expense_ledger']),
+    );
+    expect(
+      expenseReceiptParserDomainAdapter.supportedResultUses,
+      isNot(contains('camera_capture')),
+    );
   });
 
   test('domain adapter contract rejects unsafe incomplete domains', () {

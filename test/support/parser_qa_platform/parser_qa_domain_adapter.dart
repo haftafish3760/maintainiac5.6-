@@ -83,6 +83,7 @@ const workSupplyParserDomainAdapter = ParserQaDomainAdapter(
 
 const parserQaDomainAdapters = [
   workSupplyParserDomainAdapter,
+  expenseReceiptParserDomainAdapter,
   maintenanceParserDomainAdapter,
 ];
 
@@ -109,5 +110,26 @@ const maintenanceParserDomainAdapter = ParserQaDomainAdapter(
     'asset_service_history',
     'work_order',
     'fleet_vehicle_maintenance',
+  ],
+);
+
+const expenseReceiptParserDomainAdapter = ParserQaDomainAdapter(
+  domain: 'expense_receipt_parser',
+  artifactPrefix: 'expense_receipt_parser',
+  fixtureRoot: 'test/fixtures/expense_receipts',
+  forbiddenBoundaryTokens: [
+    'FirebaseFirestore.instance',
+    'CameraController',
+    'ImagePicker',
+    'GoogleVision',
+    'MLKit',
+    'TextRecognizer',
+  ],
+  supportedResultUses: [
+    'expense_draft',
+    'expense_review',
+    'expense_ledger',
+    'expense_recap',
+    'expense_export',
   ],
 );
