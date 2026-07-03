@@ -138,6 +138,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_mutation_guard.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'failure_taxonomy_probe',
+        module: MaintainiacQaModule.performance,
+        description:
+            'Reusable failure taxonomy for routing QA failures by schema, privacy, sync, money, permissions, source mutation, parser, performance, and fixture family.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_failure_taxonomy.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:

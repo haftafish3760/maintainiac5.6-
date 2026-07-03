@@ -165,6 +165,17 @@ class MaintainiacQaCaseRegistry {
         testCommand: 'flutter test test/maintainiac_mutation_guard_test.dart',
         tags: {'source-of-truth', 'derived-output', 'mutation-guard'},
       ),
+      MaintainiacQaCase(
+        id: 'QA-FAILURE-001',
+        title: 'Failure taxonomy routes QA failures',
+        module: MaintainiacQaModule.performance,
+        behavior:
+            'QA failures are classified into stable categories so reports can route issues instead of emitting vague failure text.',
+        evidenceTarget: 'maintainiac_failure_taxonomy_test',
+        priority: MaintainiacQaCasePriority.core,
+        testCommand: 'flutter test test/maintainiac_failure_taxonomy_test.dart',
+        tags: {'failure-routing', 'admin-report', 'triage'},
+      ),
     ]);
   }
 

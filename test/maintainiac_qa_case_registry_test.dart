@@ -18,6 +18,7 @@ void main() {
     expect(registry.toJson().toString(), contains('QA-AUDIT-001'));
     expect(registry.toJson().toString(), contains('QA-EXPORT-001'));
     expect(registry.toJson().toString(), contains('QA-MUTATION-001'));
+    expect(registry.toJson().toString(), contains('QA-FAILURE-001'));
     expect(registry.toJson().toString(), contains('hive-source-of-truth'));
   });
 
