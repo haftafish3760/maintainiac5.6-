@@ -882,6 +882,15 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'qa-readiness', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_readiness_rejects_weak_evidence',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_readiness_test.dart',
+    plainName:
+        'QA readiness ledger rejects duplicate blank or placeholder evidence',
+    reason: 'Run only the readiness evidence strength and traceability guard.',
+    tags: {'qa-readiness', 'regression', 'evidence'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'qa_checkpoint_pushes_milestones',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_checkpoint_policy_test.dart',

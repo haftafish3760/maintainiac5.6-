@@ -77,6 +77,61 @@ void main() {
     );
     expect(ledger.validate(), contains('fake_gap marked partial without gaps'));
   });
+
+  test(
+    'QA readiness ledger rejects duplicate blank or placeholder evidence',
+    () {
+      const ledger = MaintainiacQaReadinessLedger([
+        MaintainiacQaReadinessItem(
+          id: 'weak_evidence',
+          module: MaintainiacQaModule.security,
+          description:
+              'This should fail because the evidence cannot be trusted.',
+          status: MaintainiacQaReadinessStatus.ready,
+          evidence: [
+            'maintainiac_real_gate.dart',
+            'maintainiac_real_gate.dart',
+            ' ',
+            'todo',
+            'unknown',
+            'fake',
+            'placeholder_contract.dart',
+          ],
+        ),
+      ]);
+
+      expect(
+        ledger.validate(),
+        contains(
+          'weak_evidence has duplicate evidence reference '
+          'maintainiac_real_gate.dart',
+        ),
+      );
+      expect(
+        ledger.validate(),
+        contains('weak_evidence has blank evidence reference'),
+      );
+      expect(
+        ledger.validate(),
+        contains('weak_evidence has placeholder evidence reference todo'),
+      );
+      expect(
+        ledger.validate(),
+        contains('weak_evidence has placeholder evidence reference unknown'),
+      );
+      expect(
+        ledger.validate(),
+        contains('weak_evidence has placeholder evidence reference fake'),
+      );
+      expect(
+        ledger.validate(),
+        contains(
+          'weak_evidence has placeholder evidence reference '
+          'placeholder_contract.dart',
+        ),
+      );
+    },
+  );
 }
 
 bool _evidenceFileExists(String fileName) {

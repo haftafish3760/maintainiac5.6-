@@ -27,6 +27,24 @@ class MaintainiacQaReadinessItem {
     if (description.trim().isEmpty) {
       failures.add('$id missing description');
     }
+    final evidenceReferences = <String>{};
+    for (final evidenceReference in evidence) {
+      final normalizedReference = evidenceReference.trim();
+      if (normalizedReference.isEmpty) {
+        failures.add('$id has blank evidence reference');
+        continue;
+      }
+      if (!evidenceReferences.add(normalizedReference)) {
+        failures.add(
+          '$id has duplicate evidence reference $normalizedReference',
+        );
+      }
+      if (_looksLikePlaceholderEvidence(normalizedReference)) {
+        failures.add(
+          '$id has placeholder evidence reference $normalizedReference',
+        );
+      }
+    }
     if (status == MaintainiacQaReadinessStatus.ready && evidence.isEmpty) {
       failures.add('$id marked ready without evidence');
     }
@@ -34,6 +52,15 @@ class MaintainiacQaReadinessItem {
       failures.add('$id marked ${status.name} without gaps');
     }
     return failures;
+  }
+
+  bool _looksLikePlaceholderEvidence(String evidenceReference) {
+    final normalized = evidenceReference.toLowerCase();
+    return normalized == 'tbd' ||
+        normalized == 'todo' ||
+        normalized == 'unknown' ||
+        normalized == 'fake' ||
+        normalized.contains('placeholder');
   }
 
   Map<String, Object?> toJson() {
