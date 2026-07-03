@@ -72,6 +72,17 @@ The first reusable slice adds:
 
 Next milestones are sync scenario runners, financial deterministic ledgers, privacy/security attack fixtures, and performance/load generators.
 
+## Executable Scenario Runners
+
+The second reusable slice adds `maintainiac_qa_scenario_runners.dart` so modules can execute behavior contracts without duplicating fakes:
+
+- Sync runner: local-write-before-mirror, dirty marker lifecycle, network policy, restart/conflict policy, and mirror payload parity.
+- Security/privacy runner: ownership isolation, forbidden sensitive-data scan, permission denial, and export scoping.
+- Financial runner: expense adjustments, tax allocation, and invoice/estimate read-only source behavior.
+- Performance runner: generated dataset budgets, storage-shape budget, and search-index budget that rejects full-catalog scanning.
+
+These runners are still harness infrastructure. They do not touch OCR/camera implementation and do not hit live Firebase.
+
 ## Quality Gate Matrix
 
 The reusable quality gate matrix must cover:

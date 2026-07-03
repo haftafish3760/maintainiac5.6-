@@ -170,4 +170,44 @@ void main() {
       );
     },
   );
+
+  test('scenario runners execute release-one QA behavior contracts', () {
+    final syncResults = const MaintainiacSyncScenarioRunner().runAll();
+    final securityResults = const MaintainiacSecurityScenarioRunner().runAll();
+    final financialResults = const MaintainiacFinancialScenarioRunner()
+        .runAll();
+    final performanceResults = const MaintainiacPerformanceBudgetRunner()
+        .runAll();
+
+    final allResults = [
+      ...syncResults,
+      ...securityResults,
+      ...financialResults,
+      ...performanceResults,
+    ];
+
+    expect(allResults, hasLength(greaterThanOrEqualTo(15)));
+    for (final result in allResults) {
+      expect(result.passed, isTrue, reason: result.scenario);
+      expect(result.scenario, contains('.'));
+      expect(result.detail, isNotEmpty);
+    }
+
+    expect(
+      syncResults.map((result) => result.scenario),
+      contains('sync.local_write_before_mirror'),
+    );
+    expect(
+      securityResults.map((result) => result.scenario),
+      contains('security.forbidden_data_scan'),
+    );
+    expect(
+      financialResults.map((result) => result.scenario),
+      contains('financial.invoice_estimate_read_only_math'),
+    );
+    expect(
+      performanceResults.map((result) => result.scenario),
+      contains('performance.search_index_budget'),
+    );
+  });
 }
