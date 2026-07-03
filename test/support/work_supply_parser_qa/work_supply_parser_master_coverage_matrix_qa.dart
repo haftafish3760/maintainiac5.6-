@@ -70,6 +70,7 @@ class WorkSupplyParserMasterCoverageMatrixSuite extends QaSuite {
     'inventory.pack_integrity_recovery_contract',
     'inventory.language_pack_separation_contract',
     'inventory.human_correction_learning_contract',
+    'inventory.fixture_candidate_identity_contract',
     'inventory.release_one_cell_manifest',
     'inventory.release_one_pack_balance',
     'inventory.release_one_service_family_contract',

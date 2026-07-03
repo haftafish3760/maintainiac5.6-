@@ -2561,6 +2561,11 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated registry and surgical routing:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.surgical_rerun_contract,inventory.harness_registry,qa.threshold_gate`
   passed 450 checks with 0 failures.
+- Added `inventory.fixture_candidate_identity_contract` to the master coverage
+  matrix registry section and executable matrix contract.
+- Validated the master coverage matrix:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.master_coverage_matrix_contract,qa.threshold_gate`
+  passed 113 checks with 0 failures.
 
 Named release gates:
 
