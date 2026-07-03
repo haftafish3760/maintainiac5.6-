@@ -234,6 +234,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_pricing_contract.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'module_suite_matrix',
+        module: MaintainiacQaModule.jobs,
+        description:
+            'Reusable module suite matrix labels executable, scaffolded, and planned QA coverage for inventory, expenses, jobs, estimates, invoices, calendar, maintenance, fleet, exports, and payments.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_module_suite_contract.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:
@@ -262,9 +270,10 @@ class MaintainiacQaReadinessLedger {
         module: MaintainiacQaModule.jobs,
         description:
             'Every app module gets executable suites on top of the shared backbone.',
-        status: MaintainiacQaReadinessStatus.missing,
+        status: MaintainiacQaReadinessStatus.partial,
+        evidence: ['maintainiac_module_suite_contract.dart'],
         gaps: [
-          'Jobs, estimates, invoices, payments, maintenance, calendar, fleet, and exports need dedicated suites.',
+          'Jobs, payments, maintenance, and calendar suites are scaffolded/planned and need dedicated executable tests.',
         ],
       ),
     ]);

@@ -211,6 +211,7 @@ The backbone includes a release gate plan:
 - Proves local-first write ordering: Hive/local source writes must happen before Firestore mirror writes, and derived outputs must not point at or mutate source collections.
 - Covers sync conflicts: same-field conflicts, safe different-field merges, local-wins policy for confirmed financial data, review queues, audit ids, and mirror-only Firestore behavior.
 - Proves pricing math for estimates/invoices/jobs: integer-cent subtotals, tax allocation, discounts, markups, total balancing, and read-only source pricing behavior.
+- Tracks module suite coverage with executable, scaffolded, and planned suite contracts for inventory, expenses, jobs, estimates, invoices, calendar, maintenance, fleet, exports, and payments.
 
 Print the release gate with:
 

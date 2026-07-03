@@ -15,6 +15,7 @@ import 'maintainiac_correction_learning_contract.dart';
 import 'maintainiac_local_first_contract.dart';
 import 'maintainiac_sync_conflict_contract.dart';
 import 'maintainiac_pricing_contract.dart';
+import 'maintainiac_module_suite_contract.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
@@ -337,10 +338,14 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in pricing.validate()) {
       failures.add(_failure('pricing_contract_$issue', issue));
     }
+    final moduleSuites = MaintainiacModuleSuiteMatrix.releaseOnePlan();
+    for (final issue in moduleSuites.validate()) {
+      failures.add(_failure('module_suite_matrix_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 194,
+      checked: 206,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -368,6 +373,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'localFirstContract': localFirst.toJson(),
         'syncConflictContract': syncConflicts.toJson(),
         'pricingContract': pricing.toJson(),
+        'moduleSuiteMatrix': moduleSuites.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

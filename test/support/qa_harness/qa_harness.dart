@@ -24,6 +24,7 @@ export 'maintainiac_release_gate_plan.dart';
 export 'maintainiac_regression_registry.dart';
 export 'maintainiac_financial_ledger.dart';
 export 'maintainiac_local_first_contract.dart';
+export 'maintainiac_module_suite_contract.dart';
 export 'maintainiac_mutation_guard.dart';
 export 'maintainiac_parser_candidate_contract.dart';
 export 'maintainiac_parser_fixture_manifest.dart';
