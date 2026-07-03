@@ -241,6 +241,21 @@ void main() {
     expect(ids, contains('surgical_selector_coverage_all_declarations'));
   });
 
+  test('surgical rerun router reaches every selector from its test file', () {
+    const registry = maintainiacSurgicalTestSelectorRegistry;
+    const router = maintainiacSurgicalRerunRouter;
+
+    for (final selector in registry.selectors) {
+      final routedIds = router.selectorIdsForChangedPaths([selector.file]);
+
+      expect(
+        routedIds,
+        contains(selector.id),
+        reason: '${selector.id} must be reachable from ${selector.file}',
+      );
+    }
+  });
+
   test('surgical rerun router dedupes overlapping changed paths', () {
     final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
       'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',

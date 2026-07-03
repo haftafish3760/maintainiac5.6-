@@ -1588,6 +1588,15 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'parser-consumer', 'tooling', 'regression', 'surgical'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'surgical_rerun_router_reaches_every_selector',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_rerun_router_test.dart',
+    plainName:
+        'surgical rerun router reaches every selector from its test file',
+    reason: 'Run only the dead-selector reachability guard.',
+    tags: {'parser-consumer', 'tooling', 'regression', 'surgical'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'surgical_rerun_router_dedupes_overlaps',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_surgical_rerun_router_test.dart',

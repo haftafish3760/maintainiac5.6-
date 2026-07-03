@@ -489,6 +489,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'surgical rerun router covers all critical selector families',
         'surgical rerun router maps expanded QA safety guards',
         'surgical rerun router maps selector registry safety guards',
+        'surgical rerun router reaches every selector from its test file',
         'surgical rerun router dedupes overlapping changed paths',
         'surgical rerun router outputs only single behavior commands',
       },
