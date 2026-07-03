@@ -18,6 +18,14 @@ void main() {
     );
     expect(plan.toJson().toString(), contains('release_one_core_gate'));
     expect(plan.toJson().toString(), contains('QA-MUTATION-001'));
+    expect(plan.toJson().toString(), contains('QA-A11Y-L10N-001'));
+    expect(plan.toJson().toString(), contains('QA-COST-001'));
+    expect(
+      plan.requiredCases
+          .where((qaCase) => qaCase.priority == MaintainiacQaCasePriority.core)
+          .every((qaCase) => qaCase.testCommand.contains(' --plain-name ')),
+      isTrue,
+    );
   });
 
   test('release gate plan rejects missing name or priorities', () {
@@ -53,7 +61,31 @@ void main() {
 
     expect(
       plan.validate(),
-      contains('QA-BAD-001 release blocker missing command'),
+      contains('QA-BAD-001 required case missing command'),
+    );
+  });
+
+  test('release gate plan requires surgical commands for core checks', () {
+    const plan = MaintainiacReleaseGatePlan(
+      name: 'bad_core',
+      registry: MaintainiacQaCaseRegistry([
+        MaintainiacQaCase(
+          id: 'QA-BAD-CORE-001',
+          title: 'Bad core',
+          module: MaintainiacQaModule.performance,
+          behavior: 'This core check uses a broad file command.',
+          evidenceTarget: 'bad_core_test',
+          priority: MaintainiacQaCasePriority.core,
+          testCommand: 'flutter test test/bad_core_test.dart',
+          tags: {'core'},
+        ),
+      ]),
+      requiredPriorities: {MaintainiacQaCasePriority.core},
+    );
+
+    expect(
+      plan.validate(),
+      contains('QA-BAD-CORE-001 core Flutter command must use --plain-name'),
     );
   });
 }

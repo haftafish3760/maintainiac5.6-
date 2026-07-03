@@ -53,9 +53,13 @@ class MaintainiacReleaseGatePlan {
       if (qaCase.evidenceTarget.trim().isEmpty) {
         failures.add('${qaCase.id} missing evidence target');
       }
-      if (qaCase.priority == MaintainiacQaCasePriority.releaseBlocker &&
-          qaCase.testCommand.trim().isEmpty) {
-        failures.add('${qaCase.id} release blocker missing command');
+      if (qaCase.testCommand.trim().isEmpty) {
+        failures.add('${qaCase.id} required case missing command');
+      }
+      if (qaCase.priority == MaintainiacQaCasePriority.core &&
+          qaCase.testCommand.startsWith('flutter test ') &&
+          !qaCase.testCommand.contains(' --plain-name ')) {
+        failures.add('${qaCase.id} core Flutter command must use --plain-name');
       }
     }
     return failures;
