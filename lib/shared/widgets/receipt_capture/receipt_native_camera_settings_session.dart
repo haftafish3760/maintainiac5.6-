@@ -157,6 +157,11 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
       maxSectionCount: maxSectionCount,
       analysisGapMs: analysisGapMs,
       readyHoldMs: readyHoldMs < 500 ? 500 : readyHoldMs,
+      autoCaptureStableFrameTarget: autoCaptureAllowed ? 3 : 0,
+      autoCaptureMaxMotionScore: 7.5,
+      autoCaptureMinBrightness: 112,
+      autoCaptureMaxBrightness: 238,
+      autoCaptureCooldownMs: autoCaptureAllowed ? 2600 : 0,
       assistedShotCount: deviceCapability.assistedCameraShotCount,
       bestShotCandidateCount: storageConstrained
           ? deviceCapability.bestShotCandidateCount.clamp(1, 3).toInt()

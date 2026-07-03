@@ -174,8 +174,8 @@ internal fun ReceiptCameraActivity.maybeAutoCapture(
         !framing.touchesEdge &&
         (framing.confidenceBucket == "strong_edges" ||
             framing.confidenceBucket == "usable_edges")
-    val steady = motionScore in 0.0..7.5
-    val lightReady = brightness in 112.0..238.0
+    val steady = motionScore in 0.0..autoCaptureMaxMotionScore
+    val lightReady = brightness in autoCaptureMinBrightness..autoCaptureMaxBrightness
     if (!edgesReady || !steady || !lightReady) {
         autoCaptureStableFrameCount = 0
         latestAutoCaptureStatus = when {
@@ -187,11 +187,11 @@ internal fun ReceiptCameraActivity.maybeAutoCapture(
         return
     }
     autoCaptureStableFrameCount += 1
-    latestAutoCaptureStatus = "ready_${autoCaptureStableFrameCount}_of_3"
-    if (autoCaptureStableFrameCount < 3) return
+    latestAutoCaptureStatus = "ready_${autoCaptureStableFrameCount}_of_$autoCaptureStableFrameTarget"
+    if (autoCaptureStableFrameCount < autoCaptureStableFrameTarget) return
     autoCaptureStableFrameCount = 0
     autoCaptureTriggerCount += 1
-    autoCaptureCooldownUntilMs = nowMs + 2600L
+    autoCaptureCooldownUntilMs = nowMs + autoCaptureCooldownMs
     latestAutoCaptureStatus = "capturing"
     guidance.text = "Receipt looks steady. Taking photo."
     capturePhoto("auto_capture")

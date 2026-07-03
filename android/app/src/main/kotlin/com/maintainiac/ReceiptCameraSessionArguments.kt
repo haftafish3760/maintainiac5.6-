@@ -73,6 +73,26 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     tapToFocusPolicy = intent.getStringExtra("tapToFocusPolicy") ?: tapToFocusPolicy
     zoomGesturePolicy = intent.getStringExtra("zoomGesturePolicy") ?: zoomGesturePolicy
     autoCapturePolicy = intent.getStringExtra("autoCapturePolicy") ?: autoCapturePolicy
+    autoCaptureStableFrameTarget = intent.getIntExtra(
+        "autoCaptureStableFrameTarget",
+        autoCaptureStableFrameTarget,
+    ).coerceIn(2, 8)
+    autoCaptureMaxMotionScore = intent.getDoubleExtra(
+        "autoCaptureMaxMotionScore",
+        autoCaptureMaxMotionScore,
+    ).coerceIn(3.0, 18.0)
+    autoCaptureMinBrightness = intent.getDoubleExtra(
+        "autoCaptureMinBrightness",
+        autoCaptureMinBrightness,
+    ).coerceIn(72.0, 180.0)
+    autoCaptureMaxBrightness = intent.getDoubleExtra(
+        "autoCaptureMaxBrightness",
+        autoCaptureMaxBrightness,
+    ).coerceIn(autoCaptureMinBrightness + 20.0, 252.0)
+    autoCaptureCooldownMs = intent.getIntExtra(
+        "autoCaptureCooldownMs",
+        autoCaptureCooldownMs.toInt(),
+    ).coerceIn(1200, 6000).toLong()
     preCaptureExposurePolicy = intent.getStringExtra("preCaptureExposurePolicy")
         ?: preCaptureExposurePolicy
     maxLiveAnalysisPixels = intent.getIntExtra("maxLiveAnalysisPixels", 0).coerceAtLeast(0)

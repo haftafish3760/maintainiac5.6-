@@ -31,6 +31,26 @@ void main() {
     );
     expect(
       cameraActivity,
+      contains('autoCaptureStableFrameTarget = intent.getIntExtra('),
+    );
+    expect(
+      cameraActivity,
+      contains('autoCaptureMaxMotionScore = intent.getDoubleExtra('),
+    );
+    expect(
+      cameraActivity,
+      contains('autoCaptureMinBrightness = intent.getDoubleExtra('),
+    );
+    expect(
+      cameraActivity,
+      contains('autoCaptureMaxBrightness = intent.getDoubleExtra('),
+    );
+    expect(
+      cameraActivity,
+      contains('autoCaptureCooldownMs = intent.getIntExtra('),
+    );
+    expect(
+      cameraActivity,
       contains(
         'assistedShotCount = intent.getIntExtra("assistedShotCount", 4)',
       ),
@@ -77,6 +97,26 @@ void main() {
     );
     expect(
       cameraActivity,
+      contains('motionScore in 0.0..autoCaptureMaxMotionScore'),
+    );
+    expect(
+      cameraActivity,
+      contains(
+        'brightness in autoCaptureMinBrightness..autoCaptureMaxBrightness',
+      ),
+    );
+    expect(
+      cameraActivity,
+      contains(
+        r'ready_${autoCaptureStableFrameCount}_of_$autoCaptureStableFrameTarget',
+      ),
+    );
+    expect(
+      cameraActivity,
+      contains('autoCaptureCooldownUntilMs = nowMs + autoCaptureCooldownMs'),
+    );
+    expect(
+      cameraActivity,
       contains('Manual capture is safest for this device or storage mode.'),
     );
     expect(cameraActivity, contains('autoCaptureBlockedMessage'));
@@ -111,7 +151,10 @@ void main() {
       cameraActivity,
       contains('"stableFrameCount" to autoCaptureStableFrameCount'),
     );
-    expect(cameraActivity, contains('"requiredStableFrames" to 3'));
+    expect(
+      cameraActivity,
+      contains('"requiredStableFrames" to autoCaptureStableFrameTarget'),
+    );
     expect(
       cameraActivity,
       contains('fun ReceiptCameraActivity.captureReadinessCode()'),
@@ -126,7 +169,9 @@ void main() {
     expect(cameraActivity, contains('"closing"'));
     expect(
       cameraActivity,
-      contains(r'"ready_${autoCaptureStableFrameCount}_of_3"'),
+      contains(
+        r'"ready_${autoCaptureStableFrameCount}_of_$autoCaptureStableFrameTarget"',
+      ),
     );
     expect(cameraActivity, contains('Receipt looks steady. Taking photo.'));
     expect(cameraActivity, contains('"waiting_for_edges"'));

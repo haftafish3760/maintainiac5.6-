@@ -177,6 +177,11 @@ void expectPreviousSectionGuideChannelArguments(
     sentArguments['autoCapturePolicy'],
     'off_by_default_manual_shutter_primary',
   );
+  expect(sentArguments['autoCaptureStableFrameTarget'], 0);
+  expect(sentArguments['autoCaptureMaxMotionScore'], 7.5);
+  expect(sentArguments['autoCaptureMinBrightness'], 112);
+  expect(sentArguments['autoCaptureMaxBrightness'], 238);
+  expect(sentArguments['autoCaptureCooldownMs'], 0);
   expect(
     sentArguments['closeCapturedPhotoPolicy'],
     'back_returns_captured_sections_before_cancel',

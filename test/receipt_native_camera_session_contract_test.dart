@@ -110,6 +110,11 @@ void main() {
     expect(config.cloudAssistPlan.requiresExplicitUserChoice, isFalse);
     expect(config.analysisGapMs, 380);
     expect(config.readyHoldMs, 520);
+    expect(config.autoCaptureStableFrameTarget, 3);
+    expect(config.autoCaptureMaxMotionScore, 7.5);
+    expect(config.autoCaptureMinBrightness, 112);
+    expect(config.autoCaptureMaxBrightness, 238);
+    expect(config.autoCaptureCooldownMs, 2600);
     expect(config.assistedShotCount, 5);
     expect(config.bestShotCandidateCount, 5);
     expect(config.cameraResolutionTier, ReceiptCameraResolutionTier.max);
@@ -147,7 +152,7 @@ void main() {
     expect(config.zoomGesturePolicy, 'pinch_zoom_receipt_preview_1.0_to_8.0');
     expect(
       config.autoCapturePolicy,
-      'optional_after_steady_readable_centered_frames',
+      'optional_after_3_steady_edge_light_frames',
     );
     expect(config.nativeControlContractTags, [
       'settings',

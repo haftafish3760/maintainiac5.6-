@@ -221,6 +221,11 @@ void expectPreviousSectionGuideCaptureDiagnostics(
   expect(sentArguments['workloadProtectionPolicy'], 'balanced_workload');
   expect(sentArguments['analysisGapMs'], 480);
   expect(sentArguments['readyHoldMs'], 700);
+  expect(sentArguments['autoCaptureStableFrameTarget'], 0);
+  expect(sentArguments['autoCaptureMaxMotionScore'], 7.5);
+  expect(sentArguments['autoCaptureMinBrightness'], 112);
+  expect(sentArguments['autoCaptureMaxBrightness'], 238);
+  expect(sentArguments['autoCaptureCooldownMs'], 0);
   expect(sentArguments['assistedShotCount'], 4);
   expect(sentArguments['bestShotCandidateCount'], 3);
   expect(

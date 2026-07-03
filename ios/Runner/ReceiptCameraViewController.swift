@@ -158,6 +158,11 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var whiteBalanceLockSuccessCount = 0
   var whiteBalanceLockStatus = "not_requested"
   var autoCaptureStableFrameCount = 0
+  var autoCaptureStableFrameTarget = 3
+  var autoCaptureMaxMotionScore = 7.5
+  var autoCaptureMinBrightness = 112.0
+  var autoCaptureMaxBrightness = 238.0
+  var autoCaptureCooldownMs = 2600.0
   var autoCaptureTriggerCount = 0
   var autoCaptureCooldownUntilMs = 0.0
   var latestAutoCaptureStatus = "off"

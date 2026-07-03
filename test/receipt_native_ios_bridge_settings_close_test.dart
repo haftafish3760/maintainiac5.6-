@@ -10,6 +10,23 @@ void main() {
       final cameraController = sources.cameraController;
 
       expect(cameraController, contains('arguments["readyHoldMs"]'));
+      expect(cameraController, contains('autoCaptureStableFrameTarget = min('));
+      expect(
+        cameraController,
+        contains('doubleArgument("autoCaptureMaxMotionScore"'),
+      );
+      expect(
+        cameraController,
+        contains('doubleArgument("autoCaptureMinBrightness"'),
+      );
+      expect(
+        cameraController,
+        contains('doubleArgument("autoCaptureMaxBrightness"'),
+      );
+      expect(
+        cameraController,
+        contains('doubleArgument("autoCaptureCooldownMs"'),
+      );
       expect(
         cameraController,
         contains('assistedShotCount = min(max(arguments["assistedShotCount"]'),
@@ -33,6 +50,26 @@ void main() {
         ),
       );
       expect(cameraController, contains('maxLiveAnalysisPixels = max('));
+      expect(
+        cameraController,
+        contains(
+          'motionScore >= 0 && motionScore <= autoCaptureMaxMotionScore',
+        ),
+      );
+      expect(
+        cameraController,
+        contains('brightness >= autoCaptureMinBrightness'),
+      );
+      expect(
+        cameraController,
+        contains(
+          r'ready_\(autoCaptureStableFrameCount)_of_\(autoCaptureStableFrameTarget)',
+        ),
+      );
+      expect(
+        cameraController,
+        contains('autoCaptureCooldownUntilMs = nowMs + autoCaptureCooldownMs'),
+      );
       expect(
         cameraController,
         contains(
@@ -70,7 +107,10 @@ void main() {
         cameraController,
         contains('"stableFrameCount": autoCaptureStableFrameCount'),
       );
-      expect(cameraController, contains('"requiredStableFrames": 3'));
+      expect(
+        cameraController,
+        contains('"requiredStableFrames": autoCaptureStableFrameTarget'),
+      );
       expect(cameraController, contains('func captureReadinessCode()'));
       expect(cameraController, contains('"manual_only_check_framing"'));
       expect(
@@ -82,7 +122,9 @@ void main() {
       expect(cameraController, contains('"closing"'));
       expect(
         cameraController,
-        contains('"ready_\\(autoCaptureStableFrameCount)_of_3"'),
+        contains(
+          r'"ready_\(autoCaptureStableFrameCount)_of_\(autoCaptureStableFrameTarget)"',
+        ),
       );
       expect(cameraController, contains('Receipt looks steady. Taking photo.'));
       expect(cameraController, contains('"waiting_for_edges"'));

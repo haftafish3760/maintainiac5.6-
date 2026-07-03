@@ -123,7 +123,9 @@ void main() {
       );
       expect(
         cameraActivity,
-        contains('val lightReady = brightness in 112.0..238.0'),
+        contains(
+          'val lightReady = brightness in autoCaptureMinBrightness..autoCaptureMaxBrightness',
+        ),
       );
       expect(cameraActivity, contains('latestFrameBrightness <= 55.0'));
       expect(cameraActivity, contains('latestFrameBrightness <= 70.0'));

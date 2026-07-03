@@ -153,8 +153,10 @@ extension ReceiptCameraViewController {
       !framing.touchesEdge &&
       (framing.confidenceBucket == "strong_edges" ||
         framing.confidenceBucket == "usable_edges")
-    let steady = motionScore >= 0 && motionScore <= 7.5
-    let lightReady = brightness >= 112 && brightness <= 238
+    let steady = motionScore >= 0 && motionScore <= autoCaptureMaxMotionScore
+    let lightReady =
+      brightness >= autoCaptureMinBrightness &&
+      brightness <= autoCaptureMaxBrightness
     guard edgesReady, steady, lightReady else {
       autoCaptureStableFrameCount = 0
       if !edgesReady {
@@ -169,11 +171,12 @@ extension ReceiptCameraViewController {
       return
     }
     autoCaptureStableFrameCount += 1
-    latestAutoCaptureStatus = "ready_\(autoCaptureStableFrameCount)_of_3"
-    guard autoCaptureStableFrameCount >= 3 else { return }
+    latestAutoCaptureStatus =
+      "ready_\(autoCaptureStableFrameCount)_of_\(autoCaptureStableFrameTarget)"
+    guard autoCaptureStableFrameCount >= autoCaptureStableFrameTarget else { return }
     autoCaptureStableFrameCount = 0
     autoCaptureTriggerCount += 1
-    autoCaptureCooldownUntilMs = nowMs + 2600
+    autoCaptureCooldownUntilMs = nowMs + autoCaptureCooldownMs
     latestAutoCaptureStatus = "capturing"
     guidanceLabel.text = "Receipt looks steady. Taking photo."
     capturePhoto(trigger: "auto_capture")

@@ -21,6 +21,11 @@ class ReceiptNativeCameraSessionConfig {
     required this.maxSectionCount,
     required this.analysisGapMs,
     required this.readyHoldMs,
+    required this.autoCaptureStableFrameTarget,
+    required this.autoCaptureMaxMotionScore,
+    required this.autoCaptureMinBrightness,
+    required this.autoCaptureMaxBrightness,
+    required this.autoCaptureCooldownMs,
     required this.assistedShotCount,
     required this.bestShotCandidateCount,
     required this.cameraResolutionTier,
@@ -80,6 +85,11 @@ class ReceiptNativeCameraSessionConfig {
   final int maxSectionCount;
   final int analysisGapMs;
   final int readyHoldMs;
+  final int autoCaptureStableFrameTarget;
+  final double autoCaptureMaxMotionScore;
+  final double autoCaptureMinBrightness;
+  final double autoCaptureMaxBrightness;
+  final int autoCaptureCooldownMs;
   final int assistedShotCount;
   final int bestShotCandidateCount;
   final ReceiptCameraResolutionTier cameraResolutionTier;
@@ -277,6 +287,6 @@ class ReceiptNativeCameraSessionConfig {
     if (!autoCaptureAllowed) {
       return 'requested_but_blocked_manual_shutter_primary';
     }
-    return 'optional_after_steady_readable_centered_frames';
+    return 'optional_after_${autoCaptureStableFrameTarget}_steady_edge_light_frames';
   }
 }

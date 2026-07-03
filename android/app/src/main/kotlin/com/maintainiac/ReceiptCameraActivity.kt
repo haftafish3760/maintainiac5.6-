@@ -174,6 +174,11 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var exposureLockSuccessCount = 0
     internal var whiteBalanceLockStatus = "not_requested"
     internal var autoCaptureStableFrameCount = 0
+    internal var autoCaptureStableFrameTarget = 3
+    internal var autoCaptureMaxMotionScore = 7.5
+    internal var autoCaptureMinBrightness = 112.0
+    internal var autoCaptureMaxBrightness = 238.0
+    internal var autoCaptureCooldownMs = 2600L
     internal var autoCaptureTriggerCount = 0
     internal var autoCaptureCooldownUntilMs = 0L
     internal var latestAutoCaptureStatus = "off"

@@ -97,7 +97,7 @@ void main() {
       );
       expect(
         cameraController,
-        contains('let lightReady = brightness >= 112 && brightness <= 238'),
+        contains('brightness >= autoCaptureMinBrightness'),
       );
       expect(cameraController, contains('"brightened_before_capture"'));
       expect(cameraController, contains('"dimmed_before_capture"'));

@@ -73,6 +73,26 @@ extension ReceiptCameraViewController {
     tapToFocusPolicy = arguments["tapToFocusPolicy"] as? String ?? tapToFocusPolicy
     zoomGesturePolicy = arguments["zoomGesturePolicy"] as? String ?? zoomGesturePolicy
     autoCapturePolicy = arguments["autoCapturePolicy"] as? String ?? autoCapturePolicy
+    autoCaptureStableFrameTarget = min(
+      max(arguments["autoCaptureStableFrameTarget"] as? Int ?? autoCaptureStableFrameTarget, 2),
+      8
+    )
+    autoCaptureMaxMotionScore = min(max(
+      doubleArgument("autoCaptureMaxMotionScore", fallback: autoCaptureMaxMotionScore),
+      3
+    ), 18)
+    autoCaptureMinBrightness = min(max(
+      doubleArgument("autoCaptureMinBrightness", fallback: autoCaptureMinBrightness),
+      72
+    ), 180)
+    autoCaptureMaxBrightness = min(max(
+      doubleArgument("autoCaptureMaxBrightness", fallback: autoCaptureMaxBrightness),
+      autoCaptureMinBrightness + 20
+    ), 252)
+    autoCaptureCooldownMs = min(max(
+      doubleArgument("autoCaptureCooldownMs", fallback: autoCaptureCooldownMs),
+      1200
+    ), 6000)
     preCaptureExposurePolicy = arguments["preCaptureExposurePolicy"] as? String ?? preCaptureExposurePolicy
     maxLiveAnalysisPixels = max(arguments["maxLiveAnalysisPixels"] as? Int ?? 0, 0)
     maxCleanupPixels = max(arguments["maxCleanupPixels"] as? Int ?? 10000000, 0)
@@ -126,6 +146,19 @@ extension ReceiptCameraViewController {
       arguments["previousSectionGhostOpacity"] as? Double,
       fallback: previousSectionGhostOpacity
     )
+  }
+
+  private func doubleArgument(_ key: String, fallback: Double) -> Double {
+    if let value = arguments[key] as? Double {
+      return value
+    }
+    if let value = arguments[key] as? Int {
+      return Double(value)
+    }
+    if let value = arguments[key] as? NSNumber {
+      return value.doubleValue
+    }
+    return fallback
   }
 
   private func boundedFraction(_ value: Double?, fallback: CGFloat) -> CGFloat {
