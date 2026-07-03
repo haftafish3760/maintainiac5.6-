@@ -146,6 +146,19 @@ void main() {
     },
   );
 
+  test('surgical rerun router maps individual manifest metadata guards', () {
+    final selectorIds = maintainiacSurgicalRerunRouter
+        .selectorIdsForChangedPaths([
+          'test/support/qa_harness/maintainiac_individual_test_manifest.dart',
+        ]);
+
+    expect(selectorIds, contains('individual_manifest_metadata'));
+    expect(selectorIds, contains('individual_manifest_mirrors_selectors'));
+    expect(selectorIds, contains('individual_manifest_reporting_metadata'));
+    expect(selectorIds, contains('individual_manifest_rejects_unsafe'));
+    expect(selectorIds, contains('main_backbone_parser_visibility'));
+  });
+
   test('surgical rerun router dedupes overlapping changed paths', () {
     final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
       'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',

@@ -1556,6 +1556,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'parser-consumer', 'tooling', 'regression', 'surgical'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'surgical_rerun_router_individual_manifest_routes',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_rerun_router_test.dart',
+    plainName: 'surgical rerun router maps individual manifest metadata guards',
+    reason: 'Run only the individual-manifest route coverage check.',
+    tags: {'parser-consumer', 'tooling', 'regression', 'surgical'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'surgical_rerun_router_dedupes_overlaps',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_surgical_rerun_router_test.dart',

@@ -305,6 +305,17 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
           'Individual manifest changes need selector parity and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
+      id: 'individual_test_manifest_metadata_changed',
+      changedPathContains: 'maintainiac_individual_test_manifest.dart',
+      selectorIds: {
+        'individual_manifest_metadata',
+        'individual_manifest_reporting_metadata',
+        'individual_manifest_rejects_unsafe',
+      },
+      reason:
+          'Individual manifest metadata changes need reporting and unsafe-command checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
       id: 'parser_consumer_gate_changed',
       changedPathContains: 'maintainiac_parser_consumer_gate.dart',
       selectorIds: {
