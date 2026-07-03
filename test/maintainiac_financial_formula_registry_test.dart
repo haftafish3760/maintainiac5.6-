@@ -13,6 +13,8 @@ void main() {
     expect(registry.formulasFor('invoices'), isNotEmpty);
     expect(registry.toJson().toString(), contains('invoice_grand_total_cents'));
     expect(registry.toJson().toString(), contains('--plain-name'));
+    expect(registry.toJson().toString(), contains('remainder-allocation'));
+    expect(registry.toJson().toString(), contains('negative-adjustment'));
   });
 
   test('financial formula registry rejects mutable or broad formulas', () {
@@ -26,6 +28,7 @@ void main() {
         roundingPolicy: MaintainiacMoneyRoundingPolicy.integerCentsOnly,
         mutatesSourceRecords: true,
         testCommand: 'flutter test test/bad.dart',
+        coveredScenarios: {},
       ),
     ]);
 
@@ -44,7 +47,16 @@ void main() {
     );
     expect(
       failures,
+      contains('bad needs explicit financial scenario coverage'),
+    );
+    expect(failures, contains('bad must prove integer-cent handling'));
+    expect(
+      failures,
       contains('financial formula registry missing module inventory'),
+    );
+    expect(
+      failures,
+      contains('financial formula registry missing coverage refund'),
     );
   });
 }

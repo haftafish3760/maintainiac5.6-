@@ -14,6 +14,7 @@ class MaintainiacFinancialFormula {
     required this.roundingPolicy,
     required this.mutatesSourceRecords,
     required this.testCommand,
+    required this.coveredScenarios,
   });
 
   final String id;
@@ -24,6 +25,7 @@ class MaintainiacFinancialFormula {
   final MaintainiacMoneyRoundingPolicy roundingPolicy;
   final bool mutatesSourceRecords;
   final String testCommand;
+  final Set<String> coveredScenarios;
 
   List<String> validate() {
     final failures = <String>[];
@@ -41,6 +43,17 @@ class MaintainiacFinancialFormula {
     if (!testCommand.contains('--plain-name')) {
       failures.add('$id should be individually runnable with --plain-name');
     }
+    if (coveredScenarios.length < 2) {
+      failures.add('$id needs explicit financial scenario coverage');
+    }
+    if (!coveredScenarios.contains('integer-cents')) {
+      failures.add('$id must prove integer-cent handling');
+    }
+    if (roundingPolicy ==
+            MaintainiacMoneyRoundingPolicy.allocateRemainderToLastLine &&
+        !coveredScenarios.contains('remainder-allocation')) {
+      failures.add('$id must prove remainder allocation');
+    }
     return failures;
   }
 
@@ -54,6 +67,7 @@ class MaintainiacFinancialFormula {
       'roundingPolicy': roundingPolicy.name,
       'mutatesSourceRecords': mutatesSourceRecords,
       'testCommand': testCommand,
+      'coveredScenarios': coveredScenarios.toList()..sort(),
     };
   }
 }
@@ -73,6 +87,20 @@ class MaintainiacFinancialFormulaRegistry {
       }
       modules.add(formula.module);
       failures.addAll(formula.validate());
+    }
+    final coverage = {
+      for (final formula in formulas) ...formula.coveredScenarios,
+    };
+    for (final required in {
+      'tax',
+      'discount',
+      'refund',
+      'negative-adjustment',
+      'remainder-allocation',
+    }) {
+      if (!coverage.contains(required)) {
+        failures.add('financial formula registry missing coverage $required');
+      }
     }
     for (final required in {
       'expenses',
@@ -117,6 +145,7 @@ const maintainiacFinancialFormulaRegistry = MaintainiacFinancialFormulaRegistry(
     mutatesSourceRecords: false,
     testCommand:
         'flutter test test/maintainiac_financial_ledger_test.dart --plain-name "financial ledger keeps deterministic expense totals"',
+    coveredScenarios: {'integer-cents', 'tax', 'business-personal'},
   ),
   MaintainiacFinancialFormula(
     id: 'inventory_unit_loaded_cost',
@@ -129,6 +158,12 @@ const maintainiacFinancialFormulaRegistry = MaintainiacFinancialFormulaRegistry(
     mutatesSourceRecords: false,
     testCommand:
         'flutter test test/maintainiac_pricing_contract_test.dart --plain-name "pricing contract balances tax discount and markup lines"',
+    coveredScenarios: {
+      'integer-cents',
+      'tax',
+      'discount',
+      'remainder-allocation',
+    },
   ),
   MaintainiacFinancialFormula(
     id: 'job_material_total_cents',
@@ -140,6 +175,7 @@ const maintainiacFinancialFormulaRegistry = MaintainiacFinancialFormulaRegistry(
     mutatesSourceRecords: false,
     testCommand:
         'flutter test test/maintainiac_job_contract_test.dart --plain-name "job contract accepts confirmed estimate and inventory material lines"',
+    coveredScenarios: {'integer-cents', 'inventory-consumption'},
   ),
   MaintainiacFinancialFormula(
     id: 'estimate_trade_section_total',
@@ -152,6 +188,7 @@ const maintainiacFinancialFormulaRegistry = MaintainiacFinancialFormulaRegistry(
     mutatesSourceRecords: false,
     testCommand:
         'flutter test test/maintainiac_pricing_contract_test.dart --plain-name "pricing contract supports trade section rollups"',
+    coveredScenarios: {'integer-cents', 'trade-section'},
   ),
   MaintainiacFinancialFormula(
     id: 'invoice_grand_total_cents',
@@ -169,6 +206,7 @@ const maintainiacFinancialFormulaRegistry = MaintainiacFinancialFormulaRegistry(
     mutatesSourceRecords: false,
     testCommand:
         'flutter test test/maintainiac_pricing_contract_test.dart --plain-name "pricing contract balances invoice grand totals"',
+    coveredScenarios: {'integer-cents', 'tax', 'discount'},
   ),
   MaintainiacFinancialFormula(
     id: 'payment_balance_effect',
@@ -181,5 +219,6 @@ const maintainiacFinancialFormulaRegistry = MaintainiacFinancialFormulaRegistry(
     mutatesSourceRecords: false,
     testCommand:
         'flutter test test/maintainiac_payment_contract_test.dart --plain-name "payment contract accepts payment and refund ledger effects"',
+    coveredScenarios: {'integer-cents', 'refund', 'negative-adjustment'},
   ),
 ]);
