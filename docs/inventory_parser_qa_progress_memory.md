@@ -2574,6 +2574,21 @@ Release-one catalog gap closed in the plumbing item batch:
 - Added `repair_kit_runtime_fixture_validation_pending` to the known-debt
   ledger as full-profile runtime evidence debt, with an exit condition requiring
   a focused Mac/faster-harness parser fixture shard for the six repair-kit lines.
+- Added `PARSER_QA_FIXTURE_IDS` support to `inventory.golden_fixtures` so
+  fixture-runtime proof can be focused to exact regression IDs without rerunning
+  the full corpus.
+- Fixed the focused repair-kit runtime shard by giving sink repair kits a real
+  Plumbing catalog identity and adding specificity scoring so `sink/lavabo/
+  fregadero repair kit` receipt lines beat faucet O-ring repair candidates
+  without weakening the fixture expectations.
+- Replaced stale `repair_kit_runtime_fixture_validation_pending` with
+  `repair_kit_full_profile_throughput_debt`: the six repair-kit fixtures now
+  pass runtime semantic validation, but the Windows full-profile shard still
+  reports the known `inventory.golden_fixtures` throughput warning.
+- Validated the focused repair-kit runtime shard:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_PROFILE=full --dart-define=PARSER_QA_SUITES=inventory.golden_fixtures,qa.threshold_gate --dart-define=PARSER_QA_FIXTURE_IDS=plumbing_core_toilet_repair_kit_en_us,plumbing_core_toilet_repair_kit_es_us,plumbing_core_sink_repair_kit_en_us,plumbing_core_sink_repair_kit_es_us,plumbing_core_faucet_repair_kit_en_us,plumbing_core_faucet_repair_kit_es_us`
+  checked 6 golden fixtures with 0 semantic failures; threshold gate reported 1
+  warning for throughput at 0.04 checks/sec.
 - Validated the known-debt ledger:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.known_debt_ledger,qa.threshold_gate`
   passed 13 checks with 0 failures.

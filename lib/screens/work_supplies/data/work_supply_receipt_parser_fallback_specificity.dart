@@ -80,6 +80,33 @@ int _receiptFallbackSpecificityScore(String text, _ReceiptCatalogEntry entry) {
     }
   }
   if (RegExp(
+    r'\b(sink repair kit|lavatory repair kit|basin repair kit|'
+    r'kit reparacion lavabo|kit reparacion fregadero)\b',
+  ).hasMatch(text)) {
+    if (entry.item.trade == 'Plumbing' &&
+        normalizedText.contains('sink repair kit')) {
+      score += 360;
+    } else if (entry.item.trade == 'Plumbing' &&
+        (normalizedText.contains('faucet o-ring') ||
+            normalizedText.contains('faucet repair kit') ||
+            normalizedText.contains('seat washer kit'))) {
+      score -= 180;
+    }
+  }
+  if (RegExp(
+    r'\b(faucet repair kit|o-ring and seat kit|o ring and seat kit|'
+    r'kit reparacion llave|kit reparacion grifo)\b',
+  ).hasMatch(text)) {
+    if (entry.item.trade == 'Plumbing' &&
+        (normalizedText.contains('faucet o-ring') ||
+            normalizedText.contains('faucet repair kit'))) {
+      score += 240;
+    } else if (entry.item.trade == 'Plumbing' &&
+        normalizedText.contains('sink repair kit')) {
+      score -= 160;
+    }
+  }
+  if (RegExp(
     r'\b(stat wire|thermostat wire|low voltage wire)\b',
   ).hasMatch(text)) {
     if (itemName.contains('thermostat wire') ||

@@ -13,7 +13,8 @@ class WorkSupplyGoldenFixtureSuite extends QaSuite {
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final failures = <QaFailure>[];
-    final fixtures = _loadFixtures();
+    final fixtureFilter = _fixtureIdFilter();
+    final fixtures = _filteredFixtures(_loadFixtures(), fixtureFilter);
     if (!context.isFullProfile) {
       final timer = QaStopwatch.start();
       return timer.finish(
@@ -26,6 +27,7 @@ class WorkSupplyGoldenFixtureSuite extends QaSuite {
           'fixturePath':
               'test/fixtures/work_supply_parser/golden_fixtures.json',
           'fixtureCount': fixtures.length,
+          'fixtureIdFilter': fixtureFilter.toList()..sort(),
           'note':
               'Full fixture parser assertions run in full/release profiles.',
         },
@@ -139,6 +141,7 @@ class WorkSupplyGoldenFixtureSuite extends QaSuite {
       metrics: {
         'fixturePath': 'test/fixtures/work_supply_parser/golden_fixtures.json',
         'fixtureCount': fixtures.length,
+        'fixtureIdFilter': fixtureFilter.toList()..sort(),
         'warmupMs': warmupTimer.elapsedMilliseconds,
         'warmupLine': 'HD 3/4 PVC SCH40 COUPLING',
         'semanticTimingExcludesWarmup': true,
@@ -153,6 +156,26 @@ class WorkSupplyGoldenFixtureSuite extends QaSuite {
       },
     );
   }
+}
+
+Set<String> _fixtureIdFilter() {
+  const csv = String.fromEnvironment('PARSER_QA_FIXTURE_IDS');
+  return csv
+      .split(',')
+      .map((id) => id.trim())
+      .where((id) => id.isNotEmpty)
+      .toSet();
+}
+
+List<_GoldenFixture> _filteredFixtures(
+  List<_GoldenFixture> fixtures,
+  Set<String> filter,
+) {
+  if (filter.isEmpty) return fixtures;
+  return [
+    for (final fixture in fixtures)
+      if (filter.contains(fixture.id)) fixture,
+  ];
 }
 
 class WorkSupplyGeneratedCaseSuite extends QaSuite {

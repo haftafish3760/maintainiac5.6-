@@ -8,7 +8,7 @@ class WorkSupplyParserKnownDebtSuite extends QaSuite {
   static const _planPath = 'docs/inventory_parser_qa_harness_plan.md';
 
   static const _knownDebtIds = <String>[
-    'repair_kit_runtime_fixture_validation_pending',
+    'repair_kit_full_profile_throughput_debt',
   ];
 
   static const _requiredLedgerTokens = [

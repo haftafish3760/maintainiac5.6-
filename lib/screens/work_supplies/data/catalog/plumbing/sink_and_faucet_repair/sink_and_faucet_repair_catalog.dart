@@ -28,12 +28,7 @@ final plumbingSinkAndFaucetRepairCategory = _category(
           'Faucet O-Ring and Seat Kit',
           'kit',
           ['assorted', 'small', 'large'],
-          [
-            'seat washer kit',
-            'faucet repair kit',
-            'sink repair kit',
-            'o ring kit',
-          ],
+          ['seat washer kit', 'faucet repair kit', 'o ring kit'],
         ),
       ),
       _type(
@@ -61,6 +56,21 @@ final plumbingSinkAndFaucetRepairCategory = _category(
           'each',
           ['stainless', 'chrome', 'deep cup'],
           ['sink strainer', 'sink repair kit', 'basket drain'],
+        ),
+      ),
+      _type(
+        'Sink Repair Kits',
+        _variants(
+          'Sink Repair Kit',
+          'kit',
+          ['universal', 'lavatory', 'kitchen'],
+          [
+            'sink repair kit',
+            'lavatory repair kit',
+            'basin repair kit',
+            'kit reparacion lavabo',
+            'kit reparacion fregadero',
+          ],
         ),
       ),
       _type(

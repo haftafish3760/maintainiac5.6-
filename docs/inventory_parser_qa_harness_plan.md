@@ -879,7 +879,7 @@ Do not remove a debt ID from this ledger just to make quick runs look clean. Eit
 
 | Debt ID | Scope | Impact | Exit condition |
 | --- | --- | --- | --- |
-| `repair_kit_runtime_fixture_validation_pending` | full-profile parser runtime evidence | Six Plumbing Core repair-kit golden fixtures are statically covered and semantically tied to catalog candidates, but the Windows full runtime parser fixture shard timed out before proving those exact lines. | Run a focused parser fixture shard on the Mac/faster harness, prove the six repair-kit fixture lines pass with 0 failures, and record the evidence before removing this debt ID. |
+| `repair_kit_full_profile_throughput_debt` | full-profile parser runtime performance | Six Plumbing Core repair-kit golden fixtures now pass semantic runtime validation with 0 fixture failures, but the Windows full-profile shard reports `inventory.golden_fixtures` below the 1.00 checks/sec throughput budget. | Profile or move the parser fixture path to the faster harness/Mac path, then rerun the focused six-fixture full-profile shard with 0 semantic failures and no `min_suite_checks_per_second:inventory.golden_fixtures` warning before removing this debt ID. |
 
 No quick-profile known debt is currently accepted. Add a quick-profile debt row only when a focused suite proves the remaining issue and the exit condition is explicit.
 ## Latest Inventory QA Pass Notes
