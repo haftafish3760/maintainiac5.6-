@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import '../tool/maintainiac_individual_qa_command.dart';
@@ -30,6 +32,32 @@ void main() {
     expect(result.exitCode, 0);
     expect(result.stdout, contains('--plain-name'));
     expect(result.stdout, contains('financial scenario runner'));
+  });
+
+  test('individual QA command tool emits exact surgical JSON metadata', () {
+    final result = resolveMaintainiacIndividualQaCommand([
+      '--id',
+      'qa_environment_local_truth',
+      '--json',
+    ]);
+
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    final payload = jsonDecode(result.stdout) as Map<String, Object?>;
+    final commands = payload['commands']! as List<Object?>;
+    final command = commands.single! as Map<String, Object?>;
+
+    expect(payload['commandCount'], 1);
+    expect(command['id'], 'qa_environment_local_truth');
+    expect(command['module'], 'sync');
+    expect(command['riskFamily'], 'sync');
+    expect(
+      command['command'],
+      'flutter test test/maintainiac_qa_environment_test.dart '
+      '--plain-name "QA environment fakes preserve local truth and mirror copies"',
+    );
+    expect(command['command'], isNot(contains('&&')));
+    expect(command['command'], isNot(contains('test/all')));
   });
 
   test(
