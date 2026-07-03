@@ -47,5 +47,41 @@ final plumbingWaterHeaterCategory = _category('Water Heater', [
         ['thermal expansion tank'],
       ),
     ),
+    _type(
+      'Water Heater Pans',
+      _variants(
+        'Water Heater Drain Pan',
+        'each',
+        ['20 in plastic', '22 in plastic', '24 in aluminum', '26 in aluminum'],
+        ['heater pan', 'drain pan'],
+      ),
+    ),
+    _type(
+      'Water Heater Straps',
+      _variants(
+        'Water Heater Restraint Strap',
+        'kit',
+        ['18 in', '24 in', 'universal'],
+        ['seismic strap', 'heater strap'],
+      ),
+    ),
+    _type(
+      'Gas Water Heater Connectors',
+      _variants(
+        'Gas Water Heater Connector',
+        'each',
+        ['1/2 x 18 in', '1/2 x 24 in', '3/4 x 24 in'],
+        ['gas appliance connector', 'water heater gas line'],
+      ),
+    ),
+    _type(
+      'Water Heater Service Fittings',
+      _variants(
+        'Water Heater Service Fitting',
+        'each',
+        ['3/4 in vacuum relief valve', '3/4 in mixing valve', '3/4 in union'],
+        ['vacuum relief', 'mixing valve', 'water heater union'],
+      ),
+    ),
   ]),
 ]);

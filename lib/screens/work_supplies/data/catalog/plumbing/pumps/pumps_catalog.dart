@@ -90,7 +90,13 @@ final plumbingPumpsCategory = _category('Pumps', [
       _variants(
         'Well Pipe Adapter',
         'each',
-        ['1 in insert', '1-1/4 in insert', '1 in pitless adapter'],
+        [
+          '3/4 in insert',
+          '1 in insert',
+          '1-1/4 in insert',
+          '1 in pitless adapter',
+          '1-1/4 in pitless adapter',
+        ],
         ['well pipe fitting', 'poly pipe insert', 'pitless adapter'],
       ),
     ),
@@ -101,6 +107,33 @@ final plumbingPumpsCategory = _category('Pumps', [
         'each',
         ['1 in', '1-1/4 in'],
         ['well check valve', 'pump check valve'],
+      ),
+    ),
+    _type(
+      'Well Pressure Gauges',
+      _variants(
+        'Well Pressure Gauge',
+        'each',
+        ['0-100 psi', '0-160 psi'],
+        ['pump pressure gauge', 'well gauge'],
+      ),
+    ),
+    _type(
+      'Well Tank Tees',
+      _variants(
+        'Well Tank Tee',
+        'each',
+        ['1 x 11 in', '1 x 13 in', '1-1/4 x 11 in'],
+        ['pressure tank tee', 'tank tee kit'],
+      ),
+    ),
+    _type(
+      'Well Service Fittings',
+      _variants(
+        'Well Service Fitting',
+        'each',
+        ['1 in barbed coupling', '1 in barbed elbow', '1 in barbed adapter'],
+        ['well barb fitting', 'poly well fitting'],
       ),
     ),
   ]),
