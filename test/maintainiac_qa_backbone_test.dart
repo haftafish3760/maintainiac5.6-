@@ -66,6 +66,10 @@ void main() {
       report.results.single.metrics['syncConflictContract'].toString(),
       contains('seed_expense_total_local_wins'),
     );
+    expect(
+      report.results.single.metrics['pricingContract'].toString(),
+      contains('seed_material_price'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

@@ -226,6 +226,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_sync_conflict_contract.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'pricing_contract',
+        module: MaintainiacQaModule.invoices,
+        description:
+            'Reusable pricing contract proves integer-cent tax allocation, discounts, markups, invoice/estimate totals, and read-only source pricing behavior.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_pricing_contract.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:

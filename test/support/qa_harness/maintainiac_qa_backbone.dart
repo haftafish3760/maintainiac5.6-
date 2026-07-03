@@ -14,6 +14,7 @@ import 'maintainiac_parser_fixture_manifest.dart';
 import 'maintainiac_correction_learning_contract.dart';
 import 'maintainiac_local_first_contract.dart';
 import 'maintainiac_sync_conflict_contract.dart';
+import 'maintainiac_pricing_contract.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
@@ -323,10 +324,23 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in syncConflicts.validate()) {
       failures.add(_failure('sync_conflict_$issue', issue));
     }
+    const pricing = MaintainiacPricingContract([
+      MaintainiacPricedLine(
+        id: 'seed_material_price',
+        sourceId: 'inventory_seed',
+        unitCostCents: 1000,
+        quantity: 2,
+        taxCents: 120,
+        markupBasisPoints: 1000,
+      ),
+    ]);
+    for (final issue in pricing.validate()) {
+      failures.add(_failure('pricing_contract_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 184,
+      checked: 194,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -353,6 +367,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'correctionLearning': correctionLearning.toJson(),
         'localFirstContract': localFirst.toJson(),
         'syncConflictContract': syncConflicts.toJson(),
+        'pricingContract': pricing.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

@@ -210,6 +210,7 @@ The backbone includes a release gate plan:
 - Converts user corrections into reviewable alias, negative-rule, merchant-rule, category-mapping, or regression-fixture proposals without silently mutating official packs or confirmed source records.
 - Proves local-first write ordering: Hive/local source writes must happen before Firestore mirror writes, and derived outputs must not point at or mutate source collections.
 - Covers sync conflicts: same-field conflicts, safe different-field merges, local-wins policy for confirmed financial data, review queues, audit ids, and mirror-only Firestore behavior.
+- Proves pricing math for estimates/invoices/jobs: integer-cent subtotals, tax allocation, discounts, markups, total balancing, and read-only source pricing behavior.
 
 Print the release gate with:
 
