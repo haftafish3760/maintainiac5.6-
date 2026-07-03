@@ -138,6 +138,10 @@ void main() {
       report.results.single.metrics['fixtureGovernanceGate'].toString(),
       contains('bug_regression_fixture_governance'),
     );
+    expect(
+      report.results.single.metrics['restartLifecycleGate'].toString(),
+      contains('partial_sync_restart_recovery'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

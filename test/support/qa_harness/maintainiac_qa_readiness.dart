@@ -356,6 +356,14 @@ class MaintainiacQaReadinessLedger {
         status: MaintainiacQaReadinessStatus.ready,
         evidence: ['maintainiac_fixture_governance_gate.dart'],
       ),
+      MaintainiacQaReadinessItem(
+        id: 'restart_lifecycle_gate',
+        module: MaintainiacQaModule.sync,
+        description:
+            'Drafts, reviews, local writes, partial syncs, and conflict queues have restart recovery expectations.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_restart_lifecycle_gate.dart'],
+      ),
     ]);
   }
 
