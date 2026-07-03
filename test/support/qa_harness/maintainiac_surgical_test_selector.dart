@@ -1475,6 +1475,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'parser-consumer', 'tooling', 'regression', 'release-gate'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'surgical_rerun_router_outputs_single_behavior',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_rerun_router_test.dart',
+    plainName: 'surgical rerun router outputs only single behavior commands',
+    reason: 'Run only the rerun-router surgical command output guard.',
+    tags: {'parser-consumer', 'tooling', 'regression', 'surgical'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'surgical_granularity_individual',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_surgical_granularity_contract_test.dart',

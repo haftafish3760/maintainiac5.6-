@@ -101,4 +101,28 @@ void main() {
     expect(ids, contains('surgical_granularity_individual'));
     expect(ids, contains('surgical_granularity_rejects_batch'));
   });
+
+  test('surgical rerun router outputs only single behavior commands', () {
+    const router = maintainiacSurgicalRerunRouter;
+    const registry = maintainiacSurgicalTestSelectorRegistry;
+    final commands = router.commandsForChangedPaths([
+      'test/support/qa_harness/maintainiac_surgical_test_selector.dart',
+      'test/support/qa_harness/maintainiac_qa_readiness.dart',
+      'test/maintainiac_surgical_selector_coverage_test.dart',
+    ]);
+
+    expect(commands, isNotEmpty);
+    for (final command in commands) {
+      final selector = registry.selectors.singleWhere(
+        (candidate) => candidate.command == command,
+      );
+
+      expect(selector.scope, MaintainiacSurgicalTestScope.singleBehavior);
+      expect(command, startsWith('flutter test test/'));
+      expect(command, contains(' --plain-name '));
+      expect(command, isNot(contains('&&')));
+      expect(command, isNot(contains(';')));
+      expect(command.indexOf(' flutter test ', 1), -1);
+    }
+  });
 }

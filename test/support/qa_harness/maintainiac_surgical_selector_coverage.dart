@@ -477,6 +477,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'surgical rerun router maps payment and granularity changes',
         'surgical rerun router maps changed test files to their selectors',
         'surgical rerun router dedupes overlapping changed paths',
+        'surgical rerun router outputs only single behavior commands',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
