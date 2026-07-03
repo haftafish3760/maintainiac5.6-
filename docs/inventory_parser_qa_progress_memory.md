@@ -2536,6 +2536,12 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the case-type/holdout boundary guard:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fixture_corpus_contract,qa.threshold_gate`
   passed 178 checks with 0 failures.
+- Added `inventory.fixture_corpus_contract` and
+  `inventory.fixture_expectation_contract` to the surgical rerun contract so
+  fixture metadata failures stay targetable.
+- Validated surgical rerun routing after the fixture route additions:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.surgical_rerun_contract,qa.threshold_gate`
+  passed 54 checks with 0 failures.
 
 Named release gates:
 
