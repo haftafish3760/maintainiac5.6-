@@ -175,6 +175,10 @@ void main() {
       contains('passengerPatient'),
     );
     expect(
+      report.results.single.metrics['exportPrivacyMatrix'].toString(),
+      contains('cross_account_private_export_blocked'),
+    );
+    expect(
       report.results.single.metrics['sourceAuditPolicy'].toString(),
       contains('production_dart_modularity'),
     );

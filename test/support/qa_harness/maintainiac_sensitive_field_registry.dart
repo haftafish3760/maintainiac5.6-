@@ -134,6 +134,11 @@ const maintainiacSensitiveFieldRegistry = MaintainiacSensitiveFieldRegistry([
     reason: 'License plates must not be stored in this app.',
   ),
   MaintainiacSensitiveField(
+    name: 'licensePlate',
+    kind: MaintainiacSensitiveFieldKind.vehicleIdentity,
+    reason: 'License plates must not be stored in this app.',
+  ),
+  MaintainiacSensitiveField(
     name: 'patient',
     kind: MaintainiacSensitiveFieldKind.passengerPatient,
     reason: 'Patient data is outside app scope and must not be modeled.',
@@ -166,6 +171,7 @@ const maintainiacSensitiveFieldNames = {
   'cardLast4',
   'vin',
   'plate',
+  'licensePlate',
   'patient',
   'passenger',
   'deviceSerial',

@@ -9,6 +9,7 @@ void main() {
     expect(registry.validate(), isEmpty);
     expect(registry.contains('VIN'), isTrue);
     expect(registry.contains('plate'), isTrue);
+    expect(registry.contains('license_plate'), isTrue);
     expect(registry.contains('patient'), isTrue);
     expect(registry.contains('passenger'), isTrue);
     expect(registry.contains('api_key'), isTrue);

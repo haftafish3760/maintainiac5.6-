@@ -10,6 +10,7 @@ import 'maintainiac_qa_run_ledger.dart';
 import 'maintainiac_qa_telemetry_privacy_gate.dart';
 import 'maintainiac_qa_case_registry.dart';
 import 'maintainiac_device_capability.dart';
+import 'maintainiac_export_privacy.dart';
 import 'maintainiac_release_evidence_bundle.dart';
 import 'maintainiac_restart_lifecycle_gate.dart';
 import 'maintainiac_regression_registry.dart';
@@ -437,6 +438,9 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacSensitiveFieldRegistry.validate()) {
       failures.add(_failure('sensitive_field_registry_$issue', issue));
     }
+    for (final issue in maintainiacExportPrivacyMatrix.validate()) {
+      failures.add(_failure('export_privacy_matrix_$issue', issue));
+    }
     for (final issue in maintainiacReleaseEvidenceBundle.validate()) {
       failures.add(_failure('release_evidence_bundle_$issue', issue));
     }
@@ -458,7 +462,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: 716,
+      checked: 736,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -515,6 +519,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
             .toJson(),
         'qaTelemetryPrivacyGate': maintainiacQaTelemetryPrivacyGate.toJson(),
         'sensitiveFieldRegistry': maintainiacSensitiveFieldRegistry.toJson(),
+        'exportPrivacyMatrix': maintainiacExportPrivacyMatrix.toJson(),
         'releaseEvidenceBundle': maintainiacReleaseEvidenceBundle.toJson(),
         'fixtureGovernanceGate': maintainiacFixtureGovernanceGate.toJson(),
         'restartLifecycleGate': maintainiacRestartLifecycleGate.toJson(),

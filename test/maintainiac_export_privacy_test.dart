@@ -50,4 +50,38 @@ void main() {
     expect(sanitized.containsKey('vin'), isFalse);
     expect(sanitized.containsKey('licensePlate'), isFalse);
   });
+
+  test('export privacy matrix blocks cross-account and identity leaks', () {
+    const matrix = maintainiacExportPrivacyMatrix;
+
+    expect(matrix.validate(), isEmpty);
+    expect(matrix.toJson().toString(), contains('owned_expense_export_clean'));
+    expect(
+      matrix.toJson().toString(),
+      contains('cross_account_private_export_blocked'),
+    );
+    expect(
+      matrix.toJson().toString(),
+      contains('vehicle_identity_export_blocked'),
+    );
+  });
+
+  test('export privacy matrix rejects incomplete case coverage', () {
+    const matrix = MaintainiacExportPrivacyMatrix([
+      MaintainiacExportPrivacyCase(
+        id: 'bad',
+        accountId: '',
+        records: [],
+        expectedFailureCount: 0,
+        reason: '',
+      ),
+    ]);
+
+    final failures = matrix.validate().join('\n');
+
+    expect(failures, contains('bad missing account id'));
+    expect(failures, contains('bad missing records'));
+    expect(failures, contains('bad missing reason'));
+    expect(failures, contains('export privacy matrix missing failing case'));
+  });
 }
