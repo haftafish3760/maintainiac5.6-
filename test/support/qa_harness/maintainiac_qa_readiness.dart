@@ -194,6 +194,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_parser_candidate_contract.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'parser_fixture_manifest',
+        module: MaintainiacQaModule.inventory,
+        description:
+            'Reusable parser fixture manifest tracks locale, country, merchant, trade, owner, source, expected behavior, review date, and privacy metadata.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_parser_fixture_manifest.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:

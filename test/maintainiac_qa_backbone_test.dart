@@ -50,6 +50,10 @@ void main() {
       report.results.single.metrics['parserCandidateContract'].toString(),
       contains('seed_inventory_parser_candidate'),
     );
+    expect(
+      report.results.single.metrics['parserFixtureManifest'].toString(),
+      contains('expense_en_us_fuel_core'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

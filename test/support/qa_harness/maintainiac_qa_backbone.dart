@@ -10,6 +10,7 @@ import 'maintainiac_qa_run_ledger.dart';
 import 'maintainiac_qa_case_registry.dart';
 import 'maintainiac_regression_registry.dart';
 import 'maintainiac_parser_candidate_contract.dart';
+import 'maintainiac_parser_fixture_manifest.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
@@ -228,10 +229,43 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in parserContract.validate()) {
       failures.add(_failure('parser_candidate_contract_$issue', issue));
     }
+    final fixtureManifest = MaintainiacParserFixtureManifest([
+      MaintainiacParserFixtureSet(
+        id: 'inventory_en_us_core_ambiguous',
+        domain: 'inventory_parser',
+        path: 'test/fixtures/work_supply_parser/golden_fixtures.json',
+        locale: 'en-US',
+        country: 'US',
+        owner: 'maintainiac-qa',
+        source: MaintainiacParserFixtureSource.synthetic,
+        merchant: 'mixed',
+        trade: 'plumbing',
+        expectedBehavior: 'Ambiguous inventory lines require review.',
+        reviewedAt: DateTime.utc(2026, 7, 3),
+        tags: const {'inventory', 'parser', 'dangerous-word'},
+      ),
+      MaintainiacParserFixtureSet(
+        id: 'expense_en_us_fuel_core',
+        domain: 'expense_receipt_parser',
+        path: 'test/fixtures/expenses/fuel_receipts.json',
+        locale: 'en-US',
+        country: 'US',
+        owner: 'maintainiac-qa',
+        source: MaintainiacParserFixtureSource.synthetic,
+        merchant: 'gas_station',
+        trade: 'driver',
+        expectedBehavior: 'Fuel receipt totals balance in cents.',
+        reviewedAt: DateTime.utc(2026, 7, 3),
+        tags: const {'expense', 'fuel', 'money'},
+      ),
+    ]);
+    for (final issue in fixtureManifest.validate()) {
+      failures.add(_failure('parser_fixture_manifest_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 144,
+      checked: 154,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -254,6 +288,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         },
         'artifactPolicy': artifactPolicy.toJson(),
         'parserCandidateContract': parserContract.toJson(),
+        'parserFixtureManifest': fixtureManifest.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },
