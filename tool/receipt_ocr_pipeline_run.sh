@@ -91,6 +91,20 @@ failure_family() {
   esac
 }
 
+ledger_category() {
+  case "$1" in
+    static_guardrails*) echo "qa_harness" ;;
+    pure_receipt_qa) echo "fixture_generation" ;;
+    camera_pipeline_contracts) echo "camera_capture_quality" ;;
+    native_camera_compile) echo "native_bridge" ;;
+    full_receipt_quality_gate) echo "qa_harness" ;;
+    regression_report) echo "qa_harness" ;;
+    pipeline_interrupted) echo "qa_harness" ;;
+    pipeline_startup_or_unhandled_exit) echo "qa_harness" ;;
+    *) echo "qa_harness" ;;
+  esac
+}
+
 write_regression_task() {
   local phase_name="$1"
   local log_path="$2"
@@ -104,7 +118,9 @@ write_regression_task() {
 Run: \`$run_name\`
 Failed phase: \`$phase_name\`
 Failure family: \`$(failure_family "$phase_name")\`
+Suggested ledger category: \`$(ledger_category "$phase_name")\`
 Phase log: \`$log_path\`
+Bug ledger: \`docs/receipt_bug_regression_ledger.md\`
 
 ## Required Work
 
@@ -112,6 +128,8 @@ Phase log: \`$log_path\`
 - Fix the production code, fixture, script, or contract that caused the failure.
 - Add or extend a regression test for the whole failure family, not only the
   single failing example.
+- Add a \`BUG-RECEIPT-####\` ledger row with the final category, symptom, root
+  cause, fix, regression coverage, and status.
 - Rerun \`tool/receipt_start_ocr_pipeline.sh $run_name\` detached through the
   quiet pipeline launcher.
 
@@ -119,6 +137,11 @@ Phase log: \`$log_path\`
 
 The fix is not complete until a future run fails if the same class of bug is
 reintroduced.
+
+## Classification Standard
+
+If the suggested category is too broad, choose a more specific allowed category
+from the ledger. Do not close the task as an uncategorized bug.
 TASK
   echo "Receipt regression task: $task_path"
 }

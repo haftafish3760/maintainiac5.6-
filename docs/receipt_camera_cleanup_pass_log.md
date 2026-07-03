@@ -423,43 +423,6 @@ Verification:
 - Current receipt camera/OCR source footprint audit reports 293 files and
   1.68 MB of source, excluding build artifacts and PDF helpers.
 
-## Pass 467 - 17:06:55 EDT to 17:10:28 EDT
-
-Scope:
-- Continued treating the receipt/camera/OCR path as shared app infrastructure:
-  expenses and fuel first, with inventory/work-supply receipt intake as a
-  downstream consumer of the same source-of-truth pipeline.
-- Investigated the detached OCR pipeline after it reached a real static phase
-  failure instead of a launcher failure.
-- Fixed `tool/receipt_ocr_pipeline_run.sh` so repo shell scripts are executed
-  through stdin-safe `run_repo_script` calls in detached contexts, avoiding
-  macOS `Operation not permitted` failures from direct `bash tool/*.sh` paths.
-- Hardened `tool/receipt_quiet_batch_policy_gate.dart` so direct repo shell
-  script execution cannot return to OCR pipeline phases.
-- Audited the current fixture/QA architecture and confirmed the next major
-  shared-system gap: inline QA fixtures are useful, but external/real fixture
-  support is still explicitly marked `externalFixtureFilesReady=false`.
-
-Failures fixed during this pass:
-- `static_guardrails` failed because detached execution could not open
-  `tool/receipt_cleanup_log_gate.sh` directly as a script path.
-- Older detached pipeline children and stale screen sockets were cleaned up so
-  the next OCR pipeline run had clean metadata.
-
-Verification:
-- Passed a detached probe proving `/bin/bash -s < <(sed "" tool/script.sh)` can
-  run `receipt_cleanup_log_gate.sh` under `screen`.
-- Passed `bash -n` for the edited OCR pipeline and launcher scripts.
-- Passed `dart format`, `dart analyze tool/receipt_quiet_batch_policy_gate.dart`,
-  and `dart run tool/receipt_quiet_batch_policy_gate.dart`.
-- Passed `flutter test test/receipt_quiet_batch_policy_gate_contract_test.dart
-  -r compact`.
-- Passed targeted `git diff --check` and line-count checks for touched pipeline,
-  policy, and focused test files.
-- Restarted `receipt_ocr_pipeline`; metadata showed `status=running`,
-  `running=true`, `runner_started=true`, and `runner_finished=false`. Did not
-  tail or watch the long-running pipeline.
-
 ## Pass 487 - 00:07:47 EDT
 
 Scope:
@@ -480,3 +443,27 @@ Verification:
   "photo review result removes duplicate saved and OCR source paths" -r compact`.
 - Passed full focused `flutter test test/receipt_camera_result_test.dart -r
   compact`.
+
+## Pass 488 - 00:08:32 EDT to 00:10:03 EDT
+
+Scope:
+- Hardened the receipt pipeline failure-to-regression process so generated
+  failure tasks include a suggested categorized bug ledger category.
+- Updated both the Dart generator and shell pipeline fallback to require a
+  `BUG-RECEIPT-####` ledger row before a regression task is treated as closed.
+- Added regression coverage proving camera pipeline failures create tasks that
+  name the failure family, bug ledger, suggested category, and uncategorized-bug
+  prohibition.
+- Recorded `BUG-RECEIPT-0007` under `qa_harness`.
+- Archived Pass 467 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed `dart format --set-exit-if-changed` for the failure-to-regression tool
+  and focused test.
+- Passed targeted analyzer for the failure-to-regression tool, focused test,
+  and bug ledger gate.
+- Passed `flutter test test/receipt_pipeline_failure_to_regression_test.dart -r
+  compact`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+- Passed `bash -n tool/receipt_ocr_pipeline_run.sh`.

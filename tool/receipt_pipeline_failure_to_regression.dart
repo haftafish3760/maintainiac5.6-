@@ -19,10 +19,11 @@ void main(List<String> args) {
   final phase = fields['FAILED_PHASE'] ?? 'unknown_phase';
   final log = fields['LOG'] ?? '${root.path}/phases/$phase.log';
   final family = _familyForPhase(phase);
+  final category = _ledgerCategoryForPhase(phase);
 
   outputDir.createSync(recursive: true);
   final task = File('${outputDir.path}/${phase}_regression_task.md');
-  task.writeAsStringSync(_taskMarkdown(runName, phase, log, family));
+  task.writeAsStringSync(_taskMarkdown(runName, phase, log, family, category));
 
   stdout.writeln('Receipt regression task: ${task.path}');
 }
@@ -49,14 +50,34 @@ String _familyForPhase(String phase) {
   };
 }
 
-String _taskMarkdown(String runName, String phase, String log, String family) {
+String _ledgerCategoryForPhase(String phase) {
+  return switch (phase) {
+    'static_guardrails' => 'qa_harness',
+    'pure_receipt_qa' => 'fixture_generation',
+    'camera_pipeline_contracts' => 'camera_capture_quality',
+    'native_camera_compile' => 'native_bridge',
+    'full_receipt_quality_gate' => 'qa_harness',
+    'regression_report' => 'qa_harness',
+    _ => 'qa_harness',
+  };
+}
+
+String _taskMarkdown(
+  String runName,
+  String phase,
+  String log,
+  String family,
+  String category,
+) {
   return '''
 # Receipt OCR Regression Task
 
 Run: `$runName`
 Failed phase: `$phase`
 Failure family: `$family`
+Suggested ledger category: `$category`
 Phase log: `$log`
+Bug ledger: `docs/receipt_bug_regression_ledger.md`
 
 ## Required Work
 
@@ -64,6 +85,8 @@ Phase log: `$log`
 - Fix the production code, fixture, script, or contract that caused the failure.
 - Add or extend a regression test for the whole failure family, not only the
   single failing example.
+- Add a `BUG-RECEIPT-####` ledger row with the final category, symptom, root
+  cause, fix, regression coverage, and status.
 - Rerun `tool/receipt_start_ocr_pipeline.sh $runName` detached through the quiet
   pipeline launcher.
 
@@ -71,5 +94,10 @@ Phase log: `$log`
 
 The fix is not complete until a future run fails if the same class of bug is
 reintroduced.
+
+## Classification Standard
+
+If the suggested category is too broad, choose a more specific allowed category
+from the ledger. Do not close the task as an uncategorized bug.
 ''';
 }
