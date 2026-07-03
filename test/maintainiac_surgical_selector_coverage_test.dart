@@ -84,6 +84,37 @@ void main() {
     );
   });
 
+  test('surgical selector registry rejects broad batch selector scopes', () {
+    const registry = MaintainiacSurgicalTestSelectorRegistry([
+      MaintainiacSurgicalTestSelector(
+        id: 'broad_batch',
+        scope: MaintainiacSurgicalTestScope.releaseGate,
+        file: 'test/maintainiac_qa_backbone_test.dart',
+        plainName: 'main Maintainiac QA backbone covers whole app modules',
+        reason: 'prove broad scopes are blocked from the surgical registry',
+        tags: {'qa-backbone', 'regression'},
+      ),
+    ]);
+
+    final failures = registry.validate().join('\n');
+
+    expect(
+      failures,
+      contains('broad_batch must be an individual single-behavior selector'),
+    );
+  });
+
+  test('surgical selector registry commands are all individually runnable', () {
+    const registry = maintainiacSurgicalTestSelectorRegistry;
+
+    for (final selector in registry.selectors) {
+      expect(selector.scope, MaintainiacSurgicalTestScope.singleBehavior);
+      expect(selector.command, contains(' --plain-name '));
+      expect(selector.command, isNot(contains('&&')));
+      expect(selector.command, isNot(contains(';')));
+    }
+  });
+
   test(
     'surgical selector coverage ignores fixture strings that look like tests',
     () {

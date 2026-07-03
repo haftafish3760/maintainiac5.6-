@@ -27,6 +27,9 @@ class MaintainiacSurgicalTestSelector {
     if (!file.startsWith('test/') || !file.endsWith('.dart')) {
       failures.add('$id must target one Dart test file');
     }
+    if (scope != MaintainiacSurgicalTestScope.singleBehavior) {
+      failures.add('$id must be an individual single-behavior selector');
+    }
     if (plainName.trim().isEmpty) {
       failures.add('$id missing plain-name selector');
     }
@@ -354,7 +357,7 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
   ),
   MaintainiacSurgicalTestSelector(
     id: 'parser_consumer_gate_combined',
-    scope: MaintainiacSurgicalTestScope.moduleSmoke,
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_parser_consumer_gate_test.dart',
     plainName:
         'parser consumer gate validates inventory and expense consumers together',
@@ -1364,6 +1367,23 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'parser-consumer', 'tooling', 'security', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'surgical_selector_rejects_broad_batch_scope',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_selector_coverage_test.dart',
+    plainName: 'surgical selector registry rejects broad batch selector scopes',
+    reason: 'Run only the selector registry batch-scope rejection check.',
+    tags: {'parser-consumer', 'tooling', 'regression', 'surgical'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'surgical_selector_all_commands_individual',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_selector_coverage_test.dart',
+    plainName:
+        'surgical selector registry commands are all individually runnable',
+    reason: 'Run only the command-level individual selector enforcement check.',
+    tags: {'parser-consumer', 'tooling', 'regression', 'surgical'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'surgical_selector_coverage_ignores_fixture_strings',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_surgical_selector_coverage_test.dart',
@@ -2049,7 +2069,7 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
   ),
   MaintainiacSurgicalTestSelector(
     id: 'main_backbone_parser_visibility',
-    scope: MaintainiacSurgicalTestScope.releaseGate,
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_backbone_test.dart',
     plainName: 'main Maintainiac QA backbone covers whole app modules',
     reason:

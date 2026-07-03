@@ -455,6 +455,8 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'surgical selector coverage requires selectors for every focused behavior',
         'surgical selector coverage rejects missing behavior selectors',
         'surgical selector coverage rejects unlisted selector targets',
+        'surgical selector registry rejects broad batch selector scopes',
+        'surgical selector registry commands are all individually runnable',
         'surgical selector coverage ignores fixture strings that look like tests',
         'surgical selector coverage lists every test in registered files',
       },
