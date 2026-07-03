@@ -362,6 +362,23 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'docs', 'quality-gate', 'security', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'quality_gate_release_dimensions',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_quality_gates_test.dart',
+    plainName: 'quality gate matrix covers release required QA dimensions',
+    reason:
+        'Run only the quality-gate release dimension check after gate edits.',
+    tags: {'quality-gate', 'release-gate', 'regression', 'security'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'quality_gate_rejects_partial',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_quality_gates_test.dart',
+    plainName: 'quality gate matrix rejects partial release dimensions',
+    reason: 'Run only the quality-gate negative check after gate edits.',
+    tags: {'quality-gate', 'release-gate', 'regression', 'security'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'main_backbone_parser_visibility',
     scope: MaintainiacSurgicalTestScope.releaseGate,
     file: 'test/maintainiac_qa_backbone_test.dart',

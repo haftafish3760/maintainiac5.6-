@@ -65,6 +65,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_surgical_granularity_contract.dart',
       'maintainiac_payment_contract.dart',
       'maintainiac_operating_directive_contract.dart',
+      'maintainiac_qa_quality_gates.dart',
     }) {
       if (!rules.any((rule) => rule.changedPathContains == required)) {
         failures.add('missing rerun rule for $required');
@@ -213,6 +214,17 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Operating directive contract changes need doc, negative, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'quality_gates_changed',
+      changedPathContains: 'maintainiac_qa_quality_gates.dart',
+      selectorIds: {
+        'quality_gate_release_dimensions',
+        'quality_gate_rejects_partial',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Quality gate changes need release-dimension, negative, and backbone checks.',
     ),
   ],
 );

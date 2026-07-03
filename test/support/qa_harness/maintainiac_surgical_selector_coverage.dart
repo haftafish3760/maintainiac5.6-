@@ -154,6 +154,13 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_quality_gates_test.dart',
+      plainNames: {
+        'quality gate matrix covers release required QA dimensions',
+        'quality gate matrix rejects partial release dimensions',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_backbone_test.dart',
       plainNames: {'main Maintainiac QA backbone covers whole app modules'},
     ),
