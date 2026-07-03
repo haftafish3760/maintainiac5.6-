@@ -114,6 +114,14 @@ The main QA harness includes a readiness ledger so progress survives context com
 
 The ledger must reject any item marked ready without evidence.
 
+## Financial Ledger Probe
+
+The backbone includes a cents-only financial ledger probe for deterministic module tests:
+
+- Expense totals, taxes, discounts, refunds, business/personal splits, and category rollups.
+- Inventory consumption cost lines for jobs, estimates, invoices, and material usage.
+- Balance assertions so category totals and business/personal totals cannot drift from the source ledger.
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:
