@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 502 - 00:47:37 EDT to 00:48:43 EDT
+
+Scope:
+- Hardened native review-depth diagnostics so malformed non-empty bridge values
+  are counted in privacy-safe metadata instead of disappearing into the default
+  price-only fallback.
+- Added regression coverage proving invalid review-depth values keep the safe
+  fallback but expose an `invalid_*` audit bucket.
+- Recorded `BUG-RECEIPT-0021` under `native_bridge`.
+- Archived Pass 489 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for native review-depth signals and
+  focused frozen-result regression coverage.
+- Passed focused Flutter test
+  `test/receipt_camera_result_frozen_brain_install_test.dart --plain-name
+  "malformed native review depth is visible in safe metadata"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 501 - 00:45:52 EDT to 00:47:00 EDT
 
 Scope:
@@ -404,28 +424,6 @@ Verification:
   overlap, full stitching fixtures, and camera-result stitch scanner handoff
   tests. The batch completed with 20 tests passed.
 - Passed targeted `git diff --check`; touched files remain under 500 lines.
-
-## Pass 489 - 00:10:03 EDT to 00:14:10 EDT
-
-Scope:
-- Moved native auto-capture readiness thresholds into the shared receipt camera
-  session contract so Android and iOS no longer own separate hardcoded gates.
-- Added session arguments for stable frame target, max motion score, brightness
-  range, and auto-capture cooldown.
-- Wired Android and iOS native camera flows to read, clamp, report, and use
-  those configured thresholds.
-- Updated native diagnostics so admin/debug evidence reports the configured
-  readiness gate instead of a stale fixed value.
-- Recorded `BUG-RECEIPT-0008` under `native_bridge`.
-
-Verification:
-- Passed targeted `dart format --set-exit-if-changed` for touched Dart tests
-  and receipt camera contract files.
-- Passed targeted analyzer for the native camera contract/service and focused
-  native bridge tests.
-- Passed focused Flutter tests for native session contract, Android
-  auto-capture bridge, iOS settings/close bridge, Android analysis/exposure,
-  and iOS storage contract.
 
 ## Pass 490 - 00:14:10 EDT to 00:16:05 EDT
 

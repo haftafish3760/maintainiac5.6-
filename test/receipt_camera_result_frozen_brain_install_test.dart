@@ -40,6 +40,33 @@ void main() {
     },
   );
 
+  test('malformed native review depth is visible in safe metadata', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/section-1.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/section-1.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/section-1.jpg']),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/section-1.jpg': {'reviewDepth': 'full receipt text please'},
+      },
+    );
+
+    expect(result.nativeReceiptReviewDepth, 'pricesOnly');
+    expect(result.nativeReceiptReviewDepthCounts, {
+      'invalid_full_receipt_text_please': 1,
+    });
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('nativeReceiptReviewDepthCounts', {
+        'invalid_full_receipt_text_please': 1,
+      }),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata.toString(),
+      isNot(contains('/tmp/section-1.jpg')),
+    );
+  });
+
   test('accepted review freezes receipt brain install and local-only counts', () {
     final fixture = frozenReceiptCameraDiagnosticsFixture();
     final result = fixture.result;

@@ -15,9 +15,14 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
   Map<String, int> get nativeReceiptReviewDepthCounts {
     final counts = <String, int>{};
     for (final diagnostics in captureDiagnosticsByPhotoPath.values) {
-      final value = diagnostics['reviewDepth']?.toString().trim();
-      if (value != 'detailedLines' && value != 'pricesOnly') continue;
-      counts[value!] = (counts[value] ?? 0) + 1;
+      final raw = diagnostics['reviewDepth']?.toString().trim();
+      if (raw == null || raw.isEmpty) continue;
+      if (raw == 'detailedLines' || raw == 'pricesOnly') {
+        counts[raw] = (counts[raw] ?? 0) + 1;
+        continue;
+      }
+      final token = _diagnosticToken(raw);
+      counts['invalid_$token'] = (counts['invalid_$token'] ?? 0) + 1;
     }
     return Map.unmodifiable(counts);
   }
