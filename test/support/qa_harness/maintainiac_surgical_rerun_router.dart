@@ -58,6 +58,7 @@ class MaintainiacSurgicalRerunRouter {
     for (final required in {
       'maintainiac_inventory_parser_consumer_contract.dart',
       'maintainiac_expense_parser_consumer_contract.dart',
+      'maintainiac_individual_qa_command.dart',
       'maintainiac_individual_test_manifest.dart',
       'maintainiac_parser_consumer_gate.dart',
       'maintainiac_parser_release_command_plan.dart',
@@ -157,6 +158,19 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Expense consumer contract changes need expense and backbone visibility checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'individual_command_tool_changed',
+      changedPathContains: 'maintainiac_individual_qa_command.dart',
+      selectorIds: {
+        'individual_command_tool_by_id',
+        'individual_command_tool_changed_files',
+        'individual_command_tool_all_selector_files',
+        'individual_command_tool_rejects_unknown',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Individual command tool changes need exact lookup, changed-file, all-selector, negative, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'individual_test_manifest_changed',

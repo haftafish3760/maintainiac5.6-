@@ -220,6 +220,16 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_individual_qa_command_tool_test.dart',
+      plainNames: {
+        'individual QA command tool returns one exact command by id',
+        'individual QA command tool lists focused commands by risk',
+        'individual QA command tool resolves changed files to focused commands',
+        'individual QA command tool resolves every selector test file',
+        'individual QA command tool rejects unknown selectors',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_release_evidence_bundle_test.dart',
       plainNames: {
         'release evidence bundle records required milestone proof',

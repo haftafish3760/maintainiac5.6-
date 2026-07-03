@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import '../tool/maintainiac_individual_qa_command.dart';
+import 'support/qa_harness/qa_harness.dart';
 
 void main() {
   test('individual QA command tool returns one exact command by id', () {
@@ -53,6 +54,23 @@ void main() {
       expect(result.stdout, isNot(contains('test/all')));
     },
   );
+
+  test('individual QA command tool resolves every selector test file', () {
+    const registry = maintainiacSurgicalTestSelectorRegistry;
+
+    for (final file in {
+      for (final selector in registry.selectors) selector.file,
+    }) {
+      final result = resolveMaintainiacIndividualQaCommand(['--changed', file]);
+
+      expect(result.exitCode, 0, reason: 'Expected $file to resolve.');
+      expect(result.stdout, contains('--plain-name'));
+      expect(
+        result.stdout,
+        isNot(contains('No individual QA command matched')),
+      );
+    }
+  });
 
   test('individual QA command tool rejects unknown selectors', () {
     final result = resolveMaintainiacIndividualQaCommand([
