@@ -149,15 +149,15 @@ extension ReceiptPhotoReviewResultHandoffStorage on ReceiptPhotoReviewResult {
   String get receiptProofStoragePolicyOutcome {
     final counts = receiptProofStoragePolicyCounts;
     if (counts.isEmpty) return 'receipt_proof_storage_unknown';
-    if ((counts['temporary_ocr_source_separate_from_saved_proof'] ?? 0) > 0 &&
-        (counts['normal_record_uses_data_saver_proof'] ?? 0) > 0) {
-      return 'temporary_ocr_source_saved_data_saver_proof';
-    }
     if ((counts['saved_proof_used_as_ocr_fallback'] ?? 0) > 0) {
       return 'saved_proof_ocr_fallback_review';
     }
     if ((counts['original_temporarily_kept_for_ocr_quality_guard'] ?? 0) > 0) {
       return 'temporary_original_quality_guard_review';
+    }
+    if ((counts['temporary_ocr_source_separate_from_saved_proof'] ?? 0) > 0 &&
+        (counts['normal_record_uses_data_saver_proof'] ?? 0) > 0) {
+      return 'temporary_ocr_source_saved_data_saver_proof';
     }
     if ((counts['normal_record_keeps_original_quality_proof'] ?? 0) > 0) {
       return 'original_quality_proof_kept';

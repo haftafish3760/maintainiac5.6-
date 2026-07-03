@@ -449,6 +449,10 @@ void main() {
     expect(result.scannerUsedEnhancedOcrSource, isFalse);
     expect(result.scannerNeedsOperatorReview, isTrue);
     expect(
+      result.receiptProofStoragePolicyOutcome,
+      'temporary_original_quality_guard_review',
+    );
+    expect(
       result.receiptReaderHandoffCounts['scanner_operator_review_needed'],
       1,
     );
@@ -472,6 +476,10 @@ void main() {
     expect(
       attachments.single.riskFlags,
       contains('ocr_source_ocr_source_original_selected_quality_guard'),
+    );
+    expect(
+      attachments.single.riskFlags,
+      contains('ocr_source_original_quality_guard_review'),
     );
   });
 }

@@ -80,6 +80,26 @@ Verification:
 - Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
   diff check.
 
+## Pass 531 - 02:37:30 EDT to 02:42:00 EDT
+
+Scope:
+- Hardened OCR source preservation metadata so original-source quality guards
+  are not hidden behind the normal data-saver proof storage outcome.
+- Preserved saved-proof fallback as the highest review-risk storage outcome,
+  then promoted original-quality guard before ordinary data-saver proof storage.
+- Extended scanner-prep regression coverage to assert the storage outcome and
+  downstream attachment risk flag.
+- Recorded `BUG-RECEIPT-0049` under `ocr_handoff_contract`.
+
+Verification:
+- Passed targeted Dart format and analyzer for OCR source storage outcome
+  priority and scanner preparation regression coverage.
+- Passed focused Flutter test
+  `test/receipt_camera_result_stitch_scanner_test.dart --plain-name "photo
+  review result summarizes scanner prep concerns"`.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 527 - 01:56:00 EDT to 02:00:00 EDT
 
 Scope:
@@ -455,25 +475,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart format and analyzer for the split percent sheet and
-  assisted-review regression coverage.
-- Passed focused Flutter test
-  `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
-  receipt review exposes classification and attachment flow"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 507 - 00:56:22 EDT to 00:57:13 EDT
-
-Scope:
-- Hardened quick price-only split line entry so custom business percent text can
-  include a percent sign just like the full line editor.
-- Added regression coverage proving the quick split parser strips `%` and the
-  old direct `double.tryParse(...trim())` path is gone.
-- Recorded `BUG-RECEIPT-0025` under `business_personal_split`.
-- Archived Pass 471 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for quick line-mode helpers and
   assisted-review regression coverage.
 - Passed focused Flutter test
   `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
