@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 486 - 00:04:00 EDT to 00:08:00 EDT
+
+Scope:
+- Hardened native previous-section ghost guide geometry so custom values remain
+  visually usable for long receipt continuation capture.
+- Added semantic bounds for source slice start, source slice height, overlay
+  top, overlay height, and opacity after generic 0..1 fraction cleanup.
+- Added regression coverage proving zero/oversized caller inputs resolve to a
+  visible top ghost slice with bounded opacity.
+- Recorded `BUG-RECEIPT-0005` under `ghost_overlap_stitching`.
+- Archived Pass 466 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for the native ghost guide,
+  session-limit test, and bug ledger gate.
+- Passed focused Flutter test `test/receipt_native_camera_session_limits_test.dart`
+  with 3/3 tests passing.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 485 - 00:02:00 EDT to 00:06:00 EDT
 
 Scope:
@@ -439,43 +459,3 @@ Verification:
 - Restarted `receipt_ocr_pipeline`; metadata showed `status=running`,
   `running=true`, `runner_started=true`, and `runner_finished=false`. Did not
   tail or watch the long-running pipeline.
-
-## Pass 466 - 17:01:04 EDT to 17:06:54 EDT
-
-Scope:
-- Treated the shared receipt/camera/OCR pipeline as app-wide infrastructure for
-  expenses first, with inventory/work supplies as downstream consumers, not as a
-  one-off OCR text extractor.
-- Fixed the quiet OCR pipeline launcher after repeated detached-run failures:
-  generated runners now preserve command argument boundaries, prefer `screen`,
-  restore the repo working directory, expose runner lifecycle metadata, and use
-  a login-shell payload command that actually stays alive after Codex returns.
-- Changed the OCR pipeline and quality-gate launchers to rewrite payload scripts
-  into the quiet batch directory and execute those payloads through a quoted
-  login-shell command.
-- Hardened `tool/receipt_ocr_pipeline_run.sh` so each run clears stale phase
-  logs/regression task files before writing the current summary.
-- Updated the quiet-batch policy gate and focused contract test so the
-  non-monitoring launcher behavior, copied payload execution, stale-log cleanup,
-  and no-live-log workflow are permanent regression guards.
-
-Failures fixed during this pass:
-- Detached OCR pipeline runs were failing or going stale before meaningful QA
-  because macOS/screen execution treated direct script paths and bad generated
-  command quoting inconsistently.
-- The pipeline phase directory could retain stale phase logs from earlier failed
-  attempts, making failure triage ambiguous.
-- The policy gate initially failed from unescaped Dart shell-string assertions;
-  fixed those before restarting the pipeline.
-
-Verification:
-- Passed `bash -n` for the edited launcher and pipeline shell scripts.
-- Passed `dart format`, `dart analyze tool/receipt_quiet_batch_policy_gate.dart`,
-  and `dart run tool/receipt_quiet_batch_policy_gate.dart`.
-- Passed `flutter test test/receipt_quiet_batch_policy_gate_contract_test.dart
-  -r compact`.
-- Passed targeted `git diff --check` and line-count checks on edited launcher,
-  policy, pipeline, and focused test files.
-- Restarted `receipt_ocr_pipeline` as a detached quiet batch; the metadata check
-  showed `status=running`, `running=true`, `runner_started=true`, and
-  `runner_finished=false`. Did not watch or tail the running pipeline.

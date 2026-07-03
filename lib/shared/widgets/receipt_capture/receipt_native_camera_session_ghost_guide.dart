@@ -30,24 +30,47 @@ extension ReceiptNativeCameraSessionGhostGuide
   String get previousSectionGhostGuidePlacement =>
       hasPreviousSectionGuide ? 'top_ghost_slice' : 'none';
 
-  double get previousSectionGhostSourceStartFractionOrDefault =>
-      previousSectionGhostSourceStartFraction ??
-      (previousSectionGuideMissingBottomAndTotals ? .80 : .78);
+  double get previousSectionGhostSourceStartFractionOrDefault {
+    final fallback = previousSectionGuideMissingBottomAndTotals ? .80 : .78;
+    return _boundedGhostGuideValue(
+      previousSectionGhostSourceStartFraction ?? fallback,
+      min: .65,
+      max: .92,
+    );
+  }
 
-  double get previousSectionGhostSourceHeightFractionOrDefault =>
-      previousSectionGhostSourceHeightFraction ??
-      (previousSectionGuideMissingBottomAndTotals ? .20 : .22);
+  double get previousSectionGhostSourceHeightFractionOrDefault {
+    final fallback = previousSectionGuideMissingBottomAndTotals ? .20 : .22;
+    return _boundedGhostGuideValue(
+      previousSectionGhostSourceHeightFraction ?? fallback,
+      min: .12,
+      max: .35,
+    );
+  }
 
   double get previousSectionGhostOverlayTopFractionOrDefault =>
-      previousSectionGhostOverlayTopFraction ?? 0;
+      _boundedGhostGuideValue(
+        previousSectionGhostOverlayTopFraction ?? 0,
+        min: 0,
+        max: .30,
+      );
 
   double get previousSectionGhostOverlayHeightFractionOrDefault =>
-      previousSectionGhostOverlayHeightFraction ??
-      previousSectionGhostSourceHeightFractionOrDefault;
+      _boundedGhostGuideValue(
+        previousSectionGhostOverlayHeightFraction ??
+            previousSectionGhostSourceHeightFractionOrDefault,
+        min: .12,
+        max: .35,
+      );
 
-  double get previousSectionGhostOpacityOrDefault =>
-      previousSectionGhostOpacity ??
-      (previousSectionGuideMissingBottomAndTotals ? .36 : .32);
+  double get previousSectionGhostOpacityOrDefault {
+    final fallback = previousSectionGuideMissingBottomAndTotals ? .36 : .32;
+    return _boundedGhostGuideValue(
+      previousSectionGhostOpacity ?? fallback,
+      min: .18,
+      max: .62,
+    );
+  }
 
   int get previousSectionGhostSlicePercent =>
       (previousSectionGhostSourceHeightFractionOrDefault * 100).round();
@@ -69,4 +92,14 @@ extension ReceiptNativeCameraSessionGhostGuide
     }
     return 'Line up the previous receipt section in the top ghost slice and repeat 3-5 readable lines.';
   }
+}
+
+double _boundedGhostGuideValue(
+  double value, {
+  required double min,
+  required double max,
+}) {
+  if (value < min) return min;
+  if (value > max) return max;
+  return value;
 }

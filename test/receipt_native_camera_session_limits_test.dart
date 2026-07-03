@@ -179,4 +179,51 @@ void main() {
       contains('long_receipt_mode_disabled'),
     );
   });
+
+  test(
+    'session bounds previous section ghost guide fractions to usable values',
+    () {
+      const native = ReceiptNativeCameraCapabilities(
+        engine: ReceiptNativeCameraEngine.cameraX,
+        available: true,
+        cameraPermissionGranted: true,
+        hasRearCamera: true,
+      );
+
+      final tooSmall = const ReceiptNativeCameraSettings().sessionFor(
+        deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+        nativeCapabilities: native,
+        previousSectionGuidePhotoPath: '/tmp/receipt-section-1.jpg',
+        previousSectionGhostSourceStartFraction: 0,
+        previousSectionGhostSourceHeightFraction: 0,
+        previousSectionGhostOverlayTopFraction: 0,
+        previousSectionGhostOverlayHeightFraction: 0,
+        previousSectionGhostOpacity: 0,
+      );
+      final tooLarge = const ReceiptNativeCameraSettings().sessionFor(
+        deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+        nativeCapabilities: native,
+        previousSectionGuidePhotoPath: '/tmp/receipt-section-1.jpg',
+        previousSectionGhostSourceStartFraction: 1,
+        previousSectionGhostSourceHeightFraction: 1,
+        previousSectionGhostOverlayTopFraction: 1,
+        previousSectionGhostOverlayHeightFraction: 1,
+        previousSectionGhostOpacity: 1,
+      );
+
+      expect(tooSmall.previousSectionGhostSourceStartFractionOrDefault, .65);
+      expect(tooSmall.previousSectionGhostSourceHeightFractionOrDefault, .12);
+      expect(tooSmall.previousSectionGhostOverlayTopFractionOrDefault, 0);
+      expect(tooSmall.previousSectionGhostOverlayHeightFractionOrDefault, .12);
+      expect(tooSmall.previousSectionGhostOpacityOrDefault, .18);
+      expect(tooSmall.previousSectionGhostSlicePercent, 12);
+
+      expect(tooLarge.previousSectionGhostSourceStartFractionOrDefault, .92);
+      expect(tooLarge.previousSectionGhostSourceHeightFractionOrDefault, .35);
+      expect(tooLarge.previousSectionGhostOverlayTopFractionOrDefault, .30);
+      expect(tooLarge.previousSectionGhostOverlayHeightFractionOrDefault, .35);
+      expect(tooLarge.previousSectionGhostOpacityOrDefault, .62);
+      expect(tooLarge.previousSectionGhostSlicePercent, 35);
+    },
+  );
 }
