@@ -101,6 +101,23 @@ Verification:
   `test/receipt_camera_ocr_source_attachment_read_test.dart` and
   `test/receipt_capture_flow_handoff_contract_test.dart`.
 
+## Pass 550 - 05:37:08 EDT to 05:38:53 EDT
+
+Scope:
+- Hardened document-scanner backup quality handoff so duplicate or whitespace
+  camera-result paths cannot overwrite or mislabel receipt quality evidence.
+- Added attachment read source contract coverage for the new camera-result path
+  uniqueness and normalization guard.
+- Recorded `BUG-RECEIPT-0066` under `source_preservation`.
+- Archived Pass 533 out of the live cleanup log.
+
+Verification:
+- Passed targeted format/analyzer for attachment native signal helpers and
+  attachment read contract coverage.
+- Passed focused Flutter test
+  `test/receipt_camera_ocr_source_attachment_read_test.dart --plain-name
+  "reviewed OCR source attachments preserve read state and cleanup safety"`.
+
 ## Pass 543 - 05:01:39 EDT to 05:02:14 EDT
 
 Scope:
@@ -178,25 +195,6 @@ Verification:
   `test/receipt_attachment_panel_recovery_contract_test.dart`.
 - Passed targeted format/analyzer, bug-ledger, log, doc-size, audit, and diff
   gates.
-
-## Pass 533 - 02:43:56 EDT to 02:48:00 EDT
-
-Scope:
-- Hardened attachment-panel photo risk flags so native bottom-missing coverage
-  statuses still mark a receipt photo as a possible partial receipt.
-- Added source contract coverage for the private panel helper and
-  `bottom_soft_or_missing` status token.
-- Recorded `BUG-RECEIPT-0051` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart format and analyzer for attachment panel publish signals
-  and attachment read contract coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_ocr_source_attachment_read_test.dart --plain-name
-  "reviewed OCR source attachments preserve read state and cleanup safety"`.
-- Archived Pass 508 after the cleanup log gate caught the active log over cap.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
 
 ## Pass 534 - 02:50:38 EDT to 02:54:00 EDT
 

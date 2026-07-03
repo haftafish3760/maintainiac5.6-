@@ -144,12 +144,25 @@ extension _ReceiptAttachmentNativeSignalHelpers
   Map<String, ReceiptPhotoQualityCheck> qualityChecksByPathForCameraResult(
     ReceiptCameraResult result,
   ) {
+    if (!_cameraResultPhotoPathsAreUniqueAndNormalized(result.photoPaths)) {
+      return const {};
+    }
     final checks = <String, ReceiptPhotoQualityCheck>{};
     for (var index = 0; index < result.photoPaths.length; index++) {
       final quality = result.qualityForIndex(index);
       if (quality != null) checks[result.photoPaths[index]] = quality;
     }
     return checks;
+  }
+
+  bool _cameraResultPhotoPathsAreUniqueAndNormalized(List<String> paths) {
+    final seen = <String>{};
+    for (final path in paths) {
+      final trimmed = path.trim();
+      if (trimmed.isEmpty || trimmed != path) return false;
+      if (!seen.add(path)) return false;
+    }
+    return true;
   }
 
   Future<Map<String, ReceiptPhotoQualityCheck>> qualityChecksForPhotoPaths(
