@@ -9,8 +9,13 @@ bool? _boolValue(Object? value) {
 }
 
 double? _doubleValue(Object? value) {
-  if (value is num) return value.toDouble();
-  return double.tryParse(value?.toString() ?? '');
+  final parsed = switch (value) {
+    num() => value.toDouble(),
+    String() => double.tryParse(value.trim()),
+    _ => null,
+  };
+  if (parsed == null || !parsed.isFinite) return null;
+  return parsed;
 }
 
 const Set<String> _missingBottomEdgeStatuses = {

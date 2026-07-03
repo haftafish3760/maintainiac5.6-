@@ -138,6 +138,58 @@ void main() {
     );
   });
 
+  test('native staging treats non-finite edge evidence as cut off', () async {
+    final sourceDir = await Directory.systemTemp.createTemp(
+      'native_camera_nonfinite_edge_',
+    );
+    addTearDown(() async {
+      if (await sourceDir.exists()) await sourceDir.delete(recursive: true);
+    });
+    final source = File('${sourceDir.path}/nonfinite-bottom-edge.jpg');
+    await source.writeAsBytes(List<int>.filled(384, 9), flush: true);
+
+    final staged = await const ReceiptNativeCaptureStaging().stage(
+      ReceiptNativeCaptureResult(
+        engine: ReceiptNativeCameraEngine.cameraX,
+        originalPhotoPaths: [source.path],
+        temporaryCaptureIds: const ['nonfinite-bottom'],
+        capturedAt: DateTime(2026, 7, 3, 1, 6),
+        captureDiagnostics: const {
+          ReceiptCaptureDiagnosticKeys.latestCapturedBottomEdgeScore:
+              double.infinity,
+          ReceiptCaptureDiagnosticKeys.latestFramingSignal:
+              ReceiptNativeCoverageSignalValues.possiblyCutOff,
+          ReceiptCaptureDiagnosticKeys.latestEdgeCoverage: double.nan,
+        },
+      ),
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+    );
+
+    final diagnostics =
+        staged.captureDiagnosticsByPhotoPath[staged.photoPaths.single]!;
+    expect(
+      diagnostics[ReceiptCaptureDiagnosticKeys.receiptBottomEdgeDetected],
+      isFalse,
+    );
+    expect(
+      diagnostics[ReceiptCaptureDiagnosticKeys.receiptBottomEdgeStatus],
+      'possibly_cut_off',
+    );
+    expect(
+      diagnostics['receiptBottomEdgeEvidenceSource'],
+      'native_framing_unusable_numbers',
+    );
+    expect(
+      diagnostics['receiptBottomEdgeEvidenceReason'],
+      'cut_off_signal_with_unusable_edge_evidence',
+    );
+    final manifest =
+        jsonDecode(await File(staged.recoveryManifestPath).readAsString())
+            as Map;
+    expect(manifest.toString(), isNot(contains('Infinity')));
+    expect(manifest.toString(), isNot(contains('NaN')));
+  });
+
   test(
     'missing native temp paths are skipped without inventing photos',
     () async {

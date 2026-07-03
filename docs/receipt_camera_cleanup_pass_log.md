@@ -3,6 +3,29 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 513 - 01:06:51 EDT to 01:08:06 EDT
+
+Scope:
+- Hardened native capture staging bottom-edge evidence so non-finite edge scores
+  do not default to "present until OCR evidence" when native framing says the
+  receipt may be cut off.
+- Hardened staged recovery manifest diagnostics so non-finite numeric values are
+  not written into JSON payloads.
+- Added staging regression coverage for unusable native edge evidence.
+- Recorded `BUG-RECEIPT-0031` under `camera_capture_quality`.
+- Archived Pass 476 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Fixed an initial focused-test failure where non-finite diagnostics crashed
+  recovery manifest JSON encoding, then reran the focused chain.
+- Passed targeted Dart format and analyzer for native staging cleanup,
+  diagnostics, safe diagnostics, and staging regression coverage.
+- Passed focused Flutter test
+  `test/receipt_native_capture_staging_test.dart --plain-name "native staging
+  treats non-finite edge evidence as cut off"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 512 - 01:04:59 EDT to 01:06:18 EDT
 
 Scope:
@@ -462,25 +485,5 @@ Verification:
   bridge/review tests.
 - Passed focused Flutter tests for Android auto-capture bridge, iOS camera
   settings/close bridge, and native photo quality result handoff.
-- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
-  `--max-line-length=220`, and targeted `git diff --check`.
-
-## Pass 476 - 21:28:00 EDT to 21:35:50 EDT
-
-Scope:
-- Stayed on the camera-lane clear-photo readiness slice.
-- Added stable diagnostic keys for capture readiness so native Android/iOS
-  camera code can report the same manual/auto-capture decision fields.
-- Wired capture-readiness diagnostics into native camera UI health counts and
-  receipt-reader handoff counts.
-- Added a regression proving an auto-capture-ready photo records manual capture
-  availability, auto-capture availability, and the readiness code without
-  storing receipt content.
-
-Verification:
-- Passed targeted format and analyzer for the capture model, quality model,
-  native health-code helper, and focused camera quality tests.
-- Passed focused Flutter tests for quality guidance, quality result handoff, and
-  native saved-photo quality.
 - Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
   `--max-line-length=220`, and targeted `git diff --check`.

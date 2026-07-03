@@ -11,10 +11,11 @@ extension _ReceiptNativeCaptureStagingSafeDiagnostics
       final value = entry.value;
       if (value == null ||
           value is String ||
-          value is num ||
           value is bool ||
           value is List<String>) {
         safe[entry.key] = value;
+      } else if (value is num) {
+        if (value.isFinite) safe[entry.key] = value;
       } else if (value is Map) {
         final nested = <String, Object?>{};
         for (final nestedEntry in value.entries) {
@@ -23,8 +24,9 @@ extension _ReceiptNativeCaptureStagingSafeDiagnostics
           if (nestedKey is! String) continue;
           if (nestedValue == null ||
               nestedValue is String ||
-              nestedValue is num ||
               nestedValue is bool) {
+            nested[nestedKey] = nestedValue;
+          } else if (nestedValue is num && nestedValue.isFinite) {
             nested[nestedKey] = nestedValue;
           }
         }

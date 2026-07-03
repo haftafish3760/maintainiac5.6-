@@ -134,6 +134,14 @@ extension _ReceiptNativeCaptureStagingDiagnostics
         reason: 'cut_off_signal_with_low_edge_coverage',
       );
     }
+    if (cutOffRisk && bottomEdgeScore == null && edgeCoverage == null) {
+      return const _ReceiptBottomEdgeEvidence(
+        detected: false,
+        status: 'possibly_cut_off',
+        source: 'native_framing_unusable_numbers',
+        reason: 'cut_off_signal_with_unusable_edge_evidence',
+      );
+    }
     if (framingSignal == ReceiptNativeCoverageSignalValues.framingOk &&
         edgeCoverage != null &&
         edgeCoverage >= .55) {
