@@ -22,6 +22,7 @@ export 'maintainiac_qa_run_ledger.dart';
 export 'maintainiac_qa_scenario_runners.dart';
 export 'maintainiac_release_gate_plan.dart';
 export 'maintainiac_regression_registry.dart';
+export 'maintainiac_schedule_contract.dart';
 export 'maintainiac_financial_ledger.dart';
 export 'maintainiac_local_first_contract.dart';
 export 'maintainiac_module_suite_contract.dart';

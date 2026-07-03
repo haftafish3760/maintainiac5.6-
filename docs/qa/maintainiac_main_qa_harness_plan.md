@@ -212,6 +212,7 @@ The backbone includes a release gate plan:
 - Covers sync conflicts: same-field conflicts, safe different-field merges, local-wins policy for confirmed financial data, review queues, audit ids, and mirror-only Firestore behavior.
 - Proves pricing math for estimates/invoices/jobs: integer-cent subtotals, tax allocation, discounts, markups, total balancing, and read-only source pricing behavior.
 - Tracks module suite coverage with executable, scaffolded, and planned suite contracts for inventory, expenses, jobs, estimates, invoices, calendar, maintenance, fleet, exports, and payments.
+- Validates schedule and reminder behavior with UTC storage, audit IDs for job scheduling, maintenance vehicle scoping, notification permission behavior, overlap detection, and non-mutating derived reminders.
 
 Print the release gate with:
 

@@ -144,8 +144,9 @@ class MaintainiacModuleSuiteMatrix {
         module: MaintainiacQaModule.calendar,
         label: 'Calendar edits and recap QA',
         owner: 'maintainiac-qa',
-        status: MaintainiacModuleSuiteStatus.scaffolded,
+        status: MaintainiacModuleSuiteStatus.executable,
         priority: MaintainiacQaCasePriority.core,
+        command: 'flutter test test/maintainiac_schedule_contract_test.dart',
         behaviors: [
           'Calendar edits create audit entries.',
           'Recaps read source records without mutating them.',
@@ -158,8 +159,9 @@ class MaintainiacModuleSuiteMatrix {
         module: MaintainiacQaModule.maintenance,
         label: 'Maintenance record QA',
         owner: 'maintainiac-qa',
-        status: MaintainiacModuleSuiteStatus.scaffolded,
+        status: MaintainiacModuleSuiteStatus.executable,
         priority: MaintainiacQaCasePriority.core,
+        command: 'flutter test test/maintainiac_schedule_contract_test.dart',
         behaviors: [
           'Maintenance entries are local-first source records.',
           'Maintenance reminders are derived output only.',

@@ -242,6 +242,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_module_suite_contract.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'schedule_contract',
+        module: MaintainiacQaModule.calendar,
+        description:
+            'Reusable schedule contract validates audited job scheduling, maintenance reminders, notification permission behavior, UTC storage, vehicle scoping, and non-mutating derived reminders.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_schedule_contract.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:
@@ -273,7 +281,7 @@ class MaintainiacQaReadinessLedger {
         status: MaintainiacQaReadinessStatus.partial,
         evidence: ['maintainiac_module_suite_contract.dart'],
         gaps: [
-          'Jobs, payments, maintenance, and calendar suites are scaffolded/planned and need dedicated executable tests.',
+          'Jobs and payments suites are scaffolded/planned and need dedicated executable tests.',
         ],
       ),
     ]);

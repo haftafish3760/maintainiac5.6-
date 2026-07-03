@@ -74,6 +74,10 @@ void main() {
       report.results.single.metrics['moduleSuiteMatrix'].toString(),
       contains('suite_jobs'),
     );
+    expect(
+      report.results.single.metrics['scheduleContract'].toString(),
+      contains('seed_maintenance_reminder'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

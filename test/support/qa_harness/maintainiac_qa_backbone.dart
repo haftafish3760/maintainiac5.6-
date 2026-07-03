@@ -16,6 +16,7 @@ import 'maintainiac_local_first_contract.dart';
 import 'maintainiac_sync_conflict_contract.dart';
 import 'maintainiac_pricing_contract.dart';
 import 'maintainiac_module_suite_contract.dart';
+import 'maintainiac_schedule_contract.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
@@ -342,10 +343,34 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in moduleSuites.validate()) {
       failures.add(_failure('module_suite_matrix_$issue', issue));
     }
+    final schedule = MaintainiacScheduleContract([
+      MaintainiacScheduleEntry(
+        id: 'seed_job_schedule',
+        kind: MaintainiacScheduleKind.job,
+        accountId: 'acct_1',
+        sourceId: 'job_seed',
+        startsAt: DateTime.utc(2026, 7, 3, 13),
+        timeZone: 'America/New_York',
+        vehicleId: 'vehicle_1',
+        auditId: 'AUD-SEED-JOB',
+      ),
+      MaintainiacScheduleEntry(
+        id: 'seed_maintenance_reminder',
+        kind: MaintainiacScheduleKind.maintenance,
+        accountId: 'acct_1',
+        sourceId: 'maintenance_seed',
+        startsAt: DateTime.utc(2026, 7, 4, 13),
+        timeZone: 'America/New_York',
+        vehicleId: 'vehicle_1',
+      ),
+    ]);
+    for (final issue in schedule.validate()) {
+      failures.add(_failure('schedule_contract_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 206,
+      checked: 216,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -374,6 +399,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'syncConflictContract': syncConflicts.toJson(),
         'pricingContract': pricing.toJson(),
         'moduleSuiteMatrix': moduleSuites.toJson(),
+        'scheduleContract': schedule.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },
