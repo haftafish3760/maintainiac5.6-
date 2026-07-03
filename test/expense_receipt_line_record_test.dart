@@ -81,6 +81,35 @@ void main() {
     expect(underAllocated.toMap()['businessPercent'], 0);
   });
 
+  test('receipt line records reject non-finite numeric payloads', () {
+    final restored = ExpenseReceiptLineRecord.fromMap({
+      'id': 'line-nonfinite',
+      'description': 'Receipt item',
+      'category': 'Uncategorized',
+      'use': 'split',
+      'quantity': double.nan,
+      'unitsPerPackage': double.infinity,
+      'subtotal': double.negativeInfinity,
+      'businessPercent': 'NaN',
+      'odometerReading': double.infinity,
+      'catalogMatchConfidence': 'Infinity',
+      'parserConfidence': double.nan,
+    });
+
+    expect(restored.quantity, 1);
+    expect(restored.unitsPerPackage, 1);
+    expect(restored.subtotal, 0);
+    expect(restored.businessPercent, isNull);
+    expect(restored.effectiveBusinessPercent, .5);
+    expect(restored.businessAmount, 0);
+    expect(restored.personalAmount, 0);
+    expect(restored.odometerReading, isNull);
+    expect(restored.catalogMatchConfidence, isNull);
+    expect(restored.parserConfidence, isNull);
+    expect(restored.toMap().toString(), isNot(contains('NaN')));
+    expect(restored.toMap().toString(), isNot(contains('Infinity')));
+  });
+
   test(
     'receipt lines expose numbered price-only and detailed review contracts',
     () {

@@ -155,6 +155,23 @@ Verification:
 - Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
   diff check.
 
+## Pass 535 - 02:56:05 EDT to 03:01:00 EDT
+
+Scope:
+- Hardened expense receipt line map restore so non-finite numeric payloads do
+  not poison split percentages, totals, odometer values, or parser confidence.
+- Added regression coverage proving `NaN` and infinity inputs fall back to
+  finite receipt-line defaults and never serialize back out.
+- Recorded `BUG-RECEIPT-0053` under `business_personal_split`.
+- Archived Pass 510 to keep the active log under the line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for expense numeric helpers and line
+  record regression coverage.
+- Passed focused Flutter test for non-finite receipt line payloads.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 527 - 01:56:00 EDT to 02:00:00 EDT
 
 Scope:
@@ -480,21 +497,4 @@ Verification:
 - Passed focused Flutter test
   `test/receipt_native_camera_session_contract_test.dart --plain-name "native
   capabilities reject non-finite platform numbers"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 510 - 01:02:14 EDT to 01:02:52 EDT
-
-Scope:
-- Hardened receipt capture diagnostic telemetry so recovery photo counts from
-  native diagnostics reject non-finite numeric values instead of crashing.
-- Added regression coverage proving the recovery telemetry converter requires a
-  finite numeric value.
-- Recorded `BUG-RECEIPT-0028` under `camera_capture_quality`.
-- Archived Pass 473 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for capture diagnostic telemetry and
-  OCR source handoff regression coverage.
-- Passed focused Flutter test `test/receipt_camera_ocr_source_handoff_test.dart`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.

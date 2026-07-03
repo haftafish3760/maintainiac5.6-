@@ -31,6 +31,7 @@ String _formatNumber(double value) =>
 
 double? _clampedPercent(double? value) {
   if (value == null) return null;
+  if (!value.isFinite) return null;
   if (value < 0) return 0;
   if (value > 1) return 1;
   return value;

@@ -31,15 +31,21 @@ Map<dynamic, dynamic>? _expenseMap(dynamic value) {
 int? _expenseInt(dynamic value) {
   if (value == null) return null;
   if (value is int) return value;
-  if (value is num) return value.toInt();
+  if (value is num) return value.isFinite ? value.toInt() : null;
   if (value is String) return int.tryParse(value.trim());
   return null;
 }
 
 double? _expenseDouble(dynamic value) {
   if (value == null) return null;
-  if (value is num) return value.toDouble();
-  if (value is String) return double.tryParse(value.trim().replaceAll(',', ''));
+  if (value is num) {
+    final parsed = value.toDouble();
+    return parsed.isFinite ? parsed : null;
+  }
+  if (value is String) {
+    final parsed = double.tryParse(value.trim().replaceAll(',', ''));
+    return parsed != null && parsed.isFinite ? parsed : null;
+  }
   return null;
 }
 
