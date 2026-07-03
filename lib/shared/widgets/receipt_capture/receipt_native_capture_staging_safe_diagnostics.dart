@@ -9,13 +9,13 @@ extension _ReceiptNativeCaptureStagingSafeDiagnostics
         continue;
       }
       final value = entry.value;
-      if (value == null ||
-          value is String ||
-          value is bool ||
-          value is List<String>) {
+      if (value == null || value is String || value is bool) {
         safe[entry.key] = value;
       } else if (value is num) {
         if (value.isFinite) safe[entry.key] = value;
+      } else if (value is Iterable) {
+        final safeList = _jsonSafeDiagnosticList(value);
+        if (safeList.isNotEmpty) safe[entry.key] = safeList;
       } else if (value is Map) {
         final nested = <String, Object?>{};
         for (final nestedEntry in value.entries) {
@@ -31,11 +31,29 @@ extension _ReceiptNativeCaptureStagingSafeDiagnostics
           }
         }
         if (nested.isNotEmpty) safe[entry.key] = nested;
-      } else if (value is Iterable) {
-        safe[entry.key] = value.map((item) => item.toString()).toList();
       } else {
         safe[entry.key] = value.toString();
       }
+    }
+    return safe;
+  }
+
+  List<String> _jsonSafeDiagnosticList(Iterable<Object?> value) {
+    final safe = <String>[];
+    for (final item in value) {
+      if (item == null) continue;
+      if (item is num) {
+        if (item.isFinite) safe.add(item.toString());
+        continue;
+      }
+      final text = item.toString().trim();
+      if (text.isEmpty ||
+          text == 'NaN' ||
+          text == 'Infinity' ||
+          text == '-Infinity') {
+        continue;
+      }
+      safe.add(text);
     }
     return safe;
   }

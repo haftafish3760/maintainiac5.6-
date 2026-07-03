@@ -190,6 +190,43 @@ void main() {
     expect(manifest.toString(), isNot(contains('NaN')));
   });
 
+  test('native staging removes non-finite diagnostic list values', () async {
+    final sourceDir = await Directory.systemTemp.createTemp(
+      'native_camera_safe_list_',
+    );
+    addTearDown(() async {
+      if (await sourceDir.exists()) await sourceDir.delete(recursive: true);
+    });
+    final source = File('${sourceDir.path}/safe-list.jpg');
+    await source.writeAsBytes(List<int>.filled(256, 11), flush: true);
+
+    final staged = await const ReceiptNativeCaptureStaging().stage(
+      ReceiptNativeCaptureResult(
+        engine: ReceiptNativeCameraEngine.cameraX,
+        originalPhotoPaths: [source.path],
+        temporaryCaptureIds: const ['safe-list'],
+        capturedAt: DateTime(2026, 7, 3, 10, 22),
+        captureDiagnostics: const {
+          'capabilityPolicyCodes': [
+            'edge_detection',
+            double.nan,
+            double.infinity,
+            '-Infinity',
+            3,
+          ],
+        },
+      ),
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+    );
+
+    final diagnostics =
+        staged.captureDiagnosticsByPhotoPath[staged.photoPaths.single]!;
+    expect(diagnostics['capabilityPolicyCodes'], ['edge_detection', '3']);
+    final manifestText = await File(staged.recoveryManifestPath).readAsString();
+    expect(manifestText, isNot(contains('Infinity')));
+    expect(manifestText, isNot(contains('NaN')));
+  });
+
   test(
     'missing native temp paths are skipped without inventing photos',
     () async {

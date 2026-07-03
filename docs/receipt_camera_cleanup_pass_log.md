@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 579 - 10:22:00 EDT to 10:27:20 EDT
+
+Scope:
+- Hardened native capture staging diagnostics so non-finite values inside
+  iterable/list diagnostics are filtered before recovery manifests are written.
+- Added regression coverage proving staged diagnostics and the manifest omit
+  `NaN` and infinity values while preserving usable list entries.
+- Recorded `BUG-RECEIPT-0095` under `native_bridge`.
+- Archived Pass 551 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native staging diagnostic
+  sanitization and focused native staging regression coverage.
+- Passed focused Flutter regression
+  `test/receipt_native_capture_staging_test.dart --plain-name "native staging
+  removes non-finite diagnostic list values"`.
+
 ## Pass 578 - 09:58:08 EDT to 09:58:55 EDT
 
 Scope:
@@ -469,21 +487,3 @@ Verification:
 - Passed targeted Dart format and analyzer for receipt attachment records and
   attachment metadata regression coverage.
 - Passed focused Flutter test `test/receipt_attachment_record_metadata_test.dart`.
-
-## Pass 551 - 05:50:40 EDT to 05:53:10 EDT
-
-Scope:
-- Hardened persisted receipt attachment restore so whitespace-padded or
-  duplicate photo attachment paths cannot enter `_photoPaths`, photo IDs,
-  quality state, or read-state maps.
-- Added recovery contract coverage requiring the attachment panel to normalize
-  initial photo attachments before rebuilding camera source state.
-- Recorded `BUG-RECEIPT-0067` under `source_preservation`.
-- Archived Pass 534 out of the live cleanup log.
-
-Verification:
-- Passed targeted Dart format and analyzer for attachment initial state and
-  recovery contract coverage.
-- Passed focused Flutter test
-  `test/receipt_attachment_panel_recovery_contract_test.dart --plain-name
-  "receipt attachment panel has plain recovery states"`.
