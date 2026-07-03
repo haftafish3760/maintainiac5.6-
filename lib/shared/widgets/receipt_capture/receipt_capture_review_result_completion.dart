@@ -221,9 +221,29 @@ extension ReceiptPhotoReviewResultCompletion on ReceiptPhotoReviewResult {
         diagnostics[ReceiptCaptureDiagnosticKeys.photoCoverageNeedsMorePhotos];
     if (needsMore == true || needsMore?.toString() == 'true') return true;
     final status = diagnostics[ReceiptCaptureDiagnosticKeys.photoCoverageStatus]
-        ?.toString();
-    return status == ReceiptPhotoCoverageStatus.likelyCutOff.name ||
-        status == ReceiptPhotoCoverageStatus.maybeContinues.name;
+        ?.toString()
+        .trim();
+    return _coverageStatusNeedsMoreSection(status);
+  }
+
+  static bool _coverageStatusNeedsMoreSection(String? status) {
+    if (status == null || status.isEmpty) return false;
+    if (status == ReceiptPhotoCoverageStatus.likelyCutOff.name ||
+        status == ReceiptPhotoCoverageStatus.maybeContinues.name) {
+      return true;
+    }
+    final token = _diagnosticToken(status);
+    return const {
+      'bottom_soft_or_missing',
+      'bottom_missing',
+      'soft_or_missing',
+      'cut_off',
+      'possibly_cut_off',
+      'needs_next_section',
+      'continues',
+      'likely_cut_off',
+      'maybe_continues',
+    }.contains(token);
   }
 
   static String? _diagnosticsCoverageReason(Map<String, Object?> diagnostics) {

@@ -238,6 +238,35 @@ void main() {
     },
   );
 
+  test('native bottom soft status requests another section before details', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/section-proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/section-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/section-ocr.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/section-proof.jpg': {
+          'photoCoverageStatus': 'bottom_soft_or_missing',
+          'photoCoverageReason': 'missing_bottom_edge_and_totals',
+          'receiptBottomEdgeDetected': false,
+          'receiptSubtotalDetected': false,
+          'receiptTotalDetected': false,
+          'receiptTotalAmountDetected': false,
+        },
+      },
+    );
+
+    expect(result.hasPossiblePartialReceiptPhotos, isTrue);
+    expect(result.finalReceiptSectionNeedsBottomTotalsContinuation, isTrue);
+    expect(result.needsAnotherReceiptSectionBeforeDetails, isTrue);
+    expect(
+      result.nextReviewMatchReadinessOutcome,
+      'needs_next_receipt_section',
+    );
+  });
+
   test(
     'single partial receipt photo can continue after user confirms complete',
     () {
