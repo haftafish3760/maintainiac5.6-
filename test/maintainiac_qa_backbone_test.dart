@@ -378,15 +378,20 @@ void main() {
         .runAll();
     final performanceResults = const MaintainiacPerformanceBudgetRunner()
         .runAll();
+    final accessibilityLocalizationResults =
+        const MaintainiacAccessibilityLocalizationRunner().runAll();
+    final costQuotaResults = const MaintainiacCostQuotaRunner().runAll();
 
     final allResults = [
       ...syncResults,
       ...securityResults,
       ...financialResults,
       ...performanceResults,
+      ...accessibilityLocalizationResults,
+      ...costQuotaResults,
     ];
 
-    expect(allResults, hasLength(greaterThanOrEqualTo(15)));
+    expect(allResults, hasLength(greaterThanOrEqualTo(21)));
     for (final result in allResults) {
       expect(result.passed, isTrue, reason: result.scenario);
       expect(result.scenario, contains('.'));
@@ -408,6 +413,14 @@ void main() {
     expect(
       performanceResults.map((result) => result.scenario),
       contains('performance.search_index_budget'),
+    );
+    expect(
+      accessibilityLocalizationResults.map((result) => result.scenario),
+      contains('localization.locale_unit_coverage'),
+    );
+    expect(
+      costQuotaResults.map((result) => result.scenario),
+      contains('cost_quota.local_qa_budget'),
     );
   });
 }
