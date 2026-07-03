@@ -2318,6 +2318,17 @@ Release-one catalog gap closed in the plumbing item batch:
 
 - Added well pump, well pipe adapter, pressure tank, pressure switch, pitless adapter, and well check-valve service families to Plumbing residential catalog coverage.
 - Guarded the well-service family with `inventory.release_one_service_family_contract`.
+- Added Spanish well-service parser signals for bomba/tanque/well pressure/tank/switch/adapter/check-valve terminology.
+- Added tank ambiguity guards so pressure tanks keep negative-match evidence against propane, fuel, and compressor tanks.
+- Validated after the catalog change:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_service_family_contract,inventory.catalog_schema,qa.threshold_gate`
+  passed 22558 checks with 0 failures.
+- Validated Spanish after the catalog change:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.spanish_release_one,qa.threshold_gate`
+  passed 101175 checks with 0 failures.
+- Validated pack balance after the catalog change:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_pack_balance,inventory.catalog_coverage,qa.threshold_gate`
+  passed 56805 checks with 0 failures.
 
 Named release gates:
 
