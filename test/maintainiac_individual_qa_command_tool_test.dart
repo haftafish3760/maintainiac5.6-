@@ -31,6 +31,29 @@ void main() {
     expect(result.stdout, contains('financial scenario runner'));
   });
 
+  test(
+    'individual QA command tool resolves changed files to focused commands',
+    () {
+      final result = resolveMaintainiacIndividualQaCommand([
+        '--changed',
+        'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
+      ]);
+
+      expect(result.exitCode, 0);
+      expect(
+        result.stdout,
+        contains(
+          'surgical granularity contract keeps tests individually runnable',
+        ),
+      );
+      expect(
+        result.stdout,
+        contains('surgical granularity contract rejects broad batch selectors'),
+      );
+      expect(result.stdout, isNot(contains('test/all')));
+    },
+  );
+
   test('individual QA command tool rejects unknown selectors', () {
     final result = resolveMaintainiacIndividualQaCommand([
       '--id',

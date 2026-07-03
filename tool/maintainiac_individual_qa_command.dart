@@ -5,7 +5,7 @@ import '../test/support/qa_harness/qa_harness.dart';
 
 const _usage =
     'dart run tool/maintainiac_individual_qa_command.dart '
-    '[--id selector_id | --tag tag | --module module | --risk riskFamily] '
+    '[--id selector_id | --tag tag | --module module | --risk riskFamily | --changed path] '
     '[--json]';
 
 void main(List<String> args) {
@@ -39,6 +39,7 @@ MaintainiacIndividualQaCommandResult resolveMaintainiacIndividualQaCommand(
   final tag = _value(args, 'tag');
   final module = _value(args, 'module');
   final risk = _value(args, 'risk');
+  final changedPaths = _values(args, 'changed');
   final asJson = args.contains('--json');
   final selected = _selectEntries(
     manifest: manifest,
@@ -47,6 +48,7 @@ MaintainiacIndividualQaCommandResult resolveMaintainiacIndividualQaCommand(
     tag: tag,
     module: module,
     risk: risk,
+    changedPaths: changedPaths,
   );
   if (selected.isEmpty) {
     return MaintainiacIndividualQaCommandResult(
@@ -88,6 +90,7 @@ List<MaintainiacIndividualTestEntry> _selectEntries({
   required String tag,
   required String module,
   required String risk,
+  required List<String> changedPaths,
 }) {
   if (id.isNotEmpty) {
     try {
@@ -95,6 +98,15 @@ List<MaintainiacIndividualTestEntry> _selectEntries({
     } on ArgumentError {
       return const [];
     }
+  }
+  if (changedPaths.isNotEmpty) {
+    final ids = maintainiacSurgicalRerunRouter.selectorIdsForChangedPaths(
+      changedPaths,
+    );
+    return [
+      for (final entry in manifest.entries)
+        if (ids.contains(entry.id)) entry,
+    ];
   }
   if (module.isNotEmpty) {
     return [
@@ -128,4 +140,17 @@ String _value(List<String> args, String key) {
     if (arg.startsWith('--$key=')) return arg.substring(key.length + 3);
   }
   return '';
+}
+
+List<String> _values(List<String> args, String key) {
+  final values = <String>[];
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+    if (arg == '--$key' && index + 1 < args.length) {
+      values.add(args[index + 1]);
+    } else if (arg.startsWith('--$key=')) {
+      values.add(arg.substring(key.length + 3));
+    }
+  }
+  return values;
 }
