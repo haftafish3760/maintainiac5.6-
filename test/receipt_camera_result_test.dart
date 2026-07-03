@@ -197,6 +197,77 @@ void main() {
     expect(separateOcr.ocrSourcePhotoCount, 1);
   });
 
+  test(
+    'photo review result drops stale evidence for normalized-away paths',
+    () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const [' /tmp/proof-top.jpg ', '/tmp/proof-bottom.jpg'],
+        ocrSourcePhotoPaths: const [' /tmp/ocr-top.jpg '],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr-top.jpg']),
+        photoQualityChecksByPath: const {
+          ' /tmp/proof-top.jpg ': ReceiptPhotoQualityCheck(
+            width: 100,
+            height: 200,
+            focusScore: 2,
+            brightness: 40,
+            isLikelyReadable: false,
+          ),
+          '/tmp/proof-bottom.jpg': ReceiptPhotoQualityCheck(
+            width: 100,
+            height: 200,
+            focusScore: 12,
+            brightness: 140,
+            isLikelyReadable: true,
+          ),
+          '/tmp/stale-proof.jpg': ReceiptPhotoQualityCheck(
+            width: 1,
+            height: 1,
+            focusScore: 0,
+            brightness: 0,
+            isLikelyReadable: false,
+          ),
+        },
+        captureDiagnosticsByPhotoPath: const {
+          ' /tmp/proof-top.jpg ': {'captureFlow': 'trimmed_source'},
+          '/tmp/stale-proof.jpg': {'captureFlow': 'stale_source'},
+        },
+        preparationDiagnosticsByOcrPath: const {
+          ' /tmp/ocr-top.jpg ': {'ocrPrep': 'trimmed_source'},
+          '/tmp/stale-ocr.jpg': {'ocrPrep': 'stale_source'},
+        },
+      );
+
+      expect(result.photoPaths, [
+        '/tmp/proof-top.jpg',
+        '/tmp/proof-bottom.jpg',
+      ]);
+      expect(result.ocrSourcePhotoPaths, ['/tmp/ocr-top.jpg']);
+      expect(result.photoQualityChecksByPath.keys, [
+        '/tmp/proof-top.jpg',
+        '/tmp/proof-bottom.jpg',
+      ]);
+      expect(result.captureDiagnosticsByPhotoPath.keys, ['/tmp/proof-top.jpg']);
+      expect(result.preparationDiagnosticsByOcrPath.keys, ['/tmp/ocr-top.jpg']);
+      expect(
+        result.captureDiagnosticsByPhotoPath['/tmp/proof-top.jpg'],
+        containsPair('captureFlow', 'trimmed_source'),
+      );
+      expect(
+        result.preparationDiagnosticsByOcrPath['/tmp/ocr-top.jpg'],
+        containsPair('ocrPrep', 'trimmed_source'),
+      );
+      expect(
+        result.captureDiagnosticsByPhotoPath,
+        isNot(contains('/tmp/stale-proof.jpg')),
+      );
+      expect(
+        result.preparationDiagnosticsByOcrPath,
+        isNot(contains('/tmp/stale-ocr.jpg')),
+      );
+    },
+  );
+
   test('kept for later review does not open receipt details input', () {
     final result = ReceiptPhotoReviewResult.keptForLater(
       photoPaths: const ['/tmp/staged-top.jpg', '/tmp/staged-bottom.jpg'],

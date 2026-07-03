@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 541 - 04:56:14 EDT to 04:57:00 EDT
+
+Scope:
+- Hardened receipt photo review results so quality checks, capture diagnostics,
+  and OCR preparation diagnostics are filtered to normalized result paths.
+- Added regression coverage proving stale and whitespace-keyed evidence maps
+  cannot survive after saved-proof and OCR source paths are normalized.
+- Recorded `BUG-RECEIPT-0058` under `source_preservation`.
+- Archived Pass 519 out of the live cleanup log.
+
+Verification:
+- Removed the dead immutable-diagnostics helper after analyzer caught it, then
+  reran.
+- Passed targeted format/analyzer, focused camera-result regression,
+  bug-ledger, log, doc-size, source-audit, and diff gates.
+
 ## Pass 540 - 04:52:32 EDT to 04:53:38 EDT
 
 Scope:
@@ -359,24 +375,6 @@ Verification:
   lifecycle source regression coverage.
 - Passed focused Flutter tests `test/receipt_camera_result_best_shot_ocr_test.dart`
   and `test/receipt_photo_review_save_lifecycle_test.dart`.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
-
-## Pass 519 - 01:43:00 EDT to 01:48:00 EDT
-
-Scope:
-- Updated the receipt photo review lifecycle regression so it now requires the
-  safer add/remove order-plan path from Pass 518.
-- Added source-level coverage proving the old `indexOf(targetPhotoPath)`
-  removal pattern does not come back.
-- Recorded `BUG-RECEIPT-0037` under `qa_harness`.
-- Archived Pass 494 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for the lifecycle source regression.
-- Passed focused Flutter test
-  `test/receipt_photo_review_save_lifecycle_test.dart`.
 - Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
   diff check.
 

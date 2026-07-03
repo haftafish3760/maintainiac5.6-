@@ -156,12 +156,20 @@ class ReceiptPhotoReviewResult {
              ? _uniqueNonBlankPaths(photoPaths)
              : _uniqueNonBlankPaths(ocrSourcePhotoPaths),
        ),
-       photoQualityChecksByPath = Map.unmodifiable(photoQualityChecksByPath),
-       preparationDiagnosticsByOcrPath = _immutableDiagnosticsMap(
-         preparationDiagnosticsByOcrPath,
+       photoQualityChecksByPath = _qualityChecksForPaths(
+         photoQualityChecksByPath,
+         _uniqueNonBlankPaths(photoPaths),
        ),
-       captureDiagnosticsByPhotoPath = _immutableDiagnosticsMap(
+       preparationDiagnosticsByOcrPath = _diagnosticsForPaths(
+         preparationDiagnosticsByOcrPath,
+         _uniqueNonBlankPaths(ocrSourcePhotoPaths).isEmpty &&
+                 allowSavedProofOcrFallback
+             ? _uniqueNonBlankPaths(photoPaths)
+             : _uniqueNonBlankPaths(ocrSourcePhotoPaths),
+       ),
+       captureDiagnosticsByPhotoPath = _diagnosticsForPaths(
          captureDiagnosticsByPhotoPath,
+         _uniqueNonBlankPaths(photoPaths),
        ),
        usedSavedProofAsOcrSourceFallback =
            allowSavedProofOcrFallback &&

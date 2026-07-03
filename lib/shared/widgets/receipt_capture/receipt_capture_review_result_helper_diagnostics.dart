@@ -53,13 +53,28 @@ String _diagnosticToken(String value) {
   return token.isEmpty ? 'unknown' : token;
 }
 
-Map<String, Map<String, Object?>> _immutableDiagnosticsMap(
-  Map<String, Map<String, Object?>> values,
+Map<String, ReceiptPhotoQualityCheck> _qualityChecksForPaths(
+  Map<String, ReceiptPhotoQualityCheck> values,
+  List<String> paths,
 ) {
-  if (values.isEmpty) return const {};
-  return Map.unmodifiable({
+  if (values.isEmpty || paths.isEmpty) return const {};
+  final pathSet = paths.toSet();
+  return Map<String, ReceiptPhotoQualityCheck>.unmodifiable({
     for (final entry in values.entries)
-      entry.key: Map<String, Object?>.unmodifiable(entry.value),
+      if (pathSet.contains(entry.key.trim())) entry.key.trim(): entry.value,
+  });
+}
+
+Map<String, Map<String, Object?>> _diagnosticsForPaths(
+  Map<String, Map<String, Object?>> values,
+  List<String> paths,
+) {
+  if (values.isEmpty || paths.isEmpty) return const {};
+  final pathSet = paths.toSet();
+  return Map<String, Map<String, Object?>>.unmodifiable({
+    for (final entry in values.entries)
+      if (pathSet.contains(entry.key.trim()))
+        entry.key.trim(): Map<String, Object?>.unmodifiable(entry.value),
   });
 }
 
