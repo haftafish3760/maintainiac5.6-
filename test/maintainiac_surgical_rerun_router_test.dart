@@ -86,6 +86,19 @@ void main() {
     );
   });
 
+  test('surgical rerun router maps source boundary changes to every guard', () {
+    final selectorIds = maintainiacSurgicalRerunRouter
+        .selectorIdsForChangedPaths([
+          'test/support/qa_harness/maintainiac_source_boundary.dart',
+        ]);
+
+    expect(selectorIds, contains('source_boundary_catches_live_services'));
+    expect(selectorIds, contains('source_boundary_allows_emulators'));
+    expect(selectorIds, contains('source_boundary_catches_ocr_camera_imports'));
+    expect(selectorIds, contains('source_boundary_skips_build_folders'));
+    expect(selectorIds, contains('main_backbone_parser_visibility'));
+  });
+
   test('surgical rerun router dedupes overlapping changed paths', () {
     final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
       'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',

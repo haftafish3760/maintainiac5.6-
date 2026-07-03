@@ -766,6 +766,7 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       selectorIds: {
         'source_boundary_catches_live_services',
         'source_boundary_allows_emulators',
+        'source_boundary_catches_ocr_camera_imports',
         'source_boundary_skips_build_folders',
         'main_backbone_parser_visibility',
       },
