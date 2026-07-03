@@ -122,6 +122,12 @@ Every reusable QA behavior should have a durable label:
 - Release blockers must be visible separately from core, standard, and hardening checks.
 - Feature work can run the relevant labeled cases while the feature is being built, not only at final release time.
 
+List labeled QA cases with:
+
+- `dart run tool/maintainiac_qa_cases.dart`
+- `dart run tool/maintainiac_qa_cases.dart --priority releaseBlocker`
+- `dart run tool/maintainiac_qa_cases.dart --json --priority core`
+
 ## Financial Ledger Probe
 
 The backbone includes a cents-only financial ledger probe for deterministic module tests:
