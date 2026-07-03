@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 584 - 11:12:00 EDT to 11:18:15 EDT
+
+Scope:
+- Hardened OCR-source enhancement scoring so malformed receipt quality metrics
+  cannot produce non-finite cleanup candidate rankings.
+- Added OCR-source handoff source coverage requiring cleanup score metrics to
+  route through the finite enhancement helper.
+- Recorded `BUG-RECEIPT-0100` under `camera_capture_quality`.
+- Archived Pass 557 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Fixed the first focused contract failure by reading the enhancement helper
+  part file instead of only the main image processor shell.
+- Passed targeted Dart format/analyzer for enhancement scoring and OCR-source
+  handoff coverage.
+- Passed focused Flutter OCR-source handoff regression.
+
 ## Pass 583 - 11:01:00 EDT to 11:08:30 EDT
 
 Scope:
@@ -469,18 +487,3 @@ Verification:
 - Passed targeted Dart format/analyzer for retake capture actions and lifecycle
   source coverage.
 - Passed focused Flutter lifecycle contract test.
-
-## Pass 557 - 06:46:00 EDT to 06:59:56 EDT
-
-Scope:
-- Hardened recovery-stage manifest updates so old/private-looking manifest
-  diagnostics are filtered through the staging safe-key whitelist during merge.
-- Added cleanup regression coverage proving stage updates drop existing private
-  receipt/customer diagnostic keys while preserving safe recovery metadata.
-- Recorded `BUG-RECEIPT-0073` under `privacy_redaction`.
-- Archived Pass 543 out of the live cleanup log.
-
-Verification:
-- Fixed a type issue in the safe merge, corrected an over-broad Hive-index
-  expectation, then reran the focused chain.
-- Passed targeted Dart analyzer and focused Flutter recovery-stage update test.

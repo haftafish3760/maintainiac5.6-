@@ -273,8 +273,10 @@ img.Image _mildTextSharpen(img.Image source) {
 double _enhancementScore(ReceiptPhotoQualityCheck quality) {
   final lightPenalty = quality.isTooDark || quality.isTooBright ? 10 : 0;
   return quality.reviewScore +
-      (quality.textBandScore * 1.9) +
-      (quality.contrast.clamp(0, 42) * .38) +
-      (quality.focusScore.clamp(0, 18) * .42) -
+      (_finiteEnhancementMetric(quality.textBandScore) * 1.9) +
+      (_finiteEnhancementMetric(quality.contrast).clamp(0, 42) * .38) +
+      (_finiteEnhancementMetric(quality.focusScore).clamp(0, 18) * .42) -
       lightPenalty;
 }
+
+double _finiteEnhancementMetric(double value) => value.isFinite ? value : 0;

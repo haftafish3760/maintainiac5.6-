@@ -27,6 +27,9 @@ void main() {
     final imageProcessor = await File(
       'lib/shared/widgets/receipt_capture/receipt_image_processor.dart',
     ).readAsString();
+    final imageEnhancementHelpers = await File(
+      'lib/shared/widgets/receipt_capture/receipt_image_processor_enhancement_helpers.dart',
+    ).readAsString();
     final models =
         await File(
           'lib/shared/widgets/receipt_capture/receipt_capture_models.dart',
@@ -123,6 +126,11 @@ void main() {
     expect(imageProcessor, contains('optimizePreparedBackupFile'));
     expect(imageProcessor, contains('_deleteFileQuietly'));
     expect(imageProcessor, contains('optimizeFile'));
+    expect(imageEnhancementHelpers, contains('_finiteEnhancementMetric'));
+    expect(
+      imageEnhancementHelpers,
+      contains('_finiteEnhancementMetric(quality.textBandScore)'),
+    );
     expect(
       imageProcessor.indexOf('prepareReceiptSourceFile'),
       lessThan(imageProcessor.indexOf('optimizeFile')),
