@@ -43,6 +43,35 @@ void main() {
     expect(noSourceDraft.sourceFirstLineLabel, 'Line 4');
   });
 
+  test('parser line source locations clamp unusable line numbers', () {
+    const badLocation = ReceiptOcrParserLineLocation(
+      sectionNumber: -3,
+      sectionLineNumber: 0,
+    );
+    final draft = ReceiptOcrParserLineDraft.fromSignal(
+      const ReceiptOcrParserLineSignal(
+        index: 0,
+        text: 'MILK 4.25',
+        kind: ReceiptOcrParserLineKind.itemCandidate,
+        amountCandidates: [4.25],
+        confidence: .88,
+        sourceLocation: badLocation,
+      ),
+    );
+
+    expect(badLocation.safeSectionNumber, 1);
+    expect(badLocation.safeSectionLineNumber, 1);
+    expect(badLocation.label, 'source line 1');
+    expect(badLocation.toMap(), {
+      'sectionNumber': 1,
+      'sectionLineNumber': 1,
+      'label': 'source line 1',
+    });
+    expect(draft.sourceFirstLineLabel, 'source line 1');
+    expect(draft.proofLineReferenceLabel, 'Line 1, source line 1');
+    expect(draft.toLocalReviewMap()['sourceFirstLineLabel'], 'source line 1');
+  });
+
   test('parser handoff line id maps preserve first duplicate line id', () {
     const firstLocation = ReceiptOcrParserLineLocation(
       sectionNumber: 1,

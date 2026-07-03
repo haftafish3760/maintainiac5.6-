@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 585 - 11:25:00 EDT to 11:29:40 EDT
+
+Scope:
+- Hardened OCR/parser source-location labels so malformed section or line
+  numbers cannot show impossible receipt proof labels such as line zero.
+- Added parser handoff structure regression coverage proving source labels,
+  maps, and proof references clamp source section and line numbers to at least
+  one.
+- Recorded `BUG-RECEIPT-0101` under `receipt_line_numbering`.
+- Archived Pass 558 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for OCR parser models and parser handoff
+  structure coverage.
+- Passed focused Flutter parser handoff regression for clamped source line
+  numbers.
+
 ## Pass 584 - 11:12:00 EDT to 11:18:15 EDT
 
 Scope:
@@ -472,18 +490,3 @@ Verification:
   and stitching regression coverage.
 - Passed focused Flutter stitching regression for duplicate receipt section
   paths.
-
-## Pass 558 - 07:01:13 EDT to 07:04:21 EDT
-
-Scope:
-- Hardened retake capture diagnostics so stale picked diagnostics cannot be
-  re-added for paths outside the accepted retake order plan.
-- Added lifecycle source regression coverage requiring retake diagnostics to
-  emit only accepted retake-plan keys.
-- Recorded `BUG-RECEIPT-0074` under `multi_photo_ordering`.
-- Archived Pass 542 out of the live cleanup log.
-
-Verification:
-- Passed targeted Dart format/analyzer for retake capture actions and lifecycle
-  source coverage.
-- Passed focused Flutter lifecycle contract test.

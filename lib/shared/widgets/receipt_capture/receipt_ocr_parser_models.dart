@@ -36,14 +36,17 @@ class ReceiptOcrParserLineLocation {
   final int sectionNumber;
   final int sectionLineNumber;
 
-  String get label => sectionNumber <= 1
-      ? 'source line $sectionLineNumber'
-      : 'section $sectionNumber line $sectionLineNumber';
+  int get safeSectionNumber => sectionNumber < 1 ? 1 : sectionNumber;
+  int get safeSectionLineNumber =>
+      sectionLineNumber < 1 ? 1 : sectionLineNumber;
+  String get label => safeSectionNumber <= 1
+      ? 'source line $safeSectionLineNumber'
+      : 'section $safeSectionNumber line $safeSectionLineNumber';
 
   Map<String, Object?> toMap() {
     return {
-      'sectionNumber': sectionNumber,
-      'sectionLineNumber': sectionLineNumber,
+      'sectionNumber': safeSectionNumber,
+      'sectionLineNumber': safeSectionLineNumber,
       'label': label,
     };
   }
