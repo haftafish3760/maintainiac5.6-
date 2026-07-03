@@ -564,6 +564,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'source audit policy separates production and QA line caps',
         'source audit debt ledger tracks current oversized production files',
         'source audit policy rejects unsafe or incomplete limits',
+        'source audit debt ledger rejects non-production debt entries',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(

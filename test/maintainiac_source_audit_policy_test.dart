@@ -87,4 +87,45 @@ void main() {
       );
     },
   );
+
+  test('source audit debt ledger rejects non-production debt entries', () {
+    const ledger = MaintainiacSourceAuditDebtLedger([
+      MaintainiacSourceAuditDebt(
+        path: 'test/support/qa_harness/oversized_helper.dart',
+        owner: 'qa_backbone',
+        reason: 'QA helper should not be production debt.',
+        splitPlan:
+            'Split the helper if needed, but do not hide it as app debt.',
+        targetMaxLines: 1000,
+      ),
+      MaintainiacSourceAuditDebt(
+        path: 'tool/generated_helper.dart',
+        owner: 'qa_backbone',
+        reason: 'Uncovered tool file should not be production debt.',
+        splitPlan: 'Add a tool audit rule or keep it out of the debt ledger.',
+        targetMaxLines: 1000,
+      ),
+    ]);
+
+    final failures = ledger
+        .validateAgainstPolicy(maintainiacSourceAuditPolicy)
+        .join('\n');
+
+    expect(
+      failures,
+      contains(
+        'test/support/qa_harness/oversized_helper.dart debt must be production scoped',
+      ),
+    );
+    expect(
+      failures,
+      contains(
+        'test/support/qa_harness/oversized_helper.dart debt must target a production lib file',
+      ),
+    );
+    expect(
+      failures,
+      contains('tool/generated_helper.dart has no source audit rule'),
+    );
+  });
 }

@@ -1795,6 +1795,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'source-audit', 'quality-gate', 'modularity', 'security'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'source_audit_rejects_non_production_debt',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_source_audit_policy_test.dart',
+    plainName: 'source audit debt ledger rejects non-production debt entries',
+    reason: 'Run only the source-audit production debt scope guard.',
+    tags: {'source-audit', 'quality-gate', 'modularity', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'audit_trail_ordered_complete',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_audit_trail_test.dart',

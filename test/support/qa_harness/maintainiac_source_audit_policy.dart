@@ -169,6 +169,25 @@ class MaintainiacSourceAuditDebtLedger {
     return failures;
   }
 
+  List<String> validateAgainstPolicy(MaintainiacSourceAuditPolicy policy) {
+    final failures = validate();
+    for (final debt in debts) {
+      final normalizedPath = _normalizePath(debt.path);
+      final rule = policy.ruleFor(normalizedPath);
+      if (rule == null) {
+        failures.add('$normalizedPath has no source audit rule');
+        continue;
+      }
+      if (rule.scope != MaintainiacSourceAuditScope.production) {
+        failures.add('$normalizedPath debt must be production scoped');
+      }
+      if (!normalizedPath.startsWith('lib/')) {
+        failures.add('$normalizedPath debt must target a production lib file');
+      }
+    }
+    return failures;
+  }
+
   Map<String, Object?> toJson() {
     return {
       'debtCount': debts.length,
