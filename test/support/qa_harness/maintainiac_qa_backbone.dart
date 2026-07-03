@@ -13,6 +13,7 @@ import 'maintainiac_parser_candidate_contract.dart';
 import 'maintainiac_parser_fixture_manifest.dart';
 import 'maintainiac_correction_learning_contract.dart';
 import 'maintainiac_local_first_contract.dart';
+import 'maintainiac_sync_conflict_contract.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
@@ -301,10 +302,31 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in localFirst.validate()) {
       failures.add(_failure('local_first_$issue', issue));
     }
+    const syncConflicts = MaintainiacSyncConflictContract([
+      MaintainiacSyncConflictCase(
+        id: 'seed_expense_total_local_wins',
+        collection: 'expenses',
+        recordId: 'expense_seed',
+        fields: [
+          MaintainiacSyncConflictField(
+            name: 'totalCents',
+            localValue: 1060,
+            remoteValue: 1006,
+            userConfirmed: true,
+            financial: true,
+          ),
+        ],
+        resolution: MaintainiacConflictResolution.localWins,
+        reason: 'User-confirmed local financial value outranks mirror.',
+      ),
+    ]);
+    for (final issue in syncConflicts.validate()) {
+      failures.add(_failure('sync_conflict_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 174,
+      checked: 184,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -330,6 +352,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'parserFixtureManifest': fixtureManifest.toJson(),
         'correctionLearning': correctionLearning.toJson(),
         'localFirstContract': localFirst.toJson(),
+        'syncConflictContract': syncConflicts.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

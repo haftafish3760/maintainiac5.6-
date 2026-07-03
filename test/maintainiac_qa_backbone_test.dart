@@ -62,6 +62,10 @@ void main() {
       report.results.single.metrics['localFirstContract'].toString(),
       contains('localHive'),
     );
+    expect(
+      report.results.single.metrics['syncConflictContract'].toString(),
+      contains('seed_expense_total_local_wins'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

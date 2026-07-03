@@ -218,6 +218,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_local_first_contract.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'sync_conflict_contract',
+        module: MaintainiacQaModule.sync,
+        description:
+            'Reusable sync conflict contract handles same-field conflicts, safe different-field merges, review queues, local wins, and mirror-only cloud behavior.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_sync_conflict_contract.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:
