@@ -49,6 +49,31 @@ void main() {
     expect(diagnostics.containsKey('deviceName'), isFalse);
   });
 
+  test('production receipt camera runtime stays manufacturer agnostic', () {
+    final productionSources = <File>[
+      ..._sourceFilesUnder('lib/shared/widgets/receipt_capture'),
+      ..._sourceFilesUnder('android/app/src/main/kotlin/com/maintainiac'),
+      ..._sourceFilesUnder('ios/Runner'),
+    ];
+    final brandTokens = RegExp(
+      r'\b(Samsung|Galaxy|S24|S25|S9|Google Pixel|Motorola|OnePlus)\b',
+    );
+    final violations = <String>[];
+
+    for (final file in productionSources) {
+      final text = file.readAsStringSync();
+      if (brandTokens.hasMatch(text)) violations.add(file.path);
+    }
+
+    expect(
+      violations,
+      isEmpty,
+      reason:
+          'Receipt camera runtime must stay capability-based, not tied to one '
+          'phone maker. Use docs or real-device scripts for named test devices.',
+    );
+  });
+
   test(
     'native camera screens report control diagnostics without content',
     () async {
@@ -178,6 +203,17 @@ void main() {
       );
     },
   );
+}
+
+List<File> _sourceFilesUnder(String rootPath) {
+  return Directory(rootPath).listSync(recursive: true).whereType<File>().where((
+    file,
+  ) {
+    final path = file.path;
+    return path.endsWith('.dart') ||
+        path.endsWith('.kt') ||
+        path.endsWith('.swift');
+  }).toList();
 }
 
 String _readNativeCameraContractSource() {
