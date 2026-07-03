@@ -130,6 +130,15 @@ The backbone includes a cents-only financial ledger probe for deterministic modu
 - Inventory consumption cost lines for jobs, estimates, invoices, and material usage.
 - Balance assertions so category totals and business/personal totals cannot drift from the source ledger.
 
+## Sync Lifecycle Probe
+
+The backbone includes a local-only sync lifecycle probe:
+
+- Local dirty writes happen first.
+- Syncing, failed, retry, and synced states are explicit.
+- Successful mirror writes go to the fake Firestore mirror only.
+- Failed records remain in a pending retry queue.
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:
