@@ -237,6 +237,34 @@ void main() {
     );
   });
 
+  test('source handoff reports glare saved-photo review', () {
+    final summary = ReceiptOcrSourceHandoffSummary.fromAttachments([
+      ReceiptAttachmentRecord(
+        id: 'glare-proof',
+        path: '/tmp/glare-proof.jpg',
+        kind: ReceiptAttachmentKind.photo,
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        createdAt: DateTime(2026, 7, 1),
+        riskFlags: const [
+          'ocr_source_saved_photo_glare_risk',
+          'ocr_source_action_reduce_glare_or_retake',
+        ],
+      ),
+    ]);
+
+    expect(summary.status, 'scanner_prep_review_needed');
+    expect(summary.sourceQualityReviewStatus, 'saved_glare_review');
+    expect(summary.sourceQualityReviewAction, 'reduce_glare_or_retake');
+    expect(
+      summary.privacySafeContract['sourceQualityReviewStatus'],
+      'saved_glare_review',
+    );
+    expect(
+      summary.privacySafeContract['sourceQualityReviewAction'],
+      'reduce_glare_or_retake',
+    );
+  });
+
   test('ocr service asks for a receipt photo before scanning', () async {
     final result = await const ReceiptOcrService().recognizeTextFromAttachments(
       const [],
