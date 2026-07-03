@@ -2451,6 +2451,10 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the release command manifest contract:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_command_manifest,qa.threshold_gate`
   passed 24 checks with 0 failures.
+- Validated the combined release-one priority-cell gate after the Core/Standard
+  floor, Spanish sweep, fixture-cell, matrix, and command-manifest hardening:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_cell_manifest,inventory.release_one_pack_balance,inventory.release_one_service_family_contract,inventory.spanish_release_one,inventory.fixture_coverage_matrix,inventory.release_one_command_manifest,inventory.master_coverage_matrix_contract,qa.threshold_gate`
+  passed 119138 checks with 0 failures.
 
 Named release gates:
 
