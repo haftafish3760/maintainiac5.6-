@@ -193,6 +193,14 @@ The backbone includes a failure taxonomy probe:
 - Routes failures into schema, privacy, security, sync, money, permissions, source mutation, parser, performance, fixture, or unknown buckets.
 - Helps QA reports explain what kind of failure happened and what team/module should handle it.
 
+## Release Gate Plan
+
+The backbone includes a release gate plan:
+
+- Groups release-blocking and core QA cases into a machine-readable plan.
+- Produces the concrete focused commands to run while building features.
+- Fails if a release-blocking case lacks evidence or a runnable command.
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:

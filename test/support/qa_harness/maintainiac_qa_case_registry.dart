@@ -75,6 +75,7 @@ class MaintainiacQaCaseRegistry {
             'Hive/local writes are recorded before Firestore mirror writes.',
         evidenceTarget: 'sync.local_write_before_mirror',
         priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand: 'flutter test test/maintainiac_qa_backbone_test.dart',
         tags: {'hive-source-of-truth', 'firestore-mirror'},
       ),
       MaintainiacQaCase(
@@ -85,6 +86,7 @@ class MaintainiacQaCaseRegistry {
             'VIN, plate-like, passenger/patient, and card-like data are detected before logs or reports expose them.',
         evidenceTarget: 'security.forbidden_data_scan',
         priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand: 'flutter test test/maintainiac_qa_backbone_test.dart',
         tags: {'privacy', 'redaction', 'security'},
       ),
       MaintainiacQaCase(
