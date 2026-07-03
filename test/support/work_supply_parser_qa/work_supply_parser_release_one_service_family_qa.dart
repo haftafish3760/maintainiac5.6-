@@ -280,6 +280,31 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
     },
   };
 
+  static const _requiredTierPresenceByFamily = {
+    'plumbing_common_pipe_fittings': {'core', 'standard'},
+    'plumbing_water_distribution_materials': {'core', 'standard'},
+    'plumbing_toilet_repair': {'core'},
+    'plumbing_toilet_tank_rebuild': {'core'},
+    'plumbing_sink_faucet_repair': {'core', 'standard'},
+    'plumbing_drain_trap_repair': {'core', 'standard'},
+    'plumbing_valves_supply_stops': {'core', 'standard'},
+    'plumbing_water_heater_service': {'core'},
+    'plumbing_well_service': {'standard'},
+    'plumbing_service_tools': {'core'},
+    'electrical_wire_cable': {'core', 'standard'},
+    'electrical_boxes_devices': {'core', 'standard'},
+    'electrical_switch_outlet_repair': {'standard'},
+    'electrical_conduit_support': {'core', 'standard'},
+    'electrical_breaker_service': {'standard'},
+    'electrical_grounding_bonding': {'core', 'standard'},
+    'hvac_filter_airflow': {'core', 'standard'},
+    'hvac_filter_common_sizes': {'core', 'standard'},
+    'hvac_controls_service': {'core', 'standard'},
+    'hvac_condensate_drain': {'core', 'standard'},
+    'hvac_service_fasteners_sealants': {'core', 'standard'},
+    'hvac_duct_repair_seal': {'core', 'standard'},
+  };
+
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
@@ -289,6 +314,7 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
     final examples = <String, List<String>>{};
     final requiredSignalHits = <String, Map<String, int>>{};
     final items = _releaseOneCoreStandardItems().toList(growable: false);
+    var checked = _families.length + items.length;
 
     for (final family in _families) {
       final matches = items
@@ -304,6 +330,8 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
       final signalHits = _requiredSignalHits(family.id, matches);
       requiredSignalHits[family.id] = signalHits;
       _requireSignals(failures, family, signalHits);
+      checked += (_requiredTierPresenceByFamily[family.id] ?? const {}).length;
+      _requireTierPresence(failures, family, tierCounts[family.id] ?? const {});
       if (matches.length >= family.minimumMatches) continue;
       failures.add(
         QaFailure(
@@ -324,7 +352,7 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: _families.length + items.length,
+      checked: checked,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
@@ -406,6 +434,32 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
           actual: '0 matching Core/Standard rows',
           suggestedFix:
               'Add the missing everyday residential service item, alias, or receipt signal before treating this family as release-one ready.',
+          metadata: const {'triageCategory': QaFailureTriage.category},
+        ),
+      );
+    }
+  }
+
+  void _requireTierPresence(
+    List<QaFailure> failures,
+    _FamilySpec family,
+    Map<String, int> tierCounts,
+  ) {
+    final requiredTiers = _requiredTierPresenceByFamily[family.id] ?? const {};
+    for (final tier in requiredTiers) {
+      if ((tierCounts[tier] ?? 0) > 0) continue;
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'missing_release_one_tier_presence:${family.id}:$tier',
+          message:
+              'Release-one service family is missing coverage in a required Core/Standard tier.',
+          severity: QaSeverity.warning,
+          expected:
+              '${family.trade} ${family.id} includes at least one residential $tier row',
+          actual: 'tierCounts=$tierCounts',
+          suggestedFix:
+              'Retier or add a common residential service item so Core stays everyday-truck focused and Standard carries the next common stocked rows.',
           metadata: const {'triageCategory': QaFailureTriage.category},
         ),
       );

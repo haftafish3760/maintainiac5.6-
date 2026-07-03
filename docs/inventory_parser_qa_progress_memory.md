@@ -2410,6 +2410,13 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated pack balance after the catalog change:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_pack_balance,inventory.catalog_coverage,qa.threshold_gate`
   passed 56805 checks with 0 failures.
+- Tightened release-one Core/Standard service-family QA so Plumbing, Electrical,
+  and HVAC residential families now declare required tier presence. This prevents
+  a family from appearing covered only because the combined Core+Standard count
+  is high while the intended Core or Standard tier is empty.
+- Validated the tier-presence service-family gate:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_service_family_contract,qa.threshold_gate`
+  passed 17028 checks with 0 failures.
 
 Named release gates:
 
