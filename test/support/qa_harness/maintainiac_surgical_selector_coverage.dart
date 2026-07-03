@@ -293,6 +293,21 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_sync_lifecycle_test.dart',
+      plainNames: {
+        'sync lifecycle writes local dirty record before mirror success',
+        'sync lifecycle keeps failed records queued for retry',
+        'sync lifecycle rejects unknown record transitions',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_sync_transport_policy_test.dart',
+      plainNames: {
+        'sync transport policy covers manual scheduled and automatic paths',
+        'sync transport policy rejects unsafe network expectations',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_environment_test.dart',
       plainNames: {
         'QA environment fakes preserve local truth and mirror copies',

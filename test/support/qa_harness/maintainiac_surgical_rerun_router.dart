@@ -69,6 +69,8 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_local_first_contract.dart',
       'maintainiac_mutation_guard.dart',
       'maintainiac_source_truth_gate.dart',
+      'maintainiac_sync_lifecycle.dart',
+      'maintainiac_sync_transport_policy.dart',
       'maintainiac_payment_contract.dart',
       'maintainiac_operating_directive_contract.dart',
       'maintainiac_qa_artifact_policy.dart',
@@ -419,6 +421,29 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Source-truth gate changes need role coverage, negative mutation, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'sync_lifecycle_changed',
+      changedPathContains: 'maintainiac_sync_lifecycle.dart',
+      selectorIds: {
+        'sync_lifecycle_local_dirty_before_mirror',
+        'sync_lifecycle_failed_retry_queue',
+        'sync_lifecycle_rejects_unknown_transition',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Sync lifecycle changes need local-dirty, retry, transition, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'sync_transport_policy_changed',
+      changedPathContains: 'maintainiac_sync_transport_policy.dart',
+      selectorIds: {
+        'sync_transport_covers_paths',
+        'sync_transport_rejects_unsafe_networks',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Sync transport changes need allowed-path, blocked-network, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'qa_environment_changed',
