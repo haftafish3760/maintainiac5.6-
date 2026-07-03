@@ -30,12 +30,77 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
     'valvula',
   };
 
+  static const _spanishServiceFamilySignals = {
+    'plumbing_pipe_fittings': {
+      'codo',
+      'tee',
+      'acople',
+      'adaptador',
+      'reductor',
+      'buje',
+    },
+    'plumbing_water_distribution': {
+      'pex',
+      'cobre',
+      'cpvc',
+      'conexion rapida',
+      'sharkbite',
+    },
+    'plumbing_toilet_repair': {
+      'sanitario',
+      'inodoro',
+      'anillo cera',
+      'valvula llenado',
+      'valvula descarga',
+      'flapper',
+    },
+    'plumbing_sink_faucet_repair': {
+      'llave',
+      'grifo',
+      'lavabo',
+      'drenaje',
+      'desague',
+      'manguera',
+    },
+    'electrical_devices_breakers': {
+      'tomacorriente',
+      'contacto',
+      'interruptor',
+      'disyuntor',
+      'gfci',
+    },
+    'electrical_wire_conduit_ground': {
+      'cable',
+      'alambre',
+      'conductor',
+      'conduit',
+      'tierra',
+      'barra tierra',
+    },
+    'hvac_filter_controls': {
+      'filtro',
+      'capacitor',
+      'contactor',
+      'termostato',
+      'transformador',
+    },
+    'hvac_condensate_duct': {
+      'condensado',
+      'drenaje',
+      'bomba',
+      'cinta aluminio',
+      'ducto',
+      'sellador',
+    },
+  };
+
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
     final failures = <QaFailure>[];
     final warningsByTradeTier = <String, int>{};
     final missingSignalCounts = <String, int>{};
+    final missingFamilyCounts = <String, int>{};
     final localeTermText = _localeTermSourceText();
     var checked = 0;
 
@@ -63,6 +128,15 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
         ),
       );
     }
+    checked += _spanishServiceFamilySignals.values.fold<int>(
+      0,
+      (total, signals) => total + signals.length,
+    );
+    _requireSpanishFamilyTermSource(
+      failures,
+      localeTermText,
+      missingFamilyCounts,
+    );
 
     return timer.finish(
       suite: name,
@@ -75,6 +149,9 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
         'localeTermSourcePresent': localeTermText.isNotEmpty,
         'warningsByTradeTier': _topCounts(warningsByTradeTier),
         'topMissingSpanishSignals': _topCounts(missingSignalCounts),
+        'topMissingSpanishFamilySignals': _topCounts(missingFamilyCounts),
+        'spanishServiceFamilies': _spanishServiceFamilySignals.keys.toList()
+          ..sort(),
         'spanishSignalTokens': _spanishSignalTokens.toList()..sort(),
       },
     );
@@ -129,6 +206,33 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
     }
     return missing;
   }
+
+  void _requireSpanishFamilyTermSource(
+    List<QaFailure> failures,
+    String termText,
+    Map<String, int> missingFamilyCounts,
+  ) {
+    for (final entry in _spanishServiceFamilySignals.entries) {
+      for (final signal in entry.value) {
+        if (termText.contains(signal)) continue;
+        _increment(missingFamilyCounts, entry.key);
+        failures.add(
+          QaFailure(
+            suite: name,
+            id: 'spanish_family_term_gap:${entry.key}:${_safeId(signal)}',
+            message:
+                'US Spanish release-one locale source is missing a service-family term.',
+            severity: QaSeverity.warning,
+            expected: signal,
+            actual: 'not found in es-US locale term source',
+            suggestedFix:
+                'Add Spanish aliases or receipt abbreviations for the service family before claiming es-US Core/Standard readiness.',
+            metadata: const {'triageCategory': QaFailureTriage.locale},
+          ),
+        );
+      }
+    }
+  }
 }
 
 String _localeTermSourceText() {
@@ -148,6 +252,10 @@ String _normalize(String value) {
       .replaceAll('ó', 'o')
       .replaceAll('ú', 'u')
       .replaceAll('ñ', 'n');
+}
+
+String _safeId(String value) {
+  return _normalize(value).replaceAll(RegExp(r'[^a-z0-9]+'), '_');
 }
 
 void _increment(Map<String, int> counts, String key) {
