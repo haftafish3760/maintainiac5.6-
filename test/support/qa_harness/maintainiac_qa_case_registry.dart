@@ -143,6 +143,17 @@ class MaintainiacQaCaseRegistry {
         testCommand: 'flutter test test/maintainiac_audit_trail_test.dart',
         tags: {'audit', 'confirmation', 'regression'},
       ),
+      MaintainiacQaCase(
+        id: 'QA-EXPORT-001',
+        title: 'Export ownership and privacy sanitization',
+        module: MaintainiacQaModule.exports,
+        behavior:
+            'Exports include only active-account records and reject or remove private fields before writing.',
+        evidenceTarget: 'maintainiac_export_privacy_test',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand: 'flutter test test/maintainiac_export_privacy_test.dart',
+        tags: {'exports', 'privacy', 'ownership'},
+      ),
     ]);
   }
 

@@ -122,6 +122,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_audit_trail.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'export_privacy_probe',
+        module: MaintainiacQaModule.exports,
+        description:
+            'Reusable export ownership, private-key rejection, and sanitization probe.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_export_privacy.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:
