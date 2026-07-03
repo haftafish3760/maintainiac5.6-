@@ -224,6 +224,51 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_fixture_governance_gate_test.dart',
+      plainNames: {
+        'fixture governance gate covers release fixture families',
+        'fixture governance gate rejects private or weak fixture rules',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_parser_fixture_manifest_test.dart',
+      plainNames: {
+        'parser fixture manifest separates golden holdout regression and malformed roles',
+        'parser fixture manifest rejects unsafe fixture governance gaps',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_regression_registry_test.dart',
+      plainNames: {
+        'regression registry records permanent bug fixtures by area',
+        'regression registry rejects non-permanent or incomplete bug records',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_failure_taxonomy_test.dart',
+      plainNames: {
+        'failure taxonomy classifies common QA failure families',
+        'failure taxonomy summarizes failure buckets',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_performance_budget_registry_test.dart',
+      plainNames: {
+        'performance budget registry labels harness performance budgets',
+        'performance budget registry rejects missing or broad budgets',
+        'performance budget registry rejects broad Flutter measurements',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_release_gate_plan_test.dart',
+      plainNames: {
+        'release gate plan exposes release blocker and core command plan',
+        'release gate plan rejects missing name or priorities',
+        'release gate plan requires commands for release blockers',
+        'release gate plan requires surgical commands for core checks',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_parser_release_command_plan_test.dart',
       plainNames: {
         'parser release command plan covers every parser consumer family',

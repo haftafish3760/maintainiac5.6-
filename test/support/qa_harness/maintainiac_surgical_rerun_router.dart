@@ -67,6 +67,12 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_device_capability.dart',
       'maintainiac_job_contract.dart',
       'maintainiac_pricing_contract.dart',
+      'maintainiac_fixture_governance_gate.dart',
+      'maintainiac_parser_fixture_manifest.dart',
+      'maintainiac_regression_registry.dart',
+      'maintainiac_failure_taxonomy.dart',
+      'maintainiac_performance_budget_registry.dart',
+      'maintainiac_release_gate_plan.dart',
       'maintainiac_parser_release_command_plan.dart',
       'maintainiac_parser_regression_binding.dart',
       'maintainiac_surgical_selector_coverage.dart',
@@ -285,6 +291,75 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Parser gate changes need positive, negative, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'fixture_governance_gate_changed',
+      changedPathContains: 'maintainiac_fixture_governance_gate.dart',
+      selectorIds: {
+        'fixture_governance_release_families',
+        'fixture_governance_rejects_weak_rules',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Fixture governance changes need release-family, weak-rule, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'parser_fixture_manifest_changed',
+      changedPathContains: 'maintainiac_parser_fixture_manifest.dart',
+      selectorIds: {
+        'parser_fixture_manifest_roles',
+        'parser_fixture_manifest_rejects_gaps',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Parser fixture manifest changes need role separation, governance-gap, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'regression_registry_changed',
+      changedPathContains: 'maintainiac_regression_registry.dart',
+      selectorIds: {
+        'regression_registry_permanent_bug_fixtures',
+        'regression_registry_rejects_incomplete',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Regression registry changes need permanent fixture, incomplete-record, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'failure_taxonomy_changed',
+      changedPathContains: 'maintainiac_failure_taxonomy.dart',
+      selectorIds: {
+        'failure_taxonomy_classifies_families',
+        'failure_taxonomy_summarizes_buckets',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Failure taxonomy changes need classification, summary, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'performance_budget_registry_changed',
+      changedPathContains: 'maintainiac_performance_budget_registry.dart',
+      selectorIds: {
+        'performance_budget_labels_budgets',
+        'performance_budget_rejects_missing',
+        'performance_budget_rejects_broad_flutter',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Performance budget changes need labeling, negative budget, broad Flutter, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'release_gate_plan_changed',
+      changedPathContains: 'maintainiac_release_gate_plan.dart',
+      selectorIds: {
+        'release_gate_plan_exposes_core_plan',
+        'release_gate_plan_rejects_missing_priority',
+        'release_gate_plan_requires_blocker_commands',
+        'release_gate_plan_requires_surgical_core',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Release gate plan changes need core plan, priorities, blocker commands, surgical core, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'parser_release_command_plan_changed',
