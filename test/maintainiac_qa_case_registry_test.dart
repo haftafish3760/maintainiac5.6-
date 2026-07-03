@@ -29,6 +29,25 @@ void main() {
     );
   });
 
+  test('QA case registry commands are covered by surgical selectors', () {
+    final registry = MaintainiacQaCaseRegistry.backboneSeed();
+    const selectors = maintainiacSurgicalTestSelectorRegistry;
+    final selectorCommands = {
+      for (final selector in selectors.selectors) selector.command,
+    };
+
+    for (final qaCase in registry.cases) {
+      if (!qaCase.testCommand.startsWith('flutter test ')) continue;
+
+      expect(
+        selectorCommands,
+        contains(qaCase.testCommand),
+        reason:
+            '${qaCase.id} command must be registered as an individual selector.',
+      );
+    }
+  });
+
   test('QA case registry rejects duplicate and unlabeled cases', () {
     const registry = MaintainiacQaCaseRegistry([
       MaintainiacQaCase(

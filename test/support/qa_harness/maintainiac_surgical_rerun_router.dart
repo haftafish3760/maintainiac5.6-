@@ -114,6 +114,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_qa_builders.dart',
       'maintainiac_qa_fixtures.dart',
       'maintainiac_qa_scenario_runners.dart',
+      'maintainiac_qa_runner.dart',
     }) {
       if (!rules.any((rule) => rule.changedPathContains == required)) {
         failures.add('missing rerun rule for $required');
@@ -452,11 +453,12 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       changedPathContains: 'maintainiac_qa_case_registry.dart',
       selectorIds: {
         'qa_case_registry_labels_evidence',
+        'qa_case_registry_commands_have_selectors',
         'qa_case_registry_rejects_duplicate_unlabeled',
         'main_backbone_parser_visibility',
       },
       reason:
-          'QA case registry changes need evidence labels, duplicate/unlabeled, and backbone checks.',
+          'QA case registry changes need evidence labels, command-selector alignment, duplicate/unlabeled, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'qa_telemetry_privacy_gate_changed',
@@ -973,6 +975,19 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Scenario runner changes need sync, security, financial, performance, accessibility/localization, and cost/quota checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_runner_tool_changed',
+      changedPathContains: 'maintainiac_qa_runner.dart',
+      selectorIds: {
+        'qa_runner_lists_groups',
+        'qa_runner_validates_without_flutter',
+        'qa_runner_bounded_json',
+        'qa_runner_changed_surgical_commands',
+        'qa_runner_rejects_unknown_groups',
+      },
+      reason:
+          'QA runner changes need group, fast-validation, bounded-output, changed-file, and negative checks.',
     ),
   ],
 );

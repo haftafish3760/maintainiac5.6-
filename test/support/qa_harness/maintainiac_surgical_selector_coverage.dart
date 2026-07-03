@@ -307,6 +307,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       file: 'test/maintainiac_qa_case_registry_test.dart',
       plainNames: {
         'QA case registry labels behavior evidence and priority',
+        'QA case registry commands are covered by surgical selectors',
         'QA case registry rejects duplicate and unlabeled cases',
       },
     ),
@@ -436,6 +437,16 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       file: 'test/maintainiac_qa_backbone_tool_test.dart',
       plainNames: {
         'Maintainiac QA backbone tool writes redacted report artifacts',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_runner_tool_test.dart',
+      plainNames: {
+        'QA runner lists reusable whole-app groups',
+        'QA runner validates contracts without launching Flutter',
+        'QA runner emits bounded JSON by default',
+        'QA runner resolves changed files to surgical commands only',
+        'QA runner rejects unknown groups',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
