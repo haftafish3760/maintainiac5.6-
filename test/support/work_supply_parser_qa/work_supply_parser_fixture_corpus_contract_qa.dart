@@ -19,6 +19,11 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
     'negative_match',
   };
 
+  static const _allowedCaseTypes = {
+    ..._requiredCaseTypes,
+    'priority_cell_review',
+  };
+
   static const _requiredReleaseMerchants = {
     'Home Depot',
     'Lowes',
@@ -114,6 +119,7 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
       final fixture = entry.cast<String, Object?>();
       final id = fixture['id']?.toString() ?? 'fixture_without_id';
       final rawLine = fixture['rawLine']?.toString() ?? '';
+      final caseType = fixture['caseType']?.toString() ?? '';
       _require(
         failures,
         id.trim().isNotEmpty && id != 'fixture_without_id',
@@ -147,7 +153,23 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
         expected: 'unique normalized rawLine',
         actual: context.redactor(rawLine),
       );
-      caseTypes.add(fixture['caseType']?.toString() ?? '');
+      _require(
+        failures,
+        _allowedCaseTypes.contains(caseType),
+        id: 'fixture_unsupported_case_type:$id',
+        message: 'Golden fixture has an unsupported caseType.',
+        expected: _allowedCaseTypes.join(', '),
+        actual: caseType,
+      );
+      _require(
+        failures,
+        fixture['holdoutOnly'] != true,
+        id: 'golden_fixture_marked_holdout_only:$id',
+        message: 'Golden fixture is marked holdoutOnly.',
+        expected: 'golden fixtures are tuning/regression fixtures, not holdout',
+        actual: 'holdoutOnly=${fixture['holdoutOnly']}',
+      );
+      caseTypes.add(caseType);
       merchants.add(fixture['merchant']?.toString() ?? '');
       final localeId = fixture['localePackId']?.toString() ?? '';
       if (localeId.isNotEmpty) localeIds.add(localeId);
@@ -251,6 +273,7 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
           decoded.length +
           fixtureIds.length +
           rawLines.length +
+          _allowedCaseTypes.length +
           _requiredCaseTypes.length +
           _requiredReleaseMerchants.length +
           _requiredRiskTags.length +
@@ -262,6 +285,7 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
         'fixtureCount': decoded.length,
         'uniqueFixtureIds': fixtureIds.length,
         'uniqueRawLines': rawLines.length,
+        'allowedCaseTypes': _allowedCaseTypes.toList()..sort(),
         'caseTypes': caseTypes.toList()..sort(),
         'merchants': merchants.toList()..sort(),
         'riskTags': riskTags.toList()..sort(),

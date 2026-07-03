@@ -2530,6 +2530,12 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the fixture corpus and expectation gates together:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fixture_corpus_contract,inventory.fixture_expectation_contract,qa.threshold_gate`
   passed 434 checks with 0 failures.
+- Tightened `inventory.fixture_corpus_contract` again so golden fixtures must
+  use an allowed case-type vocabulary and cannot be accidentally marked
+  `holdoutOnly`.
+- Validated the case-type/holdout boundary guard:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fixture_corpus_contract,qa.threshold_gate`
+  passed 178 checks with 0 failures.
 
 Named release gates:
 
