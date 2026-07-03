@@ -245,37 +245,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in parserContract.validate()) {
       failures.add(_failure('parser_candidate_contract_$issue', issue));
     }
-    final fixtureManifest = MaintainiacParserFixtureManifest([
-      MaintainiacParserFixtureSet(
-        id: 'inventory_en_us_core_ambiguous',
-        domain: 'inventory_parser',
-        path: 'test/fixtures/work_supply_parser/golden_fixtures.json',
-        locale: 'en-US',
-        country: 'US',
-        owner: 'maintainiac-qa',
-        source: MaintainiacParserFixtureSource.synthetic,
-        merchant: 'mixed',
-        trade: 'plumbing',
-        expectedBehavior: 'Ambiguous inventory lines require review.',
-        reviewedAt: DateTime.utc(2026, 7, 3),
-        tags: const {'inventory', 'parser', 'dangerous-word'},
-      ),
-      MaintainiacParserFixtureSet(
-        id: 'expense_en_us_fuel_core',
-        domain: 'expense_receipt_parser',
-        path: 'test/fixtures/expenses/fuel_receipts.json',
-        locale: 'en-US',
-        country: 'US',
-        owner: 'maintainiac-qa',
-        source: MaintainiacParserFixtureSource.synthetic,
-        merchant: 'gas_station',
-        trade: 'driver',
-        expectedBehavior: 'Fuel receipt totals balance in cents.',
-        reviewedAt: DateTime.utc(2026, 7, 3),
-        tags: const {'expense', 'fuel', 'money'},
-      ),
-    ]);
-    for (final issue in fixtureManifest.validate()) {
+    for (final issue in maintainiacParserFixtureManifest.validate()) {
       failures.add(_failure('parser_fixture_manifest_$issue', issue));
     }
     const correctionLearning = MaintainiacCorrectionLearningContract([
@@ -504,7 +474,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         },
         'artifactPolicy': artifactPolicy.toJson(),
         'parserCandidateContract': parserContract.toJson(),
-        'parserFixtureManifest': fixtureManifest.toJson(),
+        'parserFixtureManifest': maintainiacParserFixtureManifest.toJson(),
         'correctionLearning': correctionLearning.toJson(),
         'localFirstContract': localFirst.toJson(),
         'syncConflictContract': syncConflicts.toJson(),
