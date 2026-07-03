@@ -3,6 +3,27 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 506 - 00:54:54 EDT to 00:55:52 EDT
+
+Scope:
+- Hardened single-line split review metadata so the parser review reason records
+  the user-selected business percent instead of always saying 50%.
+- Added regression coverage proving the old misleading split reason is gone and
+  the selected percent helper is present.
+- Recorded `BUG-RECEIPT-0024` under `business_personal_split`.
+- Archived Pass 470 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Fixed an initial focused-test compile failure caused by an unescaped `$percent`
+  literal in the regression assertion, then reran the focused checks.
+- Passed targeted Dart format and analyzer for receipt entry state actions and
+  assisted-review regression coverage.
+- Passed focused Flutter test
+  `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
+  receipt review exposes classification and attachment flow"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 505 - 00:53:06 EDT to 00:53:57 EDT
 
 Scope:
@@ -459,24 +480,3 @@ Verification:
 - Passed `bash -n tool/receipt_fast_guard_gate.sh`,
   `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
   `--max-line-length=220`, and targeted `git diff --check`.
-
-## Pass 470 - 18:10:04 EDT to 18:14:29 EDT
-
-Scope:
-- Stayed on the stitching/overlap slice of the shared receipt camera system.
-- Added explicit stitch overlap coverage and source-preservation contracts to
-  `ReceiptStitchResult`, including matched/missing pair counts, all-pairs
-  evidence, fallback pair code, and original-vs-derived OCR source policy.
-- Exposed stitch coverage/source-preservation codes through receipt review
-  handoff metadata and stitch diagnostic counts so OCR/parser review can verify
-  camera output without guessing.
-- Extended stitch result and camera-result handoff regressions for stitched,
-  fallback, single-photo, and manual-overlap cases.
-
-Verification:
-- Passed targeted analyzer for stitch models, handoff metadata, and focused
-  stitching tests.
-- Passed focused Flutter stitching batch: stitch result contract, manual
-  overlap, full stitching fixtures, and camera-result stitch scanner handoff
-  tests. The batch completed with 20 tests passed.
-- Passed targeted `git diff --check`; touched files remain under 500 lines.

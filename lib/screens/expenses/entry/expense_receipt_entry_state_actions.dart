@@ -205,11 +205,18 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
             'User marked this receipt line as business.',
           _ExpenseLineUse.personal =>
             'User marked this receipt line as personal.',
-          _ExpenseLineUse.split =>
-            'User marked this receipt line as split; split starts at 50% business.',
+          _ExpenseLineUse.split => _splitLineReviewReason(splitPercent),
         },
       );
     });
     _scheduleDraftSave();
   }
+}
+
+String _splitLineReviewReason(double? businessPercent) {
+  final safePercent = businessPercent == null || !businessPercent.isFinite
+      ? .5
+      : businessPercent.clamp(0, 1).toDouble();
+  final percent = (safePercent * 100).round();
+  return 'User marked this receipt line as split; split is $percent% business.';
 }

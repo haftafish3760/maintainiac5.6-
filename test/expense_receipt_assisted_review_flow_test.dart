@@ -85,6 +85,9 @@ void main() {
       expect(recap, contains('_ReceiptLineUseChip'));
       expect(recap, contains('allocationDetail'));
       expect(entryScreen, contains('onSetUse: _setReceiptLineUse'));
+      expect(stateActions, contains('_splitLineReviewReason(splitPercent)'));
+      expect(stateActions, contains(r'split is $percent% business'));
+      expect(stateActions, isNot(contains('split starts at 50% business')));
       expect(entryScreen, contains('String get _receiptDateLabel'));
       expect(entryScreen, contains('String get _receiptStoreAddressLabel'));
       expect(entryScreen, contains('_receiptFilledReviewDecisionLabel'));
