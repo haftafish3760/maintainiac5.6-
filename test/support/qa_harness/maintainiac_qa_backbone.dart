@@ -9,6 +9,7 @@ import 'maintainiac_qa_readiness.dart';
 import 'maintainiac_qa_run_ledger.dart';
 import 'maintainiac_qa_case_registry.dart';
 import 'maintainiac_regression_registry.dart';
+import 'maintainiac_parser_candidate_contract.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
@@ -206,10 +207,31 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in artifactPolicy.validate()) {
       failures.add(_failure('artifact_policy_$issue', issue));
     }
+    const parserContract = MaintainiacParserCandidateContract([
+      MaintainiacParseCandidate(
+        id: 'seed_inventory_parser_candidate',
+        domain: 'inventory_parser',
+        rawInputHash: 'sha256:seed-inventory',
+        normalizedLabel: 'PVC EL 3/4',
+        reviewStatus: MaintainiacParserReviewStatus.needsReview,
+        confidence: 0.7,
+        evidence: {
+          'tokens': ['PVC', 'EL', '3/4'],
+          'rankedCandidates': ['plumbing', 'electrical'],
+        },
+        confidenceReasons: ['Ambiguous cross-trade item.'],
+        warnings: ['User review required before local write.'],
+        missingFields: ['tradeContext'],
+        suggestedAction: 'Require user selection.',
+      ),
+    ]);
+    for (final issue in parserContract.validate()) {
+      failures.add(_failure('parser_candidate_contract_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 134,
+      checked: 144,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -231,6 +253,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
           'maxUnpushedMinutes': checkpointPolicy.maxUnpushedWork.inMinutes,
         },
         'artifactPolicy': artifactPolicy.toJson(),
+        'parserCandidateContract': parserContract.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

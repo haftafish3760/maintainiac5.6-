@@ -186,6 +186,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_qa_artifact_policy.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'parser_candidate_contract',
+        module: MaintainiacQaModule.inventory,
+        description:
+            'Reusable parser result contract preserves evidence, confidence reasons, warnings, missing fields, and review-only status until user confirmation.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_parser_candidate_contract.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:

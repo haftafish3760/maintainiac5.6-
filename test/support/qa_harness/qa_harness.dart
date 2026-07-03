@@ -23,6 +23,7 @@ export 'maintainiac_release_gate_plan.dart';
 export 'maintainiac_regression_registry.dart';
 export 'maintainiac_financial_ledger.dart';
 export 'maintainiac_mutation_guard.dart';
+export 'maintainiac_parser_candidate_contract.dart';
 export 'maintainiac_source_boundary.dart';
 export 'maintainiac_sync_lifecycle.dart';
 export 'maintainiac_scope_policy.dart';

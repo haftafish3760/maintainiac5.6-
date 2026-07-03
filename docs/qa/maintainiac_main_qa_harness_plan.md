@@ -205,6 +205,7 @@ The backbone includes a release gate plan:
 - Uses deterministic source fingerprints so fixture/catalog/test changes can trigger surgical reruns instead of full-suite churn.
 - Applies a checkpoint policy: push at milestones, after thirty minutes of changed work, when the user asks, or when failing-gate evidence must be preserved.
 - Enforces artifact policy so reports, fixtures, and regression evidence stay redacted and out of Google Drive, OneDrive, F-drive, or other unsafe locations.
+- Defines a parser candidate contract so inventory and expense parsers return review-only candidates with preserved evidence, confidence reasons, warnings, missing fields, and explicit user confirmation before writes.
 
 Print the release gate with:
 

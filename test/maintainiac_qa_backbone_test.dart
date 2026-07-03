@@ -46,6 +46,10 @@ void main() {
       report.results.single.metrics['artifactPolicy'].toString(),
       contains('release_gate_report'),
     );
+    expect(
+      report.results.single.metrics['parserCandidateContract'].toString(),
+      contains('seed_inventory_parser_candidate'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {
