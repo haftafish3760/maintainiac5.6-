@@ -201,6 +201,12 @@ The backbone includes a release gate plan:
 - Produces the concrete focused commands to run while building features.
 - Fails if a release-blocking case lacks evidence or a runnable command.
 
+Print the release gate with:
+
+- `dart run tool/maintainiac_release_gate.dart`
+- `dart run tool/maintainiac_release_gate.dart --json`
+- `dart run tool/maintainiac_release_gate.dart --commands-only`
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:
