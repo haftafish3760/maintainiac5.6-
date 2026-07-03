@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 576 - 09:34:57 EDT to 09:35:54 EDT
+
+Scope:
+- Hardened `ReceiptCameraCaptureEvidence` live brightness and exposure helpers
+  so non-finite values are treated as missing camera evidence.
+- Added regression coverage proving malformed live brightness does not create
+  dark/glare flags and malformed exposure offsets stay at native baseline.
+- Recorded `BUG-RECEIPT-0092` under `camera_capture_quality`.
+- Archived Pass 546 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for camera-result models and focused
+  native evidence regression coverage.
+- Passed focused Flutter regression
+  `test/receipt_camera_result_best_shot_ocr_test.dart --plain-name "camera
+  results carry privacy-safe native capture evidence"`.
+
 ## Pass 575 - 09:30:34 EDT to 09:32:10 EDT
 
 Scope:
@@ -446,22 +464,6 @@ Verification:
 - Passed targeted format/analyzer for native camera contract and recovery
   restore files.
 - Passed focused capability and recovery-index Flutter regressions.
-
-## Pass 546 - 05:17:20 EDT to 05:23:05 EDT
-
-Scope:
-- Hardened edited-photo review metadata so source-selection counts no longer
-  duplicate the edit action bucket.
-- Added regression coverage proving edited receipt copies report
-  `edited_copy_selected` while edit actions still report `manual_crop`.
-- Recorded `BUG-RECEIPT-0063` under `source_preservation`.
-- Archived Pass 529 out of the live cleanup log.
-
-Verification:
-- Passed targeted format/analyzer for native review signal aggregation and
-  recovery metadata regression coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_result_recovery_metadata_test.dart`.
 
 ## Pass 549 - 05:30:31 EDT to 05:37:07 EDT
 

@@ -152,17 +152,20 @@ class ReceiptCameraCaptureEvidence {
 
   bool get usesNativeAutoExposure => exposureMode == 'auto';
   bool get exposureAtNativeBaseline {
-    final offset = selectedExposureOffset ?? exposureOffset;
+    final offset =
+        _finiteDouble(selectedExposureOffset) ?? _finiteDouble(exposureOffset);
     if (offset == null) return true;
     return offset.abs() <= .05;
   }
 
-  bool get hasDarkLiveFrame => (liveBrightness ?? 128) < 72;
-  bool get hasUnderexposedLiveFrame => (liveBrightness ?? 128) < 92;
-  bool get hasBrightLiveFrame => (liveBrightness ?? 128) > 222;
+  double? get _safeLiveBrightness => _finiteDouble(liveBrightness);
+
+  bool get hasDarkLiveFrame => (_safeLiveBrightness ?? 128) < 72;
+  bool get hasUnderexposedLiveFrame => (_safeLiveBrightness ?? 128) < 92;
+  bool get hasBrightLiveFrame => (_safeLiveBrightness ?? 128) > 222;
 
   String get brightnessSummaryLabel {
-    if (liveBrightness == null) return 'Live brightness not measured';
+    if (_safeLiveBrightness == null) return 'Live brightness not measured';
     if (hasDarkLiveFrame) return 'Live preview was dark';
     if (hasUnderexposedLiveFrame) return 'Live preview was darker than ideal';
     if (hasBrightLiveFrame) return 'Live preview had glare';
@@ -174,8 +177,16 @@ class ReceiptCameraCaptureEvidence {
       return 'Exposure offset not measured';
     }
     if (exposureAtNativeBaseline) return 'Native auto exposure baseline';
-    final selected = selectedExposureOffset ?? exposureOffset ?? 0;
+    final selected =
+        _finiteDouble(selectedExposureOffset) ??
+        _finiteDouble(exposureOffset) ??
+        0;
     final direction = selected > 0 ? 'brighter' : 'darker';
     return 'Bracketed $direction exposure candidate';
+  }
+
+  static double? _finiteDouble(double? value) {
+    if (value == null || !value.isFinite) return null;
+    return value;
   }
 }

@@ -82,6 +82,44 @@ void main() {
       underexposedEvidence.exposureSummaryLabel,
       'Native auto exposure baseline',
     );
+
+    const malformedEvidence = ReceiptCameraCaptureEvidence(
+      captureSurface: 'maintainiac_native_ios',
+      captureFlow: 'manual',
+      resolutionTier: 'high',
+      resolutionPreset: 'veryHigh',
+      flashMode: 'off',
+      exposureMode: 'auto',
+      focusMode: 'auto',
+      exposurePointSupported: true,
+      focusPointSupported: true,
+      exposureOffset: double.infinity,
+      minExposureOffset: -2,
+      maxExposureOffset: 2,
+      zoomLevel: 1,
+      minZoomLevel: 1,
+      maxZoomLevel: 10,
+      previewWidth: 1920,
+      previewHeight: 1080,
+      liveBrightness: double.infinity,
+      liveContrast: 30,
+      liveFocusScore: 12,
+      liveReadiness: 'ready',
+      imageStreamActiveAtCapture: false,
+      selectedExposureOffset: double.nan,
+    );
+    expect(malformedEvidence.hasDarkLiveFrame, isFalse);
+    expect(malformedEvidence.hasUnderexposedLiveFrame, isFalse);
+    expect(malformedEvidence.hasBrightLiveFrame, isFalse);
+    expect(
+      malformedEvidence.brightnessSummaryLabel,
+      'Live brightness not measured',
+    );
+    expect(malformedEvidence.exposureAtNativeBaseline, isTrue);
+    expect(
+      malformedEvidence.exposureSummaryLabel,
+      'Native auto exposure baseline',
+    );
   });
 
   test('camera result converts native evidence into per-photo diagnostics', () {
