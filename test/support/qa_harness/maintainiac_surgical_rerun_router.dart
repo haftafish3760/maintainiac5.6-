@@ -201,11 +201,24 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       selectorIds: {
         'surgical_granularity_individual',
         'surgical_granularity_rejects_batch',
+        'surgical_granularity_real_declarations',
         'surgical_selector_registry_commands',
         'main_backbone_parser_visibility',
       },
       reason:
           'Granularity policy changes need positive, negative, selector, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'surgical_granularity_test_changed',
+      changedPathContains:
+          'maintainiac_surgical_granularity_contract_test.dart',
+      selectorIds: {
+        'surgical_granularity_individual',
+        'surgical_granularity_rejects_batch',
+        'surgical_granularity_real_declarations',
+      },
+      reason:
+          'Granularity test edits need each individual granularity behavior rerun.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'payment_contract_changed',

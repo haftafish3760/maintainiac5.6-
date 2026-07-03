@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'dart:io';
 
 import 'support/qa_harness/qa_harness.dart';
 
@@ -76,4 +77,35 @@ void main() {
     expect(failures, contains('must target a file, not a folder'));
     expect(failures, contains('missing rerun rule'));
   });
+
+  test('surgical selectors point at real individual test declarations', () {
+    const registry = maintainiacSurgicalTestSelectorRegistry;
+
+    for (final selector in registry.selectors) {
+      final file = File(selector.file);
+      expect(
+        file.existsSync(),
+        isTrue,
+        reason: '${selector.id} points at missing file ${selector.file}',
+      );
+      final source = file.readAsStringSync();
+      final declarations = _testDeclarationsNamed(source, selector.plainName);
+
+      expect(
+        declarations,
+        1,
+        reason:
+            '${selector.id} must map to exactly one real test declaration in ${selector.file}',
+      );
+    }
+  });
+}
+
+int _testDeclarationsNamed(String source, String plainName) {
+  final escaped = RegExp.escape(plainName);
+  final singleQuoted = RegExp("test\\(\\s*'$escaped'");
+  final doubleQuoted = RegExp('test\\(\\s*"$escaped"');
+
+  return singleQuoted.allMatches(source).length +
+      doubleQuoted.allMatches(source).length;
 }

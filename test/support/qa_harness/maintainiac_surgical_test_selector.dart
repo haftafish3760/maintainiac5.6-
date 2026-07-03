@@ -325,6 +325,15 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'inventory', 'expenses', 'parser-consumer', 'security'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'surgical_granularity_real_declarations',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_granularity_contract_test.dart',
+    plainName: 'surgical selectors point at real individual test declarations',
+    reason:
+        'Run only the real-test-declaration audit after selector or test renames.',
+    tags: {'parser-consumer', 'release-gate', 'regression', 'tooling'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'payment_ledger_balance_policy',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_payment_contract_test.dart',

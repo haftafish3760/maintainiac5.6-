@@ -166,6 +166,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'surgical granularity contract keeps tests individually runnable',
         'surgical granularity contract rejects broad batch selectors',
+        'surgical selectors point at real individual test declarations',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
