@@ -223,6 +223,24 @@ void main() {
     expect(ids, contains('operating_directive_camera_ocr_boundary'));
   });
 
+  test('surgical rerun router maps selector registry safety guards', () {
+    final ids = maintainiacSurgicalRerunRouter.selectorIdsForChangedPaths([
+      'test/support/qa_harness/maintainiac_surgical_test_selector.dart',
+      'test/support/qa_harness/maintainiac_surgical_selector_coverage.dart',
+      'test/maintainiac_surgical_selector_coverage_test.dart',
+    ]);
+
+    expect(ids, contains('surgical_selector_registry_commands'));
+    expect(ids, contains('surgical_selector_registry_rejects_bad'));
+    expect(ids, contains('surgical_selector_coverage_required'));
+    expect(ids, contains('surgical_selector_coverage_rejects_missing'));
+    expect(ids, contains('surgical_selector_coverage_rejects_unlisted'));
+    expect(ids, contains('surgical_selector_rejects_broad_batch_scope'));
+    expect(ids, contains('surgical_selector_all_commands_individual'));
+    expect(ids, contains('surgical_selector_coverage_ignores_fixture_strings'));
+    expect(ids, contains('surgical_selector_coverage_all_declarations'));
+  });
+
   test('surgical rerun router dedupes overlapping changed paths', () {
     final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
       'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',

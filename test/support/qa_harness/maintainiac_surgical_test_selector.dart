@@ -1580,6 +1580,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'parser-consumer', 'tooling', 'regression', 'surgical'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'surgical_rerun_router_selector_registry_safety_guards',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_rerun_router_test.dart',
+    plainName: 'surgical rerun router maps selector registry safety guards',
+    reason: 'Run only the selector-registry safety guard routing check.',
+    tags: {'parser-consumer', 'tooling', 'regression', 'surgical'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'surgical_rerun_router_dedupes_overlaps',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_surgical_rerun_router_test.dart',

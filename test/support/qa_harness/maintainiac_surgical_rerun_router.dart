@@ -565,6 +565,20 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
           'Selector coverage changes need positive, negative, declaration, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
+      id: 'surgical_selector_coverage_registry_changed',
+      changedPathContains: 'maintainiac_surgical_selector_coverage.dart',
+      selectorIds: {
+        'surgical_selector_registry_commands',
+        'surgical_selector_registry_rejects_bad',
+        'surgical_selector_rejects_broad_batch_scope',
+        'surgical_selector_all_commands_individual',
+        'surgical_selector_coverage_ignores_fixture_strings',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Selector coverage changes also need registry, command, broad-scope, fixture-string, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
       id: 'surgical_selector_coverage_test_changed',
       changedPathContains: 'maintainiac_surgical_selector_coverage_test.dart',
       selectorIds: {
@@ -577,6 +591,17 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
           'Selector coverage test edits need each individual coverage behavior rerun.',
     ),
     MaintainiacSurgicalRerunRule(
+      id: 'surgical_selector_coverage_test_registry_changed',
+      changedPathContains: 'maintainiac_surgical_selector_coverage_test.dart',
+      selectorIds: {
+        'surgical_selector_rejects_broad_batch_scope',
+        'surgical_selector_all_commands_individual',
+        'surgical_selector_coverage_ignores_fixture_strings',
+      },
+      reason:
+          'Selector coverage test edits need each registry-command safety behavior rerun.',
+    ),
+    MaintainiacSurgicalRerunRule(
       id: 'surgical_selector_changed',
       changedPathContains: 'maintainiac_surgical_test_selector.dart',
       selectorIds: {
@@ -587,6 +612,29 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Selector changes need selector, command-plan, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'surgical_selector_coverage_metadata_changed',
+      changedPathContains: 'maintainiac_surgical_test_selector.dart',
+      selectorIds: {
+        'surgical_selector_coverage_required',
+        'surgical_selector_coverage_rejects_missing',
+        'surgical_selector_coverage_rejects_unlisted',
+        'surgical_selector_coverage_all_declarations',
+      },
+      reason:
+          'Selector changes need each selector coverage metadata behavior rerun.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'surgical_selector_command_policy_changed',
+      changedPathContains: 'maintainiac_surgical_test_selector.dart',
+      selectorIds: {
+        'surgical_selector_rejects_broad_batch_scope',
+        'surgical_selector_all_commands_individual',
+        'surgical_selector_coverage_ignores_fixture_strings',
+      },
+      reason:
+          'Selector changes need broad-scope, individual-command, and fixture-string safety checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'surgical_granularity_changed',
