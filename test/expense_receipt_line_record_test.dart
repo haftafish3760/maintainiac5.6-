@@ -110,6 +110,36 @@ void main() {
     expect(restored.toMap().toString(), isNot(contains('Infinity')));
   });
 
+  test('receipt line records trim stored business use names', () {
+    final split = ExpenseReceiptLineRecord.fromMap({
+      'id': 'line-split-padded',
+      'description': 'Split receipt items',
+      'category': 'Materials',
+      'use': ' split ',
+      'businessPercent': .25,
+      'subtotal': 40,
+      'ocrSourceLineNumber': 11,
+    });
+    final personal = ExpenseReceiptLineRecord.fromMap({
+      'id': 'line-personal-padded',
+      'description': 'Family snack',
+      'category': 'Personal',
+      'use': ' personal ',
+      'subtotal': 9,
+      'ocrSourceLineNumber': 12,
+    });
+
+    expect(split.use, ExpenseLineUse.split);
+    expect(split.businessUseReviewLabel, 'Split 25% business');
+    expect(split.businessAmount, 10);
+    expect(split.personalAmount, 30);
+    expect(split.receiptProofRedactionAnchorCode, endsWith('_materials_split'));
+    expect(personal.use, ExpenseLineUse.personal);
+    expect(personal.clientProofDefaultVisibility, 'redact_by_default');
+    expect(personal.businessAmount, 0);
+    expect(personal.personalAmount, 9);
+  });
+
   test(
     'receipt lines expose numbered price-only and detailed review contracts',
     () {

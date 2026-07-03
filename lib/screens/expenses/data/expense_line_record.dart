@@ -10,8 +10,9 @@ enum ExpenseLineUse {
   final String label;
 
   static ExpenseLineUse fromName(String? name) {
+    final normalizedName = name?.trim();
     return ExpenseLineUse.values.firstWhere(
-      (value) => value.name == name,
+      (value) => value.name == normalizedName,
       orElse: () => ExpenseLineUse.business,
     );
   }
