@@ -260,6 +260,14 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_artifact_policy_test.dart',
+      plainNames: {
+        'QA artifact policy accepts redacted reports fixtures and regressions',
+        'QA artifact policy rejects private receipt and unredacted evidence',
+        'QA artifact policy rejects Google Drive OneDrive and F drive paths',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_environment_test.dart',
       plainNames: {
         'QA environment fakes preserve local truth and mirror copies',

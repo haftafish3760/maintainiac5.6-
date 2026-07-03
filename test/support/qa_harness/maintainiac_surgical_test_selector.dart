@@ -641,6 +641,33 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'assertions', 'security', 'privacy', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_artifact_policy_accepts_redacted',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_artifact_policy_test.dart',
+    plainName:
+        'QA artifact policy accepts redacted reports fixtures and regressions',
+    reason: 'Run only the positive QA artifact policy check.',
+    tags: {'artifact-policy', 'privacy', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'qa_artifact_policy_rejects_private_raw',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_artifact_policy_test.dart',
+    plainName:
+        'QA artifact policy rejects private receipt and unredacted evidence',
+    reason: 'Run only the private/raw artifact negative check.',
+    tags: {'artifact-policy', 'privacy', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'qa_artifact_policy_rejects_wrong_drives',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_artifact_policy_test.dart',
+    plainName:
+        'QA artifact policy rejects Google Drive OneDrive and F drive paths',
+    reason: 'Run only the wrong-drive artifact path negative check.',
+    tags: {'artifact-policy', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'qa_environment_local_truth',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_environment_test.dart',

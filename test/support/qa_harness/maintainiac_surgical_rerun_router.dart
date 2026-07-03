@@ -68,6 +68,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_surgical_granularity_contract.dart',
       'maintainiac_payment_contract.dart',
       'maintainiac_operating_directive_contract.dart',
+      'maintainiac_qa_artifact_policy.dart',
       'maintainiac_qa_quality_gates.dart',
       'maintainiac_release_evidence_bundle.dart',
       'maintainiac_release_gate.dart',
@@ -366,6 +367,18 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Shared assertion changes need positive, negative, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_artifact_policy_changed',
+      changedPathContains: 'maintainiac_qa_artifact_policy.dart',
+      selectorIds: {
+        'qa_artifact_policy_accepts_redacted',
+        'qa_artifact_policy_rejects_private_raw',
+        'qa_artifact_policy_rejects_wrong_drives',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Artifact policy changes need redaction, privacy, wrong-drive, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'qa_environment_changed',
