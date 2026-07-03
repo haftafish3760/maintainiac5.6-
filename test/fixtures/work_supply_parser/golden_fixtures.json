@@ -939,6 +939,8 @@
     "expectedNameContains": "Toilet",
     "tradeScope": "Plumbing",
     "expectedStatus": "matched",
+    "expectedTopCandidateId": "toilet_fill_valve",
+    "expectedReviewRequired": false,
     "expectedCandidateTrade": "plumbing",
     "expectedConfidenceBand": "high"
   },
@@ -961,6 +963,8 @@
     "expectedNameContains": "Toilet",
     "tradeScope": "Plumbing",
     "expectedStatus": "matched",
+    "expectedTopCandidateId": "toilet_fill_valve",
+    "expectedReviewRequired": false,
     "expectedCandidateTrade": "plumbing",
     "expectedConfidenceBand": "high"
   },
@@ -982,6 +986,8 @@
     "expectedNameContains": "Sink",
     "tradeScope": "Plumbing",
     "expectedStatus": "matched",
+    "expectedTopCandidateId": "faucet_o_ring_and_seat_kit",
+    "expectedReviewRequired": false,
     "expectedCandidateTrade": "plumbing",
     "expectedConfidenceBand": "high"
   },
@@ -1004,6 +1010,8 @@
     "expectedNameContains": "Sink",
     "tradeScope": "Plumbing",
     "expectedStatus": "matched",
+    "expectedTopCandidateId": "faucet_o_ring_and_seat_kit",
+    "expectedReviewRequired": false,
     "expectedCandidateTrade": "plumbing",
     "expectedConfidenceBand": "high"
   },
@@ -1025,6 +1033,8 @@
     "expectedNameContains": "Faucet",
     "tradeScope": "Plumbing",
     "expectedStatus": "matched",
+    "expectedTopCandidateId": "faucet_o_ring_and_seat_kit",
+    "expectedReviewRequired": false,
     "expectedCandidateTrade": "plumbing",
     "expectedConfidenceBand": "high"
   },
@@ -1047,6 +1057,8 @@
     "expectedNameContains": "Faucet",
     "tradeScope": "Plumbing",
     "expectedStatus": "matched",
+    "expectedTopCandidateId": "faucet_o_ring_and_seat_kit",
+    "expectedReviewRequired": false,
     "expectedCandidateTrade": "plumbing",
     "expectedConfidenceBand": "high"
   }

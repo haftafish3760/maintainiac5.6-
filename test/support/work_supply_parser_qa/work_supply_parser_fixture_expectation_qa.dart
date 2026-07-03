@@ -15,6 +15,10 @@ class WorkSupplyParserFixtureExpectationSuite extends QaSuite {
     'expectedConfidenceBand',
   };
 
+  static const _allowedExpectedStatuses = {'matched', 'needsReview', 'unknown'};
+
+  static const _allowedConfidenceBands = {'high', 'review', 'low'};
+
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
@@ -25,21 +29,24 @@ class WorkSupplyParserFixtureExpectationSuite extends QaSuite {
     for (final fixture in fixtures) {
       _increment(statusCounts, fixture.expectedStatus);
       final missing = fixture.missingExpectationFields();
-      if (missing.isEmpty) continue;
-      failures.add(
-        QaFailure(
-          suite: name,
-          id: 'fixture_missing_expected_result:${fixture.id}',
-          message:
-              'Parser fixture is missing structured expected-result metadata.',
-          severity: QaSeverity.warning,
-          expected: _requiredExpectationFields.join(', '),
-          actual: 'missing=${missing.join(', ')}',
-          suggestedFix:
-              'Add expected parser status, top candidate, review requirement, trade, and confidence band so fixture failures are explainable.',
-          metadata: const {'triageCategory': QaFailureTriage.fixture},
-        ),
-      );
+      if (missing.isNotEmpty) {
+        failures.add(
+          QaFailure(
+            suite: name,
+            id: 'fixture_missing_expected_result:${fixture.id}',
+            message:
+                'Parser fixture is missing structured expected-result metadata.',
+            severity: QaSeverity.warning,
+            expected: _requiredExpectationFields.join(', '),
+            actual: 'missing=${missing.join(', ')}',
+            suggestedFix:
+                'Add expected parser status, top candidate, review requirement, trade, and confidence band so fixture failures are explainable.',
+            metadata: const {'triageCategory': QaFailureTriage.fixture},
+          ),
+        );
+        continue;
+      }
+      _validateExpectationValues(failures, fixture);
     }
 
     return timer.finish(
@@ -54,6 +61,110 @@ class WorkSupplyParserFixtureExpectationSuite extends QaSuite {
           ..sort(),
       },
     );
+  }
+
+  void _validateExpectationValues(
+    List<QaFailure> failures,
+    _FixtureExpectation fixture,
+  ) {
+    if (!_allowedExpectedStatuses.contains(fixture.expectedStatus)) {
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'fixture_invalid_expected_status:${fixture.id}',
+          message: 'Parser fixture has an unsupported expectedStatus value.',
+          severity: QaSeverity.warning,
+          expected: _allowedExpectedStatuses.join(', '),
+          actual: fixture.expectedStatus,
+          suggestedFix:
+              'Use the shared parser status vocabulary so reports and release gates can aggregate fixture outcomes safely.',
+          metadata: const {'triageCategory': QaFailureTriage.fixture},
+        ),
+      );
+    }
+
+    if (!_allowedConfidenceBands.contains(fixture.expectedConfidenceBand)) {
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'fixture_invalid_confidence_band:${fixture.id}',
+          message:
+              'Parser fixture has an unsupported expectedConfidenceBand value.',
+          severity: QaSeverity.warning,
+          expected: _allowedConfidenceBands.join(', '),
+          actual: fixture.expectedConfidenceBand,
+          suggestedFix:
+              'Use high, review, or low so fixture evidence remains comparable across parser suites.',
+          metadata: const {'triageCategory': QaFailureTriage.fixture},
+        ),
+      );
+    }
+
+    if (fixture.expectedStatus == 'matched') {
+      _expectReviewFlag(
+        failures,
+        fixture,
+        expectedReviewRequired: false,
+        expectedBand: 'high',
+      );
+    } else if (fixture.expectedStatus == 'needsReview') {
+      _expectReviewFlag(
+        failures,
+        fixture,
+        expectedReviewRequired: true,
+        expectedBand: 'review',
+      );
+    } else if (fixture.expectedStatus == 'unknown') {
+      _expectReviewFlag(
+        failures,
+        fixture,
+        expectedReviewRequired: true,
+        expectedBand: 'low',
+      );
+    }
+  }
+
+  void _expectReviewFlag(
+    List<QaFailure> failures,
+    _FixtureExpectation fixture, {
+    required bool expectedReviewRequired,
+    required String expectedBand,
+  }) {
+    if (fixture.expectedReviewRequired != expectedReviewRequired) {
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'fixture_inconsistent_review_status:${fixture.id}',
+          message:
+              'Parser fixture expectedReviewRequired does not match expectedStatus.',
+          severity: QaSeverity.warning,
+          expected:
+              'expectedStatus=${fixture.expectedStatus} requires expectedReviewRequired=$expectedReviewRequired',
+          actual: 'expectedReviewRequired=${fixture.expectedReviewRequired}',
+          suggestedFix:
+              'Keep fixture review flags aligned with the parser result contract: clear matches do not require review; review/unknown outcomes do.',
+          metadata: const {'triageCategory': QaFailureTriage.fixture},
+        ),
+      );
+    }
+
+    if (fixture.expectedConfidenceBand != expectedBand) {
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'fixture_inconsistent_confidence_band:${fixture.id}',
+          message:
+              'Parser fixture expectedConfidenceBand does not match expectedStatus.',
+          severity: QaSeverity.warning,
+          expected:
+              'expectedStatus=${fixture.expectedStatus} requires expectedConfidenceBand=$expectedBand',
+          actual: 'expectedConfidenceBand=${fixture.expectedConfidenceBand}',
+          suggestedFix:
+              'Keep fixture confidence bands deterministic so threshold gates can reason over parser evidence.',
+          metadata: const {'triageCategory': QaFailureTriage.fixture},
+        ),
+      );
+    }
   }
 }
 

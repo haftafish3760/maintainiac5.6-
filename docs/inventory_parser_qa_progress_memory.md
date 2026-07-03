@@ -2514,6 +2514,15 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the repair-kit fixture lock:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fixture_coverage_matrix,inventory.accumulated_coverage_contract,qa.threshold_gate`
   passed 168 checks with 0 failures.
+- Fixed the six Plumbing Core repair-kit golden fixtures so each now carries
+  `expectedTopCandidateId` and `expectedReviewRequired` metadata instead of
+  relying only on broad expected name/trade hints.
+- Tightened `inventory.fixture_expectation_contract` so fixture expectations now
+  enforce the shared status vocabulary, confidence-band vocabulary, and
+  status/review/confidence consistency.
+- Validated the expectation contract:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fixture_expectation_contract,qa.threshold_gate`
+  passed 268 checks with 0 failures.
 
 Named release gates:
 
