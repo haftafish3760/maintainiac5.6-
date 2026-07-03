@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/qa_harness/qa_harness.dart';
@@ -252,6 +254,25 @@ void main() {
         routedIds,
         contains(selector.id),
         reason: '${selector.id} must be reachable from ${selector.file}',
+      );
+    }
+  });
+
+  test('surgical rerun router matchers point at real files', () {
+    final repoFiles = <String>{
+      for (final root in ['lib', 'test', 'tool'])
+        if (Directory(root).existsSync())
+          for (final entity in Directory(root).listSync(recursive: true))
+            if (entity is File && entity.path.endsWith('.dart'))
+              entity.path.replaceAll('\\', '/'),
+    };
+
+    for (final rule in maintainiacSurgicalRerunRouter.rules) {
+      expect(
+        repoFiles.any((path) => path.contains(rule.changedPathContains)),
+        isTrue,
+        reason:
+            '${rule.id} matcher ${rule.changedPathContains} must point at a real Dart file',
       );
     }
   });

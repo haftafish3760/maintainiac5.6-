@@ -1597,6 +1597,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'parser-consumer', 'tooling', 'regression', 'surgical'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'surgical_rerun_router_matchers_real_files',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_rerun_router_test.dart',
+    plainName: 'surgical rerun router matchers point at real files',
+    reason: 'Run only the stale changed-path matcher guard.',
+    tags: {'parser-consumer', 'tooling', 'regression', 'surgical'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'surgical_rerun_router_dedupes_overlaps',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_surgical_rerun_router_test.dart',
