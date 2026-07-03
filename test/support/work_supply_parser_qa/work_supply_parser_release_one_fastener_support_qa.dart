@@ -62,6 +62,32 @@ class WorkSupplyParserReleaseOneFastenerSupportSuite extends QaSuite {
     'tapcon',
   };
 
+  static const _requiredSignalsByFamily = {
+    'plumbing_hangers_anchors_rod': {
+      'pipe strap',
+      'hanger',
+      'threaded rod',
+      'all thread',
+      'tapcon',
+      'concrete screw',
+    },
+    'electrical_conduit_straps_grounding': {
+      'emt strap',
+      'one hole strap',
+      'two hole strap',
+      'ground clamp',
+      'conduit locknut',
+    },
+    'hvac_duct_fasteners_straps': {
+      'sheet metal screw',
+      'zip screw',
+      'tek screw',
+      'duct strap',
+      'hanger strap',
+      'drive cleat',
+    },
+  };
+
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
@@ -69,6 +95,7 @@ class WorkSupplyParserReleaseOneFastenerSupportSuite extends QaSuite {
     final releaseItems = _releaseOneItems().toList(growable: false);
     final counts = <String, int>{};
     final examples = <String, List<String>>{};
+    final requiredSignalHits = <String, Map<String, int>>{};
 
     for (final family in _tradeFamilies) {
       final matches = releaseItems
@@ -80,6 +107,9 @@ class WorkSupplyParserReleaseOneFastenerSupportSuite extends QaSuite {
         for (final item in matches.take(5))
           '${item.packTier.name}:${item.name}',
       ];
+      final signalHits = _requiredSignalHits(family.id, matches);
+      requiredSignalHits[family.id] = signalHits;
+      _requireSignals(failures, family, signalHits);
       if (matches.length >= family.minimumMatches) continue;
       failures.add(
         _failure(
@@ -122,6 +152,7 @@ class WorkSupplyParserReleaseOneFastenerSupportSuite extends QaSuite {
         'scope': 'US residential Plumbing/Electrical/HVAC Core and Standard',
         'familyCounts': counts,
         'familyExamples': examples,
+        'requiredSignalHits': requiredSignalHits,
         'ambiguousFastenerTerms': _ambiguousFastenerTerms.toList()..sort(),
       },
     );
@@ -172,6 +203,44 @@ class WorkSupplyParserReleaseOneFastenerSupportSuite extends QaSuite {
       ])
         _readIfExists(path),
     ].join('\n');
+  }
+
+  Map<String, int> _requiredSignalHits(
+    String familyId,
+    Iterable<WorkSupplyItem> matches,
+  ) {
+    final signals = _requiredSignalsByFamily[familyId];
+    if (signals == null) return const {};
+    final hits = {for (final signal in signals) signal: 0};
+    for (final item in matches) {
+      final haystack = _haystack(item);
+      for (final signal in signals) {
+        if (!haystack.contains(signal)) continue;
+        hits.update(signal, (count) => count + 1);
+      }
+    }
+    return hits;
+  }
+
+  void _requireSignals(
+    List<QaFailure> failures,
+    _FastenerFamily family,
+    Map<String, int> signalHits,
+  ) {
+    for (final entry in signalHits.entries) {
+      if (entry.value > 0) continue;
+      failures.add(
+        _failure(
+          id: 'missing_fastener_support_signal:${family.id}:${_safeId(entry.key)}',
+          message:
+              'Release-one Core/Standard fastener family is missing a required service signal.',
+          expected: '${family.trade} ${family.id} includes ${entry.key}',
+          actual: '0 matching Core/Standard rows',
+          fix:
+              'Add the missing support/fastener item, alias, or receipt signal before treating this fastener lane as release-one ready.',
+        ),
+      );
+    }
   }
 
   String _readIfExists(String path) {

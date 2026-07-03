@@ -2328,6 +2328,7 @@ Release-one catalog gap closed in the plumbing item batch:
 - Tightened the release-one service-family gate so Plumbing, Electrical, and HVAC Core/Standard rows must show required everyday signals inside each family, including common fittings, water distribution, toilet repair, faucet/sink repair, drain/trap repair, supply stops, water-heater service, well service, electrical devices/breakers/grounding/conduit, and HVAC filters/controls/condensate/duct repair.
 - Added Plumbing service-tool coverage to the release-one service-family gate for pipe cutters, PEX crimp tools, basin wrenches, toilet augers, and drain snakes.
 - Added an explicit Plumbing service-truck `toilet auger` variant so common receipt/user wording is represented directly instead of relying only on the `closet auger` alias.
+- Tightened the release-one fastener/support gate so Plumbing, Electrical, and HVAC Core/Standard rows must show required support signals such as threaded rod/all-thread/tapcon, conduit straps/ground clamps/locknuts, and sheet-metal/zip/tek/duct strap hardware.
 - Kept HVAC condensate pumps in the everyday Core path so normal residential condensate drain service is not pushed into later-tier professional equipment coverage by the generic pump signal.
 - Promoted Standard to first-release fixture-cell coverage beside Core for Plumbing, Electrical, and HVAC in both en-US and es-US, and added six Standard priority-cell golden fixture seeds for focused reruns.
 - Added `inventory.standard_fixture_seed_contract` as a surgical Standard fixture seed suite. Smoke mode validates the seed contract without parser calls; full/release profile runs the expensive parser checks because catalog startup is too slow for the Windows smoke budget.
@@ -2367,6 +2368,9 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated after adding Plumbing service-tool required signals and explicit toilet-auger catalog coverage:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_service_family_contract,qa.threshold_gate`
   passed 16991 checks with 0 failures.
+- Validated after adding required fastener/support signals:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_fastener_support_contract,qa.threshold_gate`
+  passed 16979 checks with 0 failures.
 - Validated Standard fixture-cell coverage:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.accumulated_coverage_contract,inventory.fixture_coverage_matrix,qa.threshold_gate`
   passed 124 checks with 0 failures.
