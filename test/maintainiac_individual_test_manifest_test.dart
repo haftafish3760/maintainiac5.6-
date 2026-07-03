@@ -13,6 +13,13 @@ void main() {
       isTrue,
     );
     expect(manifest.commandsForRiskFamily('security'), isNotEmpty);
+    expect(manifest.commandsForRiskFamily('financial'), isNotEmpty);
+    expect(manifest.commandsForRiskFamily('performance'), isNotEmpty);
+    expect(manifest.commandsForRiskFamily('fixtures'), isNotEmpty);
+    expect(
+      manifest.toJson().toString(),
+      contains('qa_environment_local_truth'),
+    );
     expect(manifest.toJson().toString(), contains('source-of-truth'));
   });
 

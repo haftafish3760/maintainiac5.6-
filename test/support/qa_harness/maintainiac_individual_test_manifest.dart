@@ -163,10 +163,44 @@ String _moduleFor(MaintainiacSurgicalTestSelector selector) {
   if (selector.tags.contains('security') || selector.tags.contains('privacy')) {
     return 'security';
   }
+  if (selector.tags.contains('payments')) {
+    return 'payments';
+  }
+  if (selector.tags.contains('financial')) {
+    return 'financial';
+  }
+  if (selector.tags.contains('performance')) {
+    return 'performance';
+  }
+  if (selector.tags.contains('sync')) {
+    return 'sync';
+  }
+  if (selector.tags.contains('environment') ||
+      selector.tags.contains('builders') ||
+      selector.tags.contains('fixtures') ||
+      selector.tags.contains('assertions') ||
+      selector.tags.contains('audit')) {
+    return 'qa-backbone';
+  }
   return 'parser';
 }
 
 String _riskFamilyFor(MaintainiacSurgicalTestSelector selector) {
+  if (selector.tags.contains('financial')) {
+    return 'financial';
+  }
+  if (selector.tags.contains('performance')) {
+    return 'performance';
+  }
+  if (selector.tags.contains('fixtures')) {
+    return 'fixtures';
+  }
+  if (selector.tags.contains('audit')) {
+    return 'audit';
+  }
+  if (selector.tags.contains('sync')) {
+    return 'sync';
+  }
   if (selector.tags.contains('regression')) {
     return 'regression';
   }
@@ -178,6 +212,9 @@ String _riskFamilyFor(MaintainiacSurgicalTestSelector selector) {
   }
   if (selector.tags.contains('source-of-truth')) {
     return 'source-of-truth';
+  }
+  if (selector.tags.contains('privacy')) {
+    return 'privacy';
   }
   if (selector.tags.contains('release-gate') ||
       selector.tags.contains('release-one')) {
