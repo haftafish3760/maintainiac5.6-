@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 553 - 06:10:54 EDT to 06:19:40 EDT
+
+Scope:
+- Hardened receipt attachment map restore so persisted IDs and source paths are
+  trimmed before they can key source-state maps, duplicate checks, or recovery
+  records.
+- Added metadata regression coverage proving padded stored identity/source
+  values restore to normalized receipt attachment records.
+- Recorded `BUG-RECEIPT-0069` under `source_preservation`.
+- Archived Pass 536 out of the live cleanup log.
+
+Verification:
+- Passed targeted Dart format and analyzer for receipt attachment records and
+  attachment metadata regression coverage.
+- Passed focused Flutter test `test/receipt_attachment_record_metadata_test.dart`.
+
 ## Pass 552 - 05:51:59 EDT to 06:07:13 EDT
 
 Scope:
@@ -229,24 +245,6 @@ Verification:
   `test/receipt_attachment_panel_recovery_contract_test.dart`.
 - Passed targeted format/analyzer, bug-ledger, log, doc-size, audit, and diff
   gates.
-
-## Pass 536 - 02:59:48 EDT to 03:04:00 EDT
-
-Scope:
-- Hardened receipt line proof redaction anchors so malformed nonpositive
-  section numbers cannot leak into stable proof IDs.
-- Applied the same sanitization to saved and entry-screen line models.
-- Added regression coverage for a negative section number with a valid section
-  line number.
-- Recorded `BUG-RECEIPT-0054` under `receipt_line_numbering`.
-- Archived Pass 511 to keep the active log under the line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for receipt line anchor logic and entry
-  line model parity.
-- Passed focused Flutter test for malformed receipt section proof anchors.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
 
 ## Pass 527 - 01:56:00 EDT to 02:00:00 EDT
 

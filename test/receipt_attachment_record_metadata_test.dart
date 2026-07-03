@@ -105,6 +105,20 @@ void main() {
     expect(restored.readState, ReceiptAttachmentReadState.readIntoForm);
   });
 
+  test('receipt attachment identity and source path trim on restore', () {
+    final restored = ReceiptAttachmentRecord.fromMap({
+      'id': ' photo-restore ',
+      'path': ' /tmp/receipt-photo.jpg ',
+      'kind': ' photo ',
+      'dataSaverLevel': ' balanced ',
+      'createdAt': DateTime(2026, 6, 13).toIso8601String(),
+    });
+
+    expect(restored.id, 'photo-restore');
+    expect(restored.path, '/tmp/receipt-photo.jpg');
+    expect(restored.isPhoto, isTrue);
+  });
+
   test('receipt photo quality metadata survives storage maps', () {
     const quality = ReceiptPhotoQualityCheck(
       width: 1800,

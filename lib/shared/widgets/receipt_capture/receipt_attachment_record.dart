@@ -40,8 +40,8 @@ class ReceiptAttachmentRecord {
 
   factory ReceiptAttachmentRecord.fromMap(Map<dynamic, dynamic> map) {
     return ReceiptAttachmentRecord(
-      id: map['id'] as String? ?? '',
-      path: map['path'] as String? ?? '',
+      id: (map['id'] as String? ?? '').trim(),
+      path: (map['path'] as String? ?? '').trim(),
       kind: ReceiptAttachmentKind.fromName(map['kind'] as String?),
       dataSaverLevel: ReceiptDataSaverLevel.fromName(
         map['dataSaverLevel'] as String?,
