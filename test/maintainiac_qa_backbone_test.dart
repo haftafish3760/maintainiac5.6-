@@ -119,6 +119,10 @@ void main() {
       contains('expectedBehaviorCount'),
     );
     expect(
+      report.results.single.metrics['individualTestManifest'].toString(),
+      contains('--plain-name'),
+    );
+    expect(
       report.results.single.metrics['sourceTruthGate'].toString(),
       contains('firestore_mirror_read_only_truth'),
     );
