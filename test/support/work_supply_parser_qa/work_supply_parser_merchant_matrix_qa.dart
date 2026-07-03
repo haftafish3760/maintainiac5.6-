@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import '../qa_harness/qa_harness.dart';
@@ -19,6 +20,8 @@ class WorkSupplyParserMerchantMatrixSuite extends QaSuite {
       'docs/materials_catalog_intelligence_contract.md';
   static const _behaviorPath =
       'test/work_supply_parser_merchant_matrix_behavior_test.dart';
+  static const _goldenFixturePath =
+      'test/fixtures/work_supply_parser/golden_fixtures.json';
 
   static const _requiredMerchants = {
     'Home Depot',
@@ -46,12 +49,7 @@ class WorkSupplyParserMerchantMatrixSuite extends QaSuite {
 
   static const _tradeTokens = {'plumbing', 'electrical', 'hvac'};
 
-  static const _localeTokens = {
-    'en-US',
-    'es-US',
-    'spanish',
-    'locale_pack',
-  };
+  static const _localeTokens = {'en-US', 'es-US', 'spanish', 'locale_pack'};
 
   static const _receiptBehaviorTokens = {
     'compressed sizes',
@@ -69,6 +67,8 @@ class WorkSupplyParserMerchantMatrixSuite extends QaSuite {
     final timer = QaStopwatch.start();
     final failures = <QaFailure>[];
     final progress = _read(_progressPath);
+    final fixtures = _loadFixtures();
+    final fixtureMerchants = _priorityFixtureMerchantCounts(fixtures);
     final sources = [
       progress,
       _read(_fixtureCoveragePath),
@@ -164,6 +164,9 @@ class WorkSupplyParserMerchantMatrixSuite extends QaSuite {
     checked += 5;
     _checkProgressMemory(progress, failures);
 
+    checked += _requiredMerchants.length + fixtures.length;
+    _checkPriorityFixtureMerchants(fixtureMerchants, failures);
+
     return timer.finish(
       suite: name,
       checked: checked,
@@ -172,10 +175,32 @@ class WorkSupplyParserMerchantMatrixSuite extends QaSuite {
       metrics: {
         'progressPath': _progressPath,
         'merchantCount': _requiredMerchants.length,
+        'priorityFixtureMerchantCounts': fixtureMerchants,
         'contract':
             'Inventory parser merchant QA must prove major big-box, hardware, supply-house, unknown merchant, English, Spanish, and priority-trade receipt wording coverage before release accuracy claims.',
       },
     );
+  }
+
+  void _checkPriorityFixtureMerchants(
+    Map<String, int> fixtureMerchants,
+    List<QaFailure> failures,
+  ) {
+    for (final merchant in _requiredMerchants) {
+      if ((fixtureMerchants[merchant] ?? 0) > 0) continue;
+      failures.add(
+        _failure(
+          id: 'missing_priority_fixture_merchant:${_safeId(merchant)}',
+          message:
+              'Priority Core/Standard fixture corpus is missing a required merchant.',
+          expected: merchant,
+          actual: fixtureMerchants.keys.join(', '),
+          fix:
+              'Add a synthetic, non-proprietary priority fixture for this merchant before claiming release-one merchant readiness.',
+          category: QaFailureTriage.fixture,
+        ),
+      );
+    }
   }
 
   void _checkProgressMemory(String progress, List<QaFailure> failures) {
@@ -219,6 +244,54 @@ class WorkSupplyParserMerchantMatrixSuite extends QaSuite {
       actual: actual,
       suggestedFix: fix,
       metadata: {'triageCategory': category},
+    );
+  }
+}
+
+Map<String, int> _priorityFixtureMerchantCounts(
+  List<_MerchantFixture> fixtures,
+) {
+  final counts = <String, int>{};
+  for (final fixture in fixtures) {
+    if (!const {'plumbing', 'electrical', 'hvac'}.contains(fixture.trade)) {
+      continue;
+    }
+    if (!const {'core', 'standard'}.contains(fixture.tier)) continue;
+    if (fixture.marketScope != 'residential') continue;
+    counts.update(fixture.merchant, (count) => count + 1, ifAbsent: () => 1);
+  }
+  return counts;
+}
+
+List<_MerchantFixture> _loadFixtures() {
+  final file = File(WorkSupplyParserMerchantMatrixSuite._goldenFixturePath);
+  if (!file.existsSync()) return const [];
+  final decoded = jsonDecode(file.readAsStringSync()) as List<dynamic>;
+  return [
+    for (final entry in decoded)
+      _MerchantFixture.fromJson((entry as Map).cast<String, Object?>()),
+  ];
+}
+
+class _MerchantFixture {
+  const _MerchantFixture({
+    required this.merchant,
+    required this.trade,
+    required this.marketScope,
+    required this.tier,
+  });
+
+  final String merchant;
+  final String trade;
+  final String marketScope;
+  final String tier;
+
+  static _MerchantFixture fromJson(Map<String, Object?> json) {
+    return _MerchantFixture(
+      merchant: json['merchant'] as String? ?? 'unknown',
+      trade: (json['trade'] as String? ?? '').toLowerCase(),
+      marketScope: (json['marketScope'] as String? ?? '').toLowerCase(),
+      tier: (json['tier'] as String? ?? '').toLowerCase(),
     );
   }
 }

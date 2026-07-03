@@ -2332,6 +2332,7 @@ Release-one catalog gap closed in the plumbing item batch:
 - Kept HVAC condensate pumps in the everyday Core path so normal residential condensate drain service is not pushed into later-tier professional equipment coverage by the generic pump signal.
 - Promoted Standard to first-release fixture-cell coverage beside Core for Plumbing, Electrical, and HVAC in both en-US and es-US, and added six Standard priority-cell golden fixture seeds for focused reruns.
 - Added `inventory.standard_fixture_seed_contract` as a surgical Standard fixture seed suite. Smoke mode validates the seed contract without parser calls; full/release profile runs the expensive parser checks because catalog startup is too slow for the Windows smoke budget.
+- Hardened `inventory.merchant_matrix_contract` so it reads the golden fixture corpus and proves every required major merchant appears in release-one Plumbing/Electrical/HVAC Core/Standard residential fixture coverage, not only in source-token documentation.
 - Added Spanish well-service parser signals for bomba/tanque/well pressure/tank/switch/adapter/check-valve terminology.
 - Expanded Spanish release-one QA so es-US coverage must include service-family terminology for plumbing pipe fittings, water-distribution materials, toilet repair, sink/faucet repair, electrical devices/breakers, wire/conduit/grounding, HVAC filters/controls, and HVAC condensate/duct work.
 - Expanded Spanish release-one service-tool coverage for Plumbing pipe cutters, PEX crimp tools, basin wrenches, toilet augers, and drain snakes.
@@ -2378,6 +2379,9 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the surgical Standard fixture seed smoke route:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.standard_fixture_seed_contract,inventory.surgical_rerun_contract,qa.threshold_gate`
   passed 58 checks with 0 failures in smoke mode.
+- Validated executable merchant matrix fixture coverage:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.merchant_matrix_contract,qa.threshold_gate`
+  passed 89 checks with 0 failures.
 - Validated after the expanded Spanish family-term QA gate:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.spanish_release_one,qa.threshold_gate`
   passed 101224 checks with 0 failures.
