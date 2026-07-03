@@ -198,6 +198,15 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_scenario_runners_test.dart',
+      plainNames: {
+        'sync scenario runner proves local-first mirror behavior',
+        'security scenario runner proves privacy and scope behavior',
+        'financial scenario runner proves deterministic money behavior',
+        'performance scenario runner proves large-data budgets',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_backbone_test.dart',
       plainNames: {'main Maintainiac QA backbone covers whole app modules'},
     ),

@@ -72,6 +72,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_qa_environment.dart',
       'maintainiac_qa_builders.dart',
       'maintainiac_qa_fixtures.dart',
+      'maintainiac_qa_scenario_runners.dart',
     }) {
       if (!rules.any((rule) => rule.changedPathContains == required)) {
         failures.add('missing rerun rule for $required');
@@ -296,6 +297,19 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Shared fixture changes need positive, negative, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_scenario_runners_changed',
+      changedPathContains: 'maintainiac_qa_scenario_runners.dart',
+      selectorIds: {
+        'scenario_runner_sync',
+        'scenario_runner_security',
+        'scenario_runner_financial',
+        'scenario_runner_performance',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Scenario runner changes need sync, security, financial, performance, and backbone checks.',
     ),
   ],
 );
