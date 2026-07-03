@@ -265,4 +265,43 @@ void main() {
     expect(result.isBestShotCandidateSet, isFalse);
     expect(result.qualityForIndex(0), quality);
   });
+
+  test('camera result diagnostics reject normalized path aliases', () {
+    const evidence = ReceiptCameraCaptureEvidence(
+      captureSurface: 'native',
+      captureFlow: 'receipt_camera',
+      resolutionTier: 'high',
+      resolutionPreset: 'max',
+      flashMode: 'off',
+      exposureMode: 'auto',
+      focusMode: 'continuous',
+      exposurePointSupported: true,
+      focusPointSupported: true,
+      exposureOffset: 0,
+      minExposureOffset: -2,
+      maxExposureOffset: 2,
+      zoomLevel: 1,
+      minZoomLevel: 1,
+      maxZoomLevel: 4,
+      previewWidth: 1080,
+      previewHeight: 1920,
+      liveBrightness: 144,
+      liveContrast: 20,
+      liveFocusScore: 12,
+      liveReadiness: 'ready',
+      imageStreamActiveAtCapture: true,
+    );
+    const result = ReceiptCameraResult.single([
+      '/tmp/receipt/top.jpg',
+      '/tmp/receipt/../receipt/top.jpg',
+    ], captureEvidence: evidence);
+
+    expect(
+      result.captureDiagnosticsByPhotoPath(const [
+        '/tmp/receipt/top.jpg',
+        '/tmp/receipt/../receipt/top.jpg',
+      ]),
+      isEmpty,
+    );
+  });
 }

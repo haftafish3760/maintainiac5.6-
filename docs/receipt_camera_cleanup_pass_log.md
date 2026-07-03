@@ -26,10 +26,13 @@ Scope:
   reaches the native camera session.
 - Mapped expense simple/full review style to native price-only/detailed-line
   capture, while inventory and maintenance capture request detailed lines.
+- Hardened camera quality diagnostics so normalized receipt photo path aliases
+  cannot publish duplicate per-photo evidence.
 - Added focused retake/order and source-contract regressions for inserted
   section metadata and stale inserted-path rejection.
 - Added a focused regression for non-adjacent manual reorder requests.
 - Added focused shared camera flow regressions for review-depth propagation.
+- Added focused camera-result quality regression coverage for path aliases.
 - Split section-order helper logic out of native-signal summaries after the
   source audit caught the file over the line cap.
 - Recorded `BUG-RECEIPT-0106` and `BUG-RECEIPT-0107` under
@@ -37,6 +40,7 @@ Scope:
 - Recorded `BUG-RECEIPT-0108` and `BUG-RECEIPT-0109` under
   `multi_photo_ordering`.
 - Recorded `BUG-RECEIPT-0110` under `receipt_line_review_mode`.
+- Recorded `BUG-RECEIPT-0111` under `camera_capture_quality`.
 - Archived Pass 564 out of the live cleanup log to keep the active log under the
   project line-count cap.
 - Archived Pass 565 out of the live cleanup log after this pass grew the active
@@ -45,6 +49,8 @@ Scope:
   insert-order handoff coverage.
 - Archived Pass 567 out of the live cleanup log before recording adjacent
   manual-reorder guard coverage.
+- Archived Pass 568 out of the live cleanup log before recording camera-quality
+  path identity coverage.
 
 Verification:
 - Passed focused Flutter source-audit contract regression coverage.
@@ -58,6 +64,7 @@ Verification:
 - Passed focused manual reorder regressions and source contract coverage.
 - Passed focused adjacent manual reorder regression coverage.
 - Passed focused shared capture-flow review-depth regression coverage.
+- Passed focused camera-result quality path identity regression coverage.
 - Passed the receipt QA runner after the source-audit and long-receipt ordering
   cleanup batch.
 - Passed scoped receipt source audit and cleanup/doc size gates.
@@ -472,19 +479,3 @@ Verification:
 - Passed focused Flutter regression
   `test/receipt_camera_result_quality_test.dart --plain-name "receipt quality
   treats non-finite metrics as unsafe evidence"`.
-
-## Pass 568 - 08:13:00 EDT to 08:18:41 EDT
-
-Scope:
-- Hardened native close/capture diagnostic numeric helpers so non-finite counts
-  cannot become positive camera health evidence.
-- Added regression coverage proving malformed close counts do not create false
-  close-request, deferred-capture, retry, or no-photo-cancel flags.
-- Recorded `BUG-RECEIPT-0084` under `native_bridge`.
-
-Verification:
-- Passed targeted Dart format/analyzer for diagnostic helpers and focused
-  native-close regression coverage.
-- Passed focused Flutter regression
-  `test/receipt_camera_result_native_close_settings_test.dart --plain-name
-  "native close health ignores non-finite numeric counts"`.

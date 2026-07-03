@@ -1,3 +1,5 @@
+import 'receipt_photo_path_identity.dart';
+
 part 'receipt_capture_review_result_continuation.dart';
 part 'receipt_capture_review_result_handoff.dart';
 part 'receipt_capture_review_result_warnings.dart';
