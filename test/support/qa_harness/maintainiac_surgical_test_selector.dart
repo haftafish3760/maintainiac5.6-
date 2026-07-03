@@ -519,6 +519,24 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'scenario-runner', 'performance', 'release-gate'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'scenario_runner_accessibility_localization',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_scenario_runners_test.dart',
+    plainName:
+        'accessibility localization runner proves release UI language gates',
+    reason:
+        'Run only the accessibility/localization scenario runner after gate edits.',
+    tags: {'scenario-runner', 'accessibility', 'localization', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'scenario_runner_cost_quota',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_scenario_runners_test.dart',
+    plainName: 'cost quota runner proves cloud usage stays budgeted and opt-in',
+    reason: 'Run only the cost/quota scenario runner after cloud policy edits.',
+    tags: {'scenario-runner', 'cost-quota', 'security', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'main_backbone_parser_visibility',
     scope: MaintainiacSurgicalTestScope.releaseGate,
     file: 'test/maintainiac_qa_backbone_test.dart',

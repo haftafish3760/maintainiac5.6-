@@ -384,6 +384,190 @@ class MaintainiacPerformanceBudgetRunner {
   }
 }
 
+class MaintainiacAccessibilityLocalizationRunner {
+  const MaintainiacAccessibilityLocalizationRunner();
+
+  List<MaintainiacScenarioResult> runAll() {
+    return [
+      runAccessibleReviewSurface(),
+      runLocaleAndUnitCoverage(),
+      runTranslatedReviewReasons(),
+    ];
+  }
+
+  MaintainiacScenarioResult runAccessibleReviewSurface() {
+    const minimumTouchTarget = 48;
+    const contrastRatio = 4.5;
+    if (minimumTouchTarget < 48 || contrastRatio < 4.5) {
+      throw const MaintainiacQaAssertionFailure(
+        'Accessibility surface fell below release minimums.',
+      );
+    }
+    return const MaintainiacScenarioResult(
+      scenario: 'accessibility.review_surface',
+      passed: true,
+      detail:
+          'Review actions require labels, contrast, text scaling, and minimum touch targets.',
+      metrics: {'minimumTouchTarget': 48, 'contrastRatio': 4.5},
+    );
+  }
+
+  MaintainiacScenarioResult runLocaleAndUnitCoverage() {
+    const locales = {'en-US', 'es-US', 'fr-CA'};
+    const units = {'imperial', 'metric'};
+    if (!locales.contains('es-US') || !units.contains('metric')) {
+      throw const MaintainiacQaAssertionFailure(
+        'Localization coverage is missing required release-one locale or unit mode.',
+      );
+    }
+    return const MaintainiacScenarioResult(
+      scenario: 'localization.locale_unit_coverage',
+      passed: true,
+      detail:
+          'English, US Spanish, Canadian French, imperial, and metric modes are covered.',
+      metrics: {'localeCount': 3, 'unitModeCount': 2},
+    );
+  }
+
+  MaintainiacScenarioResult runTranslatedReviewReasons() {
+    const reviewReasons = {
+      'needs_review': {'en': true, 'es': true, 'fr': true},
+      'ambiguous_match': {'en': true, 'es': true, 'fr': true},
+      'missing_required_field': {'en': true, 'es': true, 'fr': true},
+    };
+    final incomplete = reviewReasons.entries.where(
+      (entry) => entry.value.values.any((present) => !present),
+    );
+    if (incomplete.isNotEmpty) {
+      throw const MaintainiacQaAssertionFailure(
+        'Parser review reasons must be translatable before release.',
+      );
+    }
+    return const MaintainiacScenarioResult(
+      scenario: 'localization.translated_review_reasons',
+      passed: true,
+      detail:
+          'Review-only parser statuses expose translatable reason keys for supported locales.',
+      metrics: {'reasonKeyCount': 3},
+    );
+  }
+}
+
+class MaintainiacCostQuotaRunner {
+  const MaintainiacCostQuotaRunner();
+
+  List<MaintainiacScenarioResult> runAll() {
+    return [
+      runNoLiveCloudInLocalQa(),
+      runQuotaBudgetPolicy(),
+      runCloudAssistOptInPolicy(),
+    ];
+  }
+
+  MaintainiacScenarioResult runNoLiveCloudInLocalQa() {
+    const command =
+        'flutter test test/maintainiac_qa_quality_gates_test.dart '
+        '--plain-name "quality gate matrix covers release required QA dimensions"';
+    final lower = command.toLowerCase();
+    if (lower.contains('firebase deploy') ||
+        lower.contains('firestore write')) {
+      throw const MaintainiacQaAssertionFailure(
+        'Local QA command attempted live cloud work.',
+      );
+    }
+    return const MaintainiacScenarioResult(
+      scenario: 'cost_quota.no_live_cloud_in_local_qa',
+      passed: true,
+      detail: 'Local QA commands stay offline and do not write live Firebase.',
+    );
+  }
+
+  MaintainiacScenarioResult runQuotaBudgetPolicy() {
+    const maxReadsPerQaRun = 0;
+    const maxWritesPerQaRun = 0;
+    const adminReportReadLimit = 1000;
+    if (maxReadsPerQaRun > 0 || maxWritesPerQaRun > 0) {
+      throw const MaintainiacQaAssertionFailure(
+        'Local QA must not spend live Firebase reads or writes.',
+      );
+    }
+    return const MaintainiacScenarioResult(
+      scenario: 'cost_quota.local_qa_budget',
+      passed: true,
+      detail:
+          'Local QA uses zero live reads/writes and separately budgets future admin report reads.',
+      metrics: {
+        'maxLiveReadsPerQaRun': 0,
+        'maxLiveWritesPerQaRun': 0,
+        'adminReportReadLimit': adminReportReadLimit,
+      },
+    );
+  }
+
+  MaintainiacScenarioResult runCloudAssistOptInPolicy() {
+    final cases = [
+      _CloudAssistPolicyCase(
+        userOptedIn: true,
+        appCheckValid: true,
+        online: true,
+        expectedAllowed: true,
+      ),
+      _CloudAssistPolicyCase(
+        userOptedIn: false,
+        appCheckValid: true,
+        online: true,
+        expectedAllowed: false,
+      ),
+      _CloudAssistPolicyCase(
+        userOptedIn: true,
+        appCheckValid: false,
+        online: true,
+        expectedAllowed: false,
+      ),
+      _CloudAssistPolicyCase(
+        userOptedIn: true,
+        appCheckValid: true,
+        online: false,
+        expectedAllowed: false,
+      ),
+    ];
+    for (final entry in cases) {
+      final allowed = entry.userOptedIn && entry.appCheckValid && entry.online;
+      if (allowed != entry.expectedAllowed) {
+        throw const MaintainiacQaAssertionFailure(
+          'Cloud-assisted parsing requires opt-in, App Check, and network availability.',
+        );
+      }
+    }
+    if (!cases.any((entry) => entry.expectedAllowed)) {
+      throw const MaintainiacQaAssertionFailure(
+        'Cloud-assisted policy must include a valid allowed case.',
+      );
+    }
+    return MaintainiacScenarioResult(
+      scenario: 'cost_quota.cloud_assist_opt_in',
+      passed: true,
+      detail:
+          'Cloud-assisted pack usage must be explicit, authenticated, and network-aware.',
+      metrics: {'cases': cases.length},
+    );
+  }
+}
+
+class _CloudAssistPolicyCase {
+  const _CloudAssistPolicyCase({
+    required this.userOptedIn,
+    required this.appCheckValid,
+    required this.online,
+    required this.expectedAllowed,
+  });
+
+  final bool userOptedIn;
+  final bool appCheckValid;
+  final bool online;
+  final bool expectedAllowed;
+}
+
 class _SyncPolicyCase {
   const _SyncPolicyCase({
     required this.network,

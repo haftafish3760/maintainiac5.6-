@@ -11,7 +11,7 @@ void main() {
     expect(registry.commandsForTag('inventory'), isNotEmpty);
     expect(registry.commandsForTag('expenses'), isNotEmpty);
     expect(
-      registry.commandsForTag('privacy').single,
+      registry.commandsForTag('privacy').join('\n'),
       contains(
         '--plain-name "expense parser consumer rejects unsafe fake readiness"',
       ),
@@ -21,6 +21,8 @@ void main() {
       contains('surgical_granularity_individual'),
     );
     expect(registry.commandsForTag('payments'), isNotEmpty);
+    expect(registry.commandsForTag('accessibility'), isNotEmpty);
+    expect(registry.commandsForTag('cost-quota'), isNotEmpty);
   });
 
   test('surgical selector registry rejects broad or unsafe selectors', () {

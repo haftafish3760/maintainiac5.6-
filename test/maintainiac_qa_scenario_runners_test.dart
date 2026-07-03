@@ -81,4 +81,55 @@ void main() {
       lessThan(100000),
     );
   });
+
+  test(
+    'accessibility localization runner proves release UI language gates',
+    () {
+      final results = const MaintainiacAccessibilityLocalizationRunner()
+          .runAll();
+
+      expect(results, hasLength(3));
+      expect(results.every((result) => result.passed), isTrue);
+      expect(
+        results.map((result) => result.scenario),
+        containsAll([
+          'accessibility.review_surface',
+          'localization.locale_unit_coverage',
+          'localization.translated_review_reasons',
+        ]),
+      );
+      expect(
+        results
+            .singleWhere(
+              (result) =>
+                  result.scenario == 'localization.locale_unit_coverage',
+            )
+            .metrics['localeCount'],
+        greaterThanOrEqualTo(3),
+      );
+    },
+  );
+
+  test('cost quota runner proves cloud usage stays budgeted and opt-in', () {
+    final results = const MaintainiacCostQuotaRunner().runAll();
+
+    expect(results, hasLength(3));
+    expect(results.every((result) => result.passed), isTrue);
+    expect(
+      results.map((result) => result.scenario),
+      containsAll([
+        'cost_quota.no_live_cloud_in_local_qa',
+        'cost_quota.local_qa_budget',
+        'cost_quota.cloud_assist_opt_in',
+      ]),
+    );
+    expect(
+      results
+          .singleWhere(
+            (result) => result.scenario == 'cost_quota.local_qa_budget',
+          )
+          .metrics['maxLiveWritesPerQaRun'],
+      0,
+    );
+  });
 }

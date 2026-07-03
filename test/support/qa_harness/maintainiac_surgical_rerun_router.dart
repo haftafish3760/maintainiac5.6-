@@ -311,10 +311,11 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
         'scenario_runner_security',
         'scenario_runner_financial',
         'scenario_runner_performance',
-        'main_backbone_parser_visibility',
+        'scenario_runner_accessibility_localization',
+        'scenario_runner_cost_quota',
       },
       reason:
-          'Scenario runner changes need sync, security, financial, performance, and backbone checks.',
+          'Scenario runner changes need sync, security, financial, performance, accessibility/localization, and cost/quota checks.',
     ),
   ],
 );

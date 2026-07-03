@@ -233,6 +233,8 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'security scenario runner proves privacy and scope behavior',
         'financial scenario runner proves deterministic money behavior',
         'performance scenario runner proves large-data budgets',
+        'accessibility localization runner proves release UI language gates',
+        'cost quota runner proves cloud usage stays budgeted and opt-in',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
