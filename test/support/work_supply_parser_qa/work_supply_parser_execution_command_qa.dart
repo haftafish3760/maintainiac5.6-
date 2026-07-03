@@ -47,6 +47,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
     'PARSER_QA_PRESET',
     'PARSER_QA_BASELINE',
     'PARSER_QA_SUITES',
+    'PARSER_QA_FIXTURE_IDS',
     'PARSER_QA_MUTATION_MODE',
     'PARSER_QA_MUTATION_SCENARIOS',
     'PARSER_QA_MUTATION_DRY_RUN',
@@ -63,6 +64,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
     'maxFailuresPerSuite: maxFailuresPerSuite',
     'catalogSchemaSampleLimit: catalogSchemaSampleLimit',
     'aliasSampleLimit: aliasSampleLimit',
+    'fixtureIds: fixtureIds',
     'mutationMode: mutationMode',
     'mutationScenarios: mutationScenarios',
     'mutationDryRun: mutationDryRun',
@@ -102,6 +104,10 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
     ]),
     _CommandContract('targeted_threshold_gate', [
       '--dart-define=PARSER_QA_SUITES=inventory.security_privacy,qa.threshold_gate',
+    ]),
+    _CommandContract('focused_fixture_ids', [
+      '--dart-define=PARSER_QA_SUITES=inventory.golden_fixtures,qa.threshold_gate',
+      '--dart-define=PARSER_QA_FIXTURE_IDS=',
     ]),
     _CommandContract('baseline_diff', ['--dart-define=PARSER_QA_BASELINE=']),
     _CommandContract('full_profile', [

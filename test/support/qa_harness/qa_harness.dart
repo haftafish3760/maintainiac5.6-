@@ -416,6 +416,7 @@ class QaRunConfig {
     this.maxFailuresPerSuite = 0,
     this.catalogSchemaSampleLimit = 0,
     this.aliasSampleLimit = 0,
+    this.fixtureIds = '',
     this.mutationMode = '',
     this.mutationScenarios = '',
     this.mutationDryRun = true,
@@ -432,6 +433,7 @@ class QaRunConfig {
   final int maxFailuresPerSuite;
   final int catalogSchemaSampleLimit;
   final int aliasSampleLimit;
+  final String fixtureIds;
   final String mutationMode;
   final String mutationScenarios;
   final bool mutationDryRun;
@@ -448,6 +450,7 @@ class QaRunConfig {
         maxFailuresPerSuite > 0 ||
         catalogSchemaSampleLimit > 0 ||
         aliasSampleLimit > 0 ||
+        fixtureIds.isNotEmpty ||
         mutationMode.isNotEmpty ||
         mutationScenarios.isNotEmpty ||
         mutationDryRun == false ||
@@ -467,6 +470,7 @@ class QaRunConfig {
       if (catalogSchemaSampleLimit > 0)
         'catalogSchemaSampleLimit': catalogSchemaSampleLimit,
       if (aliasSampleLimit > 0) 'aliasSampleLimit': aliasSampleLimit,
+      if (fixtureIds.isNotEmpty) 'fixtureIds': fixtureIds,
       if (mutationMode.isNotEmpty) 'mutationMode': mutationMode,
       if (mutationScenarios.isNotEmpty) 'mutationScenarios': mutationScenarios,
       if (mutationDryRun == false) 'mutationDryRun': mutationDryRun,

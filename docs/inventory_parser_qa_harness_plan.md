@@ -472,6 +472,7 @@ flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_Q
 flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_PROFILE=smoke --dart-define=PARSER_QA_SUITES=inventory.merchant_rules,inventory.trade_context,inventory.conflict_graph,inventory.ranked_candidate_accuracy,qa.threshold_gate --reporter compact
 flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_PROFILE=smoke --dart-define=PARSER_QA_SUITES=inventory.locale_contract,inventory.fixture_coverage_matrix,inventory.fixture_corpus_contract,qa.threshold_gate --reporter compact
 flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_PROFILE=smoke --dart-define=PARSER_QA_SUITES=inventory.artifact_contract,inventory.admin_report_contract,inventory.telemetry_contract,qa.threshold_gate --reporter compact
+flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_PROFILE=full --dart-define=PARSER_QA_SUITES=inventory.golden_fixtures,qa.threshold_gate --dart-define=PARSER_QA_FIXTURE_IDS=fixture_id_one,fixture_id_two --reporter compact
 ```
 
 ### Current Ready Parser/Pack Tests

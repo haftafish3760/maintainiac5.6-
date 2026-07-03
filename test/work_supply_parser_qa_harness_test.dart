@@ -1,4 +1,6 @@
 @Timeout(Duration(minutes: 10))
+library;
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/qa_harness/qa_baseline_diff.dart';
@@ -33,6 +35,7 @@ void main() {
     const preset = String.fromEnvironment('PARSER_QA_PRESET');
     const baselinePath = String.fromEnvironment('PARSER_QA_BASELINE');
     const suiteCsv = String.fromEnvironment('PARSER_QA_SUITES');
+    const fixtureIds = String.fromEnvironment('PARSER_QA_FIXTURE_IDS');
     const mutationMode = String.fromEnvironment('PARSER_QA_MUTATION_MODE');
     const mutationScenarios = String.fromEnvironment(
       'PARSER_QA_MUTATION_SCENARIOS',
@@ -56,6 +59,7 @@ void main() {
       maxFailuresPerSuite: maxFailuresPerSuite,
       catalogSchemaSampleLimit: catalogSchemaSampleLimit,
       aliasSampleLimit: aliasSampleLimit,
+      fixtureIds: fixtureIds,
       mutationMode: mutationMode,
       mutationScenarios: mutationScenarios,
       mutationDryRun: mutationDryRun,
