@@ -103,13 +103,27 @@ extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
 
   void moveCurrentReceiptPhoto(int direction) {
     if (_photoPaths.length <= 1) return;
-    final targetIndex = _selectedIndex + direction;
-    if (targetIndex < 0 || targetIndex >= _photoPaths.length) return;
+    final selectedIndex = _selectedIndex;
+    final selectedPhotoPath = _photoPaths[_selectedIndex];
+    final movePlan = ReceiptPhotoMoveOrderPlan.build(
+      currentPhotoPaths: _photoPaths,
+      selectedIndex: selectedIndex,
+      selectedPhotoPath: selectedPhotoPath,
+      direction: direction,
+    );
+    if (movePlan == null) return;
+    final moveDiagnostics = movePlan.captureDiagnosticsForMovedPhotoPath(
+      selectedPhotoPath,
+    );
     _updateReviewState(() {
-      final currentPath = _photoPaths[_selectedIndex];
-      _photoPaths[_selectedIndex] = _photoPaths[targetIndex];
-      _photoPaths[targetIndex] = currentPath;
-      _selectedIndex = targetIndex;
+      _photoPaths
+        ..clear()
+        ..addAll(movePlan.photoPaths);
+      _selectedIndex = movePlan.selectedIndex;
+      _captureDiagnosticsByPath[selectedPhotoPath] = {
+        ...?_captureDiagnosticsByPath[selectedPhotoPath],
+        ...moveDiagnostics,
+      };
     });
     _recoverReviewAfterPhotoSetChanged();
   }

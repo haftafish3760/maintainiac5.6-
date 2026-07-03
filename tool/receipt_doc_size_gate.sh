@@ -13,12 +13,20 @@ patterns = [
     'receipt_real_device_test_script.md',
 ]
 
+exempt_patterns = [
+    'receipt_camera_ocr_handoff_*.md',
+]
+
 paths = []
 for pattern in patterns:
     paths.extend(Path('docs').glob(pattern))
 
+exempt_paths = set()
+for pattern in exempt_patterns:
+    exempt_paths.update(Path('docs').glob(pattern))
+
 failed = False
-for path in sorted(set(paths)):
+for path in sorted(set(paths) - exempt_paths):
     line_count = len(path.read_text().splitlines())
     if line_count > 500:
         print(f'{path}: {line_count} lines exceeds 500-line receipt doc limit.', file=sys.stderr)

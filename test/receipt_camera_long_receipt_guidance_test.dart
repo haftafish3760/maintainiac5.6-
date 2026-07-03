@@ -115,6 +115,10 @@ void main() {
       contains('final retakePlan = ReceiptPhotoRetakeOrderPlan.build('),
     );
     expect(
+      sources.reviewActions,
+      contains('final movePlan = ReceiptPhotoMoveOrderPlan.build('),
+    );
+    expect(
       sources.captureActions,
       contains('_selectedIndex = retakePlan.selectedIndex'),
     );

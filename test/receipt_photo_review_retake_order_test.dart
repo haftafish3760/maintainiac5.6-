@@ -333,6 +333,71 @@ void main() {
     expect(stalePlan, isNull);
   });
 
+  test('move plan reorders the selected section with diagnostics', () {
+    final plan = ReceiptPhotoMoveOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'bottom.jpg'],
+      selectedIndex: 1,
+      selectedPhotoPath: 'middle.jpg',
+      direction: 1,
+    );
+
+    expect(plan, isNotNull);
+    expect(plan!.selectedIndex, 2);
+    expect(plan.movedPhotoPath, 'middle.jpg');
+    expect(plan.originalSectionNumber, 2);
+    expect(plan.finalSectionNumber, 3);
+    expect(plan.directionCode, 'later');
+    expect(plan.photoPaths, const ['top.jpg', 'bottom.jpg', 'middle.jpg']);
+
+    final diagnostics = plan.captureDiagnosticsForMovedPhotoPath('middle.jpg');
+    expect(
+      diagnostics,
+      containsPair('receiptManualReorderOriginalSectionNumber', 2),
+    );
+    expect(
+      diagnostics,
+      containsPair('receiptManualReorderFinalSectionNumber', 3),
+    );
+    expect(diagnostics, containsPair('receiptManualReorderDirection', 'later'));
+    expect(
+      diagnostics,
+      containsPair('receiptManualReorderPreservedPhotoPath', true),
+    );
+    expect(
+      diagnostics,
+      containsPair(
+        'receiptManualReorderPolicy',
+        'user_reordered_sections_preserve_paths',
+      ),
+    );
+    expect(plan.captureDiagnosticsForMovedPhotoPath('stale.jpg'), isEmpty);
+  });
+
+  test('move plan rejects stale or ambiguous reorder requests', () {
+    final duplicatePlan = ReceiptPhotoMoveOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'middle.jpg'],
+      selectedIndex: 1,
+      selectedPhotoPath: 'middle.jpg',
+      direction: 1,
+    );
+    final stalePlan = ReceiptPhotoMoveOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'changed.jpg', 'bottom.jpg'],
+      selectedIndex: 1,
+      selectedPhotoPath: 'middle.jpg',
+      direction: 1,
+    );
+    final outOfBoundsPlan = ReceiptPhotoMoveOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'bottom.jpg'],
+      selectedIndex: 0,
+      selectedPhotoPath: 'top.jpg',
+      direction: -1,
+    );
+
+    expect(duplicatePlan, isNull);
+    expect(stalePlan, isNull);
+    expect(outOfBoundsPlan, isNull);
+  });
+
   test('retaking the top section uses the next section as context', () {
     final context = ReceiptPhotoRetakeAlignmentContext.build(
       currentPhotoPaths: const ['top-old.jpg', 'middle.jpg', 'bottom.jpg'],

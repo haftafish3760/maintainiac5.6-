@@ -18,10 +18,15 @@ Scope:
   anchor section, final section, offset, and order-policy diagnostics.
 - Extended receipt result handoff counts so inserted section metadata reaches
   privacy-safe section-order outcomes and admin/QA summaries.
+- Hardened manual move-earlier/move-later ordering so user-reordered receipt
+  sections carry privacy-safe original/final section and direction evidence.
 - Added focused retake/order and source-contract regressions for inserted
   section metadata and stale inserted-path rejection.
+- Split section-order helper logic out of native-signal summaries after the
+  source audit caught the file over the line cap.
 - Recorded `BUG-RECEIPT-0106` and `BUG-RECEIPT-0107` under
   `multi_photo_ordering`.
+- Recorded `BUG-RECEIPT-0108` under `multi_photo_ordering`.
 - Archived Pass 564 out of the live cleanup log to keep the active log under the
   project line-count cap.
 - Archived Pass 565 out of the live cleanup log after this pass grew the active
@@ -38,6 +43,7 @@ Verification:
   and long-receipt guidance contracts.
 - Passed focused receipt result stitch/scanner regressions for valid and
   malformed insert-after metadata.
+- Passed focused manual reorder regressions and source contract coverage.
 - Passed the receipt QA runner after the source-audit and long-receipt ordering
   cleanup batch.
 - Passed scoped receipt source audit and cleanup/doc size gates.

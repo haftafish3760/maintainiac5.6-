@@ -250,6 +250,70 @@ class ReceiptPhotoRemovalOrderPlan {
   }
 }
 
+class ReceiptPhotoMoveOrderPlan {
+  const ReceiptPhotoMoveOrderPlan._({
+    required this.photoPaths,
+    required this.selectedIndex,
+    required this.movedPhotoPath,
+    required this.originalIndex,
+    required this.finalIndex,
+  });
+
+  final List<String> photoPaths;
+  final int selectedIndex;
+  final String movedPhotoPath;
+  final int originalIndex;
+  final int finalIndex;
+
+  int get originalSectionNumber => originalIndex + 1;
+  int get finalSectionNumber => finalIndex + 1;
+  String get directionCode => finalIndex < originalIndex ? 'earlier' : 'later';
+
+  Map<String, Object?> captureDiagnosticsForMovedPhotoPath(
+    String movedPhotoPath,
+  ) {
+    if (this.movedPhotoPath != movedPhotoPath) return const {};
+    return {
+      'receiptManualReorderOriginalSectionNumber': originalSectionNumber,
+      'receiptManualReorderFinalSectionNumber': finalSectionNumber,
+      'receiptManualReorderDirection': directionCode,
+      'receiptManualReorderPreservedPhotoPath': true,
+      'receiptManualReorderPolicy': 'user_reordered_sections_preserve_paths',
+    };
+  }
+
+  static ReceiptPhotoMoveOrderPlan? build({
+    required List<String> currentPhotoPaths,
+    required int selectedIndex,
+    required String selectedPhotoPath,
+    required int direction,
+  }) {
+    if (direction == 0) return null;
+    if (!_receiptPhotoPathsAreUniqueAndNormalized(currentPhotoPaths)) {
+      return null;
+    }
+    if (selectedIndex < 0 || selectedIndex >= currentPhotoPaths.length) {
+      return null;
+    }
+    if (currentPhotoPaths[selectedIndex] != selectedPhotoPath) return null;
+    final targetIndex = selectedIndex + direction;
+    if (targetIndex < 0 || targetIndex >= currentPhotoPaths.length) {
+      return null;
+    }
+
+    final updatedPaths = List<String>.of(currentPhotoPaths);
+    updatedPaths[selectedIndex] = updatedPaths[targetIndex];
+    updatedPaths[targetIndex] = selectedPhotoPath;
+    return ReceiptPhotoMoveOrderPlan._(
+      photoPaths: List.unmodifiable(updatedPaths),
+      selectedIndex: targetIndex,
+      movedPhotoPath: selectedPhotoPath,
+      originalIndex: selectedIndex,
+      finalIndex: targetIndex,
+    );
+  }
+}
+
 bool _receiptPhotoPathsAreUniqueAndNormalized(List<String> photoPaths) {
   return receiptPhotoPathsAreUniqueAndNormalized(photoPaths);
 }

@@ -235,6 +235,18 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       final insertPolicy = _diagnosticToken(
         diagnostics['receiptInsertOrderPolicy']?.toString() ?? '',
       );
+      final manualReorderOriginalSection = _diagnosticPositiveInt(
+        diagnostics['receiptManualReorderOriginalSectionNumber'],
+      );
+      final manualReorderFinalSection = _diagnosticPositiveInt(
+        diagnostics['receiptManualReorderFinalSectionNumber'],
+      );
+      final manualReorderDirection = _diagnosticToken(
+        diagnostics['receiptManualReorderDirection']?.toString() ?? '',
+      );
+      final manualReorderPolicy = _diagnosticToken(
+        diagnostics['receiptManualReorderPolicy']?.toString() ?? '',
+      );
       if (sectionCount != null) {
         final bucket = sectionCount <= 1
             ? 'single_section'
@@ -271,6 +283,18 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
             : 'insert_final_section_$insertFinalSection';
         counts[bucket] = (counts[bucket] ?? 0) + 1;
       }
+      if (manualReorderOriginalSection != null) {
+        final bucket = manualReorderOriginalSection > 9
+            ? 'manual_reorder_original_section_10_plus'
+            : 'manual_reorder_original_section_$manualReorderOriginalSection';
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
+      if (manualReorderFinalSection != null) {
+        final bucket = manualReorderFinalSection > 9
+            ? 'manual_reorder_final_section_10_plus'
+            : 'manual_reorder_final_section_$manualReorderFinalSection';
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
       for (final invalidCode in _receiptRetakeInvalidOrderCodes(
         diagnostics: diagnostics,
         originalSection: retakeOriginalSection,
@@ -297,6 +321,15 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
         counts['insert_policy_$insertPolicy'] =
             (counts['insert_policy_$insertPolicy'] ?? 0) + 1;
       }
+      if (manualReorderPolicy != 'unknown') {
+        counts['manual_reorder_policy_$manualReorderPolicy'] =
+            (counts['manual_reorder_policy_$manualReorderPolicy'] ?? 0) + 1;
+      }
+      if (manualReorderDirection != 'unknown') {
+        counts['manual_reorder_direction_$manualReorderDirection'] =
+            (counts['manual_reorder_direction_$manualReorderDirection'] ?? 0) +
+            1;
+      }
       if (retakeGuidance != 'unknown') {
         counts['retake_guidance_$retakeGuidance'] =
             (counts['retake_guidance_$retakeGuidance'] ?? 0) + 1;
@@ -315,6 +348,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
         counts[code] = (counts[code] ?? 0) + 1;
       }
       for (final code in _receiptInsertContextCodes(diagnostics)) {
+        counts[code] = (counts[code] ?? 0) + 1;
+      }
+      for (final code in _receiptManualReorderContextCodes(diagnostics)) {
         counts[code] = (counts[code] ?? 0) + 1;
       }
     }
@@ -342,6 +378,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
     }
     if ((counts['insert_preserved_anchor_slot'] ?? 0) > 0) {
       return 'insert_order_preserved';
+    }
+    if ((counts['manual_reorder_preserved_photo_path'] ?? 0) > 0) {
+      return 'manual_reorder_preserved';
     }
     if (counts.keys.any((key) => key.startsWith('multi_section_'))) {
       return 'multi_section_order_tracked';
@@ -375,86 +414,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
     if ((counts['insert_preserved_anchor_slot'] ?? 0) > 0) {
       return '$label;insert_preserved';
     }
+    if ((counts['manual_reorder_preserved_photo_path'] ?? 0) > 0) {
+      return '$label;manual_reorder_preserved';
+    }
     return label;
-  }
-
-  List<String> _receiptRetakeInvalidOrderCodes({
-    required Map<String, Object?> diagnostics,
-    required int? originalSection,
-    required int? finalSection,
-  }) {
-    if (originalSection == null || finalSection == null) return const [];
-    final codes = <String>[];
-    if (finalSection < originalSection) {
-      codes.add('retake_invalid_final_before_original');
-    }
-    if (_diagnosticBool(diagnostics['receiptRetakePreservedOriginalSlot']) ==
-            true &&
-        finalSection != originalSection) {
-      codes.add('retake_invalid_preserved_slot_moved');
-    }
-    return codes;
-  }
-
-  List<String> _receiptInsertInvalidOrderCodes({
-    required Map<String, Object?> diagnostics,
-    required int? anchorSection,
-    required int? finalSection,
-  }) {
-    if (anchorSection == null || finalSection == null) return const [];
-    final codes = <String>[];
-    if (finalSection <= anchorSection) {
-      codes.add('insert_invalid_final_not_after_anchor');
-    }
-    if (_diagnosticBool(diagnostics['receiptInsertPreservedAnchorSlot']) ==
-            true &&
-        finalSection <= anchorSection) {
-      codes.add('insert_invalid_preserved_anchor_overlap');
-    }
-    return codes;
-  }
-
-  List<String> _receiptRetakeContextCodes(Map<String, Object?> diagnostics) {
-    final codes = <String>[];
-    if (_diagnosticBool(diagnostics['receiptRetakePreservedOriginalSlot']) ==
-        true) {
-      codes.add('retake_preserved_original_slot');
-    }
-    if (_diagnosticBool(diagnostics['receiptRetakeInsertedExtraSection']) ==
-        true) {
-      codes.add('retake_inserted_extra_section');
-    }
-    if (_diagnosticBool(
-          diagnostics['receiptRetakeHasPreviousAlignmentContext'],
-        ) ==
-        true) {
-      codes.add('retake_previous_alignment_context');
-    }
-    if (_diagnosticBool(diagnostics['receiptRetakeHasNextAlignmentContext']) ==
-        true) {
-      codes.add('retake_next_alignment_context');
-    }
-    if (_diagnosticBool(
-          diagnostics['receiptRetakeHasTwoSidedAlignmentContext'],
-        ) ==
-        true) {
-      codes.add('retake_two_sided_alignment_context');
-    }
-    return codes;
-  }
-
-  List<String> _receiptInsertContextCodes(Map<String, Object?> diagnostics) {
-    final codes = <String>[];
-    if (_diagnosticBool(diagnostics['receiptInsertPreservedAnchorSlot']) ==
-        true) {
-      codes.add('insert_preserved_anchor_slot');
-    }
-    final offset = _diagnosticZeroOrPositiveInt(
-      diagnostics['receiptInsertAfterOffset'],
-    );
-    if (offset != null) {
-      codes.add(offset > 9 ? 'insert_offset_10_plus' : 'insert_offset_$offset');
-    }
-    return codes;
   }
 }
