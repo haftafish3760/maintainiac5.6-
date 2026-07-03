@@ -175,6 +175,55 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_parser_candidate_contract_test.dart',
+      plainNames: {
+        'parser candidate contract preserves review-only inventory evidence',
+        'parser candidate contract allows confirmed only after user action',
+        'parser candidate contract rejects autosave and false confirmation',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_correction_learning_contract_test.dart',
+      plainNames: {
+        'correction learning contract creates reviewable parser proposals',
+        'correction learning contract requires regression metadata',
+        'correction learning contract blocks silent pack mutation',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_derived_output_contract_test.dart',
+      plainNames: {
+        'derived output contract keeps reports and invoices read-only',
+        'derived output contract rejects source mutation ambiguity',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_device_capability_test.dart',
+      plainNames: {
+        'device capability probe allows full local packs on high-end devices',
+        'device capability probe falls back for low-storage older phones',
+        'device capability probe blocks unsafe or offline cloud-only cases',
+        'device delivery matrix covers local compact cloud and blocked modes',
+        'device delivery matrix rejects unsafe cloud and App Check cases',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_job_contract_test.dart',
+      plainNames: {
+        'job contract accepts confirmed estimate and inventory material lines',
+        'job contract accepts receipt-backed time and material job',
+        'job contract rejects unsafe material and summary behavior',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_pricing_contract_test.dart',
+      plainNames: {
+        'pricing contract balances estimate and invoice line totals in cents',
+        'pricing contract allocates tax remainders deterministically per unit',
+        'pricing contract rejects unsafe money and source mutation',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_parser_release_command_plan_test.dart',
       plainNames: {
         'parser release command plan covers every parser consumer family',

@@ -61,6 +61,12 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_individual_qa_command.dart',
       'maintainiac_individual_test_manifest.dart',
       'maintainiac_parser_consumer_gate.dart',
+      'maintainiac_parser_candidate_contract.dart',
+      'maintainiac_correction_learning_contract.dart',
+      'maintainiac_derived_output_contract.dart',
+      'maintainiac_device_capability.dart',
+      'maintainiac_job_contract.dart',
+      'maintainiac_pricing_contract.dart',
       'maintainiac_parser_release_command_plan.dart',
       'maintainiac_parser_regression_binding.dart',
       'maintainiac_surgical_selector_coverage.dart',
@@ -171,6 +177,79 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Expense consumer contract changes need expense and backbone visibility checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'parser_candidate_contract_changed',
+      changedPathContains: 'maintainiac_parser_candidate_contract.dart',
+      selectorIds: {
+        'parser_candidate_preserves_review_evidence',
+        'parser_candidate_allows_user_confirmation',
+        'parser_candidate_rejects_autosave',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Parser candidate contract changes need review evidence, confirmation, autosave, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'correction_learning_contract_changed',
+      changedPathContains: 'maintainiac_correction_learning_contract.dart',
+      selectorIds: {
+        'correction_learning_reviewable_proposals',
+        'correction_learning_regression_metadata',
+        'correction_learning_blocks_silent_mutation',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Correction learning changes need reviewable proposal, regression metadata, silent mutation, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'derived_output_contract_changed',
+      changedPathContains: 'maintainiac_derived_output_contract.dart',
+      selectorIds: {
+        'derived_output_read_only',
+        'derived_output_rejects_mutation_ambiguity',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Derived output changes need read-only, mutation ambiguity, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'device_capability_changed',
+      changedPathContains: 'maintainiac_device_capability.dart',
+      selectorIds: {
+        'device_capability_full_local_high_end',
+        'device_capability_low_storage_fallback',
+        'device_capability_blocks_unsafe_cloud',
+        'device_delivery_matrix_modes',
+        'device_delivery_matrix_rejects_unsafe',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Device capability changes need high-end, fallback, unsafe cloud, matrix, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'job_contract_changed',
+      changedPathContains: 'maintainiac_job_contract.dart',
+      selectorIds: {
+        'job_contract_confirmed_estimate_materials',
+        'job_contract_receipt_backed_time_material',
+        'job_contract_rejects_unsafe_summary',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Job contract changes need confirmed estimate, receipt-backed material, unsafe summary, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'pricing_contract_changed',
+      changedPathContains: 'maintainiac_pricing_contract.dart',
+      selectorIds: {
+        'pricing_contract_balances_lines',
+        'pricing_contract_allocates_tax_remainders',
+        'pricing_contract_rejects_unsafe_money',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Pricing contract changes need line totals, tax allocation, unsafe money, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'individual_command_tool_changed',
