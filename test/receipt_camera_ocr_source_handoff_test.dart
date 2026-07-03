@@ -239,6 +239,8 @@ void main() {
     expect(receiptEntryScreen, contains('_diagnosticIntSum'));
     expect(receiptEntryScreen, contains('_diagnosticIntValue'));
     expect(receiptEntryScreen, contains('!parsed.isFinite'));
+    expect(receiptEntryScreen, contains('_intTelemetryValue'));
+    expect(receiptEntryScreen, contains('num() when value.isFinite => value'));
     expect(receiptEntryScreen, contains('_diagnosticBoolTrueCount'));
     expect(receiptEntryScreen, contains('scannerCleanupUsedCount'));
     expect(receiptEntryScreen, contains('cleanupActions'));

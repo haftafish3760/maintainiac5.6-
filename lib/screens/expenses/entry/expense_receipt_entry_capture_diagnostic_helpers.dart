@@ -1,6 +1,7 @@
 part of 'expense_receipt_entry_screen.dart';
 
-extension _ExpenseReceiptEntryCaptureDiagnosticHelpers on _ExpenseReceiptEntryScreenState {
+extension _ExpenseReceiptEntryCaptureDiagnosticHelpers
+    on _ExpenseReceiptEntryScreenState {
   void _recordReceiptCaptureDiagnostic(Map<String, Object?> diagnostic) {
     final stage = _safeTelemetryToken(
       diagnostic['nativeCaptureFailureStage'],
@@ -150,7 +151,12 @@ extension _ExpenseReceiptEntryCaptureDiagnosticHelpers on _ExpenseReceiptEntrySc
 
   int _intTelemetryValue(Object? value) {
     if (value is int) return value;
-    if (value is num) return value.toInt();
-    return int.tryParse(value?.toString() ?? '') ?? 0;
+    final parsed = switch (value) {
+      num() when value.isFinite => value,
+      String() => double.tryParse(value.trim()),
+      _ => null,
+    };
+    if (parsed == null || !parsed.isFinite) return 0;
+    return parsed.toInt();
   }
 }

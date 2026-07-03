@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 510 - 01:02:14 EDT to 01:02:52 EDT
+
+Scope:
+- Hardened receipt capture diagnostic telemetry so recovery photo counts from
+  native diagnostics reject non-finite numeric values instead of crashing.
+- Added regression coverage proving the recovery telemetry converter requires a
+  finite numeric value.
+- Recorded `BUG-RECEIPT-0028` under `camera_capture_quality`.
+- Archived Pass 473 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for capture diagnostic telemetry and
+  OCR source handoff regression coverage.
+- Passed focused Flutter test `test/receipt_camera_ocr_source_handoff_test.dart`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 509 - 01:00:37 EDT to 01:01:44 EDT
 
 Scope:
@@ -461,28 +478,5 @@ Scope:
 Verification:
 - Passed targeted format, analyzer, and focused Flutter test for the expense
   blueprint/handoff guard.
-- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
-  `--max-line-length=220`, and targeted `git diff --check`.
-
-## Pass 473 - 18:46:30 EDT to 18:47:43 EDT
-
-Scope:
-- Expanded the planning lane from camera-only to the full release-one expense
-  app.
-- Added `docs/expense_release_one_blueprint.md` covering expense intake, shared
-  receipt camera, OCR/parser review, fuel specialization, PDF/file intake,
-  records/storage, reports/export, diagnostics/admin health, QA/regressions, and
-  safe two-Codex ownership split.
-- Linked the expense blueprint from `README.md` and `PROJECT_RULES.md`.
-- Added `expense_release_one_blueprint_test.dart` and wired it into the fast
-  receipt/expense guard so the blueprint remains discoverable.
-
-Verification:
-- Passed `dart format` for the new blueprint guard and fast-guard contract.
-- Passed `bash -n tool/receipt_fast_guard_gate.sh`.
-- Passed targeted analyzer for the expense blueprint guard and fast-guard
-  contract.
-- Passed focused Flutter tests for the expense blueprint guard and fast-guard
-  contract.
 - Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
   `--max-line-length=220`, and targeted `git diff --check`.
