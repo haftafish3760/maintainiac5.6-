@@ -15,10 +15,28 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
       minimumMatches: 20,
     ),
     _FamilySpec(
+      id: 'plumbing_water_distribution_materials',
+      trade: 'Plumbing',
+      tokens: ['pex', 'copper', 'cpvc', 'push to connect', 'sharkbite'],
+      minimumMatches: 20,
+    ),
+    _FamilySpec(
       id: 'plumbing_toilet_repair',
       trade: 'Plumbing',
       tokens: ['toilet', 'wax ring', 'closet flange', 'flange repair'],
       minimumMatches: 8,
+    ),
+    _FamilySpec(
+      id: 'plumbing_toilet_tank_rebuild',
+      trade: 'Plumbing',
+      tokens: [
+        'fill valve',
+        'flush valve',
+        'flapper',
+        'tank lever',
+        'toilet bolt',
+      ],
+      minimumMatches: 6,
     ),
     _FamilySpec(
       id: 'plumbing_sink_faucet_repair',
@@ -29,6 +47,18 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
         'p-trap',
         'trap adapter',
         'supply line',
+      ],
+      minimumMatches: 8,
+    ),
+    _FamilySpec(
+      id: 'plumbing_drain_trap_repair',
+      trade: 'Plumbing',
+      tokens: [
+        'p-trap',
+        'trap adapter',
+        'tailpiece',
+        'slip joint',
+        'basket strainer',
       ],
       minimumMatches: 8,
     ),
@@ -75,16 +105,52 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
       minimumMatches: 8,
     ),
     _FamilySpec(
+      id: 'electrical_switch_outlet_repair',
+      trade: 'Electrical',
+      tokens: ['switch', 'outlet', 'receptacle', 'gfci', 'wall plate'],
+      minimumMatches: 8,
+    ),
+    _FamilySpec(
       id: 'electrical_conduit_support',
       trade: 'Electrical',
       tokens: ['conduit', 'connector', 'coupling', 'strap', 'raceway'],
       minimumMatches: 8,
     ),
     _FamilySpec(
+      id: 'electrical_breaker_service',
+      trade: 'Electrical',
+      tokens: ['breaker', 'afci', 'gfci breaker', 'disconnect', 'panel'],
+      minimumMatches: 6,
+    ),
+    _FamilySpec(
+      id: 'electrical_grounding_bonding',
+      trade: 'Electrical',
+      tokens: ['ground', 'grounding', 'ground rod', 'ground clamp'],
+      minimumMatches: 5,
+    ),
+    _FamilySpec(
       id: 'hvac_filter_airflow',
       trade: 'HVAC',
       tokens: ['filter', 'airflow', 'return air', 'grille'],
       minimumMatches: 6,
+    ),
+    _FamilySpec(
+      id: 'hvac_filter_common_sizes',
+      trade: 'HVAC',
+      tokens: ['air filter', 'furnace filter', 'return filter', 'merv'],
+      minimumMatches: 8,
+    ),
+    _FamilySpec(
+      id: 'hvac_controls_service',
+      trade: 'HVAC',
+      tokens: [
+        'capacitor',
+        'contactor',
+        'relay',
+        'thermostat wire',
+        'transformer',
+      ],
+      minimumMatches: 8,
     ),
     _FamilySpec(
       id: 'hvac_condensate_drain',
@@ -104,6 +170,18 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
       ],
       minimumMatches: 6,
     ),
+    _FamilySpec(
+      id: 'hvac_duct_repair_seal',
+      trade: 'HVAC',
+      tokens: [
+        'foil tape',
+        'mastic',
+        'duct sealant',
+        'duct strap',
+        'sheet metal screw',
+      ],
+      minimumMatches: 8,
+    ),
   ];
 
   @override
@@ -111,6 +189,7 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
     final timer = QaStopwatch.start();
     final failures = <QaFailure>[];
     final counts = <String, int>{};
+    final tierCounts = <String, Map<String, int>>{};
     final examples = <String, List<String>>{};
     final items = _releaseOneCoreStandardItems().toList(growable: false);
 
@@ -120,6 +199,7 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
           .where((item) => family.matches(_haystack(item)))
           .toList(growable: false);
       counts[family.id] = matches.length;
+      tierCounts[family.id] = _tierCounts(matches);
       examples[family.id] = [
         for (final item in matches.take(5))
           '${item.packTier.name}:${item.name}',
@@ -150,6 +230,7 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
       metrics: {
         'scope': 'Residential Plumbing/Electrical/HVAC Core and Standard',
         'familyCounts': counts,
+        'familyTierCounts': tierCounts,
         'familyExamples': examples,
       },
     );
@@ -187,6 +268,14 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
       ...item.intelligence.highImportanceTokens,
     ].join(' ').toLowerCase();
   }
+}
+
+Map<String, int> _tierCounts(Iterable<WorkSupplyItem> items) {
+  final counts = <String, int>{};
+  for (final item in items) {
+    counts.update(item.packTier.name, (count) => count + 1, ifAbsent: () => 1);
+  }
+  return counts;
 }
 
 class _FamilySpec {
