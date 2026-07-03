@@ -117,6 +117,31 @@ void main() {
     },
   );
 
+  test('receipt quality treats non-finite metrics as unsafe evidence', () {
+    const malformed = ReceiptPhotoQualityCheck(
+      width: 1800,
+      height: 2400,
+      focusScore: double.nan,
+      brightness: double.infinity,
+      contrast: double.negativeInfinity,
+      cropScore: double.nan,
+      textBandScore: double.infinity,
+      isLikelyReadable: true,
+    );
+
+    expect(malformed.reviewScore, inInclusiveRange(0, 100));
+    expect(malformed.reviewScoreLabel, isNot(contains('NaN')));
+    expect(malformed.brightnessDistanceFromReceiptIdeal.isFinite, isTrue);
+    expect(malformed.isTooDark, isTrue);
+    expect(malformed.isVerySoft, isTrue);
+    expect(malformed.isLowContrast, isTrue);
+    expect(malformed.isPoorlyFramed, isTrue);
+    expect(malformed.isMissingTextBands, isTrue);
+    expect(malformed.hasCriticalIssue, isTrue);
+    expect(malformed.shouldRetakeBeforeOcr, isTrue);
+    expect(malformed.primaryIssueLabel, 'too dark');
+  });
+
   test('camera result summarizes best candidate quality and review state', () {
     const dim = ReceiptPhotoQualityCheck(
       width: 1800,

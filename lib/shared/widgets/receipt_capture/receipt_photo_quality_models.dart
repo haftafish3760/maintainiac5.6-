@@ -49,12 +49,12 @@ class ReceiptPhotoQualityCheck {
   String get resolutionLabel => '${width}x$height';
   int get reviewScore {
     if (width <= 0 || height <= 0) return 0;
-    final focusPoints = (focusScore / 18 * 42).clamp(0, 42).round();
+    final focusPoints = (_safeFocusScore / 18 * 42).clamp(0, 42).round();
     final shortestSide = width < height ? width : height;
     final resolutionPoints = (shortestSide / 1600 * 22).clamp(0, 22).round();
-    final contrastPoints = (contrast / 34 * 16).clamp(0, 16).round();
-    final cropPoints = (cropScore * 12).clamp(0, 12).round();
-    final textPoints = (textBandScore / 12 * 8).clamp(0, 8).round();
+    final contrastPoints = (_safeContrast / 34 * 16).clamp(0, 16).round();
+    final cropPoints = (_safeCropScore * 12).clamp(0, 12).round();
+    final textPoints = (_safeTextBandScore / 12 * 8).clamp(0, 8).round();
     final lightPenalty = isTooDark || isTooBright ? 18 : 0;
     final rawScore =
         (focusPoints +
@@ -72,22 +72,23 @@ class ReceiptPhotoQualityCheck {
   }
 
   String get reviewScoreLabel => '$reviewScore%';
-  bool get isTooDark => brightness < 68;
-  bool get isUnderexposedForReceipt => brightness < 92;
-  bool get isTooBright => brightness > 246;
-  bool get isBrightButReadable => brightness > 224 && !isTooBright;
-  bool get isLowContrast => contrast < 16;
-  bool get isPoorlyFramed => cropScore < .30;
-  bool get isMissingTextBands => textBandScore < 6;
+  bool get isTooDark => _safeBrightness < 68;
+  bool get isUnderexposedForReceipt => _safeBrightness < 92;
+  bool get isTooBright => _safeBrightness > 246;
+  bool get isBrightButReadable => _safeBrightness > 224 && !isTooBright;
+  bool get isLowContrast => _safeContrast < 16;
+  bool get isPoorlyFramed => _safeCropScore < .30;
+  bool get isMissingTextBands => _safeTextBandScore < 6;
   bool get isLowResolution => width < 900 || height < 900;
-  bool get isSoft => focusScore < 8;
-  bool get isVerySoft => focusScore < 5.5;
+  bool get isSoft => _safeFocusScore < 8;
+  bool get isVerySoft => _safeFocusScore < 5.5;
   bool get isUnreadableImage => width <= 0 || height <= 0;
   bool get hasCriticalIssue =>
       isUnreadableImage || isTooDark || isTooBright || isVerySoft;
   bool get isReadableScore => reviewScore >= 70;
   bool get isExcellentScore => reviewScore >= 85;
-  double get brightnessDistanceFromReceiptIdeal => (brightness - 150).abs();
+  double get brightnessDistanceFromReceiptIdeal =>
+      (_safeBrightness - 150).abs();
   bool get needsReview {
     if (hasCriticalIssue) return true;
     if (qualityWarnings.isNotEmpty) return true;
@@ -143,7 +144,7 @@ class ReceiptPhotoQualityCheck {
       'focus $focusLabel',
       framingLabel,
     ];
-    if (textBandScore < 8) parts.add('receipt lines weak');
+    if (_safeTextBandScore < 8) parts.add('receipt lines weak');
     return parts.join(' • ');
   }
 
@@ -165,8 +166,8 @@ class ReceiptPhotoQualityCheck {
   }
 
   String get focusLabel {
-    if (focusScore >= 14) return 'sharp';
-    if (focusScore >= 8) return 'usable';
+    if (_safeFocusScore >= 14) return 'sharp';
+    if (_safeFocusScore >= 8) return 'usable';
     return 'may be blurry';
   }
 
@@ -180,7 +181,7 @@ class ReceiptPhotoQualityCheck {
 
   String get framingLabel {
     if (isPoorlyFramed) return 'check that no text is cut off';
-    if (cropScore < .50) return 'check framing';
+    if (_safeCropScore < .50) return 'check framing';
     return 'framed';
   }
 
@@ -265,6 +266,12 @@ class ReceiptPhotoQualityCheck {
       if (isMissingTextBands) 'Receipt text lines are hard to detect.',
     ];
   }
+
+  double get _safeFocusScore => focusScore.isFinite ? focusScore : 0;
+  double get _safeBrightness => brightness.isFinite ? brightness : 0;
+  double get _safeContrast => contrast.isFinite ? contrast : 0;
+  double get _safeCropScore => cropScore.isFinite ? cropScore : 0;
+  double get _safeTextBandScore => textBandScore.isFinite ? textBandScore : 0;
 
   ReceiptCaptureReadinessDecision captureReadiness({
     required bool autoCaptureEnabled,
