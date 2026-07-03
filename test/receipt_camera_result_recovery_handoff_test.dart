@@ -92,7 +92,7 @@ void main() {
     );
     expect(
       attachment.documentSignals,
-      contains('review_photo_edit_source_selected_manual_crop'),
+      contains('review_photo_edit_source_selected_edited_copy_selected'),
     );
     expect(
       attachment.documentSignals,
@@ -169,7 +169,9 @@ void main() {
     );
     expect(
       attachment.riskFlags,
-      contains('ocr_source_review_photo_edit_source_selected_manual_crop'),
+      contains(
+        'ocr_source_review_photo_edit_source_selected_edited_copy_selected',
+      ),
     );
     expect(
       attachment.riskFlags,

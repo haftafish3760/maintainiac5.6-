@@ -84,10 +84,15 @@ extension _ReceiptAttachmentOcrSourceRiskFlags
         final editAction = attachmentSignalToken(
           diagnostics['photoEditAction']?.toString() ?? 'manual_edit',
         );
+        final sourceSelection = diagnostics['photoEditReplacedOriginal'] == true
+            ? 'edited_copy_selected'
+            : 'original_source_retained';
         flags.add('ocr_source_review_photo_edited');
         flags.add('ocr_source_review_photo_edit_$editAction');
         flags.add('ocr_source_review_photo_edit_source_selected');
-        flags.add('ocr_source_review_photo_edit_source_selected_$editAction');
+        flags.add(
+          'ocr_source_review_photo_edit_source_selected_$sourceSelection',
+        );
         if (diagnostics['photoEditReplacedOriginal'] == true) {
           flags.add('ocr_source_review_photo_edit_replaced_original');
           flags.add(

@@ -51,6 +51,21 @@ Verification:
 - Passed focused Flutter test
   `test/receipt_camera_result_recovery_metadata_test.dart`.
 
+## Pass 547 - 05:23:06 EDT to 05:28:19 EDT
+
+Scope:
+- Generalized `BUG-RECEIPT-0063` so direct OCR handoff signals and risk flags
+  also use selected-source tokens instead of edit-action tokens.
+- Updated source-guard regressions to require `$sourceSelection` tokens and to
+  read the current helper files that own diagnostics and recovery guards.
+- Archived Pass 530 out of the live cleanup log.
+
+Verification:
+- Fixed two stale source-guard expectations uncovered by the focused test run,
+  then reran the affected chain.
+- Passed targeted format/analyzer and focused recovery handoff, quality
+  handoff, and shared-flow recovery contract tests.
+
 ## Pass 543 - 05:01:39 EDT to 05:02:14 EDT
 
 Scope:
@@ -128,24 +143,6 @@ Verification:
   `test/receipt_attachment_panel_recovery_contract_test.dart`.
 - Passed targeted format/analyzer, bug-ledger, log, doc-size, audit, and diff
   gates.
-
-## Pass 530 - 02:26:23 EDT to 02:31:00 EDT
-
-Scope:
-- Hardened receipt retake diagnostics so order metadata is generated only for
-  replacement photo paths accepted by the retake order plan.
-- Added regression coverage proving stale or extra replacement paths receive no
-  retake order diagnostics.
-- Recorded `BUG-RECEIPT-0048` under `multi_photo_ordering`.
-
-Verification:
-- Passed targeted Dart format and analyzer for retake order planning and
-  focused retake-order regression coverage.
-- Passed focused Flutter test
-  `test/receipt_photo_review_retake_order_test.dart --plain-name "retake
-  diagnostics reject stale replacement path lists"`.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
 
 ## Pass 531 - 02:37:30 EDT to 02:42:00 EDT
 

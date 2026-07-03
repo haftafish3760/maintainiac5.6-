@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/receipt_camera_capture_layout_source_readers.dart';
+
 void main() {
   test('accepted shared flow clears interrupted native recovery after attach', () async {
     final flow =
@@ -210,10 +212,11 @@ void main() {
         await File(
           'lib/shared/widgets/receipt_capture/receipt_capture_flow_review_result.dart',
         ).readAsString();
+    final nativeStaging = await readReceiptNativeCaptureStagingSource();
     expect(flow, contains('reviewRecoveredCapture('));
     expect(flow, contains('ReceiptNativeCaptureRecoveryRecord record'));
     expect(flow, contains('record.recoverablePhotoPaths'));
-    expect(flow, contains('File(photoPath).existsSync()'));
+    expect(nativeStaging, contains('File(photoPath).existsSync()'));
     expect(flow, contains('discardRecoveryRecord(record)'));
     expect(
       flow,
@@ -268,7 +271,10 @@ void main() {
     expect(flow, contains('review_photo_edited'));
     expect(flow, contains(r'review_photo_edit_$editAction'));
     expect(flow, contains('review_photo_edit_source_selected'));
-    expect(flow, contains(r'review_photo_edit_source_selected_$editAction'));
+    expect(
+      flow,
+      contains(r'review_photo_edit_source_selected_$sourceSelection'),
+    );
     expect(flow, contains('review_photo_edit_replaced_original'));
     expect(flow, contains(r'review_photo_edit_replaced_original_$editAction'));
     expect(flow, contains('ocr_source_review_photo_edited'));
@@ -276,7 +282,9 @@ void main() {
     expect(flow, contains('ocr_source_review_photo_edit_source_selected'));
     expect(
       flow,
-      contains(r'ocr_source_review_photo_edit_source_selected_$editAction'),
+      contains(
+        r'ocr_source_review_photo_edit_source_selected_$sourceSelection',
+      ),
     );
     expect(flow, contains('ocr_source_review_photo_edit_replaced_original'));
     expect(

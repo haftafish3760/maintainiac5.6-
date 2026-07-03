@@ -153,10 +153,8 @@ void main() {
       saveActions,
       contains(r'Tap $nextLabel to use $target and open receipt details.'),
     );
-    expect(
-      saveActions,
-      contains('result.captureDiagnosticsByPhotoPath(paths)'),
-    );
+    expect(saveActions, contains('result.captureDiagnosticsByPhotoPath('));
+    expect(saveActions, contains('pickedPaths,'));
     expect(ocrActions, contains('final ReceiptOcrDiagnostics? ocrDiagnostics'));
     expect(ocrActions, contains('ocrDiagnostics: result.diagnostics'));
     expect(
@@ -235,7 +233,7 @@ void main() {
     expect(importActions, contains("'review_photo_edit_source_selected'"));
     expect(
       importActions,
-      contains(r"'review_photo_edit_source_selected_$editAction'"),
+      contains(r"'review_photo_edit_source_selected_$sourceSelection'"),
     );
     expect(importActions, contains("'review_photo_edit_replaced_original'"));
     expect(
@@ -260,7 +258,9 @@ void main() {
     );
     expect(
       importActions,
-      contains(r"'ocr_source_review_photo_edit_source_selected_$editAction'"),
+      contains(
+        r"'ocr_source_review_photo_edit_source_selected_$sourceSelection'",
+      ),
     );
     expect(
       importActions,

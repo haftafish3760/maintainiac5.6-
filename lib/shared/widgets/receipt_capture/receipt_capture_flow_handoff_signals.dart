@@ -79,10 +79,13 @@ List<String> _ocrSourceDocumentSignalsFor(
       final editAction = _signalToken(
         diagnostics['photoEditAction']?.toString() ?? 'manual_edit',
       );
+      final sourceSelection = diagnostics['photoEditReplacedOriginal'] == true
+          ? 'edited_copy_selected'
+          : 'original_source_retained';
       signals.add('review_photo_edited');
       signals.add('review_photo_edit_$editAction');
       signals.add('review_photo_edit_source_selected');
-      signals.add('review_photo_edit_source_selected_$editAction');
+      signals.add('review_photo_edit_source_selected_$sourceSelection');
       if (diagnostics['photoEditReplacedOriginal'] == true) {
         signals.add('review_photo_edit_replaced_original');
         signals.add('review_photo_edit_replaced_original_$editAction');
