@@ -258,6 +258,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_payment_contract.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'job_contract',
+        module: MaintainiacQaModule.jobs,
+        description:
+            'Reusable job contract validates confirmed estimate and receipt-backed job materials, audit IDs, local-first material changes, user confirmation, and read-only derived job summaries.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_job_contract.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:
@@ -286,11 +294,8 @@ class MaintainiacQaReadinessLedger {
         module: MaintainiacQaModule.jobs,
         description:
             'Every app module gets executable suites on top of the shared backbone.',
-        status: MaintainiacQaReadinessStatus.partial,
+        status: MaintainiacQaReadinessStatus.ready,
         evidence: ['maintainiac_module_suite_contract.dart'],
-        gaps: [
-          'Jobs suite is scaffolded and needs dedicated executable tests.',
-        ],
       ),
     ]);
   }

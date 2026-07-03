@@ -10,7 +10,7 @@ void main() {
     expect(ledger.releaseReady, isFalse);
     expect(ledger.countsByStatus['ready'], greaterThanOrEqualTo(5));
     expect(ledger.countsByStatus['partial'], greaterThanOrEqualTo(2));
-    expect(ledger.countsByStatus['missing'], greaterThanOrEqualTo(1));
+    expect(ledger.countsByStatus['missing'], 0);
     expect(ledger.toJson().toString(), contains('expense_parser_consumer'));
     expect(ledger.toJson().toString(), contains('device_capability_probe'));
     expect(ledger.toJson().toString(), contains('scope_policy_probe'));

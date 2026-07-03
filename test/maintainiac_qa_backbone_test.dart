@@ -82,6 +82,10 @@ void main() {
       report.results.single.metrics['paymentContract'].toString(),
       contains('seed_payment'),
     );
+    expect(
+      report.results.single.metrics['jobContract'].toString(),
+      contains('job_seed_material'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

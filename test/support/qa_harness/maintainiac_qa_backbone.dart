@@ -18,6 +18,7 @@ import 'maintainiac_pricing_contract.dart';
 import 'maintainiac_module_suite_contract.dart';
 import 'maintainiac_schedule_contract.dart';
 import 'maintainiac_payment_contract.dart';
+import 'maintainiac_job_contract.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
@@ -382,10 +383,33 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in payments.validate()) {
       failures.add(_failure('payment_contract_$issue', issue));
     }
+    const jobs = MaintainiacJobContract(
+      jobId: 'job_seed',
+      accountId: 'acct_1',
+      confirmedEstimateId: 'estimate_seed',
+      materials: [
+        MaintainiacJobMaterialLine(
+          id: 'job_seed_material',
+          source: MaintainiacJobMaterialSource.estimate,
+          sourceId: 'estimate_line_seed',
+          quantity: 1,
+          costCents: 1000,
+          auditId: 'AUD-SEED-JOB-MAT',
+        ),
+      ],
+      summary: MaintainiacJobSummary(
+        jobId: 'job_seed',
+        materialTotalCents: 1000,
+        derivedFrom: ['job_seed_material'],
+      ),
+    );
+    for (final issue in jobs.validate()) {
+      failures.add(_failure('job_contract_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 226,
+      checked: 236,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -416,6 +440,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'moduleSuiteMatrix': moduleSuites.toJson(),
         'scheduleContract': schedule.toJson(),
         'paymentContract': payments.toJson(),
+        'jobContract': jobs.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

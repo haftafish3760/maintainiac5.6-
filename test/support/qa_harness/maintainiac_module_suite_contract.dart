@@ -115,8 +115,9 @@ class MaintainiacModuleSuiteMatrix {
         module: MaintainiacQaModule.jobs,
         label: 'Jobs source and material attachment QA',
         owner: 'maintainiac-qa',
-        status: MaintainiacModuleSuiteStatus.scaffolded,
+        status: MaintainiacModuleSuiteStatus.executable,
         priority: MaintainiacQaCasePriority.core,
+        command: 'flutter test test/maintainiac_job_contract_test.dart',
         behaviors: [
           'Jobs read confirmed estimates and inventory movements.',
           'Job material changes are audited and local-first.',
