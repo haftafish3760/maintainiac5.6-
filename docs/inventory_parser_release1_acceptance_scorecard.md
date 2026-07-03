@@ -173,6 +173,9 @@ hit live Firebase.
 Hive/local storage is the immediate source of truth. Firebase/Firestore is a
 mirror, backup, and sync target, not the brain.
 
+Firebase/Firestore is a mirror.
+Firebase mirror sync should happen as soon as practical.
+
 Rules:
 
 - Saving a confirmed receipt/material/inventory action must commit locally first.

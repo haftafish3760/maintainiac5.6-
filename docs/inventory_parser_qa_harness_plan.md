@@ -30,6 +30,7 @@ Shared platform pieces should stay domain-neutral where practical: queueing, bat
 - `test/support/parser_qa_platform/`: shared parser QA platform code that must be reusable by non-inventory adapters.
 - `test/support/parser_qa_platform/parser_qa_domain_adapter.dart`: reusable parser-domain adapter contract for inventory now and maintenance/future parsers later, including artifact prefix, fixture root, supported result uses, and forbidden live/OCR/camera/Firebase boundaries.
 - `test/support/work_supply_parser_qa/`: shared QA harness models, loaders, suites, reporting helpers.
+- `docs/inventory_parser_release1_acceptance_scorecard.md`: measurable Release 1 parser scorecard for Plumbing, Electrical, and HVAC Core/Standard in English and Spanish, including merchant-agnostic receipt coverage, fake-user review workflows, Hive/local-first save, Firebase mirror behavior, portable parser core, correction learning, barcode evidence, and private receipt validation.
 - `test/support/qa_harness/qa_suite_presets.dart`: shared preset definitions for `quick`, `fixtures`, and `catalog` runs, with unit tests guarding accidental suite drift.
 - `test/fixtures/work_supply_parser/`: committed golden fixtures and regression fixture data.
 - `test/work_supply_parser_qa_harness_test.dart`: bundled test entry point.
@@ -288,6 +289,7 @@ Parser candidates remain review-only. `possibleMatches` must carry ranked altern
 | `recipe_completeness` | `inventory.recipe_completeness_contract` | English recipes; Spanish recipes; Core/Standard priority cells |
 | `service_truck_core` | `inventory.service_truck_core_contract` | everydayCore priority; service-truck signals; Core tier focus |
 | `release_one_pack_balance` | `inventory.release_one_pack_balance` | Core service-truck focus; tier expansion sanity |
+| `release_one_scorecard` | `inventory.release_one_scorecard_contract` | Release 1 parser acceptance scorecard; Merchant-Agnostic Receipt Coverage; Fake-User Parser Review Workflow; Firebase/Firestore is a mirror |
 | `item_metadata_depth` | `inventory.item_metadata_depth` | receipt patterns; negative-match guards; output classification |
 | `vendor_readiness` | `inventory.vendor_readiness` | vendor mappings; merchant-style receipt patterns; SKU/part-number pattern slots |
 | `workflow_routing` | `inventory.workflow_routing` | inventory/job/estimate/invoice routing; tax reporting; markup behavior |

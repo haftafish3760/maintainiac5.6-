@@ -165,6 +165,16 @@ class WorkSupplyParserRequirementCoverageSuite extends QaSuite {
       ['Core service-truck focus', 'tier expansion sanity'],
     ),
     _RequirementCoverage(
+      'release_one_scorecard',
+      'inventory.release_one_scorecard_contract',
+      [
+        'Release 1 parser acceptance scorecard',
+        'Merchant-Agnostic Receipt Coverage',
+        'Fake-User Parser Review Workflow',
+        'Firebase/Firestore is a mirror',
+      ],
+    ),
+    _RequirementCoverage(
       'item_metadata_depth',
       'inventory.item_metadata_depth',
       ['receipt patterns', 'negative-match guards', 'output classification'],
