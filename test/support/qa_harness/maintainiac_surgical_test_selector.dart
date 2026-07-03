@@ -699,6 +699,15 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'release-gate', 'quality-gate', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'release_gate_plan_requires_surgical_blockers',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_release_gate_plan_test.dart',
+    plainName:
+        'release gate plan requires surgical commands for release blockers',
+    reason: 'Run only the release-blocker surgical command guard.',
+    tags: {'release-gate', 'tooling', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'release_gate_plan_requires_surgical_core',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_release_gate_plan_test.dart',

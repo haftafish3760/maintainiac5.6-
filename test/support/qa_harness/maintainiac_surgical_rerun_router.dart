@@ -394,11 +394,12 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
         'release_gate_plan_exposes_core_plan',
         'release_gate_plan_rejects_missing_priority',
         'release_gate_plan_requires_blocker_commands',
+        'release_gate_plan_requires_surgical_blockers',
         'release_gate_plan_requires_surgical_core',
         'main_backbone_parser_visibility',
       },
       reason:
-          'Release gate plan changes need core plan, priorities, blocker commands, surgical core, and backbone checks.',
+          'Release gate plan changes need core plan, priorities, blocker commands, surgical blockers/core, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'module_boundary_gate_changed',

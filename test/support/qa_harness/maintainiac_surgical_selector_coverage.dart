@@ -269,6 +269,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'release gate plan exposes release blocker and core command plan',
         'release gate plan rejects missing name or priorities',
         'release gate plan requires commands for release blockers',
+        'release gate plan requires surgical commands for release blockers',
         'release gate plan requires surgical commands for core checks',
       },
     ),

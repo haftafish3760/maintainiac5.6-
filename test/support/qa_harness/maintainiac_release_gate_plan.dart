@@ -56,10 +56,22 @@ class MaintainiacReleaseGatePlan {
       if (qaCase.testCommand.trim().isEmpty) {
         failures.add('${qaCase.id} required case missing command');
       }
-      if (qaCase.priority == MaintainiacQaCasePriority.core &&
-          qaCase.testCommand.startsWith('flutter test ') &&
-          !qaCase.testCommand.contains(' --plain-name ')) {
-        failures.add('${qaCase.id} core Flutter command must use --plain-name');
+      if (qaCase.testCommand.startsWith('flutter test ')) {
+        if (!qaCase.testCommand.contains(' --plain-name ')) {
+          failures.add(
+            '${qaCase.id} required Flutter command must use --plain-name',
+          );
+        }
+        if (_testFileReferences(qaCase.testCommand).length != 1) {
+          failures.add(
+            '${qaCase.id} required Flutter command must target one test file',
+          );
+        }
+        if (qaCase.testCommand.contains('&&') ||
+            qaCase.testCommand.contains(';') ||
+            qaCase.testCommand.contains('|')) {
+          failures.add('${qaCase.id} required command must not be chained');
+        }
       }
     }
     return failures;
@@ -76,4 +88,11 @@ class MaintainiacReleaseGatePlan {
       'cases': [for (final qaCase in requiredCases) qaCase.toJson()],
     };
   }
+}
+
+List<String> _testFileReferences(String command) {
+  return [
+    for (final token in command.split(RegExp(r'\s+')))
+      if (token.startsWith('test/') && token.endsWith('.dart')) token,
+  ];
 }

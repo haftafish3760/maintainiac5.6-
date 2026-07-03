@@ -65,6 +65,39 @@ void main() {
     );
   });
 
+  test('release gate plan requires surgical commands for release blockers', () {
+    const plan = MaintainiacReleaseGatePlan(
+      name: 'bad_blocker_command',
+      registry: MaintainiacQaCaseRegistry([
+        MaintainiacQaCase(
+          id: 'QA-BAD-BLOCKER-001',
+          title: 'Bad blocker command',
+          module: MaintainiacQaModule.security,
+          behavior: 'This blocker uses a broad chained Flutter command.',
+          evidenceTarget: 'bad_blocker_test',
+          priority: MaintainiacQaCasePriority.releaseBlocker,
+          testCommand:
+              'flutter test test/one_test.dart test/two_test.dart --plain-name "one behavior" && flutter test test/three_test.dart',
+          tags: {'security'},
+        ),
+      ]),
+      requiredPriorities: {MaintainiacQaCasePriority.releaseBlocker},
+    );
+
+    final failures = plan.validate().join('\n');
+
+    expect(
+      failures,
+      contains(
+        'QA-BAD-BLOCKER-001 required Flutter command must target one test file',
+      ),
+    );
+    expect(
+      failures,
+      contains('QA-BAD-BLOCKER-001 required command must not be chained'),
+    );
+  });
+
   test('release gate plan requires surgical commands for core checks', () {
     const plan = MaintainiacReleaseGatePlan(
       name: 'bad_core',
@@ -85,7 +118,9 @@ void main() {
 
     expect(
       plan.validate(),
-      contains('QA-BAD-CORE-001 core Flutter command must use --plain-name'),
+      contains(
+        'QA-BAD-CORE-001 required Flutter command must use --plain-name',
+      ),
     );
   });
 }
