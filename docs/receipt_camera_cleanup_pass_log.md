@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 494 - 00:49:00 EDT to 00:54:00 EDT
+
+Scope:
+- Hardened the active receipt entry draft line model so review previews and
+  in-progress totals use bounded split percentages before save.
+- Added source-level regression coverage for the private entry computed fields
+  that drive line review labels and mixed business/personal totals.
+- Recorded `BUG-RECEIPT-0013` under `business_personal_split`.
+- Archived Pass 485 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for receipt entry computed fields and
+  assisted-review source regression coverage.
+- Passed focused Flutter test
+  `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
+  receipt review exposes classification and attachment flow"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 493 - 00:42:00 EDT to 00:47:00 EDT
 
 Scope:
@@ -22,28 +41,6 @@ Verification:
 - Passed focused Flutter regression
   `test/expense_receipt_line_record_test.dart --plain-name "split receipt lines
   bound malformed business percentages"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 485 - 00:02:00 EDT to 00:06:00 EDT
-
-Scope:
-- Hardened privacy-safe section-order metadata for malformed native/recovery
-  retake diagnostics.
-- Added invalid retake order buckets when final section metadata is before the
-  original section or when a preserved-slot retake claims it moved sections.
-- Added regression coverage proving malformed retake diagnostics are counted in
-  metadata and receipt-reader handoff counts without leaking file paths or
-  receipt text.
-- Recorded `BUG-RECEIPT-0004` under `multi_photo_ordering`.
-- Archived Pass 464 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for section-order metadata,
-  scanner/section-order tests, and the bug ledger gate.
-- Passed focused Flutter test
-  `test/receipt_camera_result_stitch_scanner_test.dart` with 5/5 tests
-  passing.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
 
 ## Pass 484 - 23:59:00 EDT to 00:04:00 EDT

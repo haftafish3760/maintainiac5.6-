@@ -11,7 +11,7 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
   String get subtotalText => subtotal == 0 ? '' : subtotal.toStringAsFixed(2);
   String get businessPercentText {
     if (use != _ExpenseLineUse.split) return '50';
-    final percent = (businessPercent ?? .5) * 100;
+    final percent = _boundedBusinessPercent * 100;
     return percent == percent.roundToDouble()
         ? percent.toInt().toString()
         : percent.toStringAsFixed(2);
@@ -35,8 +35,16 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
     return switch (use) {
       _ExpenseLineUse.business => 1,
       _ExpenseLineUse.personal => 0,
-      _ExpenseLineUse.split => businessPercent ?? .5,
+      _ExpenseLineUse.split => _boundedBusinessPercent,
     };
+  }
+
+  double get _boundedBusinessPercent {
+    final percent = businessPercent;
+    if (percent == null) return .5;
+    if (percent < 0) return 0;
+    if (percent > 1) return 1;
+    return percent;
   }
 
   double get effectivePersonalPercent => 1 - effectiveBusinessPercent;

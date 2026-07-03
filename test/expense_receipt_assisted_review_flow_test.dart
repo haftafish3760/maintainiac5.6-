@@ -10,6 +10,7 @@ void main() {
       final entryScreen = source.entryScreen;
       final entryScaffold = source.entryScaffold;
       final stateActions = source.stateActions;
+      final lineModels = source.lineModels;
       final attachmentPanel = source.attachmentPanel;
       final attachmentOcr = source.attachmentOcr;
       final recap = source.recap;
@@ -68,6 +69,13 @@ void main() {
       expect(entryScreen, contains('_receiptAdjustmentBase'));
       expect(entryScreen, contains('math.max(0, line.businessAmount)'));
       expect(entryScreen, contains('math.max(0, line.personalAmount)'));
+      expect(lineModels, contains('double get _boundedBusinessPercent'));
+      expect(lineModels, contains('if (percent < 0) return 0'));
+      expect(lineModels, contains('if (percent > 1) return 1'));
+      expect(
+        lineModels,
+        contains('_ExpenseLineUse.split => _boundedBusinessPercent'),
+      );
       expect(recap, contains('_ReceiptLineUseSegment'));
       expect(recap, contains('_ReceiptLineUseChip'));
       expect(recap, contains('allocationDetail'));
