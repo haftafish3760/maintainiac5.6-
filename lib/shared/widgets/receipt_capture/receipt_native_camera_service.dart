@@ -67,6 +67,11 @@ class ReceiptNativeCameraService {
           'Maintainiac receipt camera did not capture a receipt photo.',
         );
       }
+      if (_hasDuplicateNativeReceiptPaths(paths)) {
+        throw const ReceiptNativeCameraUnavailableException(
+          'Maintainiac receipt camera returned duplicate receipt photo paths.',
+        );
+      }
       final nativeDiagnostics = receiptNativeCaptureSanitizedDiagnostics(
         result['captureDiagnostics'],
       );
@@ -154,4 +159,12 @@ class ReceiptNativeCameraService {
       );
     }
   }
+}
+
+bool _hasDuplicateNativeReceiptPaths(List<String> paths) {
+  final seen = <String>{};
+  for (final path in paths) {
+    if (!seen.add(path)) return true;
+  }
+  return false;
 }

@@ -160,6 +160,53 @@ void main() {
     expect(result.captureDiagnostics['ocrUsesOriginalFirst'], isTrue);
   });
 
+  test('native service rejects duplicate receipt photo paths', () async {
+    const channel = MethodChannel(
+      'maintainiac/receipt_camera_duplicate_paths_test',
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'captureReceipt');
+          return {
+            'originalPhotoPaths': [
+              '/tmp/duplicate-section.jpg',
+              ' /tmp/duplicate-section.jpg ',
+            ],
+            'temporaryCaptureIds': ['duplicate-a', 'duplicate-b'],
+            'capturedAt': '2026-07-03T10:45:00.000Z',
+            'captureDiagnostics': const {},
+          };
+        });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    const capabilities = ReceiptNativeCameraCapabilities(
+      engine: ReceiptNativeCameraEngine.cameraX,
+      available: true,
+      cameraPermissionGranted: true,
+      hasRearCamera: true,
+    );
+    final config = const ReceiptNativeCameraSettings().sessionFor(
+      deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+      nativeCapabilities: capabilities,
+    );
+
+    await expectLater(
+      const ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(config),
+      throwsA(
+        isA<ReceiptNativeCameraUnavailableException>().having(
+          (error) => error.message,
+          'message',
+          contains('duplicate receipt photo paths'),
+        ),
+      ),
+    );
+  });
+
   test(
     'native service drops unsafe diagnostic numbers before review',
     () async {

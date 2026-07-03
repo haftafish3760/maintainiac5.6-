@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 556 - 06:44:37 EDT to 06:45:41 EDT
+
+Scope:
+- Hardened native receipt capture results so duplicate original photo paths are
+  rejected before they can collapse long-receipt section identity downstream.
+- Added native-service regression coverage for duplicate paths that only differ
+  by storage whitespace.
+- Recorded `BUG-RECEIPT-0072` under `multi_photo_ordering`.
+- Archived Pass 540 out of the live cleanup log.
+
+Verification:
+- Passed targeted Dart format/analyzer for native camera service and native
+  result rejection coverage.
+- Passed focused Flutter file `test/receipt_native_camera_result_rejection_test.dart`.
+
 ## Pass 555 - 06:34:19 EDT to 06:35:43 EDT
 
 Scope:
@@ -244,20 +259,6 @@ Verification:
   reran.
 - Passed targeted format/analyzer, focused camera-result regression,
   bug-ledger, log, doc-size, source-audit, and diff gates.
-
-## Pass 540 - 04:52:32 EDT to 04:53:38 EDT
-
-Scope:
-- Added a source-level UI contract guard proving receipt review layout tweaks
-  keep camera actions wired to add-photo, retake, continue, crop, order, stitch,
-  quality, and capture diagnostics handoff.
-- Archived Pass 520 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Fixed source-bundle path misses in the new guard, then reran.
-- Passed targeted format/analyzer, focused handoff contract regression,
-  cleanup-log gate, doc-size gate, source audit, and diff check.
 
 ## Pass 527 - 01:56:00 EDT to 02:00:00 EDT
 
