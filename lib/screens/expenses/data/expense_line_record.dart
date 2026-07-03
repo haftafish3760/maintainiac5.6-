@@ -367,7 +367,7 @@ class ExpenseReceiptLineRecord {
     return switch (use) {
       ExpenseLineUse.business => 1,
       ExpenseLineUse.personal => 0,
-      ExpenseLineUse.split => businessPercent ?? .5,
+      ExpenseLineUse.split => _clampedPercent(businessPercent) ?? .5,
     };
   }
 

@@ -3,24 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
-## Pass 486 - 00:04:00 EDT to 00:08:00 EDT
+## Pass 493 - 00:42:00 EDT to 00:47:00 EDT
 
 Scope:
-- Hardened native previous-section ghost guide geometry so custom values remain
-  visually usable for long receipt continuation capture.
-- Added semantic bounds for source slice start, source slice height, overlay
-  top, overlay height, and opacity after generic 0..1 fraction cleanup.
-- Added regression coverage proving zero/oversized caller inputs resolve to a
-  visible top ghost slice with bounded opacity.
-- Recorded `BUG-RECEIPT-0005` under `ghost_overlap_stitching`.
-- Archived Pass 466 out of the live cleanup log to keep the active log under
+- Hardened receipt line split allocation math so parser/adaptor-created split
+  lines cannot produce more than 100% business or negative personal amounts.
+- Ensured serialized receipt line maps write bounded split percentages, keeping
+  saved records and downstream reports inside valid financial ranges.
+- Added regression coverage for malformed over- and under-allocated split
+  percentages.
+- Recorded `BUG-RECEIPT-0012` under `business_personal_split`.
+- Archived Pass 486 out of the live cleanup log to keep the active log under
   the project line-count cap.
 
 Verification:
-- Passed targeted Dart format and analyzer for the native ghost guide,
-  session-limit test, and bug ledger gate.
-- Passed focused Flutter test `test/receipt_native_camera_session_limits_test.dart`
-  with 3/3 tests passing.
+- Passed targeted Dart format and analyzer for receipt line records,
+  serialization, and focused line-record regression coverage.
+- Passed focused Flutter regression
+  `test/expense_receipt_line_record_test.dart --plain-name "split receipt lines
+  bound malformed business percentages"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
 
 ## Pass 485 - 00:02:00 EDT to 00:06:00 EDT

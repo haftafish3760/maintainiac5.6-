@@ -47,6 +47,40 @@ void main() {
     expect(split.personalAmount, 35);
   });
 
+  test('split receipt lines bound malformed business percentages', () {
+    const overAllocated = ExpenseReceiptLineRecord(
+      id: 'line-over',
+      description: 'Split receipt items',
+      category: 'Uncategorized',
+      use: ExpenseLineUse.split,
+      businessPercent: 1.4,
+      quantity: 1,
+      unitsPerPackage: 1,
+      unit: 'each',
+      subtotal: 100,
+    );
+    const underAllocated = ExpenseReceiptLineRecord(
+      id: 'line-under',
+      description: 'Split receipt items',
+      category: 'Uncategorized',
+      use: ExpenseLineUse.split,
+      businessPercent: -.2,
+      quantity: 1,
+      unitsPerPackage: 1,
+      unit: 'each',
+      subtotal: 100,
+    );
+
+    expect(overAllocated.businessUseReviewLabel, 'Split 100% business');
+    expect(overAllocated.businessAmount, 100);
+    expect(overAllocated.personalAmount, 0);
+    expect(overAllocated.toMap()['businessPercent'], 1);
+    expect(underAllocated.businessUseReviewLabel, 'Split 0% business');
+    expect(underAllocated.businessAmount, 0);
+    expect(underAllocated.personalAmount, 100);
+    expect(underAllocated.toMap()['businessPercent'], 0);
+  });
+
   test(
     'receipt lines expose numbered price-only and detailed review contracts',
     () {
