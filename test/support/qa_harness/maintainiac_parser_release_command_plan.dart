@@ -25,6 +25,9 @@ class MaintainiacParserReleaseCommand {
     if (!command.startsWith('flutter test ')) {
       failures.add('$id must use focused flutter test command');
     }
+    if (!command.contains(' --plain-name ')) {
+      failures.add('$id must use individual plain-name command');
+    }
     if (reason.trim().isEmpty) failures.add('$id missing reason');
     if (coveredFamilies.isEmpty) failures.add('$id missing covered families');
     final lower = command.toLowerCase();
@@ -128,7 +131,8 @@ const maintainiacParserReleaseCommandPlan = MaintainiacParserReleaseCommandPlan(
   MaintainiacParserReleaseCommand(
     id: 'parser_consumer_gate_smoke',
     tier: MaintainiacParserCommandTier.smoke,
-    command: 'flutter test test/maintainiac_parser_consumer_gate_test.dart',
+    command:
+        'flutter test test/maintainiac_parser_consumer_gate_test.dart --plain-name "parser consumer gate validates inventory and expense consumers together"',
     reason:
         'Fast proof that inventory and expense parser consumers stay wired.',
     coveredFamilies: {
@@ -142,7 +146,7 @@ const maintainiacParserReleaseCommandPlan = MaintainiacParserReleaseCommandPlan(
     id: 'inventory_consumer_focused',
     tier: MaintainiacParserCommandTier.focused,
     command:
-        'flutter test test/maintainiac_inventory_parser_consumer_test.dart',
+        'flutter test test/maintainiac_inventory_parser_consumer_test.dart --plain-name "inventory parser consumer labels broad release-one QA families"',
     reason: 'Focused inventory parser consumer contract and file coverage.',
     coveredFamilies: {
       'catalog_schema_metadata',
@@ -162,7 +166,8 @@ const maintainiacParserReleaseCommandPlan = MaintainiacParserReleaseCommandPlan(
   MaintainiacParserReleaseCommand(
     id: 'expense_consumer_focused',
     tier: MaintainiacParserCommandTier.focused,
-    command: 'flutter test test/maintainiac_expense_parser_consumer_test.dart',
+    command:
+        'flutter test test/maintainiac_expense_parser_consumer_test.dart --plain-name "expense parser consumer labels broad release-one QA families"',
     reason: 'Focused expense parser consumer contract and file coverage.',
     coveredFamilies: {
       'parser_result_review',
@@ -178,7 +183,8 @@ const maintainiacParserReleaseCommandPlan = MaintainiacParserReleaseCommandPlan(
   MaintainiacParserReleaseCommand(
     id: 'backbone_release_parser_consumers',
     tier: MaintainiacParserCommandTier.release,
-    command: 'flutter test test/maintainiac_qa_backbone_test.dart',
+    command:
+        'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone covers whole app modules"',
     reason:
         'Release gate proves parser consumers are visible from the main QA backbone.',
     coveredFamilies: {

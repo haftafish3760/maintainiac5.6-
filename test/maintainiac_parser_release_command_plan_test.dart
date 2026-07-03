@@ -18,6 +18,10 @@ void main() {
     );
     expect(plan.commandsFor(MaintainiacParserCommandTier.release), isNotEmpty);
     expect(
+      plan.commands.every((entry) => entry.command.contains(' --plain-name ')),
+      isTrue,
+    );
+    expect(
       plan.toJson().toString(),
       contains('maintainiac_parser_consumer_gate_test.dart'),
     );
@@ -46,6 +50,7 @@ void main() {
 
       expect(failures, contains('bad missing reason'));
       expect(failures, contains('bad missing covered families'));
+      expect(failures, contains('bad must use individual plain-name command'));
       expect(failures, contains('outside OCR/camera'));
       expect(failures, contains('missing focused tier'));
       expect(failures, contains('missing release tier'));
