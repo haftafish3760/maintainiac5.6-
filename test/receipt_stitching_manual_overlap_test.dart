@@ -79,4 +79,26 @@ void main() {
       expect(result.ocrSourcePaths, [first.path, second.path]);
     },
   );
+
+  test('manual overlap fraction rejects non-finite values safely', () async {
+    final first = await writeTempReceiptStitchingImage(
+      receiptStitchingSection(seed: 8, topTextOffset: 0),
+      'manual_non_finite_a',
+    );
+    final second = await writeTempReceiptStitchingImage(
+      receiptStitchingSection(seed: 10, topTextOffset: 0),
+      'manual_non_finite_b',
+    );
+
+    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+      paths: [first.path, second.path],
+      manualOverlapFractions: const [double.infinity],
+    );
+
+    expect(result.usedFallback, isTrue);
+    expect(result.fallbackReasonCode, 'manual_overlap_unsafe');
+    expect(result.diagnosticReasonLabel, 'manual_overlap_unsafe');
+    expect(result.failedPairIndex, 0);
+    expect(result.ocrSourcePaths, [first.path, second.path]);
+  });
 }

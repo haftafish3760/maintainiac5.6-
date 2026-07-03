@@ -230,6 +230,7 @@ int? _manualOverlapFor({
   if (manualOverlapFractions != null &&
       pairIndex < manualOverlapFractions.length) {
     final fraction = manualOverlapFractions[pairIndex];
+    if (!fraction.isFinite) return -1;
     if (fraction <= 0) return null;
     final shortest = math.min(previous.height, next.height);
     return (shortest * fraction).round();
