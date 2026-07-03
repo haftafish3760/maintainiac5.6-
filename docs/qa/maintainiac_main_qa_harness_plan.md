@@ -180,6 +180,13 @@ The backbone includes a mutation guard:
 - Source operations must declare the exact source collections they are allowed to write.
 - This protects Hive/local source-of-truth records from side effects.
 
+## Failure Taxonomy Probe
+
+The backbone includes a failure taxonomy probe:
+
+- Routes failures into schema, privacy, security, sync, money, permissions, source mutation, parser, performance, fixture, or unknown buckets.
+- Helps QA reports explain what kind of failure happened and what team/module should handle it.
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:
