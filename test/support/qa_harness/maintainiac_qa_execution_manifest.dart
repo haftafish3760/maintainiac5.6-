@@ -57,6 +57,11 @@ class MaintainiacQaExecution {
         !command.startsWith('dart run ')) {
       failures.add('$id command must be a focused flutter test or dart run');
     }
+    if (cadence == MaintainiacQaCadence.focused &&
+        command.startsWith('flutter test ') &&
+        !command.contains(' --plain-name ')) {
+      failures.add('$id focused Flutter command must use --plain-name');
+    }
     if (owner.trim().isEmpty) failures.add('$id missing owner');
     if (proves.trim().isEmpty) failures.add('$id missing behavior it proves');
     if (failureAction.trim().isEmpty) {

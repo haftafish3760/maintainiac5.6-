@@ -108,7 +108,8 @@ class MaintainiacQaCaseRegistry {
             'Parser and harness lanes can prove they did not drift into camera, OCR provider, or live Firebase code.',
         evidenceTarget: 'maintainiac_source_boundary_test',
         priority: MaintainiacQaCasePriority.core,
-        testCommand: 'flutter test test/maintainiac_source_boundary_test.dart',
+        testCommand:
+            'flutter test test/maintainiac_source_boundary_test.dart --plain-name "source boundary scanner catches forbidden live-service code"',
         tags: {'boundary', 'ocr-off-limits', 'firebase'},
       ),
       MaintainiacQaCase(
@@ -120,7 +121,7 @@ class MaintainiacQaCaseRegistry {
         evidenceTarget: 'work_supply_parser_generated_fixture_runner_test',
         priority: MaintainiacQaCasePriority.core,
         testCommand:
-            'flutter test test/work_supply_parser_generated_fixture_runner_test.dart',
+            'flutter test test/work_supply_parser_generated_fixture_runner_test.dart --plain-name "generated parser fixture batch matches expected safety contracts"',
         tags: {
           'inventory',
           'parser',
@@ -162,7 +163,7 @@ class MaintainiacQaCaseRegistry {
         evidenceTarget: 'maintainiac_device_capability_test',
         priority: MaintainiacQaCasePriority.core,
         testCommand:
-            'flutter test test/maintainiac_device_capability_test.dart',
+            'flutter test test/maintainiac_device_capability_test.dart --plain-name "device capability probe falls back for low-storage older phones"',
         tags: {'device', 'storage', 'pack-delivery'},
       ),
       MaintainiacQaCase(
@@ -217,7 +218,8 @@ class MaintainiacQaCaseRegistry {
             'QA failures are classified into stable categories so reports can route issues instead of emitting vague failure text.',
         evidenceTarget: 'maintainiac_failure_taxonomy_test',
         priority: MaintainiacQaCasePriority.core,
-        testCommand: 'flutter test test/maintainiac_failure_taxonomy_test.dart',
+        testCommand:
+            'flutter test test/maintainiac_failure_taxonomy_test.dart --plain-name "failure taxonomy classifies common QA failure families"',
         tags: {'failure-routing', 'admin-report', 'triage'},
       ),
     ]);

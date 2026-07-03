@@ -47,6 +47,10 @@ void main() {
 
     expect(focusedCommands.toSet(), hasLength(focusedCommands.length));
     expect(releaseCommands.toSet(), hasLength(releaseCommands.length));
+    expect(
+      focusedCommands.every((command) => command.contains(' --plain-name ')),
+      isTrue,
+    );
     expect(focusedCommands.join('\n'), contains('maintainiac_source_boundary'));
     expect(releaseCommands.join('\n'), contains('maintainiac_qa_backbone'));
   });
@@ -71,6 +75,10 @@ void main() {
     expect(
       manifest.validate().join('\n'),
       contains('must not allow live services'),
+    );
+    expect(
+      manifest.validate().join('\n'),
+      contains('focused Flutter command must use --plain-name'),
     );
   });
 }
