@@ -63,6 +63,17 @@ void main() {
         priority: MaintainiacQaCasePriority.core,
         tags: {'registry'},
       ),
+      MaintainiacQaCase(
+        id: 'QA-BAD-COMMAND-001',
+        title: 'Bad command',
+        module: MaintainiacQaModule.expenses,
+        behavior: 'Unsafe QA case commands must fail.',
+        evidenceTarget: 'bad.command',
+        priority: MaintainiacQaCasePriority.core,
+        testCommand:
+            'flutter test test/one_test.dart test/two_test.dart --plain-name "one behavior" && flutter test test/three_test.dart',
+        tags: {'registry'},
+      ),
     ]);
 
     final failures = registry.validate();
@@ -78,6 +89,14 @@ void main() {
       contains(
         'QA-BAD-EVIDENCE-001 evidence target must be dot-delimited snake case',
       ),
+    );
+    expect(
+      failures,
+      contains('QA-BAD-COMMAND-001 test command must target one test file'),
+    );
+    expect(
+      failures,
+      contains('QA-BAD-COMMAND-001 test command must not be chained'),
     );
   });
 }

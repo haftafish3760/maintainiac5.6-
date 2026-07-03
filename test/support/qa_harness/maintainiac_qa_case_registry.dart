@@ -44,6 +44,16 @@ class MaintainiacQaCase {
     if (tags.any((tag) => tag.trim().isEmpty)) {
       failures.add('$id has blank tag');
     }
+    if (testCommand.startsWith('flutter test ')) {
+      if (_testFileReferences(testCommand).length != 1) {
+        failures.add('$id test command must target one test file');
+      }
+      if (testCommand.contains('&&') ||
+          testCommand.contains(';') ||
+          testCommand.contains('|')) {
+        failures.add('$id test command must not be chained');
+      }
+    }
     return failures;
   }
 
@@ -59,6 +69,13 @@ class MaintainiacQaCase {
       'tags': tags.toList()..sort(),
     };
   }
+}
+
+List<String> _testFileReferences(String command) {
+  return [
+    for (final token in command.split(RegExp(r'\s+')))
+      if (token.startsWith('test/') && token.endsWith('.dart')) token,
+  ];
 }
 
 class MaintainiacQaCaseRegistry {
