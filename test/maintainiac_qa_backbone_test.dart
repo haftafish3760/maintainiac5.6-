@@ -162,6 +162,10 @@ void main() {
       report.results.single.metrics['sensitiveFieldRegistry'].toString(),
       contains('passengerPatient'),
     );
+    expect(
+      report.results.single.metrics['sourceAuditPolicy'].toString(),
+      contains('production_dart_modularity'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

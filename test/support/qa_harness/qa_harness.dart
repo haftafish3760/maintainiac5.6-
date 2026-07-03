@@ -48,6 +48,7 @@ export 'maintainiac_payment_contract.dart';
 export 'maintainiac_performance_budget_registry.dart';
 export 'maintainiac_pricing_contract.dart';
 export 'maintainiac_source_boundary.dart';
+export 'maintainiac_source_audit_policy.dart';
 export 'maintainiac_source_truth_gate.dart';
 export 'maintainiac_surgical_rerun_router.dart';
 export 'maintainiac_surgical_selector_coverage.dart';

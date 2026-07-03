@@ -35,6 +35,7 @@ import 'maintainiac_sensitive_field_registry.dart';
 import 'maintainiac_payment_contract.dart';
 import 'maintainiac_job_contract.dart';
 import 'maintainiac_source_truth_gate.dart';
+import 'maintainiac_source_audit_policy.dart';
 import 'maintainiac_surgical_rerun_router.dart';
 import 'maintainiac_surgical_selector_coverage.dart';
 import 'maintainiac_surgical_test_selector.dart';
@@ -455,6 +456,9 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacSourceTruthGate.validate()) {
       failures.add(_failure('source_truth_gate_$issue', issue));
     }
+    for (final issue in maintainiacSourceAuditPolicy.validate()) {
+      failures.add(_failure('source_audit_policy_$issue', issue));
+    }
     for (final issue in maintainiacDerivedOutputContract.validate()) {
       failures.add(_failure('derived_output_contract_$issue', issue));
     }
@@ -485,7 +489,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: 616,
+      checked: 636,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -533,6 +537,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
             .toJson(),
         'individualTestManifest': maintainiacIndividualTestManifest.toJson(),
         'sourceTruthGate': maintainiacSourceTruthGate.toJson(),
+        'sourceAuditPolicy': maintainiacSourceAuditPolicy.toJson(),
         'derivedOutputContract': maintainiacDerivedOutputContract.toJson(),
         'financialFormulaRegistry': maintainiacFinancialFormulaRegistry
             .toJson(),
