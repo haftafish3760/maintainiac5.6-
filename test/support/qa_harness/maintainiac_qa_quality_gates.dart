@@ -103,6 +103,34 @@ enum MaintainiacReleaseEvidenceScenario {
   nonApplicableReason,
 }
 
+enum MaintainiacAccessibilityLocalizationScenario {
+  screenReaderLabels,
+  colorContrast,
+  touchTargetSize,
+  keyboardNavigation,
+  reduceMotion,
+  textScaling,
+  englishLocale,
+  spanishLocale,
+  frenchLocale,
+  metricUnits,
+  imperialUnits,
+  translatedReviewReasons,
+}
+
+enum MaintainiacCostQuotaScenario {
+  noLiveFirebaseInLocalQa,
+  batchedFirestoreReads,
+  batchedFirestoreWrites,
+  cloudAssistOptIn,
+  offlineCacheHit,
+  packDownloadResume,
+  quotaBudgetPerRun,
+  noRawReceiptTelemetry,
+  emulatorBeforeLive,
+  adminReportReadLimit,
+}
+
 class MaintainiacQualityGateMatrix {
   const MaintainiacQualityGateMatrix({
     required this.sync,
@@ -112,6 +140,8 @@ class MaintainiacQualityGateMatrix {
     required this.regression,
     required this.persistenceChaos,
     required this.releaseEvidence,
+    required this.accessibilityLocalization,
+    required this.costQuota,
   });
 
   factory MaintainiacQualityGateMatrix.releaseOne() {
@@ -123,6 +153,10 @@ class MaintainiacQualityGateMatrix {
       regression: MaintainiacRegressionScenario.values.toSet(),
       persistenceChaos: MaintainiacPersistenceChaosScenario.values.toSet(),
       releaseEvidence: MaintainiacReleaseEvidenceScenario.values.toSet(),
+      accessibilityLocalization: MaintainiacAccessibilityLocalizationScenario
+          .values
+          .toSet(),
+      costQuota: MaintainiacCostQuotaScenario.values.toSet(),
     );
   }
 
@@ -133,6 +167,9 @@ class MaintainiacQualityGateMatrix {
   final Set<MaintainiacRegressionScenario> regression;
   final Set<MaintainiacPersistenceChaosScenario> persistenceChaos;
   final Set<MaintainiacReleaseEvidenceScenario> releaseEvidence;
+  final Set<MaintainiacAccessibilityLocalizationScenario>
+  accessibilityLocalization;
+  final Set<MaintainiacCostQuotaScenario> costQuota;
 
   List<String> validate() {
     final failures = <String>[];
@@ -182,6 +219,20 @@ class MaintainiacQualityGateMatrix {
           .toSet(),
       releaseEvidence.map((value) => value.name).toSet(),
     );
+    _requireAll(
+      failures,
+      'accessibilityLocalization',
+      MaintainiacAccessibilityLocalizationScenario.values
+          .map((value) => value.name)
+          .toSet(),
+      accessibilityLocalization.map((value) => value.name).toSet(),
+    );
+    _requireAll(
+      failures,
+      'costQuota',
+      MaintainiacCostQuotaScenario.values.map((value) => value.name).toSet(),
+      costQuota.map((value) => value.name).toSet(),
+    );
     return failures;
   }
 
@@ -196,6 +247,9 @@ class MaintainiacQualityGateMatrix {
         ..sort(),
       'releaseEvidence': releaseEvidence.map((value) => value.name).toList()
         ..sort(),
+      'accessibilityLocalization':
+          accessibilityLocalization.map((value) => value.name).toList()..sort(),
+      'costQuota': costQuota.map((value) => value.name).toList()..sort(),
     };
   }
 }

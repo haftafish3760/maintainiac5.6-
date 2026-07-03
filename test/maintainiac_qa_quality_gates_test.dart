@@ -11,6 +11,8 @@ void main() {
     expect(gates.toJson().toString(), contains('propertyFuzzTesting'));
     expect(gates.toJson().toString(), contains('interruptedPackDownload'));
     expect(gates.toJson().toString(), contains('focusedRerunCommand'));
+    expect(gates.toJson().toString(), contains('spanishLocale'));
+    expect(gates.toJson().toString(), contains('quotaBudgetPerRun'));
   });
 
   test('quality gate matrix rejects partial release dimensions', () {
@@ -22,6 +24,10 @@ void main() {
       regression: {MaintainiacRegressionScenario.goldenRegressionCorpus},
       persistenceChaos: {MaintainiacPersistenceChaosScenario.lowStorage},
       releaseEvidence: {MaintainiacReleaseEvidenceScenario.fixtureSource},
+      accessibilityLocalization: {
+        MaintainiacAccessibilityLocalizationScenario.englishLocale,
+      },
+      costQuota: {MaintainiacCostQuotaScenario.noLiveFirebaseInLocalQa},
     );
 
     final failures = gates.validate().join('\n');
@@ -33,5 +39,7 @@ void main() {
     expect(failures, contains('regression missing'));
     expect(failures, contains('persistenceChaos missing'));
     expect(failures, contains('releaseEvidence missing'));
+    expect(failures, contains('accessibilityLocalization missing'));
+    expect(failures, contains('costQuota missing'));
   });
 }
