@@ -165,9 +165,9 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       pairs: pairResults,
       stitchedWidth: targetWidth,
       stitchedHeight: expectedHeight,
-      usedManualAdjustment:
-          (manualOverlapPixels != null && manualOverlapPixels.isNotEmpty) ||
-          (manualOverlapFractions != null && manualOverlapFractions.isNotEmpty),
+      usedManualAdjustment: pairResults.any(
+        (pair) => pair.usedManualAdjustment,
+      ),
     );
   } catch (_) {
     return ReceiptStitchResult.fallback(
