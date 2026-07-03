@@ -20,11 +20,33 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
         'inventory.catalog_batch_memory_contract,qa.threshold_gate',
     'inventory.item_metadata_depth': 'inventory.item_metadata_depth',
     'inventory.vendor_readiness': 'inventory.vendor_readiness',
+    'inventory.vendor_sku_matrix_contract':
+        'inventory.vendor_sku_matrix_contract',
+    'inventory.barcode_inventory_identity_contract':
+        'inventory.barcode_inventory_identity_contract',
+    'inventory.legal_safety_contract': 'inventory.legal_safety_contract',
+    'inventory.service_truck_core_contract':
+        'inventory.service_truck_core_contract',
+    'inventory.release_one_pack_balance': 'inventory.release_one_pack_balance',
+    'inventory.release_one_residential_contract':
+        'inventory.release_one_residential_contract',
+    'inventory.release_one_cell_manifest':
+        'inventory.release_one_cell_manifest',
+    'inventory.language_pack_separation_contract':
+        'inventory.language_pack_separation_contract',
     'inventory.spanish_release_one': 'inventory.spanish_release_one',
+    'inventory.hive_authority_contract': 'inventory.hive_authority_contract',
+    'inventory.hive_firestore_sync_contract':
+        'inventory.hive_firestore_sync_contract',
+    'inventory.review_safety_contract': 'inventory.review_safety_contract',
+    'inventory.receipt_source_immutability_contract':
+        'inventory.receipt_source_immutability_contract',
     'inventory.fixture_coverage_matrix': 'inventory.fixture_coverage_matrix',
     'inventory.security_privacy': 'inventory.security_privacy',
     'inventory.boundary_guard': 'inventory.boundary_guard',
-    'inventory.no_live_services_contract': 'inventory.no_live_services_contract',
+    'inventory.parser_platform_contract': 'inventory.parser_platform_contract',
+    'inventory.no_live_services_contract':
+        'inventory.no_live_services_contract',
   };
 
   static const _requiredRunnerTokens = {
@@ -85,7 +107,8 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
       failures.add(
         _failure(
           id: 'missing_generated_runner_token:$token',
-          message: 'Generated fixture runner is missing a surgical rerun token.',
+          message:
+              'Generated fixture runner is missing a surgical rerun token.',
           expected: token,
           actual: 'not found in $_runnerPath',
           fix:
@@ -101,7 +124,8 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
       failures.add(
         _failure(
           id: 'missing_harness_filter_token:$token',
-          message: 'Parser QA harness is missing focused suite filtering support.',
+          message:
+              'Parser QA harness is missing focused suite filtering support.',
           expected: token,
           actual: 'not found in $_harnessPath',
           fix:
@@ -117,7 +141,8 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
       failures.add(
         _failure(
           id: 'missing_gate_skip_token:${_safeId(token)}',
-          message: 'Gate ledger/skip tooling is missing rerun-avoidance evidence.',
+          message:
+              'Gate ledger/skip tooling is missing rerun-avoidance evidence.',
           expected: token,
           actual: 'not found in gate ledger tools',
           fix:

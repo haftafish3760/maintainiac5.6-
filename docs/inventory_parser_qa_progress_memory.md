@@ -58,6 +58,35 @@ scope still enforced by adjacent suites.
 - focusedRerun: flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.service_truck_core_contract,inventory.release_one_residential_contract,inventory.release_one_pack_balance,inventory.spanish_release_one,qa.threshold_gate
 - doNotRerunUnless: service-truck signals, release-one pack balance, Spanish release-one coverage, catalog Core/Standard metadata, or progress memory changes
 
+Focused rerun routes for recently hardened release-one contracts:
+
+- inventory.vendor_sku_matrix_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.vendor_sku_matrix_contract,qa.threshold_gate`
+- inventory.barcode_inventory_identity_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.barcode_inventory_identity_contract,qa.threshold_gate`
+- inventory.legal_safety_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.legal_safety_contract,qa.threshold_gate`
+- inventory.service_truck_core_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.service_truck_core_contract,qa.threshold_gate`
+- inventory.release_one_pack_balance:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_pack_balance,qa.threshold_gate`
+- inventory.release_one_residential_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_residential_contract,qa.threshold_gate`
+- inventory.release_one_cell_manifest:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_cell_manifest,qa.threshold_gate`
+- inventory.language_pack_separation_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.language_pack_separation_contract,qa.threshold_gate`
+- inventory.hive_authority_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.hive_authority_contract,qa.threshold_gate`
+- inventory.hive_firestore_sync_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.hive_firestore_sync_contract,qa.threshold_gate`
+- inventory.review_safety_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.review_safety_contract,qa.threshold_gate`
+- inventory.receipt_source_immutability_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.receipt_source_immutability_contract,qa.threshold_gate`
+- inventory.parser_platform_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.parser_platform_contract,qa.threshold_gate`
+
 The all-tier residential generated-fixture parser wave completed locally.
 
 - suiteId: inventory.generated_fixture_cell_contract
