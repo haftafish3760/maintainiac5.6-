@@ -24,6 +24,29 @@ Verification:
   rejects duplicate current section paths"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
 
+## Pass 520 - 01:25:00 EDT to 01:25:37 EDT
+
+Scope:
+- Hardened camera-result per-photo diagnostics so duplicate camera result paths
+  or duplicate requested paths cannot attach first-section quality evidence to
+  the wrong long-receipt section.
+- Hardened reviewed-photo quality handoff so duplicate path lists do not attach
+  ambiguous per-path quality checks.
+- Added camera-result and source lifecycle regressions for duplicate photo path
+  evidence.
+- Recorded `BUG-RECEIPT-0038` under `camera_capture_quality`.
+- Archived Pass 495 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for camera result diagnostics,
+  reviewed-photo handoff models, camera-result regression coverage, and
+  lifecycle source regression coverage.
+- Passed focused Flutter tests `test/receipt_camera_result_best_shot_ocr_test.dart`
+  and `test/receipt_photo_review_save_lifecycle_test.dart`.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 519 - 01:43:00 EDT to 01:48:00 EDT
 
 Scope:
@@ -473,23 +496,4 @@ Verification:
   focused warning diagnostics regression coverage.
 - Passed focused Flutter test
   `test/receipt_camera_saved_photo_warning_diagnostics_test.dart`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 495 - 01:03:00 EDT to 01:07:00 EDT
-
-Scope:
-- Hardened the receipt line editor split-percent parser so negative values keep
-  their sign until the clamp step instead of becoming positive percentages.
-- Added regression coverage that blocks the old non-digit stripping behavior and
-  keeps percent-sign normalization explicit.
-- Recorded `BUG-RECEIPT-0014` under `business_personal_split`.
-- Archived Pass 484 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for the receipt line editor derived
-  fields and assisted-review source regression coverage.
-- Passed focused Flutter test
-  `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
-  receipt review exposes classification and attachment flow"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.

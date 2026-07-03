@@ -25,10 +25,13 @@ class _PickedReceiptPhotos {
     List<String> paths,
   ) {
     final checks = <String, ReceiptPhotoQualityCheck>{};
-    for (final path in paths) {
-      final index = result.photoPaths.indexOf(path);
-      final quality = result.qualityForIndex(index);
-      if (quality != null) checks[path] = quality;
+    if (_pickedReceiptPhotoPathsAreUnique(result.photoPaths) &&
+        _pickedReceiptPhotoPathsAreUnique(paths)) {
+      for (final path in paths) {
+        final index = result.photoPaths.indexOf(path);
+        final quality = result.qualityForIndex(index);
+        if (quality != null) checks[path] = quality;
+      }
     }
     return _PickedReceiptPhotos(
       paths: paths,
@@ -102,4 +105,12 @@ class _PickedReceiptPhotos {
   final Map<String, ReceiptPhotoQualityCheck> qualityChecksByPath;
   final Map<String, Map<String, Object?>> captureDiagnosticsByPath;
   final bool wasCanceled;
+}
+
+bool _pickedReceiptPhotoPathsAreUnique(List<String> paths) {
+  final seen = <String>{};
+  for (final path in paths) {
+    if (!seen.add(path)) return false;
+  }
+  return true;
 }

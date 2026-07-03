@@ -52,10 +52,14 @@ class ReceiptCameraResult {
   ) {
     final evidence = captureEvidence;
     if (evidence == null) return const {};
+    if (!_receiptCameraPathsAreUnique(photoPaths) ||
+        !_receiptCameraPathsAreUnique(paths)) {
+      return const {};
+    }
     final diagnostics = <String, Map<String, Object?>>{};
-    for (final path in paths) {
+    for (var fallbackIndex = 0; fallbackIndex < paths.length; fallbackIndex++) {
+      final path = paths[fallbackIndex];
       final index = photoPaths.indexOf(path);
-      final fallbackIndex = paths.indexOf(path);
       final photoIndex = index < 0 ? fallbackIndex : index;
       diagnostics[path] = evidence.toCaptureDiagnostics(
         quality: qualityForIndex(photoIndex),
@@ -80,6 +84,14 @@ class ReceiptCameraResult {
     if (index < 0 || index >= qualityChecks.length) return null;
     return qualityChecks[index];
   }
+}
+
+bool _receiptCameraPathsAreUnique(List<String> paths) {
+  final seen = <String>{};
+  for (final path in paths) {
+    if (!seen.add(path)) return false;
+  }
+  return true;
 }
 
 class ReceiptCameraCaptureEvidence {

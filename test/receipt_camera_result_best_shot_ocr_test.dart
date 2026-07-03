@@ -168,6 +168,69 @@ void main() {
     expect(photoDiagnostics.toString().toLowerCase(), isNot(contains('7.99')));
   });
 
+  test('camera result rejects ambiguous duplicate photo diagnostic paths', () {
+    const firstQuality = ReceiptPhotoQualityCheck(
+      width: 1400,
+      height: 2200,
+      focusScore: 14,
+      brightness: 142,
+      isLikelyReadable: true,
+    );
+    const secondQuality = ReceiptPhotoQualityCheck(
+      width: 1400,
+      height: 2200,
+      focusScore: 5,
+      brightness: 48,
+      isLikelyReadable: false,
+    );
+    const evidence = ReceiptCameraCaptureEvidence(
+      captureSurface: 'maintainiac_native_android',
+      captureFlow: 'assisted',
+      resolutionTier: 'high',
+      resolutionPreset: 'veryHigh',
+      flashMode: 'off',
+      exposureMode: 'auto',
+      focusMode: 'continuous',
+      exposurePointSupported: true,
+      focusPointSupported: true,
+      exposureOffset: 0,
+      minExposureOffset: -2,
+      maxExposureOffset: 2,
+      zoomLevel: 1.4,
+      minZoomLevel: 1,
+      maxZoomLevel: 10,
+      previewWidth: 1920,
+      previewHeight: 1080,
+      liveBrightness: 140,
+      liveContrast: 22,
+      liveFocusScore: 10,
+      liveReadiness: 'ready',
+      imageStreamActiveAtCapture: true,
+    );
+    const duplicateResult = ReceiptCameraResult.single(
+      ['/tmp/section.jpg', '/tmp/section.jpg'],
+      qualityChecks: [firstQuality, secondQuality],
+      captureEvidence: evidence,
+    );
+    const uniqueResult = ReceiptCameraResult.single(
+      ['/tmp/section-a.jpg', '/tmp/section-b.jpg'],
+      qualityChecks: [firstQuality, secondQuality],
+      captureEvidence: evidence,
+    );
+
+    expect(
+      duplicateResult.captureDiagnosticsByPhotoPath(const ['/tmp/section.jpg']),
+      isEmpty,
+    );
+    expect(
+      uniqueResult.captureDiagnosticsByPhotoPath(const [
+        '/tmp/section-a.jpg',
+        '/tmp/section-a.jpg',
+      ]),
+      isEmpty,
+    );
+  });
+
   test('photo quality gives clear dark and glare retake guidance', () {
     const dark = ReceiptPhotoQualityCheck(
       width: 1400,

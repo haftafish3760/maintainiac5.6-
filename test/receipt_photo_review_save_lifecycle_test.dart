@@ -148,6 +148,14 @@ void main() {
       saveActions,
       contains('static _PickedReceiptPhotos fromNativePhotoPaths'),
     );
+    expect(
+      saveActions,
+      contains('bool _pickedReceiptPhotoPathsAreUnique(List<String> paths)'),
+    );
+    expect(
+      saveActions,
+      contains('_pickedReceiptPhotoPathsAreUnique(result.photoPaths)'),
+    );
     expect(saveActions, contains('qualityChecksByPath: const {},'));
     expect(
       saveActions,
