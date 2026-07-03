@@ -4,6 +4,42 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models
 import 'helpers/receipt_camera_result_frozen_fixture.dart';
 
 void main() {
+  test(
+    'native review depth does not downgrade detailed multi-photo intent',
+    () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/section-1.jpg', '/tmp/section-2.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/section-1.jpg', '/tmp/section-2.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: const ReceiptStitchResult.notNeeded([
+          '/tmp/section-1.jpg',
+          '/tmp/section-2.jpg',
+        ]),
+        captureDiagnosticsByPhotoPath: const {
+          '/tmp/section-1.jpg': {'reviewDepth': 'pricesOnly'},
+          '/tmp/section-2.jpg': {'reviewDepth': 'detailedLines'},
+        },
+      );
+
+      expect(result.nativeReceiptReviewDepth, 'detailedLines');
+      expect(result.nativeReceiptReviewDepthCounts, {
+        'pricesOnly': 1,
+        'detailedLines': 1,
+      });
+      expect(
+        result.privacySafeReceiptReaderHandoffMetadata,
+        containsPair('nativeReceiptReviewDepth', 'detailedLines'),
+      );
+      expect(
+        result.privacySafeReceiptReaderHandoffMetadata,
+        containsPair('nativeReceiptReviewDepthCounts', {
+          'pricesOnly': 1,
+          'detailedLines': 1,
+        }),
+      );
+    },
+  );
+
   test('accepted review freezes receipt brain install and local-only counts', () {
     final fixture = frozenReceiptCameraDiagnosticsFixture();
     final result = fixture.result;

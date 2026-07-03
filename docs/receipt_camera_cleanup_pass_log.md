@@ -367,25 +367,6 @@ Verification:
   tests. The batch completed with 20 tests passed.
 - Passed targeted `git diff --check`; touched files remain under 500 lines.
 
-## Pass 469 - 18:06:54 EDT to 18:10:03 EDT
-
-Scope:
-- Stayed on the retake/order slice of the shared receipt camera system.
-- Added result-level rollups for privacy-safe retake diagnostics so preserved
-  slot, inserted extra section, original/final section number, guidance code,
-  retake order policy, and previous/next/two-sided alignment context flow into
-  `receiptSectionOrderCounts`.
-- Added a receipt-result regression proving middle-section retake metadata
-  reaches handoff counts and privacy-safe metadata without leaking file paths or
-  raw receipt text.
-
-Verification:
-- Passed targeted format and analyzer for the retake/order result files and
-  tests.
-- Passed focused Flutter tests for result stitch/scanner handoff, retake order,
-  long-receipt guidance, and camera capture layout.
-- Passed targeted `git diff --check`; touched files remain under 500 lines.
-
 ## Pass 487 - 00:07:47 EDT
 
 Scope:
@@ -490,3 +471,23 @@ Verification:
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
 - Passed full focused `flutter test
   test/expense_receipt_parser_direct_parity_test.dart -r compact`.
+
+## Pass 492 - 00:18:14 EDT to 00:19:58 EDT
+
+Scope:
+- Hardened multi-photo native review-depth handoff so detailed line review is
+  not downgraded to prices-only when any captured section requests detailed
+  lines.
+- Added privacy-safe review-depth counts to receipt reader handoff metadata.
+- Recorded `BUG-RECEIPT-0011` under `receipt_line_review_mode`.
+- Archived Pass 469 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed `dart format --set-exit-if-changed` for receipt review result native
+  signal/metadata files and focused frozen result test.
+- Passed targeted analyzer for receipt capture models, focused frozen result
+  test, and bug ledger gate.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+- Passed full focused `flutter test
+  test/receipt_camera_result_frozen_brain_install_test.dart -r compact`.

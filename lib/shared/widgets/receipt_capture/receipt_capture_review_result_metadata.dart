@@ -74,6 +74,8 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
           stitchResult.allPairsHaveOverlapEvidence,
       ...privacySafeOcrSourceFirstSummary,
       'nativeReceiptReviewDepth': nativeReceiptReviewDepth,
+      if (nativeReceiptReviewDepthCounts.isNotEmpty)
+        'nativeReceiptReviewDepthCounts': nativeReceiptReviewDepthCounts,
       'receiptProofDataSaverLevel': dataSaverLevel.name,
       'ocrSourcePreparationCount': preparationDiagnosticsByOcrPath.length,
       if (scannerDecisionCounts.isNotEmpty)

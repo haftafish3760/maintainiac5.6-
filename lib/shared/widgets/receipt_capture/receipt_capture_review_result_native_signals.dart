@@ -2,11 +2,24 @@ part of 'receipt_capture_models.dart';
 
 extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
   String get nativeReceiptReviewDepth {
+    var sawPricesOnly = false;
     for (final diagnostics in captureDiagnosticsByPhotoPath.values) {
       final value = diagnostics['reviewDepth']?.toString().trim();
-      if (value == 'detailedLines' || value == 'pricesOnly') return value!;
+      if (value == 'detailedLines') return value!;
+      if (value == 'pricesOnly') sawPricesOnly = true;
     }
+    if (sawPricesOnly) return 'pricesOnly';
     return 'pricesOnly';
+  }
+
+  Map<String, int> get nativeReceiptReviewDepthCounts {
+    final counts = <String, int>{};
+    for (final diagnostics in captureDiagnosticsByPhotoPath.values) {
+      final value = diagnostics['reviewDepth']?.toString().trim();
+      if (value != 'detailedLines' && value != 'pricesOnly') continue;
+      counts[value!] = (counts[value] ?? 0) + 1;
+    }
+    return Map.unmodifiable(counts);
   }
 
   Map<String, int> get editedPhotoActionCounts {
