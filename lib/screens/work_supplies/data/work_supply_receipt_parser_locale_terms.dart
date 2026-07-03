@@ -69,6 +69,11 @@ const _spanishUnitedStatesReceiptTermAliases = {
   'fill valve': ['valvula llenado', 'valvula de llenado'],
   'flush valve': ['valvula descarga', 'valvula de descarga'],
   'flapper': ['sapito', 'flapper', 'aleta sanitario'],
+  'toilet repair kit': [
+    'kit reparacion sanitario',
+    'kit reparacion inodoro',
+    'juego reparacion sanitario',
+  ],
   'faucet cartridge': ['cartucho llave', 'cartucho grifo', 'cartucho faucet'],
   'faucet stem': ['vastago llave', 'vastago grifo', 'stem llave'],
   'faucet washer': ['arandela llave', 'empaque llave', 'washer grifo'],

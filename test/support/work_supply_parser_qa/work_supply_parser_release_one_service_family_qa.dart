@@ -215,6 +215,7 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
       'wax ring',
       'closet flange',
       'flange repair',
+      'toilet repair kit',
       'closet bolt',
     },
     'plumbing_toilet_tank_rebuild': {
