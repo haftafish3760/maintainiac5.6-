@@ -104,6 +104,8 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
     final merchants = <String>{};
     final riskTags = <String>{};
     final localeIds = <String>{};
+    final fixtureIds = <String>{};
+    final rawLines = <String>{};
     var unknownOrReviewCount = 0;
     var expectedMatchCount = 0;
 
@@ -112,6 +114,39 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
       final fixture = entry.cast<String, Object?>();
       final id = fixture['id']?.toString() ?? 'fixture_without_id';
       final rawLine = fixture['rawLine']?.toString() ?? '';
+      _require(
+        failures,
+        id.trim().isNotEmpty && id != 'fixture_without_id',
+        id: 'fixture_missing_id:$id',
+        message: 'Golden fixture is missing a stable id.',
+        expected: 'non-empty fixture id',
+        actual: id,
+      );
+      _require(
+        failures,
+        fixtureIds.add(id),
+        id: 'duplicate_fixture_id:$id',
+        message: 'Golden fixture id is duplicated.',
+        expected: 'unique fixture id',
+        actual: id,
+      );
+      final normalizedRawLine = _normalize(rawLine);
+      _require(
+        failures,
+        normalizedRawLine.isNotEmpty,
+        id: 'fixture_missing_raw_line:$id',
+        message: 'Golden fixture is missing rawLine text.',
+        expected: 'non-empty rawLine',
+        actual: context.redactor(rawLine),
+      );
+      _require(
+        failures,
+        rawLines.add(normalizedRawLine),
+        id: 'duplicate_fixture_raw_line:$id',
+        message: 'Golden fixture rawLine is duplicated.',
+        expected: 'unique normalized rawLine',
+        actual: context.redactor(rawLine),
+      );
       caseTypes.add(fixture['caseType']?.toString() ?? '');
       merchants.add(fixture['merchant']?.toString() ?? '');
       final localeId = fixture['localePackId']?.toString() ?? '';
@@ -214,6 +249,8 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
       suite: name,
       checked:
           decoded.length +
+          fixtureIds.length +
+          rawLines.length +
           _requiredCaseTypes.length +
           _requiredReleaseMerchants.length +
           _requiredRiskTags.length +
@@ -223,6 +260,8 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'fixtureCount': decoded.length,
+        'uniqueFixtureIds': fixtureIds.length,
+        'uniqueRawLines': rawLines.length,
         'caseTypes': caseTypes.toList()..sort(),
         'merchants': merchants.toList()..sort(),
         'riskTags': riskTags.toList()..sort(),
@@ -254,4 +293,31 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
       ),
     );
   }
+
+  void _require(
+    List<QaFailure> failures,
+    bool condition, {
+    required String id,
+    required String message,
+    required String expected,
+    required String actual,
+  }) {
+    if (condition) return;
+    failures.add(
+      QaFailure(
+        suite: name,
+        id: id,
+        message: message,
+        expected: expected,
+        actual: actual,
+        suggestedFix:
+            'Keep golden parser fixtures stable, unique, privacy-safe, and suitable for regression evidence.',
+        metadata: const {'triageCategory': QaFailureTriage.fixture},
+      ),
+    );
+  }
+}
+
+String _normalize(String value) {
+  return value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 }
