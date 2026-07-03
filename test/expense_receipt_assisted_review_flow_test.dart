@@ -84,6 +84,10 @@ void main() {
         entryScreen,
         contains('_expenseReceiptPrivateSafeLineReferenceLabel(sourceId)'),
       );
+      expect(
+        entryScreen,
+        isNot(contains("fallbackId.isEmpty ? 'Receipt line' : fallbackId")),
+      );
       expect(entryScreen, contains('_expenseReceiptPrivateSafeIdToken'));
       expect(
         lineModels,

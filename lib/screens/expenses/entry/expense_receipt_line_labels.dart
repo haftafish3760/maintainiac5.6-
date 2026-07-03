@@ -13,9 +13,10 @@ extension _ExpenseReceiptLineLabels on _ExpenseReceiptLine {
     final lineNumber = ocrSourceLineNumber;
     if (lineNumber != null && lineNumber > 0) return 'Line $lineNumber';
     final sourceId = (ocrSourceLineId ?? '').trim();
-    if (sourceId.isNotEmpty) return sourceId;
-    final fallbackId = id?.trim() ?? '';
-    return fallbackId.isEmpty ? 'Receipt line' : fallbackId;
+    if (sourceId.isNotEmpty) {
+      return _expenseReceiptPrivateSafeLineReferenceLabel(sourceId);
+    }
+    return 'Receipt line';
   }
 
   String get clientProofDefaultVisibility {
