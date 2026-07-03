@@ -23,6 +23,7 @@ void main() {
     expect(registry.commandsForTag('payments'), isNotEmpty);
     expect(registry.commandsForTag('accessibility'), isNotEmpty);
     expect(registry.commandsForTag('cost-quota'), isNotEmpty);
+    expect(registry.commandsForTag('tooling'), isNotEmpty);
   });
 
   test('surgical selector registry rejects broad or unsafe selectors', () {

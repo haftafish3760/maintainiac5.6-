@@ -379,6 +379,22 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'quality-gate', 'release-gate', 'regression', 'security'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'release_gate_tool_commands',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_release_gate_tool_test.dart',
+    plainName: 'release gate tool emits surgical command plan',
+    reason: 'Run only the release gate command output check after tool edits.',
+    tags: {'release-gate', 'tooling', 'command-plan'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'release_gate_tool_json',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_release_gate_tool_test.dart',
+    plainName: 'release gate tool emits JSON evidence',
+    reason: 'Run only the release gate JSON evidence check after tool edits.',
+    tags: {'release-gate', 'tooling', 'evidence'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'source_audit_line_caps',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_source_audit_policy_test.dart',

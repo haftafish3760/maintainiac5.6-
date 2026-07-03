@@ -66,6 +66,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_payment_contract.dart',
       'maintainiac_operating_directive_contract.dart',
       'maintainiac_qa_quality_gates.dart',
+      'maintainiac_release_gate.dart',
       'maintainiac_source_audit_policy.dart',
       'maintainiac_audit_trail.dart',
       'maintainiac_qa_assertions.dart',
@@ -237,6 +238,17 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Quality gate changes need release-dimension, negative, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'release_gate_tool_changed',
+      changedPathContains: 'maintainiac_release_gate.dart',
+      selectorIds: {
+        'release_gate_tool_commands',
+        'release_gate_tool_json',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Release gate tool changes need command, JSON evidence, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'source_audit_policy_changed',

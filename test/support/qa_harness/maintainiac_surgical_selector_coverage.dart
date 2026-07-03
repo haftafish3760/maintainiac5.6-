@@ -190,6 +190,13 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_release_gate_tool_test.dart',
+      plainNames: {
+        'release gate tool emits surgical command plan',
+        'release gate tool emits JSON evidence',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_source_audit_policy_test.dart',
       plainNames: {
         'source audit policy separates production and QA line caps',
