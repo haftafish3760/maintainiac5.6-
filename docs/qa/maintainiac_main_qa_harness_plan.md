@@ -164,6 +164,14 @@ The backbone includes an audit trail probe:
 - Duplicate audit IDs fail.
 - User-confirmed suggestion events preserve before/after values and prove confirmed data outranks parser automation.
 
+## Export Privacy Probe
+
+The backbone includes an export privacy probe:
+
+- Exports must contain only records owned by the active account.
+- Private keys such as VIN, plates, passengers, patients, raw receipt text, tax IDs, SSNs, and card numbers are rejected.
+- Sanitized export records drop private fields before writing.
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:
