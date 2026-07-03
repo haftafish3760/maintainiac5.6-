@@ -356,6 +356,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'security', 'source-boundary', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'source_boundary_catches_ocr_camera_imports',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_source_boundary_test.dart',
+    plainName: 'source boundary scanner catches OCR and camera package imports',
+    reason: 'Run only the OCR/camera package import boundary guard.',
+    tags: {'security', 'source-boundary', 'module-boundary', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'source_boundary_skips_build_folders',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_source_boundary_test.dart',

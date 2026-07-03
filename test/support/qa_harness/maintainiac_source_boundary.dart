@@ -80,9 +80,19 @@ class MaintainiacSourceBoundaryScanner {
           pattern: 'MLKit',
         ),
         MaintainiacSourceBoundaryRule(
+          id: 'no_google_mlkit_package_in_parser_qa',
+          description: 'Parser QA may not import Google ML Kit packages.',
+          pattern: 'google_mlkit_',
+        ),
+        MaintainiacSourceBoundaryRule(
           id: 'no_camera_controller_in_parser_qa',
           description: 'Parser QA may not implement camera capture.',
           pattern: 'CameraController',
+        ),
+        MaintainiacSourceBoundaryRule(
+          id: 'no_camera_package_in_parser_qa',
+          description: 'Parser QA may not import camera packages.',
+          pattern: 'package:camera/',
         ),
       ],
     );

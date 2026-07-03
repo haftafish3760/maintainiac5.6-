@@ -165,6 +165,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'source boundary scanner catches forbidden live-service code',
         'source boundary scanner honors allowed emulator paths',
+        'source boundary scanner catches OCR and camera package imports',
         'source boundary scanner skips generated build folders',
       },
     ),
