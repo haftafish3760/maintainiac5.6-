@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 554 - 06:25:12 EDT to 06:30:54 EDT
+
+Scope:
+- Hardened native receipt camera service diagnostics so malformed bridge
+  values cannot leak non-finite numbers or non-string keys into review state.
+- Added native-service regression coverage for `NaN`, infinity, nested
+  diagnostics, lists, and non-string diagnostic keys.
+- Recorded `BUG-RECEIPT-0070` under `native_bridge`.
+- Archived Pass 539 out of the live cleanup log.
+
+Verification:
+- Fixed an over-broad regression assertion that matched unrelated policy text,
+  then reran the failed focused test and the full native result rejection file.
+- Passed targeted Dart format/analyzer for native camera service and native
+  result rejection coverage.
+
 ## Pass 553 - 06:10:54 EDT to 06:19:40 EDT
 
 Scope:
@@ -225,26 +241,6 @@ Verification:
 - Fixed source-bundle path misses in the new guard, then reran.
 - Passed targeted format/analyzer, focused handoff contract regression,
   cleanup-log gate, doc-size gate, source audit, and diff check.
-
-## Pass 539 - 03:32:13 EDT to 03:33:32 EDT
-
-Scope:
-- Hardened native recovery review so duplicate or whitespace-padded manifest
-  photo paths cannot reopen duplicate receipt sections.
-- Replaced raw recovery diagnostics map construction with an immutable helper
-  based on the normalized recovered path list.
-- Added recovery contract coverage requiring the normalized helper and rejecting
-  the old raw path-keyed diagnostics shape.
-- Recorded `BUG-RECEIPT-0057` under `multi_photo_ordering`.
-- Archived Pass 528 out of the live cleanup log.
-
-Verification:
-- Fixed stale recovery-contract assertions that still expected the old raw
-  manifest loop, then reran the focused chain.
-- Passed focused Flutter test
-  `test/receipt_attachment_panel_recovery_contract_test.dart`.
-- Passed targeted format/analyzer, bug-ledger, log, doc-size, audit, and diff
-  gates.
 
 ## Pass 527 - 01:56:00 EDT to 02:00:00 EDT
 

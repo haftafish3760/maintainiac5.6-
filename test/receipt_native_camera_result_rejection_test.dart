@@ -161,6 +161,66 @@ void main() {
   });
 
   test(
+    'native service drops unsafe diagnostic numbers before review',
+    () async {
+      const channel = MethodChannel(
+        'maintainiac/receipt_camera_unsafe_diagnostics_test',
+      );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            expect(call.method, 'captureReceipt');
+            return {
+              'originalPhotoPaths': ['/tmp/safe-diagnostics.jpg'],
+              'temporaryCaptureIds': ['safe-diagnostics'],
+              'capturedAt': '2026-07-03T10:10:00.000Z',
+              'captureDiagnostics': {
+                'photoCount': 1,
+                'latestFrameBrightness': double.nan,
+                'zoomRatio': double.infinity,
+                'nested': {'safe': 1.25, 'bad': double.negativeInfinity},
+                'list': ['ok', double.nan, 2],
+                12: 'non-string-key',
+              },
+            };
+          });
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null);
+      });
+
+      const capabilities = ReceiptNativeCameraCapabilities(
+        engine: ReceiptNativeCameraEngine.cameraX,
+        available: true,
+        cameraPermissionGranted: true,
+        hasRearCamera: true,
+      );
+      final config = const ReceiptNativeCameraSettings().sessionFor(
+        deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+        nativeCapabilities: capabilities,
+      );
+
+      final result = await ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(config);
+
+      expect(result.captureDiagnostics['photoCount'], 1);
+      expect(
+        result.captureDiagnostics,
+        isNot(contains('latestFrameBrightness')),
+      );
+      expect(result.captureDiagnostics, isNot(contains('zoomRatio')));
+      expect(result.captureDiagnostics['nested'], {'safe': 1.25});
+      expect(result.captureDiagnostics['list'], ['ok', 2]);
+      expect(result.captureDiagnostics.toString(), isNot(contains('NaN')));
+      expect(result.captureDiagnostics.toString(), isNot(contains('Infinity')));
+      expect(
+        result.captureDiagnostics.values,
+        isNot(contains('non-string-key')),
+      );
+    },
+  );
+
+  test(
     'native service treats camera back/cancel as clean cancellation',
     () async {
       const channel = MethodChannel('maintainiac/receipt_camera_cancel_test');
