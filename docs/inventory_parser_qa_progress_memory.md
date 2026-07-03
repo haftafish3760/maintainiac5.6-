@@ -2455,6 +2455,17 @@ Release-one catalog gap closed in the plumbing item batch:
   floor, Spanish sweep, fixture-cell, matrix, and command-manifest hardening:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_cell_manifest,inventory.release_one_pack_balance,inventory.release_one_service_family_contract,inventory.spanish_release_one,inventory.fixture_coverage_matrix,inventory.release_one_command_manifest,inventory.master_coverage_matrix_contract,qa.threshold_gate`
   passed 119138 checks with 0 failures.
+- Added explicit sink repair kit aliases to existing Plumbing sink/faucet and
+  drain finish service rows, plus es-US sink repair kit locale terms, without
+  creating duplicate catalog rows.
+- Tightened the release-one service-family QA so sink repair kit remains a
+  required Plumbing Core/Standard sink/faucet repair signal.
+- Validated sink repair kit catalog/schema/service-family coverage:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_service_family_contract,inventory.catalog_schema,qa.threshold_gate`
+  passed 22711 checks with 0 failures.
+- Validated Spanish after the sink repair kit locale expansion:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.spanish_release_one,qa.threshold_gate`
+  passed 101847 checks with 0 failures.
 
 Named release gates:
 

@@ -72,6 +72,11 @@ const _spanishUnitedStatesReceiptTermAliases = {
   'faucet cartridge': ['cartucho llave', 'cartucho grifo', 'cartucho faucet'],
   'faucet stem': ['vastago llave', 'vastago grifo', 'stem llave'],
   'faucet washer': ['arandela llave', 'empaque llave', 'washer grifo'],
+  'sink repair kit': [
+    'kit reparacion lavabo',
+    'kit reparacion fregadero',
+    'juego reparacion lavabo',
+  ],
   'hose washer': ['arandela manguera', 'empaque manguera'],
   'tailpiece': ['tubo cola', 'extension lavabo'],
   'tub drain': ['desague tina', 'drenaje tina'],

@@ -227,6 +227,7 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
     'plumbing_sink_faucet_repair': {
       'faucet cartridge',
       'faucet repair kit',
+      'sink repair kit',
       'aerator',
       'pop up drain',
       'basket strainer',
