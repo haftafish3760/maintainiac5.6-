@@ -130,6 +130,30 @@ class MaintainiacQaCaseRegistry {
         },
       ),
       MaintainiacQaCase(
+        id: 'QA-INVENTORY-PARSER-002',
+        title: 'Inventory parser consumer contract',
+        module: MaintainiacQaModule.inventory,
+        behavior:
+            'Release-one inventory parser QA families are labeled, offline-only, broad enough, and wired to the shared backbone.',
+        evidenceTarget: 'maintainiac_inventory_parser_consumer_test',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand:
+            'flutter test test/maintainiac_inventory_parser_consumer_test.dart',
+        tags: {'inventory', 'parser', 'consumer-contract', 'qa-backbone'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-EXPENSE-PARSER-001',
+        title: 'Expense parser consumer contract',
+        module: MaintainiacQaModule.expenses,
+        behavior:
+            'Expense parser QA families are labeled, review-only, local-first, offline-only, and wired to the shared backbone.',
+        evidenceTarget: 'maintainiac_expense_parser_consumer_test',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand:
+            'flutter test test/maintainiac_expense_parser_consumer_test.dart',
+        tags: {'expenses', 'parser', 'consumer-contract', 'qa-backbone'},
+      ),
+      MaintainiacQaCase(
         id: 'QA-DEVICE-001',
         title: 'Device storage pack-mode policy',
         module: MaintainiacQaModule.performance,

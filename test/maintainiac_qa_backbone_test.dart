@@ -86,6 +86,38 @@ void main() {
       report.results.single.metrics['jobContract'].toString(),
       contains('job_seed_material'),
     );
+    expect(
+      report.results.single.metrics['inventoryParserConsumer'].toString(),
+      contains('locale_spanish_release_one'),
+    );
+    expect(
+      report.results.single.metrics['expenseParserConsumer'].toString(),
+      contains('draft_storage_lifecycle'),
+    );
+    expect(
+      report.results.single.metrics['parserConsumerGate'].toString(),
+      contains('totalFamilyCount'),
+    );
+    expect(
+      report.results.single.metrics['parserReleaseCommandPlan'].toString(),
+      contains('parser_consumer_gate_smoke'),
+    );
+    expect(
+      report.results.single.metrics['parserRegressionBindings'].toString(),
+      contains('EXPPARSER-0002'),
+    );
+    expect(
+      report.results.single.metrics['surgicalTestSelectors'].toString(),
+      contains('--plain-name'),
+    );
+    expect(
+      report.results.single.metrics['surgicalRerunRouter'].toString(),
+      contains('inventory_consumer_contract_changed'),
+    );
+    expect(
+      report.results.single.metrics['surgicalSelectorCoverage'].toString(),
+      contains('expectedBehaviorCount'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

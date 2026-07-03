@@ -215,6 +215,14 @@ The backbone includes a release gate plan:
 - Validates schedule and reminder behavior with UTC storage, audit IDs for job scheduling, maintenance vehicle scoping, notification permission behavior, overlap detection, and non-mutating derived reminders.
 - Validates payment records with audit IDs, invoice links, no full card storage, deterministic payment/refund ledger effects, and read-only invoice source totals.
 - Validates job material attachment with confirmed estimate or receipt-backed sources, audit IDs, local-first writes, user confirmation, and read-only derived job summaries.
+- Validates the inventory parser consumer with release-one QA families for schema, alias/vendor/SKU, ambiguity, fixture governance, security/privacy, performance, US Spanish, workflow routing, sync authority, financial math, pack recovery, and generated batch execution.
+- Validates the expense parser consumer with release-one QA families for parser review suggestions, draft storage lifecycle, ledger math, category classification, privacy redaction, materials bridge, failure diagnostics, and telemetry boundaries.
+- Adds a parser consumer gate that validates inventory and expense parser consumers together so parser readiness cannot pass if either consumer loses breadth, offline safety, route coverage, or OCR/camera boundaries.
+- Adds a parser release command plan that groups parser consumer QA into smoke, focused, and release tiers so failures can be rerun surgically instead of rerunning the whole app.
+- Adds parser regression bindings so inventory and expense parser consumer risks map to permanent bug IDs, fixtures, expected behavior, and focused rerun commands.
+- Adds surgical test selectors using `flutter test <file> --plain-name "<behavior>"` so individual QA behaviors can be rerun without running a whole test batch.
+- Adds a surgical rerun router that maps changed QA contract files to exact individual selector commands, preventing broad reruns when only one parser QA surface changed.
+- Adds surgical selector coverage expectations so every focused parser-consumer QA behavior has an individual selector before release.
 
 Print the release gate with:
 

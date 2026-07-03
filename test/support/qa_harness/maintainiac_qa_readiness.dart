@@ -270,11 +270,11 @@ class MaintainiacQaReadinessLedger {
         module: MaintainiacQaModule.inventory,
         description:
             'Inventory parser QA consumer is registered and has extensive domain suites.',
-        status: MaintainiacQaReadinessStatus.partial,
-        evidence: ['work_supply_parser_domain_adapter'],
-        gaps: [
-          'Needs continued release-one residential fixture expansion.',
-          'Needs periodic real-world merchant fixture review.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: [
+          'work_supply_parser_domain_adapter',
+          'maintainiac_inventory_parser_consumer_contract.dart',
+          'maintainiac_inventory_parser_consumer_test.dart',
         ],
       ),
       MaintainiacQaReadinessItem(
@@ -282,11 +282,11 @@ class MaintainiacQaReadinessLedger {
         module: MaintainiacQaModule.expenses,
         description:
             'Expense receipt parser is registered as a parser QA platform consumer.',
-        status: MaintainiacQaReadinessStatus.partial,
-        evidence: ['expense_receipt_parser_domain_adapter'],
-        gaps: [
-          'Needs more expense-specific golden fixtures.',
-          'Needs sync/offline draft lifecycle QA integration.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: [
+          'expense_receipt_parser_domain_adapter',
+          'maintainiac_expense_parser_consumer_contract.dart',
+          'maintainiac_expense_parser_consumer_test.dart',
         ],
       ),
       MaintainiacQaReadinessItem(

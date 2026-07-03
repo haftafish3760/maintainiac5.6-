@@ -7,10 +7,11 @@ void main() {
     final ledger = MaintainiacQaReadinessLedger.currentBackbone();
 
     expect(ledger.validate(), isEmpty);
-    expect(ledger.releaseReady, isFalse);
+    expect(ledger.releaseReady, isTrue);
     expect(ledger.countsByStatus['ready'], greaterThanOrEqualTo(5));
-    expect(ledger.countsByStatus['partial'], greaterThanOrEqualTo(2));
+    expect(ledger.countsByStatus['partial'], 0);
     expect(ledger.countsByStatus['missing'], 0);
+    expect(ledger.toJson().toString(), contains('inventory_parser_consumer'));
     expect(ledger.toJson().toString(), contains('expense_parser_consumer'));
     expect(ledger.toJson().toString(), contains('device_capability_probe'));
     expect(ledger.toJson().toString(), contains('scope_policy_probe'));

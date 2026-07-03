@@ -9,16 +9,24 @@ import 'maintainiac_qa_readiness.dart';
 import 'maintainiac_qa_run_ledger.dart';
 import 'maintainiac_qa_case_registry.dart';
 import 'maintainiac_regression_registry.dart';
+import 'maintainiac_expense_parser_consumer_contract.dart';
 import 'maintainiac_parser_candidate_contract.dart';
+import 'maintainiac_parser_consumer_gate.dart';
 import 'maintainiac_parser_fixture_manifest.dart';
+import 'maintainiac_parser_regression_binding.dart';
+import 'maintainiac_parser_release_command_plan.dart';
 import 'maintainiac_correction_learning_contract.dart';
 import 'maintainiac_local_first_contract.dart';
 import 'maintainiac_sync_conflict_contract.dart';
 import 'maintainiac_pricing_contract.dart';
+import 'maintainiac_inventory_parser_consumer_contract.dart';
 import 'maintainiac_module_suite_contract.dart';
 import 'maintainiac_schedule_contract.dart';
 import 'maintainiac_payment_contract.dart';
 import 'maintainiac_job_contract.dart';
+import 'maintainiac_surgical_rerun_router.dart';
+import 'maintainiac_surgical_selector_coverage.dart';
+import 'maintainiac_surgical_test_selector.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
@@ -406,10 +414,34 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in jobs.validate()) {
       failures.add(_failure('job_contract_$issue', issue));
     }
+    for (final issue in maintainiacInventoryParserConsumerContract.validate()) {
+      failures.add(_failure('inventory_parser_consumer_$issue', issue));
+    }
+    for (final issue in maintainiacExpenseParserConsumerContract.validate()) {
+      failures.add(_failure('expense_parser_consumer_$issue', issue));
+    }
+    for (final issue in maintainiacParserConsumerGate.validate()) {
+      failures.add(_failure('parser_consumer_gate_$issue', issue));
+    }
+    for (final issue in maintainiacParserReleaseCommandPlan.validate()) {
+      failures.add(_failure('parser_release_command_plan_$issue', issue));
+    }
+    for (final issue in maintainiacParserRegressionBindingRegistry.validate()) {
+      failures.add(_failure('parser_regression_binding_$issue', issue));
+    }
+    for (final issue in maintainiacSurgicalTestSelectorRegistry.validate()) {
+      failures.add(_failure('surgical_test_selector_$issue', issue));
+    }
+    for (final issue in maintainiacSurgicalRerunRouter.validate()) {
+      failures.add(_failure('surgical_rerun_router_$issue', issue));
+    }
+    for (final issue in maintainiacSurgicalSelectorCoverage.validate()) {
+      failures.add(_failure('surgical_selector_coverage_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 236,
+      checked: 396,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -441,6 +473,20 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'scheduleContract': schedule.toJson(),
         'paymentContract': payments.toJson(),
         'jobContract': jobs.toJson(),
+        'inventoryParserConsumer': maintainiacInventoryParserConsumerContract
+            .toJson(),
+        'expenseParserConsumer': maintainiacExpenseParserConsumerContract
+            .toJson(),
+        'parserConsumerGate': maintainiacParserConsumerGate.toJson(),
+        'parserReleaseCommandPlan': maintainiacParserReleaseCommandPlan
+            .toJson(),
+        'parserRegressionBindings': maintainiacParserRegressionBindingRegistry
+            .toJson(),
+        'surgicalTestSelectors': maintainiacSurgicalTestSelectorRegistry
+            .toJson(),
+        'surgicalRerunRouter': maintainiacSurgicalRerunRouter.toJson(),
+        'surgicalSelectorCoverage': maintainiacSurgicalSelectorCoverage
+            .toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },
