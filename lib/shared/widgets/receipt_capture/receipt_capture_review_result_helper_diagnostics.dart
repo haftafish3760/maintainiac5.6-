@@ -51,7 +51,8 @@ String _diagnosticToken(String value) {
       .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
       .replaceAll(RegExp(r'_+'), '_')
       .replaceAll(RegExp(r'^_|_$'), '');
-  return token.isEmpty ? 'unknown' : token;
+  if (token.isEmpty) return 'unknown';
+  return token.length > 80 ? token.substring(0, 80) : token;
 }
 
 Map<String, ReceiptPhotoQualityCheck> _qualityChecksForPaths(
