@@ -162,6 +162,28 @@ THANK YOU
       expect(proof.protectedContentTypes, contains('payment_info'));
       expect(proof.protectedContentTypes, contains('transaction_info'));
       expect(proof.summaryCode, startsWith('receipt_redaction:'));
+
+      final proofWithTotals = layout.redactionPlanForLineNumbers(
+        {4},
+        keepMerchantContext: true,
+        keepTotalsContext: true,
+      );
+
+      expect(
+        proofWithTotals.visibleLineNumbers,
+        containsAll(<int>[1, 4, 6, 7, 8]),
+      );
+      expect(proofWithTotals.hiddenLineNumbers, containsAll(<int>[5, 9, 10]));
+      expect(proofWithTotals.keepsMerchantContext, isTrue);
+      expect(proofWithTotals.keepsTotalsContext, isTrue);
+      expect(
+        proofWithTotals.visibleAnchorCodes,
+        containsAll([
+          'receipt_line_0006_totals_context',
+          'receipt_line_0007_totals_tax',
+          'receipt_line_0008_totals_total',
+        ]),
+      );
     },
   );
 

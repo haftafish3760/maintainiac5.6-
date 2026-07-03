@@ -209,6 +209,11 @@ class ReceiptLayoutMap {
       visible.add(merchant.lineNumber);
     }
     if (keepTotalsContext) {
+      visible.addAll(
+        lines
+            .where((line) => line.likelySubtotalLine)
+            .map((line) => line.lineNumber),
+      );
       visible.addAll(totalLines.map((line) => line.lineNumber));
       visible.addAll(taxLines.map((line) => line.lineNumber));
     }
@@ -245,6 +250,9 @@ class ReceiptLayoutMap {
           merchant != null && visible.contains(merchant.lineNumber),
       keepsTotalsContext:
           totalLines.isNotEmpty &&
+          lines
+              .where((line) => line.likelySubtotalLine)
+              .every((line) => visible.contains(line.lineNumber)) &&
           totalLines.every((line) => visible.contains(line.lineNumber)),
     );
   }
