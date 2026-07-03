@@ -123,6 +123,10 @@ void main() {
       contains('inventory_consumer_contract_changed'),
     );
     expect(
+      report.results.single.metrics['surgicalGranularityContract'].toString(),
+      contains('individualPlainNameRequired'),
+    );
+    expect(
       report.results.single.metrics['surgicalSelectorCoverage'].toString(),
       contains('expectedBehaviorCount'),
     );

@@ -41,6 +41,7 @@ import 'maintainiac_job_contract.dart';
 import 'maintainiac_source_truth_gate.dart';
 import 'maintainiac_source_audit_policy.dart';
 import 'maintainiac_surgical_rerun_router.dart';
+import 'maintainiac_surgical_granularity_contract.dart';
 import 'maintainiac_surgical_selector_coverage.dart';
 import 'maintainiac_surgical_test_selector.dart';
 import 'maintainiac_scope_policy.dart';
@@ -415,6 +416,9 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacSurgicalRerunRouter.validate()) {
       failures.add(_failure('surgical_rerun_router_$issue', issue));
     }
+    for (final issue in maintainiacSurgicalGranularityContract.validate()) {
+      failures.add(_failure('surgical_granularity_contract_$issue', issue));
+    }
     for (final issue in maintainiacSurgicalSelectorCoverage.validate()) {
       failures.add(_failure('surgical_selector_coverage_$issue', issue));
     }
@@ -466,7 +470,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: 756,
+      checked: 776,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -513,6 +517,8 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'surgicalTestSelectors': maintainiacSurgicalTestSelectorRegistry
             .toJson(),
         'surgicalRerunRouter': maintainiacSurgicalRerunRouter.toJson(),
+        'surgicalGranularityContract': maintainiacSurgicalGranularityContract
+            .toJson(),
         'surgicalSelectorCoverage': maintainiacSurgicalSelectorCoverage
             .toJson(),
         'individualTestManifest': maintainiacIndividualTestManifest.toJson(),
