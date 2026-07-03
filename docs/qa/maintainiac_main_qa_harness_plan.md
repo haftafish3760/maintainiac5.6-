@@ -83,6 +83,11 @@ The second reusable slice adds `maintainiac_qa_scenario_runners.dart` so modules
 
 These runners are still harness infrastructure. They do not touch OCR/camera implementation and do not hit live Firebase.
 
+Run the backbone intentionally with the `main` or `backbone` preset once it is wired into a harness entry point:
+
+- `maintainiac.qa_backbone_contract`
+- `qa.threshold_gate`
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:

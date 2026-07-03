@@ -88,6 +88,17 @@ void main() {
     expect(suites, isNot(contains('inventory.golden_fixtures')));
   });
 
+  test('main preset targets the reusable whole-app QA backbone', () {
+    expect(qaSuiteFilterFrom(suiteCsv: '', preset: 'main'), {
+      'maintainiac.qa_backbone_contract',
+      'qa.threshold_gate',
+    });
+    expect(
+      qaSuiteFilterFrom(suiteCsv: '', preset: 'backbone'),
+      qaSuiteFilterFrom(suiteCsv: '', preset: 'main'),
+    );
+  });
+
   test('fixtures preset keeps semantic fixture work isolated', () {
     expect(qaSuiteFilterFrom(suiteCsv: '', preset: 'fixtures'), {
       'inventory.golden_fixtures',

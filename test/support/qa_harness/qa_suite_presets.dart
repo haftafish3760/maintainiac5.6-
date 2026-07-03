@@ -9,6 +9,9 @@ Set<String> qaSuiteFilterFrom({
       .toSet();
   if (explicitSuites.isNotEmpty) return explicitSuites;
   switch (preset.trim().toLowerCase()) {
+    case 'main':
+    case 'backbone':
+      return const {'maintainiac.qa_backbone_contract', 'qa.threshold_gate'};
     case 'quick':
       return const {
         'inventory.security_privacy',
