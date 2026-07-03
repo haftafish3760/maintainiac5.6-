@@ -2509,6 +2509,8 @@ Release-one catalog gap closed in the plumbing item batch:
   fixture IDs cannot disappear or lose their English/Spanish locale, Core tier,
   Plumbing trade, or repair-kit risk tags without failing
   `inventory.fixture_coverage_matrix`.
+- repair_kit_fixture_lock:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fixture_coverage_matrix,inventory.accumulated_coverage_contract,qa.threshold_gate`
 - Validated the repair-kit fixture lock:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fixture_coverage_matrix,inventory.accumulated_coverage_contract,qa.threshold_gate`
   passed 168 checks with 0 failures.

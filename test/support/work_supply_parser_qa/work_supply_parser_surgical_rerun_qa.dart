@@ -51,6 +51,9 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
     'inventory.receipt_source_immutability_contract':
         'inventory.receipt_source_immutability_contract',
     'inventory.fixture_coverage_matrix': 'inventory.fixture_coverage_matrix',
+    'inventory.golden_fixtures': 'inventory.golden_fixtures,qa.threshold_gate',
+    'repair_kit_fixture_lock':
+        'inventory.fixture_coverage_matrix,inventory.accumulated_coverage_contract',
     'inventory.security_privacy': 'inventory.security_privacy',
     'inventory.boundary_guard': 'inventory.boundary_guard',
     'inventory.parser_platform_contract': 'inventory.parser_platform_contract',
