@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/qa_harness/qa_harness.dart';
@@ -76,4 +78,33 @@ void main() {
 
     expect(failures, contains('broad needs individual plain-name measurement'));
   });
+
+  test('performance budget registry commands target real files', () {
+    const registry = maintainiacPerformanceBudgetRegistry;
+    final missingTargets = <String>[];
+
+    for (final budget in registry.budgets) {
+      final target = _measurementTarget(budget.measurementCommand);
+      if (target == null || !File(target).existsSync()) {
+        missingTargets.add('${budget.id}:${budget.measurementCommand}');
+      }
+    }
+
+    expect(
+      missingTargets,
+      isEmpty,
+      reason: 'Performance budgets must remain tied to runnable files.',
+    );
+  });
+}
+
+String? _measurementTarget(String command) {
+  final parts = command.split(RegExp(r'\s+'));
+  if (parts.length >= 3 && parts[0] == 'flutter' && parts[1] == 'test') {
+    return parts[2];
+  }
+  if (parts.length >= 3 && parts[0] == 'dart' && parts[1] == 'run') {
+    return parts[2];
+  }
+  return null;
 }

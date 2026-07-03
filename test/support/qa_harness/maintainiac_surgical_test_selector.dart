@@ -666,6 +666,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'performance', 'tooling', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'performance_budget_commands_target_files',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_performance_budget_registry_test.dart',
+    plainName: 'performance budget registry commands target real files',
+    reason: 'Run only the performance budget command target guard.',
+    tags: {'performance', 'tooling', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'release_gate_plan_exposes_core_plan',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_release_gate_plan_test.dart',

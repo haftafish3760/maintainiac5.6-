@@ -260,6 +260,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'performance budget registry labels harness performance budgets',
         'performance budget registry rejects missing or broad budgets',
         'performance budget registry rejects broad Flutter measurements',
+        'performance budget registry commands target real files',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(

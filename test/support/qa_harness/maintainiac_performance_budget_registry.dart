@@ -147,7 +147,8 @@ const maintainiacPerformanceBudgetRegistry = MaintainiacPerformanceBudgetRegistr
     module: 'qa_reports',
     maxDurationMs: 30000,
     maxMemoryMb: 256,
-    measurementCommand: 'dart run tool/parser_qa_runner.dart --help',
+    measurementCommand:
+        'dart run tool/work_supply_parser_qa_report_digest.dart --help',
     failureAction:
         'Keep report writing append-only, redacted, and outside live services.',
   ),

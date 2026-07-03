@@ -378,10 +378,11 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
         'performance_budget_labels_budgets',
         'performance_budget_rejects_missing',
         'performance_budget_rejects_broad_flutter',
+        'performance_budget_commands_target_files',
         'main_backbone_parser_visibility',
       },
       reason:
-          'Performance budget changes need labeling, negative budget, broad Flutter, and backbone checks.',
+          'Performance budget changes need labeling, negative budget, broad Flutter, command-target, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'release_gate_plan_changed',
