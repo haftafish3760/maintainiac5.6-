@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
+
 import '../qa_harness/qa_harness.dart';
 
 class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
@@ -36,11 +39,63 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
     'residential',
   };
 
+  static const _priorityTrades = {'Plumbing', 'Electrical', 'HVAC'};
+
+  static const _coreBloatTerms = {
+    'complete toilet',
+    'toilet bowl',
+    'bath vanity',
+    'vanity top',
+    'kitchen sink',
+    'bathroom sink',
+    'pedestal sink',
+    'bathtub',
+    'shower door',
+    'garbage disposal',
+    '40 gal water heater',
+    '50 gal water heater',
+    'tankless water heater',
+    'furnace',
+    'air conditioner',
+    'condenser unit',
+    'air handler',
+  };
+
+  static const _coreServicePartAllowTerms = {
+    'adapter',
+    'aerator',
+    'cartridge',
+    'connector',
+    'coupling',
+    'drain',
+    'expansion tank',
+    'fitting',
+    'flange',
+    'flapper',
+    'flush valve',
+    'fill valve',
+    'gasket',
+    'kit',
+    'line',
+    'nipple',
+    'pan',
+    'repair',
+    'relief valve',
+    'seal',
+    'stem',
+    'strap',
+    'supply',
+    'switch',
+    'valve',
+    'wax ring',
+  };
+
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
     final failures = <QaFailure>[];
     final source = _readContractSource().toLowerCase();
+    var checked = _requiredTierRoles.length + _requiredReleaseAxes.length;
 
     for (final role in _requiredTierRoles) {
       if (source.contains(role)) continue;
@@ -70,15 +125,22 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
       );
     }
 
+    final coreBloatScan = _scanResidentialCoreForBloat();
+    checked += coreBloatScan.checked;
+    failures.addAll(coreBloatScan.failures);
+
     return timer.finish(
       suite: name,
-      checked: _requiredTierRoles.length + _requiredReleaseAxes.length,
+      checked: checked,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'contractSources': _contractSources,
         'requiredTierRoles': _requiredTierRoles.toList()..sort(),
         'requiredReleaseAxes': _requiredReleaseAxes.toList()..sort(),
+        'coreBloatTerms': _coreBloatTerms.toList()..sort(),
+        'coreServicePartAllowTerms': _coreServicePartAllowTerms.toList()
+          ..sort(),
       },
     );
   }
@@ -90,6 +152,49 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
       if (file.existsSync()) buffer.writeln(file.readAsStringSync());
     }
     return buffer.toString();
+  }
+
+  _CoreBloatScan _scanResidentialCoreForBloat() {
+    final failures = <QaFailure>[];
+    var checked = 0;
+    for (final item in workSupplyCatalogItems) {
+      if (!_priorityTrades.contains(item.trade)) continue;
+      if (item.packTier != WorkSupplyPackTier.core) continue;
+      if (!item.marketScopes.contains(WorkSupplyMarketScope.residential)) {
+        continue;
+      }
+      checked++;
+      final haystack = [
+        item.name,
+        item.category,
+        item.system,
+        item.itemType,
+        item.variant,
+        ...item.aliases,
+      ].join(' ').toLowerCase();
+      final bloatTerm = _coreBloatTerms
+          .where((term) => haystack.contains(term))
+          .cast<String?>()
+          .firstWhere((term) => term != null, orElse: () => null);
+      if (bloatTerm == null) continue;
+      final allowedServicePart = _coreServicePartAllowTerms.any(
+        haystack.contains,
+      );
+      if (allowedServicePart) continue;
+      failures.add(
+        _failure(
+          id: 'core_special_order_bloat:${item.id}',
+          message:
+              'Residential Core appears to contain a full fixture/appliance row instead of an everyday service part.',
+          expected:
+              'Core rows stay service-truck focused; full fixtures/appliances move to later tiers unless they are repair/service parts.',
+          actual: '${item.path} / ${item.name}; matched=$bloatTerm',
+          fix:
+              'Move the row out of Core or add service-part wording if it truly is a repair/connector/valve/kit item.',
+        ),
+      );
+    }
+    return _CoreBloatScan(checked: checked, failures: failures);
   }
 
   QaFailure _failure({
@@ -114,4 +219,11 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
 
 String _safeId(String value) {
   return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+}
+
+class _CoreBloatScan {
+  const _CoreBloatScan({required this.checked, required this.failures});
+
+  final int checked;
+  final List<QaFailure> failures;
 }
