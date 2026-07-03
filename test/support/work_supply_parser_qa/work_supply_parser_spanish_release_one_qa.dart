@@ -12,6 +12,8 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
   static const _priorityTrades = {'Plumbing', 'Electrical', 'HVAC'};
   static const _spanishSignalTokens = {
     'adaptador',
+    'acople',
+    'arandela',
     'cable',
     'caja',
     'cinta',
@@ -22,7 +24,9 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
     'filtro',
     'tapon',
     'tanque',
+    'tornillo',
     'tubo',
+    'tuerca',
     'valvula',
   };
 
