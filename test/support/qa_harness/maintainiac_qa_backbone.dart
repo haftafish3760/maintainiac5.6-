@@ -7,6 +7,7 @@ import 'maintainiac_qa_artifact_policy.dart';
 import 'maintainiac_qa_quality_gates.dart';
 import 'maintainiac_qa_readiness.dart';
 import 'maintainiac_qa_run_ledger.dart';
+import 'maintainiac_qa_telemetry_privacy_gate.dart';
 import 'maintainiac_qa_case_registry.dart';
 import 'maintainiac_regression_registry.dart';
 import 'maintainiac_expense_parser_consumer_contract.dart';
@@ -446,10 +447,13 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacFinancialFormulaRegistry.validate()) {
       failures.add(_failure('financial_formula_registry_$issue', issue));
     }
+    for (final issue in maintainiacQaTelemetryPrivacyGate.validate()) {
+      failures.add(_failure('qa_telemetry_privacy_gate_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 436,
+      checked: 456,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -498,6 +502,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'sourceTruthGate': maintainiacSourceTruthGate.toJson(),
         'financialFormulaRegistry': maintainiacFinancialFormulaRegistry
             .toJson(),
+        'qaTelemetryPrivacyGate': maintainiacQaTelemetryPrivacyGate.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

@@ -126,6 +126,10 @@ void main() {
       report.results.single.metrics['financialFormulaRegistry'].toString(),
       contains('invoice_grand_total_cents'),
     );
+    expect(
+      report.results.single.metrics['qaTelemetryPrivacyGate'].toString(),
+      contains('parser_diagnostic_redaction'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

@@ -225,6 +225,7 @@ The backbone includes a release gate plan:
 - Adds surgical selector coverage expectations so every focused parser-consumer QA behavior has an individual selector before release.
 - Adds a source-truth gate that formalizes local/Hive source records, Firestore mirror-only records, parser suggestion records, and derived read-only outputs across expenses, inventory, jobs, estimates, invoices, recap, exports, and sync.
 - Adds a financial formula registry that labels deterministic money formulas, rounding policies, source-mutation rules, and individual test commands across expenses, inventory, jobs, estimates, invoices, and payments.
+- Adds a QA telemetry privacy gate for QA reports, admin dashboards, parser diagnostics, export artifacts, and run ledgers so actionable diagnostics do not leak raw receipts, customer data, vehicle identifiers, card data, or device secrets.
 
 Print the release gate with:
 
