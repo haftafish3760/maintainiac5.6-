@@ -350,6 +350,55 @@ void main() {
     );
   });
 
+  test('malformed retake section metadata is counted without leaking paths', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/top.jpg', '/tmp/middle-new.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.fallback(
+        inputPaths: ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
+        warning: 'Review retaken section order.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/middle-new.jpg': {
+          'receiptRetakePreservedOriginalSlot': true,
+          'receiptRetakeOriginalSectionNumber': 3,
+          'receiptRetakeFinalSectionNumber': 2,
+          'receiptRetakeGuidanceCode':
+              'retake_middle_with_previous_next_context',
+          'receiptRetakeOrderPolicy':
+              'preserve_original_slot_insert_extra_sections_after_target',
+          'receiptLineText': 'private malformed line should not leak',
+          'sourcePath': '/tmp/private-original.jpg',
+        },
+      },
+    );
+
+    expect(
+      result.receiptSectionOrderCounts['retake_invalid_final_before_original'],
+      1,
+    );
+    expect(
+      result.receiptSectionOrderCounts['retake_invalid_preserved_slot_moved'],
+      1,
+    );
+    expect(
+      result
+          .receiptReaderHandoffCounts['receipt_section_order_retake_invalid_final_before_original'],
+      1,
+    );
+    expect(
+      result
+          .receiptReaderHandoffCounts['receipt_section_order_retake_invalid_preserved_slot_moved'],
+      1,
+    );
+    final metadata = result.privacySafeReceiptReaderHandoffMetadata.toString();
+    expect(metadata, contains('retake_invalid_final_before_original'));
+    expect(metadata, isNot(contains('/tmp/')));
+    expect(metadata, isNot(contains('private malformed line')));
+  });
+
   test('photo review result summarizes scanner prep concerns', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/proof.jpg'],

@@ -232,6 +232,13 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
             : 'retake_final_section_$retakeFinalSection';
         counts[bucket] = (counts[bucket] ?? 0) + 1;
       }
+      for (final invalidCode in _receiptRetakeInvalidOrderCodes(
+        diagnostics: diagnostics,
+        originalSection: retakeOriginalSection,
+        finalSection: retakeFinalSection,
+      )) {
+        counts[invalidCode] = (counts[invalidCode] ?? 0) + 1;
+      }
       if (orderPolicy != 'unknown') {
         counts['policy_$orderPolicy'] =
             (counts['policy_$orderPolicy'] ?? 0) + 1;
@@ -298,6 +305,24 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       return '$label;retake_preserved';
     }
     return label;
+  }
+
+  List<String> _receiptRetakeInvalidOrderCodes({
+    required Map<String, Object?> diagnostics,
+    required int? originalSection,
+    required int? finalSection,
+  }) {
+    if (originalSection == null || finalSection == null) return const [];
+    final codes = <String>[];
+    if (finalSection < originalSection) {
+      codes.add('retake_invalid_final_before_original');
+    }
+    if (_diagnosticBool(diagnostics['receiptRetakePreservedOriginalSlot']) ==
+            true &&
+        finalSection != originalSection) {
+      codes.add('retake_invalid_preserved_slot_moved');
+    }
+    return codes;
   }
 
   List<String> _receiptRetakeContextCodes(Map<String, Object?> diagnostics) {

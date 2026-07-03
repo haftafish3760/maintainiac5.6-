@@ -3,6 +3,28 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 485 - 00:02:00 EDT to 00:06:00 EDT
+
+Scope:
+- Hardened privacy-safe section-order metadata for malformed native/recovery
+  retake diagnostics.
+- Added invalid retake order buckets when final section metadata is before the
+  original section or when a preserved-slot retake claims it moved sections.
+- Added regression coverage proving malformed retake diagnostics are counted in
+  metadata and receipt-reader handoff counts without leaking file paths or
+  receipt text.
+- Recorded `BUG-RECEIPT-0004` under `multi_photo_ordering`.
+- Archived Pass 464 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for section-order metadata,
+  scanner/section-order tests, and the bug ledger gate.
+- Passed focused Flutter test
+  `test/receipt_camera_result_stitch_scanner_test.dart` with 5/5 tests
+  passing.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 484 - 23:59:00 EDT to 00:04:00 EDT
 
 Scope:
@@ -457,27 +479,3 @@ Verification:
 - Restarted `receipt_ocr_pipeline` as a detached quiet batch; the metadata check
   showed `status=running`, `running=true`, `runner_started=true`, and
   `runner_finished=false`. Did not watch or tail the running pipeline.
-
-## Pass 464 - 16:43:45 EDT to 16:45:20 EDT
-
-Scope:
-- Checked the detached OCR pipeline once using metadata only; the old run showed
-  stale status because pid `37666` was dead with no exit code.
-- Hardened `tool/receipt_quiet_batch.sh` with an EXIT trap so detached batches
-  always write final status and exit code.
-- Hardened `tool/receipt_quiet_batch_status.sh` so dead `running` batches with
-  no exit code report `stale`.
-- Hardened `tool/receipt_ocr_pipeline_run.sh` with an EXIT trap and startup or
-  unhandled-exit failure report path.
-- Updated `tool/receipt_quiet_batch_policy_gate.dart` so those finalization and
-  stale-state protections are required.
-- Restarted the detached OCR pipeline after static verification. The hardened
-  launcher returned immediately with pid `41064`.
-
-Verification:
-- Passed `bash -n` for the quiet batch, status helper, OCR pipeline runner, and
-  OCR pipeline launcher.
-- Passed `dart format`, `dart analyze`, and
-  `dart run tool/receipt_quiet_batch_policy_gate.dart`.
-- Did not read phase logs, poll the restarted pipeline, run Flutter directly, or
-  attach to long OCR pipeline output during this pass.
