@@ -16,6 +16,8 @@ class WorkSupplyParserNextActionSuite extends QaSuite {
     'activeWaveUnsafeFindings',
     'activeWaveStatusStale',
     'activeWaveCellStale',
+    'activeWaveFailedCells',
+    'hasFailedCells',
     'maxStatusAgeMs',
     'maxActiveCellMs',
     'jsonReadError',

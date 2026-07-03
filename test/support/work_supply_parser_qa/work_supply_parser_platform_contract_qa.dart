@@ -10,6 +10,15 @@ class WorkSupplyParserPlatformContractSuite extends QaSuite {
   static const _planPath = 'docs/inventory_parser_qa_harness_plan.md';
 
   static const _pillars = [
+    _PlatformPillar('environment_independent_parser_core', [
+      'environment-independent parser core',
+      'pure parser input',
+      'pure parser output',
+      'mobile adapter',
+      'server adapter',
+      'QA harness adapter',
+      'batch parser adapter',
+    ]),
     _PlatformPillar('review_only_result_contract', [
       'review-only parser result',
       'Nothing auto-saves',

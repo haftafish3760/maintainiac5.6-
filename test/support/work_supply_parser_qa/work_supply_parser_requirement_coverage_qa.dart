@@ -89,6 +89,7 @@ class WorkSupplyParserRequirementCoverageSuite extends QaSuite {
       'active wave unsafe findings',
       'corrupt artifact blockers',
       'stale active wave blockers',
+      'failed active wave blockers',
     ]),
     _RequirementCoverage(
       'domain_adapter',
@@ -463,7 +464,18 @@ class WorkSupplyParserRequirementCoverageSuite extends QaSuite {
     _RequirementCoverage(
       'parser_platform',
       'inventory.parser_platform_contract',
-      ['review-only parser result', 'Merchant rule packs', 'Release gates'],
+      [
+        'environment-independent parser core',
+        'pure parser input',
+        'pure parser output',
+        'mobile adapter',
+        'server adapter',
+        'QA harness adapter',
+        'batch parser adapter',
+        'review-only parser result',
+        'Merchant rule packs',
+        'Release gates',
+      ],
     ),
     _RequirementCoverage(
       'category_reuse',

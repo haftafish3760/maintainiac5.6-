@@ -273,6 +273,55 @@ void main() {
     );
   });
 
+  test('next action blocks active parser waves with failed cells', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_next_failed_cells_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeJson('build/parser_qa_pipeline/release_one_commands.json', {
+      'commands': [
+        {'cellId': 'plumbing.residential.core.en-US'},
+      ],
+    });
+    _writeJson('build/parser_qa_pass_evidence/evidence_summary.json', {
+      'missingArtifactNames': <String>[],
+      'unsafeFindings': <String>[],
+    });
+    _writeJson(
+      'build/parser_qa_batch_waves/wave/queue/queue-id/latest_status.json',
+      {
+        'state': 'running',
+        'queueId': 'queue-id',
+        'activeCellId': 'plumbing_residential_standard_en_US',
+        'completedCellCount': 2,
+        'failedCellCount': 1,
+        'updatedAtIso': DateTime.now().toUtc().toIso8601String(),
+        'activeCellElapsedMs': 1000,
+        'liveServicesAllowed': false,
+        'writesProductionCatalog': false,
+        'firebaseWritesAllowed': false,
+        'ocrCameraExpensesTouched': false,
+      },
+    );
+
+    final exit = runWorkSupplyParserQaNextAction(
+      const [],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 1);
+    final summary = _readJson('build/parser_qa_pass_evidence/next_action.json');
+    expect(summary['readyForNextBatch'], isFalse);
+    expect(
+      summary['activeWaveUnsafeFindings'].toString(),
+      contains('activeWaveFailedCells'),
+    );
+  });
+
   test('next action reports corrupt evidence artifacts without crashing', () {
     final root = Directory.systemTemp.createTempSync(
       'maintainiac_next_corrupt_',

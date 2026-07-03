@@ -177,12 +177,14 @@ List<Map<String, Object?>> _runningWaveStatuses(
         ? null
         : now.difference(updatedAt.toUtc()).inMilliseconds;
     final activeCellElapsedMs = _asInt(decoded['activeCellElapsedMs']);
+    final failedCellCount = _asInt(decoded['failedCellCount']) ?? 0;
     activeByQueue[key] = {
       'path': entity.path,
       'queueId': queueId,
       'activeCellId': decoded['activeCellId'] ?? '',
       'completedCellCount': decoded['completedCellCount'] ?? 0,
-      'failedCellCount': decoded['failedCellCount'] ?? 0,
+      'failedCellCount': failedCellCount,
+      'hasFailedCells': failedCellCount > 0,
       'updatedAtIso': decoded['updatedAtIso'] ?? '',
       'statusAgeMs': statusAgeMs,
       'activeCellElapsedMs': activeCellElapsedMs,
@@ -225,6 +227,9 @@ List<String> _activeWaveUnsafeFindings(List<Map<String, Object?>> waves) {
       findings.add(
         'activeWaveCellStale:$queueId:${wave['activeCellElapsedMs']}ms',
       );
+    }
+    if (wave['hasFailedCells'] == true) {
+      findings.add('activeWaveFailedCells:$queueId:${wave['failedCellCount']}');
     }
   }
   findings.sort();
