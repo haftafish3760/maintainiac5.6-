@@ -222,6 +222,42 @@ class MaintainiacQaCaseRegistry {
             'flutter test test/maintainiac_failure_taxonomy_test.dart --plain-name "failure taxonomy classifies common QA failure families"',
         tags: {'failure-routing', 'admin-report', 'triage'},
       ),
+      MaintainiacQaCase(
+        id: 'QA-A11Y-L10N-001',
+        title: 'Accessibility localization release gates',
+        module: MaintainiacQaModule.performance,
+        behavior:
+            'Review surfaces and parser reasons remain accessible, translatable, and unit-aware for English, Spanish, French, imperial, and metric release paths.',
+        evidenceTarget: 'maintainiac_qa_scenario_runners_accessibility',
+        priority: MaintainiacQaCasePriority.core,
+        testCommand:
+            'flutter test test/maintainiac_qa_scenario_runners_test.dart --plain-name "accessibility localization runner proves release UI language gates"',
+        tags: {
+          'accessibility',
+          'localization',
+          'spanish',
+          'metric',
+          'scenario-runner',
+        },
+      ),
+      MaintainiacQaCase(
+        id: 'QA-COST-001',
+        title: 'Cloud cost quota safety gates',
+        module: MaintainiacQaModule.security,
+        behavior:
+            'Local QA uses no live cloud reads or writes, and cloud-assisted parsing remains opt-in, App Check protected, network-aware, and budgeted.',
+        evidenceTarget: 'maintainiac_qa_scenario_runners_cost_quota',
+        priority: MaintainiacQaCasePriority.core,
+        testCommand:
+            'flutter test test/maintainiac_qa_scenario_runners_test.dart --plain-name "cost quota runner proves cloud usage stays budgeted and opt-in"',
+        tags: {
+          'cost-quota',
+          'firebase-budget',
+          'cloud-assist',
+          'security',
+          'scenario-runner',
+        },
+      ),
     ]);
   }
 

@@ -31,7 +31,12 @@ void main() {
     );
     expect(
       focused.map((execution) => execution.id),
-      containsAll(['QA-BOUNDARY-001', 'QA-DEVICE-001']),
+      containsAll([
+        'QA-BOUNDARY-001',
+        'QA-DEVICE-001',
+        'QA-A11Y-L10N-001',
+        'QA-COST-001',
+      ]),
     );
   });
 
@@ -52,6 +57,8 @@ void main() {
       isTrue,
     );
     expect(focusedCommands.join('\n'), contains('maintainiac_source_boundary'));
+    expect(focusedCommands.join('\n'), contains('accessibility localization'));
+    expect(focusedCommands.join('\n'), contains('cost quota runner'));
     expect(releaseCommands.join('\n'), contains('maintainiac_qa_backbone'));
   });
 
