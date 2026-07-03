@@ -2496,6 +2496,15 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the release-one cell manifest:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_cell_manifest,qa.threshold_gate`
   passed 28 checks with 0 failures.
+- Added six golden receipt fixtures for Plumbing Core repair-kit phrases:
+  toilet, sink, and faucet repair kit in en-US and es-US.
+- Validated fixture JSON loading and static fixture coverage:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fixture_coverage_matrix,inventory.accumulated_coverage_contract,qa.threshold_gate`
+  passed 162 checks with 0 failures.
+- Remaining risk: full runtime parser validation for the new repair-kit fixture
+  lines timed out on the Windows machine. Do not claim those six lines are
+  runtime-proven until a focused parser fixture run completes on the Mac or a
+  faster non-Flutter parser harness.
 
 Named release gates:
 

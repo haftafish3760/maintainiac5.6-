@@ -920,5 +920,134 @@
     "expectedReviewRequired": true,
     "expectedCandidateTrade": "plumbing",
     "expectedConfidenceBand": "review"
+  },
+  {
+    "id": "plumbing_core_toilet_repair_kit_en_us",
+    "caseType": "clear_match",
+    "merchant": "Home Depot",
+    "riskTags": [
+      "repair_kit",
+      "toilet_repair",
+      "merchant_abbreviation"
+    ],
+    "rawLine": "HD TOILET REPAIR KIT UNIVERSAL",
+    "trade": "plumbing",
+    "marketScope": "residential",
+    "tier": "core",
+    "localePackId": "en-US",
+    "expectedTrade": "Plumbing",
+    "expectedNameContains": "Toilet",
+    "tradeScope": "Plumbing",
+    "expectedStatus": "matched",
+    "expectedCandidateTrade": "plumbing",
+    "expectedConfidenceBand": "high"
+  },
+  {
+    "id": "plumbing_core_toilet_repair_kit_es_us",
+    "caseType": "clear_match",
+    "merchant": "unknown",
+    "riskTags": [
+      "repair_kit",
+      "toilet_repair",
+      "spanish",
+      "locale_pack"
+    ],
+    "rawLine": "KIT REPARACION SANITARIO UNIVERSAL",
+    "trade": "plumbing",
+    "marketScope": "residential",
+    "tier": "core",
+    "localePackId": "es-US",
+    "expectedTrade": "Plumbing",
+    "expectedNameContains": "Toilet",
+    "tradeScope": "Plumbing",
+    "expectedStatus": "matched",
+    "expectedCandidateTrade": "plumbing",
+    "expectedConfidenceBand": "high"
+  },
+  {
+    "id": "plumbing_core_sink_repair_kit_en_us",
+    "caseType": "clear_match",
+    "merchant": "Lowes",
+    "riskTags": [
+      "repair_kit",
+      "sink_repair",
+      "merchant_abbreviation"
+    ],
+    "rawLine": "LOWES SINK REPAIR KIT",
+    "trade": "plumbing",
+    "marketScope": "residential",
+    "tier": "core",
+    "localePackId": "en-US",
+    "expectedTrade": "Plumbing",
+    "expectedNameContains": "Sink",
+    "tradeScope": "Plumbing",
+    "expectedStatus": "matched",
+    "expectedCandidateTrade": "plumbing",
+    "expectedConfidenceBand": "high"
+  },
+  {
+    "id": "plumbing_core_sink_repair_kit_es_us",
+    "caseType": "clear_match",
+    "merchant": "unknown",
+    "riskTags": [
+      "repair_kit",
+      "sink_repair",
+      "spanish",
+      "locale_pack"
+    ],
+    "rawLine": "KIT REPARACION LAVABO",
+    "trade": "plumbing",
+    "marketScope": "residential",
+    "tier": "core",
+    "localePackId": "es-US",
+    "expectedTrade": "Plumbing",
+    "expectedNameContains": "Sink",
+    "tradeScope": "Plumbing",
+    "expectedStatus": "matched",
+    "expectedCandidateTrade": "plumbing",
+    "expectedConfidenceBand": "high"
+  },
+  {
+    "id": "plumbing_core_faucet_repair_kit_en_us",
+    "caseType": "clear_match",
+    "merchant": "Ace",
+    "riskTags": [
+      "repair_kit",
+      "faucet_repair",
+      "merchant_abbreviation"
+    ],
+    "rawLine": "ACE FAUCET REPAIR KIT",
+    "trade": "plumbing",
+    "marketScope": "residential",
+    "tier": "core",
+    "localePackId": "en-US",
+    "expectedTrade": "Plumbing",
+    "expectedNameContains": "Faucet",
+    "tradeScope": "Plumbing",
+    "expectedStatus": "matched",
+    "expectedCandidateTrade": "plumbing",
+    "expectedConfidenceBand": "high"
+  },
+  {
+    "id": "plumbing_core_faucet_repair_kit_es_us",
+    "caseType": "clear_match",
+    "merchant": "unknown",
+    "riskTags": [
+      "repair_kit",
+      "faucet_repair",
+      "spanish",
+      "locale_pack"
+    ],
+    "rawLine": "KIT REPARACION LLAVE",
+    "trade": "plumbing",
+    "marketScope": "residential",
+    "tier": "core",
+    "localePackId": "es-US",
+    "expectedTrade": "Plumbing",
+    "expectedNameContains": "Faucet",
+    "tradeScope": "Plumbing",
+    "expectedStatus": "matched",
+    "expectedCandidateTrade": "plumbing",
+    "expectedConfidenceBand": "high"
   }
 ]
