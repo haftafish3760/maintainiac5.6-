@@ -130,6 +130,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_export_privacy.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'mutation_guard_probe',
+        module: MaintainiacQaModule.recap,
+        description:
+            'Reusable guard proving derived outputs do not mutate source-of-truth collections.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_mutation_guard.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:

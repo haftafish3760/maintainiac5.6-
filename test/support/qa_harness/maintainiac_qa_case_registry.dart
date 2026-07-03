@@ -154,6 +154,17 @@ class MaintainiacQaCaseRegistry {
         testCommand: 'flutter test test/maintainiac_export_privacy_test.dart',
         tags: {'exports', 'privacy', 'ownership'},
       ),
+      MaintainiacQaCase(
+        id: 'QA-MUTATION-001',
+        title: 'Derived outputs do not mutate source records',
+        module: MaintainiacQaModule.recap,
+        behavior:
+            'Recaps, exports, notifications, estimates, invoices, and reports cannot write source collections unless explicitly scoped as a source operation.',
+        evidenceTarget: 'maintainiac_mutation_guard_test',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand: 'flutter test test/maintainiac_mutation_guard_test.dart',
+        tags: {'source-of-truth', 'derived-output', 'mutation-guard'},
+      ),
     ]);
   }
 
