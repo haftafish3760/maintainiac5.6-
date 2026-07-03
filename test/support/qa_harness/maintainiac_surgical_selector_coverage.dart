@@ -269,6 +269,50 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_module_boundary_gate_test.dart',
+      plainNames: {
+        'module boundary gate labels safe QA lanes',
+        'module boundary gate rejects weak or missing lanes',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_module_suite_contract_test.dart',
+      plainNames: {
+        'module suite matrix labels release-one module QA coverage',
+        'module suite matrix now makes release-one module suites executable',
+        'module suite matrix rejects unsafe or unlabeled suites',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_schedule_contract_test.dart',
+      plainNames: {
+        'schedule contract accepts audited jobs and maintenance reminders',
+        'schedule contract respects denied notification permission',
+        'schedule contract rejects unsafe calendar and reminder records',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_restart_lifecycle_gate_test.dart',
+      plainNames: {
+        'restart lifecycle gate covers offline and partial-sync recovery',
+        'restart lifecycle gate rejects unsafe recovery scenarios',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_case_registry_test.dart',
+      plainNames: {
+        'QA case registry labels behavior evidence and priority',
+        'QA case registry rejects duplicate and unlabeled cases',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_telemetry_privacy_gate_test.dart',
+      plainNames: {
+        'QA telemetry privacy gate covers report and admin surfaces',
+        'QA telemetry privacy gate rejects missing redaction and overlap',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_parser_release_command_plan_test.dart',
       plainNames: {
         'parser release command plan covers every parser consumer family',

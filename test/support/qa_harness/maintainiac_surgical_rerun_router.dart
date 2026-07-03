@@ -73,6 +73,12 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_failure_taxonomy.dart',
       'maintainiac_performance_budget_registry.dart',
       'maintainiac_release_gate_plan.dart',
+      'maintainiac_module_boundary_gate.dart',
+      'maintainiac_module_suite_contract.dart',
+      'maintainiac_schedule_contract.dart',
+      'maintainiac_restart_lifecycle_gate.dart',
+      'maintainiac_qa_case_registry.dart',
+      'maintainiac_qa_telemetry_privacy_gate.dart',
       'maintainiac_parser_release_command_plan.dart',
       'maintainiac_parser_regression_binding.dart',
       'maintainiac_surgical_selector_coverage.dart',
@@ -360,6 +366,74 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Release gate plan changes need core plan, priorities, blocker commands, surgical core, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'module_boundary_gate_changed',
+      changedPathContains: 'maintainiac_module_boundary_gate.dart',
+      selectorIds: {
+        'module_boundary_labels_safe_lanes',
+        'module_boundary_rejects_weak_lanes',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Module boundary changes need safe-lane, weak-lane, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'module_suite_contract_changed',
+      changedPathContains: 'maintainiac_module_suite_contract.dart',
+      selectorIds: {
+        'module_suite_labels_release_one',
+        'module_suite_executable_release_one',
+        'module_suite_rejects_unsafe_unlabeled',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Module suite changes need release-one, executable, unsafe/unlabeled, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'schedule_contract_changed',
+      changedPathContains: 'maintainiac_schedule_contract.dart',
+      selectorIds: {
+        'schedule_contract_accepts_audited_records',
+        'schedule_contract_denied_notifications',
+        'schedule_contract_rejects_unsafe_records',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Schedule changes need audited record, denied notification, unsafe record, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'restart_lifecycle_gate_changed',
+      changedPathContains: 'maintainiac_restart_lifecycle_gate.dart',
+      selectorIds: {
+        'restart_lifecycle_offline_partial_sync',
+        'restart_lifecycle_rejects_unsafe',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Restart lifecycle changes need offline recovery, unsafe recovery, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_case_registry_changed',
+      changedPathContains: 'maintainiac_qa_case_registry.dart',
+      selectorIds: {
+        'qa_case_registry_labels_evidence',
+        'qa_case_registry_rejects_duplicate_unlabeled',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'QA case registry changes need evidence labels, duplicate/unlabeled, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_telemetry_privacy_gate_changed',
+      changedPathContains: 'maintainiac_qa_telemetry_privacy_gate.dart',
+      selectorIds: {
+        'qa_telemetry_privacy_covers_surfaces',
+        'qa_telemetry_privacy_rejects_missing_redaction',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'QA telemetry privacy changes need surface, redaction/overlap, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'parser_release_command_plan_changed',
