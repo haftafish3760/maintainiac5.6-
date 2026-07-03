@@ -159,6 +159,51 @@ void main() {
     expect(selectorIds, contains('main_backbone_parser_visibility'));
   });
 
+  test('surgical rerun router covers all critical selector families', () {
+    const registry = maintainiacSurgicalTestSelectorRegistry;
+    const criticalFamilies = {
+      'test/support/qa_harness/maintainiac_individual_qa_command.dart': [
+        'individual_command_tool_',
+      ],
+      'test/support/qa_harness/maintainiac_individual_test_manifest.dart': [
+        'individual_manifest_',
+      ],
+      'test/support/qa_harness/maintainiac_qa_run_ledger.dart': [
+        'qa_run_ledger_',
+      ],
+      'test/support/qa_harness/maintainiac_release_evidence_bundle.dart': [
+        'release_evidence_',
+      ],
+      'test/support/qa_harness/maintainiac_source_audit_policy.dart': [
+        'source_audit_',
+      ],
+      'test/support/qa_harness/maintainiac_qa_artifact_policy.dart': [
+        'qa_artifact_policy_',
+      ],
+      'test/support/qa_harness/maintainiac_source_boundary.dart': [
+        'source_boundary_',
+      ],
+      'test/support/qa_harness/maintainiac_sensitive_field_registry.dart': [
+        'sensitive_field_registry_',
+      ],
+    };
+
+    for (final entry in criticalFamilies.entries) {
+      final routedIds = maintainiacSurgicalRerunRouter
+          .selectorIdsForChangedPaths([entry.key]);
+      final expectedIds = {
+        for (final selector in registry.selectors)
+          if (entry.value.any(selector.id.startsWith)) selector.id,
+      };
+
+      expect(
+        routedIds,
+        containsAll(expectedIds),
+        reason: '${entry.key} must route every critical family selector',
+      );
+    }
+  });
+
   test('surgical rerun router dedupes overlapping changed paths', () {
     final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
       'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
