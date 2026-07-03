@@ -34,6 +34,10 @@ class MaintainiacQaCase {
     if (evidenceTarget.trim().isEmpty) {
       failures.add('$id missing evidence target');
     }
+    if (evidenceTarget.isNotEmpty &&
+        !RegExp(r'^[a-z0-9_]+(\.[a-z0-9_]+)*$').hasMatch(evidenceTarget)) {
+      failures.add('$id evidence target must be dot-delimited snake case');
+    }
     if (tags.isEmpty) {
       failures.add('$id missing searchable tags');
     }

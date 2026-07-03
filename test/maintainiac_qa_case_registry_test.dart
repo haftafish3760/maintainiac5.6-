@@ -54,6 +54,15 @@ void main() {
         priority: MaintainiacQaCasePriority.core,
         tags: {'registry'},
       ),
+      MaintainiacQaCase(
+        id: 'QA-BAD-EVIDENCE-001',
+        title: 'Bad evidence target',
+        module: MaintainiacQaModule.expenses,
+        behavior: 'Malformed evidence targets must fail.',
+        evidenceTarget: 'Bad Evidence Target',
+        priority: MaintainiacQaCasePriority.core,
+        tags: {'registry'},
+      ),
     ]);
 
     final failures = registry.validate();
@@ -64,5 +73,11 @@ void main() {
     expect(failures, contains('QA-DUP missing behavior'));
     expect(failures, contains('QA-DUP missing searchable tags'));
     expect(failures, contains('bad_id must use stable QA-AREA-### id format'));
+    expect(
+      failures,
+      contains(
+        'QA-BAD-EVIDENCE-001 evidence target must be dot-delimited snake case',
+      ),
+    );
   });
 }
