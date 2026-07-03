@@ -278,6 +278,49 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'inventory', 'expenses', 'parser-consumer', 'security'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'surgical_selector_coverage_required',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_selector_coverage_test.dart',
+    plainName:
+        'surgical selector coverage requires selectors for every focused behavior',
+    reason: 'Run only the selector coverage positive requirement check.',
+    tags: {'parser-consumer', 'tooling', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'surgical_selector_coverage_rejects_missing',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_selector_coverage_test.dart',
+    plainName: 'surgical selector coverage rejects missing behavior selectors',
+    reason: 'Run only the selector coverage missing-behavior negative check.',
+    tags: {'parser-consumer', 'tooling', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'surgical_selector_coverage_rejects_unlisted',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_selector_coverage_test.dart',
+    plainName: 'surgical selector coverage rejects unlisted selector targets',
+    reason: 'Run only the selector coverage unlisted-target negative check.',
+    tags: {'parser-consumer', 'tooling', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'surgical_selector_coverage_all_declarations',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_selector_coverage_test.dart',
+    plainName:
+        'surgical selector coverage lists every test in registered files',
+    reason: 'Run only the selector coverage declaration-audit check.',
+    tags: {'parser-consumer', 'tooling', 'regression', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'individual_manifest_metadata',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_individual_test_manifest_test.dart',
+    plainName: 'individual test manifest exposes surgical command metadata',
+    reason:
+        'Run only the individual manifest metadata check after manifest edits.',
+    tags: {'parser-consumer', 'tooling', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'individual_manifest_mirrors_selectors',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_individual_test_manifest_test.dart',
@@ -286,6 +329,15 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     reason:
         'Run only the manifest/selector exact-match check after command metadata edits.',
     tags: {'parser-consumer', 'tooling', 'regression', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'individual_manifest_rejects_unsafe',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_individual_test_manifest_test.dart',
+    plainName:
+        'individual test manifest rejects unsafe or non-surgical commands',
+    reason: 'Run only the individual manifest negative safety check.',
+    tags: {'parser-consumer', 'tooling', 'security', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
     id: 'surgical_rerun_router_maps_changes',
@@ -314,6 +366,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     reason:
         'Run only the payment/granularity rerun mapping check after router edits.',
     tags: {'payments', 'parser-consumer', 'source-of-truth', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'surgical_rerun_router_dedupes_overlaps',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_rerun_router_test.dart',
+    plainName: 'surgical rerun router dedupes overlapping changed paths',
+    reason: 'Run only the rerun-router overlap dedupe check.',
+    tags: {'parser-consumer', 'tooling', 'regression', 'release-gate'},
   ),
   MaintainiacSurgicalTestSelector(
     id: 'surgical_granularity_individual',
@@ -360,6 +420,32 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     plainName: 'payment ledger policy rejects cross-account and overpay risks',
     reason:
         'Run only the payment ledger negative safety check after payment contract edits.',
+    tags: {'payments', 'financial', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'payment_contract_balances_adjustments',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_payment_contract_test.dart',
+    plainName: 'payment contract balances payments refunds and adjustments',
+    reason: 'Run only the payment/refund/adjustment balance contract.',
+    tags: {'payments', 'financial', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'payment_contract_positive_ledger_math',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_payment_contract_test.dart',
+    plainName:
+        'payment contract allows audited positive payment and refund ledger math',
+    reason: 'Run only the positive audited payment ledger math check.',
+    tags: {'payments', 'financial', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'payment_contract_rejects_sensitive_source_mutation',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_payment_contract_test.dart',
+    plainName: 'payment contract rejects sensitive or source-mutating records',
+    reason:
+        'Run only the payment sensitive-data/source-mutation negative check.',
     tags: {'payments', 'financial', 'security', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
@@ -448,6 +534,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     reason:
         'Run only the source-audit debt scan after line-count debt changes.',
     tags: {'source-audit', 'quality-gate', 'modularity', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'source_audit_rejects_unsafe_limits',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_source_audit_policy_test.dart',
+    plainName: 'source audit policy rejects unsafe or incomplete limits',
+    reason: 'Run only the source-audit unsafe-limit negative check.',
+    tags: {'source-audit', 'quality-gate', 'modularity', 'security'},
   ),
   MaintainiacSurgicalTestSelector(
     id: 'audit_trail_ordered_complete',
@@ -597,5 +691,48 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     reason:
         'Run only the main backbone visibility check when shared QA wiring changes.',
     tags: {'inventory', 'expenses', 'parser-consumer', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'main_backbone_builders_visibility',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_backbone_test.dart',
+    plainName:
+        'shared builders cover app records without module-specific fakes',
+    reason: 'Run only the shared-builder backbone visibility check.',
+    tags: {'builders', 'environment', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'main_backbone_assertions_visibility',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_backbone_test.dart',
+    plainName: 'shared assertions enforce source-of-truth and privacy rules',
+    reason: 'Run only the shared-assertions backbone visibility check.',
+    tags: {'assertions', 'source-of-truth', 'privacy', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'main_backbone_fixture_regression_visibility',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_backbone_test.dart',
+    plainName:
+        'fixture catalog and regression registry reject weak QA evidence',
+    reason: 'Run only the fixture/regression backbone visibility check.',
+    tags: {'fixtures', 'regression', 'security', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'main_backbone_quality_gate_visibility',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_backbone_test.dart',
+    plainName:
+        'quality gate matrix covers release-one sync security money and load',
+    reason: 'Run only the quality-gate backbone visibility check.',
+    tags: {'quality-gate', 'sync', 'security', 'performance'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'main_backbone_scenario_runner_visibility',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_backbone_test.dart',
+    plainName: 'scenario runners execute release-one QA behavior contracts',
+    reason: 'Run only the scenario-runner backbone visibility check.',
+    tags: {'scenario-runner', 'financial', 'performance', 'release-gate'},
   ),
 ]);

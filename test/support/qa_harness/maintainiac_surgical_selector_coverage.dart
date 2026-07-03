@@ -154,9 +154,20 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_surgical_selector_coverage_test.dart',
+      plainNames: {
+        'surgical selector coverage requires selectors for every focused behavior',
+        'surgical selector coverage rejects missing behavior selectors',
+        'surgical selector coverage rejects unlisted selector targets',
+        'surgical selector coverage lists every test in registered files',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_individual_test_manifest_test.dart',
       plainNames: {
+        'individual test manifest exposes surgical command metadata',
         'individual test manifest mirrors surgical selector commands exactly',
+        'individual test manifest rejects unsafe or non-surgical commands',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
@@ -165,6 +176,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'surgical rerun router maps changed files to individual commands',
         'surgical rerun router rejects unknown selector references',
         'surgical rerun router maps payment and granularity changes',
+        'surgical rerun router dedupes overlapping changed paths',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
@@ -180,6 +192,9 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'payment ledger policy proves invoice balance without source mutation',
         'payment ledger policy rejects cross-account and overpay risks',
+        'payment contract balances payments refunds and adjustments',
+        'payment contract allows audited positive payment and refund ledger math',
+        'payment contract rejects sensitive or source-mutating records',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
@@ -215,6 +230,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'source audit policy separates production and QA line caps',
         'source audit debt ledger tracks current oversized production files',
+        'source audit policy rejects unsafe or incomplete limits',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
@@ -260,7 +276,14 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
     ),
     MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_backbone_test.dart',
-      plainNames: {'main Maintainiac QA backbone covers whole app modules'},
+      plainNames: {
+        'main Maintainiac QA backbone covers whole app modules',
+        'shared builders cover app records without module-specific fakes',
+        'shared assertions enforce source-of-truth and privacy rules',
+        'fixture catalog and regression registry reject weak QA evidence',
+        'quality gate matrix covers release-one sync security money and load',
+        'scenario runners execute release-one QA behavior contracts',
+      },
     ),
   ],
 );

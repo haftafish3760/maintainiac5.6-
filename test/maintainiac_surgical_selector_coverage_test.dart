@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/qa_harness/qa_harness.dart';
@@ -81,4 +83,36 @@ void main() {
       ),
     );
   });
+
+  test('surgical selector coverage lists every test in registered files', () {
+    const coverage = maintainiacSurgicalSelectorCoverage;
+    final failures = <String>[];
+
+    for (final expectation in coverage.expectations) {
+      final file = File(expectation.file);
+      if (!file.existsSync()) {
+        failures.add('missing coverage file ${expectation.file}');
+        continue;
+      }
+
+      final declaredTests = _declaredTestNames(file.readAsStringSync());
+      for (final testName in declaredTests) {
+        if (!expectation.plainNames.contains(testName)) {
+          failures.add('${expectation.file} missing selector for "$testName"');
+        }
+      }
+    }
+
+    expect(failures, isEmpty);
+  });
+}
+
+Set<String> _declaredTestNames(String source) {
+  final names = <String>{};
+  final pattern = RegExp(r'''test(?:Widgets)?\(\s*(['"])(.*?)\1''');
+
+  for (final match in pattern.allMatches(source)) {
+    names.add(match.group(2)!);
+  }
+  return names;
 }

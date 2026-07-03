@@ -62,6 +62,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_parser_consumer_gate.dart',
       'maintainiac_parser_release_command_plan.dart',
       'maintainiac_parser_regression_binding.dart',
+      'maintainiac_surgical_selector_coverage.dart',
       'maintainiac_surgical_test_selector.dart',
       'maintainiac_surgical_granularity_contract.dart',
       'maintainiac_payment_contract.dart',
@@ -194,6 +195,31 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Regression binding changes need positive, negative, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'surgical_selector_coverage_changed',
+      changedPathContains: 'maintainiac_surgical_selector_coverage.dart',
+      selectorIds: {
+        'surgical_selector_coverage_required',
+        'surgical_selector_coverage_rejects_missing',
+        'surgical_selector_coverage_rejects_unlisted',
+        'surgical_selector_coverage_all_declarations',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Selector coverage changes need positive, negative, declaration, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'surgical_selector_coverage_test_changed',
+      changedPathContains: 'maintainiac_surgical_selector_coverage_test.dart',
+      selectorIds: {
+        'surgical_selector_coverage_required',
+        'surgical_selector_coverage_rejects_missing',
+        'surgical_selector_coverage_rejects_unlisted',
+        'surgical_selector_coverage_all_declarations',
+      },
+      reason:
+          'Selector coverage test edits need each individual coverage behavior rerun.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'surgical_selector_changed',
