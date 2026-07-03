@@ -14,11 +14,16 @@ class WorkSupplyParserCatalogItemBatchGenerationSuite extends QaSuite {
   static const _pipelinePath = 'tool/work_supply_parser_qa_pipeline.dart';
   static const _pipelineStatusPath =
       'tool/work_supply_parser_qa_pipeline_status.dart';
-  static const _blueprintModelPath = 'tool/work_supply_catalog_blueprint_model.dart';
+  static const _itemBatchStatusPath =
+      'tool/work_supply_catalog_item_batch_status.dart';
+  static const _blueprintModelPath =
+      'tool/work_supply_catalog_blueprint_model.dart';
   static const _generatorTestPath =
       'test/work_supply_catalog_blueprint_generator_test.dart';
   static const _validatorTestPath =
       'test/work_supply_catalog_blueprint_validator_test.dart';
+  static const _itemBatchStatusTestPath =
+      'test/work_supply_catalog_item_batch_status_test.dart';
 
   static const _requiredBlueprintTokens = {
     'QA_CATALOG_BLUEPRINTS',
@@ -68,10 +73,22 @@ class WorkSupplyParserCatalogItemBatchGenerationSuite extends QaSuite {
     'localOnlySafe',
   };
 
+  static const _requiredItemBatchStatusTokens = {
+    'QA_CATALOG_ITEM_BATCH_STATUS',
+    'work_supply_catalog_item_batch_status',
+    'generatedItemCount',
+    'manualReviewRequiredCells',
+    'resumeCommand',
+    'manifestPath',
+    'blueprintPath',
+    'requireComplete',
+    'ocrCameraExpensesTouched',
+  };
+
   static const _requiredProgressTokens = {
     'Pending QA Test Batches',
     'Add catalog item batch memory for promoted production item batches',
-    'Add item batch generation status memory before generating more inventory items',
+    'Validate item batch generation status memory before generating more inventory items',
     'Do Not Rerun Unless Inputs Changed',
   };
 
@@ -87,6 +104,8 @@ class WorkSupplyParserCatalogItemBatchGenerationSuite extends QaSuite {
         '${_read(_blueprintValidatorPath)}\n${_read(_validatorTestPath)}';
     final pipelineSource =
         '${_read(_pipelinePath)}\n${_read(_pipelineStatusPath)}';
+    final itemBatchStatusSource =
+        '${_read(_itemBatchStatusPath)}\n${_read(_itemBatchStatusTestPath)}';
     final progress = _read(_progressPath);
     var checked = 0;
 
@@ -134,6 +153,17 @@ class WorkSupplyParserCatalogItemBatchGenerationSuite extends QaSuite {
           'Pipeline status must identify present, missing, unsafe, and incomplete cells without rerunning parser work.',
     );
 
+    checked += _requiredItemBatchStatusTokens.length;
+    _checkTokens(
+      failures,
+      contract: 'item_batch_status',
+      source: itemBatchStatusSource,
+      tokens: _requiredItemBatchStatusTokens,
+      category: QaFailureTriage.governance,
+      fix:
+          'Item batch status must report present/missing/unsafe catalog blueprint cells and resume commands before more inventory item generation.',
+    );
+
     checked += _requiredProgressTokens.length;
     _checkTokens(
       failures,
@@ -155,6 +185,7 @@ class WorkSupplyParserCatalogItemBatchGenerationSuite extends QaSuite {
         'blueprintValidatorPath': _blueprintValidatorPath,
         'pipelinePath': _pipelinePath,
         'pipelineStatusPath': _pipelineStatusPath,
+        'itemBatchStatusPath': _itemBatchStatusPath,
         'contract':
             'New inventory items must be generated in review-only catalog blueprints, validated for parser metadata depth, paired with generated fixtures, and tracked before production catalog promotion.',
       },
@@ -175,7 +206,8 @@ class WorkSupplyParserCatalogItemBatchGenerationSuite extends QaSuite {
         QaFailure(
           suite: name,
           id: 'missing_${contract}_token:${_safeId(token)}',
-          message: 'Inventory catalog item batch generation contract is incomplete.',
+          message:
+              'Inventory catalog item batch generation contract is incomplete.',
           severity: QaSeverity.warning,
           expected: token,
           actual: 'not found for $contract',

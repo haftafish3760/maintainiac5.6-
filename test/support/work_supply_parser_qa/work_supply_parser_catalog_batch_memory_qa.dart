@@ -13,6 +13,15 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
       'build/parser_qa_batch_waves/residential_all_tiers_wave_001/queue/'
       'residential_all_tiers_wave_001_generated_fixture_all_tiers_v1/'
       'latest_status.json';
+  static const _blueprintStatusPath =
+      'build/parser_qa_pipeline/status_reports/latest_pipeline_status.json';
+  static const _blueprintMatrixSummaryPath =
+      'build/parser_qa_pipeline/release-one-residential-item-blueprints/'
+      'matrix_reports/latest_pipeline_summary.json';
+  static const _releaseReadinessPath =
+      'build/parser_qa_pipeline/release_one_readiness.json';
+  static const _batchSizeAdvicePath =
+      'build/parser_qa_pipeline/batch_size_advice_release_one.json';
   static const _fixtureRoot = 'build/parser_qa_generated/work_supply_parser';
   static const _priorityTrades = ['plumbing', 'electrical', 'hvac'];
   static const _tiers = ['core', 'standard', 'professional', 'complete'];
@@ -43,6 +52,10 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
     final progress = _readText(_progressPath);
     final plan = _readText(_planPath);
     final status = _readJsonMap(_waveStatusPath, failures);
+    final blueprintStatus = _readJsonMap(_blueprintStatusPath, failures);
+    final blueprintMatrix = _readJsonMap(_blueprintMatrixSummaryPath, failures);
+    final releaseReadiness = _readJsonMap(_releaseReadinessPath, failures);
+    final batchAdvice = _readJsonMap(_batchSizeAdvicePath, failures);
     final generatedCells = _generatedFixtureCells();
     var checked = 0;
 
@@ -52,7 +65,8 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
       failures.add(
         _failure(
           id: 'missing_progress_section:${_safeId(section)}',
-          message: 'Inventory QA progress memory is missing a required section.',
+          message:
+              'Inventory QA progress memory is missing a required section.',
           expected: section,
           actual: 'not found in $_progressPath',
           fix:
@@ -68,7 +82,8 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
       failures.add(
         _failure(
           id: 'missing_progress_field:$field',
-          message: 'Inventory QA progress memory is missing a required tracking field.',
+          message:
+              'Inventory QA progress memory is missing a required tracking field.',
           expected: field,
           actual: 'not found in $_progressPath',
           fix:
@@ -80,6 +95,12 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
 
     checked += 8;
     _checkCompletedWave(status, failures);
+
+    checked += 15;
+    _checkBlueprintBatchStatus(blueprintStatus, blueprintMatrix, failures);
+
+    checked += 13;
+    _checkReleaseReadinessAndAdvice(releaseReadiness, batchAdvice, failures);
 
     checked += generatedCells.length * 4;
     for (final cell in generatedCells) {
@@ -98,6 +119,10 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
         'progressPath': _progressPath,
         'generatedCells': generatedCells.length,
         'waveStatusPath': _waveStatusPath,
+        'blueprintStatusPath': _blueprintStatusPath,
+        'blueprintMatrixSummaryPath': _blueprintMatrixSummaryPath,
+        'releaseReadinessPath': _releaseReadinessPath,
+        'batchSizeAdvicePath': _batchSizeAdvicePath,
         'contract':
             'The inventory parser QA project must remember completed cells, last evidence, covered inputs, and surgical rerun targets so finished tests are not rerun blindly after context compression.',
       },
@@ -133,6 +158,169 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
     _expectStatus(status, failures, 'ocrCameraExpensesTouched', false);
   }
 
+  void _checkBlueprintBatchStatus(
+    Map<String, Object?> status,
+    Map<String, Object?> matrix,
+    List<QaFailure> failures,
+  ) {
+    if (status.isEmpty) {
+      failures.add(
+        _failure(
+          id: 'missing_blueprint_batch_status',
+          message: 'Latest generated blueprint batch status is missing.',
+          expected: _blueprintStatusPath,
+          actual: 'not found',
+          fix:
+              'Run the local pipeline status reader after blueprint generation so future passes can resume surgically.',
+          category: QaFailureTriage.governance,
+        ),
+      );
+      return;
+    }
+
+    _expectStatus(status, failures, 'expectedCells', 24);
+    _expectStatus(status, failures, 'presentCells', 24);
+    _expectStatus(status, failures, 'missingCells', 0);
+    _expectStatus(status, failures, 'unsafeCells', 0);
+    _expectStatus(status, failures, 'parserCalls', 0);
+    _expectStatus(status, failures, 'liveServicesAllowed', false);
+    _expectStatus(status, failures, 'writesProductionCatalog', false);
+    _expectStatus(status, failures, 'requireComplete', true);
+    _expectMatrixSafety(matrix, failures);
+    _expectMatrixCells(matrix, failures);
+  }
+
+  void _checkReleaseReadinessAndAdvice(
+    Map<String, Object?> readiness,
+    Map<String, Object?> advice,
+    List<QaFailure> failures,
+  ) {
+    if (readiness.isEmpty) {
+      failures.add(
+        _failure(
+          id: 'missing_release_one_readiness_artifact',
+          message: 'Release-one parser readiness artifact is missing.',
+          expected: _releaseReadinessPath,
+          actual: 'not found',
+          fix:
+              'Generate release-one readiness from completed wave, pipeline status, and fixture readiness before starting another heavy wave.',
+          category: QaFailureTriage.governance,
+        ),
+      );
+    } else {
+      _expectStatus(readiness, failures, 'releaseOneParserEvidenceReady', true);
+      _expectStatus(
+        readiness,
+        failures,
+        'releaseOnePipelineArtifactsReady',
+        true,
+      );
+      _expectStatus(
+        readiness,
+        failures,
+        'releaseOneFixtureEvidenceReady',
+        true,
+      );
+      _expectStatus(readiness, failures, 'fixtureReadinessReady', true);
+      _expectStatus(readiness, failures, 'waveFailedCellCount', 0);
+      _expectStatus(readiness, failures, 'pipelineMissingCells', 0);
+    }
+    if (advice.isEmpty) {
+      failures.add(
+        _failure(
+          id: 'missing_batch_size_advice_artifact',
+          message: 'Batch-size advice artifact is missing.',
+          expected: _batchSizeAdvicePath,
+          actual: 'not found',
+          fix:
+              'Generate batch-size advice from duration evidence instead of guessing fixture run limits.',
+          category: QaFailureTriage.performance,
+        ),
+      );
+      return;
+    }
+    _expectStatus(advice, failures, 'currentFixtureRunLimit', 118);
+    _expectStatus(advice, failures, 'recommendedFixtureRunLimit', 128);
+    _expectStatus(advice, failures, 'recommendation', 'increase');
+    _expectStatus(advice, failures, 'liveServicesAllowed', false);
+    _expectStatus(advice, failures, 'writesProductionCatalog', false);
+  }
+
+  void _expectMatrixSafety(
+    Map<String, Object?> matrix,
+    List<QaFailure> failures,
+  ) {
+    if (matrix.isEmpty) {
+      failures.add(
+        _failure(
+          id: 'missing_blueprint_matrix_summary',
+          message: 'Latest blueprint matrix summary is missing.',
+          expected: _blueprintMatrixSummaryPath,
+          actual: 'not found',
+          fix:
+              'Keep the release-one residential blueprint matrix summary so generated-cell scope is auditable.',
+          category: QaFailureTriage.governance,
+        ),
+      );
+      return;
+    }
+    _expectStatus(matrix, failures, 'dryRun', false);
+    _expectStatus(matrix, failures, 'runFixtures', false);
+    _expectStatus(matrix, failures, 'statusGate', true);
+    _expectStatus(matrix, failures, 'statusGateExitCode', 0);
+    _expectStatus(matrix, failures, 'liveServicesAllowed', false);
+    _expectStatus(matrix, failures, 'writesProductionCatalog', false);
+  }
+
+  void _expectMatrixCells(
+    Map<String, Object?> matrix,
+    List<QaFailure> failures,
+  ) {
+    final results = matrix['results'];
+    if (results is! List) {
+      failures.add(
+        _failure(
+          id: 'missing_blueprint_matrix_results',
+          message: 'Blueprint matrix summary is missing per-cell results.',
+          expected: '12 trade/tier result rows covering two locales each',
+          actual: 'results=${results.runtimeType}',
+          fix:
+              'Record matrix result rows so each trade/tier can be checked without rerunning the generator.',
+          category: QaFailureTriage.governance,
+        ),
+      );
+      return;
+    }
+    if (results.length != 12) {
+      failures.add(
+        _failure(
+          id: 'unexpected_blueprint_matrix_result_count',
+          message:
+              'Blueprint matrix result count does not match release-one scope.',
+          expected: '12 trade/tier rows',
+          actual: '${results.length} rows',
+          fix:
+              'The release-one top-three-trade matrix must cover 3 trades x 4 tiers, each with en-US and es-US.',
+          category: QaFailureTriage.governance,
+        ),
+      );
+    }
+    for (final result in results.whereType<Map>()) {
+      if (result['exitCode'] == 0) continue;
+      failures.add(
+        _failure(
+          id: 'blueprint_matrix_cell_failed:${result['trade']}_${result['tier']}',
+          message: 'A generated blueprint matrix cell did not exit cleanly.',
+          expected: 'exitCode=0',
+          actual: 'exitCode=${result['exitCode']}',
+          fix:
+              'Fix or rerun only this generated blueprint trade/tier cell before promoting catalog work.',
+          category: QaFailureTriage.governance,
+        ),
+      );
+    }
+  }
+
   void _expectStatus(
     Map<String, Object?> status,
     List<QaFailure> failures,
@@ -143,7 +331,8 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
     failures.add(
       _failure(
         id: 'unexpected_wave_status:$field',
-        message: 'Completed inventory wave status does not match expected evidence.',
+        message:
+            'Completed inventory wave status does not match expected evidence.',
         expected: '$field=$expected',
         actual: '$field=${status[field]}',
         fix:
@@ -308,10 +497,7 @@ String _readText(String path) {
   return file.readAsStringSync();
 }
 
-Map<String, Object?> _readJsonMap(
-  String path,
-  List<QaFailure> failures,
-) {
+Map<String, Object?> _readJsonMap(String path, List<QaFailure> failures) {
   final file = File(path);
   if (!file.existsSync()) return const {};
   try {

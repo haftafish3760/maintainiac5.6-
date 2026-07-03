@@ -44,6 +44,46 @@ Wave evidence:
 - firebaseWritesAllowed: false
 - ocrCameraExpensesTouched: false
 
+The release-one residential generated catalog blueprint matrix completed
+locally for the top three trades and both US language packs.
+
+- suiteId: inventory.catalog_batch_memory_contract
+- status: focused-validated
+- lastEvidence: build/parser_qa_pipeline/release-one-residential-item-blueprints/matrix_reports/latest_pipeline_summary.json
+- statusEvidence: build/parser_qa_pipeline/status_reports/latest_pipeline_status.json
+- coveredInputs: build/parser_qa_pipeline/release-one-residential-item-blueprints
+- expectedCells: 24
+- presentCells: 24
+- missingCells: 0
+- unsafeCells: 0
+- parserCalls: 0
+- runFixtures: false
+- statusGateExitCode: 0
+- waveReport: build/parser_qa_batch_waves/residential_all_tiers_wave_001/wave_report.json
+- durationReport: build/parser_qa_batch_waves/residential_all_tiers_wave_001/duration_report.json
+- releaseReadiness: build/parser_qa_pipeline/release_one_readiness.json
+- batchSizeAdvice: build/parser_qa_pipeline/batch_size_advice_release_one.json
+- releaseOneParserEvidenceReady: true
+- releaseOnePipelineArtifactsReady: true
+- releaseOneFixtureEvidenceReady: true
+- fixtureReadinessReady: true
+- recommendedFixtureRunLimit: 128
+- activeBackgroundWave: residential_all_tiers_wave_002_advised_128
+- activeBackgroundQaLayer: generated_fixture_all_tiers_v2_advised_128
+- activeBackgroundFixtureRunLimit: fixtureRunLimit=128
+- activeBackgroundPid: PID 8720
+- activeBackgroundWavePlan: build/parser_qa_batch_waves/residential_all_tiers_wave_002_advised_128/wave_plan.json
+- activeBackgroundStatus: build/parser_qa_batch_waves/residential_all_tiers_wave_002_advised_128/queue/latest_status.json
+- activeBackgroundStdout: build/parser_qa_batch_waves/residential_all_tiers_wave_002_advised_128/launch_stdout.log
+- activeBackgroundStderr: build/parser_qa_batch_waves/residential_all_tiers_wave_002_advised_128/launch_stderr.log
+- activeBackgroundLaunchEvidence: build/parser_qa_pass_evidence/pass_532.json
+- focusedRerun: dart run tool/work_supply_parser_qa_pipeline_status.dart --output-root build/parser_qa_pipeline/release-one-residential-item-blueprints --trades plumbing,electrical,hvac --scopes residential --tiers core,standard,professional,complete --locales en-US,es-US --require-complete
+- doNotRerunUnless: catalog blueprint generator, matrix pipeline, pipeline status reader, trade/tier/locale matrix, or QA memory contract changes
+- liveServicesAllowed: false
+- writesProductionCatalog: false
+- firebaseWritesAllowed: false
+- ocrCameraExpensesTouched: false
+
 ## Generated Fixture Cells
 
 Each cell below has 500 generated fixtures and should not be regenerated unless
@@ -80,6 +120,10 @@ the fixture recipe, schema, or expected parser behavior changes.
 
 - Do not rerun the 24-cell all-tier residential wave just to check status.
 - Do not regenerate completed fixture cells unless fixture recipes or schema changed.
+- Do not regenerate the 24-cell release-one residential blueprint matrix just to
+  check status; use `tool/work_supply_parser_qa_pipeline_status.dart`.
+- Do not guess the next heavy fixture-run limit; use
+  `build/parser_qa_pipeline/batch_size_advice_release_one.json`.
 - Do not rerun full catalog or broad parser tests for one fixture failure.
 - Use the focused rerun token for the failed trade/scope/tier/locale cell.
 - Use suite filters instead of quick/full presets when fixing one QA contract.
@@ -90,7 +134,7 @@ the fixture recipe, schema, or expected parser behavior changes.
 - Add catalog item batch memory for promoted production item batches.
 - Add focused failure-to-rerun routing table for fixture runner reports.
 - Add per-family surgical rerun mapping for plumbing, electrical, and HVAC.
-- Add item batch generation status memory before generating more inventory items.
+- Validate item batch generation status memory before generating more inventory items.
 - pack scope gate contract:
   suiteId: inventory.pack_scope_gate_contract
   status: focused-validated
@@ -156,9 +200,9 @@ the fixture recipe, schema, or expected parser behavior changes.
   suiteId: inventory.catalog_item_batch_generation_contract
   status: focused-validated
   lastEvidence: build/parser_qa_reports/work_supply_inventory_parser_2026-07-02T145815201505.json
-  coveredInputs: blueprint generator, blueprint validator, economical pipeline, pipeline status, progress memory
+  coveredInputs: blueprint generator, blueprint validator, economical pipeline, pipeline status, item batch status, progress memory
   focusedRerun: flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.catalog_item_batch_generation_contract,qa.threshold_gate
-  doNotRerunUnless: catalog blueprint generator, blueprint validator, economical pipeline, pipeline status, or progress memory changes
+  doNotRerunUnless: catalog blueprint generator, blueprint validator, economical pipeline, pipeline status, item batch status, or progress memory changes
 
 ## Surgical Rerun Map
 
@@ -1650,6 +1694,33 @@ Command:
 Evidence:
 
 - report: `build/parser_qa_reports/work_supply_inventory_parser_2026-07-02T153709795168.json`
+
+## Catalog Item Batch Status Memory Validation
+
+Status: passing for inventory catalog item batch status memory.
+
+Command:
+
+`flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.catalog_item_batch_generation_contract,qa.threshold_gate`
+
+Evidence:
+
+- report: `build/parser_qa_reports/work_supply_inventory_parser_2026-07-03T010319376262.json`
+- focused unit test: `flutter test test\work_supply_catalog_item_batch_status_test.dart -r compact`
+- analyzer: `dart analyze tool\work_supply_catalog_item_batch_status.dart test\work_supply_catalog_item_batch_status_test.dart test\support\work_supply_parser_qa\work_supply_parser_catalog_item_batch_generation_qa.dart`
+- item batch status artifact: `build/parser_qa_pipeline/item_batch_status.json`
+- status summary: 24 expected residential catalog blueprint cells, 0 present, 24 missing, 0 unsafe, 0 generated items, local-only safety flags false for live services, production catalog writes, Firebase writes, and OCR/camera/Expenses touches
+
+Focused rerun:
+
+`flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.catalog_item_batch_generation_contract,qa.threshold_gate`
+
+Do not rerun unless:
+
+- `tool/work_supply_catalog_item_batch_status.dart` changes
+- `test/work_supply_catalog_item_batch_status_test.dart` changes
+- catalog blueprint generator/validator paths or manifest schema change
+- item batch progress memory or catalog item batch generation contract changes
 - checked: 48
 - failures: 0
 - actualFailures: 0

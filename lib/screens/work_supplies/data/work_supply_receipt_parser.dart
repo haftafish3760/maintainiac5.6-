@@ -185,7 +185,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   );
   if (direct != null) {
     final confidence =
-        _isUnscopedAmbiguousReceiptLine(expanded, direct, tradeScope)
+        _isUnscopedAmbiguousReceiptLine(
+          expanded,
+          direct,
+          tradeScope,
+          originalText: normalized,
+        )
         ? 0.74
         : 0.94;
     return ReceiptLineMatch(
@@ -698,9 +703,9 @@ WorkSupplyItem? _directElectricalProfessionalMatch(
   bool nameHas(WorkSupplyItem item, String phrase) =>
       item.trade == 'Electrical' && item.name.toLowerCase().contains(phrase);
 
-  final wantsAfciBreaker = RegExp(
-    r'\b(afci|arc\s*fault)\b',
-  ).hasMatch(text) && RegExp(r'\b(brkr|breaker|circuit)\b').hasMatch(text);
+  final wantsAfciBreaker =
+      RegExp(r'\b(afci|arc\s*fault)\b').hasMatch(text) &&
+      RegExp(r'\b(brkr|breaker|circuit)\b').hasMatch(text);
   if (wantsAfciBreaker) {
     for (final item in workSupplyCatalogItems) {
       if (nameHas(item, 'afci') && nameHas(item, 'breaker')) return item;
@@ -718,9 +723,7 @@ WorkSupplyItem? _directElectricalProfessionalMatch(
     }
   }
 
-  final wantsDimmer = RegExp(
-    r'\b(dimmer|atenuador)\b',
-  ).hasMatch(text);
+  final wantsDimmer = RegExp(r'\b(dimmer|atenuador)\b').hasMatch(text);
   if (wantsDimmer) {
     for (final item in workSupplyCatalogItems) {
       if (nameHas(item, 'dimmer')) return item;
@@ -742,8 +745,9 @@ WorkSupplyItem? _directElectricalProfessionalMatch(
   }
 
   final wantsInUseCover =
-      RegExp(r'\b(in\s*use|while\s*in\s*use|bubble|burbuja|exterior|wp)\b')
-          .hasMatch(text) &&
+      RegExp(
+        r'\b(in\s*use|while\s*in\s*use|bubble|burbuja|exterior|wp)\b',
+      ).hasMatch(text) &&
       RegExp(r'\b(cover|tapa|cubierta)\b').hasMatch(text);
   if (wantsInUseCover) {
     for (final item in workSupplyCatalogItems) {
@@ -759,9 +763,9 @@ WorkSupplyItem? _directElectricalProfessionalMatch(
 
   final wantsAcDisconnect =
       RegExp(
-            r'\b(ac|a/c|non\s*fused|non\s*fusible|disc|disconnect|'
-            r'desconectador)\b',
-          ).hasMatch(text) &&
+        r'\b(ac|a/c|non\s*fused|non\s*fusible|disc|disconnect|'
+        r'desconectador)\b',
+      ).hasMatch(text) &&
       RegExp(r'\b(disc|disconnect|desconectador)\b').hasMatch(text);
   if (wantsAcDisconnect) {
     for (final item in workSupplyCatalogItems) {
@@ -789,9 +793,9 @@ WorkSupplyItem? _directElectricalProfessionalMatch(
     }
   }
 
-  final wantsPanelFiller = RegExp(
-    r'\b(panel|brkr|breaker|load\s*center)\b',
-  ).hasMatch(text) && RegExp(r'\b(filler|blank|relleno|tapa)\b').hasMatch(text);
+  final wantsPanelFiller =
+      RegExp(r'\b(panel|brkr|breaker|load\s*center)\b').hasMatch(text) &&
+      RegExp(r'\b(filler|blank|relleno|tapa)\b').hasMatch(text);
   if (wantsPanelFiller) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -832,9 +836,9 @@ WorkSupplyItem? _directElectricalProfessionalMatch(
     }
   }
 
-  final wantsGroundRod = RegExp(
-    r'\b(grd|ground|grounding|tierra)\b',
-  ).hasMatch(text) && RegExp(r'\b(rod|varilla)\b').hasMatch(text);
+  final wantsGroundRod =
+      RegExp(r'\b(grd|ground|grounding|tierra)\b').hasMatch(text) &&
+      RegExp(r'\b(rod|varilla)\b').hasMatch(text);
   if (wantsGroundRod) {
     for (final item in workSupplyCatalogItems) {
       if (nameHas(item, 'ground rod') && !nameHas(item, 'clamp')) {
@@ -923,8 +927,9 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
 
   final wantsMiniSplitCleaningBib =
       RegExp(r'\b(mini\s*split|ductless)\b').hasMatch(text) &&
-      RegExp(r'\b(cleaning|limpieza|wash|lavado|bolsa|bib|bag)\b')
-          .hasMatch(text);
+      RegExp(
+        r'\b(cleaning|limpieza|wash|lavado|bolsa|bib|bag)\b',
+      ).hasMatch(text);
   if (wantsMiniSplitCleaningBib) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -1155,9 +1160,7 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
 
   final wantsCondensateCoupling =
       RegExp(r'\bpvc\b').hasMatch(text) &&
-      RegExp(
-        r'\b(cplg|cplgs|coupling|coupler|coup|acople)\b',
-      ).hasMatch(text) &&
+      RegExp(r'\b(cplg|cplgs|coupling|coupler|coup|acople)\b').hasMatch(text) &&
       RegExp(r'\b(cond|condensate|drain)\b').hasMatch(text);
   if (wantsCondensateCoupling) {
     final size = _nominalReceiptSize(text);
@@ -1245,14 +1248,14 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(
-    r'\b(conector calentador|linea calentador|water heater|wtr htr)\b',
-  ).hasMatch(text) &&
-      RegExp(r'\b(conector|linea|conn|connector|line|supply|hose)\b')
-          .hasMatch(text)) {
+        r'\b(conector calentador|linea calentador|water heater|wtr htr)\b',
+      ).hasMatch(text) &&
+      RegExp(
+        r'\b(conector|linea|conn|connector|line|supply|hose)\b',
+      ).hasMatch(text)) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
-      if (item.trade == 'Plumbing' &&
-          name.contains('water heater connector')) {
+      if (item.trade == 'Plumbing' && name.contains('water heater connector')) {
         return item;
       }
     }
@@ -4889,8 +4892,14 @@ double _confidence(
 bool _isUnscopedAmbiguousReceiptLine(
   String text,
   WorkSupplyItem item,
-  String? tradeScope,
-) {
+  String? tradeScope, {
+  String originalText = '',
+}) {
+  if (_isGenericPvcElbowReceiptLine(
+    originalText.isEmpty ? text : originalText,
+  )) {
+    return true;
+  }
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
   final itemText = _indexedReceiptTextFor(item);
@@ -4907,6 +4916,23 @@ bool _isUnscopedAmbiguousReceiptLine(
     return true;
   }
   return false;
+}
+
+bool _isGenericPvcElbowReceiptLine(String text) {
+  final normalized = _normalize(text);
+  if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
+  final hasElbowShape = RegExp(
+    r'\b(90|45|ell|el|elb|elbow|codo)\b',
+  ).hasMatch(normalized);
+  if (!hasElbowShape) return false;
+  final hasPlumbingSpecificEvidence = RegExp(
+    r'\b(sch|schedule|s40|sch40|ced|cedula|dwv|drain|presion|pressure|'
+    r'slip|sxs|hub|spigot|socket|solvent)\b',
+  ).hasMatch(normalized);
+  final hasOtherTradeSpecificEvidence = RegExp(
+    r'\b(cond|conduit|electrical|elec|emt|condensate|hvac|irrigation)\b',
+  ).hasMatch(normalized);
+  return !hasPlumbingSpecificEvidence && !hasOtherTradeSpecificEvidence;
 }
 
 bool _isAmbiguousPlumbingCoreLine(String text, WorkSupplyItem item) {
