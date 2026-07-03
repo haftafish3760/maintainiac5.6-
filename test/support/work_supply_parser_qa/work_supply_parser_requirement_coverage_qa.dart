@@ -135,6 +135,11 @@ class WorkSupplyParserRequirementCoverageSuite extends QaSuite {
       ['expected status', 'expected candidate', 'expected review flag'],
     ),
     _RequirementCoverage(
+      'fixture_candidate_identity',
+      'inventory.fixture_candidate_identity_contract',
+      ['semantic candidate key', 'expected trade', 'expected name hint'],
+    ),
+    _RequirementCoverage(
       'fixture_privacy',
       'inventory.fixture_privacy_contract',
       ['no private raw lines', 'card/email/phone/address guards'],

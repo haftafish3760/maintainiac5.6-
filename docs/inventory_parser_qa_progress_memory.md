@@ -2566,6 +2566,11 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the master coverage matrix:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.master_coverage_matrix_contract,qa.threshold_gate`
   passed 113 checks with 0 failures.
+- Added `inventory.fixture_candidate_identity_contract` to executable
+  requirement coverage ownership.
+- Validated requirement coverage:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.requirement_coverage,qa.threshold_gate`
+  passed 109 checks with 0 failures.
 
 Named release gates:
 
