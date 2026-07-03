@@ -62,6 +62,24 @@ Verification:
 - Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
   diff check.
 
+## Pass 530 - 02:26:23 EDT to 02:31:00 EDT
+
+Scope:
+- Hardened receipt retake diagnostics so order metadata is generated only for
+  replacement photo paths accepted by the retake order plan.
+- Added regression coverage proving stale or extra replacement paths receive no
+  retake order diagnostics.
+- Recorded `BUG-RECEIPT-0048` under `multi_photo_ordering`.
+
+Verification:
+- Passed targeted Dart format and analyzer for retake order planning and
+  focused retake-order regression coverage.
+- Passed focused Flutter test
+  `test/receipt_photo_review_retake_order_test.dart --plain-name "retake
+  diagnostics reject stale replacement path lists"`.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 527 - 01:56:00 EDT to 02:00:00 EDT
 
 Scope:
@@ -456,27 +474,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart format and analyzer for quick line-mode helpers and
-  assisted-review regression coverage.
-- Passed focused Flutter test
-  `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
-  receipt review exposes classification and attachment flow"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 506 - 00:54:54 EDT to 00:55:52 EDT
-
-Scope:
-- Hardened single-line split review metadata so the parser review reason records
-  the user-selected business percent instead of always saying 50%.
-- Added regression coverage proving the old misleading split reason is gone and
-  the selected percent helper is present.
-- Recorded `BUG-RECEIPT-0024` under `business_personal_split`.
-- Archived Pass 470 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Fixed an initial focused-test compile failure caused by an unescaped `$percent`
-  literal in the regression assertion, then reran the focused checks.
-- Passed targeted Dart format and analyzer for receipt entry state actions and
   assisted-review regression coverage.
 - Passed focused Flutter test
   `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted

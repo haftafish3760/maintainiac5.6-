@@ -51,12 +51,14 @@ class ReceiptPhotoRetakeOrderPlan {
     required this.photoPaths,
     required this.selectedIndex,
     required this.replacedPhotoPath,
+    required this.replacementPhotoPaths,
     required this.alignmentContext,
   });
 
   final List<String> photoPaths;
   final int selectedIndex;
   final String replacedPhotoPath;
+  final List<String> replacementPhotoPaths;
   final ReceiptPhotoRetakeAlignmentContext alignmentContext;
 
   int get originalSectionNumber => alignmentContext.targetIndex + 1;
@@ -64,6 +66,12 @@ class ReceiptPhotoRetakeOrderPlan {
   Map<String, Map<String, Object?>> captureDiagnosticsForReplacementPaths(
     List<String> replacementPhotoPaths,
   ) {
+    if (!_orderedPhotoPathsMatch(
+      this.replacementPhotoPaths,
+      replacementPhotoPaths,
+    )) {
+      return const {};
+    }
     return {
       for (var offset = 0; offset < replacementPhotoPaths.length; offset++)
         replacementPhotoPaths[offset]: {
@@ -114,6 +122,7 @@ class ReceiptPhotoRetakeOrderPlan {
       photoPaths: List.unmodifiable(updatedPaths),
       selectedIndex: targetIndex,
       replacedPhotoPath: targetPhotoPath,
+      replacementPhotoPaths: List.unmodifiable(replacementPhotoPaths),
       alignmentContext: alignmentContext,
     );
   }
@@ -230,6 +239,14 @@ bool _newReceiptPhotoPathsAreSafe({
     if (trimmed.isEmpty || trimmed != path) return false;
     if (!seenNewPaths.add(path)) return false;
     if (currentPathSet.contains(path)) return false;
+  }
+  return true;
+}
+
+bool _orderedPhotoPathsMatch(List<String> left, List<String> right) {
+  if (left.length != right.length) return false;
+  for (var index = 0; index < left.length; index++) {
+    if (left[index] != right[index]) return false;
   }
   return true;
 }

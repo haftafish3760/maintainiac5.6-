@@ -75,6 +75,28 @@ void main() {
     },
   );
 
+  test('retake diagnostics reject stale replacement path lists', () {
+    final plan = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle-old.jpg', 'bottom.jpg'],
+      targetPhotoPath: 'middle-old.jpg',
+      replacementPhotoPaths: const ['middle-new.jpg'],
+    );
+
+    expect(plan, isNotNull);
+    expect(plan!.replacementPhotoPaths, const ['middle-new.jpg']);
+    expect(
+      plan.captureDiagnosticsForReplacementPaths(const ['stale-new.jpg']),
+      isEmpty,
+    );
+    expect(
+      plan.captureDiagnosticsForReplacementPaths(const [
+        'middle-new.jpg',
+        'extra-stale.jpg',
+      ]),
+      isEmpty,
+    );
+  });
+
   test('retake plan is rejected when the async target is gone', () {
     final plan = ReceiptPhotoRetakeOrderPlan.build(
       currentPhotoPaths: const ['top.jpg', 'bottom.jpg'],
