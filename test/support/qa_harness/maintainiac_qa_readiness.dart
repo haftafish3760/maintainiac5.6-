@@ -372,6 +372,14 @@ class MaintainiacQaReadinessLedger {
         status: MaintainiacQaReadinessStatus.ready,
         evidence: ['maintainiac_module_boundary_gate.dart'],
       ),
+      MaintainiacQaReadinessItem(
+        id: 'performance_budget_registry',
+        module: MaintainiacQaModule.performance,
+        description:
+            'Named performance budgets exist for backbone, indexing, generated fixtures, reports, rerun routing, and memory.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_performance_budget_registry.dart'],
+      ),
     ]);
   }
 

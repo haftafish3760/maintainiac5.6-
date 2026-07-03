@@ -146,6 +146,10 @@ void main() {
       report.results.single.metrics['moduleBoundaryGate'].toString(),
       contains('inventory_parser_lane'),
     );
+    expect(
+      report.results.single.metrics['performanceBudgetRegistry'].toString(),
+      contains('surgical_rerun_router_budget'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

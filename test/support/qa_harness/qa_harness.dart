@@ -42,6 +42,7 @@ export 'maintainiac_parser_fixture_manifest.dart';
 export 'maintainiac_parser_regression_binding.dart';
 export 'maintainiac_parser_release_command_plan.dart';
 export 'maintainiac_payment_contract.dart';
+export 'maintainiac_performance_budget_registry.dart';
 export 'maintainiac_pricing_contract.dart';
 export 'maintainiac_source_boundary.dart';
 export 'maintainiac_source_truth_gate.dart';

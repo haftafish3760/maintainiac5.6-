@@ -230,6 +230,7 @@ The backbone includes a release gate plan:
 - Adds fixture governance for parser, expense, sync-conflict, malformed, generated-dataset, bug-regression, and private-blocked fixture families with owner, metadata, privacy, review cadence, and repository storage rules.
 - Adds a restart lifecycle gate for expense drafts, inventory/parser review, job materials, partial sync, and parser review recovery after app kill/restart.
 - Adds a module boundary gate that labels allowed paths and forbidden path tokens for inventory, expenses, parser QA, sync, exports, and security/privacy lanes.
+- Adds a performance budget registry for QA backbone cold start, catalog indexing, generated fixture runs, report writing, surgical rerun routing, and memory pressure.
 
 Print the release gate with:
 
