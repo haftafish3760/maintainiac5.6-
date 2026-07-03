@@ -101,6 +101,39 @@ void main() {
   );
 
   test(
+    'individual QA command tool changed test file output stays file scoped',
+    () {
+      const registry = maintainiacSurgicalTestSelectorRegistry;
+
+      for (final file in {
+        for (final selector in registry.selectors) selector.file,
+      }) {
+        final expectedCommands = {
+          for (final selector in registry.selectors)
+            if (selector.file == file) selector.command,
+        };
+        final result = resolveMaintainiacIndividualQaCommand([
+          '--changed',
+          file,
+        ]);
+        final actualCommands = result.stdout
+            .trim()
+            .split('\n')
+            .where((line) => line.trim().isNotEmpty)
+            .toSet();
+
+        expect(result.exitCode, 0, reason: 'Expected $file to resolve.');
+        expect(
+          actualCommands,
+          expectedCommands,
+          reason:
+              '$file must only return its own individual plain-name commands.',
+        );
+      }
+    },
+  );
+
+  test(
     'individual QA command tool resolves every selector id exactly once',
     () {
       const registry = maintainiacSurgicalTestSelectorRegistry;
