@@ -200,6 +200,7 @@ The backbone includes a release gate plan:
 - Groups release-blocking and core QA cases into a machine-readable plan.
 - Produces the concrete focused commands to run while building features.
 - Fails if a release-blocking case lacks evidence or a runnable command.
+- Feeds a QA execution manifest where each check has a label, behavior it proves, owner, cadence, command, live-service policy, and failure action.
 
 Print the release gate with:
 

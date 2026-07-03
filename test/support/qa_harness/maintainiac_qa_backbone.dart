@@ -1,4 +1,5 @@
 import 'maintainiac_qa_environment.dart';
+import 'maintainiac_qa_execution_manifest.dart';
 import 'maintainiac_qa_fixtures.dart';
 import 'maintainiac_qa_quality_gates.dart';
 import 'maintainiac_qa_readiness.dart';
@@ -137,9 +138,14 @@ class MaintainiacQaBackboneSuite extends QaSuite {
       failures.add(_failure('case_registry_$issue', issue));
     }
 
+    final executionManifest = MaintainiacQaExecutionManifest.releaseOneCore();
+    for (final issue in executionManifest.validate()) {
+      failures.add(_failure('execution_manifest_$issue', issue));
+    }
+
     return timer.finish(
       suite: name,
-      checked: 90,
+      checked: 102,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -154,6 +160,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
           for (final adapter in parserQaDomainAdapters) adapter.toJson(),
         ],
         'qaCaseRegistry': caseRegistry.toJson(),
+        'executionManifest': executionManifest.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

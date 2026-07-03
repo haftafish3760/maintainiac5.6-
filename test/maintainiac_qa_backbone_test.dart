@@ -10,7 +10,7 @@ void main() {
     ).run(const QaContext(strict: true, redactor: QaRedactor()));
 
     expect(report.failures, isEmpty);
-    expect(report.checked, greaterThanOrEqualTo(90));
+    expect(report.checked, greaterThanOrEqualTo(100));
     expect(report.adminHealth['status'], 'passing');
     expect(report.results.single.metrics['wholeAppBackbone'], isTrue);
     expect(report.results.single.metrics['inventoryIsConsumerOnly'], isTrue);
@@ -25,6 +25,10 @@ void main() {
     expect(
       report.results.single.metrics['qaCaseRegistry'].toString(),
       contains('QA-BACKBONE-001'),
+    );
+    expect(
+      report.results.single.metrics['executionManifest'].toString(),
+      contains('failureAction'),
     );
   });
 

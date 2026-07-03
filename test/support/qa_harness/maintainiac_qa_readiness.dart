@@ -146,6 +146,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_failure_taxonomy.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'execution_manifest',
+        module: MaintainiacQaModule.performance,
+        description:
+            'Reusable manifest labels every QA check with purpose, command, cadence, owner, live-service policy, and failure action.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_qa_execution_manifest.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:

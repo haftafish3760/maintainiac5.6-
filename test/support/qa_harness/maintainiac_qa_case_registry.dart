@@ -112,6 +112,24 @@ class MaintainiacQaCaseRegistry {
         tags: {'boundary', 'ocr-off-limits', 'firebase'},
       ),
       MaintainiacQaCase(
+        id: 'QA-INVENTORY-PARSER-001',
+        title: 'Inventory parser generated fixture runner',
+        module: MaintainiacQaModule.inventory,
+        behavior:
+            'Inventory/material parser fixtures stay review-only, merchant-aware, and regression-locked without live services.',
+        evidenceTarget: 'work_supply_parser_generated_fixture_runner_test',
+        priority: MaintainiacQaCasePriority.core,
+        testCommand:
+            'flutter test test/work_supply_parser_generated_fixture_runner_test.dart',
+        tags: {
+          'inventory',
+          'parser',
+          'fixtures',
+          'merchant-rules',
+          'review-only',
+        },
+      ),
+      MaintainiacQaCase(
         id: 'QA-DEVICE-001',
         title: 'Device storage pack-mode policy',
         module: MaintainiacQaModule.performance,
