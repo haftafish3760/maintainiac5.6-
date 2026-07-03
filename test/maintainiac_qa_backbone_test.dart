@@ -22,6 +22,10 @@ void main() {
       report.results.single.metrics['readiness'].toString(),
       contains('countsByStatus'),
     );
+    expect(
+      report.results.single.metrics['qaCaseRegistry'].toString(),
+      contains('QA-BACKBONE-001'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

@@ -114,6 +114,14 @@ The main QA harness includes a readiness ledger so progress survives context com
 
 The ledger must reject any item marked ready without evidence.
 
+## QA Case Registry
+
+Every reusable QA behavior should have a durable label:
+
+- Case ID, title, module, behavior, evidence target, priority, optional command, and tags.
+- Release blockers must be visible separately from core, standard, and hardening checks.
+- Feature work can run the relevant labeled cases while the feature is being built, not only at final release time.
+
 ## Financial Ledger Probe
 
 The backbone includes a cents-only financial ledger probe for deterministic module tests:

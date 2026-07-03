@@ -2,6 +2,7 @@ import 'maintainiac_qa_environment.dart';
 import 'maintainiac_qa_fixtures.dart';
 import 'maintainiac_qa_quality_gates.dart';
 import 'maintainiac_qa_readiness.dart';
+import 'maintainiac_qa_case_registry.dart';
 import 'maintainiac_regression_registry.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
@@ -131,6 +132,11 @@ class MaintainiacQaBackboneSuite extends QaSuite {
       failures.add(_failure('readiness_$issue', issue));
     }
 
+    final caseRegistry = MaintainiacQaCaseRegistry.backboneSeed();
+    for (final issue in caseRegistry.validate()) {
+      failures.add(_failure('case_registry_$issue', issue));
+    }
+
     return timer.finish(
       suite: name,
       checked: 90,
@@ -147,6 +153,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'parserDomainAdapters': [
           for (final adapter in parserQaDomainAdapters) adapter.toJson(),
         ],
+        'qaCaseRegistry': caseRegistry.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

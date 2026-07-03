@@ -4,6 +4,7 @@ import 'dart:io';
 export 'maintainiac_qa_assertions.dart';
 export 'maintainiac_qa_backbone.dart';
 export 'maintainiac_qa_builders.dart';
+export 'maintainiac_qa_case_registry.dart';
 export 'maintainiac_qa_environment.dart';
 export 'maintainiac_qa_fixtures.dart';
 export 'maintainiac_qa_quality_gates.dart';
