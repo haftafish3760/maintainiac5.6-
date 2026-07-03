@@ -107,6 +107,32 @@ class MaintainiacIndividualTestManifest {
 
   final List<MaintainiacIndividualTestEntry> entries;
 
+  static const allowedModules = {
+    'expenses',
+    'financial',
+    'inventory',
+    'parser',
+    'payments',
+    'performance',
+    'qa-backbone',
+    'security',
+    'sync',
+  };
+
+  static const allowedRiskFamilies = {
+    'audit',
+    'financial',
+    'fixtures',
+    'parser',
+    'performance',
+    'privacy',
+    'regression',
+    'release',
+    'security',
+    'source-of-truth',
+    'sync',
+  };
+
   factory MaintainiacIndividualTestManifest.fromSelectors(
     MaintainiacSurgicalTestSelectorRegistry registry,
   ) {
@@ -139,6 +165,12 @@ class MaintainiacIndividualTestManifest {
       modules.add(entry.module);
       riskFamilies.add(entry.riskFamily);
       failures.addAll(entry.validate());
+      if (!allowedModules.contains(entry.module)) {
+        failures.add('${entry.id} has unknown module ${entry.module}');
+      }
+      if (!allowedRiskFamilies.contains(entry.riskFamily)) {
+        failures.add('${entry.id} has unknown risk family ${entry.riskFamily}');
+      }
     }
     for (final required in {
       'inventory',

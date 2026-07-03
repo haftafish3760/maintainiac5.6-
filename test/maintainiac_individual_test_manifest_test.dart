@@ -102,6 +102,15 @@ void main() {
         owner: 'qa_backbone',
         whenToRun: 'Run only the malformed multi-file command guard.',
       ),
+      MaintainiacIndividualTestEntry(
+        id: 'unknown_labels',
+        module: 'misc-stuff',
+        riskFamily: 'whatever',
+        command:
+            'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone exposes reusable shared infrastructure"',
+        owner: 'qa_backbone',
+        whenToRun: 'Run only the unknown manifest label guard.',
+      ),
     ]);
 
     final failures = manifest.validate().join('\n');
@@ -117,6 +126,11 @@ void main() {
       contains('bad must not touch OCR/camera/live cloud providers'),
     );
     expect(failures, contains('wide must target exactly one test file'));
+    expect(failures, contains('unknown_labels has unknown module misc-stuff'));
+    expect(
+      failures,
+      contains('unknown_labels has unknown risk family whatever'),
+    );
     expect(failures, contains('individual test manifest missing expenses'));
   });
 }
