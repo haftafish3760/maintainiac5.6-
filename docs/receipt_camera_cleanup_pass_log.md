@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 498 - 01:26:00 EDT to 01:30:00 EDT
+
+Scope:
+- Hardened multi-photo retake order planning so replacement paths with leading
+  or trailing whitespace cannot bypass current-section or duplicate checks.
+- Added regression coverage proving unnormalized retake replacement paths are
+  rejected before section order is mutated.
+- Recorded `BUG-RECEIPT-0017` under `multi_photo_ordering`.
+- Archived Pass 481 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for retake order planning and focused
+  retake-order regression coverage.
+- Passed focused Flutter test
+  `test/receipt_photo_review_retake_order_test.dart --plain-name "retake plan
+  rejects unnormalized replacement paths"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 497 - 01:19:00 EDT to 01:24:00 EDT
 
 Scope:
@@ -99,27 +118,6 @@ Verification:
   `test/expense_receipt_line_record_test.dart --plain-name "split receipt lines
   bound malformed business percentages"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 481 - 23:43:00 EDT to 23:45:51 EDT
-
-Scope:
-- Added the receipt-line foundation for numbered review modes.
-- Extended `ExpenseReceiptLineRecord` with receipt display line numbering,
-  price-only versus detailed-line review mode labels, business/personal/split
-  review labels, review summaries, and privacy-safe line review contracts.
-- Preserved allocation-only behavior for users who only care about the price
-  and business/personal/split allocation while detailed lines keep item detail.
-- Added model and parser regressions proving parsed receipt lines expose line
-  numbers and that allocation-only price lines do not leak item text in
-  privacy-safe metadata.
-
-Verification:
-- Passed targeted Dart format and analyzer for the expense line model,
-  serialization, and focused line/parser tests.
-- Passed focused Flutter tests for `test/expense_receipt_line_record_test.dart`
-  and `test/expense_receipt_parser_business_personal_test.dart`.
-- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
-  `--max-line-length=220`, and targeted `git diff --check`.
 
 ## Pass 480 - 23:23:00 EDT to 23:42:22 EDT
 

@@ -122,7 +122,8 @@ class ReceiptPhotoRetakeOrderPlan {
     final seenReplacementPaths = <String>{};
     final currentPathSet = currentPhotoPaths.toSet();
     for (final path in replacementPhotoPaths) {
-      if (path.trim().isEmpty) return false;
+      final trimmed = path.trim();
+      if (trimmed.isEmpty || trimmed != path) return false;
       if (!seenReplacementPaths.add(path)) return false;
       if (currentPathSet.contains(path)) return false;
     }

@@ -115,6 +115,16 @@ void main() {
     expect(plan, isNull);
   });
 
+  test('retake plan rejects unnormalized replacement paths', () {
+    final plan = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle-old.jpg', 'bottom.jpg'],
+      targetPhotoPath: 'middle-old.jpg',
+      replacementPhotoPaths: const [' bottom.jpg '],
+    );
+
+    expect(plan, isNull);
+  });
+
   test('retaking the top section uses the next section as context', () {
     final context = ReceiptPhotoRetakeAlignmentContext.build(
       currentPhotoPaths: const ['top-old.jpg', 'middle.jpg', 'bottom.jpg'],
