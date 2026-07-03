@@ -32,6 +32,7 @@ class ReceiptNativeCaptureRecoveryRecord {
           (manifest['stagedPhotoPaths'] as List?)
               ?.map((item) => item.toString().trim())
               .where((item) => item.isNotEmpty)
+              .toSet()
               .toList(growable: false) ??
           const [],
       attachments:
@@ -63,7 +64,7 @@ class ReceiptNativeCaptureRecoveryRecord {
     if (stagedPhotoPaths.isNotEmpty) return stagedPhotoPaths;
     return [
       for (final attachment in attachments)
-        if (attachment.path.trim().isNotEmpty) attachment.path,
+        if (attachment.path.trim().isNotEmpty) attachment.path.trim(),
     ];
   }
 

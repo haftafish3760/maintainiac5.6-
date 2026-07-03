@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 566 - 08:04:10 EDT to 08:05:55 EDT
+
+Scope:
+- Hardened native capture recovery manifests so padded/duplicate staged photo
+  paths restore as unique ordered receipt sections.
+- Hardened attachment-only recovery fallback paths so padded attachment paths do
+  not inflate missing-photo counts or resume labels.
+- Added regression coverage for staged and attachment fallback path normalization.
+- Recorded `BUG-RECEIPT-0082` under `multi_photo_ordering`.
+- Archived Pass 516 out of the live cleanup log.
+
+Verification:
+- Passed targeted Dart format/analyzer for native recovery records and focused
+  recovery-record regression coverage.
+- Passed focused Flutter regression
+  `test/receipt_native_capture_recovery_record_test.dart --plain-name "recovery
+  manifest normalizes staged and attachment photo paths"`.
+
 ## Pass 565 - 08:02:25 EDT to 08:04:01 EDT
 
 Scope:
@@ -469,23 +487,3 @@ Verification:
   and `test/receipt_photo_review_save_lifecycle_test.dart`.
 - Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
   diff check.
-
-## Pass 516 - 01:15:25 EDT to 01:16:19 EDT
-
-Scope:
-- Hardened in-entry receipt proof line labels so unsafe draft source IDs and
-  generated manual IDs no longer appear in receipt review rows before save.
-- Added source regression coverage proving the raw fallback-label path is gone.
-- Recorded `BUG-RECEIPT-0034` under `privacy_redaction`.
-- Archived Pass 479 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Fixed an initial regression string escaping syntax error, then reran the
-  focused chain.
-- Passed targeted Dart format and analyzer for draft receipt line labels and
-  assisted-review regression coverage.
-- Passed focused Flutter test
-  `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
-  receipt review exposes classification and attachment flow"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.

@@ -144,4 +144,54 @@ void main() {
     expect(record.hasExistingPhotos, isTrue);
     expect(record.recoveredCountLabel, '1 receipt photo');
   });
+
+  test('recovery manifest normalizes staged and attachment photo paths', () {
+    final record = ReceiptNativeCaptureRecoveryRecord.fromManifest(
+      '/tmp/native-recovery.json',
+      {
+        'sessionId': 'native-session',
+        'engine': ' cameraX ',
+        'capturedAt': DateTime(2026, 6, 28, 16).toIso8601String(),
+        'dataSaverLevel': ' balanced ',
+        'stagedPhotoPaths': [
+          ' /tmp/section-one.jpg ',
+          '/tmp/section-one.jpg',
+          ' /tmp/section-two.jpg ',
+        ],
+        'attachments': [
+          {
+            'id': 'attachment-only-photo',
+            'path': ' /tmp/attachment-fallback.jpg ',
+            'kind': ' photo ',
+            'dataSaverLevel': ' balanced ',
+            'createdAt': DateTime(2026, 6, 28, 16).toIso8601String(),
+          },
+        ],
+      },
+    );
+    final attachmentOnly = ReceiptNativeCaptureRecoveryRecord.fromManifest(
+      '/tmp/native-attachment-recovery.json',
+      {
+        'stagedPhotoPaths': const [],
+        'attachments': [
+          {
+            'id': 'attachment-only-photo',
+            'path': ' /tmp/attachment-fallback.jpg ',
+            'kind': ' photo ',
+            'createdAt': DateTime(2026, 6, 28, 16).toIso8601String(),
+          },
+        ],
+      },
+    );
+
+    expect(record.stagedPhotoPaths, [
+      '/tmp/section-one.jpg',
+      '/tmp/section-two.jpg',
+    ]);
+    expect(record.recoveredPhotoCount, 2);
+    expect(record.recoveredCountLabel, '2 ordered receipt sections');
+    expect(attachmentOnly.recoverablePhotoPaths, [
+      '/tmp/attachment-fallback.jpg',
+    ]);
+  });
 }
