@@ -9,6 +9,7 @@ import 'maintainiac_qa_readiness.dart';
 import 'maintainiac_qa_run_ledger.dart';
 import 'maintainiac_qa_telemetry_privacy_gate.dart';
 import 'maintainiac_qa_case_registry.dart';
+import 'maintainiac_release_evidence_bundle.dart';
 import 'maintainiac_regression_registry.dart';
 import 'maintainiac_expense_parser_consumer_contract.dart';
 import 'maintainiac_financial_formula_registry.dart';
@@ -450,10 +451,13 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacQaTelemetryPrivacyGate.validate()) {
       failures.add(_failure('qa_telemetry_privacy_gate_$issue', issue));
     }
+    for (final issue in maintainiacReleaseEvidenceBundle.validate()) {
+      failures.add(_failure('release_evidence_bundle_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 456,
+      checked: 476,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -503,6 +507,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'financialFormulaRegistry': maintainiacFinancialFormulaRegistry
             .toJson(),
         'qaTelemetryPrivacyGate': maintainiacQaTelemetryPrivacyGate.toJson(),
+        'releaseEvidenceBundle': maintainiacReleaseEvidenceBundle.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

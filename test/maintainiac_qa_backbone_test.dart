@@ -130,6 +130,10 @@ void main() {
       report.results.single.metrics['qaTelemetryPrivacyGate'].toString(),
       contains('parser_diagnostic_redaction'),
     );
+    expect(
+      report.results.single.metrics['releaseEvidenceBundle'].toString(),
+      contains('github_push_checkpoint'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

@@ -226,6 +226,7 @@ The backbone includes a release gate plan:
 - Adds a source-truth gate that formalizes local/Hive source records, Firestore mirror-only records, parser suggestion records, and derived read-only outputs across expenses, inventory, jobs, estimates, invoices, recap, exports, and sync.
 - Adds a financial formula registry that labels deterministic money formulas, rounding policies, source-mutation rules, and individual test commands across expenses, inventory, jobs, estimates, invoices, and payments.
 - Adds a QA telemetry privacy gate for QA reports, admin dashboards, parser diagnostics, export artifacts, and run ledgers so actionable diagnostics do not leak raw receipts, customer data, vehicle identifiers, card data, or device secrets.
+- Adds a release evidence bundle that records required analyzer, individual-test, backbone, privacy, source-truth, and GitHub-push evidence for milestone handoff.
 
 Print the release gate with:
 

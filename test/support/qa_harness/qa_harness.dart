@@ -23,6 +23,7 @@ export 'maintainiac_qa_readiness.dart';
 export 'maintainiac_qa_run_ledger.dart';
 export 'maintainiac_qa_scenario_runners.dart';
 export 'maintainiac_qa_telemetry_privacy_gate.dart';
+export 'maintainiac_release_evidence_bundle.dart';
 export 'maintainiac_release_gate_plan.dart';
 export 'maintainiac_regression_registry.dart';
 export 'maintainiac_schedule_contract.dart';
