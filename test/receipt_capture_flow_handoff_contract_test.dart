@@ -235,4 +235,88 @@ void main() {
     expect(controls, isNot(contains('Use this photo')));
     expect(controls, isNot(contains('Saved copy')));
   });
+
+  test('photo review UI tweaks keep camera action wiring intact', () async {
+    final controls =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_tray.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_controls.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_context_controls.dart',
+        ).readAsString();
+    final surfaceControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_surface_controls.dart',
+    ).readAsString();
+    final screen =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_capture_actions.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_order_actions.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_image_edit_actions.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_preview_async.dart',
+        ).readAsString();
+
+    expect(surfaceControls, contains('onAddPhoto: addAnotherReceiptPhoto'));
+    expect(surfaceControls, contains('onRetake: retakeCurrentReceiptPhoto'));
+    expect(surfaceControls, contains('onContinue: continueReceiptPhotoReview'));
+    expect(
+      surfaceControls,
+      contains('onMoveEarlier: () => moveCurrentReceiptPhoto(-1)'),
+    );
+    expect(
+      surfaceControls,
+      contains('onMoveLater: () => moveCurrentReceiptPhoto(1)'),
+    );
+    expect(
+      surfaceControls,
+      contains(
+        'selectedCaptureDiagnostics: _captureDiagnosticsByPath[photoPath]',
+      ),
+    );
+    expect(
+      surfaceControls,
+      contains('selectedQualityCheck: _qualityChecksByPath[photoPath]'),
+    );
+    expect(
+      surfaceControls,
+      contains('onManualOverlapChanged: _setManualOverlapFraction'),
+    );
+    expect(
+      surfaceControls,
+      contains('onClearManualOverlap: _clearManualOverlapFraction'),
+    );
+    expect(surfaceControls, contains('onApplyCrop: _applyCrop'));
+    expect(surfaceControls, contains('onCancelCrop: _cancelCropReview'));
+    expect(controls, contains('onAddPhoto'));
+    expect(controls, contains('onRetake'));
+    expect(controls, contains('onContinue'));
+    expect(controls, contains('ReceiptPhotoCoverageDecision.fromSignals'));
+    expect(controls, contains('Add Bottom Section'));
+    expect(controls, contains('Next: Details If Complete'));
+    expect(controls, contains('Next: Review Receipt Details'));
+    expect(screen, contains('Future<void> addAnotherReceiptPhoto()'));
+    expect(screen, contains('Future<void> retakeCurrentReceiptPhoto()'));
+    expect(screen, contains('Future<void> continueReceiptPhotoReview()'));
+    expect(screen, contains('Future<void> _applyCrop()'));
+    expect(screen, contains('void moveCurrentReceiptPhoto(int direction)'));
+    expect(screen, contains('_setManualOverlapFraction'));
+    expect(screen, contains('_clearManualOverlapFraction'));
+  });
 }
