@@ -174,7 +174,7 @@ class ExpenseReceiptLineRecord {
     final lineNumber = ocrSourceLineNumber;
     if (lineNumber != null && lineNumber > 0) return 'OCR line $lineNumber';
     final id = (ocrSourceLineId ?? '').trim();
-    if (id.isNotEmpty) return id;
+    if (id.isNotEmpty) return _expensePrivateSafeLineReferenceLabel(id);
     return '';
   }
 
@@ -190,8 +190,10 @@ class ExpenseReceiptLineRecord {
     final lineNumber = ocrSourceLineNumber;
     if (lineNumber != null && lineNumber > 0) return 'Line $lineNumber';
     final sourceId = (ocrSourceLineId ?? '').trim();
-    if (sourceId.isNotEmpty) return sourceId;
-    return id.trim().isEmpty ? 'Receipt line' : id.trim();
+    if (sourceId.isNotEmpty) {
+      return _expensePrivateSafeLineReferenceLabel(sourceId);
+    }
+    return 'Receipt line';
   }
 
   int? get receiptDisplayLineNumber {
@@ -263,7 +265,7 @@ class ExpenseReceiptLineRecord {
         ? 's${(sourceSection ?? 1).toString().padLeft(2, '0')}_l${sourceSectionLine.toString().padLeft(4, '0')}'
         : lineNumber != null && lineNumber > 0
         ? 'l${lineNumber.toString().padLeft(4, '0')}'
-        : _expenseSafeToken((ocrSourceLineId ?? id).trim());
+        : _expensePrivateSafeLineToken(ocrSourceLineId, id);
     final family = _expenseSafeToken(
       (parserExpenseFamily ?? category).trim(),
       fallback: 'expense',
@@ -420,4 +422,36 @@ String _expenseSafeToken(String value, {String fallback = 'unknown'}) {
       .replaceAll(RegExp(r'_+'), '_')
       .replaceAll(RegExp(r'^_|_$'), '');
   return token.isEmpty ? fallback : token;
+}
+
+String _expensePrivateSafeLineToken(
+  String? ocrSourceLineId,
+  String fallbackId,
+) {
+  final sourceId = (ocrSourceLineId ?? '').trim();
+  if (_expenseLooksLikeSafeOcrLineId(sourceId)) {
+    return _expenseSafeToken(sourceId);
+  }
+  return _expensePrivateSafeIdToken(sourceId.isEmpty ? fallbackId : sourceId);
+}
+
+String _expensePrivateSafeLineReferenceLabel(String value) {
+  final sourceId = value.trim();
+  if (_expenseLooksLikeSafeOcrLineId(sourceId)) return sourceId;
+  return 'Receipt line';
+}
+
+bool _expenseLooksLikeSafeOcrLineId(String value) {
+  return RegExp(r'^ocr_line_[0-9]{3,5}(_[a-z0-9_]+)?$').hasMatch(value.trim());
+}
+
+String _expensePrivateSafeIdToken(String value) {
+  final cleaned = value.trim();
+  if (cleaned.isEmpty) return 'manual_unknown';
+  var hash = 0x811c9dc5;
+  for (final unit in cleaned.codeUnits) {
+    hash ^= unit;
+    hash = (hash * 0x01000193) & 0xffffffff;
+  }
+  return 'manual_${hash.toRadixString(16).padLeft(8, '0')}';
 }

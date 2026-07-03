@@ -261,6 +261,29 @@ void main() {
         line.privacySafeProofReference.toString(),
         isNot(contains('Private family medicine')),
       );
+
+      const manualLine = ExpenseReceiptLineRecord(
+        id: 'line_12_Private family medicine',
+        description: 'Private family medicine',
+        category: 'Personal',
+        use: ExpenseLineUse.personal,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: 12,
+      );
+      expect(
+        manualLine.receiptProofRedactionAnchorCode,
+        startsWith('receipt_line_manual_'),
+      );
+      expect(
+        manualLine.privacySafeLineReviewContract.toString(),
+        isNot(contains('Private family medicine')),
+      );
+      expect(
+        manualLine.privacySafeLineReviewContract.toString(),
+        isNot(contains('line_12')),
+      );
     },
   );
 

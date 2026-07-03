@@ -3,6 +3,29 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 514 - 01:09:30 EDT to 01:11:50 EDT
+
+Scope:
+- Hardened receipt line redaction anchors so manual/generated line IDs that
+  contain typed item descriptions are replaced with deterministic private-safe
+  tokens before entering privacy-safe contracts.
+- Added regression coverage proving manual private item text and generated IDs
+  do not appear in line review contracts.
+- Recorded `BUG-RECEIPT-0032` under `privacy_redaction`.
+- Archived Pass 477 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Fixed an initial focused-test failure where the line-number label still used a
+  generated private-text ID, then reran the focused chain.
+- Fixed a targeted analyzer style issue before commit.
+- Passed targeted Dart format and analyzer for expense receipt line records and
+  line-record regression coverage.
+- Passed focused Flutter test
+  `test/expense_receipt_line_record_test.dart --plain-name "privacy-safe receipt
+  line contracts never expose generated item ids"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 513 - 01:06:51 EDT to 01:08:06 EDT
 
 Scope:
@@ -463,27 +486,5 @@ Scope:
 Verification:
 - Passed targeted Dart format and analyzer for the native staging test/helpers.
 - Passed focused Flutter test `test/receipt_native_capture_staging_test.dart`.
-- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
-  `--max-line-length=220`, and targeted `git diff --check`.
-
-## Pass 477 - 21:36:00 EDT to 21:44:08 EDT
-
-Scope:
-- Stayed on the release-one clear-photo camera lane.
-- Added native Android and iOS capture-readiness diagnostics using the same
-  shared Flutter keys as the review pipeline: readiness code, readiness label,
-  manual capture allowed, stable frame count, and required stable frames.
-- Kept manual capture represented as available while auto-capture stays
-  advisory and opt-in.
-- Whitelisted the new readiness diagnostics in native capture staging so the
-  values survive the trip into Flutter review/handoff.
-- Added Android and iOS bridge regressions proving the native camera contracts
-  carry the readiness fields and conservative readiness code vocabulary.
-
-Verification:
-- Passed targeted Dart format and analyzer for the native staging whitelist and
-  bridge/review tests.
-- Passed focused Flutter tests for Android auto-capture bridge, iOS camera
-  settings/close bridge, and native photo quality result handoff.
 - Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
   `--max-line-length=220`, and targeted `git diff --check`.
