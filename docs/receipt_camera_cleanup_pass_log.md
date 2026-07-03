@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 495 - 01:03:00 EDT to 01:07:00 EDT
+
+Scope:
+- Hardened the receipt line editor split-percent parser so negative values keep
+  their sign until the clamp step instead of becoming positive percentages.
+- Added regression coverage that blocks the old non-digit stripping behavior and
+  keeps percent-sign normalization explicit.
+- Recorded `BUG-RECEIPT-0014` under `business_personal_split`.
+- Archived Pass 484 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for the receipt line editor derived
+  fields and assisted-review source regression coverage.
+- Passed focused Flutter test
+  `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
+  receipt review exposes classification and attachment flow"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 494 - 00:49:00 EDT to 00:54:00 EDT
 
 Scope:
@@ -41,25 +60,6 @@ Verification:
 - Passed focused Flutter regression
   `test/expense_receipt_line_record_test.dart --plain-name "split receipt lines
   bound malformed business percentages"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 484 - 23:59:00 EDT to 00:04:00 EDT
-
-Scope:
-- Hardened multi-photo retake order planning so replacement sections cannot use
-  empty paths, duplicate replacement paths, or paths already assigned to another
-  receipt section.
-- Added regression tests for unsafe retake replacement path inputs while keeping
-  middle/top/bottom alignment-context behavior intact.
-- Recorded `BUG-RECEIPT-0003` under `multi_photo_ordering`.
-- Archived Pass 463 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for the retake-order model, focused
-  test, and bug ledger gate.
-- Passed focused Flutter test `test/receipt_photo_review_retake_order_test.dart`
-  with 8/8 tests passing.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
 
 ## Pass 483 - 23:57:00 EDT to 00:02:30 EDT

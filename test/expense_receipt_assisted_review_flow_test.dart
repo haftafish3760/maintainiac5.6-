@@ -76,6 +76,11 @@ void main() {
         lineModels,
         contains('_ExpenseLineUse.split => _boundedBusinessPercent'),
       );
+      expect(
+        entryScreen,
+        isNot(contains("replaceAll(RegExp(r'[^0-9.]'), '')")),
+      );
+      expect(entryScreen, contains("replaceAll('%', '')"));
       expect(recap, contains('_ReceiptLineUseSegment'));
       expect(recap, contains('_ReceiptLineUseChip'));
       expect(recap, contains('allocationDetail'));

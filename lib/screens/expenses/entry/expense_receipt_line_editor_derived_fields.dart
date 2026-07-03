@@ -31,7 +31,8 @@ extension _ReceiptLineEditorDerivedFields on _ReceiptLineEditorSheetState {
 
   double get _businessPercent {
     final raw = _businessPercentController.text.trim();
-    final numeric = double.tryParse(raw.replaceAll(RegExp(r'[^0-9.]'), ''));
+    final normalized = raw.replaceAll('%', '').replaceAll(',', '').trim();
+    final numeric = double.tryParse(normalized);
     if (numeric == null) return .5;
     final percent = numeric > 1 ? numeric / 100 : numeric;
     if (percent < 0) return 0;
