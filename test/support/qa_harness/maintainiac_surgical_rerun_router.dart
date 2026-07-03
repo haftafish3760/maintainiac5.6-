@@ -984,6 +984,7 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
         'qa_runner_validates_without_flutter',
         'qa_runner_bounded_json',
         'qa_runner_changed_surgical_commands',
+        'qa_runner_changed_unmatched_no_broad_fallback',
         'qa_runner_rejects_unknown_groups',
       },
       reason:

@@ -446,6 +446,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'QA runner validates contracts without launching Flutter',
         'QA runner emits bounded JSON by default',
         'QA runner resolves changed files to surgical commands only',
+        'QA runner does not fall back to broad commands for unmatched paths',
         'QA runner rejects unknown groups',
       },
     ),

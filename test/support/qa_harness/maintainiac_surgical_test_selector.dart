@@ -2432,6 +2432,15 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'qa-runner', 'surgical', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_runner_changed_unmatched_no_broad_fallback',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_runner_tool_test.dart',
+    plainName:
+        'QA runner does not fall back to broad commands for unmatched paths',
+    reason: 'Run only the QA runner unmatched changed-path regression guard.',
+    tags: {'qa-runner', 'surgical', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'qa_runner_rejects_unknown_groups',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_runner_tool_test.dart',
