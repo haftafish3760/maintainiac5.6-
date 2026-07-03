@@ -18,6 +18,8 @@ const _contractorSupplyReceiptQaFixtures = [
     expectedLineCategories: ['Materials', 'Materials', 'Materials'],
     expectedLineFamilies: ['materials', 'materials', 'materials'],
     expectedLineUses: ['business', 'business', 'business'],
+    expectedLineReviewModes: ['detailedLine', 'detailedLine', 'detailedLine'],
+    expectedLineNumberLabels: ['Line 3', 'Line 4', 'Line 5'],
     expectedDownstreamReadinessStatus: 'inventory_material_ready',
     expectedDownstreamReadinessSummary: 'Inventory/material review ready',
     expectedDownstreamReadinessCounts: {
@@ -55,6 +57,8 @@ TOTAL 54.84
     expectedLineCategories: ['Materials', 'Materials', 'Materials'],
     expectedLineFamilies: ['materials', 'materials', 'materials'],
     expectedLineUses: ['business', 'business', 'business'],
+    expectedLineReviewModes: ['detailedLine', 'detailedLine', 'detailedLine'],
+    expectedLineNumberLabels: ['Line 4', 'Line 6', 'Line 8'],
     expectedDownstreamReadinessStatus: 'inventory_material_ready',
     expectedDownstreamReadinessSummary: 'Inventory/material review ready',
     expectedDownstreamReadinessCounts: {

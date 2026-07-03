@@ -193,6 +193,20 @@ List<_ReceiptQaCheck> _buildReceiptQaChecks({
       _lineUsesMatch(parsed.lines, fixture.expectedLineUses),
     );
   }
+  if (fixture.expectedLineReviewModes.isNotEmpty) {
+    addCheck(
+      'business_personal',
+      'line_review_modes_matched',
+      _lineReviewModesMatch(parsed.lines, fixture.expectedLineReviewModes),
+    );
+  }
+  if (fixture.expectedLineNumberLabels.isNotEmpty) {
+    addCheck(
+      'production_parser',
+      'line_number_labels_matched',
+      _lineNumberLabelsMatch(parsed.lines, fixture.expectedLineNumberLabels),
+    );
+  }
   if (fixture.expectedLineFamilies.isNotEmpty) {
     addCheck(
       'production_parser',

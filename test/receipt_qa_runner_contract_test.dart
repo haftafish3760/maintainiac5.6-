@@ -199,6 +199,8 @@ void main() {
           'line_descriptions_matched',
           'line_categories_matched',
           'line_uses_matched',
+          'line_review_modes_matched',
+          'line_number_labels_matched',
           'line_families_matched',
           'negative_line_count_matched',
           'adjustment_line_count_matched',
@@ -258,6 +260,18 @@ void main() {
         final fixtureCheckNames = (fixture['checks']! as List<Object?>)
             .map((check) => (check! as Map<String, Object?>)['name'])
             .toSet();
+        if (fixture['pack'] == 'contractor_supply') {
+          expect(
+            fixtureCheckNames,
+            containsAll([
+              'line_review_modes_matched',
+              'line_number_labels_matched',
+            ]),
+            reason:
+                'Contractor supply fixtures must protect numbered detailed '
+                'receipt lines for inventory and job proof workflows.',
+          );
+        }
         expect(
           fixtureCheckNames,
           contains('merchant_name_matched'),

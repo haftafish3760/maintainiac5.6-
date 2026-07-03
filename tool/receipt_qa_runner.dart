@@ -170,6 +170,8 @@ class _ReceiptQaFixture {
     this.expectedLineCategories = const [],
     this.expectedLineFamilies = const [],
     this.expectedLineUses = const [],
+    this.expectedLineReviewModes = const [],
+    this.expectedLineNumberLabels = const [],
     this.expectedNegativeLineCount,
     this.expectedAdjustmentLineCount,
     this.expectReconciled,
@@ -241,6 +243,8 @@ class _ReceiptQaFixture {
   final List<String> expectedLineCategories;
   final List<String> expectedLineFamilies;
   final List<String> expectedLineUses;
+  final List<String> expectedLineReviewModes;
+  final List<String> expectedLineNumberLabels;
   final int? expectedNegativeLineCount;
   final int? expectedAdjustmentLineCount;
   final bool? expectReconciled;

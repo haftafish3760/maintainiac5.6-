@@ -172,6 +172,20 @@ _ReceiptFixtureReport _scoreFixture(_ReceiptQaFixture fixture) {
       '(${_lineUsesDebugSummary(parsed.lines, fixture.expectedLineUses)})',
     );
   }
+  if (fixture.expectedLineReviewModes.isNotEmpty &&
+      !_lineReviewModesMatch(parsed.lines, fixture.expectedLineReviewModes)) {
+    issues.add(
+      'production_parser_line_review_modes_mismatch'
+      '(${_lineReviewModesDebugSummary(parsed.lines, fixture.expectedLineReviewModes)})',
+    );
+  }
+  if (fixture.expectedLineNumberLabels.isNotEmpty &&
+      !_lineNumberLabelsMatch(parsed.lines, fixture.expectedLineNumberLabels)) {
+    issues.add(
+      'production_parser_line_number_labels_mismatch'
+      '(${_lineNumberLabelsDebugSummary(parsed.lines, fixture.expectedLineNumberLabels)})',
+    );
+  }
   if (fixture.expectedNegativeLineCount != null &&
       parsed.diagnostics.negativeLineCount !=
           fixture.expectedNegativeLineCount) {

@@ -126,6 +126,53 @@ String _lineUsesDebugSummary(
   );
 }
 
+bool _lineReviewModesMatch(
+  List<ExpenseReceiptLineRecord> lines,
+  List<String> expectedReviewModes,
+) {
+  if (lines.length != expectedReviewModes.length) return false;
+  for (var index = 0; index < expectedReviewModes.length; index += 1) {
+    if (lines[index].receiptReviewModeCode != expectedReviewModes[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+String _lineReviewModesDebugSummary(
+  List<ExpenseReceiptLineRecord> lines,
+  List<String> expectedReviewModes,
+) {
+  return _expectedActualLineSummary(
+    expected: expectedReviewModes,
+    actual: lines.map((line) => line.receiptReviewModeCode).toList(),
+  );
+}
+
+bool _lineNumberLabelsMatch(
+  List<ExpenseReceiptLineRecord> lines,
+  List<String> expectedLineNumberLabels,
+) {
+  if (lines.length != expectedLineNumberLabels.length) return false;
+  for (var index = 0; index < expectedLineNumberLabels.length; index += 1) {
+    if (lines[index].receiptLineNumberLabel !=
+        expectedLineNumberLabels[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+String _lineNumberLabelsDebugSummary(
+  List<ExpenseReceiptLineRecord> lines,
+  List<String> expectedLineNumberLabels,
+) {
+  return _expectedActualLineSummary(
+    expected: expectedLineNumberLabels,
+    actual: lines.map((line) => line.receiptLineNumberLabel).toList(),
+  );
+}
+
 String _expectedActualLineSummary({
   required List<String> expected,
   required List<String> actual,

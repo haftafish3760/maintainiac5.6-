@@ -32,4 +32,4 @@ Allowed categories:
 | Bug ID | Category | Symptom | Root cause | Fix | Regression coverage | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | `BUG-RECEIPT-0001` | `qa_harness` | Focused review-copy test looked for readiness copy in the wrong source bundle. | Static test assertion mixed the controls source bundle with the context-controls helper file. | Moved assertions to the source file that owns the readiness copy and reran the focused test. | `test/receipt_photo_review_quality_handoff_test.dart` | `closed` |
-
+| `BUG-RECEIPT-0002` | `fixture_generation` | Contractor supply fixture expected compact item labels `Line 1..3` even though parser review labels preserve source receipt row numbers. | Fixture expectation treated parsed item index as receipt source line number and ignored merchant/date/continuation rows. | Updated contractor fixtures to expect source-line labels and added review-mode/line-label QA checks. | `tool/receipt_qa_runner.dart --pack=contractor_supply --fail-under=1.0 --summary-json`; `test/receipt_qa_runner_contract_test.dart` | `closed` |
