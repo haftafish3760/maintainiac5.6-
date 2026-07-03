@@ -19,6 +19,12 @@ void main() {
     expect(ledger.toJson().toString(), contains('export_privacy_probe'));
     expect(ledger.toJson().toString(), contains('mutation_guard_probe'));
     expect(ledger.toJson().toString(), contains('failure_taxonomy_probe'));
+    expect(ledger.toJson().toString(), contains('surgical_selector_coverage'));
+    expect(ledger.toJson().toString(), contains('surgical_rerun_router'));
+    expect(ledger.toJson().toString(), contains('source_truth_gate'));
+    expect(ledger.toJson().toString(), contains('financial_formula_registry'));
+    expect(ledger.toJson().toString(), contains('qa_telemetry_privacy_gate'));
+    expect(ledger.toJson().toString(), contains('release_evidence_bundle'));
   });
 
   test('QA readiness ledger rejects fake ready claims without evidence', () {

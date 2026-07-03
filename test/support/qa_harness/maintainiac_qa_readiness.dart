@@ -297,6 +297,57 @@ class MaintainiacQaReadinessLedger {
         status: MaintainiacQaReadinessStatus.ready,
         evidence: ['maintainiac_module_suite_contract.dart'],
       ),
+      MaintainiacQaReadinessItem(
+        id: 'surgical_selector_coverage',
+        module: MaintainiacQaModule.performance,
+        description:
+            'Every focused parser-consumer QA behavior has an individual plain-name selector.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: [
+          'maintainiac_surgical_test_selector.dart',
+          'maintainiac_surgical_selector_coverage.dart',
+        ],
+      ),
+      MaintainiacQaReadinessItem(
+        id: 'surgical_rerun_router',
+        module: MaintainiacQaModule.performance,
+        description:
+            'Changed parser QA contract files map to exact individual rerun commands.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_surgical_rerun_router.dart'],
+      ),
+      MaintainiacQaReadinessItem(
+        id: 'source_truth_gate',
+        module: MaintainiacQaModule.sync,
+        description:
+            'Hive/local source records, Firestore mirrors, parser suggestions, and derived outputs have explicit mutation rules.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_source_truth_gate.dart'],
+      ),
+      MaintainiacQaReadinessItem(
+        id: 'financial_formula_registry',
+        module: MaintainiacQaModule.invoices,
+        description:
+            'Money formulas, rounding policies, source-mutation rules, and individual test commands are registered across release-one money modules.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_financial_formula_registry.dart'],
+      ),
+      MaintainiacQaReadinessItem(
+        id: 'qa_telemetry_privacy_gate',
+        module: MaintainiacQaModule.privacy,
+        description:
+            'QA reports, admin dashboards, parser diagnostics, export artifacts, and run ledgers have redaction rules.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_qa_telemetry_privacy_gate.dart'],
+      ),
+      MaintainiacQaReadinessItem(
+        id: 'release_evidence_bundle',
+        module: MaintainiacQaModule.performance,
+        description:
+            'Milestone evidence requirements include analyzer, individual tests, backbone visibility, privacy, source-truth, and GitHub push proof.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_release_evidence_bundle.dart'],
+      ),
     ]);
   }
 
