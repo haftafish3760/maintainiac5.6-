@@ -70,6 +70,8 @@ void main() {
     expect(draft.sourceFirstLineLabel, 'source line 1');
     expect(draft.proofLineReferenceLabel, 'Line 1, source line 1');
     expect(draft.toLocalReviewMap()['sourceFirstLineLabel'], 'source line 1');
+    expect(draft.toPrivacySafeSummaryMap()['sourceSectionNumber'], 1);
+    expect(draft.toPrivacySafeSummaryMap()['sourceSectionLineNumber'], 1);
   });
 
   test('parser handoff line id maps preserve first duplicate line id', () {

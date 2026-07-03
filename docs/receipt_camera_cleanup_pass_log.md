@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 586 - 11:36:00 EDT to 11:39:45 EDT
+
+Scope:
+- Hardened privacy-safe OCR/parser line summaries so source section and line
+  numbers match the clamped user-facing receipt proof labels.
+- Extended parser handoff structure regression coverage for privacy-safe source
+  section and line numbers.
+- Recorded `BUG-RECEIPT-0102` under `receipt_line_numbering`.
+- Archived Pass 559 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for OCR parser models and parser handoff
+  structure coverage.
+- Passed focused Flutter parser handoff regression for clamped source line
+  numbers and privacy-safe summary values.
+
 ## Pass 585 - 11:25:00 EDT to 11:29:40 EDT
 
 Scope:
@@ -474,19 +491,3 @@ Verification:
 - Passed targeted Dart format/analyzer for stitch API and manual-overlap
   regression coverage.
 - Passed focused Flutter manual-overlap regression.
-
-## Pass 559 - 07:05:33 EDT to 07:11:06 EDT
-
-Scope:
-- Hardened long-receipt stitching so duplicate input paths fall back to ordered
-  section review instead of producing a bogus combined OCR image.
-- Added fixture-backed stitching regression coverage for duplicate paths that
-  only differ by storage whitespace.
-- Recorded `BUG-RECEIPT-0075` under `ghost_overlap_stitching`.
-- Archived Pass 527 out of the live cleanup log.
-
-Verification:
-- Passed targeted Dart format/analyzer for stitch result models, stitch API,
-  and stitching regression coverage.
-- Passed focused Flutter stitching regression for duplicate receipt section
-  paths.

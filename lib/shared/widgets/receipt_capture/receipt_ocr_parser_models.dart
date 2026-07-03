@@ -283,9 +283,9 @@ class ReceiptOcrParserLineDraft {
       'proofLineReferenceLabel': proofLineReferenceLabel,
       'customerProofDefaultVisibility': customerProofDefaultVisibility,
       if (sourceLocation != null)
-        'sourceSectionNumber': sourceLocation!.sectionNumber,
+        'sourceSectionNumber': sourceLocation!.safeSectionNumber,
       if (sourceLocation != null)
-        'sourceSectionLineNumber': sourceLocation!.sectionLineNumber,
+        'sourceSectionLineNumber': sourceLocation!.safeSectionLineNumber,
     };
   }
 }
