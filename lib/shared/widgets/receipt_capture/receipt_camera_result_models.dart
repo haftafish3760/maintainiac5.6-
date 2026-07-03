@@ -60,7 +60,8 @@ class ReceiptCameraResult {
     for (var fallbackIndex = 0; fallbackIndex < paths.length; fallbackIndex++) {
       final path = paths[fallbackIndex];
       final index = photoPaths.indexOf(path);
-      final photoIndex = index < 0 ? fallbackIndex : index;
+      if (index < 0) return const {};
+      final photoIndex = index;
       diagnostics[path] = evidence.toCaptureDiagnostics(
         quality: qualityForIndex(photoIndex),
         photoIndex: photoIndex,
