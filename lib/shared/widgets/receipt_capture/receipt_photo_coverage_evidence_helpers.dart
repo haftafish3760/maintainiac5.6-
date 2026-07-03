@@ -1,8 +1,13 @@
 part of 'receipt_capture_models.dart';
 
 double? _doubleValue(Object? value) {
-  if (value is num) return value.toDouble();
-  return double.tryParse(value?.toString() ?? '');
+  final parsed = switch (value) {
+    num() => value.toDouble(),
+    String() => double.tryParse(value.trim()),
+    _ => null,
+  };
+  if (parsed == null || !parsed.isFinite) return null;
+  return parsed;
 }
 
 bool _bottomEdgeMissing(
@@ -40,6 +45,12 @@ bool _bottomEdgeMissing(
       framingHeightRatio != null &&
       framingHeightRatio > 0 &&
       framingHeightRatio < .52) {
+    return true;
+  }
+  if (nativeCutOffRisk &&
+      edgeCoverage == null &&
+      bottomEdgeScore == null &&
+      framingHeightRatio == null) {
     return true;
   }
   return false;
@@ -113,8 +124,13 @@ bool? _boolValue(Object? value) {
 
 int _intValue(Object? value) {
   if (value is int) return value;
-  if (value is num) return value.round();
-  return int.tryParse(value?.toString() ?? '') ?? 0;
+  final parsed = switch (value) {
+    num() when value.isFinite => value,
+    String() => double.tryParse(value.trim()),
+    _ => null,
+  };
+  if (parsed == null || !parsed.isFinite) return 0;
+  return parsed.round();
 }
 
 const Set<String> _missingBottomEdgeStatuses = {

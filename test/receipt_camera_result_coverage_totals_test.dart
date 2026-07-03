@@ -241,6 +241,40 @@ void main() {
     expect(decision.guidance, contains('Check that the top and bottom'));
   });
 
+  test('non-finite coverage diagnostics are treated as missing evidence', () {
+    final decision = ReceiptPhotoCoverageDecision.fromSignals(
+      quality: const ReceiptPhotoQualityCheck(
+        width: 1200,
+        height: 1800,
+        focusScore: 18,
+        isLikelyReadable: true,
+      ),
+      diagnostics: {
+        ReceiptCaptureDiagnosticKeys.latestFramingSignal:
+            ReceiptNativeCoverageSignalValues.possiblyCutOff,
+        ReceiptCaptureDiagnosticKeys.latestEdgeCoverage: double.nan,
+        ReceiptCaptureDiagnosticKeys.latestCapturedBottomEdgeScore:
+            double.infinity,
+        ReceiptCaptureDiagnosticKeys.receiptSubtotalDetected: false,
+        ReceiptCaptureDiagnosticKeys.receiptTotalDetected: false,
+        ReceiptCaptureDiagnosticKeys.receiptTotalAmountDetected: false,
+        'subtotalCandidateLineCount': double.infinity,
+        'totalCandidateLineCount': double.nan,
+        ReceiptCaptureDiagnosticKeys.receiptTotalsTextEvidenceStatus:
+            'not_found',
+      },
+    );
+
+    expect(decision.status, ReceiptPhotoCoverageStatus.likelyCutOff);
+    expect(decision.reasonCode, 'missing_bottom_edge_and_totals');
+    expect(decision.isMissingBottomEdgeAndTotals, isTrue);
+    expect(decision.shouldPromptForMorePhotos, isTrue);
+    expect(
+      decision.continuationCaptureContractCode,
+      'bottom_edge_totals_missing_use_ghost_overlap',
+    );
+  });
+
   test('tax line alone does not satisfy bottom totals completion evidence', () {
     final decision = ReceiptPhotoCoverageDecision.fromSignals(
       quality: const ReceiptPhotoQualityCheck(

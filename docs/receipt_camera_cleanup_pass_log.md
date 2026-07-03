@@ -3,6 +3,28 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 512 - 01:04:59 EDT to 01:06:18 EDT
+
+Scope:
+- Hardened receipt coverage evidence parsing so non-finite diagnostic numbers
+  cannot fake bottom-edge or totals completion evidence.
+- Added a coverage regression proving malformed native numbers still produce a
+  conservative missing-bottom-and-totals continuation decision.
+- Recorded `BUG-RECEIPT-0030` under `camera_capture_quality`.
+- Archived Pass 475 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Fixed an initial analyzer failure from a wrong diagnostic key in the new
+  regression, then fixed the app logic after the corrected regression exposed a
+  false likely-complete decision.
+- Passed targeted Dart format and analyzer for receipt coverage evidence helpers
+  and coverage totals regression coverage.
+- Passed focused Flutter test
+  `test/receipt_camera_result_coverage_totals_test.dart --plain-name
+  "non-finite coverage diagnostics are treated as missing evidence"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 511 - 01:03:26 EDT to 01:04:01 EDT
 
 Scope:
@@ -460,24 +482,5 @@ Verification:
   native health-code helper, and focused camera quality tests.
 - Passed focused Flutter tests for quality guidance, quality result handoff, and
   native saved-photo quality.
-- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
-  `--max-line-length=220`, and targeted `git diff --check`.
-
-## Pass 475 - 21:12:00 EDT to 21:15:25 EDT
-
-Scope:
-- Stayed on the camera-lane quality/readiness slice.
-- Added `ReceiptCaptureReadinessDecision` so receipt photo quality can produce a
-  stable capture-readiness contract for manual capture and opt-in auto-capture.
-- Kept manual capture allowed even when auto-capture is off, waiting for
-  stability, or held back by quality/framing risk.
-- Added regressions proving auto-capture waits for stable frames and stays
-  blocked for glare or likely cut-off receipts while manual capture remains
-  available.
-
-Verification:
-- Passed targeted format and analyzer for the quality model and guidance tests.
-- Passed focused Flutter tests for receipt camera quality guidance and result
-  quality.
 - Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
   `--max-line-length=220`, and targeted `git diff --check`.
