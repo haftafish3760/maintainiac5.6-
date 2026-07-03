@@ -152,6 +152,51 @@ void main() {
     },
   );
 
+  test('photo review result removes duplicate saved and OCR source paths', () {
+    final fallback = ReceiptPhotoReviewResult(
+      photoPaths: const [
+        ' /tmp/proof-top.jpg ',
+        '/tmp/proof-top.jpg',
+        '',
+        '/tmp/proof-bottom.jpg',
+      ],
+      ocrSourcePhotoPaths: const [],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([]),
+    );
+    final separateOcr = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/proof.jpg', '/tmp/proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/ocr-clear.jpg', ' /tmp/ocr-clear.jpg '],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr-clear.jpg']),
+    );
+
+    expect(fallback.photoPaths, [
+      '/tmp/proof-top.jpg',
+      '/tmp/proof-bottom.jpg',
+    ]);
+    expect(fallback.ocrSourcePhotoPaths, [
+      '/tmp/proof-top.jpg',
+      '/tmp/proof-bottom.jpg',
+    ]);
+    expect(fallback.savedBackupPhotoCount, 2);
+    expect(fallback.ocrSourcePhotoCount, 2);
+    expect(
+      fallback.receiptReaderHandoffCounts,
+      containsPair('saved_backup_present', 2),
+    );
+    expect(
+      fallback.receiptReaderHandoffCounts,
+      containsPair('ocr_source_present', 2),
+    );
+
+    expect(separateOcr.photoPaths, ['/tmp/proof.jpg']);
+    expect(separateOcr.ocrSourcePhotoPaths, ['/tmp/ocr-clear.jpg']);
+    expect(separateOcr.usesSeparateOcrSourceCopies, isTrue);
+    expect(separateOcr.savedBackupPhotoCount, 1);
+    expect(separateOcr.ocrSourcePhotoCount, 1);
+  });
+
   test('kept for later review does not open receipt details input', () {
     final result = ReceiptPhotoReviewResult.keptForLater(
       photoPaths: const ['/tmp/staged-top.jpg', '/tmp/staged-bottom.jpg'],

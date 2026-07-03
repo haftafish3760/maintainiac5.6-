@@ -69,3 +69,11 @@ List<String> _nonBlankPaths(List<String> paths) {
       if (path.trim().isNotEmpty) path.trim(),
   ];
 }
+
+List<String> _uniqueNonBlankPaths(List<String> paths) {
+  final seen = <String>{};
+  return [
+    for (final path in _nonBlankPaths(paths))
+      if (seen.add(path)) path,
+  ];
+}

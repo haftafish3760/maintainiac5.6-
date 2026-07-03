@@ -149,12 +149,12 @@ class ReceiptPhotoReviewResult {
     Map<String, Map<String, Object?>> captureDiagnosticsByPhotoPath = const {},
     this.reviewExitAction = 'accepted_for_receipt_details',
     bool allowSavedProofOcrFallback = true,
-  }) : photoPaths = List.unmodifiable(_nonBlankPaths(photoPaths)),
+  }) : photoPaths = List.unmodifiable(_uniqueNonBlankPaths(photoPaths)),
        ocrSourcePhotoPaths = List.unmodifiable(
-         _nonBlankPaths(ocrSourcePhotoPaths).isEmpty &&
+         _uniqueNonBlankPaths(ocrSourcePhotoPaths).isEmpty &&
                  allowSavedProofOcrFallback
-             ? _nonBlankPaths(photoPaths)
-             : _nonBlankPaths(ocrSourcePhotoPaths),
+             ? _uniqueNonBlankPaths(photoPaths)
+             : _uniqueNonBlankPaths(ocrSourcePhotoPaths),
        ),
        photoQualityChecksByPath = Map.unmodifiable(photoQualityChecksByPath),
        preparationDiagnosticsByOcrPath = _immutableDiagnosticsMap(
@@ -165,8 +165,8 @@ class ReceiptPhotoReviewResult {
        ),
        usedSavedProofAsOcrSourceFallback =
            allowSavedProofOcrFallback &&
-           _nonBlankPaths(ocrSourcePhotoPaths).isEmpty &&
-           _nonBlankPaths(photoPaths).isNotEmpty;
+           _uniqueNonBlankPaths(ocrSourcePhotoPaths).isEmpty &&
+           _uniqueNonBlankPaths(photoPaths).isNotEmpty;
 
   factory ReceiptPhotoReviewResult.keptForLater({
     required List<String> photoPaths,
