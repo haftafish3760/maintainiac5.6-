@@ -64,6 +64,62 @@ void main() {
     expect(summary['readyForNextBatch'], isFalse);
     expect(summary['nextActions'].toString(), contains('unsafe'));
   });
+
+  test('next action waits when a parser batch wave is already running', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_next_active_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeJson('build/parser_qa_pipeline/release_one_commands.json', {
+      'commands': [
+        {'cellId': 'plumbing.residential.core.en-US'},
+      ],
+    });
+    _writeJson('build/parser_qa_pass_evidence/evidence_summary.json', {
+      'missingArtifactNames': <String>[],
+      'unsafeFindings': <String>[],
+    });
+    _writeJson(
+      'build/parser_qa_batch_waves/wave/queue/queue-id/latest_status.json',
+      {
+        'state': 'running',
+        'queueId': 'queue-id',
+        'activeCellId': 'plumbing_residential_core_en_US',
+        'completedCellCount': 1,
+        'failedCellCount': 0,
+        'liveServicesAllowed': false,
+        'writesProductionCatalog': false,
+        'firebaseWritesAllowed': false,
+        'ocrCameraExpensesTouched': false,
+      },
+    );
+    _writeJson('build/parser_qa_batch_waves/wave/queue/latest_status.json', {
+      'state': 'running',
+      'queueId': 'queue-id',
+      'activeCellId': 'plumbing_residential_core_en_US',
+      'completedCellCount': 1,
+      'failedCellCount': 0,
+      'liveServicesAllowed': false,
+      'writesProductionCatalog': false,
+      'firebaseWritesAllowed': false,
+      'ocrCameraExpensesTouched': false,
+    });
+
+    final exit = runWorkSupplyParserQaNextAction(
+      const [],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final summary = _readJson('build/parser_qa_pass_evidence/next_action.json');
+    expect(summary['readyForNextBatch'], isFalse);
+    expect(summary['activeWaveCount'], 1);
+    expect(summary['nextActions'].toString(), contains('active local-only'));
+  });
 }
 
 void _writeJson(String path, Map<String, Object?> value) {

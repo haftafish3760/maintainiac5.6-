@@ -11,6 +11,8 @@ class WorkSupplyParserNextActionSuite extends QaSuite {
     'QA_NEXT_ACTION_ARTIFACT',
     'readyForNextBatch',
     'releaseOneCellCount',
+    'activeWaveCount',
+    'activeWaves',
     'missingArtifactNames',
     'unsafeFindings',
     'liveServicesAllowed',
@@ -57,7 +59,7 @@ class WorkSupplyParserNextActionSuite extends QaSuite {
       metrics: {
         'requiredTokens': _requiredTokens.toList()..sort(),
         'contract':
-            'Parser QA continuation must be driven by local evidence, missing artifacts, unsafe flags, and release-one cell coverage.',
+            'Parser QA continuation must be driven by local evidence, missing artifacts, unsafe flags, active wave state, and release-one cell coverage.',
       },
     );
   }
