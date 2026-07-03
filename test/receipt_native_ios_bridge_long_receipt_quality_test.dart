@@ -104,6 +104,10 @@ void main() {
       expect(cameraController, contains('roundedDiagnostic(sample.edgeScore)'));
       expect(
         cameraController,
+        contains('if !value.isFinite || value < 0 { return -1 }'),
+      );
+      expect(
+        cameraController,
         contains('roundedDiagnostic(sample.bottomEdgeScore)'),
       );
       expect(cameraController, contains('latestCapturedMegapixelBucket'));

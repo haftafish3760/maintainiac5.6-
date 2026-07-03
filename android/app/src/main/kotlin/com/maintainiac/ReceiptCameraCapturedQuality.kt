@@ -98,7 +98,7 @@ internal fun ReceiptCameraActivity.pixelLuma(pixel: Int): Double {
 }
 
 internal fun ReceiptCameraActivity.roundedDiagnostic(value: Double): Double {
-    if (value < 0.0) return -1.0
+    if (!value.isFinite() || value < 0.0) return -1.0
     return round(value * 10.0) / 10.0
 }
 

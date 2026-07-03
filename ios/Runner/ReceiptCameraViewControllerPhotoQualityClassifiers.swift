@@ -9,7 +9,7 @@ extension ReceiptCameraViewController {
   }
 
   func roundedDiagnostic(_ value: Double) -> Double {
-    if value < 0 { return -1 }
+    if !value.isFinite || value < 0 { return -1 }
     return (value * 10).rounded() / 10
   }
 

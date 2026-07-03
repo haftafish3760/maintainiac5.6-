@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 574 - 09:22:37 EDT to 09:24:08 EDT
+
+Scope:
+- Hardened Android captured-photo diagnostic rounding so non-finite quality
+  values become unknown evidence instead of unsafe diagnostic numbers.
+- Hardened iOS captured-photo diagnostic rounding with the same finite-value
+  guard.
+- Added Android and iOS source contract regressions for finite captured quality
+  diagnostics.
+- Recorded `BUG-RECEIPT-0090` under `camera_capture_quality`.
+- Archived Pass 548 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for Android and iOS native quality
+  source regressions.
+- Passed focused Flutter regressions
+  `test/receipt_native_android_bridge_settings_quality_test.dart` and
+  `test/receipt_native_ios_bridge_long_receipt_quality_test.dart`.
+
 ## Pass 573 - 09:14:52 EDT to 09:21:30 EDT
 
 Scope:
@@ -439,24 +459,6 @@ Verification:
   recovery metadata regression coverage.
 - Passed focused Flutter test
   `test/receipt_camera_result_recovery_metadata_test.dart`.
-
-## Pass 548 - 05:28:20 EDT to 05:30:30 EDT
-
-Scope:
-- Hardened picked camera-result quality handoff so stale or foreign picked
-  paths cannot leave partial quality evidence after diagnostics reject the
-  batch.
-- Added lifecycle source regression coverage requiring the camera-result member
-  guard beside the picked-path uniqueness guard.
-- Recorded `BUG-RECEIPT-0064` under `source_preservation`.
-- Archived Pass 531 out of the live cleanup log.
-
-Verification:
-- Passed targeted format/analyzer for picked review save models and lifecycle
-  source regression coverage.
-- Passed focused Flutter test
-  `test/receipt_photo_review_save_lifecycle_test.dart --plain-name "photo
-  review save and close actions respect lifecycle state"`.
 
 ## Pass 549 - 05:30:31 EDT to 05:37:07 EDT
 
