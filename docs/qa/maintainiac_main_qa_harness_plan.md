@@ -88,6 +88,12 @@ Run the backbone intentionally with the `main` or `backbone` preset once it is w
 - `maintainiac.qa_backbone_contract`
 - `qa.threshold_gate`
 
+The command runner is:
+
+- `dart run tool/maintainiac_qa_backbone.dart --profile smoke --preset main`
+
+It writes timestamped and `latest_maintainiac_main` QA report artifacts through the same redacted report writer used by parser QA.
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:
