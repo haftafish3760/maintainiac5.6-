@@ -48,7 +48,9 @@ extension _ReceiptAttachmentOcrSourceContinuationSignals
   ) {
     final flags = <String>{};
     for (final diagnostics in diagnosticsForOcrSourceIndex(result, index)) {
-      if (diagnostics['previousSectionMissingBottomAndTotals'] == true) {
+      if (diagnostics['previousSectionMissingBottomAndTotals'] == true ||
+          diagnostics['phoneCameraBackupPreviousSectionMissingBottomAndTotals'] ==
+              true) {
         flags.add('ocr_source_continuation_missing_bottom_totals_review');
       }
       final ghostStatus = attachmentSignalToken(
@@ -61,7 +63,11 @@ extension _ReceiptAttachmentOcrSourceContinuationSignals
         flags.add('ocr_source_continuation_ghost_guide_ready');
       }
       final ghostPolicy = attachmentSignalToken(
-        diagnostics['previousSectionGhostGuidePolicy']?.toString() ?? '',
+        _firstAttachmentPanelContinuationSignalValue(
+              diagnostics['previousSectionGhostGuidePolicy'],
+              diagnostics['phoneCameraBackupPreviousSectionGhostGuidePolicy'],
+            ) ??
+            '',
       );
       if (ghostPolicy == 'bottom_overlap_ghost_at_top_repeat_3_to_5_lines') {
         flags.add('ocr_source_continuation_bottom_overlap_ghost_policy');
@@ -69,4 +75,15 @@ extension _ReceiptAttachmentOcrSourceContinuationSignals
     }
     return List.unmodifiable(flags);
   }
+}
+
+String? _firstAttachmentPanelContinuationSignalValue(
+  Object? primary,
+  Object? fallback,
+) {
+  final primaryText = primary?.toString().trim();
+  if (primaryText != null && primaryText.isNotEmpty) return primaryText;
+  final fallbackText = fallback?.toString().trim();
+  if (fallbackText != null && fallbackText.isNotEmpty) return fallbackText;
+  return null;
 }

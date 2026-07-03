@@ -164,7 +164,11 @@ extension _ReceiptAttachmentOcrSourceSignals
         signals.add('receipt_continuation_guidance_available');
       }
       final reason = attachmentSignalToken(
-        diagnostics['previousSectionReasonCode']?.toString() ?? '',
+        _firstAttachmentContinuationSignalValue(
+              diagnostics['previousSectionReasonCode'],
+              diagnostics['phoneCameraBackupPreviousSectionReasonCode'],
+            ) ??
+            '',
       );
       if (reason != 'unknown') {
         signals.add('receipt_continuation_reason_$reason');
@@ -182,7 +186,11 @@ extension _ReceiptAttachmentOcrSourceSignals
         signals.add('receipt_continuation_ghost_$ghostStatus');
       }
       final ghostPolicy = attachmentSignalToken(
-        diagnostics['previousSectionGhostGuidePolicy']?.toString() ?? '',
+        _firstAttachmentContinuationSignalValue(
+              diagnostics['previousSectionGhostGuidePolicy'],
+              diagnostics['phoneCameraBackupPreviousSectionGhostGuidePolicy'],
+            ) ??
+            '',
       );
       if (ghostPolicy != 'unknown' && ghostPolicy != 'not_requested') {
         signals.add('receipt_continuation_ghost_policy_$ghostPolicy');
@@ -190,4 +198,15 @@ extension _ReceiptAttachmentOcrSourceSignals
     }
     return List.unmodifiable(signals);
   }
+}
+
+String? _firstAttachmentContinuationSignalValue(
+  Object? primary,
+  Object? fallback,
+) {
+  final primaryText = primary?.toString().trim();
+  if (primaryText != null && primaryText.isNotEmpty) return primaryText;
+  final fallbackText = fallback?.toString().trim();
+  if (fallbackText != null && fallbackText.isNotEmpty) return fallbackText;
+  return null;
 }

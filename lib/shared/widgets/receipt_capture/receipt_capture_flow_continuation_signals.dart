@@ -56,7 +56,11 @@ List<String> _ocrSourceContinuationDocumentSignalsFor(
       signals.add('receipt_continuation_guidance_available');
     }
     final reason = _signalToken(
-      diagnostics['previousSectionReasonCode']?.toString() ?? '',
+      _firstContinuationSignalValue(
+            diagnostics['previousSectionReasonCode'],
+            diagnostics['phoneCameraBackupPreviousSectionReasonCode'],
+          ) ??
+          '',
     );
     if (reason != 'unknown') {
       signals.add('receipt_continuation_reason_$reason');
@@ -74,7 +78,11 @@ List<String> _ocrSourceContinuationDocumentSignalsFor(
       signals.add('receipt_continuation_ghost_$ghostStatus');
     }
     final ghostPolicy = _signalToken(
-      diagnostics['previousSectionGhostGuidePolicy']?.toString() ?? '',
+      _firstContinuationSignalValue(
+            diagnostics['previousSectionGhostGuidePolicy'],
+            diagnostics['phoneCameraBackupPreviousSectionGhostGuidePolicy'],
+          ) ??
+          '',
     );
     if (ghostPolicy != 'unknown' && ghostPolicy != 'not_requested') {
       signals.add('receipt_continuation_ghost_policy_$ghostPolicy');
@@ -127,7 +135,9 @@ List<String> _ocrSourceContinuationRiskFlagsFor(
 ) {
   final flags = <String>{};
   for (final diagnostics in _diagnosticsForOcrSourceIndex(result, index)) {
-    if (diagnostics['previousSectionMissingBottomAndTotals'] == true) {
+    if (diagnostics['previousSectionMissingBottomAndTotals'] == true ||
+        diagnostics['phoneCameraBackupPreviousSectionMissingBottomAndTotals'] ==
+            true) {
       flags.add('ocr_source_continuation_missing_bottom_totals_review');
     }
     final ghostStatus = _signalToken(
@@ -140,11 +150,23 @@ List<String> _ocrSourceContinuationRiskFlagsFor(
       flags.add('ocr_source_continuation_ghost_guide_ready');
     }
     final ghostPolicy = _signalToken(
-      diagnostics['previousSectionGhostGuidePolicy']?.toString() ?? '',
+      _firstContinuationSignalValue(
+            diagnostics['previousSectionGhostGuidePolicy'],
+            diagnostics['phoneCameraBackupPreviousSectionGhostGuidePolicy'],
+          ) ??
+          '',
     );
     if (ghostPolicy == 'bottom_overlap_ghost_at_top_repeat_3_to_5_lines') {
       flags.add('ocr_source_continuation_bottom_overlap_ghost_policy');
     }
   }
   return List.unmodifiable(flags);
+}
+
+String? _firstContinuationSignalValue(Object? primary, Object? fallback) {
+  final primaryText = primary?.toString().trim();
+  if (primaryText != null && primaryText.isNotEmpty) return primaryText;
+  final fallbackText = fallback?.toString().trim();
+  if (fallbackText != null && fallbackText.isNotEmpty) return fallbackText;
+  return null;
 }

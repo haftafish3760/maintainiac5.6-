@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_flow.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 void main() {
@@ -121,6 +122,20 @@ void main() {
     expect(summary, contains('reason_missing_bottom_edge_and_totals'));
     expect(summary, isNot(contains('/tmp/')));
     expect(summary, isNot(contains('private receipt text')));
+    final attachment = ReceiptCaptureFlow.attachmentsFromReviewResult(
+      result,
+      ReceiptCaptureFlowModule.expenses,
+    ).single;
+    expect(
+      attachment.documentSignals,
+      contains(
+        'receipt_continuation_ghost_policy_bottom_overlap_ghost_at_top_repeat_3_to_5_lines',
+      ),
+    );
+    expect(
+      attachment.riskFlags,
+      contains('ocr_source_continuation_bottom_overlap_ghost_policy'),
+    );
   });
 }
 

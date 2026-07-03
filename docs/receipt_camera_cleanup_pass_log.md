@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 505 - 00:53:06 EDT to 00:53:57 EDT
+
+Scope:
+- Hardened per-source continuation attachment signals so blank native values no
+  longer hide valid phone-camera backup continuation evidence.
+- Added regression coverage through `ReceiptCaptureFlow.attachmentsFromReviewResult`
+  proving attachment document/risk signals keep bottom ghost-guide policy.
+- Recorded `BUG-RECEIPT-0023` under `ocr_handoff_contract`.
+- Archived Pass 492 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for continuation attachment signal
+  builders and focused continuation regression coverage.
+- Passed focused Flutter test
+  `test/receipt_camera_result_continuation_handoff_test.dart --plain-name "phone
+  backup continuation survives blank native values"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 504 - 00:51:33 EDT to 00:52:21 EDT
 
 Scope:
@@ -461,23 +480,3 @@ Verification:
   overlap, full stitching fixtures, and camera-result stitch scanner handoff
   tests. The batch completed with 20 tests passed.
 - Passed targeted `git diff --check`; touched files remain under 500 lines.
-
-## Pass 492 - 00:18:14 EDT to 00:19:58 EDT
-
-Scope:
-- Hardened multi-photo native review-depth handoff so detailed line review is
-  not downgraded to prices-only when any captured section requests detailed
-  lines.
-- Added privacy-safe review-depth counts to receipt reader handoff metadata.
-- Recorded `BUG-RECEIPT-0011` under `receipt_line_review_mode`.
-- Archived Pass 469 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed `dart format --set-exit-if-changed` for receipt review result native
-  signal/metadata files and focused frozen result test.
-- Passed targeted analyzer for receipt capture models, focused frozen result
-  test, and bug ledger gate.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-- Passed full focused `flutter test
-  test/receipt_camera_result_frozen_brain_install_test.dart -r compact`.
