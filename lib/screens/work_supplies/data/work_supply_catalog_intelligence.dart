@@ -129,12 +129,7 @@ WorkSupplyItemIntelligence _resolveWorkSupplyItemIntelligence(
     ocrMistakePatterns: _ocrLikeMistakePatternsFor(text),
     vendorMappings: _vendorMappingsFor(item, material, size, shape),
     attributeTokens: _attributeTokensFor(item, material, size, connectionType),
-    negativeMatchTokens: _negativeMatchTokensFor(
-      item,
-      material,
-      shape,
-      text,
-    ),
+    negativeMatchTokens: _negativeMatchTokensFor(item, material, shape, text),
     highImportanceTokens: _highImportanceTokensFor(
       item,
       material,
@@ -215,8 +210,13 @@ List<WorkSupplyVendorMapping> _vendorMappingsFor(
 
 String _vendorFamilyCode(WorkSupplyItem item, String material, String shape) {
   return _vendorSafeCode(
-    _cleanList([item.trade, item.system, item.itemType, material, shape])
-        .join('-'),
+    _cleanList([
+      item.trade,
+      item.system,
+      item.itemType,
+      material,
+      shape,
+    ]).join('-'),
   );
 }
 
@@ -786,8 +786,7 @@ List<String> _negativeMatchTokensFor(
           other.toLowerCase() != material.toLowerCase())
         '$other $shape',
     if (shape.isNotEmpty && !shape.contains('drop-ear')) 'drop-ear $shape',
-    if (shape.isNotEmpty && material.toLowerCase() != 'pex')
-      'PEX crimp $shape',
+    if (shape.isNotEmpty && material.toLowerCase() != 'pex') 'PEX crimp $shape',
     if (shape.isNotEmpty && material.toLowerCase() != 'pvc') 'PVC DWV $shape',
     ..._riskConflictNegativeMatchTokensFor(item, text),
   ]);
@@ -847,6 +846,9 @@ List<String> _riskConflictNegativeMatchTokensFor(
     if (riskTerms.contains('tape')) 'drywall tape',
     if (riskTerms.contains('box')) 'electrical box',
     if (riskTerms.contains('box')) 'storage box',
+    if (riskTerms.contains('tank')) 'propane tank',
+    if (riskTerms.contains('tank')) 'fuel tank',
+    if (riskTerms.contains('tank')) 'air compressor tank',
     if (riskTerms.contains('valve')) 'plumbing valve',
     if (riskTerms.contains('valve')) 'gas valve',
   ]);
@@ -884,19 +886,24 @@ Set<String> _catalogRiskTermsFor(WorkSupplyItem item, String text) {
     'pipe',
     'primer',
     'pvc',
+    'tank',
     'tape',
     'valve',
   };
-  final tokens = _cleanList([
-    text,
-    item.name,
-    item.category,
-    item.system,
-    item.itemType,
-    item.variant,
-    ...item.aliases,
-  ].join(' ').toLowerCase().split(RegExp(r'[^a-z0-9/.-]+')));
-  return risks.where(tokens.map((token) => token.toLowerCase()).contains).toSet();
+  final tokens = _cleanList(
+    [
+      text,
+      item.name,
+      item.category,
+      item.system,
+      item.itemType,
+      item.variant,
+      ...item.aliases,
+    ].join(' ').toLowerCase().split(RegExp(r'[^a-z0-9/.-]+')),
+  );
+  return risks
+      .where(tokens.map((token) => token.toLowerCase()).contains)
+      .toSet();
 }
 
 bool _needsManualReview(
