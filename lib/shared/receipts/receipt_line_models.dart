@@ -95,6 +95,24 @@ class ReceiptLineDraft {
     return 'Business expense only';
   }
 
+  bool get canStageForJobOrEstimate =>
+      isInventory && inventoryItemId.trim().isNotEmpty && !isPersonalUse;
+
+  List<String> get suggestedMaterialActions {
+    if (isPersonalUse) return const ['markPersonal'];
+    if (isInventory) {
+      return [
+        'addToInventory',
+        'addToActiveJob',
+        'addToEstimateDraft',
+        'stageForInvoiceProof',
+        if (isSplitUse) 'splitReview',
+      ];
+    }
+    if (isSplitUse) return const ['splitReview', 'saveBusinessPortion'];
+    return const ['saveAsBusinessExpense'];
+  }
+
   String get businessUseLabel {
     if (isPersonalUse) return 'Personal';
     if (isSplitUse) return 'Split ${(businessPercent * 100).round()}% business';
@@ -318,6 +336,8 @@ class ReceiptLineDraft {
       'originalParsedDescription': originalParsedDescription,
       'originalParsedInventoryItemId': originalParsedInventoryItemId,
       'originalParsedInventoryPath': originalParsedInventoryPath,
+      'canStageForJobOrEstimate': canStageForJobOrEstimate,
+      'suggestedMaterialActions': suggestedMaterialActions,
       'reviewAction': reviewAction,
     };
   }

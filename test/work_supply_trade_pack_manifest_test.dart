@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_export_writer.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_manifest.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_tiers.dart';
@@ -23,11 +24,55 @@ void main() {
     expect(manifest.firestoreItemDocumentReadCount, 0);
     expect(manifest.itemCount, plumbing.itemCount);
     expect(manifest.chunkCount, manifest.chunks.length);
+    expect(manifest.estimatedUncompressedBytes, greaterThan(0));
+    expect(
+      manifest.estimatedUncompressedBytes,
+      greaterThan(manifest.estimatedCompressedBytes),
+    );
     expect(map.containsKey('items'), isFalse);
+    expect(
+      map['estimatedUncompressedBytes'],
+      manifest.estimatedUncompressedBytes,
+    );
     expect(map['deliveryMode'], 'trade_pack_manifest_storage_chunks');
+    final deliveryPolicy = map['deliveryPolicy'] as Map;
+    expect(deliveryPolicy['deliveryModes'], contains('local_gzip_pack'));
+    expect(deliveryPolicy['deliveryModes'], contains('cloud_catalog_query'));
+    final cloudFallback = deliveryPolicy['cloudFallback'] as Map;
+    expect(cloudFallback['requiresInternet'], isTrue);
+    expect(cloudFallback['requiresSubscription'], isTrue);
+    expect(
+      cloudFallback['targetCatalogReadsPerUserPerDay'],
+      lessThanOrEqualTo(100),
+    );
     expect(
       manifest.chunks.every((chunk) => chunk.storagePath.endsWith('.json.gz')),
       isTrue,
+    );
+  });
+
+  test('scoped trade pack manifest carries scope and on-device size', () {
+    final residentialCore = buildWorkSupplyTradePackOptionsForScope(
+      'Plumbing',
+      marketScope: WorkSupplyMarketScope.residential,
+    ).firstWhere((option) => option.tier == WorkSupplyTradePackTier.core);
+    final manifest = buildWorkSupplyTradePackManifest(
+      residentialCore,
+      generatedAt: DateTime.utc(2026, 6, 27, 12),
+    );
+    final firstChunk = manifest.chunks.first;
+
+    expect(manifest.marketScope, WorkSupplyMarketScope.residential);
+    expect(manifest.itemCount, residentialCore.itemCount);
+    expect(manifest.toMap()['marketScope'], 'residential');
+    expect(manifest.toMap()['localePackId'], workSupplyDefaultLocalePackId);
+    expect(manifest.toMap()['countryCodes'], workSupplyDefaultCountryCodes);
+    expect(manifest.packId, contains('.residential.core'));
+    expect(firstChunk.storagePath, contains('/plumbing/residential/core/'));
+    expect(firstChunk.uncompressedByteSize, greaterThan(0));
+    expect(
+      manifest.estimatedUncompressedBytes,
+      greaterThan(manifest.estimatedCompressedBytes),
     );
   });
 

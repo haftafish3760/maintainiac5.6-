@@ -11,11 +11,14 @@ Workspace path on the Mac: `/Users/rbbie/Documents/Maintainiac_5.6`
 - Work only in Maintainiac 5.6.
 - Do not edit Maintainiac 5.5.
 - Do not touch native camera, shared receipt capture, OCR image prep, receipt stitching, or expense receipt capture. Another model may be working there.
+- Do not touch PDF import/render/preview/export systems while doing materials parser/catalog work.
+- Do not edit Expenses receipt capture, OCR review, camera, or PDF pipeline. Materials may later consume the shared output, but this work must not change the shared pipeline.
 - Do not push anything to Firebase yet.
 - Do not create one Firestore document per catalog item. Trade packs must eventually publish as a manifest plus bundled storage chunks.
 - Do not run full-catalog exhaustive parser tests after every edit. Use targeted tests first.
 - Do not add random trades while Plumbing is still active.
 - Keep generated/source files near the 500-line target when practical. Avoid multi-thousand-line files.
+- Keep parser/catalog/identity logic independent of the current Work Supplies UI so future UI/UX changes do not break the catalog brain.
 
 ## Product Intent
 
@@ -47,6 +50,23 @@ Each pack must show the estimated size before download.
 Large packs should eventually be downloaded from Firebase/hosted storage, but only as bundled files/chunks with one manifest read, not one read per item.
 
 Older phones must use smaller parser limits and avoid professional/complete packs when the phone cannot handle them.
+
+## Catalog Intelligence Contract
+
+Use `docs/materials_catalog_intelligence_contract.md` as the source of truth for the catalog brain.
+
+Important direction:
+
+- Rich smart rows matter more than raw item count.
+- Every item should support residential, lightIndustrial, and commercial scope tags.
+- A single canonical item can belong to multiple scopes and pack tiers.
+- Current default focus is residential plus light industrial, with commercial structured for later growth.
+- Residential plumbing complete target is roughly 12,000 to 15,000 smart items before heavy commercial expansion.
+- Whole residential/light-industrial catalog target is roughly 65,000 to 90,000 smart items, with a practical target near 75,000 smart items.
+- Parser data must include aliases, receipt abbreviations, OCR mistake patterns, vendor/SKU mapping slots, attribute tokens, negative-match rules, confidence hints, normalization rules, parser priority, classification output, and version/source tracking.
+- Do not add dumb rows that only have a name.
+- OCR mistake patterns are parser tolerance rules only; do not edit OCR/camera/PDF/Expenses capture code.
+- Parser and catalog data must remain UI-independent.
 
 ## Current Catalog State
 

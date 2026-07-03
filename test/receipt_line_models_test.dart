@@ -31,6 +31,15 @@ void main() {
     expect(line.toMap()['storageDetail'], 'Left drawer 2');
     expect(line.toMap()['businessUse'], 'split');
     expect(line.toMap()['businessPercent'], .6);
+    expect(line.canStageForJobOrEstimate, isTrue);
+    expect(line.suggestedMaterialActions, [
+      'addToInventory',
+      'addToActiveJob',
+      'addToEstimateDraft',
+      'stageForInvoiceProof',
+      'splitReview',
+    ]);
+    expect(line.toMap()['canStageForJobOrEstimate'], isTrue);
   });
 
   test('expense receipt line carries expense category', () {
@@ -43,6 +52,8 @@ void main() {
 
     expect(line.isExpense, isTrue);
     expect(line.inventoryItemId, isEmpty);
+    expect(line.canStageForJobOrEstimate, isFalse);
+    expect(line.suggestedMaterialActions, ['saveAsBusinessExpense']);
     expect(line.toMap()['expenseCategory'], 'Postage');
   });
 
@@ -85,6 +96,11 @@ void main() {
     expect(splitLine.businessUseLabel, 'Split 65% business');
     expect(splitLine.displayDescription, 'Split business/personal item');
     expect(personalLine.reviewStatusLabel, 'Manual');
+    expect(personalLine.suggestedMaterialActions, ['markPersonal']);
+    expect(splitLine.suggestedMaterialActions, [
+      'splitReview',
+      'saveBusinessPortion',
+    ]);
     expect(
       personalLine.receiptReviewSummary,
       'Saved on the receipt as personal, not inventory.',

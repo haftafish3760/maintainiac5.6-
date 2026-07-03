@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'work_supply_item_intelligence.dart';
+
+export 'work_supply_item_intelligence.dart';
+
 class WorkSupplyTrade {
   const WorkSupplyTrade({
     required this.name,
@@ -44,6 +48,10 @@ class WorkSupplyItem {
     required this.variant,
     required this.unit,
     this.aliases = const [],
+    this.marketScopes = WorkSupplyMarketScopes.all,
+    this.packTier = WorkSupplyPackTier.core,
+    this.parserPriority = WorkSupplyParserPriority.common,
+    this.intelligence = WorkSupplyItemIntelligence.empty,
   });
 
   final String id;
@@ -55,6 +63,10 @@ class WorkSupplyItem {
   final String variant;
   final String unit;
   final List<String> aliases;
+  final List<WorkSupplyMarketScope> marketScopes;
+  final WorkSupplyPackTier packTier;
+  final WorkSupplyParserPriority parserPriority;
+  final WorkSupplyItemIntelligence intelligence;
 
   String get path => '$trade / $category / $system / $itemType';
 
@@ -69,6 +81,7 @@ class WorkSupplyItem {
       variant,
       unit,
       ...aliases,
+      ...intelligence.searchableTokens,
     ].join(' ').toLowerCase();
   }
 }

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 
 import 'work_supply_catalog_pack_payload.dart';
+import 'work_supply_models.dart';
 import 'work_supply_trade_pack_manifest.dart';
 import 'work_supply_trade_pack_tiers.dart';
 
@@ -155,7 +156,10 @@ class WorkSupplyTradePackImportValidator {
         packVersion: _string(decoded['packVersion']),
         generatedAtIso: _string(decoded['generatedAtIso']),
         tradeName: _string(decoded['tradeName']),
+        marketScope: _marketScopeFromManifest(decoded['marketScope']),
         tier: WorkSupplyTradePackTierExtension.fromId(_string(decoded['tier'])),
+        localePackId: _string(decoded['localePackId']),
+        countryCodes: _stringList(decoded['countryCodes']),
         displayName: _string(decoded['displayName']),
         itemCount: _int(decoded['itemCount']),
         chunkCount: _int(decoded['chunkCount']),
@@ -163,6 +167,10 @@ class WorkSupplyTradePackImportValidator {
         firestoreItemDocumentReadCount: _int(
           decoded['firestoreItemDocumentReadCount'],
         ),
+        estimatedUncompressedBytes:
+            _int(decoded['estimatedUncompressedBytes']) > 0
+            ? _int(decoded['estimatedUncompressedBytes'])
+            : chunks.fold(0, (sum, chunk) => sum + chunk.uncompressedByteSize),
         estimatedCompressedBytes: _int(decoded['estimatedCompressedBytes']),
         chunks: chunks,
       );
@@ -294,10 +302,27 @@ extension WorkSupplyTradePackTierExtension on WorkSupplyTradePackTier {
   }
 }
 
+WorkSupplyMarketScope? _marketScopeFromManifest(Object? value) {
+  final raw = _string(value);
+  if (raw.isEmpty) return null;
+  for (final scope in WorkSupplyMarketScope.values) {
+    if (scope.name == raw || scope.id == raw) return scope;
+  }
+  return null;
+}
+
 String _string(Object? value) => value is String ? value : '';
 
 int _int(Object? value) {
   if (value is int) return value;
   if (value is num) return value.toInt();
   return 0;
+}
+
+List<String> _stringList(Object? value) {
+  if (value is! List) return const [];
+  return [
+    for (final entry in value)
+      if (entry is String && entry.trim().isNotEmpty) entry,
+  ];
 }

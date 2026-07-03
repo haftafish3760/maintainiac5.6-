@@ -130,13 +130,19 @@ void main() {
       expect(personal.kind, WorkSupplyReceiptLineKind.personal);
       expect(personal.displayName, 'Candy bar');
       expect(personal.item.trade, 'Personal');
-      expect(personal.reviewStatus, WorkSupplyLineReviewStatus.confirmed);
+      expect(
+        personal.reviewStatus,
+        WorkSupplyLineReviewStatus.highConfidenceReview,
+      );
 
       final business = saved.lines[2];
       expect(business.kind, WorkSupplyReceiptLineKind.businessExpense);
       expect(business.displayName, 'Business receipt items');
       expect(business.item.trade, 'Business Expense');
-      expect(business.reviewStatus, WorkSupplyLineReviewStatus.confirmed);
+      expect(
+        business.reviewStatus,
+        WorkSupplyLineReviewStatus.highConfidenceReview,
+      );
 
       final split = saved.lines[3];
       expect(split.kind, WorkSupplyReceiptLineKind.businessExpense);

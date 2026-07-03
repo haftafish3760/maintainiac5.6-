@@ -5,6 +5,9 @@ import 'work_supply_models.dart';
 
 part 'work_supply_catalog_search.dart';
 part 'work_supply_catalog_sizes.dart';
+part 'work_supply_catalog_intelligence.dart';
+part 'work_supply_plumbing_catalog_intelligence.dart';
+part 'work_supply_plumbing_metadata_intelligence.dart';
 part 'catalog/plumbing/plumbing_catalog.dart';
 part 'catalog/plumbing/fittings/copper.dart';
 part 'catalog/plumbing/fittings/pvc_schedule_40.dart';
@@ -16,6 +19,7 @@ part 'catalog/plumbing/fittings/brass.dart';
 part 'catalog/plumbing/fittings/push_fit.dart';
 part 'catalog/plumbing/fittings/cast_iron_and_no_hub.dart';
 part 'catalog/plumbing/fittings/pvc_dwv.dart';
+part 'catalog/plumbing/fittings/abs_dwv.dart';
 part 'catalog/plumbing/generated_plumbing_items.dart';
 part 'catalog/plumbing/generated_plumbing_service_truck_catalog.dart';
 part 'catalog/plumbing/generated_plumbing_drain_finish_catalog.dart';
@@ -164,18 +168,18 @@ final workSupplyTrades = _hydrateTrades(<WorkSupplyTrade>[
   electricalCatalog,
   hvacCatalog,
   carpentryCatalog,
+  drywallCatalog,
+  paintingCatalog,
+  roofingCatalog,
+  tileCatalog,
   cabinetsCountertopsCatalog,
   windowsDoorsCatalog,
   garageDoorsOpenersCatalog,
   applianceInstallationRepairCatalog,
   wellSepticWaterTreatmentCatalog,
-  drywallCatalog,
-  paintingCatalog,
-  roofingCatalog,
-  sidingExteriorCatalog,
-  tileCatalog,
   flooringCatalog,
   insulationCatalog,
+  sidingExteriorCatalog,
   fencingCatalog,
   masonryConcreteCatalog,
   landscapingCatalog,
@@ -265,16 +269,13 @@ List<WorkSupplyTrade> _hydrateTrades(List<WorkSupplyTrade> trades) {
                           name: type.name,
                           items: [
                             for (final item in type.items)
-                              WorkSupplyItem(
+                              _hydrateCatalogItem(
                                 id: _sequentialItemId(++itemNumber),
-                                name: item.name,
-                                trade: trade.name,
-                                category: category.name,
-                                system: system.name,
-                                itemType: type.name,
-                                variant: item.variant,
-                                unit: item.unit,
-                                aliases: item.aliases,
+                                source: item,
+                                tradeName: trade.name,
+                                categoryName: category.name,
+                                systemName: system.name,
+                                itemTypeName: type.name,
                               ),
                           ],
                         ),
@@ -289,4 +290,60 @@ List<WorkSupplyTrade> _hydrateTrades(List<WorkSupplyTrade> trades) {
 
 String _sequentialItemId(int value) {
   return 'MI-${value.toString().padLeft(3, '0')}';
+}
+
+WorkSupplyItem _hydrateCatalogItem({
+  required String id,
+  required WorkSupplyItem source,
+  required String tradeName,
+  required String categoryName,
+  required String systemName,
+  required String itemTypeName,
+}) {
+  final hydrated = WorkSupplyItem(
+    id: id,
+    name: source.name,
+    trade: tradeName,
+    category: categoryName,
+    system: systemName,
+    itemType: itemTypeName,
+    variant: source.variant,
+    unit: source.unit,
+    aliases: source.aliases,
+    marketScopes: source.marketScopes,
+    packTier: source.packTier,
+    parserPriority: source.parserPriority,
+    intelligence: source.intelligence,
+  );
+  final resolvedAliases = _resolveWorkSupplyAliases(hydrated);
+  final aliased = WorkSupplyItem(
+    id: hydrated.id,
+    name: hydrated.name,
+    trade: hydrated.trade,
+    category: hydrated.category,
+    system: hydrated.system,
+    itemType: hydrated.itemType,
+    variant: hydrated.variant,
+    unit: hydrated.unit,
+    aliases: resolvedAliases,
+    marketScopes: hydrated.marketScopes,
+    packTier: hydrated.packTier,
+    parserPriority: hydrated.parserPriority,
+    intelligence: hydrated.intelligence,
+  );
+  return WorkSupplyItem(
+    id: aliased.id,
+    name: aliased.name,
+    trade: aliased.trade,
+    category: aliased.category,
+    system: aliased.system,
+    itemType: aliased.itemType,
+    variant: aliased.variant,
+    unit: aliased.unit,
+    aliases: aliased.aliases,
+    marketScopes: _resolveWorkSupplyMarketScopes(aliased),
+    packTier: _resolveWorkSupplyPackTier(aliased),
+    parserPriority: _resolveWorkSupplyParserPriority(aliased),
+    intelligence: _resolveWorkSupplyItemIntelligence(aliased),
+  );
 }

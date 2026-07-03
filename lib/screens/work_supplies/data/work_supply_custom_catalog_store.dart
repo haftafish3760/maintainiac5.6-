@@ -50,9 +50,10 @@ class WorkSupplyCustomCatalogStore {
   }
 
   Future<void> saveItem(WorkSupplyItem item) async {
-    final id = item.id.trim().isEmpty
+    final trimmedId = item.id.trim();
+    final id = trimmedId.isEmpty
         ? 'USER-${DateTime.now().microsecondsSinceEpoch}'
-        : item.id;
+        : trimmedId;
     final saved = WorkSupplyItem(
       id: id,
       name: item.name.trim(),

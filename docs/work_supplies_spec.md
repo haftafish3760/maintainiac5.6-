@@ -4,9 +4,65 @@
 
 Work Supplies is a lightweight supply, inventory, receipt, and cost-reference app for people who work from a vehicle or small shop. It helps a user record what they bought, what it cost, where it belongs, and how that cost can later support estimates, invoices, and job records.
 
-This is not a warehouse inventory system and not a big-box-store catalog. The app should cover common supplies that a person keeps in a work vehicle, at a small shop, or across all company vehicles, then let the user add anything missing.
+This is not only a record-keeping app and not only a small receipt helper. The long-term product is a contractor workstation: inventory, materials parsing, estimates, accepted jobs, invoices, calendar planning, route planning, fleet inventory, employee permissions, customer records, and eventually a customer-facing contractor marketplace/profile ecosystem.
+
+This is not meant to become a blind copy of a big-box-store catalog. The app should cover common supplies that a person keeps in a work vehicle, at a small shop, or across all company vehicles, then let the user add anything missing. The catalog must be practical for real service work first, especially residential and light-industrial contractors.
 
 Work Supplies is still a real inventory system. It must help users find an item, add that item to their own inventory, track what they paid, track how many they have, and reuse that information later for invoices, estimates, job records, receipt parsing, barcode lookup, and cost history.
+
+The full inventory-to-estimate-to-job lifecycle is defined in `docs/inventory_estimate_job_lifecycle_spec.md`. Parser and catalog work must stay compatible with that lifecycle even when the estimate, invoice, job, camera, and OCR systems are implemented elsewhere.
+
+## Long-Term Product Vision
+
+Mainteniac should eventually feel like enterprise-grade contractor technology that solo operators, small companies, and growing fleets can afford.
+
+The contractor side should support:
+
+- Solo owner/operator workflows for one person and one vehicle.
+- Small company workflows for several vehicles and employees.
+- Fleet workflows for many vehicles, company stock, assigned employees, permissions, jobs, and manager/owner visibility.
+- A growth path where a user can start with one person and one truck, add a helper, add employee hour tracking, add a second truck, assign a technician/helper team, and eventually manage vehicles, employees, permissions, inventory, jobs, and schedules across the company.
+- Customer records, addresses, job history, estimates, invoices, signed approvals, payments, job profitability, and tax/export records.
+- Daily planning with a calendar, route optimizer, scheduled jobs, active jobs, vehicle assignments, and material readiness.
+- Inventory-aware estimating so a user can build estimates from stocked items, receipt-backed purchases, catalog intelligence, and saved cost history.
+- Receipt-to-job workflows where a store receipt can add materials to inventory, an active job, an estimate draft, a change order, or an invoice proof path.
+
+The app must grow with the business instead of forcing the user to switch systems later. A one-truck operator should see simple tools. A small company should unlock employee, helper, vehicle, and permission tools. A larger fleet should be able to manage company stock, vehicle stock, assignments, routes, reports, and role-based access without replacing the app.
+
+The future customer-facing side should support:
+
+- A contractor profile visible to customers when that marketplace feature is approved.
+- Customer-facing contractor details such as service area, trade specialties, photos, videos, previous work examples, contact options, and trust/profile information.
+- A way for customers to find contractors for small jobs, service work, odd jobs, and full projects.
+
+Customer-facing marketplace work is not part of the first release. First release priority is a reliable contractor-side foundation.
+
+## Release Priority
+
+Release one must focus on contractor-side correctness before marketplace expansion.
+
+Highest priority:
+
+- Residential service work.
+- United States English parser/catalog behavior.
+- United States Spanish parser/catalog behavior after English is solid.
+- Core packs for service-truck workflows.
+- Inventory, receipt-line parsing, estimate/job handoff data contracts, and local-first operation.
+- Data contracts that do not block later employee hours, helper workflows, permissions, vehicle assignment, GPS routing, and fleet mode.
+
+Next priority:
+
+- Standard, Professional, and Complete packs for residential.
+- Light-industrial packs where they overlap practical service work.
+- Canada English and Canada French parsing support.
+- Hosted pack delivery through Firebase/Cloud Storage without expensive per-item Firestore reads.
+
+Later priority:
+
+- Commercial depth.
+- More countries and languages.
+- Customer-facing contractor profiles and marketplace discovery.
+- Advanced fleet management and route optimization UI.
 
 ## Product Rules
 
@@ -26,6 +82,9 @@ Work Supplies is still a real inventory system. It must help users find an item,
 - The first time a user opens Work Supplies, show a short intro explaining that inventory displays saved stock and trade packs only assist search, receipt review, and add-item suggestions.
 - Trade packs are user-selected local data sets, not a visible UI catalog. The UI adapts to saved inventory records and pack words/paths only when that flow needs them.
 - Work Supplies settings must let the user add, enable, disable, hide, and eventually delete trade packs from the device. Deleting a trade pack must not delete the user's saved inventory, receipt, barcode, cost, or transaction records.
+- Trade packs must support both local download and future cloud-assisted parsing. Local packs are fastest and best for offline use. Cloud-assisted parsing can support users with limited device storage, but it must be opt-in, clearly explained, subscription-aware if needed, and designed to avoid runaway reads/writes.
+- If a device does not have enough free space for a selected pack, the app must warn the user before download, offer smaller packs where possible, and offer cloud-assisted mode when available.
+- The app must detect device capability/class where practical and avoid pushing old phones as hard as newer phones. A Galaxy S9-class device should not be treated like a Galaxy S24/S25 Ultra-class device.
 - Search may exist as a supporting tool, but it must not force a deep category browse before entry.
 - A user must always be able to add a receipt line even if the item is not in the preload catalog.
 - Browse/search only identifies the item. Packaging, quantity, barcode, receipt, and cost details belong in the add-item form after the item is selected.
@@ -63,6 +122,8 @@ Receipt entry must support both same-destination and per-item assignment.
 - The add-items screen should use one unified intake flow. Receipt proof is optional inside that flow: if the user has a receipt, they attach it; if not, they still record the inventory lines. Receipt assistance is a preference configured during onboarding and in Work Supplies settings, not a separate action button shown every time.
 - The date selected for a receipt must become the inventory record date and must show on the Inventory home calendar. Inventory calendar data should be designed so the dashboard/jobs calendar can later read the same receipt/job/inventory events instead of rebuilding a separate calendar truth.
 - User-facing wording should call it assisted receipt entry or app assistance. Do not use OCR as the visible feature name because users care about faster entry and review, not the technical extraction method.
+- Camera, OCR, PDF, shared receipt capture, image prep, receipt stitching, and Expenses receipt capture are separate shared systems. Do not modify those systems while working on the Work Supplies parser/catalog unless the user explicitly reassigns that work.
+- Work Supplies parser/catalog work may define the text/line-item input it expects later, but it must not change how receipt images, PDFs, camera capture, OCR extraction, or expense receipt review are performed.
 - Per-item assignment is the safer default when the user has multiple vehicles because one store receipt can include supplies for several vehicles, company stock, or job staging.
 - In manual entry, the first receipt screen chooses the assignment method only. When per-item assignment is selected, the destination picker belongs inside the add-item line screen, not on the first receipt screen.
 - Same-destination assignment is a shortcut for receipts where every line belongs to one vehicle, company inventory, job staging location, or custom location.
@@ -117,6 +178,18 @@ Primary screen rules:
 
 Each supply item must carry enough metadata to drive the UI without guessing.
 
+The detailed catalog intelligence contract is in `docs/materials_catalog_intelligence_contract.md`. That document is the source of truth for residential/light-industrial/commercial scope tags, pack tier targets, smart item metadata, parser aliases, OCR mistake handling, negative match rules, confidence hints, classification output, and Command One diagnostics.
+
+Core pack definition:
+
+- Core is the service-truck pack, not merely the smallest pack.
+- Core should represent roughly the top quarter of catalog rows where practical, but the real product target is coverage: roughly 75-90% of what a normal residential service technician touches during ordinary day-to-day work.
+- For plumbing, Core means the common fittings, valves, pipe/tubing, supply lines, toilet/faucet repair parts, water-heater service parts, drain/finish service parts, supports, consumables, and fasteners a residential plumber or handyman would reasonably carry, buy often, or need to estimate common home/apartment work.
+- Core should stay compact enough for budget phones and limited data plans, but it must not be so skinny that a normal Lowe's/Home Depot/Ace/Ferguson receipt misses common residential items.
+- Standard, Professional, and Complete expand outward from Core. They should not be dumping grounds caused by bad tier logic.
+
+The catalog and parser must be UI-independent. Future changes to Work Supplies screens, cards, navigation, dashboard layout, or review UI must not require rewriting catalog identity, parser rules, pack tiers, aliases, or diagnostics. UI can consume parser results, but parser logic must not depend on widgets, routes, BuildContext, or current layout.
+
 The preload knowledge layer is not meant to become a full SKU catalog or a forced browse tree. Its main job is to recognize typed item language, receipt abbreviations, sizes, materials, and common trade names, then suggest classification. Users must still be able to type an item in plain language and save it when the app does not know the exact item.
 
 Cross-trade items must be treated carefully. A physical item such as a copper 90 can be valid for plumbing and HVAC refrigerant work. The app may suggest a likely classification from typed text and onboarding/work-profile context, but it must not silently force the item into the wrong trade when the same part can be used in multiple work contexts. User work profiles and selected trades should influence suggestions, not block correction.
@@ -125,11 +198,19 @@ The app should avoid shipping a massive all-trades SKU database locally. Local p
 
 Required item fields:
 
+- Item ID.
 - Display name.
 - Trade: Plumbing, Electrical, HVAC, Carpentry, Custom.
+- Market scope tags: residential, lightIndustrial, commercial.
+- Pack tier priority: core, standard, professional, complete.
 - Category path.
 - Synonyms and common names.
+- Receipt abbreviations and known store-counter shorthand.
+- Common misspellings and safe OCR mistake patterns.
 - Search keywords.
+- Attribute tokens for size, material, shape, connection, category, and package words.
+- Negative match hints for nearby item families.
+- Confidence scoring hints.
 - Normal purchase style.
 - Allowed units.
 - Required receipt fields.
@@ -139,6 +220,8 @@ Required item fields:
 - Store-specific receipt aliases or abbreviations when known.
 - Whether the item can be stocked.
 - Whether cost per unit, cost per foot, or cost per package matters.
+- Classification output for inventory, expense, job material, tax/reporting, billable status, and estimate/invoice defaults.
+- Catalog version, source confidence, manual verification flag, generated flag, and needs-review flag.
 
 Examples:
 
@@ -210,6 +293,20 @@ Required local identity behavior:
 - Keep this data local-first in Hive and exportable later with the rest of the user's records.
 
 Identity aliases are not global claims about UPC ownership or retailer catalog data. They are user-controlled pointers that help this user's inventory find the right item again.
+
+## Parser Correction Feedback
+
+User corrections are valuable parser evidence, but they must not silently mutate official catalog packs.
+
+Required correction behavior:
+
+- A corrected parser line may create a local correction record tied to the user, item ID, parser version, pack version, merchant bucket when known, trade context, and review outcome.
+- Corrections may propose a new alias, negative-match rule, merchant abbreviation, fixture case, confidence adjustment, or category-routing hint.
+- Corrections must preserve privacy-safe evidence only. Do not store raw receipt text, receipt photos, card numbers, customer names, job addresses, employee private data, exact location, or exact device identifiers in parser feedback visible to the owner/admin.
+- Local correction memory can improve that user's future suggestions after explicit review, but official packs require a manual promotion gate before any correction becomes shared catalog intelligence.
+- Community or hosted correction sharing must be opt-in, abuse-protected, reviewable, versioned, and removable by the contributor where practical.
+- A proposed correction must be regression-tested before promotion so it does not break existing aliases, dangerous-word ambiguity rules, cross-trade separation, or known merchant fixtures.
+- Rejected corrections must remain isolated from official packs and should be tracked only as privacy-safe diagnostic counts.
 
 ## Add Item Form
 

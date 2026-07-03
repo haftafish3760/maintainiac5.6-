@@ -106,7 +106,7 @@ class ExpenseMaterialsReceiptBridge {
         line.parserNeedsReview) {
       return WorkSupplyLineReviewStatus.needsReview;
     }
-    return WorkSupplyLineReviewStatus.confirmed;
+    return WorkSupplyLineReviewStatus.highConfidenceReview;
   }
 
   double _confidenceForLine(ExpenseReceiptLineRecord line) {

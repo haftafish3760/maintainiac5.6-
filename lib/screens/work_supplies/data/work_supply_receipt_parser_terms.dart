@@ -2,12 +2,24 @@ part of 'work_supply_receipt_parser.dart';
 
 const receiptMerchantAliases = {
   'lowes': ['lowe s', 'lowe\'s', 'lowes', 'lowe'],
-  'home depot': ['home depot', 'the home depot', 'homedepot', 'h depot'],
+  'home depot': ['home depot', 'the home depot', 'homedepot', 'h depot', 'hd'],
+  'home depot pro': ['hd supply', 'home depot pro', 'hdsupply', 'hd pro'],
   'harbor freight': ['harbor freight', 'h freight', 'hft'],
-  'ferguson': ['ferguson', 'ferguson plumbing', 'ferguson supply'],
-  'ace hardware': ['ace', 'ace hardware'],
-  'menards': ['menards'],
-  'grainger': ['grainger'],
+  'ferguson': ['ferguson', 'ferg', 'ferguson plumbing', 'ferguson supply'],
+  'ace hardware': ['ace', 'ace hardware', 'ace hdwe'],
+  'true value': ['true value', 'truevalue', 'true value hardware'],
+  'menards': ['menards', 'menard'],
+  'grainger': ['grainger', 'ww grainger', 'w w grainger'],
+  'tractor supply': ['tractor supply', 'tractor supply co', 'tsc'],
+  'walmart': ['walmart', 'wal mart'],
+  'do it best': ['do it best', 'doitbest', 'do it best hardware'],
+  'mccoys': ['mccoys', 'mc coy', 'mccoy building supply'],
+  'supplyhouse': ['supplyhouse', 'supply house', 'supplyhouse com'],
+  'winsupply': ['winsupply', 'win supply', 'winwater', 'winsupply plumbing'],
+  'hajoca': ['hajoca', 'hughes supply', 'hajoca plumbing'],
+  'reece': ['reece', 'reece plumbing', 'morsco', 'morrison supply'],
+  'fw webb': ['fw webb', 'f w webb', 'webb supply'],
+  'core and main': ['core and main', 'core main', 'coremain'],
   'amazon': ['amazon', 'amzn'],
 };
 
@@ -23,85 +35,8 @@ const receiptTermAliases = {
   '50 ft': ['50 ft', '50 foot', '50ft'],
   '100 ft': ['100 ft', '100 foot', '100ft'],
   '300 ft': ['300 ft', '300 foot', '300ft'],
-  '90 elbow': ['90', '90d', 'el', 'ell', 'elbow'],
-  '45 elbow': ['45', '45d', 'forty five', 'forty-five'],
-  'tee': ['tee', 't fitting', 't'],
-  'coupling': ['cplg', 'coup', 'coupler', 'coupling'],
-  'reducing coupling': ['red coup', 'red cplg', 'reducer coupling'],
-  'reducer': ['red', 'reducer'],
-  'bushing': ['bush', 'bushing'],
-  'street': ['street', 'st 90', 'st ell'],
-  'wye': ['wye', 'y fitting', 'why fitting'],
-  'sanitary tee': ['san tee', 'sanitary t', 'sanitary tee'],
-  'trap adapter': ['trap adapter', 'marvel adapter'],
-  'copper': ['cop', 'cpr', 'cu', 'sweat', 'copper', 'c x c', 'cxc'],
-  'copper pipe': [
-    'copper pipe',
-    'hard copper',
-    'type l copper',
-    'type m copper',
-  ],
-  'soft copper tubing': ['soft copper', 'copper roll', 'refrig copper'],
-  'pvc schedule 40': [
-    'sch40',
-    'sch 40',
-    's40',
-    'sched 40',
-    'schedule 40',
-    's x s',
-    'sxs',
-  ],
-  'pvc schedule 40 pipe': ['pvc pipe', 'pvc stick', 'pressure pipe'],
-  'pvc dwv': ['dwv', 'drain waste vent'],
-  'pvc dwv pipe': ['dwv pipe', 'drain pipe', 'sewer pipe'],
-  'cpvc': ['cpvc', 'cpv'],
-  'cpvc pipe': ['cpvc pipe', 'cpvc stick'],
-  'pex': ['pex', 'crimp'],
-  'pex tubing': ['pex tubing', 'pex pipe', 'pex roll'],
-  'black iron': ['black iron', 'blk iron', 'black pipe', 'blk pipe', 'bi'],
-  'galvanized': ['galv', 'galvanized', 'galv steel', 'galv stl'],
-  'cast iron': ['cast iron', 'ci'],
-  'no-hub': ['no hub', 'no-hub', 'nh'],
-  'brass': ['brass', 'brs'],
-  'compression': ['compression', 'comp'],
-  'flare': ['flare', 'flr'],
-  'barbed': ['barbed', 'barb', 'hose barb'],
-  'compression gasket': ['compression gasket', 'service weight gasket'],
-  'push-fit': ['push fit', 'push-to-connect', 'push connect'],
-  'male adapter': [
-    'male adapter',
-    'mip adapter',
-    'mpt adapter',
-    'male adapt',
-    'sxm',
-    's x m',
-    'slip male',
-  ],
-  'female adapter': [
-    'female adapter',
-    'fip adapter',
-    'fpt adapter',
-    'female adapt',
-    'sxf',
-    's x f',
-    'slip female',
-  ],
-  'slip joint': ['slip joint', 's/j', 'sj'],
-  'union': ['union'],
-  'nipple': ['nipple', 'pipe nipple', 'npt nipple'],
-  'ball valve': ['ball valve'],
-  'angle stop': ['angle stop', 'angle valve', 'shutoff'],
-  'sillcock': ['sillcock', 'hose bibb', 'hose bib', 'frost free'],
-  'primer': [
-    'primer',
-    'purple primer',
-    'paint primer',
-    'stain blocker',
-    'bonding primer',
-  ],
-  'cement': ['cement', 'glue'],
-  'crimp ring': ['crimp ring', 'pex ring'],
-  'clamp ring': ['clamp ring', 'cinch ring'],
+  ...plumbingReceiptTermAliases,
+  ...fastenerReceiptTermAliases,
   'nm-b cable': ['nm-b', 'nmb', 'nm b', 'romex', 'house wire'],
   'thhn wire': ['thhn', 'building wire'],
   'with ground': ['with ground', 'w ground', 'wg'],
@@ -194,7 +129,13 @@ const receiptTermAliases = {
   'circulator pump': ['circulator pump', 'circ pump', 'boiler pump'],
   'zone valve': ['zone valve', 'zone valve head', 'zone valve motor'],
   'aquastat': ['aquastat', 'boiler aquastat'],
-  'expansion tank': ['expansion tank', 'boiler expansion tank'],
+  'expansion tank': [
+    'expansion tank',
+    'boiler expansion tank',
+    'exp tank',
+    'thermal expansion tank',
+    'thermal exp tank',
+  ],
   'air vent': ['air vent', 'automatic air vent', 'coin vent'],
   'baseboard heat': ['baseboard heat', 'baseboard element', 'baseboard cover'],
   'radiant manifold': ['radiant manifold', 'radiant heat manifold'],
@@ -662,7 +603,7 @@ const receiptTermAliases = {
   'rebar': ['rebar', 'reinforcing bar'],
   'wire mesh': ['wire mesh', 'remesh', 'remesh sheet', 'remesh roll'],
   'concrete form': ['form board', 'form lumber', 'form stake', 'sonotube'],
-  'wedge anchor': ['wedge anchor', 'concrete anchor'],
+  'wedge anchor': ['wedge anchor', 'wedge anchors', 'concrete anchor'],
   'tapcon': ['tapcon', 'concrete screw anchor', 'masonry screw'],
   'concrete patch': [
     'concrete patch',
@@ -701,6 +642,9 @@ const receiptTermAliases = {
   'irrigation valve': ['irrigation valve', 'anti-siphon valve', 'solenoid'],
   'corrugated drain pipe': [
     'corrugated drain pipe',
+    'corrugated drain',
+    'corr drain',
+    'flex drain',
     'french drain pipe',
     'ez drain',
   ],
@@ -931,7 +875,21 @@ const receiptTermAliases = {
 String _normalize(String value) {
   return value
       .toLowerCase()
+      .replaceAll('á', 'a')
+      .replaceAll('é', 'e')
+      .replaceAll('í', 'i')
+      .replaceAll('ó', 'o')
+      .replaceAll('ú', 'u')
+      .replaceAll('ü', 'u')
+      .replaceAll('ñ', 'n')
       .replaceAll(RegExp(r'(?<=[a-z])0(?=[a-z])'), 'o')
+      .replaceAll(RegExp(r'\bi\s*/\s*2\b'), '1/2')
+      .replaceAll(RegExp(r'\bi\s*/\s*4\b'), '1/4')
+      .replaceAll(RegExp(r'\bpyc\b'), 'pvc')
+      .replaceAll(RegExp(r'\bcpyg\b'), 'cpvc')
+      .replaceAll(RegExp(r'\bcpv\s*g\b'), 'cpvc')
+      .replaceAll(RegExp(r'\be1b\b'), 'elb')
+      .replaceAll(RegExp(r'\be18\b'), 'elb')
       .replaceAll(RegExp(r'(?<=\d)"'), ' in')
       .replaceAll(RegExp(r'(?<=\d)x(?=\d)'), ' x ')
       .replaceAll(RegExp(r'(?<=\d)\s*/\s*(?=\d)'), '/')
@@ -981,8 +939,13 @@ String _normalize(String value) {
       .trim();
 }
 
-String _expandAliases(String value) {
+String _expandAliases(String value, {String localePackId = ''}) {
   var expanded = value;
+  for (final entry in _localeReceiptTermAliases(localePackId).entries) {
+    if (entry.value.any((alias) => _containsAlias(value, alias))) {
+      expanded = '$expanded ${entry.key}';
+    }
+  }
   for (final entry in receiptTermAliases.entries) {
     if (entry.value.any((alias) => _containsAlias(value, alias))) {
       expanded = '$expanded ${entry.key}';

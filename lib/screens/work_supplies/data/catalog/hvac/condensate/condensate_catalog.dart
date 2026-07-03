@@ -12,6 +12,15 @@ final hvacCondensateCategory = _category('Condensate', [
       ),
     ),
     _type(
+      'Condensate Fittings',
+      _variants(
+        'Condensate PVC Coupling',
+        'each',
+        ['3/4 in', '1 in'],
+        ['condensate coupling', 'pvc drain coupling', 'pvc drain cplg'],
+      ),
+    ),
+    _type(
       'Condensate Pumps',
       _variants('Condensate Pump', 'each', ['115V', '230V'], ['little pump']),
     ),

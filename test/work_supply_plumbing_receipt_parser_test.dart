@@ -66,7 +66,7 @@ void main() {
 
     final trapAdapter = matchReceiptLineToCatalog('1-1/2 MARVEL ADAPTER PVC');
     expect(trapAdapter, isNotNull);
-    expect(trapAdapter!.item.name.toLowerCase(), contains('trap adapter'));
+    expect(trapAdapter!.item.name.toLowerCase(), contains('marvel adapter'));
     expect(trapAdapter.item.trade, 'Plumbing');
   });
 
@@ -361,4 +361,132 @@ void main() {
       expect(gasTape!.item.name.toLowerCase(), contains('ptfe tape'));
     },
   );
+
+  test('plumbing parser handles additional receipt shorthand neighbors', () {
+    final desanco = matchReceiptLineToCatalog(
+      '1-1/2 DESANCO TRAP ADPT',
+      tradeScope: 'Plumbing',
+      maxCandidates: 220,
+    );
+    expect(desanco, isNotNull);
+    expect(desanco!.item.name.toLowerCase(), contains('desanco'));
+
+    final disposalSplash = matchReceiptLineToCatalog(
+      'GARB DISP SPLASH GUARD RUBBER',
+      tradeScope: 'Plumbing',
+      maxCandidates: 220,
+    );
+    expect(disposalSplash, isNotNull);
+    expect(disposalSplash!.item.name.toLowerCase(), contains('splash guard'));
+
+    final cleanoutPlug = matchReceiptLineToCatalog(
+      '2IN BRASS CO PLUG COUNTERSUNK',
+      tradeScope: 'Plumbing',
+      maxCandidates: 220,
+    );
+    expect(cleanoutPlug, isNotNull);
+    expect(cleanoutPlug!.item.name.toLowerCase(), contains('cleanout plug'));
+
+    final closetBolt = matchReceiptLineToCatalog(
+      'EX LONG JOHNNY BOLTS CLOSET BOLT SET',
+      tradeScope: 'Plumbing',
+      maxCandidates: 220,
+    );
+    expect(closetBolt, isNotNull);
+    expect(closetBolt!.item.name, contains('Closet Bolt'));
+
+    final expansionTank = matchReceiptLineToCatalog(
+      '2 GAL THERMAL EXP TANK WATER HEATER',
+      tradeScope: 'Plumbing',
+      maxCandidates: 220,
+    );
+    expect(expansionTank, isNotNull);
+    expect(expansionTank!.item.name.toLowerCase(), contains('expansion tank'));
+
+    final vacuumRelief = matchReceiptLineToCatalog(
+      '3/4 VAC RELIEF VALVE WH',
+      tradeScope: 'Plumbing',
+      maxCandidates: 220,
+    );
+    expect(vacuumRelief, isNotNull);
+    expect(vacuumRelief!.item.name.toLowerCase(), contains('vacuum relief'));
+  });
+
+  test('plumbing parser resists common neighbor collisions', () {
+    final pushStop = matchReceiptLineToCatalog(
+      '1/2 X 3/8 PUSH FIT SUPPLY STOP',
+      tradeScope: 'Plumbing',
+      maxCandidates: 240,
+    );
+    expect(pushStop, isNotNull);
+    expect(pushStop!.item.name, '1/2 x 3/8 Push-Fit Supply Stop');
+    expect(pushStop.confidenceLevel, ReceiptConfidenceLevel.good);
+
+    final slipNut = matchReceiptLineToCatalog(
+      '1-1/2 CHROME SLIP NUT SJ',
+      tradeScope: 'Plumbing',
+      maxCandidates: 240,
+    );
+    expect(slipNut, isNotNull);
+    expect(slipNut!.item.name.toLowerCase(), contains('slip nut'));
+    expect(slipNut.item.name.toLowerCase(), isNot(contains('adapter')));
+    expect(slipNut.confidenceLevel, ReceiptConfidenceLevel.good);
+
+    final cleanoutCover = matchReceiptLineToCatalog(
+      '4 IN SQUARE CLEANOUT ACCESS COVER',
+      tradeScope: 'Plumbing',
+      maxCandidates: 240,
+    );
+    expect(cleanoutCover, isNotNull);
+    expect(cleanoutCover!.item.name.toLowerCase(), contains('cleanout'));
+    expect(cleanoutCover.item.name.toLowerCase(), contains('cover'));
+    expect(cleanoutCover.confidenceLevel, ReceiptConfidenceLevel.good);
+
+    final tubShoe = matchReceiptLineToCatalog(
+      '1-1/2 TUB DRAIN SHOE',
+      tradeScope: 'Plumbing',
+      maxCandidates: 240,
+    );
+    expect(tubShoe, isNotNull);
+    expect(tubShoe!.item.name.toLowerCase(), contains('tub drain shoe'));
+    expect(tubShoe.confidenceLevel, ReceiptConfidenceLevel.good);
+
+    final closeNipple = matchReceiptLineToCatalog(
+      '1 X CLOSE GALV NIPPLE',
+      tradeScope: 'Plumbing',
+      maxCandidates: 240,
+    );
+    expect(closeNipple, isNotNull);
+    expect(closeNipple!.item.name, '1 x Close Galvanized Nipple');
+    expect(closeNipple.confidenceLevel, ReceiptConfidenceLevel.good);
+  });
+
+  test('plumbing parser understands ABS DWV receipt wording', () {
+    final absSanTee = matchReceiptLineToCatalog(
+      'ABS DWV 3IN SAN TEE BLACK DRAIN',
+      tradeScope: 'Plumbing',
+      maxCandidates: 260,
+    );
+    expect(absSanTee, isNotNull);
+    expect(absSanTee!.item.name, '3 in ABS DWV Sanitary Tee');
+    expect(absSanTee.confidenceLevel, ReceiptConfidenceLevel.good);
+
+    final absWye = matchReceiptLineToCatalog(
+      '2IN ABS WYE FITTING',
+      tradeScope: 'Plumbing',
+      maxCandidates: 260,
+    );
+    expect(absWye, isNotNull);
+    expect(absWye!.item.name, '2 in ABS DWV Wye');
+    expect(absWye.confidenceLevel, ReceiptConfidenceLevel.good);
+
+    final absTrapAdapter = matchReceiptLineToCatalog(
+      '1-1/2 BLACK TRAP ADAPTER ABS',
+      tradeScope: 'Plumbing',
+      maxCandidates: 260,
+    );
+    expect(absTrapAdapter, isNotNull);
+    expect(absTrapAdapter!.item.name, '1-1/2 in ABS DWV Trap Adapter');
+    expect(absTrapAdapter.confidenceLevel, ReceiptConfidenceLevel.good);
+  });
 }

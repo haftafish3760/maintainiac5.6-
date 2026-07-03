@@ -8,7 +8,18 @@ enum WorkSupplyInventoryIntakeSource {
   pdfImport,
 }
 
-enum WorkSupplyLineReviewStatus { confirmed, needsReview }
+enum WorkSupplyLineReviewStatus {
+  needsReview,
+  highConfidenceReview,
+  unknownItem,
+  multiplePossibleMatches,
+  possibleDuplicate,
+  possibleReturnLine,
+  possibleDiscountLine,
+  possibleReceiptNoise,
+  notInventory,
+  parserError,
+}
 
 enum WorkSupplyInvoiceProofMode { hidden, lineOnly, fullReceipt }
 
@@ -106,7 +117,7 @@ class WorkSupplyInventoryReceiptLine {
     this.businessUse = 'business',
     this.businessPercent = 1,
     this.confidence = 1,
-    this.reviewStatus = WorkSupplyLineReviewStatus.confirmed,
+    this.reviewStatus = WorkSupplyLineReviewStatus.highConfidenceReview,
     this.invoiceProofMode = WorkSupplyInvoiceProofMode.hidden,
     this.invoiceProofCrop,
     this.note = '',
@@ -155,9 +166,7 @@ class WorkSupplyInventoryReceiptLine {
       receiptConfidenceLevelFor(confidence);
   String get confidenceLabel => receiptConfidenceLabel(confidenceLevel);
   String get confidenceGuidance => receiptConfidenceGuidance(confidenceLevel);
-  bool get needsReview =>
-      reviewStatus == WorkSupplyLineReviewStatus.needsReview ||
-      confidenceLevel != ReceiptConfidenceLevel.good;
+  bool get needsReview => true;
   bool get wasCorrectedFromParser => reviewAction == 'edited';
 
   WorkSupplyInventoryReceiptLine copyWith({

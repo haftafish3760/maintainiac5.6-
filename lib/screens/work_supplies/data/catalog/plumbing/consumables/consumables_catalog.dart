@@ -8,7 +8,7 @@ final plumbingConsumablesCategory = _category('Consumables', [
         'Pipe Joint Compound',
         'tube',
         ['4 oz', '8 oz', '16 oz'],
-        ['pipe dope', 'thread paste'],
+        ['pipe dope', 'thread paste', 'thread sealant'],
       ),
     ),
     _type(

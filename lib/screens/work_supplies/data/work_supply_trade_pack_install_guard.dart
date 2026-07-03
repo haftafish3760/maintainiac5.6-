@@ -17,11 +17,13 @@ class WorkSupplyTradePackInstallCheck {
     required this.status,
     required this.requiredFreeBytes,
     required this.message,
+    this.availableBytes,
   });
 
   final WorkSupplyTradePackInstallStatus status;
   final int requiredFreeBytes;
   final String message;
+  final int? availableBytes;
 
   bool get canInstall =>
       status == WorkSupplyTradePackInstallStatus.ready ||
@@ -34,19 +36,24 @@ WorkSupplyTradePackInstallCheck checkWorkSupplyTradePackInstall({
   required bool isMeteredNetwork,
   required WorkSupplyParserDeviceProfile deviceProfile,
 }) {
-  final requiredBytes = _requiredFreeBytes(option.estimatedCompressedBytes);
+  final requiredBytes = _requiredFreeBytes(
+    compressedBytes: option.estimatedCompressedBytes,
+    uncompressedBytes: option.estimatedUncompressedBytes,
+  );
   if (availableStorageBytes == null) {
     return WorkSupplyTradePackInstallCheck(
       status: WorkSupplyTradePackInstallStatus.storageUnknown,
       requiredFreeBytes: requiredBytes,
+      availableBytes: availableStorageBytes,
       message:
-          'Free storage could not be verified. Needs about ${workSupplyByteSizeLabel(requiredBytes)} free before downloading safely.',
+          'Free storage could not be verified. Needs about ${workSupplyByteSizeLabel(requiredBytes)} free before downloading and unpacking safely.',
     );
   }
   if (availableStorageBytes < requiredBytes) {
     return WorkSupplyTradePackInstallCheck(
       status: WorkSupplyTradePackInstallStatus.notEnoughStorage,
       requiredFreeBytes: requiredBytes,
+      availableBytes: availableStorageBytes,
       message:
           'Needs about ${workSupplyByteSizeLabel(requiredBytes)} free so the pack can download, unpack, and recover safely.',
     );
@@ -55,6 +62,7 @@ WorkSupplyTradePackInstallCheck checkWorkSupplyTradePackInstall({
     return WorkSupplyTradePackInstallCheck(
       status: WorkSupplyTradePackInstallStatus.deviceTooLight,
       requiredFreeBytes: requiredBytes,
+      availableBytes: availableStorageBytes,
       message:
           'This device should use a smaller pack so receipt matching stays responsive.',
     );
@@ -63,13 +71,15 @@ WorkSupplyTradePackInstallCheck checkWorkSupplyTradePackInstall({
     return WorkSupplyTradePackInstallCheck(
       status: WorkSupplyTradePackInstallStatus.wifiRecommended,
       requiredFreeBytes: requiredBytes,
+      availableBytes: availableStorageBytes,
       message:
-          'This pack may use ${option.estimatedSizeLabel}. Wi-Fi is recommended before downloading.',
+          'This pack downloads about ${option.estimatedDownloadSizeLabel} and uses about ${option.estimatedOnDeviceSizeLabel} on-device. Wi-Fi is recommended before downloading.',
     );
   }
   return WorkSupplyTradePackInstallCheck(
     status: WorkSupplyTradePackInstallStatus.ready,
     requiredFreeBytes: requiredBytes,
+    availableBytes: availableStorageBytes,
     message: 'Ready to install with bundled chunks and no per-item reads.',
   );
 }
@@ -81,11 +91,16 @@ String workSupplyByteSizeLabel(int bytes) {
   return '${(kib / 1024).toStringAsFixed(1)} MB';
 }
 
-int _requiredFreeBytes(int compressedBytes) {
+int _requiredFreeBytes({
+  required int compressedBytes,
+  required int uncompressedBytes,
+}) {
   final buffered = compressedBytes * workSupplyTradePackStorageSafetyMultiplier;
-  return buffered < workSupplyTradePackMinimumSafetyBytes
+  final unpackedBuffer = uncompressedBytes + compressedBytes;
+  final withUnpackRoom = buffered > unpackedBuffer ? buffered : unpackedBuffer;
+  return withUnpackRoom < workSupplyTradePackMinimumSafetyBytes
       ? workSupplyTradePackMinimumSafetyBytes
-      : buffered;
+      : withUnpackRoom;
 }
 
 bool _deviceShouldAvoidPack(

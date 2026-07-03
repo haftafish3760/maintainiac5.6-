@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 
 import 'work_supply_catalog_audit.dart';
 import 'work_supply_catalog_pack_payload.dart';
 import 'work_supply_models.dart';
+import 'work_supply_trade_pack_delivery_policy.dart';
 import 'work_supply_trade_pack_tiers.dart';
 
 const workSupplyTradePackTargetChunkItemCount = 500;
@@ -16,12 +18,16 @@ class WorkSupplyTradePackManifest {
     required this.packVersion,
     required this.generatedAtIso,
     required this.tradeName,
+    required this.marketScope,
     required this.tier,
+    required this.localePackId,
+    required this.countryCodes,
     required this.displayName,
     required this.itemCount,
     required this.chunkCount,
     required this.firestoreManifestReadCount,
     required this.firestoreItemDocumentReadCount,
+    required this.estimatedUncompressedBytes,
     required this.estimatedCompressedBytes,
     required this.chunks,
   });
@@ -31,12 +37,16 @@ class WorkSupplyTradePackManifest {
   final String packVersion;
   final String generatedAtIso;
   final String tradeName;
+  final WorkSupplyMarketScope? marketScope;
   final WorkSupplyTradePackTier tier;
+  final String localePackId;
+  final List<String> countryCodes;
   final String displayName;
   final int itemCount;
   final int chunkCount;
   final int firestoreManifestReadCount;
   final int firestoreItemDocumentReadCount;
+  final int estimatedUncompressedBytes;
   final int estimatedCompressedBytes;
   final List<WorkSupplyTradePackChunkManifest> chunks;
 
@@ -50,14 +60,20 @@ class WorkSupplyTradePackManifest {
       'packVersion': packVersion,
       'generatedAtIso': generatedAtIso,
       'tradeName': tradeName,
+      'marketScope': marketScope?.name,
+      'marketScopeLabel': marketScope?.label,
       'tier': tier.id,
+      'localePackId': localePackId,
+      'countryCodes': countryCodes,
       'displayName': displayName,
       'itemCount': itemCount,
       'chunkCount': chunkCount,
       'firestoreManifestReadCount': firestoreManifestReadCount,
       'firestoreItemDocumentReadCount': firestoreItemDocumentReadCount,
+      'estimatedUncompressedBytes': estimatedUncompressedBytes,
       'estimatedCompressedBytes': estimatedCompressedBytes,
       'deliveryMode': 'trade_pack_manifest_storage_chunks',
+      'deliveryPolicy': workSupplyTradePackDeliveryPolicy.toMap(),
       'chunks': [for (final chunk in chunks) chunk.toMap()],
     };
   }
@@ -118,7 +134,10 @@ WorkSupplyTradePackManifest buildWorkSupplyTradePackManifest(
     packVersion: workSupplyCatalogPackVersion,
     generatedAtIso: (generatedAt ?? DateTime.now().toUtc()).toIso8601String(),
     tradeName: option.tradeName,
+    marketScope: option.marketScope,
     tier: option.tier,
+    localePackId: option.localePackId,
+    countryCodes: option.countryCodes,
     displayName: option.displayName,
     itemCount: payloads.fold(
       0,
@@ -127,6 +146,10 @@ WorkSupplyTradePackManifest buildWorkSupplyTradePackManifest(
     chunkCount: payloads.length,
     firestoreManifestReadCount: 1,
     firestoreItemDocumentReadCount: 0,
+    estimatedUncompressedBytes: payloads.fold(
+      0,
+      (sum, payload) => sum + payload.manifest.uncompressedByteSize,
+    ),
     estimatedCompressedBytes: payloads.fold(
       0,
       (sum, payload) => sum + payload.manifest.estimatedCompressedByteSize,
@@ -140,7 +163,11 @@ WorkSupplyTradePackManifest buildWorkSupplyTradePackManifest(
 List<WorkSupplyTradePackChunkPayload> buildWorkSupplyTradePackChunkPayloads(
   WorkSupplyTradePackOption option,
 ) {
-  final items = buildWorkSupplyTradePackItems(option.tradeName, option.tier);
+  final items = buildWorkSupplyTradePackItems(
+    option.tradeName,
+    option.tier,
+    marketScope: option.marketScope,
+  );
   final payloads = <WorkSupplyTradePackChunkPayload>[];
   for (
     var start = 0;
@@ -165,18 +192,25 @@ WorkSupplyTradePackChunkPayload _chunkPayloadFor(
 ) {
   final payload = _chunkPayloadMap(option, items);
   final encoded = utf8.encode(jsonEncode(payload));
+  final gzippedLength = gzip.encode(encoded).length;
   final tradeKey = workSupplyTradePackTradeKey(option.tradeName);
+  final scopePath = option.marketScope == null
+      ? ''
+      : '/${option.marketScope!.id}';
+  final scopeId = option.marketScope == null
+      ? ''
+      : '_${option.marketScope!.id}';
   final chunkId =
-      '${tradeKey}_${option.tier.id}_${chunkNumber.toString().padLeft(3, '0')}';
+      '$tradeKey${scopeId}_${option.tier.id}_${chunkNumber.toString().padLeft(3, '0')}';
   return WorkSupplyTradePackChunkPayload(
     manifest: WorkSupplyTradePackChunkManifest(
       chunkId: chunkId,
       itemCount: items.length,
       storagePath:
-          '$workSupplyCatalogStoragePrefix/$tradeKey/${option.tier.id}/$chunkId.json.gz',
+          '$workSupplyCatalogStoragePrefix/$tradeKey$scopePath/${option.tier.id}/$chunkId.json.gz',
       contentEncoding: 'gzip',
       uncompressedByteSize: encoded.length,
-      estimatedCompressedByteSize: (encoded.length * .08).ceil(),
+      estimatedCompressedByteSize: gzippedLength,
       sha256: sha256.convert(encoded).toString(),
     ),
     jsonBytes: encoded,
@@ -192,7 +226,11 @@ Map<String, Object?> _chunkPayloadMap(
     'packId': _packIdFor(option),
     'packVersion': workSupplyCatalogPackVersion,
     'tradeName': option.tradeName,
+    'marketScope': option.marketScope?.name,
+    'marketScopeLabel': option.marketScope?.label,
     'tier': option.tier.id,
+    'localePackId': option.localePackId,
+    'countryCodes': option.countryCodes,
     'items': [
       for (final item in items)
         buildWorkSupplyCatalogPackItemPayload(item).toMap(),
@@ -201,6 +239,7 @@ Map<String, Object?> _chunkPayloadMap(
 }
 
 String _packIdFor(WorkSupplyTradePackOption option) {
+  final scope = option.marketScope == null ? '' : '.${option.marketScope!.id}';
   return 'maintainiac.work-supplies.'
-      '${workSupplyTradePackTradeKey(option.tradeName)}.${option.tier.id}';
+      '${workSupplyTradePackTradeKey(option.tradeName)}$scope.${option.tier.id}';
 }

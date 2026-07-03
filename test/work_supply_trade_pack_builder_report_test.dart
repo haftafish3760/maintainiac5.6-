@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_export_writer.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_import_validator.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_tiers.dart';
@@ -8,7 +9,10 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_tie
 void main() {
   test('exports requested trade packs', () async {
     final trade = Platform.environment['MAINTAINIAC_PACK_TRADE'] ?? 'Plumbing';
-    final tierId = Platform.environment['MAINTAINIAC_PACK_TIER'] ?? 'full';
+    final tierId = _tierAlias(
+      Platform.environment['MAINTAINIAC_PACK_TIER'] ?? 'complete',
+    );
+    final scope = _scopeFromEnvironment();
     final all = Platform.environment['MAINTAINIAC_PACK_ALL'] == 'true';
     final outPath = Platform.environment['MAINTAINIAC_PACK_OUT'];
     final outDir = outPath == null
@@ -20,9 +24,7 @@ void main() {
 
     final options = all
         ? buildAllWorkSupplyDownloadOptions()
-        : buildWorkSupplyTradePackOptions(
-            trade,
-          ).where((option) => option.tier.id == tierId);
+        : _optionsFor(trade, scope).where((option) => option.tier.id == tierId);
     expect(options, isNotEmpty);
 
     var totalBytes = 0;
@@ -58,6 +60,34 @@ void main() {
     // ignore: avoid_print
     print('OUTPUT_DIR=${outDir.path}');
   });
+}
+
+Iterable<WorkSupplyTradePackOption> _optionsFor(
+  String trade,
+  WorkSupplyMarketScope? scope,
+) {
+  if (scope == null) return buildWorkSupplyTradePackOptions(trade);
+  return buildWorkSupplyTradePackOptionsForScope(trade, marketScope: scope);
+}
+
+WorkSupplyMarketScope? _scopeFromEnvironment() {
+  final raw = Platform.environment['MAINTAINIAC_PACK_SCOPE'];
+  if (raw == null || raw.trim().isEmpty) return null;
+  final normalized = raw.trim().toLowerCase();
+  for (final scope in WorkSupplyMarketScope.values) {
+    if (scope.name.toLowerCase() == normalized || scope.id == normalized) {
+      return scope;
+    }
+  }
+  return null;
+}
+
+String _tierAlias(String tierId) {
+  return switch (tierId.trim().toLowerCase()) {
+    'full' => 'complete',
+    'expanded' => 'standard',
+    final value => value,
+  };
 }
 
 Future<int> _totalBytes(List<String> paths) async {
