@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 583 - 11:01:00 EDT to 11:08:30 EDT
+
+Scope:
+- Hardened receipt review cleanup, recovery, and camera-result membership
+  checks so they use normalized receipt photo path identity instead of raw
+  string `contains` checks.
+- Added behavior coverage for normalized path membership and updated lifecycle
+  source guards to require the shared helper.
+- Recorded `BUG-RECEIPT-0099` under `multi_photo_ordering`.
+- Archived Pass 556 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the path identity helper, review
+  exit actions, picked-photo membership, and focused tests.
+- Passed focused Flutter path-identity and review lifecycle regressions.
+
 ## Pass 582 - 10:48:00 EDT to 10:57:30 EDT
 
 Scope:
@@ -467,18 +484,3 @@ Verification:
 - Fixed a type issue in the safe merge, corrected an over-broad Hive-index
   expectation, then reran the focused chain.
 - Passed targeted Dart analyzer and focused Flutter recovery-stage update test.
-
-## Pass 556 - 06:44:37 EDT to 06:45:41 EDT
-
-Scope:
-- Hardened native receipt capture results so duplicate original photo paths are
-  rejected before they can collapse long-receipt section identity downstream.
-- Added native-service regression coverage for duplicate paths that only differ
-  by storage whitespace.
-- Recorded `BUG-RECEIPT-0072` under `multi_photo_ordering`.
-- Archived Pass 540 out of the live cleanup log.
-
-Verification:
-- Passed targeted Dart format/analyzer for native camera service and native
-  result rejection coverage.
-- Passed focused Flutter file `test/receipt_native_camera_result_rejection_test.dart`.

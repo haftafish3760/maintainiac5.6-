@@ -143,9 +143,8 @@ bool _pickedReceiptPhotoPathsAreCameraResultMembers(
   List<String> resultPaths,
   List<String> pickedPaths,
 ) {
-  final resultPathSet = resultPaths.toSet();
   for (final pickedPath in pickedPaths) {
-    if (!resultPathSet.contains(pickedPath)) return false;
+    if (!receiptPhotoPathSetContains(resultPaths, pickedPath)) return false;
   }
   return true;
 }

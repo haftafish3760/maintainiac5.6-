@@ -29,3 +29,17 @@ bool receiptPhotoPathsAreUniqueAndNormalized(List<String> photoPaths) {
   }
   return true;
 }
+
+bool receiptPhotoPathSetContains(
+  Iterable<String> photoPaths,
+  String candidatePath,
+) {
+  final normalizedCandidate = normalizedReceiptPhotoPath(candidatePath);
+  if (normalizedCandidate == null) return false;
+  for (final photoPath in photoPaths) {
+    if (normalizedReceiptPhotoPath(photoPath) == normalizedCandidate) {
+      return true;
+    }
+  }
+  return false;
+}

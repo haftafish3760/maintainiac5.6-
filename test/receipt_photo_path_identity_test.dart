@@ -33,4 +33,26 @@ void main() {
       isFalse,
     );
   });
+
+  test('receipt photo path membership uses normalized identity', () {
+    expect(
+      receiptPhotoPathSetContains(const [
+        '/tmp/receipt/top.jpg',
+        '/tmp/receipt/bottom.jpg',
+      ], '/tmp/receipt/top.jpg'),
+      isTrue,
+    );
+    expect(
+      receiptPhotoPathSetContains(const [
+        '/tmp/receipt/top.jpg',
+      ], '/tmp/receipt/../receipt/top.jpg'),
+      isFalse,
+    );
+    expect(
+      receiptPhotoPathSetContains(const [
+        '/tmp/receipt/../receipt/top.jpg',
+      ], '/tmp/receipt/top.jpg'),
+      isFalse,
+    );
+  });
 }

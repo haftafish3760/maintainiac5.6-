@@ -35,6 +35,12 @@ void main() {
     );
     expect(
       saveActions,
+      contains(
+        'receiptPhotoPathSetContains(widget.initialPhotoPaths, photoPath)',
+      ),
+    );
+    expect(
+      saveActions,
       contains('if (_closingReview || _confirmingReviewExit) return;'),
     );
     expect(
@@ -63,7 +69,9 @@ void main() {
     );
     expect(
       saveActions,
-      contains('if (path.isEmpty || _photoPaths.contains(path)) continue;'),
+      contains(
+        'path.isEmpty || receiptPhotoPathSetContains(_photoPaths, path)',
+      ),
     );
     expect(
       saveActions,

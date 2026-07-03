@@ -3,7 +3,9 @@ part of 'receipt_photo_review_screen.dart';
 extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
   Future<void> _cleanupFailedReceiptPrepArtifacts(Set<String> paths) async {
     for (final path in paths) {
-      if (path.isEmpty || _photoPaths.contains(path)) continue;
+      if (path.isEmpty || receiptPhotoPathSetContains(_photoPaths, path)) {
+        continue;
+      }
       try {
         final file = File(path);
         if (await file.exists()) await file.delete();
@@ -212,7 +214,7 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
   }
 
   bool _isRecoverableReviewPhoto(String photoPath) {
-    return widget.initialPhotoPaths.contains(photoPath) ||
+    return receiptPhotoPathSetContains(widget.initialPhotoPaths, photoPath) ||
         _isStagedReceiptReviewPhoto(photoPath) ||
         _isPhoneCameraBackupReviewPhoto(photoPath);
   }
