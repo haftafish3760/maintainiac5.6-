@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../qa_harness/qa_harness.dart';
+import 'work_supply_parser_release_one_cell_manifest_qa.dart';
 
 class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
   const WorkSupplyParserFixtureCoverageSuite()
@@ -59,6 +60,7 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
     final caseTypes = <String, int>{};
     final merchants = <String, int>{};
     final riskTags = <String, int>{};
+    final releaseOneCells = <String, int>{};
 
     for (final fixture in fixtures) {
       caseTypes.update(
@@ -73,6 +75,10 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
       );
       for (final tag in fixture.riskTags) {
         riskTags.update(tag, (count) => count + 1, ifAbsent: () => 1);
+      }
+      final cell = fixture.releaseOneCell;
+      if (cell != null) {
+        releaseOneCells.update(cell, (count) => count + 1, ifAbsent: () => 1);
       }
       if (fixture.caseType.isEmpty) {
         failures.add(
@@ -148,13 +154,33 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
       );
     }
 
+    for (final cell
+        in WorkSupplyParserReleaseOneCellManifestSuite.priorityCells) {
+      if (releaseOneCells.containsKey(cell)) continue;
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'missing_release_one_fixture_cell:$cell',
+          message:
+              'Fixture library is missing a release-one priority Core/Standard cell.',
+          severity: QaSeverity.warning,
+          expected: cell,
+          actual: releaseOneCells.keys.join(', '),
+          suggestedFix:
+              'Add at least one real-style fixture for this Plumbing/Electrical/HVAC residential Core/Standard English/Spanish cell.',
+          metadata: const {'triageCategory': QaFailureTriage.fixture},
+        ),
+      );
+    }
+
     return timer.finish(
       suite: name,
       checked:
           fixtures.length +
           _requiredCaseTypes.length +
           _recommendedRiskTags.length +
-          _recommendedMerchants.length,
+          _recommendedMerchants.length +
+          WorkSupplyParserReleaseOneCellManifestSuite.priorityCells.length,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
@@ -162,6 +188,7 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
         'caseTypes': caseTypes,
         'merchants': merchants,
         'riskTags': riskTags,
+        'releaseOneCells': releaseOneCells,
       },
     );
   }
@@ -173,12 +200,30 @@ class _CoverageFixture {
     required this.caseType,
     required this.merchant,
     required this.riskTags,
+    required this.trade,
+    required this.marketScope,
+    required this.tier,
+    required this.localePackId,
   });
 
   final String id;
   final String caseType;
   final String merchant;
   final List<String> riskTags;
+  final String trade;
+  final String marketScope;
+  final String tier;
+  final String localePackId;
+
+  String? get releaseOneCell {
+    if (trade.isEmpty ||
+        marketScope.isEmpty ||
+        tier.isEmpty ||
+        localePackId.isEmpty) {
+      return null;
+    }
+    return '$trade.$marketScope.$tier.$localePackId';
+  }
 
   static _CoverageFixture fromJson(Map<String, Object?> json) {
     return _CoverageFixture(
@@ -189,6 +234,10 @@ class _CoverageFixture {
         for (final tag in json['riskTags'] as List<dynamic>? ?? const [])
           tag.toString(),
       ],
+      trade: json['trade'] as String? ?? '',
+      marketScope: json['marketScope'] as String? ?? '',
+      tier: json['tier'] as String? ?? '',
+      localePackId: json['localePackId'] as String? ?? '',
     );
   }
 }
