@@ -2477,6 +2477,11 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated Spanish after the toilet repair kit locale expansion:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.spanish_release_one,qa.threshold_gate`
   passed 101847 checks with 0 failures.
+- Added es-US faucet repair kit locale terms while avoiding a new edit to the
+  already-over-500-line generated plumbing service-truck catalog file.
+- Validated Spanish after the faucet repair kit locale expansion:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.spanish_release_one,qa.threshold_gate`
+  passed 101847 checks with 0 failures.
 
 Named release gates:
 
