@@ -9,6 +9,7 @@ maintenance, employees, and related business records.
 - Build rules: `PROJECT_RULES.md`
 - Production/QA directive: `docs/maintainiac_production_operating_directive.md`
 - Expense release-one blueprint: `docs/expense_release_one_blueprint.md`
+- Expense Codex B handoff: `docs/expense_codex_b_handoff.md`
 - Receipt camera release-one blueprint:
   `docs/receipt_camera_release_one_blueprint.md`
 - Screen/module requirement notes: `screen_notes/`

@@ -9,13 +9,19 @@ void main() {
       final blueprint = File(
         'docs/expense_release_one_blueprint.md',
       ).readAsStringSync();
+      final handoff = File(
+        'docs/expense_codex_b_handoff.md',
+      ).readAsStringSync();
       final readme = File('README.md').readAsStringSync();
       final projectRules = File('PROJECT_RULES.md').readAsStringSync();
 
       const blueprintPath = 'docs/expense_release_one_blueprint.md';
+      const handoffPath = 'docs/expense_codex_b_handoff.md';
 
       expect(readme, contains(blueprintPath));
+      expect(readme, contains(handoffPath));
       expect(projectRules, contains(blueprintPath));
+      expect(blueprint, contains(handoffPath));
       expect(
         blueprint,
         contains('Hive/local storage is the immediate source of truth'),
@@ -41,6 +47,12 @@ void main() {
       expect(blueprint, contains('Fuel Expense Specialization'));
       expect(blueprint, contains('Spanish release-one support'));
       expect(blueprint, contains('Every bug fixed gets a regression test'));
+      expect(handoff, contains('codex/expense-app-lane'));
+      expect(handoff, contains('Do not edit these paths'));
+      expect(handoff, contains('lib/screens/expenses/**'));
+      expect(handoff, contains('lib/shared/widgets/receipt_capture/**'));
+      expect(handoff, contains('codex/expense-contract-integration'));
+      expect(handoff, contains('Every confirmed bug gets a regression test'));
     },
   );
 }

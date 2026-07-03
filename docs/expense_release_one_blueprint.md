@@ -5,6 +5,9 @@ connects receipt camera, OCR handoff, receipt parsing, manual entry, PDF import,
 expense records, reports, diagnostics, QA, and future collaboration between two
 Codex workers without letting the work drift into unrelated modules.
 
+The dedicated second-worker handoff lives in
+`docs/expense_codex_b_handoff.md`.
+
 ## Release-One Target
 
 Release one should make expenses dependable enough for real users to record
