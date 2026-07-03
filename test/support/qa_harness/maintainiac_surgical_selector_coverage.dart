@@ -327,6 +327,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'QA fingerprint is stable across file order and line endings',
         'QA fingerprint changes when fixture content changes',
         'QA fingerprint rejects unlabeled and unnormalized evidence',
+        'QA fingerprint rejects duplicate source paths',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(

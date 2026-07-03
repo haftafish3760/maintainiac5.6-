@@ -81,4 +81,34 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test('QA fingerprint rejects duplicate source paths', () {
+    const builder = MaintainiacQaFingerprintBuilder();
+
+    expect(
+      () => builder.signatureFor(
+        label: 'duplicate-fixtures',
+        files: const [
+          MaintainiacQaSourceFile(
+            path: 'test/fixtures/expenses/gas_receipts.json',
+            content: 'total 10.00',
+          ),
+          MaintainiacQaSourceFile(
+            path: 'test/fixtures/expenses/gas_receipts.json',
+            content: 'total 11.00',
+          ),
+        ],
+      ),
+      throwsA(
+        isA<ArgumentError>().having(
+          (error) => error.message,
+          'message',
+          contains(
+            'duplicate-fixtures has duplicate source path '
+            'test/fixtures/expenses/gas_receipts.json',
+          ),
+        ),
+      ),
+    );
+  });
 }

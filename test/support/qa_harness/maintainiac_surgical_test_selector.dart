@@ -835,6 +835,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'qa-fingerprint', 'fixtures', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_fingerprint_rejects_duplicate_paths',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_fingerprint_test.dart',
+    plainName: 'QA fingerprint rejects duplicate source paths',
+    reason: 'Run only the duplicate source-path fingerprint guard.',
+    tags: {'qa-fingerprint', 'fixtures', 'regression', 'surgical'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'qa_run_ledger_skips_clean_focused',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_run_ledger_test.dart',

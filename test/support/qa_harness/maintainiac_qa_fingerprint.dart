@@ -39,9 +39,13 @@ class MaintainiacQaFingerprintBuilder {
   }) {
     final normalized = files.toList()..sort((a, b) => a.path.compareTo(b.path));
     final failures = <String>[];
+    final paths = <String>{};
     if (label.trim().isEmpty) failures.add('fingerprint missing label');
     if (normalized.isEmpty) failures.add('$label has no files');
     for (final file in normalized) {
+      if (!paths.add(file.path)) {
+        failures.add('$label has duplicate source path ${file.path}');
+      }
       failures.addAll(file.validate());
     }
     if (failures.isNotEmpty) {
