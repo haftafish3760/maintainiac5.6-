@@ -23,7 +23,9 @@ void main() {
     expect(registry.toJson().toString(), contains('hive-source-of-truth'));
     expect(
       registry.commandPlanFor(MaintainiacQaCasePriority.releaseBlocker),
-      contains('flutter test test/maintainiac_qa_backbone_test.dart'),
+      contains(
+        'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone covers whole app modules"',
+      ),
     );
   });
 
@@ -74,6 +76,16 @@ void main() {
             'flutter test test/one_test.dart test/two_test.dart --plain-name "one behavior" && flutter test test/three_test.dart',
         tags: {'registry'},
       ),
+      MaintainiacQaCase(
+        id: 'QA-BAD-COMMAND-002',
+        title: 'Bad broad command',
+        module: MaintainiacQaModule.expenses,
+        behavior: 'Broad QA case commands must fail.',
+        evidenceTarget: 'bad.broad_command',
+        priority: MaintainiacQaCasePriority.core,
+        testCommand: 'flutter test test/one_test.dart',
+        tags: {'registry'},
+      ),
     ]);
 
     final failures = registry.validate();
@@ -97,6 +109,10 @@ void main() {
     expect(
       failures,
       contains('QA-BAD-COMMAND-001 test command must not be chained'),
+    );
+    expect(
+      failures,
+      contains('QA-BAD-COMMAND-002 test command must use --plain-name'),
     );
   });
 }

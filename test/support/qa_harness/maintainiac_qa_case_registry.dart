@@ -45,6 +45,9 @@ class MaintainiacQaCase {
       failures.add('$id has blank tag');
     }
     if (testCommand.startsWith('flutter test ')) {
+      if (!testCommand.contains(' --plain-name ')) {
+        failures.add('$id test command must use --plain-name');
+      }
       if (_testFileReferences(testCommand).length != 1) {
         failures.add('$id test command must target one test file');
       }
@@ -91,7 +94,8 @@ class MaintainiacQaCaseRegistry {
             'The shared QA harness exposes modules, fakes, fixtures, gates, readiness, and parser adapters without live services.',
         evidenceTarget: 'maintainiac.qa_backbone_contract',
         priority: MaintainiacQaCasePriority.releaseBlocker,
-        testCommand: 'flutter test test/maintainiac_qa_backbone_test.dart',
+        testCommand:
+            'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone covers whole app modules"',
         tags: {'backbone', 'release-gate', 'no-live-services'},
       ),
       MaintainiacQaCase(
@@ -102,7 +106,8 @@ class MaintainiacQaCaseRegistry {
             'Hive/local writes are recorded before Firestore mirror writes.',
         evidenceTarget: 'sync.local_write_before_mirror',
         priority: MaintainiacQaCasePriority.releaseBlocker,
-        testCommand: 'flutter test test/maintainiac_qa_backbone_test.dart',
+        testCommand:
+            'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "shared assertions enforce source-of-truth and privacy rules"',
         tags: {'hive-source-of-truth', 'firestore-mirror'},
       ),
       MaintainiacQaCase(
@@ -113,7 +118,8 @@ class MaintainiacQaCaseRegistry {
             'VIN, plate-like, passenger/patient, and card-like data are detected before logs or reports expose them.',
         evidenceTarget: 'security.forbidden_data_scan',
         priority: MaintainiacQaCasePriority.releaseBlocker,
-        testCommand: 'flutter test test/maintainiac_qa_backbone_test.dart',
+        testCommand:
+            'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "shared assertions enforce source-of-truth and privacy rules"',
         tags: {'privacy', 'redaction', 'security'},
       ),
       MaintainiacQaCase(
@@ -124,7 +130,8 @@ class MaintainiacQaCaseRegistry {
             'Expense totals, tax, discounts, refunds, and category rollups balance in integer cents.',
         evidenceTarget: 'maintainiac_financial_ledger_test',
         priority: MaintainiacQaCasePriority.releaseBlocker,
-        testCommand: 'flutter test test/maintainiac_financial_ledger_test.dart',
+        testCommand:
+            'flutter test test/maintainiac_financial_ledger_test.dart --plain-name "financial ledger probe totals expenses deterministically"',
         tags: {'expenses', 'money', 'ledger'},
       ),
       MaintainiacQaCase(
@@ -166,7 +173,7 @@ class MaintainiacQaCaseRegistry {
         evidenceTarget: 'maintainiac_inventory_parser_consumer_test',
         priority: MaintainiacQaCasePriority.releaseBlocker,
         testCommand:
-            'flutter test test/maintainiac_inventory_parser_consumer_test.dart',
+            'flutter test test/maintainiac_inventory_parser_consumer_test.dart --plain-name "inventory parser consumer labels broad release-one QA families"',
         tags: {'inventory', 'parser', 'consumer-contract', 'qa-backbone'},
       ),
       MaintainiacQaCase(
@@ -178,7 +185,7 @@ class MaintainiacQaCaseRegistry {
         evidenceTarget: 'maintainiac_expense_parser_consumer_test',
         priority: MaintainiacQaCasePriority.releaseBlocker,
         testCommand:
-            'flutter test test/maintainiac_expense_parser_consumer_test.dart',
+            'flutter test test/maintainiac_expense_parser_consumer_test.dart --plain-name "expense parser consumer labels broad release-one QA families"',
         tags: {'expenses', 'parser', 'consumer-contract', 'qa-backbone'},
       ),
       MaintainiacQaCase(
@@ -201,7 +208,8 @@ class MaintainiacQaCaseRegistry {
             'Records are accessible only when account, company, employee, assigned vehicle, and required permission rules pass.',
         evidenceTarget: 'maintainiac_scope_policy_test',
         priority: MaintainiacQaCasePriority.releaseBlocker,
-        testCommand: 'flutter test test/maintainiac_scope_policy_test.dart',
+        testCommand:
+            'flutter test test/maintainiac_scope_policy_test.dart --plain-name "scope policy denies cross-account and unassigned vehicle access"',
         tags: {'security', 'permissions', 'fleet'},
       ),
       MaintainiacQaCase(
@@ -212,7 +220,8 @@ class MaintainiacQaCaseRegistry {
             'Audit events preserve actor, action, target, ordered timestamps, and before/after evidence when users confirm parser suggestions.',
         evidenceTarget: 'maintainiac_audit_trail_test',
         priority: MaintainiacQaCasePriority.releaseBlocker,
-        testCommand: 'flutter test test/maintainiac_audit_trail_test.dart',
+        testCommand:
+            'flutter test test/maintainiac_audit_trail_test.dart --plain-name "audit trail probe validates ordered complete audit events"',
         tags: {'audit', 'confirmation', 'regression'},
       ),
       MaintainiacQaCase(
@@ -223,7 +232,8 @@ class MaintainiacQaCaseRegistry {
             'Exports include only active-account records and reject or remove private fields before writing.',
         evidenceTarget: 'maintainiac_export_privacy_test',
         priority: MaintainiacQaCasePriority.releaseBlocker,
-        testCommand: 'flutter test test/maintainiac_export_privacy_test.dart',
+        testCommand:
+            'flutter test test/maintainiac_export_privacy_test.dart --plain-name "export privacy probe accepts owned non-private records"',
         tags: {'exports', 'privacy', 'ownership'},
       ),
       MaintainiacQaCase(
@@ -234,7 +244,8 @@ class MaintainiacQaCaseRegistry {
             'Recaps, exports, notifications, estimates, invoices, and reports cannot write source collections unless explicitly scoped as a source operation.',
         evidenceTarget: 'maintainiac_mutation_guard_test',
         priority: MaintainiacQaCasePriority.releaseBlocker,
-        testCommand: 'flutter test test/maintainiac_mutation_guard_test.dart',
+        testCommand:
+            'flutter test test/maintainiac_mutation_guard_test.dart --plain-name "mutation guard allows derived output collections only"',
         tags: {'source-of-truth', 'derived-output', 'mutation-guard'},
       ),
       MaintainiacQaCase(
