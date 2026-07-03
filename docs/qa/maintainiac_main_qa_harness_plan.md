@@ -201,6 +201,7 @@ The backbone includes a release gate plan:
 - Produces the concrete focused commands to run while building features.
 - Fails if a release-blocking case lacks evidence or a runnable command.
 - Feeds a QA execution manifest where each check has a label, behavior it proves, owner, cadence, command, live-service policy, and failure action.
+- Records QA run evidence in a run ledger so clean focused checks can be skipped when their command and input signature are unchanged.
 
 Print the release gate with:
 

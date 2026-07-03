@@ -30,6 +30,10 @@ void main() {
       report.results.single.metrics['executionManifest'].toString(),
       contains('failureAction'),
     );
+    expect(
+      report.results.single.metrics['runLedger'].toString(),
+      contains('seed_backbone_run'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

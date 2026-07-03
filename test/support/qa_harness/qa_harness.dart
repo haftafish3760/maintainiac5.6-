@@ -14,6 +14,7 @@ export 'maintainiac_qa_execution_manifest.dart';
 export 'maintainiac_qa_fixtures.dart';
 export 'maintainiac_qa_quality_gates.dart';
 export 'maintainiac_qa_readiness.dart';
+export 'maintainiac_qa_run_ledger.dart';
 export 'maintainiac_qa_scenario_runners.dart';
 export 'maintainiac_release_gate_plan.dart';
 export 'maintainiac_regression_registry.dart';

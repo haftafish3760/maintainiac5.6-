@@ -3,6 +3,7 @@ import 'maintainiac_qa_execution_manifest.dart';
 import 'maintainiac_qa_fixtures.dart';
 import 'maintainiac_qa_quality_gates.dart';
 import 'maintainiac_qa_readiness.dart';
+import 'maintainiac_qa_run_ledger.dart';
 import 'maintainiac_qa_case_registry.dart';
 import 'maintainiac_regression_registry.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
@@ -143,9 +144,30 @@ class MaintainiacQaBackboneSuite extends QaSuite {
       failures.add(_failure('execution_manifest_$issue', issue));
     }
 
+    final runLedger = MaintainiacQaRunLedger([
+      MaintainiacQaRunRecord(
+        id: 'seed_backbone_run',
+        label: 'Main QA backbone smoke run',
+        command: 'flutter test test/maintainiac_qa_backbone_test.dart',
+        inputSignature: 'qa-backbone-seed',
+        startedAt: DateTime.utc(2026, 7, 3, 12),
+        completedAt: DateTime.utc(2026, 7, 3, 12, 1),
+        status: MaintainiacQaRunStatus.passed,
+        exitCode: 0,
+        scope: const [
+          'test/maintainiac_qa_backbone_test.dart',
+          'test/support/qa_harness',
+        ],
+        reportPath: 'build/qa/reports/seed_backbone_run.json',
+      ),
+    ]);
+    for (final issue in runLedger.validate()) {
+      failures.add(_failure('run_ledger_$issue', issue));
+    }
+
     return timer.finish(
       suite: name,
-      checked: 102,
+      checked: 112,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -161,6 +183,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         ],
         'qaCaseRegistry': caseRegistry.toJson(),
         'executionManifest': executionManifest.toJson(),
+        'runLedger': runLedger.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

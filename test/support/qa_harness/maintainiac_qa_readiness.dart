@@ -154,6 +154,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_qa_execution_manifest.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'run_ledger',
+        module: MaintainiacQaModule.performance,
+        description:
+            'Reusable QA run ledger records command labels, input signatures, scopes, outcomes, reports, and actionable failure summaries.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_qa_run_ledger.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:
