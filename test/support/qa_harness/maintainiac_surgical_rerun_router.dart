@@ -749,10 +749,11 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       selectorIds: {
         'release_gate_tool_commands',
         'release_gate_tool_json',
+        'release_gate_tool_rejects_mixed_modes',
         'main_backbone_parser_visibility',
       },
       reason:
-          'Release gate tool changes need command, JSON evidence, and backbone checks.',
+          'Release gate tool changes need command, JSON evidence, output-mode, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'release_evidence_bundle_changed',

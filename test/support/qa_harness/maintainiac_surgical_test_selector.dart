@@ -1837,6 +1837,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'release-gate', 'tooling', 'evidence'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'release_gate_tool_rejects_mixed_modes',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_release_gate_tool_test.dart',
+    plainName: 'release gate tool rejects mixed output modes',
+    reason: 'Run only the release gate output-mode safety check.',
+    tags: {'release-gate', 'tooling', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'individual_command_tool_by_id',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_individual_qa_command_tool_test.dart',

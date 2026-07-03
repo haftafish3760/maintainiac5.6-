@@ -553,6 +553,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'release gate tool emits surgical command plan',
         'release gate tool emits JSON evidence',
+        'release gate tool rejects mixed output modes',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(

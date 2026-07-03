@@ -42,6 +42,21 @@ void main() {
     expect(stdout.text, contains('"QA-COST-001"'));
     expect(stdout.text, contains('"QA-A11Y-L10N-001"'));
   });
+
+  test('release gate tool rejects mixed output modes', () {
+    final stdout = _BufferSink();
+    final stderr = _BufferSink();
+
+    final exit = runMaintainiacReleaseGate(
+      ['--json', '--commands-only'],
+      stdout: stdout,
+      stderr: stderr,
+    );
+
+    expect(exit, 64);
+    expect(stdout.text, isEmpty);
+    expect(stderr.text, contains('Choose only one release gate output mode'));
+  });
 }
 
 class _BufferSink implements IOSink {

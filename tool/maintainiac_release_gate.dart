@@ -20,6 +20,14 @@ int runMaintainiacReleaseGate(
     stdout.writeln(_usage);
     return 0;
   }
+  final outputModeCount = [
+    args.contains('--json'),
+    args.contains('--commands-only'),
+  ].where((enabled) => enabled).length;
+  if (outputModeCount > 1) {
+    stderr.writeln('Choose only one release gate output mode. $_usage');
+    return 64;
+  }
   final plan = MaintainiacReleaseGatePlan.releaseOne();
   final failures = plan.validate();
   if (failures.isNotEmpty) {
