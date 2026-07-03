@@ -178,6 +178,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_qa_checkpoint_policy.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'artifact_policy',
+        module: MaintainiacQaModule.security,
+        description:
+            'Reusable artifact policy keeps QA reports, fixtures, and regressions redacted and out of synced or wrong-drive folders.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_qa_artifact_policy.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:

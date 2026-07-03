@@ -42,6 +42,10 @@ void main() {
       report.results.single.metrics['checkpointPolicy'].toString(),
       contains('30'),
     );
+    expect(
+      report.results.single.metrics['artifactPolicy'].toString(),
+      contains('release_gate_report'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

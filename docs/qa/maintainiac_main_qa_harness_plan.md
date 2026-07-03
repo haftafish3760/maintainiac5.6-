@@ -204,6 +204,7 @@ The backbone includes a release gate plan:
 - Records QA run evidence in a run ledger so clean focused checks can be skipped when their command and input signature are unchanged.
 - Uses deterministic source fingerprints so fixture/catalog/test changes can trigger surgical reruns instead of full-suite churn.
 - Applies a checkpoint policy: push at milestones, after thirty minutes of changed work, when the user asks, or when failing-gate evidence must be preserved.
+- Enforces artifact policy so reports, fixtures, and regression evidence stay redacted and out of Google Drive, OneDrive, F-drive, or other unsafe locations.
 
 Print the release gate with:
 

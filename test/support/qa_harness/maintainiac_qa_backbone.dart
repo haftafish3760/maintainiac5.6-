@@ -3,6 +3,7 @@ import 'maintainiac_qa_execution_manifest.dart';
 import 'maintainiac_qa_fingerprint.dart';
 import 'maintainiac_qa_fixtures.dart';
 import 'maintainiac_qa_checkpoint_policy.dart';
+import 'maintainiac_qa_artifact_policy.dart';
 import 'maintainiac_qa_quality_gates.dart';
 import 'maintainiac_qa_readiness.dart';
 import 'maintainiac_qa_run_ledger.dart';
@@ -184,10 +185,31 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in checkpointPolicy.validate()) {
       failures.add(_failure('checkpoint_policy_$issue', issue));
     }
+    const artifactPolicy = MaintainiacQaArtifactPolicy([
+      MaintainiacQaArtifact(
+        id: 'release_gate_report',
+        kind: MaintainiacQaArtifactKind.report,
+        path: 'build/qa/reports/release_gate.json',
+        owner: 'maintainiac-qa',
+        summary: 'Redacted release gate report artifact.',
+        tags: {'release-gate', 'report', 'redacted'},
+      ),
+      MaintainiacQaArtifact(
+        id: 'inventory_parser_fixture_index',
+        kind: MaintainiacQaArtifactKind.fixture,
+        path: 'test/fixtures/work_supply_parser/golden_fixtures.json',
+        owner: 'maintainiac-qa',
+        summary: 'Synthetic inventory parser fixture evidence.',
+        tags: {'inventory', 'parser', 'fixture'},
+      ),
+    ]);
+    for (final issue in artifactPolicy.validate()) {
+      failures.add(_failure('artifact_policy_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 126,
+      checked: 134,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -208,6 +230,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'checkpointPolicy': {
           'maxUnpushedMinutes': checkpointPolicy.maxUnpushedWork.inMinutes,
         },
+        'artifactPolicy': artifactPolicy.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },
