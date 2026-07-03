@@ -68,6 +68,10 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
       'stitchOverlapCoverageCode': stitchResult.overlapCoverageCode,
       'stitchOverlapCoverageLabel': stitchResult.overlapCoverageLabel,
       'stitchSourcePreservationCode': stitchResult.sourcePreservationCode,
+      'stitchInputSourceCount': stitchResult.inputPaths.length,
+      'stitchOcrSourceCount': stitchResult.ocrSourcePaths.length,
+      'stitchOverlapPixelTotal': stitchResult.overlapPixelTotal,
+      'stitchUsedManualAdjustment': stitchResult.usedManualAdjustment,
       'stitchMatchedPairCount': stitchResult.matchedPairCount,
       'stitchMissingPairCount': stitchResult.missingPairCount,
       'stitchAllPairsHaveOverlapEvidence':

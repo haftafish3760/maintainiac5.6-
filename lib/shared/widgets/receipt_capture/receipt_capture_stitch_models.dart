@@ -76,6 +76,14 @@ class ReceiptStitchResult {
       usedFallback || status == ReceiptStitchStatus.notNeeded;
   bool get usesDerivedCombinedOcrArtifact => didStitch && stitchedPath != null;
   int get stitchedPixelCount => stitchedWidth * stitchedHeight;
+  int get overlapPixelTotal {
+    var total = 0;
+    for (final pixels in overlapPixels) {
+      if (pixels > 0) total += pixels;
+    }
+    return total;
+  }
+
   String get stitchedSizeLabel => stitchedWidth > 0 && stitchedHeight > 0
       ? '$stitchedWidth x $stitchedHeight'
       : '';

@@ -167,6 +167,22 @@ void main() {
       ),
     );
     expect(
+      stitched.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('stitchInputSourceCount', 2),
+    );
+    expect(
+      stitched.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('stitchOcrSourceCount', 1),
+    );
+    expect(
+      stitched.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('stitchOverlapPixelTotal', 240),
+    );
+    expect(
+      stitched.privacySafeReceiptReaderHandoffMetadata.toString(),
+      isNot(contains('/tmp/stitched.jpg')),
+    );
+    expect(
       fallback.privacySafeReceiptReaderHandoffMetadata,
       containsPair('stitchOverlapCoverageCode', 'fallback_pair_1_to_2'),
     );
