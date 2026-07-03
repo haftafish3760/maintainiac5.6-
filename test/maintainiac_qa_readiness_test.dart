@@ -25,6 +25,7 @@ void main() {
     expect(ledger.toJson().toString(), contains('financial_formula_registry'));
     expect(ledger.toJson().toString(), contains('qa_telemetry_privacy_gate'));
     expect(ledger.toJson().toString(), contains('release_evidence_bundle'));
+    expect(ledger.toJson().toString(), contains('fixture_governance_gate'));
   });
 
   test('QA readiness ledger rejects fake ready claims without evidence', () {

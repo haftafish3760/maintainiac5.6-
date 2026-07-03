@@ -348,6 +348,14 @@ class MaintainiacQaReadinessLedger {
         status: MaintainiacQaReadinessStatus.ready,
         evidence: ['maintainiac_release_evidence_bundle.dart'],
       ),
+      MaintainiacQaReadinessItem(
+        id: 'fixture_governance_gate',
+        module: MaintainiacQaModule.security,
+        description:
+            'Fixture families have owner, metadata, privacy level, review cadence, and repository storage rules.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_fixture_governance_gate.dart'],
+      ),
     ]);
   }
 

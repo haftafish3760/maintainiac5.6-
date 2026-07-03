@@ -13,6 +13,7 @@ import 'maintainiac_release_evidence_bundle.dart';
 import 'maintainiac_regression_registry.dart';
 import 'maintainiac_expense_parser_consumer_contract.dart';
 import 'maintainiac_financial_formula_registry.dart';
+import 'maintainiac_fixture_governance_gate.dart';
 import 'maintainiac_parser_candidate_contract.dart';
 import 'maintainiac_parser_consumer_gate.dart';
 import 'maintainiac_parser_fixture_manifest.dart';
@@ -454,10 +455,13 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacReleaseEvidenceBundle.validate()) {
       failures.add(_failure('release_evidence_bundle_$issue', issue));
     }
+    for (final issue in maintainiacFixtureGovernanceGate.validate()) {
+      failures.add(_failure('fixture_governance_gate_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 476,
+      checked: 496,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -508,6 +512,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
             .toJson(),
         'qaTelemetryPrivacyGate': maintainiacQaTelemetryPrivacyGate.toJson(),
         'releaseEvidenceBundle': maintainiacReleaseEvidenceBundle.toJson(),
+        'fixtureGovernanceGate': maintainiacFixtureGovernanceGate.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

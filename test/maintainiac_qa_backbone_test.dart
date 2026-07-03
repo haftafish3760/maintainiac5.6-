@@ -134,6 +134,10 @@ void main() {
       report.results.single.metrics['releaseEvidenceBundle'].toString(),
       contains('github_push_checkpoint'),
     );
+    expect(
+      report.results.single.metrics['fixtureGovernanceGate'].toString(),
+      contains('bug_regression_fixture_governance'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {
