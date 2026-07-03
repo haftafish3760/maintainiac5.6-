@@ -13,6 +13,7 @@ class WorkSupplyParserNextActionSuite extends QaSuite {
     'releaseOneCellCount',
     'activeWaveCount',
     'activeWaves',
+    'activeWaveUnsafeFindings',
     'missingArtifactNames',
     'unsafeFindings',
     'liveServicesAllowed',

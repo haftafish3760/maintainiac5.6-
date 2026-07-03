@@ -36,25 +36,27 @@ int runWorkSupplyParserQaNextAction(
   final unsafe = _stringList(evidence['unsafeFindings']);
   final commandCells = _commandCellIds(commands['commands']);
   final activeWaves = _runningWaveStatuses(_batchWaveRoot);
+  final activeUnsafe = _activeWaveUnsafeFindings(activeWaves);
+  final allUnsafe = [...unsafe, ...activeUnsafe];
 
   final nextActions = <String>[
     if (missing.isNotEmpty)
       'Regenerate missing local artifacts before parser QA expansion.',
-    if (unsafe.isNotEmpty)
+    if (allUnsafe.isNotEmpty)
       'Stop release progression and fix unsafe local-only evidence flags.',
     if (activeWaves.isNotEmpty)
       'Wait for the active local-only parser QA wave to finish before launching another batch wave.',
     if (commandCells.isEmpty)
       'Regenerate release-one command manifest before launching batch waves.',
     if (missing.isEmpty &&
-        unsafe.isEmpty &&
+        allUnsafe.isEmpty &&
         activeWaves.isEmpty &&
         commandCells.isNotEmpty)
       'Start the next local-only residential parser QA batch wave.',
   ];
   final readyForNextBatch =
       missing.isEmpty &&
-      unsafe.isEmpty &&
+      allUnsafe.isEmpty &&
       activeWaves.isEmpty &&
       commandCells.isNotEmpty;
 
@@ -67,7 +69,8 @@ int runWorkSupplyParserQaNextAction(
     'activeWaveCount': activeWaves.length,
     'activeWaves': activeWaves,
     'missingArtifactNames': missing,
-    'unsafeFindings': unsafe,
+    'unsafeFindings': allUnsafe,
+    'activeWaveUnsafeFindings': activeUnsafe,
     'nextActions': nextActions,
     'liveServicesAllowed': false,
     'writesProductionCatalog': false,
@@ -86,7 +89,7 @@ int runWorkSupplyParserQaNextAction(
     'QA_NEXT_ACTION ${const JsonEncoder.withIndent('  ').convert(summary)}',
   );
   stdout.writeln('QA_NEXT_ACTION_ARTIFACT json=$output');
-  return unsafe.isEmpty ? 0 : 1;
+  return allUnsafe.isEmpty ? 0 : 1;
 }
 
 Map<String, Object?> _readJson(String path) {
@@ -136,6 +139,25 @@ List<Map<String, Object?>> _runningWaveStatuses(String rootPath) {
   final active = activeByQueue.values.toList();
   active.sort((a, b) => '${a['path']}'.compareTo('${b['path']}'));
   return active;
+}
+
+List<String> _activeWaveUnsafeFindings(List<Map<String, Object?>> waves) {
+  final findings = <String>[];
+  const unsafeFlags = {
+    'liveServicesAllowed',
+    'writesProductionCatalog',
+    'firebaseWritesAllowed',
+    'ocrCameraExpensesTouched',
+  };
+  for (final wave in waves) {
+    final queueId = '${wave['queueId'] ?? ''}';
+    for (final flag in unsafeFlags) {
+      if (wave[flag] != true) continue;
+      findings.add('activeWave:$queueId:$flag=true');
+    }
+  }
+  findings.sort();
+  return findings;
 }
 
 Iterable<FileSystemEntity> _safeRecursiveList(Directory root) sync* {

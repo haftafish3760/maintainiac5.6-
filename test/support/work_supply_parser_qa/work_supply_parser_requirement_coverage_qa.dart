@@ -86,6 +86,7 @@ class WorkSupplyParserRequirementCoverageSuite extends QaSuite {
       'release-one cells',
       'missing/unsafe blockers',
       'active wave blockers',
+      'active wave unsafe findings',
     ]),
     _RequirementCoverage(
       'domain_adapter',
