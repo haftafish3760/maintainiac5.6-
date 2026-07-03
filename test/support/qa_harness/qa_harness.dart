@@ -9,6 +9,7 @@ export 'maintainiac_qa_fixtures.dart';
 export 'maintainiac_qa_quality_gates.dart';
 export 'maintainiac_qa_scenario_runners.dart';
 export 'maintainiac_regression_registry.dart';
+export 'maintainiac_source_boundary.dart';
 
 enum QaSeverity { info, warning, error, critical }
 

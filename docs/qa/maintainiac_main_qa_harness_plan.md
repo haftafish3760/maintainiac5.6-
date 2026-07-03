@@ -94,6 +94,16 @@ The command runner is:
 
 It writes timestamped and `latest_maintainiac_main` QA report artifacts through the same redacted report writer used by parser QA.
 
+## Source Boundary Guards
+
+The main QA backbone includes a reusable source-boundary scanner. It is meant for parser, sync, security, and module suites that need hard proof they did not drift into forbidden implementation lanes.
+
+Initial production defaults catch:
+
+- Live Firestore usage in QA harness code, except explicitly scoped Firebase emulator tests.
+- Google Vision, ML Kit, and camera controller implementation tokens inside parser QA lanes.
+- Generated build folders are skipped so scans stay focused on source and tests.
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:
