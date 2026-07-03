@@ -125,15 +125,87 @@ class ReceiptPhotoRetakeOrderPlan {
     if (!_receiptPhotoPathsAreUniqueAndNormalized(currentPhotoPaths)) {
       return false;
     }
-    final seenReplacementPaths = <String>{};
-    final currentPathSet = currentPhotoPaths.toSet();
-    for (final path in replacementPhotoPaths) {
-      final trimmed = path.trim();
-      if (trimmed.isEmpty || trimmed != path) return false;
-      if (!seenReplacementPaths.add(path)) return false;
-      if (currentPathSet.contains(path)) return false;
+    return _newReceiptPhotoPathsAreSafe(
+      currentPhotoPaths: currentPhotoPaths,
+      newPhotoPaths: replacementPhotoPaths,
+    );
+  }
+}
+
+class ReceiptPhotoInsertAfterOrderPlan {
+  const ReceiptPhotoInsertAfterOrderPlan._({
+    required this.photoPaths,
+    required this.selectedIndex,
+  });
+
+  final List<String> photoPaths;
+  final int selectedIndex;
+
+  static ReceiptPhotoInsertAfterOrderPlan? build({
+    required List<String> currentPhotoPaths,
+    required int anchorIndex,
+    required String anchorPhotoPath,
+    required List<String> insertedPhotoPaths,
+  }) {
+    if (insertedPhotoPaths.isEmpty) return null;
+    if (!_receiptPhotoPathsAreUniqueAndNormalized(currentPhotoPaths)) {
+      return null;
     }
-    return true;
+    if (!_newReceiptPhotoPathsAreSafe(
+      currentPhotoPaths: currentPhotoPaths,
+      newPhotoPaths: insertedPhotoPaths,
+    )) {
+      return null;
+    }
+    if (anchorIndex < 0 || anchorIndex >= currentPhotoPaths.length) {
+      return null;
+    }
+    if (currentPhotoPaths[anchorIndex] != anchorPhotoPath) return null;
+
+    final insertIndex = anchorIndex + 1;
+    final updatedPaths = List<String>.of(currentPhotoPaths)
+      ..insertAll(insertIndex, insertedPhotoPaths);
+    return ReceiptPhotoInsertAfterOrderPlan._(
+      photoPaths: List.unmodifiable(updatedPaths),
+      selectedIndex: insertIndex,
+    );
+  }
+}
+
+class ReceiptPhotoRemovalOrderPlan {
+  const ReceiptPhotoRemovalOrderPlan._({
+    required this.photoPaths,
+    required this.selectedIndex,
+    required this.removedPhotoPath,
+  });
+
+  final List<String> photoPaths;
+  final int selectedIndex;
+  final String removedPhotoPath;
+
+  static ReceiptPhotoRemovalOrderPlan? build({
+    required List<String> currentPhotoPaths,
+    required int targetIndex,
+    required String targetPhotoPath,
+  }) {
+    if (currentPhotoPaths.length <= 1) return null;
+    if (!_receiptPhotoPathsAreUniqueAndNormalized(currentPhotoPaths)) {
+      return null;
+    }
+    if (targetIndex < 0 || targetIndex >= currentPhotoPaths.length) {
+      return null;
+    }
+    if (currentPhotoPaths[targetIndex] != targetPhotoPath) return null;
+
+    final updatedPaths = List<String>.of(currentPhotoPaths)
+      ..removeAt(targetIndex);
+    return ReceiptPhotoRemovalOrderPlan._(
+      photoPaths: List.unmodifiable(updatedPaths),
+      selectedIndex: targetIndex >= updatedPaths.length
+          ? updatedPaths.length - 1
+          : targetIndex,
+      removedPhotoPath: targetPhotoPath,
+    );
   }
 }
 
@@ -143,6 +215,21 @@ bool _receiptPhotoPathsAreUniqueAndNormalized(List<String> photoPaths) {
     final trimmed = path.trim();
     if (trimmed.isEmpty || trimmed != path) return false;
     if (!seenPhotoPaths.add(path)) return false;
+  }
+  return true;
+}
+
+bool _newReceiptPhotoPathsAreSafe({
+  required List<String> currentPhotoPaths,
+  required List<String> newPhotoPaths,
+}) {
+  final seenNewPaths = <String>{};
+  final currentPathSet = currentPhotoPaths.toSet();
+  for (final path in newPhotoPaths) {
+    final trimmed = path.trim();
+    if (trimmed.isEmpty || trimmed != path) return false;
+    if (!seenNewPaths.add(path)) return false;
+    if (currentPathSet.contains(path)) return false;
   }
   return true;
 }

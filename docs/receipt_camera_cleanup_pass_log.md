@@ -24,6 +24,27 @@ Verification:
   rejects duplicate current section paths"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
 
+## Pass 518 - 01:31:00 EDT to 01:39:00 EDT
+
+Scope:
+- Hardened long-receipt add-photo ordering so continuation photos insert after
+  the same selected section slot that launched the camera, not the first
+  matching path after async return.
+- Hardened remove-photo ordering so confirmed removals delete the original
+  selected section slot and reject ambiguous duplicate or stale section paths.
+- Added insert/remove order plan regressions for duplicate current paths and
+  stale async anchors.
+- Recorded `BUG-RECEIPT-0036` under `multi_photo_ordering`.
+- Archived Pass 493 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for photo review ordering actions,
+  retake/order plans, and focused ordering regression coverage.
+- Passed full focused Flutter test `test/receipt_photo_review_retake_order_test.dart`.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 516 - 01:15:25 EDT to 01:16:19 EDT
 
 Scope:
@@ -472,25 +493,4 @@ Verification:
 - Passed focused Flutter test
   `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
   receipt review exposes classification and attachment flow"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 493 - 00:42:00 EDT to 00:47:00 EDT
-
-Scope:
-- Hardened receipt line split allocation math so parser/adaptor-created split
-  lines cannot produce more than 100% business or negative personal amounts.
-- Ensured serialized receipt line maps write bounded split percentages, keeping
-  saved records and downstream reports inside valid financial ranges.
-- Added regression coverage for malformed over- and under-allocated split
-  percentages.
-- Recorded `BUG-RECEIPT-0012` under `business_personal_split`.
-- Archived Pass 486 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for receipt line records,
-  serialization, and focused line-record regression coverage.
-- Passed focused Flutter regression
-  `test/expense_receipt_line_record_test.dart --plain-name "split receipt lines
-  bound malformed business percentages"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.

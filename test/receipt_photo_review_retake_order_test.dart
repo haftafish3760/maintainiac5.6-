@@ -140,6 +140,74 @@ void main() {
     expect(context, isNull);
   });
 
+  test('insert-after plan preserves the selected receipt section slot', () {
+    final plan = ReceiptPhotoInsertAfterOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'bottom.jpg'],
+      anchorIndex: 1,
+      anchorPhotoPath: 'middle.jpg',
+      insertedPhotoPaths: const ['middle-extra.jpg'],
+    );
+
+    expect(plan, isNotNull);
+    expect(plan!.selectedIndex, 2);
+    expect(plan.photoPaths, const [
+      'top.jpg',
+      'middle.jpg',
+      'middle-extra.jpg',
+      'bottom.jpg',
+    ]);
+  });
+
+  test(
+    'insert-after plan rejects ambiguous or stale receipt section anchors',
+    () {
+      final duplicatePlan = ReceiptPhotoInsertAfterOrderPlan.build(
+        currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'middle.jpg'],
+        anchorIndex: 1,
+        anchorPhotoPath: 'middle.jpg',
+        insertedPhotoPaths: const ['middle-extra.jpg'],
+      );
+      final stalePlan = ReceiptPhotoInsertAfterOrderPlan.build(
+        currentPhotoPaths: const ['top.jpg', 'changed.jpg', 'bottom.jpg'],
+        anchorIndex: 1,
+        anchorPhotoPath: 'middle.jpg',
+        insertedPhotoPaths: const ['middle-extra.jpg'],
+      );
+
+      expect(duplicatePlan, isNull);
+      expect(stalePlan, isNull);
+    },
+  );
+
+  test('remove plan removes the selected receipt section by stable slot', () {
+    final plan = ReceiptPhotoRemovalOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'bottom.jpg'],
+      targetIndex: 1,
+      targetPhotoPath: 'middle.jpg',
+    );
+
+    expect(plan, isNotNull);
+    expect(plan!.removedPhotoPath, 'middle.jpg');
+    expect(plan.selectedIndex, 1);
+    expect(plan.photoPaths, const ['top.jpg', 'bottom.jpg']);
+  });
+
+  test('remove plan rejects ambiguous or stale receipt section targets', () {
+    final duplicatePlan = ReceiptPhotoRemovalOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'middle.jpg'],
+      targetIndex: 1,
+      targetPhotoPath: 'middle.jpg',
+    );
+    final stalePlan = ReceiptPhotoRemovalOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'changed.jpg', 'bottom.jpg'],
+      targetIndex: 1,
+      targetPhotoPath: 'middle.jpg',
+    );
+
+    expect(duplicatePlan, isNull);
+    expect(stalePlan, isNull);
+  });
+
   test('retaking the top section uses the next section as context', () {
     final context = ReceiptPhotoRetakeAlignmentContext.build(
       currentPhotoPaths: const ['top-old.jpg', 'middle.jpg', 'bottom.jpg'],

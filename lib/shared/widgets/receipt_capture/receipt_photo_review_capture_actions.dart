@@ -17,6 +17,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
   }
 
   Future<void> addAnotherReceiptPhoto() async {
+    final guideIndex = _photoPaths.isEmpty ? -1 : _selectedIndex;
     final guidePhotoPath = _photoPaths.isEmpty
         ? null
         : _photoPaths[_selectedIndex];
@@ -24,14 +25,24 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       alignmentGuidePhotoPath: guidePhotoPath,
     );
     if (picked.paths.isEmpty || !_reviewWorkActive) return;
+    final insertPlan = guidePhotoPath == null
+        ? null
+        : ReceiptPhotoInsertAfterOrderPlan.build(
+            currentPhotoPaths: _photoPaths,
+            anchorIndex: guideIndex,
+            anchorPhotoPath: guidePhotoPath,
+            insertedPhotoPaths: picked.paths,
+          );
+    if (guidePhotoPath != null && insertPlan == null) return;
     _updateReviewState(() {
-      final guideIndex = guidePhotoPath == null
-          ? -1
-          : _photoPaths.indexOf(guidePhotoPath);
-      final insertIndex = guideIndex < 0
-          ? _photoPaths.length
-          : (guideIndex + 1).clamp(0, _photoPaths.length);
-      _photoPaths.insertAll(insertIndex, picked.paths);
+      final insertIndex = insertPlan?.selectedIndex ?? _photoPaths.length;
+      if (insertPlan == null) {
+        _photoPaths.addAll(picked.paths);
+      } else {
+        _photoPaths
+          ..clear()
+          ..addAll(insertPlan.photoPaths);
+      }
       _qualityChecksByPath.addAll(picked.qualityChecksByPath);
       _captureDiagnosticsByPath.addAll(picked.captureDiagnosticsByPath);
       _selectedIndex = insertIndex;

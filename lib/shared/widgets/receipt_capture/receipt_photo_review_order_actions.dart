@@ -3,25 +3,30 @@ part of 'receipt_photo_review_screen.dart';
 extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
   Future<void> removeCurrentReceiptPhoto() async {
     if (_photoPaths.length <= 1) return;
+    final targetIndex = _selectedIndex;
     final targetPhotoPath = _photoPaths[_selectedIndex];
     final targetPhotoNumber = _selectedIndex + 1;
     final confirmed = await _confirmRemoveCurrentPhoto(targetPhotoNumber);
     if (!_reviewWorkActive || !confirmed) return;
-    final removeIndex = _photoPaths.indexOf(targetPhotoPath);
-    if (removeIndex < 0 || _photoPaths.length <= 1) return;
+    final removalPlan = ReceiptPhotoRemovalOrderPlan.build(
+      currentPhotoPaths: _photoPaths,
+      targetIndex: targetIndex,
+      targetPhotoPath: targetPhotoPath,
+    );
+    if (removalPlan == null) return;
     String? removedGeneratedPath;
     Set<String> staleDataSaverPreviewPaths = const {};
     _updateReviewState(() {
-      _selectedIndex = removeIndex;
-      final removedPath = _photoPaths[_selectedIndex];
-      if (_generatedEditPaths.contains(removedPath)) {
-        removedGeneratedPath = removedPath;
+      if (_generatedEditPaths.contains(removalPlan.removedPhotoPath)) {
+        removedGeneratedPath = removalPlan.removedPhotoPath;
       }
-      staleDataSaverPreviewPaths = _removePhotoReviewCachesForPath(removedPath);
-      _photoPaths.removeAt(_selectedIndex);
-      if (_selectedIndex >= _photoPaths.length) {
-        _selectedIndex = _photoPaths.length - 1;
-      }
+      staleDataSaverPreviewPaths = _removePhotoReviewCachesForPath(
+        removalPlan.removedPhotoPath,
+      );
+      _photoPaths
+        ..clear()
+        ..addAll(removalPlan.photoPaths);
+      _selectedIndex = removalPlan.selectedIndex;
     });
     unawaited(_deleteStaleDataSaverPreviewFiles(staleDataSaverPreviewPaths));
     _recoverReviewAfterPhotoSetChanged();
