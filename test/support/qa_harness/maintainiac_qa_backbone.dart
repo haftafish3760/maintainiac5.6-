@@ -2,6 +2,7 @@ import 'maintainiac_qa_environment.dart';
 import 'maintainiac_qa_execution_manifest.dart';
 import 'maintainiac_qa_fingerprint.dart';
 import 'maintainiac_qa_fixtures.dart';
+import 'maintainiac_qa_checkpoint_policy.dart';
 import 'maintainiac_qa_quality_gates.dart';
 import 'maintainiac_qa_readiness.dart';
 import 'maintainiac_qa_run_ledger.dart';
@@ -179,10 +180,14 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         ),
       ],
     );
+    const checkpointPolicy = MaintainiacQaCheckpointPolicy();
+    for (final issue in checkpointPolicy.validate()) {
+      failures.add(_failure('checkpoint_policy_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 120,
+      checked: 126,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -200,6 +205,9 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'executionManifest': executionManifest.toJson(),
         'runLedger': runLedger.toJson(),
         'sourceFingerprint': fingerprint.toJson(),
+        'checkpointPolicy': {
+          'maxUnpushedMinutes': checkpointPolicy.maxUnpushedWork.inMinutes,
+        },
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

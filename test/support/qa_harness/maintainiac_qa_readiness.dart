@@ -170,6 +170,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_qa_fingerprint.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'checkpoint_policy',
+        module: MaintainiacQaModule.performance,
+        description:
+            'Reusable checkpoint policy formalizes milestone and thirty-minute GitHub backup pushes.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_qa_checkpoint_policy.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:
