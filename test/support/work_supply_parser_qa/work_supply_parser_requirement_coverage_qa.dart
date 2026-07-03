@@ -86,6 +86,7 @@ class WorkSupplyParserRequirementCoverageSuite extends QaSuite {
       'release-one cells',
       'missing/unsafe blockers',
       'active wave blockers',
+      'blocking waves',
       'active wave unsafe findings',
       'corrupt artifact blockers',
       'stale active wave blockers',

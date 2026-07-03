@@ -10,6 +10,14 @@ Write the Release 1 parser acceptance scorecard into the repo first, then wire a
 QA contract to enforce that the scorecard exists and remains current. That gives
 the project measurable release gates instead of vague "world-class" targets.
 
+Release 1 should not be treated as throwaway or knowingly subpar. Some companies
+ship weak first versions because they have large teams and support pipelines to
+absorb user pain. Maintainiac does not have that safety net yet, so Release 1
+must be as strong as reasonably possible before users rely on it for business
+records. That does not mean every possible inventory item is finished before
+release, but it does mean the supported scope must be honest, measured,
+review-safe, recoverable, and backed by regression tests.
+
 ## Release 1 Priority Scope
 
 Release 1 parser proof is focused on United States residential service work:
@@ -319,3 +327,9 @@ Recommended order:
 6. Expand barcode evidence/provenance tests.
 7. Add per-pack release-readiness scorecards.
 8. Continue catalog/parser expansion and run accumulated release-one waves.
+
+After QA hardening is complete, inventory catalog growth still continues. The
+QA backbone should make future item expansion safer by proving new Plumbing,
+Electrical, and HVAC items do not break existing aliases, merchant rules,
+Spanish packs, ambiguity behavior, barcode/correction evidence, pack delivery,
+or fake-user review workflows.

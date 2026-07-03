@@ -41,34 +41,36 @@ int runWorkSupplyParserQaNextAction(
   final commandCells = _commandCellIds(commands['commands']);
   final maxStatusAgeMs = _intValue(args, 'max-status-age-ms', 900000);
   final maxActiveCellMs = _intValue(args, 'max-active-cell-ms', 900000);
-  final activeWaves = _runningWaveStatuses(
+  final blockingWaves = _blockingWaveStatuses(
     _batchWaveRoot,
     now: DateTime.now().toUtc(),
     maxStatusAgeMs: maxStatusAgeMs,
     maxActiveCellMs: maxActiveCellMs,
   );
-  final activeUnsafe = _activeWaveUnsafeFindings(activeWaves);
-  final allUnsafe = [...unsafe, ...readErrors, ...activeUnsafe];
+  final waveUnsafe = _waveUnsafeFindings(blockingWaves);
+  final allUnsafe = [...unsafe, ...readErrors, ...waveUnsafe];
 
   final nextActions = <String>[
     if (missing.isNotEmpty)
       'Regenerate missing local artifacts before parser QA expansion.',
     if (allUnsafe.isNotEmpty)
       'Stop release progression and fix unsafe local-only evidence flags.',
-    if (activeWaves.isNotEmpty)
+    if (blockingWaves.any((wave) => wave['state'] == 'running'))
       'Wait for the active local-only parser QA wave to finish before launching another batch wave.',
+    if (blockingWaves.any((wave) => wave['state'] == 'failed'))
+      'Fix failed local parser QA wave evidence before launching another batch wave.',
     if (commandCells.isEmpty)
       'Regenerate release-one command manifest before launching batch waves.',
     if (missing.isEmpty &&
         allUnsafe.isEmpty &&
-        activeWaves.isEmpty &&
+        blockingWaves.isEmpty &&
         commandCells.isNotEmpty)
       'Start the next local-only residential parser QA batch wave.',
   ];
   final readyForNextBatch =
       missing.isEmpty &&
       allUnsafe.isEmpty &&
-      activeWaves.isEmpty &&
+      blockingWaves.isEmpty &&
       commandCells.isNotEmpty;
 
   final summary = {
@@ -77,13 +79,20 @@ int runWorkSupplyParserQaNextAction(
     'readyForNextBatch': readyForNextBatch,
     'releaseOneCellCount': commandCells.length,
     'sampleCells': commandCells.take(6).toList(),
-    'activeWaveCount': activeWaves.length,
-    'activeWaves': activeWaves,
+    'activeWaveCount': blockingWaves
+        .where((wave) => wave['state'] == 'running')
+        .length,
+    'activeWaves': [
+      for (final wave in blockingWaves)
+        if (wave['state'] == 'running') wave,
+    ],
+    'blockingWaveCount': blockingWaves.length,
+    'blockingWaves': blockingWaves,
     'maxStatusAgeMs': maxStatusAgeMs,
     'maxActiveCellMs': maxActiveCellMs,
     'missingArtifactNames': missing,
     'unsafeFindings': allUnsafe,
-    'activeWaveUnsafeFindings': activeUnsafe,
+    'activeWaveUnsafeFindings': waveUnsafe,
     'nextActions': nextActions,
     'liveServicesAllowed': false,
     'writesProductionCatalog': false,
@@ -140,7 +149,7 @@ List<String> _readErrorFinding(Map<String, Object?> json, String fallbackPath) {
   return ['jsonReadError:$path:$error'];
 }
 
-List<Map<String, Object?>> _runningWaveStatuses(
+List<Map<String, Object?>> _blockingWaveStatuses(
   String rootPath, {
   required DateTime now,
   required int maxStatusAgeMs,
@@ -148,15 +157,16 @@ List<Map<String, Object?>> _runningWaveStatuses(
 }) {
   final root = Directory(rootPath);
   if (!root.existsSync()) return const [];
-  final activeByQueue = <String, Map<String, Object?>>{};
+  final blockingByQueue = <String, Map<String, Object?>>{};
   for (final entity in _safeRecursiveList(root)) {
     if (entity is! File || !entity.path.endsWith('latest_status.json')) {
       continue;
     }
     final decoded = _readJson(entity.path);
     if (decoded['_readError'] != null) {
-      activeByQueue['read-error:${entity.path}'] = {
+      blockingByQueue['read-error:${entity.path}'] = {
         'path': entity.path,
+        'state': 'read_error',
         'queueId': '',
         'activeCellId': '',
         'completedCellCount': 0,
@@ -169,7 +179,11 @@ List<Map<String, Object?>> _runningWaveStatuses(
       };
       continue;
     }
-    if (decoded['state'] != 'running') continue;
+    final state = '${decoded['state'] ?? ''}';
+    final failedCellCount = _asInt(decoded['failedCellCount']) ?? 0;
+    if (state != 'running' && state != 'failed' && failedCellCount == 0) {
+      continue;
+    }
     final queueId = '${decoded['queueId'] ?? ''}';
     final key = queueId.isEmpty ? entity.path : queueId;
     final updatedAt = DateTime.tryParse('${decoded['updatedAtIso'] ?? ''}');
@@ -177,9 +191,9 @@ List<Map<String, Object?>> _runningWaveStatuses(
         ? null
         : now.difference(updatedAt.toUtc()).inMilliseconds;
     final activeCellElapsedMs = _asInt(decoded['activeCellElapsedMs']);
-    final failedCellCount = _asInt(decoded['failedCellCount']) ?? 0;
-    activeByQueue[key] = {
+    blockingByQueue[key] = {
       'path': entity.path,
+      'state': state,
       'queueId': queueId,
       'activeCellId': decoded['activeCellId'] ?? '',
       'completedCellCount': decoded['completedCellCount'] ?? 0,
@@ -188,21 +202,25 @@ List<Map<String, Object?>> _runningWaveStatuses(
       'updatedAtIso': decoded['updatedAtIso'] ?? '',
       'statusAgeMs': statusAgeMs,
       'activeCellElapsedMs': activeCellElapsedMs,
-      'statusStale': statusAgeMs == null || statusAgeMs > maxStatusAgeMs,
+      'statusStale':
+          state == 'running' &&
+          (statusAgeMs == null || statusAgeMs > maxStatusAgeMs),
       'activeCellStale':
-          activeCellElapsedMs != null && activeCellElapsedMs > maxActiveCellMs,
+          state == 'running' &&
+          activeCellElapsedMs != null &&
+          activeCellElapsedMs > maxActiveCellMs,
       'liveServicesAllowed': decoded['liveServicesAllowed'] ?? false,
       'writesProductionCatalog': decoded['writesProductionCatalog'] ?? false,
       'firebaseWritesAllowed': decoded['firebaseWritesAllowed'] ?? false,
       'ocrCameraExpensesTouched': decoded['ocrCameraExpensesTouched'] ?? false,
     };
   }
-  final active = activeByQueue.values.toList();
-  active.sort((a, b) => '${a['path']}'.compareTo('${b['path']}'));
-  return active;
+  final blocking = blockingByQueue.values.toList();
+  blocking.sort((a, b) => '${a['path']}'.compareTo('${b['path']}'));
+  return blocking;
 }
 
-List<String> _activeWaveUnsafeFindings(List<Map<String, Object?>> waves) {
+List<String> _waveUnsafeFindings(List<Map<String, Object?>> waves) {
   final findings = <String>[];
   const unsafeFlags = {
     'liveServicesAllowed',
@@ -229,7 +247,7 @@ List<String> _activeWaveUnsafeFindings(List<Map<String, Object?>> waves) {
       );
     }
     if (wave['hasFailedCells'] == true) {
-      findings.add('activeWaveFailedCells:$queueId:${wave['failedCellCount']}');
+      findings.add('waveFailedCells:$queueId:${wave['failedCellCount']}');
     }
   }
   findings.sort();
