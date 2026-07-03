@@ -24,6 +24,25 @@ Verification:
   rejects duplicate current section paths"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
 
+## Pass 527 - 01:56:00 EDT to 02:00:00 EDT
+
+Scope:
+- Hardened OCR parser line-id metadata maps so duplicate stable line IDs also
+  preserve the first role, parser bucket, expense family, parser hint, and
+  customer-proof visibility.
+- Extended duplicate-ID regression coverage across adjacent parser handoff and
+  customer-proof maps.
+- Recorded `BUG-RECEIPT-0045` under `receipt_line_numbering`.
+
+Verification:
+- Passed targeted Dart format and analyzer for parser handoff line maps,
+  customer-proof maps, and parser handoff structure regression coverage.
+- Passed focused Flutter test
+  `test/receipt_ocr_service_parser_handoff_structure_test.dart --plain-name
+  "parser handoff line id maps preserve first duplicate line id"`.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 526 - 01:50:00 EDT to 01:55:00 EDT
 
 Scope:
@@ -463,21 +482,3 @@ Verification:
   `test/receipt_camera_result_continuation_handoff_test.dart --plain-name "phone
   backup continuation survives blank native values"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 503 - 00:49:44 EDT to 00:50:56 EDT
-
-Scope:
-- Added focused guardrail coverage proving non-finite previous-section ghost
-  guide fractions fall back to safe receipt-camera defaults.
-- Kept this as QA hardening only because the current implementation already
-  rejects `NaN` and infinite values.
-- Archived Pass 490 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for native camera session limits.
-- Passed focused Flutter test
-  `test/receipt_native_camera_session_limits_test.dart --plain-name "session
-  rejects non-finite previous section ghost guide fractions"`.
-- Passed cleanup log gate, doc size gate, receipt source audit, and
-  `git diff --check`.

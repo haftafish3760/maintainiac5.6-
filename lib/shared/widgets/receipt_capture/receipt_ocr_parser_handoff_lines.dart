@@ -144,28 +144,38 @@ extension ReceiptOcrParserHandoffLineMaps on ReceiptOcrParserHandoff {
   }
 
   Map<String, String> get roleByLineId {
-    return Map<String, String>.unmodifiable({
-      for (final line in lines) line.stableLineId: line.roleLabel,
-    });
+    final mapped = <String, String>{};
+    for (final line in lines) {
+      mapped.putIfAbsent(line.stableLineId, () => line.roleLabel);
+    }
+    return Map<String, String>.unmodifiable(mapped);
   }
 
   Map<String, String> get parserBucketByLineId {
-    return Map<String, String>.unmodifiable({
-      for (final line in lines) line.stableLineId: line.parserBucketId,
-    });
+    final mapped = <String, String>{};
+    for (final line in lines) {
+      mapped.putIfAbsent(line.stableLineId, () => line.parserBucketId);
+    }
+    return Map<String, String>.unmodifiable(mapped);
   }
 
   Map<String, String> get expenseFamilyByLineId {
-    return Map<String, String>.unmodifiable({
-      for (final line in lines)
-        line.stableLineId: _receiptExpenseFamilyToken(line.expenseFamily),
-    });
+    final mapped = <String, String>{};
+    for (final line in lines) {
+      mapped.putIfAbsent(
+        line.stableLineId,
+        () => _receiptExpenseFamilyToken(line.expenseFamily),
+      );
+    }
+    return Map<String, String>.unmodifiable(mapped);
   }
 
   Map<String, String> get parserHintByLineId {
-    return Map<String, String>.unmodifiable({
-      for (final line in lines) line.stableLineId: line.parserHint,
-    });
+    final mapped = <String, String>{};
+    for (final line in lines) {
+      mapped.putIfAbsent(line.stableLineId, () => line.parserHint);
+    }
+    return Map<String, String>.unmodifiable(mapped);
   }
 
   List<ReceiptOcrParserLineDraft> get lineDrafts {

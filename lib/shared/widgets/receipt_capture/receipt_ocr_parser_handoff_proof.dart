@@ -2,10 +2,14 @@ part of '../../receipts/receipt_ocr_contract.dart';
 
 extension ReceiptOcrParserHandoffProofMaps on ReceiptOcrParserHandoff {
   Map<String, String> get customerProofDefaultVisibilityByLineId {
-    return Map<String, String>.unmodifiable({
-      for (final draft in lineDrafts)
-        draft.stableLineId: draft.customerProofDefaultVisibility,
-    });
+    final mapped = <String, String>{};
+    for (final draft in lineDrafts) {
+      mapped.putIfAbsent(
+        draft.stableLineId,
+        () => draft.customerProofDefaultVisibility,
+      );
+    }
+    return Map<String, String>.unmodifiable(mapped);
   }
 
   List<String> get customerProofReviewLineIds {

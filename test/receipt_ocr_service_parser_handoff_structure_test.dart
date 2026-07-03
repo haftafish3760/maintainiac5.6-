@@ -60,6 +60,8 @@ void main() {
       confidence: .9,
       traits: ['safe_terminal_line_amount'],
       sourceLocation: firstLocation,
+      expenseFamily: ReceiptOcrParserExpenseFamily.materials,
+      parserHint: 'first_material_hint',
     );
     const second = ReceiptOcrParserLineSignal(
       index: 2,
@@ -69,6 +71,8 @@ void main() {
       confidence: .9,
       traits: ['safe_terminal_line_amount'],
       sourceLocation: secondLocation,
+      expenseFamily: ReceiptOcrParserExpenseFamily.fuel,
+      parserHint: 'second_fuel_hint',
     );
     const handoff = ReceiptOcrParserHandoff(
       lines: [first, second],
@@ -91,6 +95,14 @@ void main() {
     expect(handoff.lineDraftsById[lineId]?.text, 'FIRST ITEM 2.99');
     expect(handoff.itemAmountsByLineId[lineId], 2.99);
     expect(handoff.itemTextByLineId[lineId], 'FIRST ITEM 2.99');
+    expect(handoff.roleByLineId[lineId], 'item');
+    expect(handoff.parserBucketByLineId[lineId], 'item_ready');
+    expect(handoff.expenseFamilyByLineId[lineId], 'materials');
+    expect(handoff.parserHintByLineId[lineId], 'first_material_hint');
+    expect(
+      handoff.customerProofDefaultVisibilityByLineId[lineId],
+      'review_for_customer_proof',
+    );
   });
 
   test('ocr parser handoff exposes ready item and summary structure', () {
