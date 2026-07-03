@@ -166,6 +166,39 @@ void main() {
     expect(attachment.readState, ReceiptAttachmentReadState.readIntoForm);
   });
 
+  test('receipt attachment storage ignores non-finite numeric metadata', () {
+    final restored = ReceiptAttachmentRecord.fromMap({
+      'id': 'bad-photo',
+      'path': '/tmp/bad-photo.jpg',
+      'kind': 'photo',
+      'dataSaverLevel': 'balanced',
+      'createdAt': DateTime(2026, 6, 13).toIso8601String(),
+      'byteSize': double.infinity,
+      'pageCount': double.nan,
+      'photoQualityScore': double.nan,
+      'photoWidth': double.infinity,
+      'photoHeight': double.negativeInfinity,
+      'photoBrightness': double.nan,
+      'photoContrast': double.infinity,
+      'photoFocusScore': double.negativeInfinity,
+      'photoCropScore': double.nan,
+      'photoTextBandScore': double.infinity,
+    });
+
+    expect(restored.byteSize, isNull);
+    expect(restored.pageCount, isNull);
+    expect(restored.photoQualityScore, isNull);
+    expect(restored.photoWidth, isNull);
+    expect(restored.photoHeight, isNull);
+    expect(restored.photoBrightness, isNull);
+    expect(restored.photoContrast, isNull);
+    expect(restored.photoFocusScore, isNull);
+    expect(restored.photoCropScore, isNull);
+    expect(restored.photoTextBandScore, isNull);
+    expect(restored.toMap().toString(), isNot(contains('NaN')));
+    expect(restored.toMap().toString(), isNot(contains('Infinity')));
+  });
+
   test(
     'imported text remains editable while original proof files stay locked',
     () {

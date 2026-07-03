@@ -53,9 +53,9 @@ class ReceiptAttachmentRecord {
       originalFileName: map['originalFileName'] as String? ?? '',
       mimeType: map['mimeType'] as String? ?? '',
       importedText: map['importedText'] as String? ?? '',
-      byteSize: (map['byteSize'] as num?)?.toInt(),
+      byteSize: _finiteInt(map['byteSize']),
       fileHash: map['fileHash'] as String? ?? '',
-      pageCount: (map['pageCount'] as num?)?.toInt(),
+      pageCount: _finiteInt(map['pageCount']),
       pageCountStatus: ReceiptPdfPageCountStatus.fromName(
         map['pageCountStatus'] as String?,
       ),
@@ -84,20 +84,20 @@ class ReceiptAttachmentRecord {
       readState: ReceiptAttachmentReadState.fromName(
         map['readState'] as String?,
       ),
-      photoQualityScore: (map['photoQualityScore'] as num?)?.toInt(),
+      photoQualityScore: _finiteInt(map['photoQualityScore']),
       photoQualityIssueLabel: map['photoQualityIssueLabel'] as String? ?? '',
       photoQualityWarnings:
           (map['photoQualityWarnings'] as List?)?.whereType<String>().toList(
             growable: false,
           ) ??
           const [],
-      photoWidth: (map['photoWidth'] as num?)?.toInt(),
-      photoHeight: (map['photoHeight'] as num?)?.toInt(),
-      photoBrightness: (map['photoBrightness'] as num?)?.toDouble(),
-      photoContrast: (map['photoContrast'] as num?)?.toDouble(),
-      photoFocusScore: (map['photoFocusScore'] as num?)?.toDouble(),
-      photoCropScore: (map['photoCropScore'] as num?)?.toDouble(),
-      photoTextBandScore: (map['photoTextBandScore'] as num?)?.toDouble(),
+      photoWidth: _finiteInt(map['photoWidth']),
+      photoHeight: _finiteInt(map['photoHeight']),
+      photoBrightness: _finiteDouble(map['photoBrightness']),
+      photoContrast: _finiteDouble(map['photoContrast']),
+      photoFocusScore: _finiteDouble(map['photoFocusScore']),
+      photoCropScore: _finiteDouble(map['photoCropScore']),
+      photoTextBandScore: _finiteDouble(map['photoTextBandScore']),
     );
   }
 
@@ -272,6 +272,16 @@ class ReceiptAttachmentRecord {
       readState: qualityReadState,
     );
   }
+}
+
+int? _finiteInt(Object? value) {
+  if (value is! num || !value.isFinite) return null;
+  return value.toInt();
+}
+
+double? _finiteDouble(Object? value) {
+  if (value is! num || !value.isFinite) return null;
+  return value.toDouble();
 }
 
 String _bottomGhostSliceHandoffInstruction({required String suffix}) {

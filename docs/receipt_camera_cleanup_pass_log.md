@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 552 - 05:51:59 EDT to 06:07:13 EDT
+
+Scope:
+- Hardened receipt attachment map restore so non-finite file, page, and photo
+  quality numbers cannot crash integer conversion or become fake camera
+  evidence.
+- Added metadata regression coverage proving `NaN` and infinity values are
+  ignored and never serialize back out.
+- Recorded `BUG-RECEIPT-0068` under `camera_capture_quality`.
+- Archived Pass 535 out of the live cleanup log.
+
+Verification:
+- Passed targeted Dart format and analyzer for receipt attachment records and
+  attachment metadata regression coverage.
+- Passed focused Flutter test `test/receipt_attachment_record_metadata_test.dart`.
+
 ## Pass 551 - 05:50:40 EDT to 05:53:10 EDT
 
 Scope:
@@ -213,23 +229,6 @@ Verification:
   `test/receipt_attachment_panel_recovery_contract_test.dart`.
 - Passed targeted format/analyzer, bug-ledger, log, doc-size, audit, and diff
   gates.
-
-## Pass 535 - 02:56:05 EDT to 03:01:00 EDT
-
-Scope:
-- Hardened expense receipt line map restore so non-finite numeric payloads do
-  not poison split percentages, totals, odometer values, or parser confidence.
-- Added regression coverage proving `NaN` and infinity inputs fall back to
-  finite receipt-line defaults and never serialize back out.
-- Recorded `BUG-RECEIPT-0053` under `business_personal_split`.
-- Archived Pass 510 to keep the active log under the line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for expense numeric helpers and line
-  record regression coverage.
-- Passed focused Flutter test for non-finite receipt line payloads.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
 
 ## Pass 536 - 02:59:48 EDT to 03:04:00 EDT
 
