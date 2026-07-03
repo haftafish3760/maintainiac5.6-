@@ -204,8 +204,9 @@ class MaintainiacModuleSuiteMatrix {
         module: MaintainiacQaModule.payments,
         label: 'Payments record QA',
         owner: 'maintainiac-qa',
-        status: MaintainiacModuleSuiteStatus.planned,
+        status: MaintainiacModuleSuiteStatus.executable,
         priority: MaintainiacQaCasePriority.standard,
+        command: 'flutter test test/maintainiac_payment_contract_test.dart',
         behaviors: [
           'Payments never store card numbers.',
           'Payment records link to invoices without mutating source totals.',

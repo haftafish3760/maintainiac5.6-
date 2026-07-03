@@ -250,6 +250,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_schedule_contract.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'payment_contract',
+        module: MaintainiacQaModule.payments,
+        description:
+            'Reusable payment contract validates audited payment/refund records, invoice links, card privacy, deterministic ledger effects, and read-only invoice source totals.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_payment_contract.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:
@@ -281,7 +289,7 @@ class MaintainiacQaReadinessLedger {
         status: MaintainiacQaReadinessStatus.partial,
         evidence: ['maintainiac_module_suite_contract.dart'],
         gaps: [
-          'Jobs and payments suites are scaffolded/planned and need dedicated executable tests.',
+          'Jobs suite is scaffolded and needs dedicated executable tests.',
         ],
       ),
     ]);

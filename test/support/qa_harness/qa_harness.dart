@@ -29,6 +29,7 @@ export 'maintainiac_module_suite_contract.dart';
 export 'maintainiac_mutation_guard.dart';
 export 'maintainiac_parser_candidate_contract.dart';
 export 'maintainiac_parser_fixture_manifest.dart';
+export 'maintainiac_payment_contract.dart';
 export 'maintainiac_pricing_contract.dart';
 export 'maintainiac_source_boundary.dart';
 export 'maintainiac_sync_conflict_contract.dart';

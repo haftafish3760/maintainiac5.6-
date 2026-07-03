@@ -16,31 +16,26 @@ void main() {
     expect(matrix.toJson().toString(), contains('suite_payments'));
   });
 
-  test(
-    'module suite matrix distinguishes executable scaffolded and planned work',
-    () {
-      final matrix = MaintainiacModuleSuiteMatrix.releaseOnePlan();
+  test('module suite matrix distinguishes executable and scaffolded work', () {
+    final matrix = MaintainiacModuleSuiteMatrix.releaseOnePlan();
 
-      expect(
-        matrix.suites.where(
-          (suite) => suite.status == MaintainiacModuleSuiteStatus.executable,
-        ),
-        isNotEmpty,
-      );
-      expect(
-        matrix.suites.where(
-          (suite) => suite.status == MaintainiacModuleSuiteStatus.scaffolded,
-        ),
-        isNotEmpty,
-      );
-      expect(
-        matrix.suites.where(
-          (suite) => suite.status == MaintainiacModuleSuiteStatus.planned,
-        ),
-        isNotEmpty,
-      );
-    },
-  );
+    expect(
+      matrix.suites.where(
+        (suite) => suite.status == MaintainiacModuleSuiteStatus.executable,
+      ),
+      isNotEmpty,
+    );
+    expect(
+      matrix.suites.where(
+        (suite) => suite.status == MaintainiacModuleSuiteStatus.scaffolded,
+      ),
+      isNotEmpty,
+    );
+    expect(
+      matrix.executableCommands(),
+      contains('flutter test test/maintainiac_payment_contract_test.dart'),
+    );
+  });
 
   test('module suite matrix rejects unsafe or unlabeled suites', () {
     const matrix = MaintainiacModuleSuiteMatrix([

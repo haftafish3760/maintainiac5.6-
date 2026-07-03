@@ -17,6 +17,7 @@ import 'maintainiac_sync_conflict_contract.dart';
 import 'maintainiac_pricing_contract.dart';
 import 'maintainiac_module_suite_contract.dart';
 import 'maintainiac_schedule_contract.dart';
+import 'maintainiac_payment_contract.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
@@ -367,10 +368,24 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in schedule.validate()) {
       failures.add(_failure('schedule_contract_$issue', issue));
     }
+    const payments = MaintainiacPaymentContract([
+      MaintainiacPaymentRecord(
+        id: 'seed_payment',
+        kind: MaintainiacPaymentKind.payment,
+        accountId: 'acct_1',
+        invoiceId: 'invoice_seed',
+        amountCents: 10000,
+        method: 'cash',
+        auditId: 'AUD-SEED-PAY',
+      ),
+    ]);
+    for (final issue in payments.validate()) {
+      failures.add(_failure('payment_contract_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 216,
+      checked: 226,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -400,6 +415,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'pricingContract': pricing.toJson(),
         'moduleSuiteMatrix': moduleSuites.toJson(),
         'scheduleContract': schedule.toJson(),
+        'paymentContract': payments.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

@@ -213,6 +213,7 @@ The backbone includes a release gate plan:
 - Proves pricing math for estimates/invoices/jobs: integer-cent subtotals, tax allocation, discounts, markups, total balancing, and read-only source pricing behavior.
 - Tracks module suite coverage with executable, scaffolded, and planned suite contracts for inventory, expenses, jobs, estimates, invoices, calendar, maintenance, fleet, exports, and payments.
 - Validates schedule and reminder behavior with UTC storage, audit IDs for job scheduling, maintenance vehicle scoping, notification permission behavior, overlap detection, and non-mutating derived reminders.
+- Validates payment records with audit IDs, invoice links, no full card storage, deterministic payment/refund ledger effects, and read-only invoice source totals.
 
 Print the release gate with:
 
