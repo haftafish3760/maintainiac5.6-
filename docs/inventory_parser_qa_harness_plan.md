@@ -877,7 +877,11 @@ Core and Standard should be strongest first. Professional and Complete can expan
 
 Do not remove a debt ID from this ledger just to make quick runs look clean. Either fix the underlying parser contract, update the related suite expectation with evidence, or replace the ID with a more accurate debt record. Exit condition for every row: the related quick/full/release suite no longer reports the ID, and a focused regression run proves the intended replacement behavior.
 
-No quick-profile known debt is currently accepted. Add a debt row only when a focused suite proves the remaining issue and the exit condition is explicit.
+| Debt ID | Scope | Impact | Exit condition |
+| --- | --- | --- | --- |
+| `repair_kit_runtime_fixture_validation_pending` | full-profile parser runtime evidence | Six Plumbing Core repair-kit golden fixtures are statically covered and semantically tied to catalog candidates, but the Windows full runtime parser fixture shard timed out before proving those exact lines. | Run a focused parser fixture shard on the Mac/faster harness, prove the six repair-kit fixture lines pass with 0 failures, and record the evidence before removing this debt ID. |
+
+No quick-profile known debt is currently accepted. Add a quick-profile debt row only when a focused suite proves the remaining issue and the exit condition is explicit.
 ## Latest Inventory QA Pass Notes
 
 - **01:03 Harness Pass 501:** Added `tool/work_supply_catalog_item_batch_status.dart` plus focused tests so catalog blueprint item batches can be inspected for present/missing/unsafe cells, generated item counts, manual-review status, and resume commands without running parser tests or writing production catalog files. Formatter and analyzer were clean, `test/work_supply_catalog_item_batch_status_test.dart` passed 3/3, and focused `inventory.catalog_item_batch_generation_contract,qa.threshold_gate` passed with 57 checks, 0 failures. Generated `build/parser_qa_pipeline/item_batch_status.json`, which reported 24 expected residential catalog blueprint cells, 0 present, 24 missing, 0 unsafe, and local-only safety flags false.

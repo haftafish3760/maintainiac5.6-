@@ -2571,6 +2571,12 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated requirement coverage:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.requirement_coverage,qa.threshold_gate`
   passed 109 checks with 0 failures.
+- Added `repair_kit_runtime_fixture_validation_pending` to the known-debt
+  ledger as full-profile runtime evidence debt, with an exit condition requiring
+  a focused Mac/faster-harness parser fixture shard for the six repair-kit lines.
+- Validated the known-debt ledger:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.known_debt_ledger,qa.threshold_gate`
+  passed 13 checks with 0 failures.
 
 Named release gates:
 
