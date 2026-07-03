@@ -187,12 +187,12 @@ class ReceiptNativeCameraCapabilities {
 
   static int _intValue(Object? value) {
     if (value is int) return value;
-    if (value is num) return value.round();
+    if (value is num && value.isFinite) return value.round();
     return 0;
   }
 
   static double _doubleValue(Object? value, {double fallback = 0}) {
-    if (value is num) return value.toDouble();
+    if (value is num && value.isFinite) return value.toDouble();
     return fallback;
   }
 }

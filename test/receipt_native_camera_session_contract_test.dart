@@ -189,6 +189,31 @@ void main() {
     expect(config.shadowReductionEnabled, isTrue);
   });
 
+  test('native capabilities reject non-finite platform numbers', () {
+    final native = ReceiptNativeCameraCapabilities.fromMap({
+      'engine': 'cameraX',
+      'available': true,
+      'cameraPermissionGranted': true,
+      'hasRearCamera': true,
+      'cameraCount': double.infinity,
+      'minZoom': double.nan,
+      'maxZoom': double.infinity,
+      'minExposureOffset': double.negativeInfinity,
+      'maxExposureOffset': double.nan,
+      'maxStillWidth': double.infinity,
+      'maxStillHeight': double.nan,
+    });
+
+    expect(native.canOpenReceiptCamera, isTrue);
+    expect(native.cameraCount, 0);
+    expect(native.minZoom, 1);
+    expect(native.maxZoom, 1);
+    expect(native.minExposureOffset, 0);
+    expect(native.maxExposureOffset, 0);
+    expect(native.maxStillWidth, 0);
+    expect(native.maxStillHeight, 0);
+  });
+
   test(
     'session does not send fake camera controls when native lacks support',
     () {

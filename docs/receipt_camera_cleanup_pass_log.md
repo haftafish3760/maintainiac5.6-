@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 511 - 01:03:26 EDT to 01:04:01 EDT
+
+Scope:
+- Hardened native camera capability parsing so malformed platform numbers cannot
+  become fake camera counts, zoom ranges, exposure ranges, or still sizes.
+- Added direct unit regression coverage for non-finite capability values.
+- Recorded `BUG-RECEIPT-0029` under `native_bridge`.
+- Archived Pass 474 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for the native camera contract and
+  native camera session contract regression coverage.
+- Passed focused Flutter test
+  `test/receipt_native_camera_session_contract_test.dart --plain-name "native
+  capabilities reject non-finite platform numbers"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 510 - 01:02:14 EDT to 01:02:52 EDT
 
 Scope:
@@ -461,22 +479,5 @@ Verification:
 - Passed targeted format and analyzer for the quality model and guidance tests.
 - Passed focused Flutter tests for receipt camera quality guidance and result
   quality.
-- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
-  `--max-line-length=220`, and targeted `git diff --check`.
-
-## Pass 474 - 20:29:58 EDT to 20:31:22 EDT
-
-Scope:
-- Added `docs/expense_codex_b_handoff.md` as the dedicated instruction manual
-  for the second Codex worker on the expense app lane.
-- Linked the Codex B handoff from `README.md` and the expense release-one
-  blueprint.
-- Extended the expense blueprint guard so it protects the handoff link, branch
-  name, owned expense paths, forbidden camera/shared-receipt paths, contract
-  integration branch, and bug-to-regression rule.
-
-Verification:
-- Passed targeted format, analyzer, and focused Flutter test for the expense
-  blueprint/handoff guard.
 - Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
   `--max-line-length=220`, and targeted `git diff --check`.
