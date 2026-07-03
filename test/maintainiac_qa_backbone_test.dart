@@ -135,6 +135,10 @@ void main() {
       contains('firestore_mirror_read_only_truth'),
     );
     expect(
+      report.results.single.metrics['mutationGuardMatrix'].toString(),
+      contains('export_mutating_expenses_blocked'),
+    );
+    expect(
       report.results.single.metrics['financialFormulaRegistry'].toString(),
       contains('invoice_grand_total_cents'),
     );

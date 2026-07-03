@@ -63,4 +63,46 @@ void main() {
       'confirm_expense wrote disallowed source collection inventory',
     ]);
   });
+
+  test('mutation guard matrix captures clean and failing side effects', () {
+    const matrix = maintainiacMutationGuardMatrix;
+
+    expect(matrix.validate(), isEmpty);
+    expect(
+      matrix.toJson().toString(),
+      contains('recap_writes_only_derived_outputs'),
+    );
+    expect(
+      matrix.toJson().toString(),
+      contains('export_mutating_expenses_blocked'),
+    );
+  });
+
+  test('mutation guard matrix rejects mismatched expectations', () {
+    const matrix = MaintainiacMutationGuardMatrix([
+      MaintainiacMutationGuardCase(
+        id: 'bad',
+        operation: '',
+        writeTargets: {'accounts/acct_1/expenses/expense_1'},
+        allowedSourceCollections: {'expenses'},
+        derivedOnly: true,
+        expectedFailures: {},
+        reason: '',
+      ),
+    ]);
+
+    final failures = matrix.validate().join('\n');
+
+    expect(failures, contains('bad missing operation'));
+    expect(failures, contains('bad missing reason'));
+    expect(
+      failures,
+      contains('bad expected failures do not match actual failures'),
+    );
+    expect(
+      failures,
+      contains('bad derived-only case must not allow source collections'),
+    );
+    expect(failures, contains('mutation guard matrix missing failing case'));
+  });
 }
