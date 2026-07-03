@@ -2423,6 +2423,12 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the Core/Standard priority floor gate:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_pack_balance,qa.threshold_gate`
   passed 38 checks with 0 failures.
+- Tightened Spanish release-one QA with its own Core/Standard sweep floors for
+  Plumbing, Electrical, and HVAC so es-US cannot claim readiness if it stops
+  checking the priority residential cells.
+- Validated the Spanish Core/Standard sweep-floor gate:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.spanish_release_one,qa.threshold_gate`
+  passed 101847 checks with 0 failures.
 
 Named release gates:
 

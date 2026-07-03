@@ -10,6 +10,11 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
     : super('inventory.spanish_release_one');
 
   static const _priorityTrades = {'Plumbing', 'Electrical', 'HVAC'};
+  static const _minimumCoreStandardRows = {
+    'Plumbing': _TierFloor(core: 1500, standard: 500),
+    'Electrical': _TierFloor(core: 500, standard: 500),
+    'HVAC': _TierFloor(core: 500, standard: 500),
+  };
   static const _spanishSignalTokens = {
     'adaptador',
     'acople',
@@ -106,6 +111,7 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
     final timer = QaStopwatch.start();
     final failures = <QaFailure>[];
     final warningsByTradeTier = <String, int>{};
+    final rowsByTradeTier = <String, int>{};
     final missingSignalCounts = <String, int>{};
     final missingFamilyCounts = <String, int>{};
     final localeTermText = _localeTermSourceText();
@@ -113,6 +119,7 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
 
     for (final item in _releaseOneItems()) {
       checked += 6;
+      _increment(rowsByTradeTier, '${item.trade}.${item.packTier.name}');
       final missing = _missingSpanishSignals(item, localeTermText);
       for (final signal in missing) {
         _increment(missingSignalCounts, signal);
@@ -135,6 +142,8 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
         ),
       );
     }
+    checked += _priorityTrades.length * 2;
+    _requireCoverageFloors(failures, rowsByTradeTier);
     checked += _spanishServiceFamilySignals.values.fold<int>(
       0,
       (total, signals) => total + signals.length,
@@ -154,6 +163,11 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
         'scope':
             'Residential Plumbing, Electrical, and HVAC Core/Standard rows for es-US release-one readiness.',
         'localeTermSourcePresent': localeTermText.isNotEmpty,
+        'rowsByTradeTier': rowsByTradeTier,
+        'minimumCoreStandardRows': _minimumCoreStandardRows.map(
+          (trade, floor) =>
+              MapEntry(trade, {'core': floor.core, 'standard': floor.standard}),
+        ),
         'warningsByTradeTier': _topCounts(warningsByTradeTier),
         'topMissingSpanishSignals': _topCounts(missingSignalCounts),
         'topMissingSpanishFamilySignals': _topCounts(missingFamilyCounts),
@@ -240,6 +254,58 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
       }
     }
   }
+
+  void _requireCoverageFloors(
+    List<QaFailure> failures,
+    Map<String, int> rowsByTradeTier,
+  ) {
+    for (final entry in _minimumCoreStandardRows.entries) {
+      final trade = entry.key;
+      final floor = entry.value;
+      final core = rowsByTradeTier['$trade.core'] ?? 0;
+      final standard = rowsByTradeTier['$trade.standard'] ?? 0;
+      if (core < floor.core) {
+        failures.add(
+          _coverageFloorFailure(
+            trade: trade,
+            tier: 'core',
+            expected: floor.core,
+            actual: core,
+          ),
+        );
+      }
+      if (standard < floor.standard) {
+        failures.add(
+          _coverageFloorFailure(
+            trade: trade,
+            tier: 'standard',
+            expected: floor.standard,
+            actual: standard,
+          ),
+        );
+      }
+    }
+  }
+
+  QaFailure _coverageFloorFailure({
+    required String trade,
+    required String tier,
+    required int expected,
+    required int actual,
+  }) {
+    return QaFailure(
+      suite: name,
+      id: 'spanish_release_one_${tier}_floor:${trade.toLowerCase()}',
+      message:
+          'Spanish release-one QA did not sweep enough priority Core/Standard rows.',
+      severity: QaSeverity.warning,
+      expected: '$trade $tier rows >= $expected',
+      actual: '$actual rows',
+      suggestedFix:
+          'Keep es-US release-one QA aligned with the priority Plumbing/Electrical/HVAC Core and Standard catalog floors.',
+      metadata: const {'triageCategory': QaFailureTriage.locale},
+    );
+  }
 }
 
 String _localeTermSourceText() {
@@ -279,4 +345,11 @@ List<Map<String, Object?>> _topCounts(
     for (final entry in entries.take(limit))
       {'name': entry.key, 'count': entry.value},
   ];
+}
+
+class _TierFloor {
+  const _TierFloor({required this.core, required this.standard});
+
+  final int core;
+  final int standard;
 }
