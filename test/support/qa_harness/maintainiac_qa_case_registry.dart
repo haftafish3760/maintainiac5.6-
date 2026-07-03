@@ -204,12 +204,26 @@ class MaintainiacQaCaseRegistry {
     ];
   }
 
+  List<String> commandPlanFor(MaintainiacQaCasePriority priority) {
+    final commands = <String>[];
+    for (final qaCase in byPriority(priority)) {
+      if (qaCase.testCommand.isNotEmpty &&
+          !commands.contains(qaCase.testCommand)) {
+        commands.add(qaCase.testCommand);
+      }
+    }
+    return commands;
+  }
+
   Map<String, Object?> toJson() {
     return {
       'caseCount': cases.length,
       'releaseBlockerCount': byPriority(
         MaintainiacQaCasePriority.releaseBlocker,
       ).length,
+      'releaseBlockerCommands': commandPlanFor(
+        MaintainiacQaCasePriority.releaseBlocker,
+      ),
       'cases': [for (final qaCase in cases) qaCase.toJson()],
     };
   }

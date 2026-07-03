@@ -20,6 +20,10 @@ void main() {
     expect(registry.toJson().toString(), contains('QA-MUTATION-001'));
     expect(registry.toJson().toString(), contains('QA-FAILURE-001'));
     expect(registry.toJson().toString(), contains('hive-source-of-truth'));
+    expect(
+      registry.commandPlanFor(MaintainiacQaCasePriority.releaseBlocker),
+      contains('flutter test test/maintainiac_qa_backbone_test.dart'),
+    );
   });
 
   test('QA case registry rejects duplicate and unlabeled cases', () {
