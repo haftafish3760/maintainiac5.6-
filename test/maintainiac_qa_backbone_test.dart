@@ -199,6 +199,10 @@ void main() {
       contains('production_dart_modularity'),
     );
     expect(
+      report.results.single.metrics['sourceAuditDebtLedger'].toString(),
+      contains('receipt_ocr_service.dart'),
+    );
+    expect(
       report.results.single.metrics['syncTransportPolicy'].toString(),
       contains('manual_roaming_blocked'),
     );

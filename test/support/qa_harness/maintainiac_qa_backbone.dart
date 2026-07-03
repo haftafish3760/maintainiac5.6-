@@ -461,6 +461,9 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacSourceAuditPolicy.validate()) {
       failures.add(_failure('source_audit_policy_$issue', issue));
     }
+    for (final issue in maintainiacSourceAuditDebtLedger.validate()) {
+      failures.add(_failure('source_audit_debt_ledger_$issue', issue));
+    }
     for (final issue in maintainiacDerivedOutputContract.validate()) {
       failures.add(_failure('derived_output_contract_$issue', issue));
     }
@@ -497,7 +500,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: 816,
+      checked: 836,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -555,6 +558,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'operatingDirectiveContract': maintainiacOperatingDirectiveContract
             .toJson(),
         'sourceAuditPolicy': maintainiacSourceAuditPolicy.toJson(),
+        'sourceAuditDebtLedger': maintainiacSourceAuditDebtLedger.toJson(),
         'derivedOutputContract': maintainiacDerivedOutputContract.toJson(),
         'financialFormulaRegistry': maintainiacFinancialFormulaRegistry
             .toJson(),

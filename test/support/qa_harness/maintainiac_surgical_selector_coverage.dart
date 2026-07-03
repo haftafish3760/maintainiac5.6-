@@ -161,6 +161,13 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_source_audit_policy_test.dart',
+      plainNames: {
+        'source audit policy separates production and QA line caps',
+        'source audit debt ledger tracks current oversized production files',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_backbone_test.dart',
       plainNames: {'main Maintainiac QA backbone covers whole app modules'},
     ),

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'dart:io';
 
 import 'support/qa_harness/qa_harness.dart';
 
@@ -53,4 +54,37 @@ void main() {
     expect(failures, contains('bad missing reason'));
     expect(failures, contains('source audit policy missing scope qaHarness'));
   });
+
+  test(
+    'source audit debt ledger tracks current oversized production files',
+    () {
+      final oversizedPaths = <String>{};
+      for (final file in Directory('lib').listSync(recursive: true)) {
+        if (file is! File || !file.path.endsWith('.dart')) continue;
+        final relative = file.path
+            .replaceFirst(
+              '${Directory.current.path}${Platform.pathSeparator}',
+              '',
+            )
+            .replaceAll('\\', '/');
+        final rule = maintainiacSourceAuditPolicy.ruleFor(relative);
+        if (rule == null) continue;
+        final lineCount = file.readAsLinesSync().length;
+        if (lineCount > rule.hardMaxLines) {
+          oversizedPaths.add(relative);
+        }
+      }
+
+      expect(
+        maintainiacSourceAuditDebtLedger.validate(
+          actualOversizedPaths: oversizedPaths,
+        ),
+        isEmpty,
+      );
+      expect(
+        maintainiacSourceAuditDebtLedger.toJson().toString(),
+        contains('work_supply_receipt_parser.dart'),
+      );
+    },
+  );
 }

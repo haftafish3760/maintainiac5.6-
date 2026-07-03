@@ -109,6 +109,74 @@ class MaintainiacSourceAuditPolicy {
   }
 }
 
+class MaintainiacSourceAuditDebt {
+  const MaintainiacSourceAuditDebt({
+    required this.path,
+    required this.owner,
+    required this.reason,
+    required this.splitPlan,
+    required this.targetMaxLines,
+  });
+
+  final String path;
+  final String owner;
+  final String reason;
+  final String splitPlan;
+  final int targetMaxLines;
+
+  List<String> validate() {
+    final failures = <String>[];
+    if (path.trim().isEmpty) failures.add('source debt missing path');
+    if (owner.trim().isEmpty) failures.add('$path missing owner');
+    if (reason.trim().isEmpty) failures.add('$path missing reason');
+    if (splitPlan.trim().isEmpty) failures.add('$path missing split plan');
+    if (targetMaxLines <= 0 || targetMaxLines > 1000) {
+      failures.add('$path target max lines must be 1..1000');
+    }
+    return failures;
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'path': path,
+      'owner': owner,
+      'reason': reason,
+      'splitPlan': splitPlan,
+      'targetMaxLines': targetMaxLines,
+    };
+  }
+}
+
+class MaintainiacSourceAuditDebtLedger {
+  const MaintainiacSourceAuditDebtLedger(this.debts);
+
+  final List<MaintainiacSourceAuditDebt> debts;
+
+  List<String> validate({Set<String> actualOversizedPaths = const {}}) {
+    final failures = <String>[];
+    final paths = <String>{};
+    for (final debt in debts) {
+      if (!paths.add(_normalizePath(debt.path))) {
+        failures.add('duplicate source debt ${debt.path}');
+      }
+      failures.addAll(debt.validate());
+    }
+    for (final path in actualOversizedPaths.map(_normalizePath)) {
+      if (!paths.contains(path)) {
+        failures.add('oversized production file missing debt entry $path');
+      }
+    }
+    return failures;
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'debtCount': debts.length,
+      'debts': [for (final debt in debts) debt.toJson()],
+    };
+  }
+}
+
 const maintainiacSourceAuditPolicy = MaintainiacSourceAuditPolicy([
   MaintainiacSourceAuditRule(
     id: 'production_dart_modularity',
@@ -147,3 +215,111 @@ const maintainiacSourceAuditPolicy = MaintainiacSourceAuditPolicy([
         'QA plans can be long-form docs, but very large docs should be split by topic.',
   ),
 ]);
+
+const maintainiacSourceAuditDebtLedger = MaintainiacSourceAuditDebtLedger([
+  MaintainiacSourceAuditDebt(
+    path: 'lib/screens/work_supplies/data/work_supply_receipt_parser.dart',
+    owner: 'inventory_parser',
+    reason: 'Legacy generated parser surface is over the production cap.',
+    splitPlan: 'Split parser stages, token maps, and scoring helpers.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path:
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
+    owner: 'receipt_camera',
+    reason: 'Camera review controls need modular extraction.',
+    splitPlan: 'Split controls, actions, preview, and state adapters.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path:
+        'lib/screens/work_supplies/data/work_supply_receipt_parser_trade_scores_core.dart',
+    owner: 'inventory_parser',
+    reason: 'Trade score generated data exceeds app file cap.',
+    splitPlan: 'Shard generated trade score tables by family.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path: 'lib/screens/expenses/data/expense_screen_telemetry.dart',
+    owner: 'expenses',
+    reason: 'Expense telemetry helper is too broad.',
+    splitPlan: 'Split event schema, redaction, counters, and summaries.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path: 'lib/shared/widgets/receipt_capture/receipt_image_processor.dart',
+    owner: 'receipt_camera',
+    reason: 'Image processing implementation is over the production cap.',
+    splitPlan: 'Split transforms, validation, persistence, and diagnostics.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path:
+        'lib/screens/work_supplies/data/work_supply_receipt_parser_trade_scores_finishes.dart',
+    owner: 'inventory_parser',
+    reason: 'Generated finish scoring data exceeds app file cap.',
+    splitPlan: 'Shard finish score data by material and surface family.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path: 'lib/screens/expenses/entry/expense_receipt_entry_screen.dart',
+    owner: 'expenses',
+    reason: 'Expense receipt entry screen needs smaller view components.',
+    splitPlan: 'Split layout sections, actions, and review summaries.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path: 'lib/screens/invoices/data/invoice_pdf_template_renderer.dart',
+    owner: 'invoices',
+    reason: 'Invoice PDF renderer needs template module split.',
+    splitPlan: 'Split header, line items, totals, and rendering utilities.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path: 'lib/screens/expenses/data/expense_receipt_parser_logic.dart',
+    owner: 'expenses',
+    reason: 'Expense parser logic needs staged parser modules.',
+    splitPlan: 'Split normalization, extraction, categorization, and review.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path: 'lib/shared/widgets/receipt_capture/receipt_capture_models.dart',
+    owner: 'receipt_camera',
+    reason: 'Receipt capture model file exceeds app file cap.',
+    splitPlan: 'Split source, derived artifact, review, and queue models.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path: 'lib/shared/widgets/receipt_capture/receipt_ocr_service.dart',
+    owner: 'receipt_camera',
+    reason: 'OCR service file exceeds app file cap.',
+    splitPlan:
+        'Split provider contracts, local adapter, cloud adapter, and errors.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path:
+        'lib/screens/work_supplies/data/work_supply_receipt_parser_trade_scores_exterior.dart',
+    owner: 'inventory_parser',
+    reason: 'Generated exterior score data exceeds app file cap.',
+    splitPlan: 'Shard exterior score data by family.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path: 'lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart',
+    owner: 'receipt_camera',
+    reason: 'Receipt review screen needs component extraction.',
+    splitPlan: 'Split preview, controls, warnings, and navigation surfaces.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path: 'lib/screens/expenses/entry/expense_receipt_entry_state_actions.dart',
+    owner: 'expenses',
+    reason: 'Expense entry actions file exceeds app file cap.',
+    splitPlan: 'Split draft, save, review, parser, and sync actions.',
+    targetMaxLines: 1000,
+  ),
+]);
+
+String _normalizePath(String path) => path.replaceAll('\\', '/');

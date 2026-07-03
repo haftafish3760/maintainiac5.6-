@@ -379,6 +379,24 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'quality-gate', 'release-gate', 'regression', 'security'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'source_audit_line_caps',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_source_audit_policy_test.dart',
+    plainName: 'source audit policy separates production and QA line caps',
+    reason: 'Run only the source-audit line-cap policy after audit edits.',
+    tags: {'source-audit', 'quality-gate', 'modularity', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'source_audit_debt_ledger',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_source_audit_policy_test.dart',
+    plainName:
+        'source audit debt ledger tracks current oversized production files',
+    reason:
+        'Run only the source-audit debt scan after line-count debt changes.',
+    tags: {'source-audit', 'quality-gate', 'modularity', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'main_backbone_parser_visibility',
     scope: MaintainiacSurgicalTestScope.releaseGate,
     file: 'test/maintainiac_qa_backbone_test.dart',

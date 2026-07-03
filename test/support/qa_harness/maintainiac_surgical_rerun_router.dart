@@ -66,6 +66,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_payment_contract.dart',
       'maintainiac_operating_directive_contract.dart',
       'maintainiac_qa_quality_gates.dart',
+      'maintainiac_source_audit_policy.dart',
     }) {
       if (!rules.any((rule) => rule.changedPathContains == required)) {
         failures.add('missing rerun rule for $required');
@@ -225,6 +226,17 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Quality gate changes need release-dimension, negative, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'source_audit_policy_changed',
+      changedPathContains: 'maintainiac_source_audit_policy.dart',
+      selectorIds: {
+        'source_audit_line_caps',
+        'source_audit_debt_ledger',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Source audit changes need line-cap, known-debt, and backbone checks.',
     ),
   ],
 );
