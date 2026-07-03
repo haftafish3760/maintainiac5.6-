@@ -2333,6 +2333,7 @@ Release-one catalog gap closed in the plumbing item batch:
 - Added `inventory.standard_fixture_seed_contract` as a surgical Standard fixture seed suite. Smoke mode validates the seed contract without parser calls; full/release profile runs the expensive parser checks because catalog startup is too slow for the Windows smoke budget.
 - Added Spanish well-service parser signals for bomba/tanque/well pressure/tank/switch/adapter/check-valve terminology.
 - Expanded Spanish release-one QA so es-US coverage must include service-family terminology for plumbing pipe fittings, water-distribution materials, toilet repair, sink/faucet repair, electrical devices/breakers, wire/conduit/grounding, HVAC filters/controls, and HVAC condensate/duct work.
+- Expanded Spanish release-one service-tool coverage for Plumbing pipe cutters, PEX crimp tools, basin wrenches, toilet augers, and drain snakes.
 - Added tank ambiguity guards so pressure tanks keep negative-match evidence against propane, fuel, and compressor tanks.
 - Added gauge ambiguity guards so well pressure gauges keep negative-match evidence against tire, air-compressor, and fuel-pressure gauges.
 - Validated after the catalog expansion:
@@ -2341,6 +2342,9 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated Spanish after the catalog expansion and gauge ambiguity fix:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.spanish_release_one,qa.threshold_gate`
   passed 101446 checks with 0 failures.
+- Validated Spanish after adding Plumbing service-tool locale terms:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.spanish_release_one,qa.threshold_gate`
+  passed 101841 checks with 0 failures.
 - Validated pack balance after the catalog expansion:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_pack_balance,inventory.catalog_coverage,qa.threshold_gate`
   passed 56847 checks with 0 failures.

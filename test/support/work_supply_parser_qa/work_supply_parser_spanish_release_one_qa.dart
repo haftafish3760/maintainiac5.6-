@@ -62,6 +62,13 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
       'desague',
       'manguera',
     },
+    'plumbing_service_tools': {
+      'cortador tubo',
+      'herramienta crimp',
+      'llave lavabo',
+      'barrena sanitario',
+      'serpiente drenaje',
+    },
     'electrical_devices_breakers': {
       'tomacorriente',
       'contacto',
