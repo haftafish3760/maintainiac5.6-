@@ -124,20 +124,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
       failures.add(_failure('fixture_catalog_$issue', issue));
     }
 
-    final registry = MaintainiacRegressionRegistry([
-      const MaintainiacRegressionCase(
-        bugId: 'INV-0001',
-        description: 'Generic PVC elbow line was accepted too confidently.',
-        rootCause: 'Alias expansion hid original receipt ambiguity.',
-        inputFixture: 'inventory_parser_ambiguous_pvc',
-        expectedBehavior: 'review or low confidence result',
-        fixedVersion: '2026.07.03',
-        area: 'inventory_parser',
-        moduleTags: {'inventory', 'parser', 'regression'},
-        permanentTest: 'work_supply_parser_generated_fixture_runner_test',
-      ),
-    ]);
-    for (final issue in registry.validate()) {
+    for (final issue in maintainiacRegressionRegistry.validate()) {
       failures.add(_failure('regression_registry_$issue', issue));
     }
 
@@ -493,7 +480,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: 656,
+      checked: 676,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -510,6 +497,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'qaCaseRegistry': caseRegistry.toJson(),
         'executionManifest': executionManifest.toJson(),
         'runLedger': runLedger.toJson(),
+        'regressionRegistry': maintainiacRegressionRegistry.toJson(),
         'sourceFingerprint': fingerprint.toJson(),
         'checkpointPolicy': {
           'maxUnpushedMinutes': checkpointPolicy.maxUnpushedWork.inMinutes,

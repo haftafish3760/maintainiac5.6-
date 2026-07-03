@@ -35,6 +35,10 @@ void main() {
       contains('seed_backbone_run'),
     );
     expect(
+      report.results.single.metrics['regressionRegistry'].toString(),
+      contains('SYN-0001'),
+    );
+    expect(
       report.results.single.metrics['sourceFingerprint'].toString(),
       contains('qa-backbone-seed'),
     );

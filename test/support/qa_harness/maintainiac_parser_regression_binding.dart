@@ -25,6 +25,9 @@ class MaintainiacParserRegressionBinding {
     if (!permanentCommand.startsWith('flutter test ')) {
       failures.add('${regression.bugId} needs focused flutter command');
     }
+    if (!permanentCommand.contains(' --plain-name ')) {
+      failures.add('${regression.bugId} needs individual plain-name command');
+    }
     if (!regression.moduleTags.contains('parser')) {
       failures.add('${regression.bugId} must be tagged parser');
     }
@@ -97,7 +100,7 @@ const maintainiacParserRegressionBindingRegistry = MaintainiacParserRegressionBi
     consumerId: 'work_supply_inventory_parser',
     familyId: 'dangerous_ambiguity_context',
     permanentCommand:
-        'flutter test test/maintainiac_inventory_parser_consumer_test.dart',
+        'flutter test test/maintainiac_inventory_parser_consumer_test.dart --plain-name "inventory parser consumer rejects fake narrow coverage"',
     regression: MaintainiacRegressionCase(
       bugId: 'INVPARSER-0001',
       description:
@@ -108,15 +111,20 @@ const maintainiacParserRegressionBindingRegistry = MaintainiacParserRegressionBi
       expectedBehavior: 'ranked candidates or review required',
       fixedVersion: '2026.07.03',
       area: 'inventory_parser',
-      moduleTags: {'work_supply_inventory_parser', 'parser', 'ambiguity'},
-      permanentTest: 'maintainiac_inventory_parser_consumer_test',
+      moduleTags: {
+        'work_supply_inventory_parser',
+        'parser',
+        'ambiguity',
+        'regression',
+      },
+      permanentTest: 'test/maintainiac_inventory_parser_consumer_test.dart',
     ),
   ),
   MaintainiacParserRegressionBinding(
     consumerId: 'work_supply_inventory_parser',
     familyId: 'locale_spanish_release_one',
     permanentCommand:
-        'flutter test test/maintainiac_inventory_parser_consumer_test.dart',
+        'flutter test test/maintainiac_inventory_parser_consumer_test.dart --plain-name "inventory parser consumer labels broad release-one QA families"',
     regression: MaintainiacRegressionCase(
       bugId: 'INVPARSER-0002',
       description:
@@ -127,15 +135,20 @@ const maintainiacParserRegressionBindingRegistry = MaintainiacParserRegressionBi
       expectedBehavior: 'Spanish pack coverage is explicit and separated',
       fixedVersion: '2026.07.03',
       area: 'inventory_parser_locale',
-      moduleTags: {'work_supply_inventory_parser', 'parser', 'spanish'},
-      permanentTest: 'maintainiac_inventory_parser_consumer_test',
+      moduleTags: {
+        'work_supply_inventory_parser',
+        'parser',
+        'spanish',
+        'regression',
+      },
+      permanentTest: 'test/maintainiac_inventory_parser_consumer_test.dart',
     ),
   ),
   MaintainiacParserRegressionBinding(
     consumerId: 'expense_receipt_parser',
     familyId: 'draft_storage_lifecycle',
     permanentCommand:
-        'flutter test test/maintainiac_expense_parser_consumer_test.dart',
+        'flutter test test/maintainiac_expense_parser_consumer_test.dart --plain-name "expense parser consumer rejects unsafe fake readiness"',
     regression: MaintainiacRegressionCase(
       bugId: 'EXPPARSER-0001',
       description:
@@ -146,15 +159,20 @@ const maintainiacParserRegressionBindingRegistry = MaintainiacParserRegressionBi
       expectedBehavior: 'local draft exists before mirror payload',
       fixedVersion: '2026.07.03',
       area: 'expense_parser_drafts',
-      moduleTags: {'expense_receipt_parser', 'parser', 'local-first'},
-      permanentTest: 'maintainiac_expense_parser_consumer_test',
+      moduleTags: {
+        'expense_receipt_parser',
+        'parser',
+        'local-first',
+        'regression',
+      },
+      permanentTest: 'test/maintainiac_expense_parser_consumer_test.dart',
     ),
   ),
   MaintainiacParserRegressionBinding(
     consumerId: 'expense_receipt_parser',
     familyId: 'privacy_redaction',
     permanentCommand:
-        'flutter test test/maintainiac_expense_parser_consumer_test.dart',
+        'flutter test test/maintainiac_expense_parser_consumer_test.dart --plain-name "expense parser consumer rejects unsafe fake readiness"',
     regression: MaintainiacRegressionCase(
       bugId: 'EXPPARSER-0002',
       description:
@@ -165,8 +183,8 @@ const maintainiacParserRegressionBindingRegistry = MaintainiacParserRegressionBi
       expectedBehavior: 'diagnostics are actionable but redacted',
       fixedVersion: '2026.07.03',
       area: 'expense_parser_privacy',
-      moduleTags: {'expense_receipt_parser', 'parser', 'privacy'},
-      permanentTest: 'maintainiac_expense_parser_consumer_test',
+      moduleTags: {'expense_receipt_parser', 'parser', 'privacy', 'regression'},
+      permanentTest: 'test/maintainiac_expense_parser_consumer_test.dart',
     ),
   ),
 ]);
