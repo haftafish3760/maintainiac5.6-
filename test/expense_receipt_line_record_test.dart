@@ -40,9 +40,69 @@ void main() {
     expect(split.displayDescription, 'Split receipt items');
     expect(business.isAllocationOnlyLine, isTrue);
     expect(personal.isAllocationOnlyLine, isTrue);
+    expect(business.receiptReviewModeCode, 'priceOnly');
+    expect(personal.receiptReviewModeLabel, 'Price only');
+    expect(split.businessUseReviewLabel, 'Split 65% business');
     expect(split.businessAmount, 65);
     expect(split.personalAmount, 35);
   });
+
+  test(
+    'receipt lines expose numbered price-only and detailed review contracts',
+    () {
+      const priceOnly = ExpenseReceiptLineRecord(
+        id: 'line-price-only',
+        description: '',
+        category: 'Uncategorized',
+        use: ExpenseLineUse.split,
+        businessPercent: .4,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: 30,
+        ocrSourceLineNumber: 7,
+      );
+      const detailed = ExpenseReceiptLineRecord(
+        id: 'line-detailed',
+        description: '1/2 GAL MILK',
+        category: 'Meals',
+        use: ExpenseLineUse.personal,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: 4.25,
+        rawReceiptText: '1/2 GAL MILK 4.25',
+        ocrSourceSectionNumber: 2,
+        ocrSourceSectionLineNumber: 4,
+      );
+
+      expect(priceOnly.receiptLineNumberLabel, 'Line 7');
+      expect(priceOnly.receiptReviewModeCode, 'priceOnly');
+      expect(
+        priceOnly.receiptLineReviewSummary,
+        'Line 7: price only, Split 40% business',
+      );
+      expect(priceOnly.privacySafeLineReviewContract['hasDetailText'], isFalse);
+      expect(
+        priceOnly.privacySafeLineReviewContract.toString(),
+        isNot(contains('GAL MILK')),
+      );
+
+      expect(detailed.receiptLineNumberLabel, 'Section 2 line 4');
+      expect(detailed.receiptReviewModeCode, 'detailedLine');
+      expect(
+        detailed.receiptLineReviewSummary,
+        'Section 2 line 4: detailed line, Personal',
+      );
+      expect(detailed.privacySafeLineReviewContract['hasDetailText'], isTrue);
+      expect(
+        detailed.privacySafeLineReviewContract.toString(),
+        isNot(contains('1/2 GAL MILK')),
+      );
+      expect(detailed.toMap()['receiptReviewMode'], 'detailedLine');
+      expect(detailed.toMap()['businessUseReviewLabel'], 'Personal');
+    },
+  );
 
   test('receipt line catalog metadata round trips with stored maps', () {
     const line = ExpenseReceiptLineRecord(
@@ -89,6 +149,9 @@ void main() {
     expect(restored.ocrSourceSectionNumber, 2);
     expect(restored.ocrSourceSectionLineNumber, 4);
     expect(restored.ocrSourceLineLabel, 'OCR section 2 line 4');
+    expect(restored.receiptLineNumberLabel, 'Section 2 line 4');
+    expect(restored.receiptReviewModeCode, 'detailedLine');
+    expect(restored.businessUseReviewLabel, 'Business');
     expect(restored.receiptProofLineReferenceLabel, 'Section 2 line 4');
     expect(
       restored.receiptProofRedactionAnchorCode,
@@ -112,6 +175,10 @@ void main() {
     expect(
       restored.toMap()['receiptProofRedactionAnchorCode'],
       'receipt_line_s02_l0004_materials_business',
+    );
+    expect(
+      restored.toMap()['receiptLineReviewSummary'],
+      contains('detailed line'),
     );
     expect(restored.hasParserClassification, isTrue);
     expect(restored.parserExpenseFamily, 'materials');

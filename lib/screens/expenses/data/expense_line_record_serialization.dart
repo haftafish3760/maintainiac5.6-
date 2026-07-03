@@ -33,9 +33,15 @@ extension ExpenseReceiptLineRecordSerialization on ExpenseReceiptLineRecord {
       'parserExpenseFamily': parserExpenseFamily,
       'parserHint': parserHint,
       'receiptProofLineReferenceLabel': receiptProofLineReferenceLabel,
+      'receiptLineNumberLabel': receiptLineNumberLabel,
+      'receiptReviewMode': receiptReviewModeCode,
+      'receiptReviewModeLabel': receiptReviewModeLabel,
+      'businessUseReviewLabel': businessUseReviewLabel,
+      'receiptLineReviewSummary': receiptLineReviewSummary,
       'receiptProofRedactionAnchorCode': receiptProofRedactionAnchorCode,
       'clientProofDefaultVisibility': clientProofDefaultVisibility,
       'clientProofReviewLabel': clientProofReviewLabel,
+      'privacySafeLineReviewContract': privacySafeLineReviewContract,
       'privacySafeProofReference': privacySafeProofReference,
     };
   }

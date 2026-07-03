@@ -17,6 +17,15 @@ enum ExpenseLineUse {
   }
 }
 
+enum ExpenseReceiptLineReviewMode {
+  priceOnly('Price only'),
+  detailedLine('Detailed line');
+
+  const ExpenseReceiptLineReviewMode(this.label);
+
+  final String label;
+}
+
 class ExpenseReceiptLineRecord {
   const ExpenseReceiptLineRecord({
     required this.id,
@@ -183,6 +192,67 @@ class ExpenseReceiptLineRecord {
     final sourceId = (ocrSourceLineId ?? '').trim();
     if (sourceId.isNotEmpty) return sourceId;
     return id.trim().isEmpty ? 'Receipt line' : id.trim();
+  }
+
+  int? get receiptDisplayLineNumber {
+    final sectionLine = ocrSourceSectionLineNumber;
+    if (sectionLine != null && sectionLine > 0) return sectionLine;
+    final lineNumber = ocrSourceLineNumber;
+    if (lineNumber != null && lineNumber > 0) return lineNumber;
+    return null;
+  }
+
+  String get receiptLineNumberLabel {
+    final displayNumber = receiptDisplayLineNumber;
+    if (displayNumber == null) return receiptProofLineReferenceLabel;
+    final section = ocrSourceSectionNumber;
+    if (section != null && section > 1) {
+      return 'Section $section line $displayNumber';
+    }
+    return 'Line $displayNumber';
+  }
+
+  ExpenseReceiptLineReviewMode get receiptReviewMode {
+    return isAllocationOnlyLine
+        ? ExpenseReceiptLineReviewMode.priceOnly
+        : ExpenseReceiptLineReviewMode.detailedLine;
+  }
+
+  String get receiptReviewModeCode => receiptReviewMode.name;
+
+  String get receiptReviewModeLabel => receiptReviewMode.label;
+
+  String get businessUseReviewLabel {
+    return switch (use) {
+      ExpenseLineUse.business => 'Business',
+      ExpenseLineUse.personal => 'Personal',
+      ExpenseLineUse.split =>
+        'Split ${((effectiveBusinessPercent) * 100).round()}% business',
+    };
+  }
+
+  String get receiptLineReviewSummary {
+    final mode = receiptReviewMode == ExpenseReceiptLineReviewMode.priceOnly
+        ? 'price only'
+        : 'detailed line';
+    return '$receiptLineNumberLabel: $mode, $businessUseReviewLabel';
+  }
+
+  Map<String, Object?> get privacySafeLineReviewContract {
+    return {
+      'lineId': id,
+      'lineNumberLabel': receiptLineNumberLabel,
+      'reviewMode': receiptReviewModeCode,
+      'businessUse': use.name,
+      'businessUseLabel': businessUseReviewLabel,
+      'hasDetailText': !isAllocationOnlyLine,
+      'hasAmount': subtotal != 0,
+      'redactionAnchorCode': receiptProofRedactionAnchorCode,
+      if (receiptDisplayLineNumber != null)
+        'receiptDisplayLineNumber': receiptDisplayLineNumber,
+      if (ocrSourceSectionNumber != null)
+        'ocrSourceSectionNumber': ocrSourceSectionNumber,
+    };
   }
 
   String get receiptProofRedactionAnchorCode {
