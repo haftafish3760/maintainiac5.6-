@@ -147,6 +147,9 @@ void main() {
       result.nativeCameraUiHealthCounts['capture_readiness_auto_capture_ready'],
       1,
     );
+    expect(result.captureReadinessCounts, {'auto_capture_ready': 1});
+    expect(result.manualCaptureAllowedCount, 1);
+    expect(result.autoCaptureAllowedCount, 1);
     expect(result.nativeCameraUiHealthCounts['manual_capture_allowed'], 1);
     expect(result.nativeCameraUiHealthCounts['auto_capture_allowed'], 1);
     expect(

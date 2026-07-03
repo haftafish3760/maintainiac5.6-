@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 479 - 21:55:00 EDT to 21:59:49 EDT
+
+Scope:
+- Stayed on the clear-photo review/result layer.
+- Added direct `ReceiptPhotoReviewResult` getters for capture-readiness counts,
+  manual-capture-allowed count, and auto-capture-allowed count.
+- Kept the existing native UI health and receipt-reader handoff counts intact,
+  while giving UI, telemetry, and admin diagnostics a simpler way to read the
+  photo readiness state.
+- Added a regression to the native quality result test proving the readiness
+  summary survives as direct result data.
+
+Verification:
+- Passed targeted Dart format and analyzer for the native signals result helper
+  and focused native quality test.
+- Passed focused Flutter test `test/receipt_camera_result_native_quality_test.dart`.
+- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
+  `--max-line-length=220`, and targeted `git diff --check`.
+
 ## Pass 478 - 21:45:00 EDT to 21:54:41 EDT
 
 Scope:
@@ -456,27 +475,3 @@ Verification:
 - Passed `bash tool/receipt_cleanup_log_gate.sh` and targeted
   `git diff --check`.
 - No Flutter, full receipt QA runner, or detached long batch was run.
-
-## Pass 459 - 16:30:15 EDT to 16:31:23 EDT
-
-Scope:
-- Stayed on QA execution guardrails without launching Flutter or the full
-  receipt QA runner.
-- Added `tool/receipt_quiet_batch_policy_gate.dart`, a pure Dart static gate
-  that protects the detached quiet-batch workflow.
-- The policy gate requires long command output to redirect into `run.log`,
-  requires status and exit-code files, requires background detachment, and fails
-  if the status helper starts tailing or reading `run.log`.
-- Wired the policy gate into `tool/receipt_fast_guard_gate.sh` analyzer coverage
-  and quick static command execution.
-- Updated the QA standard to document the enforced quiet-batch policy.
-
-Verification:
-- Passed `dart format tool/receipt_quiet_batch_policy_gate.dart`.
-- Passed `bash -n tool/receipt_fast_guard_gate.sh tool/receipt_quiet_batch.sh
-  tool/receipt_quiet_batch_status.sh`.
-- Passed `dart analyze tool/receipt_quiet_batch_policy_gate.dart`.
-- Passed `dart run tool/receipt_quiet_batch_policy_gate.dart`.
-- Passed `bash tool/receipt_cleanup_log_gate.sh` and targeted
-  `git diff --check`.
-- No Flutter or long-running receipt QA commands were run during this pass.

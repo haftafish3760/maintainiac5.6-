@@ -51,6 +51,46 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
     return Map.unmodifiable(counts);
   }
 
+  Map<String, int> get captureReadinessCounts {
+    final counts = <String, int>{};
+    for (final diagnostics in captureDiagnosticsByPhotoPath.values) {
+      final token = _diagnosticToken(
+        diagnostics[ReceiptCaptureDiagnosticKeys.captureReadinessCode]
+                ?.toString() ??
+            '',
+      );
+      if (token == 'unknown') continue;
+      counts[token] = (counts[token] ?? 0) + 1;
+    }
+    return Map.unmodifiable(counts);
+  }
+
+  int get manualCaptureAllowedCount {
+    var count = 0;
+    for (final diagnostics in captureDiagnosticsByPhotoPath.values) {
+      if (_diagnosticBool(
+            diagnostics[ReceiptCaptureDiagnosticKeys.manualCaptureAllowed],
+          ) ==
+          true) {
+        count += 1;
+      }
+    }
+    return count;
+  }
+
+  int get autoCaptureAllowedCount {
+    var count = 0;
+    for (final diagnostics in captureDiagnosticsByPhotoPath.values) {
+      if (_diagnosticBool(
+            diagnostics[ReceiptCaptureDiagnosticKeys.autoCaptureAllowed],
+          ) ==
+          true) {
+        count += 1;
+      }
+    }
+    return count;
+  }
+
   Map<String, int> get nativeCameraUiHealthCounts {
     final counts = <String, int>{};
     final resultProvesReceiptDetailsHandoff =
