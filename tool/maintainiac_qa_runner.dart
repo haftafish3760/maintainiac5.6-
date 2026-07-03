@@ -440,6 +440,7 @@ List<String> _selectedCommands({
       ? const <String>[]
       : maintainiacSurgicalRerunRouter.commandsForChangedPaths(changedPaths);
   if (commands.isNotEmpty) return commands;
+  if (changedPaths.isNotEmpty) return const [];
   if (!includeGroupDefaults) return const [];
 
   final manifest = maintainiacIndividualTestManifest;

@@ -62,6 +62,19 @@ void main() {
     expect(result.stdout, isNot(contains('flutter test test/ ')));
   });
 
+  test('QA runner does not fall back to broad commands for unmatched paths', () {
+    final result = runMaintainiacQaRunner([
+      '--changed',
+      'docs/qa/maintainiac_qa_runner.md',
+      '--commands-only',
+      '--strict',
+    ]);
+
+    expect(result.exitCode, 0);
+    expect(result.stdout, isEmpty);
+    expect(result.stderr, isEmpty);
+  });
+
   test('QA runner rejects unknown groups', () {
     final result = runMaintainiacQaRunner(['--group', 'nonsense']);
 
