@@ -174,7 +174,7 @@ class ReceiptPhotoReviewResult {
     Map<String, ReceiptPhotoQualityCheck> photoQualityChecksByPath = const {},
     Map<String, Map<String, Object?>> captureDiagnosticsByPhotoPath = const {},
   }) {
-    final paths = _nonBlankPaths(photoPaths);
+    final paths = _uniqueNonBlankPaths(photoPaths);
     return ReceiptPhotoReviewResult(
       photoPaths: paths,
       ocrSourcePhotoPaths: const [],

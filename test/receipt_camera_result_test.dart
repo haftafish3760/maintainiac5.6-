@@ -354,4 +354,45 @@ void main() {
       containsPair('receiptReaderHandoffMustOpenReceiptDetails', false),
     );
   });
+
+  test('kept for later review keeps source paths uniquely normalized', () {
+    final result = ReceiptPhotoReviewResult.keptForLater(
+      photoPaths: const [
+        ' /tmp/staged-top.jpg ',
+        '/tmp/staged-top.jpg',
+        '',
+        '/tmp/staged-bottom.jpg',
+      ],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/staged-top.jpg': {
+          'nativeCaptureAttachmentStorageState': 'staged',
+        },
+        '/tmp/staged-bottom.jpg': {
+          'nativeCaptureAttachmentStorageState': 'staged',
+        },
+      },
+    );
+
+    expect(result.photoPaths, [
+      '/tmp/staged-top.jpg',
+      '/tmp/staged-bottom.jpg',
+    ]);
+    expect(result.stitchResult.inputPaths, [
+      '/tmp/staged-top.jpg',
+      '/tmp/staged-bottom.jpg',
+    ]);
+    expect(
+      result.captureDiagnosticsByPhotoPath['/tmp/staged-top.jpg'],
+      containsPair('receiptReviewKeptPhotoCount', 2),
+    );
+    expect(
+      result.captureDiagnosticsByPhotoPath['/tmp/staged-bottom.jpg'],
+      containsPair('receiptReviewKeptPhotoCount', 2),
+    );
+    expect(
+      result.receiptReaderHandoffCounts,
+      containsPair('saved_backup_present', 2),
+    );
+  });
 }
