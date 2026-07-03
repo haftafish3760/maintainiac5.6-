@@ -2542,6 +2542,25 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated surgical rerun routing after the fixture route additions:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.surgical_rerun_contract,qa.threshold_gate`
   passed 54 checks with 0 failures.
+- Added `inventory.fixture_candidate_identity_contract` as a targeted static
+  catalog identity suite. It treats `expectedTopCandidateId` as a stable
+  semantic candidate key, not a generated sequential catalog ID, and validates
+  matched golden/holdout fixtures against real catalog item search text,
+  expected trade, and expected name hints without invoking the parser runtime.
+- Fixed the two sink repair kit fixtures so they point to `sink_repair_kit`
+  instead of the faucet O-ring semantic key.
+- Validated fixture candidate identity:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fixture_candidate_identity_contract,qa.threshold_gate`
+  passed 60 checks with 0 failures. Runtime note: this static catalog suite took
+  about 82 seconds on the Windows machine because catalog construction is heavy;
+  keep it targeted until the faster harness/Mac path is available.
+- Added `inventory.fixture_candidate_identity_contract` to the surgical rerun
+  contract, the targeted-suite registry allowlist, and the harness plan
+  requirement matrix. Also restored the missing targeted allowlist/plan entry
+  for `inventory.standard_fixture_seed_contract`.
+- Validated registry and surgical routing:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.surgical_rerun_contract,inventory.harness_registry,qa.threshold_gate`
+  passed 450 checks with 0 failures.
 
 Named release gates:
 

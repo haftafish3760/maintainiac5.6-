@@ -986,7 +986,7 @@
     "expectedNameContains": "Sink",
     "tradeScope": "Plumbing",
     "expectedStatus": "matched",
-    "expectedTopCandidateId": "faucet_o_ring_and_seat_kit",
+    "expectedTopCandidateId": "sink_repair_kit",
     "expectedReviewRequired": false,
     "expectedCandidateTrade": "plumbing",
     "expectedConfidenceBand": "high"
@@ -1010,7 +1010,7 @@
     "expectedNameContains": "Sink",
     "tradeScope": "Plumbing",
     "expectedStatus": "matched",
-    "expectedTopCandidateId": "faucet_o_ring_and_seat_kit",
+    "expectedTopCandidateId": "sink_repair_kit",
     "expectedReviewRequired": false,
     "expectedCandidateTrade": "plumbing",
     "expectedConfidenceBand": "high"

@@ -49,6 +49,7 @@ import 'work_supply_parser_file_size_qa.dart';
 import 'work_supply_parser_fleet_permission_context_qa.dart';
 import 'work_supply_parser_fixture_coverage_qa.dart';
 import 'work_supply_parser_fixture_corpus_contract_qa.dart';
+import 'work_supply_parser_fixture_candidate_identity_qa.dart';
 import 'work_supply_parser_fixture_expectation_qa.dart';
 import 'work_supply_parser_fixture_batch_plan_qa.dart';
 import 'work_supply_parser_fixture_privacy_qa.dart';
@@ -235,6 +236,7 @@ QaHarness buildWorkSupplyParserQaHarness() {
       WorkSupplyParserFixtureGovernanceSuite(),
       WorkSupplyParserFixtureCoverageSuite(),
       WorkSupplyParserFixtureCorpusContractSuite(),
+      WorkSupplyParserFixtureCandidateIdentitySuite(),
       WorkSupplyParserHoldoutFixtureSuite(),
       WorkSupplyParserChangedItemImpactSuite(),
       WorkSupplyParserDeterminismSuite(),

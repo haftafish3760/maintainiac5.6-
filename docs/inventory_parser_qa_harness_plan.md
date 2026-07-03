@@ -282,6 +282,7 @@ Parser candidates remain review-only. `possibleMatches` must carry ranked altern
 | `pass_evidence` | `inventory.pass_evidence_contract` | wave summary; numbered pass evidence; scope evidence; local-only safety flags |
 | `qa_file_size` | `inventory.file_size_contract` | 500-line preferred; 1000-line hard; split-by-responsibility |
 | `fixture_expectation` | `inventory.fixture_expectation_contract` | expected status; expected candidate; expected review flag |
+| `fixture_candidate_identity` | `inventory.fixture_candidate_identity_contract` | semantic candidate key; expected trade; expected name hint |
 | `fixture_privacy` | `inventory.fixture_privacy_contract` | no private raw lines; card/email/phone/address guards |
 | `recipe_completeness` | `inventory.recipe_completeness_contract` | English recipes; Spanish recipes; Core/Standard priority cells |
 | `service_truck_core` | `inventory.service_truck_core_contract` | everydayCore priority; service-truck signals; Core tier focus |
@@ -290,6 +291,7 @@ Parser candidates remain review-only. `possibleMatches` must carry ranked altern
 | `vendor_readiness` | `inventory.vendor_readiness` | vendor mappings; merchant-style receipt patterns; SKU/part-number pattern slots |
 | `workflow_routing` | `inventory.workflow_routing` | inventory/job/estimate/invoice routing; tax reporting; markup behavior |
 | `spanish_release_one` | `inventory.spanish_release_one` | es-US aliases; Spanish receipt patterns; Spanish unit variants |
+| `standard_fixture_seed` | `inventory.standard_fixture_seed_contract` | Standard tier seed fixtures; smoke-safe contract; full/release parser route |
 | `alias_conflicts` | `inventory.alias_conflicts` | duplicate aliases; cross-trade alias collisions |
 | `dangerous_words` | `inventory.dangerous_words` | generic words; confident single-item matches |
 | `golden_fixtures` | `inventory.golden_fixtures` | fixture-driven parser expectations |
