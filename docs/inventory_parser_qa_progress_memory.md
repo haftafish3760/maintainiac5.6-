@@ -2334,6 +2334,9 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated pack balance after the catalog expansion:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_pack_balance,inventory.catalog_coverage,qa.threshold_gate`
   passed 56847 checks with 0 failures.
+- Validated vendor/SKU readiness after the catalog expansion:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.vendor_readiness,inventory.vendor_sku_matrix_contract,qa.threshold_gate`
+  passed 211467 checks with 0 failures.
 - Validated after the expanded Spanish family-term QA gate:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.spanish_release_one,qa.threshold_gate`
   passed 101224 checks with 0 failures.
