@@ -104,6 +104,16 @@ Initial production defaults catch:
 - Google Vision, ML Kit, and camera controller implementation tokens inside parser QA lanes.
 - Generated build folders are skipped so scans stay focused on source and tests.
 
+## Readiness Ledger
+
+The main QA harness includes a readiness ledger so progress survives context compression and handoffs:
+
+- `ready`: completed backbone pieces with evidence.
+- `partial`: consumers or modules with real evidence but named remaining gaps.
+- `missing`: release-required suites or domains that still need executable coverage.
+
+The ledger must reject any item marked ready without evidence.
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:

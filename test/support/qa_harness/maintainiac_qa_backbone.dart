@@ -1,6 +1,7 @@
 import 'maintainiac_qa_environment.dart';
 import 'maintainiac_qa_fixtures.dart';
 import 'maintainiac_qa_quality_gates.dart';
+import 'maintainiac_qa_readiness.dart';
 import 'maintainiac_regression_registry.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
@@ -125,6 +126,11 @@ class MaintainiacQaBackboneSuite extends QaSuite {
       failures.add(_failure('quality_gate_$issue', issue));
     }
 
+    final readiness = MaintainiacQaReadinessLedger.currentBackbone();
+    for (final issue in readiness.validate()) {
+      failures.add(_failure('readiness_$issue', issue));
+    }
+
     return timer.finish(
       suite: name,
       checked: 90,
@@ -142,6 +148,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
           for (final adapter in parserQaDomainAdapters) adapter.toJson(),
         ],
         'qualityGates': qualityGates.toJson(),
+        'readiness': readiness.toJson(),
       },
     );
   }

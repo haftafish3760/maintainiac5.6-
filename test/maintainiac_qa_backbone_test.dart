@@ -18,6 +18,10 @@ void main() {
         report.results.single.metrics['parserDomainAdapters'] as List<Object?>;
     expect(parserAdapters, hasLength(greaterThanOrEqualTo(3)));
     expect(parserAdapters.toString(), contains('expense_receipt_parser'));
+    expect(
+      report.results.single.metrics['readiness'].toString(),
+      contains('countsByStatus'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {
