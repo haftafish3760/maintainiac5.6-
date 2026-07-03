@@ -27,6 +27,10 @@ void main() {
       contains('QA-BACKBONE-001'),
     );
     expect(
+      report.results.single.metrics['deviceDeliveryMatrix'].toString(),
+      contains('legacy_cloud_assist_opt_in'),
+    );
+    expect(
       report.results.single.metrics['executionManifest'].toString(),
       contains('failureAction'),
     );

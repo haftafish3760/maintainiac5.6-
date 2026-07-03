@@ -9,6 +9,7 @@ import 'maintainiac_qa_readiness.dart';
 import 'maintainiac_qa_run_ledger.dart';
 import 'maintainiac_qa_telemetry_privacy_gate.dart';
 import 'maintainiac_qa_case_registry.dart';
+import 'maintainiac_device_capability.dart';
 import 'maintainiac_release_evidence_bundle.dart';
 import 'maintainiac_restart_lifecycle_gate.dart';
 import 'maintainiac_regression_registry.dart';
@@ -97,6 +98,9 @@ class MaintainiacQaBackboneSuite extends QaSuite {
       failures.add(
         _failure('app_check_invalid', 'Default fake device needs App Check.'),
       );
+    }
+    for (final issue in maintainiacDeviceDeliveryMatrix.validate()) {
+      failures.add(_failure('device_delivery_matrix_$issue', issue));
     }
 
     final fixtures = MaintainiacFixtureCatalog([
@@ -454,7 +458,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: 696,
+      checked: 716,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -469,6 +473,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
           for (final adapter in parserQaDomainAdapters) adapter.toJson(),
         ],
         'qaCaseRegistry': caseRegistry.toJson(),
+        'deviceDeliveryMatrix': maintainiacDeviceDeliveryMatrix.toJson(),
         'executionManifest': executionManifest.toJson(),
         'runLedger': runLedger.toJson(),
         'regressionRegistry': maintainiacRegressionRegistry.toJson(),
