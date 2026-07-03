@@ -120,6 +120,45 @@ void main() {
     );
   });
 
+  test('native close health ignores non-finite numeric counts', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/proof.jpg': {
+          'closeAction': 'back_returned_captured_sections',
+          'closeRequestCount': double.infinity,
+          'closeDuringCaptureCount': double.nan,
+          'closeRetryCount': double.negativeInfinity,
+          'closeNoPhotoCancelCount': double.nan,
+        },
+      },
+    );
+
+    expect(
+      result.nativeCameraUiHealthCounts,
+      isNot(contains('native_close_request_recorded')),
+    );
+    expect(
+      result.nativeCameraUiHealthCounts,
+      isNot(contains('native_close_deferred_during_capture')),
+    );
+    expect(
+      result.nativeCameraUiHealthCounts,
+      isNot(contains('native_close_retry_after_result')),
+    );
+    expect(
+      result.nativeCameraUiHealthCounts,
+      isNot(contains('native_close_no_photo_cancel')),
+    );
+    expect(
+      result.nativeCameraUiHealthCounts,
+      containsPair('native_close_returned_captured_sections', 1),
+    );
+  });
+
   test('photo review result flags failed native close after capture', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/proof.jpg'],

@@ -21,13 +21,14 @@ List<String> _diagnosticStringList(Object? value) {
 }
 
 bool _diagnosticPositive(Object? value) {
-  if (value is num) return value > 0;
+  if (value is num) return value.isFinite && value > 0;
   final parsed = int.tryParse(value?.toString() ?? '');
   return parsed != null && parsed > 0;
 }
 
 int? _diagnosticPositiveInt(Object? value) {
   if (value is num) {
+    if (!value.isFinite) return null;
     final intValue = value.toInt();
     return intValue > 0 ? intValue : null;
   }

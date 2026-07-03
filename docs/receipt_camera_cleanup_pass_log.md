@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 568 - 08:13:00 EDT to 08:18:41 EDT
+
+Scope:
+- Hardened native close/capture diagnostic numeric helpers so non-finite counts
+  cannot become positive camera health evidence.
+- Added regression coverage proving malformed close counts do not create false
+  close-request, deferred-capture, retry, or no-photo-cancel flags.
+- Recorded `BUG-RECEIPT-0084` under `native_bridge`.
+
+Verification:
+- Passed targeted Dart format/analyzer for diagnostic helpers and focused
+  native-close regression coverage.
+- Passed focused Flutter regression
+  `test/receipt_camera_result_native_close_settings_test.dart --plain-name
+  "native close health ignores non-finite numeric counts"`.
+
 ## Pass 567 - 08:06:05 EDT to 08:12:36 EDT
 
 Scope:
@@ -464,23 +480,5 @@ Verification:
   coverage totals regression coverage.
 - Passed focused Flutter test
   `test/receipt_camera_result_coverage_totals_test.dart`.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
-
-## Pass 522 - 01:31:00 EDT to 01:35:00 EDT
-
-Scope:
-- Hardened kept-for-later receipt review results so staged source paths are
-  normalized and de-duplicated before building stitch input metadata.
-- Added regression coverage proving kept-for-later public paths, stitch input
-  paths, diagnostics, and handoff counts agree after malformed duplicate input.
-- Recorded `BUG-RECEIPT-0040` under `source_preservation`.
-- Archived Pass 498 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for receipt capture models and
-  camera-result regression coverage.
-- Passed focused Flutter test `test/receipt_camera_result_test.dart`.
 - Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
   diff check.
