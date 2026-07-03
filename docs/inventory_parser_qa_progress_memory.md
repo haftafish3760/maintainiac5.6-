@@ -26,8 +26,16 @@ and every other Maintainiac module.
 - Primary release-one trades: Plumbing, Electrical, and HVAC.
 - Primary release-one language packs: English (en-US) and Spanish (es-US).
 - Primary release-one tiers: Core and Standard first.
+- Core and Standard are priority one.
+- Core/Standard must represent everyday service-truck reality.
+- Core/Standard must prioritize common residential pipe fittings.
+- Core/Standard must include pipe fittings found in a residential home.
+- Core/Standard must plan for toilet repair kits.
+- Core/Standard must plan for sink repair kits.
+- Core/Standard must plan for faucet repair kits.
 - Professional and Complete follow the same contracts after Core/Standard are
   proven.
+- Professional and Complete later.
 - Fasteners are included only as normal overlap/support items inside Plumbing,
   Electrical, and HVAC service-trade packs.
 - Fasteners are not a separate release-one trade pack.
@@ -36,6 +44,19 @@ and every other Maintainiac module.
 - Required support wording: service-trade fasteners.
 
 ## Completed Parser Evidence
+
+Service-truck Core/Standard priority validation completed locally for
+release-one residential Plumbing, Electrical, and HVAC with English/Spanish
+scope still enforced by adjacent suites.
+
+- suiteId: inventory.service_truck_core_contract + inventory.release_one_pack_balance + inventory.spanish_release_one
+- status: focused-validated
+- lastEvidence: build/parser_qa_reports/work_supply_inventory_parser_2026-07-03T144739852797.json
+- checked: 125070
+- actualFailures: 0
+- durationMs: 83222
+- focusedRerun: flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.service_truck_core_contract,inventory.release_one_residential_contract,inventory.release_one_pack_balance,inventory.spanish_release_one,qa.threshold_gate
+- doNotRerunUnless: service-truck signals, release-one pack balance, Spanish release-one coverage, catalog Core/Standard metadata, or progress memory changes
 
 The all-tier residential generated-fixture parser wave completed locally.
 

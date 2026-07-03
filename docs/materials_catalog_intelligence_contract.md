@@ -13,6 +13,14 @@ contract pattern is proven. Fasteners are included only as normal overlap/suppor
 items inside those service-trade packs; they are not a separate release-one trade
 pack.
 
+Core and Standard are priority one. They should cover the everyday service-truck
+reality before long-tail catalog expansion: common residential pipe fittings,
+pipe fittings found in a residential home, toilet repair kits, sink repair kits,
+faucet repair kits, common repair fittings, straps, hangers, clamps, wire,
+filters, and stocked service parts. Professional and Complete later packs can
+expand toward obscure, specialty, or less frequently stocked items after
+Core/Standard are proven.
+
 ## Hard Boundaries
 
 Do not edit the camera, OCR, PDF, shared receipt-capture, image-prep, receipt-stitching, or Expenses receipt pipeline while working from this contract.

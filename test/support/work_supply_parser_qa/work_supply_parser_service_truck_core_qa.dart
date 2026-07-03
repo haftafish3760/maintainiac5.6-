@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
 
@@ -48,6 +50,21 @@ class WorkSupplyParserServiceTruckCoreSuite extends QaSuite {
     'fan blade',
     'condenser',
     'tee',
+    'pipe fitting',
+    'toilet repair kit',
+    'sink repair kit',
+    'faucet repair kit',
+  };
+
+  static const _coreStandardPrioritySignals = {
+    'Core and Standard are priority one',
+    'common residential pipe fittings',
+    'pipe fittings found in a residential home',
+    'toilet repair kits',
+    'sink repair kits',
+    'faucet repair kits',
+    'everyday service-truck reality',
+    'Professional and Complete later',
   };
 
   @override
@@ -56,7 +73,11 @@ class WorkSupplyParserServiceTruckCoreSuite extends QaSuite {
     final failures = <QaFailure>[];
     final warningByTrade = <String, int>{};
     final signalCounts = <String, int>{};
+    final source = _readPriorityContractSource();
     var checked = 0;
+
+    checked += _coreStandardPrioritySignals.length;
+    _requirePriorityContract(failures, source);
 
     for (final item in _coreItems()) {
       checked += 4;
@@ -97,6 +118,8 @@ class WorkSupplyParserServiceTruckCoreSuite extends QaSuite {
         'warningsByTrade': _topCounts(warningByTrade),
         'serviceTruckSignalCounts': _topCounts(signalCounts),
         'requiredSignals': _serviceTruckSignals.toList()..sort(),
+        'coreStandardPrioritySignals': _coreStandardPrioritySignals.toList()
+          ..sort(),
       },
     );
   }
@@ -128,10 +151,47 @@ class WorkSupplyParserServiceTruckCoreSuite extends QaSuite {
         if (haystack.contains(signal)) signal,
     ];
   }
+
+  String _readPriorityContractSource() {
+    final buffer = StringBuffer();
+    for (final path in const [
+      'docs/materials_catalog_intelligence_contract.md',
+      'docs/inventory_parser_qa_progress_memory.md',
+    ]) {
+      final file = File(path);
+      if (file.existsSync()) buffer.writeln(file.readAsStringSync());
+    }
+    return buffer.toString();
+  }
+
+  void _requirePriorityContract(List<QaFailure> failures, String source) {
+    final lower = source.toLowerCase();
+    for (final signal in _coreStandardPrioritySignals) {
+      if (lower.contains(signal.toLowerCase())) continue;
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'missing_core_standard_priority:${_safeId(signal)}',
+          message:
+              'Service-truck Core/Standard QA is missing release-one priority language.',
+          severity: QaSeverity.warning,
+          expected: signal,
+          actual: 'not found',
+          suggestedFix:
+              'Document and enforce Core/Standard as priority-one service-truck coverage before broad Professional/Complete expansion.',
+          metadata: const {'triageCategory': QaFailureTriage.governance},
+        ),
+      );
+    }
+  }
 }
 
 void _increment(Map<String, int> counts, String key) {
   counts.update(key, (count) => count + 1, ifAbsent: () => 1);
+}
+
+String _safeId(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
 }
 
 List<Map<String, Object?>> _topCounts(
