@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/qa_harness/qa_harness.dart';
@@ -33,6 +35,26 @@ void main() {
     expect(ledger.toJson().toString(), contains('performance_budget_registry'));
   });
 
+  test('QA readiness ledger dart evidence references existing files', () {
+    final ledger = MaintainiacQaReadinessLedger.currentBackbone();
+    final missingEvidence = <String>[];
+
+    for (final item in ledger.items) {
+      for (final evidence in item.evidence) {
+        if (!evidence.endsWith('.dart')) continue;
+        if (!_evidenceFileExists(evidence)) {
+          missingEvidence.add('${item.id}:$evidence');
+        }
+      }
+    }
+
+    expect(
+      missingEvidence,
+      isEmpty,
+      reason: 'Ready QA backbone claims must point at real Dart evidence.',
+    );
+  });
+
   test('QA readiness ledger rejects fake ready claims without evidence', () {
     const ledger = MaintainiacQaReadinessLedger([
       MaintainiacQaReadinessItem(
@@ -55,4 +77,11 @@ void main() {
     );
     expect(ledger.validate(), contains('fake_gap marked partial without gaps'));
   });
+}
+
+bool _evidenceFileExists(String fileName) {
+  return File('test/support/qa_harness/$fileName').existsSync() ||
+      File('test/$fileName').existsSync() ||
+      File('lib/$fileName').existsSync() ||
+      File('tool/$fileName').existsSync();
 }

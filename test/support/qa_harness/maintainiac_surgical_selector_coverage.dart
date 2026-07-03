@@ -341,6 +341,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       file: 'test/maintainiac_qa_readiness_test.dart',
       plainNames: {
         'QA readiness ledger tracks completed backbone and remaining gaps',
+        'QA readiness ledger dart evidence references existing files',
         'QA readiness ledger rejects fake ready claims without evidence',
       },
     ),

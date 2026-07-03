@@ -866,6 +866,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'qa-readiness', 'release-gate'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_readiness_evidence_files_exist',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_readiness_test.dart',
+    plainName: 'QA readiness ledger dart evidence references existing files',
+    reason: 'Run only the readiness evidence file existence check.',
+    tags: {'qa-readiness', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'qa_readiness_rejects_fake_ready',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_readiness_test.dart',
