@@ -76,6 +76,32 @@ void main() {
     },
   );
 
+  test('receipt image processor rejects unusable rotation angles', () async {
+    final dir = await Directory.systemTemp.createTemp('receipt_rotate_angle_');
+    addTearDown(() async {
+      if (await dir.exists()) await dir.delete(recursive: true);
+    });
+
+    final source = File('${dir.path}/receipt.jpg');
+    await source.writeAsBytes(
+      img.encodeJpg(receiptLikeImage(), quality: 96),
+      flush: true,
+    );
+
+    for (final degrees in [double.nan, double.infinity]) {
+      await expectLater(
+        ReceiptImageProcessor.rotateFile(path: source.path, degrees: degrees),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            'Rotation angle is not usable.',
+          ),
+        ),
+      );
+    }
+  });
+
   test('receipt image processor rejects unusable crop bounds', () async {
     final bytes = img.encodeJpg(receiptLikeImage(), quality: 96);
 

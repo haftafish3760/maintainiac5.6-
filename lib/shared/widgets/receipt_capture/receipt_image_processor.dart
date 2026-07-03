@@ -133,6 +133,9 @@ class ReceiptImageProcessor {
     required String path,
     required num degrees,
   }) async {
+    if (!degrees.isFinite) {
+      throw StateError('Rotation angle is not usable.');
+    }
     final bytes = await _readFileBytes(path);
     final decoded = bytes == null ? null : _decodeImage(bytes);
     if (decoded == null) throw StateError('Image could not be decoded.');

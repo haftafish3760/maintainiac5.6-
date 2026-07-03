@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 578 - 09:58:08 EDT to 09:58:55 EDT
+
+Scope:
+- Hardened receipt straightening so non-finite rotation angles are rejected
+  before creating a derived OCR/review image.
+- Added regression coverage proving `NaN` and infinity rotation requests fail
+  with a stable angle error.
+- Recorded `BUG-RECEIPT-0094` under `camera_capture_quality`.
+- Archived Pass 550 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the image processor and focused
+  rotation-angle regression coverage.
+- Passed focused Flutter regression
+  `test/receipt_image_rotation_test.dart --plain-name "receipt image processor
+  rejects unusable rotation angles"`.
+
 ## Pass 577 - 09:44:18 EDT to 09:51:14 EDT
 
 Scope:
@@ -469,20 +487,3 @@ Verification:
 - Passed focused Flutter test
   `test/receipt_attachment_panel_recovery_contract_test.dart --plain-name
   "receipt attachment panel has plain recovery states"`.
-
-## Pass 550 - 05:37:08 EDT to 05:38:53 EDT
-
-Scope:
-- Hardened document-scanner backup quality handoff so duplicate or whitespace
-  camera-result paths cannot overwrite or mislabel receipt quality evidence.
-- Added attachment read source contract coverage for the new camera-result path
-  uniqueness and normalization guard.
-- Recorded `BUG-RECEIPT-0066` under `source_preservation`.
-- Archived Pass 533 out of the live cleanup log.
-
-Verification:
-- Passed targeted format/analyzer for attachment native signal helpers and
-  attachment read contract coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_ocr_source_attachment_read_test.dart --plain-name
-  "reviewed OCR source attachments preserve read state and cleanup safety"`.
