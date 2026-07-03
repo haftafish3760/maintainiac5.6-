@@ -31,6 +31,9 @@ class MaintainiacQaCase {
     if (evidenceTarget.trim().isEmpty) {
       failures.add('$id missing evidence target');
     }
+    if (tags.isEmpty) {
+      failures.add('$id missing searchable tags');
+    }
     if (tags.any((tag) => tag.trim().isEmpty)) {
       failures.add('$id has blank tag');
     }

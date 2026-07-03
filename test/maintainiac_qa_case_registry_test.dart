@@ -53,5 +53,6 @@ void main() {
     expect(failures, contains('duplicate evidence target same'));
     expect(failures, contains('QA-DUP missing title'));
     expect(failures, contains('QA-DUP missing behavior'));
+    expect(failures, contains('QA-DUP missing searchable tags'));
   });
 }
