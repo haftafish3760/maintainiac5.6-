@@ -8,6 +8,11 @@ class WorkSupplyParserReleaseOnePackBalanceSuite extends QaSuite {
     : super('inventory.release_one_pack_balance');
 
   static const _priorityTrades = {'Plumbing', 'Electrical', 'HVAC'};
+  static const _minimumCoreStandardRows = {
+    'Plumbing': _TierFloor(core: 1500, standard: 500),
+    'Electrical': _TierFloor(core: 500, standard: 500),
+    'HVAC': _TierFloor(core: 500, standard: 500),
+  };
 
   @override
   Future<QaSuiteResult> run(QaContext context) async {
@@ -38,11 +43,15 @@ class WorkSupplyParserReleaseOnePackBalanceSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: _priorityTrades.length * 8,
+      checked: _priorityTrades.length * 10,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'releaseOneTradeTierCounts': counts,
+        'minimumCoreStandardRows': _minimumCoreStandardRows.map(
+          (trade, floor) =>
+              MapEntry(trade, {'core': floor.core, 'standard': floor.standard}),
+        ),
         'contract':
             'Core should stay service-truck focused; each higher pack should expand coverage without starving Core or skipping Standard.',
         'priorityTrades': _priorityTrades.toList()..sort(),
@@ -63,6 +72,7 @@ class WorkSupplyParserReleaseOnePackBalanceSuite extends QaSuite {
     final standardPack = core + standard;
     final professionalPack = standardPack + professional;
     final completePack = professionalPack + complete;
+    final floor = _minimumCoreStandardRows[trade];
     if (total == 0) {
       _addFailure(
         failures,
@@ -73,6 +83,26 @@ class WorkSupplyParserReleaseOnePackBalanceSuite extends QaSuite {
         'total=0',
       );
       return;
+    }
+    if (floor != null && core < floor.core) {
+      _addFailure(
+        failures,
+        trade,
+        'core_below_release_one_floor',
+        'Core residential coverage fell below the release-one service-truck floor.',
+        'core >= ${floor.core}',
+        'core=$core standard=$standard total=$total',
+      );
+    }
+    if (floor != null && standard < floor.standard) {
+      _addFailure(
+        failures,
+        trade,
+        'standard_below_release_one_floor',
+        'Standard residential coverage fell below the release-one stocked-common floor.',
+        'standard >= ${floor.standard}',
+        'core=$core standard=$standard total=$total',
+      );
     }
     final coreRatio = core / total;
     if (coreRatio < 0.10 || coreRatio > 0.45) {
@@ -143,4 +173,11 @@ class WorkSupplyParserReleaseOnePackBalanceSuite extends QaSuite {
 
 void _increment(Map<String, int> counts, String key) {
   counts.update(key, (count) => count + 1, ifAbsent: () => 1);
+}
+
+class _TierFloor {
+  const _TierFloor({required this.core, required this.standard});
+
+  final int core;
+  final int standard;
 }
