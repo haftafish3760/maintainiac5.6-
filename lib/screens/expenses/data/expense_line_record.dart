@@ -240,7 +240,7 @@ class ExpenseReceiptLineRecord {
 
   Map<String, Object?> get privacySafeLineReviewContract {
     return {
-      'lineId': id,
+      'lineId': receiptProofRedactionAnchorCode,
       'lineNumberLabel': receiptLineNumberLabel,
       'reviewMode': receiptReviewModeCode,
       'businessUse': use.name,
@@ -297,7 +297,7 @@ class ExpenseReceiptLineRecord {
 
   Map<String, Object?> get privacySafeProofReference {
     return {
-      'lineId': id,
+      'lineId': receiptProofRedactionAnchorCode,
       'proofLineReferenceLabel': receiptProofLineReferenceLabel,
       'redactionAnchorCode': receiptProofRedactionAnchorCode,
       'clientProofDefaultVisibility': clientProofDefaultVisibility,

@@ -193,7 +193,10 @@ void main() {
     );
     expect(restored.clientProofDefaultVisibility, 'review_for_client_proof');
     expect(restored.clientProofReviewLabel, 'Review for client proof');
-    expect(restored.privacySafeProofReference['lineId'], 'line-catalog');
+    expect(
+      restored.privacySafeProofReference['lineId'],
+      'receipt_line_s02_l0004_materials_business',
+    );
     expect(
       restored.privacySafeProofReference['redactionAnchorCode'],
       'receipt_line_s02_l0004_materials_business',
@@ -225,6 +228,41 @@ void main() {
     );
     expect(restored.isAllocationOnlyLine, isFalse);
   });
+
+  test(
+    'privacy-safe receipt line contracts never expose generated item ids',
+    () {
+      const line = ExpenseReceiptLineRecord(
+        id: 'line_8_Private family medicine',
+        description: 'Private family medicine',
+        category: 'Personal',
+        use: ExpenseLineUse.personal,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: 12,
+        ocrSourceLineNumber: 8,
+      );
+
+      expect(
+        line.privacySafeLineReviewContract['lineId'],
+        'receipt_line_l0008_personal_personal',
+      );
+      expect(
+        line.privacySafeProofReference['lineId'],
+        'receipt_line_l0008_personal_personal',
+      );
+      expect(line.toMap()['id'], 'line_8_Private family medicine');
+      expect(
+        line.privacySafeLineReviewContract.toString(),
+        isNot(contains('Private family medicine')),
+      );
+      expect(
+        line.privacySafeProofReference.toString(),
+        isNot(contains('Private family medicine')),
+      );
+    },
+  );
 
   test('receipt line parser action labels guide review work', () {
     const reviewLine = ExpenseReceiptLineRecord(

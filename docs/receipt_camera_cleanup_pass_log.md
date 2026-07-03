@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 501 - 00:45:52 EDT to 00:47:00 EDT
+
+Scope:
+- Hardened privacy-safe receipt line metadata so generated line IDs cannot leak
+  item description text through review or client-proof contracts.
+- Added regression coverage proving privacy-safe line review/proof metadata uses
+  redaction anchors while source-of-truth line IDs remain intact.
+- Recorded `BUG-RECEIPT-0020` under `privacy_redaction`.
+- Archived Pass 488 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for receipt line records and focused
+  privacy regression coverage.
+- Passed focused Flutter test
+  `test/expense_receipt_line_record_test.dart --plain-name "privacy-safe receipt
+  line contracts never expose generated item ids"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 500 - 00:44:25 EDT to 00:45:01 EDT
 
 Scope:
@@ -385,30 +404,6 @@ Verification:
   overlap, full stitching fixtures, and camera-result stitch scanner handoff
   tests. The batch completed with 20 tests passed.
 - Passed targeted `git diff --check`; touched files remain under 500 lines.
-
-## Pass 488 - 00:08:32 EDT to 00:10:03 EDT
-
-Scope:
-- Hardened the receipt pipeline failure-to-regression process so generated
-  failure tasks include a suggested categorized bug ledger category.
-- Updated both the Dart generator and shell pipeline fallback to require a
-  `BUG-RECEIPT-####` ledger row before a regression task is treated as closed.
-- Added regression coverage proving camera pipeline failures create tasks that
-  name the failure family, bug ledger, suggested category, and uncategorized-bug
-  prohibition.
-- Recorded `BUG-RECEIPT-0007` under `qa_harness`.
-- Archived Pass 467 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed `dart format --set-exit-if-changed` for the failure-to-regression tool
-  and focused test.
-- Passed targeted analyzer for the failure-to-regression tool, focused test,
-  and bug ledger gate.
-- Passed `flutter test test/receipt_pipeline_failure_to_regression_test.dart -r
-  compact`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-- Passed `bash -n tool/receipt_ocr_pipeline_run.sh`.
 
 ## Pass 489 - 00:10:03 EDT to 00:14:10 EDT
 
