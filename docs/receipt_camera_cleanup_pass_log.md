@@ -44,6 +44,24 @@ Verification:
 - Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
   diff check.
 
+## Pass 529 - 02:12:33 EDT to 02:16:00 EDT
+
+Scope:
+- Hardened malformed retake section metadata so invalid retake-order evidence
+  wins over preserved-slot evidence in receipt section order summaries.
+- Added regression coverage proving an invalid middle-section retake reports
+  `retake_order_invalid` and emits a matching privacy-safe evidence label.
+- Recorded `BUG-RECEIPT-0047` under `multi_photo_ordering`.
+
+Verification:
+- Passed targeted Dart format and analyzer for retake section-order outcome
+  logic and focused stitch scanner regression coverage.
+- Passed focused Flutter test
+  `test/receipt_camera_result_stitch_scanner_test.dart --plain-name
+  "malformed retake section metadata is counted without leaking paths"`.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 527 - 01:56:00 EDT to 02:00:00 EDT
 
 Scope:
@@ -463,23 +481,4 @@ Verification:
 - Passed focused Flutter test
   `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
   receipt review exposes classification and attachment flow"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 505 - 00:53:06 EDT to 00:53:57 EDT
-
-Scope:
-- Hardened per-source continuation attachment signals so blank native values no
-  longer hide valid phone-camera backup continuation evidence.
-- Added regression coverage through `ReceiptCaptureFlow.attachmentsFromReviewResult`
-  proving attachment document/risk signals keep bottom ghost-guide policy.
-- Recorded `BUG-RECEIPT-0023` under `ocr_handoff_contract`.
-- Archived Pass 492 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for continuation attachment signal
-  builders and focused continuation regression coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_result_continuation_handoff_test.dart --plain-name "phone
-  backup continuation survives blank native values"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.

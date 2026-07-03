@@ -409,6 +409,12 @@ void main() {
           .receiptReaderHandoffCounts['receipt_section_order_retake_invalid_preserved_slot_moved'],
       1,
     );
+    expect(result.receiptSectionOrderOutcome, 'retake_order_invalid');
+    expect(
+      result.receiptSectionOrderEvidenceLabel,
+      'section_order=retake_order_invalid;'
+      'multi_section_photos=0;ghost_unknown;retake_invalid',
+    );
     final metadata = result.privacySafeReceiptReaderHandoffMetadata.toString();
     expect(metadata, contains('retake_invalid_final_before_original'));
     expect(metadata, isNot(contains('/tmp/')));

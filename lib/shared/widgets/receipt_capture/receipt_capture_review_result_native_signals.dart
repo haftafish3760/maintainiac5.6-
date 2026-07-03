@@ -289,6 +289,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
   String get receiptSectionOrderOutcome {
     final counts = receiptSectionOrderCounts;
     if (counts.isEmpty) return 'unknown';
+    if (counts.keys.any((key) => key.startsWith('retake_invalid_'))) {
+      return 'retake_order_invalid';
+    }
     if ((counts['policy_top_to_bottom_numbered_sections'] ?? 0) > 0 &&
         (counts['ghost_guide_visible'] ?? 0) > 0) {
       return 'numbered_sections_with_ghost_guide';
@@ -319,6 +322,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
         : 'ghost_unknown';
     final label =
         'section_order=$outcome;multi_section_photos=$sectionCount;$ghost';
+    if (outcome == 'retake_order_invalid') {
+      return '$label;retake_invalid';
+    }
     if ((counts['retake_preserved_original_slot'] ?? 0) > 0) {
       return '$label;retake_preserved';
     }
