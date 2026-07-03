@@ -73,6 +73,34 @@ void main() {
   });
 
   test(
+    'individual QA command tool returns all selectors for a changed file',
+    () {
+      const registry = maintainiacSurgicalTestSelectorRegistry;
+
+      for (final file in {
+        for (final selector in registry.selectors) selector.file,
+      }) {
+        final expectedCommands = [
+          for (final selector in registry.selectors)
+            if (selector.file == file) selector.command,
+        ];
+        final result = resolveMaintainiacIndividualQaCommand([
+          '--changed',
+          file,
+        ]);
+        final actualCommands = result.stdout
+            .trim()
+            .split('\n')
+            .where((line) => line.trim().isNotEmpty)
+            .toList(growable: false);
+
+        expect(result.exitCode, 0, reason: 'Expected $file to resolve.');
+        expect(actualCommands, unorderedEquals(expectedCommands));
+      }
+    },
+  );
+
+  test(
     'individual QA command tool resolves every selector id exactly once',
     () {
       const registry = maintainiacSurgicalTestSelectorRegistry;

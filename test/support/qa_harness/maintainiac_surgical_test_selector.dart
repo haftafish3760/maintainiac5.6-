@@ -1637,6 +1637,15 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'tooling', 'parser-consumer', 'regression', 'release-gate'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'individual_command_tool_changed_file_all_selectors',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_individual_qa_command_tool_test.dart',
+    plainName:
+        'individual QA command tool returns all selectors for a changed file',
+    reason: 'Run only the command-tool changed-file completeness lookup check.',
+    tags: {'tooling', 'parser-consumer', 'regression', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'individual_command_tool_all_selector_ids',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_individual_qa_command_tool_test.dart',
