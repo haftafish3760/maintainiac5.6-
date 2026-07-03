@@ -39,7 +39,14 @@ int runWorkSupplyParserQaNextAction(
     ..._readErrorFinding(evidence, _evidenceSummaryPath),
   ];
   final commandCells = _commandCellIds(commands['commands']);
-  final activeWaves = _runningWaveStatuses(_batchWaveRoot);
+  final maxStatusAgeMs = _intValue(args, 'max-status-age-ms', 900000);
+  final maxActiveCellMs = _intValue(args, 'max-active-cell-ms', 900000);
+  final activeWaves = _runningWaveStatuses(
+    _batchWaveRoot,
+    now: DateTime.now().toUtc(),
+    maxStatusAgeMs: maxStatusAgeMs,
+    maxActiveCellMs: maxActiveCellMs,
+  );
   final activeUnsafe = _activeWaveUnsafeFindings(activeWaves);
   final allUnsafe = [...unsafe, ...readErrors, ...activeUnsafe];
 
@@ -72,6 +79,8 @@ int runWorkSupplyParserQaNextAction(
     'sampleCells': commandCells.take(6).toList(),
     'activeWaveCount': activeWaves.length,
     'activeWaves': activeWaves,
+    'maxStatusAgeMs': maxStatusAgeMs,
+    'maxActiveCellMs': maxActiveCellMs,
     'missingArtifactNames': missing,
     'unsafeFindings': allUnsafe,
     'activeWaveUnsafeFindings': activeUnsafe,
@@ -131,7 +140,12 @@ List<String> _readErrorFinding(Map<String, Object?> json, String fallbackPath) {
   return ['jsonReadError:$path:$error'];
 }
 
-List<Map<String, Object?>> _runningWaveStatuses(String rootPath) {
+List<Map<String, Object?>> _runningWaveStatuses(
+  String rootPath, {
+  required DateTime now,
+  required int maxStatusAgeMs,
+  required int maxActiveCellMs,
+}) {
   final root = Directory(rootPath);
   if (!root.existsSync()) return const [];
   final activeByQueue = <String, Map<String, Object?>>{};
@@ -158,12 +172,23 @@ List<Map<String, Object?>> _runningWaveStatuses(String rootPath) {
     if (decoded['state'] != 'running') continue;
     final queueId = '${decoded['queueId'] ?? ''}';
     final key = queueId.isEmpty ? entity.path : queueId;
+    final updatedAt = DateTime.tryParse('${decoded['updatedAtIso'] ?? ''}');
+    final statusAgeMs = updatedAt == null
+        ? null
+        : now.difference(updatedAt.toUtc()).inMilliseconds;
+    final activeCellElapsedMs = _asInt(decoded['activeCellElapsedMs']);
     activeByQueue[key] = {
       'path': entity.path,
       'queueId': queueId,
       'activeCellId': decoded['activeCellId'] ?? '',
       'completedCellCount': decoded['completedCellCount'] ?? 0,
       'failedCellCount': decoded['failedCellCount'] ?? 0,
+      'updatedAtIso': decoded['updatedAtIso'] ?? '',
+      'statusAgeMs': statusAgeMs,
+      'activeCellElapsedMs': activeCellElapsedMs,
+      'statusStale': statusAgeMs == null || statusAgeMs > maxStatusAgeMs,
+      'activeCellStale':
+          activeCellElapsedMs != null && activeCellElapsedMs > maxActiveCellMs,
       'liveServicesAllowed': decoded['liveServicesAllowed'] ?? false,
       'writesProductionCatalog': decoded['writesProductionCatalog'] ?? false,
       'firebaseWritesAllowed': decoded['firebaseWritesAllowed'] ?? false,
@@ -193,9 +218,23 @@ List<String> _activeWaveUnsafeFindings(List<Map<String, Object?>> waves) {
     if (readError != null && readError.isNotEmpty) {
       findings.add('activeWaveStatusReadError:${wave['path']}:$readError');
     }
+    if (wave['statusStale'] == true) {
+      findings.add('activeWaveStatusStale:$queueId:${wave['statusAgeMs']}ms');
+    }
+    if (wave['activeCellStale'] == true) {
+      findings.add(
+        'activeWaveCellStale:$queueId:${wave['activeCellElapsedMs']}ms',
+      );
+    }
   }
   findings.sort();
   return findings;
+}
+
+int? _asInt(Object? value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse('$value');
 }
 
 Iterable<FileSystemEntity> _safeRecursiveList(Directory root) sync* {
@@ -220,4 +259,9 @@ String _value(List<String> args, String key, String fallback) {
     if (arg.startsWith('--$key=')) return arg.substring(key.length + 3);
   }
   return fallback;
+}
+
+int _intValue(List<String> args, String key, int fallback) {
+  final value = _value(args, key, '$fallback');
+  return int.tryParse(value) ?? fallback;
 }
