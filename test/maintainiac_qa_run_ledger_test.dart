@@ -111,11 +111,27 @@ void main() {
         exitCode: 0,
         scope: ['test/maintainiac_sync_lifecycle_test.dart'],
       ),
+      MaintainiacQaRunRecord(
+        id: 'run_bad_multi_file',
+        label: 'Unsafe multi-file command',
+        command:
+            'flutter test test/maintainiac_sync_lifecycle_test.dart test/maintainiac_qa_backbone_test.dart --plain-name "sync lifecycle keeps local dirty before mirror"',
+        inputSignature: 'sync-lifecycle-v1',
+        startedAt: DateTime.utc(2026, 7, 3, 15),
+        completedAt: DateTime.utc(2026, 7, 3, 15, 1),
+        status: MaintainiacQaRunStatus.passed,
+        exitCode: 0,
+        scope: ['test/maintainiac_sync_lifecycle_test.dart'],
+      ),
     ]);
 
     final failures = ledger.validate().join('\n');
 
     expect(failures, contains('run_bad_command must use --plain-name'));
     expect(failures, contains('run_bad_command must not chain commands'));
+    expect(
+      failures,
+      contains('run_bad_multi_file must target exactly one test file'),
+    );
   });
 }

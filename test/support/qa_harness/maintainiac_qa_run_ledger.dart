@@ -49,6 +49,9 @@ class MaintainiacQaRunRecord {
     if (!command.startsWith('flutter test test/')) {
       failures.add('$id must be a focused Flutter test command');
     }
+    if (_testFileReferences(command).length != 1) {
+      failures.add('$id must target exactly one test file');
+    }
     if (!command.contains(' --plain-name ')) {
       failures.add('$id must use --plain-name for surgical reruns');
     }
@@ -93,6 +96,13 @@ class MaintainiacQaRunRecord {
       if (actionableSummary.isNotEmpty) 'actionableSummary': actionableSummary,
     };
   }
+}
+
+List<String> _testFileReferences(String command) {
+  return [
+    for (final token in command.split(RegExp(r'\s+')))
+      if (token.startsWith('test/') && token.endsWith('.dart')) token,
+  ];
 }
 
 class MaintainiacQaRunLedger {
