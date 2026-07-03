@@ -471,6 +471,22 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'builders', 'environment', 'release-gate'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_fixtures_accept_reviewed',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_fixtures_test.dart',
+    plainName: 'fixture catalog accepts reviewed behavior fixtures',
+    reason: 'Run only the positive fixture catalog check after fixture edits.',
+    tags: {'fixtures', 'regression', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'qa_fixtures_reject_weak',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_fixtures_test.dart',
+    plainName: 'fixture catalog rejects duplicate or unreviewed weak evidence',
+    reason: 'Run only the negative fixture catalog check after fixture edits.',
+    tags: {'fixtures', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'main_backbone_parser_visibility',
     scope: MaintainiacSurgicalTestScope.releaseGate,
     file: 'test/maintainiac_qa_backbone_test.dart',

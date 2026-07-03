@@ -71,6 +71,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_qa_assertions.dart',
       'maintainiac_qa_environment.dart',
       'maintainiac_qa_builders.dart',
+      'maintainiac_qa_fixtures.dart',
     }) {
       if (!rules.any((rule) => rule.changedPathContains == required)) {
         failures.add('missing rerun rule for $required');
@@ -284,6 +285,17 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
         'main_backbone_parser_visibility',
       },
       reason: 'Shared builder changes need record-family and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_fixtures_changed',
+      changedPathContains: 'maintainiac_qa_fixtures.dart',
+      selectorIds: {
+        'qa_fixtures_accept_reviewed',
+        'qa_fixtures_reject_weak',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Shared fixture changes need positive, negative, and backbone checks.',
     ),
   ],
 );

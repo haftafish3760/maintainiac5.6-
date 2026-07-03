@@ -550,6 +550,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         ],
         'qaCaseRegistry': caseRegistry.toJson(),
         'deviceDeliveryMatrix': maintainiacDeviceDeliveryMatrix.toJson(),
+        'fixtureCatalog': fixtures.toJson(),
         'executionManifest': executionManifest.toJson(),
         'runLedger': runLedger.toJson(),
         'regressionRegistry': maintainiacRegressionRegistry.toJson(),

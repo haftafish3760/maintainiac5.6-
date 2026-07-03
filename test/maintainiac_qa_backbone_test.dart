@@ -31,6 +31,10 @@ void main() {
       contains('legacy_cloud_assist_opt_in'),
     );
     expect(
+      report.results.single.metrics['fixtureCatalog'].toString(),
+      contains('inventory_parser_ambiguous_pvc'),
+    );
+    expect(
       report.results.single.metrics['executionManifest'].toString(),
       contains('failureAction'),
     );

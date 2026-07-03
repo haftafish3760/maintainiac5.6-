@@ -59,6 +59,21 @@ class MaintainiacFixtureDescriptor {
     }
     return failures;
   }
+
+  Map<String, Object?> toJson() {
+    return {
+      'id': id,
+      'kind': kind.name,
+      'module': module,
+      'path': path,
+      'owner': owner,
+      'synthetic': synthetic,
+      'reviewed': reviewed,
+      'locale': locale,
+      if (merchant.isNotEmpty) 'merchant': merchant,
+      'expectedBehavior': expectedBehavior,
+    };
+  }
 }
 
 class MaintainiacFixtureCatalog {
@@ -69,6 +84,9 @@ class MaintainiacFixtureCatalog {
   List<String> validate() {
     final failures = <String>[];
     final ids = <String>{};
+    if (fixtures.isEmpty) {
+      failures.add('fixture catalog has no fixtures');
+    }
     for (final fixture in fixtures) {
       if (!ids.add(fixture.id)) {
         failures.add('duplicate fixture ${fixture.id}');
@@ -78,5 +96,16 @@ class MaintainiacFixtureCatalog {
       }
     }
     return failures;
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'fixtureCount': fixtures.length,
+      'kinds': ({for (final fixture in fixtures) fixture.kind.name}.toList()
+        ..sort()),
+      'modules': ({for (final fixture in fixtures) fixture.module}.toList()
+        ..sort()),
+      'fixtures': [for (final fixture in fixtures) fixture.toJson()],
+    };
   }
 }

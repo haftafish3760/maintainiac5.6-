@@ -191,6 +191,13 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_fixtures_test.dart',
+      plainNames: {
+        'fixture catalog accepts reviewed behavior fixtures',
+        'fixture catalog rejects duplicate or unreviewed weak evidence',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_backbone_test.dart',
       plainNames: {'main Maintainiac QA backbone covers whole app modules'},
     ),
