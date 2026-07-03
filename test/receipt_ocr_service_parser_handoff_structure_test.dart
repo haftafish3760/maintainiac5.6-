@@ -87,6 +87,11 @@ void main() {
 
     expect(second.stableLineId, lineId);
     expect(handoff.stableLineIds, [lineId, lineId]);
+    expect(handoff.parserReadyItemLineIds, [lineId]);
+    expect(handoff.materialCandidateLineIds, [lineId]);
+    expect(handoff.inventoryPrepLineIds, [lineId]);
+    expect(handoff.parserTaskLineIds['item_price_ready'], [lineId]);
+    expect(handoff.parserTaskLineIds['material_line_candidate'], [lineId]);
     expect(handoff.lineNumberByLineId[lineId], 3);
     expect(
       handoff.proofLineReferenceLabelByLineId[lineId],
@@ -102,6 +107,15 @@ void main() {
     expect(
       handoff.customerProofDefaultVisibilityByLineId[lineId],
       'review_for_customer_proof',
+    );
+    expect(handoff.customerProofReviewLineIds, [lineId]);
+    expect(
+      handoff.privacySafeCustomerProofContract['customerProofReviewLineIds'],
+      [lineId],
+    );
+    expect(
+      handoff.customerProofVisibilityCounts['review_for_customer_proof'],
+      2,
     );
   });
 

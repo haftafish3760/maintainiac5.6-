@@ -13,37 +13,29 @@ extension ReceiptOcrParserHandoffProofMaps on ReceiptOcrParserHandoff {
   }
 
   List<String> get customerProofReviewLineIds {
-    return List<String>.unmodifiable(
-      lineDrafts
-          .where(
-            (draft) =>
-                draft.customerProofDefaultVisibility ==
-                'review_for_customer_proof',
-          )
-          .map((draft) => draft.stableLineId),
+    return _uniqueLineDraftIds(
+      lineDrafts.where(
+        (draft) =>
+            draft.customerProofDefaultVisibility == 'review_for_customer_proof',
+      ),
     );
   }
 
   List<String> get customerProofRedactByDefaultLineIds {
-    return List<String>.unmodifiable(
-      lineDrafts
-          .where(
-            (draft) =>
-                draft.customerProofDefaultVisibility == 'redact_by_default',
-          )
-          .map((draft) => draft.stableLineId),
+    return _uniqueLineDraftIds(
+      lineDrafts.where(
+        (draft) => draft.customerProofDefaultVisibility == 'redact_by_default',
+      ),
     );
   }
 
   List<String> get customerProofNeedsManualDecisionLineIds {
-    return List<String>.unmodifiable(
-      lineDrafts
-          .where(
-            (draft) =>
-                draft.customerProofDefaultVisibility ==
-                'review_before_customer_share',
-          )
-          .map((draft) => draft.stableLineId),
+    return _uniqueLineDraftIds(
+      lineDrafts.where(
+        (draft) =>
+            draft.customerProofDefaultVisibility ==
+            'review_before_customer_share',
+      ),
     );
   }
 
@@ -117,4 +109,12 @@ extension ReceiptOcrParserHandoffProofMaps on ReceiptOcrParserHandoff {
       'primaryFieldLineIds': primaryFieldLineIds,
     });
   }
+}
+
+List<String> _uniqueLineDraftIds(Iterable<ReceiptOcrParserLineDraft> drafts) {
+  final seen = <String>{};
+  return List<String>.unmodifiable([
+    for (final draft in drafts)
+      if (seen.add(draft.stableLineId)) draft.stableLineId,
+  ]);
 }

@@ -24,6 +24,26 @@ Verification:
   rejects duplicate current section paths"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
 
+## Pass 528 - 02:01:00 EDT to 02:05:00 EDT
+
+Scope:
+- Hardened OCR parser category and customer-proof line ID lists so duplicate
+  stable line IDs do not appear twice in selectable/task/redaction lists.
+- Preserved raw `stableLineIds` ordering so duplicate OCR rows remain auditable
+  while actionable line-ID lists stay unique.
+- Extended duplicate-ID regression coverage for parser task lists,
+  inventory/material IDs, and customer-proof review IDs.
+- Recorded `BUG-RECEIPT-0046` under `receipt_line_numbering`.
+
+Verification:
+- Passed targeted Dart format and analyzer for parser handoff line-ID lists,
+  customer-proof lists, and parser handoff structure regression coverage.
+- Passed focused Flutter test
+  `test/receipt_ocr_service_parser_handoff_structure_test.dart --plain-name
+  "parser handoff line id maps preserve first duplicate line id"`.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 527 - 01:56:00 EDT to 02:00:00 EDT
 
 Scope:
@@ -459,25 +479,6 @@ Scope:
 Verification:
 - Passed targeted Dart format and analyzer for continuation attachment signal
   builders and focused continuation regression coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_result_continuation_handoff_test.dart --plain-name "phone
-  backup continuation survives blank native values"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 504 - 00:51:33 EDT to 00:52:21 EDT
-
-Scope:
-- Hardened continuation/ghost-guide receipt handoff so blank native diagnostic
-  values no longer block valid phone-camera backup evidence.
-- Added regression coverage proving bottom-section continuation reason and ghost
-  guide policy survive empty primary values without leaking paths.
-- Recorded `BUG-RECEIPT-0022` under `ocr_handoff_contract`.
-- Archived Pass 491 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for continuation handoff source and
-  focused continuation regression coverage.
 - Passed focused Flutter test
   `test/receipt_camera_result_continuation_handoff_test.dart --plain-name "phone
   backup continuation survives blank native values"`.

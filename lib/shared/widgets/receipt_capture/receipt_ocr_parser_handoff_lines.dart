@@ -4,92 +4,82 @@ extension ReceiptOcrParserHandoffLineMaps on ReceiptOcrParserHandoff {
   List<String> get stableLineIds =>
       List.unmodifiable(lines.map((line) => line.stableLineId));
   List<String> get parserReadyItemLineIds => List.unmodifiable(
-    itemLines
-        .where((line) => !line.needsReview)
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(itemLines.where((line) => !line.needsReview)),
   );
   List<String> get reviewItemLineIds => List.unmodifiable(
-    itemLines
-        .where((line) => line.needsReview)
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(itemLines.where((line) => line.needsReview)),
   );
   List<String> get separatorlessMoneyInferenceLineIds => List.unmodifiable(
-    lines
-        .where((line) => line.hasSeparatorlessMoneyInference)
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(
+      lines.where((line) => line.hasSeparatorlessMoneyInference),
+    ),
   );
   List<String> get splitCentsMoneyInferenceLineIds => List.unmodifiable(
-    lines
-        .where((line) => line.hasSplitCentsMoneyInference)
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(
+      lines.where((line) => line.hasSplitCentsMoneyInference),
+    ),
   );
   List<String> get addressContactMetadataLineIds => List.unmodifiable(
-    metadataLines
-        .where((line) => line.hasTrait('address_or_contact_metadata'))
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(
+      metadataLines.where(
+        (line) => line.hasTrait('address_or_contact_metadata'),
+      ),
+    ),
   );
   List<String> get weakHeaderCandidateLineIds => List.unmodifiable(
-    lines
-        .where((line) => line.hasTrait('weak_header_candidate'))
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(
+      lines.where((line) => line.hasTrait('weak_header_candidate')),
+    ),
   );
   List<String> get knownMerchantHeaderCandidateLineIds => List.unmodifiable(
-    lines
-        .where((line) => line.hasTrait('known_merchant_header_candidate'))
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(
+      lines.where((line) => line.hasTrait('known_merchant_header_candidate')),
+    ),
   );
   List<String> get unknownMerchantHeaderCandidateLineIds => List.unmodifiable(
-    lines
-        .where((line) => line.hasTrait('unknown_merchant_header_candidate'))
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(
+      lines.where((line) => line.hasTrait('unknown_merchant_header_candidate')),
+    ),
   );
   List<String> get timeCandidateLineIds => List.unmodifiable(
-    lines
-        .where((line) => line.hasTrait('time_present'))
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(lines.where((line) => line.hasTrait('time_present'))),
   );
   List<String> get inventoryPrepLineIds => List.unmodifiable(
-    itemLines
-        .where((line) => line.isInventoryPrepCandidate)
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(
+      itemLines.where((line) => line.isInventoryPrepCandidate),
+    ),
   );
   List<String> get materialCandidateLineIds => List.unmodifiable(
-    itemLines
-        .where((line) => line.isMaterialCandidate)
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(itemLines.where((line) => line.isMaterialCandidate)),
   );
   List<String> get fuelCandidateLineIds => List.unmodifiable(
-    itemLines
-        .where((line) => line.isFuelCandidate)
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(itemLines.where((line) => line.isFuelCandidate)),
   );
   List<String> get fuelReadyLineIds => List.unmodifiable(
-    itemLines
-        .where((line) => line.isFuelCandidate && !line.needsReview)
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(
+      itemLines.where((line) => line.isFuelCandidate && !line.needsReview),
+    ),
   );
   bool get hasFuelContext => lines.any(
     (line) => line.isFuelCandidate || _looksLikeFuelExpenseLine(line.text),
   );
   List<String> get fuelQuantitySignalLineIds => List.unmodifiable(
-    lines
-        .where(
-          (line) =>
-              (line.isFuelCandidate && line.hasFuelQuantitySignal) ||
-              (hasFuelContext &&
-                  _looksLikeFuelReceiptQuantitySignal(line.text)),
-        )
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(
+      lines.where(
+        (line) =>
+            (line.isFuelCandidate && line.hasFuelQuantitySignal) ||
+            (hasFuelContext && _looksLikeFuelReceiptQuantitySignal(line.text)),
+      ),
+    ),
   );
   List<String> get fuelUnitPriceSignalLineIds => List.unmodifiable(
-    lines
-        .where(
-          (line) =>
-              (line.isFuelCandidate && line.hasFuelUnitPriceSignal) ||
-              (hasFuelContext &&
-                  _looksLikeFuelReceiptUnitPriceSignal(line.text)),
-        )
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(
+      lines.where(
+        (line) =>
+            (line.isFuelCandidate && line.hasFuelUnitPriceSignal) ||
+            (hasFuelContext && _looksLikeFuelReceiptUnitPriceSignal(line.text)),
+      ),
+    ),
   );
   List<String> get fuelDetailReadyLineIds {
     if (fuelReadyLineIds.isEmpty ||
@@ -105,9 +95,9 @@ extension ReceiptOcrParserHandoffLineMaps on ReceiptOcrParserHandoff {
   }
 
   List<String> get vehicleSupplyCandidateLineIds => List.unmodifiable(
-    itemLines
-        .where((line) => line.isVehicleSupplyCandidate)
-        .map((line) => line.stableLineId),
+    _uniqueStableLineIds(
+      itemLines.where((line) => line.isVehicleSupplyCandidate),
+    ),
   );
   Map<String, String> get primaryFieldLineIds {
     final result = <String, String>{};
@@ -263,4 +253,12 @@ extension ReceiptOcrParserHandoffLineMaps on ReceiptOcrParserHandoff {
       lineDrafts.map((draft) => draft.toPrivacySafeSummaryMap()),
     );
   }
+}
+
+List<String> _uniqueStableLineIds(Iterable<ReceiptOcrParserLineSignal> lines) {
+  final seen = <String>{};
+  return [
+    for (final line in lines)
+      if (seen.add(line.stableLineId)) line.stableLineId,
+  ];
 }
