@@ -154,6 +154,12 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_individual_test_manifest_test.dart',
+      plainNames: {
+        'individual test manifest mirrors surgical selector commands exactly',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_surgical_rerun_router_test.dart',
       plainNames: {
         'surgical rerun router maps changed files to individual commands',

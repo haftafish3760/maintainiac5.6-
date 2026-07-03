@@ -278,6 +278,16 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'inventory', 'expenses', 'parser-consumer', 'security'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'individual_manifest_mirrors_selectors',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_individual_test_manifest_test.dart',
+    plainName:
+        'individual test manifest mirrors surgical selector commands exactly',
+    reason:
+        'Run only the manifest/selector exact-match check after command metadata edits.',
+    tags: {'parser-consumer', 'tooling', 'regression', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'surgical_rerun_router_maps_changes',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_surgical_rerun_router_test.dart',

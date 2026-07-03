@@ -31,6 +31,29 @@ void main() {
     expect(manifest.toJson().toString(), contains('source-of-truth'));
   });
 
+  test(
+    'individual test manifest mirrors surgical selector commands exactly',
+    () {
+      final manifest = maintainiacIndividualTestManifest;
+      const registry = maintainiacSurgicalTestSelectorRegistry;
+
+      expect(manifest.entries, hasLength(registry.selectors.length));
+
+      for (final selector in registry.selectors) {
+        final entry = manifest.entryForId(selector.id);
+
+        expect(entry.command, selector.command);
+        expect(entry.whenToRun, selector.reason);
+        expect(
+          entry.command,
+          equals(
+            'flutter test ${selector.file} --plain-name "${selector.plainName}"',
+          ),
+        );
+      }
+    },
+  );
+
   test('individual test manifest rejects unsafe or non-surgical commands', () {
     const manifest = MaintainiacIndividualTestManifest([
       MaintainiacIndividualTestEntry(
