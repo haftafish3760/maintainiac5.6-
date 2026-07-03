@@ -97,6 +97,34 @@ Optional future scope tags:
 
 The default current focus is residential plus light industrial. Commercial should be structured into the model now so the app does not need a painful migration later, but commercial breadth should not drown out residential parser quality.
 
+Pack overlap rules:
+
+- same_item_can_belong_to_multiple_pack_scopes
+- canonical_identity_is_not_duplicated
+- pack_membership_is_separate_from_item_identity
+- residential_core_is_service_truck_first
+- standard_extends_core
+- professional_extends_standard
+- complete_extends_professional
+- commercial_only_does_not_pollute_residential_core
+- light_industrial_overlap_is_explicit
+- fasteners_can_cross_trade_with_context
+
+Context safety rules:
+
+- active plumbing estimate section
+- active electrical estimate section
+- active HVAC estimate section
+- selected job type
+- enabled trade packs
+- vehicle inventory
+- previous corrections
+- context boost
+- does not erase ambiguity
+- requires review
+
+Common overlap examples include PVC, conduit, condensate, threaded rod, all thread, tapcon, sheet metal screw, foil tape, filter, box, coupling, and elbow. These examples must stay review-safe when multiple enabled packs could match the same receipt wording.
+
 ## Pack Tiers
 
 Each trade and market scope should support four tiers:

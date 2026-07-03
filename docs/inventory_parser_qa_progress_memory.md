@@ -2341,6 +2341,10 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the executable Core bloat guard:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_tier_role_contract,qa.threshold_gate`
   passed 6016 checks with 0 failures.
+- Added an executable pack-overlap guard so release-one Plumbing, Electrical, and HVAC Core/Standard rows must preserve explicit multi-scope evidence and cross-trade ambiguity terms instead of duplicating canonical items or pretending ambiguous receipt words are certain.
+- Validated executable pack overlap:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.pack_overlap_contract,qa.threshold_gate`
+  passed 16965 checks with 0 failures.
 - Validated after the expanded Spanish family-term QA gate:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.spanish_release_one,qa.threshold_gate`
   passed 101224 checks with 0 failures.

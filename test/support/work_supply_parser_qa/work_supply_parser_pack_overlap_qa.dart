@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
+
 import '../qa_harness/qa_harness.dart';
 
 class WorkSupplyParserPackOverlapSuite extends QaSuite {
@@ -70,11 +73,30 @@ class WorkSupplyParserPackOverlapSuite extends QaSuite {
     'requires review',
   };
 
+  static const _priorityTrades = {'Plumbing', 'Electrical', 'HVAC'};
+
+  static const _crossTradeEvidenceTerms = {
+    'PVC': 'pvc',
+    'conduit': 'conduit',
+    'condensate': 'condensate',
+    'threaded rod': 'threaded rod',
+    'all thread': 'all thread',
+    'tapcon': 'tapcon',
+    'sheet metal screw': 'sheet metal screw',
+    'foil tape': 'foil tape',
+    'filter': 'filter',
+    'box': 'box',
+    'coupling': 'coupling',
+    'elbow': 'elbow',
+  };
+
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
     final failures = <QaFailure>[];
     final source = _readSources();
+    final overlapCounts = <String, int>{};
+    final ambiguityCounts = <String, int>{};
     var checked = 0;
 
     checked += _scopeTokens.length;
@@ -119,6 +141,13 @@ class WorkSupplyParserPackOverlapSuite extends QaSuite {
     checked += 4;
     _requireLayering(source, failures);
 
+    final executable = _checkExecutablePackOverlap(
+      failures,
+      overlapCounts,
+      ambiguityCounts,
+    );
+    checked += executable;
+
     return timer.finish(
       suite: name,
       checked: checked,
@@ -126,10 +155,87 @@ class WorkSupplyParserPackOverlapSuite extends QaSuite {
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'sourceFiles': _sourcePaths.length,
+        'multiScopePriorityCounts': overlapCounts,
+        'crossTradeEvidenceCounts': ambiguityCounts,
         'contract':
             'Pack membership is a versioned routing layer over canonical items, not duplicated data or a reason to force certainty.',
       },
     );
+  }
+
+  int _checkExecutablePackOverlap(
+    List<QaFailure> failures,
+    Map<String, int> overlapCounts,
+    Map<String, int> ambiguityCounts,
+  ) {
+    var checked = 0;
+    for (final item in workSupplyCatalogItems) {
+      if (!_priorityTrades.contains(item.trade)) continue;
+      if (item.packTier != WorkSupplyPackTier.core &&
+          item.packTier != WorkSupplyPackTier.standard) {
+        continue;
+      }
+      checked++;
+      if (item.marketScopes.length > 1) {
+        overlapCounts.update(
+          item.trade,
+          (count) => count + 1,
+          ifAbsent: () => 1,
+        );
+      }
+      final haystack = [
+        item.name,
+        item.category,
+        item.system,
+        item.itemType,
+        item.variant,
+        ...item.aliases,
+        ...item.intelligence.negativeMatchTokens,
+        ...item.intelligence.highImportanceTokens,
+      ].join(' ').toLowerCase();
+      for (final entry in _crossTradeEvidenceTerms.entries) {
+        if (!haystack.contains(entry.value)) continue;
+        ambiguityCounts.update(
+          entry.key,
+          (count) => count + 1,
+          ifAbsent: () => 1,
+        );
+      }
+    }
+
+    for (final trade in _priorityTrades) {
+      if ((overlapCounts[trade] ?? 0) >= 10) continue;
+      failures.add(
+        _failure(
+          id: 'thin_executable_scope_overlap:${_safeId(trade)}',
+          message:
+              'Priority release-one trade has too little executable multi-scope overlap evidence.',
+          expected:
+              '$trade Core/Standard has at least 10 rows that can belong to more than one market scope',
+          actual: '${overlapCounts[trade] ?? 0} rows',
+          fix:
+              'Add explicit market-scope membership for service-truck rows that legitimately appear in residential plus light-industrial/commercial work.',
+          triage: QaFailureTriage.governance,
+        ),
+      );
+    }
+
+    for (final term in _crossTradeEvidenceTerms.keys) {
+      if ((ambiguityCounts[term] ?? 0) > 0) continue;
+      failures.add(
+        _failure(
+          id: 'missing_executable_cross_trade_term:${_safeId(term)}',
+          message:
+              'Cross-trade ambiguity term is documented but not visible in executable catalog evidence.',
+          expected: term,
+          actual: '0 matching priority Core/Standard rows',
+          fix:
+              'Add catalog aliases, negative-match tokens, or item rows that keep this overlap visible to parser QA.',
+          triage: QaFailureTriage.conflict,
+        ),
+      );
+    }
+    return checked + _priorityTrades.length + _crossTradeEvidenceTerms.length;
   }
 
   void _requireRules(
@@ -155,12 +261,7 @@ class WorkSupplyParserPackOverlapSuite extends QaSuite {
   }
 
   void _requireLayering(String source, List<QaFailure> failures) {
-    const layeredTokens = {
-      'canonical',
-      'membership',
-      'trade',
-      'tier',
-    };
+    const layeredTokens = {'canonical', 'membership', 'trade', 'tier'};
     final lower = source.toLowerCase();
     for (final token in layeredTokens) {
       if (lower.contains(token)) continue;
