@@ -2577,6 +2577,17 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the known-debt ledger:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.known_debt_ledger,qa.threshold_gate`
   passed 13 checks with 0 failures.
+- Added protected "do not grow before split" file-size baselines for existing
+  oversized inventory parser app-source files:
+  `work_supply_receipt_parser.dart` at 4954 lines,
+  `work_supply_receipt_parser_trade_scores_core.dart` at 2333 lines,
+  `work_supply_receipt_parser_trade_scores_finishes.dart` at 1796 lines, and
+  `work_supply_receipt_parser_trade_scores_exterior.dart` at 1130 lines. These
+  baselines do not approve the file sizes; they prevent future inventory parser
+  passes from making those oversized files worse before they are split.
+- Validated the file-size guard:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.file_size_contract,qa.threshold_gate`
+  passed 208 checks with 0 failures.
 
 Named release gates:
 

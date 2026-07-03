@@ -10,6 +10,13 @@ class WorkSupplyParserFileSizeSuite extends QaSuite {
   static const _protectedAppFileBaselines = {
     'lib/screens/work_supplies/data/catalog/plumbing/generated_plumbing_service_truck_catalog.dart':
         549,
+    'lib/screens/work_supplies/data/work_supply_receipt_parser.dart': 4954,
+    'lib/screens/work_supplies/data/work_supply_receipt_parser_trade_scores_core.dart':
+        2333,
+    'lib/screens/work_supplies/data/work_supply_receipt_parser_trade_scores_finishes.dart':
+        1796,
+    'lib/screens/work_supplies/data/work_supply_receipt_parser_trade_scores_exterior.dart':
+        1130,
   };
 
   @override
