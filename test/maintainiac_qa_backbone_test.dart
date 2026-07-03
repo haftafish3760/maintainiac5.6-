@@ -158,6 +158,10 @@ void main() {
       report.results.single.metrics['derivedOutputContract'].toString(),
       contains('invoices_read_sources_write_invoice_output'),
     );
+    expect(
+      report.results.single.metrics['sensitiveFieldRegistry'].toString(),
+      contains('passengerPatient'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

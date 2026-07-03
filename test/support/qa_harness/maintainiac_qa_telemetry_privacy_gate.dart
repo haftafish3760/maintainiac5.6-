@@ -1,3 +1,5 @@
+import 'maintainiac_sensitive_field_registry.dart';
+
 enum MaintainiacTelemetrySurface {
   qaReport,
   adminDashboard,
@@ -93,21 +95,7 @@ class MaintainiacQaTelemetryPrivacyGate {
   }
 }
 
-const _commonForbiddenPrivateFields = {
-  'rawReceiptText',
-  'receiptImagePath',
-  'customerName',
-  'customerAddress',
-  'customerPhone',
-  'email',
-  'cardNumber',
-  'cardLast4',
-  'vin',
-  'plate',
-  'patient',
-  'passenger',
-  'deviceSerial',
-};
+const _commonForbiddenPrivateFields = maintainiacSensitiveFieldNames;
 
 const maintainiacQaTelemetryPrivacyGate = MaintainiacQaTelemetryPrivacyGate([
   MaintainiacTelemetryPrivacyRule(

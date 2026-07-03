@@ -31,6 +31,7 @@ import 'maintainiac_inventory_parser_consumer_contract.dart';
 import 'maintainiac_module_boundary_gate.dart';
 import 'maintainiac_module_suite_contract.dart';
 import 'maintainiac_schedule_contract.dart';
+import 'maintainiac_sensitive_field_registry.dart';
 import 'maintainiac_payment_contract.dart';
 import 'maintainiac_job_contract.dart';
 import 'maintainiac_source_truth_gate.dart';
@@ -463,6 +464,9 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacQaTelemetryPrivacyGate.validate()) {
       failures.add(_failure('qa_telemetry_privacy_gate_$issue', issue));
     }
+    for (final issue in maintainiacSensitiveFieldRegistry.validate()) {
+      failures.add(_failure('sensitive_field_registry_$issue', issue));
+    }
     for (final issue in maintainiacReleaseEvidenceBundle.validate()) {
       failures.add(_failure('release_evidence_bundle_$issue', issue));
     }
@@ -481,7 +485,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: 596,
+      checked: 616,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -533,6 +537,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'financialFormulaRegistry': maintainiacFinancialFormulaRegistry
             .toJson(),
         'qaTelemetryPrivacyGate': maintainiacQaTelemetryPrivacyGate.toJson(),
+        'sensitiveFieldRegistry': maintainiacSensitiveFieldRegistry.toJson(),
         'releaseEvidenceBundle': maintainiacReleaseEvidenceBundle.toJson(),
         'fixtureGovernanceGate': maintainiacFixtureGovernanceGate.toJson(),
         'restartLifecycleGate': maintainiacRestartLifecycleGate.toJson(),

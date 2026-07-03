@@ -30,6 +30,7 @@ export 'maintainiac_release_gate_plan.dart';
 export 'maintainiac_restart_lifecycle_gate.dart';
 export 'maintainiac_regression_registry.dart';
 export 'maintainiac_schedule_contract.dart';
+export 'maintainiac_sensitive_field_registry.dart';
 export 'maintainiac_financial_ledger.dart';
 export 'maintainiac_inventory_parser_consumer_contract.dart';
 export 'maintainiac_individual_test_manifest.dart';
