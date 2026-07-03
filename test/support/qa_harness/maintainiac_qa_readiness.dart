@@ -154,6 +154,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_qa_execution_manifest.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'quality_gate_matrix',
+        module: MaintainiacQaModule.performance,
+        description:
+            'Release gates include sync, security, financial, performance, regression, persistence chaos, evidence, accessibility/localization, and cost/quota coverage.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_qa_quality_gates.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'run_ledger',
         module: MaintainiacQaModule.performance,
         description:

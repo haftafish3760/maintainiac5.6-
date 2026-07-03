@@ -19,6 +19,8 @@ void main() {
     expect(ledger.toJson().toString(), contains('export_privacy_probe'));
     expect(ledger.toJson().toString(), contains('mutation_guard_probe'));
     expect(ledger.toJson().toString(), contains('failure_taxonomy_probe'));
+    expect(ledger.toJson().toString(), contains('quality_gate_matrix'));
+    expect(ledger.toJson().toString(), contains('cost/quota'));
     expect(ledger.toJson().toString(), contains('surgical_selector_coverage'));
     expect(ledger.toJson().toString(), contains('surgical_rerun_router'));
     expect(ledger.toJson().toString(), contains('source_truth_gate'));
