@@ -8,7 +8,7 @@ extension ReceiptNativeCameraSessionGhostGuide
 
   String get previousSectionGuideReasonCode =>
       previousSectionReasonCode?.trim().isNotEmpty == true
-      ? previousSectionReasonCode!.trim()
+      ? previousSectionReasonCode!.trim().toLowerCase()
       : hasPreviousSectionGuide
       ? 'continue_long_receipt'
       : 'none';

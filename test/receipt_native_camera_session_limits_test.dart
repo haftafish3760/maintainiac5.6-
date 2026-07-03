@@ -178,6 +178,26 @@ void main() {
       longReceiptDisabled.capabilityPolicyCodes,
       contains('long_receipt_mode_disabled'),
     );
+
+    final uppercaseBottomReason = const ReceiptNativeCameraSettings()
+        .sessionFor(
+          deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+          nativeCapabilities: native,
+          previousSectionGuidePhotoPath: '/tmp/receipt-section-1.jpg',
+          previousSectionReasonCode: ' MISSING_BOTTOM_EDGE_AND_TOTALS ',
+        );
+    expect(
+      uppercaseBottomReason.previousSectionGuideReasonCode,
+      'missing_bottom_edge_and_totals',
+    );
+    expect(
+      uppercaseBottomReason.previousSectionGhostGuidePolicy,
+      'bottom_overlap_ghost_at_top_repeat_3_to_5_lines',
+    );
+    expect(
+      uppercaseBottomReason.previousSectionGhostGuideMatchTarget,
+      'subtotal_total_and_final_lines',
+    );
   });
 
   test(
