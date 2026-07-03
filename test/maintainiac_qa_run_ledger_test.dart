@@ -9,7 +9,8 @@ void main() {
         id: 'run_001',
         label: 'Inventory parser fixture runner',
         command:
-            'flutter test test/work_supply_parser_generated_fixture_runner_test.dart',
+            'flutter test test/work_supply_parser_generated_fixture_runner_test.dart '
+            '--plain-name "inventory parser generated fixtures"',
         inputSignature: 'inventory-fixtures-v1',
         startedAt: DateTime.utc(2026, 7, 3, 12),
         completedAt: DateTime.utc(2026, 7, 3, 12, 2),
@@ -28,7 +29,8 @@ void main() {
     expect(
       ledger.canSkip(
         command:
-            'flutter test test/work_supply_parser_generated_fixture_runner_test.dart',
+            'flutter test test/work_supply_parser_generated_fixture_runner_test.dart '
+            '--plain-name "inventory parser generated fixtures"',
         inputSignature: 'inventory-fixtures-v1',
       ),
       isTrue,
@@ -50,7 +52,9 @@ void main() {
         MaintainiacQaRunRecord(
           id: 'run_failed_001',
           label: 'Sync source-of-truth guard',
-          command: 'flutter test test/maintainiac_sync_lifecycle_test.dart',
+          command:
+              'flutter test test/maintainiac_sync_lifecycle_test.dart '
+              '--plain-name "sync lifecycle keeps local dirty before mirror"',
           inputSignature: 'sync-lifecycle-v1',
           startedAt: DateTime.utc(2026, 7, 3, 13),
           completedAt: DateTime.utc(2026, 7, 3, 13, 1),
@@ -91,5 +95,27 @@ void main() {
     expect(failures, contains('missing source scope'));
     expect(failures, contains('terminal run missing completedAt'));
     expect(failures, contains('passed run must have exitCode 0'));
+  });
+
+  test('QA run ledger rejects broad or chained commands', () {
+    final ledger = MaintainiacQaRunLedger([
+      MaintainiacQaRunRecord(
+        id: 'run_bad_command',
+        label: 'Unsafe batch command',
+        command:
+            'flutter test test/maintainiac_sync_lifecycle_test.dart && flutter test test/other_test.dart',
+        inputSignature: 'sync-lifecycle-v1',
+        startedAt: DateTime.utc(2026, 7, 3, 15),
+        completedAt: DateTime.utc(2026, 7, 3, 15, 1),
+        status: MaintainiacQaRunStatus.passed,
+        exitCode: 0,
+        scope: ['test/maintainiac_sync_lifecycle_test.dart'],
+      ),
+    ]);
+
+    final failures = ledger.validate().join('\n');
+
+    expect(failures, contains('run_bad_command must use --plain-name'));
+    expect(failures, contains('run_bad_command must not chain commands'));
   });
 }

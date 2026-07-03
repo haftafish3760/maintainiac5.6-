@@ -46,6 +46,17 @@ class MaintainiacQaRunRecord {
     if (id.trim().isEmpty) failures.add('run record missing id');
     if (label.trim().isEmpty) failures.add('$id missing label');
     if (command.trim().isEmpty) failures.add('$id missing command');
+    if (!command.startsWith('flutter test test/')) {
+      failures.add('$id must be a focused Flutter test command');
+    }
+    if (!command.contains(' --plain-name ')) {
+      failures.add('$id must use --plain-name for surgical reruns');
+    }
+    if (command.contains('&&') ||
+        command.contains(';') ||
+        command.contains('|')) {
+      failures.add('$id must not chain commands');
+    }
     if (inputSignature.trim().isEmpty) {
       failures.add('$id missing input signature');
     }

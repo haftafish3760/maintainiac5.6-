@@ -860,6 +860,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'qa-run-ledger', 'quality-gate', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_run_ledger_rejects_broad_commands',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_run_ledger_test.dart',
+    plainName: 'QA run ledger rejects broad or chained commands',
+    reason: 'Run only the run-ledger surgical command safety guard.',
+    tags: {'qa-run-ledger', 'tooling', 'regression', 'surgical'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'qa_readiness_tracks_gaps',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_readiness_test.dart',

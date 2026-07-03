@@ -335,6 +335,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'QA run ledger skips only unchanged clean focused commands',
         'QA run ledger keeps failed commands actionable before new feature work',
         'QA run ledger rejects weak or misleading run evidence',
+        'QA run ledger rejects broad or chained commands',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
