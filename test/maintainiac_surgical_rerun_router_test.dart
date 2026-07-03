@@ -123,6 +123,29 @@ void main() {
     );
   });
 
+  test(
+    'surgical rerun router maps individual command tool reporting guards',
+    () {
+      final selectorIds = maintainiacSurgicalRerunRouter
+          .selectorIdsForChangedPaths([
+            'test/support/qa_harness/maintainiac_individual_qa_command.dart',
+          ]);
+
+      expect(selectorIds, contains('individual_command_tool_by_id'));
+      expect(selectorIds, contains('individual_command_tool_by_risk'));
+      expect(
+        selectorIds,
+        contains('individual_command_tool_changed_file_all_selectors'),
+      );
+      expect(selectorIds, contains('individual_command_tool_all_selector_ids'));
+      expect(
+        selectorIds,
+        contains('individual_command_tool_changed_unique_surgical'),
+      );
+      expect(selectorIds, contains('main_backbone_parser_visibility'));
+    },
+  );
+
   test('surgical rerun router dedupes overlapping changed paths', () {
     final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
       'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',

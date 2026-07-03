@@ -282,6 +282,18 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
           'Individual command tool changes need exact lookup, changed-file, all-selector, negative, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
+      id: 'individual_command_tool_reporting_changed',
+      changedPathContains: 'maintainiac_individual_qa_command.dart',
+      selectorIds: {
+        'individual_command_tool_by_risk',
+        'individual_command_tool_changed_file_all_selectors',
+        'individual_command_tool_all_selector_ids',
+        'individual_command_tool_changed_unique_surgical',
+      },
+      reason:
+          'Individual command tool reporting changes need risk, changed-file, all-selector, and uniqueness checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
       id: 'individual_test_manifest_changed',
       changedPathContains: 'maintainiac_individual_test_manifest.dart',
       selectorIds: {
