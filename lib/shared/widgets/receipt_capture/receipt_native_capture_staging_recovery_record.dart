@@ -40,15 +40,11 @@ class ReceiptNativeCaptureRecoveryRecord {
               .map(ReceiptAttachmentRecord.fromMap)
               .toList(growable: false) ??
           const [],
-      captureDiagnostics: Map<String, Object?>.from(
-        manifest['captureDiagnostics'] is Map
-            ? manifest['captureDiagnostics'] as Map
-            : const {},
+      captureDiagnostics: receiptNativeCaptureSanitizedDiagnostics(
+        manifest['captureDiagnostics'],
       ),
-      recoverySafety: Map<String, Object?>.from(
-        manifest['recoverySafety'] is Map
-            ? manifest['recoverySafety'] as Map
-            : const {},
+      recoverySafety: receiptNativeCaptureSanitizedDiagnostics(
+        manifest['recoverySafety'],
       ),
     );
   }

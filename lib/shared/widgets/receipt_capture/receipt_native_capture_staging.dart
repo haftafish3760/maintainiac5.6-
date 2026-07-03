@@ -5,6 +5,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
 import 'receipt_capture_models.dart';
+import 'receipt_native_capture_diagnostics_sanitizer.dart';
 import 'receipt_native_camera_contract.dart';
 import 'receipt_native_capture_recovery_store.dart';
 import 'receipt_proof_storage.dart';

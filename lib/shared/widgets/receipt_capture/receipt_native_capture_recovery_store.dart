@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'receipt_capture_models.dart';
+import 'receipt_native_capture_diagnostics_sanitizer.dart';
 
 class ReceiptNativeCaptureRecoveryIndexEntry {
   const ReceiptNativeCaptureRecoveryIndexEntry({
@@ -42,13 +43,11 @@ class ReceiptNativeCaptureRecoveryIndexEntry {
               .map(ReceiptAttachmentRecord.fromMap)
               .toList(growable: false) ??
           const [],
-      captureDiagnostics: Map<String, Object?>.from(
-        map['captureDiagnostics'] is Map
-            ? map['captureDiagnostics'] as Map
-            : const {},
+      captureDiagnostics: receiptNativeCaptureSanitizedDiagnostics(
+        map['captureDiagnostics'],
       ),
-      recoverySafety: Map<String, Object?>.from(
-        map['recoverySafety'] is Map ? map['recoverySafety'] as Map : const {},
+      recoverySafety: receiptNativeCaptureSanitizedDiagnostics(
+        map['recoverySafety'],
       ),
     );
   }
@@ -137,12 +136,13 @@ class ReceiptNativeCaptureRecoveryStore {
         continue;
       }
       final updated = Map<dynamic, dynamic>.from(value);
-      final existingDiagnostics = Map<String, Object?>.from(
-        updated['captureDiagnostics'] is Map
-            ? updated['captureDiagnostics'] as Map
-            : const {},
+      final existingDiagnostics = receiptNativeCaptureSanitizedDiagnostics(
+        updated['captureDiagnostics'],
       );
-      updated['captureDiagnostics'] = {...existingDiagnostics, ...diagnostics};
+      updated['captureDiagnostics'] = receiptNativeCaptureSanitizedDiagnostics({
+        ...existingDiagnostics,
+        ...diagnostics,
+      });
       await _box.put(key, updated);
       return;
     }

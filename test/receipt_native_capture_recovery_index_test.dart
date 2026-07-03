@@ -222,6 +222,51 @@ void main() {
     expect(indexMap.toString(), isNot(contains('Private Customer')));
   });
 
+  test('recovery restore drops malformed diagnostic numbers', () {
+    final entry = ReceiptNativeCaptureRecoveryIndexEntry.fromMap({
+      'schema': ReceiptNativeCaptureRecoveryStore.entrySchema,
+      'sessionId': 'unsafe-diagnostics',
+      'manifestPath': '/tmp/unsafe-manifest.json',
+      'engineName': ' cameraX ',
+      'capturedAt': '2026-07-03T10:20:00.000Z',
+      'dataSaverLevelName': ' balanced ',
+      'photoCount': 1,
+      'stagedPhotoPaths': const ['/tmp/recovered.jpg'],
+      'captureDiagnostics': {
+        'photoCount': 1,
+        'latestFrameBrightness': double.nan,
+        'zoomRatio': double.infinity,
+        'nested': {'safe': 2.5, 'bad': double.negativeInfinity},
+        'list': ['ok', double.nan, 3],
+        7: 'non-string-key',
+      },
+      'recoverySafety': {
+        'hiveIndexSaved': true,
+        'maxLocalPhotoBytes': double.nan,
+      },
+    });
+
+    expect(entry.captureDiagnostics['photoCount'], 1);
+    expect(entry.captureDiagnostics, isNot(contains('latestFrameBrightness')));
+    expect(entry.captureDiagnostics, isNot(contains('zoomRatio')));
+    expect(entry.captureDiagnostics['nested'], {'safe': 2.5});
+    expect(entry.captureDiagnostics['list'], ['ok', 3]);
+    expect(entry.recoverySafety['hiveIndexSaved'], isTrue);
+    expect(entry.recoverySafety, isNot(contains('maxLocalPhotoBytes')));
+    expect(entry.toMap().toString(), isNot(contains('NaN')));
+    expect(entry.toMap().toString(), isNot(contains('Infinity')));
+
+    final record = ReceiptNativeCaptureRecoveryRecord.fromManifest(
+      '/tmp/unsafe-manifest.json',
+      entry.toMap(),
+    );
+
+    expect(record.captureDiagnostics['photoCount'], 1);
+    expect(record.captureDiagnostics['nested'], {'safe': 2.5});
+    expect(record.recoverySafety['hiveIndexSaved'], isTrue);
+    expect(record.privacySafeRecoveryEvidenceLabel, contains('hiveIndexSaved'));
+  });
+
   test(
     'native recovery restores padded engine names from saved state',
     () async {
