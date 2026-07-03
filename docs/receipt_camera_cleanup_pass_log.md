@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 570 - 08:30:00 EDT to 08:38:58 EDT
+
+Scope:
+- Hardened OCR-source native recovery document signals so non-finite recovered
+  photo counts do not create false recovered-photo evidence.
+- Applied the finite-count guard to both capture-flow and attachment-panel OCR
+  source signal builders.
+- Added source regression coverage proving both signal paths require finite
+  recovered counts.
+- Recorded `BUG-RECEIPT-0086` under `native_bridge`.
+- Archived Passes 523 and 524 out of the live cleanup log to keep the active
+  log under the project line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for both OCR-source signal builders and
+  focused handoff contract regression coverage.
+- Passed focused Flutter regression
+  `test/receipt_capture_flow_handoff_contract_test.dart --plain-name "app
+  assisted OCR reads prepared OCR sources instead of saved backup proof"`.
+
 ## Pass 569 - 08:19:00 EDT to 08:29:09 EDT
 
 Scope:
@@ -460,41 +480,5 @@ Verification:
 - Passed focused Flutter test
   `test/receipt_native_camera_session_limits_test.dart --plain-name "session
   carries previous section guide only for long receipt flow"`.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
-
-## Pass 524 - 01:41:00 EDT to 01:45:00 EDT
-
-Scope:
-- Hardened receipt coverage bottom-edge evidence so native
-  `bottom_soft_or_missing` status alone is treated as missing bottom edge.
-- Added a coverage regression proving status-only bottom-soft evidence still
-  prompts for a bottom section when totals are missing.
-- Recorded `BUG-RECEIPT-0042` under `camera_capture_quality`.
-- Archived Pass 499 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for coverage evidence helpers and
-  coverage totals regression coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_result_coverage_totals_test.dart`.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
-
-## Pass 523 - 01:36:00 EDT to 01:40:00 EDT
-
-Scope:
-- Hardened receipt coverage totals evidence so fractional subtotal/total
-  candidate counts cannot be rounded into fake completion evidence.
-- Added a coverage regression proving malformed fractional counts still prompt
-  for a bottom receipt section when bottom edge and totals are missing.
-- Recorded `BUG-RECEIPT-0041` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart format and analyzer for coverage evidence helpers and
-  coverage totals regression coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_result_coverage_totals_test.dart`.
 - Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
   diff check.

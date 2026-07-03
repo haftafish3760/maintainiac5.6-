@@ -127,6 +127,16 @@ void main() {
     expect(actions, contains('savedPhotoWarningsForOcrSourceIndex'));
     expect(flow, contains('ocr_source_native_critical_review'));
     expect(actions, contains('ocr_source_native_critical_review'));
+    expect(flow, contains('recoveredCount.isFinite'));
+    expect(actions, contains('recoveredCount.isFinite'));
+    expect(
+      flow,
+      isNot(contains('recoveredCount is num && recoveredCount > 0')),
+    );
+    expect(
+      actions,
+      isNot(contains('recoveredCount is num && recoveredCount > 0')),
+    );
     expect(flow, contains('ocr_source_action_'));
     expect(actions, contains('ocr_source_action_'));
     expect(actions, contains('receiptContinuationHandoffDocumentSignalsFor'));

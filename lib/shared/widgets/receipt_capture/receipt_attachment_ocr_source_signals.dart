@@ -75,7 +75,9 @@ extension _ReceiptAttachmentOcrSourceSignals
         signals.add('native_recovery_$recoveryStatus');
       }
       final recoveredCount = diagnostics['nativeRecoveryRecoveredPhotoCount'];
-      if (recoveredCount is num && recoveredCount > 0) {
+      if (recoveredCount is num &&
+          recoveredCount.isFinite &&
+          recoveredCount > 0) {
         signals.add('native_recovery_recovered_photos');
       }
       if (diagnostics['nativeRecoveryMultipleSections'] == true) {
