@@ -143,10 +143,17 @@ bool _looksLikeBroadTestName(String plainName) {
   final normalized = plainName.toLowerCase();
   return normalized == 'main' ||
       normalized == 'all' ||
+      normalized == 'suite' ||
+      normalized == 'batch' ||
       normalized.contains('entire suite') ||
       normalized.contains('all tests') ||
+      normalized.contains('all qa') ||
       normalized.contains('full app') ||
-      normalized.contains('everything');
+      normalized.contains('full suite') ||
+      normalized.contains('whole app') ||
+      normalized.contains('everything') ||
+      normalized.contains('run all') ||
+      normalized.contains('batch of');
 }
 
 const maintainiacSurgicalGranularityContract =

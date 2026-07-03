@@ -47,6 +47,14 @@ void main() {
         reason: 'duplicate target',
         tags: {'inventory'},
       ),
+      MaintainiacSurgicalTestSelector(
+        id: 'bad_batch_name',
+        scope: MaintainiacSurgicalTestScope.singleBehavior,
+        file: 'test/maintainiac_inventory_parser_consumer_test.dart',
+        plainName: 'inventory parser full suite run all checks',
+        reason: 'broad plain name',
+        tags: {'inventory', 'regression'},
+      ),
     ]);
     const badRouter = MaintainiacSurgicalRerunRouter(
       registry: badRegistry,
