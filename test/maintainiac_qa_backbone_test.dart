@@ -91,6 +91,10 @@ void main() {
       contains('seed_payment'),
     );
     expect(
+      report.results.single.metrics['paymentLedgerPolicy'].toString(),
+      contains('seed_invoice_payment'),
+    );
+    expect(
       report.results.single.metrics['jobContract'].toString(),
       contains('job_seed_material'),
     );

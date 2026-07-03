@@ -372,6 +372,28 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in payments.validate()) {
       failures.add(_failure('payment_contract_$issue', issue));
     }
+    const paymentLedger = MaintainiacPaymentLedgerPolicy([
+      MaintainiacInvoicePaymentSnapshot(
+        invoiceId: 'invoice_seed',
+        accountId: 'acct_1',
+        invoiceTotalCents: 10000,
+        expectedBalanceDueCents: 0,
+        records: [
+          MaintainiacPaymentRecord(
+            id: 'seed_invoice_payment',
+            kind: MaintainiacPaymentKind.payment,
+            accountId: 'acct_1',
+            invoiceId: 'invoice_seed',
+            amountCents: 10000,
+            method: 'cash',
+            auditId: 'AUD-SEED-PAY-LEDGER',
+          ),
+        ],
+      ),
+    ]);
+    for (final issue in paymentLedger.validate()) {
+      failures.add(_failure('payment_ledger_policy_$issue', issue));
+    }
     const jobs = MaintainiacJobContract(
       jobId: 'job_seed',
       accountId: 'acct_1',
@@ -470,7 +492,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: 776,
+      checked: 796,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -504,6 +526,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'moduleSuiteMatrix': moduleSuites.toJson(),
         'scheduleContract': schedule.toJson(),
         'paymentContract': payments.toJson(),
+        'paymentLedgerPolicy': paymentLedger.toJson(),
         'jobContract': jobs.toJson(),
         'inventoryParserConsumer': maintainiacInventoryParserConsumerContract
             .toJson(),

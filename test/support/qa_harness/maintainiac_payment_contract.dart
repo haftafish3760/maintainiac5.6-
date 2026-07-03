@@ -102,3 +102,132 @@ class MaintainiacPaymentContract {
     };
   }
 }
+
+enum MaintainiacPaymentSettlementStatus {
+  open,
+  paidInFull,
+  overpaidNeedsReview,
+}
+
+class MaintainiacInvoicePaymentSnapshot {
+  const MaintainiacInvoicePaymentSnapshot({
+    required this.invoiceId,
+    required this.accountId,
+    required this.invoiceTotalCents,
+    required this.records,
+    required this.expectedBalanceDueCents,
+    this.allowOverpayment = false,
+  });
+
+  final String invoiceId;
+  final String accountId;
+  final int invoiceTotalCents;
+  final List<MaintainiacPaymentRecord> records;
+  final int expectedBalanceDueCents;
+  final bool allowOverpayment;
+
+  int get paidCents {
+    return records.fold(0, (sum, record) => sum + record.ledgerCents);
+  }
+
+  int get balanceDueCents => invoiceTotalCents - paidCents;
+
+  int get grossPaymentCents {
+    return records
+        .where((record) => record.kind == MaintainiacPaymentKind.payment)
+        .fold(0, (sum, record) => sum + record.amountCents);
+  }
+
+  int get grossRefundCents {
+    return records
+        .where((record) => record.kind == MaintainiacPaymentKind.refund)
+        .fold(0, (sum, record) => sum + record.amountCents);
+  }
+
+  MaintainiacPaymentSettlementStatus get status {
+    if (balanceDueCents < 0) {
+      return MaintainiacPaymentSettlementStatus.overpaidNeedsReview;
+    }
+    if (balanceDueCents == 0) {
+      return MaintainiacPaymentSettlementStatus.paidInFull;
+    }
+    return MaintainiacPaymentSettlementStatus.open;
+  }
+
+  List<String> validate() {
+    final failures = <String>[];
+    if (invoiceId.trim().isEmpty) {
+      failures.add('payment snapshot missing invoice id');
+    }
+    if (accountId.trim().isEmpty) failures.add('$invoiceId missing account id');
+    if (invoiceTotalCents < 0) {
+      failures.add('$invoiceId invoice total cannot be negative');
+    }
+    if (expectedBalanceDueCents != balanceDueCents) {
+      failures.add(
+        '$invoiceId expected balance $expectedBalanceDueCents '
+        'does not match computed balance $balanceDueCents',
+      );
+    }
+    if (grossRefundCents > grossPaymentCents) {
+      failures.add('$invoiceId refunds cannot exceed captured payments');
+    }
+    if (status == MaintainiacPaymentSettlementStatus.overpaidNeedsReview &&
+        !allowOverpayment) {
+      failures.add('$invoiceId overpayment requires explicit review');
+    }
+    for (final record in records) {
+      if (record.invoiceId != invoiceId) {
+        failures.add('${record.id} belongs to a different invoice');
+      }
+      if (record.accountId != accountId) {
+        failures.add('${record.id} belongs to a different account');
+      }
+      failures.addAll(record.validate());
+    }
+    return failures;
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'invoiceId': invoiceId,
+      'accountId': accountId,
+      'invoiceTotalCents': invoiceTotalCents,
+      'paidCents': paidCents,
+      'balanceDueCents': balanceDueCents,
+      'expectedBalanceDueCents': expectedBalanceDueCents,
+      'status': status.name,
+      'allowOverpayment': allowOverpayment,
+      'recordCount': records.length,
+      'recordIds': [for (final record in records) record.id],
+    };
+  }
+}
+
+class MaintainiacPaymentLedgerPolicy {
+  const MaintainiacPaymentLedgerPolicy(this.snapshots);
+
+  final List<MaintainiacInvoicePaymentSnapshot> snapshots;
+
+  List<String> validate() {
+    final failures = <String>[];
+    final invoiceIds = <String>{};
+    if (snapshots.isEmpty) {
+      failures.add('payment ledger policy has no snapshots');
+    }
+    for (final snapshot in snapshots) {
+      if (!invoiceIds.add(snapshot.invoiceId)) {
+        failures.add('duplicate payment snapshot ${snapshot.invoiceId}');
+      }
+      failures.addAll(snapshot.validate());
+    }
+    return failures;
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'snapshotCount': snapshots.length,
+      'snapshots': [for (final snapshot in snapshots) snapshot.toJson()],
+    };
+  }
+}

@@ -111,4 +111,79 @@ void main() {
     expect(failures, contains('missing audit id'));
     expect(failures, contains('must not mutate invoice source totals'));
   });
+
+  test(
+    'payment ledger policy proves invoice balance without source mutation',
+    () {
+      const policy = MaintainiacPaymentLedgerPolicy([
+        MaintainiacInvoicePaymentSnapshot(
+          invoiceId: 'invoice_1',
+          accountId: 'acct_1',
+          invoiceTotalCents: 10000,
+          expectedBalanceDueCents: 1500,
+          records: [
+            MaintainiacPaymentRecord(
+              id: 'payment_1',
+              kind: MaintainiacPaymentKind.payment,
+              accountId: 'acct_1',
+              invoiceId: 'invoice_1',
+              amountCents: 10000,
+              method: 'card',
+              auditId: 'AUD-PAY-0001',
+            ),
+            MaintainiacPaymentRecord(
+              id: 'refund_1',
+              kind: MaintainiacPaymentKind.refund,
+              accountId: 'acct_1',
+              invoiceId: 'invoice_1',
+              amountCents: 1500,
+              method: 'card',
+              auditId: 'AUD-PAY-0002',
+            ),
+          ],
+        ),
+      ]);
+
+      expect(policy.validate(), isEmpty);
+      expect(policy.toJson().toString(), contains('balanceDueCents'));
+    },
+  );
+
+  test('payment ledger policy rejects cross-account and overpay risks', () {
+    const policy = MaintainiacPaymentLedgerPolicy([
+      MaintainiacInvoicePaymentSnapshot(
+        invoiceId: 'invoice_bad',
+        accountId: 'acct_1',
+        invoiceTotalCents: 1000,
+        expectedBalanceDueCents: 0,
+        records: [
+          MaintainiacPaymentRecord(
+            id: 'cross_account_payment',
+            kind: MaintainiacPaymentKind.payment,
+            accountId: 'acct_2',
+            invoiceId: 'invoice_other',
+            amountCents: 2000,
+            method: 'cash',
+            auditId: 'AUD-PAY-0006',
+          ),
+          MaintainiacPaymentRecord(
+            id: 'refund_without_enough_payment',
+            kind: MaintainiacPaymentKind.refund,
+            accountId: 'acct_1',
+            invoiceId: 'invoice_bad',
+            amountCents: 3000,
+            method: 'cash',
+            auditId: 'AUD-PAY-0007',
+          ),
+        ],
+      ),
+    ]);
+
+    final failures = policy.validate().join('\n');
+
+    expect(failures, contains('does not match computed balance'));
+    expect(failures, contains('belongs to a different invoice'));
+    expect(failures, contains('belongs to a different account'));
+    expect(failures, contains('refunds cannot exceed captured payments'));
+  });
 }
