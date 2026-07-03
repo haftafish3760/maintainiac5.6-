@@ -188,9 +188,14 @@ void main() {
         ),
       ),
     );
-    expect(saveActions, contains('for (final path in pickedPaths)'));
-    expect(saveActions, contains('final trimmed = path.trim();'));
-    expect(saveActions, contains('trimmed.isEmpty || trimmed != path'));
+    expect(
+      saveActions,
+      contains('return uniqueNormalizedReceiptPhotoPaths(paths);'),
+    );
+    expect(
+      saveActions,
+      contains('return receiptPhotoPathsAreUniqueAndNormalized(paths);'),
+    );
     expect(saveActions, contains('qualityChecksByPath: const {},'));
     expect(
       saveActions,

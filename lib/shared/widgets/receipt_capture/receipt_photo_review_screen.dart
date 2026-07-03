@@ -18,6 +18,7 @@ import 'receipt_native_camera_contract.dart';
 import 'receipt_native_camera_service.dart';
 import 'receipt_picker_status.dart';
 import 'receipt_photo_review_retake_order.dart';
+import 'receipt_photo_path_identity.dart';
 import 'receipt_proof_storage.dart';
 import 'receipt_scanner_service.dart';
 import 'receipt_storage_guard.dart';

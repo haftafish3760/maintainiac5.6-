@@ -3,6 +3,27 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 582 - 10:48:00 EDT to 10:57:30 EDT
+
+Scope:
+- Added a shared receipt photo path identity helper and routed picked-photo
+  intake plus retake/order guards through the same normalized identity rule.
+- Added behavior coverage proving blank, padded, duplicate, and `../` alias
+  receipt photo paths are rejected or de-duplicated before review ordering.
+- Updated the review lifecycle source guard so picked-photo intake must keep
+  using the shared helper.
+- Recorded `BUG-RECEIPT-0098` under `multi_photo_ordering`.
+- Archived Pass 554 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the shared path identity helper,
+  review screen wiring, picked-photo intake, retake ordering, and focused
+  tests.
+- Passed focused Flutter path-identity and retake-order regressions.
+- Corrected a stale lifecycle test filter, then passed focused Flutter
+  lifecycle coverage for review save/close actions.
+
 ## Pass 581 - 10:37:00 EDT to 10:44:30 EDT
 
 Scope:
@@ -461,36 +482,3 @@ Verification:
 - Passed targeted Dart format/analyzer for native camera service and native
   result rejection coverage.
 - Passed focused Flutter file `test/receipt_native_camera_result_rejection_test.dart`.
-
-## Pass 555 - 06:34:19 EDT to 06:35:43 EDT
-
-Scope:
-- Generalized native capture diagnostic sanitization into a shared helper used
-  by the native camera service, Hive recovery index restore, recovery manifest
-  restore, and recovery diagnostic updates.
-- Added recovery regression coverage proving old malformed persisted
-  diagnostics cannot restore `NaN`, infinity, nested unsafe values, or
-  non-string keys.
-- Recorded `BUG-RECEIPT-0071` under `native_bridge`.
-
-Verification:
-- Passed targeted Dart format/analyzer for native diagnostics sanitizer,
-  service, recovery store, staging, and targeted regressions.
-- Passed focused Flutter tests for native service diagnostics and recovery
-  restore diagnostics.
-
-## Pass 554 - 06:25:12 EDT to 06:30:54 EDT
-
-Scope:
-- Hardened native receipt camera service diagnostics so malformed bridge
-  values cannot leak non-finite numbers or non-string keys into review state.
-- Added native-service regression coverage for `NaN`, infinity, nested
-  diagnostics, lists, and non-string diagnostic keys.
-- Recorded `BUG-RECEIPT-0070` under `native_bridge`.
-- Archived Pass 539 out of the live cleanup log.
-
-Verification:
-- Fixed an over-broad regression assertion that matched unrelated policy text,
-  then reran the failed focused test and the full native result rejection file.
-- Passed targeted Dart format/analyzer for native camera service and native
-  result rejection coverage.

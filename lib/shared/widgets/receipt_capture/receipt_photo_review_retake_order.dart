@@ -1,4 +1,4 @@
-import 'package:path/path.dart' as path;
+import 'receipt_photo_path_identity.dart';
 
 class ReceiptPhotoRetakeAlignmentContext {
   const ReceiptPhotoRetakeAlignmentContext._({
@@ -221,13 +221,7 @@ class ReceiptPhotoRemovalOrderPlan {
 }
 
 bool _receiptPhotoPathsAreUniqueAndNormalized(List<String> photoPaths) {
-  final seenPhotoPaths = <String>{};
-  for (final photoPath in photoPaths) {
-    final normalized = _normalizedReceiptPhotoPath(photoPath);
-    if (normalized == null) return false;
-    if (!seenPhotoPaths.add(normalized)) return false;
-  }
-  return true;
+  return receiptPhotoPathsAreUniqueAndNormalized(photoPaths);
 }
 
 bool _newReceiptPhotoPathsAreSafe({
@@ -237,23 +231,15 @@ bool _newReceiptPhotoPathsAreSafe({
   final seenNewPaths = <String>{};
   final currentPathSet = {
     for (final photoPath in currentPhotoPaths)
-      ?_normalizedReceiptPhotoPath(photoPath),
+      ?normalizedReceiptPhotoPath(photoPath),
   };
   for (final photoPath in newPhotoPaths) {
-    final normalized = _normalizedReceiptPhotoPath(photoPath);
+    final normalized = normalizedReceiptPhotoPath(photoPath);
     if (normalized == null) return false;
     if (!seenNewPaths.add(normalized)) return false;
     if (currentPathSet.contains(normalized)) return false;
   }
   return true;
-}
-
-String? _normalizedReceiptPhotoPath(String photoPath) {
-  final trimmed = photoPath.trim();
-  if (trimmed.isEmpty || trimmed != photoPath) return null;
-  final normalized = path.normalize(trimmed);
-  if (normalized != trimmed) return null;
-  return normalized;
 }
 
 bool _orderedPhotoPathsMatch(List<String> left, List<String> right) {

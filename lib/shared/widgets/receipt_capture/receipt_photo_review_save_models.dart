@@ -120,14 +120,7 @@ class _PickedReceiptPhotos {
 }
 
 List<String> _pickedReceiptPhotoUniquePaths(List<String> paths) {
-  final pickedPaths = <String>[];
-  final seen = <String>{};
-  for (final rawPath in paths) {
-    final path = rawPath.trim();
-    if (path.isEmpty || !seen.add(path)) continue;
-    pickedPaths.add(path);
-  }
-  return List<String>.unmodifiable(pickedPaths);
+  return uniqueNormalizedReceiptPhotoPaths(paths);
 }
 
 Map<String, Map<String, Object?>> _pickedReceiptDiagnosticsForPaths(
@@ -143,13 +136,7 @@ Map<String, Map<String, Object?>> _pickedReceiptDiagnosticsForPaths(
 }
 
 bool _pickedReceiptPhotoPathsAreUnique(List<String> paths) {
-  final seen = <String>{};
-  for (final path in paths) {
-    final trimmed = path.trim();
-    if (trimmed.isEmpty || trimmed != path) return false;
-    if (!seen.add(path)) return false;
-  }
-  return true;
+  return receiptPhotoPathsAreUniqueAndNormalized(paths);
 }
 
 bool _pickedReceiptPhotoPathsAreCameraResultMembers(
