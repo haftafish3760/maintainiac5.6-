@@ -456,6 +456,7 @@ final plumbingServiceTruckCategory = _category('Service Truck Stock', [
             'basin wrench',
             'strap wrench',
             'closet auger',
+            'toilet auger',
             'hand drain auger',
             'small drain snake',
             '1-1/2 in hole saw',

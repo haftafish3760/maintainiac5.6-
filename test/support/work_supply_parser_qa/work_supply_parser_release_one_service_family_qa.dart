@@ -93,6 +93,18 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
       minimumMatches: 8,
     ),
     _FamilySpec(
+      id: 'plumbing_service_tools',
+      trade: 'Plumbing',
+      tokens: [
+        'pipe cutter',
+        'pex crimp tool',
+        'basin wrench',
+        'toilet auger',
+        'drain snake',
+      ],
+      minimumMatches: 8,
+    ),
+    _FamilySpec(
       id: 'electrical_wire_cable',
       trade: 'Electrical',
       tokens: ['wire', 'cable', 'nm-b', 'thhn', 'uf-b'],
@@ -244,6 +256,13 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
       'pressure switch',
       'well pipe',
       'pitless adapter',
+    },
+    'plumbing_service_tools': {
+      'pipe cutter',
+      'pex crimp tool',
+      'basin wrench',
+      'toilet auger',
+      'drain snake',
     },
     'electrical_wire_cable': {'nm-b', 'thhn', 'uf-b'},
     'electrical_boxes_devices': {'switch', 'outlet', 'receptacle', 'gfci'},
