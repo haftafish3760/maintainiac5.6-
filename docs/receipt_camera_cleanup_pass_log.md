@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 559 - 07:05:33 EDT to 07:11:06 EDT
+
+Scope:
+- Hardened long-receipt stitching so duplicate input paths fall back to ordered
+  section review instead of producing a bogus combined OCR image.
+- Added fixture-backed stitching regression coverage for duplicate paths that
+  only differ by storage whitespace.
+- Recorded `BUG-RECEIPT-0075` under `ghost_overlap_stitching`.
+- Archived Pass 527 out of the live cleanup log.
+
+Verification:
+- Passed targeted Dart format/analyzer for stitch result models, stitch API,
+  and stitching regression coverage.
+- Passed focused Flutter stitching regression for duplicate receipt section
+  paths.
+
 ## Pass 558 - 07:01:13 EDT to 07:04:21 EDT
 
 Scope:
@@ -261,25 +277,6 @@ Verification:
   reran.
 - Passed targeted format/analyzer, focused camera-result regression,
   bug-ledger, log, doc-size, source-audit, and diff gates.
-
-## Pass 527 - 01:56:00 EDT to 02:00:00 EDT
-
-Scope:
-- Hardened OCR parser line-id metadata maps so duplicate stable line IDs also
-  preserve the first role, parser bucket, expense family, parser hint, and
-  customer-proof visibility.
-- Extended duplicate-ID regression coverage across adjacent parser handoff and
-  customer-proof maps.
-- Recorded `BUG-RECEIPT-0045` under `receipt_line_numbering`.
-
-Verification:
-- Passed targeted Dart format and analyzer for parser handoff line maps,
-  customer-proof maps, and parser handoff structure regression coverage.
-- Passed focused Flutter test
-  `test/receipt_ocr_service_parser_handoff_structure_test.dart --plain-name
-  "parser handoff line id maps preserve first duplicate line id"`.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
 
 ## Pass 526 - 01:50:00 EDT to 01:55:00 EDT
 

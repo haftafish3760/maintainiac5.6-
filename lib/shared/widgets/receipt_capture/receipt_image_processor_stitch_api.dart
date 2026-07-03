@@ -14,6 +14,14 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
   if (inputPaths.length <= 1) {
     return ReceiptStitchResult.notNeeded(inputPaths);
   }
+  if (!_stitchInputPathsAreUnique(inputPaths)) {
+    return ReceiptStitchResult.fallback(
+      inputPaths: inputPaths,
+      warning:
+          'Receipt photos included the same section more than once. Next will review the photos separately.',
+      fallbackReasonCode: 'duplicate_input_paths',
+    );
+  }
 
   final decoded = <img.Image>[];
   try {
@@ -169,4 +177,12 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       fallbackReasonCode: 'stitch_exception',
     );
   }
+}
+
+bool _stitchInputPathsAreUnique(List<String> inputPaths) {
+  final seen = <String>{};
+  for (final path in inputPaths) {
+    if (!seen.add(path)) return false;
+  }
+  return true;
 }

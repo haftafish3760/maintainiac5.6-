@@ -125,6 +125,7 @@ class ReceiptStitchResult {
     return switch (diagnosticReasonLabel) {
       'decode_failed' => 'One photo could not be read',
       'manual_overlap_unsafe' => 'Manual overlap was outside the safe range',
+      'duplicate_input_paths' => 'Duplicate receipt section photo',
       'overlap_confidence_low' => 'Overlap was not clear enough',
       'output_too_large' => 'Receipt is too long for this device',
       'stitch_exception' => 'Stitching hit a safe fallback',

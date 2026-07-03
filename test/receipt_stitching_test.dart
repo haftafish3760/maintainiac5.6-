@@ -64,6 +64,24 @@ void main() {
     expect(await File(result.ocrSourcePaths.single).exists(), isTrue);
   });
 
+  test('stitching rejects duplicate receipt section paths', () async {
+    final section = receiptStitchingSection(seed: 90, topTextOffset: 0);
+    final source = await writeTempReceiptStitchingImage(
+      section,
+      'duplicate_input',
+    );
+
+    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+      paths: [source.path, ' ${source.path} '],
+    );
+
+    expect(result.usedFallback, isTrue);
+    expect(result.fallbackReasonCode, 'duplicate_input_paths');
+    expect(result.userFallbackReasonLabel, 'Duplicate receipt section photo');
+    expect(result.didStitch, isFalse);
+    expect(result.ocrSourcePaths, [source.path, source.path]);
+  });
+
   test('stitches receipt sections when the next photo is closer', () async {
     final sectionA = receiptStitchingSection(seed: 40, topTextOffset: 0);
     final sectionB = receiptStitchingSection(seed: 41, topTextOffset: 18);
