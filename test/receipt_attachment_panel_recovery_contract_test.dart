@@ -80,11 +80,8 @@ void main() {
     );
     expect(panelSource, contains('initialCaptureDiagnosticsByPath'));
     expect(captureFlow, contains('record.captureDiagnostics'));
-    expect(
-      captureFlow,
-      contains('for (final photoPath in record.recoverablePhotoPaths)'),
-    );
-    expect(captureFlow, contains('File(photoPath).existsSync()'));
+    expect(captureFlow, contains('record.recoverablePhotoPaths'));
+    expect(captureFlow, contains('File(path).existsSync()'));
     expect(captureFlow, contains('if (photoPaths.isEmpty)'));
     expect(captureFlow, contains('stage: \'native_capture_recovery\''));
     expect(captureFlow, contains('reason: \'recovery_photos_missing\''));
@@ -133,11 +130,12 @@ void main() {
         'Those saved receipt photos are no longer on this device. Take the receipt photos again.',
       ),
     );
-    expect(
-      captureFlow,
-      contains('for (final photoPath in record.recoverablePhotoPaths)'),
-    );
-    expect(captureFlow, contains('path: recoveryDiagnostics'));
+    expect(captureFlow, contains('record.recoverablePhotoPaths'));
+    expect(captureFlow, contains('_existingUniqueRecoveryPhotoPaths'));
+    expect(captureFlow, contains('_recoveryDiagnosticsByPhotoPath'));
+    expect(captureFlow, contains('seen.add(path)'));
+    expect(captureFlow, contains('File(path).existsSync()'));
+    expect(captureFlow, isNot(contains('path: recoveryDiagnostics')));
     expect(panelSource, contains('Resume Interrupted Receipt Photos'));
     expect(panelSource, contains('were saved locally before review finished'));
     expect(panelSource, contains('record.recoveryResumeStatusLabel'));

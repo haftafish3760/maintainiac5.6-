@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 539 - 03:32:13 EDT to 03:33:32 EDT
+
+Scope:
+- Hardened native recovery review so duplicate or whitespace-padded manifest
+  photo paths cannot reopen duplicate receipt sections.
+- Replaced raw recovery diagnostics map construction with an immutable helper
+  based on the normalized recovered path list.
+- Added recovery contract coverage requiring the normalized helper and rejecting
+  the old raw path-keyed diagnostics shape.
+- Recorded `BUG-RECEIPT-0057` under `multi_photo_ordering`.
+- Archived Pass 528 out of the live cleanup log.
+
+Verification:
+- Fixed stale recovery-contract assertions that still expected the old raw
+  manifest loop, then reran the focused chain.
+- Passed focused Flutter test
+  `test/receipt_attachment_panel_recovery_contract_test.dart`.
+- Passed targeted format/analyzer, bug-ledger, log, doc-size, audit, and diff
+  gates.
+
 ## Pass 538 - 03:24:04 EDT to 03:24:37 EDT
 
 Scope:
@@ -45,26 +65,6 @@ Verification:
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
 - Passed cleanup log gate, doc-size gate, receipt source audit, and
   `git diff --check`.
-
-## Pass 528 - 02:01:00 EDT to 02:05:00 EDT
-
-Scope:
-- Hardened OCR parser category and customer-proof line ID lists so duplicate
-  stable line IDs do not appear twice in selectable/task/redaction lists.
-- Preserved raw `stableLineIds` ordering so duplicate OCR rows remain auditable
-  while actionable line-ID lists stay unique.
-- Extended duplicate-ID regression coverage for parser task lists,
-  inventory/material IDs, and customer-proof review IDs.
-- Recorded `BUG-RECEIPT-0046` under `receipt_line_numbering`.
-
-Verification:
-- Passed targeted Dart format and analyzer for parser handoff line-ID lists,
-  customer-proof lists, and parser handoff structure regression coverage.
-- Passed focused Flutter test
-  `test/receipt_ocr_service_parser_handoff_structure_test.dart --plain-name
-  "parser handoff line id maps preserve first duplicate line id"`.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
 
 ## Pass 529 - 02:12:33 EDT to 02:16:00 EDT
 

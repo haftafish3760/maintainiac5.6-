@@ -10,10 +10,9 @@ extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
       engine: record.engine,
       available: record.engine != ReceiptNativeCameraEngine.unavailable,
     );
-    final photoPaths = [
-      for (final photoPath in record.recoverablePhotoPaths)
-        if (File(photoPath).existsSync()) photoPath,
-    ];
+    final photoPaths = _existingUniqueRecoveryPhotoPaths(
+      record.recoverablePhotoPaths,
+    );
     if (photoPaths.isEmpty) {
       await _staging.discardRecoveryRecord(record);
       return _missingRecoveryPhotosResult(record, nativeCapabilities, options);
@@ -65,7 +64,7 @@ extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
       );
     }
     final reviewOpeningDiagnostics = _withReviewOpeningDiagnostics(
-      {for (final path in photoPaths) path: recoveryDiagnostics},
+      _recoveryDiagnosticsByPhotoPath(photoPaths, recoveryDiagnostics),
       route: 'native_recovery_to_photo_review',
       source: 'saved_native_capture_recovery',
       photoCount: photoPaths.length,
@@ -189,4 +188,25 @@ extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
       'nativeRecoveryEvidence': record.privacySafeRecoveryEvidenceLabel,
     };
   }
+}
+
+List<String> _existingUniqueRecoveryPhotoPaths(List<String> paths) {
+  final unique = <String>[];
+  final seen = <String>{};
+  for (final rawPath in paths) {
+    final path = rawPath.trim();
+    if (path.isEmpty || !seen.add(path)) continue;
+    if (File(path).existsSync()) unique.add(path);
+  }
+  return List<String>.unmodifiable(unique);
+}
+
+Map<String, Map<String, Object?>> _recoveryDiagnosticsByPhotoPath(
+  List<String> photoPaths,
+  Map<String, Object?> recoveryDiagnostics,
+) {
+  return Map<String, Map<String, Object?>>.unmodifiable({
+    for (final path in photoPaths)
+      path: Map<String, Object?>.unmodifiable(recoveryDiagnostics),
+  });
 }
