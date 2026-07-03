@@ -28,6 +28,9 @@ class ReceiptPhotoRetakeAlignmentContext {
     required List<String> currentPhotoPaths,
     required String targetPhotoPath,
   }) {
+    if (!_receiptPhotoPathsAreUniqueAndNormalized(currentPhotoPaths)) {
+      return null;
+    }
     final targetIndex = currentPhotoPaths.indexOf(targetPhotoPath);
     if (targetIndex < 0) return null;
     return ReceiptPhotoRetakeAlignmentContext._(
@@ -119,6 +122,9 @@ class ReceiptPhotoRetakeOrderPlan {
     required List<String> currentPhotoPaths,
     required List<String> replacementPhotoPaths,
   }) {
+    if (!_receiptPhotoPathsAreUniqueAndNormalized(currentPhotoPaths)) {
+      return false;
+    }
     final seenReplacementPaths = <String>{};
     final currentPathSet = currentPhotoPaths.toSet();
     for (final path in replacementPhotoPaths) {
@@ -129,4 +135,14 @@ class ReceiptPhotoRetakeOrderPlan {
     }
     return true;
   }
+}
+
+bool _receiptPhotoPathsAreUniqueAndNormalized(List<String> photoPaths) {
+  final seenPhotoPaths = <String>{};
+  for (final path in photoPaths) {
+    final trimmed = path.trim();
+    if (trimmed.isEmpty || trimmed != path) return false;
+    if (!seenPhotoPaths.add(path)) return false;
+  }
+  return true;
 }

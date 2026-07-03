@@ -125,6 +125,21 @@ void main() {
     expect(plan, isNull);
   });
 
+  test('retake plan rejects duplicate current section paths', () {
+    final plan = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'middle.jpg'],
+      targetPhotoPath: 'middle.jpg',
+      replacementPhotoPaths: const ['middle-new.jpg'],
+    );
+    final context = ReceiptPhotoRetakeAlignmentContext.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'middle.jpg'],
+      targetPhotoPath: 'middle.jpg',
+    );
+
+    expect(plan, isNull);
+    expect(context, isNull);
+  });
+
   test('retaking the top section uses the next section as context', () {
     final context = ReceiptPhotoRetakeAlignmentContext.build(
       currentPhotoPaths: const ['top-old.jpg', 'middle.jpg', 'bottom.jpg'],

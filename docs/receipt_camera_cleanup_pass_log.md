@@ -3,6 +3,27 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 517 - 01:17:01 EDT to 01:17:58 EDT
+
+Scope:
+- Hardened receipt section retake ordering so duplicate or unnormalized current
+  section paths cannot make `indexOf` retake the wrong receipt slot.
+- Added retake-order regression coverage proving ambiguous current section
+  paths are rejected before replacement.
+- Recorded `BUG-RECEIPT-0035` under `multi_photo_ordering`.
+- Archived Pass 480 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Fixed an initial targeted analyzer failure by moving the current-path
+  uniqueness helper where both retake builders can use it.
+- Passed targeted Dart format and analyzer for retake ordering and focused
+  retake-order regression coverage.
+- Passed focused Flutter test
+  `test/receipt_photo_review_retake_order_test.dart --plain-name "retake plan
+  rejects duplicate current section paths"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 516 - 01:15:25 EDT to 01:16:19 EDT
 
 Scope:
@@ -473,24 +494,3 @@ Verification:
   `test/expense_receipt_line_record_test.dart --plain-name "split receipt lines
   bound malformed business percentages"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 480 - 23:23:00 EDT to 23:42:22 EDT
-
-Scope:
-- Stayed on the camera post-capture review loop.
-- Wired selected-photo capture-readiness diagnostics into the review context row
-  and preview status copy so the app can tell the user when a receipt looked
-  steady, when framing should be checked, or when a manual/early capture needs
-  sharpness review.
-- Kept the guidance advisory only: Retake, Add Another Photo, and Next/Use
-  Receipt remain user-controlled.
-- Added a regression to the receipt photo review quality handoff test to keep
-  the readiness copy and selected diagnostics wiring in place.
-
-Verification:
-- Passed targeted Dart format and analyzer for the review controls, readiness
-  copy, preview status, and focused review handoff test.
-- Passed focused Flutter test
-  `test/receipt_photo_review_quality_handoff_test.dart`.
-- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
-  `--max-line-length=220`, and targeted `git diff --check`.
