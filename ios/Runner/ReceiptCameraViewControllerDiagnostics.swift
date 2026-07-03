@@ -204,8 +204,13 @@ extension ReceiptCameraViewController {
       "latestMotionScore": latestMotionScore,
       "assistedReceiptFill": assistedReceiptFill,
       "longReceiptMode": longReceiptMode,
+      "captureReadinessCode": captureReadinessCode(),
+      "captureReadinessLabel": captureReadinessLabel(),
+      "manualCaptureAllowed": true,
       "autoCaptureEnabled": autoCaptureEnabled,
       "autoCaptureAllowed": autoCaptureAllowed,
+      "stableFrameCount": autoCaptureStableFrameCount,
+      "requiredStableFrames": 3,
       "autoCaptureCurrentlyAllowed": isAutoCaptureCurrentlyAllowed(),
       "autoCaptureSafetyPolicy": "optional_manual_shutter_always_available",
       "manualCapturePolicy": "guidance_advisory_manual_shutter_always_allowed",
@@ -256,5 +261,40 @@ extension ReceiptCameraViewController {
       "whiteBalanceLockControlExpected": whiteBalanceLockEnabled,
       "manualShutterAlwaysAvailable": arguments["manualShutterAlwaysAvailable"] as? Bool ?? true
     ]
+  }
+}
+
+extension ReceiptCameraViewController {
+  func captureReadinessCode() -> String {
+    if !autoCaptureEnabled {
+      return "manual_ready_auto_capture_off"
+    }
+    switch latestAutoCaptureStatus {
+    case "capturing":
+      return "auto_capture_ready"
+    case "waiting_for_edges":
+      return "manual_only_check_framing"
+    case "waiting_for_light":
+      return "manual_only_quality_retake_recommended"
+    case "closing":
+      return "manual_ready_auto_capture_off"
+    default:
+      return "auto_capture_waiting_for_stability"
+    }
+  }
+
+  func captureReadinessLabel() -> String {
+    switch captureReadinessCode() {
+    case "auto_capture_ready":
+      return "Receipt looks steady. Taking photo."
+    case "manual_only_check_framing":
+      return "Check that every receipt line is visible before auto capture."
+    case "manual_only_quality_retake_recommended":
+      return "Improve lighting before automatic capture."
+    case "auto_capture_waiting_for_stability":
+      return "Hold steady for automatic capture."
+    default:
+      return "Manual capture is ready. Auto capture is off."
+    }
   }
 }

@@ -3,6 +3,28 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 477 - 21:36:00 EDT to 21:44:08 EDT
+
+Scope:
+- Stayed on the release-one clear-photo camera lane.
+- Added native Android and iOS capture-readiness diagnostics using the same
+  shared Flutter keys as the review pipeline: readiness code, readiness label,
+  manual capture allowed, stable frame count, and required stable frames.
+- Kept manual capture represented as available while auto-capture stays
+  advisory and opt-in.
+- Whitelisted the new readiness diagnostics in native capture staging so the
+  values survive the trip into Flutter review/handoff.
+- Added Android and iOS bridge regressions proving the native camera contracts
+  carry the readiness fields and conservative readiness code vocabulary.
+
+Verification:
+- Passed targeted Dart format and analyzer for the native staging whitelist and
+  bridge/review tests.
+- Passed focused Flutter tests for Android auto-capture bridge, iOS camera
+  settings/close bridge, and native photo quality result handoff.
+- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
+  `--max-line-length=220`, and targeted `git diff --check`.
+
 ## Pass 476 - 21:28:00 EDT to 21:35:50 EDT
 
 Scope:
@@ -459,33 +481,4 @@ Verification:
 - Passed line-count check: quiet launcher 65 lines, status helper 57 lines, and
   fast guard 56 lines.
 - Passed targeted `git diff --check`.
-- No Flutter or long-running receipt QA commands were run during this pass.
-
-## Pass 457 - 16:25:00 EDT to 16:27:52 EDT
-
-Scope:
-- Stayed on the external fixture migration lane without launching Flutter or the
-  full receipt QA runner.
-- Added `test/fixtures/receipt_qa/fixture_pack_inventory.json`, a no-raw-text
-  migration checklist for all 10 planned external fixture pack files.
-- Added `inventoryFile` to the runner manifest's external fixture plan.
-- Expanded `tool/receipt_external_fixture_schema_gate.dart` so it validates the
-  inventory schema, exact pack list, planned file paths, pending migration
-  status, manifest plan, and raw-token exclusions.
-- Updated the runner contract and world-class QA standard to name the inventory
-  artifact.
-
-Failures fixed during this pass:
-- First static schema-gate run failed because the gate expected generated pack
-  JSON paths to appear literally in the Dart manifest source. Fixed it to check
-  the manifest's path-generation expression while the inventory file checks the
-  concrete per-pack paths.
-
-Verification:
-- Passed targeted Dart format and analyzer for the schema gate, manifest, and
-  runner contract.
-- Passed `bash -n tool/receipt_fast_guard_gate.sh`.
-- Passed `dart run tool/receipt_external_fixture_schema_gate.dart`.
-- Passed `bash tool/receipt_cleanup_log_gate.sh` and targeted
-  `git diff --check`.
 - No Flutter or long-running receipt QA commands were run during this pass.

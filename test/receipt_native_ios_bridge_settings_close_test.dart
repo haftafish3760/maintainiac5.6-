@@ -57,6 +57,26 @@ void main() {
       expect(cameraController, contains('autoCaptureStableFrameCount'));
       expect(cameraController, contains('autoCaptureTriggerCount'));
       expect(cameraController, contains('latestAutoCaptureStatus'));
+      expect(
+        cameraController,
+        contains('"captureReadinessCode": captureReadinessCode()'),
+      );
+      expect(
+        cameraController,
+        contains('"captureReadinessLabel": captureReadinessLabel()'),
+      );
+      expect(cameraController, contains('"manualCaptureAllowed": true'));
+      expect(
+        cameraController,
+        contains('"stableFrameCount": autoCaptureStableFrameCount'),
+      );
+      expect(cameraController, contains('"requiredStableFrames": 3'));
+      expect(cameraController, contains('func captureReadinessCode()'));
+      expect(cameraController, contains('"manual_only_check_framing"'));
+      expect(
+        cameraController,
+        contains('"manual_only_quality_retake_recommended"'),
+      );
       expect(cameraController, contains('closingCamera'));
       expect(cameraController, contains('!closingCamera'));
       expect(cameraController, contains('"closing"'));

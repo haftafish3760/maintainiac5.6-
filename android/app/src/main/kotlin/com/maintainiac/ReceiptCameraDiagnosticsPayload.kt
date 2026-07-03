@@ -166,8 +166,13 @@ internal fun ReceiptCameraActivity.nativeCaptureDiagnostics(
         "latestMotionScore" to latestMotionScore,
         "assistedReceiptFill" to assistedReceiptFill,
         "longReceiptMode" to longReceiptMode,
+        "captureReadinessCode" to captureReadinessCode(),
+        "captureReadinessLabel" to captureReadinessLabel(),
+        "manualCaptureAllowed" to true,
         "autoCaptureEnabled" to autoCaptureEnabled,
         "autoCaptureAllowed" to autoCaptureAllowed,
+        "stableFrameCount" to autoCaptureStableFrameCount,
+        "requiredStableFrames" to 3,
         "autoCaptureCurrentlyAllowed" to isAutoCaptureCurrentlyAllowed(),
         "autoCaptureSafetyPolicy" to "optional_manual_shutter_always_available",
         "manualCapturePolicy" to "guidance_advisory_manual_shutter_always_allowed",
@@ -216,4 +221,25 @@ internal fun ReceiptCameraActivity.nativeCaptureDiagnostics(
     diagnostics.putAll(longReceiptSectionDiagnostics())
     diagnostics.putAll(previousSectionCaptureDiagnostics())
     return diagnostics
+}
+
+internal fun ReceiptCameraActivity.captureReadinessCode(): String {
+    if (!autoCaptureEnabled) return "manual_ready_auto_capture_off"
+    return when (latestAutoCaptureStatus) {
+        "capturing" -> "auto_capture_ready"
+        "waiting_for_edges" -> "manual_only_check_framing"
+        "waiting_for_light" -> "manual_only_quality_retake_recommended"
+        "closing" -> "manual_ready_auto_capture_off"
+        else -> "auto_capture_waiting_for_stability"
+    }
+}
+
+internal fun ReceiptCameraActivity.captureReadinessLabel(): String {
+    return when (captureReadinessCode()) {
+        "auto_capture_ready" -> "Receipt looks steady. Taking photo."
+        "manual_only_check_framing" -> "Check that every receipt line is visible before auto capture."
+        "manual_only_quality_retake_recommended" -> "Improve lighting before automatic capture."
+        "auto_capture_waiting_for_stability" -> "Hold steady for automatic capture."
+        else -> "Manual capture is ready. Auto capture is off."
+    }
 }

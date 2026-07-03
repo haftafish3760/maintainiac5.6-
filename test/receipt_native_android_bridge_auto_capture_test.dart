@@ -98,6 +98,29 @@ void main() {
     expect(cameraActivity, contains('autoCaptureStableFrameCount'));
     expect(cameraActivity, contains('autoCaptureTriggerCount'));
     expect(cameraActivity, contains('latestAutoCaptureStatus'));
+    expect(
+      cameraActivity,
+      contains('"captureReadinessCode" to captureReadinessCode()'),
+    );
+    expect(
+      cameraActivity,
+      contains('"captureReadinessLabel" to captureReadinessLabel()'),
+    );
+    expect(cameraActivity, contains('"manualCaptureAllowed" to true'));
+    expect(
+      cameraActivity,
+      contains('"stableFrameCount" to autoCaptureStableFrameCount'),
+    );
+    expect(cameraActivity, contains('"requiredStableFrames" to 3'));
+    expect(
+      cameraActivity,
+      contains('fun ReceiptCameraActivity.captureReadinessCode()'),
+    );
+    expect(cameraActivity, contains('"manual_only_check_framing"'));
+    expect(
+      cameraActivity,
+      contains('"manual_only_quality_retake_recommended"'),
+    );
     expect(cameraActivity, contains('closingCamera'));
     expect(cameraActivity, contains('captureInFlight'));
     expect(cameraActivity, contains('"closing"'));
