@@ -32,9 +32,9 @@ List<String> _nativeSettingsControlHealthCodes(
   }
 
   final openCount = diagnostics['settingsOpenCount'];
-  if (openCount is num && openCount > 0) {
+  if (openCount is num && openCount.isFinite && openCount > 0) {
     codes.add('settings_opened');
-  } else if (openCount is num) {
+  } else if (openCount is num && openCount.isFinite) {
     codes.add('settings_not_opened');
   }
   return List.unmodifiable(codes);

@@ -303,6 +303,41 @@ void main() {
     );
   });
 
+  test('native settings health ignores non-finite open counts', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/proof.jpg': {
+          'visibleControlSet': 'back|settings|manual_shutter|status',
+          'settingsControlExpected': true,
+          'settingsButtonPlacement': 'top_bar_right',
+          'settingsContractVersion': 'receipt_native_camera_settings_v1',
+          'settingsOpenCount': double.infinity,
+        },
+      },
+    );
+
+    expect(
+      result.nativeCameraUiHealthCounts,
+      isNot(contains('settings_opened')),
+    );
+    expect(
+      result.nativeCameraUiHealthCounts,
+      isNot(contains('settings_not_opened')),
+    );
+    expect(
+      result.nativeCameraUiHealthCounts,
+      containsPair('settings_contract_v1', 1),
+    );
+    expect(
+      result.nativeCameraUiHealthCounts,
+      containsPair('settings_button_top_bar_right', 1),
+    );
+  });
+
   test('photo review result flags missing native receipt settings control', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/proof.jpg'],
