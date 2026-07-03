@@ -268,6 +268,16 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_mutation_guard_test.dart',
+      plainNames: {
+        'mutation guard allows derived output collections only',
+        'mutation guard blocks recaps exports and notifications mutating sources',
+        'mutation guard allows only explicitly scoped source operations',
+        'mutation guard matrix captures clean and failing side effects',
+        'mutation guard matrix rejects mismatched expectations',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_environment_test.dart',
       plainNames: {
         'QA environment fakes preserve local truth and mirror copies',

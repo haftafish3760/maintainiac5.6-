@@ -66,6 +66,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_surgical_selector_coverage.dart',
       'maintainiac_surgical_test_selector.dart',
       'maintainiac_surgical_granularity_contract.dart',
+      'maintainiac_mutation_guard.dart',
       'maintainiac_payment_contract.dart',
       'maintainiac_operating_directive_contract.dart',
       'maintainiac_qa_artifact_policy.dart',
@@ -379,6 +380,20 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Artifact policy changes need redaction, privacy, wrong-drive, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'mutation_guard_changed',
+      changedPathContains: 'maintainiac_mutation_guard.dart',
+      selectorIds: {
+        'mutation_guard_allows_derived_only',
+        'mutation_guard_blocks_source_mutation',
+        'mutation_guard_scoped_source_ops',
+        'mutation_guard_matrix_side_effects',
+        'mutation_guard_matrix_rejects_mismatch',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Mutation guard changes need derived-output, source-scope, matrix, negative, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'qa_environment_changed',
