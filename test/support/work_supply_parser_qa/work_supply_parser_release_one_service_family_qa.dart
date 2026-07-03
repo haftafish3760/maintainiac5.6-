@@ -33,6 +33,24 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
       minimumMatches: 8,
     ),
     _FamilySpec(
+      id: 'plumbing_valves_supply_stops',
+      trade: 'Plumbing',
+      tokens: ['valve', 'shutoff', 'stop valve', 'angle stop', 'supply stop'],
+      minimumMatches: 12,
+    ),
+    _FamilySpec(
+      id: 'plumbing_water_heater_service',
+      trade: 'Plumbing',
+      tokens: [
+        'water heater',
+        'dielectric',
+        't&p valve',
+        'tpr valve',
+        'expansion tank',
+      ],
+      minimumMatches: 6,
+    ),
+    _FamilySpec(
       id: 'electrical_wire_cable',
       trade: 'Electrical',
       tokens: ['wire', 'cable', 'nm-b', 'thhn', 'uf-b'],
