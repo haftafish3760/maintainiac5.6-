@@ -41,6 +41,21 @@ MaintainiacIndividualQaCommandResult resolveMaintainiacIndividualQaCommand(
   final risk = _value(args, 'risk');
   final changedPaths = _values(args, 'changed');
   final asJson = args.contains('--json');
+  final selectorModeCount = [
+    id.isNotEmpty,
+    tag.isNotEmpty,
+    module.isNotEmpty,
+    risk.isNotEmpty,
+    changedPaths.isNotEmpty,
+  ].where((enabled) => enabled).length;
+  if (selectorModeCount != 1) {
+    return MaintainiacIndividualQaCommandResult(
+      exitCode: 64,
+      stderr:
+          'Choose exactly one individual QA selector mode. '
+          'Use --id, --tag, --module, --risk, or --changed. $_usage',
+    );
+  }
   final selected = _selectEntries(
     manifest: manifest,
     registry: registry,
@@ -130,7 +145,7 @@ List<MaintainiacIndividualTestEntry> _selectEntries({
         if (ids.contains(entry.id)) entry,
     ];
   }
-  return manifest.entries;
+  return const [];
 }
 
 String _value(List<String> args, String key) {

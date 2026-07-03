@@ -225,4 +225,27 @@ void main() {
     expect(result.exitCode, 66);
     expect(result.stderr, contains('No individual QA command matched'));
   });
+
+  test('individual QA command tool rejects broad or mixed selector modes', () {
+    final broad = resolveMaintainiacIndividualQaCommand([]);
+    final mixed = resolveMaintainiacIndividualQaCommand([
+      '--id',
+      'qa_environment_local_truth',
+      '--tag',
+      'sync',
+    ]);
+
+    expect(broad.exitCode, 64);
+    expect(mixed.exitCode, 64);
+    expect(
+      broad.stderr,
+      contains('Choose exactly one individual QA selector mode'),
+    );
+    expect(
+      mixed.stderr,
+      contains('Choose exactly one individual QA selector mode'),
+    );
+    expect(broad.stdout, isEmpty);
+    expect(mixed.stdout, isEmpty);
+  });
 }
