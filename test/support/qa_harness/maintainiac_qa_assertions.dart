@@ -115,6 +115,34 @@ class MaintainiacQaAssertions {
     }
   }
 
+  static void noUnauthorizedSourceMutation({
+    required String operation,
+    required Iterable<String> mutatedCollections,
+    required Set<String> allowedCollections,
+  }) {
+    final unauthorized = mutatedCollections.where(
+      (collection) => !allowedCollections.contains(collection),
+    );
+    if (unauthorized.isNotEmpty) {
+      throw MaintainiacQaAssertionFailure(
+        '$operation mutated unauthorized source collections: '
+        '${unauthorized.join(', ')}.',
+      );
+    }
+  }
+
+  static void invoiceEstimateDidNotMutateSources({
+    required String outputType,
+    required Iterable<String> sourceCollectionsTouched,
+  }) {
+    if (sourceCollectionsTouched.isNotEmpty) {
+      throw MaintainiacQaAssertionFailure(
+        '$outputType must read source data and write output records only; '
+        'mutated ${sourceCollectionsTouched.join(', ')}.',
+      );
+    }
+  }
+
   static void exportContainsOnlyOwnedRecords(
     Iterable<Map<String, Object?>> records,
     String accountId,
@@ -126,6 +154,29 @@ class MaintainiacQaAssertions {
           'Export contains records outside the active account.',
         );
       }
+    }
+  }
+
+  static void payloadContainsNoPrivateFields(Map<String, Object?> payload) {
+    const forbiddenKeys = {
+      'vin',
+      'vehicleidentificationnumber',
+      'licenseplate',
+      'plate',
+      'passenger',
+      'patient',
+      'ssn',
+      'socialsecuritynumber',
+      'cardnumber',
+      'cvv',
+    };
+    final badKeys = payload.keys.where(
+      (key) => forbiddenKeys.contains(key.toLowerCase()),
+    );
+    if (badKeys.isNotEmpty) {
+      throw MaintainiacQaAssertionFailure(
+        'Payload contains private fields: ${badKeys.join(', ')}.',
+      );
     }
   }
 

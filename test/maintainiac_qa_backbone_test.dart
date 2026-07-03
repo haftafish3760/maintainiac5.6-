@@ -279,6 +279,20 @@ void main() {
     MaintainiacQaAssertions.exportContainsOnlyOwnedRecords([
       {'ownerAccountId': 'acct_1'},
     ], 'acct_1');
+    MaintainiacQaAssertions.noUnauthorizedSourceMutation(
+      operation: 'inventory_confirm',
+      mutatedCollections: ['inventory', 'inventory_movements'],
+      allowedCollections: {'inventory', 'inventory_movements'},
+    );
+    MaintainiacQaAssertions.invoiceEstimateDidNotMutateSources(
+      outputType: 'estimate',
+      sourceCollectionsTouched: const [],
+    );
+    MaintainiacQaAssertions.payloadContainsNoPrivateFields({
+      'id': 'expense_1',
+      'amountCents': 1299,
+      'category': 'fuel',
+    });
     MaintainiacQaAssertions.conflictGeneratedWhenExpected(true);
     MaintainiacQaAssertions.regressionMatchedExpected(
       'review',

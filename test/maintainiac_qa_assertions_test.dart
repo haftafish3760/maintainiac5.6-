@@ -36,6 +36,20 @@ void main() {
       {'accountId': 'acct_1'},
       {'ownerAccountId': 'acct_1'},
     ], 'acct_1');
+    MaintainiacQaAssertions.noUnauthorizedSourceMutation(
+      operation: 'inventory_confirm',
+      mutatedCollections: ['inventory', 'inventory_movements'],
+      allowedCollections: {'inventory', 'inventory_movements'},
+    );
+    MaintainiacQaAssertions.invoiceEstimateDidNotMutateSources(
+      outputType: 'estimate',
+      sourceCollectionsTouched: const [],
+    );
+    MaintainiacQaAssertions.payloadContainsNoPrivateFields({
+      'id': 'inventory_1',
+      'accountId': 'acct_1',
+      'canonicalName': '1/2 in PVC elbow',
+    });
     MaintainiacQaAssertions.conflictGeneratedWhenExpected(true);
     MaintainiacQaAssertions.regressionMatchedExpected(
       'needsReview',
@@ -101,6 +115,28 @@ void main() {
       () => MaintainiacQaAssertions.exportContainsOnlyOwnedRecords([
         {'accountId': 'acct_2'},
       ], 'acct_1'),
+      throwsA(isA<MaintainiacQaAssertionFailure>()),
+    );
+    expect(
+      () => MaintainiacQaAssertions.noUnauthorizedSourceMutation(
+        operation: 'recap',
+        mutatedCollections: ['expenses'],
+        allowedCollections: {'recaps'},
+      ),
+      throwsA(isA<MaintainiacQaAssertionFailure>()),
+    );
+    expect(
+      () => MaintainiacQaAssertions.invoiceEstimateDidNotMutateSources(
+        outputType: 'invoice',
+        sourceCollectionsTouched: ['inventory'],
+      ),
+      throwsA(isA<MaintainiacQaAssertionFailure>()),
+    );
+    expect(
+      () => MaintainiacQaAssertions.payloadContainsNoPrivateFields({
+        'id': 'vehicle_1',
+        'vin': '1HGCM82633A004352',
+      }),
       throwsA(isA<MaintainiacQaAssertionFailure>()),
     );
     expect(
