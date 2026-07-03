@@ -23,6 +23,39 @@ void main() {
     }
   });
 
+  test('duplicate receipt restore trims saved status and confidence names', () {
+    final restored = ExpenseReceiptRecord.fromMap({
+      'id': 'EXP-duplicate-restore',
+      'receiptDate': DateTime(2026, 6, 13).toIso8601String(),
+      'merchantName': 'Hardware Store',
+      'duplicateCheckStatus': ' overrideSaved ',
+      'duplicateCandidates': [
+        {
+          'receiptId': 'EXP-original',
+          'merchantName': 'Hardware Store',
+          'receiptDate': DateTime(2026, 6, 13).toIso8601String(),
+          'total': 42.50,
+          'tax': 2.50,
+          'category': 'Materials',
+          'vehicleId': '',
+          'confidence': ' exactFileMatch ',
+          'reason': 'Same receipt image hash.',
+          'matchedFileHashSha256': 'same-hash',
+        },
+      ],
+    });
+
+    expect(
+      restored.duplicateCheckStatus,
+      ExpenseDuplicateCheckStatus.overrideSaved,
+    );
+    expect(
+      restored.duplicateCandidates.single.confidence,
+      ExpenseDuplicateConfidence.exactFileMatch,
+    );
+    expect(restored.duplicateCandidates.single.isExactProofMatch, isTrue);
+  });
+
   test('detects the same PDF uploaded twice by SHA-256 hash', () async {
     final ledger = await ExpenseLedgerController.create();
     await ledger.saveReceipt(

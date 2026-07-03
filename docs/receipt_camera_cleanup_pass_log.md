@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 562 - 07:37:10 EDT to 07:44:38 EDT
+
+Scope:
+- Hardened duplicate receipt status and confidence restore helpers so padded
+  stored enum values do not weaken override or exact-file-match state.
+- Added regression coverage for restored override-saved duplicate review state
+  and exact proof-match candidate confidence.
+- Recorded `BUG-RECEIPT-0078` under `source_preservation`.
+- Archived Pass 513 out of the live cleanup log.
+
+Verification:
+- Passed targeted Dart format/analyzer for duplicate receipt models and focused
+  duplicate detection regression coverage.
+- Passed focused Flutter regression
+  `test/expense_duplicate_detection_test.dart --plain-name "duplicate receipt
+  restore trims saved status and confidence names"`.
+
 ## Pass 561 - 07:30:00 EDT to 07:36:56 EDT
 
 Scope:
@@ -466,27 +483,4 @@ Verification:
 - Passed focused Flutter test
   `test/expense_receipt_line_record_test.dart --plain-name "privacy-safe receipt
   line contracts never expose generated item ids"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 513 - 01:06:51 EDT to 01:08:06 EDT
-
-Scope:
-- Hardened native capture staging bottom-edge evidence so non-finite edge scores
-  do not default to "present until OCR evidence" when native framing says the
-  receipt may be cut off.
-- Hardened staged recovery manifest diagnostics so non-finite numeric values are
-  not written into JSON payloads.
-- Added staging regression coverage for unusable native edge evidence.
-- Recorded `BUG-RECEIPT-0031` under `camera_capture_quality`.
-- Archived Pass 476 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Fixed an initial focused-test failure where non-finite diagnostics crashed
-  recovery manifest JSON encoding, then reran the focused chain.
-- Passed targeted Dart format and analyzer for native staging cleanup,
-  diagnostics, safe diagnostics, and staging regression coverage.
-- Passed focused Flutter test
-  `test/receipt_native_capture_staging_test.dart --plain-name "native staging
-  treats non-finite edge evidence as cut off"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.

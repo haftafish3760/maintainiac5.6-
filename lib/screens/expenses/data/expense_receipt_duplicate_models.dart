@@ -11,8 +11,9 @@ enum ExpenseDuplicateCheckStatus {
   final String label;
 
   static ExpenseDuplicateCheckStatus fromName(String? name) {
+    final normalizedName = name?.trim();
     return ExpenseDuplicateCheckStatus.values.firstWhere(
-      (value) => value.name == name,
+      (value) => value.name == normalizedName,
       orElse: () => ExpenseDuplicateCheckStatus.notChecked,
     );
   }
@@ -32,8 +33,9 @@ enum ExpenseDuplicateConfidence {
   int get percent => (score * 100).round();
 
   static ExpenseDuplicateConfidence fromName(String? name) {
+    final normalizedName = name?.trim();
     return ExpenseDuplicateConfidence.values.firstWhere(
-      (value) => value.name == name,
+      (value) => value.name == normalizedName,
       orElse: () => ExpenseDuplicateConfidence.possible,
     );
   }
