@@ -1,6 +1,7 @@
 part of 'expense_receipt_entry_screen.dart';
 
-extension _ExpenseReceiptEntryLineModeHelpers on _ExpenseReceiptEntryScreenState {
+extension _ExpenseReceiptEntryLineModeHelpers
+    on _ExpenseReceiptEntryScreenState {
   void _setReceiptReviewMode(_ReceiptDetailEntryMode value) {
     _setReceiptEntryState(() {
       _detailEntryMode = value;
@@ -152,10 +153,9 @@ extension _ExpenseReceiptEntryLineModeHelpers on _ExpenseReceiptEntryScreenState
                           );
                           return;
                         }
-                        final percent =
-                            (double.tryParse(businessPercent.text.trim()) ??
-                                50) /
-                            100;
+                        final percent = _quickSplitBusinessPercent(
+                          businessPercent.text,
+                        );
                         Navigator.of(context).pop(
                           _ExpenseReceiptLine(
                             description: switch (use) {
@@ -197,4 +197,10 @@ extension _ExpenseReceiptEntryLineModeHelpers on _ExpenseReceiptEntryScreenState
       businessPercent.dispose();
     }
   }
+}
+
+double _quickSplitBusinessPercent(String value) {
+  final parsed = double.tryParse(value.replaceAll('%', '').trim());
+  if (parsed == null || !parsed.isFinite) return .5;
+  return (parsed / 100).clamp(0, 1).toDouble();
 }

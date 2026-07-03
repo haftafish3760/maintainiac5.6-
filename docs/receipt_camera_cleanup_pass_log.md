@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 507 - 00:56:22 EDT to 00:57:13 EDT
+
+Scope:
+- Hardened quick price-only split line entry so custom business percent text can
+  include a percent sign just like the full line editor.
+- Added regression coverage proving the quick split parser strips `%` and the
+  old direct `double.tryParse(...trim())` path is gone.
+- Recorded `BUG-RECEIPT-0025` under `business_personal_split`.
+- Archived Pass 471 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for quick line-mode helpers and
+  assisted-review regression coverage.
+- Passed focused Flutter test
+  `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
+  receipt review exposes classification and attachment flow"`.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 506 - 00:54:54 EDT to 00:55:52 EDT
 
 Scope:
@@ -453,30 +472,4 @@ Verification:
 - Passed focused Flutter test batch for the blueprint guard, fast-guard contract,
   and production directive guard.
 - Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
-  `--max-line-length=220`, and targeted `git diff --check`.
-
-## Pass 471 - 18:14:30 EDT to 18:41:59 EDT
-
-Scope:
-- Propagated stitch overlap and source-preservation codes into OCR-source
-  attachment document signals and OCR handoff stitch-signal counts.
-- Added `docs/maintainiac_production_operating_directive.md` as the repo-level
-  production trust, QA discipline, and bug-to-regression directive.
-- Linked the directive from `README.md`, `PROJECT_RULES.md`, and the focused
-  fast receipt guard.
-- Added the production directive guard test so critical rules remain present in
-  the repo.
-
-Failures fixed during this pass:
-- The directive guard initially failed because protected phrases wrapped across
-  Markdown lines; made those policy phrases contiguous and reran the focused
-  tests.
-
-Verification:
-- Passed targeted analyzer and focused Flutter tests for the directive and
-  fast-guard contract files.
-- Passed targeted analyzer and focused Flutter tests for stitch-signal handoff
-  files and camera/OCR handoff regressions.
-- Passed `bash -n tool/receipt_fast_guard_gate.sh`,
-  `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
   `--max-line-length=220`, and targeted `git diff --check`.
