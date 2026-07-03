@@ -1700,6 +1700,16 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'tooling', 'parser-consumer', 'regression', 'release-gate'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'individual_command_tool_changed_unique_surgical',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_individual_qa_command_tool_test.dart',
+    plainName:
+        'individual QA command tool changed output is unique and surgical',
+    reason:
+        'Run only the changed-file command dedupe and surgical-output guard.',
+    tags: {'tooling', 'parser-consumer', 'regression', 'surgical'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'individual_command_tool_rejects_unknown',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_individual_qa_command_tool_test.dart',

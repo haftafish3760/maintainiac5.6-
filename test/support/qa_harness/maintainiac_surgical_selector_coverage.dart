@@ -543,6 +543,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'individual QA command tool resolves every selector test file',
         'individual QA command tool returns all selectors for a changed file',
         'individual QA command tool resolves every selector id exactly once',
+        'individual QA command tool changed output is unique and surgical',
         'individual QA command tool rejects unknown selectors',
       },
     ),

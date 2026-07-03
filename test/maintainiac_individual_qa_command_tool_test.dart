@@ -126,6 +126,35 @@ void main() {
     },
   );
 
+  test('individual QA command tool changed output is unique and surgical', () {
+    const registry = maintainiacSurgicalTestSelectorRegistry;
+    final result = resolveMaintainiacIndividualQaCommand([
+      '--changed',
+      'test/support/qa_harness/maintainiac_surgical_test_selector.dart',
+      '--changed',
+      'test/support/qa_harness/maintainiac_surgical_test_selector.dart',
+    ]);
+    final commands = result.stdout
+        .trim()
+        .split('\n')
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+
+    expect(result.exitCode, 0);
+    expect(commands, isNotEmpty);
+    expect(commands.toSet(), hasLength(commands.length));
+    for (final command in commands) {
+      final selector = registry.selectors.singleWhere(
+        (candidate) => candidate.command == command,
+      );
+
+      expect(selector.scope, MaintainiacSurgicalTestScope.singleBehavior);
+      expect(command, contains(' --plain-name '));
+      expect(command, isNot(contains('&&')));
+      expect(command, isNot(contains(';')));
+    }
+  });
+
   test('individual QA command tool rejects unknown selectors', () {
     final result = resolveMaintainiacIndividualQaCommand([
       '--id',
