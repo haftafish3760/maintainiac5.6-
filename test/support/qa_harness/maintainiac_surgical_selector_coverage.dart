@@ -243,6 +243,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       file: 'test/maintainiac_regression_registry_test.dart',
       plainNames: {
         'regression registry records permanent bug fixtures by area',
+        'regression registry permanent tests point at real files',
         'regression registry rejects non-permanent or incomplete bug records',
       },
     ),

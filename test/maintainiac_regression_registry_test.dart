@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/qa_harness/qa_harness.dart';
@@ -12,6 +14,24 @@ void main() {
     expect(registry.toJson().toString(), contains('EXP-0001'));
     expect(registry.toJson().toString(), contains('SYN-0001'));
     expect(registry.toJson().toString(), contains('inventory_parser'));
+  });
+
+  test('regression registry permanent tests point at real files', () {
+    const registry = maintainiacRegressionRegistry;
+    final missingPermanentTests = <String>[];
+
+    for (final entry in registry.cases) {
+      final file = entry.permanentTest;
+      if (!File(file).existsSync()) {
+        missingPermanentTests.add('${entry.bugId}:$file');
+      }
+    }
+
+    expect(
+      missingPermanentTests,
+      isEmpty,
+      reason: 'Every regression must stay tied to an executable test file.',
+    );
   });
 
   test(

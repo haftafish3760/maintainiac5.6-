@@ -353,11 +353,12 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       changedPathContains: 'maintainiac_regression_registry.dart',
       selectorIds: {
         'regression_registry_permanent_bug_fixtures',
+        'regression_registry_permanent_tests_exist',
         'regression_registry_rejects_incomplete',
         'main_backbone_parser_visibility',
       },
       reason:
-          'Regression registry changes need permanent fixture, incomplete-record, and backbone checks.',
+          'Regression registry changes need permanent fixture, test-file evidence, incomplete-record, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'failure_taxonomy_changed',

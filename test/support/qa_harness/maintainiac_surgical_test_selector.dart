@@ -609,6 +609,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'regression', 'release-gate'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'regression_registry_permanent_tests_exist',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_regression_registry_test.dart',
+    plainName: 'regression registry permanent tests point at real files',
+    reason: 'Run only the permanent regression test-file existence check.',
+    tags: {'regression', 'release-gate', 'evidence'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'regression_registry_rejects_incomplete',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_regression_registry_test.dart',
