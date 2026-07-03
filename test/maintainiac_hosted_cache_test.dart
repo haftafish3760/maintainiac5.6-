@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog_hosted_manifest.dart';
-import 'package:maintaniac/shared/firebase/maintainiac_firestore_documents.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_schema.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_hosted_cache.dart';
 
@@ -24,23 +22,19 @@ void main() {
 
   test('caches hosted catalog manifests with long TTL and sha256', () async {
     final store = await MaintainiacHostedCacheStore.create();
-    final manifest = buildWorkSupplyHostedCatalogManifest(
-      generatedAt: DateTime.utc(2026, 6, 23, 12),
-    );
-    final doc = MaintainiacFirestoreDocumentBuilder.catalogManifestDocument(
-      manifest,
-    );
+    const path = 'catalogPacks/work_supply_residential_core/manifests/2026.06';
+    const version = '2026.06';
 
     final record = await store.put(
-      path: doc.path,
-      data: doc.data,
+      path: path,
+      data: _safeCatalogManifestData(version),
       cachedAtUtc: DateTime.utc(2026, 6, 23, 13),
-      version: manifest.packVersion,
+      version: version,
     );
     final lookup = store.lookup(
-      path: doc.path,
+      path: path,
       nowUtc: DateTime.utc(2026, 6, 24, 13),
-      version: manifest.packVersion,
+      version: version,
     );
 
     expect(record.sha256, matches(RegExp(r'^[a-f0-9]{64}$')));
@@ -102,23 +96,18 @@ void main() {
 
   test('version mismatch forces a cache miss', () async {
     final store = await MaintainiacHostedCacheStore.create();
-    final manifest = buildWorkSupplyHostedCatalogManifest(
-      generatedAt: DateTime.utc(2026, 6, 23, 12),
-    );
-    final doc = MaintainiacFirestoreDocumentBuilder.catalogPackDocument(
-      manifest,
-    );
+    const path = 'catalogPacks/work_supply_residential_core';
     await store.put(
-      path: doc.path,
-      data: doc.data,
+      path: path,
+      data: _safeCatalogPackData(),
       cachedAtUtc: DateTime.utc(2026, 6, 23, 13),
       version: '2026.06.old',
     );
 
     final lookup = store.lookup(
-      path: doc.path,
+      path: path,
       nowUtc: DateTime.utc(2026, 6, 23, 14),
-      version: manifest.packVersion,
+      version: '2026.06',
     );
 
     expect(lookup.status, MaintainiacHostedCacheStatus.miss);
@@ -210,4 +199,33 @@ void main() {
 
     expect(first.sha256, second.sha256);
   });
+}
+
+Map<String, Object?> _safeCatalogPackData() {
+  return const {
+    'schema': 'catalog_pack_v1',
+    'packId': 'work_supply_residential_core',
+    'packVersion': '2026.06',
+    'deliveryMode': 'manifest_storage_chunks',
+    'firestoreItemDocumentReadCount': 0,
+    'storagePrefix': 'catalog-packs/work-supplies/2026.06',
+  };
+}
+
+Map<String, Object?> _safeCatalogManifestData(String version) {
+  return {
+    'schema': 'catalog_manifest_v1',
+    'packId': 'work_supply_residential_core',
+    'packVersion': version,
+    'deliveryMode': 'manifest_storage_chunks',
+    'firestoreItemDocumentReadCount': 0,
+    'chunks': const [
+      {
+        'chunkId': 'core-a',
+        'storagePath': 'catalog-packs/work-supplies/2026.06/core-a.json',
+        'sha256':
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      },
+    ],
+  };
 }

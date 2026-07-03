@@ -362,6 +362,39 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_firestore_schema_test.dart',
+      plainNames: {
+        'Firestore schema exposes hosted catalog collection paths',
+        'Firestore schema exposes privacy-safe command center collections',
+        'Storage schema matches work supply catalog chunk prefix',
+        'Firestore docs describe manifest plus Storage chunks, not item docs',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_firestore_upload_queue_test.dart',
+      plainNames: {
+        'queues safe documents but does not upload while disabled',
+        'uploads enabled batches and marks records uploaded',
+        'replaces pending documents for the same path',
+        'retains failed writes with retry metadata',
+        'enforces max batch size even when caller asks for more',
+        'rejects unsafe paths, sensitive fields, and per-item catalog reads',
+        'allows private expense backup fields only under org expense records',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_hosted_cache_test.dart',
+      plainNames: {
+        'caches hosted catalog manifests with long TTL and sha256',
+        'returns stale records as usable while signaling refresh needed',
+        'can treat stale records as misses for strict reads',
+        'version mismatch forces a cache miss',
+        'rejects private org data, receipt fields, and bad catalog shape',
+        'clears expired records and keeps fresh records',
+        'sha256 fingerprint is stable regardless of map key order',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_parser_release_command_plan_test.dart',
       plainNames: {
         'parser release command plan covers every parser consumer family',

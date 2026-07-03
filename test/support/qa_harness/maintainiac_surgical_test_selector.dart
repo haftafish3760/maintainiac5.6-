@@ -38,7 +38,9 @@ class MaintainiacSurgicalTestSelector {
     }
     final lower = command.toLowerCase();
     final mentionsFirestore = lower.contains('firestore');
-    final allowedMirrorContract = lower.contains('firestore mirror');
+    final allowedMirrorContract =
+        lower.contains('firestore mirror') ||
+        _isOfflineFirestoreContractCommand(lower);
     if (lower.contains('camera') ||
         lower.contains('ocr') ||
         lower.contains('mlkit') ||
@@ -63,6 +65,12 @@ class MaintainiacSurgicalTestSelector {
       'tags': tags.toList()..sort(),
     };
   }
+}
+
+bool _isOfflineFirestoreContractCommand(String lowerCommand) {
+  return lowerCommand.contains('maintainiac_firestore_schema_test.dart') ||
+      lowerCommand.contains('maintainiac_firestore_upload_queue_test.dart') ||
+      lowerCommand.contains('maintainiac_hosted_cache_test.dart');
 }
 
 class MaintainiacSurgicalTestSelectorRegistry {
@@ -918,6 +926,155 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     plainName: 'QA cases tool rejects unknown priority',
     reason: 'Run only the QA cases unknown-priority guard.',
     tags: {'qa-cases-tool', 'tooling', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_schema_catalog_paths',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_schema_test.dart',
+    plainName: 'Firestore schema exposes hosted catalog collection paths',
+    reason: 'Run only the hosted catalog Firestore path schema check.',
+    tags: {'firestore', 'schema', 'inventory', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_schema_command_center_paths',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_schema_test.dart',
+    plainName:
+        'Firestore schema exposes privacy-safe command center collections',
+    reason: 'Run only the privacy-safe Command Center schema check.',
+    tags: {'firestore', 'schema', 'privacy', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_schema_storage_chunk_prefix',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_schema_test.dart',
+    plainName: 'Storage schema matches work supply catalog chunk prefix',
+    reason: 'Run only the Storage chunk prefix schema check.',
+    tags: {'storage', 'inventory', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_schema_docs_manifest_chunks',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_schema_test.dart',
+    plainName:
+        'Firestore docs describe manifest plus Storage chunks, not item docs',
+    reason: 'Run only the docs contract for manifests/chunks vs item docs.',
+    tags: {'firestore', 'docs', 'cost-quota', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_upload_queue_disabled',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_upload_queue_test.dart',
+    plainName: 'queues safe documents but does not upload while disabled',
+    reason: 'Run only the disabled Firestore upload queue check.',
+    tags: {'firestore', 'sync', 'cost-quota', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_upload_queue_enabled_batches',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_upload_queue_test.dart',
+    plainName: 'uploads enabled batches and marks records uploaded',
+    reason: 'Run only the enabled batch upload queue check.',
+    tags: {'firestore', 'sync', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_upload_queue_replaces_pending',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_upload_queue_test.dart',
+    plainName: 'replaces pending documents for the same path',
+    reason: 'Run only the pending-document replacement check.',
+    tags: {'firestore', 'sync', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_upload_queue_retry_metadata',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_upload_queue_test.dart',
+    plainName: 'retains failed writes with retry metadata',
+    reason: 'Run only the failed-write retry metadata check.',
+    tags: {'firestore', 'sync', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_upload_queue_max_batch',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_upload_queue_test.dart',
+    plainName: 'enforces max batch size even when caller asks for more',
+    reason: 'Run only the upload queue max batch size guard.',
+    tags: {'firestore', 'cost-quota', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_upload_queue_rejects_unsafe',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_upload_queue_test.dart',
+    plainName:
+        'rejects unsafe paths, sensitive fields, and per-item catalog reads',
+    reason: 'Run only the unsafe Firestore draft rejection guard.',
+    tags: {'firestore', 'security', 'privacy', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_upload_queue_private_expense_backup_scope',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_upload_queue_test.dart',
+    plainName:
+        'allows private expense backup fields only under org expense records',
+    reason: 'Run only the private expense backup scope check.',
+    tags: {'firestore', 'expenses', 'privacy', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'hosted_cache_catalog_manifest_ttl',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_hosted_cache_test.dart',
+    plainName: 'caches hosted catalog manifests with long TTL and sha256',
+    reason: 'Run only the hosted catalog cache TTL/fingerprint check.',
+    tags: {'hosted-cache', 'inventory', 'performance', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'hosted_cache_stale_usable_refresh',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_hosted_cache_test.dart',
+    plainName: 'returns stale records as usable while signaling refresh needed',
+    reason: 'Run only the stale usable cache refresh check.',
+    tags: {'hosted-cache', 'sync', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'hosted_cache_strict_stale_miss',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_hosted_cache_test.dart',
+    plainName: 'can treat stale records as misses for strict reads',
+    reason: 'Run only the strict stale-as-miss hosted cache check.',
+    tags: {'hosted-cache', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'hosted_cache_version_mismatch',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_hosted_cache_test.dart',
+    plainName: 'version mismatch forces a cache miss',
+    reason: 'Run only the hosted cache version mismatch check.',
+    tags: {'hosted-cache', 'inventory', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'hosted_cache_rejects_private_bad_shape',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_hosted_cache_test.dart',
+    plainName:
+        'rejects private org data, receipt fields, and bad catalog shape',
+    reason: 'Run only the hosted cache private/bad-shape rejection guard.',
+    tags: {'hosted-cache', 'privacy', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'hosted_cache_clears_expired',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_hosted_cache_test.dart',
+    plainName: 'clears expired records and keeps fresh records',
+    reason: 'Run only the hosted cache expiration cleanup check.',
+    tags: {'hosted-cache', 'performance', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'hosted_cache_sha_stable',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_hosted_cache_test.dart',
+    plainName: 'sha256 fingerprint is stable regardless of map key order',
+    reason: 'Run only the hosted cache stable SHA fingerprint check.',
+    tags: {'hosted-cache', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
     id: 'parser_regression_bindings',

@@ -47,7 +47,9 @@ class MaintainiacIndividualTestEntry {
     }
     final lower = command.toLowerCase();
     final mentionsFirestore = lower.contains('firestore');
-    final allowedMirrorContract = lower.contains('firestore mirror');
+    final allowedMirrorContract =
+        lower.contains('firestore mirror') ||
+        _isOfflineFirestoreContractCommand(lower);
     if (lower.contains('googlevision') ||
         lower.contains('mlkit') ||
         lower.contains('camera') ||
@@ -69,6 +71,12 @@ class MaintainiacIndividualTestEntry {
       'whenToRun': whenToRun,
     };
   }
+}
+
+bool _isOfflineFirestoreContractCommand(String lowerCommand) {
+  return lowerCommand.contains('maintainiac_firestore_schema_test.dart') ||
+      lowerCommand.contains('maintainiac_firestore_upload_queue_test.dart') ||
+      lowerCommand.contains('maintainiac_hosted_cache_test.dart');
 }
 
 class MaintainiacIndividualTestManifest {

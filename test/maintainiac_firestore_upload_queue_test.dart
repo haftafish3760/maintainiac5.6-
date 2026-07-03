@@ -2,9 +2,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:maintaniac/screens/expenses/data/expense_receipt_parser.dart';
-import 'package:maintaniac/screens/expenses/data/expense_receipt_privacy_event_store.dart';
-import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog_hosted_manifest.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_documents.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 
@@ -28,12 +25,9 @@ void main() {
   test('queues safe documents but does not upload while disabled', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink();
-    final manifest = buildWorkSupplyHostedCatalogManifest(
-      generatedAt: DateTime.utc(2026, 6, 23, 12),
-    );
     await queue.enqueueAll([
-      MaintainiacFirestoreDocumentBuilder.catalogPackDocument(manifest),
-      MaintainiacFirestoreDocumentBuilder.catalogManifestDocument(manifest),
+      _safeDraft('parserHealth/receipt_parser_v1'),
+      _safeDraft('catalogHealth/work_supply_core'),
     ], queuedAtUtc: DateTime.utc(2026, 6, 23, 13));
 
     final result = await MaintainiacFirestoreUploadCoordinator(
@@ -50,12 +44,9 @@ void main() {
   test('uploads enabled batches and marks records uploaded', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink();
-    final manifest = buildWorkSupplyHostedCatalogManifest(
-      generatedAt: DateTime.utc(2026, 6, 23, 12),
-    );
     await queue.enqueueAll([
-      MaintainiacFirestoreDocumentBuilder.catalogPackDocument(manifest),
-      MaintainiacFirestoreDocumentBuilder.catalogManifestDocument(manifest),
+      _safeDraft('parserHealth/receipt_parser_v1'),
+      _safeDraft('catalogHealth/work_supply_core'),
     ], queuedAtUtc: DateTime.utc(2026, 6, 23, 13));
 
     final result = await MaintainiacFirestoreUploadCoordinator(
@@ -78,12 +69,7 @@ void main() {
 
   test('replaces pending documents for the same path', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
-    final manifest = buildWorkSupplyHostedCatalogManifest(
-      generatedAt: DateTime.utc(2026, 6, 23, 12),
-    );
-    final draft = MaintainiacFirestoreDocumentBuilder.catalogPackDocument(
-      manifest,
-    );
+    final draft = _safeDraft('parserHealth/receipt_parser_v1');
 
     await queue.enqueueReplacingPendingForPath(
       draft,
@@ -104,13 +90,10 @@ void main() {
 
   test('retains failed writes with retry metadata', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
-    final sink = _RecordingFirestoreSink(failPathsContaining: 'manifests');
-    final manifest = buildWorkSupplyHostedCatalogManifest(
-      generatedAt: DateTime.utc(2026, 6, 23, 12),
-    );
+    final sink = _RecordingFirestoreSink(failPathsContaining: 'catalogHealth');
     await queue.enqueueAll([
-      MaintainiacFirestoreDocumentBuilder.catalogPackDocument(manifest),
-      MaintainiacFirestoreDocumentBuilder.catalogManifestDocument(manifest),
+      _safeDraft('parserHealth/receipt_parser_v1'),
+      _safeDraft('catalogHealth/work_supply_core'),
     ], queuedAtUtc: DateTime.utc(2026, 6, 23, 13));
 
     final result = await MaintainiacFirestoreUploadCoordinator(
@@ -130,25 +113,16 @@ void main() {
   test('enforces max batch size even when caller asks for more', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink();
-    final parsed = parseExpenseReceiptText('''
-STORE
-06/12/2026
-ITEM 1.00
-Total 1.00
-''');
 
     for (var i = 0; i < 25; i++) {
-      final record = PrivacySafeReceiptEventRecord(
-        id: 'event_$i',
-        queuedAtUtc: DateTime.utc(2026, 6, 23, 13, i),
-        payload: ReceiptPrivacyEventPolicy.sanitize(
-          PrivacySafeReceiptEvent.fromParseResult(result: parsed),
-        ),
-      );
       await queue.enqueue(
-        MaintainiacFirestoreDocumentBuilder.receiptDiagnosticDocument(
-          orgId: 'ORG-1',
-          record: record,
+        MaintainiacFirestoreDocumentDraft(
+          path: 'orgs/ORG-1/receiptDiagnostics/event_$i',
+          data: {
+            'schema': 'receipt_diagnostic_v1',
+            'event': 'parseCompleted',
+            'parserLineCount': i,
+          },
         ),
         queuedAtUtc: DateTime.utc(2026, 6, 23, 13, i),
       );
@@ -261,6 +235,13 @@ Total 1.00
         throwsArgumentError,
       );
     },
+  );
+}
+
+MaintainiacFirestoreDocumentDraft _safeDraft(String path) {
+  return MaintainiacFirestoreDocumentDraft(
+    path: path,
+    data: const {'schema': 'qa_safe_document_v1', 'event': 'queuecheck'},
   );
 }
 
