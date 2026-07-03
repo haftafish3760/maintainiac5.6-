@@ -54,6 +54,34 @@ void main() {
     },
   );
 
+  test('individual test manifest entries keep stable reporting metadata', () {
+    final manifest = maintainiacIndividualTestManifest;
+    final json = manifest.toJson();
+    final modules = json['modules']! as List<String>;
+    final riskFamilies = json['riskFamilies']! as List<String>;
+
+    expect(json['entryCount'], manifest.entries.length);
+    expect(modules, orderedEquals([...modules]..sort()));
+    expect(riskFamilies, orderedEquals([...riskFamilies]..sort()));
+
+    for (final entry in manifest.entries) {
+      expect(entry.owner, 'qa_backbone');
+      expect(entry.module.trim(), isNotEmpty);
+      expect(entry.riskFamily.trim(), isNotEmpty);
+      expect(entry.whenToRun, startsWith('Run only '));
+      expect(entry.command, startsWith('flutter test test/'));
+      expect(entry.command, contains(' --plain-name '));
+      expect(entry.toJson().keys, {
+        'id',
+        'module',
+        'riskFamily',
+        'command',
+        'owner',
+        'whenToRun',
+      });
+    }
+  });
+
   test('individual test manifest rejects unsafe or non-surgical commands', () {
     const manifest = MaintainiacIndividualTestManifest([
       MaintainiacIndividualTestEntry(

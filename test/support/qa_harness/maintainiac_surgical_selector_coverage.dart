@@ -466,6 +466,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'individual test manifest exposes surgical command metadata',
         'individual test manifest mirrors surgical selector commands exactly',
+        'individual test manifest entries keep stable reporting metadata',
         'individual test manifest rejects unsafe or non-surgical commands',
       },
     ),

@@ -1421,6 +1421,15 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'parser-consumer', 'tooling', 'regression', 'release-gate'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'individual_manifest_reporting_metadata',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_individual_test_manifest_test.dart',
+    plainName:
+        'individual test manifest entries keep stable reporting metadata',
+    reason: 'Run only the individual test manifest reporting metadata guard.',
+    tags: {'parser-consumer', 'tooling', 'regression', 'evidence'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'individual_manifest_rejects_unsafe',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_individual_test_manifest_test.dart',
