@@ -68,6 +68,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_qa_quality_gates.dart',
       'maintainiac_source_audit_policy.dart',
       'maintainiac_audit_trail.dart',
+      'maintainiac_qa_assertions.dart',
     }) {
       if (!rules.any((rule) => rule.changedPathContains == required)) {
         failures.add('missing rerun rule for $required');
@@ -250,6 +251,17 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Audit trail changes need ordered, confirmation, negative, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_assertions_changed',
+      changedPathContains: 'maintainiac_qa_assertions.dart',
+      selectorIds: {
+        'qa_assertions_accept_safe_behavior',
+        'qa_assertions_reject_unsafe_behavior',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Shared assertion changes need positive, negative, and backbone checks.',
     ),
   ],
 );

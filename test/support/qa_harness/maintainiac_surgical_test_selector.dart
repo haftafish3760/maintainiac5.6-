@@ -426,6 +426,24 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'audit', 'security', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_assertions_accept_safe_behavior',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_assertions_test.dart',
+    plainName: 'shared QA assertions accept safe source truth behavior',
+    reason:
+        'Run only the positive shared assertion contract after assertion edits.',
+    tags: {'assertions', 'source-of-truth', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'qa_assertions_reject_unsafe_behavior',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_assertions_test.dart',
+    plainName: 'shared QA assertions reject source truth and privacy failures',
+    reason:
+        'Run only the negative shared assertion contract after assertion edits.',
+    tags: {'assertions', 'security', 'privacy', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'main_backbone_parser_visibility',
     scope: MaintainiacSurgicalTestScope.releaseGate,
     file: 'test/maintainiac_qa_backbone_test.dart',
