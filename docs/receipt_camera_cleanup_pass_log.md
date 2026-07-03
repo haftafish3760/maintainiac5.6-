@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 475 - 21:12:00 EDT to 21:15:25 EDT
+
+Scope:
+- Stayed on the camera-lane quality/readiness slice.
+- Added `ReceiptCaptureReadinessDecision` so receipt photo quality can produce a
+  stable capture-readiness contract for manual capture and opt-in auto-capture.
+- Kept manual capture allowed even when auto-capture is off, waiting for
+  stability, or held back by quality/framing risk.
+- Added regressions proving auto-capture waits for stable frames and stays
+  blocked for glare or likely cut-off receipts while manual capture remains
+  available.
+
+Verification:
+- Passed targeted format and analyzer for the quality model and guidance tests.
+- Passed focused Flutter tests for receipt camera quality guidance and result
+  quality.
+- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
+  `--max-line-length=220`, and targeted `git diff --check`.
+
 ## Pass 474 - 20:29:58 EDT to 20:31:22 EDT
 
 Scope:
@@ -469,21 +488,4 @@ Verification:
 - Passed `dart run tool/receipt_external_fixture_schema_gate.dart`.
 - Passed `bash tool/receipt_cleanup_log_gate.sh` and targeted
   `git diff --check`.
-- No Flutter or long-running receipt QA commands were run during this pass.
-
-## Pass 455 - 16:20:00 EDT to 16:23:00 EDT
-
-Scope:
-- Added `tool/receipt_quiet_batch.sh`, a detached launcher for long receipt QA
-  commands that writes `run.log`, `status.txt`, `exit_code`, and `pid` under
-  `/tmp/maintainiac_receipt_quiet_batch/<name>/`.
-- The launcher returns immediately after starting the background process, so
-  Codex does not stay attached to live test output.
-- Wired the launcher into `tool/receipt_fast_guard_gate.sh` shell-syntax checks.
-
-Verification:
-- Passed `bash -n tool/receipt_quiet_batch.sh tool/receipt_fast_guard_gate.sh`.
-- Passed line-count check: `receipt_quiet_batch.sh` is 65 lines and
-  `receipt_fast_guard_gate.sh` is 53 lines.
-- Passed targeted `git diff --check` for the launcher and fast guard.
 - No Flutter or long-running receipt QA commands were run during this pass.

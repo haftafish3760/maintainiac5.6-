@@ -265,6 +265,126 @@ class ReceiptPhotoQualityCheck {
       if (isMissingTextBands) 'Receipt text lines are hard to detect.',
     ];
   }
+
+  ReceiptCaptureReadinessDecision captureReadiness({
+    required bool autoCaptureEnabled,
+    int stableFrameCount = 0,
+    int requiredStableFrames = 3,
+  }) {
+    return ReceiptCaptureReadinessDecision.fromQuality(
+      this,
+      autoCaptureEnabled: autoCaptureEnabled,
+      stableFrameCount: stableFrameCount,
+      requiredStableFrames: requiredStableFrames,
+    );
+  }
+}
+
+class ReceiptCaptureReadinessDecision {
+  const ReceiptCaptureReadinessDecision({
+    required this.code,
+    required this.label,
+    required this.manualCaptureAllowed,
+    required this.autoCaptureAllowed,
+    required this.autoCaptureEnabled,
+    required this.stableFrameCount,
+    required this.requiredStableFrames,
+  });
+
+  factory ReceiptCaptureReadinessDecision.fromQuality(
+    ReceiptPhotoQualityCheck quality, {
+    required bool autoCaptureEnabled,
+    int stableFrameCount = 0,
+    int requiredStableFrames = 3,
+  }) {
+    final safeRequiredFrames = requiredStableFrames < 1
+        ? 1
+        : requiredStableFrames;
+    final safeStableFrames = stableFrameCount < 0 ? 0 : stableFrameCount;
+
+    if (quality.isUnreadableImage) {
+      return ReceiptCaptureReadinessDecision(
+        code: 'manual_only_unreadable_image',
+        label: 'Take a new photo when the receipt is visible.',
+        manualCaptureAllowed: true,
+        autoCaptureAllowed: false,
+        autoCaptureEnabled: autoCaptureEnabled,
+        stableFrameCount: safeStableFrames,
+        requiredStableFrames: safeRequiredFrames,
+      );
+    }
+    if (!autoCaptureEnabled) {
+      return ReceiptCaptureReadinessDecision(
+        code: 'manual_ready_auto_capture_off',
+        label: 'Manual capture is ready. Auto capture is off.',
+        manualCaptureAllowed: true,
+        autoCaptureAllowed: false,
+        autoCaptureEnabled: false,
+        stableFrameCount: safeStableFrames,
+        requiredStableFrames: safeRequiredFrames,
+      );
+    }
+    if (quality.hasCriticalIssue) {
+      return ReceiptCaptureReadinessDecision(
+        code: 'manual_only_quality_retake_recommended',
+        label: quality.reviewGuidance,
+        manualCaptureAllowed: true,
+        autoCaptureAllowed: false,
+        autoCaptureEnabled: true,
+        stableFrameCount: safeStableFrames,
+        requiredStableFrames: safeRequiredFrames,
+      );
+    }
+    if (quality.isPoorlyFramed || quality.isMissingTextBands) {
+      return ReceiptCaptureReadinessDecision(
+        code: 'manual_only_check_framing',
+        label: 'Check that every receipt line is visible before auto capture.',
+        manualCaptureAllowed: true,
+        autoCaptureAllowed: false,
+        autoCaptureEnabled: true,
+        stableFrameCount: safeStableFrames,
+        requiredStableFrames: safeRequiredFrames,
+      );
+    }
+    if (safeStableFrames < safeRequiredFrames) {
+      return ReceiptCaptureReadinessDecision(
+        code: 'auto_capture_waiting_for_stability',
+        label: 'Hold steady for automatic capture.',
+        manualCaptureAllowed: true,
+        autoCaptureAllowed: false,
+        autoCaptureEnabled: true,
+        stableFrameCount: safeStableFrames,
+        requiredStableFrames: safeRequiredFrames,
+      );
+    }
+    return ReceiptCaptureReadinessDecision(
+      code: 'auto_capture_ready',
+      label: 'Receipt looks steady. Taking photo.',
+      manualCaptureAllowed: true,
+      autoCaptureAllowed: true,
+      autoCaptureEnabled: true,
+      stableFrameCount: safeStableFrames,
+      requiredStableFrames: safeRequiredFrames,
+    );
+  }
+
+  final String code;
+  final String label;
+  final bool manualCaptureAllowed;
+  final bool autoCaptureAllowed;
+  final bool autoCaptureEnabled;
+  final int stableFrameCount;
+  final int requiredStableFrames;
+
+  Map<String, Object?> get diagnostics => {
+    'captureReadinessCode': code,
+    'captureReadinessLabel': label,
+    'manualCaptureAllowed': manualCaptureAllowed,
+    'autoCaptureAllowed': autoCaptureAllowed,
+    'autoCaptureEnabled': autoCaptureEnabled,
+    'stableFrameCount': stableFrameCount,
+    'requiredStableFrames': requiredStableFrames,
+  };
 }
 
 enum ReceiptNativeSavedPhotoWarningSeverity { notice, warning, critical }

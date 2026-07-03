@@ -123,6 +123,89 @@ void main() {
     expect(closerReview.nextReviewActionLabel, contains('closer photo'));
   });
 
+  test(
+    'capture readiness keeps manual capture available while gating auto',
+    () {
+      const ready = ReceiptPhotoQualityCheck(
+        width: 1800,
+        height: 2600,
+        focusScore: 15,
+        brightness: 148,
+        contrast: 36,
+        cropScore: .70,
+        textBandScore: 12,
+        isLikelyReadable: true,
+      );
+
+      final autoOff = ready.captureReadiness(autoCaptureEnabled: false);
+      final waiting = ready.captureReadiness(
+        autoCaptureEnabled: true,
+        stableFrameCount: 2,
+        requiredStableFrames: 3,
+      );
+      final readyForAuto = ready.captureReadiness(
+        autoCaptureEnabled: true,
+        stableFrameCount: 3,
+        requiredStableFrames: 3,
+      );
+
+      expect(autoOff.code, 'manual_ready_auto_capture_off');
+      expect(autoOff.manualCaptureAllowed, isTrue);
+      expect(autoOff.autoCaptureAllowed, isFalse);
+      expect(waiting.code, 'auto_capture_waiting_for_stability');
+      expect(waiting.manualCaptureAllowed, isTrue);
+      expect(waiting.autoCaptureAllowed, isFalse);
+      expect(readyForAuto.code, 'auto_capture_ready');
+      expect(readyForAuto.manualCaptureAllowed, isTrue);
+      expect(readyForAuto.autoCaptureAllowed, isTrue);
+      expect(
+        readyForAuto.diagnostics,
+        containsPair('captureReadinessCode', 'auto_capture_ready'),
+      );
+    },
+  );
+
+  test('capture readiness blocks auto capture for risky photos only', () {
+    const glare = ReceiptPhotoQualityCheck(
+      width: 1600,
+      height: 2200,
+      focusScore: 14,
+      brightness: 250,
+      contrast: 30,
+      cropScore: .7,
+      textBandScore: 10,
+      isLikelyReadable: false,
+    );
+    const cutOff = ReceiptPhotoQualityCheck(
+      width: 1600,
+      height: 2200,
+      focusScore: 14,
+      brightness: 135,
+      contrast: 34,
+      cropScore: .22,
+      textBandScore: 12,
+      isLikelyReadable: false,
+    );
+
+    final glareDecision = glare.captureReadiness(
+      autoCaptureEnabled: true,
+      stableFrameCount: 4,
+      requiredStableFrames: 3,
+    );
+    final cutOffDecision = cutOff.captureReadiness(
+      autoCaptureEnabled: true,
+      stableFrameCount: 4,
+      requiredStableFrames: 3,
+    );
+
+    expect(glareDecision.code, 'manual_only_quality_retake_recommended');
+    expect(glareDecision.manualCaptureAllowed, isTrue);
+    expect(glareDecision.autoCaptureAllowed, isFalse);
+    expect(cutOffDecision.code, 'manual_only_check_framing');
+    expect(cutOffDecision.manualCaptureAllowed, isTrue);
+    expect(cutOffDecision.autoCaptureAllowed, isFalse);
+  });
+
   test('bright readable receipt paper is not treated as glare failure', () {
     const brightReadable = ReceiptPhotoQualityCheck(
       width: 1800,
