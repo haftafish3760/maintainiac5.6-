@@ -24,6 +24,29 @@ Verification:
   rejects duplicate current section paths"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
 
+## Pass 526 - 01:50:00 EDT to 01:55:00 EDT
+
+Scope:
+- Hardened OCR parser handoff line-id lookup maps so duplicate stable line IDs
+  preserve the first receipt line instead of silently overwriting it with a
+  later line.
+- Added regression coverage proving line number, proof label, draft, amount,
+  and text maps stay pinned to the first duplicate line ID.
+- Recorded `BUG-RECEIPT-0044` under `receipt_line_numbering`.
+- Archived Pass 501 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Fixed an initial regression expectation to match the existing section-1
+  `source line` label contract, then reran the focused chain.
+- Passed targeted Dart format and analyzer for parser handoff line maps and
+  parser handoff structure regression coverage.
+- Passed focused Flutter test
+  `test/receipt_ocr_service_parser_handoff_structure_test.dart --plain-name
+  "parser handoff line id maps preserve first duplicate line id"`.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 525 - 01:46:00 EDT to 01:49:00 EDT
 
 Scope:
@@ -458,42 +481,3 @@ Verification:
   rejects non-finite previous section ghost guide fractions"`.
 - Passed cleanup log gate, doc size gate, receipt source audit, and
   `git diff --check`.
-
-## Pass 502 - 00:47:37 EDT to 00:48:43 EDT
-
-Scope:
-- Hardened native review-depth diagnostics so malformed non-empty bridge values
-  are counted in privacy-safe metadata instead of disappearing into the default
-  price-only fallback.
-- Added regression coverage proving invalid review-depth values keep the safe
-  fallback but expose an `invalid_*` audit bucket.
-- Recorded `BUG-RECEIPT-0021` under `native_bridge`.
-- Archived Pass 489 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for native review-depth signals and
-  focused frozen-result regression coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_result_frozen_brain_install_test.dart --plain-name
-  "malformed native review depth is visible in safe metadata"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 501 - 00:45:52 EDT to 00:47:00 EDT
-
-Scope:
-- Hardened privacy-safe receipt line metadata so generated line IDs cannot leak
-  item description text through review or client-proof contracts.
-- Added regression coverage proving privacy-safe line review/proof metadata uses
-  redaction anchors while source-of-truth line IDs remain intact.
-- Recorded `BUG-RECEIPT-0020` under `privacy_redaction`.
-- Archived Pass 488 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for receipt line records and focused
-  privacy regression coverage.
-- Passed focused Flutter test
-  `test/expense_receipt_line_record_test.dart --plain-name "privacy-safe receipt
-  line contracts never expose generated item ids"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.

@@ -197,35 +197,49 @@ extension ReceiptOcrParserHandoffLineMaps on ReceiptOcrParserHandoff {
   }
 
   Map<String, int> get lineNumberByLineId {
-    return Map<String, int>.unmodifiable({
-      for (final draft in lineDrafts) draft.stableLineId: draft.lineNumber,
-    });
+    final mapped = <String, int>{};
+    for (final draft in lineDrafts) {
+      mapped.putIfAbsent(draft.stableLineId, () => draft.lineNumber);
+    }
+    return Map<String, int>.unmodifiable(mapped);
   }
 
   Map<String, String> get proofLineReferenceLabelByLineId {
-    return Map<String, String>.unmodifiable({
-      for (final draft in lineDrafts)
-        draft.stableLineId: draft.proofLineReferenceLabel,
-    });
+    final mapped = <String, String>{};
+    for (final draft in lineDrafts) {
+      mapped.putIfAbsent(
+        draft.stableLineId,
+        () => draft.proofLineReferenceLabel,
+      );
+    }
+    return Map<String, String>.unmodifiable(mapped);
   }
 
   Map<String, ReceiptOcrParserLineDraft> get lineDraftsById {
-    return Map<String, ReceiptOcrParserLineDraft>.unmodifiable({
-      for (final draft in lineDrafts) draft.stableLineId: draft,
-    });
+    final mapped = <String, ReceiptOcrParserLineDraft>{};
+    for (final draft in lineDrafts) {
+      mapped.putIfAbsent(draft.stableLineId, () => draft);
+    }
+    return Map<String, ReceiptOcrParserLineDraft>.unmodifiable(mapped);
   }
 
   Map<String, double> get itemAmountsByLineId {
-    return Map<String, double>.unmodifiable({
-      for (final draft in itemLineDrafts)
-        if (draft.amount != null) draft.stableLineId: draft.amount!,
-    });
+    final mapped = <String, double>{};
+    for (final draft in itemLineDrafts) {
+      final amount = draft.amount;
+      if (amount != null) {
+        mapped.putIfAbsent(draft.stableLineId, () => amount);
+      }
+    }
+    return Map<String, double>.unmodifiable(mapped);
   }
 
   Map<String, String> get itemTextByLineId {
-    return Map<String, String>.unmodifiable({
-      for (final draft in itemLineDrafts) draft.stableLineId: draft.text,
-    });
+    final mapped = <String, String>{};
+    for (final draft in itemLineDrafts) {
+      mapped.putIfAbsent(draft.stableLineId, () => draft.text);
+    }
+    return Map<String, String>.unmodifiable(mapped);
   }
 
   List<Map<String, Object?>> get localReviewLineMaps {

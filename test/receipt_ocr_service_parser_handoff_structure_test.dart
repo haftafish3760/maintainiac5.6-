@@ -43,6 +43,56 @@ void main() {
     expect(noSourceDraft.sourceFirstLineLabel, 'Line 4');
   });
 
+  test('parser handoff line id maps preserve first duplicate line id', () {
+    const firstLocation = ReceiptOcrParserLineLocation(
+      sectionNumber: 1,
+      sectionLineNumber: 3,
+    );
+    const secondLocation = ReceiptOcrParserLineLocation(
+      sectionNumber: 2,
+      sectionLineNumber: 1,
+    );
+    const first = ReceiptOcrParserLineSignal(
+      index: 2,
+      text: 'FIRST ITEM 2.99',
+      kind: ReceiptOcrParserLineKind.itemCandidate,
+      amountCandidates: [2.99],
+      confidence: .9,
+      traits: ['safe_terminal_line_amount'],
+      sourceLocation: firstLocation,
+    );
+    const second = ReceiptOcrParserLineSignal(
+      index: 2,
+      text: 'SECOND ITEM 9.99',
+      kind: ReceiptOcrParserLineKind.itemCandidate,
+      amountCandidates: [9.99],
+      confidence: .9,
+      traits: ['safe_terminal_line_amount'],
+      sourceLocation: secondLocation,
+    );
+    const handoff = ReceiptOcrParserHandoff(
+      lines: [first, second],
+      vendorLines: [],
+      dateLines: [],
+      itemLines: [first, second],
+      summaryLines: [],
+      tenderLines: [],
+      metadataLines: [],
+    );
+    final lineId = first.stableLineId;
+
+    expect(second.stableLineId, lineId);
+    expect(handoff.stableLineIds, [lineId, lineId]);
+    expect(handoff.lineNumberByLineId[lineId], 3);
+    expect(
+      handoff.proofLineReferenceLabelByLineId[lineId],
+      'Line 3, source line 3',
+    );
+    expect(handoff.lineDraftsById[lineId]?.text, 'FIRST ITEM 2.99');
+    expect(handoff.itemAmountsByLineId[lineId], 2.99);
+    expect(handoff.itemTextByLineId[lineId], 'FIRST ITEM 2.99');
+  });
+
   test('ocr parser handoff exposes ready item and summary structure', () {
     final result = parserReadyLowesReceiptResult();
 
