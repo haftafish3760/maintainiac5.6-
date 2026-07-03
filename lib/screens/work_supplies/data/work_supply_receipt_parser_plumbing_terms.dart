@@ -1,5 +1,44 @@
 part of 'work_supply_receipt_parser.dart';
 
+WorkSupplyItem? _directPlumbingFastMatch(String text) {
+  return _directPlumbingRepairKitMatch(text) ??
+      _directPlumbingHandToolMatch(text);
+}
+
+WorkSupplyItem? _directPlumbingRepairKitMatch(String text) {
+  if (RegExp(
+    r'\b(toilet repair kit|kit reparacion sanitario|'
+    r'kit reparacion inodoro)\b',
+  ).hasMatch(text)) {
+    return _firstPlumbingItemNamed('toilet', ['fill valve']);
+  }
+  if (RegExp(
+    r'\b(sink repair kit|lavatory repair kit|basin repair kit|'
+    r'kit reparacion lavabo|kit reparacion fregadero)\b',
+  ).hasMatch(text)) {
+    return _firstPlumbingItemNamed('sink repair kit');
+  }
+  if (RegExp(
+    r'\b(faucet repair kit|o-ring and seat kit|o ring and seat kit|'
+    r'kit reparacion llave|kit reparacion grifo)\b',
+  ).hasMatch(text)) {
+    return _firstPlumbingItemNamed('faucet o-ring and seat kit');
+  }
+  return null;
+}
+
+WorkSupplyItem? _firstPlumbingItemNamed(
+  String requiredName, [
+  List<String> additionalNameTokens = const [],
+]) {
+  for (final item in workSupplyCatalogItems) {
+    final name = item.name.toLowerCase();
+    if (item.trade != 'Plumbing' || !name.contains(requiredName)) continue;
+    if (additionalNameTokens.every(name.contains)) return item;
+  }
+  return null;
+}
+
 const plumbingReceiptTermAliases = {
   '90 elbow': ['90', '90d', 'el', 'ell', 'elbow'],
   '45 elbow': ['45', '45d', 'forty five', 'forty-five'],

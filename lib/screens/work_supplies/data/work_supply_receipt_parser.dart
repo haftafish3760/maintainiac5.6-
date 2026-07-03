@@ -1213,8 +1213,8 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       tradeScope.trim().toLowerCase() != 'plumbing') {
     return null;
   }
-  final plumbingTool = _directPlumbingHandToolMatch(text);
-  if (plumbingTool != null) return plumbingTool;
+  final plumbingDirect = _directPlumbingFastMatch(text);
+  if (plumbingDirect != null) return plumbingDirect;
   if (RegExp(r'\b(trampa p|p trap|p-trap)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
