@@ -115,6 +115,47 @@ void main() {
     );
   });
 
+  test('photo review result carries capture readiness counts', () {
+    const quality = ReceiptPhotoQualityCheck(
+      width: 1800,
+      height: 2600,
+      focusScore: 15,
+      brightness: 148,
+      contrast: 36,
+      cropScore: .70,
+      textBandScore: 12,
+      isLikelyReadable: true,
+    );
+    final readiness = quality.captureReadiness(
+      autoCaptureEnabled: true,
+      stableFrameCount: 3,
+      requiredStableFrames: 3,
+    );
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/auto-ready.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/auto-ready-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/auto-ready-ocr.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: {
+        '/tmp/auto-ready.jpg': readiness.diagnostics,
+      },
+    );
+
+    expect(
+      result.nativeCameraUiHealthCounts['capture_readiness_auto_capture_ready'],
+      1,
+    );
+    expect(result.nativeCameraUiHealthCounts['manual_capture_allowed'], 1);
+    expect(result.nativeCameraUiHealthCounts['auto_capture_allowed'], 1);
+    expect(
+      result
+          .receiptReaderHandoffCounts['native_camera_ui_capture_readiness_auto_capture_ready'],
+      1,
+    );
+  });
+
   test('photo review result summarizes native exposure control outcomes', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/dim-assisted.jpg', '/tmp/manual-bright.jpg'],

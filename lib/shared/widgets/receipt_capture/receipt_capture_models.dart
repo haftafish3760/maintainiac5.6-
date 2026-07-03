@@ -99,6 +99,13 @@ final class ReceiptCaptureDiagnosticKeys {
       'receiptCompletionPromptReasonCode';
   static const receiptCompletionPromptNeedsMorePhotos =
       'receiptCompletionPromptNeedsMorePhotos';
+  static const captureReadinessCode = 'captureReadinessCode';
+  static const captureReadinessLabel = 'captureReadinessLabel';
+  static const manualCaptureAllowed = 'manualCaptureAllowed';
+  static const autoCaptureAllowed = 'autoCaptureAllowed';
+  static const autoCaptureEnabled = 'autoCaptureEnabled';
+  static const stableFrameCount = 'stableFrameCount';
+  static const requiredStableFrames = 'requiredStableFrames';
 }
 
 final class ReceiptNativeCoverageSignalValues {

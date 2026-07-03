@@ -82,6 +82,23 @@ List<String> _nativeCapturePreviewParityHealthCodes(
   Map<String, Object?> diagnostics,
 ) {
   final codes = <String>[];
+  final readiness = _diagnosticToken(
+    diagnostics[ReceiptCaptureDiagnosticKeys.captureReadinessCode]
+            ?.toString() ??
+        '',
+  );
+  if (readiness != 'unknown') {
+    codes.add('capture_readiness_$readiness');
+  }
+  if (diagnostics[ReceiptCaptureDiagnosticKeys.manualCaptureAllowed] == true) {
+    codes.add('manual_capture_allowed');
+  }
+  if (diagnostics[ReceiptCaptureDiagnosticKeys.autoCaptureAllowed] == true) {
+    codes.add('auto_capture_allowed');
+  } else if (diagnostics[ReceiptCaptureDiagnosticKeys.autoCaptureEnabled] ==
+      true) {
+    codes.add('auto_capture_held_back');
+  }
   final signal =
       diagnostics[ReceiptCaptureDiagnosticKeys
               .latestCapturedPreviewParitySignal]

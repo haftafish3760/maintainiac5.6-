@@ -377,13 +377,13 @@ class ReceiptCaptureReadinessDecision {
   final int requiredStableFrames;
 
   Map<String, Object?> get diagnostics => {
-    'captureReadinessCode': code,
-    'captureReadinessLabel': label,
-    'manualCaptureAllowed': manualCaptureAllowed,
-    'autoCaptureAllowed': autoCaptureAllowed,
-    'autoCaptureEnabled': autoCaptureEnabled,
-    'stableFrameCount': stableFrameCount,
-    'requiredStableFrames': requiredStableFrames,
+    ReceiptCaptureDiagnosticKeys.captureReadinessCode: code,
+    ReceiptCaptureDiagnosticKeys.captureReadinessLabel: label,
+    ReceiptCaptureDiagnosticKeys.manualCaptureAllowed: manualCaptureAllowed,
+    ReceiptCaptureDiagnosticKeys.autoCaptureAllowed: autoCaptureAllowed,
+    ReceiptCaptureDiagnosticKeys.autoCaptureEnabled: autoCaptureEnabled,
+    ReceiptCaptureDiagnosticKeys.stableFrameCount: stableFrameCount,
+    ReceiptCaptureDiagnosticKeys.requiredStableFrames: requiredStableFrames,
   };
 }
 

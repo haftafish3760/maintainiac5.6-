@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 476 - 21:28:00 EDT to 21:35:50 EDT
+
+Scope:
+- Stayed on the camera-lane clear-photo readiness slice.
+- Added stable diagnostic keys for capture readiness so native Android/iOS
+  camera code can report the same manual/auto-capture decision fields.
+- Wired capture-readiness diagnostics into native camera UI health counts and
+  receipt-reader handoff counts.
+- Added a regression proving an auto-capture-ready photo records manual capture
+  availability, auto-capture availability, and the readiness code without
+  storing receipt content.
+
+Verification:
+- Passed targeted format and analyzer for the capture model, quality model,
+  native health-code helper, and focused camera quality tests.
+- Passed focused Flutter tests for quality guidance, quality result handoff, and
+  native saved-photo quality.
+- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
+  `--max-line-length=220`, and targeted `git diff --check`.
+
 ## Pass 475 - 21:12:00 EDT to 21:15:25 EDT
 
 Scope:
@@ -465,26 +485,6 @@ Verification:
 - Passed targeted Dart format and analyzer for the schema gate, manifest, and
   runner contract.
 - Passed `bash -n tool/receipt_fast_guard_gate.sh`.
-- Passed `dart run tool/receipt_external_fixture_schema_gate.dart`.
-- Passed `bash tool/receipt_cleanup_log_gate.sh` and targeted
-  `git diff --check`.
-- No Flutter or long-running receipt QA commands were run during this pass.
-
-## Pass 456 - 16:23:30 EDT to 16:24:36 EDT
-
-Scope:
-- Stayed on the external fixture QA lane without launching Flutter or the full
-  receipt QA runner.
-- Added `tool/receipt_external_fixture_schema_gate.dart`, a short pure Dart
-  gate that validates the external receipt QA fixture schema and manifest plan.
-- Wired the schema gate into `tool/receipt_fast_guard_gate.sh` analyzer coverage
-  and quick command execution.
-- Updated the world-class QA standard so the schema gate is discoverable.
-
-Verification:
-- Passed `dart format tool/receipt_external_fixture_schema_gate.dart`.
-- Passed `bash -n tool/receipt_fast_guard_gate.sh`.
-- Passed `dart analyze tool/receipt_external_fixture_schema_gate.dart`.
 - Passed `dart run tool/receipt_external_fixture_schema_gate.dart`.
 - Passed `bash tool/receipt_cleanup_log_gate.sh` and targeted
   `git diff --check`.
