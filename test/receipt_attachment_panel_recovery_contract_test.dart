@@ -6,6 +6,7 @@ void main() {
   test('receipt attachment panel has plain recovery states', () {
     final panelSource =
         _readReceiptSource('receipt_attachment_panel.dart') +
+        _readReceiptSource('receipt_attachment_initial_state.dart') +
         _readReceiptSource('receipt_attachment_panel_build.dart') +
         _readReceiptSource('receipt_attachment_publish_helpers.dart') +
         _readReceiptSource('receipt_attachment_publish_signals.dart') +
@@ -31,6 +32,11 @@ void main() {
         _readReceiptSource('receipt_attachment_ocr_recovery_advice.dart');
 
     expect(panelSource, contains('_ReceiptReadStatusKind.failed'));
+    expect(panelSource, contains('_normalizedInitialPhotoAttachments'));
+    expect(panelSource, contains('final photoAttachments ='));
+    expect(panelSource, contains('final path = attachment.path.trim();'));
+    expect(panelSource, contains('path.isEmpty || !seenPaths.add(path)'));
+    expect(panelSource, contains('attachment.copyWith(path: path)'));
     expect(panelSource, contains('_ReceiptReadStatusKind.warning'));
     expect(panelSource, contains('Receipt Could Not Be Read'));
     expect(

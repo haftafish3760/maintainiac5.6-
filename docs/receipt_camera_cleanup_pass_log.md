@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 551 - 05:50:40 EDT to 05:53:10 EDT
+
+Scope:
+- Hardened persisted receipt attachment restore so whitespace-padded or
+  duplicate photo attachment paths cannot enter `_photoPaths`, photo IDs,
+  quality state, or read-state maps.
+- Added recovery contract coverage requiring the attachment panel to normalize
+  initial photo attachments before rebuilding camera source state.
+- Recorded `BUG-RECEIPT-0067` under `source_preservation`.
+- Archived Pass 534 out of the live cleanup log.
+
+Verification:
+- Passed targeted Dart format and analyzer for attachment initial state and
+  recovery contract coverage.
+- Passed focused Flutter test
+  `test/receipt_attachment_panel_recovery_contract_test.dart --plain-name
+  "receipt attachment panel has plain recovery states"`.
+
 ## Pass 544 - 05:07:44 EDT to 05:11:43 EDT
 
 Scope:
@@ -195,24 +213,6 @@ Verification:
   `test/receipt_attachment_panel_recovery_contract_test.dart`.
 - Passed targeted format/analyzer, bug-ledger, log, doc-size, audit, and diff
   gates.
-
-## Pass 534 - 02:50:38 EDT to 02:54:00 EDT
-
-Scope:
-- Hardened attachment-panel photo risk flags so native bottom-missing statuses
-  recommend adding more receipt photos, not just mark partial risk.
-- Extended attachment read contract coverage for the normalized status branch.
-- Recorded `BUG-RECEIPT-0052` under `camera_capture_quality`.
-- Archived Pass 509 to keep the active log under the line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for attachment panel publish signals
-  and attachment read contract coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_ocr_source_attachment_read_test.dart --plain-name
-  "reviewed OCR source attachments preserve read state and cleanup safety"`.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
 
 ## Pass 535 - 02:56:05 EDT to 03:01:00 EDT
 
