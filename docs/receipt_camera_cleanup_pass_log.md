@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 567 - 08:06:05 EDT to 08:12:36 EDT
+
+Scope:
+- Hardened native recovery Hive index restore so padded session IDs, manifest
+  paths, engine names, and data-saver names do not leak into recovery identity.
+- De-duplicated normalized staged photo paths at the index restore boundary so
+  interrupted native captures keep stable ordered section counts.
+- Added focused regression coverage for recovered index identity and path
+  normalization.
+- Recorded `BUG-RECEIPT-0083` under `multi_photo_ordering`.
+- Archived Pass 521 out of the live cleanup log.
+
+Verification:
+- Passed targeted Dart format/analyzer for native recovery index restore and
+  focused recovery-index regression coverage.
+- Passed focused Flutter regression
+  `test/receipt_native_capture_recovery_index_test.dart --plain-name "recovery
+  index restore normalizes stored identity and paths"`.
+
 ## Pass 566 - 08:04:10 EDT to 08:05:55 EDT
 
 Scope:
@@ -463,27 +482,5 @@ Verification:
 - Passed targeted Dart format and analyzer for receipt capture models and
   camera-result regression coverage.
 - Passed focused Flutter test `test/receipt_camera_result_test.dart`.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
-
-## Pass 521 - 01:26:00 EDT to 01:30:00 EDT
-
-Scope:
-- Tightened camera-result path validation so blank or untrimmed paths cannot
-  produce per-photo quality diagnostics.
-- Tightened reviewed-photo quality handoff path validation with the same
-  normalized nonblank requirement.
-- Added camera-result and lifecycle source regressions for malformed diagnostic
-  paths.
-- Recorded `BUG-RECEIPT-0039` under `source_preservation`.
-- Archived Pass 496 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for camera result diagnostics,
-  reviewed-photo handoff models, camera-result regression coverage, and
-  lifecycle source regression coverage.
-- Passed focused Flutter tests `test/receipt_camera_result_best_shot_ocr_test.dart`
-  and `test/receipt_photo_review_save_lifecycle_test.dart`.
 - Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
   diff check.

@@ -267,6 +267,38 @@ void main() {
     expect(record.privacySafeRecoveryEvidenceLabel, contains('hiveIndexSaved'));
   });
 
+  test('recovery index restore normalizes stored identity and paths', () {
+    final entry = ReceiptNativeCaptureRecoveryIndexEntry.fromMap({
+      'schema': ReceiptNativeCaptureRecoveryStore.entrySchema,
+      'sessionId': ' native-session ',
+      'manifestPath': ' /tmp/native-manifest.json ',
+      'engineName': ' cameraX ',
+      'capturedAt': '2026-07-03T10:20:00.000Z',
+      'dataSaverLevelName': ' balanced ',
+      'photoCount': 3,
+      'stagedPhotoPaths': const [
+        ' /tmp/section-one.jpg ',
+        '/tmp/section-one.jpg',
+        ' /tmp/section-two.jpg ',
+      ],
+      'attachments': const [],
+    });
+
+    expect(entry.sessionId, 'native-session');
+    expect(entry.manifestPath, '/tmp/native-manifest.json');
+    expect(entry.engineName, 'cameraX');
+    expect(entry.dataSaverLevelName, 'balanced');
+    expect(entry.stagedPhotoPaths, [
+      '/tmp/section-one.jpg',
+      '/tmp/section-two.jpg',
+    ]);
+    expect(entry.toMap()['manifestPath'], '/tmp/native-manifest.json');
+    expect(entry.toMap()['stagedPhotoPaths'], [
+      '/tmp/section-one.jpg',
+      '/tmp/section-two.jpg',
+    ]);
+  });
+
   test(
     'native recovery restores padded engine names from saved state',
     () async {

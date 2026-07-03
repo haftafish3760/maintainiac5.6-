@@ -23,18 +23,19 @@ class ReceiptNativeCaptureRecoveryIndexEntry {
     Map<dynamic, dynamic> map,
   ) {
     return ReceiptNativeCaptureRecoveryIndexEntry(
-      sessionId: map['sessionId'] as String? ?? '',
-      manifestPath: map['manifestPath'] as String? ?? '',
-      engineName: map['engineName'] as String? ?? '',
+      sessionId: (map['sessionId'] as String? ?? '').trim(),
+      manifestPath: (map['manifestPath'] as String? ?? '').trim(),
+      engineName: (map['engineName'] as String? ?? '').trim(),
       capturedAt:
           DateTime.tryParse(map['capturedAt'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
-      dataSaverLevelName: map['dataSaverLevelName'] as String? ?? '',
+      dataSaverLevelName: (map['dataSaverLevelName'] as String? ?? '').trim(),
       photoCount: map['photoCount'] is int ? map['photoCount'] as int : 0,
       stagedPhotoPaths:
           (map['stagedPhotoPaths'] as List?)
               ?.map((item) => item.toString().trim())
               .where((item) => item.isNotEmpty)
+              .toSet()
               .toList(growable: false) ??
           const [],
       attachments:
