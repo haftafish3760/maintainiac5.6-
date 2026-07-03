@@ -24,6 +24,28 @@ Verification:
   rejects duplicate current section paths"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
 
+## Pass 521 - 01:26:00 EDT to 01:30:00 EDT
+
+Scope:
+- Tightened camera-result path validation so blank or untrimmed paths cannot
+  produce per-photo quality diagnostics.
+- Tightened reviewed-photo quality handoff path validation with the same
+  normalized nonblank requirement.
+- Added camera-result and lifecycle source regressions for malformed diagnostic
+  paths.
+- Recorded `BUG-RECEIPT-0039` under `source_preservation`.
+- Archived Pass 496 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for camera result diagnostics,
+  reviewed-photo handoff models, camera-result regression coverage, and
+  lifecycle source regression coverage.
+- Passed focused Flutter tests `test/receipt_camera_result_best_shot_ocr_test.dart`
+  and `test/receipt_photo_review_save_lifecycle_test.dart`.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 520 - 01:25:00 EDT to 01:25:37 EDT
 
 Scope:
@@ -458,42 +480,4 @@ Verification:
 - Passed focused Flutter test
   `test/receipt_photo_review_retake_order_test.dart --plain-name "retake plan
   rejects unnormalized replacement paths"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 497 - 01:19:00 EDT to 01:24:00 EDT
-
-Scope:
-- Hardened OCR source handoff review so saved-photo glare/washed-out warnings
-  get a specific source-quality status and action instead of generic scanner
-  preparation review.
-- Added regression coverage proving glare risk flags map to
-  `saved_glare_review` and `reduce_glare_or_retake`.
-- Recorded `BUG-RECEIPT-0016` under `ocr_handoff_contract`.
-- Archived Pass 482 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for OCR source handoff review and
-  focused OCR service handoff regression coverage.
-- Passed focused Flutter test
-  `test/receipt_ocr_service_test.dart --plain-name "source handoff reports glare
-  saved-photo review"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 496 - 01:12:00 EDT to 01:17:00 EDT
-
-Scope:
-- Hardened native saved-photo quality diagnostics so non-finite values from the
-  camera bridge cannot suppress bottom-of-receipt warnings.
-- Added regression coverage proving bogus bottom luma evidence still surfaces
-  `saved_photo_bottom_too_dark` and the OCR bottom-total risk code.
-- Recorded `BUG-RECEIPT-0015` under `camera_capture_quality`.
-- Archived Pass 483 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for native saved-photo warnings and
-  focused warning diagnostics regression coverage.
-- Passed focused Flutter test
-  `test/receipt_camera_saved_photo_warning_diagnostics_test.dart`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.

@@ -89,6 +89,8 @@ class ReceiptCameraResult {
 bool _receiptCameraPathsAreUnique(List<String> paths) {
   final seen = <String>{};
   for (final path in paths) {
+    final trimmed = path.trim();
+    if (trimmed.isEmpty || trimmed != path) return false;
     if (!seen.add(path)) return false;
   }
   return true;

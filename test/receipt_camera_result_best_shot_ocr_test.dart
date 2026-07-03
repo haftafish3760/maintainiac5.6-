@@ -231,6 +231,62 @@ void main() {
     );
   });
 
+  test('camera result rejects blank or unnormalized diagnostic paths', () {
+    const quality = ReceiptPhotoQualityCheck(
+      width: 1400,
+      height: 2200,
+      focusScore: 14,
+      brightness: 142,
+      isLikelyReadable: true,
+    );
+    const evidence = ReceiptCameraCaptureEvidence(
+      captureSurface: 'maintainiac_native_android',
+      captureFlow: 'assisted',
+      resolutionTier: 'high',
+      resolutionPreset: 'veryHigh',
+      flashMode: 'off',
+      exposureMode: 'auto',
+      focusMode: 'continuous',
+      exposurePointSupported: true,
+      focusPointSupported: true,
+      exposureOffset: 0,
+      minExposureOffset: -2,
+      maxExposureOffset: 2,
+      zoomLevel: 1.4,
+      minZoomLevel: 1,
+      maxZoomLevel: 10,
+      previewWidth: 1920,
+      previewHeight: 1080,
+      liveBrightness: 140,
+      liveContrast: 22,
+      liveFocusScore: 10,
+      liveReadiness: 'ready',
+      imageStreamActiveAtCapture: true,
+    );
+    const unnormalizedResult = ReceiptCameraResult.single(
+      [' /tmp/section-a.jpg ', '/tmp/section-b.jpg'],
+      qualityChecks: [quality, quality],
+      captureEvidence: evidence,
+    );
+    const cleanResult = ReceiptCameraResult.single(
+      ['/tmp/section-a.jpg', '/tmp/section-b.jpg'],
+      qualityChecks: [quality, quality],
+      captureEvidence: evidence,
+    );
+
+    expect(
+      unnormalizedResult.captureDiagnosticsByPhotoPath(const [
+        ' /tmp/section-a.jpg ',
+      ]),
+      isEmpty,
+    );
+    expect(cleanResult.captureDiagnosticsByPhotoPath(const ['']), isEmpty);
+    expect(
+      cleanResult.captureDiagnosticsByPhotoPath(const ['/tmp/section-a.jpg ']),
+      isEmpty,
+    );
+  });
+
   test('photo quality gives clear dark and glare retake guidance', () {
     const dark = ReceiptPhotoQualityCheck(
       width: 1400,

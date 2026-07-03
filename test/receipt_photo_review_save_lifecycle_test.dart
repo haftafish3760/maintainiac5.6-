@@ -156,6 +156,8 @@ void main() {
       saveActions,
       contains('_pickedReceiptPhotoPathsAreUnique(result.photoPaths)'),
     );
+    expect(saveActions, contains('final trimmed = path.trim();'));
+    expect(saveActions, contains('trimmed.isEmpty || trimmed != path'));
     expect(saveActions, contains('qualityChecksByPath: const {},'));
     expect(
       saveActions,
