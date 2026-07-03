@@ -22,6 +22,12 @@ class WorkSupplyParserAccumulatedCoverageSuite extends QaSuite {
     'hvac.residential.standard.es-US',
   };
 
+  static const _allowedNonPriorityCells = {
+    // Category inference needs one drywall tape ambiguity fixture so tape
+    // cannot be forced into HVAC/electrical/plumbing without review.
+    'drywall.residential.standard.en-US',
+  };
+
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
@@ -81,6 +87,23 @@ class WorkSupplyParserAccumulatedCoverageSuite extends QaSuite {
       );
     }
 
+    for (final cell in fixtureCells.keys) {
+      if (_priorityCells.contains(cell) ||
+          _allowedNonPriorityCells.contains(cell)) {
+        continue;
+      }
+      failures.add(
+        _missingCellFailure(
+          id: 'unexpected_fixture_cell:$cell',
+          message:
+              'Fixture corpus contains a non-priority release-one cell without an explicit allowlist reason.',
+          expected:
+              'priority cell or allowed non-priority fixture cell with a documented reason',
+          actual: cell,
+        ),
+      );
+    }
+
     return timer.finish(
       suite: name,
       checked: fixtures.length + _priorityCells.length + blueprintCells.length,
@@ -90,6 +113,7 @@ class WorkSupplyParserAccumulatedCoverageSuite extends QaSuite {
         'fixtureCells': _topCounts(fixtureCells, limit: 24),
         'blueprintCells': _topCounts(blueprintCells, limit: 24),
         'priorityCells': _priorityCells.toList()..sort(),
+        'allowedNonPriorityCells': _allowedNonPriorityCells.toList()..sort(),
         'contract':
             'Every generated residential trade-pack catalog batch needs matching parser fixtures for the same trade/scope/tier/locale cell.',
       },

@@ -2336,6 +2336,7 @@ Release-one catalog gap closed in the plumbing item batch:
 - Added `inventory.merchant_matrix_contract` to the surgical rerun contract so merchant coverage failures must stay targetable by focused rerun instead of forcing a broad harness pass.
 - Hardened `inventory.category_inference_contract` so it reads the golden fixture corpus and proves required ambiguity axes exist for PVC conduit, PVC condensate, foil/electrical/drywall tape, filters, old-work boxes, J-boxes, threaded rod/all-thread, and tapcons.
 - Added seven synthetic review fixtures for category-inference ambiguity coverage without proprietary merchant data: PVC condensate, foil tape, electrical tape, drywall tape, old-work box, J-box, and tapcon.
+- Hardened accumulated fixture coverage with an explicit non-priority fixture-cell allowlist so category-inference fixtures outside Plumbing/Electrical/HVAC Core/Standard must have a documented reason instead of silently expanding release-one scope.
 - Added Spanish well-service parser signals for bomba/tanque/well pressure/tank/switch/adapter/check-valve terminology.
 - Expanded Spanish release-one QA so es-US coverage must include service-family terminology for plumbing pipe fittings, water-distribution materials, toilet repair, sink/faucet repair, electrical devices/breakers, wire/conduit/grounding, HVAC filters/controls, and HVAC condensate/duct work.
 - Expanded Spanish release-one service-tool coverage for Plumbing pipe cutters, PEX crimp tools, basin wrenches, toilet augers, and drain snakes.
@@ -2391,6 +2392,9 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated executable category-inference fixture axes:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.category_inference_contract,inventory.fixture_coverage_matrix,qa.threshold_gate`
   passed 182 checks with 0 failures.
+- Validated accumulated coverage drift guard after adding the drywall tape allowlist:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.accumulated_coverage_contract,inventory.fixture_coverage_matrix,qa.threshold_gate`
+  passed 138 checks with 0 failures.
 - Validated after the expanded Spanish family-term QA gate:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.spanish_release_one,qa.threshold_gate`
   passed 101224 checks with 0 failures.
