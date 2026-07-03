@@ -26,6 +26,9 @@ class MaintainiacQaCase {
   List<String> validate() {
     final failures = <String>[];
     if (id.trim().isEmpty) failures.add('case missing id');
+    if (id.isNotEmpty && !RegExp(r'^QA-[A-Z0-9-]+-\d{3}$').hasMatch(id)) {
+      failures.add('$id must use stable QA-AREA-### id format');
+    }
     if (title.trim().isEmpty) failures.add('$id missing title');
     if (behavior.trim().isEmpty) failures.add('$id missing behavior');
     if (evidenceTarget.trim().isEmpty) {

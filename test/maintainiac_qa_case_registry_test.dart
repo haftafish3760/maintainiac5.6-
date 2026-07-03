@@ -45,6 +45,15 @@ void main() {
         evidenceTarget: 'same',
         priority: MaintainiacQaCasePriority.core,
       ),
+      MaintainiacQaCase(
+        id: 'bad_id',
+        title: 'Bad id',
+        module: MaintainiacQaModule.expenses,
+        behavior: 'Malformed QA case identifiers must fail.',
+        evidenceTarget: 'bad_id',
+        priority: MaintainiacQaCasePriority.core,
+        tags: {'registry'},
+      ),
     ]);
 
     final failures = registry.validate();
@@ -54,5 +63,6 @@ void main() {
     expect(failures, contains('QA-DUP missing title'));
     expect(failures, contains('QA-DUP missing behavior'));
     expect(failures, contains('QA-DUP missing searchable tags'));
+    expect(failures, contains('bad_id must use stable QA-AREA-### id format'));
   });
 }
