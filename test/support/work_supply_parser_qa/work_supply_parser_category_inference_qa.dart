@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import '../qa_harness/qa_harness.dart';
+
+const _goldenFixturePath =
+    'test/fixtures/work_supply_parser/golden_fixtures.json';
 
 class WorkSupplyParserCategoryInferenceSuite extends QaSuite {
   const WorkSupplyParserCategoryInferenceSuite()
@@ -73,11 +77,28 @@ class WorkSupplyParserCategoryInferenceSuite extends QaSuite {
     'tapcon',
   };
 
+  static const _fixtureRiskAxes = {
+    'pvc',
+    'pvc_conduit',
+    'pvc_condensate',
+    'foil_tape',
+    'electrical_tape',
+    'drywall_tape',
+    'filter',
+    'old_work_box',
+    'j_box',
+    'threaded_rod',
+    'all_thread',
+    'tapcon',
+  };
+
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
     final failures = <QaFailure>[];
     final source = _readSources();
+    final fixtures = _loadFixtures();
+    final fixtureRiskCounts = _fixtureRiskCounts(fixtures);
     var checked = 0;
 
     checked += _categoryOutputs.length;
@@ -119,6 +140,9 @@ class WorkSupplyParserCategoryInferenceSuite extends QaSuite {
       triage: QaFailureTriage.conflict,
     );
 
+    checked += _fixtureRiskAxes.length + fixtures.length;
+    _requireFixtureAxes(failures, fixtureRiskCounts);
+
     return timer.finish(
       suite: name,
       checked: checked,
@@ -126,6 +150,7 @@ class WorkSupplyParserCategoryInferenceSuite extends QaSuite {
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'sourceFiles': _sourcePaths.length,
+        'fixtureRiskCounts': fixtureRiskCounts,
         'contract':
             'Category inference ranks possible workflow destinations and categories, but never hides ambiguity or mutates receipt/job/estimate/invoice sources.',
       },
@@ -189,6 +214,27 @@ class WorkSupplyParserCategoryInferenceSuite extends QaSuite {
     return buffer.toString();
   }
 
+  void _requireFixtureAxes(
+    List<QaFailure> failures,
+    Map<String, int> fixtureRiskCounts,
+  ) {
+    for (final axis in _fixtureRiskAxes) {
+      if ((fixtureRiskCounts[axis] ?? 0) > 0) continue;
+      failures.add(
+        _failure(
+          id: 'missing_category_fixture_axis:$axis',
+          message:
+              'Category inference fixture corpus is missing a required ambiguity axis.',
+          expected: axis,
+          actual: fixtureRiskCounts.keys.join(', '),
+          fix:
+              'Add a synthetic review fixture for this cross-trade category inference case.',
+          triage: QaFailureTriage.fixture,
+        ),
+      );
+    }
+  }
+
   QaFailure _failure({
     required String id,
     required String message,
@@ -206,6 +252,61 @@ class WorkSupplyParserCategoryInferenceSuite extends QaSuite {
       actual: actual,
       suggestedFix: fix,
       metadata: {'triageCategory': triage},
+    );
+  }
+}
+
+Map<String, int> _fixtureRiskCounts(List<_CategoryFixture> fixtures) {
+  final counts = <String, int>{};
+  for (final fixture in fixtures) {
+    final tags = fixture.riskTags.map((tag) => tag.toLowerCase()).toSet();
+    final line = fixture.rawLine.toLowerCase();
+    final axes = {
+      ...tags,
+      if (line.contains('pvc')) 'pvc',
+      if (line.contains('cond') || line.contains('conduit')) 'pvc_conduit',
+      if (line.contains('condensate')) 'pvc_condensate',
+      if (line.contains('foil tape')) 'foil_tape',
+      if (line.contains('elec tape') || line.contains('electrical tape'))
+        'electrical_tape',
+      if (line.contains('drywall tape')) 'drywall_tape',
+      if (line.contains('filter')) 'filter',
+      if (line.contains('old work box')) 'old_work_box',
+      if (line.contains('j box')) 'j_box',
+      if (line.contains('threaded rod')) 'threaded_rod',
+      if (line.contains('all thread')) 'all_thread',
+      if (line.contains('tapcon')) 'tapcon',
+    };
+    for (final axis in axes) {
+      counts.update(axis, (count) => count + 1, ifAbsent: () => 1);
+    }
+  }
+  return counts;
+}
+
+List<_CategoryFixture> _loadFixtures() {
+  final file = File(_goldenFixturePath);
+  if (!file.existsSync()) return const [];
+  final decoded = jsonDecode(file.readAsStringSync()) as List<dynamic>;
+  return [
+    for (final entry in decoded)
+      _CategoryFixture.fromJson((entry as Map).cast<String, Object?>()),
+  ];
+}
+
+class _CategoryFixture {
+  const _CategoryFixture({required this.rawLine, required this.riskTags});
+
+  final String rawLine;
+  final List<String> riskTags;
+
+  static _CategoryFixture fromJson(Map<String, Object?> json) {
+    return _CategoryFixture(
+      rawLine: json['rawLine'] as String? ?? '',
+      riskTags: [
+        for (final tag in json['riskTags'] as List<dynamic>? ?? const [])
+          tag.toString(),
+      ],
     );
   }
 }
