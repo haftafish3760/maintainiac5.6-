@@ -102,6 +102,11 @@ const maintainiacOperatingDirectiveContract =
         riskFamily: 'review-safety',
       ),
       MaintainiacOperatingDirectiveClause(
+        id: 'camera_ocr_lane_boundary',
+        requiredText: 'camera/OCR',
+        riskFamily: 'module-boundary',
+      ),
+      MaintainiacOperatingDirectiveClause(
         id: 'confirmed_financial_not_overwritten',
         requiredText: 'Never overwrite user-confirmed financial data silently',
         riskFamily: 'review-safety',

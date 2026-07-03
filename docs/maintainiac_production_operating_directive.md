@@ -20,7 +20,8 @@ production infrastructure, not a prototype.
 - Do not wander into unrelated modules unless the current dependency requires
   it. Keep receipt-camera work on capture, review, stitching, source
   preservation, OCR handoff contracts, and the parser contracts needed to prove
-  camera output.
+  camera output. Keep implementation work inside the explicit camera/OCR lane
+  unless the user explicitly authorizes otherwise.
 - Do not mutate source-of-truth data through recap, notification, export,
   invoice, OCR, parser, telemetry, or sync side effects.
 - Hive/local storage is the immediate source of truth. Firestore/cloud sync is a mirror or backup, not the brain.

@@ -42,4 +42,26 @@ Please write tests sometimes.
     expect(failures, contains('hive_local_source_of_truth'));
     expect(failures, contains('forbidden_private_data'));
   });
+
+  test('operating directive contract protects camera OCR lane boundaries', () {
+    final primary = File(
+      'docs/maintainiac_operating_directive.md',
+    ).readAsStringSync();
+    final production = File(
+      'docs/maintainiac_production_operating_directive.md',
+    ).readAsStringSync();
+
+    expect(
+      maintainiacOperatingDirectiveContract.validateDocument(primary),
+      isNot(contains(contains('camera_ocr_lane_boundary'))),
+    );
+    expect(
+      maintainiacOperatingDirectiveContract.validateDocument(production),
+      isNot(contains(contains('camera_ocr_lane_boundary'))),
+    );
+    expect(
+      maintainiacOperatingDirectiveContract.toJson().toString(),
+      contains('camera_ocr_lane_boundary'),
+    );
+  });
 }

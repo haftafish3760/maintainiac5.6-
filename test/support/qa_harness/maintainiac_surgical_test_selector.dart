@@ -1641,6 +1641,15 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'docs', 'quality-gate', 'security', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'operating_directive_camera_ocr_boundary',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_operating_directive_contract_test.dart',
+    plainName:
+        'operating directive contract protects camera OCR lane boundaries',
+    reason: 'Run only the camera/OCR module-boundary directive guard.',
+    tags: {'docs', 'module-boundary', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'quality_gate_release_dimensions',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_quality_gates_test.dart',

@@ -16,6 +16,9 @@ prototype.
   cap unless there is no safer functional alternative.
 - Do not wander into unrelated modules unless the current dependency requires
   it.
+- Keep receipt-camera and OCR implementation work inside the explicit
+  camera/OCR lane; parser, inventory, expenses, and QA work may only touch
+  handoff contracts and tests unless the user explicitly authorizes otherwise.
 - Do not mutate source-of-truth data through side effects.
 - Hive/local storage is the immediate source of truth.
 - Firestore/cloud sync is a mirror or backup, not the brain.

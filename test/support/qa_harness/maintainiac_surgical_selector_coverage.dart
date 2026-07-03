@@ -521,6 +521,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'operating directive contract matches production docs',
         'operating directive contract rejects missing production rules',
+        'operating directive contract protects camera OCR lane boundaries',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
