@@ -236,8 +236,9 @@ void main() {
         'photoCount': 1,
         'latestFrameBrightness': double.nan,
         'zoomRatio': double.infinity,
+        'stringifiedBad': 'NaN',
         'nested': {'safe': 2.5, 'bad': double.negativeInfinity},
-        'list': ['ok', double.nan, 3],
+        'list': ['ok', double.nan, '-Infinity', 3],
         7: 'non-string-key',
       },
       'recoverySafety': {
@@ -249,6 +250,7 @@ void main() {
     expect(entry.captureDiagnostics['photoCount'], 1);
     expect(entry.captureDiagnostics, isNot(contains('latestFrameBrightness')));
     expect(entry.captureDiagnostics, isNot(contains('zoomRatio')));
+    expect(entry.captureDiagnostics, isNot(contains('stringifiedBad')));
     expect(entry.captureDiagnostics['nested'], {'safe': 2.5});
     expect(entry.captureDiagnostics['list'], ['ok', 3]);
     expect(entry.recoverySafety['hiveIndexSaved'], isTrue);

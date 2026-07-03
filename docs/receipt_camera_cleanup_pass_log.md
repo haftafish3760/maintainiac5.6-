@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 580 - 10:30:00 EDT to 10:35:20 EDT
+
+Scope:
+- Hardened the shared native capture diagnostics sanitizer so exact
+  stringified non-finite tokens from platform channels are dropped before
+  receipt camera review or recovery restore can trust them.
+- Extended native service and recovery-index regressions to prove `NaN`,
+  `Infinity`, and `-Infinity` string diagnostics are removed from maps and
+  lists.
+- Recorded `BUG-RECEIPT-0096` under `native_bridge`.
+- Archived Pass 552 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the shared native diagnostic
+  sanitizer, native result rejection coverage, and recovery-index coverage.
+- Passed focused Flutter regressions for native service unsafe diagnostics and
+  recovery restore malformed diagnostics.
+
 ## Pass 579 - 10:22:00 EDT to 10:27:20 EDT
 
 Scope:
@@ -466,22 +485,6 @@ Scope:
   values restore to normalized receipt attachment records.
 - Recorded `BUG-RECEIPT-0069` under `source_preservation`.
 - Archived Pass 536 out of the live cleanup log.
-
-Verification:
-- Passed targeted Dart format and analyzer for receipt attachment records and
-  attachment metadata regression coverage.
-- Passed focused Flutter test `test/receipt_attachment_record_metadata_test.dart`.
-
-## Pass 552 - 05:51:59 EDT to 06:07:13 EDT
-
-Scope:
-- Hardened receipt attachment map restore so non-finite file, page, and photo
-  quality numbers cannot crash integer conversion or become fake camera
-  evidence.
-- Added metadata regression coverage proving `NaN` and infinity values are
-  ignored and never serialize back out.
-- Recorded `BUG-RECEIPT-0068` under `camera_capture_quality`.
-- Archived Pass 535 out of the live cleanup log.
 
 Verification:
 - Passed targeted Dart format and analyzer for receipt attachment records and

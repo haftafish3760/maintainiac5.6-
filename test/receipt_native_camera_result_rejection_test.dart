@@ -224,8 +224,9 @@ void main() {
                 'photoCount': 1,
                 'latestFrameBrightness': double.nan,
                 'zoomRatio': double.infinity,
+                'stringifiedBad': 'NaN',
                 'nested': {'safe': 1.25, 'bad': double.negativeInfinity},
-                'list': ['ok', double.nan, 2],
+                'list': ['ok', double.nan, 'Infinity', 2],
                 12: 'non-string-key',
               },
             };
@@ -256,6 +257,7 @@ void main() {
         isNot(contains('latestFrameBrightness')),
       );
       expect(result.captureDiagnostics, isNot(contains('zoomRatio')));
+      expect(result.captureDiagnostics, isNot(contains('stringifiedBad')));
       expect(result.captureDiagnostics['nested'], {'safe': 1.25});
       expect(result.captureDiagnostics['list'], ['ok', 2]);
       expect(result.captureDiagnostics.toString(), isNot(contains('NaN')));

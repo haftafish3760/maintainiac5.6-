@@ -13,7 +13,13 @@ Map<String, Object?> receiptNativeCaptureSanitizedDiagnostics(
 }
 
 Object? _safeNativeDiagnosticValue(Object? value) {
-  if (value == null || value is String || value is bool) return value;
+  if (value == null || value is bool) return value;
+  if (value is String) {
+    final text = value.trim();
+    return text == 'NaN' || text == 'Infinity' || text == '-Infinity'
+        ? null
+        : value;
+  }
   if (value is num) return value.isFinite ? value : null;
   if (value is Map) {
     final nested = <String, Object?>{};
