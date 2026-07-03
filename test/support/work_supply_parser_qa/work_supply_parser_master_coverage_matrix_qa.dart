@@ -9,7 +9,8 @@ class WorkSupplyParserMasterCoverageMatrixSuite extends QaSuite {
   static const _matrixPath =
       'docs/inventory_parser_qa_master_coverage_matrix.md';
   static const _progressPath = 'docs/inventory_parser_qa_progress_memory.md';
-  static const _releaseGatePath = 'docs/release_100_percent_required_qa_gates.md';
+  static const _releaseGatePath =
+      'docs/release_100_percent_required_qa_gates.md';
 
   static const _requiredRequirements = {
     'Product normalization',
@@ -39,6 +40,7 @@ class WorkSupplyParserMasterCoverageMatrixSuite extends QaSuite {
     'Pack lifecycle and recovery',
     'Language pack separation',
     'Human correction learning',
+    'Release-one Core/Standard priority cells',
   };
 
   static const _requiredSuites = {
@@ -68,6 +70,10 @@ class WorkSupplyParserMasterCoverageMatrixSuite extends QaSuite {
     'inventory.pack_integrity_recovery_contract',
     'inventory.language_pack_separation_contract',
     'inventory.human_correction_learning_contract',
+    'inventory.release_one_cell_manifest',
+    'inventory.release_one_pack_balance',
+    'inventory.release_one_service_family_contract',
+    'inventory.spanish_release_one',
   };
 
   static const _hardRules = {
@@ -118,7 +124,8 @@ class WorkSupplyParserMasterCoverageMatrixSuite extends QaSuite {
       failures.add(
         _failure(
           id: 'missing_matrix_requirement:${_safeId(requirement)}',
-          message: 'Inventory parser QA master matrix is missing a required row.',
+          message:
+              'Inventory parser QA master matrix is missing a required row.',
           expected: requirement,
           actual: 'not found in $_matrixPath',
           fix:
@@ -134,7 +141,8 @@ class WorkSupplyParserMasterCoverageMatrixSuite extends QaSuite {
         failures.add(
           _failure(
             id: 'missing_matrix_suite:${_safeId(suite)}',
-            message: 'Master matrix is missing a primary/supporting suite mapping.',
+            message:
+                'Master matrix is missing a primary/supporting suite mapping.',
             expected: suite,
             actual: 'not found in $_matrixPath',
             fix:
@@ -147,7 +155,8 @@ class WorkSupplyParserMasterCoverageMatrixSuite extends QaSuite {
         failures.add(
           _failure(
             id: 'missing_progress_suite:${_safeId(suite)}',
-            message: 'Progress memory is missing focused rerun tracking for a required suite.',
+            message:
+                'Progress memory is missing focused rerun tracking for a required suite.',
             expected: suite,
             actual: 'not found in $_progressPath',
             fix:

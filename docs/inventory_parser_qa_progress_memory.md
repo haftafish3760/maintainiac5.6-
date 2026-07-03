@@ -2435,6 +2435,13 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the release-one fixture-cell coverage gate:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fixture_coverage_matrix,qa.threshold_gate`
   passed 95 checks with 0 failures.
+- Added the release-one Core/Standard priority-cell row to the master coverage
+  matrix and executable matrix contract so Plumbing, Electrical, HVAC, en-US,
+  es-US, Core, Standard, and residential coverage remain visible at the
+  checklist level.
+- Validated the master matrix after adding the priority-cell row:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.master_coverage_matrix_contract,qa.threshold_gate`
+  passed 111 checks with 0 failures.
 
 Named release gates:
 
