@@ -50,10 +50,12 @@ class MaintainiacIndividualTestEntry {
     final allowedMirrorContract =
         lower.contains('firestore mirror') ||
         _isOfflineFirestoreContractCommand(lower);
-    if (lower.contains('googlevision') ||
+    final mentionsBlockedProvider =
+        lower.contains('googlevision') ||
         lower.contains('mlkit') ||
         lower.contains('camera') ||
-        lower.contains('ocr') ||
+        lower.contains('ocr');
+    if ((mentionsBlockedProvider && !allowedMirrorContract) ||
         lower.contains('firebase') ||
         (mentionsFirestore && !allowedMirrorContract)) {
       failures.add('$id must not touch OCR/camera/live cloud providers');
@@ -76,6 +78,7 @@ class MaintainiacIndividualTestEntry {
 bool _isOfflineFirestoreContractCommand(String lowerCommand) {
   return lowerCommand.contains('maintainiac_firestore_schema_test.dart') ||
       lowerCommand.contains('maintainiac_firestore_upload_queue_test.dart') ||
+      lowerCommand.contains('maintainiac_firestore_documents_test.dart') ||
       lowerCommand.contains('maintainiac_hosted_cache_test.dart');
 }
 

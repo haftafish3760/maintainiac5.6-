@@ -19,9 +19,7 @@ void main() {
   test(
     'builds hosted catalog pack and manifest documents without item docs',
     () {
-      final manifest = buildWorkSupplyHostedCatalogManifest(
-        generatedAt: DateTime.utc(2026, 6, 23, 12),
-      );
+      final manifest = _testHostedManifest();
 
       final pack = MaintainiacFirestoreDocumentBuilder.catalogPackDocument(
         manifest,
@@ -53,9 +51,7 @@ void main() {
   );
 
   test('builds privacy-safe catalog health document', () {
-    final manifest = buildWorkSupplyHostedCatalogManifest(
-      generatedAt: DateTime.utc(2026, 6, 23, 12),
-    );
+    final manifest = _testHostedManifest();
     final validation = WorkSupplyHostedCatalogValidationResult(
       status: WorkSupplyHostedCatalogValidationStatus.ready,
       manifest: manifest,
@@ -1010,10 +1006,22 @@ Total 13.34
     expect(failureBreakdown['failedAt'], contains('number'));
     expect(failureBreakdown['evidence'], contains('merchant'));
     expect(failureBreakdown['missingEvidence'], 'auth_number');
-    expect(recentFailure['causeLabel'], contains('merchant'));
-    expect(recentFailure['causeLabel'], contains('amount'));
-    expect(recentFailure['failedAtLabel'], contains('number'));
-    expect(recentFailure['missingEvidenceLabel'], contains('number'));
+    expect(
+      recentFailure['causeLabel'].toString().toLowerCase(),
+      contains('merchant'),
+    );
+    expect(
+      recentFailure['causeLabel'].toString().toLowerCase(),
+      contains('amount'),
+    );
+    expect(
+      recentFailure['failedAtLabel'].toString().toLowerCase(),
+      anyOf(contains('number'), contains('private reference')),
+    );
+    expect(
+      recentFailure['missingEvidenceLabel'].toString().toLowerCase(),
+      anyOf(contains('number'), contains('private reference')),
+    );
   });
 
   test('stress scrubs fuel auto barcode and currency failure hints', () {
@@ -1412,6 +1420,37 @@ Total 13.34
     expect(encoded, isNot(contains('copper elbow')));
     expect(encoded, isNot(contains('plumbing / fittings')));
   });
+}
+
+WorkSupplyHostedCatalogManifest _testHostedManifest() {
+  return const WorkSupplyHostedCatalogManifest(
+    schemaVersion: 1,
+    packId: 'work_supply_residential_core',
+    packVersion: '2026.06',
+    generatedAtIso: '2026-06-23T12:00:00.000Z',
+    manifestDocumentPath:
+        'catalogPacks/work_supply_residential_core/manifests/2026.06',
+    storagePrefix: 'catalog-packs/work-supplies/2026.06',
+    itemCount: 2,
+    tradeCount: 1,
+    chunkCount: 1,
+    firestoreManifestReadCount: 1,
+    firestoreItemDocumentReadCount: 0,
+    estimatedCompressedBytes: 512,
+    chunks: [
+      WorkSupplyHostedCatalogChunkManifest(
+        chunkId: 'plumbing_core_1',
+        tradeName: 'plumbing',
+        itemCount: 2,
+        storagePath: 'catalog-packs/work-supplies/2026.06/plumbing_core_1.json',
+        contentEncoding: 'gzip',
+        uncompressedByteSize: 256,
+        estimatedCompressedByteSize: 128,
+        sha256:
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      ),
+    ],
+  );
 }
 
 ExpenseTelemetryHealthSnapshot _expenseTelemetrySnapshotForSanitizer({

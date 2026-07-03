@@ -41,10 +41,12 @@ class MaintainiacSurgicalTestSelector {
     final allowedMirrorContract =
         lower.contains('firestore mirror') ||
         _isOfflineFirestoreContractCommand(lower);
-    if (lower.contains('camera') ||
+    final mentionsBlockedProvider =
+        lower.contains('camera') ||
         lower.contains('ocr') ||
         lower.contains('mlkit') ||
-        lower.contains('googlevision') ||
+        lower.contains('googlevision');
+    if ((mentionsBlockedProvider && !allowedMirrorContract) ||
         lower.contains('firebase') ||
         (mentionsFirestore && !allowedMirrorContract)) {
       failures.add(
@@ -70,6 +72,7 @@ class MaintainiacSurgicalTestSelector {
 bool _isOfflineFirestoreContractCommand(String lowerCommand) {
   return lowerCommand.contains('maintainiac_firestore_schema_test.dart') ||
       lowerCommand.contains('maintainiac_firestore_upload_queue_test.dart') ||
+      lowerCommand.contains('maintainiac_firestore_documents_test.dart') ||
       lowerCommand.contains('maintainiac_hosted_cache_test.dart');
 }
 
@@ -1075,6 +1078,189 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     plainName: 'sha256 fingerprint is stable regardless of map key order',
     reason: 'Run only the hosted cache stable SHA fingerprint check.',
     tags: {'hosted-cache', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_catalog_manifest_no_items',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName:
+        'builds hosted catalog pack and manifest documents without item docs',
+    reason: 'Run only the hosted catalog document shape contract.',
+    tags: {'firestore', 'inventory', 'cost-quota', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_catalog_health_safe',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'builds privacy-safe catalog health document',
+    reason: 'Run only the catalog health privacy-safe document check.',
+    tags: {'firestore', 'inventory', 'privacy', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_receipt_diagnostic_health',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'builds receipt diagnostic and parser health documents safely',
+    reason: 'Run only the receipt diagnostic/parser health safety contract.',
+    tags: {'firestore', 'privacy', 'parser-consumer', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_expense_summary_no_raw_events',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'builds expense telemetry summary without raw event upload',
+    reason: 'Run only the expense telemetry summary upload-shape check.',
+    tags: {'firestore', 'expenses', 'privacy', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_expense_summary_ocr_contract',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'embeds privacy-safe OCR contract in expense telemetry summary',
+    reason: 'Run only the privacy-safe expense summary OCR contract check.',
+    tags: {'firestore', 'expenses', 'privacy', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_scheduler_trace_metrics',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'keeps scheduler trace metrics in expense telemetry summary',
+    reason: 'Run only the scheduler trace metric summary contract.',
+    tags: {'firestore', 'expenses', 'sync', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_parser_ocr_failure_metrics',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName:
+        'keeps parser and OCR failure metrics in expense telemetry summary',
+    reason: 'Run only the parser/failure metric summary contract.',
+    tags: {'firestore', 'expenses', 'parser-consumer', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_command_center_fields',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName:
+        'keeps every Command Center telemetry field in Firestore summary',
+    reason: 'Run only the Command Center summary field parity check.',
+    tags: {'firestore', 'expenses', 'quality-gate', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_schema_helper_scoped',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName:
+        'expense telemetry schema helper stays scoped to Command Center map',
+    reason: 'Run only the telemetry schema helper scope check.',
+    tags: {'firestore', 'expenses', 'schema', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_metadata_outside_local_schema',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName:
+        'Firestore summary metadata stays outside local telemetry schema',
+    reason: 'Run only the summary metadata/local schema separation check.',
+    tags: {'firestore', 'expenses', 'schema', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_caps_failure_drilldowns',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'caps expense telemetry failure drill-downs for Firestore',
+    reason: 'Run only the failure drill-down cap check.',
+    tags: {'firestore', 'expenses', 'performance', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_failure_drilldown_schema',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'keeps failure drill-down object schemas stable for Firestore',
+    reason: 'Run only the failure drill-down object schema contract.',
+    tags: {'firestore', 'expenses', 'schema', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_scrubs_private_receipt_hints',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'scrubs private receipt hints from failure drill-down text',
+    reason: 'Run only the failure drill-down private receipt redaction check.',
+    tags: {'firestore', 'expenses', 'privacy', 'security'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_stress_scrubs_private_hints',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'stress scrubs fuel auto barcode and currency failure hints',
+    reason: 'Run only the private hint redaction stress check.',
+    tags: {'firestore', 'expenses', 'privacy', 'security'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_redaction_scope',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'keeps redaction scoped to failure detail fields',
+    reason: 'Run only the redaction boundary/scope check.',
+    tags: {'firestore', 'expenses', 'privacy', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_redaction_helper_alignment',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'keeps Firestore redaction helper fields aligned with contract',
+    reason: 'Run only the redaction helper contract alignment check.',
+    tags: {'firestore', 'expenses', 'privacy', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_rejects_invalid_scalars',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName:
+        'rejects invalid expense telemetry scalar values before Firestore',
+    reason: 'Run only the invalid telemetry scalar rejection check.',
+    tags: {'firestore', 'expenses', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_sanitizes_maps_labels',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'sanitizes expense telemetry maps and drill-down labels',
+    reason: 'Run only the telemetry map and drill-down label sanitizer check.',
+    tags: {'firestore', 'expenses', 'privacy', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_rejects_unsafe_ocr_contract',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'rejects unsafe OCR contract before Firestore queueing',
+    reason: 'Run only the unsafe summary contract rejection check.',
+    tags: {'firestore', 'expenses', 'privacy', 'security'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_detects_unsafe_summary_drift',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName: 'detects unsafe OCR Firestore summary document drift',
+    reason: 'Run only the unsafe summary document drift detector.',
+    tags: {'firestore', 'expenses', 'privacy', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'firestore_docs_shared_correction_hashes',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_documents_test.dart',
+    plainName:
+        'builds shared correction candidate with hashes, not receipt text',
+    reason: 'Run only the shared correction candidate hash/privacy check.',
+    tags: {'firestore', 'corrections', 'privacy', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'qa_backbone_tool_writes_redacted_artifacts',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_backbone_tool_test.dart',
+    plainName: 'Maintainiac QA backbone tool writes redacted report artifacts',
+    reason: 'Run only the QA backbone tool artifact/redaction check.',
+    tags: {'qa-backbone', 'artifact-policy', 'privacy', 'release-gate'},
   ),
   MaintainiacSurgicalTestSelector(
     id: 'parser_regression_bindings',

@@ -395,6 +395,38 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_firestore_documents_test.dart',
+      plainNames: {
+        'builds hosted catalog pack and manifest documents without item docs',
+        'builds privacy-safe catalog health document',
+        'builds receipt diagnostic and parser health documents safely',
+        'builds expense telemetry summary without raw event upload',
+        'embeds privacy-safe OCR contract in expense telemetry summary',
+        'keeps scheduler trace metrics in expense telemetry summary',
+        'keeps parser and OCR failure metrics in expense telemetry summary',
+        'keeps every Command Center telemetry field in Firestore summary',
+        'expense telemetry schema helper stays scoped to Command Center map',
+        'Firestore summary metadata stays outside local telemetry schema',
+        'caps expense telemetry failure drill-downs for Firestore',
+        'keeps failure drill-down object schemas stable for Firestore',
+        'scrubs private receipt hints from failure drill-down text',
+        'stress scrubs fuel auto barcode and currency failure hints',
+        'keeps redaction scoped to failure detail fields',
+        'keeps Firestore redaction helper fields aligned with contract',
+        'rejects invalid expense telemetry scalar values before Firestore',
+        'sanitizes expense telemetry maps and drill-down labels',
+        'rejects unsafe OCR contract before Firestore queueing',
+        'detects unsafe OCR Firestore summary document drift',
+        'builds shared correction candidate with hashes, not receipt text',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_backbone_tool_test.dart',
+      plainNames: {
+        'Maintainiac QA backbone tool writes redacted report artifacts',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_parser_release_command_plan_test.dart',
       plainNames: {
         'parser release command plan covers every parser consumer family',
