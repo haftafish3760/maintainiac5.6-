@@ -15,6 +15,7 @@ export 'maintainiac_qa_readiness.dart';
 export 'maintainiac_qa_scenario_runners.dart';
 export 'maintainiac_regression_registry.dart';
 export 'maintainiac_financial_ledger.dart';
+export 'maintainiac_mutation_guard.dart';
 export 'maintainiac_source_boundary.dart';
 export 'maintainiac_sync_lifecycle.dart';
 export 'maintainiac_scope_policy.dart';

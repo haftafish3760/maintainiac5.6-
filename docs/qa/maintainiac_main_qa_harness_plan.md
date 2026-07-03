@@ -172,6 +172,14 @@ The backbone includes an export privacy probe:
 - Private keys such as VIN, plates, passengers, patients, raw receipt text, tax IDs, SSNs, and card numbers are rejected.
 - Sanitized export records drop private fields before writing.
 
+## Mutation Guard Probe
+
+The backbone includes a mutation guard:
+
+- Derived outputs such as recap, export, notification, estimate, invoice, and report writes must not mutate source collections.
+- Source operations must declare the exact source collections they are allowed to write.
+- This protects Hive/local source-of-truth records from side effects.
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:
