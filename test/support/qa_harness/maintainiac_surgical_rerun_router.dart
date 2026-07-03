@@ -69,12 +69,16 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_local_first_contract.dart',
       'maintainiac_mutation_guard.dart',
       'maintainiac_source_truth_gate.dart',
+      'maintainiac_source_boundary.dart',
+      'maintainiac_sensitive_field_registry.dart',
+      'maintainiac_scope_policy.dart',
       'maintainiac_sync_lifecycle.dart',
       'maintainiac_sync_transport_policy.dart',
       'maintainiac_sync_conflict_contract.dart',
       'maintainiac_payment_contract.dart',
       'maintainiac_financial_ledger.dart',
       'maintainiac_financial_formula_registry.dart',
+      'maintainiac_export_privacy.dart',
       'maintainiac_operating_directive_contract.dart',
       'maintainiac_qa_artifact_policy.dart',
       'maintainiac_qa_quality_gates.dart',
@@ -322,6 +326,20 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
           'Financial formula registry changes need deterministic formula and unsafe formula checks.',
     ),
     MaintainiacSurgicalRerunRule(
+      id: 'export_privacy_changed',
+      changedPathContains: 'maintainiac_export_privacy.dart',
+      selectorIds: {
+        'export_privacy_accepts_owned_records',
+        'export_privacy_catches_cross_account',
+        'export_privacy_sanitizes_private_fields',
+        'export_privacy_matrix_blocks_leaks',
+        'export_privacy_matrix_rejects_gaps',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Export privacy changes need owned export, cross-account, redaction, matrix, gap, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
       id: 'operating_directive_contract_changed',
       changedPathContains: 'maintainiac_operating_directive_contract.dart',
       selectorIds: {
@@ -447,6 +465,43 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Source-truth gate changes need role coverage, negative mutation, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'source_boundary_changed',
+      changedPathContains: 'maintainiac_source_boundary.dart',
+      selectorIds: {
+        'source_boundary_catches_live_services',
+        'source_boundary_allows_emulators',
+        'source_boundary_skips_build_folders',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Source boundary changes need live-service, emulator, build-folder, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'sensitive_field_registry_changed',
+      changedPathContains: 'maintainiac_sensitive_field_registry.dart',
+      selectorIds: {
+        'sensitive_field_registry_covers_forbidden',
+        'sensitive_field_registry_rejects_bad_classes',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Sensitive field registry changes need forbidden-class, duplicate/missing-class, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'scope_policy_changed',
+      changedPathContains: 'maintainiac_scope_policy.dart',
+      selectorIds: {
+        'scope_policy_owner_vehicle_permission',
+        'scope_policy_denies_cross_account_vehicle',
+        'scope_policy_employee_permission_match',
+        'scope_policy_matrix_denials',
+        'scope_policy_matrix_rejects_missing_reasons',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Scope policy changes need owner, denial, employee, matrix, explanation, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'sync_lifecycle_changed',

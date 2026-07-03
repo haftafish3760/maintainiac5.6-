@@ -126,6 +126,48 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_auth_policy_test.dart',
+      plainNames: {
+        'hosted account login allows only Google and Apple providers',
+        'allowed provider set remains intentionally small',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_export_privacy_test.dart',
+      plainNames: {
+        'export privacy probe accepts owned non-private records',
+        'export privacy probe catches cross-account and private fields',
+        'export privacy probe sanitizes private fields before writing',
+        'export privacy matrix blocks cross-account and identity leaks',
+        'export privacy matrix rejects incomplete case coverage',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_scope_policy_test.dart',
+      plainNames: {
+        'scope policy allows account owner with assigned vehicle permission',
+        'scope policy denies cross-account and unassigned vehicle access',
+        'scope policy requires company employee and permission match',
+        'scope policy matrix covers fleet company employee and vehicle denials',
+        'scope policy matrix rejects missing denial explanations',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_sensitive_field_registry_test.dart',
+      plainNames: {
+        'sensitive field registry covers privacy forbidden data classes',
+        'sensitive field registry rejects duplicates and missing classes',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_source_boundary_test.dart',
+      plainNames: {
+        'source boundary scanner catches forbidden live-service code',
+        'source boundary scanner honors allowed emulator paths',
+        'source boundary scanner skips generated build folders',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_parser_consumer_gate_test.dart',
       plainNames: {
         'parser consumer gate validates inventory and expense consumers together',
