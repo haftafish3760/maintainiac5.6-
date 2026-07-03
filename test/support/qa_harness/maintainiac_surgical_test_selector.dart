@@ -1869,6 +1869,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'artifact-policy', 'security', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_artifact_policy_rejects_duplicate_paths',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_artifact_policy_test.dart',
+    plainName: 'QA artifact policy rejects duplicate artifact paths',
+    reason: 'Run only the duplicate artifact path guard.',
+    tags: {'artifact-policy', 'security', 'regression', 'evidence'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'mutation_guard_allows_derived_only',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_mutation_guard_test.dart',

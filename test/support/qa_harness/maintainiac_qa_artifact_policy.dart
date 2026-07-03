@@ -85,9 +85,14 @@ class MaintainiacQaArtifactPolicy {
   List<String> validate() {
     final failures = <String>[];
     final ids = <String>{};
+    final paths = <String>{};
     for (final artifact in artifacts) {
       if (!ids.add(artifact.id)) {
         failures.add('duplicate artifact id ${artifact.id}');
+      }
+      final normalizedPath = artifact.path.replaceAll('\\', '/').toLowerCase();
+      if (normalizedPath.isNotEmpty && !paths.add(normalizedPath)) {
+        failures.add('duplicate artifact path ${artifact.path}');
       }
       failures.addAll(artifact.validate());
     }

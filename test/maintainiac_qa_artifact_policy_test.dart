@@ -101,4 +101,30 @@ void main() {
       expect(failures, contains('artifact_bad_f_drive uses forbidden'));
     },
   );
+
+  test('QA artifact policy rejects duplicate artifact paths', () {
+    const policy = MaintainiacQaArtifactPolicy([
+      MaintainiacQaArtifact(
+        id: 'artifact_report_a',
+        kind: MaintainiacQaArtifactKind.report,
+        path: 'build/qa/reports/release_gate.json',
+        owner: 'maintainiac-qa',
+        summary: 'Release gate command report.',
+        tags: {'release-gate', 'report'},
+      ),
+      MaintainiacQaArtifact(
+        id: 'artifact_report_b',
+        kind: MaintainiacQaArtifactKind.report,
+        path: r'build\qa\reports\release_gate.json',
+        owner: 'maintainiac-qa',
+        summary: 'Duplicate path with different slash style.',
+        tags: {'release-gate', 'report'},
+      ),
+    ]);
+
+    expect(
+      policy.validate(),
+      contains('duplicate artifact path build\\qa\\reports\\release_gate.json'),
+    );
+  });
 }
