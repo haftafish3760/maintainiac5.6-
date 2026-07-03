@@ -12,6 +12,7 @@ import 'maintainiac_qa_case_registry.dart';
 import 'maintainiac_release_evidence_bundle.dart';
 import 'maintainiac_restart_lifecycle_gate.dart';
 import 'maintainiac_regression_registry.dart';
+import 'maintainiac_derived_output_contract.dart';
 import 'maintainiac_expense_parser_consumer_contract.dart';
 import 'maintainiac_financial_formula_registry.dart';
 import 'maintainiac_fixture_governance_gate.dart';
@@ -453,6 +454,9 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacSourceTruthGate.validate()) {
       failures.add(_failure('source_truth_gate_$issue', issue));
     }
+    for (final issue in maintainiacDerivedOutputContract.validate()) {
+      failures.add(_failure('derived_output_contract_$issue', issue));
+    }
     for (final issue in maintainiacFinancialFormulaRegistry.validate()) {
       failures.add(_failure('financial_formula_registry_$issue', issue));
     }
@@ -477,7 +481,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: 576,
+      checked: 596,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -525,6 +529,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
             .toJson(),
         'individualTestManifest': maintainiacIndividualTestManifest.toJson(),
         'sourceTruthGate': maintainiacSourceTruthGate.toJson(),
+        'derivedOutputContract': maintainiacDerivedOutputContract.toJson(),
         'financialFormulaRegistry': maintainiacFinancialFormulaRegistry
             .toJson(),
         'qaTelemetryPrivacyGate': maintainiacQaTelemetryPrivacyGate.toJson(),

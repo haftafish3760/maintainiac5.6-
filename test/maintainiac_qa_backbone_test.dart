@@ -154,6 +154,10 @@ void main() {
       report.results.single.metrics['performanceBudgetRegistry'].toString(),
       contains('surgical_rerun_router_budget'),
     );
+    expect(
+      report.results.single.metrics['derivedOutputContract'].toString(),
+      contains('invoices_read_sources_write_invoice_output'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {
