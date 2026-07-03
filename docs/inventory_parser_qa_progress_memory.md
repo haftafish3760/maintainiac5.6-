@@ -2617,6 +2617,27 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the expanded file-size guard:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.file_size_contract,qa.threshold_gate`
   passed 419 checks with 0 failures.
+- Cleared the focused repair-kit runtime debt and launched the next local-only
+  residential top-three all-tier generated-fixture wave after regenerating the
+  release-one command manifest.
+- Active background wave:
+  `pass1164-residential-top-three-all-tiers-wave-execute`
+- Active background QA layer:
+  `generated_fixture_all_tiers_v3_repair_kit_fast_path`
+- Active background fixture run limit:
+  `fixtureRunLimit=118`
+- Active background previous wave:
+  `pass1162-residential-top-three-all-tiers-wave-dryrun`
+- Active background wave plan:
+  `build/parser_qa_batch_waves/pass1164-residential-top-three-all-tiers-wave-execute/wave_plan.json`
+- Active background queue root:
+  `build/parser_qa_batch_waves/pass1164-residential-top-three-all-tiers-wave-execute/queue`
+- Active background stdout/stderr:
+  `build/parser_qa_batch_waves/pass1164-residential-top-three-all-tiers-wave-execute/launch_stdout.log`,
+  `build/parser_qa_batch_waves/pass1164-residential-top-three-all-tiers-wave-execute/launch_stderr.log`
+- Active background safety flags:
+  live services false, production catalog writes false, Firebase writes false,
+  OCR/camera/Expenses touches false.
 
 Named release gates:
 
