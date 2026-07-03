@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 503 - 00:49:44 EDT to 00:50:56 EDT
+
+Scope:
+- Added focused guardrail coverage proving non-finite previous-section ghost
+  guide fractions fall back to safe receipt-camera defaults.
+- Kept this as QA hardening only because the current implementation already
+  rejects `NaN` and infinite values.
+- Archived Pass 490 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for native camera session limits.
+- Passed focused Flutter test
+  `test/receipt_native_camera_session_limits_test.dart --plain-name "session
+  rejects non-finite previous section ghost guide fractions"`.
+- Passed cleanup log gate, doc size gate, receipt source audit, and
+  `git diff --check`.
+
 ## Pass 502 - 00:47:37 EDT to 00:48:43 EDT
 
 Scope:
@@ -424,26 +442,6 @@ Verification:
   overlap, full stitching fixtures, and camera-result stitch scanner handoff
   tests. The batch completed with 20 tests passed.
 - Passed targeted `git diff --check`; touched files remain under 500 lines.
-
-## Pass 490 - 00:14:10 EDT to 00:16:05 EDT
-
-Scope:
-- Hardened OCR parser line draft labels so multi-section receipt review can use
-  source-first line labels when section/line metadata is available.
-- Added `sourceFirstLineLabel` to local review and privacy-safe parser summary
-  maps while keeping parser-index `lineLabel` intact.
-- Recorded `BUG-RECEIPT-0009` under `receipt_line_numbering`.
-- Archived Pass 468 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed `dart format --set-exit-if-changed` for the parser model and focused
-  parser-handoff test.
-- Passed targeted analyzer for the parser model, focused test, and bug ledger
-  gate.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-- Passed full focused `flutter test
-  test/receipt_ocr_service_parser_handoff_structure_test.dart -r compact`.
 
 ## Pass 491 - 00:16:05 EDT to 00:18:14 EDT
 

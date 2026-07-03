@@ -226,4 +226,37 @@ void main() {
       expect(tooLarge.previousSectionGhostSlicePercent, 35);
     },
   );
+
+  test('session rejects non-finite previous section ghost guide fractions', () {
+    const native = ReceiptNativeCameraCapabilities(
+      engine: ReceiptNativeCameraEngine.cameraX,
+      available: true,
+      cameraPermissionGranted: true,
+      hasRearCamera: true,
+    );
+
+    final config = const ReceiptNativeCameraSettings().sessionFor(
+      deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+      nativeCapabilities: native,
+      previousSectionGuidePhotoPath: '/tmp/receipt-section-1.jpg',
+      previousSectionGhostSourceStartFraction: double.nan,
+      previousSectionGhostSourceHeightFraction: double.infinity,
+      previousSectionGhostOverlayTopFraction: double.negativeInfinity,
+      previousSectionGhostOverlayHeightFraction: double.nan,
+      previousSectionGhostOpacity: double.infinity,
+    );
+
+    expect(config.hasPreviousSectionGuide, isTrue);
+    expect(config.previousSectionGhostSourceStartFraction, isNull);
+    expect(config.previousSectionGhostSourceHeightFraction, isNull);
+    expect(config.previousSectionGhostOverlayTopFraction, isNull);
+    expect(config.previousSectionGhostOverlayHeightFraction, isNull);
+    expect(config.previousSectionGhostOpacity, isNull);
+    expect(config.previousSectionGhostSourceStartFractionOrDefault, .78);
+    expect(config.previousSectionGhostSourceHeightFractionOrDefault, .22);
+    expect(config.previousSectionGhostOverlayTopFractionOrDefault, 0);
+    expect(config.previousSectionGhostOverlayHeightFractionOrDefault, .22);
+    expect(config.previousSectionGhostOpacityOrDefault, .32);
+    expect(config.previousSectionGhostSlicePercent, 22);
+  });
 }
