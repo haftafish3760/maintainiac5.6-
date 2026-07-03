@@ -207,6 +207,7 @@ The backbone includes a release gate plan:
 - Enforces artifact policy so reports, fixtures, and regression evidence stay redacted and out of Google Drive, OneDrive, F-drive, or other unsafe locations.
 - Defines a parser candidate contract so inventory and expense parsers return review-only candidates with preserved evidence, confidence reasons, warnings, missing fields, and explicit user confirmation before writes.
 - Governs parser fixture sets with locale, country, merchant, trade, owner, source type, expected behavior, review date, and privacy/review tags.
+- Converts user corrections into reviewable alias, negative-rule, merchant-rule, category-mapping, or regression-fixture proposals without silently mutating official packs or confirmed source records.
 
 Print the release gate with:
 

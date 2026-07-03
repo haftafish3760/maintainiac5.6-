@@ -202,6 +202,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_parser_fixture_manifest.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'correction_learning_contract',
+        module: MaintainiacQaModule.inventory,
+        description:
+            'Reusable correction-learning contract turns user corrections into reviewable alias/rule/regression proposals without silently mutating official packs or confirmed source records.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_correction_learning_contract.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:

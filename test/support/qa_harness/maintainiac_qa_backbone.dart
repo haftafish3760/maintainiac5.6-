@@ -11,6 +11,7 @@ import 'maintainiac_qa_case_registry.dart';
 import 'maintainiac_regression_registry.dart';
 import 'maintainiac_parser_candidate_contract.dart';
 import 'maintainiac_parser_fixture_manifest.dart';
+import 'maintainiac_correction_learning_contract.dart';
 import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
@@ -262,10 +263,26 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in fixtureManifest.validate()) {
       failures.add(_failure('parser_fixture_manifest_$issue', issue));
     }
+    const correctionLearning = MaintainiacCorrectionLearningContract([
+      MaintainiacCorrectionProposal(
+        id: 'seed_inventory_alias_proposal',
+        domain: 'inventory_parser',
+        kind: MaintainiacCorrectionProposalKind.alias,
+        status: MaintainiacCorrectionProposalStatus.proposed,
+        sourceCandidateId: 'seed_inventory_parser_candidate',
+        userCorrectionHash: 'sha256:seed-correction',
+        proposedChange: 'Propose context-scoped PVC EL alias.',
+        reason: 'User correction should create proposal only.',
+        tags: {'inventory', 'alias', 'review-required'},
+      ),
+    ]);
+    for (final issue in correctionLearning.validate()) {
+      failures.add(_failure('correction_learning_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 154,
+      checked: 164,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -289,6 +306,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'artifactPolicy': artifactPolicy.toJson(),
         'parserCandidateContract': parserContract.toJson(),
         'parserFixtureManifest': fixtureManifest.toJson(),
+        'correctionLearning': correctionLearning.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

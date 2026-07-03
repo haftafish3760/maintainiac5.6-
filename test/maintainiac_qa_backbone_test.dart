@@ -54,6 +54,10 @@ void main() {
       report.results.single.metrics['parserFixtureManifest'].toString(),
       contains('expense_en_us_fuel_core'),
     );
+    expect(
+      report.results.single.metrics['correctionLearning'].toString(),
+      contains('seed_inventory_alias_proposal'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {
