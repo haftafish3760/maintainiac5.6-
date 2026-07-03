@@ -1,5 +1,6 @@
 import 'maintainiac_qa_environment.dart';
 import 'maintainiac_qa_fixtures.dart';
+import 'maintainiac_qa_quality_gates.dart';
 import 'maintainiac_regression_registry.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
@@ -101,9 +102,14 @@ class MaintainiacQaBackboneSuite extends QaSuite {
       failures.add(_failure('regression_registry_$issue', issue));
     }
 
+    final qualityGates = MaintainiacQualityGateMatrix.releaseOne();
+    for (final issue in qualityGates.validate()) {
+      failures.add(_failure('quality_gate_$issue', issue));
+    }
+
     return timer.finish(
       suite: name,
-      checked: 35,
+      checked: 90,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -114,6 +120,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'modules': [
           for (final module in maintainiacQaBackboneModules) module.name,
         ],
+        'qualityGates': qualityGates.toJson(),
       },
     );
   }

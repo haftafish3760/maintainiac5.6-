@@ -10,7 +10,7 @@ void main() {
     ).run(const QaContext(strict: true, redactor: QaRedactor()));
 
     expect(report.failures, isEmpty);
-    expect(report.checked, greaterThanOrEqualTo(35));
+    expect(report.checked, greaterThanOrEqualTo(90));
     expect(report.adminHealth['status'], 'passing');
     expect(report.results.single.metrics['wholeAppBackbone'], isTrue);
     expect(report.results.single.metrics['inventoryIsConsumerOnly'], isTrue);
@@ -117,4 +117,57 @@ void main() {
     expect(fixtureCatalog.validate(), isEmpty);
     expect(registry.validate(), isEmpty);
   });
+
+  test(
+    'quality gate matrix covers release-one sync security money and load',
+    () {
+      final gates = MaintainiacQualityGateMatrix.releaseOne();
+      final sync = const MaintainiacSyncPolicyProbe();
+      final money = const MaintainiacMoneyProbe();
+      final privacy = const MaintainiacPrivacyProbe();
+
+      expect(gates.validate(), isEmpty);
+      expect(
+        sync.shouldSync(
+          network: MaintainiacNetworkState.wifi,
+          wifiOnly: true,
+          cellularAllowed: false,
+          batterySaver: false,
+        ),
+        isTrue,
+      );
+      expect(
+        sync.shouldSync(
+          network: MaintainiacNetworkState.cellular,
+          wifiOnly: true,
+          cellularAllowed: true,
+          batterySaver: false,
+        ),
+        isFalse,
+      );
+      expect(
+        sync.shouldSync(
+          network: MaintainiacNetworkState.roaming,
+          wifiOnly: false,
+          cellularAllowed: true,
+          batterySaver: false,
+        ),
+        isFalse,
+      );
+      expect(
+        money.lineTotalCents(
+          unitCents: 1000,
+          quantity: 2,
+          taxCents: 100,
+          discountCents: 50,
+        ),
+        2050,
+      );
+      expect(money.allocateTaxPerUnit(taxCents: 99, quantity: 3), 33);
+      expect(
+        privacy.forbiddenMatches('VIN 1HGCM82633A004352 patient John'),
+        isNotEmpty,
+      );
+    },
+  );
 }

@@ -71,3 +71,12 @@ The first reusable slice adds:
 - `test/maintainiac_qa_backbone_test.dart`
 
 Next milestones are sync scenario runners, financial deterministic ledgers, privacy/security attack fixtures, and performance/load generators.
+
+## Quality Gate Matrix
+
+The reusable quality gate matrix must cover:
+
+- Sync: local write, dirty marker, online sync, failed sync, retry/backoff, manual sync, scheduled sync, Wi-Fi only, cellular allowed, roaming blocked, battery saver pause, restart before sync, restart after partial sync, same-field conflict, different-field merge, past-day edit versioning, local-wins daytime policy, and Firestore mirror payload.
+- Security/privacy: user isolation, profile isolation, vehicle isolation, company/employee scoping, receipt ownership, export ownership, no VIN storage, no plate storage, no passenger data, no patient data, no secrets in repo, permission denial flows, deleted file cleanup, and no cross-account bleed.
+- Financial correctness: expense totals, business/personal totals, daily recap math, extended recap math, invoice totals, estimate totals, taxes, discounts, refunds, negative adjustments, inventory consumption costs, decimal-safe money handling, and rounding consistency.
+- Performance/load: 100,000+ catalog items, large inventory movement history, large receipt fixture sets, multi-year day logs, large exports, startup load, search/index performance, sync payload generation, import validation, and memory safety.
