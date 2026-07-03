@@ -129,6 +129,24 @@ class MaintainiacIndividualTestManifest {
     ];
   }
 
+  List<String> commandsForModule(String module) {
+    return [
+      for (final entry in entries)
+        if (entry.module == module) entry.command,
+    ];
+  }
+
+  MaintainiacIndividualTestEntry entryForId(String id) {
+    for (final entry in entries) {
+      if (entry.id == id) return entry;
+    }
+    throw ArgumentError.value(id, 'id', 'Unknown individual test id');
+  }
+
+  String commandForId(String id) {
+    return entryForId(id).command;
+  }
+
   Map<String, Object?> toJson() {
     return {
       'entryCount': entries.length,
@@ -212,9 +230,6 @@ String _riskFamilyFor(MaintainiacSurgicalTestSelector selector) {
   }
   if (selector.tags.contains('source-of-truth')) {
     return 'source-of-truth';
-  }
-  if (selector.tags.contains('privacy')) {
-    return 'privacy';
   }
   if (selector.tags.contains('release-gate') ||
       selector.tags.contains('release-one')) {

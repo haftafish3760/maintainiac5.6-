@@ -20,6 +20,14 @@ void main() {
       manifest.toJson().toString(),
       contains('qa_environment_local_truth'),
     );
+    expect(
+      manifest.commandForId('qa_environment_local_truth'),
+      equals(
+        'flutter test test/maintainiac_qa_environment_test.dart '
+        '--plain-name "QA environment fakes preserve local truth and mirror copies"',
+      ),
+    );
+    expect(manifest.commandsForModule('inventory'), isNotEmpty);
     expect(manifest.toJson().toString(), contains('source-of-truth'));
   });
 
