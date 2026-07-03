@@ -2,6 +2,7 @@ import 'maintainiac_qa_environment.dart';
 import 'maintainiac_qa_fixtures.dart';
 import 'maintainiac_qa_quality_gates.dart';
 import 'maintainiac_regression_registry.dart';
+import '../parser_qa_platform/parser_qa_domain_adapter.dart';
 import 'qa_harness.dart'
     show QaContext, QaFailure, QaSeverity, QaStopwatch, QaSuite, QaSuiteResult;
 
@@ -102,6 +103,23 @@ class MaintainiacQaBackboneSuite extends QaSuite {
       failures.add(_failure('regression_registry_$issue', issue));
     }
 
+    for (final adapter in parserQaDomainAdapters) {
+      for (final issue in adapter.validateContract()) {
+        failures.add(_failure('parser_domain_${adapter.domain}_$issue', issue));
+      }
+      final contract = adapter.toJson();
+      if (contract['liveServicesAllowed'] == true ||
+          contract['firebaseWritesAllowed'] == true ||
+          contract['writesProductionCatalog'] == true) {
+        failures.add(
+          _failure(
+            'parser_domain_${adapter.domain}_unsafe_services',
+            '${adapter.domain} parser QA adapter allows live services.',
+          ),
+        );
+      }
+    }
+
     final qualityGates = MaintainiacQualityGateMatrix.releaseOne();
     for (final issue in qualityGates.validate()) {
       failures.add(_failure('quality_gate_$issue', issue));
@@ -119,6 +137,9 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'ocrCameraImplementationTouched': false,
         'modules': [
           for (final module in maintainiacQaBackboneModules) module.name,
+        ],
+        'parserDomainAdapters': [
+          for (final adapter in parserQaDomainAdapters) adapter.toJson(),
         ],
         'qualityGates': qualityGates.toJson(),
       },

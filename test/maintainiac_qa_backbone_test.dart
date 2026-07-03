@@ -14,6 +14,10 @@ void main() {
     expect(report.adminHealth['status'], 'passing');
     expect(report.results.single.metrics['wholeAppBackbone'], isTrue);
     expect(report.results.single.metrics['inventoryIsConsumerOnly'], isTrue);
+    final parserAdapters =
+        report.results.single.metrics['parserDomainAdapters'] as List<Object?>;
+    expect(parserAdapters, hasLength(greaterThanOrEqualTo(3)));
+    expect(parserAdapters.toString(), contains('expense_receipt_parser'));
   });
 
   test('shared builders cover app records without module-specific fakes', () {
