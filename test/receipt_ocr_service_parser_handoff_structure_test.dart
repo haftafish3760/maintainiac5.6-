@@ -4,6 +4,45 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_ocr_service.da
 import 'helpers/receipt_ocr_parser_ready_fixture.dart';
 
 void main() {
+  test('parser line drafts expose source-first receipt line labels', () {
+    const sourceLocation = ReceiptOcrParserLineLocation(
+      sectionNumber: 2,
+      sectionLineNumber: 4,
+    );
+    final draft = ReceiptOcrParserLineDraft.fromSignal(
+      const ReceiptOcrParserLineSignal(
+        index: 12,
+        text: '1/2 GAL MILK 4.25',
+        kind: ReceiptOcrParserLineKind.itemCandidate,
+        amountCandidates: [4.25],
+        confidence: .88,
+        sourceLocation: sourceLocation,
+      ),
+    );
+    final noSourceDraft = ReceiptOcrParserLineDraft.fromSignal(
+      const ReceiptOcrParserLineSignal(
+        index: 3,
+        text: 'BREAD 2.50',
+        kind: ReceiptOcrParserLineKind.itemCandidate,
+        amountCandidates: [2.50],
+        confidence: .86,
+      ),
+    );
+
+    expect(draft.lineLabel, 'Line 13');
+    expect(draft.sourceFirstLineLabel, 'section 2 line 4');
+    expect(draft.proofLineReferenceLabel, 'Line 13, section 2 line 4');
+    expect(
+      draft.toLocalReviewMap()['sourceFirstLineLabel'],
+      'section 2 line 4',
+    );
+    expect(
+      draft.toPrivacySafeSummaryMap()['sourceFirstLineLabel'],
+      'section 2 line 4',
+    );
+    expect(noSourceDraft.sourceFirstLineLabel, 'Line 4');
+  });
+
   test('ocr parser handoff exposes ready item and summary structure', () {
     final result = parserReadyLowesReceiptResult();
 

@@ -386,43 +386,6 @@ Verification:
   long-receipt guidance, and camera capture layout.
 - Passed targeted `git diff --check`; touched files remain under 500 lines.
 
-## Pass 468 - 17:56:49 EDT to 18:06:53 EDT
-
-Scope:
-- Reset the active goal to camera-first release-one hardening: clear capture,
-  long-receipt multi-photo flow, retake order, ghost/overlap guidance,
-  stitching handoff, and source preservation before deeper OCR/parser work.
-- Stopped stale failed detached OCR pipeline processes and fixed the quiet
-  pipeline failure cleanup path so it no longer runs `dart run` while already
-  failing.
-- Changed receipt guard scripts to use direct `dart tool/...dart` for local
-  file-audit tools, avoiding unnecessary Flutter/Dart build hooks during fast
-  guard and detached pipeline checks.
-- Split the blended static OCR pipeline phase into named static subphases so a
-  future failure reports the exact guard that failed.
-- Hardened retake ordering so replacement photos preserve the original section
-  slot and emit privacy-safe retake diagnostics for previous/next alignment
-  context and inserted extra sections.
-
-Failures fixed during this pass:
-- Focused quiet-batch policy test failed because it still expected stale phase
-  log cleanup instead of full temp-run cleanup; updated the contract.
-- Long-receipt guidance contract failed because it still expected the old
-  previous-index retake guide logic; updated it to require the new retake
-  alignment context and diagnostic merge.
-
-Verification:
-- Passed `bash -n` for edited receipt guard and quiet-pipeline shell scripts.
-- Passed direct Dart guard scripts for quiet-batch policy, source audit,
-  external fixture schema, camera I/O, and footprint audit.
-- Passed targeted analyzer for edited retake, long-receipt, and guard contract
-  files.
-- Passed focused Flutter tests for quiet-batch policy, fast guard, retake order,
-  long-receipt guidance, and camera capture layout.
-- Passed targeted `git diff --check`; touched files remain under 500 lines.
-- Current receipt camera/OCR source footprint audit reports 293 files and
-  1.68 MB of source, excluding build artifacts and PDF helpers.
-
 ## Pass 487 - 00:07:47 EDT
 
 Scope:
@@ -489,3 +452,23 @@ Verification:
 - Passed focused Flutter tests for native session contract, Android
   auto-capture bridge, iOS settings/close bridge, Android analysis/exposure,
   and iOS storage contract.
+
+## Pass 490 - 00:14:10 EDT to 00:16:05 EDT
+
+Scope:
+- Hardened OCR parser line draft labels so multi-section receipt review can use
+  source-first line labels when section/line metadata is available.
+- Added `sourceFirstLineLabel` to local review and privacy-safe parser summary
+  maps while keeping parser-index `lineLabel` intact.
+- Recorded `BUG-RECEIPT-0009` under `receipt_line_numbering`.
+- Archived Pass 468 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed `dart format --set-exit-if-changed` for the parser model and focused
+  parser-handoff test.
+- Passed targeted analyzer for the parser model, focused test, and bug ledger
+  gate.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+- Passed full focused `flutter test
+  test/receipt_ocr_service_parser_handoff_structure_test.dart -r compact`.

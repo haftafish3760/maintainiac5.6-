@@ -231,6 +231,8 @@ class ReceiptOcrParserLineDraft {
   bool get hasAmount => amount != null;
   String get lineLabel => 'Line $lineNumber';
   String get sourceLocationLabel => sourceLocation?.label ?? '';
+  String get sourceFirstLineLabel =>
+      sourceLocationLabel.isEmpty ? lineLabel : sourceLocationLabel;
   String get proofLineReferenceLabel {
     final source = sourceLocationLabel;
     return source.isEmpty ? lineLabel : '$lineLabel, $source';
@@ -247,6 +249,7 @@ class ReceiptOcrParserLineDraft {
     return {
       'stableLineId': stableLineId,
       'lineNumber': lineNumber,
+      'sourceFirstLineLabel': sourceFirstLineLabel,
       'text': text,
       'role': role,
       'parserBucket': parserBucket,
@@ -265,6 +268,7 @@ class ReceiptOcrParserLineDraft {
     return {
       'stableLineId': stableLineId,
       'lineNumber': lineNumber,
+      'sourceFirstLineLabel': sourceFirstLineLabel,
       'role': role,
       'parserBucket': parserBucket,
       'hasAmount': hasAmount,
