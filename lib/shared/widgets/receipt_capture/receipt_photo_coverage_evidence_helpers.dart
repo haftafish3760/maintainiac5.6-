@@ -130,7 +130,8 @@ int _intValue(Object? value) {
     _ => null,
   };
   if (parsed == null || !parsed.isFinite) return 0;
-  return parsed.round();
+  if (parsed % 1 != 0) return 0;
+  return parsed.toInt();
 }
 
 const Set<String> _missingBottomEdgeStatuses = {

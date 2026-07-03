@@ -275,6 +275,35 @@ void main() {
     );
   });
 
+  test('fractional totals counts do not satisfy completion evidence', () {
+    final decision = ReceiptPhotoCoverageDecision.fromSignals(
+      quality: const ReceiptPhotoQualityCheck(
+        width: 1200,
+        height: 1800,
+        focusScore: 18,
+        isLikelyReadable: true,
+      ),
+      diagnostics: const {
+        ReceiptCaptureDiagnosticKeys.receiptBottomEdgeDetected: false,
+        ReceiptCaptureDiagnosticKeys.receiptSubtotalDetected: false,
+        ReceiptCaptureDiagnosticKeys.receiptTotalDetected: false,
+        ReceiptCaptureDiagnosticKeys.receiptTotalAmountDetected: false,
+        'subtotalCandidateLineCount': .6,
+        'totalCandidateLineCount': '0.7',
+        ReceiptCaptureDiagnosticKeys.receiptTotalsTextEvidenceStatus:
+            'not_found',
+      },
+    );
+
+    expect(decision.status, ReceiptPhotoCoverageStatus.likelyCutOff);
+    expect(decision.reasonCode, 'missing_bottom_edge_and_totals');
+    expect(decision.shouldPromptForMorePhotos, isTrue);
+    expect(
+      decision.ghostGuideMatchTargetCode,
+      'subtotal_total_and_final_lines',
+    );
+  });
+
   test('tax line alone does not satisfy bottom totals completion evidence', () {
     final decision = ReceiptPhotoCoverageDecision.fromSignals(
       quality: const ReceiptPhotoQualityCheck(
