@@ -10,10 +10,16 @@ class WorkSupplyParserAccumulatedCoverageSuite extends QaSuite {
   static const _priorityCells = {
     'plumbing.residential.core.en-US',
     'plumbing.residential.core.es-US',
+    'plumbing.residential.standard.en-US',
+    'plumbing.residential.standard.es-US',
     'electrical.residential.core.en-US',
     'electrical.residential.core.es-US',
+    'electrical.residential.standard.en-US',
+    'electrical.residential.standard.es-US',
     'hvac.residential.core.en-US',
     'hvac.residential.core.es-US',
+    'hvac.residential.standard.en-US',
+    'hvac.residential.standard.es-US',
   };
 
   @override

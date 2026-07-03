@@ -2324,6 +2324,7 @@ Release-one catalog gap closed in the plumbing item batch:
 - Added an executable Residential Core bloat guard so priority-trade Core rows are scanned for obvious full-fixture/appliance terms while allowing repair kits, connectors, valves, straps, supply lines, drain pans, and service parts.
 - Tightened the release-one service-family gate so Plumbing, Electrical, and HVAC Core/Standard rows must show required everyday signals inside each family, including common fittings, water distribution, toilet repair, faucet/sink repair, drain/trap repair, supply stops, water-heater service, well service, electrical devices/breakers/grounding/conduit, and HVAC filters/controls/condensate/duct repair.
 - Kept HVAC condensate pumps in the everyday Core path so normal residential condensate drain service is not pushed into later-tier professional equipment coverage by the generic pump signal.
+- Promoted Standard to first-release fixture-cell coverage beside Core for Plumbing, Electrical, and HVAC in both en-US and es-US, and added six Standard priority-cell golden fixture seeds for focused reruns.
 - Added Spanish well-service parser signals for bomba/tanque/well pressure/tank/switch/adapter/check-valve terminology.
 - Expanded Spanish release-one QA so es-US coverage must include service-family terminology for plumbing pipe fittings, water-distribution materials, toilet repair, sink/faucet repair, electrical devices/breakers, wire/conduit/grounding, HVAC filters/controls, and HVAC condensate/duct work.
 - Added tank ambiguity guards so pressure tanks keep negative-match evidence against propane, fuel, and compressor tanks.
@@ -2350,6 +2351,10 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated after the required service-signal gate and HVAC condensate pump tier fix:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_service_family_contract,qa.threshold_gate`
   passed 16988 checks with 0 failures.
+- Validated Standard fixture-cell coverage:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.accumulated_coverage_contract,inventory.fixture_coverage_matrix,qa.threshold_gate`
+  passed 124 checks with 0 failures.
+- Validated the six new Standard fixture seed lines with a temporary focused Flutter parser probe; all resolved to the intended trade. The focused probe took about 3:41 on the Windows machine due Flutter/catalog startup.
 - Validated after the expanded Spanish family-term QA gate:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.spanish_release_one,qa.threshold_gate`
   passed 101224 checks with 0 failures.
