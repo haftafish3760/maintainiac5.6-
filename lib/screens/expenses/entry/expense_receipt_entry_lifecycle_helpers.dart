@@ -1,6 +1,7 @@
 part of 'expense_receipt_entry_screen.dart';
 
-extension _ExpenseReceiptEntryLifecycleHelpers on _ExpenseReceiptEntryScreenState {
+extension _ExpenseReceiptEntryLifecycleHelpers
+    on _ExpenseReceiptEntryScreenState {
   void _initReceiptEntryState() {
     _screenOpenedAtUtc = DateTime.now().toUtc();
     _draftId =

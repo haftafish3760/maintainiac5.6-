@@ -34,6 +34,9 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
             insertedPhotoPaths: picked.paths,
           );
     if (guidePhotoPath != null && insertPlan == null) return;
+    final insertDiagnostics =
+        insertPlan?.captureDiagnosticsForInsertedPhotoPaths(picked.paths) ??
+        const <String, Map<String, Object?>>{};
     _updateReviewState(() {
       final insertIndex = insertPlan?.selectedIndex ?? _photoPaths.length;
       if (insertPlan == null) {
@@ -44,7 +47,12 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
           ..addAll(insertPlan.photoPaths);
       }
       _qualityChecksByPath.addAll(picked.qualityChecksByPath);
-      _captureDiagnosticsByPath.addAll(picked.captureDiagnosticsByPath);
+      _captureDiagnosticsByPath.addAll(
+        _mergeOrderCaptureDiagnostics(
+          picked.captureDiagnosticsByPath,
+          insertDiagnostics,
+        ),
+      );
       _selectedIndex = insertIndex;
     });
     _recoverReviewAfterPhotoSetChanged();
@@ -304,9 +312,17 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
     Map<String, Map<String, Object?>> pickedDiagnostics,
     Map<String, Map<String, Object?>> retakeDiagnostics,
   ) {
+    return _mergeOrderCaptureDiagnostics(pickedDiagnostics, retakeDiagnostics);
+  }
+
+  Map<String, Map<String, Object?>> _mergeOrderCaptureDiagnostics(
+    Map<String, Map<String, Object?>> pickedDiagnostics,
+    Map<String, Map<String, Object?>> orderDiagnostics,
+  ) {
     return {
-      for (final path in retakeDiagnostics.keys)
-        path: {...?pickedDiagnostics[path], ...?retakeDiagnostics[path]},
+      for (final entry in pickedDiagnostics.entries) entry.key: entry.value,
+      for (final entry in orderDiagnostics.entries)
+        entry.key: {...?pickedDiagnostics[entry.key], ...entry.value},
     };
   }
 }

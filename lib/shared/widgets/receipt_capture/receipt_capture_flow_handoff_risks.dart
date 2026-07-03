@@ -149,9 +149,7 @@ List<Map<String, Object?>> _diagnosticsForOcrSourceIndex(
   }
   final ocrSourcePath = result.ocrSourcePhotoPaths[index];
   var diagnostics = result.captureDiagnosticsByPhotoPath[ocrSourcePath];
-  if (diagnostics == null &&
-      index < result.photoPaths.length &&
-      result.photoPaths[index] == ocrSourcePath) {
+  if (diagnostics == null && index < result.photoPaths.length) {
     diagnostics =
         result.captureDiagnosticsByPhotoPath[result.photoPaths[index]];
   }

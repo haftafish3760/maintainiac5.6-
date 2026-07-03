@@ -95,6 +95,9 @@ privacy review, a code update, and a regression test.
 
 Command 1 must never display or upload these through this contract:
 
+- private object keys including `payload`, `metadata`, `receiptText`,
+  `rawOcrText`, `merchantName`, `itemDescription`, `proofPath`, `orgId`,
+  and `userId`
 - receipt image bytes or image paths
 - raw OCR text
 - imported/pasted receipt text
@@ -241,3 +244,12 @@ field sets.
 Detailed telemetry summary fields, schemas, drill-down caps, scheduled upload notes, examples, UI guidance, and checklist were archived to keep the active contract under the 500-line file limit.
 
 - Archive: `docs/expense_command_center_ocr_contract_archive_telemetry_summary_fields.md`.
+- Active nested failure drill-down keys remain part of this contract:
+  `featureArea`, `featureLabel`, `workflowStep`, `workflowStepLabel`,
+  `failedAt`, `failedAtLabel`, `confirmedCause`, `causeLabel`, `causeStatus`,
+  `causeStatusLabel`, `evidence`, `evidenceLabel`, `missingEvidence`,
+  `missingEvidenceLabel`, `recommendedAction`, `actionSummary`,
+  `ocrFailureSource`, `ocrFailureSourceAction`, `count`, `retryCount`,
+  `abandonedCount`, `platformCounts`, `deviceTierCounts`, `appVersionCounts`,
+  `eventId`, `queuedAtUtc`, `event`, `abandoned`, `platform`, `deviceTier`,
+  and `appVersion`.

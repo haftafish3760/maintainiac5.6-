@@ -7,6 +7,7 @@ const _disabledMaxLineLength = 0;
 const _ignoredPathParts = {
   '.dart_tool',
   '.git',
+  '.symlinks',
   'build',
   'Pods',
   'node_modules',
@@ -29,7 +30,8 @@ const _sourceExtensions = {'.dart', '.kt', '.swift'};
 
 void main(List<String> args) {
   final config = _AuditConfig.fromArgs(args);
-  final files = _sourceFiles(config).toList()..sort();
+  final scan = _sourceAuditScan(config);
+  final files = scan.files..sort();
   final lineCountViolations = <_FileLineReport>[];
   final lineLengthViolations = <_FileLineReport>[];
 
@@ -47,7 +49,8 @@ void main(List<String> args) {
   stdout.writeln(
     'Maintainiac source audit: files=${files.length} '
     'maxLines=${config.maxLines} maxLineLength=${config.maxLineLength} '
-    'scope=${config.scopeLabel}',
+    'scope=${config.scopeLabel} '
+    'generatedCatalogFilesSkipped=${scan.generatedCatalogFilesSkipped}',
   );
 
   if (lineCountViolations.isEmpty && lineLengthViolations.isEmpty) {
@@ -83,12 +86,19 @@ void main(List<String> args) {
   exitCode = 1;
 }
 
-Iterable<String> _sourceFiles(_AuditConfig config) sync* {
+_SourceAuditScan _sourceAuditScan(_AuditConfig config) {
+  var generatedCatalogFilesSkipped = 0;
+  final files = <String>[];
+
   for (final root in config.roots) {
     final entity = FileSystemEntity.typeSync(root);
     if (entity == FileSystemEntityType.notFound) continue;
     if (entity == FileSystemEntityType.file && _isSourceFile(root)) {
-      yield root;
+      if (_shouldSkipGeneratedCatalogData(root, config)) {
+        generatedCatalogFilesSkipped++;
+      } else {
+        files.add(root);
+      }
       continue;
     }
     if (entity != FileSystemEntityType.directory) continue;
@@ -99,9 +109,30 @@ Iterable<String> _sourceFiles(_AuditConfig config) sync* {
       final path = entry.path;
       if (_isIgnored(path) || !_isSourceFile(path)) continue;
       if (!_isIncludedTestPath(path, config)) continue;
-      yield path;
+      if (_shouldSkipGeneratedCatalogData(path, config)) {
+        generatedCatalogFilesSkipped++;
+        continue;
+      }
+      files.add(path);
     }
   }
+
+  return _SourceAuditScan(
+    files: files,
+    generatedCatalogFilesSkipped: generatedCatalogFilesSkipped,
+  );
+}
+
+bool _shouldSkipGeneratedCatalogData(String path, _AuditConfig config) {
+  return !config.includeGeneratedCatalogData && _isGeneratedCatalogData(path);
+}
+
+bool _isGeneratedCatalogData(String path) {
+  final normalized = path.replaceAll('\\', '/');
+  const marker = 'lib/screens/work_supplies/data/catalog/';
+  if (!normalized.contains(marker)) return false;
+  final fileName = normalized.split('/').last;
+  return fileName.startsWith('generated_') && fileName.endsWith('.dart');
 }
 
 bool _isIncludedTestPath(String path, _AuditConfig config) {
@@ -137,6 +168,7 @@ class _AuditConfig {
   const _AuditConfig({
     required this.roots,
     required this.includeTests,
+    required this.includeGeneratedCatalogData,
     required this.maxLines,
     required this.maxLineLength,
     required this.scopeLabel,
@@ -147,6 +179,7 @@ class _AuditConfig {
     var maxLineLength = _defaultMaxLineLength;
     var receiptScope = true;
     var includeTests = false;
+    var includeGeneratedCatalogData = false;
     var testsOnly = false;
     final roots = <String>[];
 
@@ -162,6 +195,10 @@ class _AuditConfig {
       if (arg == '--tests-only') {
         includeTests = true;
         testsOnly = true;
+        continue;
+      }
+      if (arg == '--include-generated-catalog-data') {
+        includeGeneratedCatalogData = true;
         continue;
       }
       if (arg.startsWith('--max-lines=')) {
@@ -191,6 +228,7 @@ class _AuditConfig {
     return _AuditConfig(
       roots: roots,
       includeTests: includeTests,
+      includeGeneratedCatalogData: includeGeneratedCatalogData,
       maxLines: maxLines,
       maxLineLength: maxLineLength,
       scopeLabel: receiptScope && roots.length == _receiptScopeRoots.length
@@ -201,9 +239,20 @@ class _AuditConfig {
 
   final List<String> roots;
   final bool includeTests;
+  final bool includeGeneratedCatalogData;
   final int maxLines;
   final int maxLineLength;
   final String scopeLabel;
+}
+
+class _SourceAuditScan {
+  const _SourceAuditScan({
+    required this.files,
+    required this.generatedCatalogFilesSkipped,
+  });
+
+  final List<String> files;
+  final int generatedCatalogFilesSkipped;
 }
 
 class _FileLineReport {

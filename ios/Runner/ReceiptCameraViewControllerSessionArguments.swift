@@ -12,7 +12,7 @@ extension ReceiptCameraViewController {
     deviceTier = arguments["deviceTier"] as? String ?? "medium"
     settingsContractVersion = arguments["settingsContractVersion"] as? String ?? "receipt_native_camera_settings_v1"
     devicePolicyLabel = arguments["devicePolicyLabel"] as? String ?? "balanced_receipt_camera"
-    reviewDepth = arguments["reviewDepth"] as? String ?? "pricesOnly"
+    reviewDepth = safeReceiptReviewDepth(arguments["reviewDepth"] as? String)
     focusMode = arguments["focusMode"] as? String ?? "continuous"
     exposureMode = arguments["exposureMode"] as? String ?? "auto"
     whiteBalanceMode = arguments["whiteBalanceMode"] as? String ?? "auto"
@@ -164,5 +164,16 @@ extension ReceiptCameraViewController {
   private func boundedFraction(_ value: Double?, fallback: CGFloat) -> CGFloat {
     guard let value, value.isFinite else { return fallback }
     return CGFloat(min(max(value, 0), 1))
+  }
+}
+
+private func safeReceiptReviewDepth(_ value: String?) -> String {
+  switch value?.trimmingCharacters(in: .whitespacesAndNewlines) {
+  case "detailedLines":
+    return "detailedLines"
+  case "pricesOnly":
+    return "pricesOnly"
+  default:
+    return "pricesOnly"
   }
 }

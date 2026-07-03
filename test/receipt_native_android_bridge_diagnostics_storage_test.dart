@@ -199,7 +199,12 @@ void main() {
         ),
       );
       expect(cameraActivity, contains('latestFrameBrightness in 150.0..238.0'));
-      expect(cameraActivity, contains('brightness in 112.0..238.0'));
+      expect(
+        cameraActivity,
+        contains(
+          'brightness in autoCaptureMinBrightness..autoCaptureMaxBrightness',
+        ),
+      );
       expect(cameraActivity, contains('"brightened_before_capture"'));
       expect(cameraActivity, contains('"dimmed_before_capture"'));
       expect(

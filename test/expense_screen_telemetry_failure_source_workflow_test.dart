@@ -370,5 +370,4 @@ void main() {
       expect(encoded, isNot(contains('/tmp')));
     },
   );
-
 }

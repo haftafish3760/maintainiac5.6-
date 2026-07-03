@@ -112,6 +112,18 @@ WorkSupplyTradePackManifest buildWorkSupplyTradePackManifest(
   DateTime? generatedAt,
 }) {
   final payloads = buildWorkSupplyTradePackChunkPayloads(option);
+  return buildWorkSupplyTradePackManifestForPayloads(
+    option,
+    payloads,
+    generatedAt: generatedAt,
+  );
+}
+
+WorkSupplyTradePackManifest buildWorkSupplyTradePackManifestForPayloads(
+  WorkSupplyTradePackOption option,
+  List<WorkSupplyTradePackChunkPayload> payloads, {
+  DateTime? generatedAt,
+}) {
   return WorkSupplyTradePackManifest(
     schemaVersion: 1,
     packId: _packIdFor(option),

@@ -140,7 +140,7 @@ reintroduced.
 
 ## Classification Standard
 
-If the suggested category is too broad, choose a more specific allowed category
+If the suggested category is too broad, choose a narrower allowed category
 from the ledger. Do not close the task as an uncategorized bug.
 TASK
   echo "Receipt regression task: $task_path"

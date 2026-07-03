@@ -281,5 +281,4 @@ void main() {
     expect(coating!.item.trade, 'Roofing');
     expect(coating.item.name, contains('5 gal Silicone Roof Coating'));
   });
-
 }

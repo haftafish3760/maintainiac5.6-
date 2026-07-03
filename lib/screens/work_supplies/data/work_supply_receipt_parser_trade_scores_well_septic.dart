@@ -9,7 +9,8 @@ int _wellSepticWaterTreatmentReceiptScore(
   var score = 0;
   if (trade != 'well septic and water treatment') return score;
   if (RegExp(
-    r'\b(well pump|jet pump|submersible pump|pressure tank|tank tee|pitless|well cap|water filter|sediment filter|softener|reverse osmosis|uv lamp|septic|effluent pump|sewage pump|drainfield|leach field|chemical feed|water test)\b',
+    r'\b(well pump|jet pump|submersible pump|pressure tank|tank tee|pitless|well cap|water filter|sediment filter|softener|reverse osmosis|uv lamp|septic|'
+    r'effluent pump|sewage pump|drainfield|leach field|chemical feed|water test)\b',
   ).hasMatch(text)) {
     score += 18;
   }

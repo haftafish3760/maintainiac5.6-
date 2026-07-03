@@ -176,8 +176,9 @@ extension _MaintenanceLogServiceSteps on _MaintenanceLogServiceScreenState {
 
   void _openItemSetup(MaintenanceRecord record) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (context) => MaintenanceItemDetailScreen(record: record),
+      appNativeRoute<void>(
+        context,
+        MaintenanceItemDetailScreen(record: record),
       ),
     );
   }

@@ -24,7 +24,10 @@ class AppGeneratedPdfArchiveService {
     final documentKind = kind ?? _kindForGeneratedPdf(document.kind);
     final savedFile = await _writePermanentPdf(document, documentKind);
     final byteSize = await _safeLength(savedFile);
-    final fileHash = await _safeHash(savedFile);
+    var fileHash = await _safeHash(savedFile);
+    if (fileHash.isEmpty) {
+      fileHash = sha256.convert(document.bytes).toString();
+    }
     final now = DateTime.now();
     final recordId = _documentId(document, now);
     final attachment = ReceiptAttachmentRecord(

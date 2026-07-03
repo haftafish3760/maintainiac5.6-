@@ -32,12 +32,13 @@ class WorkSupplyHostedCatalogExportWriter {
   }) async {
     final exportTime = generatedAt ?? DateTime.now().toUtc();
     final directory = await _createExportDirectory(exportTime);
-    final manifest = buildWorkSupplyHostedCatalogManifest(
-      items: items,
-      generatedAt: exportTime,
-    );
     final chunkPayloads = buildWorkSupplyHostedCatalogChunkPayloads(
       items: items,
+    );
+    final manifest = buildWorkSupplyHostedCatalogManifestForPayloads(
+      chunkPayloads,
+      items: items,
+      generatedAt: exportTime,
     );
     final payloadByChunkId = {
       for (final payload in chunkPayloads) payload.manifest.chunkId: payload,

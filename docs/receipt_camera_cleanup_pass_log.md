@@ -3,6 +3,102 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 589 - 16:06:06 EDT to active cleanup
+
+Scope:
+- Classified generated work-supply catalog Dart files separately in the source
+  audit instead of mixing generated data with hand-written receipt parser code.
+- Added an explicit `--include-generated-catalog-data` source-audit mode so
+  generated catalog files can still be audited intentionally.
+- Added regression coverage proving generated catalog data is skipped by
+  default and included when requested.
+- Added regression coverage proving vendored native `.symlinks` plugin sources
+  do not count against app-owned source caps.
+- Hardened Add Another Photo ordering so inserted long-receipt sections carry
+  anchor section, final section, offset, and order-policy diagnostics.
+- Extended receipt result handoff counts so inserted section metadata reaches
+  privacy-safe section-order outcomes and admin/QA summaries.
+- Added focused retake/order and source-contract regressions for inserted
+  section metadata and stale inserted-path rejection.
+- Recorded `BUG-RECEIPT-0106` and `BUG-RECEIPT-0107` under
+  `multi_photo_ordering`.
+- Archived Pass 564 out of the live cleanup log to keep the active log under the
+  project line-count cap.
+- Archived Pass 565 out of the live cleanup log after this pass grew the active
+  log past the cap.
+- Archived Pass 566 out of the live cleanup log before recording result-level
+  insert-order handoff coverage.
+
+Verification:
+- Passed focused Flutter source-audit contract regression coverage.
+- Passed focused work-supply data source audit for hand-written files.
+- Confirmed `--include-generated-catalog-data` still reports the oversized
+  generated catalog data files.
+- Passed targeted analyzer and focused Flutter tests for receipt retake/order
+  and long-receipt guidance contracts.
+- Passed focused receipt result stitch/scanner regressions for valid and
+  malformed insert-after metadata.
+- Passed the receipt QA runner after the source-audit and long-receipt ordering
+  cleanup batch.
+- Passed scoped receipt source audit and cleanup/doc size gates.
+- Passed `git diff --check`.
+
+## Pass 588 - 11:55:00 EDT to active cleanup
+
+Scope:
+- Hardened Android and iOS native camera session argument readers so receipt
+  review depth is normalized before UI labels and diagnostics can use it.
+- Added native bridge source regressions requiring safe review-depth readers on
+  both platforms.
+- Recorded `BUG-RECEIPT-0104` under `receipt_line_review_mode`.
+- Ran a broad professional QA gate and stopped on real failures instead of
+  bypassing them.
+- Hardened derived OCR-source attachment diagnostics so OCR-ready artifacts can
+  still inherit aligned original proof-photo continuation and ghost-guide
+  evidence.
+- Recorded `BUG-RECEIPT-0105` under `ocr_handoff_contract`.
+- Fixed app-wide regressions exposed by the broad suite: invoice PDF archive
+  hashes, invoice calendar filter focus, dashboard duplicate labels, iOS-native
+  navigation route guards, and archived OCR contract documentation checks.
+- Fixed low-voltage receipt parser precedence for LV bracket/mud-ring and
+  thermostat C-wire adapter receipt lines.
+- Split tools/safety parser scoring into its own part file after the source
+  audit caught an oversized parser scoring file.
+- Reused generated trade-pack payloads for export manifest and chunk writing so
+  the catalog pack QA does not build the same payload twice.
+- Split oversized receipt parser alias, fallback, and trade-scoring god-files
+  into focused part files for terms, trade families, HVAC sections, tile
+  waterproofing, and tile tools while preserving behavior.
+- Tightened the source audit to ignore third-party iOS plugin symlinks so the
+  500-line rule reports app-owned files.
+- Archived Pass 561 and Pass 562 out of the live cleanup log to keep the active
+  log under
+  the project line-count cap.
+
+Verification:
+- Fixed a stale iOS source assertion so it matches the current safer
+  `doubleArgument` zoom parsing contract.
+- Passed targeted Dart format/analyzer for Android and iOS native bridge source
+  coverage.
+- Passed focused Flutter Android and iOS native bridge regressions.
+- Passed targeted receipt-camera OCR-source/continuation regressions and source
+  audit contract for split receipt OCR warning coverage.
+- Passed targeted app-wide regression batch:
+  `test/widget_test.dart`, `test/invoices_home_screen_test.dart`,
+  `test/invoice_pdf_preview_action_tracking_test.dart`,
+  `test/ios_navigation_gesture_routes_test.dart`, and
+  `test/expense_command_center_ocr_contract_doc_test.dart`.
+- Passed work-supply parser/export regressions:
+  `test/work_supply_low_voltage_tools_receipt_parser_test.dart` and
+  `test/work_supply_catalog_pack_payload_test.dart`.
+- Passed focused parser cleanup regressions for work-supply catalog aliases,
+  electrical/HVAC/low-voltage, large trade matrix, and tile parser coverage.
+- Passed `dart analyze lib/screens/work_supplies/data/work_supply_receipt_parser.dart`.
+- Passed `git diff --check`.
+- Focused work-supply data source audit now shows no hand-written receipt parser
+  scoring files over the 500-line cap; remaining failures are generated catalog
+  data files that need a separate generated-data strategy.
+
 ## Pass 587 - 11:45:00 EDT to 11:49:40 EDT
 
 Scope:
@@ -391,105 +487,3 @@ Verification:
 - Passed focused Flutter regression
   `test/receipt_native_capture_recovery_index_test.dart --plain-name "recovery
   index restore normalizes stored identity and paths"`.
-
-## Pass 566 - 08:04:10 EDT to 08:05:55 EDT
-
-Scope:
-- Hardened native capture recovery manifests so padded/duplicate staged photo
-  paths restore as unique ordered receipt sections.
-- Hardened attachment-only recovery fallback paths so padded attachment paths do
-  not inflate missing-photo counts or resume labels.
-- Added regression coverage for staged and attachment fallback path normalization.
-- Recorded `BUG-RECEIPT-0082` under `multi_photo_ordering`.
-- Archived Pass 516 out of the live cleanup log.
-
-Verification:
-- Passed targeted Dart format/analyzer for native recovery records and focused
-  recovery-record regression coverage.
-- Passed focused Flutter regression
-  `test/receipt_native_capture_recovery_record_test.dart --plain-name "recovery
-  manifest normalizes staged and attachment photo paths"`.
-
-## Pass 565 - 08:02:25 EDT to 08:04:01 EDT
-
-Scope:
-- Hardened PDF receipt import duplicate checks so padded existing hashes or
-  paths still match the newly staged PDF proof.
-- Added source regression coverage for normalized current-form PDF duplicate
-  hash and path comparisons.
-- Recorded `BUG-RECEIPT-0081` under `source_preservation`.
-- Archived Pass 515 out of the live cleanup log.
-
-Verification:
-- Passed targeted Dart format/analyzer for PDF import actions and focused PDF
-  import regression coverage.
-- Passed focused Flutter regression
-  `test/receipt_pdf_import_copy_test.dart --plain-name "PDF import copy keeps
-  proof-only and app-fill choices clear"`.
-
-## Pass 564 - 07:54:05 EDT to 08:02:17 EDT
-
-Scope:
-- Hardened restored app-document kind names so padded maintenance/job receipt
-  document metadata does not downgrade into the generic document bucket.
-- Added regression coverage for maintenance receipt document routing and stored
-  PDF attachment restore after padded kind metadata.
-- Recorded `BUG-RECEIPT-0080` under `source_preservation`.
-
-Verification:
-- Passed targeted Dart format/analyzer for app document models and document
-  store regression coverage.
-- Passed focused Flutter regression
-  `test/app_document_store_test.dart --plain-name "document records trim stored
-  kind names before restore"`.
-
-## Pass 563 - 07:45:00 EDT to 07:53:53 EDT
-
-Scope:
-- Hardened restored receipt-proof media asset metadata so padded purpose and
-  backup-policy values still route receipt proofs into receipt cloud manifests.
-- Added safe byte-size parsing so malformed media metadata cannot crash restore
-  or silently block receipt proof backup eligibility.
-- Added regression coverage for restored receipt-proof backup manifest entries.
-- Recorded `BUG-RECEIPT-0079` under `source_preservation`.
-- Archived Pass 514 out of the live cleanup log.
-
-Verification:
-- Passed targeted Dart format/analyzer for media asset restore and cloud backup
-  manifest regression coverage.
-- Passed focused Flutter regression
-  `test/cloud_backup_manifest_test.dart --plain-name "receipt proof media
-  restore trims backup metadata for cloud manifests"`.
-
-## Pass 562 - 07:37:10 EDT to 07:44:38 EDT
-
-Scope:
-- Hardened duplicate receipt status and confidence restore helpers so padded
-  stored enum values do not weaken override or exact-file-match state.
-- Added regression coverage for restored override-saved duplicate review state
-  and exact proof-match candidate confidence.
-- Recorded `BUG-RECEIPT-0078` under `source_preservation`.
-- Archived Pass 513 out of the live cleanup log.
-
-Verification:
-- Passed targeted Dart format/analyzer for duplicate receipt models and focused
-  duplicate detection regression coverage.
-- Passed focused Flutter regression
-  `test/expense_duplicate_detection_test.dart --plain-name "duplicate receipt
-  restore trims saved status and confidence names"`.
-
-## Pass 561 - 07:30:00 EDT to 07:36:56 EDT
-
-Scope:
-- Hardened restored receipt line business-use names so whitespace-padded stored
-  values do not downgrade personal or split receipt lines to business.
-- Added regression coverage for split allocation math, client-proof redaction,
-  and receipt proof anchors after padded storage restore.
-- Recorded `BUG-RECEIPT-0077` under `business_personal_split`.
-
-Verification:
-- Passed targeted Dart format/analyzer for the receipt line model and focused
-  line-record regression coverage.
-- Passed focused Flutter regression
-  `test/expense_receipt_line_record_test.dart --plain-name "receipt line
-  records trim stored business use names"`.

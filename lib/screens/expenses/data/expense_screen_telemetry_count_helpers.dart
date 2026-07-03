@@ -1,6 +1,5 @@
 part of 'expense_screen_telemetry.dart';
 
-
 String _safeToken(String value, {String fallback = 'unknown'}) {
   final safe = value
       .trim()

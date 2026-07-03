@@ -36,6 +36,16 @@ int? _diagnosticPositiveInt(Object? value) {
   return parsed != null && parsed > 0 ? parsed : null;
 }
 
+int? _diagnosticZeroOrPositiveInt(Object? value) {
+  if (value is num) {
+    if (!value.isFinite) return null;
+    final intValue = value.toInt();
+    return intValue >= 0 ? intValue : null;
+  }
+  final parsed = int.tryParse(value?.toString().trim() ?? '');
+  return parsed != null && parsed >= 0 ? parsed : null;
+}
+
 bool? _diagnosticBool(Object? value) {
   if (value is bool) return value;
   final normalized = value?.toString().trim().toLowerCase();

@@ -68,7 +68,14 @@ final hvacGeneratedServiceTruckAirflowCatalogCategory = _category(
           baseName: 'HVAC Register Boot',
           unit: 'each',
           variants: [
-            for (final face in ['2 x 10', '2 x 12', '4 x 10', '4 x 12', '6 x 10', '6 x 12'])
+            for (final face in [
+              '2 x 10',
+              '2 x 12',
+              '4 x 10',
+              '4 x 12',
+              '6 x 10',
+              '6 x 12',
+            ])
               for (final round in ['4 in', '5 in', '6 in', '7 in', '8 in'])
                 '$face x $round Straight Register Boot',
             for (final face in ['4 x 10', '4 x 12', '6 x 10', '6 x 12'])
@@ -99,10 +106,24 @@ final hvacGeneratedServiceTruckAirflowCatalogCategory = _category(
           baseName: 'HVAC Air Distribution Face',
           unit: 'each',
           variants: [
-            for (final size in ['2 x 10', '2 x 12', '4 x 10', '4 x 12', '6 x 10', '6 x 12'])
+            for (final size in [
+              '2 x 10',
+              '2 x 12',
+              '4 x 10',
+              '4 x 12',
+              '6 x 10',
+              '6 x 12',
+            ])
               for (final finish in ['White', 'Brown', 'Brushed Nickel'])
                 '$size $finish Floor Register',
-            for (final size in ['10 x 10', '12 x 12', '14 x 20', '16 x 20', '20 x 20', '20 x 25'])
+            for (final size in [
+              '10 x 10',
+              '12 x 12',
+              '14 x 20',
+              '16 x 20',
+              '20 x 20',
+              '20 x 25',
+            ])
               for (final item in [
                 'Return Air Grille',
                 'Return Filter Grille',

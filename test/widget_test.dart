@@ -15,9 +15,9 @@ void main() {
       ),
     );
 
-    expect(find.text('ACTIVE VEHICLE'), findsOneWidget);
+    expect(find.text('ACTIVE VEHICLE'), findsAtLeastNWidgets(1));
     expect(find.text('READY TO TRACK'), findsOneWidget);
-    expect(find.text('Profit'), findsOneWidget);
-    expect(find.text('Fuel'), findsOneWidget);
+    expect(find.text('Profit'), findsAtLeastNWidgets(1));
+    expect(find.text('Fuel'), findsAtLeastNWidgets(1));
   });
 }

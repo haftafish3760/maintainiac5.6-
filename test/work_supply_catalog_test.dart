@@ -271,10 +271,10 @@ void main() {
       'Electrical',
       'HVAC',
       'Carpentry',
-      'Drywall',
-      'Painting',
-      'Roofing',
-      'Tile',
+      'Cabinets and Countertops',
+      'Windows and Doors',
+      'Garage Doors and Openers',
+      'Appliance Installation and Repair',
     ]);
     expect(workSupplyTrades.map((trade) => trade.name), contains('Drywall'));
     expect(workSupplyTrades.map((trade) => trade.name), contains('Painting'));

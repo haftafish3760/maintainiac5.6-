@@ -35,15 +35,15 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('autoCaptureMaxMotionScore = intent.getDoubleExtra('),
+      contains('autoCaptureMaxMotionScore = finiteDoubleExtra('),
     );
     expect(
       cameraActivity,
-      contains('autoCaptureMinBrightness = intent.getDoubleExtra('),
+      contains('autoCaptureMinBrightness = finiteDoubleExtra('),
     );
     expect(
       cameraActivity,
-      contains('autoCaptureMaxBrightness = intent.getDoubleExtra('),
+      contains('autoCaptureMaxBrightness = finiteDoubleExtra('),
     );
     expect(
       cameraActivity,
@@ -93,7 +93,9 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('sessionMaxZoom = intent.getDoubleExtra("maxZoom", 1.0)'),
+      contains(
+        'sessionMaxZoom = finiteDoubleExtra("maxZoom", 1.0).coerceAtLeast(sessionMinZoom)',
+      ),
     );
     expect(
       cameraActivity,

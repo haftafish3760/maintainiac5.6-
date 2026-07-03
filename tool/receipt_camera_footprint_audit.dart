@@ -26,15 +26,26 @@ const _androidArtifactPaths = <String>[
   'build/app/outputs/apk/release/app-x86_64-release.apk',
 ];
 
-const _iosArtifactPaths = <String>['build/ios/Runner-size-probe.ipa', 'build/ios/maintainiac-size-probe.ipa'];
+const _iosArtifactPaths = <String>[
+  'build/ios/Runner-size-probe.ipa',
+  'build/ios/maintainiac-size-probe.ipa',
+];
 
 void main(List<String> args) {
   final jsonMode = args.contains('--json');
   final groups = <_FootprintGroup>[
-    ..._dartGroups.entries.map((entry) => _FootprintGroup(name: entry.key, files: _dartFilesUnder(entry.value).toList())),
+    ..._dartGroups.entries.map(
+      (entry) => _FootprintGroup(
+        name: entry.key,
+        files: _dartFilesUnder(entry.value).toList(),
+      ),
+    ),
     _FootprintGroup(
       name: 'android_native_receipt_camera',
-      files: _nativeFilesUnder('android/app/src/main/kotlin/com/maintainiac', extension: '.kt').toList(),
+      files: _nativeFilesUnder(
+        'android/app/src/main/kotlin/com/maintainiac',
+        extension: '.kt',
+      ).toList(),
     ),
     _FootprintGroup(
       name: 'ios_native_receipt_camera',
@@ -48,7 +59,10 @@ void main(List<String> args) {
       allFiles[file.path] = file;
     }
   }
-  final totalBytes = allFiles.values.fold<int>(0, (total, file) => total + file.lengthSync());
+  final totalBytes = allFiles.values.fold<int>(
+    0,
+    (total, file) => total + file.lengthSync(),
+  );
   final androidArtifacts = _existingFiles(_androidArtifactPaths);
   final iosArtifacts = _existingFiles(_iosArtifactPaths);
 
@@ -56,39 +70,79 @@ void main(List<String> args) {
     stdout.writeln(
       const JsonEncoder.withIndent('  ').convert({
         'scope': 'receipt_camera_ocr_source',
-        'excludes': ['tests', 'docs', 'pdf_receipt_import_viewer', 'generated_inventory_catalog_data', 'compiled_packaging_overhead_from_source_total'],
+        'excludes': [
+          'tests',
+          'docs',
+          'pdf_receipt_import_viewer',
+          'generated_inventory_catalog_data',
+          'compiled_packaging_overhead_from_source_total',
+        ],
         'excludedPathFragments': _excludedDartPathFragments,
         'source': {
           'totalBytes': totalBytes,
           'totalLabel': _formatBytes(totalBytes),
-          'thresholdStatus': _thresholdStatus(totalBytes, reviewBytes: _sourceReviewBytes, blockBytes: _sourceBlockBytes),
+          'thresholdStatus': _thresholdStatus(
+            totalBytes,
+            reviewBytes: _sourceReviewBytes,
+            blockBytes: _sourceBlockBytes,
+          ),
           'reviewThresholdBytes': _sourceReviewBytes,
           'blockThresholdBytes': _sourceBlockBytes,
           'fileCount': allFiles.length,
           'groups': {
-            for (final group in groups) group.name: {'bytes': group.totalBytes, 'label': _formatBytes(group.totalBytes), 'fileCount': group.files.length},
+            for (final group in groups)
+              group.name: {
+                'bytes': group.totalBytes,
+                'label': _formatBytes(group.totalBytes),
+                'fileCount': group.files.length,
+              },
           },
         },
         'artifacts': {
           'android': _artifactMaps(androidArtifacts),
           'ios': _artifactMaps(iosArtifacts),
-          'androidInstallCandidateBlockBytes': _androidInstallCandidateBlockBytes,
+          'androidInstallCandidateBlockBytes':
+              _androidInstallCandidateBlockBytes,
           'iosInstallCandidateBlockBytes': _iosInstallCandidateBlockBytes,
-          'androidInstallCandidateStatus': _artifactThresholdMaps(androidArtifacts, blockBytes: _androidInstallCandidateBlockBytes),
-          'iosInstallCandidateStatus': _artifactThresholdMaps(iosArtifacts, blockBytes: _iosInstallCandidateBlockBytes),
+          'androidInstallCandidateStatus': _artifactThresholdMaps(
+            androidArtifacts,
+            blockBytes: _androidInstallCandidateBlockBytes,
+          ),
+          'iosInstallCandidateStatus': _artifactThresholdMaps(
+            iosArtifacts,
+            blockBytes: _iosInstallCandidateBlockBytes,
+          ),
         },
       }),
     );
   } else {
-    _writeHumanReport(groups: groups, totalBytes: totalBytes, totalFileCount: allFiles.length, androidArtifacts: androidArtifacts, iosArtifacts: iosArtifacts);
+    _writeHumanReport(
+      groups: groups,
+      totalBytes: totalBytes,
+      totalFileCount: allFiles.length,
+      androidArtifacts: androidArtifacts,
+      iosArtifacts: iosArtifacts,
+    );
   }
 
   _applySourceThresholds(totalBytes);
-  _applyArtifactThresholds(androidArtifacts, blockBytes: _androidInstallCandidateBlockBytes);
-  _applyArtifactThresholds(iosArtifacts, blockBytes: _iosInstallCandidateBlockBytes);
+  _applyArtifactThresholds(
+    androidArtifacts,
+    blockBytes: _androidInstallCandidateBlockBytes,
+  );
+  _applyArtifactThresholds(
+    iosArtifacts,
+    blockBytes: _iosInstallCandidateBlockBytes,
+  );
 }
 
-void _writeHumanReport({required List<_FootprintGroup> groups, required int totalBytes, required int totalFileCount, required List<File> androidArtifacts, required List<File> iosArtifacts}) {
+void _writeHumanReport({
+  required List<_FootprintGroup> groups,
+  required int totalBytes,
+  required int totalFileCount,
+  required List<File> androidArtifacts,
+  required List<File> iosArtifacts,
+}) {
   stdout.writeln('Receipt camera/OCR source footprint audit');
   stdout.writeln(
     'Scope excludes tests, docs, generated inventory/catalog data, and final '
@@ -146,7 +200,9 @@ void _writeAndroidArtifactSummary(List<File> artifacts) {
     return;
   }
 
-  stdout.writeln('android_build_artifacts: ${artifacts.length} existing APK/AAB files found');
+  stdout.writeln(
+    'android_build_artifacts: ${artifacts.length} existing APK/AAB files found',
+  );
   for (final file in artifacts) {
     stdout.writeln('artifact ${file.path}: ${_formatBytes(file.lengthSync())}');
   }
@@ -161,28 +217,49 @@ void _writeIosArtifactSummary(List<File> artifacts) {
     return;
   }
 
-  stdout.writeln('ios_build_artifacts: ${artifacts.length} existing IPA files found');
+  stdout.writeln(
+    'ios_build_artifacts: ${artifacts.length} existing IPA files found',
+  );
   for (final file in artifacts) {
     stdout.writeln('artifact ${file.path}: ${_formatBytes(file.lengthSync())}');
   }
 }
 
-List<File> _existingFiles(List<String> paths) => paths.map(File.new).where((file) => file.existsSync()).toList();
+List<File> _existingFiles(List<String> paths) =>
+    paths.map(File.new).where((file) => file.existsSync()).toList();
 
 List<Map<String, Object>> _artifactMaps(List<File> artifacts) {
   return [
-    for (final file in artifacts) {'path': file.path, 'bytes': file.lengthSync(), 'label': _formatBytes(file.lengthSync())},
+    for (final file in artifacts)
+      {
+        'path': file.path,
+        'bytes': file.lengthSync(),
+        'label': _formatBytes(file.lengthSync()),
+      },
   ];
 }
 
-List<Map<String, Object>> _artifactThresholdMaps(List<File> artifacts, {required int blockBytes}) {
+List<Map<String, Object>> _artifactThresholdMaps(
+  List<File> artifacts, {
+  required int blockBytes,
+}) {
   return [
     for (final file in artifacts)
-      if (_isInstallCandidateArtifact(file.path)) {'path': file.path, 'bytes': file.lengthSync(), 'blockThresholdBytes': blockBytes, 'status': file.lengthSync() >= blockBytes ? 'block' : 'ok'},
+      if (_isInstallCandidateArtifact(file.path))
+        {
+          'path': file.path,
+          'bytes': file.lengthSync(),
+          'blockThresholdBytes': blockBytes,
+          'status': file.lengthSync() >= blockBytes ? 'block' : 'ok',
+        },
   ];
 }
 
-String _thresholdStatus(int bytes, {required int reviewBytes, required int blockBytes}) {
+String _thresholdStatus(
+  int bytes, {
+  required int reviewBytes,
+  required int blockBytes,
+}) {
   if (bytes >= blockBytes) return 'block';
   if (bytes >= reviewBytes) return 'review';
   return 'ok';
@@ -192,7 +269,9 @@ bool _isInstallCandidateArtifact(String path) {
   if (path.contains('/debug/')) return false;
   if (path.endsWith('app-debug.apk')) return false;
   if (path.endsWith('app-release.apk')) return false;
-  return path.endsWith('-release.apk') || path.endsWith('.aab') || path.endsWith('.ipa');
+  return path.endsWith('-release.apk') ||
+      path.endsWith('.aab') ||
+      path.endsWith('.ipa');
 }
 
 Iterable<File> _dartFilesUnder(List<String> roots) sync* {
@@ -208,7 +287,10 @@ Iterable<File> _dartFilesUnder(List<String> roots) sync* {
   }
 }
 
-Iterable<File> _nativeFilesUnder(String rootPath, {required String extension}) sync* {
+Iterable<File> _nativeFilesUnder(
+  String rootPath, {
+  required String extension,
+}) sync* {
   final root = Directory(rootPath);
   if (!root.existsSync()) return;
   for (final entity in root.listSync(recursive: true)) {
@@ -243,5 +325,6 @@ class _FootprintGroup {
   final String name;
   final List<File> files;
 
-  int get totalBytes => files.fold<int>(0, (total, file) => total + file.lengthSync());
+  int get totalBytes =>
+      files.fold<int>(0, (total, file) => total + file.lengthSync());
 }

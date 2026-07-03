@@ -366,6 +366,71 @@ void main() {
     );
   });
 
+  test('insert-after section metadata preserves order without leaking paths', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const [
+        '/tmp/top.jpg',
+        '/tmp/middle.jpg',
+        '/tmp/middle-extra.jpg',
+      ],
+      ocrSourcePhotoPaths: const [
+        '/tmp/top-ocr.jpg',
+        '/tmp/middle-ocr.jpg',
+        '/tmp/middle-extra-ocr.jpg',
+      ],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.fallback(
+        inputPaths: [
+          '/tmp/top-ocr.jpg',
+          '/tmp/middle-ocr.jpg',
+          '/tmp/middle-extra-ocr.jpg',
+        ],
+        warning: 'Review inserted section order.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/middle-extra.jpg': {
+          'receiptInsertAfterAnchorSectionNumber': 2,
+          'receiptInsertAfterOffset': 0,
+          'receiptInsertFinalSectionNumber': 3,
+          'receiptInsertPreservedAnchorSlot': true,
+          'receiptInsertOrderPolicy':
+              'insert_new_sections_after_selected_anchor',
+          'receiptLineText': 'private inserted line should not leak',
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderOutcome, 'insert_order_preserved');
+    expect(result.receiptSectionOrderCounts['insert_anchor_section_2'], 1);
+    expect(result.receiptSectionOrderCounts['insert_final_section_3'], 1);
+    expect(result.receiptSectionOrderCounts['insert_offset_0'], 1);
+    expect(
+      result
+          .receiptSectionOrderCounts['insert_policy_insert_new_sections_after_selected_anchor'],
+      1,
+    );
+    expect(result.receiptSectionOrderCounts['insert_preserved_anchor_slot'], 1);
+    expect(
+      result
+          .receiptReaderHandoffCounts['receipt_section_order_insert_preserved_anchor_slot'],
+      1,
+    );
+    expect(
+      result.receiptSectionOrderEvidenceLabel,
+      'section_order=insert_order_preserved;'
+      'multi_section_photos=0;ghost_unknown;insert_preserved',
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata.toString(),
+      isNot(contains('/tmp/')),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata.toString(),
+      isNot(contains('private inserted line')),
+    );
+  });
+
   test('malformed retake section metadata is counted without leaking paths', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/top.jpg', '/tmp/middle-new.jpg'],
@@ -480,6 +545,49 @@ void main() {
     expect(
       attachments.single.riskFlags,
       contains('ocr_source_original_quality_guard_review'),
+    );
+  });
+
+  test('malformed insert-after section metadata is counted safely', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/top.jpg', '/tmp/middle-extra.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.fallback(
+        inputPaths: ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
+        warning: 'Review inserted section order.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/middle-extra.jpg': {
+          'receiptInsertAfterAnchorSectionNumber': 3,
+          'receiptInsertFinalSectionNumber': 2,
+          'receiptInsertPreservedAnchorSlot': true,
+          'receiptInsertOrderPolicy':
+              'insert_new_sections_after_selected_anchor',
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderOutcome, 'insert_order_invalid');
+    expect(
+      result.receiptSectionOrderCounts['insert_invalid_final_not_after_anchor'],
+      1,
+    );
+    expect(
+      result
+          .receiptSectionOrderCounts['insert_invalid_preserved_anchor_overlap'],
+      1,
+    );
+    expect(
+      result.receiptSectionOrderEvidenceLabel,
+      'section_order=insert_order_invalid;'
+      'multi_section_photos=0;ghost_unknown;insert_invalid',
+    );
+    expect(
+      result
+          .receiptReaderHandoffCounts['receipt_section_order_insert_invalid_final_not_after_anchor'],
+      1,
     );
   });
 }

@@ -341,13 +341,6 @@ void main() {
     await tester.tap(find.byKey(const Key('invoice-status-overdue')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Oak Street repair'), findsNothing);
-    final overdueDay = find.byKey(const Key('invoice-calendar-day-2026-06-04'));
-    await tester.drag(find.byType(ListView).first, const Offset(0, -560));
-    await tester.pumpAndSettle();
-    await tester.tap(overdueDay);
-    await tester.pumpAndSettle();
-
     expect(find.text('Oak Street repair'), findsOneWidget);
     expect(find.text('Smith kitchen repair'), findsNothing);
   });

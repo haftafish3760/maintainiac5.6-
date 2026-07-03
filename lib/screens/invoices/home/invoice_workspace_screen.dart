@@ -58,7 +58,7 @@ class _InvoiceWorkspaceScreenState extends State<InvoiceWorkspaceScreen> {
             InvoiceStatusRail(
               metrics: invoiceMetricsFor(widget.mode),
               selected: _filter,
-              onSelected: (filter) => setState(() => _filter = filter),
+              onSelected: _selectFilter,
             ),
             const SizedBox(height: 8),
           ],
@@ -81,6 +81,22 @@ class _InvoiceWorkspaceScreenState extends State<InvoiceWorkspaceScreen> {
     return entry.day.year == _selectedDay.year &&
         entry.day.month == _selectedDay.month &&
         entry.day.day == _selectedDay.day;
+  }
+
+  void _selectFilter(InvoiceStatusFilter filter) {
+    final filtered = filter == InvoiceStatusFilter.all
+        ? invoiceEntriesFor(widget.mode)
+        : invoiceEntriesFor(
+            widget.mode,
+          ).where((entry) => entry.filter == filter).toList();
+    setState(() {
+      _filter = filter;
+      if (filtered.isNotEmpty) {
+        _selectedDay = filtered
+            .map((entry) => entry.day)
+            .reduce((latest, day) => day.isAfter(latest) ? day : latest);
+      }
+    });
   }
 
   void _openDay(DateTime day) {

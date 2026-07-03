@@ -158,16 +158,20 @@ WorkSupplyHostedCatalogManifest buildWorkSupplyHostedCatalogManifest({
   Iterable<WorkSupplyItem>? items,
   DateTime? generatedAt,
 }) {
+  final payloads = buildWorkSupplyHostedCatalogChunkPayloads(items: items);
+  return buildWorkSupplyHostedCatalogManifestForPayloads(
+    payloads,
+    items: items,
+    generatedAt: generatedAt,
+  );
+}
+
+WorkSupplyHostedCatalogManifest buildWorkSupplyHostedCatalogManifestForPayloads(
+  List<WorkSupplyHostedCatalogChunkPayload> payloads, {
+  Iterable<WorkSupplyItem>? items,
+  DateTime? generatedAt,
+}) {
   final audit = auditWorkSupplyCatalog(items: items);
-  final catalogItems = (items ?? workSupplyCatalogItems).toList();
-  final chunkItemsById = _chunkItemsById(catalogItems, audit.deliveryPlan);
-  final chunks = [
-    for (final plan in audit.deliveryPlan.chunks)
-      _chunkManifestFor(
-        plan,
-        chunkItemsById[plan.chunkId] ?? const <WorkSupplyItem>[],
-      ),
-  ];
 
   return WorkSupplyHostedCatalogManifest(
     schemaVersion: 1,
@@ -183,7 +187,9 @@ WorkSupplyHostedCatalogManifest buildWorkSupplyHostedCatalogManifest({
     firestoreItemDocumentReadCount:
         audit.deliveryPlan.firestoreItemDocumentReadCount,
     estimatedCompressedBytes: audit.deliveryPlan.estimatedCompressedBytes,
-    chunks: List.unmodifiable(chunks),
+    chunks: List.unmodifiable([
+      for (final payload in payloads) payload.manifest,
+    ]),
   );
 }
 
@@ -221,13 +227,6 @@ Map<String, List<WorkSupplyItem>> _chunkItemsById(
     output[plan.chunkId] = items.sublist(start, end);
   }
   return output;
-}
-
-WorkSupplyHostedCatalogChunkManifest _chunkManifestFor(
-  WorkSupplyCatalogChunkPlan plan,
-  List<WorkSupplyItem> items,
-) {
-  return _chunkPayloadForPlan(plan, items).manifest;
 }
 
 WorkSupplyHostedCatalogChunkPayload _chunkPayloadForPlan(

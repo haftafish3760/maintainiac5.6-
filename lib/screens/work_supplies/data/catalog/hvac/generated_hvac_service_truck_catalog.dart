@@ -39,7 +39,13 @@ final hvacGeneratedServiceTruckCatalogCategory = _category(
           unit: 'each',
           variants: [
             for (final pole in ['1 Pole', '2 Pole'])
-              for (final amp in ['25 Amp', '30 Amp', '40 Amp', '50 Amp', '60 Amp'])
+              for (final amp in [
+                '25 Amp',
+                '30 Amp',
+                '40 Amp',
+                '50 Amp',
+                '60 Amp',
+              ])
                 '$pole $amp 24V Coil Contactor',
             for (final coil in ['24V', '120V', '208/230V'])
               for (final item in [
@@ -54,7 +60,14 @@ final hvacGeneratedServiceTruckCatalogCategory = _category(
             for (final amp in ['3 Amp', '5 Amp'])
               for (final count in ['5 Pack', '10 Pack'])
                 '$amp Low Voltage Blade Fuse $count',
-            for (final amp in ['30 Amp', '35 Amp', '40 Amp', '45 Amp', '50 Amp', '60 Amp'])
+            for (final amp in [
+              '30 Amp',
+              '35 Amp',
+              '40 Amp',
+              '45 Amp',
+              '50 Amp',
+              '60 Amp',
+            ])
               '$amp Time Delay Cartridge Fuse Pair',
           ],
           aliases: const [
@@ -87,7 +100,14 @@ final hvacGeneratedServiceTruckCatalogCategory = _category(
               'Integrated Furnace Control Fuse Pack',
             ])
               item,
-            for (final wc in ['.20 WC', '.30 WC', '.40 WC', '.50 WC', '.60 WC', '.70 WC'])
+            for (final wc in [
+              '.20 WC',
+              '.30 WC',
+              '.40 WC',
+              '.50 WC',
+              '.60 WC',
+              '.70 WC',
+            ])
               for (final port in ['Single Port', 'Dual Port'])
                 '$port $wc Pressure Switch',
             for (final item in [
@@ -154,7 +174,14 @@ final hvacGeneratedServiceTruckCatalogCategory = _category(
           baseName: 'HVAC Motor Service Part',
           unit: 'each',
           variants: [
-            for (final hp in ['1/6 HP', '1/5 HP', '1/4 HP', '1/3 HP', '1/2 HP', '3/4 HP'])
+            for (final hp in [
+              '1/6 HP',
+              '1/5 HP',
+              '1/4 HP',
+              '1/3 HP',
+              '1/2 HP',
+              '3/4 HP',
+            ])
               for (final rpm in ['825 RPM', '1075 RPM', '1625 RPM'])
                 '$hp $rpm 208/230V Condenser Fan Motor',
             for (final hp in ['1/4 HP', '1/3 HP', '1/2 HP', '3/4 HP', '1 HP'])
@@ -188,7 +215,20 @@ final hvacGeneratedServiceTruckCatalogCategory = _category(
           baseName: 'Blower Drive Service Part',
           unit: 'each',
           variants: [
-            for (final belt in ['A24', 'A25', 'A26', 'A27', 'A28', 'A29', 'A30', 'A31', 'A32', 'A33', 'A34', 'A35'])
+            for (final belt in [
+              'A24',
+              'A25',
+              'A26',
+              'A27',
+              'A28',
+              'A29',
+              'A30',
+              'A31',
+              'A32',
+              'A33',
+              'A34',
+              'A35',
+            ])
               '$belt V Belt',
             for (final bore in ['1/2 in', '5/8 in', '3/4 in', '1 in'])
               '$bore Pillow Block Bearing',
@@ -226,7 +266,14 @@ final hvacGeneratedServiceTruckCatalogCategory = _category(
                 '1/4 in Access Tee',
               ])
                 '$count $item',
-            for (final size in ['1/4 in', '3/8 in', '1/2 in', '5/8 in', '3/4 in', '7/8 in'])
+            for (final size in [
+              '1/4 in',
+              '3/8 in',
+              '1/2 in',
+              '5/8 in',
+              '3/4 in',
+              '7/8 in',
+            ])
               for (final item in [
                 'Copper Refrigerant Coupling',
                 'Copper Refrigerant Elbow',
@@ -339,7 +386,14 @@ final hvacGeneratedServiceTruckCatalogCategory = _category(
           variants: [
             for (final watt in ['16W', '24W', '36W'])
               '$watt UV Lamp Replacement',
-            for (final size in ['10 x 20 x 1', '14 x 20 x 1', '16 x 20 x 1', '16 x 25 x 1', '20 x 20 x 1', '20 x 25 x 1'])
+            for (final size in [
+              '10 x 20 x 1',
+              '14 x 20 x 1',
+              '16 x 20 x 1',
+              '16 x 25 x 1',
+              '20 x 20 x 1',
+              '20 x 25 x 1',
+            ])
               for (final merv in ['MERV 8', 'MERV 11', 'MERV 13'])
                 '$size $merv Pleated Filter 12 Pack',
             for (final item in [

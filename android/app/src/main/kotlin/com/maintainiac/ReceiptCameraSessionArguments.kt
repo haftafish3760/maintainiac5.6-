@@ -15,7 +15,7 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     settingsContractVersion = intent.getStringExtra("settingsContractVersion")
         ?: "receipt_native_camera_settings_v1"
     devicePolicyLabel = intent.getStringExtra("devicePolicyLabel") ?: "balanced_receipt_camera"
-    reviewDepth = intent.getStringExtra("reviewDepth") ?: "pricesOnly"
+    reviewDepth = safeReceiptReviewDepth(intent.getStringExtra("reviewDepth"))
     focusMode = intent.getStringExtra("focusMode") ?: "continuous"
     exposureMode = intent.getStringExtra("exposureMode") ?: "auto"
     whiteBalanceMode = intent.getStringExtra("whiteBalanceMode") ?: "auto"
@@ -141,6 +141,14 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
         intent.getDoubleExtra("previousSectionGhostOpacity", previousSectionGhostOpacity),
         previousSectionGhostOpacity,
     )
+}
+
+private fun safeReceiptReviewDepth(value: String?): String {
+    return when (value?.trim()) {
+        "detailedLines" -> "detailedLines"
+        "pricesOnly" -> "pricesOnly"
+        else -> "pricesOnly"
+    }
 }
 
 internal fun ReceiptCameraActivity.finiteDoubleExtra(key: String, fallback: Double): Double {

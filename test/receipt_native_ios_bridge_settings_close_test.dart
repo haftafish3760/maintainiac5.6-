@@ -84,7 +84,9 @@ void main() {
       );
       expect(
         cameraController,
-        contains('sessionMaxZoom = arguments["maxZoom"] as? Double ?? 1.0'),
+        contains(
+          'sessionMaxZoom = max(doubleArgument("maxZoom", fallback: 1.0), sessionMinZoom)',
+        ),
       );
       expect(
         cameraController,
@@ -303,7 +305,12 @@ void main() {
         contains('Receipt details style: detailed lines'),
       );
       expect(cameraController, contains('func setReceiptReviewStyle('));
+      expect(cameraController, contains('safeReceiptReviewDepth'));
       expect(cameraController, contains('reviewDepth = value'));
+      expect(
+        cameraController,
+        contains('reviewDepth = safeReceiptReviewDepth('),
+      );
       expect(
         cameraController,
         contains(

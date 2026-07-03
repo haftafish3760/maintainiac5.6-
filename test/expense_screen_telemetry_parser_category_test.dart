@@ -260,5 +260,4 @@ void main() {
       expectExpenseParserCategorySummaryTelemetry(snapshot, map, encoded);
     },
   );
-
 }

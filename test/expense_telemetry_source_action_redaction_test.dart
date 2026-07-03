@@ -283,5 +283,4 @@ void main() {
     expect(serialized, isNot(contains('3_24')));
     expect(serialized, isNot(contains('998877')));
   });
-
 }

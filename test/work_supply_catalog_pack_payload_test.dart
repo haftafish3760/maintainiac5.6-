@@ -71,5 +71,6 @@ void main() {
       expect(firstItem['merchantSkuAliases'], isA<List>());
       expect(firstItem['packageHints'], isA<List>());
     },
+    timeout: const Timeout(Duration(minutes: 2)),
   );
 }

@@ -144,6 +144,8 @@ void main() {
       );
       expect(cameraActivity, contains('"pricesOnly" to "Prices only"'));
       expect(cameraActivity, contains('"detailedLines" to "Detailed lines"'));
+      expect(cameraActivity, contains('safeReceiptReviewDepth'));
+      expect(cameraActivity, contains('reviewDepth = safeReceiptReviewDepth('));
       expect(cameraActivity, contains('Save-space proof size'));
       expect(
         cameraActivity,

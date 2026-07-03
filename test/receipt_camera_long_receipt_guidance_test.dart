@@ -124,6 +124,19 @@ void main() {
       sources.captureActions,
       contains('captureDiagnosticsForReplacementPaths'),
     );
+    expect(
+      sources.captureActions,
+      contains('captureDiagnosticsForInsertedPhotoPaths'),
+    );
+    expect(sources.captureActions, contains('_mergeOrderCaptureDiagnostics'));
+    expect(
+      sources.captureActions,
+      contains('for (final entry in pickedDiagnostics.entries)'),
+    );
+    expect(
+      sources.captureActions,
+      contains('...?pickedDiagnostics[entry.key]'),
+    );
     expect(sources.captureActions, contains('_mergeRetakeCaptureDiagnostics'));
     expect(sources.reviewActions, contains('Line Up The Next Receipt Photo'));
     expect(sources.reviewControls, contains('Add Bottom Section'));

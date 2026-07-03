@@ -8,7 +8,12 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_tie
 void main() {
   test('exports requested trade packs', () async {
     final trade = Platform.environment['MAINTAINIAC_PACK_TRADE'] ?? 'Plumbing';
-    final tierId = Platform.environment['MAINTAINIAC_PACK_TIER'] ?? 'full';
+    final requestedTierId =
+        Platform.environment['MAINTAINIAC_PACK_TIER'] ??
+        WorkSupplyTradePackTier.full.id;
+    final tierId = requestedTierId == 'full'
+        ? WorkSupplyTradePackTier.full.id
+        : requestedTierId;
     final all = Platform.environment['MAINTAINIAC_PACK_ALL'] == 'true';
     final outPath = Platform.environment['MAINTAINIAC_PACK_OUT'];
     final outDir = outPath == null

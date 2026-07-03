@@ -19,8 +19,7 @@ class _ReceiptDetailModePanel extends StatelessWidget {
           selected: value == _ReceiptDetailEntryMode.quickClassify,
           icon: Icons.fact_check_outlined,
           title: ExpenseReceiptReviewStyle.simpleAmounts.label,
-          subtitle:
-              ExpenseReceiptReviewStyle.simpleAmounts.description,
+          subtitle: ExpenseReceiptReviewStyle.simpleAmounts.description,
           onTap: () => onChanged(_ReceiptDetailEntryMode.quickClassify),
         ),
         const SizedBox(height: 8),
@@ -28,8 +27,7 @@ class _ReceiptDetailModePanel extends StatelessWidget {
           selected: value == _ReceiptDetailEntryMode.detailedItems,
           icon: Icons.list_alt_rounded,
           title: ExpenseReceiptReviewStyle.fullItemDetails.label,
-          subtitle:
-              ExpenseReceiptReviewStyle.fullItemDetails.description,
+          subtitle: ExpenseReceiptReviewStyle.fullItemDetails.description,
           onTap: () => onChanged(_ReceiptDetailEntryMode.detailedItems),
         ),
       ],

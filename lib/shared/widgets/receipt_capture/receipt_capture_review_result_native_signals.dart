@@ -226,6 +226,15 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       final retakePolicy = _diagnosticToken(
         diagnostics['receiptRetakeOrderPolicy']?.toString() ?? '',
       );
+      final insertAnchorSection = _diagnosticPositiveInt(
+        diagnostics['receiptInsertAfterAnchorSectionNumber'],
+      );
+      final insertFinalSection = _diagnosticPositiveInt(
+        diagnostics['receiptInsertFinalSectionNumber'],
+      );
+      final insertPolicy = _diagnosticToken(
+        diagnostics['receiptInsertOrderPolicy']?.toString() ?? '',
+      );
       if (sectionCount != null) {
         final bucket = sectionCount <= 1
             ? 'single_section'
@@ -250,10 +259,29 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
             : 'retake_final_section_$retakeFinalSection';
         counts[bucket] = (counts[bucket] ?? 0) + 1;
       }
+      if (insertAnchorSection != null) {
+        final bucket = insertAnchorSection > 9
+            ? 'insert_anchor_section_10_plus'
+            : 'insert_anchor_section_$insertAnchorSection';
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
+      if (insertFinalSection != null) {
+        final bucket = insertFinalSection > 9
+            ? 'insert_final_section_10_plus'
+            : 'insert_final_section_$insertFinalSection';
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
       for (final invalidCode in _receiptRetakeInvalidOrderCodes(
         diagnostics: diagnostics,
         originalSection: retakeOriginalSection,
         finalSection: retakeFinalSection,
+      )) {
+        counts[invalidCode] = (counts[invalidCode] ?? 0) + 1;
+      }
+      for (final invalidCode in _receiptInsertInvalidOrderCodes(
+        diagnostics: diagnostics,
+        anchorSection: insertAnchorSection,
+        finalSection: insertFinalSection,
       )) {
         counts[invalidCode] = (counts[invalidCode] ?? 0) + 1;
       }
@@ -264,6 +292,10 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       if (retakePolicy != 'unknown') {
         counts['retake_policy_$retakePolicy'] =
             (counts['retake_policy_$retakePolicy'] ?? 0) + 1;
+      }
+      if (insertPolicy != 'unknown') {
+        counts['insert_policy_$insertPolicy'] =
+            (counts['insert_policy_$insertPolicy'] ?? 0) + 1;
       }
       if (retakeGuidance != 'unknown') {
         counts['retake_guidance_$retakeGuidance'] =
@@ -282,6 +314,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       for (final code in _receiptRetakeContextCodes(diagnostics)) {
         counts[code] = (counts[code] ?? 0) + 1;
       }
+      for (final code in _receiptInsertContextCodes(diagnostics)) {
+        counts[code] = (counts[code] ?? 0) + 1;
+      }
     }
     return Map.unmodifiable(counts);
   }
@@ -292,6 +327,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
     if (counts.keys.any((key) => key.startsWith('retake_invalid_'))) {
       return 'retake_order_invalid';
     }
+    if (counts.keys.any((key) => key.startsWith('insert_invalid_'))) {
+      return 'insert_order_invalid';
+    }
     if ((counts['policy_top_to_bottom_numbered_sections'] ?? 0) > 0 &&
         (counts['ghost_guide_visible'] ?? 0) > 0) {
       return 'numbered_sections_with_ghost_guide';
@@ -301,6 +339,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
     }
     if ((counts['retake_preserved_original_slot'] ?? 0) > 0) {
       return 'retake_order_preserved';
+    }
+    if ((counts['insert_preserved_anchor_slot'] ?? 0) > 0) {
+      return 'insert_order_preserved';
     }
     if (counts.keys.any((key) => key.startsWith('multi_section_'))) {
       return 'multi_section_order_tracked';
@@ -325,8 +366,14 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
     if (outcome == 'retake_order_invalid') {
       return '$label;retake_invalid';
     }
+    if (outcome == 'insert_order_invalid') {
+      return '$label;insert_invalid';
+    }
     if ((counts['retake_preserved_original_slot'] ?? 0) > 0) {
       return '$label;retake_preserved';
+    }
+    if ((counts['insert_preserved_anchor_slot'] ?? 0) > 0) {
+      return '$label;insert_preserved';
     }
     return label;
   }
@@ -345,6 +392,24 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
             true &&
         finalSection != originalSection) {
       codes.add('retake_invalid_preserved_slot_moved');
+    }
+    return codes;
+  }
+
+  List<String> _receiptInsertInvalidOrderCodes({
+    required Map<String, Object?> diagnostics,
+    required int? anchorSection,
+    required int? finalSection,
+  }) {
+    if (anchorSection == null || finalSection == null) return const [];
+    final codes = <String>[];
+    if (finalSection <= anchorSection) {
+      codes.add('insert_invalid_final_not_after_anchor');
+    }
+    if (_diagnosticBool(diagnostics['receiptInsertPreservedAnchorSlot']) ==
+            true &&
+        finalSection <= anchorSection) {
+      codes.add('insert_invalid_preserved_anchor_overlap');
     }
     return codes;
   }
@@ -374,6 +439,21 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
         ) ==
         true) {
       codes.add('retake_two_sided_alignment_context');
+    }
+    return codes;
+  }
+
+  List<String> _receiptInsertContextCodes(Map<String, Object?> diagnostics) {
+    final codes = <String>[];
+    if (_diagnosticBool(diagnostics['receiptInsertPreservedAnchorSlot']) ==
+        true) {
+      codes.add('insert_preserved_anchor_slot');
+    }
+    final offset = _diagnosticZeroOrPositiveInt(
+      diagnostics['receiptInsertAfterOffset'],
+    );
+    if (offset != null) {
+      codes.add(offset > 9 ? 'insert_offset_10_plus' : 'insert_offset_$offset');
     }
     return codes;
   }

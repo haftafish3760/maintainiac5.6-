@@ -41,7 +41,10 @@ Total 47.86
     );
 
     expect(record.payload['featureArea'], 'materials_inventory');
-    expect(record.payload['parserReviewCause'], 'receipt_parser_low_confidence');
+    expect(
+      record.payload['parserReviewCause'],
+      'receipt_parser_low_confidence',
+    );
     expect(record.payload['fieldReviewKeys'], contains('lineitems'));
     expect(record.payload['parserCategoryCounts'], isA<Map<String, int>>());
     expect(

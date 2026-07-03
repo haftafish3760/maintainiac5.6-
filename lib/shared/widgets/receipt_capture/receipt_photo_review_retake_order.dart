@@ -147,10 +147,37 @@ class ReceiptPhotoInsertAfterOrderPlan {
   const ReceiptPhotoInsertAfterOrderPlan._({
     required this.photoPaths,
     required this.selectedIndex,
+    required this.anchorIndex,
+    required this.anchorPhotoPath,
+    required this.insertedPhotoPaths,
   });
 
   final List<String> photoPaths;
   final int selectedIndex;
+  final int anchorIndex;
+  final String anchorPhotoPath;
+  final List<String> insertedPhotoPaths;
+
+  int get anchorSectionNumber => anchorIndex + 1;
+
+  Map<String, Map<String, Object?>> captureDiagnosticsForInsertedPhotoPaths(
+    List<String> insertedPhotoPaths,
+  ) {
+    if (!_orderedPhotoPathsMatch(this.insertedPhotoPaths, insertedPhotoPaths)) {
+      return const {};
+    }
+    return {
+      for (var offset = 0; offset < insertedPhotoPaths.length; offset++)
+        insertedPhotoPaths[offset]: {
+          'receiptInsertAfterAnchorSectionNumber': anchorSectionNumber,
+          'receiptInsertAfterOffset': offset,
+          'receiptInsertFinalSectionNumber': anchorSectionNumber + offset + 1,
+          'receiptInsertPreservedAnchorSlot': true,
+          'receiptInsertOrderPolicy':
+              'insert_new_sections_after_selected_anchor',
+        },
+    };
+  }
 
   static ReceiptPhotoInsertAfterOrderPlan? build({
     required List<String> currentPhotoPaths,
@@ -179,6 +206,9 @@ class ReceiptPhotoInsertAfterOrderPlan {
     return ReceiptPhotoInsertAfterOrderPlan._(
       photoPaths: List.unmodifiable(updatedPaths),
       selectedIndex: insertIndex,
+      anchorIndex: anchorIndex,
+      anchorPhotoPath: anchorPhotoPath,
+      insertedPhotoPaths: List.unmodifiable(insertedPhotoPaths),
     );
   }
 }

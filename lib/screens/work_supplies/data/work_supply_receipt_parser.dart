@@ -3,13 +3,44 @@ import 'work_supply_models.dart';
 import 'work_supply_receipt_confidence.dart';
 
 part 'work_supply_receipt_parser_terms.dart';
+part 'work_supply_receipt_parser_terms_part_1.dart';
+part 'work_supply_receipt_parser_terms_part_2.dart';
+part 'work_supply_receipt_parser_terms_part_3.dart';
+part 'work_supply_receipt_parser_terms_part_4.dart';
+part 'work_supply_receipt_parser_terms_part_5.dart';
+part 'work_supply_receipt_parser_fallback_specificity.dart';
 part 'work_supply_receipt_parser_trade_scores.dart';
 part 'work_supply_receipt_parser_trade_scores_appliances.dart';
 part 'work_supply_receipt_parser_trade_scores_core.dart';
+part 'work_supply_receipt_parser_trade_scores_carpentry.dart';
+part 'work_supply_receipt_parser_trade_scores_windows_doors.dart';
+part 'work_supply_receipt_parser_trade_scores_cabinets_countertops.dart';
+part 'work_supply_receipt_parser_trade_scores_electrical.dart';
+part 'work_supply_receipt_parser_trade_scores_plumbing.dart';
+part 'work_supply_receipt_parser_trade_scores_hvac.dart';
+part 'work_supply_receipt_parser_trade_scores_hvac_equipment.dart';
+part 'work_supply_receipt_parser_trade_scores_hvac_service.dart';
+part 'work_supply_receipt_parser_trade_scores_hvac_duct.dart';
+part 'work_supply_receipt_parser_trade_scores_hvac_install_support.dart';
+part 'work_supply_receipt_parser_trade_scores_hvac_tools_hydronic.dart';
+part 'work_supply_receipt_parser_trade_scores_hvac_final.dart';
 part 'work_supply_receipt_parser_trade_scores_finishes.dart';
 part 'work_supply_receipt_parser_trade_scores_exterior.dart';
+part 'work_supply_receipt_parser_trade_scores_insulation.dart';
+part 'work_supply_receipt_parser_trade_scores_fencing.dart';
+part 'work_supply_receipt_parser_trade_scores_masonry_concrete.dart';
+part 'work_supply_receipt_parser_trade_scores_landscaping.dart';
+part 'work_supply_receipt_parser_trade_scores_siding_exterior.dart';
+part 'work_supply_receipt_parser_trade_scores_drywall.dart';
+part 'work_supply_receipt_parser_trade_scores_painting.dart';
+part 'work_supply_receipt_parser_trade_scores_roofing.dart';
+part 'work_supply_receipt_parser_trade_scores_tile.dart';
+part 'work_supply_receipt_parser_trade_scores_tile_waterproofing.dart';
+part 'work_supply_receipt_parser_trade_scores_tile_tools.dart';
+part 'work_supply_receipt_parser_trade_scores_flooring.dart';
 part 'work_supply_receipt_parser_trade_scores_garage.dart';
 part 'work_supply_receipt_parser_trade_scores_low_voltage_tools.dart';
+part 'work_supply_receipt_parser_trade_scores_tools_safety.dart';
 part 'work_supply_receipt_parser_trade_scores_well_septic.dart';
 
 class ReceiptLineMatch {
@@ -272,58 +303,6 @@ List<WorkSupplyItem> _fallbackReceiptCandidates(
     return a.item.name.compareTo(b.item.name);
   });
   return scored.map((entry) => entry.item).take(maxCandidates).toList();
-}
-
-int _receiptFallbackSpecificityScore(String text, _ReceiptCatalogEntry entry) {
-  final itemName = entry.item.name.toLowerCase();
-  final normalizedText = entry.normalizedText;
-  var score = 0;
-  if (RegExp(r'\bwood\s+screws?\b').hasMatch(text)) {
-    if (normalizedText.contains('wood screw')) {
-      score += 1000;
-    } else if (normalizedText.contains('screw')) {
-      score -= 500;
-    }
-  }
-  if (RegExp(r'\b(anode|anode rod)\b').hasMatch(text)) {
-    if (itemName.contains('water heater repair part') ||
-        normalizedText.contains('anode')) {
-      score += 220;
-    } else if (itemName.contains('water heater') ||
-        normalizedText.contains('water heater')) {
-      score -= 24;
-    }
-  }
-  if (RegExp(
-    r'\b(heating element|water heater element|element)\b',
-  ).hasMatch(text)) {
-    if (itemName.contains('water heater repair part') ||
-        normalizedText.contains('element')) {
-      score += 180;
-    } else if (itemName.contains('water heater') ||
-        normalizedText.contains('water heater')) {
-      score -= 20;
-    }
-  }
-  if (RegExp(r'\b(float switch|piggyback|pump float)\b').hasMatch(text)) {
-    if (itemName.contains('pump control part') ||
-        normalizedText.contains('float switch') ||
-        normalizedText.contains('piggyback')) {
-      score += 190;
-    } else if (itemName.contains('sump pump')) {
-      score -= 20;
-    }
-  }
-  if (RegExp(r'\b(high water alarm|pump alarm)\b').hasMatch(text)) {
-    if (itemName.contains('pump control part') ||
-        normalizedText.contains('high water alarm') ||
-        normalizedText.contains('pump alarm')) {
-      score += 210;
-    } else if (itemName.contains('sump pump')) {
-      score -= 22;
-    }
-  }
-  return score;
 }
 
 List<String> _receiptCandidateTokens(String text) {

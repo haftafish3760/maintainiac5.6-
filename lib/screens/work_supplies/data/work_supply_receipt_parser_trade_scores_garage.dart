@@ -9,7 +9,8 @@ int _garageDoorsOpenersReceiptScore(
   var score = 0;
   if (trade != 'garage doors and openers') return score;
   if (RegExp(
-    r'\b(garage door|garage opener|door opener|opener remote|opener rail|torsion spring|extension spring|lift cable|safety cable|cable drum|door roller|garage hinge|bottom seal|threshold seal|photo eye|safety sensor|wall console|garage keypad|winding bar|door strut)\b',
+    r'\b(garage door|garage opener|door opener|opener remote|opener rail|torsion spring|extension spring|lift cable|safety cable|cable drum|door roller|'
+    r'garage hinge|bottom seal|threshold seal|photo eye|safety sensor|wall console|garage keypad|winding bar|door strut)\b',
   ).hasMatch(text)) {
     score += 18;
   }

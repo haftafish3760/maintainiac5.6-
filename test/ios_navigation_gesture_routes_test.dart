@@ -29,7 +29,9 @@ void main() {
     expect(route, isA<CupertinoPageRoute<void>>());
   });
 
-  testWidgets('appNativeRoute keeps Material routes on Android', (tester) async {
+  testWidgets('appNativeRoute keeps Material routes on Android', (
+    tester,
+  ) async {
     late Route<void> route;
 
     await tester.pumpWidget(

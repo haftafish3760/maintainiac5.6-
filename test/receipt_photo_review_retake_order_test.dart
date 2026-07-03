@@ -196,12 +196,91 @@ void main() {
 
     expect(plan, isNotNull);
     expect(plan!.selectedIndex, 2);
+    expect(plan.anchorIndex, 1);
+    expect(plan.anchorPhotoPath, 'middle.jpg');
+    expect(plan.anchorSectionNumber, 2);
+    expect(plan.insertedPhotoPaths, const ['middle-extra.jpg']);
     expect(plan.photoPaths, const [
       'top.jpg',
       'middle.jpg',
       'middle-extra.jpg',
       'bottom.jpg',
     ]);
+  });
+
+  test('insert-after plan records diagnostics for inserted sections', () {
+    final plan = ReceiptPhotoInsertAfterOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'bottom.jpg'],
+      anchorIndex: 1,
+      anchorPhotoPath: 'middle.jpg',
+      insertedPhotoPaths: const ['middle-extra-a.jpg', 'middle-extra-b.jpg'],
+    );
+
+    expect(plan, isNotNull);
+    expect(plan!.selectedIndex, 2);
+    expect(plan.photoPaths, const [
+      'top.jpg',
+      'middle.jpg',
+      'middle-extra-a.jpg',
+      'middle-extra-b.jpg',
+      'bottom.jpg',
+    ]);
+
+    final diagnostics = plan.captureDiagnosticsForInsertedPhotoPaths(const [
+      'middle-extra-a.jpg',
+      'middle-extra-b.jpg',
+    ]);
+    expect(
+      diagnostics['middle-extra-a.jpg'],
+      containsPair('receiptInsertAfterAnchorSectionNumber', 2),
+    );
+    expect(
+      diagnostics['middle-extra-a.jpg'],
+      containsPair('receiptInsertAfterOffset', 0),
+    );
+    expect(
+      diagnostics['middle-extra-a.jpg'],
+      containsPair('receiptInsertFinalSectionNumber', 3),
+    );
+    expect(
+      diagnostics['middle-extra-b.jpg'],
+      containsPair('receiptInsertAfterOffset', 1),
+    );
+    expect(
+      diagnostics['middle-extra-b.jpg'],
+      containsPair('receiptInsertFinalSectionNumber', 4),
+    );
+    expect(
+      diagnostics['middle-extra-b.jpg'],
+      containsPair(
+        'receiptInsertOrderPolicy',
+        'insert_new_sections_after_selected_anchor',
+      ),
+    );
+    expect(diagnostics.values.toString(), isNot(contains('top.jpg')));
+    expect(diagnostics.values.toString(), isNot(contains('bottom.jpg')));
+  });
+
+  test('insert-after diagnostics reject stale inserted path lists', () {
+    final plan = ReceiptPhotoInsertAfterOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'bottom.jpg'],
+      anchorIndex: 1,
+      anchorPhotoPath: 'middle.jpg',
+      insertedPhotoPaths: const ['middle-extra.jpg'],
+    );
+
+    expect(plan, isNotNull);
+    expect(
+      plan!.captureDiagnosticsForInsertedPhotoPaths(const ['stale-extra.jpg']),
+      isEmpty,
+    );
+    expect(
+      plan.captureDiagnosticsForInsertedPhotoPaths(const [
+        'middle-extra.jpg',
+        'extra-stale.jpg',
+      ]),
+      isEmpty,
+    );
   });
 
   test(

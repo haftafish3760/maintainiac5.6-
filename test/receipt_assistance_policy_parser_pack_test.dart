@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
 
-
 void main() {
   test(
     'receipt brain footprint separates base camera from optional parser packs',
@@ -407,5 +406,4 @@ void main() {
       );
     },
   );
-
 }

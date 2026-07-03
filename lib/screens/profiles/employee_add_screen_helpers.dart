@@ -190,8 +190,9 @@ extension _EmployeeAddScreenStateHelpers on _EmployeeAddScreenState {
       assignedVehicleLabel: _vehicle,
     );
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => EmployeeAddPermissionSetupScreen(
+      appNativeRoute<void>(
+        context,
+        EmployeeAddPermissionSetupScreen(
           initialRecord: draft,
           records: widget.records,
           onApply: (updated) {

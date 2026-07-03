@@ -30,12 +30,7 @@ List<_ReceiptFieldStatusChipData> _fieldStatusChipsFor(
       icon: Icons.event_rounded,
     ),
     _fieldChip(
-      ready: _readyCount(
-        counts,
-        tasks,
-        'subtotal_ready',
-        'subtotal_candidate',
-      ),
+      ready: _readyCount(counts, tasks, 'subtotal_ready', 'subtotal_candidate'),
       review: counts['subtotal_needs_review'] ?? 0,
       missing: _diagnosticCount(counts, tasks, 'subtotal_missing'),
       readyLabel: 'Subtotal ready',

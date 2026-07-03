@@ -100,8 +100,8 @@ Future<Directory> _writePackFixture({
       },
     ],
   };
-  await File('${directory.path}/manifest.json').writeAsString(
-    jsonEncode(manifest),
-  );
+  await File(
+    '${directory.path}/manifest.json',
+  ).writeAsString(jsonEncode(manifest));
   return directory;
 }

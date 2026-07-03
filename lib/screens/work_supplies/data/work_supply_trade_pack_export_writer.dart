@@ -32,11 +32,12 @@ class WorkSupplyTradePackExportWriter {
   }) async {
     final exportTime = generatedAt ?? DateTime.now().toUtc();
     final directory = await _createExportDirectory(option, exportTime);
-    final manifest = buildWorkSupplyTradePackManifest(
+    final payloads = buildWorkSupplyTradePackChunkPayloads(option);
+    final manifest = buildWorkSupplyTradePackManifestForPayloads(
       option,
+      payloads,
       generatedAt: exportTime,
     );
-    final payloads = buildWorkSupplyTradePackChunkPayloads(option);
     final payloadByChunkId = {
       for (final payload in payloads) payload.manifest.chunkId: payload,
     };

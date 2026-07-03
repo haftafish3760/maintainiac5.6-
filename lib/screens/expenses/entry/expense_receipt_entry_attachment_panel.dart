@@ -1,6 +1,7 @@
 part of 'expense_receipt_entry_screen.dart';
 
-extension _ExpenseReceiptEntryAttachmentPanel on _ExpenseReceiptEntryScreenState {
+extension _ExpenseReceiptEntryAttachmentPanel
+    on _ExpenseReceiptEntryScreenState {
   Widget _buildReceiptAttachmentPanel(BuildContext context) {
     return SharedReceiptAttachmentPanel(
       hasReceipt: _hasReceipt,

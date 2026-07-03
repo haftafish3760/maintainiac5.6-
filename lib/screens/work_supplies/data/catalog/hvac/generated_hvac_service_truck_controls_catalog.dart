@@ -51,7 +51,14 @@ final hvacGeneratedServiceTruckControlsCatalogCategory = _category(
             for (final zones in ['2 Zone', '3 Zone', '4 Zone'])
               for (final type in ['Conventional', 'Heat Pump'])
                 '$zones $type Zone Control Panel',
-            for (final size in ['6 in', '7 in', '8 in', '10 in', '12 in', '14 in'])
+            for (final size in [
+              '6 in',
+              '7 in',
+              '8 in',
+              '10 in',
+              '12 in',
+              '14 in',
+            ])
               for (final style in ['Round', 'Power Open Power Close'])
                 '$size $style Motorized Zone Damper',
             for (final item in [
@@ -229,7 +236,13 @@ final hvacGeneratedServiceTruckControlsCatalogCategory = _category(
               for (final merv in ['MERV 8', 'MERV 11', 'MERV 13'])
                 for (final count in ['6 Pack', '12 Pack'])
                   '$size $merv Pleated Filter $count',
-            for (final size in ['16 x 25 x 4', '16 x 25 x 5', '20 x 20 x 4', '20 x 25 x 4', '20 x 25 x 5'])
+            for (final size in [
+              '16 x 25 x 4',
+              '16 x 25 x 5',
+              '20 x 20 x 4',
+              '20 x 25 x 4',
+              '20 x 25 x 5',
+            ])
               for (final merv in ['MERV 11', 'MERV 13'])
                 '$size $merv Media Filter 2 Pack',
           ],

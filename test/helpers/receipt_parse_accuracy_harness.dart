@@ -42,6 +42,7 @@ class ReceiptParseFixture {
     ];
   }
 }
+
 class ReceiptLineExpectation {
   const ReceiptLineExpectation({
     required this.category,

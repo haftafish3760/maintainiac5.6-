@@ -52,9 +52,7 @@ class AppButton extends StatelessWidget {
     );
 
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        minHeight: compact ? 42 : 44,
-      ),
+      constraints: BoxConstraints(minHeight: compact ? 42 : 44),
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: radius,

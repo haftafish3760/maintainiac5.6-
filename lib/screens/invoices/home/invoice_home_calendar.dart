@@ -20,7 +20,7 @@ class InvoiceMonthCalendarPanel extends StatefulWidget {
 }
 
 class _InvoiceMonthCalendarPanelState extends State<InvoiceMonthCalendarPanel> {
-  var _focusedDay = DateTime.now();
+  late var _focusedDay = _initialFocusedDay();
   DateTime? _selectedDay;
 
   @override
@@ -155,6 +155,13 @@ class _InvoiceMonthCalendarPanelState extends State<InvoiceMonthCalendarPanel> {
 
   int _countForDay(DateTime day) {
     return widget.entries.where((entry) => isSameDay(entry.day, day)).length;
+  }
+
+  DateTime _initialFocusedDay() {
+    if (widget.entries.isEmpty) return DateTime.now();
+    return widget.entries
+        .map((entry) => entry.day)
+        .reduce((latest, day) => day.isAfter(latest) ? day : latest);
   }
 }
 

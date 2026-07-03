@@ -39,8 +39,7 @@ PrivacySafeReceiptEventType _typeForParseResult(
       diagnostics.expectedSubtotalOrTotal != null) {
     return PrivacySafeReceiptEventType.receiptTotalsMismatch;
   }
-  if (diagnostics.hasCompleteExplicitTotals &&
-      !diagnostics.taxMathReconciled) {
+  if (diagnostics.hasCompleteExplicitTotals && !diagnostics.taxMathReconciled) {
     return PrivacySafeReceiptEventType.receiptTotalsMismatch;
   }
   if (diagnostics.materialLineCount > 0 && diagnostics.hasUnmatchedMaterials) {
@@ -75,8 +74,7 @@ String? _parserReviewCause(ExpenseReceiptParseResult result) {
       !diagnostics.reconciled) {
     return 'receipt_line_total_mismatch';
   }
-  if (diagnostics.hasCompleteExplicitTotals &&
-      !diagnostics.taxMathReconciled) {
+  if (diagnostics.hasCompleteExplicitTotals && !diagnostics.taxMathReconciled) {
     return 'receipt_subtotal_tax_total_mismatch';
   }
   if (diagnostics.detectedLineCount == 0) {

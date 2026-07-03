@@ -7,9 +7,11 @@ import 'helpers/expense_telemetry_schema_expectations.dart';
 
 void main() {
   test('Command Center OCR handoff doc mirrors the active contract', () {
-    final doc = File(
+    final doc = [
       'docs/expense_command_center_ocr_contract.md',
-    ).readAsStringSync();
+      'docs/expense_command_center_ocr_contract_archive_telemetry_summary_fields.md',
+      'docs/expense_command_center_ocr_contract_archive_failure_drilldown_schemas.md',
+    ].map((path) => File(path).readAsStringSync()).join('\n');
 
     expect(doc, contains(ExpenseExportSnapshot.commandCenterOcrContractSchema));
     expect(doc, contains(ExpenseExportSnapshot.commandCenterOcrPrivacyScope));

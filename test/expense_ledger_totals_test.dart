@@ -237,47 +237,50 @@ void main() {
     expect(week.personal, 0);
   });
 
-  test('editing saved receipt info moves derived totals to the new date', () async {
-    final ledger = await ExpenseLedgerController.create();
-    await ledger.saveReceipt(
-      ExpenseReceiptRecord(
-        id: 'EXP-info-edit',
-        receiptDate: DateTime(2026, 6, 10),
-        merchantName: 'Original Store',
-        lines: const [
-          ExpenseReceiptLineRecord(
-            id: 'LINE-info-edit',
-            description: 'Fuel',
-            category: 'Fuel',
-            use: ExpenseLineUse.business,
-            quantity: 1,
-            unitsPerPackage: 1,
-            unit: 'gallon',
-            subtotal: 60,
-          ),
-        ],
-      ),
-    );
+  test(
+    'editing saved receipt info moves derived totals to the new date',
+    () async {
+      final ledger = await ExpenseLedgerController.create();
+      await ledger.saveReceipt(
+        ExpenseReceiptRecord(
+          id: 'EXP-info-edit',
+          receiptDate: DateTime(2026, 6, 10),
+          merchantName: 'Original Store',
+          lines: const [
+            ExpenseReceiptLineRecord(
+              id: 'LINE-info-edit',
+              description: 'Fuel',
+              category: 'Fuel',
+              use: ExpenseLineUse.business,
+              quantity: 1,
+              unitsPerPackage: 1,
+              unit: 'gallon',
+              subtotal: 60,
+            ),
+          ],
+        ),
+      );
 
-    final original = ledger.receiptById('EXP-info-edit')!;
-    await ledger.saveReceipt(
-      original.copyWith(
-        receiptDate: DateTime(2026, 6, 12),
-        receiptTimeMinutes: (14 * 60) + 30,
-        merchantName: 'Updated Store',
-        notes: 'Backdated receipt correction',
-        hasReceiptProof: true,
-      ),
-    );
+      final original = ledger.receiptById('EXP-info-edit')!;
+      await ledger.saveReceipt(
+        original.copyWith(
+          receiptDate: DateTime(2026, 6, 12),
+          receiptTimeMinutes: (14 * 60) + 30,
+          merchantName: 'Updated Store',
+          notes: 'Backdated receipt correction',
+          hasReceiptProof: true,
+        ),
+      );
 
-    final loaded = ledger.receiptById('EXP-info-edit')!;
+      final loaded = ledger.receiptById('EXP-info-edit')!;
 
-    expect(ledger.summaryForDay(DateTime(2026, 6, 10)).total, 0);
-    expect(ledger.summaryForDay(DateTime(2026, 6, 12)).total, 60);
-    expect(loaded.merchantName, 'Updated Store');
-    expect(loaded.receiptTimeMinutes, (14 * 60) + 30);
-    expect(loaded.notes, 'Backdated receipt correction');
-    expect(loaded.hasReceiptProof, isTrue);
-    expect(loaded.auditEvents.length, 2);
-  });
+      expect(ledger.summaryForDay(DateTime(2026, 6, 10)).total, 0);
+      expect(ledger.summaryForDay(DateTime(2026, 6, 12)).total, 60);
+      expect(loaded.merchantName, 'Updated Store');
+      expect(loaded.receiptTimeMinutes, (14 * 60) + 30);
+      expect(loaded.notes, 'Backdated receipt correction');
+      expect(loaded.hasReceiptProof, isTrue);
+      expect(loaded.auditEvents.length, 2);
+    },
+  );
 }
