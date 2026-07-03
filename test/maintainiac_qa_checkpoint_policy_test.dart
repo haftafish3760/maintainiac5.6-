@@ -77,4 +77,22 @@ void main() {
     expect(decision.reason, MaintainiacQaCheckpointReason.failingGate);
     expect(decision.message, contains('failing evidence'));
   });
+
+  test('QA checkpoint policy rejects unsafe checkpoint windows', () {
+    const zeroWindow = MaintainiacQaCheckpointPolicy(
+      maxUnpushedWork: Duration.zero,
+    );
+    const tooLongWindow = MaintainiacQaCheckpointPolicy(
+      maxUnpushedWork: Duration(hours: 4),
+    );
+
+    expect(
+      zeroWindow.validate(),
+      contains('checkpoint window must be positive'),
+    );
+    expect(
+      tooLongWindow.validate(),
+      contains('checkpoint window must not exceed three hours'),
+    );
+  });
 }

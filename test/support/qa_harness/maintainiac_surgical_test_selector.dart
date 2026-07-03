@@ -1005,6 +1005,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'qa-checkpoint', 'quality-gate', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_checkpoint_rejects_unsafe_windows',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_checkpoint_policy_test.dart',
+    plainName: 'QA checkpoint policy rejects unsafe checkpoint windows',
+    reason: 'Run only the checkpoint window validation guard.',
+    tags: {'qa-checkpoint', 'quality-gate', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'qa_cases_tool_release_blockers',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_cases_tool_test.dart',

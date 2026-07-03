@@ -361,6 +361,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'QA checkpoint policy pushes after thirty minutes of changed work',
         'QA checkpoint policy does not push empty or too-fresh batches',
         'QA checkpoint policy prioritizes failing gate evidence',
+        'QA checkpoint policy rejects unsafe checkpoint windows',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(

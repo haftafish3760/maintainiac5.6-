@@ -530,10 +530,11 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
         'qa_checkpoint_pushes_after_thirty',
         'qa_checkpoint_skips_empty_fresh',
         'qa_checkpoint_prioritizes_failures',
+        'qa_checkpoint_rejects_unsafe_windows',
         'main_backbone_parser_visibility',
       },
       reason:
-          'QA checkpoint policy changes need milestone, timed push, skip, failure-priority, and backbone checks.',
+          'QA checkpoint policy changes need milestone, timed push, skip, failure-priority, window, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'parser_release_command_plan_changed',
