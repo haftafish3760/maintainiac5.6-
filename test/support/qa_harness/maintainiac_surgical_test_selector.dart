@@ -1836,6 +1836,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'tooling', 'parser-consumer', 'financial'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'individual_command_tool_json_metadata',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_individual_qa_command_tool_test.dart',
+    plainName: 'individual QA command tool emits exact surgical JSON metadata',
+    reason: 'Run only the command-tool JSON metadata check.',
+    tags: {'tooling', 'parser-consumer', 'evidence', 'surgical'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'individual_command_tool_changed_files',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_individual_qa_command_tool_test.dart',
@@ -1862,6 +1870,15 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'tooling', 'parser-consumer', 'regression', 'release-gate'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'individual_command_tool_changed_file_scoped',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_individual_qa_command_tool_test.dart',
+    plainName:
+        'individual QA command tool changed test file output stays file scoped',
+    reason: 'Run only the changed-test-file scoping guard.',
+    tags: {'tooling', 'parser-consumer', 'regression', 'surgical'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'individual_command_tool_all_selector_ids',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_individual_qa_command_tool_test.dart',
@@ -1886,6 +1903,15 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     file: 'test/maintainiac_individual_qa_command_tool_test.dart',
     plainName: 'individual QA command tool rejects unknown selectors',
     reason: 'Run only the command-tool unknown-selector negative check.',
+    tags: {'tooling', 'parser-consumer', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'individual_command_tool_rejects_broad_mixed',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_individual_qa_command_tool_test.dart',
+    plainName:
+        'individual QA command tool rejects broad or mixed selector modes',
+    reason: 'Run only the command-tool selector-mode safety check.',
     tags: {'tooling', 'parser-consumer', 'security', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(

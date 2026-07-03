@@ -558,12 +558,15 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'individual QA command tool returns one exact command by id',
         'individual QA command tool lists focused commands by risk',
+        'individual QA command tool emits exact surgical JSON metadata',
         'individual QA command tool resolves changed files to focused commands',
         'individual QA command tool resolves every selector test file',
         'individual QA command tool returns all selectors for a changed file',
+        'individual QA command tool changed test file output stays file scoped',
         'individual QA command tool resolves every selector id exactly once',
         'individual QA command tool changed output is unique and surgical',
         'individual QA command tool rejects unknown selectors',
+        'individual QA command tool rejects broad or mixed selector modes',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
