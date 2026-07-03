@@ -278,6 +278,14 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_local_first_contract_test.dart',
+      plainNames: {
+        'local-first contract accepts Hive before Firestore mirror',
+        'local-first contract rejects mirror writes before local truth',
+        'local-first contract rejects unsafe derived and mirror writes',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_environment_test.dart',
       plainNames: {
         'QA environment fakes preserve local truth and mirror copies',

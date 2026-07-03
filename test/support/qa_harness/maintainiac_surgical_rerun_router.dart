@@ -66,6 +66,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_surgical_selector_coverage.dart',
       'maintainiac_surgical_test_selector.dart',
       'maintainiac_surgical_granularity_contract.dart',
+      'maintainiac_local_first_contract.dart',
       'maintainiac_mutation_guard.dart',
       'maintainiac_payment_contract.dart',
       'maintainiac_operating_directive_contract.dart',
@@ -394,6 +395,18 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Mutation guard changes need derived-output, source-scope, matrix, negative, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'local_first_contract_changed',
+      changedPathContains: 'maintainiac_local_first_contract.dart',
+      selectorIds: {
+        'local_first_accepts_hive_before_mirror',
+        'local_first_rejects_mirror_first',
+        'local_first_rejects_unsafe_writes',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Local-first contract changes need Hive-before-mirror, negative, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'qa_environment_changed',

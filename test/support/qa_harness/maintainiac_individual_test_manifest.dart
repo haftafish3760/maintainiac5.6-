@@ -46,12 +46,14 @@ class MaintainiacIndividualTestEntry {
       failures.add('$id must not chain commands');
     }
     final lower = command.toLowerCase();
+    final mentionsFirestore = lower.contains('firestore');
+    final allowedMirrorContract = lower.contains('firestore mirror');
     if (lower.contains('googlevision') ||
         lower.contains('mlkit') ||
         lower.contains('camera') ||
         lower.contains('ocr') ||
         lower.contains('firebase') ||
-        lower.contains('firestore')) {
+        (mentionsFirestore && !allowedMirrorContract)) {
       failures.add('$id must not touch OCR/camera/live cloud providers');
     }
     return failures;

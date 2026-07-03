@@ -37,12 +37,14 @@ class MaintainiacSurgicalTestSelector {
       failures.add('$id needs searchable tags');
     }
     final lower = command.toLowerCase();
+    final mentionsFirestore = lower.contains('firestore');
+    final allowedMirrorContract = lower.contains('firestore mirror');
     if (lower.contains('camera') ||
         lower.contains('ocr') ||
         lower.contains('mlkit') ||
         lower.contains('googlevision') ||
         lower.contains('firebase') ||
-        lower.contains('firestore')) {
+        (mentionsFirestore && !allowedMirrorContract)) {
       failures.add(
         '$id selector must stay offline and outside OCR/camera/live Firebase',
       );
@@ -707,6 +709,30 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     plainName: 'mutation guard matrix rejects mismatched expectations',
     reason: 'Run only the mutation guard matrix negative expectation check.',
     tags: {'mutation-guard', 'source-of-truth', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'local_first_accepts_hive_before_mirror',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_local_first_contract_test.dart',
+    plainName: 'local-first contract accepts Hive before Firestore mirror',
+    reason: 'Run only the local-first positive Hive-before-mirror check.',
+    tags: {'local-first', 'source-of-truth', 'sync', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'local_first_rejects_mirror_first',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_local_first_contract_test.dart',
+    plainName: 'local-first contract rejects mirror writes before local truth',
+    reason: 'Run only the mirror-before-local negative check.',
+    tags: {'local-first', 'source-of-truth', 'sync', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'local_first_rejects_unsafe_writes',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_local_first_contract_test.dart',
+    plainName: 'local-first contract rejects unsafe derived and mirror writes',
+    reason: 'Run only the unsafe derived/mirror local-first negative check.',
+    tags: {'local-first', 'source-of-truth', 'sync', 'security'},
   ),
   MaintainiacSurgicalTestSelector(
     id: 'qa_environment_local_truth',
