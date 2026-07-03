@@ -55,6 +55,7 @@ export 'maintainiac_surgical_selector_coverage.dart';
 export 'maintainiac_surgical_test_selector.dart';
 export 'maintainiac_sync_conflict_contract.dart';
 export 'maintainiac_sync_lifecycle.dart';
+export 'maintainiac_sync_transport_policy.dart';
 export 'maintainiac_scope_policy.dart';
 
 enum QaSeverity { info, warning, error, critical }

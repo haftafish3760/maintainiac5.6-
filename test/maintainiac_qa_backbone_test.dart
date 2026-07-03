@@ -166,6 +166,10 @@ void main() {
       report.results.single.metrics['sourceAuditPolicy'].toString(),
       contains('production_dart_modularity'),
     );
+    expect(
+      report.results.single.metrics['syncTransportPolicy'].toString(),
+      contains('manual_roaming_blocked'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

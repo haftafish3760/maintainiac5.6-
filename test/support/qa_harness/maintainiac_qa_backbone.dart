@@ -26,6 +26,7 @@ import 'maintainiac_correction_learning_contract.dart';
 import 'maintainiac_performance_budget_registry.dart';
 import 'maintainiac_local_first_contract.dart';
 import 'maintainiac_sync_conflict_contract.dart';
+import 'maintainiac_sync_transport_policy.dart';
 import 'maintainiac_pricing_contract.dart';
 import 'maintainiac_inventory_parser_consumer_contract.dart';
 import 'maintainiac_module_boundary_gate.dart';
@@ -348,6 +349,9 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in syncConflicts.validate()) {
       failures.add(_failure('sync_conflict_$issue', issue));
     }
+    for (final issue in maintainiacSyncTransportPolicy.validate()) {
+      failures.add(_failure('sync_transport_policy_$issue', issue));
+    }
     const pricing = MaintainiacPricingContract([
       MaintainiacPricedLine(
         id: 'seed_material_price',
@@ -489,7 +493,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: 636,
+      checked: 656,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -516,6 +520,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'correctionLearning': correctionLearning.toJson(),
         'localFirstContract': localFirst.toJson(),
         'syncConflictContract': syncConflicts.toJson(),
+        'syncTransportPolicy': maintainiacSyncTransportPolicy.toJson(),
         'pricingContract': pricing.toJson(),
         'moduleSuiteMatrix': moduleSuites.toJson(),
         'scheduleContract': schedule.toJson(),
