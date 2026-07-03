@@ -89,6 +89,9 @@ class ReceiptImageProcessor {
   }) async {
     final decoded = _decodeImage(bytes);
     if (decoded == null) throw StateError('Image could not be decoded.');
+    if (!_isUsableCropRect(displayImageRect) || !_isUsableCropRect(cropRect)) {
+      throw StateError('Crop bounds are not usable.');
+    }
     final relativeCrop = Rect.fromLTRB(
       cropRect.left - displayImageRect.left,
       cropRect.top - displayImageRect.top,
@@ -115,6 +118,15 @@ class ReceiptImageProcessor {
       height: bottom - y,
     );
     return _writeJpg(cropped, prefix: 'crop', quality: 92);
+  }
+
+  static bool _isUsableCropRect(Rect rect) {
+    return rect.left.isFinite &&
+        rect.top.isFinite &&
+        rect.right.isFinite &&
+        rect.bottom.isFinite &&
+        rect.width > 0 &&
+        rect.height > 0;
   }
 
   static Future<String> rotateFile({

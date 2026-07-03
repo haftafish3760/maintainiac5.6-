@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_image_processor.dart';
@@ -74,4 +75,35 @@ void main() {
       }
     },
   );
+
+  test('receipt image processor rejects unusable crop bounds', () async {
+    final bytes = img.encodeJpg(receiptLikeImage(), quality: 96);
+
+    for (final rects in [
+      (display: Rect.zero, crop: const Rect.fromLTWH(0, 0, 120, 120)),
+      (
+        display: const Rect.fromLTWH(0, 0, 120, 120),
+        crop: const Rect.fromLTWH(double.nan, 0, 80, 80),
+      ),
+      (
+        display: const Rect.fromLTWH(0, 0, double.infinity, 120),
+        crop: const Rect.fromLTWH(0, 0, 80, 80),
+      ),
+    ]) {
+      await expectLater(
+        ReceiptImageProcessor.cropFile(
+          bytes: bytes,
+          displayImageRect: rects.display,
+          cropRect: rects.crop,
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            'Crop bounds are not usable.',
+          ),
+        ),
+      );
+    }
+  });
 }

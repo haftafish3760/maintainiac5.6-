@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 577 - 09:44:18 EDT to 09:51:14 EDT
+
+Scope:
+- Hardened manual receipt crop processing so zero-size or non-finite display
+  and crop rectangles are rejected before pixel scaling.
+- Added regression coverage proving unusable crop bounds fail with a stable
+  crop-bound error instead of creating an unsafe derived receipt image.
+- Recorded `BUG-RECEIPT-0093` under `camera_capture_quality`.
+- Archived Passes 549 and 544 out of the live cleanup log to keep the active
+  log under the project line-count cap.
+
+Verification:
+- Fixed the first targeted analyzer failure by importing Flutter material for
+  `Rect` in the crop-bound regression test.
+- Passed targeted Dart format/analyzer for the image processor and focused
+  crop-bound regression coverage.
+- Passed focused Flutter regression
+  `test/receipt_image_rotation_test.dart --plain-name "receipt image processor
+  rejects unusable crop bounds"`.
+
 ## Pass 576 - 09:34:57 EDT to 09:35:54 EDT
 
 Scope:
@@ -449,38 +469,6 @@ Verification:
 - Passed focused Flutter test
   `test/receipt_attachment_panel_recovery_contract_test.dart --plain-name
   "receipt attachment panel has plain recovery states"`.
-
-## Pass 544 - 05:07:44 EDT to 05:11:43 EDT
-
-Scope:
-- Hardened native camera engine restore so padded bridge, manifest, or Hive
-  index values do not downgrade captured receipts to the unavailable engine.
-- Added capability and interrupted-capture recovery regressions for padded
-  native engine names.
-- Recorded `BUG-RECEIPT-0061` under `native_bridge`.
-- Archived Pass 538 out of the live cleanup log.
-
-Verification:
-- Passed targeted format/analyzer for native camera contract and recovery
-  restore files.
-- Passed focused capability and recovery-index Flutter regressions.
-
-## Pass 549 - 05:30:31 EDT to 05:37:07 EDT
-
-Scope:
-- Hardened OCR source quality and diagnostics helpers so derived OCR paths do
-  not inherit original-photo evidence just because the list indexes match.
-- Added attachment and shared-flow source contract coverage requiring direct
-  OCR-source path lookup with aligned original-photo fallback only.
-- Recorded `BUG-RECEIPT-0065` under `source_preservation`.
-- Archived Pass 532 out of the live cleanup log.
-
-Verification:
-- Passed targeted format/analyzer for attachment native signal helpers,
-  capture-flow helpers, OCR source risk helpers, and source contracts.
-- Passed focused Flutter tests
-  `test/receipt_camera_ocr_source_attachment_read_test.dart` and
-  `test/receipt_capture_flow_handoff_contract_test.dart`.
 
 ## Pass 550 - 05:37:08 EDT to 05:38:53 EDT
 
