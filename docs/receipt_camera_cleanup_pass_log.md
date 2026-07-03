@@ -20,19 +20,25 @@ Scope:
   privacy-safe section-order outcomes and admin/QA summaries.
 - Hardened manual move-earlier/move-later ordering so user-reordered receipt
   sections carry privacy-safe original/final section and direction evidence.
+- Locked manual reorder plans to adjacent one-section moves so future UI
+  controls cannot silently skip receipt sections.
 - Added focused retake/order and source-contract regressions for inserted
   section metadata and stale inserted-path rejection.
+- Added a focused regression for non-adjacent manual reorder requests.
 - Split section-order helper logic out of native-signal summaries after the
   source audit caught the file over the line cap.
 - Recorded `BUG-RECEIPT-0106` and `BUG-RECEIPT-0107` under
   `multi_photo_ordering`.
-- Recorded `BUG-RECEIPT-0108` under `multi_photo_ordering`.
+- Recorded `BUG-RECEIPT-0108` and `BUG-RECEIPT-0109` under
+  `multi_photo_ordering`.
 - Archived Pass 564 out of the live cleanup log to keep the active log under the
   project line-count cap.
 - Archived Pass 565 out of the live cleanup log after this pass grew the active
   log past the cap.
 - Archived Pass 566 out of the live cleanup log before recording result-level
   insert-order handoff coverage.
+- Archived Pass 567 out of the live cleanup log before recording adjacent
+  manual-reorder guard coverage.
 
 Verification:
 - Passed focused Flutter source-audit contract regression coverage.
@@ -44,6 +50,7 @@ Verification:
 - Passed focused receipt result stitch/scanner regressions for valid and
   malformed insert-after metadata.
 - Passed focused manual reorder regressions and source contract coverage.
+- Passed focused adjacent manual reorder regression coverage.
 - Passed the receipt QA runner after the source-audit and long-receipt ordering
   cleanup batch.
 - Passed scoped receipt source audit and cleanup/doc size gates.
@@ -474,22 +481,3 @@ Verification:
 - Passed focused Flutter regression
   `test/receipt_camera_result_native_close_settings_test.dart --plain-name
   "native close health ignores non-finite numeric counts"`.
-
-## Pass 567 - 08:06:05 EDT to 08:12:36 EDT
-
-Scope:
-- Hardened native recovery Hive index restore so padded session IDs, manifest
-  paths, engine names, and data-saver names do not leak into recovery identity.
-- De-duplicated normalized staged photo paths at the index restore boundary so
-  interrupted native captures keep stable ordered section counts.
-- Added focused regression coverage for recovered index identity and path
-  normalization.
-- Recorded `BUG-RECEIPT-0083` under `multi_photo_ordering`.
-- Archived Pass 521 out of the live cleanup log.
-
-Verification:
-- Passed targeted Dart format/analyzer for native recovery index restore and
-  focused recovery-index regression coverage.
-- Passed focused Flutter regression
-  `test/receipt_native_capture_recovery_index_test.dart --plain-name "recovery
-  index restore normalizes stored identity and paths"`.

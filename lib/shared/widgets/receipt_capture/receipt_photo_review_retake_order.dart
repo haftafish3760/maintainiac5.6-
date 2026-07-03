@@ -288,7 +288,7 @@ class ReceiptPhotoMoveOrderPlan {
     required String selectedPhotoPath,
     required int direction,
   }) {
-    if (direction == 0) return null;
+    if (direction != -1 && direction != 1) return null;
     if (!_receiptPhotoPathsAreUniqueAndNormalized(currentPhotoPaths)) {
       return null;
     }

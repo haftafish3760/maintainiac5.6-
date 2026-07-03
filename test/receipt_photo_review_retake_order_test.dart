@@ -392,10 +392,17 @@ void main() {
       selectedPhotoPath: 'top.jpg',
       direction: -1,
     );
+    final nonAdjacentPlan = ReceiptPhotoMoveOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'bottom.jpg'],
+      selectedIndex: 0,
+      selectedPhotoPath: 'top.jpg',
+      direction: 2,
+    );
 
     expect(duplicatePlan, isNull);
     expect(stalePlan, isNull);
     expect(outOfBoundsPlan, isNull);
+    expect(nonAdjacentPlan, isNull);
   });
 
   test('retaking the top section uses the next section as context', () {
