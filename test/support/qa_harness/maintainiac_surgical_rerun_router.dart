@@ -79,6 +79,11 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_restart_lifecycle_gate.dart',
       'maintainiac_qa_case_registry.dart',
       'maintainiac_qa_telemetry_privacy_gate.dart',
+      'maintainiac_qa_execution_manifest.dart',
+      'maintainiac_qa_fingerprint.dart',
+      'maintainiac_qa_run_ledger.dart',
+      'maintainiac_qa_readiness.dart',
+      'maintainiac_qa_checkpoint_policy.dart',
       'maintainiac_parser_release_command_plan.dart',
       'maintainiac_parser_regression_binding.dart',
       'maintainiac_surgical_selector_coverage.dart',
@@ -434,6 +439,67 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'QA telemetry privacy changes need surface, redaction/overlap, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_execution_manifest_changed',
+      changedPathContains: 'maintainiac_qa_execution_manifest.dart',
+      selectorIds: {
+        'qa_execution_manifest_labels_checks',
+        'qa_execution_manifest_separates_gates',
+        'qa_execution_manifest_dedupes_surgical',
+        'qa_execution_manifest_rejects_unsafe',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'QA execution manifest changes need labels, focused/gate split, dedupe, unsafe check, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_fingerprint_changed',
+      changedPathContains: 'maintainiac_qa_fingerprint.dart',
+      selectorIds: {
+        'qa_fingerprint_stable_order_line_endings',
+        'qa_fingerprint_changes_on_fixture_content',
+        'qa_fingerprint_rejects_weak_evidence',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'QA fingerprint changes need stability, content-change, weak-evidence, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_run_ledger_changed',
+      changedPathContains: 'maintainiac_qa_run_ledger.dart',
+      selectorIds: {
+        'qa_run_ledger_skips_clean_focused',
+        'qa_run_ledger_failed_commands_actionable',
+        'qa_run_ledger_rejects_weak_evidence',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'QA run ledger changes need skip, actionable failure, weak-evidence, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_readiness_changed',
+      changedPathContains: 'maintainiac_qa_readiness.dart',
+      selectorIds: {
+        'qa_readiness_tracks_gaps',
+        'qa_readiness_rejects_fake_ready',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'QA readiness changes need gap tracking, fake-ready, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_checkpoint_policy_changed',
+      changedPathContains: 'maintainiac_qa_checkpoint_policy.dart',
+      selectorIds: {
+        'qa_checkpoint_pushes_milestones',
+        'qa_checkpoint_pushes_after_thirty',
+        'qa_checkpoint_skips_empty_fresh',
+        'qa_checkpoint_prioritizes_failures',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'QA checkpoint policy changes need milestone, timed push, skip, failure-priority, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'parser_release_command_plan_changed',

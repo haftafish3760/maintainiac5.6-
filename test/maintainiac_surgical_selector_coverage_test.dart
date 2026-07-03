@@ -84,6 +84,19 @@ void main() {
     );
   });
 
+  test(
+    'surgical selector coverage ignores fixture strings that look like tests',
+    () {
+      const source =
+          'void main() {\n'
+          "  test('real behavior test', () {});\n"
+          '  final fixture = \'test("generated fixtures", () {});\';\n'
+          '}\n';
+
+      expect(_declaredTestNames(source), {'real behavior test'});
+    },
+  );
+
   test('surgical selector coverage lists every test in registered files', () {
     const coverage = maintainiacSurgicalSelectorCoverage;
     final failures = <String>[];
@@ -109,7 +122,10 @@ void main() {
 
 Set<String> _declaredTestNames(String source) {
   final names = <String>{};
-  final pattern = RegExp(r'''test(?:Widgets)?\(\s*(['"])(.*?)\1''');
+  final pattern = RegExp(
+    r'''^\s*test(?:Widgets)?\(\s*(['"])(.*?)\1''',
+    multiLine: true,
+  );
 
   for (final match in pattern.allMatches(source)) {
     names.add(match.group(2)!);

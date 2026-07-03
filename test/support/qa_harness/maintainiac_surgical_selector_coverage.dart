@@ -313,6 +313,55 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_execution_manifest_test.dart',
+      plainNames: {
+        'QA execution manifest labels every runnable release-one check',
+        'QA execution manifest separates focused checks from release gates',
+        'QA execution manifest provides deduped surgical command plans',
+        'QA execution manifest rejects unlabeled or live-service checks',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_fingerprint_test.dart',
+      plainNames: {
+        'QA fingerprint is stable across file order and line endings',
+        'QA fingerprint changes when fixture content changes',
+        'QA fingerprint rejects unlabeled and unnormalized evidence',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_run_ledger_test.dart',
+      plainNames: {
+        'QA run ledger skips only unchanged clean focused commands',
+        'QA run ledger keeps failed commands actionable before new feature work',
+        'QA run ledger rejects weak or misleading run evidence',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_readiness_test.dart',
+      plainNames: {
+        'QA readiness ledger tracks completed backbone and remaining gaps',
+        'QA readiness ledger rejects fake ready claims without evidence',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_checkpoint_policy_test.dart',
+      plainNames: {
+        'QA checkpoint policy pushes at milestones with local changes',
+        'QA checkpoint policy pushes after thirty minutes of changed work',
+        'QA checkpoint policy does not push empty or too-fresh batches',
+        'QA checkpoint policy prioritizes failing gate evidence',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_cases_tool_test.dart',
+      plainNames: {
+        'QA cases tool prints labeled release blockers',
+        'QA cases tool prints JSON for automation',
+        'QA cases tool rejects unknown priority',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_parser_release_command_plan_test.dart',
       plainNames: {
         'parser release command plan covers every parser consumer family',
@@ -339,6 +388,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'surgical selector coverage requires selectors for every focused behavior',
         'surgical selector coverage rejects missing behavior selectors',
         'surgical selector coverage rejects unlisted selector targets',
+        'surgical selector coverage ignores fixture strings that look like tests',
         'surgical selector coverage lists every test in registered files',
       },
     ),
