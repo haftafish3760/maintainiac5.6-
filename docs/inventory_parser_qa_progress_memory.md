@@ -207,6 +207,12 @@ the fixture recipe, schema, or expected parser behavior changes.
 - Do not rerun full catalog or broad parser tests for one fixture failure.
 - Use the focused rerun token for the failed trade/scope/tier/locale cell.
 - Use suite filters instead of quick/full presets when fixing one QA contract.
+- Group catalog-backed suites at meaningful checkpoints to amortize the cold
+  catalog load.
+- Keep contract-only suites surgical and run them by exact PARSER_QA_SUITES
+  filters.
+- Do not repeatedly launch one catalog-backed suite at a time unless the changed
+  source is isolated to that suite and the slow evidence is needed.
 
 ## Pending QA Test Batches
 

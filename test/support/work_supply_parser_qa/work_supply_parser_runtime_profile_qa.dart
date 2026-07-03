@@ -76,6 +76,11 @@ class WorkSupplyParserRuntimeProfileSuite extends QaSuite {
       'PARSER_QA_SUITES',
       'surgical mode',
     ]),
+    _RuntimeProfileDocContract('catalog_cold_load_amortization', [
+      'catalog-backed suites',
+      'amortize the cold catalog load',
+      'contract-only suites stay surgical',
+    ]),
   ];
 
   @override
