@@ -27,6 +27,9 @@ class MaintainiacSurgicalTestSelector {
     if (!file.startsWith('test/') || !file.endsWith('.dart')) {
       failures.add('$id must target one Dart test file');
     }
+    if (file.trim() != file || file.contains(' ')) {
+      failures.add('$id must not target multiple test files');
+    }
     if (scope != MaintainiacSurgicalTestScope.singleBehavior) {
       failures.add('$id must be an individual single-behavior selector');
     }
@@ -44,12 +47,15 @@ class MaintainiacSurgicalTestSelector {
     final allowedMirrorContract =
         lower.contains('firestore mirror') ||
         _isOfflineFirestoreContractCommand(lower);
+    final allowedBoundaryGuard = _isBoundaryGuardCommand(lower);
     final mentionsBlockedProvider =
         lower.contains('camera') ||
         lower.contains('ocr') ||
         lower.contains('mlkit') ||
         lower.contains('googlevision');
-    if ((mentionsBlockedProvider && !allowedMirrorContract) ||
+    if ((mentionsBlockedProvider &&
+            !allowedMirrorContract &&
+            !allowedBoundaryGuard) ||
         lower.contains('firebase') ||
         (mentionsFirestore && !allowedMirrorContract)) {
       failures.add(
@@ -77,6 +83,13 @@ bool _isOfflineFirestoreContractCommand(String lowerCommand) {
       lowerCommand.contains('maintainiac_firestore_upload_queue_test.dart') ||
       lowerCommand.contains('maintainiac_firestore_documents_test.dart') ||
       lowerCommand.contains('maintainiac_hosted_cache_test.dart');
+}
+
+bool _isBoundaryGuardCommand(String lowerCommand) {
+  return lowerCommand.contains('maintainiac_source_boundary_test.dart') ||
+      lowerCommand.contains(
+        'maintainiac_operating_directive_contract_test.dart',
+      );
 }
 
 class MaintainiacSurgicalTestSelectorRegistry {

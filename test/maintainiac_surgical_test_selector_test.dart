@@ -39,7 +39,7 @@ void main() {
       MaintainiacSurgicalTestSelector(
         id: 'bad',
         scope: MaintainiacSurgicalTestScope.releaseGate,
-        file: 'lib/not_a_test.dart',
+        file: 'test/one_test.dart test/two_test.dart',
         plainName: 'duplicate',
         reason: 'duplicate selector',
         tags: {'expenses'},
@@ -52,7 +52,7 @@ void main() {
     expect(failures, contains('bad missing plain-name selector'));
     expect(failures, contains('bad missing reason'));
     expect(failures, contains('outside OCR/camera/live Firebase'));
-    expect(failures, contains('bad must target one Dart test file'));
+    expect(failures, contains('bad must not target multiple test files'));
     expect(failures, contains('surgical registry missing tag parser-consumer'));
     expect(failures, contains('surgical registry missing tag privacy'));
   });

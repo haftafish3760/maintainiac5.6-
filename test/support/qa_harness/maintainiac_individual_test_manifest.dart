@@ -37,6 +37,9 @@ class MaintainiacIndividualTestEntry {
     if (!command.startsWith('flutter test test/')) {
       failures.add('$id must be a focused Flutter test command');
     }
+    if (_testFileReferences(command).length != 1) {
+      failures.add('$id must target exactly one test file');
+    }
     if (!command.contains(' --plain-name ')) {
       failures.add('$id must use --plain-name for surgical reruns');
     }
@@ -50,12 +53,15 @@ class MaintainiacIndividualTestEntry {
     final allowedMirrorContract =
         lower.contains('firestore mirror') ||
         _isOfflineFirestoreContractCommand(lower);
+    final allowedBoundaryGuard = _isBoundaryGuardCommand(lower);
     final mentionsBlockedProvider =
         lower.contains('googlevision') ||
         lower.contains('mlkit') ||
         lower.contains('camera') ||
         lower.contains('ocr');
-    if ((mentionsBlockedProvider && !allowedMirrorContract) ||
+    if ((mentionsBlockedProvider &&
+            !allowedMirrorContract &&
+            !allowedBoundaryGuard) ||
         lower.contains('firebase') ||
         (mentionsFirestore && !allowedMirrorContract)) {
       failures.add('$id must not touch OCR/camera/live cloud providers');
@@ -75,11 +81,25 @@ class MaintainiacIndividualTestEntry {
   }
 }
 
+List<String> _testFileReferences(String command) {
+  return [
+    for (final token in command.split(RegExp(r'\s+')))
+      if (token.startsWith('test/') && token.endsWith('.dart')) token,
+  ];
+}
+
 bool _isOfflineFirestoreContractCommand(String lowerCommand) {
   return lowerCommand.contains('maintainiac_firestore_schema_test.dart') ||
       lowerCommand.contains('maintainiac_firestore_upload_queue_test.dart') ||
       lowerCommand.contains('maintainiac_firestore_documents_test.dart') ||
       lowerCommand.contains('maintainiac_hosted_cache_test.dart');
+}
+
+bool _isBoundaryGuardCommand(String lowerCommand) {
+  return lowerCommand.contains('maintainiac_source_boundary_test.dart') ||
+      lowerCommand.contains(
+        'maintainiac_operating_directive_contract_test.dart',
+      );
 }
 
 class MaintainiacIndividualTestManifest {

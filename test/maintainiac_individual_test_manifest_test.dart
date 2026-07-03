@@ -93,6 +93,15 @@ void main() {
         owner: '',
         whenToRun: '',
       ),
+      MaintainiacIndividualTestEntry(
+        id: 'wide',
+        module: 'inventory',
+        riskFamily: 'regression',
+        command:
+            'flutter test test/one_test.dart test/two_test.dart --plain-name "one behavior"',
+        owner: 'qa_backbone',
+        whenToRun: 'Run only the malformed multi-file command guard.',
+      ),
     ]);
 
     final failures = manifest.validate().join('\n');
@@ -107,6 +116,7 @@ void main() {
       failures,
       contains('bad must not touch OCR/camera/live cloud providers'),
     );
-    expect(failures, contains('individual test manifest missing inventory'));
+    expect(failures, contains('wide must target exactly one test file'));
+    expect(failures, contains('individual test manifest missing expenses'));
   });
 }
