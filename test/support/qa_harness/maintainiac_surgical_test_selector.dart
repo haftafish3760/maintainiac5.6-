@@ -1761,6 +1761,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'release-gate', 'tooling', 'regression', 'security'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'release_evidence_requires_targeted_analyzer',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_release_evidence_bundle_test.dart',
+    plainName: 'release evidence bundle requires targeted analyzer proof',
+    reason: 'Run only the targeted analyzer release-evidence guard.',
+    tags: {'release-gate', 'tooling', 'regression', 'evidence'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'source_audit_line_caps',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_source_audit_policy_test.dart',

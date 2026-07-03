@@ -555,6 +555,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'release evidence bundle records required milestone proof',
         'release evidence bundle rejects broad or missing proof',
+        'release evidence bundle requires targeted analyzer proof',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(

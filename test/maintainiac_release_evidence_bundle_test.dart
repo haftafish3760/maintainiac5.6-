@@ -31,6 +31,13 @@ void main() {
   test('release evidence bundle rejects broad or missing proof', () {
     const bundle = MaintainiacReleaseEvidenceBundle([
       MaintainiacReleaseEvidence(
+        id: 'bad_analyzer',
+        kind: MaintainiacEvidenceKind.analyzer,
+        commandOrArtifact: 'dart analyze .',
+        proves: 'too broad',
+        requiredForRelease: true,
+      ),
+      MaintainiacReleaseEvidence(
         id: 'bad_individual',
         kind: MaintainiacEvidenceKind.individualTest,
         commandOrArtifact: 'flutter test test/broad_test.dart',
@@ -62,6 +69,16 @@ void main() {
 
     final failures = bundle.validate().join('\n');
 
+    expect(
+      failures,
+      contains('bad_analyzer analyzer evidence must stay targeted'),
+    );
+    expect(
+      failures,
+      contains(
+        'bad_analyzer analyzer evidence must include QA harness sources',
+      ),
+    );
     expect(failures, contains('bad_individual missing proof statement'));
     expect(
       failures,
@@ -80,7 +97,31 @@ void main() {
     );
     expect(
       failures,
-      contains('release evidence missing required kind analyzer'),
+      contains('release evidence missing required kind backboneVisibility'),
+    );
+  });
+
+  test('release evidence bundle requires targeted analyzer proof', () {
+    const targeted = MaintainiacReleaseEvidence(
+      id: 'targeted_analyzer',
+      kind: MaintainiacEvidenceKind.analyzer,
+      commandOrArtifact:
+          'dart analyze test/support/qa_harness test/maintainiac_qa_backbone_test.dart',
+      proves: 'QA harness sources are analyzer clean.',
+      requiredForRelease: true,
+    );
+    const broad = MaintainiacReleaseEvidence(
+      id: 'broad_analyzer',
+      kind: MaintainiacEvidenceKind.analyzer,
+      commandOrArtifact: 'dart analyze',
+      proves: 'too broad and not attributable',
+      requiredForRelease: true,
+    );
+
+    expect(targeted.validate(), isEmpty);
+    expect(
+      broad.validate(),
+      contains('broad_analyzer analyzer evidence must stay targeted'),
     );
   });
 }

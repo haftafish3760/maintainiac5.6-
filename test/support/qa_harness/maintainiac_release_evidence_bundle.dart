@@ -31,6 +31,18 @@ class MaintainiacReleaseEvidence {
       failures.add('$id missing command or artifact');
     }
     if (proves.trim().isEmpty) failures.add('$id missing proof statement');
+    if (kind == MaintainiacEvidenceKind.analyzer) {
+      if (!commandOrArtifact.startsWith('dart analyze ')) {
+        failures.add('$id analyzer evidence must use dart analyze');
+      }
+      if (commandOrArtifact.trim() == 'dart analyze' ||
+          commandOrArtifact.trim() == 'dart analyze .') {
+        failures.add('$id analyzer evidence must stay targeted');
+      }
+      if (!commandOrArtifact.contains('test/support/qa_harness')) {
+        failures.add('$id analyzer evidence must include QA harness sources');
+      }
+    }
     if (kind == MaintainiacEvidenceKind.individualTest &&
         !commandOrArtifact.contains('--plain-name')) {
       failures.add('$id individual test evidence must use --plain-name');
