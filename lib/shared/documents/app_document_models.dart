@@ -12,8 +12,9 @@ enum AppDocumentKind {
   final String storageModule;
 
   static AppDocumentKind fromName(String? name) {
+    final normalizedName = name?.trim();
     return AppDocumentKind.values.firstWhere(
-      (value) => value.name == name,
+      (value) => value.name == normalizedName,
       orElse: () => AppDocumentKind.otherDocument,
     );
   }

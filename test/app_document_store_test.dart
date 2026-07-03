@@ -43,6 +43,31 @@ void main() {
     if (await sourcePdf.exists()) await sourcePdf.delete();
   });
 
+  test('document records trim stored kind names before restore', () {
+    final restored = AppDocumentRecord.fromMap({
+      'id': 'DOC-maintenance-receipt',
+      'kind': ' maintenanceRecord ',
+      'title': 'Oil change receipt',
+      'createdAt': DateTime(2026, 6, 15).toIso8601String(),
+      'updatedAt': DateTime(2026, 6, 15).toIso8601String(),
+      'attachments': [
+        {
+          'id': 'maintenance-pdf',
+          'path': '/tmp/oil-change.pdf',
+          'kind': ' pdf ',
+          'linkedModule': 'maintenance',
+          'linkedRecordId': 'DOC-maintenance-receipt',
+          'createdAt': DateTime(2026, 6, 15).toIso8601String(),
+        },
+      ],
+    });
+
+    expect(restored.kind, AppDocumentKind.maintenanceRecord);
+    expect(restored.kind.storageModule, 'maintenance');
+    expect(restored.attachments.single.kind, ReceiptAttachmentKind.pdf);
+    expect(restored.displayTitle, 'Oil change receipt');
+  });
+
   test(
     'saves app-wide document proof separate from expense receipts',
     () async {
