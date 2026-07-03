@@ -89,6 +89,8 @@ Focused rerun routes for recently hardened release-one contracts:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_service_family_contract,qa.threshold_gate`
 - inventory.release_one_tier_role_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_tier_role_contract,qa.threshold_gate`
+- inventory.release_one_fastener_support_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_fastener_support_contract,qa.threshold_gate`
 - inventory.release_one_cell_manifest:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_cell_manifest,qa.threshold_gate`
 - inventory.language_pack_separation_contract:
