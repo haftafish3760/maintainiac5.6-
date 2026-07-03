@@ -176,6 +176,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'surgical rerun router maps changed files to individual commands',
         'surgical rerun router rejects unknown selector references',
         'surgical rerun router maps payment and granularity changes',
+        'surgical rerun router maps changed test files to their selectors',
         'surgical rerun router dedupes overlapping changed paths',
       },
     ),

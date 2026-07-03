@@ -96,6 +96,12 @@ class MaintainiacSurgicalRerunRouter {
   Set<String> selectorIdsForChangedPaths(Iterable<String> changedPaths) {
     final selectorIds = <String>{};
     for (final path in changedPaths) {
+      final normalizedPath = path.replaceAll('\\', '/');
+      for (final selector in registry.selectors) {
+        if (normalizedPath.endsWith(selector.file)) {
+          selectorIds.add(selector.id);
+        }
+      }
       for (final rule in rules) {
         if (rule.matches(path)) selectorIds.addAll(rule.selectorIds);
       }

@@ -70,6 +70,22 @@ void main() {
     );
   });
 
+  test('surgical rerun router maps changed test files to their selectors', () {
+    final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
+      'test/maintainiac_payment_contract_test.dart',
+    ]);
+    final joined = commands.join('\n');
+
+    expect(joined, contains('payment ledger policy proves'));
+    expect(joined, contains('payment contract balances payments refunds'));
+    expect(joined, contains('payment contract rejects sensitive'));
+    expect(joined, isNot(contains('main Maintainiac QA backbone')));
+    expect(
+      commands.every((command) => command.contains('--plain-name')),
+      isTrue,
+    );
+  });
+
   test('surgical rerun router dedupes overlapping changed paths', () {
     final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
       'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
