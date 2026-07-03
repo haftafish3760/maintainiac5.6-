@@ -224,6 +224,7 @@ The backbone includes a release gate plan:
 - Adds a surgical rerun router that maps changed QA contract files to exact individual selector commands, preventing broad reruns when only one parser QA surface changed.
 - Adds surgical selector coverage expectations so every focused parser-consumer QA behavior has an individual selector before release.
 - Adds a source-truth gate that formalizes local/Hive source records, Firestore mirror-only records, parser suggestion records, and derived read-only outputs across expenses, inventory, jobs, estimates, invoices, recap, exports, and sync.
+- Adds a financial formula registry that labels deterministic money formulas, rounding policies, source-mutation rules, and individual test commands across expenses, inventory, jobs, estimates, invoices, and payments.
 
 Print the release gate with:
 

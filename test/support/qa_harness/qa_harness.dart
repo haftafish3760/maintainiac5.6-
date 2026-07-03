@@ -13,6 +13,7 @@ export 'maintainiac_export_privacy.dart';
 export 'maintainiac_expense_parser_consumer_contract.dart';
 export 'maintainiac_failure_taxonomy.dart';
 export 'maintainiac_correction_learning_contract.dart';
+export 'maintainiac_financial_formula_registry.dart';
 export 'maintainiac_qa_environment.dart';
 export 'maintainiac_qa_execution_manifest.dart';
 export 'maintainiac_qa_fingerprint.dart';

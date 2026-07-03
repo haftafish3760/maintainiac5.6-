@@ -10,6 +10,7 @@ import 'maintainiac_qa_run_ledger.dart';
 import 'maintainiac_qa_case_registry.dart';
 import 'maintainiac_regression_registry.dart';
 import 'maintainiac_expense_parser_consumer_contract.dart';
+import 'maintainiac_financial_formula_registry.dart';
 import 'maintainiac_parser_candidate_contract.dart';
 import 'maintainiac_parser_consumer_gate.dart';
 import 'maintainiac_parser_fixture_manifest.dart';
@@ -442,10 +443,13 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacSourceTruthGate.validate()) {
       failures.add(_failure('source_truth_gate_$issue', issue));
     }
+    for (final issue in maintainiacFinancialFormulaRegistry.validate()) {
+      failures.add(_failure('financial_formula_registry_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 416,
+      checked: 436,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -492,6 +496,8 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'surgicalSelectorCoverage': maintainiacSurgicalSelectorCoverage
             .toJson(),
         'sourceTruthGate': maintainiacSourceTruthGate.toJson(),
+        'financialFormulaRegistry': maintainiacFinancialFormulaRegistry
+            .toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

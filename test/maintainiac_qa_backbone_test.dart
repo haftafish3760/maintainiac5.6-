@@ -122,6 +122,10 @@ void main() {
       report.results.single.metrics['sourceTruthGate'].toString(),
       contains('firestore_mirror_read_only_truth'),
     );
+    expect(
+      report.results.single.metrics['financialFormulaRegistry'].toString(),
+      contains('invoice_grand_total_cents'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {
