@@ -56,6 +56,12 @@ void main() {
           'latestCapturedBottomLuma': 112.0,
           'latestCapturedEdgeScore': 16.0,
         });
+    final bottomBogusNativeNumber =
+        ReceiptNativeSavedPhotoReviewWarning.fromDiagnostics(const {
+          'latestCapturedBottomTopLumaDeltaBucket': 'bottom_darker_than_top',
+          'latestCapturedBottomLuma': double.infinity,
+          'latestCapturedEdgeScore': 16.0,
+        });
     final bottomSoft = ReceiptNativeSavedPhotoReviewWarning.fromDiagnostics(
       const {'latestCapturedVerticalQualitySignal': 'bottom_soft_blur_risk'},
     );
@@ -123,6 +129,8 @@ void main() {
       contains('Add Another Photo for a clearer bottom section'),
     );
     expect(bottomDarkerButReadable, isNull);
+    expect(bottomBogusNativeNumber.code, 'saved_photo_bottom_too_dark');
+    expect(bottomBogusNativeNumber.parserRiskCode, 'ocr_bottom_total_may_fail');
     expect(bottomSoft.code, 'saved_photo_bottom_soft');
     expect(bottomSoft.prefersAddSection, isTrue);
     expect(bottomSoft.actionCode, 'check_bottom_or_retake');

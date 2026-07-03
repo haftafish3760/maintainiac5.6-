@@ -267,7 +267,10 @@ class ReceiptNativeSavedPhotoReviewWarning {
   }
 
   static double? _doubleValue(Object? value) {
-    if (value is num) return value.toDouble();
-    return double.tryParse(value?.toString() ?? '');
+    final parsed = value is num
+        ? value.toDouble()
+        : double.tryParse(value?.toString().trim() ?? '');
+    if (parsed == null || !parsed.isFinite) return null;
+    return parsed;
   }
 }
