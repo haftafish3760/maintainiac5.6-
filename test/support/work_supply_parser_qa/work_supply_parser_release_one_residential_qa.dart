@@ -16,11 +16,12 @@ class WorkSupplyParserReleaseOneResidentialSuite extends QaSuite {
     'test/support/work_supply_parser_qa/work_supply_parser_generated_fixture_cell_qa.dart',
   };
 
-  static const _releaseOneTrades = {
-    'plumbing',
-    'electrical',
-    'hvac',
-    'fasteners',
+  static const _primaryReleaseOneTrades = {'plumbing', 'electrical', 'hvac'};
+
+  static const _releaseOneSupportSignals = {
+    'fasteners only as normal overlap/support items',
+    'not a separate release-one trade pack',
+    'service-trade fasteners',
   };
 
   static const _releaseOneLocales = {
@@ -73,15 +74,28 @@ class WorkSupplyParserReleaseOneResidentialSuite extends QaSuite {
     final source = _readSources();
     var checked = 0;
 
-    checked += _releaseOneTrades.length;
+    checked += _primaryReleaseOneTrades.length;
     _requireTokens(
       failures,
       source,
-      _releaseOneTrades,
+      _primaryReleaseOneTrades,
       idPrefix: 'missing_release_trade',
       message: 'Release-one residential contract is missing a trade.',
       fix:
-          'Release one must cover residential plumbing, electrical, HVAC, and their normal fasteners.',
+          'Release one must prioritize residential plumbing, electrical, and HVAC.',
+      triage: QaFailureTriage.governance,
+    );
+
+    checked += _releaseOneSupportSignals.length;
+    _requireTokens(
+      failures,
+      source,
+      _releaseOneSupportSignals,
+      idPrefix: 'missing_release_support_signal',
+      message:
+          'Release-one residential contract is missing support-item scope.',
+      fix:
+          'Normal service-trade fasteners belong inside the top-three trade packs, not as a separate release-one trade drift.',
       triage: QaFailureTriage.governance,
     );
 
@@ -115,7 +129,8 @@ class WorkSupplyParserReleaseOneResidentialSuite extends QaSuite {
       source,
       _serviceTruckSignals,
       idPrefix: 'missing_service_truck_signal',
-      message: 'Release-one residential QA is missing real-world store/service-truck signals.',
+      message:
+          'Release-one residential QA is missing real-world store/service-truck signals.',
       fix:
           'Core/standard packs must bias toward service-truck and major-store stocked items before obscure or special-order catalog expansion.',
       triage: QaFailureTriage.fixture,
@@ -135,15 +150,12 @@ class WorkSupplyParserReleaseOneResidentialSuite extends QaSuite {
       metrics: {
         'sourceFiles': _sourcePaths.length,
         'contract':
-            'Release one is residential first, top three trades plus normal fasteners, English plus US Spanish, and fixture-paired before expansion.',
+            'Release one is residential first, top three trades, English plus US Spanish, and fixture-paired before expansion.',
       },
     );
   }
 
-  void _requireReleaseGates(
-    List<QaFailure> failures,
-    String source,
-  ) {
+  void _requireReleaseGates(List<QaFailure> failures, String source) {
     final lower = source.toLowerCase();
     for (final gate in _releaseGates) {
       if (lower.contains(gate.toLowerCase())) continue;

@@ -20,6 +20,21 @@ and every other Maintainiac module.
 - No maintenance
 - No other repo
 
+## Release-One Inventory Priority
+
+- Primary release-one market: United States residential.
+- Primary release-one trades: Plumbing, Electrical, and HVAC.
+- Primary release-one language packs: English (en-US) and Spanish (es-US).
+- Primary release-one tiers: Core and Standard first.
+- Professional and Complete follow the same contracts after Core/Standard are
+  proven.
+- Fasteners are included only as normal overlap/support items inside Plumbing,
+  Electrical, and HVAC service-trade packs.
+- Fasteners are not a separate release-one trade pack.
+- Required support wording: fasteners only as normal overlap/support items.
+- Required support wording: not a separate release-one trade pack.
+- Required support wording: service-trade fasteners.
+
 ## Completed Parser Evidence
 
 The all-tier residential generated-fixture parser wave completed locally.
@@ -722,6 +737,41 @@ User-controlled input surfaces:
 - UPC
 - GTIN
 - barcode
+
+Barcode/vendor provenance safety rules now required before any release-one
+barcode-assisted inventory flow:
+
+- user_item_id_does_not_replace_stable_catalog_id
+- barcode_can_link_to_canonical_item
+- barcode_collision_requires_review
+- barcode_mapping_requires_user_confirmation
+- unknown_barcode_stays_review_only
+- barcode_evidence_never_bypasses_conflict_rules
+- user_scanned_barcode_maps_to_private_inventory_memory_first
+- vehicle_location_is_user_inventory_metadata
+- bin_drawer_location_is_not_parser_identity
+- fleet_vehicle_inventory_is_separate_from_catalog
+- same_catalog_item_can_exist_on_multiple_vehicles
+- user_custom_item_keeps_source_metadata
+- barcode_scan_can_create_review_candidate
+- barcode_missing_does_not_block_receipt_parser
+- official_pack_mappings_require_licensed_or_public_source
+- retailer_database_scraping_is_forbidden
+- merchant_sku_mapping_requires_source_confidence
+- barcode_receipt_disagreement_requires_review
+- barcode_can_boost_confidence_only_with_corroborating_evidence
+
+Barcode, UPC, GTIN, vendor SKU, and merchant item-number evidence can boost
+ranking only when corroborated by receipt text, metadata, trade context, pack
+scope, and conflict graph evidence. Unknown or colliding barcode evidence stays
+review-only. User-scanned barcode links remain private local inventory memory
+unless reviewed and explicitly promoted. User item ID and internal item ID
+values never replace stable catalog identity. Vehicle location, bin number,
+drawer, truck, fleet, on hand, out of stock, purchased not in stock, job
+staging, vehicle inventory, shop inventory, employee, permission, and owner
+fields are user inventory metadata, not parser identity. Official pack mappings
+require licensed, reviewed public, manual, or synthetic provenance. Retailer
+database scraping is forbidden.
 - bin number
 - drawer
 - vehicle location

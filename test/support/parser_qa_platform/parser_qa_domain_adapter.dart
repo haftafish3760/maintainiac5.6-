@@ -71,6 +71,9 @@ const workSupplyParserDomainAdapter = ParserQaDomainAdapter(
     'expenses',
     'GoogleVision',
     'MLKit',
+    'testWidgets',
+    'WidgetTester',
+    'pumpWidget',
   ],
   supportedResultUses: [
     'inventory',

@@ -31,6 +31,12 @@ class WorkSupplyParserBarcodeInventoryIdentitySuite extends QaSuite {
     'user_item_id_does_not_replace_stable_catalog_id',
     'barcode_can_link_to_canonical_item',
     'barcode_collision_requires_review',
+    'barcode_mapping_requires_user_confirmation',
+    'unknown_barcode_stays_review_only',
+    'barcode_evidence_never_bypasses_conflict_rules',
+    'user_scanned_barcode_maps_to_private_inventory_memory_first',
+    'barcode_receipt_disagreement_requires_review',
+    'barcode_can_boost_confidence_only_with_corroborating_evidence',
     'vehicle_location_is_user_inventory_metadata',
     'bin_drawer_location_is_not_parser_identity',
     'fleet_vehicle_inventory_is_separate_from_catalog',
@@ -51,6 +57,18 @@ class WorkSupplyParserBarcodeInventoryIdentitySuite extends QaSuite {
     'permission',
     'owner',
     'review-only',
+    'private local inventory memory',
+    'reviewed correction workflow',
+  };
+
+  static const _provenanceTokens = {
+    'licensed',
+    'reviewed public',
+    'manual',
+    'synthetic provenance',
+    'source confidence',
+    'version metadata',
+    'retailer database scraping is forbidden',
   };
 
   @override
@@ -81,10 +99,23 @@ class WorkSupplyParserBarcodeInventoryIdentitySuite extends QaSuite {
       source,
       _inventoryDestinations,
       idPrefix: 'missing_inventory_destination',
-      message: 'Barcode/inventory identity QA is missing inventory destinations.',
+      message:
+          'Barcode/inventory identity QA is missing inventory destinations.',
       fix:
           'Parser output must distinguish catalog identity from user inventory placement, stock status, job staging, vehicles, employees, and permissions.',
       triage: QaFailureTriage.category,
+    );
+
+    checked += _provenanceTokens.length;
+    _requireTokens(
+      failures,
+      source,
+      _provenanceTokens,
+      idPrefix: 'missing_barcode_provenance_token',
+      message: 'Barcode/vendor identity QA is missing source-provenance gates.',
+      fix:
+          'Barcode, UPC, GTIN, and vendor SKU evidence must require licensed/public/manual/synthetic provenance, source confidence, and no retailer scraping.',
+      triage: QaFailureTriage.governance,
     );
 
     return timer.finish(

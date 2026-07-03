@@ -22,6 +22,12 @@ class WorkSupplyParserPlatformContractSuite extends QaSuite {
       'inventory.runtime_profile_contract',
       'inventory.execution_command_contract',
     ]),
+    _PlatformPillar('ui_independent_parser_contracts', [
+      'UI can move',
+      'parser contracts must not',
+      'Do not write detailed UI/widget QA',
+      'inventory.boundary_guard',
+    ]),
     _PlatformPillar('golden_and_generated_fixtures', [
       'golden fixtures',
       'generated risky receipt-line families',

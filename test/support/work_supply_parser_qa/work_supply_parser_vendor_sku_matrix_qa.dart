@@ -80,6 +80,11 @@ class WorkSupplyParserVendorSkuMatrixSuite extends QaSuite {
     'store_short_name_maps_to_alias_evidence',
     'missing_vendor_map_does_not_fail_item',
     'vendor_map_is_versioned',
+    'official_pack_mappings_require_licensed_or_public_source',
+    'retailer_database_scraping_is_forbidden',
+    'merchant_sku_mapping_requires_source_confidence',
+    'barcode_receipt_disagreement_requires_review',
+    'barcode_can_boost_confidence_only_with_corroborating_evidence',
   };
 
   @override

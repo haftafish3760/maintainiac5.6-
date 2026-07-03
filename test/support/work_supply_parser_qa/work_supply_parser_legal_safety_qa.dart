@@ -20,6 +20,9 @@ class WorkSupplyParserLegalSafetySuite extends QaSuite {
     'generic merchant abbreviation patterns',
     'reviewed public/manual source notes',
     'No full private receipts',
+    'official_pack_mappings_require_licensed_or_public_source',
+    'retailer_database_scraping_is_forbidden',
+    'merchant_sku_mapping_requires_source_confidence',
   ];
 
   static final _blockedFixturePatterns = {

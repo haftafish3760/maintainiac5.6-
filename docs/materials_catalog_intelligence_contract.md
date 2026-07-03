@@ -6,6 +6,13 @@ Scope: Maintainiac 5.6 Work Supplies / Materials / Inventory catalog and parser 
 
 This document overrides any raw item-count mindset in older notes. The goal is not to create the biggest possible catalog. The goal is to create smart catalog rows that help the parser recognize messy residential, light-industrial, and commercial material language with high confidence.
 
+Release one inventory priority is United States residential Plumbing, Electrical,
+and HVAC in English (en-US) and Spanish (es-US). Core and Standard are the first
+release-one priority cells. Professional and Complete can follow after the same
+contract pattern is proven. Fasteners are included only as normal overlap/support
+items inside those service-trade packs; they are not a separate release-one trade
+pack.
+
 ## Hard Boundaries
 
 Do not edit the camera, OCR, PDF, shared receipt-capture, image-prep, receipt-stitching, or Expenses receipt pipeline while working from this contract.
@@ -258,6 +265,30 @@ Vendor/SKU matrix axes must include:
 - resultAxis: review, ranked, unknown, confidence, and false confident guardrails
 
 These rules are required so a merchant identifier can help the parser without letting one vendor code silently create bad inventory, job, estimate, or invoice material records. Vendor/SKU evidence must do not auto-save any inventory, estimate, invoice, or job material action without review and user approval.
+
+Required barcode/vendor provenance safety rules:
+
+- user_item_id_does_not_replace_stable_catalog_id
+- barcode_can_link_to_canonical_item
+- barcode_collision_requires_review
+- barcode_mapping_requires_user_confirmation
+- unknown_barcode_stays_review_only
+- barcode_evidence_never_bypasses_conflict_rules
+- user_scanned_barcode_maps_to_private_inventory_memory_first
+- vehicle_location_is_user_inventory_metadata
+- bin_drawer_location_is_not_parser_identity
+- fleet_vehicle_inventory_is_separate_from_catalog
+- same_catalog_item_can_exist_on_multiple_vehicles
+- user_custom_item_keeps_source_metadata
+- barcode_scan_can_create_review_candidate
+- barcode_missing_does_not_block_receipt_parser
+- official_pack_mappings_require_licensed_or_public_source
+- retailer_database_scraping_is_forbidden
+- merchant_sku_mapping_requires_source_confidence
+- barcode_receipt_disagreement_requires_review
+- barcode_can_boost_confidence_only_with_corroborating_evidence
+
+Barcode, UPC, GTIN, vendor SKU, and merchant item-number evidence may improve ranked candidates only when it agrees with receipt text, item metadata, trade context, pack scope, and conflict graph evidence. Unknown or colliding barcode evidence must stay review-only. User-scanned barcode links belong to private local inventory memory unless the user explicitly promotes them through a reviewed correction workflow. User item ID and internal item ID values never replace stable catalog identity. Vehicle location, bin number, drawer, truck, fleet, on hand, out of stock, purchased not in stock, job staging, vehicle inventory, shop inventory, employee, permission, and owner fields are user inventory metadata, not parser identity. Official parser packs must never be built from copied retailer databases or scraping; mappings need licensed, reviewed public, manual, or synthetic provenance with source confidence and version metadata. Retailer database scraping is forbidden.
 
 6. Attribute tokens
 

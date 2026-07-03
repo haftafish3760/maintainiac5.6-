@@ -6,7 +6,7 @@ class WorkSupplyParserBoundarySuite extends QaSuite {
   const WorkSupplyParserBoundarySuite() : super('inventory.boundary_guard');
 
   static const _scannedRoots = [
-    'test/support/qa_harness',
+    'test/support/parser_qa_platform',
     'test/support/work_supply_parser_qa',
     'test/work_supply_parser_qa_harness_test.dart',
   ];
@@ -37,6 +37,15 @@ class WorkSupplyParserBoundarySuite extends QaSuite {
       'MethodChannel(',
       'EventChannel(',
     ],
+    'unstable_ui_qa': [
+      'testWidgets(',
+      'WidgetTester',
+      'pumpWidget(',
+      'find.byWidget',
+      'find.byType',
+      'find.text(',
+      'matchesGoldenFile',
+    ],
   };
 
   @override
@@ -63,10 +72,10 @@ class WorkSupplyParserBoundarySuite extends QaSuite {
                   'Inventory parser QA harness crossed a forbidden boundary.',
               severity: QaSeverity.critical,
               expected:
-                  'Harness must stay local, parser-only, and independent of OCR/camera/Firebase.',
+                  'Harness must stay local, parser-only, and independent of OCR/camera/Firebase/unstable UI.',
               actual: '${file.path} contains "$pattern"',
               suggestedFix:
-                  'Move integration work to an explicit approved integration profile, not the parser QA harness.',
+                  'Move integration/UI work to an explicit approved profile after that screen is stable, not the parser QA harness.',
             ),
           );
         }
