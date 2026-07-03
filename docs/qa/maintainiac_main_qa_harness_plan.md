@@ -156,6 +156,14 @@ The backbone includes a reusable permission and ownership probe:
 - Vehicle assignment checks.
 - Required permission checks with admin override.
 
+## Audit Trail Probe
+
+The backbone includes an audit trail probe:
+
+- Audit events must have actor, action, target, and ordered timestamps.
+- Duplicate audit IDs fail.
+- User-confirmed suggestion events preserve before/after values and prove confirmed data outranks parser automation.
+
 ## Parser Platform Consumers
 
 The reusable parser QA platform must register each parser as a domain adapter instead of burying assumptions in module tests:

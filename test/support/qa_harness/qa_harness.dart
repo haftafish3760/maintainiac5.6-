@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 export 'maintainiac_qa_assertions.dart';
+export 'maintainiac_audit_trail.dart';
 export 'maintainiac_qa_backbone.dart';
 export 'maintainiac_qa_builders.dart';
 export 'maintainiac_qa_case_registry.dart';
