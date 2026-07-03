@@ -106,8 +106,7 @@ extension _ReceiptAttachmentPublishSignals
         diagnostics[ReceiptCaptureDiagnosticKeys.photoCoverageStatus]
             ?.toString()
             .trim();
-    if (coverageStatus == ReceiptPhotoCoverageStatus.likelyCutOff.name ||
-        coverageStatus == ReceiptPhotoCoverageStatus.maybeContinues.name) {
+    if (coverageStatusNeedsMorePhotos(coverageStatus)) {
       flags.add('possible_partial_receipt');
     }
     final savedWarning =
@@ -146,5 +145,24 @@ extension _ReceiptAttachmentPublishSignals
         .replaceAll(RegExp(r'_+'), '_')
         .replaceAll(RegExp(r'^_|_$'), '');
     return token.isEmpty ? 'unknown' : token;
+  }
+
+  bool coverageStatusNeedsMorePhotos(String? status) {
+    if (status == null || status.isEmpty) return false;
+    if (status == ReceiptPhotoCoverageStatus.likelyCutOff.name ||
+        status == ReceiptPhotoCoverageStatus.maybeContinues.name) {
+      return true;
+    }
+    return const {
+      'bottom_soft_or_missing',
+      'bottom_missing',
+      'soft_or_missing',
+      'cut_off',
+      'possibly_cut_off',
+      'needs_next_section',
+      'continues',
+      'likely_cut_off',
+      'maybe_continues',
+    }.contains(attachmentSignalToken(status));
   }
 }

@@ -91,6 +91,15 @@ void main() {
     expect(attachmentPanel, contains('readState:'));
     expect(attachmentPanel, contains('attachment.readState'));
     expect(attachmentPanel, contains('onReceiptPhotoReviewAccepted'));
+    expect(attachmentPanel, contains('coverageStatusNeedsMorePhotos'));
+    expect(attachmentPanel, contains('bottom_soft_or_missing'));
+    expect(
+      attachmentPanel,
+      contains(
+        "if (coverageStatusNeedsMorePhotos(coverageStatus)) {\n"
+        "      flags.add('possible_partial_receipt');",
+      ),
+    );
     expect(importActions, contains('previousPhotoIdByPath'));
     expect(importActions, contains('deleteTemporaryOcrPhotos'));
     expect(

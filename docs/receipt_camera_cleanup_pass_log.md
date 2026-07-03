@@ -118,6 +118,25 @@ Verification:
 - Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
   diff check.
 
+## Pass 533 - 02:43:56 EDT to 02:48:00 EDT
+
+Scope:
+- Hardened attachment-panel photo risk flags so native bottom-missing coverage
+  statuses still mark a receipt photo as a possible partial receipt.
+- Added source contract coverage for the private panel helper and
+  `bottom_soft_or_missing` status token.
+- Recorded `BUG-RECEIPT-0051` under `camera_capture_quality`.
+
+Verification:
+- Passed targeted Dart format and analyzer for attachment panel publish signals
+  and attachment read contract coverage.
+- Passed focused Flutter test
+  `test/receipt_camera_ocr_source_attachment_read_test.dart --plain-name
+  "reviewed OCR source attachments preserve read state and cleanup safety"`.
+- Archived Pass 508 after the cleanup log gate caught the active log over cap.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 527 - 01:56:00 EDT to 02:00:00 EDT
 
 Scope:
@@ -478,23 +497,4 @@ Verification:
 - Passed targeted Dart format and analyzer for diagnostic bucket helpers and
   OCR source handoff regression coverage.
 - Passed focused Flutter test `test/receipt_camera_ocr_source_handoff_test.dart`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 508 - 00:58:43 EDT to 00:59:26 EDT
-
-Scope:
-- Hardened the main split-percent sheet so custom business percent text can
-  include a percent sign, matching the quick price-only split path.
-- Added regression coverage proving the old direct custom controller parse path
-  is gone.
-- Recorded `BUG-RECEIPT-0026` under `business_personal_split`.
-- Archived Pass 472 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for the split percent sheet and
-  assisted-review regression coverage.
-- Passed focused Flutter test
-  `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
-  receipt review exposes classification and attachment flow"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
