@@ -83,6 +83,45 @@ void main() {
       containsPair('reason_missing_bottom_edge_and_totals', 1),
     );
   });
+
+  test('phone backup continuation survives blank native values', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/blank-native-bottom-proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/blank-native-bottom-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/blank-native-bottom-ocr.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/blank-native-bottom-proof.jpg': {
+          'phoneCameraBackupHadPreviousSectionGuide': true,
+          'previousSectionReasonCode': '   ',
+          'phoneCameraBackupPreviousSectionReasonCode':
+              'missing_bottom_edge_and_totals',
+          'previousSectionGhostGuidePolicy': '',
+          'phoneCameraBackupPreviousSectionGhostGuidePolicy':
+              'bottom_overlap_ghost_at_top_repeat_3_to_5_lines',
+          'previousSectionGhostGuideRepeatLineTarget': '',
+          'phoneCameraBackupPreviousSectionGhostGuideRepeatLineTarget':
+              'repeat_3_to_5_readable_lines',
+          'previousSectionGhostGuidePlacement': ' ',
+          'phoneCameraBackupPreviousSectionGhostGuidePlacement':
+              'top_ghost_slice',
+          'previousSectionGhostGuideMatchTarget': '',
+          'phoneCameraBackupPreviousSectionGhostGuideMatchTarget':
+              'subtotal_total_and_final_lines',
+          'phoneCameraBackupPreviousSectionMissingBottomAndTotals': true,
+          'receiptText': 'private receipt text should not leak',
+        },
+      },
+    );
+
+    _expectBottomContinuationSummary(result);
+    final summary = result.privacySafeReceiptContinuationSummary.toString();
+    expect(summary, contains('reason_missing_bottom_edge_and_totals'));
+    expect(summary, isNot(contains('/tmp/')));
+    expect(summary, isNot(contains('private receipt text')));
+  });
 }
 
 void _expectBottomContinuationSummary(ReceiptPhotoReviewResult result) {

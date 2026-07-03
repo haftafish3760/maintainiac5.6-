@@ -59,11 +59,10 @@ extension ReceiptPhotoReviewResultContinuation on ReceiptPhotoReviewResult {
           true) {
         add('previous_section_guidance_available');
       }
-      final reason =
-          diagnostics['previousSectionReasonCode']?.toString().trim() ??
-          diagnostics['phoneCameraBackupPreviousSectionReasonCode']
-              ?.toString()
-              .trim();
+      final reason = _firstContinuationDiagnosticValue(
+        diagnostics['previousSectionReasonCode'],
+        diagnostics['phoneCameraBackupPreviousSectionReasonCode'],
+      );
       if (reason != null && reason.isNotEmpty && reason != 'none') {
         add('reason_${_diagnosticToken(reason)}');
       }
@@ -93,11 +92,10 @@ extension ReceiptPhotoReviewResultContinuation on ReceiptPhotoReviewResult {
       if (missingBottomAndTotals) {
         add('missing_bottom_edge_and_totals_continuation');
       }
-      final ghostPolicy =
-          diagnostics['previousSectionGhostGuidePolicy']?.toString().trim() ??
-          diagnostics['phoneCameraBackupPreviousSectionGhostGuidePolicy']
-              ?.toString()
-              .trim();
+      final ghostPolicy = _firstContinuationDiagnosticValue(
+        diagnostics['previousSectionGhostGuidePolicy'],
+        diagnostics['phoneCameraBackupPreviousSectionGhostGuidePolicy'],
+      );
       if (ghostPolicy != null &&
           ghostPolicy.isNotEmpty &&
           ghostPolicy != 'not_requested') {
@@ -105,37 +103,28 @@ extension ReceiptPhotoReviewResultContinuation on ReceiptPhotoReviewResult {
       } else if (missingBottomAndTotals) {
         add('ghost_policy_bottom_overlap_ghost_at_top_repeat_3_to_5_lines');
       }
-      final repeatLineTarget =
-          diagnostics['previousSectionGhostGuideRepeatLineTarget']
-              ?.toString()
-              .trim() ??
-          diagnostics['phoneCameraBackupPreviousSectionGhostGuideRepeatLineTarget']
-              ?.toString()
-              .trim();
+      final repeatLineTarget = _firstContinuationDiagnosticValue(
+        diagnostics['previousSectionGhostGuideRepeatLineTarget'],
+        diagnostics['phoneCameraBackupPreviousSectionGhostGuideRepeatLineTarget'],
+      );
       if (repeatLineTarget != null &&
           repeatLineTarget.isNotEmpty &&
           repeatLineTarget != 'none') {
         add('ghost_repeat_target_${_diagnosticToken(repeatLineTarget)}');
       }
-      final ghostPlacement =
-          diagnostics['previousSectionGhostGuidePlacement']
-              ?.toString()
-              .trim() ??
-          diagnostics['phoneCameraBackupPreviousSectionGhostGuidePlacement']
-              ?.toString()
-              .trim();
+      final ghostPlacement = _firstContinuationDiagnosticValue(
+        diagnostics['previousSectionGhostGuidePlacement'],
+        diagnostics['phoneCameraBackupPreviousSectionGhostGuidePlacement'],
+      );
       if (ghostPlacement != null &&
           ghostPlacement.isNotEmpty &&
           ghostPlacement != 'none') {
         add('ghost_placement_${_diagnosticToken(ghostPlacement)}');
       }
-      final ghostMatchTarget =
-          diagnostics['previousSectionGhostGuideMatchTarget']
-              ?.toString()
-              .trim() ??
-          diagnostics['phoneCameraBackupPreviousSectionGhostGuideMatchTarget']
-              ?.toString()
-              .trim();
+      final ghostMatchTarget = _firstContinuationDiagnosticValue(
+        diagnostics['previousSectionGhostGuideMatchTarget'],
+        diagnostics['phoneCameraBackupPreviousSectionGhostGuideMatchTarget'],
+      );
       if (ghostMatchTarget != null &&
           ghostMatchTarget.isNotEmpty &&
           ghostMatchTarget != 'none') {
@@ -186,4 +175,12 @@ extension ReceiptPhotoReviewResultContinuation on ReceiptPhotoReviewResult {
       _ => 'OCR source was not ready before saved proof',
     };
   }
+}
+
+String? _firstContinuationDiagnosticValue(Object? primary, Object? fallback) {
+  final primaryText = primary?.toString().trim();
+  if (primaryText != null && primaryText.isNotEmpty) return primaryText;
+  final fallbackText = fallback?.toString().trim();
+  if (fallbackText != null && fallbackText.isNotEmpty) return fallbackText;
+  return null;
 }
