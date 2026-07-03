@@ -22,6 +22,7 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
     'inventory.vendor_readiness': 'inventory.vendor_readiness',
     'inventory.vendor_sku_matrix_contract':
         'inventory.vendor_sku_matrix_contract',
+    'inventory.merchant_matrix_contract': 'inventory.merchant_matrix_contract',
     'inventory.barcode_inventory_identity_contract':
         'inventory.barcode_inventory_identity_contract',
     'inventory.legal_safety_contract': 'inventory.legal_safety_contract',
