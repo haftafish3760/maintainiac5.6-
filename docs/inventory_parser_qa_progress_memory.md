@@ -2635,6 +2635,9 @@ Release-one catalog gap closed in the plumbing item batch:
 - Active background stdout/stderr:
   `build/parser_qa_batch_waves/pass1164-residential-top-three-all-tiers-wave-execute/launch_stdout.log`,
   `build/parser_qa_batch_waves/pass1164-residential-top-three-all-tiers-wave-execute/launch_stderr.log`
+- Active background process evidence:
+  `PID 2636` was present for the hidden wave runner at launch verification,
+  with child Dart worker processes also present.
 - Active background safety flags:
   live services false, production catalog writes false, Firebase writes false,
   OCR/camera/Expenses touches false.

@@ -36,10 +36,10 @@ class WorkSupplyParserPassEvidenceSuite extends QaSuite {
   };
 
   static const _requiredLaunchMemoryTokens = {
-    'residential_all_tiers_wave_002_advised_128',
-    'generated_fixture_all_tiers_v2_advised_128',
-    'fixtureRunLimit=128',
-    'PID 8720',
+    'pass1164-residential-top-three-all-tiers-wave-execute',
+    'generated_fixture_all_tiers_v3_repair_kit_fast_path',
+    'fixtureRunLimit=118',
+    'PID 2636',
     'launch_stdout.log',
     'launch_stderr.log',
     'wave_plan.json',
