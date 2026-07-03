@@ -183,6 +183,14 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_qa_environment_test.dart',
+      plainNames: {
+        'QA environment fakes preserve local truth and mirror copies',
+        'QA environment exposes permissions device and side-effect fakes',
+        'QA builders create every shared record family',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_backbone_test.dart',
       plainNames: {'main Maintainiac QA backbone covers whole app modules'},
     ),

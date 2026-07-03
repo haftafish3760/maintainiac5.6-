@@ -69,6 +69,8 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_source_audit_policy.dart',
       'maintainiac_audit_trail.dart',
       'maintainiac_qa_assertions.dart',
+      'maintainiac_qa_environment.dart',
+      'maintainiac_qa_builders.dart',
     }) {
       if (!rules.any((rule) => rule.changedPathContains == required)) {
         failures.add('missing rerun rule for $required');
@@ -262,6 +264,26 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Shared assertion changes need positive, negative, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_environment_changed',
+      changedPathContains: 'maintainiac_qa_environment.dart',
+      selectorIds: {
+        'qa_environment_local_truth',
+        'qa_environment_side_effect_fakes',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Shared environment changes need fake-store, side-effect, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'qa_builders_changed',
+      changedPathContains: 'maintainiac_qa_builders.dart',
+      selectorIds: {
+        'qa_builders_record_families',
+        'main_backbone_parser_visibility',
+      },
+      reason: 'Shared builder changes need record-family and backbone checks.',
     ),
   ],
 );

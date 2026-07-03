@@ -444,6 +444,33 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'assertions', 'security', 'privacy', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_environment_local_truth',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_environment_test.dart',
+    plainName: 'QA environment fakes preserve local truth and mirror copies',
+    reason:
+        'Run only the fake local/mirror store check after environment edits.',
+    tags: {'environment', 'source-of-truth', 'sync', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'qa_environment_side_effect_fakes',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_environment_test.dart',
+    plainName:
+        'QA environment exposes permissions device and side-effect fakes',
+    reason:
+        'Run only the fake permissions/device/side-effect check after environment edits.',
+    tags: {'environment', 'security', 'privacy', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'qa_builders_record_families',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_environment_test.dart',
+    plainName: 'QA builders create every shared record family',
+    reason: 'Run only the shared builder family check after builder edits.',
+    tags: {'builders', 'environment', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'main_backbone_parser_visibility',
     scope: MaintainiacSurgicalTestScope.releaseGate,
     file: 'test/maintainiac_qa_backbone_test.dart',
