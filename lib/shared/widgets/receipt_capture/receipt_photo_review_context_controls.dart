@@ -8,6 +8,7 @@ class _ReceiptReviewContextRow extends StatelessWidget {
     required this.dataSaverLevel,
     required this.storagePreview,
     required this.selectedQualityCheck,
+    required this.selectedCaptureDiagnostics,
     required this.bestShotCandidateMode,
     required this.openingCamera,
     required this.canRemove,
@@ -22,6 +23,7 @@ class _ReceiptReviewContextRow extends StatelessWidget {
   final ReceiptDataSaverLevel dataSaverLevel;
   final ReceiptImageStoragePreview? storagePreview;
   final ReceiptPhotoQualityCheck? selectedQualityCheck;
+  final Map<String, Object?>? selectedCaptureDiagnostics;
   final bool bestShotCandidateMode;
   final bool openingCamera;
   final bool canRemove;
@@ -131,11 +133,71 @@ class _ReceiptReviewContextRow extends StatelessWidget {
         total: photoCount,
       );
     }
+    final readinessCopy = _ReceiptCaptureReadinessReviewCopy.fromDiagnostics(
+      selectedCaptureDiagnostics,
+    );
+    if (readinessCopy != null) return readinessCopy.contextStatus;
     final quality = selectedQualityCheck;
     if (quality != null && quality.needsReview) {
       return '${quality.reviewGuidance} If the store, date, total, and item prices are readable, tap Next.';
     }
     return 'Photo captured locally. Next opens receipt details. Use Add Another Photo only if the receipt continues.';
+  }
+}
+
+class _ReceiptCaptureReadinessReviewCopy {
+  const _ReceiptCaptureReadinessReviewCopy._({
+    required this.contextStatus,
+    required this.previewStatus,
+  });
+
+  final String contextStatus;
+  final String previewStatus;
+
+  static _ReceiptCaptureReadinessReviewCopy? fromDiagnostics(
+    Map<String, Object?>? diagnostics,
+  ) {
+    final rawCode =
+        diagnostics?[ReceiptCaptureDiagnosticKeys.captureReadinessCode]
+            ?.toString()
+            .trim() ??
+        '';
+    if (rawCode.isEmpty) return null;
+    return switch (rawCode) {
+      'auto_capture_ready' => const _ReceiptCaptureReadinessReviewCopy._(
+        contextStatus:
+            'Receipt looked steady at capture. Next opens receipt details; add another photo only if the receipt continues.',
+        previewStatus:
+            'Receipt looked steady at capture. Next opens receipt details; use Add Another Photo only if the receipt continues.',
+      ),
+      'manual_only_check_framing' => const _ReceiptCaptureReadinessReviewCopy._(
+        contextStatus:
+            'Check that every receipt line is visible. Retake if the edges are cut off, or tap Next if the full receipt is readable.',
+        previewStatus:
+            'Check that every receipt line is visible. Retake if the edges are cut off; Next stays available when the full receipt is readable.',
+      ),
+      'manual_only_quality_retake_recommended' =>
+        const _ReceiptCaptureReadinessReviewCopy._(
+          contextStatus:
+              'Retake is safer for OCR quality. Next still works if the store, date, total, and item prices are readable.',
+          previewStatus:
+              'Retake is safer for OCR quality. Next still works if the store, date, total, and item prices are readable.',
+        ),
+      'auto_capture_waiting_for_stability' =>
+        const _ReceiptCaptureReadinessReviewCopy._(
+          contextStatus:
+              'This capture was taken before automatic capture considered the frame steady. Check sharpness, then retake or tap Next.',
+          previewStatus:
+              'This capture was taken before automatic capture considered the frame steady. Check sharpness, then retake or tap Next.',
+        ),
+      'manual_ready_auto_capture_off' => const _ReceiptCaptureReadinessReviewCopy._(
+        contextStatus:
+            'Manual capture was used. Next opens receipt details; add another photo only if the receipt continues.',
+        previewStatus:
+            'Manual capture was used. Next opens receipt details; use Add Another Photo only if the receipt continues.',
+      ),
+      _ => null,
+    };
   }
 }
 

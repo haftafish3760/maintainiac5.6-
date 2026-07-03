@@ -82,6 +82,12 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
           : 'add the next receipt section now';
       return '$recoveryPrefix${coverageDecision.title}: $addPhotoAction, or tap Next only if this photo already shows the full receipt; Next opens parsed receipt details.$editedPhotoCopy$memoryPolicyCopy';
     }
+    final readinessCopy = _ReceiptCaptureReadinessReviewCopy.fromDiagnostics(
+      selectedCaptureDiagnostics,
+    );
+    if (readinessCopy != null) {
+      return '$recoveryPrefix${readinessCopy.previewStatus}$editedPhotoCopy$memoryPolicyCopy';
+    }
     final quality = selectedQualityCheck;
     if (quality != null) {
       return '${recoveryPrefix}Photo captured locally. '

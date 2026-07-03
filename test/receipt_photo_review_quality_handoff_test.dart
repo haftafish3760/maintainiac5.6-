@@ -104,6 +104,23 @@ void main() {
     expect(controls, contains('quality.userFacingStatusLabel'));
     expect(controls, contains('quality.reviewScoreMeaningLabel'));
     expect(
+      controls,
+      contains('_ReceiptCaptureReadinessReviewCopy.fromDiagnostics'),
+    );
+    expect(contextControls, contains('Receipt looked steady at capture'));
+    expect(
+      contextControls,
+      contains('before automatic capture considered the frame steady'),
+    );
+    expect(
+      controls,
+      contains('selectedCaptureDiagnostics: selectedCaptureDiagnostics'),
+    );
+    expect(
+      contextControls,
+      contains('Check that every receipt line is visible'),
+    );
+    expect(
       qualityRecovery,
       contains(
         "photoQuality.reviewGuidance} \${photoQuality.reviewScoreMeaningLabel}",

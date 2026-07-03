@@ -169,6 +169,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
                         dataSaverLevel: dataSaverLevel,
                         storagePreview: storagePreview,
                         selectedQualityCheck: selectedQualityCheck,
+                        selectedCaptureDiagnostics: selectedCaptureDiagnostics,
                         bestShotCandidateMode: bestShotCandidateMode,
                         openingCamera: openingCamera || savingPhotos,
                         canRemove: canRemove,
