@@ -18,8 +18,10 @@ class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
     'codo',
     'conector',
     'conducto',
+    'bomba',
     'filtro',
     'tapon',
+    'tanque',
     'tubo',
     'valvula',
   };

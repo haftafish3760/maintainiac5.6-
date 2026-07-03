@@ -736,6 +736,8 @@ String _spanishFamilyToken(WorkSupplyItem item, String shape, String text) {
   if (value.contains('connector')) return 'conector';
   if (value.contains('conduit')) return 'conducto';
   if (value.contains('filter')) return 'filtro';
+  if (value.contains('pump')) return 'bomba';
+  if (value.contains('tank')) return 'tanque';
   if (value.contains('cap') || value.contains('plug')) return 'tapon';
   if (value.contains('valve')) return 'valvula';
   if (value.contains('pipe') || value.contains('tube')) return 'tubo';
