@@ -204,6 +204,25 @@ void main() {
     }
   });
 
+  test('surgical rerun router maps expanded QA safety guards', () {
+    final ids = maintainiacSurgicalRerunRouter.selectorIdsForChangedPaths([
+      'test/support/qa_harness/maintainiac_qa_telemetry_privacy_gate.dart',
+      'test/support/qa_harness/maintainiac_qa_fingerprint.dart',
+      'test/support/qa_harness/maintainiac_qa_readiness.dart',
+      'test/support/qa_harness/maintainiac_payment_contract.dart',
+      'test/support/qa_harness/maintainiac_operating_directive_contract.dart',
+    ]);
+
+    expect(ids, contains('qa_telemetry_privacy_full_sensitive_registry'));
+    expect(ids, contains('qa_fingerprint_rejects_duplicate_paths'));
+    expect(ids, contains('qa_readiness_evidence_files_exist'));
+    expect(ids, contains('qa_readiness_rejects_weak_evidence'));
+    expect(ids, contains('payment_contract_balances_adjustments'));
+    expect(ids, contains('payment_contract_positive_ledger_math'));
+    expect(ids, contains('payment_contract_rejects_sensitive_source_mutation'));
+    expect(ids, contains('operating_directive_camera_ocr_boundary'));
+  });
+
   test('surgical rerun router dedupes overlapping changed paths', () {
     final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
       'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',

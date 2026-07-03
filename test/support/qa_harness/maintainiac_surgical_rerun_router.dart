@@ -458,10 +458,11 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       selectorIds: {
         'qa_telemetry_privacy_covers_surfaces',
         'qa_telemetry_privacy_rejects_missing_redaction',
+        'qa_telemetry_privacy_full_sensitive_registry',
         'main_backbone_parser_visibility',
       },
       reason:
-          'QA telemetry privacy changes need surface, redaction/overlap, and backbone checks.',
+          'QA telemetry privacy changes need surface, redaction/overlap, sensitive-field, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'qa_execution_manifest_changed',
@@ -483,10 +484,11 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
         'qa_fingerprint_stable_order_line_endings',
         'qa_fingerprint_changes_on_fixture_content',
         'qa_fingerprint_rejects_weak_evidence',
+        'qa_fingerprint_rejects_duplicate_paths',
         'main_backbone_parser_visibility',
       },
       reason:
-          'QA fingerprint changes need stability, content-change, weak-evidence, and backbone checks.',
+          'QA fingerprint changes need stability, content-change, weak-evidence, duplicate-path, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'qa_run_ledger_changed',
@@ -506,11 +508,13 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       changedPathContains: 'maintainiac_qa_readiness.dart',
       selectorIds: {
         'qa_readiness_tracks_gaps',
+        'qa_readiness_evidence_files_exist',
         'qa_readiness_rejects_fake_ready',
+        'qa_readiness_rejects_weak_evidence',
         'main_backbone_parser_visibility',
       },
       reason:
-          'QA readiness changes need gap tracking, fake-ready, and backbone checks.',
+          'QA readiness changes need gap tracking, evidence-file, fake-ready, weak-evidence, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'qa_checkpoint_policy_changed',
@@ -615,10 +619,13 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       selectorIds: {
         'payment_ledger_balance_policy',
         'payment_ledger_rejects_cross_account',
+        'payment_contract_balances_adjustments',
+        'payment_contract_positive_ledger_math',
+        'payment_contract_rejects_sensitive_source_mutation',
         'main_backbone_parser_visibility',
       },
       reason:
-          'Payment contract changes need financial balance, cross-account safety, and backbone checks.',
+          'Payment contract changes need balance, cross-account, adjustment, ledger math, source-mutation, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'financial_ledger_changed',
@@ -663,10 +670,11 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       selectorIds: {
         'operating_directive_matches_docs',
         'operating_directive_rejects_missing_rules',
+        'operating_directive_camera_ocr_boundary',
         'main_backbone_parser_visibility',
       },
       reason:
-          'Operating directive contract changes need doc, negative, and backbone checks.',
+          'Operating directive contract changes need doc, negative, camera/OCR boundary, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'quality_gates_changed',
