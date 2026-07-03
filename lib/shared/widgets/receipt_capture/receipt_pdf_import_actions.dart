@@ -218,9 +218,11 @@ extension _ReceiptPdfImportActions on _SharedReceiptAttachmentPanelState {
 
   bool _hasDuplicateAttachment(ReceiptAttachmentRecord attachment) {
     final hash = attachment.fileHash.trim();
+    final attachmentPath = attachment.path.trim();
     return _documentAttachments.any((current) {
-      if (hash.isNotEmpty && current.fileHash == hash) return true;
-      return current.path.trim().isNotEmpty && current.path == attachment.path;
+      if (hash.isNotEmpty && current.fileHash.trim() == hash) return true;
+      final currentPath = current.path.trim();
+      return currentPath.isNotEmpty && currentPath == attachmentPath;
     });
   }
 

@@ -23,6 +23,10 @@ void main() {
     expect(actions, contains('readableAttachments'));
     expect(actions, contains('proofOnlyAttachments'));
     expect(actions, contains('ReceiptAttachmentReadState.notRead'));
+    expect(actions, contains('final attachmentPath = attachment.path.trim();'));
+    expect(actions, contains('current.fileHash.trim() == hash'));
+    expect(actions, contains('final currentPath = current.path.trim();'));
+    expect(actions, contains('currentPath == attachmentPath'));
     expect(actions, isNot(contains('assistedReadBlockers')));
   });
 }
