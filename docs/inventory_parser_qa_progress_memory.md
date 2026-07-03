@@ -2588,6 +2588,13 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the file-size guard:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.file_size_contract,qa.threshold_gate`
   passed 208 checks with 0 failures.
+- Strengthened `inventory.file_size_contract` so every Dart file under
+  `lib/screens/work_supplies/data` is scanned for the 1000-line hard limit.
+  Existing over-hard files must be in the protected baseline map; any future
+  unprotected over-hard inventory app/source file fails the gate.
+- Validated the expanded file-size guard:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.file_size_contract,qa.threshold_gate`
+  passed 419 checks with 0 failures.
 
 Named release gates:
 

@@ -7,6 +7,7 @@ class WorkSupplyParserFileSizeSuite extends QaSuite {
 
   static const _softLimit = 500;
   static const _hardLimit = 1000;
+  static const _protectedAppRoot = 'lib/screens/work_supplies/data';
   static const _protectedAppFileBaselines = {
     'lib/screens/work_supplies/data/catalog/plumbing/generated_plumbing_service_truck_catalog.dart':
         549,
@@ -94,6 +95,34 @@ class WorkSupplyParserFileSizeSuite extends QaSuite {
         ),
       );
     }
+    final protectedPaths = _protectedAppFileBaselines.keys.toSet();
+    final appRoot = Directory(_protectedAppRoot);
+    if (appRoot.existsSync()) {
+      for (final entity in appRoot.listSync(recursive: true)) {
+        if (entity is! File || !entity.path.endsWith('.dart')) continue;
+        final relativePath = _normalizedRelativePath(entity.path);
+        checked++;
+        final lineCount = entity.readAsLinesSync().length;
+        if (lineCount <= _hardLimit || protectedPaths.contains(relativePath)) {
+          continue;
+        }
+        failures.add(
+          QaFailure(
+            suite: name,
+            id: 'unprotected_app_file_over_hard_limit:$relativePath',
+            message:
+                'Inventory parser app/source file is over the hard limit without a protected split baseline.',
+            severity: QaSeverity.error,
+            expected:
+                '<= $_hardLimit lines, or explicit protected baseline with split plan',
+            actual: '$lineCount lines',
+            suggestedFix:
+                'Split the file or add a temporary protected baseline with a documented split plan; do not let large parser files grow silently.',
+            metadata: const {'triageCategory': QaFailureTriage.governance},
+          ),
+        );
+      }
+    }
     largestFiles.sort(
       (left, right) =>
           (right['lines']! as int).compareTo(left['lines']! as int),
@@ -114,4 +143,13 @@ class WorkSupplyParserFileSizeSuite extends QaSuite {
       },
     );
   }
+}
+
+String _normalizedRelativePath(String path) {
+  final normalized = path.replaceAll('\\', '/');
+  final current = Directory.current.path.replaceAll('\\', '/');
+  if (normalized.startsWith('$current/')) {
+    return normalized.substring(current.length + 1);
+  }
+  return normalized;
 }
