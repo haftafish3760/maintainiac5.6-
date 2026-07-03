@@ -21,7 +21,9 @@ extension ReceiptCameraCaptureEvidenceDiagnostics
       'zoomLevelBucket': _zoomBucket(zoomLevel),
       'nativeZoomRangeBucket':
           '${_zoomBucket(minZoomLevel)}_${_zoomBucket(maxZoomLevel)}',
-      'latestBrightnessBucket': _brightnessBucket(liveBrightness),
+      'latestBrightnessBucket': _brightnessBucket(
+        _finiteDouble(liveBrightness),
+      ),
       'latestCapturedBrightnessBucket': _brightnessBucket(quality?.brightness),
       'latestCapturedSharpnessBucket': _sharpnessBucket(quality?.focusScore),
       'latestCapturedQualitySignal': quality == null
@@ -33,11 +35,12 @@ extension ReceiptCameraCaptureEvidenceDiagnostics
           quality?.reviewActionCode ?? 'quality_action_unknown',
       ReceiptCaptureDiagnosticKeys.latestCapturedQualityActionFamily:
           quality?.reviewActionFamily ?? 'unknown',
-      'latestCaptureLiveBrightnessAtShutter': liveBrightness,
+      'latestCaptureLiveBrightnessAtShutter': _finiteDouble(liveBrightness),
       'latestCapturedLiveToSavedLumaDelta': quality == null
           ? null
           : _roundedDiagnostic(
-              quality.brightness - (liveBrightness ?? quality.brightness),
+              quality.brightness -
+                  (_finiteDouble(liveBrightness) ?? quality.brightness),
             ),
       'latestCapturedLiveToSavedLumaDeltaBucket': _liveToSavedLumaDeltaBucket(
         quality: quality,
@@ -69,7 +72,7 @@ extension ReceiptCameraCaptureEvidenceDiagnostics
     required ReceiptPhotoQualityCheck? quality,
   }) {
     if (quality == null) return 'unknown';
-    final measuredLiveBrightness = liveBrightness;
+    final measuredLiveBrightness = _finiteDouble(liveBrightness);
     if (measuredLiveBrightness == null) return 'unknown';
     final delta = quality.brightness - measuredLiveBrightness;
     if (delta <= -58) return 'saved_much_darker_than_preview';
@@ -82,6 +85,7 @@ extension ReceiptCameraCaptureEvidenceDiagnostics
   String _previewParitySignalFor({required ReceiptPhotoQualityCheck? quality}) {
     if (quality == null) return 'unknown';
     final bucket = _liveToSavedLumaDeltaBucket(quality: quality);
+    if (bucket == 'unknown') return 'unknown';
     final capturedBucket = _brightnessBucket(quality.brightness);
     if (bucket == 'saved_much_darker_than_preview' ||
         (bucket == 'saved_darker_than_preview' &&
@@ -104,7 +108,13 @@ extension ReceiptCameraCaptureEvidenceDiagnostics
   }
 
   double _roundedDiagnostic(double value) {
+    if (!value.isFinite) return -1;
     return (value * 10).roundToDouble() / 10;
+  }
+
+  static double? _finiteDouble(double? value) {
+    if (value == null || !value.isFinite) return null;
+    return value;
   }
 
   String _exposureMismatchFor({required ReceiptPhotoQualityCheck? quality}) {

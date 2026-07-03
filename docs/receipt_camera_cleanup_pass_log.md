@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 575 - 09:30:34 EDT to 09:32:10 EDT
+
+Scope:
+- Hardened Dart camera-result diagnostics so non-finite live preview brightness
+  is treated as unknown before review and OCR handoff metadata are built.
+- Added regression coverage proving malformed live brightness does not leak
+  `Infinity`/`NaN` into capture diagnostics or preview parity signals.
+- Recorded `BUG-RECEIPT-0091` under `camera_capture_quality`.
+- Archived Pass 545 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Fixed the first focused regression failure by preserving unknown preview
+  parity when live brightness evidence is malformed.
+- Passed targeted Dart format/analyzer for camera-result diagnostics and
+  focused camera-result quality regression coverage.
+- Passed focused Flutter regression
+  `test/receipt_camera_result_quality_test.dart --plain-name "camera result
+  diagnostics ignore non-finite live brightness"`.
+
 ## Pass 574 - 09:22:37 EDT to 09:24:08 EDT
 
 Scope:
@@ -426,23 +446,6 @@ Verification:
 - Passed targeted format/analyzer for native camera contract and recovery
   restore files.
 - Passed focused capability and recovery-index Flutter regressions.
-
-## Pass 545 - 05:12:04 EDT to 05:13:14 EDT
-
-Scope:
-- Hardened receipt performance mode restore so padded Hive values do not fall
-  back to automatic camera workload selection.
-- Added settings-store regression coverage proving Battery Saver survives
-  padded persisted values and still maps to the light capability tier.
-- Recorded `BUG-RECEIPT-0062` under `camera_capture_quality`.
-- Archived Pass 537 out of the live cleanup log.
-
-Verification:
-- Passed targeted format/analyzer for assistance policy enums and settings
-  store regression coverage.
-- Passed focused Flutter test
-  `test/receipt_capture_settings_store_test.dart --plain-name "restores padded
-  receipt performance mode preference"`.
 
 ## Pass 546 - 05:17:20 EDT to 05:23:05 EDT
 

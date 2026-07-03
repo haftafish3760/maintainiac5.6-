@@ -142,6 +142,60 @@ void main() {
     expect(malformed.primaryIssueLabel, 'too dark');
   });
 
+  test('camera result diagnostics ignore non-finite live brightness', () {
+    const evidence = ReceiptCameraCaptureEvidence(
+      captureSurface: 'native',
+      captureFlow: 'receipt_camera',
+      resolutionTier: 'high',
+      resolutionPreset: 'max',
+      flashMode: 'off',
+      exposureMode: 'auto',
+      focusMode: 'continuous',
+      exposurePointSupported: true,
+      focusPointSupported: true,
+      exposureOffset: 0,
+      minExposureOffset: -2,
+      maxExposureOffset: 2,
+      zoomLevel: 1,
+      minZoomLevel: 1,
+      maxZoomLevel: 4,
+      previewWidth: 1080,
+      previewHeight: 1920,
+      liveBrightness: double.infinity,
+      liveContrast: 20,
+      liveFocusScore: 12,
+      liveReadiness: 'ready',
+      imageStreamActiveAtCapture: true,
+    );
+    const quality = ReceiptPhotoQualityCheck(
+      width: 1600,
+      height: 2200,
+      focusScore: 14,
+      brightness: 144,
+      contrast: 36,
+      cropScore: .72,
+      textBandScore: 12,
+      isLikelyReadable: true,
+    );
+    const result = ReceiptCameraResult.single(
+      ['/tmp/receipt.jpg'],
+      qualityChecks: [quality],
+      captureEvidence: evidence,
+    );
+
+    final diagnostics = result.captureDiagnosticsByPhotoPath(const [
+      '/tmp/receipt.jpg',
+    ])['/tmp/receipt.jpg']!;
+
+    expect(diagnostics['latestBrightnessBucket'], 'brightness_unknown');
+    expect(diagnostics['latestCaptureLiveBrightnessAtShutter'], isNull);
+    expect(diagnostics['latestCapturedLiveToSavedLumaDelta'], 0);
+    expect(diagnostics['latestCapturedLiveToSavedLumaDeltaBucket'], 'unknown');
+    expect(diagnostics['latestCapturedPreviewParitySignal'], 'unknown');
+    expect(diagnostics.toString(), isNot(contains('Infinity')));
+    expect(diagnostics.toString(), isNot(contains('NaN')));
+  });
+
   test('camera result summarizes best candidate quality and review state', () {
     const dim = ReceiptPhotoQualityCheck(
       width: 1800,
