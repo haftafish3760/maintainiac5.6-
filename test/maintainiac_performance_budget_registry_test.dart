@@ -13,6 +13,16 @@ void main() {
       hasLength(greaterThanOrEqualTo(2)),
     );
     expect(
+      registry.budgets
+          .where(
+            (budget) => budget.measurementCommand.startsWith('flutter test '),
+          )
+          .every(
+            (budget) => budget.measurementCommand.contains(' --plain-name '),
+          ),
+      isTrue,
+    );
+    expect(
       registry.toJson().toString(),
       contains('surgical_rerun_router_budget'),
     );
@@ -46,5 +56,24 @@ void main() {
       failures,
       contains('performance budget registry missing kind indexing'),
     );
+  });
+
+  test('performance budget registry rejects broad Flutter measurements', () {
+    const registry = MaintainiacPerformanceBudgetRegistry([
+      MaintainiacPerformanceBudget(
+        id: 'broad',
+        kind: MaintainiacPerformanceBudgetKind.coldStart,
+        module: 'qa_backbone',
+        maxDurationMs: 1000,
+        maxMemoryMb: 128,
+        measurementCommand:
+            'flutter test test/maintainiac_qa_backbone_test.dart',
+        failureAction: 'Use a named test instead of a broad file run.',
+      ),
+    ]);
+
+    final failures = registry.validate().join('\n');
+
+    expect(failures, contains('broad needs individual plain-name measurement'));
   });
 }

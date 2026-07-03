@@ -40,9 +40,12 @@ class MaintainiacPerformanceBudget {
     if (maxMemoryMb <= 0) {
       failures.add('$id needs positive memory budget');
     }
-    if (!measurementCommand.startsWith('flutter test ') &&
-        !measurementCommand.startsWith('dart run ')) {
+    final isFlutterTest = measurementCommand.startsWith('flutter test ');
+    if (!isFlutterTest && !measurementCommand.startsWith('dart run ')) {
       failures.add('$id needs focused measurement command');
+    }
+    if (isFlutterTest && !measurementCommand.contains(' --plain-name ')) {
+      failures.add('$id needs individual plain-name measurement');
     }
     if (failureAction.trim().isEmpty) {
       failures.add('$id missing failure action');
@@ -122,7 +125,8 @@ const maintainiacPerformanceBudgetRegistry = MaintainiacPerformanceBudgetRegistr
     module: 'inventory',
     maxDurationMs: 180000,
     maxMemoryMb: 1536,
-    measurementCommand: 'flutter test test/work_supply_catalog_scale_test.dart',
+    measurementCommand:
+        'flutter test test/work_supply_catalog_scale_test.dart --plain-name "materials catalog exposes measurable trade scale"',
     failureAction:
         'Profile catalog search/index setup and cache expensive tokenization.',
   ),
@@ -133,7 +137,7 @@ const maintainiacPerformanceBudgetRegistry = MaintainiacPerformanceBudgetRegistr
     maxDurationMs: 300000,
     maxMemoryMb: 1536,
     measurementCommand:
-        'flutter test test/work_supply_parser_generated_fixture_runner_test.dart',
+        'flutter test test/work_supply_parser_generated_fixture_runner_test.dart --plain-name "generated parser fixture batch matches expected safety contracts"',
     failureAction:
         'Shard generated fixtures and inspect slowest case report before adding more catalog rows.',
   ),
