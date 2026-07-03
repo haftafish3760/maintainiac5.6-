@@ -3,6 +3,19 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 543 - 05:01:39 EDT to 05:02:14 EDT
+
+Scope:
+- Hardened receipt attachment enum restore helpers so padded stored names do
+  not fall back to default proof/storage states.
+- Added attachment storage-map regression coverage for padded kind, data-saver,
+  PDF status, storage state, and read-state values.
+- Recorded `BUG-RECEIPT-0060` under `source_preservation`.
+
+Verification:
+- Passed targeted format/analyzer, focused attachment metadata regression,
+  bug-ledger, cleanup-log, doc-size, source-audit, and diff gates.
+
 ## Pass 542 - 04:58:57 EDT to 04:59:58 EDT
 
 Scope:

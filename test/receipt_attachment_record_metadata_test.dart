@@ -84,6 +84,27 @@ void main() {
     expect(restored.proofAccessLabel, 'read-only PDF proof');
   });
 
+  test('receipt attachment enum names tolerate padded storage values', () {
+    final restored = ReceiptAttachmentRecord.fromMap({
+      'id': 'pdf-padded',
+      'path': '/tmp/receipt.pdf',
+      'kind': ' pdf ',
+      'dataSaverLevel': ' original ',
+      'createdAt': DateTime(2026, 6, 13).toIso8601String(),
+      'pageCountStatus': ' verified ',
+      'validationStatus': ' valid ',
+      'storageState': ' staged ',
+      'readState': ' readIntoForm ',
+    });
+
+    expect(restored.kind, ReceiptAttachmentKind.pdf);
+    expect(restored.dataSaverLevel, ReceiptDataSaverLevel.original);
+    expect(restored.pageCountStatus, ReceiptPdfPageCountStatus.verified);
+    expect(restored.validationStatus, ReceiptPdfValidationStatus.valid);
+    expect(restored.storageState, ReceiptAttachmentStorageState.staged);
+    expect(restored.readState, ReceiptAttachmentReadState.readIntoForm);
+  });
+
   test('receipt photo quality metadata survives storage maps', () {
     const quality = ReceiptPhotoQualityCheck(
       width: 1800,

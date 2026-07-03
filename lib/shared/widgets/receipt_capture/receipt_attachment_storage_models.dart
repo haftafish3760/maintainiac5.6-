@@ -11,8 +11,9 @@ enum ReceiptPdfPageCountStatus {
   final String label;
 
   static ReceiptPdfPageCountStatus fromName(String? name) {
+    final normalized = name?.trim();
     return ReceiptPdfPageCountStatus.values.firstWhere(
-      (value) => value.name == name,
+      (value) => value.name == normalized,
       orElse: () => ReceiptPdfPageCountStatus.unknown,
     );
   }
@@ -33,8 +34,9 @@ enum ReceiptPdfValidationStatus {
   final String label;
 
   static ReceiptPdfValidationStatus fromName(String? name) {
+    final normalized = name?.trim();
     return ReceiptPdfValidationStatus.values.firstWhere(
-      (value) => value.name == name,
+      (value) => value.name == normalized,
       orElse: () => ReceiptPdfValidationStatus.notChecked,
     );
   }
@@ -62,8 +64,9 @@ enum ReceiptAttachmentStorageState {
   final String label;
 
   static ReceiptAttachmentStorageState fromName(String? name) {
+    final normalized = name?.trim();
     return ReceiptAttachmentStorageState.values.firstWhere(
-      (value) => value.name == name,
+      (value) => value.name == normalized,
       orElse: () => ReceiptAttachmentStorageState.permanent,
     );
   }
@@ -79,8 +82,9 @@ enum ReceiptAttachmentReadState {
   final String label;
 
   static ReceiptAttachmentReadState fromName(String? name) {
+    final normalized = name?.trim();
     return ReceiptAttachmentReadState.values.firstWhere(
-      (value) => value.name == name,
+      (value) => value.name == normalized,
       orElse: () => ReceiptAttachmentReadState.notRead,
     );
   }
@@ -93,8 +97,9 @@ enum ReceiptAttachmentKind {
   textMessageText;
 
   static ReceiptAttachmentKind fromName(String? name) {
+    final normalized = name?.trim();
     return ReceiptAttachmentKind.values.firstWhere(
-      (value) => value.name == name,
+      (value) => value.name == normalized,
       orElse: () => ReceiptAttachmentKind.photo,
     );
   }
@@ -135,8 +140,9 @@ enum ReceiptDataSaverLevel {
       this == ReceiptDataSaverLevel.maximum;
 
   static ReceiptDataSaverLevel fromName(String? name) {
+    final normalized = name?.trim();
     return ReceiptDataSaverLevel.values.firstWhere(
-      (value) => value.name == name,
+      (value) => value.name == normalized,
       orElse: () => ReceiptDataSaverLevel.balanced,
     );
   }
