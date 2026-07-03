@@ -1530,6 +1530,23 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'parser-consumer', 'tooling', 'regression', 'release-gate'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'surgical_rerun_router_source_boundary_guards',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_rerun_router_test.dart',
+    plainName:
+        'surgical rerun router maps source boundary changes to every guard',
+    reason: 'Run only the source-boundary guard routing coverage check.',
+    tags: {'parser-consumer', 'tooling', 'regression', 'source-boundary'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'surgical_rerun_router_late_guard_routes',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_rerun_router_test.dart',
+    plainName: 'surgical rerun router maps late added guard selectors',
+    reason: 'Run only the late-added guard route coverage check.',
+    tags: {'parser-consumer', 'tooling', 'regression', 'surgical'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'surgical_rerun_router_dedupes_overlaps',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_surgical_rerun_router_test.dart',

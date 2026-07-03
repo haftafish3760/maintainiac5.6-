@@ -472,6 +472,7 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
         'qa_run_ledger_skips_clean_focused',
         'qa_run_ledger_failed_commands_actionable',
         'qa_run_ledger_rejects_weak_evidence',
+        'qa_run_ledger_rejects_broad_commands',
         'main_backbone_parser_visibility',
       },
       reason:
@@ -672,6 +673,7 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       selectorIds: {
         'release_evidence_required_proof',
         'release_evidence_rejects_bad_proof',
+        'release_evidence_requires_targeted_analyzer',
         'main_backbone_parser_visibility',
       },
       reason:
@@ -683,6 +685,8 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       selectorIds: {
         'source_audit_line_caps',
         'source_audit_debt_ledger',
+        'source_audit_rejects_unsafe_limits',
+        'source_audit_rejects_non_production_debt',
         'main_backbone_parser_visibility',
       },
       reason:
@@ -718,6 +722,7 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
         'qa_artifact_policy_accepts_redacted',
         'qa_artifact_policy_rejects_private_raw',
         'qa_artifact_policy_rejects_wrong_drives',
+        'qa_artifact_policy_rejects_duplicate_paths',
         'main_backbone_parser_visibility',
       },
       reason:
@@ -779,6 +784,7 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       selectorIds: {
         'sensitive_field_registry_covers_forbidden',
         'sensitive_field_registry_rejects_bad_classes',
+        'sensitive_field_registry_rejects_placeholders',
         'main_backbone_parser_visibility',
       },
       reason:

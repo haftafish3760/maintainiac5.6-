@@ -99,6 +99,30 @@ void main() {
     expect(selectorIds, contains('main_backbone_parser_visibility'));
   });
 
+  test('surgical rerun router maps late added guard selectors', () {
+    final selectorIds = maintainiacSurgicalRerunRouter
+        .selectorIdsForChangedPaths([
+          'test/support/qa_harness/maintainiac_qa_run_ledger.dart',
+          'test/support/qa_harness/maintainiac_release_evidence_bundle.dart',
+          'test/support/qa_harness/maintainiac_source_audit_policy.dart',
+          'test/support/qa_harness/maintainiac_qa_artifact_policy.dart',
+          'test/support/qa_harness/maintainiac_sensitive_field_registry.dart',
+        ]);
+
+    expect(selectorIds, contains('qa_run_ledger_rejects_broad_commands'));
+    expect(
+      selectorIds,
+      contains('release_evidence_requires_targeted_analyzer'),
+    );
+    expect(selectorIds, contains('source_audit_rejects_unsafe_limits'));
+    expect(selectorIds, contains('source_audit_rejects_non_production_debt'));
+    expect(selectorIds, contains('qa_artifact_policy_rejects_duplicate_paths'));
+    expect(
+      selectorIds,
+      contains('sensitive_field_registry_rejects_placeholders'),
+    );
+  });
+
   test('surgical rerun router dedupes overlapping changed paths', () {
     final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
       'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
