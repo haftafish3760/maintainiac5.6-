@@ -162,6 +162,30 @@ void main() {
     expect(context, isNull);
   });
 
+  test('retake plan rejects normalized receipt section path aliases', () {
+    final duplicateCurrentPlan = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const [
+        '/tmp/receipt/top.jpg',
+        '/tmp/receipt/../receipt/top.jpg',
+        '/tmp/receipt/bottom.jpg',
+      ],
+      targetPhotoPath: '/tmp/receipt/top.jpg',
+      replacementPhotoPaths: const ['/tmp/receipt/top-new.jpg'],
+    );
+    final duplicateReplacementPlan = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const [
+        '/tmp/receipt/top.jpg',
+        '/tmp/receipt/middle.jpg',
+        '/tmp/receipt/bottom.jpg',
+      ],
+      targetPhotoPath: '/tmp/receipt/middle.jpg',
+      replacementPhotoPaths: const ['/tmp/receipt/../receipt/bottom.jpg'],
+    );
+
+    expect(duplicateCurrentPlan, isNull);
+    expect(duplicateReplacementPlan, isNull);
+  });
+
   test('insert-after plan preserves the selected receipt section slot', () {
     final plan = ReceiptPhotoInsertAfterOrderPlan.build(
       currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'bottom.jpg'],

@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 581 - 10:37:00 EDT to 10:44:30 EDT
+
+Scope:
+- Hardened long-receipt retake/insert order planning so receipt section path
+  aliases cannot be treated as separate source images.
+- Added regression coverage proving current-section and replacement-section
+  `../` path aliases are rejected before section order is mutated.
+- Recorded `BUG-RECEIPT-0097` under `multi_photo_ordering`.
+- Archived Pass 553 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Fixed the first analyzer style warning by using the null-aware collection
+  element for normalized path set construction.
+- Passed targeted Dart format/analyzer for retake-order planning and focused
+  retake-order regression coverage.
+- Passed focused Flutter regression
+  `test/receipt_photo_review_retake_order_test.dart --plain-name "retake plan
+  rejects normalized receipt section path aliases"`.
+
 ## Pass 580 - 10:30:00 EDT to 10:35:20 EDT
 
 Scope:
@@ -474,19 +494,3 @@ Verification:
   then reran the failed focused test and the full native result rejection file.
 - Passed targeted Dart format/analyzer for native camera service and native
   result rejection coverage.
-
-## Pass 553 - 06:10:54 EDT to 06:19:40 EDT
-
-Scope:
-- Hardened receipt attachment map restore so persisted IDs and source paths are
-  trimmed before they can key source-state maps, duplicate checks, or recovery
-  records.
-- Added metadata regression coverage proving padded stored identity/source
-  values restore to normalized receipt attachment records.
-- Recorded `BUG-RECEIPT-0069` under `source_preservation`.
-- Archived Pass 536 out of the live cleanup log.
-
-Verification:
-- Passed targeted Dart format and analyzer for receipt attachment records and
-  attachment metadata regression coverage.
-- Passed focused Flutter test `test/receipt_attachment_record_metadata_test.dart`.
