@@ -118,6 +118,10 @@ void main() {
       report.results.single.metrics['surgicalSelectorCoverage'].toString(),
       contains('expectedBehaviorCount'),
     );
+    expect(
+      report.results.single.metrics['sourceTruthGate'].toString(),
+      contains('firestore_mirror_read_only_truth'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

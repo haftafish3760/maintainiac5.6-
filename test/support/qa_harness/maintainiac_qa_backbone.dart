@@ -24,6 +24,7 @@ import 'maintainiac_module_suite_contract.dart';
 import 'maintainiac_schedule_contract.dart';
 import 'maintainiac_payment_contract.dart';
 import 'maintainiac_job_contract.dart';
+import 'maintainiac_source_truth_gate.dart';
 import 'maintainiac_surgical_rerun_router.dart';
 import 'maintainiac_surgical_selector_coverage.dart';
 import 'maintainiac_surgical_test_selector.dart';
@@ -438,10 +439,13 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacSurgicalSelectorCoverage.validate()) {
       failures.add(_failure('surgical_selector_coverage_$issue', issue));
     }
+    for (final issue in maintainiacSourceTruthGate.validate()) {
+      failures.add(_failure('source_truth_gate_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 396,
+      checked: 416,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -487,6 +491,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'surgicalRerunRouter': maintainiacSurgicalRerunRouter.toJson(),
         'surgicalSelectorCoverage': maintainiacSurgicalSelectorCoverage
             .toJson(),
+        'sourceTruthGate': maintainiacSourceTruthGate.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

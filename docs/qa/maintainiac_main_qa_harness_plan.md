@@ -223,6 +223,7 @@ The backbone includes a release gate plan:
 - Adds surgical test selectors using `flutter test <file> --plain-name "<behavior>"` so individual QA behaviors can be rerun without running a whole test batch.
 - Adds a surgical rerun router that maps changed QA contract files to exact individual selector commands, preventing broad reruns when only one parser QA surface changed.
 - Adds surgical selector coverage expectations so every focused parser-consumer QA behavior has an individual selector before release.
+- Adds a source-truth gate that formalizes local/Hive source records, Firestore mirror-only records, parser suggestion records, and derived read-only outputs across expenses, inventory, jobs, estimates, invoices, recap, exports, and sync.
 
 Print the release gate with:
 
