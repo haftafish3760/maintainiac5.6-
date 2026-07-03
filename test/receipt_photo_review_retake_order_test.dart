@@ -85,6 +85,36 @@ void main() {
     expect(plan, isNull);
   });
 
+  test('retake plan rejects empty replacement paths', () {
+    final plan = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle-old.jpg', 'bottom.jpg'],
+      targetPhotoPath: 'middle-old.jpg',
+      replacementPhotoPaths: const [''],
+    );
+
+    expect(plan, isNull);
+  });
+
+  test('retake plan rejects duplicate replacement paths', () {
+    final plan = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle-old.jpg', 'bottom.jpg'],
+      targetPhotoPath: 'middle-old.jpg',
+      replacementPhotoPaths: const ['middle-new.jpg', 'middle-new.jpg'],
+    );
+
+    expect(plan, isNull);
+  });
+
+  test('retake plan rejects paths already used by another section', () {
+    final plan = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle-old.jpg', 'bottom.jpg'],
+      targetPhotoPath: 'middle-old.jpg',
+      replacementPhotoPaths: const ['bottom.jpg'],
+    );
+
+    expect(plan, isNull);
+  });
+
   test('retaking the top section uses the next section as context', () {
     final context = ReceiptPhotoRetakeAlignmentContext.build(
       currentPhotoPaths: const ['top-old.jpg', 'middle.jpg', 'bottom.jpg'],

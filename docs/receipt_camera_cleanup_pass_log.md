@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 484 - 23:59:00 EDT to 00:04:00 EDT
+
+Scope:
+- Hardened multi-photo retake order planning so replacement sections cannot use
+  empty paths, duplicate replacement paths, or paths already assigned to another
+  receipt section.
+- Added regression tests for unsafe retake replacement path inputs while keeping
+  middle/top/bottom alignment-context behavior intact.
+- Recorded `BUG-RECEIPT-0003` under `multi_photo_ordering`.
+- Archived Pass 463 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format and analyzer for the retake-order model, focused
+  test, and bug ledger gate.
+- Passed focused Flutter test `test/receipt_photo_review_retake_order_test.dart`
+  with 8/8 tests passing.
+- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
+
 ## Pass 483 - 23:57:00 EDT to 00:02:30 EDT
 
 Scope:
@@ -462,26 +481,3 @@ Verification:
   `dart run tool/receipt_quiet_batch_policy_gate.dart`.
 - Did not read phase logs, poll the restarted pipeline, run Flutter directly, or
   attach to long OCR pipeline output during this pass.
-
-## Pass 463 - 16:41:30 EDT to 16:43:03 EDT
-
-Scope:
-- Used the larger one-command OCR/camera pipeline instead of another narrow
-  feature pass.
-- Checked the detached quiet-batch status once using metadata only; no previous
-  `receipt_ocr_pipeline` batch existed.
-- Fixed `tool/receipt_start_ocr_pipeline.sh` and
-  `tool/receipt_start_quiet_quality_gate.sh` so they invoke
-  `bash tool/receipt_quiet_batch.sh` instead of requiring executable file bits.
-- Updated `tool/receipt_quiet_batch_policy_gate.dart` so the quiet launchers
-  require that safer `bash` invocation.
-- Started `tool/receipt_start_ocr_pipeline.sh receipt_ocr_pipeline` as a
-  detached quiet batch. The launcher returned immediately with pid `37666`.
-
-Verification:
-- Passed static wrapper checks: `dart format`, `bash -n`, `dart analyze`, and
-  `dart run tool/receipt_quiet_batch_policy_gate.dart`.
-- Did not inspect pipeline logs, poll pipeline progress, run Flutter directly,
-  or attach to the long OCR pipeline output during this pass.
-- Detached pipeline status/log files are under
-  `/tmp/maintainiac_receipt_quiet_batch/receipt_ocr_pipeline/`.

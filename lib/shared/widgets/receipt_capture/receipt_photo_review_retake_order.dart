@@ -90,6 +90,12 @@ class ReceiptPhotoRetakeOrderPlan {
     if (currentPhotoPaths.isEmpty || replacementPhotoPaths.isEmpty) {
       return null;
     }
+    if (!_replacementPathsAreSafe(
+      currentPhotoPaths: currentPhotoPaths,
+      replacementPhotoPaths: replacementPhotoPaths,
+    )) {
+      return null;
+    }
     final alignmentContext = ReceiptPhotoRetakeAlignmentContext.build(
       currentPhotoPaths: currentPhotoPaths,
       targetPhotoPath: targetPhotoPath,
@@ -107,5 +113,19 @@ class ReceiptPhotoRetakeOrderPlan {
       replacedPhotoPath: targetPhotoPath,
       alignmentContext: alignmentContext,
     );
+  }
+
+  static bool _replacementPathsAreSafe({
+    required List<String> currentPhotoPaths,
+    required List<String> replacementPhotoPaths,
+  }) {
+    final seenReplacementPaths = <String>{};
+    final currentPathSet = currentPhotoPaths.toSet();
+    for (final path in replacementPhotoPaths) {
+      if (path.trim().isEmpty) return false;
+      if (!seenReplacementPaths.add(path)) return false;
+      if (currentPathSet.contains(path)) return false;
+    }
+    return true;
   }
 }
