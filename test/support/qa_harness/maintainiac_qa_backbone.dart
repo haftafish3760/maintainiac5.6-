@@ -1,5 +1,6 @@
 import 'maintainiac_qa_environment.dart';
 import 'maintainiac_qa_execution_manifest.dart';
+import 'maintainiac_qa_fingerprint.dart';
 import 'maintainiac_qa_fixtures.dart';
 import 'maintainiac_qa_quality_gates.dart';
 import 'maintainiac_qa_readiness.dart';
@@ -165,9 +166,23 @@ class MaintainiacQaBackboneSuite extends QaSuite {
       failures.add(_failure('run_ledger_$issue', issue));
     }
 
+    final fingerprint = const MaintainiacQaFingerprintBuilder().build(
+      label: 'qa-backbone-seed',
+      files: const [
+        MaintainiacQaSourceFile(
+          path: 'test/maintainiac_qa_backbone_test.dart',
+          content: 'main backbone test',
+        ),
+        MaintainiacQaSourceFile(
+          path: 'test/support/qa_harness',
+          content: 'shared qa harness',
+        ),
+      ],
+    );
+
     return timer.finish(
       suite: name,
-      checked: 112,
+      checked: 120,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -184,6 +199,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'qaCaseRegistry': caseRegistry.toJson(),
         'executionManifest': executionManifest.toJson(),
         'runLedger': runLedger.toJson(),
+        'sourceFingerprint': fingerprint.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

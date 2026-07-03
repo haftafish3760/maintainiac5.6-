@@ -162,6 +162,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_qa_run_ledger.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'source_fingerprint',
+        module: MaintainiacQaModule.performance,
+        description:
+            'Reusable source fingerprint helper creates deterministic input signatures for surgical rerun decisions.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_qa_fingerprint.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:

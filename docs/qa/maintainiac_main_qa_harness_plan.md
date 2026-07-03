@@ -202,6 +202,7 @@ The backbone includes a release gate plan:
 - Fails if a release-blocking case lacks evidence or a runnable command.
 - Feeds a QA execution manifest where each check has a label, behavior it proves, owner, cadence, command, live-service policy, and failure action.
 - Records QA run evidence in a run ledger so clean focused checks can be skipped when their command and input signature are unchanged.
+- Uses deterministic source fingerprints so fixture/catalog/test changes can trigger surgical reruns instead of full-suite churn.
 
 Print the release gate with:
 

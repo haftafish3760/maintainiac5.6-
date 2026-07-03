@@ -34,6 +34,10 @@ void main() {
       report.results.single.metrics['runLedger'].toString(),
       contains('seed_backbone_run'),
     );
+    expect(
+      report.results.single.metrics['sourceFingerprint'].toString(),
+      contains('qa-backbone-seed'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {
