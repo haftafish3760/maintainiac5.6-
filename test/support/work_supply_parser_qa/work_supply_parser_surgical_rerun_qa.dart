@@ -41,6 +41,8 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
     'inventory.language_pack_separation_contract':
         'inventory.language_pack_separation_contract',
     'inventory.spanish_release_one': 'inventory.spanish_release_one',
+    'inventory.standard_fixture_seed_contract':
+        'inventory.standard_fixture_seed_contract',
     'inventory.hive_authority_contract': 'inventory.hive_authority_contract',
     'inventory.hive_firestore_sync_contract':
         'inventory.hive_firestore_sync_contract',

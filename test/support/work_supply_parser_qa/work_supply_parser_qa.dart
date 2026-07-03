@@ -138,6 +138,7 @@ import 'work_supply_parser_security_qa.dart';
 import 'work_supply_parser_slo_contract_qa.dart';
 import 'work_supply_parser_spanish_release_one_qa.dart';
 import 'work_supply_parser_sku_collision_qa.dart';
+import 'work_supply_parser_standard_fixture_seed_qa.dart';
 import 'work_supply_parser_surgical_rerun_qa.dart';
 import 'work_supply_parser_telemetry_qa.dart';
 import 'work_supply_parser_validation_strategy_qa.dart';
@@ -202,6 +203,7 @@ QaHarness buildWorkSupplyParserQaHarness() {
       WorkSupplyParserDuplicateReceiptImportSuite(),
       WorkSupplyParserSpanishReleaseOneSuite(),
       WorkSupplyParserLanguagePackSeparationSuite(),
+      WorkSupplyParserStandardFixtureSeedSuite(),
       WorkSupplyAliasConflictSuite(),
       WorkSupplyDangerousWordSuite(),
       WorkSupplyGoldenFixtureSuite(),
