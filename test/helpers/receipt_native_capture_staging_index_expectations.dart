@@ -256,6 +256,17 @@ Future<void> expectAcceptedNativeCaptureRecoveryIndex({
   expect(indexEntry.captureDiagnostics['lastFocusStatus'], 'requested');
   expect(indexEntry.captureDiagnostics['autoCaptureTriggerCount'], 1);
   expect(indexEntry.captureDiagnostics['latestAutoCaptureStatus'], 'capturing');
+  expect(
+    indexEntry.captureDiagnostics['captureReadinessCode'],
+    'auto_capture_ready',
+  );
+  expect(
+    indexEntry.captureDiagnostics['captureReadinessLabel'],
+    'Receipt looks steady. Taking photo.',
+  );
+  expect(indexEntry.captureDiagnostics['manualCaptureAllowed'], isTrue);
+  expect(indexEntry.captureDiagnostics['stableFrameCount'], 3);
+  expect(indexEntry.captureDiagnostics['requiredStableFrames'], 3);
   expect(indexEntry.captureDiagnostics['closeRetryCount'], 1);
   expect(
     indexEntry.captureDiagnostics['closeAction'],

@@ -252,6 +252,20 @@ void expectAcceptedNativeCaptureRecoveryManifest(
     'capturing',
   );
   expect(
+    (manifest['captureDiagnostics'] as Map)['captureReadinessCode'],
+    'auto_capture_ready',
+  );
+  expect(
+    (manifest['captureDiagnostics'] as Map)['captureReadinessLabel'],
+    'Receipt looks steady. Taking photo.',
+  );
+  expect(
+    (manifest['captureDiagnostics'] as Map)['manualCaptureAllowed'],
+    isTrue,
+  );
+  expect((manifest['captureDiagnostics'] as Map)['stableFrameCount'], 3);
+  expect((manifest['captureDiagnostics'] as Map)['requiredStableFrames'], 3);
+  expect(
     (manifest['captureDiagnostics'] as Map)['closeAction'],
     'done_returned_captured_sections',
   );

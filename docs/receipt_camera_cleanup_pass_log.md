@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 478 - 21:45:00 EDT to 21:54:41 EDT
+
+Scope:
+- Stayed on the clear-photo native staging path.
+- Added a permanent staging regression proving capture-readiness diagnostics
+  survive from native capture into staged photo diagnostics, recovery manifest,
+  and recovery index.
+- Covered readiness code, readiness label, manual capture allowance, stable
+  frame count, and required stable frames.
+- Kept the privacy guard in the same path proving private receipt text is not
+  retained in safe diagnostics.
+
+Verification:
+- Passed targeted Dart format and analyzer for the native staging test/helpers.
+- Passed focused Flutter test `test/receipt_native_capture_staging_test.dart`.
+- Passed `bash tool/receipt_doc_size_gate.sh`, receipt source audit with
+  `--max-line-length=220`, and targeted `git diff --check`.
+
 ## Pass 477 - 21:36:00 EDT to 21:44:08 EDT
 
 Scope:
@@ -461,24 +479,4 @@ Verification:
 - Passed `dart run tool/receipt_quiet_batch_policy_gate.dart`.
 - Passed `bash tool/receipt_cleanup_log_gate.sh` and targeted
   `git diff --check`.
-- No Flutter or long-running receipt QA commands were run during this pass.
-
-## Pass 458 - 16:28:30 EDT to 16:29:32 EDT
-
-Scope:
-- Stayed on QA execution guardrails without launching Flutter or the full
-  receipt QA runner.
-- Added `tool/receipt_quiet_batch_status.sh`, a metadata-only status helper for
-  detached quiet batches.
-- The helper prints status, running flag, pid, exit code, and log path, but it
-  never tails or prints `run.log`.
-- Wired the status helper into `tool/receipt_fast_guard_gate.sh` shell-syntax
-  coverage and documented the quiet-batch/status workflow in the QA standard.
-
-Verification:
-- Passed `bash -n tool/receipt_quiet_batch.sh
-  tool/receipt_quiet_batch_status.sh tool/receipt_fast_guard_gate.sh`.
-- Passed line-count check: quiet launcher 65 lines, status helper 57 lines, and
-  fast guard 56 lines.
-- Passed targeted `git diff --check`.
 - No Flutter or long-running receipt QA commands were run during this pass.

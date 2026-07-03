@@ -71,6 +71,14 @@ Future<void> expectAcceptedNativeCaptureStagingSignals(
   expect(diagnostics['settingsControlExpected'], isTrue);
   expect(diagnostics['autoCaptureTriggerCount'], 1);
   expect(diagnostics['latestAutoCaptureStatus'], 'capturing');
+  expect(diagnostics['captureReadinessCode'], 'auto_capture_ready');
+  expect(
+    diagnostics['captureReadinessLabel'],
+    'Receipt looks steady. Taking photo.',
+  );
+  expect(diagnostics['manualCaptureAllowed'], isTrue);
+  expect(diagnostics['stableFrameCount'], 3);
+  expect(diagnostics['requiredStableFrames'], 3);
   expect(diagnostics['pendingCloseAfterCapture'], isTrue);
   expect(diagnostics['closeAction'], 'done_returned_captured_sections');
   expect(diagnostics['closeResultDelivered'], isTrue);
