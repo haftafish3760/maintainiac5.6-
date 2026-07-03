@@ -147,6 +147,10 @@ void main() {
       contains('export_mutating_expenses_blocked'),
     );
     expect(
+      report.results.single.metrics['operatingDirectiveContract'].toString(),
+      contains('hive_local_source_of_truth'),
+    );
+    expect(
       report.results.single.metrics['financialFormulaRegistry'].toString(),
       contains('invoice_grand_total_cents'),
     );

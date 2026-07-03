@@ -34,6 +34,7 @@ import 'maintainiac_inventory_parser_consumer_contract.dart';
 import 'maintainiac_module_boundary_gate.dart';
 import 'maintainiac_module_suite_contract.dart';
 import 'maintainiac_mutation_guard.dart';
+import 'maintainiac_operating_directive_contract.dart';
 import 'maintainiac_schedule_contract.dart';
 import 'maintainiac_sensitive_field_registry.dart';
 import 'maintainiac_payment_contract.dart';
@@ -453,6 +454,10 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacMutationGuardMatrix.validate()) {
       failures.add(_failure('mutation_guard_matrix_$issue', issue));
     }
+    for (final issue
+        in maintainiacOperatingDirectiveContract.validateClauseRegistry()) {
+      failures.add(_failure('operating_directive_contract_$issue', issue));
+    }
     for (final issue in maintainiacSourceAuditPolicy.validate()) {
       failures.add(_failure('source_audit_policy_$issue', issue));
     }
@@ -492,7 +497,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: 796,
+      checked: 816,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -547,6 +552,8 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'individualTestManifest': maintainiacIndividualTestManifest.toJson(),
         'sourceTruthGate': maintainiacSourceTruthGate.toJson(),
         'mutationGuardMatrix': maintainiacMutationGuardMatrix.toJson(),
+        'operatingDirectiveContract': maintainiacOperatingDirectiveContract
+            .toJson(),
         'sourceAuditPolicy': maintainiacSourceAuditPolicy.toJson(),
         'derivedOutputContract': maintainiacDerivedOutputContract.toJson(),
         'financialFormulaRegistry': maintainiacFinancialFormulaRegistry

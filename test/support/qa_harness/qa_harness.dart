@@ -39,6 +39,7 @@ export 'maintainiac_local_first_contract.dart';
 export 'maintainiac_module_boundary_gate.dart';
 export 'maintainiac_module_suite_contract.dart';
 export 'maintainiac_mutation_guard.dart';
+export 'maintainiac_operating_directive_contract.dart';
 export 'maintainiac_parser_candidate_contract.dart';
 export 'maintainiac_parser_consumer_gate.dart';
 export 'maintainiac_parser_fixture_manifest.dart';

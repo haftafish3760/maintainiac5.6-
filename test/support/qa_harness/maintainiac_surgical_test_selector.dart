@@ -344,6 +344,24 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'payments', 'financial', 'security', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'operating_directive_matches_docs',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_operating_directive_contract_test.dart',
+    plainName: 'operating directive contract matches production docs',
+    reason:
+        'Run only the operating directive doc contract after directive edits.',
+    tags: {'docs', 'quality-gate', 'source-of-truth', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'operating_directive_rejects_missing_rules',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_operating_directive_contract_test.dart',
+    plainName: 'operating directive contract rejects missing production rules',
+    reason:
+        'Run only the operating directive negative rule check after directive edits.',
+    tags: {'docs', 'quality-gate', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'main_backbone_parser_visibility',
     scope: MaintainiacSurgicalTestScope.releaseGate,
     file: 'test/maintainiac_qa_backbone_test.dart',

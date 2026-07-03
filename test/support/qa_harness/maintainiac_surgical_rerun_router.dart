@@ -64,6 +64,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_surgical_test_selector.dart',
       'maintainiac_surgical_granularity_contract.dart',
       'maintainiac_payment_contract.dart',
+      'maintainiac_operating_directive_contract.dart',
     }) {
       if (!rules.any((rule) => rule.changedPathContains == required)) {
         failures.add('missing rerun rule for $required');
@@ -201,6 +202,17 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Payment contract changes need financial balance, cross-account safety, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'operating_directive_contract_changed',
+      changedPathContains: 'maintainiac_operating_directive_contract.dart',
+      selectorIds: {
+        'operating_directive_matches_docs',
+        'operating_directive_rejects_missing_rules',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Operating directive contract changes need doc, negative, and backbone checks.',
     ),
   ],
 );
