@@ -33,6 +33,7 @@ export 'maintainiac_financial_ledger.dart';
 export 'maintainiac_inventory_parser_consumer_contract.dart';
 export 'maintainiac_job_contract.dart';
 export 'maintainiac_local_first_contract.dart';
+export 'maintainiac_module_boundary_gate.dart';
 export 'maintainiac_module_suite_contract.dart';
 export 'maintainiac_mutation_guard.dart';
 export 'maintainiac_parser_candidate_contract.dart';

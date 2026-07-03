@@ -142,6 +142,10 @@ void main() {
       report.results.single.metrics['restartLifecycleGate'].toString(),
       contains('partial_sync_restart_recovery'),
     );
+    expect(
+      report.results.single.metrics['moduleBoundaryGate'].toString(),
+      contains('inventory_parser_lane'),
+    );
   });
 
   test('shared builders cover app records without module-specific fakes', () {

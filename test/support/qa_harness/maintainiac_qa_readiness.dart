@@ -364,6 +364,14 @@ class MaintainiacQaReadinessLedger {
         status: MaintainiacQaReadinessStatus.ready,
         evidence: ['maintainiac_restart_lifecycle_gate.dart'],
       ),
+      MaintainiacQaReadinessItem(
+        id: 'module_boundary_gate',
+        module: MaintainiacQaModule.security,
+        description:
+            'QA module lanes define allowed paths, forbidden tokens, owners, and violation actions.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_module_boundary_gate.dart'],
+      ),
     ]);
   }
 

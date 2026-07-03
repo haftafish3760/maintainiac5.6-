@@ -25,6 +25,7 @@ import 'maintainiac_local_first_contract.dart';
 import 'maintainiac_sync_conflict_contract.dart';
 import 'maintainiac_pricing_contract.dart';
 import 'maintainiac_inventory_parser_consumer_contract.dart';
+import 'maintainiac_module_boundary_gate.dart';
 import 'maintainiac_module_suite_contract.dart';
 import 'maintainiac_schedule_contract.dart';
 import 'maintainiac_payment_contract.dart';
@@ -462,10 +463,13 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in maintainiacRestartLifecycleGate.validate()) {
       failures.add(_failure('restart_lifecycle_gate_$issue', issue));
     }
+    for (final issue in maintainiacModuleBoundaryGate.validate()) {
+      failures.add(_failure('module_boundary_gate_$issue', issue));
+    }
 
     return timer.finish(
       suite: name,
-      checked: 516,
+      checked: 536,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -518,6 +522,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'releaseEvidenceBundle': maintainiacReleaseEvidenceBundle.toJson(),
         'fixtureGovernanceGate': maintainiacFixtureGovernanceGate.toJson(),
         'restartLifecycleGate': maintainiacRestartLifecycleGate.toJson(),
+        'moduleBoundaryGate': maintainiacModuleBoundaryGate.toJson(),
         'qualityGates': qualityGates.toJson(),
         'readiness': readiness.toJson(),
       },

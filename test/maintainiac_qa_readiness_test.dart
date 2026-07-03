@@ -27,6 +27,7 @@ void main() {
     expect(ledger.toJson().toString(), contains('release_evidence_bundle'));
     expect(ledger.toJson().toString(), contains('fixture_governance_gate'));
     expect(ledger.toJson().toString(), contains('restart_lifecycle_gate'));
+    expect(ledger.toJson().toString(), contains('module_boundary_gate'));
   });
 
   test('QA readiness ledger rejects fake ready claims without evidence', () {
