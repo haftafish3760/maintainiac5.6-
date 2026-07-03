@@ -2505,6 +2505,13 @@ Release-one catalog gap closed in the plumbing item batch:
   lines timed out on the Windows machine. Do not claim those six lines are
   runtime-proven until a focused parser fixture run completes on the Mac or a
   faster non-Flutter parser harness.
+- Tightened fixture coverage so the six required Plumbing Core repair-kit
+  fixture IDs cannot disappear or lose their English/Spanish locale, Core tier,
+  Plumbing trade, or repair-kit risk tags without failing
+  `inventory.fixture_coverage_matrix`.
+- Validated the repair-kit fixture lock:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fixture_coverage_matrix,inventory.accumulated_coverage_contract,qa.threshold_gate`
+  passed 168 checks with 0 failures.
 
 Named release gates:
 

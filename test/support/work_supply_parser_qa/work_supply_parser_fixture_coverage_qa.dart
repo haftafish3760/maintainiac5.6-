@@ -52,6 +52,45 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
     'unknown',
   };
 
+  static const _requiredRepairKitFixtures = {
+    'plumbing_core_toilet_repair_kit_en_us': {
+      'trade': 'plumbing',
+      'tier': 'core',
+      'localePackId': 'en-US',
+      'riskTag': 'toilet_repair',
+    },
+    'plumbing_core_toilet_repair_kit_es_us': {
+      'trade': 'plumbing',
+      'tier': 'core',
+      'localePackId': 'es-US',
+      'riskTag': 'toilet_repair',
+    },
+    'plumbing_core_sink_repair_kit_en_us': {
+      'trade': 'plumbing',
+      'tier': 'core',
+      'localePackId': 'en-US',
+      'riskTag': 'sink_repair',
+    },
+    'plumbing_core_sink_repair_kit_es_us': {
+      'trade': 'plumbing',
+      'tier': 'core',
+      'localePackId': 'es-US',
+      'riskTag': 'sink_repair',
+    },
+    'plumbing_core_faucet_repair_kit_en_us': {
+      'trade': 'plumbing',
+      'tier': 'core',
+      'localePackId': 'en-US',
+      'riskTag': 'faucet_repair',
+    },
+    'plumbing_core_faucet_repair_kit_es_us': {
+      'trade': 'plumbing',
+      'tier': 'core',
+      'localePackId': 'es-US',
+      'riskTag': 'faucet_repair',
+    },
+  };
+
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
@@ -61,6 +100,7 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
     final merchants = <String, int>{};
     final riskTags = <String, int>{};
     final releaseOneCells = <String, int>{};
+    final fixturesById = {for (final fixture in fixtures) fixture.id: fixture};
 
     for (final fixture in fixtures) {
       caseTypes.update(
@@ -154,6 +194,61 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
       );
     }
 
+    for (final entry in _requiredRepairKitFixtures.entries) {
+      final fixture = fixturesById[entry.key];
+      final expected = entry.value;
+      if (fixture == null) {
+        failures.add(
+          QaFailure(
+            suite: name,
+            id: 'missing_required_repair_kit_fixture:${entry.key}',
+            message:
+                'Fixture library is missing a required Plumbing repair-kit fixture.',
+            expected: entry.key,
+            actual: 'not found',
+            suggestedFix:
+                'Restore the English/Spanish toilet, sink, and faucet repair-kit fixture set before claiming release-one repair-kit coverage.',
+            metadata: const {'triageCategory': QaFailureTriage.fixture},
+          ),
+        );
+        continue;
+      }
+
+      final missingFields = <String>[];
+      if (fixture.trade != expected['trade']) {
+        missingFields.add('trade=${expected['trade']}');
+      }
+      if (fixture.tier != expected['tier']) {
+        missingFields.add('tier=${expected['tier']}');
+      }
+      if (fixture.localePackId != expected['localePackId']) {
+        missingFields.add('localePackId=${expected['localePackId']}');
+      }
+      final riskTag = expected['riskTag']!;
+      if (!fixture.riskTags.contains(riskTag)) {
+        missingFields.add('riskTag=$riskTag');
+      }
+      if (!fixture.riskTags.contains('repair_kit')) {
+        missingFields.add('riskTag=repair_kit');
+      }
+      if (missingFields.isEmpty) continue;
+
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'invalid_required_repair_kit_fixture:${entry.key}',
+          message:
+              'Required Plumbing repair-kit fixture is present but has incorrect coverage metadata.',
+          expected: missingFields.join(', '),
+          actual:
+              'trade=${fixture.trade}, tier=${fixture.tier}, localePackId=${fixture.localePackId}, riskTags=${fixture.riskTags.join('|')}',
+          suggestedFix:
+              'Keep repair-kit fixtures tied to Plumbing Core, the correct English/Spanish locale, and explicit repair-kit risk tags.',
+          metadata: const {'triageCategory': QaFailureTriage.fixture},
+        ),
+      );
+    }
+
     for (final cell
         in WorkSupplyParserReleaseOneCellManifestSuite.priorityCells) {
       if (releaseOneCells.containsKey(cell)) continue;
@@ -180,6 +275,7 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
           _requiredCaseTypes.length +
           _recommendedRiskTags.length +
           _recommendedMerchants.length +
+          _requiredRepairKitFixtures.length +
           WorkSupplyParserReleaseOneCellManifestSuite.priorityCells.length,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
@@ -189,6 +285,7 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
         'merchants': merchants,
         'riskTags': riskTags,
         'releaseOneCells': releaseOneCells,
+        'requiredRepairKitFixtures': _requiredRepairKitFixtures.keys.toList(),
       },
     );
   }
