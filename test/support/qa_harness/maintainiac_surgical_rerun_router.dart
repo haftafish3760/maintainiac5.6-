@@ -805,10 +805,11 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
         'qa_artifact_policy_rejects_private_raw',
         'qa_artifact_policy_rejects_wrong_drives',
         'qa_artifact_policy_rejects_duplicate_paths',
+        'qa_artifact_policy_rejects_traversal_paths',
         'main_backbone_parser_visibility',
       },
       reason:
-          'Artifact policy changes need redaction, privacy, wrong-drive, and backbone checks.',
+          'Artifact policy changes need redaction, privacy, wrong-drive, traversal, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'mutation_guard_changed',

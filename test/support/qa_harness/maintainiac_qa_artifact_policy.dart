@@ -65,6 +65,9 @@ class MaintainiacQaArtifact {
 
   static bool _allowedPath(String path) {
     final normalized = path.replaceAll('\\', '/').toLowerCase();
+    if (normalized.split('/').contains('..')) {
+      return false;
+    }
     if (normalized.contains('/googledrive/') ||
         normalized.contains('/google drive/') ||
         normalized.startsWith('f:/') ||

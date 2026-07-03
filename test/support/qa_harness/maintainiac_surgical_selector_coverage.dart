@@ -605,6 +605,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'QA artifact policy rejects private receipt and unredacted evidence',
         'QA artifact policy rejects Google Drive OneDrive and F drive paths',
         'QA artifact policy rejects duplicate artifact paths',
+        'QA artifact policy rejects path traversal artifacts',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(

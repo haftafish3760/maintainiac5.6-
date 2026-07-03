@@ -2031,6 +2031,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'artifact-policy', 'security', 'regression', 'evidence'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_artifact_policy_rejects_traversal_paths',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_artifact_policy_test.dart',
+    plainName: 'QA artifact policy rejects path traversal artifacts',
+    reason: 'Run only the artifact path traversal regression guard.',
+    tags: {'artifact-policy', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'mutation_guard_allows_derived_only',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_mutation_guard_test.dart',

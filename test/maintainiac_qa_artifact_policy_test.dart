@@ -127,4 +127,48 @@ void main() {
       contains('duplicate artifact path build\\qa\\reports\\release_gate.json'),
     );
   });
+
+  test('QA artifact policy rejects path traversal artifacts', () {
+    const policy = MaintainiacQaArtifactPolicy([
+      MaintainiacQaArtifact(
+        id: 'artifact_bad_traversal_report',
+        kind: MaintainiacQaArtifactKind.report,
+        path: 'build/qa/../../private.json',
+        owner: 'maintainiac-qa',
+        summary: 'Traversal attempt from the report directory.',
+        tags: {'artifact-policy', 'security'},
+      ),
+      MaintainiacQaArtifact(
+        id: 'artifact_bad_traversal_doc',
+        kind: MaintainiacQaArtifactKind.regression,
+        path: 'docs/qa/../private.md',
+        owner: 'maintainiac-qa',
+        summary: 'Traversal attempt from the QA docs directory.',
+        tags: {'artifact-policy', 'security'},
+      ),
+      MaintainiacQaArtifact(
+        id: 'artifact_bad_traversal_fixture',
+        kind: MaintainiacQaArtifactKind.fixture,
+        path: 'test/fixtures/../../secrets.json',
+        owner: 'maintainiac-qa',
+        summary: 'Traversal attempt from the fixture directory.',
+        tags: {'artifact-policy', 'security'},
+      ),
+    ]);
+
+    final failures = policy.validate().join('\n');
+
+    expect(
+      failures,
+      contains('artifact_bad_traversal_report uses forbidden artifact path'),
+    );
+    expect(
+      failures,
+      contains('artifact_bad_traversal_doc uses forbidden artifact path'),
+    );
+    expect(
+      failures,
+      contains('artifact_bad_traversal_fixture uses forbidden artifact path'),
+    );
+  });
 }
