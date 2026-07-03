@@ -4,6 +4,7 @@ class WorkSupplyParserReleaseOneCellManifestSuite extends QaSuite {
   const WorkSupplyParserReleaseOneCellManifestSuite()
     : super('inventory.release_one_cell_manifest');
 
+  static const expectedPriorityCellCount = 12;
   static const priorityCells = {
     'plumbing.residential.core.en-US',
     'plumbing.residential.core.es-US',
@@ -27,6 +28,16 @@ class WorkSupplyParserReleaseOneCellManifestSuite extends QaSuite {
     final tradeCounts = <String, int>{};
     final localeCounts = <String, int>{};
     final tierCounts = <String, int>{};
+
+    if (priorityCells.length != expectedPriorityCellCount) {
+      failures.add(
+        _failure(
+          id: 'invalid_release_one_cell_count',
+          message: 'Release-one priority manifest has the wrong cell count.',
+          actual: '${priorityCells.length}',
+        ),
+      );
+    }
 
     for (final cell in priorityCells) {
       if (!seen.add(cell)) {
@@ -75,10 +86,20 @@ class WorkSupplyParserReleaseOneCellManifestSuite extends QaSuite {
         ),
       );
     }
+    for (final required in ['core', 'standard']) {
+      if (tierCounts.containsKey(required)) continue;
+      failures.add(
+        _failure(
+          id: 'missing_release_one_tier:$required',
+          message: 'Release-one priority manifest is missing a priority tier.',
+          actual: tierCounts.keys.join(', '),
+        ),
+      );
+    }
 
     return timer.finish(
       suite: name,
-      checked: priorityCells.length + 5,
+      checked: priorityCells.length + 8,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {

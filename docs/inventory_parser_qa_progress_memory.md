@@ -2491,6 +2491,11 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the file-size guard:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.file_size_contract,qa.threshold_gate`
   passed 203 checks with 0 failures.
+- Tightened the release-one cell manifest so it now enforces the exact 12-cell
+  priority set and explicit Core/Standard tier presence.
+- Validated the release-one cell manifest:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_cell_manifest,qa.threshold_gate`
+  passed 28 checks with 0 failures.
 
 Named release gates:
 
