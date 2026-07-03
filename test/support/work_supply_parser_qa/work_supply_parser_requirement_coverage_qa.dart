@@ -87,6 +87,7 @@ class WorkSupplyParserRequirementCoverageSuite extends QaSuite {
       'missing/unsafe blockers',
       'active wave blockers',
       'active wave unsafe findings',
+      'corrupt artifact blockers',
     ]),
     _RequirementCoverage(
       'domain_adapter',

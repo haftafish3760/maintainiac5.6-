@@ -14,6 +14,8 @@ class WorkSupplyParserNextActionSuite extends QaSuite {
     'activeWaveCount',
     'activeWaves',
     'activeWaveUnsafeFindings',
+    'jsonReadError',
+    'activeWaveStatusReadError',
     'missingArtifactNames',
     'unsafeFindings',
     'liveServicesAllowed',

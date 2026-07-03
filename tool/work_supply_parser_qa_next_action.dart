@@ -34,10 +34,14 @@ int runWorkSupplyParserQaNextAction(
   final evidence = _readJson(_evidenceSummaryPath);
   final missing = _stringList(evidence['missingArtifactNames']);
   final unsafe = _stringList(evidence['unsafeFindings']);
+  final readErrors = [
+    ..._readErrorFinding(commands, _releaseCommandsPath),
+    ..._readErrorFinding(evidence, _evidenceSummaryPath),
+  ];
   final commandCells = _commandCellIds(commands['commands']);
   final activeWaves = _runningWaveStatuses(_batchWaveRoot);
   final activeUnsafe = _activeWaveUnsafeFindings(activeWaves);
-  final allUnsafe = [...unsafe, ...activeUnsafe];
+  final allUnsafe = [...unsafe, ...readErrors, ...activeUnsafe];
 
   final nextActions = <String>[
     if (missing.isNotEmpty)
@@ -95,8 +99,16 @@ int runWorkSupplyParserQaNextAction(
 Map<String, Object?> _readJson(String path) {
   final file = File(path);
   if (!file.existsSync()) return const {};
-  final decoded = jsonDecode(file.readAsStringSync());
-  return decoded is Map ? decoded.cast<String, Object?>() : const {};
+  try {
+    final decoded = jsonDecode(file.readAsStringSync());
+    return decoded is Map
+        ? decoded.cast<String, Object?>()
+        : {'_readError': 'JSON root is not an object.', '_readPath': path};
+  } on FormatException catch (error) {
+    return {'_readError': error.message, '_readPath': path};
+  } on FileSystemException catch (error) {
+    return {'_readError': error.message, '_readPath': path};
+  }
 }
 
 List<String> _stringList(Object? value) {
@@ -112,6 +124,13 @@ List<String> _commandCellIds(Object? value) {
   ];
 }
 
+List<String> _readErrorFinding(Map<String, Object?> json, String fallbackPath) {
+  final error = json['_readError']?.toString();
+  if (error == null || error.isEmpty) return const [];
+  final path = json['_readPath']?.toString() ?? fallbackPath;
+  return ['jsonReadError:$path:$error'];
+}
+
 List<Map<String, Object?>> _runningWaveStatuses(String rootPath) {
   final root = Directory(rootPath);
   if (!root.existsSync()) return const [];
@@ -121,6 +140,21 @@ List<Map<String, Object?>> _runningWaveStatuses(String rootPath) {
       continue;
     }
     final decoded = _readJson(entity.path);
+    if (decoded['_readError'] != null) {
+      activeByQueue['read-error:${entity.path}'] = {
+        'path': entity.path,
+        'queueId': '',
+        'activeCellId': '',
+        'completedCellCount': 0,
+        'failedCellCount': 0,
+        'readError': decoded['_readError'],
+        'liveServicesAllowed': false,
+        'writesProductionCatalog': false,
+        'firebaseWritesAllowed': false,
+        'ocrCameraExpensesTouched': false,
+      };
+      continue;
+    }
     if (decoded['state'] != 'running') continue;
     final queueId = '${decoded['queueId'] ?? ''}';
     final key = queueId.isEmpty ? entity.path : queueId;
@@ -154,6 +188,10 @@ List<String> _activeWaveUnsafeFindings(List<Map<String, Object?>> waves) {
     for (final flag in unsafeFlags) {
       if (wave[flag] != true) continue;
       findings.add('activeWave:$queueId:$flag=true');
+    }
+    final readError = wave['readError']?.toString();
+    if (readError != null && readError.isNotEmpty) {
+      findings.add('activeWaveStatusReadError:${wave['path']}:$readError');
     }
   }
   findings.sort();

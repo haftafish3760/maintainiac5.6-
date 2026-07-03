@@ -168,6 +168,73 @@ void main() {
     );
     expect(summary['unsafeFindings'].toString(), contains('activeWave'));
   });
+
+  test('next action reports corrupt evidence artifacts without crashing', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_next_corrupt_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeJson('build/parser_qa_pipeline/release_one_commands.json', {
+      'commands': [
+        {'cellId': 'plumbing.residential.core.en-US'},
+      ],
+    });
+    final evidence = File('build/parser_qa_pass_evidence/evidence_summary.json')
+      ..parent.createSync(recursive: true);
+    evidence.writeAsStringSync('{not-json');
+
+    final exit = runWorkSupplyParserQaNextAction(
+      const [],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 1);
+    final summary = _readJson('build/parser_qa_pass_evidence/next_action.json');
+    expect(summary['readyForNextBatch'], isFalse);
+    expect(summary['unsafeFindings'].toString(), contains('jsonReadError'));
+  });
+
+  test('next action reports corrupt active wave status without crashing', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_next_corrupt_status_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeJson('build/parser_qa_pipeline/release_one_commands.json', {
+      'commands': [
+        {'cellId': 'plumbing.residential.core.en-US'},
+      ],
+    });
+    _writeJson('build/parser_qa_pass_evidence/evidence_summary.json', {
+      'missingArtifactNames': <String>[],
+      'unsafeFindings': <String>[],
+    });
+    final status = File(
+      'build/parser_qa_batch_waves/wave/queue/queue-id/latest_status.json',
+    )..parent.createSync(recursive: true);
+    status.writeAsStringSync('{not-json');
+
+    final exit = runWorkSupplyParserQaNextAction(
+      const [],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 1);
+    final summary = _readJson('build/parser_qa_pass_evidence/next_action.json');
+    expect(summary['readyForNextBatch'], isFalse);
+    expect(
+      summary['activeWaveUnsafeFindings'].toString(),
+      contains('ReadError'),
+    );
+    expect(summary['unsafeFindings'].toString(), contains('activeWaveStatus'));
+  });
 }
 
 void _writeJson(String path, Map<String, Object?> value) {
