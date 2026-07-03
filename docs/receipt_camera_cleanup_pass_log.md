@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 563 - 07:45:00 EDT to 07:53:53 EDT
+
+Scope:
+- Hardened restored receipt-proof media asset metadata so padded purpose and
+  backup-policy values still route receipt proofs into receipt cloud manifests.
+- Added safe byte-size parsing so malformed media metadata cannot crash restore
+  or silently block receipt proof backup eligibility.
+- Added regression coverage for restored receipt-proof backup manifest entries.
+- Recorded `BUG-RECEIPT-0079` under `source_preservation`.
+- Archived Pass 514 out of the live cleanup log.
+
+Verification:
+- Passed targeted Dart format/analyzer for media asset restore and cloud backup
+  manifest regression coverage.
+- Passed focused Flutter regression
+  `test/cloud_backup_manifest_test.dart --plain-name "receipt proof media
+  restore trims backup metadata for cloud manifests"`.
+
 ## Pass 562 - 07:37:10 EDT to 07:44:38 EDT
 
 Scope:
@@ -460,27 +478,4 @@ Verification:
 - Passed focused Flutter test
   `test/expense_receipt_assisted_review_flow_test.dart --plain-name "assisted
   receipt review exposes classification and attachment flow"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 514 - 01:09:30 EDT to 01:11:50 EDT
-
-Scope:
-- Hardened receipt line redaction anchors so manual/generated line IDs that
-  contain typed item descriptions are replaced with deterministic private-safe
-  tokens before entering privacy-safe contracts.
-- Added regression coverage proving manual private item text and generated IDs
-  do not appear in line review contracts.
-- Recorded `BUG-RECEIPT-0032` under `privacy_redaction`.
-- Archived Pass 477 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Fixed an initial focused-test failure where the line-number label still used a
-  generated private-text ID, then reran the focused chain.
-- Fixed a targeted analyzer style issue before commit.
-- Passed targeted Dart format and analyzer for expense receipt line records and
-  line-record regression coverage.
-- Passed focused Flutter test
-  `test/expense_receipt_line_record_test.dart --plain-name "privacy-safe receipt
-  line contracts never expose generated item ids"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.

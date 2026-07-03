@@ -94,6 +94,34 @@ void main() {
     },
   );
 
+  test(
+    'receipt proof media restore trims backup metadata for cloud manifests',
+    () {
+      final restored = AppMediaAsset.fromMap({
+        'id': 'MEDIA-receipt-proof',
+        'path': '/app/receipts/proof.jpg',
+        'purpose': ' receiptProof ',
+        'createdAt': DateTime(2026, 6, 16).toIso8601String(),
+        'byteSize': '2,048',
+        'fileHash': 'receipt-proof-hash',
+        'backupPolicy': ' cloudEligible ',
+      });
+      final manifest = CloudBackupManifest.fromDocuments(
+        documents: const [],
+        mediaAssets: [restored],
+        createdAt: DateTime(2026, 6, 16),
+      );
+
+      expect(restored.purpose, AppMediaAssetPurpose.receiptProof);
+      expect(restored.backupPolicy, AppMediaAssetBackupPolicy.cloudEligible);
+      expect(restored.byteSize, 2048);
+      expect(restored.canAttemptCloudBackup, isTrue);
+      expect(manifest.entryCount, 1);
+      expect(manifest.entries.single.module, 'receipts');
+      expect(manifest.pendingBytes, 2048);
+    },
+  );
+
   test('large scanned receipt PDFs are deferred before cloud backup', () {
     final manifest = CloudBackupManifest.fromDocuments(
       documents: [

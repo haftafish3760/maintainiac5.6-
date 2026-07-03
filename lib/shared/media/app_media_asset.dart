@@ -36,17 +36,17 @@ class AppMediaAsset {
       id: map['id'] as String? ?? '',
       path: map['path'] as String? ?? '',
       purpose: AppMediaAssetPurpose.values.firstWhere(
-        (value) => value.name == map['purpose'],
+        (value) => value.name == _mediaAssetString(map['purpose']).trim(),
         orElse: () => AppMediaAssetPurpose.companyLogo,
       ),
       createdAt: DateTime.tryParse(map['createdAt'] as String? ?? ''),
       displayName: map['displayName'] as String? ?? '',
       originalFileName: map['originalFileName'] as String? ?? '',
       mimeType: map['mimeType'] as String? ?? '',
-      byteSize: (map['byteSize'] as num?)?.toInt(),
+      byteSize: _mediaAssetInt(map['byteSize']),
       fileHash: map['fileHash'] as String? ?? '',
       backupPolicy: AppMediaAssetBackupPolicy.values.firstWhere(
-        (value) => value.name == map['backupPolicy'],
+        (value) => value.name == _mediaAssetString(map['backupPolicy']).trim(),
         orElse: () => AppMediaAssetBackupPolicy.localOnly,
       ),
       firebaseStoragePath: map['firebaseStoragePath'] as String? ?? '',
@@ -119,4 +119,17 @@ class AppMediaAsset {
       'lastBackedUpAt': lastBackedUpAt?.toIso8601String(),
     };
   }
+}
+
+String _mediaAssetString(dynamic value) {
+  if (value is String) return value;
+  if (value is num || value is bool) return value.toString();
+  return '';
+}
+
+int? _mediaAssetInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.isFinite ? value.toInt() : null;
+  if (value is String) return int.tryParse(value.trim().replaceAll(',', ''));
+  return null;
 }
