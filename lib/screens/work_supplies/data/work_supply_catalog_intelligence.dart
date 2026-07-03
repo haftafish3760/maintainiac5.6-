@@ -33,6 +33,7 @@ WorkSupplyPackTier _resolveWorkSupplyPackTier(WorkSupplyItem item) {
   if (item.trade == 'Plumbing') return _resolvePlumbingPackTier(item);
   final text = item.searchableText;
   if (_hasAny(text, _completeTierSignals)) return WorkSupplyPackTier.complete;
+  if (_isEverydayNonPlumbingCore(item, text)) return WorkSupplyPackTier.core;
   if (_hasAny(text, _professionalTierSignals)) {
     return WorkSupplyPackTier.professional;
   }
@@ -53,6 +54,9 @@ WorkSupplyParserPriority _resolveWorkSupplyParserPriority(WorkSupplyItem item) {
   if (_hasAny(text, _completeTierSignals)) {
     return WorkSupplyParserPriority.specialty;
   }
+  if (_isEverydayNonPlumbingCore(item, text)) {
+    return WorkSupplyParserPriority.everydayCore;
+  }
   if (_hasAny(text, _professionalTierSignals)) {
     return WorkSupplyParserPriority.occasional;
   }
@@ -60,6 +64,11 @@ WorkSupplyParserPriority _resolveWorkSupplyParserPriority(WorkSupplyItem item) {
     return WorkSupplyParserPriority.everydayCore;
   }
   return WorkSupplyParserPriority.common;
+}
+
+bool _isEverydayNonPlumbingCore(WorkSupplyItem item, String text) {
+  if (item.trade == 'HVAC' && text.contains('condensate pump')) return true;
+  return false;
 }
 
 List<String> _resolveWorkSupplyAliases(WorkSupplyItem item) {
