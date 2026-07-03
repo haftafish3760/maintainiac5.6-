@@ -65,6 +65,21 @@ void main() {
     );
   });
 
+  test('restores padded receipt performance mode preference', () async {
+    final box = await Hive.openBox<dynamic>(
+      ReceiptCaptureSettingsController.boxName,
+    );
+    await box.put('receipt_performance_mode', ' batterySaver ');
+
+    final settings = await ReceiptCaptureSettingsController.create();
+
+    expect(
+      settings.receiptPerformanceMode,
+      ReceiptPerformanceMode.batterySaver,
+    );
+    expect(settings.receiptCapabilityTier, ReceiptCapabilityTier.light);
+  });
+
   test('auto capture preference enables assisted camera mode', () async {
     final settings = await ReceiptCaptureSettingsController.create();
 

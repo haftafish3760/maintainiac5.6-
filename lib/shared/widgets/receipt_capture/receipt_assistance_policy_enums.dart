@@ -29,8 +29,9 @@ enum ReceiptPerformanceMode {
   final String description;
 
   static ReceiptPerformanceMode fromName(String? name) {
+    final normalized = name?.trim() ?? '';
     return ReceiptPerformanceMode.values.firstWhere(
-      (mode) => mode.name == name,
+      (mode) => mode.name == normalized,
       orElse: () => ReceiptPerformanceMode.automatic,
     );
   }

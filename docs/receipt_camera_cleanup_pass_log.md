@@ -18,6 +18,23 @@ Verification:
   restore files.
 - Passed focused capability and recovery-index Flutter regressions.
 
+## Pass 545 - 05:12:04 EDT to 05:13:14 EDT
+
+Scope:
+- Hardened receipt performance mode restore so padded Hive values do not fall
+  back to automatic camera workload selection.
+- Added settings-store regression coverage proving Battery Saver survives
+  padded persisted values and still maps to the light capability tier.
+- Recorded `BUG-RECEIPT-0062` under `camera_capture_quality`.
+- Archived Pass 537 out of the live cleanup log.
+
+Verification:
+- Passed targeted format/analyzer for assistance policy enums and settings
+  store regression coverage.
+- Passed focused Flutter test
+  `test/receipt_capture_settings_store_test.dart --plain-name "restores padded
+  receipt performance mode preference"`.
+
 ## Pass 543 - 05:01:39 EDT to 05:02:14 EDT
 
 Scope:
@@ -95,28 +112,6 @@ Verification:
   `test/receipt_attachment_panel_recovery_contract_test.dart`.
 - Passed targeted format/analyzer, bug-ledger, log, doc-size, audit, and diff
   gates.
-
-## Pass 537 - 03:11:21 EDT to 03:12:50 EDT
-
-Scope:
-- Hardened OCR parser enrichment so parsed receipt lines prefer stable OCR line
-  IDs before falling back to line numbers.
-- Made line-number fallback first-source-wins so duplicate or replayed line
-  numbers cannot replace earlier receipt proof evidence.
-- Added regression coverage for stable receipt line evidence and the duplicate
-  line-number overwrite guard.
-- Recorded `BUG-RECEIPT-0055` under `receipt_line_numbering`.
-- Archived Pass 512 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for OCR handoff enrichment and OCR
-  diagnostics regression coverage.
-- Passed focused Flutter test
-  `test/expense_receipt_parser_ocr_diagnostics_test.dart`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-- Passed cleanup log gate, doc-size gate, receipt source audit, and
-  `git diff --check`.
 
 ## Pass 529 - 02:12:33 EDT to 02:16:00 EDT
 
