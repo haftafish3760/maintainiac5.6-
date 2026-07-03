@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 557 - 06:46:00 EDT to 06:59:56 EDT
+
+Scope:
+- Hardened recovery-stage manifest updates so old/private-looking manifest
+  diagnostics are filtered through the staging safe-key whitelist during merge.
+- Added cleanup regression coverage proving stage updates drop existing private
+  receipt/customer diagnostic keys while preserving safe recovery metadata.
+- Recorded `BUG-RECEIPT-0073` under `privacy_redaction`.
+- Archived Pass 543 out of the live cleanup log.
+
+Verification:
+- Fixed a type issue in the safe merge, corrected an over-broad Hive-index
+  expectation, then reran the focused chain.
+- Passed targeted Dart analyzer and focused Flutter recovery-stage update test.
+
 ## Pass 556 - 06:44:37 EDT to 06:45:41 EDT
 
 Scope:
@@ -215,19 +230,6 @@ Verification:
 - Passed focused Flutter test
   `test/receipt_camera_ocr_source_attachment_read_test.dart --plain-name
   "reviewed OCR source attachments preserve read state and cleanup safety"`.
-
-## Pass 543 - 05:01:39 EDT to 05:02:14 EDT
-
-Scope:
-- Hardened receipt attachment enum restore helpers so padded stored names do
-  not fall back to default proof/storage states.
-- Added attachment storage-map regression coverage for padded kind, data-saver,
-  PDF status, storage state, and read-state values.
-- Recorded `BUG-RECEIPT-0060` under `source_preservation`.
-
-Verification:
-- Passed targeted format/analyzer, focused attachment metadata regression,
-  bug-ledger, cleanup-log, doc-size, source-audit, and diff gates.
 
 ## Pass 542 - 04:58:57 EDT to 04:59:58 EDT
 

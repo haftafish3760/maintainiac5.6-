@@ -115,6 +115,21 @@ void main() {
         },
       ),
     );
+    final manifestFile = File(staged.recoveryManifestPath);
+    final poisonedManifest =
+        jsonDecode(await manifestFile.readAsString()) as Map;
+    await manifestFile.writeAsString(
+      jsonEncode({
+        ...poisonedManifest,
+        'captureDiagnostics': {
+          ...(poisonedManifest['captureDiagnostics'] as Map),
+          'receiptText': 'LOWE PRIVATE RECEIPT',
+          'customerName': 'Private Customer',
+          'latestFrameBrightness': 118,
+        },
+      }),
+      flush: true,
+    );
 
     await staging.markRecoveryStage(
       staged.recoveryManifestPath,
@@ -149,6 +164,9 @@ void main() {
     expect(diagnostics['nativeRecoveryOcrPending'], isTrue);
     expect(diagnostics['nativeRecoveryReviewedPhotoCount'], 1);
     expect(diagnostics['nativeRecoveryOcrSourcePhotoCount'], 1);
+    expect(diagnostics['latestFrameBrightness'], 118);
+    expect(diagnostics, isNot(contains('receiptText')));
+    expect(diagnostics, isNot(contains('customerName')));
     expect(stage['schema'], 'native_capture_recovery_stage_v1');
     expect(stage['stage'], 'review_accepted');
     expect(stage['privacyScope'], 'summary_only_no_receipt_content');
@@ -166,6 +184,10 @@ void main() {
       isTrue,
     );
     expect(indexEntry.captureDiagnostics.toString(), isNot(contains('LOWE')));
+    expect(
+      indexEntry.captureDiagnostics.toString(),
+      isNot(contains('Private Customer')),
+    );
   });
 
   test('discarding recovery record removes staged photos and index', () async {

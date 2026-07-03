@@ -116,12 +116,13 @@ extension ReceiptNativeCaptureStagingRecoveryActions
       final decoded = jsonDecode(await file.readAsString());
       if (decoded is! Map) return;
       final payload = Map<String, Object?>.from(decoded);
-      final existingDiagnostics = Map<String, Object?>.from(
-        payload['captureDiagnostics'] is Map
-            ? payload['captureDiagnostics'] as Map
-            : const {},
+      final existingDiagnostics = _jsonSafeDiagnostics(
+        receiptNativeCaptureSanitizedDiagnostics(payload['captureDiagnostics']),
       );
-      payload['captureDiagnostics'] = {...existingDiagnostics, ...diagnostics};
+      payload['captureDiagnostics'] = _jsonSafeDiagnostics({
+        ...existingDiagnostics,
+        ...diagnostics,
+      });
       payload['recoveryStage'] = {
         'schema': 'native_capture_recovery_stage_v1',
         'stage': diagnostics['nativeRecoveryLastStage'],
