@@ -15,6 +15,10 @@ void main() {
       );
       expect(coverage.toJson()['selectorCount'], greaterThanOrEqualTo(22));
       expect(
+        coverage.toJson()['individualCommandCount'],
+        equals(coverage.toJson()['expectedBehaviorCount']),
+      );
+      expect(
         coverage.toJson().toString(),
         contains(
           'expense parser consumer keeps commands focused and provider-free',
@@ -42,6 +46,38 @@ void main() {
       failures,
       contains(
         'missing surgical selector for "inventory parser consumer labels broad release-one QA families"',
+      ),
+    );
+  });
+
+  test('surgical selector coverage rejects unlisted selector targets', () {
+    const coverage = MaintainiacSurgicalSelectorCoverage(
+      registry: MaintainiacSurgicalTestSelectorRegistry([
+        MaintainiacSurgicalTestSelector(
+          id: 'unexpected',
+          scope: MaintainiacSurgicalTestScope.singleBehavior,
+          file: 'test/maintainiac_inventory_parser_consumer_test.dart',
+          plainName: 'unexpected inventory behavior',
+          reason: 'prove unlisted selectors are blocked',
+          tags: {'inventory', 'parser-consumer'},
+        ),
+      ]),
+      expectations: [
+        MaintainiacSurgicalCoverageExpectation(
+          file: 'test/maintainiac_inventory_parser_consumer_test.dart',
+          plainNames: {
+            'inventory parser consumer labels broad release-one QA families',
+          },
+        ),
+      ],
+    );
+
+    final failures = coverage.validate().join('\n');
+
+    expect(
+      failures,
+      contains(
+        'selector target is not expected: test/maintainiac_inventory_parser_consumer_test.dart::unexpected inventory behavior',
       ),
     );
   });

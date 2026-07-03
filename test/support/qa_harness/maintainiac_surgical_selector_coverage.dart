@@ -25,6 +25,18 @@ class MaintainiacSurgicalCoverageExpectation {
       if (!selectorsForFile.contains(plainName)) {
         failures.add('$file missing surgical selector for "$plainName"');
       }
+      final matches = [
+        for (final selector in registry.selectors)
+          if (selector.file == file && selector.plainName == plainName)
+            selector,
+      ];
+      if (matches.length > 1) {
+        failures.add('$file has duplicate surgical selectors for "$plainName"');
+      }
+      if (matches.length == 1 &&
+          !matches.single.command.contains('--plain-name "$plainName"')) {
+        failures.add('$file selector command is not exact for "$plainName"');
+      }
     }
     return failures;
   }
@@ -53,6 +65,20 @@ class MaintainiacSurgicalSelectorCoverage {
         failures.add('selector ${selector.id} is not covered by expectations');
       }
     }
+    final expectedPairs = {
+      for (final expectation in expectations)
+        for (final plainName in expectation.plainNames)
+          '${expectation.file}::$plainName',
+    };
+    final selectorPairs = {
+      for (final selector in registry.selectors)
+        '${selector.file}::${selector.plainName}',
+    };
+    for (final pair in selectorPairs) {
+      if (!expectedPairs.contains(pair)) {
+        failures.add('selector target is not expected: $pair');
+      }
+    }
     return failures;
   }
 
@@ -64,6 +90,9 @@ class MaintainiacSurgicalSelectorCoverage {
         (sum, expectation) => sum + expectation.plainNames.length,
       ),
       'selectorCount': registry.selectors.length,
+      'individualCommandCount': registry.selectors
+          .where((selector) => selector.command.contains(' --plain-name '))
+          .length,
       'expectations': [
         for (final expectation in expectations)
           {
