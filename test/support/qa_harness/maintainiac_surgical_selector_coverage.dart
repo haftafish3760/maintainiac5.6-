@@ -197,6 +197,13 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_release_evidence_bundle_test.dart',
+      plainNames: {
+        'release evidence bundle records required milestone proof',
+        'release evidence bundle rejects broad or missing proof',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_source_audit_policy_test.dart',
       plainNames: {
         'source audit policy separates production and QA line caps',

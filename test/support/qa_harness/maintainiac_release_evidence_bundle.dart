@@ -2,6 +2,7 @@ enum MaintainiacEvidenceKind {
   analyzer,
   individualTest,
   individualCommandResolver,
+  releaseGateTool,
   backboneVisibility,
   privacyGate,
   sourceTruthGate,
@@ -39,6 +40,12 @@ class MaintainiacReleaseEvidence {
           'dart run tool/maintainiac_individual_qa_command.dart --id ',
         )) {
       failures.add('$id must prove exact individual command lookup by id');
+    }
+    if (kind == MaintainiacEvidenceKind.releaseGateTool &&
+        !commandOrArtifact.startsWith(
+          'dart run tool/maintainiac_release_gate.dart',
+        )) {
+      failures.add('$id must prove the release gate tool output directly');
     }
     if (kind == MaintainiacEvidenceKind.gitPush &&
         !commandOrArtifact.startsWith('git push')) {
@@ -124,6 +131,14 @@ const maintainiacReleaseEvidenceBundle = MaintainiacReleaseEvidenceBundle([
         'dart run tool/maintainiac_individual_qa_command.dart --id qa_environment_local_truth',
     proves:
         'A single selector id resolves to one exact focused test command without running a batch.',
+    requiredForRelease: true,
+  ),
+  MaintainiacReleaseEvidence(
+    id: 'release_gate_tool_command_manifest',
+    kind: MaintainiacEvidenceKind.releaseGateTool,
+    commandOrArtifact: 'dart run tool/maintainiac_release_gate.dart --json',
+    proves:
+        'The release gate tool emits auditable JSON including the required surgical QA commands.',
     requiredForRelease: true,
   ),
   MaintainiacReleaseEvidence(

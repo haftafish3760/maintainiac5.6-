@@ -395,6 +395,24 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'release-gate', 'tooling', 'evidence'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'release_evidence_required_proof',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_release_evidence_bundle_test.dart',
+    plainName: 'release evidence bundle records required milestone proof',
+    reason:
+        'Run only the release evidence positive proof check after evidence edits.',
+    tags: {'release-gate', 'tooling', 'evidence'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'release_evidence_rejects_bad_proof',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_release_evidence_bundle_test.dart',
+    plainName: 'release evidence bundle rejects broad or missing proof',
+    reason:
+        'Run only the release evidence negative proof check after evidence edits.',
+    tags: {'release-gate', 'tooling', 'regression', 'security'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'source_audit_line_caps',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_source_audit_policy_test.dart',

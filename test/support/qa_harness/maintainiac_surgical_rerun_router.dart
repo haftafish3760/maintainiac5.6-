@@ -66,6 +66,7 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_payment_contract.dart',
       'maintainiac_operating_directive_contract.dart',
       'maintainiac_qa_quality_gates.dart',
+      'maintainiac_release_evidence_bundle.dart',
       'maintainiac_release_gate.dart',
       'maintainiac_source_audit_policy.dart',
       'maintainiac_audit_trail.dart',
@@ -249,6 +250,17 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Release gate tool changes need command, JSON evidence, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'release_evidence_bundle_changed',
+      changedPathContains: 'maintainiac_release_evidence_bundle.dart',
+      selectorIds: {
+        'release_evidence_required_proof',
+        'release_evidence_rejects_bad_proof',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Release evidence changes need exact proof, negative proof, and backbone checks.',
     ),
     MaintainiacSurgicalRerunRule(
       id: 'source_audit_policy_changed',

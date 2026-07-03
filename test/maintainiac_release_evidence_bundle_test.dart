@@ -16,6 +16,10 @@ void main() {
       ),
     );
     expect(
+      bundle.requiredCommands(),
+      contains('dart run tool/maintainiac_release_gate.dart --json'),
+    );
+    expect(
       bundle.requiredCommands().where(
         (command) => command.contains('--plain-name'),
       ),
@@ -47,6 +51,13 @@ void main() {
         proves: 'bad resolver',
         requiredForRelease: true,
       ),
+      MaintainiacReleaseEvidence(
+        id: 'bad_release_gate',
+        kind: MaintainiacEvidenceKind.releaseGateTool,
+        commandOrArtifact: 'flutter test test/release_gate_test.dart',
+        proves: 'bad release gate',
+        requiredForRelease: true,
+      ),
     ]);
 
     final failures = bundle.validate().join('\n');
@@ -60,6 +71,12 @@ void main() {
     expect(
       failures,
       contains('bad_resolver must prove exact individual command lookup by id'),
+    );
+    expect(
+      failures,
+      contains(
+        'bad_release_gate must prove the release gate tool output directly',
+      ),
     );
     expect(
       failures,
