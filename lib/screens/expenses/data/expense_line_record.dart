@@ -262,7 +262,7 @@ class ExpenseReceiptLineRecord {
     final sourceSectionLine = ocrSourceSectionLineNumber;
     final lineNumber = ocrSourceLineNumber;
     final lineToken = sourceSectionLine != null && sourceSectionLine > 0
-        ? 's${(sourceSection ?? 1).toString().padLeft(2, '0')}_l${sourceSectionLine.toString().padLeft(4, '0')}'
+        ? 's${_expenseSafeReceiptSectionNumber(sourceSection).toString().padLeft(2, '0')}_l${sourceSectionLine.toString().padLeft(4, '0')}'
         : lineNumber != null && lineNumber > 0
         ? 'l${lineNumber.toString().padLeft(4, '0')}'
         : _expensePrivateSafeLineToken(ocrSourceLineId, id);
@@ -443,6 +443,10 @@ String _expensePrivateSafeLineReferenceLabel(String value) {
 
 bool _expenseLooksLikeSafeOcrLineId(String value) {
   return RegExp(r'^ocr_line_[0-9]{3,5}(_[a-z0-9_]+)?$').hasMatch(value.trim());
+}
+
+int _expenseSafeReceiptSectionNumber(int? value) {
+  return value != null && value > 0 ? value : 1;
 }
 
 String _expensePrivateSafeIdToken(String value) {

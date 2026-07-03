@@ -186,7 +186,7 @@ class _ExpenseReceiptLine {
     final sourceSectionLine = ocrSourceSectionLineNumber;
     final lineNumber = ocrSourceLineNumber;
     final lineToken = sourceSectionLine != null && sourceSectionLine > 0
-        ? 's${(sourceSection ?? 1).toString().padLeft(2, '0')}_l${sourceSectionLine.toString().padLeft(4, '0')}'
+        ? 's${_expenseReceiptSafeSectionNumber(sourceSection).toString().padLeft(2, '0')}_l${sourceSectionLine.toString().padLeft(4, '0')}'
         : lineNumber != null && lineNumber > 0
         ? 'l${lineNumber.toString().padLeft(4, '0')}'
         : _expenseReceiptPrivateSafeLineToken(ocrSourceLineId, id ?? '');

@@ -78,6 +78,10 @@ bool _expenseReceiptLooksLikeSafeOcrLineId(String value) {
   return RegExp(r'^ocr_line_[0-9]{3,5}(_[a-z0-9_]+)?$').hasMatch(value.trim());
 }
 
+int _expenseReceiptSafeSectionNumber(int? value) {
+  return value != null && value > 0 ? value : 1;
+}
+
 String _expenseReceiptPrivateSafeIdToken(String value) {
   final cleaned = value.trim();
   if (cleaned.isEmpty) return 'manual_unknown';

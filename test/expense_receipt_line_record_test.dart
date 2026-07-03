@@ -167,6 +167,35 @@ void main() {
     },
   );
 
+  test('receipt proof anchors reject malformed section numbers', () {
+    const malformedSection = ExpenseReceiptLineRecord(
+      id: 'line-malformed-section',
+      description: 'Receipt item',
+      category: 'Materials',
+      use: ExpenseLineUse.business,
+      quantity: 1,
+      unitsPerPackage: 1,
+      unit: 'each',
+      subtotal: 8,
+      ocrSourceSectionNumber: -3,
+      ocrSourceSectionLineNumber: 4,
+    );
+
+    expect(malformedSection.receiptLineNumberLabel, 'Line 4');
+    expect(
+      malformedSection.receiptProofRedactionAnchorCode,
+      'receipt_line_s01_l0004_materials_business',
+    );
+    expect(
+      malformedSection.privacySafeProofReference['redactionAnchorCode'],
+      'receipt_line_s01_l0004_materials_business',
+    );
+    expect(
+      malformedSection.receiptProofRedactionAnchorCode,
+      isNot(contains('-3')),
+    );
+  });
+
   test('receipt line catalog metadata round trips with stored maps', () {
     const line = ExpenseReceiptLineRecord(
       id: 'line-catalog',

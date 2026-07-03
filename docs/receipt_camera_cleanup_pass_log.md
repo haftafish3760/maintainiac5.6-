@@ -172,6 +172,24 @@ Verification:
 - Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
   diff check.
 
+## Pass 536 - 02:59:48 EDT to 03:04:00 EDT
+
+Scope:
+- Hardened receipt line proof redaction anchors so malformed nonpositive
+  section numbers cannot leak into stable proof IDs.
+- Applied the same sanitization to saved and entry-screen line models.
+- Added regression coverage for a negative section number with a valid section
+  line number.
+- Recorded `BUG-RECEIPT-0054` under `receipt_line_numbering`.
+- Archived Pass 511 to keep the active log under the line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for receipt line anchor logic and entry
+  line model parity.
+- Passed focused Flutter test for malformed receipt section proof anchors.
+- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
+  diff check.
+
 ## Pass 527 - 01:56:00 EDT to 02:00:00 EDT
 
 Scope:
@@ -479,22 +497,4 @@ Verification:
 - Passed focused Flutter test
   `test/receipt_camera_result_coverage_totals_test.dart --plain-name
   "non-finite coverage diagnostics are treated as missing evidence"`.
-- Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
-
-## Pass 511 - 01:03:26 EDT to 01:04:01 EDT
-
-Scope:
-- Hardened native camera capability parsing so malformed platform numbers cannot
-  become fake camera counts, zoom ranges, exposure ranges, or still sizes.
-- Added direct unit regression coverage for non-finite capability values.
-- Recorded `BUG-RECEIPT-0029` under `native_bridge`.
-- Archived Pass 474 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format and analyzer for the native camera contract and
-  native camera session contract regression coverage.
-- Passed focused Flutter test
-  `test/receipt_native_camera_session_contract_test.dart --plain-name "native
-  capabilities reject non-finite platform numbers"`.
 - Passed `dart tool/receipt_bug_regression_ledger_gate.dart`.
