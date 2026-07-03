@@ -45,6 +45,14 @@ void main() {
         requiredForRelease: true,
       ),
       MaintainiacReleaseEvidence(
+        id: 'bad_individual_chain',
+        kind: MaintainiacEvidenceKind.individualTest,
+        commandOrArtifact:
+            'flutter test test/one_test.dart test/two_test.dart --plain-name "one behavior" && flutter test test/three_test.dart',
+        proves: 'bad chained individual evidence',
+        requiredForRelease: true,
+      ),
+      MaintainiacReleaseEvidence(
         id: 'bad_push',
         kind: MaintainiacEvidenceKind.gitPush,
         commandOrArtifact: 'git status',
@@ -83,6 +91,18 @@ void main() {
     expect(
       failures,
       contains('bad_individual individual test evidence must use --plain-name'),
+    );
+    expect(
+      failures,
+      contains(
+        'bad_individual_chain individual test evidence must target one test file',
+      ),
+    );
+    expect(
+      failures,
+      contains(
+        'bad_individual_chain individual test evidence must not chain commands',
+      ),
     );
     expect(failures, contains('bad_push git push evidence must use git push'));
     expect(

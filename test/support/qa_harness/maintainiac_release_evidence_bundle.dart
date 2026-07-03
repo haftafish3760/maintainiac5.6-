@@ -43,9 +43,18 @@ class MaintainiacReleaseEvidence {
         failures.add('$id analyzer evidence must include QA harness sources');
       }
     }
-    if (kind == MaintainiacEvidenceKind.individualTest &&
-        !commandOrArtifact.contains('--plain-name')) {
-      failures.add('$id individual test evidence must use --plain-name');
+    if (kind == MaintainiacEvidenceKind.individualTest) {
+      if (!commandOrArtifact.contains('--plain-name')) {
+        failures.add('$id individual test evidence must use --plain-name');
+      }
+      if (_testFileReferences(commandOrArtifact).length != 1) {
+        failures.add('$id individual test evidence must target one test file');
+      }
+      if (commandOrArtifact.contains('&&') ||
+          commandOrArtifact.contains(';') ||
+          commandOrArtifact.contains('|')) {
+        failures.add('$id individual test evidence must not chain commands');
+      }
     }
     if (kind == MaintainiacEvidenceKind.individualCommandResolver &&
         !commandOrArtifact.startsWith(
@@ -75,6 +84,13 @@ class MaintainiacReleaseEvidence {
       'requiredForRelease': requiredForRelease,
     };
   }
+}
+
+List<String> _testFileReferences(String command) {
+  return [
+    for (final token in command.split(RegExp(r'\s+')))
+      if (token.startsWith('test/') && token.endsWith('.dart')) token,
+  ];
 }
 
 class MaintainiacReleaseEvidenceBundle {
