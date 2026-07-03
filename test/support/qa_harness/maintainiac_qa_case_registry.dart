@@ -132,6 +132,17 @@ class MaintainiacQaCaseRegistry {
         testCommand: 'flutter test test/maintainiac_scope_policy_test.dart',
         tags: {'security', 'permissions', 'fleet'},
       ),
+      MaintainiacQaCase(
+        id: 'QA-AUDIT-001',
+        title: 'Audit trail completeness and user confirmation',
+        module: MaintainiacQaModule.security,
+        behavior:
+            'Audit events preserve actor, action, target, ordered timestamps, and before/after evidence when users confirm parser suggestions.',
+        evidenceTarget: 'maintainiac_audit_trail_test',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand: 'flutter test test/maintainiac_audit_trail_test.dart',
+        tags: {'audit', 'confirmation', 'regression'},
+      ),
     ]);
   }
 

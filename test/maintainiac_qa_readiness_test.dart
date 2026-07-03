@@ -14,6 +14,7 @@ void main() {
     expect(ledger.toJson().toString(), contains('expense_parser_consumer'));
     expect(ledger.toJson().toString(), contains('device_capability_probe'));
     expect(ledger.toJson().toString(), contains('scope_policy_probe'));
+    expect(ledger.toJson().toString(), contains('audit_trail_probe'));
   });
 
   test('QA readiness ledger rejects fake ready claims without evidence', () {

@@ -114,6 +114,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_scope_policy.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'audit_trail_probe',
+        module: MaintainiacQaModule.security,
+        description:
+            'Reusable audit trail probe for ordered events and user-confirmed suggestion evidence.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_audit_trail.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:
