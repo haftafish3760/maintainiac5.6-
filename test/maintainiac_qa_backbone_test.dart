@@ -43,6 +43,10 @@ void main() {
       contains('SYN-0001'),
     );
     expect(
+      report.results.single.metrics['auditTrail'].toString(),
+      contains('seed_parser_confirmation_audit'),
+    );
+    expect(
       report.results.single.metrics['sourceFingerprint'].toString(),
       contains('qa-backbone-seed'),
     );

@@ -1,4 +1,5 @@
 import 'maintainiac_qa_environment.dart';
+import 'maintainiac_audit_trail.dart';
 import 'maintainiac_qa_execution_manifest.dart';
 import 'maintainiac_qa_fingerprint.dart';
 import 'maintainiac_qa_fixtures.dart';
@@ -135,6 +136,39 @@ class MaintainiacQaBackboneSuite extends QaSuite {
 
     for (final issue in maintainiacRegressionRegistry.validate()) {
       failures.add(_failure('regression_registry_$issue', issue));
+    }
+    const auditProbe = MaintainiacAuditTrailProbe();
+    final auditEvents = [
+      MaintainiacAuditEvent(
+        id: 'seed_parser_confirmation_audit',
+        actorId: 'user_1',
+        action: 'user_confirmed_suggestion',
+        targetType: 'inventory_candidate',
+        targetId: 'seed_inventory_parser_candidate',
+        timestamp: DateTime.utc(2026, 7, 3, 12),
+        before: const {'reviewStatus': 'suggested'},
+        after: const {'reviewStatus': 'confirmed'},
+        reason: 'User-confirmed data outranks parser automation.',
+      ),
+      MaintainiacAuditEvent(
+        id: 'seed_payment_audit',
+        actorId: 'user_1',
+        action: 'payment_recorded',
+        targetType: 'payment',
+        targetId: 'seed_payment',
+        timestamp: DateTime.utc(2026, 7, 3, 12, 1),
+      ),
+    ];
+    for (final issue in auditProbe.validate(auditEvents)) {
+      failures.add(_failure('audit_trail_$issue', issue));
+    }
+    if (!auditProbe.provesUserConfirmation(auditEvents.first)) {
+      failures.add(
+        _failure(
+          'audit_trail_missing_user_confirmation_proof',
+          'Audit trail must prove user-confirmed data outranks suggestions.',
+        ),
+      );
     }
 
     for (final adapter in parserQaDomainAdapters) {
@@ -500,7 +534,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: 836,
+      checked: 856,
       failures: failures,
       metrics: {
         'wholeAppBackbone': true,
@@ -519,6 +553,10 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'executionManifest': executionManifest.toJson(),
         'runLedger': runLedger.toJson(),
         'regressionRegistry': maintainiacRegressionRegistry.toJson(),
+        'auditTrail': {
+          'eventCount': auditEvents.length,
+          'events': [for (final event in auditEvents) event.toJson()],
+        },
         'sourceFingerprint': fingerprint.toJson(),
         'checkpointPolicy': {
           'maxUnpushedMinutes': checkpointPolicy.maxUnpushedWork.inMinutes,

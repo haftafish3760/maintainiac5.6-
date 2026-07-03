@@ -168,6 +168,14 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_audit_trail_test.dart',
+      plainNames: {
+        'audit trail probe validates ordered complete audit events',
+        'audit trail probe proves user confirmation outranks suggestions',
+        'audit trail probe rejects duplicate incomplete or unordered events',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_backbone_test.dart',
       plainNames: {'main Maintainiac QA backbone covers whole app modules'},
     ),

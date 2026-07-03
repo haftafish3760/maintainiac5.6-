@@ -397,6 +397,35 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'source-audit', 'quality-gate', 'modularity', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'audit_trail_ordered_complete',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_audit_trail_test.dart',
+    plainName: 'audit trail probe validates ordered complete audit events',
+    reason:
+        'Run only the audit event ordering check after audit support edits.',
+    tags: {'audit', 'source-of-truth', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'audit_trail_user_confirmation',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_audit_trail_test.dart',
+    plainName:
+        'audit trail probe proves user confirmation outranks suggestions',
+    reason:
+        'Run only the user-confirmation audit check after parser/review audit edits.',
+    tags: {'audit', 'review-safety', 'source-of-truth', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'audit_trail_rejects_bad_events',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_audit_trail_test.dart',
+    plainName:
+        'audit trail probe rejects duplicate incomplete or unordered events',
+    reason:
+        'Run only the audit negative contract after audit validation edits.',
+    tags: {'audit', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'main_backbone_parser_visibility',
     scope: MaintainiacSurgicalTestScope.releaseGate,
     file: 'test/maintainiac_qa_backbone_test.dart',
