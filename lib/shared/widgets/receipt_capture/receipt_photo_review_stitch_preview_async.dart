@@ -18,6 +18,7 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
   }
 
   void _setManualOverlapFraction(double value) {
+    if (!value.isFinite) return;
     _syncManualOverlapSlots();
     if (_manualOverlapFractions.isEmpty) return;
     _updateReviewState(() {

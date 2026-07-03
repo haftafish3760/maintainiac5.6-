@@ -138,6 +138,19 @@ void main() {
       saveActions,
       contains('final manualOverlapFractions = currentPathOrderMatches'),
     );
+    final manualOverlapSetterBlock = reviewScreen.substring(
+      reviewScreen.indexOf('void _setManualOverlapFraction(double value)'),
+      reviewScreen.indexOf('void _clearManualOverlapFraction()'),
+    );
+    expect(manualOverlapSetterBlock, contains('if (!value.isFinite) return;'));
+    expect(
+      manualOverlapSetterBlock.indexOf('if (!value.isFinite) return;'),
+      lessThan(
+        manualOverlapSetterBlock.indexOf(
+          '_manualOverlapFractions[_selectedStitchPairIndex]',
+        ),
+      ),
+    );
     expect(
       saveActions,
       contains(

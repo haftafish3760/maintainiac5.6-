@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 572 - 09:08:52 EDT to 09:12:53 EDT
+
+Scope:
+- Hardened manual stitch-overlap review controls so non-finite overlap values
+  are ignored before they can enter preview state or preview cache keys.
+- Added source regression coverage proving malformed manual overlap values are
+  rejected before the selected stitch-pair slot is mutated.
+- Recorded `BUG-RECEIPT-0088` under `ghost_overlap_stitching`.
+- Archived Passes 525 and 541 out of the live cleanup log to keep the active
+  log under the project line-count cap.
+
+Verification:
+- Fixed the first focused regression assertion so it checks the manual-overlap
+  setter block instead of an earlier source reference.
+- Passed targeted Dart format/analyzer for stitch preview async state and
+  focused review lifecycle regression coverage.
+- Passed focused Flutter regression
+  `test/receipt_photo_review_save_lifecycle_test.dart --plain-name "photo
+  review save and close actions respect lifecycle state"`.
+
 ## Pass 571 - 08:43:48 EDT to 08:57:53 EDT
 
 Scope:
@@ -464,37 +484,3 @@ Verification:
 - Passed focused Flutter test
   `test/receipt_camera_ocr_source_attachment_read_test.dart --plain-name
   "reviewed OCR source attachments preserve read state and cleanup safety"`.
-
-## Pass 541 - 04:56:14 EDT to 04:57:00 EDT
-
-Scope:
-- Hardened receipt photo review results so quality checks, capture diagnostics,
-  and OCR preparation diagnostics are filtered to normalized result paths.
-- Added regression coverage proving stale and whitespace-keyed evidence maps
-  cannot survive after saved-proof and OCR source paths are normalized.
-- Recorded `BUG-RECEIPT-0058` under `source_preservation`.
-- Archived Pass 519 out of the live cleanup log.
-
-Verification:
-- Removed the dead immutable-diagnostics helper after analyzer caught it, then
-  reran.
-- Passed targeted format/analyzer, focused camera-result regression,
-  bug-ledger, log, doc-size, source-audit, and diff gates.
-
-## Pass 525 - 01:46:00 EDT to 01:49:00 EDT
-
-Scope:
-- Hardened previous-section ghost-guide reason handling so uppercase or mixed
-  native bridge reason codes still trigger bottom/totals overlap guidance.
-- Added session regression coverage proving uppercase
-  `MISSING_BOTTOM_EDGE_AND_TOTALS` normalizes to the bottom-section ghost policy.
-- Recorded `BUG-RECEIPT-0043` under `ghost_overlap_stitching`.
-
-Verification:
-- Passed targeted Dart format and analyzer for native session ghost-guide
-  policy and focused session regression coverage.
-- Passed focused Flutter test
-  `test/receipt_native_camera_session_limits_test.dart --plain-name "session
-  carries previous section guide only for long receipt flow"`.
-- Passed bug-ledger gate, cleanup-log gate, doc-size gate, source audit, and
-  diff check.
