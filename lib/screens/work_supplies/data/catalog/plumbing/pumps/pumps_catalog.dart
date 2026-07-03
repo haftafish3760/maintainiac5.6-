@@ -57,4 +57,51 @@ final plumbingPumpsCategory = _category('Pumps', [
       ),
     ),
   ]),
+  _system('Well Service', [
+    _type(
+      'Well Pumps',
+      _variants(
+        'Well Pump',
+        'each',
+        ['1/2 hp shallow well', '3/4 hp shallow well', '1 hp deep well'],
+        ['jet pump', 'deep well pump', 'shallow well pump'],
+      ),
+    ),
+    _type(
+      'Pressure Tanks',
+      _variants(
+        'Well Pressure Tank',
+        'each',
+        ['20 gal', '32 gal', '44 gal'],
+        ['pressure tank', 'well tank'],
+      ),
+    ),
+    _type(
+      'Pressure Switches',
+      _variants(
+        'Well Pressure Switch',
+        'each',
+        ['30/50 psi', '40/60 psi'],
+        ['pump pressure switch', 'well switch'],
+      ),
+    ),
+    _type(
+      'Well Pipe and Adapters',
+      _variants(
+        'Well Pipe Adapter',
+        'each',
+        ['1 in insert', '1-1/4 in insert', '1 in pitless adapter'],
+        ['well pipe fitting', 'poly pipe insert', 'pitless adapter'],
+      ),
+    ),
+    _type(
+      'Well Check Valves',
+      _variants(
+        'Well Pump Check Valve',
+        'each',
+        ['1 in', '1-1/4 in'],
+        ['well check valve', 'pump check valve'],
+      ),
+    ),
+  ]),
 ]);

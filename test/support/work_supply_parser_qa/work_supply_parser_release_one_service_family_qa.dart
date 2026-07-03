@@ -51,6 +51,18 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
       minimumMatches: 6,
     ),
     _FamilySpec(
+      id: 'plumbing_well_service',
+      trade: 'Plumbing',
+      tokens: [
+        'well pump',
+        'well pressure tank',
+        'pressure switch',
+        'well pipe',
+        'pitless adapter',
+      ],
+      minimumMatches: 8,
+    ),
+    _FamilySpec(
       id: 'electrical_wire_cable',
       trade: 'Electrical',
       tokens: ['wire', 'cable', 'nm-b', 'thhn', 'uf-b'],

@@ -2312,9 +2312,10 @@ Release one is residential-first inventory parser work. Core and Standard must f
 
 Core comes before Standard, Standard comes before Professional, and Professional/Complete later tiers must not pull attention away from release-one Core/Standard readiness. No special order appliance bloat in Core; Core is for normal residential service-truck parts and common store-run materials.
 
-Known release-one catalog gap to close during the next plumbing item batch:
+Release-one catalog gap closed in the plumbing item batch:
 
-- Add well pump, well pipe, pressure tank, pressure switch, and related well service families to Plumbing Core/Standard or the correct residential-adjacent trade pack, then add them to the release-one service-family QA suite after the catalog rows exist.
+- Added well pump, well pipe adapter, pressure tank, pressure switch, pitless adapter, and well check-valve service families to Plumbing residential catalog coverage.
+- Guarded the well-service family with `inventory.release_one_service_family_contract`.
 
 Named release gates:
 
