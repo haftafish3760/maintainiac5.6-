@@ -297,6 +297,53 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'inventory', 'expenses', 'parser-consumer', 'security'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'surgical_rerun_router_payment_granularity',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_rerun_router_test.dart',
+    plainName: 'surgical rerun router maps payment and granularity changes',
+    reason:
+        'Run only the payment/granularity rerun mapping check after router edits.',
+    tags: {'payments', 'parser-consumer', 'source-of-truth', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'surgical_granularity_individual',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_granularity_contract_test.dart',
+    plainName:
+        'surgical granularity contract keeps tests individually runnable',
+    reason:
+        'Run only the surgical granularity positive guard after selector policy edits.',
+    tags: {'inventory', 'expenses', 'parser-consumer', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'surgical_granularity_rejects_batch',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_surgical_granularity_contract_test.dart',
+    plainName: 'surgical granularity contract rejects broad batch selectors',
+    reason:
+        'Run only the surgical granularity negative guard after selector policy edits.',
+    tags: {'inventory', 'expenses', 'parser-consumer', 'security'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'payment_ledger_balance_policy',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_payment_contract_test.dart',
+    plainName:
+        'payment ledger policy proves invoice balance without source mutation',
+    reason:
+        'Run only the payment ledger balance policy after payment contract edits.',
+    tags: {'payments', 'financial', 'source-of-truth', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'payment_ledger_rejects_cross_account',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_payment_contract_test.dart',
+    plainName: 'payment ledger policy rejects cross-account and overpay risks',
+    reason:
+        'Run only the payment ledger negative safety check after payment contract edits.',
+    tags: {'payments', 'financial', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'main_backbone_parser_visibility',
     scope: MaintainiacSurgicalTestScope.releaseGate,
     file: 'test/maintainiac_qa_backbone_test.dart',

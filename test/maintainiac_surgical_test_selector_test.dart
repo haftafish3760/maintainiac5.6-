@@ -18,8 +18,9 @@ void main() {
     );
     expect(
       registry.toJson().toString(),
-      contains('main_backbone_parser_visibility'),
+      contains('surgical_granularity_individual'),
     );
+    expect(registry.commandsForTag('payments'), isNotEmpty);
   });
 
   test('surgical selector registry rejects broad or unsafe selectors', () {

@@ -11,9 +11,9 @@ void main() {
       expect(coverage.validate(), isEmpty);
       expect(
         coverage.toJson()['expectedBehaviorCount'],
-        greaterThanOrEqualTo(17),
+        greaterThanOrEqualTo(22),
       );
-      expect(coverage.toJson()['selectorCount'], greaterThanOrEqualTo(17));
+      expect(coverage.toJson()['selectorCount'], greaterThanOrEqualTo(22));
       expect(
         coverage.toJson().toString(),
         contains(

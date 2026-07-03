@@ -129,6 +129,21 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'surgical rerun router maps changed files to individual commands',
         'surgical rerun router rejects unknown selector references',
+        'surgical rerun router maps payment and granularity changes',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_surgical_granularity_contract_test.dart',
+      plainNames: {
+        'surgical granularity contract keeps tests individually runnable',
+        'surgical granularity contract rejects broad batch selectors',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
+      file: 'test/maintainiac_payment_contract_test.dart',
+      plainNames: {
+        'payment ledger policy proves invoice balance without source mutation',
+        'payment ledger policy rejects cross-account and overpay risks',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(

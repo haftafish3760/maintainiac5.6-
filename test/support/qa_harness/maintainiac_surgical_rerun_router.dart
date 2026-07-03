@@ -62,6 +62,8 @@ class MaintainiacSurgicalRerunRouter {
       'maintainiac_parser_release_command_plan.dart',
       'maintainiac_parser_regression_binding.dart',
       'maintainiac_surgical_test_selector.dart',
+      'maintainiac_surgical_granularity_contract.dart',
+      'maintainiac_payment_contract.dart',
     }) {
       if (!rules.any((rule) => rule.changedPathContains == required)) {
         failures.add('missing rerun rule for $required');
@@ -176,6 +178,29 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
       },
       reason:
           'Selector changes need selector, command-plan, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'surgical_granularity_changed',
+      changedPathContains: 'maintainiac_surgical_granularity_contract.dart',
+      selectorIds: {
+        'surgical_granularity_individual',
+        'surgical_granularity_rejects_batch',
+        'surgical_selector_registry_commands',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Granularity policy changes need positive, negative, selector, and backbone checks.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'payment_contract_changed',
+      changedPathContains: 'maintainiac_payment_contract.dart',
+      selectorIds: {
+        'payment_ledger_balance_policy',
+        'payment_ledger_rejects_cross_account',
+        'main_backbone_parser_visibility',
+      },
+      reason:
+          'Payment contract changes need financial balance, cross-account safety, and backbone checks.',
     ),
   ],
 );

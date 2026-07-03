@@ -48,4 +48,21 @@ void main() {
       ),
     );
   });
+
+  test('surgical rerun router maps payment and granularity changes', () {
+    final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
+      'test/support/qa_harness/maintainiac_payment_contract.dart',
+      'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
+    ]);
+    final joined = commands.join('\n');
+
+    expect(joined, contains('payment ledger policy proves'));
+    expect(joined, contains('payment ledger policy rejects'));
+    expect(joined, contains('surgical granularity contract keeps'));
+    expect(joined, contains('surgical granularity contract rejects'));
+    expect(
+      commands.every((command) => command.contains('--plain-name')),
+      isTrue,
+    );
+  });
 }
