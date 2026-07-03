@@ -41,4 +41,26 @@ void main() {
       contains('telemetry privacy gate missing surface adminDashboard'),
     );
   });
+
+  test('QA telemetry privacy gate requires full sensitive field coverage', () {
+    const gate = MaintainiacQaTelemetryPrivacyGate([
+      MaintainiacTelemetryPrivacyRule(
+        id: 'partial_parser_diagnostic',
+        surface: MaintainiacTelemetrySurface.parserDiagnostic,
+        allowedFields: {'fixtureId', 'candidateCount'},
+        forbiddenFields: {'rawReceiptText'},
+        redactionRequired: true,
+        reason: 'Missing the rest of the shared sensitive field registry.',
+      ),
+    ]);
+
+    final failures = gate.validate().join('\n');
+
+    expect(
+      failures,
+      contains('partial_parser_diagnostic missing sensitive forbidden fields'),
+    );
+    expect(failures, contains('deviceSerial'));
+    expect(failures, contains('licensePlate'));
+  });
 }

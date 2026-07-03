@@ -778,6 +778,15 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'telemetry', 'privacy', 'security', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'qa_telemetry_privacy_full_sensitive_registry',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_qa_telemetry_privacy_gate_test.dart',
+    plainName:
+        'QA telemetry privacy gate requires full sensitive field coverage',
+    reason: 'Run only the telemetry sensitive-field completeness guard.',
+    tags: {'telemetry', 'privacy', 'security', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'qa_execution_manifest_labels_checks',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_execution_manifest_test.dart',

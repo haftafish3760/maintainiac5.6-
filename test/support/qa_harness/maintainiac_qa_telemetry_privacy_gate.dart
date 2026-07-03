@@ -67,6 +67,15 @@ class MaintainiacQaTelemetryPrivacyGate {
         failures.add('duplicate telemetry privacy rule ${rule.id}');
       }
       surfaces.add(rule.surface);
+      final missingSensitiveFields = maintainiacSensitiveFieldNames.difference(
+        rule.forbiddenFields,
+      );
+      if (missingSensitiveFields.isNotEmpty) {
+        failures.add(
+          '${rule.id} missing sensitive forbidden fields: '
+          '$missingSensitiveFields',
+        );
+      }
       failures.addAll(rule.validate());
     }
     for (final required in MaintainiacTelemetrySurface.values) {

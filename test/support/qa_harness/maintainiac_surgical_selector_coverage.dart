@@ -310,6 +310,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'QA telemetry privacy gate covers report and admin surfaces',
         'QA telemetry privacy gate rejects missing redaction and overlap',
+        'QA telemetry privacy gate requires full sensitive field coverage',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
