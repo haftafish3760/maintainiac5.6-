@@ -19,6 +19,7 @@ bash tool/receipt_cleanup_log_gate.sh
 bash tool/receipt_doc_size_gate.sh
 
 dart analyze \
+  tool/receipt_bug_regression_ledger_gate.dart \
   tool/receipt_external_fixture_schema_gate.dart \
   tool/receipt_quiet_batch_policy_gate.dart \
   lib/shared/widgets/receipt_capture \
@@ -36,6 +37,7 @@ dart analyze \
 
 dart tool/maintainiac_source_audit.dart --max-line-length=220
 dart tool/maintainiac_source_audit.dart --tests-only --max-line-length=220
+dart tool/receipt_bug_regression_ledger_gate.dart
 dart tool/receipt_external_fixture_schema_gate.dart
 dart tool/receipt_quiet_batch_policy_gate.dart
 

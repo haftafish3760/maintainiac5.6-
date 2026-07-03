@@ -8,6 +8,11 @@ void main() {
 
     expect(script, contains('bash tool/receipt_cleanup_log_gate.sh'));
     expect(script, contains('bash tool/receipt_doc_size_gate.sh'));
+    expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
+    expect(
+      script,
+      contains('dart tool/receipt_bug_regression_ledger_gate.dart'),
+    );
     expect(script, contains('dart analyze'));
     expect(script, contains('lib/shared/widgets/receipt_capture'));
     expect(script, contains('lib/shared/receipts'));
