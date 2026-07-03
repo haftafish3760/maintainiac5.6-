@@ -13,6 +13,7 @@ void main() {
       hasLength(greaterThanOrEqualTo(4)),
     );
     expect(registry.toJson().toString(), contains('QA-MONEY-001'));
+    expect(registry.toJson().toString(), contains('QA-DEVICE-001'));
     expect(registry.toJson().toString(), contains('hive-source-of-truth'));
   });
 

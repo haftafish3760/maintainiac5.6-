@@ -98,6 +98,14 @@ class MaintainiacQaReadinessLedger {
         evidence: ['maintainiac_source_boundary.dart'],
       ),
       MaintainiacQaReadinessItem(
+        id: 'device_capability_probe',
+        module: MaintainiacQaModule.performance,
+        description:
+            'Reusable device/storage policy probe for local, compact, cloud-assisted, and blocked pack modes.',
+        status: MaintainiacQaReadinessStatus.ready,
+        evidence: ['maintainiac_device_capability.dart'],
+      ),
+      MaintainiacQaReadinessItem(
         id: 'inventory_parser_consumer',
         module: MaintainiacQaModule.inventory,
         description:

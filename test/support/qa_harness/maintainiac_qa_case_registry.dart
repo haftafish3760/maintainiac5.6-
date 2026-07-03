@@ -109,6 +109,18 @@ class MaintainiacQaCaseRegistry {
         testCommand: 'flutter test test/maintainiac_source_boundary_test.dart',
         tags: {'boundary', 'ocr-off-limits', 'firebase'},
       ),
+      MaintainiacQaCase(
+        id: 'QA-DEVICE-001',
+        title: 'Device storage pack-mode policy',
+        module: MaintainiacQaModule.performance,
+        behavior:
+            'The app chooses local, compact-local, cloud-assisted, or blocked pack mode from device capability, storage, App Check, and network state.',
+        evidenceTarget: 'maintainiac_device_capability_test',
+        priority: MaintainiacQaCasePriority.core,
+        testCommand:
+            'flutter test test/maintainiac_device_capability_test.dart',
+        tags: {'device', 'storage', 'pack-delivery'},
+      ),
     ]);
   }
 
