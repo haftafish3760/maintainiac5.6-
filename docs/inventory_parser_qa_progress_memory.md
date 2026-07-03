@@ -2324,6 +2324,7 @@ Release-one catalog gap closed in the plumbing item batch:
 - Expanded the release-one Core/Standard service-family gate for residential Plumbing, Electrical, and HVAC so it now checks common home pipe fittings, water-distribution materials, toilet tank rebuild parts, drain/trap repair, switch/outlet repair, breaker service, grounding/bonding, HVAC filters, HVAC controls, and duct repair/seal materials.
 - The service-family report now records per-tier counts so Core and Standard gaps can be reviewed without rerunning the entire parser QA stack.
 - Added an executable Residential Core bloat guard so priority-trade Core rows are scanned for obvious full-fixture/appliance terms while allowing repair kits, connectors, valves, straps, supply lines, drain pans, and service parts.
+- Expanded the release-one bloat guard to scan Standard as well as Core so Standard remains common residential service coverage instead of absorbing Professional/Complete fixture or appliance rows.
 - Tightened the release-one service-family gate so Plumbing, Electrical, and HVAC Core/Standard rows must show required everyday signals inside each family, including common fittings, water distribution, toilet repair, faucet/sink repair, drain/trap repair, supply stops, water-heater service, well service, electrical devices/breakers/grounding/conduit, and HVAC filters/controls/condensate/duct repair.
 - Kept HVAC condensate pumps in the everyday Core path so normal residential condensate drain service is not pushed into later-tier professional equipment coverage by the generic pump signal.
 - Promoted Standard to first-release fixture-cell coverage beside Core for Plumbing, Electrical, and HVAC in both en-US and es-US, and added six Standard priority-cell golden fixture seeds for focused reruns.
@@ -2347,6 +2348,9 @@ Release-one catalog gap closed in the plumbing item batch:
 - Validated the executable Core bloat guard:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_tier_role_contract,qa.threshold_gate`
   passed 6016 checks with 0 failures.
+- Validated after expanding the tier-role bloat scan to Core plus Standard:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_tier_role_contract,qa.threshold_gate`
+  passed 16985 checks with 0 failures.
 - Added an executable pack-overlap guard so release-one Plumbing, Electrical, and HVAC Core/Standard rows must preserve explicit multi-scope evidence and cross-trade ambiguity terms instead of duplicating canonical items or pretending ambiguous receipt words are certain.
 - Validated executable pack overlap:
   `flutter test test\work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.pack_overlap_contract,qa.threshold_gate`

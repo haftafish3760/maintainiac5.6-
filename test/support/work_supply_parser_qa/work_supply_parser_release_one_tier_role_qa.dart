@@ -41,7 +41,7 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
 
   static const _priorityTrades = {'Plumbing', 'Electrical', 'HVAC'};
 
-  static const _coreBloatTerms = {
+  static const _releaseOneBloatTerms = {
     'complete toilet',
     'toilet bowl',
     'bath vanity',
@@ -61,7 +61,7 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
     'air handler',
   };
 
-  static const _coreServicePartAllowTerms = {
+  static const _releaseOneServicePartAllowTerms = {
     'adapter',
     'aerator',
     'cartridge',
@@ -125,9 +125,15 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
       );
     }
 
-    final coreBloatScan = _scanResidentialCoreForBloat();
+    final coreBloatScan = _scanResidentialTierForBloat(WorkSupplyPackTier.core);
     checked += coreBloatScan.checked;
     failures.addAll(coreBloatScan.failures);
+
+    final standardBloatScan = _scanResidentialTierForBloat(
+      WorkSupplyPackTier.standard,
+    );
+    checked += standardBloatScan.checked;
+    failures.addAll(standardBloatScan.failures);
 
     return timer.finish(
       suite: name,
@@ -138,9 +144,11 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
         'contractSources': _contractSources,
         'requiredTierRoles': _requiredTierRoles.toList()..sort(),
         'requiredReleaseAxes': _requiredReleaseAxes.toList()..sort(),
-        'coreBloatTerms': _coreBloatTerms.toList()..sort(),
-        'coreServicePartAllowTerms': _coreServicePartAllowTerms.toList()
-          ..sort(),
+        'coreBloatScanCount': coreBloatScan.checked,
+        'standardBloatScanCount': standardBloatScan.checked,
+        'releaseOneBloatTerms': _releaseOneBloatTerms.toList()..sort(),
+        'releaseOneServicePartAllowTerms':
+            _releaseOneServicePartAllowTerms.toList()..sort(),
       },
     );
   }
@@ -154,12 +162,12 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
     return buffer.toString();
   }
 
-  _CoreBloatScan _scanResidentialCoreForBloat() {
+  _TierBloatScan _scanResidentialTierForBloat(WorkSupplyPackTier tier) {
     final failures = <QaFailure>[];
     var checked = 0;
     for (final item in workSupplyCatalogItems) {
       if (!_priorityTrades.contains(item.trade)) continue;
-      if (item.packTier != WorkSupplyPackTier.core) continue;
+      if (item.packTier != tier) continue;
       if (!item.marketScopes.contains(WorkSupplyMarketScope.residential)) {
         continue;
       }
@@ -172,29 +180,29 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
         item.variant,
         ...item.aliases,
       ].join(' ').toLowerCase();
-      final bloatTerm = _coreBloatTerms
+      final bloatTerm = _releaseOneBloatTerms
           .where((term) => haystack.contains(term))
           .cast<String?>()
           .firstWhere((term) => term != null, orElse: () => null);
       if (bloatTerm == null) continue;
-      final allowedServicePart = _coreServicePartAllowTerms.any(
+      final allowedServicePart = _releaseOneServicePartAllowTerms.any(
         haystack.contains,
       );
       if (allowedServicePart) continue;
       failures.add(
         _failure(
-          id: 'core_special_order_bloat:${item.id}',
+          id: '${tier.name}_special_order_bloat:${item.id}',
           message:
-              'Residential Core appears to contain a full fixture/appliance row instead of an everyday service part.',
+              'Residential ${tier.name} appears to contain a full fixture/appliance row instead of a release-one service part.',
           expected:
-              'Core rows stay service-truck focused; full fixtures/appliances move to later tiers unless they are repair/service parts.',
+              'Core/Standard rows stay service-focused; full fixtures/appliances move to later tiers unless they are repair/service parts.',
           actual: '${item.path} / ${item.name}; matched=$bloatTerm',
           fix:
-              'Move the row out of Core or add service-part wording if it truly is a repair/connector/valve/kit item.',
+              'Move the row out of release-one Core/Standard or add service-part wording if it truly is a repair/connector/valve/kit item.',
         ),
       );
     }
-    return _CoreBloatScan(checked: checked, failures: failures);
+    return _TierBloatScan(checked: checked, failures: failures);
   }
 
   QaFailure _failure({
@@ -221,8 +229,8 @@ String _safeId(String value) {
   return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
 }
 
-class _CoreBloatScan {
-  const _CoreBloatScan({required this.checked, required this.failures});
+class _TierBloatScan {
+  const _TierBloatScan({required this.checked, required this.failures});
 
   final int checked;
   final List<QaFailure> failures;
