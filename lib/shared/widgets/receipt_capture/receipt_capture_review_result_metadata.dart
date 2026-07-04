@@ -76,6 +76,14 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
       'stitchMissingPairCount': stitchResult.missingPairCount,
       'stitchAllPairsHaveOverlapEvidence':
           stitchResult.allPairsHaveOverlapEvidence,
+      if (stitchResult.usedFallback)
+        'stitchFallbackReasonCode': stitchResult.diagnosticReasonLabel,
+      if (stitchResult.usedFallback)
+        'stitchFallbackReasonLabel': stitchResult.userFallbackReasonLabel,
+      if (stitchResult.failedPairIndex != null)
+        'stitchFailedPairStartSectionNumber': stitchResult.failedPairIndex! + 1,
+      if (stitchResult.failedPairIndex != null)
+        'stitchFailedPairEndSectionNumber': stitchResult.failedPairIndex! + 2,
       ...privacySafeOcrSourceFirstSummary,
       'nativeReceiptReviewDepth': nativeReceiptReviewDepth,
       if (nativeReceiptReviewDepthCounts.isNotEmpty)

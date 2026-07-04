@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 619 - 21:44:42 EDT to active cleanup
+
+Scope:
+- Added privacy-safe stitch fallback reason metadata for receipt-reader handoff
+  diagnostics.
+- Added failed adjacent section numbers for fallback stitch pairs so admin
+  review can identify the problem pair without receipt photo paths.
+- Added a new focused regression file instead of growing the oversized stitch
+  scanner test file.
+- Recorded `BUG-RECEIPT-0140` under `ghost_overlap_stitching`.
+
+Verification:
+- Passed targeted Dart format/analyzer for stitch fallback metadata.
+- Passed focused Flutter stitch fallback metadata regression.
+- Passed cleanup log, doc size, source audit, and diff whitespace gates.
+
 ## Pass 618 - 21:42:32 EDT to active cleanup
 
 Scope:
