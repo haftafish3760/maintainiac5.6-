@@ -119,6 +119,7 @@ import 'work_supply_parser_receipt_source_immutability_qa.dart';
 import 'work_supply_parser_real_receipt_validation_qa.dart';
 import 'work_supply_parser_regression_lock_qa.dart';
 import 'work_supply_parser_release_one_cell_manifest_qa.dart';
+import 'work_supply_parser_release_one_core_manifest_qa.dart';
 import 'work_supply_parser_release_one_command_manifest_qa.dart';
 import 'work_supply_parser_release_one_fastener_support_qa.dart';
 import 'work_supply_parser_release_one_pack_balance_qa.dart';
@@ -167,6 +168,7 @@ QaHarness buildWorkSupplyParserQaHarness() {
       WorkSupplyParserCloudLocalModeSuite(),
       WorkSupplyParserDeliveryPolicySuite(),
       WorkSupplyParserReleaseOneCellManifestSuite(),
+      WorkSupplyParserReleaseOneCoreManifestSuite(),
       WorkSupplyParserReleaseOneCommandManifestSuite(),
       WorkSupplyParserMasterCoverageMatrixSuite(),
       WorkSupplyParserGeneratedArtifactManifestSuite(),

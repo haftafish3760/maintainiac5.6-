@@ -36,6 +36,26 @@ Core does not mean the smallest possible list. Core means the highest
 day-to-day residential service probability: service-truck stock plus common
 same-day repair purchases from major stores and supply houses.
 
+## Active Narrowed Workstream
+
+The active workstream is temporarily narrowed to Residential Core only for
+Plumbing, Electrical, and HVAC in en-US and es-US. Standard remains part of the
+Release 1 plan, but it must not dilute the current Core push. The Core lane is
+tracked by `inventory.release_one_core_manifest` and contains exactly six cells:
+
+- `plumbing.residential.core.en-US`
+- `plumbing.residential.core.es-US`
+- `electrical.residential.core.en-US`
+- `electrical.residential.core.es-US`
+- `hvac.residential.core.en-US`
+- `hvac.residential.core.es-US`
+
+Do not count Standard, Professional, Complete, UI, OCR, camera, expenses, or
+unrelated modules as progress against this narrowed Core-only lane. Core is not
+release-ready until its catalog rows, parser fixtures, ambiguity behavior,
+merchant-generic receipt behavior, Spanish coverage, review safety, and focused
+rerun evidence are all proven for these six cells.
+
 ## Acceptance Areas
 
 The scorecard must cover these areas before Release 1 parser sign-off:

@@ -80,6 +80,7 @@ class WorkSupplyParserRegistrySuite extends QaSuite {
     'inventory.regression_lock_contract',
     'inventory.release_one_cell_manifest',
     'inventory.release_one_command_manifest',
+    'inventory.release_one_core_manifest',
     'inventory.release_one_pack_balance',
     'inventory.release_one_residential_contract',
     'inventory.release_one_fastener_support_contract',
