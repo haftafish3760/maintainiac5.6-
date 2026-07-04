@@ -152,6 +152,15 @@ class WorkSupplyParserMetamorphicSuite extends QaSuite {
       _VariantCase(fixture, 'merchant_prefix_lowes', 'LOWES $compact'),
       _VariantCase(fixture, 'spaced_fraction', spacedSize),
       _VariantCase(fixture, 'unit_order_size_last', unitOrder),
+      _VariantCase(fixture, 'hyphenated_fraction', _hyphenateFraction(compact)),
+      _VariantCase(fixture, 'slashless_fraction', _slashlessFraction(compact)),
+      _VariantCase(fixture, 'store_line_number_prefix', 'A12 $compact'),
+      _VariantCase(fixture, 'receipt_qty_each_suffix', '$compact EA'),
+      _VariantCase(fixture, 'merchant_abbrev_hd', 'HD $compact'),
+      _VariantCase(fixture, 'merchant_abbrev_thd', 'THD $compact'),
+      _VariantCase(fixture, 'merchant_abbrev_lws', 'LWS $compact'),
+      ..._abbreviationVariants(fixture, compact),
+      ..._crossTradeOverlapVariants(fixture, compact),
     ]);
   }
 
@@ -181,7 +190,80 @@ class WorkSupplyParserMetamorphicSuite extends QaSuite {
     'merchant_prefix_lowes',
     'spaced_fraction',
     'unit_order_size_last',
+    'hyphenated_fraction',
+    'slashless_fraction',
+    'store_line_number_prefix',
+    'receipt_qty_each_suffix',
+    'merchant_abbrev_hd',
+    'merchant_abbrev_thd',
+    'merchant_abbrev_lws',
+    'abbrev_coupling',
+    'abbrev_elbow',
+    'abbrev_copper',
+    'abbrev_condensate',
+    'cross_trade_pvc_conduit_neighbor',
+    'cross_trade_hvac_condensate_neighbor',
+    'cross_trade_copper_line_set_neighbor',
+    'mixed_trade_receipt_neighbor',
   ];
+}
+
+List<_VariantCase> _abbreviationVariants(_Fixture fixture, String value) {
+  final variants = <_VariantCase>[];
+  final replacements = <String, String>{
+    r'\bCOUPLING\b': 'CPLG',
+    r'\bCOUPLINGS\b': 'CPLGS',
+    r'\bELBOW\b': 'ELL',
+    r'\bELBOWS\b': 'ELLS',
+    r'\bCOPPER\b': 'CU',
+    r'\bCONDENSATE\b': 'COND',
+  };
+  for (final entry in replacements.entries) {
+    final updated = value.replaceAll(
+      RegExp(entry.key, caseSensitive: false),
+      entry.value,
+    );
+    if (updated != value) {
+      variants.add(
+        _VariantCase(fixture, 'abbrev_${entry.value.toLowerCase()}', updated),
+      );
+    }
+  }
+  return variants;
+}
+
+List<_VariantCase> _crossTradeOverlapVariants(_Fixture fixture, String value) {
+  final upper = value.toUpperCase();
+  final variants = <_VariantCase>[];
+  if (upper.contains('PVC')) {
+    variants.addAll([
+      _VariantCase(
+        fixture,
+        'cross_trade_pvc_conduit_neighbor',
+        '$value 12/2 WIRE COND',
+      ),
+      _VariantCase(
+        fixture,
+        'cross_trade_hvac_condensate_neighbor',
+        '$value CONDENSATE DRAIN PUMP',
+      ),
+      _VariantCase(
+        fixture,
+        'mixed_trade_receipt_neighbor',
+        '$value FOIL TAPE 12/2 WIRE PEX TEE',
+      ),
+    ]);
+  }
+  if (upper.contains('COPPER') || RegExp(r'\bCU\b').hasMatch(upper)) {
+    variants.add(
+      _VariantCase(
+        fixture,
+        'cross_trade_copper_line_set_neighbor',
+        '$value LINE SET INSULATION FILTER DRIER',
+      ),
+    );
+  }
+  return variants;
 }
 
 String _pluralizeFamily(String value) {
@@ -205,6 +287,20 @@ String _moveFirstSizeToEnd(String value) {
       .replaceFirst(size, '')
       .replaceAll(RegExp(r'\s+'), ' ');
   return '$withoutSize $size'.trim();
+}
+
+String _hyphenateFraction(String value) {
+  return value.replaceAllMapped(
+    RegExp(r'\b(\d)/(\d)\b'),
+    (match) => '${match.group(1)}-${match.group(2)}',
+  );
+}
+
+String _slashlessFraction(String value) {
+  return value.replaceAllMapped(
+    RegExp(r'\b(\d)/(\d)\b'),
+    (match) => '${match.group(1)} ${match.group(2)}',
+  );
 }
 
 class _VariantCase {
