@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 791 - 08:09:17 EDT to active cleanup
+
+Scope:
+- Renamed OCR source-first handoff/status tokens from original-source wording
+  to temporary full-quality source wording.
+- Updated decision, relationship, review-status, and continuation source labels
+  while keeping user-facing review copy unchanged.
+- Added a source regression rejecting the stale original-source decision token.
+- Recorded `BUG-RECEIPT-0278` under `source_preservation`.
+- Archived Pass 764 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused handoff source regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 790 - 08:05:54 EDT to active cleanup
 
 Scope:
@@ -450,22 +466,4 @@ Verification:
 - Fixed the initial analyzer/test failure caused by a private helper crossing
   Dart library boundaries by making the sanitizer a public contract helper.
 - Passed focused Flutter capture-flow shareability regression.
-- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
-
-## Pass 764 - 04:52:58 EDT to active cleanup
-
-Scope:
-- Hardened the Dart native camera session boundary so previous-section ghost
-  guide paths must be local absolute image-like paths before native handoff.
-- Rejected relative paths, URLs, `file://` URIs, non-image files, and NUL-tainted
-  guide paths before the app marks a long-receipt guide as active.
-- Kept previous-section reason, guidance, and ghost fractions disabled whenever
-  the guide photo path itself is invalid.
-- Added Dart session regressions for unsafe guide path families.
-- Recorded `BUG-RECEIPT-0252` under `multi_photo_ordering`.
-- Archived Pass 736 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for session boundary changes.
-- Passed focused Flutter native camera session limit regression.
 - Passed doc-size, bug-ledger, source-audit, and test-audit gates.

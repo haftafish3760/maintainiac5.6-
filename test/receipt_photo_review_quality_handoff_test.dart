@@ -193,6 +193,14 @@ void main() {
     expect(models, contains('ocrReadsClearSourceBeforeSavedProof'));
     expect(models, contains('ocrUsesSavedProofOnlyAsFallback'));
     expect(models, contains('prepared_receipt_source_before_saved_proof'));
+    expect(
+      models,
+      contains('temporary_full_quality_source_before_saved_proof'),
+    );
+    expect(
+      models,
+      isNot(contains('original_receipt_source_before_saved_proof')),
+    );
     expect(models, contains('saved_proof_fallback_review_required'));
     expect(models, contains("'ocrSourcePreparationDecisionCounts'"));
     expect(models, contains("'latestCapturedExposureMismatch'"));

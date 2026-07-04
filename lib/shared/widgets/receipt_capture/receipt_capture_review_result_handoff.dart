@@ -18,7 +18,7 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
       return 'prepared_receipt_source_before_saved_proof';
     }
     if (scannerKeptOriginalForQuality) {
-      return 'original_receipt_source_before_saved_proof';
+      return 'temporary_full_quality_source_before_saved_proof';
     }
     if (usesSeparateOcrSourceCopies) {
       return 'separate_receipt_source_before_saved_proof';
@@ -30,7 +30,7 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
     if (!hasOcrSourcePhotos) return 'missing_ocr_source';
     if (ocrUsesSavedProofOnlyAsFallback) return 'saved_proof_fallback';
     if (scannerUsedEnhancedOcrSource) return 'prepared_clear_source';
-    if (scannerKeptOriginalForQuality) return 'original_clear_source';
+    if (scannerKeptOriginalForQuality) return 'temporary_full_quality_source';
     if (usesSeparateOcrSourceCopies) return 'separate_clear_source';
     return 'same_accepted_source';
   }
@@ -39,7 +39,7 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
     return switch (ocrSourceFirstDecisionCode) {
       'prepared_receipt_source_before_saved_proof' =>
         'OCR is using the prepared clear receipt source before the smaller saved proof copy.',
-      'original_receipt_source_before_saved_proof' =>
+      'temporary_full_quality_source_before_saved_proof' =>
         'OCR is using the temporary full-quality receipt source before the smaller saved proof copy.',
       'separate_receipt_source_before_saved_proof' =>
         'OCR is using separate clear receipt sources before the smaller saved proof copies.',
