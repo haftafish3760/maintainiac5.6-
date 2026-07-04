@@ -21,6 +21,14 @@ filters, and stocked service parts. Professional and Complete later packs can
 expand toward obscure, specialty, or less frequently stocked items after
 Core/Standard are proven.
 
+Release-one receipt/parser fixtures must not overfit only national big-box
+chains. Major stores such as Lowe's, Home Depot, Ace, Menards, Ferguson,
+Grainger, Walmart, and True Value are important, but the parser must also keep
+coverage for a local supply house, regional supplier, generic hardware store,
+unknown merchant, and counter sale receipt wording. Unknown or local merchants
+should stay conservative and use generic parser evidence unless specific
+merchant rules provide enough reviewed context.
+
 ## Hard Boundaries
 
 Do not edit the camera, OCR, PDF, shared receipt-capture, image-prep, receipt-stitching, or Expenses receipt pipeline while working from this contract.

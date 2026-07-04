@@ -151,6 +151,13 @@ Focused rerun routes for recently hardened release-one contracts:
   test fails if future edits reintroduce `matchReceiptLineToCatalog(` or
   `searchWorkSupplies(` calls. The focused harness shard passed 145 checks, 0
   failures, and analyzer was clean.
+- Passes 2156-2159 tightened `inventory.release_one_residential_contract` so
+  release-one fixtures cannot overfit only national chains. Core/Standard
+  release-one coverage now explicitly requires local supply house, regional
+  supplier, generic hardware store, unknown merchant, and counter sale wording
+  alongside major stores. The focused
+  `inventory.release_one_residential_contract,inventory.merchant_independence_contract,qa.threshold_gate`
+  shard passed 125 checks, 0 failures, and analyzer was clean.
 
 ## 2026-07-04 Whole-App Parser Adapter Registry And Surgical Routing
 

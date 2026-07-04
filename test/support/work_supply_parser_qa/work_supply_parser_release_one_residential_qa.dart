@@ -52,6 +52,11 @@ class WorkSupplyParserReleaseOneResidentialSuite extends QaSuite {
     'Grainger',
     'Walmart',
     'True Value',
+    'local supply house',
+    'regional supplier',
+    'generic hardware store',
+    'unknown merchant',
+    'counter sale',
   };
 
   static const _releaseGates = {
