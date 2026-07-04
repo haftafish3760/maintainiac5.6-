@@ -13,6 +13,8 @@ class WorkSupplyParserJobContextBridgeSuite extends QaSuite {
     'test/support/work_supply_parser_qa/work_supply_parser_estimate_section_qa.dart',
     'test/support/work_supply_parser_qa/work_supply_parser_context_qa.dart',
     'test/support/work_supply_parser_qa/work_supply_parser_result_contract_qa.dart',
+    'test/support/work_supply_parser_qa/work_supply_parser_category_inference_qa.dart',
+    'test/support/work_supply_parser_qa/work_supply_parser_receipt_invoice_feed_qa.dart',
   };
 
   static const _workflowTargets = {
@@ -140,10 +142,7 @@ class WorkSupplyParserJobContextBridgeSuite extends QaSuite {
     }
   }
 
-  void _requireBadOutcomeGuards(
-    List<QaFailure> failures,
-    String source,
-  ) {
+  void _requireBadOutcomeGuards(List<QaFailure> failures, String source) {
     final lower = source.toLowerCase();
     for (final outcome in _badBridgeOutcomes) {
       if (lower.contains(outcome.toLowerCase())) continue;

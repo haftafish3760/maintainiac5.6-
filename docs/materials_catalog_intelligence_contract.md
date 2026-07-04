@@ -366,6 +366,25 @@ Required barcode/vendor provenance safety rules:
 
 Barcode, UPC, GTIN, vendor SKU, and merchant item-number evidence may improve ranked candidates only when it agrees with receipt text, item metadata, trade context, pack scope, and conflict graph evidence. Unknown or colliding barcode evidence must stay review-only. User-scanned barcode links belong to private local inventory memory unless the user explicitly promotes them through a reviewed correction workflow. User item ID and internal item ID values never replace stable catalog identity. Vehicle location, bin number, drawer, truck, fleet, on hand, out of stock, purchased not in stock, job staging, vehicle inventory, shop inventory, employee, permission, and owner fields are user inventory metadata, not parser identity. Official parser packs must never be built from copied retailer databases or scraping; mappings need licensed, reviewed public, manual, or synthetic provenance with source confidence and version metadata. Retailer database scraping is forbidden.
 
+## Parser Workflow Bridge Requirements
+
+Every parser workflow bridge must return an `InventoryParseCandidate` with raw evidence, review status, suggested action, warnings, confidence reasons, and missing fields before any downstream workflow can write to inventory, a draft estimate, an active job, an invoice, a job material, a billable material, a category of work, a trade section, or a grand total rollup.
+
+Required bridge rules:
+
+- `context_boost_changes_ranking_not_truth`: selected job type, enabled trade packs, active plumbing estimate section, active electrical estimate section, active HVAC estimate section, vehicle inventory, previous corrections, merchant type, user business type, and mixed remodel context can change ranking but cannot erase ambiguity.
+- `mixed_trade_job_keeps_ambiguity_visible`: mixed remodel receipts and jobs must keep plausible Plumbing, Electrical, HVAC, and shared material candidates visible until user review.
+- `estimate_section_routes_candidate`: an estimate section may suggest a destination trade section/category of work but does not turn the candidate into a confirmed line.
+- `job_material_output_is_review_only`: job-material suggestions remain review-only until the user confirms the material and destination job.
+- `inventory_add_is_review_only`: inventory-add suggestions remain review-only until the user confirms item identity, quantity, unit, location, and ownership.
+- `invoice_output_waits_for_user_approval`: invoice output waits for user approval and must not mutate an invoice, estimate, job, or inventory source record silently.
+- `workflow_action_is_suggested_not_executed`: parser output may recommend an action, but the app must execute it only through an explicit reviewed workflow.
+- `candidate_keeps_raw_evidence`: every routed candidate keeps the source receipt line, normalized tokens, merchant hints, and parser evidence trail.
+- `candidate_keeps_confidence_reasons`: every candidate exposes confidence reasons so review screens and diagnostics can explain why it ranked where it did.
+- `candidate_keeps_missing_fields`: every candidate reports missing fields so users and QA can tell what evidence is needed before confirmation.
+
+Forbidden bridge outcomes include auto-save, silent job write, silent invoice write, silent inventory write, hide ambiguity, drop alternate candidates, overwrite user correction, and cross-trade forced match.
+
 6. Attribute tokens
 
 Parser tokens should include:
