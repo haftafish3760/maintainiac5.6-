@@ -1,5 +1,25 @@
 # PDF System Pass Log
 
+## Pass 27 - 2026-07-04 16:02 EDT - Document import failure rollback
+
+- Scope: shared app document PDF import/save lifecycle only. No inventory,
+  camera, native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Added a shared app document import service for read-only document saves.
+  - Routed the document review screen through the shared service instead of
+    keeping save/promotion logic in the widget.
+  - Added storage rollback for the failure where proof promotion succeeds but
+    document record saving fails.
+  - Added regression coverage proving the promoted PDF is deleted, the staged
+    proof is restored for retry, and the original source PDF remains untouched.
+  - Added the new document import service and regression test to the shared PDF
+    quality gate.
+- Verification completed 2026-07-04 16:02 EDT:
+  - `dart format lib/shared/documents/app_document_import_service.dart lib/shared/documents/app_document_review_screen.dart lib/shared/widgets/receipt_capture/receipt_proof_storage.dart test/app_document_store_test.dart`
+  - `dart analyze lib/shared/documents/app_document_import_service.dart lib/shared/documents/app_document_review_screen.dart lib/shared/widgets/receipt_capture/receipt_proof_storage.dart test/app_document_store_test.dart`
+  - `flutter test test/app_document_store_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 26 - 2026-07-04 15:58 EDT - App document PDF lifecycle cleanup
 
 - Scope: app document/generated PDF storage lifecycle only. No inventory,

@@ -12,6 +12,7 @@ python3 -m py_compile tool/pdf_render_pixel_assertions.py
 dart analyze \
   tool/generate_sample_invoice_pdf.dart \
   lib/shared/pdf \
+  lib/shared/documents/app_document_import_service.dart \
   lib/shared/documents/app_generated_pdf_archive_service.dart \
   lib/shared/documents/app_document_models.dart \
   lib/shared/documents/app_document_store.dart \
@@ -21,6 +22,7 @@ dart analyze \
   lib/shared/widgets/receipt_capture/receipt_pdf_viewer_preview_plan.dart \
   lib/shared/widgets/receipt_capture/receipt_proof_storage.dart \
   test/app_generated_pdf_service_test.dart \
+  test/app_document_store_test.dart \
   test/cloud_backup_pdf_policy_test.dart \
   test/document_engine_operating_directive_test.dart \
   test/incoming_receipt_share_pdf_hardening_test.dart \
@@ -53,6 +55,7 @@ bash tool/pdf_render_smoke_gate.sh
 
 flutter test \
   test/app_generated_pdf_service_test.dart \
+  test/app_document_store_test.dart \
   test/cloud_backup_pdf_policy_test.dart \
   test/document_engine_operating_directive_test.dart \
   test/incoming_receipt_share_pdf_hardening_test.dart \

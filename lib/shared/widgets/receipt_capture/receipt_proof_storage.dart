@@ -309,6 +309,13 @@ class ReceiptProofStorage {
     }
   }
 
+  Future<void> rollbackPersistedAttachments(
+    List<ReceiptAttachmentRecord> saved,
+    List<ReceiptAttachmentRecord> original,
+  ) {
+    return _rollbackPersistedBatch(saved, original);
+  }
+
   Future<void> _rollbackPersistedBatch(
     List<ReceiptAttachmentRecord> saved,
     List<ReceiptAttachmentRecord> original,

@@ -7,6 +7,7 @@ import '../widgets/app_screen_shell.dart';
 import '../widgets/receipt_capture/receipt_capture_models.dart';
 import '../widgets/receipt_capture/receipt_pdf_viewer_screen.dart';
 import '../widgets/receipt_capture/receipt_proof_storage.dart';
+import 'app_document_import_service.dart';
 import 'app_document_models.dart';
 import 'app_document_store.dart';
 
@@ -97,32 +98,13 @@ class _AppDocumentReviewScreenState extends State<AppDocumentReviewScreen> {
   Future<void> _saveDocument() async {
     if (_saving) return;
     setState(() => _saving = true);
-    final now = DateTime.now();
-    final id = 'DOC-${now.microsecondsSinceEpoch}';
     try {
-      final promoted = await ReceiptProofStorage.instance.persistAttachments(
-        widget.attachments
-            .map(
-              (attachment) => attachment.copyWith(
-                linkedModule: widget.kind.storageModule,
-                linkedRecordId: id,
-              ),
-            )
-            .toList(growable: false),
-      );
-      final store = widget.store ?? await AppDocumentStore.create();
-      await store.saveRecord(
-        AppDocumentRecord(
-          id: id,
-          kind: widget.kind,
-          title: _titleController.text.trim(),
-          importedText: widget.importedText.trim(),
-          notes: _notesController.text.trim(),
-          sourceLabel: 'Shared import',
-          createdAt: now,
-          updatedAt: now,
-          attachments: List.unmodifiable(promoted),
-        ),
+      await AppDocumentImportService(store: widget.store).saveReadOnlyDocument(
+        kind: widget.kind,
+        attachments: widget.attachments,
+        title: _titleController.text,
+        importedText: widget.importedText,
+        notes: _notesController.text,
       );
       _saved = true;
       if (!mounted) return;

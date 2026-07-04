@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/documents/app_document_import_service.dart';
 import 'package:maintaniac/shared/documents/app_document_models.dart';
 import 'package:maintaniac/shared/documents/app_document_store.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
@@ -123,4 +124,69 @@ void main() {
       expect(await sourcePdf.exists(), isTrue);
     },
   );
+
+  test(
+    'document import save failure rolls back promoted proof for retry',
+    () async {
+      final staged = await ReceiptProofStorage.instance.stageAttachment(
+        ReceiptAttachmentRecord(
+          id: 'rollback-job-pdf',
+          path: sourcePdf.path,
+          kind: ReceiptAttachmentKind.pdf,
+          dataSaverLevel: ReceiptDataSaverLevel.original,
+          createdAt: DateTime(2026, 6, 15),
+        ),
+      );
+      final stagingPath = staged.path;
+      final failingService = AppDocumentImportService(
+        store: _FailingAppDocumentStore(),
+      );
+
+      await expectLater(
+        failingService.saveReadOnlyDocument(
+          kind: AppDocumentKind.jobContractorDocument,
+          attachments: [staged],
+          title: 'Rollback proof',
+          now: DateTime(2026, 6, 15, 10),
+        ),
+        throwsA(isA<StateError>()),
+      );
+
+      expect(await File(stagingPath).exists(), isTrue);
+      final permanentPdfRoot = Directory(
+        '${documentsDirectory.path}/receipt_proofs/pdfs',
+      );
+      if (await permanentPdfRoot.exists()) {
+        final leftovers = await permanentPdfRoot
+            .list(recursive: true)
+            .where((entity) => entity is File)
+            .toList();
+        expect(leftovers, isEmpty);
+      }
+
+      final retryStore = AppDocumentStore.memory();
+      final saved = await AppDocumentImportService(store: retryStore)
+          .saveReadOnlyDocument(
+            kind: AppDocumentKind.jobContractorDocument,
+            attachments: [staged],
+            title: 'Rollback proof',
+            now: DateTime(2026, 6, 15, 10),
+          );
+
+      expect(saved.attachments.single.storageState.name, 'permanent');
+      expect(await File(saved.attachments.single.path).exists(), isTrue);
+      expect(await File(stagingPath).exists(), isFalse);
+      expect(retryStore.recordById(saved.id), isNotNull);
+      expect(await sourcePdf.exists(), isTrue);
+    },
+  );
+}
+
+class _FailingAppDocumentStore extends AppDocumentStore {
+  _FailingAppDocumentStore() : super.memory();
+
+  @override
+  Future<AppDocumentRecord> saveRecord(AppDocumentRecord record) {
+    throw StateError('simulated document import failure');
+  }
 }
