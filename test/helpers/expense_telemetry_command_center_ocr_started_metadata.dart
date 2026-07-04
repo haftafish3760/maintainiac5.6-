@@ -117,7 +117,7 @@ Map<String, Object?> buildExpenseTelemetryCommandCenterOcrStartedMetadata() {
     'receiptRequiredBaseFootprintReviewCounts': {'review_passed': 1},
     'receiptRequiredBaseFootprintBlockingReasonCounts': {'none': 1},
     'receiptRequiredBaseFootprintReviewReasonCounts': {'within_base_budget': 1},
-    'ocrStoragePolicyOutcome': 'use_original_for_ocr',
+    'ocrStoragePolicyOutcome': 'ocr_clear_source_before_saved_proof_copy',
     'ocrUsesPreparedSourceBeforeSavedProofCounts': {'prepared_source_first': 1},
     'ocrUsesSavedProofFallbackCounts': {'saved_proof_fallback_unused': 1},
     'nativeDevicePolicyBuckets': {'storage_saver_receipt_camera': 1},

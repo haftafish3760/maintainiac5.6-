@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 790 - 08:05:54 EDT to active cleanup
+
+Scope:
+- Updated Command Center OCR-start telemetry fixture storage outcome from
+  `use_original_for_ocr` to `ocr_clear_source_before_saved_proof_copy`.
+- Kept telemetry reporting aligned with the camera/storage policy that OCR reads
+  the clear source before the retained saved proof.
+- Recorded `BUG-RECEIPT-0277` under `source_preservation`.
+- Archived Pass 763 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused telemetry regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 789 - 08:01:22 EDT to active cleanup
 
 Scope:
@@ -454,20 +469,3 @@ Verification:
 - Passed targeted Dart format/analyzer for session boundary changes.
 - Passed focused Flutter native camera session limit regression.
 - Passed doc-size, bug-ledger, source-audit, and test-audit gates.
-
-## Pass 763 - 04:52:58 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS previous-section guide loaders so the long-receipt
-  ghost overlay only accepts trimmed local absolute image paths.
-- Removed Android's non-image `setImageURI` fallback so existing non-image
-  files cannot appear as continuation guides.
-- Added Android/iOS source regressions for local image guide enforcement.
-- Recorded `BUG-RECEIPT-0251` under `multi_photo_ordering`.
-- Archived Pass 735 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for previous-section guide regressions.
-- Passed focused Android settings-quality and iOS long-receipt quality tests.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
