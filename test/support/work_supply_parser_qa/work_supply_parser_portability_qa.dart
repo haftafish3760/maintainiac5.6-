@@ -10,6 +10,7 @@ class WorkSupplyParserPortabilitySuite extends QaSuite {
     '.gitignore',
     'docs/inventory_parser_qa_harness_plan.md',
     'lib/screens/work_supplies/data/work_supply_receipt_parser.dart',
+    'lib/screens/work_supplies/data/work_supply_receipt_parser_confidence_engine.dart',
     'lib/screens/work_supplies/data/work_supply_inventory_receipt_models.dart',
     'lib/screens/work_supplies/data/work_supply_parsed_receipt_bridge.dart',
     'tool/work_supply_parser_qa_shard_runner.dart',
@@ -93,7 +94,8 @@ class WorkSupplyParserPortabilitySuite extends QaSuite {
     ),
     _PortabilityContract(
       name: 'receipt_bridge_stages_for_review',
-      path: 'lib/screens/work_supplies/data/work_supply_parsed_receipt_bridge.dart',
+      path:
+          'lib/screens/work_supplies/data/work_supply_parsed_receipt_bridge.dart',
       tokens: [
         'WorkSupplyParsedReceiptDraft',
         'ReceiptProcessingStage.stagedForReview',
@@ -126,6 +128,7 @@ class WorkSupplyParserPortabilitySuite extends QaSuite {
 
   static const _parserCoreFiles = [
     'lib/screens/work_supplies/data/work_supply_receipt_parser.dart',
+    'lib/screens/work_supplies/data/work_supply_receipt_parser_confidence_engine.dart',
     'lib/screens/work_supplies/data/work_supply_inventory_receipt_models.dart',
   ];
 

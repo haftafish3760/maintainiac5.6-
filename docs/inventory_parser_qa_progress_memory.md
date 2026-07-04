@@ -3419,3 +3419,8 @@ Release boundaries:
   107 checks with 0 failures. The stale pre-timeout Core queue process was
   stopped, no Dart/Flutter processes remained, and the same Core queue was
   relaunched with the bounded runner as PID 8368.
+- **10:08 Harness Pass 2473:** Extended `inventory.portability_contract` so the
+  parser confidence engine part file is scanned as parser-core code for
+  forbidden Firebase, Hive, platform, camera, OCR, file, and device coupling.
+  Analyzer was clean and the focused `inventory.portability_contract,
+  qa.threshold_gate` slice passed 91 checks with 0 failures.
