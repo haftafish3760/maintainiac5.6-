@@ -97,11 +97,21 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
         actual: result.events.join(' > '),
         triage: QaFailureTriage.security,
       );
+      _expect(
+        failures,
+        result.restartPreservedLocalTruth,
+        id: '${scenario.id}:restart_preserved_local_truth',
+        message: 'App restart simulation lost confirmed local parser data.',
+        expected:
+            'Restart keeps confirmed Hive/local truth and pending mirror state intact.',
+        actual: result.restartState,
+        triage: QaFailureTriage.conflict,
+      );
     }
 
     return timer.finish(
       suite: name,
-      checked: scenarios.length * 9,
+      checked: scenarios.length * 10,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
@@ -149,6 +159,7 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
       candidateId: '${scenario.parserCandidateId}_later_pack_update',
     );
     fake.mirrorAttemptsStaleWrite();
+    fake.simulateAppRestart();
     return fake.result(
       expectedConfirmedItemId: scenario.userConfirmedItemId,
       expectedReviewStatus: scenario.expectedReviewStatus,
@@ -307,6 +318,8 @@ class _FakeReviewEnvironment {
   bool _localWriteDone = false;
   bool _inventoryRecordCreated = false;
   bool _mirrorQueued = false;
+  String _restartLocalItemId = '';
+  String _restartPendingMirror = '';
   final bool _liveFirebaseTouched = false;
 
   void receiveAdapterText(
@@ -366,6 +379,12 @@ class _FakeReviewEnvironment {
     events.add('stale_mirror_ignored');
   }
 
+  void simulateAppRestart() {
+    events.add('app_restart_simulated');
+    _restartLocalItemId = _localConfirmedItemId;
+    _restartPendingMirror = _mirrorQueued ? 'pending' : 'none';
+  }
+
   _WorkflowResult result({
     required String expectedConfirmedItemId,
     required String expectedReviewStatus,
@@ -392,6 +411,13 @@ class _FakeReviewEnvironment {
           _confirmedContextEvidence.contains('packs='),
       cloudOptInControlsMirror:
           _mirrorQueued == events.contains('fake_firebase_mirror_queued'),
+      restartState:
+          'restartItem=$_restartLocalItemId restartPendingMirror=$_restartPendingMirror',
+      restartPreservedLocalTruth:
+          _restartLocalItemId == expectedConfirmedItemId &&
+          (_mirrorQueued
+              ? _restartPendingMirror == 'pending'
+              : _restartPendingMirror == 'none'),
     );
   }
 
@@ -430,6 +456,8 @@ class _WorkflowResult {
     required this.destinationPreserved,
     required this.contextPreserved,
     required this.cloudOptInControlsMirror,
+    required this.restartState,
+    required this.restartPreservedLocalTruth,
   });
 
   final List<String> events;
@@ -444,4 +472,6 @@ class _WorkflowResult {
   final bool destinationPreserved;
   final bool contextPreserved;
   final bool cloudOptInControlsMirror;
+  final String restartState;
+  final bool restartPreservedLocalTruth;
 }

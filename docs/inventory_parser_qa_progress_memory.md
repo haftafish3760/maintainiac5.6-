@@ -154,6 +154,12 @@ Focused rerun routes for recently hardened release-one contracts:
 - Validation:
   `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.review_safety_contract,inventory.confidence_calibration --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
   passed 96 checks with 0 failures after the fixture confidence correction.
+- Passes 1919-1920 strengthened `inventory.fake_user_review_workflow` with app
+  restart simulation. Every fake parser-review scenario now proves confirmed
+  Hive/local truth and pending fake Firebase mirror state survive restart.
+- Validation:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.fake_user_review_workflow --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
+  passed 60 checks with 0 failures.
 - inventory.receipt_source_immutability_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.receipt_source_immutability_contract,qa.threshold_gate`
 - inventory.parser_platform_contract:
