@@ -20,6 +20,12 @@ void main() {
         contains('estimate_materials'),
       );
       expect(
+        inventory['executionTargets'].toString(),
+        contains('mobile_local'),
+      );
+      expect(inventory['executionTargets'].toString(), contains('qa_harness'));
+      expect(inventory['executionTargets'].toString(), contains('cloud_batch'));
+      expect(
         expense['supportedResultUses'].toString(),
         contains('expense_ledger'),
       );
@@ -48,6 +54,8 @@ void main() {
       expect(adapter.toJson()['writesProductionCatalog'], isFalse);
       expect(adapter.toJson()['firebaseWritesAllowed'], isFalse);
       expect(adapter.toJson()['ocrCameraExpensesTouched'], isFalse);
+      expect(adapter.toJson()['executionTargets'], contains('qa_harness'));
+      expect(adapter.toJson()['executionTargets'], contains('command_line'));
     }
   });
 
@@ -73,6 +81,7 @@ void main() {
       fixtureRoot: '',
       forbiddenBoundaryTokens: ['ocr', 'OCR'],
       supportedResultUses: ['inventory', 'inventory'],
+      executionTargets: ['qa_harness', 'qa_harness', ''],
     );
 
     final failures = adapter.validateContract();
@@ -81,5 +90,7 @@ void main() {
     expect(failures, contains('fixtureRoot must not be empty'));
     expect(failures, contains('forbiddenBoundaryTokens must be unique'));
     expect(failures, contains('supportedResultUses must be unique'));
+    expect(failures, contains('executionTargets must be unique'));
+    expect(failures, contains('executionTargets must not contain blanks'));
   });
 }

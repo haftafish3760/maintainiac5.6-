@@ -5,6 +5,7 @@ class ParserQaDomainAdapter {
     required this.fixtureRoot,
     required this.forbiddenBoundaryTokens,
     required this.supportedResultUses,
+    required this.executionTargets,
   });
 
   final String domain;
@@ -12,6 +13,7 @@ class ParserQaDomainAdapter {
   final String fixtureRoot;
   final List<String> forbiddenBoundaryTokens;
   final List<String> supportedResultUses;
+  final List<String> executionTargets;
 
   List<String> validateContract() {
     final failures = <String>[];
@@ -30,17 +32,26 @@ class ParserQaDomainAdapter {
     if (supportedResultUses.isEmpty) {
       failures.add('supportedResultUses must not be empty');
     }
+    if (executionTargets.isEmpty) {
+      failures.add('executionTargets must not be empty');
+    }
     if (_hasDuplicates(forbiddenBoundaryTokens)) {
       failures.add('forbiddenBoundaryTokens must be unique');
     }
     if (_hasDuplicates(supportedResultUses)) {
       failures.add('supportedResultUses must be unique');
     }
+    if (_hasDuplicates(executionTargets)) {
+      failures.add('executionTargets must be unique');
+    }
     if (forbiddenBoundaryTokens.any((token) => token.trim().isEmpty)) {
       failures.add('forbiddenBoundaryTokens must not contain blanks');
     }
     if (supportedResultUses.any((use) => use.trim().isEmpty)) {
       failures.add('supportedResultUses must not contain blanks');
+    }
+    if (executionTargets.any((target) => target.trim().isEmpty)) {
+      failures.add('executionTargets must not contain blanks');
     }
     return failures;
   }
@@ -52,6 +63,7 @@ class ParserQaDomainAdapter {
       'fixtureRoot': fixtureRoot,
       'forbiddenBoundaryTokens': forbiddenBoundaryTokens,
       'supportedResultUses': supportedResultUses,
+      'executionTargets': executionTargets,
       'liveServicesAllowed': false,
       'writesProductionCatalog': false,
       'firebaseWritesAllowed': false,
@@ -81,6 +93,13 @@ const workSupplyParserDomainAdapter = ParserQaDomainAdapter(
     'job_materials',
     'invoice_materials',
     'fleet_vehicle_inventory',
+  ],
+  executionTargets: [
+    'mobile_local',
+    'backend_service',
+    'qa_harness',
+    'command_line',
+    'cloud_batch',
   ],
 );
 
@@ -114,6 +133,12 @@ const maintenanceParserDomainAdapter = ParserQaDomainAdapter(
     'work_order',
     'fleet_vehicle_maintenance',
   ],
+  executionTargets: [
+    'mobile_local',
+    'backend_service',
+    'qa_harness',
+    'command_line',
+  ],
 );
 
 const expenseReceiptParserDomainAdapter = ParserQaDomainAdapter(
@@ -134,5 +159,11 @@ const expenseReceiptParserDomainAdapter = ParserQaDomainAdapter(
     'expense_ledger',
     'expense_recap',
     'expense_export',
+  ],
+  executionTargets: [
+    'mobile_local',
+    'backend_service',
+    'qa_harness',
+    'command_line',
   ],
 );
