@@ -58,14 +58,11 @@ int runWorkSupplyParserQaNextAction(
   };
   final blockingWaves = [
     for (final wave in candidateBlockingWaves)
-      if (wave['state'] != 'failed' ||
-          !remediatedQueueIds.contains('${wave['queueId']}'))
-        wave,
+      if (!remediatedQueueIds.contains('${wave['queueId']}')) wave,
   ];
   final remediatedWaves = [
     for (final wave in candidateBlockingWaves)
-      if (wave['state'] == 'failed' &&
-          remediatedQueueIds.contains('${wave['queueId']}'))
+      if (remediatedQueueIds.contains('${wave['queueId']}'))
         {
           ...wave,
           'remediation': waveRemediations.firstWhere(
