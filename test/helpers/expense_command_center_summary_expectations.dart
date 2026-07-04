@@ -80,7 +80,8 @@ void expectExpenseCommandCenterSummaryTelemetry(
   expect(snapshot.exposureAssistStatusCounts, {'active': 1});
   expect(snapshot.autoExposureCandidateFrameCount, 4);
   expect(snapshot.manualBrightnessChangeCount, 1);
-  expect(snapshot.nativeTapFocusControlExpectedCount, 1);
+  expect(snapshot.nativeTapFocusControlExpectedCount, 0);
+  expect(snapshot.nativeContinuousFocusExpectedCount, 1);
   expect(snapshot.nativePinchZoomControlExpectedCount, 1);
   expect(snapshot.nativeExposureSliderControlExpectedCount, 1);
   expect(snapshot.nativeExposureResetControlExpectedCount, 1);
@@ -356,7 +357,8 @@ void expectExpenseCommandCenterSummaryTelemetry(
     'receipt_native_controls_v1': 1,
   });
   expect(map['topNativeControlContractVersion'], 'receipt_native_controls_v1');
-  expect(map['nativeTapFocusControlExpectedCount'], 1);
+  expect(map['nativeTapFocusControlExpectedCount'], 0);
+  expect(map['nativeContinuousFocusExpectedCount'], 1);
   expect(map['nativePinchZoomControlExpectedCount'], 1);
   expect(map['nativeExposureSliderControlExpectedCount'], 1);
   expect(map['nativeZoomGestureStartCount'], 2);

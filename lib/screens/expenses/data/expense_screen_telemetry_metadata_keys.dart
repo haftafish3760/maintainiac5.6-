@@ -281,6 +281,7 @@ const _expenseTelemetryAllowedMetadataKeys = <String>{
   'pinchZoomEnabledCount',
   'brightnessSliderEnabledCount',
   'tapFocusControlExpectedCount',
+  'continuousFocusExpectedCount',
   'pinchZoomControlExpectedCount',
   'exposureSliderControlExpectedCount',
   'exposureResetControlExpectedCount',

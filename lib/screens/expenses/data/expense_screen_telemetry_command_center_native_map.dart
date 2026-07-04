@@ -16,6 +16,7 @@ extension ExpenseTelemetryHealthSnapshotNativeCommandCenterMap
       'nativePreCaptureExposureAbortReasonCounts':
           nativePreCaptureExposureAbortReasonCounts,
       'nativeTapFocusControlExpectedCount': nativeTapFocusControlExpectedCount,
+      'nativeContinuousFocusExpectedCount': nativeContinuousFocusExpectedCount,
       'nativePinchZoomControlExpectedCount':
           nativePinchZoomControlExpectedCount,
       'nativeExposureSliderControlExpectedCount':

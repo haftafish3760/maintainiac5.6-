@@ -112,6 +112,7 @@ const expectedExpenseTelemetryCommandCenterCoreKeys = {
   'nativeRecoveryRecoveredPhotoCount',
   'nativeRecoveryMultipleSectionCount',
   'nativeTapFocusControlExpectedCount',
+  'nativeContinuousFocusExpectedCount',
   'nativePinchZoomControlExpectedCount',
   'nativeExposureSliderControlExpectedCount',
   'nativeExposureResetControlExpectedCount',

@@ -84,6 +84,21 @@ Verification:
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.
 
+## Pass 624 - 21:56:17 EDT to active cleanup
+
+Scope:
+- Added continuous-focus expected counts to expense receipt telemetry and the
+  native camera Command Center map.
+- Updated telemetry fixtures so retired tap focus reports 0 while continuous
+  focus reports 1.
+- Archived Pass 597 from the active cleanup log.
+- Recorded `BUG-RECEIPT-0145` under `camera_capture_quality`.
+
+Verification:
+- Passed targeted analyzer and focused expense telemetry regressions.
+- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
+  check.
+
 ## Pass 618 - 21:42:32 EDT to active cleanup
 
 Scope:
@@ -470,23 +485,4 @@ Verification:
   regressions.
 - Passed focused Flutter iOS bridge analysis/exposure and UI-session
   regressions.
-- Passed cleanup log gate, doc-size gate, source audit, and whitespace check.
-
-## Pass 597 - 20:50:44 EDT to 20:51:48 EDT
-
-Scope:
-- Hardened Android saved-photo auto-capture cooldown so successful captures use
-  the configured `autoCaptureCooldownMs` instead of a hard-coded 2600ms delay.
-- Hardened iOS saved-photo auto-capture cooldown with the same session-driven
-  behavior.
-- Added Android and iOS source-contract regressions rejecting hard-coded
-  saved-photo cooldowns.
-- Recorded `BUG-RECEIPT-0118` under `native_bridge`.
-
-Verification:
-- Passed targeted Dart format/analyzer for Android and iOS native auto-capture
-  source-contract regressions.
-- Passed focused Flutter Android native auto-capture regression.
-- Passed focused Flutter iOS native settings/close regression separately for
-  explicit evidence.
 - Passed cleanup log gate, doc-size gate, source audit, and whitespace check.

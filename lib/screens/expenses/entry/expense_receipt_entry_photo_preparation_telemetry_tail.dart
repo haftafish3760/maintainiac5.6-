@@ -109,6 +109,10 @@ extension _ExpenseReceiptEntryPhotoPreparationTelemetryTail
         captureDiagnostics,
         'tapFocusControlExpected',
       ),
+      'continuousFocusExpectedCount': _diagnosticBoolTrueCount(
+        captureDiagnostics,
+        'continuousFocusExpected',
+      ),
       'pinchZoomControlExpectedCount': _diagnosticBoolTrueCount(
         captureDiagnostics,
         'pinchZoomControlExpected',

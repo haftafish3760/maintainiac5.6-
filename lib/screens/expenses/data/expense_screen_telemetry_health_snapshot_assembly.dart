@@ -345,6 +345,8 @@ extension _ExpenseTelemetryHealthSnapshotAccumulatorSnapshot
       ),
       nativeTapFocusControlExpectedCount:
           nativeControlsSummary.tapFocusExpectedCount,
+      nativeContinuousFocusExpectedCount:
+          nativeControlsSummary.continuousFocusExpectedCount,
       nativePinchZoomControlExpectedCount:
           nativeControlsSummary.pinchZoomExpectedCount,
       nativeExposureSliderControlExpectedCount:

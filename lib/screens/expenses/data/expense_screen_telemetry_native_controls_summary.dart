@@ -2,6 +2,7 @@ part of 'expense_screen_telemetry.dart';
 
 class _ExpenseTelemetryNativeControlsSummary {
   var tapFocusExpectedCount = 0;
+  var continuousFocusExpectedCount = 0;
   var pinchZoomExpectedCount = 0;
   var exposureSliderExpectedCount = 0;
   var exposureResetExpectedCount = 0;
@@ -28,6 +29,9 @@ class _ExpenseTelemetryNativeControlsSummary {
   void record(Map<String, Object?> metadata) {
     tapFocusExpectedCount += _intValue(
       metadata['tapFocusControlExpectedCount'],
+    );
+    continuousFocusExpectedCount += _intValue(
+      metadata['continuousFocusExpectedCount'],
     );
     pinchZoomExpectedCount += _intValue(
       metadata['pinchZoomControlExpectedCount'],

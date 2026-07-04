@@ -163,6 +163,7 @@ Map<String, Object?> _sanitizeExpenseTelemetryMap(Map<String, Object?> source) {
     'nativeRecoveryRecoveredPhotoCount',
     'nativeRecoveryMultipleSectionCount',
     'nativeTapFocusControlExpectedCount',
+    'nativeContinuousFocusExpectedCount',
     'nativePinchZoomControlExpectedCount',
     'nativeExposureSliderControlExpectedCount',
     'nativeExposureResetControlExpectedCount',

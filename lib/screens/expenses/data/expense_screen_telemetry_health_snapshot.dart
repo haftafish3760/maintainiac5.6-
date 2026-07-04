@@ -71,7 +71,7 @@ class ExpenseTelemetryHealthSnapshot {
     required this.nativeCameraWorkloadTierCounts, required this.nativeCameraResolutionTierCounts, required this.nativeRecoveryResumeStatusCounts,
     required this.nativeRecoveryFreshnessCounts, required this.nativeRecoveryStorageStatusCounts, required this.nativeRecoveryRecoveredPhotoCount,
     required this.nativeRecoveryMultipleSectionCount, required this.nativePreCaptureExposureAbortCount, required this.nativePreCaptureExposureAbortReasonCounts,
-    required this.nativeTapFocusControlExpectedCount, required this.nativePinchZoomControlExpectedCount, required this.nativeExposureSliderControlExpectedCount,
+    required this.nativeTapFocusControlExpectedCount, required this.nativeContinuousFocusExpectedCount, required this.nativePinchZoomControlExpectedCount, required this.nativeExposureSliderControlExpectedCount,
     required this.nativeExposureResetControlExpectedCount, required this.nativeSettingsControlExpectedCount, required this.nativeBackControlExpectedCount,
     required this.nativeTorchControlExpectedCount, required this.nativeSettingsOpenCount, required this.nativeZoomGestureStartCount, required this.nativeZoomChangeCount,
     required this.nativeZoomUnavailableCount, required this.nativeZoomStatusCounts, required this.nativeBackDispatchPathCounts, required this.topNativeZoomStatus,
@@ -164,7 +164,7 @@ class ExpenseTelemetryHealthSnapshot {
   final Map<String, int> nativeRecoveryFreshnessCounts, nativeRecoveryStorageStatusCounts;
   final int nativeRecoveryRecoveredPhotoCount, nativeRecoveryMultipleSectionCount, nativePreCaptureExposureAbortCount;
   final Map<String, int> nativePreCaptureExposureAbortReasonCounts;
-  final int nativeTapFocusControlExpectedCount, nativePinchZoomControlExpectedCount, nativeExposureSliderControlExpectedCount, nativeExposureResetControlExpectedCount;
+  final int nativeTapFocusControlExpectedCount, nativeContinuousFocusExpectedCount, nativePinchZoomControlExpectedCount, nativeExposureSliderControlExpectedCount, nativeExposureResetControlExpectedCount;
   final int nativeSettingsControlExpectedCount, nativeBackControlExpectedCount;
   final int nativeTorchControlExpectedCount, nativeSettingsOpenCount, nativeZoomGestureStartCount, nativeZoomChangeCount, nativeZoomUnavailableCount;
   final Map<String, int> nativeZoomStatusCounts, nativeBackDispatchPathCounts;
