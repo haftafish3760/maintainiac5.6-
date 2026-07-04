@@ -257,6 +257,15 @@ Focused rerun routes for recently hardened release-one contracts:
   0 failures, and targeted `dart analyze` over
   `test/support/work_supply_parser_qa/work_supply_parser_release_one_scorecard_qa.dart`
   passed with no issues.
+- Passes 2079-2081 added the source-modality generator and unit-test assertion
+  tokens to `inventory.generated_manifest_contract`, so generated-manifest
+  governance also fails if this coverage disappears. Validation passed:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_SUITES=inventory.generated_manifest_contract,inventory.recipe_completeness_contract,qa.threshold_gate
+  --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40` checked 225 conditions with
+  0 failures, and targeted `dart analyze` over
+  `test/support/work_supply_parser_qa/work_supply_parser_generated_manifest_qa.dart`
+  passed with no issues.
 
 ## 2026-07-04 Reusable Parser Adapter Registry Hardening
 
