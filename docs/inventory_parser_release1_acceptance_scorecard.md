@@ -19,8 +19,7 @@ release, but it does mean the supported scope must be honest, measured,
 review-safe, recoverable, and backed by regression tests.
 
 QA harness completion is not the same thing as catalog completion. After the
-QA harness and release gates are in place, inventory catalog expansion still
-continues in controlled batches, with generated item candidates, fixture
+QA harness and release gates are in place, inventory catalog expansion still continues in controlled batches, with generated item candidates, fixture
 coverage, regression locks, and release-readiness evidence before promotion.
 
 ## Release 1 Priority Scope
@@ -110,6 +109,13 @@ Context can change ranking, but it must not erase ambiguity. Context signals may
 include enabled trade packs, selected job type, active estimate section, vehicle
 inventory, merchant type, previous user corrections, barcode evidence, and
 nearby receipt words.
+
+Ranked candidates must preserve the evidence ladder that produced the ranking:
+enabled trade packs, active workflow context, active estimate/job trade section,
+receipt-neighbor signals, merchant/department hints, conflict family, positive evidence,
+negative evidence, warnings, and confidence reasons. These signals may boost or
+demote candidates, but they must not silently confirm an item or hide realistic alternate trades
+when evidence is mixed or missing.
 
 ## Accuracy Targets
 
