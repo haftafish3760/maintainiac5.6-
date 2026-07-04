@@ -9,6 +9,9 @@ class WorkSupplyParserPortabilitySuite extends QaSuite {
   static const _scannedFiles = [
     '.gitignore',
     'docs/inventory_parser_qa_harness_plan.md',
+    'lib/screens/work_supplies/data/work_supply_receipt_parser.dart',
+    'lib/screens/work_supplies/data/work_supply_inventory_receipt_models.dart',
+    'lib/screens/work_supplies/data/work_supply_parsed_receipt_bridge.dart',
     'tool/work_supply_parser_qa_shard_runner.dart',
     'tool/work_supply_parser_qa_release_signoff.dart',
     'tool/work_supply_parser_qa_prune_reports.dart',
@@ -65,6 +68,51 @@ class WorkSupplyParserPortabilitySuite extends QaSuite {
       path: 'tool/work_supply_parser_qa_prune_reports.dart',
       tokens: ['dryRun: !options.execute', 'QA_RETENTION_SUMMARY'],
     ),
+    _PortabilityContract(
+      name: 'parser_core_accepts_pure_inputs',
+      path: 'lib/screens/work_supplies/data/work_supply_receipt_parser.dart',
+      tokens: [
+        'String rawText',
+        'ReceiptParserLearningMemory? memory',
+        'trustedItemIdentityIds',
+        'tradeScope',
+        'localePackId',
+      ],
+    ),
+    _PortabilityContract(
+      name: 'parser_core_returns_pure_candidates',
+      path: 'lib/screens/work_supplies/data/work_supply_receipt_parser.dart',
+      tokens: [
+        'class ReceiptLineMatch',
+        'rawText',
+        'item',
+        'confidence',
+        'matchedTerms',
+        'needsReview',
+      ],
+    ),
+    _PortabilityContract(
+      name: 'receipt_bridge_stages_for_review',
+      path: 'lib/screens/work_supplies/data/work_supply_parsed_receipt_bridge.dart',
+      tokens: [
+        'WorkSupplyParsedReceiptDraft',
+        'ReceiptProcessingStage.stagedForReview',
+        'ReceiptSaveDestination.inventoryReview',
+        'canCommitInventory',
+      ],
+    ),
+    _PortabilityContract(
+      name: 'review_model_keeps_suggestions_review_only',
+      path:
+          'lib/screens/work_supplies/data/work_supply_inventory_receipt_models.dart',
+      tokens: [
+        'WorkSupplyLineReviewStatus',
+        'needsReview',
+        'highConfidenceReview',
+        'unknownItem',
+        'multiplePossibleMatches',
+      ],
+    ),
   ];
 
   static const _forbiddenToolTokens = [
@@ -74,6 +122,32 @@ class WorkSupplyParserPortabilitySuite extends QaSuite {
     '/bin/sh',
     r'C:\Users\',
     '/Users/',
+  ];
+
+  static const _parserCoreFiles = [
+    'lib/screens/work_supplies/data/work_supply_receipt_parser.dart',
+    'lib/screens/work_supplies/data/work_supply_inventory_receipt_models.dart',
+  ];
+
+  static const _forbiddenParserCoreTokens = [
+    'FirebaseFirestore',
+    'FirebaseStorage',
+    'FirebaseAuth',
+    'cloud_firestore',
+    'firebase_storage',
+    'firebase_auth',
+    'Hive.box',
+    'Hive.openBox',
+    'MethodChannel',
+    'Platform.isAndroid',
+    'Platform.isIOS',
+    'dart:io',
+    'File(',
+    'Directory(',
+    'CameraController',
+    'GoogleMlKit',
+    'TextRecognizer',
+    'ImagePicker',
   ];
 
   @override
@@ -145,18 +219,43 @@ class WorkSupplyParserPortabilitySuite extends QaSuite {
       );
     }
 
+    for (final path in _parserCoreFiles) {
+      final source = sources[path] ?? '';
+      for (final token in _forbiddenParserCoreTokens) {
+        if (!source.contains(token)) continue;
+        failures.add(
+          QaFailure(
+            suite: name,
+            id: 'parser_core_environment_coupling:$path:$token',
+            message:
+                'Inventory parser core contains environment-specific coupling.',
+            severity: QaSeverity.critical,
+            expected:
+                'pure parser input/output with storage, cloud, OCR, camera, and platform adapters outside the core',
+            actual: '$path contains $token',
+            suggestedFix:
+                'Move environment-specific behavior behind an adapter and keep parser candidates deterministic, review-only, and portable.',
+            metadata: const {'triageCategory': QaFailureTriage.governance},
+          ),
+        );
+      }
+    }
+
     return timer.finish(
       suite: name,
       checked:
           _scannedFiles.length +
           _contracts.length +
-          _forbiddenToolTokens.length,
+          _forbiddenToolTokens.length +
+          (_parserCoreFiles.length * _forbiddenParserCoreTokens.length),
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'presentContracts': present,
         'filesScanned': sources.keys.toList()..sort(),
         'forbiddenToolTokens': _forbiddenToolTokens,
+        'parserCoreFiles': _parserCoreFiles,
+        'forbiddenParserCoreTokens': _forbiddenParserCoreTokens,
       },
     );
   }

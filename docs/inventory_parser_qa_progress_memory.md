@@ -145,6 +145,29 @@ Focused rerun routes for recently hardened release-one contracts:
   `dart analyze` over the digest tool, shared digest, routing contract, and
   digest regression tests.
 
+## 2026-07-04 Parser Core Environment-Independence Guard
+
+- Passes 2044-2046 hardened `inventory.portability_contract` so it no longer
+  checks only QA tooling portability. The suite now also scans the inventory
+  parser core and review model for environment-specific coupling that would
+  make parser behavior depend on a phone, Firebase, Hive, files, camera, OCR, or
+  platform APIs.
+- The contract now requires the parser core to expose pure inputs such as raw
+  receipt text, learning memory, trusted item identity evidence, trade scope,
+  and locale pack id, and pure outputs such as `ReceiptLineMatch`, confidence,
+  matched terms, and `needsReview`.
+- The receipt bridge is separately required to stage results for review through
+  `WorkSupplyParsedReceiptDraft`, `ReceiptProcessingStage.stagedForReview`, and
+  `ReceiptSaveDestination.inventoryReview`, keeping storage/sync behavior out of
+  the parser core.
+- Validation passed:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_SUITES=inventory.portability_contract,inventory.release_one_scorecard_contract,qa.threshold_gate
+  --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40` checked 134 conditions with
+  0 failures, and targeted `dart analyze` over
+  `test/support/work_supply_parser_qa/work_supply_parser_portability_qa.dart`
+  passed with no issues.
+
 ## 2026-07-04 Reusable Parser Adapter Registry Hardening
 
 - Passes 1937-1949 launched local-only wave
