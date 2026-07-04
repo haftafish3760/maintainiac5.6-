@@ -3254,3 +3254,11 @@ Release boundaries:
   3,000 checked generated parser fixture cases, 0 failed cells, 0 unsafe cells,
   and 3,096 local parser calls. This is the strongest current evidence for the
   active Core lane; Standard remains a separate later lane.
+- **09:15 Harness Pass 2402:** Ran the focused Core harness gate for
+  `inventory.release_one_core_manifest`,
+  `inventory.release_one_scorecard_contract`,
+  `inventory.release_one_service_family_contract`,
+  `inventory.confidence_calibration`, `inventory.review_safety_contract`,
+  `inventory.execution_command_contract`, and `qa.threshold_gate`. The gate
+  passed with 17,347 checks, 0 failures, and latest QA artifact
+  `build/parser_qa_reports/latest_work_supply_inventory_parser.json`.
