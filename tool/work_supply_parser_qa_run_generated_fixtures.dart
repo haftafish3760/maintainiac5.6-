@@ -6,6 +6,7 @@ const _usage =
     '--fixture build/.../generated_fixtures.json '
     '[--max-cases 1000] [--fixture-ids id1,id2] '
     '[--report-dir build/parser_qa_reports/generated_fixtures] '
+    '[--timeout-ms 900000] '
     '[--verbose]';
 
 Future<void> main(List<String> args) async {
@@ -60,13 +61,20 @@ Future<int> runGeneratedParserFixtures(
     'QA_GENERATED_FIXTURE_RUN_WRAPPER runner=flutter-test '
     'reason=parser_core_not_yet_extracted_for_dart_cli '
     'fixture=${options.fixturePath} maxCases=${options.maxCases} '
+    'timeoutMs=${options.timeoutMs} '
     'outputMode=${options.verbose ? 'verbose' : 'summary'}',
   );
-  final runProcess = processRunner ?? Process.run;
-  final result = await runProcess('flutter', [
-    'test',
-    ...command,
-  ], runInShell: Platform.isWindows);
+  final result = processRunner == null
+      ? await _runProcessWithTimeout(
+          'flutter',
+          ['test', ...command],
+          timeoutMs: options.timeoutMs,
+          runInShell: Platform.isWindows,
+        )
+      : await processRunner('flutter', [
+          'test',
+          ...command,
+        ], runInShell: Platform.isWindows);
   final output = '${result.stdout}';
   final errorOutput = '${result.stderr}';
   if (options.verbose) {
@@ -94,6 +102,7 @@ class _FixtureRunnerOptions {
     required this.maxCases,
     required this.reportDir,
     required this.fixtureIds,
+    required this.timeoutMs,
     required this.verbose,
   });
 
@@ -101,9 +110,12 @@ class _FixtureRunnerOptions {
   final int maxCases;
   final String reportDir;
   final Set<String> fixtureIds;
+  final int timeoutMs;
   final bool verbose;
 
   static _FixtureRunnerOptions parse(List<String> args) {
+    final timeoutMs =
+        int.tryParse(_valueAfter(args, '--timeout-ms') ?? '') ?? 900000;
     return _FixtureRunnerOptions(
       fixturePath: _valueAfter(args, '--fixture') ?? '',
       maxCases: int.tryParse(_valueAfter(args, '--max-cases') ?? '') ?? 1000,
@@ -111,9 +123,48 @@ class _FixtureRunnerOptions {
           _valueAfter(args, '--report-dir') ??
           'build/parser_qa_reports/generated_fixtures',
       fixtureIds: _csvSet(_valueAfter(args, '--fixture-ids') ?? ''),
+      timeoutMs: timeoutMs <= 0 ? 900000 : timeoutMs,
       verbose: args.contains('--verbose'),
     );
   }
+}
+
+Future<ProcessResult> _runProcessWithTimeout(
+  String executable,
+  List<String> arguments, {
+  required int timeoutMs,
+  required bool runInShell,
+}) async {
+  final process = await Process.start(
+    executable,
+    arguments,
+    runInShell: runInShell,
+  );
+  final stdoutFuture = process.stdout.transform(utf8.decoder).join();
+  final stderrFuture = process.stderr.transform(utf8.decoder).join();
+  var timedOut = false;
+  final exitCode = await process.exitCode.timeout(
+    Duration(milliseconds: timeoutMs),
+    onTimeout: () {
+      timedOut = true;
+      if (Platform.isWindows) {
+        Process.runSync('taskkill', ['/PID', '${process.pid}', '/T', '/F']);
+      } else {
+        process.kill(ProcessSignal.sigkill);
+      }
+      return 124;
+    },
+  );
+  final stdoutText = await stdoutFuture;
+  final stderrText = await stderrFuture;
+  return ProcessResult(
+    process.pid,
+    exitCode,
+    stdoutText,
+    timedOut
+        ? '$stderrText\nGenerated fixture runner timed out after ${timeoutMs}ms.'
+        : stderrText,
+  );
 }
 
 String _summarizeFlutterOutput(String output, {required String reportDir}) {

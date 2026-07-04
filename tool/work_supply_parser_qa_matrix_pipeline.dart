@@ -9,7 +9,7 @@ const _usage =
     'dart run tool/work_supply_parser_qa_matrix_pipeline.dart '
     '[--trades plumbing,electrical,hvac] [--scopes residential] '
     '[--tiers core] [--locales en-US,es-US] [--limit 500] '
-    '[--fixture-run-limit 50] '
+    '[--fixture-run-limit 50] [--fixture-run-timeout-ms 900000] '
     '[--output-root build/parser_qa_pipeline] [--execute] [--resume] '
     '[--run-fixtures] [--status-gate] [--first-round]';
 
@@ -66,6 +66,8 @@ Future<int> runWorkSupplyParserQaMatrixPipeline(
           '${options.limit}',
           '--fixture-run-limit',
           '${options.fixtureRunLimit}',
+          '--fixture-run-timeout-ms',
+          '${options.fixtureRunTimeoutMs}',
           '--output-root',
           pipelineOutputRoot,
         ];
@@ -118,12 +120,13 @@ Future<int> runWorkSupplyParserQaMatrixPipeline(
     'localePackIds': options.locales,
     'limit': options.limit,
     'fixtureRunLimit': options.fixtureRunLimit,
+    'fixtureRunTimeoutMs': options.fixtureRunTimeoutMs,
     'dryRun': !options.execute,
     'resume': options.resume,
     'firstRound': options.firstRound,
     'runFixtures': options.runFixtures,
     'statusGate': options.statusGate,
-    if (statusGateExitCode != null) 'statusGateExitCode': statusGateExitCode,
+    'statusGateExitCode': ?statusGateExitCode,
     'liveServicesAllowed': false,
     'writesProductionCatalog': false,
     'results': results,
@@ -151,6 +154,7 @@ class _MatrixOptions {
     required this.locales,
     required this.limit,
     required this.fixtureRunLimit,
+    required this.fixtureRunTimeoutMs,
     required this.outputRoot,
     required this.execute,
     required this.resume,
@@ -165,6 +169,7 @@ class _MatrixOptions {
   final List<String> locales;
   final int limit;
   final int fixtureRunLimit;
+  final int fixtureRunTimeoutMs;
   final String outputRoot;
   final bool execute;
   final bool resume;
@@ -196,6 +201,8 @@ class _MatrixOptions {
       fixtureRunLimit:
           int.tryParse(values['fixture-run-limit'] ?? '') ??
           (firstRound ? 25 : limit),
+      fixtureRunTimeoutMs:
+          int.tryParse(values['fixture-run-timeout-ms'] ?? '') ?? 900000,
       outputRoot: values['output-root'] ?? 'build/parser_qa_pipeline',
       execute: flags.contains('execute'),
       resume: flags.contains('resume'),

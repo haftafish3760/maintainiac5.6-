@@ -10,7 +10,8 @@ const _usage =
     'dart run tool/work_supply_parser_qa_pipeline.dart '
     '[--trade plumbing] [--scope residential] [--tier core] '
     '[--locale en-US] [--locales en-US,es-US] [--limit 500] '
-    '[--fixture-run-limit 50] [--execute] [--resume] '
+    '[--fixture-run-limit 50] [--fixture-run-timeout-ms 900000] '
+    '[--execute] [--resume] '
     '[--run-fixtures]';
 
 Future<void> main(List<String> args) async {
@@ -130,6 +131,8 @@ Future<int> runWorkSupplyParserQaPipeline(
         '${options.fixtureRunLimit}',
         '--report-dir',
         reportOutput,
+        '--timeout-ms',
+        '${options.fixtureRunTimeoutMs}',
       ],
       willExecute: options.execute && options.runFixtures,
     ),
@@ -173,6 +176,7 @@ Future<int> runWorkSupplyParserQaPipeline(
     'localePackId': options.locale,
     'limit': options.limit,
     'fixtureRunLimit': options.fixtureRunLimit,
+    'fixtureRunTimeoutMs': options.fixtureRunTimeoutMs,
     'dryRun': !options.execute,
     'resume': options.resume,
     'runFixtures': options.runFixtures,
@@ -226,6 +230,8 @@ Future<int> _runMultiLocalePipeline({
       '${options.limit}',
       '--fixture-run-limit',
       '${options.fixtureRunLimit}',
+      '--fixture-run-timeout-ms',
+      '${options.fixtureRunTimeoutMs}',
       '--output-root',
       localeOutput,
     ];
@@ -252,6 +258,7 @@ Future<int> _runMultiLocalePipeline({
     'localePackIds': options.locales,
     'limit': options.limit,
     'fixtureRunLimit': options.fixtureRunLimit,
+    'fixtureRunTimeoutMs': options.fixtureRunTimeoutMs,
     'dryRun': !options.execute,
     'resume': options.resume,
     'runFixtures': options.runFixtures,
@@ -421,6 +428,7 @@ class _PipelineOptions {
     required this.locales,
     required this.limit,
     required this.fixtureRunLimit,
+    required this.fixtureRunTimeoutMs,
     required this.outputRoot,
     required this.execute,
     required this.resume,
@@ -434,6 +442,7 @@ class _PipelineOptions {
   final List<String> locales;
   final int limit;
   final int fixtureRunLimit;
+  final int fixtureRunTimeoutMs;
   final String outputRoot;
   final bool execute;
   final bool resume;
@@ -465,6 +474,8 @@ class _PipelineOptions {
           int.tryParse(values['fixture-run-limit'] ?? '') ??
           int.tryParse(values['limit'] ?? '') ??
           500,
+      fixtureRunTimeoutMs:
+          int.tryParse(values['fixture-run-timeout-ms'] ?? '') ?? 900000,
       outputRoot: values['output-root'] ?? 'build/parser_qa_pipeline',
       execute: flags.contains('execute'),
       resume: flags.contains('resume'),

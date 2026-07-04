@@ -37,6 +37,8 @@ void main() {
           fixture.path,
           '--max-cases',
           '1',
+          '--timeout-ms',
+          '12345',
           '--report-dir',
           '${root.path}/reports',
         ],
@@ -71,6 +73,7 @@ void main() {
         arguments,
         contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=1'),
       );
+      expect(stdout.content, contains('timeoutMs=12345'));
       expect(
         arguments,
         contains(
@@ -83,6 +86,38 @@ void main() {
       expect(stdout.content, isNot(contains('flutter progress spam')));
     },
   );
+
+  test('generated fixture wrapper times out hung child process', () async {
+    final root = await Directory.systemTemp.createTemp(
+      'maintainiac_generated_fixture_runner_timeout_',
+    );
+    addTearDown(() => root.delete(recursive: true));
+    final fixture = File('${root.path}/generated_fixtures.json')
+      ..writeAsStringSync('[]');
+
+    final stdout = _MemorySink();
+    final stderr = _MemorySink();
+    final exit = await runGeneratedParserFixtures(
+      [
+        '--fixture',
+        fixture.path,
+        '--timeout-ms',
+        '1',
+        '--report-dir',
+        '${root.path}/reports',
+      ],
+      stdout: stdout,
+      stderr: stderr,
+      processRunner:
+          (String command, List<String> args, {bool runInShell = false}) async {
+            await Future<void>.delayed(const Duration(milliseconds: 5));
+            return ProcessResult(45, 124, '', 'timeout');
+          },
+    );
+
+    expect(exit, 124);
+    expect(stdout.content, contains('timeoutMs=1'));
+  });
 
   test(
     'generated fixture wrapper verbose mode passes through full output',
