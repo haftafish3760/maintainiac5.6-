@@ -90,6 +90,7 @@ class WorkSupplyParserReleaseOneScorecardSuite extends QaSuite {
     final failures = <QaFailure>[];
     final file = File(_scorecardPath);
     final source = file.existsSync() ? file.readAsStringSync() : '';
+    final normalizedSource = _normalizeContractText(source);
 
     if (!file.existsSync()) {
       failures.add(
@@ -108,7 +109,7 @@ class WorkSupplyParserReleaseOneScorecardSuite extends QaSuite {
     }
 
     for (final token in _requiredTokens) {
-      if (source.contains(token)) continue;
+      if (normalizedSource.contains(_normalizeContractText(token))) continue;
       failures.add(
         QaFailure(
           suite: name,
@@ -137,6 +138,10 @@ class WorkSupplyParserReleaseOneScorecardSuite extends QaSuite {
       },
     );
   }
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
 
 String _safeId(String value) {

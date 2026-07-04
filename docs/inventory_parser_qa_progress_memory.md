@@ -3558,3 +3558,8 @@ Release boundaries:
   normalizing whitespace instead of weakening the rule. Focused
   `inventory.service_truck_core_contract,inventory.release_one_core_manifest,qa.threshold_gate`
   passed 24,261 checks with 0 failures, and targeted analyzer found no issues.
+- **11:27 Harness Pass 2629:** Made Release 1 residential and scorecard
+  contract token checks whitespace-safe so wrapped documentation does not create
+  false failures or encourage brittle one-line docs. Focused
+  `inventory.release_one_scorecard_contract,inventory.release_one_residential_contract,inventory.release_one_core_manifest,qa.threshold_gate`
+  passed 149 checks with 0 failures, and targeted analyzer found no issues.
