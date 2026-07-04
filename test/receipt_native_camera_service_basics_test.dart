@@ -70,7 +70,12 @@ void main() {
       'lib/shared/widgets/receipt_capture/receipt_native_camera_service_contract_helpers.dart',
     ).readAsStringSync();
 
+    expect(serviceContractSource, contains("'tapFocusEnabled': false"));
     expect(serviceContractSource, contains("'tapFocusControlExpected': false"));
+    expect(
+      serviceContractSource,
+      isNot(contains("'tapFocusEnabled': config.tapFocusEnabled")),
+    );
     expect(
       serviceContractSource,
       isNot(contains("'tapFocusControlExpected': config.tapFocusEnabled")),

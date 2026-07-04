@@ -49,7 +49,7 @@ Map<String, Object?> _sessionArguments(
     'assistedReceiptFill': settings.assistedReceiptFill,
     'reviewDepth': settings.reviewDepth.name,
     'longReceiptMode': settings.longReceiptMode,
-    'tapFocusEnabled': config.tapFocusEnabled,
+    'tapFocusEnabled': false,
     'tapToFocusPolicy': config.tapToFocusPolicy,
     'focusStrategyPolicy': config.focusStrategyPolicy,
     'readabilityGuidancePolicy': config.readabilityGuidancePolicy,
