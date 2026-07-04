@@ -13,6 +13,8 @@ class WorkSupplyParserBatchContinuationSuite extends QaSuite {
     'continueOnFailure',
     'latest_wave_summary.json',
     'queueSummaryPath',
+    'latest_generated_fixture_run.json',
+    'recoveredFromGeneratedFixtureReport',
     'liveServicesAllowed',
     'writesProductionCatalog',
     'ocrCameraExpensesTouched',

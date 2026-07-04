@@ -268,6 +268,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'dryRun',
         'Process.run',
         'tool/work_supply_parser_qa_matrix_pipeline.dart',
+        'latest_generated_fixture_run.json',
+        'recoveredFromGeneratedFixtureReport',
         '--execute',
       ],
     ),
