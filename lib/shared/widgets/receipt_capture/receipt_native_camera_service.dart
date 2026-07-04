@@ -88,6 +88,14 @@ class ReceiptNativeCameraService {
       final nativeDiagnostics = receiptNativeCaptureSanitizedDiagnostics(
         result['captureDiagnostics'],
       );
+      if (_exceedsNativeReceiptByteBudget(
+        nativeDiagnostics,
+        config.maxLocalPhotoBytes,
+      )) {
+        throw const ReceiptNativeCameraUnavailableException(
+          'Maintainiac receipt camera returned an oversized receipt photo.',
+        );
+      }
       _verifyMaintainiacReceiptSurface(config, nativeDiagnostics);
       return ReceiptNativeCaptureResult(
         engine: config.nativeCapabilities.engine,
@@ -199,4 +207,27 @@ bool _isNativeReceiptImagePath(String path) {
       lowerPath.endsWith('.png') ||
       lowerPath.endsWith('.heic') ||
       lowerPath.endsWith('.heif');
+}
+
+bool _exceedsNativeReceiptByteBudget(
+  Map<String, Object?> diagnostics,
+  int maxLocalPhotoBytes,
+) {
+  if (maxLocalPhotoBytes <= 0) return false;
+  final byteSize = _nativeReceiptByteSize(diagnostics);
+  return byteSize != null && byteSize > maxLocalPhotoBytes;
+}
+
+int? _nativeReceiptByteSize(Map<String, Object?> diagnostics) {
+  final values = [
+    diagnostics['photoByteSize'],
+    diagnostics['totalCapturedByteSize'],
+  ];
+  for (final value in values) {
+    if (value is int && value > 0) return value;
+    if (value is double && value.isFinite && value > 0) {
+      return value.round();
+    }
+  }
+  return null;
 }

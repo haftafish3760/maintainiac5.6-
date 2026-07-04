@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 719 - 02:43:00 EDT to active cleanup
+
+Scope:
+- Hardened `ReceiptNativeCameraService` so sanitized native capture diagnostics
+  that exceed the session `maxLocalPhotoBytes` budget are rejected before
+  OCR/staging handoff.
+- Added a focused regression for oversized native receipt photo diagnostics.
+- Recorded `BUG-RECEIPT-0207` under `source_preservation`.
+- Archived Pass 692 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed Dart format/analyzer for native byte-budget validation.
+- Passed focused native path validation regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 718 - 02:40:00 EDT to active cleanup
 
 Scope:
@@ -471,24 +487,5 @@ Verification:
 - Passed targeted Dart format/analyzer for receipt privacy event redaction
   telemetry.
 - Passed focused Flutter receipt privacy event regression.
-- Passed cleanup log, doc size, bug ledger, source audit, tests-only source
-  audit, and diff whitespace gates.
-
-## Pass 692 - 00:53:45 EDT to active cleanup
-
-Scope:
-- Added a privacy-safe receipt layout redaction summary so QA/admin diagnostics
-  can see visible, hidden, ignored, and protected line counts without receipt
-  text.
-- Included safe redaction anchor codes and protected content buckets while
-  keeping raw OCR/item text out of the summary.
-- Added regression coverage proving ignored line-target requests are summarized
-  safely and raw receipt text is not exposed.
-- Recorded `BUG-RECEIPT-0179` under `privacy_redaction`.
-- Archived Pass 631 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for receipt layout redaction summary.
-- Passed focused Flutter direct parser/layout redaction regression.
 - Passed cleanup log, doc size, bug ledger, source audit, tests-only source
   audit, and diff whitespace gates.
