@@ -3245,3 +3245,12 @@ Release boundaries:
   with 110 checked generated parser fixtures and 0 failures. This is evidence
   for the active Release 1 Core lane only; it does not promote Standard,
   Professional, or Complete.
+- **09:10 Harness Pass 2398:** Ran a deeper local-only Release 1 Core semantic
+  queue, `pass2396-core-semantic-500`, across Plumbing/Electrical/HVAC
+  residential Core for `en-US` and `es-US`. The queue completed 6/6 cells with
+  0 failed cells, `limit=500`, `fixtureRunLimit=500`, and all safety flags false.
+  The generated-run status artifact
+  `build/parser_qa_pipeline/core_generated_run_status_500.json` reports
+  3,000 checked generated parser fixture cases, 0 failed cells, 0 unsafe cells,
+  and 3,096 local parser calls. This is the strongest current evidence for the
+  active Core lane; Standard remains a separate later lane.
