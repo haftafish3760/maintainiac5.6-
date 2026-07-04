@@ -21,6 +21,7 @@ part 'receipt_qa_report_models.dart';
 part 'receipt_qa_scoring_matchers.dart';
 part 'receipt_qa_scoring_privacy.dart';
 part 'receipt_qa_scoring_review.dart';
+part 'receipt_qa_scoring_barcode.dart';
 part 'receipt_qa_scoring_checks.dart';
 part 'receipt_qa_scoring.dart';
 
@@ -217,6 +218,8 @@ class _ReceiptQaFixture {
     this.expectedPhotoFocusLabel,
     this.expectedPhotoWarningNeedles = const [],
     this.expectedPhotoGuidanceNeedles = const [],
+    this.barcodeCodes = const [],
+    this.barcodeWarnings = const [],
     this.expectedBarcodeCodeCount,
     this.expectedQrCodeCount,
     this.expectedInventoryLookupCandidateCount,
@@ -299,6 +302,8 @@ class _ReceiptQaFixture {
   final String? expectedPhotoFocusLabel;
   final List<String> expectedPhotoWarningNeedles;
   final List<String> expectedPhotoGuidanceNeedles;
+  final List<_ReceiptQaBarcodeCode> barcodeCodes;
+  final List<String> barcodeWarnings;
   final int? expectedBarcodeCodeCount;
   final int? expectedQrCodeCount;
   final int? expectedInventoryLookupCandidateCount;
@@ -309,4 +314,18 @@ class _ReceiptQaFixture {
   final int? expectedAddressContactLineCount;
   final int? expectedPrivateNameLineCount;
   final List<String> expectedSensitiveNeedlesExcluded;
+}
+
+class _ReceiptQaBarcodeCode {
+  const _ReceiptQaBarcodeCode({
+    required this.format,
+    required this.valueType,
+    required this.rawValue,
+    this.displayValue = '',
+  });
+
+  final String format;
+  final String valueType;
+  final String rawValue;
+  final String displayValue;
 }

@@ -3,6 +3,29 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 675 - 00:04:40 EDT to active cleanup
+
+Scope:
+- Hardened the receipt QA runner so barcode/QR fixture expectations are scored
+  as behavior checks instead of manifest-only fields.
+- Added synthetic scanner input codes and privacy-safe scanner summary scoring
+  for code count, QR count, inventory lookup candidates, format buckets, and
+  warning buckets.
+- Extended the external fixture schema with scanner input code fields and
+  pinned scanner checks in the QA runner contract.
+- Fixed an overbroad contractor-supply assertion so receipts without barcodes
+  are not forced to emit scanner checks.
+- Archived Passes 646 and 647 from the active cleanup log to keep the doc under
+  cap.
+- Recorded `BUG-RECEIPT-0191` under `fixture_generation`.
+
+Verification:
+- Passed targeted Dart format/analyzer for scanner fixture scoring files.
+- Passed focused Flutter receipt QA runner contract regression.
+- Fixed the cleanup-log gate failure by archiving one more old active pass.
+- Passed cleanup log gate, doc-size gate, bug ledger gate, source audit, and
+  whitespace check.
+
 ## Pass 674 - 23:58:31 EDT to active cleanup
 
 Scope:
@@ -463,34 +486,3 @@ Verification:
 - Passed targeted Dart analyzer for capability/profile/privacy tests.
 - Passed focused Flutter capability, privacy, native rejection, install
   strategy, and parser-pack regressions.
-
-## Pass 647 - 22:45:26 EDT to active cleanup
-
-Scope:
-- Hardened long-receipt stitch-pair state so UI/control changes cannot pass
-  negative or overflow pair indexes into manual overlap review.
-- Routed pair selection through a clamped helper and repaired negative recovery
-  state before overlap arrays are indexed.
-- Added focused lifecycle regression coverage for the bounded callback path.
-- Recorded `BUG-RECEIPT-0165` under `camera_review_state`.
-- Archived Pass 609 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for stitch-pair state and lifecycle
-  regression.
-- Passed focused Flutter receipt photo review async lifecycle regression.
-
-## Pass 646 - 22:43:38 EDT to active cleanup
-
-Scope:
-- Hardened failed receipt-prep cleanup so accepted saved proof, OCR source, and
-  stitched OCR artifacts are forgotten from cleanup candidates before review
-  closes.
-- Reused normalized receipt path identity for the accepted-artifact guard.
-- Added focused regression coverage for the cleanup handoff order.
-- Recorded `BUG-RECEIPT-0164` under `source_preservation`.
-
-Verification:
-- Passed targeted Dart format/analyzer for receipt photo review save/exit
-  cleanup and lifecycle regression.
-- Passed focused Flutter receipt photo review lifecycle regression.

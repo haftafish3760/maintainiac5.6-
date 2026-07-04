@@ -266,6 +266,7 @@ List<_ReceiptQaCheck> _buildReceiptQaChecks({
     'tender_reference_exclusion_ready',
     !signals.hasTenderLineWithAmount || fixture.allowTenderAmountRows,
   );
+  _addBarcodeScannerChecks(fixture: fixture, checks: checks);
   _addPrivacyAdminChecks(fixture: fixture, parsed: parsed, checks: checks);
   addCheck(
     'device_storage',

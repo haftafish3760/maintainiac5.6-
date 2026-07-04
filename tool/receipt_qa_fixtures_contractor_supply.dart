@@ -28,7 +28,26 @@ const _contractorSupplyReceiptQaFixtures = [
       'inventory_material_ready': 3,
       'category_family_materials_ready': 3,
     },
-    expectedBarcodeCodeCount: 2,
+    barcodeCodes: [
+      _ReceiptQaBarcodeCode(
+        format: 'ean13',
+        valueType: 'product',
+        rawValue: '0 12345-67890 5',
+      ),
+      _ReceiptQaBarcodeCode(
+        format: 'code128',
+        valueType: 'text',
+        rawValue: '',
+        displayValue: 'LOWES-SKU-14-2-NMB',
+      ),
+      _ReceiptQaBarcodeCode(
+        format: 'qrCode',
+        valueType: 'wifi',
+        rawValue: 'WIFI:T:WPA;S:PrivateNetwork;P:secret;;',
+      ),
+    ],
+    barcodeWarnings: ['receipt_scanner_inventory_suggestion_only'],
+    expectedBarcodeCodeCount: 3,
     expectedQrCodeCount: 1,
     expectedInventoryLookupCandidateCount: 2,
     expectedBarcodeFormatBuckets: {'ean13': 1, 'code128': 1, 'qr': 1},

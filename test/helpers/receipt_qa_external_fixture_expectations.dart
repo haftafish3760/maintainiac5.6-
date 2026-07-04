@@ -108,6 +108,7 @@ void expectReceiptQaExternalFixtureContract({
   final fixtureDef = schemaDefs['fixture']! as Map<String, Object?>;
   final expectedDef = schemaDefs['expected']! as Map<String, Object?>;
   final photoQualityDef = schemaDefs['photoQuality']! as Map<String, Object?>;
+  final barcodeCodeDef = schemaDefs['barcodeCode']! as Map<String, Object?>;
   final redactionDef = schemaDefs['redaction']! as Map<String, Object?>;
   final imageArtifactsDef =
       schemaDefs['imageArtifacts']! as Map<String, Object?>;
@@ -125,6 +126,8 @@ void expectReceiptQaExternalFixtureContract({
       contains('artifactManifestId'),
       contains('imageArtifacts'),
       contains('photoQuality'),
+      contains('barcodeCodes'),
+      contains('barcodeWarnings'),
     ]),
   );
   expect(
@@ -147,6 +150,10 @@ void expectReceiptQaExternalFixtureContract({
       'textBandScore',
       'isLikelyReadable',
     ]),
+  );
+  expect(
+    barcodeCodeDef['required'],
+    containsAll(['format', 'valueType', 'rawValue']),
   );
   expect(
     expectedDef.toString(),

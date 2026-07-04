@@ -74,6 +74,15 @@
         "photoQuality": {
           "$ref": "#/$defs/photoQuality"
         },
+        "barcodeCodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/barcodeCode"
+          }
+        },
+        "barcodeWarnings": {
+          "$ref": "#/$defs/stringList"
+        },
         "text": {
           "type": "string",
           "minLength": 1
@@ -250,6 +259,31 @@
         },
         "isLikelyReadable": {
           "type": "boolean"
+        }
+      }
+    },
+    "barcodeCode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "valueType",
+        "rawValue"
+      ],
+      "properties": {
+        "format": {
+          "type": "string",
+          "minLength": 1
+        },
+        "valueType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rawValue": {
+          "type": "string"
+        },
+        "displayValue": {
+          "type": "string"
         }
       }
     },
