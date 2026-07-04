@@ -82,11 +82,16 @@ void main() {
         cameraController,
         contains('arguments["nativeControlContractTags"] as? [String] ?? []'),
       );
+      expect(
+        cameraController,
+        contains('arguments["continuousFocusEnabled"] as? Bool ??'),
+      );
       expect(cameraController, contains('configureVideoAnalysisIfNeeded'));
       expect(
         cameraController,
         contains('configureInitialFocusAndExposure(for: device)'),
       );
+      expect(cameraController, contains('if continuousFocusEnabled,'));
       expect(
         cameraController,
         contains('device.focusMode = .continuousAutoFocus'),

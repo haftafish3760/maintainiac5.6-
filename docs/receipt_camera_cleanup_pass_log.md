@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 605 - 21:09:04 EDT to 21:09:49 EDT
+
+Scope:
+- Hardened iOS native receipt camera parity so the bridge reads, stores, and
+  reports the shared `continuousFocusEnabled` session flag.
+- Gated iOS startup continuous autofocus configuration behind
+  `continuousFocusEnabled` so diagnostics match the actual focus request.
+- Added iOS bridge regressions for session argument restore, diagnostics, and
+  startup continuous-focus gating.
+- Recorded `BUG-RECEIPT-0126` under `camera_capture_quality`.
+- Archived Pass 584 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the focused iOS bridge regressions.
+- Passed focused Flutter iOS bridge UI-session and analysis/exposure
+  regressions.
+
 ## Pass 604 - 21:07:15 EDT to 21:08:00 EDT
 
 Scope:
@@ -476,21 +494,3 @@ Verification:
   structure coverage.
 - Passed focused Flutter parser handoff regression for clamped source line
   numbers.
-
-## Pass 584 - 11:12:00 EDT to 11:18:15 EDT
-
-Scope:
-- Hardened OCR-source enhancement scoring so malformed receipt quality metrics
-  cannot produce non-finite cleanup candidate rankings.
-- Added OCR-source handoff source coverage requiring cleanup score metrics to
-  route through the finite enhancement helper.
-- Recorded `BUG-RECEIPT-0100` under `camera_capture_quality`.
-- Archived Pass 557 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Fixed the first focused contract failure by reading the enhancement helper
-  part file instead of only the main image processor shell.
-- Passed targeted Dart format/analyzer for enhancement scoring and OCR-source
-  handoff coverage.
-- Passed focused Flutter OCR-source handoff regression.

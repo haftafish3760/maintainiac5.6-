@@ -72,6 +72,7 @@ extension ReceiptCameraViewController {
     shutterSpeedPolicy = arguments["shutterSpeedPolicy"] as? String ?? shutterSpeedPolicy
     tapToFocusPolicy = arguments["tapToFocusPolicy"] as? String ?? tapToFocusPolicy
     focusStrategyPolicy = arguments["focusStrategyPolicy"] as? String ?? focusStrategyPolicy
+    continuousFocusEnabled = arguments["continuousFocusEnabled"] as? Bool ?? continuousFocusEnabled
     readabilityGuidancePolicy = arguments["readabilityGuidancePolicy"] as? String ?? readabilityGuidancePolicy
     receiptCameraQualityBaseline = arguments["receiptCameraQualityBaseline"] as? Bool ?? receiptCameraQualityBaseline
     zoomGesturePolicy = arguments["zoomGesturePolicy"] as? String ?? zoomGesturePolicy

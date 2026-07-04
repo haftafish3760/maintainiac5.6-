@@ -180,9 +180,14 @@ void main() {
         'var focusStrategyPolicy = "continuous_focus_primary_no_tap_assist"',
       ),
     );
+    expect(cameraController, contains('var continuousFocusEnabled = true'));
     expect(
       cameraController,
       contains('"focusStrategyPolicy": focusStrategyPolicy'),
+    );
+    expect(
+      cameraController,
+      contains('"continuousFocusEnabled": continuousFocusEnabled'),
     );
     expect(
       cameraController,

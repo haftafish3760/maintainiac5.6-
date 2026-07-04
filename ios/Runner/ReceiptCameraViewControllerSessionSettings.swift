@@ -42,7 +42,9 @@ extension ReceiptCameraViewController {
   func configureInitialFocusAndExposure(for device: AVCaptureDevice) {
     do {
       try device.lockForConfiguration()
-      if focusMode == "continuous", device.isFocusModeSupported(.continuousAutoFocus) {
+      if continuousFocusEnabled,
+         focusMode == "continuous",
+         device.isFocusModeSupported(.continuousAutoFocus) {
         device.focusMode = .continuousAutoFocus
         lastFocusStatus = "continuous_autofocus_configured"
       } else if focusMode == "continuous" {

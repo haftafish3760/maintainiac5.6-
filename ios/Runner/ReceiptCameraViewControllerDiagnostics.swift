@@ -19,6 +19,7 @@ extension ReceiptCameraViewController {
       "tapFocusCoordinateSpace": "avfoundation_preview_layer_device_point",
       "tapToFocusPolicy": tapToFocusPolicy,
       "focusStrategyPolicy": focusStrategyPolicy,
+      "continuousFocusEnabled": continuousFocusEnabled,
       "readabilityGuidancePolicy": readabilityGuidancePolicy,
       "receiptCameraQualityBaseline": receiptCameraQualityBaseline,
       "pinchZoomPolicy": zoomGesturePolicy,
