@@ -3706,3 +3706,10 @@ Release boundaries:
   brittle documentation formatting. Focused
   `inventory.no_live_services_contract,inventory.pack_recovery_contract,inventory.release_manifest,inventory.baseline_contract,qa.threshold_gate`
   passed 5,003 checks with 0 failures, and targeted analyzer found no issues.
+- **12:01 Harness Pass 2744:** Made category reuse, data provenance, failure
+  taxonomy, and generated fixture performance contract scans whitespace-safe.
+  This protects the shared whole-app QA backbone, source metadata/provenance,
+  triage rollups, generated fixture artifacts, and local-only performance
+  reporting from brittle line wrapping. Focused
+  `inventory.category_reuse_contract,inventory.data_provenance_contract,inventory.failure_taxonomy_contract,inventory.generated_fixture_performance_contract,qa.threshold_gate`
+  passed 124 checks with 0 failures, and targeted analyzer found no issues.

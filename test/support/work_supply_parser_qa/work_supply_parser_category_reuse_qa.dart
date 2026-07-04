@@ -86,7 +86,7 @@ class WorkSupplyParserCategoryReuseSuite extends QaSuite {
     checked += _reuseDocTokens.length;
     final missingDocs = [
       for (final token in _reuseDocTokens)
-        if (!plan.contains(token)) token,
+        if (!_containsContractToken(plan, token)) token,
     ];
     if (missingDocs.isEmpty) {
       present.add('category_reuse_docs');
@@ -103,7 +103,7 @@ class WorkSupplyParserCategoryReuseSuite extends QaSuite {
 
     checked += _sharedHarnessTokens.length;
     for (final token in _sharedHarnessTokens) {
-      if (sharedHarness.contains(token)) {
+      if (_containsContractToken(sharedHarness, token)) {
         present.add('shared:$token');
         continue;
       }
@@ -122,7 +122,7 @@ class WorkSupplyParserCategoryReuseSuite extends QaSuite {
       final source = _read(contract.path, failures);
       final missing = [
         for (final token in contract.tokens)
-          if (!source.contains(token)) token,
+          if (!_containsContractToken(source, token)) token,
       ];
       if (missing.isEmpty) {
         present.add('infrastructure:${contract.name}');
@@ -222,4 +222,12 @@ class _SharedFileContract {
   final String name;
   final String path;
   final List<String> tokens;
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
