@@ -266,9 +266,9 @@ extension ReceiptCameraViewController {
       "settingsControlExpected": true,
       "backControlExpected": true,
       "torchControlExpected": device?.hasTorch ?? false,
-      "focusLockControlExpected": focusLockEnabled,
-      "exposureLockControlExpected": exposureLockEnabled,
-      "whiteBalanceLockControlExpected": whiteBalanceLockEnabled,
+      "focusLockControlExpected": false,
+      "exposureLockControlExpected": false,
+      "whiteBalanceLockControlExpected": false,
       "manualShutterAlwaysAvailable": arguments["manualShutterAlwaysAvailable"] as? Bool ?? true
     ]
   }

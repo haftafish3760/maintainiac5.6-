@@ -125,15 +125,15 @@ void expectAcceptedNativeCaptureRecoveryManifest(
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['focusLockControlExpected'],
-    isTrue,
+    isFalse,
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['exposureLockControlExpected'],
-    isTrue,
+    isFalse,
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['whiteBalanceLockControlExpected'],
-    isTrue,
+    isFalse,
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['whiteBalanceLockEnabled'],

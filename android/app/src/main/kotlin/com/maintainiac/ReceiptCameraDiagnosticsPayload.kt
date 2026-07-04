@@ -220,9 +220,9 @@ internal fun ReceiptCameraActivity.nativeCaptureDiagnostics(
         "settingsControlExpected" to true,
         "backControlExpected" to true,
         "torchControlExpected" to (activeCamera?.cameraInfo?.hasFlashUnit() == true),
-        "focusLockControlExpected" to focusLockEnabled(),
-        "exposureLockControlExpected" to exposureLockEnabled(),
-        "whiteBalanceLockControlExpected" to whiteBalanceLockEnabled,
+        "focusLockControlExpected" to false,
+        "exposureLockControlExpected" to false,
+        "whiteBalanceLockControlExpected" to false,
         "manualShutterAlwaysAvailable" to intent.getBooleanExtra("manualShutterAlwaysAvailable", true),
     )
     diagnostics.putAll(nativeCapturedPhotoDiagnostics(photoByteSize, capturedAt))

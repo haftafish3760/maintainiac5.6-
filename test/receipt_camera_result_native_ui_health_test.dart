@@ -251,11 +251,11 @@ void main() {
           'pinchZoomControlActual': 'missing',
           'torchControlExpected': true,
           'torchControlActual': 'missing',
-          'focusLockControlExpected': true,
+          'focusLockControlExpected': false,
           'focusLockControlActual': 'missing',
-          'exposureLockControlExpected': true,
+          'exposureLockControlExpected': false,
           'exposureLockControlActual': 'missing',
-          'whiteBalanceLockControlExpected': true,
+          'whiteBalanceLockControlExpected': false,
           'whiteBalanceLockControlActual': 'missing',
         },
       },
@@ -286,16 +286,16 @@ void main() {
     );
     expect(
       result.nativeCameraUiHealthCounts['focus_lock_actual_control_missing'],
-      1,
+      isNull,
     );
     expect(
       result.nativeCameraUiHealthCounts['exposure_lock_actual_control_missing'],
-      1,
+      isNull,
     );
     expect(
       result
           .nativeCameraUiHealthCounts['white_balance_lock_actual_control_missing'],
-      1,
+      isNull,
     );
     expect(result.nativeCameraUiHealthCounts['preview_dominance_missing'], 1);
     expect(

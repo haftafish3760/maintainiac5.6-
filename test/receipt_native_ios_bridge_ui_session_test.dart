@@ -199,9 +199,29 @@ void main() {
       contains('"readabilityGuidancePolicy": readabilityGuidancePolicy'),
     );
     expect(cameraController, contains('"tapFocusControlExpected": false'));
+    expect(cameraController, contains('"focusLockControlExpected": false'));
+    expect(cameraController, contains('"exposureLockControlExpected": false'));
+    expect(
+      cameraController,
+      contains('"whiteBalanceLockControlExpected": false'),
+    );
     expect(
       cameraController,
       isNot(contains('"tapFocusControlExpected": tapFocusEnabled')),
+    );
+    expect(
+      cameraController,
+      isNot(contains('"focusLockControlExpected": focusLockEnabled')),
+    );
+    expect(
+      cameraController,
+      isNot(contains('"exposureLockControlExpected": exposureLockEnabled')),
+    );
+    expect(
+      cameraController,
+      isNot(
+        contains('"whiteBalanceLockControlExpected": whiteBalanceLockEnabled'),
+      ),
     );
     expect(readinessSummary, isNot(contains('tapFocusControlActualStatus()')));
     expect(readinessSummary, isNot(contains('focusLockControlActualStatus()')));

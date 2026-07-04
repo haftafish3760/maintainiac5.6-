@@ -122,11 +122,11 @@ extension ReceiptCameraViewController {
   }
 
   var focusLockEnabled: Bool {
-    return focusMode == "locked"
+    return false
   }
 
   var exposureLockEnabled: Bool {
-    return exposureMode == "locked"
+    return false
   }
 
   func nativeControlReadinessSummary() -> String {

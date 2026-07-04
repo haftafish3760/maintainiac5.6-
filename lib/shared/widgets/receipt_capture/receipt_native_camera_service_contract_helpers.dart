@@ -202,9 +202,9 @@ Map<String, Object?> _nativeControlContract(
     'settingsControlExpected': true,
     'backControlExpected': true,
     'torchControlExpected': config.nativeCapabilities.supportsTorch,
-    'focusLockControlExpected': config.focusLockEnabled,
-    'exposureLockControlExpected': config.exposureLockEnabled,
-    'whiteBalanceLockControlExpected': config.whiteBalanceLockEnabled,
+    'focusLockControlExpected': false,
+    'exposureLockControlExpected': false,
+    'whiteBalanceLockControlExpected': false,
   };
 }
 

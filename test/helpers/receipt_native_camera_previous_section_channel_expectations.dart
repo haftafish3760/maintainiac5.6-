@@ -258,7 +258,7 @@ void expectPreviousSectionGuideChannelArguments(
   expect(sentArguments['settingsControlExpected'], isTrue);
   expect(sentArguments['backControlExpected'], isTrue);
   expect(sentArguments['torchControlExpected'], isTrue);
-  expect(sentArguments['focusLockControlExpected'], isTrue);
-  expect(sentArguments['exposureLockControlExpected'], isTrue);
-  expect(sentArguments['whiteBalanceLockControlExpected'], isTrue);
+  expect(sentArguments['focusLockControlExpected'], isFalse);
+  expect(sentArguments['exposureLockControlExpected'], isFalse);
+  expect(sentArguments['whiteBalanceLockControlExpected'], isFalse);
 }

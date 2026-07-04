@@ -3,6 +3,32 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 727 - 03:07:12 EDT to active cleanup
+
+Scope:
+- Pinned Android, iOS, and Dart bridge diagnostics so retired focus/exposure/
+  white-balance lock controls are never reported as expected receipt-camera
+  controls.
+- Kept legacy lock setting fields available separately for compatibility while
+  preventing them from driving expected-control health.
+- Updated staging/channel fixtures and Android/iOS bridge regressions for the
+  retired lock-control expected values.
+- Recorded `BUG-RECEIPT-0217` under `native_bridge`.
+- Archived Pass 701 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- First focused run included a non-existent staging manifest test path and
+  exposed a stale retired-lock health expectation; fixed the expectation and
+  reran with the correct staging test.
+- Focused staging rerun exposed stale manifest helper assertions for retired
+  lock expected controls; fixed before continuing.
+- Tests-only source audit initially hit a Dart native-assets codesign race while
+  another audit was running; reran it alone and it passed.
+- Passed targeted Dart format/analyzer and focused native bridge/staging
+  regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 726 - 03:04:16 EDT to active cleanup
 
 Scope:
@@ -453,40 +479,3 @@ Verification:
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
 - Archived Pass 644 from the active cleanup log to keep the doc under cap.
-
-## Pass 702 - 02:06:00 EDT to active cleanup
-
-Scope:
-- Hardened continuation guide application so manual guide construction cannot
-  leak untrimmed reason/guidance/path values or malformed ghost overlay
-  fractions into shared capture options.
-- Clamped out-of-range ghost fractions and dropped non-finite fractions before
-  native camera session arguments can inherit continuation context.
-- Added focused regression coverage for malicious/manual continuation guide
-  values.
-- Recorded `BUG-RECEIPT-0189` under `ghost_overlap_stitching`.
-- Archived Passes 642 and 643 from the active cleanup log to keep the doc
-  under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for shared receipt capture flow models.
-- Passed focused Flutter receipt capture flow shareability regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 701 - 01:45:00 EDT to active cleanup
-
-Scope:
-- Strengthened long-receipt continuation coverage so Add Photo/continuation
-  guides prove they preserve module-default detailed review intent.
-- Added direct assertions for materials inventory and maintenance continuation
-  staying detailed-line review while expense continuation remains price-only by
-  default unless forced.
-- Kept missing-bottom/totals ghost context expectations pinned in the same
-  shared-flow regression.
-- Recorded `BUG-RECEIPT-0188` under `qa_harness`.
-- Archived Pass 641 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for receipt capture flow shareability.
-- Passed focused Flutter receipt capture flow shareability regression.
