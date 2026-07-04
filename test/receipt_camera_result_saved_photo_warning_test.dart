@@ -108,4 +108,39 @@ void main() {
       isFalse,
     );
   });
+
+  test('photo review result profiles dirty lens handoff warning', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/hazy.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/hazy-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/hazy-ocr.jpg']),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/hazy.jpg': {
+          'latestReadabilitySignal': 'dirty_lens_or_haze',
+          'latestCapturedEdgeScore': 6.0,
+        },
+      },
+    );
+
+    expect(result.savedPhotoWarningCodes, ['saved_photo_dirty_lens_or_haze']);
+    expect(
+      result.acceptedPhotoWarningProfile,
+      'saved_photo_dirty_lens_or_haze',
+    );
+    expect(result.savedPhotoWarningReviewActionLabels, ['Wipe lens or retake']);
+    expect(
+      result.acceptedPhotoHandoffActionLabel,
+      'Wipe the lens or retake before relying on automatic fill.',
+    );
+    expect(
+      result.receiptReaderHandoffCounts['parser_risk_ocr_hazy_text_may_fail'],
+      1,
+    );
+    expect(
+      result
+          .receiptReaderHandoffCounts['saved_photo_action_wipe_lens_or_retake'],
+      1,
+    );
+  });
 }

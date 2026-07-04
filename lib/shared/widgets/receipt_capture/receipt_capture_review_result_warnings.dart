@@ -203,6 +203,7 @@ extension ReceiptPhotoReviewResultWarnings on ReceiptPhotoReviewResult {
       'saved_photo_glare_risk',
       'saved_photo_bottom_too_dark',
       'saved_photo_bottom_soft',
+      'saved_photo_dirty_lens_or_haze',
       'saved_photo_brightness_assist_still_dim',
       'saved_photo_dimmer_than_preview',
     ]) {

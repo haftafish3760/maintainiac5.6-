@@ -33,6 +33,8 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
           'Add Another Photo for the bottom lines if the total is hard to read.',
         'saved_photo_bottom_soft' =>
           'Add Another Photo or retake the bottom lines if they look fuzzy.',
+        'saved_photo_dirty_lens_or_haze' =>
+          'Wipe the lens or retake before relying on automatic fill.',
         'saved_photo_brightness_assist_still_dim' =>
           'Check dim receipt text, then add light or retake if needed.',
         'saved_photo_dimmer_than_preview' =>

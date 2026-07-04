@@ -375,6 +375,22 @@ Verification:
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
 
+## Pass 814 - 12:34:00 EDT to active cleanup
+
+Scope:
+- Surfaced dirty-lens/hazy saved-photo warnings in the receipt review warning
+  profile and next-action handoff copy.
+- Added result-level regression coverage proving hazy photos keep the
+  `saved_photo_dirty_lens_or_haze` profile, wipe-lens action, and parser risk.
+- Recorded `BUG-RECEIPT-0299` under `camera_review_state`.
+- Archived Pass 782 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted saved-photo warning format/analyzer and focused dirty-lens
+  result regression.
+- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
+  whitespace gates.
+
 ## Pass 813 - 12:27:00 EDT to active cleanup
 
 Scope:
@@ -474,19 +490,3 @@ Verification:
 - Passed targeted fixture format/analyzer and focused damaged OCR QA runner.
 - Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
   whitespace gates.
-
-## Pass 782 - 07:32:31 EDT to active cleanup
-
-Scope:
-- Hardened receipt quality guidance so critical-but-decodable photos still
-  advertise manual review availability while auto-capture remains blocked.
-- Kept unreadable/corrupt images out of the continue-with-review signal.
-- Added quality regressions for glare retake guidance, manual Next availability,
-  and unreadable-image exclusion.
-- Recorded `BUG-RECEIPT-0269` under `camera_capture_quality`.
-- Archived Pass 754 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused quality guidance test.
-- Passed doc-size, bug-ledger, source-audit, test-audit, and diff whitespace
-  gates.

@@ -80,6 +80,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       'receipt_handoff_warning_saved_photo_glare_risk',
       'receipt_handoff_warning_saved_photo_bottom_too_dark',
       'receipt_handoff_warning_saved_photo_bottom_soft',
+      'receipt_handoff_warning_saved_photo_dirty_lens_or_haze',
       'receipt_handoff_warning_saved_photo_brightness_assist_still_dim',
       'receipt_handoff_warning_saved_photo_dimmer_than_preview',
     ]) {
