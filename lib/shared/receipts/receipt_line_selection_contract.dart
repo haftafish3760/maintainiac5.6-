@@ -67,8 +67,10 @@ class ReceiptSelectedLineReference {
   Map<String, Object?> toLocalMap() {
     return {
       'receiptId': receiptId,
-      'receiptLineId': receiptLineId,
-      'proofLineReferenceLabel': proofLineReferenceLabel,
+      'receiptLineId': privacySafeReceiptLineId(receiptLineId),
+      'proofLineReferenceLabel': privacySafeReceiptProofLineReferenceLabel(
+        proofLineReferenceLabel,
+      ),
       'clientProofDefaultVisibility': clientProofDefaultVisibility,
       'kind': kind,
       'businessUse': businessUse,
@@ -87,8 +89,10 @@ class ReceiptSelectedLineReference {
   Map<String, Object?> toPrivacySafeMap() {
     return {
       'receiptId': receiptId,
-      'receiptLineId': receiptLineId,
-      'proofLineReferenceLabel': proofLineReferenceLabel,
+      'receiptLineId': privacySafeReceiptLineId(receiptLineId),
+      'proofLineReferenceLabel': privacySafeReceiptProofLineReferenceLabel(
+        proofLineReferenceLabel,
+      ),
       'clientProofDefaultVisibility': clientProofDefaultVisibility,
       'kind': kind,
       'businessUse': businessUse,

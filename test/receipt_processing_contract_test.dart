@@ -348,4 +348,43 @@ void main() {
     );
     expect(imagePlan.toPrivacySafeMap().toString(), isNot(contains('18.00')));
   });
+
+  test('client proof privacy maps redact unsafe line ids and references', () {
+    const line = ReceiptLineDraft(
+      kind: ReceiptLineKind.inventory,
+      description: 'Private material',
+      receiptLineId: 'PRIVATE STORE LINE 18.00',
+      subtotal: 18,
+      businessUse: 'business',
+      rawReceiptText: 'PRIVATE STORE LINE 18.00',
+      proofLineReferenceLabel: 'PRIVATE STORE AISLE 18.00',
+      clientProofDefaultVisibility:
+          ReceiptLineClientProofVisibility.reviewForClientProof,
+      sourceReceiptSectionLabel: 'Photo 1',
+    );
+    final bundle = ReceiptLineSelectionBundle.fromDrafts(
+      receiptId: 'RCP-16',
+      purpose: ReceiptLineSelectionPurpose.clientProof,
+      sourceLines: const [line],
+      includeLine: (_) => true,
+    );
+    final redactionPlan = ReceiptClientProofRedactionPlan.fromBundle(bundle);
+
+    expect(line.privacySafeProofReference['receiptLineId'], 'receipt_line');
+    expect(
+      line.privacySafeProofReference['proofLineReferenceLabel'],
+      'Receipt line',
+    );
+    expect(bundle.toPrivacySafeMap().toString(), contains('receipt_line'));
+    expect(
+      redactionPlan.toPrivacySafeMap().toString(),
+      contains('Receipt line'),
+    );
+    expect(bundle.toPrivacySafeMap().toString(), isNot(contains('PRIVATE')));
+    expect(
+      redactionPlan.toPrivacySafeMap().toString(),
+      isNot(contains('18.00')),
+    );
+    expect(redactionPlan.toPrivacySafeMap().toString(), contains('Photo 1'));
+  });
 }

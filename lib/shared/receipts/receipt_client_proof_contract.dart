@@ -23,8 +23,10 @@ class ReceiptClientProofRedactionLine {
 
   Map<String, Object?> toPrivacySafeMap() {
     return {
-      'receiptLineId': receiptLineId,
-      'proofLineReferenceLabel': proofLineReferenceLabel,
+      'receiptLineId': privacySafeReceiptLineId(receiptLineId),
+      'proofLineReferenceLabel': privacySafeReceiptProofLineReferenceLabel(
+        proofLineReferenceLabel,
+      ),
       'action': action.name,
       'reason': reason,
       if (sourceReceiptSectionLabel.trim().isNotEmpty)

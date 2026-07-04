@@ -30,6 +30,32 @@ String privacySafeReceiptSourceSectionLabel(String value) {
   return 'source_section';
 }
 
+String privacySafeReceiptLineId(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) return '';
+  if (RegExp(r'^[A-Za-z0-9][A-Za-z0-9_-]{0,47}$').hasMatch(trimmed)) {
+    return trimmed;
+  }
+  return 'receipt_line';
+}
+
+String privacySafeReceiptProofLineReferenceLabel(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) return 'Receipt line';
+  final normalized = trimmed.toLowerCase();
+  if (RegExp(
+    r'^(line|source line|excluded line)\s+\d{1,4}$',
+  ).hasMatch(normalized)) {
+    return trimmed;
+  }
+  if (RegExp(
+    r'^line\s+\d{1,4},\s+(source line|section\s+\d{1,3}\s+line)\s+\d{1,4}$',
+  ).hasMatch(normalized)) {
+    return trimmed;
+  }
+  return 'Receipt line';
+}
+
 class ReceiptLineDraft {
   const ReceiptLineDraft({
     required this.kind,
@@ -253,8 +279,10 @@ class ReceiptLineDraft {
 
   Map<String, Object?> get privacySafeProofReference {
     return {
-      'receiptLineId': receiptLineId,
-      'proofLineReferenceLabel': proofReferenceLabel,
+      'receiptLineId': privacySafeReceiptLineId(receiptLineId),
+      'proofLineReferenceLabel': privacySafeReceiptProofLineReferenceLabel(
+        proofReferenceLabel,
+      ),
       'clientProofDefaultVisibility': clientProofDefaultVisibility,
       'clientProofReviewLabel': clientProofReviewLabel,
       if (sourceReceiptSectionLabel.trim().isNotEmpty)
