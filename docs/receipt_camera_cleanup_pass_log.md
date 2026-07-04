@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 703 - 02:12:00 EDT to active cleanup
+
+Scope:
+- Audited active receipt camera docs and focus policy after retiring tap-focus
+  as a product answer.
+- Strengthened the active-doc focus regression so the exact `tap-focus` phrase
+  cannot come back into active camera docs.
+- Removed the stale active native service spec sentence that still described
+  tap-focus as legacy diagnostics.
+- Recorded `BUG-RECEIPT-0190` under `qa_harness`.
+
+Verification:
+- Initial focused regression failed on the stale native service spec sentence;
+  fixed it before moving on.
+- Passed targeted Dart format/analyzer for the active camera docs policy test.
+- Passed focused Flutter active camera docs focus-policy regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+- Archived Pass 644 from the active cleanup log to keep the doc under cap.
+
 ## Pass 702 - 02:06:00 EDT to active cleanup
 
 Scope:
@@ -467,20 +487,3 @@ Scope:
 Verification:
 - Passed targeted Dart format for capture quality guidance regression.
 - Passed focused Flutter capture quality guidance regression.
-
-## Pass 644 - 22:39:28 EDT to active cleanup
-
-Scope:
-- Hardened continuation handoff risk flags so result-level receipt attachments
-  carry actionable bottom/totals, ghost-guide-ready, missing-prior-photo, and
-  bottom-overlap policy signals instead of only a generic continuation review.
-- Kept shared capture-flow and attachment-import continuation risk builders
-  aligned.
-- Added focused regression coverage proving bottom-section continuation risk
-  flags survive through attachment creation.
-- Recorded `BUG-RECEIPT-0163` under `ghost_overlap_stitching`.
-- Archived Pass 607 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format for continuation signal builders and regression.
-- Passed focused Flutter continuation handoff regression.

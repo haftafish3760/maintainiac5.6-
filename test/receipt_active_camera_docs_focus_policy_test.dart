@@ -28,6 +28,11 @@ void main() {
       );
       expect(
         text,
+        isNot(contains('tap-focus')),
+        reason: '$path must not keep tap-focus wording in active docs.',
+      );
+      expect(
+        text,
         isNot(contains('tap the receipt text')),
         reason: '$path must not ask users to tap receipt text for focus.',
       );
