@@ -3499,3 +3499,9 @@ Release boundaries:
   official pack mutation without reviewed provenance. The barcode behavior test
   passed 3/3, the barcode identity harness contract passed 55 checks with
   0 failures, and targeted analyzer found no issues.
+- **10:37 Harness Pass 2569:** Extended barcode identity behavior coverage for
+  fleet/vehicle inventory: the same canonical barcode/catalog item can live on
+  multiple vehicles and bins without changing official catalog identity or
+  mutating parser packs. The barcode behavior test passed 4/4, the barcode
+  identity harness contract passed 55 checks with 0 failures, and targeted
+  analyzer found no issues.

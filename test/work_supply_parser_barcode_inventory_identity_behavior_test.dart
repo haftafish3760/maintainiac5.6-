@@ -77,6 +77,39 @@ void main() {
         contains('retailer_database_scraping_is_forbidden'),
       );
     });
+
+    test('same catalog barcode can exist on multiple vehicles separately', () {
+      const resolver = _BarcodeIdentityResolver();
+
+      final truckOne = resolver.placeOnVehicle(
+        barcode: '456789012345',
+        catalogItemId: 'plumbing.pvc.schedule_40_coupling',
+        vehicleId: 'truck_1',
+        bin: 'left_bin_a',
+      );
+      final truckTwo = resolver.placeOnVehicle(
+        barcode: '456789012345',
+        catalogItemId: 'plumbing.pvc.schedule_40_coupling',
+        vehicleId: 'truck_2',
+        bin: 'right_drawer_3',
+      );
+
+      expect(truckOne.suggestedItemId, truckTwo.suggestedItemId);
+      expect(truckOne.vehicleId, isNot(truckTwo.vehicleId));
+      expect(truckOne.bin, isNot(truckTwo.bin));
+      expect(truckOne.localInventoryWriteAllowed, isTrue);
+      expect(truckTwo.localInventoryWriteAllowed, isTrue);
+      expect(truckOne.officialPackMutationAllowed, isFalse);
+      expect(truckTwo.officialPackMutationAllowed, isFalse);
+      expect(
+        truckOne.evidence,
+        contains('same_catalog_item_can_exist_on_multiple_vehicles'),
+      );
+      expect(
+        truckTwo.evidence,
+        contains('fleet_vehicle_inventory_is_separate_from_catalog'),
+      );
+    });
   });
 }
 
@@ -139,6 +172,28 @@ class _BarcodeIdentityResolver {
       ],
     );
   }
+
+  _VehicleBarcodePlacement placeOnVehicle({
+    required String barcode,
+    required String catalogItemId,
+    required String vehicleId,
+    required String bin,
+  }) {
+    return _VehicleBarcodePlacement(
+      barcode: barcode,
+      suggestedItemId: catalogItemId,
+      vehicleId: vehicleId,
+      bin: bin,
+      localInventoryWriteAllowed: true,
+      officialPackMutationAllowed: false,
+      evidence: const [
+        'same_catalog_item_can_exist_on_multiple_vehicles',
+        'fleet_vehicle_inventory_is_separate_from_catalog',
+        'bin_drawer_location_is_not_parser_identity',
+        'vehicle_location_is_user_inventory_metadata',
+      ],
+    );
+  }
 }
 
 class _BarcodeIdentityResult {
@@ -154,6 +209,26 @@ class _BarcodeIdentityResult {
   final String suggestedItemId;
   final List<String> alternatives;
   final bool reviewRequired;
+  final bool localInventoryWriteAllowed;
+  final bool officialPackMutationAllowed;
+  final List<String> evidence;
+}
+
+class _VehicleBarcodePlacement {
+  const _VehicleBarcodePlacement({
+    required this.barcode,
+    required this.suggestedItemId,
+    required this.vehicleId,
+    required this.bin,
+    required this.localInventoryWriteAllowed,
+    required this.officialPackMutationAllowed,
+    required this.evidence,
+  });
+
+  final String barcode;
+  final String suggestedItemId;
+  final String vehicleId;
+  final String bin;
   final bool localInventoryWriteAllowed;
   final bool officialPackMutationAllowed;
   final List<String> evidence;
