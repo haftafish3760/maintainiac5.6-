@@ -26,6 +26,8 @@ void main() {
             'previousSectionGhostGuidePlacement': 'top_ghost_slice',
             'previousSectionGhostGuideMatchTarget':
                 'subtotal_total_and_final_lines',
+            'previousSectionGhostSourceHeightFraction': .20,
+            'previousSectionGhostSlicePercent': 20,
             'previousSectionGuidanceAvailable': true,
             'receiptContinuationSource': 'ocr_missing_bottom_totals',
             'receiptContinuationGhostGuideStatus': 'ready_with_previous_photo',
@@ -45,6 +47,10 @@ void main() {
       expect(
         result.privacySafeReceiptContinuationSummary,
         containsPair('hasOcrRequestedBottomSectionContinuation', true),
+      );
+      expect(
+        result.privacySafeReceiptContinuationSummary.toString(),
+        contains('ghost_slice_percent_20'),
       );
     },
   );
@@ -74,6 +80,7 @@ void main() {
               'top_ghost_slice',
           'phoneCameraBackupPreviousSectionGhostGuideMatchTarget':
               'subtotal_total_and_final_lines',
+          'previousSectionGhostSourceHeightFraction': .20,
         },
       },
     );
@@ -82,6 +89,52 @@ void main() {
     expect(
       result.receiptContinuationSignalCounts,
       containsPair('reason_missing_bottom_edge_and_totals', 1),
+    );
+    expect(
+      result.receiptContinuationSignalCounts,
+      containsPair('ghost_slice_percent_20', 1),
+    );
+  });
+
+  test('continuation handoff ignores malformed ghost slice diagnostics', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/malformed-ghost-proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/malformed-ghost-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/malformed-ghost-ocr.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/malformed-ghost-proof.jpg': {
+          'previousSectionGuideRequested': true,
+          'previousSectionReasonCode': 'missing_bottom_edge_and_totals',
+          'previousSectionMissingBottomAndTotals': true,
+          'previousSectionGhostSourceHeightFraction': double.nan,
+          'previousSectionGhostSlicePercent': 20.5,
+          'receiptText': 'private receipt text should not leak',
+        },
+      },
+    );
+
+    expect(result.hasPreviousSectionContinuationRequest, isTrue);
+    expect(result.hasOcrRequestedBottomSectionContinuation, isTrue);
+    expect(
+      result.receiptContinuationSignalCounts,
+      containsPair('reason_missing_bottom_edge_and_totals', 1),
+    );
+    expect(
+      result.receiptContinuationSignalCounts,
+      containsPair('missing_bottom_edge_and_totals_continuation', 1),
+    );
+    expect(
+      result.receiptContinuationSignalCounts.containsKey(
+        'ghost_slice_percent_20',
+      ),
+      isFalse,
+    );
+    expect(
+      result.privacySafeReceiptContinuationSummary.toString(),
+      isNot(contains('private receipt text')),
     );
   });
 
@@ -191,6 +244,12 @@ void _expectBottomContinuationSummary(ReceiptPhotoReviewResult result) {
   expect(
     result.receiptContinuationSignalCounts,
     containsPair('ghost_match_target_subtotal_total_and_final_lines', 1),
+  );
+  expect(
+    result.receiptContinuationSignalCounts.keys.where(
+      (key) => key.startsWith('ghost_slice_percent_'),
+    ),
+    everyElement(matches(RegExp(r'^ghost_slice_percent_\d+$'))),
   );
   expect(
     result.receiptContinuationSignalCounts,

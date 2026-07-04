@@ -130,6 +130,22 @@ extension ReceiptPhotoReviewResultContinuation on ReceiptPhotoReviewResult {
           ghostMatchTarget != 'none') {
         add('ghost_match_target_${_diagnosticToken(ghostMatchTarget)}');
       }
+      final ghostSlicePercent = _diagnosticInt(
+        diagnostics['previousSectionGhostSlicePercent'],
+      );
+      if (_usableGhostSlicePercent(ghostSlicePercent)) {
+        add('ghost_slice_percent_$ghostSlicePercent');
+      } else {
+        final ghostSourceHeightFraction = _diagnosticDouble(
+          diagnostics['previousSectionGhostSourceHeightFraction'],
+        );
+        if (ghostSourceHeightFraction != null) {
+          final derivedPercent = (ghostSourceHeightFraction * 100).round();
+          if (_usableGhostSlicePercent(derivedPercent)) {
+            add('ghost_slice_percent_$derivedPercent');
+          }
+        }
+      }
       if (source == 'ocr_missing_bottom_totals' || missingBottomAndTotals) {
         add('ocr_requested_bottom_section');
       }
@@ -183,4 +199,24 @@ String? _firstContinuationDiagnosticValue(Object? primary, Object? fallback) {
   final fallbackText = fallback?.toString().trim();
   if (fallbackText != null && fallbackText.isNotEmpty) return fallbackText;
   return null;
+}
+
+int? _diagnosticInt(Object? value) {
+  if (value is int) return value;
+  if (value is num && value.isFinite && value % 1 == 0) return value.toInt();
+  if (value is String) return int.tryParse(value.trim());
+  return null;
+}
+
+double? _diagnosticDouble(Object? value) {
+  if (value is num && value.isFinite) return value.toDouble();
+  if (value is String) {
+    final parsed = double.tryParse(value.trim());
+    if (parsed != null && parsed.isFinite) return parsed;
+  }
+  return null;
+}
+
+bool _usableGhostSlicePercent(int? value) {
+  return value != null && value >= 12 && value <= 35;
 }
