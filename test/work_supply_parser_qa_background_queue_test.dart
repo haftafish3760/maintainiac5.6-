@@ -237,6 +237,61 @@ void main() {
       expect(newTranscript.readAsStringSync(), contains('DRY RUN'));
     },
   );
+
+  test('background queue records timed-out cell evidence', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_background_queue_timeout_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserQaBackgroundQueue(
+      [
+        '--execute',
+        '--trades',
+        'hvac',
+        '--tiers',
+        'core',
+        '--locales',
+        'en-US',
+        '--limit',
+        '500',
+        '--fixture-run-limit',
+        '125',
+        '--cell-timeout-ms',
+        '250',
+        '--queue-id',
+        'timeout-test',
+        '--output-root',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+      cellRunner: (command, {timeout}) async {
+        expect(
+          command,
+          contains('tool/work_supply_parser_qa_matrix_pipeline.dart'),
+        );
+        expect(timeout, const Duration(milliseconds: 250));
+        return const BackgroundQueueCellResult(
+          exitCode: 124,
+          stdout: 'partial stdout',
+          stderr: 'QA_BACKGROUND_QUEUE_CELL_TIMEOUT timeoutMs=250',
+        );
+      },
+    );
+
+    expect(exit, 1);
+    final queueDir = Directory('${output.path}/timeout-test');
+    final summary =
+        jsonDecode(File('${queueDir.path}/summary.json').readAsStringSync())
+            as Map;
+    expect(summary['failedCellCount'], 1);
+    expect(summary['cellTimeoutMs'], 250);
+    final transcript = File(
+      '${queueDir.path}/hvac_residential_core_en_US_transcript.txt',
+    );
+    expect(transcript.readAsStringSync(), contains('CELL_TIMEOUT'));
+  });
 }
 
 class _MemorySink implements IOSink {

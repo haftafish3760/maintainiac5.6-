@@ -1,10 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 const _usage =
     'dart run tool/work_supply_parser_qa_background_queue.dart '
     '[--execute] [--trades plumbing] [--tiers core,standard] '
-    '[--locales en-US,es-US] [--limit 500] [--fixture-run-limit 25]';
+    '[--locales en-US,es-US] [--limit 500] [--fixture-run-limit 25] '
+    '[--cell-timeout-ms 900000]';
 
 Future<void> main(List<String> args) async {
   final exit = await runWorkSupplyParserQaBackgroundQueue(
@@ -19,6 +21,7 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
   List<String> args, {
   required IOSink stdout,
   required IOSink stderr,
+  BackgroundQueueCellRunner? cellRunner,
 }) async {
   if (args.contains('--help') || args.contains('-h')) {
     stdout.writeln(_usage);
@@ -77,15 +80,11 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
     var stderrText = '';
     var durationMs = 0;
     if (options.execute) {
-      final process = await Process.run(
-        command.first,
-        command.skip(1).toList(),
-        workingDirectory: Directory.current.path,
-        runInShell: Platform.isWindows,
-      );
+      final runner = cellRunner ?? _runCellProcess;
+      final process = await runner(command, timeout: options.cellTimeout);
       exit = process.exitCode;
-      stdoutText = process.stdout.toString();
-      stderrText = process.stderr.toString();
+      stdoutText = process.stdout;
+      stderrText = process.stderr;
       durationMs = DateTime.now().toUtc().difference(startedAt).inMilliseconds;
     }
     final completedAt = DateTime.now().toUtc();
@@ -145,6 +144,7 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
     'resumedCellCount': resumedCellCount,
     'limit': options.limit,
     'fixtureRunLimit': options.fixtureRunLimit,
+    if (options.cellTimeoutMs > 0) 'cellTimeoutMs': options.cellTimeoutMs,
     'liveServicesAllowed': false,
     'writesProductionCatalog': false,
     'firebaseWritesAllowed': false,
@@ -335,6 +335,7 @@ class _QueueOptions {
     required this.locales,
     required this.limit,
     required this.fixtureRunLimit,
+    required this.cellTimeoutMs,
     required this.outputRoot,
     required this.queueId,
     required this.execute,
@@ -349,6 +350,7 @@ class _QueueOptions {
   final List<String> locales;
   final int limit;
   final int fixtureRunLimit;
+  final int cellTimeoutMs;
   final String outputRoot;
   final String queueId;
   final bool execute;
@@ -377,6 +379,7 @@ class _QueueOptions {
       locales: _csv(values['locales'] ?? 'en-US,es-US', lowerCase: false),
       limit: int.tryParse(values['limit'] ?? '') ?? 500,
       fixtureRunLimit: int.tryParse(values['fixture-run-limit'] ?? '') ?? 25,
+      cellTimeoutMs: int.tryParse(values['cell-timeout-ms'] ?? '') ?? 0,
       outputRoot: values['output-root'] ?? 'build/parser_qa_background_queue',
       queueId: values['queue-id'] ?? now.replaceAll(RegExp(r'[:.]'), ''),
       execute: flags.contains('execute'),
@@ -385,6 +388,9 @@ class _QueueOptions {
       continueOnFailure: flags.contains('continue-on-failure'),
     );
   }
+
+  Duration? get cellTimeout =>
+      cellTimeoutMs <= 0 ? null : Duration(milliseconds: cellTimeoutMs);
 }
 
 class _QueueCell {
@@ -409,4 +415,62 @@ List<String> _csv(String value, {bool lowerCase = true}) {
       .map((entry) => lowerCase ? entry.trim().toLowerCase() : entry.trim())
       .where((entry) => entry.isNotEmpty)
       .toList();
+}
+
+typedef BackgroundQueueCellRunner =
+    Future<BackgroundQueueCellResult> Function(
+      List<String> command, {
+      Duration? timeout,
+    });
+
+class BackgroundQueueCellResult {
+  const BackgroundQueueCellResult({
+    required this.exitCode,
+    required this.stdout,
+    required this.stderr,
+  });
+
+  final int exitCode;
+  final String stdout;
+  final String stderr;
+}
+
+Future<BackgroundQueueCellResult> _runCellProcess(
+  List<String> command, {
+  Duration? timeout,
+}) async {
+  final process = await Process.start(
+    command.first,
+    command.skip(1).toList(),
+    workingDirectory: Directory.current.path,
+    runInShell: Platform.isWindows,
+  );
+  final stdoutFuture = process.stdout.transform(utf8.decoder).join();
+  final stderrFuture = process.stderr.transform(utf8.decoder).join();
+  var timedOut = false;
+  Timer? timer;
+  if (timeout != null) {
+    timer = Timer(timeout, () {
+      timedOut = true;
+      process.kill(ProcessSignal.sigterm);
+    });
+  }
+  final exit = await process.exitCode;
+  timer?.cancel();
+  final stdoutText = await stdoutFuture;
+  final stderrText = await stderrFuture;
+  if (!timedOut) {
+    return BackgroundQueueCellResult(
+      exitCode: exit,
+      stdout: stdoutText,
+      stderr: stderrText,
+    );
+  }
+  return BackgroundQueueCellResult(
+    exitCode: 124,
+    stdout: stdoutText,
+    stderr:
+        '$stderrText\nQA_BACKGROUND_QUEUE_CELL_TIMEOUT '
+        'timeoutMs=${timeout!.inMilliseconds}',
+  );
 }

@@ -3392,7 +3392,7 @@ Release boundaries:
   failures for Plumbing Core `en-US` and `es-US`; the remaining blocker is the
   generated-fixture Flutter/build-hook runner on this Windows machine, not a
   confirmed parser data mismatch.
-- **10:12 Harness Pass 2456:** Corrected the Core queue evidence readout after
+- **10:00 Harness Pass 2456:** Corrected the Core queue evidence readout after
   finding that Electrical Core `en-US` did write a successful 125-case generated
   fixture report with 0 failures even though the queue status stayed stale from
   the earlier Dart-direct compiler-crash experiment. Added artifact-based resume
@@ -3401,3 +3401,12 @@ Release boundaries:
   wasting another Flutter pass. Analyzer was clean and
   `test/work_supply_parser_qa_background_queue_test.dart` passed 4/4, including
   the new stale-status regression.
+- **10:05 Harness Pass 2467:** Added bounded-cell timeout support to the
+  background queue so future generated-fixture cells can fail with
+  `QA_BACKGROUND_QUEUE_CELL_TIMEOUT` transcript evidence instead of becoming a
+  silent stale process. The queue now uses `Process.start` for controllable
+  execution, documents `--cell-timeout-ms`, and the execution-command governance
+  contract requires the timeout and stale-artifact recovery tokens. Analyzer was
+  clean, `test/work_supply_parser_qa_background_queue_test.dart` passed 5/5,
+  and the focused `inventory.execution_command_contract,qa.threshold_gate`
+  harness slice passed 107 checks with 0 failures.
