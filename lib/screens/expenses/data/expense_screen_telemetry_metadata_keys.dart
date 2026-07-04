@@ -131,6 +131,8 @@ const _expenseTelemetryAllowedMetadataKeys = <String>{
   'clientProofLayoutHiddenLineCount',
   'clientProofLayoutIgnoredLineCount',
   'clientProofLayoutProtectedTypeCount',
+  'clientProofLayoutKeepsMerchantContext',
+  'clientProofLayoutKeepsTotalsContext',
   'clientProofLayoutMerchantContextCount',
   'clientProofLayoutTotalsContextCount',
   'parseQualityBucket',

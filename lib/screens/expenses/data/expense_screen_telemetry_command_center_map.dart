@@ -91,6 +91,20 @@ extension ExpenseTelemetryHealthSnapshotCommandCenterMap
       'clientProofHiddenLineCountTotal': clientProofHiddenLineCountTotal,
       'clientProofPlanReviewLineCountTotal':
           clientProofPlanReviewLineCountTotal,
+      'clientProofLayoutRedactionStatusCounts':
+          clientProofLayoutRedactionStatusCounts,
+      'clientProofLayoutVisibleLineCountTotal':
+          clientProofLayoutVisibleLineCountTotal,
+      'clientProofLayoutHiddenLineCountTotal':
+          clientProofLayoutHiddenLineCountTotal,
+      'clientProofLayoutIgnoredLineCountTotal':
+          clientProofLayoutIgnoredLineCountTotal,
+      'clientProofLayoutProtectedTypeCountTotal':
+          clientProofLayoutProtectedTypeCountTotal,
+      'clientProofLayoutMerchantContextCountTotal':
+          clientProofLayoutMerchantContextCountTotal,
+      'clientProofLayoutTotalsContextCountTotal':
+          clientProofLayoutTotalsContextCountTotal,
       if (topParserCategory.isNotEmpty) 'topParserCategory': topParserCategory,
       if (topParserNeedsReviewCategory.isNotEmpty)
         'topParserNeedsReviewCategory': topParserNeedsReviewCategory,
@@ -138,6 +152,9 @@ extension ExpenseTelemetryHealthSnapshotCommandCenterMap
         'topReceiptSelectedLinePurpose': topReceiptSelectedLinePurpose,
       if (topClientProofRedactionPlanStatus.isNotEmpty)
         'topClientProofRedactionPlanStatus': topClientProofRedactionPlanStatus,
+      if (topClientProofLayoutRedactionStatus.isNotEmpty)
+        'topClientProofLayoutRedactionStatus':
+            topClientProofLayoutRedactionStatus,
       'receiptPhotoCoverageStatusCounts': receiptPhotoCoverageStatusCounts,
       'receiptPhotoCoverageReasonCounts': receiptPhotoCoverageReasonCounts,
       'receiptPhotoCoverageNeedsMoreCount': receiptPhotoCoverageNeedsMoreCount,

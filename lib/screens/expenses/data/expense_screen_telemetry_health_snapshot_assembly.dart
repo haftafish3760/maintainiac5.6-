@@ -156,6 +156,20 @@ extension _ExpenseTelemetryHealthSnapshotAccumulatorSnapshot
       clientProofHiddenLineCountTotal: clientProofSummary.hiddenLineCountTotal,
       clientProofPlanReviewLineCountTotal:
           clientProofSummary.planReviewLineCountTotal,
+      clientProofLayoutRedactionStatusCounts:
+          clientProofSummary.layoutRedactionStatusCounts,
+      clientProofLayoutVisibleLineCountTotal:
+          clientProofSummary.layoutVisibleLineCountTotal,
+      clientProofLayoutHiddenLineCountTotal:
+          clientProofSummary.layoutHiddenLineCountTotal,
+      clientProofLayoutIgnoredLineCountTotal:
+          clientProofSummary.layoutIgnoredLineCountTotal,
+      clientProofLayoutProtectedTypeCountTotal:
+          clientProofSummary.layoutProtectedTypeCountTotal,
+      clientProofLayoutMerchantContextCountTotal:
+          clientProofSummary.layoutMerchantContextCountTotal,
+      clientProofLayoutTotalsContextCountTotal:
+          clientProofSummary.layoutTotalsContextCountTotal,
       topParserCategory: topParserCategory,
       topParserNeedsReviewCategory: topParserNeedsReviewCategory,
       topParserFailedCategory: topParserFailedCategory,
@@ -216,6 +230,8 @@ extension _ExpenseTelemetryHealthSnapshotAccumulatorSnapshot
       topReceiptSelectedLinePurpose: clientProofSummary.topSelectedLinePurpose,
       topClientProofRedactionPlanStatus:
           clientProofSummary.topRedactionPlanStatus,
+      topClientProofLayoutRedactionStatus:
+          clientProofSummary.topLayoutRedactionStatus,
       receiptPhotoCoverageStatusCounts:
           cameraHealthSummary.coverageStatusCounts,
       receiptPhotoCoverageReasonCounts:

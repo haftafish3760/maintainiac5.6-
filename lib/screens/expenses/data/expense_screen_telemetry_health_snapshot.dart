@@ -36,7 +36,10 @@ class ExpenseTelemetryHealthSnapshot {
     required this.clientProofRedactionStatusCounts, required this.clientProofVisibilityCounts, required this.receiptSelectedLinePurposeCounts,
     required this.receiptSelectedLineCountTotal, required this.receiptExcludedLineCountTotal, required this.receiptClientProofReviewLineCountTotal,
     required this.receiptRedactedLineCountTotal, required this.clientProofRedactionPlanStatusCounts, required this.clientProofVisibleLineCountTotal,
-    required this.clientProofHiddenLineCountTotal, required this.clientProofPlanReviewLineCountTotal, required this.topParserCategory, required this.topParserNeedsReviewCategory,
+    required this.clientProofHiddenLineCountTotal, required this.clientProofPlanReviewLineCountTotal, required this.clientProofLayoutRedactionStatusCounts,
+    required this.clientProofLayoutVisibleLineCountTotal, required this.clientProofLayoutHiddenLineCountTotal, required this.clientProofLayoutIgnoredLineCountTotal,
+    required this.clientProofLayoutProtectedTypeCountTotal, required this.clientProofLayoutMerchantContextCountTotal, required this.clientProofLayoutTotalsContextCountTotal,
+    required this.topParserCategory, required this.topParserNeedsReviewCategory,
     required this.topParserFailedCategory, required this.topParserCategoryHealth, required this.topParserCategoryReviewAction, required this.topParserPackPressureStatus,
     required this.topReceiptBrainParserLimitOutcome, required this.topReceiptBrainLowStorageDownloadRisk, required this.topReceiptBrainLocalFirstReadiness,
     required this.topReceiptBrainLocalFirstReadinessAction, required this.topReceiptBrainFirstInstallBoundary, required this.topReceiptBrainFirstInstallBoundaryAction,
@@ -49,6 +52,7 @@ class ExpenseTelemetryHealthSnapshot {
     required this.topOcrSourceHandoffSignal, required this.topOcrSourceStitchSignal, required this.topOcrSourceScannerDecision, required this.topOcrSourceCaptureSourceSignal,
     required this.topOcrSourcePhotoQualityRisk, required this.topOcrSourceQualityReviewStatus, required this.topOcrSourceQualityReviewAction,
     required this.topClientProofRedactionStatus, required this.topClientProofVisibility, required this.topReceiptSelectedLinePurpose, required this.topClientProofRedactionPlanStatus,
+    required this.topClientProofLayoutRedactionStatus,
     required this.receiptPhotoCoverageStatusCounts, required this.receiptPhotoCoverageReasonCounts, required this.receiptPhotoCoverageNeedsMoreCount,
     required this.topReceiptPhotoCoverageStatus, required this.topReceiptPhotoCoverageReason, required this.savedPhotoWarningCounts, required this.savedPhotoWarningCauseCounts,
     required this.savedPhotoWarningSeverityCounts, required this.savedPhotoWarningActionCounts, required this.savedPhotoParserRiskCounts, required this.savedPhotoQualityWarningCount,
@@ -124,6 +128,9 @@ class ExpenseTelemetryHealthSnapshot {
   final int receiptSelectedLineCountTotal, receiptExcludedLineCountTotal, receiptClientProofReviewLineCountTotal, receiptRedactedLineCountTotal;
   final Map<String, int> clientProofRedactionPlanStatusCounts;
   final int clientProofVisibleLineCountTotal, clientProofHiddenLineCountTotal, clientProofPlanReviewLineCountTotal;
+  final Map<String, int> clientProofLayoutRedactionStatusCounts;
+  final int clientProofLayoutVisibleLineCountTotal, clientProofLayoutHiddenLineCountTotal, clientProofLayoutIgnoredLineCountTotal;
+  final int clientProofLayoutProtectedTypeCountTotal, clientProofLayoutMerchantContextCountTotal, clientProofLayoutTotalsContextCountTotal;
   final String topParserCategory, topParserNeedsReviewCategory, topParserFailedCategory, topParserCategoryHealth, topParserCategoryReviewAction, topParserPackPressureStatus;
   final String topReceiptBrainParserLimitOutcome, topReceiptBrainLowStorageDownloadRisk, topReceiptBrainLocalFirstReadiness, topReceiptBrainLocalFirstReadinessAction;
   final String topReceiptBrainFirstInstallBoundary, topReceiptBrainFirstInstallBoundaryAction;
@@ -134,7 +141,7 @@ class ExpenseTelemetryHealthSnapshot {
   final String topParserDownstreamReadinessStatus, topParserDownstreamReadiness, topParserReviewRootCause, topLocalReceiptParserRouting, topLocalParserEvidenceOutcome, topOcrParserTask;
   final String topOcrFieldReadiness, topOcrSourceHandoffStatus, topOcrSourceHandoffSignal, topOcrSourceStitchSignal, topOcrSourceScannerDecision, topOcrSourceCaptureSourceSignal;
   final String topOcrSourcePhotoQualityRisk, topOcrSourceQualityReviewStatus, topOcrSourceQualityReviewAction, topClientProofRedactionStatus, topClientProofVisibility, topReceiptSelectedLinePurpose;
-  final String topClientProofRedactionPlanStatus;
+  final String topClientProofRedactionPlanStatus, topClientProofLayoutRedactionStatus;
   final Map<String, int> receiptPhotoCoverageStatusCounts, receiptPhotoCoverageReasonCounts;
   final int receiptPhotoCoverageNeedsMoreCount;
   final String topReceiptPhotoCoverageStatus, topReceiptPhotoCoverageReason;

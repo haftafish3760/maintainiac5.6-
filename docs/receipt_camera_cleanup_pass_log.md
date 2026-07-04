@@ -3,6 +3,28 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 695 - 01:10:00 EDT to active cleanup
+
+Scope:
+- Carried layout redaction telemetry into the expense telemetry client-proof
+  summary so Command Center can see visible, hidden, ignored, protected-type,
+  merchant-context, and totals-context layout counts.
+- Added Command Center and Firestore summary sanitizer coverage for the new
+  layout redaction rollup keys and top layout status.
+- Extended focused telemetry workflow and parity fixtures so admin summaries
+  cannot silently drop layout redaction evidence.
+- Recorded `BUG-RECEIPT-0182` under `privacy_redaction`.
+- Archived Pass 635 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- First focused test run exposed that layout context booleans were missing from
+  the expense telemetry metadata allowlist; fixed before continuing.
+- Second focused test run exposed missing Firestore parity keys and an
+  under-exercised rich parity fixture; fixed both before continuing.
+- Passed targeted Dart analyzer for expense telemetry redaction rollups.
+- Passed focused Flutter expense telemetry workflow, sanitizer, and Firestore
+  Command Center parity regressions.
+
 ## Pass 694 - 01:05:00 EDT to active cleanup
 
 Scope:
@@ -473,23 +495,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for client-proof receipt line contracts.
 - Passed focused Flutter receipt processing contract regression.
-- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
-  check.
-
-## Pass 635 - 22:18:44 EDT to active cleanup
-
-Scope:
-- Extended edited-photo action redaction from receipt-reader metadata into
-  attachment document signals and OCR-source risk flags.
-- Added a focused public attachment handoff regression proving malformed edit
-  action text is bucketed without leaking receipt-like content or local paths.
-- Archived Pass 624 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0156` under `privacy_redaction`.
-
-Verification:
-- Fixed the first targeted test run by adding the missing receipt model import.
-- Passed targeted Dart format/analyzer for attachment and capture-flow handoff
-  changes.
-- Passed focused Flutter recovery handoff regression.
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.

@@ -47,6 +47,13 @@ void main() {
             'clientProofVisibleLineCount': 0,
             'clientProofHiddenLineCount': 2,
             'clientProofPlanReviewLineCount': 4,
+            'clientProofLayoutRedactionStatus': 'ignored_unknown_lines',
+            'clientProofLayoutVisibleLineCount': 1,
+            'clientProofLayoutHiddenLineCount': 4,
+            'clientProofLayoutIgnoredLineCount': 2,
+            'clientProofLayoutProtectedTypeCount': 2,
+            'clientProofLayoutKeepsMerchantContext': true,
+            'clientProofLayoutKeepsTotalsContext': false,
           },
         ),
       );
@@ -111,6 +118,13 @@ void main() {
             'clientProofVisibleLineCount': 2,
             'clientProofHiddenLineCount': 1,
             'clientProofPlanReviewLineCount': 0,
+            'clientProofLayoutRedactionStatus': 'ready_to_share',
+            'clientProofLayoutVisibleLineCount': 3,
+            'clientProofLayoutHiddenLineCount': 1,
+            'clientProofLayoutIgnoredLineCount': 0,
+            'clientProofLayoutProtectedTypeCount': 1,
+            'clientProofLayoutKeepsMerchantContext': false,
+            'clientProofLayoutKeepsTotalsContext': true,
           },
         ),
       );
@@ -238,6 +252,16 @@ void main() {
       expect(snapshot.clientProofVisibleLineCountTotal, 2);
       expect(snapshot.clientProofHiddenLineCountTotal, 3);
       expect(snapshot.clientProofPlanReviewLineCountTotal, 4);
+      expect(snapshot.clientProofLayoutRedactionStatusCounts, {
+        'ignored_unknown_lines': 1,
+        'ready_to_share': 1,
+      });
+      expect(snapshot.clientProofLayoutVisibleLineCountTotal, 4);
+      expect(snapshot.clientProofLayoutHiddenLineCountTotal, 5);
+      expect(snapshot.clientProofLayoutIgnoredLineCountTotal, 2);
+      expect(snapshot.clientProofLayoutProtectedTypeCountTotal, 3);
+      expect(snapshot.clientProofLayoutMerchantContextCountTotal, 1);
+      expect(snapshot.clientProofLayoutTotalsContextCountTotal, 1);
       expect(snapshot.topOcrSourceHandoffStatus, 'stitched_ocr_source');
       expect(
         snapshot.topOcrSourceHandoffSignal,
@@ -331,6 +355,16 @@ void main() {
       expect(map['clientProofVisibleLineCountTotal'], 2);
       expect(map['clientProofHiddenLineCountTotal'], 3);
       expect(map['clientProofPlanReviewLineCountTotal'], 4);
+      expect(
+        map['clientProofLayoutRedactionStatusCounts'],
+        snapshot.clientProofLayoutRedactionStatusCounts,
+      );
+      expect(map['clientProofLayoutVisibleLineCountTotal'], 4);
+      expect(map['clientProofLayoutHiddenLineCountTotal'], 5);
+      expect(map['clientProofLayoutIgnoredLineCountTotal'], 2);
+      expect(map['clientProofLayoutProtectedTypeCountTotal'], 3);
+      expect(map['clientProofLayoutMerchantContextCountTotal'], 1);
+      expect(map['clientProofLayoutTotalsContextCountTotal'], 1);
       expect(map['topOcrSourceHandoffStatus'], 'stitched_ocr_source');
       expect(
         map['topOcrSourceHandoffSignal'],
@@ -365,6 +399,10 @@ void main() {
       expect(map['topClientProofVisibility'], 'review_for_client_proof');
       expect(map['topReceiptSelectedLinePurpose'], 'client_proof');
       expect(map['topClientProofRedactionPlanStatus'], 'ready_to_share');
+      expect(
+        map['topClientProofLayoutRedactionStatus'],
+        'ignored_unknown_lines',
+      );
       expect(encoded, isNot(contains('lowes')));
       expect(encoded, isNot(contains('3.24')));
       expect(encoded, isNot(contains('/tmp')));
