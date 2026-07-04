@@ -72,6 +72,7 @@ void main() {
       expect(script, contains('test/app_generated_pdf_service_test.dart'));
       expect(script, contains('test/invoice_template_pdf_factory_test.dart'));
       expect(script, contains('test/invoice_pdf_money_precision_test.dart'));
+      expect(script, contains('test/pdf_formatters_contract_test.dart'));
       expect(script, contains('test/receipt_pdf_torture_test.dart'));
       expect(script, contains('test/receipt_pdf_torture_storage_test.dart'));
       expect(script, isNot(contains('service_pdf_security_test.dart')));

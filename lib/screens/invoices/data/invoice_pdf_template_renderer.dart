@@ -5,6 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../../../shared/pdf/app_pdf_determinism.dart';
+import '../../../shared/pdf/app_pdf_formatters.dart';
 import '../../../shared/pdf/app_pdf_typography.dart';
 import 'invoice_ledger_models.dart';
 import 'invoice_record.dart';
@@ -1152,7 +1153,7 @@ class _InvoiceLogoImage {
   }
 }
 
-String _date(DateTime day) => '${day.month}/${day.day}/${day.year}';
+String _date(DateTime day) => AppPdfFormatters.date(day);
 
 String _companyInitials(String companyName) {
   final words = companyName
@@ -1262,16 +1263,9 @@ List<String> _partyLines(
   return lines;
 }
 
-String _money(num value) {
-  final sign = value < 0 ? '-' : '';
-  final absolute = value.abs().toStringAsFixed(2);
-  return '$sign\$$absolute';
-}
+String _money(num value) => AppPdfFormatters.money(value);
 
-String _quantity(num value) {
-  if (value == value.roundToDouble()) return value.toInt().toString();
-  return value.toStringAsFixed(2);
-}
+String _quantity(num value) => AppPdfFormatters.quantity(value);
 
 InvoiceRecord _sampleRecord({
   required DateTime createdAt,

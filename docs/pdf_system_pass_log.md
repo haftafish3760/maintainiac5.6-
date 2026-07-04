@@ -1,5 +1,24 @@
 # PDF System Pass Log
 
+## Pass 30 - 2026-07-04 16:12 EDT - Shared PDF formatters
+
+- Scope: shared PDF formatting infrastructure and invoice renderer adoption
+  only. No inventory, camera, native capture, receipt text engine, or parser
+  behavior changes.
+- Bundled work:
+  - Added shared PDF money, date, and quantity formatters for reusable Document
+    Engine output.
+  - Routed invoice PDF date, money, and quantity rendering through the shared
+    formatters.
+  - Added cent-safe formatter contract coverage, including floating-point
+    rounding cases and negative values.
+  - Added the formatter contract to the shared PDF quality gate.
+- Verification completed 2026-07-04 16:12 EDT:
+  - `dart format lib/shared/pdf/app_pdf_formatters.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/pdf_formatters_contract_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `dart analyze lib/shared/pdf/app_pdf_formatters.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/pdf_formatters_contract_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `flutter test test/pdf_formatters_contract_test.dart test/invoice_template_pdf_factory_test.dart test/invoice_pdf_money_precision_test.dart test/pdf_quality_gate_contract_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 29 - 2026-07-04 16:08 EDT - Long-text invoice render smoke gate
 
 - Scope: render-level invoice PDF QA only. No inventory, camera, native
