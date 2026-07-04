@@ -2662,3 +2662,43 @@ Release boundaries:
 - No Expenses.
 - No live Firebase.
 - Inventory parser/catalog work only unless explicitly redirected.
+
+## 2026-07-03/04 Wrapper Remediation And Active Wave
+
+- Pass 1437 next-action found
+  `pass1339-residential-top-three-all-tiers-wave-execute` completed 24/24 cells
+  with 18 failed cells. The representative failed transcripts showed the
+  temporary direct-Dart generated-fixture runner crashed in the Dart VM/FFI
+  compiler before parser semantics ran. This was a tooling/root-cause failure,
+  not evidence that 18 item families were semantically wrong.
+- Fixed the generated-fixture execution path in commit `8f9ff3e` by routing
+  `tool/work_supply_parser_qa_run_generated_fixtures.dart` through the stable
+  Flutter semantic runner until the parser core is extracted far enough for
+  true Dart CLI execution. The wrapper emits
+  `QA_GENERATED_FIXTURE_RUN_WRAPPER` with
+  `parser_core_not_yet_extracted_for_dart_cli` so the limitation stays visible.
+- Verification passed:
+  `flutter test test\work_supply_parser_qa_run_generated_fixtures_test.dart test\work_supply_parser_qa_pipeline_test.dart test\work_supply_parser_qa_matrix_pipeline_test.dart`
+  and focused generated-runner contracts:
+  `inventory.generated_manifest_contract,inventory.generated_fixture_performance_contract,inventory.execution_command_contract,qa.threshold_gate`.
+- Representative failed-cell remediation passed for
+  `electrical_residential_core_en_US` with `checked=1`, `failures=0`, and clean
+  local-only status evidence at
+  `build/parser_qa_pass_evidence/pass1439_electrical_core_wrapper_remediation/electrical/residential/core/en-US/reports/latest_generated_fixture_run.json`.
+- `build/parser_qa_pass_evidence/wave_remediations.json` now records the
+  pass1339 failed-wave remediation locally. Pass 1441 next-action verified
+  `readyForNextBatch=true`, zero blockers, and no unsafe live-service,
+  production-write, Firebase, OCR, camera, or Expenses flags.
+- Active background wave launched at Pass 1442:
+  `pass1442-residential-top-three-all-tiers-wave-execute`.
+- Active background QA layer:
+  `generated_fixture_all_tiers_v5_wrapper_remediation`.
+- Active background fixture run limit:
+  `fixtureRunLimit=118`.
+- Active background process:
+  hidden PowerShell runner launched with PID `16744`.
+- Active background status path:
+  `build/parser_qa_batch_waves/pass1442-residential-top-three-all-tiers-wave-execute/queue/pass1442_residential_top_three_all_tiers_wave_execute_generated_fixture_all_tiers_v5_wrapper_remediation/latest_status.json`.
+- Pass 1443 next-action verified the new wave is running on
+  `plumbing_residential_core_en_US` with `completedCellCount=0`,
+  `failedCellCount=0`, no stale status, and all safety flags false.
