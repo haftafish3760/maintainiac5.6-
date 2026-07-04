@@ -3721,3 +3721,12 @@ Release boundaries:
   `inventory.evidence_summary_contract,inventory.fixture_batch_plan_contract,inventory.gate_ledger_contract,inventory.next_action_contract,inventory.registry_snapshot_contract,inventory.release_one_command_manifest,qa.threshold_gate`
   passed 124 combined checks across the two focused gates with 0 failures, and
   targeted analyzer found no issues.
+- **12:21 Harness Pass 2761:** Queue watchdog found
+  `pass2620-core-peh-1000` stale on `electrical_residential_core_es_US`.
+  Blueprint validation and fixture generation had succeeded, but the Flutter
+  generated-fixture runner had not emitted a report before the stale process was
+  terminated. Restarted the same queue ID with resume and a 45-minute
+  per-cell timeout; the queue recovered the three completed cells, reset failed
+  count to 0, and resumed the Electrical residential Core Spanish cell without
+  touching live services, Firebase writes, production catalog writes, OCR,
+  camera, expenses, or UI.
