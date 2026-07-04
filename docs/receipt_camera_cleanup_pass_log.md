@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 889 - active cleanup
+
+Scope:
+- Added a permanent real-device receipt camera matrix gate for device tiers,
+  lighting, receipt conditions, interruptions, OCR-source policy, and retired
+  tap/original-source wording.
+- Expanded the real-device script with the concrete matrix expected before
+  broader receipt testing.
+- Wired the matrix gate into the fast guard and added focused gate coverage.
+- Recorded `BUG-RECEIPT-0338` under `qa_harness`.
+- Archived Pass 826 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused real-device matrix/doc
+  regressions, doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and
+  diff whitespace gates.
+
 ## Pass 888 - active cleanup
 
 Scope:
@@ -452,20 +469,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused barcode handoff regression.
-- Passed doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 826 - 14:51:00 EDT to active cleanup
-
-Scope:
-- Added privacy-safe aggregate barcode/QR format and value-type counts to
-  multi-image batch scan summaries.
-- Pinned batch summaries so admin/QA can see UPC versus QR coverage across long
-  receipt segments without raw barcode payloads.
-- Recorded `BUG-RECEIPT-0312` under `barcode_qr_scanning`.
-- Archived Pass 787 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused barcode scanner regression.
 - Passed doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and diff
   whitespace gates.

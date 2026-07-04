@@ -21,6 +21,7 @@ bash tool/receipt_doc_size_gate.sh
 dart analyze \
   tool/receipt_bug_regression_ledger_gate.dart \
   tool/receipt_external_fixture_schema_gate.dart \
+  tool/receipt_real_device_matrix_gate.dart \
   tool/receipt_quiet_batch_policy_gate.dart \
   lib/shared/widgets/receipt_capture \
   lib/shared/receipts \
@@ -39,6 +40,7 @@ dart tool/maintainiac_source_audit.dart --max-line-length=220
 dart tool/maintainiac_source_audit.dart --tests-only --max-line-length=220
 dart tool/receipt_bug_regression_ledger_gate.dart
 dart tool/receipt_external_fixture_schema_gate.dart
+dart tool/receipt_real_device_matrix_gate.dart
 dart tool/receipt_quiet_batch_policy_gate.dart
 
 if [[ -f tool/codex_rate_limit_probe.py ]]; then
@@ -63,6 +65,7 @@ flutter test \
   test/receipt_camera_footprint_audit_test.dart \
   test/receipt_camera_result_test.dart \
   test/receipt_photo_review_retake_order_test.dart \
+  test/receipt_real_device_matrix_gate_test.dart \
   test/receipt_quiet_batch_policy_gate_contract_test.dart \
   test/receipt_quality_gate_contract_test.dart \
   -r compact

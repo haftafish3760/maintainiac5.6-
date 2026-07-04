@@ -17,6 +17,37 @@ This script is for controlled phone testing after a meaningful receipt-camera bu
 - Galaxy S24/S25 class device: proves flagship capture, stitching, image cleanup, and app-assisted review.
 - iPhone SE class device: proves iOS capture, photo proof, PDF/import behavior, and route parity.
 
+## Required Test Matrix
+
+Run the same short receipt and the same long receipt across the device targets
+whenever possible. The goal is to separate camera behavior from receipt content.
+
+Device tiers:
+- Older Android: Galaxy S9 Plus class or similar low-memory Android.
+- Current Android: Galaxy S24/S25 class or similar flagship Android.
+- Current iPhone: iPhone SE/current iPhone class device.
+
+Lighting conditions:
+- Bright indoor light.
+- Dim room.
+- Direct glare across the receipt.
+- Shadow across the receipt.
+- Truck cab or vehicle interior.
+
+Receipt conditions:
+- Short receipt that fits in one photo.
+- Long receipt that needs multiple sections.
+- Wrinkled or folded receipt.
+- Faded thermal receipt.
+- Mixed business/personal receipt.
+
+Interruption conditions:
+- App switch after capture before save.
+- Lock screen after capture before save.
+- Back/close during an in-flight capture.
+- Low-storage mode or smallest saved-proof setting.
+- Save-space proof size preview before accepting the receipt.
+
 ## Build Cadence
 
 - Do not reinstall after every small change.
