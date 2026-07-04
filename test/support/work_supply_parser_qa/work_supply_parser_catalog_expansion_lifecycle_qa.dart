@@ -10,6 +10,7 @@ class WorkSupplyParserCatalogExpansionLifecycleSuite extends QaSuite {
       'docs/inventory_parser_release1_acceptance_scorecard.md';
   static const _progressPath = 'docs/inventory_parser_qa_progress_memory.md';
   static const _planPath = 'docs/inventory_parser_qa_harness_plan.md';
+  static const _backlogPath = 'docs/inventory_catalog_expansion_backlog.md';
   static const _batchGenerationQaPath =
       'test/support/work_supply_parser_qa/'
       'work_supply_parser_catalog_item_batch_generation_qa.dart';
@@ -29,6 +30,24 @@ class WorkSupplyParserCatalogExpansionLifecycleSuite extends QaSuite {
     'fixture coverage',
     'regression locks',
     'release-readiness evidence before promotion',
+    'Core and Standard must cover everyday service-truck reality',
+  };
+
+  static const _backlogTokens = {
+    'Plumbing Core Families',
+    'Plumbing Standard Families',
+    'Electrical Core Families',
+    'Electrical Standard Families',
+    'HVAC Core Families',
+    'HVAC Standard Families',
+    'well pumps',
+    'pressure switches',
+    'GFCI receptacles',
+    'PVC conduit',
+    'capacitors',
+    'condensate drain',
+    'Fixture Requirements For Every Batch',
+    'Promotion Rules',
   };
 
   static const _batchSafetyTokens = {
@@ -66,6 +85,7 @@ class WorkSupplyParserCatalogExpansionLifecycleSuite extends QaSuite {
       _read(_scorecardPath),
       _read(_progressPath),
       _read(_planPath),
+      _read(_backlogPath),
     ].join('\n');
     final batchSource = [
       _read(_batchGenerationQaPath),
@@ -88,6 +108,15 @@ class WorkSupplyParserCatalogExpansionLifecycleSuite extends QaSuite {
       category: QaFailureTriage.governance,
       fix:
           'Document that QA harness readiness is a gate, while catalog item expansion continues through controlled, evidence-backed batches.',
+    );
+    checked += _checkTokens(
+      failures,
+      contract: 'catalog_expansion_backlog',
+      source: _read(_backlogPath),
+      tokens: _backlogTokens,
+      category: QaFailureTriage.category,
+      fix:
+          'Maintain a durable Release 1 expansion backlog for Plumbing, Electrical, and HVAC Core/Standard service families.',
     );
     checked += _checkTokens(
       failures,
@@ -125,6 +154,7 @@ class WorkSupplyParserCatalogExpansionLifecycleSuite extends QaSuite {
       metrics: {
         'scorecardPath': _scorecardPath,
         'progressPath': _progressPath,
+        'backlogPath': _backlogPath,
         'contract':
             'After the reusable QA harness is ready, inventory catalog expansion remains a separate controlled lifecycle: generated candidates, validation, fixtures, parser evidence, legal provenance, manual promotion, and release-readiness reporting.',
       },
