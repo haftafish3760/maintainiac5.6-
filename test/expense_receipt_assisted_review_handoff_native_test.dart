@@ -222,7 +222,8 @@ void main() {
     expect(photoControls, contains('Check Photo Match'));
     expect(photoControls, contains('Next opens receipt details'));
     expect(photoControls, contains('Next: Review Receipt Details'));
-    expect(entryScreen, contains("'tapFocusSuppressedAfterZoomTotal'"));
+    expect(entryScreen, contains("'legacyTapFocusSuppressedAfterZoomTotal'"));
+    expect(entryScreen, isNot(contains("'tapFocusSuppressedAfterZoomTotal'")));
     expect(entryScreen, contains("'zoomGestureStartTotal'"));
     expect(entryScreen, contains("'zoomUnavailableTotal'"));
     expect(entryScreen, contains("'zoomStatusBuckets'"));

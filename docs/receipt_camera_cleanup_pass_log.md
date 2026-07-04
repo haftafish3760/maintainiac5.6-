@@ -113,6 +113,18 @@ Verification:
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.
 
+## Pass 626 - 22:01:05 EDT to active cleanup
+
+Scope:
+- Renamed retired tap-focus telemetry counters to legacy tap-focus counters.
+- Added regressions rejecting the old active tap-focus telemetry key names.
+- Recorded `BUG-RECEIPT-0147` under `camera_capture_quality`.
+
+Verification:
+- Passed targeted analyzer and focused telemetry/source regressions.
+- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
+  check.
+
 ## Pass 618 - 21:42:32 EDT to active cleanup
 
 Scope:

@@ -165,8 +165,11 @@ extension _ExpenseReceiptEntryPhotoPreparationTelemetryTail
         captureDiagnostics,
         'orientationCorrectionEnabled',
       ),
-      'tapFocusTotal': _diagnosticIntSum(captureDiagnostics, 'tapFocusCount'),
-      'tapFocusSuppressedAfterZoomTotal': _diagnosticIntSum(
+      'legacyTapFocusTotal': _diagnosticIntSum(
+        captureDiagnostics,
+        'tapFocusCount',
+      ),
+      'legacyTapFocusSuppressedAfterZoomTotal': _diagnosticIntSum(
         captureDiagnostics,
         'tapFocusSuppressedAfterZoomCount',
       ),

@@ -238,7 +238,8 @@ void main() {
     expect(receiptEntryScreen, contains('contrastBoostEnabledCount'));
     expect(receiptEntryScreen, contains('shadowReductionEnabledCount'));
     expect(receiptEntryScreen, contains('orientationCorrectionEnabledCount'));
-    expect(receiptEntryScreen, contains('tapFocusTotal'));
+    expect(receiptEntryScreen, contains('legacyTapFocusTotal'));
+    expect(receiptEntryScreen, isNot(contains("'tapFocusTotal'")));
     expect(receiptEntryScreen, contains('zoomChangeTotal'));
     expect(receiptEntryScreen, contains('manualBrightnessChangeTotal'));
     expect(receiptEntryScreen, contains('autoCaptureTriggerTotal'));
