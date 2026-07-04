@@ -22,6 +22,7 @@ part 'catalog/plumbing/fittings/pvc_dwv.dart';
 part 'catalog/plumbing/fittings/abs_dwv.dart';
 part 'catalog/plumbing/generated_plumbing_items.dart';
 part 'catalog/plumbing/generated_plumbing_service_truck_catalog.dart';
+part 'catalog/plumbing/generated_plumbing_service_truck_tools_catalog.dart';
 part 'catalog/plumbing/generated_plumbing_drain_finish_catalog.dart';
 part 'catalog/plumbing/generated_plumbing_seals_service_catalog.dart';
 part 'catalog/plumbing/fittings/fittings_catalog.dart';

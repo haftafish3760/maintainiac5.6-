@@ -110,7 +110,7 @@ Map<String, Object?> _readCell(
   }
   final json = jsonDecode(file.readAsStringSync()) as Map<String, Object?>;
   final failureCount = (json['failureCount'] as int?) ?? 0;
-  final liveServicesAllowed = json['liveServicesAllowed'] == true;
+  final safety = _cellSafety(json);
   return _cell(
     trade: trade,
     scope: scope,
@@ -118,7 +118,9 @@ Map<String, Object?> _readCell(
     locale: locale,
     status: failureCount == 0 ? 'passed' : 'failed',
     reportPath: reportPath,
-    localOnlySafe: !liveServicesAllowed,
+    localOnlySafe: safety.isSafe,
+    safetyFlags: safety.flags,
+    safetyMissingFields: safety.missingFields,
     checked: (json['checked'] as int?) ?? 0,
     failureCount: failureCount,
     parserCalls: (json['parserCalls'] as int?) ?? 0,
@@ -134,6 +136,8 @@ Map<String, Object?> _cell({
   required String status,
   required String reportPath,
   required bool localOnlySafe,
+  Map<String, Object?> safetyFlags = const {},
+  List<String> safetyMissingFields = const [],
   int checked = 0,
   int failureCount = 0,
   int parserCalls = 0,
@@ -153,7 +157,43 @@ Map<String, Object?> _cell({
     'parserCalls': parserCalls,
     'fixturePath': fixturePath,
     'localOnlySafe': localOnlySafe,
+    'safetyFlags': safetyFlags,
+    'safetyMissingFields': safetyMissingFields,
   };
+}
+
+_CellSafety _cellSafety(Map<String, Object?> json) {
+  const requiredFalseFields = [
+    'liveServicesAllowed',
+    'writesProductionCatalog',
+    'firebaseWritesAllowed',
+    'ocrCameraExpensesTouched',
+  ];
+  final flags = {
+    for (final field in requiredFalseFields) field: json[field],
+  };
+  final missing = [
+    for (final field in requiredFalseFields)
+      if (!json.containsKey(field)) field,
+  ];
+  final unsafe = requiredFalseFields.any((field) => json[field] == true);
+  return _CellSafety(
+    flags: flags,
+    missingFields: missing,
+    isSafe: !unsafe && missing.isEmpty,
+  );
+}
+
+class _CellSafety {
+  const _CellSafety({
+    required this.flags,
+    required this.missingFields,
+    required this.isSafe,
+  });
+
+  final Map<String, Object?> flags;
+  final List<String> missingFields;
+  final bool isSafe;
 }
 
 class _Options {

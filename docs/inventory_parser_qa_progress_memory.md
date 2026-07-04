@@ -3797,3 +3797,21 @@ Release boundaries:
   production catalog writes, Firebase writes, and OCR/camera/Expenses touches.
   The queue `latest_status.json` also reported `state: complete`,
   6 completed cells, and 0 failed cells.
+- **13:05 Harness Pass 2825:** Addressed the ChatGPT audit finding that status
+  reports and smoke runs could look greener than their real evidence. The
+  generated fixture runner now writes explicit per-run safety fields for live
+  services, production catalog writes, Firebase writes, and OCR/camera/Expenses
+  touches. `tool/work_supply_parser_qa_generated_run_status.dart` now reads
+  those fields from every cell, marks missing or true safety flags unsafe, and
+  fails require-complete status when any cell lacks explicit safety evidence.
+  The harness smoke test now fails on blocking error/critical failures even
+  when `PARSER_QA_STRICT` is false, while strict mode still requires zero
+  warnings too. Structural file-size blockers were fixed by splitting plumbing
+  service-truck hand tools and parser ambiguity helpers into focused part files
+  instead of weakening the file-size QA. Verification passed: analyzer clean on
+  touched files, generated status/fixture tests passed 6/6, focused
+  file-size/Core-manifest smoke harness passed 450 checks with 0 failures, and
+  `git diff --check` was clean. Rechecking the old 6,000-fixture Core queue
+  now correctly returns exit 1 because those older reports are missing the new
+  per-cell safety fields; the Core cells need a hardened-report rerun before
+  they count as deep safety proof.

@@ -53,6 +53,12 @@ void main() {
     expect(status['checkedTotal'], 220);
     expect(status['parserCalls'], 252);
     expect(status['liveServicesAllowed'], isFalse);
+    final cells = status['cells'] as List;
+    expect(cells, everyElement(containsPair('localOnlySafe', true)));
+    expect(
+      cells,
+      everyElement(containsPair('safetyMissingFields', isEmpty)),
+    );
   });
 
   test(
@@ -128,6 +134,49 @@ void main() {
     expect(status['failedCells'], 1);
     expect(status['unsafeCells'], 1);
   });
+
+  test('generated run status fails reports missing explicit safety fields', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_generated_run_missing_safety_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeRun(
+      'build/reports/plumbing/residential/core/en-US/reports/latest_generated_fixture_run.json',
+      checked: 110,
+      includeSafetyFields: false,
+    );
+
+    final exit = runWorkSupplyParserQaGeneratedRunStatus(
+      [
+        '--report-root',
+        'build/reports',
+        '--trades',
+        'plumbing',
+        '--tiers',
+        'core',
+        '--locales',
+        'en-US',
+        '--require-complete',
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 1);
+    final status = _readJson(
+      'build/parser_qa_pipeline/core_generated_run_status.json',
+    );
+    expect(status['unsafeCells'], 1);
+    final cells = status['cells'] as List;
+    expect(cells.single, containsPair('localOnlySafe', false));
+    expect(
+      cells.single['safetyMissingFields'],
+      contains('firebaseWritesAllowed'),
+    );
+  });
 }
 
 void _writeRun(
@@ -136,17 +185,25 @@ void _writeRun(
   int failureCount = 0,
   int parserCalls = 0,
   bool liveServicesAllowed = false,
+  bool writesProductionCatalog = false,
+  bool firebaseWritesAllowed = false,
+  bool ocrCameraExpensesTouched = false,
+  bool includeSafetyFields = true,
 }) {
   final file = File(path)..parent.createSync(recursive: true);
-  file.writeAsStringSync(
-    jsonEncode({
-      'fixturePath': 'build/generated_fixtures.json',
-      'checked': checked,
-      'failureCount': failureCount,
-      'parserCalls': parserCalls,
+  final payload = {
+    'fixturePath': 'build/generated_fixtures.json',
+    'checked': checked,
+    'failureCount': failureCount,
+    'parserCalls': parserCalls,
+    if (includeSafetyFields) ...{
       'liveServicesAllowed': liveServicesAllowed,
-    }),
-  );
+      'writesProductionCatalog': writesProductionCatalog,
+      'firebaseWritesAllowed': firebaseWritesAllowed,
+      'ocrCameraExpensesTouched': ocrCameraExpensesTouched,
+    },
+  };
+  file.writeAsStringSync(jsonEncode(payload));
 }
 
 Map<String, Object?> _readJson(String path) {

@@ -103,6 +103,7 @@ void main() {
       'latestPackHealthJson=${artifact.latestPackHealthJsonPath}',
     );
 
+    expect(report.hasBlockingFailures, isFalse, reason: report.toSummary());
     if (strict) {
       expect(report.failures, isEmpty, reason: report.toSummary());
     } else {
