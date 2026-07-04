@@ -3460,3 +3460,11 @@ Release boundaries:
   `fixtureRunLimit=500`, the default 20-minute per-cell timeout, and no live
   services, production catalog writes, Firebase writes, OCR, camera, Expenses,
   or UI work.
+- **10:26 Harness Pass 2529:** Hardened the fake-user parser review workflow
+  QA so cloud-opted inventory/material confirmations now prove immediate fake
+  Firebase mirror attempt after Hive/local save, safe mirror failure handling,
+  retry-pending evidence, retry-success clearing, stale mirror rejection, and
+  restart preservation without live services. Focused workflow gate passed
+  86 checks with 0 failures, and targeted analyzer found no issues in the
+  edited QA file. The active Core Electrical/HVAC 500 queue remained running
+  with 0 failed cells during the milestone check.

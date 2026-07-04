@@ -99,6 +99,38 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
       );
       _expect(
         failures,
+        result.immediateMirrorAttemptAfterLocalWrite,
+        id: '${scenario.id}:immediate_mirror_attempt_after_local_write',
+        message:
+            'Cloud-enabled fake workflow did not attempt mirror sync immediately after local save.',
+        expected:
+            'Cloud opt-in attempts fake mirror sync after Hive/local write without making Firebase the source of truth.',
+        actual: result.events.join(' > '),
+        triage: QaFailureTriage.conflict,
+      );
+      _expect(
+        failures,
+        result.failedMirrorKeepsLocalTruth,
+        id: '${scenario.id}:failed_mirror_keeps_local_truth',
+        message: 'Mirror failure was allowed to damage confirmed local truth.',
+        expected:
+            'Fake Firebase failure keeps confirmed Hive/local item and leaves retry state reviewable.',
+        actual: result.restartState,
+        triage: QaFailureTriage.conflict,
+      );
+      _expect(
+        failures,
+        result.retryClearsPendingMirrorOnlyAfterSuccess,
+        id: '${scenario.id}:retry_clears_pending_mirror_only_after_success',
+        message:
+            'Mirror retry state was cleared before a successful fake mirror write.',
+        expected:
+            'Pending mirror remains after failure and clears only after fake mirror retry succeeds.',
+        actual: result.events.join(' > '),
+        triage: QaFailureTriage.conflict,
+      );
+      _expect(
+        failures,
         result.restartPreservedLocalTruth,
         id: '${scenario.id}:restart_preserved_local_truth',
         message: 'App restart simulation lost confirmed local parser data.',
@@ -111,7 +143,7 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: scenarios.length * 10,
+      checked: scenarios.length * 13,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
@@ -142,17 +174,25 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
         fake.userAccepts(
           confirmedItemId: scenario.userConfirmedItemId,
           cloudOptIn: scenario.cloudOptIn,
+          failFirstMirrorAttempt: scenario.mirrorFailureBeforeRetry,
         );
       case _ReviewAction.edit:
         fake.userEdits(
           confirmedItemId: scenario.userConfirmedItemId,
           correctedName: scenario.correctedName,
           cloudOptIn: scenario.cloudOptIn,
+          failFirstMirrorAttempt: scenario.mirrorFailureBeforeRetry,
         );
       case _ReviewAction.reject:
-        fake.userRejects(cloudOptIn: scenario.cloudOptIn);
+        fake.userRejects(
+          cloudOptIn: scenario.cloudOptIn,
+          failFirstMirrorAttempt: scenario.mirrorFailureBeforeRetry,
+        );
       case _ReviewAction.markUnknown:
-        fake.userMarksUnknown(cloudOptIn: scenario.cloudOptIn);
+        fake.userMarksUnknown(
+          cloudOptIn: scenario.cloudOptIn,
+          failFirstMirrorAttempt: scenario.mirrorFailureBeforeRetry,
+        );
     }
     fake.parserSuggests(
       status: 'high_confidence_review',
@@ -212,6 +252,7 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
         destination: _WorkflowDestination.rejected,
         enabledTradePacks: {'plumbing'},
         cloudOptIn: true,
+        mirrorFailureBeforeRetry: true,
       ),
       _WorkflowScenario(
         id: 'estimate_section_context_keeps_pvc_ambiguous',
@@ -278,6 +319,7 @@ class _WorkflowScenario {
     this.activeSectionTrade = '',
     this.correctedName = '',
     this.cloudOptIn = false,
+    this.mirrorFailureBeforeRetry = false,
   });
 
   final String id;
@@ -291,6 +333,7 @@ class _WorkflowScenario {
   final String activeSectionTrade;
   final String correctedName;
   final bool cloudOptIn;
+  final bool mirrorFailureBeforeRetry;
 }
 
 enum _ReviewAction { accept, edit, reject, markUnknown }
@@ -318,6 +361,9 @@ class _FakeReviewEnvironment {
   bool _localWriteDone = false;
   bool _inventoryRecordCreated = false;
   bool _mirrorQueued = false;
+  bool _mirrorSent = false;
+  bool _mirrorFailed = false;
+  bool _mirrorRetrySucceeded = false;
   String _restartLocalItemId = '';
   String _restartPendingMirror = '';
   final bool _liveFirebaseTouched = false;
@@ -344,35 +390,43 @@ class _FakeReviewEnvironment {
   void userAccepts({
     required String confirmedItemId,
     required bool cloudOptIn,
+    required bool failFirstMirrorAttempt,
   }) {
     _commitLocal(confirmedItemId: confirmedItemId);
-    if (cloudOptIn) _queueFakeMirror();
+    if (cloudOptIn) _queueFakeMirror(failFirstAttempt: failFirstMirrorAttempt);
   }
 
   void userEdits({
     required String confirmedItemId,
     required String correctedName,
     required bool cloudOptIn,
+    required bool failFirstMirrorAttempt,
   }) {
     _commitLocal(
       confirmedItemId: confirmedItemId,
       confirmedName: correctedName,
     );
-    if (cloudOptIn) _queueFakeMirror();
+    if (cloudOptIn) _queueFakeMirror(failFirstAttempt: failFirstMirrorAttempt);
   }
 
-  void userRejects({required bool cloudOptIn}) {
+  void userRejects({
+    required bool cloudOptIn,
+    required bool failFirstMirrorAttempt,
+  }) {
     _commitLocal(
       confirmedItemId: 'rejected',
       confirmedName: 'not inventory',
       createsInventory: false,
     );
-    if (cloudOptIn) _queueFakeMirror();
+    if (cloudOptIn) _queueFakeMirror(failFirstAttempt: failFirstMirrorAttempt);
   }
 
-  void userMarksUnknown({required bool cloudOptIn}) {
+  void userMarksUnknown({
+    required bool cloudOptIn,
+    required bool failFirstMirrorAttempt,
+  }) {
     _commitLocal(confirmedItemId: 'unknown_item', confirmedName: 'unknown');
-    if (cloudOptIn) _queueFakeMirror();
+    if (cloudOptIn) _queueFakeMirror(failFirstAttempt: failFirstMirrorAttempt);
   }
 
   void mirrorAttemptsStaleWrite() {
@@ -382,7 +436,7 @@ class _FakeReviewEnvironment {
   void simulateAppRestart() {
     events.add('app_restart_simulated');
     _restartLocalItemId = _localConfirmedItemId;
-    _restartPendingMirror = _mirrorQueued ? 'pending' : 'none';
+    _restartPendingMirror = _mirrorQueued && !_mirrorSent ? 'pending' : 'none';
   }
 
   _WorkflowResult result({
@@ -411,13 +465,25 @@ class _FakeReviewEnvironment {
           _confirmedContextEvidence.contains('packs='),
       cloudOptInControlsMirror:
           _mirrorQueued == events.contains('fake_firebase_mirror_queued'),
+      immediateMirrorAttemptAfterLocalWrite:
+          !_mirrorQueued ||
+          events.indexOf('hive_local_write') <
+              events.indexOf('fake_firebase_mirror_attempted'),
+      failedMirrorKeepsLocalTruth:
+          !_mirrorFailed ||
+          (_localConfirmedItemId == expectedConfirmedItemId &&
+              events.contains('fake_firebase_mirror_retry_pending')),
+      retryClearsPendingMirrorOnlyAfterSuccess:
+          !_mirrorFailed ||
+          (_mirrorRetrySucceeded &&
+              _mirrorSent &&
+              events.indexOf('fake_firebase_mirror_retry_pending') <
+                  events.indexOf('fake_firebase_mirror_retry_succeeded')),
       restartState:
           'restartItem=$_restartLocalItemId restartPendingMirror=$_restartPendingMirror',
       restartPreservedLocalTruth:
           _restartLocalItemId == expectedConfirmedItemId &&
-          (_mirrorQueued
-              ? _restartPendingMirror == 'pending'
-              : _restartPendingMirror == 'none'),
+          _restartPendingMirror == 'none',
     );
   }
 
@@ -436,9 +502,20 @@ class _FakeReviewEnvironment {
     _confirmedContextEvidence = _contextEvidence;
   }
 
-  void _queueFakeMirror() {
+  void _queueFakeMirror({required bool failFirstAttempt}) {
     events.add('fake_firebase_mirror_queued');
     _mirrorQueued = true;
+    events.add('fake_firebase_mirror_attempted');
+    if (failFirstAttempt) {
+      _mirrorFailed = true;
+      events.add('fake_firebase_mirror_failed');
+      events.add('fake_firebase_mirror_retry_pending');
+      events.add('fake_firebase_mirror_retry_succeeded');
+      _mirrorRetrySucceeded = true;
+    } else {
+      events.add('fake_firebase_mirror_succeeded');
+    }
+    _mirrorSent = true;
   }
 }
 
@@ -456,6 +533,9 @@ class _WorkflowResult {
     required this.destinationPreserved,
     required this.contextPreserved,
     required this.cloudOptInControlsMirror,
+    required this.immediateMirrorAttemptAfterLocalWrite,
+    required this.failedMirrorKeepsLocalTruth,
+    required this.retryClearsPendingMirrorOnlyAfterSuccess,
     required this.restartState,
     required this.restartPreservedLocalTruth,
   });
@@ -472,6 +552,9 @@ class _WorkflowResult {
   final bool destinationPreserved;
   final bool contextPreserved;
   final bool cloudOptInControlsMirror;
+  final bool immediateMirrorAttemptAfterLocalWrite;
+  final bool failedMirrorKeepsLocalTruth;
+  final bool retryClearsPendingMirrorOnlyAfterSuccess;
   final String restartState;
   final bool restartPreservedLocalTruth;
 }
