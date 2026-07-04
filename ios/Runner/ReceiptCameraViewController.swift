@@ -133,10 +133,12 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var autoExposureAdjustmentCount = 0
   var preCaptureExposureAdjustmentCount = 0
   var preCaptureExposureAdjustmentConfirmedCount = 0
+  var preCaptureExposureAbortCount = 0
   var lastAutoExposureAdjustmentAt = 0.0
   var lastAutoExposureDecision = "not_evaluated"
   var lastPreCaptureExposureDecision = "not_evaluated"
   var lastPreCaptureExposureSkipReason = "none"
+  var lastPreCaptureExposureAbortReason = "none"
   var lastAutoExposureBrightnessBucket = "unknown"
   var lastAutoExposureCandidate = "none"
   var autoExposureCandidateFrameCount = 0

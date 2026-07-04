@@ -66,7 +66,9 @@ void main() {
     );
     expect(
       cameraController,
-      contains('guard let self, self.isCameraUiUsable else { return }'),
+      contains(
+        'self.lastPreCaptureExposureDecision = "aborted_camera_closing"',
+      ),
     );
     expect(
       cameraController,

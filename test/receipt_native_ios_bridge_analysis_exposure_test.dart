@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/receipt_native_ios_bridge_source_readers.dart';
@@ -8,6 +10,9 @@ void main() {
     () async {
       final sources = await readIosReceiptCameraBridgeSources();
       final cameraController = sources.cameraController;
+      final captureController = await File(
+        'ios/Runner/ReceiptCameraViewControllerCapture.swift',
+      ).readAsString();
 
       expect(cameraController, contains('LiveReceiptFraming'));
       expect(
@@ -200,6 +205,18 @@ void main() {
       expect(cameraController, contains('prepareExposureBeforeCapture'));
       expect(cameraController, contains('lastPreCaptureExposureDecision'));
       expect(cameraController, contains('lastPreCaptureExposureSkipReason'));
+      expect(cameraController, contains('preCaptureExposureAbortCount += 1'));
+      expect(cameraController, contains('lastPreCaptureExposureAbortReason'));
+      expect(
+        cameraController,
+        contains('lastPreCaptureExposureDecision = "aborted_camera_closing"'),
+      );
+      expect(
+        captureController,
+        isNot(
+          contains('guard let self, self.isCameraUiUsable else { return }'),
+        ),
+      );
       expect(cameraController, contains('settings.photoQualityPrioritization'));
       expect(
         cameraController,

@@ -80,6 +80,7 @@ extension ReceiptCameraViewController {
 
   func prepareExposureBeforeCapture(_ onReady: @escaping () -> Void) {
     lastPreCaptureExposureSkipReason = "none"
+    lastPreCaptureExposureAbortReason = "none"
     guard autoExposureAssistEnabled else {
       lastPreCaptureExposureDecision = "assist_off"
       lastPreCaptureExposureSkipReason = "assist_off"
@@ -122,7 +123,17 @@ extension ReceiptCameraViewController {
       try cameraDevice.lockForConfiguration()
       cameraDevice.setExposureTargetBias(target) { [weak self] _ in
         DispatchQueue.main.async {
-          guard let self, self.isCameraUiUsable else { return }
+          guard let self else { return }
+          if !self.isCameraUiUsable {
+            self.captureInFlight = false
+            self.pendingCloseAfterCapture = false
+            self.preCaptureExposureAbortCount += 1
+            self.lastPreCaptureExposureDecision = "aborted_camera_closing"
+            self.lastPreCaptureExposureAbortReason = self.closeResultDelivered
+              ? "result_already_delivered"
+              : "camera_ui_inactive"
+            return
+          }
           self.lastPreCaptureExposureDecision = target > current
             ? "brightened_before_capture"
             : "dimmed_before_capture"

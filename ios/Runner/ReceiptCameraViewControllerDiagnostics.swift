@@ -130,6 +130,8 @@ extension ReceiptCameraViewController {
       "lastAutoExposureDecision": lastAutoExposureDecision,
       "lastPreCaptureExposureDecision": lastPreCaptureExposureDecision,
       "lastPreCaptureExposureSkipReason": lastPreCaptureExposureSkipReason,
+      "preCaptureExposureAbortCount": preCaptureExposureAbortCount,
+      "lastPreCaptureExposureAbortReason": lastPreCaptureExposureAbortReason,
       "preCaptureExposureOutcome": preCaptureExposureOutcome(),
       "preCaptureExposurePolicy": preCaptureExposurePolicy,
       "lastAutoExposureBrightnessBucket": lastAutoExposureBrightnessBucket,
