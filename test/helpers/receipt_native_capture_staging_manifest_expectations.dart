@@ -303,7 +303,7 @@ void expectAcceptedNativeCaptureRecoveryManifest(
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['nativeCaptureMemoryPolicy'],
-    'tiny_local_proof_original_for_ocr_then_cleanup',
+    'tiny_local_proof_temporary_source_for_ocr_then_cleanup',
   );
   expect(
     (manifest['captureDiagnostics']

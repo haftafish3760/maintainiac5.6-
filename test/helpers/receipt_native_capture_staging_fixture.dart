@@ -160,7 +160,7 @@ ReceiptNativeCaptureResult acceptedNativeCaptureStagingFixture({
       'storageSafetyReason': 'tight_storage_tiny_proofs',
       'maxLocalPhotoBytes': 6291456,
       'nativeCaptureMemoryPolicy':
-          'tiny_local_proof_original_for_ocr_then_cleanup',
+          'tiny_local_proof_temporary_source_for_ocr_then_cleanup',
       'receiptLocalOnlyAcceptanceStatusCode':
           'ready_local_first_optional_packs_deferred',
       'receiptLocalOnlyAcceptanceActionCode':

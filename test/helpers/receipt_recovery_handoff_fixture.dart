@@ -20,7 +20,7 @@ ReceiptPhotoReviewResult buildNativeRecoveryReviewResult() {
         'nativeRecoveryFreshness': 'stale',
         'nativeRecoveryStorageStatus': 'partial_photos_available',
         'nativeCaptureMemoryPolicy':
-            'small_local_proof_original_for_ocr_then_cleanup',
+            'small_local_proof_temporary_source_for_ocr_then_cleanup',
         'storageConstrained': true,
         'cameraWorkloadTier': 'light',
         'reviewDepth': 'detailedLines',
@@ -45,7 +45,7 @@ ReceiptPhotoReviewResult buildNativeRecoveryReviewResult() {
         'nativeRecoveryFreshness': 'stale',
         'nativeRecoveryStorageStatus': 'partial_photos_available',
         'nativeCaptureMemoryPolicy':
-            'small_local_proof_original_for_ocr_then_cleanup',
+            'small_local_proof_temporary_source_for_ocr_then_cleanup',
         'storageConstrained': true,
         'cameraWorkloadTier': 'light',
         'nativeReceiptCameraSurfaceActual': 'maintainiac_native_android',

@@ -60,7 +60,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var storageSafetyReason = "normal"
     internal var workloadProtectionPolicy = "balanced_workload"
     internal var maxLocalPhotoBytes = 12 * 1024 * 1024
-    internal var nativeCaptureMemoryPolicy = "bounded_original_for_ocr_then_cleanup"
+    internal var nativeCaptureMemoryPolicy = "bounded_temporary_source_for_ocr_then_cleanup"
     internal var previousSectionGuidePhotoPath: String? = null
     internal var previousSectionReasonCode: String = "none"
     internal var previousSectionGuidance: String = ""

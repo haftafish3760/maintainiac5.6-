@@ -22,7 +22,7 @@ void main() {
         'storageSafetyLevel': 'strong',
         'maxLocalPhotoBytes': 6291456,
         'nativeCaptureMemoryPolicy':
-            'small_local_proof_original_for_ocr_then_cleanup',
+            'small_local_proof_temporary_source_for_ocr_then_cleanup',
         'cameraWorkloadTier': 'light',
         'latestCapturedExposureMismatch': 'live_ok_capture_dim',
         'receiptText': 'PRIVATE RECEIPT TEXT',
@@ -104,7 +104,9 @@ void main() {
     );
     expect(
       record.privacySafeRecoveryEvidenceLabel,
-      contains('memoryPolicy=small_local_proof_original_for_ocr_then_cleanup'),
+      contains(
+        'memoryPolicy=small_local_proof_temporary_source_for_ocr_then_cleanup',
+      ),
     );
     expect(record.recoveryResumeDetail, isNot(contains('PRIVATE')));
     expect(record.privacySafeRecoveryEvidenceLabel, isNot(contains('PRIVATE')));

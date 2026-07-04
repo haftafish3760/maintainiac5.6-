@@ -51,7 +51,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var storageSafetyReason = "normal"
   var workloadProtectionPolicy = "balanced_workload"
   var maxLocalPhotoBytes = 12 * 1024 * 1024
-  var nativeCaptureMemoryPolicy = "bounded_original_for_ocr_then_cleanup"
+  var nativeCaptureMemoryPolicy = "bounded_temporary_source_for_ocr_then_cleanup"
   var previousSectionGuidePhotoPath: String?
   var previousSectionReasonCode = "none"
   var previousSectionGuidance = ""

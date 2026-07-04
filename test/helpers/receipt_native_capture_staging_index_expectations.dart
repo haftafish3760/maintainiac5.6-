@@ -289,7 +289,7 @@ Future<void> expectAcceptedNativeCaptureRecoveryIndex({
   expect(indexEntry.captureDiagnostics['maxLocalPhotoBytes'], 6291456);
   expect(
     indexEntry.captureDiagnostics['nativeCaptureMemoryPolicy'],
-    'tiny_local_proof_original_for_ocr_then_cleanup',
+    'tiny_local_proof_temporary_source_for_ocr_then_cleanup',
   );
   expect(indexEntry.captureDiagnostics.containsKey('receiptText'), isFalse);
   expect(indexEntry.toMap().toString(), isNot(contains('LOWE')));

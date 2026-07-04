@@ -164,7 +164,10 @@ void main() {
         ),
       ),
     );
-    expect(config.nativeCaptureMemoryPolicy, contains('original_for_ocr'));
+    expect(
+      config.nativeCaptureMemoryPolicy,
+      contains('temporary_source_for_ocr'),
+    );
     expect(config.edgeDetectionEnabled, isTrue);
     expect(config.edgeOverlayEnabled, isTrue);
     expect(config.perspectiveCorrectionEnabled, isTrue);

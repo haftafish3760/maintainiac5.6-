@@ -153,15 +153,15 @@ class ReceiptNativeCameraSessionConfig {
 
   String get nativeCaptureMemoryPolicy {
     if (storageSafetyLevel == ReceiptDataSaverLevel.maximum) {
-      return 'tiny_local_proof_original_for_ocr_then_cleanup';
+      return 'tiny_local_proof_temporary_source_for_ocr_then_cleanup';
     }
     if (storageConstrained) {
-      return 'small_local_proof_original_for_ocr_then_cleanup';
+      return 'small_local_proof_temporary_source_for_ocr_then_cleanup';
     }
     if (deviceTier == ReceiptCapabilityTier.light) {
-      return 'older_phone_bounded_original_for_ocr_then_cleanup';
+      return 'older_phone_bounded_temporary_source_for_ocr_then_cleanup';
     }
-    return 'bounded_original_for_ocr_then_cleanup';
+    return 'bounded_temporary_source_for_ocr_then_cleanup';
   }
 
   String get storageSafetyReason {

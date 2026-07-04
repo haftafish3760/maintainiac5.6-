@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 789 - 08:01:22 EDT to active cleanup
+
+Scope:
+- Renamed native camera memory-policy diagnostics from original-for-OCR wording
+  to temporary-source-for-OCR wording.
+- Updated Android/iOS default policy strings, Dart session policy strings, and
+  focused fixtures/expectations that consume those diagnostics.
+- Kept the legacy `ocrUsesOriginalFirst` bridge key untouched for compatibility.
+- Recorded `BUG-RECEIPT-0276` under `source_preservation`.
+- Archived Pass 762 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused native camera storage,
+  session, contract, and staging regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 788 - 07:58:11 EDT to active cleanup
 
 Scope:
@@ -451,25 +468,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer for previous-section guide regressions.
-- Passed focused Android settings-quality and iOS long-receipt quality tests.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 762 - 04:41:45 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS previous-section ghost crop boundaries so malformed
-  source start/height fractions cannot create unsafe overlap guide crops.
-- Added local crop-boundary fallbacks in addition to session argument
-  sanitization, preserving long-receipt continuation guidance if future call
-  paths mutate the values.
-- Added Android/iOS native ghost overlay source regressions for safe crop
-  fractions.
-- Recorded `BUG-RECEIPT-0250` under `multi_photo_ordering`.
-- Archived Pass 734 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for ghost overlay regressions.
 - Passed focused Android settings-quality and iOS long-receipt quality tests.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

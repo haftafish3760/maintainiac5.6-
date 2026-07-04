@@ -225,7 +225,7 @@ void expectPreviousSectionGuideCaptureDiagnostics(
   expect(sentArguments['maxLocalPhotoBytes'], 12 * 1024 * 1024);
   expect(
     sentArguments['nativeCaptureMemoryPolicy'],
-    'bounded_original_for_ocr_then_cleanup',
+    'bounded_temporary_source_for_ocr_then_cleanup',
   );
   expect(sentArguments['workloadProtectionPolicy'], 'balanced_workload');
   expect(sentArguments['analysisGapMs'], 480);

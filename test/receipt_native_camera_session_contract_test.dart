@@ -52,7 +52,7 @@ void main() {
     expect(config.maxLocalPhotoBytes, 6 * 1024 * 1024);
     expect(
       config.nativeCaptureMemoryPolicy,
-      'small_local_proof_original_for_ocr_then_cleanup',
+      'small_local_proof_temporary_source_for_ocr_then_cleanup',
     );
     expect(config.maxLiveAnalysisPixels, 0);
     expect(config.maxCleanupPixels, 6000000);
@@ -125,7 +125,7 @@ void main() {
     expect(config.maxLocalPhotoBytes, 20 * 1024 * 1024);
     expect(
       config.nativeCaptureMemoryPolicy,
-      'bounded_original_for_ocr_then_cleanup',
+      'bounded_temporary_source_for_ocr_then_cleanup',
     );
     expect(config.tapFocusEnabled, isFalse);
     expect(config.pinchZoomEnabled, isTrue);

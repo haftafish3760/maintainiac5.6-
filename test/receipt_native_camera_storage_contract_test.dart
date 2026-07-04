@@ -218,7 +218,7 @@ void main() {
       expect(sentArguments['maxLocalPhotoBytes'], 6 * 1024 * 1024);
       expect(
         sentArguments['nativeCaptureMemoryPolicy'],
-        'small_local_proof_original_for_ocr_then_cleanup',
+        'small_local_proof_temporary_source_for_ocr_then_cleanup',
       );
       expect(sentArguments['cloudOcrOptional'], isTrue);
       expect(sentArguments['cameraCaptureCloudRequired'], isFalse);
