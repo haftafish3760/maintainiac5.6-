@@ -192,6 +192,7 @@ void main() {
       );
       expect(cameraController, contains('previousSectionGhostOpacity'));
       expect(cameraController, contains('previousSectionGhostSlicePercent'));
+      expect(cameraController, contains('.lowercased()'));
       expect(cameraController, contains('maxSectionCount'));
       expect(cameraController, contains('captureQualityMode'));
       expect(cameraController, contains('settingsContractVersion'));

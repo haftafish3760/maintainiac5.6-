@@ -210,6 +210,7 @@ void main() {
       expect(cameraActivity, contains('previousSectionGuidePhotoPath'));
       expect(cameraActivity, contains('previousSectionMissingBottomAndTotals'));
       expect(cameraActivity, contains('previousSectionGhostGuidePolicy'));
+      expect(cameraActivity, contains('?.lowercase()'));
       expect(cameraActivity, contains('missing_bottom_edge_and_totals'));
       expect(cameraActivity, contains('buildPreviousSectionGuide'));
       expect(cameraActivity, contains('updatePreviousSectionGuide'));

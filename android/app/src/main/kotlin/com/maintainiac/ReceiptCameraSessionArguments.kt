@@ -131,6 +131,7 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     previousSectionReasonCode = intent
         .getStringExtra("previousSectionReasonCode")
         ?.trim()
+        ?.lowercase()
         ?.takeIf { it.isNotEmpty() }
         ?: if (previousSectionGuidePhotoPath != null) "continue_long_receipt" else "none"
     previousSectionGuidance = intent

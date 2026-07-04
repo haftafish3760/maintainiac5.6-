@@ -124,7 +124,9 @@ extension ReceiptCameraViewController {
     }
     if let reason = arguments["previousSectionReasonCode"] as? String,
        !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      previousSectionReasonCode = reason.trimmingCharacters(in: .whitespacesAndNewlines)
+      previousSectionReasonCode = reason
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+        .lowercased()
     } else if previousSectionGuidePhotoPath != nil {
       previousSectionReasonCode = "continue_long_receipt"
     }
