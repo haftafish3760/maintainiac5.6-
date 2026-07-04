@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 682 - 00:33:07 EDT to active cleanup
+
+Scope:
+- Fixed multi-photo retake diagnostics when one old middle receipt section is
+  replaced by multiple new photos.
+- Shifted the safe next-context section number to match the final receipt order
+  after extra replacement sections are inserted.
+- Strengthened retake-order regressions so both replacement photos preserve the
+  correct previous/next alignment context without leaking paths.
+- Archived Pass 655 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0198` under `multi_photo_ordering`.
+
+Verification:
+- Passed targeted Dart format/analyzer for retake order files.
+- Passed focused Flutter receipt photo retake/order regressions.
+
 ## Pass 681 - 00:30:56 EDT to active cleanup
 
 Scope:
@@ -472,19 +488,3 @@ Verification:
 - Passed targeted Dart format/analyzer for native camera session contract files
   and focused helper fixtures.
 - Passed focused Flutter native camera session and native UI-ready regressions.
-
-## Pass 655 - 23:08:03 EDT to active cleanup
-
-Scope:
-- Hardened native camera UI health outcome priority so missing continuous focus,
-  focus policy, live readability guidance, or camera-quality baseline cannot be
-  hidden by generic control-readiness gaps.
-- Added a focused regression where continuous focus and pinch zoom both fail,
-  proving `continuous_focus_missing` remains the top-level camera health result.
-- Recorded `BUG-RECEIPT-0171` under `camera_capture_quality`.
-- Archived Pass 616 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the native UI health helper and
-  focused native UI health regression.
-- Passed focused Flutter native UI health regressions.

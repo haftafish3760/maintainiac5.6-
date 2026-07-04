@@ -94,7 +94,7 @@ class ReceiptPhotoRetakeOrderPlan {
                 alignmentContext.targetIndex,
           if (alignmentContext.hasNextContext)
             'receiptRetakeNextContextSectionNumber':
-                alignmentContext.targetIndex + 2,
+                originalSectionNumber + replacementPhotoPaths.length,
           'receiptRetakeOrderPolicy':
               'preserve_original_slot_insert_extra_sections_after_target',
         },

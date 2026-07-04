@@ -68,7 +68,7 @@ void main() {
       );
       expect(
         diagnostics['middle-new-a.jpg'],
-        containsPair('receiptRetakeNextContextSectionNumber', 3),
+        containsPair('receiptRetakeNextContextSectionNumber', 4),
       );
       expect(
         diagnostics['middle-new-b.jpg'],
@@ -77,6 +77,10 @@ void main() {
       expect(
         diagnostics['middle-new-b.jpg'],
         containsPair('receiptRetakeFinalSectionNumber', 3),
+      );
+      expect(
+        diagnostics['middle-new-b.jpg'],
+        containsPair('receiptRetakeNextContextSectionNumber', 4),
       );
       expect(diagnostics.values.toString(), isNot(contains('top.jpg')));
       expect(diagnostics.values.toString(), isNot(contains('bottom.jpg')));
