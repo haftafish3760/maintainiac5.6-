@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 655 - 23:08:03 EDT to active cleanup
+
+Scope:
+- Hardened native camera UI health outcome priority so missing continuous focus,
+  focus policy, live readability guidance, or camera-quality baseline cannot be
+  hidden by generic control-readiness gaps.
+- Added a focused regression where continuous focus and pinch zoom both fail,
+  proving `continuous_focus_missing` remains the top-level camera health result.
+- Recorded `BUG-RECEIPT-0171` under `camera_capture_quality`.
+- Archived Pass 616 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the native UI health helper and
+  focused native UI health regression.
+- Passed focused Flutter native UI health regressions.
+
 ## Pass 654 - 23:06:27 EDT to active cleanup
 
 Scope:
@@ -462,21 +478,4 @@ Scope:
 Verification:
 - Passed targeted Dart analyzer for native auto-capture source-contract tests.
 - Passed focused Flutter Android/iOS native auto-capture/settings regressions.
-- Passed cleanup log, doc size, source audit, and diff whitespace gates.
-
-## Pass 616 - 21:37:36 EDT to active cleanup
-
-Scope:
-- Carried `manual_only_quality_review` into receipt review copy so users see
-  sharpness, light, and receipt-text guidance instead of a silent unknown state.
-- Extended native camera result diagnostics so the new readiness state appears
-  in health counts, receipt-reader handoff counts, and held-back auto-capture
-  evidence.
-- Added focused handoff regressions for the source copy and result-level
-  diagnostics.
-- Recorded `BUG-RECEIPT-0137` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart format/analyzer for review copy and diagnostics tests.
-- Passed focused Flutter quality handoff and native quality regressions.
 - Passed cleanup log, doc size, source audit, and diff whitespace gates.

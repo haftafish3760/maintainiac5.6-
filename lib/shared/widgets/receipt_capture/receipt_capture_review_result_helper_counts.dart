@@ -140,15 +140,6 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
     if ((counts['tap_focus_retirement_regressed'] ?? 0) > 0) {
       return 'tap_focus_retirement_regressed';
     }
-    if ((counts['native_control_readiness_missing'] ?? 0) > 0) {
-      return 'native_control_readiness_missing';
-    }
-    if ((counts['native_controls_incomplete'] ?? 0) > 0) {
-      return 'native_controls_incomplete';
-    }
-    if ((counts['native_control_signal_missing'] ?? 0) > 0) {
-      return 'native_control_signal_missing';
-    }
     if ((counts['continuous_focus_missing'] ?? 0) > 0) {
       return 'continuous_focus_missing';
     }
@@ -160,6 +151,15 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
     }
     if ((counts['receipt_camera_quality_baseline_missing'] ?? 0) > 0) {
       return 'receipt_camera_quality_baseline_missing';
+    }
+    if ((counts['native_control_readiness_missing'] ?? 0) > 0) {
+      return 'native_control_readiness_missing';
+    }
+    if ((counts['native_controls_incomplete'] ?? 0) > 0) {
+      return 'native_controls_incomplete';
+    }
+    if ((counts['native_control_signal_missing'] ?? 0) > 0) {
+      return 'native_control_signal_missing';
     }
     if ((counts['preview_dominance_missing'] ?? 0) > 0) {
       return 'preview_dominance_missing';

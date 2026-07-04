@@ -283,6 +283,53 @@ void main() {
     );
   });
 
+  test('continuous focus loss outranks generic missing control readiness', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/proof.jpg': {
+          'visibleControlSet':
+              'back|settings|manual_shutter|status|light|brightness',
+          'previewDominanceTarget': 'receipt_preview_75_80_percent',
+          'settingsContractVersion': 'receipt_native_camera_settings_v1',
+          'settingsButtonPlacement': 'top_bar_right',
+          'nativeControlContractTags': [
+            'settings',
+            'back',
+            'manual_shutter',
+            'pinch_zoom',
+            'brightness_slider',
+          ],
+          'backControlActual': 'ready',
+          'settingsControlActual': 'ready',
+          'manualShutterControlActual': 'ready',
+          'pinchZoomControlActual': 'missing',
+          'exposureSliderControlActual': 'ready',
+          'tapFocusControlExpected': false,
+          'continuousFocusExpected': false,
+          'focusStrategyPolicy': 'non_continuous_focus_requires_device_review',
+          'readabilityGuidancePolicy':
+              'saved_photo_readability_review_required',
+          'receiptCameraQualityBaseline': false,
+        },
+      },
+    );
+
+    expect(result.nativeCameraUiHealthOutcome, 'continuous_focus_missing');
+    expect(result.nativeCameraUiHealthCounts['continuous_focus_missing'], 1);
+    expect(
+      result.nativeCameraUiHealthCounts['native_control_readiness_missing'],
+      1,
+    );
+    expect(
+      result.nativeCameraUiHealthCounts['pinch_zoom_actual_control_missing'],
+      1,
+    );
+  });
+
   test('photo review result flags incomplete native camera controls', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/proof.jpg'],
