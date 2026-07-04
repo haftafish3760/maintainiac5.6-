@@ -156,6 +156,75 @@ void main() {
       isNot(contains('private customer')),
     );
   });
+
+  test(
+    'barcode batch scanner dedupes lookup values across receipt segments',
+    () async {
+      final service = ReceiptBarcodeScannerService(
+        decoder: _PathAwareBarcodeDecoder({
+          '/tmp/segment-1.jpg': const [
+            ReceiptScannedCode(
+              format: ReceiptBarcodeFormat.upca,
+              valueType: 'product',
+              rawValue: '0 12345-67890 5',
+            ),
+          ],
+          '/tmp/segment-2.jpg': const [
+            ReceiptScannedCode(
+              format: ReceiptBarcodeFormat.upca,
+              valueType: 'product',
+              rawValue: '012345678905',
+            ),
+            ReceiptScannedCode(
+              format: ReceiptBarcodeFormat.qrCode,
+              valueType: 'text',
+              rawValue: 'QR WORK 14 2 NMB',
+            ),
+          ],
+        }),
+      );
+
+      final result = await service.scanImageFiles([
+        '/tmp/segment-1.jpg',
+        '/tmp/segment-2.jpg',
+      ], purpose: ReceiptBarcodeScanPurpose.inventory);
+
+      expect(result.imageCount, 2);
+      expect(result.codeCount, 3);
+      expect(result.qrCodeCount, 1);
+      expect(result.inventoryLookupValues, const [
+        '012345678905',
+        'QRWORK142NMB',
+      ]);
+      expect(result.privacySafeSummaryMap['purpose'], 'inventory');
+      expect(
+        result.privacySafeSummaryMap.toString(),
+        isNot(contains('012345')),
+      );
+      expect(
+        result.privacySafeSummaryMap.toString(),
+        isNot(contains('QRWORK')),
+      );
+    },
+  );
+
+  test('barcode batch scanner bounds multi-photo receipt work', () async {
+    final decoder = _CountingBarcodeDecoder();
+    final service = ReceiptBarcodeScannerService(decoder: decoder);
+
+    final result = await service.scanImageFiles([
+      '/tmp/one.jpg',
+      '/tmp/two.jpg',
+      '/tmp/three.jpg',
+    ], maxImageCount: 2);
+
+    expect(decoder.calls, 2);
+    expect(result.imageCount, 2);
+    expect(result.warnings, const ['barcode_scan_batch_image_limit']);
+    expect(result.privacySafeSummaryMap['batchWarningBuckets'], [
+      'barcode_scan_warning',
+    ]);
+  });
 }
 
 class _FakeBarcodeDecoder implements ReceiptBarcodeImageDecoder {
@@ -182,6 +251,20 @@ class _CountingBarcodeDecoder implements ReceiptBarcodeImageDecoder {
   }) async {
     calls += 1;
     return const [];
+  }
+}
+
+class _PathAwareBarcodeDecoder implements ReceiptBarcodeImageDecoder {
+  const _PathAwareBarcodeDecoder(this.codesByPath);
+
+  final Map<String, List<ReceiptScannedCode>> codesByPath;
+
+  @override
+  Future<List<ReceiptScannedCode>> scanImageFile(
+    String imagePath, {
+    required List<ReceiptBarcodeFormat> formats,
+  }) async {
+    return codesByPath[imagePath] ?? const [];
   }
 }
 

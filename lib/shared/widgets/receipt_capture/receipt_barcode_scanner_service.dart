@@ -145,6 +145,52 @@ class ReceiptBarcodeScanResult {
   }
 }
 
+class ReceiptBarcodeBatchScanResult {
+  const ReceiptBarcodeBatchScanResult({
+    required this.purpose,
+    required this.imageResults,
+    this.warnings = const [],
+  });
+
+  final ReceiptBarcodeScanPurpose purpose;
+  final List<ReceiptBarcodeScanResult> imageResults;
+  final List<String> warnings;
+
+  int get imageCount => imageResults.length;
+  int get codeCount => imageResults.fold(0, (sum, result) {
+    return sum + result.codes.length;
+  });
+  int get qrCodeCount => imageResults.fold(0, (sum, result) {
+    return sum + result.qrCodeCount;
+  });
+
+  List<String> get inventoryLookupValues {
+    final seen = <String>{};
+    return [
+      for (final result in imageResults)
+        for (final value in result.inventoryLookupValues)
+          if (seen.add(value)) value,
+    ];
+  }
+
+  Map<String, Object?> get privacySafeSummaryMap {
+    return {
+      'purpose': purpose.name,
+      'imageCount': imageCount,
+      'codeCount': codeCount,
+      'qrCodeCount': qrCodeCount,
+      'inventoryLookupCandidateCount': inventoryLookupValues.length,
+      'imageWarningBuckets': {
+        for (final result in imageResults)
+          ...result.warnings.map(_privacySafeBarcodeWarning),
+      }.toList(growable: false),
+      'batchWarningBuckets': {
+        for (final warning in warnings) _privacySafeBarcodeWarning(warning),
+      }.toList(growable: false),
+    };
+  }
+}
+
 String _privacySafeBarcodeValueType(String valueType) {
   final token = valueType.trim();
   if (token.isEmpty) return 'unknown';
@@ -257,6 +303,31 @@ class ReceiptBarcodeScannerService {
         warnings: const ['barcode_scan_failed'],
       );
     }
+  }
+
+  Future<ReceiptBarcodeBatchScanResult> scanImageFiles(
+    Iterable<String> imagePaths, {
+    ReceiptBarcodeScanPurpose purpose = ReceiptBarcodeScanPurpose.shared,
+    List<ReceiptBarcodeFormat> formats = receiptBarcodeInventoryAndQrFormats,
+    int maxImageCount = 12,
+  }) async {
+    final safeMax = maxImageCount < 1 ? 1 : maxImageCount;
+    final results = <ReceiptBarcodeScanResult>[];
+    var skipped = false;
+    for (final imagePath in imagePaths) {
+      if (results.length >= safeMax) {
+        skipped = true;
+        continue;
+      }
+      results.add(
+        await scanImageFile(imagePath, purpose: purpose, formats: formats),
+      );
+    }
+    return ReceiptBarcodeBatchScanResult(
+      purpose: purpose,
+      imageResults: List.unmodifiable(results),
+      warnings: skipped ? const ['barcode_scan_batch_image_limit'] : const [],
+    );
   }
 }
 

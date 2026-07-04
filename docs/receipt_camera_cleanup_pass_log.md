@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 737 - 03:30:19 EDT to active cleanup
+
+Scope:
+- Audited the existing ML Kit barcode/QR service and confirmed the dependency
+  and single-image scanner already exist.
+- Added a bounded multi-image barcode scan result for long receipts and shared
+  camera handoff consumers.
+- Added privacy-safe batch summaries and deduped inventory lookup values across
+  receipt segments without exposing raw barcode or QR payloads.
+- Added focused batch scanner regressions for cross-segment dedupe and segment
+  count bounding.
+- Archived Pass 712 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for barcode scanner service and focused
+  barcode scanner regression.
+- Passed focused Flutter barcode scanner regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 736 - 03:28:54 EDT to active cleanup
 
 Scope:
@@ -456,23 +476,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer for native receipt path validation.
-- Passed focused native camera result regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 712 - 02:27:00 EDT to active cleanup
-
-Scope:
-- Tightened native capture ID sanitization so malformed, path-like, spaced, or
-  oversized IDs become opaque `native_capture_N` values instead of preserving
-  sanitized user-looking words.
-- Updated the native result regression to prove path-like names and oversized
-  receipt IDs do not survive as staging metadata.
-- Recorded `BUG-RECEIPT-0200` under `privacy_redaction`.
-- Archived Pass 687 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native capture ID sanitization.
 - Passed focused native camera result regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
