@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 762 - 04:41:45 EDT to active cleanup
+
+Scope:
+- Hardened Android and iOS previous-section ghost crop boundaries so malformed
+  source start/height fractions cannot create unsafe overlap guide crops.
+- Added local crop-boundary fallbacks in addition to session argument
+  sanitization, preserving long-receipt continuation guidance if future call
+  paths mutate the values.
+- Added Android/iOS native ghost overlay source regressions for safe crop
+  fractions.
+- Recorded `BUG-RECEIPT-0250` under `multi_photo_ordering`.
+- Archived Pass 734 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for ghost overlay regressions.
+- Passed focused Android settings-quality and iOS long-receipt quality tests.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 761 - 04:33:00 EDT to active cleanup
 
 Scope:
@@ -467,23 +486,5 @@ Verification:
 - Passed targeted Dart format/analyzer for Android/iOS native storage bridge
   regressions.
 - Passed focused Flutter Android/iOS storage bridge regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 734 - 03:25:54 EDT to active cleanup
-
-Scope:
-- Audited native argument readers after the Dart service boundary was hardened.
-- Hard-coded Android and iOS `whiteBalanceLockEnabled` false so stale native
-  arguments cannot re-enable retired white-balance locking.
-- Updated Android/iOS bridge source regressions to reject the stale argument
-  trust path.
-- Recorded `BUG-RECEIPT-0225` under `native_bridge`.
-- Archived Pass 709 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for Android/iOS native bridge exposure
-  regressions.
-- Passed focused Flutter Android/iOS bridge regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

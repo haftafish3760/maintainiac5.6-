@@ -202,6 +202,18 @@ void main() {
       expect(cameraController, contains('previousSectionGhostSliceImage'));
       expect(
         cameraController,
+        contains(
+          'let sourceStartFraction = previousSectionGhostSourceStartFraction.isFinite',
+        ),
+      );
+      expect(
+        cameraController,
+        contains(
+          'let sourceHeightFraction = previousSectionGhostSourceHeightFraction.isFinite',
+        ),
+      );
+      expect(
+        cameraController,
         contains('previousSectionGhostSourceStartFraction'),
       );
       expect(

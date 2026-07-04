@@ -86,10 +86,12 @@ internal fun ReceiptCameraActivity.updatePreviousSectionGuide(path: String?) {
 internal fun ReceiptCameraActivity.previousSectionGhostSliceBitmap(file: File): Bitmap? {
     val source = BitmapFactory.decodeFile(file.absolutePath) ?: return null
     if (source.width <= 0 || source.height <= 0) return source
-    val startY = floor(source.height * previousSectionGhostSourceStartFraction)
+    val sourceStartFraction = boundedFraction(previousSectionGhostSourceStartFraction, 0.80)
+    val sourceHeightFraction = boundedFraction(previousSectionGhostSourceHeightFraction, 0.20)
+    val startY = floor(source.height * sourceStartFraction)
         .roundToInt()
         .coerceIn(0, source.height - 1)
-    val requestedHeight = ceil(source.height * previousSectionGhostSourceHeightFraction)
+    val requestedHeight = ceil(source.height * sourceHeightFraction)
         .roundToInt()
         .coerceAtLeast(1)
     val sliceHeight = min(requestedHeight, source.height - startY).coerceAtLeast(1)

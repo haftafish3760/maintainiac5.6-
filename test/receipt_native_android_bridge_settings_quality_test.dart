@@ -354,6 +354,18 @@ void main() {
       expect(cameraActivity, contains('previousSectionGhostSliceBitmap'));
       expect(
         cameraActivity,
+        contains(
+          'val sourceStartFraction = boundedFraction(previousSectionGhostSourceStartFraction, 0.80)',
+        ),
+      );
+      expect(
+        cameraActivity,
+        contains(
+          'val sourceHeightFraction = boundedFraction(previousSectionGhostSourceHeightFraction, 0.20)',
+        ),
+      );
+      expect(
+        cameraActivity,
         contains('previousSectionGhostSourceStartFraction'),
       );
       expect(

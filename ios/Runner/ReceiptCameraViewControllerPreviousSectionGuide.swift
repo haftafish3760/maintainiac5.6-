@@ -54,8 +54,14 @@ extension ReceiptCameraViewController {
     let height = CGFloat(cgImage.height)
     let width = CGFloat(cgImage.width)
     guard width > 0, height > 0 else { return image }
-    let startY = min(max(floor(height * previousSectionGhostSourceStartFraction), 0), height - 1)
-    let requestedHeight = max(ceil(height * previousSectionGhostSourceHeightFraction), 1)
+    let sourceStartFraction = previousSectionGhostSourceStartFraction.isFinite
+      ? min(max(previousSectionGhostSourceStartFraction, 0), 1)
+      : 0.80
+    let sourceHeightFraction = previousSectionGhostSourceHeightFraction.isFinite
+      ? min(max(previousSectionGhostSourceHeightFraction, 0), 1)
+      : 0.20
+    let startY = min(max(floor(height * sourceStartFraction), 0), height - 1)
+    let requestedHeight = max(ceil(height * sourceHeightFraction), 1)
     let sliceHeight = min(requestedHeight, height - startY)
     let rect = CGRect(x: 0, y: startY, width: width, height: sliceHeight)
     guard let cropped = cgImage.cropping(to: rect) else { return nil }
