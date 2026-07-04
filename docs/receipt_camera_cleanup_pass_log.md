@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 818 - 11:49:00 EDT to active cleanup
+
+Scope:
+- Restored warning-profile parity for saved-photo shadow risk in the OCR source
+  handoff summary.
+- Added a focused regression proving shadow risk now drives
+  `warningProfileStatus`, `reviewCueStatus`, and the privacy-safe contract while
+  keeping the existing source-quality review action.
+- Recorded `BUG-RECEIPT-0303` under `ocr_handoff_contract`.
+- Archived Pass 811 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted OCR source handoff format/analyzer and focused shadow
+  warning-profile regression.
+- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
+  whitespace gates.
+
 ## Pass 817 - 11:41:00 EDT to active cleanup
 
 Scope:
@@ -476,22 +493,6 @@ Scope:
 
 Verification:
 - Passed targeted source-quality format/analyzer and focused glare/blur service
-  regression.
-- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
-  whitespace gates.
-
-## Pass 811 - 12:14:00 EDT to active cleanup
-
-Scope:
-- Hardened derived OCR diagnostics so generic saved photo quality warning tokens
-  also feed dark/glare/blur parser task-count review buckets.
-- Added focused service coverage proving a too-dark saved receipt surfaces
-  `photo_saved_dark_or_exposure_review` for admin/parser diagnostics.
-- Recorded `BUG-RECEIPT-0296` under `ocr_handoff_contract`.
-- Archived Pass 779 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted OCR diagnostics format/analyzer and focused service
   regression.
 - Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
   whitespace gates.

@@ -305,6 +305,9 @@ void main() {
         kind: ReceiptAttachmentKind.photo,
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
         createdAt: DateTime(2026, 7, 1),
+        documentSignals: const [
+          'receipt_handoff_warning_saved_photo_shadow_risk',
+        ],
         riskFlags: const [
           'ocr_source_saved_photo_shadow_risk',
           'ocr_source_action_move_to_even_light_or_retake',
@@ -322,6 +325,19 @@ void main() {
     expect(
       summary.privacySafeContract['sourceQualityReviewAction'],
       'move_to_even_light_or_retake',
+    );
+    expect(
+      summary.warningProfileStatus,
+      'receipt_handoff_warning_saved_photo_shadow_risk',
+    );
+    expect(summary.reviewCueStatus, 'saved_photo_shadow_risk');
+    expect(
+      summary.privacySafeContract['warningProfileStatus'],
+      'receipt_handoff_warning_saved_photo_shadow_risk',
+    );
+    expect(
+      summary.privacySafeContract['reviewCueStatus'],
+      'saved_photo_shadow_risk',
     );
   });
 
