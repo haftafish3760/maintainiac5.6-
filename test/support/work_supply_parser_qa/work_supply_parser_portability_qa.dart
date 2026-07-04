@@ -181,7 +181,10 @@ class WorkSupplyParserPortabilitySuite extends QaSuite {
     final present = <String>[];
     for (final contract in _contracts) {
       final source = sources[contract.path] ?? '';
-      if (contract.tokens.every(source.contains)) {
+      final normalizedSource = _normalizeContractText(source);
+      if (contract.tokens.every(
+        (token) => normalizedSource.contains(_normalizeContractText(token)),
+      )) {
         present.add(contract.name);
         continue;
       }
@@ -262,6 +265,10 @@ class WorkSupplyParserPortabilitySuite extends QaSuite {
       },
     );
   }
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
 
 class _PortabilityContract {

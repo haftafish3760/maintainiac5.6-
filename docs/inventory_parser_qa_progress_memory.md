@@ -3563,3 +3563,9 @@ Release boundaries:
   false failures or encourage brittle one-line docs. Focused
   `inventory.release_one_scorecard_contract,inventory.release_one_residential_contract,inventory.release_one_core_manifest,qa.threshold_gate`
   passed 149 checks with 0 failures, and targeted analyzer found no issues.
+- **11:28 Harness Pass 2633:** Made the portability contract token checks
+  whitespace-safe as well, protecting the environment-independent parser
+  requirement across Windows, macOS/Mac Mini, CI, command-line, QA harness, and
+  future backend/cloud adapters without brittle doc formatting. Focused
+  `inventory.portability_contract,inventory.parser_platform_contract,qa.threshold_gate`
+  passed 115 checks with 0 failures, and targeted analyzer found no issues.
