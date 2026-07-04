@@ -6,6 +6,14 @@ void main() {
   test('Android native receipt camera exposes custom UI controls', () async {
     final sources = await readAndroidReceiptCameraBridgeSources();
     final cameraActivity = sources.cameraActivity;
+    final readinessSummary = cameraActivity.substring(
+      cameraActivity.indexOf(
+        'internal fun ReceiptCameraActivity.nativeControlReadinessSummary()',
+      ),
+      cameraActivity.indexOf(
+        'internal fun ReceiptCameraActivity.backControlActualStatus()',
+      ),
+    );
 
     expect(cameraActivity, contains('ProcessCameraProvider'));
     expect(cameraActivity, contains('BitmapFactory'));
@@ -128,6 +136,16 @@ void main() {
     expect(
       cameraActivity,
       isNot(contains('"tapFocusControlExpected" to tapFocusEnabled')),
+    );
+    expect(readinessSummary, isNot(contains('tapFocusControlActualStatus()')));
+    expect(readinessSummary, isNot(contains('focusLockControlActualStatus()')));
+    expect(
+      readinessSummary,
+      isNot(contains('exposureLockControlActualStatus()')),
+    );
+    expect(
+      readinessSummary,
+      isNot(contains('whiteBalanceLockControlActualStatus()')),
     );
     expect(
       cameraActivity,

@@ -134,14 +134,10 @@ extension ReceiptCameraViewController {
       backControlActualStatus(),
       settingsControlActualStatus(),
       manualShutterControlActualStatus(),
-      tapFocusControlActualStatus(),
       pinchZoomControlActualStatus(),
       exposureSliderControlActualStatus(),
       exposureResetControlActualStatus(),
-      torchControlActualStatus(),
-      focusLockControlActualStatus(),
-      exposureLockControlActualStatus(),
-      whiteBalanceLockControlActualStatus()
+      torchControlActualStatus()
     ]
     return statuses.contains("missing") || statuses.contains("visible_disabled")
       ? "review_needed"

@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 725 - 03:01:36 EDT to active cleanup
+
+Scope:
+- Fixed Android and iOS native control readiness summaries so retired tap-focus
+  and manual focus-lock controls do not make the active receipt camera look
+  unhealthy.
+- Kept explicit retired-control diagnostics available while limiting readiness
+  summary evaluation to active controls such as back, settings, shutter, pinch
+  zoom, brightness, reset, and torch.
+- Added Android/iOS bridge regressions that inspect the readiness-summary body
+  and reject retired tap/manual-lock controls inside it.
+- Recorded `BUG-RECEIPT-0215` under `camera_capture_quality`.
+- Archived Pass 699 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused Android/iOS native UI
+  contract regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 724 - 02:59:50 EDT to active cleanup
 
 Scope:
@@ -465,19 +485,3 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for shared receipt capture flow models.
 - Passed focused Flutter receipt capture flow shareability regression.
-
-## Pass 699 - 01:34:00 EDT to active cleanup
-
-Scope:
-- Hardened receipt line review-mode detection so raw OCR evidence, catalog item
-  evidence, or parser classification keeps a line in detailed review even when
-  the cleaned display description is still generic.
-- Preserved privacy-safe output by proving raw OCR receipt text does not leak
-  through the line review contract.
-- Added focused regression coverage for OCR-only detailed line evidence.
-- Recorded `BUG-RECEIPT-0186` under `receipt_line_review_mode`.
-- Archived Pass 639 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for expense receipt line records.
-- Passed focused Flutter expense receipt line record regression.

@@ -6,6 +6,10 @@ void main() {
   test('iOS native receipt camera keeps custom UI and session close protections', () async {
     final sources = await readIosReceiptCameraBridgeSources();
     final cameraController = sources.cameraController;
+    final readinessSummary = cameraController.substring(
+      cameraController.indexOf('func nativeControlReadinessSummary()'),
+      cameraController.indexOf('func backControlActualStatus()'),
+    );
 
     expect(cameraController, contains('AVCaptureSession'));
     expect(cameraController, contains('UIImage(data: data)'));
@@ -198,6 +202,16 @@ void main() {
     expect(
       cameraController,
       isNot(contains('"tapFocusControlExpected": tapFocusEnabled')),
+    );
+    expect(readinessSummary, isNot(contains('tapFocusControlActualStatus()')));
+    expect(readinessSummary, isNot(contains('focusLockControlActualStatus()')));
+    expect(
+      readinessSummary,
+      isNot(contains('exposureLockControlActualStatus()')),
+    );
+    expect(
+      readinessSummary,
+      isNot(contains('whiteBalanceLockControlActualStatus()')),
     );
     expect(
       cameraController,
