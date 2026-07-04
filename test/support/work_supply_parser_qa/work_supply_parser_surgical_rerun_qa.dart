@@ -25,8 +25,19 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
     'inventory.merchant_independence_contract':
         'inventory.merchant_independence_contract',
     'inventory.merchant_matrix_contract': 'inventory.merchant_matrix_contract',
+    'inventory.release_one_scorecard_contract':
+        'inventory.release_one_scorecard_contract',
+    'inventory.real_receipt_validation_contract':
+        'inventory.real_receipt_validation_contract',
+    'inventory.fake_user_review_workflow':
+        'inventory.fake_user_review_workflow',
+    'inventory.parser_platform_contract': 'inventory.parser_platform_contract',
+    'inventory.portability_contract': 'inventory.portability_contract',
     'inventory.barcode_inventory_identity_contract':
         'inventory.barcode_inventory_identity_contract',
+    'inventory.human_correction_learning_contract':
+        'inventory.human_correction_learning_contract',
+    'inventory.confidence_calibration': 'inventory.confidence_calibration',
     'inventory.legal_safety_contract': 'inventory.legal_safety_contract',
     'inventory.service_truck_core_contract':
         'inventory.service_truck_core_contract',
@@ -64,7 +75,6 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
         'inventory.fixture_coverage_matrix,inventory.accumulated_coverage_contract',
     'inventory.security_privacy': 'inventory.security_privacy',
     'inventory.boundary_guard': 'inventory.boundary_guard',
-    'inventory.parser_platform_contract': 'inventory.parser_platform_contract',
     'inventory.no_live_services_contract':
         'inventory.no_live_services_contract',
   };

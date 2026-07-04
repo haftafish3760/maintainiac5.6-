@@ -2740,3 +2740,45 @@ Release boundaries:
   complete, 0 failed cells, no stale status, and all live-service, production
   catalog write, Firebase write, OCR, camera, and Expenses flags false. Do not
   launch a new parser batch wave until this active local-only wave completes.
+
+## 2026-07-04 Release Gate Surgical Rerun Routes
+
+- Pass 1884 tightened the release-one scorecard mapping so every scorecard gate
+  can be rerun surgically instead of forcing a full catalog or full Flutter
+  sweep.
+- inventory.release_one_scorecard_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_scorecard_contract,qa.threshold_gate`
+- inventory.release_one_residential_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_residential_contract,qa.threshold_gate`
+- inventory.release_one_service_family_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_service_family_contract,qa.threshold_gate`
+- inventory.release_one_pack_balance:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.release_one_pack_balance,qa.threshold_gate`
+- inventory.merchant_independence_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.merchant_independence_contract,qa.threshold_gate`
+- inventory.merchant_matrix_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.merchant_matrix_contract,qa.threshold_gate`
+- inventory.fixture_corpus_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fixture_corpus_contract,qa.threshold_gate`
+- inventory.fixture_expectation_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fixture_expectation_contract,qa.threshold_gate`
+- inventory.real_receipt_validation_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.real_receipt_validation_contract,qa.threshold_gate`
+- inventory.fake_user_review_workflow:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.fake_user_review_workflow,qa.threshold_gate`
+- inventory.hive_authority_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.hive_authority_contract,qa.threshold_gate`
+- inventory.hive_firestore_sync_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.hive_firestore_sync_contract,qa.threshold_gate`
+- inventory.parser_platform_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.parser_platform_contract,qa.threshold_gate`
+- inventory.portability_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.portability_contract,qa.threshold_gate`
+- inventory.barcode_inventory_identity_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.barcode_inventory_identity_contract,qa.threshold_gate`
+- inventory.human_correction_learning_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.human_correction_learning_contract,qa.threshold_gate`
+- inventory.confidence_calibration:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.confidence_calibration,qa.threshold_gate`
+- inventory.review_safety_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.review_safety_contract,qa.threshold_gate`
