@@ -174,6 +174,33 @@ void main() {
     expect(hexTextLayer, contains('total'));
   });
 
+  test('PDF text-layer signals include UTF-16 hex encoded receipt text', () {
+    final utf16TextLayer = ReceiptPdfInspector.detectDocumentSignals(
+      '%PDF-1.7\n'
+              '1 0 obj << /Type /Page /Contents 2 0 R >> endobj\n'
+              '2 0 obj << >> stream BT /F1 12 Tf <FEFF0053005500420054004F00540041004C002000310032002E00330034> Tj ET endstream endobj\n'
+              '%%EOF'
+          .codeUnits,
+    );
+
+    expect(utf16TextLayer, contains(ReceiptPdfInspector.textLayerSignal));
+    expect(utf16TextLayer, contains('subtotal'));
+  });
+
+  test('PDF UTF-16 text signals skip binary hex payloads safely', () {
+    final binaryHexLayer = ReceiptPdfInspector.detectDocumentSignals(
+      '%PDF-1.7\n'
+              '1 0 obj << /Type /Page /Contents 2 0 R >> endobj\n'
+              '2 0 obj << >> stream BT /F1 12 Tf <FEFF000100020003> Tj ET endstream endobj\n'
+              '%%EOF'
+          .codeUnits,
+    );
+
+    expect(binaryHexLayer, contains(ReceiptPdfInspector.textLayerSignal));
+    expect(binaryHexLayer, isNot(contains('subtotal')));
+    expect(binaryHexLayer, isNot(contains('total')));
+  });
+
   test(
     'PDF warnings do not expose private embedded text or source paths',
     () async {
