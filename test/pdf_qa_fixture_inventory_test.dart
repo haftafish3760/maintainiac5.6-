@@ -47,6 +47,7 @@ void main() {
     for (final entry in suites.entries) {
       final suite = entry.value! as Map<String, Object?>;
       expect(suite['status'], isA<String>(), reason: entry.key);
+      expect(suite['status'], isNot('partial'), reason: entry.key);
       final testFiles = suite['currentTestFiles']! as List<Object?>;
       expect(testFiles, isNotEmpty, reason: entry.key);
       for (final path in testFiles.cast<String>()) {
