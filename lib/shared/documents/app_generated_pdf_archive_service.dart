@@ -61,6 +61,7 @@ class AppGeneratedPdfArchiveService {
       attachments: [attachment],
     );
     final documentStore = store ?? await AppDocumentStore.create();
+    final existingRecord = documentStore.recordById(recordId);
     late final AppDocumentRecord savedRecord;
     try {
       savedRecord = await documentStore.saveRecord(record);
@@ -68,6 +69,12 @@ class AppGeneratedPdfArchiveService {
       await _deleteIfExists(savedFile);
       throw const AppGeneratedPdfArchiveException(
         'Maintainiac could not save the generated PDF record, so the PDF file was not kept.',
+      );
+    }
+    if (existingRecord != null) {
+      await documentStore.deleteAppOwnedAttachmentFiles(
+        existingRecord.attachments,
+        keepPaths: {savedFile.path},
       );
     }
     return AppDocumentArchiveResult(

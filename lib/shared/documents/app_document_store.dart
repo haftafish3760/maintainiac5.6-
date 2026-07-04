@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 
 import 'app_document_models.dart';
 
@@ -58,18 +62,58 @@ class AppDocumentStore extends ChangeNotifier {
     return saved;
   }
 
-  Future<void> deleteRecord(String id) async {
+  Future<void> deleteRecord(
+    String id, {
+    bool deleteAttachmentFiles = true,
+  }) async {
+    final existing = recordById(id);
     if (_box == null) {
       _memoryRecords.remove(id);
     } else {
       await _box.delete(id);
     }
+    if (deleteAttachmentFiles && existing != null) {
+      await deleteAppOwnedAttachmentFiles(existing.attachments);
+    }
     notifyListeners();
   }
 
-  Future<void> clear() async {
+  Future<void> deleteAppOwnedAttachmentFiles(
+    Iterable<dynamic> attachments, {
+    Set<String> keepPaths = const {},
+  }) async {
+    final root = await getApplicationDocumentsDirectory();
+    final rootPath = path.normalize(root.path);
+    final retained = keepPaths
+        .map((item) => path.normalize(item.trim()))
+        .where((item) => item.isNotEmpty)
+        .toSet();
+    for (final attachment in attachments) {
+      final attachmentPath = attachment.path?.toString().trim() ?? '';
+      if (attachmentPath.isEmpty) continue;
+      final normalized = path.normalize(attachmentPath);
+      if (retained.contains(normalized)) continue;
+      if (!path.isWithin(rootPath, normalized)) continue;
+      try {
+        final file = File(normalized);
+        if (await file.exists()) await file.delete();
+      } catch (_) {
+        continue;
+      }
+    }
+  }
+
+  Future<void> clear({bool deleteAttachmentFiles = false}) async {
+    final existingRecords = deleteAttachmentFiles
+        ? records.toList(growable: false)
+        : const <AppDocumentRecord>[];
     _memoryRecords.clear();
     await _box?.clear();
+    if (deleteAttachmentFiles) {
+      for (final record in existingRecords) {
+        await deleteAppOwnedAttachmentFiles(record.attachments);
+      }
+    }
     notifyListeners();
   }
 }

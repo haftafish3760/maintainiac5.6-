@@ -84,4 +84,43 @@ void main() {
       expect(await sourcePdf.exists(), isTrue);
     },
   );
+
+  test(
+    'deleting app document removes app-owned proof without touching source',
+    () async {
+      final store = AppDocumentStore.memory();
+      final staged = await ReceiptProofStorage.instance.stageAttachment(
+        ReceiptAttachmentRecord(
+          id: 'delete-job-pdf',
+          path: sourcePdf.path,
+          kind: ReceiptAttachmentKind.pdf,
+          dataSaverLevel: ReceiptDataSaverLevel.original,
+          createdAt: DateTime(2026, 6, 15),
+        ),
+      );
+      final promoted = await ReceiptProofStorage.instance.persistAttachment(
+        staged.copyWith(
+          linkedModule: AppDocumentKind.jobContractorDocument.storageModule,
+          linkedRecordId: 'DOC-delete-job',
+        ),
+      );
+      await store.saveRecord(
+        AppDocumentRecord(
+          id: 'DOC-delete-job',
+          kind: AppDocumentKind.jobContractorDocument,
+          title: 'Delete proof',
+          createdAt: DateTime(2026, 6, 15),
+          updatedAt: DateTime(2026, 6, 15),
+          attachments: [promoted],
+        ),
+      );
+
+      expect(await File(promoted.path).exists(), isTrue);
+      await store.deleteRecord('DOC-delete-job');
+
+      expect(store.recordById('DOC-delete-job'), isNull);
+      expect(await File(promoted.path).exists(), isFalse);
+      expect(await sourcePdf.exists(), isTrue);
+    },
+  );
 }

@@ -394,6 +394,45 @@ void main() {
     },
   );
 
+  test('generated PDF archive replaces old app-owned proof file', () async {
+    final store = AppDocumentStore.memory();
+    final first = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice INV-REPLACE',
+      fileName: 'invoice_replace.pdf',
+      bytes: Uint8List.fromList('%PDF-1.7\nTotal 10.00\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 4),
+      sourceModule: 'invoices',
+      sourceRecordId: 'invoice_replace',
+    );
+    final second = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice INV-REPLACE',
+      fileName: 'invoice_replace.pdf',
+      bytes: Uint8List.fromList('%PDF-1.7\nTotal 20.00\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 4),
+      sourceModule: 'invoices',
+      sourceRecordId: 'invoice_replace',
+    );
+
+    final firstArchived = await AppGeneratedPdfArchiveService(
+      store: store,
+    ).archive(first);
+    final firstPath = firstArchived.attachment.path;
+    final secondArchived = await AppGeneratedPdfArchiveService(
+      store: store,
+    ).archive(second);
+
+    expect(firstArchived.document.id, secondArchived.document.id);
+    expect(firstPath, isNot(secondArchived.attachment.path));
+    expect(await File(firstPath).exists(), isFalse);
+    expect(await File(secondArchived.attachment.path).exists(), isTrue);
+    expect(
+      store.recordById(secondArchived.document.id)!.attachments.single.path,
+      secondArchived.attachment.path,
+    );
+  });
+
   test('record estimate PDF archives as invoice document proof', () async {
     final store = AppDocumentStore.memory();
     final record = _invoiceRecord(

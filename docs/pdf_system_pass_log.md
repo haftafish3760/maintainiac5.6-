@@ -1,5 +1,23 @@
 # PDF System Pass Log
 
+## Pass 26 - 2026-07-04 15:58 EDT - App document PDF lifecycle cleanup
+
+- Scope: app document/generated PDF storage lifecycle only. No inventory,
+  camera, native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - App document deletion now removes app-owned PDF proof files while preserving
+    original source files.
+  - App document store clearing can optionally remove app-owned attachment files.
+  - Re-archiving a generated PDF for the same source record now deletes the
+    replaced app-owned generated proof after the new record is saved.
+  - Added regressions for app document deletion cleanup and generated archive
+    replacement cleanup.
+- Verification completed 2026-07-04 15:58 EDT:
+  - `dart format lib/shared/documents/app_document_store.dart lib/shared/documents/app_generated_pdf_archive_service.dart test/app_document_store_test.dart test/app_generated_pdf_service_test.dart`
+  - `dart analyze lib/shared/documents/app_document_store.dart lib/shared/documents/app_generated_pdf_archive_service.dart test/app_document_store_test.dart test/app_generated_pdf_service_test.dart`
+  - `flutter test test/app_document_store_test.dart test/app_generated_pdf_service_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 25 - 2026-07-04 21:41 EDT - Passenger and patient export privacy
 
 - Scope: generated PDF privacy policy and QA only. No inventory, camera,
