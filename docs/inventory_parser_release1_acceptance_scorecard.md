@@ -350,6 +350,33 @@ A professional team would also add:
 - Store-independence proof: named merchant rules must improve ranking but never
   become required for the parser to function.
 
+## Release Gate Suite Mapping
+
+The scorecard must stay tied to executable QA suites, not memory:
+
+- `inventory.release_one_scorecard_contract`
+- `inventory.release_one_residential_contract`
+- `inventory.release_one_service_family_contract`
+- `inventory.release_one_pack_balance`
+- `inventory.merchant_independence_contract`
+- `inventory.merchant_matrix_contract`
+- `inventory.fixture_corpus_contract`
+- `inventory.fixture_expectation_contract`
+- `inventory.real_receipt_validation_contract`
+- `inventory.fake_user_review_workflow`
+- `inventory.hive_authority_contract`
+- `inventory.hive_firestore_sync_contract`
+- `inventory.parser_platform_contract`
+- `inventory.portability_contract`
+- `inventory.barcode_inventory_identity_contract`
+- `inventory.human_correction_learning_contract`
+- `inventory.confidence_calibration`
+- `inventory.review_safety_contract`
+
+If a release requirement is added here, it should either map to an existing
+suite or create a new focused suite with a surgical rerun route before catalog
+expansion depends on it.
+
 ## Next Implementation Order
 
 Recommended order:
