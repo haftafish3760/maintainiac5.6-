@@ -18,7 +18,11 @@ internal fun ReceiptCameraActivity.prepareExposureBeforeCapture(onReady: () -> U
         return
     }
     val activeCamera = camera
-    if (activeCamera == null || latestFrameBrightness < 0.0) {
+    if (
+        activeCamera == null ||
+        !latestFrameBrightness.isFinite() ||
+        latestFrameBrightness < 0.0
+    ) {
         lastPreCaptureExposureDecision = "brightness_unknown"
         lastPreCaptureExposureSkipReason = "brightness_unknown"
         onReady()

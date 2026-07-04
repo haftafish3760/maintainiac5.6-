@@ -130,6 +130,7 @@ void main() {
     expect(cameraActivity, contains('lastAutoExposureAdjustmentAt'));
     expect(cameraActivity, contains('lastAutoExposureDecision'));
     expect(cameraActivity, contains('prepareExposureBeforeCapture'));
+    expect(cameraActivity, contains('!latestFrameBrightness.isFinite()'));
     expect(cameraActivity, contains('Camera2Interop.Extender(this)'));
     expect(cameraActivity, contains('CONTROL_AF_MODE_CONTINUOUS_PICTURE'));
     expect(

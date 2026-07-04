@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 758 - 04:08:20 EDT to active cleanup
+
+Scope:
+- Hardened Android and iOS pre-capture exposure prep so non-finite live
+  brightness cannot trigger last-second exposure changes before saving a
+  receipt photo.
+- Kept malformed brightness on the existing `brightness_unknown` pre-capture
+  skip path.
+- Added Android/iOS native exposure source regressions for finite pre-capture
+  brightness checks.
+- Recorded `BUG-RECEIPT-0246` under `camera_capture_quality`.
+- Archived Pass 730 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for pre-capture exposure regressions.
+- Passed focused Android/iOS native analysis exposure regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 757 - 04:06:53 EDT to active cleanup
 
 Scope:
@@ -467,28 +486,5 @@ Verification:
 - Passed targeted Dart format/analyzer for the native camera service contract
   helper and service basics regression.
 - Passed focused Flutter native service regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 730 - 03:17:54 EDT to active cleanup
-
-Scope:
-- Removed retired lock controls from native capability policy scoring so
-  capable devices can still report full camera assist.
-- Kept lock enablement false, but stopped treating retired locks as a degraded
-  capability or noisy policy code.
-- Removed retired tap-focus controls from capability policy scoring after the
-  focused test caught capable devices losing their full-assist policy code.
-- Added session/channel regressions proving retired-lock policy noise stays out
-  while full camera assist remains possible.
-- Recorded `BUG-RECEIPT-0220` and `BUG-RECEIPT-0221` under `native_bridge`.
-- Archived Pass 705 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Focused test caught `BUG-RECEIPT-0221`; fix added before continuing.
-- Passed targeted Dart format/analyzer for native camera capability policy,
-  session settings, channel expectations, and focused contract tests.
-- Passed focused Flutter native session, settings-contract, and channel
-  regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

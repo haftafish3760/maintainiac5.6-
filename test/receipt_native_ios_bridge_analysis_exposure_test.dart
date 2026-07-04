@@ -275,6 +275,10 @@ void main() {
       expect(cameraController, contains('lastAutoExposureAdjustmentAt'));
       expect(cameraController, contains('lastAutoExposureDecision'));
       expect(cameraController, contains('prepareExposureBeforeCapture'));
+      expect(
+        cameraController,
+        contains('latestFrameBrightness.isFinite, latestFrameBrightness >= 0'),
+      );
       expect(cameraController, contains('lastPreCaptureExposureDecision'));
       expect(cameraController, contains('lastPreCaptureExposureSkipReason'));
       expect(cameraController, contains('preCaptureExposureAbortCount += 1'));

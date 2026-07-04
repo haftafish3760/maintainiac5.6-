@@ -93,7 +93,7 @@ extension ReceiptCameraViewController {
       onReady()
       return
     }
-    guard let cameraDevice, latestFrameBrightness >= 0 else {
+    guard let cameraDevice, latestFrameBrightness.isFinite, latestFrameBrightness >= 0 else {
       lastPreCaptureExposureDecision = "brightness_unknown"
       lastPreCaptureExposureSkipReason = "brightness_unknown"
       onReady()
