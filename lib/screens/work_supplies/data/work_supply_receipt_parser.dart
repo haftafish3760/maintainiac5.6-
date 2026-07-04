@@ -4895,9 +4895,11 @@ bool _isUnscopedAmbiguousReceiptLine(
   String? tradeScope, {
   String originalText = '',
 }) {
-  if (_isGenericPvcElbowReceiptLine(
-    originalText.isEmpty ? text : originalText,
-  )) {
+  final receiptText = _normalize(originalText.isEmpty ? text : originalText);
+  if (_isGenericPvcElbowReceiptLine(receiptText)) {
+    return true;
+  }
+  if (_isBareElectricalPvcConduitShorthandLine(receiptText, item)) {
     return true;
   }
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
@@ -4933,6 +4935,29 @@ bool _isGenericPvcElbowReceiptLine(String text) {
     r'\b(cond|conduit|electrical|elec|emt|condensate|hvac|irrigation)\b',
   ).hasMatch(normalized);
   return !hasPlumbingSpecificEvidence && !hasOtherTradeSpecificEvidence;
+}
+
+bool _isBareElectricalPvcConduitShorthandLine(
+  String text,
+  WorkSupplyItem item,
+) {
+  if (item.trade != 'Electrical') return false;
+  final itemName = item.name.toLowerCase();
+  final itemType = item.itemType.toLowerCase();
+  if (!itemName.contains('pvc electrical conduit') &&
+      !itemType.contains('conduit')) {
+    return false;
+  }
+  final normalized = _normalize(text);
+  final saysPvc = RegExp(r'\bpvc\b').hasMatch(normalized);
+  final saysCondAbbreviation = RegExp(r'\bcond\b').hasMatch(normalized);
+  if (!saysPvc || !saysCondAbbreviation) return false;
+  final hasStrongRacewayEvidence = RegExp(
+    r'\b(conduit|electrical|elec|emt|sch\s*40|schedule\s*40|s40|'
+    r'cplg|cplgs|coupling|coup|connector|conn|body|lb|ll|lr|strap|'
+    r'bushing|locknut|sweep|elbow|ell|elb|adapter|adpt|ft)\b',
+  ).hasMatch(normalized);
+  return !hasStrongRacewayEvidence;
 }
 
 bool _isAmbiguousPlumbingCoreLine(String text, WorkSupplyItem item) {

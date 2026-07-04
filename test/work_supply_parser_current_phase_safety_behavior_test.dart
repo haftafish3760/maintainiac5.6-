@@ -74,6 +74,37 @@ void main() {
       expect(electrical.confidenceLevel, ReceiptConfidenceLevel.good);
     });
 
+    test(
+      'bare PVC COND shorthand stays review-level even in electrical scope',
+      () {
+        for (final line in const [
+          'GRAINGER PVC COND 3/4 5.28',
+          'GRAINGER PVC COND 3/4 45.08',
+        ]) {
+          final match = matchReceiptLineToCatalog(
+            line,
+            tradeScope: 'Electrical',
+            maxCandidates: 320,
+          );
+
+          expect(match, isNotNull, reason: line);
+          expect(match!.item.trade, 'Electrical', reason: line);
+          expect(
+            match.item.name.toLowerCase(),
+            contains('conduit'),
+            reason: line,
+          );
+          expect(
+            match.confidence,
+            lessThanOrEqualTo(.81),
+            reason:
+                'Bare PVC COND can mean conduit/condensate shorthand and must '
+                'remain review-level without stronger product evidence: $line',
+          );
+        }
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
