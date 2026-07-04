@@ -3,6 +3,22 @@ part of '../../receipts/receipt_ocr_contract.dart';
 extension ReceiptOcrParserHandoffLineMaps on ReceiptOcrParserHandoff {
   List<String> get stableLineIds =>
       List.unmodifiable(lines.map((line) => line.stableLineId));
+  Map<String, int> get duplicateLineIdCounts {
+    final counts = <String, int>{};
+    for (final id in stableLineIds) {
+      counts[id] = (counts[id] ?? 0) + 1;
+    }
+    counts.removeWhere((_, count) => count < 2);
+    return Map<String, int>.unmodifiable(counts);
+  }
+
+  List<String> get duplicateLineIds =>
+      List<String>.unmodifiable(duplicateLineIdCounts.keys);
+  bool get hasDuplicateLineIds => duplicateLineIdCounts.isNotEmpty;
+  String get lineIdentityStatus => hasDuplicateLineIds
+      ? 'duplicate_line_ids_need_review'
+      : 'unique_line_ids';
+
   List<String> get parserReadyItemLineIds => List.unmodifiable(
     _uniqueStableLineIds(itemLines.where((line) => !line.needsReview)),
   );

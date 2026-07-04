@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 743 - 03:41:10 EDT to active cleanup
+
+Scope:
+- Hardened receipt line-number handoff so duplicate stable OCR line IDs are
+  surfaced as a review-needed identity status instead of silently hiding behind
+  first-entry map preservation.
+- Added focused regression coverage proving duplicate IDs are counted and
+  exposed in the privacy-safe parser handoff contract.
+- Recorded `BUG-RECEIPT-0231` under `receipt_line_numbering`.
+- Archived Pass 718 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for parser handoff line identity.
+- Passed focused Flutter parser handoff structure regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates after correcting the ledger category.
+
 ## Pass 742 - 03:39:36 EDT to active cleanup
 
 Scope:
@@ -467,21 +484,5 @@ Scope:
 Verification:
 - Passed Dart format/analyzer for native byte-budget validation.
 - Passed focused native path validation regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 718 - 02:40:00 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS native receipt capture temp filenames so they include
-  a UUID in addition to the timestamp.
-- Added native bridge source regressions proving timestamp-only receipt capture
-  filenames cannot return.
-- Recorded `BUG-RECEIPT-0206` under `multi_photo_ordering`.
-- Archived Pass 691 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for Android/iOS bridge regressions.
-- Passed focused Android/iOS native bridge regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

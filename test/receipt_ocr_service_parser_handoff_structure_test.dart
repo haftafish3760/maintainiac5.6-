@@ -220,6 +220,17 @@ void main() {
 
     expect(second.stableLineId, lineId);
     expect(handoff.stableLineIds, [lineId, lineId]);
+    expect(handoff.hasDuplicateLineIds, isTrue);
+    expect(handoff.duplicateLineIds, [lineId]);
+    expect(handoff.duplicateLineIdCounts, {lineId: 2});
+    expect(handoff.lineIdentityStatus, 'duplicate_line_ids_need_review');
+    expect(
+      handoff.privacySafeParserHandoffContract['lineIdentityStatus'],
+      'duplicate_line_ids_need_review',
+    );
+    expect(handoff.privacySafeParserHandoffContract['duplicateLineIdCounts'], {
+      lineId: 2,
+    });
     expect(handoff.parserReadyItemLineIds, [lineId]);
     expect(handoff.materialCandidateLineIds, [lineId]);
     expect(handoff.inventoryPrepLineIds, [lineId]);
