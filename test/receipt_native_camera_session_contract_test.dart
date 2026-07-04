@@ -73,6 +73,7 @@ void main() {
       cameraCount: 4,
       hasRearCamera: true,
       supportsTapFocus: true,
+      supportsContinuousFocus: true,
       supportsFocusLock: true,
       supportsExposureCompensation: true,
       supportsExposureLock: true,
@@ -146,6 +147,7 @@ void main() {
       'prefer_fast_document_shutter_auto_capture_when_stable',
     );
     expect(config.tapToFocusPolicy, 'continuous_focus_primary_no_tap_focus');
+    expect(config.continuousFocusEnabled, isTrue);
     expect(
       config.focusStrategyPolicy,
       'continuous_focus_primary_no_tap_assist',
@@ -170,6 +172,7 @@ void main() {
       'brightness_slider',
       'brightness_reset',
       'auto_brightness_assist',
+      'continuous_focus',
       'focus_lock',
       'brightness_lock',
       'white_balance_lock',
@@ -246,6 +249,11 @@ void main() {
         'native_auto_metering_no_manual_slider',
       );
       expect(config.tapToFocusPolicy, 'continuous_focus_primary_no_tap_focus');
+      expect(config.continuousFocusEnabled, isFalse);
+      expect(
+        config.focusStrategyPolicy,
+        'continuous_focus_unavailable_readability_review_required',
+      );
       expect(
         config.zoomGesturePolicy,
         'pinch_zoom_unavailable_keep_native_scale',
@@ -257,6 +265,7 @@ void main() {
         'review_next',
         'receipt_guidance',
         'safe_close',
+        'focus_readability_review',
         'edge_overlay',
       ]);
       expect(config.focusLockEnabled, isFalse);

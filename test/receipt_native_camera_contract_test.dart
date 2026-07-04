@@ -149,6 +149,7 @@ void main() {
       cameraPermissionGranted: true,
       cameraCount: 2,
       hasRearCamera: true,
+      supportsContinuousFocus: true,
       supportsYuvLiveFrames: true,
       supportsNativeEdgeSignals: true,
     );
@@ -169,6 +170,7 @@ void main() {
       config.focusStrategyPolicy,
       'continuous_focus_primary_no_tap_assist',
     );
+    expect(config.continuousFocusEnabled, isTrue);
     expect(config.tapToFocusPolicy, 'continuous_focus_primary_no_tap_focus');
     expect(
       config.readabilityGuidancePolicy,

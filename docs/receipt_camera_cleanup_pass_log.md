@@ -3,6 +3,27 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 603 - 21:04:01 EDT to 21:06:10 EDT
+
+Scope:
+- Hardened native receipt camera focus policy so session diagnostics only claim
+  continuous autofocus when the device reports continuous-focus support.
+- Added a `continuousFocusEnabled` session contract flag, native argument, and
+  control tag, with unsupported devices downgraded to readability review.
+- Configured iOS AVFoundation to set continuous autofocus and continuous auto
+  exposure at session startup when supported.
+- Added regressions for capable and unsupported focus policy paths plus the iOS
+  startup focus/exposure source contract.
+- Recorded `BUG-RECEIPT-0124` under `camera_capture_quality`.
+- Archived Pass 582 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native camera session contracts,
+  service arguments, and iOS source-contract coverage.
+- Passed focused Flutter native camera session, shared camera contract, and iOS
+  bridge analysis/exposure regressions.
+
 ## Pass 602 - 21:02:12 EDT to 21:03:17 EDT
 
 Scope:
@@ -470,24 +491,3 @@ Verification:
 - Passed targeted Dart format/analyzer for the path identity helper, review
   exit actions, picked-photo membership, and focused tests.
 - Passed focused Flutter path-identity and review lifecycle regressions.
-
-## Pass 582 - 10:48:00 EDT to 10:57:30 EDT
-
-Scope:
-- Added a shared receipt photo path identity helper and routed picked-photo
-  intake plus retake/order guards through the same normalized identity rule.
-- Added behavior coverage proving blank, padded, duplicate, and `../` alias
-  receipt photo paths are rejected or de-duplicated before review ordering.
-- Updated the review lifecycle source guard so picked-photo intake must keep
-  using the shared helper.
-- Recorded `BUG-RECEIPT-0098` under `multi_photo_ordering`.
-- Archived Pass 554 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the shared path identity helper,
-  review screen wiring, picked-photo intake, retake ordering, and focused
-  tests.
-- Passed focused Flutter path-identity and retake-order regressions.
-- Corrected a stale lifecycle test filter, then passed focused Flutter
-  lifecycle coverage for review save/close actions.

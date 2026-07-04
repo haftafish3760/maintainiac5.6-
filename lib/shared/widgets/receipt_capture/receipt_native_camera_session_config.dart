@@ -36,6 +36,7 @@ class ReceiptNativeCameraSessionConfig {
     required this.exposureSliderEnabled,
     required this.exposureResetEnabled,
     required this.autoExposureAssistEnabled,
+    required this.continuousFocusEnabled,
     required this.focusLockEnabled,
     required this.exposureLockEnabled,
     required this.whiteBalanceLockEnabled,
@@ -100,6 +101,7 @@ class ReceiptNativeCameraSessionConfig {
   final bool exposureSliderEnabled;
   final bool exposureResetEnabled;
   final bool autoExposureAssistEnabled;
+  final bool continuousFocusEnabled;
   final bool focusLockEnabled;
   final bool exposureLockEnabled;
   final bool whiteBalanceLockEnabled;
@@ -256,8 +258,11 @@ class ReceiptNativeCameraSessionConfig {
   }
 
   String get focusStrategyPolicy {
-    if (settings.usesContinuousFocusPrimary) {
+    if (settings.usesContinuousFocusPrimary && continuousFocusEnabled) {
       return 'continuous_focus_primary_no_tap_assist';
+    }
+    if (settings.usesContinuousFocusPrimary) {
+      return 'continuous_focus_unavailable_readability_review_required';
     }
     return 'non_continuous_focus_requires_device_review';
   }
@@ -288,6 +293,11 @@ class ReceiptNativeCameraSessionConfig {
     if (exposureSliderEnabled) tags.add('brightness_slider');
     if (exposureResetEnabled) tags.add('brightness_reset');
     if (autoExposureAssistEnabled) tags.add('auto_brightness_assist');
+    if (continuousFocusEnabled) {
+      tags.add('continuous_focus');
+    } else {
+      tags.add('focus_readability_review');
+    }
     if (focusLockEnabled) tags.add('focus_lock');
     if (exposureLockEnabled) tags.add('brightness_lock');
     if (whiteBalanceLockEnabled) tags.add('white_balance_lock');

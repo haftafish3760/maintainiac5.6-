@@ -83,6 +83,22 @@ void main() {
         contains('arguments["nativeControlContractTags"] as? [String] ?? []'),
       );
       expect(cameraController, contains('configureVideoAnalysisIfNeeded'));
+      expect(
+        cameraController,
+        contains('configureInitialFocusAndExposure(for: device)'),
+      );
+      expect(
+        cameraController,
+        contains('device.focusMode = .continuousAutoFocus'),
+      );
+      expect(
+        cameraController,
+        contains('lastFocusStatus = "continuous_autofocus_configured"'),
+      );
+      expect(
+        cameraController,
+        contains('lastFocusStatus = "continuous_autofocus_unavailable"'),
+      );
       expect(cameraController, contains('tooFarTooCloseWarningEnabled ||'));
       expect(
         cameraController,

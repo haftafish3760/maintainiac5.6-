@@ -60,6 +60,9 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
             nativeCapabilities.minExposureOffset;
     final effectiveExposureAssist =
         autoExposureAssistEnabled && effectiveExposureSlider;
+    final effectiveContinuousFocus =
+        focusMode == ReceiptNativeFocusMode.continuous &&
+        nativeCapabilities.supportsContinuousFocus;
     final effectiveFocusLock =
         focusMode != ReceiptNativeFocusMode.manual &&
         nativeCapabilities.supportsFocusLock;
@@ -128,6 +131,7 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
       effectivePinchZoom: effectivePinchZoom,
       effectiveExposureSlider: effectiveExposureSlider,
       effectiveExposureAssist: effectiveExposureAssist,
+      effectiveContinuousFocus: effectiveContinuousFocus,
       effectiveFocusLock: effectiveFocusLock,
       effectiveExposureLock: effectiveExposureLock,
       effectiveWhiteBalanceLock: effectiveWhiteBalanceLock,
@@ -174,6 +178,7 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
       exposureSliderEnabled: effectiveExposureSlider,
       exposureResetEnabled: exposureResetEnabled && effectiveExposureSlider,
       autoExposureAssistEnabled: effectiveExposureAssist,
+      continuousFocusEnabled: effectiveContinuousFocus,
       focusLockEnabled: effectiveFocusLock,
       exposureLockEnabled: effectiveExposureLock,
       whiteBalanceLockEnabled: effectiveWhiteBalanceLock,

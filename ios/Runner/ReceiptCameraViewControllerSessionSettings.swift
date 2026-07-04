@@ -22,6 +22,7 @@ extension ReceiptCameraViewController {
         return
       }
       self.cameraDevice = device
+      self.configureInitialFocusAndExposure(for: device)
       self.session.addInput(input)
       self.photoOutput.isHighResolutionCaptureEnabled = true
       if #available(iOS 13.0, *) {
@@ -35,6 +36,26 @@ extension ReceiptCameraViewController {
         self.torchButton.isEnabled = device.hasTorch
         self.configureExposureControls(for: device)
       }
+    }
+  }
+
+  func configureInitialFocusAndExposure(for device: AVCaptureDevice) {
+    do {
+      try device.lockForConfiguration()
+      if focusMode == "continuous", device.isFocusModeSupported(.continuousAutoFocus) {
+        device.focusMode = .continuousAutoFocus
+        lastFocusStatus = "continuous_autofocus_configured"
+      } else if focusMode == "continuous" {
+        lastFocusStatus = "continuous_autofocus_unavailable"
+      }
+      if exposureMode == "auto", device.isExposureModeSupported(.continuousAutoExposure) {
+        device.exposureMode = .continuousAutoExposure
+      } else if exposureMode == "auto", device.isExposureModeSupported(.autoExpose) {
+        device.exposureMode = .autoExpose
+      }
+      device.unlockForConfiguration()
+    } catch {
+      lastFocusStatus = "continuous_autofocus_configuration_failed"
     }
   }
 
