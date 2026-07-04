@@ -14,14 +14,10 @@ List<String> _nativeCameraCapabilityPolicyCodes({
   required bool autoCaptureAllowed,
   required bool liveAnalysisAllowed,
   required bool effectiveEdgeDetection,
-  required bool effectiveTapFocus,
   required bool effectivePinchZoom,
   required bool effectiveExposureSlider,
   required bool effectiveExposureAssist,
   required bool effectiveContinuousFocus,
-  required bool effectiveFocusLock,
-  required bool effectiveExposureLock,
-  required bool effectiveWhiteBalanceLock,
   required bool heavyCleanupAllowed,
   required bool longReceiptMode,
 }) {
@@ -34,15 +30,10 @@ List<String> _nativeCameraCapabilityPolicyCodes({
     if (!autoCaptureAllowed) 'auto_capture_policy_disabled',
     if (!liveAnalysisAllowed) 'live_analysis_policy_disabled',
     if (!effectiveEdgeDetection) 'edge_detection_policy_disabled',
-    if (!effectiveTapFocus) 'tap_focus_retired_continuous_focus_primary',
     if (!effectivePinchZoom) 'pinch_zoom_unavailable',
     if (!effectiveExposureSlider) 'exposure_slider_unavailable',
     if (!effectiveExposureAssist) 'auto_exposure_assist_unavailable',
     if (!effectiveContinuousFocus) 'continuous_focus_unavailable',
-    if (!effectiveFocusLock ||
-        !effectiveExposureLock ||
-        !effectiveWhiteBalanceLock)
-      'lock_controls_retired_continuous_focus_primary',
     if (!heavyCleanupAllowed) 'heavy_cleanup_policy_limited',
   ];
   if (codes.isEmpty) return const ['full_camera_assist_available'];

@@ -3,6 +3,29 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 730 - 03:17:54 EDT to active cleanup
+
+Scope:
+- Removed retired lock controls from native capability policy scoring so
+  capable devices can still report full camera assist.
+- Kept lock enablement false, but stopped treating retired locks as a degraded
+  capability or noisy policy code.
+- Removed retired tap-focus controls from capability policy scoring after the
+  focused test caught capable devices losing their full-assist policy code.
+- Added session/channel regressions proving retired-lock policy noise stays out
+  while full camera assist remains possible.
+- Recorded `BUG-RECEIPT-0220` and `BUG-RECEIPT-0221` under `native_bridge`.
+- Archived Pass 705 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Focused test caught `BUG-RECEIPT-0221`; fix added before continuing.
+- Passed targeted Dart format/analyzer for native camera capability policy,
+  session settings, channel expectations, and focused contract tests.
+- Passed focused Flutter native session, settings-contract, and channel
+  regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 729 - 03:15:57 EDT to active cleanup
 
 Scope:
@@ -460,23 +483,3 @@ Verification:
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
 - Archived Pass 648 from the active cleanup log to keep the doc under cap.
-
-## Pass 705 - 02:25:00 EDT to active cleanup
-
-Scope:
-- Aligned in-entry draft receipt line numbering with the saved ledger line
-  guardrails so malformed OCR line or section numbers cannot show impossible
-  proof labels before save.
-- Added bounded draft line/section helpers and routed draft proof labels, OCR
-  source labels, and redaction anchors through them.
-- Expanded the assisted-review source fixture so regression coverage includes
-  the shared draft line support and label helpers.
-- Recorded `BUG-RECEIPT-0192` under `receipt_line_numbering`.
-- Archived Pass 646 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for draft receipt line helpers and
-  assisted-review source regression.
-- Passed focused Flutter assisted receipt review flow regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.

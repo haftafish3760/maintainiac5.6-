@@ -195,7 +195,7 @@ void main() {
       expect(config.nativeControlContractTags, isNot(contains('focus_assist')));
       expect(
         config.capabilityPolicyCodes,
-        contains('tap_focus_retired_continuous_focus_primary'),
+        isNot(contains('tap_focus_retired_continuous_focus_primary')),
       );
       expect(config.continuousFocusEnabled, isTrue);
       expect(

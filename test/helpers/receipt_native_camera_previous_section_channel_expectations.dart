@@ -131,15 +131,11 @@ void expectPreviousSectionGuideChannelArguments(
     'native_edge_signals_unavailable',
     'auto_capture_policy_disabled',
     'live_analysis_policy_disabled',
-    'tap_focus_retired_continuous_focus_primary',
-    'lock_controls_retired_continuous_focus_primary',
   ]);
   expect(result.captureDiagnostics['capabilityPolicyCodes'], [
     'native_edge_signals_unavailable',
     'auto_capture_policy_disabled',
     'live_analysis_policy_disabled',
-    'tap_focus_retired_continuous_focus_primary',
-    'lock_controls_retired_continuous_focus_primary',
   ]);
   expect(
     result.captureDiagnostics['receiptInstallMode'],

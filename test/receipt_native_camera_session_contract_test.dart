@@ -180,6 +180,14 @@ void main() {
     expect(config.focusLockEnabled, isFalse);
     expect(config.exposureLockEnabled, isFalse);
     expect(config.whiteBalanceLockEnabled, isFalse);
+    expect(
+      config.capabilityPolicyCodes,
+      isNot(contains('lock_controls_retired_continuous_focus_primary')),
+    );
+    expect(
+      config.capabilityPolicyCodes,
+      contains('full_camera_assist_available'),
+    );
     final sessionConfigSource = File(
       'lib/shared/widgets/receipt_capture/receipt_native_camera_session_config.dart',
     ).readAsStringSync();
