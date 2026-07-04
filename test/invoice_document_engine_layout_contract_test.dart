@@ -1,0 +1,312 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:crypto/crypto.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/screens/invoices/data/invoice_ledger_models.dart';
+import 'package:maintaniac/screens/invoices/data/invoice_pdf_privacy_guard.dart';
+import 'package:maintaniac/screens/invoices/data/invoice_pdf_template_renderer.dart';
+import 'package:maintaniac/screens/invoices/data/invoice_record.dart';
+import 'package:maintaniac/screens/invoices/data/invoice_template_catalog.dart';
+import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
+import 'package:maintaniac/shared/pdf/app_pdf_privacy_policy.dart';
+import 'package:maintaniac/shared/pdf/app_pdf_text_decoder.dart';
+
+import 'helpers/invoice_document_engine_fixture_factory.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('invoice Document Engine fixture factory keeps arithmetic stable', () {
+    final standard = InvoiceDocumentEngineFixtureFactory.standardInvoice(
+      lineCount: 14,
+    );
+    final estimate = InvoiceDocumentEngineFixtureFactory.estimate(lineCount: 9);
+    final decimal =
+        InvoiceDocumentEngineFixtureFactory.decimalsRefundsAndOverpayment();
+    final huge = InvoiceDocumentEngineFixtureFactory.hugeInvoice(lineCount: 96);
+
+    expect(standard.subtotalCents, greaterThan(0));
+    expect(standard.taxTotalCents, greaterThan(0));
+    expect(
+      standard.totalCents,
+      standard.taxableSubtotalCents + standard.taxTotalCents,
+    );
+    expect(
+      standard.balanceDueCents,
+      standard.totalCents - standard.paidTotalCents,
+    );
+    expect(estimate.isEstimate, isTrue);
+    expect(estimate.paidTotalCents, 0);
+    expect(decimal.subtotalCents, 18615);
+    expect(decimal.discountAmountCents, 101);
+    expect(decimal.taxTotalCents, -70);
+    expect(decimal.balanceDueCents, -81557);
+    expect(huge.lines.length, 96);
+    expect(invoicePdfPageCountForRecord(huge), greaterThan(5));
+  });
+
+  test('invoice Document Engine renders core fixtures as valid PDFs', () async {
+    final renderer = const InvoicePdfTemplateRenderer();
+    final fixtures = <_InvoiceRenderFixture>[
+      _InvoiceRenderFixture(
+        name: 'standard invoice',
+        record: InvoiceDocumentEngineFixtureFactory.standardInvoice(
+          lineCount: 16,
+        ),
+        templateId: 'structured-logo',
+        minimumPages: 2,
+      ),
+      _InvoiceRenderFixture(
+        name: 'estimate',
+        record: InvoiceDocumentEngineFixtureFactory.estimate(lineCount: 13),
+        templateId: 'printer-friendly',
+        minimumPages: 2,
+      ),
+      _InvoiceRenderFixture(
+        name: 'missing optional fields',
+        record: InvoiceDocumentEngineFixtureFactory.missingOptionalFields(),
+        templateId: 'plumbing-watermark',
+        minimumPages: 1,
+      ),
+      _InvoiceRenderFixture(
+        name: 'decimal refunds and overpayment',
+        record:
+            InvoiceDocumentEngineFixtureFactory.decimalsRefundsAndOverpayment(),
+        templateId: 'structured-logo',
+        minimumPages: 1,
+      ),
+      _InvoiceRenderFixture(
+        name: 'long text',
+        record: InvoiceDocumentEngineFixtureFactory.longTextStress(
+          lineCount: 34,
+        ),
+        templateId: 'structured-logo',
+        minimumPages: 3,
+      ),
+    ];
+
+    for (final fixture in fixtures) {
+      final bytes = await renderer.buildRecordDocumentBytes(
+        record: fixture.record,
+        template: InvoiceTemplateCatalog.byId(fixture.templateId),
+      );
+      final report = AppGeneratedPdfValidationReport.inspect(
+        Uint8List.fromList(bytes),
+      );
+
+      expect(bytes.length, greaterThan(1000), reason: fixture.name);
+      expect(
+        latin1.decode(bytes.take(5).toList()),
+        '%PDF-',
+        reason: fixture.name,
+      );
+      expect(report.isValid, isTrue, reason: fixture.name);
+      expect(
+        invoicePdfPageCountForRecord(fixture.record),
+        greaterThanOrEqualTo(fixture.minimumPages),
+        reason: fixture.name,
+      );
+      expect(
+        sha256.convert(bytes).toString(),
+        matches(RegExp(r'^[a-f0-9]{64}$')),
+        reason: fixture.name,
+      );
+    }
+  });
+
+  test('invoice Document Engine output is deterministic by template', () async {
+    final renderer = const InvoicePdfTemplateRenderer();
+    final record = InvoiceDocumentEngineFixtureFactory.standardInvoice(
+      lineCount: 22,
+    );
+
+    for (final template in InvoiceTemplateCatalog.templates) {
+      final first = await renderer.buildRecordDocumentBytes(
+        record: record.copyWith(templateId: template.id),
+        template: template,
+      );
+      final second = await renderer.buildRecordDocumentBytes(
+        record: record.copyWith(templateId: template.id),
+        template: template,
+      );
+
+      expect(first, second, reason: template.id);
+      expect(
+        sha256.convert(first).toString(),
+        sha256.convert(second).toString(),
+        reason: template.id,
+      );
+    }
+  });
+
+  test(
+    'invoice Document Engine never exports private vehicle or passenger data',
+    () async {
+      final privateRecord =
+          InvoiceDocumentEngineFixtureFactory.standardInvoice(
+            id: 'invoice-private-block',
+            invoiceNumber: 'INV-PRIVATE-001',
+            lineCount: 1,
+          ).copyWith(
+            title: 'Invoice for plate ABC 1234',
+            lines: const [
+              InvoiceLineItemRecord(
+                id: 'private-line',
+                name: 'Passenger: Jane Customer',
+                details: 'VIN 1HGCM82633A004352',
+                quantity: 1,
+                unit: 'ea',
+                unitPrice: 100,
+                taxable: false,
+              ),
+            ],
+          );
+
+      final issues = InvoicePdfPrivacyGuard.issueCodesForRecord(privateRecord);
+
+      expect(issues, contains(AppPdfPrivacyPolicy.licensePlate));
+      expect(issues, contains(AppPdfPrivacyPolicy.vin));
+      expect(issues, contains(AppPdfPrivacyPolicy.passengerData));
+      await expectLater(
+        const InvoicePdfTemplateRenderer().buildRecordDocumentBytes(
+          record: privateRecord,
+          template: InvoiceTemplateCatalog.byId('structured-logo'),
+        ),
+        throwsA(
+          isA<InvoicePdfPrivacyException>().having(
+            (error) => error.issues,
+            'issues',
+            containsAll([
+              AppPdfPrivacyPolicy.licensePlate,
+              AppPdfPrivacyPolicy.vin,
+              AppPdfPrivacyPolicy.passengerData,
+            ]),
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
+    'invoice Document Engine validates huge invoice pagination boundaries',
+    () async {
+      final renderer = const InvoicePdfTemplateRenderer();
+      final record = InvoiceDocumentEngineFixtureFactory.hugeInvoice(
+        lineCount: 120,
+      );
+      final bytes = await renderer.buildRecordDocumentBytes(
+        record: record,
+        template: InvoiceTemplateCatalog.byId('printer-friendly'),
+      );
+      final pages = invoicePdfPageCountForRecord(record);
+
+      expect(pages, greaterThanOrEqualTo(10));
+      expect(pages, lessThan(20));
+      expect(bytes.length, greaterThan(1000));
+      expect(
+        AppGeneratedPdfValidationReport.inspect(
+          Uint8List.fromList(bytes),
+        ).isValid,
+        isTrue,
+      );
+    },
+  );
+
+  test(
+    'invoice Document Engine exercises every template with missing logos',
+    () async {
+      final renderer = const InvoicePdfTemplateRenderer();
+      final record =
+          InvoiceDocumentEngineFixtureFactory.missingOptionalFields();
+
+      for (final template in InvoiceTemplateCatalog.templates) {
+        final bytes = await renderer.buildRecordDocumentBytes(
+          record: record.copyWith(templateId: template.id),
+          template: template,
+        );
+
+        expect(bytes.length, greaterThan(1000), reason: template.id);
+        expect(
+          latin1.decode(bytes.take(5).toList()),
+          '%PDF-',
+          reason: template.id,
+        );
+        expect(
+          AppGeneratedPdfValidationReport.inspect(
+            Uint8List.fromList(bytes),
+          ).isValid,
+          isTrue,
+          reason: template.id,
+        );
+      }
+    },
+  );
+
+  test(
+    'invoice Document Engine preserves decimal-safe totals in generated bytes',
+    () async {
+      final record =
+          InvoiceDocumentEngineFixtureFactory.decimalsRefundsAndOverpayment();
+      final bytes = await const InvoicePdfTemplateRenderer()
+          .buildRecordDocumentBytes(
+            record: record,
+            template: InvoiceTemplateCatalog.byId('structured-logo'),
+          );
+      final decoded = AppPdfTextDecoder.textWithDecodedPdfStreams(bytes);
+
+      expect(record.subtotalCents, 18615);
+      expect(record.discountAmountCents, 101);
+      expect(record.taxTotalCents, -70);
+      expect(record.balanceDueCents, -81557);
+      expect(decoded, contains(r'$186.15'));
+      expect(decoded, contains(r'$1.01'));
+      expect(decoded, contains(r'-$815.57'));
+    },
+  );
+
+  test(
+    'invoice Document Engine page counts stay stable near known boundaries',
+    () {
+      final expectations = <int, int>{
+        0: 1,
+        1: 1,
+        7: 1,
+        8: 2,
+        17: 2,
+        18: 3,
+        29: 3,
+        30: 4,
+        42: 5,
+        54: 6,
+        96: 9,
+      };
+
+      for (final entry in expectations.entries) {
+        final record = InvoiceDocumentEngineFixtureFactory.standardInvoice(
+          lineCount: entry.key,
+        );
+
+        expect(
+          invoicePdfPageCountForRecord(record),
+          entry.value,
+          reason: 'line count ${entry.key}',
+        );
+      }
+    },
+  );
+}
+
+class _InvoiceRenderFixture {
+  const _InvoiceRenderFixture({
+    required this.name,
+    required this.record,
+    required this.templateId,
+    required this.minimumPages,
+  });
+
+  final String name;
+  final InvoiceRecord record;
+  final String templateId;
+  final int minimumPages;
+}

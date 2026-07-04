@@ -21,11 +21,14 @@ dart analyze \
   lib/shared/widgets/receipt_capture/receipt_pdf_limits.dart \
   lib/shared/widgets/receipt_capture/receipt_pdf_viewer_preview_plan.dart \
   lib/shared/widgets/receipt_capture/receipt_proof_storage.dart \
+  lib/screens/invoices/data/invoice_pdf_privacy_guard.dart \
+  lib/screens/invoices/data/invoice_pdf_template_renderer.dart \
   test/app_generated_pdf_service_test.dart \
   test/app_document_store_test.dart \
   test/cloud_backup_pdf_policy_test.dart \
   test/document_engine_operating_directive_test.dart \
   test/incoming_receipt_share_pdf_hardening_test.dart \
+  test/invoice_document_engine_layout_contract_test.dart \
   test/invoice_pdf_preview_action_tracking_test.dart \
   test/invoice_template_pdf_factory_test.dart \
   test/invoice_pdf_money_precision_test.dart \
@@ -61,6 +64,7 @@ flutter test \
   test/cloud_backup_pdf_policy_test.dart \
   test/document_engine_operating_directive_test.dart \
   test/incoming_receipt_share_pdf_hardening_test.dart \
+  test/invoice_document_engine_layout_contract_test.dart \
   test/invoice_pdf_preview_action_tracking_test.dart \
   test/invoice_template_pdf_factory_test.dart \
   test/invoice_pdf_money_precision_test.dart \

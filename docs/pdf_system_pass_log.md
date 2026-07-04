@@ -1,5 +1,31 @@
 # PDF System Pass Log
 
+## Pass 44 - 2026-07-04 17:15 EDT - Invoice Document Engine layout QA bundle
+
+- Scope: invoice Document Engine PDF generation, shared PDF text extraction,
+  generated PDF privacy preflight, and PDF QA gate wiring only. No inventory,
+  camera, native capture, receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Added invoice PDF privacy preflight so VINs, license plates, passenger
+    data, and other blocked private fields are rejected before render/export.
+  - Added a reusable invoice Document Engine fixture factory for invoices,
+    estimates, missing optional fields, missing logos, huge invoices, long
+    text, pagination boundaries, decimal refunds, and overpayments.
+  - Added invoice Document Engine layout contract coverage for multi-page
+    invoices, estimate templates, template determinism, huge invoices,
+    missing optional fields/logos, decimal-safe totals, pagination boundaries,
+    and private export blocking.
+  - Hardened shared PDF text extraction for ToUnicode CMap glyph streams so
+    generated PDF QA can verify searchable money text even when the PDF engine
+    embeds font-specific glyph codes.
+  - Wired the invoice layout suite and decoder regression into the shared PDF
+    quality gate and fixture inventory.
+- Verification completed 2026-07-04 17:15 EDT:
+  - `dart format lib/shared/pdf/app_pdf_text_decoder.dart test/pdf_text_decoder_contract_test.dart test/invoice_document_engine_layout_contract_test.dart test/helpers/invoice_document_engine_fixture_factory.dart lib/screens/invoices/data/invoice_pdf_privacy_guard.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/pdf_quality_gate_contract_test.dart`
+  - `flutter test test/pdf_text_decoder_contract_test.dart test/invoice_document_engine_layout_contract_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_pdf_text_decoder.dart test/pdf_text_decoder_contract_test.dart lib/screens/invoices/data/invoice_pdf_privacy_guard.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/helpers/invoice_document_engine_fixture_factory.dart test/invoice_document_engine_layout_contract_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 43 - 2026-07-04 17:04 EDT - Compressed PDF stream security bundle
 
 - Scope: shared PDF text decoding, generated PDF security/privacy validation,

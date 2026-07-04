@@ -151,13 +151,23 @@
     "invoice_generation": {
       "status": "covered",
       "currentTestFiles": [
+        "test/invoice_document_engine_layout_contract_test.dart",
         "test/app_generated_pdf_service_test.dart",
         "test/invoice_template_pdf_factory_test.dart",
         "test/invoice_pdf_preview_action_tracking_test.dart"
       ],
       "fixtureKeys": [
         "generated_invoice_pdf",
-        "generated_estimate_pdf"
+        "generated_estimate_pdf",
+        "multi_page_invoice",
+        "huge_invoice",
+        "missing_optional_fields",
+        "missing_logo",
+        "long_unbroken_text",
+        "decimal_refund_overpayment",
+        "template_matrix",
+        "pagination_boundaries",
+        "private_invoice_export_block"
       ]
     },
     "cross_platform_storage": {

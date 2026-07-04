@@ -35,6 +35,28 @@ void main() {
     expect(decoded, contains('VIN 1HGCM82633A004352'));
   });
 
+  test('shared PDF text decoder extracts ToUnicode CMap glyph text', () {
+    final decoded = AppPdfTextDecoder.withDecodedHexStrings(
+      '/CIDInit/ProcSet findresource begin\n'
+      '12 dict begin\n'
+      'begincmap\n'
+      '5 beginbfchar\n'
+      '<0029> <0024>\n'
+      '<002A> <0031>\n'
+      '<002B> <0038>\n'
+      '<0034> <0031>\n'
+      '<0035> <0035>\n'
+      'endbfchar\n'
+      '1 beginbfrange\n'
+      '<002C> <002D> [<0036> <002E>]\n'
+      'endbfrange\n'
+      'endcmap\n'
+      'BT <0029002A002B002C002D002A00340035> Tj ET',
+    );
+
+    expect(decoded, contains(r'$186.1'));
+  });
+
   test('shared PDF text decoder ignores broken FlateDecode streams safely', () {
     final decoded = AppPdfTextDecoder.textWithDecodedPdfStreams(
       PdfSecurityFixtureFactory.brokenFlateStreamPdf('not really compressed'),

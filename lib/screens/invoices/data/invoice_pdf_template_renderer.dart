@@ -8,6 +8,7 @@ import '../../../shared/pdf/app_pdf_determinism.dart';
 import '../../../shared/pdf/app_pdf_formatters.dart';
 import '../../../shared/pdf/app_pdf_typography.dart';
 import 'invoice_ledger_models.dart';
+import 'invoice_pdf_privacy_guard.dart';
 import 'invoice_record.dart';
 import 'invoice_template_catalog.dart';
 
@@ -39,6 +40,7 @@ class InvoicePdfTemplateRenderer {
     required InvoiceRecord record,
     required InvoiceTemplateDefinition template,
   }) async {
+    InvoicePdfPrivacyGuard.ensureRecordCanExport(record);
     final pdf = pw.Document();
     final chunks = _InvoicePaginator(record).pages;
     final artwork = await _InvoiceTemplateArtwork.load(template);

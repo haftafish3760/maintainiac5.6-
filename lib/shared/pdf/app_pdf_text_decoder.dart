@@ -15,7 +15,10 @@ class AppPdfTextDecoder {
   }
 
   static String withDecodedHexStrings(String text) {
-    final decoded = decodedHexStrings(text);
+    final decoded = <String>[
+      ...decodedHexStrings(text),
+      ...decodedCMapStrings(text),
+    ];
     if (decoded.isEmpty) return text;
     return '$text\n${decoded.join('\n')}';
   }
@@ -57,8 +60,31 @@ class AppPdfTextDecoder {
     return List.unmodifiable(decoded);
   }
 
+  static List<String> decodedCMapStrings(String text) {
+    final cmaps = _toUnicodeCMaps(text);
+    if (cmaps.isEmpty) return const [];
+    final decoded = <String>[];
+    final seen = <String>{};
+    for (final match in RegExp(
+      r'<([0-9a-fA-F\s]{4,})>',
+      multiLine: true,
+    ).allMatches(text)) {
+      final source = _compactHex(match.group(1)!);
+      if (source == null || source.length < 4 || source.length.isOdd) {
+        continue;
+      }
+      for (final cmap in cmaps) {
+        final decodedValue = _decodeCMapHexString(source, cmap);
+        if (decodedValue == null || decodedValue.trim().isEmpty) continue;
+        if (seen.add(decodedValue)) decoded.add(decodedValue);
+      }
+    }
+    return List.unmodifiable(decoded);
+  }
+
   static List<int>? _hexValues(String source) {
-    final hex = source.replaceAll(RegExp(r'\s+'), '');
+    final hex = _compactHex(source);
+    if (hex == null) return null;
     if (hex.isEmpty || hex.length.isOdd) return null;
     final values = <int>[];
     for (var index = 0; index < hex.length; index += 2) {
@@ -67,6 +93,12 @@ class AppPdfTextDecoder {
       values.add(value);
     }
     return values;
+  }
+
+  static String? _compactHex(String source) {
+    final hex = source.replaceAll(RegExp(r'\s+'), '');
+    if (hex.isEmpty || hex.length.isOdd) return null;
+    return RegExp(r'^[0-9a-fA-F]+$').hasMatch(hex) ? hex.toUpperCase() : null;
   }
 
   static String? _decodePdfHexString(List<int> values) {
@@ -100,6 +132,160 @@ class AppPdfTextDecoder {
     }
     final decoded = buffer.toString();
     return decoded.trim().isEmpty ? null : decoded;
+  }
+
+  static List<Map<String, String>> _toUnicodeCMaps(String text) {
+    final maps = <Map<String, String>>[];
+    for (final cmapSection in RegExp(
+      r'begincmap(?<body>.*?)endcmap',
+      dotAll: true,
+      multiLine: true,
+    ).allMatches(text)) {
+      final map = _toUnicodeCMap(cmapSection.namedGroup('body')!);
+      if (map.isNotEmpty) maps.add(map);
+    }
+    if (maps.isNotEmpty) return List.unmodifiable(maps);
+    final fallback = _toUnicodeCMap(text);
+    return fallback.isEmpty ? const [] : List.unmodifiable([fallback]);
+  }
+
+  static Map<String, String> _toUnicodeCMap(String text) {
+    final map = <String, String>{};
+    for (final section in RegExp(
+      r'beginbfchar(?<body>.*?)endbfchar',
+      dotAll: true,
+      multiLine: true,
+    ).allMatches(text)) {
+      final body = section.namedGroup('body')!;
+      for (final line in body.split(RegExp(r'\r?\n'))) {
+        final match = RegExp(
+          r'<([0-9a-fA-F\s]+)>\s+<([0-9a-fA-F\s]+)>',
+        ).firstMatch(line);
+        if (match == null) continue;
+        _addCMapEntry(map, match.group(1)!, match.group(2)!);
+      }
+    }
+    for (final section in RegExp(
+      r'beginbfrange(?<body>.*?)endbfrange',
+      dotAll: true,
+      multiLine: true,
+    ).allMatches(text)) {
+      final body = section.namedGroup('body')!;
+      for (final line in body.split(RegExp(r'\r?\n'))) {
+        _addCMapRange(map, line);
+      }
+    }
+    return Map.unmodifiable(map);
+  }
+
+  static void _addCMapEntry(
+    Map<String, String> map,
+    String sourceHex,
+    String targetHex,
+  ) {
+    final source = _compactHex(sourceHex);
+    final target = _compactHex(targetHex);
+    if (source == null || target == null) return;
+    final decoded = _decodeUnicodeHex(target);
+    if (decoded == null || decoded.isEmpty) return;
+    map[source] = decoded;
+  }
+
+  static void _addCMapRange(Map<String, String> map, String line) {
+    final arrayMatch = RegExp(
+      r'<([0-9a-fA-F\s]+)>\s+<([0-9a-fA-F\s]+)>\s+\[(.*?)\]',
+      dotAll: true,
+    ).firstMatch(line);
+    if (arrayMatch != null) {
+      final start = _hexNumber(arrayMatch.group(1)!);
+      final end = _hexNumber(arrayMatch.group(2)!);
+      if (start == null || end == null || end < start) return;
+      final targets = RegExp(
+        r'<([0-9a-fA-F\s]+)>',
+      ).allMatches(arrayMatch.group(3)!).toList();
+      for (
+        var offset = 0;
+        offset <= end - start && offset < targets.length;
+        offset += 1
+      ) {
+        final source = _hexKey(start + offset, arrayMatch.group(1)!);
+        final target = _compactHex(targets[offset].group(1)!);
+        if (target == null) continue;
+        final decoded = _decodeUnicodeHex(target);
+        if (decoded == null || decoded.isEmpty) continue;
+        map[source] = decoded;
+      }
+      return;
+    }
+
+    final scalarMatch = RegExp(
+      r'<([0-9a-fA-F\s]+)>\s+<([0-9a-fA-F\s]+)>\s+<([0-9a-fA-F\s]+)>',
+    ).firstMatch(line);
+    if (scalarMatch == null) return;
+    final start = _hexNumber(scalarMatch.group(1)!);
+    final end = _hexNumber(scalarMatch.group(2)!);
+    final targetStart = _hexNumber(scalarMatch.group(3)!);
+    if (start == null || end == null || targetStart == null || end < start) {
+      return;
+    }
+    for (var offset = 0; offset <= end - start; offset += 1) {
+      final source = _hexKey(start + offset, scalarMatch.group(1)!);
+      final target = _hexKey(targetStart + offset, scalarMatch.group(3)!);
+      final decoded = _decodeUnicodeHex(target);
+      if (decoded == null || decoded.isEmpty) continue;
+      map[source] = decoded;
+    }
+  }
+
+  static String? _decodeCMapHexString(String source, Map<String, String> cmap) {
+    final codeUnitWidth = _cMapSourceWidth(cmap);
+    if (codeUnitWidth == null ||
+        codeUnitWidth == 0 ||
+        source.length % codeUnitWidth != 0) {
+      return null;
+    }
+    final buffer = StringBuffer();
+    var mappedCount = 0;
+    for (var index = 0; index < source.length; index += codeUnitWidth) {
+      final glyph = source.substring(index, index + codeUnitWidth);
+      final decoded = cmap[glyph];
+      if (decoded == null) return null;
+      mappedCount += 1;
+      buffer.write(decoded);
+    }
+    final value = buffer.toString();
+    if (mappedCount < 2 && value.trim().length < 2) return null;
+    return value;
+  }
+
+  static int? _cMapSourceWidth(Map<String, String> cmap) {
+    int? width;
+    for (final key in cmap.keys) {
+      if (width == null || key.length < width) width = key.length;
+    }
+    return width;
+  }
+
+  static String? _decodeUnicodeHex(String hex) {
+    final values = _hexValues(hex);
+    if (values == null || values.isEmpty) return null;
+    if (values.length.isEven) {
+      final utf16 = _decodeUtf16CodeUnits(values, littleEndian: false);
+      if (utf16 != null) return utf16;
+    }
+    if (!values.every(_isPrintableCodeUnit)) return null;
+    return latin1.decode(values, allowInvalid: true);
+  }
+
+  static int? _hexNumber(String source) {
+    final hex = _compactHex(source);
+    if (hex == null) return null;
+    return int.tryParse(hex, radix: 16);
+  }
+
+  static String _hexKey(int value, String widthSource) {
+    final width = _compactHex(widthSource)?.length ?? 4;
+    return value.toRadixString(16).toUpperCase().padLeft(width, '0');
   }
 
   static bool _isPrintableCodeUnit(int value) =>
