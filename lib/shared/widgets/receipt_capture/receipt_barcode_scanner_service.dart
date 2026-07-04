@@ -218,6 +218,7 @@ String _privacySafeBarcodeWarning(String warning) {
     'barcode_scan_invalid_source_path' => 'barcode_scan_invalid_source_path',
     'barcode_scan_platform_failed' => 'barcode_scan_platform_failed',
     'barcode_scan_failed' => 'barcode_scan_failed',
+    'barcode_scan_batch_image_limit' => 'barcode_scan_batch_image_limit',
     _ => 'barcode_scan_warning',
   };
 }

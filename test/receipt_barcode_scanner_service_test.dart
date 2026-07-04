@@ -222,7 +222,7 @@ void main() {
     expect(result.imageCount, 2);
     expect(result.warnings, const ['barcode_scan_batch_image_limit']);
     expect(result.privacySafeSummaryMap['batchWarningBuckets'], [
-      'barcode_scan_warning',
+      'barcode_scan_batch_image_limit',
     ]);
   });
 }
