@@ -19,7 +19,6 @@ class ReceiptNativeCameraShell extends StatelessWidget {
     required this.onCapture,
     required this.onSettings,
     this.onTorch,
-    this.onTapFocus,
     this.onZoomChanged,
     this.onExposureChanged,
     this.onExposureReset,
@@ -45,7 +44,6 @@ class ReceiptNativeCameraShell extends StatelessWidget {
   final VoidCallback onCapture;
   final VoidCallback onSettings;
   final VoidCallback? onTorch;
-  final ValueChanged<Offset>? onTapFocus;
   final ValueChanged<double>? onZoomChanged;
   final ValueChanged<double>? onExposureChanged;
   final VoidCallback? onExposureReset;
@@ -80,7 +78,6 @@ class ReceiptNativeCameraShell extends StatelessWidget {
                 capabilities: capabilities,
                 settings: settings,
                 currentZoom: currentZoom,
-                onTapFocus: onTapFocus,
                 onZoomChanged: onZoomChanged,
                 child: preview,
               ),

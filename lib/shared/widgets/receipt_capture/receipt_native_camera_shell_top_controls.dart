@@ -6,7 +6,6 @@ class _ReceiptNativeCameraPreviewControls extends StatelessWidget {
     required this.settings,
     required this.currentZoom,
     required this.child,
-    this.onTapFocus,
     this.onZoomChanged,
   });
 
@@ -14,7 +13,6 @@ class _ReceiptNativeCameraPreviewControls extends StatelessWidget {
   final ReceiptNativeCameraSettings settings;
   final double currentZoom;
   final Widget child;
-  final ValueChanged<Offset>? onTapFocus;
   final ValueChanged<double>? onZoomChanged;
 
   @override
@@ -23,22 +21,6 @@ class _ReceiptNativeCameraPreviewControls extends StatelessWidget {
       builder: (context, constraints) {
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTapUp: _tapFocusAvailable
-              ? (details) {
-                  final width = constraints.maxWidth <= 0
-                      ? 1.0
-                      : constraints.maxWidth;
-                  final height = constraints.maxHeight <= 0
-                      ? 1.0
-                      : constraints.maxHeight;
-                  onTapFocus!(
-                    Offset(
-                      (details.localPosition.dx / width).clamp(0.0, 1.0),
-                      (details.localPosition.dy / height).clamp(0.0, 1.0),
-                    ),
-                  );
-                }
-              : null,
           onScaleUpdate: _pinchZoomAvailable
               ? (details) {
                   if (details.pointerCount < 2 || details.scale == 1) return;
@@ -53,10 +35,6 @@ class _ReceiptNativeCameraPreviewControls extends StatelessWidget {
         );
       },
     );
-  }
-
-  bool get _tapFocusAvailable {
-    return false;
   }
 
   bool get _pinchZoomAvailable {

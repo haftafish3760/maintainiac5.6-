@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
@@ -11,7 +13,6 @@ void main() {
     var wentBack = false;
     var toggledTorch = false;
     var resetExposure = false;
-    Offset? focusPoint;
     double? zoomValue;
     double? exposureValue;
 
@@ -48,7 +49,6 @@ void main() {
             onCapture: () => captured = true,
             onSettings: () => openedSettings = true,
             onTorch: () => toggledTorch = true,
-            onTapFocus: (point) => focusPoint = point,
             onZoomChanged: (zoom) => zoomValue = zoom,
             onExposureChanged: (value) => exposureValue = value,
             onExposureReset: () => resetExposure = true,
@@ -108,7 +108,6 @@ void main() {
     expect(captured, isTrue);
     expect(wentBack, isTrue);
     expect(resetExposure, isTrue);
-    expect(focusPoint, isNull);
     expect(zoomValue, greaterThan(2));
 
     final slider = tester.widget<Slider>(find.byType(Slider));
@@ -167,8 +166,6 @@ void main() {
   testWidgets('native camera shell keeps tap focus retired for receipts', (
     tester,
   ) async {
-    Offset? focusPoint;
-
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -190,7 +187,6 @@ void main() {
           onBack: () {},
           onCapture: () {},
           onSettings: () {},
-          onTapFocus: (point) => focusPoint = point,
         ),
       ),
     );
@@ -198,9 +194,23 @@ void main() {
     await tester.tapAt(const Offset(195, 420));
     await tester.pump();
 
-    expect(focusPoint, isNull);
     expect(find.text('Tap text to focus'), findsNothing);
     expect(find.text('Auto sharpness'), findsOneWidget);
+  });
+
+  test('native camera shell exposes no tap focus callback hook', () async {
+    final shell = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart',
+    ).readAsString();
+    final previewControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart',
+    ).readAsString();
+
+    expect(shell, isNot(contains('this.onTapFocus')));
+    expect(shell, isNot(contains('final ValueChanged<Offset>? onTapFocus')));
+    expect(previewControls, isNot(contains('this.onTapFocus')));
+    expect(previewControls, isNot(contains('onTapUp: _tapFocusAvailable')));
+    expect(previewControls, isNot(contains('_tapFocusAvailable')));
   });
 
   testWidgets('native camera shell can show long receipt ghost guide', (
