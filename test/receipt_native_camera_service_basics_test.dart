@@ -77,6 +77,32 @@ void main() {
     );
   });
 
+  test('native service contract keeps retired lock controls disabled', () {
+    final serviceContractSource = File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_service_contract_helpers.dart',
+    ).readAsStringSync();
+
+    for (final key in [
+      'focusLockEnabled',
+      'exposureLockEnabled',
+      'whiteBalanceLockEnabled',
+      'focusLockControlExpected',
+      'exposureLockControlExpected',
+      'whiteBalanceLockControlExpected',
+    ]) {
+      expect(serviceContractSource, contains("'$key': false"));
+    }
+    expect(serviceContractSource, isNot(contains(': config.focusLockEnabled')));
+    expect(
+      serviceContractSource,
+      isNot(contains(': config.exposureLockEnabled')),
+    );
+    expect(
+      serviceContractSource,
+      isNot(contains(': config.whiteBalanceLockEnabled')),
+    );
+  });
+
   test(
     'native service reads capabilities through Maintainiac channel',
     () async {

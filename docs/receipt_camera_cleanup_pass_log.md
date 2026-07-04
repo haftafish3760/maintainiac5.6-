@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 732 - 03:23:50 EDT to active cleanup
+
+Scope:
+- Extended retired-control hardening from tap focus to focus, exposure, and
+  white-balance lock enablement at the Dart service boundary.
+- Hard-coded retired lock enablement fields false before native channel handoff.
+- Added a service source-contract regression rejecting lock enablement derivation
+  from session config.
+- Recorded `BUG-RECEIPT-0223` under `native_bridge`.
+- Archived Pass 707 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the native camera service contract
+  helper and service basics regression.
+- Passed focused Flutter native service regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 731 - 03:22:11 EDT to active cleanup
 
 Scope:
@@ -466,20 +484,3 @@ Verification:
 - Passed focused iOS settings bridge regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
-
-## Pass 707 - 02:38:00 EDT to active cleanup
-
-Scope:
-- Audited native long-receipt ghost-guide argument parsing after the tap-focus
-  boundary hardening.
-- Fixed iOS previous-section guide path handling so it stores the trimmed path
-  instead of keeping whitespace around the local receipt image path.
-- Added focused iOS bridge regression coverage for the trimmed ghost-guide path.
-- Recorded `BUG-RECEIPT-0194` under `ghost_overlap_stitching`.
-
-Verification:
-- Passed targeted Dart format/analyzer for iOS long-receipt bridge test.
-- Passed focused iOS long-receipt bridge regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-- Archived Pass 649 from the active cleanup log to keep the doc under cap.
