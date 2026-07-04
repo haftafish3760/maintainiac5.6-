@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 801 - 09:14:00 EDT to active cleanup
+
+Scope:
+- Hardened privacy-safe receipt line review contracts so long-receipt lines
+  expose both OCR source line number and OCR source section line number.
+- Preserved price-only and detailed-line review modes while giving customer
+  proof/redaction tooling enough numbered line anchors for long receipts.
+- Added regressions for simple line numbers, section line numbers, malformed
+  line-number exclusion, and capped huge source row numbers.
+- Recorded `BUG-RECEIPT-0285` under `receipt_line_numbering`.
+- Archived Pass 769 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused receipt line record
+  regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 800 - 09:07:30 EDT to active cleanup
 
 Scope:
@@ -471,22 +489,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer for initial diagnostics key changes.
-- Passed focused Flutter capture-flow shareability regression.
-- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
-
-## Pass 769 - 05:39:20 EDT to active cleanup
-
-Scope:
-- Hardened initial photo-review quality checks so raw map keys are normalized
-  and matched against the normalized initial receipt photo list before use.
-- Dropped blank, unnormalized, duplicate, or non-review quality-check keys
-  instead of preserving them in review state.
-- Added a source regression preventing raw `initialQualityChecksByPath` spreads
-  from returning.
-- Recorded `BUG-RECEIPT-0257` under `camera_review_state`.
-- Archived Pass 741 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for initial quality-check key changes.
 - Passed focused Flutter capture-flow shareability regression.
 - Passed doc-size, bug-ledger, source-audit, and test-audit gates.

@@ -216,6 +216,7 @@ void main() {
         'Line 7: price only, Split 40% business',
       );
       expect(priceOnly.privacySafeLineReviewContract['hasDetailText'], isFalse);
+      expect(priceOnly.privacySafeLineReviewContract['ocrSourceLineNumber'], 7);
       expect(
         priceOnly.privacySafeLineReviewContract.toString(),
         isNot(contains('GAL MILK')),
@@ -228,6 +229,10 @@ void main() {
         'Section 2 line 4: detailed line, Personal',
       );
       expect(detailed.privacySafeLineReviewContract['hasDetailText'], isTrue);
+      expect(
+        detailed.privacySafeLineReviewContract['ocrSourceSectionLineNumber'],
+        4,
+      );
       expect(
         detailed.privacySafeLineReviewContract.toString(),
         isNot(contains('1/2 GAL MILK')),
@@ -326,6 +331,10 @@ void main() {
       isNot(containsPair('ocrSourceSectionNumber', 2)),
     );
     expect(
+      malformedLine.privacySafeLineReviewContract,
+      isNot(containsPair('ocrSourceSectionLineNumber', 0)),
+    );
+    expect(
       malformedLine.privacySafeProofReference,
       isNot(containsPair('ocrSourceLineNumber', -9)),
     );
@@ -361,6 +370,10 @@ void main() {
     expect(hugeLine.toMap()['ocrSourceLineNumber'], 9999);
     expect(hugeLine.toMap()['ocrSourceSectionNumber'], 999);
     expect(hugeLine.toMap()['ocrSourceSectionLineNumber'], 9999);
+    expect(
+      hugeLine.privacySafeLineReviewContract,
+      containsPair('ocrSourceSectionLineNumber', 9999),
+    );
     expect(hugeLine.toMap().toString(), isNot(contains('1000000')));
   });
 

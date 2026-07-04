@@ -275,8 +275,12 @@ class ExpenseReceiptLineRecord {
       'redactionAnchorCode': receiptProofRedactionAnchorCode,
       if (receiptDisplayLineNumber != null)
         'receiptDisplayLineNumber': receiptDisplayLineNumber,
+      if (safeOcrSourceLineNumber != null)
+        'ocrSourceLineNumber': safeOcrSourceLineNumber,
       if (safeOcrSourceSectionNumber != null)
         'ocrSourceSectionNumber': safeOcrSourceSectionNumber,
+      if (safeOcrSourceSectionLineNumber != null)
+        'ocrSourceSectionLineNumber': safeOcrSourceSectionLineNumber,
     };
   }
 
