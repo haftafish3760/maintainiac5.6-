@@ -68,6 +68,42 @@ void main() {
     );
   });
 
+  test(
+    'native review depth normalizes padded and cased bridge diagnostics',
+    () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/section-1.jpg', '/tmp/section-2.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/section-1.jpg', '/tmp/section-2.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: const ReceiptStitchResult.notNeeded([
+          '/tmp/section-1.jpg',
+          '/tmp/section-2.jpg',
+        ]),
+        captureDiagnosticsByPhotoPath: const {
+          '/tmp/section-1.jpg': {'reviewDepth': ' PRICESONLY '},
+          '/tmp/section-2.jpg': {'reviewDepth': ' detailedlines '},
+        },
+      );
+
+      expect(result.nativeReceiptReviewDepth, 'detailedLines');
+      expect(result.nativeReceiptReviewDepthCounts, {
+        'pricesOnly': 1,
+        'detailedLines': 1,
+      });
+      expect(
+        result.privacySafeReceiptReaderHandoffMetadata,
+        containsPair('nativeReceiptReviewDepth', 'detailedLines'),
+      );
+      expect(
+        result.privacySafeReceiptReaderHandoffMetadata,
+        containsPair('nativeReceiptReviewDepthCounts', {
+          'pricesOnly': 1,
+          'detailedLines': 1,
+        }),
+      );
+    },
+  );
+
   test('accepted review freezes receipt brain install and local-only counts', () {
     final fixture = frozenReceiptCameraDiagnosticsFixture();
     final result = fixture.result;

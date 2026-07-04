@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 601 - 20:59:16 EDT to 21:00:52 EDT
+
+Scope:
+- Hardened native receipt review-depth aggregation so padded or differently
+  cased `pricesOnly`/`detailedLines` diagnostics normalize before review-mode
+  handoff.
+- Preserved invalid review-depth diagnostics as bounded invalid tokens.
+- Added regression coverage proving detailed-line intent is not downgraded by
+  case or whitespace drift in camera/recovery diagnostics.
+- Recorded `BUG-RECEIPT-0122` under `receipt_line_review_mode`.
+
+Verification:
+- Fixed the first focused Flutter compile failure by returning a canonical
+  non-null review-depth string from the normalizer branch.
+- Passed targeted Dart format/analyzer for native review-depth aggregation and
+  frozen review handoff regression coverage.
+- Passed focused Flutter review-depth regression coverage.
+- Passed cleanup log gate, doc-size gate, source audit, and whitespace check.
+
 ## Pass 600 - 20:56:33 EDT to 20:58:38 EDT
 
 Scope:
@@ -473,22 +492,3 @@ Verification:
 - Passed focused Flutter regression
   `test/receipt_photo_review_retake_order_test.dart --plain-name "retake plan
   rejects normalized receipt section path aliases"`.
-
-## Pass 580 - 10:30:00 EDT to 10:35:20 EDT
-
-Scope:
-- Hardened the shared native capture diagnostics sanitizer so exact
-  stringified non-finite tokens from platform channels are dropped before
-  receipt camera review or recovery restore can trust them.
-- Extended native service and recovery-index regressions to prove `NaN`,
-  `Infinity`, and `-Infinity` string diagnostics are removed from maps and
-  lists.
-- Recorded `BUG-RECEIPT-0096` under `native_bridge`.
-- Archived Pass 552 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the shared native diagnostic
-  sanitizer, native result rejection coverage, and recovery-index coverage.
-- Passed focused Flutter regressions for native service unsafe diagnostics and
-  recovery restore malformed diagnostics.

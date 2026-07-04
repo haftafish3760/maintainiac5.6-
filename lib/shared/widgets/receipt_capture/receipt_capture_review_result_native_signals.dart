@@ -4,8 +4,10 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
   String get nativeReceiptReviewDepth {
     var sawPricesOnly = false;
     for (final diagnostics in captureDiagnosticsByPhotoPath.values) {
-      final value = diagnostics['reviewDepth']?.toString().trim();
-      if (value == 'detailedLines') return value!;
+      final value = _normalizedNativeReceiptReviewDepth(
+        diagnostics['reviewDepth'],
+      );
+      if (value == 'detailedLines') return 'detailedLines';
       if (value == 'pricesOnly') sawPricesOnly = true;
     }
     if (sawPricesOnly) return 'pricesOnly';
@@ -17,8 +19,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
     for (final diagnostics in captureDiagnosticsByPhotoPath.values) {
       final raw = diagnostics['reviewDepth']?.toString().trim();
       if (raw == null || raw.isEmpty) continue;
-      if (raw == 'detailedLines' || raw == 'pricesOnly') {
-        counts[raw] = (counts[raw] ?? 0) + 1;
+      final normalized = _normalizedNativeReceiptReviewDepth(raw);
+      if (normalized != null) {
+        counts[normalized] = (counts[normalized] ?? 0) + 1;
         continue;
       }
       final token = _diagnosticToken(raw);
@@ -419,4 +422,15 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
     }
     return label;
   }
+}
+
+String? _normalizedNativeReceiptReviewDepth(Object? value) {
+  final raw = value?.toString().trim();
+  if (raw == null || raw.isEmpty) return null;
+  final normalized = raw.toLowerCase();
+  return switch (normalized) {
+    'detailedlines' => 'detailedLines',
+    'pricesonly' => 'pricesOnly',
+    _ => null,
+  };
 }
