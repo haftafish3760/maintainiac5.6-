@@ -60,8 +60,8 @@ Every setting below must live behind a service/controller contract so UI can mov
 - Flash/torch off, on, auto where supported.
 - Pinch zoom.
 - Optional zoom slider.
-- Tap focus.
-- Focus mode: auto, continuous, locked, manual when supported.
+- Continuous autofocus/readability guidance is the primary focus path.
+- Focus mode: continuous by default, locked/manual only where supported.
 - Focus distance/lens position when supported.
 - Focus lock after sharp.
 - Exposure/brightness slider.
@@ -216,7 +216,7 @@ Current verified state:
 - Android debug APK builds with CameraX dependencies and the Maintainiac CameraX capture activity.
 - iOS simulator build compiles the AVFoundation bridge and Maintainiac AVFoundation capture controller.
 - Focused native contract, Android bridge, iOS bridge, and routing tests pass.
-- The native service can report capability profiles, the Flutter shell can render a receipt-first camera surface, and Android/iOS can open an in-app Maintainiac native camera, adjust focus/zoom/exposure/torch, show receipt settings, return a manual receipt photo path, stage that accepted photo into app-owned receipt storage before review, and clean abandoned staged photos without touching external files.
+- The native service can report capability profiles, the Flutter shell can render a receipt-first camera surface, and Android/iOS can open an in-app Maintainiac native camera, guide continuous focus/readability, adjust zoom/exposure/torch, show receipt settings, return a manual receipt photo path, stage that accepted photo into app-owned receipt storage before review, and clean abandoned staged photos without touching external files.
 - After photo review accepts the receipt, the expense receipt entry screen gets an immediate handoff signal, shows that the app is reading the receipt, and then scrolls to the filled receipt review area when OCR/parser data lands.
 - Long receipts are presented as top-to-bottom receipt sections, not mystery photos: the preview strip names the selected section, explains overlap/order, and keeps the Add Section action visible without stacking a second action rail.
 - The next-section capture guide now labels the ghost slice as the previous section bottom and gives a concrete overlap target instead of vague "line it up" copy.
