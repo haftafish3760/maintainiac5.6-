@@ -168,6 +168,31 @@ Focused rerun routes for recently hardened release-one contracts:
   `test/support/work_supply_parser_qa/work_supply_parser_portability_qa.dart`
   passed with no issues.
 
+## 2026-07-04 Receipt Source Adapter Immutability Guard
+
+- Passes 2049-2051 hardened
+  `inventory.receipt_source_immutability_contract` so parser input sources are
+  explicitly modeled as adapter-fed plain text, not as OCR/camera/PDF/email
+  implementation work inside the parser core.
+- Required source modalities now include photo-assisted OCR text after
+  extraction, uploaded PDF text after extraction, emailed receipt text after
+  extraction, manual pasted receipt text, invoice-style material line text,
+  quote-style material line text, packing-slip-like material list text,
+  counter-sale material receipt text, unknown merchant receipt text, and
+  local/regional supplier receipt text.
+- Required source-adapter rules now state that adapters extract text before the
+  parser, parser core does not run OCR, read PDFs, fetch email, or open camera,
+  source type is evidence not truth, unknown sources use the generic receipt
+  pipeline, source modality cannot auto-confirm a candidate, and source
+  fingerprints must survive review.
+- Validation passed:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_SUITES=inventory.receipt_source_immutability_contract,qa.threshold_gate
+  --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40` checked 71 conditions with
+  0 failures, and targeted `dart analyze` over
+  `test/support/work_supply_parser_qa/work_supply_parser_receipt_source_immutability_qa.dart`
+  passed with no issues.
+
 ## 2026-07-04 Reusable Parser Adapter Registry Hardening
 
 - Passes 1937-1949 launched local-only wave

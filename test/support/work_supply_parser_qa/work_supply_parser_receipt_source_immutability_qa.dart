@@ -33,6 +33,19 @@ class WorkSupplyParserReceiptSourceImmutabilitySuite extends QaSuite {
     'active job',
   };
 
+  static const _sourceAdapterModalities = {
+    'photo-assisted OCR text after extraction',
+    'uploaded PDF text after extraction',
+    'emailed receipt text after extraction',
+    'manual pasted receipt text',
+    'invoice-style material line text',
+    'quote-style material line text',
+    'packing-slip-like material list text',
+    'counter-sale material receipt text',
+    'generic unknown merchant receipt text',
+    'local or regional supplier receipt text',
+  };
+
   static const _immutabilityRules = {
     'parser_never_mutates_receipt_source',
     'parser_never_mutates_invoice_source',
@@ -44,6 +57,19 @@ class WorkSupplyParserReceiptSourceImmutabilitySuite extends QaSuite {
     'financial_totals_do_not_change_source_total',
     'review_acceptance_creates_new_destination_record',
     'review_rejection_leaves_sources_unchanged',
+  };
+
+  static const _sourceAdapterRules = {
+    'source_adapter_extracts_text_before_parser',
+    'parser_core_does_not_run_ocr',
+    'parser_core_does_not_read_pdf_files',
+    'parser_core_does_not_fetch_email',
+    'parser_core_does_not_open_camera',
+    'parser_core_accepts_plain_text_from_any_adapter',
+    'source_type_is_evidence_not_truth',
+    'unknown_source_uses_generic_receipt_pipeline',
+    'source_modality_must_not_auto_confirm_candidate',
+    'source_fingerprint_preserved_across_review',
   };
 
   static const _destinationMappings = {
@@ -91,8 +117,23 @@ class WorkSupplyParserReceiptSourceImmutabilitySuite extends QaSuite {
       triage: QaFailureTriage.schema,
     );
 
+    checked += _sourceAdapterModalities.length;
+    _requireTokens(
+      failures,
+      source,
+      _sourceAdapterModalities,
+      idPrefix: 'missing_source_adapter_modality',
+      message: 'Receipt/source immutability QA is missing a parser source modality.',
+      fix:
+          'Parser QA must treat photo/OCR, PDF, email, manual paste, invoice, quote, packing slip, counter-sale, unknown merchant, and regional supplier text as adapter-fed plain text sources.',
+      triage: QaFailureTriage.schema,
+    );
+
     checked += _immutabilityRules.length;
     _requireRules(failures, source, _immutabilityRules);
+
+    checked += _sourceAdapterRules.length;
+    _requireRules(failures, source, _sourceAdapterRules);
 
     checked += _destinationMappings.length;
     _requireTokens(
@@ -126,7 +167,7 @@ class WorkSupplyParserReceiptSourceImmutabilitySuite extends QaSuite {
       metrics: {
         'sourceFiles': _sourcePaths.length,
         'contract':
-            'Receipt, invoice, estimate, and job sources are immutable inputs; parser output is a review-only candidate copy with financial evidence attached.',
+            'Receipt, invoice, estimate, job, OCR-text, PDF-text, email-text, pasted-text, and supplier-material sources are immutable plain-text inputs; parser output is a review-only candidate copy with financial evidence attached.',
       },
     );
   }
