@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 699 - 01:34:00 EDT to active cleanup
+
+Scope:
+- Hardened receipt line review-mode detection so raw OCR evidence, catalog item
+  evidence, or parser classification keeps a line in detailed review even when
+  the cleaned display description is still generic.
+- Preserved privacy-safe output by proving raw OCR receipt text does not leak
+  through the line review contract.
+- Added focused regression coverage for OCR-only detailed line evidence.
+- Recorded `BUG-RECEIPT-0186` under `receipt_line_review_mode`.
+- Archived Pass 639 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for expense receipt line records.
+- Passed focused Flutter expense receipt line record regression.
+
 ## Pass 698 - 01:29:00 EDT to active cleanup
 
 Scope:
@@ -472,22 +488,3 @@ Scope:
 Verification:
 - Passed targeted Dart format for the positive-path native UI health regression.
 - Passed focused Flutter native UI ready regression.
-
-## Pass 639 - 22:29:44 EDT to active cleanup
-
-Scope:
-- Hardened native receipt camera handoff risk flags so a tap-focus comeback is
-  treated as a risk, not just a counted health-code detail.
-- Kept the same risk classification aligned between shared capture flow and
-  shared attachment import flows.
-- Added a focused regression proving `tap_focus_retirement_regressed` becomes a
-  receipt attachment risk flag even when every other native control looks ready.
-- Archived Pass 602 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0160` under `camera_capture_quality`.
-
-Verification:
-- First focused Flutter run exposed that the fixture had not marked the
-  regressed tap-focus control actual state ready; fixed the fixture before
-  moving on.
-- Passed targeted Dart format for native UI risk flag changes.
-- Passed focused Flutter native UI health regression.

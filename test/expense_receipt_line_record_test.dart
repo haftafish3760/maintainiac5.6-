@@ -237,6 +237,34 @@ void main() {
     },
   );
 
+  test(
+    'receipt lines with raw OCR evidence stay detailed without leaking text',
+    () {
+      const ocrOnly = ExpenseReceiptLineRecord(
+        id: 'line-ocr-only',
+        description: 'Receipt item',
+        category: 'Materials',
+        use: ExpenseLineUse.business,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: 18,
+        rawReceiptText: 'PRIVATE HARDWARE ITEM 18.00',
+        ocrSourceLineNumber: 9,
+      );
+
+      expect(ocrOnly.hasReceiptLineDetailEvidence, isTrue);
+      expect(ocrOnly.isAllocationOnlyLine, isFalse);
+      expect(ocrOnly.receiptReviewModeCode, 'detailedLine');
+      expect(ocrOnly.privacySafeLineReviewContract['hasDetailText'], isTrue);
+      expect(ocrOnly.receiptLineReviewSummary, contains('detailed line'));
+      expect(
+        ocrOnly.privacySafeLineReviewContract.toString(),
+        isNot(contains('PRIVATE HARDWARE')),
+      );
+    },
+  );
+
   test('receipt proof anchors reject malformed section numbers', () {
     const malformedSection = ExpenseReceiptLineRecord(
       id: 'line-malformed-section',

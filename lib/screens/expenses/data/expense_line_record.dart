@@ -381,7 +381,16 @@ class ExpenseReceiptLineRecord {
     };
   }
 
-  bool get isAllocationOnlyLine {
+  bool get isAllocationOnlyLine =>
+      _hasAllocationOnlyDescription && !hasReceiptLineDetailEvidence;
+
+  bool get hasReceiptLineDetailEvidence =>
+      !_hasAllocationOnlyDescription ||
+      rawReceiptText.trim().isNotEmpty ||
+      (catalogItemName ?? '').trim().isNotEmpty ||
+      hasParserClassification;
+
+  bool get _hasAllocationOnlyDescription {
     final clean = description.trim().toLowerCase();
     return clean.isEmpty ||
         clean == 'receipt item' ||
