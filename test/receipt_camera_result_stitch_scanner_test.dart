@@ -330,7 +330,7 @@ void main() {
     expect(result.scannerNeedsOperatorReview, isTrue);
     expect(
       result.receiptProofStoragePolicyOutcome,
-      'temporary_original_quality_guard_review',
+      'temporary_full_quality_source_guard_review',
     );
     expect(
       result.receiptReaderHandoffCounts['scanner_operator_review_needed'],
@@ -359,7 +359,19 @@ void main() {
     );
     expect(
       attachments.single.riskFlags,
-      contains('ocr_source_original_quality_guard_review'),
+      contains('ocr_source_temporary_full_quality_guard_review'),
+    );
+    expect(
+      result.receiptProofStoragePolicyCounts.keys.join('|'),
+      isNot(contains('original_temporarily_kept_for_ocr_quality_guard')),
+    );
+    expect(
+      result.privacySafeOcrHandoffEvidenceLabel,
+      contains('scanner=temporary_full_quality_source_guard'),
+    );
+    expect(
+      result.privacySafeOcrHandoffEvidenceLabel,
+      isNot(contains('scanner=original_quality_guard')),
     );
   });
 }

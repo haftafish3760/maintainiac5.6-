@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 798 - 09:00:00 EDT to active cleanup
+
+Scope:
+- Renamed stale OCR source policy guard tokens away from
+  original-quality wording to temporary full-quality source wording.
+- Kept explicit original-quality proof wording only for user-selected
+  original proof retention.
+- Updated shared flow and attachment risk flags to use the new temporary source
+  guard token.
+- Added scanner-prep regression assertions that reject the old internal guard
+  wording.
+- Recorded `BUG-RECEIPT-0282` under `source_preservation`.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused stitch-scanner regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 797 - 08:52:23 EDT to active cleanup
 
 Scope:

@@ -129,7 +129,7 @@ extension ReceiptPhotoReviewResultHandoffStorage on ReceiptPhotoReviewResult {
           ocrSourcePhotoPaths.length;
     }
     if (scannerKeptOriginalForQuality) {
-      counts['original_temporarily_kept_for_ocr_quality_guard'] =
+      counts['temporary_full_quality_source_guard_for_ocr'] =
           ocrSourcePhotoPaths.length;
     }
     if (dataSaverLevel != ReceiptDataSaverLevel.original) {
@@ -152,8 +152,8 @@ extension ReceiptPhotoReviewResultHandoffStorage on ReceiptPhotoReviewResult {
     if ((counts['saved_proof_used_as_ocr_fallback'] ?? 0) > 0) {
       return 'saved_proof_ocr_fallback_review';
     }
-    if ((counts['original_temporarily_kept_for_ocr_quality_guard'] ?? 0) > 0) {
-      return 'temporary_original_quality_guard_review';
+    if ((counts['temporary_full_quality_source_guard_for_ocr'] ?? 0) > 0) {
+      return 'temporary_full_quality_source_guard_review';
     }
     if ((counts['temporary_ocr_source_separate_from_saved_proof'] ?? 0) > 0 &&
         (counts['normal_record_uses_data_saver_proof'] ?? 0) > 0) {

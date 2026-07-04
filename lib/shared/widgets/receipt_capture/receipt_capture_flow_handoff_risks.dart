@@ -21,8 +21,8 @@ List<String> _ocrSourceRiskFlagsFor(
     flags.add('ocr_source_saved_proof_fallback_review');
   }
   if (result.receiptProofStoragePolicyOutcome ==
-      'temporary_original_quality_guard_review') {
-    flags.add('ocr_source_original_quality_guard_review');
+      'temporary_full_quality_source_guard_review') {
+    flags.add('ocr_source_temporary_full_quality_guard_review');
   }
   flags.add(
     'ocr_source_first_${_signalToken(result.ocrSourceFirstDecisionCode)}',

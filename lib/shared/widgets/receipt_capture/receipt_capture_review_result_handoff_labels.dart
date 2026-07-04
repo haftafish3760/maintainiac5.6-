@@ -164,7 +164,7 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
     final scannerPath = scannerUsedEnhancedOcrSource
         ? 'enhanced_ocr_source'
         : scannerKeptOriginalForQuality
-        ? 'original_quality_guard'
+        ? 'temporary_full_quality_source_guard'
         : scannerDecisionCodes.isEmpty
         ? 'scanner_no_decision'
         : 'scanner_decision';
