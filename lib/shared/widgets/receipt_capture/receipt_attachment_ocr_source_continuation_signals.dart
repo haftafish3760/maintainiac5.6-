@@ -18,9 +18,20 @@ extension _ReceiptAttachmentOcrSourceContinuationSignals
     ReceiptPhotoReviewResult result,
   ) {
     if (!result.hasOcrRequestedBottomSectionContinuation) return const [];
-    return const [
+    final counts = result.receiptContinuationSignalCounts;
+    return List.unmodifiable({
       'ocr_source_continuation_ocr_requested_bottom_section_review',
-    ];
+      if ((counts['missing_bottom_edge_and_totals_continuation'] ?? 0) > 0)
+        'ocr_source_continuation_missing_bottom_totals_review',
+      if ((counts['ghost_ready_with_previous_photo'] ?? 0) > 0)
+        'ocr_source_continuation_ghost_guide_ready',
+      if ((counts['ghost_reason_without_prior_photo'] ?? 0) > 0)
+        'ocr_source_continuation_reason_without_prior_photo',
+      if ((counts['ghost_policy_bottom_overlap_ghost_at_top_repeat_3_to_5_lines'] ??
+              0) >
+          0)
+        'ocr_source_continuation_bottom_overlap_ghost_policy',
+    });
   }
 
   List<String> receiptCompletionHandoffDocumentSignalsFor(

@@ -52,6 +52,26 @@ void main() {
         result.privacySafeReceiptContinuationSummary.toString(),
         contains('ghost_slice_percent_20'),
       );
+      final attachment = ReceiptCaptureFlow.attachmentsFromReviewResult(
+        result,
+        ReceiptCaptureFlowModule.expenses,
+      ).single;
+      expect(
+        attachment.riskFlags,
+        contains('ocr_source_continuation_ocr_requested_bottom_section_review'),
+      );
+      expect(
+        attachment.riskFlags,
+        contains('ocr_source_continuation_missing_bottom_totals_review'),
+      );
+      expect(
+        attachment.riskFlags,
+        contains('ocr_source_continuation_ghost_guide_ready'),
+      );
+      expect(
+        attachment.riskFlags,
+        contains('ocr_source_continuation_bottom_overlap_ghost_policy'),
+      );
     },
   );
 
