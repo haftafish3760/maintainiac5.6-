@@ -238,6 +238,63 @@ void main() {
     },
   );
 
+  test(
+    'background queue does not recover undersized fixture artifacts',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_background_queue_undersized_resume_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+      final queueDir = Directory('${output.path}/undersized-resume-test')
+        ..createSync(recursive: true);
+      final reportDir = Directory(
+        '${queueDir.path}/cells/electrical/residential/core/en-US/reports',
+      )..createSync(recursive: true);
+      File(
+        '${reportDir.path}/latest_generated_fixture_run.json',
+      ).writeAsStringSync(
+        jsonEncode({
+          'schemaVersion': 1,
+          'checked': 125,
+          'failureCount': 0,
+          'generatedAtIso': '2026-07-04T13:55:27.383162Z',
+        }),
+      );
+
+      final exit = await runWorkSupplyParserQaBackgroundQueue(
+        [
+          '--trades',
+          'electrical',
+          '--tiers',
+          'core',
+          '--locales',
+          'en-US',
+          '--limit',
+          '500',
+          '--fixture-run-limit',
+          '500',
+          '--queue-id',
+          'undersized-resume-test',
+          '--output-root',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 0);
+      final summary =
+          jsonDecode(File('${queueDir.path}/summary.json').readAsStringSync())
+              as Map;
+      expect(summary['resumedCellCount'], 0);
+      final transcript = File(
+        '${queueDir.path}/electrical_residential_core_en_US_transcript.txt',
+      );
+      expect(transcript.existsSync(), true);
+      expect(transcript.readAsStringSync(), contains('DRY RUN'));
+    },
+  );
+
   test('background queue records timed-out cell evidence', () async {
     final output = await Directory.systemTemp.createTemp(
       'maintainiac_background_queue_timeout_',

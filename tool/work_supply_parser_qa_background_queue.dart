@@ -38,7 +38,7 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
     ..createSync(recursive: true);
   final cells = _cells(options);
   final results = options.resume
-      ? _loadResumableResults(runDir, cells)
+      ? _loadResumableResults(runDir, cells, options)
       : <Map<String, Object?>>[];
   final resumedCellCount = results.length;
   final queueStartedAt = DateTime.now().toUtc();
@@ -174,6 +174,7 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
 List<Map<String, Object?>> _loadResumableResults(
   Directory runDir,
   List<_QueueCell> cells,
+  _QueueOptions options,
 ) {
   final selectedCellIds = cells.map((cell) => cell.id).toSet();
   final resultsByCellId = <String, Map<String, Object?>>{};
@@ -201,6 +202,7 @@ List<Map<String, Object?>> _loadResumableResults(
       final recovered = _recoverSuccessfulResultFromGeneratedReport(
         runDir,
         cell,
+        requiredChecked: options.requiredCheckedPerCell,
       );
       if (recovered != null) resultsByCellId[cell.id] = recovered;
     }
@@ -213,8 +215,9 @@ List<Map<String, Object?>> _loadResumableResults(
 
 Map<String, Object?>? _recoverSuccessfulResultFromGeneratedReport(
   Directory runDir,
-  _QueueCell cell,
-) {
+  _QueueCell cell, {
+  required int requiredChecked,
+}) {
   final reportPath =
       '${runDir.path}/cells/${cell.trade}/${cell.scope}/${cell.tier}/'
       '${cell.locale}/reports/latest_generated_fixture_run.json';
@@ -225,6 +228,7 @@ Map<String, Object?>? _recoverSuccessfulResultFromGeneratedReport(
   if (decoded['failureCount'] != 0) return null;
   final checked = decoded['checked'];
   if (checked is! int || checked <= 0) return null;
+  if (checked < requiredChecked) return null;
   final generatedAtIso =
       decoded['generatedAtIso'] as String? ??
       DateTime.now().toUtc().toIso8601String();
@@ -391,6 +395,9 @@ class _QueueOptions {
 
   Duration? get cellTimeout =>
       cellTimeoutMs <= 0 ? null : Duration(milliseconds: cellTimeoutMs);
+
+  int get requiredCheckedPerCell =>
+      fixtureRunLimit < limit ? fixtureRunLimit : limit;
 }
 
 class _QueueCell {

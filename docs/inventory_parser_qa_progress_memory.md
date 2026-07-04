@@ -3447,3 +3447,10 @@ Release boundaries:
   OCR/camera/Expenses touches. The generated-run status gate reported 6/6 cells
   present, 0 missing, 0 failed, 0 unsafe, 1,500 generated fixtures checked, and
   0 fixture failures.
+- **10:21 Harness Pass 2513:** Fixed background queue artifact recovery so an
+  older passing generated-fixture report is only reused when its `checked`
+  count satisfies the next queue's required case count. This prevents a 125-case
+  cell from being mistaken as complete for a future 500-case queue. Analyzer was
+  clean, `test/work_supply_parser_qa_background_queue_test.dart` passed 7/7,
+  and the focused `inventory.execution_command_contract,qa.threshold_gate`
+  slice passed 107 checks with 0 failures.
