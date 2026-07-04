@@ -58,6 +58,9 @@ int runWorkSupplyParserQaBatchWaveStatus(
   final now = DateTime.now().toUtc();
   final updatedAt = _parseIso(queueStatus['updatedAtIso']);
   final activeStartedAt = _parseIso(queueStatus['activeCellStartedAtIso']);
+  final cellCount = _int(queueStatus['cellCount']);
+  final completedCellCount = _int(queueStatus['completedCellCount']);
+  final failedCellCount = _int(queueStatus['failedCellCount']);
   final status = {
     'schemaVersion': 1,
     'report': 'work_supply_parser_qa_batch_wave_status',
@@ -68,9 +71,13 @@ int runWorkSupplyParserQaBatchWaveStatus(
     'dryRun': wave['dryRun'] ?? true,
     'queueSummaryPath': queueSummaryPath,
     'queueState': queueStatus['state'] ?? _queueStateFromSummary(queueStatus),
-    'cellCount': queueStatus['cellCount'] ?? 0,
-    'completedCellCount': queueStatus['completedCellCount'] ?? 0,
-    'failedCellCount': queueStatus['failedCellCount'] ?? 0,
+    'cellCount': cellCount,
+    'completedCellCount': completedCellCount,
+    'failedCellCount': failedCellCount,
+    'remainingCellCount': cellCount - completedCellCount,
+    'completionPercent': cellCount == 0
+        ? 0
+        : ((completedCellCount / cellCount) * 100).round(),
     if (queueStatus['activeCellId'] != null)
       'activeCellId': queueStatus['activeCellId'],
     if (queueStatus['artifactReadError'] != null)
@@ -107,7 +114,7 @@ int runWorkSupplyParserQaBatchWaveStatus(
       status['firebaseWritesAllowed'] == true ||
       status['ocrCameraExpensesTouched'] == true ||
       status['artifactReadError'] != null;
-  if (unsafe || (status['failedCellCount'] as int) > 0) return 1;
+  if (unsafe || failedCellCount > 0) return 1;
   return 0;
 }
 
@@ -149,6 +156,11 @@ String _queueStateFromSummary(Map<String, Object?> queue) {
 }
 
 bool _bool(Object? value) => value == true || value.toString() == 'true';
+
+int _int(Object? value) {
+  if (value is int) return value;
+  return int.tryParse(value?.toString() ?? '') ?? 0;
+}
 
 DateTime? _parseIso(Object? value) {
   if (value == null) return null;

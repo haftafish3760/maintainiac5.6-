@@ -60,6 +60,8 @@ void main() {
     expect(stdout.content, contains('merchant-abbreviation-v1'));
     expect(stdout.content, contains('hvac_residential_core_en_US'));
     expect(stdout.content, contains('"completedCellCount": 4'));
+    expect(stdout.content, contains('"remainingCellCount": 2'));
+    expect(stdout.content, contains('"completionPercent": 67'));
     expect(stdout.content, contains('"statusAgeMs":'));
     expect(stdout.content, contains('"activeCellElapsedMs":'));
     expect(stdout.content, contains('"firebaseWritesAllowed": false'));
@@ -67,6 +69,8 @@ void main() {
     final artifact = jsonDecode(File(outputPath).readAsStringSync()) as Map;
     expect(artifact['waveId'], 'wave-001');
     expect(artifact['completedCellCount'], 4);
+    expect(artifact['remainingCellCount'], 2);
+    expect(artifact['completionPercent'], 67);
   });
 
   test('batch wave status rejects failed queue cells', () async {
