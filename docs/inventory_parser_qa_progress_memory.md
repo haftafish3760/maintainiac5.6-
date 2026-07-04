@@ -125,6 +125,9 @@ Focused rerun routes for recently hardened release-one contracts:
   side effects.
 - Surgical rerun:
   `flutter test test/work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.fake_user_chaos_contract,inventory.fake_user_review_workflow,inventory.requirement_coverage,inventory.harness_registry,qa.threshold_gate --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
+- Passes 2213-2216 added `inventory.fake_user_chaos_contract` to the quick and
+  fixtures presets and to the `safety-governance-001` release shard so this
+  chaos behavior remains release-gated instead of only manually runnable.
 
 ## 2026-07-04 Hostile Source-Modality Input Hardening
 

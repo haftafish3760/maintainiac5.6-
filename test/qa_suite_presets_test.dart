@@ -37,6 +37,7 @@ void main() {
     expect(suites, contains('inventory.fixture_governance'));
     expect(suites, contains('inventory.fixture_coverage_matrix'));
     expect(suites, contains('inventory.fixture_corpus_contract'));
+    expect(suites, contains('inventory.fake_user_chaos_contract'));
     expect(suites, contains('inventory.fake_user_review_workflow'));
     expect(suites, contains('inventory.holdout_fixture_contract'));
     expect(suites, contains('inventory.determinism'));
@@ -120,6 +121,7 @@ void main() {
       'inventory.fixture_governance',
       'inventory.fixture_coverage_matrix',
       'inventory.fixture_corpus_contract',
+      'inventory.fake_user_chaos_contract',
       'inventory.fake_user_review_workflow',
       'inventory.holdout_fixture_contract',
       'inventory.changed_item_impact',

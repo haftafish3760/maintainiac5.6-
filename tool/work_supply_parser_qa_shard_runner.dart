@@ -264,6 +264,8 @@ const _defaultShards = [
       'inventory.boundary_guard',
       'inventory.no_live_services_contract',
       'inventory.review_safety_contract',
+      'inventory.fake_user_chaos_contract',
+      'inventory.fake_user_review_workflow',
       'inventory.result_contract',
       'inventory.legal_safety_contract',
       'qa.threshold_gate',

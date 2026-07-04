@@ -77,6 +77,8 @@ Full/release shard runs also record `PARSER_QA_SHARD_ID`, `PARSER_QA_TIMEOUT_BUD
 
 Use `dart run tool/work_supply_parser_qa_shard_runner.dart --dry-run` to inspect the shard plan without running Flutter tests. Use `--execute` only when intentionally running full/release shards; each shard writes a transcript path and the runner emits `QA_SHARD_SUMMARY` pointing at the aggregate `summary.json`.
 
+The `safety-governance-001` release shard includes review safety, no-live-service, result contract, legal safety, fake-user review workflow, and fake-user chaos workflow contracts so barcode disagreement, duplicate receipt import, abandoned review, and stale mirror behavior stay release-gated.
+
 Use `dart run tool/work_supply_parser_qa_release_signoff.dart --summary build/parser_qa_reports/release_shards/latest_summary.json --expected-profile release --max-age-hours 168` for final release sign-off. It emits `QA_RELEASE_SIGNOFF` and fails when expected shards are missing, stale, failed, running, incomplete, dry-run without approval, wrong-profile, or missing transcript evidence.
 
 Use `dart run tool/work_supply_parser_qa_prune_reports.dart --keep 20` to dry-run local artifact cleanup and `--execute` only when intentionally pruning old timestamped reports. Keep the latest JSON, latest text summary, and latest pack-health aliases for Command One/admin diagnostics.
