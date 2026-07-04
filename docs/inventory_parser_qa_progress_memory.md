@@ -3537,3 +3537,16 @@ Release boundaries:
   first run found missing `pvc cond` electrical conduit evidence; adding a
   `pvc conduit` parser alias fixed it. Focused priority-trade merchant parser
   behavior passed 3/3 and targeted analyzer found no issues.
+- **11:16 Harness Pass 2617:** Completed queue
+  `pass2605-core-plumbing-500` for Plumbing residential Core in `en-US` and
+  `es-US`. Final generated-run status checked 1,000 cases with 0 failed cells,
+  0 unsafe cells, 1,032 parser calls, no live services, no production catalog
+  writes, no Firebase writes, and no OCR/camera/Expenses/UI work. Final
+  artifact:
+  `build/parser_qa_pipeline/pass2605_core_plumbing_500_status.json`.
+- **11:17 Harness Pass 2618:** Re-ran the focused confidence/review safety
+  harness after the confidence-cap concern. The gate passed 133 checks with
+  0 failures across `inventory.confidence_calibration`,
+  `inventory.review_safety_contract`, and `qa.threshold_gate`, confirming the
+  QA layer is guarding against ambiguity suppression, review bypasses, and
+  confidence-only promotion.
