@@ -168,6 +168,13 @@ Focused rerun routes for recently hardened release-one contracts:
 - Validation:
   `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.fixture_coverage_matrix,inventory.fixture_corpus_contract,inventory.fixture_expectation_contract,inventory.confidence_calibration,inventory.language_pack_separation_contract --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
   passed 740 checks with 0 failures.
+- Passes 1929-1931 tightened `inventory.legal_safety_contract` so parser QA
+  sources now block Selenium, BeautifulSoup, retailer API dump, product-page
+  scrape wording, retailer-targeted `requests.get`, and web-scraping method
+  fingerprints while still allowing policy text that says scraping is forbidden.
+- Validation:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.legal_safety_contract,inventory.data_provenance_contract,inventory.vendor_sku_matrix_contract --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
+  passed 115 checks with 0 failures.
 - inventory.receipt_source_immutability_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.receipt_source_immutability_contract,qa.threshold_gate`
 - inventory.parser_platform_contract:

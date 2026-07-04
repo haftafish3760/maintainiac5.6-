@@ -92,15 +92,15 @@ class WorkSupplyParserLegalSafetySuite extends QaSuite {
 
     final sources = _readSources(failures);
     checked += _sourceDirectories.length;
-    for (final blocked in ['puppeteer', 'playwright', 'web scraping']) {
-      if (!sources.toLowerCase().contains(blocked)) continue;
+    for (final blocked in _blockedCollectionMethods.entries) {
+      if (!blocked.value.hasMatch(sources)) continue;
       failures.add(
         _failure(
-          id: 'blocked_parser_qa_collection_method:$blocked',
+          id: 'blocked_parser_qa_collection_method:${blocked.key}',
           message:
               'Parser QA source references a collection method that needs legal review.',
           expected: 'manual/synthetic/public-source-reviewed data only',
-          actual: blocked,
+          actual: blocked.key,
           category: QaFailureTriage.security,
         ),
       );
@@ -118,6 +118,29 @@ class WorkSupplyParserLegalSafetySuite extends QaSuite {
       },
     );
   }
+
+  static final _blockedCollectionMethods = {
+    'puppeteer': RegExp(r'\bpuppeteer\b', caseSensitive: false),
+    'playwright': RegExp(r'\bplaywright\b', caseSensitive: false),
+    'selenium': RegExp(r'\bselenium\b', caseSensitive: false),
+    'beautiful_soup': RegExp(r'\bbeautiful\s*soup\b', caseSensitive: false),
+    'retailer_api_dump': RegExp(
+      r'\bretailer\s+api\s+dump\b',
+      caseSensitive: false,
+    ),
+    'product_page_scrape': RegExp(
+      r'\bproduct\s+page\s+scrape\b',
+      caseSensitive: false,
+    ),
+    'requests_get_retailer': RegExp(
+      r'\brequests\.get\s*\([^)]*(?:homedepot|lowes|menards|grainger|ferguson)',
+      caseSensitive: false,
+    ),
+    'web_scraping_method': RegExp(
+      r'\bweb\s+scraping\s+(?:script|tool|crawler|pipeline|job|method)\b',
+      caseSensitive: false,
+    ),
+  };
 
   QaFailure _failure({
     required String id,
