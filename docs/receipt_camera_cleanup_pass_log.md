@@ -3,6 +3,27 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 677 - 00:18:55 EDT to active cleanup
+
+Scope:
+- Added an explicit native tap-focus gesture retirement diagnostic for Android
+  and iOS receipt camera captures.
+- Routed `nativeTapFocusGesturePolicy` through the privacy-safe native staging
+  allowlist and shared native UI health counts.
+- Added `tap_focus_gesture_removed` result evidence so admin/debug handoffs can
+  prove tap focus was removed instead of inferring it from missing controls.
+- Removed the dead Android `lastSinglePointerUpAt` field left after tap-focus
+  gesture removal.
+- Archived Pass 649 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0193` under `camera_capture_quality`.
+
+Verification:
+- Passed targeted Dart format/analyzer for native tap-focus retirement
+  diagnostics.
+- Passed focused Flutter native source and result-health regressions.
+- Passed cleanup log gate, doc-size gate, bug ledger gate, source audit, and
+  whitespace check.
+
 ## Pass 676 - 00:14:51 EDT to active cleanup
 
 Scope:
@@ -474,17 +495,3 @@ Verification:
 - Passed targeted Dart format/analyzer for shared scanner and bridge tests.
 - Passed focused Flutter barcode scanner and work-supply barcode bridge
   regressions.
-
-## Pass 649 - 22:50:22 EDT to active cleanup
-
-Scope:
-- Strengthened native capability parity QA so Android, iOS, and the Dart method
-  channel test all prove `supportsContinuousFocus` remains wired.
-- Added bridge assertions for Android Camera2 continuous-picture AF capability
-  and iOS AVFoundation continuous autofocus capability reporting.
-- Archived Pass 611 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native bridge/service parity tests.
-- Passed focused Flutter native Android bridge, iOS bridge, and receipt native
-  camera service regressions.

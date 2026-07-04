@@ -47,6 +47,9 @@ List<String> _nativeFocusReadabilityHealthCodes(
   final focusPolicy = _diagnosticToken(
     diagnostics['focusStrategyPolicy']?.toString() ?? '',
   );
+  final tapFocusGesturePolicy = _diagnosticToken(
+    diagnostics['nativeTapFocusGesturePolicy']?.toString() ?? '',
+  );
   final readabilityPolicy = _diagnosticToken(
     diagnostics['readabilityGuidancePolicy']?.toString() ?? '',
   );
@@ -58,6 +61,11 @@ List<String> _nativeFocusReadabilityHealthCodes(
     codes.add('tap_focus_retirement_regressed');
   } else if (tapFocusExpected == false) {
     codes.add('tap_focus_retired');
+  }
+  if (tapFocusGesturePolicy == 'removed_continuous_focus_readability_primary') {
+    codes.add('tap_focus_gesture_removed');
+  } else if (tapFocusGesturePolicy != 'unknown') {
+    codes.add('tap_focus_gesture_policy_unrecognized');
   }
 
   if (continuousFocusExpected == true) {

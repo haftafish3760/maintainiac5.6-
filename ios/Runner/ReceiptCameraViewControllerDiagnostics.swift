@@ -16,6 +16,7 @@ extension ReceiptCameraViewController {
       "nativeCaptureUiContract": "maintainiac_custom_receipt_capture_ui_v1",
       "stockCameraUiUsed": false,
       "nativeTouchControlPolicy": "continuous_focus_readability_and_pinch_zoom_v1",
+      "nativeTapFocusGesturePolicy": "removed_continuous_focus_readability_primary",
       "readabilityGuidanceCoordinateSpace": "avfoundation_preview_layer_device_point",
       "tapToFocusPolicy": tapToFocusPolicy,
       "focusStrategyPolicy": focusStrategyPolicy,

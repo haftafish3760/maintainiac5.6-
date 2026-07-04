@@ -41,7 +41,6 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var imageCapture: ImageCapture? = null
     internal var camera: Camera? = null
     internal var scaleGestureDetector: ScaleGestureDetector? = null
-    internal var lastSinglePointerUpAt = 0L
     internal var assistedReceiptFill = true
     internal var longReceiptMode = true
     internal var autoCaptureEnabled = false

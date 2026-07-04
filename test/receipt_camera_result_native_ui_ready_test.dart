@@ -44,6 +44,8 @@ void main() {
           'manualShutterControlActual': 'ready',
           'tapFocusControlExpected': false,
           'tapFocusControlActual': 'disabled',
+          'nativeTapFocusGesturePolicy':
+              'removed_continuous_focus_readability_primary',
           'continuousFocusExpected': true,
           'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
           'readabilityGuidancePolicy':
@@ -120,6 +122,7 @@ void main() {
       isFalse,
     );
     expect(result.nativeCameraUiHealthCounts['tap_focus_retired'], 1);
+    expect(result.nativeCameraUiHealthCounts['tap_focus_gesture_removed'], 1);
     expect(result.nativeCameraUiHealthCounts['continuous_focus_expected'], 1);
     expect(
       result.nativeCameraUiHealthCounts['continuous_focus_primary_ready'],

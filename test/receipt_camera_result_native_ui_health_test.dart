@@ -138,6 +138,8 @@ void main() {
           'manualShutterAlwaysAvailable': true,
           'manualShutterControlActual': 'ready',
           'tapFocusControlExpected': false,
+          'nativeTapFocusGesturePolicy':
+              'removed_continuous_focus_readability_primary',
           'pinchZoomControlExpected': true,
           'pinchZoomControlActual': 'ready',
           'exposureSliderControlExpected': true,
@@ -155,6 +157,7 @@ void main() {
 
     expect(result.nativeCameraUiHealthOutcome, 'continuous_focus_missing');
     expect(result.nativeCameraUiHealthCounts['tap_focus_retired'], 1);
+    expect(result.nativeCameraUiHealthCounts['tap_focus_gesture_removed'], 1);
     expect(result.nativeCameraUiHealthCounts['continuous_focus_missing'], 1);
     expect(
       result.nativeCameraUiHealthCounts['continuous_focus_primary_missing'],

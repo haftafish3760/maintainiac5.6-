@@ -184,6 +184,12 @@ void main() {
       expect(cameraActivity, contains('preCaptureExposureAdjustmentCount'));
       expect(cameraActivity, contains('tapFocusCount'));
       expect(cameraActivity, contains('tapFocusSuppressedAfterZoomCount'));
+      expect(
+        cameraActivity,
+        contains(
+          '"nativeTapFocusGesturePolicy" to "removed_continuous_focus_readability_primary"',
+        ),
+      );
       expect(cameraActivity, isNot(contains('suppressTapFocusUntilMs')));
       expect(
         cameraActivity,

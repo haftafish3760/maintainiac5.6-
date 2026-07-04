@@ -15,6 +15,7 @@ internal fun ReceiptCameraActivity.nativeCaptureDiagnostics(
         "nativeCaptureUiContract" to "maintainiac_custom_receipt_capture_ui_v1",
         "stockCameraUiUsed" to false,
         "nativeTouchControlPolicy" to "continuous_focus_readability_and_pinch_zoom_v1",
+        "nativeTapFocusGesturePolicy" to "removed_continuous_focus_readability_primary",
         "readabilityGuidanceCoordinateSpace" to "preview_metering_point_factory",
         "tapToFocusPolicy" to tapToFocusPolicy,
         "focusStrategyPolicy" to focusStrategyPolicy,
