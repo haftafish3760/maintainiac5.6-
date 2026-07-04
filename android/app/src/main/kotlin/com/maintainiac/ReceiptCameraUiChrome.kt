@@ -190,7 +190,7 @@ internal fun ReceiptCameraActivity.settingsStatusText(): String {
     val length = if (longReceiptMode) "Long receipt on" else "Single photo"
     val storage = "${dataSaverLabel()} saved proof"
     val brightness = if (autoExposureAssistEnabled) "Brightness assist" else "Manual brightness"
-    return "Maintainiac receipt camera • $assist • $depth • $length • $brightness • $storage • OCR reads original first"
+    return "Maintainiac receipt camera • $assist • $depth • $length • $brightness • $storage • OCR reads temp full-quality first"
 }
 
 internal fun ReceiptCameraActivity.buildBottomBar(): View {

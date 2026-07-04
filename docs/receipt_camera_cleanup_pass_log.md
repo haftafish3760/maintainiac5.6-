@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 783 - 07:36:42 EDT to active cleanup
+
+Scope:
+- Removed stale Android camera status-strip copy that said OCR reads the
+  original first.
+- Reworded the strip to temporary full-quality OCR source language so users do
+  not infer permanent full-size original retention.
+- Added a native Android source regression rejecting the stale original-first
+  status copy.
+- Recorded `BUG-RECEIPT-0270` under `source_preservation`.
+- Archived Pass 755 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused Android native bridge
+  source regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 782 - 07:32:31 EDT to active cleanup
 
 Scope:
@@ -462,38 +480,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for iOS exposure-bias regressions.
 - Passed focused iOS native analysis exposure regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 756 - 04:05:37 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS pinch zoom so non-finite gesture scale or zoom
-  factors cannot reach native camera zoom controls.
-- Added `zoom_invalid_scale` diagnostics for rejected malformed zoom input while
-  preserving normal pinch zoom behavior.
-- Added Android/iOS source regressions for non-finite zoom guards.
-- Recorded `BUG-RECEIPT-0244` under `camera_capture_quality`.
-- Archived Pass 728 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native zoom regressions.
-- Passed focused Android close-controls and iOS analysis exposure regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 755 - 04:04:36 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS native auto-exposure so non-finite live brightness
-  cannot trigger brighten/dim exposure adjustments.
-- Kept unknown brightness on the existing `brightness_unknown` decision path and
-  reset any pending exposure candidate before returning.
-- Added Android/iOS exposure source regressions for finite brightness guards.
-- Recorded `BUG-RECEIPT-0243` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart format/analyzer for native exposure regressions.
-- Passed focused Android/iOS native analysis exposure regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

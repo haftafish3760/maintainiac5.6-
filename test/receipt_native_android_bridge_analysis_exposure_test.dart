@@ -17,6 +17,8 @@ void main() {
       cameraActivity,
       contains('OCR reads the temporary full-quality photo first.'),
     );
+    expect(cameraActivity, contains('OCR reads temp full-quality first'));
+    expect(cameraActivity, isNot(contains('OCR reads original first')));
     expect(
       cameraActivity,
       contains(
