@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 669 - 23:47:36 EDT to active cleanup
+
+Scope:
+- Hardened OCR parser handoff role maps so duplicate OCR stable line IDs do
+  not appear twice in `lineIdsByRole` or the privacy-safe parser contract.
+- Preserved raw ordered line IDs for audit while keeping consumer-facing role
+  groups first-occurrence deduped.
+- Added focused regression coverage to the existing duplicate line-ID parser
+  handoff test.
+- Archived Pass 639 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0184` under `receipt_line_numbering`.
+
+Verification:
+- Passed targeted Dart format/analyzer for parser handoff line maps.
+- Passed focused Flutter parser handoff structure regression.
+- Passed cleanup log gate, doc-size gate, bug ledger gate, source audit, and
+  whitespace check.
+
 ## Pass 668 - 23:50:00 EDT to active cleanup
 
 Scope:
@@ -472,22 +490,3 @@ Scope:
 Verification:
 - Passed targeted Dart format for the positive-path native UI health regression.
 - Passed focused Flutter native UI ready regression.
-
-## Pass 639 - 22:29:44 EDT to active cleanup
-
-Scope:
-- Hardened native receipt camera handoff risk flags so a tap-focus comeback is
-  treated as a risk, not just a counted health-code detail.
-- Kept the same risk classification aligned between shared capture flow and
-  shared attachment import flows.
-- Added a focused regression proving `tap_focus_retirement_regressed` becomes a
-  receipt attachment risk flag even when every other native control looks ready.
-- Archived Pass 602 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0160` under `camera_capture_quality`.
-
-Verification:
-- First focused Flutter run exposed that the fixture had not marked the
-  regressed tap-focus control actual state ready; fixed the fixture before
-  moving on.
-- Passed targeted Dart format for native UI risk flag changes.
-- Passed focused Flutter native UI health regression.

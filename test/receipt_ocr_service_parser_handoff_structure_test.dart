@@ -172,6 +172,12 @@ void main() {
     expect(handoff.inventoryPrepLineIds, [lineId]);
     expect(handoff.parserTaskLineIds['item_price_ready'], [lineId]);
     expect(handoff.parserTaskLineIds['material_line_candidate'], [lineId]);
+    expect(handoff.lineIdsByRole['item'], [lineId]);
+    expect(
+      (handoff.privacySafeParserHandoffContract['lineIdsByRole']
+          as Map)['item'],
+      [lineId],
+    );
     expect(handoff.lineNumberByLineId[lineId], 3);
     expect(
       handoff.proofLineReferenceLabelByLineId[lineId],

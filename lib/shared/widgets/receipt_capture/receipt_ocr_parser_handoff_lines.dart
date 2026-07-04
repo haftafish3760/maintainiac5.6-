@@ -128,7 +128,7 @@ extension ReceiptOcrParserHandoffLineMaps on ReceiptOcrParserHandoff {
     }
     final result = <String, List<String>>{
       for (final entry in ids.entries)
-        entry.key: List<String>.unmodifiable(entry.value),
+        entry.key: List<String>.unmodifiable(_uniqueStrings(entry.value)),
     };
     return Map<String, List<String>>.unmodifiable(result);
   }
@@ -256,9 +256,13 @@ extension ReceiptOcrParserHandoffLineMaps on ReceiptOcrParserHandoff {
 }
 
 List<String> _uniqueStableLineIds(Iterable<ReceiptOcrParserLineSignal> lines) {
+  return _uniqueStrings(lines.map((line) => line.stableLineId));
+}
+
+List<String> _uniqueStrings(Iterable<String> values) {
   final seen = <String>{};
   return [
-    for (final line in lines)
-      if (seen.add(line.stableLineId)) line.stableLineId,
+    for (final value in values)
+      if (seen.add(value)) value,
   ];
 }
