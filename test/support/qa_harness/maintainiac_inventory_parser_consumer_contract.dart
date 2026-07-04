@@ -354,6 +354,18 @@ const maintainiacInventoryParserConsumerContract = MaintainiacInventoryParserCon
       command:
           'flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.catalog_expansion_lifecycle_contract,qa.threshold_gate',
     ),
+    MaintainiacInventoryParserQaFamily(
+      id: 'real_receipt_validation_privacy',
+      label: 'Private real receipt validation summaries and synthetic fixtures',
+      files: [
+        'test/support/work_supply_parser_qa/work_supply_parser_real_receipt_validation_qa.dart',
+        'test/support/work_supply_parser_qa/work_supply_parser_fixture_privacy_qa.dart',
+        'test/support/work_supply_parser_qa/work_supply_parser_legal_safety_qa.dart',
+      ],
+      riskTags: {'privacy', 'security', 'regression', 'governance'},
+      command:
+          'flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.real_receipt_validation_contract,qa.threshold_gate',
+    ),
   ],
 );
 

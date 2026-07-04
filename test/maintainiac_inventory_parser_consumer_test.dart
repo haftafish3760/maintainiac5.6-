@@ -29,6 +29,7 @@ void main() {
         'workflow_routing',
         'generated_batch_runner',
         'catalog_expansion_lifecycle',
+        'real_receipt_validation_privacy',
       ]),
     );
   });
