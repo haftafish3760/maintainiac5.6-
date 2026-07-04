@@ -257,6 +257,13 @@ void main() {
     );
     expect(
       cameraController,
+      contains(
+        'if continuousFocusEnabled &&\n'
+        '      readabilityGuidancePolicy ==',
+      ),
+    );
+    expect(
+      cameraController,
       contains('return controls.joined(separator: "|")'),
     );
     expect(

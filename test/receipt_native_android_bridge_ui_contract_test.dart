@@ -166,6 +166,13 @@ void main() {
       contains('if (exposureSliderEnabled) controls.add("brightness")'),
     );
     expect(cameraActivity, contains('controls.add("readability_guidance")'));
+    expect(
+      cameraActivity,
+      contains(
+        'continuousFocusEnabled &&\n'
+        '        readabilityGuidancePolicy ==',
+      ),
+    );
     expect(cameraActivity, contains('return controls.joinToString("|")'));
     expect(
       cameraActivity,

@@ -12,6 +12,7 @@ internal fun ReceiptCameraActivity.visibleControlSet(): String {
     if (torchButton.isEnabled) controls.add("light")
     if (exposureSliderEnabled) controls.add("brightness")
     if (
+        continuousFocusEnabled &&
         readabilityGuidancePolicy ==
             "live_readability_guides_blur_glare_light_edges_and_text_size"
     ) {

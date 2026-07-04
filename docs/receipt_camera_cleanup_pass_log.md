@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 659 - 23:23:30 EDT to active cleanup
+
+Scope:
+- Tightened Android/iOS visible-control diagnostics so `readability_guidance`
+  appears only when continuous focus is also enabled.
+- Tightened result-level visible-readability health buckets so fallback camera
+  sessions with missing continuous focus do not claim live readability UI proof.
+- Added focused regression coverage for fallback readability-visible behavior.
+- Recorded `BUG-RECEIPT-0175` under `camera_capture_quality`.
+- Archived Pass 629 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native bridge/result health tests.
+- Passed focused Flutter Android bridge, iOS bridge, native UI ready/health, and
+  readability-visible health regressions.
+
 ## Pass 658 - 23:20:55 EDT to active cleanup
 
 Scope:
@@ -465,21 +481,3 @@ Verification:
 - Passed targeted Dart format/analyzer for native ghost-guide session changes.
 - Passed focused Flutter native camera session limits regression.
 - Passed whitespace check.
-
-## Pass 629 - 22:08:07 EDT to active cleanup
-
-Scope:
-- Added privacy-safe long-receipt ghost slice percent handoff signals so review,
-  OCR, admin QA, and future UI/native changes can prove the intended overlap
-  guidance without exposing receipt paths or text.
-- Added focused continuation handoff regressions for native slice-percent
-  diagnostics, fallback fraction-derived slice percent, malformed numeric
-  diagnostics, and no receipt-text leakage.
-- Archived Pass 619 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0150` under `ghost_overlap_stitching`.
-
-Verification:
-- Passed targeted Dart format/analyzer for continuation handoff changes.
-- Passed focused Flutter continuation handoff regression.
-- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
-  check.

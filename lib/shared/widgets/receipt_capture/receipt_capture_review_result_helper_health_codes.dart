@@ -295,8 +295,12 @@ List<String> _nativeReadabilityVisibleHealthCodes(
   final policy = _diagnosticToken(
     diagnostics['readabilityGuidancePolicy']?.toString() ?? '',
   );
-  if (policy !=
-      'live_readability_guides_blur_glare_light_edges_and_text_size') {
+  final continuousFocusExpected = _diagnosticBool(
+    diagnostics['continuousFocusExpected'],
+  );
+  if (continuousFocusExpected != true ||
+      policy !=
+          'live_readability_guides_blur_glare_light_edges_and_text_size') {
     return const [];
   }
   final controls = controlSet == null
