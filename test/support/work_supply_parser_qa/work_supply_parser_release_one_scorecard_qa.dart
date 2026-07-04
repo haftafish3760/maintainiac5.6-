@@ -34,6 +34,8 @@ class WorkSupplyParserReleaseOneScorecardSuite extends QaSuite {
     'Real Private Receipt Validation',
     'Serious-Team Additions',
     'Store-independence proof',
+    'QA harness completion is not the same thing as catalog completion',
+    'inventory catalog expansion still continues in controlled batches',
     'Next Implementation Order',
   };
 

@@ -18,6 +18,11 @@ records. That does not mean every possible inventory item is finished before
 release, but it does mean the supported scope must be honest, measured,
 review-safe, recoverable, and backed by regression tests.
 
+QA harness completion is not the same thing as catalog completion. After the
+QA harness and release gates are in place, inventory catalog expansion still
+continues in controlled batches, with generated item candidates, fixture
+coverage, regression locks, and release-readiness evidence before promotion.
+
 ## Release 1 Priority Scope
 
 Release 1 parser proof is focused on United States residential service work:
