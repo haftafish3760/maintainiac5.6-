@@ -157,7 +157,10 @@ extension ReceiptCameraViewController {
     let lightReady =
       brightness >= autoCaptureMinBrightness &&
       brightness <= autoCaptureMaxBrightness
-    guard edgesReady, steady, lightReady else {
+    let qualityReviewNeeded =
+      latestReadabilitySignal == "shadow_risk" ||
+      latestReadabilitySignal == "dirty_lens_or_haze"
+    guard edgesReady, steady, lightReady, !qualityReviewNeeded else {
       autoCaptureStableFrameCount = 0
       if !edgesReady {
         latestAutoCaptureStatus = "waiting_for_edges"
@@ -165,6 +168,8 @@ extension ReceiptCameraViewController {
         latestAutoCaptureStatus = "waiting_for_steady"
       } else if !lightReady {
         latestAutoCaptureStatus = "waiting_for_light"
+      } else if qualityReviewNeeded {
+        latestAutoCaptureStatus = "waiting_for_quality_review"
       } else {
         latestAutoCaptureStatus = "waiting"
       }

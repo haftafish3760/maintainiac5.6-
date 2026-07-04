@@ -286,6 +286,8 @@ extension ReceiptCameraViewController {
       return "manual_only_check_framing"
     case "waiting_for_light":
       return "manual_only_quality_retake_recommended"
+    case "waiting_for_quality_review":
+      return "manual_only_quality_review"
     case "closing":
       return "manual_ready_auto_capture_off"
     default:
@@ -301,6 +303,8 @@ extension ReceiptCameraViewController {
       return "Check that every receipt line is visible before auto capture."
     case "manual_only_quality_retake_recommended":
       return "Improve lighting before automatic capture."
+    case "manual_only_quality_review":
+      return "Check sharpness, light, and receipt text before automatic capture."
     case "auto_capture_waiting_for_stability":
       return "Hold steady for automatic capture."
     default:

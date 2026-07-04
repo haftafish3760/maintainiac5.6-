@@ -148,6 +148,16 @@ void main() {
         cameraController,
         contains('"manual_only_quality_retake_recommended"'),
       );
+      expect(cameraController, contains('"waiting_for_quality_review"'));
+      expect(cameraController, contains('"manual_only_quality_review"'));
+      expect(
+        cameraController,
+        contains('latestReadabilitySignal == "shadow_risk"'),
+      );
+      expect(
+        cameraController,
+        contains('latestReadabilitySignal == "dirty_lens_or_haze"'),
+      );
       expect(cameraController, contains('closingCamera'));
       expect(cameraController, contains('!closingCamera'));
       expect(cameraController, contains('"closing"'));

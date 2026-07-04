@@ -237,6 +237,7 @@ internal fun ReceiptCameraActivity.captureReadinessCode(): String {
         "capturing" -> "auto_capture_ready"
         "waiting_for_edges" -> "manual_only_check_framing"
         "waiting_for_light" -> "manual_only_quality_retake_recommended"
+        "waiting_for_quality_review" -> "manual_only_quality_review"
         "closing" -> "manual_ready_auto_capture_off"
         else -> "auto_capture_waiting_for_stability"
     }
@@ -247,6 +248,7 @@ internal fun ReceiptCameraActivity.captureReadinessLabel(): String {
         "auto_capture_ready" -> "Receipt looks steady. Taking photo."
         "manual_only_check_framing" -> "Check that every receipt line is visible before auto capture."
         "manual_only_quality_retake_recommended" -> "Improve lighting before automatic capture."
+        "manual_only_quality_review" -> "Check sharpness, light, and receipt text before automatic capture."
         "auto_capture_waiting_for_stability" -> "Hold steady for automatic capture."
         else -> "Manual capture is ready. Auto capture is off."
     }

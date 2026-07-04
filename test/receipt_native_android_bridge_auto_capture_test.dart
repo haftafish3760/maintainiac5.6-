@@ -190,6 +190,16 @@ void main() {
       cameraActivity,
       contains('"manual_only_quality_retake_recommended"'),
     );
+    expect(cameraActivity, contains('"waiting_for_quality_review"'));
+    expect(cameraActivity, contains('"manual_only_quality_review"'));
+    expect(
+      cameraActivity,
+      contains('latestReadabilitySignal == "shadow_risk"'),
+    );
+    expect(
+      cameraActivity,
+      contains('latestReadabilitySignal == "dirty_lens_or_haze"'),
+    );
     expect(cameraActivity, contains('closingCamera'));
     expect(cameraActivity, contains('captureInFlight'));
     expect(cameraActivity, contains('"closing"'));

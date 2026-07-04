@@ -176,12 +176,15 @@ internal fun ReceiptCameraActivity.maybeAutoCapture(
             framing.confidenceBucket == "usable_edges")
     val steady = motionScore in 0.0..autoCaptureMaxMotionScore
     val lightReady = brightness in autoCaptureMinBrightness..autoCaptureMaxBrightness
-    if (!edgesReady || !steady || !lightReady) {
+    val qualityReviewNeeded = latestReadabilitySignal == "shadow_risk" ||
+        latestReadabilitySignal == "dirty_lens_or_haze"
+    if (!edgesReady || !steady || !lightReady || qualityReviewNeeded) {
         autoCaptureStableFrameCount = 0
         latestAutoCaptureStatus = when {
             !edgesReady -> "waiting_for_edges"
             !steady -> "waiting_for_steady"
             !lightReady -> "waiting_for_light"
+            qualityReviewNeeded -> "waiting_for_quality_review"
             else -> "waiting"
         }
         return
