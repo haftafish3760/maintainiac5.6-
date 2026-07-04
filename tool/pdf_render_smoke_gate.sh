@@ -35,11 +35,14 @@ export FONTCONFIG_PATH="$fontconfig_dir"
 
 receipt_pdf="$work_dir/sample_receipt.pdf"
 invoice_pdf="$work_dir/sample_invoice.pdf"
+real_invoice_pdf="$work_dir/real_invoice_renderer.pdf"
 
 dart run tool/generate_sample_receipt_pdf.dart "$receipt_pdf" >/dev/null
 dart run tool/generate_sample_invoice_pdf.dart "$invoice_pdf" >/dev/null
+PDF_RENDER_GATE_INVOICE_OUTPUT="$real_invoice_pdf" \
+  flutter test test/pdf_render_gate_invoice_generator_test.dart -r compact >/dev/null
 
-for pdf in "$receipt_pdf" "$invoice_pdf"; do
+for pdf in "$receipt_pdf" "$invoice_pdf" "$real_invoice_pdf"; do
   "$PDFINFO_BIN" "$pdf" >/dev/null
   prefix="$work_dir/$(basename "$pdf" .pdf)"
   "$PDFTOPPM_BIN" -singlefile -png -r 72 "$pdf" "$prefix" >/dev/null
@@ -53,4 +56,5 @@ for pdf in "$receipt_pdf" "$invoice_pdf"; do
     echo "Rendered PDF page is suspiciously small for $pdf: $bytes bytes" >&2
     exit 1
   fi
+  python3 tool/pdf_render_pixel_assertions.py "$png"
 done

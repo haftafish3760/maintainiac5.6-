@@ -1,5 +1,31 @@
 # PDF System Pass Log
 
+## Pass 16 - 2026-07-04 19:33 EDT - Render pixel gate and pagination regression
+
+- Scope: PDF render QA and invoice pagination only. No inventory, camera,
+  native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Added pixel-level PNG assertions to the PDF render smoke gate so rendered
+    PDFs must have sane dimensions, real ink, color variation, and not render
+    as blank or mostly black pages.
+  - Added a Flutter-backed render-gate invoice fixture that exercises the real
+    invoice renderer, not only a small command-line sample PDF.
+  - Fixed invoice pagination when the line count leaves an eleven-line final
+    chunk, which previously could ask for a sublist beyond the available line
+    items.
+  - Added regression coverage for the invoice pagination edge case and included
+    the real renderer fixture in the shared PDF quality gate.
+- Failure fixed during pass:
+  - The strengthened render gate exposed a real paginator range error for a
+    42-line invoice. The paginator now uses named capacities and balanced
+    continuation chunks so it cannot overrun line-item bounds.
+- Verification completed 2026-07-04 19:32 EDT:
+  - `dart format lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_template_pdf_factory_test.dart test/pdf_render_gate_invoice_generator_test.dart tool/generate_sample_invoice_pdf.dart test/pdf_quality_gate_contract_test.dart`
+  - `dart analyze lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_template_pdf_factory_test.dart test/pdf_render_gate_invoice_generator_test.dart tool/generate_sample_invoice_pdf.dart test/pdf_quality_gate_contract_test.dart`
+  - `flutter test test/invoice_template_pdf_factory_test.dart test/pdf_render_gate_invoice_generator_test.dart test/pdf_quality_gate_contract_test.dart -r compact`
+  - `bash tool/pdf_render_smoke_gate.sh`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 15 - 2026-07-04 15:56 EDT - Deterministic generated PDFs
 
 - Scope: generated PDF determinism, sample render tooling, and regression

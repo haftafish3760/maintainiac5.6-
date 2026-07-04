@@ -7,6 +7,7 @@ set -euo pipefail
 
 bash -n tool/pdf_quality_gate.sh
 bash -n tool/pdf_render_smoke_gate.sh
+python3 -m py_compile tool/pdf_render_pixel_assertions.py
 
 dart analyze \
   tool/generate_sample_invoice_pdf.dart \
@@ -37,7 +38,8 @@ dart analyze \
   test/receipt_pdf_torture_storage_test.dart \
   test/receipt_pdf_torture_test.dart \
   test/pdf_quality_gate_contract_test.dart \
-  test/pdf_cross_platform_contract_test.dart
+  test/pdf_cross_platform_contract_test.dart \
+  test/pdf_render_gate_invoice_generator_test.dart
 
 dart run tool/generate_sample_invoice_pdf.dart /tmp/maintainiac_gate_invoice_a.pdf >/dev/null
 dart run tool/generate_sample_invoice_pdf.dart /tmp/maintainiac_gate_invoice_b.pdf >/dev/null
@@ -68,6 +70,7 @@ flutter test \
   test/receipt_pdf_torture_test.dart \
   test/pdf_quality_gate_contract_test.dart \
   test/pdf_cross_platform_contract_test.dart \
+  test/pdf_render_gate_invoice_generator_test.dart \
   -r compact
 
 git diff --check

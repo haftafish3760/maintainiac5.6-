@@ -11,6 +11,10 @@ void main() {
       expect(script, contains('set -euo pipefail'));
       expect(script, contains('bash -n tool/pdf_quality_gate.sh'));
       expect(script, contains('bash -n tool/pdf_render_smoke_gate.sh'));
+      expect(
+        script,
+        contains('python3 -m py_compile tool/pdf_render_pixel_assertions.py'),
+      );
       expect(script, contains('bash tool/pdf_render_smoke_gate.sh'));
       expect(script, contains('cmp -s /tmp/maintainiac_gate_invoice_a.pdf'));
       expect(script, contains('cmp -s /tmp/maintainiac_gate_receipt_a.pdf'));
@@ -34,6 +38,10 @@ void main() {
         contains('test/document_engine_operating_directive_test.dart'),
       );
       expect(script, contains('test/pdf_cross_platform_contract_test.dart'));
+      expect(
+        script,
+        contains('test/pdf_render_gate_invoice_generator_test.dart'),
+      );
       expect(script, contains('test/pdf_security_policy_contract_test.dart'));
       expect(script, contains('test/pdf_privacy_policy_contract_test.dart'));
       expect(script, contains('test/pdf_typography_contract_test.dart'));
@@ -54,6 +62,17 @@ void main() {
         script,
         isNot(contains('test/receipt_pdf_viewer_hardening_test.dart')),
       );
+
+      final renderGate = File(
+        'tool/pdf_render_smoke_gate.sh',
+      ).readAsStringSync();
+      expect(renderGate, contains('tool/pdf_render_pixel_assertions.py'));
+      expect(renderGate, contains('PDF_RENDER_GATE_INVOICE_OUTPUT'));
+      expect(
+        renderGate,
+        contains('test/pdf_render_gate_invoice_generator_test.dart'),
+      );
+      expect(renderGate, contains('pdftoppm'));
     },
   );
 }

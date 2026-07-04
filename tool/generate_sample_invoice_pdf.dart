@@ -9,6 +9,7 @@ Future<void> main(List<String> args) async {
   final outputPath = args.isEmpty
       ? '/tmp/maintainiac_sample_invoice.pdf'
       : args.single;
+
   final pdf = pw.Document();
   final pdfTheme = await PdfToolTypography.loadTheme();
   pdf.addPage(
@@ -30,12 +31,12 @@ Future<void> main(List<String> args) async {
       ),
     ),
   );
-  final file = File(outputPath);
-  await file.parent.create(recursive: true);
   final bytes = AppPdfDeterminism.normalizeDocumentId(
     await pdf.save(),
     'tool-sample-invoice-v1',
   );
+  final file = File(outputPath);
+  await file.parent.create(recursive: true);
   await file.writeAsBytes(bytes, flush: true);
   stdout.writeln(file.path);
 }

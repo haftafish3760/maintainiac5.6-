@@ -62,6 +62,47 @@ void main() {
   });
 
   test(
+    'paginates invoice counts that leave an eleven-line final chunk',
+    () async {
+      final now = DateTime(2026, 7, 4);
+      final record = InvoiceRecord(
+        id: 'invoice-eleven-line-tail',
+        documentType: InvoiceDocumentType.invoice,
+        invoiceNumber: 'INV-TAIL-011',
+        numberMode: InvoiceNumberMode.automatic,
+        status: InvoiceRecordStatus.draft,
+        issueDate: now,
+        dueDate: now.add(const Duration(days: 30)),
+        company: const InvoicePartySnapshot(companyName: 'Jane Doe Services'),
+        client: const InvoicePartySnapshot(displayName: 'Alex Customer'),
+        lines: [
+          for (var index = 1; index <= 42; index++)
+            InvoiceLineItemRecord(
+              id: 'line-$index',
+              name: 'Service item $index',
+              details: 'Confirmed job notes for item $index',
+              quantity: 1,
+              unit: 'ea',
+              unitPrice: 12.25,
+              taxRate: 6.25,
+            ),
+        ],
+        meta: InvoiceSyncMetadata(createdAt: now, updatedAt: now),
+      );
+
+      final bytes = await const InvoicePdfTemplateRenderer()
+          .buildRecordDocumentBytes(
+            record: record,
+            template: InvoiceTemplateCatalog.byId('structured-logo'),
+          );
+
+      expect(invoicePdfPageCountForRecord(record), greaterThan(1));
+      expect(bytes.length, greaterThan(1000));
+      expect(latin1.decode(bytes.take(5).toList()), '%PDF-');
+    },
+  );
+
+  test(
     'invoice PDF output is deterministic for the same confirmed input',
     () async {
       final now = DateTime(2026, 7, 4, 10, 30);

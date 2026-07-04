@@ -1342,11 +1342,16 @@ class _InvoicePageLines {
 class _InvoicePaginator {
   const _InvoicePaginator(this.record);
 
+  static const _firstPageLineCapacity = 7;
+  static const _continuationPageLineCapacity = 12;
+  static const _finalPageLineCapacity = 10;
+  static const _minimumContinuationLines = 4;
+
   final InvoiceRecord record;
 
   List<_InvoicePageLines> get pages {
     final lines = record.lines;
-    if (lines.length <= 7) {
+    if (lines.length <= _firstPageLineCapacity) {
       return [
         _InvoicePageLines(role: _InvoicePageRole.finalPage, lines: lines),
       ];
@@ -1356,18 +1361,26 @@ class _InvoicePaginator {
     pages.add(
       _InvoicePageLines(
         role: _InvoicePageRole.first,
-        lines: lines.sublist(0, 7),
+        lines: lines.sublist(0, _firstPageLineCapacity),
       ),
     );
-    index = 7;
-    while (lines.length - index > 10) {
+    index = _firstPageLineCapacity;
+    while (lines.length - index > _finalPageLineCapacity) {
+      final remaining = lines.length - index;
+      final take =
+          remaining <= _finalPageLineCapacity + _minimumContinuationLines
+          ? (remaining / 2).floor()
+          : (remaining - _finalPageLineCapacity).clamp(
+              _minimumContinuationLines,
+              _continuationPageLineCapacity,
+            );
       pages.add(
         _InvoicePageLines(
           role: _InvoicePageRole.continuation,
-          lines: lines.sublist(index, index + 12),
+          lines: lines.sublist(index, index + take),
         ),
       );
-      index += 12;
+      index += take;
     }
     pages.add(
       _InvoicePageLines(
