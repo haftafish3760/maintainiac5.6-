@@ -43,7 +43,7 @@ Future<void> expectAcceptedNativeCaptureStagingBasics(
   );
   expect(
     diagnostics['nativeCaptureRecoveryOcrSourcePolicy'],
-    'original_staged_photo_used_before_data_saver_copy',
+    'temporary_full_quality_staged_photo_used_before_data_saver_copy',
   );
   expect(
     diagnostics['nativeCaptureRecoveryCleanupPolicy'],

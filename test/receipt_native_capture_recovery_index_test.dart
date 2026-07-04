@@ -145,7 +145,7 @@ void main() {
       );
       expect(
         record.recoverySafety['ocrSourcePolicy'],
-        'original_staged_photo_used_before_data_saver_copy',
+        'temporary_full_quality_staged_photo_used_before_data_saver_copy',
       );
       expect(
         record.recoverySafety['cleanupPolicy'],
@@ -173,7 +173,9 @@ void main() {
       );
       expect(
         record.privacySafeRecoveryEvidenceLabel,
-        contains('ocrSource=original_staged_photo_used_before_data_saver_copy'),
+        contains(
+          'ocrSource=temporary_full_quality_staged_photo_used_before_data_saver_copy',
+        ),
       );
       expect(record.hasExistingPhotos, isTrue);
     },

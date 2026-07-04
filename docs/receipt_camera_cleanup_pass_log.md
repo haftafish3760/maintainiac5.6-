@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 888 - active cleanup
+
+Scope:
+- Removed stale original-photo wording from native capture recovery OCR-source
+  policy diagnostics.
+- Renamed recovery manifest, staged-photo, and recovery-index tokens to
+  temporary full-quality staged source before saved proof copy.
+- Updated recovery fixture expectations to keep source-preservation wording
+  aligned with the current storage contract.
+- Recorded `BUG-RECEIPT-0337` under `source_preservation`.
+- Archived Pass 825 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused native capture recovery/staging
+  regressions, doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and
+  diff whitespace gates.
+
 ## Pass 887 - active cleanup
 
 Scope:
@@ -447,21 +464,6 @@ Scope:
   receipt segments without raw barcode payloads.
 - Recorded `BUG-RECEIPT-0312` under `barcode_qr_scanning`.
 - Archived Pass 787 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused barcode scanner regression.
-- Passed doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 825 - 14:43:00 EDT to active cleanup
-
-Scope:
-- Hardened barcode/QR privacy lookup blocking for compact customer/account
-  identifiers that do not use a separator after the sensitive token.
-- Added focused barcode scanner regression coverage so customer/account QR text
-  cannot become an inventory lookup candidate or leak raw values in summaries.
-- Recorded `BUG-RECEIPT-0311` under `barcode_qr_scanning`.
-- Archived Pass 786 from the active cleanup log to keep the doc under cap.
 
 Verification:
 - Passed targeted Dart format/analyzer and focused barcode scanner regression.

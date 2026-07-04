@@ -88,7 +88,8 @@ extension _ReceiptNativeCaptureStagingManifestWriter
       'attachmentState': 'staged_not_attached_until_user_accepts',
       'resumeAction': 'resume_review_before_receipt_details',
       'resumeCheckpoint': 'after_native_capture_before_ocr',
-      'ocrSourcePolicy': 'original_staged_photo_used_before_data_saver_copy',
+      'ocrSourcePolicy':
+          'temporary_full_quality_staged_photo_used_before_data_saver_copy',
       'cleanupPolicy':
           'discard_only_after_accept_or_user_discard_or_old_cleanup',
       'writeOrder': 'copy_photo_then_manifest_then_hive_index',

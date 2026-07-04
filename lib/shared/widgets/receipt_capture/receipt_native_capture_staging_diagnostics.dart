@@ -29,7 +29,7 @@ extension _ReceiptNativeCaptureStagingDiagnostics
       'nativeCaptureRecoveryResumeCheckpoint':
           'after_native_capture_before_ocr',
       'nativeCaptureRecoveryOcrSourcePolicy':
-          'original_staged_photo_used_before_data_saver_copy',
+          'temporary_full_quality_staged_photo_used_before_data_saver_copy',
       'nativeCaptureRecoveryCleanupPolicy':
           'discard_only_after_accept_or_user_discard_or_old_cleanup',
       'nativeCaptureRecoveryWriteOrder':
