@@ -456,6 +456,8 @@ class InvoicePdfTemplateRenderer {
                   record.company.bestName.isEmpty
                       ? 'My Company'
                       : record.company.bestName,
+                  maxLines: 1,
+                  overflow: pw.TextOverflow.clip,
                   style: pw.TextStyle(
                     fontSize: 22,
                     fontWeight: pw.FontWeight.bold,
@@ -467,6 +469,8 @@ class InvoicePdfTemplateRenderer {
                   record.title.trim().isEmpty
                       ? 'Service document'
                       : record.title.trim(),
+                  maxLines: 1,
+                  overflow: pw.TextOverflow.clip,
                   style: const pw.TextStyle(
                     fontSize: 10,
                     color: PdfColors.grey700,
@@ -495,11 +499,11 @@ class InvoicePdfTemplateRenderer {
                 ),
               ),
               pw.SizedBox(height: 6),
-              pw.Text('No. ${record.invoiceNumber}'),
-              pw.Text('Date ${_date(record.issueDate)}'),
+              _singleLine('No. ${record.invoiceNumber}'),
+              _singleLine('Date ${_date(record.issueDate)}'),
               if (record.dueDate != null)
-                pw.Text('Due ${_date(record.dueDate!)}'),
-              if (pageCount > 1) pw.Text('Page $pageNumber of $pageCount'),
+                _singleLine('Due ${_date(record.dueDate!)}'),
+              if (pageCount > 1) _singleLine('Page $pageNumber of $pageCount'),
             ],
           ),
         ),
@@ -569,7 +573,12 @@ class InvoicePdfTemplateRenderer {
           ),
           pw.SizedBox(height: 5),
           for (final line in lines)
-            pw.Text(line, style: const pw.TextStyle(fontSize: 9.5)),
+            pw.Text(
+              line,
+              maxLines: 1,
+              overflow: pw.TextOverflow.clip,
+              style: const pw.TextStyle(fontSize: 9.5),
+            ),
         ],
       ),
     );
@@ -639,6 +648,8 @@ class InvoicePdfTemplateRenderer {
         children: [
           pw.Text(
             line.name.trim().isEmpty ? 'Item' : line.name.trim(),
+            maxLines: 1,
+            overflow: pw.TextOverflow.clip,
             style: pw.TextStyle(
               color: PdfColors.grey900,
               fontSize: 9,
@@ -650,6 +661,7 @@ class InvoicePdfTemplateRenderer {
             pw.Text(
               details,
               maxLines: 2,
+              overflow: pw.TextOverflow.clip,
               style: const pw.TextStyle(
                 fontSize: 7.5,
                 color: PdfColors.grey700,
@@ -666,6 +678,8 @@ class InvoicePdfTemplateRenderer {
       padding: const pw.EdgeInsets.symmetric(horizontal: 7, vertical: 7),
       child: pw.Text(
         value,
+        maxLines: 1,
+        overflow: pw.TextOverflow.clip,
         style: pw.TextStyle(
           color: header ? PdfColors.white : PdfColors.grey900,
           fontSize: header ? 9.5 : 9,
@@ -697,6 +711,8 @@ class InvoicePdfTemplateRenderer {
             record.terms.trim().isEmpty
                 ? 'Payment due according to the terms shown on this document. Signing confirms customer approval of the listed price and scope.'
                 : record.terms.trim(),
+            maxLines: 6,
+            overflow: pw.TextOverflow.clip,
             style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800),
           ),
         ],
@@ -743,6 +759,8 @@ class InvoicePdfTemplateRenderer {
         children: [
           pw.Text(
             label,
+            maxLines: 1,
+            overflow: pw.TextOverflow.clip,
             style: pw.TextStyle(
               fontSize: emphasized ? 12 : 9,
               fontWeight: emphasized
@@ -752,6 +770,8 @@ class InvoicePdfTemplateRenderer {
           ),
           pw.Text(
             value,
+            maxLines: 1,
+            overflow: pw.TextOverflow.clip,
             style: pw.TextStyle(
               color: emphasized ? template?.accent : PdfColors.grey900,
               fontSize: emphasized ? 15 : 9,
@@ -779,7 +799,7 @@ class InvoicePdfTemplateRenderer {
       children: [
         pw.Container(height: 1.2, color: template.accent),
         pw.SizedBox(height: 5),
-        pw.Text(label, style: const pw.TextStyle(fontSize: 9)),
+        _singleLine(label, style: const pw.TextStyle(fontSize: 9)),
       ],
     );
   }
@@ -789,6 +809,8 @@ class InvoicePdfTemplateRenderer {
       alignment: pw.Alignment.centerRight,
       child: pw.Text(
         'Continued on next page',
+        maxLines: 1,
+        overflow: pw.TextOverflow.clip,
         style: pw.TextStyle(
           color: template.accent,
           fontSize: 10,
@@ -1012,6 +1034,15 @@ class InvoicePdfTemplateRenderer {
       ),
     );
   }
+}
+
+pw.Widget _singleLine(String value, {pw.TextStyle? style}) {
+  return pw.Text(
+    value,
+    maxLines: 1,
+    overflow: pw.TextOverflow.clip,
+    style: style,
+  );
 }
 
 bool _usesLandscapeArtwork(InvoiceTemplateDefinition template) {

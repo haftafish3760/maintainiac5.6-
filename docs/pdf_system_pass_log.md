@@ -1,5 +1,22 @@
 # PDF System Pass Log
 
+## Pass 28 - 2026-07-04 16:06 EDT - Invoice PDF long-text layout hardening
+
+- Scope: invoice/estimate PDF renderer layout safety only. No inventory,
+  camera, native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Added explicit one-line clipping to invoice PDF headers, metadata, party
+    blocks, table cells, totals, continuation footer, and signature labels.
+  - Added bounded terms rendering so unusually long confirmed terms cannot
+    consume the final page layout.
+  - Added regression coverage for pathological long business text and no-break
+    tokens across invoice number, parties, line items, unit labels, and terms.
+- Verification completed 2026-07-04 16:06 EDT:
+  - `dart format lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_template_pdf_factory_test.dart`
+  - `dart analyze lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_template_pdf_factory_test.dart`
+  - `flutter test test/invoice_template_pdf_factory_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 27 - 2026-07-04 16:02 EDT - Document import failure rollback
 
 - Scope: shared app document PDF import/save lifecycle only. No inventory,

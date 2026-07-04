@@ -102,6 +102,65 @@ void main() {
     },
   );
 
+  test('renders pathological long invoice text without failing layout', () async {
+    final now = DateTime(2026, 7, 4);
+    const longToken =
+        'ConfirmedBusinessDocumentFieldWithNoNaturalBreaks1234567890'
+        'ConfirmedBusinessDocumentFieldWithNoNaturalBreaks1234567890';
+    final record = InvoiceRecord(
+      id: 'invoice-long-text',
+      documentType: InvoiceDocumentType.invoice,
+      invoiceNumber: 'INV-$longToken',
+      numberMode: InvoiceNumberMode.automatic,
+      status: InvoiceRecordStatus.draft,
+      title: 'Emergency repair $longToken',
+      issueDate: now,
+      dueDate: now.add(const Duration(days: 30)),
+      company: const InvoicePartySnapshot(
+        companyName: 'Maintainiac $longToken',
+        street: '$longToken Road',
+        city: 'Longtextville',
+        state: 'OH',
+        postalCode: '43004',
+        email: '$longToken@example.com',
+      ),
+      client: const InvoicePartySnapshot(
+        displayName: 'Customer $longToken',
+        street: '$longToken Avenue',
+        city: 'Columbus',
+        state: 'OH',
+        postalCode: '43215',
+        email: 'customer.$longToken@example.com',
+      ),
+      lines: [
+        for (var index = 1; index <= 24; index++)
+          InvoiceLineItemRecord(
+            id: 'long-text-$index',
+            name: 'Line $index $longToken',
+            details:
+                'Confirmed service description $longToken $longToken $longToken',
+            quantity: 1,
+            unit: 'unit-$longToken',
+            unitPrice: 19.99,
+            taxRate: 6.25,
+          ),
+      ],
+      terms:
+          'Payment terms $longToken $longToken $longToken $longToken $longToken',
+      meta: InvoiceSyncMetadata(createdAt: now, updatedAt: now),
+    );
+
+    final bytes = await const InvoicePdfTemplateRenderer()
+        .buildRecordDocumentBytes(
+          record: record,
+          template: InvoiceTemplateCatalog.byId('structured-logo'),
+        );
+
+    expect(invoicePdfPageCountForRecord(record), greaterThan(1));
+    expect(bytes.length, greaterThan(1000));
+    expect(latin1.decode(bytes.take(5).toList()), '%PDF-');
+  });
+
   test(
     'invoice PDF output is deterministic for the same confirmed input',
     () async {
