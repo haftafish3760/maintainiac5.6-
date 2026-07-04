@@ -31,7 +31,13 @@ extension ReceiptCameraViewController {
       framing: framing
     )
     let currentGuidance = guidanceLabel.text ?? ""
-    if motionBlurWarningEnabled && motionScore > 22 {
+    if !brightness.isFinite || !motionScore.isFinite || !shadowScore.isFinite {
+      latestMotionSignal = "unknown"
+      latestReadabilitySignal = "readability_unknown"
+      if receiptFullyVisibleWarningEnabled {
+        guidanceLabel.text = "Receipt quality needs another look. Keep it flat and readable."
+      }
+    } else if motionBlurWarningEnabled && motionScore > 22 {
       latestMotionSignal = "moving_too_much"
       guidanceLabel.text = "Hold steady so the receipt text stays sharp."
     } else if lowLightWarningEnabled && brightness >= 0 && brightness <= 58 {

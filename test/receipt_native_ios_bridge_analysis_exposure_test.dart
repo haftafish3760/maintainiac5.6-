@@ -172,6 +172,13 @@ void main() {
         cameraController,
         contains('Hold steady so the receipt text stays sharp.'),
       );
+      expect(
+        cameraController,
+        contains(
+          '!brightness.isFinite || !motionScore.isFinite || !shadowScore.isFinite',
+        ),
+      );
+      expect(cameraController, contains('"readability_unknown"'));
       expect(cameraController, contains('if !brightness.isFinite ||'));
       expect(cameraController, contains('if !liveBrightness.isFinite ||'));
       expect(cameraController, contains('if liveBucket == "unknown"'));

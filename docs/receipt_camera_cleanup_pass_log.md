@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 754 - 04:03:12 EDT to active cleanup
+
+Scope:
+- Hardened Android and iOS live readability so non-finite brightness, motion, or
+  shadow samples cannot fall through to `lighting_ok`.
+- Added explicit `readability_unknown` diagnostics for malformed native live
+  quality samples while leaving manual capture available.
+- Added Android/iOS source regressions for non-finite live readability inputs.
+- Recorded `BUG-RECEIPT-0242` under `camera_capture_quality`.
+- Archived Pass 727 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native readability regressions.
+- Passed focused Android/iOS native analysis exposure regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 753 - 04:02:09 EDT to active cleanup
 
 Scope:
@@ -463,31 +480,5 @@ Verification:
   native UI tag-count expectations; fixed before continuing.
 - Passed targeted Dart format/analyzer and focused native contract/channel/
   staging/UI regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 727 - 03:07:12 EDT to active cleanup
-
-Scope:
-- Pinned Android, iOS, and Dart bridge diagnostics so retired focus/exposure/
-  white-balance lock controls are never reported as expected receipt-camera
-  controls.
-- Kept legacy lock setting fields available separately for compatibility while
-  preventing them from driving expected-control health.
-- Updated staging/channel fixtures and Android/iOS bridge regressions for the
-  retired lock-control expected values.
-- Recorded `BUG-RECEIPT-0217` under `native_bridge`.
-- Archived Pass 701 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- First focused run included a non-existent staging manifest test path and
-  exposed a stale retired-lock health expectation; fixed the expectation and
-  reran with the correct staging test.
-- Focused staging rerun exposed stale manifest helper assertions for retired
-  lock expected controls; fixed before continuing.
-- Tests-only source audit initially hit a Dart native-assets codesign race while
-  another audit was running; reran it alone and it passed.
-- Passed targeted Dart format/analyzer and focused native bridge/staging
-  regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

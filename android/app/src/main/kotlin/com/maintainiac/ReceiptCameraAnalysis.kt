@@ -190,7 +190,13 @@ internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
             lastAutoExposureDecision = "waiting_for_receipt_target"
         }
         val currentGuidance = guidance.text.toString()
-        if (motionBlurWarningEnabled && motionScore > 22.0) {
+        if (!brightness.isFinite() || !motionScore.isFinite() || !shadowScore.isFinite()) {
+            latestMotionSignal = "unknown"
+            latestReadabilitySignal = "readability_unknown"
+            if (receiptFullyVisibleWarningEnabled) {
+                guidance.text = "Receipt quality needs another look. Keep it flat and readable."
+            }
+        } else if (motionBlurWarningEnabled && motionScore > 22.0) {
             latestMotionSignal = "moving_too_much"
             guidance.text = "Hold steady so the receipt text stays sharp."
         } else if (lowLightWarningEnabled && brightness in 0.0..58.0) {
