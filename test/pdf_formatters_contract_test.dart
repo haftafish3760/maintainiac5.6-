@@ -5,7 +5,10 @@ void main() {
   test('PDF money formatting is cent safe and deterministic', () {
     expect(AppPdfFormatters.money(0), r'$0.00');
     expect(AppPdfFormatters.money(0.1 + 0.2), r'$0.30');
+    expect(AppPdfFormatters.money(1.005), r'$1.01');
+    expect(AppPdfFormatters.money(2.675), r'$2.68');
     expect(AppPdfFormatters.money(19.995), r'$20.00');
+    expect(AppPdfFormatters.money(-1.005), r'-$1.01');
     expect(AppPdfFormatters.money(-5.555), r'-$5.56');
     expect(AppPdfFormatters.moneyCents(123456), r'$1234.56');
     expect(AppPdfFormatters.moneyCents(-42), r'-$0.42');

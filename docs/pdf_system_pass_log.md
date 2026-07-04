@@ -1,5 +1,23 @@
 # PDF System Pass Log
 
+## Pass 40 - 2026-07-04 16:49 EDT - Decimal-safe PDF money rounding
+
+- Scope: shared PDF money formatting and generated PDF regressions only. No
+  inventory, camera, native capture, receipt text engine, or parser behavior
+  changes.
+- Bundled work:
+  - Replaced binary floating-point cent rounding in shared PDF money formatting
+    with deterministic decimal-string cent rounding.
+  - Added rounding regressions for half-cent values that commonly fail with raw
+    double multiplication.
+  - Re-ran generated PDF service regressions because expense export PDFs depend
+    on the shared money formatter.
+- Verification completed 2026-07-04 16:49 EDT:
+  - `dart format lib/shared/pdf/app_pdf_formatters.dart test/pdf_formatters_contract_test.dart`
+  - `flutter test test/pdf_formatters_contract_test.dart test/app_generated_pdf_service_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_pdf_formatters.dart test/pdf_formatters_contract_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 39 - 2026-07-04 16:47 EDT - Generated PDF storage hygiene
 
 - Scope: generated PDF storage cleanup and preview display formatting only. No

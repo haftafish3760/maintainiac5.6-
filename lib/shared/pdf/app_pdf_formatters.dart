@@ -4,8 +4,7 @@ class AppPdfFormatters {
   static String date(DateTime day) => '${day.month}/${day.day}/${day.year}';
 
   static String money(num value) {
-    final cents = (value * 100).round();
-    return moneyCents(cents);
+    return moneyCents(_roundedCents(value));
   }
 
   static String moneyCents(int cents) {
@@ -30,5 +29,18 @@ class AppPdfFormatters {
     }
     if (bytes >= 1024) return '${(bytes / 1024).ceil()} KB';
     return bytes == 1 ? '1 byte' : '$bytes bytes';
+  }
+
+  static int _roundedCents(num value) {
+    final text = value.toStringAsFixed(6);
+    final negative = text.startsWith('-');
+    final unsigned = negative ? text.substring(1) : text;
+    final parts = unsigned.split('.');
+    final dollars = int.tryParse(parts.first) ?? 0;
+    final decimals = parts.length > 1 ? parts[1].padRight(3, '0') : '000';
+    final pennies = int.tryParse(decimals.substring(0, 2)) ?? 0;
+    final roundingDigit = int.tryParse(decimals.substring(2, 3)) ?? 0;
+    final cents = (dollars * 100) + pennies + (roundingDigit >= 5 ? 1 : 0);
+    return negative ? -cents : cents;
   }
 }
