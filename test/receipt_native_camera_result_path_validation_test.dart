@@ -216,6 +216,41 @@ void main() {
       ),
     );
   });
+
+  test('native service rejects oversized total photo diagnostics', () async {
+    const channel = MethodChannel('maintainiac/receipt_oversized_total_test');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'captureReceipt');
+          return {
+            'originalPhotoPaths': ['/tmp/receipt-total-large.jpg'],
+            'temporaryCaptureIds': ['receipt-total-large'],
+            'capturedAt': '2026-07-03T10:51:00.000Z',
+            'captureDiagnostics': {
+              'captureSurface': 'maintainiac_native_android',
+              'photoByteSize': 512 * 1024,
+              'totalCapturedByteSize': 99 * 1024 * 1024,
+            },
+          };
+        });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    await expectLater(
+      const ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(_highCapacityConfig()),
+      throwsA(
+        isA<ReceiptNativeCameraUnavailableException>().having(
+          (error) => error.message,
+          'message',
+          contains('oversized receipt photo'),
+        ),
+      ),
+    );
+  });
 }
 
 ReceiptNativeCameraSessionConfig _highCapacityConfig({

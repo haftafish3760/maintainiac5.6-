@@ -223,11 +223,13 @@ int? _nativeReceiptByteSize(Map<String, Object?> diagnostics) {
     diagnostics['photoByteSize'],
     diagnostics['totalCapturedByteSize'],
   ];
+  int maxByteSize = 0;
   for (final value in values) {
-    if (value is int && value > 0) return value;
+    if (value is int && value > maxByteSize) maxByteSize = value;
     if (value is double && value.isFinite && value > 0) {
-      return value.round();
+      final rounded = value.round();
+      if (rounded > maxByteSize) maxByteSize = rounded;
     }
   }
-  return null;
+  return maxByteSize > 0 ? maxByteSize : null;
 }
