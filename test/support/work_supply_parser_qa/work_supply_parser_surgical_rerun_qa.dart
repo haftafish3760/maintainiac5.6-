@@ -7,6 +7,8 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
     : super('inventory.surgical_rerun_contract');
 
   static const _progressPath = 'docs/inventory_parser_qa_progress_memory.md';
+  static const _scorecardPath =
+      'docs/inventory_parser_release1_acceptance_scorecard.md';
   static const _harnessPath = 'test/work_supply_parser_qa_harness_test.dart';
   static const _runnerPath =
       'test/work_supply_parser_generated_fixture_runner_test.dart';
@@ -109,10 +111,29 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
     final timer = QaStopwatch.start();
     final failures = <QaFailure>[];
     final progress = _read(_progressPath);
+    final scorecard = _read(_scorecardPath);
     final harness = _read(_harnessPath);
     final runner = _read(_runnerPath);
     final gate = '${_read(_gatePath)}\n${_read(_ledgerPath)}';
     var checked = 0;
+
+    final scorecardGateIds = _scorecardGateIds(scorecard);
+    checked += scorecardGateIds.length;
+    for (final suiteId in scorecardGateIds) {
+      if (_requiredFailureRoutes.containsKey(suiteId)) continue;
+      failures.add(
+        _failure(
+          id: 'scorecard_gate_missing_surgical_route:$suiteId',
+          message:
+              'Release scorecard suite mapping is missing a surgical rerun route.',
+          expected: suiteId,
+          actual: 'not found in _requiredFailureRoutes',
+          fix:
+              'Add the suite to _requiredFailureRoutes and progress memory before relying on the scorecard gate.',
+          category: QaFailureTriage.governance,
+        ),
+      );
+    }
 
     checked += _requiredFailureRoutes.length;
     for (final entry in _requiredFailureRoutes.entries) {
@@ -190,6 +211,8 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'progressPath': _progressPath,
+        'scorecardPath': _scorecardPath,
+        'scorecardGateIds': scorecardGateIds.toList()..sort(),
         'runnerPath': _runnerPath,
         'requiredRoutes': _requiredFailureRoutes.keys.toList()..sort(),
         'contract':
@@ -217,6 +240,18 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
       metadata: {'triageCategory': category},
     );
   }
+}
+
+Set<String> _scorecardGateIds(String source) {
+  const heading = '## Release Gate Suite Mapping';
+  final start = source.indexOf(heading);
+  if (start < 0) return const {};
+  final rest = source.substring(start + heading.length);
+  final nextHeading = rest.indexOf('\n## ');
+  final section = nextHeading < 0 ? rest : rest.substring(0, nextHeading);
+  return RegExp(
+    r'`(inventory\.[a-z0-9_.]+)`',
+  ).allMatches(section).map((match) => match.group(1)!).toSet();
 }
 
 String _read(String path) {

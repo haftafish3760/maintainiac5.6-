@@ -101,6 +101,12 @@ Focused rerun routes for recently hardened release-one contracts:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.hive_firestore_sync_contract,qa.threshold_gate`
 - inventory.review_safety_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.review_safety_contract,qa.threshold_gate`
+- Pass 1886 added an executable drift guard: `inventory.surgical_rerun_contract`
+  now parses the scorecard's Release Gate Suite Mapping and fails if a listed
+  suite is not present in the focused rerun route map.
+- Pass 1887 validated the scorecard and rerun map together:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.surgical_rerun_contract,inventory.release_one_scorecard_contract --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=25`
+  passed 130 checks with 0 failures.
 - inventory.receipt_source_immutability_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.receipt_source_immutability_contract,qa.threshold_gate`
 - inventory.parser_platform_contract:
