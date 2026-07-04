@@ -3290,3 +3290,11 @@ Release boundaries:
   `inventory.failure_routing_contract`, `inventory.failure_taxonomy_contract`,
   `inventory.surgical_rerun_contract`, and `qa.threshold_gate`. The gate passed
   with 391 checks and 0 failures.
+- **09:39 Harness Pass 2425:** Ran the local-truth/review/sync safety slice:
+  `inventory.hive_authority_contract`, `inventory.hive_firestore_sync_contract`,
+  `inventory.fake_user_review_workflow`,
+  `inventory.receipt_source_immutability_contract`,
+  `inventory.duplicate_receipt_import_contract`,
+  `inventory.financial_duplicate_guard_contract`,
+  `inventory.import_export_safety_contract`, and `qa.threshold_gate`. The gate
+  passed with 357 checks and 0 failures.
