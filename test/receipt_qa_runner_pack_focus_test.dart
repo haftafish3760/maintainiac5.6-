@@ -121,10 +121,11 @@ void main() {
     () async {
       await _expectFocusedPack(
         pack: 'damaged_ocr',
-        expectedFixtureCount: 4,
+        expectedFixtureCount: 5,
         expectedFixtureNames: const [
           'blurry receipt source requires retake guidance',
           'glare washed receipt source requires retake guidance',
+          'low light receipt source requires retake guidance',
           'partial crop source stays in crop or retake review',
           'weak low contrast text asks for review before OCR',
         ],

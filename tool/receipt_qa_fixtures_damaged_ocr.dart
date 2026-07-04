@@ -23,12 +23,12 @@ final _damagedOcrReceiptQaFixtures = [
     expectedPhotoPrimaryIssueLabel: 'looks blurry',
     expectedPhotoReviewActionCode: 'retake_recommended_continue_allowed',
     expectedPhotoShouldRetakeBeforeOcr: true,
-    expectedPhotoCanContinueWithReview: false,
+    expectedPhotoCanContinueWithReview: true,
     expectedPhotoNeedsReview: true,
     expectedPhotoLightLabel: 'light OK',
     expectedPhotoFocusLabel: 'may be blurry',
     expectedPhotoWarningNeedles: const ['blurry'],
-    expectedPhotoGuidanceNeedles: const ['Hold steady', 'refocus'],
+    expectedPhotoGuidanceNeedles: const ['Hold steady', 'fuzzy'],
     text: '''
 PILOT TRAVEL CENTER
 06/17/2026
@@ -61,7 +61,7 @@ TOTAL 58.44
     expectedPhotoPrimaryIssueLabel: 'glare or too bright',
     expectedPhotoReviewActionCode: 'retake_recommended_continue_allowed',
     expectedPhotoShouldRetakeBeforeOcr: true,
-    expectedPhotoCanContinueWithReview: false,
+    expectedPhotoCanContinueWithReview: true,
     expectedPhotoNeedsReview: true,
     expectedPhotoLightLabel: 'glare/too bright',
     expectedPhotoFocusLabel: 'sharp',
@@ -75,6 +75,45 @@ UNLEADED
 SUBTOTAL 31.20
 TAX 0.00
 TOTAL 31.20
+''',
+  ),
+  _ReceiptQaFixture(
+    pack: 'damaged_ocr',
+    name: 'low light receipt source requires retake guidance',
+    merchantNeedle: 'sheetz',
+    expectedMerchantName: 'Sheetz',
+    expectedDateIso: '2026-06-21',
+    expectedSubtotal: 14.96,
+    expectedTax: 0.90,
+    expectedTotal: 15.86,
+    expectTax: true,
+    photoQuality: const ReceiptPhotoQualityCheck(
+      width: 1800,
+      height: 2400,
+      focusScore: 15,
+      brightness: 52,
+      contrast: 30,
+      cropScore: .72,
+      textBandScore: 12,
+      isLikelyReadable: false,
+    ),
+    expectedPhotoPrimaryIssueLabel: 'too dark',
+    expectedPhotoReviewActionCode: 'retake_recommended_continue_allowed',
+    expectedPhotoShouldRetakeBeforeOcr: true,
+    expectedPhotoCanContinueWithReview: true,
+    expectedPhotoNeedsReview: true,
+    expectedPhotoLightLabel: 'too dark',
+    expectedPhotoFocusLabel: 'sharp',
+    expectedPhotoWarningNeedles: const ['too dark'],
+    expectedPhotoGuidanceNeedles: const ['Add light', 'torch'],
+    text: '''
+SHEETZ
+06/21/2026
+SHOP TOWELS 8.97
+CASE WATER 5.99
+SUBTOTAL 14.96
+SALES TAX 0.90
+TOTAL 15.86
 ''',
   ),
   _ReceiptQaFixture(
