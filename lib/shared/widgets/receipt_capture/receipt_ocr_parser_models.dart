@@ -132,9 +132,10 @@ class ReceiptOcrParserLineSignal {
       : amountCandidates.isEmpty
       ? null
       : amountCandidates.last;
+  int get safeIndex => index < 0 ? 0 : index;
   String get normalizedText => _normalizeReceiptParserLineText(text);
   String get stableLineId =>
-      'ocr_line_${index.toString().padLeft(3, '0')}_$roleLabel';
+      'ocr_line_${safeIndex.toString().padLeft(3, '0')}_$roleLabel';
   String get sourceLocationLabel => sourceLocation?.label ?? '';
   String get expenseFamilyToken => _receiptExpenseFamilyToken(expenseFamily);
   String get parserBucketId =>

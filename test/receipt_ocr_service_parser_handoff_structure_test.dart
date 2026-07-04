@@ -111,7 +111,10 @@ void main() {
     expect(malformed.proofLineReferenceLabel, 'Line 1');
     expect(malformed.toLocalReviewMap()['lineNumber'], 1);
     expect(malformed.toPrivacySafeSummaryMap()['lineNumber'], 1);
+    expect(malformedSignal.safeIndex, 0);
+    expect(malformedSignal.stableLineId, 'ocr_line_000_item');
     expect(signalDraft.safeLineNumber, 1);
+    expect(signalDraft.stableLineId, 'ocr_line_000_item');
     expect(signalDraft.lineLabel, 'Line 1');
     expect(handoff.lineNumberByLineId[malformedSignal.stableLineId], 1);
     expect(
