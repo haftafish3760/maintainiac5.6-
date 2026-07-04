@@ -132,6 +132,11 @@ void main() {
       cameraController,
       contains('Maintainiac receipt camera | \\(fillMode)'),
     );
+    expect(cameraController, contains('private func safeReceiptReviewDepth'));
+    expect(cameraController, contains('replacingOccurrences(of: "[\\\\s_-]+"'));
+    expect(cameraController, contains('.lowercased()'));
+    expect(cameraController, contains('case "detailedlines":'));
+    expect(cameraController, contains('case "pricesonly":'));
     expect(
       cameraController,
       contains('"nativeCameraIdentity": "maintainiac_in_app_receipt_camera"'),

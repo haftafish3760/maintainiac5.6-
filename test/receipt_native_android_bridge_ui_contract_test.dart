@@ -44,6 +44,11 @@ void main() {
     expect(cameraActivity, contains('settingsStatusStrip'));
     expect(cameraActivity, contains('buildSettingsStatusStrip'));
     expect(cameraActivity, contains('settingsStatusText'));
+    expect(cameraActivity, contains('private fun safeReceiptReviewDepth'));
+    expect(cameraActivity, contains('Regex("[\\\\s_-]+")'));
+    expect(cameraActivity, contains('?.lowercase()'));
+    expect(cameraActivity, contains('"detailedlines" -> "detailedLines"'));
+    expect(cameraActivity, contains('"pricesonly" -> "pricesOnly"'));
     expect(cameraActivity, contains('Maintainiac receipt camera'));
     expect(cameraActivity, contains("not the phone's regular camera app"));
     expect(cameraActivity, contains('Capture quality'));

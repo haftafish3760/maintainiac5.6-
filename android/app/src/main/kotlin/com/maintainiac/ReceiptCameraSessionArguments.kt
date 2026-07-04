@@ -162,9 +162,13 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
 }
 
 private fun safeReceiptReviewDepth(value: String?): String {
-    return when (value?.trim()) {
-        "detailedLines" -> "detailedLines"
-        "pricesOnly" -> "pricesOnly"
+    val normalized = value
+        ?.trim()
+        ?.replace(Regex("[\\s_-]+"), "")
+        ?.lowercase()
+    return when (normalized) {
+        "detailedlines" -> "detailedLines"
+        "pricesonly" -> "pricesOnly"
         else -> "pricesOnly"
     }
 }

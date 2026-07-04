@@ -178,10 +178,14 @@ extension ReceiptCameraViewController {
 }
 
 private func safeReceiptReviewDepth(_ value: String?) -> String {
-  switch value?.trimmingCharacters(in: .whitespacesAndNewlines) {
-  case "detailedLines":
+  let normalized = value?
+    .trimmingCharacters(in: .whitespacesAndNewlines)
+    .replacingOccurrences(of: "[\\s_-]+", with: "", options: .regularExpression)
+    .lowercased()
+  switch normalized {
+  case "detailedlines":
     return "detailedLines"
-  case "pricesOnly":
+  case "pricesonly":
     return "pricesOnly"
   default:
     return "pricesOnly"
