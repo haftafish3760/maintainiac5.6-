@@ -131,15 +131,35 @@ void main() {
       stableFrameCount: 3,
       requiredStableFrames: 3,
     );
+    const reviewQuality = ReceiptPhotoQualityCheck(
+      width: 1600,
+      height: 2200,
+      focusScore: 7,
+      brightness: 132,
+      contrast: 30,
+      cropScore: .70,
+      textBandScore: 12,
+      isLikelyReadable: false,
+    );
+    final reviewReadiness = reviewQuality.captureReadiness(
+      autoCaptureEnabled: true,
+      stableFrameCount: 4,
+      requiredStableFrames: 3,
+    );
     final result = ReceiptPhotoReviewResult(
-      photoPaths: const ['/tmp/auto-ready.jpg'],
-      ocrSourcePhotoPaths: const ['/tmp/auto-ready-ocr.jpg'],
+      photoPaths: const ['/tmp/auto-ready.jpg', '/tmp/review-quality.jpg'],
+      ocrSourcePhotoPaths: const [
+        '/tmp/auto-ready-ocr.jpg',
+        '/tmp/review-quality-ocr.jpg',
+      ],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
       stitchResult: const ReceiptStitchResult.notNeeded([
         '/tmp/auto-ready-ocr.jpg',
+        '/tmp/review-quality-ocr.jpg',
       ]),
       captureDiagnosticsByPhotoPath: {
         '/tmp/auto-ready.jpg': readiness.diagnostics,
+        '/tmp/review-quality.jpg': reviewReadiness.diagnostics,
       },
     );
 
@@ -147,14 +167,28 @@ void main() {
       result.nativeCameraUiHealthCounts['capture_readiness_auto_capture_ready'],
       1,
     );
-    expect(result.captureReadinessCounts, {'auto_capture_ready': 1});
-    expect(result.manualCaptureAllowedCount, 1);
+    expect(
+      result
+          .nativeCameraUiHealthCounts['capture_readiness_manual_only_quality_review'],
+      1,
+    );
+    expect(result.captureReadinessCounts, {
+      'auto_capture_ready': 1,
+      'manual_only_quality_review': 1,
+    });
+    expect(result.manualCaptureAllowedCount, 2);
     expect(result.autoCaptureAllowedCount, 1);
-    expect(result.nativeCameraUiHealthCounts['manual_capture_allowed'], 1);
+    expect(result.nativeCameraUiHealthCounts['manual_capture_allowed'], 2);
     expect(result.nativeCameraUiHealthCounts['auto_capture_allowed'], 1);
+    expect(result.nativeCameraUiHealthCounts['auto_capture_held_back'], 1);
     expect(
       result
           .receiptReaderHandoffCounts['native_camera_ui_capture_readiness_auto_capture_ready'],
+      1,
+    );
+    expect(
+      result
+          .receiptReaderHandoffCounts['native_camera_ui_capture_readiness_manual_only_quality_review'],
       1,
     );
   });

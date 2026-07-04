@@ -183,6 +183,12 @@ class _ReceiptCaptureReadinessReviewCopy {
           previewStatus:
               'Retake is safer for OCR quality. Next still works if the store, date, total, and item prices are readable.',
         ),
+      'manual_only_quality_review' => const _ReceiptCaptureReadinessReviewCopy._(
+        contextStatus:
+            'Check sharpness, light, and receipt text before relying on automatic capture. Retake if prices look fuzzy, or tap Next if the receipt is readable.',
+        previewStatus:
+            'Check sharpness, light, and receipt text before relying on automatic capture. Retake if prices look fuzzy; Next stays available when the receipt is readable.',
+      ),
       'auto_capture_waiting_for_stability' =>
         const _ReceiptCaptureReadinessReviewCopy._(
           contextStatus:

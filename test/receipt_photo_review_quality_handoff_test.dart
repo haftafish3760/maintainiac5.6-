@@ -121,6 +121,10 @@ void main() {
       contains('Check that every receipt line is visible'),
     );
     expect(
+      contextControls,
+      contains('Check sharpness, light, and receipt text'),
+    );
+    expect(
       qualityRecovery,
       contains(
         "photoQuality.reviewGuidance} \${photoQuality.reviewScoreMeaningLabel}",
