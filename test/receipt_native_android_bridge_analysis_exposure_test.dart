@@ -86,6 +86,24 @@ void main() {
         cameraActivity,
         contains('Hold steady so the receipt text stays sharp.'),
       );
+      expect(cameraActivity, contains('applyLiveFraming(framing)'));
+      expect(cameraActivity, contains('hasUsableLiveFramingBounds(framing)'));
+      expect(
+        cameraActivity,
+        contains(
+          'if (!framing.found) {\n        latestFramingSignal = "receipt_not_found"',
+        ),
+      );
+      expect(
+        cameraActivity,
+        contains(
+          'if (!hasUsableLiveFramingBounds(framing)) {\n        latestFramingSignal = "receipt_bounds_invalid"',
+        ),
+      );
+      expect(
+        cameraActivity,
+        contains('return "perspective_skipped_invalid_bounds"'),
+      );
       expect(cameraActivity, contains('autoAdjustExposureForLiveFrame'));
       expect(
         cameraActivity,

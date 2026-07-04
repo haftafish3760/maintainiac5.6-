@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 752 - 03:59:57 EDT to active cleanup
+
+Scope:
+- Hardened Android and iOS live receipt framing so malformed or non-finite
+  bounds cannot appear as `framing_ok`.
+- Added explicit invalid-bounds diagnostics for frame guidance and perspective
+  readiness while preserving `receipt_not_found` for genuinely missing frames.
+- Added Android/iOS source regressions for malformed live framing bounds.
+- Recorded `BUG-RECEIPT-0240` under `camera_capture_quality`.
+- Archived Pass 726 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native framing regressions.
+- Passed focused Android/iOS native analysis exposure regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 751 - 03:57:59 EDT to active cleanup
 
 Scope:
@@ -456,27 +473,5 @@ Verification:
   another audit was running; reran it alone and it passed.
 - Passed targeted Dart format/analyzer and focused native bridge/staging
   regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 726 - 03:04:16 EDT to active cleanup
-
-Scope:
-- Refined Android and iOS native control readiness summaries into core camera
-  readiness signals so optional hardware controls do not make limited devices
-  look unhealthy.
-- Kept optional pinch zoom, brightness slider/reset, and torch diagnostics
-  available as separate actual-status fields for admin/device capability
-  review.
-- Added Android/iOS bridge regressions that reject optional hardware controls
-  as readiness-summary blockers.
-- Recorded `BUG-RECEIPT-0216` under `native_bridge`.
-- Archived Pass 700 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused Android/iOS native UI
-  contract regressions.
-- First bug-ledger gate failed because `BUG-RECEIPT-0216` used an unknown
-  category; reclassified it under allowed `native_bridge` before continuing.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

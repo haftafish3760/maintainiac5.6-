@@ -210,6 +210,14 @@ extension ReceiptCameraViewController {
       }
       return
     }
+    if !hasUsableLiveFramingBounds(framing) {
+      latestFramingSignal = "receipt_bounds_invalid"
+      setFrameGuideColor(UIColor(red: 1, green: 0.82, blue: 0.4, alpha: 0.76))
+      if receiptFullyVisibleWarningEnabled {
+        guidanceLabel.text = "Receipt edges need another look. Keep the paper flat and visible."
+      }
+      return
+    }
     if framing.widthRatio < 0.42 || framing.heightRatio < 0.36 {
       latestFramingSignal = "move_closer"
       setFrameGuideColor(UIColor(red: 1, green: 0.82, blue: 0.4, alpha: 0.84))
@@ -243,6 +251,9 @@ extension ReceiptCameraViewController {
     if !framing.found {
       return "perspective_skipped_no_receipt_bounds"
     }
+    if !hasUsableLiveFramingBounds(framing) {
+      return "perspective_skipped_invalid_bounds"
+    }
     if framing.widthRatio < 0.34 || framing.heightRatio < 0.34 {
       return "perspective_skipped_bounds_too_small"
     }
@@ -265,8 +276,22 @@ extension ReceiptCameraViewController {
     case "weak_edges":
       return "Receipt edges are weak. Leave paper edges visible if you can."
     default:
-      return "Receipt edge hint found. Make sure all text is readable."
+    return "Receipt edge hint found. Make sure all text is readable."
     }
+  }
+
+  func hasUsableLiveFramingBounds(_ framing: LiveReceiptFraming) -> Bool {
+    if !framing.found { return false }
+    let ratios = [
+      framing.widthRatio,
+      framing.heightRatio,
+      framing.edgeCoverage
+    ]
+    if ratios.contains(where: { !$0.isFinite }) { return false }
+    return framing.widthRatio > 0 &&
+      framing.heightRatio > 0 &&
+      framing.edgeCoverage >= 0 &&
+      framing.edgeCoverage <= 1
   }
 
   func framingConfidenceBucket(_ score: Double) -> String {

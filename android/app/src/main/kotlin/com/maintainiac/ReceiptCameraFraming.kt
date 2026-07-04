@@ -23,6 +23,15 @@ internal fun ReceiptCameraActivity.applyLiveFraming(framing: LiveReceiptFraming)
         }
         return
     }
+    if (!hasUsableLiveFramingBounds(framing)) {
+        latestFramingSignal = "receipt_bounds_invalid"
+        resetFrameGuideBounds()
+        setFrameGuideColor(Color.argb(185, 255, 209, 102))
+        if (receiptFullyVisibleWarningEnabled) {
+            guidance.text = "Receipt edges need another look. Keep the paper flat and visible."
+        }
+        return
+    }
     updateFrameGuideBounds(framing)
     if (framing.widthRatio < 0.42 || framing.heightRatio < 0.36) {
         latestFramingSignal = "move_closer"
@@ -53,6 +62,7 @@ internal fun ReceiptCameraActivity.perspectiveReadinessFor(
     if (!perspectiveCorrectionEnabled) return "perspective_skipped_setting_off"
     if (!edgeDetectionEnabled) return "perspective_skipped_edge_detection_off"
     if (!framing.found) return "perspective_skipped_no_receipt_bounds"
+    if (!hasUsableLiveFramingBounds(framing)) return "perspective_skipped_invalid_bounds"
     if (framing.widthRatio < 0.34 || framing.heightRatio < 0.34) {
         return "perspective_skipped_bounds_too_small"
     }
@@ -145,6 +155,31 @@ internal fun ReceiptCameraActivity.framingConfidenceBucket(score: Double): Strin
         score >= 0.28 -> "weak_edges"
         else -> "edge_hint_only"
     }
+}
+
+internal fun ReceiptCameraActivity.hasUsableLiveFramingBounds(
+    framing: LiveReceiptFraming,
+): Boolean {
+    if (!framing.found) return false
+    val ratios = listOf(
+        framing.widthRatio,
+        framing.heightRatio,
+        framing.edgeCoverage,
+        framing.leftRatio,
+        framing.topRatio,
+        framing.rightRatio,
+        framing.bottomRatio,
+    )
+    if (ratios.any { !it.isFinite() }) return false
+    return framing.widthRatio > 0.0 &&
+        framing.heightRatio > 0.0 &&
+        framing.edgeCoverage in 0.0..1.0 &&
+        framing.leftRatio in 0.0..1.0 &&
+        framing.topRatio in 0.0..1.0 &&
+        framing.rightRatio in 0.0..1.0 &&
+        framing.bottomRatio in 0.0..1.0 &&
+        framing.leftRatio < framing.rightRatio &&
+        framing.topRatio < framing.bottomRatio
 }
 
 internal fun ReceiptCameraActivity.setFrameGuideColor(color: Int) {

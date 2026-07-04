@@ -182,6 +182,23 @@ void main() {
       expect(cameraController, contains('latestFramingSignal'));
       expect(cameraController, contains('latestFramingConfidence'));
       expect(cameraController, contains('latestEdgeCoverage'));
+      expect(cameraController, contains('hasUsableLiveFramingBounds(framing)'));
+      expect(
+        cameraController,
+        contains(
+          'if !framing.found {\n      latestFramingSignal = "receipt_not_found"',
+        ),
+      );
+      expect(
+        cameraController,
+        contains(
+          'if !hasUsableLiveFramingBounds(framing) {\n      latestFramingSignal = "receipt_bounds_invalid"',
+        ),
+      );
+      expect(
+        cameraController,
+        contains('return "perspective_skipped_invalid_bounds"'),
+      );
       expect(cameraController, contains('latestPerspectiveReadiness'));
       expect(cameraController, contains('perspectiveReadiness(for:'));
       expect(cameraController, contains('perspective_skipped_cut_off_risk'));
