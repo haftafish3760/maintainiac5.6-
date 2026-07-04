@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 668 - 23:50:00 EDT to active cleanup
+
+Scope:
+- Hardened shared Google ML Kit barcode/QR scanner results so oversized QR
+  payloads cannot become inventory lookup candidates.
+- Added a bounded inventory lookup length and privacy-safe
+  `lookupValueTooLong` evidence without exposing the QR payload.
+- Added scanner and work-supply bridge regressions proving giant QR payloads
+  are ignored while normal UPC/EAN/package codes still flow.
+- Archived Pass 638 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0183` under `barcode_qr_scanning`.
+
+Verification:
+- Passed targeted Dart format/analyzer for barcode scanner and bridge tests.
+- Passed focused Flutter barcode scanner and work-supply bridge regressions.
+- Passed cleanup log gate, doc-size gate, bug ledger gate, source audit, and
+  whitespace check.
+
 ## Pass 667 - 23:47:00 EDT to active cleanup
 
 Scope:
@@ -472,23 +490,4 @@ Verification:
   regressed tap-focus control actual state ready; fixed the fixture before
   moving on.
 - Passed targeted Dart format for native UI risk flag changes.
-- Passed focused Flutter native UI health regression.
-
-## Pass 638 - 22:26:47 EDT to active cleanup
-
-Scope:
-- Hardened native receipt camera UI health so a result cannot look ready when
-  continuous focus, continuous-focus policy, live readability guidance, or the
-  receipt camera quality baseline is missing.
-- Added health codes for retired tap focus, missing continuous focus, missing
-  live readability guidance, and missing receipt camera quality baseline.
-- Added a focused regression proving native readiness is rejected when the
-  control surface is ready but focus/readability guidance has drifted.
-- Archived Pass 601 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0159` under `camera_capture_quality`.
-
-Verification:
-- First focused Flutter run correctly exposed a bad test fixture that marked
-  controls expected without actual readiness; fixed the fixture before moving on.
-- Passed targeted Dart format for native UI health code changes.
 - Passed focused Flutter native UI health regression.

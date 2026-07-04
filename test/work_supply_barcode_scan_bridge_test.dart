@@ -34,6 +34,7 @@ void main() {
 
   test('barcode scan bridge ignores sensitive or duplicate scan values', () {
     const bridge = WorkSupplyBarcodeScanBridge();
+    final hugeQrValue = 'QR-${List.filled(200, 'A').join()}';
     const result = ReceiptBarcodeScanResult(
       imagePath: '/tmp/code.jpg',
       purpose: ReceiptBarcodeScanPurpose.inventory,
@@ -55,8 +56,20 @@ void main() {
         ),
       ],
     );
+    final resultWithHugeQr = ReceiptBarcodeScanResult(
+      imagePath: result.imagePath,
+      purpose: result.purpose,
+      codes: [
+        ...result.codes,
+        ReceiptScannedCode(
+          format: ReceiptBarcodeFormat.qrCode,
+          valueType: 'text',
+          rawValue: hugeQrValue,
+        ),
+      ],
+    );
 
-    final suggestions = bridge.suggestionsFromScanResult(result);
+    final suggestions = bridge.suggestionsFromScanResult(resultWithHugeQr);
 
     expect(suggestions, hasLength(1));
     expect(suggestions.single.barcodeValue, '1234567890123');

@@ -98,6 +98,22 @@ void main() {
     );
   });
 
+  test('barcode scanner blocks oversized QR payloads from lookup', () {
+    final hugePayload = 'QR-${List.filled(200, 'A').join()}';
+    final hugeQr = ReceiptScannedCode(
+      format: ReceiptBarcodeFormat.qrCode,
+      valueType: 'text',
+      rawValue: hugePayload,
+    );
+
+    expect(hugeQr.inventoryLookupValue, isNull);
+    expect(hugeQr.privacySafeSummaryMap['lookupValueTooLong'], isTrue);
+    expect(
+      hugeQr.privacySafeSummaryMap.toString(),
+      isNot(contains(hugePayload)),
+    );
+  });
+
   test('barcode scanner converts platform failures into warnings', () async {
     final service = ReceiptBarcodeScannerService(
       decoder: _ThrowingBarcodeDecoder(

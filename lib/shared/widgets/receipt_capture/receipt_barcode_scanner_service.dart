@@ -40,6 +40,8 @@ const receiptBarcodeInventoryAndQrFormats = <ReceiptBarcodeFormat>[
   ReceiptBarcodeFormat.aztec,
 ];
 
+const receiptBarcodeMaxInventoryLookupLength = 128;
+
 class ReceiptScannedCode {
   const ReceiptScannedCode({
     required this.format,
@@ -79,6 +81,9 @@ class ReceiptScannedCode {
   String? get inventoryLookupValue {
     if (isSensitivePayloadType) return null;
     final normalized = normalizedValue;
+    if (normalized.length > receiptBarcodeMaxInventoryLookupLength) {
+      return null;
+    }
     return normalized.isEmpty ? null : normalized;
   }
 
@@ -91,6 +96,8 @@ class ReceiptScannedCode {
       'isSensitivePayloadType': isSensitivePayloadType,
       'canUseForInventoryLookup': inventoryLookupValue != null,
       'normalizedLength': normalizedValue.length,
+      'lookupValueTooLong':
+          normalizedValue.length > receiptBarcodeMaxInventoryLookupLength,
     };
   }
 }
