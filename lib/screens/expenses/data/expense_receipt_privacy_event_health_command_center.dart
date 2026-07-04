@@ -66,6 +66,20 @@ Map<String, Object?> _receiptPrivacyEventHealthCommandCenterMap(
     'clientProofVisibleLineCount': snapshot.clientProofVisibleLineCount,
     'clientProofHiddenLineCount': snapshot.clientProofHiddenLineCount,
     'clientProofPlanReviewLineCount': snapshot.clientProofPlanReviewLineCount,
+    'clientProofLayoutRedactionStatusCounts':
+        snapshot.clientProofLayoutRedactionStatusCounts,
+    'clientProofLayoutVisibleLineCount':
+        snapshot.clientProofLayoutVisibleLineCount,
+    'clientProofLayoutHiddenLineCount':
+        snapshot.clientProofLayoutHiddenLineCount,
+    'clientProofLayoutIgnoredLineCount':
+        snapshot.clientProofLayoutIgnoredLineCount,
+    'clientProofLayoutProtectedTypeCount':
+        snapshot.clientProofLayoutProtectedTypeCount,
+    'clientProofLayoutMerchantContextCount':
+        snapshot.clientProofLayoutMerchantContextCount,
+    'clientProofLayoutTotalsContextCount':
+        snapshot.clientProofLayoutTotalsContextCount,
     'clientProofImageReviewStatusCounts':
         snapshot.clientProofImageReviewStatusCounts,
     'clientProofImageSectionCount': snapshot.clientProofImageSectionCount,

@@ -37,6 +37,7 @@ class _ReceiptPrivacyEventHealthCounts {
   final clientProofVisibilityCounts = <String, int>{};
   final selectedReceiptLinePurposeCounts = <String, int>{};
   final clientProofRedactionPlanStatusCounts = <String, int>{};
+  final clientProofLayoutRedactionStatusCounts = <String, int>{};
   final clientProofImageReviewStatusCounts = <String, int>{};
   final ocrFieldReadinessCounts = <String, int>{};
   final ocrLineSequenceStatusCounts = <String, int>{};
@@ -90,6 +91,12 @@ class _ReceiptPrivacyEventHealthCounts {
   var clientProofVisibleLineCount = 0;
   var clientProofHiddenLineCount = 0;
   var clientProofPlanReviewLineCount = 0;
+  var clientProofLayoutVisibleLineCount = 0;
+  var clientProofLayoutHiddenLineCount = 0;
+  var clientProofLayoutIgnoredLineCount = 0;
+  var clientProofLayoutProtectedTypeCount = 0;
+  var clientProofLayoutMerchantContextCount = 0;
+  var clientProofLayoutTotalsContextCount = 0;
   var clientProofImageSectionCount = 0;
   var clientProofImageVisibleSectionCount = 0;
   var clientProofImageHiddenSectionCount = 0;
@@ -202,6 +209,16 @@ class _ReceiptPrivacyEventHealthCounts {
       clientProofVisibleLineCount: clientProofVisibleLineCount,
       clientProofHiddenLineCount: clientProofHiddenLineCount,
       clientProofPlanReviewLineCount: clientProofPlanReviewLineCount,
+      clientProofLayoutRedactionStatusCounts: Map.unmodifiable(
+        clientProofLayoutRedactionStatusCounts,
+      ),
+      clientProofLayoutVisibleLineCount: clientProofLayoutVisibleLineCount,
+      clientProofLayoutHiddenLineCount: clientProofLayoutHiddenLineCount,
+      clientProofLayoutIgnoredLineCount: clientProofLayoutIgnoredLineCount,
+      clientProofLayoutProtectedTypeCount: clientProofLayoutProtectedTypeCount,
+      clientProofLayoutMerchantContextCount:
+          clientProofLayoutMerchantContextCount,
+      clientProofLayoutTotalsContextCount: clientProofLayoutTotalsContextCount,
       clientProofImageReviewStatusCounts: Map.unmodifiable(
         clientProofImageReviewStatusCounts,
       ),

@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 694 - 01:05:00 EDT to active cleanup
+
+Scope:
+- Aggregated privacy-safe layout redaction telemetry into the receipt privacy
+  health snapshot and Command Center map.
+- Added policy and telemetry metadata allowlist coverage for layout redaction
+  status, visible/hidden/ignored counts, protected-type counts, and context
+  booleans.
+- Extended the health fixture regression so stored layout redaction events prove
+  the rollup cannot silently drop QA/admin redaction visibility.
+- Recorded `BUG-RECEIPT-0181` under `privacy_redaction`.
+- Archived Pass 634 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for receipt privacy health redaction
+  telemetry.
+- Passed focused Flutter receipt privacy event store regression.
+- Passed cleanup log, doc size, bug ledger, source audit, tests-only source
+  audit, and diff whitespace gates.
+
 ## Pass 693 - 00:55:10 EDT to active cleanup
 
 Scope:
@@ -473,18 +493,3 @@ Verification:
 - Passed focused Flutter recovery handoff regression.
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.
-
-## Pass 634 - 22:16:55 EDT to active cleanup
-
-Scope:
-- Hardened edited-photo action telemetry so privacy-safe handoff metadata keeps
-  known edit actions but buckets malformed action strings generically.
-- Added focused regression coverage proving malformed edit-action text does not
-  leak into receipt-reader handoff counts or metadata.
-- Archived Pass 623 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0155` under `privacy_redaction`.
-
-Verification:
-- Passed targeted Dart format/analyzer for edited-photo metadata.
-- Passed focused Flutter native recovery metadata regression.
-- Passed whitespace check.

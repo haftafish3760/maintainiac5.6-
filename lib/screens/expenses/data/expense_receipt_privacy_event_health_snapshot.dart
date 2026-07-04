@@ -92,6 +92,13 @@ class ReceiptPrivacyEventHealthSnapshot {
     required this.clientProofVisibleLineCount,
     required this.clientProofHiddenLineCount,
     required this.clientProofPlanReviewLineCount,
+    required this.clientProofLayoutRedactionStatusCounts,
+    required this.clientProofLayoutVisibleLineCount,
+    required this.clientProofLayoutHiddenLineCount,
+    required this.clientProofLayoutIgnoredLineCount,
+    required this.clientProofLayoutProtectedTypeCount,
+    required this.clientProofLayoutMerchantContextCount,
+    required this.clientProofLayoutTotalsContextCount,
     required this.clientProofImageReviewStatusCounts,
     required this.clientProofImageSectionCount,
     required this.clientProofImageVisibleSectionCount,
@@ -184,6 +191,13 @@ class ReceiptPrivacyEventHealthSnapshot {
   final int clientProofVisibleLineCount;
   final int clientProofHiddenLineCount;
   final int clientProofPlanReviewLineCount;
+  final Map<String, int> clientProofLayoutRedactionStatusCounts;
+  final int clientProofLayoutVisibleLineCount;
+  final int clientProofLayoutHiddenLineCount;
+  final int clientProofLayoutIgnoredLineCount;
+  final int clientProofLayoutProtectedTypeCount;
+  final int clientProofLayoutMerchantContextCount;
+  final int clientProofLayoutTotalsContextCount;
   final Map<String, int> clientProofImageReviewStatusCounts;
   final int clientProofImageSectionCount;
   final int clientProofImageVisibleSectionCount;

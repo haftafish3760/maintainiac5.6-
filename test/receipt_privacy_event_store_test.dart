@@ -108,6 +108,17 @@ void main() {
       expect(snapshot.clientProofPlanReviewLineCount, 3);
       expect(
         snapshot
+            .clientProofLayoutRedactionStatusCounts['ignored_unknown_lines'],
+        1,
+      );
+      expect(snapshot.clientProofLayoutVisibleLineCount, 2);
+      expect(snapshot.clientProofLayoutHiddenLineCount, 6);
+      expect(snapshot.clientProofLayoutIgnoredLineCount, 1);
+      expect(snapshot.clientProofLayoutProtectedTypeCount, 2);
+      expect(snapshot.clientProofLayoutMerchantContextCount, 1);
+      expect(snapshot.clientProofLayoutTotalsContextCount, 0);
+      expect(
+        snapshot
             .clientProofImageReviewStatusCounts['manual_image_review_required'],
         1,
       );
@@ -244,6 +255,16 @@ void main() {
       expect(map['clientProofVisibleLineCount'], 1);
       expect(map['clientProofHiddenLineCount'], 6);
       expect(map['clientProofPlanReviewLineCount'], 3);
+      expect(
+        map['clientProofLayoutRedactionStatusCounts'],
+        containsPair('ignored_unknown_lines', 1),
+      );
+      expect(map['clientProofLayoutVisibleLineCount'], 2);
+      expect(map['clientProofLayoutHiddenLineCount'], 6);
+      expect(map['clientProofLayoutIgnoredLineCount'], 1);
+      expect(map['clientProofLayoutProtectedTypeCount'], 2);
+      expect(map['clientProofLayoutMerchantContextCount'], 1);
+      expect(map['clientProofLayoutTotalsContextCount'], 0);
       expect(
         map['clientProofImageReviewStatusCounts'],
         containsPair('manual_image_review_required', 1),

@@ -138,6 +138,28 @@ void _addReceiptPrivacyEventPayloadCounts(
     payload['clientProofPlanReviewLineCount'],
   );
   _increment(
+    counts.clientProofLayoutRedactionStatusCounts,
+    _stringValue(payload['clientProofLayoutRedactionStatus']),
+  );
+  counts.clientProofLayoutVisibleLineCount += _intValue(
+    payload['clientProofLayoutVisibleLineCount'],
+  );
+  counts.clientProofLayoutHiddenLineCount += _intValue(
+    payload['clientProofLayoutHiddenLineCount'],
+  );
+  counts.clientProofLayoutIgnoredLineCount += _intValue(
+    payload['clientProofLayoutIgnoredLineCount'],
+  );
+  counts.clientProofLayoutProtectedTypeCount += _intValue(
+    payload['clientProofLayoutProtectedTypeCount'],
+  );
+  if (_boolValue(payload['clientProofLayoutKeepsMerchantContext'])) {
+    counts.clientProofLayoutMerchantContextCount += 1;
+  }
+  if (_boolValue(payload['clientProofLayoutKeepsTotalsContext'])) {
+    counts.clientProofLayoutTotalsContextCount += 1;
+  }
+  _increment(
     counts.clientProofImageReviewStatusCounts,
     _stringValue(payload['clientProofImageReviewStatus']),
   );
