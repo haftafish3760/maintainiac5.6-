@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 782 - 07:32:31 EDT to active cleanup
+
+Scope:
+- Hardened receipt quality guidance so critical-but-decodable photos still
+  advertise manual review availability while auto-capture remains blocked.
+- Kept unreadable/corrupt images out of the continue-with-review signal.
+- Added quality regressions for glare retake guidance, manual Next availability,
+  and unreadable-image exclusion.
+- Recorded `BUG-RECEIPT-0269` under `camera_capture_quality`.
+- Archived Pass 754 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused quality guidance test.
+- Passed doc-size, bug-ledger, source-audit, test-audit, and diff whitespace
+  gates.
+
 ## Pass 781 - 07:27:48 EDT to active cleanup
 
 Scope:
@@ -478,23 +494,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer for native exposure regressions.
-- Passed focused Android/iOS native analysis exposure regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 754 - 04:03:12 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS live readability so non-finite brightness, motion, or
-  shadow samples cannot fall through to `lighting_ok`.
-- Added explicit `readability_unknown` diagnostics for malformed native live
-  quality samples while leaving manual capture available.
-- Added Android/iOS source regressions for non-finite live readability inputs.
-- Recorded `BUG-RECEIPT-0242` under `camera_capture_quality`.
-- Archived Pass 727 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native readability regressions.
 - Passed focused Android/iOS native analysis exposure regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

@@ -27,6 +27,7 @@ void main() {
       );
 
       expect(unreadable.reviewScore, 0);
+      expect(unreadable.canContinueWithReview, isFalse);
       expect(blurry.reviewScore, inInclusiveRange(1, 60));
       expect(readable.reviewScore, greaterThan(blurry.reviewScore));
       expect(readable.reviewScore, inInclusiveRange(80, 100));
@@ -69,11 +70,12 @@ void main() {
     expect(soft.reviewScoreMeaningLabel, contains('Photo check'));
     expect(soft.reviewScoreMeaningLabel, contains('guidance only'));
     expect(glare.hasCriticalIssue, isTrue);
-    expect(glare.canContinueWithReview, isFalse);
+    expect(glare.canContinueWithReview, isTrue);
     expect(glare.reviewTitle, 'Retake Recommended');
     expect(glare.reviewGuidance, contains('Reduce glare'));
     expect(glare.reviewActionCode, 'retake_recommended_continue_allowed');
     expect(glare.reviewActionFamily, 'retake');
+    expect(glare.shouldRetakeBeforeOcr, isTrue);
     expect(glare.reviewScoreMeaningLabel, contains('Retake is safer'));
     expect(glare.reviewScoreMeaningLabel, contains('Next is still available'));
     expect(glare.nextReviewActionLabel, contains('Next still works'));

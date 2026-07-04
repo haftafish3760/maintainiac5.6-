@@ -97,7 +97,7 @@ class ReceiptPhotoQualityCheck {
     return !isLikelyReadable || reviewScore < 70 || qualityWarnings.isNotEmpty;
   }
 
-  bool get canContinueWithReview => !hasCriticalIssue;
+  bool get canContinueWithReview => !isUnreadableImage;
   bool get shouldRetakeBeforeOcr => hasCriticalIssue || reviewScore < 50;
   String get reviewActionCode {
     if (shouldRetakeBeforeOcr) return 'retake_recommended_continue_allowed';
