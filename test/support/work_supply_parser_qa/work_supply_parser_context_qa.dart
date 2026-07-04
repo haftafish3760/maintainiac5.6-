@@ -6,6 +6,12 @@ class WorkSupplyParserContextSuite extends QaSuite {
   const WorkSupplyParserContextSuite() : super('inventory.trade_context');
 
   static const _tradeScopes = <String?>[null, 'Plumbing', 'Electrical', 'HVAC'];
+  static const _contextEvidenceTokens = [
+    'ambiguous mixed-trade lines',
+    'active estimate/job trade section',
+    'receipt-neighbor signals',
+    'merchant/department hints',
+  ];
 
   static const _cases = [
     _ContextCase(
@@ -22,6 +28,24 @@ class WorkSupplyParserContextSuite extends QaSuite {
       line: 'PVC COND 3/4',
       risk: 'Conduit wording should bias electrical without hiding ambiguity.',
       expectedScopedTrade: 'Electrical',
+    ),
+    _ContextCase(
+      line: 'PVC 3/4 CPLG',
+      risk:
+          'PVC coupling can be plumbing pressure/DWV, electrical conduit, or HVAC condensate.',
+      ambiguousWithoutScope: true,
+    ),
+    _ContextCase(
+      line: 'PVC CONDUIT 3/4 CPLG',
+      risk:
+          'Conduit wording should bias electrical while still preserving review context.',
+      expectedScopedTrade: 'Electrical',
+    ),
+    _ContextCase(
+      line: '3/4 COPPER 90',
+      risk:
+          'Copper 90 can be plumbing supply fitting or HVAC refrigeration fitting.',
+      ambiguousWithoutScope: true,
     ),
     _ContextCase(
       line: 'FOIL TAPE',
@@ -75,6 +99,7 @@ class WorkSupplyParserContextSuite extends QaSuite {
         metrics: {
           'mode': 'context-matrix-smoke',
           'caseCount': _cases.length,
+          'contextEvidenceTokens': _contextEvidenceTokens,
           'tradeScopes': _tradeScopes.whereType<String>().join(', '),
           'parserCalls': 0,
           'note': 'Context parser assertions run in full/release profiles.',
@@ -187,6 +212,7 @@ class WorkSupplyParserContextSuite extends QaSuite {
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'caseCount': _cases.length,
+        'contextEvidenceTokens': _contextEvidenceTokens,
         'tradeScopes': context.isReleaseProfile
             ? _tradeScopes.whereType<String>().join(', ')
             : 'unscoped + expected scoped trade',

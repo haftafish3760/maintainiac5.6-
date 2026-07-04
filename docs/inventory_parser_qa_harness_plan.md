@@ -331,7 +331,7 @@ Parser candidates remain review-only. `possibleMatches` must carry ranked altern
 | `separation_safety` | `inventory.separation_safety` | SKU/part-number; cross-trade lines |
 | `conflict_graph` | `inventory.conflict_graph` | Negative-match/conflict graph; ranked alternatives |
 | `ranked_candidate_accuracy` | `inventory.ranked_candidate_accuracy` | top-3; top-5; positiveEvidence; negativeEvidence; conflictFamily; enabledTradePacks |
-| `trade_context` | `inventory.trade_context` | ambiguous mixed-trade lines |
+| `trade_context` | `inventory.trade_context` | ambiguous mixed-trade lines; active estimate/job trade section; receipt-neighbor signals; merchant/department hints |
 | `merchant_rules` | `inventory.merchant_rules` | major merchant alias normalization |
 | `receipt_noise` | `inventory.noise_lines` | subtotal, tax, payment |
 | `accuracy_budget` | `inventory.accuracy_budget` | top-1 clear-match accuracy; false-confident rate |
