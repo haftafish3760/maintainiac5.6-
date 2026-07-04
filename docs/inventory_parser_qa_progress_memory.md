@@ -137,6 +137,14 @@ Focused rerun routes for recently hardened release-one contracts:
   of requiring signoff to infer completion only from exit codes and result
   length.
 
+## 2026-07-04 Parser Adapter Boundary Categories
+
+- Passes 2233-2236 strengthened the reusable parser domain adapter contract so
+  every registered parser adapter must declare Firebase, Hive, camera, and OCR
+  boundary guards. This keeps parser domains environment-independent and prevents
+  future adapters from quietly depending on storage, camera/OCR, or hosted
+  service implementations.
+
 ## 2026-07-04 Hostile Source-Modality Input Hardening
 
 - Passes 2085-2094 added source-modality coverage to

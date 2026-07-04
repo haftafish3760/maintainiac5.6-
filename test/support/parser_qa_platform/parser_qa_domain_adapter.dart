@@ -63,6 +63,11 @@ class ParserQaDomainAdapter {
     if (forbiddenBoundaryTokens.any((token) => token.trim().isEmpty)) {
       failures.add('forbiddenBoundaryTokens must not contain blanks');
     }
+    for (final group in _requiredForbiddenBoundaryGroups) {
+      if (!_containsAnyNormalized(forbiddenBoundaryTokens, group.tokens)) {
+        failures.add('forbiddenBoundaryTokens must include ${group.name}');
+      }
+    }
     if (supportedResultUses.any((use) => use.trim().isEmpty)) {
       failures.add('supportedResultUses must not contain blanks');
     }
@@ -196,6 +201,34 @@ bool _containsNormalized(List<String> values, String expected) {
   final normalized = expected.trim().toLowerCase();
   return values.any((value) => value.trim().toLowerCase() == normalized);
 }
+
+bool _containsAnyNormalized(List<String> values, List<String> expected) {
+  return expected.any((token) => _containsNormalized(values, token));
+}
+
+class _ForbiddenBoundaryGroup {
+  const _ForbiddenBoundaryGroup(this.name, this.tokens);
+
+  final String name;
+  final List<String> tokens;
+}
+
+const _requiredForbiddenBoundaryGroups = [
+  _ForbiddenBoundaryGroup('Firebase boundary', ['FirebaseFirestore.instance']),
+  _ForbiddenBoundaryGroup('Hive boundary', ['Hive.', 'Hive.init', 'Box<']),
+  _ForbiddenBoundaryGroup('camera boundary', [
+    'camera',
+    'CameraController',
+    'ImagePicker',
+  ]),
+  _ForbiddenBoundaryGroup('OCR boundary', [
+    'ocr',
+    'OCR',
+    'GoogleVision',
+    'MLKit',
+    'TextRecognizer',
+  ]),
+];
 
 const maintenanceParserDomainAdapter = ParserQaDomainAdapter(
   domain: 'maintenance_parser',

@@ -134,6 +134,18 @@ void main() {
     expect(failures, contains('domain must not be empty'));
     expect(failures, contains('fixtureRoot must not be empty'));
     expect(failures, contains('forbiddenBoundaryTokens must be unique'));
+    expect(
+      failures,
+      contains('forbiddenBoundaryTokens must include Firebase boundary'),
+    );
+    expect(
+      failures,
+      contains('forbiddenBoundaryTokens must include Hive boundary'),
+    );
+    expect(
+      failures,
+      contains('forbiddenBoundaryTokens must include camera boundary'),
+    );
     expect(failures, contains('supportedResultUses must be unique'));
     expect(failures, contains('executionTargets must be unique'));
     expect(failures, contains('executionTargets must not contain blanks'));
