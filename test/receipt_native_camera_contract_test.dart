@@ -46,7 +46,7 @@ void main() {
     expect(ids, contains('assisted_receipt_fill'));
     expect(ids, contains('review_depth'));
     expect(ids, contains('auto_capture'));
-    expect(ids, contains('tap_focus'));
+    expect(ids, isNot(contains('tap_focus')));
     expect(ids, contains('pinch_zoom'));
     expect(ids, contains('exposure_slider'));
     expect(ids, contains('exposure_reset'));
@@ -77,16 +77,6 @@ void main() {
       autoCapture.description,
       contains('shutter button still works anytime'),
     );
-    final focusAssist = descriptors.singleWhere(
-      (descriptor) => descriptor.id == 'tap_focus',
-    );
-    expect(focusAssist.label, 'Advanced focus assist');
-    expect(focusAssist.defaultEnabled, isFalse);
-    expect(focusAssist.advanced, isTrue);
-    expect(focusAssist.description, contains('Continuous autofocus'));
-    expect(focusAssist.description, isNot(contains('set focus')));
-    expect(focusAssist.description, contains('fuzzy'));
-
     final dirtyLens = descriptors.singleWhere(
       (descriptor) => descriptor.id == 'dirty_lens_warning',
     );
@@ -177,6 +167,43 @@ void main() {
       'live_readability_guides_blur_glare_light_edges_and_text_size',
     );
   });
+
+  test(
+    'native camera retires tap focus even when legacy settings request it',
+    () {
+      const settings = ReceiptNativeCameraSettings(tapFocusEnabled: true);
+      const native = ReceiptNativeCameraCapabilities(
+        engine: ReceiptNativeCameraEngine.cameraX,
+        available: true,
+        cameraPermissionGranted: true,
+        cameraCount: 2,
+        hasRearCamera: true,
+        supportsTapFocus: true,
+        supportsContinuousFocus: true,
+        supportsYuvLiveFrames: true,
+        supportsNativeEdgeSignals: true,
+      );
+
+      final config = settings.sessionFor(
+        deviceCapability: const ReceiptDeviceCapability.standard(),
+        nativeCapabilities: native,
+      );
+
+      expect(settings.tapFocusIsAssistOnly, isFalse);
+      expect(config.tapFocusEnabled, isFalse);
+      expect(config.tapToFocusPolicy, 'continuous_focus_primary_no_tap_focus');
+      expect(config.nativeControlContractTags, isNot(contains('focus_assist')));
+      expect(
+        config.capabilityPolicyCodes,
+        contains('tap_focus_retired_continuous_focus_primary'),
+      );
+      expect(config.continuousFocusEnabled, isTrue);
+      expect(
+        config.focusStrategyPolicy,
+        'continuous_focus_primary_no_tap_assist',
+      );
+    },
+  );
 
   test('native camera capability restore trims engine names', () {
     final capabilities = ReceiptNativeCameraCapabilities.fromMap(const {

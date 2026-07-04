@@ -90,8 +90,7 @@ class ReceiptNativeCameraSettings {
   bool get usesContinuousFocusPrimary =>
       focusMode == ReceiptNativeFocusMode.continuous;
 
-  bool get tapFocusIsAssistOnly =>
-      tapFocusEnabled && usesContinuousFocusPrimary;
+  bool get tapFocusIsAssistOnly => false;
 
   bool get hasExposureAndSharpnessGuidance =>
       autoExposureAssistEnabled &&

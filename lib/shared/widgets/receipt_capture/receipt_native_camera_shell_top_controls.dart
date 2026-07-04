@@ -56,9 +56,7 @@ class _ReceiptNativeCameraPreviewControls extends StatelessWidget {
   }
 
   bool get _tapFocusAvailable {
-    return settings.tapFocusEnabled &&
-        capabilities.supportsTapFocus &&
-        onTapFocus != null;
+    return false;
   }
 
   bool get _pinchZoomAvailable {

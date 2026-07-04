@@ -247,14 +247,7 @@ class ReceiptNativeCameraSessionConfig {
   }
 
   String get tapToFocusPolicy {
-    if (!tapFocusEnabled) return 'continuous_focus_primary_no_tap_focus';
-    if (settings.usesContinuousFocusPrimary) {
-      return 'continuous_focus_primary_tap_focus_assist_only';
-    }
-    if (exposureSliderEnabled) {
-      return 'tap_receipt_text_focus_and_meter_exposure';
-    }
-    return 'tap_receipt_text_focus_only';
+    return 'continuous_focus_primary_no_tap_focus';
   }
 
   String get focusStrategyPolicy {
@@ -288,7 +281,6 @@ class ReceiptNativeCameraSessionConfig {
       'receipt_guidance',
       'safe_close',
     ];
-    if (tapFocusEnabled) tags.add('focus_assist');
     if (pinchZoomEnabled) tags.add('pinch_zoom');
     if (exposureSliderEnabled) tags.add('brightness_slider');
     if (exposureResetEnabled) tags.add('brightness_reset');

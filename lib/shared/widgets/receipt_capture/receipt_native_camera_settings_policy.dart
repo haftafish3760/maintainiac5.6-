@@ -34,7 +34,7 @@ List<String> _nativeCameraCapabilityPolicyCodes({
     if (!autoCaptureAllowed) 'auto_capture_policy_disabled',
     if (!liveAnalysisAllowed) 'live_analysis_policy_disabled',
     if (!effectiveEdgeDetection) 'edge_detection_policy_disabled',
-    if (!effectiveTapFocus) 'tap_focus_unavailable',
+    if (!effectiveTapFocus) 'tap_focus_retired_continuous_focus_primary',
     if (!effectivePinchZoom) 'pinch_zoom_unavailable',
     if (!effectiveExposureSlider) 'exposure_slider_unavailable',
     if (!effectiveExposureAssist) 'auto_exposure_assist_unavailable',

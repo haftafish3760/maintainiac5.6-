@@ -47,8 +47,7 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
     final effectiveAutoCropSuggestion =
         autoCropSuggestionEnabled && effectiveEdgeDetection && !lightDevice;
     final heavyCleanupAllowed = !lightDevice && !storageConstrained;
-    final effectiveTapFocus =
-        tapFocusEnabled && nativeCapabilities.supportsTapFocus;
+    final effectiveTapFocus = false;
     final effectivePinchZoom =
         pinchZoomEnabled &&
         nativeCapabilities.supportsZoom &&

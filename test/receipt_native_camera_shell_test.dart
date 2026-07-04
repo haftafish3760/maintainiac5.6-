@@ -164,6 +164,45 @@ void main() {
     expect(wentBack, 1);
   });
 
+  testWidgets('native camera shell keeps tap focus retired for receipts', (
+    tester,
+  ) async {
+    Offset? focusPoint;
+
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReceiptNativeCameraShell(
+          capabilities: const ReceiptNativeCameraCapabilities(
+            engine: ReceiptNativeCameraEngine.cameraX,
+            available: true,
+            hasRearCamera: true,
+            supportsTapFocus: true,
+            supportsContinuousFocus: true,
+          ),
+          settings: const ReceiptNativeCameraSettings(tapFocusEnabled: true),
+          preview: const ColoredBox(
+            key: ValueKey('receipt-preview'),
+            color: Color(0xFF38444B),
+          ),
+          onBack: () {},
+          onCapture: () {},
+          onSettings: () {},
+          onTapFocus: (point) => focusPoint = point,
+        ),
+      ),
+    );
+
+    await tester.tapAt(const Offset(195, 420));
+    await tester.pump();
+
+    expect(focusPoint, isNull);
+    expect(find.text('Tap text to focus'), findsNothing);
+    expect(find.text('Auto sharpness'), findsOneWidget);
+  });
+
   testWidgets('native camera shell can show long receipt ghost guide', (
     tester,
   ) async {
