@@ -37,6 +37,12 @@ void main() {
       expect(cameraController, contains('videoZoomFactor'));
       expect(cameraController, contains('zoomGestureStartCount += 1'));
       expect(cameraController, contains('lastZoomStatus = "zoom_changed"'));
+      expect(cameraController, contains('guard lastZoomFactor.isFinite'));
+      expect(cameraController, contains('recognizer.scale.isFinite else'));
+      expect(
+        cameraController,
+        contains('lastZoomStatus = "zoom_invalid_scale"'),
+      );
       expect(cameraController, contains('zoomUnavailableCount += 1'));
       expect(cameraController, contains('effectiveMinZoom'));
       expect(cameraController, contains('effectiveMaxZoom'));

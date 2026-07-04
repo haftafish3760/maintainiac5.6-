@@ -41,9 +41,19 @@ internal fun ReceiptCameraActivity.configureTouchControls() {
                 }
                 val minZoom = effectiveMinZoom(zoomState.minZoomRatio)
                 val maxZoom = effectiveMaxZoom(zoomState.minZoomRatio, zoomState.maxZoomRatio)
+                if (!zoomState.zoomRatio.isFinite() || !detector.scaleFactor.isFinite()) {
+                    zoomUnavailableCount += 1
+                    lastZoomStatus = "zoom_invalid_scale"
+                    return false
+                }
                 val nextZoom = (
                     zoomState.zoomRatio * detector.scaleFactor
                 ).coerceIn(minZoom, maxZoom)
+                if (!nextZoom.isFinite()) {
+                    zoomUnavailableCount += 1
+                    lastZoomStatus = "zoom_invalid_scale"
+                    return false
+                }
                 if (nextZoom == zoomState.zoomRatio && minZoom == maxZoom) {
                     lastZoomStatus = "zoom_range_locked"
                     zoomUnavailableCount += 1

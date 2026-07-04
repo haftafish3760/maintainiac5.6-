@@ -38,7 +38,17 @@ extension ReceiptCameraViewController {
     }
     let minimumZoom = effectiveMinZoom(for: cameraDevice)
     let maximumZoom = effectiveMaxZoom(for: cameraDevice)
+    guard lastZoomFactor.isFinite, recognizer.scale.isFinite else {
+      zoomUnavailableCount += 1
+      lastZoomStatus = "zoom_invalid_scale"
+      return
+    }
     let nextZoom = min(max(lastZoomFactor * recognizer.scale, minimumZoom), maximumZoom)
+    guard nextZoom.isFinite else {
+      zoomUnavailableCount += 1
+      lastZoomStatus = "zoom_invalid_scale"
+      return
+    }
     if abs(maximumZoom - minimumZoom) < 0.01 {
       zoomUnavailableCount += 1
       lastZoomStatus = "zoom_range_locked"

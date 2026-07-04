@@ -81,6 +81,9 @@ void main() {
       contains('receiptFrameGuide.setOnTouchListener(previewTouchListener)'),
     );
     expect(cameraActivity, contains('lastZoomStatus = "zoom_changed"'));
+    expect(cameraActivity, contains('!zoomState.zoomRatio.isFinite()'));
+    expect(cameraActivity, contains('!detector.scaleFactor.isFinite()'));
+    expect(cameraActivity, contains('lastZoomStatus = "zoom_invalid_scale"'));
     expect(cameraActivity, contains('MotionEvent.ACTION_DOWN'));
     expect(
       cameraActivity,

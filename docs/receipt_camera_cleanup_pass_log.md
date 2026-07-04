@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 756 - 04:05:37 EDT to active cleanup
+
+Scope:
+- Hardened Android and iOS pinch zoom so non-finite gesture scale or zoom
+  factors cannot reach native camera zoom controls.
+- Added `zoom_invalid_scale` diagnostics for rejected malformed zoom input while
+  preserving normal pinch zoom behavior.
+- Added Android/iOS source regressions for non-finite zoom guards.
+- Recorded `BUG-RECEIPT-0244` under `camera_capture_quality`.
+- Archived Pass 728 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native zoom regressions.
+- Passed focused Android close-controls and iOS analysis exposure regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 755 - 04:04:36 EDT to active cleanup
 
 Scope:
@@ -476,25 +493,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer and focused active-doc/session
   regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 728 - 03:11:18 EDT to active cleanup
-
-Scope:
-- Retired Dart-side focus/exposure/white-balance lock enablement so current
-  receipt camera sessions no longer advertise lock controls or lock tags.
-- Removed lock-control descriptors from the current receipt camera settings
-  list, keeping continuous focus/readability guidance as the product path.
-- Replaced lock-unavailable capability policy noise with a retired-lock policy
-  code and updated channel/staging/native UI fixtures.
-- Recorded `BUG-RECEIPT-0218` under `native_bridge`.
-- Archived Pass 703 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- First focused batch exposed stale previous-section capability-policy and
-  native UI tag-count expectations; fixed before continuing.
-- Passed targeted Dart format/analyzer and focused native contract/channel/
-  staging/UI regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
