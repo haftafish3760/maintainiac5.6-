@@ -4,6 +4,7 @@ import 'dart:io';
 const _usage =
     'dart run tool/work_supply_catalog_item_batch_status.dart '
     '[--blueprint-root build/parser_qa_blueprints] '
+    '[--pipeline-root build/parser_qa_pipeline] '
     '[--trades plumbing,electrical,hvac] [--scopes residential] '
     '[--tiers core,standard] [--locales en-US,es-US] '
     '[--output build/parser_qa_pipeline/item_batch_status.json] '
@@ -56,6 +57,7 @@ int runWorkSupplyCatalogItemBatchStatus(
     'schemaVersion': 1,
     'report': 'work_supply_catalog_item_batch_status',
     'blueprintRoot': options.blueprintRoot,
+    'pipelineRoot': options.pipelineRoot,
     'expectedCells': cells.length,
     'presentCells': cells.length - missing,
     'missingCells': missing,
@@ -97,7 +99,7 @@ Map<String, Object?> _readCell(
   String locale,
 ) {
   final root =
-      '${options.blueprintRoot}/work_supply_catalog/$trade/$scope/$tier/$locale';
+      _cellRoot(options, trade, scope, tier, locale);
   final manifestPath = '$root/manifest.json';
   final blueprintPath = '$root/item_blueprints.json';
   final manifestFile = File(manifestPath);
@@ -184,12 +186,27 @@ String _resumeCommand(
 ) {
   return 'dart run tool/work_supply_catalog_blueprint_generator.dart '
       '--trade $trade --scope $scope --tier $tier --locale $locale '
-      '--output-dir ${options.blueprintRoot}';
+      '--output-dir ${options.resumeOutputRoot(trade, scope, tier, locale)}';
+}
+
+String _cellRoot(
+  _Options options,
+  String trade,
+  String scope,
+  String tier,
+  String locale,
+) {
+  if (options.pipelineRoot.isEmpty) {
+    return '${options.blueprintRoot}/work_supply_catalog/$trade/$scope/$tier/$locale';
+  }
+  return '${options.pipelineRoot}/$trade/$scope/$tier/$locale/blueprints/'
+      'work_supply_catalog/$trade/$scope/$tier/$locale';
 }
 
 class _Options {
   const _Options({
     required this.blueprintRoot,
+    required this.pipelineRoot,
     required this.trades,
     required this.scopes,
     required this.tiers,
@@ -199,6 +216,7 @@ class _Options {
   });
 
   final String blueprintRoot;
+  final String pipelineRoot;
   final List<String> trades;
   final List<String> scopes;
   final List<String> tiers;
@@ -221,6 +239,7 @@ class _Options {
     }
     return _Options(
       blueprintRoot: values['blueprint-root'] ?? 'build/parser_qa_blueprints',
+      pipelineRoot: values['pipeline-root'] ?? '',
       trades: _csv(values['trades'] ?? 'plumbing,electrical,hvac'),
       scopes: _csv(values['scopes'] ?? 'residential'),
       tiers: _csv(values['tiers'] ?? 'core,standard'),
@@ -229,6 +248,16 @@ class _Options {
           values['output'] ?? 'build/parser_qa_pipeline/item_batch_status.json',
       requireComplete: flags.contains('require-complete'),
     );
+  }
+
+  String resumeOutputRoot(
+    String trade,
+    String scope,
+    String tier,
+    String locale,
+  ) {
+    if (pipelineRoot.isEmpty) return blueprintRoot;
+    return '$pipelineRoot/$trade/$scope/$tier/$locale/blueprints';
   }
 
   static List<String> _csv(String value) {

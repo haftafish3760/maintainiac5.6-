@@ -98,6 +98,60 @@ void main() {
     expect(exit, 2);
   });
 
+  test('item batch status can read economical pipeline blueprint layout', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_item_batch_pipeline_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+
+    _writeManifest(
+      'pipeline/plumbing/residential/core/en-US/blueprints/'
+      'work_supply_catalog/plumbing/residential/core/en-US',
+      {
+        'trade': 'plumbing',
+        'marketScope': 'residential',
+        'tier': 'core',
+        'localePackId': 'en-US',
+        'requestedLimit': 500,
+        'generatedCount': 500,
+        'promotionMode': 'review-required',
+        'writesProductionCatalog': false,
+        'liveServicesAllowed': false,
+        'firebaseWritesAllowed': false,
+      },
+    );
+
+    final exit = runWorkSupplyCatalogItemBatchStatus(
+      const [
+        '--pipeline-root',
+        'pipeline',
+        '--trades',
+        'plumbing',
+        '--scopes',
+        'residential',
+        '--tiers',
+        'core',
+        '--locales',
+        'en-US',
+        '--output',
+        'reports/pipeline_item_batch_status.json',
+        '--require-complete',
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final status = _readJson('reports/pipeline_item_batch_status.json');
+    expect(status['presentCells'], 1);
+    expect(status['missingCells'], 0);
+    expect(status['pipelineRoot'], 'pipeline');
+    expect(status.toString(), contains('pipeline/plumbing'));
+  });
+
   test('item batch status blocks unsafe blueprint manifests', () {
     final root = Directory.systemTemp.createTempSync(
       'maintainiac_item_batch_unsafe_',
