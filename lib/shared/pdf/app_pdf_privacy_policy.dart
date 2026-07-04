@@ -77,7 +77,7 @@ class AppPdfPrivacyPolicy {
 
   static bool _containsPrivateSourcePath(String text) {
     return RegExp(
-      r'(?:/users/[^ \r\n)]+|/var/mobile/containers/[^ \r\n)]+|content://[^ \r\n)]+|file://[^ \r\n)]+|[a-z]:\\users\\[^ \r\n)]+)',
+      r'(?:/users/[^ \r\n)]+|/var/mobile/containers/[^ \r\n)]+|/private/var/mobile/containers/[^ \r\n)]+|/storage/emulated/[0-9]+/[^ \r\n)]+|/data/user/[0-9]+/[^ \r\n)]+|content://[^ \r\n)]+|file://[^ \r\n)]+|[a-z]:\\users\\[^ \r\n)]+)',
     ).hasMatch(text);
   }
 

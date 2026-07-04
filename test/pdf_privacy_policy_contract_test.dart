@@ -28,6 +28,21 @@ void main() {
     expect(issues, contains(AppPdfPrivacyPolicy.privateSourcePath));
   });
 
+  test('PDF privacy policy blocks mobile and Android source paths', () {
+    final issues = AppPdfPrivacyPolicy.issueCodesForExport(
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\n'
+                '/storage/emulated/0/Download/private-receipt.pdf\n'
+                '/data/user/0/com.maintainiac/cache/shared.pdf\n'
+                '/private/var/mobile/Containers/Data/Application/app/tmp/file.pdf\n'
+                '%%EOF'
+            .codeUnits,
+      ),
+    );
+
+    expect(issues, contains(AppPdfPrivacyPolicy.privateSourcePath));
+  });
+
   test('PDF privacy policy blocks passenger and patient labels', () {
     final issues = AppPdfPrivacyPolicy.issueCodesForExport(
       bytes: Uint8List.fromList(

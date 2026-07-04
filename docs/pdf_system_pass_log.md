@@ -1,5 +1,20 @@
 # PDF System Pass Log
 
+## Pass 37 - 2026-07-04 16:39 EDT - Mobile PDF source-path privacy
+
+- Scope: generated PDF privacy validation and QA only. No inventory, camera,
+  native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Hardened private source-path detection for Android shared storage, Android
+    app-private storage, and iOS private container paths.
+  - Added regression coverage so generated PDF validation blocks those mobile
+    paths before write/share/export.
+- Verification completed 2026-07-04 16:39 EDT:
+  - `dart format lib/shared/pdf/app_pdf_privacy_policy.dart test/pdf_privacy_policy_contract_test.dart`
+  - `flutter test test/pdf_privacy_policy_contract_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_pdf_privacy_policy.dart test/pdf_privacy_policy_contract_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 36 - 2026-07-04 16:37 EDT - Shared PDF text decoder
 
 - Scope: shared PDF text decoding infrastructure and QA only. No inventory,
