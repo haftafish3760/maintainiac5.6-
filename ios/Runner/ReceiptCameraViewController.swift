@@ -100,6 +100,9 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var previewBrightnessGuardPolicy = "avoid_dark_preview_full_receipt_sampling"
   var shutterSpeedPolicy = "prefer_fast_document_shutter_manual_capture_anytime"
   var tapToFocusPolicy = "continuous_focus_primary_tap_focus_assist_only"
+  var focusStrategyPolicy = "continuous_focus_primary_tap_assist_optional"
+  var readabilityGuidancePolicy = "live_readability_guides_blur_glare_light_edges_and_text_size"
+  var receiptCameraQualityBaseline = true
   var zoomGesturePolicy = "avfoundation_video_zoom_factor_clamped_to_capability"
   var autoCapturePolicy = "off_by_default_manual_shutter_primary"
   var preCaptureExposurePolicy = "receipt_paper_metering_dim_rescue_v2_manual_slider"

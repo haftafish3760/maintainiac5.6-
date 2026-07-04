@@ -71,6 +71,11 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
         ?: previewBrightnessGuardPolicy
     shutterSpeedPolicy = intent.getStringExtra("shutterSpeedPolicy") ?: shutterSpeedPolicy
     tapToFocusPolicy = intent.getStringExtra("tapToFocusPolicy") ?: tapToFocusPolicy
+    focusStrategyPolicy = intent.getStringExtra("focusStrategyPolicy") ?: focusStrategyPolicy
+    readabilityGuidancePolicy = intent.getStringExtra("readabilityGuidancePolicy")
+        ?: readabilityGuidancePolicy
+    receiptCameraQualityBaseline =
+        intent.getBooleanExtra("receiptCameraQualityBaseline", receiptCameraQualityBaseline)
     zoomGesturePolicy = intent.getStringExtra("zoomGesturePolicy") ?: zoomGesturePolicy
     autoCapturePolicy = intent.getStringExtra("autoCapturePolicy") ?: autoCapturePolicy
     autoCaptureStableFrameTarget = intent.getIntExtra(

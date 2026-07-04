@@ -71,6 +71,9 @@ extension ReceiptCameraViewController {
     previewBrightnessGuardPolicy = arguments["previewBrightnessGuardPolicy"] as? String ?? previewBrightnessGuardPolicy
     shutterSpeedPolicy = arguments["shutterSpeedPolicy"] as? String ?? shutterSpeedPolicy
     tapToFocusPolicy = arguments["tapToFocusPolicy"] as? String ?? tapToFocusPolicy
+    focusStrategyPolicy = arguments["focusStrategyPolicy"] as? String ?? focusStrategyPolicy
+    readabilityGuidancePolicy = arguments["readabilityGuidancePolicy"] as? String ?? readabilityGuidancePolicy
+    receiptCameraQualityBaseline = arguments["receiptCameraQualityBaseline"] as? Bool ?? receiptCameraQualityBaseline
     zoomGesturePolicy = arguments["zoomGesturePolicy"] as? String ?? zoomGesturePolicy
     autoCapturePolicy = arguments["autoCapturePolicy"] as? String ?? autoCapturePolicy
     autoCaptureStableFrameTarget = min(

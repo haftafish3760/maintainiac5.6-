@@ -117,6 +117,10 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal val capturedPhotoReviewDestination =
         "receipt_photo_review_then_receipt_details"
     internal var tapToFocusPolicy = "continuous_focus_primary_tap_focus_assist_only"
+    internal var focusStrategyPolicy = "continuous_focus_primary_tap_assist_optional"
+    internal var readabilityGuidancePolicy =
+        "live_readability_guides_blur_glare_light_edges_and_text_size"
+    internal var receiptCameraQualityBaseline = true
     internal var zoomGesturePolicy = "cameraX_zoom_ratio_clamped_to_capability"
     internal var autoCapturePolicy = "off_by_default_manual_shutter_primary"
     internal var preCaptureExposurePolicy = "receipt_paper_metering_dim_rescue_v2_manual_slider"

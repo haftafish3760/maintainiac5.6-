@@ -175,6 +175,24 @@ void main() {
     expect(
       cameraController,
       contains(
+        'var focusStrategyPolicy = "continuous_focus_primary_tap_assist_optional"',
+      ),
+    );
+    expect(
+      cameraController,
+      contains('"focusStrategyPolicy": focusStrategyPolicy'),
+    );
+    expect(
+      cameraController,
+      contains('"readabilityGuidancePolicy": readabilityGuidancePolicy'),
+    );
+    expect(
+      cameraController,
+      contains('"receiptCameraQualityBaseline": receiptCameraQualityBaseline'),
+    );
+    expect(
+      cameraController,
+      contains(
         'sessionMinZoom = max(doubleArgument("minZoom", fallback: 1.0), 1.0)',
       ),
     );

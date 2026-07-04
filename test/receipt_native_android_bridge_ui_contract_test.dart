@@ -93,6 +93,26 @@ void main() {
         'internal var zoomGesturePolicy = "cameraX_zoom_ratio_clamped_to_capability"',
       ),
     );
+    expect(
+      cameraActivity,
+      contains(
+        'internal var focusStrategyPolicy = "continuous_focus_primary_tap_assist_optional"',
+      ),
+    );
+    expect(
+      cameraActivity,
+      contains('"focusStrategyPolicy" to focusStrategyPolicy'),
+    );
+    expect(
+      cameraActivity,
+      contains('"readabilityGuidancePolicy" to readabilityGuidancePolicy'),
+    );
+    expect(
+      cameraActivity,
+      contains(
+        '"receiptCameraQualityBaseline" to receiptCameraQualityBaseline',
+      ),
+    );
     expect(cameraActivity, contains('"pinchZoomPolicy" to zoomGesturePolicy'));
     expect(cameraActivity, contains('Color.argb(126, 5, 6, 7)'));
     expect(cameraActivity, contains('Color.argb(134, 5, 6, 7)'));
