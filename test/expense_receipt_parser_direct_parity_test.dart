@@ -166,6 +166,17 @@ THANK YOU
       expect(proof.protectedContentTypes, contains('payment_info'));
       expect(proof.protectedContentTypes, contains('transaction_info'));
       expect(proof.summaryCode, contains(':1-ignored:'));
+      expect(proof.privacySafeSummary['ignoredLineCount'], 1);
+      expect(proof.privacySafeSummary['ignoredUnknownLines'], isTrue);
+      expect(proof.privacySafeSummary['visibleLineCount'], 2);
+      expect(
+        proof.privacySafeSummary.toString(),
+        contains('receipt_line_0004'),
+      );
+      expect(
+        proof.privacySafeSummary.toString(),
+        isNot(contains('PVC ADAPTER')),
+      );
 
       final proofWithTotals = layout.redactionPlanForLineNumbers(
         {4},

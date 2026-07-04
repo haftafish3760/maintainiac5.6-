@@ -136,6 +136,23 @@ class ReceiptLineRedactionPlan {
     final totals = keepsTotalsContext ? 'totals_context' : 'totals_hidden';
     return 'receipt_redaction:$visible-visible:$hidden-hidden:$ignored-ignored:$context:$totals';
   }
+
+  Map<String, Object?> get privacySafeSummary {
+    return {
+      'summaryCode': summaryCode,
+      'visibleLineCount': visibleLineNumbers.length,
+      'hiddenLineCount': hiddenLineNumbers.length,
+      'ignoredLineCount': ignoredLineNumbers.length,
+      'hidesUnselectedLines': hidesUnselectedLines,
+      'protectsPrivateContent': protectsPrivateContent,
+      'ignoredUnknownLines': ignoredUnknownLines,
+      'keepsMerchantContext': keepsMerchantContext,
+      'keepsTotalsContext': keepsTotalsContext,
+      'protectedContentTypes': protectedContentTypes.toList(growable: false),
+      'visibleAnchorCodes': visibleAnchorCodes,
+      'hiddenAnchorCodes': hiddenAnchorCodes,
+    };
+  }
 }
 
 class ReceiptLayoutMap {
