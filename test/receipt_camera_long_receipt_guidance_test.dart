@@ -208,8 +208,12 @@ void main() {
     expect(
       sources.reviewScreen,
       contains(
-        '!widget.bestShotCandidateMode && widget.initialPhotoPaths.length > 1',
+        '!widget.bestShotCandidateMode && _initialPhotoPaths.length > 1',
       ),
+    );
+    expect(
+      sources.reviewScreen,
+      contains('uniqueNormalizedReceiptPhotoPaths(widget.initialPhotoPaths)'),
     );
     expect(sources.reviewScreen, contains('Review Photos Top To Bottom'));
     expect(

@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 774 - 05:58:15 EDT to active cleanup
+
+Scope:
+- Updated the long-receipt guidance source regression after the review screen
+  moved from raw initial photo counts to normalized initial photo counts.
+- Required the test to prove `_initialReviewMode` is driven by
+  `_initialPhotoPaths.length` and that initial paths are normalized once.
+- Recorded `BUG-RECEIPT-0262` under `qa_harness`.
+- Archived Pass 746 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for long-receipt guidance regression.
+- Passed focused Flutter long-receipt guidance regression.
+- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
+
 ## Pass 773 - 05:54:18 EDT to active cleanup
 
 Scope:
@@ -477,21 +492,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for native bridge review-depth tests.
 - Passed focused Android/iOS native bridge UI contract regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 746 - 03:47:31 EDT to active cleanup
-
-Scope:
-- Hardened native receipt review-depth diagnostics so snake-case or hyphenated
-  bridge values preserve prices-only versus detailed-line intent.
-- Added focused regression coverage for `prices-only` and `detailed_lines`
-  native review-depth payloads.
-- Recorded `BUG-RECEIPT-0234` under `receipt_line_review_mode`.
-- Archived Pass 721 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native review-depth diagnostics.
-- Passed focused receipt camera result frozen metadata regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
