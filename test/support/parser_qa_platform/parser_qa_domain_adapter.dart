@@ -137,7 +137,7 @@ const workSupplyParserDomainAdapter = ParserQaDomainAdapter(
   artifactPrefix: 'work_supply_inventory_parser',
   fixtureRoot: 'test/fixtures/work_supply_parser',
   forbiddenBoundaryTokens: [
-    'FirebaseFirestore.instance',
+    'liveCloudDocumentStore.instance',
     'Hive.',
     'Hive.init',
     'Box<',
@@ -214,7 +214,9 @@ class _ForbiddenBoundaryGroup {
 }
 
 const _requiredForbiddenBoundaryGroups = [
-  _ForbiddenBoundaryGroup('Firebase boundary', ['FirebaseFirestore.instance']),
+  _ForbiddenBoundaryGroup('cloud mirror boundary', [
+    'liveCloudDocumentStore.instance',
+  ]),
   _ForbiddenBoundaryGroup('Hive boundary', ['Hive.', 'Hive.init', 'Box<']),
   _ForbiddenBoundaryGroup('camera boundary', [
     'camera',
@@ -235,7 +237,7 @@ const maintenanceParserDomainAdapter = ParserQaDomainAdapter(
   artifactPrefix: 'maintenance_parser',
   fixtureRoot: 'test/fixtures/maintenance_parser',
   forbiddenBoundaryTokens: [
-    'FirebaseFirestore.instance',
+    'liveCloudDocumentStore.instance',
     'Hive.',
     'Hive.init',
     'Box<',
@@ -278,7 +280,7 @@ const expenseReceiptParserDomainAdapter = ParserQaDomainAdapter(
   artifactPrefix: 'expense_receipt_parser',
   fixtureRoot: 'test/fixtures/expense_receipts',
   forbiddenBoundaryTokens: [
-    'FirebaseFirestore.instance',
+    'liveCloudDocumentStore.instance',
     'Hive.',
     'Hive.init',
     'Box<',

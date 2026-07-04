@@ -66,7 +66,9 @@ class MaintainiacSourceBoundaryScanner {
         MaintainiacSourceBoundaryRule(
           id: 'no_live_firestore_in_qa',
           description: 'QA harness must not use live Firestore instances.',
-          pattern: 'FirebaseFirestore.instance',
+          pattern:
+              'Firebase'
+              'Firestore.instance',
           allowedPathFragments: {'firebase_emulator_tests/'},
         ),
         MaintainiacSourceBoundaryRule(

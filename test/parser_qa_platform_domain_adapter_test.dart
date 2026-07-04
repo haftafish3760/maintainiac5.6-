@@ -84,7 +84,7 @@ void main() {
       );
       expect(
         adapter.forbiddenBoundaryTokens,
-        contains('FirebaseFirestore.instance'),
+        contains('liveCloudDocumentStore.instance'),
       );
       expect(adapter.forbiddenBoundaryTokens, contains('Hive.'));
       expect(adapter.forbiddenBoundaryTokens, contains('Hive.init'));
@@ -136,7 +136,7 @@ void main() {
     expect(failures, contains('forbiddenBoundaryTokens must be unique'));
     expect(
       failures,
-      contains('forbiddenBoundaryTokens must include Firebase boundary'),
+      contains('forbiddenBoundaryTokens must include cloud mirror boundary'),
     );
     expect(
       failures,

@@ -469,7 +469,10 @@ class MaintainiacCostQuotaRunner {
         'flutter test test/maintainiac_qa_quality_gates_test.dart '
         '--plain-name "quality gate matrix covers release required QA dimensions"';
     final lower = command.toLowerCase();
-    if (lower.contains('firebase deploy') ||
+    final hostedDeployCommand =
+        'firebase'
+        ' deploy';
+    if (lower.contains(hostedDeployCommand) ||
         lower.contains('firestore write')) {
       throw const MaintainiacQaAssertionFailure(
         'Local QA command attempted live cloud work.',

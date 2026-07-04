@@ -40,7 +40,7 @@ class MaintainiacExportPrivacyProbe {
   List<String> _privateKeyFailures(Map<String, Object?> record, String prefix) {
     final failures = <String>[];
     for (final key in record.keys) {
-      if (_isPrivateKey(key)) failures.add('$prefix private_key:$key');
+      if (_isPrivateKey(key)) failures.add('$prefix sensitive_field:$key');
     }
     return failures;
   }

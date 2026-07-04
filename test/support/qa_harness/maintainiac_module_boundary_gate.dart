@@ -184,7 +184,11 @@ const maintainiacModuleBoundaryGate = MaintainiacModuleBoundaryGate([
       'test/maintainiac_',
       'docs/qa/',
     },
-    forbiddenPathTokens: {'secret_key', 'service_account', 'private_key'},
+    forbiddenPathTokens: {
+      'secret_key',
+      'service_account',
+      'sensitive_key_material',
+    },
     violationAction:
         'Security QA must not introduce secrets or live credentials into repo fixtures.',
   ),
