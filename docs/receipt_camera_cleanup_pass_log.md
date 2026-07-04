@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 763 - 04:52:58 EDT to active cleanup
+
+Scope:
+- Hardened Android and iOS previous-section guide loaders so the long-receipt
+  ghost overlay only accepts trimmed local absolute image paths.
+- Removed Android's non-image `setImageURI` fallback so existing non-image
+  files cannot appear as continuation guides.
+- Added Android/iOS source regressions for local image guide enforcement.
+- Recorded `BUG-RECEIPT-0251` under `multi_photo_ordering`.
+- Archived Pass 735 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for previous-section guide regressions.
+- Passed focused Android settings-quality and iOS long-receipt quality tests.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 762 - 04:41:45 EDT to active cleanup
 
 Scope:
@@ -468,23 +485,5 @@ Verification:
 - Passed targeted Dart format/analyzer for native capture staging fixtures,
   manifest expectations, index expectations, and staging regression.
 - Passed focused Flutter native capture staging regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 735 - 03:27:16 EDT to active cleanup
-
-Scope:
-- Audited remaining native lock diagnostics after platform argument hardening.
-- Hard-coded Android and iOS `whiteBalanceLockEnabled` diagnostics false so
-  retired lock state cannot leak through serialized capture diagnostics.
-- Updated Android/iOS storage-contract regressions to reject variable-derived
-  white-balance lock diagnostics.
-- Recorded `BUG-RECEIPT-0226` under `native_bridge`.
-- Archived Pass 710 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for Android/iOS native storage bridge
-  regressions.
-- Passed focused Flutter Android/iOS storage bridge regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

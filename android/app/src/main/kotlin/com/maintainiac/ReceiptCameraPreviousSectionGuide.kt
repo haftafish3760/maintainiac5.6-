@@ -3,7 +3,6 @@ package com.maintainiac
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.net.Uri
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -67,16 +66,20 @@ internal fun ReceiptCameraActivity.updatePreviousSectionGuide(path: String?) {
         return
     }
     val guideFile = File(guidePath)
-    if (!guideFile.exists()) {
+    if (
+        !guideFile.isAbsolute ||
+        !guideFile.isFile ||
+        !isPreviousSectionGuideImagePath(guidePath)
+    ) {
         previousSectionGuidePanel.visibility = View.GONE
         return
     }
     val guideSlice = previousSectionGhostSliceBitmap(guideFile)
-    if (guideSlice != null) {
-        previousSectionGuideImage.setImageBitmap(guideSlice)
-    } else {
-        previousSectionGuideImage.setImageURI(Uri.fromFile(guideFile))
+    if (guideSlice == null) {
+        previousSectionGuidePanel.visibility = View.GONE
+        return
     }
+    previousSectionGuideImage.setImageBitmap(guideSlice)
     previousSectionGuideImage.alpha = previousSectionGhostOpacity.toFloat()
     previousSectionGuideImage.contentDescription =
         "${previousSectionGhostGuideTitle()}. ${previousSectionGhostGuideInstruction()}"
@@ -100,6 +103,15 @@ internal fun ReceiptCameraActivity.previousSectionGhostSliceBitmap(file: File): 
     } catch (_: IllegalArgumentException) {
         source
     }
+}
+
+internal fun ReceiptCameraActivity.isPreviousSectionGuideImagePath(path: String): Boolean {
+    val lowerPath = path.lowercase()
+    return lowerPath.endsWith(".jpg") ||
+        lowerPath.endsWith(".jpeg") ||
+        lowerPath.endsWith(".png") ||
+        lowerPath.endsWith(".heic") ||
+        lowerPath.endsWith(".webp")
 }
 
 internal fun ReceiptCameraActivity.boundedFraction(value: Double, fallback: Double): Double {

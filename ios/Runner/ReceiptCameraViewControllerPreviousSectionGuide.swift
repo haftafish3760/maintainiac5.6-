@@ -35,9 +35,17 @@ extension ReceiptCameraViewController {
   func updatePreviousSectionGuide(_ path: String?) {
     guard
       let path,
-      !path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-      FileManager.default.fileExists(atPath: path),
-      let image = UIImage(contentsOfFile: path)
+      !path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    else {
+      previousSectionGuidePanel.isHidden = true
+      return
+    }
+    let trimmedPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard
+      (trimmedPath as NSString).isAbsolutePath,
+      isPreviousSectionGuideImagePath(trimmedPath),
+      FileManager.default.fileExists(atPath: trimmedPath),
+      let image = UIImage(contentsOfFile: trimmedPath)
     else {
       previousSectionGuidePanel.isHidden = true
       return
@@ -47,6 +55,15 @@ extension ReceiptCameraViewController {
     previousSectionGuideImageView.accessibilityLabel =
       "\(previousSectionGhostGuideTitle()). \(previousSectionGhostGuideInstruction())"
     previousSectionGuidePanel.isHidden = false
+  }
+
+  func isPreviousSectionGuideImagePath(_ path: String) -> Bool {
+    let lowerPath = path.lowercased()
+    return lowerPath.hasSuffix(".jpg") ||
+      lowerPath.hasSuffix(".jpeg") ||
+      lowerPath.hasSuffix(".png") ||
+      lowerPath.hasSuffix(".heic") ||
+      lowerPath.hasSuffix(".webp")
   }
 
   func previousSectionGhostSliceImage(_ image: UIImage) -> UIImage? {

@@ -227,6 +227,14 @@ void main() {
       expect(cameraActivity, contains('updatePreviousSectionGuide'));
       expect(cameraActivity, contains('previousSectionGuidePanel'));
       expect(cameraActivity, contains('previousSectionGuideImage'));
+      expect(cameraActivity, contains('!guideFile.isAbsolute'));
+      expect(cameraActivity, contains('!guideFile.isFile'));
+      expect(
+        cameraActivity,
+        contains('!isPreviousSectionGuideImagePath(guidePath)'),
+      );
+      expect(cameraActivity, contains('isPreviousSectionGuideImagePath'));
+      expect(cameraActivity, isNot(contains('setImageURI(Uri.fromFile')));
       expect(
         cameraActivity,
         contains('Previous receipt section overlap guide'),

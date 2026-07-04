@@ -37,6 +37,18 @@ void main() {
       expect(cameraController, contains('previousSectionGuideImageView'));
       expect(
         cameraController,
+        contains('let trimmedPath = path.trimmingCharacters'),
+      );
+      expect(
+        cameraController,
+        contains('(trimmedPath as NSString).isAbsolutePath'),
+      );
+      expect(
+        cameraController,
+        contains('isPreviousSectionGuideImagePath(trimmedPath)'),
+      );
+      expect(
+        cameraController,
         contains('Previous receipt section overlap guide'),
       );
       expect(cameraController, contains('previousSectionGhostGuideTitle'));
