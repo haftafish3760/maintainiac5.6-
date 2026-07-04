@@ -88,8 +88,26 @@ class ReceiptLineDraft {
 
   bool get isInventory => kind == ReceiptLineKind.inventory;
   bool get isExpense => kind == ReceiptLineKind.expense;
-  bool get isPersonalUse => businessUse == 'personal';
-  bool get isSplitUse => businessUse == 'split';
+  String get effectiveBusinessUse {
+    final normalized = businessUse.trim().toLowerCase();
+    return switch (normalized) {
+      'personal' => 'personal',
+      'split' => 'split',
+      _ => 'business',
+    };
+  }
+
+  double get effectiveBusinessPercent {
+    if (isPersonalUse) return 0;
+    if (isBusinessUse) return 1;
+    if (!businessPercent.isFinite) return .5;
+    return businessPercent.clamp(0, 1).toDouble();
+  }
+
+  double get effectivePersonalPercent => 1 - effectiveBusinessPercent;
+
+  bool get isPersonalUse => effectiveBusinessUse == 'personal';
+  bool get isSplitUse => effectiveBusinessUse == 'split';
   bool get isBusinessUse => !isPersonalUse && !isSplitUse;
   double get totalUnits => quantity * unitsPerPackage;
   double get taxAmount => subtotal * taxRate;
@@ -114,7 +132,9 @@ class ReceiptLineDraft {
 
   String get businessUseLabel {
     if (isPersonalUse) return 'Personal';
-    if (isSplitUse) return 'Split ${(businessPercent * 100).round()}% business';
+    if (isSplitUse) {
+      return 'Split ${(effectiveBusinessPercent * 100).round()}% business';
+    }
     return 'Business';
   }
 
@@ -228,7 +248,9 @@ class ReceiptLineDraft {
       if (sourceReceiptSectionLabel.trim().isNotEmpty)
         'sourceReceiptSectionLabel': sourceReceiptSectionLabel.trim(),
       'kind': kind.name,
-      'businessUse': businessUse,
+      'businessUse': effectiveBusinessUse,
+      'businessPercent': effectiveBusinessPercent,
+      'personalPercent': effectivePersonalPercent,
       'hasAmount': subtotal > 0,
       'needsParserReview': parserNeedsReview,
     };

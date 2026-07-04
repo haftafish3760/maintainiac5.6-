@@ -96,6 +96,55 @@ void main() {
     );
   });
 
+  test('receipt line allocation normalizes unsafe split values', () {
+    const paddedSplit = ReceiptLineDraft(
+      kind: ReceiptLineKind.expense,
+      description: '',
+      businessUse: ' SPLIT ',
+      businessPercent: 1.4,
+      proofLineReferenceLabel: 'Line 7',
+    );
+    const malformedSplit = ReceiptLineDraft(
+      kind: ReceiptLineKind.expense,
+      description: '',
+      businessUse: 'split',
+      businessPercent: double.nan,
+      proofLineReferenceLabel: 'Line 8',
+    );
+    const paddedPersonal = ReceiptLineDraft(
+      kind: ReceiptLineKind.expense,
+      description: '',
+      businessUse: ' personal ',
+      businessPercent: .9,
+    );
+
+    expect(paddedSplit.isSplitUse, isTrue);
+    expect(paddedSplit.businessUseLabel, 'Split 100% business');
+    expect(paddedSplit.effectiveBusinessPercent, 1);
+    expect(paddedSplit.effectivePersonalPercent, 0);
+    expect(malformedSplit.businessUseLabel, 'Split 50% business');
+    expect(malformedSplit.effectiveBusinessPercent, .5);
+    expect(malformedSplit.effectivePersonalPercent, .5);
+    expect(paddedPersonal.isPersonalUse, isTrue);
+    expect(paddedPersonal.effectiveBusinessPercent, 0);
+
+    final safe = malformedSplit.privacySafeProofReference;
+    expect(safe['businessUse'], 'split');
+    expect(safe['businessPercent'], .5);
+    expect(safe['personalPercent'], .5);
+    expect(safe.toString(), isNot(contains('NaN')));
+
+    final selected = ReceiptSelectedLineReference.fromDraft(
+      receiptId: 'receipt-1',
+      line: paddedSplit,
+    );
+    expect(selected.businessUse, 'split');
+    expect(selected.businessPercent, 1);
+    expect(selected.personalPercent, 0);
+    expect(selected.toPrivacySafeMap()['businessPercent'], 1);
+    expect(selected.toPrivacySafeMap()['personalPercent'], 0);
+  });
+
   test('assisted receipt review evidence stays with receipt draft lines', () {
     const line = ReceiptLineDraft(
       kind: ReceiptLineKind.inventory,

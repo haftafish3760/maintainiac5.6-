@@ -8,6 +8,8 @@ class ReceiptSelectedLineReference {
     required this.clientProofDefaultVisibility,
     required this.kind,
     required this.businessUse,
+    this.businessPercent = 1,
+    this.personalPercent = 0,
     this.sourceReceiptSectionLabel = '',
     this.lineSubtotal = 0,
     this.lineTaxAmount = 0,
@@ -26,7 +28,9 @@ class ReceiptSelectedLineReference {
       proofLineReferenceLabel: line.proofReferenceLabel,
       clientProofDefaultVisibility: line.clientProofDefaultVisibility,
       kind: line.kind.name,
-      businessUse: line.businessUse,
+      businessUse: line.effectiveBusinessUse,
+      businessPercent: line.effectiveBusinessPercent,
+      personalPercent: line.effectivePersonalPercent,
       sourceReceiptSectionLabel: line.sourceReceiptSectionLabel,
       lineSubtotal: line.subtotal,
       lineTaxAmount: line.taxAmount,
@@ -42,6 +46,8 @@ class ReceiptSelectedLineReference {
   final String clientProofDefaultVisibility;
   final String kind;
   final String businessUse;
+  final double businessPercent;
+  final double personalPercent;
   final String sourceReceiptSectionLabel;
   final double lineSubtotal;
   final double lineTaxAmount;
@@ -66,6 +72,8 @@ class ReceiptSelectedLineReference {
       'clientProofDefaultVisibility': clientProofDefaultVisibility,
       'kind': kind,
       'businessUse': businessUse,
+      'businessPercent': businessPercent,
+      'personalPercent': personalPercent,
       if (sourceReceiptSectionLabel.trim().isNotEmpty)
         'sourceReceiptSectionLabel': sourceReceiptSectionLabel.trim(),
       'lineSubtotal': lineSubtotal,
@@ -84,6 +92,8 @@ class ReceiptSelectedLineReference {
       'clientProofDefaultVisibility': clientProofDefaultVisibility,
       'kind': kind,
       'businessUse': businessUse,
+      'businessPercent': businessPercent,
+      'personalPercent': personalPercent,
       if (sourceReceiptSectionLabel.trim().isNotEmpty)
         'sourceReceiptSectionLabel': sourceReceiptSectionLabel.trim(),
       'hasAmount': lineTotal > 0 || lineSubtotal > 0,
