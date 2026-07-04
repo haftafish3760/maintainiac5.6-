@@ -188,6 +188,7 @@ const _spanishUnitedStatesReceiptTermAliases = {
   'reversing valve coil': ['bobina valvula reversa', 'coil reversing valve'],
   'thermostat wire': ['cable termostato', 'cable thermostat'],
   'pleated filter': ['filtro plisado', 'filtro aire', 'filtro furnace'],
+  'filter': ['filtro'],
   'merv': ['merv'],
   'condensate pump': ['bomba condensado', 'bomba condensate'],
   'condensate coupling': [

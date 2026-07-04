@@ -76,7 +76,7 @@ double _receiptAmbiguityRisk(
   if (_isUnscopedAmbiguousReceiptLine(text, item, tradeScope)) risk += 0.22;
   if (_isCrossTradePvcLine(text, item, tradeScope)) risk += 0.16;
   if (_isCrossTradeCopperLine(text, item, tradeScope)) risk += 0.34;
-  if (_isGenericFilterLine(text, item, tradeScope)) risk += 0.14;
+  if (_isGenericFilterLine(text, item, tradeScope)) risk += 0.38;
   return risk;
 }
 
@@ -120,15 +120,36 @@ bool _isGenericFilterLine(
   String? tradeScope,
 ) {
   if (!RegExp(r'\bfilter\b').hasMatch(text)) return false;
-  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
-  final hasSpecificEvidence = RegExp(
-    r'\b(merv|air|furnace|return|water|oil|fuel|pool|hvac)\b',
-  ).hasMatch(text);
-  return !hasSpecificEvidence && item.trade != 'HVAC';
+  final hasSpecificFilterEvidence =
+      _hasHvacAirFilterReceiptEvidence(text) ||
+      RegExp(
+        r'\b(return grille|return air grille|filter grille|water filter|'
+        r'oil filter|fuel filter|pool filter|filter drier|secador)\b',
+      ).hasMatch(text);
+  if (hasSpecificFilterEvidence) return false;
+  final itemText = _indexedReceiptTextFor(item);
+  return RegExp(
+    r'\b(filter|air filter|filter drier|filter grille|water filter|'
+    r'oil filter|fuel filter|pool filter)\b',
+  ).hasMatch(itemText);
 }
 
 double _boundedReceiptConfidence(double confidence) {
   if (confidence < 0.15) return 0.15;
   if (confidence > 0.95) return 0.95;
   return confidence;
+}
+
+bool _hasHvacAirFilterReceiptEvidence(String text) {
+  if (!RegExp(r'\bfilter\b').hasMatch(text)) return false;
+  if (RegExp(
+    r'\b(drier|dri|secador|liquid|liq|linea|water|oil|fuel|pool|'
+    r'grille|register|rack|base|housing)\b',
+  ).hasMatch(text)) {
+    return false;
+  }
+  final hasAirFilterWords = RegExp(
+    r'\b(air|furnace|pleated|merv|hvac|ac)\b',
+  ).hasMatch(text);
+  return hasAirFilterWords && _nominalReceiptSize(text) != null;
 }

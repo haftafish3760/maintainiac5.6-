@@ -888,6 +888,21 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
     }
   }
 
+  if (_hasHvacAirFilterReceiptEvidence(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'HVAC' &&
+          name.contains('air filter') &&
+          !name.contains('return air grille') &&
+          !name.contains('filter grille') &&
+          !name.contains('filter drier') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+
   final wantsSheetMetalScrew = RegExp(
     r'\b(sheet metal screw|sheet mtl scr|zip screw|tek screw|'
     r'self drilling screw|self tapping screw|sms|tornillo lamina|'

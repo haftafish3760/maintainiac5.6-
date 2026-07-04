@@ -735,7 +735,7 @@ const englishHvacCoreRecipes = [
       'size',
       'generated_batch',
     ],
-    patterns: ['FILTER 20X25X1', '16X20X1 AIR FILTER'],
+    patterns: ['20X25X1 AIR FILTER', '16X20X1 FURNACE FILTER'],
   ),
   WorkSupplyFixtureRecipe(
     slug: 'foil_tape',
