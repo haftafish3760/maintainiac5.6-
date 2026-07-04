@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 870 - 16:09:00 EDT to active cleanup
+
+Scope:
+- Forwarded long-receipt retake alignment reason and guidance into the native
+  camera session when a user retakes a top, middle, or bottom receipt segment.
+- Kept generic coverage guidance as the fallback only when no retake alignment
+  context exists.
+- Added retake guidance text regressions for top, middle, and bottom segment
+  replacement.
+- Added long-receipt handoff regressions proving the retake context is wired
+  through to native previous-section reason/guidance fields.
+- Recorded `BUG-RECEIPT-0319` under `ghost_overlap_stitching`.
+- Archived Pass 797 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused retake-order/long-receipt
+  guidance regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 868 - 16:04:00 EDT to active cleanup
 
 Scope:
@@ -462,21 +482,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused stitch-scanner regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 797 - 08:52:23 EDT to active cleanup
-
-Scope:
-- Hardened the shared ML Kit barcode/QR scanner boundary so only local absolute
-  image paths can reach the decoder.
-- Blocked relative paths, URLs, PDFs/text files, whitespace-padded paths, and
-  NUL-tainted paths before ML Kit invocation.
-- Added barcode scanner path-family regressions.
-- Recorded `BUG-RECEIPT-0281` under `barcode_qr_scanning`.
-- Archived Pass 767 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused barcode scanner regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

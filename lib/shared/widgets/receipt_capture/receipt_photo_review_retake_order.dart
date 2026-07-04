@@ -26,6 +26,19 @@ class ReceiptPhotoRetakeAlignmentContext {
     return 'retake_single_section_no_context';
   }
 
+  String get guidanceText {
+    return switch (guidanceCode) {
+      'retake_middle_with_previous_next_context' =>
+        'Retake this middle receipt section using the previous and next sections as alignment context.',
+      'retake_bottom_with_previous_context' =>
+        'Retake the bottom receipt section using the previous section as the top ghost guide.',
+      'retake_top_with_next_context' =>
+        'Retake the top receipt section and check that it still joins cleanly with the next section.',
+      _ =>
+        'Retake this receipt section and verify the receipt order before OCR.',
+    };
+  }
+
   static ReceiptPhotoRetakeAlignmentContext? build({
     required List<String> currentPhotoPaths,
     required String targetPhotoPath,

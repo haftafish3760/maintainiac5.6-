@@ -67,6 +67,8 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
     );
     final picked = await _pickReceiptPhotos(
       alignmentGuidePhotoPath: retakeContext?.preferredGuidePhotoPath,
+      alignmentReasonCode: retakeContext?.guidanceCode,
+      alignmentGuidance: retakeContext?.guidanceText,
     );
     if (picked.paths.isEmpty || !_reviewWorkActive) return;
     final retakePlan = ReceiptPhotoRetakeOrderPlan.build(
@@ -109,6 +111,8 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
 
   Future<_PickedReceiptPhotos> _pickReceiptPhotos({
     String? alignmentGuidePhotoPath,
+    String? alignmentReasonCode,
+    String? alignmentGuidance,
   }) async {
     if (_openingCamera) return const _PickedReceiptPhotos.empty();
     _updateReviewState(() => _openingCamera = true);
@@ -127,6 +131,8 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       final nativePicked = await _pickWithMaintainiacNativeCamera(
         settings,
         previousSectionGuidePhotoPath: alignmentGuidePhotoPath,
+        previousSectionReasonCode: alignmentReasonCode,
+        previousSectionGuidance: alignmentGuidance,
         previousSectionCoverageDecision: coverageDecision,
       );
       if (nativePicked.wasCanceled) return nativePicked;
@@ -241,6 +247,8 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
   Future<_PickedReceiptPhotos> _pickWithMaintainiacNativeCamera(
     ReceiptCaptureSettingsController? settings, {
     String? previousSectionGuidePhotoPath,
+    String? previousSectionReasonCode,
+    String? previousSectionGuidance,
     ReceiptPhotoCoverageDecision? previousSectionCoverageDecision,
   }) async {
     final permission = await const ReceiptCameraPermission().ensureReady();
@@ -270,8 +278,11 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
           nativeCapabilities: nativeCapabilities,
           previousSectionGuidePhotoPath: previousSectionGuidePhotoPath,
           previousSectionReasonCode:
+              previousSectionReasonCode ??
               previousSectionCoverageDecision?.reasonCode,
-          previousSectionGuidance: previousSectionCoverageDecision?.guidance,
+          previousSectionGuidance:
+              previousSectionGuidance ??
+              previousSectionCoverageDecision?.guidance,
         ),
       );
       if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();

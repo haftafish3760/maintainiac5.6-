@@ -110,6 +110,12 @@ void main() {
       ),
     );
     expect(sources.captureActions, contains('preferredGuidePhotoPath'));
+    expect(sources.captureActions, contains('alignmentReasonCode:'));
+    expect(sources.captureActions, contains('retakeContext?.guidanceCode'));
+    expect(sources.captureActions, contains('alignmentGuidance:'));
+    expect(sources.captureActions, contains('retakeContext?.guidanceText'));
+    expect(sources.captureActions, contains('previousSectionReasonCode:'));
+    expect(sources.captureActions, contains('previousSectionGuidance:'));
     expect(
       sources.captureActions,
       contains('final retakePlan = ReceiptPhotoRetakeOrderPlan.build('),
