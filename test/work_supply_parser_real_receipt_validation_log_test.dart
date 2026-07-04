@@ -39,6 +39,17 @@ void main() {
     expect(result.summary, isNull);
   });
 
+  test('rejects exact merchant labels instead of safe categories', () {
+    final result = buildRealReceiptValidationSummary({
+      'merchant-category': 'lowes_store_1234',
+      'expected-item-family': 'pvc elbow',
+      'result-category': 'review_required',
+    });
+
+    expect(result.error, contains('Unsupported merchant category'));
+    expect(result.summary, isNull);
+  });
+
   test('writes only under build directory', () {
     final outside = runRealReceiptValidationLog([
       '--output',

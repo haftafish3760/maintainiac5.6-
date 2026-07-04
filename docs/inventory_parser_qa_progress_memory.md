@@ -3474,3 +3474,9 @@ Release boundaries:
   Focused scorecard gate passed 81 checks with 0 failures, and targeted analyzer
   found no issues in the edited QA file. The active Core Electrical/HVAC 500
   queue remained running with 0 failed cells during the milestone check.
+- **10:29 Harness Pass 2539:** Tightened private real-receipt validation
+  logging so `--merchant-category` must be one of the safe category buckets
+  instead of an exact merchant/store label. Added a regression for rejected
+  exact merchant labels, kept raw receipt fields blocked, and verified the
+  focused tool tests passed 5/5 plus the real-receipt harness contract passed
+  41 checks with 0 failures. Targeted analyzer found no issues.

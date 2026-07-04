@@ -8,6 +8,21 @@ const _allowedResultCategories = {
   'wrong',
 };
 
+const _allowedMerchantCategories = {
+  'home_improvement_big_box',
+  'hardware_store',
+  'local_hardware',
+  'regional_chain',
+  'plumbing_supply_house',
+  'electrical_supply_house',
+  'hvac_supply_house',
+  'industrial_supply',
+  'farm_ranch_supply',
+  'mass_retailer',
+  'online_supplier',
+  'unknown_merchant',
+};
+
 const _forbiddenArgumentNames = {
   'raw',
   'rawLine',
@@ -91,6 +106,12 @@ RealReceiptValidationSummaryResult buildRealReceiptValidationSummary(
     return RealReceiptValidationSummaryResult.failure(
       'Missing required fields: --merchant-category, '
       '--expected-item-family, --result-category.',
+    );
+  }
+  if (!_allowedMerchantCategories.contains(merchantCategory)) {
+    return RealReceiptValidationSummaryResult.failure(
+      'Unsupported merchant category: $merchantCategory. '
+      'Use a safe category such as ${_allowedMerchantCategories.join(', ')}.',
     );
   }
   if (!_allowedResultCategories.contains(resultCategory)) {
