@@ -116,6 +116,8 @@ List<String> _receiptContinuationHandoffRiskFlagsFor(
       'ocr_source_continuation_ghost_guide_ready',
     if ((counts['ghost_reason_without_prior_photo'] ?? 0) > 0)
       'ocr_source_continuation_reason_without_prior_photo',
+    if ((counts['ghost_guide_visible_missing'] ?? 0) > 0)
+      'ocr_source_continuation_ghost_guide_not_visible_review',
     if ((counts['ghost_policy_bottom_overlap_ghost_at_top_repeat_3_to_5_lines'] ??
             0) >
         0)
@@ -161,6 +163,10 @@ List<String> _ocrSourceContinuationRiskFlagsFor(
     }
     if (ghostStatus == 'ready_with_previous_photo') {
       flags.add('ocr_source_continuation_ghost_guide_ready');
+    }
+    if (ghostStatus == 'ready_with_previous_photo' &&
+        diagnostics['previousSectionGhostGuideVisible'] != true) {
+      flags.add('ocr_source_continuation_ghost_guide_not_visible_review');
     }
     final ghostPolicy = _signalToken(
       _firstContinuationSignalValue(

@@ -80,6 +80,30 @@ extension ReceiptPhotoReviewResultContinuation on ReceiptPhotoReviewResult {
           ghostStatus != 'not_requested') {
         add('ghost_${_diagnosticToken(ghostStatus)}');
       }
+      final guideRequested =
+          _diagnosticBool(diagnostics['previousSectionGuideRequested']) ==
+              true ||
+          _diagnosticBool(
+                diagnostics['phoneCameraBackupHadPreviousSectionGuide'],
+              ) ==
+              true;
+      final ghostGuideAvailable =
+          _diagnosticBool(diagnostics['previousSectionGuidePhotoAvailable']) ==
+          true;
+      final ghostGuideVisible = _diagnosticBool(
+        diagnostics['previousSectionGhostGuideVisible'],
+      );
+      if (ghostGuideVisible == true) {
+        add('ghost_guide_visible');
+      } else if (ghostGuideVisible == false) {
+        add('ghost_guide_hidden');
+      }
+      if (guideRequested &&
+          ghostGuideAvailable &&
+          ghostStatus == 'ready_with_previous_photo' &&
+          ghostGuideVisible != true) {
+        add('ghost_guide_visible_missing');
+      }
       final missingBottomAndTotals =
           _diagnosticBool(
                 diagnostics['previousSectionMissingBottomAndTotals'],

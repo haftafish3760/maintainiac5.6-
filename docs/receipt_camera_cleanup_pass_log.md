@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 661 - 23:26:34 EDT to active cleanup
+
+Scope:
+- Hardened long-receipt continuation handoff summaries so a requested and ready
+  previous-section ghost guide that is not visible becomes explicit
+  `ghost_guide_visible_missing` evidence.
+- Added OCR-source risk flags for hidden/missing ghost-guide UI in both shared
+  capture-flow and attachment-panel handoff paths.
+- Added focused regression coverage proving a ready ghost guide cannot silently
+  look healthy when native UI diagnostics say it was not shown.
+- Repaired the bug-ledger gate taxonomy so existing barcode/QR and camera
+  review-state regression rows validate instead of failing the quality gate.
+- Archived Pass 631 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0176` under `ghost_overlap_stitching` and
+  `BUG-RECEIPT-0177` under `qa_harness`.
+
+Verification:
+- Passed targeted Dart format/analyzer for continuation handoff files.
+- Passed focused Flutter continuation handoff regression.
+
 ## Pass 660 - 23:24:40 EDT to active cleanup
 
 Scope:
@@ -462,22 +482,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer for parser stable-line ID changes.
-- Passed focused Flutter parser handoff structure regression.
-- Passed whitespace check.
-
-## Pass 631 - 22:12:52 EDT to active cleanup
-
-Scope:
-- Hardened OCR parser draft line numbering so malformed signal indexes or direct
-  draft line numbers cannot publish `Line 0`, negative review labels, or unsafe
-  redaction/proof anchors.
-- Routed parser handoff `lineNumberByLineId` through the sanitized line number.
-- Added focused behavior regression coverage for malformed draft and signal line
-  numbers.
-- Archived Pass 621 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0152` under `receipt_line_numbering`.
-
-Verification:
-- Passed targeted Dart format/analyzer for parser line numbering changes.
 - Passed focused Flutter parser handoff structure regression.
 - Passed whitespace check.

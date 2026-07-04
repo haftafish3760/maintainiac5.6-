@@ -211,6 +211,55 @@ void main() {
     );
   });
 
+  test(
+    'ready ghost guide creates review risk when native UI did not show it',
+    () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/hidden-ghost-proof.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/hidden-ghost-ocr.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: const ReceiptStitchResult.notNeeded([
+          '/tmp/hidden-ghost-ocr.jpg',
+        ]),
+        captureDiagnosticsByPhotoPath: const {
+          '/tmp/hidden-ghost-proof.jpg': {
+            'previousSectionGuideRequested': true,
+            'previousSectionGuidePhotoAvailable': true,
+            'previousSectionGhostGuideVisible': false,
+            'previousSectionReasonCode': 'missing_bottom_edge_and_totals',
+            'previousSectionMissingBottomAndTotals': true,
+            'previousSectionGhostGuidePolicy':
+                'bottom_overlap_ghost_at_top_repeat_3_to_5_lines',
+            'receiptContinuationSource': 'ocr_missing_bottom_totals',
+            'receiptContinuationGhostGuideStatus': 'ready_with_previous_photo',
+            'receiptText': 'private receipt text should not leak',
+          },
+        },
+      );
+
+      expect(
+        result.receiptContinuationSignalCounts,
+        containsPair('ghost_guide_visible_missing', 1),
+      );
+      expect(
+        result.privacySafeReceiptContinuationSummary.toString(),
+        isNot(contains('private receipt text')),
+      );
+      final attachment = ReceiptCaptureFlow.attachmentsFromReviewResult(
+        result,
+        ReceiptCaptureFlowModule.expenses,
+      ).single;
+      expect(
+        attachment.riskFlags,
+        contains('ocr_source_continuation_ghost_guide_ready'),
+      );
+      expect(
+        attachment.riskFlags,
+        contains('ocr_source_continuation_ghost_guide_not_visible_review'),
+      );
+    },
+  );
+
   test('continuation guide normalizes missing-bottom reason codes', () {
     final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
       previousPhotoPaths: const [

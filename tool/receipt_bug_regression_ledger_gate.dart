@@ -11,7 +11,9 @@ const _requiredHeaders = [
   'Status',
 ];
 const _allowedCategories = {
+  'barcode_qr_scanning',
   'camera_capture_quality',
+  'camera_review_state',
   'multi_photo_ordering',
   'ghost_overlap_stitching',
   'source_preservation',
