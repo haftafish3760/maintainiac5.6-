@@ -57,6 +57,12 @@ void main() {
       expect(bundle.selectedSubtotal, 17);
       expect(bundle.selectedTax, closeTo(1.36, .001));
       expect(bundle.selectedTotal, closeTo(18.36, .001));
+      expect(bundle.selectedBusinessSubtotal, closeTo(14.5, .001));
+      expect(bundle.selectedBusinessTax, closeTo(1.16, .001));
+      expect(bundle.selectedBusinessTotal, closeTo(15.66, .001));
+      expect(bundle.selectedPersonalSubtotal, closeTo(2.5, .001));
+      expect(bundle.selectedPersonalTax, closeTo(.2, .001));
+      expect(bundle.selectedPersonalTotal, closeTo(2.7, .001));
 
       final local = bundle.toLocalMap();
       expect(local['purpose'], 'invoice');
@@ -64,6 +70,21 @@ void main() {
       expect(local['selectedSubtotal'], 17);
       expect(local['selectedTax'], closeTo(1.36, .001));
       expect(local['selectedTotal'], closeTo(18.36, .001));
+      expect(local['selectedBusinessSubtotal'], closeTo(14.5, .001));
+      expect(local['selectedBusinessTax'], closeTo(1.16, .001));
+      expect(local['selectedBusinessTotal'], closeTo(15.66, .001));
+      expect(local['selectedPersonalSubtotal'], closeTo(2.5, .001));
+      expect(local['selectedPersonalTax'], closeTo(.2, .001));
+      expect(local['selectedPersonalTotal'], closeTo(2.7, .001));
+      final selectedLines = local['selectedLines']! as List<Object?>;
+      final splitMap = selectedLines.last! as Map<String, Object?>;
+      expect(splitMap['lineSubtotal'], 5);
+      expect(splitMap['lineBusinessSubtotal'], 2.5);
+      expect(splitMap['lineBusinessTaxAmount'], closeTo(.2, .001));
+      expect(splitMap['lineBusinessTotal'], closeTo(2.7, .001));
+      expect(splitMap['linePersonalSubtotal'], 2.5);
+      expect(splitMap['linePersonalTaxAmount'], closeTo(.2, .001));
+      expect(splitMap['linePersonalTotal'], closeTo(2.7, .001));
       expect(local.toString(), contains('lineSubtotal'));
       expect(local.toString(), contains('RCP-9-L1'));
     },
@@ -110,6 +131,8 @@ void main() {
       expect(safe['excludedLineCount'], 1);
       expect(safe['hasSelectedSubtotal'], isTrue);
       expect(safe['hasSelectedTotal'], isTrue);
+      expect(safe['hasSelectedBusinessTotal'], isTrue);
+      expect(safe['hasSelectedPersonalTotal'], isFalse);
       expect(safe.toString(), contains('RCP-10-L1'));
       expect(safe.toString(), contains('Line 1'));
       expect(safe.toString(), isNot(contains('HOME DEPOT')));

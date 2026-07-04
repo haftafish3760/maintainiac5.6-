@@ -55,6 +55,13 @@ class ReceiptSelectedLineReference {
   final bool needsParserReview;
   final bool needsClientProofReview;
 
+  double get lineBusinessSubtotal => lineSubtotal * businessPercent;
+  double get lineBusinessTaxAmount => lineTaxAmount * businessPercent;
+  double get lineBusinessTotal => lineTotal * businessPercent;
+  double get linePersonalSubtotal => lineSubtotal * personalPercent;
+  double get linePersonalTaxAmount => lineTaxAmount * personalPercent;
+  double get linePersonalTotal => lineTotal * personalPercent;
+
   bool get redactsFromClientProofByDefault {
     return clientProofDefaultVisibility ==
         ReceiptLineClientProofVisibility.redactByDefault;
@@ -81,6 +88,12 @@ class ReceiptSelectedLineReference {
       'lineSubtotal': lineSubtotal,
       'lineTaxAmount': lineTaxAmount,
       'lineTotal': lineTotal,
+      'lineBusinessSubtotal': lineBusinessSubtotal,
+      'lineBusinessTaxAmount': lineBusinessTaxAmount,
+      'lineBusinessTotal': lineBusinessTotal,
+      'linePersonalSubtotal': linePersonalSubtotal,
+      'linePersonalTaxAmount': linePersonalTaxAmount,
+      'linePersonalTotal': linePersonalTotal,
       'needsParserReview': needsParserReview,
       'needsClientProofReview': needsClientProofReview,
     };
@@ -103,6 +116,8 @@ class ReceiptSelectedLineReference {
           sourceReceiptSectionLabel,
         ),
       'hasAmount': lineTotal > 0 || lineSubtotal > 0,
+      'hasBusinessAmount': lineBusinessTotal > 0 || lineBusinessSubtotal > 0,
+      'hasPersonalAmount': linePersonalTotal > 0 || linePersonalSubtotal > 0,
       'needsParserReview': needsParserReview,
       'needsClientProofReview': needsClientProofReview,
     };
@@ -183,6 +198,48 @@ class ReceiptLineSelectionBundle {
     );
   }
 
+  double get selectedBusinessSubtotal {
+    return selectedLines.fold<double>(
+      0,
+      (total, line) => total + line.lineBusinessSubtotal,
+    );
+  }
+
+  double get selectedBusinessTax {
+    return selectedLines.fold<double>(
+      0,
+      (total, line) => total + line.lineBusinessTaxAmount,
+    );
+  }
+
+  double get selectedBusinessTotal {
+    return selectedLines.fold<double>(
+      0,
+      (total, line) => total + line.lineBusinessTotal,
+    );
+  }
+
+  double get selectedPersonalSubtotal {
+    return selectedLines.fold<double>(
+      0,
+      (total, line) => total + line.linePersonalSubtotal,
+    );
+  }
+
+  double get selectedPersonalTax {
+    return selectedLines.fold<double>(
+      0,
+      (total, line) => total + line.linePersonalTaxAmount,
+    );
+  }
+
+  double get selectedPersonalTotal {
+    return selectedLines.fold<double>(
+      0,
+      (total, line) => total + line.linePersonalTotal,
+    );
+  }
+
   bool get hasSelectedLines => selectedLines.isNotEmpty;
   bool get needsClientProofReview => reviewBeforeShareCount > 0;
 
@@ -198,6 +255,12 @@ class ReceiptLineSelectionBundle {
       'selectedSubtotal': selectedSubtotal,
       'selectedTax': selectedTax,
       'selectedTotal': selectedTotal,
+      'selectedBusinessSubtotal': selectedBusinessSubtotal,
+      'selectedBusinessTax': selectedBusinessTax,
+      'selectedBusinessTotal': selectedBusinessTotal,
+      'selectedPersonalSubtotal': selectedPersonalSubtotal,
+      'selectedPersonalTax': selectedPersonalTax,
+      'selectedPersonalTotal': selectedPersonalTotal,
       'selectedLines': selectedLines
           .map((line) => line.toLocalMap())
           .toList(growable: false),
@@ -216,6 +279,8 @@ class ReceiptLineSelectionBundle {
       'hasSelectedSubtotal': selectedSubtotal > 0,
       'hasSelectedTax': selectedTax > 0,
       'hasSelectedTotal': selectedTotal > 0,
+      'hasSelectedBusinessTotal': selectedBusinessTotal > 0,
+      'hasSelectedPersonalTotal': selectedPersonalTotal > 0,
       'selectedLineReferences': selectedLines
           .map((line) => line.toPrivacySafeMap())
           .toList(growable: false),
@@ -271,6 +336,14 @@ class ReceiptMultiReceiptSelectionBundle {
     0,
     (total, bundle) => total + bundle.selectedTotal,
   );
+  double get selectedBusinessTotal => receiptBundles.fold<double>(
+    0,
+    (total, bundle) => total + bundle.selectedBusinessTotal,
+  );
+  double get selectedPersonalTotal => receiptBundles.fold<double>(
+    0,
+    (total, bundle) => total + bundle.selectedPersonalTotal,
+  );
   bool get hasSelectedLines => selectedLineCount > 0;
   bool get needsClientProofReview => reviewBeforeShareCount > 0;
   bool get hasHiddenClientProofLines =>
@@ -291,6 +364,8 @@ class ReceiptMultiReceiptSelectionBundle {
       'hasSelectedSubtotal': selectedSubtotal > 0,
       'hasSelectedTax': selectedTax > 0,
       'hasSelectedTotal': selectedTotal > 0,
+      'hasSelectedBusinessTotal': selectedBusinessTotal > 0,
+      'hasSelectedPersonalTotal': selectedPersonalTotal > 0,
       'needsClientProofReview': needsClientProofReview,
       'hasHiddenClientProofLines': hasHiddenClientProofLines,
       'receiptBundles': receiptBundles

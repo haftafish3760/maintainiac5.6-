@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 688 - 00:46:49 EDT to active cleanup
+
+Scope:
+- Added explicit business and personal allocated subtotal, tax, and total
+  values to selected receipt line references while preserving raw receipt
+  totals for audit.
+- Exposed selected business/personal totals on receipt selection bundles and
+  privacy-safe readiness maps so split lines cannot be mistaken for all-business
+  amounts downstream.
+- Added regression coverage for a 50/50 split receipt line in the invoice/client
+  proof selection contract.
+- Recorded `BUG-RECEIPT-0175` under `business_personal_split`.
+- Archived Pass 617 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for receipt line selection contracts.
+- Passed focused Flutter receipt processing contract regression.
+- Passed cleanup log, doc size, bug ledger, source audit, tests-only source
+  audit, and diff whitespace gates.
+
 ## Pass 687 - 00:45:35 EDT to active cleanup
 
 Scope:
@@ -472,21 +492,4 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for retake-order planning.
 - Passed focused Flutter receipt photo retake/order regressions.
-- Passed cleanup log, doc size, source audit, and diff whitespace gates.
-
-## Pass 617 - 21:39:59 EDT to active cleanup
-
-Scope:
-- Hardened native Android and iOS optional auto capture so shadow-risk or
-  dirty-lens/haze readability guidance holds auto capture back.
-- Added native `waiting_for_quality_review` status and mapped it to
-  `manual_only_quality_review` diagnostics on both platforms.
-- Kept manual capture available while preventing automatic capture from firing
-  on frames that need user review.
-- Added Android and iOS source-contract regressions for the new holdback.
-- Recorded `BUG-RECEIPT-0138` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart analyzer for native auto-capture source-contract tests.
-- Passed focused Flutter Android/iOS native auto-capture/settings regressions.
 - Passed cleanup log, doc size, source audit, and diff whitespace gates.
