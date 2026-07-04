@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 684 - 00:36:27 EDT to active cleanup
+
+Scope:
+- Hardened long-receipt stitch input validation so normalized aliases of the
+  same receipt section cannot be treated as separate stitch inputs.
+- Reused the shared receipt photo path identity guard for stitch duplicate
+  detection, aligning stitching with retake/order path safety.
+- Added a stitching regression for duplicate input aliases that include
+  normalized path traversal.
+- Archived Pass 657 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0200` under `ghost_overlap_stitching`.
+
+Verification:
+- Passed targeted Dart format/analyzer for stitch processor files.
+- Passed focused Flutter receipt stitching regressions.
+
 ## Pass 683 - 00:34:45 EDT to active cleanup
 
 Scope:
@@ -468,19 +484,3 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for result-level native UI health files.
 - Passed focused Flutter native UI ready/health regressions.
-
-## Pass 657 - 23:19:08 EDT to active cleanup
-
-Scope:
-- Added `readability_guidance` to Android and iOS visible-control diagnostics
-  when live readability guidance is active.
-- Updated native bridge source regressions and the result-level UI-ready fixture
-  so admin/review diagnostics can prove the user-facing readability guidance
-  surface was present.
-- Recorded `BUG-RECEIPT-0173` under `camera_capture_quality`.
-- Archived Pass 618 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native bridge UI contract tests.
-- Passed focused Flutter Android bridge, iOS bridge, and native UI-ready
-  regressions.

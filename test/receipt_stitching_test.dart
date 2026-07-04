@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'helpers/receipt_stitching_image_helpers.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
@@ -81,6 +82,31 @@ void main() {
     expect(result.didStitch, isFalse);
     expect(result.ocrSourcePaths, [source.path, source.path]);
   });
+
+  test(
+    'stitching rejects normalized duplicate receipt section aliases',
+    () async {
+      final section = receiptStitchingSection(seed: 91, topTextOffset: 0);
+      final source = await writeTempReceiptStitchingImage(
+        section,
+        'duplicate_input_alias',
+      );
+      final aliasedPath = p.join(
+        p.dirname(source.path),
+        'nested',
+        '..',
+        p.basename(source.path),
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [source.path, aliasedPath],
+      );
+
+      expect(result.usedFallback, isTrue);
+      expect(result.fallbackReasonCode, 'duplicate_input_paths');
+      expect(result.didStitch, isFalse);
+    },
+  );
 
   test('stitches receipt sections when the next photo is closer', () async {
     final sectionA = receiptStitchingSection(seed: 40, topTextOffset: 0);

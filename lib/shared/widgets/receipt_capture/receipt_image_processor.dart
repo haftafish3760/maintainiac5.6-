@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 
 import 'receipt_capture_models.dart';
+import 'receipt_photo_path_identity.dart';
 
 part 'receipt_image_processor_models.dart';
 part 'receipt_image_processor_source_prep.dart';
