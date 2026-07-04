@@ -322,7 +322,35 @@ void _addPhotoQualityChecks({
       quality.needsReview == fixture.expectedPhotoNeedsReview,
     );
   }
+  if (fixture.expectedPhotoLightLabel != null) {
+    addCheck(
+      'photo_quality_light_label_matched',
+      quality.lightLabel == fixture.expectedPhotoLightLabel,
+    );
+  }
+  if (fixture.expectedPhotoFocusLabel != null) {
+    addCheck(
+      'photo_quality_focus_label_matched',
+      quality.focusLabel == fixture.expectedPhotoFocusLabel,
+    );
+  }
+  for (final needle in fixture.expectedPhotoWarningNeedles) {
+    addCheck(
+      'photo_quality_warning_text_matched',
+      _containsTextNeedle(quality.qualityWarnings.join(' '), needle),
+    );
+  }
+  for (final needle in fixture.expectedPhotoGuidanceNeedles) {
+    addCheck(
+      'photo_quality_guidance_text_matched',
+      _containsTextNeedle(quality.reviewGuidance, needle),
+    );
+  }
   addCheck('photo_quality_warning_present', quality.qualityWarnings.isNotEmpty);
+}
+
+bool _containsTextNeedle(String haystack, String needle) {
+  return haystack.toLowerCase().contains(needle.toLowerCase());
 }
 
 void _addDeviceStorageBudgetChecks({

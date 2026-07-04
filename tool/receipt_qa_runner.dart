@@ -213,6 +213,10 @@ class _ReceiptQaFixture {
     this.expectedPhotoShouldRetakeBeforeOcr,
     this.expectedPhotoCanContinueWithReview,
     this.expectedPhotoNeedsReview,
+    this.expectedPhotoLightLabel,
+    this.expectedPhotoFocusLabel,
+    this.expectedPhotoWarningNeedles = const [],
+    this.expectedPhotoGuidanceNeedles = const [],
     this.expectedSensitiveLineCount,
     this.expectedTenderPrivacyLineCount,
     this.expectedAddressContactLineCount,
@@ -286,6 +290,10 @@ class _ReceiptQaFixture {
   final bool? expectedPhotoShouldRetakeBeforeOcr;
   final bool? expectedPhotoCanContinueWithReview;
   final bool? expectedPhotoNeedsReview;
+  final String? expectedPhotoLightLabel;
+  final String? expectedPhotoFocusLabel;
+  final List<String> expectedPhotoWarningNeedles;
+  final List<String> expectedPhotoGuidanceNeedles;
   final int? expectedSensitiveLineCount;
   final int? expectedTenderPrivacyLineCount;
   final int? expectedAddressContactLineCount;

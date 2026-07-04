@@ -25,6 +25,10 @@ final _damagedOcrReceiptQaFixtures = [
     expectedPhotoShouldRetakeBeforeOcr: true,
     expectedPhotoCanContinueWithReview: false,
     expectedPhotoNeedsReview: true,
+    expectedPhotoLightLabel: 'light OK',
+    expectedPhotoFocusLabel: 'may be blurry',
+    expectedPhotoWarningNeedles: const ['blurry'],
+    expectedPhotoGuidanceNeedles: const ['Hold steady', 'refocus'],
     text: '''
 PILOT TRAVEL CENTER
 06/17/2026
@@ -59,6 +63,10 @@ TOTAL 58.44
     expectedPhotoShouldRetakeBeforeOcr: true,
     expectedPhotoCanContinueWithReview: false,
     expectedPhotoNeedsReview: true,
+    expectedPhotoLightLabel: 'glare/too bright',
+    expectedPhotoFocusLabel: 'sharp',
+    expectedPhotoWarningNeedles: const ['glare', 'too bright'],
+    expectedPhotoGuidanceNeedles: const ['Reduce glare', 'tilting'],
     text: '''
 CASEY'S GENERAL STORE
 06/18/2026
@@ -94,6 +102,10 @@ TOTAL 31.20
     expectedPhotoShouldRetakeBeforeOcr: false,
     expectedPhotoCanContinueWithReview: true,
     expectedPhotoNeedsReview: true,
+    expectedPhotoLightLabel: 'light OK',
+    expectedPhotoFocusLabel: 'sharp',
+    expectedPhotoWarningNeedles: const ['every receipt line'],
+    expectedPhotoGuidanceNeedles: const ['every line', 'part of the receipt'],
     text: '''
 LOWE'S HOME IMPROVEMENT
 06/19/2026
@@ -129,6 +141,10 @@ TOTAL 17.96
     expectedPhotoShouldRetakeBeforeOcr: false,
     expectedPhotoCanContinueWithReview: true,
     expectedPhotoNeedsReview: true,
+    expectedPhotoLightLabel: 'light OK',
+    expectedPhotoFocusLabel: 'usable',
+    expectedPhotoWarningNeedles: const ['low contrast', 'hard to detect'],
+    expectedPhotoGuidanceNeedles: const ['printed text', 'stands out'],
     text: '''
 QUICK LUBE
 06/20/2026
