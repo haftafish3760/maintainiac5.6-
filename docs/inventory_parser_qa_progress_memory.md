@@ -3608,3 +3608,10 @@ Release boundaries:
   mirror only, and parser QA stays local-only with no live Firebase writes.
   Focused `inventory.hive_authority_contract,inventory.hive_firestore_sync_contract,inventory.cloud_local_mode_contract,qa.threshold_gate`
   passed 139 checks with 0 failures, and targeted analyzer found no issues.
+- **11:44 Harness Pass 2674:** Made input-attack surface contract matching
+  whitespace-safe while preserving hostile-input/security coverage for search,
+  receipt lines, aliases, merchant/SKU/barcode text, imports, admin filters,
+  path/injection/control-character/private-looking payloads, and protected
+  destinations. Focused
+  `inventory.input_attack_surface_contract,inventory.security_privacy,qa.threshold_gate`
+  passed 151 checks with 0 failures, and targeted analyzer found no issues.
