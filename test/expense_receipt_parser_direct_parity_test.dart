@@ -153,15 +153,19 @@ THANK YOU
 
       final proof = layout.redactionPlanForLineNumbers({
         4,
+        999999,
       }, keepMerchantContext: true);
 
       expect(proof.visibleLineNumbers, containsAll(<int>[1, 4]));
+      expect(proof.visibleLineNumbers, isNot(contains(999999)));
+      expect(proof.ignoredLineNumbers, {999999});
+      expect(proof.ignoredUnknownLines, isTrue);
       expect(proof.hiddenLineNumbers, containsAll(<int>[5, 8, 9, 10]));
       expect(proof.keepsMerchantContext, isTrue);
       expect(proof.keepsTotalsContext, isFalse);
       expect(proof.protectedContentTypes, contains('payment_info'));
       expect(proof.protectedContentTypes, contains('transaction_info'));
-      expect(proof.summaryCode, startsWith('receipt_redaction:'));
+      expect(proof.summaryCode, contains(':1-ignored:'));
 
       final proofWithTotals = layout.redactionPlanForLineNumbers(
         {4},
@@ -233,6 +237,7 @@ THANK YOU
     final proof = layout.redactionPlanForLineNumbers({-4});
 
     expect(proof.visibleLineNumbers, isEmpty);
+    expect(proof.ignoredLineNumbers, isEmpty);
     expect(proof.hiddenLineNumbers, {1, 2});
     expect(
       proof.hiddenAnchorCodes,

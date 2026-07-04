@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 691 - 00:52:13 EDT to active cleanup
+
+Scope:
+- Hardened receipt layout redaction plans so positive selected line numbers that
+  do not exist in the current OCR/layout map cannot be counted as visible.
+- Added ignored-line diagnostics for unknown positive redaction requests while
+  keeping malformed nonpositive requests dropped.
+- Added regression coverage for a phantom selected line number that must not
+  create a visible line or anchor.
+- Recorded `BUG-RECEIPT-0178` under `privacy_redaction`.
+- Archived Pass 630 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for receipt layout redaction.
+- Passed focused Flutter direct parser/layout redaction regression.
+- Passed cleanup log, doc size, bug ledger, source audit, tests-only source
+  audit, and diff whitespace gates.
+
 ## Pass 690 - 00:50:48 EDT to active cleanup
 
 Scope:
@@ -473,19 +491,4 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for parser line numbering changes.
 - Passed focused Flutter parser handoff structure regression.
-- Passed whitespace check.
-
-## Pass 630 - 22:11:18 EDT to active cleanup
-
-Scope:
-- Hardened native ghost-guide session getters so direct malformed non-finite
-  values fall back to safe long-receipt overlap defaults before native handoff.
-- Added focused behavior regression coverage for direct session config `NaN` and
-  infinity ghost-guide values.
-- Archived Pass 620 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0151` under `ghost_overlap_stitching`.
-
-Verification:
-- Passed targeted Dart format/analyzer for native ghost-guide session changes.
-- Passed focused Flutter native camera session limits regression.
 - Passed whitespace check.

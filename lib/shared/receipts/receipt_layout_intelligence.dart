@@ -107,6 +107,7 @@ class ReceiptLineRedactionPlan {
   const ReceiptLineRedactionPlan({
     required this.visibleLineNumbers,
     required this.hiddenLineNumbers,
+    required this.ignoredLineNumbers,
     required this.visibleAnchorCodes,
     required this.hiddenAnchorCodes,
     required this.protectedContentTypes,
@@ -116,6 +117,7 @@ class ReceiptLineRedactionPlan {
 
   final Set<int> visibleLineNumbers;
   final Set<int> hiddenLineNumbers;
+  final Set<int> ignoredLineNumbers;
   final List<String> visibleAnchorCodes;
   final List<String> hiddenAnchorCodes;
   final Set<String> protectedContentTypes;
@@ -124,13 +126,15 @@ class ReceiptLineRedactionPlan {
 
   bool get hidesUnselectedLines => hiddenLineNumbers.isNotEmpty;
   bool get protectsPrivateContent => protectedContentTypes.isNotEmpty;
+  bool get ignoredUnknownLines => ignoredLineNumbers.isNotEmpty;
 
   String get summaryCode {
     final visible = visibleLineNumbers.length;
     final hidden = hiddenLineNumbers.length;
+    final ignored = ignoredLineNumbers.length;
     final context = keepsMerchantContext ? 'merchant_context' : 'line_only';
     final totals = keepsTotalsContext ? 'totals_context' : 'totals_hidden';
-    return 'receipt_redaction:$visible-visible:$hidden-hidden:$context:$totals';
+    return 'receipt_redaction:$visible-visible:$hidden-hidden:$ignored-ignored:$context:$totals';
   }
 }
 
@@ -210,9 +214,18 @@ class ReceiptLayoutMap {
     bool keepMerchantContext = true,
     bool keepTotalsContext = false,
   }) {
-    final visible = <int>{
+    final knownLineNumbers = {for (final line in lines) line.safeLineNumber};
+    final requested = <int>{
       for (final lineNumber in selectedLineNumbers)
         if (lineNumber > 0) lineNumber,
+    };
+    final visible = <int>{
+      for (final lineNumber in requested)
+        if (knownLineNumbers.contains(lineNumber)) lineNumber,
+    };
+    final ignored = <int>{
+      for (final lineNumber in requested)
+        if (!knownLineNumbers.contains(lineNumber)) lineNumber,
     };
     final merchant = merchantLine;
     if (keepMerchantContext && merchant != null) {
@@ -254,6 +267,7 @@ class ReceiptLayoutMap {
     return ReceiptLineRedactionPlan(
       visibleLineNumbers: Set.unmodifiable(visible),
       hiddenLineNumbers: Set.unmodifiable(hidden),
+      ignoredLineNumbers: Set.unmodifiable(ignored),
       visibleAnchorCodes: List.unmodifiable(visibleAnchors),
       hiddenAnchorCodes: List.unmodifiable(hiddenAnchors),
       protectedContentTypes: Set.unmodifiable(protectedTypes),
