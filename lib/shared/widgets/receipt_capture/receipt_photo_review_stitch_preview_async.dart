@@ -12,9 +12,18 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
     }
     if (needed == 0) {
       _selectedStitchPairIndex = 0;
+    } else if (_selectedStitchPairIndex < 0) {
+      _selectedStitchPairIndex = 0;
     } else if (_selectedStitchPairIndex >= needed) {
       _selectedStitchPairIndex = needed - 1;
     }
+  }
+
+  void _selectStitchPairIndex(int index) {
+    _syncManualOverlapSlots();
+    final maxPairIndex = _manualOverlapFractions.length - 1;
+    final selected = maxPairIndex < 0 ? 0 : index.clamp(0, maxPairIndex);
+    _updateReviewState(() => _selectedStitchPairIndex = selected);
   }
 
   void _setManualOverlapFraction(double value) {

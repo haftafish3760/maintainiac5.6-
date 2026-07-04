@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 647 - 22:45:26 EDT to active cleanup
+
+Scope:
+- Hardened long-receipt stitch-pair state so UI/control changes cannot pass
+  negative or overflow pair indexes into manual overlap review.
+- Routed pair selection through a clamped helper and repaired negative recovery
+  state before overlap arrays are indexed.
+- Added focused lifecycle regression coverage for the bounded callback path.
+- Recorded `BUG-RECEIPT-0165` under `camera_review_state`.
+- Archived Pass 609 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for stitch-pair state and lifecycle
+  regression.
+- Passed focused Flutter receipt photo review async lifecycle regression.
+
 ## Pass 646 - 22:43:38 EDT to active cleanup
 
 Scope:
@@ -462,20 +478,3 @@ Verification:
 - Passed targeted Dart format/analyzer for OCR source handoff review,
   diagnostics helpers, and OCR service regressions.
 - Passed focused Flutter OCR service and OCR source-quality regressions.
-
-## Pass 609 - 21:18:35 EDT to active cleanup
-
-Scope:
-- Hardened Flutter receipt capture evidence so saved-photo brightness buckets
-  use the same `captured_*` vocabulary as native Android/iOS diagnostics.
-- Fixed preview-parity warning precedence so direct saved-photo glare evidence
-  surfaces as glare guidance instead of a generic brighter-than-preview warning.
-- Added regression coverage proving dark and glare saved photos from shared
-  capture evidence create the correct review warnings.
-- Recorded `BUG-RECEIPT-0130` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart format/analyzer for receipt capture diagnostics, saved
-  photo warnings, and focused regression tests.
-- Passed focused Flutter regressions for best-shot capture diagnostics,
-  saved-photo warning diagnostics, and native quality handoff.

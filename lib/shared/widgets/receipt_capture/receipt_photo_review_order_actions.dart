@@ -138,7 +138,9 @@ extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
         _selectedIndex = _photoPaths.length - 1;
       }
       final maxPairIndex = _photoPaths.length <= 1 ? 0 : _photoPaths.length - 2;
-      if (_selectedStitchPairIndex > maxPairIndex) {
+      if (_selectedStitchPairIndex < 0) {
+        _selectedStitchPairIndex = 0;
+      } else if (_selectedStitchPairIndex > maxPairIndex) {
         _selectedStitchPairIndex = maxPairIndex;
       }
       _reviewMode = _photoPaths.length > 1

@@ -124,6 +124,26 @@ void main() {
       reviewScreen,
       contains('void _releaseStaleStitchPreview(String key)'),
     );
+    expect(reviewScreen, contains('void _selectStitchPairIndex(int index)'));
+    expect(
+      reviewScreen,
+      contains(
+        'final selected = maxPairIndex < 0 ? 0 : index.clamp(0, maxPairIndex);',
+      ),
+    );
+    expect(reviewScreen, contains('if (_selectedStitchPairIndex < 0)'));
+    expect(
+      reviewScreen,
+      isNot(
+        contains(
+          'onStitchPairSelected: (index) =>\n          _updateReviewState(() => _selectedStitchPairIndex = index)',
+        ),
+      ),
+    );
+    expect(
+      reviewScreen,
+      contains('onStitchPairSelected: _selectStitchPairIndex'),
+    );
     expect(
       reviewScreen,
       contains('_releaseStaleStitchPreview(key);\n        return;'),

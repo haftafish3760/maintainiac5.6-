@@ -29,8 +29,7 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
       onDataSaverSelected: (level) =>
           _updateReviewState(() => _dataSaverLevel = level),
       onModeChanged: _setReviewMode,
-      onStitchPairSelected: (index) =>
-          _updateReviewState(() => _selectedStitchPairIndex = index),
+      onStitchPairSelected: _selectStitchPairIndex,
       onManualOverlapChanged: _setManualOverlapFraction,
       onClearManualOverlap: _clearManualOverlapFraction,
       onMoveEarlier: () => moveCurrentReceiptPhoto(-1),
