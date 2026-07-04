@@ -128,6 +128,13 @@ Focused rerun routes for recently hardened release-one contracts:
   `inventory.input_attack_surface_contract,inventory.security_privacy,qa.threshold_gate`
   then passed 121 checks, 0 failures. Analyzer passed for both the harness
   contract and behavior test.
+- Passes 2114-2118 expanded `inventory.security_privacy` with executable
+  parser-input abuse probes for `csv_formula`, `url_like`, `command_like`,
+  `malformed_structured_text`, `environment_variable`, and
+  `private_payment_like` risk families. The focused harness shard
+  `inventory.security_privacy,inventory.input_attack_surface_contract,qa.threshold_gate`
+  passed 133 checks, 0 failures. Analyzer passed for
+  `work_supply_parser_security_qa.dart`.
 
 ## 2026-07-04 Whole-App Parser Adapter Registry And Surgical Routing
 

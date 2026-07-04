@@ -82,6 +82,51 @@ class WorkSupplyParserSecurityPrivacySuite extends QaSuite {
       expectedSignals: const ['longToken', 'boundedPreview'],
     ),
     _TextAbuseProbe(
+      id: 'csv_formula_inventory_line',
+      riskType: 'csv_formula',
+      line: '=HYPERLINK("http://evil.example","3/4 PVC COUPLING")',
+      expectedSignals: const [
+        'csvFormula',
+        'injectionLike',
+        'urlLike',
+        'boundedPreview',
+      ],
+    ),
+    _TextAbuseProbe(
+      id: 'local_admin_url_payload',
+      riskType: 'url_like',
+      line: 'J BOX http://127.0.0.1:8080/admin',
+      expectedSignals: const ['urlLike', 'localAddressLike', 'boundedPreview'],
+    ),
+    _TextAbuseProbe(
+      id: 'command_looking_payload',
+      riskType: 'command_like',
+      line: 'PVC 90 3/4 && powershell -NoProfile Invoke-WebRequest bad',
+      expectedSignals: const ['commandLike', 'boundedPreview'],
+    ),
+    _TextAbuseProbe(
+      id: 'malformed_json_payload',
+      riskType: 'malformed_structured_text',
+      line: '{"sku":"PVC-90","qty":',
+      expectedSignals: const ['malformedStructuredText', 'boundedPreview'],
+    ),
+    _TextAbuseProbe(
+      id: 'environment_variable_path_payload',
+      riskType: 'environment_variable',
+      line: r'%USERPROFILE%\Documents\service-account.json',
+      expectedSignals: const [
+        'environmentVariable',
+        'pathLike',
+        'boundedPreview',
+      ],
+    ),
+    _TextAbuseProbe(
+      id: 'private_payment_like_material_line',
+      riskType: 'private_payment_like',
+      line: 'FILT 20X25X1 card 4111111111111111',
+      expectedSignals: const ['privatePaymentLike', 'boundedPreview'],
+    ),
+    _TextAbuseProbe(
       id: 'dirty_pex_elbow_material',
       riskType: 'ocr_dirty_text',
       line: 'PFX E18 I/2 BR',
@@ -291,6 +336,12 @@ const _requiredRiskTypes = {
   'path_like',
   'injection_like',
   'long_token',
+  'csv_formula',
+  'url_like',
+  'command_like',
+  'malformed_structured_text',
+  'environment_variable',
+  'private_payment_like',
   'ocr_dirty_text',
 };
 
@@ -327,6 +378,15 @@ _SanitizedAbuseProbe _sanitizeAbuseProbe(
   }
   if (_looksPathLike(line)) signals.add('pathLike');
   if (_looksInjectionLike(line)) signals.add('injectionLike');
+  if (_looksCsvFormula(line)) signals.add('csvFormula');
+  if (_looksUrlLike(line)) signals.add('urlLike');
+  if (_looksLocalAddressLike(line)) signals.add('localAddressLike');
+  if (_looksCommandLike(line)) signals.add('commandLike');
+  if (_looksMalformedStructuredText(line)) {
+    signals.add('malformedStructuredText');
+  }
+  if (_looksEnvironmentVariable(line)) signals.add('environmentVariable');
+  if (_looksPrivatePaymentLike(line)) signals.add('privatePaymentLike');
   if (line.split(RegExp(r'\s+')).any((token) => token.length > 96)) {
     signals.add('longToken');
   }
@@ -368,7 +428,8 @@ bool _looksPathLike(String value) {
       lower.contains('../') ||
       lower.contains('..\\') ||
       lower.contains('/firebase/') ||
-      lower.contains('service-account');
+      lower.contains('service-account') ||
+      lower.contains(r'%userprofile%');
 }
 
 bool _looksInjectionLike(String value) {
@@ -377,7 +438,56 @@ bool _looksInjectionLike(String value) {
       lower.contains('<script') ||
       lower.contains(r'${jndi:') ||
       lower.contains('ldap://') ||
-      lower.contains('--');
+      lower.contains('--') ||
+      lower.contains('hyperlink(');
+}
+
+bool _looksCsvFormula(String value) {
+  final trimmed = value.trimLeft();
+  return trimmed.startsWith('=') ||
+      trimmed.startsWith('+') ||
+      trimmed.startsWith('-') ||
+      trimmed.startsWith('@');
+}
+
+bool _looksUrlLike(String value) {
+  final lower = value.toLowerCase();
+  return lower.contains('http://') ||
+      lower.contains('https://') ||
+      lower.contains('ldap://');
+}
+
+bool _looksLocalAddressLike(String value) {
+  final lower = value.toLowerCase();
+  return lower.contains('127.0.0.1') ||
+      lower.contains('localhost') ||
+      lower.contains('0.0.0.0');
+}
+
+bool _looksCommandLike(String value) {
+  final lower = value.toLowerCase();
+  return lower.contains('powershell') ||
+      lower.contains('cmd.exe') ||
+      lower.contains('invoke-webrequest') ||
+      lower.contains('&&');
+}
+
+bool _looksMalformedStructuredText(String value) {
+  final trimmed = value.trim();
+  return (trimmed.startsWith('{') && !trimmed.endsWith('}')) ||
+      (trimmed.startsWith('[') && !trimmed.endsWith(']')) ||
+      trimmed.contains('unterminated');
+}
+
+bool _looksEnvironmentVariable(String value) {
+  final lower = value.toLowerCase();
+  return lower.contains(r'%userprofile%') ||
+      lower.contains(r'${') ||
+      lower.contains(r'$env:');
+}
+
+bool _looksPrivatePaymentLike(String value) {
+  return RegExp(r'\b\d{13,19}\b').hasMatch(value);
 }
 
 bool _looksDirtyMaterialText(String value) {
