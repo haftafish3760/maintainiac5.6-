@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 697 - 01:23:00 EDT to active cleanup
+
+Scope:
+- Removed stale active handoff wording that still said users can tap to focus
+  during the production receipt camera flow.
+- Replaced it with continuous autofocus/readability guidance plus pinch zoom,
+  brightness/exposure, and torch controls where supported.
+- Extended the active camera docs focus-policy regression to cover the long
+  2026-07-03 receipt camera handoff and reject tap-to-focus flow wording.
+- Recorded `BUG-RECEIPT-0184` under `camera_capture_quality`.
+- Archived Pass 637 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart analyzer for the active camera docs focus-policy test.
+- Passed focused Flutter active camera docs focus-policy regression.
+
 ## Pass 696 - 01:18:00 EDT to active cleanup
 
 Scope:
@@ -477,22 +493,3 @@ Verification:
   controls expected without actual readiness; fixed the fixture before moving on.
 - Passed targeted Dart format for native UI health code changes.
 - Passed focused Flutter native UI health regression.
-
-## Pass 637 - 22:24:03 EDT to active cleanup
-
-Scope:
-- Hardened client-proof receipt line privacy maps so malformed line IDs and
-  proof reference labels cannot leak receipt text into future redaction plans.
-- Added reusable privacy-safe line ID and proof-line label guards while keeping
-  normal labels like `Line 1` intact.
-- Added focused regression coverage across line proof references, selected-line
-  bundles, and redaction plans.
-- Recorded `BUG-RECEIPT-0158` under `privacy_redaction`.
-
-Verification:
-- First focused test run exposed a missed selected-line privacy map boundary;
-  fixed that before moving on.
-- Passed targeted Dart format/analyzer for client-proof line reference guards.
-- Passed focused Flutter receipt processing contract regression.
-- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
-  check.

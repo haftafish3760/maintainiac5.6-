@@ -179,8 +179,8 @@ The intended receipt camera flow is:
 4. Manual shutter always works unless the camera is unavailable/busy/closing or
    the surface is inactive.
 5. Optional auto capture may help only when enabled and safe.
-6. User can tap to focus, pinch zoom, adjust brightness/exposure, and use torch
-   when supported.
+6. User gets continuous autofocus/readability guidance, can pinch zoom, adjust
+   brightness/exposure, and use torch when supported.
 7. User captures one receipt photo or multiple ordered sections.
 8. Long receipt continuation shows previous-section ghost/overlap guidance where
    practical.

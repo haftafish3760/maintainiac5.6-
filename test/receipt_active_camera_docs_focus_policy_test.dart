@@ -10,6 +10,7 @@ void main() {
       'docs/receipt_camera_ocr_state_of_art_spec.md',
       'docs/receipt_camera_ocr_pipeline_handoff_report.md',
       'docs/receipt_native_camera_service_spec.md',
+      'docs/receipt_camera_ocr_handoff_2026_07_03.md',
     ];
 
     for (final path in activeDocs) {
@@ -29,6 +30,11 @@ void main() {
         text,
         isNot(contains('tap the receipt text')),
         reason: '$path must not ask users to tap receipt text for focus.',
+      );
+      expect(
+        text,
+        isNot(contains('tap to focus')),
+        reason: '$path must not list tap-to-focus behavior as active flow.',
       );
       expect(
         text,
