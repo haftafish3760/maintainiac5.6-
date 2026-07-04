@@ -57,11 +57,20 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
         actual: result.reviewStatus,
         triage: QaFailureTriage.governance,
       );
+      _expect(
+        failures,
+        result.rejectedNoiseCreatedNoInventory,
+        id: '${scenario.id}:rejected_noise_created_no_inventory',
+        message: 'Rejected receipt noise created an inventory record.',
+        expected: 'Rejected non-inventory lines may be audited, not stocked.',
+        actual: result.finalLocalState,
+        triage: QaFailureTriage.reviewSafety,
+      );
     }
 
     return timer.finish(
       suite: name,
-      checked: scenarios.length * 5,
+      checked: scenarios.length * 6,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
@@ -209,6 +218,7 @@ class _FakeReviewEnvironment {
   String _localConfirmedName = '';
   final bool _suggestionSaved = false;
   bool _localWriteDone = false;
+  bool _inventoryRecordCreated = false;
   bool _mirrorQueued = false;
   final bool _liveFirebaseTouched = false;
 
@@ -244,7 +254,11 @@ class _FakeReviewEnvironment {
   }
 
   void userRejects({required bool cloudOptIn}) {
-    _commitLocal(confirmedItemId: 'rejected', confirmedName: 'not inventory');
+    _commitLocal(
+      confirmedItemId: 'rejected',
+      confirmedName: 'not inventory',
+      createsInventory: false,
+    );
     if (cloudOptIn) _queueFakeMirror();
   }
 
@@ -275,17 +289,21 @@ class _FakeReviewEnvironment {
       userConfirmedDataWins: _localConfirmedItemId == expectedConfirmedItemId,
       noLiveFirebase: !_liveFirebaseTouched,
       reviewStatusPreserved: _confirmedReviewStatus == expectedReviewStatus,
+      rejectedNoiseCreatedNoInventory:
+          expectedConfirmedItemId != 'rejected' || !_inventoryRecordCreated,
     );
   }
 
   void _commitLocal({
     required String confirmedItemId,
     String confirmedName = '',
+    bool createsInventory = true,
   }) {
     events.add('hive_local_write');
     _localWriteDone = true;
     _localConfirmedItemId = confirmedItemId;
     _localConfirmedName = confirmedName;
+    _inventoryRecordCreated = createsInventory;
     _confirmedReviewStatus = _reviewStatus;
   }
 
@@ -305,6 +323,7 @@ class _WorkflowResult {
     required this.userConfirmedDataWins,
     required this.noLiveFirebase,
     required this.reviewStatusPreserved,
+    required this.rejectedNoiseCreatedNoInventory,
   });
 
   final List<String> events;
@@ -315,4 +334,5 @@ class _WorkflowResult {
   final bool userConfirmedDataWins;
   final bool noLiveFirebase;
   final bool reviewStatusPreserved;
+  final bool rejectedNoiseCreatedNoInventory;
 }
