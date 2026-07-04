@@ -139,11 +139,32 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
         actual: result.restartState,
         triage: QaFailureTriage.conflict,
       );
+      _expect(
+        failures,
+        result.barcodeDisagreementRequiresReview,
+        id: '${scenario.id}:barcode_disagreement_requires_review',
+        message:
+            'Barcode evidence was allowed to silently override receipt/parser evidence.',
+        expected:
+            'Barcode and receipt disagreement adds review evidence and blocks silent confirmation.',
+        actual: result.finalLocalState,
+        triage: QaFailureTriage.reviewSafety,
+      );
+      _expect(
+        failures,
+        result.correctionMemoryProposedOnly,
+        id: '${scenario.id}:correction_memory_proposed_only',
+        message: 'User correction memory mutated official parser packs.',
+        expected:
+            'Corrections become proposed local learning evidence, not official pack mutations.',
+        actual: result.events.join(' > '),
+        triage: QaFailureTriage.governance,
+      );
     }
 
     return timer.finish(
       suite: name,
-      checked: scenarios.length * 13,
+      checked: scenarios.length * 15,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
@@ -169,6 +190,12 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
       status: scenario.expectedReviewStatus,
       candidateId: scenario.parserCandidateId,
     );
+    if (scenario.barcodeCandidateId.isNotEmpty) {
+      fake.barcodeSuggests(
+        candidateId: scenario.barcodeCandidateId,
+        evidenceStatus: scenario.barcodeEvidenceStatus,
+      );
+    }
     switch (scenario.action) {
       case _ReviewAction.accept:
         fake.userAccepts(
@@ -182,6 +209,7 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
           correctedName: scenario.correctedName,
           cloudOptIn: scenario.cloudOptIn,
           failFirstMirrorAttempt: scenario.mirrorFailureBeforeRetry,
+          createCorrectionProposal: scenario.correctionCreatesLocalProposal,
         );
       case _ReviewAction.reject:
         fake.userRejects(
@@ -278,6 +306,33 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
         enabledTradePacks: {'plumbing', 'hvac'},
         cloudOptIn: true,
       ),
+      _WorkflowScenario(
+        id: 'barcode_receipt_disagreement_stays_review',
+        rawText: 'HD PVC EL 3/4',
+        parserCandidateId: 'ranked_pvc_elbow_candidate',
+        userConfirmedItemId: 'pvc_electrical_conduit_elbow',
+        expectedReviewStatus: 'multiple_possible_matches',
+        action: _ReviewAction.edit,
+        correctedName: 'PVC electrical conduit elbow',
+        destination: _WorkflowDestination.inventory,
+        enabledTradePacks: {'plumbing', 'electrical', 'hvac'},
+        barcodeCandidateId: 'pvc_schedule_40_elbow',
+        barcodeEvidenceStatus: 'disagrees_with_receipt_context',
+        cloudOptIn: true,
+      ),
+      _WorkflowScenario(
+        id: 'learned_correction_stays_local_proposal',
+        rawText: 'LOCAL SUPPLY COND CPLG 3/4',
+        parserCandidateId: 'ranked_coupling_candidate',
+        userConfirmedItemId: 'emt_compression_coupling',
+        expectedReviewStatus: 'multiple_possible_matches',
+        action: _ReviewAction.edit,
+        correctedName: 'EMT compression coupling',
+        destination: _WorkflowDestination.jobMaterial,
+        enabledTradePacks: {'electrical'},
+        activeSectionTrade: 'electrical',
+        correctionCreatesLocalProposal: true,
+      ),
     ];
   }
 
@@ -320,6 +375,9 @@ class _WorkflowScenario {
     this.correctedName = '',
     this.cloudOptIn = false,
     this.mirrorFailureBeforeRetry = false,
+    this.barcodeCandidateId = '',
+    this.barcodeEvidenceStatus = '',
+    this.correctionCreatesLocalProposal = false,
   });
 
   final String id;
@@ -334,6 +392,9 @@ class _WorkflowScenario {
   final String correctedName;
   final bool cloudOptIn;
   final bool mirrorFailureBeforeRetry;
+  final String barcodeCandidateId;
+  final String barcodeEvidenceStatus;
+  final bool correctionCreatesLocalProposal;
 }
 
 enum _ReviewAction { accept, edit, reject, markUnknown }
@@ -357,7 +418,11 @@ class _FakeReviewEnvironment {
   String _confirmedDestination = '';
   String _contextEvidence = '';
   String _confirmedContextEvidence = '';
+  String _barcodeEvidence = '';
+  String _confirmedBarcodeEvidence = '';
   final bool _suggestionSaved = false;
+  final bool _officialPackMutated = false;
+  bool _localCorrectionProposalCreated = false;
   bool _localWriteDone = false;
   bool _inventoryRecordCreated = false;
   bool _mirrorQueued = false;
@@ -401,12 +466,25 @@ class _FakeReviewEnvironment {
     required String correctedName,
     required bool cloudOptIn,
     required bool failFirstMirrorAttempt,
+    bool createCorrectionProposal = false,
   }) {
     _commitLocal(
       confirmedItemId: confirmedItemId,
       confirmedName: correctedName,
     );
+    if (createCorrectionProposal) _createLocalCorrectionProposal();
     if (cloudOptIn) _queueFakeMirror(failFirstAttempt: failFirstMirrorAttempt);
+  }
+
+  void barcodeSuggests({
+    required String candidateId,
+    required String evidenceStatus,
+  }) {
+    _barcodeEvidence = 'barcode=$candidateId status=$evidenceStatus';
+    events.add('barcode_evidence:$evidenceStatus');
+    if (evidenceStatus.contains('disagrees')) {
+      events.add('barcode_disagreement_requires_review');
+    }
   }
 
   void userRejects({
@@ -463,6 +541,15 @@ class _FakeReviewEnvironment {
       contextPreserved:
           _confirmedContextEvidence == _contextEvidence &&
           _confirmedContextEvidence.contains('packs='),
+      barcodeDisagreementRequiresReview:
+          !_barcodeEvidence.contains('disagrees') ||
+          (_confirmedBarcodeEvidence == _barcodeEvidence &&
+              events.contains('barcode_disagreement_requires_review') &&
+              _confirmedReviewStatus.contains('multiple')),
+      correctionMemoryProposedOnly:
+          !_localCorrectionProposalCreated ||
+          (events.contains('local_correction_proposal_created') &&
+              !_officialPackMutated),
       cloudOptInControlsMirror:
           _mirrorQueued == events.contains('fake_firebase_mirror_queued'),
       immediateMirrorAttemptAfterLocalWrite:
@@ -500,6 +587,12 @@ class _FakeReviewEnvironment {
     _confirmedReviewStatus = _reviewStatus;
     _confirmedDestination = _destination.name;
     _confirmedContextEvidence = _contextEvidence;
+    _confirmedBarcodeEvidence = _barcodeEvidence;
+  }
+
+  void _createLocalCorrectionProposal() {
+    _localCorrectionProposalCreated = true;
+    events.add('local_correction_proposal_created');
   }
 
   void _queueFakeMirror({required bool failFirstAttempt}) {
@@ -538,6 +631,8 @@ class _WorkflowResult {
     required this.retryClearsPendingMirrorOnlyAfterSuccess,
     required this.restartState,
     required this.restartPreservedLocalTruth,
+    required this.barcodeDisagreementRequiresReview,
+    required this.correctionMemoryProposedOnly,
   });
 
   final List<String> events;
@@ -557,4 +652,6 @@ class _WorkflowResult {
   final bool retryClearsPendingMirrorOnlyAfterSuccess;
   final String restartState;
   final bool restartPreservedLocalTruth;
+  final bool barcodeDisagreementRequiresReview;
+  final bool correctionMemoryProposedOnly;
 }
