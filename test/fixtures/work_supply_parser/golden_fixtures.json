@@ -1250,5 +1250,78 @@
     "expectedReviewRequired": true,
     "expectedCandidateTrade": "hvac",
     "expectedConfidenceBand": "review"
+  },
+  {
+    "id": "tractor_supply_bomba_pozo_review_es_us",
+    "caseType": "ambiguous_review",
+    "merchant": "Tractor Supply",
+    "riskTags": [
+      "spanish",
+      "locale_pack",
+      "regional_merchant",
+      "well_pump",
+      "service_truck_core"
+    ],
+    "rawLine": "TRACTOR SUPPLY BOMBA POZO 1HP",
+    "trade": "plumbing",
+    "marketScope": "residential",
+    "tier": "standard",
+    "localePackId": "es-US",
+    "expectUnknown": true,
+    "maxConfidence": 0.81,
+    "expectedStatus": "needsReview",
+    "expectedTopCandidateId": "unknown",
+    "expectedReviewRequired": true,
+    "expectedCandidateTrade": "plumbing",
+    "expectedConfidenceBand": "review"
+  },
+  {
+    "id": "electrical_supply_conducto_pvc_review_es_us",
+    "caseType": "ambiguous_review",
+    "merchant": "Electrical Supply",
+    "riskTags": [
+      "spanish",
+      "locale_pack",
+      "supply_house",
+      "cross_trade",
+      "dangerous_word"
+    ],
+    "rawLine": "ELEC SUPPLY CODO PVC CONDUCTO 3/4",
+    "trade": "electrical",
+    "marketScope": "residential",
+    "tier": "core",
+    "localePackId": "es-US",
+    "expectUnknown": true,
+    "maxConfidence": 0.81,
+    "expectedStatus": "needsReview",
+    "expectedTopCandidateId": "unknown",
+    "expectedReviewRequired": true,
+    "expectedCandidateTrade": "electrical",
+    "expectedConfidenceBand": "review"
+  },
+  {
+    "id": "hvac_supply_condensado_pvc_review_es_us",
+    "caseType": "ambiguous_review",
+    "merchant": "HVAC Supply",
+    "riskTags": [
+      "spanish",
+      "locale_pack",
+      "supply_house",
+      "cross_trade",
+      "condensate",
+      "dangerous_word"
+    ],
+    "rawLine": "HVAC SUPPLY CODO PVC CONDENSADO 3/4",
+    "trade": "hvac",
+    "marketScope": "residential",
+    "tier": "core",
+    "localePackId": "es-US",
+    "expectUnknown": true,
+    "maxConfidence": 0.81,
+    "expectedStatus": "needsReview",
+    "expectedTopCandidateId": "unknown",
+    "expectedReviewRequired": true,
+    "expectedCandidateTrade": "hvac",
+    "expectedConfidenceBand": "review"
   }
 ]

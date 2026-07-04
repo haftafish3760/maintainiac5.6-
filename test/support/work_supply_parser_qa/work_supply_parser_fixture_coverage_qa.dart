@@ -58,6 +58,13 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
     'unknown',
   };
 
+  static const _recommendedSpanishMerchants = {
+    'Tractor Supply',
+    'Electrical Supply',
+    'HVAC Supply',
+    'unknown',
+  };
+
   static const _requiredRepairKitFixtures = {
     'plumbing_core_toilet_repair_kit_en_us': {
       'trade': 'plumbing',
@@ -106,6 +113,7 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
     final merchants = <String, int>{};
     final riskTags = <String, int>{};
     final releaseOneCells = <String, int>{};
+    final spanishMerchants = <String, int>{};
     final fixturesById = {for (final fixture in fixtures) fixture.id: fixture};
 
     for (final fixture in fixtures) {
@@ -125,6 +133,13 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
       final cell = fixture.releaseOneCell;
       if (cell != null) {
         releaseOneCells.update(cell, (count) => count + 1, ifAbsent: () => 1);
+      }
+      if (fixture.localePackId == 'es-US') {
+        spanishMerchants.update(
+          fixture.merchant,
+          (count) => count + 1,
+          ifAbsent: () => 1,
+        );
       }
       if (fixture.caseType.isEmpty) {
         failures.add(
@@ -196,6 +211,24 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
           actual: merchants.keys.join(', '),
           suggestedFix:
               'Add synthetic or reviewed real-style fixtures for this merchant.',
+        ),
+      );
+    }
+
+    for (final merchant in _recommendedSpanishMerchants) {
+      if (spanishMerchants.containsKey(merchant)) continue;
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'missing_spanish_fixture_merchant:$merchant',
+          message:
+              'Spanish fixture library is missing recommended merchant-family coverage.',
+          severity: QaSeverity.warning,
+          expected: merchant,
+          actual: spanishMerchants.keys.join(', '),
+          suggestedFix:
+              'Add es-US synthetic fixtures for major, supply-house, regional, and unknown merchant families before Spanish release claims.',
+          metadata: const {'triageCategory': QaFailureTriage.locale},
         ),
       );
     }
@@ -281,6 +314,7 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
           _requiredCaseTypes.length +
           _recommendedRiskTags.length +
           _recommendedMerchants.length +
+          _recommendedSpanishMerchants.length +
           _requiredRepairKitFixtures.length +
           WorkSupplyParserReleaseOneCellManifestSuite.priorityCells.length,
       failures: failures,
@@ -289,6 +323,7 @@ class WorkSupplyParserFixtureCoverageSuite extends QaSuite {
         'fixtureCount': fixtures.length,
         'caseTypes': caseTypes,
         'merchants': merchants,
+        'spanishMerchants': spanishMerchants,
         'riskTags': riskTags,
         'releaseOneCells': releaseOneCells,
         'requiredRepairKitFixtures': _requiredRepairKitFixtures.keys.toList(),

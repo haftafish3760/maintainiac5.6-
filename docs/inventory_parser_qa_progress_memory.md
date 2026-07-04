@@ -160,6 +160,14 @@ Focused rerun routes for recently hardened release-one contracts:
 - Validation:
   `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.fake_user_review_workflow --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
   passed 60 checks with 0 failures.
+- Passes 1923-1926 added Spanish merchant-family fixture pressure. The fixture
+  coverage suite now requires es-US merchant diversity for Tractor Supply,
+  Electrical Supply, HVAC Supply, and unknown merchant families. Added
+  synthetic es-US review fixtures for Spanish well-pump, electrical PVC conduit,
+  and HVAC condensate PVC wording without scraping retailer data.
+- Validation:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.fixture_coverage_matrix,inventory.fixture_corpus_contract,inventory.fixture_expectation_contract,inventory.confidence_calibration,inventory.language_pack_separation_contract --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
+  passed 740 checks with 0 failures.
 - inventory.receipt_source_immutability_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.receipt_source_immutability_contract,qa.threshold_gate`
 - inventory.parser_platform_contract:
