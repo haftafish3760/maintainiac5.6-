@@ -88,6 +88,22 @@ class WorkSupplyParserMutationScenarioSuite extends QaSuite {
       protectedFailure: 'cross-trade PVC/conduit/fitting conflict collapses',
       severity: QaSeverity.critical,
     ),
+    _MutationScenario(
+      id: 'copper_elbow_conflict_rule_removed',
+      mutationType: 'negative_match_removed',
+      caughtBySuite: 'inventory.conflict_graph',
+      protectedFailure:
+          'copper plumbing fitting and HVAC refrigerant fitting collapse',
+      severity: QaSeverity.critical,
+    ),
+    _MutationScenario(
+      id: 'electrical_context_hides_plumbing_pvc_coupling',
+      mutationType: 'trade_context_overpowered',
+      caughtBySuite: 'inventory.ranked_candidate_accuracy',
+      protectedFailure:
+          'active trade section boost hides realistic PVC coupling alternatives',
+      severity: QaSeverity.critical,
+    ),
   ];
 
   @override

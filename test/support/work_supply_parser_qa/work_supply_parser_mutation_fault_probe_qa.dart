@@ -75,6 +75,20 @@ class WorkSupplyParserMutationFaultProbeSuite extends QaSuite {
       expectedFailureId: 'missing_conflict_warning',
       severity: QaSeverity.critical,
     ),
+    _FaultProbe(
+      id: 'copper_conflict_removed_probe',
+      mutationType: 'negative_match_removed',
+      ownerSuite: 'inventory.conflict_graph',
+      expectedFailureId: 'conflict_missing_ranked_trade',
+      severity: QaSeverity.critical,
+    ),
+    _FaultProbe(
+      id: 'pvc_coupling_context_overpowered_probe',
+      mutationType: 'trade_context_overpowered',
+      ownerSuite: 'inventory.ranked_candidate_accuracy',
+      expectedFailureId: 'ranked_context_erased_alternatives',
+      severity: QaSeverity.critical,
+    ),
   ];
 
   @override
