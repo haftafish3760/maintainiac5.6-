@@ -226,6 +226,35 @@ void main() {
     );
   });
 
+  test('privacy-safe split contracts expose clamped percents', () {
+    const overAllocated = ExpenseReceiptLineRecord(
+      id: 'line-over-private-family',
+      description: 'Private family receipt item',
+      category: 'Personal',
+      use: ExpenseLineUse.split,
+      businessPercent: 1.8,
+      quantity: 1,
+      unitsPerPackage: 1,
+      unit: 'each',
+      subtotal: 30,
+      ocrSourceLineNumber: 8,
+    );
+
+    expect(overAllocated.businessUseReviewLabel, 'Split 100% business');
+    expect(overAllocated.privacySafeLineReviewContract['businessPercent'], 1);
+    expect(overAllocated.privacySafeLineReviewContract['personalPercent'], 0);
+    expect(overAllocated.privacySafeProofReference['businessPercent'], 1);
+    expect(overAllocated.privacySafeProofReference['personalPercent'], 0);
+    expect(
+      overAllocated.privacySafeLineReviewContract.toString(),
+      isNot(contains('Private family receipt item')),
+    );
+    expect(
+      overAllocated.privacySafeProofReference.toString(),
+      isNot(contains('Private family receipt item')),
+    );
+  });
+
   test('receipt line catalog metadata round trips with stored maps', () {
     const line = ExpenseReceiptLineRecord(
       id: 'line-catalog',
