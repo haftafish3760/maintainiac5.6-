@@ -37,6 +37,11 @@ class AppGeneratedPdfService {
       if (writtenBytes != document.byteSize) {
         throw const FileSystemException('Generated PDF write was incomplete.');
       }
+      final expectedHash = sha256.convert(document.bytes).toString();
+      final writtenHash = await sha256.bind(partial.openRead()).first;
+      if (writtenHash.toString() != expectedHash) {
+        throw const FileSystemException('Generated PDF write did not verify.');
+      }
       if (await destination.exists()) await destination.delete();
       await partial.rename(destination.path);
     } catch (_) {

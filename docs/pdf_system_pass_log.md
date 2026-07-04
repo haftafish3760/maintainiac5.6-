@@ -1,5 +1,39 @@
 # PDF System Pass Log
 
+## Pass 34 - 2026-07-04 16:29 EDT - Temporary generated PDF write verification
+
+- Scope: generated PDF temporary write integrity and QA only. No inventory,
+  camera, native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Added SHA-256 verification before temporary generated PDF partial files are
+    renamed into share/print/export-ready paths.
+  - Extended source-level regression coverage so temporary generated writes
+    must verify both byte count and hash before rename.
+- Verification completed 2026-07-04 16:29 EDT:
+  - `dart format lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 33 - 2026-07-04 16:27 EDT - PDF signal fixture gap closure
+
+- Scope: receipt PDF inspection signal decoding and PDF QA fixture inventory
+  only. No inventory, camera, native capture, receipt text engine, or parser
+  behavior changes.
+- Bundled work:
+  - Added UTF-16 BOM-aware PDF hex-string decoding for receipt document signal
+    detection.
+  - Added regression coverage for UTF-16 hex text-layer receipt signals and
+    binary hex payload rejection.
+  - Closed the image-only, text-layer, rotated/cropped, and PDF privacy/security
+    fixture inventory items from partial to covered.
+  - Added a fixture inventory guard so partial PDF QA suites cannot re-enter the
+    shared gate unnoticed.
+- Verification completed 2026-07-04 16:27 EDT:
+  - `dart format lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart test/receipt_pdf_inspector_edge_cases_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/receipt_pdf_inspector_edge_cases_test.dart test/pdf_qa_fixture_inventory_test.dart test/receipt_pdf_torture_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 32 - 2026-07-04 16:19 EDT - PDF external action detection
 
 - Scope: shared PDF security policy only. No inventory, camera, native capture,

@@ -163,7 +163,13 @@ void main() {
     expect(source, contains('writtenBytes != document.byteSize'));
     expect(source, contains('final expectedHash = sha256.convert'));
     expect(source, contains('final actualHash = await sha256.bind'));
+    expect(source, contains('final writtenHash = await sha256.bind'));
+    expect(source, contains('writtenHash.toString() != expectedHash'));
     expect(source, contains('prepared file did not verify'));
+    expect(
+      source,
+      contains("FileSystemException('Generated PDF write did not verify.')"),
+    );
     expect(
       source,
       contains("FileSystemException('Generated PDF write was incomplete.')"),
