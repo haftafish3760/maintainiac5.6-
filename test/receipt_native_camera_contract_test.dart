@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
@@ -34,7 +36,7 @@ void main() {
       expect(settings.saveOriginalTemporarily, isTrue);
       expect(settings.queueAcceptedCaptureLocally, isTrue);
       expect(settings.protectsInterruptedCapture, isTrue);
-      expect(settings.ocrUsesOriginalFirst, isTrue);
+      expect(settings.ocrUsesTemporaryFullQualitySourceFirst, isTrue);
       expect(settings.dataSaverLevel, ReceiptDataSaverLevel.balanced);
     },
   );
@@ -132,6 +134,9 @@ void main() {
   });
 
   test('session config keeps OCR source and edge guidance protected', () {
+    final source = File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_session_config.dart',
+    ).readAsStringSync();
     const settings = ReceiptNativeCameraSettings();
     const native = ReceiptNativeCameraCapabilities(
       engine: ReceiptNativeCameraEngine.cameraX,
@@ -150,6 +155,15 @@ void main() {
     );
 
     expect(config.ocrSourceProtected, isTrue);
+    expect(source, contains('settings.ocrUsesTemporaryFullQualitySourceFirst'));
+    expect(
+      source,
+      isNot(
+        contains(
+          'bool get ocrSourceProtected => settings.ocrUsesOriginalFirst',
+        ),
+      ),
+    );
     expect(config.nativeCaptureMemoryPolicy, contains('original_for_ocr'));
     expect(config.edgeDetectionEnabled, isTrue);
     expect(config.edgeOverlayEnabled, isTrue);

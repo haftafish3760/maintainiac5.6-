@@ -111,6 +111,8 @@ class ReceiptNativeCameraSettings {
       receiptFullyVisibleWarningEnabled &&
       textTooSmallWarningEnabled;
 
+  bool get ocrUsesTemporaryFullQualitySourceFirst => ocrUsesOriginalFirst;
+
   String get receiptFocusStrategyCode {
     if (usesContinuousFocusPrimary) {
       return 'continuous_focus_primary_no_tap_assist';

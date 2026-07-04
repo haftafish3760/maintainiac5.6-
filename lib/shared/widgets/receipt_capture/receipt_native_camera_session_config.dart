@@ -133,7 +133,8 @@ class ReceiptNativeCameraSessionConfig {
 
   bool get manualCaptureAvailable => settings.manualShutterAlwaysAvailable;
   bool get interruptionSafe => settings.protectsInterruptedCapture;
-  bool get ocrSourceProtected => settings.ocrUsesOriginalFirst;
+  bool get ocrSourceProtected =>
+      settings.ocrUsesTemporaryFullQualitySourceFirst;
   String get closeCapturedPhotoPolicy {
     return 'back_returns_captured_sections_before_cancel';
   }
