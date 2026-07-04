@@ -175,6 +175,20 @@ Focused rerun routes for recently hardened release-one contracts:
 - Validation:
   `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.legal_safety_contract,inventory.data_provenance_contract,inventory.vendor_sku_matrix_contract --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
   passed 115 checks with 0 failures.
+
+## 2026-07-04 Core/Standard Wave Completion
+
+- Pass 1933 confirmed background wave
+  `pass1687-residential-core-standard-wave-execute` completed successfully.
+- Scope: Plumbing, Electrical, and HVAC; residential; Core and Standard;
+  `en-US` and `es-US`; `limit=500`; `fixtureRunLimit=25`.
+- Result: 12/12 cells complete, 0 failed cells, `queueExitCode=0`.
+- Safety flags stayed false: no live services, no production catalog writes, no
+  Firebase writes, and no OCR/camera/Expenses touches.
+- Evidence:
+  `build/parser_qa_batch_waves/pass1687-residential-core-standard-wave-execute/wave_summary.json`
+  and
+  `build/parser_qa_batch_waves/pass1687-residential-core-standard-wave-execute/queue/pass1687_residential_core_standard_wave_execute_generated_fixture_core_standard_v6_post_hvac_filter/summary.json`.
 - inventory.receipt_source_immutability_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.receipt_source_immutability_contract,qa.threshold_gate`
 - inventory.parser_platform_contract:
