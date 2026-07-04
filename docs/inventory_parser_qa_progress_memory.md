@@ -3339,3 +3339,10 @@ Release boundaries:
   `inventory.merchant_matrix_contract`,
   `inventory.receipt_line_torture_contract`, and `qa.threshold_gate` passed 215
   checks with 0 failures.
+- **09:34 Harness Pass 2447:** Rechecked security/privacy, attack-surface, fuzz,
+  and review-safety parser QA while the Core semantic batch continued in the
+  background. The focused slice `inventory.security_privacy`,
+  `inventory.input_attack_surface_contract`,
+  `inventory.receipt_line_parser_fuzz_contract`,
+  `inventory.review_safety_contract`, and `qa.threshold_gate` passed 225 checks
+  with 0 failures.
