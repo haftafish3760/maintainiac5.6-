@@ -116,6 +116,19 @@ Focused rerun routes for recently hardened release-one contracts:
 - Validation:
   `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.fake_user_review_workflow --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=25`
   passed 54 checks with 0 failures.
+- Passes 1896-1898 expanded merchant-family fixture coverage beyond popular
+  big-box stores. `inventory.merchant_matrix_contract`,
+  `inventory.fixture_coverage_matrix`, and
+  `inventory.fixture_corpus_contract` now require/recommend coverage for
+  Tractor Supply, Northern Tool, Local Hardware, Regional Supplier, Electrical
+  Supply, HVAC Supply, Supply House, and unknown merchants. Added synthetic
+  review-safe golden fixtures for Tractor Supply well pump text, Northern Tool
+  PEX crimp tool text, electrical-supply PVC conduit ambiguity, and HVAC
+  condensate PVC ambiguity. These fixtures are non-proprietary and do not scrape
+  retailer databases.
+- Validation:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.merchant_matrix_contract,inventory.fixture_coverage_matrix,inventory.fixture_corpus_contract,inventory.fixture_expectation_contract --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
+  passed 728 checks with 0 failures.
 - inventory.receipt_source_immutability_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.receipt_source_immutability_contract,qa.threshold_gate`
 - inventory.parser_platform_contract:

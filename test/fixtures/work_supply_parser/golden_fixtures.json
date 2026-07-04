@@ -1157,5 +1157,97 @@
     "expectedReviewRequired": false,
     "expectedCandidateTrade": "plumbing",
     "expectedConfidenceBand": "high"
+  },
+  {
+    "id": "tractor_supply_plumbing_well_pump_review_en_us",
+    "caseType": "ambiguous_review",
+    "merchant": "Tractor Supply",
+    "riskTags": [
+      "regional_merchant",
+      "well_pump",
+      "service_truck_core",
+      "merchant_abbreviation"
+    ],
+    "rawLine": "TRACTOR SUPPLY 1HP SHALLOW WELL PUMP",
+    "trade": "plumbing",
+    "marketScope": "residential",
+    "tier": "standard",
+    "localePackId": "en-US",
+    "expectUnknown": true,
+    "maxConfidence": 0.84,
+    "expectedStatus": "needsReview",
+    "expectedTopCandidateId": "unknown",
+    "expectedReviewRequired": true,
+    "expectedCandidateTrade": "plumbing",
+    "expectedConfidenceBand": "review"
+  },
+  {
+    "id": "northern_tool_plumbing_pex_crimp_tool_review_en_us",
+    "caseType": "ambiguous_review",
+    "merchant": "Northern Tool",
+    "riskTags": [
+      "regional_merchant",
+      "tool_or_material",
+      "pex",
+      "merchant_abbreviation"
+    ],
+    "rawLine": "NORTHERN TOOL 1/2 PEX CRIMP TOOL",
+    "trade": "plumbing",
+    "marketScope": "residential",
+    "tier": "standard",
+    "localePackId": "en-US",
+    "expectUnknown": true,
+    "maxConfidence": 0.82,
+    "expectedStatus": "needsReview",
+    "expectedTopCandidateId": "unknown",
+    "expectedReviewRequired": true,
+    "expectedCandidateTrade": "plumbing",
+    "expectedConfidenceBand": "review"
+  },
+  {
+    "id": "electrical_supply_pvc_conduit_review_en_us",
+    "caseType": "ambiguous_review",
+    "merchant": "Electrical Supply",
+    "riskTags": [
+      "supply_house",
+      "cross_trade",
+      "dangerous_word",
+      "merchant_abbreviation"
+    ],
+    "rawLine": "ELEC SUPPLY PVC 90 3/4",
+    "trade": "electrical",
+    "marketScope": "residential",
+    "tier": "core",
+    "localePackId": "en-US",
+    "expectUnknown": true,
+    "maxConfidence": 0.86,
+    "expectedStatus": "needsReview",
+    "expectedTopCandidateId": "unknown",
+    "expectedReviewRequired": true,
+    "expectedCandidateTrade": "electrical",
+    "expectedConfidenceBand": "review"
+  },
+  {
+    "id": "hvac_supply_condensate_pvc_review_en_us",
+    "caseType": "ambiguous_review",
+    "merchant": "HVAC Supply",
+    "riskTags": [
+      "supply_house",
+      "cross_trade",
+      "condensate",
+      "dangerous_word"
+    ],
+    "rawLine": "HVAC SUPPLY 3/4 PVC CONDENSATE EL",
+    "trade": "hvac",
+    "marketScope": "residential",
+    "tier": "core",
+    "localePackId": "en-US",
+    "expectUnknown": true,
+    "maxConfidence": 0.86,
+    "expectedStatus": "needsReview",
+    "expectedTopCandidateId": "unknown",
+    "expectedReviewRequired": true,
+    "expectedCandidateTrade": "hvac",
+    "expectedConfidenceBand": "review"
   }
 ]

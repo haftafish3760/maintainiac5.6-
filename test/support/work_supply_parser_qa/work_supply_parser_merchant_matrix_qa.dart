@@ -32,6 +32,12 @@ class WorkSupplyParserMerchantMatrixSuite extends QaSuite {
     'Menards',
     'True Value',
     'Walmart',
+    'Tractor Supply',
+    'Northern Tool',
+    'Local Hardware',
+    'Regional Supplier',
+    'Electrical Supply',
+    'HVAC Supply',
     'Supply House',
     'unknown',
   };

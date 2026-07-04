@@ -30,6 +30,13 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
     'Ace',
     'Ferguson',
     'Grainger',
+    'Tractor Supply',
+    'Northern Tool',
+    'Local Hardware',
+    'Regional Supplier',
+    'Electrical Supply',
+    'HVAC Supply',
+    'Supply House',
     'unknown',
   };
 
