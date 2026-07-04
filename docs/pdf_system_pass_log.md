@@ -1,5 +1,26 @@
 # PDF System Pass Log
 
+## Pass 29 - 2026-07-04 16:08 EDT - Long-text invoice render smoke gate
+
+- Scope: render-level invoice PDF QA only. No inventory, camera, native
+  capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Added a long-text invoice render fixture with no-break business strings.
+  - Extended the Poppler render smoke gate to render every page of that fixture.
+  - Kept pixel-level checks across the normal invoice, long-text invoice,
+    receipt sample, and simple invoice sample.
+- Verification completed 2026-07-04 16:08 EDT:
+  - `bash -n tool/pdf_render_smoke_gate.sh`
+  - `dart format test/pdf_render_gate_invoice_generator_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `dart analyze test/pdf_render_gate_invoice_generator_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `bash tool/pdf_render_smoke_gate.sh`
+  - `flutter test test/pdf_quality_gate_contract_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+- Failure handled:
+  - Accidentally ran `dart format` against a shell script during verification.
+    No source was changed by that failed command. Verification was rerun with
+    the correct shell syntax gate.
+
 ## Pass 28 - 2026-07-04 16:06 EDT - Invoice PDF long-text layout hardening
 
 - Scope: invoice/estimate PDF renderer layout safety only. No inventory,
