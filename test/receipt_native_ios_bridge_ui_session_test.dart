@@ -108,6 +108,16 @@ void main() {
     );
     expect(cameraController, contains('capturedBottomTopLumaDelta(sample)'));
     expect(cameraController, contains('capturedBottomTopLumaDeltaBucket('));
+    expect(
+      cameraController,
+      contains(
+        'if sample.bottomLuma < 0 || sample.topLuma < 0 { return -10000 }',
+      ),
+    );
+    expect(
+      cameraController,
+      contains('if !delta.isFinite || delta < -999 { return "unknown" }'),
+    );
     expect(cameraController, contains('bottom_darker_than_top'));
     expect(cameraController, contains('bottom_brighter_than_top'));
     expect(cameraController, contains('preview.videoGravity = .resizeAspect'));

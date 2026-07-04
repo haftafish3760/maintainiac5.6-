@@ -191,13 +191,13 @@ internal fun ReceiptCameraActivity.capturedVerticalQualitySignal(sample: Capture
 }
 
 internal fun ReceiptCameraActivity.capturedBottomTopLumaDelta(sample: CapturedPhotoQualitySample): Double {
-    if (sample.bottomLuma < 0.0 || sample.topLuma < 0.0) return -1.0
+    if (sample.bottomLuma < 0.0 || sample.topLuma < 0.0) return -10000.0
     return roundedDiagnostic(sample.bottomLuma - sample.topLuma)
 }
 
 internal fun ReceiptCameraActivity.capturedBottomTopLumaDeltaBucket(delta: Double): String {
     return when {
-        delta < -999.0 -> "unknown"
+        !delta.isFinite() || delta < -999.0 -> "unknown"
         delta <= -42.0 -> "bottom_much_darker_than_top"
         delta <= -24.0 -> "bottom_darker_than_top"
         delta >= 42.0 -> "bottom_much_brighter_than_top"

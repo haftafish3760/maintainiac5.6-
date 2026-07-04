@@ -62,7 +62,7 @@ extension ReceiptCameraViewController {
   }
 
   func capturedBottomTopLumaDeltaBucket(_ delta: Double) -> String {
-    if delta < -999 { return "unknown" }
+    if !delta.isFinite || delta < -999 { return "unknown" }
     if delta <= -42 { return "bottom_much_darker_than_top" }
     if delta <= -24 { return "bottom_darker_than_top" }
     if delta >= 42 { return "bottom_much_brighter_than_top" }

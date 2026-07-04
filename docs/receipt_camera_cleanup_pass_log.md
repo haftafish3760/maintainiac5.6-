@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 749 - 03:52:44 EDT to active cleanup
+
+Scope:
+- Hardened native saved-photo bottom/top luma diagnostics so missing or
+  non-finite values are bucketed as `unknown` instead of appearing as
+  top/bottom brightness-close evidence.
+- Added Android/iOS source regressions proving invalid bottom/top luma and
+  non-finite delta values cannot look healthy.
+- Recorded `BUG-RECEIPT-0237` under `camera_capture_quality`.
+- Archived Pass 724 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native quality source regressions.
+- Passed focused Android/iOS native bridge quality regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 748 - 03:50:30 EDT to active cleanup
 
 Scope:
@@ -442,23 +459,6 @@ Scope:
   and reject retired tap/manual-lock controls inside it.
 - Recorded `BUG-RECEIPT-0215` under `camera_capture_quality`.
 - Archived Pass 699 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused Android/iOS native UI
-  contract regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 724 - 02:59:50 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS native diagnostics so retired tap focus is never
-  reported as an expected control, even if a stale internal flag flips later.
-- Added Android/iOS bridge regressions requiring
-  `tapFocusControlExpected` to be hard-coded false instead of derived from
-  `tapFocusEnabled`.
-- Recorded `BUG-RECEIPT-0214` under `camera_capture_quality`.
-- Archived Pass 698 from the active cleanup log to keep the doc under cap.
 
 Verification:
 - Passed targeted Dart format/analyzer and focused Android/iOS native UI

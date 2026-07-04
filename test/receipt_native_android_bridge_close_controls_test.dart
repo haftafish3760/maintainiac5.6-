@@ -56,6 +56,16 @@ void main() {
     expect(cameraActivity, contains('latestCapturedBottomTopLumaDeltaBucket'));
     expect(cameraActivity, contains('capturedBottomTopLumaDelta(sample)'));
     expect(cameraActivity, contains('capturedBottomTopLumaDeltaBucket('));
+    expect(
+      cameraActivity,
+      contains(
+        'if (sample.bottomLuma < 0.0 || sample.topLuma < 0.0) return -10000.0',
+      ),
+    );
+    expect(
+      cameraActivity,
+      contains('!delta.isFinite() || delta < -999.0 -> "unknown"'),
+    );
     expect(cameraActivity, contains('bottom_darker_than_top'));
     expect(cameraActivity, contains('bottom_brighter_than_top'));
     expect(cameraActivity, contains('setTargetRotation'));
