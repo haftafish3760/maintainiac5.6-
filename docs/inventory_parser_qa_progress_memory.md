@@ -2021,6 +2021,16 @@ Do not rerun unless:
 
 Status: required for release-grade parser QA and regression honesty.
 
+2026-07-04 update: Passes 2018-2027 promoted the holdout governance rules from
+documentation-only to executable fixture metadata checks. Every committed
+holdout row now includes `sourceType`, `sourceOwner`, `reviewDate`,
+`expectedAnswerConfidence`, explicit trade/merchant context, and
+`regressionHistory`, and `inventory.holdout_fixture_contract` fails if future
+holdout rows omit those fields. Verification passed for
+`inventory.holdout_fixture_contract`, `inventory.fixture_holdout_rotation_contract`,
+`inventory.validation_strategy_contract`, and `qa.threshold_gate` with 93 checks,
+0 failures, plus targeted analyzer on the holdout fixture suite.
+
 Named holdout rules:
 
 - holdout_set_not_used_for_rule_tuning

@@ -119,6 +119,7 @@ class WorkSupplyParserHoldoutFixtureSuite extends QaSuite {
           ),
         );
       }
+      _checkGovernanceFields(fixture, failures);
     }
 
     for (final type in _requiredCaseTypes) {
@@ -175,10 +176,57 @@ class WorkSupplyParserHoldoutFixtureSuite extends QaSuite {
         'riskTags': riskTags.toList()..sort(),
         'expectedMatchCount': expectedMatchCount,
         'reviewCount': reviewCount,
+        'governanceFieldsRequired': true,
         'parserCalls': 0,
         'releaseOnlySemanticUse': true,
       },
     );
+  }
+
+  void _checkGovernanceFields(
+    _HoldoutFixture fixture,
+    List<QaFailure> failures,
+  ) {
+    final missing = <String>[
+      if (fixture.sourceType.trim().isEmpty) 'sourceType',
+      if (fixture.sourceOwner.trim().isEmpty) 'sourceOwner',
+      if (fixture.reviewDate.trim().isEmpty) 'reviewDate',
+      if (fixture.expectedAnswerConfidence <= 0 ||
+          fixture.expectedAnswerConfidence > 1)
+        'expectedAnswerConfidence',
+      if (fixture.merchant.trim().isEmpty) 'merchant',
+      if (fixture.tradeContext.trim().isEmpty) 'trade or tradeScope',
+      if (fixture.regressionHistory.isEmpty) 'regressionHistory',
+    ];
+    for (final field in missing) {
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'holdout_missing_governance:$field:${fixture.id}',
+          message: 'Holdout fixture is missing required governance metadata.',
+          expected:
+              'source owner/type, review date, trade/merchant, expected-answer confidence, and regression history',
+          actual: '$field missing or invalid',
+          suggestedFix:
+              'Add source ownership and expected-answer metadata so holdout data cannot poison release accuracy claims.',
+          metadata: const {'triageCategory': QaFailureTriage.governance},
+        ),
+      );
+    }
+    if (fixture.sourceType != 'synthetic' && fixture.sourceType != 'redacted') {
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'holdout_unsupported_source_type:${fixture.id}',
+          message: 'Holdout fixture sourceType is not release-safe.',
+          expected: 'synthetic or redacted',
+          actual: fixture.sourceType,
+          suggestedFix:
+              'Use synthetic holdout text or explicitly redacted non-private evidence only.',
+          metadata: const {'triageCategory': QaFailureTriage.privacy},
+        ),
+      );
+    }
   }
 
   List<_HoldoutFixture> _loadFixtureFile(
@@ -252,6 +300,14 @@ class _HoldoutFixture {
     required this.caseType,
     required this.rawLine,
     required this.riskTags,
+    required this.sourceType,
+    required this.sourceOwner,
+    required this.reviewDate,
+    required this.expectedAnswerConfidence,
+    required this.merchant,
+    required this.trade,
+    required this.tradeScope,
+    required this.regressionHistory,
     required this.holdoutOnly,
     required this.expectUnknown,
     required this.expectedTrade,
@@ -262,6 +318,14 @@ class _HoldoutFixture {
   final String caseType;
   final String rawLine;
   final List<String> riskTags;
+  final String sourceType;
+  final String sourceOwner;
+  final String reviewDate;
+  final double expectedAnswerConfidence;
+  final String merchant;
+  final String trade;
+  final String tradeScope;
+  final List<String> regressionHistory;
   final bool holdoutOnly;
   final bool expectUnknown;
   final String expectedTrade;
@@ -272,6 +336,14 @@ class _HoldoutFixture {
         expectedNameContains.trim().isNotEmpty;
   }
 
+  String get tradeContext {
+    return [
+      trade,
+      tradeScope,
+      expectedTrade,
+    ].where((entry) => entry.trim().isNotEmpty).join(' ');
+  }
+
   static _HoldoutFixture fromJson(Map<String, Object?> json) {
     return _HoldoutFixture(
       id: json['id'] as String? ?? 'fixture_without_id',
@@ -280,6 +352,19 @@ class _HoldoutFixture {
       riskTags: [
         for (final tag in json['riskTags'] as List<dynamic>? ?? const [])
           tag.toString(),
+      ],
+      sourceType: json['sourceType'] as String? ?? '',
+      sourceOwner: json['sourceOwner'] as String? ?? '',
+      reviewDate: json['reviewDate'] as String? ?? '',
+      expectedAnswerConfidence:
+          (json['expectedAnswerConfidence'] as num?)?.toDouble() ?? 0,
+      merchant: json['merchant'] as String? ?? '',
+      trade: json['trade'] as String? ?? '',
+      tradeScope: json['tradeScope'] as String? ?? '',
+      regressionHistory: [
+        for (final entry
+            in json['regressionHistory'] as List<dynamic>? ?? const [])
+          entry.toString(),
       ],
       holdoutOnly: json['holdoutOnly'] == true,
       expectUnknown: json['expectUnknown'] == true,
