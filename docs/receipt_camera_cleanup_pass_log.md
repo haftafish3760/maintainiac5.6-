@@ -3,6 +3,28 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 606 - 21:10:31 EDT to 21:11:41 EDT
+
+Scope:
+- Hardened long-receipt continuation handoff so uppercase or padded
+  `missing_bottom_edge_and_totals` reason codes normalize before ghost guide
+  fractions, continuation source, and bottom/totals flags are chosen.
+- Added behavior coverage proving continuation guides keep the last prior
+  section path and normalize the missing-bottom reason for expense flow
+  options.
+- Added source coverage requiring the shared flow diagnostics path to keep the
+  lowercase normalization guard.
+- Recorded `BUG-RECEIPT-0127` under `ghost_overlap_stitching`.
+- Archived Pass 585 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Fixed the first focused regression assertion after Dart formatting split the
+  source expression across lines.
+- Passed targeted Dart format/analyzer for continuation handoff code and tests.
+- Passed focused Flutter continuation handoff and capture-flow recovery
+  regressions.
+
 ## Pass 605 - 21:09:04 EDT to 21:09:49 EDT
 
 Scope:
@@ -476,21 +498,3 @@ Verification:
   structure coverage.
 - Passed focused Flutter parser handoff regression for clamped source line
   numbers and privacy-safe summary values.
-
-## Pass 585 - 11:25:00 EDT to 11:29:40 EDT
-
-Scope:
-- Hardened OCR/parser source-location labels so malformed section or line
-  numbers cannot show impossible receipt proof labels such as line zero.
-- Added parser handoff structure regression coverage proving source labels,
-  maps, and proof references clamp source section and line numbers to at least
-  one.
-- Recorded `BUG-RECEIPT-0101` under `receipt_line_numbering`.
-- Archived Pass 558 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for OCR parser models and parser handoff
-  structure coverage.
-- Passed focused Flutter parser handoff regression for clamped source line
-  numbers.

@@ -137,6 +137,29 @@ void main() {
       contains('ocr_source_continuation_bottom_overlap_ghost_policy'),
     );
   });
+
+  test('continuation guide normalizes missing-bottom reason codes', () {
+    final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
+      previousPhotoPaths: const [
+        '/tmp/receipt-section-1.jpg',
+        ' /tmp/receipt-section-2.jpg ',
+      ],
+      reasonCode: ' MISSING_BOTTOM_EDGE_AND_TOTALS ',
+      guidance: ' Add the bottom receipt section. ',
+    );
+    final options = guide.applyTo(
+      const ReceiptCaptureFlowOptions(
+        module: ReceiptCaptureFlowModule.expenses,
+      ),
+    );
+
+    expect(guide.reasonCode, 'missing_bottom_edge_and_totals');
+    expect(guide.guidePhotoPath, '/tmp/receipt-section-2.jpg');
+    expect(guide.ghostSourceStartFraction, .80);
+    expect(guide.ghostSourceHeightFraction, .20);
+    expect(guide.ghostOpacity, .36);
+    expect(options.previousSectionReasonCode, 'missing_bottom_edge_and_totals');
+  });
 }
 
 void _expectBottomContinuationSummary(ReceiptPhotoReviewResult result) {

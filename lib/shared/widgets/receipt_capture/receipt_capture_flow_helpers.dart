@@ -99,7 +99,9 @@ Map<String, Object?> _diagnostics({
 Map<String, Object?> _previousSectionGuideDiagnostics(
   ReceiptCaptureFlowOptions options,
 ) {
-  final reason = _trimmedOrNull(options.previousSectionReasonCode);
+  final reason = _trimmedOrNull(
+    options.previousSectionReasonCode,
+  )?.toLowerCase();
   final guidePhotoPath = _trimmedOrNull(options.previousSectionGuidePhotoPath);
   final guidance = _trimmedOrNull(options.previousSectionGuidance);
   final missingBottomAndTotals = reason == 'missing_bottom_edge_and_totals';

@@ -78,6 +78,8 @@ void main() {
     expect(flow, contains("stage: 'review_opening'"));
     expect(flow, contains("stage: 'review_accepted'"));
     expect(flow, contains('_previousSectionGuideDiagnostics(options)'));
+    expect(flow, contains('options.previousSectionReasonCode'));
+    expect(flow, contains('?.toLowerCase()'));
     expect(flow, contains('previousSectionGuideRequested'));
     expect(flow, contains('previousSectionGuidePhotoAvailable'));
     expect(flow, contains('previousSectionMissingBottomAndTotals'));

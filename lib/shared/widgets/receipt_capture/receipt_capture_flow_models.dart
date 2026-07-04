@@ -90,7 +90,7 @@ class ReceiptCaptureContinuationGuide {
     String? reasonCode,
     String? guidance,
   }) {
-    final normalizedReason = _trimmedOrNull(reasonCode);
+    final normalizedReason = _trimmedOrNull(reasonCode)?.toLowerCase();
     if (normalizedReason == null) {
       return const ReceiptCaptureContinuationGuide();
     }
