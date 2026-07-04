@@ -102,6 +102,9 @@ const workSupplyParserDomainAdapter = ParserQaDomainAdapter(
   fixtureRoot: 'test/fixtures/work_supply_parser',
   forbiddenBoundaryTokens: [
     'FirebaseFirestore.instance',
+    'Hive.',
+    'Hive.init',
+    'Box<',
     'camera',
     'ocr',
     'expenses',
@@ -164,6 +167,9 @@ const maintenanceParserDomainAdapter = ParserQaDomainAdapter(
   fixtureRoot: 'test/fixtures/maintenance_parser',
   forbiddenBoundaryTokens: [
     'FirebaseFirestore.instance',
+    'Hive.',
+    'Hive.init',
+    'Box<',
     'camera',
     'ocr',
     'expenses',
@@ -203,6 +209,9 @@ const expenseReceiptParserDomainAdapter = ParserQaDomainAdapter(
   fixtureRoot: 'test/fixtures/expense_receipts',
   forbiddenBoundaryTokens: [
     'FirebaseFirestore.instance',
+    'Hive.',
+    'Hive.init',
+    'Box<',
     'CameraController',
     'ImagePicker',
     'GoogleVision',

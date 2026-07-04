@@ -63,6 +63,8 @@ void main() {
         adapter.forbiddenBoundaryTokens,
         contains('FirebaseFirestore.instance'),
       );
+      expect(adapter.forbiddenBoundaryTokens, contains('Hive.'));
+      expect(adapter.forbiddenBoundaryTokens, contains('Hive.init'));
       expect(adapter.toJson()['liveServicesAllowed'], isFalse);
       expect(adapter.toJson()['writesProductionCatalog'], isFalse);
       expect(adapter.toJson()['firebaseWritesAllowed'], isFalse);
