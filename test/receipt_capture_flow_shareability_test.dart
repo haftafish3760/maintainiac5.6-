@@ -251,6 +251,31 @@ void main() {
     );
   });
 
+  test('photo review normalizes initial quality check keys', () async {
+    final reviewScreen = await readReceiptPhotoReviewScreenSource();
+
+    expect(
+      reviewScreen,
+      contains(
+        'for (final entry in widget.initialQualityChecksByPath.entries)',
+      ),
+    );
+    expect(
+      reviewScreen,
+      contains('final normalizedPath = normalizedReceiptPhotoPath(entry.key)'),
+    );
+    expect(
+      reviewScreen,
+      contains(
+        '!receiptPhotoPathSetContains(_initialPhotoPaths, normalizedPath)',
+      ),
+    );
+    expect(
+      reviewScreen,
+      isNot(contains('...widget.initialQualityChecksByPath')),
+    );
+  });
+
   test(
     'shared camera defaults inventory and maintenance to detailed review',
     () async {

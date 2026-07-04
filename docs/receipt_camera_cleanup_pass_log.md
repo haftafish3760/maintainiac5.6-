@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 769 - 05:39:20 EDT to active cleanup
+
+Scope:
+- Hardened initial photo-review quality checks so raw map keys are normalized
+  and matched against the normalized initial receipt photo list before use.
+- Dropped blank, unnormalized, duplicate, or non-review quality-check keys
+  instead of preserving them in review state.
+- Added a source regression preventing raw `initialQualityChecksByPath` spreads
+  from returning.
+- Recorded `BUG-RECEIPT-0257` under `camera_review_state`.
+- Archived Pass 741 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for initial quality-check key changes.
+- Passed focused Flutter capture-flow shareability regression.
+- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
+
 ## Pass 768 - 05:35:04 EDT to active cleanup
 
 Scope:
@@ -471,23 +488,6 @@ Scope:
   content classification blocks customer/session/network data.
 - Recorded `BUG-RECEIPT-0230` under `privacy_redaction`.
 - Archived Pass 717 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for barcode scanner service and focused
-  scanner regression.
-- Passed focused Flutter barcode scanner regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 741 - 03:39:00 EDT to active cleanup
-
-Scope:
-- Hardened barcode/QR privacy so malformed value-type labels containing
-  sensitive terms cannot be bucketed as harmless `other` payloads.
-- Added a focused regression proving malformed customer/private/email type
-  labels are treated as sensitive and cannot produce inventory lookup values.
-- Recorded `BUG-RECEIPT-0229` under `privacy_redaction`.
-- Archived Pass 716 from the active cleanup log to keep the doc under cap.
 
 Verification:
 - Passed targeted Dart format/analyzer for barcode scanner service and focused

@@ -134,9 +134,16 @@ extension _ReceiptPhotoReviewAsyncWork on _ReceiptPhotoReviewScreenState {
   }
 
   Map<String, ReceiptPhotoQualityCheck> _initialQualityChecksByPath() {
-    final checks = <String, ReceiptPhotoQualityCheck>{
-      ...widget.initialQualityChecksByPath,
-    };
+    final checks = <String, ReceiptPhotoQualityCheck>{};
+    for (final entry in widget.initialQualityChecksByPath.entries) {
+      final normalizedPath = normalizedReceiptPhotoPath(entry.key);
+      if (normalizedPath == null ||
+          !receiptPhotoPathSetContains(_initialPhotoPaths, normalizedPath) ||
+          checks.containsKey(normalizedPath)) {
+        continue;
+      }
+      checks[normalizedPath] = entry.value;
+    }
     final count = _initialPhotoPaths.length < widget.initialQualityChecks.length
         ? _initialPhotoPaths.length
         : widget.initialQualityChecks.length;
