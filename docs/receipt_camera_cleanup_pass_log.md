@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 642 - 22:33:47 EDT to active cleanup
+
+Scope:
+- Hardened long-receipt retake section summaries so previous/next alignment
+  context section numbers survive into privacy-safe section-order counts and
+  receipt-reader handoff counts.
+- Split section-order review-result regressions into a focused test file so the
+  existing stitch/scanner test returned under the project line-count cap.
+- Recorded `BUG-RECEIPT-0161` under `multi_photo_ordering`.
+- Archived Pass 605 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format for section-order helper and split tests.
+- Passed focused Flutter stitch/scanner and section-order regressions.
+
 ## Pass 641 - 22:32:34 EDT to active cleanup
 
 Scope:
@@ -462,22 +477,4 @@ Verification:
   source expression across lines.
 - Passed targeted Dart format/analyzer for continuation handoff code and tests.
 - Passed focused Flutter continuation handoff and capture-flow recovery
-  regressions.
-
-## Pass 605 - 21:09:04 EDT to 21:09:49 EDT
-
-Scope:
-- Hardened iOS native receipt camera parity so the bridge reads, stores, and
-  reports the shared `continuousFocusEnabled` session flag.
-- Gated iOS startup continuous autofocus configuration behind
-  `continuousFocusEnabled` so diagnostics match the actual focus request.
-- Added iOS bridge regressions for session argument restore, diagnostics, and
-  startup continuous-focus gating.
-- Recorded `BUG-RECEIPT-0126` under `camera_capture_quality`.
-- Archived Pass 584 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the focused iOS bridge regressions.
-- Passed focused Flutter iOS bridge UI-session and analysis/exposure
   regressions.

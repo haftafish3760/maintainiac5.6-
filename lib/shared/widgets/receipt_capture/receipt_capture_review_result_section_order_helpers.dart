@@ -62,6 +62,26 @@ List<String> _receiptRetakeContextCodes(Map<String, Object?> diagnostics) {
       true) {
     codes.add('retake_two_sided_alignment_context');
   }
+  final previousSection = _diagnosticPositiveInt(
+    diagnostics['receiptRetakePreviousContextSectionNumber'],
+  );
+  if (previousSection != null) {
+    codes.add(
+      previousSection > 9
+          ? 'retake_previous_context_section_10_plus'
+          : 'retake_previous_context_section_$previousSection',
+    );
+  }
+  final nextSection = _diagnosticPositiveInt(
+    diagnostics['receiptRetakeNextContextSectionNumber'],
+  );
+  if (nextSection != null) {
+    codes.add(
+      nextSection > 9
+          ? 'retake_next_context_section_10_plus'
+          : 'retake_next_context_section_$nextSection',
+    );
+  }
   return codes;
 }
 
