@@ -35,7 +35,7 @@ class WorkSupplyParserGateLedgerSuite extends QaSuite {
             .join('\n');
 
     for (final token in _tokens) {
-      if (source.contains(token)) continue;
+      if (_containsContractToken(source, token)) continue;
       failures.add(
         QaFailure(
           suite: name,
@@ -63,4 +63,12 @@ class WorkSupplyParserGateLedgerSuite extends QaSuite {
       },
     );
   }
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }

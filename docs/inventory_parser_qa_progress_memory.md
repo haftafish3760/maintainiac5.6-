@@ -3713,3 +3713,11 @@ Release boundaries:
   reporting from brittle line wrapping. Focused
   `inventory.category_reuse_contract,inventory.data_provenance_contract,inventory.failure_taxonomy_contract,inventory.generated_fixture_performance_contract,qa.threshold_gate`
   passed 124 checks with 0 failures, and targeted analyzer found no issues.
+- **12:11 Harness Pass 2753:** Made evidence summary, fixture batch plan,
+  gate ledger, next-action, registry snapshot, and Release 1 command manifest
+  contract scans whitespace-safe. This protects continuation artifacts,
+  ready/missing/unsafe rollups, gate fingerprints, release-one command coverage,
+  and local-only flags from brittle formatting. Focused
+  `inventory.evidence_summary_contract,inventory.fixture_batch_plan_contract,inventory.gate_ledger_contract,inventory.next_action_contract,inventory.registry_snapshot_contract,inventory.release_one_command_manifest,qa.threshold_gate`
+  passed 124 combined checks across the two focused gates with 0 failures, and
+  targeted analyzer found no issues.

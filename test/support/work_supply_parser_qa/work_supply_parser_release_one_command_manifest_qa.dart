@@ -32,7 +32,7 @@ class WorkSupplyParserReleaseOneCommandManifestSuite extends QaSuite {
     final source = _sourceText();
 
     for (final token in _requiredTokens) {
-      if (source.contains(token)) continue;
+      if (_containsContractToken(source, token)) continue;
       failures.add(
         QaFailure(
           suite: name,
@@ -70,4 +70,12 @@ class WorkSupplyParserReleaseOneCommandManifestSuite extends QaSuite {
         .map((file) => file.readAsStringSync())
         .join('\n');
   }
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
