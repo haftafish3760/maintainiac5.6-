@@ -292,6 +292,49 @@ void main() {
     );
     expect(transcript.readAsStringSync(), contains('CELL_TIMEOUT'));
   });
+
+  test('background queue applies default bounded cell timeout', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_background_queue_default_timeout_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserQaBackgroundQueue(
+      [
+        '--execute',
+        '--trades',
+        'plumbing',
+        '--tiers',
+        'core',
+        '--locales',
+        'en-US',
+        '--queue-id',
+        'default-timeout-test',
+        '--output-root',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+      cellRunner: (command, {timeout}) async {
+        expect(timeout, const Duration(milliseconds: 1200000));
+        return const BackgroundQueueCellResult(
+          exitCode: 0,
+          stdout: 'ok',
+          stderr: '',
+        );
+      },
+    );
+
+    expect(exit, 0);
+    final summary =
+        jsonDecode(
+              File(
+                '${output.path}/default-timeout-test/summary.json',
+              ).readAsStringSync(),
+            )
+            as Map;
+    expect(summary['cellTimeoutMs'], 1200000);
+  });
 }
 
 class _MemorySink implements IOSink {

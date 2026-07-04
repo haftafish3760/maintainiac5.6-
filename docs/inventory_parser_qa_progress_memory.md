@@ -3410,3 +3410,12 @@ Release boundaries:
   clean, `test/work_supply_parser_qa_background_queue_test.dart` passed 5/5,
   and the focused `inventory.execution_command_contract,qa.threshold_gate`
   harness slice passed 107 checks with 0 failures.
+- **10:08 Harness Pass 2471:** Made the background queue bounded by default
+  with a 20-minute cell timeout while still allowing `--cell-timeout-ms`
+  overrides. Added a regression proving the default timeout is passed into the
+  cell runner and recorded in summary evidence. Analyzer was clean,
+  `test/work_supply_parser_qa_background_queue_test.dart` passed 6/6, and the
+  focused `inventory.execution_command_contract,qa.threshold_gate` slice passed
+  107 checks with 0 failures. The stale pre-timeout Core queue process was
+  stopped, no Dart/Flutter processes remained, and the same Core queue was
+  relaunched with the bounded runner as PID 8368.

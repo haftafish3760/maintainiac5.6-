@@ -379,7 +379,7 @@ class _QueueOptions {
       locales: _csv(values['locales'] ?? 'en-US,es-US', lowerCase: false),
       limit: int.tryParse(values['limit'] ?? '') ?? 500,
       fixtureRunLimit: int.tryParse(values['fixture-run-limit'] ?? '') ?? 25,
-      cellTimeoutMs: int.tryParse(values['cell-timeout-ms'] ?? '') ?? 0,
+      cellTimeoutMs: int.tryParse(values['cell-timeout-ms'] ?? '') ?? 1200000,
       outputRoot: values['output-root'] ?? 'build/parser_qa_background_queue',
       queueId: values['queue-id'] ?? now.replaceAll(RegExp(r'[:.]'), ''),
       execute: flags.contains('execute'),
