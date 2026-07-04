@@ -235,7 +235,7 @@ String _savedPhotoWarningAction(String warningCode, String severity) {
     'saved_photo_darker_than_preview' =>
       'Review native camera exposure. Ask the user to retake with more light or raise Brightness before continuing.',
     'saved_photo_soft_blur_risk' =>
-      'Review native focus and shutter stability. Ask the user to hold steady, tap the receipt text, and retake if prices look fuzzy.',
+      'Review native continuous-focus and shutter stability. Ask the user to hold steady, wait for sharp readable text, and retake if prices look fuzzy.',
     'saved_photo_dimmer_than_preview' =>
       'Review lighting guidance. Let the user continue if text is readable, but suggest torch or more light when the bottom looks dim.',
     'saved_photo_glare_risk' =>

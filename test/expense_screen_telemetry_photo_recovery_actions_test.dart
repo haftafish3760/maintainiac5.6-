@@ -165,6 +165,33 @@ void main() {
     },
   );
 
+  test('soft blur recovery action keeps continuous focus primary', () async {
+    final store = await ExpenseTelemetryStore.create();
+
+    await store.enqueue(
+      const ExpenseTelemetryEvent(
+        type: ExpenseTelemetryEventType.ocrStarted,
+        metadata: {
+          'savedPhotoWarningCounts': {'saved_photo_soft_blur_risk': 1},
+          'savedPhotoWarningSeverityCounts': {'critical': 1},
+          'savedPhotoWarningActionCounts': {'retake_hold_steady': 1},
+          'hasSavedPhotoQualityWarning': true,
+        },
+      ),
+    );
+
+    final snapshot = store.buildHealthSnapshot(
+      nowUtc: DateTime.utc(2026, 6, 24, 13),
+    );
+    final action = snapshot.topSavedPhotoWarningAction.toLowerCase();
+
+    expect(action, contains('continuous-focus'));
+    expect(action, contains('hold steady'));
+    expect(action, contains('readable text'));
+    expect(action, isNot(contains('tap the receipt')));
+    expect(action, isNot(contains('tap focus')));
+  });
+
   test(
     'gives Command 1 a recovery action when interrupted receipt photos are stale or missing',
     () async {

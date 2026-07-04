@@ -122,7 +122,7 @@ Use hardware/capability signals instead:
 - free storage
 - camera count
 - rear/front camera availability
-- tap focus support
+- continuous focus/readability support
 - exposure support
 - zoom support
 - torch support
@@ -526,7 +526,7 @@ Real-device proof still needed:
 - native camera opens Maintainiac UI, not stock camera app
 - back/cancel behavior
 - manual shutter behavior
-- tap focus
+- continuous autofocus/readability guidance
 - pinch zoom
 - exposure/brightness control
 - torch/light behavior

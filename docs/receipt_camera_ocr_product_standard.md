@@ -120,7 +120,8 @@ The detailed numbered execution plan lives in `docs/receipt_camera_ocr_master_pa
 
 2. **Capture Surface**
    - Keep camera controls on the edges.
-   - Preserve manual shutter, tap-to-focus, pinch-to-zoom, flash, and settings.
+   - Preserve manual shutter, continuous autofocus/readability guidance,
+     pinch-to-zoom, flash, brightness assist, and settings.
    - Remove user-facing device capability clutter.
 
 3. **Live Capture Guidance**

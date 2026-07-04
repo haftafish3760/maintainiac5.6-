@@ -188,9 +188,10 @@ Decision:
 - Remove or hide nonessential clutter.
 - Ensure top controls never sit in the middle of the camera view.
 
-**Pass 117 - Pinch Zoom And Tap Focus Contract**
+**Pass 117 - Pinch Zoom And Continuous Focus Contract**
 - Verify pinch-to-zoom during live capture.
-- Verify tap-to-focus and exposure point behavior.
+- Verify continuous autofocus, sharpness/readability guidance, and exposure
+  behavior.
 - Add fallback messaging only when a device truly cannot support it.
 
 **Pass 118 - Brightness And Exposure Baseline**

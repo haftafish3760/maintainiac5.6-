@@ -199,7 +199,7 @@ Completed native reset work:
 - **Native Pass 05:** Flutter-side Maintainiac native camera shell provides a reusable receipt-first layout for preview, top controls, manual shutter, guidance, save-space summary, and long-receipt ghost overlay.
 - **Native Pass 06:** Android `captureReceipt` opens an in-app Maintainiac CameraX activity with manual shutter, torch, receipt guidance, app-cache original capture, and bridge return paths.
 - **Native Pass 07:** iOS `captureReceipt` presents an in-app Maintainiac AVFoundation controller with manual shutter, torch, receipt guidance, temporary original capture, and bridge return paths.
-- **Native Pass 08:** Android/iOS native camera screens now expose the first hardware controls from the contract: tap focus/metering, pinch zoom, brightness/exposure adjustment, reset, and torch handling.
+- **Native Pass 08:** Android/iOS native camera screens now expose the first hardware controls from the contract: pinch zoom, brightness/exposure adjustment, reset, and torch handling. Tap-focus is legacy diagnostics only; continuous autofocus/readability is primary.
 - **Native Pass 09:** Android/iOS settings buttons now open real receipt-camera session settings instead of placeholders, covering assisted fill, long receipt mode, automatic capture status, review style, save-space backup, camera controls, and brightness reset.
 - **Native Pass 10:** Accepted native capture paths are copied into app-owned receipt staging with verified proof metadata before photo review/OCR prep sees them, so native temp/cache paths are not the fragile handoff point.
 - **Native Pass 11:** Abandoned native staged photos now have explicit cleanup hooks: discard removes only app-owned staged photos, and old abandoned staging cleanup can retain active paths while clearing stale files.
@@ -235,7 +235,7 @@ These passes replace the old "open phone camera" decision.
 - **Native Pass 05:** Build the Maintainiac capture UI shell against the native contract. **Complete.**
 - **Native Pass 06:** Add Android CameraX live preview and manual still capture. **Complete.**
 - **Native Pass 07:** Add iOS AVFoundation live preview and manual still capture. **Complete.**
-- **Native Pass 08:** Add tap focus, pinch zoom, torch, exposure slider, and reset controls. **Complete.**
+- **Native Pass 08:** Add pinch zoom, torch, exposure slider, and reset controls, with continuous autofocus/readability primary. **Complete.**
 - **Native Pass 09:** Add visible camera settings screen driven by the contract. **Complete.**
 - **Native Pass 10:** Add accepted-photo safe local queue before review navigation. **Complete.**
 - **Native Pass 11:** Add abandoned staged native photo cleanup and recovery. **Complete.**
@@ -267,8 +267,8 @@ These passes replace the old "open phone camera" decision.
 - **Native Pass 58:** Add native live framing confidence and edge-coverage diagnostics on CameraX/AVFoundation, preserving only bucketed document-scanner evidence through staging and expense telemetry. **Complete.**
 - **Native Pass 59:** Show native edge/framing confidence as plain, nonblocking capture guidance on CameraX/AVFoundation, including found/usable/weak/missing edge messages while keeping manual shutter available. **Complete.**
 - **Native Pass 60:** Wire native edge settings through CameraX/AVFoundation so `Find receipt edges` controls live edge analysis, overlay visibility, user guidance, and safe diagnostics instead of being a fake settings label. **Complete.**
-- **Native Pass 61:** Wire native camera-control settings through CameraX/AVFoundation so tap focus, pinch zoom, brightness slider, and brightness reset are honored by native UI, controls, diagnostics, and the method-channel session. **Complete.**
-- **Native Pass 62:** Add privacy-safe native camera-control usage diagnostics for tap focus, zoom, manual brightness changes, and focus status, then preserve those counters through staging and expense telemetry without receipt content. **Complete.**
+- **Native Pass 61:** Wire native camera-control settings through CameraX/AVFoundation so pinch zoom, brightness slider, brightness reset, and continuous-focus policy are honored by native UI, controls, diagnostics, and the method-channel session. **Complete.**
+- **Native Pass 62:** Add privacy-safe native camera-control usage diagnostics for legacy focus taps, zoom, manual brightness changes, and focus status, then preserve those counters through staging and expense telemetry without receipt content. **Complete.**
 - **Native Pass 63:** Preserve edge/control setting state through native staging and expense telemetry, so future Command Center health can distinguish disabled camera aids from failed camera aids without receipt content. **Complete.**
 - **Native Pass 64:** Make optional automatic capture real but conservative on CameraX/AVFoundation: it only fires after repeated stable/readable frames with usable edges and good light, preserves manual shutter, cools down between sections, and records safe status/trigger diagnostics. **Complete.**
 - **Native Pass 65:** Harden native close/back lifecycle around manual and automatic capture so CameraX/AVFoundation refuses new captures while closing, returns existing sections safely, and records a safe closing status. **Complete.**

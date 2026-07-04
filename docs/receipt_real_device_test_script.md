@@ -55,7 +55,9 @@ Must Never Happen:
 
 Report Back:
 - Did the preview feel blocked?
-- Did tap-to-focus visibly help?
+- Did continuous autofocus settle on readable receipt text without extra user
+  work?
+- Did brightness, glare, and sharpness guidance match the real photo?
 - Did the app move to receipt review after using the photo?
 - What merchant, total, tax, and date did it detect?
 

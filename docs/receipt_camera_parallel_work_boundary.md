@@ -25,7 +25,7 @@ Build a state-of-the-art receipt capture system for Maintainiac:
 - iOS AVFoundation backend
 - no generic Samsung camera UI as the product experience
 - receipt-focused camera controls
-- tap-to-focus
+- continuous autofocus/readability guidance
 - pinch-to-zoom
 - exposure/brightness control
 - manual shutter always works
@@ -193,7 +193,8 @@ The intended flow is:
 1. User taps receipt/photo capture from the expense flow.
 2. Maintainiac opens its own receipt camera UI.
 3. Camera gives receipt-specific guidance.
-4. User can pinch zoom, tap receipt text to focus, and adjust brightness.
+4. User can pinch zoom, follow continuous-focus/readability guidance, and adjust
+   brightness.
 5. User can always manually take a photo.
 6. If long receipt mode is enabled, the app lets the user add another section.
 7. The next section may show a previous-section ghost/overlap guide.

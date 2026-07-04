@@ -82,7 +82,7 @@ Every non-trivial feature must be designed against this checklist before it is c
 - Can the user crop with independent edges and preview fullscreen?
 - Can the user choose storage/data-saver behavior and understand the quality tradeoff?
 - What happens if the camera is blurry, dark, overexposed, glared, or cannot focus?
-- Is there a manual fallback when OCR, edge detection, document scanning, torch, tap-to-focus, or PDF parsing is unavailable?
+- Is there a manual fallback when OCR, edge detection, document scanning, torch, continuous focus/readability guidance, or PDF parsing is unavailable?
 - Can PDF receipts and files from email/messages/file providers be attached later without forcing the user to move files manually?
 
 ## Inventory, Expenses, Invoices, And Jobs
