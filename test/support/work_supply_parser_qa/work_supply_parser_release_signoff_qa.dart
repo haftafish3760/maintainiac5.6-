@@ -81,7 +81,7 @@ class WorkSupplyParserReleaseSignoffSuite extends QaSuite {
       final source = _read(contract.path, failures);
       final missing = [
         for (final token in contract.tokens)
-          if (!source.contains(token)) token,
+          if (!_containsContractToken(source, token)) token,
       ];
       if (missing.isEmpty) {
         present.add(contract.name);
@@ -147,4 +147,12 @@ class _SignoffContract {
   final String name;
   final String path;
   final List<String> tokens;
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }

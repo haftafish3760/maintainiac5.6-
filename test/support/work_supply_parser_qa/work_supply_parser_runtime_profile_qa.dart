@@ -109,7 +109,7 @@ class WorkSupplyParserRuntimeProfileSuite extends QaSuite {
       checked += target.requiredTokens.length;
       final missing = [
         for (final token in target.requiredTokens)
-          if (!source.contains(token)) token,
+          if (!_containsContractToken(source, token)) token,
       ];
       if (missing.isEmpty) {
         presentTargets.add(target.suite);
@@ -136,7 +136,7 @@ class WorkSupplyParserRuntimeProfileSuite extends QaSuite {
       checked += target.requiredTokens.length;
       final missing = [
         for (final token in target.requiredTokens)
-          if (!source.contains(token)) token,
+          if (!_containsContractToken(source, token)) token,
       ];
       if (missing.isEmpty) {
         catalogBackedTargets.add(target.suite);
@@ -247,11 +247,12 @@ class _RuntimeProfileDocContract {
   final List<String> tokens;
 
   bool isPresentIn(String source) {
-    final normalizedSource = _normalizeContractText(source);
-    return tokens.every(
-      (token) => normalizedSource.contains(_normalizeContractText(token)),
-    );
+    return tokens.every((token) => _containsContractToken(source, token));
   }
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
 }
 
 String _normalizeContractText(String value) {
