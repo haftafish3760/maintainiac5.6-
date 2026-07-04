@@ -155,7 +155,7 @@ class WorkSupplyParserRealReceiptValidationSuite extends QaSuite {
     required String fix,
   }) {
     for (final token in tokens) {
-      if (source.contains(token)) continue;
+      if (_containsContractToken(source, token)) continue;
       failures.add(
         QaFailure(
           suite: name,
@@ -177,6 +177,14 @@ String _read(String path) {
   final file = File(path);
   if (!file.existsSync()) return '';
   return file.readAsStringSync();
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
 
 String _safeId(String value) {

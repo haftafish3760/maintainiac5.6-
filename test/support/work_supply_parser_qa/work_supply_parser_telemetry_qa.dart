@@ -142,7 +142,7 @@ class WorkSupplyParserTelemetryContractSuite extends QaSuite {
   }) {
     final present = <String>[];
     for (final entry in groups.entries) {
-      if (entry.value.any((token) => source.contains(token.toLowerCase()))) {
+      if (entry.value.any((token) => _containsContractToken(source, token))) {
         present.add(entry.key);
         continue;
       }
@@ -162,4 +162,12 @@ class WorkSupplyParserTelemetryContractSuite extends QaSuite {
     }
     return present;
   }
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }

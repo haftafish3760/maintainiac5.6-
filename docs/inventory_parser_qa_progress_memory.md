@@ -3753,3 +3753,16 @@ Release boundaries:
   Background queue `pass2620-core-peh-1000` remained running on
   `electrical_residential_core_es_US` with no failed cells and no live-service,
   Firebase, production catalog, OCR, camera, expenses, or UI flags.
+- **12:12 Harness Pass 2769:** Made evidence attribution, known debt,
+  maintainability, pack lifecycle, pack scope gate, real receipt validation,
+  result contract, and telemetry contract scans whitespace-safe where the
+  checks are governance/documentation contracts. This protects raw/normalized
+  evidence separation, debt ledger guardrails, line-count governance, pack
+  lifecycle metadata, scope/tier release gates, privacy-safe real receipt
+  validation, parser candidate fields, and diagnostics/cost privacy contracts
+  from brittle formatting. Focused
+  `inventory.evidence_attribution,inventory.known_debt_ledger,inventory.harness_maintainability_contract,inventory.pack_lifecycle,inventory.pack_scope_gate_contract,inventory.real_receipt_validation_contract,inventory.result_contract,inventory.telemetry_contract,qa.threshold_gate`
+  passed 492 checks with 0 failures, and targeted analyzer found no issues.
+  Background queue `pass2620-core-peh-1000` remained running on
+  `electrical_residential_core_es_US` with no failed cells and no live-service,
+  Firebase, production catalog, OCR, camera, expenses, or UI flags.

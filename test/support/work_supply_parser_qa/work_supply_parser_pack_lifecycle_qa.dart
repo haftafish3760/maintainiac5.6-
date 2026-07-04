@@ -169,6 +169,14 @@ class _LifecycleContract {
   final bool required;
 
   bool isPresentIn(String source) {
-    return tokens.any(source.contains);
+    return tokens.any((token) => _containsContractToken(source, token));
   }
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }

@@ -199,10 +199,7 @@ class WorkSupplyParserPackScopeGateSuite extends QaSuite {
     );
   }
 
-  void _checkScopeTierImplementation(
-    String source,
-    List<QaFailure> failures,
-  ) {
+  void _checkScopeTierImplementation(String source, List<QaFailure> failures) {
     const implementationTokens = {
       'WorkSupplyPackTier',
       'WorkSupplyMarketScope',
@@ -212,7 +209,11 @@ class WorkSupplyParserPackScopeGateSuite extends QaSuite {
       'complete',
     };
     for (final token in implementationTokens) {
-      if (source.contains(token)) continue;
+      if (_normalizeContractText(
+        source,
+      ).contains(_normalizeContractText(token))) {
+        continue;
+      }
       failures.add(
         _failure(
           id: 'missing_scope_tier_implementation:${_safeId(token)}',

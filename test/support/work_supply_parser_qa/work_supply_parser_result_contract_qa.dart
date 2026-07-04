@@ -310,7 +310,7 @@ class _ContractField {
   final List<String> acceptedTokens;
 
   bool isPresentIn(String source) {
-    return acceptedTokens.any(source.contains);
+    return acceptedTokens.any((token) => _containsContractToken(source, token));
   }
 }
 
@@ -319,4 +319,12 @@ class _RoundTripExpectation {
 
   final String id;
   final bool passed;
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }

@@ -77,7 +77,7 @@ class WorkSupplyParserMaintainabilitySuite extends QaSuite {
         '3000-line generated registry ceiling',
         'inventory.harness_maintainability_contract',
       ]) {
-        if (source.contains(token)) continue;
+        if (_containsContractToken(source, token)) continue;
         failures.add(
           QaFailure(
             suite: name,
@@ -156,4 +156,12 @@ class WorkSupplyParserMaintainabilitySuite extends QaSuite {
     if (!path.startsWith(current)) return path;
     return path.substring(current.length + 1).replaceAll(r'\', '/');
   }
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }

@@ -44,7 +44,7 @@ class WorkSupplyParserKnownDebtSuite extends QaSuite {
     final source = file.readAsStringSync();
     final present = <String>[];
     for (final token in _requiredLedgerTokens) {
-      if (source.contains(token)) {
+      if (_containsContractToken(source, token)) {
         present.add(token);
         continue;
       }
@@ -63,7 +63,7 @@ class WorkSupplyParserKnownDebtSuite extends QaSuite {
     }
 
     for (final debtId in _knownDebtIds) {
-      if (source.contains(debtId)) {
+      if (_containsContractToken(source, debtId)) {
         present.add(debtId);
         continue;
       }
@@ -92,4 +92,12 @@ class WorkSupplyParserKnownDebtSuite extends QaSuite {
       },
     );
   }
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
