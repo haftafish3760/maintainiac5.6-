@@ -34,9 +34,7 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
     final counts = <String, int>{};
     for (final diagnostics in captureDiagnosticsByPhotoPath.values) {
       if (diagnostics['userEditedPhoto'] != true) continue;
-      final token = _diagnosticToken(
-        diagnostics['photoEditAction']?.toString() ?? 'manual_edit',
-      );
+      final token = _normalizedPhotoEditAction(diagnostics['photoEditAction']);
       if (token == 'unknown') continue;
       counts[token] = (counts[token] ?? 0) + 1;
     }
@@ -63,9 +61,7 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
           diagnostics['photoEditReplacedOriginal'] != true) {
         continue;
       }
-      final token = _diagnosticToken(
-        diagnostics['photoEditAction']?.toString() ?? 'manual_edit',
-      );
+      final token = _normalizedPhotoEditAction(diagnostics['photoEditAction']);
       if (token == 'unknown') continue;
       counts[token] = (counts[token] ?? 0) + 1;
     }
@@ -432,5 +428,25 @@ String? _normalizedNativeReceiptReviewDepth(Object? value) {
     'detailedlines' => 'detailedLines',
     'pricesonly' => 'pricesOnly',
     _ => null,
+  };
+}
+
+String _normalizedPhotoEditAction(Object? value) {
+  final raw = value?.toString().trim();
+  if (raw == null || raw.isEmpty) return 'manual_edit';
+  final token = _diagnosticToken(raw);
+  return switch (token) {
+    'manual_crop' ||
+    'manual_rotate' ||
+    'manual_edit' ||
+    'auto_crop' ||
+    'auto_rotate' ||
+    'perspective_correction' ||
+    'deskew' ||
+    'brightness_cleanup' ||
+    'contrast_cleanup' ||
+    'shadow_cleanup' ||
+    'grayscale_cleanup' => token,
+    _ => 'invalid_photo_edit_action',
   };
 }

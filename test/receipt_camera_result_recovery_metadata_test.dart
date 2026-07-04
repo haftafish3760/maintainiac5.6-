@@ -138,4 +138,52 @@ void main() {
       containsPair('nativeCaptureSourcePolicyOutcome', 'native_recovery'),
     );
   });
+
+  test('malformed photo edit action does not leak into safe metadata', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/edited-proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/edited-proof.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/edited-proof.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/edited-proof.jpg': {
+          'userEditedPhoto': true,
+          'photoEditAction': 'PRIVATE RECEIPT TEXT CROP 12.34',
+          'photoEditReplacedOriginal': true,
+        },
+      },
+    );
+
+    expect(result.editedPhotoActionCounts, {'invalid_photo_edit_action': 1});
+    expect(result.editedPhotoReplacedOriginalCounts, {
+      'invalid_photo_edit_action': 1,
+    });
+    expect(
+      result.receiptReaderHandoffCounts,
+      containsPair('review_photo_edit_invalid_photo_edit_action', 1),
+    );
+    expect(
+      result.receiptReaderHandoffCounts,
+      containsPair(
+        'review_photo_edit_replaced_original_invalid_photo_edit_action',
+        1,
+      ),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('reviewPhotoEditActionCounts', {
+        'invalid_photo_edit_action': 1,
+      }),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata.toString(),
+      isNot(contains('PRIVATE RECEIPT TEXT')),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata.toString(),
+      isNot(contains('/tmp/edited-proof.jpg')),
+    );
+  });
 }
