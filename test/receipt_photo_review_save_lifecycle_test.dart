@@ -86,6 +86,21 @@ void main() {
     expect(
       saveActions,
       contains(
+        'void _forgetAcceptedReceiptPrepArtifacts(\n'
+        '    Set<String> cleanupCandidates,\n'
+        '    Iterable<String> acceptedPaths,',
+      ),
+    );
+    expect(
+      saveActions,
+      contains(
+        'cleanupCandidates.removeWhere(\n'
+        '      (path) => receiptPhotoPathSetContains(acceptedPaths, path),',
+      ),
+    );
+    expect(
+      saveActions,
+      contains(
         'path.isEmpty || receiptPhotoPathSetContains(_photoPaths, path)',
       ),
     );
@@ -96,6 +111,16 @@ void main() {
     expect(
       saveActions,
       isNot(contains('await _deleteGeneratedEditPhotos(const {})')),
+    );
+    expect(
+      saveActions,
+      contains('_forgetAcceptedReceiptPrepArtifacts(generatedPrepArtifacts, {'),
+    );
+    expect(
+      saveActions.indexOf(
+        '_forgetAcceptedReceiptPrepArtifacts(generatedPrepArtifacts, {',
+      ),
+      lessThan(saveActions.indexOf('beginReceiptReviewClose();')),
     );
     expect(
       saveActions,

@@ -15,6 +15,15 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
     }
   }
 
+  void _forgetAcceptedReceiptPrepArtifacts(
+    Set<String> cleanupCandidates,
+    Iterable<String> acceptedPaths,
+  ) {
+    cleanupCandidates.removeWhere(
+      (path) => receiptPhotoPathSetContains(acceptedPaths, path),
+    );
+  }
+
   Future<void> leaveReceiptReviewWithoutSaving() async {
     if (_closingReview || _confirmingReviewExit) return;
     if (_savingPhotos) {
