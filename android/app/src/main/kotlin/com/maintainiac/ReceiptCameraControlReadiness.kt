@@ -78,9 +78,7 @@ internal fun ReceiptCameraActivity.manualShutterControlActualStatus(): String {
 }
 
 internal fun ReceiptCameraActivity.tapFocusControlActualStatus(): String {
-    val visible = hasInitializedReceiptCameraField { previewView } && tapFocusEnabled
-    val enabled = visible && camera != null && isCameraSurfaceActive()
-    return controlStatus(visible, enabled)
+    return controlStatus(visible = false, enabled = false)
 }
 
 internal fun ReceiptCameraActivity.pinchZoomControlActualStatus(): String {
@@ -109,11 +107,11 @@ internal fun ReceiptCameraActivity.torchControlActualStatus(): String {
 }
 
 internal fun ReceiptCameraActivity.focusLockEnabled(): Boolean {
-    return tapFocusEnabled && focusMode == "locked"
+    return false
 }
 
 internal fun ReceiptCameraActivity.exposureLockEnabled(): Boolean {
-    return tapFocusEnabled && exposureMode == "locked"
+    return false
 }
 
 internal fun ReceiptCameraActivity.focusLockControlActualStatus(): String {
@@ -129,7 +127,5 @@ internal fun ReceiptCameraActivity.exposureLockControlActualStatus(): String {
 }
 
 internal fun ReceiptCameraActivity.whiteBalanceLockControlActualStatus(): String {
-    val visible = whiteBalanceLockEnabled && tapFocusEnabled
-    val enabled = visible && camera != null && isCameraSurfaceActive()
-    return controlStatus(visible, enabled)
+    return controlStatus(visible = false, enabled = false)
 }

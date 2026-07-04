@@ -22,18 +22,18 @@ void main() {
       expect(cameraController, contains('AVCapturePhotoCaptureDelegate'));
       expect(cameraController, contains('AVCaptureDevice.default'));
       expect(cameraController, contains('photoOutput.capturePhoto'));
-      expect(cameraController, contains('UITapGestureRecognizer'));
+      expect(cameraController, isNot(contains('UITapGestureRecognizer')));
       expect(cameraController, contains('UIPinchGestureRecognizer'));
       expect(
         cameraController,
-        contains('tapGesture.isEnabled = tapFocusEnabled'),
+        isNot(contains('tapGesture.isEnabled = tapFocusEnabled')),
       );
       expect(
         cameraController,
         contains('pinchGesture.isEnabled = pinchZoomEnabled'),
       );
-      expect(cameraController, contains('focusPointOfInterest'));
-      expect(cameraController, contains('exposurePointOfInterest'));
+      expect(cameraController, isNot(contains('focusPointOfInterest')));
+      expect(cameraController, isNot(contains('exposurePointOfInterest')));
       expect(cameraController, contains('videoZoomFactor'));
       expect(cameraController, contains('zoomGestureStartCount += 1'));
       expect(cameraController, contains('lastZoomStatus = "zoom_changed"'));
@@ -310,11 +310,13 @@ void main() {
       expect(cameraController, contains('suppressTapFocusUntil'));
       expect(
         cameraController,
-        contains('suppressTapFocusUntil = Date().addingTimeInterval(0.35)'),
+        isNot(
+          contains('suppressTapFocusUntil = Date().addingTimeInterval(0.35)'),
+        ),
       );
       expect(
         cameraController,
-        contains('lastFocusStatus = "tap_focus_suppressed_after_zoom"'),
+        isNot(contains('lastFocusStatus = "tap_focus_suppressed_after_zoom"')),
       );
       expect(cameraController, contains('zoomChangeCount'));
       expect(cameraController, contains('manualExposureChangeCount'));
@@ -345,34 +347,35 @@ void main() {
       );
       expect(
         cameraController,
-        contains('let shouldLockFocus = focusMode == "locked"'),
+        isNot(contains('let shouldLockFocus = focusMode == "locked"')),
       );
       expect(
         cameraController,
-        contains('let shouldLockExposure = exposureMode == "locked"'),
+        isNot(contains('let shouldLockExposure = exposureMode == "locked"')),
       );
       expect(
         cameraController,
-        contains(
-          'let shouldLockWhiteBalance = whiteBalanceLockEnabled && whiteBalanceMode == "locked"',
-        ),
-      );
-      expect(cameraController, contains('lockFocusAndExposureIfSupported'));
-      expect(
-        cameraController,
-        contains('cameraDevice.isFocusModeSupported(.locked)'),
+        isNot(contains('let shouldLockWhiteBalance = whiteBalanceLockEnabled')),
       );
       expect(
         cameraController,
-        contains('cameraDevice.isExposureModeSupported(.locked)'),
+        isNot(contains('lockFocusAndExposureIfSupported')),
       );
       expect(
         cameraController,
-        contains('cameraDevice.isWhiteBalanceModeSupported(.locked)'),
+        isNot(contains('cameraDevice.isFocusModeSupported(.locked)')),
       );
       expect(
         cameraController,
-        contains('cameraDevice.whiteBalanceMode = .locked'),
+        isNot(contains('cameraDevice.isExposureModeSupported(.locked)')),
+      );
+      expect(
+        cameraController,
+        isNot(contains('cameraDevice.isWhiteBalanceModeSupported(.locked)')),
+      );
+      expect(
+        cameraController,
+        isNot(contains('cameraDevice.whiteBalanceMode = .locked')),
       );
       expect(cameraController, contains('focusLockAttemptCount'));
       expect(cameraController, contains('focusLockSuccessCount'));
@@ -380,10 +383,14 @@ void main() {
       expect(cameraController, contains('whiteBalanceLockAttemptCount'));
       expect(cameraController, contains('whiteBalanceLockSuccessCount'));
       expect(cameraController, contains('whiteBalanceLockStatus'));
-      expect(cameraController, contains('? "locked"'));
+      expect(cameraController, isNot(contains('? "locked"')));
       expect(
         cameraController,
-        contains('Focus locked. Tap the shutter when the receipt is readable.'),
+        isNot(
+          contains(
+            'Focus locked. Tap the shutter when the receipt is readable.',
+          ),
+        ),
       );
       expect(cameraController, contains('maybeAutoCapture'));
       expect(cameraController, contains('autoCaptureAllowed'));

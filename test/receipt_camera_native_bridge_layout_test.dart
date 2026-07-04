@@ -33,7 +33,7 @@ void main() {
       contains('setJpegQuality(stillCaptureJpegQuality)'),
     );
     expect(androidCameraUnit, contains('ScaleGestureDetector'));
-    expect(androidCameraUnit, contains('FocusMeteringAction'));
+    expect(androidCameraUnit, isNot(contains('FocusMeteringAction')));
     expect(androidCameraUnit, contains('setExposureCompensationIndex'));
     expect(androidCameraUnit, contains('nativeControlReadinessSummary'));
     expect(androidCameraUnit, contains('"pinchZoomControlActual"'));
@@ -67,7 +67,7 @@ void main() {
     expect(iosCameraUnit, contains('AVCaptureSession'));
     expect(iosCameraUnit, contains('AVCaptureVideoPreviewLayer'));
     expect(iosCameraUnit, contains('AVCapturePhotoOutput'));
-    expect(iosCameraUnit, contains('UITapGestureRecognizer'));
+    expect(iosCameraUnit, isNot(contains('UITapGestureRecognizer')));
     expect(iosCameraUnit, contains('UIPinchGestureRecognizer'));
     expect(iosCameraUnit, contains('setExposureTargetBias'));
     expect(iosCameraUnit, contains('nativeControlReadinessSummary'));

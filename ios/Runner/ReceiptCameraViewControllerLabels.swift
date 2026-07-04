@@ -164,10 +164,7 @@ extension ReceiptCameraViewController {
   }
 
   func tapFocusControlActualStatus() -> String {
-    return controlStatus(
-      visible: tapFocusEnabled,
-      enabled: tapFocusEnabled && cameraDevice != nil && isCameraUiUsable
-    )
+    return controlStatus(visible: false, enabled: false)
   }
 
   func pinchZoomControlActualStatus() -> String {
@@ -200,24 +197,15 @@ extension ReceiptCameraViewController {
   }
 
   func focusLockControlActualStatus() -> String {
-    return controlStatus(
-      visible: focusLockEnabled && tapFocusEnabled,
-      enabled: focusLockEnabled && tapFocusEnabled && cameraDevice != nil && isCameraUiUsable
-    )
+    return controlStatus(visible: false, enabled: false)
   }
 
   func exposureLockControlActualStatus() -> String {
-    return controlStatus(
-      visible: exposureLockEnabled && tapFocusEnabled,
-      enabled: exposureLockEnabled && tapFocusEnabled && cameraDevice != nil && isCameraUiUsable
-    )
+    return controlStatus(visible: false, enabled: false)
   }
 
   func whiteBalanceLockControlActualStatus() -> String {
-    return controlStatus(
-      visible: whiteBalanceLockEnabled && tapFocusEnabled,
-      enabled: whiteBalanceLockEnabled && tapFocusEnabled && cameraDevice != nil && isCameraUiUsable
-    )
+    return controlStatus(visible: false, enabled: false)
   }
 
   func nextReceiptSectionNumber() -> Int {

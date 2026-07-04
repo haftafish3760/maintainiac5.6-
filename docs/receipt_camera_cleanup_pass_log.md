@@ -3,6 +3,37 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 723 - 02:54:10 EDT to active cleanup
+
+Scope:
+- Retired dormant Android and iOS native tap-to-focus gesture paths so legacy
+  flags cannot bring manual tap focus back into the receipt camera.
+- Kept pinch zoom, brightness/exposure, continuous focus, and readability
+  guidance as the active receipt-camera control model.
+- Tightened native control readiness so tap/manual focus lock diagnostics report
+  retired controls instead of becoming ready if a stale flag flips.
+- Added Android/iOS bridge regressions that reject `FocusMeteringAction`,
+  `UITapGestureRecognizer`, tap focus point metering, and tap-suppression
+  zoom baggage in active native camera sources.
+- Recorded `BUG-RECEIPT-0212` under `camera_capture_quality`.
+- Fixed stale Android import-hygiene expectations for the legitimate Camera2
+  interop imports used by continuous autofocus and the UUID import used by
+  native unique receipt filenames.
+- Recorded `BUG-RECEIPT-0213` under `qa_harness`.
+- Archived Pass 696 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- First focused native bridge run failed because manual focus-lock assertions
+  still expected the retired tap-focus path; fixed those assertions before
+  continuing.
+- Second focused batch failed because Android import hygiene did not include
+  legitimate Camera2 continuous-focus interop imports; the follow-up focused
+  import-hygiene run also exposed the missing UUID import for native unique
+  receipt filenames. Fixed both before continuing.
+- Passed targeted Dart format/analyzer and focused native bridge regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 722 - 02:51:00 EDT to active cleanup
 
 Scope:
@@ -450,35 +481,3 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for shared receipt capture flow.
 - Passed focused Flutter receipt capture flow shareability regression.
-
-## Pass 697 - 01:23:00 EDT to active cleanup
-
-Scope:
-- Removed stale active handoff wording that still said users can tap to focus
-  during the production receipt camera flow.
-- Replaced it with continuous autofocus/readability guidance plus pinch zoom,
-  brightness/exposure, and torch controls where supported.
-- Extended the active camera docs focus-policy regression to cover the long
-  2026-07-03 receipt camera handoff and reject tap-to-focus flow wording.
-- Recorded `BUG-RECEIPT-0184` under `camera_capture_quality`.
-- Archived Pass 637 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart analyzer for the active camera docs focus-policy test.
-- Passed focused Flutter active camera docs focus-policy regression.
-
-## Pass 696 - 01:18:00 EDT to active cleanup
-
-Scope:
-- Removed stale active native-camera service spec wording that still listed tap
-  focus as a camera hardware control.
-- Reworded native service current-state guidance around continuous
-  focus/readability instead of generic focus adjustment.
-- Extended the active camera docs focus-policy regression to cover the native
-  service spec and reject tap focus as an active control list item.
-- Recorded `BUG-RECEIPT-0183` under `camera_capture_quality`.
-- Archived Pass 636 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart analyzer for the active camera docs focus-policy test.
-- Passed focused Flutter active camera docs focus-policy regression.

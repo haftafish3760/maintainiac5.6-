@@ -29,6 +29,9 @@ void main() {
         'java.util.concurrent.Executor',
       },
       'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt': {
+        'android.hardware.camera2.CaptureRequest',
+        'androidx.camera.camera2.interop.Camera2Interop',
+        'androidx.camera.camera2.interop.ExperimentalCamera2Interop',
         'android.view.Surface',
         'android.widget.Toast',
         'androidx.camera.core.CameraSelector',
@@ -52,8 +55,6 @@ void main() {
         'android.view.MotionEvent',
         'android.view.ScaleGestureDetector',
         'android.view.View',
-        'androidx.camera.core.FocusMeteringAction',
-        'java.util.concurrent.TimeUnit',
         'kotlin.math.roundToInt',
       },
       'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsPayload.kt':
@@ -88,6 +89,7 @@ void main() {
             'android.view.View',
             'java.io.File',
             'java.time.Instant',
+            'java.util.UUID',
           },
       'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSessionArguments.kt':
           {

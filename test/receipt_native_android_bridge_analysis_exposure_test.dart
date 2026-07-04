@@ -187,11 +187,15 @@ void main() {
       expect(cameraActivity, contains('suppressTapFocusUntilMs'));
       expect(
         cameraActivity,
-        contains('suppressTapFocusUntilMs = System.currentTimeMillis() + 350L'),
+        isNot(
+          contains(
+            'suppressTapFocusUntilMs = System.currentTimeMillis() + 350L',
+          ),
+        ),
       );
       expect(
         cameraActivity,
-        contains('lastFocusStatus = "tap_focus_suppressed_after_zoom"'),
+        isNot(contains('lastFocusStatus = "tap_focus_suppressed_after_zoom"')),
       );
       expect(cameraActivity, contains('zoomChangeCount'));
       expect(cameraActivity, contains('manualExposureChangeCount'));
@@ -234,27 +238,29 @@ void main() {
       );
       expect(
         cameraActivity,
-        contains('val shouldLockFocus = focusMode == "locked"'),
+        isNot(contains('val shouldLockFocus = focusMode == "locked"')),
       );
       expect(
         cameraActivity,
-        contains('val shouldLockExposure = exposureMode == "locked"'),
+        isNot(contains('val shouldLockExposure = exposureMode == "locked"')),
       );
       expect(
         cameraActivity,
-        contains(
-          'val shouldLockWhiteBalance = whiteBalanceLockEnabled && whiteBalanceMode == "locked"',
-        ),
+        isNot(contains('val shouldLockWhiteBalance = whiteBalanceLockEnabled')),
       );
-      expect(cameraActivity, contains('not_supported_cameraX'));
-      expect(cameraActivity, contains('builder.disableAutoCancel()'));
+      expect(cameraActivity, isNot(contains('not_supported_cameraX')));
+      expect(cameraActivity, isNot(contains('builder.disableAutoCancel()')));
       expect(cameraActivity, contains('focusLockAttemptCount'));
       expect(cameraActivity, contains('focusLockSuccessCount'));
       expect(cameraActivity, contains('exposureLockSuccessCount'));
-      expect(cameraActivity, contains('lastFocusStatus = "locked"'));
+      expect(cameraActivity, isNot(contains('lastFocusStatus = "locked"')));
       expect(
         cameraActivity,
-        contains('Focus locked. Tap the shutter when the receipt is readable.'),
+        isNot(
+          contains(
+            'Focus locked. Tap the shutter when the receipt is readable.',
+          ),
+        ),
       );
     },
   );

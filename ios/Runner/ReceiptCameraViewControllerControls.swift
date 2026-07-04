@@ -21,105 +21,6 @@ extension ReceiptCameraViewController {
     }
   }
 
-  @objc func focusAndMeter(_ recognizer: UITapGestureRecognizer) {
-    guard tapFocusEnabled else { return }
-    guard recognizer.state == .ended, let cameraDevice, let previewLayer else { return }
-    if Date() < suppressTapFocusUntil {
-      tapFocusSuppressedAfterZoomCount += 1
-      lastFocusStatus = "tap_focus_suppressed_after_zoom"
-      return
-    }
-    let point = recognizer.location(in: view)
-    let devicePoint = previewLayer.captureDevicePointConverted(fromLayerPoint: point)
-    let shouldLockFocus = focusMode == "locked"
-    let shouldLockExposure = exposureMode == "locked"
-    let shouldLockWhiteBalance = whiteBalanceLockEnabled && whiteBalanceMode == "locked"
-    do {
-      try cameraDevice.lockForConfiguration()
-      if cameraDevice.isFocusPointOfInterestSupported {
-        cameraDevice.focusPointOfInterest = devicePoint
-        if cameraDevice.isFocusModeSupported(.continuousAutoFocus) {
-          cameraDevice.focusMode = .continuousAutoFocus
-        } else if cameraDevice.isFocusModeSupported(.autoFocus) {
-          cameraDevice.focusMode = .autoFocus
-        }
-      }
-      if cameraDevice.isExposurePointOfInterestSupported {
-        cameraDevice.exposurePointOfInterest = devicePoint
-        if cameraDevice.isExposureModeSupported(.continuousAutoExposure) {
-          cameraDevice.exposureMode = .continuousAutoExposure
-        } else if cameraDevice.isExposureModeSupported(.autoExpose) {
-          cameraDevice.exposureMode = .autoExpose
-        }
-      }
-      cameraDevice.unlockForConfiguration()
-      tapFocusCount += 1
-      lastFocusStatus = "requested"
-      guidanceLabel.text = "Focus set. Hold steady, then tap the shutter."
-      if shouldLockFocus || shouldLockExposure || shouldLockWhiteBalance {
-        focusLockAttemptCount += 1
-        if shouldLockWhiteBalance {
-          whiteBalanceLockAttemptCount += 1
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
-          self?.lockFocusAndExposureIfSupported(
-            lockFocus: shouldLockFocus,
-            lockExposure: shouldLockExposure,
-            lockWhiteBalance: shouldLockWhiteBalance
-          )
-        }
-      }
-    } catch {
-      guidanceLabel.text = "Focus could not be adjusted right now."
-    }
-  }
-
-  func lockFocusAndExposureIfSupported(
-    lockFocus: Bool,
-    lockExposure: Bool,
-    lockWhiteBalance: Bool
-  ) {
-    guard let cameraDevice, !closingCamera, !isBeingDismissed else { return }
-    do {
-      try cameraDevice.lockForConfiguration()
-      if lockFocus, cameraDevice.isFocusModeSupported(.locked) {
-        cameraDevice.focusMode = .locked
-        focusLockSuccessCount += 1
-      }
-      if lockExposure, cameraDevice.isExposureModeSupported(.locked) {
-        cameraDevice.exposureMode = .locked
-        exposureLockSuccessCount += 1
-      }
-      if lockWhiteBalance {
-        if cameraDevice.isWhiteBalanceModeSupported(.locked) {
-          cameraDevice.whiteBalanceMode = .locked
-          whiteBalanceLockSuccessCount += 1
-          whiteBalanceLockStatus = "locked"
-        } else {
-          whiteBalanceLockStatus = "not_supported"
-        }
-      } else {
-        whiteBalanceLockStatus = "not_requested"
-      }
-      cameraDevice.unlockForConfiguration()
-      if lockFocus || lockExposure || lockWhiteBalance {
-        lastFocusStatus = focusLockSuccessCount > 0 ||
-          exposureLockSuccessCount > 0 ||
-          whiteBalanceLockSuccessCount > 0
-          ? "locked"
-          : "lock_not_supported"
-        if lastFocusStatus == "locked" {
-          guidanceLabel.text = "Focus locked. Tap the shutter when the receipt is readable."
-        }
-      }
-    } catch {
-      lastFocusStatus = "lock_failed"
-      if lockWhiteBalance {
-        whiteBalanceLockStatus = "lock_failed"
-      }
-    }
-  }
-
   @objc func zoomPreview(_ recognizer: UIPinchGestureRecognizer) {
     guard pinchZoomEnabled else {
       lastZoomStatus = "disabled"
@@ -150,7 +51,6 @@ extension ReceiptCameraViewController {
       zoomChangeCount += 1
       lastZoomRatio = roundedDiagnostic(Double(nextZoom))
       lastZoomStatus = "zoom_changed"
-      suppressTapFocusUntil = Date().addingTimeInterval(0.35)
       guidanceLabel.text = String(format: "Zoom %.1fx", nextZoom)
     } catch {
       zoomUnavailableCount += 1

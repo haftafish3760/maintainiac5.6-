@@ -85,8 +85,8 @@ void main() {
     expect(cameraActivity, contains('view.performClick()'));
     expect(cameraActivity, contains('effectiveMinZoom'));
     expect(cameraActivity, contains('effectiveMaxZoom'));
-    expect(cameraActivity, contains('FocusMeteringAction'));
-    expect(cameraActivity, contains('startFocusAndMetering'));
+    expect(cameraActivity, isNot(contains('FocusMeteringAction')));
+    expect(cameraActivity, isNot(contains('startFocusAndMetering')));
     expect(cameraActivity, contains('text = "Next"'));
     expect(cameraActivity, contains('text = "Add Next"'));
     expect(cameraActivity, contains('"Next"'));
