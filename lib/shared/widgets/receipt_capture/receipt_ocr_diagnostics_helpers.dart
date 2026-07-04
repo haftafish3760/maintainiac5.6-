@@ -107,12 +107,28 @@ Map<String, int> _parserTaskCountsWithReceiptCoverage(
       (qualityRisks['ocr_source_action_retake_with_more_light'] ?? 0) > 0 ||
       (qualityRisks['ocr_source_action_turn_on_light_or_retake'] ?? 0) > 0 ||
       (qualityRisks['ocr_source_action_check_text_or_add_light'] ?? 0) > 0 ||
-      (qualityRisks['ocr_source_action_review_or_add_light'] ?? 0) > 0) {
+      (qualityRisks['ocr_source_action_review_or_add_light'] ?? 0) > 0 ||
+      (qualityRisks['photo_quality_photo_is_too_dark'] ?? 0) > 0 ||
+      (qualityRisks['photo_quality_photo_is_darker_than_ideal_for_receipt_assistance'] ??
+              0) >
+          0) {
     add('photo_saved_dark_or_exposure_review');
   }
   if ((qualityRisks['ocr_source_saved_photo_soft_blur_risk'] ?? 0) > 0 ||
-      (qualityRisks['ocr_source_action_retake_hold_steady'] ?? 0) > 0) {
+      (qualityRisks['ocr_source_action_retake_hold_steady'] ?? 0) > 0 ||
+      (qualityRisks['photo_quality_photo_looks_blurry'] ?? 0) > 0) {
     add('photo_saved_soft_blur_review');
+  }
+  if ((qualityRisks['ocr_source_saved_photo_brighter_than_preview'] ?? 0) > 0 ||
+      (qualityRisks['ocr_source_saved_photo_glare_risk'] ?? 0) > 0 ||
+      (qualityRisks['ocr_source_action_reduce_brightness_or_glare'] ?? 0) > 0 ||
+      (qualityRisks['ocr_source_action_reduce_glare_or_retake'] ?? 0) > 0 ||
+      (qualityRisks['photo_quality_photo_has_glare_or_is_too_bright'] ?? 0) >
+          0 ||
+      (qualityRisks['photo_quality_photo_is_bright_check_for_glare_before_continuing'] ??
+              0) >
+          0) {
+    add('photo_saved_glare_review');
   }
   if ((qualityRisks['ocr_source_saved_photo_bottom_too_dark'] ?? 0) > 0 ||
       (qualityRisks['ocr_source_saved_photo_bottom_soft'] ?? 0) > 0 ||

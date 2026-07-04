@@ -102,6 +102,10 @@ void main() {
             .ocrSourceHandoffContract['sourceQualityReviewAction'],
         'retake_or_raise_brightness',
       );
+      expect(
+        result.diagnostics.parserTaskCounts,
+        containsPair('photo_saved_dark_or_exposure_review', 1),
+      );
     },
   );
 
