@@ -284,6 +284,11 @@ void main() {
       expect(cameraActivity, contains('latestCapturedByteBucket'));
       expect(cameraActivity, contains('latestCapturedBrightnessBucket'));
       expect(cameraActivity, contains('latestCapturedSharpnessBucket'));
+      expect(cameraActivity, contains('!luma.isFinite() || luma < 0.0'));
+      expect(
+        cameraActivity,
+        contains('!edgeScore.isFinite() || edgeScore < 0.0'),
+      );
       expect(cameraActivity, contains('latestCapturedQualitySignal'));
       expect(cameraActivity, contains('latestCapturedExposureMismatch'));
       expect(cameraActivity, contains('!liveBrightnessAtShutter.isFinite()'));

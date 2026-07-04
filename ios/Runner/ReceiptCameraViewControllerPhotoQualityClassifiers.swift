@@ -1,6 +1,6 @@
 extension ReceiptCameraViewController {
   func capturedBrightnessBucket(_ luma: Double) -> String {
-    if luma < 0 { return "unknown" }
+    if !luma.isFinite || luma < 0 { return "unknown" }
     if luma < 70 { return "captured_too_dark" }
     if luma < 105 { return "captured_dim" }
     if luma < 205 { return "captured_readable" }
@@ -14,7 +14,7 @@ extension ReceiptCameraViewController {
   }
 
   func capturedSharpnessBucket(_ edgeScore: Double) -> String {
-    if edgeScore < 0 { return "unknown" }
+    if !edgeScore.isFinite || edgeScore < 0 { return "unknown" }
     if edgeScore < 5.5 { return "captured_soft_blur_risk" }
     if edgeScore < 10 { return "captured_usable_soft" }
     if edgeScore < 24 { return "captured_sharp" }

@@ -104,7 +104,7 @@ internal fun ReceiptCameraActivity.roundedDiagnostic(value: Double): Double {
 
 internal fun ReceiptCameraActivity.capturedBrightnessBucket(luma: Double): String {
     return when {
-        luma < 0.0 -> "unknown"
+        !luma.isFinite() || luma < 0.0 -> "unknown"
         luma < 70.0 -> "captured_too_dark"
         luma < 105.0 -> "captured_dim"
         luma < 205.0 -> "captured_readable"
@@ -115,7 +115,7 @@ internal fun ReceiptCameraActivity.capturedBrightnessBucket(luma: Double): Strin
 
 internal fun ReceiptCameraActivity.capturedSharpnessBucket(edgeScore: Double): String {
     return when {
-        edgeScore < 0.0 -> "unknown"
+        !edgeScore.isFinite() || edgeScore < 0.0 -> "unknown"
         edgeScore < 5.5 -> "captured_soft_blur_risk"
         edgeScore < 10.0 -> "captured_usable_soft"
         edgeScore < 24.0 -> "captured_sharp"

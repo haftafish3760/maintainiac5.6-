@@ -116,6 +116,11 @@ void main() {
       );
       expect(cameraController, contains('latestCapturedMegapixelBucket'));
       expect(cameraController, contains('latestCapturedByteBucket'));
+      expect(cameraController, contains('if !luma.isFinite || luma < 0'));
+      expect(
+        cameraController,
+        contains('if !edgeScore.isFinite || edgeScore < 0'),
+      );
       expect(cameraController, contains('latestCapturedBrightnessBucket'));
       expect(cameraController, contains('latestCapturedSharpnessBucket'));
       expect(cameraController, contains('latestCapturedQualitySignal'));
