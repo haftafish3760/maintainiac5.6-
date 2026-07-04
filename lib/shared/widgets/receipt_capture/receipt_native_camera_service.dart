@@ -68,7 +68,7 @@ class ReceiptNativeCameraService {
       }
       if (_hasUnsafeNativeReceiptPaths(paths)) {
         throw const ReceiptNativeCameraUnavailableException(
-          'Maintainiac receipt camera returned non-local receipt photo paths.',
+          'Maintainiac receipt camera returned non-local or non-image receipt photo paths.',
         );
       }
       if (_hasDuplicateNativeReceiptPaths(paths)) {
@@ -182,6 +182,16 @@ bool _hasUnsafeNativeReceiptPaths(List<String> paths) {
     if (!path.startsWith('/')) return true;
     if (path.contains('\u0000')) return true;
     if (path.contains('://')) return true;
+    if (!_isNativeReceiptImagePath(path)) return true;
   }
   return false;
+}
+
+bool _isNativeReceiptImagePath(String path) {
+  final lowerPath = path.toLowerCase();
+  return lowerPath.endsWith('.jpg') ||
+      lowerPath.endsWith('.jpeg') ||
+      lowerPath.endsWith('.png') ||
+      lowerPath.endsWith('.heic') ||
+      lowerPath.endsWith('.heif');
 }

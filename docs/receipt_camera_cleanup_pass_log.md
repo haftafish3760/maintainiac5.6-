@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 714 - 02:31:00 EDT to active cleanup
+
+Scope:
+- Extended native receipt path validation so local paths must also be image-like
+  receipt captures before OCR/staging handoff.
+- Added a regression rejecting a local `.txt` path returned from the native
+  camera platform channel.
+- Recorded `BUG-RECEIPT-0202` under `source_preservation`.
+- Archived Pass 689 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native receipt image path
+  validation.
+- Passed focused native camera result regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 713 - 02:29:00 EDT to active cleanup
 
 Scope:
@@ -448,31 +465,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer for selected receipt line allocation.
-- Passed focused Flutter receipt processing contract regression.
-- Passed cleanup log, doc size, bug ledger, source audit, tests-only source
-  audit, and diff whitespace gates.
-
-## Pass 689 - 00:48:40 EDT to active cleanup
-
-Scope:
-- Preserved excluded receipt line references in selection bundles so future
-  client-proof image redaction can target real receipt line IDs and proof labels
-  instead of synthetic placeholders.
-- Routed excluded line references into the client-proof redaction plan while
-  keeping the old placeholder fallback for legacy constructed bundles.
-- Added regression coverage proving excluded personal lines remain privacy-safe
-  but retain the real line ID, proof label, and source section needed for
-  redaction overlays.
-- Recorded `BUG-RECEIPT-0176` under `privacy_redaction`.
-- Archived Passes 628 and 618 from the active cleanup log to keep the doc under
-  cap.
-
-Verification:
-- First focused regression run failed because summary expectations still
-  assumed hidden lines did not contribute source sections; fixed that test
-  expectation after preserving excluded line references.
-- Passed targeted Dart format/analyzer for receipt selection and client-proof
-  contracts.
 - Passed focused Flutter receipt processing contract regression.
 - Passed cleanup log, doc size, bug ledger, source audit, tests-only source
   audit, and diff whitespace gates.

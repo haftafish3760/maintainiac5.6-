@@ -306,7 +306,51 @@ void main() {
         isA<ReceiptNativeCameraUnavailableException>().having(
           (error) => error.message,
           'message',
-          contains('non-local receipt photo paths'),
+          contains('non-local or non-image receipt photo paths'),
+        ),
+      ),
+    );
+  });
+
+  test('native service rejects non-image receipt photo paths', () async {
+    const channel = MethodChannel('maintainiac/receipt_wrong_file_type_test');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'captureReceipt');
+          return {
+            'originalPhotoPaths': ['/tmp/receipt-capture.txt'],
+            'temporaryCaptureIds': ['receipt-capture'],
+            'capturedAt': '2026-07-03T10:47:00.000Z',
+            'captureDiagnostics': {
+              'captureSurface': 'maintainiac_native_android',
+            },
+          };
+        });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    const capabilities = ReceiptNativeCameraCapabilities(
+      engine: ReceiptNativeCameraEngine.cameraX,
+      available: true,
+      cameraPermissionGranted: true,
+      hasRearCamera: true,
+    );
+    final config = const ReceiptNativeCameraSettings().sessionFor(
+      deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+      nativeCapabilities: capabilities,
+    );
+
+    await expectLater(
+      const ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(config),
+      throwsA(
+        isA<ReceiptNativeCameraUnavailableException>().having(
+          (error) => error.message,
+          'message',
+          contains('non-local or non-image receipt photo paths'),
         ),
       ),
     );
