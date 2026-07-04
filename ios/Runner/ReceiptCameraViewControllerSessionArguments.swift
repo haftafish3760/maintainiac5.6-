@@ -28,7 +28,7 @@ extension ReceiptCameraViewController {
     liveAnalysisEnabled = arguments["liveAnalysisEnabled"] as? Bool ?? true
     edgeDetectionEnabled = arguments["edgeDetectionEnabled"] as? Bool ?? true
     edgeOverlayEnabled = arguments["edgeOverlayEnabled"] as? Bool ?? true
-    tapFocusEnabled = arguments["tapFocusEnabled"] as? Bool ?? false
+    tapFocusEnabled = false
     pinchZoomEnabled = arguments["pinchZoomEnabled"] as? Bool ?? true
     exposureSliderEnabled = arguments["exposureSliderEnabled"] as? Bool ?? true
     exposureResetEnabled = arguments["exposureResetEnabled"] as? Bool ?? true
@@ -70,7 +70,7 @@ extension ReceiptCameraViewController {
     previewExposurePolicy = arguments["previewExposurePolicy"] as? String ?? previewExposurePolicy
     previewBrightnessGuardPolicy = arguments["previewBrightnessGuardPolicy"] as? String ?? previewBrightnessGuardPolicy
     shutterSpeedPolicy = arguments["shutterSpeedPolicy"] as? String ?? shutterSpeedPolicy
-    tapToFocusPolicy = arguments["tapToFocusPolicy"] as? String ?? tapToFocusPolicy
+    tapToFocusPolicy = "continuous_focus_primary_no_tap_focus"
     focusStrategyPolicy = arguments["focusStrategyPolicy"] as? String ?? focusStrategyPolicy
     continuousFocusEnabled = arguments["continuousFocusEnabled"] as? Bool ?? continuousFocusEnabled
     readabilityGuidancePolicy = arguments["readabilityGuidancePolicy"] as? String ?? readabilityGuidancePolicy

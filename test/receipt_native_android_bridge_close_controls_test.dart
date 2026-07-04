@@ -109,9 +109,18 @@ void main() {
     expect(cameraActivity, contains('exposureSliderEnabled'));
     expect(cameraActivity, contains('exposureResetEnabled'));
     expect(cameraActivity, contains('nativeControlContractTags'));
+    expect(cameraActivity, contains('tapFocusEnabled = false'));
     expect(
       cameraActivity,
-      contains('intent.getBooleanExtra("tapFocusEnabled", false)'),
+      contains('tapToFocusPolicy = "continuous_focus_primary_no_tap_focus"'),
+    );
+    expect(
+      cameraActivity,
+      isNot(contains('intent.getBooleanExtra("tapFocusEnabled", false)')),
+    );
+    expect(
+      cameraActivity,
+      isNot(contains('intent.getStringExtra("tapToFocusPolicy")')),
     );
     expect(
       cameraActivity,

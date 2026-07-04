@@ -62,9 +62,18 @@ void main() {
       expect(cameraController, contains('exposureSliderEnabled'));
       expect(cameraController, contains('exposureResetEnabled'));
       expect(cameraController, contains('nativeControlContractTags'));
+      expect(cameraController, contains('tapFocusEnabled = false'));
       expect(
         cameraController,
-        contains('arguments["tapFocusEnabled"] as? Bool ?? false'),
+        contains('tapToFocusPolicy = "continuous_focus_primary_no_tap_focus"'),
+      );
+      expect(
+        cameraController,
+        isNot(contains('arguments["tapFocusEnabled"] as? Bool ?? false')),
+      );
+      expect(
+        cameraController,
+        isNot(contains('arguments["tapToFocusPolicy"] as? String')),
       );
       expect(
         cameraController,

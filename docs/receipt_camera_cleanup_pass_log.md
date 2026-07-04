@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 706 - 02:31:00 EDT to active cleanup
+
+Scope:
+- Hardened Android and iOS native session argument readers so stale or malformed
+  bridge arguments cannot re-enable tap-focus for receipt capture.
+- Forced the native tap-focus policy to
+  `continuous_focus_primary_no_tap_focus` at both platform boundaries.
+- Updated Android and iOS bridge regressions to reject raw tap-focus argument
+  trust.
+- Recorded `BUG-RECEIPT-0193` under `native_bridge`.
+- Archived Pass 647 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native bridge tests.
+- Passed focused Android/iOS bridge regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+- Archived Pass 648 from the active cleanup log to keep the doc under cap.
+
 ## Pass 705 - 02:25:00 EDT to active cleanup
 
 Scope:
@@ -464,37 +483,3 @@ Verification:
 - Passed targeted Dart format/analyzer for native bridge/service parity tests.
 - Passed focused Flutter native Android bridge, iOS bridge, and receipt native
   camera service regressions.
-
-## Pass 648 - 22:47:13 EDT to active cleanup
-
-Scope:
-- Hardened hardware capability summaries so normal receipt-camera copy exposes
-  continuous focus/readability support instead of legacy tap-focus behavior.
-- Wired native `supportsContinuousFocus` into the device hardware profile and
-  kept tap-focus support as legacy diagnostic evidence only.
-- Fixed Android/iOS native auto-capture readability holdback to use helper/set
-  membership instead of direct raw-signal equality checks.
-- Recorded `BUG-RECEIPT-0166` under `camera_capture_quality` and
-  `BUG-RECEIPT-0167` under `native_bridge`.
-- Archived Pass 610 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart analyzer for capability/profile/privacy tests.
-- Passed focused Flutter capability, privacy, native rejection, install
-  strategy, and parser-pack regressions.
-
-## Pass 647 - 22:45:26 EDT to active cleanup
-
-Scope:
-- Hardened long-receipt stitch-pair state so UI/control changes cannot pass
-  negative or overflow pair indexes into manual overlap review.
-- Routed pair selection through a clamped helper and repaired negative recovery
-  state before overlap arrays are indexed.
-- Added focused lifecycle regression coverage for the bounded callback path.
-- Recorded `BUG-RECEIPT-0165` under `camera_review_state`.
-- Archived Pass 609 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for stitch-pair state and lifecycle
-  regression.
-- Passed focused Flutter receipt photo review async lifecycle regression.

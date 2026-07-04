@@ -34,7 +34,7 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     liveAnalysisEnabled = intent.getBooleanExtra("liveAnalysisEnabled", true)
     edgeDetectionEnabled = intent.getBooleanExtra("edgeDetectionEnabled", true)
     edgeOverlayEnabled = intent.getBooleanExtra("edgeOverlayEnabled", true)
-    tapFocusEnabled = intent.getBooleanExtra("tapFocusEnabled", false)
+    tapFocusEnabled = false
     pinchZoomEnabled = intent.getBooleanExtra("pinchZoomEnabled", true)
     exposureSliderEnabled = intent.getBooleanExtra("exposureSliderEnabled", true)
     exposureResetEnabled = intent.getBooleanExtra("exposureResetEnabled", true)
@@ -70,7 +70,7 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     previewBrightnessGuardPolicy = intent.getStringExtra("previewBrightnessGuardPolicy")
         ?: previewBrightnessGuardPolicy
     shutterSpeedPolicy = intent.getStringExtra("shutterSpeedPolicy") ?: shutterSpeedPolicy
-    tapToFocusPolicy = intent.getStringExtra("tapToFocusPolicy") ?: tapToFocusPolicy
+    tapToFocusPolicy = "continuous_focus_primary_no_tap_focus"
     focusStrategyPolicy = intent.getStringExtra("focusStrategyPolicy") ?: focusStrategyPolicy
     continuousFocusEnabled =
         intent.getBooleanExtra("continuousFocusEnabled", continuousFocusEnabled)
