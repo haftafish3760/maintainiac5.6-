@@ -375,6 +375,23 @@ Verification:
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
 
+## Pass 813 - 12:27:00 EDT to active cleanup
+
+Scope:
+- Promoted dirty-lens/hazy saved-photo warnings into a first-class OCR source
+  quality review family.
+- Added `saved_hazy_lens_review` with `wipe_lens_or_retake` action and parser
+  task-count mapping for admin/review diagnostics.
+- Added a source handoff regression for dirty lens saved-photo review.
+- Recorded `BUG-RECEIPT-0298` under `ocr_handoff_contract`.
+- Archived Pass 781 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted handoff/diagnostics format/analyzer and focused dirty-lens
+  source handoff regression.
+- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
+  whitespace gates.
+
 ## Pass 812 - 12:20:00 EDT to active cleanup
 
 Scope:
@@ -471,21 +488,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused quality guidance test.
-- Passed doc-size, bug-ledger, source-audit, test-audit, and diff whitespace
-  gates.
-
-## Pass 781 - 07:27:48 EDT to active cleanup
-
-Scope:
-- Clarified OCR-source storage language so the app says temporary full-quality
-  photo/source instead of implying permanent original retention.
-- Updated Android, iOS, shared handoff labels, and the handoff report boundary
-  to match the policy that saved proof is the normal retained artifact.
-- Added/updated native bridge source regressions for the revised storage copy.
-- Recorded `BUG-RECEIPT-0268` under `source_preservation`.
-- Archived Pass 753 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused native bridge source tests.
 - Passed doc-size, bug-ledger, source-audit, test-audit, and diff whitespace
   gates.

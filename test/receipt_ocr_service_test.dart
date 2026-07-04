@@ -269,6 +269,34 @@ void main() {
     );
   });
 
+  test('source handoff reports dirty lens saved-photo review', () {
+    final summary = ReceiptOcrSourceHandoffSummary.fromAttachments([
+      ReceiptAttachmentRecord(
+        id: 'hazy-proof',
+        path: '/tmp/hazy-proof.jpg',
+        kind: ReceiptAttachmentKind.photo,
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        createdAt: DateTime(2026, 7, 1),
+        riskFlags: const [
+          'ocr_source_saved_photo_dirty_lens_or_haze',
+          'ocr_source_action_wipe_lens_or_retake',
+        ],
+      ),
+    ]);
+
+    expect(summary.status, 'scanner_prep_review_needed');
+    expect(summary.sourceQualityReviewStatus, 'saved_hazy_lens_review');
+    expect(summary.sourceQualityReviewAction, 'wipe_lens_or_retake');
+    expect(
+      summary.privacySafeContract['sourceQualityReviewStatus'],
+      'saved_hazy_lens_review',
+    );
+    expect(
+      summary.privacySafeContract['sourceQualityReviewAction'],
+      'wipe_lens_or_retake',
+    );
+  });
+
   test('ocr service asks for a receipt photo before scanning', () async {
     final result = await const ReceiptOcrService().recognizeTextFromAttachments(
       const [],
