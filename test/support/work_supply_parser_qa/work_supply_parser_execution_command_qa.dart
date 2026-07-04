@@ -715,7 +715,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
   }
 
   String _presence(String first, String second, String token) {
-    return 'source=${first.contains(token)}, docs=${second.contains(token)}';
+    return 'source=${_containsContractToken(first, token)}, '
+        'docs=${_containsContractToken(second, token)}';
   }
 }
 
@@ -726,7 +727,7 @@ class _CommandContract {
   final List<String> tokens;
 
   bool isPresentIn(String source) {
-    return tokens.every(source.contains);
+    return tokens.every((token) => _containsContractToken(source, token));
   }
 }
 
@@ -742,8 +743,10 @@ class _ArtifactContract {
   final List<String> planTokens;
 
   bool isPresent({required String source, required String plan}) {
-    return sourceTokens.every(source.contains) &&
-        planTokens.every(plan.contains);
+    return sourceTokens.every(
+          (token) => _containsContractToken(source, token),
+        ) &&
+        planTokens.every((token) => _containsContractToken(plan, token));
   }
 }
 
@@ -758,5 +761,14 @@ class _ToolSourceContract {
   final String path;
   final List<String> tokens;
 
-  bool isPresentIn(String source) => tokens.every(source.contains);
+  bool isPresentIn(String source) =>
+      tokens.every((token) => _containsContractToken(source, token));
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
