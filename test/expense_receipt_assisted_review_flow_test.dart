@@ -84,6 +84,10 @@ void main() {
         lineModels,
         contains('Map<String, Object?> get privacySafeLineReviewContract'),
       );
+      expect(lineModels, contains("'reviewMode': receiptReviewModeCode"));
+      expect(lineModels, contains("'businessUseLabel': allocationSummary"));
+      expect(lineModels, contains("isAllocationOnlyLine ? 'priceOnly'"));
+      expect(lineModels, contains(": 'detailedLine'"));
       expect(lineModels, contains("'ocrSourceLineNumber': ?lineNumber"));
       expect(
         lineModels,

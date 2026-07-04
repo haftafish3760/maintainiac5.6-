@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 803 - 09:31:00 EDT to active cleanup
+
+Scope:
+- Added explicit price-only versus detailed-line review mode fields to the
+  pre-save assisted receipt line privacy-safe contract.
+- Added business-use label parity so draft contracts match saved receipt line
+  review contracts more closely.
+- Added source regressions for draft review-mode and business-use labels.
+- Recorded `BUG-RECEIPT-0287` under `receipt_line_review_mode`.
+- Archived Pass 771 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused assisted-review source
+  regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 802 - 09:22:00 EDT to active cleanup
 
 Scope:
@@ -475,21 +492,4 @@ Verification:
 - Passed targeted Dart format/analyzer for attachment review index changes.
 - Passed focused Flutter camera capture layout/native bridge layout
   regressions.
-- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
-
-## Pass 771 - 05:44:56 EDT to active cleanup
-
-Scope:
-- Hardened shared camera review-opening selection so the old-photo offset uses
-  the same normalized initial receipt photo count as the review screen.
-- Prevented invalid or duplicate existing photo paths from shifting selection
-  away from the newly staged receipt section.
-- Added a source regression tying review-opening index math to
-  `uniqueNormalizedReceiptPhotoPaths`.
-- Recorded `BUG-RECEIPT-0259` under `camera_review_state`.
-- Archived Pass 743 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for review-opening offset changes.
-- Passed focused Flutter capture-flow shareability regression.
 - Passed doc-size, bug-ledger, source-audit, and test-audit gates.

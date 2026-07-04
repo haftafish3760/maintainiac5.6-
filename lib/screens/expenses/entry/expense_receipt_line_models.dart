@@ -207,7 +207,9 @@ class _ExpenseReceiptLine {
     return {
       'lineId': receiptProofRedactionAnchorCode,
       'lineNumberLabel': receiptProofLineReferenceLabel,
+      'reviewMode': receiptReviewModeCode,
       'businessUse': use.name,
+      'businessUseLabel': allocationSummary,
       'businessPercent': effectiveBusinessPercent,
       'personalPercent': effectivePersonalPercent,
       'hasDetailText': !isAllocationOnlyLine,
@@ -219,6 +221,9 @@ class _ExpenseReceiptLine {
 
   bool get isAllocationOnlyLine =>
       _hasAllocationOnlyDescription && !hasReceiptLineDetailEvidence;
+
+  String get receiptReviewModeCode =>
+      isAllocationOnlyLine ? 'priceOnly' : 'detailedLine';
 
   bool get hasReceiptLineDetailEvidence =>
       !_hasAllocationOnlyDescription ||
