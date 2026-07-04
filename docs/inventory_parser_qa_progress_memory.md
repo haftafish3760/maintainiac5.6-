@@ -3231,3 +3231,17 @@ Release boundaries:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.confidence_calibration,qa.threshold_gate`
 - inventory.review_safety_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.review_safety_contract,qa.threshold_gate`
+
+## 2026-07-04 Release-One Core Semantic Evidence
+
+- **08:20 Harness Pass 2384:** Verified the interrupted
+  `pass2372-core-semantic-fixtures` queue completed successfully after the
+  background-queue resume fix. The queue summary reports 6/6 completed Core
+  cells, 0 failed cells, `resumedCellCount=3`, `limit=500`,
+  `fixtureRunLimit=110`, and all local-only safety flags false. Covered cells:
+  Plumbing/Electrical/HVAC residential Core for `en-US` and `es-US`. Each cell
+  wrote `latest_generated_fixture_run.json` under
+  `build/parser_qa_background_queue/pass2372-core-semantic-fixtures/cells/...`
+  with 110 checked generated parser fixtures and 0 failures. This is evidence
+  for the active Release 1 Core lane only; it does not promote Standard,
+  Professional, or Complete.
