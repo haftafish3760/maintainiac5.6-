@@ -26,6 +26,15 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
     return 'accepted_receipt_source_before_saved_proof';
   }
 
+  String get ocrSourceProofRelationship {
+    if (!hasOcrSourcePhotos) return 'missing_ocr_source';
+    if (ocrUsesSavedProofOnlyAsFallback) return 'saved_proof_fallback';
+    if (scannerUsedEnhancedOcrSource) return 'prepared_clear_source';
+    if (scannerKeptOriginalForQuality) return 'original_clear_source';
+    if (usesSeparateOcrSourceCopies) return 'separate_clear_source';
+    return 'same_accepted_source';
+  }
+
   String get ocrSourceFirstReviewCue {
     return switch (ocrSourceFirstDecisionCode) {
       'prepared_receipt_source_before_saved_proof' =>
@@ -50,6 +59,7 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
       'ocrSourceFirstOutcome': ocrSourceFirstOutcome,
       'ocrSourceFirstActionLabel': ocrSourceFirstActionLabel,
       'ocrSourceFirstReviewCue': ocrSourceFirstReviewCue,
+      'ocrSourceProofRelationship': ocrSourceProofRelationship,
       'ocrReadsClearSourceBeforeSavedProof':
           ocrReadsClearSourceBeforeSavedProof,
       'ocrUsesSavedProofOnlyAsFallback': ocrUsesSavedProofOnlyAsFallback,

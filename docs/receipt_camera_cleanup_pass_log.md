@@ -19,6 +19,24 @@ Verification:
 - Passed focused Flutter stitch fallback metadata regression.
 - Passed cleanup log, doc size, source audit, and diff whitespace gates.
 
+## Pass 620 - 21:47:12 EDT to active cleanup
+
+Scope:
+- Added an explicit privacy-safe OCR/proof relationship code for receipt
+  handoff summaries.
+- Distinguished same accepted-source reuse from saved-proof OCR fallback risk
+  so admin QA and downstream review code do not have to infer from paths.
+- Added focused regressions for same-source, fallback, and separate clear-source
+  OCR handoff classifications.
+- Archived Pass 595 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0141` under `ocr_handoff_contract`.
+
+Verification:
+- Passed targeted Dart format/analyzer for OCR source relationship handoff.
+- Passed focused Flutter OCR source relationship regression.
+- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
+  check.
+
 ## Pass 618 - 21:42:32 EDT to active cleanup
 
 Scope:
@@ -447,22 +465,3 @@ Verification:
 - Passed focused Flutter regressions for the native camera contract/session,
   shell, Android/iOS bridge defaults, coverage contract, and native UI health.
 - Passed cleanup log gate, doc-size gate, source audit, and whitespace check.
-
-## Pass 595 - 20:43:24 EDT to 20:44:44 EDT
-
-Scope:
-- Hardened generated edit and best-shot cleanup so kept receipt artifacts are
-  checked with normalized receipt-photo path identity instead of raw set
-  membership.
-- Added source regression coverage proving generated cleanup uses
-  `receiptPhotoPathSetContains` and does not return to raw `keptPaths.contains`.
-- Updated a stale lifecycle regression to assert the current generalized
-  order-diagnostics merge contract.
-- Recorded `BUG-RECEIPT-0116` under `source_preservation`.
-
-Verification:
-- Fixed the first focused lifecycle regression mismatch by updating the stale
-  source-contract assertion to the current generalized merge helper.
-- Passed targeted Dart format/analyzer for generated cleanup and lifecycle
-  source-contract coverage.
-- Passed focused Flutter lifecycle regression.
