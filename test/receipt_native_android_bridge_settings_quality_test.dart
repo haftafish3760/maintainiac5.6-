@@ -89,6 +89,11 @@ void main() {
           'Long receipt mode is unavailable for this device or storage setting.',
         ),
       );
+      expect(
+        cameraActivity,
+        contains('continuous autofocus/readability guidance'),
+      );
+      expect(cameraActivity, isNot(contains('Use focus assist only if')));
       expect(cameraActivity, contains('Automatic capture'));
       expect(
         cameraActivity,

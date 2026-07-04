@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 709 - 02:21:00 EDT to active cleanup
+
+Scope:
+- Removed stale Android native settings copy that still told users to use focus
+  assist after the receipt camera moved to continuous-autofocus/readability
+  guidance.
+- Added focused Android bridge source regression coverage so retired focus
+  assist copy cannot return through settings/help text.
+- Recorded `BUG-RECEIPT-0197` under `camera_capture_quality`.
+- Archived Pass 651 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the Android settings bridge test.
+- Passed focused Android settings bridge regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 708 - 02:45:00 EDT to active cleanup
 
 Scope:
@@ -475,19 +492,3 @@ Scope:
 
 Verification:
 - Passed cleanup log, doc size, source audit, and diff whitespace gates.
-
-## Pass 651 - 22:54:25 EDT to active cleanup
-
-Scope:
-- Hardened barcode/QR diagnostic summaries so raw warning text cannot leak into
-  admin or telemetry-style privacy-safe maps.
-- Replaced raw barcode scan warning summaries with whitelisted warning buckets
-  and a generic `barcode_scan_warning` fallback.
-- Added regression coverage for private barcode warning text.
-- Recorded `BUG-RECEIPT-0169` under `barcode_qr_scanning`.
-- Archived Pass 613 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the barcode scanner service and
-  focused scanner regression.
-- Passed focused Flutter barcode scanner regression.
