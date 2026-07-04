@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 855 - 12:15:00 EDT to active cleanup
+
+Scope:
+- Changed barcode/QR batch scanning so invalid input paths do not consume the
+  valid-image decoder limit.
+- Added separate privacy-safe input, scanned, invalid, and skipped-invalid
+  summary counts for long-receipt scan batches.
+- Recorded `BUG-RECEIPT-0316` under `barcode_qr_scanning`.
+- Archived Pass 792 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused barcode scanner regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 847 - 12:00:00 EDT to active cleanup
 
 Scope:
@@ -465,20 +480,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused native staging regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 792 - 08:12:44 EDT to active cleanup
-
-Scope:
-- Completed the OCR source-first token rename by replacing the remaining
-  `original_source_ready` outcome/status references.
-- Updated continuation action copy routing to use `temporary_full_quality_ready`.
-- Added source regressions rejecting the old outcome token.
-- Recorded `BUG-RECEIPT-0279` under `source_preservation`.
-- Archived Pass 765 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused handoff source regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

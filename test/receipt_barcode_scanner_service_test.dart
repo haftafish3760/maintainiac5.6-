@@ -341,13 +341,16 @@ void main() {
       ], purpose: ReceiptBarcodeScanPurpose.inventory);
 
       expect(decoder.calls, 1);
+      expect(result.inputImageCount, 3);
       expect(result.imageCount, 3);
       expect(result.scannedImageCount, 1);
       expect(result.warningImageCount, 2);
       expect(result.invalidImageCount, 2);
+      expect(result.privacySafeSummaryMap['inputImageCount'], 3);
       expect(result.privacySafeSummaryMap['scannedImageCount'], 1);
       expect(result.privacySafeSummaryMap['warningImageCount'], 2);
       expect(result.privacySafeSummaryMap['invalidImageCount'], 2);
+      expect(result.privacySafeSummaryMap['skippedInvalidImageCount'], 0);
       expect(result.privacySafeSummaryMap['imageWarningBuckets'], [
         'barcode_scan_invalid_source_path',
       ]);
@@ -357,6 +360,30 @@ void main() {
       );
     },
   );
+
+  test('barcode batch invalid paths do not consume valid scan limit', () async {
+    final decoder = _CountingBarcodeDecoder();
+    final service = ReceiptBarcodeScannerService(decoder: decoder);
+
+    final result = await service.scanImageFiles([
+      'relative-private-customer-code.jpg',
+      '/tmp/segment-1.jpg',
+      '/tmp/segment-2.jpg',
+      '/tmp/segment-3.jpg',
+    ], maxImageCount: 2);
+
+    expect(decoder.calls, 2);
+    expect(result.inputImageCount, 4);
+    expect(result.scannedImageCount, 2);
+    expect(result.invalidImageCount, 1);
+    expect(result.warnings, const ['barcode_scan_batch_image_limit']);
+    expect(result.privacySafeSummaryMap['inputImageCount'], 4);
+    expect(result.privacySafeSummaryMap['scannedImageCount'], 2);
+    expect(result.privacySafeSummaryMap['invalidImageCount'], 1);
+    expect(result.privacySafeSummaryMap['batchWarningBuckets'], [
+      'barcode_scan_batch_image_limit',
+    ]);
+  });
 }
 
 class _FakeBarcodeDecoder implements ReceiptBarcodeImageDecoder {

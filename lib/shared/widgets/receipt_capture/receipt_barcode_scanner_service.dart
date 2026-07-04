@@ -156,11 +156,15 @@ class ReceiptBarcodeBatchScanResult {
   const ReceiptBarcodeBatchScanResult({
     required this.purpose,
     required this.imageResults,
+    this.inputImageCount = 0,
+    this.skippedInvalidImageCount = 0,
     this.warnings = const [],
   });
 
   final ReceiptBarcodeScanPurpose purpose;
   final List<ReceiptBarcodeScanResult> imageResults;
+  final int inputImageCount;
+  final int skippedInvalidImageCount;
   final List<String> warnings;
 
   int get imageCount => imageResults.length;
@@ -169,15 +173,17 @@ class ReceiptBarcodeBatchScanResult {
   }
 
   int get warningImageCount {
-    return imageResults.where((result) => result.warnings.isNotEmpty).length;
+    return imageResults.where((result) => result.warnings.isNotEmpty).length +
+        skippedInvalidImageCount;
   }
 
   int get invalidImageCount {
-    return imageResults.where((result) {
+    final reportedInvalidCount = imageResults.where((result) {
       return result.warnings
           .map(_privacySafeBarcodeWarning)
           .contains('barcode_scan_invalid_source_path');
     }).length;
+    return reportedInvalidCount + skippedInvalidImageCount;
   }
 
   int get codeCount => imageResults.fold(0, (sum, result) {
@@ -209,10 +215,12 @@ class ReceiptBarcodeBatchScanResult {
     }
     return {
       'purpose': purpose.name,
+      'inputImageCount': inputImageCount,
       'imageCount': imageCount,
       'scannedImageCount': scannedImageCount,
       'warningImageCount': warningImageCount,
       'invalidImageCount': invalidImageCount,
+      'skippedInvalidImageCount': skippedInvalidImageCount,
       'codeCount': codeCount,
       'qrCodeCount': qrCodeCount,
       'inventoryLookupCandidateCount': inventoryLookupValues.length,
@@ -400,32 +408,53 @@ class ReceiptBarcodeScannerService {
     final safeMax = maxImageCount < 1 ? 1 : maxImageCount;
     final results = <ReceiptBarcodeScanResult>[];
     final seenImagePaths = <String>{};
+    var inputImageCount = 0;
+    var scannedImageCount = 0;
+    var reportedInvalidImageCount = 0;
+    var skippedInvalidImageCount = 0;
     var skippedByLimit = false;
     var skippedDuplicate = false;
     for (final imagePath in imagePaths) {
+      inputImageCount += 1;
       final normalizedPath = _normalizedBarcodeImagePath(imagePath);
-      if (normalizedPath != null && !seenImagePaths.add(normalizedPath)) {
+      if (normalizedPath == null) {
+        if (reportedInvalidImageCount < safeMax) {
+          reportedInvalidImageCount += 1;
+          results.add(
+            ReceiptBarcodeScanResult(
+              imagePath: '',
+              purpose: purpose,
+              codes: const [],
+              warnings: const ['barcode_scan_invalid_source_path'],
+            ),
+          );
+        } else {
+          skippedInvalidImageCount += 1;
+        }
+        continue;
+      }
+      if (!seenImagePaths.add(normalizedPath)) {
         skippedDuplicate = true;
         continue;
       }
-      if (results.length >= safeMax) {
+      if (scannedImageCount >= safeMax) {
         skippedByLimit = true;
         continue;
       }
+      scannedImageCount += 1;
       results.add(
-        await scanImageFile(
-          normalizedPath ?? imagePath,
-          purpose: purpose,
-          formats: formats,
-        ),
+        await scanImageFile(normalizedPath, purpose: purpose, formats: formats),
       );
     }
     return ReceiptBarcodeBatchScanResult(
       purpose: purpose,
       imageResults: List.unmodifiable(results),
+      inputImageCount: inputImageCount,
+      skippedInvalidImageCount: skippedInvalidImageCount,
       warnings: [
         if (skippedByLimit) 'barcode_scan_batch_image_limit',
         if (skippedDuplicate) 'barcode_scan_duplicate_image_skipped',
+        if (skippedInvalidImageCount > 0) 'barcode_scan_invalid_source_path',
       ],
     );
   }
