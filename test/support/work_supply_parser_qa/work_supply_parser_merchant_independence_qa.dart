@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import '../qa_harness/qa_harness.dart';
@@ -16,6 +17,8 @@ class WorkSupplyParserMerchantIndependenceSuite extends QaSuite {
     'test/support/work_supply_parser_qa/work_supply_parser_real_receipt_validation_qa.dart',
     'test/support/work_supply_parser_qa/work_supply_parser_standard_fixture_seed_qa.dart',
   };
+  static const _goldenFixturePath =
+      'test/fixtures/work_supply_parser/golden_fixtures.json';
 
   static const _merchantFamilies = {
     'Home Depot',
@@ -78,6 +81,22 @@ class WorkSupplyParserMerchantIndependenceSuite extends QaSuite {
     'user approval',
   };
 
+  static const _requiredFixtureMerchants = {
+    'Local Hardware',
+    'Regional Supplier',
+    'Counter Sale',
+    'unknown',
+  };
+
+  static const _requiredFixtureTags = {
+    'local_hardware',
+    'regional_supplier',
+    'counter_sale',
+    'merchant_independence',
+    'bad_spacing',
+    'generic_unknown_merchant',
+  };
+
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
@@ -134,6 +153,46 @@ class WorkSupplyParserMerchantIndependenceSuite extends QaSuite {
       triage: QaFailureTriage.reviewSafety,
     );
 
+    final fixtures = _loadGoldenFixtures(failures);
+    final merchantCounts = _fixtureMerchantCounts(fixtures);
+    final fixtureTags = _fixtureTags(fixtures);
+
+    checked += _requiredFixtureMerchants.length;
+    for (final merchant in _requiredFixtureMerchants) {
+      if ((merchantCounts[merchant] ?? 0) > 0) continue;
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'missing_merchant_independence_fixture:${_safeId(merchant)}',
+          message:
+              'Golden fixtures are missing a merchant-independent receipt family.',
+          expected: merchant,
+          actual: merchantCounts.keys.join(', '),
+          suggestedFix:
+              'Add synthetic local/regional/counter-sale/unknown receipt fixtures that stay review-safe without a known major merchant.',
+          metadata: const {'triageCategory': QaFailureTriage.fixture},
+        ),
+      );
+    }
+
+    checked += _requiredFixtureTags.length;
+    for (final tag in _requiredFixtureTags) {
+      if (fixtureTags.contains(tag)) continue;
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'missing_merchant_independence_tag:${_safeId(tag)}',
+          message:
+              'Golden fixtures are missing a merchant-independence risk tag.',
+          expected: tag,
+          actual: fixtureTags.join(', '),
+          suggestedFix:
+              'Tag merchant-independent fixtures so reports can prove local, regional, counter-sale, generic, and bad-spacing coverage.',
+          metadata: const {'triageCategory': QaFailureTriage.fixture},
+        ),
+      );
+    }
+
     return timer.finish(
       suite: name,
       checked: checked + _sourcePaths.length,
@@ -141,6 +200,8 @@ class WorkSupplyParserMerchantIndependenceSuite extends QaSuite {
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'sourceFiles': _sourcePaths.length,
+        'fixtureMerchants': merchantCounts,
+        'fixtureTags': fixtureTags,
         'contract':
             'Inventory parser release readiness must prove store-independent receipt understanding, not only named big-box merchant tuning.',
       },
@@ -200,6 +261,91 @@ class WorkSupplyParserMerchantIndependenceSuite extends QaSuite {
     }
     return buffer.toString();
   }
+
+  List<_MerchantIndependenceFixture> _loadGoldenFixtures(
+    List<QaFailure> failures,
+  ) {
+    final file = File(_goldenFixturePath);
+    if (!file.existsSync()) {
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'missing_merchant_independence_fixture_corpus',
+          message: 'Golden fixture corpus is missing.',
+          expected: _goldenFixturePath,
+          actual: 'not found',
+          suggestedFix:
+              'Restore golden fixtures before claiming merchant-independent receipt coverage.',
+          metadata: const {'triageCategory': QaFailureTriage.fixture},
+        ),
+      );
+      return const [];
+    }
+    final decoded = jsonDecode(file.readAsStringSync()) as List<dynamic>;
+    return [
+      for (final entry in decoded)
+        _MerchantIndependenceFixture.fromJson(
+          (entry as Map).cast<String, Object?>(),
+        ),
+    ];
+  }
+}
+
+class _MerchantIndependenceFixture {
+  const _MerchantIndependenceFixture({
+    required this.merchant,
+    required this.trade,
+    required this.marketScope,
+    required this.tier,
+    required this.riskTags,
+  });
+
+  final String merchant;
+  final String trade;
+  final String marketScope;
+  final String tier;
+  final List<String> riskTags;
+
+  bool get isPriorityReleaseOne {
+    return const {'plumbing', 'electrical', 'hvac'}.contains(trade) &&
+        const {'core', 'standard'}.contains(tier) &&
+        marketScope == 'residential';
+  }
+
+  static _MerchantIndependenceFixture fromJson(Map<String, Object?> json) {
+    return _MerchantIndependenceFixture(
+      merchant: json['merchant'] as String? ?? 'unknown',
+      trade: (json['trade'] as String? ?? '').toLowerCase(),
+      marketScope: (json['marketScope'] as String? ?? '').toLowerCase(),
+      tier: (json['tier'] as String? ?? '').toLowerCase(),
+      riskTags: [
+        for (final tag in json['riskTags'] as List<dynamic>? ?? const [])
+          tag.toString(),
+      ],
+    );
+  }
+}
+
+Map<String, int> _fixtureMerchantCounts(
+  List<_MerchantIndependenceFixture> fixtures,
+) {
+  final counts = <String, int>{};
+  for (final fixture in fixtures.where(
+    (fixture) => fixture.isPriorityReleaseOne,
+  )) {
+    counts.update(fixture.merchant, (count) => count + 1, ifAbsent: () => 1);
+  }
+  return counts;
+}
+
+List<String> _fixtureTags(List<_MerchantIndependenceFixture> fixtures) {
+  final tags = <String>{};
+  for (final fixture in fixtures.where(
+    (fixture) => fixture.isPriorityReleaseOne,
+  )) {
+    tags.addAll(fixture.riskTags);
+  }
+  return tags.toList()..sort();
 }
 
 String _normal(String value) {
