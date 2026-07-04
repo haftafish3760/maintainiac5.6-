@@ -1,5 +1,21 @@
 # PDF System Pass Log
 
+## Pass 25 - 2026-07-04 21:41 EDT - Passenger and patient export privacy
+
+- Scope: generated PDF privacy policy and QA only. No inventory, camera,
+  native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Hardened PDF export privacy detection for passenger/rider labels with
+    colon-separated or plain labeled names, phones, emails, and addresses.
+  - Hardened patient data detection for direct patient labels, patient MRN, and
+    diagnosis-style labels without requiring overly specific wording.
+  - Added regression coverage proving generated PDF validation blocks these
+    private labels before write/share/export.
+- Verification completed 2026-07-04 21:41 EDT:
+  - `dart analyze lib/shared/pdf/app_pdf_privacy_policy.dart test/pdf_privacy_policy_contract_test.dart`
+  - `flutter test test/pdf_privacy_policy_contract_test.dart test/app_generated_pdf_service_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 24 - 2026-07-04 21:32 EDT - Hex text-layer receipt signals
 
 - Scope: receipt PDF inspection signal detection and QA only. No inventory,

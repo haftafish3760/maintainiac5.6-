@@ -28,6 +28,23 @@ void main() {
     expect(issues, contains(AppPdfPrivacyPolicy.privateSourcePath));
   });
 
+  test('PDF privacy policy blocks passenger and patient labels', () {
+    final issues = AppPdfPrivacyPolicy.issueCodesForExport(
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\n'
+                'Passenger: Jane Customer\n'
+                'Rider phone: 555-1212\n'
+                'Patient: Sam Example\n'
+                'Diagnosis: private condition\n'
+                '%%EOF'
+            .codeUnits,
+      ),
+    );
+
+    expect(issues, contains(AppPdfPrivacyPolicy.passengerData));
+    expect(issues, contains(AppPdfPrivacyPolicy.patientData));
+  });
+
   test('generated PDF validation checks exported titles and share text', () {
     final document = AppGeneratedPdfDocument(
       kind: AppGeneratedPdfKind.invoice,

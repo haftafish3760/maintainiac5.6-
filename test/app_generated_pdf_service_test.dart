@@ -161,11 +161,46 @@ void main() {
 
     expect(source, contains('final writtenBytes = await partial.length();'));
     expect(source, contains('writtenBytes != document.byteSize'));
+    expect(source, contains('final expectedHash = sha256.convert'));
+    expect(source, contains('final actualHash = await sha256.bind'));
+    expect(source, contains('prepared file did not verify'));
     expect(
       source,
       contains("FileSystemException('Generated PDF write was incomplete.')"),
     );
     expect(source, contains('await partial.rename(destination.path);'));
+  });
+
+  test('generated PDF share refuses same-size tampered files', () async {
+    final document = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList('%PDF-1.7\nTotal 12.34\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 4),
+    );
+    final tampered = File('${temporaryDirectory.path}/tampered.pdf');
+    await tampered.writeAsBytes(
+      Uint8List.fromList('%PDF-1.7\nTotal 56.78\n%%EOF'.codeUnits),
+      flush: true,
+    );
+
+    await expectLater(
+      const AppGeneratedPdfService().shareGeneratedFile(
+        AppGeneratedPdfFile(
+          document: document,
+          path: tampered.path,
+          byteSize: document.byteSize,
+        ),
+      ),
+      throwsA(
+        isA<AppGeneratedPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('did not verify'),
+        ),
+      ),
+    );
   });
 
   test('generated PDF model validates sendable PDF bytes and filenames', () {

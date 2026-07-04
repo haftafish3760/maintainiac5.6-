@@ -48,13 +48,13 @@ class AppPdfPrivacyPolicy {
 
   static bool _containsPassengerData(String text) {
     return RegExp(
-      r'\b(?:passenger|rider|pickup passenger|dropoff passenger)\s+(?:name|phone|email|address)\b',
+      r'\b(?:passenger|rider|pickup passenger|dropoff passenger)(?:\s+(?:name|phone|email|address)\s+|\s*(?:name|phone|email|address)?\s*[:#-]\s*)[a-z0-9]',
     ).hasMatch(text);
   }
 
   static bool _containsPatientData(String text) {
     return RegExp(
-      r'\b(?:patient\s+(?:name|phone|email|address|id)|medical record|mrn|diagnosis|hipaa)\s*[:#-]?\s*[a-z0-9]',
+      r'\b(?:patient(?:\s+(?:name|phone|email|address|id|mrn)\s+|\s*(?:name|phone|email|address|id|mrn)?\s*[:#-]\s*)|medical record|mrn|diagnosis|hipaa)\s*[a-z0-9]',
     ).hasMatch(text);
   }
 
