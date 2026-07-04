@@ -60,6 +60,8 @@ extension ExpenseReceiptParseDiagnosticsOcr on ExpenseReceiptParseDiagnostics {
       hasOcrFuelTaskEvidence;
   bool get hasOcrSourceHandoffSignals =>
       ocrSourceHandoffSignalCounts.isNotEmpty ||
+      ocrSourceReviewDepthSignalCounts.isNotEmpty ||
+      ocrSourceReviewDepthStatus.trim().isNotEmpty ||
       ocrSourceStitchSignalCounts.isNotEmpty ||
       ocrSourceScannerDecisionCounts.isNotEmpty ||
       ocrSourceCaptureSourceSignalCounts.isNotEmpty ||

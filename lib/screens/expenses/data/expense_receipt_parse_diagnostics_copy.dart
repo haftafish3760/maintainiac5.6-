@@ -65,6 +65,8 @@ extension ExpenseReceiptParseDiagnosticsCopy on ExpenseReceiptParseDiagnostics {
     Map<String, int>? ocrItemExpenseFamilyCounts,
     String? ocrSourceHandoffStatus,
     Map<String, int>? ocrSourceHandoffSignalCounts,
+    Map<String, int>? ocrSourceReviewDepthSignalCounts,
+    String? ocrSourceReviewDepthStatus,
     Map<String, int>? ocrSourceStitchSignalCounts,
     Map<String, int>? ocrSourceScannerDecisionCounts,
     Map<String, int>? ocrSourceCaptureSourceSignalCounts,
@@ -242,6 +244,11 @@ extension ExpenseReceiptParseDiagnosticsCopy on ExpenseReceiptParseDiagnostics {
           ocrSourceHandoffStatus ?? this.ocrSourceHandoffStatus,
       ocrSourceHandoffSignalCounts:
           ocrSourceHandoffSignalCounts ?? this.ocrSourceHandoffSignalCounts,
+      ocrSourceReviewDepthSignalCounts:
+          ocrSourceReviewDepthSignalCounts ??
+          this.ocrSourceReviewDepthSignalCounts,
+      ocrSourceReviewDepthStatus:
+          ocrSourceReviewDepthStatus ?? this.ocrSourceReviewDepthStatus,
       ocrSourceStitchSignalCounts:
           ocrSourceStitchSignalCounts ?? this.ocrSourceStitchSignalCounts,
       ocrSourceScannerDecisionCounts:

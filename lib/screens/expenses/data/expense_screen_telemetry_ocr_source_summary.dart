@@ -3,6 +3,8 @@ part of 'expense_screen_telemetry.dart';
 class _ExpenseTelemetryOcrSourceSummary {
   final _handoffStatusCounts = <String, int>{};
   final _handoffSignalCounts = <String, int>{};
+  final _reviewDepthSignalCounts = <String, int>{};
+  final _reviewDepthStatusCounts = <String, int>{};
   final _stitchSignalCounts = <String, int>{};
   final _scannerDecisionCounts = <String, int>{};
   final _captureSourceSignalCounts = <String, int>{};
@@ -16,6 +18,14 @@ class _ExpenseTelemetryOcrSourceSummary {
 
   Map<String, int> get handoffSignalCounts {
     return Map.unmodifiable(_handoffSignalCounts);
+  }
+
+  Map<String, int> get reviewDepthSignalCounts {
+    return Map.unmodifiable(_reviewDepthSignalCounts);
+  }
+
+  Map<String, int> get reviewDepthStatusCounts {
+    return Map.unmodifiable(_reviewDepthStatusCounts);
   }
 
   Map<String, int> get stitchSignalCounts {
@@ -44,6 +54,8 @@ class _ExpenseTelemetryOcrSourceSummary {
 
   String get topHandoffStatus => _topCountKey(_handoffStatusCounts);
   String get topHandoffSignal => _topCountKey(_handoffSignalCounts);
+  String get topReviewDepthSignal => _topCountKey(_reviewDepthSignalCounts);
+  String get topReviewDepthStatus => _topCountKey(_reviewDepthStatusCounts);
   String get topStitchSignal => _topCountKey(_stitchSignalCounts);
   String get topScannerDecision => _topCountKey(_scannerDecisionCounts);
   String get topCaptureSourceSignal => _topCountKey(_captureSourceSignalCounts);
@@ -59,6 +71,14 @@ class _ExpenseTelemetryOcrSourceSummary {
     _mergeCountMap(
       _handoffSignalCounts,
       _metadataValue(metadata['ocrSourceHandoffSignalCounts']),
+    );
+    _mergeCountMap(
+      _reviewDepthSignalCounts,
+      _metadataValue(metadata['ocrSourceReviewDepthSignalCounts']),
+    );
+    _increment(
+      _reviewDepthStatusCounts,
+      _stringValue(metadata['ocrSourceReviewDepthStatus']),
     );
     _mergeCountMap(
       _stitchSignalCounts,

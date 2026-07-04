@@ -74,6 +74,8 @@ class PrivacySafeReceiptEvent {
     this.ocrParserTaskCounts = const {},
     this.ocrSourceHandoffStatus,
     this.ocrSourceHandoffSignalCounts = const {},
+    this.ocrSourceReviewDepthSignalCounts = const {},
+    this.ocrSourceReviewDepthStatus,
     this.ocrSourceStitchSignalCounts = const {},
     this.ocrSourceScannerDecisionCounts = const {},
     this.ocrSourceCaptureSourceSignalCounts = const {},
@@ -273,6 +275,8 @@ class PrivacySafeReceiptEvent {
   final Map<String, int> ocrParserTaskCounts;
   final String? ocrSourceHandoffStatus;
   final Map<String, int> ocrSourceHandoffSignalCounts;
+  final Map<String, int> ocrSourceReviewDepthSignalCounts;
+  final String? ocrSourceReviewDepthStatus;
   final Map<String, int> ocrSourceStitchSignalCounts;
   final Map<String, int> ocrSourceScannerDecisionCounts;
   final Map<String, int> ocrSourceCaptureSourceSignalCounts;

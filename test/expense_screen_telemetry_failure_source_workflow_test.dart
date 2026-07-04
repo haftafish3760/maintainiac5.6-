@@ -21,6 +21,10 @@ void main() {
             'ocrSourceHandoffSignalCounts': {
               'receipt_handoff_ready_for_receipt_review': 1,
             },
+            'ocrSourceReviewDepthSignalCounts': {
+              'receipt_review_depth_detailedlines': 1,
+            },
+            'ocrSourceReviewDepthStatus': 'detailed_lines',
             'ocrSourceStitchSignalCounts': {'stitched_ocr_source': 1},
             'ocrSourceScannerDecisionCounts': {
               'scanner_decision_ocr_source_enhanced_selected': 1,
@@ -66,6 +70,10 @@ void main() {
             'ocrSourceHandoffSignalCounts': {
               'receipt_handoff_ready_for_receipt_review': 1,
             },
+            'ocrSourceReviewDepthSignalCounts': {
+              'receipt_review_depth_pricesonly': 1,
+            },
+            'ocrSourceReviewDepthStatus': 'prices_only',
             'ocrSourceStitchSignalCounts': {'stitched_ocr_source': 1},
             'ocrSourceScannerDecisionCounts': {
               'scanner_decision_ocr_source_enhanced_selected': 1,
@@ -192,6 +200,14 @@ void main() {
         'receipt_handoff_possible_partial_receipt': 1,
         'ocr_source_fallback_saved_proof': 1,
       });
+      expect(snapshot.ocrSourceReviewDepthSignalCounts, {
+        'receipt_review_depth_detailedlines': 1,
+        'receipt_review_depth_pricesonly': 1,
+      });
+      expect(snapshot.ocrSourceReviewDepthStatusCounts, {
+        'detailed_lines': 1,
+        'prices_only': 1,
+      });
       expect(snapshot.ocrSourceStitchSignalCounts, {
         'stitched_ocr_source': 2,
         'multiple_ocr_sources_fallback': 1,
@@ -268,6 +284,11 @@ void main() {
         snapshot.topOcrSourceHandoffSignal,
         'receipt_handoff_ready_for_receipt_review',
       );
+      expect(
+        snapshot.topOcrSourceReviewDepthSignal,
+        'receipt_review_depth_detailedlines',
+      );
+      expect(snapshot.topOcrSourceReviewDepthStatus, 'detailed_lines');
       expect(snapshot.topOcrSourceStitchSignal, 'stitched_ocr_source');
       expect(
         snapshot.topOcrSourceScannerDecision,
@@ -304,6 +325,14 @@ void main() {
       expect(
         map['ocrSourceHandoffSignalCounts'],
         snapshot.ocrSourceHandoffSignalCounts,
+      );
+      expect(
+        map['ocrSourceReviewDepthSignalCounts'],
+        snapshot.ocrSourceReviewDepthSignalCounts,
+      );
+      expect(
+        map['ocrSourceReviewDepthStatusCounts'],
+        snapshot.ocrSourceReviewDepthStatusCounts,
       );
       expect(
         map['ocrSourceStitchSignalCounts'],

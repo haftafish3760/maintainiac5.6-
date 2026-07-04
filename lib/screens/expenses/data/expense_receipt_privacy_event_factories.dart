@@ -90,6 +90,9 @@ PrivacySafeReceiptEvent _privacySafeReceiptEventFromOcrResult({
     ocrParserTaskCounts: diagnostics.parserTaskCounts,
     ocrSourceHandoffStatus: diagnostics.ocrSourceHandoffStatus,
     ocrSourceHandoffSignalCounts: diagnostics.ocrSourceHandoffSignalCounts,
+    ocrSourceReviewDepthSignalCounts:
+        diagnostics.ocrSourceReviewDepthSignalCounts,
+    ocrSourceReviewDepthStatus: diagnostics.ocrSourceReviewDepthStatus,
     ocrSourceStitchSignalCounts: diagnostics.ocrSourceStitchSignalCounts,
     ocrSourceScannerDecisionCounts: diagnostics.ocrSourceScannerDecisionCounts,
     ocrSourceCaptureSourceSignalCounts:
@@ -181,6 +184,9 @@ PrivacySafeReceiptEvent _privacySafeReceiptEventFromParseResult({
     ocrParserTaskCounts: diagnostics.ocrParserTaskCounts,
     ocrSourceHandoffStatus: diagnostics.ocrSourceHandoffStatus,
     ocrSourceHandoffSignalCounts: diagnostics.ocrSourceHandoffSignalCounts,
+    ocrSourceReviewDepthSignalCounts:
+        diagnostics.ocrSourceReviewDepthSignalCounts,
+    ocrSourceReviewDepthStatus: diagnostics.ocrSourceReviewDepthStatus,
     ocrSourceStitchSignalCounts: diagnostics.ocrSourceStitchSignalCounts,
     ocrSourceScannerDecisionCounts: diagnostics.ocrSourceScannerDecisionCounts,
     ocrSourceCaptureSourceSignalCounts:

@@ -144,6 +144,12 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
         if (ocr.diagnostics.ocrSourceHandoffSignalCounts.isNotEmpty)
           'ocrSourceHandoffSignalCounts':
               ocr.diagnostics.ocrSourceHandoffSignalCounts,
+        if (ocr.diagnostics.ocrSourceReviewDepthSignalCounts.isNotEmpty)
+          'ocrSourceReviewDepthSignalCounts':
+              ocr.diagnostics.ocrSourceReviewDepthSignalCounts,
+        if (ocr.diagnostics.ocrSourceReviewDepthStatus.trim().isNotEmpty)
+          'ocrSourceReviewDepthStatus':
+              ocr.diagnostics.ocrSourceReviewDepthStatus,
         if (ocr.diagnostics.ocrSourceStitchSignalCounts.isNotEmpty)
           'ocrSourceStitchSignalCounts':
               ocr.diagnostics.ocrSourceStitchSignalCounts,

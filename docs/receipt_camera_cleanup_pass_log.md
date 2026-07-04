@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 824 - 14:01:00 EDT to active cleanup
+
+Scope:
+- Carried typed receipt review-depth OCR diagnostics into OCR completion
+  telemetry, parser telemetry, privacy-safe receipt events, and Command One
+  rollups.
+- Exposed review-depth signal/status counts so price-only versus detailed-line
+  review mode remains visible without receipt text or item content.
+- Added focused telemetry and source-guard regressions for review-depth handoff
+  metadata.
+- Recorded `BUG-RECEIPT-0310` under `receipt_line_review_mode`.
+- Archived Pass 785 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart analyzer and focused telemetry/source-guard regressions.
+- Passed doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 823 - 13:36:37 EDT to active cleanup
 
 Scope:
@@ -468,21 +486,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer and focused help-flow source
   regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 785 - 07:43:52 EDT to active cleanup
-
-Scope:
-- Corrected active camera blueprint, handoff, service, and parallel-boundary
-  docs to use temporary full-quality OCR source language.
-- Clarified that compressed saved proof is the default retained artifact and
-  original-quality proof retention is explicit user choice.
-- Added active-doc regressions against stale original-first/source-truth copy.
-- Recorded `BUG-RECEIPT-0272` under `source_preservation`.
-- Archived Pass 758 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and active-doc regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

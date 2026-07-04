@@ -31,6 +31,7 @@ class ExpenseTelemetryHealthSnapshot {
     required this.parserDownstreamReadinessCounts, required this.parserReviewRootCauseCounts, required this.localReceiptParserRoutingCounts,
     required this.localParserEvidenceOutcomeCounts, required this.localReceiptParserKeptLocalCount, required this.localReceiptParserOptionalPackOfferCount,
     required this.ocrParserTaskCounts, required this.ocrFieldReadinessCounts, required this.ocrSourceHandoffStatusCounts, required this.ocrSourceHandoffSignalCounts,
+    required this.ocrSourceReviewDepthSignalCounts, required this.ocrSourceReviewDepthStatusCounts,
     required this.ocrSourceStitchSignalCounts, required this.ocrSourceScannerDecisionCounts, required this.ocrSourceCaptureSourceSignalCounts,
     required this.ocrSourcePhotoQualityRiskCounts, required this.ocrSourceQualityReviewStatusCounts, required this.ocrSourceQualityReviewActionCounts,
     required this.clientProofRedactionStatusCounts, required this.clientProofVisibilityCounts, required this.receiptSelectedLinePurposeCounts,
@@ -49,7 +50,8 @@ class ExpenseTelemetryHealthSnapshot {
     required this.topOcrUsesPreparedSourceBeforeSavedProof, required this.topOcrUsesSavedProofFallback, required this.topParserRequiredFieldStatus,
     required this.topParserDownstreamReadinessStatus, required this.topParserDownstreamReadiness, required this.topParserReviewRootCause, required this.topLocalReceiptParserRouting,
     required this.topLocalParserEvidenceOutcome, required this.topOcrParserTask, required this.topOcrFieldReadiness, required this.topOcrSourceHandoffStatus,
-    required this.topOcrSourceHandoffSignal, required this.topOcrSourceStitchSignal, required this.topOcrSourceScannerDecision, required this.topOcrSourceCaptureSourceSignal,
+    required this.topOcrSourceHandoffSignal, required this.topOcrSourceReviewDepthSignal, required this.topOcrSourceReviewDepthStatus,
+    required this.topOcrSourceStitchSignal, required this.topOcrSourceScannerDecision, required this.topOcrSourceCaptureSourceSignal,
     required this.topOcrSourcePhotoQualityRisk, required this.topOcrSourceQualityReviewStatus, required this.topOcrSourceQualityReviewAction,
     required this.topClientProofRedactionStatus, required this.topClientProofVisibility, required this.topReceiptSelectedLinePurpose, required this.topClientProofRedactionPlanStatus,
     required this.topClientProofLayoutRedactionStatus,
@@ -122,6 +124,7 @@ class ExpenseTelemetryHealthSnapshot {
   final Map<String, int> parserReviewRootCauseCounts, localReceiptParserRoutingCounts, localParserEvidenceOutcomeCounts;
   final int localReceiptParserKeptLocalCount, localReceiptParserOptionalPackOfferCount;
   final Map<String, int> ocrParserTaskCounts, ocrFieldReadinessCounts, ocrSourceHandoffStatusCounts, ocrSourceHandoffSignalCounts;
+  final Map<String, int> ocrSourceReviewDepthSignalCounts, ocrSourceReviewDepthStatusCounts;
   final Map<String, int> ocrSourceStitchSignalCounts, ocrSourceScannerDecisionCounts, ocrSourceCaptureSourceSignalCounts, ocrSourcePhotoQualityRiskCounts;
   final Map<String, int> ocrSourceQualityReviewStatusCounts, ocrSourceQualityReviewActionCounts, clientProofRedactionStatusCounts, clientProofVisibilityCounts;
   final Map<String, int> receiptSelectedLinePurposeCounts;
@@ -139,7 +142,10 @@ class ExpenseTelemetryHealthSnapshot {
   final String topReceiptRequiredBaseFootprintBlockingReason, topReceiptRequiredBaseFootprintReviewReason, topOcrStoragePolicy, topOcrUsesPreparedSourceBeforeSavedProof;
   final String topOcrUsesSavedProofFallback, topParserRequiredFieldStatus;
   final String topParserDownstreamReadinessStatus, topParserDownstreamReadiness, topParserReviewRootCause, topLocalReceiptParserRouting, topLocalParserEvidenceOutcome, topOcrParserTask;
-  final String topOcrFieldReadiness, topOcrSourceHandoffStatus, topOcrSourceHandoffSignal, topOcrSourceStitchSignal, topOcrSourceScannerDecision, topOcrSourceCaptureSourceSignal;
+  final String topOcrFieldReadiness, topOcrSourceHandoffStatus;
+  final String topOcrSourceHandoffSignal, topOcrSourceReviewDepthSignal;
+  final String topOcrSourceReviewDepthStatus, topOcrSourceStitchSignal;
+  final String topOcrSourceScannerDecision, topOcrSourceCaptureSourceSignal;
   final String topOcrSourcePhotoQualityRisk, topOcrSourceQualityReviewStatus, topOcrSourceQualityReviewAction, topClientProofRedactionStatus, topClientProofVisibility, topReceiptSelectedLinePurpose;
   final String topClientProofRedactionPlanStatus, topClientProofLayoutRedactionStatus;
   final Map<String, int> receiptPhotoCoverageStatusCounts, receiptPhotoCoverageReasonCounts;

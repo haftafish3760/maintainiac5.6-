@@ -43,6 +43,9 @@ void main() {
         await File(
           'lib/shared/widgets/receipt_capture/receipt_capture_review_result_metadata.dart',
         ).readAsString();
+    final expenseParseModels = await File(
+      'lib/screens/expenses/data/expense_receipt_parse_models.dart',
+    ).readAsString();
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
     final reviewCropAndProofControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_crop_and_proof_controls.dart',
@@ -53,6 +56,12 @@ void main() {
         ).readAsString() +
         await File(
           'lib/screens/expenses/entry/expense_receipt_entry_core_helpers.dart',
+        ).readAsString() +
+        await File(
+          'lib/screens/expenses/entry/expense_receipt_entry_ocr_actions.dart',
+        ).readAsString() +
+        await File(
+          'lib/screens/expenses/entry/expense_receipt_entry_parser_telemetry_metadata.dart',
         ).readAsString() +
         await File(
           'lib/screens/expenses/entry/expense_receipt_entry_photo_preparation_telemetry.dart',
@@ -160,6 +169,8 @@ void main() {
       contains('captureDiagnosticsByPhotoPath.values'),
     );
     expect(receiptEntryScreen, contains('ocrSourceHandoffStatus'));
+    expect(receiptEntryScreen, contains('ocrSourceReviewDepthSignalCounts'));
+    expect(receiptEntryScreen, contains('ocrSourceReviewDepthStatus'));
     expect(
       receiptEntryScreen,
       contains('result.usedSavedProofAsOcrSourceFallback'),
@@ -178,6 +189,8 @@ void main() {
       contains('...result.privacySafeReceiptReaderHandoffMetadata'),
     );
     expect(models, contains('receiptBrainBaseSizeDecisionCounts'));
+    expect(expenseParseModels, contains('ocrSourceReviewDepthSignalCounts'));
+    expect(expenseParseModels, contains('ocrSourceReviewDepthStatus'));
     expect(models, contains('receiptBrainBaseSizeDecisionOutcome'));
     expect(models, contains('receiptBrainBaseNeedsSizeReviewCounts'));
     expect(models, contains('receiptBrainBaseBlocksLowStorageCounts'));

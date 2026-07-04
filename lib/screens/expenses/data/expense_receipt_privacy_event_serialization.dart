@@ -104,6 +104,11 @@ extension PrivacySafeReceiptEventSerialization on PrivacySafeReceiptEvent {
         'ocrSourceHandoffStatus': ocrSourceHandoffStatus,
       if (ocrSourceHandoffSignalCounts.isNotEmpty)
         'ocrSourceHandoffSignalCounts': ocrSourceHandoffSignalCounts,
+      if (ocrSourceReviewDepthSignalCounts.isNotEmpty)
+        'ocrSourceReviewDepthSignalCounts': ocrSourceReviewDepthSignalCounts,
+      if (ocrSourceReviewDepthStatus != null &&
+          ocrSourceReviewDepthStatus!.trim().isNotEmpty)
+        'ocrSourceReviewDepthStatus': ocrSourceReviewDepthStatus,
       if (ocrSourceStitchSignalCounts.isNotEmpty)
         'ocrSourceStitchSignalCounts': ocrSourceStitchSignalCounts,
       if (ocrSourceScannerDecisionCounts.isNotEmpty)

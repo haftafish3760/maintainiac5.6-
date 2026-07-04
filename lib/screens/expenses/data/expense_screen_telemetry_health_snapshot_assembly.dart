@@ -130,6 +130,10 @@ extension _ExpenseTelemetryHealthSnapshotAccumulatorSnapshot
       ocrFieldReadinessCounts: ocrFieldReadinessSnapshotCounts,
       ocrSourceHandoffStatusCounts: ocrSourceSummary.handoffStatusCounts,
       ocrSourceHandoffSignalCounts: ocrSourceSummary.handoffSignalCounts,
+      ocrSourceReviewDepthSignalCounts:
+          ocrSourceSummary.reviewDepthSignalCounts,
+      ocrSourceReviewDepthStatusCounts:
+          ocrSourceSummary.reviewDepthStatusCounts,
       ocrSourceStitchSignalCounts: ocrSourceSummary.stitchSignalCounts,
       ocrSourceScannerDecisionCounts: ocrSourceSummary.scannerDecisionCounts,
       ocrSourceCaptureSourceSignalCounts:
@@ -219,6 +223,8 @@ extension _ExpenseTelemetryHealthSnapshotAccumulatorSnapshot
       topOcrFieldReadiness: topOcrFieldReadiness,
       topOcrSourceHandoffStatus: ocrSourceSummary.topHandoffStatus,
       topOcrSourceHandoffSignal: ocrSourceSummary.topHandoffSignal,
+      topOcrSourceReviewDepthSignal: ocrSourceSummary.topReviewDepthSignal,
+      topOcrSourceReviewDepthStatus: ocrSourceSummary.topReviewDepthStatus,
       topOcrSourceStitchSignal: ocrSourceSummary.topStitchSignal,
       topOcrSourceScannerDecision: ocrSourceSummary.topScannerDecision,
       topOcrSourceCaptureSourceSignal: ocrSourceSummary.topCaptureSourceSignal,

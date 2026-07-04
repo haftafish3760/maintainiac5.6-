@@ -108,6 +108,8 @@ const _expenseTelemetryAllowedMetadataKeys = <String>{
   'ocrFieldReadinessCounts',
   'ocrSourceHandoffStatus',
   'ocrSourceHandoffSignalCounts',
+  'ocrSourceReviewDepthSignalCounts',
+  'ocrSourceReviewDepthStatus',
   'ocrSourceStitchSignalCounts',
   'ocrSourceScannerDecisionCounts',
   'ocrSourceCaptureSourceSignalCounts',

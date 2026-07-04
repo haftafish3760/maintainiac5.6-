@@ -29,6 +29,12 @@ extension _ExpenseReceiptEntryParserTelemetryMetadata
       if (result.diagnostics.ocrSourceHandoffSignalCounts.isNotEmpty)
         'ocrSourceHandoffSignalCounts':
             result.diagnostics.ocrSourceHandoffSignalCounts,
+      if (result.diagnostics.ocrSourceReviewDepthSignalCounts.isNotEmpty)
+        'ocrSourceReviewDepthSignalCounts':
+            result.diagnostics.ocrSourceReviewDepthSignalCounts,
+      if (result.diagnostics.ocrSourceReviewDepthStatus.trim().isNotEmpty)
+        'ocrSourceReviewDepthStatus':
+            result.diagnostics.ocrSourceReviewDepthStatus,
       if (result.diagnostics.ocrSourceStitchSignalCounts.isNotEmpty)
         'ocrSourceStitchSignalCounts':
             result.diagnostics.ocrSourceStitchSignalCounts,

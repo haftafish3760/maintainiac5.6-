@@ -71,6 +71,8 @@ extension ExpenseTelemetryHealthSnapshotCommandCenterMap
       'ocrFieldReadinessCounts': ocrFieldReadinessCounts,
       'ocrSourceHandoffStatusCounts': ocrSourceHandoffStatusCounts,
       'ocrSourceHandoffSignalCounts': ocrSourceHandoffSignalCounts,
+      'ocrSourceReviewDepthSignalCounts': ocrSourceReviewDepthSignalCounts,
+      'ocrSourceReviewDepthStatusCounts': ocrSourceReviewDepthStatusCounts,
       'ocrSourceStitchSignalCounts': ocrSourceStitchSignalCounts,
       'ocrSourceScannerDecisionCounts': ocrSourceScannerDecisionCounts,
       'ocrSourceCaptureSourceSignalCounts': ocrSourceCaptureSourceSignalCounts,
@@ -132,6 +134,10 @@ extension ExpenseTelemetryHealthSnapshotCommandCenterMap
         'topOcrSourceHandoffStatus': topOcrSourceHandoffStatus,
       if (topOcrSourceHandoffSignal.isNotEmpty)
         'topOcrSourceHandoffSignal': topOcrSourceHandoffSignal,
+      if (topOcrSourceReviewDepthSignal.isNotEmpty)
+        'topOcrSourceReviewDepthSignal': topOcrSourceReviewDepthSignal,
+      if (topOcrSourceReviewDepthStatus.isNotEmpty)
+        'topOcrSourceReviewDepthStatus': topOcrSourceReviewDepthStatus,
       if (topOcrSourceStitchSignal.isNotEmpty)
         'topOcrSourceStitchSignal': topOcrSourceStitchSignal,
       if (topOcrSourceScannerDecision.isNotEmpty)

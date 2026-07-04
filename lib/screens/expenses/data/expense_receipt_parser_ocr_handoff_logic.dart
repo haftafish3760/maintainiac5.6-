@@ -114,6 +114,9 @@ ExpenseReceiptParseResult parseExpenseReceiptOcrResult(
       ocrItemExpenseFamilyCounts: ocrDiagnostics.itemExpenseFamilyCounts,
       ocrSourceHandoffStatus: ocrDiagnostics.ocrSourceHandoffStatus,
       ocrSourceHandoffSignalCounts: ocrDiagnostics.ocrSourceHandoffSignalCounts,
+      ocrSourceReviewDepthSignalCounts:
+          ocrDiagnostics.ocrSourceReviewDepthSignalCounts,
+      ocrSourceReviewDepthStatus: ocrDiagnostics.ocrSourceReviewDepthStatus,
       ocrSourceStitchSignalCounts: ocrDiagnostics.ocrSourceStitchSignalCounts,
       ocrSourceScannerDecisionCounts:
           ocrDiagnostics.ocrSourceScannerDecisionCounts,

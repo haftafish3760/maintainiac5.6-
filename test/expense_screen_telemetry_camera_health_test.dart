@@ -165,6 +165,10 @@ void main() {
           'ocrSourceHandoffSignalCounts': {
             'receipt_handoff_ready_for_receipt_review': 1,
           },
+          'ocrSourceReviewDepthSignalCounts': {
+            'receipt_review_depth_pricesonly': 1,
+          },
+          'ocrSourceReviewDepthStatus': 'prices_only',
           'ocrSourceStitchSignalCounts': {'stitched_ocr_source': 1},
           'ocrSourceScannerDecisionCounts': {
             'scanner_decision_ocr_source_enhanced_selected': 1,
@@ -355,6 +359,10 @@ void main() {
     expect(metadata['ocrSourceHandoffSignalCounts'], {
       'receipt_handoff_ready_for_receipt_review': 1,
     });
+    expect(metadata['ocrSourceReviewDepthSignalCounts'], {
+      'receipt_review_depth_pricesonly': 1,
+    });
+    expect(metadata['ocrSourceReviewDepthStatus'], 'prices_only');
     expect(metadata['ocrSourceStitchSignalCounts'], {'stitched_ocr_source': 1});
     expect(metadata['ocrSourceScannerDecisionCounts'], {
       'scanner_decision_ocr_source_enhanced_selected': 1,
