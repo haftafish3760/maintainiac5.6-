@@ -113,7 +113,7 @@ Already modeled:
 - Long receipt mode.
 - Manual shutter always available.
 - Auto capture disabled by default.
-- Tap focus.
+- Continuous autofocus/readability guidance.
 - Pinch zoom.
 - Exposure slider.
 - Exposure reset.

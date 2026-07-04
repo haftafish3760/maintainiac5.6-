@@ -39,7 +39,8 @@ Use this as the camera experience benchmark.
 - Do not send users through a Play Services scanner download before they can photograph a receipt.
 - Camera controls belong on screen edges.
 - Manual shutter must always work, even when automatic guidance is uncertain.
-- Tap-to-focus and pinch-to-zoom should behave like a normal camera app.
+- Continuous autofocus/readability guidance and pinch-to-zoom should behave
+  like a normal camera app.
 - The app can guide the user, but it must not block a good manual photo.
 
 ### Expensify Standard

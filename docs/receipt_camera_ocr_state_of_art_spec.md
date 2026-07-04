@@ -49,7 +49,7 @@ Maintainiac should learn from Microsoft Lens' capture feel:
 - Fast capture.
 - Easy framing.
 - Controls on the edges.
-- Tap-to-focus.
+- Continuous autofocus/readability guidance.
 - Pinch-to-zoom.
 - Manual capture always works.
 - Guidance helps without blocking the user.

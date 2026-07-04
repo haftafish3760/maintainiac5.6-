@@ -32,7 +32,7 @@ Steps:
 1. Open Expenses.
 2. Start a new receipt expense.
 3. Attach a receipt photo using the camera.
-4. Tap the receipt text once to focus.
+4. Wait for continuous focus/readability guidance to settle.
 5. Pinch to zoom and back out.
 6. Toggle flash once, then return it to the desired setting.
 7. Take one photo manually.
