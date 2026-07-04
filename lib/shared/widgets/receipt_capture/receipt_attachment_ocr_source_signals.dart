@@ -8,7 +8,11 @@ extension _ReceiptAttachmentOcrSourceSignals
   ) {
     final path = result.ocrSourcePhotoPaths[index];
     final preparation =
-        result.preparationDiagnosticsByOcrPath[path] ?? const {};
+        _previousReceiptPhotoMapValue(
+          result.preparationDiagnosticsByOcrPath,
+          path,
+        ) ??
+        const {};
     final signals = <String>{
       'receipt_ocr_source_photo',
       'ocr_reads_prepared_source_not_saved_backup',

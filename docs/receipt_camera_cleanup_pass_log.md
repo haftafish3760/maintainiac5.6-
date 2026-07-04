@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 780 - 07:20:47 EDT to active cleanup
+
+Scope:
+- Hardened OCR scanner-preparation signal/risk handoff for normalized paths.
+- Replaced raw `preparationDiagnosticsByOcrPath` lookups with normalized
+  receipt-photo map lookups in attachment and capture-flow helpers.
+- Added source regressions proving scanner preparation metadata does not depend
+  on raw OCR source path equality.
+- Recorded `BUG-RECEIPT-0267` under `source_preservation`.
+- Archived Pass 752 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused Flutter OCR source
+  attachment/handoff contract regressions.
+- Passed doc-size, bug-ledger, source-audit, test-audit, and diff whitespace
+  gates.
+
 ## Pass 779 - 07:04:11 EDT to active cleanup
 
 Scope:
@@ -479,22 +496,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for native auto-capture regressions.
 - Passed focused Android/iOS native auto-capture bridge regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 752 - 03:59:57 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS live receipt framing so malformed or non-finite
-  bounds cannot appear as `framing_ok`.
-- Added explicit invalid-bounds diagnostics for frame guidance and perspective
-  readiness while preserving `receipt_not_found` for genuinely missing frames.
-- Added Android/iOS source regressions for malformed live framing bounds.
-- Recorded `BUG-RECEIPT-0240` under `camera_capture_quality`.
-- Archived Pass 726 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native framing regressions.
-- Passed focused Android/iOS native analysis exposure regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

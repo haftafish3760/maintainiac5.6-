@@ -5,7 +5,9 @@ List<String> _ocrSourceDocumentSignalsFor(
   int index,
 ) {
   final path = result.ocrSourcePhotoPaths[index];
-  final preparation = result.preparationDiagnosticsByOcrPath[path] ?? const {};
+  final preparation =
+      _receiptPhotoMapValue(result.preparationDiagnosticsByOcrPath, path) ??
+      const {};
   final signals = <String>{
     'receipt_ocr_source_photo',
     'ocr_reads_prepared_source_not_saved_backup',

@@ -112,6 +112,12 @@ void main() {
     expect(
       flow,
       contains(
+        '_receiptPhotoMapValue(result.preparationDiagnosticsByOcrPath, path)',
+      ),
+    );
+    expect(
+      flow,
+      contains(
         '_receiptPhotoMapValue(\n'
         '    result.captureDiagnosticsByPhotoPath,\n'
         '    ocrSourcePath,',

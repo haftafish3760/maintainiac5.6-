@@ -53,8 +53,10 @@ void _addScannerRiskFlags(
   Set<String> flags,
 ) {
   final preparation =
-      result.preparationDiagnosticsByOcrPath[result
-          .ocrSourcePhotoPaths[index]] ??
+      _receiptPhotoMapValue(
+        result.preparationDiagnosticsByOcrPath,
+        result.ocrSourcePhotoPaths[index],
+      ) ??
       const {};
   final scannerDecisionCodes = preparation['scannerDecisionCodes'];
   if (scannerDecisionCodes is! Iterable) return;

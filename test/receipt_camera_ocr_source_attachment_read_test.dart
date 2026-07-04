@@ -19,6 +19,12 @@ void main() {
         ).readAsString() +
         await File(
           'lib/shared/widgets/receipt_capture/receipt_attachment_native_signal_helpers.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_risk_flags.dart',
         ).readAsString();
     final captureFlow =
         await File(
@@ -74,6 +80,13 @@ void main() {
         '_previousReceiptPhotoMapValue(\n'
         '      result.photoQualityChecksByPath,\n'
         '      ocrSourcePath,',
+      ),
+    );
+    expect(
+      importActions,
+      contains(
+        '_previousReceiptPhotoMapValue(\n'
+        '          result.preparationDiagnosticsByOcrPath,',
       ),
     );
     expect(importActions, contains('result.ocrSourcePhotoPaths.length'));

@@ -36,8 +36,10 @@ extension _ReceiptAttachmentOcrSourceRiskFlags
       if (warning.isCritical) flags.add('ocr_source_native_critical_review');
     }
     final preparation =
-        result.preparationDiagnosticsByOcrPath[result
-            .ocrSourcePhotoPaths[index]] ??
+        _previousReceiptPhotoMapValue(
+          result.preparationDiagnosticsByOcrPath,
+          result.ocrSourcePhotoPaths[index],
+        ) ??
         const {};
     final scannerDecisionCodes = preparation['scannerDecisionCodes'];
     if (scannerDecisionCodes is Iterable) {
