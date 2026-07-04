@@ -40,6 +40,8 @@ class WorkSupplyParserHumanCorrectionLearningSuite extends QaSuite {
     'correction_can_be_rejected',
     'correction_can_create_regression_fixture',
     'correction_scopes_to_merchant_locale_trade',
+    'community_correction_requires_opt_in',
+    'community_correction_is_redacted',
   };
 
   static const _adminSignals = {

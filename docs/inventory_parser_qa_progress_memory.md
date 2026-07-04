@@ -3505,3 +3505,9 @@ Release boundaries:
   mutating parser packs. The barcode behavior test passed 4/4, the barcode
   identity harness contract passed 55 checks with 0 failures, and targeted
   analyzer found no issues.
+- **10:39 Harness Pass 2576:** Strengthened correction-learning behavior so
+  community correction candidates require explicit opt-in, remain redacted, keep
+  raw receipt text out of shared evidence, and still require manual promotion
+  before official pack changes. The correction behavior test passed 8/8, the
+  correction/human-learning harness slice passed 56 checks with 0 failures, and
+  targeted analyzer found no issues.

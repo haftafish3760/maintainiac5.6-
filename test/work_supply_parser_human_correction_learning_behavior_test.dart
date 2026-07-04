@@ -2,59 +2,65 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('inventory parser human correction learning behavior', () {
-    test('correction proposals cover every learning target before promotion', () {
-      final correction = _CorrectionEvent.example();
-      final proposals = _CorrectionLearningPlanner().plan(correction);
+    test(
+      'correction proposals cover every learning target before promotion',
+      () {
+        final correction = _CorrectionEvent.example();
+        final proposals = _CorrectionLearningPlanner().plan(correction);
 
-      expect(
-        proposals.map((proposal) => proposal.kind),
-        containsAll(const [
-          _LearningProposalKind.proposedAlias,
-          _LearningProposalKind.negativeRule,
-          _LearningProposalKind.merchantRule,
-          _LearningProposalKind.regressionFixture,
-          _LearningProposalKind.confidenceHint,
-          _LearningProposalKind.missingVendorMapping,
-          _LearningProposalKind.localePhrase,
-          _LearningProposalKind.spanishPhrase,
-          _LearningProposalKind.itemFamily,
-          _LearningProposalKind.tradeContext,
-        ]),
-      );
-      expect(proposals, everyElement(_requiresReview()));
-      expect(proposals, everyElement(_keepsOriginalEvidence()));
-      expect(proposals, everyElement(_isScopedToMerchantLocaleTrade()));
-      expect(
-        proposals,
-        everyElement(
-          predicate<_LearningProposal>(
-            (proposal) => proposal.officialPackMutation == false,
-            'correction_never_silently_mutates_official_pack',
+        expect(
+          proposals.map((proposal) => proposal.kind),
+          containsAll(const [
+            _LearningProposalKind.proposedAlias,
+            _LearningProposalKind.negativeRule,
+            _LearningProposalKind.merchantRule,
+            _LearningProposalKind.regressionFixture,
+            _LearningProposalKind.confidenceHint,
+            _LearningProposalKind.missingVendorMapping,
+            _LearningProposalKind.localePhrase,
+            _LearningProposalKind.spanishPhrase,
+            _LearningProposalKind.itemFamily,
+            _LearningProposalKind.tradeContext,
+          ]),
+        );
+        expect(proposals, everyElement(_requiresReview()));
+        expect(proposals, everyElement(_keepsOriginalEvidence()));
+        expect(proposals, everyElement(_isScopedToMerchantLocaleTrade()));
+        expect(
+          proposals,
+          everyElement(
+            predicate<_LearningProposal>(
+              (proposal) => proposal.officialPackMutation == false,
+              'correction_never_silently_mutates_official_pack',
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
 
-    test('promotion is blocked until a reviewed proposal is manually approved', () {
-      final pending = _LearningProposal.aliasFrom(_CorrectionEvent.example());
+    test(
+      'promotion is blocked until a reviewed proposal is manually approved',
+      () {
+        final pending = _LearningProposal.aliasFrom(_CorrectionEvent.example());
 
-      expect(pending.canPromoteOfficially, isFalse);
-      expect(pending.requiresReviewBeforePromotion, isTrue);
-      expect(pending.officialPackMutation, isFalse);
-      expect(
-        pending.safetyRuleIds,
-        contains('correction_requires_review_before_promotion'),
-      );
+        expect(pending.canPromoteOfficially, isFalse);
+        expect(pending.requiresReviewBeforePromotion, isTrue);
+        expect(pending.officialPackMutation, isFalse);
+        expect(
+          pending.safetyRuleIds,
+          contains('correction_requires_review_before_promotion'),
+        );
 
-      final approved = pending.approveForManualPromotion(
-        reviewerId: 'catalog-admin-1',
-      );
+        final approved = pending.approveForManualPromotion(
+          reviewerId: 'catalog-admin-1',
+        );
 
-      expect(approved.canPromoteOfficially, isTrue);
-      expect(approved.officialPackMutation, isFalse);
-      expect(approved.reviewedBy, 'catalog-admin-1');
-      expect(approved.status, _LearningProposalStatus.approved);
-    });
+        expect(approved.canPromoteOfficially, isTrue);
+        expect(approved.officialPackMutation, isFalse);
+        expect(approved.reviewedBy, 'catalog-admin-1');
+        expect(approved.status, _LearningProposalStatus.approved);
+      },
+    );
 
     test('rejected corrections remain isolated from official packs', () {
       final rejected = _LearningProposal.aliasFrom(
@@ -148,42 +154,80 @@ void main() {
       );
     });
 
-    test('admin diagnostic signal is useful without private receipt content', () {
+    test(
+      'admin diagnostic signal is useful without private receipt content',
+      () {
+        final proposal = _LearningProposal.aliasFrom(
+          _CorrectionEvent.example(
+            rawReceiptLine:
+                'LOWES 4111 1111 1111 1111 PEX CRMP ELL CARD 1234 8.49',
+            deviceClass: 'older_android',
+            deviceModelBucket: 'galaxy-s9-class',
+            packVersion: 'plumbing-core-en-us-2026.07',
+            parserVersion: 'parser-v3',
+            candidateCount: 4,
+            unknownRate: .03,
+            correctionFrequency: .08,
+          ),
+        );
+        final signal = proposal.toAdminDiagnosticSignal();
+
+        expect(signal['device class'], 'older_android');
+        expect(signal['device model'], 'galaxy-s9-class');
+        expect(signal['pack version'], 'plumbing-core-en-us-2026.07');
+        expect(signal['parser version'], 'parser-v3');
+        expect(signal['failure category'], 'ambiguous_trade_material');
+        expect(signal['trade'], 'Plumbing');
+        expect(signal['item id'], 'plumbing.pex.crimp.elbow.brass.1_2');
+        expect(signal['candidate count'], 4);
+        expect(signal['unknown rate'], .03);
+        expect(signal['correction frequency'], .08);
+        expect(signal.values.join(' '), isNot(contains('4111')));
+        expect(signal.values.join(' '), isNot(contains('1234')));
+        expect(signal.values.join(' '), isNot(contains('PEX CRMP')));
+        expect(
+          proposal.safetyRuleIds,
+          contains('correction_redacts_private_receipt_text'),
+        );
+        expect(
+          proposal.safetyRuleIds,
+          contains('correction_does_not_log_card_data'),
+        );
+      },
+    );
+
+    test('community correction candidate requires opt-in and redaction', () {
       final proposal = _LearningProposal.aliasFrom(
         _CorrectionEvent.example(
           rawReceiptLine:
-              'LOWES 4111 1111 1111 1111 PEX CRMP ELL CARD 1234 8.49',
-          deviceClass: 'older_android',
-          deviceModelBucket: 'galaxy-s9-class',
-          packVersion: 'plumbing-core-en-us-2026.07',
-          parserVersion: 'parser-v3',
-          candidateCount: 4,
-          unknownRate: .03,
-          correctionFrequency: .08,
+              'LOCAL HARDWARE JOHN 555-123-4567 PVC ELL 3/4 VISA 1234',
+          merchantBucket: 'local_hardware',
+          localePackId: 'en-US',
+          tradeScope: 'Plumbing',
         ),
       );
-      final signal = proposal.toAdminDiagnosticSignal();
 
-      expect(signal['device class'], 'older_android');
-      expect(signal['device model'], 'galaxy-s9-class');
-      expect(signal['pack version'], 'plumbing-core-en-us-2026.07');
-      expect(signal['parser version'], 'parser-v3');
-      expect(signal['failure category'], 'ambiguous_trade_material');
-      expect(signal['trade'], 'Plumbing');
-      expect(signal['item id'], 'plumbing.pex.crimp.elbow.brass.1_2');
-      expect(signal['candidate count'], 4);
-      expect(signal['unknown rate'], .03);
-      expect(signal['correction frequency'], .08);
-      expect(signal.values.join(' '), isNot(contains('4111')));
-      expect(signal.values.join(' '), isNot(contains('1234')));
-      expect(signal.values.join(' '), isNot(contains('PEX CRMP')));
+      expect(proposal.toCommunityCorrectionCandidate(optedIn: false), isNull);
+
+      final candidate = proposal.toCommunityCorrectionCandidate(optedIn: true)!;
+      expect(candidate['rawReceiptText'], isNull);
+      expect(candidate['rawReceiptHash'], startsWith('line_hash_'));
+      expect(candidate['merchantBucket'], 'local_hardware');
+      expect(candidate['localePackId'], 'en-US');
+      expect(candidate['tradeScope'], 'Plumbing');
+      expect(candidate['communityOptIn'], isTrue);
+      expect(candidate['manualPromotionRequired'], isTrue);
+      expect(candidate.values.join(' '), isNot(contains('JOHN')));
+      expect(candidate.values.join(' '), isNot(contains('555-123-4567')));
+      expect(candidate.values.join(' '), isNot(contains('VISA')));
+      expect(candidate.values.join(' '), isNot(contains('1234')));
       expect(
         proposal.safetyRuleIds,
-        contains('correction_redacts_private_receipt_text'),
+        contains('community_correction_requires_opt_in'),
       );
       expect(
         proposal.safetyRuleIds,
-        contains('correction_does_not_log_card_data'),
+        contains('community_correction_is_redacted'),
       );
     });
 
@@ -403,7 +447,10 @@ class _LearningProposal {
       _LearningProposal._from(event, _LearningProposalKind.confidenceHint);
 
   factory _LearningProposal.vendorMappingFrom(_CorrectionEvent event) =>
-      _LearningProposal._from(event, _LearningProposalKind.missingVendorMapping);
+      _LearningProposal._from(
+        event,
+        _LearningProposalKind.missingVendorMapping,
+      );
 
   factory _LearningProposal.localePhraseFrom(_CorrectionEvent event) =>
       _LearningProposal._from(event, _LearningProposalKind.localePhrase);
@@ -483,6 +530,8 @@ class _LearningProposal {
     'correction_can_be_rejected',
     'correction_can_create_regression_fixture',
     'correction_scopes_to_merchant_locale_trade',
+    'community_correction_requires_opt_in',
+    'community_correction_is_redacted',
   };
 
   _LearningProposal approveForManualPromotion({required String reviewerId}) {
@@ -529,6 +578,24 @@ class _LearningProposal {
     };
   }
 
+  Map<String, Object?>? toCommunityCorrectionCandidate({
+    required bool optedIn,
+  }) {
+    if (!optedIn) return null;
+    return {
+      'rawReceiptHash': rawReceiptHash,
+      'rawReceiptText': null,
+      'merchantBucket': merchantBucket,
+      'localePackId': localePackId,
+      'tradeScope': tradeScope,
+      'beforeItemId': beforeItemId,
+      'afterItemId': afterItemId,
+      'failureCategory': failureCategory,
+      'communityOptIn': true,
+      'manualPromotionRequired': true,
+    };
+  }
+
   _LearningProposal _copyWith({
     required _LearningProposalStatus status,
     String? reviewedBy,
@@ -561,7 +628,10 @@ class _LearningProposal {
 String _hashReceiptLine(String raw) {
   final sanitized = raw
       .replaceAll(RegExp(r'\b\d{4}([ -]?\d{4}){2,3}\b'), '[CARD]')
-      .replaceAll(RegExp(r'\b(card|visa|mastercard)\b', caseSensitive: false), '')
+      .replaceAll(
+        RegExp(r'\b(card|visa|mastercard)\b', caseSensitive: false),
+        '',
+      )
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim()
       .toLowerCase();
