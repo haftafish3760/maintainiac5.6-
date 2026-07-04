@@ -120,6 +120,14 @@ Focused rerun routes for recently hardened release-one contracts:
   `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.input_attack_surface_contract,inventory.receipt_source_immutability_contract,inventory.security_privacy,qa.threshold_gate --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
   reported 187 checks, 0 failures. Analyzer also passed for the changed parser
   QA security/source files.
+- Passes 2100-2110 added an executable source-modality hostile-text behavior
+  test in `test/work_supply_parser_input_attack_surface_behavior_test.dart`.
+  The focused test
+  `flutter test test\work_supply_parser_input_attack_surface_behavior_test.dart --reporter compact --plain-name "hostile text from every parser source modality is pre-classified"`
+  passed. The matching harness shard
+  `inventory.input_attack_surface_contract,inventory.security_privacy,qa.threshold_gate`
+  then passed 121 checks, 0 failures. Analyzer passed for both the harness
+  contract and behavior test.
 
 ## 2026-07-04 Whole-App Parser Adapter Registry And Surgical Routing
 
