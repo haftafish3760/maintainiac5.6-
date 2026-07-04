@@ -194,11 +194,21 @@ void main() {
     expect(cameraActivity, contains('"manual_only_quality_review"'));
     expect(
       cameraActivity,
-      contains('latestReadabilitySignal == "shadow_risk"'),
+      contains(
+        'receiptQualityReviewReadabilitySignals().contains(latestReadabilitySignal)',
+      ),
     );
     expect(
       cameraActivity,
-      contains('latestReadabilitySignal == "dirty_lens_or_haze"'),
+      isNot(contains('latestReadabilitySignal == "shadow_risk"')),
+    );
+    expect(
+      cameraActivity,
+      isNot(contains('latestReadabilitySignal == "dirty_lens_or_haze"')),
+    );
+    expect(
+      cameraActivity,
+      contains('return setOf("shadow_risk", "dirty_lens_or_haze")'),
     );
     expect(cameraActivity, contains('closingCamera'));
     expect(cameraActivity, contains('captureInFlight'));

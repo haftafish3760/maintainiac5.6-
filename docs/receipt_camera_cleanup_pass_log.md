@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 660 - 23:24:40 EDT to active cleanup
+
+Scope:
+- Updated Android/iOS source regressions so auto-capture quality-review holdback
+  requires helper/set membership for readability signals instead of direct
+  `latestReadabilitySignal == ...` checks.
+- Added negative assertions against direct shadow/haze equality checks so future
+  native edits keep the more maintainable signal-set contract.
+- Archived Pass 630 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for Android/iOS native auto-capture
+  source-contract tests.
+- Passed focused Flutter Android auto-capture and iOS settings/close tests.
+
 ## Pass 659 - 23:23:30 EDT to active cleanup
 
 Scope:
@@ -465,19 +480,4 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for parser line numbering changes.
 - Passed focused Flutter parser handoff structure regression.
-- Passed whitespace check.
-
-## Pass 630 - 22:11:18 EDT to active cleanup
-
-Scope:
-- Hardened native ghost-guide session getters so direct malformed non-finite
-  values fall back to safe long-receipt overlap defaults before native handoff.
-- Added focused behavior regression coverage for direct session config `NaN` and
-  infinity ghost-guide values.
-- Archived Pass 620 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0151` under `ghost_overlap_stitching`.
-
-Verification:
-- Passed targeted Dart format/analyzer for native ghost-guide session changes.
-- Passed focused Flutter native camera session limits regression.
 - Passed whitespace check.

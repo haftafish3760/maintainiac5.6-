@@ -152,11 +152,21 @@ void main() {
       expect(cameraController, contains('"manual_only_quality_review"'));
       expect(
         cameraController,
-        contains('latestReadabilitySignal == "shadow_risk"'),
+        contains(
+          'receiptQualityReviewReadabilitySignals.contains(latestReadabilitySignal)',
+        ),
       );
       expect(
         cameraController,
-        contains('latestReadabilitySignal == "dirty_lens_or_haze"'),
+        isNot(contains('latestReadabilitySignal == "shadow_risk"')),
+      );
+      expect(
+        cameraController,
+        isNot(contains('latestReadabilitySignal == "dirty_lens_or_haze"')),
+      );
+      expect(
+        cameraController,
+        contains('private let receiptQualityReviewReadabilitySignals'),
       );
       expect(cameraController, contains('closingCamera'));
       expect(cameraController, contains('!closingCamera'));
