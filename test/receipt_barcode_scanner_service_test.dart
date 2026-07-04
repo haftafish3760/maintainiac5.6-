@@ -327,6 +327,36 @@ void main() {
       'barcode_scan_duplicate_image_skipped',
     ]);
   });
+
+  test(
+    'barcode batch summary separates invalid images from scanned images',
+    () async {
+      final decoder = _CountingBarcodeDecoder();
+      final service = ReceiptBarcodeScannerService(decoder: decoder);
+
+      final result = await service.scanImageFiles([
+        '/tmp/segment-1.jpg',
+        'relative-private-customer-code.jpg',
+        '/tmp/segment-2.txt',
+      ], purpose: ReceiptBarcodeScanPurpose.inventory);
+
+      expect(decoder.calls, 1);
+      expect(result.imageCount, 3);
+      expect(result.scannedImageCount, 1);
+      expect(result.warningImageCount, 2);
+      expect(result.invalidImageCount, 2);
+      expect(result.privacySafeSummaryMap['scannedImageCount'], 1);
+      expect(result.privacySafeSummaryMap['warningImageCount'], 2);
+      expect(result.privacySafeSummaryMap['invalidImageCount'], 2);
+      expect(result.privacySafeSummaryMap['imageWarningBuckets'], [
+        'barcode_scan_invalid_source_path',
+      ]);
+      expect(
+        result.privacySafeSummaryMap.toString(),
+        isNot(contains('private-customer')),
+      );
+    },
+  );
 }
 
 class _FakeBarcodeDecoder implements ReceiptBarcodeImageDecoder {

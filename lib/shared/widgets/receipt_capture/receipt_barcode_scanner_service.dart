@@ -162,6 +162,22 @@ class ReceiptBarcodeBatchScanResult {
   final List<String> warnings;
 
   int get imageCount => imageResults.length;
+  int get scannedImageCount {
+    return imageResults.where((result) => result.imagePath.isNotEmpty).length;
+  }
+
+  int get warningImageCount {
+    return imageResults.where((result) => result.warnings.isNotEmpty).length;
+  }
+
+  int get invalidImageCount {
+    return imageResults.where((result) {
+      return result.warnings
+          .map(_privacySafeBarcodeWarning)
+          .contains('barcode_scan_invalid_source_path');
+    }).length;
+  }
+
   int get codeCount => imageResults.fold(0, (sum, result) {
     return sum + result.codes.length;
   });
@@ -192,6 +208,9 @@ class ReceiptBarcodeBatchScanResult {
     return {
       'purpose': purpose.name,
       'imageCount': imageCount,
+      'scannedImageCount': scannedImageCount,
+      'warningImageCount': warningImageCount,
+      'invalidImageCount': invalidImageCount,
       'codeCount': codeCount,
       'qrCodeCount': qrCodeCount,
       'inventoryLookupCandidateCount': inventoryLookupValues.length,
