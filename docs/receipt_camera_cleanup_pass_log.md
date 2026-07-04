@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 886 - active cleanup
+
+Scope:
+- Hardened focus/readability diagnostics so continuous-focus expectation and
+  native focus status must agree.
+- Added mismatch outcomes for expected-but-unavailable focus and
+  configured-when-not-expected focus states.
+- Added focused regression coverage for the focus expectation/status invariant.
+- Recorded `BUG-RECEIPT-0335` under `native_bridge`.
+- Archived Pass 821 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused focus-contract/native-ui
+  regressions, doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and
+  diff whitespace gates.
+
 ## Pass 885 - active cleanup
 
 Scope:
@@ -454,22 +470,5 @@ Verification:
 - Passed doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and diff
   whitespace gates.
 
-- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
-  whitespace gates.
-
-## Pass 821 - 13:07:00 EDT to active cleanup
-
-Scope:
-- Added a parser-risk parity contract so every saved-photo warning
-  `parserRiskCode` must be recognized by OCR source handoff status and
-  parser/admin diagnostics.
-- The guard prevents future warning families from carrying parser risk in photo
-  review while dropping the same risk in OCR-source handoff.
-- Recorded `BUG-RECEIPT-0306` under `qa_harness`.
-- Archived Pass 814 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted parser-risk parity format/analyzer and focused contract
-  regression.
 - Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
   whitespace gates.

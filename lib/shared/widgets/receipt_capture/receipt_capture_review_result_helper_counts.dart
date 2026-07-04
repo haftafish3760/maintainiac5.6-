@@ -148,6 +148,16 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
         return entry.key;
       }
     }
+    if ((counts['continuous_focus_expected_but_not_configured_regressed'] ??
+            0) >
+        0) {
+      return 'continuous_focus_expected_but_not_configured_regressed';
+    }
+    if ((counts['continuous_focus_configured_when_not_expected_regressed'] ??
+            0) >
+        0) {
+      return 'continuous_focus_configured_when_not_expected_regressed';
+    }
     if ((counts['native_control_readiness_missing'] ?? 0) > 0) {
       return 'native_control_readiness_missing';
     }

@@ -74,12 +74,19 @@ List<String> _nativeFocusReadabilityHealthCodes(
     if (contractTags.isNotEmpty && !contractTags.contains('continuous_focus')) {
       codes.add('continuous_focus_contract_missing');
     }
+    if (lastFocusStatus == 'continuous_autofocus_unavailable' ||
+        lastFocusStatus == 'continuous_focus_not_requested') {
+      codes.add('continuous_focus_expected_but_not_configured_regressed');
+    }
   } else if (continuousFocusExpected == false) {
     codes.add('continuous_focus_missing');
     if (contractTags.isNotEmpty &&
         focusFallbackPolicy.contains('review_required') &&
         !contractTags.contains('focus_readability_review')) {
       codes.add('focus_readability_review_contract_missing');
+    }
+    if (lastFocusStatus == 'continuous_autofocus_configured') {
+      codes.add('continuous_focus_configured_when_not_expected_regressed');
     }
   }
 
