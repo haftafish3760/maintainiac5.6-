@@ -32,6 +32,9 @@ class WorkSupplyParserReceiptLineTortureSuite extends QaSuite {
     'merchant_abbreviation',
     'dangerous_word',
     'ambiguous_review',
+    'cross_trade_copper',
+    'pvc_coupling_shorthand',
+    'mixed_trade_overlap',
     'receipt_noise',
     'negative_match',
     'quantity',
@@ -78,6 +81,35 @@ class WorkSupplyParserReceiptLineTortureSuite extends QaSuite {
     'quantity/price fixtures',
     'privacy-safe',
     'failure category',
+  };
+
+  static const _fuzzCoverageVocabulary = {
+    'slash',
+    'unicode fraction',
+    'OCR mistakes',
+    'directional override',
+    'fuzz_never_auto_saves',
+    'fuzz_never_logs_raw_private_text',
+    'fuzz_keeps_bounded_preview',
+    'fuzz_preserves_candidate_review_status',
+    'fuzz_preserves_alternative_candidates',
+    'fuzz_does_not_throw_on_empty_line',
+    'fuzz_does_not_throw_on_huge_line',
+    'fuzz_does_not_throw_on_unicode_controls',
+    'fuzz_reports_unknown_when_evidence_is_weak',
+    'fuzz_reports_ambiguity_for_generic_tokens',
+    'single line',
+    'multi line item',
+    'wrapped description',
+    'quantity prefix',
+    'quantity suffix',
+    'price suffix',
+    'SKU prefix',
+    'department code',
+    'return line',
+    'discount line',
+    'tax line',
+    'payment line',
   };
 
   @override
@@ -165,6 +197,7 @@ class WorkSupplyParserReceiptLineTortureSuite extends QaSuite {
         'tortureDimensionCount': _tortureDimensions.length,
         'merchantDimensionCount': _merchantDimensions.length,
         'behaviorDimensionCount': _parserBehaviorDimensions.length,
+        'fuzzCoverageVocabulary': _fuzzCoverageVocabulary,
         'contract':
             'Inventory parser QA must cover chaotic real-world receipt lines: abbreviations, returns, discounts, mixed trades, quantities, merchant styles, locale terms, hostile strings, and review-safe ambiguity.',
       },

@@ -11,6 +11,9 @@ class WorkSupplyParserContextSuite extends QaSuite {
     'active estimate/job trade section',
     'receipt-neighbor signals',
     'merchant/department hints',
+    'cross_trade_copper',
+    'pvc_coupling_shorthand',
+    'mixed_trade_overlap',
   ];
 
   static const _cases = [
