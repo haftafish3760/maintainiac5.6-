@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 672 - 23:52:05 EDT to active cleanup
+
+Scope:
+- Hardened the receipt bug regression ledger gate so duplicate bug IDs fail the
+  QA harness instead of passing silently.
+- Repaired an existing duplicated `BUG-RECEIPT-0170` row by assigning the
+  camera tap-focus priority regression a unique ID.
+- Added `BUG-RECEIPT-0188` under `qa_harness` to track the gate hardening.
+- Archived Pass 643 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the ledger gate.
+- Passed the receipt bug regression ledger gate and a duplicate-ID scan.
+- Passed cleanup log gate, doc-size gate, source audit, and whitespace check.
+
 ## Pass 671 - 23:50:35 EDT to active cleanup
 
 Scope:
@@ -472,19 +487,3 @@ Scope:
 Verification:
 - Passed targeted Dart format for continuation signal builders and regression.
 - Passed focused Flutter continuation handoff regression.
-
-## Pass 643 - 22:37:28 EDT to active cleanup
-
-Scope:
-- Hardened manual long-receipt reorder summaries so malformed non-adjacent
-  section moves cannot be reported as preserved order.
-- Added manual-reorder invalid codes for unknown direction, non-adjacent moves,
-  and missing preserved-path evidence.
-- Added focused regression coverage proving a bad manual reorder stays
-  privacy-safe and becomes a section-order handoff risk.
-- Recorded `BUG-RECEIPT-0162` under `multi_photo_ordering`.
-- Archived Pass 606 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format for section-order helpers and regressions.
-- Passed focused Flutter section-order regression.

@@ -62,6 +62,7 @@ void _checkLedger(String text, List<String> failures) {
       .where((line) => line.startsWith('| `BUG-RECEIPT-'))
       .toList(growable: false);
   if (rows.isEmpty) failures.add('Ledger must contain at least one bug row.');
+  final seenBugIds = <String>{};
   for (final row in rows) {
     final cells = row
         .split('|')
@@ -71,6 +72,10 @@ void _checkLedger(String text, List<String> failures) {
     if (cells.length != _requiredHeaders.length) {
       failures.add('Bug row must have ${_requiredHeaders.length} cells: $row');
       continue;
+    }
+    final bugId = cells.first.replaceAll('`', '');
+    if (!seenBugIds.add(bugId)) {
+      failures.add('Duplicate bug ID `$bugId` in regression ledger.');
     }
     final category = cells[1].replaceAll('`', '');
     if (!_allowedCategories.contains(category)) {
