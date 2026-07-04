@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 819 - 12:06:00 EDT to active cleanup
+
+Scope:
+- Added a warning-profile parity contract so saved-photo review warning
+  profiles must stay wired into OCR handoff `warningProfileStatus` and
+  `reviewCueStatus`.
+- The contract prevents the shadow-warning drift class from returning when a
+  future camera-quality warning family is added.
+- Recorded `BUG-RECEIPT-0304` under `qa_harness`.
+- Archived Pass 812 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted warning-profile parity format/analyzer and focused contract
+  regression.
+- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
+  whitespace gates.
+
 ## Pass 818 - 11:49:00 EDT to active cleanup
 
 Scope:
@@ -478,21 +495,5 @@ Scope:
 Verification:
 - Passed targeted handoff/diagnostics format/analyzer and focused dirty-lens
   source handoff regression.
-- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
-  whitespace gates.
-
-## Pass 812 - 12:20:00 EDT to active cleanup
-
-Scope:
-- Added sibling OCR source-quality regressions for generic glare and blur photo
-  warning tokens.
-- Pinned glare to `saved_glare_review`/`reduce_glare_or_retake` and blur to
-  `saved_soft_blur_review`/`retake_hold_steady`, including parser task counts.
-- Recorded `BUG-RECEIPT-0297` under `ocr_handoff_contract`.
-- Archived Pass 780 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted source-quality format/analyzer and focused glare/blur service
-  regression.
 - Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
   whitespace gates.
