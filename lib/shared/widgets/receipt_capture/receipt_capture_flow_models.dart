@@ -96,7 +96,9 @@ class ReceiptCaptureContinuationGuide {
     }
     String? previousGuidePath;
     for (final path in previousPhotoPaths) {
-      final normalizedPath = _trimmedOrNull(path);
+      final trimmedPath = _trimmedOrNull(path);
+      if (trimmedPath == null) continue;
+      final normalizedPath = normalizedReceiptPhotoPath(trimmedPath);
       if (normalizedPath != null) previousGuidePath = normalizedPath;
     }
     return ReceiptCaptureContinuationGuide(

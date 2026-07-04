@@ -282,6 +282,21 @@ void main() {
     expect(guide.ghostOpacity, .36);
     expect(options.previousSectionReasonCode, 'missing_bottom_edge_and_totals');
   });
+
+  test('continuation guide skips malformed latest guide photo paths', () {
+    final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
+      previousPhotoPaths: const [
+        '/tmp/receipt-section-1.jpg',
+        '/tmp/receipt/../receipt-section-2.jpg',
+        ' ',
+      ],
+      reasonCode: 'missing_bottom_edge_and_totals',
+    );
+
+    expect(guide.guidePhotoPath, '/tmp/receipt-section-1.jpg');
+    expect(guide.reasonCode, 'missing_bottom_edge_and_totals');
+    expect(guide.ghostSourceHeightFraction, .20);
+  });
 }
 
 void _expectBottomContinuationSummary(ReceiptPhotoReviewResult result) {

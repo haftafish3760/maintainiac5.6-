@@ -11,6 +11,7 @@ import 'receipt_native_capture_staging.dart';
 import 'receipt_native_camera_contract.dart';
 import 'receipt_native_camera_service.dart';
 import 'receipt_ocr_service.dart';
+import 'receipt_photo_path_identity.dart';
 import 'receipt_photo_review_screen.dart';
 import 'receipt_proof_storage.dart';
 

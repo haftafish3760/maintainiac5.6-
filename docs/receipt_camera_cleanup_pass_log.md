@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 683 - 00:34:45 EDT to active cleanup
+
+Scope:
+- Hardened continuation ghost-guide source selection so malformed latest
+  previous-photo paths cannot become the guide image.
+- Reused the receipt photo path identity guard and fall back to the latest valid
+  previous section when continuation paths include unnormalized entries.
+- Added a continuation handoff regression for malformed latest guide paths.
+- Archived Pass 656 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0199` under `ghost_overlap_stitching`.
+
+Verification:
+- Passed targeted Dart format/analyzer for capture-flow continuation files.
+- Passed focused Flutter continuation handoff regressions.
+
 ## Pass 682 - 00:33:07 EDT to active cleanup
 
 Scope:
@@ -469,22 +484,3 @@ Verification:
 - Passed targeted Dart format/analyzer for native bridge UI contract tests.
 - Passed focused Flutter Android bridge, iOS bridge, and native UI-ready
   regressions.
-
-## Pass 656 - 23:15:47 EDT to active cleanup
-
-Scope:
-- Added an explicit `readability_guidance` native control contract tag for
-  capable continuous-focus receipt camera sessions.
-- Kept fallback devices on `focus_readability_review` so the app does not
-  advertise fake live guidance when native focus support is missing.
-- Updated native session, previous-section handoff, and UI-health regressions
-  to prove the tag is present only on the capable camera path.
-- First focused test run failed because the tag was too broad and the manual UI
-  fixture count was stale; fixed both before continuing.
-- Recorded `BUG-RECEIPT-0172` under `camera_capture_quality`.
-- Archived Pass 617 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native camera session contract files
-  and focused helper fixtures.
-- Passed focused Flutter native camera session and native UI-ready regressions.
