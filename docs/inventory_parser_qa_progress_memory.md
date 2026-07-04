@@ -145,6 +145,15 @@ Focused rerun routes for recently hardened release-one contracts:
 - Validation:
   `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.service_truck_core_contract,inventory.release_one_service_family_contract --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
   passed 41,252 checks with 0 failures.
+- Passes 1914-1916 added an executable confidence-suppression guard to
+  `inventory.review_safety_contract`. Parser/review source now fails if it
+  introduces explicit confidence-cap, ambiguity-suppression, hide-ambiguity,
+  force-high-confidence, or bypass-review tokens. The first validation also
+  caught three newly added review fixtures with maxConfidence above the risky
+  fixture limit; those were corrected to 0.81 before moving on.
+- Validation:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.review_safety_contract,inventory.confidence_calibration --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
+  passed 96 checks with 0 failures after the fixture confidence correction.
 - inventory.receipt_source_immutability_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.receipt_source_immutability_contract,qa.threshold_gate`
 - inventory.parser_platform_contract:

@@ -24,6 +24,20 @@ class WorkSupplyParserReviewSafetySuite extends QaSuite {
     'auto_confirm',
   ];
 
+  static const _forbiddenConfidenceSuppressionTokens = [
+    'confidenceCap',
+    'confidence_cap',
+    'capConfidence',
+    'suppressAmbiguity',
+    'suppress_ambiguity',
+    'hideAmbiguity',
+    'hide_ambiguity',
+    'forceHighConfidence',
+    'force_high_confidence',
+    'bypassReviewForConfidence',
+    'bypass_review_for_confidence',
+  ];
+
   static const _requiredReviewStatuses = {
     'needs_review',
     'high_confidence_review',
@@ -61,6 +75,7 @@ class WorkSupplyParserReviewSafetySuite extends QaSuite {
     }
 
     _checkForbiddenAutoSaveTokens(failures, scanned);
+    _checkForbiddenConfidenceSuppressionTokens(failures, scanned);
     _checkParserResultIsReviewOnly(failures, scanned);
     _checkReviewStatusVocabulary(failures, scanned);
 
@@ -69,6 +84,7 @@ class WorkSupplyParserReviewSafetySuite extends QaSuite {
       checked:
           _filesToScan.length +
           _forbiddenAutoSaveTokens.length +
+          _forbiddenConfidenceSuppressionTokens.length +
           _requiredReviewStatuses.length +
           3,
       failures: failures,
@@ -97,6 +113,31 @@ class WorkSupplyParserReviewSafetySuite extends QaSuite {
             actual: '${entry.key} contains $token',
             suggestedFix:
                 'Remove automatic accept/save paths from parser output. Approval must be explicit user action.',
+          ),
+        );
+      }
+    }
+  }
+
+  void _checkForbiddenConfidenceSuppressionTokens(
+    List<QaFailure> failures,
+    Map<String, String> scanned,
+  ) {
+    for (final entry in scanned.entries) {
+      for (final token in _forbiddenConfidenceSuppressionTokens) {
+        if (!entry.value.contains(token)) continue;
+        failures.add(
+          QaFailure(
+            suite: name,
+            id: 'forbidden_confidence_suppression_token:${entry.key}:$token',
+            message:
+                'Parser/review code contains confidence-cap or ambiguity-suppression wording.',
+            severity: QaSeverity.critical,
+            expected:
+                'add evidence, context, ranked candidates, or review requirements',
+            actual: '${entry.key} contains $token',
+            suggestedFix:
+                'Do not hide uncertainty with caps or suppression paths; preserve ambiguity and improve evidence instead.',
           ),
         );
       }
