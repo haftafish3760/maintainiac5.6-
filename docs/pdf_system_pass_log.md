@@ -1,5 +1,24 @@
 # PDF System Pass Log
 
+## Pass 42 - 2026-07-04 16:54 EDT - PDF filename spoofing guard
+
+- Scope: generated PDF filename safety and cross-platform QA only. No
+  inventory, camera, native capture, receipt text engine, or parser behavior
+  changes.
+- Bundled work:
+  - Hardened generated PDF filename cleaning against bidi override, isolate,
+    zero-width, and BOM format-control characters that can spoof file names on
+    Android, iOS, macOS, Windows, and share targets.
+  - Added cross-platform filename regressions for RTL override, isolate, and
+    BOM-style hidden characters.
+  - Re-ran generated PDF service coverage to prove the safer filename path
+    remains compatible with write/share/archive behavior.
+- Verification completed 2026-07-04 16:54 EDT:
+  - `dart format lib/shared/pdf/app_generated_pdf_models.dart test/pdf_cross_platform_contract_test.dart`
+  - `flutter test test/pdf_cross_platform_contract_test.dart test/app_generated_pdf_service_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_models.dart test/pdf_cross_platform_contract_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 41 - 2026-07-04 16:52 EDT - Render edge clipping guard
 
 - Scope: PDF render QA tooling only. No inventory, camera, native capture,

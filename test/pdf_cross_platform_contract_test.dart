@@ -55,6 +55,9 @@ void main() {
       'LPT1',
       'aux.',
       'invoice\u0000with\u001Fcontrols.pdf',
+      'invoice\u202Efdp.exe',
+      'estimate\u2066job42\u2069.pdf',
+      'customer\uFEFFstatement.pdf',
       '.hidden-receipt.pdf',
     ];
 
@@ -66,6 +69,12 @@ void main() {
       expect(safe.length, lessThanOrEqualTo(120));
       expect(safe, isNot(contains(RegExp(r'[\\/:*?"<>|]'))));
       expect(safe, isNot(contains(RegExp(r'[\x00-\x1F\x7F]'))));
+      expect(
+        safe,
+        isNot(
+          contains(RegExp(r'[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]')),
+        ),
+      );
       expect(safe, isNot(contains('..')));
       expect(safe.trim(), safe);
       expect(

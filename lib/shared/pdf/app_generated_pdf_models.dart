@@ -97,6 +97,10 @@ class AppGeneratedPdfFileName {
   static String clean(String fileName) {
     final cleaned = fileName
         .replaceAll(RegExp(r'[\x00-\x1F\x7F]+'), '-')
+        .replaceAll(
+          RegExp(r'[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+'),
+          '-',
+        )
         .replaceAll(RegExp(r'[\\/:*?"<>|]+'), '-')
         .replaceAll(RegExp(r'\.{2,}'), '-')
         .replaceAll(RegExp(r'\s+'), ' ')
