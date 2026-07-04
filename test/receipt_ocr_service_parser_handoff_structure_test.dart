@@ -178,6 +178,11 @@ void main() {
           as Map)['item'],
       [lineId],
     );
+    expect(handoff.lineIdsBySourceSection['section_1'], [lineId]);
+    expect(handoff.lineIdsBySourceSection['section_2'], isNull);
+    expect(handoff.itemLineCountsBySourceSection, {'section_1': 1});
+    expect(handoff.parserReadyLineIdsBySourceSection['section_1'], [lineId]);
+    expect(handoff.parserReadyLineIdsBySourceSection['section_2'], isNull);
     expect(handoff.lineNumberByLineId[lineId], 3);
     expect(
       handoff.proofLineReferenceLabelByLineId[lineId],

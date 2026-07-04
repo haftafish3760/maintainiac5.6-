@@ -3,7 +3,9 @@ part of '../../receipts/receipt_ocr_contract.dart';
 extension ReceiptOcrParserHandoffSourceSectionMaps on ReceiptOcrParserHandoff {
   Map<String, List<String>> get lineIdsBySourceSection {
     final result = <String, List<String>>{};
+    final seen = <String>{};
     for (final line in lines) {
+      if (!seen.add(line.stableLineId)) continue;
       final key = _sourceSectionKey(line.sourceLocation);
       result.putIfAbsent(key, () => <String>[]).add(line.stableLineId);
     }
@@ -87,12 +89,10 @@ extension ReceiptOcrParserHandoffSourceSectionMaps on ReceiptOcrParserHandoff {
   }
 
   Map<String, int> get itemLineCountsBySourceSection {
-    final counts = <String, int>{};
-    for (final line in itemLines) {
-      final key = _sourceSectionKey(line.sourceLocation);
-      counts[key] = (counts[key] ?? 0) + 1;
-    }
-    return Map.unmodifiable(counts);
+    return Map.unmodifiable({
+      for (final entry in _lineIdsBySourceSectionFor(itemLines).entries)
+        entry.key: entry.value.length,
+    });
   }
 
   Map<String, List<String>> get parserReadyLineIdsBySourceSection {
@@ -111,7 +111,9 @@ extension ReceiptOcrParserHandoffSourceSectionMaps on ReceiptOcrParserHandoff {
     Iterable<ReceiptOcrParserLineSignal> source,
   ) {
     final result = <String, List<String>>{};
+    final seen = <String>{};
     for (final line in source) {
+      if (!seen.add(line.stableLineId)) continue;
       final key = _sourceSectionKey(line.sourceLocation);
       result.putIfAbsent(key, () => <String>[]).add(line.stableLineId);
     }

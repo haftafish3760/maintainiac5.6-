@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 670 - 23:49:11 EDT to active cleanup
+
+Scope:
+- Hardened OCR parser handoff source-section maps so duplicate stable line IDs
+  cannot appear under multiple receipt sections.
+- Kept first-seen section assignment for consumer-facing line maps and aligned
+  item source-section counts to those visible line IDs.
+- Added duplicate-line regression coverage plus focused long-receipt
+  source-section continuity checks.
+- Archived Pass 640 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0185` under `receipt_line_numbering`.
+
+Verification:
+- Passed targeted Dart format/analyzer for parser source-section maps.
+- Passed focused Flutter parser handoff, read-warning, and totals coverage
+  regressions.
+- Passed cleanup log gate, doc-size gate, bug ledger gate, source audit, and
+  whitespace check.
+
 ## Pass 669 - 23:47:36 EDT to active cleanup
 
 Scope:
@@ -476,17 +495,3 @@ Scope:
 Verification:
 - Passed targeted Dart format for the Android bridge UI contract regression.
 - Passed focused Flutter Android bridge UI contract regression.
-
-## Pass 640 - 22:31:30 EDT to active cleanup
-
-Scope:
-- Strengthened the healthy native camera UI regression so ready results must
-  prove continuous focus, continuous-focus policy, live readability guidance,
-  and the receipt camera quality baseline.
-- Pinned those positive health codes through receipt-reader handoff counts and
-  attachment document signals.
-- Archived Pass 603 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format for the positive-path native UI health regression.
-- Passed focused Flutter native UI ready regression.
