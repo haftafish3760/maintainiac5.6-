@@ -3480,3 +3480,9 @@ Release boundaries:
   exact merchant labels, kept raw receipt fields blocked, and verified the
   focused tool tests passed 5/5 plus the real-receipt harness contract passed
   41 checks with 0 failures. Targeted analyzer found no issues.
+- **10:31 Harness Pass 2548:** Added value-level privacy scanning to private
+  real-receipt validation summaries so card-like numbers, emails, phone numbers,
+  street addresses, and receipt/store/auth identifiers are rejected even when
+  typed into otherwise allowed summary fields. Focused tool tests passed 6/6,
+  the real-receipt harness contract passed 46 checks with 0 failures, and
+  targeted analyzer found no issues.

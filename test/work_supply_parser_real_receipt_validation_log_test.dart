@@ -50,6 +50,18 @@ void main() {
     expect(result.summary, isNull);
   });
 
+  test('rejects private-looking values in otherwise allowed fields', () {
+    final result = buildRealReceiptValidationSummary({
+      'merchant-category': 'home_improvement_big_box',
+      'expected-item-family': 'pvc elbow receipt 123456',
+      'result-category': 'wrong',
+      'failure-reason-category': 'customer john 555-123-4567',
+    });
+
+    expect(result.error, contains('Forbidden private receipt value'));
+    expect(result.summary, isNull);
+  });
+
   test('writes only under build directory', () {
     final outside = runRealReceiptValidationLog([
       '--output',

@@ -41,6 +41,24 @@ const _forbiddenArgumentNames = {
   'image-path',
 };
 
+final _forbiddenPrivateValuePatterns = {
+  'card_like_number': RegExp(r'\b\d{12,19}\b'),
+  'email': RegExp(
+    r'\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b',
+    caseSensitive: false,
+  ),
+  'phone': RegExp(r'\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}\b'),
+  'street_address': RegExp(
+    r"\b\d{1,6}\s+[A-Z0-9 .'-]+\s+"
+    r'(?:st|street|rd|road|ave|avenue|dr|drive|ln|lane|blvd|boulevard)\b',
+    caseSensitive: false,
+  ),
+  'receipt_identifier': RegExp(
+    r'\b(?:receipt|transaction|terminal|register|cashier|auth|approval|store)\s*#?\s*[A-Z0-9-]{3,}\b',
+    caseSensitive: false,
+  ),
+};
+
 void main(List<String> args) {
   final result = runRealReceiptValidationLog(args);
   if (result.exitCode != 0) {
@@ -96,6 +114,14 @@ RealReceiptValidationSummaryResult buildRealReceiptValidationSummary(
       );
     }
   }
+  for (final entry in values.entries) {
+    if (entry.key == 'output') continue;
+    final blocked = _blockedPrivateValueKind(entry.value);
+    if (blocked == null) continue;
+    return RealReceiptValidationSummaryResult.failure(
+      'Forbidden private receipt value in --${entry.key}: $blocked',
+    );
+  }
 
   final merchantCategory = _required(values, 'merchant-category');
   final expectedItemFamily = _required(values, 'expected-item-family');
@@ -145,6 +171,13 @@ RealReceiptValidationSummaryResult buildRealReceiptValidationSummary(
         'This artifact is a privacy-safe summary only. Real receipt text must '
         'stay local/private; regressions must be rewritten as synthetic fixtures.',
   });
+}
+
+String? _blockedPrivateValueKind(String value) {
+  for (final entry in _forbiddenPrivateValuePatterns.entries) {
+    if (entry.value.hasMatch(value)) return entry.key;
+  }
+  return null;
 }
 
 String? _required(Map<String, String> values, String key) {
