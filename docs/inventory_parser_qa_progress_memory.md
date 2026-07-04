@@ -3669,3 +3669,25 @@ Release boundaries:
   and review-only search results. Focused
   `inventory.search_indexing_contract,qa.threshold_gate`
   passed 56 checks with 0 failures, and targeted analyzer found no issues.
+- **11:28 Harness Pass 2717:** Made bulk-generation pipeline, differential
+  regression, fixture holdout rotation, and pack-integrity recovery contract
+  matching whitespace-safe. This protects generated item/fixture pairing,
+  surgical reruns, old-vs-new parser comparisons, hidden holdout governance,
+  corrupt/partial/duplicate pack recovery, and local-only release gates.
+  Focused
+  `inventory.bulk_generation_pipeline_contract,inventory.differential_regression_contract,inventory.fixture_holdout_rotation_contract,inventory.pack_integrity_recovery_contract,qa.threshold_gate`
+  passed 162 checks with 0 failures, and targeted analyzer found no issues.
+- **11:30 Harness Pass 2719:** Made product normalization and receipt-line
+  mapping contract matching whitespace-safe. This protects size/unit/material/
+  brand/shape/connection normalization, generic-token safety, source line
+  mapping, receipt noise separation, quantity/price/tax/return evidence, and
+  idempotent destination mapping. Focused
+  `inventory.product_normalization_contract,inventory.receipt_line_mapping_contract,qa.threshold_gate`
+  passed 114 checks with 0 failures, and targeted analyzer found no issues.
+- **11:31 Harness Pass 2721:** Made receipt-line fuzz and regression-lock
+  contract matching whitespace-safe. This protects malformed receipt text,
+  hostile/control/unicode input, bounded previews, no raw private logging,
+  stable regression fixture IDs, merchant/locale locks, and false-confident
+  regression blocks. Focused
+  `inventory.receipt_line_parser_fuzz_contract,inventory.regression_lock_contract,qa.threshold_gate`
+  passed 101 checks with 0 failures, and targeted analyzer found no issues.
