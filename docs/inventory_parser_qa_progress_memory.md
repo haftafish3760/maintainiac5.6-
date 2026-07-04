@@ -3776,3 +3776,14 @@ Release boundaries:
   seconds. Targeted analyzer found no issues. Remaining exact `source.contains`
   scans are deliberate forbidden-token or exact declaration guards, not loose
   documentation contracts.
+- **12:21 Harness Pass 2779:** Made generated-fixture cell structural QA
+  configurable with `PARSER_QA_GENERATED_FIXTURE_ROOT`,
+  `PARSER_QA_GENERATED_FIXTURE_TRADES`, `PARSER_QA_GENERATED_FIXTURE_TIERS`,
+  `PARSER_QA_GENERATED_FIXTURE_LOCALES`, and
+  `PARSER_QA_GENERATED_FIXTURE_EXPECTED_COUNT`. The suite now supports both
+  the normal generated-fixture root and background queue cell roots, so Core
+  queue artifacts can be validated surgically without requiring missing later
+  tiers. Verified against the active queue root for Plumbing/Electrical
+  residential Core en-US/es-US at 1,000 fixtures per cell:
+  `inventory.generated_fixture_cell_contract,qa.threshold_gate` passed 96,012
+  checks with 0 failures, and targeted analyzer found no issues.

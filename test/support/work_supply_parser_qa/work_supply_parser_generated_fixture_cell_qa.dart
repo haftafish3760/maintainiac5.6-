@@ -7,11 +7,26 @@ class WorkSupplyParserGeneratedFixtureCellSuite extends QaSuite {
   const WorkSupplyParserGeneratedFixtureCellSuite()
     : super('inventory.generated_fixture_cell_contract');
 
-  static const _fixtureRoot = 'build/parser_qa_generated/work_supply_parser';
+  static const _fixtureRoot = String.fromEnvironment(
+    'PARSER_QA_GENERATED_FIXTURE_ROOT',
+    defaultValue: 'build/parser_qa_generated/work_supply_parser',
+  );
+  static const _tradeFilter = String.fromEnvironment(
+    'PARSER_QA_GENERATED_FIXTURE_TRADES',
+  );
+  static const _tierFilter = String.fromEnvironment(
+    'PARSER_QA_GENERATED_FIXTURE_TIERS',
+  );
+  static const _localeFilter = String.fromEnvironment(
+    'PARSER_QA_GENERATED_FIXTURE_LOCALES',
+  );
   static const _priorityTrades = ['plumbing', 'electrical', 'hvac'];
   static const _tiers = ['core', 'standard', 'professional', 'complete'];
   static const _locales = ['en-US', 'es-US'];
-  static const _expectedCountPerCell = 500;
+  static const _expectedCountPerCell = int.fromEnvironment(
+    'PARSER_QA_GENERATED_FIXTURE_EXPECTED_COUNT',
+    defaultValue: 500,
+  );
   static const _maxRawLineLength = 96;
 
   static const _requiredJsonFields = {
@@ -141,7 +156,10 @@ class WorkSupplyParserGeneratedFixtureCellSuite extends QaSuite {
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'fixtureRoot': _fixtureRoot,
-        'expectedCells': _priorityTrades.length * _tiers.length * _locales.length,
+        'expectedCells': _expectedCells().length,
+        'tradeFilter': _tradeFilter,
+        'tierFilter': _tierFilter,
+        'localeFilter': _localeFilter,
         'expectedCountPerCell': _expectedCountPerCell,
         'cells': cellMetrics,
         'contract':
@@ -193,20 +211,24 @@ class WorkSupplyParserGeneratedFixtureCellSuite extends QaSuite {
       _count(expectedNames, fixture.expectedNameContains);
     }
 
-    _checkCellCoverage(cell, fixtures, caseTypes, merchants, riskTags, failures);
-
-    return _CellResult(
-      checked,
-      {
-        'cellId': cell.id,
-        'fixturePath': cell.path,
-        'fixtureCount': fixtures.length,
-        'caseTypes': caseTypes,
-        'merchantCount': merchants.length,
-        'riskTagCount': riskTags.length,
-        'expectedNameFamilies': expectedNames.length,
-      },
+    _checkCellCoverage(
+      cell,
+      fixtures,
+      caseTypes,
+      merchants,
+      riskTags,
+      failures,
     );
+
+    return _CellResult(checked, {
+      'cellId': cell.id,
+      'fixturePath': cell.path,
+      'fixtureCount': fixtures.length,
+      'caseTypes': caseTypes,
+      'merchantCount': merchants.length,
+      'riskTagCount': riskTags.length,
+      'expectedNameFamilies': expectedNames.length,
+    });
   }
 
   List<_GeneratedFixture> _readFixtures(
@@ -298,7 +320,8 @@ class WorkSupplyParserGeneratedFixtureCellSuite extends QaSuite {
     Set<String> ids,
     List<QaFailure> failures,
   ) {
-    final expectedPrefix = '${cell.trade}_${cell.scope}_${cell.tier}_${cell.localeSafe}_';
+    final expectedPrefix =
+        '${cell.trade}_${cell.scope}_${cell.tier}_${cell.localeSafe}_';
     if (!fixture.id.startsWith(expectedPrefix)) {
       failures.add(
         _fixtureFailure(
@@ -486,7 +509,10 @@ class WorkSupplyParserGeneratedFixtureCellSuite extends QaSuite {
     List<QaFailure> failures,
   ) {
     for (final pattern in _privacyPatterns) {
-      if (!RegExp(pattern.regex, caseSensitive: false).hasMatch(fixture.rawLine)) {
+      if (!RegExp(
+        pattern.regex,
+        caseSensitive: false,
+      ).hasMatch(fixture.rawLine)) {
         continue;
       }
       failures.add(
@@ -525,7 +551,8 @@ class WorkSupplyParserGeneratedFixtureCellSuite extends QaSuite {
         );
       }
       final line = fixture.rawLine.toUpperCase();
-      final hasSpanishSignal = _spanishTokens.any(line.contains) ||
+      final hasSpanishSignal =
+          _spanishTokens.any(line.contains) ||
           fixture.riskTags.contains('spanish') ||
           fixture.riskTags.contains('locale_pack');
       if (!hasSpanishSignal) {
@@ -543,7 +570,8 @@ class WorkSupplyParserGeneratedFixtureCellSuite extends QaSuite {
         );
       }
     } else {
-      if (fixture.localePackId.isNotEmpty && fixture.localePackId != cell.locale) {
+      if (fixture.localePackId.isNotEmpty &&
+          fixture.localePackId != cell.locale) {
         failures.add(
           _fixtureFailure(
             cell,
@@ -631,7 +659,8 @@ class WorkSupplyParserGeneratedFixtureCellSuite extends QaSuite {
     final line = fixture.rawLine.toUpperCase();
     final risky = _dangerousWords.where(line.contains).toList();
     if (risky.isEmpty) return;
-    final hasSpecificEvidence = RegExp(r'\b\d+(/\d+)?\b').hasMatch(line) ||
+    final hasSpecificEvidence =
+        RegExp(r'\b\d+(/\d+)?\b').hasMatch(line) ||
         fixture.riskTags.contains('size') ||
         fixture.riskTags.contains('negative_match') ||
         fixture.caseType == 'ambiguous_review' ||
@@ -712,7 +741,9 @@ class WorkSupplyParserGeneratedFixtureCellSuite extends QaSuite {
         ),
       );
     }
-    final recommendedHitCount = _requiredRiskTags.where(riskTags.containsKey).length;
+    final recommendedHitCount = _requiredRiskTags
+        .where(riskTags.containsKey)
+        .length;
     if (recommendedHitCount < 7) {
       failures.add(
         _failure(
@@ -787,10 +818,27 @@ class WorkSupplyParserGeneratedFixtureCellSuite extends QaSuite {
 }
 
 Iterable<_FixtureCell> _expectedCells() sync* {
-  for (final trade in WorkSupplyParserGeneratedFixtureCellSuite._priorityTrades) {
-    for (final tier in WorkSupplyParserGeneratedFixtureCellSuite._tiers) {
-      for (final locale in WorkSupplyParserGeneratedFixtureCellSuite._locales) {
-        yield _FixtureCell(trade: trade, scope: 'residential', tier: tier, locale: locale);
+  final trades = _filterOrDefault(
+    WorkSupplyParserGeneratedFixtureCellSuite._tradeFilter,
+    WorkSupplyParserGeneratedFixtureCellSuite._priorityTrades,
+  );
+  final tiers = _filterOrDefault(
+    WorkSupplyParserGeneratedFixtureCellSuite._tierFilter,
+    WorkSupplyParserGeneratedFixtureCellSuite._tiers,
+  );
+  final locales = _filterOrDefault(
+    WorkSupplyParserGeneratedFixtureCellSuite._localeFilter,
+    WorkSupplyParserGeneratedFixtureCellSuite._locales,
+  );
+  for (final trade in trades) {
+    for (final tier in tiers) {
+      for (final locale in locales) {
+        yield _FixtureCell(
+          trade: trade,
+          scope: 'residential',
+          tier: tier,
+          locale: locale,
+        );
       }
     }
   }
@@ -813,8 +861,16 @@ class _FixtureCell {
 
   String get id => '${trade}_${scope}_${tier}_$localeSafe';
 
-  String get path =>
-      '${WorkSupplyParserGeneratedFixtureCellSuite._fixtureRoot}/$trade/$scope/$tier/$locale/generated_fixtures.json';
+  String get path {
+    final root = WorkSupplyParserGeneratedFixtureCellSuite._fixtureRoot;
+    final direct = '$root/$trade/$scope/$tier/$locale/generated_fixtures.json';
+    if (File(direct).existsSync()) return direct;
+    final queueCell =
+        '$root/$trade/$scope/$tier/$locale/fixtures/work_supply_parser/'
+        '$trade/$scope/$tier/$locale/generated_fixtures.json';
+    if (File(queueCell).existsSync()) return queueCell;
+    return direct;
+  }
 }
 
 class _GeneratedFixture {
@@ -919,4 +975,17 @@ void _count(Map<String, int> counts, String rawKey) {
   final key = rawKey.trim();
   if (key.isEmpty) return;
   counts.update(key, (count) => count + 1, ifAbsent: () => 1);
+}
+
+List<String> _filterOrDefault(String csv, List<String> defaults) {
+  final requested = csv
+      .split(',')
+      .map((entry) => entry.trim())
+      .where((entry) => entry.isNotEmpty)
+      .toSet();
+  if (requested.isEmpty) return defaults;
+  return [
+    for (final value in defaults)
+      if (requested.contains(value)) value,
+  ];
 }

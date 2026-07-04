@@ -141,6 +141,19 @@ Use `dart run tool/work_supply_catalog_item_batch_status.dart --blueprint-root b
 
 Use `dart run tool/work_supply_parser_qa_run_generated_fixtures.dart --fixture build/parser_qa_generated/work_supply_parser/plumbing/residential/core/en-US/generated_fixtures.json --max-cases 500 --report-dir build/parser_qa_reports/generated_fixtures` to run a generated batch through the standardized local command wrapper. The wrapper currently delegates to the Flutter semantic runner because the parser core is not yet extracted for Dart CLI execution; it prints `QA_GENERATED_FIXTURE_RUN_WRAPPER` with `parser_core_not_yet_extracted_for_dart_cli` so this limitation stays visible. Default wrapper output is summary-only so Codex does not ingest minutes of Flutter progress spam; add `--verbose` only when full Flutter output is intentionally needed. For surgical reruns after a generated fixture failure, add `--fixture-ids <comma-separated-fixture-ids>` so only the failed fixture ids are selected from the file. The semantic runner writes timestamped JSON plus `latest_generated_fixture_run.json` under the selected report directory.
 
+Generated fixture cell structural QA can be pointed at either the standard
+fixture root or a background-queue cell root without changing source code:
+`PARSER_QA_GENERATED_FIXTURE_ROOT`, `PARSER_QA_GENERATED_FIXTURE_TRADES`,
+`PARSER_QA_GENERATED_FIXTURE_TIERS`, `PARSER_QA_GENERATED_FIXTURE_LOCALES`,
+and `PARSER_QA_GENERATED_FIXTURE_EXPECTED_COUNT` let a run validate only the
+cells that exist. Example: use the background queue `cells` directory with
+`PARSER_QA_GENERATED_FIXTURE_TRADES=plumbing,electrical`,
+`PARSER_QA_GENERATED_FIXTURE_TIERS=core`,
+`PARSER_QA_GENERATED_FIXTURE_LOCALES=en-US,es-US`, and
+`PARSER_QA_GENERATED_FIXTURE_EXPECTED_COUNT=1000` to structurally validate the
+current 1,000-case Core queue cells without requiring Standard, Professional,
+Complete, or HVAC cells that are not present yet.
+
 Use the targeted suite `inventory.merchant_independence_contract` when release-one fixture work needs to prove the parser is not store-locked. It checks that named big-box stores, regional/local stores, supply houses, counter-sale receipts, PDF/email text, Spanish wording, and generic unknown merchants are all represented in the QA contract. This suite is contract-only and should be run surgically before widening generated merchant fixtures.
 
 For handoff between this Windows machine, GitHub, an external SSD, and the Mac Mini, treat the pass log plus latest report aliases as the resume point. Do not rely on terminal scrollback. Push or copy the repository only after the latest pass is logged with branch, commit, dirty-state, `git diff --check` is clean for touched files, and the intended focused/quick command evidence is captured in the pass log.
