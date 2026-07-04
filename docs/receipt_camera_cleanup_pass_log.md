@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 781 - 07:27:48 EDT to active cleanup
+
+Scope:
+- Clarified OCR-source storage language so the app says temporary full-quality
+  photo/source instead of implying permanent original retention.
+- Updated Android, iOS, shared handoff labels, and the handoff report boundary
+  to match the policy that saved proof is the normal retained artifact.
+- Added/updated native bridge source regressions for the revised storage copy.
+- Recorded `BUG-RECEIPT-0268` under `source_preservation`.
+- Archived Pass 753 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused native bridge source tests.
+- Passed doc-size, bug-ledger, source-audit, test-audit, and diff whitespace
+  gates.
+
 ## Pass 780 - 07:20:47 EDT to active cleanup
 
 Scope:
@@ -480,21 +496,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for native readability regressions.
 - Passed focused Android/iOS native analysis exposure regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 753 - 04:02:09 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS optional auto-capture readiness so malformed live
-  framing bounds cannot count as edge-ready capture evidence.
-- Reused the native usable-bounds guard added in Pass 752 for auto-capture
-  decisions, keeping manual shutter behavior unaffected.
-- Added Android/iOS auto-capture source regressions for the usable-bounds guard.
-- Recorded `BUG-RECEIPT-0241` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart format/analyzer for native auto-capture regressions.
-- Passed focused Android/iOS native auto-capture bridge regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

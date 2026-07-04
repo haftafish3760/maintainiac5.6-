@@ -44,7 +44,7 @@ extension ReceiptCameraViewController {
     let reviewMode = reviewDepth == "detailedLines" ? "Detailed lines" : "Price-only lines"
     let receiptMode = longReceiptMode ? "Long receipt" : "Single photo"
     let brightnessMode = autoExposureAssistEnabled ? "Brightness assist" : "Manual brightness"
-    return "Maintainiac receipt camera | \(fillMode) | \(reviewMode) | \(receiptMode) | \(brightnessMode) | \(dataSaverLabel()) saved proof\nOCR reads the original photo first."
+    return "Maintainiac receipt camera | \(fillMode) | \(reviewMode) | \(receiptMode) | \(brightnessMode) | \(dataSaverLabel()) saved proof\nOCR reads the temporary full-quality photo first."
   }
 
   func dataSaverLabel() -> String {
@@ -72,7 +72,7 @@ extension ReceiptCameraViewController {
 
   func setDataSaverLevel(_ value: String) {
     dataSaverLevel = value
-    guidanceLabel.text = "Save-space proof size set to \(dataSaverLabel()). OCR still reads the original photo first."
+    guidanceLabel.text = "Save-space proof size set to \(dataSaverLabel()). OCR still reads the temporary full-quality photo first."
     updateSettingsStatusStrip()
   }
 

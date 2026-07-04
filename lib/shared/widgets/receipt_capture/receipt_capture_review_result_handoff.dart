@@ -40,7 +40,7 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
       'prepared_receipt_source_before_saved_proof' =>
         'OCR is using the prepared clear receipt source before the smaller saved proof copy.',
       'original_receipt_source_before_saved_proof' =>
-        'OCR is using the original receipt source before the smaller saved proof copy.',
+        'OCR is using the temporary full-quality receipt source before the smaller saved proof copy.',
       'separate_receipt_source_before_saved_proof' =>
         'OCR is using separate clear receipt sources before the smaller saved proof copies.',
       'accepted_receipt_source_before_saved_proof' =>

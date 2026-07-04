@@ -181,7 +181,7 @@ extension ReceiptPhotoReviewResultContinuation on ReceiptPhotoReviewResult {
       'prepared_source_ready' =>
         'OCR reads prepared receipt source before saved proof',
       'original_source_ready' =>
-        'OCR reads original receipt source before saved proof',
+        'OCR reads temporary full-quality source before saved proof',
       'separate_source_ready' =>
         'OCR reads separate source copies before saved proof',
       'saved_source_matched_original' =>

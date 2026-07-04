@@ -13,7 +13,10 @@ void main() {
     expect(cameraActivity, contains('shadowReductionEnabled'));
     expect(cameraActivity, contains('adaptiveThresholdEnabled'));
     expect(cameraActivity, contains('orientationCorrectionEnabled'));
-    expect(cameraActivity, contains('OCR reads the original photo first.'));
+    expect(
+      cameraActivity,
+      contains('OCR reads the temporary full-quality photo first.'),
+    );
     expect(
       cameraActivity,
       contains(

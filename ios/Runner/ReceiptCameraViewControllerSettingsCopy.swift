@@ -21,7 +21,7 @@ extension ReceiptCameraViewController {
     Image cleanup: crop, straighten, grayscale, contrast, and shadow cleanup after capture.
     Review style: \(review)
     Saved proof size: \(dataSaverLabel()) for proof and cloud backup
-    OCR reads the original photo first. Smaller saved proof copies are made after the receipt has been read.
+    OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.
     Manual shutter always works immediately. Automatic capture is optional.
 
     Hold steady for continuous autofocus/readability guidance. Pinch to zoom if the print is small. Use Brightness anytime.

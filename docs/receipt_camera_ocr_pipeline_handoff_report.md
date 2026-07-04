@@ -15,7 +15,7 @@ Workspace: `/Users/rbbie/Documents/Maintainiac_5.6`
   - iOS: AVFoundation.
 - The stock phone camera app and image picker are fallback/import paths only.
 - The old Flutter camera package/controller path is not allowed to be the production camera foundation.
-- OCR must read the clearest/original capture source before any aggressive proof compression.
+- OCR must read the clearest temporary full-quality source before any aggressive proof compression.
 - Saved proof/cloud backup copies can be compressed after OCR source selection.
 - User privacy is paramount. Diagnostics must not include raw receipt text, merchant-specific private text, personal data, full receipt images, or user financial content.
 

@@ -113,7 +113,7 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     ))
     content.addView(settingSummary(
         "Receipt reader",
-        "OCR reads the original photo first. Smaller saved proof copies are made after the receipt has been read.",
+        "OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.",
     ))
     content.addView(settingChoiceGroup(
         title = "Receipt details style",
