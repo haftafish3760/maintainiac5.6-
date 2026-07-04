@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 630 - 22:11:18 EDT to active cleanup
+
+Scope:
+- Hardened native ghost-guide session getters so direct malformed non-finite
+  values fall back to safe long-receipt overlap defaults before native handoff.
+- Added focused behavior regression coverage for direct session config `NaN` and
+  infinity ghost-guide values.
+- Archived Pass 620 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0151` under `ghost_overlap_stitching`.
+
+Verification:
+- Passed targeted Dart format/analyzer for native ghost-guide session changes.
+- Passed focused Flutter native camera session limits regression.
+- Passed whitespace check.
+
 ## Pass 629 - 22:08:07 EDT to active cleanup
 
 Scope:
@@ -18,24 +33,6 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for continuation handoff changes.
 - Passed focused Flutter continuation handoff regression.
-- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
-  check.
-
-## Pass 620 - 21:47:12 EDT to active cleanup
-
-Scope:
-- Added an explicit privacy-safe OCR/proof relationship code for receipt
-  handoff summaries.
-- Distinguished same accepted-source reuse from saved-proof OCR fallback risk
-  so admin QA and downstream review code do not have to infer from paths.
-- Added focused regressions for same-source, fallback, and separate clear-source
-  OCR handoff classifications.
-- Archived Pass 595 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0141` under `ocr_handoff_contract`.
-
-Verification:
-- Passed targeted Dart format/analyzer for OCR source relationship handoff.
-- Passed focused Flutter OCR source relationship regression.
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.
 

@@ -33,7 +33,8 @@ extension ReceiptNativeCameraSessionGhostGuide
   double get previousSectionGhostSourceStartFractionOrDefault {
     final fallback = previousSectionGuideMissingBottomAndTotals ? .80 : .78;
     return _boundedGhostGuideValue(
-      previousSectionGhostSourceStartFraction ?? fallback,
+      previousSectionGhostSourceStartFraction,
+      fallback: fallback,
       min: .65,
       max: .92,
     );
@@ -42,7 +43,8 @@ extension ReceiptNativeCameraSessionGhostGuide
   double get previousSectionGhostSourceHeightFractionOrDefault {
     final fallback = previousSectionGuideMissingBottomAndTotals ? .20 : .22;
     return _boundedGhostGuideValue(
-      previousSectionGhostSourceHeightFraction ?? fallback,
+      previousSectionGhostSourceHeightFraction,
+      fallback: fallback,
       min: .12,
       max: .35,
     );
@@ -50,15 +52,16 @@ extension ReceiptNativeCameraSessionGhostGuide
 
   double get previousSectionGhostOverlayTopFractionOrDefault =>
       _boundedGhostGuideValue(
-        previousSectionGhostOverlayTopFraction ?? 0,
+        previousSectionGhostOverlayTopFraction,
+        fallback: 0,
         min: 0,
         max: .30,
       );
 
   double get previousSectionGhostOverlayHeightFractionOrDefault =>
       _boundedGhostGuideValue(
-        previousSectionGhostOverlayHeightFraction ??
-            previousSectionGhostSourceHeightFractionOrDefault,
+        previousSectionGhostOverlayHeightFraction,
+        fallback: previousSectionGhostSourceHeightFractionOrDefault,
         min: .12,
         max: .35,
       );
@@ -66,7 +69,8 @@ extension ReceiptNativeCameraSessionGhostGuide
   double get previousSectionGhostOpacityOrDefault {
     final fallback = previousSectionGuideMissingBottomAndTotals ? .36 : .32;
     return _boundedGhostGuideValue(
-      previousSectionGhostOpacity ?? fallback,
+      previousSectionGhostOpacity,
+      fallback: fallback,
       min: .18,
       max: .62,
     );
@@ -95,11 +99,13 @@ extension ReceiptNativeCameraSessionGhostGuide
 }
 
 double _boundedGhostGuideValue(
-  double value, {
+  double? value, {
+  required double fallback,
   required double min,
   required double max,
 }) {
-  if (value < min) return min;
-  if (value > max) return max;
-  return value;
+  final boundedValue = value != null && value.isFinite ? value : fallback;
+  if (boundedValue < min) return min;
+  if (boundedValue > max) return max;
+  return boundedValue;
 }

@@ -279,4 +279,112 @@ void main() {
     expect(config.previousSectionGhostOpacityOrDefault, .32);
     expect(config.previousSectionGhostSlicePercent, 22);
   });
+
+  test(
+    'session config getters reject direct non-finite ghost guide values',
+    () {
+      const native = ReceiptNativeCameraCapabilities(
+        engine: ReceiptNativeCameraEngine.cameraX,
+        available: true,
+        cameraPermissionGranted: true,
+        hasRearCamera: true,
+      );
+      final base = const ReceiptNativeCameraSettings().sessionFor(
+        deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+        nativeCapabilities: native,
+        previousSectionGuidePhotoPath: '/tmp/receipt-section-1.jpg',
+        previousSectionReasonCode: 'missing_bottom_edge_and_totals',
+      );
+      final config = _copySessionWithGhostFractions(
+        base,
+        sourceStart: double.nan,
+        sourceHeight: double.infinity,
+        overlayTop: double.negativeInfinity,
+        overlayHeight: double.nan,
+        opacity: double.infinity,
+      );
+
+      expect(config.previousSectionGhostSourceStartFractionOrDefault, .80);
+      expect(config.previousSectionGhostSourceHeightFractionOrDefault, .20);
+      expect(config.previousSectionGhostOverlayTopFractionOrDefault, 0);
+      expect(config.previousSectionGhostOverlayHeightFractionOrDefault, .20);
+      expect(config.previousSectionGhostOpacityOrDefault, .36);
+      expect(config.previousSectionGhostSlicePercent, 20);
+    },
+  );
+}
+
+ReceiptNativeCameraSessionConfig _copySessionWithGhostFractions(
+  ReceiptNativeCameraSessionConfig base, {
+  required double sourceStart,
+  required double sourceHeight,
+  required double overlayTop,
+  required double overlayHeight,
+  required double opacity,
+}) {
+  return ReceiptNativeCameraSessionConfig(
+    settings: base.settings,
+    nativeCapabilities: base.nativeCapabilities,
+    deviceTier: base.deviceTier,
+    devicePolicyLabel: base.devicePolicyLabel,
+    capabilityPolicyCodes: base.capabilityPolicyCodes,
+    cloudAssistPlan: base.cloudAssistPlan,
+    installRecommendation: base.installRecommendation,
+    receiptBrainRecommendation: base.receiptBrainRecommendation,
+    receiptBrainFootprintSummary: base.receiptBrainFootprintSummary,
+    parserPackRoutingPlan: base.parserPackRoutingPlan,
+    storageSafetyLevel: base.storageSafetyLevel,
+    storageConstrained: base.storageConstrained,
+    autoCaptureAllowed: base.autoCaptureAllowed,
+    liveAnalysisEnabled: base.liveAnalysisEnabled,
+    edgeDetectionEnabled: base.edgeDetectionEnabled,
+    autoCaptureEnabled: base.autoCaptureEnabled,
+    maxSectionCount: base.maxSectionCount,
+    analysisGapMs: base.analysisGapMs,
+    readyHoldMs: base.readyHoldMs,
+    autoCaptureStableFrameTarget: base.autoCaptureStableFrameTarget,
+    autoCaptureMaxMotionScore: base.autoCaptureMaxMotionScore,
+    autoCaptureMinBrightness: base.autoCaptureMinBrightness,
+    autoCaptureMaxBrightness: base.autoCaptureMaxBrightness,
+    autoCaptureCooldownMs: base.autoCaptureCooldownMs,
+    assistedShotCount: base.assistedShotCount,
+    bestShotCandidateCount: base.bestShotCandidateCount,
+    cameraResolutionTier: base.cameraResolutionTier,
+    cameraWorkloadTier: base.cameraWorkloadTier,
+    maxLocalPhotoBytes: base.maxLocalPhotoBytes,
+    tapFocusEnabled: base.tapFocusEnabled,
+    pinchZoomEnabled: base.pinchZoomEnabled,
+    exposureSliderEnabled: base.exposureSliderEnabled,
+    exposureResetEnabled: base.exposureResetEnabled,
+    autoExposureAssistEnabled: base.autoExposureAssistEnabled,
+    continuousFocusEnabled: base.continuousFocusEnabled,
+    focusLockEnabled: base.focusLockEnabled,
+    exposureLockEnabled: base.exposureLockEnabled,
+    whiteBalanceLockEnabled: base.whiteBalanceLockEnabled,
+    minZoom: base.minZoom,
+    maxZoom: base.maxZoom,
+    minExposureOffset: base.minExposureOffset,
+    maxExposureOffset: base.maxExposureOffset,
+    maxLiveAnalysisPixels: base.maxLiveAnalysisPixels,
+    maxCleanupPixels: base.maxCleanupPixels,
+    maxStitchOutputPixels: base.maxStitchOutputPixels,
+    maxStitchOutputHeight: base.maxStitchOutputHeight,
+    edgeOverlayEnabled: base.edgeOverlayEnabled,
+    perspectiveCorrectionEnabled: base.perspectiveCorrectionEnabled,
+    autoCropSuggestionEnabled: base.autoCropSuggestionEnabled,
+    contrastBoostEnabled: base.contrastBoostEnabled,
+    sharpeningEnabled: base.sharpeningEnabled,
+    shadowReductionEnabled: base.shadowReductionEnabled,
+    adaptiveThresholdEnabled: base.adaptiveThresholdEnabled,
+    grayscalePreviewEnabled: base.grayscalePreviewEnabled,
+    orientationCorrectionEnabled: base.orientationCorrectionEnabled,
+    previousSectionGuidePhotoPath: base.previousSectionGuidePhotoPath,
+    previousSectionReasonCode: base.previousSectionReasonCode,
+    previousSectionGuidance: base.previousSectionGuidance,
+    previousSectionGhostSourceStartFraction: sourceStart,
+    previousSectionGhostSourceHeightFraction: sourceHeight,
+    previousSectionGhostOverlayTopFraction: overlayTop,
+    previousSectionGhostOverlayHeightFraction: overlayHeight,
+    previousSectionGhostOpacity: opacity,
+  );
 }
