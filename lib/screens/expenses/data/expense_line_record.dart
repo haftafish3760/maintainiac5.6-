@@ -10,9 +10,11 @@ enum ExpenseLineUse {
   final String label;
 
   static ExpenseLineUse fromName(String? name) {
-    final normalizedName = name?.trim();
+    final normalizedName = name?.trim().toLowerCase();
     return ExpenseLineUse.values.firstWhere(
-      (value) => value.name == normalizedName,
+      (value) =>
+          value.name == normalizedName ||
+          value.label.toLowerCase() == normalizedName,
       orElse: () => ExpenseLineUse.business,
     );
   }

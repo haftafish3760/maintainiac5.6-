@@ -140,6 +140,46 @@ void main() {
     expect(personal.personalAmount, 9);
   });
 
+  test('receipt line records hydrate case-insensitive business use labels', () {
+    final split = ExpenseReceiptLineRecord.fromMap({
+      'id': 'line-split-label',
+      'description': 'Split receipt items',
+      'category': 'Materials',
+      'use': ' Split ',
+      'businessPercent': .75,
+      'subtotal': 40,
+    });
+    final personal = ExpenseReceiptLineRecord.fromMap({
+      'id': 'line-personal-upper',
+      'description': 'Family snack',
+      'category': 'Personal',
+      'use': 'PERSONAL',
+      'subtotal': 9,
+    });
+    final business = ExpenseReceiptLineRecord.fromMap({
+      'id': 'line-business-label',
+      'description': 'Shop towel',
+      'category': 'Vehicle Supplies',
+      'use': 'Business',
+      'subtotal': 12,
+    });
+
+    expect(split.use, ExpenseLineUse.split);
+    expect(split.businessUseReviewLabel, 'Split 75% business');
+    expect(split.businessAmount, 30);
+    expect(split.personalAmount, 10);
+    expect(split.toMap()['use'], 'split');
+    expect(personal.use, ExpenseLineUse.personal);
+    expect(personal.clientProofDefaultVisibility, 'redact_by_default');
+    expect(personal.businessAmount, 0);
+    expect(personal.personalAmount, 9);
+    expect(personal.toMap()['use'], 'personal');
+    expect(business.use, ExpenseLineUse.business);
+    expect(business.businessAmount, 12);
+    expect(business.personalAmount, 0);
+    expect(business.toMap()['use'], 'business');
+  });
+
   test(
     'receipt lines expose numbered price-only and detailed review contracts',
     () {
