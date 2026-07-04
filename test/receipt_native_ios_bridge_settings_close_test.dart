@@ -10,7 +10,18 @@ void main() {
       final cameraController = sources.cameraController;
 
       expect(cameraController, contains('arguments["readyHoldMs"]'));
-      expect(cameraController, contains('autoCaptureStableFrameTarget = min('));
+      expect(
+        cameraController,
+        contains('let requestedAutoCaptureStableFrameTarget ='),
+      );
+      expect(
+        cameraController,
+        contains('autoCaptureStableFrameTarget = autoCaptureAllowed'),
+      );
+      expect(
+        cameraController,
+        contains('min(max(requestedAutoCaptureStableFrameTarget, 2), 8)'),
+      );
       expect(
         cameraController,
         contains('doubleArgument("autoCaptureMaxMotionScore"'),
@@ -26,6 +37,14 @@ void main() {
       expect(
         cameraController,
         contains('doubleArgument("autoCaptureCooldownMs"'),
+      );
+      expect(
+        cameraController,
+        contains('autoCaptureCooldownMs = autoCaptureAllowed'),
+      );
+      expect(
+        cameraController,
+        contains('min(max(requestedAutoCaptureCooldownMs, 1200), 6000)'),
       );
       expect(
         cameraController,

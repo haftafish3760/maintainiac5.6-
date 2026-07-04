@@ -31,7 +31,15 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('autoCaptureStableFrameTarget = intent.getIntExtra('),
+      contains('requestedAutoCaptureStableFrameTarget = intent.getIntExtra('),
+    );
+    expect(
+      cameraActivity,
+      contains('autoCaptureStableFrameTarget = if (autoCaptureAllowed)'),
+    );
+    expect(
+      cameraActivity,
+      contains('requestedAutoCaptureStableFrameTarget.coerceIn(2, 8)'),
     );
     expect(
       cameraActivity,
@@ -47,7 +55,15 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('autoCaptureCooldownMs = intent.getIntExtra('),
+      contains('requestedAutoCaptureCooldownMs = intent.getIntExtra('),
+    );
+    expect(
+      cameraActivity,
+      contains('autoCaptureCooldownMs = if (autoCaptureAllowed)'),
+    );
+    expect(
+      cameraActivity,
+      contains('requestedAutoCaptureCooldownMs.coerceIn(1200, 6000).toLong()'),
     );
     expect(
       cameraActivity,

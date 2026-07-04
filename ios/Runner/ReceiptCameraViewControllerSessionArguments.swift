@@ -76,10 +76,11 @@ extension ReceiptCameraViewController {
     receiptCameraQualityBaseline = arguments["receiptCameraQualityBaseline"] as? Bool ?? receiptCameraQualityBaseline
     zoomGesturePolicy = arguments["zoomGesturePolicy"] as? String ?? zoomGesturePolicy
     autoCapturePolicy = arguments["autoCapturePolicy"] as? String ?? autoCapturePolicy
-    autoCaptureStableFrameTarget = min(
-      max(arguments["autoCaptureStableFrameTarget"] as? Int ?? autoCaptureStableFrameTarget, 2),
-      8
-    )
+    let requestedAutoCaptureStableFrameTarget =
+      arguments["autoCaptureStableFrameTarget"] as? Int ?? autoCaptureStableFrameTarget
+    autoCaptureStableFrameTarget = autoCaptureAllowed
+      ? min(max(requestedAutoCaptureStableFrameTarget, 2), 8)
+      : 0
     autoCaptureMaxMotionScore = min(max(
       doubleArgument("autoCaptureMaxMotionScore", fallback: autoCaptureMaxMotionScore),
       3
@@ -92,10 +93,11 @@ extension ReceiptCameraViewController {
       doubleArgument("autoCaptureMaxBrightness", fallback: autoCaptureMaxBrightness),
       autoCaptureMinBrightness + 20
     ), 252)
-    autoCaptureCooldownMs = min(max(
-      doubleArgument("autoCaptureCooldownMs", fallback: autoCaptureCooldownMs),
-      1200
-    ), 6000)
+    let requestedAutoCaptureCooldownMs =
+      doubleArgument("autoCaptureCooldownMs", fallback: autoCaptureCooldownMs)
+    autoCaptureCooldownMs = autoCaptureAllowed
+      ? min(max(requestedAutoCaptureCooldownMs, 1200), 6000)
+      : 0
     preCaptureExposurePolicy = arguments["preCaptureExposurePolicy"] as? String ?? preCaptureExposurePolicy
     maxLiveAnalysisPixels = max(arguments["maxLiveAnalysisPixels"] as? Int ?? 0, 0)
     maxCleanupPixels = max(arguments["maxCleanupPixels"] as? Int ?? 10000000, 0)

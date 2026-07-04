@@ -78,10 +78,15 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
         intent.getBooleanExtra("receiptCameraQualityBaseline", receiptCameraQualityBaseline)
     zoomGesturePolicy = intent.getStringExtra("zoomGesturePolicy") ?: zoomGesturePolicy
     autoCapturePolicy = intent.getStringExtra("autoCapturePolicy") ?: autoCapturePolicy
-    autoCaptureStableFrameTarget = intent.getIntExtra(
+    val requestedAutoCaptureStableFrameTarget = intent.getIntExtra(
         "autoCaptureStableFrameTarget",
         autoCaptureStableFrameTarget,
-    ).coerceIn(2, 8)
+    )
+    autoCaptureStableFrameTarget = if (autoCaptureAllowed) {
+        requestedAutoCaptureStableFrameTarget.coerceIn(2, 8)
+    } else {
+        0
+    }
     autoCaptureMaxMotionScore = finiteDoubleExtra(
         "autoCaptureMaxMotionScore",
         autoCaptureMaxMotionScore,
@@ -94,10 +99,15 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
         "autoCaptureMaxBrightness",
         autoCaptureMaxBrightness,
     ).coerceIn(autoCaptureMinBrightness + 20.0, 252.0)
-    autoCaptureCooldownMs = intent.getIntExtra(
+    val requestedAutoCaptureCooldownMs = intent.getIntExtra(
         "autoCaptureCooldownMs",
         autoCaptureCooldownMs.toInt(),
-    ).coerceIn(1200, 6000).toLong()
+    )
+    autoCaptureCooldownMs = if (autoCaptureAllowed) {
+        requestedAutoCaptureCooldownMs.coerceIn(1200, 6000).toLong()
+    } else {
+        0L
+    }
     preCaptureExposurePolicy = intent.getStringExtra("preCaptureExposurePolicy")
         ?: preCaptureExposurePolicy
     maxLiveAnalysisPixels = intent.getIntExtra("maxLiveAnalysisPixels", 0).coerceAtLeast(0)

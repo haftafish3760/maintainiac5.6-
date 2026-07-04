@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 594 - 20:41:22 EDT to 20:42:20 EDT
+
+Scope:
+- Hardened Android native auto-capture session parsing so blocked or
+  unavailable auto-capture keeps `requiredStableFrames` and cooldown diagnostics
+  at zero instead of clamping them back to runtime minimums.
+- Hardened iOS native auto-capture session parsing with the same zero-when-
+  blocked threshold behavior.
+- Added Android and iOS source-contract regressions for honest blocked
+  auto-capture threshold diagnostics.
+- Recorded `BUG-RECEIPT-0115` under `native_bridge`.
+
+Verification:
+- Passed targeted Dart format/analyzer for native auto-capture source-contract
+  regressions.
+- Passed focused Flutter Android and iOS native auto-capture/settings
+  regressions.
+
 ## Pass 593 - 20:39:15 EDT to 20:40:06 EDT
 
 Scope:
@@ -470,25 +488,3 @@ Verification:
 - Passed focused Flutter regressions
   `test/receipt_native_android_bridge_settings_quality_test.dart` and
   `test/receipt_native_ios_bridge_long_receipt_quality_test.dart`.
-
-## Pass 573 - 09:14:52 EDT to 09:21:30 EDT
-
-Scope:
-- Hardened Android native camera session double extras so non-finite zoom,
-  exposure, and auto-capture thresholds fall back before camera clamping.
-- Hardened iOS native camera session double arguments so non-finite zoom,
-  exposure, and auto-capture thresholds cannot reach AVFoundation controls.
-- Added Android and iOS source contract regressions for finite native bridge
-  double handling.
-- Recorded `BUG-RECEIPT-0089` under `native_bridge`.
-- Archived Pass 547 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Fixed one line-wrap-sensitive Android source regression expectation, then
-  reran the focused native bridge checks.
-- Passed targeted Dart format/analyzer for Android and iOS native bridge source
-  regressions.
-- Passed focused Flutter regressions
-  `test/receipt_native_android_bridge_settings_quality_test.dart` and
-  `test/receipt_native_ios_bridge_ui_session_test.dart`.
