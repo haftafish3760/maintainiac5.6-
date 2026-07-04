@@ -216,6 +216,31 @@ Focused rerun routes for recently hardened release-one contracts:
   `test/support/work_supply_parser_qa/work_supply_parser_confidence_qa.dart`
   passed with no issues.
 
+## 2026-07-04 Generated Fixture Source-Modality Tags
+
+- Passes 2060-2065 hardened generated fixture recipe coverage so generated
+  parser batches do not only look like named-store receipts. The fixture
+  generator now rotates source-modality risk tags across generated rows:
+  `photo_ocr_text_after_extraction`, `uploaded_pdf_text_after_extraction`,
+  `emailed_receipt_text_after_extraction`, `manual_pasted_receipt_text`,
+  `invoice_style_material_line_text`, `quote_style_material_line_text`,
+  `packing_slip_material_list_text`,
+  `counter_sale_material_receipt_text`,
+  `generic_unknown_merchant_receipt_text`, and
+  `local_regional_supplier_receipt_text`.
+- `inventory.recipe_completeness_contract` now scans both recipe definitions and
+  the generator implementation so this source-modality pressure cannot disappear
+  while recipes still appear complete.
+- Validation passed:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_SUITES=inventory.recipe_completeness_contract,inventory.generator_pairing_contract,qa.threshold_gate
+  --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40` checked 67 conditions with
+  0 failures, targeted `dart analyze` over the generator and recipe-completeness
+  suite passed, and
+  `flutter test test\work_supply_parser_qa_fixture_generator_test.dart
+  test\work_supply_parser_qa_fixture_generator_electrical_test.dart --reporter compact`
+  passed 14/14 generator tests.
+
 ## 2026-07-04 Reusable Parser Adapter Registry Hardening
 
 - Passes 1937-1949 launched local-only wave

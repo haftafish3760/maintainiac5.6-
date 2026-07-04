@@ -28,6 +28,16 @@ class WorkSupplyParserRecipeCompletenessSuite extends QaSuite {
     'dangerous_word',
     'spanish',
     'generated_batch',
+    'photo_ocr_text_after_extraction',
+    'uploaded_pdf_text_after_extraction',
+    'emailed_receipt_text_after_extraction',
+    'manual_pasted_receipt_text',
+    'invoice_style_material_line_text',
+    'quote_style_material_line_text',
+    'packing_slip_material_list_text',
+    'counter_sale_material_receipt_text',
+    'generic_unknown_merchant_receipt_text',
+    'local_regional_supplier_receipt_text',
   };
 
   @override
@@ -77,7 +87,8 @@ class WorkSupplyParserRecipeCompletenessSuite extends QaSuite {
     final buffer = StringBuffer();
     for (final file in Directory('tool').listSync()) {
       if (file is File &&
-          file.path.contains('work_supply_parser_qa_fixture_recipes') &&
+          (file.path.contains('work_supply_parser_qa_fixture_recipes') ||
+              file.path.contains('work_supply_parser_qa_generate_fixtures')) &&
           file.path.endsWith('.dart')) {
         buffer.writeln(file.readAsStringSync());
       }

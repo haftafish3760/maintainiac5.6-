@@ -117,6 +117,7 @@ List<Map<String, Object?>> _buildCases({
           merchant: merchant,
           locale: options.locale,
         ),
+        _sourceModalityTag(index),
         options.scope,
         options.tier,
         options.locale,
@@ -175,6 +176,21 @@ List<String> _supplementalRiskTags({
       _ => 'dangerous_word',
     },
   ];
+}
+
+String _sourceModalityTag(int index) {
+  return switch (index % 10) {
+    0 => 'photo_ocr_text_after_extraction',
+    1 => 'uploaded_pdf_text_after_extraction',
+    2 => 'emailed_receipt_text_after_extraction',
+    3 => 'manual_pasted_receipt_text',
+    4 => 'invoice_style_material_line_text',
+    5 => 'quote_style_material_line_text',
+    6 => 'packing_slip_material_list_text',
+    7 => 'counter_sale_material_receipt_text',
+    8 => 'generic_unknown_merchant_receipt_text',
+    _ => 'local_regional_supplier_receipt_text',
+  };
 }
 
 List<WorkSupplyFixtureRecipe> _recipesFor(_GeneratorOptions options) {
