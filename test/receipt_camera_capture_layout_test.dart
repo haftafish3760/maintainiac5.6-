@@ -127,6 +127,7 @@ void main() {
       expect(actions, isNot(contains('CameraController')));
       expect(actions, isNot(contains('CameraPreview')));
       expect(actions, contains('initialSelectedIndex: firstNewPhotoIndex'));
+      expect(actions, contains('uniqueNormalizedReceiptPhotoPaths('));
       expect(actions, contains('initialCaptureDiagnosticsByPath'));
       expect(actions, contains('receiptBrainDiagnosticsByPath'));
       expect(actions, contains('_defaultReceiptBrainDiagnosticMetadata'));

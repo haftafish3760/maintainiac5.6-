@@ -17,6 +17,7 @@ import 'receipt_assistance_policy.dart';
 import 'receipt_native_capture_staging.dart';
 import 'receipt_native_camera_contract.dart';
 import 'receipt_ocr_service.dart';
+import 'receipt_photo_path_identity.dart';
 import 'receipt_photo_review_screen.dart';
 import 'receipt_pdf_inspector.dart';
 import 'receipt_pdf_viewer_screen.dart';

@@ -8,7 +8,9 @@ extension _ReceiptAttachmentReviewReadActions
     Map<String, Map<String, Object?>> initialCaptureDiagnosticsByPath =
         const {},
   }) async {
-    final firstNewPhotoIndex = _photoPaths.length;
+    final firstNewPhotoIndex = uniqueNormalizedReceiptPhotoPaths(
+      _photoPaths,
+    ).length;
     final previousPhotoIdByPath = {..._photoIdByPath};
     final result = await Navigator.of(context).push<ReceiptPhotoReviewResult>(
       appNativeRoute(

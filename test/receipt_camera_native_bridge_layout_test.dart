@@ -165,7 +165,8 @@ void main() {
       reviewScreen,
       contains('widget.initialSelectedIndex.clamp(0, _photoPaths.length - 1)'),
     );
-    expect(actions, contains('final firstNewPhotoIndex = _photoPaths.length'));
+    expect(actions, contains('final firstNewPhotoIndex ='));
+    expect(actions, contains('uniqueNormalizedReceiptPhotoPaths('));
     expect(actions, contains('initialSelectedIndex: firstNewPhotoIndex'));
   });
 }

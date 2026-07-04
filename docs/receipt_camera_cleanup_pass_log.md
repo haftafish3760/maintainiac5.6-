@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 772 - 05:51:44 EDT to active cleanup
+
+Scope:
+- Hardened attachment-panel review opening so Add Existing Photo / picked-photo
+  review uses the normalized existing receipt photo count for the first new
+  section index.
+- Prevented invalid or duplicate existing attachment photo paths from shifting
+  the review screen away from newly picked receipt photos.
+- Added source regressions for normalized first-new-photo index calculation.
+- Recorded `BUG-RECEIPT-0260` under `camera_review_state`.
+- Archived Pass 744 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for attachment review index changes.
+- Passed focused Flutter camera capture layout/native bridge layout
+  regressions.
+- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
+
 ## Pass 771 - 05:44:56 EDT to active cleanup
 
 Scope:
@@ -477,22 +495,3 @@ Verification:
 - Passed focused expense settings-store regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
-
-## Pass 744 - 03:42:58 EDT to active cleanup
-
-Scope:
-- Hardened parser/readiness gates so duplicate OCR line IDs downgrade receipt
-  parser, downstream, merchant-independent, mixed-classification, and lean-local
-  OCR readiness instead of appearing only as metadata.
-- Added a focused regression with an otherwise ready receipt whose duplicate
-  line IDs force review before line-numbered proof or split classification.
-- Split duplicate line identity coverage into a focused test file after the
-  source audit caught the structure test over the line cap.
-- Recorded `BUG-RECEIPT-0232` under `receipt_line_numbering`.
-- Archived Pass 719 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for parser handoff readiness.
-- Passed focused Flutter parser handoff structure and line-identity regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates after splitting the oversized test.
