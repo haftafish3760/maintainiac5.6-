@@ -221,9 +221,50 @@ void main() {
       'receipt_line_s01_l0004_materials_business',
     );
     expect(
+      malformedSection.privacySafeLineReviewContract['ocrSourceSectionNumber'],
+      1,
+    );
+    expect(
+      malformedSection.privacySafeProofReference['ocrSourceSectionNumber'],
+      1,
+    );
+    expect(malformedSection.toMap()['ocrSourceSectionNumber'], 1);
+    expect(
       malformedSection.receiptProofRedactionAnchorCode,
       isNot(contains('-3')),
     );
+    expect(malformedSection.toMap().toString(), isNot(contains('-3')));
+  });
+
+  test('receipt line maps drop malformed OCR source line numbers', () {
+    const malformedLine = ExpenseReceiptLineRecord(
+      id: 'line-malformed-source',
+      description: 'Receipt item',
+      category: 'Materials',
+      use: ExpenseLineUse.business,
+      quantity: 1,
+      unitsPerPackage: 1,
+      unit: 'each',
+      subtotal: 8,
+      ocrSourceLineNumber: -9,
+      ocrSourceSectionNumber: 2,
+      ocrSourceSectionLineNumber: 0,
+    );
+
+    expect(malformedLine.hasOcrSourceLine, isFalse);
+    expect(malformedLine.receiptLineNumberLabel, 'Receipt line');
+    expect(
+      malformedLine.privacySafeLineReviewContract,
+      isNot(containsPair('ocrSourceSectionNumber', 2)),
+    );
+    expect(
+      malformedLine.privacySafeProofReference,
+      isNot(containsPair('ocrSourceLineNumber', -9)),
+    );
+    expect(malformedLine.toMap()['ocrSourceLineNumber'], isNull);
+    expect(malformedLine.toMap()['ocrSourceSectionNumber'], isNull);
+    expect(malformedLine.toMap()['ocrSourceSectionLineNumber'], isNull);
+    expect(malformedLine.toMap().toString(), isNot(contains('-9')));
   });
 
   test('privacy-safe split contracts expose clamped percents', () {

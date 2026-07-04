@@ -172,9 +172,9 @@ ExpenseReceiptParseResult _withOcrParserLineEvidence(
       _copyReceiptLineWithOcrParserEvidence(
         line,
         ocrSourceLineId: draft.stableLineId,
-        ocrSourceLineNumber: draft.lineNumber,
-        ocrSourceSectionNumber: sourceLocation?.sectionNumber,
-        ocrSourceSectionLineNumber: sourceLocation?.sectionLineNumber,
+        ocrSourceLineNumber: draft.safeLineNumber,
+        ocrSourceSectionNumber: sourceLocation?.safeSectionNumber,
+        ocrSourceSectionLineNumber: sourceLocation?.safeSectionLineNumber,
         parserConfidence: line.parserConfidence ?? draft.confidence,
         parserReviewReason: _mergeParserReviewReasons(
           line.parserReviewReason,
@@ -199,7 +199,7 @@ Map<int, ReceiptOcrParserLineDraft> _ocrLineDraftsByLineNumber(
 ) {
   final mapped = <int, ReceiptOcrParserLineDraft>{};
   for (final draft in drafts) {
-    mapped.putIfAbsent(draft.lineNumber, () => draft);
+    mapped.putIfAbsent(draft.safeLineNumber, () => draft);
   }
   return Map<int, ReceiptOcrParserLineDraft>.unmodifiable(mapped);
 }

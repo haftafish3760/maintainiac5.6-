@@ -138,7 +138,9 @@ class ExpenseReceiptLineRecord {
   bool get hasParserReview =>
       parserConfidence != null || parserReviewReason != null;
   bool get hasOcrSourceLine =>
-      (ocrSourceLineId ?? '').trim().isNotEmpty || ocrSourceLineNumber != null;
+      (ocrSourceLineId ?? '').trim().isNotEmpty ||
+      safeOcrSourceLineNumber != null ||
+      safeOcrSourceSectionLineNumber != null;
   bool get hasParserClassification =>
       (parserExpenseFamily ?? '').trim().isNotEmpty ||
       (parserHint ?? '').trim().isNotEmpty;
@@ -197,12 +199,23 @@ class ExpenseReceiptLineRecord {
     return 'Receipt line';
   }
 
-  int? get receiptDisplayLineNumber {
-    final sectionLine = ocrSourceSectionLineNumber;
-    if (sectionLine != null && sectionLine > 0) return sectionLine;
+  int? get safeOcrSourceLineNumber {
     final lineNumber = ocrSourceLineNumber;
-    if (lineNumber != null && lineNumber > 0) return lineNumber;
-    return null;
+    return lineNumber != null && lineNumber > 0 ? lineNumber : null;
+  }
+
+  int? get safeOcrSourceSectionLineNumber {
+    final sectionLine = ocrSourceSectionLineNumber;
+    return sectionLine != null && sectionLine > 0 ? sectionLine : null;
+  }
+
+  int? get safeOcrSourceSectionNumber {
+    if (safeOcrSourceSectionLineNumber == null) return null;
+    return _expenseSafeReceiptSectionNumber(ocrSourceSectionNumber);
+  }
+
+  int? get receiptDisplayLineNumber {
+    return safeOcrSourceSectionLineNumber ?? safeOcrSourceLineNumber;
   }
 
   String get receiptLineNumberLabel {
@@ -255,8 +268,8 @@ class ExpenseReceiptLineRecord {
       'redactionAnchorCode': receiptProofRedactionAnchorCode,
       if (receiptDisplayLineNumber != null)
         'receiptDisplayLineNumber': receiptDisplayLineNumber,
-      if (ocrSourceSectionNumber != null)
-        'ocrSourceSectionNumber': ocrSourceSectionNumber,
+      if (safeOcrSourceSectionNumber != null)
+        'ocrSourceSectionNumber': safeOcrSourceSectionNumber,
     };
   }
 
@@ -315,12 +328,12 @@ class ExpenseReceiptLineRecord {
       'hasAmount': subtotal != 0,
       'needsParserReview': parserNeedsReview,
       'hasOcrSourceLine': hasOcrSourceLine,
-      if (ocrSourceLineNumber != null)
-        'ocrSourceLineNumber': ocrSourceLineNumber,
-      if (ocrSourceSectionNumber != null)
-        'ocrSourceSectionNumber': ocrSourceSectionNumber,
-      if (ocrSourceSectionLineNumber != null)
-        'ocrSourceSectionLineNumber': ocrSourceSectionLineNumber,
+      if (safeOcrSourceLineNumber != null)
+        'ocrSourceLineNumber': safeOcrSourceLineNumber,
+      if (safeOcrSourceSectionNumber != null)
+        'ocrSourceSectionNumber': safeOcrSourceSectionNumber,
+      if (safeOcrSourceSectionLineNumber != null)
+        'ocrSourceSectionLineNumber': safeOcrSourceSectionLineNumber,
     };
   }
 

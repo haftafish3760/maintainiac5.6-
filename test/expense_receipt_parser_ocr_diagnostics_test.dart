@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_receipt_parser.dart';
 import 'package:maintaniac/shared/receipts/receipt_processing_contract.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
@@ -102,6 +103,46 @@ TOTAL 17.48
     expect(parsed.diagnostics.hasOcrExpectedLineSequence, isTrue);
     expect(parsed.diagnostics.hasOcrLineSequenceReview, isFalse);
     expect(parsed.diagnostics.hasOcrReceiptStructureReview, isTrue);
+  });
+
+  test('normalizes malformed OCR source locations before expense review', () {
+    const ocr = ReceiptOcrResult(
+      rawText: '''
+WALMART
+06/12/2026
+GENERAL MDSE 17.48
+TOTAL 17.48
+''',
+      parserText: '''
+WALMART
+06/12/2026
+GENERAL MDSE 17.48
+TOTAL 17.48
+      ''',
+      textByAttachmentId: {'photo-1': 'WALMART'},
+      source: ReceiptProcessingSource.photo,
+      parserLineSourceLocations: [
+        ReceiptOcrParserLineLocation(sectionNumber: 1, sectionLineNumber: 1),
+        ReceiptOcrParserLineLocation(sectionNumber: 1, sectionLineNumber: 2),
+        ReceiptOcrParserLineLocation(sectionNumber: -4, sectionLineNumber: 0),
+        ReceiptOcrParserLineLocation(sectionNumber: 1, sectionLineNumber: 4),
+      ],
+    );
+
+    final parsed = parseExpenseReceiptOcrResult(
+      ocr,
+      capability: const ReceiptDeviceCapability.highCapacity(),
+    );
+    final line = parsed.lines.single;
+
+    expect(line.ocrSourceLineId, 'ocr_line_002_item');
+    expect(line.ocrSourceLineNumber, 3);
+    expect(line.ocrSourceSectionNumber, 1);
+    expect(line.ocrSourceSectionLineNumber, 1);
+    expect(line.receiptLineNumberLabel, 'Line 1');
+    expect(line.privacySafeProofReference['ocrSourceSectionNumber'], 1);
+    expect(line.privacySafeProofReference['ocrSourceSectionLineNumber'], 1);
+    expect(line.toMap().toString(), isNot(contains('-4')));
   });
 
   test('preserves OCR item family mix through parser diagnostics', () {
@@ -296,7 +337,8 @@ TOTAL 14.50
     final enrichment = source.substring(enrichmentStart, enrichmentEnd);
 
     expect(enrichment, contains('handoff.lineDraftsById[sourceLineId]'));
-    expect(enrichment, contains('mapped.putIfAbsent(draft.lineNumber'));
+    expect(enrichment, contains('mapped.putIfAbsent(draft.safeLineNumber'));
+    expect(enrichment, isNot(contains('mapped.putIfAbsent(draft.lineNumber')));
     expect(enrichment, isNot(contains('draft.lineNumber: draft')));
   });
 }
