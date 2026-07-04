@@ -3487,3 +3487,9 @@ Release boundaries:
   now part of the hostile-input evidence set. Focused tool tests passed 6/6, the
   real-receipt harness contract passed 46 checks with 0 failures, and targeted
   analyzer found no issues.
+- **10:34 Harness Pass 2560:** Strengthened merchant fallback behavior tests so
+  unknown, local-hardware, regional/supply-house style receipt text uses generic
+  fallback tags, returns multiple ranked candidates, requires review, and never
+  auto-saves. The focused merchant behavior test passed 4/4, the merchant
+  independence/matrix harness slice passed 195 checks with 0 failures, and
+  targeted analyzer found no issues.

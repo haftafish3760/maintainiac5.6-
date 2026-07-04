@@ -2,23 +2,26 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('inventory parser merchant matrix behavior', () {
-    test('major merchant alias normalization maps receipt styles to buckets', () {
-      const matrix = _MerchantMatrix();
+    test(
+      'major merchant alias normalization maps receipt styles to buckets',
+      () {
+        const matrix = _MerchantMatrix();
 
-      expect(matrix.normalize('THE HOME DEPOT #4620'), 'Home Depot');
-      expect(matrix.normalize('HD SUPPLY COUNTER'), 'Home Depot');
-      expect(matrix.normalize("LOWE'S HOME IMPROVEMENT"), 'Lowes');
-      expect(matrix.normalize('LOWES PRO DESK'), 'Lowes');
-      expect(matrix.normalize('ACE HARDWARE STORE'), 'Ace');
-      expect(matrix.normalize('LOCAL CASH SALE'), 'unknown');
-      expect(matrix.styleTagsFor('Home Depot'), contains('home_depot_style'));
-      expect(matrix.styleTagsFor('Lowes'), contains('lowes_style'));
-      expect(matrix.styleTagsFor('Ace'), contains('ace_style'));
-      expect(
-        matrix.globalTags,
-        contains('major merchant alias normalization'),
-      );
-    });
+        expect(matrix.normalize('THE HOME DEPOT #4620'), 'Home Depot');
+        expect(matrix.normalize('HD SUPPLY COUNTER'), 'Home Depot');
+        expect(matrix.normalize("LOWE'S HOME IMPROVEMENT"), 'Lowes');
+        expect(matrix.normalize('LOWES PRO DESK'), 'Lowes');
+        expect(matrix.normalize('ACE HARDWARE STORE'), 'Ace');
+        expect(matrix.normalize('LOCAL CASH SALE'), 'unknown');
+        expect(matrix.styleTagsFor('Home Depot'), contains('home_depot_style'));
+        expect(matrix.styleTagsFor('Lowes'), contains('lowes_style'));
+        expect(matrix.styleTagsFor('Ace'), contains('ace_style'));
+        expect(
+          matrix.globalTags,
+          contains('major merchant alias normalization'),
+        );
+      },
+    );
 
     test('merchant context changes ranking but does not force certainty', () {
       const matrix = _MerchantMatrix();
@@ -44,33 +47,74 @@ void main() {
       expect(ace.autoSaveAllowed, isFalse);
     });
 
-    test('merchant styles remain scoped across priority trades and locales', () {
+    test('unknown local and supply-house receipts use generic fallback', () {
       const matrix = _MerchantMatrix();
-      final cells = [
-        for (final merchant in ['Home Depot', 'Lowes', 'Ace'])
-          for (final trade in ['plumbing', 'electrical', 'hvac'])
-            for (final locale in ['en-US', 'es-US'])
-              matrix.coverageCell(merchant: merchant, trade: trade, locale: locale),
-      ];
-
-      expect(cells, hasLength(18));
-      expect(cells.every((cell) => cell.hasMerchantStyle), isTrue);
-      expect(cells.every((cell) => cell.locale == 'en-US' || cell.locale == 'es-US'), isTrue);
-      expect(cells.map((cell) => cell.trade).toSet(), {
-        'plumbing',
-        'electrical',
-        'hvac',
-      });
-      expect(
-        cells.expand((cell) => cell.tags),
-        containsAll([
-          'home_depot_style',
-          'lowes_style',
-          'ace_style',
-          'merchant context',
-        ]),
+      final unknown = matrix.rank(
+        'COUNTER SALE 3/4 PVC CPLG',
+        merchant: 'unknown',
+        tradeScope: 'mixed',
       );
+      final local = matrix.rank(
+        'LOCAL HARDWARE 3/4 PVC CPLG',
+        merchant: 'Local Hardware',
+        tradeScope: 'mixed',
+      );
+      final supplyHouse = matrix.rank(
+        'SUPPLY HOUSE PVC CPLG 3/4',
+        merchant: 'Supply House',
+        tradeScope: 'mixed',
+      );
+
+      expect(unknown.tags, contains('generic_unknown_merchant'));
+      expect(local.tags, contains('local_hardware'));
+      expect(supplyHouse.tags, contains('supply_house'));
+      for (final result in [unknown, local, supplyHouse]) {
+        expect(result.tags, contains('merchant context'));
+        expect(result.candidates, hasLength(greaterThan(1)));
+        expect(result.needsReview, isTrue);
+        expect(result.autoSaveAllowed, isFalse);
+      }
     });
+
+    test(
+      'merchant styles remain scoped across priority trades and locales',
+      () {
+        const matrix = _MerchantMatrix();
+        final cells = [
+          for (final merchant in ['Home Depot', 'Lowes', 'Ace'])
+            for (final trade in ['plumbing', 'electrical', 'hvac'])
+              for (final locale in ['en-US', 'es-US'])
+                matrix.coverageCell(
+                  merchant: merchant,
+                  trade: trade,
+                  locale: locale,
+                ),
+        ];
+
+        expect(cells, hasLength(18));
+        expect(cells.every((cell) => cell.hasMerchantStyle), isTrue);
+        expect(
+          cells.every(
+            (cell) => cell.locale == 'en-US' || cell.locale == 'es-US',
+          ),
+          isTrue,
+        );
+        expect(cells.map((cell) => cell.trade).toSet(), {
+          'plumbing',
+          'electrical',
+          'hvac',
+        });
+        expect(
+          cells.expand((cell) => cell.tags),
+          containsAll([
+            'home_depot_style',
+            'lowes_style',
+            'ace_style',
+            'merchant context',
+          ]),
+        );
+      },
+    );
   });
 }
 
@@ -102,7 +146,10 @@ class _MerchantMatrix {
       'Home Depot' => {'home_depot_style', ...globalTags},
       'Lowes' => {'lowes_style', ...globalTags},
       'Ace' => {'ace_style', ...globalTags},
-      _ => {'unknown', ...globalTags},
+      'Local Hardware' => {'local_hardware', ...globalTags},
+      'Regional Supplier' => {'regional_supplier', ...globalTags},
+      'Supply House' => {'supply_house', ...globalTags},
+      _ => {'generic_unknown_merchant', ...globalTags},
     };
   }
 
