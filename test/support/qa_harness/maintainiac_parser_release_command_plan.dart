@@ -161,6 +161,9 @@ const maintainiacParserReleaseCommandPlan = MaintainiacParserReleaseCommandPlan(
       'financial_math',
       'pack_lifecycle_recovery',
       'generated_batch_runner',
+      'catalog_expansion_lifecycle',
+      'real_receipt_validation_privacy',
+      'portable_parser_core_boundary',
     },
   ),
   MaintainiacParserReleaseCommand(
@@ -184,7 +187,7 @@ const maintainiacParserReleaseCommandPlan = MaintainiacParserReleaseCommandPlan(
     id: 'backbone_release_parser_consumers',
     tier: MaintainiacParserCommandTier.release,
     command:
-        'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone covers whole app modules"',
+        'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone exposes parser adapter registry"',
     reason:
         'Release gate proves parser consumers are visible from the main QA backbone.',
     coveredFamilies: {
@@ -200,6 +203,9 @@ const maintainiacParserReleaseCommandPlan = MaintainiacParserReleaseCommandPlan(
       'financial_math',
       'pack_lifecycle_recovery',
       'generated_batch_runner',
+      'catalog_expansion_lifecycle',
+      'real_receipt_validation_privacy',
+      'portable_parser_core_boundary',
       'parser_result_review',
       'draft_storage_lifecycle',
       'ledger_financial_math',

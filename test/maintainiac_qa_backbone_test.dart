@@ -3,218 +3,241 @@ import 'package:flutter_test/flutter_test.dart';
 import 'support/qa_harness/qa_harness.dart';
 
 void main() {
-  test('main Maintainiac QA backbone covers whole app modules', () async {
-    final report = await const QaHarness(
-      domain: 'maintainiac_main',
-      suites: [MaintainiacQaBackboneSuite()],
-    ).run(const QaContext(strict: true, redactor: QaRedactor()));
+  test(
+    'main Maintainiac QA backbone exposes parser adapter registry',
+    () async {
+      final report = await const QaHarness(
+        domain: 'maintainiac_main',
+        suites: [MaintainiacQaBackboneSuite()],
+      ).run(const QaContext(strict: true, redactor: QaRedactor()));
 
-    expect(report.failures, isEmpty);
-    expect(report.checked, greaterThanOrEqualTo(100));
-    expect(report.adminHealth['status'], 'passing');
-    expect(report.results.single.metrics['wholeAppBackbone'], isTrue);
-    expect(report.results.single.metrics['inventoryIsConsumerOnly'], isTrue);
-    final parserAdapters =
-        report.results.single.metrics['parserDomainAdapters'] as List<Object?>;
-    expect(parserAdapters, hasLength(greaterThanOrEqualTo(3)));
-    expect(parserAdapters.toString(), contains('expense_receipt_parser'));
-    expect(
-      report.results.single.metrics['readiness'].toString(),
-      contains('countsByStatus'),
-    );
-    expect(
-      report.results.single.metrics['qaCaseRegistry'].toString(),
-      contains('QA-BACKBONE-001'),
-    );
-    expect(
-      report.results.single.metrics['deviceDeliveryMatrix'].toString(),
-      contains('legacy_cloud_assist_opt_in'),
-    );
-    expect(
-      report.results.single.metrics['fixtureCatalog'].toString(),
-      contains('inventory_parser_ambiguous_pvc'),
-    );
-    expect(
-      report.results.single.metrics['executionManifest'].toString(),
-      contains('failureAction'),
-    );
-    expect(
-      report.results.single.metrics['runLedger'].toString(),
-      contains('seed_backbone_run'),
-    );
-    expect(
-      report.results.single.metrics['regressionRegistry'].toString(),
-      contains('SYN-0001'),
-    );
-    expect(
-      report.results.single.metrics['auditTrail'].toString(),
-      contains('seed_parser_confirmation_audit'),
-    );
-    expect(
-      report.results.single.metrics['sourceFingerprint'].toString(),
-      contains('qa-backbone-seed'),
-    );
-    expect(
-      report.results.single.metrics['checkpointPolicy'].toString(),
-      contains('30'),
-    );
-    expect(
-      report.results.single.metrics['artifactPolicy'].toString(),
-      contains('release_gate_report'),
-    );
-    expect(
-      report.results.single.metrics['parserCandidateContract'].toString(),
-      contains('seed_inventory_parser_candidate'),
-    );
-    expect(
-      report.results.single.metrics['parserFixtureManifest'].toString(),
-      contains('expense_en_us_fuel_core'),
-    );
-    expect(
-      report.results.single.metrics['correctionLearning'].toString(),
-      contains('seed_inventory_alias_proposal'),
-    );
-    expect(
-      report.results.single.metrics['localFirstContract'].toString(),
-      contains('localHive'),
-    );
-    expect(
-      report.results.single.metrics['syncConflictContract'].toString(),
-      contains('seed_expense_total_local_wins'),
-    );
-    expect(
-      report.results.single.metrics['pricingContract'].toString(),
-      contains('seed_material_price'),
-    );
-    expect(
-      report.results.single.metrics['moduleSuiteMatrix'].toString(),
-      contains('suite_jobs'),
-    );
-    expect(
-      report.results.single.metrics['scheduleContract'].toString(),
-      contains('seed_maintenance_reminder'),
-    );
-    expect(
-      report.results.single.metrics['paymentContract'].toString(),
-      contains('seed_payment'),
-    );
-    expect(
-      report.results.single.metrics['paymentLedgerPolicy'].toString(),
-      contains('seed_invoice_payment'),
-    );
-    expect(
-      report.results.single.metrics['jobContract'].toString(),
-      contains('job_seed_material'),
-    );
-    expect(
-      report.results.single.metrics['inventoryParserConsumer'].toString(),
-      contains('locale_spanish_release_one'),
-    );
-    expect(
-      report.results.single.metrics['expenseParserConsumer'].toString(),
-      contains('draft_storage_lifecycle'),
-    );
-    expect(
-      report.results.single.metrics['parserConsumerGate'].toString(),
-      contains('totalFamilyCount'),
-    );
-    expect(
-      report.results.single.metrics['parserReleaseCommandPlan'].toString(),
-      contains('parser_consumer_gate_smoke'),
-    );
-    expect(
-      report.results.single.metrics['parserRegressionBindings'].toString(),
-      contains('EXPPARSER-0002'),
-    );
-    expect(
-      report.results.single.metrics['surgicalTestSelectors'].toString(),
-      contains('--plain-name'),
-    );
-    expect(
-      report.results.single.metrics['surgicalRerunRouter'].toString(),
-      contains('inventory_consumer_contract_changed'),
-    );
-    expect(
-      report.results.single.metrics['surgicalGranularityContract'].toString(),
-      contains('individualPlainNameRequired'),
-    );
-    expect(
-      report.results.single.metrics['surgicalSelectorCoverage'].toString(),
-      contains('expectedBehaviorCount'),
-    );
-    expect(
-      report.results.single.metrics['individualTestManifest'].toString(),
-      contains('--plain-name'),
-    );
-    expect(
-      report.results.single.metrics['sourceTruthGate'].toString(),
-      contains('firestore_mirror_read_only_truth'),
-    );
-    expect(
-      report.results.single.metrics['mutationGuardMatrix'].toString(),
-      contains('export_mutating_expenses_blocked'),
-    );
-    expect(
-      report.results.single.metrics['operatingDirectiveContract'].toString(),
-      contains('hive_local_source_of_truth'),
-    );
-    expect(
-      report.results.single.metrics['financialFormulaRegistry'].toString(),
-      contains('invoice_grand_total_cents'),
-    );
-    expect(
-      report.results.single.metrics['qaTelemetryPrivacyGate'].toString(),
-      contains('parser_diagnostic_redaction'),
-    );
-    expect(
-      report.results.single.metrics['releaseEvidenceBundle'].toString(),
-      contains('github_push_checkpoint'),
-    );
-    expect(
-      report.results.single.metrics['fixtureGovernanceGate'].toString(),
-      contains('bug_regression_fixture_governance'),
-    );
-    expect(
-      report.results.single.metrics['restartLifecycleGate'].toString(),
-      contains('partial_sync_restart_recovery'),
-    );
-    expect(
-      report.results.single.metrics['moduleBoundaryGate'].toString(),
-      contains('inventory_parser_lane'),
-    );
-    expect(
-      report.results.single.metrics['scopePolicyMatrix'].toString(),
-      contains('vehicle_assignment_denied'),
-    );
-    expect(
-      report.results.single.metrics['performanceBudgetRegistry'].toString(),
-      contains('surgical_rerun_router_budget'),
-    );
-    expect(
-      report.results.single.metrics['derivedOutputContract'].toString(),
-      contains('invoices_read_sources_write_invoice_output'),
-    );
-    expect(
-      report.results.single.metrics['sensitiveFieldRegistry'].toString(),
-      contains('passengerPatient'),
-    );
-    expect(
-      report.results.single.metrics['exportPrivacyMatrix'].toString(),
-      contains('cross_account_private_export_blocked'),
-    );
-    expect(
-      report.results.single.metrics['sourceAuditPolicy'].toString(),
-      contains('production_dart_modularity'),
-    );
-    expect(
-      report.results.single.metrics['sourceAuditDebtLedger'].toString(),
-      contains('receipt_ocr_service.dart'),
-    );
-    expect(
-      report.results.single.metrics['syncTransportPolicy'].toString(),
-      contains('manual_roaming_blocked'),
-    );
-  });
+      expect(
+        report.failures,
+        isEmpty,
+        reason: report.failures
+            .map((failure) => '${failure.id}: ${failure.message}')
+            .join('\n'),
+      );
+      expect(report.checked, greaterThanOrEqualTo(100));
+      expect(report.adminHealth['status'], 'passing');
+      expect(report.results.single.metrics['wholeAppBackbone'], isTrue);
+      expect(report.results.single.metrics['inventoryIsConsumerOnly'], isTrue);
+      final parserAdapters =
+          report.results.single.metrics['parserDomainAdapters']
+              as List<Object?>;
+      final requiredParserAdapterDomains =
+          report.results.single.metrics['requiredParserAdapterDomains']
+              as List<Object?>;
+      expect(requiredParserAdapterDomains, {
+        'expense_receipt_parser',
+        'maintenance_parser',
+        'work_supply_inventory_parser',
+      });
+      expect(parserAdapters, hasLength(requiredParserAdapterDomains.length));
+      expect(parserAdapters.toString(), contains('expense_receipt_parser'));
+      expect(parserAdapters.toString(), contains('maintenance_parser'));
+      expect(
+        parserAdapters.toString(),
+        contains('work_supply_inventory_parser'),
+      );
+      expect(
+        report.results.single.metrics['readiness'].toString(),
+        contains('countsByStatus'),
+      );
+      expect(
+        report.results.single.metrics['qaCaseRegistry'].toString(),
+        contains('QA-BACKBONE-001'),
+      );
+      expect(
+        report.results.single.metrics['deviceDeliveryMatrix'].toString(),
+        contains('legacy_cloud_assist_opt_in'),
+      );
+      expect(
+        report.results.single.metrics['fixtureCatalog'].toString(),
+        contains('inventory_parser_ambiguous_pvc'),
+      );
+      expect(
+        report.results.single.metrics['executionManifest'].toString(),
+        contains('failureAction'),
+      );
+      expect(
+        report.results.single.metrics['runLedger'].toString(),
+        contains('seed_backbone_run'),
+      );
+      expect(
+        report.results.single.metrics['regressionRegistry'].toString(),
+        contains('SYN-0001'),
+      );
+      expect(
+        report.results.single.metrics['auditTrail'].toString(),
+        contains('seed_parser_confirmation_audit'),
+      );
+      expect(
+        report.results.single.metrics['sourceFingerprint'].toString(),
+        contains('qa-backbone-seed'),
+      );
+      expect(
+        report.results.single.metrics['checkpointPolicy'].toString(),
+        contains('30'),
+      );
+      expect(
+        report.results.single.metrics['artifactPolicy'].toString(),
+        contains('release_gate_report'),
+      );
+      expect(
+        report.results.single.metrics['parserCandidateContract'].toString(),
+        contains('seed_inventory_parser_candidate'),
+      );
+      expect(
+        report.results.single.metrics['parserFixtureManifest'].toString(),
+        contains('expense_en_us_fuel_core'),
+      );
+      expect(
+        report.results.single.metrics['correctionLearning'].toString(),
+        contains('seed_inventory_alias_proposal'),
+      );
+      expect(
+        report.results.single.metrics['localFirstContract'].toString(),
+        contains('localHive'),
+      );
+      expect(
+        report.results.single.metrics['syncConflictContract'].toString(),
+        contains('seed_expense_total_local_wins'),
+      );
+      expect(
+        report.results.single.metrics['pricingContract'].toString(),
+        contains('seed_material_price'),
+      );
+      expect(
+        report.results.single.metrics['moduleSuiteMatrix'].toString(),
+        contains('suite_jobs'),
+      );
+      expect(
+        report.results.single.metrics['scheduleContract'].toString(),
+        contains('seed_maintenance_reminder'),
+      );
+      expect(
+        report.results.single.metrics['paymentContract'].toString(),
+        contains('seed_payment'),
+      );
+      expect(
+        report.results.single.metrics['paymentLedgerPolicy'].toString(),
+        contains('seed_invoice_payment'),
+      );
+      expect(
+        report.results.single.metrics['jobContract'].toString(),
+        contains('job_seed_material'),
+      );
+      expect(
+        report.results.single.metrics['inventoryParserConsumer'].toString(),
+        contains('locale_spanish_release_one'),
+      );
+      expect(
+        report.results.single.metrics['expenseParserConsumer'].toString(),
+        contains('draft_storage_lifecycle'),
+      );
+      expect(
+        report.results.single.metrics['parserConsumerGate'].toString(),
+        contains('totalFamilyCount'),
+      );
+      expect(
+        report.results.single.metrics['parserReleaseCommandPlan'].toString(),
+        contains('parser_consumer_gate_smoke'),
+      );
+      expect(
+        report.results.single.metrics['parserRegressionBindings'].toString(),
+        contains('EXPPARSER-0002'),
+      );
+      expect(
+        report.results.single.metrics['surgicalTestSelectors'].toString(),
+        contains('--plain-name'),
+      );
+      expect(
+        report.results.single.metrics['surgicalRerunRouter'].toString(),
+        contains('inventory_consumer_contract_changed'),
+      );
+      expect(
+        report.results.single.metrics['surgicalGranularityContract'].toString(),
+        contains('individualPlainNameRequired'),
+      );
+      expect(
+        report.results.single.metrics['surgicalSelectorCoverage'].toString(),
+        contains('expectedBehaviorCount'),
+      );
+      expect(
+        report.results.single.metrics['individualTestManifest'].toString(),
+        contains('--plain-name'),
+      );
+      expect(
+        report.results.single.metrics['sourceTruthGate'].toString(),
+        contains('firestore_mirror_read_only_truth'),
+      );
+      expect(
+        report.results.single.metrics['mutationGuardMatrix'].toString(),
+        contains('export_mutating_expenses_blocked'),
+      );
+      expect(
+        report.results.single.metrics['operatingDirectiveContract'].toString(),
+        contains('hive_local_source_of_truth'),
+      );
+      expect(
+        report.results.single.metrics['financialFormulaRegistry'].toString(),
+        contains('invoice_grand_total_cents'),
+      );
+      expect(
+        report.results.single.metrics['qaTelemetryPrivacyGate'].toString(),
+        contains('parser_diagnostic_redaction'),
+      );
+      expect(
+        report.results.single.metrics['releaseEvidenceBundle'].toString(),
+        contains('github_push_checkpoint'),
+      );
+      expect(
+        report.results.single.metrics['fixtureGovernanceGate'].toString(),
+        contains('bug_regression_fixture_governance'),
+      );
+      expect(
+        report.results.single.metrics['restartLifecycleGate'].toString(),
+        contains('partial_sync_restart_recovery'),
+      );
+      expect(
+        report.results.single.metrics['moduleBoundaryGate'].toString(),
+        contains('inventory_parser_lane'),
+      );
+      expect(
+        report.results.single.metrics['scopePolicyMatrix'].toString(),
+        contains('vehicle_assignment_denied'),
+      );
+      expect(
+        report.results.single.metrics['performanceBudgetRegistry'].toString(),
+        contains('surgical_rerun_router_budget'),
+      );
+      expect(
+        report.results.single.metrics['derivedOutputContract'].toString(),
+        contains('invoices_read_sources_write_invoice_output'),
+      );
+      expect(
+        report.results.single.metrics['sensitiveFieldRegistry'].toString(),
+        contains('passengerPatient'),
+      );
+      expect(
+        report.results.single.metrics['exportPrivacyMatrix'].toString(),
+        contains('cross_account_private_export_blocked'),
+      );
+      expect(
+        report.results.single.metrics['sourceAuditPolicy'].toString(),
+        contains('production_dart_modularity'),
+      );
+      expect(
+        report.results.single.metrics['sourceAuditDebtLedger'].toString(),
+        contains('receipt_ocr_service.dart'),
+      );
+      expect(
+        report.results.single.metrics['syncTransportPolicy'].toString(),
+        contains('manual_roaming_blocked'),
+      );
+    },
+  );
 
   test('shared builders cover app records without module-specific fakes', () {
     final records = [
@@ -323,8 +346,32 @@ void main() {
         expectedBehavior: 'needs review',
         fixedVersion: '2026.07.03',
         area: 'inventory_parser',
-        moduleTags: {'inventory', 'parser'},
-        permanentTest: 'maintainiac_qa_backbone_test',
+        moduleTags: {'inventory', 'parser', 'regression'},
+        permanentTest: 'test/maintainiac_qa_backbone_test.dart',
+      ),
+      const MaintainiacRegressionCase(
+        bugId: 'EXP-0002',
+        description:
+            'Expense parser fixture proves suggestions never overwrite totals.',
+        rootCause: 'Suggestion output was allowed to replace confirmed money.',
+        inputFixture: 'expense_bug_fixture',
+        expectedBehavior: 'confirmed total remains unchanged',
+        fixedVersion: '2026.07.03',
+        area: 'expense_parser',
+        moduleTags: {'expenses', 'parser', 'regression'},
+        permanentTest: 'test/maintainiac_qa_backbone_test.dart',
+      ),
+      const MaintainiacRegressionCase(
+        bugId: 'SYN-0002',
+        description:
+            'Sync fixture proves Firestore mirror cannot become truth.',
+        rootCause: 'Remote mirror data was treated as authoritative.',
+        inputFixture: 'sync_bug_fixture',
+        expectedBehavior: 'local confirmed data wins or requires review',
+        fixedVersion: '2026.07.03',
+        area: 'sync',
+        moduleTags: {'sync', 'source-of-truth', 'regression'},
+        permanentTest: 'test/maintainiac_qa_backbone_test.dart',
       ),
     ]);
 

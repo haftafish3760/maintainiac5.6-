@@ -115,7 +115,7 @@ const maintainiacPerformanceBudgetRegistry = MaintainiacPerformanceBudgetRegistr
     maxDurationMs: 120000,
     maxMemoryMb: 768,
     measurementCommand:
-        'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone covers whole app modules"',
+        'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone exposes parser adapter registry"',
     failureAction:
         'Profile backbone imports and split slow gates behind focused commands.',
   ),
@@ -170,7 +170,7 @@ const maintainiacPerformanceBudgetRegistry = MaintainiacPerformanceBudgetRegistr
     maxDurationMs: 120000,
     maxMemoryMb: 1024,
     measurementCommand:
-        'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone covers whole app modules"',
+        'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone exposes parser adapter registry"',
     failureAction:
         'Split heavy fixture catalogs from smoke backbone and load only focused suites.',
   ),

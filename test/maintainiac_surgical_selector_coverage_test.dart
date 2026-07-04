@@ -90,7 +90,8 @@ void main() {
         id: 'broad_batch',
         scope: MaintainiacSurgicalTestScope.releaseGate,
         file: 'test/maintainiac_qa_backbone_test.dart',
-        plainName: 'main Maintainiac QA backbone covers whole app modules',
+        plainName:
+            'main Maintainiac QA backbone exposes parser adapter registry',
         reason: 'prove broad scopes are blocked from the surgical registry',
         tags: {'qa-backbone', 'regression'},
       ),

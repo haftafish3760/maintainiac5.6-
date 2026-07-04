@@ -715,9 +715,16 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       },
     ),
     MaintainiacSurgicalCoverageExpectation(
+      file: 'test/work_supply_parser_generated_fixture_runner_test.dart',
+      plainNames: {
+        'generated parser fixture batch matches expected safety contracts',
+        'generated fixture runner filters explicit fixture ids surgically',
+      },
+    ),
+    MaintainiacSurgicalCoverageExpectation(
       file: 'test/maintainiac_qa_backbone_test.dart',
       plainNames: {
-        'main Maintainiac QA backbone covers whole app modules',
+        'main Maintainiac QA backbone exposes parser adapter registry',
         'shared builders cover app records without module-specific fakes',
         'shared assertions enforce source-of-truth and privacy rules',
         'fixture catalog and regression registry reject weak QA evidence',

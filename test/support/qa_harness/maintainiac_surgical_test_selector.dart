@@ -2351,7 +2351,7 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     id: 'main_backbone_parser_visibility',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_qa_backbone_test.dart',
-    plainName: 'main Maintainiac QA backbone covers whole app modules',
+    plainName: 'main Maintainiac QA backbone exposes parser adapter registry',
     reason:
         'Run only the main backbone visibility check when shared QA wiring changes.',
     tags: {'inventory', 'expenses', 'parser-consumer', 'release-gate'},
@@ -2460,7 +2460,8 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     id: 'parser_pipeline_execute_local_artifacts',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/work_supply_parser_qa_pipeline_test.dart',
-    plainName: 'economical pipeline execute creates and validates local artifacts',
+    plainName:
+        'economical pipeline execute creates and validates local artifacts',
     reason: 'Run only the parser pipeline local artifact execution check.',
     tags: {'inventory', 'parser-pipeline', 'regression'},
   ),
@@ -2484,7 +2485,8 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     id: 'parser_pipeline_supports_english_spanish',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/work_supply_parser_qa_pipeline_test.dart',
-    plainName: 'economical pipeline supports English and Spanish locales together',
+    plainName:
+        'economical pipeline supports English and Spanish locales together',
     reason: 'Run only the parser pipeline English/Spanish locale check.',
     tags: {'inventory', 'parser-pipeline', 'spanish'},
   ),
@@ -2492,7 +2494,8 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     id: 'parser_pipeline_release_one_priority_cells',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/work_supply_parser_qa_pipeline_test.dart',
-    plainName: 'economical pipeline plans release-one residential priority cells',
+    plainName:
+        'economical pipeline plans release-one residential priority cells',
     reason:
         'Run only the plumbing/electrical/HVAC core/standard en-US/es-US matrix planning check.',
     tags: {'inventory', 'parser-pipeline', 'spanish', 'release-one'},
@@ -2501,7 +2504,8 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     id: 'parser_pipeline_rejects_unsupported_cells',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/work_supply_parser_qa_pipeline_test.dart',
-    plainName: 'economical pipeline rejects unsupported cells before writing files',
+    plainName:
+        'economical pipeline rejects unsupported cells before writing files',
     reason: 'Run only the parser pipeline unsupported-cell guard.',
     tags: {'inventory', 'parser-pipeline', 'security'},
   ),
@@ -2509,8 +2513,29 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     id: 'parser_pipeline_rejects_unsupported_locales',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/work_supply_parser_qa_pipeline_test.dart',
-    plainName: 'economical pipeline rejects unsupported locales before multi-run',
+    plainName:
+        'economical pipeline rejects unsupported locales before multi-run',
     reason: 'Run only the parser pipeline unsupported-locale guard.',
     tags: {'inventory', 'parser-pipeline', 'security'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'generated_fixture_runner_safety_contracts',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/work_supply_parser_generated_fixture_runner_test.dart',
+    plainName:
+        'generated parser fixture batch matches expected safety contracts',
+    reason:
+        'Run only the generated parser fixture safety contract for a selected batch.',
+    tags: {'inventory', 'generated-fixtures', 'regression', 'release-gate'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'generated_fixture_runner_fixture_id_filter',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/work_supply_parser_generated_fixture_runner_test.dart',
+    plainName:
+        'generated fixture runner filters explicit fixture ids surgically',
+    reason:
+        'Run only the generated fixture runner fixture-id selector behavior.',
+    tags: {'inventory', 'generated-fixtures', 'surgical', 'performance'},
   ),
 ]);

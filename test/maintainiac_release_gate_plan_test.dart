@@ -11,7 +11,7 @@ void main() {
     expect(
       plan.commands,
       contains(
-        'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone covers whole app modules"',
+        'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone exposes parser adapter registry"',
       ),
     );
     expect(

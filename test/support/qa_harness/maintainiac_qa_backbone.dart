@@ -77,6 +77,12 @@ const maintainiacQaBackboneModules = {
   MaintainiacQaModule.performance,
 };
 
+const maintainiacRequiredParserAdapterDomains = {
+  'work_supply_inventory_parser',
+  'expense_receipt_parser',
+  'maintenance_parser',
+};
+
 class MaintainiacQaBackboneSuite extends QaSuite {
   const MaintainiacQaBackboneSuite()
     : super('maintainiac.qa_backbone_contract');
@@ -187,6 +193,19 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         );
       }
     }
+    final parserAdapterDomains = {
+      for (final adapter in parserQaDomainAdapters) adapter.domain,
+    };
+    if (!parserAdapterDomains.containsAll(
+      maintainiacRequiredParserAdapterDomains,
+    )) {
+      failures.add(
+        _failure(
+          'parser_domain_registry_missing_release_domain',
+          'Main QA backbone must include every release-critical parser domain.',
+        ),
+      );
+    }
 
     final qualityGates = MaintainiacQualityGateMatrix.releaseOne();
     for (final issue in qualityGates.validate()) {
@@ -212,7 +231,8 @@ class MaintainiacQaBackboneSuite extends QaSuite {
       MaintainiacQaRunRecord(
         id: 'seed_backbone_run',
         label: 'Main QA backbone smoke run',
-        command: 'flutter test test/maintainiac_qa_backbone_test.dart',
+        command:
+            'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone exposes parser adapter registry"',
         inputSignature: 'qa-backbone-seed',
         startedAt: DateTime.utc(2026, 7, 3, 12),
         completedAt: DateTime.utc(2026, 7, 3, 12, 1),
@@ -548,6 +568,8 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'parserDomainAdapters': [
           for (final adapter in parserQaDomainAdapters) adapter.toJson(),
         ],
+        'requiredParserAdapterDomains':
+            maintainiacRequiredParserAdapterDomains.toList()..sort(),
         'qaCaseRegistry': caseRegistry.toJson(),
         'deviceDeliveryMatrix': maintainiacDeviceDeliveryMatrix.toJson(),
         'fixtureCatalog': fixtures.toJson(),

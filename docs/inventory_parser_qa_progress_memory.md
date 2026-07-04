@@ -102,6 +102,28 @@ Focused rerun routes for recently hardened release-one contracts:
 - inventory.review_safety_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.review_safety_contract,qa.threshold_gate`
 
+## 2026-07-04 Whole-App Parser Adapter Registry And Surgical Routing
+
+- Passes 1961-1986 tightened the reusable Maintainiac QA backbone so parser QA
+  is not inventory-only. The backbone now requires the parser adapter registry
+  to expose the inventory, expense receipt, and maintenance parser domains while
+  still keeping implementation work scoped to inventory/parser QA in this
+  thread.
+- The main backbone contract now verifies the exact parser adapter domains,
+  adapter count, registry visibility, and readable failure reasons. Stale
+  regression fixture expectations were repaired with valid inventory, expense,
+  and sync regression fixtures.
+- Parser release command planning now includes the missing inventory parser
+  families: `catalog_expansion_lifecycle`, `real_receipt_validation_privacy`,
+  and `portable_parser_core_boundary`.
+- Surgical rerun support now includes focused generated-fixture runner selectors
+  for safety contracts and fixture-id filtering, and the parser pipeline rerun
+  route was split into smaller surgical rules instead of one broader route.
+- Verification passed:
+  `flutter test test\maintainiac_qa_backbone_test.dart --reporter compact`
+  and targeted `dart analyze` over the changed QA backbone, release command
+  plan, surgical selector, rerun router, selector coverage, and related tests.
+
 ## 2026-07-04 Reusable Parser Adapter Registry Hardening
 
 - Passes 1937-1949 launched local-only wave

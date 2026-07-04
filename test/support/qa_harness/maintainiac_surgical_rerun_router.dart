@@ -998,13 +998,21 @@ const maintainiacSurgicalRerunRouter = MaintainiacSurgicalRerunRouter(
         'parser_pipeline_execute_local_artifacts',
         'parser_pipeline_resume_local_artifacts',
         'parser_pipeline_caps_fixture_runs',
+      },
+      reason:
+          'Parser QA pipeline changes need dry-run, execution, resume, and fixture-cap guards.',
+    ),
+    MaintainiacSurgicalRerunRule(
+      id: 'work_supply_parser_pipeline_matrix_changed',
+      changedPathContains: 'work_supply_parser_qa_pipeline',
+      selectorIds: {
         'parser_pipeline_supports_english_spanish',
         'parser_pipeline_release_one_priority_cells',
         'parser_pipeline_rejects_unsupported_cells',
         'parser_pipeline_rejects_unsupported_locales',
       },
       reason:
-          'Parser QA pipeline changes need dry-run, execution, resume, fixture-cap, locale, priority-cell, and negative guards.',
+          'Parser QA pipeline matrix changes need locale, priority-cell, and negative guards.',
     ),
   ],
 );
