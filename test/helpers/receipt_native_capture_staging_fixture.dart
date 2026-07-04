@@ -104,7 +104,7 @@ ReceiptNativeCaptureResult acceptedNativeCaptureStagingFixture({
       'nativePreviewOwnership': 'maintainiac_owns_preview_and_controls',
       'stockCameraUiAllowed': false,
       'stockCameraUiUsed': false,
-      'nativeTouchControlPolicy': 'tap_focus_and_pinch_zoom_on_preview_v1',
+      'nativeTouchControlPolicy': 'focus_assist_and_pinch_zoom_on_preview_v1',
       'tapFocusCoordinateSpace': 'preview_metering_point_factory',
       'pinchZoomPolicy': 'cameraX_zoom_ratio_clamped_to_capability',
       'nativeControlContractVersion': 'receipt_native_controls_v1',

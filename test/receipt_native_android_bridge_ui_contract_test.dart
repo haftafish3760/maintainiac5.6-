@@ -80,7 +80,7 @@ void main() {
     expect(
       cameraActivity,
       contains(
-        '"nativeTouchControlPolicy" to "tap_focus_and_pinch_zoom_on_preview_v1"',
+        '"nativeTouchControlPolicy" to "focus_assist_and_pinch_zoom_on_preview_v1"',
       ),
     );
     expect(

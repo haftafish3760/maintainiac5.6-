@@ -116,7 +116,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
         "back_without_photo_cancels_without_creating_expense"
     internal val capturedPhotoReviewDestination =
         "receipt_photo_review_then_receipt_details"
-    internal var tapToFocusPolicy = "tap_receipt_text_focus_and_meter_exposure"
+    internal var tapToFocusPolicy = "continuous_focus_primary_tap_focus_assist_only"
     internal var zoomGesturePolicy = "cameraX_zoom_ratio_clamped_to_capability"
     internal var autoCapturePolicy = "off_by_default_manual_shutter_primary"
     internal var preCaptureExposurePolicy = "receipt_paper_metering_dim_rescue_v2_manual_slider"

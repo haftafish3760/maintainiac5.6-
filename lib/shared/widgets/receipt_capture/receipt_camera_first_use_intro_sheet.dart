@@ -47,7 +47,7 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
               icon: Icons.center_focus_strong_rounded,
               title: 'Clear Photo First',
               text:
-                  'Keep the receipt readable, avoid glare, and tap printed text to focus when needed.',
+                  'Keep the receipt readable, avoid glare, and hold steady while the camera refocuses.',
             ),
             const _ReceiptFirstUseTip(
               icon: Icons.receipt_long_rounded,

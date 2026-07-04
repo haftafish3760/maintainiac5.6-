@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 592 - 20:37:15 EDT to 20:38:26 EDT
+
+Scope:
+- Removed remaining user-facing tap-focus-first wording from the receipt camera
+  first-use sheet, help sheet, Android settings dialog, and iOS settings copy.
+- Updated Android and iOS native touch-control diagnostics to report
+  `focus_assist_and_pinch_zoom_on_preview_v1`.
+- Updated native Android/iOS default focus policy strings so platform defaults
+  match the Dart continuous-focus-primary contract.
+- Kept the legacy fallback policy only for non-continuous focus modes.
+
+Verification:
+- Confirmed stale tap-focus copy scan only finds the non-continuous fallback.
+- Passed targeted Dart analyzer for edited Flutter help/copy and native bridge
+  source-contract tests.
+- Passed focused Flutter native bridge UI and receipt camera help regressions.
+
 ## Pass 591 - 20:32:44 EDT to 20:36:37 EDT
 
 Scope:
@@ -479,19 +496,3 @@ Verification:
 - Passed focused Flutter regression
   `test/receipt_photo_review_save_lifecycle_test.dart --plain-name "photo
   review save and close actions respect lifecycle state"`.
-
-## Pass 571 - 08:43:48 EDT to 08:57:53 EDT
-
-Scope:
-- Hardened native settings health so non-finite settings-open counts cannot
-  create false settings-opened or settings-not-opened UI evidence.
-- Added regression coverage proving malformed native settings counts are
-  ignored while valid settings contract and placement signals survive.
-- Recorded `BUG-RECEIPT-0087` under `native_bridge`.
-
-Verification:
-- Passed targeted Dart format/analyzer for native settings health and focused
-  native settings regression coverage.
-- Passed focused Flutter regression
-  `test/receipt_camera_result_native_close_settings_test.dart --plain-name
-  "native settings health ignores non-finite open counts"`.
