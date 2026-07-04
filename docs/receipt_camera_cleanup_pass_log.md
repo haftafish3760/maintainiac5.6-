@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 746 - 03:47:31 EDT to active cleanup
+
+Scope:
+- Hardened native receipt review-depth diagnostics so snake-case or hyphenated
+  bridge values preserve prices-only versus detailed-line intent.
+- Added focused regression coverage for `prices-only` and `detailed_lines`
+  native review-depth payloads.
+- Recorded `BUG-RECEIPT-0234` under `receipt_line_review_mode`.
+- Archived Pass 721 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native review-depth diagnostics.
+- Passed focused receipt camera result frozen metadata regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 745 - 03:46:09 EDT to active cleanup
 
 Scope:
@@ -466,27 +482,5 @@ Verification:
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
 
-## Pass 721 - 02:47:00 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS native capture callbacks so an over-budget receipt
-  photo is deleted and rejected before it is appended to captured sections.
-- Preserved existing captured sections when a close-after-capture path fails due
-  to the byte budget.
-- Added Android/iOS bridge source regressions for native over-budget cleanup and
-  `native_capture_over_byte_budget` status.
-- Recorded `BUG-RECEIPT-0209` under `source_preservation`.
-- Fixed stale Android auto-capture QA assertions that still expected raw
-  readability-signal equality checks instead of the named readability-review
-  policy set.
-- Recorded `BUG-RECEIPT-0210` under `qa_harness`.
-- Archived Pass 694 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- First focused bridge run failed because the Android auto-capture test still
-  expected raw `latestReadabilitySignal == ...` checks; fixed the test to
-  require the helper/set policy and reject direct equality checks.
-- Passed targeted Dart format/analyzer for Android/iOS bridge regressions.
-- Passed focused Android/iOS native bridge regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

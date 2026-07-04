@@ -440,7 +440,7 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
 String? _normalizedNativeReceiptReviewDepth(Object? value) {
   final raw = value?.toString().trim();
   if (raw == null || raw.isEmpty) return null;
-  final normalized = raw.toLowerCase();
+  final normalized = raw.replaceAll(RegExp(r'[\s_-]+'), '').toLowerCase();
   return switch (normalized) {
     'detailedlines' => 'detailedLines',
     'pricesonly' => 'pricesOnly',

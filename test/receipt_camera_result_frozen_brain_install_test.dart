@@ -82,8 +82,8 @@ void main() {
           '/tmp/section-2.jpg',
         ]),
         captureDiagnosticsByPhotoPath: const {
-          '/tmp/section-1.jpg': {'reviewDepth': ' PRICESONLY '},
-          '/tmp/section-2.jpg': {'reviewDepth': ' detailedlines '},
+          '/tmp/section-1.jpg': {'reviewDepth': ' prices-only '},
+          '/tmp/section-2.jpg': {'reviewDepth': ' detailed_lines '},
         },
       );
 
