@@ -95,4 +95,29 @@ void main() {
       ]),
     );
   });
+
+  test('shared PDF policy catches hex URI and remote navigation actions', () {
+    final bytes = latin1.encode(
+      '%PDF-1.7\n'
+      '1 0 obj << /Type /Page /AA 2 0 R >> endobj\n'
+      '2 0 obj << /S /URI /URI <68747470733a2f2f6578616d706c652e636f6d> >> endobj\n'
+      '3 0 obj << /S /GoToR /F (other.pdf) >> endobj\n'
+      '4 0 obj << /S /GoToE /T 5 0 R >> endobj\n'
+      'xref\ntrailer << /Root 1 0 R >>\nstartxref\n0\n%%EOF',
+    );
+
+    final policyIssues = AppPdfSecurityPolicy.activeContentIssueCodesForBytes(
+      bytes,
+    );
+
+    expect(policyIssues, contains(AppPdfSecurityPolicy.externalLinks));
+    expect(
+      AppGeneratedPdfValidationReport.inspect(Uint8List.fromList(bytes)).issues,
+      contains(AppPdfSecurityPolicy.externalLinks),
+    );
+    expect(
+      ReceiptPdfInspector.detectRiskFlags(bytes),
+      contains('external links'),
+    );
+  });
 }

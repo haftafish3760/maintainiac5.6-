@@ -15,7 +15,7 @@ class AppPdfSecurityPolicy {
 
   static List<String> activeContentIssueCodesForBytes(List<int> bytes) {
     if (bytes.isEmpty) return const [];
-    final text = _decodedPdfNameText(
+    final text = _decodedPdfText(
       latin1.decode(bytes, allowInvalid: true),
     ).toLowerCase();
     final issues = <String>[];
@@ -36,7 +36,7 @@ class AppPdfSecurityPolicy {
     if (_containsPdfName(text, 'acroform') || _containsPdfName(text, 'xfa')) {
       issues.add(dynamicFormContent);
     }
-    if (_containsUriAction(text)) {
+    if (_containsUriAction(text) || _containsExternalNavigationAction(text)) {
       issues.add(externalLinks);
     }
     return issues.toSet().toList(growable: false);
@@ -44,7 +44,7 @@ class AppPdfSecurityPolicy {
 
   static bool containsPdfName(String text, String name) {
     return _containsPdfName(
-      _decodedPdfNameText(text).toLowerCase(),
+      _decodedPdfText(text).toLowerCase(),
       name.toLowerCase(),
     );
   }
@@ -59,11 +59,35 @@ class AppPdfSecurityPolicy {
         RegExp(r'/uri(?![a-z0-9])\s*\(\s*https?://').hasMatch(text);
   }
 
-  static String _decodedPdfNameText(String text) {
-    return text.replaceAllMapped(RegExp(r'#([0-9a-fA-F]{2})'), (match) {
+  static bool _containsExternalNavigationAction(String text) {
+    return RegExp(r'/s\s*/(?:gotor|gotoe)(?![a-z0-9])').hasMatch(text) ||
+        RegExp(r'/(?:gotor|gotoe)(?![a-z0-9])').hasMatch(text);
+  }
+
+  static String _decodedPdfText(String text) {
+    final nameDecoded = text.replaceAllMapped(RegExp(r'#([0-9a-fA-F]{2})'), (
+      match,
+    ) {
       final value = int.tryParse(match.group(1)!, radix: 16);
-      if (value == null || value < 0x20 || value > 0x7e) return match.group(0)!;
+      if (value == null || value < 0x20 || value > 0x7e) {
+        return match.group(0)!;
+      }
       return String.fromCharCode(value);
+    });
+    return nameDecoded.replaceAllMapped(RegExp(r'<([0-9a-fA-F\s]{8,})>'), (
+      match,
+    ) {
+      final hex = match.group(1)!.replaceAll(RegExp(r'\s+'), '');
+      if (hex.length.isOdd) return match.group(0)!;
+      final buffer = StringBuffer();
+      for (var index = 0; index < hex.length; index += 2) {
+        final value = int.tryParse(hex.substring(index, index + 2), radix: 16);
+        if (value == null || value < 0x20 || value > 0x7e) {
+          return match.group(0)!;
+        }
+        buffer.writeCharCode(value);
+      }
+      return buffer.toString();
     });
   }
 }

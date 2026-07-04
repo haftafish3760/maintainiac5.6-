@@ -1,5 +1,21 @@
 # PDF System Pass Log
 
+## Pass 32 - 2026-07-04 16:19 EDT - PDF external action detection
+
+- Scope: shared PDF security policy only. No inventory, camera, native capture,
+  receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Added decoding for simple PDF hex-string payloads before security scans.
+  - Hardened external-link detection for hex-encoded URI targets.
+  - Hardened external navigation detection for remote go-to actions.
+  - Added regression coverage proving generated PDF validation and receipt PDF
+    risk flags both surface these external-link risks.
+- Verification completed 2026-07-04 16:19 EDT:
+  - `dart format lib/shared/pdf/app_pdf_security_policy.dart test/pdf_security_policy_contract_test.dart`
+  - `dart analyze lib/shared/pdf/app_pdf_security_policy.dart test/pdf_security_policy_contract_test.dart`
+  - `flutter test test/pdf_security_policy_contract_test.dart test/receipt_pdf_inspector_security_flags_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 31 - 2026-07-04 16:17 EDT - Generated PDF brand and privacy hardening
 
 - Scope: generated PDF naming and export privacy only. No inventory, camera,
