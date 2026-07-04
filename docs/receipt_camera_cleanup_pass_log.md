@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 823 - 13:36:37 EDT to active cleanup
+
+Scope:
+- Exposed receipt review-depth handoff as typed OCR diagnostics fields:
+  `ocrSourceReviewDepthSignalCounts` and `ocrSourceReviewDepthStatus`.
+- Kept detailed-line versus price-only receipt review intent available to
+  downstream UI, admin diagnostics, and telemetry without forcing callers to
+  scrape the privacy-safe contract map.
+- Added focused OCR service regression coverage for the typed review-depth
+  diagnostics fields.
+- Recorded `BUG-RECEIPT-0309` under `receipt_line_review_mode`.
+- Archived Pass 784 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused OCR service regression.
+- Passed doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 822 - 13:18:00 EDT to active cleanup
 
 Scope:
@@ -466,21 +484,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and active-doc regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 784 - 07:40:18 EDT to active cleanup
-
-Scope:
-- Fixed a stale Android native UI contract assertion that still required the
-  retired original-first OCR copy.
-- Updated the contract to require temporary full-quality OCR source copy and
-  reject the retired wording.
-- Recorded `BUG-RECEIPT-0271` under `qa_harness`.
-- Archived Pass 757 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused Android native UI contract
-  regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

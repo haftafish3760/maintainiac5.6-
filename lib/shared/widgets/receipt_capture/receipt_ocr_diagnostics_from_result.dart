@@ -80,6 +80,9 @@ ReceiptOcrDiagnostics _receiptOcrDiagnosticsFromResult(
         result.sourceHandoffSummary.handoffSignalCounts,
     ocrSourceHandoffWarningProfileCounts:
         result.sourceHandoffSummary.handoffWarningProfileCounts,
+    ocrSourceReviewDepthSignalCounts:
+        result.sourceHandoffSummary.reviewDepthSignalCounts,
+    ocrSourceReviewDepthStatus: result.sourceHandoffSummary.reviewDepthStatus,
     ocrSourceStitchSignalCounts: result.sourceHandoffSummary.stitchSignalCounts,
     ocrSourceScannerDecisionCounts:
         result.sourceHandoffSummary.scannerDecisionCounts,

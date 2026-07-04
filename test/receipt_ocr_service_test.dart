@@ -91,6 +91,10 @@ void main() {
         'receipt_review_depth_detailedlines': 1,
       });
       expect(summary.reviewDepthStatus, 'detailed_lines');
+      expect(diagnostics.ocrSourceReviewDepthSignalCounts, {
+        'receipt_review_depth_detailedlines': 1,
+      });
+      expect(diagnostics.ocrSourceReviewDepthStatus, 'detailed_lines');
       expect(summary.reviewCueStatus, 'saved_photo_dimmer_than_preview');
       expect(summary.sourceFirstDecisionCounts, {
         'ocr_source_first_prepared_receipt_source_before_saved_proof': 1,

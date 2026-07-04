@@ -42,6 +42,8 @@ class ReceiptOcrDiagnostics {
     required this.ocrSourceHandoffStatus,
     required this.ocrSourceHandoffSignalCounts,
     required this.ocrSourceHandoffWarningProfileCounts,
+    required this.ocrSourceReviewDepthSignalCounts,
+    required this.ocrSourceReviewDepthStatus,
     required this.ocrSourceStitchSignalCounts,
     required this.ocrSourceScannerDecisionCounts,
     required this.ocrSourceCaptureSourceSignalCounts,
@@ -127,6 +129,8 @@ class ReceiptOcrDiagnostics {
   final String ocrSourceHandoffStatus;
   final Map<String, int> ocrSourceHandoffSignalCounts;
   final Map<String, int> ocrSourceHandoffWarningProfileCounts;
+  final Map<String, int> ocrSourceReviewDepthSignalCounts;
+  final String ocrSourceReviewDepthStatus;
   final Map<String, int> ocrSourceStitchSignalCounts;
   final Map<String, int> ocrSourceScannerDecisionCounts;
   final Map<String, int> ocrSourceCaptureSourceSignalCounts;
