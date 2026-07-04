@@ -125,6 +125,59 @@ void main() {
     },
   );
 
+  test('expense export summary uses shared PDF money formatting', () async {
+    final snapshot = buildExpenseExportSnapshot(
+      receipts: [
+        ExpenseReceiptRecord(
+          id: 'receipt-money',
+          receiptDate: DateTime(2026, 6, 12),
+          merchantName: 'Supply House',
+          lines: const [
+            ExpenseReceiptLineRecord(
+              id: 'line-small',
+              description: 'Small adjustment',
+              category: 'Materials',
+              use: ExpenseLineUse.business,
+              quantity: 1,
+              unitsPerPackage: 1,
+              unit: 'each',
+              subtotal: 0.1,
+            ),
+            ExpenseReceiptLineRecord(
+              id: 'line-refund',
+              description: 'Returned fitting',
+              category: 'Materials',
+              use: ExpenseLineUse.business,
+              quantity: 1,
+              unitsPerPackage: 1,
+              unit: 'each',
+              subtotal: -0.2,
+            ),
+          ],
+        ),
+      ],
+      range: ExpenseDateRange(
+        start: DateTime(2026, 6, 1),
+        end: DateTime(2026, 6, 30),
+      ),
+      categoryFilter: ExpenseExportCategoryFilter.all,
+      exportedAt: DateTime.utc(2026, 6, 15),
+    );
+
+    final document = await buildExpenseExportSummaryPdf(snapshot);
+    final source = File(
+      'lib/screens/expenses/data/expense_export_handoff.dart',
+    ).readAsStringSync();
+
+    expect(document.shareText, contains(r'Total: -$0.10'));
+    expect(document.validation.isValid, isTrue);
+    expect(source, contains('AppPdfFormatters.money(snapshot.total)'));
+    expect(
+      source,
+      contains('AppPdfFormatters.money(receipt.totalForLine(line))'),
+    );
+  });
+
   test('generated PDF service writes safe temporary PDF files', () async {
     final document = await const InvoicePdfPreviewFactory()
         .buildEstimatePreview();

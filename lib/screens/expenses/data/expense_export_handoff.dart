@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../shared/pdf/app_generated_pdf_models.dart';
 import '../../../shared/pdf/app_generated_pdf_service.dart';
 import '../../../shared/pdf/app_pdf_determinism.dart';
+import '../../../shared/pdf/app_pdf_formatters.dart';
 import '../../../shared/pdf/app_pdf_typography.dart';
 import '../../../shared/storage/app_storage_guard.dart';
 import 'expense_export_file_writer.dart';
@@ -189,7 +190,7 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
         pw.Text('Category set: ${snapshot.categoryFilter.label}'),
         pw.Text('Receipts: ${snapshot.receiptCount}'),
         pw.Text('Line items: ${snapshot.lineCount}'),
-        pw.Text('Total: \$${snapshot.total.toStringAsFixed(2)}'),
+        pw.Text('Total: ${AppPdfFormatters.money(snapshot.total)}'),
         pw.SizedBox(height: 14),
         pw.TableHelper.fromTextArray(
           headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
@@ -209,7 +210,7 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
                   receipt.merchantName,
                   line.category,
                   line.description,
-                  '\$${receipt.totalForLine(line).toStringAsFixed(2)}',
+                  AppPdfFormatters.money(receipt.totalForLine(line)),
                 ],
           ],
         ),
@@ -226,7 +227,7 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
       snapshot.exportedAt.toIso8601String(),
       snapshot.receipts.length,
       snapshot.lineCount,
-      snapshot.total.toStringAsFixed(2),
+      AppPdfFormatters.money(snapshot.total),
       snapshot.receipts
           .map(
             (receipt) => [
@@ -238,7 +239,7 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
                     (line) => [
                       line.category,
                       line.description,
-                      receipt.totalForLine(line).toStringAsFixed(2),
+                      AppPdfFormatters.money(receipt.totalForLine(line)),
                     ].join('|'),
                   )
                   .join('::'),
@@ -271,7 +272,7 @@ String _shareBody(ExpenseExportSnapshot snapshot) {
     'Date range: ${_date(snapshot.range.start)} - ${_date(snapshot.range.end)}',
     'Receipts: ${snapshot.receiptCount}',
     'Line items: ${snapshot.lineCount}',
-    'Total: \$${snapshot.total.toStringAsFixed(2)}',
+    'Total: ${AppPdfFormatters.money(snapshot.total)}',
   ].join('\n');
 }
 
@@ -285,6 +286,6 @@ String _fileDate(DateTime day) {
   return '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
 }
 
-String _date(DateTime day) => '${day.month}/${day.day}/${day.year}';
+String _date(DateTime day) => AppPdfFormatters.date(day);
 
 String _fileName(String path) => path.split(Platform.pathSeparator).last;

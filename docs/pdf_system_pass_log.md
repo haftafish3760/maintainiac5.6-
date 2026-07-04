@@ -1,5 +1,22 @@
 # PDF System Pass Log
 
+## Pass 38 - 2026-07-04 16:43 EDT - Expense export PDF shared formatting
+
+- Scope: expense export generated PDF and share formatting only. No inventory,
+  camera, native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Routed expense export PDF totals, line totals, share text, and display dates
+    through shared PDF formatters.
+  - Routed expense export deterministic seed money values through the shared
+    money formatter so output stays stable across decimal edge cases.
+  - Added regression coverage for small negative decimal totals and source
+    guards that keep expense export money formatting centralized.
+- Verification completed 2026-07-04 16:43 EDT:
+  - `dart format lib/screens/expenses/data/expense_export_handoff.dart test/app_generated_pdf_service_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_formatters_contract_test.dart -r compact`
+  - `dart analyze lib/screens/expenses/data/expense_export_handoff.dart test/app_generated_pdf_service_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 37 - 2026-07-04 16:39 EDT - Mobile PDF source-path privacy
 
 - Scope: generated PDF privacy validation and QA only. No inventory, camera,
