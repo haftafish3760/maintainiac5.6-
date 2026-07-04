@@ -263,6 +263,55 @@ void main() {
     );
   });
 
+  test('native service rejects non-local receipt photo paths', () async {
+    const channel = MethodChannel(
+      'maintainiac/receipt_camera_non_local_path_test',
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'captureReceipt');
+          return {
+            'originalPhotoPaths': [
+              'https://example.invalid/receipt.jpg',
+              'relative-receipt.jpg',
+            ],
+            'temporaryCaptureIds': ['remote-a', 'relative-b'],
+            'capturedAt': '2026-07-03T10:46:00.000Z',
+            'captureDiagnostics': {
+              'captureSurface': 'maintainiac_native_android',
+            },
+          };
+        });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    const capabilities = ReceiptNativeCameraCapabilities(
+      engine: ReceiptNativeCameraEngine.cameraX,
+      available: true,
+      cameraPermissionGranted: true,
+      hasRearCamera: true,
+    );
+    final config = const ReceiptNativeCameraSettings().sessionFor(
+      deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+      nativeCapabilities: capabilities,
+    );
+
+    await expectLater(
+      const ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(config),
+      throwsA(
+        isA<ReceiptNativeCameraUnavailableException>().having(
+          (error) => error.message,
+          'message',
+          contains('non-local receipt photo paths'),
+        ),
+      ),
+    );
+  });
+
   test(
     'native service drops unsafe diagnostic numbers before review',
     () async {

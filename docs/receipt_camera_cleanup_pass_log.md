@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 713 - 02:29:00 EDT to active cleanup
+
+Scope:
+- Hardened `ReceiptNativeCameraService` so native camera results must return
+  local absolute receipt photo paths before OCR/staging handoff.
+- Added a regression rejecting URL and relative-path receipt results from the
+  platform channel.
+- Recorded `BUG-RECEIPT-0201` under `source_preservation`.
+- Archived Pass 688 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native receipt path validation.
+- Passed focused native camera result regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 712 - 02:27:00 EDT to active cleanup
 
 Scope:
@@ -457,26 +473,6 @@ Verification:
   expectation after preserving excluded line references.
 - Passed targeted Dart format/analyzer for receipt selection and client-proof
   contracts.
-- Passed focused Flutter receipt processing contract regression.
-- Passed cleanup log, doc size, bug ledger, source audit, tests-only source
-  audit, and diff whitespace gates.
-
-## Pass 688 - 00:46:49 EDT to active cleanup
-
-Scope:
-- Added explicit business and personal allocated subtotal, tax, and total
-  values to selected receipt line references while preserving raw receipt
-  totals for audit.
-- Exposed selected business/personal totals on receipt selection bundles and
-  privacy-safe readiness maps so split lines cannot be mistaken for all-business
-  amounts downstream.
-- Added regression coverage for a 50/50 split receipt line in the invoice/client
-  proof selection contract.
-- Recorded `BUG-RECEIPT-0175` under `business_personal_split`.
-- Archived Pass 617 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for receipt line selection contracts.
 - Passed focused Flutter receipt processing contract regression.
 - Passed cleanup log, doc size, bug ledger, source audit, tests-only source
   audit, and diff whitespace gates.

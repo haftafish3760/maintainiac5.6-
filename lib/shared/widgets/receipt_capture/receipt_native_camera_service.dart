@@ -66,6 +66,11 @@ class ReceiptNativeCameraService {
           'Maintainiac receipt camera did not capture a receipt photo.',
         );
       }
+      if (_hasUnsafeNativeReceiptPaths(paths)) {
+        throw const ReceiptNativeCameraUnavailableException(
+          'Maintainiac receipt camera returned non-local receipt photo paths.',
+        );
+      }
       if (_hasDuplicateNativeReceiptPaths(paths)) {
         throw const ReceiptNativeCameraUnavailableException(
           'Maintainiac receipt camera returned duplicate receipt photo paths.',
@@ -168,6 +173,15 @@ bool _hasDuplicateNativeReceiptPaths(List<String> paths) {
   final seen = <String>{};
   for (final path in paths) {
     if (!seen.add(path)) return true;
+  }
+  return false;
+}
+
+bool _hasUnsafeNativeReceiptPaths(List<String> paths) {
+  for (final path in paths) {
+    if (!path.startsWith('/')) return true;
+    if (path.contains('\u0000')) return true;
+    if (path.contains('://')) return true;
   }
   return false;
 }
