@@ -105,6 +105,8 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
         'ocr_source_action_turn_on_light_or_retake',
         'ocr_source_action_check_text_or_add_light',
         'ocr_source_action_review_or_add_light',
+        'photo_quality_photo_is_too_dark',
+        'photo_quality_photo_is_darker_than_ideal_for_receipt_assistance',
       ]) >
       0;
 
@@ -112,6 +114,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       _countForAny(photoQualityRiskCounts, const [
         'ocr_source_saved_photo_soft_blur_risk',
         'ocr_source_action_retake_hold_steady',
+        'photo_quality_photo_looks_blurry',
       ]) >
       0;
 
@@ -121,6 +124,8 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
         'ocr_source_saved_photo_glare_risk',
         'ocr_source_action_reduce_brightness_or_glare',
         'ocr_source_action_reduce_glare_or_retake',
+        'photo_quality_photo_has_glare_or_is_too_bright',
+        'photo_quality_photo_is_bright_check_for_glare_before_continuing',
       ]) >
       0;
 

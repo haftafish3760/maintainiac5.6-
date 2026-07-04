@@ -64,6 +64,47 @@ void main() {
     );
   });
 
+  test(
+    'ocr service classifies saved photo quality warnings by risk family',
+    () async {
+      final result = await const ReceiptOcrService(maxPhotoOcrAttachments: 0)
+          .recognizeTextFromAttachments([
+            ReceiptAttachmentRecord(
+              id: 'dark-source',
+              path: '/tmp/dark-source.jpg',
+              kind: ReceiptAttachmentKind.photo,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime(2026, 7, 4),
+              photoQualityScore: 42,
+              photoQualityIssueLabel: 'too dark',
+              photoQualityWarnings: const ['Photo is too dark.'],
+            ),
+          ]);
+
+      expect(result.hasText, isFalse);
+      expect(result.warnings.join(' '), contains('too dark'));
+      expect(
+        result.structuredWarnings.map((warning) => warning.kind),
+        contains(ReceiptOcrWarningKind.photoQuality),
+      );
+      expect(
+        result.sourceHandoffSummary.photoQualityRiskCounts,
+        containsPair('photo_quality_photo_is_too_dark', 1),
+      );
+      expect(result.sourceHandoffSummary.status, 'scanner_prep_review_needed');
+      expect(
+        result.sourceHandoffSummary.sourceQualityReviewStatus,
+        'saved_dark_exposure_review',
+      );
+      expect(
+        result
+            .diagnostics
+            .ocrSourceHandoffContract['sourceQualityReviewAction'],
+        'retake_or_raise_brightness',
+      );
+    },
+  );
+
   test('ocr service warns when scanner prep used a quality guard', () async {
     final result = await const ReceiptOcrService(maxPhotoOcrAttachments: 0)
         .recognizeTextFromAttachments([
