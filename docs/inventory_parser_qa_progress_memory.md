@@ -3787,3 +3787,13 @@ Release boundaries:
   residential Core en-US/es-US at 1,000 fixtures per cell:
   `inventory.generated_fixture_cell_contract,qa.threshold_gate` passed 96,012
   checks with 0 failures, and targeted analyzer found no issues.
+- **12:49 Harness Pass 2800:** Completed the six-cell residential Core
+  generated-fixture queue for Plumbing, Electrical, and HVAC in `en-US` and
+  `es-US`. `tool/work_supply_parser_qa_generated_run_status.dart` read
+  `build/parser_qa_background_queue/pass2620-core-peh-1000/cells`, required
+  the full Core matrix, and reported 6 expected cells, 6 present cells,
+  0 missing cells, 0 failed cells, 0 unsafe cells, 6,000 checked fixtures,
+  6,096 parser calls, and local-only flags false for live services,
+  production catalog writes, Firebase writes, and OCR/camera/Expenses touches.
+  The queue `latest_status.json` also reported `state: complete`,
+  6 completed cells, and 0 failed cells.
