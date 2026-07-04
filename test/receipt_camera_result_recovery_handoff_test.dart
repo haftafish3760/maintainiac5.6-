@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_flow.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 import 'helpers/receipt_recovery_handoff_fixture.dart';
 
@@ -195,5 +196,49 @@ void main() {
     );
     expect(attachment.documentSignals.join(' '), isNot(contains('lowe')));
     expect(attachment.riskFlags.join(' '), isNot(contains('3.24')));
+  });
+
+  test('malformed photo edit action is redacted from attachment handoff', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/edited-proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/edited-proof.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/edited-proof.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/edited-proof.jpg': {
+          'userEditedPhoto': true,
+          'photoEditAction': 'PRIVATE RECEIPT TEXT CROP 12.34',
+          'photoEditReplacedOriginal': true,
+        },
+      },
+    );
+    final attachment = ReceiptCaptureFlow.attachmentsFromReviewResult(
+      result,
+      ReceiptCaptureFlowModule.expenses,
+    ).single;
+
+    expect(
+      attachment.documentSignals,
+      contains('review_photo_edit_invalid_photo_edit_action'),
+    );
+    expect(
+      attachment.documentSignals,
+      contains('review_photo_edit_replaced_original_invalid_photo_edit_action'),
+    );
+    expect(
+      attachment.riskFlags,
+      contains('ocr_source_review_photo_edit_invalid_photo_edit_action'),
+    );
+    expect(
+      attachment.riskFlags,
+      contains(
+        'ocr_source_review_photo_edit_replaced_original_invalid_photo_edit_action',
+      ),
+    );
+    expect(attachment.documentSignals.join(' '), isNot(contains('PRIVATE')));
+    expect(attachment.riskFlags.join(' '), isNot(contains('12.34')));
+    expect(attachment.documentSignals.join(' '), isNot(contains('/tmp/')));
   });
 }

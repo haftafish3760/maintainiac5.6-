@@ -148,6 +148,26 @@ extension _ReceiptAttachmentPublishSignals
     return token.isEmpty ? 'unknown' : token;
   }
 
+  String attachmentPhotoEditActionToken(Object? value) {
+    final raw = value?.toString().trim();
+    if (raw == null || raw.isEmpty) return 'manual_edit';
+    final token = attachmentSignalToken(raw);
+    return switch (token) {
+      'manual_crop' ||
+      'manual_rotate' ||
+      'manual_edit' ||
+      'auto_crop' ||
+      'auto_rotate' ||
+      'perspective_correction' ||
+      'deskew' ||
+      'brightness_cleanup' ||
+      'contrast_cleanup' ||
+      'shadow_cleanup' ||
+      'grayscale_cleanup' => token,
+      _ => 'invalid_photo_edit_action',
+    };
+  }
+
   bool coverageStatusNeedsMorePhotos(String? status) {
     if (status == null || status.isEmpty) return false;
     if (status == ReceiptPhotoCoverageStatus.likelyCutOff.name ||

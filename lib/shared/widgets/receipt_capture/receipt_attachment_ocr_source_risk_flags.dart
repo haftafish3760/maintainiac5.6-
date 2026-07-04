@@ -81,8 +81,8 @@ extension _ReceiptAttachmentOcrSourceRiskFlags
         flags.add('ocr_source_native_recovery_multiple_sections');
       }
       if (diagnostics['userEditedPhoto'] == true) {
-        final editAction = attachmentSignalToken(
-          diagnostics['photoEditAction']?.toString() ?? 'manual_edit',
+        final editAction = attachmentPhotoEditActionToken(
+          diagnostics['photoEditAction'],
         );
         final sourceSelection = diagnostics['photoEditReplacedOriginal'] == true
             ? 'edited_copy_selected'

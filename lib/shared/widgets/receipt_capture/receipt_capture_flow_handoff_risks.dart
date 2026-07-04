@@ -106,8 +106,8 @@ void _addEditedPhotoRiskFlags(
   Map<String, Object?> diagnostics,
   Set<String> flags,
 ) {
-  final editAction = _signalToken(
-    diagnostics['photoEditAction']?.toString() ?? 'manual_edit',
+  final editAction = _photoEditActionSignalToken(
+    diagnostics['photoEditAction'],
   );
   final sourceSelection = diagnostics['photoEditReplacedOriginal'] == true
       ? 'edited_copy_selected'

@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 635 - 22:18:44 EDT to active cleanup
+
+Scope:
+- Extended edited-photo action redaction from receipt-reader metadata into
+  attachment document signals and OCR-source risk flags.
+- Added a focused public attachment handoff regression proving malformed edit
+  action text is bucketed without leaking receipt-like content or local paths.
+- Archived Pass 624 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0156` under `privacy_redaction`.
+
+Verification:
+- Fixed the first targeted test run by adding the missing receipt model import.
+- Passed targeted Dart format/analyzer for attachment and capture-flow handoff
+  changes.
+- Passed focused Flutter recovery handoff regression.
+- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
+  check.
+
 ## Pass 634 - 22:16:55 EDT to active cleanup
 
 Scope:
@@ -95,35 +113,6 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for continuation handoff changes.
 - Passed focused Flutter continuation handoff regression.
-- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
-  check.
-
-## Pass 624 - 21:56:17 EDT to active cleanup
-
-Scope:
-- Added continuous-focus expected counts to expense receipt telemetry and the
-  native camera Command Center map.
-- Updated telemetry fixtures so retired tap focus reports 0 while continuous
-  focus reports 1.
-- Archived Pass 597 from the active cleanup log.
-- Recorded `BUG-RECEIPT-0145` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted analyzer and focused expense telemetry regressions.
-- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
-  check.
-
-## Pass 625 - 21:58:40 EDT to active cleanup
-
-Scope:
-- Removed the legacy `focus_assist` alias from native UI health tap-focus
-  checks.
-- Added a source-contract regression rejecting that alias.
-- Archived Pass 598 from the active cleanup log.
-- Recorded `BUG-RECEIPT-0146` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted analyzer and focused native UI health regressions.
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.
 

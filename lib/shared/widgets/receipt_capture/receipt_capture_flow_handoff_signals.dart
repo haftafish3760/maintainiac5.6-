@@ -78,8 +78,8 @@ List<String> _ocrSourceDocumentSignalsFor(
       signals.add('native_recovery_multiple_sections');
     }
     if (diagnostics['userEditedPhoto'] == true) {
-      final editAction = _signalToken(
-        diagnostics['photoEditAction']?.toString() ?? 'manual_edit',
+      final editAction = _photoEditActionSignalToken(
+        diagnostics['photoEditAction'],
       );
       final sourceSelection = diagnostics['photoEditReplacedOriginal'] == true
           ? 'edited_copy_selected'
@@ -107,6 +107,26 @@ List<String> _ocrSourceDocumentSignalsFor(
     }
   }
   return List.unmodifiable(signals);
+}
+
+String _photoEditActionSignalToken(Object? value) {
+  final raw = value?.toString().trim();
+  if (raw == null || raw.isEmpty) return 'manual_edit';
+  final token = _signalToken(raw);
+  return switch (token) {
+    'manual_crop' ||
+    'manual_rotate' ||
+    'manual_edit' ||
+    'auto_crop' ||
+    'auto_rotate' ||
+    'perspective_correction' ||
+    'deskew' ||
+    'brightness_cleanup' ||
+    'contrast_cleanup' ||
+    'shadow_cleanup' ||
+    'grayscale_cleanup' => token,
+    _ => 'invalid_photo_edit_action',
+  };
 }
 
 Map<String, Object?> _receiptReaderHandoffDiagnosticsFor(
