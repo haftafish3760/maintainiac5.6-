@@ -120,7 +120,9 @@ extension ReceiptCameraViewController {
   private func readPreviousSectionArguments() {
     if let path = arguments["previousSectionGuidePhotoPath"] as? String,
        !path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      previousSectionGuidePhotoPath = path
+      previousSectionGuidePhotoPath = path.trimmingCharacters(
+        in: .whitespacesAndNewlines
+      )
     }
     if let reason = arguments["previousSectionReasonCode"] as? String,
        !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {

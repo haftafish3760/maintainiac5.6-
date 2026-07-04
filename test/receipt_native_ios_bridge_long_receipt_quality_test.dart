@@ -23,6 +23,10 @@ void main() {
       expect(cameraController, contains('previousSectionGuidePhotoPath'));
       expect(
         cameraController,
+        contains('previousSectionGuidePhotoPath = path.trimmingCharacters('),
+      );
+      expect(
+        cameraController,
         contains('previousSectionMissingBottomAndTotals'),
       );
       expect(cameraController, contains('previousSectionGhostGuidePolicy'));

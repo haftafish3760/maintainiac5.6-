@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 707 - 02:38:00 EDT to active cleanup
+
+Scope:
+- Audited native long-receipt ghost-guide argument parsing after the tap-focus
+  boundary hardening.
+- Fixed iOS previous-section guide path handling so it stores the trimmed path
+  instead of keeping whitespace around the local receipt image path.
+- Added focused iOS bridge regression coverage for the trimmed ghost-guide path.
+- Recorded `BUG-RECEIPT-0194` under `ghost_overlap_stitching`.
+
+Verification:
+- Passed targeted Dart format/analyzer for iOS long-receipt bridge test.
+- Passed focused iOS long-receipt bridge regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+- Archived Pass 649 from the active cleanup log to keep the doc under cap.
+
 ## Pass 706 - 02:31:00 EDT to active cleanup
 
 Scope:
@@ -469,17 +486,3 @@ Verification:
 - Passed targeted Dart format/analyzer for shared scanner and bridge tests.
 - Passed focused Flutter barcode scanner and work-supply barcode bridge
   regressions.
-
-## Pass 649 - 22:50:22 EDT to active cleanup
-
-Scope:
-- Strengthened native capability parity QA so Android, iOS, and the Dart method
-  channel test all prove `supportsContinuousFocus` remains wired.
-- Added bridge assertions for Android Camera2 continuous-picture AF capability
-  and iOS AVFoundation continuous autofocus capability reporting.
-- Archived Pass 611 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native bridge/service parity tests.
-- Passed focused Flutter native Android bridge, iOS bridge, and receipt native
-  camera service regressions.
