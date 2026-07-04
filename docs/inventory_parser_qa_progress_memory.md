@@ -129,6 +129,14 @@ Focused rerun routes for recently hardened release-one contracts:
 - Validation:
   `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.merchant_matrix_contract,inventory.fixture_coverage_matrix,inventory.fixture_corpus_contract,inventory.fixture_expectation_contract --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
   passed 728 checks with 0 failures.
+- Passes 1904-1907 corrected the Tractor Supply well-pump synthetic fixture
+  from review-only to a real Plumbing Standard `well_pump` clear-match
+  expectation because the catalog already has well pump identity and aliases.
+- Validation:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.fixture_expectation_contract,inventory.fixture_candidate_identity_contract,inventory.merchant_matrix_contract,inventory.fixture_coverage_matrix,inventory.fixture_corpus_contract --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
+  passed 788 checks with 0 failures. Runtime note: the fixture candidate
+  identity suite took about 88 seconds on the Windows machine because it builds
+  the catalog/search identity surface.
 - inventory.receipt_source_immutability_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.receipt_source_immutability_contract,qa.threshold_gate`
 - inventory.parser_platform_contract:

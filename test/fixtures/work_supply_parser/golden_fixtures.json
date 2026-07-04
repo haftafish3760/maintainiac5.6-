@@ -1159,8 +1159,8 @@
     "expectedConfidenceBand": "high"
   },
   {
-    "id": "tractor_supply_plumbing_well_pump_review_en_us",
-    "caseType": "ambiguous_review",
+    "id": "tractor_supply_plumbing_well_pump_match_en_us",
+    "caseType": "clear_match",
     "merchant": "Tractor Supply",
     "riskTags": [
       "regional_merchant",
@@ -1173,13 +1173,14 @@
     "marketScope": "residential",
     "tier": "standard",
     "localePackId": "en-US",
-    "expectUnknown": true,
-    "maxConfidence": 0.84,
-    "expectedStatus": "needsReview",
-    "expectedTopCandidateId": "unknown",
-    "expectedReviewRequired": true,
+    "expectedTrade": "Plumbing",
+    "expectedNameContains": "Well Pump",
+    "tradeScope": "Plumbing",
+    "expectedStatus": "matched",
+    "expectedTopCandidateId": "well_pump",
+    "expectedReviewRequired": false,
     "expectedCandidateTrade": "plumbing",
-    "expectedConfidenceBand": "review"
+    "expectedConfidenceBand": "high"
   },
   {
     "id": "northern_tool_plumbing_pex_crimp_tool_review_en_us",
