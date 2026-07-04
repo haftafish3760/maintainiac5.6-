@@ -35,7 +35,7 @@ void main() {
     expect(label, contains('capability'));
     expect(label, contains('storage'));
     expect(label, contains('rear camera available'));
-    expect(label, contains('tap focus'));
+    expect(label, contains('focus assist'));
     expect(label, contains('pinch zoom'));
     expect(label, isNot(contains('Samsung')));
     expect(label, isNot(contains('Galaxy Private Model')));

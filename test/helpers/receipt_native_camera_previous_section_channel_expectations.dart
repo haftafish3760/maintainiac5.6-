@@ -148,8 +148,17 @@ void expectPreviousSectionGuideChannelArguments(
   expect(sentArguments['tapFocusEnabled'], isTrue);
   expect(
     sentArguments['tapToFocusPolicy'],
-    'tap_receipt_text_focus_and_meter_exposure',
+    'continuous_focus_primary_tap_focus_assist_only',
   );
+  expect(
+    sentArguments['focusStrategyPolicy'],
+    'continuous_focus_primary_tap_assist_optional',
+  );
+  expect(
+    sentArguments['readabilityGuidancePolicy'],
+    'live_readability_guides_blur_glare_light_edges_and_text_size',
+  );
+  expect(sentArguments['receiptCameraQualityBaseline'], isTrue);
   expect(sentArguments['pinchZoomEnabled'], isTrue);
   expect(
     sentArguments['zoomGesturePolicy'],
@@ -212,7 +221,7 @@ void expectPreviousSectionGuideChannelArguments(
     'review_next',
     'receipt_guidance',
     'safe_close',
-    'tap_focus',
+    'focus_assist',
     'pinch_zoom',
     'brightness_slider',
     'brightness_reset',

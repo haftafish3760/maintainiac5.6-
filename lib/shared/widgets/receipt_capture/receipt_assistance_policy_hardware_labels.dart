@@ -44,7 +44,7 @@ extension ReceiptHardwareProfileLabels on ReceiptHardwareProfile {
 
   String get receiptCameraControlLabel {
     final controls = <String>[
-      if (supportsTapFocus) 'tap focus',
+      if (supportsTapFocus) 'focus assist',
       if (supportsZoom) 'pinch zoom',
       if (supportsExposureCompensation) 'brightness',
       if (supportsNativeEdgeSignals) 'edge guidance',

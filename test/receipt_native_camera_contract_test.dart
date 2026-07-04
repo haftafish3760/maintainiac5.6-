@@ -16,6 +16,16 @@ void main() {
       expect(settings.manualShutterAlwaysAvailable, isTrue);
       expect(settings.autoCaptureEnabled, isFalse);
       expect(settings.tapFocusEnabled, isTrue);
+      expect(settings.focusMode, ReceiptNativeFocusMode.continuous);
+      expect(settings.usesContinuousFocusPrimary, isTrue);
+      expect(settings.tapFocusIsAssistOnly, isTrue);
+      expect(settings.hasExposureAndSharpnessGuidance, isTrue);
+      expect(settings.hasReceiptReadabilityGuidance, isTrue);
+      expect(
+        settings.receiptFocusStrategyCode,
+        'continuous_focus_primary_tap_assist_optional',
+      );
+      expect(settings.meetsReceiptCameraQualityBaseline, isTrue);
       expect(settings.pinchZoomEnabled, isTrue);
       expect(settings.autoExposureAssistEnabled, isTrue);
       expect(settings.edgeDetectionEnabled, isTrue);
@@ -67,6 +77,14 @@ void main() {
       autoCapture.description,
       contains('shutter button still works anytime'),
     );
+    final focusAssist = descriptors.singleWhere(
+      (descriptor) => descriptor.id == 'tap_focus',
+    );
+    expect(focusAssist.label, 'Focus assist');
+    expect(focusAssist.description, contains('continuous focus'));
+    expect(focusAssist.description, isNot(contains('set focus')));
+    expect(focusAssist.description, contains('fuzzy'));
+
     final dirtyLens = descriptors.singleWhere(
       (descriptor) => descriptor.id == 'dirty_lens_warning',
     );
@@ -145,6 +163,18 @@ void main() {
     expect(config.perspectiveCorrectionEnabled, isTrue);
     expect(config.autoCropSuggestionEnabled, isTrue);
     expect(config.orientationCorrectionEnabled, isTrue);
+    expect(
+      config.focusStrategyPolicy,
+      'continuous_focus_primary_no_tap_assist',
+    );
+    expect(
+      config.tapToFocusPolicy,
+      'tap_focus_unavailable_keep_manual_capture',
+    );
+    expect(
+      config.readabilityGuidancePolicy,
+      'live_readability_guides_blur_glare_light_edges_and_text_size',
+    );
   });
 
   test('native camera capability restore trims engine names', () {

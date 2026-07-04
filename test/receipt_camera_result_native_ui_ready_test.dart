@@ -24,7 +24,7 @@ void main() {
             'review_next',
             'receipt_guidance',
             'safe_close',
-            'tap_focus',
+            'focus_assist',
             'pinch_zoom',
             'brightness_slider',
             'brightness_reset',

@@ -30,8 +30,9 @@ const _receiptNativeCameraSettingDescriptors = <ReceiptNativeCameraSettingDescri
   ),
   ReceiptNativeCameraSettingDescriptor(
     id: 'tap_focus',
-    label: 'Tap receipt text to focus',
-    description: 'Tap the printed receipt text to set focus and exposure.',
+    label: 'Focus assist',
+    description:
+        'Optional helper if continuous focus still leaves receipt text fuzzy.',
     group: ReceiptNativeSettingGroup.cameraControl,
     type: ReceiptNativeSettingType.toggle,
     defaultEnabled: true,

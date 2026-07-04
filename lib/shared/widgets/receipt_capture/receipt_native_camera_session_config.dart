@@ -246,10 +246,30 @@ class ReceiptNativeCameraSessionConfig {
 
   String get tapToFocusPolicy {
     if (!tapFocusEnabled) return 'tap_focus_unavailable_keep_manual_capture';
+    if (settings.usesContinuousFocusPrimary) {
+      return 'continuous_focus_primary_tap_focus_assist_only';
+    }
     if (exposureSliderEnabled) {
       return 'tap_receipt_text_focus_and_meter_exposure';
     }
     return 'tap_receipt_text_focus_only';
+  }
+
+  String get focusStrategyPolicy {
+    if (settings.usesContinuousFocusPrimary && tapFocusEnabled) {
+      return 'continuous_focus_primary_tap_assist_optional';
+    }
+    if (settings.usesContinuousFocusPrimary) {
+      return 'continuous_focus_primary_no_tap_assist';
+    }
+    return 'non_continuous_focus_requires_device_review';
+  }
+
+  String get readabilityGuidancePolicy {
+    if (liveAnalysisEnabled && settings.hasReceiptReadabilityGuidance) {
+      return 'live_readability_guides_blur_glare_light_edges_and_text_size';
+    }
+    return 'saved_photo_readability_review_required';
   }
 
   String get zoomGesturePolicy {
@@ -266,7 +286,7 @@ class ReceiptNativeCameraSessionConfig {
       'receipt_guidance',
       'safe_close',
     ];
-    if (tapFocusEnabled) tags.add('tap_focus');
+    if (tapFocusEnabled) tags.add('focus_assist');
     if (pinchZoomEnabled) tags.add('pinch_zoom');
     if (exposureSliderEnabled) tags.add('brightness_slider');
     if (exposureResetEnabled) tags.add('brightness_reset');

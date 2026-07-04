@@ -15,7 +15,7 @@ void main() {
             'settings',
             'back',
             'manual_shutter',
-            'tap_focus',
+            'focus_assist',
             'pinch_zoom',
             'brightness_slider',
             'brightness_reset',

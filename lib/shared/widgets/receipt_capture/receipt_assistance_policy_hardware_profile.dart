@@ -103,7 +103,7 @@ class ReceiptHardwareProfile {
         ? 'rear camera available'
         : 'rear camera unavailable';
     final controls = [
-      if (supportsTapFocus) 'tap focus',
+      if (supportsTapFocus) 'focus assist',
       if (supportsZoom) 'pinch zoom',
       if (supportsExposureCompensation) 'brightness control',
       if (supportsNativeEdgeSignals) 'edge guidance',

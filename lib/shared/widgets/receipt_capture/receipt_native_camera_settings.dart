@@ -87,6 +87,46 @@ class ReceiptNativeCameraSettings {
   final bool ocrUsesOriginalFirst;
   final ReceiptDataSaverLevel dataSaverLevel;
 
+  bool get usesContinuousFocusPrimary =>
+      focusMode == ReceiptNativeFocusMode.continuous;
+
+  bool get tapFocusIsAssistOnly =>
+      tapFocusEnabled && usesContinuousFocusPrimary;
+
+  bool get hasExposureAndSharpnessGuidance =>
+      autoExposureAssistEnabled &&
+      exposureSliderEnabled &&
+      exposureResetEnabled &&
+      motionBlurWarningEnabled &&
+      lowLightWarningEnabled &&
+      glareWarningEnabled;
+
+  bool get hasReceiptReadabilityGuidance =>
+      liveYuvAnalysisEnabled &&
+      edgeDetectionEnabled &&
+      motionBlurWarningEnabled &&
+      glareWarningEnabled &&
+      lowLightWarningEnabled &&
+      shadowWarningEnabled &&
+      tooFarTooCloseWarningEnabled &&
+      receiptFullyVisibleWarningEnabled &&
+      textTooSmallWarningEnabled;
+
+  String get receiptFocusStrategyCode {
+    if (usesContinuousFocusPrimary && tapFocusIsAssistOnly) {
+      return 'continuous_focus_primary_tap_assist_optional';
+    }
+    if (usesContinuousFocusPrimary) {
+      return 'continuous_focus_primary_no_tap_assist';
+    }
+    return 'non_continuous_focus_requires_device_review';
+  }
+
+  bool get meetsReceiptCameraQualityBaseline =>
+      usesContinuousFocusPrimary &&
+      hasExposureAndSharpnessGuidance &&
+      hasReceiptReadabilityGuidance;
+
   static List<ReceiptNativeCameraSettingDescriptor> get descriptors =>
       _receiptNativeCameraSettingDescriptors;
 }

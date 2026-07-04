@@ -147,7 +147,15 @@ void main() {
     );
     expect(
       config.tapToFocusPolicy,
-      'tap_receipt_text_focus_and_meter_exposure',
+      'continuous_focus_primary_tap_focus_assist_only',
+    );
+    expect(
+      config.focusStrategyPolicy,
+      'continuous_focus_primary_tap_assist_optional',
+    );
+    expect(
+      config.readabilityGuidancePolicy,
+      'live_readability_guides_blur_glare_light_edges_and_text_size',
     );
     expect(config.zoomGesturePolicy, 'pinch_zoom_receipt_preview_1.0_to_8.0');
     expect(
@@ -161,7 +169,7 @@ void main() {
       'review_next',
       'receipt_guidance',
       'safe_close',
-      'tap_focus',
+      'focus_assist',
       'pinch_zoom',
       'brightness_slider',
       'brightness_reset',

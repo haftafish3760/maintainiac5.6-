@@ -220,7 +220,7 @@ class ReceiptPhotoQualityCheck {
       return 'The receipt is bright but usable. Check for glare, then tap Next if the store, date, total, and item prices are readable.';
     }
     if (isVerySoft) {
-      return 'Tap the receipt text to focus, hold still, and retake if the store, date, or total is fuzzy.';
+      return 'Hold steady and let the camera refocus; use focus assist only if the store, date, or total stays fuzzy.';
     }
     if (isSoft) {
       return 'Zoom in and check the store, date, total, and item prices before continuing.';

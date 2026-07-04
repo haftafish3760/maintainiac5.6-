@@ -17,7 +17,7 @@ void expectPreviousSectionGuideCaptureDiagnostics(
     'review_next',
     'receipt_guidance',
     'safe_close',
-    'tap_focus',
+    'focus_assist',
     'pinch_zoom',
     'brightness_slider',
     'brightness_reset',
@@ -84,8 +84,17 @@ void expectPreviousSectionGuideCaptureDiagnostics(
   expect(result.captureDiagnostics['tapFocusControlExpected'], isTrue);
   expect(
     result.captureDiagnostics['tapToFocusPolicy'],
-    'tap_receipt_text_focus_and_meter_exposure',
+    'continuous_focus_primary_tap_focus_assist_only',
   );
+  expect(
+    result.captureDiagnostics['focusStrategyPolicy'],
+    'continuous_focus_primary_tap_assist_optional',
+  );
+  expect(
+    result.captureDiagnostics['readabilityGuidancePolicy'],
+    'live_readability_guides_blur_glare_light_edges_and_text_size',
+  );
+  expect(result.captureDiagnostics['receiptCameraQualityBaseline'], isTrue);
   expect(result.captureDiagnostics['pinchZoomControlExpected'], isTrue);
   expect(
     result.captureDiagnostics['zoomGesturePolicy'],

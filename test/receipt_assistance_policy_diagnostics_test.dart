@@ -45,7 +45,7 @@ void main() {
     expect(detected.accelerationLabel, 'Detected');
     expect(detected.maxStillMegapixels, 12);
     expect(detected.cameraLabel, '4 cameras detected');
-    expect(detected.receiptCameraControlLabel, contains('tap focus'));
+    expect(detected.receiptCameraControlLabel, contains('focus assist'));
     expect(detected.receiptCameraControlLabel, contains('pinch zoom'));
     expect(detected.receiptCameraControlLabel, contains('brightness'));
     expect(detected.receiptCameraControlLabel, contains('edge guidance'));
