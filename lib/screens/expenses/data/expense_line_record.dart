@@ -1,5 +1,8 @@
 part of 'expense_ledger_models.dart';
 
+const _maxExpenseReceiptLineNumber = 9999;
+const _maxExpenseReceiptSectionNumber = 999;
+
 enum ExpenseLineUse {
   business('Business'),
   personal('Personal'),
@@ -168,32 +171,32 @@ class ExpenseReceiptLineRecord {
   }
 
   String get ocrSourceLineLabel {
-    final sectionLine = ocrSourceSectionLineNumber;
-    final section = ocrSourceSectionNumber;
-    if (sectionLine != null && sectionLine > 0) {
+    final sectionLine = safeOcrSourceSectionLineNumber;
+    final section = safeOcrSourceSectionNumber;
+    if (sectionLine != null) {
       if (section != null && section > 1) {
         return 'OCR section $section line $sectionLine';
       }
       return 'OCR source line $sectionLine';
     }
-    final lineNumber = ocrSourceLineNumber;
-    if (lineNumber != null && lineNumber > 0) return 'OCR line $lineNumber';
+    final lineNumber = safeOcrSourceLineNumber;
+    if (lineNumber != null) return 'OCR line $lineNumber';
     final id = (ocrSourceLineId ?? '').trim();
     if (id.isNotEmpty) return _expensePrivateSafeLineReferenceLabel(id);
     return '';
   }
 
   String get receiptProofLineReferenceLabel {
-    final sectionLine = ocrSourceSectionLineNumber;
-    final section = ocrSourceSectionNumber;
-    if (sectionLine != null && sectionLine > 0) {
+    final sectionLine = safeOcrSourceSectionLineNumber;
+    final section = safeOcrSourceSectionNumber;
+    if (sectionLine != null) {
       if (section != null && section > 1) {
         return 'Section $section line $sectionLine';
       }
       return 'Source line $sectionLine';
     }
-    final lineNumber = ocrSourceLineNumber;
-    if (lineNumber != null && lineNumber > 0) return 'Line $lineNumber';
+    final lineNumber = safeOcrSourceLineNumber;
+    if (lineNumber != null) return 'Line $lineNumber';
     final sourceId = (ocrSourceLineId ?? '').trim();
     if (sourceId.isNotEmpty) {
       return _expensePrivateSafeLineReferenceLabel(sourceId);
@@ -203,12 +206,14 @@ class ExpenseReceiptLineRecord {
 
   int? get safeOcrSourceLineNumber {
     final lineNumber = ocrSourceLineNumber;
-    return lineNumber != null && lineNumber > 0 ? lineNumber : null;
+    if (lineNumber == null || lineNumber < 1) return null;
+    return lineNumber.clamp(1, _maxExpenseReceiptLineNumber);
   }
 
   int? get safeOcrSourceSectionLineNumber {
     final sectionLine = ocrSourceSectionLineNumber;
-    return sectionLine != null && sectionLine > 0 ? sectionLine : null;
+    if (sectionLine == null || sectionLine < 1) return null;
+    return sectionLine.clamp(1, _maxExpenseReceiptLineNumber);
   }
 
   int? get safeOcrSourceSectionNumber {
@@ -223,7 +228,7 @@ class ExpenseReceiptLineRecord {
   String get receiptLineNumberLabel {
     final displayNumber = receiptDisplayLineNumber;
     if (displayNumber == null) return receiptProofLineReferenceLabel;
-    final section = ocrSourceSectionNumber;
+    final section = safeOcrSourceSectionNumber;
     if (section != null && section > 1) {
       return 'Section $section line $displayNumber';
     }
@@ -276,12 +281,12 @@ class ExpenseReceiptLineRecord {
   }
 
   String get receiptProofRedactionAnchorCode {
-    final sourceSection = ocrSourceSectionNumber;
-    final sourceSectionLine = ocrSourceSectionLineNumber;
-    final lineNumber = ocrSourceLineNumber;
-    final lineToken = sourceSectionLine != null && sourceSectionLine > 0
-        ? 's${_expenseSafeReceiptSectionNumber(sourceSection).toString().padLeft(2, '0')}_l${sourceSectionLine.toString().padLeft(4, '0')}'
-        : lineNumber != null && lineNumber > 0
+    final sourceSection = safeOcrSourceSectionNumber;
+    final sourceSectionLine = safeOcrSourceSectionLineNumber;
+    final lineNumber = safeOcrSourceLineNumber;
+    final lineToken = sourceSectionLine != null && sourceSection != null
+        ? 's${sourceSection.toString().padLeft(2, '0')}_l${sourceSectionLine.toString().padLeft(4, '0')}'
+        : lineNumber != null
         ? 'l${lineNumber.toString().padLeft(4, '0')}'
         : _expensePrivateSafeLineToken(ocrSourceLineId, id);
     final family = _expenseSafeToken(
@@ -466,7 +471,8 @@ bool _expenseLooksLikeSafeOcrLineId(String value) {
 }
 
 int _expenseSafeReceiptSectionNumber(int? value) {
-  return value != null && value > 0 ? value : 1;
+  if (value == null || value < 1) return 1;
+  return value.clamp(1, _maxExpenseReceiptSectionNumber);
 }
 
 String _expensePrivateSafeIdToken(String value) {

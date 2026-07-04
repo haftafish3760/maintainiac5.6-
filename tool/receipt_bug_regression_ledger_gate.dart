@@ -24,6 +24,8 @@ const _allowedCategories = {
   'qa_harness',
   'privacy_redaction',
   'native_bridge',
+  'barcode_qr_scanning',
+  'camera_review_state',
   'storage_recovery',
 };
 

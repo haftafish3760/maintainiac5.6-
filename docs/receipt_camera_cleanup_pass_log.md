@@ -3,6 +3,31 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 686 - 00:41:29 EDT to active cleanup
+
+Scope:
+- Capped impossible OCR receipt line and section numbers before they can appear
+  in proof labels, redaction anchors, serialized expense maps, parser handoff
+  labels, or privacy-safe handoff contracts.
+- Added regression coverage for huge malformed OCR row/section metadata so this
+  class of line-numbering bug cannot return quietly.
+- Split receipt line privacy/proof tests into
+  `test/expense_receipt_line_privacy_test.dart` to keep the original receipt
+  line record test under the project line-count cap.
+- Fixed receipt bug ledger gate drift so existing barcode/QR and camera
+  review-state regression categories remain accepted by the permanent gate.
+- Recorded `BUG-RECEIPT-0172` under `receipt_line_numbering`.
+- Recorded `BUG-RECEIPT-0173` under `qa_harness`.
+- Archived Pass 615 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for receipt line and parser handoff
+  files.
+- Passed focused Flutter receipt line, receipt line privacy, and OCR parser
+  handoff regressions.
+- First ledger gate run failed on stale allowed categories; fixed and reran the
+  gate before milestone push.
+
 ## Pass 653 - 23:01:54 EDT to active cleanup
 
 Scope:
@@ -464,21 +489,4 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for review copy and diagnostics tests.
 - Passed focused Flutter quality handoff and native quality regressions.
-- Passed cleanup log, doc size, source audit, and diff whitespace gates.
-
-## Pass 615 - 21:35:42 EDT to active cleanup
-
-Scope:
-- Hardened capture readiness so optional auto capture cannot fire just because
-  the frame is stable when the photo quality still needs manual review.
-- Added `manual_only_quality_review` for soft focus, low contrast, dim
-  readable frames, and other noncritical review-needed receipt photos.
-- Kept manual shutter available in those cases so the user remains in control.
-- Added regression coverage for soft, low-contrast, and dim review-needed
-  receipt photos.
-- Recorded `BUG-RECEIPT-0136` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart format/analyzer for receipt photo quality readiness.
-- Passed focused Flutter receipt camera quality guidance regressions.
 - Passed cleanup log, doc size, source audit, and diff whitespace gates.

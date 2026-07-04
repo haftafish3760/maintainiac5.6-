@@ -1,5 +1,9 @@
 part of '../../receipts/receipt_ocr_contract.dart';
 
+const _maxReceiptOcrParserLineNumber = 9999;
+const _maxReceiptOcrParserLineIndex = _maxReceiptOcrParserLineNumber - 1;
+const _maxReceiptOcrParserSectionNumber = 999;
+
 enum ReceiptOcrParserLineKind {
   vendorCandidate,
   dateCandidate,
@@ -36,9 +40,10 @@ class ReceiptOcrParserLineLocation {
   final int sectionNumber;
   final int sectionLineNumber;
 
-  int get safeSectionNumber => sectionNumber < 1 ? 1 : sectionNumber;
+  int get safeSectionNumber =>
+      sectionNumber.clamp(1, _maxReceiptOcrParserSectionNumber);
   int get safeSectionLineNumber =>
-      sectionLineNumber < 1 ? 1 : sectionLineNumber;
+      sectionLineNumber.clamp(1, _maxReceiptOcrParserLineNumber);
   String get label => safeSectionNumber <= 1
       ? 'source line $safeSectionLineNumber'
       : 'section $safeSectionNumber line $safeSectionLineNumber';
@@ -132,7 +137,7 @@ class ReceiptOcrParserLineSignal {
       : amountCandidates.isEmpty
       ? null
       : amountCandidates.last;
-  int get safeIndex => index < 0 ? 0 : index;
+  int get safeIndex => index.clamp(0, _maxReceiptOcrParserLineIndex);
   String get normalizedText => _normalizeReceiptParserLineText(text);
   String get stableLineId =>
       'ocr_line_${safeIndex.toString().padLeft(3, '0')}_$roleLabel';
@@ -233,7 +238,7 @@ class ReceiptOcrParserLineDraft {
   bool get isVehicleSupplyCandidate =>
       expenseFamily == ReceiptOcrParserExpenseFamily.vehicleSupplies;
   bool get hasAmount => amount != null;
-  int get safeLineNumber => lineNumber < 1 ? 1 : lineNumber;
+  int get safeLineNumber => lineNumber.clamp(1, _maxReceiptOcrParserLineNumber);
   String get lineLabel => 'Line $safeLineNumber';
   String get sourceLocationLabel => sourceLocation?.label ?? '';
   String get sourceFirstLineLabel =>

@@ -123,6 +123,59 @@ void main() {
     );
   });
 
+  test('parser line drafts cap huge review and source line numbers', () {
+    const hugeLocation = ReceiptOcrParserLineLocation(
+      sectionNumber: 2000,
+      sectionLineNumber: 1000000,
+    );
+    const hugeSignal = ReceiptOcrParserLineSignal(
+      index: 1000000,
+      text: 'PRIVATE ITEM TEXT 4.25',
+      kind: ReceiptOcrParserLineKind.itemCandidate,
+      amountCandidates: [4.25],
+      confidence: .9,
+      traits: ['safe_terminal_line_amount'],
+      sourceLocation: hugeLocation,
+    );
+    final hugeDraft = ReceiptOcrParserLineDraft.fromSignal(hugeSignal);
+    final handoff = ReceiptOcrParserHandoff(
+      lines: const [hugeSignal],
+      vendorLines: const [],
+      dateLines: const [],
+      itemLines: const [hugeSignal],
+      summaryLines: const [],
+      tenderLines: const [],
+      metadataLines: const [],
+    );
+
+    expect(hugeLocation.safeSectionNumber, 999);
+    expect(hugeLocation.safeSectionLineNumber, 9999);
+    expect(hugeLocation.label, 'section 999 line 9999');
+    expect(hugeSignal.safeIndex, 9998);
+    expect(hugeSignal.stableLineId, 'ocr_line_9998_item');
+    expect(hugeDraft.safeLineNumber, 9999);
+    expect(hugeDraft.lineLabel, 'Line 9999');
+    expect(
+      hugeDraft.proofLineReferenceLabel,
+      'Line 9999, section 999 line 9999',
+    );
+    expect(handoff.lineNumberByLineId[hugeSignal.stableLineId], 9999);
+    expect(handoff.sourceSectionNumbersInOrder, [999]);
+    expect(handoff.lineIdsBySourceSection.keys, ['section_999']);
+    expect(
+      handoff.proofLineReferenceLabelByLineId[hugeSignal.stableLineId],
+      'Line 9999, section 999 line 9999',
+    );
+    expect(
+      handoff.privacySafeParserHandoffContract.toString(),
+      isNot(contains('1000000')),
+    );
+    expect(
+      handoff.privacySafeParserHandoffContract.toString(),
+      isNot(contains('2000')),
+    );
+  });
+
   test('parser handoff line id maps preserve first duplicate line id', () {
     const firstLocation = ReceiptOcrParserLineLocation(
       sectionNumber: 1,

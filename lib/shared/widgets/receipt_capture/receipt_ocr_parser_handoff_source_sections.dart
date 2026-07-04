@@ -23,8 +23,8 @@ extension ReceiptOcrParserHandoffSourceSectionMaps on ReceiptOcrParserHandoff {
   List<int> get sourceSectionNumbersInOrder {
     final sections = <int>[];
     for (final line in lines) {
-      final section = line.sourceLocation?.sectionNumber;
-      if (section == null || section <= 0) continue;
+      final section = line.sourceLocation?.safeSectionNumber;
+      if (section == null) continue;
       if (sections.isEmpty || sections.last != section) {
         sections.add(section);
       }
@@ -122,7 +122,7 @@ extension ReceiptOcrParserHandoffSourceSectionMaps on ReceiptOcrParserHandoff {
   }
 
   String _sourceSectionKey(ReceiptOcrParserLineLocation? location) {
-    final section = location?.sectionNumber ?? 0;
-    return section <= 0 ? 'section_unknown' : 'section_$section';
+    final section = location?.safeSectionNumber;
+    return section == null ? 'section_unknown' : 'section_$section';
   }
 }
