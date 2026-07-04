@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 805 - 10:05:51 EDT to active cleanup
+
+Scope:
+- Added an explicit native camera `focusReadabilityFallbackPolicy` so devices
+  without continuous focus declare whether live or saved-photo readability
+  review is required.
+- Surfaced the policy through native session arguments, control diagnostics,
+  and photo-review native UI health counts.
+- Added regressions for session policy, service handoff, and review health
+  aggregation.
+- Recorded `BUG-RECEIPT-0289` under `native_bridge`.
+- Archived Pass 773 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused native camera regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 804 - 09:39:00 EDT to active cleanup
 
 Scope:
@@ -474,21 +492,4 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for long-receipt guidance regression.
 - Passed focused Flutter long-receipt guidance regression.
-- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
-
-## Pass 773 - 05:54:18 EDT to active cleanup
-
-Scope:
-- Hardened recovered native-capture review opening so the first recovered photo
-  index uses the normalized existing receipt photo count.
-- Prevented invalid or duplicate existing review paths from shifting recovered
-  receipt photos to the wrong selected section.
-- Added a recovery-contract source regression for normalized recovered-photo
-  index calculation.
-- Recorded `BUG-RECEIPT-0261` under `camera_review_state`.
-- Archived Pass 745 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for recovery review index changes.
-- Passed focused Flutter recovery contract regression.
 - Passed doc-size, bug-ledger, source-audit, and test-audit gates.

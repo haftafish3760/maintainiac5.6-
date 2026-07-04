@@ -57,6 +57,10 @@ void main() {
       expect(sentArguments['longReceiptMode'], isFalse);
       expect(sentArguments['dirtyLensWarningEnabled'], isFalse);
       expect(sentArguments['maxSectionCount'], 1);
+      expect(
+        sentArguments['focusReadabilityFallbackPolicy'],
+        'continuous_focus_unavailable_live_readability_review_required',
+      );
       expect(sentArguments, isNot(contains('previousSectionGuidePhotoPath')));
       expect(
         sentArguments['capabilityPolicyCodes'],

@@ -177,6 +177,10 @@ void main() {
       config.focusStrategyPolicy,
       'continuous_focus_primary_no_tap_assist',
     );
+    expect(
+      config.focusReadabilityFallbackPolicy,
+      'not_needed_continuous_focus_live_guidance',
+    );
     expect(config.continuousFocusEnabled, isTrue);
     expect(config.tapToFocusPolicy, 'continuous_focus_primary_no_tap_focus');
     expect(
@@ -218,6 +222,10 @@ void main() {
       expect(
         config.focusStrategyPolicy,
         'continuous_focus_primary_no_tap_assist',
+      );
+      expect(
+        config.focusReadabilityFallbackPolicy,
+        'not_needed_continuous_focus_live_guidance',
       );
     },
   );

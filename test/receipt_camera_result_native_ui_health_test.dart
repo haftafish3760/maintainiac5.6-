@@ -146,6 +146,8 @@ void main() {
           'exposureResetControlActual': 'ready',
           'continuousFocusExpected': false,
           'focusStrategyPolicy': 'non_continuous_focus_requires_device_review',
+          'focusReadabilityFallbackPolicy':
+              'non_continuous_focus_saved_photo_review_required',
           'readabilityGuidancePolicy':
               'saved_photo_readability_review_required',
           'receiptCameraQualityBaseline': false,
@@ -158,6 +160,11 @@ void main() {
     expect(result.nativeCameraUiHealthCounts['continuous_focus_missing'], 1);
     expect(
       result.nativeCameraUiHealthCounts['continuous_focus_primary_missing'],
+      1,
+    );
+    expect(
+      result
+          .nativeCameraUiHealthCounts['focus_readability_fallback_non_continuous_focus_saved_photo_review_required'],
       1,
     );
     expect(

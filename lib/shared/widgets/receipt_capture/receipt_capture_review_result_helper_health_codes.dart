@@ -47,6 +47,9 @@ List<String> _nativeFocusReadabilityHealthCodes(
   final focusPolicy = _diagnosticToken(
     diagnostics['focusStrategyPolicy']?.toString() ?? '',
   );
+  final focusFallbackPolicy = _diagnosticToken(
+    diagnostics['focusReadabilityFallbackPolicy']?.toString() ?? '',
+  );
   final readabilityPolicy = _diagnosticToken(
     diagnostics['readabilityGuidancePolicy']?.toString() ?? '',
   );
@@ -70,6 +73,10 @@ List<String> _nativeFocusReadabilityHealthCodes(
     codes.add('continuous_focus_primary_ready');
   } else if (focusPolicy != 'unknown') {
     codes.add('continuous_focus_primary_missing');
+  }
+
+  if (focusFallbackPolicy != 'unknown') {
+    codes.add('focus_readability_fallback_$focusFallbackPolicy');
   }
 
   if (readabilityPolicy ==

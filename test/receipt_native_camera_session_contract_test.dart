@@ -155,6 +155,10 @@ void main() {
       'continuous_focus_primary_no_tap_assist',
     );
     expect(
+      config.focusReadabilityFallbackPolicy,
+      'not_needed_continuous_focus_live_guidance',
+    );
+    expect(
       config.readabilityGuidancePolicy,
       'live_readability_guides_blur_glare_light_edges_and_text_size',
     );
@@ -269,6 +273,10 @@ void main() {
       expect(
         config.focusStrategyPolicy,
         'continuous_focus_unavailable_readability_review_required',
+      );
+      expect(
+        config.focusReadabilityFallbackPolicy,
+        'continuous_focus_unavailable_live_readability_review_required',
       );
       expect(
         config.zoomGesturePolicy,
