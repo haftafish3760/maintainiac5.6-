@@ -22,6 +22,8 @@ void main() {
             'unsafe': false,
             'liveServicesAllowed': false,
             'writesProductionCatalog': false,
+            'firebaseWritesAllowed': false,
+            'ocrCameraExpensesTouched': false,
           }),
         );
       final pipeline = File('${root.path}/pipeline.json')
@@ -31,8 +33,11 @@ void main() {
             'presentCells': 1,
             'missingCells': 23,
             'unsafeCells': 0,
+            'parserCalls': 100,
             'liveServicesAllowed': false,
             'writesProductionCatalog': false,
+            'firebaseWritesAllowed': false,
+            'ocrCameraExpensesTouched': false,
           }),
         );
       final fixtures = File('${root.path}/fixtures.json')

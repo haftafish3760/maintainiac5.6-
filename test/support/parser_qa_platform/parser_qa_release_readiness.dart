@@ -40,6 +40,7 @@ Map<String, Object?> buildParserQaReleaseReadiness(
   final pipelineExpected = _intValue(pipeline['expectedCells']);
   final pipelinePresent = _intValue(pipeline['presentCells']);
   final pipelineMissing = _intValue(pipeline['missingCells']);
+  final pipelineParserCalls = _intValue(pipeline['parserCalls']);
   final fixtureTotal = _intValue(fixtureReadiness['totalCells']);
   final fixtureGenerated = _intValue(fixtureReadiness['generatedFixtureCount']);
   final fixtureMissing = _intValue(fixtureReadiness['missingFixtureCount']);
@@ -51,8 +52,12 @@ Map<String, Object?> buildParserQaReleaseReadiness(
           fixtureReadiness['unsafeFindings'].toString() != '[]') ||
       wave['liveServicesAllowed'] == true ||
       wave['writesProductionCatalog'] == true ||
+      wave['firebaseWritesAllowed'] == true ||
+      wave['ocrCameraExpensesTouched'] == true ||
       pipeline['liveServicesAllowed'] == true ||
       pipeline['writesProductionCatalog'] == true ||
+      pipeline['firebaseWritesAllowed'] == true ||
+      pipeline['ocrCameraExpensesTouched'] == true ||
       (hasFixtureReadiness &&
           (fixtureReadiness['liveServicesAllowed'] == true ||
               fixtureReadiness['writesProductionCatalog'] == true ||
@@ -62,6 +67,7 @@ Map<String, Object?> buildParserQaReleaseReadiness(
       waveCells > 0 && waveCompleted == waveCells && waveFailed == 0;
   final pipelineComplete =
       pipelineExpected > 0 && pipelinePresent == pipelineExpected;
+  final pipelineHasParserEvidence = pipelineParserCalls > 0;
   final fixtureReady =
       !hasFixtureReadiness ||
       (fixtureReadiness['readyForParserExecution'] == true &&
@@ -81,6 +87,8 @@ Map<String, Object?> buildParserQaReleaseReadiness(
     'pipelineExpectedCells': pipelineExpected,
     'pipelinePresentCells': pipelinePresent,
     'pipelineMissingCells': pipelineMissing,
+    'pipelineParserCalls': pipelineParserCalls,
+    'pipelineHasParserEvidence': pipelineHasParserEvidence,
     if (options.fixtureReadinessPath.isNotEmpty)
       'fixtureReadinessPath': options.fixtureReadinessPath,
     'fixtureReadinessReady': fixtureReady,
@@ -89,7 +97,8 @@ Map<String, Object?> buildParserQaReleaseReadiness(
     'fixtureMissingCells': fixtureMissing,
     'unsafe': unsafe,
     'releaseOneParserEvidenceReady': waveReady && !unsafe,
-    'releaseOnePipelineArtifactsReady': pipelineComplete && !unsafe,
+    'releaseOnePipelineArtifactsReady':
+        pipelineComplete && pipelineHasParserEvidence && !unsafe,
     'releaseOneFixtureEvidenceReady': fixtureReady && !unsafe,
     'nextActions': [
       if (!waveReady) 'Finish or repair batch-wave parser evidence.',
@@ -97,10 +106,12 @@ Map<String, Object?> buildParserQaReleaseReadiness(
         'Generate or repair fixture readiness rollup before parser execution claims.',
       if (pipelineMissing > 0)
         'Generate missing economical pipeline artifacts or document why batch-wave evidence is authoritative for this checkpoint.',
+      if (pipelineComplete && !pipelineHasParserEvidence)
+        'Pipeline artifacts are present but missing parser-call evidence.',
       if (unsafe) 'Stop: unsafe live-service/write flag is present.',
       if (waveReady && !pipelineComplete && !unsafe)
         'Parser evidence is ready; pipeline artifact root is incomplete.',
-      if (waveReady && pipelineComplete && !unsafe)
+      if (waveReady && pipelineComplete && pipelineHasParserEvidence && !unsafe)
         'Release-one parser evidence and pipeline artifacts are ready.',
     ],
   };
