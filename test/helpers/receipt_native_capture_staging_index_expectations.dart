@@ -13,7 +13,10 @@ Future<void> expectAcceptedNativeCaptureRecoveryIndex({
   expect(indexEntry.sessionId, manifest['sessionId']);
   expect(indexEntry.manifestPath, staged.recoveryManifestPath);
   expect(indexEntry.captureDiagnostics['whiteBalanceLockEnabled'], isFalse);
-  expect(indexEntry.captureDiagnostics['whiteBalanceLockStatus'], 'locked');
+  expect(
+    indexEntry.captureDiagnostics['whiteBalanceLockStatus'],
+    'not_requested',
+  );
   expect(indexEntry.engineName, 'cameraX');
   expect(indexEntry.dataSaverLevelName, ReceiptDataSaverLevel.strong.name);
   expect(indexEntry.photoCount, 1);

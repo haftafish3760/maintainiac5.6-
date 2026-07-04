@@ -139,10 +139,10 @@ void expectAcceptedNativeCaptureRecoveryManifest(
     (manifest['captureDiagnostics'] as Map)['whiteBalanceLockEnabled'],
     isFalse,
   );
-  expect((manifest['captureDiagnostics'] as Map)['whiteBalanceMode'], 'locked');
+  expect((manifest['captureDiagnostics'] as Map)['whiteBalanceMode'], 'auto');
   expect(
     (manifest['captureDiagnostics'] as Map)['whiteBalanceLockStatus'],
-    'locked',
+    'not_requested',
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['latestCapturedPhotoWidth'],

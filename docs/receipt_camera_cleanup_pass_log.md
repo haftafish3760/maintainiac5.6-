@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 736 - 03:28:54 EDT to active cleanup
+
+Scope:
+- Audited native capture staging fixtures for retired lock diagnostics.
+- Replaced stale locked focus/exposure/white-balance fixture state with
+  continuous/auto/not-requested diagnostics.
+- Updated manifest and recovery-index expectations so staged diagnostics keep
+  retired lock attempts at zero.
+- Recorded `BUG-RECEIPT-0227` under `qa_harness`.
+- Archived Pass 711 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native capture staging fixtures,
+  manifest expectations, index expectations, and staging regression.
+- Passed focused Flutter native capture staging regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 735 - 03:27:16 EDT to active cleanup
 
 Scope:
@@ -455,24 +473,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer for native capture ID sanitization.
-- Passed focused native camera result regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 711 - 02:25:00 EDT to active cleanup
-
-Scope:
-- Hardened the shared native camera result boundary so Android/iOS
-  `temporaryCaptureIds` are sanitized, bounded, and capped to the returned
-  photo count before the result leaves `ReceiptNativeCameraService`.
-- Added a regression with path-like, oversized, and extra native capture IDs so
-  malformed metadata cannot spread into staging manifests or diagnostics.
-- Recorded `BUG-RECEIPT-0199` under `native_bridge`.
-- Archived Pass 686 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the native camera service boundary
-  and result regression.
 - Passed focused native camera result regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
