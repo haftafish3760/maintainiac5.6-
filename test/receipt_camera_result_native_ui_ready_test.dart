@@ -28,9 +28,6 @@ void main() {
             'brightness_slider',
             'brightness_reset',
             'auto_brightness_assist',
-            'focus_lock',
-            'brightness_lock',
-            'white_balance_lock',
             'receipt_light',
             'edge_overlay',
           ],
@@ -89,7 +86,7 @@ void main() {
       1,
     );
     expect(
-      result.nativeCameraUiHealthCounts['native_control_contract_15_tags'],
+      result.nativeCameraUiHealthCounts['native_control_contract_12_tags'],
       1,
     );
     expect(
@@ -134,16 +131,16 @@ void main() {
     expect(result.nativeCameraUiHealthCounts['torch_actual_control_ready'], 1);
     expect(
       result.nativeCameraUiHealthCounts['focus_lock_actual_control_ready'],
-      1,
+      isNull,
     );
     expect(
       result.nativeCameraUiHealthCounts['exposure_lock_actual_control_ready'],
-      1,
+      isNull,
     );
     expect(
       result
           .nativeCameraUiHealthCounts['white_balance_lock_actual_control_ready'],
-      1,
+      isNull,
     );
     expect(
       result.nativeCameraUiHealthCounts['native_capture_latency_ready'],

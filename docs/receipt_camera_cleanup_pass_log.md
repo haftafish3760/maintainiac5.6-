@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 728 - 03:11:18 EDT to active cleanup
+
+Scope:
+- Retired Dart-side focus/exposure/white-balance lock enablement so current
+  receipt camera sessions no longer advertise lock controls or lock tags.
+- Removed lock-control descriptors from the current receipt camera settings
+  list, keeping continuous focus/readability guidance as the product path.
+- Replaced lock-unavailable capability policy noise with a retired-lock policy
+  code and updated channel/staging/native UI fixtures.
+- Recorded `BUG-RECEIPT-0218` under `native_bridge`.
+- Archived Pass 703 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- First focused batch exposed stale previous-section capability-policy and
+  native UI tag-count expectations; fixed before continuing.
+- Passed targeted Dart format/analyzer and focused native contract/channel/
+  staging/UI regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 727 - 03:07:12 EDT to active cleanup
 
 Scope:
@@ -459,23 +479,3 @@ Verification:
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
 - Archived Pass 645 from the active cleanup log to keep the doc under cap.
-
-## Pass 703 - 02:12:00 EDT to active cleanup
-
-Scope:
-- Audited active receipt camera docs and focus policy after retiring tap-focus
-  as a product answer.
-- Strengthened the active-doc focus regression so the exact `tap-focus` phrase
-  cannot come back into active camera docs.
-- Removed the stale active native service spec sentence that still described
-  tap-focus as legacy diagnostics.
-- Recorded `BUG-RECEIPT-0190` under `qa_harness`.
-
-Verification:
-- Initial focused regression failed on the stale native service spec sentence;
-  fixed it before moving on.
-- Passed targeted Dart format/analyzer for the active camera docs policy test.
-- Passed focused Flutter active camera docs focus-policy regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-- Archived Pass 644 from the active cleanup log to keep the doc under cap.

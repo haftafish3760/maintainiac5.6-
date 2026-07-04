@@ -12,7 +12,7 @@ Future<void> expectAcceptedNativeCaptureRecoveryIndex({
   final indexEntry = recoveryIndex.entries.single;
   expect(indexEntry.sessionId, manifest['sessionId']);
   expect(indexEntry.manifestPath, staged.recoveryManifestPath);
-  expect(indexEntry.captureDiagnostics['whiteBalanceLockEnabled'], isTrue);
+  expect(indexEntry.captureDiagnostics['whiteBalanceLockEnabled'], isFalse);
   expect(indexEntry.captureDiagnostics['whiteBalanceLockStatus'], 'locked');
   expect(indexEntry.engineName, 'cameraX');
   expect(indexEntry.dataSaverLevelName, ReceiptDataSaverLevel.strong.name);

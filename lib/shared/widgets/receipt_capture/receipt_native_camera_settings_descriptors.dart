@@ -68,38 +68,6 @@ const _receiptNativeCameraSettingDescriptors = <ReceiptNativeCameraSettingDescri
     requiresNativeSupport: true,
   ),
   ReceiptNativeCameraSettingDescriptor(
-    id: 'focus_lock',
-    label: 'Lock focus when sharp',
-    description: 'Stop focus hunting after the receipt text is clear.',
-    group: ReceiptNativeSettingGroup.cameraControl,
-    type: ReceiptNativeSettingType.toggle,
-    defaultEnabled: true,
-    requiresNativeSupport: true,
-    advanced: true,
-  ),
-  ReceiptNativeCameraSettingDescriptor(
-    id: 'exposure_lock',
-    label: 'Lock brightness when readable',
-    description:
-        'Stop brightness from jumping after the receipt text is readable.',
-    group: ReceiptNativeSettingGroup.cameraControl,
-    type: ReceiptNativeSettingType.toggle,
-    defaultEnabled: true,
-    requiresNativeSupport: true,
-    advanced: true,
-  ),
-  ReceiptNativeCameraSettingDescriptor(
-    id: 'white_balance_lock',
-    label: 'Lock receipt color',
-    description:
-        'Keep the paper tone stable after the receipt looks readable so cleanup and OCR see consistent contrast.',
-    group: ReceiptNativeSettingGroup.cameraControl,
-    type: ReceiptNativeSettingType.toggle,
-    defaultEnabled: true,
-    requiresNativeSupport: true,
-    advanced: true,
-  ),
-  ReceiptNativeCameraSettingDescriptor(
     id: 'receipt_light',
     label: 'Receipt light',
     description:

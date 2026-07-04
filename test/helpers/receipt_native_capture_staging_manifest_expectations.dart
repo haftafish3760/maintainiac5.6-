@@ -137,7 +137,7 @@ void expectAcceptedNativeCaptureRecoveryManifest(
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['whiteBalanceLockEnabled'],
-    isTrue,
+    isFalse,
   );
   expect((manifest['captureDiagnostics'] as Map)['whiteBalanceMode'], 'locked');
   expect(

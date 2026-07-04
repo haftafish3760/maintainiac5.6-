@@ -132,12 +132,14 @@ void expectPreviousSectionGuideChannelArguments(
     'auto_capture_policy_disabled',
     'live_analysis_policy_disabled',
     'tap_focus_retired_continuous_focus_primary',
+    'lock_controls_retired_continuous_focus_primary',
   ]);
   expect(result.captureDiagnostics['capabilityPolicyCodes'], [
     'native_edge_signals_unavailable',
     'auto_capture_policy_disabled',
     'live_analysis_policy_disabled',
     'tap_focus_retired_continuous_focus_primary',
+    'lock_controls_retired_continuous_focus_primary',
   ]);
   expect(
     result.captureDiagnostics['receiptInstallMode'],
@@ -209,9 +211,9 @@ void expectPreviousSectionGuideChannelArguments(
     sentArguments['capturedPhotoReviewDestination'],
     'receipt_photo_review_then_receipt_details',
   );
-  expect(sentArguments['focusLockEnabled'], isTrue);
-  expect(sentArguments['exposureLockEnabled'], isTrue);
-  expect(sentArguments['whiteBalanceLockEnabled'], isTrue);
+  expect(sentArguments['focusLockEnabled'], isFalse);
+  expect(sentArguments['exposureLockEnabled'], isFalse);
+  expect(sentArguments['whiteBalanceLockEnabled'], isFalse);
   expect(
     sentArguments['nativeControlContractVersion'],
     'receipt_native_controls_v1',
@@ -228,9 +230,6 @@ void expectPreviousSectionGuideChannelArguments(
     'brightness_reset',
     'auto_brightness_assist',
     'continuous_focus',
-    'focus_lock',
-    'brightness_lock',
-    'white_balance_lock',
     'receipt_light',
     'edge_overlay',
     'previous_section_ghost',

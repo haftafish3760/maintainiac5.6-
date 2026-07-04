@@ -51,9 +51,9 @@ void main() {
     expect(ids, contains('exposure_slider'));
     expect(ids, contains('exposure_reset'));
     expect(ids, contains('auto_exposure_assist'));
-    expect(ids, contains('focus_lock'));
-    expect(ids, contains('exposure_lock'));
-    expect(ids, contains('white_balance_lock'));
+    expect(ids, isNot(contains('focus_lock')));
+    expect(ids, isNot(contains('exposure_lock')));
+    expect(ids, isNot(contains('white_balance_lock')));
     expect(ids, contains('receipt_light'));
     expect(ids, contains('edge_detection'));
     expect(ids, contains('readability_warnings'));
