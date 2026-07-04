@@ -128,9 +128,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   final _dataSaverPreviewPaths = <String, String>{};
   final _dataSaverPreviewKeysInFlight = <String>{};
   final _generatedEditPaths = <String>{};
-  late final _captureDiagnosticsByPath = <String, Map<String, Object?>>{
-    ...widget.initialCaptureDiagnosticsByPath,
-  };
+  late final _captureDiagnosticsByPath = _initialCaptureDiagnosticsByPath();
   final _manualOverlapFractions = <double?>[];
   var _closingReview = false;
   var _confirmingReviewExit = false;
@@ -175,6 +173,22 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
       return _ReceiptReviewMode.order;
     }
     return _ReceiptReviewMode.preview;
+  }
+
+  Map<String, Map<String, Object?>> _initialCaptureDiagnosticsByPath() {
+    final diagnostics = <String, Map<String, Object?>>{};
+    for (final entry in widget.initialCaptureDiagnosticsByPath.entries) {
+      final normalizedPath = normalizedReceiptPhotoPath(entry.key);
+      if (normalizedPath == null ||
+          !receiptPhotoPathSetContains(_initialPhotoPaths, normalizedPath) ||
+          diagnostics.containsKey(normalizedPath)) {
+        continue;
+      }
+      diagnostics[normalizedPath] = Map<String, Object?>.unmodifiable(
+        entry.value,
+      );
+    }
+    return diagnostics;
   }
 
   @override

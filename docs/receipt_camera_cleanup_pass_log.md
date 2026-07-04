@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 770 - 05:41:14 EDT to active cleanup
+
+Scope:
+- Hardened initial photo-review capture diagnostics so raw map keys are
+  normalized and matched against the normalized initial receipt photo list
+  before entering mutable review state.
+- Dropped blank, unnormalized, duplicate, or non-review diagnostics keys and
+  froze accepted diagnostic maps at the screen boundary.
+- Added a source regression preventing raw `initialCaptureDiagnosticsByPath`
+  spreads from returning.
+- Recorded `BUG-RECEIPT-0258` under `camera_review_state`.
+- Archived Pass 742 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for initial diagnostics key changes.
+- Passed focused Flutter capture-flow shareability regression.
+- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
+
 ## Pass 769 - 05:39:20 EDT to active cleanup
 
 Scope:
@@ -478,20 +496,3 @@ Verification:
 - Passed focused Flutter parser handoff structure regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates after correcting the ledger category.
-
-## Pass 742 - 03:39:36 EDT to active cleanup
-
-Scope:
-- Hardened barcode/QR privacy so sensitive-looking raw payloads cannot become
-  inventory lookup values when ML Kit labels them as generic `text`.
-- Added focused regressions for text-bucket QR URLs and Wi-Fi configs so payload
-  content classification blocks customer/session/network data.
-- Recorded `BUG-RECEIPT-0230` under `privacy_redaction`.
-- Archived Pass 717 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for barcode scanner service and focused
-  scanner regression.
-- Passed focused Flutter barcode scanner regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
