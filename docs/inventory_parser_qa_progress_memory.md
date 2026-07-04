@@ -158,6 +158,15 @@ Focused rerun routes for recently hardened release-one contracts:
   alongside major stores. The focused
   `inventory.release_one_residential_contract,inventory.merchant_independence_contract,qa.threshold_gate`
   shard passed 125 checks, 0 failures, and analyzer was clean.
+- Passes 2165-2168 expanded `inventory.service_truck_core_contract` service
+  signal vocabulary for everyday electrical/HVAC Core items: breakers, GFCI,
+  outlets/receptacles, switches, junction boxes, wire nuts, conduit, THHN,
+  Romex, thermostats, capacitors, contactors, relays, fuses, transformers,
+  condensate parts, drain pans, and float switches. The focused
+  `inventory.service_truck_core_contract,inventory.release_one_residential_contract,qa.threshold_gate`
+  shard passed 24,290 checks, 0 failures, but took about 87.6 seconds; avoid
+  rerunning that broad catalog-backed shard unless service-truck source changes
+  require it. Analyzer was clean.
 
 ## 2026-07-04 Whole-App Parser Adapter Registry And Surgical Routing
 
