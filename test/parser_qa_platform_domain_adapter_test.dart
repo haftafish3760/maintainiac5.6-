@@ -25,6 +25,19 @@ void main() {
       );
       expect(inventory['executionTargets'].toString(), contains('qa_harness'));
       expect(inventory['executionTargets'].toString(), contains('cloud_batch'));
+      expect(inventory['pureInputFields'].toString(), contains('ocrText'));
+      expect(
+        inventory['pureInputFields'].toString(),
+        contains('enabledTradePacks'),
+      );
+      expect(
+        inventory['pureOutputFields'].toString(),
+        contains('rankedCandidates'),
+      );
+      expect(
+        inventory['pureOutputFields'].toString(),
+        contains('reviewStatus'),
+      );
       expect(
         expense['supportedResultUses'].toString(),
         contains('expense_ledger'),
@@ -56,6 +69,8 @@ void main() {
       expect(adapter.toJson()['ocrCameraExpensesTouched'], isFalse);
       expect(adapter.toJson()['executionTargets'], contains('qa_harness'));
       expect(adapter.toJson()['executionTargets'], contains('command_line'));
+      expect(adapter.toJson()['pureOutputFields'], contains('reviewStatus'));
+      expect(adapter.toJson()['pureOutputFields'], contains('evidence'));
     }
   });
 
@@ -82,6 +97,8 @@ void main() {
       forbiddenBoundaryTokens: ['ocr', 'OCR'],
       supportedResultUses: ['inventory', 'inventory'],
       executionTargets: ['qa_harness', 'qa_harness', ''],
+      pureInputFields: ['ocrText', 'ocrText', ''],
+      pureOutputFields: ['reviewStatus', 'reviewStatus', ''],
     );
 
     final failures = adapter.validateContract();
@@ -92,5 +109,9 @@ void main() {
     expect(failures, contains('supportedResultUses must be unique'));
     expect(failures, contains('executionTargets must be unique'));
     expect(failures, contains('executionTargets must not contain blanks'));
+    expect(failures, contains('pureInputFields must be unique'));
+    expect(failures, contains('pureInputFields must not contain blanks'));
+    expect(failures, contains('pureOutputFields must be unique'));
+    expect(failures, contains('pureOutputFields must not contain blanks'));
   });
 }

@@ -6,6 +6,8 @@ class ParserQaDomainAdapter {
     required this.forbiddenBoundaryTokens,
     required this.supportedResultUses,
     required this.executionTargets,
+    required this.pureInputFields,
+    required this.pureOutputFields,
   });
 
   final String domain;
@@ -14,6 +16,8 @@ class ParserQaDomainAdapter {
   final List<String> forbiddenBoundaryTokens;
   final List<String> supportedResultUses;
   final List<String> executionTargets;
+  final List<String> pureInputFields;
+  final List<String> pureOutputFields;
 
   List<String> validateContract() {
     final failures = <String>[];
@@ -35,6 +39,12 @@ class ParserQaDomainAdapter {
     if (executionTargets.isEmpty) {
       failures.add('executionTargets must not be empty');
     }
+    if (pureInputFields.isEmpty) {
+      failures.add('pureInputFields must not be empty');
+    }
+    if (pureOutputFields.isEmpty) {
+      failures.add('pureOutputFields must not be empty');
+    }
     if (_hasDuplicates(forbiddenBoundaryTokens)) {
       failures.add('forbiddenBoundaryTokens must be unique');
     }
@@ -44,6 +54,12 @@ class ParserQaDomainAdapter {
     if (_hasDuplicates(executionTargets)) {
       failures.add('executionTargets must be unique');
     }
+    if (_hasDuplicates(pureInputFields)) {
+      failures.add('pureInputFields must be unique');
+    }
+    if (_hasDuplicates(pureOutputFields)) {
+      failures.add('pureOutputFields must be unique');
+    }
     if (forbiddenBoundaryTokens.any((token) => token.trim().isEmpty)) {
       failures.add('forbiddenBoundaryTokens must not contain blanks');
     }
@@ -52,6 +68,12 @@ class ParserQaDomainAdapter {
     }
     if (executionTargets.any((target) => target.trim().isEmpty)) {
       failures.add('executionTargets must not contain blanks');
+    }
+    if (pureInputFields.any((field) => field.trim().isEmpty)) {
+      failures.add('pureInputFields must not contain blanks');
+    }
+    if (pureOutputFields.any((field) => field.trim().isEmpty)) {
+      failures.add('pureOutputFields must not contain blanks');
     }
     return failures;
   }
@@ -64,6 +86,8 @@ class ParserQaDomainAdapter {
       'forbiddenBoundaryTokens': forbiddenBoundaryTokens,
       'supportedResultUses': supportedResultUses,
       'executionTargets': executionTargets,
+      'pureInputFields': pureInputFields,
+      'pureOutputFields': pureOutputFields,
       'liveServicesAllowed': false,
       'writesProductionCatalog': false,
       'firebaseWritesAllowed': false,
@@ -100,6 +124,23 @@ const workSupplyParserDomainAdapter = ParserQaDomainAdapter(
     'qa_harness',
     'command_line',
     'cloud_batch',
+  ],
+  pureInputFields: [
+    'ocrText',
+    'enabledTradePacks',
+    'parserSettings',
+    'localePackId',
+    'merchantHint',
+    'workflowContext',
+    'userConfirmedContext',
+  ],
+  pureOutputFields: [
+    'rankedCandidates',
+    'confidence',
+    'reviewStatus',
+    'warnings',
+    'evidence',
+    'suggestedAction',
   ],
 );
 
@@ -139,6 +180,21 @@ const maintenanceParserDomainAdapter = ParserQaDomainAdapter(
     'qa_harness',
     'command_line',
   ],
+  pureInputFields: [
+    'serviceText',
+    'assetContext',
+    'maintenanceSettings',
+    'localePackId',
+    'userConfirmedContext',
+  ],
+  pureOutputFields: [
+    'rankedCandidates',
+    'confidence',
+    'reviewStatus',
+    'warnings',
+    'evidence',
+    'suggestedAction',
+  ],
 );
 
 const expenseReceiptParserDomainAdapter = ParserQaDomainAdapter(
@@ -165,5 +221,20 @@ const expenseReceiptParserDomainAdapter = ParserQaDomainAdapter(
     'backend_service',
     'qa_harness',
     'command_line',
+  ],
+  pureInputFields: [
+    'ocrText',
+    'expenseSettings',
+    'localePackId',
+    'merchantHint',
+    'userConfirmedContext',
+  ],
+  pureOutputFields: [
+    'expenseDraft',
+    'confidence',
+    'reviewStatus',
+    'warnings',
+    'evidence',
+    'suggestedAction',
   ],
 );
