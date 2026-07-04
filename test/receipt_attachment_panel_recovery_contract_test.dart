@@ -180,6 +180,8 @@ void main() {
     expect(panelSource, contains('void showPickerMessage(String message)'));
     expect(panelSource, contains('if (!mounted) return;'));
     expect(importActions, contains('Future<bool> reviewPickedPhotoPaths'));
+    expect(importActions, contains('..._photoCaptureDiagnosticsByPath'));
+    expect(importActions, contains('...initialCaptureDiagnosticsByPath'));
     expect(importActions, contains('review_screen_unavailable'));
     expect(
       importActions,

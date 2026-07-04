@@ -23,7 +23,10 @@ extension _ReceiptAttachmentReviewReadActions
             ..._photoQualityByPath,
             ...initialQualityChecksByPath,
           },
-          initialCaptureDiagnosticsByPath: initialCaptureDiagnosticsByPath,
+          initialCaptureDiagnosticsByPath: {
+            ..._photoCaptureDiagnosticsByPath,
+            ...initialCaptureDiagnosticsByPath,
+          },
         ),
       ),
     );
