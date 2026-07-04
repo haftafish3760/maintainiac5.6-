@@ -200,6 +200,49 @@ void main() {
     );
   });
 
+  test('session rejects unsafe previous section guide photo paths', () {
+    const native = ReceiptNativeCameraCapabilities(
+      engine: ReceiptNativeCameraEngine.cameraX,
+      available: true,
+      cameraPermissionGranted: true,
+      hasRearCamera: true,
+    );
+
+    for (final unsafePath in [
+      'receipt-section-1.jpg',
+      'https://example.test/receipt-section-1.jpg',
+      'file:///tmp/receipt-section-1.jpg',
+      '/tmp/receipt-section-1.txt',
+      '/tmp/receipt-section-1.jpg\u0000.png',
+    ]) {
+      final config = const ReceiptNativeCameraSettings().sessionFor(
+        deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+        nativeCapabilities: native,
+        previousSectionGuidePhotoPath: unsafePath,
+        previousSectionReasonCode: 'missing_bottom_edge_and_totals',
+        previousSectionGuidance: 'Continue the receipt.',
+        previousSectionGhostOpacity: .36,
+      );
+
+      expect(config.hasPreviousSectionGuide, isFalse);
+      expect(config.previousSectionGuidePhotoPath, isNull);
+      expect(config.previousSectionGuideReasonCode, 'none');
+      expect(config.previousSectionGhostGuidePolicy, 'not_requested');
+      expect(config.previousSectionGhostOpacity, isNull);
+    }
+
+    final uppercaseImagePath = const ReceiptNativeCameraSettings().sessionFor(
+      deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+      nativeCapabilities: native,
+      previousSectionGuidePhotoPath: ' /tmp/receipt-section-1.HEIC ',
+    );
+    expect(uppercaseImagePath.hasPreviousSectionGuide, isTrue);
+    expect(
+      uppercaseImagePath.previousSectionGuidePhotoPath,
+      '/tmp/receipt-section-1.HEIC',
+    );
+  });
+
   test(
     'session bounds previous section ghost guide fractions to usable values',
     () {

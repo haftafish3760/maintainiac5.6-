@@ -127,6 +127,14 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
       heavyCleanupAllowed: heavyCleanupAllowed,
       longReceiptMode: longReceiptMode,
     );
+    final previousGuidePhotoPath = _nativeCameraLocalImagePathOrNull(
+      previousSectionGuidePhotoPath,
+    );
+    final hasPreviousGuide =
+        previousSectionGhostGuideEnabled &&
+        longReceiptMode &&
+        previousGuidePhotoPath != null;
+
     return ReceiptNativeCameraSessionConfig(
       settings: this,
       nativeCapabilities: nativeCapabilities,
@@ -189,51 +197,40 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
       adaptiveThresholdEnabled: adaptiveThresholdEnabled,
       grayscalePreviewEnabled: grayscalePreviewEnabled,
       orientationCorrectionEnabled: orientationCorrectionEnabled,
-      previousSectionGuidePhotoPath:
-          previousSectionGhostGuideEnabled &&
-              longReceiptMode &&
-              previousSectionGuidePhotoPath != null &&
-              previousSectionGuidePhotoPath.trim().isNotEmpty
-          ? previousSectionGuidePhotoPath.trim()
+      previousSectionGuidePhotoPath: hasPreviousGuide
+          ? previousGuidePhotoPath
           : null,
       previousSectionReasonCode:
-          previousSectionGhostGuideEnabled &&
-              longReceiptMode &&
+          hasPreviousGuide &&
               previousSectionReasonCode != null &&
               previousSectionReasonCode.trim().isNotEmpty
           ? previousSectionReasonCode.trim()
           : null,
       previousSectionGuidance:
-          previousSectionGhostGuideEnabled &&
-              longReceiptMode &&
+          hasPreviousGuide &&
               previousSectionGuidance != null &&
               previousSectionGuidance.trim().isNotEmpty
           ? previousSectionGuidance.trim()
           : null,
-      previousSectionGhostSourceStartFraction:
-          previousSectionGhostGuideEnabled && longReceiptMode
+      previousSectionGhostSourceStartFraction: hasPreviousGuide
           ? _boundedNativeCameraFraction(
               previousSectionGhostSourceStartFraction,
             )
           : null,
-      previousSectionGhostSourceHeightFraction:
-          previousSectionGhostGuideEnabled && longReceiptMode
+      previousSectionGhostSourceHeightFraction: hasPreviousGuide
           ? _boundedNativeCameraFraction(
               previousSectionGhostSourceHeightFraction,
             )
           : null,
-      previousSectionGhostOverlayTopFraction:
-          previousSectionGhostGuideEnabled && longReceiptMode
+      previousSectionGhostOverlayTopFraction: hasPreviousGuide
           ? _boundedNativeCameraFraction(previousSectionGhostOverlayTopFraction)
           : null,
-      previousSectionGhostOverlayHeightFraction:
-          previousSectionGhostGuideEnabled && longReceiptMode
+      previousSectionGhostOverlayHeightFraction: hasPreviousGuide
           ? _boundedNativeCameraFraction(
               previousSectionGhostOverlayHeightFraction,
             )
           : null,
-      previousSectionGhostOpacity:
-          previousSectionGhostGuideEnabled && longReceiptMode
+      previousSectionGhostOpacity: hasPreviousGuide
           ? _boundedNativeCameraFraction(previousSectionGhostOpacity)
           : null,
     );

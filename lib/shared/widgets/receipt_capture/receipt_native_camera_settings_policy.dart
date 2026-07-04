@@ -7,6 +7,17 @@ double? _boundedNativeCameraFraction(double? value) {
   return value;
 }
 
+String? _nativeCameraLocalImagePathOrNull(String? path) {
+  final trimmed = path?.trim();
+  if (trimmed == null || trimmed.isEmpty || trimmed.contains('\u0000')) {
+    return null;
+  }
+  if (!trimmed.startsWith('/')) return null;
+  final lower = trimmed.toLowerCase();
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.heic', '.webp'];
+  return imageExtensions.any(lower.endsWith) ? trimmed : null;
+}
+
 List<String> _nativeCameraCapabilityPolicyCodes({
   required bool lightDevice,
   required bool storageConstrained,
