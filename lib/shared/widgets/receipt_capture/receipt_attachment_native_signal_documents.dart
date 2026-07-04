@@ -184,6 +184,7 @@ extension _ReceiptAttachmentNativeSignalDocuments
         token.contains('missing') ||
         token.contains('regressed') ||
         token.contains('unknown') ||
+        token.contains('review_required') ||
         token.contains('close_deferred') ||
         token.contains('close_retry') ||
         token.contains('capture_failed_after_close') ||

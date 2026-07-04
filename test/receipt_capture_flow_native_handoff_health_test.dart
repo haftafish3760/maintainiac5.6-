@@ -9,6 +9,9 @@ void main() {
           'lib/shared/widgets/receipt_capture/receipt_capture_flow.dart',
         ).readAsString() +
         await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_native_signal_documents.dart',
+        ).readAsString() +
+        await File(
           'lib/shared/widgets/receipt_capture/receipt_capture_flow_recovery.dart',
         ).readAsString() +
         await File(
@@ -53,6 +56,7 @@ void main() {
     expect(flow, contains('native_camera_ui_'));
     expect(flow, contains('_nativeCameraUiDocumentSignalsFor'));
     expect(flow, contains('_nativeCameraUiRiskFlagsFor'));
+    expect(flow, contains("token.contains('review_required')"));
     expect(flow, contains('_nativeCloseCapturedPhotoDocumentSignalsFor'));
     expect(flow, contains('_nativeCloseCapturedPhotoRiskFlagsFor'));
     expect(flow, contains('_receiptReaderHandoffDiagnosticsFor'));

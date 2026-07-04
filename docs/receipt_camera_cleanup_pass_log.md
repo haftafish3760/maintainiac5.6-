@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 806 - 10:16:00 EDT to active cleanup
+
+Scope:
+- Treated native camera `review_required` health tokens as actionable
+  attachment risk flags.
+- Applied the same risk classification to shared capture-flow and
+  attachment-panel native camera signal helpers.
+- Added regressions proving focus/readability fallback review reaches receipt
+  attachment risk flags and the duplicated helper paths stay aligned.
+- Recorded `BUG-RECEIPT-0290` under `native_bridge`.
+- Archived Pass 774 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused native UI handoff
+  regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 805 - 10:05:51 EDT to active cleanup
 
 Scope:
@@ -478,18 +496,3 @@ Verification:
   `test/receipt_camera_capture_layout_test.dart`,
   `test/receipt_camera_native_bridge_layout_test.dart`, and
   `test/receipt_photo_review_save_lifecycle_test.dart`.
-
-## Pass 774 - 05:58:15 EDT to active cleanup
-
-Scope:
-- Updated the long-receipt guidance source regression after the review screen
-  moved from raw initial photo counts to normalized initial photo counts.
-- Required the test to prove `_initialReviewMode` is driven by
-  `_initialPhotoPaths.length` and that initial paths are normalized once.
-- Recorded `BUG-RECEIPT-0262` under `qa_harness`.
-- Archived Pass 746 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for long-receipt guidance regression.
-- Passed focused Flutter long-receipt guidance regression.
-- Passed doc-size, bug-ledger, source-audit, and test-audit gates.

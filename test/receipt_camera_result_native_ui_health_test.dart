@@ -185,6 +185,12 @@ void main() {
       attachments.single.riskFlags,
       contains('native_camera_ui_continuous_focus_missing'),
     );
+    expect(
+      attachments.single.riskFlags,
+      contains(
+        'native_camera_ui_focus_readability_fallback_non_continuous_focus_saved_photo_review_required',
+      ),
+    );
   });
 
   test('photo review result treats tap focus comeback as native risk', () {
