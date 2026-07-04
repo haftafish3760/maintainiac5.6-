@@ -3,6 +3,30 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 708 - 02:45:00 EDT to active cleanup
+
+Scope:
+- Removed stale iOS native settings copy that still told users to use focus
+  assist after the receipt camera moved to continuous-autofocus/readability
+  guidance.
+- Added focused iOS bridge source regression coverage so the retired focus
+  assist copy cannot return through settings/help text.
+- Fixed stale iOS bridge QA assertions that still expected direct raw
+  readability-signal equality checks instead of the named readability-review
+  policy set.
+- Recorded `BUG-RECEIPT-0195` under `camera_capture_quality`.
+- Recorded `BUG-RECEIPT-0196` under `qa_harness`.
+- Archived Pass 650 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- First focused iOS settings bridge regression failed because the test still
+  expected raw `latestReadabilitySignal == ...` checks; fixed the regression to
+  require the helper/set policy and reject direct equality checks.
+- Passed targeted Dart format/analyzer for the iOS settings bridge test.
+- Passed focused iOS settings bridge regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 707 - 02:38:00 EDT to active cleanup
 
 Scope:
@@ -467,22 +491,3 @@ Verification:
 - Passed targeted Dart format/analyzer for the barcode scanner service and
   focused scanner regression.
 - Passed focused Flutter barcode scanner regression.
-
-## Pass 650 - 22:51:56 EDT to active cleanup
-
-Scope:
-- Hardened the shared ML Kit barcode/QR scanner boundary so privacy-safe
-  summaries expose sanitized value-type buckets instead of raw scanner text.
-- Made sensitive QR/barcode payload blocking case-insensitive and passed only
-  safe value-type buckets into the work-supply barcode bridge.
-- Added regressions for uppercase sensitive QR types and malformed value-type
-  strings.
-- First focused test run failed because `privacySafeSummaryMap` still exposed
-  the raw `valueType`; fixed by removing that raw key.
-- Recorded `BUG-RECEIPT-0168` under `barcode_qr_scanning`.
-- Archived Pass 612 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for shared scanner and bridge tests.
-- Passed focused Flutter barcode scanner and work-supply barcode bridge
-  regressions.

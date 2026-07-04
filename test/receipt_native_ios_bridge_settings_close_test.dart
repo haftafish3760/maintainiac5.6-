@@ -152,12 +152,9 @@ void main() {
       expect(cameraController, contains('"manual_only_quality_review"'));
       expect(
         cameraController,
-        contains('latestReadabilitySignal == "shadow_risk"'),
+        contains('receiptQualityReviewReadabilitySignals.contains'),
       );
-      expect(
-        cameraController,
-        contains('latestReadabilitySignal == "dirty_lens_or_haze"'),
-      );
+      expect(cameraController, isNot(contains('latestReadabilitySignal ==')));
       expect(cameraController, contains('closingCamera'));
       expect(cameraController, contains('!closingCamera'));
       expect(cameraController, contains('"closing"'));
@@ -259,6 +256,11 @@ void main() {
       expect(cameraController, contains('settingsSummary'));
       expect(cameraController, contains('Assisted receipt fill'));
       expect(cameraController, contains('Long receipt mode'));
+      expect(
+        cameraController,
+        contains('continuous autofocus/readability guidance'),
+      );
+      expect(cameraController, isNot(contains('Use focus assist only if')));
       expect(cameraController, contains('if !canUseLongReceiptMode()'));
       expect(cameraController, contains('func canUseLongReceiptMode()'));
       expect(
