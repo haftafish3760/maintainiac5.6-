@@ -3595,3 +3595,10 @@ Release boundaries:
   the harness plan wraps lines. Focused
   `inventory.runtime_profile_contract,inventory.generated_fixture_performance_contract,inventory.runtime_measurement,qa.threshold_gate`
   passed 68 checks with 0 failures, and targeted analyzer found no issues.
+- **11:41 Harness Pass 2663:** Made financial price/tax allocation and
+  duplicate-cost guard contract matching whitespace-safe. This keeps receipt
+  math, tax, discount, return, pack quantity, destination-ledger, and
+  reconciliation rules stable across formatted docs instead of encouraging
+  one-line contract text. Focused
+  `inventory.price_tax_allocation_contract,inventory.financial_duplicate_guard_contract,qa.threshold_gate`
+  passed 103 checks with 0 failures, and targeted analyzer found no issues.

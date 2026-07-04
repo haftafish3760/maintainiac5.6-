@@ -128,9 +128,9 @@ class WorkSupplyParserPriceTaxAllocationSuite extends QaSuite {
     String source,
     Set<String> rules,
   ) {
-    final lower = source.toLowerCase();
+    final lower = _normalizeContractText(source);
     for (final rule in rules) {
-      if (lower.contains(rule.toLowerCase())) continue;
+      if (lower.contains(_normalizeContractText(rule))) continue;
       failures.add(
         _failure(
           id: 'missing_allocation_rule:${_safeId(rule)}',
@@ -149,7 +149,7 @@ class WorkSupplyParserPriceTaxAllocationSuite extends QaSuite {
     List<QaFailure> failures,
     String source,
   ) {
-    final lower = source.toLowerCase();
+    final lower = _normalizeContractText(source);
     for (final line in _dangerousMathLines) {
       final requiredTokens = line
           .toLowerCase()
@@ -180,9 +180,9 @@ class WorkSupplyParserPriceTaxAllocationSuite extends QaSuite {
       'privacy',
       'review',
     };
-    final lower = source.toLowerCase();
+    final lower = _normalizeContractText(source);
     for (final token in tokens) {
-      if (lower.contains(token)) continue;
+      if (lower.contains(_normalizeContractText(token))) continue;
       failures.add(
         _failure(
           id: 'missing_price_privacy_safety:${_safeId(token)}',
@@ -206,9 +206,9 @@ class WorkSupplyParserPriceTaxAllocationSuite extends QaSuite {
     required String fix,
     required String triage,
   }) {
-    final lower = source.toLowerCase();
+    final lower = _normalizeContractText(source);
     for (final token in tokens) {
-      if (lower.contains(token.toLowerCase())) continue;
+      if (lower.contains(_normalizeContractText(token))) continue;
       failures.add(
         _failure(
           id: '$idPrefix:${_safeId(token)}',
@@ -251,6 +251,10 @@ class WorkSupplyParserPriceTaxAllocationSuite extends QaSuite {
       metadata: {'triageCategory': triage},
     );
   }
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
 
 String _safeId(String value) {
