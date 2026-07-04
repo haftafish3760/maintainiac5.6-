@@ -138,7 +138,9 @@ class ReceiptBarcodeScanResult {
       'inventoryLookupCandidateCount': inventoryLookupCandidateCount,
       'formatCounts': Map.unmodifiable(formatCounts),
       'valueTypeCounts': Map.unmodifiable(typeCounts),
-      'warnings': List.unmodifiable(warnings),
+      'warningBuckets': List.unmodifiable(
+        warnings.map(_privacySafeBarcodeWarning).toSet(),
+      ),
     };
   }
 }
@@ -161,6 +163,16 @@ String _privacySafeBarcodeValueType(String valueType) {
     'url' => 'url',
     'isbn' => 'isbn',
     _ => 'other',
+  };
+}
+
+String _privacySafeBarcodeWarning(String warning) {
+  final normalized = warning.trim().toLowerCase();
+  return switch (normalized) {
+    'barcode_scan_invalid_source_path' => 'barcode_scan_invalid_source_path',
+    'barcode_scan_platform_failed' => 'barcode_scan_platform_failed',
+    'barcode_scan_failed' => 'barcode_scan_failed',
+    _ => 'barcode_scan_warning',
   };
 }
 

@@ -110,6 +110,31 @@ void main() {
     expect(result.codes, isEmpty);
     expect(result.warnings, const ['barcode_scan_platform_failed']);
   });
+
+  test('barcode scan summary buckets raw warning text', () {
+    const result = ReceiptBarcodeScanResult(
+      imagePath: '/tmp/code.jpg',
+      purpose: ReceiptBarcodeScanPurpose.shared,
+      codes: [],
+      warnings: [
+        'barcode_scan_failed',
+        'private customer barcode warning 036000291452',
+      ],
+    );
+
+    expect(result.privacySafeSummaryMap['warningBuckets'], [
+      'barcode_scan_failed',
+      'barcode_scan_warning',
+    ]);
+    expect(
+      result.privacySafeSummaryMap.toString(),
+      isNot(contains('036000291452')),
+    );
+    expect(
+      result.privacySafeSummaryMap.toString(),
+      isNot(contains('private customer')),
+    );
+  });
 }
 
 class _FakeBarcodeDecoder implements ReceiptBarcodeImageDecoder {
