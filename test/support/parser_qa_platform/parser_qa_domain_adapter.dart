@@ -111,7 +111,13 @@ class ParserQaDomainAdapter {
   }
 }
 
-const _requiredExecutionTargets = ['qa_harness', 'command_line'];
+const _requiredExecutionTargets = [
+  'mobile_local',
+  'backend_service',
+  'qa_harness',
+  'command_line',
+  'cloud_batch',
+];
 const _requiredInputFields = ['localePackId', 'userConfirmedContext'];
 const _requiredOutputFields = [
   'confidence',
@@ -215,6 +221,7 @@ const maintenanceParserDomainAdapter = ParserQaDomainAdapter(
     'backend_service',
     'qa_harness',
     'command_line',
+    'cloud_batch',
   ],
   pureInputFields: [
     'serviceText',
@@ -260,6 +267,7 @@ const expenseReceiptParserDomainAdapter = ParserQaDomainAdapter(
     'backend_service',
     'qa_harness',
     'command_line',
+    'cloud_batch',
   ],
   pureInputFields: [
     'ocrText',

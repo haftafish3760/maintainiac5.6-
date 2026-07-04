@@ -25,6 +25,11 @@ void main() {
       );
       expect(inventory['executionTargets'].toString(), contains('qa_harness'));
       expect(inventory['executionTargets'].toString(), contains('cloud_batch'));
+      expect(expense['executionTargets'].toString(), contains('cloud_batch'));
+      expect(
+        maintenance['executionTargets'].toString(),
+        contains('cloud_batch'),
+      );
       expect(inventory['pureInputFields'].toString(), contains('ocrText'));
       expect(
         inventory['pureInputFields'].toString(),
@@ -71,6 +76,9 @@ void main() {
       expect(adapter.toJson()['ocrCameraExpensesTouched'], isFalse);
       expect(adapter.toJson()['executionTargets'], contains('qa_harness'));
       expect(adapter.toJson()['executionTargets'], contains('command_line'));
+      expect(adapter.toJson()['executionTargets'], contains('mobile_local'));
+      expect(adapter.toJson()['executionTargets'], contains('backend_service'));
+      expect(adapter.toJson()['executionTargets'], contains('cloud_batch'));
       expect(adapter.toJson()['pureOutputFields'], contains('reviewStatus'));
       expect(adapter.toJson()['pureOutputFields'], contains('evidence'));
     }
@@ -111,6 +119,10 @@ void main() {
     expect(failures, contains('supportedResultUses must be unique'));
     expect(failures, contains('executionTargets must be unique'));
     expect(failures, contains('executionTargets must not contain blanks'));
+    expect(failures, contains('executionTargets must include mobile_local'));
+    expect(failures, contains('executionTargets must include backend_service'));
+    expect(failures, contains('executionTargets must include command_line'));
+    expect(failures, contains('executionTargets must include cloud_batch'));
     expect(failures, contains('pureInputFields must be unique'));
     expect(failures, contains('pureInputFields must not contain blanks'));
     expect(failures, contains('pureOutputFields must be unique'));
