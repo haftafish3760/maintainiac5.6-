@@ -3628,3 +3628,10 @@ Release boundaries:
   network warnings, pack-size budgets, and no-live-Firebase cost guards.
   Focused `inventory.device_storage_contract,inventory.device_budget_matrix_contract,inventory.delivery_policy_contract,qa.threshold_gate`
   passed 67 checks with 0 failures, and targeted analyzer found no issues.
+- **11:48 Harness Pass 2692:** Made human correction-learning and correction
+  feedback contract matching whitespace-safe. This protects local/private
+  correction memory, proposed aliases, negative rules, merchant rules,
+  regression fixtures, manual promotion, community opt-in, and redacted admin
+  signals from brittle doc formatting. Focused
+  `inventory.human_correction_learning_contract,inventory.correction_feedback_contract,qa.threshold_gate`
+  passed 56 checks with 0 failures, and targeted analyzer found no issues.
