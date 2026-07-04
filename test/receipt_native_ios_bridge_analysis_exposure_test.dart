@@ -124,6 +124,10 @@ void main() {
         cameraController,
         contains('lastFocusStatus = "continuous_autofocus_unavailable"'),
       );
+      expect(
+        cameraController,
+        contains('lastFocusStatus = "continuous_focus_not_requested"'),
+      );
       expect(cameraController, contains('tooFarTooCloseWarningEnabled ||'));
       expect(
         cameraController,

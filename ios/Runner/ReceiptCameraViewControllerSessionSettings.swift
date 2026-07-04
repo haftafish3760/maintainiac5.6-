@@ -49,6 +49,8 @@ extension ReceiptCameraViewController {
         lastFocusStatus = "continuous_autofocus_configured"
       } else if focusMode == "continuous" {
         lastFocusStatus = "continuous_autofocus_unavailable"
+      } else {
+        lastFocusStatus = "continuous_focus_not_requested"
       }
       if exposureMode == "auto", device.isExposureModeSupported(.continuousAutoExposure) {
         device.exposureMode = .continuousAutoExposure

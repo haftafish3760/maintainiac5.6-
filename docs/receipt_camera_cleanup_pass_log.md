@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 865 - 12:29:00 EDT to active cleanup
+
+Scope:
+- Added an explicit iOS `continuous_focus_not_requested` diagnostic for
+  non-continuous focus sessions instead of leaving `lastFocusStatus` as
+  `not_used`.
+- Pinned the iOS native bridge source regression for configured, unavailable,
+  and not-requested focus-status families.
+- Recorded `BUG-RECEIPT-0317` under `native_bridge`.
+- Archived Pass 822 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused iOS native bridge regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 860 - 12:23:00 EDT to active cleanup
 
 Scope:
@@ -159,24 +175,6 @@ Verification:
 - Passed doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and diff
   whitespace gates.
 
-## Pass 822 - 13:18:00 EDT to active cleanup
-
-Scope:
-- Classified `receipt_review_depth_*` OCR source document signals into explicit
-  handoff counts and a `reviewDepthStatus`.
-- Exposed price-only versus detailed-line camera intent in the privacy-safe OCR
-  source handoff contract for downstream receipt review/admin diagnostics.
-- Added focused OCR service regression coverage for detailed-line review-depth
-  handoff.
-- Recorded `BUG-RECEIPT-0307` under `receipt_line_review_mode`.
-- Fixed a receipt PDF inspector compile failure found by the focused OCR service
-  test by routing trailer-name checks through `AppPdfSecurityPolicy`.
-- Recorded `BUG-RECEIPT-0308` under `qa_harness`.
-- Archived Pass 815 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted review-depth handoff/PDF inspector format/analyzer and
-  focused OCR service plus PDF inspector regressions.
 - Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
   whitespace gates.
 
