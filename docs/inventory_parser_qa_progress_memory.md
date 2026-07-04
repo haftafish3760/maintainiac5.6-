@@ -3439,3 +3439,11 @@ Release boundaries:
   `test/work_supply_parser_qa_background_queue_test.dart` passed 6/6, and the
   focused `inventory.execution_command_contract,qa.threshold_gate` slice passed
   107 checks with 0 failures.
+- **10:20 Harness Pass 2509:** Completed the bounded Core generated-fixture
+  queue `pass2441-core-semantic-repeat-500` for Release 1 residential Core
+  Plumbing/Electrical/HVAC in `en-US` and `es-US`. Final queue summary reports
+  6/6 cells complete, 0 failed cells, `fixtureRunLimit=125`, `cellTimeoutMs=1200000`,
+  no live services, no production catalog writes, no Firebase writes, and no
+  OCR/camera/Expenses touches. The generated-run status gate reported 6/6 cells
+  present, 0 missing, 0 failed, 0 unsafe, 1,500 generated fixtures checked, and
+  0 fixture failures.
