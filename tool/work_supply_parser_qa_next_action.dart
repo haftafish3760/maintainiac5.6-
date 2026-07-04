@@ -219,12 +219,16 @@ List<Map<String, Object?>> _blockingWaveStatuses(
     final statusAgeMs = updatedAt == null
         ? null
         : now.difference(updatedAt.toUtc()).inMilliseconds;
-    final activeCellElapsedMs = _asInt(decoded['activeCellElapsedMs']);
+    final activeCellStartedAt = DateTime.tryParse(
+      '${decoded['activeCellStartedAtIso'] ?? ''}',
+    );
+    final activeCellElapsedMs = _activeCellElapsedMs(decoded, now);
+    final activeCellId = '${decoded['activeCellId'] ?? ''}';
     blockingByQueue[key] = {
       'path': entity.path,
       'state': state,
       'queueId': queueId,
-      'activeCellId': decoded['activeCellId'] ?? '',
+      'activeCellId': activeCellId,
       'completedCellCount': decoded['completedCellCount'] ?? 0,
       'failedCellCount': failedCellCount,
       'hasFailedCells': failedCellCount > 0,
@@ -233,6 +237,7 @@ List<Map<String, Object?>> _blockingWaveStatuses(
       'activeCellElapsedMs': activeCellElapsedMs,
       'statusStale':
           state == 'running' &&
+          (activeCellId.isEmpty || activeCellStartedAt == null) &&
           (statusAgeMs == null || statusAgeMs > maxStatusAgeMs),
       'activeCellStale':
           state == 'running' &&
@@ -247,6 +252,19 @@ List<Map<String, Object?>> _blockingWaveStatuses(
   final blocking = blockingByQueue.values.toList();
   blocking.sort((a, b) => '${a['path']}'.compareTo('${b['path']}'));
   return blocking;
+}
+
+int? _activeCellElapsedMs(Map<String, Object?> status, DateTime now) {
+  final explicit = _asInt(status['activeCellElapsedMs']);
+  final startedAt = DateTime.tryParse(
+    '${status['activeCellStartedAtIso'] ?? ''}',
+  );
+  final computed = startedAt == null
+      ? null
+      : now.difference(startedAt.toUtc()).inMilliseconds;
+  if (computed == null) return explicit;
+  if (explicit == null || explicit <= 0) return computed;
+  return computed > explicit ? computed : explicit;
 }
 
 List<Map<String, Object?>> _waveRemediationSummaries(

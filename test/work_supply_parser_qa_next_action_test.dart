@@ -273,6 +273,63 @@ void main() {
     );
   });
 
+  test('next action computes active cell elapsed from start timestamp', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_next_computed_cell_elapsed_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeJson('build/parser_qa_pipeline/release_one_commands.json', {
+      'commands': [
+        {'cellId': 'plumbing.residential.core.en-US'},
+      ],
+    });
+    _writeJson('build/parser_qa_pass_evidence/evidence_summary.json', {
+      'missingArtifactNames': <String>[],
+      'unsafeFindings': <String>[],
+    });
+    final startedAt = DateTime.now()
+        .toUtc()
+        .subtract(const Duration(minutes: 5))
+        .toIso8601String();
+    _writeJson(
+      'build/parser_qa_batch_waves/wave/queue/queue-id/latest_status.json',
+      {
+        'state': 'running',
+        'queueId': 'queue-id',
+        'activeCellId': 'plumbing_residential_core_en_US',
+        'activeCellStartedAtIso': startedAt,
+        'completedCellCount': 1,
+        'failedCellCount': 0,
+        'updatedAtIso': startedAt,
+        'activeCellElapsedMs': 0,
+        'liveServicesAllowed': false,
+        'writesProductionCatalog': false,
+        'firebaseWritesAllowed': false,
+        'ocrCameraExpensesTouched': false,
+      },
+    );
+
+    final exit = runWorkSupplyParserQaNextAction(
+      const ['--max-active-cell-ms', '1000'],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 1);
+    final summary = _readJson('build/parser_qa_pass_evidence/next_action.json');
+    expect(
+      summary['activeWaveUnsafeFindings'].toString(),
+      contains('activeWaveCellStale'),
+    );
+    expect(
+      summary['activeWaveUnsafeFindings'].toString(),
+      isNot(contains('activeWaveStatusStale')),
+    );
+  });
+
   test('next action blocks active parser waves with failed cells', () {
     final root = Directory.systemTemp.createTempSync(
       'maintainiac_next_failed_cells_',
