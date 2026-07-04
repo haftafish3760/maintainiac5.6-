@@ -55,12 +55,22 @@ class ReceiptSelectedLineReference {
   final bool needsParserReview;
   final bool needsClientProofReview;
 
-  double get lineBusinessSubtotal => lineSubtotal * businessPercent;
-  double get lineBusinessTaxAmount => lineTaxAmount * businessPercent;
-  double get lineBusinessTotal => lineTotal * businessPercent;
-  double get linePersonalSubtotal => lineSubtotal * personalPercent;
-  double get linePersonalTaxAmount => lineTaxAmount * personalPercent;
-  double get linePersonalTotal => lineTotal * personalPercent;
+  double get safeBusinessPercent {
+    final normalizedUse = businessUse.trim().toLowerCase();
+    if (normalizedUse == 'personal') return 0;
+    if (normalizedUse != 'split') return 1;
+    if (!businessPercent.isFinite) return .5;
+    return businessPercent.clamp(0, 1).toDouble();
+  }
+
+  double get safePersonalPercent => 1 - safeBusinessPercent;
+
+  double get lineBusinessSubtotal => lineSubtotal * safeBusinessPercent;
+  double get lineBusinessTaxAmount => lineTaxAmount * safeBusinessPercent;
+  double get lineBusinessTotal => lineTotal * safeBusinessPercent;
+  double get linePersonalSubtotal => lineSubtotal * safePersonalPercent;
+  double get linePersonalTaxAmount => lineTaxAmount * safePersonalPercent;
+  double get linePersonalTotal => lineTotal * safePersonalPercent;
 
   bool get redactsFromClientProofByDefault {
     return clientProofDefaultVisibility ==
@@ -81,8 +91,8 @@ class ReceiptSelectedLineReference {
       'clientProofDefaultVisibility': clientProofDefaultVisibility,
       'kind': kind,
       'businessUse': businessUse,
-      'businessPercent': businessPercent,
-      'personalPercent': personalPercent,
+      'businessPercent': safeBusinessPercent,
+      'personalPercent': safePersonalPercent,
       if (sourceReceiptSectionLabel.trim().isNotEmpty)
         'sourceReceiptSectionLabel': sourceReceiptSectionLabel.trim(),
       'lineSubtotal': lineSubtotal,
@@ -109,8 +119,8 @@ class ReceiptSelectedLineReference {
       'clientProofDefaultVisibility': clientProofDefaultVisibility,
       'kind': kind,
       'businessUse': businessUse,
-      'businessPercent': businessPercent,
-      'personalPercent': personalPercent,
+      'businessPercent': safeBusinessPercent,
+      'personalPercent': safePersonalPercent,
       if (sourceReceiptSectionLabel.trim().isNotEmpty)
         'sourceReceiptSectionLabel': privacySafeReceiptSourceSectionLabel(
           sourceReceiptSectionLabel,

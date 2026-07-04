@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 690 - 00:50:48 EDT to active cleanup
+
+Scope:
+- Hardened directly constructed selected receipt line references so malformed
+  business/personal percentages cannot publish non-finite or overallocated
+  split totals.
+- Made business use the source of truth for selected-line allocation and made
+  split personal percent the complement of the clamped business percent.
+- Added regression coverage for overallocated and non-finite selected-line
+  split allocations.
+- Recorded `BUG-RECEIPT-0177` under `business_personal_split`.
+- Archived Pass 629 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for selected receipt line allocation.
+- Passed focused Flutter receipt processing contract regression.
+- Passed cleanup log, doc size, bug ledger, source audit, tests-only source
+  audit, and diff whitespace gates.
+
 ## Pass 689 - 00:48:40 EDT to active cleanup
 
 Scope:
@@ -470,21 +489,3 @@ Verification:
 - Passed targeted Dart format/analyzer for native ghost-guide session changes.
 - Passed focused Flutter native camera session limits regression.
 - Passed whitespace check.
-
-## Pass 629 - 22:08:07 EDT to active cleanup
-
-Scope:
-- Added privacy-safe long-receipt ghost slice percent handoff signals so review,
-  OCR, admin QA, and future UI/native changes can prove the intended overlap
-  guidance without exposing receipt paths or text.
-- Added focused continuation handoff regressions for native slice-percent
-  diagnostics, fallback fraction-derived slice percent, malformed numeric
-  diagnostics, and no receipt-text leakage.
-- Archived Pass 619 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0150` under `ghost_overlap_stitching`.
-
-Verification:
-- Passed targeted Dart format/analyzer for continuation handoff changes.
-- Passed focused Flutter continuation handoff regression.
-- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
-  check.

@@ -148,6 +148,53 @@ void main() {
     },
   );
 
+  test('selected receipt line references clamp malformed allocations', () {
+    const overAllocated = ReceiptSelectedLineReference(
+      receiptId: 'RCP-11',
+      receiptLineId: 'RCP-11-L1',
+      proofLineReferenceLabel: 'Line 1',
+      clientProofDefaultVisibility:
+          ReceiptLineClientProofVisibility.reviewForClientProof,
+      kind: 'expense',
+      businessUse: 'split',
+      businessPercent: 2.5,
+      personalPercent: double.negativeInfinity,
+      lineSubtotal: 20,
+      lineTaxAmount: 2,
+      lineTotal: 22,
+    );
+    const malformed = ReceiptSelectedLineReference(
+      receiptId: 'RCP-11',
+      receiptLineId: 'RCP-11-L2',
+      proofLineReferenceLabel: 'Line 2',
+      clientProofDefaultVisibility:
+          ReceiptLineClientProofVisibility.reviewForClientProof,
+      kind: 'expense',
+      businessUse: 'split',
+      businessPercent: double.nan,
+      personalPercent: double.infinity,
+      lineSubtotal: 20,
+      lineTaxAmount: 2,
+      lineTotal: 22,
+    );
+
+    expect(overAllocated.safeBusinessPercent, 1);
+    expect(overAllocated.safePersonalPercent, 0);
+    expect(overAllocated.lineBusinessTotal, 22);
+    expect(overAllocated.linePersonalTotal, 0);
+    expect(overAllocated.toLocalMap()['businessPercent'], 1);
+    expect(overAllocated.toLocalMap()['personalPercent'], 0);
+
+    expect(malformed.safeBusinessPercent, .5);
+    expect(malformed.safePersonalPercent, .5);
+    expect(malformed.lineBusinessSubtotal, 10);
+    expect(malformed.linePersonalSubtotal, 10);
+    expect(malformed.toPrivacySafeMap()['businessPercent'], .5);
+    expect(malformed.toPrivacySafeMap()['personalPercent'], .5);
+    expect(malformed.toLocalMap().toString(), isNot(contains('NaN')));
+    expect(malformed.toLocalMap().toString(), isNot(contains('Infinity')));
+  });
+
   test(
     'client proof redaction plan separates visible review and hidden lines',
     () {
