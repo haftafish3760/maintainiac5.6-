@@ -93,7 +93,7 @@ extension _ExpenseReceiptEntryPhotoPreparationTelemetryTail
         captureDiagnostics,
         'edgeOverlayEnabled',
       ),
-      'tapFocusEnabledCount': _diagnosticBoolTrueCount(
+      'legacyTapFocusEnabledCount': _diagnosticBoolTrueCount(
         captureDiagnostics,
         'tapFocusEnabled',
       ),

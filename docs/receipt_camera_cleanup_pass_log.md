@@ -125,6 +125,20 @@ Verification:
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.
 
+## Pass 627 - 22:02:52 EDT to active cleanup
+
+Scope:
+- Renamed the retired tap-focus enabled telemetry counter to
+  `legacyTapFocusEnabledCount`.
+- Added a source regression rejecting the old active key name.
+- Archived Pass 599 from the active cleanup log.
+- Recorded `BUG-RECEIPT-0148` under `camera_capture_quality`.
+
+Verification:
+- Passed targeted analyzer and focused OCR-source handoff source regression.
+- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
+  check.
+
 ## Pass 618 - 21:42:32 EDT to active cleanup
 
 Scope:
@@ -473,20 +487,4 @@ Verification:
   review-handoff regressions.
 - Passed focused Flutter Android native diagnostics, review close handoff, and
   explicit iOS native storage/close regressions.
-- Passed cleanup log gate, doc-size gate, source audit, and whitespace check.
-
-## Pass 599 - 20:54:50 EDT to 20:55:59 EDT
-
-Scope:
-- Hardened Android and iOS native pre-capture exposure outcome classification
-  so `aborted_camera_closing` remains a stable diagnostic outcome instead of
-  collapsing to `not_evaluated`.
-- Added Android and iOS source-contract regressions for the abort outcome.
-- Recorded `BUG-RECEIPT-0120` under `native_bridge`.
-
-Verification:
-- Passed targeted Dart format/analyzer for Android and iOS native diagnostics
-  source-contract regressions.
-- Passed focused Flutter native diagnostics/storage regressions for Android
-  and iOS.
 - Passed cleanup log gate, doc-size gate, source audit, and whitespace check.

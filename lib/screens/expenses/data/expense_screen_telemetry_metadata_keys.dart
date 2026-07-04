@@ -277,7 +277,7 @@ const _expenseTelemetryAllowedMetadataKeys = <String>{
   'userEditedPhotoCount',
   'edgeDetectionEnabledCount',
   'edgeOverlayEnabledCount',
-  'tapFocusEnabledCount',
+  'legacyTapFocusEnabledCount',
   'pinchZoomEnabledCount',
   'brightnessSliderEnabledCount',
   'tapFocusControlExpectedCount',

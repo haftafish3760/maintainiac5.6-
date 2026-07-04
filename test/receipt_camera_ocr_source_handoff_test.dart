@@ -228,7 +228,8 @@ void main() {
     expect(receiptEntryScreen, contains('autoCaptureStatusBuckets'));
     expect(receiptEntryScreen, contains('edgeDetectionEnabledCount'));
     expect(receiptEntryScreen, contains('edgeOverlayEnabledCount'));
-    expect(receiptEntryScreen, contains('tapFocusEnabledCount'));
+    expect(receiptEntryScreen, contains('legacyTapFocusEnabledCount'));
+    expect(receiptEntryScreen, isNot(contains("'tapFocusEnabledCount'")));
     expect(receiptEntryScreen, contains('pinchZoomEnabledCount'));
     expect(receiptEntryScreen, contains('brightnessSliderEnabledCount'));
     expect(receiptEntryScreen, contains('shadowWarningEnabledCount'));
