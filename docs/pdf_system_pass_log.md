@@ -1,5 +1,27 @@
 # PDF System Pass Log
 
+## Pass 18 - 2026-07-04 20:07 EDT - All-page render smoke gate
+
+- Scope: PDF render QA tooling only. No inventory, camera, native capture,
+  receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Upgraded the render smoke gate from first-page-only rendering to all-page
+    rendering for each PDF fixture.
+  - Added page-count verification against Poppler output so missing rendered
+    pages fail the gate.
+  - Required the real invoice renderer fixture to stay multi-page, then checked
+    every rendered invoice page with the pixel assertions.
+  - Strengthened the quality-gate contract so future edits cannot quietly
+    remove all-page rendering, page-count checks, or the multi-page invoice
+    fixture.
+- Verification completed 2026-07-04 20:06 EDT:
+  - `dart format test/pdf_quality_gate_contract_test.dart`
+  - `bash -n tool/pdf_render_smoke_gate.sh`
+  - `dart analyze test/pdf_quality_gate_contract_test.dart`
+  - `flutter test test/pdf_quality_gate_contract_test.dart test/pdf_render_gate_invoice_generator_test.dart -r compact`
+  - `bash tool/pdf_render_smoke_gate.sh`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 17 - 2026-07-04 19:53 EDT - Cent-safe invoice PDF money
 
 - Scope: invoice/estimate financial calculations used by generated PDFs and

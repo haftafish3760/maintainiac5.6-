@@ -43,18 +43,34 @@ PDF_RENDER_GATE_INVOICE_OUTPUT="$real_invoice_pdf" \
   flutter test test/pdf_render_gate_invoice_generator_test.dart -r compact >/dev/null
 
 for pdf in "$receipt_pdf" "$invoice_pdf" "$real_invoice_pdf"; do
-  "$PDFINFO_BIN" "$pdf" >/dev/null
+  info="$("$PDFINFO_BIN" "$pdf")"
+  page_count="$(printf '%s\n' "$info" | awk '/^Pages:/ {print $2}')"
+  if [[ -z "$page_count" || "$page_count" -lt 1 ]]; then
+    echo "Could not determine a positive page count for $pdf" >&2
+    exit 1
+  fi
+  if [[ "$pdf" == "$real_invoice_pdf" && "$page_count" -lt 2 ]]; then
+    echo "Real invoice render fixture must exercise multiple pages." >&2
+    exit 1
+  fi
   prefix="$work_dir/$(basename "$pdf" .pdf)"
-  "$PDFTOPPM_BIN" -singlefile -png -r 72 "$pdf" "$prefix" >/dev/null
-  png="$prefix.png"
-  if [[ ! -s "$png" ]]; then
-    echo "Rendered PDF page is blank or missing for $pdf" >&2
+  "$PDFTOPPM_BIN" -png -r 72 "$pdf" "$prefix" >/dev/null
+  rendered_count="$(find "$work_dir" -maxdepth 1 -name "$(basename "$prefix")-*.png" | wc -l | tr -d ' ')"
+  if [[ "$rendered_count" -ne "$page_count" ]]; then
+    echo "Rendered page count mismatch for $pdf: expected $page_count, got $rendered_count" >&2
     exit 1
   fi
-  bytes="$(wc -c < "$png" | tr -d ' ')"
-  if [[ "$bytes" -lt 1000 ]]; then
-    echo "Rendered PDF page is suspiciously small for $pdf: $bytes bytes" >&2
-    exit 1
-  fi
-  python3 tool/pdf_render_pixel_assertions.py "$png"
+  for page_number in $(seq 1 "$page_count"); do
+    png="${prefix}-${page_number}.png"
+    if [[ ! -s "$png" ]]; then
+      echo "Rendered PDF page is blank or missing for $pdf page $page_number" >&2
+      exit 1
+    fi
+    bytes="$(wc -c < "$png" | tr -d ' ')"
+    if [[ "$bytes" -lt 1000 ]]; then
+      echo "Rendered PDF page is suspiciously small for $pdf page $page_number: $bytes bytes" >&2
+      exit 1
+    fi
+    python3 tool/pdf_render_pixel_assertions.py "$png"
+  done
 done

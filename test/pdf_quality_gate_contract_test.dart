@@ -69,6 +69,13 @@ void main() {
       ).readAsStringSync();
       expect(renderGate, contains('tool/pdf_render_pixel_assertions.py'));
       expect(renderGate, contains('PDF_RENDER_GATE_INVOICE_OUTPUT'));
+      expect(renderGate, contains('page_count'));
+      expect(renderGate, contains('rendered_count'));
+      expect(renderGate, contains('Real invoice render fixture'));
+      expect(
+        renderGate,
+        contains(r'for page_number in $(seq 1 "$page_count")'),
+      );
       expect(
         renderGate,
         contains('test/pdf_render_gate_invoice_generator_test.dart'),
