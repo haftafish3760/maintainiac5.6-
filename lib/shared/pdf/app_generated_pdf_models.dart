@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'app_pdf_security_policy.dart';
+
 const int appGeneratedPdfMaxBytes = 25 * 1024 * 1024;
 
 enum AppGeneratedPdfKind {
@@ -102,18 +104,7 @@ class AppGeneratedPdfValidationReport {
     if (!_hasPdfEndMarker(bytes)) {
       issues.add('missing_pdf_end_marker');
     }
-    final content = latin1.decode(bytes);
-    final lower = content.toLowerCase();
-    const activeMarkers = {
-      '/javascript': 'active_javascript',
-      '/js': 'active_javascript',
-      '/launch': 'active_launch_action',
-      '/embeddedfile': 'embedded_file',
-      '/xfa': 'dynamic_form_content',
-    };
-    for (final entry in activeMarkers.entries) {
-      if (lower.contains(entry.key)) issues.add(entry.value);
-    }
+    issues.addAll(AppPdfSecurityPolicy.activeContentIssueCodesForBytes(bytes));
     return AppGeneratedPdfValidationReport(
       byteSize: bytes.lengthInBytes,
       issues: issues.toSet().toList(growable: false),

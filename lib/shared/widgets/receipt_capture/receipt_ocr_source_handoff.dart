@@ -14,6 +14,7 @@ class ReceiptOcrSourceHandoffSummary {
     required this.coverageSignalCounts,
     required this.continuationSignalCounts,
     required this.completionSignalCounts,
+    required this.reviewDepthSignalCounts,
     required this.photoQualityRiskCounts,
   });
 
@@ -30,6 +31,7 @@ class ReceiptOcrSourceHandoffSummary {
       coverageSignalCounts = const {},
       continuationSignalCounts = const {},
       completionSignalCounts = const {},
+      reviewDepthSignalCounts = const {},
       photoQualityRiskCounts = const {};
 
   factory ReceiptOcrSourceHandoffSummary.fromAttachments(
@@ -47,6 +49,7 @@ class ReceiptOcrSourceHandoffSummary {
     final coverageSignals = <String, int>{};
     final continuations = <String, int>{};
     final completions = <String, int>{};
+    final reviewDepths = <String, int>{};
     final qualityRisks = <String, int>{};
 
     for (final attachment in attachments) {
@@ -90,6 +93,9 @@ class ReceiptOcrSourceHandoffSummary {
         if (token.startsWith('receipt_completion_')) {
           _incrementOcrHandoffCount(completions, token);
         }
+        if (token.startsWith('receipt_review_depth_')) {
+          _incrementOcrHandoffCount(reviewDepths, token);
+        }
       }
       for (final risk in attachment.riskFlags) {
         final token = _safeOcrHandoffToken(risk);
@@ -128,6 +134,7 @@ class ReceiptOcrSourceHandoffSummary {
       coverageSignalCounts: Map.unmodifiable(coverageSignals),
       continuationSignalCounts: Map.unmodifiable(continuations),
       completionSignalCounts: Map.unmodifiable(completions),
+      reviewDepthSignalCounts: Map.unmodifiable(reviewDepths),
       photoQualityRiskCounts: Map.unmodifiable(qualityRisks),
     );
   }
@@ -144,6 +151,7 @@ class ReceiptOcrSourceHandoffSummary {
   final Map<String, int> coverageSignalCounts;
   final Map<String, int> continuationSignalCounts;
   final Map<String, int> completionSignalCounts;
+  final Map<String, int> reviewDepthSignalCounts;
   final Map<String, int> photoQualityRiskCounts;
 
   bool get hasSignals =>
@@ -159,5 +167,6 @@ class ReceiptOcrSourceHandoffSummary {
       coverageSignalCounts.isNotEmpty ||
       continuationSignalCounts.isNotEmpty ||
       completionSignalCounts.isNotEmpty ||
+      reviewDepthSignalCounts.isNotEmpty ||
       photoQualityRiskCounts.isNotEmpty;
 }

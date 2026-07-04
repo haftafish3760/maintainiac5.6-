@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../../pdf/app_pdf_security_policy.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_pdf_limits.dart';
 
@@ -96,36 +97,49 @@ class ReceiptPdfInspector {
     final text = String.fromCharCodes(bytes).toLowerCase();
     final flags = <String>[];
     if ((headerOffset ?? 0) > 0) flags.add(headerOffsetRiskFlag);
-    if (_containsPdfName(text, 'encrypt')) flags.add(encryptionRiskFlag);
-    if (_containsPdfName(text, 'javascript') || _containsPdfName(text, 'js')) {
+    if (AppPdfSecurityPolicy.containsPdfName(text, 'encrypt')) {
+      flags.add(encryptionRiskFlag);
+    }
+    final activeCodes = AppPdfSecurityPolicy.activeContentIssueCodesForBytes(
+      bytes,
+    );
+    if (activeCodes.contains(AppPdfSecurityPolicy.activeJavaScript)) {
       flags.add(embeddedJavaScriptRiskFlag);
     }
-    if (_containsPdfName(text, 'openaction')) flags.add(openActionRiskFlag);
-    if (_containsPdfName(text, 'launch')) flags.add(launchActionRiskFlag);
-    if (_containsPdfName(text, 'aa')) flags.add(automaticActionRiskFlag);
-    if (_containsPdfName(text, 'embeddedfile') ||
-        _containsPdfName(text, 'filespec')) {
+    if (activeCodes.contains(AppPdfSecurityPolicy.autoOpenAction)) {
+      flags.add(openActionRiskFlag);
+    }
+    if (activeCodes.contains(AppPdfSecurityPolicy.activeLaunchAction)) {
+      flags.add(launchActionRiskFlag);
+    }
+    if (activeCodes.contains(AppPdfSecurityPolicy.automaticAction)) {
+      flags.add(automaticActionRiskFlag);
+    }
+    if (activeCodes.contains(AppPdfSecurityPolicy.embeddedFile)) {
       flags.add(embeddedFileRiskFlag);
     }
-    if (_containsPdfName(text, 'richmedia')) flags.add(embeddedMediaRiskFlag);
-    if (_containsPdfName(text, 'submitform')) {
+    if (activeCodes.contains(AppPdfSecurityPolicy.embeddedMedia)) {
+      flags.add(embeddedMediaRiskFlag);
+    }
+    if (activeCodes.contains(AppPdfSecurityPolicy.formSubmissionAction)) {
       flags.add(formSubmissionRiskFlag);
     }
-    if (_containsPdfName(text, 'acroform') || _containsPdfName(text, 'xfa')) {
+    if (activeCodes.contains(AppPdfSecurityPolicy.dynamicFormContent)) {
       flags.add('form fields');
     }
-    if (_containsPdfName(text, 'annots')) flags.add('annotations');
+    if (AppPdfSecurityPolicy.containsPdfName(text, 'annots')) {
+      flags.add('annotations');
+    }
     if (!text.contains('%%eof')) flags.add('missing EOF marker');
     if (!text.contains('startxref')) flags.add('missing startxref marker');
     if (!RegExp(r'(^|\s)xref(\s|$)').hasMatch(text)) {
       flags.add('missing xref table marker');
     }
-    if (!_containsPdfName(text, 'trailer') && !text.contains('trailer')) {
+    if (!AppPdfSecurityPolicy.containsPdfName(text, 'trailer') &&
+        !text.contains('trailer')) {
       flags.add('missing trailer marker');
     }
-    if (_containsPdfName(text, 'uri') ||
-        text.contains('http://') ||
-        text.contains('https://')) {
+    if (activeCodes.contains(AppPdfSecurityPolicy.externalLinks)) {
       flags.add('external links');
     }
     return List.unmodifiable(flags);
@@ -138,15 +152,11 @@ class ReceiptPdfInspector {
     for (final signal in {...receiptSignals, ...nonReceiptSignals}) {
       if (_containsPhrase(text, signal)) signals.add(signal);
     }
-    if (_containsPdfName(text, 'image') || _containsPdfName(text, 'xobject')) {
+    if (AppPdfSecurityPolicy.containsPdfName(text, 'image') ||
+        AppPdfSecurityPolicy.containsPdfName(text, 'xobject')) {
       signals.add(imageContentSignal);
     }
     return List.unmodifiable(signals);
-  }
-
-  static bool _containsPdfName(String text, String name) {
-    final escaped = RegExp.escape(name.toLowerCase());
-    return RegExp('/$escaped(?![a-z0-9])').hasMatch(text);
   }
 
   static bool _containsPhrase(String text, String phrase) {

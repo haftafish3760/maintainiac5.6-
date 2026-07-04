@@ -73,6 +73,22 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
     return 'ocr_source_first_outcome_unknown';
   }
 
+  String get reviewDepthStatus {
+    if ((reviewDepthSignalCounts['receipt_review_depth_detailedlines'] ?? 0) >
+            0 ||
+        (reviewDepthSignalCounts['receipt_review_depth_detailed_lines'] ?? 0) >
+            0) {
+      return 'detailed_lines';
+    }
+    if ((reviewDepthSignalCounts['receipt_review_depth_pricesonly'] ?? 0) > 0 ||
+        (reviewDepthSignalCounts['receipt_review_depth_prices_only'] ?? 0) >
+            0) {
+      return 'prices_only';
+    }
+    if (reviewDepthSignalCounts.isNotEmpty) return 'review_depth_unknown';
+    return 'review_depth_not_reported';
+  }
+
   String get warningProfileStatus {
     for (final token in const [
       'receipt_handoff_warning_saved_photo_brightness_assist_failed_dark',
@@ -227,6 +243,10 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
         'warningProfileStatus': warningProfileStatus,
       if (handoffWarningProfileCounts.isNotEmpty)
         'reviewCueStatus': reviewCueStatus,
+      if (reviewDepthSignalCounts.isNotEmpty)
+        'reviewDepthSignalCounts': reviewDepthSignalCounts,
+      if (reviewDepthSignalCounts.isNotEmpty)
+        'reviewDepthStatus': reviewDepthStatus,
       if (sourceQualityReviewStatus != 'source_quality_ready_or_not_reported')
         'sourceQualityReviewStatus': sourceQualityReviewStatus,
       if (sourceQualityReviewStatus != 'source_quality_ready_or_not_reported')

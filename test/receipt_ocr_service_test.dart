@@ -50,6 +50,7 @@ void main() {
             'receipt_ocr_source_photo',
             'receipt_handoff_ready_for_receipt_review',
             'receipt_handoff_warning_saved_photo_dimmer_than_preview',
+            'receipt_review_depth_detailedlines',
             'receipt_handoff_stitch_stitched',
             'stitched_ocr_source',
             'stitch_overlap_all_pairs_have_overlap_evidence',
@@ -86,6 +87,10 @@ void main() {
         summary.warningProfileStatus,
         'receipt_handoff_warning_saved_photo_dimmer_than_preview',
       );
+      expect(summary.reviewDepthSignalCounts, {
+        'receipt_review_depth_detailedlines': 1,
+      });
+      expect(summary.reviewDepthStatus, 'detailed_lines');
       expect(summary.reviewCueStatus, 'saved_photo_dimmer_than_preview');
       expect(summary.sourceFirstDecisionCounts, {
         'ocr_source_first_prepared_receipt_source_before_saved_proof': 1,
@@ -151,6 +156,10 @@ void main() {
       expect(
         diagnostics.ocrSourceHandoffContract['reviewCueStatus'],
         'saved_photo_dimmer_than_preview',
+      );
+      expect(
+        diagnostics.ocrSourceHandoffContract['reviewDepthStatus'],
+        'detailed_lines',
       );
       expect(
         diagnostics.ocrSourceHandoffContract['sourceQualityReviewStatus'],

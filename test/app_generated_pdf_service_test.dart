@@ -137,6 +137,32 @@ void main() {
     expect(active.validation.hasIssue('active_javascript'), isTrue);
   });
 
+  test('generated PDF validation shares active-content policy coverage', () {
+    final active = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\n'
+                '1 0 obj << /Type /Page /OpenAction 2 0 R /AA 3 0 R >> endobj\n'
+                '2 0 obj << /Launch 4 0 R /RichMedia 5 0 R /SubmitForm 6 0 R >> endobj\n'
+                '3 0 obj << /EmbeddedFile 7 0 R /URI (https://example.com) >> endobj\n'
+                '%%EOF'
+            .codeUnits,
+      ),
+      createdAt: DateTime(2026, 7, 4),
+    );
+
+    expect(active.validation.isValid, isFalse);
+    expect(active.validation.hasIssue('auto_open_action'), isTrue);
+    expect(active.validation.hasIssue('active_launch_action'), isTrue);
+    expect(active.validation.hasIssue('automatic_action'), isTrue);
+    expect(active.validation.hasIssue('embedded_file'), isTrue);
+    expect(active.validation.hasIssue('embedded_media'), isTrue);
+    expect(active.validation.hasIssue('form_submission_action'), isTrue);
+    expect(active.validation.hasIssue('external_links'), isTrue);
+  });
+
   test(
     'generated PDF service refuses incomplete PDFs before writing',
     () async {
