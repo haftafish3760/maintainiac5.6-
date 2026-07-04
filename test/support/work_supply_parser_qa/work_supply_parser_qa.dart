@@ -17,6 +17,7 @@ import 'work_supply_parser_barcode_inventory_identity_qa.dart';
 import 'work_supply_parser_category_reuse_qa.dart';
 import 'work_supply_parser_catalog_batch_memory_qa.dart';
 import 'work_supply_parser_catalog_batch_manifest_qa.dart';
+import 'work_supply_parser_catalog_expansion_lifecycle_qa.dart';
 import 'work_supply_parser_catalog_item_batch_generation_qa.dart';
 import 'work_supply_parser_catalog_family_rerun_qa.dart';
 import 'work_supply_parser_cloud_cost_guard_qa.dart';
@@ -283,6 +284,7 @@ QaHarness buildWorkSupplyParserQaHarness() {
       WorkSupplyParserBarcodeInventoryIdentitySuite(),
       WorkSupplyParserCatalogBatchMemorySuite(),
       WorkSupplyParserCatalogBatchManifestSuite(),
+      WorkSupplyParserCatalogExpansionLifecycleSuite(),
       WorkSupplyParserCatalogItemBatchGenerationSuite(),
       WorkSupplyParserBulkGenerationPipelineSuite(),
       WorkSupplyParserCatalogFamilyRerunSuite(),
