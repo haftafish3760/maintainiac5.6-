@@ -224,6 +224,11 @@ void main() {
       source,
       contains('final addedPhotoCount = staged.photoPaths.length'),
     );
+    expect(
+      source,
+      contains('final initialPhotoCount = uniqueNormalizedReceiptPhotoPaths('),
+    );
+    expect(source, contains('return initialPhotoCount + addedPhotoIndex'));
     expect(source, contains('.clamp(0, addedPhotoCount - 1)'));
     expect(
       source,

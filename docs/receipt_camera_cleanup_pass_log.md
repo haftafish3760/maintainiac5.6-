@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 771 - 05:44:56 EDT to active cleanup
+
+Scope:
+- Hardened shared camera review-opening selection so the old-photo offset uses
+  the same normalized initial receipt photo count as the review screen.
+- Prevented invalid or duplicate existing photo paths from shifting selection
+  away from the newly staged receipt section.
+- Added a source regression tying review-opening index math to
+  `uniqueNormalizedReceiptPhotoPaths`.
+- Recorded `BUG-RECEIPT-0259` under `camera_review_state`.
+- Archived Pass 743 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for review-opening offset changes.
+- Passed focused Flutter capture-flow shareability regression.
+- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
+
 ## Pass 770 - 05:41:14 EDT to active cleanup
 
 Scope:
@@ -479,20 +496,3 @@ Verification:
 - Passed focused Flutter parser handoff structure and line-identity regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates after splitting the oversized test.
-
-## Pass 743 - 03:41:10 EDT to active cleanup
-
-Scope:
-- Hardened receipt line-number handoff so duplicate stable OCR line IDs are
-  surfaced as a review-needed identity status instead of silently hiding behind
-  first-entry map preservation.
-- Added focused regression coverage proving duplicate IDs are counted and
-  exposed in the privacy-safe parser handoff contract.
-- Recorded `BUG-RECEIPT-0231` under `receipt_line_numbering`.
-- Archived Pass 718 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for parser handoff line identity.
-- Passed focused Flutter parser handoff structure regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates after correcting the ledger category.

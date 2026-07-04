@@ -242,10 +242,13 @@ int _reviewInitialSelectedIndex({
   required ReceiptCaptureFlowOptions options,
   required ReceiptNativeCaptureStagingResult staged,
 }) {
+  final initialPhotoCount = uniqueNormalizedReceiptPhotoPaths(
+    options.initialPhotoPaths,
+  ).length;
   final addedPhotoCount = staged.photoPaths.length;
-  if (addedPhotoCount <= 0) return options.initialPhotoPaths.length;
+  if (addedPhotoCount <= 0) return initialPhotoCount;
   final addedPhotoIndex = options.initialSelectedIndex
       .clamp(0, addedPhotoCount - 1)
       .toInt();
-  return options.initialPhotoPaths.length + addedPhotoIndex;
+  return initialPhotoCount + addedPhotoIndex;
 }
