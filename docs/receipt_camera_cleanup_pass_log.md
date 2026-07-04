@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 775 - 06:02:17 EDT to active cleanup
+
+Scope:
+- Ran a broader focused regression bundle across the camera/review path
+  normalization work from Passes 764-774.
+- Covered shared capture flow, interrupted native recovery, long-receipt
+  guidance, native bridge layout, camera capture layout, and photo-review
+  lifecycle source contracts.
+- Archived Pass 747 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed focused Flutter regression bundle:
+  `test/receipt_capture_flow_shareability_test.dart`,
+  `test/receipt_capture_flow_recovery_contract_test.dart`,
+  `test/receipt_camera_long_receipt_guidance_test.dart`,
+  `test/receipt_camera_capture_layout_test.dart`,
+  `test/receipt_camera_native_bridge_layout_test.dart`, and
+  `test/receipt_photo_review_save_lifecycle_test.dart`.
+
 ## Pass 774 - 05:58:15 EDT to active cleanup
 
 Scope:
@@ -475,22 +494,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for expense settings review mode.
 - Passed focused expense settings-store regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 747 - 03:48:44 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS native receipt review-depth argument readers so
-  snake-case, hyphenated, padded, or cased bridge values preserve prices-only
-  versus detailed-line intent.
-- Added native source regressions for both bridge argument readers.
-- Recorded `BUG-RECEIPT-0235` under `native_bridge`.
-- Archived Pass 722 from the active cleanup log to keep the doc under cap and
-  removed a stale duplicate verification tail line.
-
-Verification:
-- Passed targeted Dart format/analyzer for native bridge review-depth tests.
-- Passed focused Android/iOS native bridge UI contract regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
