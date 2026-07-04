@@ -3577,3 +3577,8 @@ Release boundaries:
   `HVAC SUPPLY 20X25X1 MERV 8 FILTER` clear-match fixtures, then reran the same
   gate. Focused `inventory.fixture_corpus_contract,inventory.merchant_independence_contract,qa.threshold_gate`
   passed 297 checks with 0 failures, and targeted analyzer found no issues.
+- **11:33 Harness Pass 2646:** Completed structured expected-result metadata
+  for the new Electrical/HVAC golden fixtures and verified they resolve to real
+  semantic catalog candidates. Focused
+  `inventory.fixture_expectation_contract,inventory.fixture_candidate_identity_contract,qa.threshold_gate`
+  passed 401 checks with 0 failures.

@@ -1343,7 +1343,10 @@
     "expectedNameContains": "GFCI",
     "tradeScope": "Electrical",
     "expectedStatus": "matched",
-    "expectedReviewRequired": false
+    "expectedTopCandidateId": "gfci",
+    "expectedReviewRequired": false,
+    "expectedCandidateTrade": "electrical",
+    "expectedConfidenceBand": "high"
   },
   {
     "id": "hvac_supply_filter_clear_match_en_us",
@@ -1364,6 +1367,9 @@
     "expectedNameContains": "Filter",
     "tradeScope": "HVAC",
     "expectedStatus": "matched",
-    "expectedReviewRequired": false
+    "expectedTopCandidateId": "filter",
+    "expectedReviewRequired": false,
+    "expectedCandidateTrade": "hvac",
+    "expectedConfidenceBand": "high"
   }
 ]
