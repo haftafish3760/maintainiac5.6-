@@ -36,6 +36,42 @@ void main() {
           'warningProfileStatus/reviewCueStatus token.',
     );
   });
+
+  test('saved photo parser risks stay wired into OCR handoff', () {
+    final warningDetails = File(
+      'lib/shared/widgets/receipt_capture/'
+      'receipt_native_saved_photo_warning_details.dart',
+    ).readAsStringSync();
+    final ocrHandoff = File(
+      'lib/shared/widgets/receipt_capture/'
+      'receipt_ocr_source_handoff_review.dart',
+    ).readAsStringSync();
+    final diagnosticsHelpers = File(
+      'lib/shared/widgets/receipt_capture/'
+      'receipt_ocr_diagnostics_helpers.dart',
+    ).readAsStringSync();
+
+    final parserRisks = _tokensInsideMethod(
+      warningDetails,
+      methodName: 'parserRiskCode',
+      tokenPrefix: 'ocr_',
+    )..remove('ocr_review_if_needed');
+
+    expect(parserRisks, isNotEmpty);
+    for (final risk in parserRisks) {
+      final handoffToken = 'ocr_source_parser_risk_$risk';
+      expect(
+        ocrHandoff,
+        contains(handoffToken),
+        reason: '$handoffToken must influence OCR source handoff status.',
+      );
+      expect(
+        diagnosticsHelpers,
+        contains(handoffToken),
+        reason: '$handoffToken must influence parser/admin diagnostics.',
+      );
+    }
+  });
 }
 
 Set<String> _tokensInsideMethod(
