@@ -66,11 +66,42 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
         actual: result.finalLocalState,
         triage: QaFailureTriage.reviewSafety,
       );
+      _expect(
+        failures,
+        result.destinationPreserved,
+        id: '${scenario.id}:destination_preserved',
+        message: 'Parser review workflow lost the user-selected destination.',
+        expected:
+            'Confirmed item routes to inventory, job, estimate, invoice, or rejection exactly as reviewed.',
+        actual: result.finalLocalState,
+        triage: QaFailureTriage.governance,
+      );
+      _expect(
+        failures,
+        result.contextPreserved,
+        id: '${scenario.id}:context_preserved',
+        message:
+            'Trade/job/estimate context was not preserved as supporting evidence.',
+        expected:
+            'Enabled packs and active section context stay attached without forcing certainty.',
+        actual: result.finalLocalState,
+        triage: QaFailureTriage.reviewSafety,
+      );
+      _expect(
+        failures,
+        result.cloudOptInControlsMirror,
+        id: '${scenario.id}:cloud_opt_in_controls_mirror',
+        message: 'Fake Firebase mirror behavior ignored cloud opt-in state.',
+        expected:
+            'Cloud opt-in queues fake mirror after local write; local-only does not.',
+        actual: result.events.join(' > '),
+        triage: QaFailureTriage.security,
+      );
     }
 
     return timer.finish(
       suite: name,
-      checked: scenarios.length * 6,
+      checked: scenarios.length * 9,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
@@ -86,7 +117,12 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
 
   _WorkflowResult _runScenario(_WorkflowScenario scenario) {
     final fake = _FakeReviewEnvironment();
-    fake.receiveAdapterText(scenario.rawText);
+    fake.receiveAdapterText(
+      scenario.rawText,
+      destination: scenario.destination,
+      enabledTradePacks: scenario.enabledTradePacks,
+      activeSectionTrade: scenario.activeSectionTrade,
+    );
     fake.parserSuggests(
       status: scenario.expectedReviewStatus,
       candidateId: scenario.parserCandidateId,
@@ -128,6 +164,8 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
         userConfirmedItemId: 'pvc_schedule_40_coupling',
         expectedReviewStatus: 'high_confidence_review',
         action: _ReviewAction.accept,
+        destination: _WorkflowDestination.inventory,
+        enabledTradePacks: {'plumbing'},
         cloudOptIn: true,
       ),
       _WorkflowScenario(
@@ -138,6 +176,9 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
         expectedReviewStatus: 'multiple_possible_matches',
         action: _ReviewAction.edit,
         correctedName: 'PVC conduit coupling',
+        destination: _WorkflowDestination.jobMaterial,
+        enabledTradePacks: {'plumbing', 'electrical'},
+        activeSectionTrade: 'electrical',
         cloudOptIn: true,
       ),
       _WorkflowScenario(
@@ -147,6 +188,8 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
         userConfirmedItemId: 'unknown_item',
         expectedReviewStatus: 'unknown_item',
         action: _ReviewAction.markUnknown,
+        destination: _WorkflowDestination.inventory,
+        enabledTradePacks: {'plumbing', 'electrical', 'hvac'},
       ),
       _WorkflowScenario(
         id: 'noise_rejected_never_creates_inventory',
@@ -155,6 +198,32 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
         userConfirmedItemId: 'rejected',
         expectedReviewStatus: 'not_inventory',
         action: _ReviewAction.reject,
+        destination: _WorkflowDestination.rejected,
+        enabledTradePacks: {'plumbing'},
+        cloudOptIn: true,
+      ),
+      _WorkflowScenario(
+        id: 'estimate_section_context_keeps_pvc_ambiguous',
+        rawText: 'PVC EL 3/4',
+        parserCandidateId: 'ranked_pvc_elbow_candidate',
+        userConfirmedItemId: 'pvc_schedule_40_elbow',
+        expectedReviewStatus: 'multiple_possible_matches',
+        action: _ReviewAction.edit,
+        correctedName: 'PVC schedule 40 elbow',
+        destination: _WorkflowDestination.estimateMaterial,
+        enabledTradePacks: {'plumbing', 'electrical', 'hvac'},
+        activeSectionTrade: 'plumbing',
+        cloudOptIn: true,
+      ),
+      _WorkflowScenario(
+        id: 'invoice_material_accepts_user_confirmed_cost_line',
+        rawText: '3/4 COPPER 90',
+        parserCandidateId: 'ranked_copper_elbow_candidate',
+        userConfirmedItemId: 'copper_pressure_elbow',
+        expectedReviewStatus: 'high_confidence_review',
+        action: _ReviewAction.accept,
+        destination: _WorkflowDestination.invoiceMaterial,
+        enabledTradePacks: {'plumbing', 'hvac'},
         cloudOptIn: true,
       ),
     ];
@@ -193,6 +262,9 @@ class _WorkflowScenario {
     required this.userConfirmedItemId,
     required this.expectedReviewStatus,
     required this.action,
+    this.destination = _WorkflowDestination.inventory,
+    this.enabledTradePacks = const {},
+    this.activeSectionTrade = '',
     this.correctedName = '',
     this.cloudOptIn = false,
   });
@@ -203,11 +275,22 @@ class _WorkflowScenario {
   final String userConfirmedItemId;
   final String expectedReviewStatus;
   final _ReviewAction action;
+  final _WorkflowDestination destination;
+  final Set<String> enabledTradePacks;
+  final String activeSectionTrade;
   final String correctedName;
   final bool cloudOptIn;
 }
 
 enum _ReviewAction { accept, edit, reject, markUnknown }
+
+enum _WorkflowDestination {
+  inventory,
+  jobMaterial,
+  estimateMaterial,
+  invoiceMaterial,
+  rejected,
+}
 
 class _FakeReviewEnvironment {
   final events = <String>[];
@@ -216,14 +299,26 @@ class _FakeReviewEnvironment {
   String _parserCandidateId = '';
   String _localConfirmedItemId = '';
   String _localConfirmedName = '';
+  _WorkflowDestination _destination = _WorkflowDestination.inventory;
+  String _confirmedDestination = '';
+  String _contextEvidence = '';
+  String _confirmedContextEvidence = '';
   final bool _suggestionSaved = false;
   bool _localWriteDone = false;
   bool _inventoryRecordCreated = false;
   bool _mirrorQueued = false;
   final bool _liveFirebaseTouched = false;
 
-  void receiveAdapterText(String rawText) {
-    events.add('adapter_text_received');
+  void receiveAdapterText(
+    String rawText, {
+    required _WorkflowDestination destination,
+    required Set<String> enabledTradePacks,
+    required String activeSectionTrade,
+  }) {
+    events.add('adapter_text_received:${destination.name}');
+    _destination = destination;
+    final packs = enabledTradePacks.toList()..sort();
+    _contextEvidence = 'packs=$packs section=$activeSectionTrade';
     if (rawText.trim().isEmpty) events.add('empty_text_rejected');
   }
 
@@ -278,7 +373,7 @@ class _FakeReviewEnvironment {
     return _WorkflowResult(
       events: List.unmodifiable(events),
       finalLocalState:
-          'item=$_localConfirmedItemId name=$_localConfirmedName parser=$_parserCandidateId',
+          'item=$_localConfirmedItemId name=$_localConfirmedName parser=$_parserCandidateId destination=$_confirmedDestination context=$_confirmedContextEvidence',
       reviewStatus: _confirmedReviewStatus,
       localWriteBeforeMirror:
           _localWriteDone &&
@@ -291,6 +386,12 @@ class _FakeReviewEnvironment {
       reviewStatusPreserved: _confirmedReviewStatus == expectedReviewStatus,
       rejectedNoiseCreatedNoInventory:
           expectedConfirmedItemId != 'rejected' || !_inventoryRecordCreated,
+      destinationPreserved: _confirmedDestination == _destination.name,
+      contextPreserved:
+          _confirmedContextEvidence == _contextEvidence &&
+          _confirmedContextEvidence.contains('packs='),
+      cloudOptInControlsMirror:
+          _mirrorQueued == events.contains('fake_firebase_mirror_queued'),
     );
   }
 
@@ -305,6 +406,8 @@ class _FakeReviewEnvironment {
     _localConfirmedName = confirmedName;
     _inventoryRecordCreated = createsInventory;
     _confirmedReviewStatus = _reviewStatus;
+    _confirmedDestination = _destination.name;
+    _confirmedContextEvidence = _contextEvidence;
   }
 
   void _queueFakeMirror() {
@@ -324,6 +427,9 @@ class _WorkflowResult {
     required this.noLiveFirebase,
     required this.reviewStatusPreserved,
     required this.rejectedNoiseCreatedNoInventory,
+    required this.destinationPreserved,
+    required this.contextPreserved,
+    required this.cloudOptInControlsMirror,
   });
 
   final List<String> events;
@@ -335,4 +441,7 @@ class _WorkflowResult {
   final bool noLiveFirebase;
   final bool reviewStatusPreserved;
   final bool rejectedNoiseCreatedNoInventory;
+  final bool destinationPreserved;
+  final bool contextPreserved;
+  final bool cloudOptInControlsMirror;
 }

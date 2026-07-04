@@ -107,6 +107,15 @@ Focused rerun routes for recently hardened release-one contracts:
 - Pass 1887 validated the scorecard and rerun map together:
   `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.surgical_rerun_contract,inventory.release_one_scorecard_contract --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=25`
   passed 130 checks with 0 failures.
+- Passes 1890-1894 strengthened `inventory.fake_user_review_workflow` so
+  review scenarios preserve destination routing for inventory, active job,
+  draft estimate, invoice material, and rejected noise lines. The suite also
+  now verifies enabled trade-pack/active-section context is retained as
+  supporting evidence and that fake Firebase mirror work is controlled by cloud
+  opt-in after Hive/local confirmation.
+- Validation:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.fake_user_review_workflow --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=25`
+  passed 54 checks with 0 failures.
 - inventory.receipt_source_immutability_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.receipt_source_immutability_contract,qa.threshold_gate`
 - inventory.parser_platform_contract:
