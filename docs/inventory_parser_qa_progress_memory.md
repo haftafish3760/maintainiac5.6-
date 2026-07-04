@@ -3368,3 +3368,10 @@ Release boundaries:
   `inventory.vendor_sku_matrix_contract`,
   `inventory.hive_firestore_sync_contract`, and `qa.threshold_gate` passed 250
   checks with 0 failures.
+- **09:46 Harness Pass 2451:** Rechecked mutation, regression-lock, and failure
+  taxonomy parser QA while the Core semantic batch continued. The focused slice
+  `inventory.mutation_contract`, `inventory.mutation_fault_probe`,
+  `inventory.mutation_dry_run_plan`, `inventory.mutation_scenario_matrix`,
+  `inventory.mutation_runner_contract`, `inventory.regression_lock_contract`,
+  `inventory.failure_taxonomy_contract`, and `qa.threshold_gate` passed 257
+  checks with 0 failures.
