@@ -3,6 +3,27 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 671 - 23:50:35 EDT to active cleanup
+
+Scope:
+- Hardened customer/client proof visibility counts so duplicate OCR stable line
+  IDs cannot inflate review or redaction totals.
+- Routed proof visibility counts through the first-occurrence line draft map to
+  match the actionable customer-proof line-ID lists.
+- Added parser handoff regression coverage and reran receipt privacy/proof
+  processing tests.
+- Archived Passes 641 and 642 from the active cleanup log to keep the doc under
+  cap.
+- Recorded `BUG-RECEIPT-0186` under `receipt_line_numbering`.
+
+Verification:
+- Passed targeted Dart format/analyzer for parser proof handoff maps.
+- Passed focused Flutter parser handoff, privacy event, and receipt processing
+  regressions.
+- Fixed the first cleanup-log gate run by archiving one more old active pass.
+- Passed cleanup log gate, doc-size gate, bug ledger gate, source audit, and
+  whitespace check.
+
 ## Pass 670 - 23:49:11 EDT to active cleanup
 
 Scope:
@@ -467,31 +488,3 @@ Scope:
 Verification:
 - Passed targeted Dart format for section-order helpers and regressions.
 - Passed focused Flutter section-order regression.
-
-## Pass 642 - 22:33:47 EDT to active cleanup
-
-Scope:
-- Hardened long-receipt retake section summaries so previous/next alignment
-  context section numbers survive into privacy-safe section-order counts and
-  receipt-reader handoff counts.
-- Split section-order review-result regressions into a focused test file so the
-  existing stitch/scanner test returned under the project line-count cap.
-- Recorded `BUG-RECEIPT-0161` under `multi_photo_ordering`.
-- Archived Pass 605 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format for section-order helper and split tests.
-- Passed focused Flutter stitch/scanner and section-order regressions.
-
-## Pass 641 - 22:32:34 EDT to active cleanup
-
-Scope:
-- Strengthened Android native bridge source coverage so the UI contract test
-  pins `continuousFocusEnabled` argument restore and diagnostics.
-- Kept Android coverage aligned with existing iOS continuous-focus diagnostics
-  assertions.
-- Archived Pass 604 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format for the Android bridge UI contract regression.
-- Passed focused Flutter Android bridge UI contract regression.

@@ -206,7 +206,12 @@ void main() {
     );
     expect(
       handoff.customerProofVisibilityCounts['review_for_customer_proof'],
-      2,
+      1,
+    );
+    expect(
+      (handoff.privacySafeClientProofTelemetryContract['clientProofVisibilityCounts']
+          as Map)['review_for_client_proof'],
+      1,
     );
   });
 

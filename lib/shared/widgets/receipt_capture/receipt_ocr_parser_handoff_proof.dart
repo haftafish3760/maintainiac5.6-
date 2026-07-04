@@ -41,7 +41,7 @@ extension ReceiptOcrParserHandoffProofMaps on ReceiptOcrParserHandoff {
 
   Map<String, int> get customerProofVisibilityCounts {
     final counts = <String, int>{};
-    for (final draft in lineDrafts) {
+    for (final draft in lineDraftsById.values) {
       final visibility = draft.customerProofDefaultVisibility;
       counts[visibility] = (counts[visibility] ?? 0) + 1;
     }
