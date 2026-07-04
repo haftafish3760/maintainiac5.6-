@@ -46,6 +46,27 @@ void main() {
         mutateSummary: (summary) {},
       ),
       _SignoffCase(
+        name: 'release summary not strict',
+        expectedFailure: 'release_profile_not_strict:false',
+        allowDryRun: true,
+        expectedProfile: 'release',
+        summaryProfile: 'release',
+        mutateSummary: (summary) {
+          summary['strict'] = false;
+        },
+      ),
+      _SignoffCase(
+        name: 'release shard not strict',
+        expectedFailure: 'release_shard_not_strict:release-contracts-001:false',
+        allowDryRun: true,
+        expectedProfile: 'release',
+        summaryProfile: 'release',
+        mutateSummary: (summary) {
+          final firstResult = (summary['results'] as List).first as Map;
+          firstResult['strict'] = false;
+        },
+      ),
+      _SignoffCase(
         name: 'stale shard',
         expectedFailure: 'stale_shard:release-contracts-001',
         allowDryRun: true,
@@ -203,7 +224,11 @@ void main() {
         'parser_signoff_fail_',
       );
       addTearDown(() => workspace.delete(recursive: true));
-      final summary = _summaryMap(workspace, profile: 'smoke', dryRun: true);
+      final summary = _summaryMap(
+        workspace,
+        profile: signoffCase.summaryProfile,
+        dryRun: true,
+      );
       signoffCase.mutateSummary(summary);
       final summaryFile = File(
         '${workspace.path}/summary.json',
@@ -310,6 +335,7 @@ Map<String, Object?> _shardResult({
     'exitCode': 0,
     'state': 'complete',
     'dryRun': true,
+    'strict': true,
     'unsafe': false,
     'liveServicesAllowed': false,
     'writesProductionCatalog': false,
@@ -326,11 +352,13 @@ class _SignoffCase {
     required this.mutateSummary,
     this.expectedProfile = 'smoke',
     this.allowDryRun = false,
+    this.summaryProfile = 'smoke',
   });
 
   final String name;
   final String expectedFailure;
   final String expectedProfile;
   final bool allowDryRun;
+  final String summaryProfile;
   final void Function(Map<String, Object?> summary) mutateSummary;
 }

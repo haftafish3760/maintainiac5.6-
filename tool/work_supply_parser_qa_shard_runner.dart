@@ -172,6 +172,7 @@ Map<String, Object?> _resultJson({
     'exitCode': exitCode,
     'state': exitCode == 0 ? 'complete' : 'failed',
     'dryRun': dryRun,
+    'strict': options.strict,
     'unsafe': false,
     'liveServicesAllowed': false,
     'writesProductionCatalog': false,

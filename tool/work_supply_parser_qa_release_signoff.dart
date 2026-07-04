@@ -50,6 +50,9 @@ void main(List<String> args) {
     expected: options.expectedProfile,
     actual: summary['profile']?.toString() ?? '',
   );
+  if (options.expectedProfile == 'release' && summary['strict'] != true) {
+    failures.add('release_profile_not_strict:${summary['strict']}');
+  }
   if (!options.allowDryRun && summary['dryRun'] == true) {
     failures.add('dry_run_not_release_signoff');
   }
@@ -106,6 +109,9 @@ void main(List<String> args) {
     seenShards.add(shardId);
     if ((result['exitCode'] as num? ?? 1).toInt() != 0) {
       failures.add('shard_failed:$shardId');
+    }
+    if (options.expectedProfile == 'release' && result['strict'] != true) {
+      failures.add('release_shard_not_strict:$shardId:${result['strict']}');
     }
     _expectFalseSafetyFields(failures, result, scope: 'shard:$shardId');
     final shardState = (result['state']?.toString() ?? '').trim();

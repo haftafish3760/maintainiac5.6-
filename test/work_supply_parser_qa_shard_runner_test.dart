@@ -42,6 +42,7 @@ void main() {
     final shard = (summary['results'] as List).single as Map;
     expect(shard['shardId'], 'release-contracts-001');
     expect(shard['state'], 'complete');
+    expect(shard['strict'], false);
     expect(shard['unsafe'], false);
     expect(shard['liveServicesAllowed'], false);
     expect(shard['writesProductionCatalog'], false);
