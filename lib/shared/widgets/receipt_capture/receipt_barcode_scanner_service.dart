@@ -58,7 +58,7 @@ class ReceiptScannedCode {
   String get privacySafeValueType => _privacySafeBarcodeValueType(valueType);
 
   bool get isSensitivePayloadType {
-    return switch (privacySafeValueType) {
+    final valueTypeIsSensitive = switch (privacySafeValueType) {
       'contactInfo' ||
       'email' ||
       'phone' ||
@@ -71,6 +71,9 @@ class ReceiptScannedCode {
       'driverLicense' => true,
       _ => false,
     };
+    return valueTypeIsSensitive ||
+        _looksLikeSensitiveBarcodePayload(rawValue) ||
+        _looksLikeSensitiveBarcodePayload(displayValue);
   }
 
   String get normalizedValue {
@@ -234,6 +237,29 @@ bool _looksLikeSensitiveBarcodeValueType(String normalized) {
       normalized.contains('account') ||
       normalized.contains('member') ||
       normalized.contains('patient');
+}
+
+bool _looksLikeSensitiveBarcodePayload(String value) {
+  final normalized = value.trim().toLowerCase();
+  if (normalized.isEmpty) return false;
+  if (normalized.startsWith('http://') ||
+      normalized.startsWith('https://') ||
+      normalized.startsWith('www.') ||
+      normalized.startsWith('wifi:') ||
+      normalized.startsWith('mailto:') ||
+      normalized.startsWith('tel:') ||
+      normalized.startsWith('sms:') ||
+      normalized.startsWith('geo:') ||
+      normalized.startsWith('otpauth:') ||
+      normalized.startsWith('mecard:') ||
+      normalized.startsWith('begin:vcard') ||
+      normalized.startsWith('begin:vevent') ||
+      normalized.startsWith('begin:vcalendar')) {
+    return true;
+  }
+  return RegExp(
+    r'(^|[?&;:_\-/\s])(customer|client|patient|password|passwd|pwd|secret|token|auth|session|account|member|email|phone|license|driver)(=|:|/|_|-|\s|$)',
+  ).hasMatch(normalized);
 }
 
 String _privacySafeBarcodeWarning(String warning) {

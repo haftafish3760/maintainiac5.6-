@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 742 - 03:39:36 EDT to active cleanup
+
+Scope:
+- Hardened barcode/QR privacy so sensitive-looking raw payloads cannot become
+  inventory lookup values when ML Kit labels them as generic `text`.
+- Added focused regressions for text-bucket QR URLs and Wi-Fi configs so payload
+  content classification blocks customer/session/network data.
+- Recorded `BUG-RECEIPT-0230` under `privacy_redaction`.
+- Archived Pass 717 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for barcode scanner service and focused
+  scanner regression.
+- Passed focused Flutter barcode scanner regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 741 - 03:39:00 EDT to active cleanup
 
 Scope:
@@ -466,20 +483,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for Android/iOS bridge regressions.
 - Passed focused Android/iOS native bridge regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 717 - 02:39:00 EDT to active cleanup
-
-Scope:
-- Hardened `ReceiptNativeCameraService` so native results cannot return more
-  receipt photo paths than the session `maxSectionCount` allows.
-- Added a focused regression where long-receipt mode is disabled but the native
-  bridge returns two receipt paths.
-- Recorded `BUG-RECEIPT-0205` under `multi_photo_ordering`.
-
-Verification:
-- Passed Dart format/analyzer for native section-count validation.
-- Passed focused native path validation regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

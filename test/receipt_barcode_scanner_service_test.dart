@@ -82,12 +82,28 @@ void main() {
       valueType: 'url',
       rawValue: 'https://receipt.example/order/customer/123',
     );
+    const textUrl = ReceiptScannedCode(
+      format: ReceiptBarcodeFormat.qrCode,
+      valueType: 'text',
+      rawValue: 'https://receipt.example/session/abc123',
+    );
+    const textWifi = ReceiptScannedCode(
+      format: ReceiptBarcodeFormat.qrCode,
+      valueType: 'text',
+      rawValue: 'WIFI:T:WPA;S:PrivateNetwork;P:secret;;',
+    );
 
     expect(wifi.inventoryLookupValue, isNull);
     expect(driverLicense.inventoryLookupValue, isNull);
     expect(url.inventoryLookupValue, isNull);
+    expect(textUrl.inventoryLookupValue, isNull);
+    expect(textWifi.inventoryLookupValue, isNull);
     expect(wifi.privacySafeSummaryMap['isSensitivePayloadType'], isTrue);
     expect(url.privacySafeSummaryMap['isSensitivePayloadType'], isTrue);
+    expect(textUrl.privacySafeSummaryMap['isSensitivePayloadType'], isTrue);
+    expect(textWifi.privacySafeSummaryMap['isSensitivePayloadType'], isTrue);
+    expect(textUrl.privacySafeSummaryMap['valueTypeBucket'], 'text');
+    expect(textWifi.privacySafeSummaryMap['valueTypeBucket'], 'text');
     expect(url.privacySafeSummaryMap['valueTypeBucket'], 'url');
     expect(wifi.privacySafeSummaryMap['valueTypeBucket'], 'wifi');
     expect(
@@ -116,6 +132,11 @@ void main() {
       isNot(contains('private')),
     );
     expect(url.privacySafeSummaryMap.toString(), isNot(contains('customer')));
+    expect(textUrl.privacySafeSummaryMap.toString(), isNot(contains('abc123')));
+    expect(
+      textWifi.privacySafeSummaryMap.toString(),
+      isNot(contains('PrivateNetwork')),
+    );
   });
 
   test('barcode scanner converts platform failures into warnings', () async {
