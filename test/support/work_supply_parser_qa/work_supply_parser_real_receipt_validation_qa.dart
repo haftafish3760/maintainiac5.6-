@@ -57,11 +57,13 @@ class WorkSupplyParserRealReceiptValidationSuite extends QaSuite {
     'firebaseWritesAllowed',
     'ocrCameraExpensesTouched',
     'Forbidden private receipt field',
+    'Unsupported merchant category',
     'Refusing to write outside build/',
   };
 
   static const _toolTestTokens = {
     'rejects raw receipt text fields',
+    'rejects exact merchant labels instead of safe categories',
     'writes only under build directory',
     'writes a JSON artifact without private receipt content',
   };
