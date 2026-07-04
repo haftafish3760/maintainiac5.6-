@@ -11,6 +11,12 @@ class WorkSupplyParserBoundarySuite extends QaSuite {
     'test/work_supply_parser_qa_harness_test.dart',
   ];
 
+  static const _parserCoreDirectory = 'lib/screens/work_supplies/data';
+  static const _parserCorePrefixes = [
+    'work_supply_receipt_parser',
+    'work_supply_parser_candidate_models',
+  ];
+
   static const _forbiddenPatterns = {
     'firebase': [
       'package:firebase_',
@@ -119,7 +125,24 @@ class WorkSupplyParserBoundarySuite extends QaSuite {
             .where((entry) => entry.path.endsWith('.dart')),
       );
     }
-    files.sort((a, b) => a.path.compareTo(b.path));
-    return files;
+    final parserCore = Directory(_parserCoreDirectory);
+    if (parserCore.existsSync()) {
+      files.addAll(
+        parserCore.listSync().whereType<File>().where(
+          (entry) =>
+              entry.path.endsWith('.dart') &&
+              _parserCorePrefixes.any(
+                (prefix) => _fileName(entry.path).startsWith(prefix),
+              ),
+        ),
+      );
+    }
+    final unique = {for (final file in files) file.path: file}.values.toList();
+    unique.sort((a, b) => a.path.compareTo(b.path));
+    return unique;
+  }
+
+  String _fileName(String path) {
+    return path.split(Platform.pathSeparator).last;
   }
 }
