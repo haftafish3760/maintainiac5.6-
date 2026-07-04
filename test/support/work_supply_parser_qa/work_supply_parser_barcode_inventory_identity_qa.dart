@@ -12,6 +12,7 @@ class WorkSupplyParserBarcodeInventoryIdentitySuite extends QaSuite {
     'test/support/work_supply_parser_qa/work_supply_parser_item_metadata_depth_qa.dart',
     'test/support/work_supply_parser_qa/work_supply_parser_vendor_sku_matrix_qa.dart',
     'test/support/work_supply_parser_qa/work_supply_parser_workflow_routing_qa.dart',
+    'test/work_supply_parser_barcode_inventory_identity_behavior_test.dart',
   };
 
   static const _identityTokens = {
@@ -44,6 +45,8 @@ class WorkSupplyParserBarcodeInventoryIdentitySuite extends QaSuite {
     'user_custom_item_keeps_source_metadata',
     'barcode_scan_can_create_review_candidate',
     'barcode_missing_does_not_block_receipt_parser',
+    'officialPackMutationAllowed',
+    'localInventoryWriteAllowed',
   };
 
   static const _inventoryDestinations = {

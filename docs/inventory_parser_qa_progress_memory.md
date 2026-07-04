@@ -3493,3 +3493,9 @@ Release boundaries:
   auto-saves. The focused merchant behavior test passed 4/4, the merchant
   independence/matrix harness slice passed 195 checks with 0 failures, and
   targeted analyzer found no issues.
+- **10:35 Harness Pass 2565:** Added focused barcode inventory identity
+  behavior coverage for unknown barcodes, barcode/receipt disagreement, reviewed
+  local user barcode mappings, private-memory-first promotion safety, and no
+  official pack mutation without reviewed provenance. The barcode behavior test
+  passed 3/3, the barcode identity harness contract passed 55 checks with
+  0 failures, and targeted analyzer found no issues.
