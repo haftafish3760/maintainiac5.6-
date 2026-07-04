@@ -187,6 +187,15 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
     if ((counts['preview_dominance_missing'] ?? 0) > 0) {
       return 'preview_dominance_missing';
     }
+    if ((counts['auto_capture_without_manual_shutter_regressed'] ?? 0) > 0) {
+      return 'auto_capture_without_manual_shutter_regressed';
+    }
+    if ((counts['auto_capture_ready_while_blocked_regressed'] ?? 0) > 0) {
+      return 'auto_capture_ready_while_blocked_regressed';
+    }
+    if ((counts['auto_capture_allowed_without_request_regressed'] ?? 0) > 0) {
+      return 'auto_capture_allowed_without_request_regressed';
+    }
     if ((counts['preview_saved_darker_than_live'] ?? 0) > 0) {
       return 'preview_saved_darker_than_live';
     }

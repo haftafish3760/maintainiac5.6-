@@ -177,17 +177,31 @@ List<String> _nativeCapturePreviewParityHealthCodes(
             ?.toString() ??
         '',
   );
+  final manualAllowed =
+      diagnostics[ReceiptCaptureDiagnosticKeys.manualCaptureAllowed] == true;
+  final autoAllowed =
+      diagnostics[ReceiptCaptureDiagnosticKeys.autoCaptureAllowed] == true;
+  final autoEnabled =
+      diagnostics[ReceiptCaptureDiagnosticKeys.autoCaptureEnabled] == true;
   if (readiness != 'unknown') {
     codes.add('capture_readiness_$readiness');
   }
-  if (diagnostics[ReceiptCaptureDiagnosticKeys.manualCaptureAllowed] == true) {
+  if (manualAllowed) {
     codes.add('manual_capture_allowed');
   }
-  if (diagnostics[ReceiptCaptureDiagnosticKeys.autoCaptureAllowed] == true) {
+  if (autoAllowed) {
     codes.add('auto_capture_allowed');
-  } else if (diagnostics[ReceiptCaptureDiagnosticKeys.autoCaptureEnabled] ==
-      true) {
+  } else if (autoEnabled) {
     codes.add('auto_capture_held_back');
+  }
+  if (autoAllowed && !manualAllowed) {
+    codes.add('auto_capture_without_manual_shutter_regressed');
+  }
+  if (readiness == 'auto_capture_ready' && !autoAllowed) {
+    codes.add('auto_capture_ready_while_blocked_regressed');
+  }
+  if (autoAllowed && !autoEnabled) {
+    codes.add('auto_capture_allowed_without_request_regressed');
   }
   final signal =
       diagnostics[ReceiptCaptureDiagnosticKeys

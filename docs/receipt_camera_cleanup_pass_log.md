@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 881 - active cleanup
+
+Scope:
+- Hardened optional auto-capture diagnostics so auto capture cannot appear ready
+  without manual shutter fallback.
+- Added consistency checks for auto-ready-while-blocked and auto-allowed without
+  an explicit opt-in request.
+- Surfaced those impossible states as native camera UI risk outcomes and
+  attachment risk flags.
+- Added focused auto-capture contract regressions.
+- Recorded `BUG-RECEIPT-0330` under `native_bridge`.
+- Archived Pass 816 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused auto-capture/native-quality
+  regressions, and test source audit.
+
 ## Pass 880 - active cleanup
 
 Scope:
@@ -464,25 +481,5 @@ Scope:
 Verification:
 - Passed targeted OCR source handoff format/analyzer and focused backup
   capture review regression.
-- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
-  whitespace gates.
-
-## Pass 816 - 11:32:00 EDT to active cleanup
-
-Scope:
-- Promoted native backup scanner and phone-camera fallback warnings from
-  generic review actions into explicit crop/focus review handoff families.
-- Kept fallback-only backup capture from becoming the primary accepted warning
-  profile while still exposing parser risk and receipt-reader handoff counts.
-- Added focused regressions for document-scanner backup crop review and
-  phone-camera backup focus review.
-- Recorded `BUG-RECEIPT-0301` under `camera_review_state`.
-- Archived Pass 809 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted saved-photo warning format/analyzer and focused native
-  backup warning handoff regressions.
-- Corrected one invalid focused-test command that combined two `--plain-name`
-  filters and reran the two focused tests individually.
 - Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
   whitespace gates.
