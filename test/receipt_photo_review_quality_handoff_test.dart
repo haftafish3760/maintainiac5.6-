@@ -201,6 +201,8 @@ void main() {
       models,
       isNot(contains('original_receipt_source_before_saved_proof')),
     );
+    expect(models, contains('temporary_full_quality_ready'));
+    expect(models, isNot(contains('original_source_ready')));
     expect(models, contains('saved_proof_fallback_review_required'));
     expect(models, contains("'ocrSourcePreparationDecisionCounts'"));
     expect(models, contains("'latestCapturedExposureMismatch'"));

@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 792 - 08:12:44 EDT to active cleanup
+
+Scope:
+- Completed the OCR source-first token rename by replacing the remaining
+  `original_source_ready` outcome/status references.
+- Updated continuation action copy routing to use `temporary_full_quality_ready`.
+- Added source regressions rejecting the old outcome token.
+- Recorded `BUG-RECEIPT-0279` under `source_preservation`.
+- Archived Pass 765 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused handoff source regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 791 - 08:09:17 EDT to active cleanup
 
 Scope:
@@ -447,23 +462,3 @@ Verification:
 - Passed doc-size, bug-ledger, source-audit, and test-audit gates. The first
   source-audit attempt raced another `dart run` audit on native asset setup;
   the same audit passed when rerun by itself.
-
-## Pass 765 - 05:07:23 EDT to active cleanup
-
-Scope:
-- Hardened capture-flow continuation guide options so unsafe previous-photo
-  paths cannot be preserved before native session construction.
-- Reused the native camera local image path sanitizer for continuation guide
-  creation, manual guide application, and flow diagnostics.
-- Prevented diagnostics from claiming a previous-section guide photo is
-  available when the path is relative, URL-like, non-image, or NUL-tainted.
-- Added capture-flow regressions for unsafe previous-photo guide families.
-- Recorded `BUG-RECEIPT-0253` under `multi_photo_ordering`.
-- Archived Pass 737 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for capture-flow continuation changes.
-- Fixed the initial analyzer/test failure caused by a private helper crossing
-  Dart library boundaries by making the sanitizer a public contract helper.
-- Passed focused Flutter capture-flow shareability regression.
-- Passed doc-size, bug-ledger, source-audit, and test-audit gates.

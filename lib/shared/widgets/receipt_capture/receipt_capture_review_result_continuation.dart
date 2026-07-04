@@ -180,7 +180,7 @@ extension ReceiptPhotoReviewResultContinuation on ReceiptPhotoReviewResult {
     return switch (ocrSourceFirstOutcome) {
       'prepared_source_ready' =>
         'OCR reads prepared receipt source before saved proof',
-      'original_source_ready' =>
+      'temporary_full_quality_ready' =>
         'OCR reads temporary full-quality source before saved proof',
       'separate_source_ready' =>
         'OCR reads separate source copies before saved proof',

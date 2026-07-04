@@ -61,7 +61,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       'ocr_source_first_outcome_ocr_source_not_ready',
       'ocr_source_first_outcome_fallback_saved_proof_review_required',
       'ocr_source_first_outcome_prepared_source_ready',
-      'ocr_source_first_outcome_original_source_ready',
+      'ocr_source_first_outcome_temporary_full_quality_ready',
       'ocr_source_first_outcome_separate_source_ready',
       'ocr_source_first_outcome_saved_source_matched_original',
     ]) {
