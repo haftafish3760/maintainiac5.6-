@@ -67,7 +67,7 @@ Future<int> runGeneratedParserFixtures(
         '${(index + 1).toString().padLeft(3, '0')}';
     final command = _flutterCommandFor(
       options,
-      fixtureIds: chunk,
+      chunk: chunk,
       reportDir: chunkReportDir,
     );
     final result = processRunner == null
@@ -86,7 +86,7 @@ Future<int> runGeneratedParserFixtures(
     final summary = _chunkSummary(
       chunkNumber: index + 1,
       chunkCount: chunks.length,
-      fixtureIds: chunk,
+      fixtureCount: chunk.count,
       output: output,
       reportDir: chunkReportDir,
       exitCode: result.exitCode,
@@ -162,23 +162,29 @@ class _FixtureRunnerOptions {
   }
 }
 
-List<List<String>> _fixtureChunks(_FixtureRunnerOptions options) {
-  final selected = _fixtureIdsFor(options);
-  if (selected.isEmpty) return [const <String>[]];
-  final chunks = <List<String>>[];
-  for (var offset = 0; offset < selected.length; offset += options.chunkSize) {
-    final end = offset + options.chunkSize > selected.length
-        ? selected.length
-        : offset + options.chunkSize;
-    chunks.add(selected.sublist(offset, end));
+List<_FixtureChunk> _fixtureChunks(_FixtureRunnerOptions options) {
+  final selectedCount = _selectedFixtureCount(options);
+  if (selectedCount == 0) {
+    return [const _FixtureChunk(startIndex: 0, count: 0)];
+  }
+  final chunks = <_FixtureChunk>[];
+  for (
+    var startIndex = 0;
+    startIndex < selectedCount;
+    startIndex += options.chunkSize
+  ) {
+    final count = startIndex + options.chunkSize > selectedCount
+        ? selectedCount - startIndex
+        : options.chunkSize;
+    chunks.add(_FixtureChunk(startIndex: startIndex, count: count));
   }
   return chunks;
 }
 
-List<String> _fixtureIdsFor(_FixtureRunnerOptions options) {
+int _selectedFixtureCount(_FixtureRunnerOptions options) {
   final decoded = jsonDecode(File(options.fixturePath).readAsStringSync());
-  if (decoded is! List) return const <String>[];
-  final ids = <String>[];
+  if (decoded is! List) return 0;
+  var count = 0;
   for (final entry in decoded) {
     if (entry is! Map) continue;
     final id = entry['id'] as String?;
@@ -186,27 +192,35 @@ List<String> _fixtureIdsFor(_FixtureRunnerOptions options) {
     if (options.fixtureIds.isNotEmpty && !options.fixtureIds.contains(id)) {
       continue;
     }
-    ids.add(id);
-    if (ids.length >= options.maxCases) break;
+    count++;
+    if (count >= options.maxCases) break;
   }
-  return ids;
+  return count;
 }
 
 List<String> _flutterCommandFor(
   _FixtureRunnerOptions options, {
-  required List<String> fixtureIds,
+  required _FixtureChunk chunk,
   required String reportDir,
 }) {
   return [
     'test/work_supply_parser_generated_fixture_runner_test.dart',
     '--dart-define=PARSER_QA_GENERATED_FIXTURE_PATH=${options.fixturePath}',
-    '--dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=${fixtureIds.isEmpty ? options.maxCases : fixtureIds.length}',
+    '--dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=${chunk.count}',
     '--dart-define=PARSER_QA_GENERATED_REPORT_DIR=$reportDir',
-    if (fixtureIds.isNotEmpty)
-      '--dart-define=PARSER_QA_GENERATED_FIXTURE_IDS=${fixtureIds.join(',')}',
+    '--dart-define=PARSER_QA_GENERATED_FIXTURE_START_INDEX=${chunk.startIndex}',
+    if (options.fixtureIds.isNotEmpty)
+      '--dart-define=PARSER_QA_GENERATED_FIXTURE_IDS=${options.fixtureIds.join(',')}',
     '--reporter',
     'compact',
   ];
+}
+
+class _FixtureChunk {
+  const _FixtureChunk({required this.startIndex, required this.count});
+
+  final int startIndex;
+  final int count;
 }
 
 Future<ProcessResult> _runProcessWithTimeout(
@@ -250,7 +264,7 @@ Future<ProcessResult> _runProcessWithTimeout(
 _ChunkRunSummary _chunkSummary({
   required int chunkNumber,
   required int chunkCount,
-  required List<String> fixtureIds,
+  required int fixtureCount,
   required String output,
   required String reportDir,
   required int exitCode,
@@ -263,7 +277,7 @@ _ChunkRunSummary _chunkSummary({
       return _ChunkRunSummary(
         chunkNumber: chunkNumber,
         chunkCount: chunkCount,
-        checked: json['checked'] as int? ?? fixtureIds.length,
+        checked: json['checked'] as int? ?? fixtureCount,
         failures: json['failureCount'] as int? ?? 0,
         warmupMs: json['warmupMs'] as int? ?? 0,
         exitCode: exitCode,
@@ -284,7 +298,7 @@ _ChunkRunSummary _chunkSummary({
   return _ChunkRunSummary(
     chunkNumber: chunkNumber,
     chunkCount: chunkCount,
-    checked: _intField(line, 'checked') ?? fixtureIds.length,
+    checked: _intField(line, 'checked') ?? fixtureCount,
     failures: _intField(line, 'failures') ?? (exitCode == 0 ? 0 : 1),
     warmupMs: _intField(line, 'warmupMs') ?? 0,
     exitCode: exitCode,

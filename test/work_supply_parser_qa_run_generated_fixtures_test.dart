@@ -264,19 +264,27 @@ void main() {
     expect(calls, hasLength(3));
     expect(
       calls[0],
-      contains(
-        '--dart-define=PARSER_QA_GENERATED_FIXTURE_IDS=fixture_0,fixture_1',
-      ),
+      contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_START_INDEX=0'),
     );
     expect(
       calls[1],
-      contains(
-        '--dart-define=PARSER_QA_GENERATED_FIXTURE_IDS=fixture_2,fixture_3',
-      ),
+      contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_START_INDEX=2'),
     );
     expect(
       calls[2],
-      contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_IDS=fixture_4'),
+      contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_START_INDEX=4'),
+    );
+    expect(
+      calls[0],
+      contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=2'),
+    );
+    expect(
+      calls[2],
+      contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=1'),
+    );
+    expect(
+      calls.join('\n'),
+      isNot(contains('PARSER_QA_GENERATED_FIXTURE_IDS')),
     );
     expect(stdout.content, contains('chunkSize=2 chunks=3'));
     expect(stdout.content, contains('completedChunks=3 plannedChunks=3'));

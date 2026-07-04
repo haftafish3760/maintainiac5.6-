@@ -20,6 +20,9 @@ void main() {
     const fixtureIdsCsv = String.fromEnvironment(
       'PARSER_QA_GENERATED_FIXTURE_IDS',
     );
+    const startIndex = int.fromEnvironment(
+      'PARSER_QA_GENERATED_FIXTURE_START_INDEX',
+    );
     if (fixturePath.trim().isEmpty) {
       // This entry point is intentionally opt-in so normal smoke runs do not
       // accidentally pay parser-call cost.
@@ -39,6 +42,7 @@ void main() {
     final fixtures = _selectGeneratedFixtures(
       allFixtures,
       fixtureIds: fixtureIds,
+      startIndex: startIndex,
       maxCases: maxCases,
     );
     expect(
@@ -152,6 +156,7 @@ void main() {
       fixtureIds: const {
         'electrical_residential_core_en_US_dangerous_pvc_conduit_00044',
       },
+      startIndex: 0,
       maxCases: 10,
     );
 
@@ -160,6 +165,26 @@ void main() {
       selected.single.id,
       'electrical_residential_core_en_US_dangerous_pvc_conduit_00044',
     );
+  });
+
+  test('generated fixture runner selects fixture chunks by offset', () {
+    final fixtures = [
+      for (var index = 0; index < 5; index++)
+        _GeneratedFixture(
+          id: 'fixture_$index',
+          rawLine: 'LOWES NM-B 12/2 25FT',
+          caseType: 'clear_match',
+        ),
+    ];
+
+    final selected = _selectGeneratedFixtures(
+      fixtures,
+      fixtureIds: const {},
+      startIndex: 2,
+      maxCases: 2,
+    );
+
+    expect(selected.map((fixture) => fixture.id), ['fixture_2', 'fixture_3']);
   });
 }
 
@@ -187,12 +212,13 @@ Set<String> _csvSet(String value) {
 List<_GeneratedFixture> _selectGeneratedFixtures(
   List<_GeneratedFixture> fixtures, {
   required Set<String> fixtureIds,
+  required int startIndex,
   required int maxCases,
 }) {
   return [
     for (final fixture in fixtures)
       if (fixtureIds.isEmpty || fixtureIds.contains(fixture.id)) fixture,
-  ].take(maxCases).toList(growable: false);
+  ].skip(startIndex).take(maxCases).toList(growable: false);
 }
 
 _GeneratedFixtureRunArtifact _writeGeneratedFixtureReport({
