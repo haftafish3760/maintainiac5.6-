@@ -68,11 +68,13 @@ class ExpenseOcrFailureDiagnostics {
     final recoveryAction = _recoveryActionFor(selected?.kind, result.source);
     final recoveryTarget = _recoveryTargetFor(selected?.kind, result.source);
     final sourceFirst = _sourceFirstEvidenceFor(diagnostics);
+    final sourceQuality = _sourceQualityEvidenceFor(diagnostics);
     return [
       'warning_$warningKind',
       'severity_${diagnostics.severity.name}',
       'source_${result.source.name}',
       'sourceFirst_$sourceFirst',
+      if (sourceQuality != 'unknown') 'quality_$sourceQuality',
       'read_${diagnostics.attachmentsRead}',
       'skipped_${diagnostics.attachmentsSkipped}',
       'recovery_$recoveryAction',
@@ -89,6 +91,21 @@ class ExpenseOcrFailureDiagnostics {
     final outcome = rawOutcome is String ? rawOutcome.trim() : '';
     if (outcome.isNotEmpty) return outcome;
     return diagnostics.ocrSourceHandoffStatus;
+  }
+
+  static String _sourceQualityEvidenceFor(ReceiptOcrDiagnostics diagnostics) {
+    final rawStatus =
+        diagnostics.ocrSourceHandoffContract['sourceQualityReviewStatus'];
+    final status = rawStatus is String ? rawStatus.trim() : '';
+    const safeStatuses = {
+      'missing_bottom_edge_and_totals_first',
+      'saved_bottom_quality_review',
+      'saved_dark_exposure_review',
+      'saved_soft_blur_review',
+      'saved_glare_review',
+      'scanner_prep_review_needed',
+    };
+    return safeStatuses.contains(status) ? status : 'unknown';
   }
 
   static String _recoveryActionFor(

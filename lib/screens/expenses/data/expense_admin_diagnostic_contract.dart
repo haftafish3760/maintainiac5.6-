@@ -173,7 +173,12 @@ String _adminDiagnosticEvidenceBucket(String evidence) {
   final warning = warningMatch == null ? 'none' : warningMatch.group(1)!;
   final targetMatch = RegExp(r'target_([A-Za-z0-9_]+)').firstMatch(evidence);
   final target = _adminDiagnosticTargetBucket(targetMatch?.group(1));
-  return 'warning_${warning}_source_${source}_target_$target';
+  final qualityMatch = RegExp(
+    r'quality_([A-Za-z0-9_]+?)(?:_source_|_target_|$)',
+  ).firstMatch(evidence);
+  final quality = _adminDiagnosticQualityBucket(qualityMatch?.group(1));
+  final qualitySuffix = quality == 'unknown' ? '' : '_q_$quality';
+  return 'warn_${warning}_src_${source}_tgt_$target$qualitySuffix';
 }
 
 String _adminDiagnosticTargetBucket(String? rawTarget) {
@@ -194,4 +199,19 @@ String _adminDiagnosticTargetBucket(String? rawTarget) {
     'date',
   };
   return safeTargets.contains(target) ? target : 'unknown';
+}
+
+String _adminDiagnosticQualityBucket(String? rawQuality) {
+  final quality = rawQuality?.trim();
+  if (quality == null || quality.isEmpty) return 'unknown';
+  const safeQualityBuckets = <String>{
+    'unknown',
+    'missing_bottom_edge_and_totals_first',
+    'saved_bottom_quality_review',
+    'saved_dark_exposure_review',
+    'saved_soft_blur_review',
+    'saved_glare_review',
+    'scanner_prep_review_needed',
+  };
+  return safeQualityBuckets.contains(quality) ? quality : 'unknown';
 }

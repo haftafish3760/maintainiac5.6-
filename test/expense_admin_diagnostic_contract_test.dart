@@ -162,10 +162,7 @@ void main() {
       'receipt_photo_quality_needs_review',
     );
     expect(metadata['adminDiagnosticFailedAt'], 'during_photo_ocr_read');
-    expect(
-      metadata['adminDiagnosticEvidence'],
-      contains('warning_photoQuality'),
-    );
+    expect(metadata['adminDiagnosticEvidence'], contains('warn_photoQuality'));
     expect(metadata['adminDiagnosticBlurBucket'], 'bottom_soft_blur_risk');
     expect(metadata['adminDiagnosticDeviceTier'], 'lightweight');
     expect(
@@ -204,10 +201,45 @@ void main() {
 
     expect(
       artifact.toTelemetryMetadata()['adminDiagnosticEvidence'],
-      'warning_photoQuality_source_photo_target_unknown',
+      'warn_photoQuality_src_photo_tgt_unknown',
     );
     expect(encoded, isNot(contains('private_store')));
     expect(encoded, isNot(contains('lowes')));
+    expect(encoded, isNot(contains('998877')));
+  });
+
+  test('preserves safe glare quality bucket in admin evidence', () {
+    const diagnostic = ExpenseFailureDiagnostic(
+      workflowStep: ExpenseWorkflowStep.receiptOcr,
+      failedAt: 'during_photo_ocr_read',
+      confirmedCause: 'receipt_photo_quality_needs_review',
+      causeStatus: ExpenseFailureCauseStatus.confirmed,
+      evidence:
+          'warning_photoQuality_quality_saved_glare_review_source_photo_target_private_store_total_998877',
+    );
+    final artifact = ExpenseAdminDiagnosticArtifact.fromOcrFailure(
+      artifactId: 'ocr_quality_artifact_glare_bucket',
+      diagnostic: diagnostic,
+      consentStatus: ExpenseAdminDiagnosticConsentStatus.granted,
+      blurBucket: 'not_blurry',
+      glareBucket: 'glare_high',
+      readabilityBucket: 'review_needed',
+      deviceTier: 'high',
+      osFamily: 'android',
+      osVersionBucket: 'android_14_to_15',
+      appVersionBucket: 'maintainiac_5_6',
+      storageSafetyBucket: 'normal_storage',
+    );
+
+    final metadata = artifact.toTelemetryMetadata();
+    final encoded = metadata.toString().toLowerCase();
+
+    expect(
+      metadata['adminDiagnosticEvidence'],
+      'warn_photoQuality_src_photo_tgt_unknown_q_saved_glare_review',
+    );
+    expect(encoded, contains('saved_glare_review'));
+    expect(encoded, isNot(contains('private_store')));
     expect(encoded, isNot(contains('998877')));
   });
 }

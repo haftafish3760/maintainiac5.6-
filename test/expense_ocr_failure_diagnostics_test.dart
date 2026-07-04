@@ -226,6 +226,34 @@ void main() {
       );
       expect(diagnostic.evidence, contains('recovery_retake_photo'));
     });
+
+    test('includes glare quality bucket without receipt content', () {
+      final diagnostic = ExpenseOcrFailureDiagnostics.fromOcrResult(
+        _ocrResult(
+          source: ReceiptProcessingSource.photo,
+          warnings: const [
+            'Receipt photo quality needs review: glare may hide totals.',
+          ],
+          sourceHandoffSummary: ReceiptOcrSourceHandoffSummary.fromAttachments([
+            ReceiptAttachmentRecord(
+              id: 'glare-source',
+              path: '/tmp/private-glare-receipt.jpg',
+              kind: ReceiptAttachmentKind.photo,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime(2026, 7, 3),
+              riskFlags: const [
+                'ocr_source_saved_photo_glare_risk',
+                'ocr_source_action_reduce_glare_or_retake',
+              ],
+            ),
+          ]),
+        ),
+      );
+
+      expect(diagnostic.evidence, contains('quality_saved_glare_review'));
+      expect(diagnostic.evidence, isNot(contains('/tmp/')));
+      expect(diagnostic.evidence, isNot(contains('private-glare')));
+    });
   });
 }
 

@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 664 - 23:35:31 EDT to active cleanup
+
+Scope:
+- Hardened admin OCR-failure diagnostics so camera-source quality failures can
+  carry safe quality buckets such as `saved_glare_review` without receipt text,
+  paths, or raw target hints.
+- Compactly encoded admin diagnostic evidence to stay inside the existing
+  telemetry token-length cap instead of weakening the sanitizer.
+- Added regressions proving glare quality evidence survives sanitization while
+  private receipt/store/total hints are still bucketed away.
+- Archived Pass 634 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0179` under `privacy_redaction`.
+
+Verification:
+- Fixed the first focused run by shortening the safe admin evidence token
+  instead of increasing telemetry token limits.
+- Passed targeted Dart format/analyzer for OCR failure/admin diagnostics.
+- Passed focused Flutter OCR-failure and admin diagnostic contract tests.
+
 ## Pass 663 - 23:32:03 EDT to active cleanup
 
 Scope:
@@ -470,18 +489,3 @@ Verification:
 - Passed focused Flutter recovery handoff regression.
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.
-
-## Pass 634 - 22:16:55 EDT to active cleanup
-
-Scope:
-- Hardened edited-photo action telemetry so privacy-safe handoff metadata keeps
-  known edit actions but buckets malformed action strings generically.
-- Added focused regression coverage proving malformed edit-action text does not
-  leak into receipt-reader handoff counts or metadata.
-- Archived Pass 623 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0155` under `privacy_redaction`.
-
-Verification:
-- Passed targeted Dart format/analyzer for edited-photo metadata.
-- Passed focused Flutter native recovery metadata regression.
-- Passed whitespace check.
