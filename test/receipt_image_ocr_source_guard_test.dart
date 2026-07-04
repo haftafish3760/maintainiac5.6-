@@ -84,10 +84,22 @@ void main() {
       final missingPath = '${dir.path}/deleted_before_ocr.jpg';
 
       final cases = {
-        missingPath: 'source_file_unavailable',
-        empty.path: 'decode_failed',
-        corrupt.path: 'decode_failed',
-        wrongType.path: 'decode_failed',
+        missingPath: (
+          code: 'source_file_unavailable',
+          action: 'source_file_unavailable_no_clear_ocr_source',
+        ),
+        empty.path: (
+          code: 'decode_failed',
+          action: 'decode_failed_no_clear_ocr_source',
+        ),
+        corrupt.path: (
+          code: 'decode_failed',
+          action: 'decode_failed_no_clear_ocr_source',
+        ),
+        wrongType.path: (
+          code: 'decode_failed',
+          action: 'decode_failed_no_clear_ocr_source',
+        ),
       };
 
       for (final entry in cases.entries) {
@@ -103,7 +115,12 @@ void main() {
 
         expect(report.ocrSourcePath, entry.key);
         expect(report.usedEnhancedOcrSource, isFalse);
-        expect(report.scannerDecisionCodes, [entry.value]);
+        expect(report.scannerDecisionCodes, [entry.value.code]);
+        expect(report.cleanupActions, [entry.value.action]);
+        expect(
+          report.cleanupActions.join('|'),
+          isNot(contains('original_used')),
+        );
         expect(report.originalQuality.isLikelyReadable, isFalse);
         expect(report.ocrQuality.isLikelyReadable, isFalse);
         expect(preview.estimatedBytes, greaterThanOrEqualTo(0));

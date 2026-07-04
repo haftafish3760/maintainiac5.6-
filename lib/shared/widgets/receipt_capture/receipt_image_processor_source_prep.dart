@@ -8,7 +8,7 @@ Future<ReceiptImagePreparationReport> _prepareReceiptSourceWithReport({
   if (bytes == null) {
     return ReceiptImageProcessor._unreadableReceiptSourceReport(
       path: path,
-      action: 'source_file_unavailable_original_used',
+      action: 'source_file_unavailable_no_clear_ocr_source',
       code: 'source_file_unavailable',
     );
   }
@@ -16,7 +16,7 @@ Future<ReceiptImagePreparationReport> _prepareReceiptSourceWithReport({
   if (decoded == null) {
     return ReceiptImageProcessor._unreadableReceiptSourceReport(
       path: path,
-      action: 'decode_failed_original_used',
+      action: 'decode_failed_no_clear_ocr_source',
       code: 'decode_failed',
     );
   }
