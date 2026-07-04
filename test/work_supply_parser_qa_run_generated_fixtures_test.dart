@@ -53,7 +53,8 @@ void main() {
               return ProcessResult(
                 42,
                 0,
-                'QA_GENERATED_FIXTURE_RUN checked=1 failures=0',
+                'flutter progress spam\n'
+                    'QA_GENERATED_FIXTURE_RUN checked=1 failures=0',
                 '',
               );
             },
@@ -79,6 +80,44 @@ void main() {
       expect(stdout.content, contains('QA_GENERATED_FIXTURE_RUN_WRAPPER'));
       expect(stdout.content, contains('runner=flutter-test'));
       expect(stdout.content, contains('QA_GENERATED_FIXTURE_RUN'));
+      expect(stdout.content, isNot(contains('flutter progress spam')));
+    },
+  );
+
+  test(
+    'generated fixture wrapper verbose mode passes through full output',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_generated_fixture_runner_verbose_',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final fixture = File('${root.path}/generated_fixtures.json')
+        ..writeAsStringSync('[]');
+
+      final stdout = _MemorySink();
+      final stderr = _MemorySink();
+      final exit = await runGeneratedParserFixtures(
+        ['--fixture', fixture.path, '--verbose'],
+        stdout: stdout,
+        stderr: stderr,
+        processRunner:
+            (
+              String command,
+              List<String> args, {
+              bool runInShell = false,
+            }) async {
+              return ProcessResult(
+                44,
+                0,
+                'flutter progress spam\nQA_GENERATED_FIXTURE_RUN checked=0',
+                '',
+              );
+            },
+      );
+
+      expect(exit, 0, reason: stderr.content);
+      expect(stdout.content, contains('outputMode=verbose'));
+      expect(stdout.content, contains('flutter progress spam'));
     },
   );
 
