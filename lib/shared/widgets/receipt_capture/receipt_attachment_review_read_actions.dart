@@ -12,6 +12,7 @@ extension _ReceiptAttachmentReviewReadActions
       _photoPaths,
     ).length;
     final previousPhotoIdByPath = {..._photoIdByPath};
+    final previousPhotoReadStateByPath = {..._photoReadStateByPath};
     final result = await Navigator.of(context).push<ReceiptPhotoReviewResult>(
       appNativeRoute(
         context,
@@ -34,6 +35,7 @@ extension _ReceiptAttachmentReviewReadActions
     final accepted = await _acceptReviewedPhotoResult(
       result,
       previousPhotoIdByPath: previousPhotoIdByPath,
+      previousPhotoReadStateByPath: previousPhotoReadStateByPath,
     );
     return accepted && mounted;
   }
@@ -41,8 +43,11 @@ extension _ReceiptAttachmentReviewReadActions
   Future<bool> _acceptReviewedPhotoResult(
     ReceiptPhotoReviewResult result, {
     Map<String, String>? previousPhotoIdByPath,
+    Map<String, ReceiptAttachmentReadState>? previousPhotoReadStateByPath,
   }) async {
     final existingPhotoIdByPath = previousPhotoIdByPath ?? {..._photoIdByPath};
+    final existingPhotoReadStateByPath =
+        previousPhotoReadStateByPath ?? {..._photoReadStateByPath};
     updateAttachmentState(() {
       _photoPaths
         ..clear()
@@ -65,7 +70,14 @@ extension _ReceiptAttachmentReviewReadActions
         ..clear()
         ..addEntries(
           result.photoPaths.map(
-            (path) => MapEntry(path, ReceiptAttachmentReadState.notRead),
+            (path) => MapEntry(
+              path,
+              _previousReceiptPhotoMapValue(
+                    existingPhotoReadStateByPath,
+                    path,
+                  ) ??
+                  ReceiptAttachmentReadState.notRead,
+            ),
           ),
         );
       _dataSaverLevel = result.dataSaverLevel;

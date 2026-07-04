@@ -121,8 +121,11 @@ void main() {
       ),
     );
     expect(importActions, contains('previousPhotoIdByPath'));
+    expect(importActions, contains('previousPhotoReadStateByPath'));
+    expect(importActions, contains('existingPhotoReadStateByPath'));
     expect(importActions, contains('_previousReceiptPhotoMapValue'));
     expect(importActions, contains('normalizedReceiptPhotoPath(entry.key)'));
+    expect(importActions, contains('ReceiptAttachmentReadState.notRead'));
     expect(importActions, contains('deleteTemporaryOcrPhotos'));
     expect(
       importActions,
