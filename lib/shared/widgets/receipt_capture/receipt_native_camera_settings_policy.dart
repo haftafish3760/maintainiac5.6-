@@ -19,9 +19,6 @@ List<String> _nativeCameraCapabilityPolicyCodes({
   required bool effectiveExposureSlider,
   required bool effectiveExposureAssist,
   required bool effectiveContinuousFocus,
-  required bool effectiveFocusLock,
-  required bool effectiveExposureLock,
-  required bool effectiveWhiteBalanceLock,
   required bool heavyCleanupAllowed,
   required bool longReceiptMode,
 }) {
@@ -39,9 +36,6 @@ List<String> _nativeCameraCapabilityPolicyCodes({
     if (!effectiveExposureSlider) 'exposure_slider_unavailable',
     if (!effectiveExposureAssist) 'auto_exposure_assist_unavailable',
     if (!effectiveContinuousFocus) 'continuous_focus_unavailable',
-    if (!effectiveFocusLock) 'focus_lock_unavailable',
-    if (!effectiveExposureLock) 'exposure_lock_unavailable',
-    if (!effectiveWhiteBalanceLock) 'white_balance_lock_unavailable',
     if (!heavyCleanupAllowed) 'heavy_cleanup_policy_limited',
   ];
   if (codes.isEmpty) return const ['full_camera_assist_available'];

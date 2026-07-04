@@ -30,9 +30,6 @@ void main() {
             'auto_brightness_assist',
             'readability_guidance',
             'continuous_focus',
-            'focus_lock',
-            'brightness_lock',
-            'white_balance_lock',
             'receipt_light',
             'edge_overlay',
           ],
@@ -59,12 +56,9 @@ void main() {
           'exposureResetControlActual': 'ready',
           'torchControlExpected': true,
           'torchControlActual': 'ready',
-          'focusLockControlExpected': true,
-          'focusLockControlActual': 'ready',
-          'exposureLockControlExpected': true,
-          'exposureLockControlActual': 'ready',
-          'whiteBalanceLockControlExpected': true,
-          'whiteBalanceLockControlActual': 'ready',
+          'focusLockControlExpected': false,
+          'exposureLockControlExpected': false,
+          'whiteBalanceLockControlExpected': false,
           'latestNativeCaptureLatencyBucket': 'review_good_under_1200ms',
           'receiptReviewOpeningRoute': 'native_capture_to_photo_review',
           'receiptReviewOpeningSource': 'fresh_native_capture',
@@ -93,7 +87,7 @@ void main() {
       1,
     );
     expect(
-      result.nativeCameraUiHealthCounts['native_control_contract_17_tags'],
+      result.nativeCameraUiHealthCounts['native_control_contract_14_tags'],
       1,
     );
     expect(
@@ -147,17 +141,22 @@ void main() {
     );
     expect(result.nativeCameraUiHealthCounts['torch_actual_control_ready'], 1);
     expect(
-      result.nativeCameraUiHealthCounts['focus_lock_actual_control_ready'],
-      1,
+      result.nativeCameraUiHealthCounts.containsKey(
+        'focus_lock_actual_control_ready',
+      ),
+      isFalse,
     );
     expect(
-      result.nativeCameraUiHealthCounts['exposure_lock_actual_control_ready'],
-      1,
+      result.nativeCameraUiHealthCounts.containsKey(
+        'exposure_lock_actual_control_ready',
+      ),
+      isFalse,
     );
     expect(
-      result
-          .nativeCameraUiHealthCounts['white_balance_lock_actual_control_ready'],
-      1,
+      result.nativeCameraUiHealthCounts.containsKey(
+        'white_balance_lock_actual_control_ready',
+      ),
+      isFalse,
     );
     expect(
       result.nativeCameraUiHealthCounts['native_capture_latency_ready'],

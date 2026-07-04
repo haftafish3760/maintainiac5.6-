@@ -12,8 +12,11 @@ Future<void> expectAcceptedNativeCaptureRecoveryIndex({
   final indexEntry = recoveryIndex.entries.single;
   expect(indexEntry.sessionId, manifest['sessionId']);
   expect(indexEntry.manifestPath, staged.recoveryManifestPath);
-  expect(indexEntry.captureDiagnostics['whiteBalanceLockEnabled'], isTrue);
-  expect(indexEntry.captureDiagnostics['whiteBalanceLockStatus'], 'locked');
+  expect(indexEntry.captureDiagnostics['whiteBalanceLockEnabled'], isFalse);
+  expect(
+    indexEntry.captureDiagnostics['whiteBalanceLockStatus'],
+    'not_requested',
+  );
   expect(indexEntry.engineName, 'cameraX');
   expect(indexEntry.dataSaverLevelName, ReceiptDataSaverLevel.strong.name);
   expect(indexEntry.photoCount, 1);
@@ -249,11 +252,11 @@ Future<void> expectAcceptedNativeCaptureRecoveryIndex({
   expect(indexEntry.captureDiagnostics['textTooSmallWarningEnabled'], isTrue);
   expect(indexEntry.captureDiagnostics['autoCropSuggestionEnabled'], isTrue);
   expect(indexEntry.captureDiagnostics['orientationCorrectionEnabled'], isTrue);
-  expect(indexEntry.captureDiagnostics['tapFocusCount'], 2);
-  expect(indexEntry.captureDiagnostics['tapFocusSuppressedAfterZoomCount'], 1);
+  expect(indexEntry.captureDiagnostics['tapFocusCount'], 0);
+  expect(indexEntry.captureDiagnostics['tapFocusSuppressedAfterZoomCount'], 0);
   expect(indexEntry.captureDiagnostics['zoomChangeCount'], 3);
   expect(indexEntry.captureDiagnostics['manualExposureChangeCount'], 1);
-  expect(indexEntry.captureDiagnostics['lastFocusStatus'], 'requested');
+  expect(indexEntry.captureDiagnostics['lastFocusStatus'], 'not_used');
   expect(indexEntry.captureDiagnostics['autoCaptureTriggerCount'], 1);
   expect(indexEntry.captureDiagnostics['latestAutoCaptureStatus'], 'capturing');
   expect(

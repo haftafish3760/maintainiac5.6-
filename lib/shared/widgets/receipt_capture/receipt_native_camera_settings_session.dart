@@ -125,9 +125,6 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
       effectiveExposureSlider: effectiveExposureSlider,
       effectiveExposureAssist: effectiveExposureAssist,
       effectiveContinuousFocus: effectiveContinuousFocus,
-      effectiveFocusLock: effectiveFocusLock,
-      effectiveExposureLock: effectiveExposureLock,
-      effectiveWhiteBalanceLock: effectiveWhiteBalanceLock,
       heavyCleanupAllowed: heavyCleanupAllowed,
       longReceiptMode: longReceiptMode,
     );

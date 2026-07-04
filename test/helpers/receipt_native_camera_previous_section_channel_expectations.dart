@@ -209,9 +209,9 @@ void expectPreviousSectionGuideChannelArguments(
     sentArguments['capturedPhotoReviewDestination'],
     'receipt_photo_review_then_receipt_details',
   );
-  expect(sentArguments['focusLockEnabled'], isTrue);
-  expect(sentArguments['exposureLockEnabled'], isTrue);
-  expect(sentArguments['whiteBalanceLockEnabled'], isTrue);
+  expect(sentArguments['focusLockEnabled'], isFalse);
+  expect(sentArguments['exposureLockEnabled'], isFalse);
+  expect(sentArguments['whiteBalanceLockEnabled'], isFalse);
   expect(
     sentArguments['nativeControlContractVersion'],
     'receipt_native_controls_v1',
@@ -229,9 +229,6 @@ void expectPreviousSectionGuideChannelArguments(
     'auto_brightness_assist',
     'readability_guidance',
     'continuous_focus',
-    'focus_lock',
-    'brightness_lock',
-    'white_balance_lock',
     'receipt_light',
     'edge_overlay',
     'previous_section_ghost',
@@ -259,7 +256,7 @@ void expectPreviousSectionGuideChannelArguments(
   expect(sentArguments['settingsControlExpected'], isTrue);
   expect(sentArguments['backControlExpected'], isTrue);
   expect(sentArguments['torchControlExpected'], isTrue);
-  expect(sentArguments['focusLockControlExpected'], isTrue);
-  expect(sentArguments['exposureLockControlExpected'], isTrue);
-  expect(sentArguments['whiteBalanceLockControlExpected'], isTrue);
+  expect(sentArguments['focusLockControlExpected'], isFalse);
+  expect(sentArguments['exposureLockControlExpected'], isFalse);
+  expect(sentArguments['whiteBalanceLockControlExpected'], isFalse);
 }

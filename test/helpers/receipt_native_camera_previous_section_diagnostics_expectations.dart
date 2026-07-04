@@ -23,9 +23,6 @@ void expectPreviousSectionGuideCaptureDiagnostics(
     'auto_brightness_assist',
     'readability_guidance',
     'continuous_focus',
-    'focus_lock',
-    'brightness_lock',
-    'white_balance_lock',
     'receipt_light',
     'edge_overlay',
     'previous_section_ghost',
@@ -138,9 +135,9 @@ void expectPreviousSectionGuideCaptureDiagnostics(
     result.captureDiagnostics['capturedPhotoReviewDestination'],
     'receipt_photo_review_then_receipt_details',
   );
-  expect(result.captureDiagnostics['focusLockControlExpected'], isTrue);
-  expect(result.captureDiagnostics['exposureLockControlExpected'], isTrue);
-  expect(result.captureDiagnostics['whiteBalanceLockControlExpected'], isTrue);
+  expect(result.captureDiagnostics['focusLockControlExpected'], isFalse);
+  expect(result.captureDiagnostics['exposureLockControlExpected'], isFalse);
+  expect(result.captureDiagnostics['whiteBalanceLockControlExpected'], isFalse);
   expect(
     result.captureDiagnostics['previousSectionReasonCode'],
     'missing_bottom_edge_and_totals',

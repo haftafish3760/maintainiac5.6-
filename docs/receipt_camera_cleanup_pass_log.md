@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 678 - 00:21:28 EDT to active cleanup
+
+Scope:
+- Removed stale focus-lock, exposure-lock, and white-balance-lock settings from
+  the receipt native camera descriptor contract after tap focus was retired.
+- Stopped treating retired lock controls as missing required native capability
+  policy codes in previous-section channel diagnostics.
+- Kept receipt readability guidance visible in the native control contract even
+  when live analysis is reduced to saved-photo review.
+- Updated current staging and recovery fixtures so tap-focus counts stay zero,
+  last focus status is `not_used`, and lock-control expectations remain false.
+- Archived Pass 650 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0194` under `camera_capture_quality`.
+
+Verification:
+- Passed targeted Dart format/analyzer for native camera settings policy,
+  session config, descriptors, UI health tests, and staging expectations.
+- Passed focused Flutter native camera contract, native UI ready, staging,
+  recovery index, and previous-section channel regressions.
+
 ## Pass 677 - 00:18:55 EDT to active cleanup
 
 Scope:
@@ -476,22 +496,3 @@ Verification:
 - Passed targeted Dart format/analyzer for the barcode scanner service and
   focused scanner regression.
 - Passed focused Flutter barcode scanner regression.
-
-## Pass 650 - 22:51:56 EDT to active cleanup
-
-Scope:
-- Hardened the shared ML Kit barcode/QR scanner boundary so privacy-safe
-  summaries expose sanitized value-type buckets instead of raw scanner text.
-- Made sensitive QR/barcode payload blocking case-insensitive and passed only
-  safe value-type buckets into the work-supply barcode bridge.
-- Added regressions for uppercase sensitive QR types and malformed value-type
-  strings.
-- First focused test run failed because `privacySafeSummaryMap` still exposed
-  the raw `valueType`; fixed by removing that raw key.
-- Recorded `BUG-RECEIPT-0168` under `barcode_qr_scanning`.
-- Archived Pass 612 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for shared scanner and bridge tests.
-- Passed focused Flutter barcode scanner and work-supply barcode bridge
-  regressions.

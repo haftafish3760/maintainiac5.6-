@@ -125,24 +125,24 @@ void expectAcceptedNativeCaptureRecoveryManifest(
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['focusLockControlExpected'],
-    isTrue,
+    isFalse,
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['exposureLockControlExpected'],
-    isTrue,
+    isFalse,
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['whiteBalanceLockControlExpected'],
-    isTrue,
+    isFalse,
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['whiteBalanceLockEnabled'],
-    isTrue,
+    isFalse,
   );
-  expect((manifest['captureDiagnostics'] as Map)['whiteBalanceMode'], 'locked');
+  expect((manifest['captureDiagnostics'] as Map)['whiteBalanceMode'], 'auto');
   expect(
     (manifest['captureDiagnostics'] as Map)['whiteBalanceLockStatus'],
-    'locked',
+    'not_requested',
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['latestCapturedPhotoWidth'],
@@ -236,7 +236,7 @@ void expectAcceptedNativeCaptureRecoveryManifest(
     (manifest['captureDiagnostics'] as Map)['orientationCorrectionEnabled'],
     isTrue,
   );
-  expect((manifest['captureDiagnostics'] as Map)['tapFocusCount'], 2);
+  expect((manifest['captureDiagnostics'] as Map)['tapFocusCount'], 0);
   expect((manifest['captureDiagnostics'] as Map)['zoomChangeCount'], 3);
   expect(
     (manifest['captureDiagnostics'] as Map)['manualExposureChangeCount'],
@@ -244,7 +244,7 @@ void expectAcceptedNativeCaptureRecoveryManifest(
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['lastFocusStatus'],
-    'requested',
+    'not_used',
   );
   expect((manifest['captureDiagnostics'] as Map)['autoCaptureTriggerCount'], 1);
   expect(
