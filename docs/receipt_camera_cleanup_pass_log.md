@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 731 - 03:22:11 EDT to active cleanup
+
+Scope:
+- Audited remaining tap-focus references after removing retired controls from
+  capability policy scoring.
+- Hard-coded the Dart service contract payload so `tapFocusControlExpected`
+  stays false instead of deriving from `config.tapFocusEnabled`.
+- Added a service source-contract regression proving the retired tap-focus
+  expected flag cannot be reconnected through the service helper.
+- Recorded `BUG-RECEIPT-0222` under `native_bridge`.
+- Archived Pass 706 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the native camera service contract
+  helper and service basics regression.
+- Passed focused Flutter native service regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 730 - 03:17:54 EDT to active cleanup
 
 Scope:
@@ -464,22 +483,3 @@ Verification:
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
 - Archived Pass 649 from the active cleanup log to keep the doc under cap.
-
-## Pass 706 - 02:31:00 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS native session argument readers so stale or malformed
-  bridge arguments cannot re-enable tap-focus for receipt capture.
-- Forced the native tap-focus policy to
-  `continuous_focus_primary_no_tap_focus` at both platform boundaries.
-- Updated Android and iOS bridge regressions to reject raw tap-focus argument
-  trust.
-- Recorded `BUG-RECEIPT-0193` under `native_bridge`.
-- Archived Pass 647 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native bridge tests.
-- Passed focused Android/iOS bridge regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-- Archived Pass 648 from the active cleanup log to keep the doc under cap.

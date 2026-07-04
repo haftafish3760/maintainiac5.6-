@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
@@ -62,6 +64,18 @@ void main() {
       );
     },
   );
+
+  test('native service contract keeps retired tap focus unexpected', () {
+    final serviceContractSource = File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_service_contract_helpers.dart',
+    ).readAsStringSync();
+
+    expect(serviceContractSource, contains("'tapFocusControlExpected': false"));
+    expect(
+      serviceContractSource,
+      isNot(contains("'tapFocusControlExpected': config.tapFocusEnabled")),
+    );
+  });
 
   test(
     'native service reads capabilities through Maintainiac channel',

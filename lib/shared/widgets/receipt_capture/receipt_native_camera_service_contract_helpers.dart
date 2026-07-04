@@ -181,7 +181,7 @@ Map<String, Object?> _nativeControlContract(
     'closeDuringCapturePolicy': config.closeDuringCapturePolicy,
     'closeNoPhotoPolicy': config.closeNoPhotoPolicy,
     'capturedPhotoReviewDestination': config.capturedPhotoReviewDestination,
-    'tapFocusControlExpected': config.tapFocusEnabled,
+    'tapFocusControlExpected': false,
     'tapToFocusPolicy': config.tapToFocusPolicy,
     'continuousFocusExpected': config.continuousFocusEnabled,
     'focusStrategyPolicy': config.focusStrategyPolicy,
