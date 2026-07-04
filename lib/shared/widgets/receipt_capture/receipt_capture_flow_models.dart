@@ -101,14 +101,16 @@ class ReceiptCaptureContinuationGuide {
     String? reasonCode,
     String? guidance,
   }) {
-    final normalizedReason = _trimmedOrNull(reasonCode)?.toLowerCase();
-    if (normalizedReason == null) {
-      return const ReceiptCaptureContinuationGuide();
-    }
     String? previousGuidePath;
     for (final path in previousPhotoPaths) {
       final normalizedPath = receiptNativeCameraLocalImagePathOrNull(path);
       if (normalizedPath != null) previousGuidePath = normalizedPath;
+    }
+    final normalizedReason =
+        _trimmedOrNull(reasonCode)?.toLowerCase() ??
+        (previousGuidePath == null ? null : 'manual_add_photo_continuation');
+    if (normalizedReason == null) {
+      return const ReceiptCaptureContinuationGuide();
     }
     return ReceiptCaptureContinuationGuide(
       guidePhotoPath: previousGuidePath,

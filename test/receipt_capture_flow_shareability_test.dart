@@ -105,20 +105,39 @@ void main() {
     },
   );
 
-  test('continuation guide stays inactive without a reason code', () {
-    final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
-      previousPhotoPaths: const ['/tmp/receipt-top.jpg'],
-      reasonCode: '   ',
-      guidance: 'Ignored guidance',
-    );
-    const options = ReceiptCaptureFlowOptions(
-      module: ReceiptCaptureFlowModule.materialsInventory,
-    );
+  test(
+    'continuation guide activates manual add-photo ghost without reason',
+    () {
+      final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
+        previousPhotoPaths: const ['/tmp/receipt-top.jpg'],
+        reasonCode: '   ',
+        guidance: 'Ignored guidance',
+      );
+      final noPhotoGuide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
+        previousPhotoPaths: const ['relative-receipt.jpg'],
+        reasonCode: '   ',
+        guidance: 'Ignored guidance',
+      );
+      const options = ReceiptCaptureFlowOptions(
+        module: ReceiptCaptureFlowModule.materialsInventory,
+      );
 
-    expect(guide.hasReason, isFalse);
-    expect(guide.hasGuidePhoto, isFalse);
-    expect(identical(guide.applyTo(options), options), isTrue);
-  });
+      expect(guide.hasReason, isTrue);
+      expect(guide.hasGuidePhoto, isTrue);
+      expect(guide.reasonCode, 'manual_add_photo_continuation');
+      expect(
+        guide.applyTo(options).previousSectionGuidePhotoPath,
+        '/tmp/receipt-top.jpg',
+      );
+      expect(
+        guide.applyTo(options).previousSectionReasonCode,
+        'manual_add_photo_continuation',
+      );
+      expect(noPhotoGuide.hasReason, isFalse);
+      expect(noPhotoGuide.hasGuidePhoto, isFalse);
+      expect(identical(noPhotoGuide.applyTo(options), options), isTrue);
+    },
+  );
 
   test('continuation guide ignores unsafe previous photo paths', () {
     final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(

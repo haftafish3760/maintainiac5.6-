@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 804 - 09:39:00 EDT to active cleanup
+
+Scope:
+- Fixed manual Add Photo continuation so a valid previous receipt section can
+  activate the ghost overlay even when no OCR-specific reason code exists yet.
+- Added the safe default `manual_add_photo_continuation` reason while keeping
+  no-photo/no-reason continuation inactive.
+- Updated continuation guide regressions for manual Add Photo ghost behavior.
+- Recorded `BUG-RECEIPT-0288` under `ghost_overlap_stitching`.
+- Archived Pass 772 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused capture-flow shareability
+  regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 803 - 09:31:00 EDT to active cleanup
 
 Scope:
@@ -474,22 +491,4 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for recovery review index changes.
 - Passed focused Flutter recovery contract regression.
-- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
-
-## Pass 772 - 05:51:44 EDT to active cleanup
-
-Scope:
-- Hardened attachment-panel review opening so Add Existing Photo / picked-photo
-  review uses the normalized existing receipt photo count for the first new
-  section index.
-- Prevented invalid or duplicate existing attachment photo paths from shifting
-  the review screen away from newly picked receipt photos.
-- Added source regressions for normalized first-new-photo index calculation.
-- Recorded `BUG-RECEIPT-0260` under `camera_review_state`.
-- Archived Pass 744 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for attachment review index changes.
-- Passed focused Flutter camera capture layout/native bridge layout
-  regressions.
 - Passed doc-size, bug-ledger, source-audit, and test-audit gates.
