@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 779 - 07:04:11 EDT to active cleanup
+
+Scope:
+- Hardened OCR source quality/warning handoff for normalized-equivalent paths.
+- Replaced raw OCR source diagnostics and quality lookups with normalized
+  receipt-photo map lookups in shared attachment and capture-flow helpers.
+- Added source regressions proving quality and capture diagnostics use
+  normalized lookup instead of raw OCR source path equality.
+- Recorded `BUG-RECEIPT-0266` under `source_preservation`.
+- Archived Pass 751 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused Flutter OCR source
+  attachment/handoff contract regressions.
+- Passed doc-size, bug-ledger, source-audit, test-audit, and diff whitespace
+  gates.
+
 ## Pass 778 - 06:29:36 EDT to active cleanup
 
 Scope:
@@ -479,22 +496,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for native framing regressions.
 - Passed focused Android/iOS native analysis exposure regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 751 - 03:57:59 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS native live brightness buckets so non-finite preview
-  brightness cannot be classified as `lighting_ok`.
-- Hardened saved-photo exposure mismatch diagnostics so non-finite live
-  brightness resolves to `unknown` instead of healthy alignment.
-- Added Android/iOS native exposure regressions for the non-finite live
-  brightness guard.
-- Recorded `BUG-RECEIPT-0239` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart format/analyzer for native exposure regressions.
-- Passed focused Android/iOS native exposure bridge regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

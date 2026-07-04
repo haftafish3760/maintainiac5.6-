@@ -68,6 +68,14 @@ void main() {
     );
     expect(importActions, contains('trimmed.isEmpty || trimmed != path'));
     expect(importActions, contains('_weakestPhotoQuality'));
+    expect(
+      importActions,
+      contains(
+        '_previousReceiptPhotoMapValue(\n'
+        '      result.photoQualityChecksByPath,\n'
+        '      ocrSourcePath,',
+      ),
+    );
     expect(importActions, contains('result.ocrSourcePhotoPaths.length'));
     expect(
       importActions,
@@ -75,11 +83,19 @@ void main() {
     );
     expect(
       importActions,
-      contains('result.captureDiagnosticsByPhotoPath[ocrSourcePath]'),
+      contains(
+        '_previousReceiptPhotoMapValue(\n'
+        '      result.captureDiagnosticsByPhotoPath,\n'
+        '      ocrSourcePath,',
+      ),
     );
     expect(
       importActions,
-      contains('result.photoPaths[index] == ocrSourcePath'),
+      contains(
+        '_previousReceiptPhotoMapValue(\n'
+        '        result.captureDiagnosticsByPhotoPath,\n'
+        '        result.photoPaths[index],',
+      ),
     );
     expect(importActions, contains('.withPhotoQuality('));
     expect(captureFlow, contains('_receiptBrainDocumentSignalsFor'));

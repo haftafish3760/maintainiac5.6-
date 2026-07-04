@@ -140,18 +140,33 @@ List<Map<String, Object?>> _diagnosticsForOcrSourceIndex(
   if (result.ocrSourcePhotoPaths.length == 1 && result.photoPaths.length > 1) {
     return [
       for (final path in result.photoPaths)
-        if (result.captureDiagnosticsByPhotoPath[path] != null)
-          result.captureDiagnosticsByPhotoPath[path]!,
+        ?_receiptPhotoMapValue(result.captureDiagnosticsByPhotoPath, path),
     ];
   }
   if (index < 0 || index >= result.ocrSourcePhotoPaths.length) {
     return const [];
   }
   final ocrSourcePath = result.ocrSourcePhotoPaths[index];
-  var diagnostics = result.captureDiagnosticsByPhotoPath[ocrSourcePath];
+  var diagnostics = _receiptPhotoMapValue(
+    result.captureDiagnosticsByPhotoPath,
+    ocrSourcePath,
+  );
   if (diagnostics == null && index < result.photoPaths.length) {
-    diagnostics =
-        result.captureDiagnosticsByPhotoPath[result.photoPaths[index]];
+    diagnostics = _receiptPhotoMapValue(
+      result.captureDiagnosticsByPhotoPath,
+      result.photoPaths[index],
+    );
   }
   return diagnostics == null ? const [] : [diagnostics];
+}
+
+T? _receiptPhotoMapValue<T>(Map<String, T> valuesByPath, String path) {
+  final normalizedPath = normalizedReceiptPhotoPath(path);
+  if (normalizedPath == null) return null;
+  for (final entry in valuesByPath.entries) {
+    if (normalizedReceiptPhotoPath(entry.key) == normalizedPath) {
+      return entry.value;
+    }
+  }
+  return null;
 }

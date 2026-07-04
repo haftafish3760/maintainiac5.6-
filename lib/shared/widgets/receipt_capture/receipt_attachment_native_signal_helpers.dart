@@ -22,20 +22,25 @@ extension _ReceiptAttachmentNativeSignalHelpers
         result.photoPaths.length > 1) {
       return [
         for (final path in result.photoPaths)
-          if (result.captureDiagnosticsByPhotoPath[path] != null)
-            result.captureDiagnosticsByPhotoPath[path]!,
+          ?_previousReceiptPhotoMapValue(
+            result.captureDiagnosticsByPhotoPath,
+            path,
+          ),
       ];
     }
     if (index < 0 || index >= result.ocrSourcePhotoPaths.length) {
       return const [];
     }
     final ocrSourcePath = result.ocrSourcePhotoPaths[index];
-    var diagnostics = result.captureDiagnosticsByPhotoPath[ocrSourcePath];
-    if (diagnostics == null &&
-        index < result.photoPaths.length &&
-        result.photoPaths[index] == ocrSourcePath) {
-      diagnostics =
-          result.captureDiagnosticsByPhotoPath[result.photoPaths[index]];
+    var diagnostics = _previousReceiptPhotoMapValue(
+      result.captureDiagnosticsByPhotoPath,
+      ocrSourcePath,
+    );
+    if (diagnostics == null && index < result.photoPaths.length) {
+      diagnostics = _previousReceiptPhotoMapValue(
+        result.captureDiagnosticsByPhotoPath,
+        result.photoPaths[index],
+      );
     }
     return diagnostics == null ? const [] : [diagnostics];
   }
@@ -104,11 +109,16 @@ extension _ReceiptAttachmentNativeSignalHelpers
     }
     if (index < 0 || index >= result.ocrSourcePhotoPaths.length) return null;
     final ocrSourcePath = result.ocrSourcePhotoPaths[index];
-    final ocrQuality = result.photoQualityChecksByPath[ocrSourcePath];
+    final ocrQuality = _previousReceiptPhotoMapValue(
+      result.photoQualityChecksByPath,
+      ocrSourcePath,
+    );
     if (ocrQuality != null) return ocrQuality;
-    if (index < result.photoPaths.length &&
-        result.photoPaths[index] == ocrSourcePath) {
-      return result.photoQualityChecksByPath[result.photoPaths[index]];
+    if (index < result.photoPaths.length) {
+      return _previousReceiptPhotoMapValue(
+        result.photoQualityChecksByPath,
+        result.photoPaths[index],
+      );
     }
     return null;
   }
@@ -119,7 +129,7 @@ extension _ReceiptAttachmentNativeSignalHelpers
   ) {
     ReceiptPhotoQualityCheck? weakest;
     for (final path in paths) {
-      final quality = qualityByPath[path];
+      final quality = _previousReceiptPhotoMapValue(qualityByPath, path);
       if (quality == null) continue;
       if (weakest == null || quality.reviewScore < weakest.reviewScore) {
         weakest = quality;

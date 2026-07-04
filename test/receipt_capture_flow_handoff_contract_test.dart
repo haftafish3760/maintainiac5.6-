@@ -73,6 +73,9 @@ void main() {
           'lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_risks.dart',
         ).readAsString() +
         await File(
+          'lib/shared/widgets/receipt_capture/receipt_capture_flow_helpers.dart',
+        ).readAsString() +
+        await File(
           'lib/shared/widgets/receipt_capture/receipt_capture_flow_native_signals.dart',
         ).readAsString();
     final actions =
@@ -100,14 +103,29 @@ void main() {
     );
     expect(
       flow,
-      contains('result.captureDiagnosticsByPhotoPath[ocrSourcePath]'),
+      contains(
+        '_receiptPhotoMapValue(\n'
+        '    result.photoQualityChecksByPath,\n'
+        '    ocrSourcePath,',
+      ),
     );
     expect(
       flow,
       contains(
-        'result.captureDiagnosticsByPhotoPath[result.photoPaths[index]]',
+        '_receiptPhotoMapValue(\n'
+        '    result.captureDiagnosticsByPhotoPath,\n'
+        '    ocrSourcePath,',
       ),
     );
+    expect(
+      flow,
+      contains(
+        '_receiptPhotoMapValue(\n'
+        '      result.captureDiagnosticsByPhotoPath,\n'
+        '      result.photoPaths[index],',
+      ),
+    );
+    expect(flow, contains('normalizedReceiptPhotoPath(entry.key)'));
     expect(actions, contains('ocr_source_retake_risk'));
     expect(flow, contains("'ocr_reads_prepared_source_not_saved_backup'"));
     expect(actions, contains("'ocr_reads_prepared_source_not_saved_backup'"));

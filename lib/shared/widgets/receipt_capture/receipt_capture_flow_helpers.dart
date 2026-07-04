@@ -166,11 +166,16 @@ ReceiptPhotoQualityCheck? _qualityForOcrSourceIndex(
   }
   if (index < 0 || index >= result.ocrSourcePhotoPaths.length) return null;
   final ocrSourcePath = result.ocrSourcePhotoPaths[index];
-  final ocrQuality = result.photoQualityChecksByPath[ocrSourcePath];
+  final ocrQuality = _receiptPhotoMapValue(
+    result.photoQualityChecksByPath,
+    ocrSourcePath,
+  );
   if (ocrQuality != null) return ocrQuality;
-  if (index < result.photoPaths.length &&
-      result.photoPaths[index] == ocrSourcePath) {
-    return result.photoQualityChecksByPath[result.photoPaths[index]];
+  if (index < result.photoPaths.length) {
+    return _receiptPhotoMapValue(
+      result.photoQualityChecksByPath,
+      result.photoPaths[index],
+    );
   }
   return null;
 }
@@ -181,7 +186,7 @@ ReceiptPhotoQualityCheck? _weakestPhotoQuality(
 ) {
   ReceiptPhotoQualityCheck? weakest;
   for (final path in paths) {
-    final quality = qualityByPath[path];
+    final quality = _receiptPhotoMapValue(qualityByPath, path);
     if (quality == null) continue;
     if (weakest == null || quality.reviewScore < weakest.reviewScore) {
       weakest = quality;
