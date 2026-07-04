@@ -50,6 +50,7 @@ class ReceiptOcrDiagnostics {
     required this.ocrSourceCoverageSignalCounts,
     required this.ocrSourceContinuationSignalCounts,
     required this.ocrSourceCompletionSignalCounts,
+    required this.ocrSourceSectionOrderSignalCounts,
     required this.ocrSourcePhotoQualityRiskCounts,
     required this.ocrSourceBottomCoverageRiskDetected,
     required this.clientProofRedactionStatus,
@@ -137,6 +138,7 @@ class ReceiptOcrDiagnostics {
   final Map<String, int> ocrSourceCoverageSignalCounts;
   final Map<String, int> ocrSourceContinuationSignalCounts;
   final Map<String, int> ocrSourceCompletionSignalCounts;
+  final Map<String, int> ocrSourceSectionOrderSignalCounts;
   final Map<String, int> ocrSourcePhotoQualityRiskCounts;
   final bool ocrSourceBottomCoverageRiskDetected;
   final String clientProofRedactionStatus;

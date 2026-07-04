@@ -94,6 +94,8 @@ ReceiptOcrDiagnostics _receiptOcrDiagnosticsFromResult(
         result.sourceHandoffSummary.continuationSignalCounts,
     ocrSourceCompletionSignalCounts:
         result.sourceHandoffSummary.completionSignalCounts,
+    ocrSourceSectionOrderSignalCounts:
+        result.sourceHandoffSummary.sectionOrderSignalCounts,
     ocrSourcePhotoQualityRiskCounts:
         result.sourceHandoffSummary.photoQualityRiskCounts,
     ocrSourceBottomCoverageRiskDetected:

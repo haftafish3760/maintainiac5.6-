@@ -192,10 +192,18 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       ]) >
       0;
 
+  bool get hasSectionOrderReviewRisk =>
+      _countForAny(sectionOrderSignalCounts, const [
+        'receipt_section_order_review_required',
+        'ocr_source_section_order_review_required',
+      ]) >
+      0;
+
   String get sourceQualityReviewStatus {
     if (hasMissingBottomEdgeAndTotalsEvidence) {
       return 'missing_bottom_edge_and_totals_first';
     }
+    if (hasSectionOrderReviewRisk) return 'section_order_review_required';
     if (hasSavedPhotoBottomQualityRisk) return 'saved_bottom_quality_review';
     if (hasSavedPhotoDarkOrExposureRisk) return 'saved_dark_exposure_review';
     if (hasSavedPhotoSoftBlurRisk) return 'saved_soft_blur_review';
@@ -211,6 +219,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
     return switch (sourceQualityReviewStatus) {
       'missing_bottom_edge_and_totals_first' =>
         'add_bottom_section_with_ghost_slice',
+      'section_order_review_required' => 'review_receipt_section_order',
       'saved_bottom_quality_review' => 'check_bottom_or_add_photo',
       'saved_dark_exposure_review' => 'retake_or_raise_brightness',
       'saved_soft_blur_review' => 'retake_hold_steady',
@@ -247,6 +256,8 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
         'reviewDepthSignalCounts': reviewDepthSignalCounts,
       if (reviewDepthSignalCounts.isNotEmpty)
         'reviewDepthStatus': reviewDepthStatus,
+      if (sectionOrderSignalCounts.isNotEmpty)
+        'sectionOrderSignalCounts': sectionOrderSignalCounts,
       if (sourceQualityReviewStatus != 'source_quality_ready_or_not_reported')
         'sourceQualityReviewStatus': sourceQualityReviewStatus,
       if (sourceQualityReviewStatus != 'source_quality_ready_or_not_reported')

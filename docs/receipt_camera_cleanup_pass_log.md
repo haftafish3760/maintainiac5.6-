@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 876 - active cleanup
+
+Scope:
+- Classified OCR-source section-order handoff signals as their own typed
+  evidence family instead of leaving them mixed into generic source signals.
+- Exposed section-order signal counts through privacy-safe OCR handoff
+  diagnostics so admin/failure reports can see why ordering review is needed.
+- Made section-order review-required evidence drive
+  `section_order_review_required` and `review_receipt_section_order` handoff
+  actions before OCR/parser trust.
+- Added a focused OCR-service regression that keeps section-order flags out of
+  generic photo-quality risk counts.
+- Recorded `BUG-RECEIPT-0325` under `ocr_handoff_contract`.
+- Archived Pass 803 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused OCR/capture-flow/section-
+  order regressions.
+
 ## Pass 875 - 16:32:00 EDT to active cleanup
 
 Scope:
@@ -464,23 +483,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused capture-flow shareability
-  regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 803 - 09:31:00 EDT to active cleanup
-
-Scope:
-- Added explicit price-only versus detailed-line review mode fields to the
-  pre-save assisted receipt line privacy-safe contract.
-- Added business-use label parity so draft contracts match saved receipt line
-  review contracts more closely.
-- Added source regressions for draft review-mode and business-use labels.
-- Recorded `BUG-RECEIPT-0287` under `receipt_line_review_mode`.
-- Archived Pass 771 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused assisted-review source
   regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

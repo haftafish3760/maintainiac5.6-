@@ -15,6 +15,7 @@ class ReceiptOcrSourceHandoffSummary {
     required this.continuationSignalCounts,
     required this.completionSignalCounts,
     required this.reviewDepthSignalCounts,
+    required this.sectionOrderSignalCounts,
     required this.photoQualityRiskCounts,
   });
 
@@ -32,6 +33,7 @@ class ReceiptOcrSourceHandoffSummary {
       continuationSignalCounts = const {},
       completionSignalCounts = const {},
       reviewDepthSignalCounts = const {},
+      sectionOrderSignalCounts = const {},
       photoQualityRiskCounts = const {};
 
   factory ReceiptOcrSourceHandoffSummary.fromAttachments(
@@ -50,6 +52,7 @@ class ReceiptOcrSourceHandoffSummary {
     final continuations = <String, int>{};
     final completions = <String, int>{};
     final reviewDepths = <String, int>{};
+    final sectionOrders = <String, int>{};
     final qualityRisks = <String, int>{};
 
     for (final attachment in attachments) {
@@ -96,6 +99,9 @@ class ReceiptOcrSourceHandoffSummary {
         if (token.startsWith('receipt_review_depth_')) {
           _incrementOcrHandoffCount(reviewDepths, token);
         }
+        if (token.startsWith('receipt_section_order_')) {
+          _incrementOcrHandoffCount(sectionOrders, token);
+        }
       }
       for (final risk in attachment.riskFlags) {
         final token = _safeOcrHandoffToken(risk);
@@ -104,8 +110,12 @@ class ReceiptOcrSourceHandoffSummary {
         if (token.startsWith('ocr_source_first_')) {
           _incrementOcrHandoffCount(sourceFirstDecisions, token);
         }
-        if (token.startsWith('ocr_source_')) {
+        if (token.startsWith('ocr_source_') &&
+            !token.startsWith('ocr_source_section_order_')) {
           _incrementOcrHandoffCount(qualityRisks, token);
+        }
+        if (token.startsWith('ocr_source_section_order_')) {
+          _incrementOcrHandoffCount(sectionOrders, token);
         }
         if (token.startsWith('ocr_source_continuation_')) {
           _incrementOcrHandoffCount(continuations, token);
@@ -135,6 +145,7 @@ class ReceiptOcrSourceHandoffSummary {
       continuationSignalCounts: Map.unmodifiable(continuations),
       completionSignalCounts: Map.unmodifiable(completions),
       reviewDepthSignalCounts: Map.unmodifiable(reviewDepths),
+      sectionOrderSignalCounts: Map.unmodifiable(sectionOrders),
       photoQualityRiskCounts: Map.unmodifiable(qualityRisks),
     );
   }
@@ -152,6 +163,7 @@ class ReceiptOcrSourceHandoffSummary {
   final Map<String, int> continuationSignalCounts;
   final Map<String, int> completionSignalCounts;
   final Map<String, int> reviewDepthSignalCounts;
+  final Map<String, int> sectionOrderSignalCounts;
   final Map<String, int> photoQualityRiskCounts;
 
   bool get hasSignals =>
@@ -168,5 +180,6 @@ class ReceiptOcrSourceHandoffSummary {
       continuationSignalCounts.isNotEmpty ||
       completionSignalCounts.isNotEmpty ||
       reviewDepthSignalCounts.isNotEmpty ||
+      sectionOrderSignalCounts.isNotEmpty ||
       photoQualityRiskCounts.isNotEmpty;
 }
