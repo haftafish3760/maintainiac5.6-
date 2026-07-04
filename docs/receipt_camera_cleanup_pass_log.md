@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 816 - 11:32:00 EDT to active cleanup
+
+Scope:
+- Promoted native backup scanner and phone-camera fallback warnings from
+  generic review actions into explicit crop/focus review handoff families.
+- Kept fallback-only backup capture from becoming the primary accepted warning
+  profile while still exposing parser risk and receipt-reader handoff counts.
+- Added focused regressions for document-scanner backup crop review and
+  phone-camera backup focus review.
+- Recorded `BUG-RECEIPT-0301` under `camera_review_state`.
+- Archived Pass 809 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted saved-photo warning format/analyzer and focused native
+  backup warning handoff regressions.
+- Corrected one invalid focused-test command that combined two `--plain-name`
+  filters and reran the two focused tests individually.
+- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
+  whitespace gates.
+
 ## Pass 807 - 10:24:00 EDT to active cleanup
 
 Scope:
@@ -471,20 +491,5 @@ Scope:
 Verification:
 - Passed targeted OCR source-quality format/analyzer and focused service
   regression.
-- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
-  whitespace gates.
-
-## Pass 809 - 12:01:00 EDT to active cleanup
-
-Scope:
-- Added direct low-light receipt quality guidance coverage at the model boundary.
-- Pinned that too-dark receipts recommend retake, block auto capture, still
-  allow manual review/Next, and surface add-light/torch guidance.
-- Recorded `BUG-RECEIPT-0294` under `camera_capture_quality`.
-- Archived Pass 777 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted quality guidance format/analyzer and focused low-light
-  regression test.
 - Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
   whitespace gates.

@@ -26,6 +26,8 @@ extension ReceiptNativeSavedPhotoReviewWarningDetails
       'saved_photo_glare_risk' => 'reduce_glare_or_retake',
       'saved_photo_dirty_lens_or_haze' => 'wipe_lens_or_retake',
       'saved_photo_shadow_risk' => 'move_to_even_light_or_retake',
+      'saved_photo_document_scanner_backup' => 'review_backup_scan_crop',
+      'saved_photo_phone_camera_backup' => 'review_phone_backup_focus',
       _ => isCritical ? 'retake_before_review' : 'review_if_readable',
     };
   }
@@ -44,6 +46,10 @@ extension ReceiptNativeSavedPhotoReviewWarningDetails
       'saved_photo_glare_risk' => 'ocr_washed_out_text_may_fail',
       'saved_photo_dirty_lens_or_haze' => 'ocr_hazy_text_may_fail',
       'saved_photo_shadow_risk' => 'ocr_shadowed_text_may_fail',
+      'saved_photo_document_scanner_backup' =>
+        'ocr_backup_scan_crop_may_need_review',
+      'saved_photo_phone_camera_backup' =>
+        'ocr_phone_backup_focus_may_need_review',
       _ => 'ocr_review_if_needed',
     };
   }
@@ -63,6 +69,8 @@ extension ReceiptNativeSavedPhotoReviewWarningDetails
       'reduce_glare_or_retake' => 'Reduce glare or retake',
       'wipe_lens_or_retake' => 'Wipe lens or retake',
       'move_to_even_light_or_retake' => 'Move to even light or retake',
+      'review_backup_scan_crop' => 'Check backup scan crop and totals',
+      'review_phone_backup_focus' => 'Check phone backup focus and totals',
       'retake_before_review' => 'Retake before relying on automatic fill',
       _ => 'Review readability before Next',
     };
@@ -84,6 +92,10 @@ extension ReceiptNativeSavedPhotoReviewWarningDetails
         'OCR may miss cloudy text or prices; wipe the lens and retake if the saved photo looks hazy.',
       'ocr_shadowed_text_may_fail' =>
         'OCR may miss shadowed text or prices; move the receipt into even light and retake if shadows cover important lines.',
+      'ocr_backup_scan_crop_may_need_review' =>
+        'Because this came from backup scanner capture, verify crop, bottom edge, subtotal, tax, and total before relying on automatic line fill.',
+      'ocr_phone_backup_focus_may_need_review' =>
+        'Because this came from phone camera backup capture, verify focus, bottom edge, subtotal, tax, and total before relying on automatic line fill.',
       _ => '',
     };
   }

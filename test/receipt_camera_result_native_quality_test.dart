@@ -41,9 +41,67 @@ void main() {
         result.savedPhotoWarningCounts,
         containsPair('saved_photo_document_scanner_backup', 1),
       );
+      expect(
+        result.savedPhotoWarningActionCounts,
+        containsPair('review_backup_scan_crop', 1),
+      );
+      expect(
+        result.savedPhotoParserRiskCounts,
+        containsPair('ocr_backup_scan_crop_may_need_review', 1),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair('saved_photo_action_review_backup_scan_crop', 1),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair('parser_risk_ocr_backup_scan_crop_may_need_review', 1),
+      );
       expect(result.acceptedPhotoWarningProfile, 'saved_photo_ok');
     },
   );
+
+  test('phone backup capture keeps focus review handoff counts', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/phone-backup-proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/phone-backup-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/phone-backup-ocr.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/phone-backup-proof.jpg': {
+          'captureFlow': 'phone_camera_backup_receipt_photo',
+          'phoneCameraBackupUsed': true,
+          'phoneCameraBackupRole': 'fallback_only',
+          'backupCaptureAuthorizedBy': 'maintainiac_native_unavailable',
+          'stockCameraUiAllowedAsPrimary': false,
+        },
+      },
+    );
+
+    expect(
+      result.savedPhotoWarningCounts,
+      containsPair('saved_photo_phone_camera_backup', 1),
+    );
+    expect(
+      result.savedPhotoWarningActionCounts,
+      containsPair('review_phone_backup_focus', 1),
+    );
+    expect(
+      result.savedPhotoParserRiskCounts,
+      containsPair('ocr_phone_backup_focus_may_need_review', 1),
+    );
+    expect(
+      result.receiptReaderHandoffCounts,
+      containsPair('saved_photo_action_review_phone_backup_focus', 1),
+    );
+    expect(
+      result.receiptReaderHandoffCounts,
+      containsPair('parser_risk_ocr_phone_backup_focus_may_need_review', 1),
+    );
+    expect(result.acceptedPhotoWarningProfile, 'saved_photo_ok');
+  });
 
   test('photo review result tracks preview parity watch without blocking', () {
     final result = ReceiptPhotoReviewResult(

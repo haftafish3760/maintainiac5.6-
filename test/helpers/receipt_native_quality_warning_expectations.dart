@@ -61,8 +61,11 @@ void expectBridgedDimGlareCaptureWarnings() {
       });
   expect(phoneBackupWarning.code, 'saved_photo_phone_camera_backup');
   expect(phoneBackupWarning.causeCode, 'phone_camera_backup_capture');
-  expect(phoneBackupWarning.actionCode, 'review_if_readable');
-  expect(phoneBackupWarning.parserRiskCode, 'ocr_review_if_needed');
+  expect(phoneBackupWarning.actionCode, 'review_phone_backup_focus');
+  expect(
+    phoneBackupWarning.parserRiskCode,
+    'ocr_phone_backup_focus_may_need_review',
+  );
 
   final documentScannerBackupWarning =
       ReceiptNativeSavedPhotoReviewWarning.fromDiagnostics({
@@ -76,5 +79,10 @@ void expectBridgedDimGlareCaptureWarnings() {
   expect(
     documentScannerBackupWarning.causeCode,
     'document_scanner_backup_capture',
+  );
+  expect(documentScannerBackupWarning.actionCode, 'review_backup_scan_crop');
+  expect(
+    documentScannerBackupWarning.parserRiskCode,
+    'ocr_backup_scan_crop_may_need_review',
   );
 }
