@@ -101,7 +101,9 @@ Map<String, Object?> _previousSectionGuideDiagnostics(
   final reason = _trimmedOrNull(
     options.previousSectionReasonCode,
   )?.toLowerCase();
-  final guidePhotoPath = _trimmedOrNull(options.previousSectionGuidePhotoPath);
+  final guidePhotoPath = receiptNativeCameraLocalImagePathOrNull(
+    options.previousSectionGuidePhotoPath,
+  );
   final guidance = _trimmedOrNull(options.previousSectionGuidance);
   final missingBottomAndTotals = reason == 'missing_bottom_edge_and_totals';
   return {

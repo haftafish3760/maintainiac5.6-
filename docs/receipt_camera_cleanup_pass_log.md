@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 765 - 05:07:23 EDT to active cleanup
+
+Scope:
+- Hardened capture-flow continuation guide options so unsafe previous-photo
+  paths cannot be preserved before native session construction.
+- Reused the native camera local image path sanitizer for continuation guide
+  creation, manual guide application, and flow diagnostics.
+- Prevented diagnostics from claiming a previous-section guide photo is
+  available when the path is relative, URL-like, non-image, or NUL-tainted.
+- Added capture-flow regressions for unsafe previous-photo guide families.
+- Recorded `BUG-RECEIPT-0253` under `multi_photo_ordering`.
+- Archived Pass 737 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for capture-flow continuation changes.
+- Fixed the initial analyzer/test failure caused by a private helper crossing
+  Dart library boundaries by making the sanitizer a public contract helper.
+- Passed focused Flutter capture-flow shareability regression.
+- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
+
 ## Pass 764 - 04:52:58 EDT to active cleanup
 
 Scope:
@@ -465,25 +485,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for capture flow barcode handoff.
 - Passed focused Flutter barcode handoff and barcode scanner regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 737 - 03:30:19 EDT to active cleanup
-
-Scope:
-- Audited the existing ML Kit barcode/QR service and confirmed the dependency
-  and single-image scanner already exist.
-- Added a bounded multi-image barcode scan result for long receipts and shared
-  camera handoff consumers.
-- Added privacy-safe batch summaries and deduped inventory lookup values across
-  receipt segments without exposing raw barcode or QR payloads.
-- Added focused batch scanner regressions for cross-segment dedupe and segment
-  count bounding.
-- Archived Pass 712 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for barcode scanner service and focused
-  barcode scanner regression.
-- Passed focused Flutter barcode scanner regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

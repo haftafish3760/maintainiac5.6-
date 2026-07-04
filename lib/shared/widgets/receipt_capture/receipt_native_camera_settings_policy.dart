@@ -7,7 +7,7 @@ double? _boundedNativeCameraFraction(double? value) {
   return value;
 }
 
-String? _nativeCameraLocalImagePathOrNull(String? path) {
+String? receiptNativeCameraLocalImagePathOrNull(String? path) {
   final trimmed = path?.trim();
   if (trimmed == null || trimmed.isEmpty || trimmed.contains('\u0000')) {
     return null;

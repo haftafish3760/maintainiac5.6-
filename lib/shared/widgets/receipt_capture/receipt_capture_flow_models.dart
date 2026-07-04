@@ -107,7 +107,7 @@ class ReceiptCaptureContinuationGuide {
     }
     String? previousGuidePath;
     for (final path in previousPhotoPaths) {
-      final normalizedPath = _trimmedOrNull(path);
+      final normalizedPath = receiptNativeCameraLocalImagePathOrNull(path);
       if (normalizedPath != null) previousGuidePath = normalizedPath;
     }
     return ReceiptCaptureContinuationGuide(
@@ -131,7 +131,8 @@ class ReceiptCaptureContinuationGuide {
   final double? ghostOverlayHeightFraction;
   final double? ghostOpacity;
 
-  bool get hasGuidePhoto => guidePhotoPath != null;
+  bool get hasGuidePhoto =>
+      receiptNativeCameraLocalImagePathOrNull(guidePhotoPath) != null;
   bool get hasReason => _trimmedOrNull(reasonCode) != null;
 
   ReceiptCaptureFlowOptions applyTo(ReceiptCaptureFlowOptions options) {
@@ -148,7 +149,9 @@ class ReceiptCaptureContinuationGuide {
       forceLongReceiptMode: options.forceLongReceiptMode,
       forceAutoCapture: options.forceAutoCapture,
       forceReviewDepth: options.forceReviewDepth,
-      previousSectionGuidePhotoPath: _trimmedOrNull(guidePhotoPath),
+      previousSectionGuidePhotoPath: receiptNativeCameraLocalImagePathOrNull(
+        guidePhotoPath,
+      ),
       previousSectionReasonCode: normalizedReason,
       previousSectionGuidance: _trimmedOrNull(guidance),
       previousSectionGhostSourceStartFraction: _boundedOptionalFraction(

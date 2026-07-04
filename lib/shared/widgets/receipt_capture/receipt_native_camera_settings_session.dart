@@ -127,7 +127,7 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
       heavyCleanupAllowed: heavyCleanupAllowed,
       longReceiptMode: longReceiptMode,
     );
-    final previousGuidePhotoPath = _nativeCameraLocalImagePathOrNull(
+    final previousGuidePhotoPath = receiptNativeCameraLocalImagePathOrNull(
       previousSectionGuidePhotoPath,
     );
     final hasPreviousGuide =

@@ -120,6 +120,39 @@ void main() {
     expect(identical(guide.applyTo(options), options), isTrue);
   });
 
+  test('continuation guide ignores unsafe previous photo paths', () {
+    final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
+      previousPhotoPaths: const [
+        'relative-receipt.jpg',
+        'https://example.test/receipt.jpg',
+        '/tmp/receipt-not-image.txt',
+        '/tmp/receipt-guide.jpg\u0000.png',
+      ],
+      reasonCode: 'missing_bottom_edge_and_totals',
+      guidance: 'Continue the receipt.',
+    );
+    final options = guide.applyTo(
+      const ReceiptCaptureFlowOptions(
+        module: ReceiptCaptureFlowModule.expenses,
+      ),
+    );
+
+    expect(guide.hasReason, isTrue);
+    expect(guide.hasGuidePhoto, isFalse);
+    expect(options.previousSectionGuidePhotoPath, isNull);
+    expect(options.previousSectionReasonCode, 'missing_bottom_edge_and_totals');
+
+    final uppercaseGuide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
+      previousPhotoPaths: const [' /tmp/receipt-guide.PNG '],
+      reasonCode: 'missing_bottom_edge_and_totals',
+    );
+    expect(uppercaseGuide.hasGuidePhoto, isTrue);
+    expect(
+      uppercaseGuide.applyTo(options).previousSectionGuidePhotoPath,
+      '/tmp/receipt-guide.PNG',
+    );
+  });
+
   test('manual continuation guide cannot poison ghost overlay options', () {
     const guide = ReceiptCaptureContinuationGuide(
       guidePhotoPath: ' /tmp/receipt-bottom.jpg ',
