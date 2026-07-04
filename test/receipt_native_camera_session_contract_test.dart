@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
@@ -178,6 +180,15 @@ void main() {
     expect(config.focusLockEnabled, isFalse);
     expect(config.exposureLockEnabled, isFalse);
     expect(config.whiteBalanceLockEnabled, isFalse);
+    final sessionConfigSource = File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_session_config.dart',
+    ).readAsStringSync();
+    expect(sessionConfigSource, isNot(contains("tags.add('focus_lock')")));
+    expect(sessionConfigSource, isNot(contains("tags.add('brightness_lock')")));
+    expect(
+      sessionConfigSource,
+      isNot(contains("tags.add('white_balance_lock')")),
+    );
     expect(config.minZoom, 1.0);
     expect(config.maxZoom, 8.0);
     expect(config.minExposureOffset, -2.0);

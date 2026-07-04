@@ -290,9 +290,6 @@ class ReceiptNativeCameraSessionConfig {
     } else {
       tags.add('focus_readability_review');
     }
-    if (focusLockEnabled) tags.add('focus_lock');
-    if (exposureLockEnabled) tags.add('brightness_lock');
-    if (whiteBalanceLockEnabled) tags.add('white_balance_lock');
     if (nativeCapabilities.supportsTorch) tags.add('receipt_light');
     if (edgeOverlayEnabled) tags.add('edge_overlay');
     if (hasPreviousSectionGuide) tags.add('previous_section_ghost');

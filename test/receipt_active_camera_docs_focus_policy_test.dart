@@ -46,6 +46,22 @@ void main() {
         isNot(contains('- tap focus.')),
         reason: '$path must not list tap focus as an active camera control.',
       );
+      expect(
+        text,
+        isNot(contains('focus lock after sharp')),
+        reason: '$path must not list focus lock as an active camera control.',
+      );
+      expect(
+        text,
+        isNot(contains('auto exposure lock')),
+        reason:
+            '$path must not list exposure lock as an active camera control.',
+      );
+      expect(
+        text,
+        isNot(contains('white balance auto/locked/manual')),
+        reason: '$path must not list white-balance lock as an active control.',
+      );
     }
   });
 }

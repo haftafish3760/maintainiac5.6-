@@ -61,15 +61,13 @@ Every setting below must live behind a service/controller contract so UI can mov
 - Pinch zoom.
 - Optional zoom slider.
 - Continuous autofocus/readability guidance is the primary focus path.
-- Focus mode: continuous by default, locked/manual only where supported.
-- Focus distance/lens position when supported.
-- Focus lock after sharp.
+- Focus mode: continuous by default with readability guidance.
 - Exposure/brightness slider.
-- Auto exposure lock.
+- Auto brightness assist.
 - Exposure reset.
 - Shutter duration where supported.
 - ISO/sensor gain where supported.
-- White balance auto/locked/manual where supported.
+- White balance auto handling where supported.
 - Macro or close-up lens selection where supported.
 - Normal lens fallback.
 - JPEG capture for normal stills.

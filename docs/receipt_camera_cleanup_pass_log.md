@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 729 - 03:15:57 EDT to active cleanup
+
+Scope:
+- Removed remaining active native service spec wording that listed
+  focus/exposure/white-balance lock controls after the receipt camera moved to
+  continuous autofocus/readability guidance.
+- Removed dormant lock-tag builder lines from current Dart session config so a
+  future flag flip cannot re-add `focus_lock`, `brightness_lock`, or
+  `white_balance_lock` tags.
+- Extended active-doc and session-contract regressions for retired lock-control
+  wording and tags.
+- Recorded `BUG-RECEIPT-0219` under `native_bridge`.
+- Archived Pass 704 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused active-doc/session
+  regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 728 - 03:11:18 EDT to active cleanup
 
 Scope:
@@ -460,22 +480,3 @@ Verification:
 - Passed focused Flutter assisted receipt review flow regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
-
-## Pass 704 - 02:18:00 EDT to active cleanup
-
-Scope:
-- Audited the shared Google ML Kit barcode/QR scanner foundation after the
-  camera-lane reminder to keep scanner support shared across expenses,
-  inventory, and maintenance without touching inventory internals.
-- Added corrupted/wrong-file style regression coverage so generic decoder
-  failures become safe `barcode_scan_failed` warnings.
-- Proved raw exception text from barcode failures does not leak into
-  privacy-safe scanner summaries.
-- Recorded `BUG-RECEIPT-0191` under `barcode_qr_scanning`.
-
-Verification:
-- Passed targeted Dart format/analyzer for barcode scanner service tests.
-- Passed focused Flutter barcode scanner service regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-- Archived Pass 645 from the active cleanup log to keep the doc under cap.
