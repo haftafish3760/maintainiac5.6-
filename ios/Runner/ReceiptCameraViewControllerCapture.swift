@@ -225,7 +225,8 @@ extension ReceiptCameraViewController {
       capturedPhotoPaths.append(url.path)
       totalCapturedByteSize += data.count
       recordCapturedPhotoQuality(data: data)
-      autoCaptureCooldownUntilMs = Date().timeIntervalSince1970 * 1000 + 2600
+      autoCaptureCooldownUntilMs =
+        Date().timeIntervalSince1970 * 1000 + Double(autoCaptureCooldownMs)
       if pendingCloseAfterCapture {
         pendingCloseAfterCapture = false
         captureInFlight = false

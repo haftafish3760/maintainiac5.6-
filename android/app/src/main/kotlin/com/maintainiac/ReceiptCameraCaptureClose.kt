@@ -82,7 +82,8 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
                 capturedPhotoPaths.add(outputFile.absolutePath)
                 totalCapturedByteSize += outputFile.length()
                 recordCapturedPhotoQuality(outputFile)
-                autoCaptureCooldownUntilMs = System.currentTimeMillis() + 2600L
+                autoCaptureCooldownUntilMs =
+                    System.currentTimeMillis() + autoCaptureCooldownMs
                 if (pendingCloseAfterCapture) {
                     pendingCloseAfterCapture = false
                     finishWithCapturedPhotos(closeReason = "back_returned_captured_sections")

@@ -135,6 +135,14 @@ void main() {
     );
     expect(
       cameraActivity,
+      contains('System.currentTimeMillis() + autoCaptureCooldownMs'),
+    );
+    expect(
+      cameraActivity,
+      isNot(contains('System.currentTimeMillis() + 2600L')),
+    );
+    expect(
+      cameraActivity,
       contains('Manual capture is safest for this device or storage mode.'),
     );
     expect(cameraActivity, contains('autoCaptureBlockedMessage'));

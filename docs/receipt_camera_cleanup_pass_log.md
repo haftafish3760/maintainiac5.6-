@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 597 - 20:50:44 EDT to 20:51:48 EDT
+
+Scope:
+- Hardened Android saved-photo auto-capture cooldown so successful captures use
+  the configured `autoCaptureCooldownMs` instead of a hard-coded 2600ms delay.
+- Hardened iOS saved-photo auto-capture cooldown with the same session-driven
+  behavior.
+- Added Android and iOS source-contract regressions rejecting hard-coded
+  saved-photo cooldowns.
+- Recorded `BUG-RECEIPT-0118` under `native_bridge`.
+
+Verification:
+- Passed targeted Dart format/analyzer for Android and iOS native auto-capture
+  source-contract regressions.
+- Passed focused Flutter Android native auto-capture regression.
+- Passed focused Flutter iOS native settings/close regression separately for
+  explicit evidence.
+- Passed cleanup log gate, doc-size gate, source audit, and whitespace check.
+
 ## Pass 596 - 20:46:21 EDT to 20:50:14 EDT
 
 Scope:
@@ -471,21 +490,3 @@ Verification:
 - Passed focused Flutter regression
   `test/receipt_image_rotation_test.dart --plain-name "receipt image processor
   rejects unusable crop bounds"`.
-
-## Pass 576 - 09:34:57 EDT to 09:35:54 EDT
-
-Scope:
-- Hardened `ReceiptCameraCaptureEvidence` live brightness and exposure helpers
-  so non-finite values are treated as missing camera evidence.
-- Added regression coverage proving malformed live brightness does not create
-  dark/glare flags and malformed exposure offsets stay at native baseline.
-- Recorded `BUG-RECEIPT-0092` under `camera_capture_quality`.
-- Archived Pass 546 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for camera-result models and focused
-  native evidence regression coverage.
-- Passed focused Flutter regression
-  `test/receipt_camera_result_best_shot_ocr_test.dart --plain-name "camera
-  results carry privacy-safe native capture evidence"`.

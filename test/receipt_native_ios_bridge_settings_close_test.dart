@@ -92,6 +92,16 @@ void main() {
       expect(
         cameraController,
         contains(
+          'Date().timeIntervalSince1970 * 1000 + Double(autoCaptureCooldownMs)',
+        ),
+      );
+      expect(
+        cameraController,
+        isNot(contains('Date().timeIntervalSince1970 * 1000 + 2600')),
+      );
+      expect(
+        cameraController,
+        contains(
           'maxLocalPhotoBytes = arguments["maxLocalPhotoBytes"] as? Int ?? maxLocalPhotoBytes',
         ),
       );
