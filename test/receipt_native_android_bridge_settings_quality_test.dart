@@ -116,6 +116,12 @@ void main() {
       );
       expect(cameraActivity, contains('Receipt guidance warnings'));
       expect(cameraActivity, contains('Warn about shake, glare, low light'));
+      expect(
+        cameraActivity,
+        contains('Hold steady for continuous focus. Move closer'),
+      );
+      expect(cameraActivity, contains('reduce glare'));
+      expect(cameraActivity, isNot(contains('Use focus assist')));
       expect(cameraActivity, contains('receiptGuidanceWarningsEnabled'));
       expect(cameraActivity, contains('setReceiptGuidanceWarningsEnabled'));
       final guidanceToggleStart = cameraActivity.indexOf(

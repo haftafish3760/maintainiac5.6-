@@ -148,7 +148,7 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     ))
     content.addView(settingSummary(
         "Camera controls",
-        "Hold steady for continuous focus. Use focus assist only if the receipt stays fuzzy. Pinch to zoom. Use Brightness anytime.",
+        "Hold steady for continuous focus. Move closer, reduce glare, or use Brightness if the receipt stays hard to read. Pinch to zoom anytime.",
     ))
     val scroll = ScrollView(this).apply {
         isFillViewport = false

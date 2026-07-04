@@ -296,6 +296,12 @@ void main() {
       );
       expect(cameraController, contains('auto brightness assist'));
       expect(cameraController, contains('Auto brightness assist'));
+      expect(
+        cameraController,
+        contains('Hold steady for continuous focus. Move closer'),
+      );
+      expect(cameraController, contains('reduce glare'));
+      expect(cameraController, isNot(contains('Use focus assist')));
       expect(cameraController, contains('Receipt edge guidance'));
       expect(cameraController, contains('Image cleanup'));
       expect(
