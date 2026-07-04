@@ -69,6 +69,8 @@ class WorkSupplyParserReleaseShardSuite extends QaSuite {
         'QA_SHARD_SUMMARY',
         'transcriptPath',
         'summary.json',
+        'completedShardCount',
+        "'state'",
         '--execute',
         'release-contracts-001',
       ],

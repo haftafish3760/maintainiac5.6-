@@ -37,7 +37,7 @@ Shared platform pieces should stay domain-neutral where practical: queueing, bat
 - `test/work_supply_parser_qa_harness_test.dart`: bundled test entry point.
 - `test/work_supply_parser_qa_shard_runner_test.dart`: release shard runner regression tests for dry-run summary/transcript output, default shard coverage, single-shard filtering, and unknown shard rejection.
 - `test/work_supply_parser_qa_release_signoff_test.dart`: release sign-off verifier regression tests for allowed dry-run success and unsafe/incomplete shard evidence failures.
-- `tool/work_supply_parser_qa_shard_runner.dart`: cross-platform full/release shard runner that writes per-shard transcripts and aggregate `summary.json` files under `build/parser_qa_reports/release_shards/`.
+- `tool/work_supply_parser_qa_shard_runner.dart`: cross-platform full/release shard runner that writes per-shard transcripts and aggregate `summary.json` files with `state` and `completedShardCount` evidence under `build/parser_qa_reports/release_shards/`.
 - `tool/work_supply_parser_qa_release_signoff.dart`: cross-platform release sign-off verifier that reads shard `summary.json` files and rejects missing, stale, failed, running, incomplete, wrong-profile, dry-run, or transcript-free shard evidence.
 - `tool/work_supply_parser_qa_prune_reports.dart`: dry-run-by-default cross-platform report-retention tool for pruning old local parser QA artifacts without touching latest aliases.
 - `tool/work_supply_parser_qa_generate_fixtures.dart`: deterministic local fixture generator that writes synthetic parser QA receipt batches and manifests under `build/parser_qa_generated/` without parser calls, live services, OCR, camera, or Firebase.

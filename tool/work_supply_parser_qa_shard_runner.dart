@@ -101,9 +101,15 @@ Future<void> main(List<String> args) async {
     'maxGeneratedCases': options.maxGeneratedCases,
     'resumeFrom': options.resumeFrom,
     'shardCount': results.length,
+    'completedShardCount': results
+        .where((result) => result['state'] == 'complete')
+        .length,
     'failedShardCount': results
         .where((result) => (result['exitCode'] as int? ?? 1) != 0)
         .length,
+    'state': results.any((result) => result['state'] == 'failed')
+        ? 'failed'
+        : 'complete',
     'results': results,
   };
   final summaryPath = '${runDir.path}/summary.json';
@@ -159,6 +165,7 @@ Map<String, Object?> _resultJson({
     'startedAt': startedAt.toIso8601String(),
     'durationMs': durationMs,
     'exitCode': exitCode,
+    'state': exitCode == 0 ? 'complete' : 'failed',
     'dryRun': dryRun,
     'transcriptPath': transcriptPath,
   };

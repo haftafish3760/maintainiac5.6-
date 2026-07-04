@@ -129,6 +129,14 @@ Focused rerun routes for recently hardened release-one contracts:
   fixtures presets and to the `safety-governance-001` release shard so this
   chaos behavior remains release-gated instead of only manually runnable.
 
+## 2026-07-04 Release Shard Completion Evidence
+
+- Passes 2225-2229 hardened `tool/work_supply_parser_qa_shard_runner.dart` so
+  shard summaries now write aggregate `state`, `completedShardCount`, and
+  per-shard `state` fields. This makes release signoff evidence explicit instead
+  of requiring signoff to infer completion only from exit codes and result
+  length.
+
 ## 2026-07-04 Hostile Source-Modality Input Hardening
 
 - Passes 2085-2094 added source-modality coverage to

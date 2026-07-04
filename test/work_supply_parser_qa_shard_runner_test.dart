@@ -31,9 +31,12 @@ void main() {
     expect(summary['profile'], 'smoke');
     expect(summary['dryRun'], true);
     expect(summary['shardCount'], 1);
+    expect(summary['completedShardCount'], 1);
     expect(summary['failedShardCount'], 0);
+    expect(summary['state'], 'complete');
     final shard = (summary['results'] as List).single as Map;
     expect(shard['shardId'], 'release-contracts-001');
+    expect(shard['state'], 'complete');
     expect(shard['generatedCaseLimit'], 25);
     expect(shard['timeoutBudgetMs'], 120000);
     expect(
@@ -87,6 +90,8 @@ void main() {
         ]),
       );
       expect(summary['shardCount'], 4);
+      expect(summary['completedShardCount'], 4);
+      expect(summary['state'], 'complete');
     },
   );
 
