@@ -155,6 +155,12 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
     if ((counts['continuous_focus_primary_missing'] ?? 0) > 0) {
       return 'continuous_focus_primary_missing';
     }
+    if ((counts['native_focus_status_configuration_failed'] ?? 0) > 0) {
+      return 'native_focus_status_configuration_failed';
+    }
+    if ((counts['native_focus_status_not_used'] ?? 0) > 0) {
+      return 'native_focus_status_not_used';
+    }
     if ((counts['readability_guidance_live_missing'] ?? 0) > 0) {
       return 'readability_guidance_live_missing';
     }

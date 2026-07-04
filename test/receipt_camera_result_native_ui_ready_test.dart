@@ -41,6 +41,7 @@ void main() {
           'tapFocusControlActual': 'disabled',
           'continuousFocusExpected': true,
           'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
+          'lastFocusStatus': 'continuous_autofocus_configured',
           'readabilityGuidancePolicy':
               'live_readability_guides_blur_glare_light_edges_and_text_size',
           'receiptCameraQualityBaseline': true,
@@ -113,6 +114,11 @@ void main() {
     expect(result.nativeCameraUiHealthCounts['continuous_focus_expected'], 1);
     expect(
       result.nativeCameraUiHealthCounts['continuous_focus_primary_ready'],
+      1,
+    );
+    expect(
+      result
+          .nativeCameraUiHealthCounts['native_focus_status_continuous_configured'],
       1,
     );
     expect(

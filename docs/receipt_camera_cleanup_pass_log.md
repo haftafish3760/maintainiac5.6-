@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 868 - 16:04:00 EDT to active cleanup
+
+Scope:
+- Classified native camera `lastFocusStatus` diagnostics into health counts for
+  configured, unavailable, not-requested, configuration-failed, and stale
+  not-used focus states.
+- Promoted focus configuration failure and stale `not_used` diagnostics into
+  native UI health outcomes so review/admin surfaces cannot silently treat them
+  as ready.
+- Recorded `BUG-RECEIPT-0318` under `native_bridge`.
+- Archived Pass 823 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused native UI health/ready
+  regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 865 - 12:29:00 EDT to active cleanup
 
 Scope:
@@ -154,24 +172,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart analyzer and focused telemetry/source-guard regressions.
-- Passed doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 823 - 13:36:37 EDT to active cleanup
-
-Scope:
-- Exposed receipt review-depth handoff as typed OCR diagnostics fields:
-  `ocrSourceReviewDepthSignalCounts` and `ocrSourceReviewDepthStatus`.
-- Kept detailed-line versus price-only receipt review intent available to
-  downstream UI, admin diagnostics, and telemetry without forcing callers to
-  scrape the privacy-safe contract map.
-- Added focused OCR service regression coverage for the typed review-depth
-  diagnostics fields.
-- Recorded `BUG-RECEIPT-0309` under `receipt_line_review_mode`.
-- Archived Pass 784 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused OCR service regression.
 - Passed doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and diff
   whitespace gates.
 

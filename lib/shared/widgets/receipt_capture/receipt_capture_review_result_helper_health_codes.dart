@@ -50,6 +50,9 @@ List<String> _nativeFocusReadabilityHealthCodes(
   final focusFallbackPolicy = _diagnosticToken(
     diagnostics['focusReadabilityFallbackPolicy']?.toString() ?? '',
   );
+  final lastFocusStatus = _diagnosticToken(
+    diagnostics['lastFocusStatus']?.toString() ?? '',
+  );
   final readabilityPolicy = _diagnosticToken(
     diagnostics['readabilityGuidancePolicy']?.toString() ?? '',
   );
@@ -77,6 +80,19 @@ List<String> _nativeFocusReadabilityHealthCodes(
 
   if (focusFallbackPolicy != 'unknown') {
     codes.add('focus_readability_fallback_$focusFallbackPolicy');
+  }
+  if (lastFocusStatus == 'continuous_autofocus_configured') {
+    codes.add('native_focus_status_continuous_configured');
+  } else if (lastFocusStatus == 'continuous_autofocus_unavailable') {
+    codes.add('native_focus_status_continuous_unavailable');
+  } else if (lastFocusStatus == 'continuous_focus_not_requested') {
+    codes.add('native_focus_status_not_requested');
+  } else if (lastFocusStatus == 'continuous_autofocus_configuration_failed') {
+    codes.add('native_focus_status_configuration_failed');
+  } else if (lastFocusStatus == 'not_used') {
+    codes.add('native_focus_status_not_used');
+  } else if (lastFocusStatus != 'unknown') {
+    codes.add('native_focus_status_unknown');
   }
 
   if (readabilityPolicy ==

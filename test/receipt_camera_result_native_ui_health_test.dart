@@ -148,6 +148,7 @@ void main() {
           'focusStrategyPolicy': 'non_continuous_focus_requires_device_review',
           'focusReadabilityFallbackPolicy':
               'non_continuous_focus_saved_photo_review_required',
+          'lastFocusStatus': 'continuous_autofocus_unavailable',
           'readabilityGuidancePolicy':
               'saved_photo_readability_review_required',
           'receiptCameraQualityBaseline': false,
@@ -165,6 +166,11 @@ void main() {
     expect(
       result
           .nativeCameraUiHealthCounts['focus_readability_fallback_non_continuous_focus_saved_photo_review_required'],
+      1,
+    );
+    expect(
+      result
+          .nativeCameraUiHealthCounts['native_focus_status_continuous_unavailable'],
       1,
     );
     expect(
@@ -241,6 +247,71 @@ void main() {
       attachments.single.riskFlags,
       contains('native_camera_ui_tap_focus_retirement_regressed'),
     );
+  });
+
+  test('photo review result flags native focus status regressions', () {
+    final failed = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/focus-failed.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/focus-failed-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/focus-failed-ocr.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/focus-failed.jpg': {
+          'visibleControlSet':
+              'back|settings|manual_shutter|status|light|brightness',
+          'previewDominanceTarget': 'receipt_preview_75_80_percent',
+          'settingsContractVersion': 'receipt_native_camera_settings_v1',
+          'settingsButtonPlacement': 'top_bar_right',
+          'nativeControlReadinessSummary': 'ready',
+          'tapFocusControlExpected': false,
+          'continuousFocusExpected': true,
+          'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
+          'lastFocusStatus': 'continuous_autofocus_configuration_failed',
+          'readabilityGuidancePolicy':
+              'live_readability_guides_blur_glare_light_edges_and_text_size',
+          'receiptCameraQualityBaseline': true,
+        },
+      },
+    );
+    final stale = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/focus-stale.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/focus-stale-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/focus-stale-ocr.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/focus-stale.jpg': {
+          'visibleControlSet':
+              'back|settings|manual_shutter|status|light|brightness',
+          'previewDominanceTarget': 'receipt_preview_75_80_percent',
+          'settingsContractVersion': 'receipt_native_camera_settings_v1',
+          'settingsButtonPlacement': 'top_bar_right',
+          'nativeControlReadinessSummary': 'ready',
+          'tapFocusControlExpected': false,
+          'continuousFocusExpected': true,
+          'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
+          'lastFocusStatus': 'not_used',
+          'readabilityGuidancePolicy':
+              'live_readability_guides_blur_glare_light_edges_and_text_size',
+          'receiptCameraQualityBaseline': true,
+        },
+      },
+    );
+
+    expect(
+      failed.nativeCameraUiHealthOutcome,
+      'native_focus_status_configuration_failed',
+    );
+    expect(
+      failed
+          .nativeCameraUiHealthCounts['native_focus_status_configuration_failed'],
+      1,
+    );
+    expect(stale.nativeCameraUiHealthOutcome, 'native_focus_status_not_used');
+    expect(stale.nativeCameraUiHealthCounts['native_focus_status_not_used'], 1);
   });
 
   test('photo review result flags incomplete native camera controls', () {
