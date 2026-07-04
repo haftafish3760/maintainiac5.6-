@@ -194,12 +194,11 @@ void main() {
     expect(cameraActivity, contains('"manual_only_quality_review"'));
     expect(
       cameraActivity,
-      contains('latestReadabilitySignal == "shadow_risk"'),
+      contains(
+        'receiptQualityReviewReadabilitySignals().contains(latestReadabilitySignal)',
+      ),
     );
-    expect(
-      cameraActivity,
-      contains('latestReadabilitySignal == "dirty_lens_or_haze"'),
-    );
+    expect(cameraActivity, isNot(contains('latestReadabilitySignal ==')));
     expect(cameraActivity, contains('closingCamera'));
     expect(cameraActivity, contains('captureInFlight'));
     expect(cameraActivity, contains('"closing"'));
@@ -245,6 +244,12 @@ void main() {
       cameraActivity,
       contains('"maxLocalPhotoBytes" to maxLocalPhotoBytes'),
     );
+    expect(
+      cameraActivity,
+      contains('totalCapturedByteSize + savedByteSize > maxLocalPhotoBytes'),
+    );
+    expect(cameraActivity, contains('outputFile.delete()'));
+    expect(cameraActivity, contains('"native_capture_over_byte_budget"'));
     expect(
       cameraActivity,
       contains('"nativeCaptureMemoryPolicy" to nativeCaptureMemoryPolicy'),

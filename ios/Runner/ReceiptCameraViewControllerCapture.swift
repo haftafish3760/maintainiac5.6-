@@ -230,6 +230,22 @@ extension ReceiptCameraViewController {
       let capturedAt = ISO8601DateFormatter().string(from: Date())
       latestCaptureToSavedMs = captureElapsedSinceStart()
       latestCaptureLatencyBucket = captureLatencyBucket(latestCaptureToSavedMs)
+      if maxLocalPhotoBytes > 0 && totalCapturedByteSize + data.count > maxLocalPhotoBytes {
+        try? FileManager.default.removeItem(at: url)
+        latestCaptureLatencyBucket = "capture_rejected_over_byte_budget"
+        lastCaptureBlockReason = "native_capture_over_byte_budget"
+        latestAutoCaptureStatus = "native_capture_over_byte_budget"
+        pendingCloseAfterCapture = false
+        captureInFlight = false
+        shutterButton.isEnabled = true
+        updateDoneButton()
+        guidanceLabel.text =
+          "That receipt photo was too large for this device setting. Try again with the receipt closer and clearer."
+        if !capturedPhotoPaths.isEmpty {
+          finishWithCapturedPhotos(closeReason: "back_capture_failed_returned_existing_sections")
+        }
+        return
+      }
       if firstCapturedAt == nil {
         firstCapturedAt = capturedAt
       }

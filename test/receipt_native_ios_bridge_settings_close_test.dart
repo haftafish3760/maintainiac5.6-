@@ -202,6 +202,15 @@ void main() {
       );
       expect(
         cameraController,
+        contains('totalCapturedByteSize + data.count > maxLocalPhotoBytes'),
+      );
+      expect(
+        cameraController,
+        contains('FileManager.default.removeItem(at: url)'),
+      );
+      expect(cameraController, contains('"native_capture_over_byte_budget"'));
+      expect(
+        cameraController,
         contains('"nativeCaptureMemoryPolicy": nativeCaptureMemoryPolicy'),
       );
       expect(
