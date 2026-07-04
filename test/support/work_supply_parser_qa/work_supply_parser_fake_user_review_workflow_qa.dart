@@ -104,7 +104,10 @@ class WorkSupplyParserFakeUserReviewWorkflowSuite extends QaSuite {
       candidateId: '${scenario.parserCandidateId}_later_pack_update',
     );
     fake.mirrorAttemptsStaleWrite();
-    return fake.result(expectedConfirmedItemId: scenario.userConfirmedItemId);
+    return fake.result(
+      expectedConfirmedItemId: scenario.userConfirmedItemId,
+      expectedReviewStatus: scenario.expectedReviewStatus,
+    );
   }
 
   List<_WorkflowScenario> _scenarios() {
@@ -200,6 +203,7 @@ enum _ReviewAction { accept, edit, reject, markUnknown }
 class _FakeReviewEnvironment {
   final events = <String>[];
   String _reviewStatus = '';
+  String _confirmedReviewStatus = '';
   String _parserCandidateId = '';
   String _localConfirmedItemId = '';
   String _localConfirmedName = '';
@@ -253,12 +257,15 @@ class _FakeReviewEnvironment {
     events.add('stale_mirror_ignored');
   }
 
-  _WorkflowResult result({required String expectedConfirmedItemId}) {
+  _WorkflowResult result({
+    required String expectedConfirmedItemId,
+    required String expectedReviewStatus,
+  }) {
     return _WorkflowResult(
       events: List.unmodifiable(events),
       finalLocalState:
           'item=$_localConfirmedItemId name=$_localConfirmedName parser=$_parserCandidateId',
-      reviewStatus: _reviewStatus,
+      reviewStatus: _confirmedReviewStatus,
       localWriteBeforeMirror:
           _localWriteDone &&
           (!_mirrorQueued ||
@@ -267,7 +274,7 @@ class _FakeReviewEnvironment {
       parserSuggestionNeverAutoSaved: !_suggestionSaved,
       userConfirmedDataWins: _localConfirmedItemId == expectedConfirmedItemId,
       noLiveFirebase: !_liveFirebaseTouched,
-      reviewStatusPreserved: _reviewStatus.isNotEmpty,
+      reviewStatusPreserved: _confirmedReviewStatus == expectedReviewStatus,
     );
   }
 
@@ -279,6 +286,7 @@ class _FakeReviewEnvironment {
     _localWriteDone = true;
     _localConfirmedItemId = confirmedItemId;
     _localConfirmedName = confirmedName;
+    _confirmedReviewStatus = _reviewStatus;
   }
 
   void _queueFakeMirror() {
