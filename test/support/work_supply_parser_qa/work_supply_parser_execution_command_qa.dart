@@ -316,6 +316,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'totalCellCount',
         'completedCellCount',
         'failedCellCount',
+        'remainingCellCount',
+        'completionPercent',
         'allComplete',
         '--require-complete',
         'requireComplete',

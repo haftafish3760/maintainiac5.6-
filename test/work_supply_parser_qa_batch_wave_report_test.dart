@@ -48,6 +48,8 @@ void main() {
     expect(report['totalCellCount'], 12);
     expect(report['completedCellCount'], 12);
     expect(report['failedCellCount'], 0);
+    expect(report['remainingCellCount'], 0);
+    expect(report['completionPercent'], 100);
     expect(report['allComplete'], true);
     expect(report['unsafe'], false);
   });
@@ -121,6 +123,8 @@ void main() {
       expect(requiredExit, 1);
       final report = jsonDecode(File(requiredOutput).readAsStringSync()) as Map;
       expect(report['allComplete'], false);
+      expect(report['remainingCellCount'], 2);
+      expect(report['completionPercent'], 67);
       expect(report['requireComplete'], true);
     },
   );

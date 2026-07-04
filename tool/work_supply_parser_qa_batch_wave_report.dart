@@ -54,6 +54,10 @@ int runWorkSupplyParserQaBatchWaveReport(
   final totalCells = _sum(waves, 'cellCount');
   final completedCells = _sum(waves, 'completedCellCount');
   final failedCells = _sum(waves, 'failedCellCount');
+  final remainingCells = totalCells - completedCells;
+  final completionPercent = totalCells == 0
+      ? 0
+      : ((completedCells / totalCells) * 100).round();
   final unsafe = waves.any(
     (wave) =>
         wave['liveServicesAllowed'] == true ||
@@ -69,6 +73,8 @@ int runWorkSupplyParserQaBatchWaveReport(
     'totalCellCount': totalCells,
     'completedCellCount': completedCells,
     'failedCellCount': failedCells,
+    'remainingCellCount': remainingCells,
+    'completionPercent': completionPercent,
     'allComplete': completedCells == totalCells && failedCells == 0,
     'requireComplete': requireComplete,
     'unsafe': unsafe,

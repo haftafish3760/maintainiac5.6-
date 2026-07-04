@@ -161,6 +161,8 @@ Focused rerun routes for recently hardened release-one contracts:
   `tool/work_supply_parser_qa_batch_wave_report.dart`. Normal batch-wave reports
   can still inspect in-progress waves, but final handoff/release rollups can now
   fail incomplete evidence even when there are no failed cells.
+- Passes 2262-2266 added `remainingCellCount` and `completionPercent` to the
+  aggregate report so admin/handoff rollups show progress without manual math.
 
 ## 2026-07-04 Hostile Source-Modality Input Hardening
 
