@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 595 - 20:43:24 EDT to 20:44:44 EDT
+
+Scope:
+- Hardened generated edit and best-shot cleanup so kept receipt artifacts are
+  checked with normalized receipt-photo path identity instead of raw set
+  membership.
+- Added source regression coverage proving generated cleanup uses
+  `receiptPhotoPathSetContains` and does not return to raw `keptPaths.contains`.
+- Updated a stale lifecycle regression to assert the current generalized
+  order-diagnostics merge contract.
+- Recorded `BUG-RECEIPT-0116` under `source_preservation`.
+
+Verification:
+- Fixed the first focused lifecycle regression mismatch by updating the stale
+  source-contract assertion to the current generalized merge helper.
+- Passed targeted Dart format/analyzer for generated cleanup and lifecycle
+  source-contract coverage.
+- Passed focused Flutter lifecycle regression.
+
 ## Pass 594 - 20:41:22 EDT to 20:42:20 EDT
 
 Scope:
@@ -448,26 +467,6 @@ Verification:
 - Passed focused Flutter regression
   `test/receipt_camera_result_best_shot_ocr_test.dart --plain-name "camera
   results carry privacy-safe native capture evidence"`.
-
-## Pass 575 - 09:30:34 EDT to 09:32:10 EDT
-
-Scope:
-- Hardened Dart camera-result diagnostics so non-finite live preview brightness
-  is treated as unknown before review and OCR handoff metadata are built.
-- Added regression coverage proving malformed live brightness does not leak
-  `Infinity`/`NaN` into capture diagnostics or preview parity signals.
-- Recorded `BUG-RECEIPT-0091` under `camera_capture_quality`.
-- Archived Pass 545 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Fixed the first focused regression failure by preserving unknown preview
-  parity when live brightness evidence is malformed.
-- Passed targeted Dart format/analyzer for camera-result diagnostics and
-  focused camera-result quality regression coverage.
-- Passed focused Flutter regression
-  `test/receipt_camera_result_quality_test.dart --plain-name "camera result
-  diagnostics ignore non-finite live brightness"`.
 
 ## Pass 574 - 09:22:37 EDT to 09:24:08 EDT
 

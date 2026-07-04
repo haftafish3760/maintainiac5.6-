@@ -11,7 +11,7 @@ extension _ReceiptPhotoReviewExitStitchActions
   ) async {
     if (!widget.bestShotCandidateMode) return;
     for (final path in _photoPaths) {
-      if (keptPaths.contains(path)) continue;
+      if (_keptReceiptArtifactPathsContain(keptPaths, path)) continue;
       try {
         final file = File(path);
         if (await file.exists()) await file.delete();
@@ -24,7 +24,7 @@ extension _ReceiptPhotoReviewExitStitchActions
   Future<void> _deleteGeneratedEditPhotos(Set<String> keptPaths) async {
     final generatedPaths = _generatedEditPaths.toList(growable: false);
     for (final path in generatedPaths) {
-      if (keptPaths.contains(path)) continue;
+      if (_keptReceiptArtifactPathsContain(keptPaths, path)) continue;
       try {
         final file = File(path);
         if (await file.exists()) await file.delete();
@@ -34,6 +34,13 @@ extension _ReceiptPhotoReviewExitStitchActions
         _generatedEditPaths.remove(path);
       }
     }
+  }
+
+  bool _keptReceiptArtifactPathsContain(
+    Set<String> keptPaths,
+    String candidatePath,
+  ) {
+    return receiptPhotoPathSetContains(keptPaths, candidatePath);
   }
 
   Future<ReceiptStitchResult> _finalStitchResultForOcr({

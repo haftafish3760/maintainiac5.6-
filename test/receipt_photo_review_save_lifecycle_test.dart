@@ -47,6 +47,22 @@ void main() {
       saveActions,
       contains('await _deleteGeneratedEditPhotos(_photoPaths.toSet())'),
     );
+    expect(
+      saveActions,
+      contains(
+        'bool _keptReceiptArtifactPathsContain(\n'
+        '    Set<String> keptPaths,\n'
+        '    String candidatePath,',
+      ),
+    );
+    expect(
+      saveActions,
+      contains('receiptPhotoPathSetContains(keptPaths, candidatePath)'),
+    );
+    expect(
+      saveActions,
+      isNot(contains('if (keptPaths.contains(path)) continue;')),
+    );
     expect(saveActions, contains('final generatedPrepArtifacts = <String>{};'));
     expect(saveActions, contains('generatedPrepArtifacts'));
     expect(
@@ -187,7 +203,20 @@ void main() {
     );
     expect(saveActions, contains('paths: pickedPaths'));
     expect(saveActions, contains('_pickedReceiptDiagnosticsForPaths('));
-    expect(saveActions, contains('for (final path in retakeDiagnostics.keys)'));
+    expect(
+      saveActions,
+      contains(
+        'return _mergeOrderCaptureDiagnostics(pickedDiagnostics, retakeDiagnostics)',
+      ),
+    );
+    expect(
+      saveActions,
+      contains('for (final entry in orderDiagnostics.entries)'),
+    );
+    expect(
+      saveActions,
+      contains('entry.key: {...?pickedDiagnostics[entry.key], ...entry.value}'),
+    );
     expect(
       saveActions,
       isNot(
