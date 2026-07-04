@@ -3352,3 +3352,10 @@ Release boundaries:
   `inventory.merchant_rules`, `inventory.noise_lines`,
   `inventory.ranked_candidate_accuracy`, `inventory.conflict_graph_contract`,
   and `qa.threshold_gate` passed 141 checks with 0 failures.
+- **09:45 Harness Pass 2449:** Rechecked portability, economics, generated
+  performance, surgical rerun, and failure-routing parser QA after the failed
+  Dart-direct runner experiment was cleaned back to the safe Flutter wrapper.
+  The focused slice `inventory.portability_contract`,
+  `inventory.economics_contract`, `inventory.generated_performance_contract`,
+  `inventory.surgical_rerun_contract`, `inventory.failure_routing_contract`,
+  and `qa.threshold_gate` passed 228 checks with 0 failures.
