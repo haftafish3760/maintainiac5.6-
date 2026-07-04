@@ -375,6 +375,21 @@ Verification:
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
 
+## Pass 809 - 12:01:00 EDT to active cleanup
+
+Scope:
+- Added direct low-light receipt quality guidance coverage at the model boundary.
+- Pinned that too-dark receipts recommend retake, block auto capture, still
+  allow manual review/Next, and surface add-light/torch guidance.
+- Recorded `BUG-RECEIPT-0294` under `camera_capture_quality`.
+- Archived Pass 777 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted quality guidance format/analyzer and focused low-light
+  regression test.
+- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
+  whitespace gates.
+
 ## Pass 808 - 11:51:00 EDT to active cleanup
 
 Scope:
@@ -474,24 +489,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer for accepted review read-state changes.
-- Passed focused Flutter OCR-source attachment read regression.
-- Passed doc-size, bug-ledger, source-audit, test-audit, and diff whitespace
-  gates.
-
-## Pass 777 - 06:24:09 EDT to active cleanup
-
-Scope:
-- Hardened attachment review acceptance so existing photo IDs and read states
-  survive review-screen path normalization.
-- Replaced raw previous-map key lookups with normalized receipt photo path
-  matching for accepted review results.
-- Added source regressions proving normalized previous-photo map lookups protect
-  accepted attachment identity/read-state continuity.
-- Recorded `BUG-RECEIPT-0264` under `source_preservation`.
-- Archived Pass 749 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for accepted review map lookup changes.
 - Passed focused Flutter OCR-source attachment read regression.
 - Passed doc-size, bug-ledger, source-audit, test-audit, and diff whitespace
   gates.

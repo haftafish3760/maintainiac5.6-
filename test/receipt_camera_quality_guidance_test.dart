@@ -237,6 +237,42 @@ void main() {
     expect(cutOffDecision.autoCaptureAllowed, isFalse);
   });
 
+  test(
+    'low light receipts allow manual review while blocking auto capture',
+    () {
+      const darkReceipt = ReceiptPhotoQualityCheck(
+        width: 1800,
+        height: 2400,
+        focusScore: 15,
+        brightness: 52,
+        contrast: 30,
+        cropScore: .72,
+        textBandScore: 12,
+        isLikelyReadable: false,
+      );
+
+      final decision = darkReceipt.captureReadiness(
+        autoCaptureEnabled: true,
+        stableFrameCount: 4,
+        requiredStableFrames: 3,
+      );
+
+      expect(darkReceipt.primaryIssueLabel, 'too dark');
+      expect(darkReceipt.lightLabel, 'too dark');
+      expect(
+        darkReceipt.reviewActionCode,
+        'retake_recommended_continue_allowed',
+      );
+      expect(darkReceipt.shouldRetakeBeforeOcr, isTrue);
+      expect(darkReceipt.canContinueWithReview, isTrue);
+      expect(darkReceipt.reviewGuidance, contains('Add light'));
+      expect(darkReceipt.reviewGuidance, contains('torch'));
+      expect(decision.code, 'manual_only_quality_retake_recommended');
+      expect(decision.manualCaptureAllowed, isTrue);
+      expect(decision.autoCaptureAllowed, isFalse);
+    },
+  );
+
   test('capture readiness blocks auto capture for review-needed photos', () {
     const soft = ReceiptPhotoQualityCheck(
       width: 1600,
