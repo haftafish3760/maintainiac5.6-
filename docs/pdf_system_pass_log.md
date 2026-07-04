@@ -1,5 +1,28 @@
 # PDF System Pass Log
 
+## Pass 15 - 2026-07-04 15:56 EDT - Deterministic generated PDFs
+
+- Scope: generated PDF determinism, sample render tooling, and regression
+  coverage only. No inventory, camera, native capture, OCR engine, or parser
+  behavior changes.
+- Bundled work:
+  - Added a shared generated-PDF determinism helper that normalizes PDF document
+    IDs from stable confirmed input seeds.
+  - Applied deterministic IDs to invoice/estimate PDFs, expense export summary
+    PDFs, and render-smoke sample PDFs.
+  - Added invoice and expense-export regressions proving the same confirmed
+    input produces byte-identical PDF output.
+  - Added deterministic sample comparisons to the PDF quality gate.
+- Failure fixed during pass:
+  - The first probe showed otherwise identical sample PDFs differed only by the
+    PDF `/ID` value generated from random/time data. The helper now replaces
+    that value with a stable hash.
+- Verification completed 2026-07-04 15:55 EDT:
+  - `dart format lib/shared/pdf/app_pdf_determinism.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart lib/screens/expenses/data/expense_export_handoff.dart tool/generate_sample_invoice_pdf.dart tool/generate_sample_receipt_pdf.dart test/invoice_template_pdf_factory_test.dart test/app_generated_pdf_service_test.dart`
+  - `dart analyze lib/shared/pdf/app_pdf_determinism.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart lib/screens/expenses/data/expense_export_handoff.dart tool/generate_sample_invoice_pdf.dart tool/generate_sample_receipt_pdf.dart test/invoice_template_pdf_factory_test.dart test/app_generated_pdf_service_test.dart`
+  - `flutter test test/invoice_template_pdf_factory_test.dart test/app_generated_pdf_service_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 14 - 2026-07-04 15:27 EDT - Generated PDF privacy guard
 
 - Scope: generated PDF validation, export metadata privacy, and QA coverage

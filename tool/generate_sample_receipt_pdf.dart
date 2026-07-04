@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:maintaniac/shared/pdf/app_pdf_determinism.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'pdf_tool_typography.dart';
@@ -40,6 +41,10 @@ Future<void> main(List<String> args) async {
     ),
   );
 
-  await file.writeAsBytes(await pdf.save(), flush: true);
+  final bytes = AppPdfDeterminism.normalizeDocumentId(
+    await pdf.save(),
+    'tool-sample-receipt-v1',
+  );
+  await file.writeAsBytes(bytes, flush: true);
   stdout.writeln(file.path);
 }

@@ -12,6 +12,8 @@ void main() {
       expect(script, contains('bash -n tool/pdf_quality_gate.sh'));
       expect(script, contains('bash -n tool/pdf_render_smoke_gate.sh'));
       expect(script, contains('bash tool/pdf_render_smoke_gate.sh'));
+      expect(script, contains('cmp -s /tmp/maintainiac_gate_invoice_a.pdf'));
+      expect(script, contains('cmp -s /tmp/maintainiac_gate_receipt_a.pdf'));
       expect(script, contains('dart analyze'));
       expect(script, contains('flutter test'));
       expect(script, contains('git diff --check'));

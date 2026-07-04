@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../shared/pdf/app_generated_pdf_models.dart';
 import '../../../shared/pdf/app_generated_pdf_service.dart';
+import '../../../shared/pdf/app_pdf_determinism.dart';
 import '../../../shared/pdf/app_pdf_typography.dart';
 import '../../../shared/storage/app_storage_guard.dart';
 import 'expense_export_file_writer.dart';
@@ -215,7 +216,37 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
       ],
     ),
   );
-  final bytes = await pdf.save();
+  final bytes = AppPdfDeterminism.normalizeDocumentId(
+    await pdf.save(),
+    [
+      'expense-export-summary-v1',
+      snapshot.range.start.toIso8601String(),
+      snapshot.range.end.toIso8601String(),
+      snapshot.categoryFilter.name,
+      snapshot.exportedAt.toIso8601String(),
+      snapshot.receipts.length,
+      snapshot.lineCount,
+      snapshot.total.toStringAsFixed(2),
+      snapshot.receipts
+          .map(
+            (receipt) => [
+              receipt.id,
+              receipt.receiptDate.toIso8601String(),
+              receipt.merchantName,
+              receipt.lines
+                  .map(
+                    (line) => [
+                      line.category,
+                      line.description,
+                      receipt.totalForLine(line).toStringAsFixed(2),
+                    ].join('|'),
+                  )
+                  .join('::'),
+            ].join('|'),
+          )
+          .join('||'),
+    ].join('\n'),
+  );
   final fileName =
       'maintainiac_expense_export_${_fileDate(snapshot.range.start)}_to_${_fileDate(snapshot.range.end)}.pdf';
   return AppGeneratedPdfDocument(

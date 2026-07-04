@@ -39,6 +39,13 @@ dart analyze \
   test/pdf_quality_gate_contract_test.dart \
   test/pdf_cross_platform_contract_test.dart
 
+dart run tool/generate_sample_invoice_pdf.dart /tmp/maintainiac_gate_invoice_a.pdf >/dev/null
+dart run tool/generate_sample_invoice_pdf.dart /tmp/maintainiac_gate_invoice_b.pdf >/dev/null
+cmp -s /tmp/maintainiac_gate_invoice_a.pdf /tmp/maintainiac_gate_invoice_b.pdf
+dart run tool/generate_sample_receipt_pdf.dart /tmp/maintainiac_gate_receipt_a.pdf >/dev/null
+dart run tool/generate_sample_receipt_pdf.dart /tmp/maintainiac_gate_receipt_b.pdf >/dev/null
+cmp -s /tmp/maintainiac_gate_receipt_a.pdf /tmp/maintainiac_gate_receipt_b.pdf
+
 bash tool/pdf_render_smoke_gate.sh
 
 flutter test \

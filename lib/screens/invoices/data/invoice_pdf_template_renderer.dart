@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../../../shared/pdf/app_pdf_determinism.dart';
 import '../../../shared/pdf/app_pdf_typography.dart';
 import 'invoice_ledger_models.dart';
 import 'invoice_record.dart';
@@ -78,7 +79,35 @@ class InvoicePdfTemplateRenderer {
         ),
       );
     }
-    return pdf.save();
+    final bytes = await pdf.save();
+    return AppPdfDeterminism.normalizeDocumentId(
+      bytes,
+      [
+        'invoice-template-v1',
+        template.id,
+        record.documentType.name,
+        record.invoiceNumber,
+        record.issueDate.toIso8601String(),
+        record.dueDate?.toIso8601String() ?? '',
+        record.company.bestName,
+        record.client.bestName,
+        record.lines
+            .map(
+              (line) => [
+                line.name,
+                line.details,
+                line.quantity,
+                line.unit,
+                line.unitPrice,
+                line.taxRate,
+              ].join('|'),
+            )
+            .join('||'),
+        record.discountAmount,
+        record.paidTotal,
+        record.terms,
+      ].join('\n'),
+    );
   }
 
   pw.Widget _landscapeArtworkBody({

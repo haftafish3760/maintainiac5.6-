@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/expenses/data/expense_export_handoff.dart';
@@ -80,6 +81,48 @@ void main() {
     expect(document.safeFileName, contains('2026-06-01_to_2026-06-30'));
     expect(document.bytes, isNotEmpty);
   });
+
+  test(
+    'expense export summary PDF is deterministic for same snapshot',
+    () async {
+      final snapshot = buildExpenseExportSnapshot(
+        receipts: [
+          ExpenseReceiptRecord(
+            id: 'receipt-1',
+            receiptDate: DateTime(2026, 6, 12),
+            merchantName: 'Supply House',
+            lines: const [
+              ExpenseReceiptLineRecord(
+                id: 'line-1',
+                description: 'Pipe fittings',
+                category: 'Materials',
+                use: ExpenseLineUse.business,
+                quantity: 1,
+                unitsPerPackage: 1,
+                unit: 'each',
+                subtotal: 42.75,
+              ),
+            ],
+          ),
+        ],
+        range: ExpenseDateRange(
+          start: DateTime(2026, 6, 1),
+          end: DateTime(2026, 6, 30),
+        ),
+        categoryFilter: ExpenseExportCategoryFilter.all,
+        exportedAt: DateTime.utc(2026, 6, 15),
+      );
+
+      final first = await buildExpenseExportSummaryPdf(snapshot);
+      final second = await buildExpenseExportSummaryPdf(snapshot);
+
+      expect(first.bytes, second.bytes);
+      expect(
+        sha256.convert(first.bytes).toString(),
+        sha256.convert(second.bytes).toString(),
+      );
+    },
+  );
 
   test('generated PDF service writes safe temporary PDF files', () async {
     final document = await const InvoicePdfPreviewFactory()
