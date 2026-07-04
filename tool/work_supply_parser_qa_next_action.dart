@@ -9,6 +9,8 @@ const _releaseCommandsPath =
     'build/parser_qa_pipeline/release_one_commands.json';
 const _evidenceSummaryPath =
     'build/parser_qa_pass_evidence/evidence_summary.json';
+const _waveRemediationsPath =
+    'build/parser_qa_pass_evidence/wave_remediations.json';
 const _batchWaveRoot = 'build/parser_qa_batch_waves';
 
 Future<void> main(List<String> args) async {
@@ -41,12 +43,36 @@ int runWorkSupplyParserQaNextAction(
   final commandCells = _commandCellIds(commands['commands']);
   final maxStatusAgeMs = _intValue(args, 'max-status-age-ms', 900000);
   final maxActiveCellMs = _intValue(args, 'max-active-cell-ms', 900000);
-  final blockingWaves = _blockingWaveStatuses(
+  final waveRemediations = _waveRemediationSummaries(
+    _readJson(_waveRemediationsPath),
+  );
+  final candidateBlockingWaves = _blockingWaveStatuses(
     _batchWaveRoot,
     now: DateTime.now().toUtc(),
     maxStatusAgeMs: maxStatusAgeMs,
     maxActiveCellMs: maxActiveCellMs,
   );
+  final remediatedQueueIds = {
+    for (final remediation in waveRemediations)
+      if (remediation['valid'] == true) '${remediation['queueId']}',
+  };
+  final blockingWaves = [
+    for (final wave in candidateBlockingWaves)
+      if (wave['state'] != 'failed' ||
+          !remediatedQueueIds.contains('${wave['queueId']}'))
+        wave,
+  ];
+  final remediatedWaves = [
+    for (final wave in candidateBlockingWaves)
+      if (wave['state'] == 'failed' &&
+          remediatedQueueIds.contains('${wave['queueId']}'))
+        {
+          ...wave,
+          'remediation': waveRemediations.firstWhere(
+            (remediation) => remediation['queueId'] == wave['queueId'],
+          ),
+        },
+  ];
   final waveUnsafe = _waveUnsafeFindings(blockingWaves);
   final allUnsafe = [...unsafe, ...readErrors, ...waveUnsafe];
 
@@ -88,6 +114,9 @@ int runWorkSupplyParserQaNextAction(
     ],
     'blockingWaveCount': blockingWaves.length,
     'blockingWaves': blockingWaves,
+    'remediatedWaveCount': remediatedWaves.length,
+    'remediatedWaves': remediatedWaves,
+    'waveRemediations': waveRemediations,
     'maxStatusAgeMs': maxStatusAgeMs,
     'maxActiveCellMs': maxActiveCellMs,
     'missingArtifactNames': missing,
@@ -218,6 +247,48 @@ List<Map<String, Object?>> _blockingWaveStatuses(
   final blocking = blockingByQueue.values.toList();
   blocking.sort((a, b) => '${a['path']}'.compareTo('${b['path']}'));
   return blocking;
+}
+
+List<Map<String, Object?>> _waveRemediationSummaries(
+  Map<String, Object?> manifest,
+) {
+  final rawEntries = manifest['remediations'];
+  if (rawEntries is! List) return const [];
+  final summaries = <Map<String, Object?>>[];
+  for (final rawEntry in rawEntries) {
+    if (rawEntry is! Map) continue;
+    final entry = rawEntry.cast<String, Object?>();
+    final queueId = '${entry['queueId'] ?? ''}'.trim();
+    final fixedCommit = '${entry['fixedCommit'] ?? ''}'.trim();
+    final evidenceReport = '${entry['evidenceReport'] ?? ''}'.trim();
+    final fixedCellIds = _stringList(entry['fixedCellIds']);
+    final evidence = _readJson(evidenceReport);
+    final evidenceFailureCount = _asInt(evidence['failureCount']);
+    final evidenceChecked = _asInt(evidence['checked']);
+    final evidenceValid =
+        evidenceReport.isNotEmpty &&
+        evidence['_readError'] == null &&
+        evidenceFailureCount == 0 &&
+        evidenceChecked != null &&
+        evidenceChecked > 0;
+    final valid =
+        queueId.isNotEmpty &&
+        fixedCommit.isNotEmpty &&
+        fixedCellIds.isNotEmpty &&
+        evidenceValid;
+    summaries.add({
+      'queueId': queueId,
+      'fixedCellIds': fixedCellIds,
+      'fixedCommit': fixedCommit,
+      'evidenceReport': evidenceReport,
+      'evidenceChecked': evidenceChecked ?? 0,
+      'evidenceFailureCount': evidenceFailureCount,
+      'valid': valid,
+      if (evidence['_readError'] != null) 'readError': evidence['_readError'],
+    });
+  }
+  summaries.sort((a, b) => '${a['queueId']}'.compareTo('${b['queueId']}'));
+  return summaries;
 }
 
 List<String> _waveUnsafeFindings(List<Map<String, Object?>> waves) {

@@ -368,6 +368,133 @@ void main() {
     expect(summary['unsafeFindings'].toString(), contains('waveFailedCells'));
   });
 
+  test('next action accepts remediated failed parser waves with evidence', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_next_remediated_wave_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeJson('build/parser_qa_pipeline/release_one_commands.json', {
+      'commands': [
+        {'cellId': 'plumbing.residential.core.en-US'},
+      ],
+    });
+    _writeJson('build/parser_qa_pass_evidence/evidence_summary.json', {
+      'missingArtifactNames': <String>[],
+      'unsafeFindings': <String>[],
+    });
+    _writeJson(
+      'build/parser_qa_batch_waves/wave/queue/queue-id/latest_status.json',
+      {
+        'state': 'failed',
+        'queueId': 'queue-id',
+        'completedCellCount': 9,
+        'failedCellCount': 1,
+        'updatedAtIso': DateTime.now().toUtc().toIso8601String(),
+        'liveServicesAllowed': false,
+        'writesProductionCatalog': false,
+        'firebaseWritesAllowed': false,
+        'ocrCameraExpensesTouched': false,
+      },
+    );
+    _writeJson('build/parser_qa_pass_evidence/remediation_report.json', {
+      'checked': 118,
+      'failureCount': 0,
+    });
+    _writeJson('build/parser_qa_pass_evidence/wave_remediations.json', {
+      'remediations': [
+        {
+          'queueId': 'queue-id',
+          'fixedCellIds': ['electrical_residential_core_en_US'],
+          'fixedCommit': 'abc1234',
+          'evidenceReport':
+              'build/parser_qa_pass_evidence/remediation_report.json',
+        },
+      ],
+    });
+
+    final exit = runWorkSupplyParserQaNextAction(
+      const [],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final summary = _readJson('build/parser_qa_pass_evidence/next_action.json');
+    expect(summary['readyForNextBatch'], isTrue);
+    expect(summary['blockingWaveCount'], 0);
+    expect(summary['remediatedWaveCount'], 1);
+    expect(summary['unsafeFindings'].toString(), isNot(contains('queue-id')));
+  });
+
+  test(
+    'next action rejects failed-wave remediation without passing evidence',
+    () {
+      final root = Directory.systemTemp.createTempSync(
+        'maintainiac_next_bad_remediation_',
+      );
+      addTearDown(() => root.deleteSync(recursive: true));
+      final previous = Directory.current;
+      Directory.current = root;
+      addTearDown(() => Directory.current = previous);
+      _writeJson('build/parser_qa_pipeline/release_one_commands.json', {
+        'commands': [
+          {'cellId': 'plumbing.residential.core.en-US'},
+        ],
+      });
+      _writeJson('build/parser_qa_pass_evidence/evidence_summary.json', {
+        'missingArtifactNames': <String>[],
+        'unsafeFindings': <String>[],
+      });
+      _writeJson(
+        'build/parser_qa_batch_waves/wave/queue/queue-id/latest_status.json',
+        {
+          'state': 'failed',
+          'queueId': 'queue-id',
+          'completedCellCount': 9,
+          'failedCellCount': 1,
+          'updatedAtIso': DateTime.now().toUtc().toIso8601String(),
+          'liveServicesAllowed': false,
+          'writesProductionCatalog': false,
+          'firebaseWritesAllowed': false,
+          'ocrCameraExpensesTouched': false,
+        },
+      );
+      _writeJson('build/parser_qa_pass_evidence/remediation_report.json', {
+        'checked': 118,
+        'failureCount': 1,
+      });
+      _writeJson('build/parser_qa_pass_evidence/wave_remediations.json', {
+        'remediations': [
+          {
+            'queueId': 'queue-id',
+            'fixedCellIds': ['electrical_residential_core_en_US'],
+            'fixedCommit': 'abc1234',
+            'evidenceReport':
+                'build/parser_qa_pass_evidence/remediation_report.json',
+          },
+        ],
+      });
+
+      final exit = runWorkSupplyParserQaNextAction(
+        const [],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 1);
+      final summary = _readJson(
+        'build/parser_qa_pass_evidence/next_action.json',
+      );
+      expect(summary['readyForNextBatch'], isFalse);
+      expect(summary['blockingWaveCount'], 1);
+      expect(summary['remediatedWaveCount'], 0);
+      expect(summary['unsafeFindings'].toString(), contains('waveFailedCells'));
+    },
+  );
+
   test('next action reports corrupt evidence artifacts without crashing', () {
     final root = Directory.systemTemp.createTempSync(
       'maintainiac_next_corrupt_',
