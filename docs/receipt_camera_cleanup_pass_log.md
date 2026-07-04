@@ -3,6 +3,19 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 645 - 22:41:22 EDT to active cleanup
+
+Scope:
+- Strengthened capture-readiness QA so malformed stable-frame inputs cannot
+  make auto-capture wait forever or hide manual capture availability.
+- Added regression coverage proving negative stable frames clamp to zero and a
+  non-positive required-frame threshold clamps to one.
+- Archived Pass 608 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format for capture quality guidance regression.
+- Passed focused Flutter capture quality guidance regression.
+
 ## Pass 644 - 22:39:28 EDT to active cleanup
 
 Scope:
@@ -451,23 +464,3 @@ Verification:
   photo warnings, and focused regression tests.
 - Passed focused Flutter regressions for best-shot capture diagnostics,
   saved-photo warning diagnostics, and native quality handoff.
-
-## Pass 608 - 21:15:24 EDT to active cleanup
-
-Scope:
-- Retired tap-to-focus from the user-facing native receipt camera settings so
-  continuous autofocus and readability guidance remain the primary camera
-  behavior.
-- Hardened the session config so legacy `tapFocusEnabled` requests cannot
-  enable focus-assist tags or native tap-focus arguments.
-- Hardened the shared camera shell so preview taps do not route to focus
-  callbacks even if a legacy caller passes tap-focus settings.
-- Recorded `BUG-RECEIPT-0129` under `camera_capture_quality`.
-- Archived Pass 588 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format for the touched camera settings, session, shell,
-  and regression tests.
-- Passed targeted analyzer for native camera contract and shell sources/tests.
-- Passed focused Flutter regressions for native camera contract and shell.

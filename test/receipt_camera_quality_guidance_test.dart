@@ -166,6 +166,33 @@ void main() {
     },
   );
 
+  test('capture readiness clamps malformed stability thresholds', () {
+    const ready = ReceiptPhotoQualityCheck(
+      width: 1800,
+      height: 2600,
+      focusScore: 15,
+      brightness: 148,
+      contrast: 36,
+      cropScore: .70,
+      textBandScore: 12,
+      isLikelyReadable: true,
+    );
+
+    final decision = ready.captureReadiness(
+      autoCaptureEnabled: true,
+      stableFrameCount: -5,
+      requiredStableFrames: 0,
+    );
+
+    expect(decision.code, 'auto_capture_waiting_for_stability');
+    expect(decision.manualCaptureAllowed, isTrue);
+    expect(decision.autoCaptureAllowed, isFalse);
+    expect(decision.stableFrameCount, 0);
+    expect(decision.requiredStableFrames, 1);
+    expect(decision.diagnostics, containsPair('stableFrameCount', 0));
+    expect(decision.diagnostics, containsPair('requiredStableFrames', 1));
+  });
+
   test('capture readiness blocks auto capture for risky photos only', () {
     const glare = ReceiptPhotoQualityCheck(
       width: 1600,
