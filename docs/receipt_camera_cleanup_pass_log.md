@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 874 - 16:36:00 EDT to active cleanup
+
+Scope:
+- Hardened malformed retake and insert diagnostics that omit required section
+  numbers while still carrying operation metadata.
+- Added missing-original/final retake buckets and missing-anchor/final insert
+  buckets so OCR cannot trust incomplete section-order metadata.
+- Added regression coverage for missing retake and insert section numbers.
+- Recorded `BUG-RECEIPT-0323` under `multi_photo_ordering`.
+- Archived Pass 801 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused section-order/stitch-scanner
+  regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 873 - 16:31:00 EDT to active cleanup
 
 Scope:
@@ -466,24 +483,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused assisted-review source
-  regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 801 - 09:14:00 EDT to active cleanup
-
-Scope:
-- Hardened privacy-safe receipt line review contracts so long-receipt lines
-  expose both OCR source line number and OCR source section line number.
-- Preserved price-only and detailed-line review modes while giving customer
-  proof/redaction tooling enough numbered line anchors for long receipts.
-- Added regressions for simple line numbers, section line numbers, malformed
-  line-number exclusion, and capped huge source row numbers.
-- Recorded `BUG-RECEIPT-0285` under `receipt_line_numbering`.
-- Archived Pass 769 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused receipt line record
   regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

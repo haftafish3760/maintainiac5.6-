@@ -181,6 +181,39 @@ void main() {
     expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
   });
 
+  test('retake metadata missing section numbers requires order review', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/retake.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/retake-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.fallback(
+        inputPaths: ['/tmp/retake-ocr.jpg'],
+        warning: 'Review retaken section.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/retake.jpg': {
+          'receiptRetakeGuidanceCode':
+              'retake_middle_with_previous_next_context',
+          'receiptRetakeHasPreviousAlignmentContext': true,
+          'receiptRetakePreviousContextSectionNumber': 1,
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderOutcome, 'retake_order_invalid');
+    expect(
+      result
+          .receiptSectionOrderCounts['retake_invalid_missing_original_section'],
+      1,
+    );
+    expect(
+      result.receiptSectionOrderCounts['retake_invalid_missing_final_section'],
+      1,
+    );
+    expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
+  });
+
   test('insert-after offset mismatches require order review', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/extra.jpg'],
@@ -213,5 +246,37 @@ void main() {
       result.acceptedPhotoHandoffActionLabel,
       'Review the inserted receipt section order before OCR reads the receipt.',
     );
+  });
+
+  test('insert metadata missing section numbers requires order review', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/insert.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/insert-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.fallback(
+        inputPaths: ['/tmp/insert-ocr.jpg'],
+        warning: 'Review inserted section.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/insert.jpg': {
+          'receiptInsertAfterOffset': 0,
+          'receiptInsertPreservedAnchorSlot': true,
+          'receiptInsertOrderPolicy':
+              'insert_new_sections_after_selected_anchor',
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderOutcome, 'insert_order_invalid');
+    expect(
+      result.receiptSectionOrderCounts['insert_invalid_missing_anchor_section'],
+      1,
+    );
+    expect(
+      result.receiptSectionOrderCounts['insert_invalid_missing_final_section'],
+      1,
+    );
+    expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
   });
 }

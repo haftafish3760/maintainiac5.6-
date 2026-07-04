@@ -30,7 +30,32 @@ List<String> _receiptRetakeInvalidOrderCodes({
   final nextSection = _diagnosticPositiveInt(
     diagnostics['receiptRetakeNextContextSectionNumber'],
   );
-  if (originalSection == null || finalSection == null) return const [];
+  final hasRetakeMetadata =
+      originalSection != null ||
+      finalSection != null ||
+      replacementOffset != null ||
+      insertedExtra != null ||
+      preservedSlot != null ||
+      hasPrevious != null ||
+      hasNext != null ||
+      hasTwoSided != null ||
+      previousSection != null ||
+      nextSection != null ||
+      _diagnosticToken(
+            diagnostics['receiptRetakeGuidanceCode']?.toString() ?? '',
+          ) !=
+          'unknown' ||
+      _diagnosticToken(
+            diagnostics['receiptRetakeOrderPolicy']?.toString() ?? '',
+          ) !=
+          'unknown';
+  if (hasRetakeMetadata && originalSection == null) {
+    codes.add('retake_invalid_missing_original_section');
+  }
+  if (hasRetakeMetadata && finalSection == null) {
+    codes.add('retake_invalid_missing_final_section');
+  }
+  if (originalSection == null || finalSection == null) return codes;
   if (finalSection < originalSection) {
     codes.add('retake_invalid_final_before_original');
   }
@@ -161,13 +186,29 @@ List<String> _receiptInsertInvalidOrderCodes({
   final offset = _diagnosticZeroOrPositiveInt(
     diagnostics['receiptInsertAfterOffset'],
   );
-  if (anchorSection == null || finalSection == null) return const [];
+  final preservedAnchor = _diagnosticBool(
+    diagnostics['receiptInsertPreservedAnchorSlot'],
+  );
+  final hasInsertMetadata =
+      anchorSection != null ||
+      finalSection != null ||
+      offset != null ||
+      preservedAnchor != null ||
+      _diagnosticToken(
+            diagnostics['receiptInsertOrderPolicy']?.toString() ?? '',
+          ) !=
+          'unknown';
+  if (hasInsertMetadata && anchorSection == null) {
+    codes.add('insert_invalid_missing_anchor_section');
+  }
+  if (hasInsertMetadata && finalSection == null) {
+    codes.add('insert_invalid_missing_final_section');
+  }
+  if (anchorSection == null || finalSection == null) return codes;
   if (finalSection <= anchorSection) {
     codes.add('insert_invalid_final_not_after_anchor');
   }
-  if (_diagnosticBool(diagnostics['receiptInsertPreservedAnchorSlot']) ==
-          true &&
-      finalSection <= anchorSection) {
+  if (preservedAnchor == true && finalSection <= anchorSection) {
     codes.add('insert_invalid_preserved_anchor_overlap');
   }
   if (offset == null) {
