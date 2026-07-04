@@ -3649,3 +3649,23 @@ Release boundaries:
   regression locks from brittle doc wrapping. Focused
   `inventory.pack_overlap_contract,inventory.language_pack_separation_contract,inventory.merchant_alias_normalization_contract,inventory.pack_version_regression_contract,qa.threshold_gate`
   passed 17,189 checks with 0 failures, and targeted analyzer found no issues.
+- **11:18 Harness Pass 2707:** Made receipt/source immutability,
+  receipt-to-workflow feed, and job-context bridge contract matching
+  whitespace-safe. This protects immutable receipt/invoice/estimate/job
+  sources, review-only destination records, mixed-trade routing, context boosts,
+  and source evidence from brittle formatting. Focused
+  `inventory.receipt_invoice_feed_contract,inventory.receipt_source_immutability_contract,inventory.job_context_bridge_contract,qa.threshold_gate`
+  passed 165 checks with 0 failures, and targeted analyzer found no issues.
+- **11:20 Harness Pass 2709:** Made fleet/permission context and duplicate
+  receipt import contract matching whitespace-safe. This protects owner/helper,
+  vehicle inventory, permission-denied warnings, local-first duplicate
+  fingerprints, return offsets, and no double-add inventory/job material rules.
+  Focused
+  `inventory.fleet_permission_context_contract,inventory.duplicate_receipt_import_contract,qa.threshold_gate`
+  passed 73 checks with 0 failures, and targeted analyzer found no issues.
+- **11:22 Harness Pass 2711:** Made search/indexing contract matching
+  whitespace-safe. This protects hostile search input, token/alias/merchant/SKU/
+  UPC/GTIN indexes, locale/pack scoping, collision handling, rollback/rebuild,
+  and review-only search results. Focused
+  `inventory.search_indexing_contract,qa.threshold_gate`
+  passed 56 checks with 0 failures, and targeted analyzer found no issues.
