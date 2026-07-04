@@ -49,11 +49,12 @@ extension _ReceiptAttachmentReviewReadActions
         ..addAll(result.photoPaths);
       _photoIdByPath
         ..clear()
-        ..addEntries(
-          result.photoPaths
-              .where(existingPhotoIdByPath.containsKey)
-              .map((path) => MapEntry(path, existingPhotoIdByPath[path]!)),
-        );
+        ..addEntries([
+          for (final path in result.photoPaths)
+            if (_previousReceiptPhotoMapValue(existingPhotoIdByPath, path)
+                case final photoId?)
+              MapEntry(path, photoId),
+        ]);
       _photoQualityByPath
         ..clear()
         ..addAll(result.photoQualityChecksByPath);
@@ -109,11 +110,12 @@ extension _ReceiptAttachmentReviewReadActions
         ..addAll(result.photoPaths);
       _photoIdByPath
         ..clear()
-        ..addEntries(
-          result.photoPaths
-              .where(previousPhotoIdByPath.containsKey)
-              .map((path) => MapEntry(path, previousPhotoIdByPath[path]!)),
-        );
+        ..addEntries([
+          for (final path in result.photoPaths)
+            if (_previousReceiptPhotoMapValue(previousPhotoIdByPath, path)
+                case final photoId?)
+              MapEntry(path, photoId),
+        ]);
       _photoQualityByPath
         ..clear()
         ..addAll(result.photoQualityChecksByPath);
@@ -126,7 +128,10 @@ extension _ReceiptAttachmentReviewReadActions
           result.photoPaths.map(
             (path) => MapEntry(
               path,
-              previousPhotoReadStateByPath[path] ??
+              _previousReceiptPhotoMapValue(
+                    previousPhotoReadStateByPath,
+                    path,
+                  ) ??
                   ReceiptAttachmentReadState.notRead,
             ),
           ),
@@ -283,5 +288,19 @@ extension _ReceiptAttachmentReviewReadActions
       showDisabledMessage: false,
       showNoTextMessage: true,
     );
+  }
+
+  T? _previousReceiptPhotoMapValue<T>(
+    Map<String, T> valuesByPath,
+    String path,
+  ) {
+    final normalizedPath = normalizedReceiptPhotoPath(path);
+    if (normalizedPath == null) return null;
+    for (final entry in valuesByPath.entries) {
+      if (normalizedReceiptPhotoPath(entry.key) == normalizedPath) {
+        return entry.value;
+      }
+    }
+    return null;
   }
 }

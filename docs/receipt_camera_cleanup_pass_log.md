@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 777 - 06:24:09 EDT to active cleanup
+
+Scope:
+- Hardened attachment review acceptance so existing photo IDs and read states
+  survive review-screen path normalization.
+- Replaced raw previous-map key lookups with normalized receipt photo path
+  matching for accepted review results.
+- Added source regressions proving normalized previous-photo map lookups protect
+  accepted attachment identity/read-state continuity.
+- Recorded `BUG-RECEIPT-0264` under `source_preservation`.
+- Archived Pass 749 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for accepted review map lookup changes.
+- Passed focused Flutter OCR-source attachment read regression.
+- Passed doc-size, bug-ledger, source-audit, test-audit, and diff whitespace
+  gates.
+
 ## Pass 776 - 06:10:03 EDT to active cleanup
 
 Scope:
@@ -477,23 +495,6 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for native live-to-saved parity
   regressions.
-- Passed focused Android/iOS native bridge quality regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 749 - 03:52:44 EDT to active cleanup
-
-Scope:
-- Hardened native saved-photo bottom/top luma diagnostics so missing or
-  non-finite values are bucketed as `unknown` instead of appearing as
-  top/bottom brightness-close evidence.
-- Added Android/iOS source regressions proving invalid bottom/top luma and
-  non-finite delta values cannot look healthy.
-- Recorded `BUG-RECEIPT-0237` under `camera_capture_quality`.
-- Archived Pass 724 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native quality source regressions.
 - Passed focused Android/iOS native bridge quality regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
