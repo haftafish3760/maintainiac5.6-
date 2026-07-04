@@ -67,13 +67,23 @@ class ReceiptClientProofRedactionPlan {
           sourceReceiptSectionLabel: line.sourceReceiptSectionLabel,
           wasSelected: true,
         ),
-      for (var index = 0; index < bundle.excludedLineCount; index++)
+      for (final line in bundle.excludedLines)
         ReceiptClientProofRedactionLine(
-          receiptLineId: '${bundle.receiptId}-excluded-${index + 1}',
-          proofLineReferenceLabel: 'Excluded line ${index + 1}',
+          receiptLineId: line.receiptLineId,
+          proofLineReferenceLabel: line.proofLineReferenceLabel,
           action: ReceiptClientProofRedactionAction.hide,
           reason: 'not_selected_for_client_proof',
+          sourceReceiptSectionLabel: line.sourceReceiptSectionLabel,
+          wasSelected: false,
         ),
+      if (bundle.excludedLines.isEmpty)
+        for (var index = 0; index < bundle.excludedLineCount; index++)
+          ReceiptClientProofRedactionLine(
+            receiptLineId: '${bundle.receiptId}-excluded-${index + 1}',
+            proofLineReferenceLabel: 'Excluded line ${index + 1}',
+            action: ReceiptClientProofRedactionAction.hide,
+            reason: 'not_selected_for_client_proof',
+          ),
     ];
     return ReceiptClientProofRedactionPlan(
       receiptId: bundle.receiptId,

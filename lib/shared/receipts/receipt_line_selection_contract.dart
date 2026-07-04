@@ -129,6 +129,7 @@ class ReceiptLineSelectionBundle {
     required this.receiptId,
     required this.purpose,
     required this.selectedLines,
+    this.excludedLines = const [],
     this.totalSourceLineCount = 0,
   });
 
@@ -139,8 +140,19 @@ class ReceiptLineSelectionBundle {
     bool Function(ReceiptLineDraft line)? includeLine,
   }) {
     final source = sourceLines.toList(growable: false);
+    final shouldInclude =
+        includeLine ?? (line) => !line.redactsFromClientProofByDefault;
     final selected = source
-        .where(includeLine ?? (line) => !line.redactsFromClientProofByDefault)
+        .where(shouldInclude)
+        .map(
+          (line) => ReceiptSelectedLineReference.fromDraft(
+            receiptId: receiptId,
+            line: line,
+          ),
+        )
+        .toList(growable: false);
+    final excluded = source
+        .where((line) => !shouldInclude(line))
         .map(
           (line) => ReceiptSelectedLineReference.fromDraft(
             receiptId: receiptId,
@@ -152,6 +164,7 @@ class ReceiptLineSelectionBundle {
       receiptId: receiptId,
       purpose: purpose,
       selectedLines: selected,
+      excludedLines: excluded,
       totalSourceLineCount: source.length,
     );
   }
@@ -159,12 +172,14 @@ class ReceiptLineSelectionBundle {
   final String receiptId;
   final ReceiptLineSelectionPurpose purpose;
   final List<ReceiptSelectedLineReference> selectedLines;
+  final List<ReceiptSelectedLineReference> excludedLines;
   final int totalSourceLineCount;
 
   int get selectedLineCount => selectedLines.length;
   int get excludedLineCount {
-    final excluded = totalSourceLineCount - selectedLineCount;
-    return excluded < 0 ? 0 : excluded;
+    if (excludedLines.isNotEmpty) return excludedLines.length;
+    final count = totalSourceLineCount - selectedLineCount;
+    return count < 0 ? 0 : count;
   }
 
   int get redactedByDefaultCount {
@@ -264,6 +279,9 @@ class ReceiptLineSelectionBundle {
       'selectedLines': selectedLines
           .map((line) => line.toLocalMap())
           .toList(growable: false),
+      'excludedLines': excludedLines
+          .map((line) => line.toLocalMap())
+          .toList(growable: false),
     };
   }
 
@@ -282,6 +300,9 @@ class ReceiptLineSelectionBundle {
       'hasSelectedBusinessTotal': selectedBusinessTotal > 0,
       'hasSelectedPersonalTotal': selectedPersonalTotal > 0,
       'selectedLineReferences': selectedLines
+          .map((line) => line.toPrivacySafeMap())
+          .toList(growable: false),
+      'excludedLineReferences': excludedLines
           .map((line) => line.toPrivacySafeMap())
           .toList(growable: false),
     };

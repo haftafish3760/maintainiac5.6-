@@ -115,6 +115,7 @@ void main() {
         proofLineReferenceLabel: 'Line 2',
         clientProofDefaultVisibility:
             ReceiptLineClientProofVisibility.redactByDefault,
+        sourceReceiptSectionLabel: 'Photo 2',
       );
 
       final bundle = ReceiptLineSelectionBundle.fromDrafts(
@@ -129,12 +130,16 @@ void main() {
       expect(safe['selectedLineCount'], 1);
       expect(safe['totalSourceLineCount'], 2);
       expect(safe['excludedLineCount'], 1);
+      expect(bundle.excludedLines.single.receiptLineId, 'RCP-10-L2');
+      expect(bundle.excludedLines.single.proofLineReferenceLabel, 'Line 2');
       expect(safe['hasSelectedSubtotal'], isTrue);
       expect(safe['hasSelectedTotal'], isTrue);
       expect(safe['hasSelectedBusinessTotal'], isTrue);
       expect(safe['hasSelectedPersonalTotal'], isFalse);
       expect(safe.toString(), contains('RCP-10-L1'));
+      expect(safe.toString(), contains('RCP-10-L2'));
       expect(safe.toString(), contains('Line 1'));
+      expect(safe.toString(), contains('Line 2'));
       expect(safe.toString(), isNot(contains('HOME DEPOT')));
       expect(safe.toString(), isNot(contains('Secret customer material')));
       expect(safe.toString(), isNot(contains('Private personal item')));
@@ -167,6 +172,7 @@ void main() {
         proofLineReferenceLabel: 'Line 2',
         clientProofDefaultVisibility:
             ReceiptLineClientProofVisibility.redactByDefault,
+        sourceReceiptSectionLabel: 'Photo 2',
       );
 
       final bundle = ReceiptLineSelectionBundle.fromDrafts(
@@ -189,7 +195,9 @@ void main() {
       expect(safe['reviewLineCount'], 1);
       expect(safe['hiddenLineCount'], 1);
       expect(safe.toString(), contains('Line 1'));
-      expect(safe.toString(), contains('Excluded line 1'));
+      expect(safe.toString(), contains('RCP-12-L2'));
+      expect(safe.toString(), contains('Line 2'));
+      expect(safe.toString(), contains('Photo 2'));
       expect(safe.toString(), isNot(contains('HOME DEPOT')));
       expect(safe.toString(), isNot(contains('Secret customer material')));
       expect(safe.toString(), isNot(contains('Private household item')));
@@ -239,12 +247,12 @@ void main() {
       expect(summary.visibleLineCount, 0);
       expect(summary.hiddenLineCount, 1);
       expect(summary.reviewLineCount, 1);
-      expect(summary.sourceSectionCount, 1);
+      expect(summary.sourceSectionCount, 2);
       expect(summary.needsManualReview, isTrue);
       expect(summary.readyToShare, isFalse);
       expect(summary.recommendedNextAction, 'review_lines_before_client_share');
       expect(safe['hasHiddenLines'], isTrue);
-      expect(safe['hasMultipleSourceSections'], isFalse);
+      expect(safe['hasMultipleSourceSections'], isTrue);
       expect(safe.toString(), isNot(contains('PRIVATE STORE')));
       expect(safe.toString(), isNot(contains('Visible part')));
       expect(safe.toString(), isNot(contains('Hidden personal part')));
