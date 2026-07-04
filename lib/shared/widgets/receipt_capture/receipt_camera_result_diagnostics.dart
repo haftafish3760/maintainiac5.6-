@@ -24,7 +24,9 @@ extension ReceiptCameraCaptureEvidenceDiagnostics
       'latestBrightnessBucket': _brightnessBucket(
         _finiteDouble(liveBrightness),
       ),
-      'latestCapturedBrightnessBucket': _brightnessBucket(quality?.brightness),
+      'latestCapturedBrightnessBucket': _capturedBrightnessBucket(
+        quality?.brightness,
+      ),
       'latestCapturedSharpnessBucket': _sharpnessBucket(quality?.focusScore),
       'latestCapturedQualitySignal': quality == null
           ? 'quality_not_checked'
@@ -86,11 +88,11 @@ extension ReceiptCameraCaptureEvidenceDiagnostics
     if (quality == null) return 'unknown';
     final bucket = _liveToSavedLumaDeltaBucket(quality: quality);
     if (bucket == 'unknown') return 'unknown';
-    final capturedBucket = _brightnessBucket(quality.brightness);
+    final capturedBucket = _capturedBrightnessBucket(quality.brightness);
     if (bucket == 'saved_much_darker_than_preview' ||
         (bucket == 'saved_darker_than_preview' &&
-            (capturedBucket == 'too_dark_warning' ||
-                capturedBucket == 'dark_assisted'))) {
+            (capturedBucket == 'captured_too_dark' ||
+                capturedBucket == 'captured_dim'))) {
       return 'saved_photo_darker_than_preview_review_needed';
     }
     if (bucket == 'saved_darker_than_preview') {
@@ -98,7 +100,7 @@ extension ReceiptCameraCaptureEvidenceDiagnostics
     }
     if (bucket == 'saved_much_brighter_than_preview' ||
         (bucket == 'saved_brighter_than_preview' &&
-            capturedBucket == 'glare_warning')) {
+            capturedBucket == 'captured_glare_risk')) {
       return 'saved_photo_brighter_than_preview_review_needed';
     }
     if (bucket == 'saved_brighter_than_preview') {
@@ -153,6 +155,14 @@ extension ReceiptCameraCaptureEvidenceDiagnostics
     if (value < 90) return 'dim';
     if (value > 225) return 'glare_risk';
     return 'normal';
+  }
+
+  static String _capturedBrightnessBucket(double? value) {
+    if (value == null) return 'captured_brightness_unknown';
+    if (value < 55) return 'captured_too_dark';
+    if (value < 90) return 'captured_dim';
+    if (value > 225) return 'captured_glare_risk';
+    return 'captured_readable';
   }
 
   static String _sharpnessBucket(double? value) {

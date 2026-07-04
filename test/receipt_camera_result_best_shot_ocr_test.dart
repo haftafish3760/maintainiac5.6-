@@ -169,7 +169,7 @@ void main() {
     expect(photoDiagnostics['captureFlow'], 'assisted');
     expect(photoDiagnostics['captureFallbackSource'], 'receipt_camera_result');
     expect(photoDiagnostics['latestBrightnessBucket'], 'dim');
-    expect(photoDiagnostics['latestCapturedBrightnessBucket'], 'dim');
+    expect(photoDiagnostics['latestCapturedBrightnessBucket'], 'captured_dim');
     expect(
       photoDiagnostics['latestCapturedSharpnessBucket'],
       'captured_usable',
@@ -395,5 +395,78 @@ void main() {
     expect(glare.hasCriticalIssue, isTrue);
     expect(glare.primaryIssueLabel, 'glare or too bright');
     expect(glare.reviewGuidance, contains('Reduce glare by tilting'));
+  });
+
+  test('capture evidence uses saved-photo buckets for review warnings', () {
+    const evidence = ReceiptCameraCaptureEvidence(
+      captureSurface: 'maintainiac_native_android',
+      captureFlow: 'manual',
+      resolutionTier: 'high',
+      resolutionPreset: 'veryHigh',
+      flashMode: 'off',
+      exposureMode: 'auto',
+      focusMode: 'continuous',
+      exposurePointSupported: true,
+      focusPointSupported: true,
+      exposureOffset: 0,
+      minExposureOffset: -2,
+      maxExposureOffset: 2,
+      zoomLevel: 1,
+      minZoomLevel: 1,
+      maxZoomLevel: 10,
+      previewWidth: 1920,
+      previewHeight: 1080,
+      liveBrightness: 142,
+      liveContrast: 24,
+      liveFocusScore: 12,
+      liveReadiness: 'ready',
+      imageStreamActiveAtCapture: true,
+    );
+    const darkQuality = ReceiptPhotoQualityCheck(
+      width: 1400,
+      height: 2200,
+      focusScore: 14,
+      brightness: 48,
+      contrast: 30,
+      isLikelyReadable: false,
+    );
+    const glareQuality = ReceiptPhotoQualityCheck(
+      width: 1400,
+      height: 2200,
+      focusScore: 14,
+      brightness: 250,
+      contrast: 30,
+      isLikelyReadable: false,
+    );
+
+    final darkDiagnostics = evidence.toCaptureDiagnostics(
+      quality: darkQuality,
+      photoIndex: 0,
+    );
+    final glareDiagnostics = evidence.toCaptureDiagnostics(
+      quality: glareQuality,
+      photoIndex: 0,
+    );
+
+    expect(
+      darkDiagnostics['latestCapturedBrightnessBucket'],
+      'captured_too_dark',
+    );
+    expect(
+      ReceiptNativeSavedPhotoReviewWarning.fromDiagnostics(
+        darkDiagnostics,
+      ).code,
+      'saved_photo_darker_than_preview',
+    );
+    expect(
+      glareDiagnostics['latestCapturedBrightnessBucket'],
+      'captured_glare_risk',
+    );
+    expect(
+      ReceiptNativeSavedPhotoReviewWarning.fromDiagnostics(
+        glareDiagnostics,
+      ).code,
+      'saved_photo_glare_risk',
+    );
   });
 }

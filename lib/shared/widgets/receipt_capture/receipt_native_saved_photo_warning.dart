@@ -142,6 +142,20 @@ class ReceiptNativeSavedPhotoReviewWarning {
     }
     if (previewParitySignal ==
         'saved_photo_brighter_than_preview_review_needed') {
+      if (lightingEvidence == 'capture_glare_risk' ||
+          mismatch == 'live_glare_capture_glare' ||
+          brightnessBucket == 'captured_glare_risk' ||
+          brightnessBucket == 'too_bright') {
+        if (_isBrightReadablePaper(averageLuma, edgeScore)) return null;
+        return const ReceiptNativeSavedPhotoReviewWarning(
+          code: 'saved_photo_glare_risk',
+          severity: ReceiptNativeSavedPhotoWarningSeverity.warning,
+          title: 'Photo may have glare',
+          causeCode: 'saved_photo_glare_or_too_bright',
+          guidance:
+              'Tilt the receipt or lighting, retake if totals are washed out, or tap Next if the text is readable.',
+        );
+      }
       if (_isBrightReadablePaper(averageLuma, edgeScore)) return null;
       return const ReceiptNativeSavedPhotoReviewWarning(
         code: 'saved_photo_brighter_than_preview',

@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 609 - 21:18:35 EDT to active cleanup
+
+Scope:
+- Hardened Flutter receipt capture evidence so saved-photo brightness buckets
+  use the same `captured_*` vocabulary as native Android/iOS diagnostics.
+- Fixed preview-parity warning precedence so direct saved-photo glare evidence
+  surfaces as glare guidance instead of a generic brighter-than-preview warning.
+- Added regression coverage proving dark and glare saved photos from shared
+  capture evidence create the correct review warnings.
+- Recorded `BUG-RECEIPT-0130` under `camera_capture_quality`.
+
+Verification:
+- Passed targeted Dart format/analyzer for receipt capture diagnostics, saved
+  photo warnings, and focused regression tests.
+- Passed focused Flutter regressions for best-shot capture diagnostics,
+  saved-photo warning diagnostics, and native quality handoff.
+
 ## Pass 608 - 21:15:24 EDT to active cleanup
 
 Scope:
