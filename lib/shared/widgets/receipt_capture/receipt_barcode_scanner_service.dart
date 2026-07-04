@@ -320,7 +320,7 @@ class ReceiptBarcodeScannerService {
     ReceiptBarcodeScanPurpose purpose = ReceiptBarcodeScanPurpose.shared,
     List<ReceiptBarcodeFormat> formats = receiptBarcodeInventoryAndQrFormats,
   }) async {
-    final normalizedPath = normalizedReceiptPhotoPath(imagePath);
+    final normalizedPath = _normalizedBarcodeImagePath(imagePath);
     if (normalizedPath == null) {
       return ReceiptBarcodeScanResult(
         imagePath: '',
@@ -380,6 +380,15 @@ class ReceiptBarcodeScannerService {
       warnings: skipped ? const ['barcode_scan_batch_image_limit'] : const [],
     );
   }
+}
+
+String? _normalizedBarcodeImagePath(String imagePath) {
+  final normalized = normalizedReceiptPhotoPath(imagePath);
+  if (normalized == null || normalized.contains('\u0000')) return null;
+  if (!normalized.startsWith('/')) return null;
+  final lower = normalized.toLowerCase();
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif'];
+  return imageExtensions.any(lower.endsWith) ? normalized : null;
 }
 
 List<ReceiptScannedCode> _dedupeScannedCodes(List<ReceiptScannedCode> codes) {

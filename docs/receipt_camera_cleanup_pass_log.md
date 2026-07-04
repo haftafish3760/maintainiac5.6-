@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 797 - 08:52:23 EDT to active cleanup
+
+Scope:
+- Hardened the shared ML Kit barcode/QR scanner boundary so only local absolute
+  image paths can reach the decoder.
+- Blocked relative paths, URLs, PDFs/text files, whitespace-padded paths, and
+  NUL-tainted paths before ML Kit invocation.
+- Added barcode scanner path-family regressions.
+- Recorded `BUG-RECEIPT-0281` under `barcode_qr_scanning`.
+- Archived Pass 767 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused barcode scanner regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 794 - 08:46:29 EDT to active cleanup
 
 Scope:
@@ -439,21 +455,4 @@ Verification:
   source bundle.
 - Passed focused Flutter capture-flow shareability and save-lifecycle
   regressions.
-- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
-
-## Pass 767 - 05:32:59 EDT to active cleanup
-
-Scope:
-- Hardened shared camera review opening so continuation flows clamp the
-  requested selected index within the newly staged photo set before offsetting
-  by pre-existing photos.
-- Prevented negative or oversized `initialSelectedIndex` values from selecting
-  an older receipt photo instead of the newly captured section.
-- Added a source regression for the review-opening index helper.
-- Recorded `BUG-RECEIPT-0255` under `camera_review_state`.
-- Archived Pass 739 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for review-opening index changes.
-- Passed focused Flutter capture-flow shareability regression.
 - Passed doc-size, bug-ledger, source-audit, and test-audit gates.

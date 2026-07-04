@@ -54,10 +54,19 @@ void main() {
     final decoder = _CountingBarcodeDecoder();
     final service = ReceiptBarcodeScannerService(decoder: decoder);
 
-    final result = await service.scanImageFile(' /tmp/code.jpg ');
+    for (final path in const [
+      ' /tmp/code.jpg ',
+      'relative-code.jpg',
+      'https://example.com/code.jpg',
+      '/tmp/code.pdf',
+      '/tmp/code.txt',
+      '/tmp/code.jpg\u0000.png',
+    ]) {
+      final result = await service.scanImageFile(path);
 
-    expect(result.codes, isEmpty);
-    expect(result.warnings, contains('barcode_scan_invalid_source_path'));
+      expect(result.codes, isEmpty);
+      expect(result.warnings, contains('barcode_scan_invalid_source_path'));
+    }
     expect(decoder.calls, 0);
   });
 
@@ -159,7 +168,7 @@ void main() {
       ),
     );
 
-    final result = await service.scanImageFile('/tmp/wrong-file.txt');
+    final result = await service.scanImageFile('/tmp/corrupt-receipt.jpg');
 
     expect(result.codes, isEmpty);
     expect(result.warnings, const ['barcode_scan_failed']);
