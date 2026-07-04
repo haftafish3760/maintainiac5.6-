@@ -3,6 +3,18 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 662 - 23:30:17 EDT to active cleanup
+
+Scope:
+- Added focused QA coverage for long-receipt section-order path safety.
+- Pinned insert-after, remove, move, and moved-photo diagnostics against
+  normalized path aliases that could otherwise confuse section identity.
+- Archived Pass 632 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the new path-safety regression.
+- Passed focused Flutter order path-safety regression.
+
 ## Pass 661 - 23:26:34 EDT to active cleanup
 
 Scope:
@@ -469,18 +481,4 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for native review-depth metadata.
 - Passed focused Flutter frozen camera/result metadata regression.
-- Passed whitespace check.
-
-## Pass 632 - 22:14:24 EDT to active cleanup
-
-Scope:
-- Hardened OCR parser stable line IDs so malformed negative signal indexes clamp
-  to the first receipt line instead of publishing odd negative ID anchors.
-- Extended focused parser handoff regression coverage for sanitized stable IDs
-  and line-number maps.
-- Recorded `BUG-RECEIPT-0153` under `receipt_line_numbering`.
-
-Verification:
-- Passed targeted Dart format/analyzer for parser stable-line ID changes.
-- Passed focused Flutter parser handoff structure regression.
 - Passed whitespace check.
