@@ -101,6 +101,26 @@ Focused rerun routes for recently hardened release-one contracts:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.hive_firestore_sync_contract,qa.threshold_gate`
 - inventory.review_safety_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.review_safety_contract,qa.threshold_gate`
+
+## 2026-07-04 Reusable Parser Adapter Registry Hardening
+
+- Passes 1937-1949 launched local-only wave
+  `pass1939-residential-top-three-all-tiers-wave-execute` for the 24 Release 1
+  residential parser cells across Plumbing, Electrical, and HVAC; Core,
+  Standard, Professional, and Complete; and `en-US`/`es-US`. The wave plan keeps
+  `liveServicesAllowed=false`, `writesProductionCatalog=false`,
+  `firebaseWritesAllowed=false`, and `ocrCameraExpensesTouched=false`.
+- Passes 1942-1949 hardened `inventory.parser_platform_contract` so it validates
+  every registered parser-domain adapter in `parserQaDomainAdapters`, not only
+  inventory. Required reusable adapters currently include
+  `work_supply_inventory_parser`, `expense_receipt_parser`, and
+  `maintenance_parser`, each with portable execution targets and pure parser
+  input/output fields.
+- Surgical verification before commit: `dart analyze
+  test/support/work_supply_parser_qa/work_supply_parser_platform_contract_qa.dart
+  test/support/parser_qa_platform/parser_qa_domain_adapter.dart` passed with no
+  issues. Focused parser-platform QA gate is the next check before this
+  milestone is pushed.
 - Pass 1886 added an executable drift guard: `inventory.surgical_rerun_contract`
   now parses the scorecard's Release Gate Suite Mapping and fails if a listed
   suite is not present in the focused rerun route map.

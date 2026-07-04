@@ -14,6 +14,7 @@ class WorkSupplyParserPlatformContractSuite extends QaSuite {
       'environment-independent parser core',
       'pure parser input',
       'pure parser output',
+      'parserQaDomainAdapters',
       'mobile adapter',
       'server adapter',
       'QA harness adapter',
@@ -127,8 +128,10 @@ class WorkSupplyParserPlatformContractSuite extends QaSuite {
       );
     }
 
-    for (final adapter in const [workSupplyParserDomainAdapter]) {
+    final adapterDomains = <String>{};
+    for (final adapter in parserQaDomainAdapters) {
       checked++;
+      adapterDomains.add(adapter.domain);
       final adapterFailures = adapter.validateContract();
       if (adapterFailures.isEmpty) continue;
       failures.add(
@@ -145,6 +148,24 @@ class WorkSupplyParserPlatformContractSuite extends QaSuite {
         ),
       );
     }
+    for (final requiredDomain in _requiredAdapterDomains) {
+      checked++;
+      if (adapterDomains.contains(requiredDomain)) continue;
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'missing_reusable_parser_domain_adapter:$requiredDomain',
+          message:
+              'Reusable QA backbone is missing a required parser-domain adapter.',
+          severity: QaSeverity.error,
+          expected: _requiredAdapterDomains.join(', '),
+          actual: adapterDomains.join(', '),
+          suggestedFix:
+              'Register every release-critical parser domain in parserQaDomainAdapters so inventory is not a one-off harness.',
+          metadata: const {'triageCategory': QaFailureTriage.governance},
+        ),
+      );
+    }
 
     return timer.finish(
       suite: name,
@@ -154,7 +175,7 @@ class WorkSupplyParserPlatformContractSuite extends QaSuite {
       metrics: {
         'presentPillars': present,
         'pillarCount': _pillars.length,
-        'domainAdapters': [workSupplyParserDomainAdapter.domain],
+        'domainAdapters': adapterDomains.toList()..sort(),
         'plan': _planPath,
       },
     );
@@ -177,6 +198,12 @@ class WorkSupplyParserPlatformContractSuite extends QaSuite {
     return '';
   }
 }
+
+const _requiredAdapterDomains = {
+  'work_supply_inventory_parser',
+  'expense_receipt_parser',
+  'maintenance_parser',
+};
 
 class _PlatformPillar {
   const _PlatformPillar(this.name, this.tokens);
