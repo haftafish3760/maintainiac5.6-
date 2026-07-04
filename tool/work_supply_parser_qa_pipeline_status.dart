@@ -31,6 +31,7 @@ int runWorkSupplyParserQaPipelineStatus(
   var missing = 0;
   var unsafe = 0;
   var parserCalls = 0;
+  var parserEvidenceCells = 0;
   for (final trade in options.trades) {
     for (final scope in options.scopes) {
       for (final tier in options.tiers) {
@@ -40,19 +41,23 @@ int runWorkSupplyParserQaPipelineStatus(
           if (cell['status'] == 'missing') missing++;
           if (cell['localOnlySafe'] == false) unsafe++;
           parserCalls += (cell['parserCalls'] as int?) ?? 0;
+          if (cell['parserEvidenceReady'] == true) parserEvidenceCells++;
         }
       }
     }
   }
+  final present = cells.length - missing;
   final summary = {
     'schemaVersion': 1,
     'report': 'work_supply_parser_qa_pipeline_status',
     'outputRoot': options.outputRoot,
     'expectedCells': cells.length,
-    'presentCells': cells.length - missing,
+    'presentCells': present,
     'missingCells': missing,
     'unsafeCells': unsafe,
     'parserCalls': parserCalls,
+    'parserEvidenceCells': parserEvidenceCells,
+    'missingParserEvidenceCells': present - parserEvidenceCells,
     'requireComplete': options.requireComplete,
     'liveServicesAllowed': false,
     'writesProductionCatalog': false,
@@ -141,6 +146,7 @@ Map<String, Object?> _readCell(
   }
   final blueprintPath = json['blueprintPath'] as String?;
   final fixturePath = json['fixturePath'] as String?;
+  final parserCalls = (json['parserCalls'] as int?) ?? 0;
   final localOnlySafe =
       json['liveServicesAllowed'] == false &&
       json['writesProductionCatalog'] == false;
@@ -156,7 +162,8 @@ Map<String, Object?> _readCell(
     fixtureExists: fixturePath != null && File(fixturePath).existsSync(),
     dryRun: json['dryRun'] == true,
     runFixtures: json['runFixtures'] == true,
-    parserCalls: (json['parserCalls'] as int?) ?? 0,
+    parserCalls: parserCalls,
+    parserEvidenceReady: parserCalls > 0,
   );
 }
 
@@ -191,6 +198,7 @@ Map<String, Object?> _cell({
   bool dryRun = false,
   bool runFixtures = false,
   int parserCalls = 0,
+  bool parserEvidenceReady = false,
 }) {
   return {
     'trade': trade,
@@ -204,6 +212,7 @@ Map<String, Object?> _cell({
     'dryRun': dryRun,
     'runFixtures': runFixtures,
     'parserCalls': parserCalls,
+    'parserEvidenceReady': parserEvidenceReady,
     'localOnlySafe': localOnlySafe,
   };
 }

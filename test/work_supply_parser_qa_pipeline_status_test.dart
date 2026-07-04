@@ -63,6 +63,8 @@ void main() {
       expect(summary['missingCells'], 2);
       expect(summary['unsafeCells'], 0);
       expect(summary['parserCalls'], 0);
+      expect(summary['parserEvidenceCells'], 0);
+      expect(summary['missingParserEvidenceCells'], 2);
       expect(summary['requireComplete'], isFalse);
       expect(summary['liveServicesAllowed'], isFalse);
       expect(summary['writesProductionCatalog'], isFalse);
@@ -71,6 +73,12 @@ void main() {
       expect(cells.where((cell) => cell['status'] == 'missing'), hasLength(2));
       expect(cells.every((cell) => cell['localOnlySafe'] == true), isTrue);
       expect(cells.every((cell) => cell['parserCalls'] == 0), isTrue);
+      expect(
+        cells
+            .where((cell) => cell['status'] == 'present')
+            .every((cell) => cell['parserEvidenceReady'] == false),
+        isTrue,
+      );
       final latestStatus = File('$reportDir/latest_pipeline_status.json');
       expect(latestStatus.existsSync(), isTrue);
       final artifactSummary =
@@ -109,6 +117,8 @@ void main() {
     final summary = _extractStatusSummary(stdout.content);
     expect(summary['requireComplete'], isTrue);
     expect(summary['parserCalls'], 0);
+    expect(summary['parserEvidenceCells'], 0);
+    expect(summary['missingParserEvidenceCells'], 0);
     expect(summary['missingCells'], 2);
     expect(summary['presentCells'], 0);
   });
@@ -148,6 +158,45 @@ void main() {
       expect(stdout.content, contains('"localOnlySafe": false'));
     },
   );
+
+  test('pipeline status separates parser evidence from local safety', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_parser_pipeline_status_parser_evidence_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+    final reportDir = Directory(
+      '${output.path}/plumbing/residential/core/en-US/pipeline_reports',
+    )..createSync(recursive: true);
+    File('${reportDir.path}/latest_pipeline_summary.json').writeAsStringSync(
+      jsonEncode({
+        'trade': 'plumbing',
+        'marketScope': 'residential',
+        'tier': 'core',
+        'localePackId': 'en-US',
+        'liveServicesAllowed': false,
+        'writesProductionCatalog': false,
+        'parserCalls': 48,
+        'blueprintPath': '${output.path}/fake_blueprints.json',
+        'fixturePath': '${output.path}/fake_fixtures.json',
+      }),
+    );
+
+    final stdout = _MemorySink();
+    final statusExit = runWorkSupplyParserQaPipelineStatus(
+      ['--output-root', output.path, '--locales', 'en-US'],
+      stdout: stdout,
+      stderr: _MemorySink(),
+    );
+
+    expect(statusExit, 0);
+    final summary = _extractStatusSummary(stdout.content);
+    final cell = (summary['cells'] as List).single as Map;
+    expect(summary['parserCalls'], 48);
+    expect(summary['parserEvidenceCells'], 1);
+    expect(summary['missingParserEvidenceCells'], 0);
+    expect(cell['localOnlySafe'], isTrue);
+    expect(cell['parserEvidenceReady'], isTrue);
+  });
 }
 
 Map<String, Object?> _extractStatusSummary(String output) {
