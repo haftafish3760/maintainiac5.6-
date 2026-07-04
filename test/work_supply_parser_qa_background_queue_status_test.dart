@@ -107,6 +107,54 @@ void main() {
     expect(stderr.content, contains('Unsafe background queue evidence'));
   });
 
+  test('background queue status fails stale active cell evidence', () async {
+    final root = await Directory.systemTemp.createTemp(
+      'maintainiac_background_queue_status_stale_',
+    );
+    addTearDown(() => root.delete(recursive: true));
+    final queue = Directory('${root.path}/queue-stale')..createSync();
+    File('${queue.path}/latest_status.json').writeAsStringSync(
+      const JsonEncoder.withIndent('  ').convert({
+        'queueId': 'queue-stale',
+        'state': 'running',
+        'cellCount': 6,
+        'completedCellCount': 0,
+        'failedCellCount': 0,
+        'activeCellId': 'plumbing_residential_core_en_US',
+        'activeCellStartedAtIso': '2026-07-04T14:00:00.000Z',
+        'activeCellElapsedMs': 0,
+        'dryRun': false,
+        'liveServicesAllowed': false,
+        'writesProductionCatalog': false,
+        'firebaseWritesAllowed': false,
+        'ocrCameraExpensesTouched': false,
+        'results': [],
+      }),
+    );
+
+    final stdout = _MemorySink();
+    final stderr = _MemorySink();
+    final exit = runWorkSupplyParserQaBackgroundQueueStatus(
+      [
+        '--root',
+        root.path,
+        '--queue-id',
+        'queue-stale',
+        '--max-active-cell-ms',
+        '900000',
+      ],
+      stdout: stdout,
+      stderr: stderr,
+      now: DateTime.parse('2026-07-04T14:20:00.000Z'),
+    );
+
+    expect(exit, 1);
+    expect(stdout.content, contains('"activeCellStale": true'));
+    expect(stdout.content, contains('"maxActiveCellMs": 900000'));
+    expect(stdout.content, contains('"activeCellElapsedMs": 1200000'));
+    expect(stderr.content, contains('Stale active background queue cell'));
+  });
+
   test('background queue status fails when no artifact exists', () {
     final stderr = _MemorySink();
     final exit = runWorkSupplyParserQaBackgroundQueueStatus(

@@ -3,7 +3,8 @@ import 'dart:io';
 
 const _usage =
     'dart run tool/work_supply_parser_qa_background_queue_status.dart '
-    '[--root build/parser_qa_background_queue] [--queue-id pass160-live]';
+    '[--root build/parser_qa_background_queue] [--queue-id pass160-live] '
+    '[--max-active-cell-ms 900000]';
 
 Future<void> main(List<String> args) async {
   final exit = runWorkSupplyParserQaBackgroundQueueStatus(
@@ -26,6 +27,8 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
   }
   final root = _value(args, 'root', 'build/parser_qa_background_queue');
   final queueId = _value(args, 'queue-id', '');
+  final maxActiveCellMs =
+      int.tryParse(_value(args, 'max-active-cell-ms', '0')) ?? 0;
   final statusFile = File(
     queueId.isEmpty
         ? '$root/latest_status.json'
@@ -57,6 +60,10 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
     now ?? DateTime.now().toUtc(),
     json['activeCellElapsedMs'],
   );
+  final activeCellStale =
+      maxActiveCellMs > 0 &&
+      activeCellElapsedMs != null &&
+      activeCellElapsedMs > maxActiveCellMs;
   final summary = <String, Object?>{
     'schemaVersion': 1,
     'report': 'work_supply_parser_qa_background_queue_status_readout',
@@ -73,6 +80,8 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
     'firebaseWritesAllowed': json['firebaseWritesAllowed'] ?? false,
     'ocrCameraExpensesTouched': json['ocrCameraExpensesTouched'] ?? false,
     'unsafeFlagCount': unsafeFailures.length,
+    if (maxActiveCellMs > 0) 'maxActiveCellMs': maxActiveCellMs,
+    if (maxActiveCellMs > 0) 'activeCellStale': activeCellStale,
     if (unsafeFailures.isNotEmpty) 'unsafeFlags': unsafeFailures,
   };
   if (activeCellStartedAtIso != null) {
@@ -88,7 +97,14 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
   for (final failure in unsafeFailures) {
     stderr.writeln('Unsafe background queue evidence: $failure');
   }
-  return failed == 0 && unsafeFailures.isEmpty ? 0 : 1;
+  if (activeCellStale) {
+    stderr.writeln(
+      'Stale active background queue cell: '
+      '${json['activeCellId'] ?? 'unknown_cell'} elapsed '
+      '${activeCellElapsedMs}ms exceeds ${maxActiveCellMs}ms.',
+    );
+  }
+  return failed == 0 && unsafeFailures.isEmpty && !activeCellStale ? 0 : 1;
 }
 
 List<String> _unsafeFailures(Map json, List<Object?> results) {
