@@ -90,16 +90,18 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
   }
 
   String get ocrSourceLineLabel {
-    final sectionLine = ocrSourceSectionLineNumber;
-    final section = ocrSourceSectionNumber;
-    if (sectionLine != null && sectionLine > 0) {
-      if (section != null && section > 1) {
+    final sectionLine = _expenseReceiptSafeLineNumber(
+      ocrSourceSectionLineNumber,
+    );
+    final section = _expenseReceiptSafeSectionNumber(ocrSourceSectionNumber);
+    if (sectionLine != null) {
+      if (section > 1) {
         return 'OCR section $section line $sectionLine';
       }
       return 'OCR source line $sectionLine';
     }
-    final lineNumber = ocrSourceLineNumber;
-    if (lineNumber != null && lineNumber > 0) return 'OCR line $lineNumber';
+    final lineNumber = _expenseReceiptSafeLineNumber(ocrSourceLineNumber);
+    if (lineNumber != null) return 'OCR line $lineNumber';
     final sourceId = (ocrSourceLineId ?? '').trim();
     if (sourceId.isNotEmpty) {
       return _expenseReceiptPrivateSafeLineReferenceLabel(sourceId);

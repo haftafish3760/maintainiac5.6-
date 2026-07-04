@@ -84,6 +84,16 @@ void main() {
         entryScreen,
         contains('_expenseReceiptPrivateSafeLineReferenceLabel(sourceId)'),
       );
+      expect(lineModels, contains('_expenseReceiptSafeLineNumber('));
+      expect(lineModels, contains('_maxExpenseReceiptDraftLineNumber = 9999'));
+      expect(
+        lineModels,
+        contains('_maxExpenseReceiptDraftSectionNumber = 999'),
+      );
+      expect(
+        lineModels,
+        isNot(contains('ocrSourceLineNumber != null && lineNumber > 0')),
+      );
       expect(
         entryScreen,
         isNot(contains("fallbackId.isEmpty ? 'Receipt line' : fallbackId")),

@@ -183,11 +183,13 @@ class _ExpenseReceiptLine {
 
   String get receiptProofRedactionAnchorCode {
     final sourceSection = ocrSourceSectionNumber;
-    final sourceSectionLine = ocrSourceSectionLineNumber;
-    final lineNumber = ocrSourceLineNumber;
-    final lineToken = sourceSectionLine != null && sourceSectionLine > 0
+    final sourceSectionLine = _expenseReceiptSafeLineNumber(
+      ocrSourceSectionLineNumber,
+    );
+    final lineNumber = _expenseReceiptSafeLineNumber(ocrSourceLineNumber);
+    final lineToken = sourceSectionLine != null
         ? 's${_expenseReceiptSafeSectionNumber(sourceSection).toString().padLeft(2, '0')}_l${sourceSectionLine.toString().padLeft(4, '0')}'
-        : lineNumber != null && lineNumber > 0
+        : lineNumber != null
         ? 'l${lineNumber.toString().padLeft(4, '0')}'
         : _expenseReceiptPrivateSafeLineToken(ocrSourceLineId, id ?? '');
     final family = _expenseReceiptSafeToken(

@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 705 - 02:25:00 EDT to active cleanup
+
+Scope:
+- Aligned in-entry draft receipt line numbering with the saved ledger line
+  guardrails so malformed OCR line or section numbers cannot show impossible
+  proof labels before save.
+- Added bounded draft line/section helpers and routed draft proof labels, OCR
+  source labels, and redaction anchors through them.
+- Expanded the assisted-review source fixture so regression coverage includes
+  the shared draft line support and label helpers.
+- Recorded `BUG-RECEIPT-0192` under `receipt_line_numbering`.
+- Archived Pass 646 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for draft receipt line helpers and
+  assisted-review source regression.
+- Passed focused Flutter assisted receipt review flow regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 704 - 02:18:00 EDT to active cleanup
 
 Scope:
@@ -478,18 +498,3 @@ Verification:
 - Passed targeted Dart format/analyzer for stitch-pair state and lifecycle
   regression.
 - Passed focused Flutter receipt photo review async lifecycle regression.
-
-## Pass 646 - 22:43:38 EDT to active cleanup
-
-Scope:
-- Hardened failed receipt-prep cleanup so accepted saved proof, OCR source, and
-  stitched OCR artifacts are forgotten from cleanup candidates before review
-  closes.
-- Reused normalized receipt path identity for the accepted-artifact guard.
-- Added focused regression coverage for the cleanup handoff order.
-- Recorded `BUG-RECEIPT-0164` under `source_preservation`.
-
-Verification:
-- Passed targeted Dart format/analyzer for receipt photo review save/exit
-  cleanup and lifecycle regression.
-- Passed focused Flutter receipt photo review lifecycle regression.

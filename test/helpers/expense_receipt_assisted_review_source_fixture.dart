@@ -56,7 +56,13 @@ Future<AssistedReviewSourceFixture> readAssistedReviewSourceFixture() async {
   final stateActions = await _readExpenseReceiptEntryStateActionsUnit();
   final lineModels =
       await File(
+        'lib/screens/expenses/entry/expense_receipt_line_support.dart',
+      ).readAsString() +
+      await File(
         'lib/screens/expenses/entry/expense_receipt_line_models.dart',
+      ).readAsString() +
+      await File(
+        'lib/screens/expenses/entry/expense_receipt_line_labels.dart',
       ).readAsString() +
       await File(
         'lib/screens/expenses/entry/expense_receipt_line_computed_fields.dart',

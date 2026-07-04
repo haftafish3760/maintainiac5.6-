@@ -1,6 +1,8 @@
 part of 'expense_receipt_entry_screen.dart';
 
 const Object _noBusinessPercentChange = Object();
+const _maxExpenseReceiptDraftLineNumber = 9999;
+const _maxExpenseReceiptDraftSectionNumber = 999;
 
 enum _ExpenseLineUse {
   business('Business'),
@@ -79,7 +81,13 @@ bool _expenseReceiptLooksLikeSafeOcrLineId(String value) {
 }
 
 int _expenseReceiptSafeSectionNumber(int? value) {
-  return value != null && value > 0 ? value : 1;
+  if (value == null || value < 1) return 1;
+  return value.clamp(1, _maxExpenseReceiptDraftSectionNumber);
+}
+
+int? _expenseReceiptSafeLineNumber(int? value) {
+  if (value == null || value < 1) return null;
+  return value.clamp(1, _maxExpenseReceiptDraftLineNumber);
 }
 
 String _expenseReceiptPrivateSafeIdToken(String value) {
