@@ -48,8 +48,9 @@ void main() {
     );
 
     final stdout = _MemorySink();
+    final outputPath = '${root.path}/status/status.json';
     final exit = runWorkSupplyParserQaBatchWaveStatus(
-      ['--root', root.path, '--wave-id', 'wave-001'],
+      ['--root', root.path, '--wave-id', 'wave-001', '--output', outputPath],
       stdout: stdout,
       stderr: _MemorySink(),
     );
@@ -62,6 +63,10 @@ void main() {
     expect(stdout.content, contains('"statusAgeMs":'));
     expect(stdout.content, contains('"activeCellElapsedMs":'));
     expect(stdout.content, contains('"firebaseWritesAllowed": false'));
+    expect(stdout.content, contains('QA_BATCH_WAVE_STATUS_ARTIFACT'));
+    final artifact = jsonDecode(File(outputPath).readAsStringSync()) as Map;
+    expect(artifact['waveId'], 'wave-001');
+    expect(artifact['completedCellCount'], 4);
   });
 
   test('batch wave status rejects failed queue cells', () async {

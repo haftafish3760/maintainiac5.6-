@@ -3,7 +3,8 @@ import 'dart:io';
 
 const _usage =
     'dart run tool/work_supply_parser_qa_batch_wave_status.dart '
-    '[--root build/parser_qa_batch_waves] [--wave-id pass197-core-wave]';
+    '[--root build/parser_qa_batch_waves] [--wave-id pass197-core-wave] '
+    '[--output build/parser_qa_batch_waves/status.json]';
 
 Future<void> main(List<String> args) async {
   final exit = runWorkSupplyParserQaBatchWaveStatus(
@@ -25,6 +26,7 @@ int runWorkSupplyParserQaBatchWaveStatus(
   }
   final root = _value(args, 'root', 'build/parser_qa_batch_waves');
   final waveId = _value(args, 'wave-id', '');
+  final output = _value(args, 'output', '');
   if (waveId.isEmpty) {
     stderr.writeln('--wave-id is required.');
     return 64;
@@ -91,6 +93,14 @@ int runWorkSupplyParserQaBatchWaveStatus(
   stdout.writeln(
     'QA_BATCH_WAVE_STATUS ${const JsonEncoder.withIndent('  ').convert(status)}',
   );
+  if (output.isNotEmpty) {
+    final outputFile = File(output)..parent.createSync(recursive: true);
+    outputFile.writeAsStringSync(
+      const JsonEncoder.withIndent('  ').convert(status),
+      flush: true,
+    );
+    stdout.writeln('QA_BATCH_WAVE_STATUS_ARTIFACT json=$output');
+  }
   final unsafe =
       status['liveServicesAllowed'] == true ||
       status['writesProductionCatalog'] == true ||
