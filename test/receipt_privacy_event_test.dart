@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/expenses/data/expense_receipt_parser.dart';
+import 'package:maintaniac/shared/receipts/receipt_layout_intelligence.dart';
 import 'package:maintaniac/shared/receipts/receipt_line_models.dart';
 import 'package:maintaniac/shared/receipts/receipt_processing_contract.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
@@ -231,6 +232,52 @@ void main() {
       expect(encoded, isNot(contains('drink')));
       expect(encoded, isNot(contains('18.00')));
       expect(encoded, isNot(contains('2.00')));
+    },
+  );
+
+  test(
+    'layout redaction privacy event reports counts without receipt content',
+    () {
+      final layout = const ReceiptLayoutAnalyzer().analyzeText('''
+ACME HARDWARE OUTLET
+2710 SERVICE ROAD
+WIRE NUTS 25PK 4.99
+TOTAL 4.99
+MASTERCARD 9911
+''');
+      final plan = layout.redactionPlanForLineNumbers({
+        3,
+        9999,
+      }, keepMerchantContext: true);
+
+      final event = PrivacySafeReceiptEvent.fromLineRedactionPlan(
+        plan: plan,
+        featureArea: 'job invoice',
+      );
+      final map = event.toMap();
+      final encoded = map.toString().toLowerCase();
+
+      expect(
+        map['event'],
+        PrivacySafeReceiptEventType.receiptParserReview.name,
+      );
+      expect(map['featureArea'], 'job_invoice');
+      expect(map['clientProofLayoutRedactionStatus'], 'ignored_unknown_lines');
+      expect(map['clientProofLayoutVisibleLineCount'], 2);
+      expect(map['clientProofLayoutHiddenLineCount'], greaterThanOrEqualTo(2));
+      expect(map['clientProofLayoutIgnoredLineCount'], 1);
+      expect(
+        map['clientProofLayoutProtectedTypeCount'],
+        greaterThanOrEqualTo(1),
+      );
+      expect(map['clientProofLayoutKeepsMerchantContext'], isTrue);
+      expect(map['clientProofLayoutKeepsTotalsContext'], isFalse);
+      expect(encoded, isNot(contains('acme')));
+      expect(encoded, isNot(contains('wire nuts')));
+      expect(encoded, isNot(contains('service road')));
+      expect(encoded, isNot(contains('4.99')));
+      expect(encoded, isNot(contains('mastercard')));
+      expect(encoded, isNot(contains('receipt_line_')));
     },
   );
 }

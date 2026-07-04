@@ -97,6 +97,13 @@ class PrivacySafeReceiptEvent {
     this.clientProofImageUnassignedLineCount = 0,
     this.clientProofImageUnassignedHiddenLineCount = 0,
     this.clientProofImageUnassignedReviewLineCount = 0,
+    this.clientProofLayoutRedactionStatus,
+    this.clientProofLayoutVisibleLineCount = 0,
+    this.clientProofLayoutHiddenLineCount = 0,
+    this.clientProofLayoutIgnoredLineCount = 0,
+    this.clientProofLayoutProtectedTypeCount = 0,
+    this.clientProofLayoutKeepsMerchantContext = false,
+    this.clientProofLayoutKeepsTotalsContext = false,
     this.ocrFieldReadinessCounts = const {},
     this.ocrRequiredFieldStatusCounts = const {},
     this.ocrRequiredFieldStatusLabel,
@@ -179,6 +186,16 @@ class PrivacySafeReceiptEvent {
     String featureArea = 'receipts',
   }) {
     return _privacySafeReceiptEventFromClientProofImageReviewPlan(
+      plan: plan,
+      featureArea: featureArea,
+    );
+  }
+
+  factory PrivacySafeReceiptEvent.fromLineRedactionPlan({
+    required ReceiptLineRedactionPlan plan,
+    String featureArea = 'receipts',
+  }) {
+    return _privacySafeReceiptEventFromLineRedactionPlan(
       plan: plan,
       featureArea: featureArea,
     );
@@ -279,6 +296,13 @@ class PrivacySafeReceiptEvent {
   final int clientProofImageUnassignedLineCount;
   final int clientProofImageUnassignedHiddenLineCount;
   final int clientProofImageUnassignedReviewLineCount;
+  final String? clientProofLayoutRedactionStatus;
+  final int clientProofLayoutVisibleLineCount;
+  final int clientProofLayoutHiddenLineCount;
+  final int clientProofLayoutIgnoredLineCount;
+  final int clientProofLayoutProtectedTypeCount;
+  final bool clientProofLayoutKeepsMerchantContext;
+  final bool clientProofLayoutKeepsTotalsContext;
   final Map<String, int> ocrFieldReadinessCounts;
   final Map<String, int> ocrRequiredFieldStatusCounts;
   final String? ocrRequiredFieldStatusLabel;

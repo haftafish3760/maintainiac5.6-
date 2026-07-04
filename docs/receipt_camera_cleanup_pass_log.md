@@ -3,6 +3,30 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 693 - 00:55:10 EDT to active cleanup
+
+Scope:
+- Added a privacy-safe receipt event path for layout redaction plans so
+  QA/admin telemetry can see visible, hidden, ignored, and protected line
+  counts without receipt text or anchor IDs.
+- Added scalar serialization for layout redaction status, counts, and context
+  booleans.
+- Added regression coverage proving ignored line-target telemetry stays
+  privacy-safe.
+- Recorded `BUG-RECEIPT-0180` under `privacy_redaction`.
+- Archived Passes 633 and 632 from the active cleanup log to keep the doc under
+  cap.
+
+Verification:
+- First focused regression run failed because the tiny fixture did not prove
+  merchant-context detection; fixed the fixture to use recognizable receipt
+  structure.
+- Passed targeted Dart format/analyzer for receipt privacy event redaction
+  telemetry.
+- Passed focused Flutter receipt privacy event regression.
+- Passed cleanup log, doc size, bug ledger, source audit, tests-only source
+  audit, and diff whitespace gates.
+
 ## Pass 692 - 00:53:45 EDT to active cleanup
 
 Scope:
@@ -463,34 +487,4 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for edited-photo metadata.
 - Passed focused Flutter native recovery metadata regression.
-- Passed whitespace check.
-
-## Pass 633 - 22:15:43 EDT to active cleanup
-
-Scope:
-- Hardened malformed native review-depth diagnostics so privacy-safe receipt
-  metadata uses a generic invalid bucket instead of tokenizing raw diagnostic
-  text that could contain receipt content.
-- Added focused review-depth regression coverage proving malformed values stay
-  visible without leaking the raw text or receipt paths.
-- Archived Pass 622 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0154` under `privacy_redaction`.
-
-Verification:
-- Passed targeted Dart format/analyzer for native review-depth metadata.
-- Passed focused Flutter frozen camera/result metadata regression.
-- Passed whitespace check.
-
-## Pass 632 - 22:14:24 EDT to active cleanup
-
-Scope:
-- Hardened OCR parser stable line IDs so malformed negative signal indexes clamp
-  to the first receipt line instead of publishing odd negative ID anchors.
-- Extended focused parser handoff regression coverage for sanitized stable IDs
-  and line-number maps.
-- Recorded `BUG-RECEIPT-0153` under `receipt_line_numbering`.
-
-Verification:
-- Passed targeted Dart format/analyzer for parser stable-line ID changes.
-- Passed focused Flutter parser handoff structure regression.
 - Passed whitespace check.

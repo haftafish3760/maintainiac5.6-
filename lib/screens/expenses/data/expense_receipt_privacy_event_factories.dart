@@ -258,3 +258,29 @@ PrivacySafeReceiptEvent _privacySafeReceiptEventFromClientProofImageReviewPlan({
     clientProofImageUnassignedReviewLineCount: plan.unassignedReviewLineCount,
   );
 }
+
+PrivacySafeReceiptEvent _privacySafeReceiptEventFromLineRedactionPlan({
+  required ReceiptLineRedactionPlan plan,
+  required String featureArea,
+}) {
+  final status = plan.ignoredUnknownLines
+      ? 'ignored_unknown_lines'
+      : plan.protectsPrivateContent
+      ? 'private_content_protected'
+      : plan.hidesUnselectedLines
+      ? 'redaction_preview_required'
+      : 'ready_to_share';
+  return PrivacySafeReceiptEvent(
+    type: plan.ignoredUnknownLines || plan.protectsPrivateContent
+        ? PrivacySafeReceiptEventType.receiptParserReview
+        : PrivacySafeReceiptEventType.receiptParserGood,
+    featureArea: _safeToken(featureArea),
+    clientProofLayoutRedactionStatus: status,
+    clientProofLayoutVisibleLineCount: plan.visibleLineNumbers.length,
+    clientProofLayoutHiddenLineCount: plan.hiddenLineNumbers.length,
+    clientProofLayoutIgnoredLineCount: plan.ignoredLineNumbers.length,
+    clientProofLayoutProtectedTypeCount: plan.protectedContentTypes.length,
+    clientProofLayoutKeepsMerchantContext: plan.keepsMerchantContext,
+    clientProofLayoutKeepsTotalsContext: plan.keepsTotalsContext,
+  );
+}

@@ -147,6 +147,20 @@ extension PrivacySafeReceiptEventSerialization on PrivacySafeReceiptEvent {
           clientProofImageUnassignedHiddenLineCount,
       'clientProofImageUnassignedReviewLineCount':
           clientProofImageUnassignedReviewLineCount,
+      if (clientProofLayoutRedactionStatus != null &&
+          clientProofLayoutRedactionStatus!.trim().isNotEmpty)
+        'clientProofLayoutRedactionStatus': clientProofLayoutRedactionStatus,
+      'clientProofLayoutVisibleLineCount': clientProofLayoutVisibleLineCount < 0
+          ? 0
+          : clientProofLayoutVisibleLineCount,
+      'clientProofLayoutHiddenLineCount': clientProofLayoutHiddenLineCount,
+      'clientProofLayoutIgnoredLineCount': clientProofLayoutIgnoredLineCount,
+      'clientProofLayoutProtectedTypeCount':
+          clientProofLayoutProtectedTypeCount,
+      'clientProofLayoutKeepsMerchantContext':
+          clientProofLayoutKeepsMerchantContext,
+      'clientProofLayoutKeepsTotalsContext':
+          clientProofLayoutKeepsTotalsContext,
       if (ocrFieldReadinessCounts.isNotEmpty)
         'ocrFieldReadinessCounts': ocrFieldReadinessCounts,
       if (ocrRequiredFieldStatusCounts.isNotEmpty)
