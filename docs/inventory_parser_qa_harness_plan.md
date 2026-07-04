@@ -293,6 +293,8 @@ Parser candidates remain review-only. `possibleMatches` must carry ranked altern
 | `service_truck_core` | `inventory.service_truck_core_contract` | everydayCore priority; service-truck signals; Core tier focus |
 | `release_one_pack_balance` | `inventory.release_one_pack_balance` | Core service-truck focus; tier expansion sanity |
 | `release_one_scorecard` | `inventory.release_one_scorecard_contract` | Release 1 parser acceptance scorecard; Merchant-Agnostic Receipt Coverage; Fake-User Parser Review Workflow; Firebase/Firestore is a mirror |
+| `catalog_expansion_lifecycle` | `inventory.catalog_expansion_lifecycle_contract` | QA harness completion is not the same thing as catalog completion; controlled batches; release-readiness evidence before promotion |
+| `real_receipt_validation` | `inventory.real_receipt_validation_contract` | Real Private Receipt Validation; private receipt content must not be committed; privacy-safe synthetic data |
 | `item_metadata_depth` | `inventory.item_metadata_depth` | receipt patterns; negative-match guards; output classification |
 | `vendor_readiness` | `inventory.vendor_readiness` | vendor mappings; merchant-style receipt patterns; SKU/part-number pattern slots |
 | `workflow_routing` | `inventory.workflow_routing` | inventory/job/estimate/invoice routing; tax reporting; markup behavior |
@@ -379,8 +381,10 @@ Registered inventory suites:
 - `inventory.generated_cases`
 - `inventory.security_privacy`
 - `inventory.boundary_guard`
+- `inventory.catalog_expansion_lifecycle_contract`
 - `inventory.no_live_services_contract`
 - `inventory.review_safety_contract`
+- `inventory.real_receipt_validation_contract`
 - `inventory.result_contract`
 - `inventory.evidence_attribution`
 - `inventory.pack_lifecycle`

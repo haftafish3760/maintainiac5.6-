@@ -176,6 +176,24 @@ class WorkSupplyParserRequirementCoverageSuite extends QaSuite {
       ],
     ),
     _RequirementCoverage(
+      'catalog_expansion_lifecycle',
+      'inventory.catalog_expansion_lifecycle_contract',
+      [
+        'QA harness completion is not the same thing as catalog completion',
+        'controlled batches',
+        'release-readiness evidence before promotion',
+      ],
+    ),
+    _RequirementCoverage(
+      'real_receipt_validation',
+      'inventory.real_receipt_validation_contract',
+      [
+        'Real Private Receipt Validation',
+        'private receipt content must not be committed',
+        'privacy-safe synthetic data',
+      ],
+    ),
+    _RequirementCoverage(
       'item_metadata_depth',
       'inventory.item_metadata_depth',
       ['receipt patterns', 'negative-match guards', 'output classification'],
