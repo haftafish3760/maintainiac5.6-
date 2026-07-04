@@ -46,8 +46,10 @@ void main() {
       ..writeAsStringSync(
         [
           'exitCode=1',
+          '--dart-define=PARSER_QA_GENERATED_FIXTURE_PATH=build/parser_qa_generated/work_supply_parser/plumbing/residential/core/en-US/generated_fixtures.json',
           'Expected: matching plumbing item',
           'Actual: null',
+          'plumbing_residential_core_en_US_pvc_elbow_00012: expected match, got null',
           'Some tests failed.',
         ].join('\n'),
       );
@@ -79,6 +81,20 @@ void main() {
     expect(stdout.content, contains('"failedCellCount": 1'));
     expect(stdout.content, contains('Expected: matching plumbing item'));
     expect(stdout.content, contains('Actual: null'));
+    expect(
+      stdout.content,
+      contains('"strategy": "rerun_failed_generated_fixture_ids"'),
+    );
+    expect(
+      stdout.content,
+      contains(
+        'dart run tool/work_supply_parser_qa_run_generated_fixtures.dart',
+      ),
+    );
+    expect(
+      stdout.content,
+      contains('plumbing_residential_core_en_US_pvc_elbow_00012'),
+    );
   });
 }
 

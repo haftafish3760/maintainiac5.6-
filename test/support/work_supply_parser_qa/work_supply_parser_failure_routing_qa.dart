@@ -7,8 +7,7 @@ class WorkSupplyParserFailureRoutingSuite extends QaSuite {
     : super('inventory.failure_routing_contract');
 
   static const _progressPath = 'docs/inventory_parser_qa_progress_memory.md';
-  static const _triagePath =
-      'test/support/qa_harness/qa_harness.dart';
+  static const _triagePath = 'test/support/qa_harness/qa_harness.dart';
   static const _failureDigestPath =
       'tool/work_supply_parser_qa_failure_digest.dart';
   static const _reportDigestPath =
@@ -69,6 +68,11 @@ class WorkSupplyParserFailureRoutingSuite extends QaSuite {
     'failurePreview',
     'transcriptPath',
     'QA_FAILURE_DIGEST',
+    'surgicalRerun',
+    'avoidBroadRerun',
+    'fixtureIds',
+    'fixturePath',
+    'rerun_failed_generated_fixture_ids',
   };
 
   static const _reportTokens = {
@@ -129,7 +133,8 @@ class WorkSupplyParserFailureRoutingSuite extends QaSuite {
       failures.add(
         _failure(
           id: 'missing_failure_digest_token:${_safeId(token)}',
-          message: 'Failure digest tool is missing compact failure routing evidence.',
+          message:
+              'Failure digest tool is missing compact failure routing evidence.',
           expected: token,
           actual: 'not found in $_failureDigestPath',
           fix:

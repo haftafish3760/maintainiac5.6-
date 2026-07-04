@@ -48,5 +48,6 @@ void main() {
     final failure = ((digest['failures'] as List).single as Map);
     expect(failure['cellId'], 'maintenance_filters_en_US');
     expect(failure['suggestedFixCategory'], 'missing_match_or_alias');
+    expect(failure['surgicalRerun'], isA<Map>());
   });
 }

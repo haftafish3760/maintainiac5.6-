@@ -124,6 +124,27 @@ Focused rerun routes for recently hardened release-one contracts:
   and targeted `dart analyze` over the changed QA backbone, release command
   plan, surgical selector, rerun router, selector coverage, and related tests.
 
+## 2026-07-04 Generated Fixture Failure-To-Rerun Routing
+
+- Passes 1999-2009 strengthened the shared parser QA failure digest so failed
+  generated-fixture cells now include `surgicalRerun` guidance instead of only a
+  failure preview. The digest extracts the generated fixture path, failed
+  fixture ids when present, fix category, family hint, cell id, and a focused
+  `dart run tool/work_supply_parser_qa_run_generated_fixtures.dart --fixture
+  ... --fixture-ids ...` command.
+- The `inventory.failure_routing_contract` now requires `surgicalRerun`,
+  `avoidBroadRerun`, `fixtureIds`, `fixturePath`, and
+  `rerun_failed_generated_fixture_ids` evidence so future failures do not fall
+  back to broad catalog or full-wave reruns.
+- Verification passed:
+  `flutter test test\parser_qa_platform_failure_digest_test.dart
+  test\work_supply_parser_qa_failure_digest_test.dart --reporter compact`,
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_SUITES=inventory.failure_routing_contract,qa.threshold_gate
+  --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=25`, and targeted
+  `dart analyze` over the digest tool, shared digest, routing contract, and
+  digest regression tests.
+
 ## 2026-07-04 Reusable Parser Adapter Registry Hardening
 
 - Passes 1937-1949 launched local-only wave
