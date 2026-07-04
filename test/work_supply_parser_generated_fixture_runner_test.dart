@@ -17,6 +17,9 @@ void main() {
       'PARSER_QA_GENERATED_REPORT_DIR',
       defaultValue: 'build/parser_qa_reports/generated_fixtures',
     );
+    const fixtureIdsCsv = String.fromEnvironment(
+      'PARSER_QA_GENERATED_FIXTURE_IDS',
+    );
     if (fixturePath.trim().isEmpty) {
       // This entry point is intentionally opt-in so normal smoke runs do not
       // accidentally pay parser-call cost.
@@ -28,14 +31,26 @@ void main() {
     expect(file.existsSync(), isTrue, reason: fixturePath);
 
     final decoded = jsonDecode(file.readAsStringSync()) as List<dynamic>;
-    final fixtures = [
-      for (final entry in decoded.take(maxCases))
+    final fixtureIds = _csvSet(fixtureIdsCsv);
+    final allFixtures = [
+      for (final entry in decoded)
         _GeneratedFixture.fromJson((entry as Map).cast<String, Object?>()),
     ];
-    expect(fixtures, isNotEmpty);
-
+    final fixtures = _selectGeneratedFixtures(
+      allFixtures,
+      fixtureIds: fixtureIds,
+      maxCases: maxCases,
+    );
+    expect(
+      fixtures,
+      isNotEmpty,
+      reason: fixtureIds.isEmpty
+          ? fixturePath
+          : 'No generated fixtures matched PARSER_QA_GENERATED_FIXTURE_IDS=$fixtureIdsCsv',
+    );
+    final warmupLines = _warmupLinesFor(fixtures);
     final warmupTimer = Stopwatch()..start();
-    for (final line in _warmupLinesFor(fixtures)) {
+    for (final line in warmupLines) {
       matchReceiptLineToCatalog(
         line,
         tradeScope: 'Plumbing',
@@ -104,15 +119,47 @@ void main() {
       warmupMs: warmupTimer.elapsedMilliseconds,
       timings: timings,
       maxCases: maxCases,
+      fixtureIds: fixtureIds,
+      warmupCallCount: warmupLines.length,
     );
     // ignore: avoid_print
     print(
       'QA_GENERATED_FIXTURE_RUN path=$fixturePath checked=${fixtures.length} '
       'failures=${failures.length} warmupMs=${warmupTimer.elapsedMilliseconds} '
+      'fixtureIds=${fixtureIds.toList()..sort()} '
       'semanticTimingExcludesWarmup=true report=${artifact.latestJsonPath} '
       'slowest=${timings.take(5).toList()}',
     );
     expect(failures, isEmpty, reason: failures.take(20).join('\n'));
+  });
+
+  test('generated fixture runner filters explicit fixture ids surgically', () {
+    const fixtures = [
+      _GeneratedFixture(
+        id: 'electrical_residential_core_en_US_dangerous_pvc_conduit_00044',
+        rawLine: 'GRAINGER PVC COND 3/4 45.08',
+        caseType: 'ambiguous_review',
+      ),
+      _GeneratedFixture(
+        id: 'electrical_residential_core_en_US_nm_b_wire_00046',
+        rawLine: 'LOWES NM-B 12/2 25FT',
+        caseType: 'clear_match',
+      ),
+    ];
+
+    final selected = _selectGeneratedFixtures(
+      fixtures,
+      fixtureIds: const {
+        'electrical_residential_core_en_US_dangerous_pvc_conduit_00044',
+      },
+      maxCases: 10,
+    );
+
+    expect(selected, hasLength(1));
+    expect(
+      selected.single.id,
+      'electrical_residential_core_en_US_dangerous_pvc_conduit_00044',
+    );
   });
 }
 
@@ -129,6 +176,25 @@ List<String> _warmupLinesFor(List<_GeneratedFixture> fixtures) {
   return lines.toList(growable: false);
 }
 
+Set<String> _csvSet(String value) {
+  return value
+      .split(',')
+      .map((entry) => entry.trim())
+      .where((entry) => entry.isNotEmpty)
+      .toSet();
+}
+
+List<_GeneratedFixture> _selectGeneratedFixtures(
+  List<_GeneratedFixture> fixtures, {
+  required Set<String> fixtureIds,
+  required int maxCases,
+}) {
+  return [
+    for (final fixture in fixtures)
+      if (fixtureIds.isEmpty || fixtureIds.contains(fixture.id)) fixture,
+  ].take(maxCases).toList(growable: false);
+}
+
 _GeneratedFixtureRunArtifact _writeGeneratedFixtureReport({
   required String reportDir,
   required String fixturePath,
@@ -137,6 +203,8 @@ _GeneratedFixtureRunArtifact _writeGeneratedFixtureReport({
   required int warmupMs,
   required List<Map<String, Object?>> timings,
   required int maxCases,
+  required Set<String> fixtureIds,
+  required int warmupCallCount,
 }) {
   final directory = Directory(reportDir)..createSync(recursive: true);
   final stamp = DateTime.now().toUtc().toIso8601String().replaceAll(
@@ -152,6 +220,7 @@ _GeneratedFixtureRunArtifact _writeGeneratedFixtureReport({
     'domain': 'work_supply_inventory_parser_generated_fixtures',
     'fixturePath': fixturePath,
     'maxCases': maxCases,
+    'fixtureIds': fixtureIds.toList()..sort(),
     'checked': checked,
     'failureCount': failures.length,
     'failures': failures.take(100).toList(),
@@ -159,7 +228,8 @@ _GeneratedFixtureRunArtifact _writeGeneratedFixtureReport({
     'semanticTimingExcludesWarmup': true,
     'slowestCases': timings.take(20).toList(),
     'liveServicesAllowed': false,
-    'parserCalls': checked + 1,
+    'parserCalls': checked + warmupCallCount,
+    'warmupCallCount': warmupCallCount,
     'generatedAtIso': DateTime.now().toUtc().toIso8601String(),
   };
   final encoded = const JsonEncoder.withIndent('  ').convert(report);

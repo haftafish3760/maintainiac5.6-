@@ -70,6 +70,7 @@ class WorkSupplyParserSurgicalRerunSuite extends QaSuite {
   static const _requiredRunnerTokens = {
     'PARSER_QA_GENERATED_FIXTURE_PATH',
     'PARSER_QA_GENERATED_FIXTURE_MAX_CASES',
+    'PARSER_QA_GENERATED_FIXTURE_IDS',
     'PARSER_QA_GENERATED_REPORT_DIR',
     'QA_GENERATED_FIXTURE_RUN',
     'latest_generated_fixture_run.json',
