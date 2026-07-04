@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 767 - 05:32:59 EDT to active cleanup
+
+Scope:
+- Hardened shared camera review opening so continuation flows clamp the
+  requested selected index within the newly staged photo set before offsetting
+  by pre-existing photos.
+- Prevented negative or oversized `initialSelectedIndex` values from selecting
+  an older receipt photo instead of the newly captured section.
+- Added a source regression for the review-opening index helper.
+- Recorded `BUG-RECEIPT-0255` under `camera_review_state`.
+- Archived Pass 739 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for review-opening index changes.
+- Passed focused Flutter capture-flow shareability regression.
+- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
+
 ## Pass 766 - 05:21:09 EDT to active cleanup
 
 Scope:
@@ -468,23 +485,6 @@ Scope:
   payloads and stay out of privacy-safe summaries.
 - Recorded `BUG-RECEIPT-0228` under `privacy_redaction`.
 - Archived Pass 715 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for barcode scanner service and focused
-  scanner regression.
-- Passed focused Flutter barcode scanner regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 739 - 03:35:02 EDT to active cleanup
-
-Scope:
-- Audited barcode handoff metadata and kept raw code values out of receipt
-  review metadata.
-- Promoted the multi-image barcode scan limit warning to its own privacy-safe
-  bucket so diagnostics can distinguish bounded work from decoder failures.
-- Updated the focused barcode scanner regression for the batch limit bucket.
-- Archived Pass 714 from the active cleanup log to keep the doc under cap.
 
 Verification:
 - Passed targeted Dart format/analyzer for barcode scanner service and focused

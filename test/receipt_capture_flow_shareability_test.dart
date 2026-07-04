@@ -216,6 +216,25 @@ void main() {
     expect(source, isNot(contains("screens/maintenance")));
   });
 
+  test('shared camera clamps review opening index inside new photos', () async {
+    final source = await readReceiptCaptureFlowSource();
+
+    expect(source, contains('int _reviewInitialSelectedIndex({'));
+    expect(
+      source,
+      contains('final addedPhotoCount = staged.photoPaths.length'),
+    );
+    expect(source, contains('.clamp(0, addedPhotoCount - 1)'));
+    expect(
+      source,
+      isNot(
+        contains(
+          'options.initialPhotoPaths.length + options.initialSelectedIndex',
+        ),
+      ),
+    );
+  });
+
   test(
     'shared camera defaults inventory and maintenance to detailed review',
     () async {

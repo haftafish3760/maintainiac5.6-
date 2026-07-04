@@ -212,8 +212,10 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
               ...options.initialPhotoPaths,
               ...staged.photoPaths,
             ],
-            initialSelectedIndex:
-                options.initialPhotoPaths.length + options.initialSelectedIndex,
+            initialSelectedIndex: _reviewInitialSelectedIndex(
+              options: options,
+              staged: staged,
+            ),
             initialDataSaverLevel:
                 options.initialDataSaverLevel ??
                 settings?.defaultDataSaverLevel ??
@@ -234,4 +236,16 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
     nativeCapabilities: nativeCapabilities,
     options: options,
   );
+}
+
+int _reviewInitialSelectedIndex({
+  required ReceiptCaptureFlowOptions options,
+  required ReceiptNativeCaptureStagingResult staged,
+}) {
+  final addedPhotoCount = staged.photoPaths.length;
+  if (addedPhotoCount <= 0) return options.initialPhotoPaths.length;
+  final addedPhotoIndex = options.initialSelectedIndex
+      .clamp(0, addedPhotoCount - 1)
+      .toInt();
+  return options.initialPhotoPaths.length + addedPhotoIndex;
 }
