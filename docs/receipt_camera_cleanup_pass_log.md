@@ -3,6 +3,20 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 860 - 12:23:00 EDT to active cleanup
+
+Scope:
+- Added focused barcode/QR QA for repeated invalid input paths so warning
+  results stay capped while valid receipt images still scan.
+- Pinned `skippedInvalidImageCount` and privacy-safe invalid-path warning
+  buckets without exposing raw bad path strings.
+- Archived Pass 794 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused barcode scanner regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 855 - 12:15:00 EDT to active cleanup
 
 Scope:
@@ -464,21 +478,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused barcode scanner regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 794 - 08:46:29 EDT to active cleanup
-
-Scope:
-- Fixed native capture staging fixtures that still reported retired tap-focus
-  activity.
-- Reset tap-focus and suppressed-after-zoom counts to zero and changed focus
-  status to continuous-focus evidence.
-- Updated staging manifest, signal, and recovery-index expectations.
-- Recorded `BUG-RECEIPT-0280` under `qa_harness`.
-- Archived Pass 766 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused native staging regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

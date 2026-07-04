@@ -384,6 +384,30 @@ void main() {
       'barcode_scan_batch_image_limit',
     ]);
   });
+
+  test('barcode batch caps repeated invalid path warning results', () async {
+    final decoder = _CountingBarcodeDecoder();
+    final service = ReceiptBarcodeScannerService(decoder: decoder);
+
+    final result = await service.scanImageFiles([
+      'bad-one.jpg',
+      'bad-two.jpg',
+      'bad-three.jpg',
+      '/tmp/segment-1.jpg',
+    ], maxImageCount: 2);
+
+    expect(decoder.calls, 1);
+    expect(result.inputImageCount, 4);
+    expect(result.scannedImageCount, 1);
+    expect(result.invalidImageCount, 3);
+    expect(result.skippedInvalidImageCount, 1);
+    expect(result.warningImageCount, 3);
+    expect(result.privacySafeSummaryMap['skippedInvalidImageCount'], 1);
+    expect(result.privacySafeSummaryMap['batchWarningBuckets'], [
+      'barcode_scan_invalid_source_path',
+    ]);
+    expect(result.privacySafeSummaryMap.toString(), isNot(contains('bad-one')));
+  });
 }
 
 class _FakeBarcodeDecoder implements ReceiptBarcodeImageDecoder {
