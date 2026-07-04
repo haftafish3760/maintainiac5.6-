@@ -280,6 +280,7 @@ _ChunkRunSummary _chunkSummary({
         checked: json['checked'] as int? ?? fixtureCount,
         failures: json['failureCount'] as int? ?? 0,
         warmupMs: json['warmupMs'] as int? ?? 0,
+        parserCalls: json['parserCalls'] as int? ?? 0,
         exitCode: exitCode,
         reportPath: report.path,
       );
@@ -301,6 +302,7 @@ _ChunkRunSummary _chunkSummary({
     checked: _intField(line, 'checked') ?? fixtureCount,
     failures: _intField(line, 'failures') ?? (exitCode == 0 ? 0 : 1),
     warmupMs: _intField(line, 'warmupMs') ?? 0,
+    parserCalls: _intField(line, 'parserCalls') ?? 0,
     exitCode: exitCode,
     reportPath: report.path,
   );
@@ -323,6 +325,10 @@ _AggregateRunSummary _writeAggregateReport({
   final latest = File('${directory.path}/latest_generated_fixture_run.json');
   final checked = chunks.fold<int>(0, (sum, chunk) => sum + chunk.checked);
   final failures = chunks.fold<int>(0, (sum, chunk) => sum + chunk.failures);
+  final parserCalls = chunks.fold<int>(
+    0,
+    (sum, chunk) => sum + chunk.parserCalls,
+  );
   final report = {
     'schemaVersion': 1,
     'domain': 'work_supply_inventory_parser_generated_fixtures',
@@ -333,6 +339,7 @@ _AggregateRunSummary _writeAggregateReport({
     'completedChunkCount': completedChunkCount,
     'checked': checked,
     'failureCount': failures,
+    'parserCalls': parserCalls,
     'chunkReports': [
       for (final chunk in chunks)
         {
@@ -341,6 +348,7 @@ _AggregateRunSummary _writeAggregateReport({
           'checked': chunk.checked,
           'failureCount': chunk.failures,
           'warmupMs': chunk.warmupMs,
+          'parserCalls': chunk.parserCalls,
           'exitCode': chunk.exitCode,
           'reportPath': chunk.reportPath,
         },
@@ -373,6 +381,7 @@ class _ChunkRunSummary {
     required this.checked,
     required this.failures,
     required this.warmupMs,
+    required this.parserCalls,
     required this.exitCode,
     required this.reportPath,
   });
@@ -382,13 +391,15 @@ class _ChunkRunSummary {
   final int checked;
   final int failures;
   final int warmupMs;
+  final int parserCalls;
   final int exitCode;
   final String reportPath;
 
   String toLogLine() {
     return 'QA_GENERATED_FIXTURE_RUN_CHUNK '
         'chunk=$chunkNumber/$chunkCount checked=$checked failures=$failures '
-        'warmupMs=$warmupMs exitCode=$exitCode report=$reportPath';
+        'warmupMs=$warmupMs parserCalls=$parserCalls '
+        'exitCode=$exitCode report=$reportPath';
   }
 }
 

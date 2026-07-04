@@ -55,10 +55,7 @@ void main() {
     expect(status['liveServicesAllowed'], isFalse);
     final cells = status['cells'] as List;
     expect(cells, everyElement(containsPair('localOnlySafe', true)));
-    expect(
-      cells,
-      everyElement(containsPair('safetyMissingFields', isEmpty)),
-    );
+    expect(cells, everyElement(containsPair('safetyMissingFields', isEmpty)));
   });
 
   test(
@@ -176,6 +173,109 @@ void main() {
       cells.single['safetyMissingFields'],
       contains('firebaseWritesAllowed'),
     );
+  });
+
+  test('generated run status recovers parser calls from chunk reports', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_generated_run_recover_parser_calls_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    final reportDir = Directory(
+      'build/reports/electrical/residential/core/en-US/reports',
+    )..createSync(recursive: true);
+    final chunkOne = File('${reportDir.path}/chunks/001/run.json')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({'parserCalls': 17}));
+    final chunkTwo = File('${reportDir.path}/chunks/002/run.json')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({'parserCalls': 19}));
+    File(
+      '${reportDir.path}/latest_generated_fixture_run.json',
+    ).writeAsStringSync(
+      jsonEncode({
+        'fixturePath': 'build/generated_fixtures.json',
+        'checked': 20,
+        'failureCount': 0,
+        'chunkReports': [
+          {'checked': 10, 'failureCount': 0, 'reportPath': chunkOne.path},
+          {'checked': 10, 'failureCount': 0, 'reportPath': chunkTwo.path},
+        ],
+        'liveServicesAllowed': false,
+        'writesProductionCatalog': false,
+        'firebaseWritesAllowed': false,
+        'ocrCameraExpensesTouched': false,
+      }),
+    );
+
+    final exit = runWorkSupplyParserQaGeneratedRunStatus(
+      [
+        '--report-root',
+        'build/reports',
+        '--trades',
+        'electrical',
+        '--tiers',
+        'core',
+        '--locales',
+        'en-US',
+        '--require-complete',
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    final status = _readJson(
+      'build/parser_qa_pipeline/core_generated_run_status.json',
+    );
+    final cells = status['cells'] as List;
+
+    expect(exit, 0);
+    expect(status['parserCalls'], 36);
+    expect(cells.single, containsPair('parserCalls', 36));
+    expect(cells.single, containsPair('localOnlySafe', true));
+  });
+
+  test('generated run status fails complete cells without parser calls', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_generated_run_missing_parser_calls_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeRun(
+      'build/reports/electrical/residential/core/en-US/reports/latest_generated_fixture_run.json',
+      checked: 110,
+      parserCalls: 0,
+    );
+
+    final exit = runWorkSupplyParserQaGeneratedRunStatus(
+      [
+        '--report-root',
+        'build/reports',
+        '--trades',
+        'electrical',
+        '--tiers',
+        'core',
+        '--locales',
+        'en-US',
+        '--require-complete',
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    final status = _readJson(
+      'build/parser_qa_pipeline/core_generated_run_status.json',
+    );
+    final cells = status['cells'] as List;
+
+    expect(exit, 1);
+    expect(status['unsafeCells'], 1);
+    expect(cells.single, containsPair('parserCalls', 0));
+    expect(cells.single, containsPair('localOnlySafe', false));
   });
 }
 

@@ -111,6 +111,7 @@ Map<String, Object?> _readCell(
   final json = jsonDecode(file.readAsStringSync()) as Map<String, Object?>;
   final failureCount = (json['failureCount'] as int?) ?? 0;
   final safety = _cellSafety(json);
+  final parserCalls = _parserCallCount(json);
   return _cell(
     trade: trade,
     scope: scope,
@@ -118,14 +119,43 @@ Map<String, Object?> _readCell(
     locale: locale,
     status: failureCount == 0 ? 'passed' : 'failed',
     reportPath: reportPath,
-    localOnlySafe: safety.isSafe,
+    localOnlySafe: safety.isSafe && parserCalls > 0,
     safetyFlags: safety.flags,
     safetyMissingFields: safety.missingFields,
     checked: (json['checked'] as int?) ?? 0,
     failureCount: failureCount,
-    parserCalls: (json['parserCalls'] as int?) ?? 0,
+    parserCalls: parserCalls,
     fixturePath: json['fixturePath']?.toString() ?? '',
   );
+}
+
+int _parserCallCount(Map<String, Object?> json) {
+  final direct = json['parserCalls'];
+  if (direct is int && direct > 0) return direct;
+  final chunkReports = json['chunkReports'];
+  if (chunkReports is! List) return 0;
+  var total = 0;
+  for (final chunk in chunkReports) {
+    if (chunk is! Map) continue;
+    final inline = chunk['parserCalls'];
+    if (inline is int && inline > 0) {
+      total += inline;
+      continue;
+    }
+    final reportPath = chunk['reportPath']?.toString() ?? '';
+    if (reportPath.isEmpty) continue;
+    final report = File(reportPath);
+    if (!report.existsSync()) continue;
+    try {
+      final decoded = jsonDecode(report.readAsStringSync());
+      if (decoded is! Map) continue;
+      final recovered = decoded['parserCalls'];
+      if (recovered is int && recovered > 0) total += recovered;
+    } catch (_) {
+      continue;
+    }
+  }
+  return total;
 }
 
 Map<String, Object?> _cell({
@@ -169,9 +199,7 @@ _CellSafety _cellSafety(Map<String, Object?> json) {
     'firebaseWritesAllowed',
     'ocrCameraExpensesTouched',
   ];
-  final flags = {
-    for (final field in requiredFalseFields) field: json[field],
-  };
+  final flags = {for (final field in requiredFalseFields) field: json[field]};
   final missing = [
     for (final field in requiredFalseFields)
       if (!json.containsKey(field)) field,
