@@ -97,7 +97,7 @@ void expectAcceptedNativeCaptureRecoveryManifest(
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['tapFocusControlExpected'],
-    isTrue,
+    isFalse,
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['pinchZoomControlExpected'],

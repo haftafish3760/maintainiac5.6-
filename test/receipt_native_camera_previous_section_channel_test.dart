@@ -35,6 +35,7 @@ void main() {
       cameraPermissionGranted: true,
       hasRearCamera: true,
       supportsTapFocus: true,
+      supportsContinuousFocus: true,
       supportsFocusLock: true,
       supportsExposureCompensation: true,
       supportsExposureLock: true,

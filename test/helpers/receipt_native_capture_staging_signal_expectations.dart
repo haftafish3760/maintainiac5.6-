@@ -67,7 +67,7 @@ Future<void> expectAcceptedNativeCaptureStagingSignals(
     'maintainiac_custom_receipt_capture_ui_v1',
   );
   expect(diagnostics['stockCameraUiUsed'], isFalse);
-  expect(diagnostics['tapFocusControlExpected'], isTrue);
+  expect(diagnostics['tapFocusControlExpected'], isFalse);
   expect(diagnostics['settingsControlExpected'], isTrue);
   expect(diagnostics['autoCaptureTriggerCount'], 1);
   expect(diagnostics['latestAutoCaptureStatus'], 'capturing');

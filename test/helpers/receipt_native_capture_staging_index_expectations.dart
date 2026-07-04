@@ -178,7 +178,7 @@ Future<void> expectAcceptedNativeCaptureRecoveryIndex({
     indexEntry.captureDiagnostics['previewDominanceTarget'],
     'receipt_preview_75_80_percent',
   );
-  expect(indexEntry.captureDiagnostics['tapFocusControlExpected'], isTrue);
+  expect(indexEntry.captureDiagnostics['tapFocusControlExpected'], isFalse);
   expect(indexEntry.captureDiagnostics['pinchZoomControlExpected'], isTrue);
   expect(
     indexEntry.captureDiagnostics['exposureSliderControlExpected'],

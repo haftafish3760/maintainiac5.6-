@@ -21,6 +21,7 @@ void expectPreviousSectionGuideCaptureDiagnostics(
     'brightness_slider',
     'brightness_reset',
     'auto_brightness_assist',
+    'continuous_focus',
     'focus_lock',
     'brightness_lock',
     'white_balance_lock',
@@ -90,10 +91,13 @@ void expectPreviousSectionGuideCaptureDiagnostics(
     'continuous_focus_primary_no_tap_assist',
   );
   expect(
-    result.captureDiagnostics['readabilityGuidancePolicy'],
-    'live_readability_guides_blur_glare_light_edges_and_text_size',
+    result.captureDiagnostics.containsKey('readabilityGuidancePolicy'),
+    isFalse,
   );
-  expect(result.captureDiagnostics['receiptCameraQualityBaseline'], isTrue);
+  expect(
+    result.captureDiagnostics.containsKey('receiptCameraQualityBaseline'),
+    isFalse,
+  );
   expect(result.captureDiagnostics['pinchZoomControlExpected'], isTrue);
   expect(
     result.captureDiagnostics['zoomGesturePolicy'],

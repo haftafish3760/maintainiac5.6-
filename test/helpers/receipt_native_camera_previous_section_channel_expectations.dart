@@ -131,11 +131,13 @@ void expectPreviousSectionGuideChannelArguments(
     'native_edge_signals_unavailable',
     'auto_capture_policy_disabled',
     'live_analysis_policy_disabled',
+    'tap_focus_retired_continuous_focus_primary',
   ]);
   expect(result.captureDiagnostics['capabilityPolicyCodes'], [
     'native_edge_signals_unavailable',
     'auto_capture_policy_disabled',
     'live_analysis_policy_disabled',
+    'tap_focus_retired_continuous_focus_primary',
   ]);
   expect(
     result.captureDiagnostics['receiptInstallMode'],
@@ -156,7 +158,7 @@ void expectPreviousSectionGuideChannelArguments(
   );
   expect(
     sentArguments['readabilityGuidancePolicy'],
-    'live_readability_guides_blur_glare_light_edges_and_text_size',
+    'saved_photo_readability_review_required',
   );
   expect(sentArguments['receiptCameraQualityBaseline'], isTrue);
   expect(sentArguments['pinchZoomEnabled'], isTrue);
@@ -225,6 +227,7 @@ void expectPreviousSectionGuideChannelArguments(
     'brightness_slider',
     'brightness_reset',
     'auto_brightness_assist',
+    'continuous_focus',
     'focus_lock',
     'brightness_lock',
     'white_balance_lock',
@@ -248,7 +251,7 @@ void expectPreviousSectionGuideChannelArguments(
     sentArguments['manualCaptureBlockPolicy'],
     'only_busy_closing_no_camera_or_inactive_surface',
   );
-  expect(sentArguments['tapFocusControlExpected'], isTrue);
+  expect(sentArguments['tapFocusControlExpected'], isFalse);
   expect(sentArguments['pinchZoomControlExpected'], isTrue);
   expect(sentArguments['exposureSliderControlExpected'], isTrue);
   expect(sentArguments['exposureResetControlExpected'], isTrue);
