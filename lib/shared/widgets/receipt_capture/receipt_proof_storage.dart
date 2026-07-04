@@ -65,9 +65,7 @@ class ReceiptProofStorage {
         mimeType: attachment.mimeType.trim().isEmpty
             ? _mimeTypeFor(attachment.kind)
             : attachment.mimeType,
-        originalFileName: attachment.originalFileName.trim().isEmpty
-            ? path.basename(source.path)
-            : attachment.originalFileName,
+        originalFileName: _metadataFileName(attachment, source.path),
         storageState: ReceiptAttachmentStorageState.permanent,
       );
     }
@@ -107,9 +105,7 @@ class ReceiptProofStorage {
       displayName: attachment.displayName.trim().isEmpty
           ? path.basename(destination.path)
           : attachment.displayName,
-      originalFileName: attachment.originalFileName.trim().isEmpty
-          ? path.basename(source.path)
-          : attachment.originalFileName,
+      originalFileName: _metadataFileName(attachment, source.path),
       mimeType: attachment.mimeType.trim().isEmpty
           ? _mimeTypeFor(attachment.kind)
           : attachment.mimeType,
@@ -162,9 +158,7 @@ class ReceiptProofStorage {
         : null;
     return attachment.copyWith(
       path: destination.path,
-      originalFileName: attachment.originalFileName.trim().isEmpty
-          ? path.basename(source.path)
-          : attachment.originalFileName,
+      originalFileName: _metadataFileName(attachment, source.path),
       mimeType: attachment.mimeType.trim().isEmpty
           ? _mimeTypeFor(attachment.kind)
           : attachment.mimeType,

@@ -113,6 +113,9 @@ void main() {
     expect(basename, endsWith('.pdf'));
     expect(basename, isNot(contains(RegExp(r'[\\/:*?"<>|]'))));
     expect(basename, isNot(contains('..')));
+    expect(staged.originalFileName, endsWith('.pdf'));
+    expect(staged.originalFileName, isNot(contains(RegExp(r'[\\/:*?"<>|]'))));
+    expect(staged.originalFileName, isNot(contains('..')));
     expect(await source.exists(), isTrue);
     expect(await File(staged.path).exists(), isTrue);
   });

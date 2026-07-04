@@ -35,6 +35,22 @@ String _storageFileName(ReceiptAttachmentRecord attachment, String source) {
   return '${baseName}_${idLabel}_${DateTime.now().microsecondsSinceEpoch}$extension';
 }
 
+String _metadataFileName(ReceiptAttachmentRecord attachment, String source) {
+  final candidate = attachment.originalFileName.trim().isNotEmpty
+      ? attachment.originalFileName
+      : path.basename(source);
+  final baseName = _safeFileName(path.basenameWithoutExtension(candidate));
+  final safeBaseName = baseName.isEmpty
+      ? switch (attachment.kind) {
+          ReceiptAttachmentKind.pdf => 'receipt-pdf',
+          ReceiptAttachmentKind.photo => 'receipt-photo',
+          ReceiptAttachmentKind.emailText ||
+          ReceiptAttachmentKind.textMessageText => 'receipt-text',
+        }
+      : baseName;
+  return '$safeBaseName${_storageExtensionFor(attachment.kind, source)}';
+}
+
 String _storageExtensionFor(ReceiptAttachmentKind kind, String source) {
   final sourceExtension = path.extension(source).toLowerCase();
   return switch (kind) {

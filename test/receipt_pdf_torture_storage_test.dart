@@ -131,6 +131,44 @@ void main() {
       },
     );
 
+    test('stored PDF metadata never keeps unsafe source path names', () async {
+      final hostileDir = Directory(
+        '${fixtures.root.path}/customer@example.com/card-4242',
+      );
+      await hostileDir.create(recursive: true);
+      final source = File('${hostileDir.path}/../..//private:path?.pdf');
+      await source.writeAsString(
+        '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
+        flush: true,
+      );
+
+      final staged = await ReceiptProofStorage.instance.stageAttachment(
+        ReceiptAttachmentRecord(
+          id: r'pdf:metadata\privacy?',
+          path: source.path,
+          kind: ReceiptAttachmentKind.pdf,
+          dataSaverLevel: ReceiptDataSaverLevel.original,
+          createdAt: DateTime(2026, 7, 4),
+          originalFileName: r'..\customer@example.com\card:4242?.pdf',
+          mimeType: 'application/pdf',
+        ),
+      );
+      final promoted = await ReceiptProofStorage.instance.persistAttachment(
+        staged,
+      );
+
+      for (final attachment in [staged, promoted]) {
+        expect(attachment.originalFileName, endsWith('.pdf'));
+        expect(attachment.originalFileName, isNot(contains('/')));
+        expect(attachment.originalFileName, isNot(contains(r'\')));
+        expect(attachment.originalFileName, isNot(contains('..')));
+        expect(attachment.originalFileName, isNot(contains(':')));
+        expect(attachment.originalFileName, isNot(contains('?')));
+      }
+      expect(staged.path, isNot(contains('customer@example.com')));
+      expect(promoted.path, isNot(contains('customer@example.com')));
+    });
+
     test('low-storage and permission style messages are friendly', () {
       const operationBytes = 12 * 1024 * 1024;
       const lowStorage = ReceiptStorageCheck(

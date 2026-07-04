@@ -1,5 +1,27 @@
 # PDF System Pass Log
 
+## Pass 19 - 2026-07-04 20:24 EDT - Receipt PDF proof metadata privacy
+
+- Scope: receipt PDF proof storage metadata privacy and QA only. No inventory,
+  camera, native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Added safe metadata filename generation for stored receipt proofs so staged
+    and permanent PDF records do not keep source path fragments, traversal
+    markers, platform separators, or unsafe filename characters.
+  - Kept app-owned storage paths sanitized while preserving existing PDF proof
+    copy verification, hash verification, staging, promotion, cancel, and
+    cleanup behavior.
+  - Added regression coverage for hostile source paths and original filenames
+    containing private-looking text, path separators, traversal, and invalid
+    filename characters.
+  - Strengthened the cross-platform PDF contract to assert both stored paths and
+    stored original-filename metadata are safe.
+- Verification completed 2026-07-04 20:23 EDT:
+  - `dart format lib/shared/widgets/receipt_capture/receipt_proof_storage.dart lib/shared/widgets/receipt_capture/receipt_proof_storage_file_names.dart test/pdf_cross_platform_contract_test.dart test/receipt_pdf_torture_storage_test.dart`
+  - `dart analyze lib/shared/widgets/receipt_capture/receipt_proof_storage.dart test/pdf_cross_platform_contract_test.dart test/receipt_pdf_torture_storage_test.dart`
+  - `flutter test test/pdf_cross_platform_contract_test.dart test/receipt_pdf_torture_storage_test.dart test/receipt_proof_storage_lifecycle_test.dart test/receipt_proof_storage_hardening_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 18 - 2026-07-04 20:07 EDT - All-page render smoke gate
 
 - Scope: PDF render QA tooling only. No inventory, camera, native capture,
