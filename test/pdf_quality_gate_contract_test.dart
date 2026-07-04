@@ -67,6 +67,7 @@ void main() {
         contains('test/pdf_render_gate_invoice_generator_test.dart'),
       );
       expect(script, contains('test/pdf_security_policy_contract_test.dart'));
+      expect(script, contains('test/pdf_text_decoder_contract_test.dart'));
       expect(script, contains('test/pdf_privacy_policy_contract_test.dart'));
       expect(script, contains('test/pdf_typography_contract_test.dart'));
       expect(script, contains('test/app_generated_pdf_service_test.dart'));

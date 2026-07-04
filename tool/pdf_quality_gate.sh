@@ -33,6 +33,7 @@ dart analyze \
   test/pdf_qa_fixture_inventory_test.dart \
   test/pdf_privacy_policy_contract_test.dart \
   test/pdf_security_policy_contract_test.dart \
+  test/pdf_text_decoder_contract_test.dart \
   test/pdf_typography_contract_test.dart \
   test/receipt_pdf_hardening_test.dart \
   test/receipt_pdf_import_copy_test.dart \
@@ -67,6 +68,7 @@ flutter test \
   test/pdf_qa_fixture_inventory_test.dart \
   test/pdf_privacy_policy_contract_test.dart \
   test/pdf_security_policy_contract_test.dart \
+  test/pdf_text_decoder_contract_test.dart \
   test/pdf_typography_contract_test.dart \
   test/receipt_pdf_hardening_test.dart \
   test/receipt_pdf_import_copy_test.dart \

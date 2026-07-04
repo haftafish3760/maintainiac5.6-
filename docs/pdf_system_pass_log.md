@@ -1,5 +1,21 @@
 # PDF System Pass Log
 
+## Pass 36 - 2026-07-04 16:37 EDT - Shared PDF text decoder
+
+- Scope: shared PDF text decoding infrastructure and QA only. No inventory,
+  camera, native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Added a shared PDF text decoder for Latin and UTF-16 hex-string payloads.
+  - Routed generated PDF security scans, generated PDF privacy scans, and
+    receipt PDF document-signal detection through the shared decoder.
+  - Removed duplicate PDF hex decoding logic from those PDF surfaces.
+  - Added decoder contract coverage and included it in the PDF quality gate.
+- Verification completed 2026-07-04 16:37 EDT:
+  - `dart format lib/shared/pdf/app_pdf_text_decoder.dart lib/shared/pdf/app_pdf_security_policy.dart lib/shared/pdf/app_pdf_privacy_policy.dart lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart test/pdf_text_decoder_contract_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `flutter test test/pdf_text_decoder_contract_test.dart test/pdf_security_policy_contract_test.dart test/pdf_privacy_policy_contract_test.dart test/receipt_pdf_inspector_edge_cases_test.dart test/pdf_quality_gate_contract_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_pdf_text_decoder.dart lib/shared/pdf/app_pdf_security_policy.dart lib/shared/pdf/app_pdf_privacy_policy.dart lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart test/pdf_text_decoder_contract_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 35 - 2026-07-04 16:34 EDT - Hex-encoded PDF privacy detection
 
 - Scope: generated PDF privacy validation and QA only. No inventory, camera,

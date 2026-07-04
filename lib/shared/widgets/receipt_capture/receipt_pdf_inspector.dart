@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../../pdf/app_pdf_security_policy.dart';
+import '../../pdf/app_pdf_text_decoder.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_pdf_limits.dart';
 
@@ -185,69 +186,10 @@ class ReceiptPdfInspector {
 
   static String _pdfSignalText(List<int> bytes) {
     final rawText = latin1.decode(bytes, allowInvalid: true);
-    final decodedText = <String>[];
-    for (final match in RegExp(
-      r'<([0-9a-fA-F\s]{4,})>',
-      multiLine: true,
-    ).allMatches(rawText)) {
-      final hex = match.group(1)!.replaceAll(RegExp(r'\s+'), '');
-      if (hex.length.isOdd) continue;
-      final values = <int>[];
-      for (var index = 0; index < hex.length; index += 2) {
-        final value = int.tryParse(hex.substring(index, index + 2), radix: 16);
-        if (value == null) {
-          values.clear();
-          break;
-        }
-        values.add(value);
-      }
-      if (values.isEmpty) continue;
-      final decoded = _decodePdfHexString(values);
-      if (decoded == null) continue;
-      decodedText.add(decoded);
-    }
+    final decodedText = AppPdfTextDecoder.decodedHexStrings(rawText);
     if (decodedText.isEmpty) return rawText;
     return '$rawText ${decodedText.join(' ')}';
   }
-
-  static String? _decodePdfHexString(List<int> values) {
-    if (values.length >= 2 && values[0] == 0xFE && values[1] == 0xFF) {
-      return _decodeUtf16CodeUnits(
-        values.skip(2).toList(),
-        littleEndian: false,
-      );
-    }
-    if (values.length >= 2 && values[0] == 0xFF && values[1] == 0xFE) {
-      return _decodeUtf16CodeUnits(values.skip(2).toList(), littleEndian: true);
-    }
-    if (!_looksPrintable(values)) return null;
-    return latin1.decode(values, allowInvalid: true);
-  }
-
-  static String? _decodeUtf16CodeUnits(
-    List<int> values, {
-    required bool littleEndian,
-  }) {
-    if (values.isEmpty || values.length.isOdd) return null;
-    final buffer = StringBuffer();
-    for (var index = 0; index < values.length; index += 2) {
-      final first = values[index];
-      final second = values[index + 1];
-      final codeUnit = littleEndian
-          ? first | (second << 8)
-          : (first << 8) | second;
-      if (!_isPrintableCodeUnit(codeUnit)) return null;
-      buffer.writeCharCode(codeUnit);
-    }
-    final decoded = buffer.toString();
-    return decoded.trim().isEmpty ? null : decoded;
-  }
-
-  static bool _looksPrintable(List<int> values) =>
-      values.every(_isPrintableCodeUnit);
-
-  static bool _isPrintableCodeUnit(int value) =>
-      value == 9 || value == 10 || value == 13 || value >= 32;
 
   static String formatBytes(int bytes) {
     if (bytes <= 0) return '0 B';

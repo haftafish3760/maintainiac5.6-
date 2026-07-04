@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'app_pdf_text_decoder.dart';
+
 class AppPdfSecurityPolicy {
   const AppPdfSecurityPolicy._();
 
@@ -74,20 +76,6 @@ class AppPdfSecurityPolicy {
       }
       return String.fromCharCode(value);
     });
-    return nameDecoded.replaceAllMapped(RegExp(r'<([0-9a-fA-F\s]{8,})>'), (
-      match,
-    ) {
-      final hex = match.group(1)!.replaceAll(RegExp(r'\s+'), '');
-      if (hex.length.isOdd) return match.group(0)!;
-      final buffer = StringBuffer();
-      for (var index = 0; index < hex.length; index += 2) {
-        final value = int.tryParse(hex.substring(index, index + 2), radix: 16);
-        if (value == null || value < 0x20 || value > 0x7e) {
-          return match.group(0)!;
-        }
-        buffer.writeCharCode(value);
-      }
-      return buffer.toString();
-    });
+    return AppPdfTextDecoder.withDecodedHexStrings(nameDecoded);
   }
 }
