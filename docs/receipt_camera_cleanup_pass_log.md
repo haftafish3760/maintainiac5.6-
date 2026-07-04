@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 704 - 02:18:00 EDT to active cleanup
+
+Scope:
+- Audited the shared Google ML Kit barcode/QR scanner foundation after the
+  camera-lane reminder to keep scanner support shared across expenses,
+  inventory, and maintenance without touching inventory internals.
+- Added corrupted/wrong-file style regression coverage so generic decoder
+  failures become safe `barcode_scan_failed` warnings.
+- Proved raw exception text from barcode failures does not leak into
+  privacy-safe scanner summaries.
+- Recorded `BUG-RECEIPT-0191` under `barcode_qr_scanning`.
+
+Verification:
+- Passed targeted Dart format/analyzer for barcode scanner service tests.
+- Passed focused Flutter barcode scanner service regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+- Archived Pass 645 from the active cleanup log to keep the doc under cap.
+
 ## Pass 703 - 02:12:00 EDT to active cleanup
 
 Scope:
@@ -474,16 +493,3 @@ Verification:
 - Passed targeted Dart format/analyzer for receipt photo review save/exit
   cleanup and lifecycle regression.
 - Passed focused Flutter receipt photo review lifecycle regression.
-
-## Pass 645 - 22:41:22 EDT to active cleanup
-
-Scope:
-- Strengthened capture-readiness QA so malformed stable-frame inputs cannot
-  make auto-capture wait forever or hide manual capture availability.
-- Added regression coverage proving negative stable frames clamp to zero and a
-  non-positive required-frame threshold clamps to one.
-- Archived Pass 608 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format for capture quality guidance regression.
-- Passed focused Flutter capture quality guidance regression.

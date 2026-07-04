@@ -111,6 +111,27 @@ void main() {
     expect(result.warnings, const ['barcode_scan_platform_failed']);
   });
 
+  test('barcode scanner converts generic decoder failures safely', () async {
+    final service = ReceiptBarcodeScannerService(
+      decoder: _ThrowingBarcodeDecoder(
+        StateError('private corrupted receipt barcode 036000291452'),
+      ),
+    );
+
+    final result = await service.scanImageFile('/tmp/wrong-file.txt');
+
+    expect(result.codes, isEmpty);
+    expect(result.warnings, const ['barcode_scan_failed']);
+    expect(result.privacySafeSummaryMap['warningBuckets'], [
+      'barcode_scan_failed',
+    ]);
+    expect(
+      result.privacySafeSummaryMap.toString(),
+      isNot(contains('036000291452')),
+    );
+    expect(result.privacySafeSummaryMap.toString(), isNot(contains('private')));
+  });
+
   test('barcode scan summary buckets raw warning text', () {
     const result = ReceiptBarcodeScanResult(
       imagePath: '/tmp/code.jpg',
