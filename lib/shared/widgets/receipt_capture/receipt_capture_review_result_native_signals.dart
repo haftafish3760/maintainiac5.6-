@@ -165,6 +165,12 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
           ? 'preview_dominance_expected'
           : 'preview_dominance_missing';
       counts[controlCode] = (counts[controlCode] ?? 0) + 1;
+      for (final readabilityCode in _nativeReadabilityVisibleHealthCodes(
+        diagnostics,
+        controlSet,
+      )) {
+        counts[readabilityCode] = (counts[readabilityCode] ?? 0) + 1;
+      }
       counts[previewCode] = (counts[previewCode] ?? 0) + 1;
       for (final settingsCode in _nativeSettingsControlHealthCodes(
         diagnostics,

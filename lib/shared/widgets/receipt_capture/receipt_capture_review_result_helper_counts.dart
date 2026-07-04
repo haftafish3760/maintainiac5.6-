@@ -149,6 +149,9 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
     if ((counts['readability_guidance_live_missing'] ?? 0) > 0) {
       return 'readability_guidance_live_missing';
     }
+    if ((counts['readability_guidance_visible_missing'] ?? 0) > 0) {
+      return 'readability_guidance_visible_missing';
+    }
     if ((counts['receipt_camera_quality_baseline_missing'] ?? 0) > 0) {
       return 'receipt_camera_quality_baseline_missing';
     }

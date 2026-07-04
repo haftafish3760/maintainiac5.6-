@@ -130,6 +130,10 @@ void main() {
       1,
     );
     expect(
+      result.nativeCameraUiHealthCounts['readability_guidance_visible'],
+      1,
+    );
+    expect(
       result
           .nativeCameraUiHealthCounts['receipt_camera_quality_baseline_ready'],
       1,
@@ -197,6 +201,11 @@ void main() {
       1,
     );
     expect(
+      result
+          .receiptReaderHandoffCounts['native_camera_ui_readability_guidance_visible'],
+      1,
+    );
+    expect(
       result.privacySafeOcrHandoffEvidenceLabel,
       contains('ui=native_controls_ready'),
     );
@@ -238,6 +247,10 @@ void main() {
     expect(
       attachments.single.documentSignals,
       contains('native_camera_ui_readability_guidance_live_ready'),
+    );
+    expect(
+      attachments.single.documentSignals,
+      contains('native_camera_ui_readability_guidance_visible'),
     );
     expect(
       attachments.single.documentSignals,

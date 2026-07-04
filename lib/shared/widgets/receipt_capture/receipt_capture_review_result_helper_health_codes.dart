@@ -287,3 +287,28 @@ String _nativeControlSetHealthCode(String? controlSet) {
       ? 'native_controls_ready'
       : 'native_controls_incomplete';
 }
+
+List<String> _nativeReadabilityVisibleHealthCodes(
+  Map<String, Object?> diagnostics,
+  String? controlSet,
+) {
+  final policy = _diagnosticToken(
+    diagnostics['readabilityGuidancePolicy']?.toString() ?? '',
+  );
+  if (policy !=
+      'live_readability_guides_blur_glare_light_edges_and_text_size') {
+    return const [];
+  }
+  final controls = controlSet == null
+      ? const <String>{}
+      : controlSet
+            .split('|')
+            .map((control) => control.trim())
+            .where((control) => control.isNotEmpty)
+            .toSet();
+  return List.unmodifiable([
+    controls.contains('readability_guidance')
+        ? 'readability_guidance_visible'
+        : 'readability_guidance_visible_missing',
+  ]);
+}

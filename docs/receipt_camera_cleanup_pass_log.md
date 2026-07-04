@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 658 - 23:20:55 EDT to active cleanup
+
+Scope:
+- Added result-level native UI health buckets for
+  `readability_guidance_visible` and `readability_guidance_visible_missing`.
+- Made missing visible readability guidance a camera UI risk when the native
+  policy says live readability guidance is active.
+- Extended ready-path and missing-visible regressions so attachment signals,
+  risk flags, receipt-reader handoff counts, and metadata keep the evidence.
+- Recorded `BUG-RECEIPT-0174` under `camera_capture_quality`.
+- Archived Pass 628 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for result-level native UI health files.
+- Passed focused Flutter native UI ready/health regressions.
+
 ## Pass 657 - 23:19:08 EDT to active cleanup
 
 Scope:
@@ -465,19 +481,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for continuation handoff changes.
 - Passed focused Flutter continuation handoff regression.
-- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
-  check.
-
-## Pass 628 - 22:04:55 EDT to active cleanup
-
-Scope:
-- Removed the public `onTapFocus` callback hook from the shared native receipt
-  camera shell and preview controls.
-- Added a source regression proving the tap-focus shell hook stays absent.
-- Archived Pass 600 from the active cleanup log.
-- Recorded `BUG-RECEIPT-0149` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted analyzer and focused native shell/session regressions.
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.
