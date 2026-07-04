@@ -107,9 +107,9 @@ class WorkSupplyParserDeviceBudgetMatrixSuite extends QaSuite {
     String source,
     Set<String> rules,
   ) {
-    final lower = source.toLowerCase();
+    final lower = _normalizeContractText(source);
     for (final rule in rules) {
-      if (lower.contains(rule.toLowerCase())) continue;
+      if (lower.contains(_normalizeContractText(rule))) continue;
       failures.add(
         _failure(
           id: 'missing_device_budget_rule:${_safeId(rule)}',
@@ -133,9 +133,9 @@ class WorkSupplyParserDeviceBudgetMatrixSuite extends QaSuite {
     required String fix,
     required String triage,
   }) {
-    final lower = source.toLowerCase();
+    final lower = _normalizeContractText(source);
     for (final token in tokens) {
-      if (lower.contains(token.toLowerCase())) continue;
+      if (lower.contains(_normalizeContractText(token))) continue;
       failures.add(
         _failure(
           id: '$idPrefix:${_safeId(token)}',
@@ -178,6 +178,10 @@ class WorkSupplyParserDeviceBudgetMatrixSuite extends QaSuite {
       metadata: {'triageCategory': triage},
     );
   }
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
 
 String _safeId(String value) {

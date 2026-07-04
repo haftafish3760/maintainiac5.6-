@@ -3622,3 +3622,9 @@ Release boundaries:
   local build outputs stable across formatted docs. Focused
   `inventory.import_export_safety_contract,inventory.artifact_contract,inventory.artifact_retention_contract,qa.threshold_gate`
   passed 92 checks with 0 failures, and targeted analyzer found no issues.
+- **11:47 Harness Pass 2687:** Made device-storage and device-budget matrix
+  contract matching whitespace-safe. This protects older-phone limits, low
+  storage blocks, local/offline pack mode, cloud fallback disclosures, metered
+  network warnings, pack-size budgets, and no-live-Firebase cost guards.
+  Focused `inventory.device_storage_contract,inventory.device_budget_matrix_contract,inventory.delivery_policy_contract,qa.threshold_gate`
+  passed 67 checks with 0 failures, and targeted analyzer found no issues.
