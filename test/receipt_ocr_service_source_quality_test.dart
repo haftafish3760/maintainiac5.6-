@@ -109,6 +109,47 @@ void main() {
     },
   );
 
+  test(
+    'ocr service classifies glare and blur photo warnings by risk family',
+    () async {
+      final glare = await _ocrForPhotoQualityWarning(
+        id: 'glare-source',
+        issue: 'glare or too bright',
+        warning: 'Photo has glare or is too bright.',
+      );
+      final blur = await _ocrForPhotoQualityWarning(
+        id: 'blur-source',
+        issue: 'looks blurry',
+        warning: 'Photo looks blurry.',
+      );
+
+      expect(
+        glare.sourceHandoffSummary.sourceQualityReviewStatus,
+        'saved_glare_review',
+      );
+      expect(
+        glare.sourceHandoffSummary.sourceQualityReviewAction,
+        'reduce_glare_or_retake',
+      );
+      expect(
+        glare.diagnostics.parserTaskCounts,
+        containsPair('photo_saved_glare_review', 1),
+      );
+      expect(
+        blur.sourceHandoffSummary.sourceQualityReviewStatus,
+        'saved_soft_blur_review',
+      );
+      expect(
+        blur.sourceHandoffSummary.sourceQualityReviewAction,
+        'retake_hold_steady',
+      );
+      expect(
+        blur.diagnostics.parserTaskCounts,
+        containsPair('photo_saved_soft_blur_review', 1),
+      );
+    },
+  );
+
   test('ocr service warns when scanner prep used a quality guard', () async {
     final result = await const ReceiptOcrService(maxPhotoOcrAttachments: 0)
         .recognizeTextFromAttachments([
@@ -195,4 +236,25 @@ void main() {
       );
     },
   );
+}
+
+Future<ReceiptOcrResult> _ocrForPhotoQualityWarning({
+  required String id,
+  required String issue,
+  required String warning,
+}) {
+  return const ReceiptOcrService(
+    maxPhotoOcrAttachments: 0,
+  ).recognizeTextFromAttachments([
+    ReceiptAttachmentRecord(
+      id: id,
+      path: '/tmp/$id.jpg',
+      kind: ReceiptAttachmentKind.photo,
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      createdAt: DateTime(2026, 7, 4),
+      photoQualityScore: 42,
+      photoQualityIssueLabel: issue,
+      photoQualityWarnings: [warning],
+    ),
+  ]);
 }

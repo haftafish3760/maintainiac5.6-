@@ -375,6 +375,22 @@ Verification:
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
 
+## Pass 812 - 12:20:00 EDT to active cleanup
+
+Scope:
+- Added sibling OCR source-quality regressions for generic glare and blur photo
+  warning tokens.
+- Pinned glare to `saved_glare_review`/`reduce_glare_or_retake` and blur to
+  `saved_soft_blur_review`/`retake_hold_steady`, including parser task counts.
+- Recorded `BUG-RECEIPT-0297` under `ocr_handoff_contract`.
+- Archived Pass 780 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted source-quality format/analyzer and focused glare/blur service
+  regression.
+- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
+  whitespace gates.
+
 ## Pass 811 - 12:14:00 EDT to active cleanup
 
 Scope:
@@ -471,22 +487,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused native bridge source tests.
-- Passed doc-size, bug-ledger, source-audit, test-audit, and diff whitespace
-  gates.
-
-## Pass 780 - 07:20:47 EDT to active cleanup
-
-Scope:
-- Hardened OCR scanner-preparation signal/risk handoff for normalized paths.
-- Replaced raw `preparationDiagnosticsByOcrPath` lookups with normalized
-  receipt-photo map lookups in attachment and capture-flow helpers.
-- Added source regressions proving scanner preparation metadata does not depend
-  on raw OCR source path equality.
-- Recorded `BUG-RECEIPT-0267` under `source_preservation`.
-- Archived Pass 752 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused Flutter OCR source
-  attachment/handoff contract regressions.
 - Passed doc-size, bug-ledger, source-audit, test-audit, and diff whitespace
   gates.
