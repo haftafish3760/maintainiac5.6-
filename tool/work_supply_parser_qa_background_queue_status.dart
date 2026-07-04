@@ -48,6 +48,7 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
   final json = jsonDecode(source.readAsStringSync()) as Map;
   final results = (json['results'] as List? ?? const []);
   final failed = json['failedCellCount'] ?? _failedCount(results);
+  final unsafeFailures = _unsafeFailures(json, results);
   final completed = json['completedCellCount'] ?? results.length;
   final total = json['cellCount'] ?? results.length;
   final activeCellStartedAtIso = json['activeCellStartedAtIso'] as String?;
@@ -71,6 +72,8 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
     'writesProductionCatalog': json['writesProductionCatalog'] ?? false,
     'firebaseWritesAllowed': json['firebaseWritesAllowed'] ?? false,
     'ocrCameraExpensesTouched': json['ocrCameraExpensesTouched'] ?? false,
+    'unsafeFlagCount': unsafeFailures.length,
+    if (unsafeFailures.isNotEmpty) 'unsafeFlags': unsafeFailures,
   };
   if (activeCellStartedAtIso != null) {
     summary['activeCellStartedAtIso'] = activeCellStartedAtIso;
@@ -82,8 +85,33 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
     'QA_BACKGROUND_QUEUE_STATUS '
     '${const JsonEncoder.withIndent('  ').convert(summary)}',
   );
-  return failed == 0 ? 0 : 1;
+  for (final failure in unsafeFailures) {
+    stderr.writeln('Unsafe background queue evidence: $failure');
+  }
+  return failed == 0 && unsafeFailures.isEmpty ? 0 : 1;
 }
+
+List<String> _unsafeFailures(Map json, List<Object?> results) {
+  final failures = <String>[];
+  for (final field in _safetyFields) {
+    if (json[field] == true) failures.add('top_level:$field');
+  }
+  for (final result in results) {
+    if (result is! Map) continue;
+    final cellId = result['cellId']?.toString() ?? 'unknown_cell';
+    for (final field in _safetyFields) {
+      if (result[field] == true) failures.add('$cellId:$field');
+    }
+  }
+  return failures;
+}
+
+const _safetyFields = {
+  'liveServicesAllowed',
+  'writesProductionCatalog',
+  'firebaseWritesAllowed',
+  'ocrCameraExpensesTouched',
+};
 
 int? _activeCellElapsedMs(
   String? activeCellStartedAtIso,

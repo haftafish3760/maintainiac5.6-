@@ -27,7 +27,16 @@ void main() {
         'writesProductionCatalog': false,
         'firebaseWritesAllowed': false,
         'ocrCameraExpensesTouched': false,
-        'results': [],
+        'results': [
+          {
+            'cellId': 'plumbing_residential_core_en_US',
+            'exitCode': 0,
+            'liveServicesAllowed': false,
+            'writesProductionCatalog': false,
+            'firebaseWritesAllowed': false,
+            'ocrCameraExpensesTouched': false,
+          },
+        ],
       }),
     );
 
@@ -46,6 +55,56 @@ void main() {
     expect(stdout.content, contains('"activeCellElapsedMs": 180000'));
     expect(stdout.content, contains('firebaseWritesAllowed'));
     expect(stdout.content, contains('ocrCameraExpensesTouched'));
+    expect(stdout.content, contains('"unsafeFlagCount": 0'));
+  });
+
+  test('background queue status fails unsafe live-service evidence', () async {
+    final root = await Directory.systemTemp.createTemp(
+      'maintainiac_background_queue_status_unsafe_',
+    );
+    addTearDown(() => root.delete(recursive: true));
+    final queue = Directory('${root.path}/queue-unsafe')..createSync();
+    File('${queue.path}/latest_status.json').writeAsStringSync(
+      const JsonEncoder.withIndent('  ').convert({
+        'queueId': 'queue-unsafe',
+        'state': 'complete',
+        'cellCount': 1,
+        'completedCellCount': 1,
+        'failedCellCount': 0,
+        'dryRun': false,
+        'liveServicesAllowed': false,
+        'writesProductionCatalog': false,
+        'firebaseWritesAllowed': true,
+        'ocrCameraExpensesTouched': false,
+        'results': [
+          {
+            'cellId': 'electrical_residential_core_es_US',
+            'exitCode': 0,
+            'liveServicesAllowed': false,
+            'writesProductionCatalog': true,
+            'firebaseWritesAllowed': false,
+            'ocrCameraExpensesTouched': false,
+          },
+        ],
+      }),
+    );
+
+    final stdout = _MemorySink();
+    final stderr = _MemorySink();
+    final exit = runWorkSupplyParserQaBackgroundQueueStatus(
+      ['--root', root.path, '--queue-id', 'queue-unsafe'],
+      stdout: stdout,
+      stderr: stderr,
+    );
+
+    expect(exit, 1);
+    expect(stdout.content, contains('"unsafeFlagCount": 2'));
+    expect(stdout.content, contains('top_level:firebaseWritesAllowed'));
+    expect(
+      stdout.content,
+      contains('electrical_residential_core_es_US:writesProductionCatalog'),
+    );
+    expect(stderr.content, contains('Unsafe background queue evidence'));
   });
 
   test('background queue status fails when no artifact exists', () {

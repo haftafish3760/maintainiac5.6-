@@ -127,6 +127,10 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
       'completedAtIso': completedAt.toIso8601String(),
       'transcriptPath': transcriptPath,
       'dryRun': !options.execute,
+      'liveServicesAllowed': false,
+      'writesProductionCatalog': false,
+      'firebaseWritesAllowed': false,
+      'ocrCameraExpensesTouched': false,
     });
     if (exit != 0) {
       failed = true;
