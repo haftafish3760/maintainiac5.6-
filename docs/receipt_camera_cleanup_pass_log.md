@@ -3,6 +3,20 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 847 - 12:00:00 EDT to active cleanup
+
+Scope:
+- Split ML Kit barcode format mapping out of the barcode scanner service into a
+  focused part file.
+- Kept the scanner service under the 500-line cap after the coverage-count
+  hardening without changing behavior.
+- Archived Pass 791 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused barcode scanner regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 841 - 11:51:00 EDT to active cleanup
 
 Scope:
@@ -463,22 +477,6 @@ Scope:
 - Added source regressions rejecting the old outcome token.
 - Recorded `BUG-RECEIPT-0279` under `source_preservation`.
 - Archived Pass 765 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused handoff source regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 791 - 08:09:17 EDT to active cleanup
-
-Scope:
-- Renamed OCR source-first handoff/status tokens from original-source wording
-  to temporary full-quality source wording.
-- Updated decision, relationship, review-status, and continuation source labels
-  while keeping user-facing review copy unchanged.
-- Added a source regression rejecting the stale original-source decision token.
-- Recorded `BUG-RECEIPT-0278` under `source_preservation`.
-- Archived Pass 764 from the active cleanup log to keep the doc under cap.
 
 Verification:
 - Passed targeted Dart format/analyzer and focused handoff source regression.
