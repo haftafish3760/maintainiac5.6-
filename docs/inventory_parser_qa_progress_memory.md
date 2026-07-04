@@ -378,10 +378,35 @@ the fixture recipe, schema, or expected parser behavior changes.
 ## Pending QA Test Batches
 
 - Validate generated fixture cell contract after the next large writing batch.
+  2026-07-04 update: Passes 2031-2035 found the canonical
+  `build/parser_qa_generated/work_supply_parser/...` cells were missing even
+  though older wave-local fixture copies existed. Regenerated the 24
+  Plumbing/Electrical/HVAC residential Core/Standard/Professional/Complete
+  `en-US`/`es-US` fixture cells with
+  `tool/work_supply_parser_qa_generate_fixtures.dart`, `limit=500`, no parser
+  calls, no live services, no Firebase writes, and no OCR/camera/Expenses
+  touches. Focused validation then passed
+  `inventory.generated_fixture_cell_contract`,
+  `inventory.fixture_expectation_contract`, `inventory.fixture_privacy_contract`,
+  and `qa.threshold_gate` with 288,607 checks and 0 failures.
 - Add catalog item batch memory for promoted production item batches.
+  Status: satisfied by the catalog item batch status memory validation section
+  below and rechecked on 2026-07-04 with
+  `inventory.catalog_item_batch_generation_contract,qa.threshold_gate` at 57
+  checks and 0 failures plus `test\work_supply_catalog_item_batch_status_test.dart`
+  passing 3/3.
 - Add focused failure-to-rerun routing table for fixture runner reports.
+  Status: satisfied on 2026-07-04 by the generated fixture failure-to-rerun
+  routing milestone. Failure digests now emit `surgicalRerun`,
+  `avoidBroadRerun`, `fixturePath`, `fixtureIds`, family hints, and focused
+  generated-fixture rerun commands.
 - Add per-family surgical rerun mapping for plumbing, electrical, and HVAC.
+  Status: satisfied by the Surgical Rerun Map and the focused
+  `inventory.catalog_family_rerun_contract` validation. Keep this map updated
+  when new high-risk service families are added.
 - Validate item batch generation status memory before generating more inventory items.
+  Status: satisfied by the catalog item batch status memory validation section
+  and the 2026-07-04 focused recheck.
 - pack scope gate contract:
   suiteId: inventory.pack_scope_gate_contract
   status: focused-validated
