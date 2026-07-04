@@ -6,8 +6,9 @@ enum ExpenseReceiptReviewStyle {
   fullItemDetails;
 
   static ExpenseReceiptReviewStyle fromName(String? value) {
-    return switch (value) {
-      'fullItemDetails' => ExpenseReceiptReviewStyle.fullItemDetails,
+    final normalized = value?.trim().toLowerCase();
+    return switch (normalized) {
+      'fullitemdetails' => ExpenseReceiptReviewStyle.fullItemDetails,
       _ => ExpenseReceiptReviewStyle.simpleAmounts,
     };
   }

@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 745 - 03:46:09 EDT to active cleanup
+
+Scope:
+- Hardened expense receipt review-mode restoration so padded or case-varied
+  stored values preserve the user's detailed-line review preference instead of
+  silently falling back to prices-only.
+- Added focused settings-store regression coverage for normalized receipt review
+  style hydration.
+- Recorded `BUG-RECEIPT-0233` under `receipt_line_review_mode`.
+- Archived Pass 720 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for expense settings review mode.
+- Passed focused expense settings-store regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 744 - 03:42:58 EDT to active cleanup
 
 Scope:
@@ -471,21 +488,5 @@ Verification:
   require the helper/set policy and reject direct equality checks.
 - Passed targeted Dart format/analyzer for Android/iOS bridge regressions.
 - Passed focused Android/iOS native bridge regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 720 - 02:45:00 EDT to active cleanup
-
-Scope:
-- Tightened native byte-budget validation so the service enforces the largest
-  positive value from `photoByteSize` and `totalCapturedByteSize`.
-- Added a regression where per-photo bytes are small but total captured bytes
-  exceed the session budget.
-- Recorded `BUG-RECEIPT-0208` under `source_preservation`.
-- Archived Pass 693 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed Dart format/analyzer for native total-byte validation.
-- Passed focused native path validation regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

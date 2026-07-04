@@ -119,6 +119,25 @@ void main() {
     );
   });
 
+  test('receipt review style restores padded and case-varied values', () {
+    expect(
+      ExpenseReceiptReviewStyle.fromName(' fullItemDetails '),
+      ExpenseReceiptReviewStyle.fullItemDetails,
+    );
+    expect(
+      ExpenseReceiptReviewStyle.fromName('FULLITEMDETAILS'),
+      ExpenseReceiptReviewStyle.fullItemDetails,
+    );
+    expect(
+      ExpenseReceiptReviewStyle.fromName('simpleAmounts'),
+      ExpenseReceiptReviewStyle.simpleAmounts,
+    );
+    expect(
+      ExpenseReceiptReviewStyle.fromName('unknown'),
+      ExpenseReceiptReviewStyle.simpleAmounts,
+    );
+  });
+
   test(
     'expense settings scope can be optional for shared receipt widgets',
     () async {
