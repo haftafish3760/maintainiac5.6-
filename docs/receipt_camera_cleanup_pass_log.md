@@ -3,6 +3,28 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 726 - 03:04:16 EDT to active cleanup
+
+Scope:
+- Refined Android and iOS native control readiness summaries into core camera
+  readiness signals so optional hardware controls do not make limited devices
+  look unhealthy.
+- Kept optional pinch zoom, brightness slider/reset, and torch diagnostics
+  available as separate actual-status fields for admin/device capability
+  review.
+- Added Android/iOS bridge regressions that reject optional hardware controls
+  as readiness-summary blockers.
+- Recorded `BUG-RECEIPT-0216` under `native_bridge`.
+- Archived Pass 700 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused Android/iOS native UI
+  contract regressions.
+- First bug-ledger gate failed because `BUG-RECEIPT-0216` used an unknown
+  category; reclassified it under allowed `native_bridge` before continuing.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 725 - 03:01:36 EDT to active cleanup
 
 Scope:
@@ -467,21 +489,4 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer for receipt capture flow shareability.
-- Passed focused Flutter receipt capture flow shareability regression.
-
-## Pass 700 - 01:40:00 EDT to active cleanup
-
-Scope:
-- Promoted module-specific receipt review depth into a direct
-  `ReceiptCaptureFlowOptions.effectiveReviewDepth` contract.
-- Updated the shared capture settings builder to use that model contract instead
-  of a private helper, making the inventory/maintenance detailed-line default
-  directly testable.
-- Strengthened the shareability regression so it asserts behavior for expenses,
-  shared, materials inventory, maintenance/repair, and forced overrides.
-- Recorded `BUG-RECEIPT-0187` under `qa_harness`.
-- Archived Pass 640 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for shared receipt capture flow models.
 - Passed focused Flutter receipt capture flow shareability regression.

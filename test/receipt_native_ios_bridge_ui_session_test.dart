@@ -213,6 +213,16 @@ void main() {
       readinessSummary,
       isNot(contains('whiteBalanceLockControlActualStatus()')),
     );
+    expect(readinessSummary, isNot(contains('pinchZoomControlActualStatus()')));
+    expect(
+      readinessSummary,
+      isNot(contains('exposureSliderControlActualStatus()')),
+    );
+    expect(
+      readinessSummary,
+      isNot(contains('exposureResetControlActualStatus()')),
+    );
+    expect(readinessSummary, isNot(contains('torchControlActualStatus()')));
     expect(
       cameraController,
       contains('"receiptCameraQualityBaseline": receiptCameraQualityBaseline'),

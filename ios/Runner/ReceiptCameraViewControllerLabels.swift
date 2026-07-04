@@ -133,11 +133,7 @@ extension ReceiptCameraViewController {
     let statuses = [
       backControlActualStatus(),
       settingsControlActualStatus(),
-      manualShutterControlActualStatus(),
-      pinchZoomControlActualStatus(),
-      exposureSliderControlActualStatus(),
-      exposureResetControlActualStatus(),
-      torchControlActualStatus()
+      manualShutterControlActualStatus()
     ]
     return statuses.contains("missing") || statuses.contains("visible_disabled")
       ? "review_needed"

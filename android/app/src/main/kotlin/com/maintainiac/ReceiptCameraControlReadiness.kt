@@ -47,10 +47,6 @@ internal fun ReceiptCameraActivity.nativeControlReadinessSummary(): String {
         backControlActualStatus(),
         settingsControlActualStatus(),
         manualShutterControlActualStatus(),
-        pinchZoomControlActualStatus(),
-        exposureSliderControlActualStatus(),
-        exposureResetControlActualStatus(),
-        torchControlActualStatus(),
     )
     return if (statuses.any { it == "missing" || it == "visible_disabled" }) {
         "review_needed"
