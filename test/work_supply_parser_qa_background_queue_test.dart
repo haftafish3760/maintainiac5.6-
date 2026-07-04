@@ -165,6 +165,78 @@ void main() {
     expect(newTranscript.existsSync(), true);
     expect(newTranscript.readAsStringSync(), contains('DRY RUN'));
   });
+
+  test(
+    'background queue resume recovers successful generated fixture artifacts',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_background_queue_artifact_resume_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+      final queueDir = Directory('${output.path}/artifact-resume-test')
+        ..createSync(recursive: true);
+      final reportDir = Directory(
+        '${queueDir.path}/cells/electrical/residential/core/en-US/reports',
+      )..createSync(recursive: true);
+      File(
+        '${reportDir.path}/latest_generated_fixture_run.json',
+      ).writeAsStringSync(
+        jsonEncode({
+          'schemaVersion': 1,
+          'checked': 125,
+          'failureCount': 0,
+          'generatedAtIso': '2026-07-04T13:55:27.383162Z',
+        }),
+      );
+      File('${queueDir.path}/latest_status.json').writeAsStringSync(
+        jsonEncode({
+          'state': 'running',
+          'activeCellId': 'electrical_residential_core_en_US',
+          'results': <Map<String, Object?>>[],
+        }),
+      );
+
+      final exit = await runWorkSupplyParserQaBackgroundQueue(
+        [
+          '--trades',
+          'electrical',
+          '--tiers',
+          'core',
+          '--locales',
+          'en-US,es-US',
+          '--limit',
+          '500',
+          '--fixture-run-limit',
+          '125',
+          '--queue-id',
+          'artifact-resume-test',
+          '--output-root',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 0);
+      final summary =
+          jsonDecode(File('${queueDir.path}/summary.json').readAsStringSync())
+              as Map;
+      expect(summary['cellCount'], 2);
+      expect(summary['completedCellCount'], 2);
+      expect(summary['resumedCellCount'], 1);
+      final results = summary['results'] as List;
+      final recovered = results.cast<Map>().singleWhere(
+        (result) => result['cellId'] == 'electrical_residential_core_en_US',
+      );
+      expect(recovered['recoveredFromGeneratedFixtureReport'], true);
+      expect(recovered['checked'], 125);
+      final newTranscript = File(
+        '${queueDir.path}/electrical_residential_core_es_US_transcript.txt',
+      );
+      expect(newTranscript.existsSync(), true);
+      expect(newTranscript.readAsStringSync(), contains('DRY RUN'));
+    },
+  );
 }
 
 class _MemorySink implements IOSink {

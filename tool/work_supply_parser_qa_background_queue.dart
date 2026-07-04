@@ -175,23 +175,74 @@ List<Map<String, Object?>> _loadResumableResults(
   Directory runDir,
   List<_QueueCell> cells,
 ) {
-  final statusFile = File('${runDir.path}/latest_status.json');
-  if (!statusFile.existsSync()) return [];
   final selectedCellIds = cells.map((cell) => cell.id).toSet();
-  final decoded = jsonDecode(statusFile.readAsStringSync());
-  if (decoded is! Map) return [];
-  final rawResults = decoded['results'];
-  if (rawResults is! List) return [];
-  final results = <Map<String, Object?>>[];
-  for (final rawResult in rawResults) {
-    if (rawResult is! Map) continue;
-    final result = Map<String, Object?>.from(rawResult);
-    final cellId = result['cellId'];
-    if (cellId is! String || !selectedCellIds.contains(cellId)) continue;
-    if (result['exitCode'] != 0) continue;
-    results.add(result);
+  final resultsByCellId = <String, Map<String, Object?>>{};
+  final statusFile = File('${runDir.path}/latest_status.json');
+  if (statusFile.existsSync()) {
+    final decoded = jsonDecode(statusFile.readAsStringSync());
+    if (decoded is Map) {
+      final rawResults = decoded['results'];
+      if (rawResults is List) {
+        for (final rawResult in rawResults) {
+          if (rawResult is! Map) continue;
+          final result = Map<String, Object?>.from(rawResult);
+          final cellId = result['cellId'];
+          if (cellId is! String || !selectedCellIds.contains(cellId)) {
+            continue;
+          }
+          if (result['exitCode'] != 0) continue;
+          resultsByCellId[cellId] = result;
+        }
+      }
+    }
   }
-  return results;
+  for (final cell in cells) {
+    if (!resultsByCellId.containsKey(cell.id)) {
+      final recovered = _recoverSuccessfulResultFromGeneratedReport(
+        runDir,
+        cell,
+      );
+      if (recovered != null) resultsByCellId[cell.id] = recovered;
+    }
+  }
+  return [
+    for (final cell in cells)
+      if (resultsByCellId[cell.id] != null) resultsByCellId[cell.id]!,
+  ];
+}
+
+Map<String, Object?>? _recoverSuccessfulResultFromGeneratedReport(
+  Directory runDir,
+  _QueueCell cell,
+) {
+  final reportPath =
+      '${runDir.path}/cells/${cell.trade}/${cell.scope}/${cell.tier}/'
+      '${cell.locale}/reports/latest_generated_fixture_run.json';
+  final reportFile = File(reportPath);
+  if (!reportFile.existsSync()) return null;
+  final decoded = jsonDecode(reportFile.readAsStringSync());
+  if (decoded is! Map) return null;
+  if (decoded['failureCount'] != 0) return null;
+  final checked = decoded['checked'];
+  if (checked is! int || checked <= 0) return null;
+  final generatedAtIso =
+      decoded['generatedAtIso'] as String? ??
+      DateTime.now().toUtc().toIso8601String();
+  return {
+    'cellId': cell.id,
+    'trade': cell.trade,
+    'marketScope': cell.scope,
+    'tier': cell.tier,
+    'localePackId': cell.locale,
+    'exitCode': 0,
+    'durationMs': 0,
+    'startedAtIso': generatedAtIso,
+    'completedAtIso': generatedAtIso,
+    'transcriptPath': reportPath,
+    'dryRun': false,
+    'recoveredFromGeneratedFixtureReport': true,
+    'checked': checked,
+  };
 }
 
 bool _hasSuccessfulResult(List<Map<String, Object?>> results, String cellId) {

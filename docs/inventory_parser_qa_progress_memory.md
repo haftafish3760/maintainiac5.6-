@@ -3392,3 +3392,12 @@ Release boundaries:
   failures for Plumbing Core `en-US` and `es-US`; the remaining blocker is the
   generated-fixture Flutter/build-hook runner on this Windows machine, not a
   confirmed parser data mismatch.
+- **10:12 Harness Pass 2456:** Corrected the Core queue evidence readout after
+  finding that Electrical Core `en-US` did write a successful 125-case generated
+  fixture report with 0 failures even though the queue status stayed stale from
+  the earlier Dart-direct compiler-crash experiment. Added artifact-based resume
+  recovery to the background queue so a passing
+  `latest_generated_fixture_run.json` can skip an already-proven cell instead of
+  wasting another Flutter pass. Analyzer was clean and
+  `test/work_supply_parser_qa_background_queue_test.dart` passed 4/4, including
+  the new stale-status regression.
