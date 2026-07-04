@@ -143,6 +143,13 @@ Quality gates must run non-interactively by default. Start analyzer, QA runner, 
 
 catalog-backed suites should be grouped at meaningful checkpoints to amortize the cold catalog load. contract-only suites stay surgical and should run by exact `PARSER_QA_SUITES` filters. Do not repeatedly launch one catalog-backed suite at a time unless the changed source is isolated to that suite and the slow evidence is needed.
 
+`inventory.service_truck_core_contract` is a catalog-backed broad suite because
+it scans residential Plumbing, Electrical, and HVAC Core rows from
+`workSupplyCatalogItems` and reports `serviceTruckSignalCounts`. Treat it as a
+grouped milestone check after Core/service-truck source changes instead of a
+casual smoke rerun. Use its `QA_SLOW_SUITE` and `durationMs` evidence to decide
+whether the next check belongs on Windows, the Mac Mini, or a release shard.
+
 Each report also includes failure triage data. JSON output carries `triageCategory` on each failure and a `failuresByTriageCategory` group. Text summaries include `QA_TRIAGE_GROUP` lines and each `QA_FAILURE` line includes `triage=...`, so admin/debug tooling can separate schema work from alias work, security work, review-safety work, performance work, and parser-engine work without reading every failure manually.
 
 Each report includes `packHealth` JSON and a `QA_PACK_HEALTH` summary line. The shared report writer also emits `latest_<domain>_pack_health.json` so admin/debug tooling can read pack readiness without parsing the full QA report. The health object includes present contracts, missing required contracts, missing recommended contracts, `healthScore`, `coverageScore`, `readinessLabel`, checked count, failure count, and duration.

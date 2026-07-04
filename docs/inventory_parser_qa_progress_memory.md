@@ -167,6 +167,13 @@ Focused rerun routes for recently hardened release-one contracts:
   shard passed 24,290 checks, 0 failures, but took about 87.6 seconds; avoid
   rerunning that broad catalog-backed shard unless service-truck source changes
   require it. Analyzer was clean.
+- Passes 2176-2183 added runtime-profile visibility for
+  `inventory.service_truck_core_contract` as a catalog-backed broad suite. The
+  harness plan now documents that it scans `workSupplyCatalogItems`, reports
+  `serviceTruckSignalCounts`, and should be grouped at service-truck milestones
+  instead of casually rerun. Focused
+  `inventory.runtime_profile_contract,inventory.slo_metrics_contract,qa.threshold_gate`
+  passed 74 checks, 0 failures, and analyzer was clean.
 
 ## 2026-07-04 Whole-App Parser Adapter Registry And Surgical Routing
 

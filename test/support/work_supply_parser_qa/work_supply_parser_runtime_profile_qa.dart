@@ -83,6 +83,19 @@ class WorkSupplyParserRuntimeProfileSuite extends QaSuite {
     ]),
   ];
 
+  static const _catalogBackedBroadSuites = [
+    _RuntimeProfileTarget(
+      suite: 'inventory.service_truck_core_contract',
+      path:
+          'test/support/work_supply_parser_qa/work_supply_parser_service_truck_core_qa.dart',
+      requiredTokens: [
+        'workSupplyCatalogItems',
+        'Residential Plumbing, Electrical, and HVAC Core rows only.',
+        'serviceTruckSignalCounts',
+      ],
+    ),
+  ];
+
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
@@ -112,6 +125,33 @@ class WorkSupplyParserRuntimeProfileSuite extends QaSuite {
           actual: 'missing ${missing.join(' + ')}',
           suggestedFix:
               'Keep smoke profile case-building only; run parser assertions in full/release profiles.',
+          metadata: const {'triageCategory': QaFailureTriage.performance},
+        ),
+      );
+    }
+
+    final catalogBackedTargets = <String>[];
+    for (final target in _catalogBackedBroadSuites) {
+      final source = _read(target.path, failures, sourceCache);
+      checked += target.requiredTokens.length;
+      final missing = [
+        for (final token in target.requiredTokens)
+          if (!source.contains(token)) token,
+      ];
+      if (missing.isEmpty) {
+        catalogBackedTargets.add(target.suite);
+        continue;
+      }
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'missing_catalog_backed_profile_guard:${target.suite}',
+          message: 'Catalog-backed broad suite is missing profile visibility.',
+          severity: QaSeverity.warning,
+          expected: target.requiredTokens.join(' + '),
+          actual: 'missing ${missing.join(' + ')}',
+          suggestedFix:
+              'Keep catalog-backed broad suites visible as grouped milestone checks so Windows smoke work does not repeatedly pay cold catalog scan cost.',
           metadata: const {'triageCategory': QaFailureTriage.performance},
         ),
       );
@@ -151,6 +191,7 @@ class WorkSupplyParserRuntimeProfileSuite extends QaSuite {
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'parserCallSuitesGuarded': presentTargets,
+        'catalogBackedBroadSuites': catalogBackedTargets,
         'presentDocs': presentDocs,
         'smokeParserAssertionsAllowed': false,
         'fullReleaseParserAssertionsAllowed': true,
