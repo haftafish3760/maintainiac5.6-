@@ -3,6 +3,18 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 652 - 23:00:00 EDT to active cleanup
+
+Scope:
+- Added `docs/receipt_camera_double_team_handoff.md` so a second Codex model can
+  work on the OCR/review handoff lane without editing native camera or capture
+  orchestration files.
+- Documented allowed files, forbidden camera-owned files, product invariants,
+  test rules, branch setup, and the suggested first safe OCR handoff pass.
+
+Verification:
+- Passed cleanup log, doc size, source audit, and diff whitespace gates.
+
 ## Pass 651 - 22:54:25 EDT to active cleanup
 
 Scope:
