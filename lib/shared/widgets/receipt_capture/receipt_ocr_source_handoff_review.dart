@@ -31,7 +31,8 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
         hasSavedPhotoDarkOrExposureRisk ||
         hasSavedPhotoSoftBlurRisk ||
         hasSavedPhotoGlareRisk ||
-        hasSavedPhotoHazyLensRisk) {
+        hasSavedPhotoHazyLensRisk ||
+        hasSavedPhotoShadowRisk) {
       return 'scanner_prep_review_needed';
     }
     if (hasScannerPrepReviewRisk) return 'scanner_prep_review_needed';
@@ -147,6 +148,13 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       ]) >
       0;
 
+  bool get hasSavedPhotoShadowRisk =>
+      _countForAny(photoQualityRiskCounts, const [
+        'ocr_source_saved_photo_shadow_risk',
+        'ocr_source_action_move_to_even_light_or_retake',
+      ]) >
+      0;
+
   String get sourceQualityReviewStatus {
     if (hasMissingBottomEdgeAndTotalsEvidence) {
       return 'missing_bottom_edge_and_totals_first';
@@ -156,6 +164,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
     if (hasSavedPhotoSoftBlurRisk) return 'saved_soft_blur_review';
     if (hasSavedPhotoGlareRisk) return 'saved_glare_review';
     if (hasSavedPhotoHazyLensRisk) return 'saved_hazy_lens_review';
+    if (hasSavedPhotoShadowRisk) return 'saved_shadow_review';
     if (hasScannerPrepReviewRisk) return 'scanner_prep_review_needed';
     return 'source_quality_ready_or_not_reported';
   }
@@ -169,6 +178,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       'saved_soft_blur_review' => 'retake_hold_steady',
       'saved_glare_review' => 'reduce_glare_or_retake',
       'saved_hazy_lens_review' => 'wipe_lens_or_retake',
+      'saved_shadow_review' => 'move_to_even_light_or_retake',
       'scanner_prep_review_needed' => 'review_scanner_preparation',
       _ => 'review_receipt_if_needed',
     };

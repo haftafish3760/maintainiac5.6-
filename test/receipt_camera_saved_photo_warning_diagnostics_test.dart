@@ -32,6 +32,11 @@ void main() {
     final glare = ReceiptNativeSavedPhotoReviewWarning.fromDiagnostics(const {
       'latestCapturedBrightnessBucket': 'captured_glare_risk',
     });
+    final shadow = ReceiptNativeSavedPhotoReviewWarning.fromDiagnostics(const {
+      'latestReadabilitySignal': 'shadow_risk',
+      'latestCapturedAverageLuma': 82.0,
+      'latestCapturedEdgeScore': 6.0,
+    });
     final checkSharpness = ReceiptNativeSavedPhotoReviewWarning.fromDiagnostics(
       const {'latestCapturedSharpnessBucket': 'captured_soft'},
     );
@@ -112,6 +117,10 @@ void main() {
     expect(soft.message, contains('holding steady'));
     expect(glare.code, 'saved_photo_glare_risk');
     expect(glare.message, contains('totals are washed out'));
+    expect(shadow.code, 'saved_photo_shadow_risk');
+    expect(shadow.actionCode, 'move_to_even_light_or_retake');
+    expect(shadow.parserRiskCode, 'ocr_shadowed_text_may_fail');
+    expect(shadow.message, contains('even light'));
     expect(checkSharpness.code, 'saved_photo_ok');
     expect(bottomDark.code, 'saved_photo_bottom_too_dark');
     expect(bottomDark.message, contains('bottom receipt lines'));

@@ -297,6 +297,34 @@ void main() {
     );
   });
 
+  test('source handoff reports shadow saved-photo review', () {
+    final summary = ReceiptOcrSourceHandoffSummary.fromAttachments([
+      ReceiptAttachmentRecord(
+        id: 'shadow-proof',
+        path: '/tmp/shadow-proof.jpg',
+        kind: ReceiptAttachmentKind.photo,
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        createdAt: DateTime(2026, 7, 1),
+        riskFlags: const [
+          'ocr_source_saved_photo_shadow_risk',
+          'ocr_source_action_move_to_even_light_or_retake',
+        ],
+      ),
+    ]);
+
+    expect(summary.status, 'scanner_prep_review_needed');
+    expect(summary.sourceQualityReviewStatus, 'saved_shadow_review');
+    expect(summary.sourceQualityReviewAction, 'move_to_even_light_or_retake');
+    expect(
+      summary.privacySafeContract['sourceQualityReviewStatus'],
+      'saved_shadow_review',
+    );
+    expect(
+      summary.privacySafeContract['sourceQualityReviewAction'],
+      'move_to_even_light_or_retake',
+    );
+  });
+
   test('ocr service asks for a receipt photo before scanning', () async {
     final result = await const ReceiptOcrService().recognizeTextFromAttachments(
       const [],

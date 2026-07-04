@@ -134,6 +134,11 @@ Map<String, int> _parserTaskCountsWithReceiptCoverage(
       (qualityRisks['ocr_source_action_wipe_lens_or_retake'] ?? 0) > 0) {
     add('photo_saved_hazy_lens_review');
   }
+  if ((qualityRisks['ocr_source_saved_photo_shadow_risk'] ?? 0) > 0 ||
+      (qualityRisks['ocr_source_action_move_to_even_light_or_retake'] ?? 0) >
+          0) {
+    add('photo_saved_shadow_review');
+  }
   if ((qualityRisks['ocr_source_saved_photo_bottom_too_dark'] ?? 0) > 0 ||
       (qualityRisks['ocr_source_saved_photo_bottom_soft'] ?? 0) > 0 ||
       (qualityRisks['ocr_source_action_check_bottom_or_raise_brightness'] ??

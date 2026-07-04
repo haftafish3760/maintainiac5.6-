@@ -188,6 +188,17 @@ class ReceiptNativeSavedPhotoReviewWarning {
             'Wipe the lens and retake if the store, date, total, or item prices look cloudy.',
       );
     }
+    if (readabilitySignal == 'shadow_risk') {
+      if (_isBorderlineDimButReadable(averageLuma, edgeScore)) return null;
+      return const ReceiptNativeSavedPhotoReviewWarning(
+        code: 'saved_photo_shadow_risk',
+        severity: ReceiptNativeSavedPhotoWarningSeverity.warning,
+        title: 'Photo has heavy shadows',
+        causeCode: 'uneven_shadow_over_receipt_text',
+        guidance:
+            'Move the receipt into even light and retake if shadows cover the store, date, total, or item prices.',
+      );
+    }
     if (lightingEvidence == 'bottom_lighting_risk' ||
         verticalQualitySignal == 'bottom_too_dark' ||
         verticalQualitySignal == 'bottom_darker_than_upper' ||

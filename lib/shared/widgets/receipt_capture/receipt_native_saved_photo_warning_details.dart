@@ -25,6 +25,7 @@ extension ReceiptNativeSavedPhotoReviewWarningDetails
       'saved_photo_dimmer_than_preview' => 'review_or_add_light',
       'saved_photo_glare_risk' => 'reduce_glare_or_retake',
       'saved_photo_dirty_lens_or_haze' => 'wipe_lens_or_retake',
+      'saved_photo_shadow_risk' => 'move_to_even_light_or_retake',
       _ => isCritical ? 'retake_before_review' : 'review_if_readable',
     };
   }
@@ -42,6 +43,7 @@ extension ReceiptNativeSavedPhotoReviewWarningDetails
       'saved_photo_dimmer_than_preview' => 'ocr_text_may_need_review',
       'saved_photo_glare_risk' => 'ocr_washed_out_text_may_fail',
       'saved_photo_dirty_lens_or_haze' => 'ocr_hazy_text_may_fail',
+      'saved_photo_shadow_risk' => 'ocr_shadowed_text_may_fail',
       _ => 'ocr_review_if_needed',
     };
   }
@@ -60,6 +62,7 @@ extension ReceiptNativeSavedPhotoReviewWarningDetails
       'review_or_add_light' => 'Check readability, then add light if needed',
       'reduce_glare_or_retake' => 'Reduce glare or retake',
       'wipe_lens_or_retake' => 'Wipe lens or retake',
+      'move_to_even_light_or_retake' => 'Move to even light or retake',
       'retake_before_review' => 'Retake before relying on automatic fill',
       _ => 'Review readability before Next',
     };
@@ -79,6 +82,8 @@ extension ReceiptNativeSavedPhotoReviewWarningDetails
         'OCR may miss washed-out totals or prices; reduce glare before relying on automatic line fill.',
       'ocr_hazy_text_may_fail' =>
         'OCR may miss cloudy text or prices; wipe the lens and retake if the saved photo looks hazy.',
+      'ocr_shadowed_text_may_fail' =>
+        'OCR may miss shadowed text or prices; move the receipt into even light and retake if shadows cover important lines.',
       _ => '',
     };
   }
