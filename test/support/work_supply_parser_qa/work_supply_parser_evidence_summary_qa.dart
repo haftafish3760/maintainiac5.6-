@@ -9,6 +9,7 @@ class WorkSupplyParserEvidenceSummarySuite extends QaSuite {
   static const _requiredTokens = {
     'QA_EVIDENCE_SUMMARY',
     'QA_EVIDENCE_SUMMARY_ARTIFACT',
+    '--queue-watchdog',
     'releaseOneCommands',
     'fixtureReadinessRollup',
     'queueWatchdog',

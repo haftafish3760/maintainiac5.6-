@@ -3327,3 +3327,8 @@ Release boundaries:
   that compile failure was fixed immediately. Analyzer was clean and the focused
   `inventory.confidence_calibration,qa.threshold_gate` slice passed 94 checks
   with 0 failures.
+- **09:31 Harness Pass 2445:** Strengthened
+  `inventory.evidence_summary_contract` so the evidence-summary QA contract
+  requires the `--queue-watchdog` override token. Analyzer was clean and the
+  focused `inventory.evidence_summary_contract,qa.threshold_gate` slice passed
+  23 checks with 0 failures.
