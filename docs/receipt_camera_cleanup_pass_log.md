@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 879 - active cleanup
+
+Scope:
+- Hardened native UI health outcome priority so any retired-control regression
+  becomes the primary camera health outcome before normal ready summaries.
+- Covered the lock-only path where focus-lock, exposure-lock, or white-balance
+  lock regressions could otherwise stay behind a ready native-control summary.
+- Added regression coverage proving lock-only retirement failures become
+  attachment risk flags and the main native UI outcome.
+- Recorded `BUG-RECEIPT-0328` under `native_bridge`.
+- Archived Pass 806 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused retired-control regression, and
+  test source audit.
+
 ## Pass 878 - active cleanup
 
 Scope:
@@ -466,23 +482,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused barcode scanner regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 806 - 10:16:00 EDT to active cleanup
-
-Scope:
-- Treated native camera `review_required` health tokens as actionable
-  attachment risk flags.
-- Applied the same risk classification to shared capture-flow and
-  attachment-panel native camera signal helpers.
-- Added regressions proving focus/readability fallback review reaches receipt
-  attachment risk flags and the duplicated helper paths stay aligned.
-- Recorded `BUG-RECEIPT-0290` under `native_bridge`.
-- Archived Pass 774 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused native UI handoff
-  regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

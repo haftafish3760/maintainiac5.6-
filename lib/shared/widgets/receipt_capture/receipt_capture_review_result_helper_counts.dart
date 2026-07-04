@@ -143,6 +143,11 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
     if ((counts['tap_focus_actual_retirement_regressed'] ?? 0) > 0) {
       return 'tap_focus_actual_retirement_regressed';
     }
+    for (final entry in counts.entries) {
+      if (entry.value > 0 && entry.key.endsWith('_retirement_regressed')) {
+        return entry.key;
+      }
+    }
     if ((counts['native_control_readiness_missing'] ?? 0) > 0) {
       return 'native_control_readiness_missing';
     }
