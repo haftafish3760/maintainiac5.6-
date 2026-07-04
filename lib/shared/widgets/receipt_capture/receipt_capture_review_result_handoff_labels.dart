@@ -18,6 +18,9 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       }
       return 'Add the next receipt section before reviewing receipt details, unless this photo already shows the full receipt.';
     }
+    if (receiptSectionOrderNeedsReview) {
+      return receiptSectionOrderReviewActionLabel;
+    }
     final warningProfile = acceptedPhotoWarningProfile;
     if (warningProfile != 'saved_photo_ok') {
       return switch (warningProfile) {

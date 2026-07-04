@@ -136,6 +136,11 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
         'receiptSectionOrderOutcome': receiptSectionOrderOutcome,
       if (receiptSectionOrderCounts.isNotEmpty)
         'receiptSectionOrderEvidenceLabel': receiptSectionOrderEvidenceLabel,
+      'receiptSectionOrderNeedsReview': receiptSectionOrderNeedsReview,
+      'receiptSectionOrderReviewActionCode':
+          receiptSectionOrderReviewActionCode,
+      'receiptSectionOrderReviewActionLabel':
+          receiptSectionOrderReviewActionLabel,
       ...privacySafeReceiptBrainInstallMetadata,
       if (nativeCloseCapturedPhotoOutcomeCounts.isNotEmpty)
         'nativeCloseCapturedPhotoOutcomeCounts':

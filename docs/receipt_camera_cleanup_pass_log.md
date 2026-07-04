@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 872 - 16:26:00 EDT to active cleanup
+
+Scope:
+- Hardened receipt section-order diagnostics for long-receipt retakes,
+  inserted sections, manual reorder, and normal ghost-guided continuation.
+- Added invalid families for retake offsets, context flag mismatches,
+  previous/next context gaps, top-retake ghost mismatches, and insert offsets.
+- Surfaced privacy-safe section-order review action codes, labels, metadata,
+  and handoff counts so OCR cannot silently trust malformed ordering metadata.
+- Added regression coverage for invalid retake context, top ghost mismatch,
+  insert offset mismatch, and normal long-receipt ghost continuation.
+- Recorded `BUG-RECEIPT-0321` under `multi_photo_ordering`.
+- Archived Pass 799 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused section-order/stitch-scanner
+  regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 871 - 16:12:00 EDT to active cleanup
 
 Scope:
@@ -465,23 +485,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer and focused OCR source-guard
   regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 799 - 09:03:30 EDT to active cleanup
-
-Scope:
-- Renamed scanner decision codes and cleanup actions that described temporary
-  full-quality source selection as original-source preservation.
-- Updated receipt handoff count names, telemetry fixtures, and OCR-source risk
-  assertions to the new temporary full-quality source guard token.
-- Preserved explicit original-quality wording only for user-selected
-  original-proof storage and immutable proof-record metadata.
-- Added regressions against the stale scanner decision and cleanup action names.
-- Recorded `BUG-RECEIPT-0283` under `source_preservation`.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused source-prep, stitch-scanner,
-  telemetry, and OCR-source quality regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

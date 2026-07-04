@@ -33,6 +33,11 @@ void main() {
     );
 
     expect(result.receiptSectionOrderOutcome, 'retake_order_preserved');
+    expect(result.receiptSectionOrderNeedsReview, false);
+    expect(
+      result.receiptSectionOrderReviewActionCode,
+      'review_retaken_section_then_continue',
+    );
     expect(result.receiptSectionOrderCounts['retake_original_section_2'], 1);
     expect(result.receiptSectionOrderCounts['retake_final_section_2'], 1);
     expect(
@@ -123,6 +128,11 @@ void main() {
     );
 
     expect(result.receiptSectionOrderOutcome, 'insert_order_preserved');
+    expect(result.receiptSectionOrderNeedsReview, false);
+    expect(
+      result.receiptSectionOrderReviewActionCode,
+      'review_inserted_section_then_continue',
+    );
     expect(result.receiptSectionOrderCounts['insert_anchor_section_2'], 1);
     expect(result.receiptSectionOrderCounts['insert_final_section_3'], 1);
     expect(result.receiptSectionOrderCounts['insert_offset_0'], 1);
@@ -196,6 +206,11 @@ void main() {
       1,
     );
     expect(result.receiptSectionOrderOutcome, 'retake_order_invalid');
+    expect(result.receiptSectionOrderNeedsReview, true);
+    expect(
+      result.receiptSectionOrderReviewActionCode,
+      'review_retaken_section_order_before_ocr',
+    );
     expect(
       result.receiptSectionOrderEvidenceLabel,
       'section_order=retake_order_invalid;'
@@ -203,6 +218,7 @@ void main() {
     );
     final metadata = result.privacySafeReceiptReaderHandoffMetadata.toString();
     expect(metadata, contains('retake_invalid_final_before_original'));
+    expect(metadata, contains('review_retaken_section_order_before_ocr'));
     expect(metadata, isNot(contains('/tmp/')));
     expect(metadata, isNot(contains('private malformed line')));
   });
@@ -229,6 +245,11 @@ void main() {
     );
 
     expect(result.receiptSectionOrderOutcome, 'insert_order_invalid');
+    expect(result.receiptSectionOrderNeedsReview, true);
+    expect(
+      result.receiptSectionOrderReviewActionCode,
+      'review_inserted_section_order_before_ocr',
+    );
     expect(
       result.receiptSectionOrderCounts['insert_invalid_final_not_after_anchor'],
       1,
@@ -282,6 +303,11 @@ void main() {
     );
 
     expect(result.receiptSectionOrderOutcome, 'manual_reorder_preserved');
+    expect(result.receiptSectionOrderNeedsReview, false);
+    expect(
+      result.receiptSectionOrderReviewActionCode,
+      'review_reordered_sections_then_continue',
+    );
     expect(
       result.receiptSectionOrderCounts['manual_reorder_original_section_2'],
       1,
@@ -355,6 +381,11 @@ void main() {
     );
 
     expect(result.receiptSectionOrderOutcome, 'manual_reorder_invalid');
+    expect(result.receiptSectionOrderNeedsReview, true);
+    expect(
+      result.receiptSectionOrderReviewActionCode,
+      'review_manual_section_order_before_ocr',
+    );
     expect(
       result
           .receiptSectionOrderCounts['manual_reorder_invalid_non_adjacent_move'],

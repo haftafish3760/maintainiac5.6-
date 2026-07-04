@@ -46,6 +46,11 @@ extension ReceiptPhotoReviewResultHandoffCounts on ReceiptPhotoReviewResult {
       counts['receipt_section_order_${entry.key}'] =
           (counts['receipt_section_order_${entry.key}'] ?? 0) + entry.value;
     }
+    counts['receipt_section_order_action_$receiptSectionOrderReviewActionCode'] =
+        1;
+    if (receiptSectionOrderNeedsReview) {
+      counts['receipt_section_order_review_required'] = 1;
+    }
     counts.addBrainInstallAndFootprintCounts(this);
     for (final entry in ocrStoragePolicyCounts.entries) {
       counts['ocr_storage_policy_${entry.key}'] =

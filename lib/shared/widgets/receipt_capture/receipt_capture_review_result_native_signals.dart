@@ -216,6 +216,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       final ghostVisible = _diagnosticBool(
         diagnostics['previousSectionGhostGuideVisible'],
       );
+      final previousSectionReason = _diagnosticToken(
+        diagnostics['previousSectionReasonCode']?.toString() ?? '',
+      );
       final retakeOriginalSection = _diagnosticPositiveInt(
         diagnostics['receiptRetakeOriginalSectionNumber'],
       );
@@ -228,6 +231,14 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       final retakePolicy = _diagnosticToken(
         diagnostics['receiptRetakeOrderPolicy']?.toString() ?? '',
       );
+      final hasRetakeMetadata =
+          retakeOriginalSection != null ||
+          retakeFinalSection != null ||
+          retakeGuidance != 'unknown' ||
+          retakePolicy != 'unknown' ||
+          diagnostics.containsKey('receiptRetakeReplacementOffset') ||
+          diagnostics.containsKey('receiptRetakePreservedOriginalSlot') ||
+          diagnostics.containsKey('receiptRetakeInsertedExtraSection');
       final insertAnchorSection = _diagnosticPositiveInt(
         diagnostics['receiptInsertAfterAnchorSectionNumber'],
       );
@@ -304,6 +315,27 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       )) {
         counts[invalidCode] = (counts[invalidCode] ?? 0) + 1;
       }
+      for (final invalidCode in _receiptNativeGhostRetakeInvalidOrderCodes(
+        hasRetakeMetadata: hasRetakeMetadata,
+        diagnostics: diagnostics,
+        originalSection: retakeOriginalSection,
+      )) {
+        counts[invalidCode] = (counts[invalidCode] ?? 0) + 1;
+      }
+      for (final invalidCode in _receiptRetakeInvalidGuidanceCodes(
+        hasRetakeMetadata: hasRetakeMetadata,
+        originalSection: retakeOriginalSection,
+        guidance: retakeGuidance,
+      )) {
+        counts[invalidCode] = (counts[invalidCode] ?? 0) + 1;
+      }
+      for (final invalidCode in _receiptRetakeInvalidPreviousGuideReasonCodes(
+        hasRetakeMetadata: hasRetakeMetadata,
+        originalSection: retakeOriginalSection,
+        previousSectionReason: previousSectionReason,
+      )) {
+        counts[invalidCode] = (counts[invalidCode] ?? 0) + 1;
+      }
       for (final invalidCode in _receiptInsertInvalidOrderCodes(
         diagnostics: diagnostics,
         anchorSection: insertAnchorSection,
@@ -344,6 +376,10 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
         counts['retake_guidance_$retakeGuidance'] =
             (counts['retake_guidance_$retakeGuidance'] ?? 0) + 1;
       }
+      if (previousSectionReason != 'unknown') {
+        counts['previous_section_reason_$previousSectionReason'] =
+            (counts['previous_section_reason_$previousSectionReason'] ?? 0) + 1;
+      }
       if (ghostPolicy != 'unknown') {
         counts['ghost_policy_$ghostPolicy'] =
             (counts['ghost_policy_$ghostPolicy'] ?? 0) + 1;
@@ -365,75 +401,6 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       }
     }
     return Map.unmodifiable(counts);
-  }
-
-  String get receiptSectionOrderOutcome {
-    final counts = receiptSectionOrderCounts;
-    if (counts.isEmpty) return 'unknown';
-    if (counts.keys.any((key) => key.startsWith('retake_invalid_'))) {
-      return 'retake_order_invalid';
-    }
-    if (counts.keys.any((key) => key.startsWith('insert_invalid_'))) {
-      return 'insert_order_invalid';
-    }
-    if (counts.keys.any((key) => key.startsWith('manual_reorder_invalid_'))) {
-      return 'manual_reorder_invalid';
-    }
-    if ((counts['policy_top_to_bottom_numbered_sections'] ?? 0) > 0 &&
-        (counts['ghost_guide_visible'] ?? 0) > 0) {
-      return 'numbered_sections_with_ghost_guide';
-    }
-    if ((counts['policy_top_to_bottom_numbered_sections'] ?? 0) > 0) {
-      return 'numbered_sections_top_to_bottom';
-    }
-    if ((counts['retake_preserved_original_slot'] ?? 0) > 0) {
-      return 'retake_order_preserved';
-    }
-    if ((counts['insert_preserved_anchor_slot'] ?? 0) > 0) {
-      return 'insert_order_preserved';
-    }
-    if ((counts['manual_reorder_preserved_photo_path'] ?? 0) > 0) {
-      return 'manual_reorder_preserved';
-    }
-    if (counts.keys.any((key) => key.startsWith('multi_section_'))) {
-      return 'multi_section_order_tracked';
-    }
-    return 'single_section_or_unordered';
-  }
-
-  String get receiptSectionOrderEvidenceLabel {
-    final counts = receiptSectionOrderCounts;
-    if (counts.isEmpty) return 'section_order=unknown';
-    final outcome = receiptSectionOrderOutcome;
-    final sectionCount = counts.entries
-        .where((entry) => entry.key.startsWith('multi_section_'))
-        .fold<int>(0, (total, entry) => total + entry.value);
-    final ghost = (counts['ghost_guide_visible'] ?? 0) > 0
-        ? 'ghost_visible'
-        : (counts['ghost_guide_hidden'] ?? 0) > 0
-        ? 'ghost_hidden'
-        : 'ghost_unknown';
-    final label =
-        'section_order=$outcome;multi_section_photos=$sectionCount;$ghost';
-    if (outcome == 'retake_order_invalid') {
-      return '$label;retake_invalid';
-    }
-    if (outcome == 'insert_order_invalid') {
-      return '$label;insert_invalid';
-    }
-    if (outcome == 'manual_reorder_invalid') {
-      return '$label;manual_reorder_invalid';
-    }
-    if ((counts['retake_preserved_original_slot'] ?? 0) > 0) {
-      return '$label;retake_preserved';
-    }
-    if ((counts['insert_preserved_anchor_slot'] ?? 0) > 0) {
-      return '$label;insert_preserved';
-    }
-    if ((counts['manual_reorder_preserved_photo_path'] ?? 0) > 0) {
-      return '$label;manual_reorder_preserved';
-    }
-    return label;
   }
 }
 

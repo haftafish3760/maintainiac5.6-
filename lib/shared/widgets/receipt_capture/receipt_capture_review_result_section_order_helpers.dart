@@ -5,17 +5,151 @@ List<String> _receiptRetakeInvalidOrderCodes({
   required int? originalSection,
   required int? finalSection,
 }) {
-  if (originalSection == null || finalSection == null) return const [];
   final codes = <String>[];
+  final replacementOffset = _diagnosticZeroOrPositiveInt(
+    diagnostics['receiptRetakeReplacementOffset'],
+  );
+  final insertedExtra = _diagnosticBool(
+    diagnostics['receiptRetakeInsertedExtraSection'],
+  );
+  final preservedSlot = _diagnosticBool(
+    diagnostics['receiptRetakePreservedOriginalSlot'],
+  );
+  final hasPrevious = _diagnosticBool(
+    diagnostics['receiptRetakeHasPreviousAlignmentContext'],
+  );
+  final hasNext = _diagnosticBool(
+    diagnostics['receiptRetakeHasNextAlignmentContext'],
+  );
+  final hasTwoSided = _diagnosticBool(
+    diagnostics['receiptRetakeHasTwoSidedAlignmentContext'],
+  );
+  final previousSection = _diagnosticPositiveInt(
+    diagnostics['receiptRetakePreviousContextSectionNumber'],
+  );
+  final nextSection = _diagnosticPositiveInt(
+    diagnostics['receiptRetakeNextContextSectionNumber'],
+  );
+  if (originalSection == null || finalSection == null) return const [];
   if (finalSection < originalSection) {
     codes.add('retake_invalid_final_before_original');
   }
-  if (_diagnosticBool(diagnostics['receiptRetakePreservedOriginalSlot']) ==
-          true &&
-      finalSection != originalSection) {
+  if (preservedSlot == true && finalSection != originalSection) {
     codes.add('retake_invalid_preserved_slot_moved');
   }
+  if (insertedExtra == true && replacementOffset != null) {
+    final expectedFinalSection = originalSection + replacementOffset + 1;
+    if (finalSection != expectedFinalSection) {
+      codes.add('retake_invalid_offset_final_mismatch');
+    }
+  }
+  if (insertedExtra == true && replacementOffset == null) {
+    codes.add('retake_invalid_extra_without_offset');
+  }
+  if (insertedExtra != true &&
+      replacementOffset != null &&
+      !(preservedSlot == true && replacementOffset == 0)) {
+    codes.add('retake_invalid_offset_without_extra');
+  }
+  if (hasTwoSided == true && (hasPrevious != true || hasNext != true)) {
+    codes.add('retake_invalid_two_sided_flags');
+  }
+  if (hasPrevious == true && previousSection == null) {
+    codes.add('retake_invalid_missing_previous_context_section');
+  }
+  if (hasPrevious != true && previousSection != null) {
+    codes.add('retake_invalid_unexpected_previous_context_section');
+  }
+  if (hasNext == true && nextSection == null) {
+    codes.add('retake_invalid_missing_next_context_section');
+  }
+  if (hasNext != true && nextSection != null) {
+    codes.add('retake_invalid_unexpected_next_context_section');
+  }
+  if (previousSection != null && previousSection >= originalSection) {
+    codes.add('retake_invalid_previous_context_order');
+  }
+  if (previousSection != null && previousSection + 1 != originalSection) {
+    codes.add('retake_invalid_previous_context_gap');
+  }
+  if (nextSection != null && nextSection <= originalSection) {
+    codes.add('retake_invalid_next_context_order');
+  }
+  if (nextSection != null && nextSection != originalSection + 1) {
+    codes.add('retake_invalid_next_context_gap');
+  }
+  if (hasPrevious == true && hasNext == true && hasTwoSided != true) {
+    codes.add('retake_invalid_two_sided_section_without_flag');
+  }
   return codes;
+}
+
+List<String> _receiptNativeGhostRetakeInvalidOrderCodes({
+  required bool hasRetakeMetadata,
+  required Map<String, Object?> diagnostics,
+  required int? originalSection,
+}) {
+  if (!hasRetakeMetadata) return const [];
+  final ghostVisible = _diagnosticBool(
+    diagnostics['previousSectionGhostGuideVisible'],
+  );
+  final previousSection = _diagnosticPositiveInt(
+    diagnostics['receiptRetakePreviousContextSectionNumber'],
+  );
+  final hasPrevious = _diagnosticBool(
+    diagnostics['receiptRetakeHasPreviousAlignmentContext'],
+  );
+  if (ghostVisible != true) return const [];
+  final codes = <String>[];
+  if (hasPrevious != true) {
+    codes.add('retake_invalid_ghost_without_previous_context');
+  }
+  if (previousSection == null) {
+    codes.add('retake_invalid_ghost_missing_previous_section');
+  }
+  if (originalSection != null && previousSection != null) {
+    if (previousSection >= originalSection) {
+      codes.add('retake_invalid_ghost_previous_after_target');
+    }
+    if (previousSection + 1 != originalSection) {
+      codes.add('retake_invalid_ghost_previous_gap');
+    }
+  }
+  return codes;
+}
+
+List<String> _receiptRetakeInvalidGuidanceCodes({
+  required bool hasRetakeMetadata,
+  required int? originalSection,
+  required String guidance,
+}) {
+  if (!hasRetakeMetadata || guidance == 'unknown') return const [];
+  if (originalSection == null) return const [];
+  if (originalSection <= 1 &&
+      guidance != 'retake_top_with_next_context' &&
+      guidance != 'retake_single_section_no_context') {
+    return const ['retake_invalid_guidance_for_top_section'];
+  }
+  if (originalSection > 1 &&
+      (guidance == 'retake_top_with_next_context' ||
+          guidance == 'retake_single_section_no_context')) {
+    return const ['retake_invalid_top_guidance_for_later_section'];
+  }
+  return const [];
+}
+
+List<String> _receiptRetakeInvalidPreviousGuideReasonCodes({
+  required bool hasRetakeMetadata,
+  required int? originalSection,
+  required String previousSectionReason,
+}) {
+  if (!hasRetakeMetadata ||
+      previousSectionReason == 'unknown' ||
+      originalSection == null ||
+      originalSection > 1) {
+    return const [];
+  }
+  return const ['retake_invalid_previous_guide_for_top_section'];
 }
 
 List<String> _receiptInsertInvalidOrderCodes({
@@ -23,8 +157,11 @@ List<String> _receiptInsertInvalidOrderCodes({
   required int? anchorSection,
   required int? finalSection,
 }) {
-  if (anchorSection == null || finalSection == null) return const [];
   final codes = <String>[];
+  final offset = _diagnosticZeroOrPositiveInt(
+    diagnostics['receiptInsertAfterOffset'],
+  );
+  if (anchorSection == null || finalSection == null) return const [];
   if (finalSection <= anchorSection) {
     codes.add('insert_invalid_final_not_after_anchor');
   }
@@ -32,6 +169,11 @@ List<String> _receiptInsertInvalidOrderCodes({
           true &&
       finalSection <= anchorSection) {
     codes.add('insert_invalid_preserved_anchor_overlap');
+  }
+  if (offset == null) {
+    codes.add('insert_invalid_missing_offset');
+  } else if (finalSection != anchorSection + offset + 1) {
+    codes.add('insert_invalid_offset_final_mismatch');
   }
   return codes;
 }
