@@ -66,7 +66,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       targetPhotoPath: targetPhotoPath,
     );
     final picked = await _pickReceiptPhotos(
-      alignmentGuidePhotoPath: retakeContext?.preferredGuidePhotoPath,
+      alignmentGuidePhotoPath: retakeContext?.previousSectionGuidePhotoPath,
       alignmentReasonCode: retakeContext?.guidanceCode,
       alignmentGuidance: retakeContext?.guidanceText,
     );

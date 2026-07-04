@@ -18,6 +18,7 @@ class ReceiptPhotoRetakeAlignmentContext {
   bool get hasTwoSidedContext => hasPreviousContext && hasNextContext;
 
   String? get preferredGuidePhotoPath => previousPhotoPath ?? nextPhotoPath;
+  String? get previousSectionGuidePhotoPath => previousPhotoPath;
 
   String get guidanceCode {
     if (hasTwoSidedContext) return 'retake_middle_with_previous_next_context';
@@ -33,7 +34,7 @@ class ReceiptPhotoRetakeAlignmentContext {
       'retake_bottom_with_previous_context' =>
         'Retake the bottom receipt section using the previous section as the top ghost guide.',
       'retake_top_with_next_context' =>
-        'Retake the top receipt section and check that it still joins cleanly with the next section.',
+        'Retake the top receipt section, then check that it still joins cleanly with the next section in review.',
       _ =>
         'Retake this receipt section and verify the receipt order before OCR.',
     };

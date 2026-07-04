@@ -109,7 +109,7 @@ void main() {
         'final retakeContext = ReceiptPhotoRetakeAlignmentContext.build(',
       ),
     );
-    expect(sources.captureActions, contains('preferredGuidePhotoPath'));
+    expect(sources.captureActions, contains('previousSectionGuidePhotoPath'));
     expect(sources.captureActions, contains('alignmentReasonCode:'));
     expect(sources.captureActions, contains('retakeContext?.guidanceCode'));
     expect(sources.captureActions, contains('alignmentGuidance:'));

@@ -16,6 +16,7 @@ void main() {
     expect(plan.alignmentContext.previousPhotoPath, 'top.jpg');
     expect(plan.alignmentContext.nextPhotoPath, 'bottom.jpg');
     expect(plan.alignmentContext.preferredGuidePhotoPath, 'top.jpg');
+    expect(plan.alignmentContext.previousSectionGuidePhotoPath, 'top.jpg');
     expect(plan.alignmentContext.hasTwoSidedContext, isTrue);
     expect(
       plan.alignmentContext.guidanceCode,
@@ -427,10 +428,11 @@ void main() {
     expect(context!.previousPhotoPath, isNull);
     expect(context.nextPhotoPath, 'middle.jpg');
     expect(context.preferredGuidePhotoPath, 'middle.jpg');
+    expect(context.previousSectionGuidePhotoPath, isNull);
     expect(context.guidanceCode, 'retake_top_with_next_context');
     expect(
       context.guidanceText,
-      contains('joins cleanly with the next section'),
+      contains('check that it still joins cleanly with the next section'),
     );
 
     final plan = ReceiptPhotoRetakeOrderPlan.build(
@@ -462,6 +464,7 @@ void main() {
     expect(context!.previousPhotoPath, 'middle.jpg');
     expect(context.nextPhotoPath, isNull);
     expect(context.preferredGuidePhotoPath, 'middle.jpg');
+    expect(context.previousSectionGuidePhotoPath, 'middle.jpg');
     expect(context.guidanceCode, 'retake_bottom_with_previous_context');
     expect(context.guidanceText, contains('previous section'));
 

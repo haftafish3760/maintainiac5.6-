@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 871 - 16:12:00 EDT to active cleanup
+
+Scope:
+- Stopped top-section retakes from feeding the next receipt section into the
+  native previous-section ghost overlay field.
+- Added a previous-section-only retake guide handoff so native top ghost
+  overlays are used only when the retake has true previous-section context.
+- Kept top-section next-context guidance as review guidance until a real
+  next-section overlay exists.
+- Added focused retake-order and long-receipt guidance regressions.
+- Recorded `BUG-RECEIPT-0320` under `ghost_overlap_stitching`.
+- Archived Pass 798 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused retake-order/long-receipt
+  guidance regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 870 - 16:09:00 EDT to active cleanup
 
 Scope:
@@ -464,23 +483,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer and focused source-prep, stitch-scanner,
   telemetry, and OCR-source quality regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 798 - 09:00:00 EDT to active cleanup
-
-Scope:
-- Renamed stale OCR source policy guard tokens away from
-  original-quality wording to temporary full-quality source wording.
-- Kept explicit original-quality proof wording only for user-selected
-  original proof retention.
-- Updated shared flow and attachment risk flags to use the new temporary source
-  guard token.
-- Added scanner-prep regression assertions that reject the old internal guard
-  wording.
-- Recorded `BUG-RECEIPT-0282` under `source_preservation`.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused stitch-scanner regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
