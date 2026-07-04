@@ -366,6 +366,23 @@ const maintainiacInventoryParserConsumerContract = MaintainiacInventoryParserCon
       command:
           'flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.real_receipt_validation_contract,qa.threshold_gate',
     ),
+    MaintainiacInventoryParserQaFamily(
+      id: 'portable_parser_core_boundary',
+      label: 'Environment-independent parser core and adapter boundaries',
+      files: [
+        'test/support/work_supply_parser_qa/work_supply_parser_platform_contract_qa.dart',
+        'test/support/work_supply_parser_qa/work_supply_parser_portability_qa.dart',
+        'test/support/work_supply_parser_qa/work_supply_parser_boundary_qa.dart',
+      ],
+      riskTags: {
+        'governance',
+        'performance',
+        'pack-lifecycle',
+        'source-of-truth',
+      },
+      command:
+          'flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.parser_platform_contract,inventory.portability_contract,inventory.boundary_guard,qa.threshold_gate',
+    ),
   ],
 );
 

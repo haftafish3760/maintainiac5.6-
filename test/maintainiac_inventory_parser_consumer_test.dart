@@ -30,6 +30,7 @@ void main() {
         'generated_batch_runner',
         'catalog_expansion_lifecycle',
         'real_receipt_validation_privacy',
+        'portable_parser_core_boundary',
       ]),
     );
   });
