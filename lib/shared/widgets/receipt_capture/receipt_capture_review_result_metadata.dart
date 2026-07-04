@@ -88,6 +88,12 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
       'nativeReceiptReviewDepth': nativeReceiptReviewDepth,
       if (nativeReceiptReviewDepthCounts.isNotEmpty)
         'nativeReceiptReviewDepthCounts': nativeReceiptReviewDepthCounts,
+      'receiptDetailsReviewIntent': _receiptDetailsReviewIntentFor(
+        nativeReceiptReviewDepth,
+      ),
+      'receiptDetailsLineReviewMode': _receiptDetailsLineReviewModeFor(
+        nativeReceiptReviewDepth,
+      ),
       'receiptProofDataSaverLevel': dataSaverLevel.name,
       'ocrSourcePreparationCount': preparationDiagnosticsByOcrPath.length,
       if (scannerDecisionCounts.isNotEmpty)
@@ -166,4 +172,14 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
         'stitchPairDiagnosticCounts': stitchPairDiagnosticCounts,
     });
   }
+}
+
+String _receiptDetailsReviewIntentFor(String nativeReviewDepth) {
+  if (nativeReviewDepth == 'detailedLines') return 'detailed_lines';
+  return 'price_only';
+}
+
+String _receiptDetailsLineReviewModeFor(String nativeReviewDepth) {
+  if (nativeReviewDepth == 'detailedLines') return 'full_item_details';
+  return 'amounts_only';
 }

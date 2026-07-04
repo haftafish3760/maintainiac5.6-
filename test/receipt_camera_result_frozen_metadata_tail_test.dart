@@ -5,6 +5,35 @@ import 'helpers/receipt_camera_result_frozen_fixture.dart';
 
 void main() {
   test(
+    'price-only receipt review intent stays explicit in handoff metadata',
+    () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/proof.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/proof.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/proof.jpg']),
+        captureDiagnosticsByPhotoPath: const {
+          '/tmp/proof.jpg': {'reviewDepth': 'pricesOnly'},
+        },
+      );
+      final handoffMetadata = result.privacySafeReceiptReaderHandoffMetadata;
+
+      expect(
+        handoffMetadata,
+        containsPair('nativeReceiptReviewDepth', 'pricesOnly'),
+      );
+      expect(
+        handoffMetadata,
+        containsPair('receiptDetailsReviewIntent', 'price_only'),
+      );
+      expect(
+        handoffMetadata,
+        containsPair('receiptDetailsLineReviewMode', 'amounts_only'),
+      );
+    },
+  );
+
+  test(
     'accepted review freezes receipt proof metadata and immutable diagnostics',
     () {
       final fixture = frozenReceiptCameraDiagnosticsFixture();
@@ -46,6 +75,14 @@ void main() {
       expect(
         handoffMetadata,
         containsPair('nativeReceiptReviewDepth', 'detailedLines'),
+      );
+      expect(
+        handoffMetadata,
+        containsPair('receiptDetailsReviewIntent', 'detailed_lines'),
+      );
+      expect(
+        handoffMetadata,
+        containsPair('receiptDetailsLineReviewMode', 'full_item_details'),
       );
       expect(
         handoffMetadata,

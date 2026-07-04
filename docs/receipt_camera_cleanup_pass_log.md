@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 665 - 23:38:21 EDT to active cleanup
+
+Scope:
+- Hardened receipt-details review handoff metadata so price-only versus
+  detailed-line intent is exposed as product-level receipt review evidence,
+  not only as native camera bridge diagnostics.
+- Added explicit `receiptDetailsReviewIntent` and
+  `receiptDetailsLineReviewMode` fields for downstream OCR/parser/review
+  contracts.
+- Added focused regressions for both detailed-line and price-only receipt
+  handoff metadata.
+- Archived Pass 635 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0180` under `receipt_line_review_mode`.
+
+Verification:
+- Passed targeted Dart format/analyzer for receipt review handoff metadata.
+- Passed focused Flutter receipt metadata regression.
+- Passed cleanup log gate, doc-size gate, bug ledger gate, source audit, and
+  whitespace check.
+
 ## Pass 664 - 23:35:31 EDT to active cleanup
 
 Scope:
@@ -469,23 +489,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for client-proof receipt line contracts.
 - Passed focused Flutter receipt processing contract regression.
-- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
-  check.
-
-## Pass 635 - 22:18:44 EDT to active cleanup
-
-Scope:
-- Extended edited-photo action redaction from receipt-reader metadata into
-  attachment document signals and OCR-source risk flags.
-- Added a focused public attachment handoff regression proving malformed edit
-  action text is bucketed without leaking receipt-like content or local paths.
-- Archived Pass 624 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0156` under `privacy_redaction`.
-
-Verification:
-- Fixed the first targeted test run by adding the missing receipt model import.
-- Passed targeted Dart format/analyzer for attachment and capture-flow handoff
-  changes.
-- Passed focused Flutter recovery handoff regression.
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.
