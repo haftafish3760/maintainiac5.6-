@@ -44,7 +44,7 @@ class WorkSupplyBarcodeScanBridge {
           barcodeValue: lookupValue,
           barcodeFormat: workSupplyBarcodeFormatForScannedCode(code),
           sourceFormat: code.format,
-          sourceValueType: code.valueType,
+          sourceValueType: code.privacySafeValueType,
         ),
       );
     }

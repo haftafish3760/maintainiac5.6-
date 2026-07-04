@@ -64,18 +64,34 @@ void main() {
   test('barcode scanner does not expose sensitive QR payloads for lookup', () {
     const wifi = ReceiptScannedCode(
       format: ReceiptBarcodeFormat.qrCode,
-      valueType: 'wifi',
+      valueType: 'WIFI',
       rawValue: 'WIFI:T:WPA;S:PrivateNetwork;P:secret;;',
     );
     const driverLicense = ReceiptScannedCode(
       format: ReceiptBarcodeFormat.pdf417,
-      valueType: 'driverLicense',
+      valueType: 'driver_license',
       rawValue: 'private-license-payload',
+    );
+    const malformedType = ReceiptScannedCode(
+      format: ReceiptBarcodeFormat.qrCode,
+      valueType: 'customer_email_private_payload',
+      rawValue: 'QR WORK 14 2 NMB',
     );
 
     expect(wifi.inventoryLookupValue, isNull);
     expect(driverLicense.inventoryLookupValue, isNull);
     expect(wifi.privacySafeSummaryMap['isSensitivePayloadType'], isTrue);
+    expect(wifi.privacySafeSummaryMap['valueTypeBucket'], 'wifi');
+    expect(
+      driverLicense.privacySafeSummaryMap['valueTypeBucket'],
+      'driverLicense',
+    );
+    expect(malformedType.inventoryLookupValue, 'QRWORK142NMB');
+    expect(malformedType.privacySafeSummaryMap['valueTypeBucket'], 'other');
+    expect(
+      malformedType.privacySafeSummaryMap.toString(),
+      isNot(contains('customer_email_private_payload')),
+    );
     expect(
       driverLicense.privacySafeSummaryMap.toString(),
       isNot(contains('private')),

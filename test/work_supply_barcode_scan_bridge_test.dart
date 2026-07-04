@@ -45,7 +45,7 @@ void main() {
         ),
         ReceiptScannedCode(
           format: ReceiptBarcodeFormat.ean13,
-          valueType: 'product',
+          valueType: 'PRODUCT',
           rawValue: '1234567890123',
         ),
         ReceiptScannedCode(
@@ -61,6 +61,7 @@ void main() {
     expect(suggestions, hasLength(1));
     expect(suggestions.single.barcodeValue, '1234567890123');
     expect(suggestions.single.barcodeFormat, 'ean13');
+    expect(suggestions.single.sourceValueType, 'product');
     expect(
       suggestions.single.privacySafeSummaryMap.toString(),
       isNot(contains('123456')),
@@ -83,5 +84,28 @@ void main() {
 
     expect(suggestion.privacySafeSummaryMap['barcodeFormat'], 'upcA');
     expect(workSupplyBarcodeFormatForScannedCode(unknownCode), 'qrOrCode128');
+  });
+
+  test('barcode scan bridge keeps malformed value type out of summaries', () {
+    const bridge = WorkSupplyBarcodeScanBridge();
+    const result = ReceiptBarcodeScanResult(
+      imagePath: '/tmp/code.jpg',
+      purpose: ReceiptBarcodeScanPurpose.inventory,
+      codes: [
+        ReceiptScannedCode(
+          format: ReceiptBarcodeFormat.qrCode,
+          valueType: 'private_customer_payload',
+          rawValue: 'QR WORK 14 2 NMB',
+        ),
+      ],
+    );
+
+    final suggestion = bridge.suggestionsFromScanResult(result).single;
+
+    expect(suggestion.sourceValueType, 'other');
+    expect(
+      suggestion.privacySafeSummaryMap.toString(),
+      isNot(contains('private_customer_payload')),
+    );
   });
 }

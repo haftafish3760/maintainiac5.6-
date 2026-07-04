@@ -55,8 +55,10 @@ class ReceiptScannedCode {
 
   bool get isQrCode => format == ReceiptBarcodeFormat.qrCode;
   bool get hasValue => normalizedValue.isNotEmpty;
+  String get privacySafeValueType => _privacySafeBarcodeValueType(valueType);
+
   bool get isSensitivePayloadType {
-    return switch (valueType) {
+    return switch (privacySafeValueType) {
       'contactInfo' ||
       'email' ||
       'phone' ||
@@ -83,7 +85,7 @@ class ReceiptScannedCode {
   Map<String, Object?> get privacySafeSummaryMap {
     return {
       'format': format.name,
-      'valueType': valueType,
+      'valueTypeBucket': privacySafeValueType,
       'isQrCode': isQrCode,
       'hasValue': hasValue,
       'isSensitivePayloadType': isSensitivePayloadType,
@@ -126,7 +128,8 @@ class ReceiptBarcodeScanResult {
     for (final code in codes) {
       formatCounts[code.format.name] =
           (formatCounts[code.format.name] ?? 0) + 1;
-      typeCounts[code.valueType] = (typeCounts[code.valueType] ?? 0) + 1;
+      final type = code.privacySafeValueType;
+      typeCounts[type] = (typeCounts[type] ?? 0) + 1;
     }
     return {
       'purpose': purpose.name,
@@ -138,6 +141,27 @@ class ReceiptBarcodeScanResult {
       'warnings': List.unmodifiable(warnings),
     };
   }
+}
+
+String _privacySafeBarcodeValueType(String valueType) {
+  final token = valueType.trim();
+  if (token.isEmpty) return 'unknown';
+  final normalized = token.replaceAll(RegExp(r'[\s_-]+'), '').toLowerCase();
+  return switch (normalized) {
+    'contactinfo' => 'contactInfo',
+    'email' => 'email',
+    'phone' => 'phone',
+    'sms' => 'sms',
+    'wifi' => 'wifi',
+    'geocoordinates' => 'geoCoordinates',
+    'calendarevent' => 'calendarEvent',
+    'driverlicense' => 'driverLicense',
+    'product' => 'product',
+    'text' => 'text',
+    'url' => 'url',
+    'isbn' => 'isbn',
+    _ => 'other',
+  };
 }
 
 abstract interface class ReceiptBarcodeImageDecoder {

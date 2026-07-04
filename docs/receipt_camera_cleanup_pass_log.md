@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 650 - 22:51:56 EDT to active cleanup
+
+Scope:
+- Hardened the shared ML Kit barcode/QR scanner boundary so privacy-safe
+  summaries expose sanitized value-type buckets instead of raw scanner text.
+- Made sensitive QR/barcode payload blocking case-insensitive and passed only
+  safe value-type buckets into the work-supply barcode bridge.
+- Added regressions for uppercase sensitive QR types and malformed value-type
+  strings.
+- First focused test run failed because `privacySafeSummaryMap` still exposed
+  the raw `valueType`; fixed by removing that raw key.
+- Recorded `BUG-RECEIPT-0168` under `barcode_qr_scanning`.
+- Archived Pass 612 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for shared scanner and bridge tests.
+- Passed focused Flutter barcode scanner and work-supply barcode bridge
+  regressions.
+
 ## Pass 649 - 22:50:22 EDT to active cleanup
 
 Scope:
@@ -458,22 +477,3 @@ Verification:
 - Passed focused Flutter receipt QA runner contract regressions.
 - Passed damaged OCR fixture runner at 108/108 checks.
 - Passed cleanup log, doc size, source audit, and diff whitespace gates.
-
-## Pass 612 - 21:23:12 EDT to active cleanup
-
-Scope:
-- Hardened receipt layout line numbering so malformed zero or negative line
-  numbers clamp before stable line IDs, proof redaction anchors, parser line
-  lists, and client-proof default visible line lists use them.
-- Filtered invalid requested redaction line numbers out of generated
-  client-proof redaction plans.
-- Added regression coverage for malformed layout lines and privacy-safe proof
-  anchors.
-- Recorded `BUG-RECEIPT-0133` under `receipt_line_numbering`.
-- Archived Pass 589 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for receipt layout intelligence and
-  direct parser parity regressions.
-- Passed focused Flutter direct parser parity regression coverage.
