@@ -54,10 +54,10 @@ class ExpenseSettingsController extends ChangeNotifier {
   bool get pushNotifications => _readBool(_Keys.pushNotifications, false);
   bool get audibleNotifications => _readBool(_Keys.audibleNotifications, false);
   bool get draftReminder => _readBool(_Keys.draftReminder, true);
-  ExpenseReceiptReviewStyle get receiptReviewStyle =>
-      ExpenseReceiptReviewStyle.fromName(
-        _box.get(_Keys.receiptReviewStyle) as String?,
-      );
+  ExpenseReceiptReviewStyle get receiptReviewStyle {
+    final value = _box.get(_Keys.receiptReviewStyle);
+    return ExpenseReceiptReviewStyle.fromName(value is String ? value : null);
+  }
 
   List<String> get quickCategoryOrder =>
       _readStringList(_Keys.quickCategoryOrder);

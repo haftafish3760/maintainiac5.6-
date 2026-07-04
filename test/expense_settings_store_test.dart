@@ -139,6 +139,21 @@ void main() {
   });
 
   test(
+    'receipt review style ignores corrupted non-string storage values',
+    () async {
+      final settings = await ExpenseSettingsController.create();
+      final box = Hive.box<dynamic>(ExpenseSettingsController.boxName);
+
+      await box.put('receiptReviewStyle', 17);
+
+      expect(
+        settings.receiptReviewStyle,
+        ExpenseReceiptReviewStyle.simpleAmounts,
+      );
+    },
+  );
+
+  test(
     'expense settings scope can be optional for shared receipt widgets',
     () async {
       final source = await File(
