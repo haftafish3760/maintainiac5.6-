@@ -3582,3 +3582,11 @@ Release boundaries:
   semantic catalog candidates. Focused
   `inventory.fixture_expectation_contract,inventory.fixture_candidate_identity_contract,qa.threshold_gate`
   passed 401 checks with 0 failures.
+- **11:38 Harness Pass 2653:** Added Plumbing Core/Standard water-treatment
+  service-family pressure for common residential water filters. The first
+  focused gate exposed missing sediment filter, whole-house filter, and filter
+  cartridge Plumbing evidence; added `Water Treatment Service Stock` to the
+  Plumbing service-truck catalog with water filter cartridge, sediment filter,
+  whole-house filter housing, spin-down sediment filter, and filter housing
+  parts. Focused `inventory.release_one_service_family_contract,qa.threshold_gate`
+  passed 17,057 checks with 0 failures, and targeted analyzer found no issues.

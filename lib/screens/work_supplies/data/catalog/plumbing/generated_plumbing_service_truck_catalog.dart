@@ -431,6 +431,47 @@ final plumbingServiceTruckCategory = _category('Service Truck Stock', [
       ),
     ),
   ]),
+  _system('Water Treatment Service Stock', [
+    _type(
+      'Whole House Filter Service Parts',
+      _plumbingServiceMatrixItems(
+        baseName: 'Water Filter Service Part',
+        unit: 'each',
+        variants: [
+          for (final size in [
+            '2.5 x 10 in',
+            '2.5 x 20 in',
+            '4.5 x 10 in',
+            '4.5 x 20 in',
+          ])
+            for (final micron in ['1 micron', '5 micron', '20 micron'])
+              for (final media in [
+                'sediment filter cartridge',
+                'carbon filter cartridge',
+                'pleated filter cartridge',
+              ])
+                '$size $micron $media',
+          for (final port in ['3/4 in', '1 in'])
+            for (final part in [
+              'whole house filter housing',
+              'spin down sediment filter',
+              'filter housing wrench',
+              'filter housing o-ring',
+            ])
+              '$port $part',
+        ],
+        aliases: const [
+          'water filter',
+          'sediment filter',
+          'whole house filter',
+          'filter cartridge',
+          'water filter cartridge',
+          'filter housing',
+          'spin down filter',
+        ],
+      ),
+    ),
+  ]),
   _system('Plumbing Hand Tools', [
     _type(
       'Core Plumbing Hand Tools',

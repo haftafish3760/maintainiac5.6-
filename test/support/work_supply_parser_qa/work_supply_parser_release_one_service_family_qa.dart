@@ -93,6 +93,17 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
       minimumMatches: 8,
     ),
     _FamilySpec(
+      id: 'plumbing_water_treatment_service',
+      trade: 'Plumbing',
+      tokens: [
+        'water filter',
+        'sediment filter',
+        'whole house filter',
+        'filter cartridge',
+      ],
+      minimumMatches: 4,
+    ),
+    _FamilySpec(
       id: 'plumbing_service_tools',
       trade: 'Plumbing',
       tokens: [
@@ -258,6 +269,12 @@ class WorkSupplyParserReleaseOneServiceFamilySuite extends QaSuite {
       'pressure switch',
       'well pipe',
       'pitless adapter',
+    },
+    'plumbing_water_treatment_service': {
+      'water filter',
+      'sediment filter',
+      'whole house filter',
+      'filter cartridge',
     },
     'plumbing_service_tools': {
       'pipe cutter',
