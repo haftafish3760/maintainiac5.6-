@@ -15,6 +15,10 @@ class WorkSupplyParserRealReceiptValidationSuite extends QaSuite {
       'work_supply_parser_fixture_privacy_qa.dart';
   static const _legalSafetyQaPath =
       'test/support/work_supply_parser_qa/work_supply_parser_legal_safety_qa.dart';
+  static const _validationToolPath =
+      'tool/work_supply_parser_real_receipt_validation_log.dart';
+  static const _validationToolTestPath =
+      'test/work_supply_parser_real_receipt_validation_log_test.dart';
 
   static const _workflowTokens = {
     'Real Private Receipt Validation',
@@ -42,6 +46,24 @@ class WorkSupplyParserRealReceiptValidationSuite extends QaSuite {
     'phone',
     'street_address',
     'privacy-safe synthetic or redacted fixture text',
+  };
+
+  static const _toolTokens = {
+    'work_supply_parser_real_receipt_validation_log',
+    'rawReceiptStored',
+    'rawReceiptTextStored',
+    'privateReceiptContentCommitted',
+    'liveServicesAllowed',
+    'firebaseWritesAllowed',
+    'ocrCameraExpensesTouched',
+    'Forbidden private receipt field',
+    'Refusing to write outside build/',
+  };
+
+  static const _toolTestTokens = {
+    'rejects raw receipt text fields',
+    'writes only under build directory',
+    'writes a JSON artifact without private receipt content',
   };
 
   @override
@@ -85,6 +107,24 @@ class WorkSupplyParserRealReceiptValidationSuite extends QaSuite {
       category: QaFailureTriage.security,
       fix:
           'Legal safety QA must reject full private receipts and copied proprietary-looking fixture text.',
+    );
+    checked += _checkTokens(
+      failures,
+      contract: 'real_receipt_validation_tool',
+      source: _read(_validationToolPath),
+      tokens: _toolTokens,
+      category: QaFailureTriage.privacy,
+      fix:
+          'The local private receipt validation tool must write summary-only build artifacts and refuse raw/private receipt fields.',
+    );
+    checked += _checkTokens(
+      failures,
+      contract: 'real_receipt_validation_tool_tests',
+      source: _read(_validationToolTestPath),
+      tokens: _toolTestTokens,
+      category: QaFailureTriage.privacy,
+      fix:
+          'Tool tests must prove raw receipt fields are rejected and only build/ summary artifacts are written.',
     );
 
     return timer.finish(
