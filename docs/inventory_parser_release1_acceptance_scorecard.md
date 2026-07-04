@@ -90,6 +90,21 @@ not in a merchant pack. Unknown merchant text must go through generic
 normalization, item-family matching, size/unit extraction, conflict checks,
 context scoring, and review-safety rules.
 
+Named store fixtures are not the only release gate:
+
+- merchant_specific_rules_boost_but_do_not_force_truth
+- unknown_merchant_uses_generic_parser_pipeline
+- misspelled_merchant_keeps_review_safe_fallback
+- local_hardware_receipts_require_generic_coverage
+- regional_supplier_receipts_require_generic_coverage
+- counter_sale_receipts_require_generic_coverage
+- merchant_absent_receipts_do_not_fail_parser
+- named_store_fixtures_are_not_the_only_release_gate
+- store_independence_proof_required
+- receipt_wording_not_store_name_is_primary_evidence
+- merchant_department_hint_is_supporting_evidence
+- merchant_pack_missing_does_not_block_review_candidate
+
 The release goal is broad receipt understanding, not store lock-in.
 
 ## Target Behavior
@@ -160,7 +175,7 @@ Fixture families should include:
 - Packing-slip-like material lists.
 - PDF/email receipt text after extraction.
 - Spanish receipt wording common in United States stores.
-- Weird spacing, missing punctuation, all caps, OCR-like mistakes, quantities,
+- Bad spacing, weird spacing, missing punctuation, all caps, OCR-like mistakes, quantities,
   returns, discounts, taxes, subtotal lines, payment lines, and mixed-trade
   receipts.
 

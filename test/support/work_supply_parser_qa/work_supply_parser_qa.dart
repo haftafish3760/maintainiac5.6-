@@ -80,6 +80,7 @@ import 'work_supply_parser_locale_qa.dart';
 import 'work_supply_parser_maintainability_qa.dart';
 import 'work_supply_parser_master_coverage_matrix_qa.dart';
 import 'work_supply_parser_merchant_alias_normalization_qa.dart';
+import 'work_supply_parser_merchant_independence_qa.dart';
 import 'work_supply_parser_merchant_qa.dart';
 import 'work_supply_parser_merchant_matrix_qa.dart';
 import 'work_supply_parser_known_debt_qa.dart';
@@ -254,6 +255,7 @@ QaHarness buildWorkSupplyParserQaHarness() {
       WorkSupplyParserRankedCandidateSuite(),
       WorkSupplyParserContextSuite(),
       WorkSupplyParserMerchantSuite(),
+      WorkSupplyParserMerchantIndependenceSuite(),
       WorkSupplyParserMerchantMatrixSuite(),
       WorkSupplyParserReceiptNoiseSuite(),
       WorkSupplyParserAccuracyBudgetSuite(),

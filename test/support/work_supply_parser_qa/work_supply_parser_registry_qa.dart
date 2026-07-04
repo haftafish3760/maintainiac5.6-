@@ -58,6 +58,7 @@ class WorkSupplyParserRegistrySuite extends QaSuite {
     'inventory.language_pack_separation_contract',
     'inventory.master_coverage_matrix_contract',
     'inventory.merchant_alias_normalization_contract',
+    'inventory.merchant_independence_contract',
     'inventory.merchant_matrix_contract',
     'inventory.next_action_contract',
     'inventory.pack_integrity_recovery_contract',

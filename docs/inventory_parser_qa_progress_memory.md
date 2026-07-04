@@ -456,6 +456,8 @@ Failure-category first rerun routes:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.item_promotion_gate_contract,qa.threshold_gate`
 - inventory.merchant_matrix_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.merchant_matrix_contract,qa.threshold_gate`
+- inventory.merchant_independence_contract:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.merchant_independence_contract,qa.threshold_gate`
 - inventory.vendor_sku_matrix_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.vendor_sku_matrix_contract,qa.threshold_gate`
 - inventory.sku_collision_contract:
