@@ -3468,3 +3468,9 @@ Release boundaries:
   86 checks with 0 failures, and targeted analyzer found no issues in the
   edited QA file. The active Core Electrical/HVAC 500 queue remained running
   with 0 failed cells during the milestone check.
+- **10:27 Harness Pass 2534:** Strengthened the Release 1 scorecard contract
+  so it must keep unknown-merchant generic parsing, Firebase failure safety,
+  stale Firebase non-overwrite, and barcode/receipt disagreement review rules.
+  Focused scorecard gate passed 81 checks with 0 failures, and targeted analyzer
+  found no issues in the edited QA file. The active Core Electrical/HVAC 500
+  queue remained running with 0 failed cells during the milestone check.
