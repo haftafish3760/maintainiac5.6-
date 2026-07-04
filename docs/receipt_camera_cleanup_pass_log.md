@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 631 - 22:12:52 EDT to active cleanup
+
+Scope:
+- Hardened OCR parser draft line numbering so malformed signal indexes or direct
+  draft line numbers cannot publish `Line 0`, negative review labels, or unsafe
+  redaction/proof anchors.
+- Routed parser handoff `lineNumberByLineId` through the sanitized line number.
+- Added focused behavior regression coverage for malformed draft and signal line
+  numbers.
+- Archived Pass 621 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0152` under `receipt_line_numbering`.
+
+Verification:
+- Passed targeted Dart format/analyzer for parser line numbering changes.
+- Passed focused Flutter parser handoff structure regression.
+- Passed whitespace check.
+
 ## Pass 630 - 22:11:18 EDT to active cleanup
 
 Scope:
@@ -33,25 +50,6 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for continuation handoff changes.
 - Passed focused Flutter continuation handoff regression.
-- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
-  check.
-
-## Pass 621 - 21:50:00 EDT to active cleanup
-
-Scope:
-- Removed stale `tapFocusCoordinateSpace` metadata from Android and iOS native
-  receipt camera diagnostics.
-- Replaced it with `readabilityGuidanceCoordinateSpace` so QA/admin handoff
-  evidence matches the continuous-focus/readability camera strategy.
-- Updated the native staging safe-key allowlist and fixture metadata.
-- Added negative source-contract regressions so tap-focus coordinate metadata
-  cannot return quietly.
-- Recorded `BUG-RECEIPT-0142` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart analyzer for native diagnostic safe-key and fixture
-  updates.
-- Passed focused Android and iOS native source-contract regressions.
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.
 

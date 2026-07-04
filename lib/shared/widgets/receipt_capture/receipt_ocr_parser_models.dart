@@ -232,7 +232,8 @@ class ReceiptOcrParserLineDraft {
   bool get isVehicleSupplyCandidate =>
       expenseFamily == ReceiptOcrParserExpenseFamily.vehicleSupplies;
   bool get hasAmount => amount != null;
-  String get lineLabel => 'Line $lineNumber';
+  int get safeLineNumber => lineNumber < 1 ? 1 : lineNumber;
+  String get lineLabel => 'Line $safeLineNumber';
   String get sourceLocationLabel => sourceLocation?.label ?? '';
   String get sourceFirstLineLabel =>
       sourceLocationLabel.isEmpty ? lineLabel : sourceLocationLabel;
@@ -251,7 +252,7 @@ class ReceiptOcrParserLineDraft {
   Map<String, Object?> toLocalReviewMap() {
     return {
       'stableLineId': stableLineId,
-      'lineNumber': lineNumber,
+      'lineNumber': safeLineNumber,
       'sourceFirstLineLabel': sourceFirstLineLabel,
       'text': text,
       'role': role,
@@ -270,7 +271,7 @@ class ReceiptOcrParserLineDraft {
   Map<String, Object?> toPrivacySafeSummaryMap() {
     return {
       'stableLineId': stableLineId,
-      'lineNumber': lineNumber,
+      'lineNumber': safeLineNumber,
       'sourceFirstLineLabel': sourceFirstLineLabel,
       'role': role,
       'parserBucket': parserBucket,

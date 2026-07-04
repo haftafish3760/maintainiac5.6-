@@ -74,6 +74,52 @@ void main() {
     expect(draft.toPrivacySafeSummaryMap()['sourceSectionLineNumber'], 1);
   });
 
+  test('parser line drafts clamp unusable review line numbers', () {
+    const malformed = ReceiptOcrParserLineDraft(
+      stableLineId: 'ocr_line_bad_item',
+      lineNumber: -8,
+      text: 'PRIVATE ITEM TEXT 4.25',
+      role: 'item',
+      parserBucket: 'item_ready',
+      amount: 4.25,
+      confidence: .9,
+      needsReview: false,
+      reviewReason: 'Ready.',
+      traits: ['safe_terminal_line_amount'],
+    );
+    const malformedSignal = ReceiptOcrParserLineSignal(
+      index: -3,
+      text: 'PRIVATE SIGNAL TEXT 2.50',
+      kind: ReceiptOcrParserLineKind.itemCandidate,
+      amountCandidates: [2.50],
+      confidence: .9,
+      traits: ['safe_terminal_line_amount'],
+    );
+    final signalDraft = ReceiptOcrParserLineDraft.fromSignal(malformedSignal);
+    final handoff = ReceiptOcrParserHandoff(
+      lines: const [malformedSignal],
+      vendorLines: const [],
+      dateLines: const [],
+      itemLines: const [malformedSignal],
+      summaryLines: const [],
+      tenderLines: const [],
+      metadataLines: const [],
+    );
+
+    expect(malformed.safeLineNumber, 1);
+    expect(malformed.lineLabel, 'Line 1');
+    expect(malformed.proofLineReferenceLabel, 'Line 1');
+    expect(malformed.toLocalReviewMap()['lineNumber'], 1);
+    expect(malformed.toPrivacySafeSummaryMap()['lineNumber'], 1);
+    expect(signalDraft.safeLineNumber, 1);
+    expect(signalDraft.lineLabel, 'Line 1');
+    expect(handoff.lineNumberByLineId[malformedSignal.stableLineId], 1);
+    expect(
+      handoff.privacySafeParserHandoffContract['lineNumberByLineId'],
+      containsPair(malformedSignal.stableLineId, 1),
+    );
+  });
+
   test('parser handoff line id maps preserve first duplicate line id', () {
     const firstLocation = ReceiptOcrParserLineLocation(
       sectionNumber: 1,

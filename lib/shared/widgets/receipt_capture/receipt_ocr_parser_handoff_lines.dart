@@ -199,7 +199,7 @@ extension ReceiptOcrParserHandoffLineMaps on ReceiptOcrParserHandoff {
   Map<String, int> get lineNumberByLineId {
     final mapped = <String, int>{};
     for (final draft in lineDrafts) {
-      mapped.putIfAbsent(draft.stableLineId, () => draft.lineNumber);
+      mapped.putIfAbsent(draft.stableLineId, () => draft.safeLineNumber);
     }
     return Map<String, int>.unmodifiable(mapped);
   }
