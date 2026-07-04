@@ -41,6 +41,9 @@ class WorkSupplyParserLanguagePackSeparationSuite extends QaSuite {
     'language_pack_selection_is_user_or_region_driven',
     'missing_locale_pack_falls_back_conservatively',
     'locale_context_boosts_without_forcing_match',
+    'mixed_language_receipts_preserve_locale_pack_id',
+    'pvc_overlap_requires_trade_context_and_review',
+    'spanish_aliases_cover_plumbing_electrical_hvac_overlap',
   };
 
   static const _receiptLanguageSignals = {

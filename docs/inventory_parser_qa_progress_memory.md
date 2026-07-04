@@ -3511,3 +3511,22 @@ Release boundaries:
   before official pack changes. The correction behavior test passed 8/8, the
   correction/human-learning harness slice passed 56 checks with 0 failures, and
   targeted analyzer found no issues.
+- **10:45 Harness Pass 2585:** Added language-pack separation rules for mixed
+  US Spanish/English receipt text: `mixed_language_receipts_preserve_locale_pack_id`,
+  `pvc_overlap_requires_trade_context_and_review`, and
+  `spanish_aliases_cover_plumbing_electrical_hvac_overlap`. These rules require
+  Spanish Core parser fixtures to keep PVC overlap review-safe across Plumbing,
+  Electrical, and HVAC instead of hiding uncertainty with confidence caps.
+- **11:04 Harness Pass 2600:** Completed queue
+  `pass2515-core-electrical-hvac-500` for Electrical and HVAC residential Core in
+  `en-US` and `es-US`. Final generated-run status checked 2,000 cases with 0
+  failed cells, 0 unsafe cells, 2,064 parser calls, no live services, no
+  production catalog writes, no Firebase writes, and no OCR/camera/Expenses/UI
+  work. Final artifact:
+  `build/parser_qa_pipeline/pass2515_core_electrical_hvac_500_status.json`.
+- **11:04 Harness Pass 2601:** Added executable Spanish/Core PVC-overlap
+  behavior coverage for `codo pvc`, `conducto pvc`, and `drenaje condensado pvc`.
+  The fix added explicit `pvc conduit` and `condensate pvc` es-US locale aliases
+  so the parser uses stronger evidence instead of confidence caps. Focused
+  language-pack behavior passed 7/7, language-pack contract passed 43 checks
+  with 0 failures, and targeted analyzer found no issues.

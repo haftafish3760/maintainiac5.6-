@@ -38,26 +38,32 @@ void main() {
       expect(spanish.toManifestMap()['localePackId'], 'es-US');
     });
 
-    test('locale packs share canonical item counts without duplicating items', () {
-      final english = _coreOption(workSupplyLocalePackEnUs);
-      final spanish = _coreOption(workSupplyLocalePackEsUs);
-      final englishItems = buildWorkSupplyTradePackItems(
-        'Plumbing',
-        WorkSupplyTradePackTier.core,
-      );
-      final spanishItems = buildWorkSupplyTradePackItems(
-        'Plumbing',
-        WorkSupplyTradePackTier.core,
-      );
+    test(
+      'locale packs share canonical item counts without duplicating items',
+      () {
+        final english = _coreOption(workSupplyLocalePackEnUs);
+        final spanish = _coreOption(workSupplyLocalePackEsUs);
+        final englishItems = buildWorkSupplyTradePackItems(
+          'Plumbing',
+          WorkSupplyTradePackTier.core,
+        );
+        final spanishItems = buildWorkSupplyTradePackItems(
+          'Plumbing',
+          WorkSupplyTradePackTier.core,
+        );
 
-      expect(spanish.itemCount, english.itemCount);
-      expect(
-        spanish.estimatedRawBytes,
-        greaterThanOrEqualTo(english.estimatedRawBytes),
-        reason: 'Spanish alias overlay must not duplicate canonical items.',
-      );
-      expect(spanishItems.map((item) => item.id), englishItems.map((item) => item.id));
-    });
+        expect(spanish.itemCount, english.itemCount);
+        expect(
+          spanish.estimatedRawBytes,
+          greaterThanOrEqualTo(english.estimatedRawBytes),
+          reason: 'Spanish alias overlay must not duplicate canonical items.',
+        );
+        expect(
+          spanishItems.map((item) => item.id),
+          englishItems.map((item) => item.id),
+        );
+      },
+    );
 
     test('Spanish US receipt aliases match same canonical identity', () {
       final english = matchReceiptLineToCatalog(
@@ -100,6 +106,43 @@ void main() {
         english == null || spanish.confidence >= english.confidence,
         isTrue,
       );
+    });
+
+    test('mixed Spanish US PVC overlap keeps trade context review-safe', () {
+      final cases = <({String line, String trade, Set<String> terms})>[
+        (line: '3/4 CODO PVC SCH40', trade: 'Plumbing', terms: {'codo', 'pvc'}),
+        (
+          line: '3/4 CONDUCTO PVC CODO',
+          trade: 'Electrical',
+          terms: {'conduit', 'pvc'},
+        ),
+        (
+          line: '3/4 DRENAJE CONDENSADO PVC',
+          trade: 'HVAC',
+          terms: {'condensate', 'pvc'},
+        ),
+      ];
+
+      for (final receiptCase in cases) {
+        final match = matchReceiptLineToCatalog(
+          receiptCase.line,
+          tradeScope: receiptCase.trade,
+          localePackId: 'es-US',
+          maxCandidates: 500,
+        );
+
+        expect(match, isNotNull, reason: receiptCase.line);
+        expect(match!.item.trade, receiptCase.trade, reason: receiptCase.line);
+        expect(match.needsReview, isTrue, reason: receiptCase.line);
+        expect(match.confidence, lessThan(1), reason: receiptCase.line);
+        for (final term in receiptCase.terms) {
+          expect(
+            match.matchedTerms.any((matched) => matched.contains(term)),
+            isTrue,
+            reason: 'Expected "$term" evidence for ${receiptCase.line}.',
+          );
+        }
+      }
     });
 
     test('missing requested locale falls back conservatively', () {

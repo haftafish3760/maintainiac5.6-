@@ -154,6 +154,7 @@ const _spanishUnitedStatesReceiptTermAliases = {
   'single-pole breaker': ['breaker un polo', 'disyuntor un polo'],
   'double-pole breaker': ['breaker dos polos', 'disyuntor dos polos'],
   'emt conduit': ['conduit emt', 'tubo emt', 'canalizacion emt'],
+  'pvc conduit': ['conducto pvc', 'tubo conduit pvc', 'canalizacion pvc'],
   'emt connector': ['conector emt', 'connector emt'],
   'emt coupling': ['cople emt', 'acople emt', 'union emt'],
   'conduit body': ['cuerpo conduit', 'caja lb', 'lb conduit'],
@@ -191,6 +192,11 @@ const _spanishUnitedStatesReceiptTermAliases = {
   'filter': ['filtro'],
   'merv': ['merv'],
   'condensate pump': ['bomba condensado', 'bomba condensate'],
+  'condensate pvc': [
+    'drenaje condensado pvc',
+    'condensado pvc',
+    'drenaje pvc condensado',
+  ],
   'condensate coupling': [
     'acople condensado',
     'acople drenaje',

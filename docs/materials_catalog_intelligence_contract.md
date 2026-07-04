@@ -29,6 +29,18 @@ unknown merchant, and counter sale receipt wording. Unknown or local merchants
 should stay conservative and use generic parser evidence unless specific
 merchant rules provide enough reviewed context.
 
+Language-pack separation rules:
+
+- `mixed_language_receipts_preserve_locale_pack_id`
+- `pvc_overlap_requires_trade_context_and_review`
+- `spanish_aliases_cover_plumbing_electrical_hvac_overlap`
+
+US Spanish release-one parser fixtures must include mixed English/Spanish
+receipt wording for Plumbing, Electrical, and HVAC Core overlap. PVC wording is
+never enough by itself: `codo pvc`, `conducto pvc`, and `drenaje condensado pvc`
+must use trade context as ranking evidence while still remaining review-only
+until the user confirms the item.
+
 ## Hard Boundaries
 
 Do not edit the camera, OCR, PDF, shared receipt-capture, image-prep, receipt-stitching, or Expenses receipt pipeline while working from this contract.
