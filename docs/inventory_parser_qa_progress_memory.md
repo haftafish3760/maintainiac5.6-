@@ -137,6 +137,14 @@ Focused rerun routes for recently hardened release-one contracts:
   passed 788 checks with 0 failures. Runtime note: the fixture candidate
   identity suite took about 88 seconds on the Windows machine because it builds
   the catalog/search identity surface.
+- Passes 1910-1911 tightened `inventory.service_truck_core_contract` by adding
+  specific service-truck intent signals for well pump, pressure switch, pitless
+  adapter, pipe cutter, PEX crimp tool, basin wrench, toilet auger, and drain
+  snake so true residential service items are recognized explicitly instead of
+  relying only on vague pump/tool wording.
+- Validation:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.service_truck_core_contract,inventory.release_one_service_family_contract --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
+  passed 41,252 checks with 0 failures.
 - inventory.receipt_source_immutability_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.receipt_source_immutability_contract,qa.threshold_gate`
 - inventory.parser_platform_contract:
