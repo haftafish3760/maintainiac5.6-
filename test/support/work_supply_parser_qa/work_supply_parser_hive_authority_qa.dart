@@ -141,7 +141,7 @@ class WorkSupplyParserHiveAuthoritySuite extends QaSuite {
     String source,
     List<QaFailure> failures,
   ) {
-    final lower = source.toLowerCase();
+    final lower = _normalizeContractText(source);
     const requiredGuards = {
       'firebase is never inventory truth',
       'firestore is mirror only',
@@ -149,7 +149,7 @@ class WorkSupplyParserHiveAuthoritySuite extends QaSuite {
       'stale firestore never overwrites hive',
     };
     for (final guard in requiredGuards) {
-      if (lower.contains(guard)) continue;
+      if (lower.contains(_normalizeContractText(guard))) continue;
       failures.add(
         _failure(
           id: 'missing_hive_truth_guard:${_safeId(guard)}',
@@ -169,9 +169,9 @@ class WorkSupplyParserHiveAuthoritySuite extends QaSuite {
     String source,
     Set<String> rules,
   ) {
-    final lower = source.toLowerCase();
+    final lower = _normalizeContractText(source);
     for (final rule in rules) {
-      if (lower.contains(rule.toLowerCase())) continue;
+      if (lower.contains(_normalizeContractText(rule))) continue;
       failures.add(
         _failure(
           id: 'missing_hive_authority_rule:${_safeId(rule)}',
@@ -195,9 +195,9 @@ class WorkSupplyParserHiveAuthoritySuite extends QaSuite {
     required String fix,
     required String triage,
   }) {
-    final lower = source.toLowerCase();
+    final lower = _normalizeContractText(source);
     for (final token in tokens) {
-      if (lower.contains(token.toLowerCase())) continue;
+      if (lower.contains(_normalizeContractText(token))) continue;
       failures.add(
         _failure(
           id: '$idPrefix:${_safeId(token)}',
@@ -240,6 +240,10 @@ class WorkSupplyParserHiveAuthoritySuite extends QaSuite {
       metadata: {'triageCategory': triage},
     );
   }
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
 
 String _safeId(String value) {

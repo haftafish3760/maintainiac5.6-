@@ -3602,3 +3602,9 @@ Release boundaries:
   one-line contract text. Focused
   `inventory.price_tax_allocation_contract,inventory.financial_duplicate_guard_contract,qa.threshold_gate`
   passed 103 checks with 0 failures, and targeted analyzer found no issues.
+- **11:43 Harness Pass 2669:** Made Hive/local authority, Hive/Firestore sync,
+  and cloud/local mode contract matching whitespace-safe. This keeps the
+  source-of-truth rule durable: Hive/local is truth, Firestore/Firebase is a
+  mirror only, and parser QA stays local-only with no live Firebase writes.
+  Focused `inventory.hive_authority_contract,inventory.hive_firestore_sync_contract,inventory.cloud_local_mode_contract,qa.threshold_gate`
+  passed 139 checks with 0 failures, and targeted analyzer found no issues.

@@ -77,10 +77,17 @@ class WorkSupplyParserCloudLocalModeSuite extends QaSuite {
         '${_read(_behaviorPath)}\n'
         '$progress';
     var checked = 0;
+    final normalizedContract = _normalizeContractText(contract);
+    final normalizedDeliverySource = _normalizeContractText(deliverySource);
+    final normalizedQaSource = _normalizeContractText(qaSource);
 
     checked += _localModeTokens.length;
     for (final token in _localModeTokens) {
-      if (contract.contains(token) || deliverySource.contains(token)) continue;
+      final normalizedToken = _normalizeContractText(token);
+      if (normalizedContract.contains(normalizedToken) ||
+          normalizedDeliverySource.contains(normalizedToken)) {
+        continue;
+      }
       failures.add(
         _failure(
           id: 'missing_local_mode_token:${_safeId(token)}',
@@ -96,7 +103,11 @@ class WorkSupplyParserCloudLocalModeSuite extends QaSuite {
 
     checked += _cloudModeTokens.length;
     for (final token in _cloudModeTokens) {
-      if (contract.contains(token) || deliverySource.contains(token)) continue;
+      final normalizedToken = _normalizeContractText(token);
+      if (normalizedContract.contains(normalizedToken) ||
+          normalizedDeliverySource.contains(normalizedToken)) {
+        continue;
+      }
       failures.add(
         _failure(
           id: 'missing_cloud_mode_token:${_safeId(token)}',
@@ -112,7 +123,9 @@ class WorkSupplyParserCloudLocalModeSuite extends QaSuite {
 
     checked += _deliveryCodeTokens.length;
     for (final token in _deliveryCodeTokens) {
-      if (deliverySource.toLowerCase().contains(token.toLowerCase())) continue;
+      if (normalizedDeliverySource.contains(_normalizeContractText(token))) {
+        continue;
+      }
       failures.add(
         _failure(
           id: 'missing_delivery_code_token:${_safeId(token)}',
@@ -129,7 +142,7 @@ class WorkSupplyParserCloudLocalModeSuite extends QaSuite {
 
     checked += _qaGuardTokens.length;
     for (final token in _qaGuardTokens) {
-      if (qaSource.contains(token)) continue;
+      if (normalizedQaSource.contains(_normalizeContractText(token))) continue;
       failures.add(
         _failure(
           id: 'missing_cloud_local_qa_token:${_safeId(token)}',
@@ -171,8 +184,9 @@ class WorkSupplyParserCloudLocalModeSuite extends QaSuite {
       'coveredInputs',
       'focused-validated',
     };
+    final normalizedProgress = _normalizeContractText(progress);
     for (final token in requiredTokens) {
-      if (progress.contains(token)) continue;
+      if (normalizedProgress.contains(_normalizeContractText(token))) continue;
       failures.add(
         _failure(
           id: 'missing_cloud_local_memory:${_safeId(token)}',
@@ -206,6 +220,10 @@ class WorkSupplyParserCloudLocalModeSuite extends QaSuite {
       metadata: {'triageCategory': category},
     );
   }
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
 
 String _read(String path) {
