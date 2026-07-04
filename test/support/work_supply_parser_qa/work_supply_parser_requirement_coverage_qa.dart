@@ -321,6 +321,17 @@ class WorkSupplyParserRequirementCoverageSuite extends QaSuite {
       ['privacy-safe', 'release-one merchant/locale'],
     ),
     _RequirementCoverage(
+      'fake_user_review_workflow',
+      'inventory.fake_user_review_workflow',
+      [
+        'adapter text',
+        'parser suggestion',
+        'user review action',
+        'Hive/local truth',
+        'fake Firebase mirror queue',
+      ],
+    ),
+    _RequirementCoverage(
       'holdout_fixture_contract',
       'inventory.holdout_fixture_contract',
       [

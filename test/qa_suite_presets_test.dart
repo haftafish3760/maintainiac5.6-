@@ -37,6 +37,7 @@ void main() {
     expect(suites, contains('inventory.fixture_governance'));
     expect(suites, contains('inventory.fixture_coverage_matrix'));
     expect(suites, contains('inventory.fixture_corpus_contract'));
+    expect(suites, contains('inventory.fake_user_review_workflow'));
     expect(suites, contains('inventory.holdout_fixture_contract'));
     expect(suites, contains('inventory.determinism'));
     expect(suites, contains('inventory.metamorphic_variants'));
@@ -57,6 +58,7 @@ void main() {
     expect(suites, contains('inventory.device_storage_contract'));
     expect(suites, contains('inventory.correction_feedback_contract'));
     expect(suites, contains('inventory.release_manifest'));
+    expect(suites, contains('inventory.release_one_scorecard_contract'));
     expect(suites, contains('inventory.release_orchestration_contract'));
     expect(suites, contains('inventory.release_shard_manifest'));
     expect(suites, contains('inventory.release_signoff_manifest'));
@@ -118,6 +120,7 @@ void main() {
       'inventory.fixture_governance',
       'inventory.fixture_coverage_matrix',
       'inventory.fixture_corpus_contract',
+      'inventory.fake_user_review_workflow',
       'inventory.holdout_fixture_contract',
       'inventory.changed_item_impact',
       'inventory.determinism',
@@ -131,6 +134,7 @@ void main() {
       'inventory.device_storage_contract',
       'inventory.correction_feedback_contract',
       'inventory.release_manifest',
+      'inventory.release_one_scorecard_contract',
       'inventory.release_orchestration_contract',
       'inventory.release_shard_manifest',
       'inventory.release_signoff_manifest',

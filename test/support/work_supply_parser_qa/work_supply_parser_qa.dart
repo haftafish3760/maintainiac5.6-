@@ -43,6 +43,7 @@ import 'work_supply_parser_estimate_section_qa.dart';
 import 'work_supply_parser_evidence_qa.dart';
 import 'work_supply_parser_evidence_summary_qa.dart';
 import 'work_supply_parser_execution_command_qa.dart';
+import 'work_supply_parser_fake_user_review_workflow_qa.dart';
 import 'work_supply_parser_failure_taxonomy_qa.dart';
 import 'work_supply_parser_failure_routing_qa.dart';
 import 'work_supply_parser_financial_duplicate_guard_qa.dart';
@@ -207,6 +208,7 @@ QaHarness buildWorkSupplyParserQaHarness() {
       WorkSupplyParserRealReceiptValidationSuite(),
       WorkSupplyParserReceiptInvoiceFeedSuite(),
       WorkSupplyParserDuplicateReceiptImportSuite(),
+      WorkSupplyParserFakeUserReviewWorkflowSuite(),
       WorkSupplyParserSpanishReleaseOneSuite(),
       WorkSupplyParserLanguagePackSeparationSuite(),
       WorkSupplyParserStandardFixtureSeedSuite(),
