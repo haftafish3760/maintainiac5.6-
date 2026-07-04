@@ -3310,3 +3310,12 @@ Release boundaries:
   with 228,043 checks, 0 failures, latest QA artifact
   `build/parser_qa_reports/latest_work_supply_inventory_parser.json`, and no
   live Dart/Flutter process remained afterward.
+- **09:25 Harness Pass 2440:** Fixed evidence-summary readiness so missing
+  required artifacts now return a nonzero exit instead of only marking
+  `ready=false`. Added a `--queue-watchdog` override so the summary can point at
+  the current queue watchdog artifact instead of a stale default wave path.
+  Analyzer was clean, evidence-summary unit tests passed 5/5, focused
+  `inventory.evidence_summary_contract,qa.threshold_gate` governance passed 22
+  checks with 0 failures, and the live evidence summary reported 5/5 artifacts
+  present, `ready=true`, no unsafe findings, and all local-only safety flags
+  false.

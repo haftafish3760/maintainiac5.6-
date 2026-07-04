@@ -3,6 +3,7 @@ import 'dart:io';
 
 const _usage =
     'dart run tool/work_supply_parser_qa_evidence_summary.dart '
+    '[--queue-watchdog build/parser_qa_batch_waves/.../queue_watchdog.json] '
     '[--output build/parser_qa_pass_evidence/evidence_summary.json]';
 
 const _defaultArtifacts = {
@@ -45,8 +46,16 @@ int runWorkSupplyParserQaEvidenceSummary(
   final artifacts = <Map<String, Object?>>[];
   final missing = <String>[];
   final unsafe = <String>[];
+  final artifactPaths = {
+    ..._defaultArtifacts,
+    'queueWatchdog': _value(
+      args,
+      'queue-watchdog',
+      _defaultArtifacts['queueWatchdog']!,
+    ),
+  };
 
-  for (final entry in _defaultArtifacts.entries) {
+  for (final entry in artifactPaths.entries) {
     final file = File(entry.value);
     if (!file.existsSync()) {
       missing.add(entry.key);
@@ -107,7 +116,7 @@ int runWorkSupplyParserQaEvidenceSummary(
     'QA_EVIDENCE_SUMMARY ${const JsonEncoder.withIndent('  ').convert(summary)}',
   );
   stdout.writeln('QA_EVIDENCE_SUMMARY_ARTIFACT json=$output');
-  return unsafe.isEmpty ? 0 : 1;
+  return missing.isEmpty && unsafe.isEmpty ? 0 : 1;
 }
 
 String _value(List<String> args, String key, String fallback) {

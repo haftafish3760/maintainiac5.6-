@@ -318,6 +318,12 @@ Parser candidates remain review-only. `possibleMatches` must carry ranked altern
 | `service_truck_core` | `inventory.service_truck_core_contract` | everydayCore priority; service-truck signals; Core tier focus |
 | `release_one_pack_balance` | `inventory.release_one_pack_balance` | Core service-truck focus; tier expansion sanity |
 | `release_one_scorecard` | `inventory.release_one_scorecard_contract` | Release 1 parser acceptance scorecard; Merchant-Agnostic Receipt Coverage; Fake-User Parser Review Workflow; Firebase/Firestore is a mirror |
+
+Evidence summary can be pointed at the current queue watchdog instead of the older default wave path:
+
+```powershell
+dart run tool\work_supply_parser_qa_evidence_summary.dart --queue-watchdog build\parser_qa_batch_waves\<current-wave>\queue_watchdog.json --output build\parser_qa_pass_evidence\evidence_summary.json
+```
 | `catalog_expansion_lifecycle` | `inventory.catalog_expansion_lifecycle_contract` | QA harness completion is not the same thing as catalog completion; controlled batches; release-readiness evidence before promotion |
 | `real_receipt_validation` | `inventory.real_receipt_validation_contract` | Real Private Receipt Validation; private receipt content must not be committed; privacy-safe synthetic data |
 | `item_metadata_depth` | `inventory.item_metadata_depth` | receipt patterns; negative-match guards; output classification |

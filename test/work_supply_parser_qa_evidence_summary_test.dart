@@ -159,6 +159,98 @@ void main() {
     expect(summary['ready'], isFalse);
     expect(summary['unsafeFindings'].toString(), contains('healthy=false'));
   });
+
+  test('evidence summary exits nonzero for missing required artifacts', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_evidence_summary_missing_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeJson('build/parser_qa_pipeline/release_one_commands.json', {
+      'liveServicesAllowed': false,
+      'writesProductionCatalog': false,
+      'firebaseWritesAllowed': false,
+      'ocrCameraExpensesTouched': false,
+    });
+
+    final exit = runWorkSupplyParserQaEvidenceSummary(
+      const [],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 1);
+    final summary = _readJson(
+      'build/parser_qa_pass_evidence/evidence_summary.json',
+    );
+    expect(summary['ready'], isFalse);
+    expect(
+      summary['missingArtifactNames'].toString(),
+      contains('queueWatchdog'),
+    );
+  });
+
+  test('evidence summary can use the current queue watchdog artifact', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_evidence_summary_current_watchdog_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeJson('build/parser_qa_pipeline/release_one_commands.json', {
+      'cellCount': 24,
+      'liveServicesAllowed': false,
+      'writesProductionCatalog': false,
+      'firebaseWritesAllowed': false,
+      'ocrCameraExpensesTouched': false,
+    });
+    _writeJson('build/parser_qa_pipeline/fixture_readiness_rollup.json', {
+      'totalCells': 24,
+      'generatedFixtureCount': 24,
+      'readyForParserExecution': true,
+      'liveServicesAllowed': false,
+      'writesProductionCatalog': false,
+      'firebaseWritesAllowed': false,
+      'ocrCameraExpensesTouched': false,
+    });
+    _writeJson('build/current/queue_watchdog.json', {
+      'healthy': true,
+      'findings': [],
+      'liveServicesAllowed': false,
+      'writesProductionCatalog': false,
+      'firebaseWritesAllowed': false,
+      'ocrCameraExpensesTouched': false,
+    });
+    _writeJson('build/parser_qa_pass_evidence/latest_pass_evidence.json', {
+      'pass': '2429',
+      'label': 'release-one-core-standard-broad-contract-gate',
+      'liveServicesAllowed': false,
+      'writesProductionCatalog': false,
+      'firebaseWritesAllowed': false,
+      'ocrCameraExpensesTouched': false,
+    });
+    _writeJson(
+      'build/parser_qa_reports/latest_work_supply_inventory_parser.json',
+      {'checked': 228043, 'actualFailureCount': 0},
+    );
+
+    final exit = runWorkSupplyParserQaEvidenceSummary(
+      const ['--queue-watchdog', 'build/current/queue_watchdog.json'],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final summary = _readJson(
+      'build/parser_qa_pass_evidence/evidence_summary.json',
+    );
+    expect(summary['ready'], isTrue);
+    expect(summary['missingArtifactNames'], isEmpty);
+    expect(summary['artifacts'].toString(), contains('build/current'));
+  });
 }
 
 void _writeJson(String path, Map<String, Object?> value) {
