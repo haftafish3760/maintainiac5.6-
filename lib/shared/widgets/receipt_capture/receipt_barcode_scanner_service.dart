@@ -258,7 +258,7 @@ bool _looksLikeSensitiveBarcodePayload(String value) {
     return true;
   }
   return RegExp(
-    r'(^|[?&;:_\-/\s])(customer|client|patient|password|passwd|pwd|secret|token|auth|session|account|member|email|phone|license|driver)(=|:|/|_|-|\s|$)',
+    r'(^|[?&;:_\-/\s#])(customer|client|patient|password|passwd|pwd|secret|token|auth|session|account|member|email|phone|license|driver)(=|:|/|_|-|\s|#|\d|$)',
   ).hasMatch(normalized);
 }
 

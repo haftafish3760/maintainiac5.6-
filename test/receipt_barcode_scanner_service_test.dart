@@ -148,6 +148,32 @@ void main() {
     );
   });
 
+  test('barcode scanner blocks compact customer QR identifiers', () {
+    const customerId = ReceiptScannedCode(
+      format: ReceiptBarcodeFormat.qrCode,
+      valueType: 'text',
+      rawValue: 'CUSTOMER12345',
+    );
+    const accountId = ReceiptScannedCode(
+      format: ReceiptBarcodeFormat.qrCode,
+      valueType: 'text',
+      rawValue: 'receipt_account#A12345',
+    );
+
+    expect(customerId.inventoryLookupValue, isNull);
+    expect(accountId.inventoryLookupValue, isNull);
+    expect(customerId.privacySafeSummaryMap['isSensitivePayloadType'], isTrue);
+    expect(accountId.privacySafeSummaryMap['isSensitivePayloadType'], isTrue);
+    expect(
+      customerId.privacySafeSummaryMap.toString(),
+      isNot(contains('CUSTOMER12345')),
+    );
+    expect(
+      accountId.privacySafeSummaryMap.toString(),
+      isNot(contains('A12345')),
+    );
+  });
+
   test('barcode scanner converts platform failures into warnings', () async {
     final service = ReceiptBarcodeScannerService(
       decoder: _ThrowingBarcodeDecoder(
