@@ -3454,3 +3454,9 @@ Release boundaries:
   clean, `test/work_supply_parser_qa_background_queue_test.dart` passed 7/7,
   and the focused `inventory.execution_command_contract,qa.threshold_gate`
   slice passed 107 checks with 0 failures.
+- **10:22 Harness Pass 2515:** Launched the next Release 1 Core accuracy wave
+  `pass2515-core-electrical-hvac-500` as a hidden bounded background queue for
+  Electrical and HVAC residential Core in `en-US` and `es-US`, with `limit=500`,
+  `fixtureRunLimit=500`, the default 20-minute per-cell timeout, and no live
+  services, production catalog writes, Firebase writes, OCR, camera, Expenses,
+  or UI work.
