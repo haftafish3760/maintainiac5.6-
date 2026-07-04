@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 700 - 01:40:00 EDT to active cleanup
+
+Scope:
+- Promoted module-specific receipt review depth into a direct
+  `ReceiptCaptureFlowOptions.effectiveReviewDepth` contract.
+- Updated the shared capture settings builder to use that model contract instead
+  of a private helper, making the inventory/maintenance detailed-line default
+  directly testable.
+- Strengthened the shareability regression so it asserts behavior for expenses,
+  shared, materials inventory, maintenance/repair, and forced overrides.
+- Recorded `BUG-RECEIPT-0187` under `qa_harness`.
+- Archived Pass 640 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for shared receipt capture flow models.
+- Passed focused Flutter receipt capture flow shareability regression.
+
 ## Pass 699 - 01:34:00 EDT to active cleanup
 
 Scope:
@@ -474,17 +491,3 @@ Scope:
 Verification:
 - Passed targeted Dart format for the Android bridge UI contract regression.
 - Passed focused Flutter Android bridge UI contract regression.
-
-## Pass 640 - 22:31:30 EDT to active cleanup
-
-Scope:
-- Strengthened the healthy native camera UI regression so ready results must
-  prove continuous focus, continuous-focus policy, live readability guidance,
-  and the receipt camera quality baseline.
-- Pinned those positive health codes through receipt-reader handoff counts and
-  attachment document signals.
-- Archived Pass 603 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format for the positive-path native UI health regression.
-- Passed focused Flutter native UI ready regression.

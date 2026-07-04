@@ -71,6 +71,17 @@ class ReceiptCaptureFlowOptions {
   final double? previousSectionGhostOverlayTopFraction;
   final double? previousSectionGhostOverlayHeightFraction;
   final double? previousSectionGhostOpacity;
+
+  ReceiptNativeReviewDepth get effectiveReviewDepth {
+    if (forceReviewDepth != null) return forceReviewDepth!;
+    return switch (module) {
+      ReceiptCaptureFlowModule.materialsInventory ||
+      ReceiptCaptureFlowModule.maintenanceRepair =>
+        ReceiptNativeReviewDepth.detailedLines,
+      ReceiptCaptureFlowModule.expenses ||
+      ReceiptCaptureFlowModule.shared => ReceiptNativeReviewDepth.pricesOnly,
+    };
+  }
 }
 
 class ReceiptCaptureContinuationGuide {

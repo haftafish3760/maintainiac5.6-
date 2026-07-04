@@ -90,12 +90,32 @@ void main() {
     () async {
       final source = await readReceiptCaptureFlowSource();
 
-      expect(source, contains('_defaultReviewDepthFor(options.module)'));
-      expect(source, contains('ReceiptCaptureFlowModule.materialsInventory'));
-      expect(source, contains('ReceiptCaptureFlowModule.maintenanceRepair'));
-      expect(source, contains('ReceiptNativeReviewDepth.detailedLines'));
-      expect(source, contains('ReceiptCaptureFlowModule.expenses'));
-      expect(source, contains('ReceiptNativeReviewDepth.pricesOnly'));
+      expect(
+        const ReceiptCaptureFlowOptions(
+          module: ReceiptCaptureFlowModule.materialsInventory,
+        ).effectiveReviewDepth,
+        ReceiptNativeReviewDepth.detailedLines,
+      );
+      expect(
+        const ReceiptCaptureFlowOptions(
+          module: ReceiptCaptureFlowModule.maintenanceRepair,
+        ).effectiveReviewDepth,
+        ReceiptNativeReviewDepth.detailedLines,
+      );
+      expect(
+        const ReceiptCaptureFlowOptions(
+          module: ReceiptCaptureFlowModule.expenses,
+        ).effectiveReviewDepth,
+        ReceiptNativeReviewDepth.pricesOnly,
+      );
+      expect(
+        const ReceiptCaptureFlowOptions(
+          module: ReceiptCaptureFlowModule.shared,
+          forceReviewDepth: ReceiptNativeReviewDepth.detailedLines,
+        ).effectiveReviewDepth,
+        ReceiptNativeReviewDepth.detailedLines,
+      );
+      expect(source, contains('reviewDepth: options.effectiveReviewDepth'));
     },
   );
 
