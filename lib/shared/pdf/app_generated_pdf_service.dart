@@ -118,6 +118,7 @@ class AppGeneratedPdfService {
     final cutoff = (now ?? DateTime.now()).subtract(olderThan);
     await for (final entity in directory.list(recursive: true)) {
       if (entity is! File) continue;
+      if (!_isGeneratedPdfCleanupTarget(entity)) continue;
       try {
         final stat = await entity.stat();
         if (stat.modified.isAfter(cutoff)) continue;
@@ -178,5 +179,10 @@ class AppGeneratedPdfService {
     try {
       if (await file.exists()) await file.delete();
     } catch (_) {}
+  }
+
+  bool _isGeneratedPdfCleanupTarget(File file) {
+    final name = path.basename(file.path).toLowerCase();
+    return name.endsWith('.pdf') || name.endsWith('.pdf.partial');
   }
 }

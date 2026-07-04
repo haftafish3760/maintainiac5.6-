@@ -385,6 +385,38 @@ void main() {
     expect(await newFile.exists(), isTrue);
   });
 
+  test('generated PDF cleanup does not delete non-PDF files', () async {
+    final document = await const InvoicePdfPreviewFactory()
+        .buildEstimatePreview();
+    final generated = await const AppGeneratedPdfService().writeTemporary(
+      document,
+    );
+    final generatedDirectory = File(generated.path).parent;
+    final oldPdf = File(generated.path);
+    final oldPartial = File('${generatedDirectory.path}/stale.pdf.partial');
+    final keepText = File('${generatedDirectory.path}/do-not-delete.txt');
+    final keepImage = File('${generatedDirectory.path}/preview.png');
+    final oldStamp = DateTime(2026, 6, 1);
+
+    await oldPartial.writeAsString('partial', flush: true);
+    await keepText.writeAsString('operator note', flush: true);
+    await keepImage.writeAsBytes([137, 80, 78, 71], flush: true);
+    await oldPdf.setLastModified(oldStamp);
+    await oldPartial.setLastModified(oldStamp);
+    await keepText.setLastModified(oldStamp);
+    await keepImage.setLastModified(oldStamp);
+
+    await const AppGeneratedPdfService().cleanOldGeneratedFiles(
+      olderThan: Duration(days: 7),
+      now: DateTime(2026, 6, 15),
+    );
+
+    expect(await oldPdf.exists(), isFalse);
+    expect(await oldPartial.exists(), isFalse);
+    expect(await keepText.exists(), isTrue);
+    expect(await keepImage.exists(), isTrue);
+  });
+
   test('generated invoice PDF archives as a permanent app document', () async {
     final store = AppDocumentStore.memory();
     final document = AppGeneratedPdfDocument(

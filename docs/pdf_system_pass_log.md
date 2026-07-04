@@ -1,5 +1,23 @@
 # PDF System Pass Log
 
+## Pass 39 - 2026-07-04 16:47 EDT - Generated PDF storage hygiene
+
+- Scope: generated PDF storage cleanup and preview display formatting only. No
+  inventory, camera, native capture, receipt text engine, or parser behavior
+  changes.
+- Bundled work:
+  - Added shared PDF file-size formatting for preview surfaces.
+  - Routed generated PDF preview size display through the shared formatter.
+  - Hardened generated PDF cleanup so it only removes stale generated PDF and
+    partial PDF files, leaving unrelated files in the temp directory alone.
+  - Added regressions for readable size formatting, preview size display, and
+    non-PDF cleanup safety.
+- Verification completed 2026-07-04 16:47 EDT:
+  - `dart format lib/shared/pdf/app_pdf_formatters.dart lib/shared/pdf/app_generated_pdf_preview_screen.dart lib/shared/pdf/app_generated_pdf_service.dart test/pdf_formatters_contract_test.dart test/app_generated_pdf_service_test.dart test/app_generated_pdf_preview_screen_test.dart`
+  - `flutter test test/pdf_formatters_contract_test.dart test/app_generated_pdf_service_test.dart test/app_generated_pdf_preview_screen_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_pdf_formatters.dart lib/shared/pdf/app_generated_pdf_preview_screen.dart lib/shared/pdf/app_generated_pdf_service.dart test/pdf_formatters_contract_test.dart test/app_generated_pdf_service_test.dart test/app_generated_pdf_preview_screen_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 38 - 2026-07-04 16:43 EDT - Expense export PDF shared formatting
 
 - Scope: expense export generated PDF and share formatting only. No inventory,

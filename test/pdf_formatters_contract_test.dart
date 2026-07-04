@@ -17,4 +17,16 @@ void main() {
     expect(AppPdfFormatters.quantity(3.5), '3.50');
     expect(AppPdfFormatters.quantity(-1.25), '-1.25');
   });
+
+  test('PDF file size formatting is deterministic and readable', () {
+    expect(AppPdfFormatters.fileSize(-1), '0 bytes');
+    expect(AppPdfFormatters.fileSize(0), '0 bytes');
+    expect(AppPdfFormatters.fileSize(1), '1 byte');
+    expect(AppPdfFormatters.fileSize(1023), '1023 bytes');
+    expect(AppPdfFormatters.fileSize(1024), '1 KB');
+    expect(AppPdfFormatters.fileSize(1025), '2 KB');
+    expect(AppPdfFormatters.fileSize(1536), '2 KB');
+    expect(AppPdfFormatters.fileSize(1024 * 1024), '1.0 MB');
+    expect(AppPdfFormatters.fileSize(12 * 1024 * 1024), '12 MB');
+  });
 }

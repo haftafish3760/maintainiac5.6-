@@ -184,6 +184,32 @@ void main() {
       AppGeneratedPdfPreviewAction.printDismissed,
     ]);
   });
+
+  testWidgets('generated PDF preview uses shared file size formatting', (
+    tester,
+  ) async {
+    final document = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice INV-SIZE',
+      fileName: 'invoice_size.pdf',
+      bytes: Uint8List.fromList(List<int>.filled(1536, 0x20)),
+      createdAt: DateTime(2026, 6, 26),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppGeneratedPdfPreviewScreen(
+          document: document,
+          service: _FakeGeneratedPdfService(
+            tempPath: '${Directory.systemTemp.path}/size-preview.pdf',
+          ),
+        ),
+      ),
+    );
+    await _pumpPdfPreview(tester);
+
+    expect(find.textContaining('Size: 2 KB'), findsOneWidget);
+  });
 }
 
 Future<void> _pumpPdfPreview(WidgetTester tester) async {

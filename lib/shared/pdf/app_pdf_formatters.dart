@@ -20,4 +20,15 @@ class AppPdfFormatters {
     if (value == value.roundToDouble()) return value.toInt().toString();
     return value.toStringAsFixed(2);
   }
+
+  static String fileSize(int bytes) {
+    if (bytes < 0) return '0 bytes';
+    if (bytes >= 1024 * 1024) {
+      final mb = bytes / (1024 * 1024);
+      final rendered = mb >= 10 ? mb.round().toString() : mb.toStringAsFixed(1);
+      return '$rendered MB';
+    }
+    if (bytes >= 1024) return '${(bytes / 1024).ceil()} KB';
+    return bytes == 1 ? '1 byte' : '$bytes bytes';
+  }
 }

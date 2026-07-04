@@ -7,6 +7,7 @@ import '../widgets/app_screen_shell.dart';
 import '../widgets/industrial_panel.dart';
 import '../widgets/receipt_capture/receipt_pdf_viewer_screen.dart';
 import 'app_generated_pdf_models.dart';
+import 'app_pdf_formatters.dart';
 import 'app_generated_pdf_service.dart';
 
 enum AppGeneratedPdfPreviewAction {
@@ -274,7 +275,7 @@ class _GeneratedPdfReady extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'File: ${document.safeFileName}\nSize: ${_formatBytes(generated.byteSize)}',
+                'File: ${document.safeFileName}\nSize: ${AppPdfFormatters.fileSize(generated.byteSize)}',
                 style: const TextStyle(fontSize: 12, height: 1.3),
               ),
             ],
@@ -368,12 +369,4 @@ class _PdfGenerationError extends StatelessWidget {
       ),
     );
   }
-}
-
-String _formatBytes(int bytes) {
-  if (bytes >= 1024 * 1024) {
-    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-  }
-  if (bytes >= 1024) return '${(bytes / 1024).ceil()} KB';
-  return '$bytes bytes';
 }
