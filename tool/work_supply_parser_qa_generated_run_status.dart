@@ -1,0 +1,213 @@
+import 'dart:convert';
+import 'dart:io';
+
+const _usage =
+    'dart run tool/work_supply_parser_qa_generated_run_status.dart '
+    '[--report-root build/parser_qa_background_queue/pass2372-core-semantic-fixtures/cells] '
+    '[--trades plumbing,electrical,hvac] [--scopes residential] '
+    '[--tiers core] [--locales en-US,es-US] '
+    '[--output build/parser_qa_pipeline/core_generated_run_status.json] '
+    '[--require-complete]';
+
+Future<void> main(List<String> args) async {
+  final exit = runWorkSupplyParserQaGeneratedRunStatus(
+    args,
+    stdout: stdout,
+    stderr: stderr,
+  );
+  if (exit != 0) exitCode = exit;
+}
+
+int runWorkSupplyParserQaGeneratedRunStatus(
+  List<String> args, {
+  required IOSink stdout,
+  required IOSink stderr,
+}) {
+  if (args.contains('--help') || args.contains('-h')) {
+    stdout.writeln(_usage);
+    return 0;
+  }
+  final options = _Options.parse(args);
+  final cells = <Map<String, Object?>>[];
+  var missing = 0;
+  var failed = 0;
+  var unsafe = 0;
+  var checkedTotal = 0;
+  var parserCalls = 0;
+
+  for (final trade in options.trades) {
+    for (final scope in options.scopes) {
+      for (final tier in options.tiers) {
+        for (final locale in options.locales) {
+          final cell = _readCell(options, trade, scope, tier, locale);
+          cells.add(cell);
+          if (cell['status'] == 'missing') missing++;
+          if (((cell['failureCount'] as int?) ?? 0) > 0) failed++;
+          if (cell['localOnlySafe'] == false) unsafe++;
+          checkedTotal += (cell['checked'] as int?) ?? 0;
+          parserCalls += (cell['parserCalls'] as int?) ?? 0;
+        }
+      }
+    }
+  }
+
+  final summary = {
+    'schemaVersion': 1,
+    'report': 'work_supply_parser_qa_generated_run_status',
+    'reportRoot': options.reportRoot,
+    'expectedCells': cells.length,
+    'presentCells': cells.length - missing,
+    'missingCells': missing,
+    'failedCells': failed,
+    'unsafeCells': unsafe,
+    'checkedTotal': checkedTotal,
+    'parserCalls': parserCalls,
+    'requireComplete': options.requireComplete,
+    'liveServicesAllowed': false,
+    'writesProductionCatalog': false,
+    'firebaseWritesAllowed': false,
+    'ocrCameraExpensesTouched': false,
+    'cells': cells,
+    'generatedAtIso': DateTime.now().toUtc().toIso8601String(),
+  };
+
+  final output = File(options.output)..parent.createSync(recursive: true);
+  output.writeAsStringSync(
+    const JsonEncoder.withIndent('  ').convert(summary),
+    flush: true,
+  );
+  stdout.writeln(
+    'QA_GENERATED_RUN_STATUS '
+    '${const JsonEncoder.withIndent('  ').convert(summary)}',
+  );
+  stdout.writeln('QA_GENERATED_RUN_STATUS_ARTIFACT json=${output.path}');
+
+  if (unsafe > 0 || failed > 0) return 1;
+  if (options.requireComplete && missing > 0) return 2;
+  return 0;
+}
+
+Map<String, Object?> _readCell(
+  _Options options,
+  String trade,
+  String scope,
+  String tier,
+  String locale,
+) {
+  final reportPath =
+      '${options.reportRoot}/$trade/$scope/$tier/$locale/reports/latest_generated_fixture_run.json';
+  final file = File(reportPath);
+  if (!file.existsSync()) {
+    return _cell(
+      trade: trade,
+      scope: scope,
+      tier: tier,
+      locale: locale,
+      status: 'missing',
+      reportPath: reportPath,
+      localOnlySafe: true,
+    );
+  }
+  final json = jsonDecode(file.readAsStringSync()) as Map<String, Object?>;
+  final failureCount = (json['failureCount'] as int?) ?? 0;
+  final liveServicesAllowed = json['liveServicesAllowed'] == true;
+  return _cell(
+    trade: trade,
+    scope: scope,
+    tier: tier,
+    locale: locale,
+    status: failureCount == 0 ? 'passed' : 'failed',
+    reportPath: reportPath,
+    localOnlySafe: !liveServicesAllowed,
+    checked: (json['checked'] as int?) ?? 0,
+    failureCount: failureCount,
+    parserCalls: (json['parserCalls'] as int?) ?? 0,
+    fixturePath: json['fixturePath']?.toString() ?? '',
+  );
+}
+
+Map<String, Object?> _cell({
+  required String trade,
+  required String scope,
+  required String tier,
+  required String locale,
+  required String status,
+  required String reportPath,
+  required bool localOnlySafe,
+  int checked = 0,
+  int failureCount = 0,
+  int parserCalls = 0,
+  String fixturePath = '',
+}) {
+  return {
+    'cellId': '${trade}_${scope}_${tier}_${locale.replaceAll('-', '_')}',
+    'trade': trade,
+    'marketScope': scope,
+    'tier': tier,
+    'localePackId': locale,
+    'status': status,
+    'reportPath': reportPath,
+    'reportExists': status != 'missing',
+    'checked': checked,
+    'failureCount': failureCount,
+    'parserCalls': parserCalls,
+    'fixturePath': fixturePath,
+    'localOnlySafe': localOnlySafe,
+  };
+}
+
+class _Options {
+  const _Options({
+    required this.reportRoot,
+    required this.trades,
+    required this.scopes,
+    required this.tiers,
+    required this.locales,
+    required this.output,
+    required this.requireComplete,
+  });
+
+  final String reportRoot;
+  final List<String> trades;
+  final List<String> scopes;
+  final List<String> tiers;
+  final List<String> locales;
+  final String output;
+  final bool requireComplete;
+
+  static _Options parse(List<String> args) {
+    final values = <String, String>{};
+    final flags = <String>{};
+    for (var index = 0; index < args.length; index++) {
+      final arg = args[index];
+      if (!arg.startsWith('--')) continue;
+      final key = arg.substring(2);
+      if (index + 1 < args.length && !args[index + 1].startsWith('--')) {
+        values[key] = args[++index];
+      } else {
+        flags.add(key);
+      }
+    }
+    return _Options(
+      reportRoot:
+          values['report-root'] ??
+          'build/parser_qa_background_queue/pass2372-core-semantic-fixtures/cells',
+      trades: _csv(values['trades'] ?? 'plumbing,electrical,hvac'),
+      scopes: _csv(values['scopes'] ?? 'residential'),
+      tiers: _csv(values['tiers'] ?? 'core'),
+      locales: _csv(values['locales'] ?? 'en-US,es-US', lowerCase: false),
+      output:
+          values['output'] ??
+          'build/parser_qa_pipeline/core_generated_run_status.json',
+      requireComplete: flags.contains('require-complete'),
+    );
+  }
+}
+
+List<String> _csv(String value, {bool lowerCase = true}) {
+  return value
+      .split(',')
+      .map((entry) => lowerCase ? entry.trim().toLowerCase() : entry.trim())
+      .where((entry) => entry.isNotEmpty)
+      .toList();
+}

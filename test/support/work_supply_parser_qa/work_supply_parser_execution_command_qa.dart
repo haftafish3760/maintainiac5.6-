@@ -36,6 +36,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
   static const _gateLedgerPath = 'tool/work_supply_parser_qa_gate_ledger.dart';
   static const _gateShouldRunPath =
       'tool/work_supply_parser_qa_gate_should_run.dart';
+  static const _generatedRunStatusPath =
+      'tool/work_supply_parser_qa_generated_run_status.dart';
 
   static const _environmentVariables = [
     'PARSER_QA_STRICT',
@@ -243,6 +245,12 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       '--ledger build/parser_qa_pass_evidence/gate_ledger.json',
       '--inputs',
     ]),
+    _CommandContract('generated_run_status', [
+      'dart run tool/work_supply_parser_qa_generated_run_status.dart',
+      '--report-root',
+      '--require-complete',
+      '--output',
+    ]),
   ];
 
   static const _toolSourceContracts = [
@@ -274,6 +282,24 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'completedCellCount',
         'liveServicesAllowed',
         'writesProductionCatalog',
+      ],
+    ),
+    _ToolSourceContract(
+      name: 'generated_run_status_readout',
+      path: _generatedRunStatusPath,
+      tokens: [
+        'QA_GENERATED_RUN_STATUS',
+        'QA_GENERATED_RUN_STATUS_ARTIFACT',
+        'latest_generated_fixture_run.json',
+        'expectedCells',
+        'presentCells',
+        'missingCells',
+        'failedCells',
+        'unsafeCells',
+        'checkedTotal',
+        'parserCalls',
+        'firebaseWritesAllowed',
+        'ocrCameraExpensesTouched',
       ],
     ),
     _ToolSourceContract(
@@ -611,6 +637,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       _releaseOneReadinessPath: releaseOneReadiness,
       _gateLedgerPath: _read(_gateLedgerPath, failures),
       _gateShouldRunPath: _read(_gateShouldRunPath, failures),
+      _generatedRunStatusPath: _read(_generatedRunStatusPath, failures),
     };
     checked += _toolSourceContracts.length;
     for (final contract in _toolSourceContracts) {
