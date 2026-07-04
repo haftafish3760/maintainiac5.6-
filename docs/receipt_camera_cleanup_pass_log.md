@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 663 - 23:32:03 EDT to active cleanup
+
+Scope:
+- Hardened camera-source glare handoff so washed-out/glare receipt photos
+  produce explicit parser-review task evidence.
+- Routed `photo_saved_glare_review` through expense OCR cause codes, failure
+  stage labeling, and photo-quality action guidance.
+- Added focused regressions proving glare saved-photo risk reaches OCR
+  diagnostics and the expense parser failure bridge.
+- Archived Pass 633 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0178` under `ocr_handoff_contract`.
+
+Verification:
+- Fixed a stale test assertion that looked for parser task counts on the
+  OCR-source handoff contract instead of `diagnostics.parserTaskCounts`.
+- Passed targeted Dart format/analyzer for OCR diagnostics and expense bridge
+  changes.
+- Passed focused Flutter OCR-service and expense OCR-handoff regressions.
+
 ## Pass 662 - 23:30:17 EDT to active cleanup
 
 Scope:
@@ -465,20 +484,4 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for edited-photo metadata.
 - Passed focused Flutter native recovery metadata regression.
-- Passed whitespace check.
-
-## Pass 633 - 22:15:43 EDT to active cleanup
-
-Scope:
-- Hardened malformed native review-depth diagnostics so privacy-safe receipt
-  metadata uses a generic invalid bucket instead of tokenizing raw diagnostic
-  text that could contain receipt content.
-- Added focused review-depth regression coverage proving malformed values stay
-  visible without leaking the raw text or receipt paths.
-- Archived Pass 622 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0154` under `privacy_redaction`.
-
-Verification:
-- Passed targeted Dart format/analyzer for native review-depth metadata.
-- Passed focused Flutter frozen camera/result metadata regression.
 - Passed whitespace check.

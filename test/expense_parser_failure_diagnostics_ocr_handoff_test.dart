@@ -139,6 +139,11 @@ Total 51.68
         'ocr_to_parser_photo_focus_handoff',
       );
       expectCause(
+        {'photo_saved_glare_review': 1},
+        'receipt_ocr_photo_saved_glare',
+        'ocr_to_parser_photo_glare_handoff',
+      );
+      expectCause(
         {'photo_saved_bottom_quality_review': 1},
         'receipt_ocr_photo_saved_bottom_quality',
         'ocr_to_parser_photo_bottom_quality_handoff',

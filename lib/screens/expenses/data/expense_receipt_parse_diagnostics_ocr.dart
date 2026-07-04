@@ -173,6 +173,8 @@ extension ExpenseReceiptParseDiagnosticsOcr on ExpenseReceiptParseDiagnostics {
         'receipt_ocr_photo_saved_dark_or_exposure',
       if (ocrParserTaskCount('photo_saved_soft_blur_review') > 0)
         'receipt_ocr_photo_saved_soft_blur',
+      if (ocrParserTaskCount('photo_saved_glare_review') > 0)
+        'receipt_ocr_photo_saved_glare',
       if (ocrParserTaskCount('photo_quality_review') > 0)
         'receipt_ocr_photo_quality_review',
       if (ocrParserTaskCount('long_receipt_section_gap') > 0)

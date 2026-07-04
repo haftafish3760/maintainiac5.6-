@@ -23,6 +23,8 @@ extension ExpenseReceiptParseDiagnosticsQuality
       ocrParserTaskCount('photo_saved_dark_or_exposure_review') > 0;
   bool get hasOcrSavedSoftBlurReview =>
       ocrParserTaskCount('photo_saved_soft_blur_review') > 0;
+  bool get hasOcrSavedGlareReview =>
+      ocrParserTaskCount('photo_saved_glare_review') > 0;
   bool get hasOcrSavedBottomQualityReview =>
       ocrParserTaskCount('photo_saved_bottom_quality_review') > 0;
   bool get hasOcrPhotoQualityActionReview =>
@@ -31,6 +33,7 @@ extension ExpenseReceiptParseDiagnosticsQuality
       hasOcrPhotoReadabilityOrCloserActionReview ||
       hasOcrSavedDarkOrExposureReview ||
       hasOcrSavedSoftBlurReview ||
+      hasOcrSavedGlareReview ||
       hasOcrSavedBottomQualityReview ||
       ocrParserTaskCount('photo_quality_review_family') > 0;
 
@@ -48,6 +51,7 @@ extension ExpenseReceiptParseDiagnosticsQuality
     if (hasOcrSavedBottomQualityReview) return 'check_bottom_photo_quality';
     if (hasOcrSavedDarkOrExposureReview) return 'retake_or_brighten_photo';
     if (hasOcrSavedSoftBlurReview) return 'retake_soft_photo';
+    if (hasOcrSavedGlareReview) return 'reduce_glare_or_retake';
     if (ocrParserTaskCount('photo_quality_review') > 0 ||
         ocrParserTaskCount('photo_quality_review_family') > 0) {
       return 'review_photo_quality';
@@ -65,6 +69,7 @@ extension ExpenseReceiptParseDiagnosticsQuality
       'check_bottom_photo_quality' => 'Check bottom receipt section',
       'retake_or_brighten_photo' => 'Retake or brighten photo',
       'retake_soft_photo' => 'Retake soft photo',
+      'reduce_glare_or_retake' => 'Reduce glare or retake',
       'review_photo_quality' => 'Check photo quality',
       _ => '',
     };

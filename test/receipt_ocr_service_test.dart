@@ -269,6 +269,35 @@ void main() {
     );
   });
 
+  test('glare saved-photo risk becomes parser review task', () async {
+    final result = await const ReceiptOcrService().recognizeTextFromAttachments(
+      [
+        ReceiptAttachmentRecord(
+          id: 'glare-text',
+          path: '',
+          kind: ReceiptAttachmentKind.emailText,
+          dataSaverLevel: ReceiptDataSaverLevel.balanced,
+          createdAt: DateTime(2026, 7, 1),
+          importedText: 'HARDWARE MARKET\nSCREWS 12.99\nTOTAL 12.99',
+          riskFlags: const [
+            'ocr_source_saved_photo_glare_risk',
+            'ocr_source_action_reduce_glare_or_retake',
+          ],
+        ),
+      ],
+    );
+
+    expect(result.hasText, isTrue);
+    expect(
+      result.diagnostics.parserTaskCounts,
+      containsPair('photo_saved_glare_review', 1),
+    );
+    expect(
+      result.diagnostics.parserSignalSummaryLabel,
+      contains('parser task buckets ready'),
+    );
+  });
+
   test('ocr service asks for a receipt photo before scanning', () async {
     final result = await const ReceiptOcrService().recognizeTextFromAttachments(
       const [],

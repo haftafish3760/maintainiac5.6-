@@ -196,6 +196,9 @@ class ExpenseParserFailureDiagnostics {
     if ((tasks['photo_saved_soft_blur_review'] ?? 0) > 0) {
       return 'receipt_ocr_photo_saved_soft_blur';
     }
+    if ((tasks['photo_saved_glare_review'] ?? 0) > 0) {
+      return 'receipt_ocr_photo_saved_glare';
+    }
     if ((tasks['photo_quality_review'] ?? 0) > 0) {
       return 'receipt_ocr_photo_quality_review';
     }
@@ -327,6 +330,7 @@ class ExpenseParserFailureDiagnostics {
     'photo_saved_bottom_quality_review',
     'photo_saved_dark_or_exposure_review',
     'photo_saved_soft_blur_review',
+    'photo_saved_glare_review',
     'photo_quality_review',
     'photo_read_failed',
     'photo_tiny_text_review',
