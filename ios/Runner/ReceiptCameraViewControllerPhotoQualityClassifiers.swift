@@ -108,12 +108,17 @@ extension ReceiptCameraViewController {
     liveBrightnessAtShutter: Double,
     capturedAverageLuma: Double
   ) -> Double {
-    if liveBrightnessAtShutter < 0 || capturedAverageLuma < 0 { return -10000 }
+    if !liveBrightnessAtShutter.isFinite ||
+      !capturedAverageLuma.isFinite ||
+      liveBrightnessAtShutter < 0 ||
+      capturedAverageLuma < 0 {
+      return -10000
+    }
     return roundedDiagnostic(capturedAverageLuma - liveBrightnessAtShutter)
   }
 
   func capturedLiveToSavedLumaDeltaBucket(_ delta: Double) -> String {
-    if delta <= -9999 { return "unknown" }
+    if !delta.isFinite || delta <= -9999 { return "unknown" }
     if delta <= -58 { return "saved_much_darker_than_preview" }
     if delta <= -32 { return "saved_darker_than_preview" }
     if delta >= 58 { return "saved_much_brighter_than_preview" }

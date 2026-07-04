@@ -120,6 +120,12 @@ void main() {
       expect(cameraController, contains('latestCapturedSharpnessBucket'));
       expect(cameraController, contains('latestCapturedQualitySignal'));
       expect(cameraController, contains('latestCapturedExposureMismatch'));
+      expect(cameraController, contains('!liveBrightnessAtShutter.isFinite'));
+      expect(cameraController, contains('!capturedAverageLuma.isFinite'));
+      expect(
+        cameraController,
+        contains('if !delta.isFinite || delta <= -9999 { return "unknown" }'),
+      );
       expect(
         cameraController,
         contains('return "saved_photo_darker_than_preview_watch"'),

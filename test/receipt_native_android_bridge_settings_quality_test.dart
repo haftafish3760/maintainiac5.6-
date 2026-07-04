@@ -286,6 +286,12 @@ void main() {
       expect(cameraActivity, contains('latestCapturedSharpnessBucket'));
       expect(cameraActivity, contains('latestCapturedQualitySignal'));
       expect(cameraActivity, contains('latestCapturedExposureMismatch'));
+      expect(cameraActivity, contains('!liveBrightnessAtShutter.isFinite()'));
+      expect(cameraActivity, contains('!capturedAverageLuma.isFinite()'));
+      expect(
+        cameraActivity,
+        contains('!delta.isFinite() || delta <= -9999.0 -> "unknown"'),
+      );
       expect(
         cameraActivity,
         contains('return "saved_photo_darker_than_preview_watch"'),

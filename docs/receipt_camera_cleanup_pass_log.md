@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 750 - 03:55:19 EDT to active cleanup
+
+Scope:
+- Hardened native live-to-saved luma parity diagnostics so non-finite preview or
+  saved-photo brightness values cannot be bucketed as healthy preview-match
+  evidence.
+- Added Android/iOS source regressions proving non-finite live/saved luma and
+  non-finite parity deltas resolve to `unknown`.
+- Recorded `BUG-RECEIPT-0238` under `camera_capture_quality`.
+- Archived Pass 725 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native live-to-saved parity
+  regressions.
+- Passed focused Android/iOS native bridge quality regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 749 - 03:52:44 EDT to active cleanup
 
 Scope:
@@ -443,25 +461,5 @@ Verification:
   contract regressions.
 - First bug-ledger gate failed because `BUG-RECEIPT-0216` used an unknown
   category; reclassified it under allowed `native_bridge` before continuing.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 725 - 03:01:36 EDT to active cleanup
-
-Scope:
-- Fixed Android and iOS native control readiness summaries so retired tap-focus
-  and manual focus-lock controls do not make the active receipt camera look
-  unhealthy.
-- Kept explicit retired-control diagnostics available while limiting readiness
-  summary evaluation to active controls such as back, settings, shutter, pinch
-  zoom, brightness, reset, and torch.
-- Added Android/iOS bridge regressions that inspect the readiness-summary body
-  and reject retired tap/manual-lock controls inside it.
-- Recorded `BUG-RECEIPT-0215` under `camera_capture_quality`.
-- Archived Pass 699 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused Android/iOS native UI
-  contract regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

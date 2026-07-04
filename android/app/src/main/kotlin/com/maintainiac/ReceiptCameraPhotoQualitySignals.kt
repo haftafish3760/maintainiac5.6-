@@ -4,13 +4,18 @@ internal fun ReceiptCameraActivity.capturedLiveToSavedLumaDelta(
     liveBrightnessAtShutter: Double,
     capturedAverageLuma: Double,
 ): Double {
-    if (liveBrightnessAtShutter < 0.0 || capturedAverageLuma < 0.0) return -10000.0
+    if (
+        !liveBrightnessAtShutter.isFinite() ||
+        !capturedAverageLuma.isFinite() ||
+        liveBrightnessAtShutter < 0.0 ||
+        capturedAverageLuma < 0.0
+    ) return -10000.0
     return roundedDiagnostic(capturedAverageLuma - liveBrightnessAtShutter)
 }
 
 internal fun ReceiptCameraActivity.capturedLiveToSavedLumaDeltaBucket(delta: Double): String {
     return when {
-        delta <= -9999.0 -> "unknown"
+        !delta.isFinite() || delta <= -9999.0 -> "unknown"
         delta <= -58.0 -> "saved_much_darker_than_preview"
         delta <= -32.0 -> "saved_darker_than_preview"
         delta >= 58.0 -> "saved_much_brighter_than_preview"
