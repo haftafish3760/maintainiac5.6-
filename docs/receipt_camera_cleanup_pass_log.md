@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 768 - 05:35:04 EDT to active cleanup
+
+Scope:
+- Hardened the photo review screen so initial receipt photo paths are normalized
+  and de-duplicated once before becoming the in-memory review path list.
+- Switched initial quality checks, review-mode selection, and recoverable-photo
+  detection to the normalized initial path list instead of raw widget input.
+- Added source regressions for the normalized initial-photo source of truth.
+- Recorded `BUG-RECEIPT-0256` under `camera_review_state`.
+- Archived Pass 740 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for photo-review initial path changes.
+- Fixed the initial source-regression assertion scope so it checks the
+  normalized-path length in the review-screen source, not the save-actions
+  source bundle.
+- Passed focused Flutter capture-flow shareability and save-lifecycle
+  regressions.
+- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
+
 ## Pass 767 - 05:32:59 EDT to active cleanup
 
 Scope:
@@ -468,23 +488,6 @@ Scope:
   labels are treated as sensitive and cannot produce inventory lookup values.
 - Recorded `BUG-RECEIPT-0229` under `privacy_redaction`.
 - Archived Pass 716 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for barcode scanner service and focused
-  scanner regression.
-- Passed focused Flutter barcode scanner regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 740 - 03:36:30 EDT to active cleanup
-
-Scope:
-- Hardened barcode/QR privacy so URL payloads cannot become inventory lookup
-  values.
-- Added a focused regression proving URL QR values are treated as sensitive
-  payloads and stay out of privacy-safe summaries.
-- Recorded `BUG-RECEIPT-0228` under `privacy_redaction`.
-- Archived Pass 715 from the active cleanup log to keep the doc under cap.
 
 Verification:
 - Passed targeted Dart format/analyzer for barcode scanner service and focused

@@ -104,7 +104,10 @@ class ReceiptPhotoReviewScreen extends StatefulWidget {
 }
 
 class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
-  late final List<String> _photoPaths = [...widget.initialPhotoPaths];
+  late final List<String> _initialPhotoPaths = List<String>.of(
+    uniqueNormalizedReceiptPhotoPaths(widget.initialPhotoPaths),
+  );
+  late final List<String> _photoPaths = [..._initialPhotoPaths];
   late ReceiptDataSaverLevel _dataSaverLevel =
       widget.initialDataSaverLevel == ReceiptDataSaverLevel.original
       ? ReceiptDataSaverLevel.balanced
@@ -168,7 +171,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   }
 
   _ReceiptReviewMode _initialReviewMode() {
-    if (!widget.bestShotCandidateMode && widget.initialPhotoPaths.length > 1) {
+    if (!widget.bestShotCandidateMode && _initialPhotoPaths.length > 1) {
       return _ReceiptReviewMode.order;
     }
     return _ReceiptReviewMode.preview;

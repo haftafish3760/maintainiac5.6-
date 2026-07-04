@@ -235,6 +235,22 @@ void main() {
     );
   });
 
+  test('photo review normalizes initial photo paths once', () async {
+    final reviewScreen = await readReceiptPhotoReviewScreenSource();
+    final saveActions = await readReceiptPhotoReviewSaveActionsSource();
+
+    expect(
+      reviewScreen,
+      contains('uniqueNormalizedReceiptPhotoPaths(widget.initialPhotoPaths)'),
+    );
+    expect(reviewScreen, contains('late final List<String> _photoPaths'));
+    expect(reviewScreen, contains('_initialPhotoPaths.length'));
+    expect(
+      saveActions,
+      contains('receiptPhotoPathSetContains(_initialPhotoPaths, photoPath)'),
+    );
+  });
+
   test(
     'shared camera defaults inventory and maintenance to detailed review',
     () async {

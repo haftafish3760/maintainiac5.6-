@@ -223,7 +223,7 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
   }
 
   bool _isRecoverableReviewPhoto(String photoPath) {
-    return receiptPhotoPathSetContains(widget.initialPhotoPaths, photoPath) ||
+    return receiptPhotoPathSetContains(_initialPhotoPaths, photoPath) ||
         _isStagedReceiptReviewPhoto(photoPath) ||
         _isPhoneCameraBackupReviewPhoto(photoPath);
   }

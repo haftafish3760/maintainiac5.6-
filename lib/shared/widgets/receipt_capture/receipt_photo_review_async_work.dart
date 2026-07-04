@@ -137,14 +137,12 @@ extension _ReceiptPhotoReviewAsyncWork on _ReceiptPhotoReviewScreenState {
     final checks = <String, ReceiptPhotoQualityCheck>{
       ...widget.initialQualityChecksByPath,
     };
-    final count =
-        widget.initialPhotoPaths.length < widget.initialQualityChecks.length
-        ? widget.initialPhotoPaths.length
+    final count = _initialPhotoPaths.length < widget.initialQualityChecks.length
+        ? _initialPhotoPaths.length
         : widget.initialQualityChecks.length;
     for (var index = 0; index < count; index++) {
-      if (checks.containsKey(widget.initialPhotoPaths[index])) continue;
-      checks[widget.initialPhotoPaths[index]] =
-          widget.initialQualityChecks[index];
+      if (checks.containsKey(_initialPhotoPaths[index])) continue;
+      checks[_initialPhotoPaths[index]] = widget.initialQualityChecks[index];
     }
     return checks;
   }

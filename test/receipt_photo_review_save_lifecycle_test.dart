@@ -35,9 +35,7 @@ void main() {
     );
     expect(
       saveActions,
-      contains(
-        'receiptPhotoPathSetContains(widget.initialPhotoPaths, photoPath)',
-      ),
+      contains('receiptPhotoPathSetContains(_initialPhotoPaths, photoPath)'),
     );
     expect(
       saveActions,
