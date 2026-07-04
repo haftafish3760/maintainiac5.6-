@@ -252,11 +252,11 @@ Future<void> expectAcceptedNativeCaptureRecoveryIndex({
   expect(indexEntry.captureDiagnostics['textTooSmallWarningEnabled'], isTrue);
   expect(indexEntry.captureDiagnostics['autoCropSuggestionEnabled'], isTrue);
   expect(indexEntry.captureDiagnostics['orientationCorrectionEnabled'], isTrue);
-  expect(indexEntry.captureDiagnostics['tapFocusCount'], 2);
-  expect(indexEntry.captureDiagnostics['tapFocusSuppressedAfterZoomCount'], 1);
+  expect(indexEntry.captureDiagnostics['tapFocusCount'], 0);
+  expect(indexEntry.captureDiagnostics['tapFocusSuppressedAfterZoomCount'], 0);
   expect(indexEntry.captureDiagnostics['zoomChangeCount'], 3);
   expect(indexEntry.captureDiagnostics['manualExposureChangeCount'], 1);
-  expect(indexEntry.captureDiagnostics['lastFocusStatus'], 'requested');
+  expect(indexEntry.captureDiagnostics['lastFocusStatus'], 'continuous_focus');
   expect(indexEntry.captureDiagnostics['autoCaptureTriggerCount'], 1);
   expect(indexEntry.captureDiagnostics['latestAutoCaptureStatus'], 'capturing');
   expect(

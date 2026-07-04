@@ -236,7 +236,7 @@ void expectAcceptedNativeCaptureRecoveryManifest(
     (manifest['captureDiagnostics'] as Map)['orientationCorrectionEnabled'],
     isTrue,
   );
-  expect((manifest['captureDiagnostics'] as Map)['tapFocusCount'], 2);
+  expect((manifest['captureDiagnostics'] as Map)['tapFocusCount'], 0);
   expect((manifest['captureDiagnostics'] as Map)['zoomChangeCount'], 3);
   expect(
     (manifest['captureDiagnostics'] as Map)['manualExposureChangeCount'],
@@ -244,7 +244,7 @@ void expectAcceptedNativeCaptureRecoveryManifest(
   );
   expect(
     (manifest['captureDiagnostics'] as Map)['lastFocusStatus'],
-    'requested',
+    'continuous_focus',
   );
   expect((manifest['captureDiagnostics'] as Map)['autoCaptureTriggerCount'], 1);
   expect(

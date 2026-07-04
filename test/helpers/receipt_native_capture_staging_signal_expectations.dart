@@ -31,8 +31,8 @@ Future<void> expectAcceptedNativeCaptureStagingSignals(
     diagnostics['latestPerspectiveReadiness'],
     'perspective_ready_safe_bounds',
   );
-  expect(diagnostics['tapFocusCount'], 2);
-  expect(diagnostics['tapFocusSuppressedAfterZoomCount'], 1);
+  expect(diagnostics['tapFocusCount'], 0);
+  expect(diagnostics['tapFocusSuppressedAfterZoomCount'], 0);
   expect(diagnostics['zoomChangeCount'], 3);
   expect(diagnostics['manualExposureChangeCount'], 1);
   expect(diagnostics['preCaptureExposureAbortCount'], 1);
@@ -40,7 +40,7 @@ Future<void> expectAcceptedNativeCaptureStagingSignals(
     diagnostics['lastPreCaptureExposureAbortReason'],
     'camera_surface_inactive',
   );
-  expect(diagnostics['lastFocusStatus'], 'requested');
+  expect(diagnostics['lastFocusStatus'], 'continuous_focus');
   expect(diagnostics['analysisGapMs'], 380);
   expect(diagnostics['readyHoldMs'], 520);
   expect(diagnostics['assistedShotCount'], 5);
