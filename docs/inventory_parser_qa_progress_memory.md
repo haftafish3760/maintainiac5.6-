@@ -3375,3 +3375,20 @@ Release boundaries:
   `inventory.mutation_runner_contract`, `inventory.regression_lock_contract`,
   `inventory.failure_taxonomy_contract`, and `qa.threshold_gate` passed 257
   checks with 0 failures.
+- **09:49 Harness Pass 2452:** Investigated a Dart-direct generated-fixture
+  runner as a possible speedup. The experiment was not kept because `dart run`
+  hit a Dart VM/FFI compile crash on this Windows toolchain during the Core
+  background queue. The tool and tests were restored to the proven
+  `flutter test` wrapper, wrapper tests passed 3/3, the stale 500-case
+  Electrical Core EN process tree was stopped, and the Core queue was resumed
+  surgically with `fixtureRunLimit=125` from the two completed Plumbing Core
+  cells.
+- **09:56 Harness Pass 2453:** Confirmed the resumed 125-case Electrical Core
+  EN cell also stalled before writing a generated-fixture report, and a
+  one-fixture surgical rerun for
+  `electrical_residential_core_en_US_nm_b_wire_00046` timed out after 3 minutes
+  without producing a report. All stale Dart/Flutter processes were stopped.
+  Current Core semantic evidence from this wave is 2/6 cells complete, 0 parser
+  failures for Plumbing Core `en-US` and `es-US`; the remaining blocker is the
+  generated-fixture Flutter/build-hook runner on this Windows machine, not a
+  confirmed parser data mismatch.
