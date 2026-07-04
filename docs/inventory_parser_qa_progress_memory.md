@@ -115,6 +115,17 @@ Focused rerun routes for recently hardened release-one contracts:
   `inventory.release_signoff_manifest`, and the harness plan now documents that
   running/incomplete shard evidence is a hard release blocker.
 
+## 2026-07-04 Fake User Chaos Workflow Guard
+
+- Passes 2200-2206 added `inventory.fake_user_chaos_contract` as a separate
+  cheap executable suite instead of growing the already-large fake-user review
+  workflow file. The suite covers barcode/receipt disagreement, duplicate
+  receipt import idempotency, abandoned review with no writes, mixed-trade
+  neighbor ambiguity, stale mirror rejection, and no UI/OCR/camera/live Firebase
+  side effects.
+- Surgical rerun:
+  `flutter test test/work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.fake_user_chaos_contract,inventory.fake_user_review_workflow,inventory.requirement_coverage,inventory.harness_registry,qa.threshold_gate --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
+
 ## 2026-07-04 Hostile Source-Modality Input Hardening
 
 - Passes 2085-2094 added source-modality coverage to

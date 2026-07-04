@@ -332,6 +332,16 @@ class WorkSupplyParserRequirementCoverageSuite extends QaSuite {
       ],
     ),
     _RequirementCoverage(
+      'fake_user_chaos_contract',
+      'inventory.fake_user_chaos_contract',
+      [
+        'barcode_receipt_disagreement_requires_review',
+        'duplicate_receipt_import_does_not_double_stock',
+        'abandoned_unknown_review_writes_nothing',
+        'stale_mirror_ignored',
+      ],
+    ),
+    _RequirementCoverage(
       'holdout_fixture_contract',
       'inventory.holdout_fixture_contract',
       [

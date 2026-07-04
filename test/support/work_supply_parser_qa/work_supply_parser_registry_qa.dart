@@ -34,6 +34,7 @@ class WorkSupplyParserRegistrySuite extends QaSuite {
     'inventory.differential_regression_contract',
     'inventory.duplicate_receipt_import_contract',
     'inventory.evidence_summary_contract',
+    'inventory.fake_user_chaos_contract',
     'inventory.failure_routing_contract',
     'inventory.file_size_contract',
     'inventory.financial_duplicate_guard_contract',
