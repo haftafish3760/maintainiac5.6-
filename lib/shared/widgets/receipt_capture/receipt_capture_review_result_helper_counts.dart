@@ -137,6 +137,9 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
     if ((counts['settings_button_placement_missing'] ?? 0) > 0) {
       return 'settings_button_placement_missing';
     }
+    if ((counts['tap_focus_contract_retirement_regressed'] ?? 0) > 0) {
+      return 'tap_focus_contract_retirement_regressed';
+    }
     if ((counts['native_control_readiness_missing'] ?? 0) > 0) {
       return 'native_control_readiness_missing';
     }

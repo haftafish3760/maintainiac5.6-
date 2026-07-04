@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 877 - active cleanup
+
+Scope:
+- Hardened retired native camera controls so stale tap-focus or lock contract
+  tags are treated as product-policy regressions, not missing controls the UI
+  should restore.
+- Covered the whole retired-control class: tap focus, focus lock, exposure
+  lock, and white-balance lock.
+- Kept regression signals flowing into native camera UI health outcomes and
+  receipt attachment risk flags.
+- Added focused native UI contract regression coverage.
+- Recorded `BUG-RECEIPT-0326` under `native_bridge`.
+- Archived Pass 804 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused native UI health regressions,
+  and test source audit.
+
 ## Pass 876 - active cleanup
 
 Scope:
@@ -467,22 +485,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused native camera regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 804 - 09:39:00 EDT to active cleanup
-
-Scope:
-- Fixed manual Add Photo continuation so a valid previous receipt section can
-  activate the ghost overlay even when no OCR-specific reason code exists yet.
-- Added the safe default `manual_add_photo_continuation` reason while keeping
-  no-photo/no-reason continuation inactive.
-- Updated continuation guide regressions for manual Add Photo ghost behavior.
-- Recorded `BUG-RECEIPT-0288` under `ghost_overlap_stitching`.
-- Archived Pass 772 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused capture-flow shareability
-  regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

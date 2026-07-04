@@ -18,6 +18,12 @@ List<String> _nativeControlReadinessHealthCodes(
     final contractExpected =
         contractTags.contains(name) ||
         contractAliases.any(contractTags.contains);
+    if (_retiredNativeContractControls.contains(name) &&
+        contractExpected &&
+        !expected) {
+      codes.add('${name}_contract_retirement_regressed');
+      return;
+    }
     if (!expected && !contractExpected) return;
     final actual = diagnostics[actualKey]?.toString().trim();
     if (actual == null || actual.isEmpty) {
@@ -112,6 +118,13 @@ List<String> _nativeControlReadinessHealthCodes(
   if (missingControls > 0) codes.add('native_control_readiness_missing');
   return List.unmodifiable(codes);
 }
+
+const _retiredNativeContractControls = {
+  'tap_focus',
+  'focus_lock',
+  'exposure_lock',
+  'white_balance_lock',
+};
 
 List<String> _nativeCaptureLatencyHealthCodes(
   Map<String, Object?> diagnostics,
