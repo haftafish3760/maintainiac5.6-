@@ -162,4 +162,35 @@ void main() {
       1,
     );
   });
+
+  test('auto capture waiting cannot be reported after stability target', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/auto-waiting-stable.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/auto-waiting-stable-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/auto-waiting-stable-ocr.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/auto-waiting-stable.jpg': {
+          'captureReadinessCode': 'auto_capture_waiting_for_stability',
+          'manualCaptureAllowed': true,
+          'autoCaptureAllowed': false,
+          'autoCaptureEnabled': true,
+          'stableFrameCount': 3,
+          'requiredStableFrames': 3,
+        },
+      },
+    );
+
+    expect(
+      result.nativeCameraUiHealthOutcome,
+      'auto_capture_waiting_after_stable_regressed',
+    );
+    expect(
+      result
+          .nativeCameraUiHealthCounts['auto_capture_waiting_after_stable_regressed'],
+      1,
+    );
+  });
 }
