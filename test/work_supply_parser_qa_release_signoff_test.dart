@@ -94,6 +94,14 @@ void main() {
         },
       ),
       _SignoffCase(
+        name: 'missing summary state',
+        expectedFailure: 'missing_summary_state',
+        allowDryRun: true,
+        mutateSummary: (summary) {
+          summary.remove('state');
+        },
+      ),
+      _SignoffCase(
         name: 'incomplete shard count',
         expectedFailure: 'incomplete_shard_count:3/4',
         allowDryRun: true,

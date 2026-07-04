@@ -151,6 +151,9 @@ Focused rerun routes for recently hardened release-one contracts:
   required, not optional. Missing count evidence fails with
   `missing_completed_shard_count`, and mismatched count evidence still fails with
   `incomplete_shard_count`.
+- Passes 2248-2250 applied the same rule to aggregate summary state. Missing
+  `state` now fails with `missing_summary_state`; non-complete state still fails
+  with `summary_not_complete`.
 
 ## 2026-07-04 Hostile Source-Modality Input Hardening
 

@@ -62,7 +62,9 @@ void main(List<String> args) {
     );
   }
   final summaryState = (summary['state']?.toString() ?? '').trim();
-  if (summaryState.isNotEmpty && summaryState != 'complete') {
+  if (summaryState.isEmpty) {
+    failures.add('missing_summary_state');
+  } else if (summaryState != 'complete') {
     failures.add('summary_not_complete:$summaryState');
   }
   if ((summary['timeoutBudgetMs'] as num? ?? 0).toInt() <= 0) {
