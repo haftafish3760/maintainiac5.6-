@@ -356,4 +356,42 @@ void main() {
       ),
     );
   });
+
+  test('iOS native camera forces retired focus controls off', () async {
+    final cameraController =
+        (await readIosReceiptCameraBridgeSources()).cameraController;
+    final sessionReader = cameraController.substring(
+      cameraController.indexOf('func readSessionArguments()'),
+      cameraController.indexOf('func doubleArgument('),
+    );
+    final tapFocusStatus = cameraController.substring(
+      cameraController.indexOf('func tapFocusControlActualStatus()'),
+      cameraController.indexOf('func pinchZoomControlActualStatus()'),
+    );
+    final focusLockStatus = cameraController.substring(
+      cameraController.indexOf('func focusLockControlActualStatus()'),
+      cameraController.indexOf('func exposureLockControlActualStatus()'),
+    );
+    final whiteBalanceStatus = cameraController.substring(
+      cameraController.indexOf('func whiteBalanceLockControlActualStatus()'),
+      cameraController.indexOf('func nextReceiptSectionNumber()'),
+    );
+
+    expect(sessionReader, contains('tapFocusEnabled = false'));
+    expect(sessionReader, contains('whiteBalanceLockEnabled = false'));
+    expect(
+      sessionReader,
+      isNot(contains('arguments["tapFocusEnabled"] as? Bool')),
+    );
+    expect(
+      sessionReader,
+      isNot(contains('arguments["whiteBalanceLockEnabled"] as? Bool')),
+    );
+    expect(tapFocusStatus, contains('controlStatus(visible: false'));
+    expect(tapFocusStatus, contains('enabled: false'));
+    expect(focusLockStatus, contains('controlStatus(visible: false'));
+    expect(focusLockStatus, contains('enabled: false'));
+    expect(whiteBalanceStatus, contains('controlStatus(visible: false'));
+    expect(whiteBalanceStatus, contains('enabled: false'));
+  });
 }

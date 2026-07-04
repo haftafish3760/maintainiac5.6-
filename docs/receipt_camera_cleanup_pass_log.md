@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 887 - active cleanup
+
+Scope:
+- Hardened native Android/iOS source contracts so retired tap-focus/focus-lock
+  style controls stay forced off at session reader and actual-status helper
+  boundaries.
+- Added source regressions proving platform arguments cannot revive retired
+  receipt focus controls behind Dart's continuous-focus product policy.
+- Recorded `BUG-RECEIPT-0336` under `native_bridge`.
+- Archived Pass 824 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused Android/iOS native bridge source
+  regressions, doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and
+  diff whitespace gates.
+
 ## Pass 886 - active cleanup
 
 Scope:
@@ -450,25 +466,4 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer and focused barcode scanner regression.
 - Passed doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 824 - 14:01:00 EDT to active cleanup
-
-Scope:
-- Carried typed receipt review-depth OCR diagnostics into OCR completion
-  telemetry, parser telemetry, privacy-safe receipt events, and Command One
-  rollups.
-- Exposed review-depth signal/status counts so price-only versus detailed-line
-  review mode remains visible without receipt text or item content.
-- Added focused telemetry and source-guard regressions for review-depth handoff
-  metadata.
-- Recorded `BUG-RECEIPT-0310` under `receipt_line_review_mode`.
-- Archived Pass 785 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart analyzer and focused telemetry/source-guard regressions.
-- Passed doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and diff
-  whitespace gates.
-
-- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
   whitespace gates.

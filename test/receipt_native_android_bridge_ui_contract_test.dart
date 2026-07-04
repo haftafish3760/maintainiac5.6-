@@ -281,4 +281,54 @@ void main() {
     expect(cameraActivity, contains('"receipt_fast_document_shutter"'));
     expect(cameraActivity, contains('receiptStillJpegQuality'));
   });
+
+  test('Android native camera forces retired focus controls off', () async {
+    final cameraActivity =
+        (await readAndroidReceiptCameraBridgeSources()).cameraActivity;
+    final sessionReader = cameraActivity.substring(
+      cameraActivity.indexOf(
+        'internal fun ReceiptCameraActivity.readSessionArguments()',
+      ),
+      cameraActivity.indexOf(
+        'internal fun ReceiptCameraActivity.finiteDoubleExtra(',
+      ),
+    );
+    final tapFocusStatus = cameraActivity.substring(
+      cameraActivity.indexOf(
+        'internal fun ReceiptCameraActivity.tapFocusControlActualStatus()',
+      ),
+      cameraActivity.indexOf(
+        'internal fun ReceiptCameraActivity.pinchZoomControlActualStatus()',
+      ),
+    );
+    final focusLockStatus = cameraActivity.substring(
+      cameraActivity.indexOf(
+        'internal fun ReceiptCameraActivity.focusLockEnabled()',
+      ),
+      cameraActivity.indexOf(
+        'internal fun ReceiptCameraActivity.exposureLockControlActualStatus()',
+      ),
+    );
+    final whiteBalanceStatus = cameraActivity.substring(
+      cameraActivity.indexOf(
+        'internal fun ReceiptCameraActivity.whiteBalanceLockControlActualStatus()',
+      ),
+    );
+
+    expect(sessionReader, contains('tapFocusEnabled = false'));
+    expect(sessionReader, contains('whiteBalanceLockEnabled = false'));
+    expect(
+      sessionReader,
+      isNot(contains('intent.getBooleanExtra("tapFocusEnabled"')),
+    );
+    expect(
+      sessionReader,
+      isNot(contains('intent.getBooleanExtra("whiteBalanceLockEnabled"')),
+    );
+    expect(tapFocusStatus, contains('controlStatus(visible = false'));
+    expect(tapFocusStatus, contains('enabled = false'));
+    expect(focusLockStatus, contains('return false'));
+    expect(whiteBalanceStatus, contains('controlStatus(visible = false'));
+    expect(whiteBalanceStatus, contains('enabled = false'));
+  });
 }
