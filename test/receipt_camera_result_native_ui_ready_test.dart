@@ -42,6 +42,11 @@ void main() {
           'manualShutterControlActual': 'ready',
           'tapFocusControlExpected': false,
           'tapFocusControlActual': 'disabled',
+          'continuousFocusExpected': true,
+          'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
+          'readabilityGuidancePolicy':
+              'live_readability_guides_blur_glare_light_edges_and_text_size',
+          'receiptCameraQualityBaseline': true,
           'pinchZoomControlExpected': true,
           'pinchZoomControlActual': 'ready',
           'exposureSliderControlExpected': true,
@@ -107,6 +112,21 @@ void main() {
       ),
       isFalse,
     );
+    expect(result.nativeCameraUiHealthCounts['tap_focus_retired'], 1);
+    expect(result.nativeCameraUiHealthCounts['continuous_focus_expected'], 1);
+    expect(
+      result.nativeCameraUiHealthCounts['continuous_focus_primary_ready'],
+      1,
+    );
+    expect(
+      result.nativeCameraUiHealthCounts['readability_guidance_live_ready'],
+      1,
+    );
+    expect(
+      result
+          .nativeCameraUiHealthCounts['receipt_camera_quality_baseline_ready'],
+      1,
+    );
     expect(
       result.nativeCameraUiHealthCounts['manual_shutter_actual_control_ready'],
       1,
@@ -160,6 +180,16 @@ void main() {
       1,
     );
     expect(
+      result
+          .receiptReaderHandoffCounts['native_camera_ui_continuous_focus_expected'],
+      1,
+    );
+    expect(
+      result
+          .receiptReaderHandoffCounts['native_camera_ui_readability_guidance_live_ready'],
+      1,
+    );
+    expect(
       result.privacySafeOcrHandoffEvidenceLabel,
       contains('ui=native_controls_ready'),
     );
@@ -193,6 +223,18 @@ void main() {
     expect(
       attachments.single.documentSignals,
       contains('native_camera_ui_native_capture_latency_ready'),
+    );
+    expect(
+      attachments.single.documentSignals,
+      contains('native_camera_ui_continuous_focus_expected'),
+    );
+    expect(
+      attachments.single.documentSignals,
+      contains('native_camera_ui_readability_guidance_live_ready'),
+    );
+    expect(
+      attachments.single.documentSignals,
+      contains('native_camera_ui_receipt_camera_quality_baseline_ready'),
     );
     expect(
       attachments.single.documentSignals,

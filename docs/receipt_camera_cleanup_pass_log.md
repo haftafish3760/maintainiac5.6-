@@ -3,6 +3,20 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 640 - 22:31:30 EDT to active cleanup
+
+Scope:
+- Strengthened the healthy native camera UI regression so ready results must
+  prove continuous focus, continuous-focus policy, live readability guidance,
+  and the receipt camera quality baseline.
+- Pinned those positive health codes through receipt-reader handoff counts and
+  attachment document signals.
+- Archived Pass 603 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format for the positive-path native UI health regression.
+- Passed focused Flutter native UI ready regression.
+
 ## Pass 639 - 22:29:44 EDT to active cleanup
 
 Scope:
@@ -474,24 +488,3 @@ Verification:
 - Passed focused Flutter Android bridge analysis/exposure regression.
 - Attempted `./gradlew :app:compileDebugKotlin`, but Gradle could not start
   because this Mac has no Java runtime available.
-
-## Pass 603 - 21:04:01 EDT to 21:06:10 EDT
-
-Scope:
-- Hardened native receipt camera focus policy so session diagnostics only claim
-  continuous autofocus when the device reports continuous-focus support.
-- Added a `continuousFocusEnabled` session contract flag, native argument, and
-  control tag, with unsupported devices downgraded to readability review.
-- Configured iOS AVFoundation to set continuous autofocus and continuous auto
-  exposure at session startup when supported.
-- Added regressions for capable and unsupported focus policy paths plus the iOS
-  startup focus/exposure source contract.
-- Recorded `BUG-RECEIPT-0124` under `camera_capture_quality`.
-- Archived Pass 582 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native camera session contracts,
-  service arguments, and iOS source-contract coverage.
-- Passed focused Flutter native camera session, shared camera contract, and iOS
-  bridge analysis/exposure regressions.
