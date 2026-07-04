@@ -76,6 +76,42 @@ void main() {
     );
   });
 
+  test(
+    'native staging defaults to balanced saved proof, not original',
+    () async {
+      final sourceDir = await Directory.systemTemp.createTemp(
+        'native_camera_default_data_saver_',
+      );
+      addTearDown(() async {
+        if (await sourceDir.exists()) await sourceDir.delete(recursive: true);
+      });
+      final source = File('${sourceDir.path}/native-default-receipt.jpg');
+      await source.writeAsBytes(
+        List<int>.generate(320, (index) => index % 251),
+      );
+
+      final staged = await const ReceiptNativeCaptureStaging().stage(
+        acceptedNativeCaptureStagingFixture(
+          sourcePath: source.path,
+          capturedAt: DateTime(2026, 7, 4, 7, 53),
+        ),
+      );
+
+      expect(
+        staged.stagedAttachments.single.dataSaverLevel,
+        ReceiptDataSaverLevel.balanced,
+      );
+      final manifest =
+          jsonDecode(await File(staged.recoveryManifestPath).readAsString())
+              as Map;
+      expect(manifest['dataSaverLevel'], ReceiptDataSaverLevel.balanced.name);
+      expect(
+        manifest['dataSaverLevel'],
+        isNot(ReceiptDataSaverLevel.original.name),
+      );
+    },
+  );
+
   test('native staging normalizes weak bottom edge evidence', () async {
     final sourceDir = await Directory.systemTemp.createTemp(
       'native_camera_bottom_edge_',

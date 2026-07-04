@@ -55,7 +55,7 @@ class ReceiptNativeCaptureStaging {
 
   Future<ReceiptNativeCaptureStagingResult> stage(
     ReceiptNativeCaptureResult capture, {
-    ReceiptDataSaverLevel dataSaverLevel = ReceiptDataSaverLevel.original,
+    ReceiptDataSaverLevel dataSaverLevel = ReceiptDataSaverLevel.balanced,
   }) async {
     return _stageNativeCapture(this, capture, dataSaverLevel: dataSaverLevel);
   }

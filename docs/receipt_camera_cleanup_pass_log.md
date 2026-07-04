@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 787 - 07:53:46 EDT to active cleanup
+
+Scope:
+- Changed native capture staging's omitted data-saver fallback from original
+  retention to balanced saved proof.
+- Added a no-argument staging regression proving saved attachments and recovery
+  manifests default to `balanced`, not `original`.
+- Recorded `BUG-RECEIPT-0274` under `source_preservation`.
+- Archived Pass 760 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused native staging regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 786 - 07:50:34 EDT to active cleanup
 
 Scope:
@@ -456,24 +471,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer for bottom-edge regressions.
-- Passed focused Android close-controls and iOS long-receipt quality tests.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 760 - 04:26:36 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS saved-photo vertical quality scoring so non-finite
-  band luma or edge samples cannot appear as even vertical quality or bottom
-  blur evidence.
-- Kept malformed vertical-quality samples on the existing `unknown` path.
-- Added Android/iOS native vertical-quality source regressions for finite sample
-  checks.
-- Recorded `BUG-RECEIPT-0248` under `camera_capture_quality`.
-- Archived Pass 732 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for vertical-quality regressions.
 - Passed focused Android close-controls and iOS long-receipt quality tests.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
