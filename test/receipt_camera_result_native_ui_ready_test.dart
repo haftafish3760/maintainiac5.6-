@@ -28,6 +28,7 @@ void main() {
             'brightness_slider',
             'brightness_reset',
             'auto_brightness_assist',
+            'continuous_focus',
             'receipt_light',
             'edge_overlay',
           ],
@@ -54,11 +55,11 @@ void main() {
           'torchControlExpected': true,
           'torchControlActual': 'ready',
           'focusLockControlExpected': false,
-          'focusLockControlActual': 'ready',
+          'focusLockControlActual': 'disabled',
           'exposureLockControlExpected': false,
-          'exposureLockControlActual': 'ready',
+          'exposureLockControlActual': 'disabled',
           'whiteBalanceLockControlExpected': false,
-          'whiteBalanceLockControlActual': 'ready',
+          'whiteBalanceLockControlActual': 'disabled',
           'latestNativeCaptureLatencyBucket': 'review_good_under_1200ms',
           'receiptReviewOpeningRoute': 'native_capture_to_photo_review',
           'receiptReviewOpeningSource': 'fresh_native_capture',
@@ -87,7 +88,7 @@ void main() {
       1,
     );
     expect(
-      result.nativeCameraUiHealthCounts['native_control_contract_12_tags'],
+      result.nativeCameraUiHealthCounts['native_control_contract_13_tags'],
       1,
     );
     expect(
@@ -112,6 +113,11 @@ void main() {
     );
     expect(result.nativeCameraUiHealthCounts['tap_focus_retired'], 1);
     expect(result.nativeCameraUiHealthCounts['continuous_focus_expected'], 1);
+    expect(
+      result
+          .nativeCameraUiHealthCounts['native_control_contract_expected_continuous_focus'],
+      1,
+    );
     expect(
       result.nativeCameraUiHealthCounts['continuous_focus_primary_ready'],
       1,

@@ -59,6 +59,9 @@ List<String> _nativeFocusReadabilityHealthCodes(
   final qualityBaseline = _diagnosticBool(
     diagnostics['receiptCameraQualityBaseline'],
   );
+  final contractTags = _diagnosticStringList(
+    diagnostics['nativeControlContractTags'],
+  );
 
   if (tapFocusExpected == true) {
     codes.add('tap_focus_retirement_regressed');
@@ -68,8 +71,16 @@ List<String> _nativeFocusReadabilityHealthCodes(
 
   if (continuousFocusExpected == true) {
     codes.add('continuous_focus_expected');
+    if (contractTags.isNotEmpty && !contractTags.contains('continuous_focus')) {
+      codes.add('continuous_focus_contract_missing');
+    }
   } else if (continuousFocusExpected == false) {
     codes.add('continuous_focus_missing');
+    if (contractTags.isNotEmpty &&
+        focusFallbackPolicy.contains('review_required') &&
+        !contractTags.contains('focus_readability_review')) {
+      codes.add('focus_readability_review_contract_missing');
+    }
   }
 
   if (focusPolicy == 'continuous_focus_primary_no_tap_assist') {

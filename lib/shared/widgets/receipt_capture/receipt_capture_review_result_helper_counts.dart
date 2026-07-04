@@ -163,6 +163,12 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
     if ((counts['continuous_focus_missing'] ?? 0) > 0) {
       return 'continuous_focus_missing';
     }
+    if ((counts['continuous_focus_contract_missing'] ?? 0) > 0) {
+      return 'continuous_focus_contract_missing';
+    }
+    if ((counts['focus_readability_review_contract_missing'] ?? 0) > 0) {
+      return 'focus_readability_review_contract_missing';
+    }
     if ((counts['continuous_focus_primary_missing'] ?? 0) > 0) {
       return 'continuous_focus_primary_missing';
     }

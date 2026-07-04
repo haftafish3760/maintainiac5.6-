@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 880 - active cleanup
+
+Scope:
+- Hardened focus/readability contract checks so continuous-autofocus readiness
+  must carry a matching `continuous_focus` native UI contract tag.
+- Added fallback-review contract checks so devices without continuous focus must
+  expose the `focus_readability_review` tag when review is required.
+- Corrected the native UI ready regression fixture so retired lock controls stay
+  disabled while continuous focus is explicitly present.
+- Added focused regression coverage for continuous-focus and fallback-review
+  contract tag drift.
+- Recorded `BUG-RECEIPT-0329` under `native_bridge`.
+- Archived Pass 807 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused native UI/focus contract
+  regressions, and test source audit.
+
 ## Pass 879 - active cleanup
 
 Scope:
@@ -467,20 +485,4 @@ Verification:
 - Corrected one invalid focused-test command that combined two `--plain-name`
   filters and reran the two focused tests individually.
 - Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
-  whitespace gates.
-
-## Pass 807 - 10:24:00 EDT to active cleanup
-
-Scope:
-- Hardened barcode/QR batch scanning so duplicate receipt image paths are
-  skipped before decoder/ML Kit work.
-- Added a privacy-safe duplicate-image batch warning bucket.
-- Added a regression proving duplicate long-receipt image paths do not trigger
-  duplicate barcode scans.
-- Recorded `BUG-RECEIPT-0291` under `barcode_qr_scanning`.
-- Archived Pass 775 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused barcode scanner regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
