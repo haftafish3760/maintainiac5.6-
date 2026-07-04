@@ -10,14 +10,46 @@ class WorkSupplyParserConfidenceCalibrationSuite extends QaSuite {
     : super('inventory.confidence_calibration');
 
   static const _confidenceBandContract = 'Good/Review/Poor confidence bands';
+  static const _confidenceEnginePath =
+      'lib/screens/work_supplies/data/'
+      'work_supply_receipt_parser_confidence_engine.dart';
+
+  static const _requiredEngineTokens = {
+    '_specificityEvidenceScore',
+    '_receiptAmbiguityRisk',
+    '_isCrossTradePvcLine',
+    '_isCrossTradeCopperLine',
+    '_isGenericFilterLine',
+    'confidence += _specificityEvidenceScore',
+    'confidence -= _receiptAmbiguityRisk',
+    '_nominalReceiptSize',
+    '_receiptContainsVariantTokens',
+    '_containsExactPhrase',
+  };
+
+  static const _forbiddenEngineTokens = {
+    'confidenceCap',
+    'confidence_cap',
+    'capConfidence',
+    'suppressAmbiguity',
+    'suppress_ambiguity',
+    'hideAmbiguity',
+    'hide_ambiguity',
+    'forceHighConfidence',
+    'force_high_confidence',
+    'bypassReviewForConfidence',
+    'bypass_review_for_confidence',
+  };
 
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
     final failures = <QaFailure>[];
     final fixtures = _loadFixtures();
+    final engineSource = _read(_confidenceEnginePath);
 
     _checkConfidenceBands(failures);
+    _checkConfidenceEngineEvidenceContract(failures, engineSource);
     for (final fixture in fixtures) {
       switch (fixture.caseType) {
         case 'clear_match':
@@ -45,12 +77,18 @@ class WorkSupplyParserConfidenceCalibrationSuite extends QaSuite {
 
     return timer.finish(
       suite: name,
-      checked: fixtures.length + 6,
+      checked:
+          fixtures.length +
+          6 +
+          _requiredEngineTokens.length +
+          _forbiddenEngineTokens.length +
+          1,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'fixtureCount': fixtures.length,
         'confidenceBandContract': _confidenceBandContract,
+        'confidenceEnginePath': _confidenceEnginePath,
         'goodThreshold': .82,
         'reviewThreshold': .62,
       },
@@ -78,6 +116,62 @@ class WorkSupplyParserConfidenceCalibrationSuite extends QaSuite {
           actual: actual.name,
           suggestedFix:
               'Update fixture thresholds and release gates intentionally if confidence bands change.',
+        ),
+      );
+    }
+  }
+
+  void _checkConfidenceEngineEvidenceContract(
+    List<QaFailure> failures,
+    String source,
+  ) {
+    if (source.isEmpty) {
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'missing_confidence_engine_source',
+          message: 'Confidence calibration cannot inspect the parser engine.',
+          severity: QaSeverity.error,
+          expected: _confidenceEnginePath,
+          actual: 'not found or empty',
+          suggestedFix:
+              'Restore the confidence engine source or update this QA contract path.',
+        ),
+      );
+      return;
+    }
+
+    for (final token in _requiredEngineTokens) {
+      if (source.contains(token)) continue;
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'missing_confidence_engine_evidence:${_safeId(token)}',
+          message:
+              'Confidence engine is missing evidence/ambiguity calibration logic.',
+          severity: QaSeverity.error,
+          expected: token,
+          actual: 'not found',
+          suggestedFix:
+              'Improve confidence by adding evidence, specificity, context, and ambiguity-risk handling instead of hiding uncertainty.',
+        ),
+      );
+    }
+
+    for (final token in _forbiddenEngineTokens) {
+      if (!source.contains(token)) continue;
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'forbidden_confidence_engine_shortcut:${_safeId(token)}',
+          message:
+              'Confidence engine contains a cap/suppression/bypass shortcut token.',
+          severity: QaSeverity.critical,
+          expected:
+              'evidence-based scoring with ambiguity preserved and review required',
+          actual: token,
+          suggestedFix:
+              'Remove confidence shortcuts; add more context, ranked alternatives, or review-required evidence instead.',
         ),
       );
     }
@@ -187,4 +281,14 @@ List<_ConfidenceFixture> _loadFixtures() {
     for (final entry in decoded)
       _ConfidenceFixture.fromJson((entry as Map).cast<String, Object?>()),
   ];
+}
+
+String _read(String path) {
+  final file = File(path);
+  if (!file.existsSync()) return '';
+  return file.readAsStringSync();
+}
+
+String _safeId(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
 }

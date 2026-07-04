@@ -193,6 +193,29 @@ Focused rerun routes for recently hardened release-one contracts:
   `test/support/work_supply_parser_qa/work_supply_parser_receipt_source_immutability_qa.dart`
   passed with no issues.
 
+## 2026-07-04 Confidence Evidence Guard
+
+- Passes 2053-2057 scanned inventory parser/review sources for confidence-cap,
+  ambiguity-suppression, force-confidence, bypass-review, and auto-save style
+  shortcuts. Only QA/mutation fixtures intentionally named those risks; app
+  parser/review source did not contain the bypass patterns.
+- `inventory.confidence_calibration` now inspects the parser confidence engine
+  directly. It requires specificity evidence, ambiguity-risk subtraction,
+  cross-trade PVC/copper risk handling, generic filter risk handling, size
+  evidence, variant evidence, exact phrase evidence, and confidence changes
+  driven by evidence/risk rather than suppression shortcuts.
+- The suite now explicitly fails if the confidence engine introduces
+  `confidenceCap`, `capConfidence`, ambiguity suppression, hidden ambiguity,
+  forced high confidence, or review-bypass tokens. Numeric range bounding remains
+  allowed only as range safety; it is not accepted as a way to hide ambiguity.
+- Validation passed:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_SUITES=inventory.confidence_calibration,inventory.review_safety_contract,qa.threshold_gate
+  --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40` checked 132 conditions with
+  0 failures, and targeted `dart analyze` over
+  `test/support/work_supply_parser_qa/work_supply_parser_confidence_qa.dart`
+  passed with no issues.
+
 ## 2026-07-04 Reusable Parser Adapter Registry Hardening
 
 - Passes 1937-1949 launched local-only wave
