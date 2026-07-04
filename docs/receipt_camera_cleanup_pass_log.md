@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 883 - active cleanup
+
+Scope:
+- Hardened auto-capture readiness diagnostics so `auto_capture_ready` must
+  include stable-frame evidence, not only an optimistic readiness code.
+- Added `auto_capture_ready_missing_stability_evidence` as a native UI risk
+  outcome when stable-frame or required-frame counts are absent.
+- Added focused regression coverage for the missing-stability-evidence path.
+- Recorded `BUG-RECEIPT-0332` under `native_bridge`.
+- Archived Pass 818 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused auto-capture/native-quality
+  regressions, and test source audit.
+
 ## Pass 882 - active cleanup
 
 Scope:
@@ -460,22 +475,5 @@ Scope:
 Verification:
 - Passed targeted warning-profile parity format/analyzer and focused contract
   regression.
-- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
-  whitespace gates.
-
-## Pass 818 - 11:49:00 EDT to active cleanup
-
-Scope:
-- Restored warning-profile parity for saved-photo shadow risk in the OCR source
-  handoff summary.
-- Added a focused regression proving shadow risk now drives
-  `warningProfileStatus`, `reviewCueStatus`, and the privacy-safe contract while
-  keeping the existing source-quality review action.
-- Recorded `BUG-RECEIPT-0303` under `ocr_handoff_contract`.
-- Archived Pass 811 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted OCR source handoff format/analyzer and focused shadow
-  warning-profile regression.
 - Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
   whitespace gates.

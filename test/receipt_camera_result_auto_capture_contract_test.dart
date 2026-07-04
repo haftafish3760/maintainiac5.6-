@@ -133,4 +133,33 @@ void main() {
       1,
     );
   });
+
+  test('auto capture ready requires stability diagnostics', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/auto-missing-stability.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/auto-missing-stability-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/auto-missing-stability-ocr.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/auto-missing-stability.jpg': {
+          'captureReadinessCode': 'auto_capture_ready',
+          'manualCaptureAllowed': true,
+          'autoCaptureAllowed': true,
+          'autoCaptureEnabled': true,
+        },
+      },
+    );
+
+    expect(
+      result.nativeCameraUiHealthOutcome,
+      'auto_capture_ready_missing_stability_evidence',
+    );
+    expect(
+      result
+          .nativeCameraUiHealthCounts['auto_capture_ready_missing_stability_evidence'],
+      1,
+    );
+  });
 }

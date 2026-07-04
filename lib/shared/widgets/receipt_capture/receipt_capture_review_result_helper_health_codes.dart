@@ -215,6 +215,10 @@ List<String> _nativeCapturePreviewParityHealthCodes(
       stableFrames < requiredFrames) {
     codes.add('auto_capture_ready_before_stable_regressed');
   }
+  if (readiness == 'auto_capture_ready' &&
+      (stableFrames == null || requiredFrames == null)) {
+    codes.add('auto_capture_ready_missing_stability_evidence');
+  }
   final signal =
       diagnostics[ReceiptCaptureDiagnosticKeys
               .latestCapturedPreviewParitySignal]
