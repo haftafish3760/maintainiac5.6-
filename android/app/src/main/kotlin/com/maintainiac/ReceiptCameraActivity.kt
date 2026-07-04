@@ -118,6 +118,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
         "receipt_photo_review_then_receipt_details"
     internal var tapToFocusPolicy = "continuous_focus_primary_no_tap_focus"
     internal var focusStrategyPolicy = "continuous_focus_primary_no_tap_assist"
+    internal var continuousFocusEnabled = true
     internal var readabilityGuidancePolicy =
         "live_readability_guides_blur_glare_light_edges_and_text_size"
     internal var receiptCameraQualityBaseline = true

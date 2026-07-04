@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 604 - 21:07:15 EDT to 21:08:00 EDT
+
+Scope:
+- Hardened Android CameraX startup so the native bridge consumes
+  `continuousFocusEnabled` and applies continuous picture autofocus plus normal
+  auto exposure through Camera2Interop for preview and still capture builders.
+- Added Android diagnostics for `continuousFocusEnabled` so real-device logs
+  can prove whether continuous autofocus was actually requested.
+- Added Android bridge source regression coverage for the session argument,
+  diagnostics, and Camera2 continuous-focus request.
+- Recorded `BUG-RECEIPT-0125` under `camera_capture_quality`.
+- Archived Pass 583 out of the live cleanup log to keep the active log under
+  the project line-count cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the Android bridge regression.
+- Passed focused Flutter Android bridge analysis/exposure regression.
+- Attempted `./gradlew :app:compileDebugKotlin`, but Gradle could not start
+  because this Mac has no Java runtime available.
+
 ## Pass 603 - 21:04:01 EDT to 21:06:10 EDT
 
 Scope:
@@ -474,20 +494,3 @@ Verification:
 - Passed targeted Dart format/analyzer for enhancement scoring and OCR-source
   handoff coverage.
 - Passed focused Flutter OCR-source handoff regression.
-
-## Pass 583 - 11:01:00 EDT to 11:08:30 EDT
-
-Scope:
-- Hardened receipt review cleanup, recovery, and camera-result membership
-  checks so they use normalized receipt photo path identity instead of raw
-  string `contains` checks.
-- Added behavior coverage for normalized path membership and updated lifecycle
-  source guards to require the shared helper.
-- Recorded `BUG-RECEIPT-0099` under `multi_photo_ordering`.
-- Archived Pass 556 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the path identity helper, review
-  exit actions, picked-photo membership, and focused tests.
-- Passed focused Flutter path-identity and review lifecycle regressions.

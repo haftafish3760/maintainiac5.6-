@@ -102,6 +102,13 @@ void main() {
       expect(cameraActivity, contains('lastAutoExposureAdjustmentAt'));
       expect(cameraActivity, contains('lastAutoExposureDecision'));
       expect(cameraActivity, contains('prepareExposureBeforeCapture'));
+      expect(cameraActivity, contains('Camera2Interop.Extender(this)'));
+      expect(cameraActivity, contains('CONTROL_AF_MODE_CONTINUOUS_PICTURE'));
+      expect(
+        cameraActivity,
+        contains('intent.getBooleanExtra("continuousFocusEnabled"'),
+      );
+      expect(cameraActivity, contains('"continuousFocusEnabled" to'));
       expect(cameraActivity, contains('lastPreCaptureExposureDecision'));
       expect(cameraActivity, contains('lastPreCaptureExposureSkipReason'));
       expect(cameraActivity, contains('receiptStillCaptureMode'));

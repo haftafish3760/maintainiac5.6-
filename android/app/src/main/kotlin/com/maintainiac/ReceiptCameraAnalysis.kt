@@ -1,5 +1,8 @@
 package com.maintainiac
 
+import android.hardware.camera2.CaptureRequest
+import androidx.camera.camera2.interop.Camera2Interop
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import android.view.Surface
 import android.widget.Toast
 import androidx.camera.core.CameraSelector
@@ -24,6 +27,7 @@ internal fun ReceiptCameraActivity.startCamera() {
             val targetRotation = previewView.display?.rotation ?: Surface.ROTATION_0
             val preview = Preview.Builder()
                 .setTargetRotation(targetRotation)
+                .applyReceiptContinuousFocusIfEnabled(this)
                 .build().apply {
                 setSurfaceProvider(previewView.surfaceProvider)
             }
@@ -33,6 +37,7 @@ internal fun ReceiptCameraActivity.startCamera() {
                 .setTargetRotation(targetRotation)
                 .setCaptureMode(captureMode)
                 .setJpegQuality(stillCaptureJpegQuality)
+                .applyReceiptContinuousFocusIfEnabled(this)
                 .build()
             val imageAnalysis = buildImageAnalysis(targetRotation)
             try {
@@ -65,6 +70,40 @@ internal fun ReceiptCameraActivity.startCamera() {
         },
         mainExecutor(),
     )
+}
+
+@OptIn(ExperimentalCamera2Interop::class)
+internal fun Preview.Builder.applyReceiptContinuousFocusIfEnabled(
+    activity: ReceiptCameraActivity,
+): Preview.Builder {
+    if (!activity.continuousFocusEnabled || activity.focusMode != "continuous") return this
+    Camera2Interop.Extender(this)
+        .setCaptureRequestOption(
+            CaptureRequest.CONTROL_AF_MODE,
+            CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE,
+        )
+        .setCaptureRequestOption(
+            CaptureRequest.CONTROL_AE_MODE,
+            CaptureRequest.CONTROL_AE_MODE_ON,
+        )
+    return this
+}
+
+@OptIn(ExperimentalCamera2Interop::class)
+internal fun ImageCapture.Builder.applyReceiptContinuousFocusIfEnabled(
+    activity: ReceiptCameraActivity,
+): ImageCapture.Builder {
+    if (!activity.continuousFocusEnabled || activity.focusMode != "continuous") return this
+    Camera2Interop.Extender(this)
+        .setCaptureRequestOption(
+            CaptureRequest.CONTROL_AF_MODE,
+            CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE,
+        )
+        .setCaptureRequestOption(
+            CaptureRequest.CONTROL_AE_MODE,
+            CaptureRequest.CONTROL_AE_MODE_ON,
+        )
+    return this
 }
 
 internal fun ReceiptCameraActivity.receiptStillCaptureMode(): Int {
