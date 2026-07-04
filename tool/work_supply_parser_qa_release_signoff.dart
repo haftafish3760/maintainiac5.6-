@@ -48,6 +48,18 @@ void main(List<String> args) {
   if ((summary['failedShardCount'] as num? ?? 1).toInt() != 0) {
     failures.add('failed_shard_count:${summary['failedShardCount']}');
   }
+  final declaredShardCount = (summary['shardCount'] as num? ?? -1).toInt();
+  final completedShardCount = (summary['completedShardCount'] as num?)?.toInt();
+  if (completedShardCount != null &&
+      completedShardCount != declaredShardCount) {
+    failures.add(
+      'incomplete_shard_count:$completedShardCount/$declaredShardCount',
+    );
+  }
+  final summaryState = (summary['state']?.toString() ?? '').trim();
+  if (summaryState.isNotEmpty && summaryState != 'complete') {
+    failures.add('summary_not_complete:$summaryState');
+  }
   if ((summary['timeoutBudgetMs'] as num? ?? 0).toInt() <= 0) {
     failures.add('missing_timeout_budget');
   }
@@ -78,6 +90,10 @@ void main(List<String> args) {
     seenShards.add(shardId);
     if ((result['exitCode'] as num? ?? 1).toInt() != 0) {
       failures.add('shard_failed:$shardId');
+    }
+    final shardState = (result['state']?.toString() ?? '').trim();
+    if (shardState.isNotEmpty && shardState != 'complete') {
+      failures.add('shard_not_complete:$shardId:$shardState');
     }
     if (result['suiteFilter'] is! List ||
         (result['suiteFilter'] as List).isEmpty) {

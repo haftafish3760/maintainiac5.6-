@@ -38,7 +38,7 @@ Shared platform pieces should stay domain-neutral where practical: queueing, bat
 - `test/work_supply_parser_qa_shard_runner_test.dart`: release shard runner regression tests for dry-run summary/transcript output, default shard coverage, single-shard filtering, and unknown shard rejection.
 - `test/work_supply_parser_qa_release_signoff_test.dart`: release sign-off verifier regression tests for allowed dry-run success and unsafe/incomplete shard evidence failures.
 - `tool/work_supply_parser_qa_shard_runner.dart`: cross-platform full/release shard runner that writes per-shard transcripts and aggregate `summary.json` files under `build/parser_qa_reports/release_shards/`.
-- `tool/work_supply_parser_qa_release_signoff.dart`: cross-platform release sign-off verifier that reads shard `summary.json` files and rejects missing, stale, failed, wrong-profile, dry-run, or transcript-free shard evidence.
+- `tool/work_supply_parser_qa_release_signoff.dart`: cross-platform release sign-off verifier that reads shard `summary.json` files and rejects missing, stale, failed, running, incomplete, wrong-profile, dry-run, or transcript-free shard evidence.
 - `tool/work_supply_parser_qa_prune_reports.dart`: dry-run-by-default cross-platform report-retention tool for pruning old local parser QA artifacts without touching latest aliases.
 - `tool/work_supply_parser_qa_generate_fixtures.dart`: deterministic local fixture generator that writes synthetic parser QA receipt batches and manifests under `build/parser_qa_generated/` without parser calls, live services, OCR, camera, or Firebase.
 - `tool/work_supply_parser_qa_fixture_recipes.dart`: release-one synthetic fixture recipe data for Plumbing, Electrical, and HVAC residential Core in English and Spanish, including conservative ambiguous-review cases.
@@ -77,7 +77,7 @@ Full/release shard runs also record `PARSER_QA_SHARD_ID`, `PARSER_QA_TIMEOUT_BUD
 
 Use `dart run tool/work_supply_parser_qa_shard_runner.dart --dry-run` to inspect the shard plan without running Flutter tests. Use `--execute` only when intentionally running full/release shards; each shard writes a transcript path and the runner emits `QA_SHARD_SUMMARY` pointing at the aggregate `summary.json`.
 
-Use `dart run tool/work_supply_parser_qa_release_signoff.dart --summary build/parser_qa_reports/release_shards/latest_summary.json --expected-profile release --max-age-hours 168` for final release sign-off. It emits `QA_RELEASE_SIGNOFF` and fails when expected shards are missing, stale, failed, dry-run without approval, wrong-profile, or missing transcript evidence.
+Use `dart run tool/work_supply_parser_qa_release_signoff.dart --summary build/parser_qa_reports/release_shards/latest_summary.json --expected-profile release --max-age-hours 168` for final release sign-off. It emits `QA_RELEASE_SIGNOFF` and fails when expected shards are missing, stale, failed, running, incomplete, dry-run without approval, wrong-profile, or missing transcript evidence.
 
 Use `dart run tool/work_supply_parser_qa_prune_reports.dart --keep 20` to dry-run local artifact cleanup and `--execute` only when intentionally pruning old timestamped reports. Keep the latest JSON, latest text summary, and latest pack-health aliases for Command One/admin diagnostics.
 

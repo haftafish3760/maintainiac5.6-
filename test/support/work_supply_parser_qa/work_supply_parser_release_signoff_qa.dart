@@ -23,6 +23,9 @@ class WorkSupplyParserReleaseSignoffSuite extends QaSuite {
         'dry_run_not_release_signoff',
         'profile_mismatch',
         'missing_transcript',
+        'incomplete_shard_count',
+        'summary_not_complete',
+        'shard_not_complete',
       ],
     ),
     _SignoffContract(
@@ -31,6 +34,7 @@ class WorkSupplyParserReleaseSignoffSuite extends QaSuite {
       tokens: [
         'QA_SHARD_SUMMARY',
         'summary.json',
+        'shardCount',
         'failedShardCount',
         'transcriptPath',
       ],
@@ -45,6 +49,9 @@ class WorkSupplyParserReleaseSignoffSuite extends QaSuite {
         'missing_expected_shard',
         'shard_failed',
         'missing_transcript',
+        'summary_not_complete',
+        'incomplete_shard_count',
+        'shard_not_complete',
       ],
     ),
     _SignoffContract(
@@ -53,7 +60,7 @@ class WorkSupplyParserReleaseSignoffSuite extends QaSuite {
       tokens: [
         'QA_RELEASE_SIGNOFF',
         'release sign-off',
-        'missing, stale, failed',
+        'missing, stale, failed, running, incomplete',
       ],
     ),
   ];
@@ -101,6 +108,8 @@ class WorkSupplyParserReleaseSignoffSuite extends QaSuite {
         'rejectsDryRunByDefault': true,
         'rejectsWrongProfile': true,
         'requiresTranscriptEvidence': true,
+        'rejectsIncompleteShardEvidence': true,
+        'rejectsRunningShardEvidence': true,
         'parserCalls': 0,
       },
     );

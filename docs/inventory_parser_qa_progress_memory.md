@@ -102,6 +102,19 @@ Focused rerun routes for recently hardened release-one contracts:
 - inventory.review_safety_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.review_safety_contract,qa.threshold_gate`
 
+## 2026-07-04 Release Signoff Incomplete-Run Guard
+
+- Passes 2189-2195 found that release signoff rejected failed, missing, stale,
+  wrong-profile, dry-run, and missing-transcript evidence, but did not explicitly
+  reject a release summary or shard that still reported `running`/incomplete
+  status. The signoff tool now rejects `summary_not_complete`,
+  `incomplete_shard_count`, and `shard_not_complete` so active parser QA waves
+  cannot be mistaken for release-ready parser evidence.
+- Regression tests were added for a running summary, incomplete shard count, and
+  running shard. Governance tokens were added to
+  `inventory.release_signoff_manifest`, and the harness plan now documents that
+  running/incomplete shard evidence is a hard release blocker.
+
 ## 2026-07-04 Hostile Source-Modality Input Hardening
 
 - Passes 2085-2094 added source-modality coverage to

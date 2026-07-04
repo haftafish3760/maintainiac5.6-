@@ -86,6 +86,37 @@ void main() {
         },
       ),
       _SignoffCase(
+        name: 'summary still running',
+        expectedFailure: 'summary_not_complete:running',
+        allowDryRun: true,
+        mutateSummary: (summary) {
+          summary['state'] = 'running';
+        },
+      ),
+      _SignoffCase(
+        name: 'incomplete shard count',
+        expectedFailure: 'incomplete_shard_count:3/4',
+        allowDryRun: true,
+        mutateSummary: (summary) {
+          summary['completedShardCount'] = 3;
+        },
+      ),
+      _SignoffCase(
+        name: 'running shard',
+        expectedFailure: 'shard_not_complete:catalog-contracts-001:running',
+        allowDryRun: true,
+        mutateSummary: (summary) {
+          final result =
+              ((summary['results'] as List).firstWhere(
+                    (result) =>
+                        result is Map &&
+                        result['shardId'] == 'catalog-contracts-001',
+                  )
+                  as Map);
+          result['state'] = 'running';
+        },
+      ),
+      _SignoffCase(
         name: 'missing transcript',
         expectedFailure: 'missing_transcript:safety-governance-001',
         allowDryRun: true,
@@ -179,7 +210,9 @@ Map<String, Object?> _summaryMap(
     'resumeFrom':
         'build/parser_qa_reports/latest_work_supply_inventory_parser.json',
     'shardCount': shards.length,
+    'completedShardCount': shards.length,
     'failedShardCount': 0,
+    'state': 'complete',
     'results': [
       for (final shard in shards)
         _shardResult(workspace: workspace, shardId: shard, startedAt: now),
@@ -205,6 +238,7 @@ Map<String, Object?> _shardResult({
     'startedAt': startedAt,
     'durationMs': 1,
     'exitCode': 0,
+    'state': 'complete',
     'dryRun': true,
     'transcriptPath': transcript.path,
   };
