@@ -48,12 +48,60 @@ void main() {
       expect(options.forceAssistedReceiptFill, isTrue);
       expect(options.forceLongReceiptMode, isTrue);
       expect(options.forceReviewDepth, ReceiptNativeReviewDepth.detailedLines);
+      expect(
+        options.effectiveReviewDepth,
+        ReceiptNativeReviewDepth.detailedLines,
+      );
       expect(options.previousSectionGuidePhotoPath, '/tmp/receipt-middle.jpg');
       expect(
         options.previousSectionReasonCode,
         'missing_bottom_edge_and_totals',
       );
       expect(options.previousSectionGuidance, 'Add the lower receipt section.');
+    },
+  );
+
+  test(
+    'continuation guide preserves module default detailed review intent',
+    () {
+      final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
+        previousPhotoPaths: const ['/tmp/receipt-top.jpg'],
+        reasonCode: 'missing_bottom_edge_and_totals',
+      );
+
+      final inventory = guide.applyTo(
+        const ReceiptCaptureFlowOptions(
+          module: ReceiptCaptureFlowModule.materialsInventory,
+        ),
+      );
+      final maintenance = guide.applyTo(
+        const ReceiptCaptureFlowOptions(
+          module: ReceiptCaptureFlowModule.maintenanceRepair,
+        ),
+      );
+      final expenses = guide.applyTo(
+        const ReceiptCaptureFlowOptions(
+          module: ReceiptCaptureFlowModule.expenses,
+        ),
+      );
+
+      expect(
+        inventory.effectiveReviewDepth,
+        ReceiptNativeReviewDepth.detailedLines,
+      );
+      expect(
+        maintenance.effectiveReviewDepth,
+        ReceiptNativeReviewDepth.detailedLines,
+      );
+      expect(
+        expenses.effectiveReviewDepth,
+        ReceiptNativeReviewDepth.pricesOnly,
+      );
+      expect(
+        inventory.previousSectionReasonCode,
+        'missing_bottom_edge_and_totals',
+      );
+      expect(maintenance.previousSectionGuidePhotoPath, '/tmp/receipt-top.jpg');
     },
   );
 
