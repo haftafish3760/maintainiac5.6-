@@ -150,7 +150,10 @@ class WorkSupplyParserArtifactRetentionSuite extends QaSuite {
     final present = <String>[];
     for (final contract in _contracts) {
       final source = sources[contract.path] ?? '';
-      if (contract.tokens.every(source.contains)) {
+      final normalizedSource = _normalizeContractText(source);
+      if (contract.tokens.every(
+        (token) => normalizedSource.contains(_normalizeContractText(token)),
+      )) {
         present.add(contract.name);
         continue;
       }
@@ -194,4 +197,8 @@ class _ArtifactRetentionContract {
   final String path;
   final List<String> tokens;
   final String category;
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }

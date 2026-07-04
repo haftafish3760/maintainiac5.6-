@@ -3615,3 +3615,10 @@ Release boundaries:
   destinations. Focused
   `inventory.input_attack_surface_contract,inventory.security_privacy,qa.threshold_gate`
   passed 151 checks with 0 failures, and targeted analyzer found no issues.
+- **11:45 Harness Pass 2681:** Made import/export safety plus QA artifact and
+  artifact-retention contract matching whitespace-safe. This keeps dry-run
+  imports, schema/version checks, hostile import guards, official-pack mutation
+  boundaries, timestamped/latest artifacts, pack-health reports, and ignored
+  local build outputs stable across formatted docs. Focused
+  `inventory.import_export_safety_contract,inventory.artifact_contract,inventory.artifact_retention_contract,qa.threshold_gate`
+  passed 92 checks with 0 failures, and targeted analyzer found no issues.
