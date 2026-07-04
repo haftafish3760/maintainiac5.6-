@@ -39,6 +39,14 @@ void main() {
         'QRWORK142NMB',
       ]);
       expect(result.privacySafeSummaryMap['purpose'], 'inventory');
+      expect(result.privacySafeSummaryMap['formatCounts'], {
+        'upca': 1,
+        'qrCode': 1,
+      });
+      expect(result.privacySafeSummaryMap['valueTypeCounts'], {
+        'product': 1,
+        'text': 1,
+      });
       expect(
         result.privacySafeSummaryMap.toString(),
         isNot(contains('012345')),

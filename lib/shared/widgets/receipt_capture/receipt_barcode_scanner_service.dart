@@ -179,12 +179,24 @@ class ReceiptBarcodeBatchScanResult {
   }
 
   Map<String, Object?> get privacySafeSummaryMap {
+    final formatCounts = <String, int>{};
+    final typeCounts = <String, int>{};
+    for (final result in imageResults) {
+      for (final code in result.codes) {
+        formatCounts[code.format.name] =
+            (formatCounts[code.format.name] ?? 0) + 1;
+        final type = code.privacySafeValueType;
+        typeCounts[type] = (typeCounts[type] ?? 0) + 1;
+      }
+    }
     return {
       'purpose': purpose.name,
       'imageCount': imageCount,
       'codeCount': codeCount,
       'qrCodeCount': qrCodeCount,
       'inventoryLookupCandidateCount': inventoryLookupValues.length,
+      'formatCounts': Map.unmodifiable(formatCounts),
+      'valueTypeCounts': Map.unmodifiable(typeCounts),
       'imageWarningBuckets': {
         for (final result in imageResults)
           ...result.warnings.map(_privacySafeBarcodeWarning),
