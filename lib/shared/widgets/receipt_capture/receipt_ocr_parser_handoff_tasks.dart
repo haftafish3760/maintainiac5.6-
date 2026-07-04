@@ -110,6 +110,8 @@ extension ReceiptOcrParserHandoffTasks on ReceiptOcrParserHandoff {
   Map<String, int> get parserReviewTaskCounts {
     if (lines.isEmpty) return const {};
     final counts = <String, int>{
+      if (hasDuplicateLineIds)
+        'duplicate_line_ids_need_review': duplicateLineIds.length,
       if (needsLineSequenceReview) 'line_sequence_needs_review': 1,
       if (hasCompleteSummaryAmounts && !summaryMathReconciled)
         'summary_math_needs_review': 1,

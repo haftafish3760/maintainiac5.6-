@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 744 - 03:42:58 EDT to active cleanup
+
+Scope:
+- Hardened parser/readiness gates so duplicate OCR line IDs downgrade receipt
+  parser, downstream, merchant-independent, mixed-classification, and lean-local
+  OCR readiness instead of appearing only as metadata.
+- Added a focused regression with an otherwise ready receipt whose duplicate
+  line IDs force review before line-numbered proof or split classification.
+- Split duplicate line identity coverage into a focused test file after the
+  source audit caught the structure test over the line cap.
+- Recorded `BUG-RECEIPT-0232` under `receipt_line_numbering`.
+- Archived Pass 719 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for parser handoff readiness.
+- Passed focused Flutter parser handoff structure and line-identity regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates after splitting the oversized test.
+
 ## Pass 743 - 03:41:10 EDT to active cleanup
 
 Scope:
@@ -467,22 +486,6 @@ Scope:
 
 Verification:
 - Passed Dart format/analyzer for native total-byte validation.
-- Passed focused native path validation regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 719 - 02:43:00 EDT to active cleanup
-
-Scope:
-- Hardened `ReceiptNativeCameraService` so sanitized native capture diagnostics
-  that exceed the session `maxLocalPhotoBytes` budget are rejected before
-  OCR/staging handoff.
-- Added a focused regression for oversized native receipt photo diagnostics.
-- Recorded `BUG-RECEIPT-0207` under `source_preservation`.
-- Archived Pass 692 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed Dart format/analyzer for native byte-budget validation.
 - Passed focused native path validation regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

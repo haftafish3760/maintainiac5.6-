@@ -9,6 +9,7 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
         dateLines.isNotEmpty &&
         primaryTotalAmount != null &&
         parserReadyLineCount > 0 &&
+        !hasDuplicateLineIds &&
         !needsLineSequenceReview &&
         !needsSourceSectionContinuityReview;
   }
@@ -58,6 +59,9 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
     if (parserReadyLineCount == 0) {
       return 'vendor_missing_unrecoverable_no_safe_items';
     }
+    if (hasDuplicateLineIds) {
+      return 'vendor_missing_unrecoverable_line_identity';
+    }
     return 'vendor_missing_needs_manual_entry';
   }
 
@@ -78,6 +82,8 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
         'Store name needs review and the receipt total is missing.',
       'vendor_missing_unrecoverable_no_safe_items' =>
         'Store name needs review and no safe item prices were found.',
+      'vendor_missing_unrecoverable_line_identity' =>
+        'Store name needs review and receipt line numbers need review.',
       'no_text' => 'No OCR text ready for store-name review.',
       _ => 'Receipt store name needs review.',
     };
@@ -107,6 +113,7 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
       'readyItemLineCount': parserReadyLineCount,
       'totalPresent': primaryTotalAmount != null,
       'lineSequenceStatus': lineSequenceStatus,
+      'lineIdentityStatus': lineIdentityStatus,
       'sourceSectionContinuityStatus': sourceSectionContinuityStatus,
     });
   }
@@ -144,6 +151,7 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
     if (primaryTotalAmount == null) return 'needs_total';
     if (itemLines.isEmpty) return 'needs_item_lines';
     if (parserReadyLineCount == 0) return 'needs_safe_item_prices';
+    if (hasDuplicateLineIds) return 'needs_line_identity_review';
     if (needsSourceSectionContinuityReview) return 'needs_section_order_review';
     if (needsLineSequenceReview) return 'needs_line_order_review';
     if (fuelCandidateLineCount > 0) return 'generic_fuel_receipt_ready';
@@ -169,6 +177,8 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
         'Merchant-independent receipt structure is ready.',
       'needs_line_order_review' =>
         'Receipt line order needs review before merchant-independent parsing.',
+      'needs_line_identity_review' =>
+        'Receipt line numbering needs review before merchant-independent parsing.',
       'needs_section_order_review' =>
         'Receipt section order needs review before merchant-independent parsing.',
       'needs_safe_item_prices' =>
@@ -198,6 +208,7 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
       'materialLineCount': materialCandidateLineCount,
       'vehicleSupplyLineCount': vehicleSupplyCandidateLineCount,
       'lineSequenceStatus': lineSequenceStatus,
+      'lineIdentityStatus': lineIdentityStatus,
       'sourceSectionContinuityStatus': sourceSectionContinuityStatus,
     });
   }
@@ -215,7 +226,9 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
     if (parserReadyLineCount == 0) {
       return 'proof_totals_ready_lines_deferred';
     }
-    if (reviewItemLineCount > 0 || needsLineSequenceReview) {
+    if (reviewItemLineCount > 0 ||
+        needsLineSequenceReview ||
+        hasDuplicateLineIds) {
       return 'proof_totals_ready_lines_need_review';
     }
     return 'line_items_ready';
@@ -246,6 +259,7 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
         'parser_ready_item_lines': parserReadyLineCount,
       if (reviewItemLineCount > 0) 'review_item_lines': reviewItemLineCount,
       if (needsLineSequenceReview) 'line_sequence_review': 1,
+      if (hasDuplicateLineIds) 'line_identity_review': 1,
       if (hasCompleteSummaryAmounts && !summaryMathReconciled)
         'summary_math_review': 1,
     });

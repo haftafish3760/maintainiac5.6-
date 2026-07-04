@@ -75,6 +75,7 @@ extension ReceiptOcrParserHandoffFamilyReadiness on ReceiptOcrParserHandoff {
     if (itemLines.isEmpty) return 'needs_line_items';
     if (parserReadyLineCount == 0) return 'needs_safe_item_prices';
     if (!hasMixedClassificationSummaryBasis) return 'needs_receipt_total';
+    if (hasDuplicateLineIds) return 'needs_line_identity_review';
     if (needsSourceSectionContinuityReview) return 'needs_section_order_review';
     if (needsLineSequenceReview) return 'needs_line_order_review';
     if (hasCompleteSummaryAmounts && !summaryMathReconciled) {
@@ -104,6 +105,8 @@ extension ReceiptOcrParserHandoffFamilyReadiness on ReceiptOcrParserHandoff {
         'mixed_classification_needs_section_order: receipt sections need review',
       'needs_line_order_review' =>
         'mixed_classification_needs_line_order: receipt line order needs review',
+      'needs_line_identity_review' =>
+        'mixed_classification_needs_line_identity: receipt line numbering needs review',
       'needs_summary_math_review' =>
         'mixed_classification_needs_math_review: subtotal, tax, and total need review',
       'no_text' => 'mixed_classification_no_text: no readable receipt text',
@@ -122,6 +125,7 @@ extension ReceiptOcrParserHandoffFamilyReadiness on ReceiptOcrParserHandoff {
       'hasSummaryBasis': hasMixedClassificationSummaryBasis,
       'summaryMathStatus': summaryMathStatus,
       'lineSequenceStatus': lineSequenceStatus,
+      'lineIdentityStatus': lineIdentityStatus,
       'sourceSectionContinuityStatus': sourceSectionContinuityStatus,
       'sourceSectionCount': sourceSectionCount,
     });

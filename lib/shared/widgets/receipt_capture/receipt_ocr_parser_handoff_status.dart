@@ -3,6 +3,7 @@ part of '../../receipts/receipt_ocr_contract.dart';
 extension ReceiptOcrParserHandoffStatus on ReceiptOcrParserHandoff {
   String get parserReadinessStatus {
     if (lines.isEmpty) return 'no_text';
+    if (hasDuplicateLineIds) return 'needs_review';
     if (vendorLines.isEmpty) {
       return hasRecoverableMissingVendorHeader
           ? 'needs_vendor_review'
@@ -23,6 +24,7 @@ extension ReceiptOcrParserHandoffStatus on ReceiptOcrParserHandoff {
 
   String get downstreamReadinessStatus {
     if (lines.isEmpty) return 'no_text';
+    if (hasDuplicateLineIds) return 'expense_lines_need_review';
     if (vendorLines.isEmpty && hasRecoverableMissingVendorHeader) {
       return 'receipt_header_needs_review';
     }
@@ -105,6 +107,7 @@ extension ReceiptOcrParserHandoffStatus on ReceiptOcrParserHandoff {
 
   int get parserReviewSignalCount {
     var count = reviewItemLineCount;
+    if (hasDuplicateLineIds) count += 1;
     if (needsLineSequenceReview) count += 1;
     if (hasCompleteSummaryAmounts && !summaryMathReconciled) count += 1;
     if (vendorLines.isEmpty && lines.isNotEmpty) count += 1;
@@ -115,6 +118,7 @@ extension ReceiptOcrParserHandoffStatus on ReceiptOcrParserHandoff {
 
   String get receiptStructureStatus {
     if (lines.isEmpty) return 'no_text';
+    if (hasDuplicateLineIds) return 'line_identity_review';
     if (vendorLines.isEmpty && hasRecoverableMissingVendorHeader) {
       return 'recoverable_missing_vendor';
     }
