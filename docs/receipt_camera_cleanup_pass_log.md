@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 873 - 16:31:00 EDT to active cleanup
+
+Scope:
+- Closed the follow-on section-order handoff gap where invalid order metadata
+  could still report a details-ready route.
+- Made invalid section ordering return `needs_review_before_ocr`, pause receipt
+  details/OCR handoff, and require section-order review before continuing.
+- Added regression coverage for route blocking and attachment document signals
+  so downstream OCR handoff sees the review-needed state.
+- Recorded `BUG-RECEIPT-0322` under `multi_photo_ordering`.
+- Archived Pass 800 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused section-order/stitch-scanner
+  regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 872 - 16:26:00 EDT to active cleanup
 
 Scope:
@@ -466,24 +484,6 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused receipt line record
-  regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 800 - 09:07:30 EDT to active cleanup
-
-Scope:
-- Renamed unreadable OCR source-prep cleanup actions that implied the original
-  image was used after a missing file or decode failure.
-- Kept stable failure decision codes while changing cleanup action labels to
-  no-clear-OCR-source wording.
-- Added unreadable-source regressions rejecting the old `_original_used`
-  action family.
-- Recorded `BUG-RECEIPT-0284` under `source_preservation`.
-- Archived Pass 768 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused OCR source-guard
   regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

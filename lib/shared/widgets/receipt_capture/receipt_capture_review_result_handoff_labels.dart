@@ -102,12 +102,16 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       ? 'saved_photo_review_resume_required'
       : needsAnotherReceiptSectionBeforeDetails
       ? 'photo_review_add_next_receipt_section'
+      : receiptSectionOrderNeedsReview
+      ? 'photo_review_section_order_review_required'
       : 'photo_review_accepted_to_receipt_details';
 
   String get acceptedPhotoHandoffNextScreen => keptForLater
       ? 'receipt_photo_review_resume'
       : needsAnotherReceiptSectionBeforeDetails
       ? 'receipt_photo_capture_bottom_section'
+      : receiptSectionOrderNeedsReview
+      ? 'receipt_photo_section_order_review'
       : 'receipt_details_store_date_total_tax_items';
 
   String get acceptedPhotoHandoffNextStepLabel => keptForLater
@@ -126,6 +130,8 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       ? 'Receipt details stay closed until saved photo review is resumed.'
       : needsAnotherReceiptSectionBeforeDetails
       ? 'Receipt details stay paused until the bottom section is added or the user confirms this photo already shows the full receipt.'
+      : receiptSectionOrderNeedsReview
+      ? 'Receipt details stay paused until the user confirms the receipt section order.'
       : 'Next reads the clearest OCR source first before the smaller saved proof copy is kept, then opens the filled receipt review.';
 
   String get acceptedPhotoHandoffRouteResultLabel => keptForLater
@@ -140,13 +146,19 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
                     'before receipt details can open, unless the user confirms this photo already shows the full receipt.',
               )
             : 'Receipt details can open only after the user accepts that this photo covers the full receipt or adds the next section.'
+      : receiptSectionOrderNeedsReview
+      ? 'Receipt details can open only after the receipt section order is reviewed.'
       : 'Accepted photo review must open receipt details next, not the previous expense screen.';
 
   bool get acceptedPhotoHandoffMustOpenFilledReview =>
-      !keptForLater && !needsAnotherReceiptSectionBeforeDetails;
+      !keptForLater &&
+      !needsAnotherReceiptSectionBeforeDetails &&
+      !receiptSectionOrderNeedsReview;
 
   bool get acceptedPhotoHandoffMustOpenReceiptDetails =>
-      !keptForLater && !needsAnotherReceiptSectionBeforeDetails;
+      !keptForLater &&
+      !needsAnotherReceiptSectionBeforeDetails &&
+      !receiptSectionOrderNeedsReview;
 
   String get acceptedPhotoHandoffUserAction => keptForLater
       ? 'resume_saved_photo_review'
@@ -154,6 +166,8 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       ? 'confirm_complete_receipt_and_review_details'
       : needsAnotherReceiptSectionBeforeDetails
       ? 'add_next_section_or_confirm_complete_receipt'
+      : receiptSectionOrderNeedsReview
+      ? 'review_receipt_section_order'
       : 'tap_next_after_photo_review';
 
   String get acceptedPhotoHandoffEvidenceLabel {

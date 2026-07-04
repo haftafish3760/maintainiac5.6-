@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_flow.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 void main() {
@@ -41,9 +42,24 @@ void main() {
       1,
     );
     expect(result.receiptSectionOrderNeedsReview, true);
+    expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
+    expect(
+      result.acceptedPhotoHandoffRoute,
+      'photo_review_section_order_review_required',
+    );
+    expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, false);
+    expect(result.acceptedPhotoHandoffMustOpenFilledReview, false);
     expect(
       result.acceptedPhotoHandoffActionLabel,
       'Review the retaken receipt section order before OCR reads the receipt.',
+    );
+    final attachments = ReceiptCaptureFlow.attachmentsFromReviewResult(
+      result,
+      ReceiptCaptureFlowModule.expenses,
+    );
+    expect(
+      attachments.single.documentSignals,
+      contains('receipt_handoff_needs_review_before_ocr'),
     );
     final metadata = result.privacySafeReceiptReaderHandoffMetadata.toString();
     expect(metadata, contains('review_retaken_section_order_before_ocr'));
@@ -121,6 +137,8 @@ void main() {
       'numbered_sections_with_ghost_guide',
     );
     expect(result.receiptSectionOrderNeedsReview, false);
+    expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, true);
+    expect(result.acceptedPhotoHandoffMustOpenFilledReview, true);
     expect(
       result.receiptSectionOrderReviewActionCode,
       'review_long_receipt_order_with_ghost_guide',
@@ -160,6 +178,7 @@ void main() {
       1,
     );
     expect(result.receiptSectionOrderNeedsReview, true);
+    expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
   });
 
   test('insert-after offset mismatches require order review', () {
