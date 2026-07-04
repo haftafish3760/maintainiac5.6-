@@ -312,6 +312,23 @@ void main() {
     );
     expect(stale.nativeCameraUiHealthOutcome, 'native_focus_status_not_used');
     expect(stale.nativeCameraUiHealthCounts['native_focus_status_not_used'], 1);
+
+    final failedAttachments = ReceiptCaptureFlow.attachmentsFromReviewResult(
+      failed,
+      ReceiptCaptureFlowModule.expenses,
+    );
+    final staleAttachments = ReceiptCaptureFlow.attachmentsFromReviewResult(
+      stale,
+      ReceiptCaptureFlowModule.expenses,
+    );
+    expect(
+      failedAttachments.single.riskFlags,
+      contains('native_camera_ui_native_focus_status_configuration_failed'),
+    );
+    expect(
+      staleAttachments.single.riskFlags,
+      contains('native_camera_ui_native_focus_status_not_used'),
+    );
   });
 
   test('photo review result flags incomplete native camera controls', () {

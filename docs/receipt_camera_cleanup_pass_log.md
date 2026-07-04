@@ -12,6 +12,8 @@ Scope:
 - Promoted focus configuration failure and stale `not_used` diagnostics into
   native UI health outcomes so review/admin surfaces cannot silently treat them
   as ready.
+- Routed focus configuration failure and stale `not_used` outcomes into
+  attachment risk flags for OCR/review handoff.
 - Recorded `BUG-RECEIPT-0318` under `native_bridge`.
 - Archived Pass 823 from the active cleanup log to keep the doc under cap.
 
