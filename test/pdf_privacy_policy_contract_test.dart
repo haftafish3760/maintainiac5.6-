@@ -45,6 +45,21 @@ void main() {
     expect(issues, contains(AppPdfPrivacyPolicy.patientData));
   });
 
+  test('PDF privacy policy blocks unlabeled VINs and short plate labels', () {
+    final issues = AppPdfPrivacyPolicy.issueCodesForExport(
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\n'
+                '1FTFW1E50MFA12345\n'
+                'Plate: ABC 1234\n'
+                '%%EOF'
+            .codeUnits,
+      ),
+    );
+
+    expect(issues, contains(AppPdfPrivacyPolicy.vin));
+    expect(issues, contains(AppPdfPrivacyPolicy.licensePlate));
+  });
+
   test('generated PDF validation checks exported titles and share text', () {
     final document = AppGeneratedPdfDocument(
       kind: AppGeneratedPdfKind.invoice,

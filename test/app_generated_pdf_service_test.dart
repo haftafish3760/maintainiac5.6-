@@ -132,7 +132,7 @@ void main() {
       document,
     );
 
-    expect(generated.path, contains('maintaniac_generated_pdfs'));
+    expect(generated.path, contains('maintainiac_generated_pdfs'));
     expect(generated.path, endsWith('.pdf'));
     expect(await File(generated.path).exists(), isTrue);
     expect(await File(generated.path).length(), document.byteSize);
@@ -219,6 +219,14 @@ void main() {
     expect(document.safeFileName, isNot(contains(':')));
     expect(document.safeFileName, isNot(contains('*')));
     expect(document.safeFileName.length, lessThanOrEqualTo(120));
+    final defaultNameDocument = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: '',
+      bytes: Uint8List.fromList('%PDF-1.7\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 6, 15),
+    );
+    expect(defaultNameDocument.safeFileName, 'maintainiac-document.pdf');
   });
 
   test('generated PDF validation rejects invalid and active PDF bytes', () {
@@ -289,7 +297,7 @@ void main() {
       );
       expect(
         await Directory(
-          '${temporaryDirectory.path}/maintaniac_generated_pdfs',
+          '${temporaryDirectory.path}/maintainiac_generated_pdfs',
         ).exists(),
         isFalse,
       );

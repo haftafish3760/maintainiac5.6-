@@ -116,7 +116,7 @@ void main() {
       );
 
       expect(generated.path, startsWith(temporaryDirectory.path));
-      expect(generated.path, contains('maintaniac_generated_pdfs'));
+      expect(generated.path, contains('maintainiac_generated_pdfs'));
       expect(generated.path, endsWith('.pdf'));
       expect(File(generated.path).uri.pathSegments.last, document.safeFileName);
       expect(File(generated.path).uri.pathSegments.last, isNot(contains('\\')));

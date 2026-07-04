@@ -51,7 +51,7 @@ class AppGeneratedPdfDocument {
 
   String get safeFileName {
     final trimmed = fileName.trim();
-    if (trimmed.isEmpty) return 'maintaniac-document.pdf';
+    if (trimmed.isEmpty) return 'maintainiac-document.pdf';
     final withExtension = trimmed.toLowerCase().endsWith('.pdf')
         ? trimmed
         : '$trimmed.pdf';
@@ -102,7 +102,7 @@ class AppGeneratedPdfFileName {
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim()
         .replaceAll(RegExp(r'^[.\s-]+|[.\s-]+$'), '');
-    final normalized = cleaned.isEmpty ? 'maintaniac-document.pdf' : cleaned;
+    final normalized = cleaned.isEmpty ? 'maintainiac-document.pdf' : cleaned;
     final withExtension = normalized.toLowerCase().endsWith('.pdf')
         ? '${_safeBase(normalized.substring(0, normalized.length - 4))}.pdf'
         : '${_safeBase(normalized)}.pdf';
@@ -116,7 +116,7 @@ class AppGeneratedPdfFileName {
       RegExp(r'^[.\s-]+|[.\s-]+$'),
       '',
     );
-    if (baseName.isEmpty) baseName = 'maintaniac-document';
+    if (baseName.isEmpty) baseName = 'maintainiac-document';
     if (_windowsReservedNames.contains(baseName.toLowerCase())) {
       return 'maintainiac-$baseName';
     }

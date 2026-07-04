@@ -142,7 +142,7 @@ class AppGeneratedPdfService {
 
   Future<Directory> _generatedPdfDirectory() async {
     final directory = await getTemporaryDirectory();
-    return Directory(path.join(directory.path, 'maintaniac_generated_pdfs'));
+    return Directory(path.join(directory.path, 'maintainiac_generated_pdfs'));
   }
 
   Future<void> _createDirectory(Directory directory) async {

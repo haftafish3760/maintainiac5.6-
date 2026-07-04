@@ -36,13 +36,14 @@ class AppPdfPrivacyPolicy {
 
   static bool _containsVin(String text) {
     return RegExp(
-      r'\b(?:vin|vehicle identification number)\s*[:#-]?\s*[a-hj-npr-z0-9]{17}\b',
-    ).hasMatch(text);
+          r'\b(?:vin|vehicle identification number)\s*[:#-]?\s*[a-hj-npr-z0-9]{17}\b',
+        ).hasMatch(text) ||
+        RegExp(r'\b[a-hj-npr-z0-9]{17}\b').hasMatch(text);
   }
 
   static bool _containsLicensePlate(String text) {
     return RegExp(
-      r'\b(?:license plate|plate number|tag number)\s*[:#-]?\s*[a-z0-9][a-z0-9 -]{2,10}\b',
+      r'\b(?:license plate|plate number|plate|tag number|vehicle tag)\s*[:#-]?\s*[a-z0-9][a-z0-9 -]{2,10}\b',
     ).hasMatch(text);
   }
 

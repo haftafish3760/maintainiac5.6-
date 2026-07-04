@@ -1,5 +1,25 @@
 # PDF System Pass Log
 
+## Pass 31 - 2026-07-04 16:17 EDT - Generated PDF brand and privacy hardening
+
+- Scope: generated PDF naming and export privacy only. No inventory, camera,
+  native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Corrected generated PDF default filenames and temporary storage directory
+    naming to use Maintainiac spelling.
+  - Hardened generated PDF privacy detection for unlabeled 17-character VINs.
+  - Hardened generated PDF privacy detection for short `Plate:` vehicle labels.
+  - Added regression coverage for default generated PDF names, temp storage
+    path naming, unlabeled VINs, and short plate labels.
+- Verification completed 2026-07-04 16:17 EDT:
+  - `dart format lib/shared/pdf/app_generated_pdf_models.dart lib/shared/pdf/app_generated_pdf_service.dart lib/shared/pdf/app_pdf_privacy_policy.dart test/app_generated_pdf_service_test.dart test/pdf_cross_platform_contract_test.dart test/pdf_privacy_policy_contract_test.dart`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_models.dart lib/shared/pdf/app_generated_pdf_service.dart lib/shared/pdf/app_pdf_privacy_policy.dart test/app_generated_pdf_service_test.dart test/pdf_cross_platform_contract_test.dart test/pdf_privacy_policy_contract_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_cross_platform_contract_test.dart test/pdf_privacy_policy_contract_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+- Failure handled:
+  - Fixed two patch mistakes in this pass before continuing: a missed test patch
+    context and an invalid test constructor.
+
 ## Pass 30 - 2026-07-04 16:12 EDT - Shared PDF formatters
 
 - Scope: shared PDF formatting infrastructure and invoice renderer adoption
