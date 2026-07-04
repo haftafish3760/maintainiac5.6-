@@ -8,6 +8,7 @@ class WorkSupplyParserPropertySuite extends QaSuite {
   static const _sizes = ['1/2', '3/4', '1', '1-1/2', '2'];
   static const _dangerousFamilies = [
     'PVC',
+    'COPPER',
     'TAPE',
     'FILTER',
     'BOX',
@@ -41,6 +42,9 @@ class WorkSupplyParserPropertySuite extends QaSuite {
     'discount_line',
     'tax_line',
     'mixed_trade_job',
+    'cross_trade_copper',
+    'pvc_coupling_shorthand',
+    'mixed_trade_overlap',
   };
 
   @override
@@ -239,8 +243,18 @@ class WorkSupplyParserPropertySuite extends QaSuite {
         mustRequireReview: true,
       ),
       _PropertyCase(
+        'SERVICE TRUCK 3/4 COPPER 90 LINE SET COVER',
+        scenarioType: 'cross_trade_copper',
+        mustRequireReview: true,
+      ),
+      _PropertyCase(
+        'HOME DEPOT PVC 3/4 CPLG 12/2 WIRE',
+        scenarioType: 'pvc_coupling_shorthand',
+        mustRequireReview: true,
+      ),
+      _PropertyCase(
         'KITCHEN JOB PEX 1/2 ELEC TAPE FOIL TAPE',
-        scenarioType: 'mixed_trade_job',
+        scenarioType: 'mixed_trade_overlap',
         mustRequireReview: true,
       ),
     ];
@@ -249,6 +263,7 @@ class WorkSupplyParserPropertySuite extends QaSuite {
   bool _mustRequireReview(String family, String modifier) {
     if (modifier.trim().isEmpty) return true;
     if (family == 'PVC' && modifier.trim() == 'COND') return true;
+    if (family == 'COPPER') return true;
     if (family == 'TAPE') return true;
     if (family == 'BOX') return true;
     if (family == 'PIPE') return true;
