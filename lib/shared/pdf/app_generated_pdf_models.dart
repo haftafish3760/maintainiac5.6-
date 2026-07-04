@@ -69,19 +69,58 @@ class AppGeneratedPdfDocument {
 class AppGeneratedPdfFileName {
   const AppGeneratedPdfFileName._();
 
+  static const Set<String> _windowsReservedNames = {
+    'con',
+    'prn',
+    'aux',
+    'nul',
+    'com1',
+    'com2',
+    'com3',
+    'com4',
+    'com5',
+    'com6',
+    'com7',
+    'com8',
+    'com9',
+    'lpt1',
+    'lpt2',
+    'lpt3',
+    'lpt4',
+    'lpt5',
+    'lpt6',
+    'lpt7',
+    'lpt8',
+    'lpt9',
+  };
+
   static String clean(String fileName) {
     final cleaned = fileName
+        .replaceAll(RegExp(r'[\x00-\x1F\x7F]+'), '-')
         .replaceAll(RegExp(r'[\\/:*?"<>|]+'), '-')
         .replaceAll(RegExp(r'\.{2,}'), '-')
         .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
+        .trim()
+        .replaceAll(RegExp(r'^[.\s-]+|[.\s-]+$'), '');
     final normalized = cleaned.isEmpty ? 'maintaniac-document.pdf' : cleaned;
     final withExtension = normalized.toLowerCase().endsWith('.pdf')
-        ? '${normalized.substring(0, normalized.length - 4)}.pdf'
-        : '$normalized.pdf';
+        ? '${_safeBase(normalized.substring(0, normalized.length - 4))}.pdf'
+        : '${_safeBase(normalized)}.pdf';
     if (withExtension.length <= 120) return withExtension;
     final baseName = withExtension.substring(0, withExtension.length - 4);
-    return '${baseName.substring(0, 116)}.pdf';
+    return '${_safeBase(baseName.substring(0, 116))}.pdf';
+  }
+
+  static String _safeBase(String rawBaseName) {
+    var baseName = rawBaseName.trim().replaceAll(
+      RegExp(r'^[.\s-]+|[.\s-]+$'),
+      '',
+    );
+    if (baseName.isEmpty) baseName = 'maintaniac-document';
+    if (_windowsReservedNames.contains(baseName.toLowerCase())) {
+      return 'maintainiac-$baseName';
+    }
+    return baseName;
   }
 }
 

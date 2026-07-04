@@ -51,16 +51,52 @@ void main() {
       '../Customer/../../statement<>|.pdf',
       '  iCloud Drive:Estimate "Job #42".PDF  ',
       'android/content/export/customer:invoice.pdf',
+      'CON.pdf',
+      'LPT1',
+      'aux.',
+      'invoice\u0000with\u001Fcontrols.pdf',
+      '.hidden-receipt.pdf',
     ];
 
     for (final name in unsafeNames) {
       final safe = AppGeneratedPdfFileName.clean(name);
+      final baseName = safe.substring(0, safe.length - 4).toLowerCase();
 
       expect(safe, endsWith('.pdf'));
       expect(safe.length, lessThanOrEqualTo(120));
       expect(safe, isNot(contains(RegExp(r'[\\/:*?"<>|]'))));
+      expect(safe, isNot(contains(RegExp(r'[\x00-\x1F\x7F]'))));
       expect(safe, isNot(contains('..')));
       expect(safe.trim(), safe);
+      expect(
+        baseName,
+        isNot(
+          isIn([
+            'con',
+            'prn',
+            'aux',
+            'nul',
+            'com1',
+            'com2',
+            'com3',
+            'com4',
+            'com5',
+            'com6',
+            'com7',
+            'com8',
+            'com9',
+            'lpt1',
+            'lpt2',
+            'lpt3',
+            'lpt4',
+            'lpt5',
+            'lpt6',
+            'lpt7',
+            'lpt8',
+            'lpt9',
+          ]),
+        ),
+      );
     }
   });
 
@@ -102,7 +138,7 @@ void main() {
         dataSaverLevel: ReceiptDataSaverLevel.original,
         createdAt: DateTime(2026, 7, 4),
         displayName: r'..\Downloads\Fuel:Receipt?.pdf',
-        originalFileName: r'..\Downloads\Fuel:Receipt?.pdf',
+        originalFileName: 'CON.pdf',
         mimeType: 'application/pdf',
       ),
     );
@@ -116,6 +152,7 @@ void main() {
     expect(staged.originalFileName, endsWith('.pdf'));
     expect(staged.originalFileName, isNot(contains(RegExp(r'[\\/:*?"<>|]'))));
     expect(staged.originalFileName, isNot(contains('..')));
+    expect(staged.originalFileName.toLowerCase(), isNot('con.pdf'));
     expect(await source.exists(), isTrue);
     expect(await File(staged.path).exists(), isTrue);
   });

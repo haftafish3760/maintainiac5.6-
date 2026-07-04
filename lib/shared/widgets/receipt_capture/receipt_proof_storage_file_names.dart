@@ -9,7 +9,40 @@ String _safeFileName(String value) {
       .replaceAll(RegExp(r'_+'), '_')
       .replaceAll(RegExp(r'^[._-]+|[._-]+$'), '');
   if (sanitized.isEmpty) return '';
-  return sanitized.length <= 90 ? sanitized : sanitized.substring(0, 90);
+  final reservedSafe = _isWindowsReservedFileName(sanitized)
+      ? 'receipt-$sanitized'
+      : sanitized;
+  return reservedSafe.length <= 90
+      ? reservedSafe
+      : reservedSafe.substring(0, 90);
+}
+
+bool _isWindowsReservedFileName(String value) {
+  final baseName = path.basenameWithoutExtension(value).toLowerCase();
+  return const {
+    'con',
+    'prn',
+    'aux',
+    'nul',
+    'com1',
+    'com2',
+    'com3',
+    'com4',
+    'com5',
+    'com6',
+    'com7',
+    'com8',
+    'com9',
+    'lpt1',
+    'lpt2',
+    'lpt3',
+    'lpt4',
+    'lpt5',
+    'lpt6',
+    'lpt7',
+    'lpt8',
+    'lpt9',
+  }.contains(baseName);
 }
 
 String _storageFileName(ReceiptAttachmentRecord attachment, String source) {

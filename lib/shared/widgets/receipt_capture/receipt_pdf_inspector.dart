@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import '../../pdf/app_pdf_security_policy.dart';
@@ -150,7 +151,7 @@ class ReceiptPdfInspector {
 
   static List<String> detectDocumentSignals(List<int> bytes) {
     if (bytes.isEmpty) return const [];
-    final text = String.fromCharCodes(bytes).toLowerCase();
+    final text = _pdfSignalText(bytes).toLowerCase();
     final signals = <String>[];
     for (final signal in {...receiptSignals, ...nonReceiptSignals}) {
       if (_containsPhrase(text, signal)) signals.add(signal);
@@ -180,6 +181,35 @@ class ReceiptPdfInspector {
         (RegExp(r'\btj\b').hasMatch(text) ||
             text.contains("'") ||
             text.contains('"'));
+  }
+
+  static String _pdfSignalText(List<int> bytes) {
+    final rawText = latin1.decode(bytes, allowInvalid: true);
+    final decodedText = <String>[];
+    for (final match in RegExp(
+      r'<([0-9a-fA-F\s]{4,})>',
+      multiLine: true,
+    ).allMatches(rawText)) {
+      final hex = match.group(1)!.replaceAll(RegExp(r'\s+'), '');
+      if (hex.length.isOdd) continue;
+      final values = <int>[];
+      for (var index = 0; index < hex.length; index += 2) {
+        final value = int.tryParse(hex.substring(index, index + 2), radix: 16);
+        if (value == null) {
+          values.clear();
+          break;
+        }
+        values.add(value);
+      }
+      if (values.isEmpty) continue;
+      final printable = values.where(
+        (value) => value == 9 || value == 10 || value == 13 || value >= 32,
+      );
+      if (printable.length != values.length) continue;
+      decodedText.add(latin1.decode(values, allowInvalid: true));
+    }
+    if (decodedText.isEmpty) return rawText;
+    return '$rawText ${decodedText.join(' ')}';
   }
 
   static String formatBytes(int bytes) {

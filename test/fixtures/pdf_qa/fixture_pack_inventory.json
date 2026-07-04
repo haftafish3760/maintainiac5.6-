@@ -68,6 +68,7 @@
       "fixtureKeys": [
         "valid_1_page",
         "valid_3_page",
+        "hex_text_layer",
         "manual_document"
       ]
     },
@@ -154,6 +155,8 @@
         "ios_icloud_filename",
         "macos_temp_directory",
         "windows_path_filename",
+        "windows_reserved_device_name",
+        "control_character_filename",
         "traversal_like_filename"
       ]
     },

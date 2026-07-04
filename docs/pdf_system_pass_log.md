@@ -1,5 +1,37 @@
 # PDF System Pass Log
 
+## Pass 24 - 2026-07-04 21:32 EDT - Hex text-layer receipt signals
+
+- Scope: receipt PDF inspection signal detection and QA only. No inventory,
+  camera, native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Added simple PDF hex-string decoding to receipt PDF document-signal
+    inspection so text-layer receipt hints such as total can be detected when
+    the PDF stores text as hex strings.
+  - Added regression coverage for hex encoded text-layer receipt signals.
+  - Extended the PDF QA fixture inventory for hex text-layer coverage.
+- Verification completed 2026-07-04 21:32 EDT:
+  - `dart analyze lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart test/receipt_pdf_inspector_edge_cases_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/receipt_pdf_inspector_edge_cases_test.dart test/receipt_pdf_torture_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 23 - 2026-07-04 21:21 EDT - Cross-platform PDF filename hardening
+
+- Scope: PDF filename safety and cross-platform QA only. No inventory, camera,
+  native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Hardened generated PDF filename cleanup against control characters,
+    leading/trailing separators, extensionless reserved Windows device names,
+    and dot-only names.
+  - Hardened receipt PDF proof storage metadata and stored proof filenames
+    against reserved Windows device names.
+  - Extended the cross-platform PDF contract and fixture inventory with
+    reserved-device-name and control-character filename cases.
+- Verification completed 2026-07-04 21:21 EDT:
+  - `dart analyze lib/shared/pdf/app_generated_pdf_models.dart lib/shared/widgets/receipt_capture/receipt_proof_storage_file_names.dart test/pdf_cross_platform_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/pdf_cross_platform_contract_test.dart test/pdf_qa_fixture_inventory_test.dart test/app_generated_pdf_service_test.dart test/receipt_pdf_torture_storage_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 22 - 2026-07-04 21:09 EDT - Shared PDF destination allocator
 
 - Scope: generated PDF file destination allocation and PDF test reliability

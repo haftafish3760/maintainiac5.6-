@@ -161,6 +161,19 @@ void main() {
     expect(geometry, contains(ReceiptPdfInspector.croppedPageSignal));
   });
 
+  test('PDF text-layer signals include simple hex encoded receipt text', () {
+    final hexTextLayer = ReceiptPdfInspector.detectDocumentSignals(
+      '%PDF-1.7\n'
+              '1 0 obj << /Type /Page /Contents 2 0 R >> endobj\n'
+              '2 0 obj << >> stream BT /F1 12 Tf <544F54414C2031322E3334> Tj ET endstream endobj\n'
+              '%%EOF'
+          .codeUnits,
+    );
+
+    expect(hexTextLayer, contains(ReceiptPdfInspector.textLayerSignal));
+    expect(hexTextLayer, contains('total'));
+  });
+
   test(
     'PDF warnings do not expose private embedded text or source paths',
     () async {
