@@ -6,6 +6,8 @@ This is not supposed to be a one-off inventory-only harness. The shared platform
 
 Hard boundary: this harness must not modify or depend on OCR, camera, PDF, Expenses, Firebase, jobs, invoice UI, dashboard, or platform-specific device APIs. It tests parser brains after text already exists.
 
+Future PDF QA must plug into this shared backbone as a separate consumer, not a duplicate harness. PDF-specific suites should reuse shared fixtures, fake users/accounts/devices, fake Hive/local truth, fake Firestore mirror checks, privacy redaction, artifact reports, regression registry, surgical reruns, and performance reporting. The PDF adapter should add its own behavior suites for malformed PDFs, huge PDFs, encrypted/password PDFs, image-only PDFs, text-layer extraction, page rotation/cropping, import ownership, storage cleanup, no private text in logs, and PDF-to-receipt/parser handoff. PDF UI tests should wait until the PDF UI is stable; PDF logic, storage, privacy, and handoff tests can be built alongside the PDF system.
+
 UI can move, but parser contracts must not. Do not write detailed UI/widget QA for unfinished screens in this parser harness. Parser/catalog QA should validate data contracts, review-only candidates, routing metadata, source-of-truth rules, fixture behavior, privacy/security boundaries, and reusable harness behavior. Screen layout, widget placement, navigation visuals, and golden UI checks belong in a later UI-specific milestone after the target screen is stable.
 
 Firebase writes are still off-limits in parser QA, and no live hosted writes in tests are allowed. Local pack mode is the default for parser harness work; Cloud fallback must remain opt-in, separately approved, and outside smoke/full/release parser QA until a future integration profile exists.
@@ -235,7 +237,7 @@ Parser candidates remain review-only. `possibleMatches` must carry ranked altern
 - Scalability suite: checks that parser/catalog QA has explicit scale checkpoints, receipt/catalog indexes, throughput budgets, slow-suite reporting, and warning-level contracts for indexed search parity, memory ceiling, cold-start/warm-cache timing, and full-scan debt before 50k/100k pack runs.
 - Index readiness contract vocabulary: `catalogSearchIndex`, `searchIndex`, `invertedIndex`, `indexParity`, `fullScanParity`, `same logical results`, `memoryCeiling`, `memoryUse`, `peakMemory`, `coldStart`, `warmCache`, and `indexedLoad` must remain documented until the indexed search implementation and parity runner replace the full-scan hot path.
 - Scale checkpoint runner contract: the harness must preserve bounded 1000, 10000, 50000, and 100000 item checkpoints for future Mac Mini/full-profile runs without forcing those checks into the quick smoke path.
-- Runtime profile contract suite (`inventory.runtime_profile_contract`): verifies parser-call suites keep smoke profile to case-building/report wiring and reserve expensive parser assertions for full/release profiles.
+- Runtime profile contract suite (`inventory.runtime_profile_contract`): verifies cheap, high-risk parser calls such as dangerous-word overconfidence stay active in smoke while expensive broad parser assertions remain reserved for full/release profiles.
 - Runtime measurement suite (`inventory.runtime_measurement`): records full/release parser probe timings as `coldStartMs` and `warmCacheMs` metrics so cold-start/index cost is visible separately from semantic accuracy failures.
 - Generated-case manifest suite (`inventory.generated_manifest_contract`): verifies generated-case manifest metadata such as `generationSeed`, `requestedLimit`, grammar dimensions, fixture path, and generated source is reported so failing batches can be reproduced.
 - Generated-fixture performance contract suite (`inventory.generated_fixture_performance_contract`): verifies generated fixture batch runs preserve warmup timing, semantic slow cases, parser-call counts, report paths, local-only status, and slow-family visibility without running parser calls in smoke.
@@ -609,9 +611,9 @@ Every category suite must keep these contracts:
 
 ## Run Modes
 
-Smoke profile is for fast daily development. It proves the harness, catalog schema sampler, alias sampler, fixture loading, generated-case building, grouped reporting, JSON output, and privacy-safe report path are working without running the most expensive semantic parser calls.
+Smoke profile is for fast daily development. It proves the harness, catalog schema sampler, alias sampler, fixture loading, generated-case building, grouped reporting, JSON output, privacy-safe report path, and cheap high-risk parser behavior such as dangerous-word overconfidence without running the most expensive semantic parser calls.
 
-Full profile is for deeper local or Mac Mini runs. It runs the semantic parser assertions for dangerous words, golden fixtures, and generated catalog cases.
+Full profile is for deeper local or Mac Mini runs. It runs the broad semantic parser assertions for golden fixtures, generated catalog cases, metamorphic/property cases, and any dangerous-word coverage beyond the smoke-critical checks.
 
 Release profile plus strict mode is for release gates. Any accuracy, safety, privacy, or schema failure becomes a test failure.
 

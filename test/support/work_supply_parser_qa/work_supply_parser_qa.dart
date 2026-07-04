@@ -703,19 +703,6 @@ class WorkSupplyDangerousWordSuite extends QaSuite {
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
     final failures = <QaFailure>[];
-    if (!context.isFullProfile) {
-      return timer.finish(
-        suite: name,
-        checked: _dangerousWords.length,
-        failures: failures,
-        maxFailures: context.maxFailuresPerSuite,
-        metrics: {
-          'mode': 'static-smoke',
-          'note':
-              'Full dangerous-word parser calls run in full/release profiles.',
-        },
-      );
-    }
     for (final word in _dangerousWords) {
       final match = matchReceiptLineToCatalog(word, maxCandidates: 12);
       if (match == null) continue;
@@ -739,6 +726,12 @@ class WorkSupplyDangerousWordSuite extends QaSuite {
       checked: _dangerousWords.length,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
+      metrics: {
+        'mode': context.isFullProfile
+            ? 'full-parser-calls'
+            : 'smoke-parser-calls',
+        'parserCalls': _dangerousWords.length,
+      },
     );
   }
 }

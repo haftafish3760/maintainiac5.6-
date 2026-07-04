@@ -4683,7 +4683,32 @@ bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
     return true;
   }
   return switch (text) {
-    'pvc' || 'tape' || 'pvc cement' || 'cement' || 'pipe' || 'coupling' => true,
+    'adapter' ||
+    'black' ||
+    'box' ||
+    'cap' ||
+    'cement' ||
+    'condensate' ||
+    'conduit' ||
+    'connector' ||
+    'copper' ||
+    'coupling' ||
+    'drain' ||
+    'elbow' ||
+    'filter' ||
+    'fitting' ||
+    'kit' ||
+    'pipe' ||
+    'plug' ||
+    'primer' ||
+    'pvc' ||
+    'pvc cement' ||
+    'supply' ||
+    'tape' ||
+    'tee' ||
+    'valve' ||
+    'white' ||
+    'wire' => true,
     _ => false,
   };
 }

@@ -12,8 +12,8 @@ class WorkSupplyParserRuntimeProfileSuite extends QaSuite {
       path: 'test/support/work_supply_parser_qa/work_supply_parser_qa.dart',
       requiredTokens: [
         'matchReceiptLineToCatalog',
-        'if (!context.isFullProfile)',
-        'Full dangerous-word parser calls run in full/release profiles.',
+        'smoke-parser-calls',
+        'full-parser-calls',
       ],
     ),
     _RuntimeProfileTarget(
@@ -119,12 +119,12 @@ class WorkSupplyParserRuntimeProfileSuite extends QaSuite {
         QaFailure(
           suite: name,
           id: 'missing_runtime_profile_guard:${target.suite}',
-          message: 'Parser-call suite is missing its smoke/full profile guard.',
+          message: 'Parser-call suite is missing its runtime profile guard.',
           severity: QaSeverity.error,
           expected: target.requiredTokens.join(' + '),
           actual: 'missing ${missing.join(' + ')}',
           suggestedFix:
-              'Keep smoke profile case-building only; run parser assertions in full/release profiles.',
+              'Keep expensive parser assertions in full/release profiles, but keep cheap high-risk smoke parser calls live.',
           metadata: const {'triageCategory': QaFailureTriage.performance},
         ),
       );
@@ -193,7 +193,8 @@ class WorkSupplyParserRuntimeProfileSuite extends QaSuite {
         'parserCallSuitesGuarded': presentTargets,
         'catalogBackedBroadSuites': catalogBackedTargets,
         'presentDocs': presentDocs,
-        'smokeParserAssertionsAllowed': false,
+        'smokeCriticalParserAssertionsAllowed': true,
+        'smokeExpensiveParserAssertionsAllowed': false,
         'fullReleaseParserAssertionsAllowed': true,
       },
     );

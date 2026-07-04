@@ -3826,3 +3826,16 @@ Release boundaries:
   files, `test/work_supply_parser_qa_background_queue_test.dart` plus
   `test/work_supply_parser_qa_generated_run_status_test.dart` passed 12/12,
   and `git diff --check` was clean.
+- **13:33 Harness Pass 3350:** Closed the dangerous-word smoke blind spot from
+  the ChatGPT critique. `inventory.dangerous_words` now performs real
+  `matchReceiptLineToCatalog` calls even in smoke, while broader fixture,
+  property, metamorphic, and generated-case parser calls remain full/release
+  profile work. The first run correctly failed the smoke duration gate because
+  single dangerous words were falling through to catalog search and took about
+  248 seconds. Fixed the parser root cause by expanding
+  `_isUnscopedDangerousShortLine` so dangerous standalone words return before
+  catalog search instead of loosening thresholds. Verification passed:
+  analyzer clean on touched parser/QA files; focused
+  `inventory.dangerous_words,inventory.runtime_profile_contract,qa.threshold_gate`
+  smoke gate passed with 66 checks, 0 failures, and dangerous-word runtime of
+  about 10 ms.
