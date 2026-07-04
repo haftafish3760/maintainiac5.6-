@@ -3550,3 +3550,11 @@ Release boundaries:
   `inventory.review_safety_contract`, and `qa.threshold_gate`, confirming the
   QA layer is guarding against ambiguity suppression, review bypasses, and
   confidence-only promotion.
+- **11:25 Harness Pass 2626:** Tightened the Release 1 Core service-truck
+  contract so Core must include not only truck-carried everyday stock, but also
+  common counter-stock and box-store emergency repair items such as well pumps,
+  pressure switches, well pipe, sump pumps, and water filters. Added matching
+  service-truck QA signals and fixed brittle contract phrase matching by
+  normalizing whitespace instead of weakening the rule. Focused
+  `inventory.service_truck_core_contract,inventory.release_one_core_manifest,qa.threshold_gate`
+  passed 24,261 checks with 0 failures, and targeted analyzer found no issues.

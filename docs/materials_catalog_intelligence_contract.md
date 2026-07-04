@@ -21,6 +21,13 @@ filters, and stocked service parts. Professional and Complete later packs can
 expand toward obscure, specialty, or less frequently stocked items after
 Core/Standard are proven.
 
+Core is not only items already carried on the truck. It must also cover
+common counter-stock and box-store emergency repair items that a residential
+service technician, handyman, or small company commonly buys during normal
+work. That includes well pumps, pressure switches, well pipe, sump pumps, and
+water filters where they are common residential service materials, not
+specialty long-tail catalog bloat.
+
 Release-one receipt/parser fixtures must not overfit only national big-box
 chains. Major stores such as Lowe's, Home Depot, Ace, Menards, Ferguson,
 Grainger, Walmart, and True Value are important, but the parser must also keep

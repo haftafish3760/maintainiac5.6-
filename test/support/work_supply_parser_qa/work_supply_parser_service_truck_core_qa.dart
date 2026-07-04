@@ -69,8 +69,22 @@ class WorkSupplyParserServiceTruckCoreSuite extends QaSuite {
     'fan blade',
     'condenser',
     'well pump',
+    'shallow well pump',
+    'deep well pump',
+    'jet pump',
+    'submersible pump',
     'pressure switch',
+    'pressure tank',
     'pitless adapter',
+    'well pipe',
+    'well seal',
+    'foot valve',
+    'check valve',
+    'septic',
+    'sump pump',
+    'water treatment',
+    'sediment filter',
+    'whole house filter',
     'pipe cutter',
     'pex crimp tool',
     'basin wrench',
@@ -91,6 +105,9 @@ class WorkSupplyParserServiceTruckCoreSuite extends QaSuite {
     'sink repair kits',
     'faucet repair kits',
     'everyday service-truck reality',
+    'common counter-stock and box-store emergency repair items',
+    'well pumps, pressure switches, well pipe, sump pumps, and water filters',
+    'not only items already carried on the truck',
     'Professional and Complete later',
   };
 
@@ -192,9 +209,9 @@ class WorkSupplyParserServiceTruckCoreSuite extends QaSuite {
   }
 
   void _requirePriorityContract(List<QaFailure> failures, String source) {
-    final lower = source.toLowerCase();
+    final lower = _normalizeContractText(source);
     for (final signal in _coreStandardPrioritySignals) {
-      if (lower.contains(signal.toLowerCase())) continue;
+      if (lower.contains(_normalizeContractText(signal))) continue;
       failures.add(
         QaFailure(
           suite: name,
@@ -211,6 +228,10 @@ class WorkSupplyParserServiceTruckCoreSuite extends QaSuite {
       );
     }
   }
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
 
 void _increment(Map<String, int> counts, String key) {
