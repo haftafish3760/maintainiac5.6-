@@ -33,9 +33,11 @@ class WorkSupplyParserReleaseOneScorecardSuite extends QaSuite {
     'Retailer database scraping is forbidden',
     'Real Private Receipt Validation',
     'Serious-Team Additions',
+    'Release 1 should not be treated as throwaway or knowingly subpar',
     'Store-independence proof',
     'QA harness completion is not the same thing as catalog completion',
     'inventory catalog expansion still continues in controlled batches',
+    'After QA hardening is complete, inventory catalog growth still continues',
     'Next Implementation Order',
   };
 
