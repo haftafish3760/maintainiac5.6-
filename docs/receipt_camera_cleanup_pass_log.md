@@ -3,6 +3,20 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 653 - 23:01:54 EDT to active cleanup
+
+Scope:
+- Revised `docs/receipt_camera_double_team_handoff.md` so the second model owns
+  a true Lane B half of the work: receipt review, OCR/parser handoff contracts,
+  line numbering, fixture generation, parser-facing QA, and review truth.
+- Kept Lane A focused on native capture, quality/readability, long receipts,
+  segment ordering, ghost/overlap, stitching, source preservation, and
+  camera-side diagnostics.
+- Archived Pass 614 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed cleanup log, doc size, source audit, and diff whitespace gates.
+
 ## Pass 652 - 23:00:00 EDT to active cleanup
 
 Scope:
@@ -467,22 +481,4 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for receipt photo quality readiness.
 - Passed focused Flutter receipt camera quality guidance regressions.
-- Passed cleanup log, doc size, source audit, and diff whitespace gates.
-
-## Pass 614 - 21:33:08 EDT to active cleanup
-
-Scope:
-- Removed remaining active product-doc wording that described tap-focus as part
-  of the expected receipt camera flow.
-- Replaced those docs with continuous autofocus, readability guidance,
-  brightness/glare checks, and sharpness-focused real-device expectations.
-- Updated Command Center soft-blur recovery action copy so it tells reviewers
-  to trust continuous focus/readable text, not ask users to tap receipt text.
-- Added focused telemetry regression coverage proving soft-blur guidance keeps
-  continuous focus primary and rejects tap-focus wording.
-- Recorded `BUG-RECEIPT-0135` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart format/analyzer for telemetry soft-blur recovery copy.
-- Passed focused Flutter telemetry photo-recovery action regressions.
 - Passed cleanup log, doc size, source audit, and diff whitespace gates.

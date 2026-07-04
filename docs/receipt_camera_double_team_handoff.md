@@ -8,6 +8,19 @@ camera-hardening thread in `/Users/rbbie/Documents/Maintainiac_5.6`.
 The goal is faster progress without two agents editing the same files or
 silently changing each other's contracts.
 
+## Capacity Target
+
+This split should be close to 50/50 by responsibility, not by line count:
+
+- Current camera model: capture foundation, native camera behavior, image
+  quality, long-receipt capture, stitching/overlap, and camera diagnostics.
+- Second model: receipt review, OCR/parser handoff contracts, line numbering,
+  business/personal/split review data, fixture generation, parser-facing QA,
+  and regression coverage around review truth.
+
+If one side gets blocked, do not steal files from the other lane. Add a
+coordination note and pick the next safe item inside the assigned lane.
+
 ## Branch Setup
 
 Primary active branch owned by the current camera model:
@@ -38,9 +51,10 @@ reset, stash, or overwrite them without explicit user approval.
 
 ## Ownership Split
 
-### Current Camera Model Owns
+### Current Camera Model Owns - Lane A
 
-The current model owns the native/shared camera foundation:
+The current model owns roughly half the work: the native/shared camera
+foundation and physical capture quality path.
 
 - native Android CameraX behavior
 - native iOS AVFoundation behavior
@@ -55,34 +69,47 @@ The current model owns the native/shared camera foundation:
 - ghost overlay and overlap guidance
 - stitching session handoff
 - original source image preservation
-- camera-side barcode/QR scanner bridge
 - camera diagnostics and privacy-safe capture metadata
 - real-device camera readiness scripts
+- camera-side barcode/QR scanner bridge only where it touches native capture or
+  scanner invocation
 
 The second model must not edit those areas unless the user explicitly transfers
 ownership or the current camera model writes a coordination note naming the file.
 
-### Second Model Owns
+### Second Model Owns - Lane B
 
-The second model should work on OCR/review handoff infrastructure that can be
-tested without changing the live camera flow:
+The second model owns roughly half the work: the review, OCR/parser handoff,
+fixture, and QA foundation that proves camera output can become trustworthy
+receipt data without changing native capture internals.
 
 - OCR result contract models
 - parser handoff models
 - receipt line numbering contracts
 - detailed-line versus price-only review data contracts
 - business/personal/split line classification models
+- receipt review state models and non-camera review helpers
+- saved receipt line serialization and map round-trip rules
+- parser-facing barcode/QR payload contracts after safe scanner output exists
 - OCR suggestion versus user-confirmed truth tests
 - privacy-safe OCR/parser diagnostics
 - synthetic receipt fixture definitions and generator helpers
 - real-receipt fixture schema for future redacted samples
 - parser-facing regression fixtures
+- expense review UI tests that do not edit camera capture or native review
+  screens
+- QA runner contract coverage for fixture classes and parser handoff classes
 - tests proving handoff maps preserve stable line IDs and line numbers
 - docs that describe OCR/parser handoff behavior without redefining camera UI
 
 The second model is allowed to add focused tests for these contracts. If a test
 exposes a camera-flow bug, document the bug and hand it back instead of patching
 camera-owned files.
+
+Lane B is not "leftovers." It is the entire receipt truth/review/fixture half of
+the system. A good Lane B pass should leave the camera branch with stronger
+proof that every captured receipt can become numbered, reviewable, classified,
+privacy-safe data.
 
 ## Files The Second Model May Touch
 
@@ -104,6 +131,18 @@ Prefer these files and nearby focused test files:
 - `lib/screens/expenses/data/expense_receipt_classification_models.dart`
 - `lib/screens/expenses/data/expense_receipt_classification_scores.dart`
 - `lib/screens/expenses/data/expense_receipt_classifier.dart`
+- `lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart`
+- `lib/screens/expenses/entry/expense_receipt_entry_line_mode_helpers.dart`
+- `lib/screens/expenses/entry/expense_receipt_line_computed_fields.dart`
+- `lib/screens/expenses/entry/expense_receipt_line_labels.dart`
+- `lib/screens/expenses/entry/expense_receipt_line_model_conversions.dart`
+- `lib/screens/expenses/entry/expense_receipt_line_models.dart`
+- `lib/screens/expenses/entry/expense_receipt_line_review_actions.dart`
+- `lib/screens/expenses/entry/expense_receipt_parse_review_line_evidence_controls.dart`
+- `lib/screens/expenses/entry/expense_receipt_parse_review_line_evidence_panel.dart`
+- `lib/screens/expenses/entry/expense_receipt_recap_classification.dart`
+- `lib/screens/expenses/entry/expense_receipt_recap_line_controls.dart`
+- `lib/screens/expenses/entry/expense_receipt_recap_paper.dart`
 - `test/receipt_ocr_service_parser_handoff_structure_test.dart`
 - `test/receipt_ocr_service_fuel_receipts_test.dart`
 - `test/expense_receipt_line_record_test.dart`
@@ -111,6 +150,8 @@ Prefer these files and nearby focused test files:
 - `test/expense_receipt_parser_ocr_diagnostics_test.dart`
 - `test/expense_receipt_parser_line_amounts_test.dart`
 - `test/expense_receipt_parser_allocations_test.dart`
+- `test/expense_receipt_assisted_review_flow_test.dart`
+- `test/expense_receipt_assisted_review_save_guardrails_test.dart`
 - `test/receipt_qa_runner_contract_test.dart`
 - `test/helpers/receipt_*`
 - `test/helpers/expense_*`
@@ -122,9 +163,17 @@ The second model may add new focused files with meaningful names, for example:
 - `test/receipt_synthetic_fixture_generator_test.dart`
 - `test/receipt_review_handoff_line_numbering_test.dart`
 - `test/receipt_user_confirmed_truth_regression_test.dart`
+- `test/receipt_price_only_review_contract_test.dart`
+- `test/receipt_detailed_line_review_contract_test.dart`
+- `test/receipt_fixture_schema_redaction_test.dart`
 
 Keep new files modular and under the project line cap. Do not use lazy numbered
 names like `file1`, `helper2`, or `ocr3`.
+
+Lane B may touch expense review widgets only when the change is about line
+review, price-only versus detailed mode, classification, or review evidence. It
+must not change the camera entry button, native capture launch path, photo
+review screen, or capture flow.
 
 ## Files The Second Model Must Not Touch
 
@@ -160,6 +209,14 @@ Do not edit these camera-owned files:
 - `lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart`
 - `lib/shared/widgets/receipt_capture/receipt_attachment_camera_fallback_actions.dart`
 - `lib/shared/widgets/receipt_capture/receipt_barcode_scanner_service.dart`
+- `lib/screens/expenses/entry/expense_receipt_entry_attachment_panel.dart`
+- `lib/screens/expenses/entry/expense_receipt_entry_ocr_actions.dart`
+- `lib/screens/expenses/entry/expense_receipt_parse_review_ocr_action_helpers.dart`
+- `lib/screens/expenses/entry/expense_receipt_parse_review_ocr_photo_helpers.dart`
+- `lib/screens/expenses/entry/expense_receipt_parse_review_ocr_readiness_helpers.dart`
+- `lib/screens/expenses/entry/expense_receipt_parse_review_ocr_review_helpers.dart`
+- `lib/screens/expenses/entry/expense_receipt_parse_review_ocr_review_row.dart`
+- `lib/screens/expenses/entry/expense_receipt_parse_review_photo_recovery.dart`
 - `test/receipt_native_android_*`
 - `test/receipt_native_ios_*`
 - `test/receipt_native_camera_*`
@@ -207,10 +264,46 @@ fixed first.
 8. Add tests for malformed OCR input: empty lines, duplicate line numbers,
    negative line numbers, huge line numbers, missing totals, duplicate totals,
    and noisy text.
-9. Update `docs/receipt_bug_regression_ledger.md` only when a confirmed bug is
+9. Add or strengthen synthetic receipt fixture coverage for clean, blurry,
+   glare, cropped, long, duplicate-total, missing-total, corrupted, empty, and
+   wrong-file-type cases at the contract level.
+10. Add or strengthen real-receipt fixture schema support so future user receipt
+   samples can be redacted and given editable expected outputs.
+11. Update `docs/receipt_bug_regression_ledger.md` only when a confirmed bug is
    fixed with a regression test.
-10. Update this handoff or create a short companion note only if ownership
+12. Update this handoff or create a short companion note only if ownership
    boundaries change.
+
+## Equal Work Backlog
+
+Lane A backlog for the current model:
+
+- continuous focus and exposure parity across Android/iOS contracts
+- receipt readability meter and guidance codes
+- long receipt continuation behavior
+- segment retake ordering and previous/next context
+- ghost overlay placement and overlap contracts
+- stitching/overlap fallback behavior
+- source preservation and cleanup safety
+- camera-side barcode/QR invocation and privacy-safe scanner summaries
+- real-device QA readiness for Android/iOS
+
+Lane B backlog for the second model:
+
+- stable OCR line IDs and one-based line numbers
+- price-only review contracts
+- detailed-line review contracts
+- business/personal/split line classification contracts
+- user-confirmed truth versus OCR/parser suggestion contracts
+- synthetic receipt fixture generator/schema
+- future real redacted fixture schema
+- parser-facing malformed OCR regressions
+- privacy-safe OCR/parser diagnostic summaries
+- receipt review UI tests that do not touch capture flow
+
+Each lane is large enough to keep one model busy. If Lane B finishes its first
+batch early, it should deepen fixture/regression coverage rather than crossing
+into Lane A camera files.
 
 ## Testing Rules
 
@@ -263,4 +356,3 @@ Start with this narrow first pass:
 5. Commit and push.
 
 That first pass gives useful safety without touching the native camera files.
-
