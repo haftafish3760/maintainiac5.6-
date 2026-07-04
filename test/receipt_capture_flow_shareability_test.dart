@@ -120,6 +120,34 @@ void main() {
     expect(identical(guide.applyTo(options), options), isTrue);
   });
 
+  test('manual continuation guide cannot poison ghost overlay options', () {
+    const guide = ReceiptCaptureContinuationGuide(
+      guidePhotoPath: ' /tmp/receipt-bottom.jpg ',
+      reasonCode: ' MISSING_BOTTOM_EDGE_AND_TOTALS ',
+      guidance: ' Keep the overlap visible. ',
+      ghostSourceStartFraction: -0.2,
+      ghostSourceHeightFraction: double.infinity,
+      ghostOverlayTopFraction: 1.8,
+      ghostOverlayHeightFraction: double.nan,
+      ghostOpacity: 0.42,
+    );
+
+    final options = guide.applyTo(
+      const ReceiptCaptureFlowOptions(
+        module: ReceiptCaptureFlowModule.expenses,
+      ),
+    );
+
+    expect(options.previousSectionGuidePhotoPath, '/tmp/receipt-bottom.jpg');
+    expect(options.previousSectionReasonCode, 'missing_bottom_edge_and_totals');
+    expect(options.previousSectionGuidance, 'Keep the overlap visible.');
+    expect(options.previousSectionGhostSourceStartFraction, 0);
+    expect(options.previousSectionGhostSourceHeightFraction, isNull);
+    expect(options.previousSectionGhostOverlayTopFraction, 1);
+    expect(options.previousSectionGhostOverlayHeightFraction, isNull);
+    expect(options.previousSectionGhostOpacity, 0.42);
+  });
+
   test('shared camera OCR flow stays module neutral', () async {
     final source = await readReceiptCaptureFlowSource();
 

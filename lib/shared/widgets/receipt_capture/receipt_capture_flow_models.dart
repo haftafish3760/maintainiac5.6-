@@ -132,10 +132,11 @@ class ReceiptCaptureContinuationGuide {
   final double? ghostOpacity;
 
   bool get hasGuidePhoto => guidePhotoPath != null;
-  bool get hasReason => reasonCode != null;
+  bool get hasReason => _trimmedOrNull(reasonCode) != null;
 
   ReceiptCaptureFlowOptions applyTo(ReceiptCaptureFlowOptions options) {
-    if (!hasReason) return options;
+    final normalizedReason = _trimmedOrNull(reasonCode)?.toLowerCase();
+    if (normalizedReason == null) return options;
     return ReceiptCaptureFlowOptions(
       module: options.module,
       initialPhotoPaths: options.initialPhotoPaths,
@@ -147,14 +148,22 @@ class ReceiptCaptureContinuationGuide {
       forceLongReceiptMode: options.forceLongReceiptMode,
       forceAutoCapture: options.forceAutoCapture,
       forceReviewDepth: options.forceReviewDepth,
-      previousSectionGuidePhotoPath: guidePhotoPath,
-      previousSectionReasonCode: reasonCode,
-      previousSectionGuidance: guidance,
-      previousSectionGhostSourceStartFraction: ghostSourceStartFraction,
-      previousSectionGhostSourceHeightFraction: ghostSourceHeightFraction,
-      previousSectionGhostOverlayTopFraction: ghostOverlayTopFraction,
-      previousSectionGhostOverlayHeightFraction: ghostOverlayHeightFraction,
-      previousSectionGhostOpacity: ghostOpacity,
+      previousSectionGuidePhotoPath: _trimmedOrNull(guidePhotoPath),
+      previousSectionReasonCode: normalizedReason,
+      previousSectionGuidance: _trimmedOrNull(guidance),
+      previousSectionGhostSourceStartFraction: _boundedOptionalFraction(
+        ghostSourceStartFraction,
+      ),
+      previousSectionGhostSourceHeightFraction: _boundedOptionalFraction(
+        ghostSourceHeightFraction,
+      ),
+      previousSectionGhostOverlayTopFraction: _boundedOptionalFraction(
+        ghostOverlayTopFraction,
+      ),
+      previousSectionGhostOverlayHeightFraction: _boundedOptionalFraction(
+        ghostOverlayHeightFraction,
+      ),
+      previousSectionGhostOpacity: _boundedOptionalFraction(ghostOpacity),
     );
   }
 
@@ -171,6 +180,13 @@ class ReceiptCaptureContinuationGuide {
   static double _ghostOpacityFor(String reasonCode) {
     if (reasonCode == 'missing_bottom_edge_and_totals') return .36;
     return .32;
+  }
+
+  static double? _boundedOptionalFraction(double? value) {
+    if (value == null || !value.isFinite) return null;
+    if (value < 0) return 0;
+    if (value > 1) return 1;
+    return value;
   }
 
   static String? _trimmedOrNull(String? value) {

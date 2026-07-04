@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 702 - 02:06:00 EDT to active cleanup
+
+Scope:
+- Hardened continuation guide application so manual guide construction cannot
+  leak untrimmed reason/guidance/path values or malformed ghost overlay
+  fractions into shared capture options.
+- Clamped out-of-range ghost fractions and dropped non-finite fractions before
+  native camera session arguments can inherit continuation context.
+- Added focused regression coverage for malicious/manual continuation guide
+  values.
+- Recorded `BUG-RECEIPT-0189` under `ghost_overlap_stitching`.
+- Archived Passes 642 and 643 from the active cleanup log to keep the doc
+  under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for shared receipt capture flow models.
+- Passed focused Flutter receipt capture flow shareability regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 701 - 01:45:00 EDT to active cleanup
 
 Scope:
@@ -464,34 +484,3 @@ Scope:
 Verification:
 - Passed targeted Dart format for continuation signal builders and regression.
 - Passed focused Flutter continuation handoff regression.
-
-## Pass 643 - 22:37:28 EDT to active cleanup
-
-Scope:
-- Hardened manual long-receipt reorder summaries so malformed non-adjacent
-  section moves cannot be reported as preserved order.
-- Added manual-reorder invalid codes for unknown direction, non-adjacent moves,
-  and missing preserved-path evidence.
-- Added focused regression coverage proving a bad manual reorder stays
-  privacy-safe and becomes a section-order handoff risk.
-- Recorded `BUG-RECEIPT-0162` under `multi_photo_ordering`.
-- Archived Pass 606 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format for section-order helpers and regressions.
-- Passed focused Flutter section-order regression.
-
-## Pass 642 - 22:33:47 EDT to active cleanup
-
-Scope:
-- Hardened long-receipt retake section summaries so previous/next alignment
-  context section numbers survive into privacy-safe section-order counts and
-  receipt-reader handoff counts.
-- Split section-order review-result regressions into a focused test file so the
-  existing stitch/scanner test returned under the project line-count cap.
-- Recorded `BUG-RECEIPT-0161` under `multi_photo_ordering`.
-- Archived Pass 605 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format for section-order helper and split tests.
-- Passed focused Flutter stitch/scanner and section-order regressions.
