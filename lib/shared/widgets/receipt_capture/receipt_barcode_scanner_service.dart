@@ -269,6 +269,8 @@ String _privacySafeBarcodeWarning(String warning) {
     'barcode_scan_platform_failed' => 'barcode_scan_platform_failed',
     'barcode_scan_failed' => 'barcode_scan_failed',
     'barcode_scan_batch_image_limit' => 'barcode_scan_batch_image_limit',
+    'barcode_scan_duplicate_image_skipped' =>
+      'barcode_scan_duplicate_image_skipped',
     _ => 'barcode_scan_warning',
   };
 }
@@ -364,20 +366,34 @@ class ReceiptBarcodeScannerService {
   }) async {
     final safeMax = maxImageCount < 1 ? 1 : maxImageCount;
     final results = <ReceiptBarcodeScanResult>[];
-    var skipped = false;
+    final seenImagePaths = <String>{};
+    var skippedByLimit = false;
+    var skippedDuplicate = false;
     for (final imagePath in imagePaths) {
+      final normalizedPath = _normalizedBarcodeImagePath(imagePath);
+      if (normalizedPath != null && !seenImagePaths.add(normalizedPath)) {
+        skippedDuplicate = true;
+        continue;
+      }
       if (results.length >= safeMax) {
-        skipped = true;
+        skippedByLimit = true;
         continue;
       }
       results.add(
-        await scanImageFile(imagePath, purpose: purpose, formats: formats),
+        await scanImageFile(
+          normalizedPath ?? imagePath,
+          purpose: purpose,
+          formats: formats,
+        ),
       );
     }
     return ReceiptBarcodeBatchScanResult(
       purpose: purpose,
       imageResults: List.unmodifiable(results),
-      warnings: skipped ? const ['barcode_scan_batch_image_limit'] : const [],
+      warnings: [
+        if (skippedByLimit) 'barcode_scan_batch_image_limit',
+        if (skippedDuplicate) 'barcode_scan_duplicate_image_skipped',
+      ],
     );
   }
 }

@@ -275,6 +275,24 @@ void main() {
       'barcode_scan_batch_image_limit',
     ]);
   });
+
+  test('barcode batch scanner skips duplicate receipt image paths', () async {
+    final decoder = _CountingBarcodeDecoder();
+    final service = ReceiptBarcodeScannerService(decoder: decoder);
+
+    final result = await service.scanImageFiles([
+      '/tmp/segment-1.jpg',
+      '/tmp/segment-1.jpg',
+      '/tmp/segment-2.jpg',
+    ], purpose: ReceiptBarcodeScanPurpose.inventory);
+
+    expect(decoder.calls, 2);
+    expect(result.imageCount, 2);
+    expect(result.warnings, const ['barcode_scan_duplicate_image_skipped']);
+    expect(result.privacySafeSummaryMap['batchWarningBuckets'], [
+      'barcode_scan_duplicate_image_skipped',
+    ]);
+  });
 }
 
 class _FakeBarcodeDecoder implements ReceiptBarcodeImageDecoder {

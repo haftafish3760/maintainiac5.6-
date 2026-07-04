@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 807 - 10:24:00 EDT to active cleanup
+
+Scope:
+- Hardened barcode/QR batch scanning so duplicate receipt image paths are
+  skipped before decoder/ML Kit work.
+- Added a privacy-safe duplicate-image batch warning bucket.
+- Added a regression proving duplicate long-receipt image paths do not trigger
+  duplicate barcode scans.
+- Recorded `BUG-RECEIPT-0291` under `barcode_qr_scanning`.
+- Archived Pass 775 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused barcode scanner regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 806 - 10:16:00 EDT to active cleanup
 
 Scope:
@@ -477,22 +493,3 @@ Verification:
 - Passed targeted Dart format/analyzer for attachment diagnostics handoff.
 - Passed focused Flutter attachment recovery contract regression.
 - Passed doc-size, bug-ledger, source-audit, and test-audit gates.
-
-## Pass 775 - 06:02:17 EDT to active cleanup
-
-Scope:
-- Ran a broader focused regression bundle across the camera/review path
-  normalization work from Passes 764-774.
-- Covered shared capture flow, interrupted native recovery, long-receipt
-  guidance, native bridge layout, camera capture layout, and photo-review
-  lifecycle source contracts.
-- Archived Pass 747 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed focused Flutter regression bundle:
-  `test/receipt_capture_flow_shareability_test.dart`,
-  `test/receipt_capture_flow_recovery_contract_test.dart`,
-  `test/receipt_camera_long_receipt_guidance_test.dart`,
-  `test/receipt_camera_capture_layout_test.dart`,
-  `test/receipt_camera_native_bridge_layout_test.dart`, and
-  `test/receipt_photo_review_save_lifecycle_test.dart`.
