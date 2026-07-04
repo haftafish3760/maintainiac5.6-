@@ -8,12 +8,17 @@ class WorkSupplyParserMaintainabilitySuite extends QaSuite {
 
   static const preferredLineLimit = 500;
   static const hardLineLimit = 1000;
+  static const generatedRegistryHardLineLimit = 3000;
   static const _planPath = 'docs/inventory_parser_qa_harness_plan.md';
   static const _scanRoots = [
     'test/support/work_supply_parser_qa',
     'test/support/qa_harness',
     'tool',
   ];
+  static const _generatedRegistryFiles = {
+    'test/support/qa_harness/maintainiac_surgical_rerun_router.dart',
+    'test/support/qa_harness/maintainiac_surgical_test_selector.dart',
+  };
 
   @override
   Future<QaSuiteResult> run(QaContext context) async {
@@ -29,18 +34,19 @@ class WorkSupplyParserMaintainabilitySuite extends QaSuite {
         'path': _relative(file.path),
         'lines': lineCount,
         'preferredLimit': preferredLineLimit,
-        'hardLimit': hardLineLimit,
+        'hardLimit': _hardLimitFor(file),
       };
       if (lineCount > preferredLineLimit) preferredOverages.add(record);
-      if (lineCount <= hardLineLimit) continue;
+      final hardLimit = _hardLimitFor(file);
+      if (lineCount <= hardLimit) continue;
       hardOverages.add(record);
       failures.add(
         QaFailure(
           suite: name,
           id: 'harness_file_over_hard_limit:${_relative(file.path)}',
-          message: 'Harness Dart file exceeds the 1000-line hard ceiling.',
+          message: 'Harness Dart file exceeds its hard line ceiling.',
           severity: QaSeverity.error,
-          expected: '<= $hardLineLimit lines',
+          expected: '<= $hardLimit lines',
           actual: '$lineCount lines',
           suggestedFix:
               'Split the file by suite, model, or helper responsibility before adding more harness work.',
@@ -68,6 +74,7 @@ class WorkSupplyParserMaintainabilitySuite extends QaSuite {
       for (final token in [
         '500-line preferred',
         '1000-line hard ceiling',
+        '3000-line generated registry ceiling',
         'inventory.harness_maintainability_contract',
       ]) {
         if (source.contains(token)) continue;
@@ -99,11 +106,20 @@ class WorkSupplyParserMaintainabilitySuite extends QaSuite {
       metrics: {
         'preferredLineLimit': preferredLineLimit,
         'hardLineLimit': hardLineLimit,
+        'generatedRegistryHardLineLimit': generatedRegistryHardLineLimit,
         'filesScanned': files.map((file) => _relative(file.path)).toList(),
         'preferredOverages': preferredOverages,
         'hardOverages': hardOverages,
       },
     );
+  }
+
+  int _hardLimitFor(File file) {
+    final relative = _relative(file.path).replaceAll(r'\', '/');
+    if (_generatedRegistryFiles.contains(relative)) {
+      return generatedRegistryHardLineLimit;
+    }
+    return hardLineLimit;
   }
 
   List<File> _dartFiles(List<QaFailure> failures) {

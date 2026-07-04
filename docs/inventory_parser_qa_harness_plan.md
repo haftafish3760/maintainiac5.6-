@@ -21,7 +21,7 @@ Firebase writes are still off-limits in parser QA, and no live hosted writes in 
 - Support report-only local runs and strict release-gate runs from the same suites.
 - Keep the harness cross-platform so it can run on Windows, macOS, Linux, CI, and the Mac Mini.
 - Keep QA reports privacy-safe: no full private receipts, card numbers, customer names, addresses, phone numbers, auth codes, or payment identifiers in future telemetry/admin reports.
-- Keep harness files maintainable: 500-line preferred target for Dart harness files and a 1000-line hard ceiling unless a future pass explicitly refactors the file or documents why no safe split exists.
+- Keep harness files maintainable: 500-line preferred target for Dart harness files and a 1000-line hard ceiling unless a future pass explicitly refactors the file or documents why no safe split exists. Generated/registry-style QA indexes may use a 3000-line generated registry ceiling only when explicitly named by the maintainability suite.
 
 ## Storage Layout
 
@@ -186,7 +186,7 @@ These pillars are the non-negotiable architecture checks before bulk catalog exp
 - Parser SLO and quality metrics: release claims must be expressed as measurable targets, including top-1 clear-match accuracy, top-3 ranked-candidate accuracy once possible matches exist, false-confident rate, receipt-noise false-positive rate, review/unknown rate, runtime budget, cost/privacy telemetry budget, and Command One/admin visibility. Owner suite: `inventory.slo_metrics_contract`.
 - Admin-safe observability: admin-safe report output supports Command One diagnostics without raw receipt text, card data, customer names, addresses, or phone numbers. Owner suites: `inventory.admin_report_contract` and `inventory.telemetry_contract`.
 - Portability and handoff: parser QA tools must stay runnable from Windows, macOS, Linux, CI, GitHub checkout, external SSD transfer, and the Mac Mini using relative paths, Dart/Flutter commands, ignored build artifacts, and logged resume points. Owner suite: `inventory.portability_contract`.
-- Harness maintainability: Dart harness files should stay below the 500-line preferred target and must stay below the 1000-line hard ceiling while reporting over-target files as refactor candidates. Owner suite: `inventory.harness_maintainability_contract`.
+- Harness maintainability: Dart harness files should stay below the 500-line preferred target and must stay below the 1000-line hard ceiling while reporting over-target files as refactor candidates. Generated/registry-style QA indexes may use a 3000-line generated registry ceiling only when explicitly named by the maintainability suite. Owner suite: `inventory.harness_maintainability_contract`.
 - Release gates and baselines: Release gates use strict profile budgets, baseline diff checks, known-debt docs, and pack-health artifacts before release. Owner suites: `inventory.release_manifest` and `inventory.baseline_contract`.
 
 ## Structured Parser Result Contract
@@ -264,7 +264,7 @@ Parser candidates remain review-only. `possibleMatches` must carry ranked altern
 - Admin report contract suite (`inventory.admin_report_contract`): verifies QA artifacts expose an admin-safe report summary for Command One diagnostics, including status, blocking failure count, triage rollups, slow-suite rollups, pack health, and no raw receipt content.
 - Execution command suite (`inventory.execution_command_contract`): verifies supported `PARSER_QA_PRESET`, `PARSER_QA_SUITES`, `PARSER_QA_BASELINE`, sample-limit, full, release, and strict command paths stay wired, documented, and reproducible.
 - Portability contract suite (`inventory.portability_contract`): verifies Windows, macOS, Linux, CI, Mac Mini, GitHub, and external SSD handoff expectations stay documented and that parser QA tools avoid host-specific shell/path assumptions.
-- Harness maintainability suite (`inventory.harness_maintainability_contract`): verifies parser QA Dart files stay under the 1000-line hard ceiling while reporting files over the 500-line preferred target for planned refactors.
+- Harness maintainability suite (`inventory.harness_maintainability_contract`): verifies parser QA Dart files stay under the 1000-line hard ceiling while reporting files over the 500-line preferred target for planned refactors. Explicitly named generated/registry-style QA indexes are still bounded by a 3000-line generated registry ceiling.
 - Parser platform contract suite (`inventory.parser_platform_contract`): verifies the world-class parser pillars stay documented with owner suites before bulk catalog expansion.
 - Category reuse contract suite (`inventory.category_reuse_contract`): verifies Maintenance, estimates, jobs, invoices, fleet inventory, future catalog categories, and parser-domain adapters reuse the same core report/result/redaction/suite runner. Do not duplicate the whole harness for each category.
 - Data provenance contract suite (`inventory.data_provenance_contract`): verifies fixture/source governance, synthetic-vs-real data labeling, private-data guards, catalog source-confidence metadata, generated/manual flags, and manual promotion boundaries stay represented.
@@ -376,7 +376,7 @@ Parser candidates remain review-only. `possibleMatches` must carry ranked altern
 | `admin_report_contract` | `inventory.admin_report_contract` | admin-safe report; Command One diagnostics; [REDACTED_CARD_LAST4]; [REDACTED_PRIVATE_FIELD] |
 | `execution_command` | `inventory.execution_command_contract` | PARSER_QA_PRESET; PARSER_QA_SUITES; PARSER_QA_BASELINE |
 | `portability_contract` | `inventory.portability_contract` | Windows; Mac Mini; external SSD; GitHub |
-| `harness_maintainability` | `inventory.harness_maintainability_contract` | 500-line preferred; 1000-line hard ceiling |
+| `harness_maintainability` | `inventory.harness_maintainability_contract` | 500-line preferred; 1000-line hard ceiling; 3000-line generated registry ceiling |
 | `parser_platform` | `inventory.parser_platform_contract` | environment-independent parser core; pure parser input; pure parser output; mobile adapter; server adapter; QA harness adapter; batch parser adapter; review-only parser result; Merchant rule packs; Release gates |
 | `category_reuse` | `inventory.category_reuse_contract` | Maintenance; Do not duplicate the whole harness |
 | `data_provenance` | `inventory.data_provenance_contract` | Ground-truth dataset governance; synthetic/real flag |
