@@ -206,6 +206,11 @@ void main() {
       );
       expect(
         cameraController,
+        contains('pendingCloseAfterCapture && !capturedPhotoPaths.isEmpty'),
+      );
+      expect(cameraController, contains('if shouldReturnExistingSections'));
+      expect(
+        cameraController,
         contains('FileManager.default.removeItem(at: url)'),
       );
       expect(cameraController, contains('"native_capture_over_byte_budget"'));

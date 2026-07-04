@@ -248,6 +248,11 @@ void main() {
       cameraActivity,
       contains('totalCapturedByteSize + savedByteSize > maxLocalPhotoBytes'),
     );
+    expect(
+      cameraActivity,
+      contains('pendingCloseAfterCapture && capturedPhotoPaths.isNotEmpty()'),
+    );
+    expect(cameraActivity, contains('if (shouldReturnExistingSections)'));
     expect(cameraActivity, contains('outputFile.delete()'));
     expect(cameraActivity, contains('"native_capture_over_byte_budget"'));
     expect(

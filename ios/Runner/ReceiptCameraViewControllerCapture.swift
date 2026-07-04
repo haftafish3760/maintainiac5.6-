@@ -231,6 +231,7 @@ extension ReceiptCameraViewController {
       latestCaptureToSavedMs = captureElapsedSinceStart()
       latestCaptureLatencyBucket = captureLatencyBucket(latestCaptureToSavedMs)
       if maxLocalPhotoBytes > 0 && totalCapturedByteSize + data.count > maxLocalPhotoBytes {
+        let shouldReturnExistingSections = pendingCloseAfterCapture && !capturedPhotoPaths.isEmpty
         try? FileManager.default.removeItem(at: url)
         latestCaptureLatencyBucket = "capture_rejected_over_byte_budget"
         lastCaptureBlockReason = "native_capture_over_byte_budget"
@@ -241,7 +242,7 @@ extension ReceiptCameraViewController {
         updateDoneButton()
         guidanceLabel.text =
           "That receipt photo was too large for this device setting. Try again with the receipt closer and clearer."
-        if !capturedPhotoPaths.isEmpty {
+        if shouldReturnExistingSections {
           finishWithCapturedPhotos(closeReason: "back_capture_failed_returned_existing_sections")
         }
         return

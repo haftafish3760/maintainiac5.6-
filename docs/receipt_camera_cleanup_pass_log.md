@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 722 - 02:51:00 EDT to active cleanup
+
+Scope:
+- Fixed native over-budget capture handling so existing sections are returned
+  only when a close-after-capture flow was actually pending.
+- Kept add-photo/retake flows on the camera after an over-budget section so the
+  user can retry instead of being forced into review with older sections.
+- Added Android/iOS bridge source regressions for the
+  `shouldReturnExistingSections` guard.
+- Recorded `BUG-RECEIPT-0211` under `multi_photo_ordering`.
+- Archived Pass 695 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused Android/iOS bridge
+  regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 721 - 02:47:00 EDT to active cleanup
 
 Scope:
@@ -464,25 +482,3 @@ Scope:
 Verification:
 - Passed targeted Dart analyzer for the active camera docs focus-policy test.
 - Passed focused Flutter active camera docs focus-policy regression.
-
-## Pass 695 - 01:10:00 EDT to active cleanup
-
-Scope:
-- Carried layout redaction telemetry into the expense telemetry client-proof
-  summary so Command Center can see visible, hidden, ignored, protected-type,
-  merchant-context, and totals-context layout counts.
-- Added Command Center and Firestore summary sanitizer coverage for the new
-  layout redaction rollup keys and top layout status.
-- Extended focused telemetry workflow and parity fixtures so admin summaries
-  cannot silently drop layout redaction evidence.
-- Recorded `BUG-RECEIPT-0182` under `privacy_redaction`.
-- Archived Pass 635 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- First focused test run exposed that layout context booleans were missing from
-  the expense telemetry metadata allowlist; fixed before continuing.
-- Second focused test run exposed missing Firestore parity keys and an
-  under-exercised rich parity fixture; fixed both before continuing.
-- Passed targeted Dart analyzer for expense telemetry redaction rollups.
-- Passed focused Flutter expense telemetry workflow, sanitizer, and Firestore
-  Command Center parity regressions.

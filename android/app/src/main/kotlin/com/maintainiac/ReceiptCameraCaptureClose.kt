@@ -83,6 +83,8 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
                     maxLocalPhotoBytes > 0 &&
                     totalCapturedByteSize + savedByteSize > maxLocalPhotoBytes
                 ) {
+                    val shouldReturnExistingSections =
+                        pendingCloseAfterCapture && capturedPhotoPaths.isNotEmpty()
                     outputFile.delete()
                     latestCaptureLatencyBucket = "capture_rejected_over_byte_budget"
                     lastCaptureBlockReason = "native_capture_over_byte_budget"
@@ -92,7 +94,7 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
                     updateDoneButton()
                     guidance.text =
                         "That receipt photo was too large for this device setting. Try again with the receipt closer and clearer."
-                    if (capturedPhotoPaths.isNotEmpty()) {
+                    if (shouldReturnExistingSections) {
                         finishWithCapturedPhotos(
                             closeReason = "back_capture_failed_returned_existing_sections",
                         )
