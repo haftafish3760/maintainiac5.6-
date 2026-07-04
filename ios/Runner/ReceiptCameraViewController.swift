@@ -156,7 +156,6 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var settingsOpenCount = 0
   var settingsResetCount = 0
   var lastFocusStatus = "not_used"
-  var suppressTapFocusUntil = Date.distantPast
   var focusLockAttemptCount = 0
   var focusLockSuccessCount = 0
   var exposureLockSuccessCount = 0

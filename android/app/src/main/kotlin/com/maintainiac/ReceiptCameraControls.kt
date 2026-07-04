@@ -3,8 +3,6 @@ package com.maintainiac
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
-import androidx.camera.core.FocusMeteringAction
-import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
 
@@ -55,16 +53,13 @@ internal fun ReceiptCameraActivity.configureTouchControls() {
                 zoomChangeCount += 1
                 lastZoomRatio = roundedDiagnostic(nextZoom.toDouble())
                 lastZoomStatus = "zoom_changed"
-                suppressTapFocusUntilMs = System.currentTimeMillis() + 350L
                 guidance.text = "Zoom ${(nextZoom * 10).roundToInt() / 10.0}x"
                 return true
             }
         },
     )
     val previewTouchListener = View.OnTouchListener { view, event ->
-        if (!tapFocusEnabled && !pinchZoomEnabled) {
-            return@OnTouchListener false
-        }
+        if (!pinchZoomEnabled) return@OnTouchListener false
         if (pinchZoomEnabled) {
             scaleGestureDetector?.onTouchEvent(event)
         }
@@ -80,19 +75,6 @@ internal fun ReceiptCameraActivity.configureTouchControls() {
             MotionEvent.ACTION_UP -> {
                 view.parent?.requestDisallowInterceptTouchEvent(false)
                 view.performClick()
-                if (tapFocusEnabled && event.pointerCount == 1) {
-                    val nowMs = System.currentTimeMillis()
-                    if (nowMs < suppressTapFocusUntilMs) {
-                        tapFocusSuppressedAfterZoomCount += 1
-                        lastFocusStatus = "tap_focus_suppressed_after_zoom"
-                        return@OnTouchListener true
-                    }
-                    if (nowMs - lastSinglePointerUpAt <= 250) {
-                        return@OnTouchListener true
-                    }
-                    lastSinglePointerUpAt = nowMs
-                    focusAt(event.x, event.y)
-                }
                 return@OnTouchListener true
             }
             MotionEvent.ACTION_CANCEL -> {
@@ -105,48 +87,6 @@ internal fun ReceiptCameraActivity.configureTouchControls() {
     previewView.setOnTouchListener(previewTouchListener)
     if (hasInitializedReceiptCameraField { receiptFrameGuide }) {
         receiptFrameGuide.setOnTouchListener(previewTouchListener)
-    }
-}
-
-internal fun ReceiptCameraActivity.focusAt(x: Float, y: Float) {
-    val activeCamera = camera ?: return
-    val point = previewView.meteringPointFactory.createPoint(x, y)
-    val shouldLockFocus = focusMode == "locked"
-    val shouldLockExposure = exposureMode == "locked"
-    val shouldLockWhiteBalance = whiteBalanceLockEnabled && whiteBalanceMode == "locked"
-    val builder = FocusMeteringAction.Builder(point, FocusMeteringAction.FLAG_AF)
-        .addPoint(point, FocusMeteringAction.FLAG_AE)
-    whiteBalanceLockStatus = if (shouldLockWhiteBalance) {
-        "not_supported_cameraX"
-    } else {
-        "not_requested"
-    }
-    if (shouldLockFocus || shouldLockExposure || shouldLockWhiteBalance) {
-        builder.disableAutoCancel()
-        focusLockAttemptCount += 1
-    } else {
-        builder.setAutoCancelDuration(4, TimeUnit.SECONDS)
-    }
-    val action = builder.build()
-    val future = activeCamera.cameraControl.startFocusAndMetering(action)
-    tapFocusCount += 1
-    lastFocusStatus = "requested"
-    guidance.text = "Focus set. Hold steady, then tap the shutter."
-    if (shouldLockFocus || shouldLockExposure) {
-        future.addListener(
-            {
-                val result = runCatching { future.get() }.getOrNull()
-                if (result?.isFocusSuccessful == true) {
-                    if (shouldLockFocus) focusLockSuccessCount += 1
-                    if (shouldLockExposure) exposureLockSuccessCount += 1
-                    lastFocusStatus = "locked"
-                    guidance.text = "Focus locked. Tap the shutter when the receipt is readable."
-                } else {
-                    lastFocusStatus = "lock_not_confirmed"
-                }
-            },
-            mainExecutor(),
-        )
     }
 }
 

@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 676 - 00:14:51 EDT to active cleanup
+
+Scope:
+- Removed active tap-focus gesture plumbing from native Android and iOS receipt
+  camera controls after tap focus was retired from the product contract.
+- Kept continuous focus, pinch zoom, exposure assist, brightness controls, and
+  readability guidance intact.
+- Removed obsolete tap-after-zoom suppression timers and tap-driven focus lock
+  copy from native source.
+- Updated native bridge tests to reject tap-focus gesture, metering, and lock
+  code paths while preserving legacy diagnostic counters as zero-state evidence.
+- Archived Pass 648 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0192` under `camera_capture_quality`.
+
+Verification:
+- Passed targeted Dart format/analyzer for native bridge focus tests.
+- Passed focused Flutter Android/iOS native bridge source regressions.
+- Passed cleanup log gate, doc-size gate, bug ledger gate, source audit, and
+  whitespace check.
+
 ## Pass 675 - 00:04:40 EDT to active cleanup
 
 Scope:
@@ -468,21 +488,3 @@ Verification:
 - Passed targeted Dart format/analyzer for native bridge/service parity tests.
 - Passed focused Flutter native Android bridge, iOS bridge, and receipt native
   camera service regressions.
-
-## Pass 648 - 22:47:13 EDT to active cleanup
-
-Scope:
-- Hardened hardware capability summaries so normal receipt-camera copy exposes
-  continuous focus/readability support instead of legacy tap-focus behavior.
-- Wired native `supportsContinuousFocus` into the device hardware profile and
-  kept tap-focus support as legacy diagnostic evidence only.
-- Fixed Android/iOS native auto-capture readability holdback to use helper/set
-  membership instead of direct raw-signal equality checks.
-- Recorded `BUG-RECEIPT-0166` under `camera_capture_quality` and
-  `BUG-RECEIPT-0167` under `native_bridge`.
-- Archived Pass 610 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart analyzer for capability/profile/privacy tests.
-- Passed focused Flutter capability, privacy, native rejection, install
-  strategy, and parser-pack regressions.

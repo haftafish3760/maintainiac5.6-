@@ -173,7 +173,6 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var settingsOpenCount = 0
     internal var settingsResetCount = 0
     internal var lastFocusStatus = "not_used"
-    internal var suppressTapFocusUntilMs = 0L
     internal var focusLockAttemptCount = 0
     internal var focusLockSuccessCount = 0
     internal var exposureLockSuccessCount = 0

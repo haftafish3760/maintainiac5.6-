@@ -41,9 +41,6 @@ extension ReceiptCameraViewController {
     preview.videoGravity = .resizeAspect
     view.layer.addSublayer(preview)
     previewLayer = preview
-    let tapGesture = UITapGestureRecognizer(target: self, action: #selector(focusAndMeter(_:)))
-    tapGesture.isEnabled = tapFocusEnabled
-    view.addGestureRecognizer(tapGesture)
     let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(zoomPreview(_:)))
     pinchGesture.isEnabled = pinchZoomEnabled
     view.addGestureRecognizer(pinchGesture)
