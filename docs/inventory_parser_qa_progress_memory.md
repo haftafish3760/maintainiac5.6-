@@ -3332,3 +3332,10 @@ Release boundaries:
   requires the `--queue-watchdog` override token. Analyzer was clean and the
   focused `inventory.evidence_summary_contract,qa.threshold_gate` slice passed
   23 checks with 0 failures.
+- **09:33 Harness Pass 2446:** Rechecked the existing real-receipt privacy,
+  merchant matrix, and receipt-line torture contracts while the Core semantic
+  batch continued in the background. The focused slice
+  `inventory.real_receipt_validation_contract`,
+  `inventory.merchant_matrix_contract`,
+  `inventory.receipt_line_torture_contract`, and `qa.threshold_gate` passed 215
+  checks with 0 failures.
