@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 875 - 16:32:00 EDT to active cleanup
+
+Scope:
+- Carried section-order review evidence into OCR-source attachment contracts
+  from both the shared capture flow and attachment-panel paths.
+- Added section-order outcome/action document signals and OCR risk flags so
+  downstream OCR/admin diagnostics can see exactly why order review is needed.
+- Added source-contract and result-level regressions for the new handoff
+  signals and risk flags.
+- Recorded `BUG-RECEIPT-0324` under `ocr_handoff_contract`.
+- Archived Pass 802 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused capture-flow/section-order
+  regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 874 - 16:36:00 EDT to active cleanup
 
 Scope:
@@ -460,26 +478,6 @@ Scope:
 - Added source regressions for draft review-mode and business-use labels.
 - Recorded `BUG-RECEIPT-0287` under `receipt_line_review_mode`.
 - Archived Pass 771 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused assisted-review source
-  regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 802 - 09:22:00 EDT to active cleanup
-
-Scope:
-- Added a pre-save privacy-safe receipt line review contract to the assisted
-  receipt entry draft line model.
-- Kept draft price-only versus detailed-line decisions aligned with saved
-  receipt line records.
-- Added safe OCR source line and section-line anchors for pre-save review and
-  customer proof/redaction tooling.
-- Added source regressions so draft contracts use sanitized line numbers and
-  do not expose raw section-line input directly.
-- Recorded `BUG-RECEIPT-0286` under `receipt_line_numbering`.
-- Archived Pass 770 from the active cleanup log to keep the doc under cap.
 
 Verification:
 - Passed targeted Dart format/analyzer and focused assisted-review source

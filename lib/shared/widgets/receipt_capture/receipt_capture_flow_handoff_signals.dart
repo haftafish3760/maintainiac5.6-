@@ -18,6 +18,8 @@ List<String> _ocrSourceDocumentSignalsFor(
     'receipt_review_depth_${_signalToken(result.nativeReceiptReviewDepth)}',
     'receipt_handoff_${_signalToken(result.acceptedPhotoHandoffOutcome)}',
     'receipt_handoff_warning_${_signalToken(result.acceptedPhotoWarningProfile)}',
+    'receipt_section_order_${_signalToken(result.receiptSectionOrderOutcome)}',
+    'receipt_section_order_action_${_signalToken(result.receiptSectionOrderReviewActionCode)}',
     'receipt_handoff_stitch_${_signalToken(result.stitchResult.status.name)}',
     'receipt_match_readiness_${_signalToken(result.nextReviewMatchReadinessOutcome)}',
     'receipt_proof_storage_${_signalToken(result.receiptProofStoragePolicyOutcome)}',
@@ -27,6 +29,9 @@ List<String> _ocrSourceDocumentSignalsFor(
   }
   if (result.hasPossiblePartialReceiptPhotos) {
     signals.add('receipt_handoff_possible_partial_receipt');
+  }
+  if (result.receiptSectionOrderNeedsReview) {
+    signals.add('receipt_section_order_review_required');
   }
   if (result.usesSeparateOcrSourceCopies) {
     signals.add('receipt_handoff_separate_ocr_source');

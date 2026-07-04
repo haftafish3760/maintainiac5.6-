@@ -25,6 +25,8 @@ extension _ReceiptAttachmentOcrSourceSignals
       'receipt_review_depth_${attachmentSignalToken(result.nativeReceiptReviewDepth)}',
       'receipt_handoff_${attachmentSignalToken(result.acceptedPhotoHandoffOutcome)}',
       'receipt_handoff_warning_${attachmentSignalToken(result.acceptedPhotoWarningProfile)}',
+      'receipt_section_order_${attachmentSignalToken(result.receiptSectionOrderOutcome)}',
+      'receipt_section_order_action_${attachmentSignalToken(result.receiptSectionOrderReviewActionCode)}',
       'receipt_handoff_stitch_${attachmentSignalToken(result.stitchResult.status.name)}',
       'receipt_match_readiness_${attachmentSignalToken(result.nextReviewMatchReadinessOutcome)}',
       'receipt_proof_storage_${attachmentSignalToken(result.receiptProofStoragePolicyOutcome)}',
@@ -34,6 +36,9 @@ extension _ReceiptAttachmentOcrSourceSignals
     }
     if (result.hasPossiblePartialReceiptPhotos) {
       signals.add('receipt_handoff_possible_partial_receipt');
+    }
+    if (result.receiptSectionOrderNeedsReview) {
+      signals.add('receipt_section_order_review_required');
     }
     if (result.usesSeparateOcrSourceCopies) {
       signals.add('receipt_handoff_separate_ocr_source');

@@ -148,6 +148,12 @@ void main() {
     expect(flow, contains('saved_proof_created_after_receipt_details_source'));
     expect(flow, contains('receipt_handoff_warning_'));
     expect(actions, contains('receipt_handoff_warning_'));
+    expect(flow, contains('receipt_section_order_'));
+    expect(actions, contains('receipt_section_order_'));
+    expect(flow, contains('receiptSectionOrderReviewActionCode'));
+    expect(actions, contains('receiptSectionOrderReviewActionCode'));
+    expect(flow, contains('ocr_source_section_order_review_required'));
+    expect(actions, contains('ocr_source_section_order_review_required'));
     expect(flow, contains("sourceLabel: 'Maintainiac OCR source photo'"));
     expect(actions, contains("sourceLabel: 'Maintainiac OCR source photo'"));
     expect(flow, contains('ReceiptAttachmentStorageState.staged'));

@@ -69,6 +69,12 @@ extension _ReceiptAttachmentOcrSourceRiskFlags
         'temporary_full_quality_source_guard_review') {
       flags.add('ocr_source_temporary_full_quality_guard_review');
     }
+    if (result.receiptSectionOrderNeedsReview) {
+      flags.add('ocr_source_section_order_review_required');
+      flags.add(
+        'ocr_source_section_order_action_${attachmentSignalToken(result.receiptSectionOrderReviewActionCode)}',
+      );
+    }
     flags.add(
       'ocr_source_first_${attachmentSignalToken(result.ocrSourceFirstDecisionCode)}',
     );

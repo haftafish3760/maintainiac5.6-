@@ -61,6 +61,26 @@ void main() {
       attachments.single.documentSignals,
       contains('receipt_handoff_needs_review_before_ocr'),
     );
+    expect(
+      attachments.single.documentSignals,
+      contains('receipt_section_order_retake_order_invalid'),
+    );
+    expect(
+      attachments.single.documentSignals,
+      contains(
+        'receipt_section_order_action_review_retaken_section_order_before_ocr',
+      ),
+    );
+    expect(
+      attachments.single.riskFlags,
+      contains('ocr_source_section_order_review_required'),
+    );
+    expect(
+      attachments.single.riskFlags,
+      contains(
+        'ocr_source_section_order_action_review_retaken_section_order_before_ocr',
+      ),
+    );
     final metadata = result.privacySafeReceiptReaderHandoffMetadata.toString();
     expect(metadata, contains('review_retaken_section_order_before_ocr'));
     expect(metadata, isNot(contains('/tmp/')));
