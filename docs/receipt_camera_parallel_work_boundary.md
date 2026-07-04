@@ -249,8 +249,8 @@ Command 1 must not show:
 - Added Android native camera settings/status strip.
 - Changed Android native long-receipt action wording from generic `Done` to
   `Use Photo` / `Use Photos`.
-- Added settings copy that OCR reads the original photo first and compressed
-  backup copies are created after receipt reading.
+- Added settings copy that OCR reads the temporary full-quality photo first and
+  compressed saved-proof copies are created after receipt reading.
 
 ## Validation Status
 

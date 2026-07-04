@@ -68,7 +68,7 @@ foundation and physical capture quality path.
 - previous/next segment context
 - ghost overlay and overlap guidance
 - stitching session handoff
-- original source image preservation
+- temporary full-quality OCR source handoff
 - camera diagnostics and privacy-safe capture metadata
 - real-device camera readiness scripts
 - camera-side barcode/QR scanner bridge only where it touches native capture or
@@ -236,8 +236,11 @@ explicitly asks. The inventory model owns those.
 - OCR output is suggestion data, not truth.
 - User-confirmed fields are truth.
 - Parser guesses must never silently overwrite user-confirmed financial data.
-- Original receipt images are source truth and must not be destroyed.
-- Derived/stiched/cleaned/OCR images are artifacts, not source truth.
+- Temporary full-quality receipt captures feed OCR/prep first.
+- Saved receipt proof images follow user storage settings; full original-quality
+  retention must be an explicit user choice.
+- Derived/stiched/cleaned/OCR images are artifacts and must not mutate
+  user-confirmed receipt records silently.
 - Privacy-safe diagnostics must never include raw receipt text, store phone
   numbers, addresses, customer names, employee names, VINs, plates, passenger
   data, patient data, private notes, or full barcode payloads.

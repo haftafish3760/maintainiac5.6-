@@ -10,17 +10,20 @@ must consume this system later instead of pulling the camera work off course.
 The goal is an 80-90% solid release-one receipt camera system that can keep
 improving through real receipt regressions. It does not need perfect scanner-app
 polish before the expense system can move forward, but it must be dependable
-enough that bad captures, ordering mistakes, lost originals, and obvious review
-bugs are not normal user experiences.
+enough that bad captures, ordering mistakes, lost OCR sources, and obvious
+review bugs are not normal user experiences.
 
 Release one must prove:
 
 - A user can capture a clear single receipt photo.
 - A user can capture a long receipt through ordered multiple segments.
 - A user can retake any segment without losing its intended order.
-- The app preserves the original source captures.
+- The app keeps temporary full-quality capture sources available through OCR
+  prep, then saves the compressed proof by default.
+- Full original-quality proof retention is explicit user choice, not the
+  default storage behavior.
 - Derived crop, stitch, OCR-ready, thumbnail, and compressed images never
-  silently replace the source truth.
+  silently replace the OCR source before handoff.
 - The app can warn about blur, glare, low light, crop/edge risk, missing bottom,
   and weak overlap without blocking manual capture.
 - OCR receives the clearest available image or ordered segment set, but OCR
@@ -126,7 +129,8 @@ The image-processing lane prepares derived artifacts:
 - fallback ordered segment handoff when stitching is not safe
 - compressed display/proof copies after review
 
-The original source image is never destroyed by this lane.
+The temporary OCR source image is kept through OCR/prep, then the retained proof
+follows user storage settings.
 
 ### Quality Scoring
 
@@ -149,7 +153,7 @@ manual shutter.
 
 The camera system hands off evidence to OCR:
 
-- original source segment references
+- temporary full-quality source segment references
 - derived OCR-ready image or ordered fallback segments
 - stitch confidence and overlap evidence
 - quality warnings
@@ -317,7 +321,7 @@ The camera system is release-one ready only when:
 - fallback ordered handoff works when stitching is unsafe
 - clear-photo guidance catches common bad images
 - manual capture still works
-- original source images survive
+- temporary OCR sources survive until receipt reading/prep completes
 - camera handoff is stable enough for expense OCR/parser review
 - Android and iOS native paths share the same contract
 - targeted camera QA, regression tests, source audit, doc gate, and milestone

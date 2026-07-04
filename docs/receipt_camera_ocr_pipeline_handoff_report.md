@@ -234,7 +234,7 @@ Relevant files:
 Current direction:
 
 - OCR source image and saved proof image are distinct concepts.
-- OCR should use the cleanest/original source first.
+- OCR should use the cleanest temporary full-quality or prepared source first.
 - Saved proof can be compressed for storage/cloud cost.
 - Data saver tiers exist conceptually.
 - Proof storage has lifecycle and hardening tests.

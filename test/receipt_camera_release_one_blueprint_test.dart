@@ -25,7 +25,13 @@ void main() {
     expect(blueprint, contains('Flutter Capture Orchestrator'));
     expect(blueprint, contains('Retake, Add Photo, Done/Use Receipt'));
     expect(blueprint, contains('Ghost And Overlap Guidance'));
-    expect(blueprint, contains('source captures'));
+    expect(blueprint, contains('temporary full-quality capture sources'));
+    expect(blueprint, contains('compressed proof by default'));
+    expect(
+      blueprint,
+      isNot(contains('preserves the original source captures')),
+    );
+    expect(blueprint, isNot(contains('original source images survive')));
     expect(blueprint, contains('Optional auto-capture'));
     expect(
       blueprint,

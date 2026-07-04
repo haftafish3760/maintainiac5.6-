@@ -62,6 +62,16 @@ void main() {
         isNot(contains('white balance auto/locked/manual')),
         reason: '$path must not list white-balance lock as an active control.',
       );
+      expect(
+        text,
+        isNot(contains('ocr uses the original first')),
+        reason: '$path must not imply permanent original retention.',
+      );
+      expect(
+        text,
+        isNot(contains('original receipt images are source truth')),
+        reason: '$path must not make full originals the retained source truth.',
+      );
     }
   });
 }
