@@ -71,6 +71,11 @@ class ReceiptNativeCameraService {
           'Maintainiac receipt camera returned non-local or non-image receipt photo paths.',
         );
       }
+      if (paths.length > config.maxSectionCount) {
+        throw const ReceiptNativeCameraUnavailableException(
+          'Maintainiac receipt camera returned too many receipt sections.',
+        );
+      }
       if (_hasDuplicateNativeReceiptPaths(paths)) {
         throw const ReceiptNativeCameraUnavailableException(
           'Maintainiac receipt camera returned duplicate receipt photo paths.',

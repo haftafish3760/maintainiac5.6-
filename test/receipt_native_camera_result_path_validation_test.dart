@@ -146,16 +146,56 @@ void main() {
       ),
     );
   });
+
+  test('native service rejects more paths than session allows', () async {
+    const channel = MethodChannel('maintainiac/receipt_too_many_paths_test');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'captureReceipt');
+          return {
+            'originalPhotoPaths': [
+              '/tmp/receipt-top.jpg',
+              '/tmp/receipt-bottom.jpg',
+            ],
+            'temporaryCaptureIds': ['receipt-top', 'receipt-bottom'],
+            'capturedAt': '2026-07-03T10:49:00.000Z',
+            'captureDiagnostics': {
+              'captureSurface': 'maintainiac_native_android',
+            },
+          };
+        });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    await expectLater(
+      const ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(_highCapacityConfig(longReceiptMode: false)),
+      throwsA(
+        isA<ReceiptNativeCameraUnavailableException>().having(
+          (error) => error.message,
+          'message',
+          contains('too many receipt sections'),
+        ),
+      ),
+    );
+  });
 }
 
-ReceiptNativeCameraSessionConfig _highCapacityConfig() {
+ReceiptNativeCameraSessionConfig _highCapacityConfig({
+  bool longReceiptMode = true,
+}) {
   const capabilities = ReceiptNativeCameraCapabilities(
     engine: ReceiptNativeCameraEngine.cameraX,
     available: true,
     cameraPermissionGranted: true,
     hasRearCamera: true,
   );
-  return const ReceiptNativeCameraSettings().sessionFor(
+  return ReceiptNativeCameraSettings(
+    longReceiptMode: longReceiptMode,
+  ).sessionFor(
     deviceCapability: const ReceiptDeviceCapability.highCapacity(),
     nativeCapabilities: capabilities,
   );

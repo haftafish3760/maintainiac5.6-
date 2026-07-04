@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 717 - 02:39:00 EDT to active cleanup
+
+Scope:
+- Hardened `ReceiptNativeCameraService` so native results cannot return more
+  receipt photo paths than the session `maxSectionCount` allows.
+- Added a focused regression where long-receipt mode is disabled but the native
+  bridge returns two receipt paths.
+- Recorded `BUG-RECEIPT-0205` under `multi_photo_ordering`.
+
+Verification:
+- Passed Dart format/analyzer for native section-count validation.
+- Passed focused native path validation regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 716 - 02:37:00 EDT to active cleanup
 
 Scope:
