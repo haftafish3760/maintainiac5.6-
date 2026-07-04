@@ -3346,3 +3346,9 @@ Release boundaries:
   `inventory.receipt_line_parser_fuzz_contract`,
   `inventory.review_safety_contract`, and `qa.threshold_gate` passed 225 checks
   with 0 failures.
+- **09:34 Harness Pass 2448:** Rechecked context, ambiguity, merchant, noise,
+  ranked-candidate, and conflict-graph parser QA. The focused slice
+  `inventory.dangerous_words`, `inventory.trade_context`,
+  `inventory.merchant_rules`, `inventory.noise_lines`,
+  `inventory.ranked_candidate_accuracy`, `inventory.conflict_graph_contract`,
+  and `qa.threshold_gate` passed 141 checks with 0 failures.
