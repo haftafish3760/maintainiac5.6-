@@ -3691,3 +3691,10 @@ Release boundaries:
   regression blocks. Focused
   `inventory.receipt_line_parser_fuzz_contract,inventory.regression_lock_contract,qa.threshold_gate`
   passed 101 checks with 0 failures, and targeted analyzer found no issues.
+- **11:44 Harness Pass 2732:** Made SKU collision, catalog expansion
+  lifecycle, catalog item batch generation, and admin report contract matching
+  whitespace-safe. The first focused gate exposed missing explicit
+  `merchant SKU` legal-provenance wording; added it to the harness plan instead
+  of suppressing the warning. Focused
+  `inventory.sku_collision_contract,inventory.catalog_expansion_lifecycle_contract,inventory.catalog_item_batch_generation_contract,inventory.admin_report_contract,qa.threshold_gate`
+  passed 149 checks with 0 failures, and targeted analyzer found no issues.

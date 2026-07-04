@@ -157,6 +157,13 @@ class _AdminReportContract {
   final List<String> tokens;
 
   bool isPresentIn(String source) {
-    return tokens.every(source.contains);
+    final normalizedSource = _normalizeContractText(source);
+    return tokens.every(
+      (token) => normalizedSource.contains(_normalizeContractText(token)),
+    );
   }
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }

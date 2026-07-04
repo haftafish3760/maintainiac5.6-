@@ -169,8 +169,9 @@ class WorkSupplyParserCatalogExpansionLifecycleSuite extends QaSuite {
     required String category,
     required String fix,
   }) {
+    final normalizedSource = _normalizeContractText(source);
     for (final token in tokens) {
-      if (source.toLowerCase().contains(token.toLowerCase())) continue;
+      if (normalizedSource.contains(_normalizeContractText(token))) continue;
       failures.add(
         QaFailure(
           suite: name,
@@ -196,4 +197,15 @@ String _read(String path) {
 
 String _safeId(String value) {
   return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+}
+
+String _normalizeContractText(String value) {
+  return value
+      .replaceAllMapped(
+        RegExp(r'([a-z0-9])([A-Z])'),
+        (match) => '${match[1]} ${match[2]}',
+      )
+      .toLowerCase()
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
 }
