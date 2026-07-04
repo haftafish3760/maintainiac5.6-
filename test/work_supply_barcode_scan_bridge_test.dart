@@ -86,7 +86,7 @@ void main() {
     expect(workSupplyBarcodeFormatForScannedCode(unknownCode), 'qrOrCode128');
   });
 
-  test('barcode scan bridge keeps malformed value type out of summaries', () {
+  test('barcode scan bridge blocks sensitive malformed value types', () {
     const bridge = WorkSupplyBarcodeScanBridge();
     const result = ReceiptBarcodeScanResult(
       imagePath: '/tmp/code.jpg',
@@ -100,12 +100,15 @@ void main() {
       ],
     );
 
-    final suggestion = bridge.suggestionsFromScanResult(result).single;
+    final suggestions = bridge.suggestionsFromScanResult(result);
 
-    expect(suggestion.sourceValueType, 'other');
+    expect(suggestions, isEmpty);
+    expect(result.codes.single.privacySafeValueType, 'sensitiveOther');
+    expect(result.codes.single.inventoryLookupValue, isNull);
     expect(
-      suggestion.privacySafeSummaryMap.toString(),
+      result.privacySafeSummaryMap.toString(),
       isNot(contains('private_customer_payload')),
     );
+    expect(result.privacySafeSummaryMap.toString(), isNot(contains('QRWORK')));
   });
 }

@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 890 - 17:17:00 EDT to active cleanup
+
+Scope:
+- Fixed the failing work-supply barcode bridge regression so malformed private
+  QR value types stay blocked from inventory lookup suggestions.
+- Pinned the scanner privacy contract to require the `sensitiveOther` bucket,
+  zero bridge suggestions, and no raw QR payload in summaries.
+- Recorded `BUG-RECEIPT-0339` under `barcode_qr_scanning`.
+- Archived Pass 827 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused work-supply barcode bridge
+  regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 889 - active cleanup
 
 Scope:
@@ -455,19 +471,4 @@ Verification:
 - Passed targeted Dart format/analyzer and focused Android native bridge
   analysis/exposure regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 827 - 14:58:00 EDT to active cleanup
-
-Scope:
-- Extended review-result barcode handoff QA so OCR-source-first scans also prove
-  privacy-safe batch format/type counts.
-- Pinned that long-receipt barcode scans keep UPC/QR evidence visible while raw
-  code values stay out of summaries.
-- Recorded `BUG-RECEIPT-0313` under `qa_harness`.
-- Archived Pass 788 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused barcode handoff regression.
-- Passed doc-size, bug-ledger, cleanup-log, source-audit, test-audit, and diff
   whitespace gates.
