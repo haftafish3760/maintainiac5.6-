@@ -3483,6 +3483,7 @@ Release boundaries:
 - **10:31 Harness Pass 2548:** Added value-level privacy scanning to private
   real-receipt validation summaries so card-like numbers, emails, phone numbers,
   street addresses, and receipt/store/auth identifiers are rejected even when
-  typed into otherwise allowed summary fields. Focused tool tests passed 6/6,
-  the real-receipt harness contract passed 46 checks with 0 failures, and
-  targeted analyzer found no issues.
+  typed into otherwise allowed summary fields. These private-looking values are
+  now part of the hostile-input evidence set. Focused tool tests passed 6/6, the
+  real-receipt harness contract passed 46 checks with 0 failures, and targeted
+  analyzer found no issues.

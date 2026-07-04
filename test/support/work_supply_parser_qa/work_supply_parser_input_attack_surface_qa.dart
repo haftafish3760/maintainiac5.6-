@@ -74,6 +74,12 @@ class WorkSupplyParserInputAttackSurfaceSuite extends QaSuite {
     'URL',
     'file path',
     'environment variable',
+    'card-like numbers',
+    'emails',
+    'phone numbers',
+    'street addresses',
+    'receipt/store/auth identifiers',
+    'private-looking values',
   };
 
   static const _securityRules = {
