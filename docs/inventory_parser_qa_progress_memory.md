@@ -3590,3 +3590,8 @@ Release boundaries:
   whole-house filter housing, spin-down sediment filter, and filter housing
   parts. Focused `inventory.release_one_service_family_contract,qa.threshold_gate`
   passed 17,057 checks with 0 failures, and targeted analyzer found no issues.
+- **11:40 Harness Pass 2658:** Made runtime-profile documentation matching
+  whitespace-safe so smoke/full/release profile contracts are not brittle when
+  the harness plan wraps lines. Focused
+  `inventory.runtime_profile_contract,inventory.generated_fixture_performance_contract,inventory.runtime_measurement,qa.threshold_gate`
+  passed 68 checks with 0 failures, and targeted analyzer found no issues.
