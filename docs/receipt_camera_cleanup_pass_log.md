@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 773 - 05:54:18 EDT to active cleanup
+
+Scope:
+- Hardened recovered native-capture review opening so the first recovered photo
+  index uses the normalized existing receipt photo count.
+- Prevented invalid or duplicate existing review paths from shifting recovered
+  receipt photos to the wrong selected section.
+- Added a recovery-contract source regression for normalized recovered-photo
+  index calculation.
+- Recorded `BUG-RECEIPT-0261` under `camera_review_state`.
+- Archived Pass 745 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for recovery review index changes.
+- Passed focused Flutter recovery contract regression.
+- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
+
 ## Pass 772 - 05:51:44 EDT to active cleanup
 
 Scope:
@@ -476,22 +493,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for native review-depth diagnostics.
 - Passed focused receipt camera result frozen metadata regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 745 - 03:46:09 EDT to active cleanup
-
-Scope:
-- Hardened expense receipt review-mode restoration so padded or case-varied
-  stored values preserve the user's detailed-line review preference instead of
-  silently falling back to prices-only.
-- Added focused settings-store regression coverage for normalized receipt review
-  style hydration.
-- Recorded `BUG-RECEIPT-0233` under `receipt_line_review_mode`.
-- Archived Pass 720 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for expense settings review mode.
-- Passed focused expense settings-store regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

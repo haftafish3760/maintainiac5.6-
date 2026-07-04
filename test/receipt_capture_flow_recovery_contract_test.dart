@@ -218,6 +218,12 @@ void main() {
     expect(flow, contains('reviewRecoveredCapture('));
     expect(flow, contains('ReceiptNativeCaptureRecoveryRecord record'));
     expect(flow, contains('record.recoverablePhotoPaths'));
+    expect(
+      flow,
+      contains(
+        'final firstRecoveredPhotoIndex = uniqueNormalizedReceiptPhotoPaths(',
+      ),
+    );
     expect(nativeStaging, contains('File(photoPath).existsSync()'));
     expect(flow, contains('discardRecoveryRecord(record)'));
     expect(

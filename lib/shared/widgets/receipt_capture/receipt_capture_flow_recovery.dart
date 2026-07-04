@@ -19,7 +19,9 @@ extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
     }
 
     final reviewPhotoPaths = [...options.initialPhotoPaths, ...photoPaths];
-    final firstRecoveredPhotoIndex = options.initialPhotoPaths.length;
+    final firstRecoveredPhotoIndex = uniqueNormalizedReceiptPhotoPaths(
+      options.initialPhotoPaths,
+    ).length;
     final recoveryDiagnostics = <String, Object?>{
       ...record.captureDiagnostics,
       'nativeRecoveryResumeStatus': 'resume_review_started',
