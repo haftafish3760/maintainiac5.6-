@@ -182,6 +182,14 @@ Fixture families should include:
 - Bad spacing, weird spacing, missing punctuation, all caps, OCR-like mistakes, quantities,
   returns, discounts, taxes, subtotal lines, payment lines, and mixed-trade
   receipts.
+- Source-modality tags that prove generated fixtures are not store-only:
+  `photo_ocr_text_after_extraction`,
+  `uploaded_pdf_text_after_extraction`,
+  `emailed_receipt_text_after_extraction`, `manual_pasted_receipt_text`,
+  `invoice_style_material_line_text`, `quote_style_material_line_text`,
+  `packing_slip_material_list_text`, `counter_sale_material_receipt_text`,
+  `generic_unknown_merchant_receipt_text`, and
+  `local_regional_supplier_receipt_text`.
 
 Synthetic fixtures must include expected status: matched, review required,
 unknown, or ignored noise.

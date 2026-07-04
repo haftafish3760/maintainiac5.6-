@@ -248,6 +248,15 @@ Focused rerun routes for recently hardened release-one contracts:
   passed 14/14 and targeted `dart analyze` over
   `test/work_supply_parser_qa_fixture_generator_test.dart` passed with no
   issues.
+- Passes 2075-2076 wired the same source-modality terms into the Release 1
+  parser acceptance scorecard and `inventory.release_one_scorecard_contract`.
+  Validation passed:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_SUITES=inventory.release_one_scorecard_contract,inventory.requirement_coverage,qa.threshold_gate
+  --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40` checked 185 conditions with
+  0 failures, and targeted `dart analyze` over
+  `test/support/work_supply_parser_qa/work_supply_parser_release_one_scorecard_qa.dart`
+  passed with no issues.
 
 ## 2026-07-04 Reusable Parser Adapter Registry Hardening
 
