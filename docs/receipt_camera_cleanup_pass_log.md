@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 654 - 23:06:27 EDT to active cleanup
+
+Scope:
+- Hardened native camera UI health outcome priority so stale tap-focus expected
+  payloads cannot be hidden by generic missing-control readiness outcomes.
+- Added a focused regression where tap focus is expected but missing, proving
+  `tap_focus_retirement_regressed` remains the top-level camera health result.
+- Recorded `BUG-RECEIPT-0170` under `camera_capture_quality`.
+- Archived Pass 615 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the native UI health helper and
+  focused native UI health regression.
+- Passed focused Flutter native UI health regressions.
+
 ## Pass 653 - 23:01:54 EDT to active cleanup
 
 Scope:
@@ -464,21 +479,4 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for review copy and diagnostics tests.
 - Passed focused Flutter quality handoff and native quality regressions.
-- Passed cleanup log, doc size, source audit, and diff whitespace gates.
-
-## Pass 615 - 21:35:42 EDT to active cleanup
-
-Scope:
-- Hardened capture readiness so optional auto capture cannot fire just because
-  the frame is stable when the photo quality still needs manual review.
-- Added `manual_only_quality_review` for soft focus, low contrast, dim
-  readable frames, and other noncritical review-needed receipt photos.
-- Kept manual shutter available in those cases so the user remains in control.
-- Added regression coverage for soft, low-contrast, and dim review-needed
-  receipt photos.
-- Recorded `BUG-RECEIPT-0136` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart format/analyzer for receipt photo quality readiness.
-- Passed focused Flutter receipt camera quality guidance regressions.
 - Passed cleanup log, doc size, source audit, and diff whitespace gates.
