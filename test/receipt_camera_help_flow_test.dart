@@ -268,9 +268,11 @@ void main() {
     expect(
       dataSaverPanel,
       contains(
-        'The image behind this panel is the saved proof preview. Receipt assistance uses the clear OCR source first.',
+        'The image behind this panel is the saved proof preview. Receipt assistance uses the clear OCR source first. Capture source',
       ),
     );
+    expect(dataSaverPanel, contains('Capture source size'));
+    expect(dataSaverPanel, isNot(contains('Original photo')));
     expect(dataSaverPanel, contains('Proof kept after reading'));
     expect(dataSaverPanel, contains('Backup status'));
     expect(dataSaverPanel, isNot(contains('Cloud backup copy')));

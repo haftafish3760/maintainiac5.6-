@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 786 - 07:50:34 EDT to active cleanup
+
+Scope:
+- Reworded saved-proof preview copy that labeled the comparison size as an
+  original photo.
+- Changed the details row to `Capture source size` and the footer to
+  `Capture source` so the panel does not imply full original retention.
+- Added help-flow source regressions against the stale original-photo label.
+- Recorded `BUG-RECEIPT-0273` under `source_preservation`.
+- Archived Pass 759 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused help-flow source
+  regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 785 - 07:43:52 EDT to active cleanup
 
 Scope:
@@ -458,23 +475,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for vertical-quality regressions.
 - Passed focused Android close-controls and iOS long-receipt quality tests.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 759 - 04:16:42 EDT to active cleanup
-
-Scope:
-- Hardened Android and iOS saved-photo brightness and sharpness bucket helpers
-  so non-finite captured samples cannot look like glare or high-contrast edge
-  evidence.
-- Kept malformed saved-photo samples on the existing `unknown` quality path.
-- Added Android/iOS native quality source regressions for non-finite brightness
-  and sharpness buckets.
-- Recorded `BUG-RECEIPT-0247` under `camera_capture_quality`.
-- Archived Pass 731 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native quality regressions.
-- Passed focused Android/iOS native quality bridge regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

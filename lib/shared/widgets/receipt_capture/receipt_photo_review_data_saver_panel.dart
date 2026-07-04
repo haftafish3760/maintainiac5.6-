@@ -31,7 +31,7 @@ class _ReceiptDataSaverPreviewCard extends StatelessWidget {
           : quality.reviewTitle,
       detail: detail,
       footer: !quality.needsReview
-          ? 'The image behind this panel is the saved proof preview. Receipt assistance uses the clear OCR source first. Original ${current.originalLabel}.'
+          ? 'The image behind this panel is the saved proof preview. Receipt assistance uses the clear OCR source first. Capture source ${current.originalLabel}.'
           : 'Receipt assistance uses the clear OCR source first. This setting only controls the smaller saved proof.',
       warning: quality.needsReview,
       onDetails: () => _showDataSaverDetails(context, current),
@@ -157,7 +157,7 @@ Future<void> _showDataSaverDetails(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _StorageDetailRow(
-              label: 'Original photo',
+              label: 'Capture source size',
               value: preview.originalLabel,
             ),
             _StorageDetailRow(
