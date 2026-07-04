@@ -182,6 +182,7 @@ bool _isNativeCameraUiRisk(String value) {
       token.contains('close_deferred') ||
       token.contains('close_retry') ||
       token.contains('capture_failed_after_close') ||
+      token.contains('capture_failed_returned_existing_sections') ||
       token.contains('closed_without_photo') ||
       token.contains('close_already_delivered') ||
       token.contains('waiting_for_in_flight_capture');
@@ -190,6 +191,7 @@ bool _isNativeCameraUiRisk(String value) {
 bool _isNativeCloseCapturedPhotoRisk(String value) {
   final token = _signalToken(value);
   return token == 'capture_failed_after_close' ||
+      token == 'capture_failed_returned_existing_sections' ||
       token == 'closed_without_photo' ||
       token == 'close_already_delivered' ||
       token == 'waiting_for_in_flight_capture' ||

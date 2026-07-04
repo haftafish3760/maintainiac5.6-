@@ -69,6 +69,8 @@ List<String> _nativeCloseHealthCodes(Map<String, Object?> diagnostics) {
       'native_close_returned_captured_sections',
     if (closeOutcome == 'capture_failed_after_close')
       'native_close_capture_failed_after_close',
+    if (closeOutcome == 'capture_failed_returned_existing_sections')
+      'native_close_capture_failed_returned_existing_sections',
     if (closeOutcome == 'closed_without_photo')
       'native_close_closed_without_photo',
     if (closeOutcome == 'close_already_delivered')

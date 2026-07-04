@@ -201,6 +201,8 @@ internal fun ReceiptCameraActivity.closeCapturedPhotoOutcome(): String {
     return when {
         closeAction == "back_returned_captured_sections" -> "back_returned_captured_sections"
         closeAction == "done_returned_captured_sections" -> "next_returned_captured_sections"
+        closeAction == "back_capture_failed_returned_existing_sections" ->
+            "capture_failed_returned_existing_sections"
         closeAction.contains("capture_failed") -> "capture_failed_after_close"
         closeAction.endsWith("no_photo_cancel") -> "closed_without_photo"
         pendingCloseAfterCapture -> "waiting_for_in_flight_capture"

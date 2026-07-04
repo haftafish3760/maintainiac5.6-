@@ -7,6 +7,7 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
       'capture_failed_after_close',
       'closed_without_photo',
       'close_already_delivered',
+      'capture_failed_returned_existing_sections',
       'waiting_for_in_flight_capture',
       'close_outcome_unknown',
       'back_returned_captured_sections',
@@ -26,6 +27,8 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
         'Next returned captured receipt sections for review',
       'capture_failed_after_close' =>
         'Capture finished after close and needs recovery review',
+      'capture_failed_returned_existing_sections' =>
+        'Last receipt section failed, existing sections opened for review',
       'closed_without_photo' || 'back_no_photo_cancel' =>
         'Camera closed before a receipt photo was saved',
       'close_already_delivered' => 'Camera close result was already delivered',

@@ -77,6 +77,9 @@ extension ReceiptCameraViewController {
     if closeAction == "done_returned_captured_sections" {
       return "next_returned_captured_sections"
     }
+    if closeAction == "back_capture_failed_returned_existing_sections" {
+      return "capture_failed_returned_existing_sections"
+    }
     if closeAction.contains("capture_failed") {
       return "capture_failed_after_close"
     }

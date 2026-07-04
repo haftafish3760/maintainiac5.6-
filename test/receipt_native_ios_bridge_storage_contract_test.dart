@@ -26,6 +26,18 @@ void main() {
       expect(cameraController, contains('"capture_failed_after_close"'));
       expect(
         cameraController,
+        contains('"capture_failed_returned_existing_sections"'),
+      );
+      expect(
+        cameraController.indexOf(
+          'closeAction == "back_capture_failed_returned_existing_sections"',
+        ),
+        lessThan(
+          cameraController.indexOf('closeAction.contains("capture_failed")'),
+        ),
+      );
+      expect(
+        cameraController,
         contains('"closeResultDelivered": closeResultDelivered'),
       );
       expect(

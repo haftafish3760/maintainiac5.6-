@@ -227,6 +227,81 @@ void main() {
     );
   });
 
+  test(
+    'photo review result flags failed latest section while keeping existing sections',
+    () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/proof.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
+        captureDiagnosticsByPhotoPath: const {
+          '/tmp/proof.jpg': {
+            'visibleControlSet': 'back|settings|manual_shutter|status',
+            'previewDominanceTarget': 'receipt_preview_75_80_percent',
+            'closeAction': 'back_capture_failed_returned_existing_sections',
+            'closeCapturedPhotoOutcome':
+                'capture_failed_returned_existing_sections',
+            'closeCapturedPhotoPolicy':
+                'back_returns_captured_sections_before_cancel',
+            'closeReturnedSectionsCount': 1,
+            'closeResultDelivered': true,
+          },
+        },
+      );
+
+      expect(
+        result.nativeCloseCapturedPhotoHealthOutcome,
+        'capture_failed_returned_existing_sections',
+      );
+      expect(
+        result.nativeCloseCapturedPhotoActionLabel,
+        'Last receipt section failed, existing sections opened for review',
+      );
+      expect(result.nativeCloseCapturedPhotoOutcomeCounts, {
+        'capture_failed_returned_existing_sections': 1,
+      });
+      expect(
+        result
+            .nativeCameraUiHealthCounts['native_close_capture_failed_returned_existing_sections'],
+        1,
+      );
+      expect(
+        result
+            .nativeCameraUiHealthCounts['native_close_returned_captured_sections'],
+        1,
+      );
+      expect(
+        result
+            .receiptReaderHandoffCounts['native_close_captured_photo_capture_failed_returned_existing_sections'],
+        1,
+      );
+
+      final attachments = ReceiptCaptureFlow.attachmentsFromReviewResult(
+        result,
+        ReceiptCaptureFlowModule.expenses,
+      );
+      expect(
+        attachments.single.documentSignals,
+        contains(
+          'native_close_captured_photo_capture_failed_returned_existing_sections',
+        ),
+      );
+      expect(
+        attachments.single.riskFlags,
+        contains(
+          'native_close_captured_photo_capture_failed_returned_existing_sections',
+        ),
+      );
+      expect(
+        attachments.single.riskFlags,
+        contains(
+          'native_camera_ui_native_close_capture_failed_returned_existing_sections',
+        ),
+      );
+    },
+  );
+
   test('photo review result reports native receipt settings control health', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/proof.jpg'],

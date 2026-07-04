@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 600 - 20:56:33 EDT to 20:58:38 EDT
+
+Scope:
+- Hardened Android and iOS native close outcome classifiers so
+  `back_capture_failed_returned_existing_sections` becomes the distinct
+  `capture_failed_returned_existing_sections` outcome instead of generic
+  `capture_failed_after_close`.
+- Wired that partial-success close outcome through review handoff labels,
+  native health codes, document signals, and risk flags.
+- Added native source-contract and review-result regressions for the failed
+  latest section / existing sections returned path.
+- Recorded `BUG-RECEIPT-0121` under `native_bridge`.
+
+Verification:
+- Passed targeted Dart format/analyzer for native close source-contract and
+  review-handoff regressions.
+- Passed focused Flutter Android native diagnostics, review close handoff, and
+  explicit iOS native storage/close regressions.
+- Passed cleanup log gate, doc-size gate, source audit, and whitespace check.
+
 ## Pass 599 - 20:54:50 EDT to 20:55:59 EDT
 
 Scope:
@@ -472,21 +492,3 @@ Verification:
   sanitizer, native result rejection coverage, and recovery-index coverage.
 - Passed focused Flutter regressions for native service unsafe diagnostics and
   recovery restore malformed diagnostics.
-
-## Pass 579 - 10:22:00 EDT to 10:27:20 EDT
-
-Scope:
-- Hardened native capture staging diagnostics so non-finite values inside
-  iterable/list diagnostics are filtered before recovery manifests are written.
-- Added regression coverage proving staged diagnostics and the manifest omit
-  `NaN` and infinity values while preserving usable list entries.
-- Recorded `BUG-RECEIPT-0095` under `native_bridge`.
-- Archived Pass 551 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native staging diagnostic
-  sanitization and focused native staging regression coverage.
-- Passed focused Flutter regression
-  `test/receipt_native_capture_staging_test.dart --plain-name "native staging
-  removes non-finite diagnostic list values"`.
