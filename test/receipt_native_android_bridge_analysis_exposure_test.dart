@@ -218,10 +218,13 @@ void main() {
           'whiteBalanceMode = intent.getStringExtra("whiteBalanceMode") ?: "auto"',
         ),
       );
+      expect(cameraActivity, contains('whiteBalanceLockEnabled = false'));
       expect(
         cameraActivity,
-        contains(
-          'intent.getBooleanExtra("whiteBalanceLockEnabled", whiteBalanceMode == "locked")',
+        isNot(
+          contains(
+            'intent.getBooleanExtra("whiteBalanceLockEnabled", whiteBalanceMode == "locked")',
+          ),
         ),
       );
       expect(

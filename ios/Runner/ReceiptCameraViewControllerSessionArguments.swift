@@ -16,7 +16,7 @@ extension ReceiptCameraViewController {
     focusMode = arguments["focusMode"] as? String ?? "continuous"
     exposureMode = arguments["exposureMode"] as? String ?? "auto"
     whiteBalanceMode = arguments["whiteBalanceMode"] as? String ?? "auto"
-    whiteBalanceLockEnabled = arguments["whiteBalanceLockEnabled"] as? Bool ?? (whiteBalanceMode == "locked")
+    whiteBalanceLockEnabled = false
     dataSaverLevel = arguments["dataSaverLevel"] as? String ?? "balanced"
     storageSafetyLevel = arguments["storageSafetyLevel"] as? String ?? dataSaverLevel
     storageConstrained = arguments["storageConstrained"] as? Bool ?? false

@@ -339,10 +339,13 @@ void main() {
           'whiteBalanceMode = arguments["whiteBalanceMode"] as? String ?? "auto"',
         ),
       );
+      expect(cameraController, contains('whiteBalanceLockEnabled = false'));
       expect(
         cameraController,
-        contains(
-          'whiteBalanceLockEnabled = arguments["whiteBalanceLockEnabled"] as? Bool ?? (whiteBalanceMode == "locked")',
+        isNot(
+          contains(
+            'whiteBalanceLockEnabled = arguments["whiteBalanceLockEnabled"] as? Bool ?? (whiteBalanceMode == "locked")',
+          ),
         ),
       );
       expect(

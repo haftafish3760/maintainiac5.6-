@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 734 - 03:25:54 EDT to active cleanup
+
+Scope:
+- Audited native argument readers after the Dart service boundary was hardened.
+- Hard-coded Android and iOS `whiteBalanceLockEnabled` false so stale native
+  arguments cannot re-enable retired white-balance locking.
+- Updated Android/iOS bridge source regressions to reject the stale argument
+  trust path.
+- Recorded `BUG-RECEIPT-0225` under `native_bridge`.
+- Archived Pass 709 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for Android/iOS native bridge exposure
+  regressions.
+- Passed focused Flutter Android/iOS bridge regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 733 - 03:24:50 EDT to active cleanup
 
 Scope:
@@ -459,22 +477,5 @@ Verification:
 - Passed focused receipt camera help flow regression.
 - First cleanup log gate failed at 501 lines; archived Pass 653 and reran the
   gate before milestone push.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 709 - 02:21:00 EDT to active cleanup
-
-Scope:
-- Removed stale Android native settings copy that still told users to use focus
-  assist after the receipt camera moved to continuous-autofocus/readability
-  guidance.
-- Added focused Android bridge source regression coverage so retired focus
-  assist copy cannot return through settings/help text.
-- Recorded `BUG-RECEIPT-0197` under `camera_capture_quality`.
-- Archived Pass 651 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the Android settings bridge test.
-- Passed focused Android settings bridge regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

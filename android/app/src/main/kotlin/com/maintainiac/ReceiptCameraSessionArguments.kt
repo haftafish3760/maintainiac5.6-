@@ -19,7 +19,7 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     focusMode = intent.getStringExtra("focusMode") ?: "continuous"
     exposureMode = intent.getStringExtra("exposureMode") ?: "auto"
     whiteBalanceMode = intent.getStringExtra("whiteBalanceMode") ?: "auto"
-    whiteBalanceLockEnabled = intent.getBooleanExtra("whiteBalanceLockEnabled", whiteBalanceMode == "locked")
+    whiteBalanceLockEnabled = false
     dataSaverLevel = intent.getStringExtra("dataSaverLevel") ?: "balanced"
     storageSafetyLevel = intent.getStringExtra("storageSafetyLevel") ?: dataSaverLevel
     storageConstrained = intent.getBooleanExtra("storageConstrained", false)
