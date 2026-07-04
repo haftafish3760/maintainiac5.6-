@@ -7,6 +7,7 @@ import 'maintainiac_qa_checkpoint_policy.dart';
 import 'maintainiac_qa_artifact_policy.dart';
 import 'maintainiac_qa_quality_gates.dart';
 import 'maintainiac_qa_readiness.dart';
+import 'maintainiac_qa_report_safety_gate.dart';
 import 'maintainiac_qa_run_ledger.dart';
 import 'maintainiac_qa_telemetry_privacy_gate.dart';
 import 'maintainiac_qa_case_registry.dart';
@@ -216,6 +217,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
     for (final issue in readiness.validate()) {
       failures.add(_failure('readiness_$issue', issue));
     }
+    final reportSafetyGate = MaintainiacQaReportSafetyGate.releaseOne();
 
     final caseRegistry = MaintainiacQaCaseRegistry.backboneSeed();
     for (final issue in caseRegistry.validate()) {
@@ -634,6 +636,7 @@ class MaintainiacQaBackboneSuite extends QaSuite {
         'performanceBudgetRegistry': maintainiacPerformanceBudgetRegistry
             .toJson(),
         'qualityGates': qualityGates.toJson(),
+        'reportSafetyGate': reportSafetyGate.toJson(),
         'readiness': readiness.toJson(),
       },
     );

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/qa_harness/qa_harness.dart';
+import 'support/qa_harness/qa_threshold_gate.dart';
 
 void main() {
   test(
@@ -43,6 +44,10 @@ void main() {
       expect(
         report.results.single.metrics['readiness'].toString(),
         contains('countsByStatus'),
+      );
+      expect(
+        report.results.single.metrics['reportSafetyGate'].toString(),
+        contains('requiredTopLevelFields'),
       );
       expect(
         report.results.single.metrics['qaCaseRegistry'].toString(),
@@ -379,6 +384,32 @@ void main() {
     expect(registry.validate(), isEmpty);
   });
 
+  test('report safety gate validates runtime report shape', () async {
+    final report = await runQaHarnessWithThresholdGate(
+      harness: const QaHarness(
+        domain: 'maintainiac_main',
+        suites: [_RuntimeReportProbeSuite()],
+      ),
+      context: const QaContext(
+        strict: true,
+        redactor: QaRedactor(),
+        profile: 'release',
+      ),
+      runConfig: const QaRunConfig(profile: 'release'),
+    );
+
+    final failures = MaintainiacQaReportSafetyGate.releaseOne().validateReport(
+      report,
+    );
+
+    expect(failures, isEmpty, reason: failures.join('\n'));
+    expect(report.toJson()['adminHealth'].toString(), contains('packHealth'));
+    expect(
+      report.toJson()['results'].toString(),
+      contains('actualFailureCount'),
+    );
+  });
+
   test(
     'quality gate matrix covers release-one sync security money and load',
     () {
@@ -484,4 +515,14 @@ void main() {
       contains('cost_quota.local_qa_budget'),
     );
   });
+}
+
+class _RuntimeReportProbeSuite extends QaSuite {
+  const _RuntimeReportProbeSuite() : super('qa.runtime_report_probe');
+
+  @override
+  Future<QaSuiteResult> run(QaContext context) async {
+    final timer = QaStopwatch.start();
+    return timer.finish(suite: name, checked: 1, failures: const []);
+  }
 }
