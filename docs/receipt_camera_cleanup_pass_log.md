@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 741 - 03:39:00 EDT to active cleanup
+
+Scope:
+- Hardened barcode/QR privacy so malformed value-type labels containing
+  sensitive terms cannot be bucketed as harmless `other` payloads.
+- Added a focused regression proving malformed customer/private/email type
+  labels are treated as sensitive and cannot produce inventory lookup values.
+- Recorded `BUG-RECEIPT-0229` under `privacy_redaction`.
+- Archived Pass 716 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for barcode scanner service and focused
+  scanner regression.
+- Passed focused Flutter barcode scanner regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 740 - 03:36:30 EDT to active cleanup
 
 Scope:
@@ -463,19 +480,6 @@ Scope:
 
 Verification:
 - Passed Dart format/analyzer for native section-count validation.
-- Passed focused native path validation regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 716 - 02:37:00 EDT to active cleanup
-
-Scope:
-- Added a focused native path-validation regression proving NUL-containing
-  receipt photo paths are rejected before OCR/staging handoff.
-- Recorded `BUG-RECEIPT-0204` under `source_preservation`.
-
-Verification:
-- Passed Dart format/analyzer for native path validation regression.
 - Passed focused native path validation regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

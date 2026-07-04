@@ -94,11 +94,22 @@ void main() {
       driverLicense.privacySafeSummaryMap['valueTypeBucket'],
       'driverLicense',
     );
-    expect(malformedType.inventoryLookupValue, 'QRWORK142NMB');
-    expect(malformedType.privacySafeSummaryMap['valueTypeBucket'], 'other');
+    expect(malformedType.inventoryLookupValue, isNull);
+    expect(
+      malformedType.privacySafeSummaryMap['isSensitivePayloadType'],
+      isTrue,
+    );
+    expect(
+      malformedType.privacySafeSummaryMap['valueTypeBucket'],
+      'sensitiveOther',
+    );
     expect(
       malformedType.privacySafeSummaryMap.toString(),
       isNot(contains('customer_email_private_payload')),
+    );
+    expect(
+      malformedType.privacySafeSummaryMap.toString(),
+      isNot(contains('QRWORK')),
     );
     expect(
       driverLicense.privacySafeSummaryMap.toString(),

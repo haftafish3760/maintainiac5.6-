@@ -65,6 +65,7 @@ class ReceiptScannedCode {
       'sms' ||
       'wifi' ||
       'url' ||
+      'sensitiveOther' ||
       'geoCoordinates' ||
       'calendarEvent' ||
       'driverLicense' => true,
@@ -196,7 +197,7 @@ String _privacySafeBarcodeValueType(String valueType) {
   final token = valueType.trim();
   if (token.isEmpty) return 'unknown';
   final normalized = token.replaceAll(RegExp(r'[\s_-]+'), '').toLowerCase();
-  return switch (normalized) {
+  final knownType = switch (normalized) {
     'contactinfo' => 'contactInfo',
     'email' => 'email',
     'phone' => 'phone',
@@ -209,8 +210,30 @@ String _privacySafeBarcodeValueType(String valueType) {
     'text' => 'text',
     'url' => 'url',
     'isbn' => 'isbn',
-    _ => 'other',
+    _ => null,
   };
+  if (knownType != null) return knownType;
+  return _looksLikeSensitiveBarcodeValueType(normalized)
+      ? 'sensitiveOther'
+      : 'other';
+}
+
+bool _looksLikeSensitiveBarcodeValueType(String normalized) {
+  return normalized.contains('private') ||
+      normalized.contains('customer') ||
+      normalized.contains('client') ||
+      normalized.contains('email') ||
+      normalized.contains('phone') ||
+      normalized.contains('driver') ||
+      normalized.contains('license') ||
+      normalized.contains('password') ||
+      normalized.contains('secret') ||
+      normalized.contains('token') ||
+      normalized.contains('auth') ||
+      normalized.contains('session') ||
+      normalized.contains('account') ||
+      normalized.contains('member') ||
+      normalized.contains('patient');
 }
 
 String _privacySafeBarcodeWarning(String warning) {
