@@ -113,6 +113,39 @@ void main() {
       ),
     );
   });
+
+  test('native service rejects NUL-containing receipt photo paths', () async {
+    const channel = MethodChannel('maintainiac/receipt_nul_path_test');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'captureReceipt');
+          return {
+            'originalPhotoPaths': ['/tmp/receipt\u0000capture.jpg'],
+            'temporaryCaptureIds': ['receipt-nul'],
+            'capturedAt': '2026-07-03T10:48:00.000Z',
+            'captureDiagnostics': {
+              'captureSurface': 'maintainiac_native_android',
+            },
+          };
+        });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    await expectLater(
+      const ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(_highCapacityConfig()),
+      throwsA(
+        isA<ReceiptNativeCameraUnavailableException>().having(
+          (error) => error.message,
+          'message',
+          contains('non-local or non-image receipt photo paths'),
+        ),
+      ),
+    );
+  });
 }
 
 ReceiptNativeCameraSessionConfig _highCapacityConfig() {

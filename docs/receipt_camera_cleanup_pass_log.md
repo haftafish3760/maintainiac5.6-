@@ -3,6 +3,19 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 716 - 02:37:00 EDT to active cleanup
+
+Scope:
+- Added a focused native path-validation regression proving NUL-containing
+  receipt photo paths are rejected before OCR/staging handoff.
+- Recorded `BUG-RECEIPT-0204` under `source_preservation`.
+
+Verification:
+- Passed Dart format/analyzer for native path validation regression.
+- Passed focused native path validation regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 715 - 02:32:00 EDT to active cleanup
 
 Scope:
