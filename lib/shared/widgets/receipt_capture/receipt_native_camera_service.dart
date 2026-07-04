@@ -61,7 +61,6 @@ class ReceiptNativeCameraService {
         );
       }
       final paths = _stringList(result['originalPhotoPaths']);
-      final captureIds = _stringList(result['temporaryCaptureIds']);
       if (paths.isEmpty) {
         throw const ReceiptNativeCameraUnavailableException(
           'Maintainiac receipt camera did not capture a receipt photo.',
@@ -72,6 +71,10 @@ class ReceiptNativeCameraService {
           'Maintainiac receipt camera returned duplicate receipt photo paths.',
         );
       }
+      final captureIds = _safeNativeCaptureIds(
+        result['temporaryCaptureIds'],
+        paths.length,
+      );
       final nativeDiagnostics = receiptNativeCaptureSanitizedDiagnostics(
         result['captureDiagnostics'],
       );

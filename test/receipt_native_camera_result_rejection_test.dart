@@ -160,6 +160,64 @@ void main() {
     expect(result.captureDiagnostics['ocrUsesOriginalFirst'], isTrue);
   });
 
+  test(
+    'native service sanitizes temporary capture ids before handoff',
+    () async {
+      const channel = MethodChannel('maintainiac/receipt_camera_safe_ids_test');
+      final oversizedId = 'receipt-${List.filled(120, 'x').join()}.jpg';
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            expect(call.method, 'captureReceipt');
+            return {
+              'originalPhotoPaths': [
+                '/tmp/receipt-a.jpg',
+                '/tmp/receipt-b.jpg',
+              ],
+              'temporaryCaptureIds': [
+                '../Jane Smith receipt?.jpg ',
+                oversizedId,
+                'extra-id-ignored',
+              ],
+              'capturedAt': '2026-06-28T12:11:00.000Z',
+              'captureDiagnostics': {
+                'captureSurface': 'maintainiac_native_android',
+                'nativeCameraIdentity': 'maintainiac_in_app_receipt_camera',
+              },
+            };
+          });
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null);
+      });
+
+      const capabilities = ReceiptNativeCameraCapabilities(
+        engine: ReceiptNativeCameraEngine.cameraX,
+        available: true,
+        cameraPermissionGranted: true,
+        hasRearCamera: true,
+      );
+      final config = const ReceiptNativeCameraSettings().sessionFor(
+        deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+        nativeCapabilities: capabilities,
+      );
+
+      final result = await ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(config);
+
+      expect(result.temporaryCaptureIds, hasLength(2));
+      expect(result.temporaryCaptureIds.first, 'Jane_Smith_receipt_.jpg');
+      expect(result.temporaryCaptureIds.last, startsWith('receipt-'));
+      expect(result.temporaryCaptureIds.last.length, lessThanOrEqualTo(80));
+      expect(
+        result.temporaryCaptureIds.join(','),
+        isNot(contains('Jane Smith')),
+      );
+      expect(result.temporaryCaptureIds.join(','), isNot(contains('../')));
+      expect(result.temporaryCaptureIds.join(','), isNot(contains('?')));
+    },
+  );
+
   test('native service rejects duplicate receipt photo paths', () async {
     const channel = MethodChannel(
       'maintainiac/receipt_camera_duplicate_paths_test',

@@ -254,6 +254,26 @@ List<String> _stringList(Object? value) {
   return const [];
 }
 
+List<String> _safeNativeCaptureIds(Object? value, int maxCount) {
+  if (maxCount <= 0 || value is! Iterable) return const [];
+  return value
+      .map((entry) => _safeNativeCaptureId(entry.toString()))
+      .where((entry) => entry.isNotEmpty)
+      .take(maxCount)
+      .toList(growable: false);
+}
+
+String _safeNativeCaptureId(String value) {
+  final safe = value
+      .trim()
+      .replaceAll(RegExp(r'[\\/]+'), '_')
+      .replaceAll(RegExp(r'[^A-Za-z0-9._-]+'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^[._-]+|[._-]+$'), '');
+  if (safe.length <= 80) return safe;
+  return safe.substring(0, 80).replaceAll(RegExp(r'[._-]+$'), '');
+}
+
 String _platformCloseAction(Object? details) {
   if (details is Map) {
     final value = details['closeAction']?.toString().trim();
