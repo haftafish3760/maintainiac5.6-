@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 817 - 11:41:00 EDT to active cleanup
+
+Scope:
+- Carried backup scanner and phone-camera fallback risk tokens through the OCR
+  source handoff summary.
+- Added `backup_capture_review` with a crop/focus/totals review action so
+  fallback-source warnings do not collapse back to generic scanner prep.
+- Added parser task-count diagnostics for backup scan crop review and phone
+  backup focus review.
+- Added a focused OCR service regression for the backup capture review family.
+- Recorded `BUG-RECEIPT-0302` under `ocr_handoff_contract`.
+- Archived Pass 810 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted OCR source handoff format/analyzer and focused backup
+  capture review regression.
+- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
+  whitespace gates.
+
 ## Pass 816 - 11:32:00 EDT to active cleanup
 
 Scope:
@@ -473,23 +492,6 @@ Scope:
 
 Verification:
 - Passed targeted OCR diagnostics format/analyzer and focused service
-  regression.
-- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
-  whitespace gates.
-
-## Pass 810 - 12:08:00 EDT to active cleanup
-
-Scope:
-- Hardened OCR source handoff classification for saved photo quality warnings.
-- Mapped generic dark/glare/blur `photo_quality_*` warning tokens into the same
-  review families as native saved-photo and OCR-source action risks.
-- Added a service regression proving a too-dark saved receipt produces
-  `saved_dark_exposure_review` and the retake/raise-brightness action.
-- Recorded `BUG-RECEIPT-0295` under `ocr_handoff_contract`.
-- Archived Pass 778 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted OCR source-quality format/analyzer and focused service
   regression.
 - Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
   whitespace gates.

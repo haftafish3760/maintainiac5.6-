@@ -139,6 +139,15 @@ Map<String, int> _parserTaskCountsWithReceiptCoverage(
           0) {
     add('photo_saved_shadow_review');
   }
+  if ((qualityRisks['ocr_source_saved_photo_document_scanner_backup'] ?? 0) >
+          0 ||
+      (qualityRisks['ocr_source_action_review_backup_scan_crop'] ?? 0) > 0) {
+    add('photo_backup_scan_crop_review');
+  }
+  if ((qualityRisks['ocr_source_saved_photo_phone_camera_backup'] ?? 0) > 0 ||
+      (qualityRisks['ocr_source_action_review_phone_backup_focus'] ?? 0) > 0) {
+    add('photo_phone_backup_focus_review');
+  }
   if ((qualityRisks['ocr_source_saved_photo_bottom_too_dark'] ?? 0) > 0 ||
       (qualityRisks['ocr_source_saved_photo_bottom_soft'] ?? 0) > 0 ||
       (qualityRisks['ocr_source_action_check_bottom_or_raise_brightness'] ??

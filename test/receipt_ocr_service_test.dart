@@ -325,6 +325,50 @@ void main() {
     );
   });
 
+  test('source handoff reports backup capture review', () async {
+    final serviceResult = await const ReceiptOcrService()
+        .recognizeTextFromAttachments([
+          ReceiptAttachmentRecord(
+            id: 'backup-scan-proof',
+            path: '',
+            kind: ReceiptAttachmentKind.emailText,
+            dataSaverLevel: ReceiptDataSaverLevel.balanced,
+            createdAt: DateTime(2026, 7, 4),
+            importedText: 'SUPPLY STORE\nTOTAL 14.20',
+            riskFlags: const [
+              'ocr_source_saved_photo_document_scanner_backup',
+              'ocr_source_action_review_backup_scan_crop',
+              'ocr_source_saved_photo_phone_camera_backup',
+              'ocr_source_action_review_phone_backup_focus',
+            ],
+          ),
+        ]);
+    final summary = serviceResult.sourceHandoffSummary;
+
+    expect(summary.status, 'scanner_prep_review_needed');
+    expect(summary.sourceQualityReviewStatus, 'backup_capture_review');
+    expect(
+      summary.sourceQualityReviewAction,
+      'check_backup_capture_crop_focus_totals',
+    );
+    expect(
+      summary.privacySafeContract['sourceQualityReviewStatus'],
+      'backup_capture_review',
+    );
+    expect(
+      summary.privacySafeContract['sourceQualityReviewAction'],
+      'check_backup_capture_crop_focus_totals',
+    );
+    expect(
+      serviceResult.diagnostics.parserTaskCounts,
+      containsPair('photo_backup_scan_crop_review', 1),
+    );
+    expect(
+      serviceResult.diagnostics.parserTaskCounts,
+      containsPair('photo_phone_backup_focus_review', 1),
+    );
+  });
+
   test('ocr service asks for a receipt photo before scanning', () async {
     final result = await const ReceiptOcrService().recognizeTextFromAttachments(
       const [],
