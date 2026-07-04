@@ -250,7 +250,8 @@ void main() {
     expect(cameraActivity, contains('val assist = if (assistedReceiptFill)'));
     expect(cameraActivity, contains('"Assist on"'));
     expect(cameraActivity, contains('"Manual fill"'));
-    expect(cameraActivity, contains('OCR reads original first'));
+    expect(cameraActivity, contains('OCR reads temp full-quality first'));
+    expect(cameraActivity, isNot(contains('OCR reads original first')));
     expect(cameraActivity, contains('open receipt details'));
     expect(cameraActivity, contains('proof and cloud backup'));
     expect(cameraActivity, contains('always works immediately'));

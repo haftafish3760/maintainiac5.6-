@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 784 - 07:40:18 EDT to active cleanup
+
+Scope:
+- Fixed a stale Android native UI contract assertion that still required the
+  retired original-first OCR copy.
+- Updated the contract to require temporary full-quality OCR source copy and
+  reject the retired wording.
+- Recorded `BUG-RECEIPT-0271` under `qa_harness`.
+- Archived Pass 757 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused Android native UI contract
+  regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 783 - 07:36:42 EDT to active cleanup
 
 Scope:
@@ -463,22 +479,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for pre-capture exposure regressions.
 - Passed focused Android/iOS native analysis exposure regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 757 - 04:06:53 EDT to active cleanup
-
-Scope:
-- Hardened iOS manual exposure bias handling so non-finite slider or direct bias
-  values cannot reach `setExposureTargetBias`.
-- Added a safe zero-based clamp fallback and a final setter guard for malformed
-  exposure bias input.
-- Added iOS source regressions for finite exposure-bias handling.
-- Recorded `BUG-RECEIPT-0245` under `camera_capture_quality`.
-- Archived Pass 729 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for iOS exposure-bias regressions.
-- Passed focused iOS native analysis exposure regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
