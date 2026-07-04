@@ -180,6 +180,10 @@ void main() {
       );
       expect(cameraController, contains('"readability_unknown"'));
       expect(cameraController, contains('if !brightness.isFinite ||'));
+      expect(
+        cameraController,
+        contains('guard brightness.isFinite, brightness >= 0 else'),
+      );
       expect(cameraController, contains('if !liveBrightness.isFinite ||'));
       expect(cameraController, contains('if liveBucket == "unknown"'));
       expect(cameraController, contains('averageLuma'));

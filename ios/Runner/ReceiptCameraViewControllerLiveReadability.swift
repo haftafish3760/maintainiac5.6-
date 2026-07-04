@@ -71,7 +71,7 @@ extension ReceiptCameraViewController {
     framing: LiveReceiptFraming
   ) {
     lastAutoExposureBrightnessBucket = brightnessBucket(brightness)
-    guard brightness >= 0 else {
+    guard brightness.isFinite, brightness >= 0 else {
       lastAutoExposureDecision = "brightness_unknown"
       resetAutoExposureCandidate()
       return

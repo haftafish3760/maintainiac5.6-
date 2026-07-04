@@ -120,6 +120,10 @@ void main() {
       cameraActivity,
       contains('!brightness.isFinite() || brightness < 0.0 -> "unknown"'),
     );
+    expect(
+      cameraActivity,
+      contains('if (!brightness.isFinite() || brightness < 0.0)'),
+    );
     expect(cameraActivity, contains('if (!liveBrightness.isFinite() ||'));
     expect(cameraActivity, contains('if (liveBucket == "unknown")'));
     expect(cameraActivity, contains('"bright_receipt_ok"'));

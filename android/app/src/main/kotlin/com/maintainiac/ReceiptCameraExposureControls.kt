@@ -56,7 +56,7 @@ internal fun ReceiptCameraActivity.autoAdjustExposureForLiveFrame(
     framing: LiveReceiptFraming?,
 ) {
     lastAutoExposureBrightnessBucket = brightnessBucket(brightness)
-    if (brightness < 0.0) {
+    if (!brightness.isFinite() || brightness < 0.0) {
         lastAutoExposureDecision = "brightness_unknown"
         resetAutoExposureCandidate()
         return
