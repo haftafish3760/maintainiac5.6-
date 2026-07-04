@@ -65,7 +65,7 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
               icon: Icons.tune_rounded,
               title: 'Receipt Camera Controls',
               text:
-                  'Use the in-camera settings for receipt help, long receipt guidance, flash, focus, and saved proof size.',
+                  'Use the in-camera settings for receipt help, long receipt guidance, flash, readability guidance, and saved proof size.',
             ),
             _ReceiptFirstUseTip(
               icon: Icons.lock_outline_rounded,

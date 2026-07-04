@@ -3,6 +3,27 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 710 - 02:23:00 EDT to active cleanup
+
+Scope:
+- Tightened shared Flutter receipt help copy so it names continuous
+  autofocus/readability guidance instead of generic continuous focus.
+- Replaced first-use intro `flash, focus` wording with `flash, readability
+  guidance` so the shared camera entry point does not imply a manual focus
+  feature.
+- Added help-flow source regressions for the updated copy and the retired
+  generic focus phrase.
+- Recorded `BUG-RECEIPT-0198` under `camera_capture_quality`.
+- Archived Pass 652 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for the receipt camera help flow.
+- Passed focused receipt camera help flow regression.
+- First cleanup log gate failed at 501 lines; archived Pass 653 and reran the
+  gate before milestone push.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 709 - 02:21:00 EDT to active cleanup
 
 Scope:
@@ -466,29 +487,3 @@ Verification:
   handoff regressions.
 - First ledger gate run failed on stale allowed categories; fixed and reran the
   gate before milestone push.
-
-## Pass 653 - 23:01:54 EDT to active cleanup
-
-Scope:
-- Revised `docs/receipt_camera_double_team_handoff.md` so the second model owns
-  a true Lane B half of the work: receipt review, OCR/parser handoff contracts,
-  line numbering, fixture generation, parser-facing QA, and review truth.
-- Kept Lane A focused on native capture, quality/readability, long receipts,
-  segment ordering, ghost/overlap, stitching, source preservation, and
-  camera-side diagnostics.
-- Archived Pass 614 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed cleanup log, doc size, source audit, and diff whitespace gates.
-
-## Pass 652 - 23:00:00 EDT to active cleanup
-
-Scope:
-- Added `docs/receipt_camera_double_team_handoff.md` so a second Codex model can
-  work on the OCR/review handoff lane without editing native camera or capture
-  orchestration files.
-- Documented allowed files, forbidden camera-owned files, product invariants,
-  test rules, branch setup, and the suggested first safe OCR handoff pass.
-
-Verification:
-- Passed cleanup log, doc size, source audit, and diff whitespace gates.

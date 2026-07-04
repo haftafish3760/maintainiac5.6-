@@ -95,9 +95,11 @@ void main() {
     expect(
       helpSheet,
       contains(
-        'Use the in-camera settings for receipt help, long receipt guidance, flash, focus, and saved proof size.',
+        'Use the in-camera settings for receipt help, long receipt guidance, flash, readability guidance, and saved proof size.',
       ),
     );
+    expect(helpSheet, contains('continuous autofocus/readability guidance'));
+    expect(helpSheet, isNot(contains('flash, focus')));
     expect(helpSheet, contains('Storage And Privacy'));
     expect(helpSheet, contains('installChoice.userFacingDownloadChoiceLabel'));
     expect(importActions, contains('parserPackInstallChoice'));

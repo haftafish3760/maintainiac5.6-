@@ -44,7 +44,7 @@ class _ReceiptCameraHelpSheet extends StatelessWidget {
                         icon: Icons.photo_camera_rounded,
                         title: 'Take A Clear Receipt Photo',
                         text:
-                            'Keep the full receipt visible, avoid glare, hold steady for continuous focus, and pinch the preview to zoom when the print is small.',
+                            'Keep the full receipt visible, avoid glare, hold steady for continuous autofocus/readability guidance, and pinch the preview to zoom when the print is small.',
                       ),
                       _ReceiptHelpRow(
                         icon: Icons.receipt_long_rounded,
