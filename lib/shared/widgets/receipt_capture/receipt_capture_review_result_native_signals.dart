@@ -153,6 +153,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       )) {
         counts[exposureCode] = (counts[exposureCode] ?? 0) + 1;
       }
+      for (final focusCode in _nativeFocusReadabilityHealthCodes(diagnostics)) {
+        counts[focusCode] = (counts[focusCode] ?? 0) + 1;
+      }
       if ((controlSet == null || controlSet.isEmpty) &&
           (previewTarget == null || previewTarget.isEmpty)) {
         continue;

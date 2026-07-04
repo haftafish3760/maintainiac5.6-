@@ -146,6 +146,21 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
     if ((counts['native_control_signal_missing'] ?? 0) > 0) {
       return 'native_control_signal_missing';
     }
+    if ((counts['tap_focus_retirement_regressed'] ?? 0) > 0) {
+      return 'tap_focus_retirement_regressed';
+    }
+    if ((counts['continuous_focus_missing'] ?? 0) > 0) {
+      return 'continuous_focus_missing';
+    }
+    if ((counts['continuous_focus_primary_missing'] ?? 0) > 0) {
+      return 'continuous_focus_primary_missing';
+    }
+    if ((counts['readability_guidance_live_missing'] ?? 0) > 0) {
+      return 'readability_guidance_live_missing';
+    }
+    if ((counts['receipt_camera_quality_baseline_missing'] ?? 0) > 0) {
+      return 'receipt_camera_quality_baseline_missing';
+    }
     if ((counts['preview_dominance_missing'] ?? 0) > 0) {
       return 'preview_dominance_missing';
     }

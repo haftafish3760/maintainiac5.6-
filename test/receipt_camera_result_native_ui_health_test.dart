@@ -106,6 +106,80 @@ void main() {
     );
   });
 
+  test('photo review result rejects native readiness without focus guidance', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/proof.jpg': {
+          'visibleControlSet':
+              'back|settings|manual_shutter|status|light|brightness',
+          'previewDominanceTarget': 'receipt_preview_75_80_percent',
+          'settingsContractVersion': 'receipt_native_camera_settings_v1',
+          'settingsButtonPlacement': 'top_bar_right',
+          'nativeControlReadinessSummary': 'ready',
+          'nativeControlContractTags': [
+            'settings',
+            'back',
+            'manual_shutter',
+            'receipt_guidance',
+            'safe_close',
+            'pinch_zoom',
+            'brightness_slider',
+            'brightness_reset',
+            'edge_overlay',
+          ],
+          'backControlExpected': true,
+          'backControlActual': 'ready',
+          'settingsControlExpected': true,
+          'settingsControlActual': 'ready',
+          'manualShutterAlwaysAvailable': true,
+          'manualShutterControlActual': 'ready',
+          'tapFocusControlExpected': false,
+          'pinchZoomControlExpected': true,
+          'pinchZoomControlActual': 'ready',
+          'exposureSliderControlExpected': true,
+          'exposureSliderControlActual': 'ready',
+          'exposureResetControlExpected': true,
+          'exposureResetControlActual': 'ready',
+          'continuousFocusExpected': false,
+          'focusStrategyPolicy': 'non_continuous_focus_requires_device_review',
+          'readabilityGuidancePolicy':
+              'saved_photo_readability_review_required',
+          'receiptCameraQualityBaseline': false,
+        },
+      },
+    );
+
+    expect(result.nativeCameraUiHealthOutcome, 'continuous_focus_missing');
+    expect(result.nativeCameraUiHealthCounts['tap_focus_retired'], 1);
+    expect(result.nativeCameraUiHealthCounts['continuous_focus_missing'], 1);
+    expect(
+      result.nativeCameraUiHealthCounts['continuous_focus_primary_missing'],
+      1,
+    );
+    expect(
+      result.nativeCameraUiHealthCounts['readability_guidance_live_missing'],
+      1,
+    );
+    expect(
+      result
+          .nativeCameraUiHealthCounts['receipt_camera_quality_baseline_missing'],
+      1,
+    );
+
+    final attachments = ReceiptCaptureFlow.attachmentsFromReviewResult(
+      result,
+      ReceiptCaptureFlowModule.expenses,
+    );
+    expect(
+      attachments.single.riskFlags,
+      contains('native_camera_ui_continuous_focus_missing'),
+    );
+  });
+
   test('photo review result flags incomplete native camera controls', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/proof.jpg'],

@@ -34,6 +34,60 @@ List<String> _nativeExposureControlHealthCodes(
   ]);
 }
 
+List<String> _nativeFocusReadabilityHealthCodes(
+  Map<String, Object?> diagnostics,
+) {
+  final codes = <String>[];
+  final tapFocusExpected = _diagnosticBool(
+    diagnostics['tapFocusControlExpected'],
+  );
+  final continuousFocusExpected = _diagnosticBool(
+    diagnostics['continuousFocusExpected'],
+  );
+  final focusPolicy = _diagnosticToken(
+    diagnostics['focusStrategyPolicy']?.toString() ?? '',
+  );
+  final readabilityPolicy = _diagnosticToken(
+    diagnostics['readabilityGuidancePolicy']?.toString() ?? '',
+  );
+  final qualityBaseline = _diagnosticBool(
+    diagnostics['receiptCameraQualityBaseline'],
+  );
+
+  if (tapFocusExpected == true) {
+    codes.add('tap_focus_retirement_regressed');
+  } else if (tapFocusExpected == false) {
+    codes.add('tap_focus_retired');
+  }
+
+  if (continuousFocusExpected == true) {
+    codes.add('continuous_focus_expected');
+  } else if (continuousFocusExpected == false) {
+    codes.add('continuous_focus_missing');
+  }
+
+  if (focusPolicy == 'continuous_focus_primary_no_tap_assist') {
+    codes.add('continuous_focus_primary_ready');
+  } else if (focusPolicy != 'unknown') {
+    codes.add('continuous_focus_primary_missing');
+  }
+
+  if (readabilityPolicy ==
+      'live_readability_guides_blur_glare_light_edges_and_text_size') {
+    codes.add('readability_guidance_live_ready');
+  } else if (readabilityPolicy != 'unknown') {
+    codes.add('readability_guidance_live_missing');
+  }
+
+  if (qualityBaseline == true) {
+    codes.add('receipt_camera_quality_baseline_ready');
+  } else if (qualityBaseline == false) {
+    codes.add('receipt_camera_quality_baseline_missing');
+  }
+
+  return List.unmodifiable(codes);
+}
+
 List<String> _nativeCloseHealthCodes(Map<String, Object?> diagnostics) {
   final closeOutcome = _diagnosticToken(
     diagnostics['closeCapturedPhotoOutcome']?.toString() ?? '',

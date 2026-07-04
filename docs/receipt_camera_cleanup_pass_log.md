@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 638 - 22:26:47 EDT to active cleanup
+
+Scope:
+- Hardened native receipt camera UI health so a result cannot look ready when
+  continuous focus, continuous-focus policy, live readability guidance, or the
+  receipt camera quality baseline is missing.
+- Added health codes for retired tap focus, missing continuous focus, missing
+  live readability guidance, and missing receipt camera quality baseline.
+- Added a focused regression proving native readiness is rejected when the
+  control surface is ready but focus/readability guidance has drifted.
+- Archived Pass 601 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0159` under `camera_capture_quality`.
+
+Verification:
+- First focused Flutter run correctly exposed a bad test fixture that marked
+  controls expected without actual readiness; fixed the fixture before moving on.
+- Passed targeted Dart format for native UI health code changes.
+- Passed focused Flutter native UI health regression.
+
 ## Pass 637 - 22:24:03 EDT to active cleanup
 
 Scope:
@@ -476,22 +495,3 @@ Verification:
 - Passed focused Flutter expense receipt line-record regression coverage.
 - Corrected the focused test file after line-count review so it remains under
   the project cap.
-
-## Pass 601 - 20:59:16 EDT to 21:00:52 EDT
-
-Scope:
-- Hardened native receipt review-depth aggregation so padded or differently
-  cased `pricesOnly`/`detailedLines` diagnostics normalize before review-mode
-  handoff.
-- Preserved invalid review-depth diagnostics as bounded invalid tokens.
-- Added regression coverage proving detailed-line intent is not downgraded by
-  case or whitespace drift in camera/recovery diagnostics.
-- Recorded `BUG-RECEIPT-0122` under `receipt_line_review_mode`.
-
-Verification:
-- Fixed the first focused Flutter compile failure by returning a canonical
-  non-null review-depth string from the normalizer branch.
-- Passed targeted Dart format/analyzer for native review-depth aggregation and
-  frozen review handoff regression coverage.
-- Passed focused Flutter review-depth regression coverage.
-- Passed cleanup log gate, doc-size gate, source audit, and whitespace check.
