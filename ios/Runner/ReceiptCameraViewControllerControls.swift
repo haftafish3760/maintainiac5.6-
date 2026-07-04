@@ -90,6 +90,10 @@ extension ReceiptCameraViewController {
 
   func setExposureBias(_ bias: Float, message: String) {
     guard let cameraDevice else { return }
+    guard bias.isFinite else {
+      guidanceLabel.text = "Brightness could not be adjusted right now."
+      return
+    }
     do {
       try cameraDevice.lockForConfiguration()
       cameraDevice.setExposureTargetBias(bias, completionHandler: nil)

@@ -77,7 +77,11 @@ extension ReceiptCameraViewController {
   }
 
   func clampExposureBias(_ bias: Float, for device: AVCaptureDevice) -> Float {
-    return min(max(bias, effectiveMinExposureBias(for: device)), effectiveMaxExposureBias(for: device))
+    let safeBias = bias.isFinite ? bias : 0
+    return min(
+      max(safeBias, effectiveMinExposureBias(for: device)),
+      effectiveMaxExposureBias(for: device)
+    )
   }
 
   func receiptGuidanceWarningsEnabled() -> Bool {

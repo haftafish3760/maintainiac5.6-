@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 757 - 04:06:53 EDT to active cleanup
+
+Scope:
+- Hardened iOS manual exposure bias handling so non-finite slider or direct bias
+  values cannot reach `setExposureTargetBias`.
+- Added a safe zero-based clamp fallback and a final setter guard for malformed
+  exposure bias input.
+- Added iOS source regressions for finite exposure-bias handling.
+- Recorded `BUG-RECEIPT-0245` under `camera_capture_quality`.
+- Archived Pass 729 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for iOS exposure-bias regressions.
+- Passed focused iOS native analysis exposure regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 756 - 04:05:37 EDT to active cleanup
 
 Scope:
@@ -472,26 +489,6 @@ Verification:
 - Passed targeted Dart format/analyzer for native camera capability policy,
   session settings, channel expectations, and focused contract tests.
 - Passed focused Flutter native session, settings-contract, and channel
-  regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 729 - 03:15:57 EDT to active cleanup
-
-Scope:
-- Removed remaining active native service spec wording that listed
-  focus/exposure/white-balance lock controls after the receipt camera moved to
-  continuous autofocus/readability guidance.
-- Removed dormant lock-tag builder lines from current Dart session config so a
-  future flag flip cannot re-add `focus_lock`, `brightness_lock`, or
-  `white_balance_lock` tags.
-- Extended active-doc and session-contract regressions for retired lock-control
-  wording and tags.
-- Recorded `BUG-RECEIPT-0219` under `native_bridge`.
-- Archived Pass 704 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused active-doc/session
   regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

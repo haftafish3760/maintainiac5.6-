@@ -63,6 +63,11 @@ void main() {
       expect(cameraController, contains('effectiveMinExposureBias'));
       expect(cameraController, contains('effectiveMaxExposureBias'));
       expect(cameraController, contains('clampExposureBias'));
+      expect(
+        cameraController,
+        contains('let safeBias = bias.isFinite ? bias : 0'),
+      );
+      expect(cameraController, contains('guard bias.isFinite else'));
       expect(cameraController, contains('tapFocusEnabled'));
       expect(cameraController, contains('pinchZoomEnabled'));
       expect(cameraController, contains('exposureSliderEnabled'));
