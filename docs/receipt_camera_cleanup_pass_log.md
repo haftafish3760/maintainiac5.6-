@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 712 - 02:27:00 EDT to active cleanup
+
+Scope:
+- Tightened native capture ID sanitization so malformed, path-like, spaced, or
+  oversized IDs become opaque `native_capture_N` values instead of preserving
+  sanitized user-looking words.
+- Updated the native result regression to prove path-like names and oversized
+  receipt IDs do not survive as staging metadata.
+- Recorded `BUG-RECEIPT-0200` under `privacy_redaction`.
+- Archived Pass 687 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native capture ID sanitization.
+- Passed focused native camera result regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 711 - 02:25:00 EDT to active cleanup
 
 Scope:
@@ -461,22 +478,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for receipt line selection contracts.
 - Passed focused Flutter receipt processing contract regression.
-- Passed cleanup log, doc size, bug ledger, source audit, tests-only source
-  audit, and diff whitespace gates.
-
-## Pass 687 - 00:45:35 EDT to active cleanup
-
-Scope:
-- Removed old focus-assist wording from blurry receipt quality guidance so the
-  user-facing camera flow stays aligned with continuous autofocus as the primary
-  product behavior.
-- Added regression expectations that blurry receipt guidance names continuous
-  autofocus and does not reintroduce focus-assist or tap-focus wording.
-- Recorded `BUG-RECEIPT-0174` under `camera_capture_quality`.
-- Archived Pass 616 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for receipt photo quality guidance.
-- Passed focused Flutter receipt camera quality guidance regression.
 - Passed cleanup log, doc size, bug ledger, source audit, tests-only source
   audit, and diff whitespace gates.

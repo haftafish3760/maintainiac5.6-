@@ -206,13 +206,11 @@ void main() {
       ).captureReceipt(config);
 
       expect(result.temporaryCaptureIds, hasLength(2));
-      expect(result.temporaryCaptureIds.first, 'Jane_Smith_receipt_.jpg');
-      expect(result.temporaryCaptureIds.last, startsWith('receipt-'));
+      expect(result.temporaryCaptureIds.first, 'native_capture_1');
+      expect(result.temporaryCaptureIds.last, 'native_capture_2');
       expect(result.temporaryCaptureIds.last.length, lessThanOrEqualTo(80));
-      expect(
-        result.temporaryCaptureIds.join(','),
-        isNot(contains('Jane Smith')),
-      );
+      expect(result.temporaryCaptureIds.join(','), isNot(contains('Jane')));
+      expect(result.temporaryCaptureIds.join(','), isNot(contains('receipt-')));
       expect(result.temporaryCaptureIds.join(','), isNot(contains('../')));
       expect(result.temporaryCaptureIds.join(','), isNot(contains('?')));
     },

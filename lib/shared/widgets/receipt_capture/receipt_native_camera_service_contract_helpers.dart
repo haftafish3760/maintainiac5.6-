@@ -256,22 +256,22 @@ List<String> _stringList(Object? value) {
 
 List<String> _safeNativeCaptureIds(Object? value, int maxCount) {
   if (maxCount <= 0 || value is! Iterable) return const [];
-  return value
-      .map((entry) => _safeNativeCaptureId(entry.toString()))
-      .where((entry) => entry.isNotEmpty)
-      .take(maxCount)
-      .toList(growable: false);
+  final safeIds = <String>[];
+  for (final entry in value.take(maxCount)) {
+    final safeId = _safeNativeCaptureId(entry.toString(), safeIds.length);
+    if (safeId.isNotEmpty) safeIds.add(safeId);
+  }
+  return List.unmodifiable(safeIds);
 }
 
-String _safeNativeCaptureId(String value) {
-  final safe = value
-      .trim()
-      .replaceAll(RegExp(r'[\\/]+'), '_')
-      .replaceAll(RegExp(r'[^A-Za-z0-9._-]+'), '_')
-      .replaceAll(RegExp(r'_+'), '_')
-      .replaceAll(RegExp(r'^[._-]+|[._-]+$'), '');
-  if (safe.length <= 80) return safe;
-  return safe.substring(0, 80).replaceAll(RegExp(r'[._-]+$'), '');
+String _safeNativeCaptureId(String value, int index) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) return '';
+  final validNativeId = RegExp(
+    r'^[A-Za-z0-9][A-Za-z0-9_-]{0,71}(\.[A-Za-z0-9]{1,8})?$',
+  );
+  if (validNativeId.hasMatch(trimmed)) return trimmed;
+  return 'native_capture_${index + 1}';
 }
 
 String _platformCloseAction(Object? details) {
