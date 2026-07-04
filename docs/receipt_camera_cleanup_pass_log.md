@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 740 - 03:36:30 EDT to active cleanup
+
+Scope:
+- Hardened barcode/QR privacy so URL payloads cannot become inventory lookup
+  values.
+- Added a focused regression proving URL QR values are treated as sensitive
+  payloads and stay out of privacy-safe summaries.
+- Recorded `BUG-RECEIPT-0228` under `privacy_redaction`.
+- Archived Pass 715 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for barcode scanner service and focused
+  scanner regression.
+- Passed focused Flutter barcode scanner regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 739 - 03:35:02 EDT to active cleanup
 
 Scope:
@@ -460,22 +477,5 @@ Scope:
 Verification:
 - Passed Dart format/analyzer for native path validation regression.
 - Passed focused native path validation regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 715 - 02:32:00 EDT to active cleanup
-
-Scope:
-- Split native receipt path validation regressions into
-  `test/receipt_native_camera_result_path_validation_test.dart` so the primary
-  native result rejection test is no longer one line under the project cap.
-- Kept duplicate, non-local, and non-image path regressions intact in the new
-  focused test file.
-- Recorded `BUG-RECEIPT-0203` under `qa_harness`.
-- Archived Pass 690 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed Dart format/analyzer for native result and path validation tests.
-- Passed focused native result and path validation regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

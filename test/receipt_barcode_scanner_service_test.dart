@@ -77,10 +77,18 @@ void main() {
       valueType: 'customer_email_private_payload',
       rawValue: 'QR WORK 14 2 NMB',
     );
+    const url = ReceiptScannedCode(
+      format: ReceiptBarcodeFormat.qrCode,
+      valueType: 'url',
+      rawValue: 'https://receipt.example/order/customer/123',
+    );
 
     expect(wifi.inventoryLookupValue, isNull);
     expect(driverLicense.inventoryLookupValue, isNull);
+    expect(url.inventoryLookupValue, isNull);
     expect(wifi.privacySafeSummaryMap['isSensitivePayloadType'], isTrue);
+    expect(url.privacySafeSummaryMap['isSensitivePayloadType'], isTrue);
+    expect(url.privacySafeSummaryMap['valueTypeBucket'], 'url');
     expect(wifi.privacySafeSummaryMap['valueTypeBucket'], 'wifi');
     expect(
       driverLicense.privacySafeSummaryMap['valueTypeBucket'],
@@ -96,6 +104,7 @@ void main() {
       driverLicense.privacySafeSummaryMap.toString(),
       isNot(contains('private')),
     );
+    expect(url.privacySafeSummaryMap.toString(), isNot(contains('customer')));
   });
 
   test('barcode scanner converts platform failures into warnings', () async {

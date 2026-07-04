@@ -64,6 +64,7 @@ class ReceiptScannedCode {
       'phone' ||
       'sms' ||
       'wifi' ||
+      'url' ||
       'geoCoordinates' ||
       'calendarEvent' ||
       'driverLicense' => true,
