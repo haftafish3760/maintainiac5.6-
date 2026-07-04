@@ -145,6 +145,13 @@ Focused rerun routes for recently hardened release-one contracts:
   future adapters from quietly depending on storage, camera/OCR, or hosted
   service implementations.
 
+## 2026-07-04 Release Signoff Requires Completed Count
+
+- Passes 2241-2244 tightened release signoff so `completedShardCount` is now
+  required, not optional. Missing count evidence fails with
+  `missing_completed_shard_count`, and mismatched count evidence still fails with
+  `incomplete_shard_count`.
+
 ## 2026-07-04 Hostile Source-Modality Input Hardening
 
 - Passes 2085-2094 added source-modality coverage to

@@ -49,9 +49,14 @@ void main(List<String> args) {
     failures.add('failed_shard_count:${summary['failedShardCount']}');
   }
   final declaredShardCount = (summary['shardCount'] as num? ?? -1).toInt();
-  final completedShardCount = (summary['completedShardCount'] as num?)?.toInt();
-  if (completedShardCount != null &&
-      completedShardCount != declaredShardCount) {
+  final rawCompletedShardCount = summary['completedShardCount'];
+  if (rawCompletedShardCount is! num) {
+    failures.add('missing_completed_shard_count');
+  }
+  final completedShardCount = rawCompletedShardCount is num
+      ? rawCompletedShardCount.toInt()
+      : -1;
+  if (completedShardCount != declaredShardCount) {
     failures.add(
       'incomplete_shard_count:$completedShardCount/$declaredShardCount',
     );

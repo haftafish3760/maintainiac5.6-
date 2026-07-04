@@ -102,6 +102,14 @@ void main() {
         },
       ),
       _SignoffCase(
+        name: 'missing completed shard count',
+        expectedFailure: 'missing_completed_shard_count',
+        allowDryRun: true,
+        mutateSummary: (summary) {
+          summary.remove('completedShardCount');
+        },
+      ),
+      _SignoffCase(
         name: 'running shard',
         expectedFailure: 'shard_not_complete:catalog-contracts-001:running',
         allowDryRun: true,
