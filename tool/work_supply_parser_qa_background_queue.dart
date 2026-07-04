@@ -452,7 +452,7 @@ Future<BackgroundQueueCellResult> _runCellProcess(
   if (timeout != null) {
     timer = Timer(timeout, () {
       timedOut = true;
-      process.kill(ProcessSignal.sigterm);
+      _killProcessTree(process.pid);
     });
   }
   final exit = await process.exitCode;
@@ -473,4 +473,12 @@ Future<BackgroundQueueCellResult> _runCellProcess(
         '$stderrText\nQA_BACKGROUND_QUEUE_CELL_TIMEOUT '
         'timeoutMs=${timeout!.inMilliseconds}',
   );
+}
+
+void _killProcessTree(int pid) {
+  if (Platform.isWindows) {
+    Process.runSync('taskkill', ['/PID', '$pid', '/T', '/F']);
+    return;
+  }
+  Process.killPid(pid, ProcessSignal.sigterm);
 }

@@ -3432,3 +3432,10 @@ Release boundaries:
   qa.threshold_gate` slice passed 107 checks with 0 failures, and the live
   Core queue status reported HVAC Core `en-US` active with computed elapsed
   evidence.
+- **10:19 Harness Pass 2506:** Hardened background queue timeout cleanup so
+  Windows timeouts terminate the full child process tree with `taskkill /T`
+  instead of only signaling the direct Dart process. The command contract and
+  harness plan now require the process-tree timeout tokens. Analyzer was clean,
+  `test/work_supply_parser_qa_background_queue_test.dart` passed 6/6, and the
+  focused `inventory.execution_command_contract,qa.threshold_gate` slice passed
+  107 checks with 0 failures.

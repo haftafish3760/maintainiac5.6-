@@ -272,6 +272,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'recoveredFromGeneratedFixtureReport',
         '--cell-timeout-ms',
         'QA_BACKGROUND_QUEUE_CELL_TIMEOUT',
+        'taskkill',
+        '/T',
         '--execute',
       ],
     ),
