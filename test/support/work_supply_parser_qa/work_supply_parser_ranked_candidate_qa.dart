@@ -6,6 +6,15 @@ class WorkSupplyParserRankedCandidateSuite extends QaSuite {
   const WorkSupplyParserRankedCandidateSuite()
     : super('inventory.ranked_candidate_accuracy');
 
+  static const _contractEvidenceTokens = [
+    'top-3',
+    'top-5',
+    'positiveEvidence',
+    'negativeEvidence',
+    'conflictFamily',
+    'enabledTradePacks',
+  ];
+
   static const _cases = [
     _RankedCase(
       id: 'clear_pex_elbow_top1',
@@ -265,6 +274,7 @@ class WorkSupplyParserRankedCandidateSuite extends QaSuite {
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'caseCount': _cases.length,
+        'contractEvidenceTokens': _contractEvidenceTokens,
         'top1CaseIds': top1Cases,
         'top3CaseIds': top3Cases,
         'top5CaseIds': top5Cases,

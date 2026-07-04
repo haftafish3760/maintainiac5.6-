@@ -376,10 +376,20 @@ class WorkSupplyParserRequirementCoverageSuite extends QaSuite {
     _RequirementCoverage(
       'ranked_candidate_accuracy',
       'inventory.ranked_candidate_accuracy',
-      ['top-3', 'top-5'],
+      [
+        'top-3',
+        'top-5',
+        'positiveEvidence',
+        'negativeEvidence',
+        'conflictFamily',
+        'enabledTradePacks',
+      ],
     ),
     _RequirementCoverage('trade_context', 'inventory.trade_context', [
       'ambiguous mixed-trade lines',
+      'active estimate/job trade section',
+      'receipt-neighbor signals',
+      'merchant/department hints',
     ]),
     _RequirementCoverage('merchant_rules', 'inventory.merchant_rules', [
       'major merchant alias normalization',
