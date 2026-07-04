@@ -93,6 +93,9 @@ void main() {
       final renderGate = File(
         'tool/pdf_render_smoke_gate.sh',
       ).readAsStringSync();
+      final pixelAssertions = File(
+        'tool/pdf_render_pixel_assertions.py',
+      ).readAsStringSync();
       expect(renderGate, contains('tool/pdf_render_pixel_assertions.py'));
       expect(renderGate, contains('PDF_RENDER_GATE_INVOICE_OUTPUT'));
       expect(renderGate, contains('PDF_RENDER_GATE_LONG_TEXT_INVOICE_OUTPUT'));
@@ -109,6 +112,9 @@ void main() {
         contains('test/pdf_render_gate_invoice_generator_test.dart'),
       );
       expect(renderGate, contains('pdftoppm'));
+      expect(pixelAssertions, contains('--max-edge-ink-ratio'));
+      expect(pixelAssertions, contains('_edge_ink_ratio'));
+      expect(pixelAssertions, contains('too much ink at the page edge'));
     },
   );
 }

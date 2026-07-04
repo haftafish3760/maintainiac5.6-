@@ -1,5 +1,25 @@
 # PDF System Pass Log
 
+## Pass 41 - 2026-07-04 16:52 EDT - Render edge clipping guard
+
+- Scope: PDF render QA tooling only. No inventory, camera, native capture,
+  receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Added rendered-page edge-ink assertions to the Poppler PDF render smoke
+    gate so edge-clipped or near-bleed broken output cannot pass as merely
+    nonblank.
+  - Extended render diagnostics to report edge ink ratios with every rendered
+    page sample.
+  - Added a gate contract regression so the render edge guard cannot be removed
+    silently.
+- Verification completed 2026-07-04 16:52 EDT:
+  - `dart format test/pdf_quality_gate_contract_test.dart`
+  - `python3 -m py_compile tool/pdf_render_pixel_assertions.py`
+  - `flutter test test/pdf_quality_gate_contract_test.dart -r compact`
+  - `bash tool/pdf_render_smoke_gate.sh`
+  - `dart analyze test/pdf_quality_gate_contract_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 40 - 2026-07-04 16:49 EDT - Decimal-safe PDF money rounding
 
 - Scope: shared PDF money formatting and generated PDF regressions only. No

@@ -27,6 +27,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-non-white-ratio", type=float, default=0.002)
     parser.add_argument("--min-unique-colors", type=int, default=8)
     parser.add_argument("--max-dark-ratio", type=float, default=0.70)
+    parser.add_argument("--edge-margin", type=int, default=4)
+    parser.add_argument("--max-edge-ink-ratio", type=float, default=0.18)
     return parser.parse_args()
 
 
@@ -146,6 +148,12 @@ def main() -> int:
     unique_colors = len(set(pixels))
     non_white_ratio = non_white / total
     dark_ratio = dark / total
+    edge_ink_ratio = _edge_ink_ratio(
+        pixels=pixels,
+        width=width,
+        height=height,
+        margin=args.edge_margin,
+    )
 
     if non_white_ratio < args.min_non_white_ratio:
         print(
@@ -165,12 +173,42 @@ def main() -> int:
             file=sys.stderr,
         )
         return 1
+    if edge_ink_ratio > args.max_edge_ink_ratio:
+        print(
+            f"{args.png} has too much ink at the page edge: "
+            f"edge ratio {edge_ink_ratio:.5f}",
+            file=sys.stderr,
+        )
+        return 1
 
     print(
         f"{args.png}: {width}x{height}, non_white={non_white_ratio:.5f}, "
-        f"dark={dark_ratio:.5f}, colors={unique_colors}"
+        f"dark={dark_ratio:.5f}, edge={edge_ink_ratio:.5f}, "
+        f"colors={unique_colors}"
     )
     return 0
+
+
+def _edge_ink_ratio(
+    *,
+    pixels: list[tuple[int, int, int]],
+    width: int,
+    height: int,
+    margin: int,
+) -> float:
+    if margin <= 0:
+        return 0.0
+    edge_pixels = 0
+    edge_ink = 0
+    for y in range(height):
+        for x in range(width):
+            if x >= margin and x < width - margin and y >= margin and y < height - margin:
+                continue
+            edge_pixels += 1
+            r, g, b = pixels[(y * width) + x]
+            if min(r, g, b) < 245:
+                edge_ink += 1
+    return edge_ink / edge_pixels if edge_pixels else 0.0
 
 
 if __name__ == "__main__":
