@@ -99,6 +99,41 @@ void main() {
       },
     );
 
+    test(
+      'mixed receipt sibling lines do not auto-confirm ambiguous materials',
+      () {
+        const receiptLines = [
+          'HD SUPPLY PVC EL 3/4 2.18',
+          '12/2 NM-B WIRE 25FT 24.98',
+          'MERV 8 AIR FILTER 20X25X1 11.97',
+          '1/2 PEX CRIMP RING 10PK 4.28',
+          'BLACK ELEC TAPE 3.97',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final pvc = parsed['HD SUPPLY PVC EL 3/4 2.18'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(2),
+          reason:
+              'The regression must include enough sibling evidence to tempt '
+              'trade inference without letting it auto-confirm ambiguity.',
+        );
+        expect(
+          pvc == null || pvc.confidence <= .81,
+          isTrue,
+          reason:
+              'A mixed receipt can contain electrical, HVAC, and plumbing '
+              'lines together; sibling purchases must not convert PVC EL into '
+              'a final confident trade answer without explicit line evidence.',
+        );
+      },
+    );
+
     test('filter dimensions require HVAC air-filter evidence', () {
       final generic = matchReceiptLineToCatalog(
         'FILTER 20X25X1',
