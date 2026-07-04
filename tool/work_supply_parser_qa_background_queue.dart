@@ -34,7 +34,10 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
   final runDir = Directory('${options.outputRoot}/${options.queueId}')
     ..createSync(recursive: true);
   final cells = _cells(options);
-  final results = <Map<String, Object?>>[];
+  final results = options.resume
+      ? _loadResumableResults(runDir, cells)
+      : <Map<String, Object?>>[];
+  final resumedCellCount = results.length;
   final queueStartedAt = DateTime.now().toUtc();
   var failed = false;
   _writeStatus(
@@ -46,6 +49,17 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
     state: 'starting',
   );
   for (final cell in cells) {
+    if (_hasSuccessfulResult(results, cell.id)) {
+      _writeStatus(
+        options: options,
+        runDir: runDir,
+        cells: cells,
+        results: results,
+        activeCell: null,
+        state: 'running',
+      );
+      continue;
+    }
     final command = _matrixCommand(options, cell);
     final transcriptPath = '${runDir.path}/${cell.id}_transcript.txt';
     final startedAt = DateTime.now().toUtc();
@@ -128,6 +142,7 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
     'cellCount': cells.length,
     'completedCellCount': results.length,
     'failedCellCount': results.where((r) => r['exitCode'] != 0).length,
+    'resumedCellCount': resumedCellCount,
     'limit': options.limit,
     'fixtureRunLimit': options.fixtureRunLimit,
     'liveServicesAllowed': false,
@@ -154,6 +169,35 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
     state: failed ? 'failed' : 'complete',
   );
   return failed ? 1 : 0;
+}
+
+List<Map<String, Object?>> _loadResumableResults(
+  Directory runDir,
+  List<_QueueCell> cells,
+) {
+  final statusFile = File('${runDir.path}/latest_status.json');
+  if (!statusFile.existsSync()) return [];
+  final selectedCellIds = cells.map((cell) => cell.id).toSet();
+  final decoded = jsonDecode(statusFile.readAsStringSync());
+  if (decoded is! Map) return [];
+  final rawResults = decoded['results'];
+  if (rawResults is! List) return [];
+  final results = <Map<String, Object?>>[];
+  for (final rawResult in rawResults) {
+    if (rawResult is! Map) continue;
+    final result = Map<String, Object?>.from(rawResult);
+    final cellId = result['cellId'];
+    if (cellId is! String || !selectedCellIds.contains(cellId)) continue;
+    if (result['exitCode'] != 0) continue;
+    results.add(result);
+  }
+  return results;
+}
+
+bool _hasSuccessfulResult(List<Map<String, Object?>> results, String cellId) {
+  return results.any(
+    (result) => result['cellId'] == cellId && result['exitCode'] == 0,
+  );
 }
 
 void _writeStatus({

@@ -87,6 +87,84 @@ void main() {
     expect(exit, 64);
     expect(stderr.content, contains('must be greater than zero'));
   });
+
+  test('background queue resume skips already successful cells', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_background_queue_resume_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+    final queueDir = Directory('${output.path}/resume-test')
+      ..createSync(recursive: true);
+    final previousTranscript = File(
+      '${queueDir.path}/plumbing_residential_core_en_US_transcript.txt',
+    )..writeAsStringSync('previous successful transcript');
+    File('${queueDir.path}/latest_status.json').writeAsStringSync(
+      jsonEncode({
+        'results': [
+          {
+            'cellId': 'plumbing_residential_core_en_US',
+            'trade': 'plumbing',
+            'marketScope': 'residential',
+            'tier': 'core',
+            'localePackId': 'en-US',
+            'exitCode': 0,
+            'durationMs': 123,
+            'startedAtIso': '2026-07-04T11:20:24.071782Z',
+            'completedAtIso': '2026-07-04T11:24:41.545512Z',
+            'transcriptPath': previousTranscript.path,
+            'dryRun': true,
+          },
+        ],
+      }),
+    );
+
+    final stdout = _MemorySink();
+    final exit = await runWorkSupplyParserQaBackgroundQueue(
+      [
+        '--trades',
+        'plumbing',
+        '--tiers',
+        'core',
+        '--locales',
+        'en-US,es-US',
+        '--limit',
+        '50',
+        '--fixture-run-limit',
+        '10',
+        '--queue-id',
+        'resume-test',
+        '--output-root',
+        output.path,
+      ],
+      stdout: stdout,
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final summary =
+        jsonDecode(File('${queueDir.path}/summary.json').readAsStringSync())
+            as Map;
+    expect(summary['cellCount'], 2);
+    expect(summary['completedCellCount'], 2);
+    expect(summary['resumedCellCount'], 1);
+    final results = summary['results'] as List;
+    expect(
+      results.where(
+        (result) =>
+            (result as Map)['cellId'] == 'plumbing_residential_core_en_US',
+      ),
+      hasLength(1),
+    );
+    expect(
+      previousTranscript.readAsStringSync(),
+      'previous successful transcript',
+    );
+    final newTranscript = File(
+      '${queueDir.path}/plumbing_residential_core_es_US_transcript.txt',
+    );
+    expect(newTranscript.existsSync(), true);
+    expect(newTranscript.readAsStringSync(), contains('DRY RUN'));
+  });
 }
 
 class _MemorySink implements IOSink {
