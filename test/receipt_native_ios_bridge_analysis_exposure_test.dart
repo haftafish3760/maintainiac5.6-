@@ -172,6 +172,9 @@ void main() {
         cameraController,
         contains('Hold steady so the receipt text stays sharp.'),
       );
+      expect(cameraController, contains('if !brightness.isFinite ||'));
+      expect(cameraController, contains('if !liveBrightness.isFinite ||'));
+      expect(cameraController, contains('if liveBucket == "unknown"'));
       expect(cameraController, contains('averageLuma'));
       expect(cameraController, contains('applyLiveReadability'));
       expect(cameraController, contains('estimateReceiptFraming'));

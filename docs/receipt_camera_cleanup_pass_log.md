@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 751 - 03:57:59 EDT to active cleanup
+
+Scope:
+- Hardened Android and iOS native live brightness buckets so non-finite preview
+  brightness cannot be classified as `lighting_ok`.
+- Hardened saved-photo exposure mismatch diagnostics so non-finite live
+  brightness resolves to `unknown` instead of healthy alignment.
+- Added Android/iOS native exposure regressions for the non-finite live
+  brightness guard.
+- Recorded `BUG-RECEIPT-0239` under `camera_capture_quality`.
+
+Verification:
+- Passed targeted Dart format/analyzer for native exposure regressions.
+- Passed focused Android/iOS native exposure bridge regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 750 - 03:55:19 EDT to active cleanup
 
 Scope:

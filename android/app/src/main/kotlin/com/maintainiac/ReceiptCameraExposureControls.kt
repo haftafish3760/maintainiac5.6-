@@ -187,7 +187,7 @@ internal fun ReceiptCameraActivity.autoAdjustExposureForLiveFrame(
 
 internal fun ReceiptCameraActivity.brightnessBucket(brightness: Double): String {
     return when {
-        brightness < 0.0 -> "unknown"
+        !brightness.isFinite() || brightness < 0.0 -> "unknown"
         brightness <= 70.0 -> "too_dark_warning"
         brightness <= 138.0 -> "dark_assisted"
         brightness >= 246.0 -> "glare_warning"

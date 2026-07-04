@@ -158,8 +158,12 @@ extension ReceiptCameraViewController {
     capturedBrightnessBucket: String,
     preCaptureDecision: String
   ) -> String {
-    if liveBrightness < 0 || capturedBrightnessBucket == "unknown" { return "unknown" }
+    if !liveBrightness.isFinite || liveBrightness < 0 ||
+      capturedBrightnessBucket == "unknown" {
+      return "unknown"
+    }
     let liveBucket = brightnessBucket(liveBrightness)
+    if liveBucket == "unknown" { return "unknown" }
     let preCaptureAdjusted = preCaptureDecision == "brightened_before_capture" ||
       preCaptureDecision == "brightening_before_capture"
     if preCaptureAdjusted && capturedBrightnessBucket == "captured_too_dark" {

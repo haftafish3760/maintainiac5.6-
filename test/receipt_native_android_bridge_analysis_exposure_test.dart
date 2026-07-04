@@ -98,6 +98,12 @@ void main() {
       expect(cameraActivity, contains('brightness >= 250.0'));
       expect(cameraActivity, contains('brightness >= 252.0'));
       expect(cameraActivity, contains('brightness >= 254.0'));
+      expect(
+        cameraActivity,
+        contains('!brightness.isFinite() || brightness < 0.0 -> "unknown"'),
+      );
+      expect(cameraActivity, contains('if (!liveBrightness.isFinite() ||'));
+      expect(cameraActivity, contains('if (liveBucket == "unknown")'));
       expect(cameraActivity, contains('"bright_receipt_ok"'));
       expect(cameraActivity, contains('lastAutoExposureAdjustmentAt'));
       expect(cameraActivity, contains('lastAutoExposureDecision'));

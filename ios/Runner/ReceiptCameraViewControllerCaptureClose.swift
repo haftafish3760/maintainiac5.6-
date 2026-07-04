@@ -5,7 +5,7 @@ import UIKit
 
 extension ReceiptCameraViewController {
   func brightnessBucket(_ brightness: Double) -> String {
-    if brightness < 0 {
+    if !brightness.isFinite || brightness < 0 {
       return "unknown"
     }
     if brightness <= 70 {
