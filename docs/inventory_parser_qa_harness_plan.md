@@ -188,7 +188,7 @@ Parser candidates remain review-only. `possibleMatches` must carry ranked altern
 - Catalog schema suite: stable ids, duplicate ids, canonical names, trade/category/system/type, aliases, units, scope/tier, parser metadata.
 - Catalog coverage suite: trade counts, market-scope/pack-tier matrix, and release-one priority checks for residential Core/Standard coverage.
 - Alias conflict suite: duplicate aliases, dangerously generic aliases, unrelated cross-trade alias collisions.
-- Dangerous word suite: generic words such as PVC, tape, filter, box, elbow, pipe, wire, conduit, valve, and fitting must not become confident single-item matches.
+- Dangerous word suite: generic words such as PVC, copper, tape, filter, box, elbow, pipe, wire, conduit, condensate, drain, valve, and fitting must not become confident single-item matches.
 - Golden fixture suite: fixture-driven parser expectations for clear, ambiguous, noise, unknown, return, discount, and cross-trade lines.
 - Generated case suite: data-driven catalog receipt lines, grouped by trade, tier, family, and locale.
 - Security and privacy suite: redaction, hostile receipt-like strings, dirty-text/security-abuse probes for huge input, Unicode/control characters, path-like strings, injection-looking SKU text, long-token denial shapes, OCR-like corrupted material names, bounded diagnostic previews, report serialization safety, and no-network smoke validation.
@@ -302,7 +302,7 @@ Parser candidates remain review-only. `possibleMatches` must carry ranked altern
 | `spanish_release_one` | `inventory.spanish_release_one` | es-US aliases; Spanish receipt patterns; Spanish unit variants |
 | `standard_fixture_seed` | `inventory.standard_fixture_seed_contract` | Standard tier seed fixtures; smoke-safe contract; full/release parser route |
 | `alias_conflicts` | `inventory.alias_conflicts` | duplicate aliases; cross-trade alias collisions |
-| `dangerous_words` | `inventory.dangerous_words` | generic words; confident single-item matches |
+| `dangerous_words` | `inventory.dangerous_words` | generic words; confident single-item matches; copper; condensate; drain |
 | `golden_fixtures` | `inventory.golden_fixtures` | fixture-driven parser expectations |
 | `generated_cases` | `inventory.generated_cases` | data-driven catalog receipt lines |
 | `security_privacy` | `inventory.security_privacy` | redaction; hostile receipt-like strings; huge_input; unicode_control; path_like; injection_like; long_token; ocr_dirty_text |

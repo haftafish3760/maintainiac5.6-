@@ -665,6 +665,7 @@ class WorkSupplyDangerousWordSuite extends QaSuite {
 
   static const _dangerousWords = [
     'PVC',
+    'copper',
     'tape',
     'filter',
     'box',
@@ -679,6 +680,8 @@ class WorkSupplyDangerousWordSuite extends QaSuite {
     'conduit',
     'cement',
     'primer',
+    'condensate',
+    'drain',
     'valve',
     'fitting',
     'connector',
