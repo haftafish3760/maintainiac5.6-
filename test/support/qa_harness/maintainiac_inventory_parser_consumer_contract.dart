@@ -335,6 +335,25 @@ const maintainiacInventoryParserConsumerContract = MaintainiacInventoryParserCon
       command:
           'flutter test test/work_supply_parser_generated_fixture_runner_test.dart',
     ),
+    MaintainiacInventoryParserQaFamily(
+      id: 'catalog_expansion_lifecycle',
+      label:
+          'Post-harness catalog expansion backlog, evidence, and promotion gates',
+      files: [
+        'test/support/work_supply_parser_qa/work_supply_parser_catalog_expansion_lifecycle_qa.dart',
+        'test/support/work_supply_parser_qa/work_supply_parser_catalog_item_batch_generation_qa.dart',
+        'test/support/work_supply_parser_qa/work_supply_parser_item_promotion_gate_qa.dart',
+      ],
+      riskTags: {
+        'schema',
+        'governance',
+        'regression',
+        'pack-lifecycle',
+        'vendor-sku',
+      },
+      command:
+          'flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.catalog_expansion_lifecycle_contract,qa.threshold_gate',
+    ),
   ],
 );
 

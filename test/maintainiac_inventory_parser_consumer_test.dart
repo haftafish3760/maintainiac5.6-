@@ -28,6 +28,7 @@ void main() {
         'locale_spanish_release_one',
         'workflow_routing',
         'generated_batch_runner',
+        'catalog_expansion_lifecycle',
       ]),
     );
   });
