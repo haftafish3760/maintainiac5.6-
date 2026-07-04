@@ -3282,3 +3282,11 @@ Release boundaries:
   with 377 checks and 0 failures. Do not use the unregistered shorthand names
   `inventory.ambiguity`, `inventory.context`, or `inventory.noise_filtering`
   as evidence.
+- **09:35 Harness Pass 2421:** Ran the corrected mutation/regression/failure
+  routing gate using registered suite names:
+  `inventory.mutation_contract`, `inventory.mutation_fault_probe`,
+  `inventory.mutation_dry_run_plan`, `inventory.mutation_scenario_matrix`,
+  `inventory.mutation_runner_contract`, `inventory.regression_lock_contract`,
+  `inventory.failure_routing_contract`, `inventory.failure_taxonomy_contract`,
+  `inventory.surgical_rerun_contract`, and `qa.threshold_gate`. The gate passed
+  with 391 checks and 0 failures.
