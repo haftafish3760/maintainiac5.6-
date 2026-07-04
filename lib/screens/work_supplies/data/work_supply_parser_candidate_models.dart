@@ -84,6 +84,14 @@ class WorkSupplyParserCandidate {
     this.matchedAliases = const [],
     this.matchedMerchantRules = const [],
     this.matchedParserPack = '',
+    this.enabledTradePacks = const [],
+    this.activeWorkflowContext = '',
+    this.activeTradeSection = '',
+    this.receiptNeighborSignals = const [],
+    this.merchantDepartmentHints = const [],
+    this.conflictFamily = '',
+    this.positiveEvidence = const [],
+    this.negativeEvidence = const [],
     this.possibleMatches = const [],
     this.confidenceScore = 0,
     this.confidenceReasons = const [],
@@ -124,6 +132,14 @@ class WorkSupplyParserCandidate {
   final List<String> matchedAliases;
   final List<String> matchedMerchantRules;
   final String matchedParserPack;
+  final List<String> enabledTradePacks;
+  final String activeWorkflowContext;
+  final String activeTradeSection;
+  final List<String> receiptNeighborSignals;
+  final List<String> merchantDepartmentHints;
+  final String conflictFamily;
+  final List<String> positiveEvidence;
+  final List<String> negativeEvidence;
   final List<WorkSupplyParserPossibleMatch> possibleMatches;
   final double confidenceScore;
   final List<String> confidenceReasons;
@@ -198,6 +214,14 @@ class WorkSupplyParserCandidate {
       'matchedAliases': matchedAliases,
       'matchedMerchantRules': matchedMerchantRules,
       'matchedParserPack': matchedParserPack,
+      'enabledTradePacks': enabledTradePacks,
+      'activeWorkflowContext': activeWorkflowContext,
+      'activeTradeSection': activeTradeSection,
+      'receiptNeighborSignals': receiptNeighborSignals,
+      'merchantDepartmentHints': merchantDepartmentHints,
+      'conflictFamily': conflictFamily,
+      'positiveEvidence': positiveEvidence,
+      'negativeEvidence': negativeEvidence,
       'possibleMatches': [for (final match in possibleMatches) match.toMap()],
       'confidenceScore': confidenceScore,
       'confidenceReasons': confidenceReasons,
@@ -246,6 +270,14 @@ class WorkSupplyParserCandidate {
       matchedAliases: _stringList(value['matchedAliases']),
       matchedMerchantRules: _stringList(value['matchedMerchantRules']),
       matchedParserPack: _string(value['matchedParserPack']),
+      enabledTradePacks: _stringList(value['enabledTradePacks']),
+      activeWorkflowContext: _string(value['activeWorkflowContext']),
+      activeTradeSection: _string(value['activeTradeSection']),
+      receiptNeighborSignals: _stringList(value['receiptNeighborSignals']),
+      merchantDepartmentHints: _stringList(value['merchantDepartmentHints']),
+      conflictFamily: _string(value['conflictFamily']),
+      positiveEvidence: _stringList(value['positiveEvidence']),
+      negativeEvidence: _stringList(value['negativeEvidence']),
       possibleMatches: [
         if (value['possibleMatches'] is List)
           for (final match in value['possibleMatches'] as List)

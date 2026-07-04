@@ -62,6 +62,14 @@ class WorkSupplyParserResultContractSuite extends QaSuite {
     _ContractField('matchedAliases', ['matchedAliases', 'matchedTerms']),
     _ContractField('matchedMerchantRules', ['matchedMerchantRules']),
     _ContractField('matchedParserPack', ['matchedParserPack']),
+    _ContractField('enabledTradePacks', ['enabledTradePacks']),
+    _ContractField('activeWorkflowContext', ['activeWorkflowContext']),
+    _ContractField('activeTradeSection', ['activeTradeSection']),
+    _ContractField('receiptNeighborSignals', ['receiptNeighborSignals']),
+    _ContractField('merchantDepartmentHints', ['merchantDepartmentHints']),
+    _ContractField('conflictFamily', ['conflictFamily']),
+    _ContractField('positiveEvidence', ['positiveEvidence']),
+    _ContractField('negativeEvidence', ['negativeEvidence']),
     _ContractField('possibleMatches', ['possibleMatches']),
     _ContractField('confidenceScore', ['confidenceScore', 'confidence']),
     _ContractField('confidenceReasons', [
@@ -163,6 +171,21 @@ class WorkSupplyParserResultContractSuite extends QaSuite {
       matchedAliases: const ['PVC EL 3/4'],
       matchedMerchantRules: const ['generic_pvc_abbreviation'],
       matchedParserPack: 'us-en-residential-plumbing-core',
+      enabledTradePacks: const ['Plumbing', 'Electrical', 'HVAC'],
+      activeWorkflowContext: 'mixed_remodel_estimate',
+      activeTradeSection: 'Plumbing',
+      receiptNeighborSignals: const [
+        '12/2 wire also present',
+        'condensate fitting also present',
+      ],
+      merchantDepartmentHints: const ['hardware aisle unknown'],
+      conflictFamily: 'pvc_elbow_cross_trade',
+      positiveEvidence: const ['pvc material', '3/4 size'],
+      negativeEvidence: const [
+        'missing schedule evidence',
+        'missing conduit evidence',
+        'mixed receipt neighbor evidence',
+      ],
       possibleMatches: const [
         WorkSupplyParserPossibleMatch(
           canonicalItemId: 'PLUMBING-PVC-ELBOW-3-4',
@@ -220,6 +243,39 @@ class WorkSupplyParserResultContractSuite extends QaSuite {
       _RoundTripExpectation(
         'merchant_rules_preserved',
         restored.matchedMerchantRules.contains('generic_pvc_abbreviation'),
+      ),
+      _RoundTripExpectation(
+        'enabled_trade_packs_preserved',
+        restored.enabledTradePacks.contains('Electrical') &&
+            restored.enabledTradePacks.contains('HVAC'),
+      ),
+      _RoundTripExpectation(
+        'workflow_context_preserved',
+        restored.activeWorkflowContext == 'mixed_remodel_estimate',
+      ),
+      _RoundTripExpectation(
+        'active_trade_section_preserved',
+        restored.activeTradeSection == 'Plumbing',
+      ),
+      _RoundTripExpectation(
+        'receipt_neighbors_preserved',
+        restored.receiptNeighborSignals.contains('12/2 wire also present'),
+      ),
+      _RoundTripExpectation(
+        'merchant_hints_preserved',
+        restored.merchantDepartmentHints.contains('hardware aisle unknown'),
+      ),
+      _RoundTripExpectation(
+        'conflict_family_preserved',
+        restored.conflictFamily == 'pvc_elbow_cross_trade',
+      ),
+      _RoundTripExpectation(
+        'positive_evidence_preserved',
+        restored.positiveEvidence.contains('pvc material'),
+      ),
+      _RoundTripExpectation(
+        'negative_evidence_preserved',
+        restored.negativeEvidence.contains('missing conduit evidence'),
       ),
       _RoundTripExpectation(
         'suggested_action_preserved',
