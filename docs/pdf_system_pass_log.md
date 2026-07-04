@@ -1,5 +1,21 @@
 # PDF System Pass Log
 
+## Pass 35 - 2026-07-04 16:34 EDT - Hex-encoded PDF privacy detection
+
+- Scope: generated PDF privacy validation and QA only. No inventory, camera,
+  native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Added PDF hex-string decoding to generated PDF privacy scans so private
+    export data cannot hide inside text-layer hex payloads.
+  - Added UTF-16 BOM-aware decoding for PDF privacy scans.
+  - Added regression coverage for hex-encoded VIN/passenger data and binary hex
+    payload rejection.
+- Verification completed 2026-07-04 16:34 EDT:
+  - `dart format lib/shared/pdf/app_pdf_privacy_policy.dart test/pdf_privacy_policy_contract_test.dart`
+  - `flutter test test/pdf_privacy_policy_contract_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_pdf_privacy_policy.dart test/pdf_privacy_policy_contract_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 34 - 2026-07-04 16:29 EDT - Temporary generated PDF write verification
 
 - Scope: generated PDF temporary write integrity and QA only. No inventory,

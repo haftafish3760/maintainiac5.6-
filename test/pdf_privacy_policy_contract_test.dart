@@ -60,6 +60,36 @@ void main() {
     expect(issues, contains(AppPdfPrivacyPolicy.licensePlate));
   });
 
+  test('PDF privacy policy blocks hex encoded private text', () {
+    final issues = AppPdfPrivacyPolicy.issueCodesForExport(
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\n'
+                '1 0 obj << /Type /Page >> stream\n'
+                'BT <56494E20314847434D383236333341303034333532> Tj ET\n'
+                'BT <FEFF00500061007300730065006E006700650072003A0020004A0061006E006500200043007500730074006F006D00650072> Tj ET\n'
+                '%%EOF'
+            .codeUnits,
+      ),
+    );
+
+    expect(issues, contains(AppPdfPrivacyPolicy.vin));
+    expect(issues, contains(AppPdfPrivacyPolicy.passengerData));
+  });
+
+  test('PDF privacy policy ignores non-text hex payloads', () {
+    final issues = AppPdfPrivacyPolicy.issueCodesForExport(
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\n'
+                '1 0 obj << /Type /Page >> stream\n'
+                'BT <FEFF000100020003> Tj ET\n'
+                '%%EOF'
+            .codeUnits,
+      ),
+    );
+
+    expect(issues, isEmpty);
+  });
+
   test('generated PDF validation checks exported titles and share text', () {
     final document = AppGeneratedPdfDocument(
       kind: AppGeneratedPdfKind.invoice,
