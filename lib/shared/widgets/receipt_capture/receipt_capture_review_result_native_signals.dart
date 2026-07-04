@@ -24,8 +24,8 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
         counts[normalized] = (counts[normalized] ?? 0) + 1;
         continue;
       }
-      final token = _diagnosticToken(raw);
-      counts['invalid_$token'] = (counts['invalid_$token'] ?? 0) + 1;
+      counts['invalid_review_depth'] =
+          (counts['invalid_review_depth'] ?? 0) + 1;
     }
     return Map.unmodifiable(counts);
   }

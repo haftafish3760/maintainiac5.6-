@@ -52,15 +52,17 @@ void main() {
         '/tmp/section-1.jpg': {'reviewDepth': longDepth},
       },
     );
-    final countKey = result.nativeReceiptReviewDepthCounts.keys.single;
-
     expect(result.nativeReceiptReviewDepth, 'pricesOnly');
-    expect(countKey.startsWith('invalid_full_receipt_text_please'), isTrue);
-    expect(countKey.length, lessThanOrEqualTo(88));
-    expect(result.nativeReceiptReviewDepthCounts[countKey], 1);
+    expect(result.nativeReceiptReviewDepthCounts, {'invalid_review_depth': 1});
     expect(
       result.privacySafeReceiptReaderHandoffMetadata,
-      containsPair('nativeReceiptReviewDepthCounts', {countKey: 1}),
+      containsPair('nativeReceiptReviewDepthCounts', {
+        'invalid_review_depth': 1,
+      }),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata.toString(),
+      isNot(contains('full receipt text please')),
     );
     expect(
       result.privacySafeReceiptReaderHandoffMetadata.toString(),
