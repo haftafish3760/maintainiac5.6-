@@ -3815,3 +3815,14 @@ Release boundaries:
   now correctly returns exit 1 because those older reports are missing the new
   per-cell safety fields; the Core cells need a hardened-report rerun before
   they count as deep safety proof.
+- **13:08 Harness Pass 2832:** Hardened background queue resume/recovery so a
+  previous executed cell is only resumable when its generated fixture report
+  exists and explicitly proves `liveServicesAllowed: false`,
+  `writesProductionCatalog: false`, `firebaseWritesAllowed: false`, and
+  `ocrCameraExpensesTouched: false`. Old reports that only say `failureCount: 0`
+  no longer get recovered as complete. Added regression coverage for reports
+  missing safety evidence so the queue reruns those cells instead of stacking
+  on shallow evidence. Verification passed: analyzer clean for queue/status
+  files, `test/work_supply_parser_qa_background_queue_test.dart` plus
+  `test/work_supply_parser_qa_generated_run_status_test.dart` passed 12/12,
+  and `git diff --check` was clean.

@@ -191,7 +191,9 @@ List<Map<String, Object?>> _loadResumableResults(
           if (cellId is! String || !selectedCellIds.contains(cellId)) {
             continue;
           }
-          if (result['exitCode'] != 0) continue;
+          if (!_isResumableSuccessfulResult(runDir, cellId, result)) {
+            continue;
+          }
           resultsByCellId[cellId] = result;
         }
       }
@@ -226,6 +228,7 @@ Map<String, Object?>? _recoverSuccessfulResultFromGeneratedReport(
   final decoded = jsonDecode(reportFile.readAsStringSync());
   if (decoded is! Map) return null;
   if (decoded['failureCount'] != 0) return null;
+  if (!_isSafeGeneratedReport(decoded)) return null;
   final checked = decoded['checked'];
   if (checked is! int || checked <= 0) return null;
   if (checked < requiredChecked) return null;
@@ -247,6 +250,32 @@ Map<String, Object?>? _recoverSuccessfulResultFromGeneratedReport(
     'recoveredFromGeneratedFixtureReport': true,
     'checked': checked,
   };
+}
+
+bool _isResumableSuccessfulResult(
+  Directory runDir,
+  String cellId,
+  Map<String, Object?> result,
+) {
+  if (result['exitCode'] != 0) return false;
+  if (result['dryRun'] == true) return true;
+  final parts = cellId.split('_');
+  if (parts.length < 4) return false;
+  final locale = '${parts[3]}-${parts.length > 4 ? parts[4] : ''}';
+  final reportPath =
+      '${runDir.path}/cells/${parts[0]}/${parts[1]}/${parts[2]}/'
+      '$locale/reports/latest_generated_fixture_run.json';
+  final reportFile = File(reportPath);
+  if (!reportFile.existsSync()) return false;
+  final decoded = jsonDecode(reportFile.readAsStringSync());
+  return decoded is Map && _isSafeGeneratedReport(decoded);
+}
+
+bool _isSafeGeneratedReport(Map<dynamic, dynamic> report) {
+  return report['liveServicesAllowed'] == false &&
+      report['writesProductionCatalog'] == false &&
+      report['firebaseWritesAllowed'] == false &&
+      report['ocrCameraExpensesTouched'] == false;
 }
 
 bool _hasSuccessfulResult(List<Map<String, Object?>> results, String cellId) {
