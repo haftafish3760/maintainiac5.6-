@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 657 - 23:19:08 EDT to active cleanup
+
+Scope:
+- Added `readability_guidance` to Android and iOS visible-control diagnostics
+  when live readability guidance is active.
+- Updated native bridge source regressions and the result-level UI-ready fixture
+  so admin/review diagnostics can prove the user-facing readability guidance
+  surface was present.
+- Recorded `BUG-RECEIPT-0173` under `camera_capture_quality`.
+- Archived Pass 618 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native bridge UI contract tests.
+- Passed focused Flutter Android bridge, iOS bridge, and native UI-ready
+  regressions.
+
 ## Pass 656 - 23:15:47 EDT to active cleanup
 
 Scope:
@@ -465,19 +481,3 @@ Verification:
 - Passed targeted analyzer and focused native shell/session regressions.
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.
-
-## Pass 618 - 21:42:32 EDT to active cleanup
-
-Scope:
-- Hardened long-receipt retake diagnostics so replacement photos include
-  privacy-safe previous/next alignment section numbers.
-- Preserved the existing no-paths diagnostic rule while making middle, top, and
-  bottom retake context easier to audit downstream.
-- Added focused regression coverage for middle, top, and bottom retake
-  alignment context numbers.
-- Recorded `BUG-RECEIPT-0139` under `multi_photo_ordering`.
-
-Verification:
-- Passed targeted Dart format/analyzer for retake-order planning.
-- Passed focused Flutter receipt photo retake/order regressions.
-- Passed cleanup log, doc size, source audit, and diff whitespace gates.

@@ -96,6 +96,9 @@ extension ReceiptCameraViewController {
     if exposureSliderEnabled {
       controls.append("brightness")
     }
+    if readabilityGuidancePolicy == "live_readability_guides_blur_glare_light_edges_and_text_size" {
+      controls.append("readability_guidance")
+    }
     if longReceiptMode {
       controls.append("long_receipt_done")
     }

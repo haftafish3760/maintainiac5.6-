@@ -253,6 +253,10 @@ void main() {
     );
     expect(
       cameraController,
+      contains('controls.append("readability_guidance")'),
+    );
+    expect(
+      cameraController,
       contains('return controls.joined(separator: "|")'),
     );
     expect(
@@ -263,6 +267,7 @@ void main() {
     expect(cameraController, contains('"long_receipt_done"'));
     expect(cameraController, contains('"section_ghost_guide"'));
     expect(cameraController, contains('"edge_guide"'));
+    expect(cameraController, contains('"readability_guidance"'));
     expect(
       cameraController,
       contains(

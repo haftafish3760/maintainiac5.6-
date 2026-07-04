@@ -165,6 +165,7 @@ void main() {
       cameraActivity,
       contains('if (exposureSliderEnabled) controls.add("brightness")'),
     );
+    expect(cameraActivity, contains('controls.add("readability_guidance")'));
     expect(cameraActivity, contains('return controls.joinToString("|")'));
     expect(
       cameraActivity,
@@ -174,6 +175,7 @@ void main() {
     expect(cameraActivity, contains('"long_receipt_done"'));
     expect(cameraActivity, contains('"section_ghost_guide"'));
     expect(cameraActivity, contains('"edge_guide"'));
+    expect(cameraActivity, contains('"readability_guidance"'));
     expect(
       cameraActivity,
       contains(
