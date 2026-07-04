@@ -23,6 +23,16 @@ void main() {
     expect(decoder.paths, const ['/tmp/ocr-1.jpg', '/tmp/ocr-2.jpg']);
     expect(scan.imageCount, 2);
     expect(scan.privacySafeSummaryMap['purpose'], 'inventory');
+    expect(scan.privacySafeSummaryMap['formatCounts'], {
+      'upca': 2,
+      'qrCode': 1,
+    });
+    expect(scan.privacySafeSummaryMap['valueTypeCounts'], {
+      'product': 2,
+      'text': 1,
+    });
+    expect(scan.privacySafeSummaryMap.toString(), isNot(contains('012345')));
+    expect(scan.privacySafeSummaryMap.toString(), isNot(contains('QRWORK')));
   });
 
   test(
@@ -60,6 +70,29 @@ class _RecordingBarcodeDecoder implements ReceiptBarcodeImageDecoder {
     required List<ReceiptBarcodeFormat> formats,
   }) async {
     paths.add(imagePath);
+    if (imagePath.endsWith('ocr-1.jpg')) {
+      return const [
+        ReceiptScannedCode(
+          format: ReceiptBarcodeFormat.upca,
+          valueType: 'product',
+          rawValue: '0 12345-67890 5',
+        ),
+      ];
+    }
+    if (imagePath.endsWith('ocr-2.jpg')) {
+      return const [
+        ReceiptScannedCode(
+          format: ReceiptBarcodeFormat.upca,
+          valueType: 'product',
+          rawValue: '012345678905',
+        ),
+        ReceiptScannedCode(
+          format: ReceiptBarcodeFormat.qrCode,
+          valueType: 'text',
+          rawValue: 'QR WORK 14 2 NMB',
+        ),
+      ];
+    }
     return const [];
   }
 }
