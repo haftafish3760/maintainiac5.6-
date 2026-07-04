@@ -45,7 +45,12 @@ int runWorkSupplyParserQaBatchWaveStatus(
     stderr.writeln('No wave_summary.json or wave_plan.json found.');
     return 66;
   }
-  final wave = jsonDecode(waveSource.readAsStringSync()) as Map;
+  final waveRead = _readJsonMap(waveSource);
+  if (waveRead.error != null) {
+    stderr.writeln('Could not read batch wave artifact: ${waveRead.error}');
+    return 65;
+  }
+  final wave = waveRead.value!;
   final queueSummaryPath = wave['queueSummaryPath']?.toString() ?? '';
   final queueStatus = _readQueueStatus(root: root, wave: wave);
   final now = DateTime.now().toUtc();
@@ -66,6 +71,8 @@ int runWorkSupplyParserQaBatchWaveStatus(
     'failedCellCount': queueStatus['failedCellCount'] ?? 0,
     if (queueStatus['activeCellId'] != null)
       'activeCellId': queueStatus['activeCellId'],
+    if (queueStatus['artifactReadError'] != null)
+      'artifactReadError': queueStatus['artifactReadError'],
     if (updatedAt != null)
       'statusAgeMs': now.difference(updatedAt).inMilliseconds,
     if (activeStartedAt != null)
@@ -88,7 +95,8 @@ int runWorkSupplyParserQaBatchWaveStatus(
       status['liveServicesAllowed'] == true ||
       status['writesProductionCatalog'] == true ||
       status['firebaseWritesAllowed'] == true ||
-      status['ocrCameraExpensesTouched'] == true;
+      status['ocrCameraExpensesTouched'] == true ||
+      status['artifactReadError'] != null;
   if (unsafe || (status['failedCellCount'] as int) > 0) return 1;
   return 0;
 }
@@ -102,16 +110,19 @@ Map<String, Object?> _readQueueStatus({
     final summary = File(queueSummaryPath);
     final status = File('${summary.parent.path}/latest_status.json');
     if (status.existsSync()) {
-      return (jsonDecode(status.readAsStringSync()) as Map).cast();
+      final read = _readJsonMap(status);
+      return read.value ?? {'artifactReadError': read.error};
     }
     if (summary.existsSync()) {
-      return (jsonDecode(summary.readAsStringSync()) as Map).cast();
+      final read = _readJsonMap(summary);
+      return read.value ?? {'artifactReadError': read.error};
     }
   }
   final waveId = wave['waveId']?.toString() ?? '';
   final status = File('$root/$waveId/queue/latest_status.json');
   if (status.existsSync()) {
-    return (jsonDecode(status.readAsStringSync()) as Map).cast();
+    final read = _readJsonMap(status);
+    return read.value ?? {'artifactReadError': read.error};
   }
   return const {};
 }
@@ -134,6 +145,14 @@ DateTime? _parseIso(Object? value) {
   return DateTime.tryParse(value.toString())?.toUtc();
 }
 
+_JsonMapRead _readJsonMap(File file) {
+  try {
+    return _JsonMapRead((jsonDecode(file.readAsStringSync()) as Map).cast());
+  } catch (error) {
+    return _JsonMapRead(null, '${file.path}: $error');
+  }
+}
+
 String _value(List<String> args, String key, String fallback) {
   for (var index = 0; index < args.length; index++) {
     final arg = args[index];
@@ -141,4 +160,11 @@ String _value(List<String> args, String key, String fallback) {
     if (arg.startsWith('--$key=')) return arg.substring(key.length + 3);
   }
   return fallback;
+}
+
+class _JsonMapRead {
+  const _JsonMapRead(this.value, [this.error]);
+
+  final Map<String, Object?>? value;
+  final String? error;
 }

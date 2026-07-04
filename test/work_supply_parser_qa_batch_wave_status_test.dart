@@ -100,6 +100,42 @@ void main() {
 
     expect(exit, 1);
   });
+
+  test(
+    'batch wave status reports corrupt queue artifacts without crashing',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_batch_wave_status_corrupt_',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final wave = Directory('${root.path}/wave-corrupt')..createSync();
+      final queue = Directory('${wave.path}/queue/queue-corrupt')
+        ..createSync(recursive: true);
+      File('${wave.path}/wave_summary.json').writeAsStringSync(
+        jsonEncode({
+          'waveId': 'wave-corrupt',
+          'queueSummaryPath': '${queue.path}/summary.json',
+          'liveServicesAllowed': false,
+          'writesProductionCatalog': false,
+          'firebaseWritesAllowed': false,
+          'ocrCameraExpensesTouched': false,
+        }),
+      );
+      File('${queue.path}/summary.json').writeAsStringSync(jsonEncode({}));
+      File('${queue.path}/latest_status.json').writeAsStringSync('{not json');
+
+      final stdout = _MemorySink();
+      final exit = runWorkSupplyParserQaBatchWaveStatus(
+        ['--root', root.path, '--wave-id', 'wave-corrupt'],
+        stdout: stdout,
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 1);
+      expect(stdout.content, contains('artifactReadError'));
+      expect(stdout.content, contains('QA_BATCH_WAVE_STATUS'));
+    },
+  );
 }
 
 class _MemorySink implements IOSink {
