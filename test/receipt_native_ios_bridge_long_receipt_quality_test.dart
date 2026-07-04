@@ -92,6 +92,12 @@ void main() {
       expect(cameraController, contains('receiptBottomEdgeStatus'));
       expect(
         cameraController,
+        contains('!latestCapturedBottomEdgeScore.isFinite'),
+      );
+      expect(cameraController, contains('!latestCapturedEdgeScore.isFinite'));
+      expect(cameraController, contains('!latestEdgeCoverage.isFinite'));
+      expect(
+        cameraController,
         contains(
           '"receiptTotalsTextEvidenceStatus": "not_evaluated_native_capture"',
         ),

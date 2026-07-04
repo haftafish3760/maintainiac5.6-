@@ -232,6 +232,13 @@ internal fun ReceiptCameraActivity.receiptBottomEdgeStatus(): String {
     if (hasLiveReceiptCutOffRisk()) {
         return "possibly_cut_off"
     }
+    if (
+        !latestCapturedBottomEdgeScore.isFinite() ||
+        !latestCapturedEdgeScore.isFinite() ||
+        !latestEdgeCoverage.isFinite()
+    ) {
+        return "not_evaluated"
+    }
     if (latestCapturedBottomEdgeScore in 0.0..5.5 && latestCapturedEdgeScore >= 8.0) {
         return "bottom_soft_or_missing"
     }

@@ -94,6 +94,11 @@ extension ReceiptCameraViewController {
     if hasLiveReceiptCutOffRisk() {
       return "possibly_cut_off"
     }
+    if !latestCapturedBottomEdgeScore.isFinite ||
+      !latestCapturedEdgeScore.isFinite ||
+      !latestEdgeCoverage.isFinite {
+      return "not_evaluated"
+    }
     if latestCapturedBottomEdgeScore >= 0 &&
       latestCapturedBottomEdgeScore <= 5.5 &&
       latestCapturedEdgeScore >= 8 {

@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 761 - 04:33:00 EDT to active cleanup
+
+Scope:
+- Hardened Android and iOS receipt bottom-edge status so non-finite saved-photo
+  edge scores or live edge coverage cannot claim `bottom_visible`.
+- Kept malformed bottom-edge evidence on the existing `not_evaluated` path
+  before OCR/review completion decisions consume it.
+- Added Android/iOS native bottom-edge source regressions for finite edge
+  evidence checks.
+- Recorded `BUG-RECEIPT-0249` under `camera_capture_quality`.
+- Archived Pass 733 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for bottom-edge regressions.
+- Passed focused Android close-controls and iOS long-receipt quality tests.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 760 - 04:26:36 EDT to active cleanup
 
 Scope:
@@ -467,23 +485,5 @@ Verification:
 - Passed targeted Dart format/analyzer for Android/iOS native bridge exposure
   regressions.
 - Passed focused Flutter Android/iOS bridge regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 733 - 03:24:50 EDT to active cleanup
-
-Scope:
-- Closed the remaining Dart service payload gap for retired tap focus.
-- Hard-coded `tapFocusEnabled` false before native channel handoff instead of
-  relying on upstream session policy.
-- Extended the service source-contract regression to reject config-derived
-  `tapFocusEnabled` payloads.
-- Recorded `BUG-RECEIPT-0224` under `native_bridge`.
-- Archived Pass 708 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the native camera service contract
-  helper and service basics regression.
-- Passed focused Flutter native service regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
