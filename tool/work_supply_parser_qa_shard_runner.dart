@@ -97,6 +97,11 @@ Future<void> main(List<String> args) async {
     'profile': options.profile,
     'strict': options.strict,
     'dryRun': options.dryRun,
+    'unsafe': false,
+    'liveServicesAllowed': false,
+    'writesProductionCatalog': false,
+    'firebaseWritesAllowed': false,
+    'ocrCameraExpensesTouched': false,
     'timeoutBudgetMs': options.timeoutBudgetMs,
     'maxGeneratedCases': options.maxGeneratedCases,
     'resumeFrom': options.resumeFrom,
@@ -167,6 +172,11 @@ Map<String, Object?> _resultJson({
     'exitCode': exitCode,
     'state': exitCode == 0 ? 'complete' : 'failed',
     'dryRun': dryRun,
+    'unsafe': false,
+    'liveServicesAllowed': false,
+    'writesProductionCatalog': false,
+    'firebaseWritesAllowed': false,
+    'ocrCameraExpensesTouched': false,
     'transcriptPath': transcriptPath,
   };
 }

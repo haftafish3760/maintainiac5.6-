@@ -15,6 +15,14 @@ const _expectedShardIds = {
   'catalog-contracts-001',
 };
 
+const _requiredFalseSafetyFields = {
+  'unsafe',
+  'liveServicesAllowed',
+  'writesProductionCatalog',
+  'firebaseWritesAllowed',
+  'ocrCameraExpensesTouched',
+};
+
 void main(List<String> args) {
   if (args.contains('--help') || args.contains('-h')) {
     stdout.writeln(_usage);
@@ -48,6 +56,7 @@ void main(List<String> args) {
   if ((summary['failedShardCount'] as num? ?? 1).toInt() != 0) {
     failures.add('failed_shard_count:${summary['failedShardCount']}');
   }
+  _expectFalseSafetyFields(failures, summary, scope: 'summary');
   final declaredShardCount = (summary['shardCount'] as num? ?? -1).toInt();
   final rawCompletedShardCount = summary['completedShardCount'];
   if (rawCompletedShardCount is! num) {
@@ -98,6 +107,7 @@ void main(List<String> args) {
     if ((result['exitCode'] as num? ?? 1).toInt() != 0) {
       failures.add('shard_failed:$shardId');
     }
+    _expectFalseSafetyFields(failures, result, scope: 'shard:$shardId');
     final shardState = (result['state']?.toString() ?? '').trim();
     if (shardState.isNotEmpty && shardState != 'complete') {
       failures.add('shard_not_complete:$shardId:$shardState');
@@ -134,6 +144,22 @@ void main(List<String> args) {
     }
   }
   _finish(failures);
+}
+
+void _expectFalseSafetyFields(
+  List<String> failures,
+  Map<Object?, Object?> json, {
+  required String scope,
+}) {
+  for (final field in _requiredFalseSafetyFields) {
+    if (!json.containsKey(field)) {
+      failures.add('missing_safety_field:$scope:$field');
+      continue;
+    }
+    if (json[field] != false) {
+      failures.add('unsafe_safety_field:$scope:$field:${json[field]}');
+    }
+  }
 }
 
 void _expectEqual(

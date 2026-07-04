@@ -30,6 +30,11 @@ void main() {
     final summary = jsonDecode(File(summaryPath).readAsStringSync()) as Map;
     expect(summary['profile'], 'smoke');
     expect(summary['dryRun'], true);
+    expect(summary['unsafe'], false);
+    expect(summary['liveServicesAllowed'], false);
+    expect(summary['writesProductionCatalog'], false);
+    expect(summary['firebaseWritesAllowed'], false);
+    expect(summary['ocrCameraExpensesTouched'], false);
     expect(summary['shardCount'], 1);
     expect(summary['completedShardCount'], 1);
     expect(summary['failedShardCount'], 0);
@@ -37,6 +42,11 @@ void main() {
     final shard = (summary['results'] as List).single as Map;
     expect(shard['shardId'], 'release-contracts-001');
     expect(shard['state'], 'complete');
+    expect(shard['unsafe'], false);
+    expect(shard['liveServicesAllowed'], false);
+    expect(shard['writesProductionCatalog'], false);
+    expect(shard['firebaseWritesAllowed'], false);
+    expect(shard['ocrCameraExpensesTouched'], false);
     expect(shard['generatedCaseLimit'], 25);
     expect(shard['timeoutBudgetMs'], 120000);
     expect(

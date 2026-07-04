@@ -86,6 +86,55 @@ void main() {
         },
       ),
       _SignoffCase(
+        name: 'missing summary safety field',
+        expectedFailure: 'missing_safety_field:summary:firebaseWritesAllowed',
+        allowDryRun: true,
+        mutateSummary: (summary) {
+          summary.remove('firebaseWritesAllowed');
+        },
+      ),
+      _SignoffCase(
+        name: 'unsafe summary Firebase write field',
+        expectedFailure:
+            'unsafe_safety_field:summary:firebaseWritesAllowed:true',
+        allowDryRun: true,
+        mutateSummary: (summary) {
+          summary['firebaseWritesAllowed'] = true;
+        },
+      ),
+      _SignoffCase(
+        name: 'missing shard safety field',
+        expectedFailure:
+            'missing_safety_field:shard:safety-governance-001:ocrCameraExpensesTouched',
+        allowDryRun: true,
+        mutateSummary: (summary) {
+          final result =
+              ((summary['results'] as List).firstWhere(
+                    (result) =>
+                        result is Map &&
+                        result['shardId'] == 'safety-governance-001',
+                  )
+                  as Map);
+          result.remove('ocrCameraExpensesTouched');
+        },
+      ),
+      _SignoffCase(
+        name: 'unsafe shard live service field',
+        expectedFailure:
+            'unsafe_safety_field:shard:safety-governance-001:liveServicesAllowed:true',
+        allowDryRun: true,
+        mutateSummary: (summary) {
+          final result =
+              ((summary['results'] as List).firstWhere(
+                    (result) =>
+                        result is Map &&
+                        result['shardId'] == 'safety-governance-001',
+                  )
+                  as Map);
+          result['liveServicesAllowed'] = true;
+        },
+      ),
+      _SignoffCase(
         name: 'summary still running',
         expectedFailure: 'summary_not_complete:running',
         allowDryRun: true,
@@ -221,6 +270,11 @@ Map<String, Object?> _summaryMap(
     'profile': profile,
     'strict': profile == 'release',
     'dryRun': dryRun,
+    'unsafe': false,
+    'liveServicesAllowed': false,
+    'writesProductionCatalog': false,
+    'firebaseWritesAllowed': false,
+    'ocrCameraExpensesTouched': false,
     'timeoutBudgetMs': 600000,
     'maxGeneratedCases': 500,
     'resumeFrom':
@@ -256,6 +310,11 @@ Map<String, Object?> _shardResult({
     'exitCode': 0,
     'state': 'complete',
     'dryRun': true,
+    'unsafe': false,
+    'liveServicesAllowed': false,
+    'writesProductionCatalog': false,
+    'firebaseWritesAllowed': false,
+    'ocrCameraExpensesTouched': false,
     'transcriptPath': transcript.path,
   };
 }
