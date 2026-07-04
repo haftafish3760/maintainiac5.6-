@@ -36,6 +36,11 @@ const _receiptQaFixtureRequiredFields = [
   'expectedLineCategories',
   'expectedLineFamilies',
   'expectedLineUses',
+  'expectedPhotoPrimaryIssueLabel',
+  'expectedPhotoReviewActionCode',
+  'expectedPhotoShouldRetakeBeforeOcr',
+  'expectedPhotoCanContinueWithReview',
+  'expectedPhotoNeedsReview',
 ];
 
 Map<String, Object?> _fixtureManifestToJson(List<String> availablePacks) {
@@ -131,6 +136,16 @@ bool _fixtureHasRequiredField(_ReceiptQaFixture fixture, String field) {
       return fixture.expectedLineFamilies.isNotEmpty;
     case 'expectedLineUses':
       return fixture.expectedLineUses.isNotEmpty;
+    case 'expectedPhotoPrimaryIssueLabel':
+      return fixture.expectedPhotoPrimaryIssueLabel != null;
+    case 'expectedPhotoReviewActionCode':
+      return fixture.expectedPhotoReviewActionCode != null;
+    case 'expectedPhotoShouldRetakeBeforeOcr':
+      return fixture.expectedPhotoShouldRetakeBeforeOcr != null;
+    case 'expectedPhotoCanContinueWithReview':
+      return fixture.expectedPhotoCanContinueWithReview != null;
+    case 'expectedPhotoNeedsReview':
+      return fixture.expectedPhotoNeedsReview != null;
   }
   return false;
 }

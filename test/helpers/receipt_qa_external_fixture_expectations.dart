@@ -107,6 +107,7 @@ void expectReceiptQaExternalFixtureContract({
   final schemaDefs = fixtureSchema[r'$defs']! as Map<String, Object?>;
   final fixtureDef = schemaDefs['fixture']! as Map<String, Object?>;
   final expectedDef = schemaDefs['expected']! as Map<String, Object?>;
+  final photoQualityDef = schemaDefs['photoQuality']! as Map<String, Object?>;
   final redactionDef = schemaDefs['redaction']! as Map<String, Object?>;
   final imageArtifactsDef =
       schemaDefs['imageArtifacts']! as Map<String, Object?>;
@@ -123,6 +124,7 @@ void expectReceiptQaExternalFixtureContract({
       contains('synthetic_or_redacted_only'),
       contains('artifactManifestId'),
       contains('imageArtifacts'),
+      contains('photoQuality'),
     ]),
   );
   expect(
@@ -134,6 +136,19 @@ void expectReceiptQaExternalFixtureContract({
     containsAll(['originalPreserved', 'sourceTruth']),
   );
   expect(
+    photoQualityDef['required'],
+    containsAll([
+      'width',
+      'height',
+      'focusScore',
+      'brightness',
+      'contrast',
+      'cropScore',
+      'textBandScore',
+      'isLikelyReadable',
+    ]),
+  );
+  expect(
     expectedDef.toString(),
     allOf([
       contains('merchantName'),
@@ -142,6 +157,11 @@ void expectReceiptQaExternalFixtureContract({
       contains('lineCategories'),
       contains('lineFamilies'),
       contains('lineUses'),
+      contains('photoPrimaryIssueLabel'),
+      contains('photoReviewActionCode'),
+      contains('photoShouldRetakeBeforeOcr'),
+      contains('photoCanContinueWithReview'),
+      contains('photoNeedsReview'),
     ]),
   );
   expect(fieldCoverage['format'], 'fixture_field_coverage_v1');

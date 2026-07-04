@@ -78,6 +78,11 @@ void main() {
           'expectedLineCategories',
           'expectedLineFamilies',
           'expectedLineUses',
+          'expectedPhotoPrimaryIssueLabel',
+          'expectedPhotoReviewActionCode',
+          'expectedPhotoShouldRetakeBeforeOcr',
+          'expectedPhotoCanContinueWithReview',
+          'expectedPhotoNeedsReview',
         ]),
       );
       final packSources = manifest['packSources']! as Map<String, Object?>;

@@ -71,6 +71,9 @@
         "imageArtifacts": {
           "$ref": "#/$defs/imageArtifacts"
         },
+        "photoQuality": {
+          "$ref": "#/$defs/photoQuality"
+        },
         "text": {
           "type": "string",
           "minLength": 1
@@ -160,6 +163,75 @@
         },
         "lineUses": {
           "$ref": "#/$defs/stringList"
+        },
+        "photoPrimaryIssueLabel": {
+          "type": "string"
+        },
+        "photoReviewActionCode": {
+          "type": "string"
+        },
+        "photoShouldRetakeBeforeOcr": {
+          "type": "boolean"
+        },
+        "photoCanContinueWithReview": {
+          "type": "boolean"
+        },
+        "photoNeedsReview": {
+          "type": "boolean"
+        },
+        "photoLightLabel": {
+          "type": "string"
+        },
+        "photoFocusLabel": {
+          "type": "string"
+        },
+        "photoWarningNeedles": {
+          "$ref": "#/$defs/stringList"
+        },
+        "photoGuidanceNeedles": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "photoQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height",
+        "focusScore",
+        "brightness",
+        "contrast",
+        "cropScore",
+        "textBandScore",
+        "isLikelyReadable"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "focusScore": {
+          "type": "number"
+        },
+        "brightness": {
+          "type": "number"
+        },
+        "contrast": {
+          "type": "number"
+        },
+        "cropScore": {
+          "type": "number"
+        },
+        "textBandScore": {
+          "type": "number"
+        },
+        "isLikelyReadable": {
+          "type": "boolean"
         }
       }
     },

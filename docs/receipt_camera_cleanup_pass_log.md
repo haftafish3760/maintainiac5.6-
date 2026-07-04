@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 673 - 23:53:16 EDT to active cleanup
+
+Scope:
+- Hardened the receipt QA fixture manifest so external fixture readiness tracks
+  camera photo-quality expectations, not only parser expected fields.
+- Extended the external fixture schema with `photoQuality` source inputs and
+  expected blur/glare/retake/review guidance fields.
+- Pinned the schema/manifest contract through the pure Dart receipt QA runner
+  contract test.
+- Archived Pass 644 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0189` under `fixture_generation`.
+
+Verification:
+- Passed targeted Dart format/analyzer for fixture manifest/schema contract
+  files.
+- Passed focused Flutter receipt QA runner contract regression.
+- Passed cleanup log gate, doc-size gate, bug ledger gate, source audit, and
+  whitespace check.
+
 ## Pass 672 - 23:52:05 EDT to active cleanup
 
 Scope:
@@ -470,20 +489,3 @@ Scope:
 Verification:
 - Passed targeted Dart format for capture quality guidance regression.
 - Passed focused Flutter capture quality guidance regression.
-
-## Pass 644 - 22:39:28 EDT to active cleanup
-
-Scope:
-- Hardened continuation handoff risk flags so result-level receipt attachments
-  carry actionable bottom/totals, ghost-guide-ready, missing-prior-photo, and
-  bottom-overlap policy signals instead of only a generic continuation review.
-- Kept shared capture-flow and attachment-import continuation risk builders
-  aligned.
-- Added focused regression coverage proving bottom-section continuation risk
-  flags survive through attachment creation.
-- Recorded `BUG-RECEIPT-0163` under `ghost_overlap_stitching`.
-- Archived Pass 607 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format for continuation signal builders and regression.
-- Passed focused Flutter continuation handoff regression.
