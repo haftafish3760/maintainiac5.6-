@@ -1,5 +1,30 @@
 # PDF System Pass Log
 
+## Pass 17 - 2026-07-04 19:53 EDT - Cent-safe invoice PDF money
+
+- Scope: invoice/estimate financial calculations used by generated PDFs and
+  related QA only. No inventory, camera, native capture, receipt text engine, or
+  parser behavior changes.
+- Bundled work:
+  - Added shared cent-based invoice money helpers that calculate line subtotals,
+    tax, discounts, payments, totals, and balances with scaled integer math
+    instead of floating-point accumulation.
+  - Exposed cent totals on invoice records while preserving the existing double
+    getters for current UI and PDF renderer compatibility.
+  - Added regression coverage for decimal quantities, small decimal prices,
+    tax rounding, percent discounts, amount discounts, payments, negative refund
+    lines, and PDF generation using those values.
+  - Included the money-precision suite in the shared PDF quality gate.
+- Failure fixed during pass:
+  - The first focused run used incorrect expected totals in the new regression
+    test. The expectations were corrected against the cent-level calculation
+    that invoice PDFs now use.
+- Verification completed 2026-07-04 19:52 EDT:
+  - `dart format lib/screens/invoices/data/invoice_ledger_models.dart lib/screens/invoices/data/invoice_record.dart test/invoice_pdf_money_precision_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `dart analyze lib/screens/invoices/data/invoice_ledger_models.dart lib/screens/invoices/data/invoice_record.dart test/invoice_pdf_money_precision_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `flutter test test/invoice_pdf_money_precision_test.dart test/invoice_template_pdf_factory_test.dart test/app_generated_pdf_service_test.dart test/pdf_quality_gate_contract_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 16 - 2026-07-04 19:33 EDT - Render pixel gate and pagination regression
 
 - Scope: PDF render QA and invoice pagination only. No inventory, camera,

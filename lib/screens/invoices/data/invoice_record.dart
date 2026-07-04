@@ -110,16 +110,46 @@ class InvoiceRecord {
   final List<String> auditEvents;
   final InvoiceSyncMetadata meta;
 
-  double get subtotal =>
-      _money(lines.fold(0.0, (sum, line) => sum + line.subtotal));
-  double get discountAmount => discount.amountFor(subtotal);
-  double get taxableSubtotal => _money(subtotal - discountAmount);
-  double get taxTotal =>
-      _money(lines.fold(0.0, (sum, line) => sum + line.taxAmount));
-  double get total => _money(taxableSubtotal + taxTotal);
-  double get paidTotal =>
-      _money(payments.fold(0.0, (sum, payment) => sum + payment.amount));
-  double get balanceDue => _money(total - paidTotal);
+  int get subtotalCents => lines.fold(
+    0,
+    (sum, line) =>
+        sum +
+        AppInvoiceMoney.lineSubtotalCents(
+          quantity: line.quantity,
+          unitPrice: line.unitPrice,
+        ),
+  );
+  int get discountAmountCents => AppInvoiceMoney.discountCents(
+    type: discount.type,
+    value: discount.value,
+    subtotalCents: subtotalCents,
+  );
+  int get taxableSubtotalCents => subtotalCents - discountAmountCents;
+  int get taxTotalCents => lines.fold(
+    0,
+    (sum, line) =>
+        sum +
+        (line.taxable
+            ? AppInvoiceMoney.taxCents(
+                subtotalCents: AppInvoiceMoney.lineSubtotalCents(
+                  quantity: line.quantity,
+                  unitPrice: line.unitPrice,
+                ),
+                taxRate: line.taxRate,
+              )
+            : 0),
+  );
+  int get totalCents => taxableSubtotalCents + taxTotalCents;
+  int get paidTotalCents =>
+      AppInvoiceMoney.sumCents(payments.map((payment) => payment.amount));
+  int get balanceDueCents => totalCents - paidTotalCents;
+  double get subtotal => AppInvoiceMoney.toDouble(subtotalCents);
+  double get discountAmount => AppInvoiceMoney.toDouble(discountAmountCents);
+  double get taxableSubtotal => AppInvoiceMoney.toDouble(taxableSubtotalCents);
+  double get taxTotal => AppInvoiceMoney.toDouble(taxTotalCents);
+  double get total => AppInvoiceMoney.toDouble(totalCents);
+  double get paidTotal => AppInvoiceMoney.toDouble(paidTotalCents);
+  double get balanceDue => AppInvoiceMoney.toDouble(balanceDueCents);
   bool get dirty => meta.dirty;
   bool get isInvoice => documentType == InvoiceDocumentType.invoice;
   bool get isEstimate => documentType == InvoiceDocumentType.estimate;
@@ -361,5 +391,3 @@ DateTime? _dateValue(Object? value) {
   if (value is DateTime) return value;
   return DateTime.tryParse(value?.toString() ?? '');
 }
-
-double _money(num value) => (value * 100).roundToDouble() / 100;

@@ -26,6 +26,7 @@ dart analyze \
   test/incoming_receipt_share_pdf_hardening_test.dart \
   test/invoice_pdf_preview_action_tracking_test.dart \
   test/invoice_template_pdf_factory_test.dart \
+  test/invoice_pdf_money_precision_test.dart \
   test/pdf_qa_fixture_inventory_test.dart \
   test/pdf_privacy_policy_contract_test.dart \
   test/pdf_security_policy_contract_test.dart \
@@ -57,6 +58,7 @@ flutter test \
   test/incoming_receipt_share_pdf_hardening_test.dart \
   test/invoice_pdf_preview_action_tracking_test.dart \
   test/invoice_template_pdf_factory_test.dart \
+  test/invoice_pdf_money_precision_test.dart \
   test/pdf_qa_fixture_inventory_test.dart \
   test/pdf_privacy_policy_contract_test.dart \
   test/pdf_security_policy_contract_test.dart \

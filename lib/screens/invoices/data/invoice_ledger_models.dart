@@ -485,9 +485,28 @@ class InvoiceLineItemRecord {
   final bool taxable;
   final String sourceMaterialId;
 
-  double get subtotal => _money(quantity * unitPrice);
-  double get taxAmount => taxable ? _money(subtotal * taxRate / 100) : 0;
-  double get total => _money(subtotal + taxAmount);
+  double get subtotal => AppInvoiceMoney.toDouble(
+    AppInvoiceMoney.lineSubtotalCents(quantity: quantity, unitPrice: unitPrice),
+  );
+  double get taxAmount => taxable
+      ? AppInvoiceMoney.toDouble(
+          AppInvoiceMoney.taxCents(
+            subtotalCents: AppInvoiceMoney.lineSubtotalCents(
+              quantity: quantity,
+              unitPrice: unitPrice,
+            ),
+            taxRate: taxRate,
+          ),
+        )
+      : 0;
+  double get total => AppInvoiceMoney.toDouble(
+    AppInvoiceMoney.lineTotalCents(
+      quantity: quantity,
+      unitPrice: unitPrice,
+      taxRate: taxRate,
+      taxable: taxable,
+    ),
+  );
 
   Map<String, dynamic> toMap() {
     return {
@@ -526,13 +545,14 @@ class InvoiceDiscountRecord {
   final double value;
 
   double amountFor(double subtotal) {
-    return switch (type) {
-      InvoiceDiscountType.none => 0,
-      InvoiceDiscountType.amount => _money(value.clamp(0, subtotal)),
-      InvoiceDiscountType.percent => _money(
-        subtotal * value.clamp(0, 100) / 100,
+    final subtotalCents = AppInvoiceMoney.cents(subtotal);
+    return AppInvoiceMoney.toDouble(
+      AppInvoiceMoney.discountCents(
+        type: type,
+        value: value,
+        subtotalCents: subtotalCents,
       ),
-    };
+    );
   }
 
   Map<String, dynamic> toMap() => {'type': type.name, 'value': value};
@@ -729,7 +749,97 @@ DateTime? _dateValue(Object? value) {
   return DateTime.tryParse(value?.toString() ?? '');
 }
 
-double _money(num value) => (value * 100).roundToDouble() / 100;
+class AppInvoiceMoney {
+  const AppInvoiceMoney._();
+
+  static final BigInt _microScale = BigInt.from(1000000);
+  static final BigInt _microMoneyToCentsScale = BigInt.from(10000000000);
+
+  static int cents(num value) {
+    return _roundRational(_parseScaled(value) * BigInt.from(100), _microScale);
+  }
+
+  static int lineSubtotalCents({
+    required num quantity,
+    required num unitPrice,
+  }) {
+    return _roundRational(
+      _parseScaled(quantity) * _parseScaled(unitPrice),
+      _microMoneyToCentsScale,
+    );
+  }
+
+  static int taxCents({required int subtotalCents, required num taxRate}) {
+    return _roundRational(
+      BigInt.from(subtotalCents) * _parseScaled(taxRate),
+      BigInt.from(100) * _microScale,
+    );
+  }
+
+  static int lineTotalCents({
+    required num quantity,
+    required num unitPrice,
+    required num taxRate,
+    required bool taxable,
+  }) {
+    final subtotal = lineSubtotalCents(
+      quantity: quantity,
+      unitPrice: unitPrice,
+    );
+    return subtotal +
+        (taxable ? taxCents(subtotalCents: subtotal, taxRate: taxRate) : 0);
+  }
+
+  static int discountCents({
+    required InvoiceDiscountType type,
+    required num value,
+    required int subtotalCents,
+  }) {
+    if (subtotalCents <= 0) return 0;
+    return switch (type) {
+      InvoiceDiscountType.none => 0,
+      InvoiceDiscountType.amount => cents(value).clamp(0, subtotalCents),
+      InvoiceDiscountType.percent => _roundRational(
+        BigInt.from(subtotalCents) * _parseScaled(value.clamp(0, 100)),
+        BigInt.from(100) * _microScale,
+      ),
+    };
+  }
+
+  static int sumCents(Iterable<num> values) {
+    return values.fold(0, (sum, value) => sum + cents(value));
+  }
+
+  static double toDouble(int cents) => cents / 100;
+
+  static BigInt _parseScaled(num value) {
+    final text = value.toString();
+    if (text.contains('e') || text.contains('E')) {
+      return BigInt.from((value * _microScale.toInt()).round());
+    }
+    final negative = text.startsWith('-');
+    final unsigned = negative ? text.substring(1) : text;
+    final parts = unsigned.split('.');
+    final whole = parts.first.isEmpty ? '0' : parts.first;
+    final fractional = parts.length > 1 ? parts[1] : '';
+    final paddedFraction = '${fractional}000000'.substring(0, 6);
+    final scaled =
+        BigInt.parse(whole) * _microScale + BigInt.parse(paddedFraction);
+    return negative ? -scaled : scaled;
+  }
+
+  static int _roundRational(BigInt numerator, BigInt denominator) {
+    final negative = numerator.isNegative;
+    final absolute = negative ? -numerator : numerator;
+    final quotient = absolute ~/ denominator;
+    final remainder = absolute.remainder(denominator);
+    final rounded = remainder * BigInt.from(2) >= denominator
+        ? quotient + BigInt.one
+        : quotient;
+    final signed = negative ? -rounded : rounded;
+    return signed.toInt();
+  }
+}
 
 String _pdfEventId(
   InvoicePdfDeliveryEventType type,
