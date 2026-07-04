@@ -6,14 +6,12 @@ import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
 import 'package:maintaniac/shared/pdf/app_pdf_security_policy.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_inspector.dart';
 
+import 'helpers/pdf_security_fixture_factory.dart';
+
 void main() {
   test('shared PDF policy catches active content for every PDF surface', () {
-    final bytes = latin1.encode(
-      '%PDF-1.7\n'
-      '1 0 obj << /Type /Page /OpenAction 2 0 R /AA 3 0 R >> endobj\n'
-      '2 0 obj << /JavaScript 4 0 R /Launch 5 0 R /EmbeddedFile 6 0 R /RichMedia 7 0 R /SubmitForm 8 0 R /URI (https://example.com) >> endobj\n'
-      '3 0 obj << /AcroForm 9 0 R /XFA 10 0 R >> endobj\n'
-      'xref\ntrailer << /Root 1 0 R >>\nstartxref\n0\n%%EOF',
+    final bytes = PdfSecurityFixtureFactory.rawPdf(
+      PdfSecurityFixtureFactory.activeActionBody(),
     );
 
     final policyIssues = AppPdfSecurityPolicy.activeContentIssueCodesForBytes(
@@ -72,12 +70,8 @@ void main() {
   });
 
   test('shared PDF policy decodes escaped PDF name tokens', () {
-    final bytes = latin1.encode(
-      '%PDF-1.7\n'
-      '1 0 obj << /Type /Page /Open#41ction 2 0 R /A#41 3 0 R >> endobj\n'
-      '2 0 obj << /Java#53cript 4 0 R /Launch 5 0 R /Embedded#46ile 6 0 R /Rich#4Dedia 7 0 R /Submit#46orm 8 0 R /U#52I (https://example.com) >> endobj\n'
-      '3 0 obj << /Acro#46orm 9 0 R /X#46A 10 0 R >> endobj\n'
-      'xref\ntrailer << /Root 1 0 R >>\nstartxref\n0\n%%EOF',
+    final bytes = PdfSecurityFixtureFactory.rawPdf(
+      PdfSecurityFixtureFactory.escapedActiveNameBody(),
     );
 
     expect(
@@ -97,13 +91,8 @@ void main() {
   });
 
   test('shared PDF policy catches hex URI and remote navigation actions', () {
-    final bytes = latin1.encode(
-      '%PDF-1.7\n'
-      '1 0 obj << /Type /Page /AA 2 0 R >> endobj\n'
-      '2 0 obj << /S /URI /URI <68747470733a2f2f6578616d706c652e636f6d> >> endobj\n'
-      '3 0 obj << /S /GoToR /F (other.pdf) >> endobj\n'
-      '4 0 obj << /S /GoToE /T 5 0 R >> endobj\n'
-      'xref\ntrailer << /Root 1 0 R >>\nstartxref\n0\n%%EOF',
+    final bytes = PdfSecurityFixtureFactory.rawPdf(
+      PdfSecurityFixtureFactory.remoteNavigationActionBody(),
     );
 
     final policyIssues = AppPdfSecurityPolicy.activeContentIssueCodesForBytes(
@@ -120,4 +109,224 @@ void main() {
       contains('external links'),
     );
   });
+
+  test('shared PDF policy catches form reset and import actions', () {
+    final bytes = PdfSecurityFixtureFactory.rawPdf(
+      PdfSecurityFixtureFactory.formDataActionBody(),
+    );
+
+    final policyIssues = AppPdfSecurityPolicy.activeContentIssueCodesForBytes(
+      bytes,
+    );
+
+    expect(policyIssues, contains(AppPdfSecurityPolicy.formSubmissionAction));
+    expect(
+      AppGeneratedPdfValidationReport.inspect(Uint8List.fromList(bytes)).issues,
+      contains(AppPdfSecurityPolicy.formSubmissionAction),
+    );
+    expect(
+      ReceiptPdfInspector.detectRiskFlags(bytes),
+      contains('form submission actions'),
+    );
+  });
+
+  test('shared PDF policy catches named actions and media actions', () {
+    final bytes = PdfSecurityFixtureFactory.rawPdf(
+      PdfSecurityFixtureFactory.namedMediaActionBody(),
+    );
+
+    final policyIssues = AppPdfSecurityPolicy.activeContentIssueCodesForBytes(
+      bytes,
+    );
+
+    expect(policyIssues, contains(AppPdfSecurityPolicy.externalLinks));
+    expect(policyIssues, contains(AppPdfSecurityPolicy.embeddedMedia));
+    expect(
+      AppGeneratedPdfValidationReport.inspect(Uint8List.fromList(bytes)).issues,
+      containsAll([
+        AppPdfSecurityPolicy.externalLinks,
+        AppPdfSecurityPolicy.embeddedMedia,
+      ]),
+    );
+    expect(
+      ReceiptPdfInspector.detectRiskFlags(bytes),
+      containsAll(['external links', 'embedded media']),
+    );
+  });
+
+  test('shared PDF policy catches compressed active content streams', () {
+    final bytes = PdfSecurityFixtureFactory.flateStreamPdf(
+      PdfSecurityFixtureFactory.compressedActiveActionBody(),
+    );
+
+    final policyIssues = AppPdfSecurityPolicy.activeContentIssueCodesForBytes(
+      bytes,
+    );
+
+    expect(
+      policyIssues,
+      containsAll([
+        AppPdfSecurityPolicy.activeJavaScript,
+        AppPdfSecurityPolicy.activeLaunchAction,
+        AppPdfSecurityPolicy.automaticAction,
+        AppPdfSecurityPolicy.autoOpenAction,
+        AppPdfSecurityPolicy.externalLinks,
+        AppPdfSecurityPolicy.formSubmissionAction,
+      ]),
+    );
+    expect(
+      AppGeneratedPdfValidationReport.inspect(Uint8List.fromList(bytes)).issues,
+      containsAll(policyIssues),
+    );
+    expect(
+      ReceiptPdfInspector.detectRiskFlags(bytes),
+      containsAll([
+        'embedded JavaScript',
+        'auto-open actions',
+        'launch actions',
+        'automatic actions',
+        'external links',
+        'form submission actions',
+      ]),
+    );
+  });
+
+  test(
+    'shared PDF policy maps a fixture table across generated and receipt PDF surfaces',
+    () {
+      final cases = <_SecurityFixtureCase>[
+        _SecurityFixtureCase(
+          name: 'raw active actions',
+          bytes: PdfSecurityFixtureFactory.rawPdf(
+            PdfSecurityFixtureFactory.activeActionBody(),
+          ),
+          issues: const [
+            AppPdfSecurityPolicy.activeJavaScript,
+            AppPdfSecurityPolicy.activeLaunchAction,
+            AppPdfSecurityPolicy.automaticAction,
+            AppPdfSecurityPolicy.autoOpenAction,
+            AppPdfSecurityPolicy.dynamicFormContent,
+            AppPdfSecurityPolicy.embeddedFile,
+            AppPdfSecurityPolicy.embeddedMedia,
+            AppPdfSecurityPolicy.externalLinks,
+            AppPdfSecurityPolicy.formSubmissionAction,
+          ],
+          flags: const [
+            'embedded JavaScript',
+            'launch actions',
+            'automatic actions',
+            'auto-open actions',
+            'form fields',
+            'embedded files',
+            'embedded media',
+            'external links',
+            'form submission actions',
+          ],
+        ),
+        _SecurityFixtureCase(
+          name: 'escaped names',
+          bytes: PdfSecurityFixtureFactory.rawPdf(
+            PdfSecurityFixtureFactory.escapedActiveNameBody(),
+          ),
+          issues: const [
+            AppPdfSecurityPolicy.activeJavaScript,
+            AppPdfSecurityPolicy.activeLaunchAction,
+            AppPdfSecurityPolicy.automaticAction,
+            AppPdfSecurityPolicy.autoOpenAction,
+            AppPdfSecurityPolicy.dynamicFormContent,
+            AppPdfSecurityPolicy.embeddedFile,
+            AppPdfSecurityPolicy.embeddedMedia,
+            AppPdfSecurityPolicy.externalLinks,
+            AppPdfSecurityPolicy.formSubmissionAction,
+          ],
+          flags: const [
+            'embedded JavaScript',
+            'launch actions',
+            'automatic actions',
+            'auto-open actions',
+            'form fields',
+            'embedded files',
+            'embedded media',
+            'external links',
+            'form submission actions',
+          ],
+        ),
+        _SecurityFixtureCase(
+          name: 'compressed active stream',
+          bytes: PdfSecurityFixtureFactory.flateStreamPdf(
+            PdfSecurityFixtureFactory.compressedActiveActionBody(),
+          ),
+          issues: const [
+            AppPdfSecurityPolicy.activeJavaScript,
+            AppPdfSecurityPolicy.activeLaunchAction,
+            AppPdfSecurityPolicy.automaticAction,
+            AppPdfSecurityPolicy.autoOpenAction,
+            AppPdfSecurityPolicy.externalLinks,
+            AppPdfSecurityPolicy.formSubmissionAction,
+          ],
+          flags: const [
+            'embedded JavaScript',
+            'launch actions',
+            'automatic actions',
+            'auto-open actions',
+            'external links',
+            'form submission actions',
+          ],
+        ),
+        _SecurityFixtureCase(
+          name: 'named media actions',
+          bytes: PdfSecurityFixtureFactory.rawPdf(
+            PdfSecurityFixtureFactory.namedMediaActionBody(),
+          ),
+          issues: const [
+            AppPdfSecurityPolicy.embeddedMedia,
+            AppPdfSecurityPolicy.externalLinks,
+          ],
+          flags: const ['embedded media', 'external links'],
+        ),
+        _SecurityFixtureCase(
+          name: 'form data actions',
+          bytes: PdfSecurityFixtureFactory.rawPdf(
+            PdfSecurityFixtureFactory.formDataActionBody(),
+          ),
+          issues: const [
+            AppPdfSecurityPolicy.automaticAction,
+            AppPdfSecurityPolicy.formSubmissionAction,
+          ],
+          flags: const ['automatic actions', 'form submission actions'],
+        ),
+      ];
+
+      for (final fixture in cases) {
+        final policyIssues =
+            AppPdfSecurityPolicy.activeContentIssueCodesForBytes(fixture.bytes);
+        final generatedIssues = AppGeneratedPdfValidationReport.inspect(
+          Uint8List.fromList(fixture.bytes),
+        ).issues;
+        final receiptFlags = ReceiptPdfInspector.detectRiskFlags(fixture.bytes);
+
+        expect(policyIssues, containsAll(fixture.issues), reason: fixture.name);
+        expect(
+          generatedIssues,
+          containsAll(fixture.issues),
+          reason: fixture.name,
+        );
+        expect(receiptFlags, containsAll(fixture.flags), reason: fixture.name);
+      }
+    },
+  );
+}
+
+class _SecurityFixtureCase {
+  const _SecurityFixtureCase({
+    required this.name,
+    required this.bytes,
+    required this.issues,
+    required this.flags,
+  });
+
+  final String name;
+  final List<int> bytes;
+  final List<String> issues;
+  final List<String> flags;
 }

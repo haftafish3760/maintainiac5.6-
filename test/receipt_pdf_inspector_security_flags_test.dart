@@ -26,6 +26,7 @@ void main() {
       expect(inspection.riskFlags, contains('embedded JavaScript'));
       expect(inspection.riskFlags, contains('external links'));
       expect(inspection.riskFlags, contains('embedded files'));
+      expect(inspection.riskFlags, contains('form fields'));
       expect(inspection.validationWarning, contains('will not run scripts'));
       expect(inspection.canAttachAsProof, isTrue);
       expect(inspection.canUseAssistedRead, isFalse);

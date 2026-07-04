@@ -1,5 +1,33 @@
 # PDF System Pass Log
 
+## Pass 43 - 2026-07-04 17:04 EDT - Compressed PDF stream security bundle
+
+- Scope: shared PDF text decoding, generated PDF security/privacy validation,
+  receipt PDF risk flagging, and PDF QA fixture inventory only. No inventory,
+  camera, native capture, receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Added shared FlateDecode PDF stream extraction with broken-stream safety,
+    stream-count caps, and decoded-size caps.
+  - Routed generated PDF privacy scans through shared decoded PDF stream text so
+    compressed private text cannot bypass export blocking.
+  - Routed generated PDF security scans through shared decoded PDF stream text
+    so compressed active content cannot bypass export blocking.
+  - Expanded active-content detection to cover reset/import form actions, named
+    actions, rendition actions, movie actions, and sound actions.
+  - Added a reusable PDF security fixture factory for synthetic active,
+    escaped-name, compressed-stream, private-text, and broken-stream fixtures.
+  - Added generated/receipt cross-surface security fixture matrix coverage.
+  - Added generated privacy fixture matrix coverage for raw, hex, compressed,
+    and metadata-only private export leaks.
+  - Updated the PDF QA fixture inventory for compressed text, compressed active
+    content, compressed private text, broken compressed streams, form-data
+    actions, named/media actions, and Unicode filename spoofing fixtures.
+- Verification completed 2026-07-04 17:04 EDT:
+  - `dart format lib/shared/pdf/app_pdf_privacy_policy.dart lib/shared/pdf/app_pdf_security_policy.dart lib/shared/pdf/app_pdf_text_decoder.dart test/helpers/pdf_security_fixture_factory.dart test/pdf_privacy_policy_contract_test.dart test/pdf_security_policy_contract_test.dart test/pdf_text_decoder_contract_test.dart test/receipt_pdf_inspector_security_flags_test.dart`
+  - `flutter test test/pdf_text_decoder_contract_test.dart test/pdf_security_policy_contract_test.dart test/pdf_privacy_policy_contract_test.dart test/receipt_pdf_inspector_security_flags_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_pdf_privacy_policy.dart lib/shared/pdf/app_pdf_security_policy.dart lib/shared/pdf/app_pdf_text_decoder.dart test/helpers/pdf_security_fixture_factory.dart test/pdf_privacy_policy_contract_test.dart test/pdf_security_policy_contract_test.dart test/pdf_text_decoder_contract_test.dart test/receipt_pdf_inspector_security_flags_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 42 - 2026-07-04 16:54 EDT - PDF filename spoofing guard
 
 - Scope: generated PDF filename safety and cross-platform QA only. No

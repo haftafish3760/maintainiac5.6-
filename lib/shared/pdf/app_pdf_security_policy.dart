@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'app_pdf_text_decoder.dart';
 
 class AppPdfSecurityPolicy {
@@ -18,7 +16,7 @@ class AppPdfSecurityPolicy {
   static List<String> activeContentIssueCodesForBytes(List<int> bytes) {
     if (bytes.isEmpty) return const [];
     final text = _decodedPdfText(
-      latin1.decode(bytes, allowInvalid: true),
+      AppPdfTextDecoder.textWithDecodedPdfStreams(bytes),
     ).toLowerCase();
     final issues = <String>[];
     if (_containsPdfName(text, 'javascript') || _containsPdfName(text, 'js')) {
@@ -31,14 +29,23 @@ class AppPdfSecurityPolicy {
         _containsPdfName(text, 'filespec')) {
       issues.add(embeddedFile);
     }
-    if (_containsPdfName(text, 'richmedia')) issues.add(embeddedMedia);
-    if (_containsPdfName(text, 'submitform')) {
+    if (_containsPdfName(text, 'richmedia') ||
+        _containsPdfName(text, 'rendition') ||
+        _containsPdfName(text, 'movie') ||
+        _containsPdfName(text, 'sound')) {
+      issues.add(embeddedMedia);
+    }
+    if (_containsPdfName(text, 'submitform') ||
+        _containsPdfName(text, 'resetform') ||
+        _containsPdfName(text, 'importdata')) {
       issues.add(formSubmissionAction);
     }
     if (_containsPdfName(text, 'acroform') || _containsPdfName(text, 'xfa')) {
       issues.add(dynamicFormContent);
     }
-    if (_containsUriAction(text) || _containsExternalNavigationAction(text)) {
+    if (_containsUriAction(text) ||
+        _containsExternalNavigationAction(text) ||
+        _containsNamedAction(text)) {
       issues.add(externalLinks);
     }
     return issues.toSet().toList(growable: false);
@@ -64,6 +71,13 @@ class AppPdfSecurityPolicy {
   static bool _containsExternalNavigationAction(String text) {
     return RegExp(r'/s\s*/(?:gotor|gotoe)(?![a-z0-9])').hasMatch(text) ||
         RegExp(r'/(?:gotor|gotoe)(?![a-z0-9])').hasMatch(text);
+  }
+
+  static bool _containsNamedAction(String text) {
+    return RegExp(r'/s\s*/named(?![a-z0-9])').hasMatch(text) ||
+        RegExp(
+          r'/named(?![a-z0-9])\s*/(?:print|nextpage|prevpage|firstpage|lastpage)(?![a-z0-9])',
+        ).hasMatch(text);
   }
 
   static String _decodedPdfText(String text) {

@@ -63,7 +63,8 @@
     "text_layer_extraction": {
       "status": "covered",
       "currentTestFiles": [
-        "test/receipt_pdf_inspector_edge_cases_test.dart"
+        "test/receipt_pdf_inspector_edge_cases_test.dart",
+        "test/pdf_text_decoder_contract_test.dart"
       ],
       "fixtureKeys": [
         "valid_1_page",
@@ -71,6 +72,8 @@
         "hex_text_layer",
         "utf16_hex_text_layer",
         "binary_hex_payload",
+        "flate_compressed_text_stream",
+        "broken_flate_stream",
         "manual_document"
       ]
     },
@@ -115,11 +118,20 @@
         "test/receipt_pdf_inspector_security_flags_test.dart",
         "test/receipt_pdf_inspector_edge_cases_test.dart",
         "test/app_generated_pdf_service_test.dart",
-        "test/pdf_privacy_policy_contract_test.dart"
+        "test/pdf_privacy_policy_contract_test.dart",
+        "test/pdf_security_policy_contract_test.dart",
+        "test/pdf_text_decoder_contract_test.dart"
       ],
       "fixtureKeys": [
         "active_actions",
         "escaped_active_names",
+        "form_reset_action",
+        "form_import_action",
+        "named_print_action",
+        "rendition_movie_sound_actions",
+        "flate_compressed_active_stream",
+        "flate_compressed_private_text",
+        "broken_flate_stream",
         "private_text_redaction_probe"
       ]
     },
@@ -160,6 +172,9 @@
         "windows_path_filename",
         "windows_reserved_device_name",
         "control_character_filename",
+        "unicode_bidi_override_filename",
+        "unicode_isolate_filename",
+        "unicode_bom_filename",
         "traversal_like_filename"
       ]
     },

@@ -1,12 +1,45 @@
 import 'dart:convert';
+import 'dart:io';
 
 class AppPdfTextDecoder {
   const AppPdfTextDecoder._();
+
+  static const int _maxDecodedStreamBytes = 512 * 1024;
+  static const int _maxDecodedStreams = 16;
+
+  static String textWithDecodedPdfStreams(List<int> bytes) {
+    final raw = latin1.decode(bytes, allowInvalid: true);
+    final streams = decodedFlateStreams(bytes);
+    final combined = streams.isEmpty ? raw : '$raw\n${streams.join('\n')}';
+    return withDecodedHexStrings(combined);
+  }
 
   static String withDecodedHexStrings(String text) {
     final decoded = decodedHexStrings(text);
     if (decoded.isEmpty) return text;
     return '$text\n${decoded.join('\n')}';
+  }
+
+  static List<String> decodedFlateStreams(List<int> bytes) {
+    if (bytes.isEmpty) return const [];
+    final decoded = <String>[];
+    var searchStart = 0;
+    while (decoded.length < _maxDecodedStreams) {
+      final streamStart = _indexOfAscii(bytes, 'stream', searchStart);
+      if (streamStart < 0) break;
+      final streamDataStart = _skipStreamLineEnding(bytes, streamStart + 6);
+      final streamEnd = _indexOfAscii(bytes, 'endstream', streamDataStart);
+      if (streamEnd < 0) break;
+      if (_streamUsesFlateDecode(bytes, streamStart)) {
+        final streamBytes = _trimTrailingLineEnding(
+          bytes.sublist(streamDataStart, streamEnd),
+        );
+        final inflated = _tryInflate(streamBytes);
+        if (inflated != null) decoded.add(inflated);
+      }
+      searchStart = streamEnd + 9;
+    }
+    return List.unmodifiable(decoded);
   }
 
   static List<String> decodedHexStrings(String text) {
@@ -71,4 +104,54 @@ class AppPdfTextDecoder {
 
   static bool _isPrintableCodeUnit(int value) =>
       value == 9 || value == 10 || value == 13 || value >= 32;
+
+  static int _indexOfAscii(List<int> bytes, String needle, int start) {
+    if (needle.isEmpty || start >= bytes.length) return -1;
+    final codes = latin1.encode(needle);
+    for (var index = start; index <= bytes.length - codes.length; index += 1) {
+      var matched = true;
+      for (var offset = 0; offset < codes.length; offset += 1) {
+        if (bytes[index + offset] != codes[offset]) {
+          matched = false;
+          break;
+        }
+      }
+      if (matched) return index;
+    }
+    return -1;
+  }
+
+  static int _skipStreamLineEnding(List<int> bytes, int index) {
+    if (index < bytes.length && bytes[index] == 0x0D) index += 1;
+    if (index < bytes.length && bytes[index] == 0x0A) index += 1;
+    return index;
+  }
+
+  static bool _streamUsesFlateDecode(List<int> bytes, int streamStart) {
+    final dictionaryStart = streamStart > 512 ? streamStart - 512 : 0;
+    final dictionary = latin1
+        .decode(bytes.sublist(dictionaryStart, streamStart), allowInvalid: true)
+        .toLowerCase();
+    return dictionary.contains('/flatedecode') || dictionary.contains('/fl');
+  }
+
+  static List<int> _trimTrailingLineEnding(List<int> bytes) {
+    var end = bytes.length;
+    while (end > 0 && (bytes[end - 1] == 0x0A || bytes[end - 1] == 0x0D)) {
+      end -= 1;
+    }
+    return bytes.sublist(0, end);
+  }
+
+  static String? _tryInflate(List<int> streamBytes) {
+    try {
+      final inflated = zlib.decode(streamBytes);
+      if (inflated.isEmpty || inflated.length > _maxDecodedStreamBytes) {
+        return null;
+      }
+      return latin1.decode(inflated, allowInvalid: true);
+    } catch (_) {
+      return null;
+    }
+  }
 }

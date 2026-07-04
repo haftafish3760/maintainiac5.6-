@@ -5,6 +5,8 @@ import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_service.dart';
 import 'package:maintaniac/shared/pdf/app_pdf_privacy_policy.dart';
 
+import 'helpers/pdf_security_fixture_factory.dart';
+
 void main() {
   test('PDF privacy policy blocks private generated document content', () {
     final privateBytes = Uint8List.fromList(
@@ -91,6 +93,110 @@ void main() {
     expect(issues, contains(AppPdfPrivacyPolicy.passengerData));
   });
 
+  test('PDF privacy policy blocks compressed private text streams', () {
+    final issues = AppPdfPrivacyPolicy.issueCodesForExport(
+      bytes: PdfSecurityFixtureFactory.flateStreamPdf(
+        PdfSecurityFixtureFactory.privateExportText(),
+      ),
+    );
+
+    expect(issues, contains(AppPdfPrivacyPolicy.passengerData));
+    expect(issues, contains(AppPdfPrivacyPolicy.vin));
+    expect(issues, contains(AppPdfPrivacyPolicy.privateSourcePath));
+  });
+
+  test(
+    'PDF privacy policy maps private fixture table across generated surfaces',
+    () {
+      final cases = <_PrivacyFixtureCase>[
+        _PrivacyFixtureCase(
+          name: 'raw exported body',
+          bytes: Uint8List.fromList(
+            '%PDF-1.7\n'
+                    'VIN 1HGCM82633A004352\n'
+                    'Passenger: Jane Customer\n'
+                    'Patient MRN 445566\n'
+                    'Card ending 4242\n'
+                    '/Users/owner/Documents/private-receipt.pdf\n'
+                    '%%EOF'
+                .codeUnits,
+          ),
+          expectedIssues: const [
+            AppPdfPrivacyPolicy.vin,
+            AppPdfPrivacyPolicy.passengerData,
+            AppPdfPrivacyPolicy.patientData,
+            AppPdfPrivacyPolicy.paymentFragment,
+            AppPdfPrivacyPolicy.privateSourcePath,
+          ],
+        ),
+        _PrivacyFixtureCase(
+          name: 'hex encoded text layer',
+          bytes: Uint8List.fromList(
+            '%PDF-1.7\n'
+                    'BT <56494E20314847434D383236333341303034333532> Tj ET\n'
+                    'BT <50617373656E6765723A204A616E6520437573746F6D6572> Tj ET\n'
+                    '%%EOF'
+                .codeUnits,
+          ),
+          expectedIssues: const [
+            AppPdfPrivacyPolicy.vin,
+            AppPdfPrivacyPolicy.passengerData,
+          ],
+        ),
+        _PrivacyFixtureCase(
+          name: 'compressed text stream',
+          bytes: PdfSecurityFixtureFactory.flateStreamPdf(
+            PdfSecurityFixtureFactory.privateExportText(),
+          ),
+          expectedIssues: const [
+            AppPdfPrivacyPolicy.vin,
+            AppPdfPrivacyPolicy.passengerData,
+            AppPdfPrivacyPolicy.privateSourcePath,
+          ],
+        ),
+        _PrivacyFixtureCase(
+          name: 'metadata only leak',
+          bytes: Uint8List.fromList('%PDF-1.7\n%%EOF'.codeUnits),
+          metadata: const [
+            'Invoice for license plate ABC 123',
+            'Internal ID firebase_record_123456 should not export',
+          ],
+          expectedIssues: const [
+            AppPdfPrivacyPolicy.licensePlate,
+            AppPdfPrivacyPolicy.internalId,
+          ],
+        ),
+      ];
+
+      for (final fixture in cases) {
+        final issues = AppPdfPrivacyPolicy.issueCodesForExport(
+          bytes: fixture.bytes,
+          metadata: fixture.metadata,
+        );
+        final document = AppGeneratedPdfDocument(
+          kind: AppGeneratedPdfKind.invoice,
+          title: 'Privacy fixture ${fixture.name}',
+          fileName: 'privacy_fixture.pdf',
+          bytes: fixture.bytes,
+          createdAt: DateTime(2026, 7, 4),
+          shareText: fixture.metadata.join('\n'),
+        );
+
+        expect(
+          issues,
+          containsAll(fixture.expectedIssues),
+          reason: fixture.name,
+        );
+        expect(
+          document.validation.issues,
+          containsAll(fixture.expectedIssues),
+          reason: fixture.name,
+        );
+        expect(document.validation.isValid, isFalse, reason: fixture.name);
+      }
+    },
+  );
+
   test('PDF privacy policy ignores non-text hex payloads', () {
     final issues = AppPdfPrivacyPolicy.issueCodesForExport(
       bytes: Uint8List.fromList(
@@ -167,4 +273,18 @@ void main() {
     expect(document.validation.isValid, isTrue);
     expect(document.isSendablePdf, isTrue);
   });
+}
+
+class _PrivacyFixtureCase {
+  const _PrivacyFixtureCase({
+    required this.name,
+    required this.bytes,
+    required this.expectedIssues,
+    this.metadata = const [],
+  });
+
+  final String name;
+  final Uint8List bytes;
+  final List<String> expectedIssues;
+  final List<String> metadata;
 }

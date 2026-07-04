@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'app_pdf_text_decoder.dart';
 
 class AppPdfPrivacyPolicy {
@@ -19,9 +17,7 @@ class AppPdfPrivacyPolicy {
     Iterable<String> metadata = const [],
   }) {
     final text = [
-      AppPdfTextDecoder.withDecodedHexStrings(
-        latin1.decode(bytes, allowInvalid: true),
-      ),
+      AppPdfTextDecoder.textWithDecodedPdfStreams(bytes),
       ...metadata,
     ].join('\n').toLowerCase();
     final issues = <String>[];
