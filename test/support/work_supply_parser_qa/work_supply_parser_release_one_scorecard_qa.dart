@@ -18,6 +18,8 @@ class WorkSupplyParserReleaseOneScorecardSuite extends QaSuite {
     'unknown merchants',
     'regional chains',
     'supply-house receipts',
+    'Tractor Supply well/pump/farm-hardware crossover wording',
+    'Northern Tool tool/material crossover wording',
     'Synthetic Merchant And Generic Receipt Fixtures',
     'Fake-User Parser Review Workflow',
     'Clear common Core item top candidate',

@@ -71,6 +71,8 @@ The parser must be able to process inventory/material receipt text from:
 - Ace Hardware.
 - True Value.
 - Menards.
+- Tractor Supply.
+- Northern Tool.
 - Ferguson.
 - Grainger.
 - SupplyHouse-style suppliers.
@@ -164,6 +166,8 @@ Fixture families should include:
 - Ace/True Value/local hardware wording.
 - Menards where applicable.
 - Walmart small plumbing/electrical/HVAC sections.
+- Tractor Supply well/pump/farm-hardware crossover wording.
+- Northern Tool tool/material crossover wording.
 - Ferguson and plumbing supply house wording.
 - Grainger and industrial/supply-house wording.
 - HVAC supply house wording.
