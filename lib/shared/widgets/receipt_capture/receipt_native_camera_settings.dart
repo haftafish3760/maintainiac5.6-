@@ -7,7 +7,7 @@ class ReceiptNativeCameraSettings {
     this.longReceiptMode = true,
     this.manualShutterAlwaysAvailable = true,
     this.autoCaptureEnabled = false,
-    this.tapFocusEnabled = true,
+    this.tapFocusEnabled = false,
     this.pinchZoomEnabled = true,
     this.exposureSliderEnabled = true,
     this.exposureResetEnabled = true,
@@ -113,9 +113,6 @@ class ReceiptNativeCameraSettings {
       textTooSmallWarningEnabled;
 
   String get receiptFocusStrategyCode {
-    if (usesContinuousFocusPrimary && tapFocusIsAssistOnly) {
-      return 'continuous_focus_primary_tap_assist_optional';
-    }
     if (usesContinuousFocusPrimary) {
       return 'continuous_focus_primary_no_tap_assist';
     }

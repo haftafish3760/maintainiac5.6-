@@ -111,7 +111,7 @@ void main() {
     expect(cameraActivity, contains('nativeControlContractTags'));
     expect(
       cameraActivity,
-      contains('intent.getBooleanExtra("tapFocusEnabled", true)'),
+      contains('intent.getBooleanExtra("tapFocusEnabled", false)'),
     );
     expect(
       cameraActivity,

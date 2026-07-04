@@ -59,7 +59,7 @@ void main() {
       expect(cameraController, contains('nativeControlContractTags'));
       expect(
         cameraController,
-        contains('arguments["tapFocusEnabled"] as? Bool ?? true'),
+        contains('arguments["tapFocusEnabled"] as? Bool ?? false'),
       );
       expect(
         cameraController,

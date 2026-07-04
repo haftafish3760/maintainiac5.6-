@@ -15,15 +15,15 @@ void main() {
       expect(settings.reviewDepth, ReceiptNativeReviewDepth.pricesOnly);
       expect(settings.manualShutterAlwaysAvailable, isTrue);
       expect(settings.autoCaptureEnabled, isFalse);
-      expect(settings.tapFocusEnabled, isTrue);
+      expect(settings.tapFocusEnabled, isFalse);
       expect(settings.focusMode, ReceiptNativeFocusMode.continuous);
       expect(settings.usesContinuousFocusPrimary, isTrue);
-      expect(settings.tapFocusIsAssistOnly, isTrue);
+      expect(settings.tapFocusIsAssistOnly, isFalse);
       expect(settings.hasExposureAndSharpnessGuidance, isTrue);
       expect(settings.hasReceiptReadabilityGuidance, isTrue);
       expect(
         settings.receiptFocusStrategyCode,
-        'continuous_focus_primary_tap_assist_optional',
+        'continuous_focus_primary_no_tap_assist',
       );
       expect(settings.meetsReceiptCameraQualityBaseline, isTrue);
       expect(settings.pinchZoomEnabled, isTrue);
@@ -80,8 +80,10 @@ void main() {
     final focusAssist = descriptors.singleWhere(
       (descriptor) => descriptor.id == 'tap_focus',
     );
-    expect(focusAssist.label, 'Focus assist');
-    expect(focusAssist.description, contains('continuous focus'));
+    expect(focusAssist.label, 'Advanced focus assist');
+    expect(focusAssist.defaultEnabled, isFalse);
+    expect(focusAssist.advanced, isTrue);
+    expect(focusAssist.description, contains('Continuous autofocus'));
     expect(focusAssist.description, isNot(contains('set focus')));
     expect(focusAssist.description, contains('fuzzy'));
 
@@ -167,10 +169,7 @@ void main() {
       config.focusStrategyPolicy,
       'continuous_focus_primary_no_tap_assist',
     );
-    expect(
-      config.tapToFocusPolicy,
-      'tap_focus_unavailable_keep_manual_capture',
-    );
+    expect(config.tapToFocusPolicy, 'continuous_focus_primary_no_tap_focus');
     expect(
       config.readabilityGuidancePolicy,
       'live_readability_guides_blur_glare_light_edges_and_text_size',

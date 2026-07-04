@@ -80,7 +80,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var tooFarTooCloseWarningEnabled = true
     internal var receiptFullyVisibleWarningEnabled = true
     internal var textTooSmallWarningEnabled = true
-    internal var tapFocusEnabled = true
+    internal var tapFocusEnabled = false
     internal var pinchZoomEnabled = true
     internal var exposureSliderEnabled = true
     internal var exposureResetEnabled = true
@@ -116,8 +116,8 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
         "back_without_photo_cancels_without_creating_expense"
     internal val capturedPhotoReviewDestination =
         "receipt_photo_review_then_receipt_details"
-    internal var tapToFocusPolicy = "continuous_focus_primary_tap_focus_assist_only"
-    internal var focusStrategyPolicy = "continuous_focus_primary_tap_assist_optional"
+    internal var tapToFocusPolicy = "continuous_focus_primary_no_tap_focus"
+    internal var focusStrategyPolicy = "continuous_focus_primary_no_tap_assist"
     internal var readabilityGuidancePolicy =
         "live_readability_guides_blur_glare_light_edges_and_text_size"
     internal var receiptCameraQualityBaseline = true

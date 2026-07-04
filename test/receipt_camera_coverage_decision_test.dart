@@ -136,7 +136,7 @@ void main() {
 
     expect(contract, contains('manualShutterAlwaysAvailable = true'));
     expect(contract, contains('autoCaptureEnabled = false'));
-    expect(contract, contains('tapFocusEnabled = true'));
+    expect(contract, contains('tapFocusEnabled = false'));
     expect(contract, contains('pinchZoomEnabled = true'));
     expect(contract, contains('exposureSliderEnabled = true'));
     expect(contract, contains('edgeDetectionEnabled = true'));

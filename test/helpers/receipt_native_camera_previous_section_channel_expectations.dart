@@ -145,14 +145,14 @@ void expectPreviousSectionGuideChannelArguments(
     result.captureDiagnostics['receiptInstallOptionalLocalDownloadAllowed'],
     isTrue,
   );
-  expect(sentArguments['tapFocusEnabled'], isTrue);
+  expect(sentArguments['tapFocusEnabled'], isFalse);
   expect(
     sentArguments['tapToFocusPolicy'],
-    'continuous_focus_primary_tap_focus_assist_only',
+    'continuous_focus_primary_no_tap_focus',
   );
   expect(
     sentArguments['focusStrategyPolicy'],
-    'continuous_focus_primary_tap_assist_optional',
+    'continuous_focus_primary_no_tap_assist',
   );
   expect(
     sentArguments['readabilityGuidancePolicy'],
@@ -221,7 +221,6 @@ void expectPreviousSectionGuideChannelArguments(
     'review_next',
     'receipt_guidance',
     'safe_close',
-    'focus_assist',
     'pinch_zoom',
     'brightness_slider',
     'brightness_reset',

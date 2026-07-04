@@ -28,7 +28,7 @@ extension ReceiptCameraViewController {
     liveAnalysisEnabled = arguments["liveAnalysisEnabled"] as? Bool ?? true
     edgeDetectionEnabled = arguments["edgeDetectionEnabled"] as? Bool ?? true
     edgeOverlayEnabled = arguments["edgeOverlayEnabled"] as? Bool ?? true
-    tapFocusEnabled = arguments["tapFocusEnabled"] as? Bool ?? true
+    tapFocusEnabled = arguments["tapFocusEnabled"] as? Bool ?? false
     pinchZoomEnabled = arguments["pinchZoomEnabled"] as? Bool ?? true
     exposureSliderEnabled = arguments["exposureSliderEnabled"] as? Bool ?? true
     exposureResetEnabled = arguments["exposureResetEnabled"] as? Bool ?? true

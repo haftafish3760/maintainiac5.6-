@@ -30,13 +30,14 @@ const _receiptNativeCameraSettingDescriptors = <ReceiptNativeCameraSettingDescri
   ),
   ReceiptNativeCameraSettingDescriptor(
     id: 'tap_focus',
-    label: 'Focus assist',
+    label: 'Advanced focus assist',
     description:
-        'Optional helper if continuous focus still leaves receipt text fuzzy.',
+        'Off by default. Continuous autofocus stays primary; enable only on devices where a manual focus tap genuinely helps fuzzy receipt text.',
     group: ReceiptNativeSettingGroup.cameraControl,
     type: ReceiptNativeSettingType.toggle,
-    defaultEnabled: true,
+    defaultEnabled: false,
     requiresNativeSupport: true,
+    advanced: true,
   ),
   ReceiptNativeCameraSettingDescriptor(
     id: 'pinch_zoom',

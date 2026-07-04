@@ -28,6 +28,7 @@ void main() {
               hasRearCamera: true,
               supportsTorch: true,
               supportsTapFocus: true,
+              supportsContinuousFocus: true,
               supportsExposureCompensation: true,
               supportsZoom: true,
               minExposureOffset: -2,
@@ -82,7 +83,8 @@ void main() {
     expect(find.text('Saved proof'), findsNothing);
     expect(find.text('Proof size'), findsNothing);
     expect(find.text('1 of 1'), findsOneWidget);
-    expect(find.text('Tap text to focus'), findsOneWidget);
+    expect(find.text('Tap text to focus'), findsNothing);
+    expect(find.text('Auto sharpness'), findsOneWidget);
     expect(find.text('Pinch to zoom'), findsOneWidget);
     expect(find.text('Brightness assist'), findsOneWidget);
     expect(find.byTooltip('Reset brightness'), findsOneWidget);
@@ -106,9 +108,7 @@ void main() {
     expect(captured, isTrue);
     expect(wentBack, isTrue);
     expect(resetExposure, isTrue);
-    expect(focusPoint, isNotNull);
-    expect(focusPoint!.dx, closeTo(.5, .06));
-    expect(focusPoint!.dy, closeTo(.36, .08));
+    expect(focusPoint, isNull);
     expect(zoomValue, greaterThan(2));
 
     final slider = tester.widget<Slider>(find.byType(Slider));

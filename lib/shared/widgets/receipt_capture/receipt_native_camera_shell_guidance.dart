@@ -101,14 +101,6 @@ class _ReceiptNativeCameraGuidance extends StatelessWidget {
 
   List<Widget> get _controlChips {
     final chips = <Widget>[];
-    if (capabilities.supportsTapFocus) {
-      chips.add(
-        const _ReceiptNativeCameraControlChip(
-          icon: Icons.touch_app_rounded,
-          label: 'Tap text to focus',
-        ),
-      );
-    }
     if (capabilities.supportsZoom) {
       chips.add(
         const _ReceiptNativeCameraControlChip(
@@ -122,6 +114,14 @@ class _ReceiptNativeCameraGuidance extends StatelessWidget {
         const _ReceiptNativeCameraControlChip(
           icon: Icons.wb_sunny_rounded,
           label: 'Brightness assist',
+        ),
+      );
+    }
+    if (capabilities.supportsContinuousFocus) {
+      chips.add(
+        const _ReceiptNativeCameraControlChip(
+          icon: Icons.center_focus_strong_rounded,
+          label: 'Auto sharpness',
         ),
       );
     }

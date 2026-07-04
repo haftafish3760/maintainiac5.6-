@@ -34,7 +34,7 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     liveAnalysisEnabled = intent.getBooleanExtra("liveAnalysisEnabled", true)
     edgeDetectionEnabled = intent.getBooleanExtra("edgeDetectionEnabled", true)
     edgeOverlayEnabled = intent.getBooleanExtra("edgeOverlayEnabled", true)
-    tapFocusEnabled = intent.getBooleanExtra("tapFocusEnabled", true)
+    tapFocusEnabled = intent.getBooleanExtra("tapFocusEnabled", false)
     pinchZoomEnabled = intent.getBooleanExtra("pinchZoomEnabled", true)
     exposureSliderEnabled = intent.getBooleanExtra("exposureSliderEnabled", true)
     exposureResetEnabled = intent.getBooleanExtra("exposureResetEnabled", true)

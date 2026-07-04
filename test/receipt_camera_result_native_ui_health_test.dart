@@ -3,72 +3,72 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_flow.d
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 void main() {
-  test('photo review result flags missing native controls from contract tags', () {
-    final result = ReceiptPhotoReviewResult(
-      photoPaths: const ['/tmp/proof.jpg'],
-      ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
-      dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
-      captureDiagnosticsByPhotoPath: const {
-        '/tmp/proof.jpg': {
-          'nativeControlContractTags': [
-            'settings',
-            'back',
-            'manual_shutter',
-            'focus_assist',
-            'pinch_zoom',
-            'brightness_slider',
-            'brightness_reset',
-          ],
-          'backControlActual': 'ready',
-          'settingsControlActual': 'missing',
-          'manualShutterControlActual': 'ready',
-          'tapFocusControlActual': 'missing',
-          'pinchZoomControlActual': 'missing',
-          'exposureSliderControlActual': 'ready',
+  test(
+    'photo review result flags missing native controls from contract tags',
+    () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/proof.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
+        captureDiagnosticsByPhotoPath: const {
+          '/tmp/proof.jpg': {
+            'nativeControlContractTags': [
+              'settings',
+              'back',
+              'manual_shutter',
+              'pinch_zoom',
+              'brightness_slider',
+              'brightness_reset',
+            ],
+            'backControlActual': 'ready',
+            'settingsControlActual': 'missing',
+            'manualShutterControlActual': 'ready',
+            'pinchZoomControlActual': 'missing',
+            'exposureSliderControlActual': 'ready',
+          },
         },
-      },
-    );
+      );
 
-    expect(
-      result.nativeCameraUiHealthCounts['native_control_contract_tags_present'],
-      1,
-    );
-    expect(
-      result.nativeCameraUiHealthCounts['native_control_contract_7_tags'],
-      1,
-    );
-    expect(
-      result.nativeCameraUiHealthCounts['settings_actual_control_missing'],
-      1,
-    );
-    expect(
-      result.nativeCameraUiHealthCounts['tap_focus_actual_control_missing'],
-      1,
-    );
-    expect(
-      result.nativeCameraUiHealthCounts['pinch_zoom_actual_control_missing'],
-      1,
-    );
-    expect(
-      result.nativeCameraUiHealthCounts['exposure_slider_actual_control_ready'],
-      1,
-    );
-    expect(
-      result
-          .nativeCameraUiHealthCounts['exposure_reset_actual_control_missing'],
-      1,
-    );
-    expect(
-      result.nativeCameraUiHealthCounts['native_control_readiness_missing'],
-      1,
-    );
-    expect(
-      result
-          .receiptReaderHandoffCounts['native_camera_ui_tap_focus_actual_control_missing'],
-      1,
-    );
-  });
+      expect(
+        result
+            .nativeCameraUiHealthCounts['native_control_contract_tags_present'],
+        1,
+      );
+      expect(
+        result.nativeCameraUiHealthCounts['native_control_contract_6_tags'],
+        1,
+      );
+      expect(
+        result.nativeCameraUiHealthCounts['settings_actual_control_missing'],
+        1,
+      );
+      expect(
+        result.nativeCameraUiHealthCounts['pinch_zoom_actual_control_missing'],
+        1,
+      );
+      expect(
+        result
+            .nativeCameraUiHealthCounts['exposure_slider_actual_control_ready'],
+        1,
+      );
+      expect(
+        result
+            .nativeCameraUiHealthCounts['exposure_reset_actual_control_missing'],
+        1,
+      );
+      expect(
+        result.nativeCameraUiHealthCounts['native_control_readiness_missing'],
+        1,
+      );
+      expect(
+        result.receiptReaderHandoffCounts.containsKey(
+          'native_camera_ui_tap_focus_actual_control_missing',
+        ),
+        isFalse,
+      );
+    },
+  );
 
   test('photo review result flags slow native capture review latency', () {
     final result = ReceiptPhotoReviewResult(

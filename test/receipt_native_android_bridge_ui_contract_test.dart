@@ -80,7 +80,7 @@ void main() {
     expect(
       cameraActivity,
       contains(
-        '"nativeTouchControlPolicy" to "focus_assist_and_pinch_zoom_on_preview_v1"',
+        '"nativeTouchControlPolicy" to "continuous_focus_readability_and_pinch_zoom_v1"',
       ),
     );
     expect(
@@ -96,7 +96,7 @@ void main() {
     expect(
       cameraActivity,
       contains(
-        'internal var focusStrategyPolicy = "continuous_focus_primary_tap_assist_optional"',
+        'internal var focusStrategyPolicy = "continuous_focus_primary_no_tap_assist"',
       ),
     );
     expect(

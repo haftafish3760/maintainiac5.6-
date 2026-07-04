@@ -124,7 +124,7 @@ void main() {
       config.nativeCaptureMemoryPolicy,
       'bounded_original_for_ocr_then_cleanup',
     );
-    expect(config.tapFocusEnabled, isTrue);
+    expect(config.tapFocusEnabled, isFalse);
     expect(config.pinchZoomEnabled, isTrue);
     expect(config.exposureSliderEnabled, isTrue);
     expect(config.exposureResetEnabled, isTrue);
@@ -145,13 +145,10 @@ void main() {
       config.shutterSpeedPolicy,
       'prefer_fast_document_shutter_auto_capture_when_stable',
     );
-    expect(
-      config.tapToFocusPolicy,
-      'continuous_focus_primary_tap_focus_assist_only',
-    );
+    expect(config.tapToFocusPolicy, 'continuous_focus_primary_no_tap_focus');
     expect(
       config.focusStrategyPolicy,
-      'continuous_focus_primary_tap_assist_optional',
+      'continuous_focus_primary_no_tap_assist',
     );
     expect(
       config.readabilityGuidancePolicy,
@@ -169,7 +166,6 @@ void main() {
       'review_next',
       'receipt_guidance',
       'safe_close',
-      'focus_assist',
       'pinch_zoom',
       'brightness_slider',
       'brightness_reset',
@@ -249,10 +245,7 @@ void main() {
         config.previewExposurePolicy,
         'native_auto_metering_no_manual_slider',
       );
-      expect(
-        config.tapToFocusPolicy,
-        'tap_focus_unavailable_keep_manual_capture',
-      );
+      expect(config.tapToFocusPolicy, 'continuous_focus_primary_no_tap_focus');
       expect(
         config.zoomGesturePolicy,
         'pinch_zoom_unavailable_keep_native_scale',

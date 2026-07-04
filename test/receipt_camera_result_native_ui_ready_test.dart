@@ -24,7 +24,6 @@ void main() {
             'review_next',
             'receipt_guidance',
             'safe_close',
-            'focus_assist',
             'pinch_zoom',
             'brightness_slider',
             'brightness_reset',
@@ -41,8 +40,8 @@ void main() {
           'settingsControlActual': 'ready',
           'manualShutterAlwaysAvailable': true,
           'manualShutterControlActual': 'ready',
-          'tapFocusControlExpected': true,
-          'tapFocusControlActual': 'ready',
+          'tapFocusControlExpected': false,
+          'tapFocusControlActual': 'disabled',
           'pinchZoomControlExpected': true,
           'pinchZoomControlActual': 'ready',
           'exposureSliderControlExpected': true,
@@ -85,7 +84,7 @@ void main() {
       1,
     );
     expect(
-      result.nativeCameraUiHealthCounts['native_control_contract_16_tags'],
+      result.nativeCameraUiHealthCounts['native_control_contract_15_tags'],
       1,
     );
     expect(
@@ -103,8 +102,10 @@ void main() {
       1,
     );
     expect(
-      result.nativeCameraUiHealthCounts['tap_focus_actual_control_ready'],
-      1,
+      result.nativeCameraUiHealthCounts.containsKey(
+        'tap_focus_actual_control_ready',
+      ),
+      isFalse,
     );
     expect(
       result.nativeCameraUiHealthCounts['manual_shutter_actual_control_ready'],

@@ -3,6 +3,28 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 596 - 20:46:21 EDT to 20:50:14 EDT
+
+Scope:
+- Removed tap-focus as a default receipt-camera behavior so continuous
+  autofocus and readability guidance are the primary camera path.
+- Changed shared camera settings plus Android and iOS native fallback defaults
+  so `tapFocusEnabled` is false unless explicitly enabled by settings.
+- Removed the standard camera-shell "Tap text to focus" chip and replaced it
+  with continuous-focus/readability copy through "Auto sharpness".
+- Updated native diagnostics policy defaults from focus-assist-first wording to
+  continuous-focus/readability-first wording.
+- Recorded `BUG-RECEIPT-0117` under `camera_capture_quality`.
+
+Verification:
+- Fixed stale QA expectations that still counted tap-focus as a required
+  default native control.
+- Passed targeted Dart format/analyzer for the shared camera contract/shell and
+  native bridge source-contract regressions.
+- Passed focused Flutter regressions for the native camera contract/session,
+  shell, Android/iOS bridge defaults, coverage contract, and native UI health.
+- Passed cleanup log gate, doc-size gate, source audit, and whitespace check.
+
 ## Pass 595 - 20:43:24 EDT to 20:44:44 EDT
 
 Scope:
@@ -467,23 +489,3 @@ Verification:
 - Passed focused Flutter regression
   `test/receipt_camera_result_best_shot_ocr_test.dart --plain-name "camera
   results carry privacy-safe native capture evidence"`.
-
-## Pass 574 - 09:22:37 EDT to 09:24:08 EDT
-
-Scope:
-- Hardened Android captured-photo diagnostic rounding so non-finite quality
-  values become unknown evidence instead of unsafe diagnostic numbers.
-- Hardened iOS captured-photo diagnostic rounding with the same finite-value
-  guard.
-- Added Android and iOS source contract regressions for finite captured quality
-  diagnostics.
-- Recorded `BUG-RECEIPT-0090` under `camera_capture_quality`.
-- Archived Pass 548 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for Android and iOS native quality
-  source regressions.
-- Passed focused Flutter regressions
-  `test/receipt_native_android_bridge_settings_quality_test.dart` and
-  `test/receipt_native_ios_bridge_long_receipt_quality_test.dart`.

@@ -245,7 +245,7 @@ class ReceiptNativeCameraSessionConfig {
   }
 
   String get tapToFocusPolicy {
-    if (!tapFocusEnabled) return 'tap_focus_unavailable_keep_manual_capture';
+    if (!tapFocusEnabled) return 'continuous_focus_primary_no_tap_focus';
     if (settings.usesContinuousFocusPrimary) {
       return 'continuous_focus_primary_tap_focus_assist_only';
     }
@@ -256,9 +256,6 @@ class ReceiptNativeCameraSessionConfig {
   }
 
   String get focusStrategyPolicy {
-    if (settings.usesContinuousFocusPrimary && tapFocusEnabled) {
-      return 'continuous_focus_primary_tap_assist_optional';
-    }
     if (settings.usesContinuousFocusPrimary) {
       return 'continuous_focus_primary_no_tap_assist';
     }
