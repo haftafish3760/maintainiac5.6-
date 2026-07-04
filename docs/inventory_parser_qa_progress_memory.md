@@ -240,6 +240,14 @@ Focused rerun routes for recently hardened release-one contracts:
   `flutter test test\work_supply_parser_qa_fixture_generator_test.dart
   test\work_supply_parser_qa_fixture_generator_electrical_test.dart --reporter compact`
   passed 14/14 generator tests.
+- Passes 2067-2069 added a direct generator unit-test assertion that a 24-row
+  generated batch manifest includes every required source-modality risk tag.
+  Validation passed:
+  `flutter test test\work_supply_parser_qa_fixture_generator_test.dart
+  test\work_supply_parser_qa_fixture_generator_electrical_test.dart --reporter compact`
+  passed 14/14 and targeted `dart analyze` over
+  `test/work_supply_parser_qa_fixture_generator_test.dart` passed with no
+  issues.
 
 ## 2026-07-04 Reusable Parser Adapter Registry Hardening
 

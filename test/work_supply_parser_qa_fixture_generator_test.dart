@@ -60,6 +60,7 @@ void main() {
       expect(manifest['liveServicesAllowed'], isFalse);
       expect(manifest['generationSeed'], contains('fixture-generator-v1'));
       expect(manifest['riskTags'].toString(), contains('generated_batch'));
+      expect(_riskTags(manifest), containsAll(_sourceModalityRiskTags));
       expect(fixtures.first['sourceType'], 'synthetic');
       expect(fixtures.first['reviewStatus'], 'generated-not-release-approved');
       expect(fixtures.any((entry) => entry['expectUnknown'] == true), isTrue);
@@ -428,4 +429,23 @@ class _MemorySink implements IOSink {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+const _sourceModalityRiskTags = {
+  'photo_ocr_text_after_extraction',
+  'uploaded_pdf_text_after_extraction',
+  'emailed_receipt_text_after_extraction',
+  'manual_pasted_receipt_text',
+  'invoice_style_material_line_text',
+  'quote_style_material_line_text',
+  'packing_slip_material_list_text',
+  'counter_sale_material_receipt_text',
+  'generic_unknown_merchant_receipt_text',
+  'local_regional_supplier_receipt_text',
+};
+
+Set<String> _riskTags(Map manifest) {
+  final raw = manifest['riskTags'];
+  if (raw is! List) return const {};
+  return raw.map((value) => value.toString()).toSet();
 }
