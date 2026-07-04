@@ -1,0 +1,129 @@
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_native_camera_contract.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_native_camera_service.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('native service rejects duplicate receipt photo paths', () async {
+    const channel = MethodChannel(
+      'maintainiac/receipt_camera_duplicate_paths_test',
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'captureReceipt');
+          return {
+            'originalPhotoPaths': [
+              '/tmp/duplicate-section.jpg',
+              ' /tmp/duplicate-section.jpg ',
+            ],
+            'temporaryCaptureIds': ['duplicate-a', 'duplicate-b'],
+            'capturedAt': '2026-07-03T10:45:00.000Z',
+            'captureDiagnostics': const {},
+          };
+        });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    await expectLater(
+      const ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(_highCapacityConfig()),
+      throwsA(
+        isA<ReceiptNativeCameraUnavailableException>().having(
+          (error) => error.message,
+          'message',
+          contains('duplicate receipt photo paths'),
+        ),
+      ),
+    );
+  });
+
+  test('native service rejects non-local receipt photo paths', () async {
+    const channel = MethodChannel(
+      'maintainiac/receipt_camera_non_local_path_test',
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'captureReceipt');
+          return {
+            'originalPhotoPaths': [
+              'https://example.invalid/receipt.jpg',
+              'relative-receipt.jpg',
+            ],
+            'temporaryCaptureIds': ['remote-a', 'relative-b'],
+            'capturedAt': '2026-07-03T10:46:00.000Z',
+            'captureDiagnostics': {
+              'captureSurface': 'maintainiac_native_android',
+            },
+          };
+        });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    await expectLater(
+      const ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(_highCapacityConfig()),
+      throwsA(
+        isA<ReceiptNativeCameraUnavailableException>().having(
+          (error) => error.message,
+          'message',
+          contains('non-local or non-image receipt photo paths'),
+        ),
+      ),
+    );
+  });
+
+  test('native service rejects non-image receipt photo paths', () async {
+    const channel = MethodChannel('maintainiac/receipt_wrong_file_type_test');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'captureReceipt');
+          return {
+            'originalPhotoPaths': ['/tmp/receipt-capture.txt'],
+            'temporaryCaptureIds': ['receipt-capture'],
+            'capturedAt': '2026-07-03T10:47:00.000Z',
+            'captureDiagnostics': {
+              'captureSurface': 'maintainiac_native_android',
+            },
+          };
+        });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    await expectLater(
+      const ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(_highCapacityConfig()),
+      throwsA(
+        isA<ReceiptNativeCameraUnavailableException>().having(
+          (error) => error.message,
+          'message',
+          contains('non-local or non-image receipt photo paths'),
+        ),
+      ),
+    );
+  });
+}
+
+ReceiptNativeCameraSessionConfig _highCapacityConfig() {
+  const capabilities = ReceiptNativeCameraCapabilities(
+    engine: ReceiptNativeCameraEngine.cameraX,
+    available: true,
+    cameraPermissionGranted: true,
+    hasRearCamera: true,
+  );
+  return const ReceiptNativeCameraSettings().sessionFor(
+    deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+    nativeCapabilities: capabilities,
+  );
+}
