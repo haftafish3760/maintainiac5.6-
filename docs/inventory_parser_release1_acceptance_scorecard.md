@@ -246,6 +246,16 @@ Adapters may wrap the core for mobile, server, QA, batch, Firebase-hosted packs,
 or future cloud services. The core must not directly depend on Firebase, Hive,
 Flutter widgets, camera/OCR APIs, network calls, file paths, or device state.
 
+## Universal Parser Adapter Fields
+
+Every parser QA domain adapter must support portable `qa_harness` and
+`command_line` execution so tests and batch tools exercise the same contract as
+mobile/server adapters. Every adapter must accept `localePackId` and
+`userConfirmedContext`, and every parser output must include `confidence`,
+`reviewStatus`, `warnings`, `evidence`, and `suggestedAction`. Inventory parser
+outputs should also include ranked candidates so ambiguous material lines stay
+reviewable instead of being silently forced into one item.
+
 ## Teachable Correction Memory
 
 The parser should learn from user corrections, but safely.
