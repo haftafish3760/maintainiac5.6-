@@ -43,6 +43,12 @@ class ReceiptLayoutLine {
   final ReceiptLayoutZone zone;
   final Set<ReceiptLayoutSignal> signals;
 
+  int get safeLineNumber => lineNumber > 0
+      ? lineNumber
+      : sourceIndex >= 0
+      ? sourceIndex + 1
+      : 1;
+
   bool hasSignal(ReceiptLayoutSignal signal) => signals.contains(signal);
 
   bool get likelyMerchantName =>
@@ -62,7 +68,7 @@ class ReceiptLayoutLine {
       hasSignal(ReceiptLayoutSignal.transactionCandidate);
 
   String get stableLineId =>
-      'receipt_line_${lineNumber.toString().padLeft(4, '0')}';
+      'receipt_line_${safeLineNumber.toString().padLeft(4, '0')}';
 
   String get redactionAnchorCode {
     final zoneToken = zone.name;
@@ -84,7 +90,8 @@ class ReceiptLayoutLine {
 
   Map<String, Object?> get privacySafeSummary {
     return {
-      'lineNumber': lineNumber,
+      'lineNumber': safeLineNumber,
+      'safeLineNumber': safeLineNumber,
       'sourceIndex': sourceIndex,
       'zone': zone.name,
       'signals': signals.map((signal) => signal.name).toList(growable: false),
@@ -183,7 +190,7 @@ class ReceiptLayoutMap {
             line.likelyTaxLine ||
             line.likelyTotalLine,
       )
-      .map((line) => line.lineNumber)
+      .map((line) => line.safeLineNumber)
       .toList(growable: false);
 
   List<int> get clientProofDefaultVisibleLineNumbers => lines
@@ -195,7 +202,7 @@ class ReceiptLayoutMap {
             line.likelyTaxLine ||
             line.likelyTotalLine,
       )
-      .map((line) => line.lineNumber)
+      .map((line) => line.safeLineNumber)
       .toList(growable: false);
 
   ReceiptLineRedactionPlan redactionPlanForLineNumbers(
@@ -203,19 +210,22 @@ class ReceiptLayoutMap {
     bool keepMerchantContext = true,
     bool keepTotalsContext = false,
   }) {
-    final visible = <int>{...selectedLineNumbers};
+    final visible = <int>{
+      for (final lineNumber in selectedLineNumbers)
+        if (lineNumber > 0) lineNumber,
+    };
     final merchant = merchantLine;
     if (keepMerchantContext && merchant != null) {
-      visible.add(merchant.lineNumber);
+      visible.add(merchant.safeLineNumber);
     }
     if (keepTotalsContext) {
       visible.addAll(
         lines
             .where((line) => line.likelySubtotalLine)
-            .map((line) => line.lineNumber),
+            .map((line) => line.safeLineNumber),
       );
-      visible.addAll(totalLines.map((line) => line.lineNumber));
-      visible.addAll(taxLines.map((line) => line.lineNumber));
+      visible.addAll(totalLines.map((line) => line.safeLineNumber));
+      visible.addAll(taxLines.map((line) => line.safeLineNumber));
     }
 
     final hidden = <int>{};
@@ -223,11 +233,12 @@ class ReceiptLayoutMap {
     final hiddenAnchors = <String>[];
     final protectedTypes = <String>{};
     for (final line in lines) {
-      if (visible.contains(line.lineNumber)) {
+      final lineNumber = line.safeLineNumber;
+      if (visible.contains(lineNumber)) {
         visibleAnchors.add(line.redactionAnchorCode);
         continue;
       }
-      hidden.add(line.lineNumber);
+      hidden.add(lineNumber);
       hiddenAnchors.add(line.redactionAnchorCode);
       if (line.hasSignal(ReceiptLayoutSignal.personalInfoCandidate)) {
         protectedTypes.add('personal_info');
@@ -247,13 +258,13 @@ class ReceiptLayoutMap {
       hiddenAnchorCodes: List.unmodifiable(hiddenAnchors),
       protectedContentTypes: Set.unmodifiable(protectedTypes),
       keepsMerchantContext:
-          merchant != null && visible.contains(merchant.lineNumber),
+          merchant != null && visible.contains(merchant.safeLineNumber),
       keepsTotalsContext:
           totalLines.isNotEmpty &&
           lines
               .where((line) => line.likelySubtotalLine)
-              .every((line) => visible.contains(line.lineNumber)) &&
-          totalLines.every((line) => visible.contains(line.lineNumber)),
+              .every((line) => visible.contains(line.safeLineNumber)) &&
+          totalLines.every((line) => visible.contains(line.safeLineNumber)),
     );
   }
 
@@ -264,7 +275,7 @@ class ReceiptLayoutMap {
       'lineCount': lines.length,
       'zoneCounts': zoneCounts,
       'signalCounts': signalCounts,
-      'merchantLineNumber': merchantLine?.lineNumber,
+      'merchantLineNumber': merchantLine?.safeLineNumber,
       'itemLineCount': itemLines.length,
       'totalLineCount': totalLines.length,
       'taxLineCount': taxLines.length,

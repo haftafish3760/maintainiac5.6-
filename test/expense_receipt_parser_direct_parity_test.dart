@@ -187,6 +187,64 @@ THANK YOU
     },
   );
 
+  test('receipt layout line numbering clamps malformed proof anchors', () {
+    const malformedTotal = ReceiptLayoutLine(
+      lineNumber: -4,
+      sourceIndex: 0,
+      text: 'TOTAL 9.18',
+      zone: ReceiptLayoutZone.totals,
+      signals: {
+        ReceiptLayoutSignal.totalCandidate,
+        ReceiptLayoutSignal.priceCandidate,
+      },
+    );
+    const privateLine = ReceiptLayoutLine(
+      lineNumber: 0,
+      sourceIndex: 1,
+      text: 'CARD **** 9911',
+      zone: ReceiptLayoutZone.payment,
+      signals: {
+        ReceiptLayoutSignal.paymentCandidate,
+        ReceiptLayoutSignal.personalInfoCandidate,
+      },
+    );
+    const layout = ReceiptLayoutMap(
+      lines: [malformedTotal, privateLine],
+      zoneCounts: {'totals': 1, 'payment': 1},
+      signalCounts: {'totalCandidate': 1, 'paymentCandidate': 1},
+      structureStatus: 'receipt_structure_ready',
+      structureSummary: 'malformed line numbers',
+    );
+
+    expect(malformedTotal.safeLineNumber, 1);
+    expect(malformedTotal.stableLineId, 'receipt_line_0001');
+    expect(
+      malformedTotal.redactionAnchorCode,
+      'receipt_line_0001_totals_total',
+    );
+    expect(malformedTotal.privacySafeSummary['safeLineNumber'], 1);
+    expect(malformedTotal.privacySafeSummary['lineNumber'], 1);
+    expect(malformedTotal.privacySafeSummary.toString(), isNot(contains('-4')));
+    expect(layout.parserLineNumbers, [1]);
+    expect(layout.clientProofDefaultVisibleLineNumbers, [1]);
+    expect(privateLine.safeLineNumber, 2);
+    expect(privateLine.stableLineId, 'receipt_line_0002');
+
+    final proof = layout.redactionPlanForLineNumbers({-4});
+
+    expect(proof.visibleLineNumbers, isEmpty);
+    expect(proof.hiddenLineNumbers, {1, 2});
+    expect(
+      proof.hiddenAnchorCodes,
+      containsAll([
+        'receipt_line_0001_totals_total',
+        'receipt_line_0002_payment_payment',
+      ]),
+    );
+    expect(proof.protectedContentTypes, contains('personal_info'));
+    expect(proof.protectedContentTypes, contains('payment_info'));
+  });
+
   test(
     'parser keeps receipt totals usable when no safe item lines are found',
     () {
