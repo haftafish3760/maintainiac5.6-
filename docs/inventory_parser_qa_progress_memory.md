@@ -3698,3 +3698,11 @@ Release boundaries:
   of suppressing the warning. Focused
   `inventory.sku_collision_contract,inventory.catalog_expansion_lifecycle_contract,inventory.catalog_item_batch_generation_contract,inventory.admin_report_contract,qa.threshold_gate`
   passed 149 checks with 0 failures, and targeted analyzer found no issues.
+- **11:51 Harness Pass 2738:** Made no-live-services documentation,
+  pack-recovery, release-manifest, and baseline-regression contract helpers
+  whitespace-safe while leaving live-service forbidden runtime token scans exact.
+  This protects local-only/Firebase-off boundaries, pack recovery/reinstall
+  paths, release signoff metadata, and baseline-diff regression gates from
+  brittle documentation formatting. Focused
+  `inventory.no_live_services_contract,inventory.pack_recovery_contract,inventory.release_manifest,inventory.baseline_contract,qa.threshold_gate`
+  passed 5,003 checks with 0 failures, and targeted analyzer found no issues.

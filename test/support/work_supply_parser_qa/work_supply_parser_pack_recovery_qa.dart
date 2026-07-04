@@ -123,7 +123,7 @@ class WorkSupplyParserPackRecoverySuite extends QaSuite {
     final present = <String>[];
     for (final contract in _contracts) {
       final source = sources[contract.path] ?? '';
-      if (contract.tokens.every(source.contains)) {
+      if (contract.isPresentIn(source)) {
         present.add(contract.name);
         continue;
       }
@@ -167,4 +167,15 @@ class _RecoveryContract {
   final String path;
   final List<String> tokens;
   final String category;
+
+  bool isPresentIn(String source) {
+    final normalizedSource = _normalizeContractText(source);
+    return tokens.every(
+      (token) => normalizedSource.contains(_normalizeContractText(token)),
+    );
+  }
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
