@@ -37,6 +37,21 @@ class PdfTortureFixtures {
     await add('blank_pages', 'blank_pages_receipt.pdf', _blankPdf(3));
     await add('rotated_pages', 'rotated_pages_receipt.pdf', _rotatedPdf());
     await add('landscape_pages', 'landscape_receipt.pdf', _landscapePdf());
+    await addText(
+      'image_layer_pdf',
+      'image_layer_receipt.pdf',
+      '%PDF-1.7\n'
+          '1 0 obj << /Type /Page /Resources << /XObject << /Im1 2 0 R >> >> >> endobj\n'
+          '2 0 obj << /Type /XObject /Subtype /Image /Width 800 /Height 1200 >> stream imagebytes endstream endobj\n'
+          'xref\ntrailer << /Root 1 0 R >>\nstartxref\n0\n%%EOF',
+    );
+    await addText(
+      'cropped_pages',
+      'cropped_pages_receipt.pdf',
+      '%PDF-1.7\n'
+          '1 0 obj << /Type /Page /MediaBox [0 0 612 792] /CropBox [12 24 600 768] >> endobj\n'
+          'xref\ntrailer << /Root 1 0 R >>\nstartxref\n0\n%%EOF',
+    );
     await add(
       'long_filename',
       'this_is_a_very_long_receipt_filename_from_a_vendor_counter_that_should_still_import_safely_without_breaking_storage_or_preview_2026_06_14.pdf',

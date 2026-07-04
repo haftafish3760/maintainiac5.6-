@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# PDF lane gate. Keep this focused on PDF behavior, storage, privacy/security,
+# invoice generation, import/export, and receipt PDF contracts. Avoid
+# fragile PDF UI tests until those screens stabilize.
+
+bash -n tool/pdf_quality_gate.sh
+bash -n tool/pdf_render_smoke_gate.sh
+
+dart analyze \
+  tool/generate_sample_invoice_pdf.dart \
+  lib/shared/pdf \
+  lib/shared/documents/app_generated_pdf_archive_service.dart \
+  lib/shared/documents/app_document_models.dart \
+  lib/shared/documents/app_document_store.dart \
+  lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart \
+  lib/shared/widgets/receipt_capture/receipt_pdf_inspection.dart \
+  lib/shared/widgets/receipt_capture/receipt_pdf_limits.dart \
+  lib/shared/widgets/receipt_capture/receipt_pdf_viewer_preview_plan.dart \
+  lib/shared/widgets/receipt_capture/receipt_proof_storage.dart \
+  test/app_generated_pdf_service_test.dart \
+  test/cloud_backup_pdf_policy_test.dart \
+  test/document_engine_operating_directive_test.dart \
+  test/incoming_receipt_share_pdf_hardening_test.dart \
+  test/invoice_pdf_preview_action_tracking_test.dart \
+  test/invoice_template_pdf_factory_test.dart \
+  test/pdf_qa_fixture_inventory_test.dart \
+  test/pdf_security_policy_contract_test.dart \
+  test/receipt_pdf_hardening_test.dart \
+  test/receipt_pdf_import_copy_test.dart \
+  test/receipt_pdf_inspector_edge_cases_test.dart \
+  test/receipt_pdf_inspector_security_flags_test.dart \
+  test/receipt_pdf_performance_profile_test.dart \
+  test/receipt_pdf_torture_storage_test.dart \
+  test/receipt_pdf_torture_test.dart \
+  test/pdf_quality_gate_contract_test.dart \
+  test/pdf_cross_platform_contract_test.dart
+
+bash tool/pdf_render_smoke_gate.sh
+
+flutter test \
+  test/app_generated_pdf_service_test.dart \
+  test/cloud_backup_pdf_policy_test.dart \
+  test/document_engine_operating_directive_test.dart \
+  test/incoming_receipt_share_pdf_hardening_test.dart \
+  test/invoice_pdf_preview_action_tracking_test.dart \
+  test/invoice_template_pdf_factory_test.dart \
+  test/pdf_qa_fixture_inventory_test.dart \
+  test/pdf_security_policy_contract_test.dart \
+  test/receipt_pdf_hardening_test.dart \
+  test/receipt_pdf_import_copy_test.dart \
+  test/receipt_pdf_inspector_edge_cases_test.dart \
+  test/receipt_pdf_inspector_security_flags_test.dart \
+  test/receipt_pdf_performance_profile_test.dart \
+  test/receipt_pdf_torture_storage_test.dart \
+  test/receipt_pdf_torture_test.dart \
+  test/pdf_quality_gate_contract_test.dart \
+  test/pdf_cross_platform_contract_test.dart \
+  -r compact
+
+git diff --check

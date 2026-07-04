@@ -35,6 +35,8 @@ void main() {
           'blank_pages',
           'rotated_pages',
           'landscape_pages',
+          'image_layer_pdf',
+          'cropped_pages',
           'long_filename',
           'special_filename',
           'zero_byte',
@@ -85,6 +87,12 @@ void main() {
         final landscape = await ReceiptPdfInspector.inspect(
           fixtures['landscape_pages'].path,
         );
+        final imageLayer = await ReceiptPdfInspector.inspect(
+          fixtures['image_layer_pdf'].path,
+        );
+        final cropped = await ReceiptPdfInspector.inspect(
+          fixtures['cropped_pages'].path,
+        );
         final longName = await ReceiptPdfInspector.inspect(
           fixtures['long_filename'].path,
         );
@@ -101,6 +109,8 @@ void main() {
           blank,
           rotated,
           landscape,
+          imageLayer,
+          cropped,
           longName,
           specialName,
         ]) {
@@ -118,6 +128,10 @@ void main() {
         expect(twenty.userWarning, contains('longer than most'));
         expect(fifty.exceedsAssistedReadPageLimit, isFalse);
         expect(fifty.longReceiptWarning, contains('unusually long'));
+        expect(imageLayer.appearsImageOnly, isTrue);
+        expect(imageLayer.documentFitWarning, contains('image-based pages'));
+        expect(cropped.hasRotatedOrCroppedPages, isTrue);
+        expect(cropped.documentFitWarning, contains('rotated or cropped'));
       },
     );
 

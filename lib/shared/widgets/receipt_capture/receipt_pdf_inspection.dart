@@ -50,6 +50,14 @@ class ReceiptPdfInspection {
   bool get hasNonReceiptSignals => documentSignals.any(
     (signal) => ReceiptPdfInspector.nonReceiptSignals.contains(signal),
   );
+  bool get hasImageContent =>
+      documentSignals.contains(ReceiptPdfInspector.imageContentSignal);
+  bool get hasTextLayer =>
+      documentSignals.contains(ReceiptPdfInspector.textLayerSignal);
+  bool get appearsImageOnly => hasImageContent && !hasTextLayer;
+  bool get hasRotatedOrCroppedPages =>
+      documentSignals.contains(ReceiptPdfInspector.rotatedPageSignal) ||
+      documentSignals.contains(ReceiptPdfInspector.croppedPageSignal);
   bool get canAttachAsProof => importBlocker == null;
   bool get canUseAssistedRead => assistedReadBlocker == null;
 
@@ -120,9 +128,11 @@ class ReceiptPdfInspection {
 
   String? get documentFitWarning {
     if (!hasPdfHeader || importBlocker != null) return null;
-    if (!hasReceiptSignals &&
-        documentSignals.contains(ReceiptPdfInspector.imageContentSignal)) {
+    if (appearsImageOnly) {
       return 'This PDF appears to contain scanned or image-based pages. It can still be saved as proof; app-assisted reading may need a clear page image before it can fill the form.';
+    }
+    if (hasRotatedOrCroppedPages && !hasReceiptSignals) {
+      return 'This PDF has rotated or cropped page geometry. It can still be saved as proof; review the preview before using app-assisted reading.';
     }
     if (hasNonReceiptSignals && !hasReceiptSignals) {
       return 'This PDF looks more like ${documentSignals.join(', ')} than a receipt. It can still be saved as proof; review it before using app-assisted reading.';
@@ -138,7 +148,7 @@ class ReceiptPdfInspection {
     final blocker = importBlocker;
     if (blocker != null) return blocker;
     if (exceedsHardReceiptPageLimit) {
-      return 'This PDF has $pageCount pages. It was attached as proof, but it is too long for app-assisted receipt reading.';
+      return 'This PDF has $pageCount pages. It was attached as proof, but it is too long for app-assisted receipt assistance.';
     }
     if (hasEncryptionSecurity) {
       return 'This PDF appears to be password protected or encrypted. It can be saved as proof, but app-assisted reading cannot open it safely.';
@@ -156,7 +166,10 @@ class ReceiptPdfInspection {
     final count = pageCount;
     if (count == null) return null;
     if (exceedsHardReceiptPageLimit) {
-      return 'This PDF has $count pages. It can be saved as read-only proof, but it is too long to treat as a normal receipt. Save it without app-assisted reading unless you are sure the receipt details are near the front.';
+      return 'This PDF has $count pages. It can be saved as read-only proof, '
+          'but it is too long to treat as a normal receipt. Save it without '
+          'app-assisted reading unless you are sure the receipt details are '
+          'near the front.';
     }
     if (exceedsAssistedReadPageLimit) {
       return 'This PDF has $count pages. It can be saved as proof, but app-assisted reading will only read the first ${ReceiptPdfInspector.localAssistedReadPageLimit} pages.';
@@ -173,10 +186,10 @@ class ReceiptPdfInspection {
   String? get cloudCostWarning {
     final count = pageCount;
     if (count != null && exceedsCloudReadPageLimit) {
-      return 'Cloud receipt reading should use a smaller PDF or selected pages. This file has $count pages.';
+      return 'Cloud receipt assistance should use a smaller PDF or selected pages. This file has $count pages.';
     }
     if (exceedsCloudReadSizeLimit) {
-      return 'Cloud receipt reading should use a smaller PDF. This file is $sizeLabel.';
+      return 'Cloud receipt assistance should use a smaller PDF. This file is $sizeLabel.';
     }
     return null;
   }

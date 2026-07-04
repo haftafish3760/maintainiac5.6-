@@ -34,6 +34,10 @@ class AppGeneratedPdfService {
     final partial = File('${destination.path}.partial');
     try {
       await partial.writeAsBytes(document.bytes, flush: true);
+      final writtenBytes = await partial.length();
+      if (writtenBytes != document.byteSize) {
+        throw const FileSystemException('Generated PDF write was incomplete.');
+      }
       if (await destination.exists()) await destination.delete();
       await partial.rename(destination.path);
     } catch (_) {

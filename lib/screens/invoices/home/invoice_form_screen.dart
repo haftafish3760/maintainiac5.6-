@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 
 import '../../../shared/documents/app_generated_pdf_archive_service.dart';
@@ -357,12 +358,15 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
         document,
         title: document.title,
       );
+      final archiveHash = archived.fileHashSha256.trim().isEmpty
+          ? sha256.convert(document.bytes).toString()
+          : archived.fileHashSha256;
       final linked = await _ledger!.saveRecord(
         generatedRecord.recordPdfArchived(
           pdfKind: document.kind.name,
           fileName: document.safeFileName,
           byteSize: archived.attachment.byteSize ?? document.byteSize,
-          fileHashSha256: archived.fileHashSha256,
+          fileHashSha256: archiveHash,
         ),
       );
       if (!mounted) return false;

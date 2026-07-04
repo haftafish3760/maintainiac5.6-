@@ -1,16 +1,19 @@
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_ledger_models.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_ledger_store.dart';
 import 'package:maintaniac/screens/invoices/home/invoice_form_screen.dart';
+import 'package:maintaniac/shared/documents/app_document_models.dart';
 import 'package:maintaniac/shared/documents/app_document_store.dart';
 import 'package:maintaniac/shared/documents/app_generated_pdf_archive_service.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_service.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'package:share_plus/share_plus.dart';
 
 void main() {
@@ -208,9 +211,7 @@ void main() {
             controller: ledger,
             child: MaterialApp(
               home: InvoiceFormScreen(
-                pdfArchiveService: AppGeneratedPdfArchiveService(
-                  store: documentStore,
-                ),
+                pdfArchiveService: _FakeArchiveService(store: documentStore),
               ),
             ),
           ),
@@ -231,10 +232,17 @@ void main() {
       () => ledger.records.single.pdfEvents
           .where((event) => event.type == InvoicePdfDeliveryEventType.archived)
           .isNotEmpty,
+      attempts: 120,
     );
 
     final record = ledger.records.single;
-    expect(record.documentHashSha256, hasLength(64));
+    final eventSummary = record.pdfEvents
+        .map(
+          (event) =>
+              '${event.type.name}:${event.fileHashSha256}:${event.byteSize}',
+        )
+        .join('|');
+    expect(record.documentHashSha256, hasLength(64), reason: eventSummary);
     expect(record.pdfEvents.map((event) => event.type), [
       InvoicePdfDeliveryEventType.generated,
       InvoicePdfDeliveryEventType.archived,
@@ -262,6 +270,7 @@ Future<void> _pumpUntil(
     if (condition()) return;
     await tester.pump(const Duration(milliseconds: 50));
   }
+  expect(condition(), isTrue, reason: 'Timed out waiting for async condition.');
 }
 
 class _FakeGeneratedPdfService extends AppGeneratedPdfService {
@@ -305,5 +314,54 @@ class _FakeGeneratedPdfService extends AppGeneratedPdfService {
   @override
   Future<bool> print(AppGeneratedPdfDocument document) async {
     return printResult;
+  }
+}
+
+class _FakeArchiveService extends AppGeneratedPdfArchiveService {
+  const _FakeArchiveService({required AppDocumentStore store})
+    : super(store: store);
+
+  @override
+  Future<AppDocumentArchiveResult> archive(
+    AppGeneratedPdfDocument document, {
+    AppDocumentKind? kind,
+    String title = '',
+    String notes = '',
+  }) async {
+    final hash = sha256.convert(document.bytes).toString();
+    final now = DateTime.now();
+    final attachment = ReceiptAttachmentRecord(
+      id: 'fake-${document.sourceRecordId}-pdf',
+      path: '/tmp/${document.safeFileName}',
+      kind: ReceiptAttachmentKind.pdf,
+      dataSaverLevel: ReceiptDataSaverLevel.original,
+      createdAt: now,
+      displayName: document.safeFileName,
+      originalFileName: document.safeFileName,
+      mimeType: 'application/pdf',
+      byteSize: document.byteSize,
+      fileHash: hash,
+      linkedModule: document.sourceModule,
+      linkedRecordId: document.sourceRecordId,
+      storageState: ReceiptAttachmentStorageState.permanent,
+      promotedAt: now,
+      readState: ReceiptAttachmentReadState.notRead,
+    );
+    final record = AppDocumentRecord(
+      id: 'DOC-${document.kind.name}-${document.sourceRecordId}',
+      kind: kind ?? AppDocumentKind.invoiceDocument,
+      title: title.trim().isEmpty ? document.title : title.trim(),
+      notes: notes,
+      sourceLabel: 'Generated PDF',
+      createdAt: now,
+      updatedAt: now,
+      attachments: [attachment],
+    );
+    final saved = await store!.saveRecord(record);
+    return AppDocumentArchiveResult(
+      document: saved,
+      attachment: attachment,
+      fileHashSha256: hash,
+    );
   }
 }

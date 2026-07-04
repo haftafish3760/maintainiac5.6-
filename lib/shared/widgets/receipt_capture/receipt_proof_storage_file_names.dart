@@ -5,6 +5,7 @@ String _safeFileName(String value) {
   if (trimmed.isEmpty) return '';
   final sanitized = trimmed
       .replaceAll(RegExp(r'[^A-Za-z0-9._-]+'), '_')
+      .replaceAll(RegExp(r'\.{2,}'), '_')
       .replaceAll(RegExp(r'_+'), '_')
       .replaceAll(RegExp(r'^[._-]+|[._-]+$'), '');
   if (sanitized.isEmpty) return '';

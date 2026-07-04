@@ -1,0 +1,171 @@
+{
+  "schema": "pdf_qa_fixture_pack_inventory_v1",
+  "sharedBackbone": {
+    "styleSource": "tool/receipt_qa_runner.dart",
+    "reportingPolicy": "use_shared_maintainiac_qa_reporting_when_available",
+    "privacyPolicy": "synthetic_or_redacted_only",
+    "textPolicy": "raw_pdf_text_allowed_only_in_fixture_files_not_reports",
+    "artifactPolicy": "original_pdf_preserved_derived_artifacts_separate",
+    "duplicatePolicy": "do_not_create_pdf_specific_fake_users_hive_or_firebase_mirrors"
+  },
+  "requiredSuites": {
+    "malformed_pdfs": {
+      "status": "covered",
+      "currentTestFiles": [
+        "test/receipt_pdf_torture_test.dart",
+        "test/receipt_pdf_inspector_edge_cases_test.dart"
+      ],
+      "fixtureKeys": [
+        "zero_byte",
+        "txt_renamed_pdf",
+        "image_renamed_pdf",
+        "corrupted_pdf",
+        "truncated_pdf",
+        "invalid_header",
+        "no_pages"
+      ]
+    },
+    "large_pdfs": {
+      "status": "covered",
+      "currentTestFiles": [
+        "test/receipt_pdf_torture_test.dart",
+        "test/receipt_pdf_performance_profile_test.dart"
+      ],
+      "fixtureKeys": [
+        "valid_20_page",
+        "document_50_page",
+        "hard_limit_sparse_pdf",
+        "over_hard_limit_sparse_pdf"
+      ]
+    },
+    "encrypted_pdfs": {
+      "status": "covered",
+      "currentTestFiles": [
+        "test/receipt_pdf_torture_test.dart",
+        "test/receipt_pdf_inspector_security_flags_test.dart"
+      ],
+      "fixtureKeys": [
+        "password_marker"
+      ]
+    },
+    "image_only_pdfs": {
+      "status": "partial",
+      "currentTestFiles": [
+        "test/receipt_pdf_hardening_test.dart",
+        "test/receipt_pdf_torture_test.dart",
+        "test/receipt_pdf_inspector_edge_cases_test.dart"
+      ],
+      "fixtureKeys": [
+        "blank_pages",
+        "image_layer_pdf"
+      ]
+    },
+    "text_layer_extraction": {
+      "status": "partial",
+      "currentTestFiles": [
+        "test/receipt_pdf_inspector_edge_cases_test.dart"
+      ],
+      "fixtureKeys": [
+        "valid_1_page",
+        "valid_3_page",
+        "manual_document"
+      ]
+    },
+    "rotated_and_cropped_pages": {
+      "status": "partial",
+      "currentTestFiles": [
+        "test/receipt_pdf_torture_test.dart",
+        "test/receipt_pdf_inspector_edge_cases_test.dart"
+      ],
+      "fixtureKeys": [
+        "rotated_pages",
+        "landscape_pages",
+        "cropped_pages"
+      ]
+    },
+    "import_ownership": {
+      "status": "covered",
+      "currentTestFiles": [
+        "test/receipt_pdf_import_copy_test.dart",
+        "test/incoming_receipt_share_pdf_hardening_test.dart",
+        "test/receipt_pdf_torture_storage_test.dart"
+      ],
+      "fixtureKeys": [
+        "duplicate_original",
+        "duplicate_different_filename",
+        "duplicate_different_path"
+      ]
+    },
+    "storage_cleanup": {
+      "status": "covered",
+      "currentTestFiles": [
+        "test/receipt_pdf_torture_storage_test.dart"
+      ],
+      "fixtureKeys": [
+        "valid_3_page"
+      ]
+    },
+    "privacy_and_security_logs": {
+      "status": "partial",
+      "currentTestFiles": [
+        "test/cloud_backup_pdf_policy_test.dart",
+        "test/receipt_pdf_inspector_security_flags_test.dart",
+        "test/app_generated_pdf_service_test.dart"
+      ],
+      "fixtureKeys": [
+        "active_actions",
+        "escaped_active_names",
+        "private_text_redaction_probe"
+      ]
+    },
+    "pdf_to_receipt_review": {
+      "status": "covered_without_parser_mutation",
+      "currentTestFiles": [
+        "test/incoming_receipt_share_pdf_hardening_test.dart",
+        "test/receipt_pdf_import_copy_test.dart",
+        "test/receipt_pdf_torture_storage_test.dart"
+      ],
+      "fixtureKeys": [
+        "valid_1_page",
+        "password_marker",
+        "active_actions"
+      ]
+    },
+    "invoice_generation": {
+      "status": "covered",
+      "currentTestFiles": [
+        "test/app_generated_pdf_service_test.dart",
+        "test/invoice_template_pdf_factory_test.dart",
+        "test/invoice_pdf_preview_action_tracking_test.dart"
+      ],
+      "fixtureKeys": [
+        "generated_invoice_pdf",
+        "generated_estimate_pdf"
+      ]
+    },
+    "cross_platform_storage": {
+      "status": "covered",
+      "currentTestFiles": [
+        "test/pdf_cross_platform_contract_test.dart"
+      ],
+      "fixtureKeys": [
+        "android_content_filename",
+        "ios_icloud_filename",
+        "macos_temp_directory",
+        "windows_path_filename",
+        "traversal_like_filename"
+      ]
+    },
+    "render_smoke": {
+      "status": "covered",
+      "currentTestFiles": [
+        "test/pdf_quality_gate_contract_test.dart"
+      ],
+      "fixtureKeys": [
+        "sample_receipt_pdf",
+        "sample_invoice_pdf",
+        "poppler_first_page_png"
+      ]
+    }
+  }
+}

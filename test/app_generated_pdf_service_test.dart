@@ -94,6 +94,20 @@ void main() {
     expect(await File(generated.path).length(), document.byteSize);
   });
 
+  test('generated PDF service verifies temporary byte count before rename', () {
+    final source = File(
+      'lib/shared/pdf/app_generated_pdf_service.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('final writtenBytes = await partial.length();'));
+    expect(source, contains('writtenBytes != document.byteSize'));
+    expect(
+      source,
+      contains("FileSystemException('Generated PDF write was incomplete.')"),
+    );
+    expect(source, contains('await partial.rename(destination.path);'));
+  });
+
   test('generated PDF model validates sendable PDF bytes and filenames', () {
     final document = AppGeneratedPdfDocument(
       kind: AppGeneratedPdfKind.invoice,
@@ -135,6 +149,32 @@ void main() {
     expect(invalid.validation.hasIssue('missing_pdf_end_marker'), isTrue);
     expect(active.validation.isValid, isFalse);
     expect(active.validation.hasIssue('active_javascript'), isTrue);
+  });
+
+  test('generated PDF validation shares active-content policy coverage', () {
+    final active = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\n'
+                '1 0 obj << /Type /Page /OpenAction 2 0 R /AA 3 0 R >> endobj\n'
+                '2 0 obj << /Launch 4 0 R /RichMedia 5 0 R /SubmitForm 6 0 R >> endobj\n'
+                '3 0 obj << /EmbeddedFile 7 0 R /URI (https://example.com) >> endobj\n'
+                '%%EOF'
+            .codeUnits,
+      ),
+      createdAt: DateTime(2026, 7, 4),
+    );
+
+    expect(active.validation.isValid, isFalse);
+    expect(active.validation.hasIssue('auto_open_action'), isTrue);
+    expect(active.validation.hasIssue('active_launch_action'), isTrue);
+    expect(active.validation.hasIssue('automatic_action'), isTrue);
+    expect(active.validation.hasIssue('embedded_file'), isTrue);
+    expect(active.validation.hasIssue('embedded_media'), isTrue);
+    expect(active.validation.hasIssue('form_submission_action'), isTrue);
+    expect(active.validation.hasIssue('external_links'), isTrue);
   });
 
   test(

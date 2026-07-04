@@ -129,6 +129,65 @@ void main() {
     );
   });
 
+  test('PDF document signals distinguish text layer from image-only pages', () {
+    final textLayer = ReceiptPdfInspector.detectDocumentSignals(
+      '%PDF-1.7\n'
+              '1 0 obj << /Type /Page /Contents 2 0 R >> endobj\n'
+              '2 0 obj << >> stream BT /F1 12 Tf (Total 12.34) Tj ET endstream endobj\n'
+              '%%EOF'
+          .codeUnits,
+    );
+    final imageOnly = ReceiptPdfInspector.detectDocumentSignals(
+      '%PDF-1.7\n'
+              '1 0 obj << /Type /Page /Resources << /XObject << /Im1 2 0 R >> >> >> endobj\n'
+              '2 0 obj << /Type /XObject /Subtype /Image /Width 800 /Height 1200 >> stream data endstream endobj\n'
+              '%%EOF'
+          .codeUnits,
+    );
+    final geometry = ReceiptPdfInspector.detectDocumentSignals(
+      '%PDF-1.7\n'
+              '1 0 obj << /Type /Page /Rotate 90 /CropBox [0 0 300 600] >> endobj\n'
+              '%%EOF'
+          .codeUnits,
+    );
+
+    expect(textLayer, contains(ReceiptPdfInspector.textLayerSignal));
+    expect(textLayer, contains('total'));
+    expect(imageOnly, contains(ReceiptPdfInspector.imageContentSignal));
+    expect(imageOnly, isNot(contains(ReceiptPdfInspector.textLayerSignal)));
+    expect(geometry, contains(ReceiptPdfInspector.rotatedPageSignal));
+    expect(geometry, contains(ReceiptPdfInspector.croppedPageSignal));
+  });
+
+  test(
+    'PDF warnings do not expose private embedded text or source paths',
+    () async {
+      final file = File('${Directory.systemTemp.path}/private_pdf_warning.pdf');
+      await file.writeAsString(
+        '%PDF-1.7\n'
+        '1 0 obj << /Type /Page /Annots [] /JavaScript 2 0 R >> endobj\n'
+        '2 0 obj << >> stream BT (Jane Customer private@example.com card 4242 TOTAL 12.34) Tj ET endstream endobj\n'
+        '%%EOF',
+        flush: true,
+      );
+      addTearDown(() {
+        if (file.existsSync()) file.deleteSync();
+      });
+
+      final inspection = await ReceiptPdfInspector.inspect(file.path);
+      final warning = inspection.userWarning ?? '';
+
+      expect(warning, contains('embedded JavaScript'));
+      expect(warning, isNot(contains('Jane Customer')));
+      expect(warning, isNot(contains('private@example.com')));
+      expect(warning, isNot(contains('4242')));
+      expect(warning, isNot(contains(file.path)));
+      expect(inspection.documentSignals, contains('total'));
+      expect(inspection.documentSignals, contains('card'));
+      expect(inspection.documentSignals, isNot(contains('Jane Customer')));
+    },
+  );
+
   test(
     'hard page limit boundary is allowed but next page warns strongly',
     () async {
