@@ -110,7 +110,7 @@ internal fun ReceiptCameraActivity.nativeCaptureDiagnostics(
         "focusMode" to focusMode,
         "exposureMode" to exposureMode,
         "whiteBalanceMode" to whiteBalanceMode,
-        "whiteBalanceLockEnabled" to whiteBalanceLockEnabled,
+        "whiteBalanceLockEnabled" to false,
         "focusLockAttemptCount" to focusLockAttemptCount,
         "focusLockSuccessCount" to focusLockSuccessCount,
         "exposureLockSuccessCount" to exposureLockSuccessCount,

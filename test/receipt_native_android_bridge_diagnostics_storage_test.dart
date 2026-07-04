@@ -257,9 +257,10 @@ void main() {
         cameraActivity,
         contains('"whiteBalanceMode" to whiteBalanceMode'),
       );
+      expect(cameraActivity, contains('"whiteBalanceLockEnabled" to false'));
       expect(
         cameraActivity,
-        contains('"whiteBalanceLockEnabled" to whiteBalanceLockEnabled'),
+        isNot(contains('"whiteBalanceLockEnabled" to whiteBalanceLockEnabled')),
       );
       expect(
         cameraActivity,

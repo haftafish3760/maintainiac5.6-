@@ -154,7 +154,7 @@ extension ReceiptCameraViewController {
       "focusMode": focusMode,
       "exposureMode": exposureMode,
       "whiteBalanceMode": whiteBalanceMode,
-      "whiteBalanceLockEnabled": whiteBalanceLockEnabled,
+      "whiteBalanceLockEnabled": false,
       "focusLockAttemptCount": focusLockAttemptCount,
       "focusLockSuccessCount": focusLockSuccessCount,
       "exposureLockSuccessCount": exposureLockSuccessCount,

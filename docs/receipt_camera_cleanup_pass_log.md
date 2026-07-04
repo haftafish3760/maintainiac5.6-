@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 735 - 03:27:16 EDT to active cleanup
+
+Scope:
+- Audited remaining native lock diagnostics after platform argument hardening.
+- Hard-coded Android and iOS `whiteBalanceLockEnabled` diagnostics false so
+  retired lock state cannot leak through serialized capture diagnostics.
+- Updated Android/iOS storage-contract regressions to reject variable-derived
+  white-balance lock diagnostics.
+- Recorded `BUG-RECEIPT-0226` under `native_bridge`.
+- Archived Pass 710 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for Android/iOS native storage bridge
+  regressions.
+- Passed focused Flutter Android/iOS storage bridge regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 734 - 03:25:54 EDT to active cleanup
 
 Scope:
@@ -456,26 +474,5 @@ Verification:
 - Passed targeted Dart format/analyzer for the native camera service boundary
   and result regression.
 - Passed focused native camera result regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 710 - 02:23:00 EDT to active cleanup
-
-Scope:
-- Tightened shared Flutter receipt help copy so it names continuous
-  autofocus/readability guidance instead of generic continuous focus.
-- Replaced first-use intro `flash, focus` wording with `flash, readability
-  guidance` so the shared camera entry point does not imply a manual focus
-  feature.
-- Added help-flow source regressions for the updated copy and the retired
-  generic focus phrase.
-- Recorded `BUG-RECEIPT-0198` under `camera_capture_quality`.
-- Archived Pass 652 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the receipt camera help flow.
-- Passed focused receipt camera help flow regression.
-- First cleanup log gate failed at 501 lines; archived Pass 653 and reran the
-  gate before milestone push.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

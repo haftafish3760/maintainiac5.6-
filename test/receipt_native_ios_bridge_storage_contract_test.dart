@@ -151,9 +151,10 @@ void main() {
         cameraController,
         contains('"whiteBalanceMode": whiteBalanceMode'),
       );
+      expect(cameraController, contains('"whiteBalanceLockEnabled": false'));
       expect(
         cameraController,
-        contains('"whiteBalanceLockEnabled": whiteBalanceLockEnabled'),
+        isNot(contains('"whiteBalanceLockEnabled": whiteBalanceLockEnabled')),
       );
       expect(
         cameraController,
