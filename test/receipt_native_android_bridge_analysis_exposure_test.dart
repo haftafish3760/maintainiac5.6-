@@ -140,6 +140,14 @@ void main() {
     expect(cameraActivity, contains('CONTROL_AF_MODE_CONTINUOUS_PICTURE'));
     expect(
       cameraActivity,
+      contains('lastFocusStatus = receiptContinuousFocusStatus()'),
+    );
+    expect(cameraActivity, contains('receiptContinuousFocusStatus'));
+    expect(cameraActivity, contains('"continuous_autofocus_configured"'));
+    expect(cameraActivity, contains('"continuous_autofocus_unavailable"'));
+    expect(cameraActivity, contains('"continuous_focus_not_requested"'));
+    expect(
+      cameraActivity,
       contains('intent.getBooleanExtra("continuousFocusEnabled"'),
     );
     expect(cameraActivity, contains('"continuousFocusEnabled" to'));

@@ -60,6 +60,7 @@ internal fun ReceiptCameraActivity.startCamera() {
                     )
                 }
                 torchButton.isEnabled = camera?.cameraInfo?.hasFlashUnit() == true
+                lastFocusStatus = receiptContinuousFocusStatus()
                 configureTouchControls()
                 configureExposureControls()
                 guidance.text = guidanceText()
@@ -70,6 +71,14 @@ internal fun ReceiptCameraActivity.startCamera() {
         },
         mainExecutor(),
     )
+}
+
+internal fun ReceiptCameraActivity.receiptContinuousFocusStatus(): String {
+    return when {
+        continuousFocusEnabled && focusMode == "continuous" -> "continuous_autofocus_configured"
+        focusMode == "continuous" -> "continuous_autofocus_unavailable"
+        else -> "continuous_focus_not_requested"
+    }
 }
 
 @OptIn(ExperimentalCamera2Interop::class)

@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 834 - 11:41:00 EDT to active cleanup
+
+Scope:
+- Set Android native camera focus diagnostics from the effective continuous
+  focus policy after CameraX bind.
+- Pinned configured, unavailable, and not-requested focus-status tokens in the
+  Android native bridge regression so review/admin telemetry does not fall back
+  to `not_used` after autofocus setup.
+- Recorded `BUG-RECEIPT-0314` under `native_bridge`.
+- Archived Pass 789 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused Android native bridge
+  analysis/exposure regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 827 - 14:58:00 EDT to active cleanup
 
 Scope:
@@ -465,22 +482,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused telemetry regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 789 - 08:01:22 EDT to active cleanup
-
-Scope:
-- Renamed native camera memory-policy diagnostics from original-for-OCR wording
-  to temporary-source-for-OCR wording.
-- Updated Android/iOS default policy strings, Dart session policy strings, and
-  focused fixtures/expectations that consume those diagnostics.
-- Kept the legacy `ocrUsesOriginalFirst` bridge key untouched for compatibility.
-- Recorded `BUG-RECEIPT-0276` under `source_preservation`.
-- Archived Pass 762 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused native camera storage,
-  session, contract, and staging regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.
