@@ -40,6 +40,7 @@ class ReceiptDeviceCapabilityService {
       hasRearCamera: nativeCamera.hasRearCamera,
       hasFrontCamera: nativeCamera.hasFrontCamera,
       supportsTapFocus: nativeCamera.supportsTapFocus,
+      supportsContinuousFocus: nativeCamera.supportsContinuousFocus,
       supportsExposureCompensation: nativeCamera.supportsExposureCompensation,
       supportsZoom: nativeCamera.supportsZoom,
       supportsYuvLiveFrames: nativeCamera.supportsYuvLiveFrames,

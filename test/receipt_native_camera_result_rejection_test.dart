@@ -328,6 +328,12 @@ void main() {
         source,
         contains('supportsTapFocus: nativeCamera.supportsTapFocus'),
       );
+      expect(
+        source,
+        contains(
+          'supportsContinuousFocus: nativeCamera.supportsContinuousFocus',
+        ),
+      );
       expect(source, contains('supportsZoom: nativeCamera.supportsZoom'));
       expect(
         source,

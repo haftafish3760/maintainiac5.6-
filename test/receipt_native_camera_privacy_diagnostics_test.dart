@@ -21,6 +21,7 @@ void main() {
       hasRearCamera: true,
       hasFrontCamera: true,
       supportsTapFocus: true,
+      supportsContinuousFocus: true,
       supportsExposureCompensation: true,
       supportsZoom: true,
       supportsYuvLiveFrames: true,
@@ -35,13 +36,15 @@ void main() {
     expect(label, contains('capability'));
     expect(label, contains('storage'));
     expect(label, contains('rear camera available'));
-    expect(label, contains('focus assist'));
+    expect(label, contains('continuous focus'));
+    expect(label, isNot(contains('tap focus')));
     expect(label, contains('pinch zoom'));
     expect(label, isNot(contains('Samsung')));
     expect(label, isNot(contains('Galaxy Private Model')));
     expect(label, isNot(contains('Robbie Phone')));
     expect(diagnostics, containsPair('cameraCount', 4));
-    expect(diagnostics, containsPair('supportsTapFocus', true));
+    expect(diagnostics, containsPair('supportsContinuousFocus', true));
+    expect(diagnostics, containsPair('legacyTapFocusSupported', true));
     expect(diagnostics, containsPair('supportsZoom', true));
     expect(diagnostics, containsPair('maxStillMegapixels', 12));
     expect(diagnostics.containsKey('deviceManufacturer'), isFalse);

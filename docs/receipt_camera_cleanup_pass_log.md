@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 648 - 22:47:13 EDT to active cleanup
+
+Scope:
+- Hardened hardware capability summaries so normal receipt-camera copy exposes
+  continuous focus/readability support instead of legacy tap-focus behavior.
+- Wired native `supportsContinuousFocus` into the device hardware profile and
+  kept tap-focus support as legacy diagnostic evidence only.
+- Fixed Android/iOS native auto-capture readability holdback to use helper/set
+  membership instead of direct raw-signal equality checks.
+- Recorded `BUG-RECEIPT-0166` under `camera_capture_quality` and
+  `BUG-RECEIPT-0167` under `native_bridge`.
+- Archived Pass 610 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart analyzer for capability/profile/privacy tests.
+- Passed focused Flutter capability, privacy, native rejection, install
+  strategy, and parser-pack regressions.
+
 ## Pass 647 - 22:45:26 EDT to active cleanup
 
 Scope:
@@ -462,19 +480,3 @@ Verification:
 - Passed targeted Dart format/analyzer for receipt line models, receipt
   processing contracts, and focused line-model regressions.
 - Passed focused Flutter receipt line model regressions.
-
-## Pass 610 - 21:20:25 EDT to active cleanup
-
-Scope:
-- Hardened OCR source handoff so marginal saved-photo lighting warnings
-  (`brightness_assist_still_dim` and `dimmer_than_preview`) count as
-  dark/exposure review risks instead of looking ready for OCR.
-- Mirrored the same dim-light risk family into OCR diagnostic warning buckets.
-- Added regression coverage proving dimmer receipt-photo handoff contracts now
-  report `saved_dark_exposure_review` and the matching review action.
-- Recorded `BUG-RECEIPT-0131` under `ocr_handoff_contract`.
-
-Verification:
-- Passed targeted Dart format/analyzer for OCR source handoff review,
-  diagnostics helpers, and OCR service regressions.
-- Passed focused Flutter OCR service and OCR source-quality regressions.

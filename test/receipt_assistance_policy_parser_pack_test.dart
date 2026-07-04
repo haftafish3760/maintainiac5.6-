@@ -23,6 +23,7 @@ void main() {
         cameraCount: 1,
         hasRearCamera: true,
         supportsTapFocus: true,
+        supportsContinuousFocus: true,
         supportsZoom: true,
         supportsExposureCompensation: true,
         maxStillWidth: 4000,

@@ -176,8 +176,8 @@ internal fun ReceiptCameraActivity.maybeAutoCapture(
             framing.confidenceBucket == "usable_edges")
     val steady = motionScore in 0.0..autoCaptureMaxMotionScore
     val lightReady = brightness in autoCaptureMinBrightness..autoCaptureMaxBrightness
-    val qualityReviewNeeded = latestReadabilitySignal == "shadow_risk" ||
-        latestReadabilitySignal == "dirty_lens_or_haze"
+    val qualityReviewNeeded =
+        receiptQualityReviewReadabilitySignals().contains(latestReadabilitySignal)
     if (!edgesReady || !steady || !lightReady || qualityReviewNeeded) {
         autoCaptureStableFrameCount = 0
         latestAutoCaptureStatus = when {
@@ -198,6 +198,10 @@ internal fun ReceiptCameraActivity.maybeAutoCapture(
     latestAutoCaptureStatus = "capturing"
     guidance.text = "Receipt looks steady. Taking photo."
     capturePhoto("auto_capture")
+}
+
+internal fun receiptQualityReviewReadabilitySignals(): Set<String> {
+    return setOf("shadow_risk", "dirty_lens_or_haze")
 }
 
 internal fun ReceiptCameraActivity.closeCapturedPhotoOutcome(): String {

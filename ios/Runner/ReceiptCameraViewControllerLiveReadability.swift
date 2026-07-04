@@ -3,6 +3,11 @@ import CoreMedia
 import CoreVideo
 import UIKit
 
+private let receiptQualityReviewReadabilitySignals: Set<String> = [
+  "shadow_risk",
+  "dirty_lens_or_haze",
+]
+
 extension ReceiptCameraViewController {
   var isCameraSessionUsable: Bool {
     return isViewLoaded && !closeResultDelivered && !isBeingDismissed
@@ -158,8 +163,7 @@ extension ReceiptCameraViewController {
       brightness >= autoCaptureMinBrightness &&
       brightness <= autoCaptureMaxBrightness
     let qualityReviewNeeded =
-      latestReadabilitySignal == "shadow_risk" ||
-      latestReadabilitySignal == "dirty_lens_or_haze"
+      receiptQualityReviewReadabilitySignals.contains(latestReadabilitySignal)
     guard edgesReady, steady, lightReady, !qualityReviewNeeded else {
       autoCaptureStableFrameCount = 0
       if !edgesReady {

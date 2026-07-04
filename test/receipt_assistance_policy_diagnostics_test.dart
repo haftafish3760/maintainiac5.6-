@@ -21,6 +21,7 @@ void main() {
       cameraCount: 4,
       hasRearCamera: true,
       supportsTapFocus: true,
+      supportsContinuousFocus: true,
       supportsExposureCompensation: true,
       supportsZoom: true,
       supportsYuvLiveFrames: true,
@@ -45,7 +46,8 @@ void main() {
     expect(detected.accelerationLabel, 'Detected');
     expect(detected.maxStillMegapixels, 12);
     expect(detected.cameraLabel, '4 cameras detected');
-    expect(detected.receiptCameraControlLabel, contains('focus assist'));
+    expect(detected.receiptCameraControlLabel, contains('continuous focus'));
+    expect(detected.receiptCameraControlLabel, isNot(contains('tap focus')));
     expect(detected.receiptCameraControlLabel, contains('pinch zoom'));
     expect(detected.receiptCameraControlLabel, contains('brightness'));
     expect(detected.receiptCameraControlLabel, contains('edge guidance'));
@@ -65,6 +67,7 @@ void main() {
           cameraCount: 3,
           hasRearCamera: true,
           supportsTapFocus: true,
+          supportsContinuousFocus: true,
           supportsExposureCompensation: true,
           supportsZoom: true,
           supportsYuvLiveFrames: true,

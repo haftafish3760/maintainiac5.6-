@@ -54,6 +54,7 @@ class ReceiptHardwareProfile {
     this.hasRearCamera = false,
     this.hasFrontCamera = false,
     this.supportsTapFocus = false,
+    this.supportsContinuousFocus = false,
     this.supportsExposureCompensation = false,
     this.supportsZoom = false,
     this.supportsYuvLiveFrames = false,
@@ -82,6 +83,7 @@ class ReceiptHardwareProfile {
   final bool hasRearCamera;
   final bool hasFrontCamera;
   final bool supportsTapFocus;
+  final bool supportsContinuousFocus;
   final bool supportsExposureCompensation;
   final bool supportsZoom;
   final bool supportsYuvLiveFrames;
@@ -103,7 +105,7 @@ class ReceiptHardwareProfile {
         ? 'rear camera available'
         : 'rear camera unavailable';
     final controls = [
-      if (supportsTapFocus) 'focus assist',
+      if (supportsContinuousFocus) 'continuous focus',
       if (supportsZoom) 'pinch zoom',
       if (supportsExposureCompensation) 'brightness control',
       if (supportsNativeEdgeSignals) 'edge guidance',
@@ -124,7 +126,8 @@ class ReceiptHardwareProfile {
       'cameraCount': cameraCount,
       'hasRearCamera': hasRearCamera,
       'hasFrontCamera': hasFrontCamera,
-      'supportsTapFocus': supportsTapFocus,
+      'supportsContinuousFocus': supportsContinuousFocus,
+      'legacyTapFocusSupported': supportsTapFocus,
       'supportsExposureCompensation': supportsExposureCompensation,
       'supportsZoom': supportsZoom,
       'supportsYuvLiveFrames': supportsYuvLiveFrames,
@@ -196,7 +199,9 @@ class ReceiptHardwareProfile {
     }
     if (hasOnDeviceAcceleration) score += 2;
     if (cameraPermissionGranted && hasRearCamera) score += 1;
-    if (supportsTapFocus && supportsZoom && supportsExposureCompensation) {
+    if (supportsContinuousFocus &&
+        supportsZoom &&
+        supportsExposureCompensation) {
       score += 1;
     }
     if (supportsYuvLiveFrames && supportsNativeEdgeSignals) score += 1;
