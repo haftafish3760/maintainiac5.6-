@@ -3298,3 +3298,15 @@ Release boundaries:
   `inventory.financial_duplicate_guard_contract`,
   `inventory.import_export_safety_contract`, and `qa.threshold_gate`. The gate
   passed with 357 checks and 0 failures.
+- **09:20 Harness Pass 2429:** Confirmed the interrupted broad Core/Standard
+  release-one contract gate completed in the background. The gate covered
+  `inventory.release_one_residential_contract`,
+  `inventory.release_one_pack_balance`, `inventory.release_one_tier_role_contract`,
+  `inventory.release_one_fastener_support_contract`,
+  `inventory.service_truck_core_contract`,
+  `inventory.standard_fixture_seed_contract`, `inventory.workflow_routing`,
+  `inventory.job_context_bridge_contract`, `inventory.pack_overlap_contract`,
+  `inventory.pack_scope_gate_contract`, and `qa.threshold_gate`. The gate passed
+  with 228,043 checks, 0 failures, latest QA artifact
+  `build/parser_qa_reports/latest_work_supply_inventory_parser.json`, and no
+  live Dart/Flutter process remained afterward.
