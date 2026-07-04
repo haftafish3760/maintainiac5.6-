@@ -388,6 +388,58 @@ void main() {
       expect(store.recordById('DOC-invoice-invoice_bad'), isNull);
     },
   );
+
+  test(
+    'generated PDF archive removes permanent file when record save fails',
+    () async {
+      final store = _FailingDocumentStore();
+      final document = AppGeneratedPdfDocument(
+        kind: AppGeneratedPdfKind.invoice,
+        title: 'Invoice INV-ROLLBACK',
+        fileName: 'invoice_rollback.pdf',
+        bytes: Uint8List.fromList('%PDF-1.7\n%%EOF'.codeUnits),
+        createdAt: DateTime(2026, 6, 15),
+        sourceModule: 'invoices',
+        sourceRecordId: 'invoice_rollback',
+      );
+
+      await expectLater(
+        AppGeneratedPdfArchiveService(store: store).archive(document),
+        throwsA(
+          isA<AppGeneratedPdfArchiveException>().having(
+            (error) => error.message,
+            'message',
+            contains('PDF file was not kept'),
+          ),
+        ),
+      );
+
+      final generatedDirectory = Directory(
+        '${documentsDirectory.path}/app_documents/invoices/generated_pdfs',
+      );
+      final leftoverFiles = generatedDirectory.existsSync()
+          ? generatedDirectory
+                .listSync(recursive: true)
+                .whereType<File>()
+                .toList(growable: false)
+          : <File>[];
+      expect(leftoverFiles, isEmpty);
+    },
+  );
+
+  test('generated PDF archive verifies permanent writes by hash', () {
+    final source = File(
+      'lib/shared/documents/app_generated_pdf_archive_service.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('final writtenHash = await _safeHash(partial);'));
+    expect(source, contains('sha256.convert(document.bytes).toString()'));
+    expect(
+      source,
+      contains("FileSystemException('Generated PDF write did not verify.')"),
+    );
+    expect(source, contains('await _deleteIfExists(savedFile);'));
+  });
 }
 
 InvoiceRecord _invoiceRecord({
@@ -436,4 +488,13 @@ InvoiceRecord _invoiceRecord({
     terms: 'Payment due on receipt.',
     meta: InvoiceSyncMetadata(createdAt: now, updatedAt: now),
   );
+}
+
+class _FailingDocumentStore extends AppDocumentStore {
+  _FailingDocumentStore() : super.memory();
+
+  @override
+  Future<AppDocumentRecord> saveRecord(AppDocumentRecord record) async {
+    throw StateError('simulated document-store failure');
+  }
 }

@@ -1,5 +1,24 @@
 # PDF System Pass Log
 
+## Pass 20 - 2026-07-04 20:36 EDT - Generated PDF archive rollback
+
+- Scope: generated PDF permanent archive failure recovery and QA only. No
+  inventory, camera, native capture, receipt text engine, or parser behavior
+  changes.
+- Bundled work:
+  - Added hash verification after permanent generated-PDF writes so archive
+    storage now verifies both byte count and SHA-256 before renaming the
+    partial file into place.
+  - Added rollback when the document-store record save fails after a permanent
+    PDF file was written, preventing orphaned generated PDFs.
+  - Added regression coverage for record-save failure cleanup and source-code
+    guard coverage for permanent-write hash verification.
+- Verification completed 2026-07-04 20:35 EDT:
+  - `dart format lib/shared/documents/app_generated_pdf_archive_service.dart test/app_generated_pdf_service_test.dart`
+  - `dart analyze lib/shared/documents/app_generated_pdf_archive_service.dart test/app_generated_pdf_service_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 19 - 2026-07-04 20:24 EDT - Receipt PDF proof metadata privacy
 
 - Scope: receipt PDF proof storage metadata privacy and QA only. No inventory,

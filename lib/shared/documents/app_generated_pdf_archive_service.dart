@@ -60,7 +60,15 @@ class AppGeneratedPdfArchiveService {
       attachments: [attachment],
     );
     final documentStore = store ?? await AppDocumentStore.create();
-    final savedRecord = await documentStore.saveRecord(record);
+    late final AppDocumentRecord savedRecord;
+    try {
+      savedRecord = await documentStore.saveRecord(record);
+    } catch (_) {
+      await _deleteIfExists(savedFile);
+      throw const AppGeneratedPdfArchiveException(
+        'Maintaniac could not save the generated PDF record, so the PDF file was not kept.',
+      );
+    }
     return AppDocumentArchiveResult(
       document: savedRecord,
       attachment: attachment,
@@ -100,6 +108,11 @@ class AppGeneratedPdfArchiveService {
       final writtenBytes = await _safeLength(partial);
       if (writtenBytes == null || writtenBytes != document.byteSize) {
         throw const FileSystemException('Generated PDF write was incomplete.');
+      }
+      final writtenHash = await _safeHash(partial);
+      final expectedHash = sha256.convert(document.bytes).toString();
+      if (writtenHash.isEmpty || writtenHash != expectedHash) {
+        throw const FileSystemException('Generated PDF write did not verify.');
       }
       await _deleteIfExists(destination);
       await partial.rename(destination.path);
