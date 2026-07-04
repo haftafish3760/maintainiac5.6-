@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 639 - 22:29:44 EDT to active cleanup
+
+Scope:
+- Hardened native receipt camera handoff risk flags so a tap-focus comeback is
+  treated as a risk, not just a counted health-code detail.
+- Kept the same risk classification aligned between shared capture flow and
+  shared attachment import flows.
+- Added a focused regression proving `tap_focus_retirement_regressed` becomes a
+  receipt attachment risk flag even when every other native control looks ready.
+- Archived Pass 602 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0160` under `camera_capture_quality`.
+
+Verification:
+- First focused Flutter run exposed that the fixture had not marked the
+  regressed tap-focus control actual state ready; fixed the fixture before
+  moving on.
+- Passed targeted Dart format for native UI risk flag changes.
+- Passed focused Flutter native UI health regression.
+
 ## Pass 638 - 22:26:47 EDT to active cleanup
 
 Scope:
@@ -476,22 +495,3 @@ Verification:
   service arguments, and iOS source-contract coverage.
 - Passed focused Flutter native camera session, shared camera contract, and iOS
   bridge analysis/exposure regressions.
-
-## Pass 602 - 21:02:12 EDT to 21:03:17 EDT
-
-Scope:
-- Hardened privacy-safe receipt line review/proof contracts so split
-  business/personal lines expose clamped business and personal percentages
-  without exposing receipt item text.
-- Added regression coverage proving over-range split percentages are clamped in
-  both line-review and proof-redaction contracts.
-- Recorded `BUG-RECEIPT-0123` under `business_personal_split`.
-- Archived Pass 581 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for expense receipt line models and
-  focused line-record regression coverage.
-- Passed focused Flutter expense receipt line-record regression coverage.
-- Corrected the focused test file after line-count review so it remains under
-  the project cap.

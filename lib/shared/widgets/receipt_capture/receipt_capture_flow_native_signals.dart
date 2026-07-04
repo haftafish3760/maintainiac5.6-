@@ -178,6 +178,7 @@ bool _isNativeCameraUiRisk(String value) {
   final token = _signalToken(value);
   return token.contains('incomplete') ||
       token.contains('missing') ||
+      token.contains('regressed') ||
       token.contains('unknown') ||
       token.contains('close_deferred') ||
       token.contains('close_retry') ||

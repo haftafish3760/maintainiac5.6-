@@ -182,6 +182,7 @@ extension _ReceiptAttachmentNativeSignalDocuments
     final token = attachmentSignalToken(value);
     return token.contains('incomplete') ||
         token.contains('missing') ||
+        token.contains('regressed') ||
         token.contains('unknown') ||
         token.contains('close_deferred') ||
         token.contains('close_retry') ||
