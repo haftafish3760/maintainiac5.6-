@@ -121,6 +121,12 @@ Focused rerun routes for recently hardened release-one contracts:
   test/support/parser_qa_platform/parser_qa_domain_adapter.dart` passed with no
   issues. Focused parser-platform QA gate is the next check before this
   milestone is pushed.
+- Passes 1954-1957 tightened the direct adapter unit test so
+  `parserQaDomainAdapters` must contain exactly the release-critical parser
+  domains for `work_supply_inventory_parser`, `expense_receipt_parser`, and
+  `maintenance_parser`, with unique artifact prefixes and fixture roots.
+  Verification: `flutter test test/parser_qa_platform_domain_adapter_test.dart
+  --reporter compact` passed 4/4 tests.
 - Pass 1886 added an executable drift guard: `inventory.surgical_rerun_contract`
   now parses the scorecard's Release Gate Suite Mapping and fails if a listed
   suite is not present in the focused rerun route map.

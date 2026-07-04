@@ -58,6 +58,24 @@ void main() {
   );
 
   test('all registered domain adapters satisfy the reusable contract', () {
+    expect(parserQaDomainAdapters.map((adapter) => adapter.domain).toSet(), {
+      'work_supply_inventory_parser',
+      'expense_receipt_parser',
+      'maintenance_parser',
+    });
+    expect(
+      parserQaDomainAdapters.map((adapter) => adapter.artifactPrefix).toSet(),
+      hasLength(parserQaDomainAdapters.length),
+      reason:
+          'Each parser adapter needs an isolated artifact prefix so reports do not overwrite each other.',
+    );
+    expect(
+      parserQaDomainAdapters.map((adapter) => adapter.fixtureRoot).toSet(),
+      hasLength(parserQaDomainAdapters.length),
+      reason:
+          'Each parser adapter needs its own fixture root so inventory, expenses, and maintenance do not bleed together.',
+    );
+
     for (final adapter in parserQaDomainAdapters) {
       expect(
         adapter.validateContract(),
