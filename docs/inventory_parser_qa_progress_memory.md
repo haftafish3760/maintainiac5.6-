@@ -3424,3 +3424,11 @@ Release boundaries:
   forbidden Firebase, Hive, platform, camera, OCR, file, and device coupling.
   Analyzer was clean and the focused `inventory.portability_contract,
   qa.threshold_gate` slice passed 91 checks with 0 failures.
+- **10:11 Harness Pass 2479:** Fixed the background queue status reader so
+  active-cell elapsed time is computed from `activeCellStartedAtIso` at read
+  time instead of trusting stale `activeCellElapsedMs: 0` written when the cell
+  started. Analyzer was clean, `test/work_supply_parser_qa_background_queue_status_test.dart`
+  passed 2/2, the focused `inventory.execution_command_contract,
+  qa.threshold_gate` slice passed 107 checks with 0 failures, and the live
+  Core queue status reported HVAC Core `en-US` active with computed elapsed
+  evidence.

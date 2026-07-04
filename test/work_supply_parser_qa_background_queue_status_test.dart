@@ -20,6 +20,8 @@ void main() {
         'completedCellCount': 2,
         'failedCellCount': 0,
         'activeCellId': 'plumbing_residential_standard_es_US',
+        'activeCellStartedAtIso': '2026-07-04T14:00:00.000Z',
+        'activeCellElapsedMs': 0,
         'dryRun': false,
         'liveServicesAllowed': false,
         'writesProductionCatalog': false,
@@ -34,12 +36,14 @@ void main() {
       ['--root', root.path, '--queue-id', 'queue-a'],
       stdout: stdout,
       stderr: _MemorySink(),
+      now: DateTime.parse('2026-07-04T14:03:00.000Z'),
     );
 
     expect(exit, 0);
     expect(stdout.content, contains('QA_BACKGROUND_QUEUE_STATUS'));
     expect(stdout.content, contains('"state": "running"'));
     expect(stdout.content, contains('plumbing_residential_standard_es_US'));
+    expect(stdout.content, contains('"activeCellElapsedMs": 180000'));
     expect(stdout.content, contains('firebaseWritesAllowed'));
     expect(stdout.content, contains('ocrCameraExpensesTouched'));
   });

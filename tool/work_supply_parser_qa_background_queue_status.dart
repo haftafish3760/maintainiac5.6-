@@ -18,6 +18,7 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
   List<String> args, {
   required IOSink stdout,
   required IOSink stderr,
+  DateTime? now,
 }) {
   if (args.contains('--help') || args.contains('-h')) {
     stdout.writeln(_usage);
@@ -49,7 +50,13 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
   final failed = json['failedCellCount'] ?? _failedCount(results);
   final completed = json['completedCellCount'] ?? results.length;
   final total = json['cellCount'] ?? results.length;
-  final summary = {
+  final activeCellStartedAtIso = json['activeCellStartedAtIso'] as String?;
+  final activeCellElapsedMs = _activeCellElapsedMs(
+    activeCellStartedAtIso,
+    now ?? DateTime.now().toUtc(),
+    json['activeCellElapsedMs'],
+  );
+  final summary = <String, Object?>{
     'schemaVersion': 1,
     'report': 'work_supply_parser_qa_background_queue_status_readout',
     'sourcePath': source.path,
@@ -65,11 +72,32 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
     'firebaseWritesAllowed': json['firebaseWritesAllowed'] ?? false,
     'ocrCameraExpensesTouched': json['ocrCameraExpensesTouched'] ?? false,
   };
+  if (activeCellStartedAtIso != null) {
+    summary['activeCellStartedAtIso'] = activeCellStartedAtIso;
+  }
+  if (activeCellElapsedMs != null) {
+    summary['activeCellElapsedMs'] = activeCellElapsedMs;
+  }
   stdout.writeln(
     'QA_BACKGROUND_QUEUE_STATUS '
     '${const JsonEncoder.withIndent('  ').convert(summary)}',
   );
   return failed == 0 ? 0 : 1;
+}
+
+int? _activeCellElapsedMs(
+  String? activeCellStartedAtIso,
+  DateTime now,
+  Object? storedElapsedMs,
+) {
+  if (activeCellStartedAtIso == null || activeCellStartedAtIso.isEmpty) {
+    return storedElapsedMs is int ? storedElapsedMs : null;
+  }
+  final startedAt = DateTime.tryParse(activeCellStartedAtIso);
+  if (startedAt == null) return storedElapsedMs is int ? storedElapsedMs : null;
+  final elapsedMs = now.toUtc().difference(startedAt.toUtc()).inMilliseconds;
+  if (elapsedMs < 0) return 0;
+  return elapsedMs;
 }
 
 int _failedCount(List<Object?> results) {
