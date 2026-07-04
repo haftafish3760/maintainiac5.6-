@@ -14,6 +14,7 @@ void main() {
     final wave = Directory('${root.path}/wave-001')..createSync();
     final queue = Directory('${wave.path}/queue/queue-001')
       ..createSync(recursive: true);
+    final now = DateTime.now().toUtc();
     File('${wave.path}/wave_summary.json').writeAsStringSync(
       jsonEncode({
         'waveId': 'wave-001',
@@ -35,6 +36,12 @@ void main() {
         'completedCellCount': 4,
         'failedCellCount': 0,
         'activeCellId': 'hvac_residential_core_en_US',
+        'activeCellStartedAtIso': now
+            .subtract(const Duration(minutes: 3))
+            .toIso8601String(),
+        'updatedAtIso': now
+            .subtract(const Duration(seconds: 30))
+            .toIso8601String(),
         'liveServicesAllowed': false,
         'writesProductionCatalog': false,
       }),
@@ -52,6 +59,8 @@ void main() {
     expect(stdout.content, contains('merchant-abbreviation-v1'));
     expect(stdout.content, contains('hvac_residential_core_en_US'));
     expect(stdout.content, contains('"completedCellCount": 4'));
+    expect(stdout.content, contains('"statusAgeMs":'));
+    expect(stdout.content, contains('"activeCellElapsedMs":'));
     expect(stdout.content, contains('"firebaseWritesAllowed": false'));
   });
 

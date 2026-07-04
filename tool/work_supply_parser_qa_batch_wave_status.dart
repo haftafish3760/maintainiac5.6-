@@ -48,6 +48,9 @@ int runWorkSupplyParserQaBatchWaveStatus(
   final wave = jsonDecode(waveSource.readAsStringSync()) as Map;
   final queueSummaryPath = wave['queueSummaryPath']?.toString() ?? '';
   final queueStatus = _readQueueStatus(root: root, wave: wave);
+  final now = DateTime.now().toUtc();
+  final updatedAt = _parseIso(queueStatus['updatedAtIso']);
+  final activeStartedAt = _parseIso(queueStatus['activeCellStartedAtIso']);
   final status = {
     'schemaVersion': 1,
     'report': 'work_supply_parser_qa_batch_wave_status',
@@ -63,9 +66,17 @@ int runWorkSupplyParserQaBatchWaveStatus(
     'failedCellCount': queueStatus['failedCellCount'] ?? 0,
     if (queueStatus['activeCellId'] != null)
       'activeCellId': queueStatus['activeCellId'],
-    'liveServicesAllowed': _bool(wave['liveServicesAllowed']) ||
+    if (updatedAt != null)
+      'statusAgeMs': now.difference(updatedAt).inMilliseconds,
+    if (activeStartedAt != null)
+      'activeCellElapsedMs': now.difference(activeStartedAt).inMilliseconds,
+    if (queueStatus['durationMs'] != null)
+      'durationMs': queueStatus['durationMs'],
+    'liveServicesAllowed':
+        _bool(wave['liveServicesAllowed']) ||
         _bool(queueStatus['liveServicesAllowed']),
-    'writesProductionCatalog': _bool(wave['writesProductionCatalog']) ||
+    'writesProductionCatalog':
+        _bool(wave['writesProductionCatalog']) ||
         _bool(queueStatus['writesProductionCatalog']),
     'firebaseWritesAllowed': _bool(wave['firebaseWritesAllowed']),
     'ocrCameraExpensesTouched': _bool(wave['ocrCameraExpensesTouched']),
@@ -73,7 +84,8 @@ int runWorkSupplyParserQaBatchWaveStatus(
   stdout.writeln(
     'QA_BATCH_WAVE_STATUS ${const JsonEncoder.withIndent('  ').convert(status)}',
   );
-  final unsafe = status['liveServicesAllowed'] == true ||
+  final unsafe =
+      status['liveServicesAllowed'] == true ||
       status['writesProductionCatalog'] == true ||
       status['firebaseWritesAllowed'] == true ||
       status['ocrCameraExpensesTouched'] == true;
@@ -116,6 +128,11 @@ String _queueStateFromSummary(Map<String, Object?> queue) {
 }
 
 bool _bool(Object? value) => value == true || value.toString() == 'true';
+
+DateTime? _parseIso(Object? value) {
+  if (value == null) return null;
+  return DateTime.tryParse(value.toString())?.toUtc();
+}
 
 String _value(List<String> args, String key, String fallback) {
   for (var index = 0; index < args.length; index++) {
