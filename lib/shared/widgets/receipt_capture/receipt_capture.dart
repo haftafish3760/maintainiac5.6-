@@ -1,6 +1,7 @@
 export '../../receipts/receipt_ocr_contract.dart';
 export 'receipt_attachment_panel.dart';
 export 'receipt_assistance_policy.dart';
+export 'receipt_barcode_scanner_service.dart';
 export 'receipt_capture_flow.dart';
 export 'receipt_capture_models.dart';
 export 'receipt_capture_settings_store.dart';

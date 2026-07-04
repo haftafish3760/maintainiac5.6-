@@ -28,11 +28,19 @@ Scope:
   capture, while inventory and maintenance capture request detailed lines.
 - Hardened camera quality diagnostics so normalized receipt photo path aliases
   cannot publish duplicate per-photo evidence.
+- Added the local Google ML Kit barcode/QR scanner dependency and a shared
+  scanner service for receipt, inventory, and maintenance callers.
+- Added barcode/QR result models that normalize duplicate lookup values while
+  keeping raw code text out of privacy-safe summaries.
+- Blocked sensitive QR payload types such as Wi-Fi, contact, phone, geo, and
+  driver-license values from inventory lookup suggestions.
 - Added focused retake/order and source-contract regressions for inserted
   section metadata and stale inserted-path rejection.
 - Added a focused regression for non-adjacent manual reorder requests.
 - Added focused shared camera flow regressions for review-depth propagation.
 - Added focused camera-result quality regression coverage for path aliases.
+- Added focused barcode scanner service regressions for dedupe, invalid paths,
+  sensitive payload handling, and platform failure warnings.
 - Split section-order helper logic out of native-signal summaries after the
   source audit caught the file over the line cap.
 - Recorded `BUG-RECEIPT-0106` and `BUG-RECEIPT-0107` under
@@ -41,6 +49,7 @@ Scope:
   `multi_photo_ordering`.
 - Recorded `BUG-RECEIPT-0110` under `receipt_line_review_mode`.
 - Recorded `BUG-RECEIPT-0111` under `camera_capture_quality`.
+- Recorded `BUG-RECEIPT-0112` under `barcode_qr_scanning`.
 - Archived Pass 564 out of the live cleanup log to keep the active log under the
   project line-count cap.
 - Archived Pass 565 out of the live cleanup log after this pass grew the active
@@ -51,6 +60,8 @@ Scope:
   manual-reorder guard coverage.
 - Archived Pass 568 out of the live cleanup log before recording camera-quality
   path identity coverage.
+- Archived Pass 569 out of the live cleanup log before recording barcode/QR
+  scanner coverage.
 
 Verification:
 - Passed focused Flutter source-audit contract regression coverage.
@@ -65,6 +76,7 @@ Verification:
 - Passed focused adjacent manual reorder regression coverage.
 - Passed focused shared capture-flow review-depth regression coverage.
 - Passed focused camera-result quality path identity regression coverage.
+- Passed focused barcode scanner service regression coverage.
 - Passed the receipt QA runner after the source-audit and long-receipt ordering
   cleanup batch.
 - Passed scoped receipt source audit and cleanup/doc size gates.
@@ -463,19 +475,3 @@ Verification:
 - Passed focused Flutter regression
   `test/receipt_capture_flow_handoff_contract_test.dart --plain-name "app
   assisted OCR reads prepared OCR sources instead of saved backup proof"`.
-
-## Pass 569 - 08:19:00 EDT to 08:29:09 EDT
-
-Scope:
-- Hardened receipt photo quality scoring so non-finite focus, brightness,
-  contrast, crop, or text-band metrics become conservative retake evidence.
-- Added regression coverage proving malformed quality metrics stay finite in
-  review labels and do not masquerade as readable camera output.
-- Recorded `BUG-RECEIPT-0085` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart format/analyzer for photo quality models and focused
-  camera-result quality regression coverage.
-- Passed focused Flutter regression
-  `test/receipt_camera_result_quality_test.dart --plain-name "receipt quality
-  treats non-finite metrics as unsafe evidence"`.

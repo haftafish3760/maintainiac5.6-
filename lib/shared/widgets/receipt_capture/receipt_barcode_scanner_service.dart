@@ -1,0 +1,280 @@
+import 'package:flutter/services.dart';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart'
+    as mlkit;
+
+import 'receipt_photo_path_identity.dart';
+
+enum ReceiptBarcodeScanPurpose { expense, inventory, maintenance, shared }
+
+enum ReceiptBarcodeFormat {
+  all,
+  unknown,
+  code128,
+  code39,
+  code93,
+  codabar,
+  dataMatrix,
+  ean13,
+  ean8,
+  itf,
+  qrCode,
+  upca,
+  upce,
+  pdf417,
+  aztec,
+}
+
+const receiptBarcodeInventoryAndQrFormats = <ReceiptBarcodeFormat>[
+  ReceiptBarcodeFormat.code128,
+  ReceiptBarcodeFormat.code39,
+  ReceiptBarcodeFormat.code93,
+  ReceiptBarcodeFormat.codabar,
+  ReceiptBarcodeFormat.dataMatrix,
+  ReceiptBarcodeFormat.ean13,
+  ReceiptBarcodeFormat.ean8,
+  ReceiptBarcodeFormat.itf,
+  ReceiptBarcodeFormat.qrCode,
+  ReceiptBarcodeFormat.upca,
+  ReceiptBarcodeFormat.upce,
+  ReceiptBarcodeFormat.pdf417,
+  ReceiptBarcodeFormat.aztec,
+];
+
+class ReceiptScannedCode {
+  const ReceiptScannedCode({
+    required this.format,
+    required this.valueType,
+    required this.rawValue,
+    this.displayValue = '',
+  });
+
+  final ReceiptBarcodeFormat format;
+  final String valueType;
+  final String rawValue;
+  final String displayValue;
+
+  bool get isQrCode => format == ReceiptBarcodeFormat.qrCode;
+  bool get hasValue => normalizedValue.isNotEmpty;
+  bool get isSensitivePayloadType {
+    return switch (valueType) {
+      'contactInfo' ||
+      'email' ||
+      'phone' ||
+      'sms' ||
+      'wifi' ||
+      'geoCoordinates' ||
+      'calendarEvent' ||
+      'driverLicense' => true,
+      _ => false,
+    };
+  }
+
+  String get normalizedValue {
+    final source = rawValue.trim().isEmpty ? displayValue : rawValue;
+    return source.replaceAll(RegExp(r'[\s-]+'), '').toUpperCase();
+  }
+
+  String? get inventoryLookupValue {
+    if (isSensitivePayloadType) return null;
+    final normalized = normalizedValue;
+    return normalized.isEmpty ? null : normalized;
+  }
+
+  Map<String, Object?> get privacySafeSummaryMap {
+    return {
+      'format': format.name,
+      'valueType': valueType,
+      'isQrCode': isQrCode,
+      'hasValue': hasValue,
+      'isSensitivePayloadType': isSensitivePayloadType,
+      'canUseForInventoryLookup': inventoryLookupValue != null,
+      'normalizedLength': normalizedValue.length,
+    };
+  }
+}
+
+class ReceiptBarcodeScanResult {
+  const ReceiptBarcodeScanResult({
+    required this.imagePath,
+    required this.purpose,
+    required this.codes,
+    this.warnings = const [],
+  });
+
+  final String imagePath;
+  final ReceiptBarcodeScanPurpose purpose;
+  final List<ReceiptScannedCode> codes;
+  final List<String> warnings;
+
+  bool get hasCodes => codes.isNotEmpty;
+  int get qrCodeCount => codes.where((code) => code.isQrCode).length;
+  int get inventoryLookupCandidateCount =>
+      codes.where((code) => code.inventoryLookupValue != null).length;
+
+  List<String> get inventoryLookupValues {
+    final seen = <String>{};
+    return [
+      for (final code in codes)
+        if (code.inventoryLookupValue case final value?)
+          if (seen.add(value)) value,
+    ];
+  }
+
+  Map<String, Object?> get privacySafeSummaryMap {
+    final formatCounts = <String, int>{};
+    final typeCounts = <String, int>{};
+    for (final code in codes) {
+      formatCounts[code.format.name] =
+          (formatCounts[code.format.name] ?? 0) + 1;
+      typeCounts[code.valueType] = (typeCounts[code.valueType] ?? 0) + 1;
+    }
+    return {
+      'purpose': purpose.name,
+      'codeCount': codes.length,
+      'qrCodeCount': qrCodeCount,
+      'inventoryLookupCandidateCount': inventoryLookupCandidateCount,
+      'formatCounts': Map.unmodifiable(formatCounts),
+      'valueTypeCounts': Map.unmodifiable(typeCounts),
+      'warnings': List.unmodifiable(warnings),
+    };
+  }
+}
+
+abstract interface class ReceiptBarcodeImageDecoder {
+  Future<List<ReceiptScannedCode>> scanImageFile(
+    String imagePath, {
+    required List<ReceiptBarcodeFormat> formats,
+  });
+}
+
+class GoogleMlKitReceiptBarcodeImageDecoder
+    implements ReceiptBarcodeImageDecoder {
+  const GoogleMlKitReceiptBarcodeImageDecoder();
+
+  @override
+  Future<List<ReceiptScannedCode>> scanImageFile(
+    String imagePath, {
+    required List<ReceiptBarcodeFormat> formats,
+  }) async {
+    final scanner = mlkit.BarcodeScanner(formats: _mlkitFormatsFor(formats));
+    try {
+      final image = mlkit.InputImage.fromFilePath(imagePath);
+      final barcodes = await scanner.processImage(image);
+      return [
+        for (final barcode in barcodes)
+          ReceiptScannedCode(
+            format: _formatFromMlKit(barcode.format),
+            valueType: barcode.type.name,
+            rawValue: barcode.rawValue?.trim() ?? '',
+            displayValue: barcode.displayValue?.trim() ?? '',
+          ),
+      ];
+    } finally {
+      await scanner.close();
+    }
+  }
+}
+
+class ReceiptBarcodeScannerService {
+  const ReceiptBarcodeScannerService({
+    this.decoder = const GoogleMlKitReceiptBarcodeImageDecoder(),
+  });
+
+  final ReceiptBarcodeImageDecoder decoder;
+
+  Future<ReceiptBarcodeScanResult> scanImageFile(
+    String imagePath, {
+    ReceiptBarcodeScanPurpose purpose = ReceiptBarcodeScanPurpose.shared,
+    List<ReceiptBarcodeFormat> formats = receiptBarcodeInventoryAndQrFormats,
+  }) async {
+    final normalizedPath = normalizedReceiptPhotoPath(imagePath);
+    if (normalizedPath == null) {
+      return ReceiptBarcodeScanResult(
+        imagePath: '',
+        purpose: purpose,
+        codes: const [],
+        warnings: const ['barcode_scan_invalid_source_path'],
+      );
+    }
+    try {
+      final decoded = await decoder.scanImageFile(
+        normalizedPath,
+        formats: formats,
+      );
+      return ReceiptBarcodeScanResult(
+        imagePath: normalizedPath,
+        purpose: purpose,
+        codes: _dedupeScannedCodes(decoded),
+      );
+    } on PlatformException {
+      return ReceiptBarcodeScanResult(
+        imagePath: normalizedPath,
+        purpose: purpose,
+        codes: const [],
+        warnings: const ['barcode_scan_platform_failed'],
+      );
+    } catch (_) {
+      return ReceiptBarcodeScanResult(
+        imagePath: normalizedPath,
+        purpose: purpose,
+        codes: const [],
+        warnings: const ['barcode_scan_failed'],
+      );
+    }
+  }
+}
+
+List<ReceiptScannedCode> _dedupeScannedCodes(List<ReceiptScannedCode> codes) {
+  final seen = <String>{};
+  return List.unmodifiable([
+    for (final code in codes)
+      if (code.hasValue &&
+          seen.add('${code.format.name}:${code.normalizedValue}'))
+        code,
+  ]);
+}
+
+List<mlkit.BarcodeFormat> _mlkitFormatsFor(List<ReceiptBarcodeFormat> formats) {
+  if (formats.isEmpty) return const [mlkit.BarcodeFormat.all];
+  return List.unmodifiable(formats.map(_formatToMlKit));
+}
+
+mlkit.BarcodeFormat _formatToMlKit(ReceiptBarcodeFormat format) {
+  return switch (format) {
+    ReceiptBarcodeFormat.all => mlkit.BarcodeFormat.all,
+    ReceiptBarcodeFormat.unknown => mlkit.BarcodeFormat.unknown,
+    ReceiptBarcodeFormat.code128 => mlkit.BarcodeFormat.code128,
+    ReceiptBarcodeFormat.code39 => mlkit.BarcodeFormat.code39,
+    ReceiptBarcodeFormat.code93 => mlkit.BarcodeFormat.code93,
+    ReceiptBarcodeFormat.codabar => mlkit.BarcodeFormat.codabar,
+    ReceiptBarcodeFormat.dataMatrix => mlkit.BarcodeFormat.dataMatrix,
+    ReceiptBarcodeFormat.ean13 => mlkit.BarcodeFormat.ean13,
+    ReceiptBarcodeFormat.ean8 => mlkit.BarcodeFormat.ean8,
+    ReceiptBarcodeFormat.itf => mlkit.BarcodeFormat.itf,
+    ReceiptBarcodeFormat.qrCode => mlkit.BarcodeFormat.qrCode,
+    ReceiptBarcodeFormat.upca => mlkit.BarcodeFormat.upca,
+    ReceiptBarcodeFormat.upce => mlkit.BarcodeFormat.upce,
+    ReceiptBarcodeFormat.pdf417 => mlkit.BarcodeFormat.pdf417,
+    ReceiptBarcodeFormat.aztec => mlkit.BarcodeFormat.aztec,
+  };
+}
+
+ReceiptBarcodeFormat _formatFromMlKit(mlkit.BarcodeFormat format) {
+  return switch (format) {
+    mlkit.BarcodeFormat.all => ReceiptBarcodeFormat.all,
+    mlkit.BarcodeFormat.unknown => ReceiptBarcodeFormat.unknown,
+    mlkit.BarcodeFormat.code128 => ReceiptBarcodeFormat.code128,
+    mlkit.BarcodeFormat.code39 => ReceiptBarcodeFormat.code39,
+    mlkit.BarcodeFormat.code93 => ReceiptBarcodeFormat.code93,
+    mlkit.BarcodeFormat.codabar => ReceiptBarcodeFormat.codabar,
+    mlkit.BarcodeFormat.dataMatrix => ReceiptBarcodeFormat.dataMatrix,
+    mlkit.BarcodeFormat.ean13 => ReceiptBarcodeFormat.ean13,
+    mlkit.BarcodeFormat.ean8 => ReceiptBarcodeFormat.ean8,
+    mlkit.BarcodeFormat.itf => ReceiptBarcodeFormat.itf,
+    mlkit.BarcodeFormat.qrCode => ReceiptBarcodeFormat.qrCode,
+    mlkit.BarcodeFormat.upca => ReceiptBarcodeFormat.upca,
+    mlkit.BarcodeFormat.upce => ReceiptBarcodeFormat.upce,
+    mlkit.BarcodeFormat.pdf417 => ReceiptBarcodeFormat.pdf417,
+    mlkit.BarcodeFormat.aztec => ReceiptBarcodeFormat.aztec,
+  };
+}
