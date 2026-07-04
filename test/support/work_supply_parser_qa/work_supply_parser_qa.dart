@@ -113,6 +113,7 @@ import 'work_supply_parser_receipt_line_parser_fuzz_qa.dart';
 import 'work_supply_parser_receipt_invoice_feed_qa.dart';
 import 'work_supply_parser_receipt_line_mapping_qa.dart';
 import 'work_supply_parser_receipt_source_immutability_qa.dart';
+import 'work_supply_parser_real_receipt_validation_qa.dart';
 import 'work_supply_parser_regression_lock_qa.dart';
 import 'work_supply_parser_release_one_cell_manifest_qa.dart';
 import 'work_supply_parser_release_one_command_manifest_qa.dart';
@@ -203,6 +204,7 @@ QaHarness buildWorkSupplyParserQaHarness() {
       WorkSupplyParserPriceTaxAllocationSuite(),
       WorkSupplyParserFinancialDuplicateGuardSuite(),
       WorkSupplyParserReceiptSourceImmutabilitySuite(),
+      WorkSupplyParserRealReceiptValidationSuite(),
       WorkSupplyParserReceiptInvoiceFeedSuite(),
       WorkSupplyParserDuplicateReceiptImportSuite(),
       WorkSupplyParserSpanishReleaseOneSuite(),
