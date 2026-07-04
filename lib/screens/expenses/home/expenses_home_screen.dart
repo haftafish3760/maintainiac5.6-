@@ -125,13 +125,6 @@ class _ExpenseHomeContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _ExpenseDayNavigatorPanel(
-                anchorDate: anchorDate,
-                scopeLabel: _expenseScopeLabel(context),
-                onShift: onShiftDay,
-                onToday: onToday,
-              ),
-              const SizedBox(height: 8),
               _ExpenseTotalsPanel(
                 period: _ExpenseViewPeriod.day,
                 anchorDate: anchorDate,
