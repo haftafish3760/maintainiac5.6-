@@ -33,7 +33,11 @@ void main() {
       expect(blurry.focusLabel, 'may be blurry');
       expect(blurry.reviewTitle, 'Retake Recommended');
       expect(blurry.reviewGuidance, contains('let the camera refocus'));
-      expect(blurry.reviewGuidance, contains('focus assist only'));
+      expect(blurry.reviewGuidance, contains('Move closer or retake'));
+      expect(
+        blurry.reviewGuidance.toLowerCase(),
+        isNot(contains('focus assist')),
+      );
       expect(readable.focusLabel, 'sharp');
     },
   );

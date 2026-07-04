@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 680 - 00:29:25 EDT to active cleanup
+
+Scope:
+- Removed active very-soft receipt review guidance that told users to use
+  focus assist after the camera moved to continuous autofocus/readability
+  coaching.
+- Replaced it with hold-steady, refocus, move-closer, or retake guidance.
+- Tightened the photo-quality guidance regression so active review copy cannot
+  reintroduce focus-assist wording.
+- Archived Passes 652 and 653 from the active cleanup log to keep the doc
+  under cap.
+- Recorded `BUG-RECEIPT-0196` under `camera_capture_quality`.
+
+Verification:
+- Passed targeted Dart format/analyzer for photo-quality guidance files.
+- Passed focused Flutter receipt camera quality guidance regression.
+
 ## Pass 679 - 00:28:07 EDT to active cleanup
 
 Scope:
@@ -470,29 +487,3 @@ Verification:
 - Passed targeted Dart format/analyzer for the native UI health helper and
   focused native UI health regression.
 - Passed focused Flutter native UI health regressions.
-
-## Pass 653 - 23:01:54 EDT to active cleanup
-
-Scope:
-- Revised `docs/receipt_camera_double_team_handoff.md` so the second model owns
-  a true Lane B half of the work: receipt review, OCR/parser handoff contracts,
-  line numbering, fixture generation, parser-facing QA, and review truth.
-- Kept Lane A focused on native capture, quality/readability, long receipts,
-  segment ordering, ghost/overlap, stitching, source preservation, and
-  camera-side diagnostics.
-- Archived Pass 614 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed cleanup log, doc size, source audit, and diff whitespace gates.
-
-## Pass 652 - 23:00:00 EDT to active cleanup
-
-Scope:
-- Added `docs/receipt_camera_double_team_handoff.md` so a second Codex model can
-  work on the OCR/review handoff lane without editing native camera or capture
-  orchestration files.
-- Documented allowed files, forbidden camera-owned files, product invariants,
-  test rules, branch setup, and the suggested first safe OCR handoff pass.
-
-Verification:
-- Passed cleanup log, doc size, source audit, and diff whitespace gates.
