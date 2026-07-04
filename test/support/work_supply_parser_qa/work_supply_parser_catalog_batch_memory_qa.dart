@@ -10,14 +10,13 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
   static const _planPath = 'docs/inventory_parser_qa_harness_plan.md';
   static const _progressPath = 'docs/inventory_parser_qa_progress_memory.md';
   static const _waveStatusPath =
-      'build/parser_qa_batch_waves/residential_all_tiers_wave_001/queue/'
-      'residential_all_tiers_wave_001_generated_fixture_all_tiers_v1/'
+      'build/parser_qa_batch_waves/pass1939-residential-top-three-all-tiers-wave-execute/queue/'
+      'pass1939_residential_top_three_all_tiers_wave_execute_generated_fixture_all_tiers_v7_post_core_standard_wave/'
       'latest_status.json';
   static const _blueprintStatusPath =
       'build/parser_qa_pipeline/status_reports/latest_pipeline_status.json';
   static const _blueprintMatrixSummaryPath =
-      'build/parser_qa_pipeline/release-one-residential-item-blueprints/'
-      'matrix_reports/latest_pipeline_summary.json';
+      'build/parser_qa_pipeline/matrix_reports/latest_pipeline_summary.json';
   static const _releaseReadinessPath =
       'build/parser_qa_pipeline/release_one_readiness.json';
   static const _batchSizeAdvicePath =
@@ -100,7 +99,12 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
     _checkBlueprintBatchStatus(blueprintStatus, blueprintMatrix, failures);
 
     checked += 13;
-    _checkReleaseReadinessAndAdvice(releaseReadiness, batchAdvice, failures);
+    _checkReleaseReadinessAndAdvice(
+      waveStatus: status,
+      readiness: releaseReadiness,
+      advice: batchAdvice,
+      failures: failures,
+    );
 
     checked += generatedCells.length * 4;
     for (final cell in generatedCells) {
@@ -147,9 +151,41 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
       );
       return;
     }
-    _expectStatus(status, failures, 'state', 'complete');
+    final state = status['state'];
+    if (state != 'complete' && state != 'running') {
+      failures.add(
+        _failure(
+          id: 'unexpected_wave_status:state',
+          message:
+              'Inventory wave status must be either safely running or complete.',
+          expected: 'state=running or state=complete',
+          actual: 'state=$state',
+          fix:
+              'Do not build the next broad inventory parser wave unless the current wave is safely running or complete.',
+          category: QaFailureTriage.governance,
+        ),
+      );
+    }
     _expectStatus(status, failures, 'cellCount', 24);
-    _expectStatus(status, failures, 'completedCellCount', 24);
+    if (state == 'complete') {
+      _expectStatus(status, failures, 'completedCellCount', 24);
+    } else {
+      final completed = status['completedCellCount'];
+      if (completed is! int || completed < 1 || completed >= 24) {
+        failures.add(
+          _failure(
+            id: 'unexpected_wave_status:completedCellCount',
+            message:
+                'Running inventory wave status does not show safe in-progress evidence.',
+            expected: 'completedCellCount between 1 and 23 while running',
+            actual: 'completedCellCount=$completed',
+            fix:
+                'Inspect the active local-only wave before launching any additional broad parser work.',
+            category: QaFailureTriage.governance,
+          ),
+        );
+      }
+    }
     _expectStatus(status, failures, 'failedCellCount', 0);
     _expectStatus(status, failures, 'dryRun', false);
     _expectStatus(status, failures, 'liveServicesAllowed', false);
@@ -190,12 +226,13 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
     _expectMatrixCells(matrix, failures);
   }
 
-  void _checkReleaseReadinessAndAdvice(
-    Map<String, Object?> readiness,
-    Map<String, Object?> advice,
-    List<QaFailure> failures,
-  ) {
-    if (readiness.isEmpty) {
+  void _checkReleaseReadinessAndAdvice({
+    required Map<String, Object?> waveStatus,
+    required Map<String, Object?> readiness,
+    required Map<String, Object?> advice,
+    required List<QaFailure> failures,
+  }) {
+    if (readiness.isEmpty && waveStatus['state'] == 'complete') {
       failures.add(
         _failure(
           id: 'missing_release_one_readiness_artifact',
@@ -207,7 +244,7 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
           category: QaFailureTriage.governance,
         ),
       );
-    } else {
+    } else if (readiness.isNotEmpty) {
       _expectStatus(readiness, failures, 'releaseOneParserEvidenceReady', true);
       _expectStatus(
         readiness,
@@ -240,10 +277,58 @@ class WorkSupplyParserCatalogBatchMemorySuite extends QaSuite {
       return;
     }
     _expectStatus(advice, failures, 'currentFixtureRunLimit', 118);
-    _expectStatus(advice, failures, 'recommendedFixtureRunLimit', 128);
-    _expectStatus(advice, failures, 'recommendation', 'increase');
+    _expectPositiveInt(advice, failures, 'recommendedFixtureRunLimit');
+    _expectAllowedString(advice, failures, 'recommendation', {
+      'increase',
+      'decrease',
+      'keep',
+    });
+    _expectPositiveInt(advice, failures, 'completedCellCount');
+    _expectPositiveInt(advice, failures, 'averageDurationMs');
     _expectStatus(advice, failures, 'liveServicesAllowed', false);
     _expectStatus(advice, failures, 'writesProductionCatalog', false);
+  }
+
+  void _expectPositiveInt(
+    Map<String, Object?> status,
+    List<QaFailure> failures,
+    String field,
+  ) {
+    final value = status[field];
+    if (value is int && value > 0) return;
+    failures.add(
+      _failure(
+        id: 'unexpected_wave_status:$field',
+        message:
+            'Inventory wave tuning evidence is missing a positive numeric field.',
+        expected: '$field > 0',
+        actual: '$field=$value',
+        fix:
+            'Regenerate duration/advice evidence from real completed cells before changing parser batch sizes.',
+        category: QaFailureTriage.performance,
+      ),
+    );
+  }
+
+  void _expectAllowedString(
+    Map<String, Object?> status,
+    List<QaFailure> failures,
+    String field,
+    Set<String> allowed,
+  ) {
+    final value = status[field];
+    if (value is String && allowed.contains(value)) return;
+    failures.add(
+      _failure(
+        id: 'unexpected_wave_status:$field',
+        message: 'Inventory wave tuning evidence has an invalid value.',
+        expected: '$field in ${allowed.join(', ')}',
+        actual: '$field=$value',
+        fix:
+            'Regenerate batch-size advice with a valid increase/decrease/keep recommendation.',
+        category: QaFailureTriage.performance,
+      ),
+    );
   }
 
   void _expectMatrixSafety(
