@@ -135,6 +135,10 @@ Focused rerun routes for recently hardened release-one contracts:
   `inventory.security_privacy,inventory.input_attack_surface_contract,qa.threshold_gate`
   passed 133 checks, 0 failures. Analyzer passed for
   `work_supply_parser_security_qa.dart`.
+- Passes 2122-2127 added additional cheap abuse probes for
+  `nosql_injection_like`, `regex_backtracking`, `html_entity`,
+  `malformed_csv`, and `unicode_homoglyph`. The same focused security/input
+  shard passed 143 checks, 0 failures, and analyzer stayed clean.
 
 ## 2026-07-04 Whole-App Parser Adapter Registry And Surgical Routing
 

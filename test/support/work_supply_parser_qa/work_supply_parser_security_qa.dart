@@ -127,6 +127,36 @@ class WorkSupplyParserSecurityPrivacySuite extends QaSuite {
       expectedSignals: const ['privatePaymentLike', 'boundedPreview'],
     ),
     _TextAbuseProbe(
+      id: 'nosqlish_json_payload',
+      riskType: 'nosql_injection_like',
+      line: '{"where":{"trade":{"\$ne":"Plumbing"}}}',
+      expectedSignals: const ['nosqlInjectionLike', 'boundedPreview'],
+    ),
+    _TextAbuseProbe(
+      id: 'regex_backtracking_payload',
+      riskType: 'regex_backtracking',
+      line: r'(a+)+$ aaaaaaaaaaaaaaaaaaaaaaaaaaaaa!',
+      expectedSignals: const ['regexTrapLike', 'boundedPreview'],
+    ),
+    _TextAbuseProbe(
+      id: 'html_entity_payload',
+      riskType: 'html_entity',
+      line: '&lt;img src=x onerror=alert(1)&gt;',
+      expectedSignals: const ['htmlEntity', 'boundedPreview'],
+    ),
+    _TextAbuseProbe(
+      id: 'malformed_csv_payload',
+      riskType: 'malformed_csv',
+      line: 'sku,name\n1,"unterminated',
+      expectedSignals: const ['malformedCsv', 'boundedPreview'],
+    ),
+    _TextAbuseProbe(
+      id: 'unicode_homoglyph_material',
+      riskType: 'unicode_homoglyph',
+      line: 'ＰＶＣ　９０　３／４',
+      expectedSignals: const ['unicodeHomoglyph', 'boundedPreview'],
+    ),
+    _TextAbuseProbe(
       id: 'dirty_pex_elbow_material',
       riskType: 'ocr_dirty_text',
       line: 'PFX E18 I/2 BR',
@@ -342,6 +372,11 @@ const _requiredRiskTypes = {
   'malformed_structured_text',
   'environment_variable',
   'private_payment_like',
+  'nosql_injection_like',
+  'regex_backtracking',
+  'html_entity',
+  'malformed_csv',
+  'unicode_homoglyph',
   'ocr_dirty_text',
 };
 
@@ -387,6 +422,11 @@ _SanitizedAbuseProbe _sanitizeAbuseProbe(
   }
   if (_looksEnvironmentVariable(line)) signals.add('environmentVariable');
   if (_looksPrivatePaymentLike(line)) signals.add('privatePaymentLike');
+  if (_looksNoSqlInjectionLike(line)) signals.add('nosqlInjectionLike');
+  if (_looksRegexTrapLike(line)) signals.add('regexTrapLike');
+  if (_looksHtmlEntity(line)) signals.add('htmlEntity');
+  if (_looksMalformedCsv(line)) signals.add('malformedCsv');
+  if (_looksUnicodeHomoglyph(line)) signals.add('unicodeHomoglyph');
   if (line.split(RegExp(r'\s+')).any((token) => token.length > 96)) {
     signals.add('longToken');
   }
@@ -488,6 +528,38 @@ bool _looksEnvironmentVariable(String value) {
 
 bool _looksPrivatePaymentLike(String value) {
   return RegExp(r'\b\d{13,19}\b').hasMatch(value);
+}
+
+bool _looksNoSqlInjectionLike(String value) {
+  final lower = value.toLowerCase();
+  return lower.contains(r'$ne') ||
+      lower.contains(r'$where') ||
+      lower.contains('"where"') ||
+      lower.contains(r'{"$');
+}
+
+bool _looksRegexTrapLike(String value) {
+  return value.contains('(a+)+') ||
+      value.contains('([a-z]+)+') ||
+      value.contains('(.*)+');
+}
+
+bool _looksHtmlEntity(String value) {
+  final lower = value.toLowerCase();
+  return lower.contains('&lt;') ||
+      lower.contains('&gt;') ||
+      lower.contains('&quot;') ||
+      lower.contains('&#');
+}
+
+bool _looksMalformedCsv(String value) {
+  return value.contains(',') &&
+      value.contains('\n') &&
+      value.split('"').length.isEven;
+}
+
+bool _looksUnicodeHomoglyph(String value) {
+  return value.codeUnits.any((unit) => unit >= 0xFF00 && unit <= 0xFFEF);
 }
 
 bool _looksDirtyMaterialText(String value) {
