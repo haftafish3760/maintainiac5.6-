@@ -2704,3 +2704,39 @@ Release boundaries:
 - Pass 1443 next-action verified the new wave is running on
   `plumbing_residential_core_en_US` with `completedCellCount=0`,
   `failedCellCount=0`, no stale status, and all safety flags false.
+
+## 2026-07-04 Merchant Independence, Private Receipt, And Portability Hardening
+
+- Passes 1820-1839 verified the interrupted barcode identity shard and added
+  `inventory.merchant_independence_contract`. Commit `21f9199` pushed the
+  contract, release-one scorecard rules, docs, registry wiring, and surgical
+  rerun route. Focused checks passed for merchant independence, harness
+  registry, surgical rerun, analyzer, and diff hygiene.
+- Passes 1840-1847 strengthened the new merchant-independence contract to read
+  the committed golden fixture corpus and added synthetic priority fixtures for
+  `Local Hardware`, `Regional Supplier`, `Counter Sale`, and generic unknown
+  merchant ambiguity. Commit `905eb61` pushed the fixture-backed coverage.
+  Focused checks passed for `inventory.merchant_independence_contract`,
+  `inventory.fixture_corpus_contract`, and `inventory.fixture_expectation_contract`.
+- Passes 1848-1856 added
+  `tool/work_supply_parser_real_receipt_validation_log.dart` and
+  `test/work_supply_parser_real_receipt_validation_log_test.dart`. The tool
+  writes privacy-safe summaries only under `build/`, rejects raw receipt/OCR/photo
+  fields, keeps live services and Firebase writes false, and documents that real
+  private receipt findings must become synthetic fixtures before commit. Commit
+  `f2bc966` pushed the tool and the updated
+  `inventory.real_receipt_validation_contract`.
+- Passes 1857-1863 tightened the shared parser-domain adapter contract so every
+  parser domain must declare `mobile_local`, `backend_service`, `qa_harness`,
+  `command_line`, and `cloud_batch` execution targets. Commit `e967f9f` pushed
+  this environment-independent parser QA boundary and matching tests.
+- Pass 1865 reran confidence/review/barcode/vendor safety shards after the new
+  fixtures. Result: 189 checks, 0 failures. No parser-code confidence cap or
+  suppression hack was found; fixture `maxConfidence` values remain test
+  expectations for review/unknown cases.
+- Pass 1867 next-action snapshot wrote
+  `build/parser_qa_pass_evidence/next_action.json`. Active wave
+  `pass1687-residential-core-standard-wave-execute` is running with 7/12 cells
+  complete, 0 failed cells, no stale status, and all live-service, production
+  catalog write, Firebase write, OCR, camera, and Expenses flags false. Do not
+  launch a new parser batch wave until this active local-only wave completes.
