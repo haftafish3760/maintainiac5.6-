@@ -3,6 +3,20 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 649 - 22:50:22 EDT to active cleanup
+
+Scope:
+- Strengthened native capability parity QA so Android, iOS, and the Dart method
+  channel test all prove `supportsContinuousFocus` remains wired.
+- Added bridge assertions for Android Camera2 continuous-picture AF capability
+  and iOS AVFoundation continuous autofocus capability reporting.
+- Archived Pass 611 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native bridge/service parity tests.
+- Passed focused Flutter native Android bridge, iOS bridge, and receipt native
+  camera service regressions.
+
 ## Pass 648 - 22:47:13 EDT to active cleanup
 
 Scope:
@@ -463,20 +477,3 @@ Verification:
 - Passed targeted Dart format/analyzer for receipt layout intelligence and
   direct parser parity regressions.
 - Passed focused Flutter direct parser parity regression coverage.
-
-## Pass 611 - 21:21:50 EDT to active cleanup
-
-Scope:
-- Hardened receipt line review allocation so padded business-use values and
-  unsafe split percentages normalize before labels, proof references, and
-  client-proof line selections use them.
-- Added privacy-safe business/personal percentage fields to selected line
-  references for later proof/redaction workflows.
-- Added regression coverage for padded split/personal values, overrange split
-  percentages, and non-finite split percentages.
-- Recorded `BUG-RECEIPT-0132` under `business_personal_split`.
-
-Verification:
-- Passed targeted Dart format/analyzer for receipt line models, receipt
-  processing contracts, and focused line-model regressions.
-- Passed focused Flutter receipt line model regressions.

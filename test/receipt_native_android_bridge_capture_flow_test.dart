@@ -29,6 +29,14 @@ void main() {
     expect(activity, contains('CameraCharacteristics'));
     expect(activity, contains('CONTROL_ZOOM_RATIO_RANGE'));
     expect(activity, contains('CONTROL_AE_COMPENSATION_RANGE'));
+    expect(
+      activity,
+      contains('"supportsContinuousFocus" to focusModes.contains'),
+    );
+    expect(
+      activity,
+      contains('CameraCharacteristics.CONTROL_AF_MODE_CONTINUOUS_PICTURE'),
+    );
     expect(activity, contains('SCALER_STREAM_CONFIGURATION_MAP'));
     expect(activity, contains('ImageFormat.JPEG'));
     expect(activity, contains('maxJpegStillSize'));

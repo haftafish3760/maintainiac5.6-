@@ -78,6 +78,7 @@ void main() {
               'hasRearCamera': true,
               'hasFrontCamera': true,
               'supportsTapFocus': true,
+              'supportsContinuousFocus': true,
               'supportsExposureCompensation': true,
               'supportsZoom': true,
               'maxZoom': 8.0,
@@ -96,6 +97,7 @@ void main() {
       expect(capabilities.engine, ReceiptNativeCameraEngine.cameraX);
       expect(capabilities.canOpenReceiptCamera, isTrue);
       expect(capabilities.supportsTapFocus, isTrue);
+      expect(capabilities.supportsContinuousFocus, isTrue);
       expect(capabilities.supportsZoom, isTrue);
       expect(capabilities.maxZoom, 8);
       expect(capabilities.maxStillWidth, 4032);

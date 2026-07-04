@@ -29,6 +29,12 @@ void main() {
     expect(appDelegate, contains('isFocusPointOfInterestSupported'));
     expect(
       appDelegate,
+      contains(
+        '"supportsContinuousFocus": camera?.isFocusModeSupported(.continuousAutoFocus)',
+      ),
+    );
+    expect(
+      appDelegate,
       contains('isLockingFocusWithCustomLensPositionSupported'),
     );
     expect(appDelegate, contains('isExposureModeSupported(.custom)'));
