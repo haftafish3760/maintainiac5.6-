@@ -402,12 +402,22 @@ void main() {
       ],
       stdout: _MemorySink(),
       stderr: _MemorySink(),
-      cellRunner: (command, {timeout}) async {
+      cellRunner: (command, {timeout, onHeartbeat}) async {
         expect(
           command,
           contains('tool/work_supply_parser_qa_matrix_pipeline.dart'),
         );
         expect(timeout, const Duration(milliseconds: 250));
+        onHeartbeat?.call();
+        final activeStatus =
+            jsonDecode(
+                  File(
+                    '${output.path}/timeout-test/latest_status.json',
+                  ).readAsStringSync(),
+                )
+                as Map;
+        expect(activeStatus['activeCellId'], 'hvac_residential_core_en_US');
+        expect(activeStatus['activeCellElapsedMs'], isA<int>());
         return const BackgroundQueueCellResult(
           exitCode: 124,
           stdout: 'partial stdout',
@@ -451,7 +461,7 @@ void main() {
       ],
       stdout: _MemorySink(),
       stderr: _MemorySink(),
-      cellRunner: (command, {timeout}) async {
+      cellRunner: (command, {timeout, onHeartbeat}) async {
         expect(timeout, const Duration(milliseconds: 1200000));
         return const BackgroundQueueCellResult(
           exitCode: 0,

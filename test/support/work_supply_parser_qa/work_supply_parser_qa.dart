@@ -699,6 +699,15 @@ class WorkSupplyDangerousWordSuite extends QaSuite {
     'white',
   ];
 
+  static const _ambiguousReceiptLines = [
+    'PVC EL 3/4',
+    'PVC 90 1/2',
+    'FILTER 20X25X1',
+    '3/4 COUPLING',
+    'J BOX',
+    'FOIL TAPE',
+  ];
+
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
@@ -721,19 +730,49 @@ class WorkSupplyDangerousWordSuite extends QaSuite {
         );
       }
     }
+    for (final line in _ambiguousReceiptLines) {
+      final match = matchReceiptLineToCatalog(line, maxCandidates: 24);
+      if (match == null) continue;
+      if (match.confidence >= .82) {
+        failures.add(
+          QaFailure(
+            suite: name,
+            id: 'forced_confident_ambiguous_line:${_receiptQaSafeId(line)}',
+            message:
+                'Ambiguous receipt line produced a confident single-item match.',
+            expected:
+                'unknown, review-level, or ranked ambiguity until more evidence exists',
+            actual:
+                '${match.item.path} / ${match.item.name} confidence=${match.confidence}',
+            suggestedFix:
+                'Add context/evidence requirements or conflict rules; do not hide uncertainty with a confidence cap.',
+          ),
+        );
+      }
+    }
     return timer.finish(
       suite: name,
-      checked: _dangerousWords.length,
+      checked: _dangerousWords.length + _ambiguousReceiptLines.length,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
         'mode': context.isFullProfile
             ? 'full-parser-calls'
             : 'smoke-parser-calls',
-        'parserCalls': _dangerousWords.length,
+        'dangerousWordParserCalls': _dangerousWords.length,
+        'ambiguousLineParserCalls': _ambiguousReceiptLines.length,
       },
     );
   }
+}
+
+String _receiptQaSafeId(String value) {
+  final safe = value
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_|_$'), '');
+  return safe.isEmpty ? 'blank' : safe;
 }
 
 List<WorkSupplyItem> _sampledItems(

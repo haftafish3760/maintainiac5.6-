@@ -5,6 +5,7 @@ const _usage =
     'dart run tool/work_supply_parser_qa_run_generated_fixtures.dart '
     '--fixture build/.../generated_fixtures.json '
     '[--max-cases 1000] [--fixture-ids id1,id2] '
+    '[--chunk-size 200] '
     '[--report-dir build/parser_qa_reports/generated_fixtures] '
     '[--timeout-ms 900000] '
     '[--verbose]';
@@ -47,53 +48,80 @@ Future<int> runGeneratedParserFixtures(
     return 66;
   }
 
-  final command = [
-    'test/work_supply_parser_generated_fixture_runner_test.dart',
-    '--dart-define=PARSER_QA_GENERATED_FIXTURE_PATH=${options.fixturePath}',
-    '--dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=${options.maxCases}',
-    '--dart-define=PARSER_QA_GENERATED_REPORT_DIR=${options.reportDir}',
-    if (options.fixtureIds.isNotEmpty)
-      '--dart-define=PARSER_QA_GENERATED_FIXTURE_IDS=${options.fixtureIds.join(',')}',
-    '--reporter',
-    'compact',
-  ];
+  final chunks = _fixtureChunks(options);
   stdout.writeln(
     'QA_GENERATED_FIXTURE_RUN_WRAPPER runner=flutter-test '
     'reason=parser_core_not_yet_extracted_for_dart_cli '
     'fixture=${options.fixturePath} maxCases=${options.maxCases} '
+    'chunkSize=${options.chunkSize} chunks=${chunks.length} '
     'timeoutMs=${options.timeoutMs} '
     'outputMode=${options.verbose ? 'verbose' : 'summary'}',
   );
-  final result = processRunner == null
-      ? await _runProcessWithTimeout(
-          'flutter',
-          ['test', ...command],
-          timeoutMs: options.timeoutMs,
-          runInShell: Platform.isWindows,
-        )
-      : await processRunner('flutter', [
-          'test',
-          ...command,
-        ], runInShell: Platform.isWindows);
-  final output = '${result.stdout}';
-  final errorOutput = '${result.stderr}';
-  if (options.verbose) {
-    stdout.write(output);
-    stderr.write(errorOutput);
-  } else {
-    final summary = _summarizeFlutterOutput(
-      output,
-      reportDir: options.reportDir,
+
+  final chunkResults = <_ChunkRunSummary>[];
+  var exitCode = 0;
+  for (var index = 0; index < chunks.length; index++) {
+    final chunk = chunks[index];
+    final chunkReportDir =
+        '${options.reportDir}/chunks/'
+        '${(index + 1).toString().padLeft(3, '0')}';
+    final command = _flutterCommandFor(
+      options,
+      fixtureIds: chunk,
+      reportDir: chunkReportDir,
     );
-    stdout.writeln(summary);
-    if (result.exitCode != 0) {
-      stdout.writeln(_tail(output, maxChars: 2400));
-      if (errorOutput.trim().isNotEmpty) {
-        stderr.writeln(_tail(errorOutput, maxChars: 2400));
+    final result = processRunner == null
+        ? await _runProcessWithTimeout(
+            'flutter',
+            ['test', ...command],
+            timeoutMs: options.timeoutMs,
+            runInShell: Platform.isWindows,
+          )
+        : await processRunner('flutter', [
+            'test',
+            ...command,
+          ], runInShell: Platform.isWindows);
+    final output = '${result.stdout}';
+    final errorOutput = '${result.stderr}';
+    final summary = _chunkSummary(
+      chunkNumber: index + 1,
+      chunkCount: chunks.length,
+      fixtureIds: chunk,
+      output: output,
+      reportDir: chunkReportDir,
+      exitCode: result.exitCode,
+    );
+    chunkResults.add(summary);
+    if (options.verbose) {
+      stdout.write(output);
+      stderr.write(errorOutput);
+    } else {
+      stdout.writeln(summary.toLogLine());
+      if (result.exitCode != 0) {
+        stdout.writeln(_tail(output, maxChars: 2400));
+        if (errorOutput.trim().isNotEmpty) {
+          stderr.writeln(_tail(errorOutput, maxChars: 2400));
+        }
       }
     }
+    if (result.exitCode != 0) {
+      exitCode = result.exitCode;
+      break;
+    }
   }
-  return result.exitCode;
+  final aggregate = _writeAggregateReport(
+    options: options,
+    chunks: chunkResults,
+    completedChunkCount: chunkResults.length,
+    plannedChunkCount: chunks.length,
+  );
+  stdout.writeln(
+    'QA_GENERATED_FIXTURE_RUN_AGGREGATE '
+    'checked=${aggregate.checked} failures=${aggregate.failures} '
+    'completedChunks=${chunkResults.length} plannedChunks=${chunks.length} '
+    'report=${aggregate.reportPath}',
+  );
+  return exitCode;
 }
 
 class _FixtureRunnerOptions {
@@ -102,6 +130,7 @@ class _FixtureRunnerOptions {
     required this.maxCases,
     required this.reportDir,
     required this.fixtureIds,
+    required this.chunkSize,
     required this.timeoutMs,
     required this.verbose,
   });
@@ -110,12 +139,15 @@ class _FixtureRunnerOptions {
   final int maxCases;
   final String reportDir;
   final Set<String> fixtureIds;
+  final int chunkSize;
   final int timeoutMs;
   final bool verbose;
 
   static _FixtureRunnerOptions parse(List<String> args) {
     final timeoutMs =
         int.tryParse(_valueAfter(args, '--timeout-ms') ?? '') ?? 900000;
+    final chunkSize =
+        int.tryParse(_valueAfter(args, '--chunk-size') ?? '') ?? 200;
     return _FixtureRunnerOptions(
       fixturePath: _valueAfter(args, '--fixture') ?? '',
       maxCases: int.tryParse(_valueAfter(args, '--max-cases') ?? '') ?? 1000,
@@ -123,10 +155,58 @@ class _FixtureRunnerOptions {
           _valueAfter(args, '--report-dir') ??
           'build/parser_qa_reports/generated_fixtures',
       fixtureIds: _csvSet(_valueAfter(args, '--fixture-ids') ?? ''),
+      chunkSize: chunkSize <= 0 ? 200 : chunkSize,
       timeoutMs: timeoutMs <= 0 ? 900000 : timeoutMs,
       verbose: args.contains('--verbose'),
     );
   }
+}
+
+List<List<String>> _fixtureChunks(_FixtureRunnerOptions options) {
+  final selected = _fixtureIdsFor(options);
+  if (selected.isEmpty) return [const <String>[]];
+  final chunks = <List<String>>[];
+  for (var offset = 0; offset < selected.length; offset += options.chunkSize) {
+    final end = offset + options.chunkSize > selected.length
+        ? selected.length
+        : offset + options.chunkSize;
+    chunks.add(selected.sublist(offset, end));
+  }
+  return chunks;
+}
+
+List<String> _fixtureIdsFor(_FixtureRunnerOptions options) {
+  final decoded = jsonDecode(File(options.fixturePath).readAsStringSync());
+  if (decoded is! List) return const <String>[];
+  final ids = <String>[];
+  for (final entry in decoded) {
+    if (entry is! Map) continue;
+    final id = entry['id'] as String?;
+    if (id == null || id.trim().isEmpty) continue;
+    if (options.fixtureIds.isNotEmpty && !options.fixtureIds.contains(id)) {
+      continue;
+    }
+    ids.add(id);
+    if (ids.length >= options.maxCases) break;
+  }
+  return ids;
+}
+
+List<String> _flutterCommandFor(
+  _FixtureRunnerOptions options, {
+  required List<String> fixtureIds,
+  required String reportDir,
+}) {
+  return [
+    'test/work_supply_parser_generated_fixture_runner_test.dart',
+    '--dart-define=PARSER_QA_GENERATED_FIXTURE_PATH=${options.fixturePath}',
+    '--dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=${fixtureIds.isEmpty ? options.maxCases : fixtureIds.length}',
+    '--dart-define=PARSER_QA_GENERATED_REPORT_DIR=$reportDir',
+    if (fixtureIds.isNotEmpty)
+      '--dart-define=PARSER_QA_GENERATED_FIXTURE_IDS=${fixtureIds.join(',')}',
+    '--reporter',
+    'compact',
+  ];
 }
 
 Future<ProcessResult> _runProcessWithTimeout(
@@ -167,20 +247,31 @@ Future<ProcessResult> _runProcessWithTimeout(
   );
 }
 
-String _summarizeFlutterOutput(String output, {required String reportDir}) {
+_ChunkRunSummary _chunkSummary({
+  required int chunkNumber,
+  required int chunkCount,
+  required List<String> fixtureIds,
+  required String output,
+  required String reportDir,
+  required int exitCode,
+}) {
   final report = File('$reportDir/latest_generated_fixture_run.json');
   if (report.existsSync()) {
     try {
       final json =
           jsonDecode(report.readAsStringSync()) as Map<String, dynamic>;
-      return 'QA_GENERATED_FIXTURE_RUN_SUMMARY '
-          'checked=${json['checked']} '
-          'failures=${json['failureCount']} '
-          'warmupMs=${json['warmupMs']} '
-          'report=${report.path}';
+      return _ChunkRunSummary(
+        chunkNumber: chunkNumber,
+        chunkCount: chunkCount,
+        checked: json['checked'] as int? ?? fixtureIds.length,
+        failures: json['failureCount'] as int? ?? 0,
+        warmupMs: json['warmupMs'] as int? ?? 0,
+        exitCode: exitCode,
+        reportPath: report.path,
+      );
     } catch (_) {
-      // Fall back to the runner line below; corrupt report JSON is handled by
-      // the failing exit code and preserved report artifact.
+      // Corrupt chunk report falls back to stdout summary below; the non-zero
+      // child exit still preserves the underlying failure.
     }
   }
   final line = output
@@ -190,9 +281,113 @@ String _summarizeFlutterOutput(String output, {required String reportDir}) {
         orElse: () => '',
       )
       .trim();
-  if (line.isNotEmpty) return line;
-  return 'QA_GENERATED_FIXTURE_RUN_SUMMARY report=$reportDir '
-      'status=completed_without_summary_line';
+  return _ChunkRunSummary(
+    chunkNumber: chunkNumber,
+    chunkCount: chunkCount,
+    checked: _intField(line, 'checked') ?? fixtureIds.length,
+    failures: _intField(line, 'failures') ?? (exitCode == 0 ? 0 : 1),
+    warmupMs: _intField(line, 'warmupMs') ?? 0,
+    exitCode: exitCode,
+    reportPath: report.path,
+  );
+}
+
+_AggregateRunSummary _writeAggregateReport({
+  required _FixtureRunnerOptions options,
+  required List<_ChunkRunSummary> chunks,
+  required int completedChunkCount,
+  required int plannedChunkCount,
+}) {
+  final directory = Directory(options.reportDir)..createSync(recursive: true);
+  final stamp = DateTime.now().toUtc().toIso8601String().replaceAll(
+    RegExp(r'[:.]'),
+    '',
+  );
+  final timestamped = File(
+    '${directory.path}/generated_fixture_aggregate_$stamp.json',
+  );
+  final latest = File('${directory.path}/latest_generated_fixture_run.json');
+  final checked = chunks.fold<int>(0, (sum, chunk) => sum + chunk.checked);
+  final failures = chunks.fold<int>(0, (sum, chunk) => sum + chunk.failures);
+  final report = {
+    'schemaVersion': 1,
+    'domain': 'work_supply_inventory_parser_generated_fixtures',
+    'fixturePath': options.fixturePath,
+    'maxCases': options.maxCases,
+    'chunkSize': options.chunkSize,
+    'plannedChunkCount': plannedChunkCount,
+    'completedChunkCount': completedChunkCount,
+    'checked': checked,
+    'failureCount': failures,
+    'chunkReports': [
+      for (final chunk in chunks)
+        {
+          'chunkNumber': chunk.chunkNumber,
+          'chunkCount': chunk.chunkCount,
+          'checked': chunk.checked,
+          'failureCount': chunk.failures,
+          'warmupMs': chunk.warmupMs,
+          'exitCode': chunk.exitCode,
+          'reportPath': chunk.reportPath,
+        },
+    ],
+    'liveServicesAllowed': false,
+    'writesProductionCatalog': false,
+    'firebaseWritesAllowed': false,
+    'ocrCameraExpensesTouched': false,
+    'generatedAtIso': DateTime.now().toUtc().toIso8601String(),
+  };
+  final encoded = const JsonEncoder.withIndent('  ').convert(report);
+  timestamped.writeAsStringSync(encoded, flush: true);
+  latest.writeAsStringSync(encoded, flush: true);
+  return _AggregateRunSummary(
+    checked: checked,
+    failures: failures,
+    reportPath: latest.path,
+  );
+}
+
+int? _intField(String line, String name) {
+  final match = RegExp('(?:^| )$name=([0-9]+)(?: |\$)').firstMatch(line);
+  return int.tryParse(match?.group(1) ?? '');
+}
+
+class _ChunkRunSummary {
+  const _ChunkRunSummary({
+    required this.chunkNumber,
+    required this.chunkCount,
+    required this.checked,
+    required this.failures,
+    required this.warmupMs,
+    required this.exitCode,
+    required this.reportPath,
+  });
+
+  final int chunkNumber;
+  final int chunkCount;
+  final int checked;
+  final int failures;
+  final int warmupMs;
+  final int exitCode;
+  final String reportPath;
+
+  String toLogLine() {
+    return 'QA_GENERATED_FIXTURE_RUN_CHUNK '
+        'chunk=$chunkNumber/$chunkCount checked=$checked failures=$failures '
+        'warmupMs=$warmupMs exitCode=$exitCode report=$reportPath';
+  }
+}
+
+class _AggregateRunSummary {
+  const _AggregateRunSummary({
+    required this.checked,
+    required this.failures,
+    required this.reportPath,
+  });
+
+  final int checked;
+  final int failures;
+  final String reportPath;
 }
 
 String _tail(String value, {required int maxChars}) {

@@ -75,6 +75,55 @@ void main() {
     });
 
     test(
+      'mixed-trade PVC shorthand stays review-level without enough evidence',
+      () {
+        const lines = [
+          'PVC EL 3/4',
+          'PVC 90 1/2',
+          'CODO PVC 3/4',
+          '3/4 PVC COUPLING',
+        ];
+
+        for (final line in lines) {
+          final match = matchReceiptLineToCatalog(line, maxCandidates: 400);
+
+          expect(
+            match == null || match.confidence <= .81,
+            isTrue,
+            reason:
+                'Cross-trade PVC shorthand must not become a false-confident '
+                'single answer without trade/job/merchant evidence: $line '
+                '=> ${match?.item.path} confidence=${match?.confidence}',
+          );
+        }
+      },
+    );
+
+    test('filter dimensions require HVAC air-filter evidence', () {
+      final generic = matchReceiptLineToCatalog(
+        'FILTER 20X25X1',
+        maxCandidates: 400,
+      );
+      final hvac = matchReceiptLineToCatalog(
+        'MERV 8 AIR FILTER 20X25X1',
+        tradeScope: 'HVAC',
+        maxCandidates: 400,
+      );
+
+      expect(
+        generic == null || generic.confidence <= .81,
+        isTrue,
+        reason:
+            'A bare filter size can mean water, oil, HVAC, or other filters '
+            'and must stay review-level without air/MERV/furnace evidence.',
+      );
+      expect(hvac, isNotNull);
+      expect(hvac!.item.trade, 'HVAC');
+      expect(hvac.item.name.toLowerCase(), contains('filter'));
+      expect(hvac.confidenceLevel, ReceiptConfidenceLevel.good);
+    });
+
+    test(
       'bare PVC COND shorthand stays review-level even in electrical scope',
       () {
         for (final line in const [

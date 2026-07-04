@@ -4682,6 +4682,25 @@ bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
       RegExp(r'\b(90|ell|el|elb|elbow)\b').hasMatch(text)) {
     return true;
   }
+  if (RegExp(r'\bfilter\b').hasMatch(text) &&
+      RegExp(r'\b\d{1,2}\s*x\s*\d{1,2}\s*x\s*\d{1,2}\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(air|merv|furnace|hvac|return|pleated|media|water|oil)\b',
+      ).hasMatch(text)) {
+    return true;
+  }
+  if (RegExp(r'\bcoupling\b').hasMatch(text) &&
+      RegExp(r'\b(?:1/2|3/4|1|1-1/4|1-1/2|2|3|4)\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(pvc|cpvc|pex|copper|emt|cond|conduit|dwv|abs)\b',
+      ).hasMatch(text)) {
+    return true;
+  }
+  if (RegExp(r'\bj\s*box\b').hasMatch(text)) return true;
+  if (RegExp(r'\bfoil\s+tape\b').hasMatch(text) &&
+      !RegExp(r'\b(hvac|duct|mastic|ul181|fsk)\b').hasMatch(text)) {
+    return true;
+  }
   return switch (text) {
     'adapter' ||
     'black' ||

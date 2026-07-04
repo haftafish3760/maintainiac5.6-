@@ -77,12 +77,13 @@ void main() {
       expect(
         arguments,
         contains(
-          '--dart-define=PARSER_QA_GENERATED_REPORT_DIR=${root.path}/reports',
+          '--dart-define=PARSER_QA_GENERATED_REPORT_DIR=${root.path}/reports/chunks/001',
         ),
       );
       expect(stdout.content, contains('QA_GENERATED_FIXTURE_RUN_WRAPPER'));
       expect(stdout.content, contains('runner=flutter-test'));
-      expect(stdout.content, contains('QA_GENERATED_FIXTURE_RUN'));
+      expect(stdout.content, contains('QA_GENERATED_FIXTURE_RUN_CHUNK'));
+      expect(stdout.content, contains('QA_GENERATED_FIXTURE_RUN_AGGREGATE'));
       expect(stdout.content, isNot(contains('flutter progress spam')));
     },
   );
@@ -209,6 +210,76 @@ void main() {
       arguments,
       contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_IDS=run_me'),
     );
+  });
+
+  test('generated fixture wrapper chunks large runs surgically', () async {
+    final root = await Directory.systemTemp.createTemp(
+      'maintainiac_generated_fixture_runner_chunks_',
+    );
+    addTearDown(() => root.delete(recursive: true));
+    final fixture = File('${root.path}/generated_fixtures.json')
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert([
+          for (var index = 0; index < 5; index++)
+            {
+              'id': 'fixture_$index',
+              'caseType': 'clear_match',
+              'rawLine': 'LOWES TOILET WAX RING 4.98',
+              'expectedTrade': 'Plumbing',
+              'expectedNameContains': 'wax ring',
+              'tradeScope': 'Plumbing',
+            },
+        ]),
+      );
+
+    final calls = <List<String>>[];
+    final stdout = _MemorySink();
+    final stderr = _MemorySink();
+    final exit = await runGeneratedParserFixtures(
+      [
+        '--fixture',
+        fixture.path,
+        '--max-cases',
+        '5',
+        '--chunk-size',
+        '2',
+        '--report-dir',
+        '${root.path}/reports',
+      ],
+      stdout: stdout,
+      stderr: stderr,
+      processRunner:
+          (String command, List<String> args, {bool runInShell = false}) async {
+            calls.add(args);
+            return ProcessResult(
+              44 + calls.length,
+              0,
+              'QA_GENERATED_FIXTURE_RUN checked=2 failures=0 warmupMs=1',
+              '',
+            );
+          },
+    );
+
+    expect(exit, 0, reason: stderr.content);
+    expect(calls, hasLength(3));
+    expect(
+      calls[0],
+      contains(
+        '--dart-define=PARSER_QA_GENERATED_FIXTURE_IDS=fixture_0,fixture_1',
+      ),
+    );
+    expect(
+      calls[1],
+      contains(
+        '--dart-define=PARSER_QA_GENERATED_FIXTURE_IDS=fixture_2,fixture_3',
+      ),
+    );
+    expect(
+      calls[2],
+      contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_IDS=fixture_4'),
+    );
+    expect(stdout.content, contains('chunkSize=2 chunks=3'));
+    expect(stdout.content, contains('completedChunks=3 plannedChunks=3'));
   });
 }
 

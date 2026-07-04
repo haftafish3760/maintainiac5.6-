@@ -81,7 +81,19 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
     var durationMs = 0;
     if (options.execute) {
       final runner = cellRunner ?? _runCellProcess;
-      final process = await runner(command, timeout: options.cellTimeout);
+      final process = await runner(
+        command,
+        timeout: options.cellTimeout,
+        onHeartbeat: () => _writeStatus(
+          options: options,
+          runDir: runDir,
+          cells: cells,
+          results: results,
+          activeCell: cell,
+          activeCellStartedAt: startedAt,
+          state: 'running',
+        ),
+      );
       exit = process.exitCode;
       stdoutText = process.stdout;
       stderrText = process.stderr;
@@ -457,6 +469,7 @@ typedef BackgroundQueueCellRunner =
     Future<BackgroundQueueCellResult> Function(
       List<String> command, {
       Duration? timeout,
+      void Function()? onHeartbeat,
     });
 
 class BackgroundQueueCellResult {
@@ -474,6 +487,7 @@ class BackgroundQueueCellResult {
 Future<BackgroundQueueCellResult> _runCellProcess(
   List<String> command, {
   Duration? timeout,
+  void Function()? onHeartbeat,
 }) async {
   final process = await Process.start(
     command.first,
@@ -485,6 +499,9 @@ Future<BackgroundQueueCellResult> _runCellProcess(
   final stderrFuture = process.stderr.transform(utf8.decoder).join();
   var timedOut = false;
   Timer? timer;
+  final heartbeat = onHeartbeat == null
+      ? null
+      : Timer.periodic(const Duration(seconds: 30), (_) => onHeartbeat());
   if (timeout != null) {
     timer = Timer(timeout, () {
       timedOut = true;
@@ -493,6 +510,7 @@ Future<BackgroundQueueCellResult> _runCellProcess(
   }
   final exit = await process.exitCode;
   timer?.cancel();
+  heartbeat?.cancel();
   final stdoutText = await stdoutFuture;
   final stderrText = await stderrFuture;
   if (!timedOut) {
