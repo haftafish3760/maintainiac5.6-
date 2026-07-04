@@ -28,7 +28,9 @@ class ReceiptClientProofRedactionLine {
       'action': action.name,
       'reason': reason,
       if (sourceReceiptSectionLabel.trim().isNotEmpty)
-        'sourceReceiptSectionLabel': sourceReceiptSectionLabel.trim(),
+        'sourceReceiptSectionLabel': privacySafeReceiptSourceSectionLabel(
+          sourceReceiptSectionLabel,
+        ),
       'wasSelected': wasSelected,
     };
   }
@@ -212,7 +214,9 @@ class ReceiptClientProofSourceSectionSummary {
 
   Map<String, Object?> toPrivacySafeMap() {
     return {
-      'sourceReceiptSectionLabel': sourceReceiptSectionLabel,
+      'sourceReceiptSectionLabel': privacySafeReceiptSourceSectionLabel(
+        sourceReceiptSectionLabel,
+      ),
       'visibleLineCount': visibleLineCount,
       'hiddenLineCount': hiddenLineCount,
       'reviewLineCount': reviewLineCount,

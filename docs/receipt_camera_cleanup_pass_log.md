@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 636 - 22:21:16 EDT to active cleanup
+
+Scope:
+- Hardened client-proof receipt line privacy maps so malformed source section
+  labels cannot leak store/customer text into future redaction plans.
+- Kept normal generic labels such as `Photo 1` while bucketing unsafe labels as
+  `source_section` in privacy-safe output only.
+- Added focused regression coverage across selected-line, redaction-plan, and
+  image-review privacy maps.
+- Recorded `BUG-RECEIPT-0157` under `privacy_redaction`.
+
+Verification:
+- Passed targeted Dart format/analyzer for client-proof receipt line contracts.
+- Passed focused Flutter receipt processing contract regression.
+- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
+  check.
+
 ## Pass 635 - 22:18:44 EDT to active cleanup
 
 Scope:
@@ -113,18 +130,6 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for continuation handoff changes.
 - Passed focused Flutter continuation handoff regression.
-- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
-  check.
-
-## Pass 626 - 22:01:05 EDT to active cleanup
-
-Scope:
-- Renamed retired tap-focus telemetry counters to legacy tap-focus counters.
-- Added regressions rejecting the old active tap-focus telemetry key names.
-- Recorded `BUG-RECEIPT-0147` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted analyzer and focused telemetry/source regressions.
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.
 

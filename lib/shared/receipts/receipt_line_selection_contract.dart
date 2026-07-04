@@ -95,7 +95,9 @@ class ReceiptSelectedLineReference {
       'businessPercent': businessPercent,
       'personalPercent': personalPercent,
       if (sourceReceiptSectionLabel.trim().isNotEmpty)
-        'sourceReceiptSectionLabel': sourceReceiptSectionLabel.trim(),
+        'sourceReceiptSectionLabel': privacySafeReceiptSourceSectionLabel(
+          sourceReceiptSectionLabel,
+        ),
       'hasAmount': lineTotal > 0 || lineSubtotal > 0,
       'needsParserReview': needsParserReview,
       'needsClientProofReview': needsClientProofReview,

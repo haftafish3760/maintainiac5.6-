@@ -18,6 +18,18 @@ class ReceiptLineClientProofVisibility {
   static const redactByDefault = 'redact_by_default';
 }
 
+String privacySafeReceiptSourceSectionLabel(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) return '';
+  final normalized = trimmed.toLowerCase();
+  if (RegExp(
+    r'^(photo|section|source section|receipt section)\s+\d{1,3}$',
+  ).hasMatch(normalized)) {
+    return trimmed;
+  }
+  return 'source_section';
+}
+
 class ReceiptLineDraft {
   const ReceiptLineDraft({
     required this.kind,
@@ -246,7 +258,9 @@ class ReceiptLineDraft {
       'clientProofDefaultVisibility': clientProofDefaultVisibility,
       'clientProofReviewLabel': clientProofReviewLabel,
       if (sourceReceiptSectionLabel.trim().isNotEmpty)
-        'sourceReceiptSectionLabel': sourceReceiptSectionLabel.trim(),
+        'sourceReceiptSectionLabel': privacySafeReceiptSourceSectionLabel(
+          sourceReceiptSectionLabel,
+        ),
       'kind': kind.name,
       'businessUse': effectiveBusinessUse,
       'businessPercent': effectiveBusinessPercent,
