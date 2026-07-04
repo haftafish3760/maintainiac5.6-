@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 885 - active cleanup
+
+Scope:
+- Hardened auto-capture waiting diagnostics so waiting-for-stability requires
+  explicit auto-capture opt-in and stable-frame evidence.
+- Added native UI risk outcomes for waiting without request and waiting without
+  stable-frame diagnostics.
+- Added focused regression coverage for the waiting-state invariant class.
+- Recorded `BUG-RECEIPT-0334` under `native_bridge`.
+- Archived Pass 820 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused auto-capture/native-quality
+  regressions, and test source audit.
+
 ## Pass 884 - active cleanup
 
 Scope:
@@ -456,22 +471,5 @@ Scope:
 Verification:
 - Passed targeted parser-risk parity format/analyzer and focused contract
   regression.
-- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
-  whitespace gates.
-
-## Pass 820 - 12:44:00 EDT to active cleanup
-
-Scope:
-- Preserved saved-photo parser-risk codes as OCR source risk flags in both
-  shared capture-flow and attachment-panel handoff builders.
-- Taught OCR source handoff and parser/admin diagnostics to classify the
-  parser-risk tokens even if a future path lacks the matching action token.
-- Added focused regressions for source builder parity and parser-risk-only
-  source handoff classification.
-- Recorded `BUG-RECEIPT-0305` under `ocr_handoff_contract`.
-- Archived Pass 813 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted parser-risk handoff format/analyzer and focused regressions.
 - Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
   whitespace gates.

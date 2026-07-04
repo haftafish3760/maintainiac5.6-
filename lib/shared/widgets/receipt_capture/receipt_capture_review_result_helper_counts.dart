@@ -205,6 +205,12 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
     if ((counts['auto_capture_waiting_after_stable_regressed'] ?? 0) > 0) {
       return 'auto_capture_waiting_after_stable_regressed';
     }
+    if ((counts['auto_capture_waiting_without_request_regressed'] ?? 0) > 0) {
+      return 'auto_capture_waiting_without_request_regressed';
+    }
+    if ((counts['auto_capture_waiting_missing_stability_evidence'] ?? 0) > 0) {
+      return 'auto_capture_waiting_missing_stability_evidence';
+    }
     if ((counts['preview_saved_darker_than_live'] ?? 0) > 0) {
       return 'preview_saved_darker_than_live';
     }

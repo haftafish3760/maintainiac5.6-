@@ -193,4 +193,60 @@ void main() {
       1,
     );
   });
+
+  test('auto capture waiting requires opt-in and stability diagnostics', () {
+    final noRequest = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/auto-waiting-off.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/auto-waiting-off-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/auto-waiting-off-ocr.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/auto-waiting-off.jpg': {
+          'captureReadinessCode': 'auto_capture_waiting_for_stability',
+          'manualCaptureAllowed': true,
+          'autoCaptureAllowed': false,
+          'autoCaptureEnabled': false,
+          'stableFrameCount': 1,
+          'requiredStableFrames': 3,
+        },
+      },
+    );
+    final missingEvidence = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/auto-waiting-missing.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/auto-waiting-missing-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/auto-waiting-missing-ocr.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/auto-waiting-missing.jpg': {
+          'captureReadinessCode': 'auto_capture_waiting_for_stability',
+          'manualCaptureAllowed': true,
+          'autoCaptureAllowed': false,
+          'autoCaptureEnabled': true,
+        },
+      },
+    );
+
+    expect(
+      noRequest.nativeCameraUiHealthOutcome,
+      'auto_capture_waiting_without_request_regressed',
+    );
+    expect(
+      noRequest
+          .nativeCameraUiHealthCounts['auto_capture_waiting_without_request_regressed'],
+      1,
+    );
+    expect(
+      missingEvidence.nativeCameraUiHealthOutcome,
+      'auto_capture_waiting_missing_stability_evidence',
+    );
+    expect(
+      missingEvidence
+          .nativeCameraUiHealthCounts['auto_capture_waiting_missing_stability_evidence'],
+      1,
+    );
+  });
 }
