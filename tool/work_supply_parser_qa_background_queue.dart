@@ -35,6 +35,7 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
     ..createSync(recursive: true);
   final cells = _cells(options);
   final results = <Map<String, Object?>>[];
+  final queueStartedAt = DateTime.now().toUtc();
   var failed = false;
   _writeStatus(
     options: options,
@@ -73,9 +74,11 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
       stderrText = process.stderr.toString();
       durationMs = DateTime.now().toUtc().difference(startedAt).inMilliseconds;
     }
+    final completedAt = DateTime.now().toUtc();
     File(transcriptPath).writeAsStringSync(
       [
         'startedAt=${startedAt.toIso8601String()}',
+        'completedAt=${completedAt.toIso8601String()}',
         'workingDirectory=${Directory.current.path}',
         'command=${command.join(' ')}',
         'exitCode=$exit',
@@ -95,6 +98,8 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
       'localePackId': cell.locale,
       'exitCode': exit,
       'durationMs': durationMs,
+      'startedAtIso': startedAt.toIso8601String(),
+      'completedAtIso': completedAt.toIso8601String(),
       'transcriptPath': transcriptPath,
       'dryRun': !options.execute,
     });
@@ -111,11 +116,15 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
       state: failed ? 'failed' : 'running',
     );
   }
+  final queueCompletedAt = DateTime.now().toUtc();
   final summary = {
     'schemaVersion': 1,
     'queue': 'work_supply_parser_qa_background_queue',
     'queueId': options.queueId,
     'dryRun': !options.execute,
+    'startedAtIso': queueStartedAt.toIso8601String(),
+    'completedAtIso': queueCompletedAt.toIso8601String(),
+    'durationMs': queueCompletedAt.difference(queueStartedAt).inMilliseconds,
     'cellCount': cells.length,
     'completedCellCount': results.length,
     'failedCellCount': results.where((r) => r['exitCode'] != 0).length,

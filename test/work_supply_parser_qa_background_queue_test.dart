@@ -46,6 +46,9 @@ void main() {
     expect(summary['dryRun'], true);
     expect(summary['cellCount'], 4);
     expect(summary['completedCellCount'], 4);
+    expect(summary['startedAtIso'], isA<String>());
+    expect(summary['completedAtIso'], isA<String>());
+    expect(summary['durationMs'], isA<int>());
     expect(summary['liveServicesAllowed'], false);
     expect(summary['writesProductionCatalog'], false);
     final status =
@@ -60,9 +63,14 @@ void main() {
     expect(status['liveServicesAllowed'], false);
     expect(status['writesProductionCatalog'], false);
     final first = (summary['results'] as List).first as Map;
+    expect(first['startedAtIso'], isA<String>());
+    expect(first['completedAtIso'], isA<String>());
+    expect(first['durationMs'], isA<int>());
     final transcript = File(first['transcriptPath'].toString());
     expect(transcript.existsSync(), true);
     final transcriptText = transcript.readAsStringSync();
+    expect(transcriptText, contains('startedAt='));
+    expect(transcriptText, contains('completedAt='));
     expect(transcriptText, contains('DRY RUN'));
     expect(transcriptText, contains('work_supply_parser_qa_matrix_pipeline'));
     expect(transcriptText, contains('--fixture-run-limit 10'));
