@@ -3,6 +3,19 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 641 - 22:32:34 EDT to active cleanup
+
+Scope:
+- Strengthened Android native bridge source coverage so the UI contract test
+  pins `continuousFocusEnabled` argument restore and diagnostics.
+- Kept Android coverage aligned with existing iOS continuous-focus diagnostics
+  assertions.
+- Archived Pass 604 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format for the Android bridge UI contract regression.
+- Passed focused Flutter Android bridge UI contract regression.
+
 ## Pass 640 - 22:31:30 EDT to active cleanup
 
 Scope:
@@ -468,23 +481,3 @@ Verification:
 - Passed targeted Dart format/analyzer for the focused iOS bridge regressions.
 - Passed focused Flutter iOS bridge UI-session and analysis/exposure
   regressions.
-
-## Pass 604 - 21:07:15 EDT to 21:08:00 EDT
-
-Scope:
-- Hardened Android CameraX startup so the native bridge consumes
-  `continuousFocusEnabled` and applies continuous picture autofocus plus normal
-  auto exposure through Camera2Interop for preview and still capture builders.
-- Added Android diagnostics for `continuousFocusEnabled` so real-device logs
-  can prove whether continuous autofocus was actually requested.
-- Added Android bridge source regression coverage for the session argument,
-  diagnostics, and Camera2 continuous-focus request.
-- Recorded `BUG-RECEIPT-0125` under `camera_capture_quality`.
-- Archived Pass 583 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the Android bridge regression.
-- Passed focused Flutter Android bridge analysis/exposure regression.
-- Attempted `./gradlew :app:compileDebugKotlin`, but Gradle could not start
-  because this Mac has no Java runtime available.

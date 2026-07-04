@@ -104,7 +104,21 @@ void main() {
     );
     expect(
       cameraActivity,
+      contains('internal var continuousFocusEnabled = true'),
+    );
+    expect(
+      cameraActivity,
+      contains(
+        'intent.getBooleanExtra("continuousFocusEnabled", continuousFocusEnabled)',
+      ),
+    );
+    expect(
+      cameraActivity,
       contains('"focusStrategyPolicy" to focusStrategyPolicy'),
+    );
+    expect(
+      cameraActivity,
+      contains('"continuousFocusEnabled" to continuousFocusEnabled'),
     );
     expect(
       cameraActivity,
