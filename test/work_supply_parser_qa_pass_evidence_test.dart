@@ -19,7 +19,20 @@ void main() {
     final stdout = _MemorySink();
 
     final exit = runWorkSupplyParserQaPassEvidence(
-      ['--pass', '334', '--label', 'unit-test', '--artifact', artifact.path],
+      [
+        '--pass',
+        '334',
+        '--label',
+        'unit-test',
+        '--artifact',
+        artifact.path,
+        '--git-branch',
+        'codex/inventory-parser-backup',
+        '--git-commit',
+        'abc1234',
+        '--git-dirty',
+        'false',
+      ],
       stdout: stdout,
       stderr: _MemorySink(),
     );
@@ -34,6 +47,9 @@ void main() {
     expect(record['pass'], '334');
     expect(record['label'], 'unit-test');
     expect(record['artifactExists'], isTrue);
+    expect(record['gitBranch'], 'codex/inventory-parser-backup');
+    expect(record['gitCommit'], 'abc1234');
+    expect(record['gitDirty'], 'false');
     expect(record['liveServicesAllowed'], isFalse);
     expect(record['firebaseWritesAllowed'], isFalse);
     expect(record['ocrCameraExpensesTouched'], isFalse);

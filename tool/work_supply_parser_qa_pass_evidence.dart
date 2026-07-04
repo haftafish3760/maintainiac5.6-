@@ -4,7 +4,9 @@ import 'dart:io';
 const _usage =
     'dart run tool/work_supply_parser_qa_pass_evidence.dart '
     '--pass 333 --label release-one-commands '
-    '[--artifact build/parser_qa_pipeline/release_one_commands.json]';
+    '[--artifact build/parser_qa_pipeline/release_one_commands.json] '
+    '[--git-branch codex/inventory-parser] [--git-commit abc123] '
+    '[--git-dirty false]';
 
 Future<void> main(List<String> args) async {
   final exit = runWorkSupplyParserQaPassEvidence(
@@ -31,6 +33,9 @@ int runWorkSupplyParserQaPassEvidence(
     return 64;
   }
   final artifact = _value(args, 'artifact', '');
+  final gitBranch = _value(args, 'git-branch', '');
+  final gitCommit = _value(args, 'git-commit', '');
+  final gitDirty = _value(args, 'git-dirty', '');
   final now = DateTime.now().toLocal();
   final record = {
     'schemaVersion': 1,
@@ -40,6 +45,9 @@ int runWorkSupplyParserQaPassEvidence(
     'timestamp': now.toIso8601String(),
     'artifact': artifact,
     'artifactExists': artifact.isNotEmpty ? File(artifact).existsSync() : false,
+    'gitBranch': gitBranch,
+    'gitCommit': gitCommit,
+    'gitDirty': gitDirty,
     'liveServicesAllowed': false,
     'writesProductionCatalog': false,
     'firebaseWritesAllowed': false,
