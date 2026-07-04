@@ -69,6 +69,12 @@ void main() {
       expect(cameraActivity, contains('latestFrameBrightness'));
       expect(cameraActivity, contains('Brightness'));
       expect(cameraActivity, contains('Reset'));
+      expect(cameraActivity, contains('import java.util.UUID'));
+      expect(cameraActivity, contains('UUID.randomUUID()'));
+      expect(
+        cameraActivity,
+        isNot(contains(r'"receipt_${System.currentTimeMillis()}.jpg"')),
+      );
       expect(cameraActivity, contains('AlertDialog.Builder'));
       expect(cameraActivity, contains('ScrollView(this)'));
       expect(cameraActivity, contains('addView(content)'));

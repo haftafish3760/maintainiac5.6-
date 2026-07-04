@@ -6,6 +6,7 @@ import android.os.SystemClock
 import android.view.View
 import java.io.File
 import java.time.Instant
+import java.util.UUID
 
 
 internal fun ReceiptCameraActivity.finishWithCapturedPhotos(closeReason: String = "done_returned_captured_sections") {
@@ -117,5 +118,5 @@ internal fun ReceiptCameraActivity.newReceiptCaptureFile(): File {
     val directory = File(cacheDir, "receipt_camera").apply {
         if (!exists()) mkdirs()
     }
-    return File(directory, "receipt_${System.currentTimeMillis()}.jpg")
+    return File(directory, "receipt_${System.currentTimeMillis()}_${UUID.randomUUID()}.jpg")
 }

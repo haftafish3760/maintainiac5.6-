@@ -253,6 +253,15 @@ void main() {
       expect(cameraController, contains('latestFrameBrightness'));
       expect(cameraController, contains('Brightness'));
       expect(cameraController, contains('Reset'));
+      expect(cameraController, contains('UUID().uuidString'));
+      expect(
+        cameraController,
+        isNot(
+          contains(
+            '"receipt_\\(Int(Date().timeIntervalSince1970 * 1000)).jpg"',
+          ),
+        ),
+      );
       expect(cameraController, contains('settingsSummary'));
       expect(cameraController, contains('Assisted receipt fill'));
       expect(cameraController, contains('Long receipt mode'));

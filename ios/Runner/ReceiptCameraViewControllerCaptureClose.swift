@@ -205,6 +205,6 @@ extension ReceiptCameraViewController {
     let directory = FileManager.default.temporaryDirectory
       .appendingPathComponent("receipt_camera", isDirectory: true)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    return directory.appendingPathComponent("receipt_\(Int(Date().timeIntervalSince1970 * 1000)).jpg")
+    return directory.appendingPathComponent("receipt_\(Int(Date().timeIntervalSince1970 * 1000))_\(UUID().uuidString).jpg")
   }
 }
