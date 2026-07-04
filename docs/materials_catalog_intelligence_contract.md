@@ -61,6 +61,38 @@ Rules:
 
 Current code note: some existing catalog/model files still import Flutter Material for presentation-friendly values. Do not make that coupling worse. Future cleanup should move display-only values behind adapters when safe.
 
+## Parser Input Source Safety
+
+The materials parser must treat every upstream input as untrusted text. A source
+adapter may describe where text came from, but that source is evidence only and
+must never imply a confirmed inventory item, job material, estimate line, invoice
+line, or catalog mutation.
+
+Required source-modality tags:
+
+- `photo_ocr_text_after_extraction`
+- `uploaded_pdf_text_after_extraction`
+- `emailed_receipt_text_after_extraction`
+- `manual_pasted_receipt_text`
+- `invoice_style_material_line_text`
+- `quote_style_material_line_text`
+- `packing_slip_material_list_text`
+- `counter_sale_material_receipt_text`
+- `generic_unknown_merchant_receipt_text`
+- `local_regional_supplier_receipt_text`
+
+Required hostile-source rules:
+
+- `input_attack_source_modality_is_hostile_text`
+- `input_attack_source_modality_never_implies_truth`
+- `input_attack_unknown_source_uses_generic_pipeline`
+
+Unknown merchants, regional suppliers, pasted lines, email/PDF-derived text, and
+future adapter inputs must flow through the generic parser pipeline unless a
+specific merchant rule provides evidence. They must remain review-only when the
+line is ambiguous, hostile-looking, private-looking, or missing enough item
+context.
+
 ## Product Direction
 
 Work Supplies is a contractor inventory and material parser system, not a big-box-store browse catalog.

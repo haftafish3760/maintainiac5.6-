@@ -53,6 +53,17 @@ Current status note: these rows are QA-writing complete enough to track, but not
 - Firestore can never overwrite newer approved Hive inventory state without review.
 - Parser candidates are review-only until a user approves the destination action.
 - Search and parser text input are hostile input surfaces.
+- Every parser input source modality is hostile text until reviewed:
+  `photo_ocr_text_after_extraction`,
+  `uploaded_pdf_text_after_extraction`,
+  `emailed_receipt_text_after_extraction`, `manual_pasted_receipt_text`,
+  `invoice_style_material_line_text`, `quote_style_material_line_text`,
+  `packing_slip_material_list_text`, `counter_sale_material_receipt_text`,
+  `generic_unknown_merchant_receipt_text`, and
+  `local_regional_supplier_receipt_text`.
+- Rule IDs: `input_attack_source_modality_is_hostile_text`,
+  `input_attack_source_modality_never_implies_truth`, and
+  `input_attack_unknown_source_uses_generic_pipeline`.
 - Raw receipt, customer, payment, GPS, image, and employee private data must not leak into diagnostics.
 - Financial totals must not be duplicated, mutated, or silently allocated without review evidence.
 - A repeated receipt import must not double-add inventory, job material, estimate material, or invoice material.

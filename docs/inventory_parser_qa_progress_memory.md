@@ -102,6 +102,25 @@ Focused rerun routes for recently hardened release-one contracts:
 - inventory.review_safety_contract:
   `flutter test test/work_supply_parser_qa_harness_test.dart --dart-define=PARSER_QA_SUITES=inventory.review_safety_contract,qa.threshold_gate`
 
+## 2026-07-04 Hostile Source-Modality Input Hardening
+
+- Passes 2085-2094 added source-modality coverage to
+  `inventory.input_attack_surface_contract` so every upstream parser text source
+  is treated as hostile input before review. The contract now requires the
+  modality tags from `inventory.receipt_source_immutability_contract`,
+  including photo-OCR text after extraction, uploaded PDF text after extraction,
+  emailed receipt text after extraction, manual pasted text, invoice/quote/
+  packing-slip material line text, counter-sale receipt text, generic unknown
+  merchant text, and local/regional supplier receipt text.
+- Added explicit hostile-source rules to the QA matrix and materials catalog
+  contract: `input_attack_source_modality_is_hostile_text`,
+  `input_attack_source_modality_never_implies_truth`, and
+  `input_attack_unknown_source_uses_generic_pipeline`.
+- Focused verification passed:
+  `flutter test test\work_supply_parser_qa_harness_test.dart --reporter compact --dart-define=PARSER_QA_SUITES=inventory.input_attack_surface_contract,inventory.receipt_source_immutability_contract,inventory.security_privacy,qa.threshold_gate --dart-define=PARSER_QA_MAX_FAILURES_PER_SUITE=40`
+  reported 187 checks, 0 failures. Analyzer also passed for the changed parser
+  QA security/source files.
+
 ## 2026-07-04 Whole-App Parser Adapter Registry And Surgical Routing
 
 - Passes 1961-1986 tightened the reusable Maintainiac QA backbone so parser QA

@@ -12,6 +12,7 @@ class WorkSupplyParserInputAttackSurfaceSuite extends QaSuite {
     'docs/materials_catalog_intelligence_contract.md',
     'docs/inventory_parser_qa_progress_memory.md',
     'test/support/work_supply_parser_qa/work_supply_parser_security_qa.dart',
+    'test/support/work_supply_parser_qa/work_supply_parser_receipt_source_immutability_qa.dart',
     'test/support/work_supply_parser_qa/work_supply_parser_search_indexing_qa.dart',
     'test/support/work_supply_parser_qa/work_supply_parser_import_export_safety_qa.dart',
     'test/support/work_supply_parser_qa/work_supply_parser_receipt_line_parser_fuzz_qa.dart',
@@ -36,6 +37,19 @@ class WorkSupplyParserInputAttackSurfaceSuite extends QaSuite {
     'import file',
     'admin filter',
     'diagnostic filter',
+  };
+
+  static const _sourceModalities = {
+    'photo_ocr_text_after_extraction',
+    'uploaded_pdf_text_after_extraction',
+    'emailed_receipt_text_after_extraction',
+    'manual_pasted_receipt_text',
+    'invoice_style_material_line_text',
+    'quote_style_material_line_text',
+    'packing_slip_material_list_text',
+    'counter_sale_material_receipt_text',
+    'generic_unknown_merchant_receipt_text',
+    'local_regional_supplier_receipt_text',
   };
 
   static const _hostileInputs = {
@@ -78,6 +92,9 @@ class WorkSupplyParserInputAttackSurfaceSuite extends QaSuite {
     'input_attack_redacts_reports',
     'input_attack_has_regression_fixture',
     'input_attack_has_focused_rerun',
+    'input_attack_source_modality_is_hostile_text',
+    'input_attack_source_modality_never_implies_truth',
+    'input_attack_unknown_source_uses_generic_pipeline',
   };
 
   static const _protectedDestinations = {
@@ -123,6 +140,18 @@ class WorkSupplyParserInputAttackSurfaceSuite extends QaSuite {
       message: 'Input attack surface QA is missing hostile payload coverage.',
       fix:
           'Add hostile fixtures for injection-like strings, paths, scripts, regex traps, malformed data, huge/repeated input, Unicode controls, and private-looking values.',
+      triage: QaFailureTriage.security,
+    );
+
+    checked += _sourceModalities.length;
+    _requireTokens(
+      failures,
+      source,
+      _sourceModalities,
+      idPrefix: 'missing_hostile_source_modality',
+      message: 'Input attack surface QA is missing a receipt/source modality.',
+      fix:
+          'Every extracted text source must be treated as hostile parser input: OCR text, PDF text, emailed text, pasted text, invoice/quote/packing-slip text, counter-sale text, unknown merchants, and local suppliers.',
       triage: QaFailureTriage.security,
     );
 
