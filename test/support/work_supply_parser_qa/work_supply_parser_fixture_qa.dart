@@ -44,6 +44,7 @@ class WorkSupplyGoldenFixtureSuite extends QaSuite {
 
     final timer = QaStopwatch.start();
     final fixtureTimings = <Map<String, Object?>>[];
+    var parserCalls = 1;
     for (final fixture in fixtures) {
       final rawLine = fixture.rawLine;
       final fixtureTimer = Stopwatch()..start();
@@ -53,6 +54,7 @@ class WorkSupplyGoldenFixtureSuite extends QaSuite {
         localePackId: fixture.localePackId,
         maxCandidates: 24,
       );
+      parserCalls++;
       fixtureTimer.stop();
       fixtureTimings.add({
         'id': fixture.id,
@@ -144,6 +146,7 @@ class WorkSupplyGoldenFixtureSuite extends QaSuite {
         'fixtureIdFilter': fixtureFilter.toList()..sort(),
         'warmupMs': warmupTimer.elapsedMilliseconds,
         'warmupLine': 'HD 3/4 PVC SCH40 COUPLING',
+        'parserCalls': parserCalls,
         'semanticTimingExcludesWarmup': true,
         'slowestFixtures':
             (fixtureTimings..sort(
@@ -205,6 +208,7 @@ class WorkSupplyGeneratedCaseSuite extends QaSuite {
       );
     }
     final cases = _generatedCases(context.maxGeneratedCases);
+    var parserCalls = 0;
     for (final generated in cases) {
       final match = matchReceiptLineToCatalog(
         generated.line,
@@ -212,6 +216,7 @@ class WorkSupplyGeneratedCaseSuite extends QaSuite {
         localePackId: generated.localePackId,
         maxCandidates: 24,
       );
+      parserCalls++;
       if (match == null) {
         failures.add(
           QaFailure(
@@ -265,6 +270,7 @@ class WorkSupplyGeneratedCaseSuite extends QaSuite {
             'plumbing-residential-core-standard-first-receipt-pattern',
         'candidateMerchantPrefix': 'HD',
         'tradeScope': 'Plumbing',
+        'parserCalls': parserCalls,
       },
     );
   }

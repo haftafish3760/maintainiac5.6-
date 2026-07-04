@@ -56,6 +56,7 @@ class WorkSupplyParserMetamorphicSuite extends QaSuite {
       );
     }
 
+    var parserCalls = 0;
     for (final variant in variants.take(context.maxGeneratedCases)) {
       final match = matchReceiptLineToCatalog(
         variant.line,
@@ -63,6 +64,7 @@ class WorkSupplyParserMetamorphicSuite extends QaSuite {
         localePackId: variant.fixture.localePackId,
         maxCandidates: 24,
       );
+      parserCalls++;
       if (match == null) {
         failures.add(
           QaFailure(
@@ -120,6 +122,7 @@ class WorkSupplyParserMetamorphicSuite extends QaSuite {
         'fixtureCount': fixtures.length,
         'uniqueVariants': uniqueLines.length,
         'parserCaseLimit': context.maxGeneratedCases,
+        'parserCalls': parserCalls,
       },
     );
   }

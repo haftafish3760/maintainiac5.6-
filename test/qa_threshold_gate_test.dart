@@ -12,6 +12,7 @@ void main() {
               name: 'inventory.trade_context',
               duration: Duration(seconds: 10),
               checked: 1,
+              metrics: {'parserCalls': 1},
             ),
           ],
         ).runSync(
@@ -32,6 +33,66 @@ void main() {
     expect(result.failures.single.severity, QaSeverity.warning);
     expect(result.checked, 8);
   });
+
+  test(
+    'threshold gate requires parser-call evidence in full semantic suites',
+    () {
+      final result =
+          QaThresholdGateSuite(
+            priorResults: const [
+              QaSuiteResult(
+                name: 'inventory.generated_cases',
+                duration: Duration(milliseconds: 10),
+                checked: 25,
+                metrics: {'parserCalls': 0},
+              ),
+            ],
+          ).runSync(
+            const QaContext(
+              strict: false,
+              redactor: QaRedactor(),
+              profile: 'full',
+              thresholds: QaThresholds(maxDurationMs: 1000),
+            ),
+          );
+
+      expect(
+        result.failures.map((failure) => failure.id),
+        contains('missing_parser_call_evidence:inventory.generated_cases'),
+      );
+    },
+  );
+
+  test(
+    'threshold gate allows smoke semantic suites to build without parser calls',
+    () {
+      final result =
+          QaThresholdGateSuite(
+            priorResults: const [
+              QaSuiteResult(
+                name: 'inventory.generated_cases',
+                duration: Duration(milliseconds: 10),
+                checked: 25,
+                metrics: {'parserCalls': 0},
+              ),
+            ],
+          ).runSync(
+            const QaContext(
+              strict: false,
+              redactor: QaRedactor(),
+              profile: 'smoke',
+              thresholds: QaThresholds(maxDurationMs: 1000),
+            ),
+          );
+
+      expect(
+        result.failures.map((failure) => failure.id),
+        isNot(
+          contains('missing_parser_call_evidence:inventory.generated_cases'),
+        ),
+      );
+    },
+  );
 
   test(
     'QA summaries keep suite names readable while redacting receipt IDs',

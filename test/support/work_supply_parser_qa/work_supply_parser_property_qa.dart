@@ -105,11 +105,13 @@ class WorkSupplyParserPropertySuite extends QaSuite {
       );
     }
 
+    var parserCalls = 0;
     for (final generated in cases) {
       final match = matchReceiptLineToCatalog(
         generated.line,
         maxCandidates: 24,
       );
+      parserCalls++;
       if (generated.mustRequireReview &&
           match != null &&
           match.confidence >= .82) {
@@ -139,6 +141,7 @@ class WorkSupplyParserPropertySuite extends QaSuite {
         'grammarDimensions': _grammarDimensions,
         'scenarioTypes': scenarioTypes.toList(growable: false)..sort(),
         'uniqueCases': unique.length,
+        'parserCalls': parserCalls,
       },
     );
   }

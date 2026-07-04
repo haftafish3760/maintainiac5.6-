@@ -38,6 +38,16 @@ class QaThresholdGateSuite extends QaSuite {
   const QaThresholdGateSuite({required this.priorResults}) : super(suiteName);
 
   static const suiteName = 'qa.threshold_gate';
+  static const _semanticParserSuites = {
+    'inventory.dangerous_words',
+    'inventory.golden_fixtures',
+    'inventory.generated_cases',
+    'inventory.metamorphic_variants',
+    'inventory.property_cases',
+    'inventory.trade_context',
+    'inventory.merchant_rules',
+    'inventory.noise_lines',
+  };
 
   final List<QaSuiteResult> priorResults;
 
@@ -112,6 +122,26 @@ class QaThresholdGateSuite extends QaSuite {
       message: 'Harness runtime is above the profile budget.',
     );
     for (final result in priorResults) {
+      if (context.isFullProfile &&
+          _semanticParserSuites.contains(result.name) &&
+          _intMetric(result.metrics['parserCalls']) <= 0) {
+        failures.add(
+          QaFailure(
+            suite: name,
+            id: 'missing_parser_call_evidence:${result.name}',
+            message:
+                'Full/release semantic parser suite did not prove parser execution.',
+            severity: context.isReleaseProfile
+                ? QaSeverity.critical
+                : QaSeverity.error,
+            expected: 'parserCalls > 0',
+            actual: '${result.metrics['parserCalls'] ?? 'missing'}',
+            suggestedFix:
+                'Record real parser call counts in semantic suites; do not let contract-only evidence stand in for runtime parser behavior.',
+            metadata: const {'triageCategory': QaFailureTriage.parserEngine},
+          ),
+        );
+      }
       _checkBudget(
         failures,
         context,
@@ -155,6 +185,14 @@ class QaThresholdGateSuite extends QaSuite {
         'errorFailures': severities[QaSeverity.error] ?? 0,
         'warningFailures': severities[QaSeverity.warning] ?? 0,
         'priorSuiteDurationMs': elapsedMs,
+        'semanticParserSuitesChecked': [
+          for (final result in priorResults)
+            if (_semanticParserSuites.contains(result.name)) result.name,
+        ],
+        'semanticParserCalls': priorResults.fold<int>(
+          0,
+          (sum, result) => sum + _intMetric(result.metrics['parserCalls']),
+        ),
       },
     );
   }
@@ -215,4 +253,10 @@ class QaThresholdGateSuite extends QaSuite {
       ),
     );
   }
+}
+
+int _intMetric(Object? value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '') ?? 0;
 }
