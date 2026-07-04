@@ -60,16 +60,15 @@ Every setting below must live behind a service/controller contract so UI can mov
 - Flash/torch off, on, auto where supported.
 - Pinch zoom.
 - Optional zoom slider.
-- Tap focus.
-- Focus mode: auto, continuous, locked, manual when supported.
-- Focus distance/lens position when supported.
-- Focus lock after sharp.
+- Continuous autofocus by default where supported.
+- Readability guidance for blur, glare, low light, crop, and text size.
+- Device-safe focus capability diagnostics without user-facing pro controls.
 - Exposure/brightness slider.
-- Auto exposure lock.
+- Auto exposure and brightness assist.
 - Exposure reset.
 - Shutter duration where supported.
 - ISO/sensor gain where supported.
-- White balance auto/locked/manual where supported.
+- White balance auto where supported.
 - Macro or close-up lens selection where supported.
 - Normal lens fallback.
 - JPEG capture for normal stills.

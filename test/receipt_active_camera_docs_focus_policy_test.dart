@@ -9,6 +9,7 @@ void main() {
       'docs/receipt_real_device_test_script.md',
       'docs/receipt_camera_ocr_state_of_art_spec.md',
       'docs/receipt_camera_ocr_pipeline_handoff_report.md',
+      'docs/receipt_native_camera_service_spec.md',
     ];
 
     for (final path in activeDocs) {
@@ -28,6 +29,26 @@ void main() {
         text,
         isNot(contains('tap the receipt text')),
         reason: '$path must not ask users to tap receipt text for focus.',
+      );
+      expect(
+        text,
+        isNot(contains('tap focus')),
+        reason: '$path must not reintroduce tap focus as a camera control.',
+      );
+      expect(
+        text,
+        isNot(contains('focus lock')),
+        reason: '$path must not reintroduce focus-lock controls.',
+      );
+      expect(
+        text,
+        isNot(contains('exposure lock')),
+        reason: '$path must not reintroduce exposure-lock controls.',
+      );
+      expect(
+        text,
+        isNot(contains('white balance lock')),
+        reason: '$path must not reintroduce white-balance lock controls.',
       );
     }
   });

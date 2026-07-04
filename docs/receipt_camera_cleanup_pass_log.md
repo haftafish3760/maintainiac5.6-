@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 679 - 00:28:07 EDT to active cleanup
+
+Scope:
+- Removed stale tap-focus, focus-lock, auto-exposure-lock, and white-balance
+  lock language from the active native camera service spec.
+- Replaced pro-camera control wording with continuous autofocus, readability
+  guidance, auto exposure/brightness assist, and device-safe diagnostics.
+- Extended the active camera docs regression so current camera docs cannot
+  reintroduce tap focus or focus/exposure/white-balance lock controls.
+- Archived Pass 651 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0195` under `camera_capture_quality`.
+
+Verification:
+- Passed targeted Dart format/analyzer for the active camera doc regression.
+- Passed focused Flutter active camera docs focus-policy regression.
+
 ## Pass 678 - 00:21:28 EDT to active cleanup
 
 Scope:
@@ -480,19 +496,3 @@ Scope:
 
 Verification:
 - Passed cleanup log, doc size, source audit, and diff whitespace gates.
-
-## Pass 651 - 22:54:25 EDT to active cleanup
-
-Scope:
-- Hardened barcode/QR diagnostic summaries so raw warning text cannot leak into
-  admin or telemetry-style privacy-safe maps.
-- Replaced raw barcode scan warning summaries with whitelisted warning buckets
-  and a generic `barcode_scan_warning` fallback.
-- Added regression coverage for private barcode warning text.
-- Recorded `BUG-RECEIPT-0169` under `barcode_qr_scanning`.
-- Archived Pass 613 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the barcode scanner service and
-  focused scanner regression.
-- Passed focused Flutter barcode scanner regression.
