@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 698 - 01:29:00 EDT to active cleanup
+
+Scope:
+- Fixed shared receipt capture defaults so materials-inventory and
+  maintenance/repair launches use detailed-line review when no caller forces a
+  review depth.
+- Kept expenses and generic shared launches price-only by default, preserving
+  the fast review path unless the caller or expense settings asks for details.
+- Added a focused shared-flow regression guarding the module-specific review
+  depth default and the existing attachment UI override path.
+- Recorded `BUG-RECEIPT-0185` under `receipt_line_review_mode`.
+- Archived Pass 638 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for shared receipt capture flow.
+- Passed focused Flutter receipt capture flow shareability regression.
+
 ## Pass 697 - 01:23:00 EDT to active cleanup
 
 Scope:
@@ -473,23 +490,4 @@ Verification:
   regressed tap-focus control actual state ready; fixed the fixture before
   moving on.
 - Passed targeted Dart format for native UI risk flag changes.
-- Passed focused Flutter native UI health regression.
-
-## Pass 638 - 22:26:47 EDT to active cleanup
-
-Scope:
-- Hardened native receipt camera UI health so a result cannot look ready when
-  continuous focus, continuous-focus policy, live readability guidance, or the
-  receipt camera quality baseline is missing.
-- Added health codes for retired tap focus, missing continuous focus, missing
-  live readability guidance, and missing receipt camera quality baseline.
-- Added a focused regression proving native readiness is rejected when the
-  control surface is ready but focus/readability guidance has drifted.
-- Archived Pass 601 from the active cleanup log to keep the doc under cap.
-- Recorded `BUG-RECEIPT-0159` under `camera_capture_quality`.
-
-Verification:
-- First focused Flutter run correctly exposed a bad test fixture that marked
-  controls expected without actual readiness; fixed the fixture before moving on.
-- Passed targeted Dart format for native UI health code changes.
 - Passed focused Flutter native UI health regression.

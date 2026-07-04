@@ -14,12 +14,24 @@ ReceiptNativeCameraSettings _cameraSettingsFor(
     autoCaptureEnabled:
         options.forceAutoCapture ?? settings?.cameraAutoCapture ?? false,
     reviewDepth:
-        options.forceReviewDepth ?? ReceiptNativeReviewDepth.pricesOnly,
+        options.forceReviewDepth ?? _defaultReviewDepthFor(options.module),
     dataSaverLevel:
         options.initialDataSaverLevel ??
         settings?.defaultDataSaverLevel ??
         ReceiptDataSaverLevel.balanced,
   );
+}
+
+ReceiptNativeReviewDepth _defaultReviewDepthFor(
+  ReceiptCaptureFlowModule module,
+) {
+  return switch (module) {
+    ReceiptCaptureFlowModule.materialsInventory ||
+    ReceiptCaptureFlowModule.maintenanceRepair =>
+      ReceiptNativeReviewDepth.detailedLines,
+    ReceiptCaptureFlowModule.expenses ||
+    ReceiptCaptureFlowModule.shared => ReceiptNativeReviewDepth.pricesOnly,
+  };
 }
 
 ReceiptDataSaverLevel _stagedDataSaverLevelFor(

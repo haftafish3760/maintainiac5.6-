@@ -86,6 +86,20 @@ void main() {
   });
 
   test(
+    'shared camera defaults inventory and maintenance to detailed review',
+    () async {
+      final source = await readReceiptCaptureFlowSource();
+
+      expect(source, contains('_defaultReviewDepthFor(options.module)'));
+      expect(source, contains('ReceiptCaptureFlowModule.materialsInventory'));
+      expect(source, contains('ReceiptCaptureFlowModule.maintenanceRepair'));
+      expect(source, contains('ReceiptNativeReviewDepth.detailedLines'));
+      expect(source, contains('ReceiptCaptureFlowModule.expenses'));
+      expect(source, contains('ReceiptNativeReviewDepth.pricesOnly'));
+    },
+  );
+
+  test(
     'shared camera passes receipt review-depth intent from attachment UI',
     () async {
       final actions = await File(
