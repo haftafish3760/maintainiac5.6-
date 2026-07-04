@@ -24,8 +24,14 @@ List<String> _nativeControlReadinessHealthCodes(
       codes.add('${name}_contract_retirement_regressed');
       return;
     }
-    if (!expected && !contractExpected) return;
     final actual = diagnostics[actualKey]?.toString().trim();
+    if (_retiredNativeContractControls.contains(name) &&
+        !expected &&
+        _retiredControlLooksActive(actual)) {
+      codes.add('${name}_actual_retirement_regressed');
+      return;
+    }
+    if (!expected && !contractExpected) return;
     if (actual == null || actual.isEmpty) {
       missingControls++;
       codes.add('${name}_actual_control_missing');
@@ -125,6 +131,17 @@ const _retiredNativeContractControls = {
   'exposure_lock',
   'white_balance_lock',
 };
+
+bool _retiredControlLooksActive(String? value) {
+  if (value == null || value.isEmpty) return false;
+  final token = _diagnosticToken(value);
+  return token == 'ready' ||
+      token == 'enabled' ||
+      token == 'visible_enabled' ||
+      token == 'requested' ||
+      token == 'active' ||
+      token == 'locked';
+}
 
 List<String> _nativeCaptureLatencyHealthCodes(
   Map<String, Object?> diagnostics,

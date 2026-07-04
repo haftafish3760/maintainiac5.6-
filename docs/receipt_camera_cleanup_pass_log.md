@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 878 - active cleanup
+
+Scope:
+- Closed the follow-on retired-control gap where native diagnostics could mark
+  tap focus or lock controls active without stale contract tags.
+- Added active-retired-control regression buckets for tap focus, focus lock,
+  exposure lock, and white-balance lock.
+- Kept active retired controls out of normal ready/missing control counts while
+  still surfacing attachment risk flags.
+- Added focused regression coverage for the no-contract-tag path.
+- Recorded `BUG-RECEIPT-0327` under `native_bridge`.
+- Archived Pass 805 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused native UI health regressions,
+  and test source audit.
+
 ## Pass 877 - active cleanup
 
 Scope:
@@ -467,23 +484,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer and focused native UI handoff
   regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 805 - 10:05:51 EDT to active cleanup
-
-Scope:
-- Added an explicit native camera `focusReadabilityFallbackPolicy` so devices
-  without continuous focus declare whether live or saved-photo readability
-  review is required.
-- Surfaced the policy through native session arguments, control diagnostics,
-  and photo-review native UI health counts.
-- Added regressions for session policy, service handoff, and review health
-  aggregation.
-- Recorded `BUG-RECEIPT-0289` under `native_bridge`.
-- Archived Pass 773 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused native camera regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

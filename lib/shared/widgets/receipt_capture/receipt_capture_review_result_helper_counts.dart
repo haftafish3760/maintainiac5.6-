@@ -140,6 +140,9 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
     if ((counts['tap_focus_contract_retirement_regressed'] ?? 0) > 0) {
       return 'tap_focus_contract_retirement_regressed';
     }
+    if ((counts['tap_focus_actual_retirement_regressed'] ?? 0) > 0) {
+      return 'tap_focus_actual_retirement_regressed';
+    }
     if ((counts['native_control_readiness_missing'] ?? 0) > 0) {
       return 'native_control_readiness_missing';
     }
