@@ -15,7 +15,22 @@ This script is for controlled phone testing after a meaningful receipt-camera bu
 
 - Galaxy S9 Plus class device: proves older-phone limits, memory safety, and simpler camera behavior.
 - Galaxy S24/S25 class device: proves flagship capture, stitching, image cleanup, and app-assisted review.
+- Pixel/Motorola/OnePlus class Android device: proves the camera path is not Samsung-only.
 - iPhone SE class device: proves iOS capture, photo proof, PDF/import behavior, and route parity.
+
+## Lighting And Interruption Matrix
+
+Run at least the single-photo and long-receipt flows through these conditions
+before calling the camera build ready for wider testing:
+
+- Bright indoor light.
+- Dim indoor light.
+- Glare from overhead light or window.
+- Shadow across the bottom totals section.
+- Wrinkled or curled receipt.
+- App switch while a draft receipt is staged.
+- Lock screen and resume before saving.
+- Low-storage warning or storage-saver mode when available.
 
 ## Build Cadence
 
@@ -265,7 +280,11 @@ When something fails, report it this way:
 The receipt camera flow is ready for broader real receipt testing only when:
 
 - Single-photo receipt flow passes on S24/S25 and iPhone.
+- At least one non-Samsung Android passes the single-photo receipt flow.
 - Manual capture works on every tested phone.
+- Continuous autofocus/readability guidance is checked under bright, dim, glare,
+  shadow, wrinkled, app-switch, lock-screen, and low-storage/storage-saver
+  conditions.
 - Long receipt multi-photo flow either stitches correctly or falls back safely.
 - App-assisted review opens after photo acceptance.
 - Business/personal/mixed classification works.

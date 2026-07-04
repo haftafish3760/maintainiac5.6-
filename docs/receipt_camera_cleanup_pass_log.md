@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 685 - 00:39:25 EDT to active cleanup
+
+Scope:
+- Hardened the real-device receipt QA script so testing cannot be treated as
+  Samsung-plus-iPhone-only.
+- Added a non-Samsung Android target and a lighting/interruption matrix covering
+  bright, dim, glare, shadow, wrinkled receipt, app switch, lock screen, and
+  low-storage/storage-saver conditions.
+- Added a contract test that pins the real-device QA matrix.
+- Archived Pass 658 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0201` under `qa_harness`.
+
+Verification:
+- Passed targeted Dart format/analyzer for the real-device script contract.
+- Passed focused Flutter real-device script contract regression.
+
 ## Pass 684 - 00:36:27 EDT to active cleanup
 
 Scope:
@@ -468,19 +484,3 @@ Verification:
 - Passed targeted Dart format/analyzer for native bridge/result health tests.
 - Passed focused Flutter Android bridge, iOS bridge, native UI ready/health, and
   readability-visible health regressions.
-
-## Pass 658 - 23:20:55 EDT to active cleanup
-
-Scope:
-- Added result-level native UI health buckets for
-  `readability_guidance_visible` and `readability_guidance_visible_missing`.
-- Made missing visible readability guidance a camera UI risk when the native
-  policy says live readability guidance is active.
-- Extended ready-path and missing-visible regressions so attachment signals,
-  risk flags, receipt-reader handoff counts, and metadata keep the evidence.
-- Recorded `BUG-RECEIPT-0174` under `camera_capture_quality`.
-- Archived Pass 628 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for result-level native UI health files.
-- Passed focused Flutter native UI ready/health regressions.
