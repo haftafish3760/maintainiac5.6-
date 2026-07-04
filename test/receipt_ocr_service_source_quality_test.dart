@@ -75,7 +75,7 @@ void main() {
             createdAt: DateTime(2026, 6, 29),
             riskFlags: const [
               'ocr_source_cleanup_skipped_quality_guard',
-              'ocr_source_ocr_source_original_selected_quality_guard',
+              'ocr_source_ocr_source_full_quality_selected_quality_guard',
             ],
           ),
         ]);

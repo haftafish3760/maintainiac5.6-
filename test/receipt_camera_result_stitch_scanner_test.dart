@@ -313,7 +313,7 @@ void main() {
             'crop_skipped_bounds_off_center_x',
             'perspective_skipped_bounds_off_center_x',
             'cleanup_skipped_quality_guard',
-            'ocr_source_original_selected_quality_guard',
+            'ocr_source_full_quality_selected_quality_guard',
           ],
         },
       },
@@ -325,7 +325,7 @@ void main() {
       1,
     );
     expect(result.scannerDecisionCounts['cleanup_skipped_quality_guard'], 1);
-    expect(result.scannerKeptOriginalForQuality, isTrue);
+    expect(result.scannerKeptTemporaryFullQualitySourceForQuality, isTrue);
     expect(result.scannerUsedEnhancedOcrSource, isFalse);
     expect(result.scannerNeedsOperatorReview, isTrue);
     expect(
@@ -337,7 +337,8 @@ void main() {
       1,
     );
     expect(
-      result.receiptReaderHandoffCounts['scanner_original_kept_for_quality'],
+      result
+          .receiptReaderHandoffCounts['scanner_temporary_full_quality_source_guarded'],
       1,
     );
     final attachments = ReceiptCaptureFlow.attachmentsFromReviewResult(
@@ -355,7 +356,7 @@ void main() {
     );
     expect(
       attachments.single.riskFlags,
-      contains('ocr_source_ocr_source_original_selected_quality_guard'),
+      contains('ocr_source_ocr_source_full_quality_selected_quality_guard'),
     );
     expect(
       attachments.single.riskFlags,

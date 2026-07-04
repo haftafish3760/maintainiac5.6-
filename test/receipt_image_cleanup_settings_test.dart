@@ -154,7 +154,10 @@ void main() {
       expect(report.ocrSourcePath, isNot(source.path));
       expect(await File(report.ocrSourcePath).exists(), isTrue);
       expect(report.usedEnhancedOcrSource, isFalse);
-      expect(report.cleanupActions, contains('original_quality_preserved'));
+      expect(
+        report.cleanupActions,
+        contains('temporary_full_quality_source_preserved'),
+      );
       expect(
         report.scannerDecisionCodes,
         containsAll({
@@ -163,7 +166,7 @@ void main() {
           'straighten_skipped_setting_off',
           'perspective_skipped_setting_off',
           'cleanup_skipped_setting_off',
-          'ocr_source_original_selected_quality_guard',
+          'ocr_source_full_quality_selected_quality_guard',
         }),
       );
       expect(report.cleanupActions, isNot(contains('scanner_cleanup')));

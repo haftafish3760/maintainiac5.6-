@@ -17,7 +17,7 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
     if (scannerUsedEnhancedOcrSource) {
       return 'prepared_receipt_source_before_saved_proof';
     }
-    if (scannerKeptOriginalForQuality) {
+    if (scannerKeptTemporaryFullQualitySourceForQuality) {
       return 'temporary_full_quality_source_before_saved_proof';
     }
     if (usesSeparateOcrSourceCopies) {
@@ -30,7 +30,9 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
     if (!hasOcrSourcePhotos) return 'missing_ocr_source';
     if (ocrUsesSavedProofOnlyAsFallback) return 'saved_proof_fallback';
     if (scannerUsedEnhancedOcrSource) return 'prepared_clear_source';
-    if (scannerKeptOriginalForQuality) return 'temporary_full_quality_source';
+    if (scannerKeptTemporaryFullQualitySourceForQuality) {
+      return 'temporary_full_quality_source';
+    }
     if (usesSeparateOcrSourceCopies) return 'separate_clear_source';
     return 'same_accepted_source';
   }

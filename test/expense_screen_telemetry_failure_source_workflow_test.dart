@@ -93,7 +93,8 @@ void main() {
             },
             'ocrSourceStitchSignalCounts': {'multiple_ocr_sources_fallback': 1},
             'ocrSourceScannerDecisionCounts': {
-              'scanner_decision_ocr_source_original_selected_quality_guard': 1,
+              'scanner_decision_ocr_source_full_quality_selected_quality_guard':
+                  1,
             },
             'ocrSourceCaptureSourceSignalCounts': {
               'native_capture_source_phone_camera_backup': 1,
@@ -197,7 +198,7 @@ void main() {
       });
       expect(snapshot.ocrSourceScannerDecisionCounts, {
         'scanner_decision_ocr_source_enhanced_selected': 2,
-        'scanner_decision_ocr_source_original_selected_quality_guard': 1,
+        'scanner_decision_ocr_source_full_quality_selected_quality_guard': 1,
         'scanner_decision_cleanup_skipped_quality_guard': 1,
       });
       expect(snapshot.ocrSourceCaptureSourceSignalCounts, {

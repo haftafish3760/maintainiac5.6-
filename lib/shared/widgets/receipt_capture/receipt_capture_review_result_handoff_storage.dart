@@ -54,9 +54,10 @@ extension ReceiptPhotoReviewResultHandoffStorage on ReceiptPhotoReviewResult {
     return Map.unmodifiable(counts);
   }
 
-  bool get scannerKeptOriginalForQuality => scannerDecisionCounts.containsKey(
-    'ocr_source_original_selected_quality_guard',
-  );
+  bool get scannerKeptTemporaryFullQualitySourceForQuality =>
+      scannerDecisionCounts.containsKey(
+        'ocr_source_full_quality_selected_quality_guard',
+      );
 
   bool get scannerUsedEnhancedOcrSource =>
       scannerDecisionCounts.containsKey('ocr_source_enhanced_selected');
@@ -128,7 +129,7 @@ extension ReceiptPhotoReviewResultHandoffStorage on ReceiptPhotoReviewResult {
       counts['clear_ocr_source_read_before_saved_proof_copy'] =
           ocrSourcePhotoPaths.length;
     }
-    if (scannerKeptOriginalForQuality) {
+    if (scannerKeptTemporaryFullQualitySourceForQuality) {
       counts['temporary_full_quality_source_guard_for_ocr'] =
           ocrSourcePhotoPaths.length;
     }

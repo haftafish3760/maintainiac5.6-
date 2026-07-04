@@ -128,8 +128,8 @@ extension ReceiptPhotoReviewResultHandoffCounts on ReceiptPhotoReviewResult {
     if (scannerUsedEnhancedOcrSource) {
       counts['scanner_enhanced_ocr_source_used'] = 1;
     }
-    if (scannerKeptOriginalForQuality) {
-      counts['scanner_original_kept_for_quality'] = 1;
+    if (scannerKeptTemporaryFullQualitySourceForQuality) {
+      counts['scanner_temporary_full_quality_source_guarded'] = 1;
     }
     return Map.unmodifiable(counts);
   }

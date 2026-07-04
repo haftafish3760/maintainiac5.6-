@@ -171,7 +171,9 @@ extension ReceiptPhotoReviewResultContinuation on ReceiptPhotoReviewResult {
       return 'fallback_saved_proof_review_required';
     }
     if (scannerUsedEnhancedOcrSource) return 'prepared_source_ready';
-    if (scannerKeptOriginalForQuality) return 'temporary_full_quality_ready';
+    if (scannerKeptTemporaryFullQualitySourceForQuality) {
+      return 'temporary_full_quality_ready';
+    }
     if (usesSeparateOcrSourceCopies) return 'separate_source_ready';
     return 'saved_source_matched_original';
   }

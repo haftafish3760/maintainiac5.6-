@@ -55,21 +55,22 @@ void main() {
   test(
     'OCR privacy event carries source handoff buckets without receipt content',
     () async {
-      final result = await const ReceiptOcrService()
-          .recognizeTextFromAttachments([
-            _textAttachment(
-              id: 'handoff',
-              text: 'LOWES\nTOTAL 3.24',
-              documentSignals: const [
-                'receipt_handoff_possible_partial_receipt',
-                'receipt_handoff_stitch_fallback',
-                'multiple_ocr_sources_fallback',
-                'scanner_decision_ocr_source_original_selected_quality_guard',
-                'native_capture_source_phone_camera_backup',
-              ],
-              riskFlags: const ['ocr_source_saved_photo_soft_blur_risk'],
-            ),
-          ]);
+      final result = await const ReceiptOcrService().recognizeTextFromAttachments(
+        [
+          _textAttachment(
+            id: 'handoff',
+            text: 'LOWES\nTOTAL 3.24',
+            documentSignals: const [
+              'receipt_handoff_possible_partial_receipt',
+              'receipt_handoff_stitch_fallback',
+              'multiple_ocr_sources_fallback',
+              'scanner_decision_ocr_source_full_quality_selected_quality_guard',
+              'native_capture_source_phone_camera_backup',
+            ],
+            riskFlags: const ['ocr_source_saved_photo_soft_blur_risk'],
+          ),
+        ],
+      );
 
       final event = PrivacySafeReceiptEvent.fromOcrResult(result: result);
       final map = event.toMap();
@@ -85,7 +86,7 @@ void main() {
         'multiple_ocr_sources_fallback': 1,
       });
       expect(map['ocrSourceScannerDecisionCounts'], {
-        'scanner_decision_ocr_source_original_selected_quality_guard': 1,
+        'scanner_decision_ocr_source_full_quality_selected_quality_guard': 1,
       });
       expect(map['ocrSourceCaptureSourceSignalCounts'], {
         'native_capture_source_phone_camera_backup': 1,

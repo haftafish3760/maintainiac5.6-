@@ -120,7 +120,7 @@ void main() {
     ]);
     expect(result.scannerDecisionCounts['cleanup_applied_dark_receipt'], 1);
     expect(result.scannerUsedEnhancedOcrSource, isTrue);
-    expect(result.scannerKeptOriginalForQuality, isFalse);
+    expect(result.scannerKeptTemporaryFullQualitySourceForQuality, isFalse);
     expect(result.scannerNeedsOperatorReview, isFalse);
     expect(result.ocrStoragePolicyCounts, {
       'ocr_clear_source_before_saved_proof_copy': 1,

@@ -73,7 +73,7 @@ Future<ReceiptImagePreparationReport> _prepareReceiptSourceWithReport({
   scannerDecisionCodes.add(
     usedEnhanced
         ? 'ocr_source_enhanced_selected'
-        : 'ocr_source_original_selected_quality_guard',
+        : 'ocr_source_full_quality_selected_quality_guard',
   );
   final ocrQuality = _qualityCheck(safe);
   final cleanupActions = <String>[
@@ -83,7 +83,7 @@ Future<ReceiptImagePreparationReport> _prepareReceiptSourceWithReport({
     if (cropped) 'auto_crop',
     if (straightened) 'auto_straighten',
     if (usedEnhanced) 'scanner_cleanup',
-    if (!usedEnhanced) 'original_quality_preserved',
+    if (!usedEnhanced) 'temporary_full_quality_source_preserved',
     ...cleanupSettings.enabledDiagnosticLabels,
   ];
   if (identical(safe, baseline)) {
