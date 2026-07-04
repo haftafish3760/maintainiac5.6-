@@ -56,6 +56,11 @@ void main() {
     expect(cameraActivity, contains('latestCapturedBottomTopLumaDeltaBucket'));
     expect(cameraActivity, contains('capturedBottomTopLumaDelta(sample)'));
     expect(cameraActivity, contains('capturedBottomTopLumaDeltaBucket('));
+    expect(cameraActivity, contains('!sample.bottomLuma.isFinite()'));
+    expect(cameraActivity, contains('!sample.topLuma.isFinite()'));
+    expect(cameraActivity, contains('!sample.middleLuma.isFinite()'));
+    expect(cameraActivity, contains('!sample.bottomEdgeScore.isFinite()'));
+    expect(cameraActivity, contains('!sample.edgeScore.isFinite()'));
     expect(
       cameraActivity,
       contains(

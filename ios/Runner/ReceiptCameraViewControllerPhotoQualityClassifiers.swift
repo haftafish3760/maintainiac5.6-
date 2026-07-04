@@ -37,7 +37,14 @@ extension ReceiptCameraViewController {
   }
 
   func capturedVerticalQualitySignal(_ sample: CapturedPhotoQualitySample) -> String {
-    if sample.bottomLuma < 0 || sample.topLuma < 0 || sample.middleLuma < 0 {
+    if !sample.bottomLuma.isFinite ||
+      !sample.topLuma.isFinite ||
+      !sample.middleLuma.isFinite ||
+      !sample.bottomEdgeScore.isFinite ||
+      !sample.edgeScore.isFinite ||
+      sample.bottomLuma < 0 ||
+      sample.topLuma < 0 ||
+      sample.middleLuma < 0 {
       return "unknown"
     }
     let upperLuma = (sample.topLuma + sample.middleLuma) / 2

@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 760 - 04:26:36 EDT to active cleanup
+
+Scope:
+- Hardened Android and iOS saved-photo vertical quality scoring so non-finite
+  band luma or edge samples cannot appear as even vertical quality or bottom
+  blur evidence.
+- Kept malformed vertical-quality samples on the existing `unknown` path.
+- Added Android/iOS native vertical-quality source regressions for finite sample
+  checks.
+- Recorded `BUG-RECEIPT-0248` under `camera_capture_quality`.
+- Archived Pass 732 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for vertical-quality regressions.
+- Passed focused Android close-controls and iOS long-receipt quality tests.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 759 - 04:16:42 EDT to active cleanup
 
 Scope:
@@ -462,24 +480,6 @@ Scope:
   `tapFocusEnabled` payloads.
 - Recorded `BUG-RECEIPT-0224` under `native_bridge`.
 - Archived Pass 708 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the native camera service contract
-  helper and service basics regression.
-- Passed focused Flutter native service regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 732 - 03:23:50 EDT to active cleanup
-
-Scope:
-- Extended retired-control hardening from tap focus to focus, exposure, and
-  white-balance lock enablement at the Dart service boundary.
-- Hard-coded retired lock enablement fields false before native channel handoff.
-- Added a service source-contract regression rejecting lock enablement derivation
-  from session config.
-- Recorded `BUG-RECEIPT-0223` under `native_bridge`.
-- Archived Pass 707 from the active cleanup log to keep the doc under cap.
 
 Verification:
 - Passed targeted Dart format/analyzer for the native camera service contract

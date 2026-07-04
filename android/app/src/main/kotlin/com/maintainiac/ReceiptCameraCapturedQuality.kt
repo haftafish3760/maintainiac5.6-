@@ -177,7 +177,16 @@ internal fun ReceiptCameraActivity.nativeCapturedPhotoDiagnostics(
 }
 
 internal fun ReceiptCameraActivity.capturedVerticalQualitySignal(sample: CapturedPhotoQualitySample): String {
-    if (sample.bottomLuma < 0.0 || sample.topLuma < 0.0 || sample.middleLuma < 0.0) {
+    if (
+        !sample.bottomLuma.isFinite() ||
+        !sample.topLuma.isFinite() ||
+        !sample.middleLuma.isFinite() ||
+        !sample.bottomEdgeScore.isFinite() ||
+        !sample.edgeScore.isFinite() ||
+        sample.bottomLuma < 0.0 ||
+        sample.topLuma < 0.0 ||
+        sample.middleLuma < 0.0
+    ) {
         return "unknown"
     }
     val upperLuma = (sample.topLuma + sample.middleLuma) / 2.0

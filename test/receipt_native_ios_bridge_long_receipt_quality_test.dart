@@ -73,6 +73,11 @@ void main() {
       expect(cameraController, contains('latestCapturedVerticalQualitySignal'));
       expect(cameraController, contains('capturedVerticalQualitySignal'));
       expect(cameraController, contains('bottom_soft_blur_risk'));
+      expect(cameraController, contains('!sample.bottomLuma.isFinite'));
+      expect(cameraController, contains('!sample.topLuma.isFinite'));
+      expect(cameraController, contains('!sample.middleLuma.isFinite'));
+      expect(cameraController, contains('!sample.bottomEdgeScore.isFinite'));
+      expect(cameraController, contains('!sample.edgeScore.isFinite'));
       expect(cameraController, contains('latestCapturedBottomLuma'));
       expect(cameraController, contains('nativeCaptureDiagnostics'));
       expect(cameraController, contains('maintainiac_native_ios'));
