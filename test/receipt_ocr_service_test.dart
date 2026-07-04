@@ -297,6 +297,35 @@ void main() {
     );
   });
 
+  test('source handoff keeps saved-photo parser-risk tokens', () async {
+    final result = await const ReceiptOcrService().recognizeTextFromAttachments(
+      [
+        ReceiptAttachmentRecord(
+          id: 'hazy-parser-risk-proof',
+          path: '',
+          kind: ReceiptAttachmentKind.emailText,
+          dataSaverLevel: ReceiptDataSaverLevel.balanced,
+          createdAt: DateTime(2026, 7, 4),
+          importedText: 'MARKET\nTOTAL 8.40',
+          riskFlags: const ['ocr_source_parser_risk_ocr_hazy_text_may_fail'],
+        ),
+      ],
+    );
+    final summary = result.sourceHandoffSummary;
+
+    expect(summary.status, 'scanner_prep_review_needed');
+    expect(summary.sourceQualityReviewStatus, 'saved_hazy_lens_review');
+    expect(summary.sourceQualityReviewAction, 'wipe_lens_or_retake');
+    expect(
+      summary.photoQualityRiskCounts,
+      containsPair('ocr_source_parser_risk_ocr_hazy_text_may_fail', 1),
+    );
+    expect(
+      result.diagnostics.parserTaskCounts,
+      containsPair('photo_saved_hazy_lens_review', 1),
+    );
+  });
+
   test('source handoff reports shadow saved-photo review', () {
     final summary = ReceiptOcrSourceHandoffSummary.fromAttachments([
       ReceiptAttachmentRecord(

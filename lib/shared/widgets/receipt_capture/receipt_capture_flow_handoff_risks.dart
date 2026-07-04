@@ -33,6 +33,7 @@ List<String> _ocrSourceRiskFlagsFor(
   for (final warning in _savedPhotoWarningsForOcrSourceIndex(result, index)) {
     flags.add('ocr_source_${_signalToken(warning.code)}');
     flags.add('ocr_source_action_${_signalToken(warning.actionCode)}');
+    flags.add('ocr_source_parser_risk_${_signalToken(warning.parserRiskCode)}');
     if (warning.isCritical) flags.add('ocr_source_native_critical_review');
   }
   _addScannerRiskFlags(result, index, flags);

@@ -33,6 +33,9 @@ extension _ReceiptAttachmentOcrSourceRiskFlags
       flags.add(
         'ocr_source_action_${attachmentSignalToken(warning.actionCode)}',
       );
+      flags.add(
+        'ocr_source_parser_risk_${attachmentSignalToken(warning.parserRiskCode)}',
+      );
       if (warning.isCritical) flags.add('ocr_source_native_critical_review');
     }
     final preparation =

@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 820 - 12:44:00 EDT to active cleanup
+
+Scope:
+- Preserved saved-photo parser-risk codes as OCR source risk flags in both
+  shared capture-flow and attachment-panel handoff builders.
+- Taught OCR source handoff and parser/admin diagnostics to classify the
+  parser-risk tokens even if a future path lacks the matching action token.
+- Added focused regressions for source builder parity and parser-risk-only
+  source handoff classification.
+- Recorded `BUG-RECEIPT-0305` under `ocr_handoff_contract`.
+- Archived Pass 813 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted parser-risk handoff format/analyzer and focused regressions.
+- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
+  whitespace gates.
+
 ## Pass 819 - 12:06:00 EDT to active cleanup
 
 Scope:
@@ -478,22 +495,5 @@ Scope:
 Verification:
 - Passed targeted saved-photo warning format/analyzer and focused dirty-lens
   result regression.
-- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
-  whitespace gates.
-
-## Pass 813 - 12:27:00 EDT to active cleanup
-
-Scope:
-- Promoted dirty-lens/hazy saved-photo warnings into a first-class OCR source
-  quality review family.
-- Added `saved_hazy_lens_review` with `wipe_lens_or_retake` action and parser
-  task-count mapping for admin/review diagnostics.
-- Added a source handoff regression for dirty lens saved-photo review.
-- Recorded `BUG-RECEIPT-0298` under `ocr_handoff_contract`.
-- Archived Pass 781 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted handoff/diagnostics format/analyzer and focused dirty-lens
-  source handoff regression.
 - Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
   whitespace gates.

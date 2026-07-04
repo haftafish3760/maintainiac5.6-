@@ -168,6 +168,8 @@ void main() {
     );
     expect(flow, contains('ocr_source_action_'));
     expect(actions, contains('ocr_source_action_'));
+    expect(flow, contains('ocr_source_parser_risk_'));
+    expect(actions, contains('ocr_source_parser_risk_'));
     expect(actions, contains('receiptContinuationHandoffDocumentSignalsFor'));
     expect(actions, contains('receiptContinuationHandoffRiskFlagsFor'));
     expect(actions, contains('ocrSourceContinuationDocumentSignalsFor'));

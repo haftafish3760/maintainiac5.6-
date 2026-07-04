@@ -110,6 +110,8 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
         'ocr_source_action_turn_on_light_or_retake',
         'ocr_source_action_check_text_or_add_light',
         'ocr_source_action_review_or_add_light',
+        'ocr_source_parser_risk_ocr_text_or_total_may_fail',
+        'ocr_source_parser_risk_ocr_text_may_need_review',
         'photo_quality_photo_is_too_dark',
         'photo_quality_photo_is_darker_than_ideal_for_receipt_assistance',
       ]) >
@@ -119,6 +121,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       _countForAny(photoQualityRiskCounts, const [
         'ocr_source_saved_photo_soft_blur_risk',
         'ocr_source_action_retake_hold_steady',
+        'ocr_source_parser_risk_ocr_item_prices_may_fail',
         'photo_quality_photo_looks_blurry',
       ]) >
       0;
@@ -129,6 +132,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
         'ocr_source_saved_photo_glare_risk',
         'ocr_source_action_reduce_brightness_or_glare',
         'ocr_source_action_reduce_glare_or_retake',
+        'ocr_source_parser_risk_ocr_washed_out_text_may_fail',
         'photo_quality_photo_has_glare_or_is_too_bright',
         'photo_quality_photo_is_bright_check_for_glare_before_continuing',
       ]) >
@@ -140,6 +144,8 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
         'ocr_source_saved_photo_bottom_soft',
         'ocr_source_action_check_bottom_or_raise_brightness',
         'ocr_source_action_check_bottom_or_retake',
+        'ocr_source_parser_risk_ocr_bottom_total_may_fail',
+        'ocr_source_parser_risk_ocr_bottom_lines_may_fail',
       ]) >
       0;
 
@@ -147,6 +153,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       _countForAny(photoQualityRiskCounts, const [
         'ocr_source_saved_photo_dirty_lens_or_haze',
         'ocr_source_action_wipe_lens_or_retake',
+        'ocr_source_parser_risk_ocr_hazy_text_may_fail',
       ]) >
       0;
 
@@ -154,6 +161,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       _countForAny(photoQualityRiskCounts, const [
         'ocr_source_saved_photo_shadow_risk',
         'ocr_source_action_move_to_even_light_or_retake',
+        'ocr_source_parser_risk_ocr_shadowed_text_may_fail',
       ]) >
       0;
 
@@ -163,6 +171,8 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
         'ocr_source_saved_photo_phone_camera_backup',
         'ocr_source_action_review_backup_scan_crop',
         'ocr_source_action_review_phone_backup_focus',
+        'ocr_source_parser_risk_ocr_backup_scan_crop_may_need_review',
+        'ocr_source_parser_risk_ocr_phone_backup_focus_may_need_review',
       ]) >
       0;
 
