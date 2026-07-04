@@ -100,8 +100,14 @@ Map<String, int> _parserTaskCountsWithReceiptCoverage(
       (qualityRisks['ocr_source_saved_photo_brightness_assist_failed_dark'] ??
               0) >
           0 ||
+      (qualityRisks['ocr_source_saved_photo_brightness_assist_still_dim'] ??
+              0) >
+          0 ||
+      (qualityRisks['ocr_source_saved_photo_dimmer_than_preview'] ?? 0) > 0 ||
       (qualityRisks['ocr_source_action_retake_with_more_light'] ?? 0) > 0 ||
-      (qualityRisks['ocr_source_action_turn_on_light_or_retake'] ?? 0) > 0) {
+      (qualityRisks['ocr_source_action_turn_on_light_or_retake'] ?? 0) > 0 ||
+      (qualityRisks['ocr_source_action_check_text_or_add_light'] ?? 0) > 0 ||
+      (qualityRisks['ocr_source_action_review_or_add_light'] ?? 0) > 0) {
     add('photo_saved_dark_or_exposure_review');
   }
   if ((qualityRisks['ocr_source_saved_photo_soft_blur_risk'] ?? 0) > 0 ||

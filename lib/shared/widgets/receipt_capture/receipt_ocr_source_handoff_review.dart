@@ -99,8 +99,12 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       _countForAny(photoQualityRiskCounts, const [
         'ocr_source_saved_photo_darker_than_preview',
         'ocr_source_saved_photo_brightness_assist_failed_dark',
+        'ocr_source_saved_photo_brightness_assist_still_dim',
+        'ocr_source_saved_photo_dimmer_than_preview',
         'ocr_source_action_retake_with_more_light',
         'ocr_source_action_turn_on_light_or_retake',
+        'ocr_source_action_check_text_or_add_light',
+        'ocr_source_action_review_or_add_light',
       ]) >
       0;
 

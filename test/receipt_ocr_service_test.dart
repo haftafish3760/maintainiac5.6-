@@ -154,7 +154,11 @@ void main() {
       );
       expect(
         diagnostics.ocrSourceHandoffContract['sourceQualityReviewStatus'],
-        isNull,
+        'saved_dark_exposure_review',
+      );
+      expect(
+        diagnostics.ocrSourceHandoffContract['sourceQualityReviewAction'],
+        'retake_or_raise_brightness',
       );
       expect(
         diagnostics.ocrSourceHandoffContract['sourceFirstDecisionStatus'],

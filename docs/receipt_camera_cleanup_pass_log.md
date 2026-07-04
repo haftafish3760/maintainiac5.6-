@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 610 - 21:20:25 EDT to active cleanup
+
+Scope:
+- Hardened OCR source handoff so marginal saved-photo lighting warnings
+  (`brightness_assist_still_dim` and `dimmer_than_preview`) count as
+  dark/exposure review risks instead of looking ready for OCR.
+- Mirrored the same dim-light risk family into OCR diagnostic warning buckets.
+- Added regression coverage proving dimmer receipt-photo handoff contracts now
+  report `saved_dark_exposure_review` and the matching review action.
+- Recorded `BUG-RECEIPT-0131` under `ocr_handoff_contract`.
+
+Verification:
+- Passed targeted Dart format/analyzer for OCR source handoff review,
+  diagnostics helpers, and OCR service regressions.
+- Passed focused Flutter OCR service and OCR source-quality regressions.
+
 ## Pass 609 - 21:18:35 EDT to active cleanup
 
 Scope:
