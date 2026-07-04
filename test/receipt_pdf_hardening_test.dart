@@ -8,6 +8,7 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_limits.dar
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_viewer_screen.dart';
 
 import 'helpers/pdf_test_typography.dart';
+import 'helpers/receipt_pdf_test_support.dart';
 
 void main() {
   test('valid PDF is accepted with estimated page count status', () async {
@@ -156,7 +157,10 @@ void main() {
   test(
     'PDF active content is flagged as a warning instead of a hard blocker',
     () async {
-      final file = File('${Directory.systemTemp.path}/active_content.pdf');
+      final file = await isolatedTempPdfFile(
+        'pdf_hardening_active_content_',
+        'active_content.pdf',
+      );
       await file.writeAsString(
         '%PDF-1.7\n'
         '1 0 obj << /Type /Page /Annots [] /JavaScript 2 0 R /URI (https://example.com) >> endobj\n'
@@ -164,9 +168,6 @@ void main() {
         '%%EOF',
         flush: true,
       );
-      addTearDown(() {
-        if (file.existsSync()) file.deleteSync();
-      });
 
       final inspection = await ReceiptPdfInspector.inspect(file.path);
 
@@ -184,7 +185,10 @@ void main() {
   test(
     'PDF active actions are warned without blocking read-only proof',
     () async {
-      final file = File('${Directory.systemTemp.path}/active_actions.pdf');
+      final file = await isolatedTempPdfFile(
+        'pdf_hardening_active_actions_',
+        'active_actions.pdf',
+      );
       await file.writeAsString(
         '%PDF-1.7\n'
         '1 0 obj << /Type /Page /OpenAction 2 0 R /AA 3 0 R >> endobj\n'
@@ -192,9 +196,6 @@ void main() {
         '%%EOF',
         flush: true,
       );
-      addTearDown(() {
-        if (file.existsSync()) file.deleteSync();
-      });
 
       final inspection = await ReceiptPdfInspector.inspect(file.path);
 
@@ -216,16 +217,16 @@ void main() {
   );
 
   test('PDF risk names avoid accidental substring matches', () async {
-    final file = File('${Directory.systemTemp.path}/risk_substrings.pdf');
+    final file = await isolatedTempPdfFile(
+      'pdf_hardening_risk_substrings_',
+      'risk_substrings.pdf',
+    );
     await file.writeAsString(
       '%PDF-1.7\n'
       '1 0 obj << /Type /Page /Aardvark true /JsonThing true >> endobj\n'
       '%%EOF',
       flush: true,
     );
-    addTearDown(() {
-      if (file.existsSync()) file.deleteSync();
-    });
 
     final inspection = await ReceiptPdfInspector.inspect(file.path);
 
@@ -241,7 +242,10 @@ void main() {
   });
 
   test('PDF encryption marker is flagged for user review', () async {
-    final file = File('${Directory.systemTemp.path}/encrypted_marker.pdf');
+    final file = await isolatedTempPdfFile(
+      'pdf_hardening_encrypted_marker_',
+      'encrypted_marker.pdf',
+    );
     await file.writeAsString(
       '%PDF-1.7\n'
       '1 0 obj << /Type /Page >> endobj\n'
@@ -249,9 +253,6 @@ void main() {
       '%%EOF',
       flush: true,
     );
-    addTearDown(() {
-      if (file.existsSync()) file.deleteSync();
-    });
 
     final inspection = await ReceiptPdfInspector.inspect(file.path);
 

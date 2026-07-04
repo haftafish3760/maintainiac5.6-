@@ -1,14 +1,17 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_inspector.dart';
+
+import 'helpers/receipt_pdf_test_support.dart';
 
 void main() {
   test(
     'PDF active content is flagged as a warning instead of a hard blocker',
     () async {
-      final file = File('${Directory.systemTemp.path}/active_content.pdf');
+      final file = await isolatedTempPdfFile(
+        'pdf_active_content_',
+        'active_content.pdf',
+      );
       await file.writeAsString(
         '%PDF-1.7\n'
         '1 0 obj << /Type /Page /Annots [] /JavaScript 2 0 R /URI (https://example.com) >> endobj\n'
@@ -16,9 +19,6 @@ void main() {
         '%%EOF',
         flush: true,
       );
-      addTearDown(() {
-        if (file.existsSync()) file.deleteSync();
-      });
 
       final inspection = await ReceiptPdfInspector.inspect(file.path);
 
@@ -36,7 +36,10 @@ void main() {
   test(
     'PDF active actions are warned without blocking read-only proof',
     () async {
-      final file = File('${Directory.systemTemp.path}/active_actions.pdf');
+      final file = await isolatedTempPdfFile(
+        'pdf_active_actions_',
+        'active_actions.pdf',
+      );
       await file.writeAsString(
         '%PDF-1.7\n'
         '1 0 obj << /Type /Page /OpenAction 2 0 R /AA 3 0 R >> endobj\n'
@@ -44,9 +47,6 @@ void main() {
         '%%EOF',
         flush: true,
       );
-      addTearDown(() {
-        if (file.existsSync()) file.deleteSync();
-      });
 
       final inspection = await ReceiptPdfInspector.inspect(file.path);
 
@@ -68,16 +68,16 @@ void main() {
   );
 
   test('PDF risk names avoid accidental substring matches', () async {
-    final file = File('${Directory.systemTemp.path}/risk_substrings.pdf');
+    final file = await isolatedTempPdfFile(
+      'pdf_risk_substrings_',
+      'risk_substrings.pdf',
+    );
     await file.writeAsString(
       '%PDF-1.7\n'
       '1 0 obj << /Type /Page /Aardvark true /JsonThing true >> endobj\n'
       '%%EOF',
       flush: true,
     );
-    addTearDown(() {
-      if (file.existsSync()) file.deleteSync();
-    });
 
     final inspection = await ReceiptPdfInspector.inspect(file.path);
 
@@ -93,7 +93,10 @@ void main() {
   });
 
   test('PDF encryption marker is flagged for user review', () async {
-    final file = File('${Directory.systemTemp.path}/encrypted_marker.pdf');
+    final file = await isolatedTempPdfFile(
+      'pdf_encrypted_marker_',
+      'encrypted_marker.pdf',
+    );
     await file.writeAsString(
       '%PDF-1.7\n'
       '1 0 obj << /Type /Page >> endobj\n'
@@ -101,9 +104,6 @@ void main() {
       '%%EOF',
       flush: true,
     );
-    addTearDown(() {
-      if (file.existsSync()) file.deleteSync();
-    });
 
     final inspection = await ReceiptPdfInspector.inspect(file.path);
 
@@ -117,16 +117,16 @@ void main() {
   });
 
   test('PDF escaped active names are flagged for user review', () async {
-    final file = File('${Directory.systemTemp.path}/escaped_active_names.pdf');
+    final file = await isolatedTempPdfFile(
+      'pdf_escaped_active_names_',
+      'escaped_active_names.pdf',
+    );
     await file.writeAsString(
       '%PDF-1.7\n'
       '1 0 obj << /Type /Page /Open#41ction 2 0 R /Java#53cript 3 0 R /Embedded#46ile 4 0 R >> endobj\n'
       '%%EOF',
       flush: true,
     );
-    addTearDown(() {
-      if (file.existsSync()) file.deleteSync();
-    });
 
     final inspection = await ReceiptPdfInspector.inspect(file.path);
 

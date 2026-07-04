@@ -114,7 +114,7 @@ void main() {
     await _pumpPdfPreview(tester);
 
     expect(
-      find.text('Maintaniac could not prepare this PDF right now.'),
+      find.text('Maintainiac could not prepare this PDF right now.'),
       findsOneWidget,
     );
     var events = ledger.records.single.pdfEvents;
@@ -294,7 +294,7 @@ class _FakeGeneratedPdfService extends AppGeneratedPdfService {
     writeCount += 1;
     if (failFirstWrite && writeCount == 1) {
       throw const AppGeneratedPdfException(
-        'Maintaniac could not prepare this PDF right now.',
+        'Maintainiac could not prepare this PDF right now.',
       );
     }
     return AppGeneratedPdfFile(

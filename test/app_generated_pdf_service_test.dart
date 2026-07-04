@@ -14,6 +14,7 @@ import 'package:maintaniac/shared/documents/app_document_store.dart';
 import 'package:maintaniac/shared/documents/app_generated_pdf_archive_service.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_service.dart';
+import 'package:maintaniac/shared/pdf/app_generated_pdf_storage.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -135,6 +136,22 @@ void main() {
     expect(generated.path, endsWith('.pdf'));
     expect(await File(generated.path).exists(), isTrue);
     expect(await File(generated.path).length(), document.byteSize);
+  });
+
+  test('generated PDF destination allocator reserves partial files', () async {
+    final directory = await temporaryDirectory.createTemp('pdf_names_');
+    final existing = File('${directory.path}/invoice.pdf');
+    final reserved = File('${directory.path}/invoice-copy-2.pdf.partial');
+    await existing.writeAsString('%PDF-1.7\n%%EOF', flush: true);
+    await reserved.writeAsString('partial', flush: true);
+
+    final destination = await AppGeneratedPdfStorage.availableDestination(
+      directory: directory,
+      requestedFileName: 'invoice.pdf',
+    );
+
+    expect(destination, isNotNull);
+    expect(destination!.path, endsWith('invoice-copy-3.pdf'));
   });
 
   test('generated PDF service verifies temporary byte count before rename', () {

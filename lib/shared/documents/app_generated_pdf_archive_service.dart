@@ -5,6 +5,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
 import '../pdf/app_generated_pdf_models.dart';
+import '../pdf/app_generated_pdf_storage.dart';
 import '../storage/app_storage_guard.dart';
 import '../widgets/receipt_capture/receipt_capture_models.dart';
 import 'app_document_models.dart';
@@ -66,7 +67,7 @@ class AppGeneratedPdfArchiveService {
     } catch (_) {
       await _deleteIfExists(savedFile);
       throw const AppGeneratedPdfArchiveException(
-        'Maintaniac could not save the generated PDF record, so the PDF file was not kept.',
+        'Maintainiac could not save the generated PDF record, so the PDF file was not kept.',
       );
     }
     return AppDocumentArchiveResult(
@@ -98,10 +99,7 @@ class AppGeneratedPdfArchiveService {
       ),
     );
     await _createDirectory(directory);
-    final destination = await _availableDestination(
-      directory,
-      _safeFileName(document.safeFileName),
-    );
+    final destination = await _availableDestination(directory, document);
     final partial = File('${destination.path}.partial');
     try {
       await partial.writeAsBytes(document.bytes, flush: true);
@@ -121,7 +119,7 @@ class AppGeneratedPdfArchiveService {
       await _deleteIfExists(partial);
       await _deleteIfExists(destination);
       throw const AppGeneratedPdfArchiveException(
-        'Maintaniac could not save that generated PDF into permanent document storage.',
+        'Maintainiac could not save that generated PDF into permanent document storage.',
       );
     }
   }
@@ -152,10 +150,6 @@ class AppGeneratedPdfArchiveService {
         .replaceAll(RegExp(r'^-+|-+$'), '');
   }
 
-  static String _safeFileName(String fileName) {
-    return AppGeneratedPdfFileName.clean(fileName);
-  }
-
   static void _ensureArchivablePdf(AppGeneratedPdfDocument document) {
     final validation = document.validation;
     if (validation.isValid) return;
@@ -167,33 +161,22 @@ class AppGeneratedPdfArchiveService {
       await directory.create(recursive: true);
     } catch (_) {
       throw const AppGeneratedPdfArchiveException(
-        'Maintaniac could not prepare permanent document storage.',
+        'Maintainiac could not prepare permanent document storage.',
       );
     }
   }
 
   static Future<File> _availableDestination(
     Directory directory,
-    String fileName,
+    AppGeneratedPdfDocument document,
   ) async {
-    final first = File(path.join(directory.path, fileName));
-    if (!await first.exists() &&
-        !await File('${first.path}.partial').exists()) {
-      return first;
-    }
-    final extension = path.extension(fileName);
-    final baseName = path.basenameWithoutExtension(fileName);
-    for (var index = 2; index < 1000; index += 1) {
-      final candidate = File(
-        path.join(directory.path, '$baseName-copy-$index$extension'),
-      );
-      if (!await candidate.exists() &&
-          !await File('${candidate.path}.partial').exists()) {
-        return candidate;
-      }
-    }
+    final destination = await AppGeneratedPdfStorage.availableDestination(
+      directory: directory,
+      requestedFileName: document.safeFileName,
+    );
+    if (destination != null) return destination;
     throw const AppGeneratedPdfArchiveException(
-      'Maintaniac could not create a safe permanent PDF file name.',
+      'Maintainiac could not create a safe permanent PDF file name.',
     );
   }
 

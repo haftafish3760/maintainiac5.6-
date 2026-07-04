@@ -147,20 +147,20 @@ class AppGeneratedPdfValidationReport {
   String get userMessage {
     if (isValid) return 'PDF is ready.';
     if (hasIssue('empty')) {
-      return 'Maintaniac could not create that PDF because the generated file was empty.';
+      return 'Maintainiac could not create that PDF because the generated file was empty.';
     }
     if (hasIssue('too_large')) {
-      return 'Maintaniac could not create that PDF because it is too large to safely send or save.';
+      return 'Maintainiac could not create that PDF because it is too large to safely send or save.';
     }
     if (hasIssue('missing_pdf_header') || hasIssue('missing_pdf_end_marker')) {
-      return 'Maintaniac could not create that PDF because the generated file was incomplete.';
+      return 'Maintainiac could not create that PDF because the generated file was incomplete.';
     }
     if (issues.any((issue) => issue.startsWith('private_')) ||
         hasIssue(AppPdfPrivacyPolicy.unconfirmedOcrSuggestion) ||
         hasIssue(AppPdfPrivacyPolicy.internalId)) {
-      return 'Maintaniac stopped this PDF because it may contain private information that should not be exported.';
+      return 'Maintainiac stopped this PDF because it may contain private information that should not be exported.';
     }
-    return 'Maintaniac stopped this PDF because it contained unsupported active PDF features.';
+    return 'Maintainiac stopped this PDF because it contained unsupported active PDF features.';
   }
 
   static bool _hasPdfHeader(Uint8List bytes) {

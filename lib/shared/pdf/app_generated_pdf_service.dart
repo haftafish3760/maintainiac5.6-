@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../storage/app_storage_guard.dart';
 import 'app_generated_pdf_models.dart';
+import 'app_generated_pdf_storage.dart';
 
 class AppGeneratedPdfException implements Exception {
   const AppGeneratedPdfException(this.message);
@@ -27,10 +28,7 @@ class AppGeneratedPdfService {
     await _ensureStorage(document);
     final directory = await _generatedPdfDirectory();
     await _createDirectory(directory);
-    final destination = await _availableDestination(
-      directory,
-      _safeFileName(document.safeFileName),
-    );
+    final destination = await _availableDestination(directory, document);
     final partial = File('${destination.path}.partial');
     try {
       await partial.writeAsBytes(document.bytes, flush: true);
@@ -44,7 +42,7 @@ class AppGeneratedPdfService {
       await _deleteIfExists(partial);
       await _deleteIfExists(destination);
       throw const AppGeneratedPdfException(
-        'Maintaniac could not create that PDF. Please free up storage and try again.',
+        'Maintainiac could not create that PDF. Please free up storage and try again.',
       );
     }
     return AppGeneratedPdfFile(
@@ -74,13 +72,13 @@ class AppGeneratedPdfService {
     final file = File(generated.path);
     if (!await file.exists()) {
       throw const AppGeneratedPdfException(
-        'Maintaniac could not find that prepared PDF. Please create it again.',
+        'Maintainiac could not find that prepared PDF. Please create it again.',
       );
     }
     final actualBytes = await file.length();
     if (actualBytes != generated.byteSize) {
       throw const AppGeneratedPdfException(
-        'Maintaniac stopped this PDF because the prepared file was incomplete.',
+        'Maintainiac stopped this PDF because the prepared file was incomplete.',
       );
     }
     final result = await SharePlus.instance.share(
@@ -144,38 +142,23 @@ class AppGeneratedPdfService {
       await directory.create(recursive: true);
     } catch (_) {
       throw const AppGeneratedPdfException(
-        'Maintaniac could not prepare PDF storage on this device.',
+        'Maintainiac could not prepare PDF storage on this device.',
       );
     }
   }
 
   Future<File> _availableDestination(
     Directory directory,
-    String fileName,
+    AppGeneratedPdfDocument document,
   ) async {
-    final first = File(path.join(directory.path, fileName));
-    if (!await first.exists() &&
-        !await File('${first.path}.partial').exists()) {
-      return first;
-    }
-    final extension = path.extension(fileName);
-    final baseName = path.basenameWithoutExtension(fileName);
-    for (var index = 2; index < 1000; index += 1) {
-      final candidate = File(
-        path.join(directory.path, '$baseName-copy-$index$extension'),
-      );
-      if (!await candidate.exists() &&
-          !await File('${candidate.path}.partial').exists()) {
-        return candidate;
-      }
-    }
-    throw const AppGeneratedPdfException(
-      'Maintaniac could not create a safe PDF file name.',
+    final destination = await AppGeneratedPdfStorage.availableDestination(
+      directory: directory,
+      requestedFileName: document.safeFileName,
     );
-  }
-
-  String _safeFileName(String fileName) {
-    return AppGeneratedPdfFileName.clean(fileName);
+    if (destination != null) return destination;
+    throw const AppGeneratedPdfException(
+      'Maintainiac could not create a safe PDF file name.',
+    );
   }
 
   Future<void> _deleteIfExists(File file) async {

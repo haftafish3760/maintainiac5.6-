@@ -67,6 +67,14 @@ void clearDocumentsDirectoryMock() {
       );
 }
 
+Future<File> isolatedTempPdfFile(String prefix, String fileName) async {
+  final directory = await Directory.systemTemp.createTemp(prefix);
+  addTearDown(() {
+    if (directory.existsSync()) directory.deleteSync(recursive: true);
+  });
+  return File('${directory.path}/$fileName');
+}
+
 Future<void> writeSparsePdfHeader(File file, int size) async {
   final raf = await file.open(mode: FileMode.write);
   try {

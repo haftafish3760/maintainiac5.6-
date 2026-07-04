@@ -179,7 +179,7 @@ class _AppGeneratedPdfPreviewScreenState
       messenger.showSnackBar(
         const SnackBar(
           content: Text(
-            'Maintaniac could not open sharing for this PDF. Try again or save it from the preview.',
+            'Maintainiac could not open sharing for this PDF. Try again or save it from the preview.',
           ),
         ),
       );
@@ -225,7 +225,7 @@ class _AppGeneratedPdfPreviewScreenState
       messenger.showSnackBar(
         const SnackBar(
           content: Text(
-            'Maintaniac could not open printing for this PDF. Try again or share the PDF instead.',
+            'Maintainiac could not open printing for this PDF. Try again or share the PDF instead.',
           ),
         ),
       );
@@ -339,7 +339,7 @@ class _PdfGenerationError extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = error is AppGeneratedPdfException
         ? (error! as AppGeneratedPdfException).message
-        : 'Maintaniac could not prepare this PDF.';
+        : 'Maintainiac could not prepare this PDF.';
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(18),

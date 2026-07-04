@@ -3,6 +3,30 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('PDF user-facing copy keeps Maintainiac brand spelling', () {
+    final pdfCopyFiles = [
+      File('lib/shared/pdf/app_generated_pdf_models.dart'),
+      File('lib/shared/pdf/app_generated_pdf_preview_screen.dart'),
+      File('lib/shared/pdf/app_generated_pdf_service.dart'),
+      File('lib/shared/documents/app_generated_pdf_archive_service.dart'),
+    ];
+
+    for (final file in pdfCopyFiles) {
+      final source = file.readAsStringSync();
+
+      expect(
+        source,
+        isNot(contains('Maintaniac')),
+        reason: '${file.path} has misspelled PDF-facing brand copy.',
+      );
+      expect(
+        source,
+        contains('Maintainiac'),
+        reason: '${file.path} should keep PDF-facing copy app-branded.',
+      );
+    }
+  });
+
   test(
     'PDF quality gate stays behavior, storage, security, and receipt focused',
     () {

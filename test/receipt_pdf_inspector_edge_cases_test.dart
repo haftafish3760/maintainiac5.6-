@@ -5,6 +5,8 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_inspector.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_limits.dart';
 
+import 'helpers/receipt_pdf_test_support.dart';
+
 void main() {
   test('blank and missing PDF paths fail safely', () async {
     final blank = await ReceiptPdfInspector.inspect('   ');
@@ -103,7 +105,10 @@ void main() {
   });
 
   test('active PDF content stays attachable but is proof-only', () async {
-    final file = File('${Directory.systemTemp.path}/active_content.pdf');
+    final file = await isolatedTempPdfFile(
+      'pdf_edge_active_content_',
+      'active_content.pdf',
+    );
     await file.writeAsString(
       '%PDF-1.7\n'
       '1 0 obj << /Type /Page /AA << /O 2 0 R >> >> endobj\n'
@@ -112,9 +117,6 @@ void main() {
       '%%EOF',
       flush: true,
     );
-    addTearDown(() {
-      if (file.existsSync()) file.deleteSync();
-    });
 
     final inspection = await ReceiptPdfInspector.inspect(file.path);
 

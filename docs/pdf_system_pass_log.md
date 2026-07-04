@@ -1,5 +1,42 @@
 # PDF System Pass Log
 
+## Pass 22 - 2026-07-04 21:09 EDT - Shared PDF destination allocator
+
+- Scope: generated PDF file destination allocation and PDF test reliability
+  only. No inventory, camera, native capture, receipt text engine, or parser
+  behavior changes.
+- Bundled work:
+  - Added one shared generated-PDF destination allocator for temporary and
+    permanent generated PDF writes.
+  - Kept `.partial` reservations from being reused, including copy-suffix
+    destinations, across both generated PDF storage paths.
+  - Fixed a full-gate PDF fixture collision by moving active-content PDF tests
+    into isolated temp directories instead of shared system-temp filenames.
+  - Added regression coverage for partial-file reservation.
+- Verification completed 2026-07-04 21:09 EDT:
+  - `dart analyze lib/shared/pdf/app_generated_pdf_storage.dart lib/shared/pdf/app_generated_pdf_service.dart lib/shared/documents/app_generated_pdf_archive_service.dart test/app_generated_pdf_service_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart -r compact`
+  - `dart analyze test/helpers/receipt_pdf_test_support.dart test/receipt_pdf_inspector_security_flags_test.dart test/receipt_pdf_inspector_edge_cases_test.dart test/receipt_pdf_hardening_test.dart`
+  - `flutter test test/receipt_pdf_inspector_security_flags_test.dart test/receipt_pdf_inspector_edge_cases_test.dart test/receipt_pdf_hardening_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 21 - 2026-07-04 20:49 EDT - PDF brand-copy regression
+
+- Scope: generated PDF user-facing copy and QA only. No inventory, camera,
+  native capture, receipt text engine, or parser behavior changes.
+- Bundled work:
+  - Corrected misspelled Maintainiac brand copy in generated PDF validation,
+    storage, sharing, printing, and preview failure messages.
+  - Updated affected preview/action tests to assert the corrected PDF-facing
+    messages.
+  - Added a PDF quality-gate regression so the misspelled brand string cannot
+    return in the generated PDF surfaces.
+- Verification completed 2026-07-04 20:49 EDT:
+  - `dart analyze lib/shared/pdf/app_generated_pdf_preview_screen.dart lib/shared/documents/app_generated_pdf_archive_service.dart lib/shared/pdf/app_generated_pdf_service.dart lib/shared/pdf/app_generated_pdf_models.dart test/app_generated_pdf_preview_screen_test.dart test/invoice_pdf_preview_action_tracking_test.dart test/app_generated_pdf_service_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart test/app_generated_pdf_preview_screen_test.dart test/invoice_pdf_preview_action_tracking_test.dart -r compact`
+  - `dart format test/pdf_quality_gate_contract_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 20 - 2026-07-04 20:36 EDT - Generated PDF archive rollback
 
 - Scope: generated PDF permanent archive failure recovery and QA only. No
