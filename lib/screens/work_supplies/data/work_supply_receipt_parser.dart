@@ -8,6 +8,7 @@ part 'work_supply_receipt_parser_plumbing_terms.dart';
 part 'work_supply_receipt_parser_fastener_terms.dart';
 part 'work_supply_receipt_parser_fallback_specificity.dart';
 part 'work_supply_receipt_parser_trade_scores.dart';
+part 'work_supply_receipt_parser_confidence_engine.dart';
 part 'work_supply_receipt_parser_trade_scores_appliances.dart';
 part 'work_supply_receipt_parser_trade_scores_core.dart';
 part 'work_supply_receipt_parser_trade_scores_finishes.dart';
@@ -153,7 +154,7 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
     return ReceiptLineMatch(
       rawText: rawText,
       item: learned,
-      confidence: 0.98,
+      confidence: _learnedCorrectionConfidence(rawText, learned),
       matchedTerms: const ['learned'],
       source: ReceiptMatchSource.learnedCorrection,
     );
@@ -173,7 +174,7 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
     return ReceiptLineMatch(
       rawText: rawText,
       item: trustedIdentity,
-      confidence: 0.99,
+      confidence: _trustedItemIdentityConfidence(normalized, trustedIdentity),
       matchedTerms: const ['trusted-item-identity'],
       source: ReceiptMatchSource.trustedItemIdentity,
     );
@@ -184,19 +185,15 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
     originalText: normalized,
   );
   if (direct != null) {
-    final confidence =
-        _isUnscopedAmbiguousReceiptLine(
-          expanded,
-          direct,
-          tradeScope,
-          originalText: normalized,
-        )
-        ? 0.74
-        : 0.94;
     return ReceiptLineMatch(
       rawText: rawText,
       item: direct,
-      confidence: confidence,
+      confidence: _directReceiptConfidence(
+        expanded,
+        direct,
+        tradeScope: tradeScope,
+        originalText: normalized,
+      ),
       matchedTerms: _directMatchedTerms(expanded, direct),
     );
   }
@@ -208,7 +205,11 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
     return ReceiptLineMatch(
       rawText: rawText,
       item: vendorMapped,
-      confidence: 0.99,
+      confidence: _vendorMappingConfidence(
+        normalized,
+        vendorMapped,
+        tradeScope: tradeScope,
+      ),
       matchedTerms: const ['vendor-mapping'],
     );
   }
@@ -4872,21 +4873,17 @@ double _confidence(
   int score = 0,
   String? tradeScope,
 }) {
-  var confidence = (matchedTermCount / 8).clamp(0.15, 0.86);
-  if (_isStrongShortCatalogMatch(score)) confidence = confidence.clamp(.86, 1);
+  var confidence = 0.20 + (matchedTermCount * 0.075);
+  if (_isStrongShortCatalogMatch(score)) confidence += 0.24;
   final normalizedName = _normalize(item.name);
   if (text.contains(normalizedName)) confidence += 0.08;
   if (item.aliases.any((alias) => text.contains(_normalize(alias)))) {
     confidence += 0.05;
   }
   if (text.contains(item.variant.toLowerCase())) confidence += 0.04;
-  if (_isAmbiguousPlumbingCoreLine(text, item)) {
-    confidence = confidence.clamp(0.15, 0.74);
-  }
-  if (_isUnscopedAmbiguousReceiptLine(text, item, tradeScope)) {
-    confidence = confidence.clamp(0.15, 0.74);
-  }
-  return confidence.clamp(0.15, 0.95);
+  confidence += _specificityEvidenceScore(text, item);
+  confidence -= _receiptAmbiguityRisk(text, item, tradeScope);
+  return _boundedReceiptConfidence(confidence);
 }
 
 bool _isUnscopedAmbiguousReceiptLine(

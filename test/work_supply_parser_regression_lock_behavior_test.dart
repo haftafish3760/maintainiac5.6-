@@ -170,6 +170,28 @@ void main() {
         expect(match!.item.trade, entry.value, reason: entry.key);
       }
     });
+
+    test('ambiguous cross-trade lines lose confidence by evidence risk', () {
+      final cases = {
+        'PVC 90 3/4': 'PVC elbow can be plumbing, electrical conduit, or HVAC',
+        '3/4 COPPER 90': 'Copper elbow can be plumbing or HVAC refrigerant',
+        'FILTER 20X25X1': 'Filter needs air/water/oil/HVAC evidence',
+      };
+
+      for (final entry in cases.entries) {
+        final match = matchReceiptLineToCatalog(entry.key, maxCandidates: 320);
+
+        if (match == null) continue;
+        expect(
+          match.confidenceLevel,
+          isNot(ReceiptConfidenceLevel.good),
+          reason:
+              '${entry.key} matched ${match.item.trade} / ${match.item.name} '
+              'at ${match.confidence}. ${entry.value}.',
+        );
+        expect(match.needsReview, isTrue, reason: entry.key);
+      }
+    });
   });
 }
 
