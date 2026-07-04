@@ -146,6 +146,11 @@ Focused rerun routes for recently hardened release-one contracts:
   catalog parser/search checks left to generated harness/batch waves. Full file
   verification passed in roughly 2 seconds, the focused input/security harness
   shard passed 143 checks with 0 failures, and analyzer was clean.
+- Passes 2148-2150 added a regression guard to
+  `inventory.input_attack_surface_contract` so the cheap input-attack behavior
+  test fails if future edits reintroduce `matchReceiptLineToCatalog(` or
+  `searchWorkSupplies(` calls. The focused harness shard passed 145 checks, 0
+  failures, and analyzer was clean.
 
 ## 2026-07-04 Whole-App Parser Adapter Registry And Surgical Routing
 

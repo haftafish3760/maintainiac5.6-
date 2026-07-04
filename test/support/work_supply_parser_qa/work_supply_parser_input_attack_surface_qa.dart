@@ -112,6 +112,14 @@ class WorkSupplyParserInputAttackSurfaceSuite extends QaSuite {
     'search index',
   };
 
+  static const _cheapBehaviorTestPath =
+      'test/work_supply_parser_input_attack_surface_behavior_test.dart';
+
+  static const _forbiddenCheapBehaviorTokens = {
+    'matchReceiptLineToCatalog(',
+    'searchWorkSupplies(',
+  };
+
   @override
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
@@ -169,6 +177,27 @@ class WorkSupplyParserInputAttackSurfaceSuite extends QaSuite {
           'Hostile input tests must prove parser/search/import text cannot corrupt Hive, mirrors, inventory workflows, admin reports, exports, imports, or indexes.',
       triage: QaFailureTriage.security,
     );
+
+    final cheapBehaviorSource = File(_cheapBehaviorTestPath).existsSync()
+        ? File(_cheapBehaviorTestPath).readAsStringSync()
+        : '';
+    checked += _forbiddenCheapBehaviorTokens.length;
+    for (final token in _forbiddenCheapBehaviorTokens) {
+      if (!cheapBehaviorSource.contains(token)) continue;
+      failures.add(
+        _failure(
+          id: 'cheap_input_behavior_uses_heavy_catalog_call:${_safeId(token)}',
+          message:
+              'Input attack behavior test reintroduced a heavy catalog call.',
+          expected:
+              'cheap hostile-input behavior tests stay pre-catalog and leave deep catalog coverage to harness/batch waves',
+          actual: token,
+          fix:
+              'Move full catalog parser/search checks into generated harness or batch-wave coverage, and keep this behavior test fast enough for surgical reruns.',
+          triage: QaFailureTriage.performance,
+        ),
+      );
+    }
 
     return timer.finish(
       suite: name,
