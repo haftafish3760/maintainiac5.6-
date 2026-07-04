@@ -353,6 +353,17 @@ class ReceiptCaptureReadinessDecision {
         requiredStableFrames: safeRequiredFrames,
       );
     }
+    if (quality.needsReview) {
+      return ReceiptCaptureReadinessDecision(
+        code: 'manual_only_quality_review',
+        label: 'Check receipt sharpness, light, and text before auto capture.',
+        manualCaptureAllowed: true,
+        autoCaptureAllowed: false,
+        autoCaptureEnabled: true,
+        stableFrameCount: safeStableFrames,
+        requiredStableFrames: safeRequiredFrames,
+      );
+    }
     if (safeStableFrames < safeRequiredFrames) {
       return ReceiptCaptureReadinessDecision(
         code: 'auto_capture_waiting_for_stability',

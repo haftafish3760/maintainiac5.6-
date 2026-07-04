@@ -207,6 +207,54 @@ void main() {
     expect(cutOffDecision.autoCaptureAllowed, isFalse);
   });
 
+  test('capture readiness blocks auto capture for review-needed photos', () {
+    const soft = ReceiptPhotoQualityCheck(
+      width: 1600,
+      height: 2200,
+      focusScore: 7,
+      brightness: 132,
+      contrast: 30,
+      cropScore: .70,
+      textBandScore: 12,
+      isLikelyReadable: false,
+    );
+    const lowContrast = ReceiptPhotoQualityCheck(
+      width: 1600,
+      height: 2200,
+      focusScore: 14,
+      brightness: 132,
+      contrast: 12,
+      cropScore: .70,
+      textBandScore: 12,
+      isLikelyReadable: false,
+    );
+    const dim = ReceiptPhotoQualityCheck(
+      width: 1600,
+      height: 2200,
+      focusScore: 14,
+      brightness: 86,
+      contrast: 30,
+      cropScore: .70,
+      textBandScore: 12,
+      isLikelyReadable: true,
+    );
+
+    for (final quality in [soft, lowContrast, dim]) {
+      final decision = quality.captureReadiness(
+        autoCaptureEnabled: true,
+        stableFrameCount: 4,
+        requiredStableFrames: 3,
+      );
+
+      expect(decision.code, 'manual_only_quality_review');
+      expect(decision.manualCaptureAllowed, isTrue);
+      expect(decision.autoCaptureAllowed, isFalse);
+      expect(decision.label, contains('sharpness'));
+      expect(decision.label, contains('light'));
+      expect(decision.label, contains('text'));
+    }
+  });
+
   test('bright readable receipt paper is not treated as glare failure', () {
     const brightReadable = ReceiptPhotoQualityCheck(
       width: 1800,
