@@ -55,6 +55,12 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
 
   static const _requiredLocaleIds = {'es-US'};
 
+  static const _requiredReleaseTrades = {
+    'plumbing',
+    'electrical',
+    'hvac',
+  };
+
   static final _privatePatterns = {
     'card_like_number': RegExp(r'\b\d{12,19}\b'),
     'email': RegExp(r'\b[\w.+%-]+@[\w.-]+\.[A-Za-z]{2,}\b'),
@@ -116,6 +122,7 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
     final merchants = <String>{};
     final riskTags = <String>{};
     final localeIds = <String>{};
+    final expectedTrades = <String>{};
     final fixtureIds = <String>{};
     final rawLines = <String>{};
     var unknownOrReviewCount = 0;
@@ -190,6 +197,10 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
           (fixture['expectedNameContains']?.toString() ?? '').isNotEmpty) {
         expectedMatchCount++;
       }
+      final expectedTrade = fixture['expectedTrade']?.toString() ?? '';
+      if (expectedTrade.isNotEmpty) {
+        expectedTrades.add(expectedTrade.toLowerCase());
+      }
       for (final pattern in _privatePatterns.entries) {
         if (!pattern.value.hasMatch(rawLine)) continue;
         failures.add(
@@ -244,6 +255,16 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
         message: 'Fixture corpus is missing release-one locale coverage.',
       );
     }
+    for (final trade in _requiredReleaseTrades) {
+      _requireContains(
+        failures,
+        expectedTrades,
+        trade,
+        idPrefix: 'missing_fixture_release_trade',
+        message:
+            'Fixture corpus is missing expected-match coverage for a Release 1 priority trade.',
+      );
+    }
 
     if (expectedMatchCount == 0) {
       failures.add(
@@ -285,6 +306,7 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
           _requiredReleaseMerchants.length +
           _requiredRiskTags.length +
           _requiredLocaleIds.length +
+          _requiredReleaseTrades.length +
           2,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
@@ -297,6 +319,7 @@ class WorkSupplyParserFixtureCorpusContractSuite extends QaSuite {
         'merchants': merchants.toList()..sort(),
         'riskTags': riskTags.toList()..sort(),
         'localeIds': localeIds.toList()..sort(),
+        'expectedTrades': expectedTrades.toList()..sort(),
         'expectedMatchCount': expectedMatchCount,
         'unknownOrReviewCount': unknownOrReviewCount,
       },

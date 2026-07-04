@@ -3569,3 +3569,11 @@ Release boundaries:
   future backend/cloud adapters without brittle doc formatting. Focused
   `inventory.portability_contract,inventory.parser_platform_contract,qa.threshold_gate`
   passed 115 checks with 0 failures, and targeted analyzer found no issues.
+- **11:31 Harness Pass 2642:** Strengthened Release 1 fixture corpus governance
+  so golden fixtures must include expected-match coverage for Plumbing,
+  Electrical, and HVAC, not only Plumbing plus review-only examples. The first
+  focused gate exposed missing Electrical/HVAC expected-match fixtures; added
+  synthetic `HOME DEPOT 15A GFCI OUTLET WHITE` and
+  `HVAC SUPPLY 20X25X1 MERV 8 FILTER` clear-match fixtures, then reran the same
+  gate. Focused `inventory.fixture_corpus_contract,inventory.merchant_independence_contract,qa.threshold_gate`
+  passed 297 checks with 0 failures, and targeted analyzer found no issues.

@@ -94,11 +94,11 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
   Future<QaSuiteResult> run(QaContext context) async {
     final timer = QaStopwatch.start();
     final failures = <QaFailure>[];
-    final source = _readContractSource().toLowerCase();
+    final source = _normalizeContractText(_readContractSource());
     var checked = _requiredTierRoles.length + _requiredReleaseAxes.length;
 
     for (final role in _requiredTierRoles) {
-      if (source.contains(role)) continue;
+      if (source.contains(_normalizeContractText(role))) continue;
       failures.add(
         _failure(
           id: 'missing_tier_role:${_safeId(role)}',
@@ -112,7 +112,7 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
     }
 
     for (final axis in _requiredReleaseAxes) {
-      if (source.contains(axis)) continue;
+      if (source.contains(_normalizeContractText(axis))) continue;
       failures.add(
         _failure(
           id: 'missing_release_axis:$axis',
@@ -223,6 +223,10 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
       metadata: const {'triageCategory': QaFailureTriage.governance},
     );
   }
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
 
 String _safeId(String value) {

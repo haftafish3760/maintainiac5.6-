@@ -1323,5 +1323,47 @@
     "expectedReviewRequired": true,
     "expectedCandidateTrade": "hvac",
     "expectedConfidenceBand": "review"
+  },
+  {
+    "id": "home_depot_electrical_gfci_clear_match_en_us",
+    "caseType": "clear_match",
+    "merchant": "Home Depot",
+    "riskTags": [
+      "merchant_abbreviation",
+      "service_truck_core",
+      "electrical",
+      "locale_pack"
+    ],
+    "rawLine": "HOME DEPOT 15A GFCI OUTLET WHITE",
+    "trade": "electrical",
+    "marketScope": "residential",
+    "tier": "core",
+    "localePackId": "en-US",
+    "expectedTrade": "Electrical",
+    "expectedNameContains": "GFCI",
+    "tradeScope": "Electrical",
+    "expectedStatus": "matched",
+    "expectedReviewRequired": false
+  },
+  {
+    "id": "hvac_supply_filter_clear_match_en_us",
+    "caseType": "clear_match",
+    "merchant": "HVAC Supply",
+    "riskTags": [
+      "supply_house",
+      "service_truck_core",
+      "hvac",
+      "locale_pack"
+    ],
+    "rawLine": "HVAC SUPPLY 20X25X1 MERV 8 FILTER",
+    "trade": "hvac",
+    "marketScope": "residential",
+    "tier": "core",
+    "localePackId": "en-US",
+    "expectedTrade": "HVAC",
+    "expectedNameContains": "Filter",
+    "tradeScope": "HVAC",
+    "expectedStatus": "matched",
+    "expectedReviewRequired": false
   }
 ]

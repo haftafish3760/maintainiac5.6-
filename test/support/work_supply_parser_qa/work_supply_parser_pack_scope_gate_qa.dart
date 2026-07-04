@@ -76,11 +76,18 @@ class WorkSupplyParserPackScopeGateSuite extends QaSuite {
     final combinedDocs = '$roadmap\n$contract\n$localization\n$progress';
     final combinedCode =
         '$tierSource\n$manifestSource\n$distributionTest\n$planningTest';
+    final normalizedDocs = _normalizeContractText(combinedDocs);
+    final normalizedCode = _normalizeContractText(combinedCode);
+    final normalizedRoadmap = _normalizeContractText(roadmap);
+    final normalizedContract = _normalizeContractText(contract);
+    final normalizedProgress = _normalizeContractText(progress);
     var checked = 0;
 
     checked += _requiredScopes.length;
     for (final scope in _requiredScopes) {
-      if (combinedDocs.contains(scope) && combinedCode.contains(scope)) {
+      final normalizedScope = _normalizeContractText(scope);
+      if (normalizedDocs.contains(normalizedScope) &&
+          normalizedCode.contains(normalizedScope)) {
         continue;
       }
       failures.add(
@@ -99,7 +106,9 @@ class WorkSupplyParserPackScopeGateSuite extends QaSuite {
 
     checked += _requiredTiers.length;
     for (final tier in _requiredTiers) {
-      if (combinedDocs.contains(tier) && combinedCode.contains(tier)) {
+      final normalizedTier = _normalizeContractText(tier);
+      if (normalizedDocs.contains(normalizedTier) &&
+          normalizedCode.contains(normalizedTier)) {
         continue;
       }
       failures.add(
@@ -118,7 +127,7 @@ class WorkSupplyParserPackScopeGateSuite extends QaSuite {
 
     checked += _priorityTradeTokens.length;
     for (final trade in _priorityTradeTokens) {
-      if (combinedDocs.contains(trade)) continue;
+      if (normalizedDocs.contains(_normalizeContractText(trade))) continue;
       failures.add(
         _failure(
           id: 'missing_priority_trade:${_safeId(trade)}',
@@ -135,7 +144,9 @@ class WorkSupplyParserPackScopeGateSuite extends QaSuite {
 
     checked += _requiredPackGateTokens.length;
     for (final token in _requiredPackGateTokens) {
-      if (roadmap.contains(token)) continue;
+      if (normalizedRoadmap.contains(_normalizeContractText(token))) {
+        continue;
+      }
       failures.add(
         _failure(
           id: 'missing_pack_gate:${_safeId(token)}',
@@ -152,7 +163,11 @@ class WorkSupplyParserPackScopeGateSuite extends QaSuite {
 
     checked += _requiredSizeTokens.length;
     for (final token in _requiredSizeTokens) {
-      if (contract.contains(token) || progress.contains(token)) continue;
+      final normalizedToken = _normalizeContractText(token);
+      if (normalizedContract.contains(normalizedToken) ||
+          normalizedProgress.contains(normalizedToken)) {
+        continue;
+      }
       failures.add(
         _failure(
           id: 'missing_pack_size_policy:${_safeId(token)}',
@@ -232,6 +247,10 @@ class WorkSupplyParserPackScopeGateSuite extends QaSuite {
       metadata: {'triageCategory': category},
     );
   }
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
 
 String _read(String path) {
