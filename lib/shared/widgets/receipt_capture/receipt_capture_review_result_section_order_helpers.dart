@@ -36,6 +36,31 @@ List<String> _receiptInsertInvalidOrderCodes({
   return codes;
 }
 
+List<String> _receiptManualReorderInvalidOrderCodes({
+  required Map<String, Object?> diagnostics,
+  required int? originalSection,
+  required int? finalSection,
+  required String direction,
+}) {
+  if (originalSection == null || finalSection == null) return const [];
+  final codes = <String>[];
+  final expectedFinalSection = switch (direction) {
+    'earlier' => originalSection - 1,
+    'later' => originalSection + 1,
+    _ => null,
+  };
+  if (expectedFinalSection == null) {
+    codes.add('manual_reorder_invalid_direction');
+  } else if (finalSection != expectedFinalSection) {
+    codes.add('manual_reorder_invalid_non_adjacent_move');
+  }
+  if (_diagnosticBool(diagnostics['receiptManualReorderPreservedPhotoPath']) !=
+      true) {
+    codes.add('manual_reorder_invalid_missing_preserved_path');
+  }
+  return codes;
+}
+
 List<String> _receiptRetakeContextCodes(Map<String, Object?> diagnostics) {
   final codes = <String>[];
   if (_diagnosticBool(diagnostics['receiptRetakePreservedOriginalSlot']) ==

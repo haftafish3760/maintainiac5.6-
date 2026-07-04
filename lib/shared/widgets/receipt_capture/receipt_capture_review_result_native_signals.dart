@@ -311,6 +311,14 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       )) {
         counts[invalidCode] = (counts[invalidCode] ?? 0) + 1;
       }
+      for (final invalidCode in _receiptManualReorderInvalidOrderCodes(
+        diagnostics: diagnostics,
+        originalSection: manualReorderOriginalSection,
+        finalSection: manualReorderFinalSection,
+        direction: manualReorderDirection,
+      )) {
+        counts[invalidCode] = (counts[invalidCode] ?? 0) + 1;
+      }
       if (orderPolicy != 'unknown') {
         counts['policy_$orderPolicy'] =
             (counts['policy_$orderPolicy'] ?? 0) + 1;
@@ -368,6 +376,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
     if (counts.keys.any((key) => key.startsWith('insert_invalid_'))) {
       return 'insert_order_invalid';
     }
+    if (counts.keys.any((key) => key.startsWith('manual_reorder_invalid_'))) {
+      return 'manual_reorder_invalid';
+    }
     if ((counts['policy_top_to_bottom_numbered_sections'] ?? 0) > 0 &&
         (counts['ghost_guide_visible'] ?? 0) > 0) {
       return 'numbered_sections_with_ghost_guide';
@@ -409,6 +420,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
     }
     if (outcome == 'insert_order_invalid') {
       return '$label;insert_invalid';
+    }
+    if (outcome == 'manual_reorder_invalid') {
+      return '$label;manual_reorder_invalid';
     }
     if ((counts['retake_preserved_original_slot'] ?? 0) > 0) {
       return '$label;retake_preserved';

@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 643 - 22:37:28 EDT to active cleanup
+
+Scope:
+- Hardened manual long-receipt reorder summaries so malformed non-adjacent
+  section moves cannot be reported as preserved order.
+- Added manual-reorder invalid codes for unknown direction, non-adjacent moves,
+  and missing preserved-path evidence.
+- Added focused regression coverage proving a bad manual reorder stays
+  privacy-safe and becomes a section-order handoff risk.
+- Recorded `BUG-RECEIPT-0162` under `multi_photo_ordering`.
+- Archived Pass 606 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format for section-order helpers and regressions.
+- Passed focused Flutter section-order regression.
+
 ## Pass 642 - 22:33:47 EDT to active cleanup
 
 Scope:
@@ -456,25 +472,3 @@ Verification:
   source regressions.
 - Passed focused Flutter Android settings-quality and iOS long-receipt quality
   bridge regressions.
-
-## Pass 606 - 21:10:31 EDT to 21:11:41 EDT
-
-Scope:
-- Hardened long-receipt continuation handoff so uppercase or padded
-  `missing_bottom_edge_and_totals` reason codes normalize before ghost guide
-  fractions, continuation source, and bottom/totals flags are chosen.
-- Added behavior coverage proving continuation guides keep the last prior
-  section path and normalize the missing-bottom reason for expense flow
-  options.
-- Added source coverage requiring the shared flow diagnostics path to keep the
-  lowercase normalization guard.
-- Recorded `BUG-RECEIPT-0127` under `ghost_overlap_stitching`.
-- Archived Pass 585 out of the live cleanup log to keep the active log under
-  the project line-count cap.
-
-Verification:
-- Fixed the first focused regression assertion after Dart formatting split the
-  source expression across lines.
-- Passed targeted Dart format/analyzer for continuation handoff code and tests.
-- Passed focused Flutter continuation handoff and capture-flow recovery
-  regressions.

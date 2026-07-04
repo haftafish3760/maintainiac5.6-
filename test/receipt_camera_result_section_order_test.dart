@@ -322,4 +322,57 @@ void main() {
       isNot(contains('private reordered line')),
     );
   });
+
+  test('malformed manual reorder metadata is counted safely', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/top.jpg', '/tmp/middle.jpg', '/tmp/bottom.jpg'],
+      ocrSourcePhotoPaths: const [
+        '/tmp/top-ocr.jpg',
+        '/tmp/middle-ocr.jpg',
+        '/tmp/bottom-ocr.jpg',
+      ],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.fallback(
+        inputPaths: [
+          '/tmp/top-ocr.jpg',
+          '/tmp/middle-ocr.jpg',
+          '/tmp/bottom-ocr.jpg',
+        ],
+        warning: 'Review malformed manual section order.',
+        fallbackReasonCode: 'manual_order_review',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/middle.jpg': {
+          'receiptManualReorderOriginalSectionNumber': 2,
+          'receiptManualReorderFinalSectionNumber': 5,
+          'receiptManualReorderDirection': 'later',
+          'receiptManualReorderPreservedPhotoPath': true,
+          'receiptManualReorderPolicy':
+              'user_reordered_sections_preserve_paths',
+          'receiptLineText': 'private malformed reorder should not leak',
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderOutcome, 'manual_reorder_invalid');
+    expect(
+      result
+          .receiptSectionOrderCounts['manual_reorder_invalid_non_adjacent_move'],
+      1,
+    );
+    expect(
+      result
+          .receiptReaderHandoffCounts['receipt_section_order_manual_reorder_invalid_non_adjacent_move'],
+      1,
+    );
+    expect(
+      result.receiptSectionOrderEvidenceLabel,
+      'section_order=manual_reorder_invalid;'
+      'multi_section_photos=0;ghost_unknown;manual_reorder_invalid',
+    );
+    final metadata = result.privacySafeReceiptReaderHandoffMetadata.toString();
+    expect(metadata, contains('manual_reorder_invalid_non_adjacent_move'));
+    expect(metadata, isNot(contains('/tmp/')));
+    expect(metadata, isNot(contains('private malformed reorder')));
+  });
 }
