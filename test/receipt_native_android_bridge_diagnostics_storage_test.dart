@@ -138,6 +138,7 @@ void main() {
       );
       expect(cameraActivity, contains('"lifted_for_dim_receipt"'));
       expect(cameraActivity, contains('"kept_native_auto"'));
+      expect(cameraActivity, contains('"aborted_camera_closing"'));
       expect(
         cameraActivity,
         contains(

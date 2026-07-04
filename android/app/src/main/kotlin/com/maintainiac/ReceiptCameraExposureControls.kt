@@ -223,6 +223,7 @@ internal fun ReceiptCameraActivity.preCaptureExposureOutcome(): String {
         "brightness_unknown" -> "brightness_unknown"
         "adjustment_not_confirmed" -> "adjustment_not_confirmed"
         "already_at_limit" -> "already_at_limit"
+        "aborted_camera_closing" -> "aborted_camera_closing"
         else -> "not_evaluated"
     }
 }

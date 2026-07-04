@@ -51,6 +51,7 @@ void main() {
       );
       expect(cameraController, contains('"lifted_for_dim_receipt"'));
       expect(cameraController, contains('"kept_native_auto"'));
+      expect(cameraController, contains('"aborted_camera_closing"'));
       expect(
         cameraController,
         contains(

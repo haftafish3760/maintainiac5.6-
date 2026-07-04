@@ -63,6 +63,8 @@ extension ReceiptCameraViewController {
       return "adjustment_not_confirmed"
     case "already_at_limit":
       return "already_at_limit"
+    case "aborted_camera_closing":
+      return "aborted_camera_closing"
     default:
       return "not_evaluated"
     }
