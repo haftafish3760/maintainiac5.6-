@@ -20,6 +20,8 @@ class WorkSupplyParserMerchantMatrixSuite extends QaSuite {
       'docs/materials_catalog_intelligence_contract.md';
   static const _behaviorPath =
       'test/work_supply_parser_merchant_matrix_behavior_test.dart';
+  static const _priorityTradeBehaviorPath =
+      'test/work_supply_priority_trade_merchant_receipt_parser_test.dart';
   static const _goldenFixturePath =
       'test/fixtures/work_supply_parser/golden_fixtures.json';
 
@@ -83,6 +85,7 @@ class WorkSupplyParserMerchantMatrixSuite extends QaSuite {
       _read(_generatedFixturePath),
       _read(_catalogContractPath),
       _read(_behaviorPath),
+      _read(_priorityTradeBehaviorPath),
     ].join('\n');
     var checked = 0;
 
@@ -181,6 +184,7 @@ class WorkSupplyParserMerchantMatrixSuite extends QaSuite {
       metrics: {
         'progressPath': _progressPath,
         'merchantCount': _requiredMerchants.length,
+        'priorityTradeBehaviorPath': _priorityTradeBehaviorPath,
         'priorityFixtureMerchantCounts': fixtureMerchants,
         'contract':
             'Inventory parser merchant QA must prove major big-box, hardware, supply-house, unknown merchant, English, Spanish, and priority-trade receipt wording coverage before release accuracy claims.',

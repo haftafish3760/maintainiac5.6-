@@ -3530,3 +3530,10 @@ Release boundaries:
   so the parser uses stronger evidence instead of confidence caps. Focused
   language-pack behavior passed 7/7, language-pack contract passed 43 checks
   with 0 failures, and targeted analyzer found no issues.
+- **11:13 Harness Pass 2614:** Added
+  `test/work_supply_priority_trade_merchant_receipt_parser_test.dart` so real
+  parser behavior now covers Electrical and HVAC merchant receipt wording, plus
+  Spanish priority-trade wording, not only Plumbing and toy matrix checks. The
+  first run found missing `pvc cond` electrical conduit evidence; adding a
+  `pvc conduit` parser alias fixed it. Focused priority-trade merchant parser
+  behavior passed 3/3 and targeted analyzer found no issues.

@@ -48,6 +48,7 @@ const receiptTermAliases = {
   'receptacle': ['recept', 'receptacle', 'outlet', 'wall socket'],
   'duplex receptacle': ['duplex receptacle', 'duplex outlet'],
   'emt conduit': ['emt conduit', 'emt pipe', 'thinwall', 'thin wall'],
+  'pvc conduit': ['pvc cond', 'pvc conduit', 'pvc electrical conduit'],
   'emt connector': ['emt conn', 'set screw conn', 'set screw connector'],
   'emt coupling': ['emt coup', 'emt cplg', 'set screw coupling'],
   'conduit body': ['lb body', 'll body', 'lr body', 't body', 'c body'],
