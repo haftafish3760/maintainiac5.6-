@@ -143,7 +143,7 @@ class WorkSupplyParserConfidenceCalibrationSuite extends QaSuite {
     }
 
     for (final token in _requiredEngineTokens) {
-      if (source.contains(token)) continue;
+      if (_containsContractToken(source, token)) continue;
       failures.add(
         QaFailure(
           suite: name,
@@ -344,4 +344,12 @@ String _read(String path) {
 
 String _safeId(String value) {
   return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }

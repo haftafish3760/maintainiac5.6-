@@ -58,7 +58,7 @@ class WorkSupplyParserRecipeCompletenessSuite extends QaSuite {
       );
     }
     for (final signal in _requiredRecipeSignals) {
-      if (source.contains(signal)) continue;
+      if (_containsContractToken(source, signal)) continue;
       failures.add(
         _failure(
           id: 'missing_recipe_signal:$signal',
@@ -114,4 +114,12 @@ class WorkSupplyParserRecipeCompletenessSuite extends QaSuite {
       metadata: const {'triageCategory': QaFailureTriage.fixture},
     );
   }
+}
+
+bool _containsContractToken(String source, String token) {
+  return _normalizeContractText(source).contains(_normalizeContractText(token));
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }

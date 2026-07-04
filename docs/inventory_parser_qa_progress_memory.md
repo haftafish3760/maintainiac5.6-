@@ -3766,3 +3766,13 @@ Release boundaries:
   Background queue `pass2620-core-peh-1000` remained running on
   `electrical_residential_core_es_US` with no failed cells and no live-service,
   Firebase, production catalog, OCR, camera, expenses, or UI flags.
+- **12:15 Harness Pass 2770:** Made confidence required-evidence tokens,
+  fixture recipe signals, and release-one tier-role document checks
+  whitespace-safe while leaving forbidden confidence shortcut scans and exact
+  recipe-list declaration scans intact. Focused
+  `inventory.confidence_calibration,inventory.recipe_completeness_contract,inventory.release_one_tier_role_contract,qa.threshold_gate`
+  passed 17,137 checks with 0 failures; the release-one tier-role catalog scan
+  was intentionally treated as a milestone check because it took about 85
+  seconds. Targeted analyzer found no issues. Remaining exact `source.contains`
+  scans are deliberate forbidden-token or exact declaration guards, not loose
+  documentation contracts.

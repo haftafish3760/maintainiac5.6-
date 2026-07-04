@@ -98,7 +98,7 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
     var checked = _requiredTierRoles.length + _requiredReleaseAxes.length;
 
     for (final role in _requiredTierRoles) {
-      if (source.contains(_normalizeContractText(role))) continue;
+      if (_containsContractToken(source, role)) continue;
       failures.add(
         _failure(
           id: 'missing_tier_role:${_safeId(role)}',
@@ -112,7 +112,7 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
     }
 
     for (final axis in _requiredReleaseAxes) {
-      if (source.contains(_normalizeContractText(axis))) continue;
+      if (_containsContractToken(source, axis)) continue;
       failures.add(
         _failure(
           id: 'missing_release_axis:$axis',
@@ -227,6 +227,10 @@ class WorkSupplyParserReleaseOneTierRoleSuite extends QaSuite {
 
 String _normalizeContractText(String value) {
   return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
+}
+
+bool _containsContractToken(String source, String token) {
+  return source.contains(_normalizeContractText(token));
 }
 
 String _safeId(String value) {
