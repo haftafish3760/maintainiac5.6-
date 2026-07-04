@@ -33,6 +33,7 @@ void main() {
       );
       expect(script, contains('test/pdf_cross_platform_contract_test.dart'));
       expect(script, contains('test/pdf_security_policy_contract_test.dart'));
+      expect(script, contains('test/pdf_typography_contract_test.dart'));
       expect(script, contains('test/app_generated_pdf_service_test.dart'));
       expect(script, contains('test/invoice_template_pdf_factory_test.dart'));
       expect(script, contains('test/receipt_pdf_torture_test.dart'));

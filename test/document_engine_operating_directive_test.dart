@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('Document Engine directive preserves PDF lane requirements', () {
+  test('Document Engine directive preserves PDF requirements', () {
     final directive = File(
       'docs/document_engine_operating_directive.md',
     ).readAsStringSync();

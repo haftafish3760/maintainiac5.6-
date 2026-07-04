@@ -1,5 +1,24 @@
 # PDF System Pass Log
 
+## Pass 13 - 2026-07-04 14:58 EDT - Embedded PDF typography
+
+- Scope: PDF font/theme generation and QA only. No inventory, camera, native
+  capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added embedded Roboto PDF fonts and shared PDF typography loaders for app,
+    tests, and render tools.
+  - Wired invoice, expense export, render-smoke, and PDF fixture generation to
+    use embedded fonts instead of default Helvetica.
+  - Added PDF typography contract coverage and included it in the PDF quality
+    gate.
+  - Removed PDF-owned wording that suggested a separate branch of effort.
+- Verification completed 2026-07-04 14:58 EDT:
+  - `dart format lib/shared/pdf/app_pdf_typography.dart test/helpers/pdf_test_typography.dart tool/pdf_tool_typography.dart test/pdf_typography_contract_test.dart test/pdf_quality_gate_contract_test.dart tool/generate_sample_invoice_pdf.dart tool/generate_sample_receipt_pdf.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart lib/screens/expenses/data/expense_export_handoff.dart test/helpers/pdf_torture_fixtures.dart test/receipt_pdf_hardening_test.dart`
+  - `dart analyze lib/shared/pdf/app_pdf_typography.dart test/helpers/pdf_test_typography.dart tool/pdf_tool_typography.dart tool/generate_sample_invoice_pdf.dart tool/generate_sample_receipt_pdf.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart lib/screens/expenses/data/expense_export_handoff.dart test/helpers/pdf_torture_fixtures.dart test/receipt_pdf_hardening_test.dart`
+  - `bash tool/pdf_render_smoke_gate.sh`
+  - `flutter test test/receipt_pdf_hardening_test.dart test/receipt_pdf_torture_test.dart test/invoice_template_pdf_factory_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 1 - 2026-07-04 13:33 EDT - Shared PDF security policy and QA registry
 
 - Scope: PDF behavior/security QA only. No inventory, camera, native capture,
@@ -10,7 +29,7 @@
   - Wired receipt PDF risk flag detection to the shared policy.
   - Added a PDF QA fixture inventory covering malformed, large, encrypted,
     image-only, text-layer, rotated/cropped, ownership, cleanup, privacy,
-    receipt review, and invoice-generation lanes.
+    receipt review, and invoice-generation coverage.
   - Added contract tests proving the PDF QA registry exists and that generated
     PDFs plus receipt PDFs use the same active-content security policy.
 - Regression rule: shared-policy behavior is now guarded by direct tests so
@@ -34,8 +53,8 @@
   - Added torture fixtures for image-layer and cropped-page PDFs.
   - Extended PDF edge-case tests and torture tests for text-layer, image-only,
     rotated, and cropped PDF behavior.
-  - Updated the PDF QA inventory so those lanes are tracked as partial coverage
-    instead of unstarted gaps.
+  - Updated the PDF QA inventory so those areas are tracked as partial
+    coverage instead of unstarted gaps.
 - Verification completed 2026-07-04 13:36 EDT:
   - `dart format lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart lib/shared/widgets/receipt_capture/receipt_pdf_inspection.dart test/helpers/pdf_torture_fixtures.dart test/receipt_pdf_torture_test.dart test/receipt_pdf_inspector_edge_cases_test.dart test/pdf_qa_fixture_inventory_test.dart`
   - `dart analyze lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart lib/shared/widgets/receipt_capture/receipt_pdf_inspection.dart test/helpers/pdf_torture_fixtures.dart test/receipt_pdf_torture_test.dart test/receipt_pdf_inspector_edge_cases_test.dart test/pdf_qa_fixture_inventory_test.dart`
@@ -82,9 +101,9 @@
   inventory, camera, native capture, OCR engine, or parser behavior changes.
 - Bundled work:
   - Preserved Maintainiac's reusable Document Engine directive in repo docs.
-  - Added a contract test so required PDF lane rules cannot silently drift.
+  - Added a contract test so required PDF rules cannot silently drift.
   - Wired the directive contract into the shared PDF quality gate.
-  - Saved the directive in Codex memory for future PDF-lane continuity.
+  - Saved the directive in Codex memory for future PDF continuity.
 - Verification completed 2026-07-04 13:58 EDT:
   - `dart format test/document_engine_operating_directive_test.dart`
   - `dart analyze test/document_engine_operating_directive_test.dart`
@@ -97,8 +116,9 @@
 - Scope: PDF QA fixture registry only. No inventory, camera, native capture,
   OCR engine, or parser behavior changes.
 - Bundled work:
-  - Added cross-platform storage and render-smoke lanes to the PDF QA registry.
-  - Extended the registry contract so those lanes remain tracked.
+  - Added cross-platform storage and render-smoke coverage to the PDF QA
+    registry.
+  - Extended the registry contract so those areas remain tracked.
 - Verification completed 2026-07-04 13:58 EDT:
   - `dart format test/pdf_qa_fixture_inventory_test.dart`
   - `dart analyze test/pdf_qa_fixture_inventory_test.dart`

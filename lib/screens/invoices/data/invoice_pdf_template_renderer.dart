@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../../../shared/pdf/app_pdf_typography.dart';
 import 'invoice_ledger_models.dart';
 import 'invoice_record.dart';
 import 'invoice_template_catalog.dart';
@@ -40,11 +41,13 @@ class InvoicePdfTemplateRenderer {
     final chunks = _InvoicePaginator(record).pages;
     final artwork = await _InvoiceTemplateArtwork.load(template);
     final logo = await _InvoiceLogoImage.load(record.company.logoPath);
+    final pdfTheme = await AppPdfTypography.loadTheme();
     for (var index = 0; index < chunks.length; index++) {
       final page = chunks[index];
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.letter,
+          theme: pdfTheme,
           margin: pw.EdgeInsets.zero,
           build: (context) => pw.Stack(
             children: [

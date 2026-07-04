@@ -1,7 +1,7 @@
 # Maintainiac Document Engine Operating Directive
 
-This lane builds Maintainiac's reusable Document Engine. It is not a generic PDF
-generator and not a generic PDF viewer.
+This PDF work builds Maintainiac's reusable Document Engine. It is not a generic
+PDF generator and not a generic PDF viewer.
 
 ## Scope
 
@@ -13,7 +13,7 @@ generator and not a generic PDF viewer.
 - Treat this subsystem as read-only. It must never modify source records.
 - Read confirmed data only.
 - Never export OCR suggestions that were not confirmed by the user.
-- Keep this lane out of inventory/work-supplies, camera/native capture, OCR
+- Keep this PDF work out of inventory/work-supplies, camera/native capture, OCR
   engines, and parser behavior unless the user explicitly reopens that scope.
 
 ## Core Requirements

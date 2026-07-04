@@ -7,11 +7,14 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_inspector.
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_limits.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_viewer_screen.dart';
 
+import 'helpers/pdf_test_typography.dart';
+
 void main() {
   test('valid PDF is accepted with estimated page count status', () async {
     final file = File('${Directory.systemTemp.path}/valid_status_receipt.pdf');
+    final pdfTheme = await PdfTestTypography.loadTheme();
     final pdf = pw.Document()
-      ..addPage(pw.Page(build: (_) => pw.Text('Receipt')));
+      ..addPage(pw.Page(theme: pdfTheme, build: (_) => pw.Text('Receipt')));
     await file.writeAsBytes(await pdf.save(), flush: true);
     addTearDown(() {
       if (file.existsSync()) file.deleteSync();
@@ -103,12 +106,15 @@ void main() {
   test('very long PDF is warned but still attachable as proof', () async {
     final file = File('${Directory.systemTemp.path}/too_many_pages.pdf');
     final pdf = pw.Document();
+    final pdfTheme = await PdfTestTypography.loadTheme();
     for (
       var index = 0;
       index < ReceiptPdfLimits.hardPdfPageLimit + 1;
       index++
     ) {
-      pdf.addPage(pw.Page(build: (_) => pw.Text('Receipt page $index')));
+      pdf.addPage(
+        pw.Page(theme: pdfTheme, build: (_) => pw.Text('Receipt page $index')),
+      );
     }
     await file.writeAsBytes(await pdf.save(), flush: true);
     addTearDown(() {

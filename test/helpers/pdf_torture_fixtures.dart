@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'pdf_test_typography.dart';
+
 class PdfTortureFixtures {
   PdfTortureFixtures._(this.root, this.files);
 
@@ -141,9 +143,11 @@ class PdfTortureFixtures {
     String merchant = 'SHEETZ',
   }) async {
     final pdf = pw.Document();
+    final pdfTheme = await PdfTestTypography.loadTheme();
     for (var index = 0; index < pages; index += 1) {
       pdf.addPage(
         pw.Page(
+          theme: pdfTheme,
           build: (_) => pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
@@ -163,16 +167,19 @@ class PdfTortureFixtures {
 
   static Future<List<int>> _blankPdf(int pages) async {
     final pdf = pw.Document();
+    final pdfTheme = await PdfTestTypography.loadTheme();
     for (var index = 0; index < pages; index += 1) {
-      pdf.addPage(pw.Page(build: (_) => pw.SizedBox()));
+      pdf.addPage(pw.Page(theme: pdfTheme, build: (_) => pw.SizedBox()));
     }
     return pdf.save();
   }
 
   static Future<List<int>> _rotatedPdf() async {
+    final pdfTheme = await PdfTestTypography.loadTheme();
     final pdf = pw.Document()
       ..addPage(
         pw.Page(
+          theme: pdfTheme,
           build: (_) => pw.Center(
             child: pw.Transform.rotate(
               angle: 1.5708,
@@ -185,10 +192,12 @@ class PdfTortureFixtures {
   }
 
   static Future<List<int>> _landscapePdf() async {
+    final pdfTheme = await PdfTestTypography.loadTheme();
     final pdf = pw.Document()
       ..addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4.landscape,
+          theme: pdfTheme,
           build: (_) => pw.Text('Landscape receipt subtotal tax total'),
         ),
       );

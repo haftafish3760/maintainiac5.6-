@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('PDF QA fixture inventory covers world-class hardening lanes', () {
+  test('PDF QA fixture inventory covers world-class hardening areas', () {
     final file = File('test/fixtures/pdf_qa/fixture_pack_inventory.json');
 
     expect(file.existsSync(), isTrue);

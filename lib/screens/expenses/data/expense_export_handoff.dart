@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../shared/pdf/app_generated_pdf_models.dart';
 import '../../../shared/pdf/app_generated_pdf_service.dart';
+import '../../../shared/pdf/app_pdf_typography.dart';
 import '../../../shared/storage/app_storage_guard.dart';
 import 'expense_export_file_writer.dart';
 import 'expense_export_models.dart';
@@ -170,9 +171,11 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
   ExpenseExportSnapshot snapshot,
 ) async {
   final pdf = pw.Document();
+  final pdfTheme = await AppPdfTypography.loadTheme();
   pdf.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat.letter,
+      theme: pdfTheme,
       build: (context) => [
         pw.Text(
           'Maintainiac Expense Export',

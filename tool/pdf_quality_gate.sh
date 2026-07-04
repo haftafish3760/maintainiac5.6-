@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PDF lane gate. Keep this focused on PDF behavior, storage, privacy/security,
+# PDF gate. Keep this focused on PDF behavior, storage, privacy/security,
 # invoice generation, import/export, and receipt PDF contracts. Avoid
 # fragile PDF UI tests until those screens stabilize.
 
@@ -27,6 +27,7 @@ dart analyze \
   test/invoice_template_pdf_factory_test.dart \
   test/pdf_qa_fixture_inventory_test.dart \
   test/pdf_security_policy_contract_test.dart \
+  test/pdf_typography_contract_test.dart \
   test/receipt_pdf_hardening_test.dart \
   test/receipt_pdf_import_copy_test.dart \
   test/receipt_pdf_inspector_edge_cases_test.dart \
@@ -48,6 +49,7 @@ flutter test \
   test/invoice_template_pdf_factory_test.dart \
   test/pdf_qa_fixture_inventory_test.dart \
   test/pdf_security_policy_contract_test.dart \
+  test/pdf_typography_contract_test.dart \
   test/receipt_pdf_hardening_test.dart \
   test/receipt_pdf_import_copy_test.dart \
   test/receipt_pdf_inspector_edge_cases_test.dart \

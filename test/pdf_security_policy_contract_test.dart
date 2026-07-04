@@ -7,7 +7,7 @@ import 'package:maintaniac/shared/pdf/app_pdf_security_policy.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_inspector.dart';
 
 void main() {
-  test('shared PDF policy catches active content for every PDF lane', () {
+  test('shared PDF policy catches active content for every PDF surface', () {
     final bytes = latin1.encode(
       '%PDF-1.7\n'
       '1 0 obj << /Type /Page /OpenAction 2 0 R /AA 3 0 R >> endobj\n'

@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:pdf/widgets.dart' as pw;
 
+import 'pdf_tool_typography.dart';
+
 Future<void> main(List<String> args) async {
   final outputPath = args.isEmpty
       ? '/tmp/maintainiac_sample_receipt.pdf'
@@ -10,8 +12,10 @@ Future<void> main(List<String> args) async {
   await file.parent.create(recursive: true);
 
   final pdf = pw.Document();
+  final pdfTheme = await PdfToolTypography.loadTheme();
   pdf.addPage(
     pw.Page(
+      theme: pdfTheme,
       build: (context) => pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
