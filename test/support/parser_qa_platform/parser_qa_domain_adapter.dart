@@ -75,6 +75,21 @@ class ParserQaDomainAdapter {
     if (pureOutputFields.any((field) => field.trim().isEmpty)) {
       failures.add('pureOutputFields must not contain blanks');
     }
+    for (final required in _requiredExecutionTargets) {
+      if (!_containsNormalized(executionTargets, required)) {
+        failures.add('executionTargets must include $required');
+      }
+    }
+    for (final required in _requiredInputFields) {
+      if (!_containsNormalized(pureInputFields, required)) {
+        failures.add('pureInputFields must include $required');
+      }
+    }
+    for (final required in _requiredOutputFields) {
+      if (!_containsNormalized(pureOutputFields, required)) {
+        failures.add('pureOutputFields must include $required');
+      }
+    }
     return failures;
   }
 
@@ -95,6 +110,16 @@ class ParserQaDomainAdapter {
     };
   }
 }
+
+const _requiredExecutionTargets = ['qa_harness', 'command_line'];
+const _requiredInputFields = ['localePackId', 'userConfirmedContext'];
+const _requiredOutputFields = [
+  'confidence',
+  'reviewStatus',
+  'warnings',
+  'evidence',
+  'suggestedAction',
+];
 
 const workSupplyParserDomainAdapter = ParserQaDomainAdapter(
   domain: 'work_supply_inventory_parser',
@@ -159,6 +184,11 @@ bool _hasDuplicates(List<String> values) {
     if (!seen.add(value.trim().toLowerCase())) return true;
   }
   return false;
+}
+
+bool _containsNormalized(List<String> values, String expected) {
+  final normalized = expected.trim().toLowerCase();
+  return values.any((value) => value.trim().toLowerCase() == normalized);
 }
 
 const maintenanceParserDomainAdapter = ParserQaDomainAdapter(

@@ -115,5 +115,14 @@ void main() {
     expect(failures, contains('pureInputFields must not contain blanks'));
     expect(failures, contains('pureOutputFields must be unique'));
     expect(failures, contains('pureOutputFields must not contain blanks'));
+    expect(failures, contains('pureInputFields must include localePackId'));
+    expect(
+      failures,
+      contains('pureInputFields must include userConfirmedContext'),
+    );
+    expect(failures, contains('pureOutputFields must include confidence'));
+    expect(failures, contains('pureOutputFields must include warnings'));
+    expect(failures, contains('pureOutputFields must include evidence'));
+    expect(failures, contains('pureOutputFields must include suggestedAction'));
   });
 }
