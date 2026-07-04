@@ -105,6 +105,21 @@ Map<String, Object?> _previousSectionGuideDiagnostics(
     options.previousSectionGuidePhotoPath,
   );
   final guidance = _trimmedOrNull(options.previousSectionGuidance);
+  final ghostSourceStartFraction = _boundedPreviousSectionGhostFraction(
+    options.previousSectionGhostSourceStartFraction,
+  );
+  final ghostSourceHeightFraction = _boundedPreviousSectionGhostFraction(
+    options.previousSectionGhostSourceHeightFraction,
+  );
+  final ghostOverlayTopFraction = _boundedPreviousSectionGhostFraction(
+    options.previousSectionGhostOverlayTopFraction,
+  );
+  final ghostOverlayHeightFraction = _boundedPreviousSectionGhostFraction(
+    options.previousSectionGhostOverlayHeightFraction,
+  );
+  final ghostOpacity = _boundedPreviousSectionGhostFraction(
+    options.previousSectionGhostOpacity,
+  );
   final missingBottomAndTotals = reason == 'missing_bottom_edge_and_totals';
   return {
     'previousSectionGuideRequested': reason != null || guidePhotoPath != null,
@@ -112,17 +127,13 @@ Map<String, Object?> _previousSectionGuideDiagnostics(
     'previousSectionReasonCode': reason ?? 'none',
     'previousSectionMissingBottomAndTotals': missingBottomAndTotals,
     'previousSectionGuidanceAvailable': guidance != null,
-    'previousSectionGhostSourceStartFraction':
-        options.previousSectionGhostSourceStartFraction ?? 0,
-    'previousSectionGhostSourceHeightFraction':
-        options.previousSectionGhostSourceHeightFraction ?? 0,
-    'previousSectionGhostOverlayTopFraction':
-        options.previousSectionGhostOverlayTopFraction ?? 0,
-    'previousSectionGhostOverlayHeightFraction':
-        options.previousSectionGhostOverlayHeightFraction ?? 0,
-    'previousSectionGhostOpacity': options.previousSectionGhostOpacity ?? 0,
-    'previousSectionGhostSlicePercent':
-        ((options.previousSectionGhostSourceHeightFraction ?? 0) * 100).round(),
+    'previousSectionGhostSourceStartFraction': ghostSourceStartFraction,
+    'previousSectionGhostSourceHeightFraction': ghostSourceHeightFraction,
+    'previousSectionGhostOverlayTopFraction': ghostOverlayTopFraction,
+    'previousSectionGhostOverlayHeightFraction': ghostOverlayHeightFraction,
+    'previousSectionGhostOpacity': ghostOpacity,
+    'previousSectionGhostSlicePercent': (ghostSourceHeightFraction * 100)
+        .round(),
     'receiptContinuationSource': missingBottomAndTotals
         ? 'ocr_missing_bottom_totals'
         : reason == null
@@ -134,6 +145,13 @@ Map<String, Object?> _previousSectionGuideDiagnostics(
         ? 'reason_without_prior_photo'
         : 'ready_with_previous_photo',
   };
+}
+
+double _boundedPreviousSectionGhostFraction(double? value) {
+  if (value == null || !value.isFinite) return 0;
+  if (value < 0) return 0;
+  if (value > 1) return 1;
+  return value;
 }
 
 ReceiptPhotoQualityCheck? _qualityForOcrSourceIndex(

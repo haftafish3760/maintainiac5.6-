@@ -3,6 +3,27 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 766 - 05:21:09 EDT to active cleanup
+
+Scope:
+- Hardened capture-flow previous-section diagnostics so direct malformed ghost
+  fractions cannot produce non-finite metadata or throwing slice-percent math.
+- Bounded source, overlay, height, and opacity fractions to 0..1 with malformed
+  values falling back to zero before diagnostics are emitted.
+- Added a source regression preventing raw ghost-height option rounding from
+  returning to the diagnostics helper.
+- Recorded `BUG-RECEIPT-0254` under `multi_photo_ordering`.
+- Archived Pass 738 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for capture-flow diagnostics changes.
+- Fixed the initial source-regression assertion mismatch caused by Dart format
+  splitting the slice-percent expression across lines.
+- Passed focused Flutter capture-flow shareability regression.
+- Passed doc-size, bug-ledger, source-audit, and test-audit gates. The first
+  source-audit attempt raced another `dart run` audit on native asset setup;
+  the same audit passed when rerun by itself.
+
 ## Pass 765 - 05:07:23 EDT to active cleanup
 
 Scope:
@@ -469,21 +490,5 @@ Verification:
 - Passed targeted Dart format/analyzer for barcode scanner service and focused
   scanner regression.
 - Passed focused Flutter barcode scanner regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 738 - 03:33:00 EDT to active cleanup
-
-Scope:
-- Added a shared `ReceiptCaptureFlow.scanBarcodesFromReviewResult` handoff
-  helper for expense, inventory, and maintenance consumers.
-- Routed barcode scanning through OCR-source photos first, with saved proof
-  fallback only when the review result already fell back.
-- Added focused regressions for OCR-source preference and saved-proof fallback.
-- Archived Pass 713 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for capture flow barcode handoff.
-- Passed focused Flutter barcode handoff and barcode scanner regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

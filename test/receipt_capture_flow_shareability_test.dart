@@ -153,6 +153,28 @@ void main() {
     );
   });
 
+  test('continuation diagnostics bound malformed ghost fractions', () async {
+    final source = await readReceiptCaptureFlowSource();
+
+    expect(source, contains('final ghostSourceHeightFraction ='));
+    expect(source, contains('_boundedPreviousSectionGhostFraction('));
+    expect(
+      source,
+      contains(
+        "'previousSectionGhostSlicePercent': (ghostSourceHeightFraction * 100)",
+      ),
+    );
+    expect(source, contains('.round(),'));
+    expect(
+      source,
+      isNot(
+        contains(
+          '((options.previousSectionGhostSourceHeightFraction ?? 0) * 100).round()',
+        ),
+      ),
+    );
+  });
+
   test('manual continuation guide cannot poison ghost overlay options', () {
     const guide = ReceiptCaptureContinuationGuide(
       guidePhotoPath: ' /tmp/receipt-bottom.jpg ',
