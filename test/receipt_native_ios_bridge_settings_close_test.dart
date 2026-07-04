@@ -75,6 +75,7 @@ void main() {
           'motionScore >= 0 && motionScore <= autoCaptureMaxMotionScore',
         ),
       );
+      expect(cameraController, contains('hasUsableLiveFramingBounds(framing)'));
       expect(
         cameraController,
         contains('brightness >= autoCaptureMinBrightness'),

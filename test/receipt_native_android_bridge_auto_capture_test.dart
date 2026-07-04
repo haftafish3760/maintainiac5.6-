@@ -117,6 +117,7 @@ void main() {
       cameraActivity,
       contains('motionScore in 0.0..autoCaptureMaxMotionScore'),
     );
+    expect(cameraActivity, contains('hasUsableLiveFramingBounds(framing)'));
     expect(
       cameraActivity,
       contains(

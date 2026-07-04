@@ -155,6 +155,7 @@ extension ReceiptCameraViewController {
     }
     let edgesReady =
       framing.found &&
+      hasUsableLiveFramingBounds(framing) &&
       !framing.touchesEdge &&
       (framing.confidenceBucket == "strong_edges" ||
         framing.confidenceBucket == "usable_edges")
