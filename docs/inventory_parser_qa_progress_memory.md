@@ -3271,3 +3271,14 @@ Release boundaries:
   `inventory.merchant_matrix_contract`, and `qa.threshold_gate`. The gate
   passed with 313,608 checks, 0 failures, and latest QA artifact
   `build/parser_qa_reports/latest_work_supply_inventory_parser.json`.
+- **09:29 Harness Pass 2415:** Ran the corrected ambiguity/context/noise and
+  security slice using the registered suite names:
+  `inventory.dangerous_words`, `inventory.trade_context`,
+  `inventory.merchant_rules`, `inventory.noise_lines`,
+  `inventory.security_privacy`, `inventory.input_attack_surface_contract`,
+  `inventory.receipt_line_torture_contract`,
+  `inventory.receipt_line_parser_fuzz_contract`,
+  `inventory.review_safety_contract`, and `qa.threshold_gate`. The gate passed
+  with 377 checks and 0 failures. Do not use the unregistered shorthand names
+  `inventory.ambiguity`, `inventory.context`, or `inventory.noise_filtering`
+  as evidence.
