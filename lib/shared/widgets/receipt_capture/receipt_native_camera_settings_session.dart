@@ -62,15 +62,9 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
     final effectiveContinuousFocus =
         focusMode == ReceiptNativeFocusMode.continuous &&
         nativeCapabilities.supportsContinuousFocus;
-    final effectiveFocusLock =
-        focusMode != ReceiptNativeFocusMode.manual &&
-        nativeCapabilities.supportsFocusLock;
-    final effectiveExposureLock =
-        exposureMode != ReceiptNativeExposureMode.manual &&
-        nativeCapabilities.supportsExposureLock;
-    final effectiveWhiteBalanceLock =
-        whiteBalanceMode != ReceiptNativeWhiteBalanceMode.manual &&
-        nativeCapabilities.supportsWhiteBalanceLock;
+    final effectiveFocusLock = effectiveTapFocus;
+    final effectiveExposureLock = effectiveTapFocus;
+    final effectiveWhiteBalanceLock = effectiveTapFocus;
     final effectiveZoomMin = effectivePinchZoom
         ? nativeCapabilities.minZoom
         : 1.0;

@@ -174,14 +174,11 @@ void main() {
       'auto_brightness_assist',
       'readability_guidance',
       'continuous_focus',
-      'focus_lock',
-      'brightness_lock',
-      'white_balance_lock',
       'edge_overlay',
     ]);
-    expect(config.focusLockEnabled, isTrue);
-    expect(config.exposureLockEnabled, isTrue);
-    expect(config.whiteBalanceLockEnabled, isTrue);
+    expect(config.focusLockEnabled, isFalse);
+    expect(config.exposureLockEnabled, isFalse);
+    expect(config.whiteBalanceLockEnabled, isFalse);
     expect(config.minZoom, 1.0);
     expect(config.maxZoom, 8.0);
     expect(config.minExposureOffset, -2.0);
