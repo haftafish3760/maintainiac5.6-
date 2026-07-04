@@ -106,7 +106,7 @@ ReceiptNativeCaptureResult acceptedNativeCaptureStagingFixture({
       'stockCameraUiUsed': false,
       'nativeTouchControlPolicy':
           'continuous_focus_readability_and_pinch_zoom_v1',
-      'tapFocusCoordinateSpace': 'preview_metering_point_factory',
+      'readabilityGuidanceCoordinateSpace': 'preview_metering_point_factory',
       'pinchZoomPolicy': 'cameraX_zoom_ratio_clamped_to_capability',
       'nativeControlContractVersion': 'receipt_native_controls_v1',
       'controlDiagnosticsPrivacyScope': 'summary_only_no_receipt_content',

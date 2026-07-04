@@ -165,9 +165,10 @@ void main() {
     expect(
       cameraController,
       contains(
-        '"tapFocusCoordinateSpace": "avfoundation_preview_layer_device_point"',
+        '"readabilityGuidanceCoordinateSpace": "avfoundation_preview_layer_device_point"',
       ),
     );
+    expect(cameraController, isNot(contains('"tapFocusCoordinateSpace"')));
     expect(
       cameraController,
       contains(

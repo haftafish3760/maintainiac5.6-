@@ -199,7 +199,7 @@ const _receiptNativeCaptureSafeDiagnosticKeys = {
   'stockCameraUiAllowed',
   'stockCameraUiUsed',
   'nativeTouchControlPolicy',
-  'tapFocusCoordinateSpace',
+  'readabilityGuidanceCoordinateSpace',
   'pinchZoomPolicy',
   'nativeControlContractVersion',
   'controlDiagnosticsPrivacyScope',

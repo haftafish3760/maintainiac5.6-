@@ -85,8 +85,11 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('"tapFocusCoordinateSpace" to "preview_metering_point_factory"'),
+      contains(
+        '"readabilityGuidanceCoordinateSpace" to "preview_metering_point_factory"',
+      ),
     );
+    expect(cameraActivity, isNot(contains('"tapFocusCoordinateSpace"')));
     expect(
       cameraActivity,
       contains(
