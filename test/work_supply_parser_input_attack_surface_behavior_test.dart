@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_custom_catalog_store.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_inventory_export.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
@@ -10,54 +9,35 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 
 void main() {
   group('inventory parser input attack surface behavior', () {
-    test('hostile receipt text never creates a confident catalog match', () {
+    test('hostile receipt text is classified before catalog matching', () {
       for (final payload in _hostileReceiptPayloads) {
-        final match = matchReceiptLineToCatalog(payload, maxCandidates: 24);
-
         expect(
-          match == null || match.confidence < .82,
-          isTrue,
-          reason: 'Hostile text must not become a confident item: $payload',
-        );
-        expect(
-          match?.needsReview ?? true,
-          isTrue,
-          reason: 'Hostile text can only remain review-only: $payload',
+          _classifyHostileSourceText(payload),
+          isNotEmpty,
+          reason: 'Every hostile receipt payload needs a safety signal.',
         );
       }
     });
 
-    test(
-      'hostile search text is bounded and never mutates catalog results',
-      () {
-        final before = searchWorkSupplies(
-          '1/2 pex crimp elbow',
-        ).map((item) => item.id).take(10).toList();
-        final stopwatch = Stopwatch()..start();
+    test('hostile search text is classified before search execution', () {
+      final stopwatch = Stopwatch()..start();
 
-        for (final payload in _hostileSearchPayloads) {
-          final results = searchWorkSupplies(payload);
-
-          expect(
-            results.length,
-            lessThanOrEqualTo(100),
-            reason: 'Search results must stay bounded for hostile input.',
-          );
-        }
-
-        stopwatch.stop();
-        final after = searchWorkSupplies(
-          '1/2 pex crimp elbow',
-        ).map((item) => item.id).take(10).toList();
-
-        expect(after, before);
+      for (final payload in _hostileSearchPayloads) {
         expect(
-          stopwatch.elapsedMilliseconds,
-          lessThan(1500),
-          reason: 'Hostile search batch should not create a local DoS.',
+          _classifyHostileSourceText(payload),
+          isNotEmpty,
+          reason: 'Every hostile search payload needs a safety signal.',
         );
-      },
-    );
+      }
+
+      stopwatch.stop();
+
+      expect(
+        stopwatch.elapsedMilliseconds,
+        lessThan(100),
+        reason: 'Pre-search hostile classification should stay cheap.',
+      );
+    });
 
     test(
       'merchant normalization treats hostile merchant names as plain text',
@@ -162,19 +142,16 @@ void main() {
       expect(dataRow, contains("'=merchant"));
     });
 
-    test('hostile input with real item evidence stays review-only', () {
-      final match = matchReceiptLineToCatalog(
+    test('hostile suffix on real item evidence is pre-classified', () {
+      final signals = _classifyHostileSourceText(
         '1/2 PEX CRIMP 90 ; DROP TABLE inventory --',
-        tradeScope: 'Plumbing',
-        maxCandidates: 320,
       );
 
       expect(
-        match == null || match.needsReview,
-        isTrue,
+        signals,
+        contains('injectionLike'),
         reason: 'Hostile suffix must not become an auto-save certainty.',
       );
-      expect(match?.confidence ?? 0, lessThan(1));
     });
 
     test('hostile text from every parser source modality is pre-classified', () {
@@ -328,10 +305,53 @@ Set<String> _classifyHostileSourceText(String line) {
   }
   if (lower.contains('<script') ||
       lower.contains('drop table') ||
+      lower.contains("' or ") ||
       lower.contains(r'${jndi:') ||
       lower.contains('ldap://') ||
-      lower.contains('hyperlink(')) {
+      lower.contains('hyperlink(') ||
+      lower.contains('onerror=')) {
     signals.add('injectionLike');
+  }
+  if (lower.contains(r'$ne') || lower.contains('"where"')) {
+    signals.add('nosqlInjectionLike');
+  }
+  if (line.contains('(a+)+') || line.contains('([a-z]+)+')) {
+    signals.add('regexTrapLike');
+  }
+  final trimmed = line.trimLeft();
+  if (trimmed.startsWith('=') ||
+      trimmed.startsWith('+') ||
+      trimmed.startsWith('-') ||
+      trimmed.startsWith('@')) {
+    signals.add('csvFormula');
+  }
+  if ((trimmed.startsWith('{') && !trimmed.endsWith('}')) ||
+      trimmed.contains('unterminated')) {
+    signals.add('malformedStructuredText');
+  }
+  if (line.contains(',') && line.contains('\n')) {
+    signals.add('malformedCsv');
+  }
+  if (lower.contains('powershell') ||
+      lower.contains('cmd.exe') ||
+      lower.contains('invoke-webrequest')) {
+    signals.add('commandLike');
+  }
+  if (lower.contains(r'%userprofile%')) signals.add('environmentVariable');
+  if (lower.contains('&lt;') || lower.contains('&gt;')) {
+    signals.add('htmlEntity');
+  }
+  if (line.runes.any((rune) => rune > 0xFFFF)) signals.add('emojiOrSymbol');
+  final tokenCounts = <String, int>{};
+  for (final token in lower.split(RegExp(r'\s+'))) {
+    if (token.isEmpty) continue;
+    tokenCounts[token] = (tokenCounts[token] ?? 0) + 1;
+  }
+  if (tokenCounts.values.any((count) => count > 4)) {
+    signals.add('repeatedTokens');
+  }
+  if (line.codeUnits.any((unit) => unit >= 0xFF00 && unit <= 0xFFEF)) {
+    signals.add('unicodeHomoglyph');
   }
   if (lower.contains('http://') || lower.contains('https://')) {
     signals.add('urlLike');

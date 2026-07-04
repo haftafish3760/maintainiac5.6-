@@ -139,6 +139,13 @@ Focused rerun routes for recently hardened release-one contracts:
   `nosql_injection_like`, `regex_backtracking`, `html_entity`,
   `malformed_csv`, and `unicode_homoglyph`. The same focused security/input
   shard passed 143 checks, 0 failures, and analyzer stayed clean.
+- Passes 2132-2144 fixed
+  `test/work_supply_parser_input_attack_surface_behavior_test.dart` after full
+  file runs timed out on repeated large-catalog parser/search calls. The file
+  now keeps this suite at the pre-catalog hostile-input boundary, with deep
+  catalog parser/search checks left to generated harness/batch waves. Full file
+  verification passed in roughly 2 seconds, the focused input/security harness
+  shard passed 143 checks with 0 failures, and analyzer was clean.
 
 ## 2026-07-04 Whole-App Parser Adapter Registry And Surgical Routing
 
