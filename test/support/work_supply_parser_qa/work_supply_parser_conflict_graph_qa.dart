@@ -47,6 +47,17 @@ class WorkSupplyParserConflictGraphSuite extends QaSuite {
       requiredPositiveEvidence: ['pvc pipe', 'conduit', 'duct'],
       requiredNegativeEvidence: ['coupling alone is dangerous'],
     ),
+    _ConflictRule(
+      id: 'copper_elbow_plumbing_vs_hvac',
+      ambiguousLine: '3/4 COPPER 90',
+      family: 'copper elbow',
+      competingTrades: ['Plumbing', 'HVAC'],
+      requiredPositiveEvidence: [
+        'type l/type m water supply',
+        'acr refrigerant',
+      ],
+      requiredNegativeEvidence: ['copper 90 alone is dangerous'],
+    ),
   ];
 
   @override
