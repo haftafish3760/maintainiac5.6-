@@ -1,5 +1,32 @@
 # PDF System Pass Log
 
+## Pass 14 - 2026-07-04 15:27 EDT - Generated PDF privacy guard
+
+- Scope: generated PDF validation, export metadata privacy, and QA coverage
+  only. No inventory, camera, native capture, OCR engine, or parser behavior
+  changes.
+- Bundled work:
+  - Added a shared PDF privacy policy for generated document bytes, titles,
+    file names, share subjects, and share text.
+  - Blocked generated PDF send/save/print paths when exported content appears
+    to contain VINs, license plates, passenger data, patient data, payment
+    fragments, unconfirmed OCR suggestions, private source paths, or internal
+    IDs.
+  - Added regression coverage for private PDF bytes, exported metadata, service
+    refusal before writes, and ordinary confirmed business PDFs.
+  - Included the privacy contract in the PDF quality gate and QA fixture
+    registry.
+- Failure fixed during pass:
+  - The first focused run missed `Card ending 4242` and also produced a false
+    positive against an ordinary generated estimate PDF. The policy was
+    tightened to catch last-four payment labels while requiring stronger
+    context for patient and license-plate signals.
+- Verification completed 2026-07-04 15:26 EDT:
+  - `dart format lib/shared/pdf/app_pdf_privacy_policy.dart lib/shared/pdf/app_generated_pdf_models.dart test/pdf_privacy_policy_contract_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `dart analyze lib/shared/pdf/app_pdf_privacy_policy.dart lib/shared/pdf/app_generated_pdf_models.dart test/pdf_privacy_policy_contract_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `flutter test test/pdf_privacy_policy_contract_test.dart test/app_generated_pdf_service_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 13 - 2026-07-04 14:58 EDT - Embedded PDF typography
 
 - Scope: PDF font/theme generation and QA only. No inventory, camera, native

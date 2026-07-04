@@ -110,7 +110,8 @@
       "currentTestFiles": [
         "test/cloud_backup_pdf_policy_test.dart",
         "test/receipt_pdf_inspector_security_flags_test.dart",
-        "test/app_generated_pdf_service_test.dart"
+        "test/app_generated_pdf_service_test.dart",
+        "test/pdf_privacy_policy_contract_test.dart"
       ],
       "fixtureKeys": [
         "active_actions",

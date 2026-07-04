@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'app_pdf_privacy_policy.dart';
 import 'app_pdf_security_policy.dart';
 
 const int appGeneratedPdfMaxBytes = 25 * 1024 * 1024;
@@ -60,7 +61,7 @@ class AppGeneratedPdfDocument {
   int get byteSize => bytes.lengthInBytes;
 
   AppGeneratedPdfValidationReport get validation =>
-      AppGeneratedPdfValidationReport.inspect(bytes);
+      AppGeneratedPdfValidationReport.inspectDocument(this);
 
   bool get isSendablePdf => validation.isValid;
 }
@@ -91,6 +92,27 @@ class AppGeneratedPdfValidationReport {
   });
 
   factory AppGeneratedPdfValidationReport.inspect(Uint8List bytes) {
+    return AppGeneratedPdfValidationReport._inspect(bytes: bytes);
+  }
+
+  factory AppGeneratedPdfValidationReport.inspectDocument(
+    AppGeneratedPdfDocument document,
+  ) {
+    return AppGeneratedPdfValidationReport._inspect(
+      bytes: document.bytes,
+      metadata: [
+        document.title,
+        document.safeFileName,
+        document.shareSubject,
+        document.shareText,
+      ],
+    );
+  }
+
+  factory AppGeneratedPdfValidationReport._inspect({
+    required Uint8List bytes,
+    Iterable<String> metadata = const [],
+  }) {
     final issues = <String>[];
     if (bytes.isEmpty) {
       issues.add('empty');
@@ -106,6 +128,9 @@ class AppGeneratedPdfValidationReport {
       issues.add('missing_pdf_end_marker');
     }
     issues.addAll(AppPdfSecurityPolicy.activeContentIssueCodesForBytes(bytes));
+    issues.addAll(
+      AppPdfPrivacyPolicy.issueCodesForExport(bytes: bytes, metadata: metadata),
+    );
     return AppGeneratedPdfValidationReport(
       byteSize: bytes.lengthInBytes,
       issues: issues.toSet().toList(growable: false),
@@ -129,6 +154,11 @@ class AppGeneratedPdfValidationReport {
     }
     if (hasIssue('missing_pdf_header') || hasIssue('missing_pdf_end_marker')) {
       return 'Maintaniac could not create that PDF because the generated file was incomplete.';
+    }
+    if (issues.any((issue) => issue.startsWith('private_')) ||
+        hasIssue(AppPdfPrivacyPolicy.unconfirmedOcrSuggestion) ||
+        hasIssue(AppPdfPrivacyPolicy.internalId)) {
+      return 'Maintaniac stopped this PDF because it may contain private information that should not be exported.';
     }
     return 'Maintaniac stopped this PDF because it contained unsupported active PDF features.';
   }
