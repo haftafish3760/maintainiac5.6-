@@ -3,6 +3,25 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 656 - 23:15:47 EDT to active cleanup
+
+Scope:
+- Added an explicit `readability_guidance` native control contract tag for
+  capable continuous-focus receipt camera sessions.
+- Kept fallback devices on `focus_readability_review` so the app does not
+  advertise fake live guidance when native focus support is missing.
+- Updated native session, previous-section handoff, and UI-health regressions
+  to prove the tag is present only on the capable camera path.
+- First focused test run failed because the tag was too broad and the manual UI
+  fixture count was stale; fixed both before continuing.
+- Recorded `BUG-RECEIPT-0172` under `camera_capture_quality`.
+- Archived Pass 617 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for native camera session contract files
+  and focused helper fixtures.
+- Passed focused Flutter native camera session and native UI-ready regressions.
+
 ## Pass 655 - 23:08:03 EDT to active cleanup
 
 Scope:
@@ -461,21 +480,4 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for retake-order planning.
 - Passed focused Flutter receipt photo retake/order regressions.
-- Passed cleanup log, doc size, source audit, and diff whitespace gates.
-
-## Pass 617 - 21:39:59 EDT to active cleanup
-
-Scope:
-- Hardened native Android and iOS optional auto capture so shadow-risk or
-  dirty-lens/haze readability guidance holds auto capture back.
-- Added native `waiting_for_quality_review` status and mapped it to
-  `manual_only_quality_review` diagnostics on both platforms.
-- Kept manual capture available while preventing automatic capture from firing
-  on frames that need user review.
-- Added Android and iOS source-contract regressions for the new holdback.
-- Recorded `BUG-RECEIPT-0138` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart analyzer for native auto-capture source-contract tests.
-- Passed focused Flutter Android/iOS native auto-capture/settings regressions.
 - Passed cleanup log, doc size, source audit, and diff whitespace gates.

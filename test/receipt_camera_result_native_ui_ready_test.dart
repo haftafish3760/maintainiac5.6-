@@ -28,6 +28,8 @@ void main() {
             'brightness_slider',
             'brightness_reset',
             'auto_brightness_assist',
+            'readability_guidance',
+            'continuous_focus',
             'focus_lock',
             'brightness_lock',
             'white_balance_lock',
@@ -89,12 +91,17 @@ void main() {
       1,
     );
     expect(
-      result.nativeCameraUiHealthCounts['native_control_contract_15_tags'],
+      result.nativeCameraUiHealthCounts['native_control_contract_17_tags'],
       1,
     );
     expect(
       result
           .nativeCameraUiHealthCounts['native_control_contract_expected_pinch_zoom'],
+      1,
+    );
+    expect(
+      result
+          .nativeCameraUiHealthCounts['native_control_contract_expected_readability_guidance'],
       1,
     );
     expect(

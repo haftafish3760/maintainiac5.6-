@@ -227,6 +227,7 @@ void expectPreviousSectionGuideChannelArguments(
     'brightness_slider',
     'brightness_reset',
     'auto_brightness_assist',
+    'readability_guidance',
     'continuous_focus',
     'focus_lock',
     'brightness_lock',

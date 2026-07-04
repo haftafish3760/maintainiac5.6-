@@ -285,6 +285,11 @@ class ReceiptNativeCameraSessionConfig {
     if (exposureSliderEnabled) tags.add('brightness_slider');
     if (exposureResetEnabled) tags.add('brightness_reset');
     if (autoExposureAssistEnabled) tags.add('auto_brightness_assist');
+    if (continuousFocusEnabled &&
+        readabilityGuidancePolicy ==
+            'live_readability_guides_blur_glare_light_edges_and_text_size') {
+      tags.add('readability_guidance');
+    }
     if (continuousFocusEnabled) {
       tags.add('continuous_focus');
     } else {
