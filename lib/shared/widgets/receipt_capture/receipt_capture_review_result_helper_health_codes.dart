@@ -183,6 +183,12 @@ List<String> _nativeCapturePreviewParityHealthCodes(
       diagnostics[ReceiptCaptureDiagnosticKeys.autoCaptureAllowed] == true;
   final autoEnabled =
       diagnostics[ReceiptCaptureDiagnosticKeys.autoCaptureEnabled] == true;
+  final stableFrames = _diagnosticZeroOrPositiveInt(
+    diagnostics[ReceiptCaptureDiagnosticKeys.stableFrameCount],
+  );
+  final requiredFrames = _diagnosticPositiveInt(
+    diagnostics[ReceiptCaptureDiagnosticKeys.requiredStableFrames],
+  );
   if (readiness != 'unknown') {
     codes.add('capture_readiness_$readiness');
   }
@@ -202,6 +208,12 @@ List<String> _nativeCapturePreviewParityHealthCodes(
   }
   if (autoAllowed && !autoEnabled) {
     codes.add('auto_capture_allowed_without_request_regressed');
+  }
+  if (readiness == 'auto_capture_ready' &&
+      stableFrames != null &&
+      requiredFrames != null &&
+      stableFrames < requiredFrames) {
+    codes.add('auto_capture_ready_before_stable_regressed');
   }
   final signal =
       diagnostics[ReceiptCaptureDiagnosticKeys

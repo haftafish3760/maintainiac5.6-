@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 882 - active cleanup
+
+Scope:
+- Hardened auto-capture readiness diagnostics so `auto_capture_ready` must match
+  the required stable-frame count.
+- Added a native UI risk outcome for `auto_capture_ready_before_stable_regressed`
+  so early auto-capture cannot look safe in review/admin handoff.
+- Added focused regression coverage for the stable-frame mismatch.
+- Recorded `BUG-RECEIPT-0331` under `native_bridge`.
+- Archived Pass 817 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused auto-capture/native-quality
+  regressions, and test source audit.
+
 ## Pass 881 - active cleanup
 
 Scope:
@@ -462,24 +477,5 @@ Scope:
 Verification:
 - Passed targeted OCR source handoff format/analyzer and focused shadow
   warning-profile regression.
-- Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
-  whitespace gates.
-
-## Pass 817 - 11:41:00 EDT to active cleanup
-
-Scope:
-- Carried backup scanner and phone-camera fallback risk tokens through the OCR
-  source handoff summary.
-- Added `backup_capture_review` with a crop/focus/totals review action so
-  fallback-source warnings do not collapse back to generic scanner prep.
-- Added parser task-count diagnostics for backup scan crop review and phone
-  backup focus review.
-- Added a focused OCR service regression for the backup capture review family.
-- Recorded `BUG-RECEIPT-0302` under `ocr_handoff_contract`.
-- Archived Pass 810 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted OCR source handoff format/analyzer and focused backup
-  capture review regression.
 - Passed doc-size, bug-ledger, source-audit, test-audit, cleanup-log, and diff
   whitespace gates.

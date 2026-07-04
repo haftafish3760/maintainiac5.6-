@@ -102,4 +102,35 @@ void main() {
       1,
     );
   });
+
+  test('auto capture ready requires enough stable frames', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/auto-early.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/auto-early-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/auto-early-ocr.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/auto-early.jpg': {
+          'captureReadinessCode': 'auto_capture_ready',
+          'manualCaptureAllowed': true,
+          'autoCaptureAllowed': true,
+          'autoCaptureEnabled': true,
+          'stableFrameCount': 1,
+          'requiredStableFrames': 3,
+        },
+      },
+    );
+
+    expect(
+      result.nativeCameraUiHealthOutcome,
+      'auto_capture_ready_before_stable_regressed',
+    );
+    expect(
+      result
+          .nativeCameraUiHealthCounts['auto_capture_ready_before_stable_regressed'],
+      1,
+    );
+  });
 }
