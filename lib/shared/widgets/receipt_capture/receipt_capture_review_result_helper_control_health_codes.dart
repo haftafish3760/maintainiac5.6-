@@ -61,7 +61,6 @@ List<String> _nativeControlReadinessHealthCodes(
     name: 'tap_focus',
     expected: diagnostics['tapFocusControlExpected'] == true,
     actualKey: 'tapFocusControlActual',
-    contractAliases: const ['focus_assist'],
   );
   check(
     name: 'pinch_zoom',

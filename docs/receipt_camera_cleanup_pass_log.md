@@ -99,6 +99,20 @@ Verification:
 - Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
   check.
 
+## Pass 625 - 21:58:40 EDT to active cleanup
+
+Scope:
+- Removed the legacy `focus_assist` alias from native UI health tap-focus
+  checks.
+- Added a source-contract regression rejecting that alias.
+- Archived Pass 598 from the active cleanup log.
+- Recorded `BUG-RECEIPT-0146` under `camera_capture_quality`.
+
+Verification:
+- Passed targeted analyzer and focused native UI health regressions.
+- Passed cleanup log gate, doc-size gate, receipt source audit, and whitespace
+  check.
+
 ## Pass 618 - 21:42:32 EDT to active cleanup
 
 Scope:
@@ -463,26 +477,4 @@ Verification:
   source-contract regressions.
 - Passed focused Flutter native diagnostics/storage regressions for Android
   and iOS.
-- Passed cleanup log gate, doc-size gate, source audit, and whitespace check.
-
-## Pass 598 - 20:52:16 EDT to 20:54:10 EDT
-
-Scope:
-- Hardened iOS pre-capture exposure adjustment so losing camera UI during the
-  AVFoundation exposure callback clears in-flight capture state instead of
-  silently returning.
-- Added iOS pre-capture exposure abort diagnostics matching the Android
-  behavior: abort count plus abort reason.
-- Updated iOS source-contract regressions so the unsafe `guard let self,
-  self.isCameraUiUsable else { return }` does not come back in capture prep.
-- Recorded `BUG-RECEIPT-0119` under `native_bridge`.
-
-Verification:
-- Fixed the first focused regression by scoping the negative early-return check
-  to `ReceiptCameraViewControllerCapture.swift` instead of the full iOS bridge
-  bundle, where live-frame callbacks still have their own valid guard.
-- Passed targeted Dart format/analyzer for the iOS bridge source-contract
-  regressions.
-- Passed focused Flutter iOS bridge analysis/exposure and UI-session
-  regressions.
 - Passed cleanup log gate, doc-size gate, source audit, and whitespace check.

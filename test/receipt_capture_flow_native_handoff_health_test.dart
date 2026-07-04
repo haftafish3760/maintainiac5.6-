@@ -81,6 +81,7 @@ void main() {
     expect(flow, contains('nativeCloseCapturedPhotoActionLabel'));
     expect(flow, contains('nativeCloseCapturedPhotoOutcomeCounts'));
     expect(models, contains('_nativeSettingsControlHealthCodes'));
+    expect(models, isNot(contains("contractAliases: const ['focus_assist']")));
     expect(models, contains('nativeCloseCapturedPhotoHealthOutcome'));
     expect(models, contains('nativeCloseCapturedPhotoActionLabel'));
     expect(models, contains('nativeCloseCapturedPhotoOutcomeCounts'));
