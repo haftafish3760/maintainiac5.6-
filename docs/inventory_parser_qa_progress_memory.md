@@ -3635,3 +3635,17 @@ Release boundaries:
   signals from brittle doc formatting. Focused
   `inventory.human_correction_learning_contract,inventory.correction_feedback_contract,qa.threshold_gate`
   passed 56 checks with 0 failures, and targeted analyzer found no issues.
+- **11:08 Harness Pass 2697:** Made barcode/inventory identity,
+  vendor/SKU matrix, admin privacy rollup, and category inference contract
+  matching whitespace-safe. This keeps barcode, UPC/GTIN, private inventory
+  placement, merchant SKU, privacy rollup, and workflow category rules strict
+  without forcing one-line documentation. Focused
+  `inventory.barcode_inventory_identity_contract,inventory.vendor_sku_matrix_contract,inventory.admin_privacy_rollup_contract,inventory.category_inference_contract,qa.threshold_gate`
+  passed 274 checks with 0 failures, and targeted analyzer found no issues.
+- **11:11 Harness Pass 2700:** Made pack overlap, language-pack separation,
+  merchant alias normalization, and pack-version regression contract matching
+  whitespace-safe. This protects cross-trade overlap, English/Spanish pack
+  separation, merchant-scoped aliases, pack migrations, rollback, and old
+  regression locks from brittle doc wrapping. Focused
+  `inventory.pack_overlap_contract,inventory.language_pack_separation_contract,inventory.merchant_alias_normalization_contract,inventory.pack_version_regression_contract,qa.threshold_gate`
+  passed 17,189 checks with 0 failures, and targeted analyzer found no issues.

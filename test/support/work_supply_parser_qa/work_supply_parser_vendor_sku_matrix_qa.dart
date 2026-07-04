@@ -162,9 +162,9 @@ class WorkSupplyParserVendorSkuMatrixSuite extends QaSuite {
     String source,
     Set<String> rules,
   ) {
-    final lower = source.toLowerCase();
+    final lower = _normalizeContractText(source);
     for (final rule in rules) {
-      if (lower.contains(rule.toLowerCase())) continue;
+      if (lower.contains(_normalizeContractText(rule))) continue;
       failures.add(
         _failure(
           id: 'missing_vendor_rule:${_safeId(rule)}',
@@ -187,7 +187,7 @@ class WorkSupplyParserVendorSkuMatrixSuite extends QaSuite {
       'localeAxis': ['en-us', 'es-us', 'spanish'],
       'resultAxis': ['review', 'ranked', 'unknown', 'confidence'],
     };
-    final lower = source.toLowerCase();
+    final lower = _normalizeContractText(source);
     for (final entry in axes.entries) {
       final missing = entry.value
           .where((token) => !lower.contains(token))
@@ -214,9 +214,9 @@ class WorkSupplyParserVendorSkuMatrixSuite extends QaSuite {
     required String message,
     required String fix,
   }) {
-    final lower = source.toLowerCase();
+    final lower = _normalizeContractText(source);
     for (final token in tokens) {
-      if (lower.contains(token.toLowerCase())) continue;
+      if (lower.contains(_normalizeContractText(token))) continue;
       failures.add(
         _failure(
           id: '$idPrefix:${_safeId(token)}',
@@ -261,4 +261,8 @@ class WorkSupplyParserVendorSkuMatrixSuite extends QaSuite {
 
 String _safeId(String value) {
   return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 }
