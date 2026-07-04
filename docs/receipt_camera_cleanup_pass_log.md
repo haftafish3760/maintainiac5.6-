@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 738 - 03:33:00 EDT to active cleanup
+
+Scope:
+- Added a shared `ReceiptCaptureFlow.scanBarcodesFromReviewResult` handoff
+  helper for expense, inventory, and maintenance consumers.
+- Routed barcode scanning through OCR-source photos first, with saved proof
+  fallback only when the review result already fell back.
+- Added focused regressions for OCR-source preference and saved-proof fallback.
+- Archived Pass 713 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for capture flow barcode handoff.
+- Passed focused Flutter barcode handoff and barcode scanner regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 737 - 03:30:19 EDT to active cleanup
 
 Scope:
@@ -460,22 +476,6 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for native receipt image path
   validation.
-- Passed focused native camera result regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 713 - 02:29:00 EDT to active cleanup
-
-Scope:
-- Hardened `ReceiptNativeCameraService` so native camera results must return
-  local absolute receipt photo paths before OCR/staging handoff.
-- Added a regression rejecting URL and relative-path receipt results from the
-  platform channel.
-- Recorded `BUG-RECEIPT-0201` under `source_preservation`.
-- Archived Pass 688 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for native receipt path validation.
 - Passed focused native camera result regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

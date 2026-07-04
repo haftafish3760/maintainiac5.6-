@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../navigation/app_page_routes.dart';
 import 'receipt_assistance_policy.dart';
+import 'receipt_barcode_scanner_service.dart';
 import 'receipt_camera_permission.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_capture_settings_store.dart';
@@ -61,5 +62,22 @@ class ReceiptCaptureFlow {
     ReceiptCaptureFlowModule module,
   ) {
     return _attachmentsFromReviewResult(result, module);
+  }
+
+  static Future<ReceiptBarcodeBatchScanResult> scanBarcodesFromReviewResult(
+    ReceiptPhotoReviewResult result, {
+    ReceiptBarcodeScannerService barcodeScanner =
+        const ReceiptBarcodeScannerService(),
+    ReceiptBarcodeScanPurpose purpose = ReceiptBarcodeScanPurpose.shared,
+    List<ReceiptBarcodeFormat> formats = receiptBarcodeInventoryAndQrFormats,
+  }) {
+    final sourcePaths = result.ocrSourcePhotoPaths.isNotEmpty
+        ? result.ocrSourcePhotoPaths
+        : result.photoPaths;
+    return barcodeScanner.scanImageFiles(
+      sourcePaths,
+      purpose: purpose,
+      formats: formats,
+    );
   }
 }
