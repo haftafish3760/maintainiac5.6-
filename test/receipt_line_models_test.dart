@@ -141,6 +141,7 @@ void main() {
     expect(selected.businessUse, 'split');
     expect(selected.businessPercent, 1);
     expect(selected.personalPercent, 0);
+    expect(selected.toLocalMap()['sourceReceiptSectionLabel'], isNull);
     expect(selected.toPrivacySafeMap()['businessPercent'], 1);
     expect(selected.toPrivacySafeMap()['personalPercent'], 0);
   });
@@ -259,7 +260,7 @@ void main() {
       safe['clientProofDefaultVisibility'],
       ReceiptLineClientProofVisibility.reviewBeforeClientShare,
     );
-    expect(safe['sourceReceiptSectionLabel'], 'Photo receipt RCP-44');
+    expect(safe['sourceReceiptSectionLabel'], 'source_section');
     expect(safe['hasAmount'], isTrue);
     expect(safe['needsParserReview'], isTrue);
     expect(safe.toString(), isNot(contains('LOWES')));
@@ -303,7 +304,7 @@ void main() {
     expect(copied.sourceReceiptSectionLabel, 'Photo 2 bottom');
     expect(
       copied.privacySafeProofReference['sourceReceiptSectionLabel'],
-      'Photo 2 bottom',
+      'source_section',
     );
     expect(copied.toMap()['proofLineReferenceLabel'], 'Line 2');
     expect(
@@ -398,5 +399,34 @@ void main() {
     expect(safe.toString(), isNot(contains('12.00')));
     expect(safe.toString(), contains('LOWES-MON-L1'));
     expect(safe.toString(), contains('HD-WED-L1'));
+
+    final local = mondayBundle.toLocalMap();
+    expect(local.toString(), isNot(contains('Lowe receipt Monday')));
+    expect(local.toString(), contains('source_section'));
+  });
+
+  test('selected line local map bounds receipt section labels', () {
+    const line = ReceiptLineDraft(
+      kind: ReceiptLineKind.inventory,
+      description: 'Private job part',
+      receiptLineId: 'JOB-LINE-1',
+      proofLineReferenceLabel: 'Line 4',
+      sourceReceiptSectionLabel: 'Home Depot private job receipt Monday',
+    );
+
+    final selected = ReceiptSelectedLineReference.fromDraft(
+      receiptId: 'receipt-job-1',
+      line: line,
+    );
+
+    expect(
+      selected.toLocalMap()['sourceReceiptSectionLabel'],
+      'source_section',
+    );
+    expect(selected.toLocalMap().toString(), isNot(contains('Home Depot')));
+    expect(
+      selected.toPrivacySafeMap()['sourceReceiptSectionLabel'],
+      'source_section',
+    );
   });
 }

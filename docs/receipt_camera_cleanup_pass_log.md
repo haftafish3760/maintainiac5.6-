@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 681 - 00:30:56 EDT to active cleanup
+
+Scope:
+- Hardened receipt selected-line local maps so source-section labels are bounded
+  before they enter job proof, export, or debug-style bridge artifacts.
+- Preserved raw source-section labels on the original receipt line draft while
+  keeping derived selection references privacy-safe.
+- Added regressions for single-line and multi-receipt selection bundles so
+  private merchant/job section text cannot leak through local selection maps.
+- Archived Pass 654 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0197` under `source_preservation`.
+
+Verification:
+- Passed targeted Dart format/analyzer for receipt selection contract files.
+- Passed focused Flutter receipt line model and selection-bundle regressions.
+
 ## Pass 680 - 00:29:25 EDT to active cleanup
 
 Scope:
@@ -467,21 +483,6 @@ Scope:
   proving `continuous_focus_missing` remains the top-level camera health result.
 - Recorded `BUG-RECEIPT-0171` under `camera_capture_quality`.
 - Archived Pass 616 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for the native UI health helper and
-  focused native UI health regression.
-- Passed focused Flutter native UI health regressions.
-
-## Pass 654 - 23:06:27 EDT to active cleanup
-
-Scope:
-- Hardened native camera UI health outcome priority so stale tap-focus expected
-  payloads cannot be hidden by generic missing-control readiness outcomes.
-- Added a focused regression where tap focus is expected but missing, proving
-  `tap_focus_retirement_regressed` remains the top-level camera health result.
-- Recorded `BUG-RECEIPT-0170` under `camera_capture_quality`.
-- Archived Pass 615 from the active cleanup log to keep the doc under cap.
 
 Verification:
 - Passed targeted Dart format/analyzer for the native UI health helper and
