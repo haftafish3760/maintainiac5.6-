@@ -194,6 +194,11 @@ void main() {
       cameraController,
       contains('"readabilityGuidancePolicy": readabilityGuidancePolicy'),
     );
+    expect(cameraController, contains('"tapFocusControlExpected": false'));
+    expect(
+      cameraController,
+      isNot(contains('"tapFocusControlExpected": tapFocusEnabled')),
+    );
     expect(
       cameraController,
       contains('"receiptCameraQualityBaseline": receiptCameraQualityBaseline'),

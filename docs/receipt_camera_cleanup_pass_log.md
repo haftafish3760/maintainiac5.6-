@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 724 - 02:59:50 EDT to active cleanup
+
+Scope:
+- Hardened Android and iOS native diagnostics so retired tap focus is never
+  reported as an expected control, even if a stale internal flag flips later.
+- Added Android/iOS bridge regressions requiring
+  `tapFocusControlExpected` to be hard-coded false instead of derived from
+  `tapFocusEnabled`.
+- Recorded `BUG-RECEIPT-0214` under `camera_capture_quality`.
+- Archived Pass 698 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused Android/iOS native UI
+  contract regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 723 - 02:54:10 EDT to active cleanup
 
 Scope:
@@ -464,20 +481,3 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer for expense receipt line records.
 - Passed focused Flutter expense receipt line record regression.
-
-## Pass 698 - 01:29:00 EDT to active cleanup
-
-Scope:
-- Fixed shared receipt capture defaults so materials-inventory and
-  maintenance/repair launches use detailed-line review when no caller forces a
-  review depth.
-- Kept expenses and generic shared launches price-only by default, preserving
-  the fast review path unless the caller or expense settings asks for details.
-- Added a focused shared-flow regression guarding the module-specific review
-  depth default and the existing attachment UI override path.
-- Recorded `BUG-RECEIPT-0185` under `receipt_line_review_mode`.
-- Archived Pass 638 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for shared receipt capture flow.
-- Passed focused Flutter receipt capture flow shareability regression.

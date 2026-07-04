@@ -213,7 +213,7 @@ internal fun ReceiptCameraActivity.nativeCaptureDiagnostics(
         "nativeControlContractVersion" to "receipt_native_controls_v1",
         "nativeControlContractTags" to nativeControlContractTags,
         "controlDiagnosticsPrivacyScope" to "summary_only_no_receipt_content",
-        "tapFocusControlExpected" to tapFocusEnabled,
+        "tapFocusControlExpected" to false,
         "pinchZoomControlExpected" to pinchZoomEnabled,
         "exposureSliderControlExpected" to exposureSliderEnabled,
         "exposureResetControlExpected" to exposureResetEnabled,

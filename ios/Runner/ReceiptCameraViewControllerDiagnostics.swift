@@ -259,7 +259,7 @@ extension ReceiptCameraViewController {
       "nativeControlContractVersion": "receipt_native_controls_v1",
       "nativeControlContractTags": nativeControlContractTags,
       "controlDiagnosticsPrivacyScope": "summary_only_no_receipt_content",
-      "tapFocusControlExpected": tapFocusEnabled,
+      "tapFocusControlExpected": false,
       "pinchZoomControlExpected": pinchZoomEnabled,
       "exposureSliderControlExpected": exposureSliderEnabled,
       "exposureResetControlExpected": exposureResetEnabled,

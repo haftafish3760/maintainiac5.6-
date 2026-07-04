@@ -124,6 +124,11 @@ void main() {
       cameraActivity,
       contains('"readabilityGuidancePolicy" to readabilityGuidancePolicy'),
     );
+    expect(cameraActivity, contains('"tapFocusControlExpected" to false'));
+    expect(
+      cameraActivity,
+      isNot(contains('"tapFocusControlExpected" to tapFocusEnabled')),
+    );
     expect(
       cameraActivity,
       contains(
