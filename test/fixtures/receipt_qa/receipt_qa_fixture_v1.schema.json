@@ -190,6 +190,24 @@
         },
         "photoGuidanceNeedles": {
           "$ref": "#/$defs/stringList"
+        },
+        "barcodeCodeCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "qrCodeCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "inventoryLookupCandidateCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "barcodeFormatBuckets": {
+          "$ref": "#/$defs/countMap"
+        },
+        "barcodeWarningBuckets": {
+          "$ref": "#/$defs/stringList"
         }
       }
     },
@@ -239,6 +257,13 @@
       "type": "array",
       "items": {
         "type": "string"
+      }
+    },
+    "countMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
       }
     }
   }

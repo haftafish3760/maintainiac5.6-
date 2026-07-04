@@ -217,6 +217,11 @@ class _ReceiptQaFixture {
     this.expectedPhotoFocusLabel,
     this.expectedPhotoWarningNeedles = const [],
     this.expectedPhotoGuidanceNeedles = const [],
+    this.expectedBarcodeCodeCount,
+    this.expectedQrCodeCount,
+    this.expectedInventoryLookupCandidateCount,
+    this.expectedBarcodeFormatBuckets = const {},
+    this.expectedBarcodeWarningBuckets = const [],
     this.expectedSensitiveLineCount,
     this.expectedTenderPrivacyLineCount,
     this.expectedAddressContactLineCount,
@@ -294,6 +299,11 @@ class _ReceiptQaFixture {
   final String? expectedPhotoFocusLabel;
   final List<String> expectedPhotoWarningNeedles;
   final List<String> expectedPhotoGuidanceNeedles;
+  final int? expectedBarcodeCodeCount;
+  final int? expectedQrCodeCount;
+  final int? expectedInventoryLookupCandidateCount;
+  final Map<String, int> expectedBarcodeFormatBuckets;
+  final List<String> expectedBarcodeWarningBuckets;
   final int? expectedSensitiveLineCount;
   final int? expectedTenderPrivacyLineCount;
   final int? expectedAddressContactLineCount;

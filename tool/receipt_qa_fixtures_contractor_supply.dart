@@ -28,6 +28,13 @@ const _contractorSupplyReceiptQaFixtures = [
       'inventory_material_ready': 3,
       'category_family_materials_ready': 3,
     },
+    expectedBarcodeCodeCount: 2,
+    expectedQrCodeCount: 1,
+    expectedInventoryLookupCandidateCount: 2,
+    expectedBarcodeFormatBuckets: {'ean13': 1, 'code128': 1, 'qr': 1},
+    expectedBarcodeWarningBuckets: [
+      'receipt_scanner_inventory_suggestion_only',
+    ],
     text: '''
 LOWE'S HOME IMPROVEMENT
 06/12/2026

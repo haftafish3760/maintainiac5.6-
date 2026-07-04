@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 674 - 23:58:31 EDT to active cleanup
+
+Scope:
+- Hardened receipt QA fixture contracts so external fixture packs can express
+  privacy-safe barcode/QR scanner expectations.
+- Added scanner expected count/bucket fields to the fixture model, required
+  field coverage, and external JSON schema.
+- Pinned scanner fixture readiness through the QA runner contract test and a
+  contractor-supply synthetic fixture.
+- Archived Pass 645 from the active cleanup log to keep the doc under cap.
+- Recorded `BUG-RECEIPT-0190` under `fixture_generation`.
+
+Verification:
+- Passed targeted Dart format/analyzer for fixture scanner contract files.
+- Passed focused Flutter receipt QA runner contract regression.
+- Passed cleanup log gate, doc-size gate, bug ledger gate, source audit, and
+  whitespace check.
+
 ## Pass 673 - 23:53:16 EDT to active cleanup
 
 Scope:
@@ -476,16 +494,3 @@ Verification:
 - Passed targeted Dart format/analyzer for receipt photo review save/exit
   cleanup and lifecycle regression.
 - Passed focused Flutter receipt photo review lifecycle regression.
-
-## Pass 645 - 22:41:22 EDT to active cleanup
-
-Scope:
-- Strengthened capture-readiness QA so malformed stable-frame inputs cannot
-  make auto-capture wait forever or hide manual capture availability.
-- Added regression coverage proving negative stable frames clamp to zero and a
-  non-positive required-frame threshold clamps to one.
-- Archived Pass 608 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format for capture quality guidance regression.
-- Passed focused Flutter capture quality guidance regression.

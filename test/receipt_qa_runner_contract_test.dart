@@ -83,6 +83,11 @@ void main() {
           'expectedPhotoShouldRetakeBeforeOcr',
           'expectedPhotoCanContinueWithReview',
           'expectedPhotoNeedsReview',
+          'expectedBarcodeCodeCount',
+          'expectedQrCodeCount',
+          'expectedInventoryLookupCandidateCount',
+          'expectedBarcodeFormatBuckets',
+          'expectedBarcodeWarningBuckets',
         ]),
       );
       final packSources = manifest['packSources']! as Map<String, Object?>;

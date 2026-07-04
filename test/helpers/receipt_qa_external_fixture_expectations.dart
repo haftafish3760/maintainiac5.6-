@@ -162,6 +162,11 @@ void expectReceiptQaExternalFixtureContract({
       contains('photoShouldRetakeBeforeOcr'),
       contains('photoCanContinueWithReview'),
       contains('photoNeedsReview'),
+      contains('barcodeCodeCount'),
+      contains('qrCodeCount'),
+      contains('inventoryLookupCandidateCount'),
+      contains('barcodeFormatBuckets'),
+      contains('barcodeWarningBuckets'),
     ]),
   );
   expect(fieldCoverage['format'], 'fixture_field_coverage_v1');

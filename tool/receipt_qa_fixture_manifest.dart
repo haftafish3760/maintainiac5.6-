@@ -41,6 +41,11 @@ const _receiptQaFixtureRequiredFields = [
   'expectedPhotoShouldRetakeBeforeOcr',
   'expectedPhotoCanContinueWithReview',
   'expectedPhotoNeedsReview',
+  'expectedBarcodeCodeCount',
+  'expectedQrCodeCount',
+  'expectedInventoryLookupCandidateCount',
+  'expectedBarcodeFormatBuckets',
+  'expectedBarcodeWarningBuckets',
 ];
 
 Map<String, Object?> _fixtureManifestToJson(List<String> availablePacks) {
@@ -146,6 +151,16 @@ bool _fixtureHasRequiredField(_ReceiptQaFixture fixture, String field) {
       return fixture.expectedPhotoCanContinueWithReview != null;
     case 'expectedPhotoNeedsReview':
       return fixture.expectedPhotoNeedsReview != null;
+    case 'expectedBarcodeCodeCount':
+      return fixture.expectedBarcodeCodeCount != null;
+    case 'expectedQrCodeCount':
+      return fixture.expectedQrCodeCount != null;
+    case 'expectedInventoryLookupCandidateCount':
+      return fixture.expectedInventoryLookupCandidateCount != null;
+    case 'expectedBarcodeFormatBuckets':
+      return fixture.expectedBarcodeFormatBuckets.isNotEmpty;
+    case 'expectedBarcodeWarningBuckets':
+      return fixture.expectedBarcodeWarningBuckets.isNotEmpty;
   }
   return false;
 }
