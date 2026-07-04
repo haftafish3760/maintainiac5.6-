@@ -317,6 +317,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'completedCellCount',
         'failedCellCount',
         'allComplete',
+        '--require-complete',
+        'requireComplete',
         'unsafe',
         'firebaseWritesAllowed',
         'ocrCameraExpensesTouched',

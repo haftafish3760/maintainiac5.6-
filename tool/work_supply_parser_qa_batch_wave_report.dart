@@ -7,7 +7,8 @@ const _usage =
     'dart run tool/work_supply_parser_qa_batch_wave_report.dart '
     '[--root build/parser_qa_batch_waves] '
     '[--wave-ids pass198-core,pass201-standard] '
-    '[--output build/parser_qa_batch_waves/latest_batch_wave_report.json]';
+    '[--output build/parser_qa_batch_waves/latest_batch_wave_report.json] '
+    '[--require-complete]';
 
 Future<void> main(List<String> args) async {
   final exit = runWorkSupplyParserQaBatchWaveReport(
@@ -29,11 +30,8 @@ int runWorkSupplyParserQaBatchWaveReport(
   }
   final root = _value(args, 'root', 'build/parser_qa_batch_waves');
   final waveIds = _csv(_value(args, 'wave-ids', ''));
-  final output = _value(
-    args,
-    'output',
-    '$root/latest_batch_wave_report.json',
-  );
+  final requireComplete = args.contains('--require-complete');
+  final output = _value(args, 'output', '$root/latest_batch_wave_report.json');
   if (waveIds.isEmpty) {
     stderr.writeln('--wave-ids is required.');
     return 64;
@@ -49,10 +47,7 @@ int runWorkSupplyParserQaBatchWaveReport(
       stderr: _MemorySink(),
     );
     final status = _extractStatus(sink.content);
-    waves.add({
-      ...status,
-      'statusExitCode': exit,
-    });
+    waves.add({...status, 'statusExitCode': exit});
     if (exit != 0) failed = true;
   }
 
@@ -75,6 +70,7 @@ int runWorkSupplyParserQaBatchWaveReport(
     'completedCellCount': completedCells,
     'failedCellCount': failedCells,
     'allComplete': completedCells == totalCells && failedCells == 0,
+    'requireComplete': requireComplete,
     'unsafe': unsafe,
     'liveServicesAllowed': false,
     'writesProductionCatalog': false,
@@ -88,7 +84,8 @@ int runWorkSupplyParserQaBatchWaveReport(
     ..writeAsStringSync(json, flush: true);
   stdout.writeln('QA_BATCH_WAVE_REPORT $json');
   stdout.writeln('QA_BATCH_WAVE_REPORT_ARTIFACT json=$output');
-  return failed || unsafe || failedCells > 0 ? 1 : 0;
+  final incomplete = requireComplete && completedCells != totalCells;
+  return failed || unsafe || failedCells > 0 || incomplete ? 1 : 0;
 }
 
 Map<String, Object?> _extractStatus(String text) {

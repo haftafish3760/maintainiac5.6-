@@ -155,6 +155,13 @@ Focused rerun routes for recently hardened release-one contracts:
   `state` now fails with `missing_summary_state`; non-complete state still fails
   with `summary_not_complete`.
 
+## 2026-07-04 Final Batch Wave Completion Gate
+
+- Passes 2255-2258 added `--require-complete` to
+  `tool/work_supply_parser_qa_batch_wave_report.dart`. Normal batch-wave reports
+  can still inspect in-progress waves, but final handoff/release rollups can now
+  fail incomplete evidence even when there are no failed cells.
+
 ## 2026-07-04 Hostile Source-Modality Input Hardening
 
 - Passes 2085-2094 added source-modality coverage to

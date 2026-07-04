@@ -73,6 +73,57 @@ void main() {
 
     expect(exit, 1);
   });
+
+  test(
+    'batch wave report can require complete waves for final rollups',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_batch_wave_report_incomplete_',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      _writeWave(
+        root: root,
+        waveId: 'running-wave',
+        cells: 6,
+        completed: 4,
+        failed: 0,
+      );
+      final defaultOutput = '${root.path}/default_report.json';
+      final requiredOutput = '${root.path}/required_report.json';
+
+      final inspectExit = runWorkSupplyParserQaBatchWaveReport(
+        [
+          '--root',
+          root.path,
+          '--wave-ids',
+          'running-wave',
+          '--output',
+          defaultOutput,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+      final requiredExit = runWorkSupplyParserQaBatchWaveReport(
+        [
+          '--root',
+          root.path,
+          '--wave-ids',
+          'running-wave',
+          '--output',
+          requiredOutput,
+          '--require-complete',
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(inspectExit, 0);
+      expect(requiredExit, 1);
+      final report = jsonDecode(File(requiredOutput).readAsStringSync()) as Map;
+      expect(report['allComplete'], false);
+      expect(report['requireComplete'], true);
+    },
+  );
 }
 
 void _writeWave({
@@ -105,6 +156,8 @@ void _writeWave({
       'failedCellCount': failed,
       'liveServicesAllowed': false,
       'writesProductionCatalog': false,
+      'firebaseWritesAllowed': false,
+      'ocrCameraExpensesTouched': false,
     }),
   );
 }
