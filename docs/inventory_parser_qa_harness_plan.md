@@ -131,7 +131,7 @@ Use `dart run tool/work_supply_parser_qa_fixture_batch_status.dart --plan build/
 
 Use `dart run tool/work_supply_catalog_item_batch_status.dart --blueprint-root build/parser_qa_blueprints --trades plumbing,electrical,hvac --scopes residential --tiers core,standard,professional,complete --locales en-US,es-US --output build/parser_qa_pipeline/item_batch_status.json` to inspect catalog item blueprint batches without rerunning parser tests or writing production catalog data. Add `--require-complete` when a checkpoint should fail on missing cells. It emits `QA_CATALOG_ITEM_BATCH_STATUS`, `generatedItemCount`, `manualReviewRequiredCells`, `resumeCommand`, and local-only safety flags for Firebase, production catalog writes, OCR, camera, and Expenses.
 
-Use `flutter test test/work_supply_parser_generated_fixture_runner_test.dart --dart-define=PARSER_QA_GENERATED_FIXTURE_PATH=build/parser_qa_generated/work_supply_parser/plumbing/residential/core/en-US/generated_fixtures.json --dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=500 --reporter compact` to run a generated batch through the parser in one local Flutter process. This is the economical parser-call path for generated fixture batches; leave `PARSER_QA_GENERATED_FIXTURE_PATH` empty for normal no-op smoke. For surgical reruns after a generated fixture failure, add `--dart-define=PARSER_QA_GENERATED_FIXTURE_IDS=<comma-separated-fixture-ids>` so only the failed fixture ids are selected from the file. The runner writes timestamped JSON plus `latest_generated_fixture_run.json` under `build/parser_qa_reports/generated_fixtures/`, or under `PARSER_QA_GENERATED_REPORT_DIR` when that override is supplied.
+Use `dart run tool/work_supply_parser_qa_run_generated_fixtures.dart --fixture build/parser_qa_generated/work_supply_parser/plumbing/residential/core/en-US/generated_fixtures.json --max-cases 500 --report-dir build/parser_qa_reports/generated_fixtures` to run a generated batch through the standardized local command wrapper. The wrapper currently delegates to the Flutter semantic runner because the parser core is not yet extracted for Dart CLI execution; it prints `QA_GENERATED_FIXTURE_RUN_WRAPPER` with `parser_core_not_yet_extracted_for_dart_cli` so this limitation stays visible. For surgical reruns after a generated fixture failure, add `--fixture-ids <comma-separated-fixture-ids>` so only the failed fixture ids are selected from the file. The semantic runner writes timestamped JSON plus `latest_generated_fixture_run.json` under the selected report directory.
 
 For handoff between this Windows machine, GitHub, an external SSD, and the Mac Mini, treat the pass log plus latest report aliases as the resume point. Do not rely on terminal scrollback. Push or copy the repository only after the latest pass is logged, `git diff --check` is clean for touched files, and the intended focused/quick command evidence is captured in the pass log.
 
@@ -511,7 +511,7 @@ These tests prove local automation can generate synthetic parser QA fixture batc
 flutter test test/work_supply_parser_qa_fixture_generator_test.dart --reporter compact
 dart run tool/work_supply_parser_qa_generate_fixtures.dart --trade plumbing --scope residential --tier core --locale en-US --limit 500
 dart run tool/work_supply_parser_qa_generate_fixtures.dart --trade plumbing --scope residential --tier core --locale es-US --limit 500
-flutter test test/work_supply_parser_generated_fixture_runner_test.dart --dart-define=PARSER_QA_GENERATED_FIXTURE_PATH=build/parser_qa_generated/work_supply_parser/plumbing/residential/core/en-US/generated_fixtures.json --dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=500 --dart-define=PARSER_QA_GENERATED_REPORT_DIR=build/parser_qa_reports/generated_fixtures --reporter compact
+dart run tool/work_supply_parser_qa_run_generated_fixtures.dart --fixture build/parser_qa_generated/work_supply_parser/plumbing/residential/core/en-US/generated_fixtures.json --max-cases 500 --report-dir build/parser_qa_reports/generated_fixtures
 flutter test test/work_supply_catalog_blueprint_generator_test.dart --reporter compact
 dart run tool/work_supply_catalog_blueprint_generator.dart --trade plumbing --scope residential --tier core --locale en-US --limit 500
 flutter test test/work_supply_catalog_blueprint_validator_test.dart --reporter compact
@@ -538,7 +538,7 @@ The economical path is not one giant harness run. Build and run the harness in l
 
 These are not complete yet and should be built in future harness passes before any 99.9% release claim:
 
-- A faster pure-Dart parser batch runner that can run thousands of synthetic receipt lines without repeated Flutter startup.
+- Extract the parser core far enough from Flutter/app dependencies that `tool/work_supply_parser_qa_run_generated_fixtures.dart` can run thousands of synthetic receipt lines without delegating to `flutter test`.
 - Catalog item generator scripts for residential Plumbing, HVAC, Electrical, and their service-truck fasteners.
 - Fixture generator scripts for merchant receipt wording, abbreviations, SKU/model/brand hints, package quantities, Spanish lines, and ambiguity families.
 - Pipeline promotion tooling that converts validated review-only blueprints into production catalog Dart rows only after manual review and focused parser QA evidence.

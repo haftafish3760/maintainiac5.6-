@@ -102,6 +102,21 @@ class WorkSupplyParserGeneratedManifestSuite extends QaSuite {
       ],
     ),
     _GeneratedManifestContract(
+      name: 'generated_fixture_dart_runner',
+      path: 'tool/work_supply_parser_qa_run_generated_fixtures.dart',
+      tokens: [
+        'work_supply_parser_qa_run_generated_fixtures.dart',
+        '--fixture',
+        '--max-cases',
+        '--fixture-ids',
+        'QA_GENERATED_FIXTURE_RUN_WRAPPER',
+        'parser_core_not_yet_extracted_for_dart_cli',
+        'test/work_supply_parser_generated_fixture_runner_test.dart',
+        'PARSER_QA_GENERATED_FIXTURE_PATH',
+        'PARSER_QA_GENERATED_FIXTURE_MAX_CASES',
+      ],
+    ),
+    _GeneratedManifestContract(
       name: 'catalog_blueprint_generator',
       path: 'tool/work_supply_catalog_blueprint_generator.dart',
       tokens: [
@@ -152,6 +167,7 @@ class WorkSupplyParserGeneratedManifestSuite extends QaSuite {
         'runWorkSupplyCatalogBlueprintGenerator',
         'runWorkSupplyCatalogBlueprintValidator',
         'runWorkSupplyParserFixtureGenerator',
+        'work_supply_parser_qa_run_generated_fixtures.dart',
         'writesProductionCatalog',
         'liveServicesAllowed',
         'QA_ECONOMICAL_PIPELINE_ARTIFACT',

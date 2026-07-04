@@ -114,8 +114,10 @@ void main() {
     expect(stdout.content, contains('"fixtureRunLimit": 25'));
     expect(
       stdout.content,
-      contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=25'),
+      contains('work_supply_parser_qa_run_generated_fixtures.dart'),
     );
+    expect(stdout.content, contains('--max-cases'));
+    expect(stdout.content, contains('25'));
   });
 
   test(
@@ -203,7 +205,10 @@ void main() {
             reason: '$trade residential $tier en-US/es-US should be planned.',
           );
           expect(stderr.content, isEmpty);
-          expect(stdout.content, contains('QA_ECONOMICAL_PIPELINE_MULTI_LOCALE'));
+          expect(
+            stdout.content,
+            contains('QA_ECONOMICAL_PIPELINE_MULTI_LOCALE'),
+          );
           expect(stdout.content, contains('"trade": "$trade"'));
           expect(stdout.content, contains('"tier": "$tier"'));
           expect(stdout.content, contains('"localePackId": "en-US"'));

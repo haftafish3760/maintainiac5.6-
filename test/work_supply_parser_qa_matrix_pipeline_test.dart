@@ -223,8 +223,10 @@ void main() {
     expect(stdout.content, contains('"fixtureRunLimit": 25'));
     expect(
       stdout.content,
-      contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=25'),
+      contains('work_supply_parser_qa_run_generated_fixtures.dart'),
     );
+    expect(stdout.content, contains('--max-cases'));
+    expect(stdout.content, contains('25'));
     final summary = _extractMatrixSummary(stdout.content);
     expect(summary['fixtureRunLimit'], 25);
   });

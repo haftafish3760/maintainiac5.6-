@@ -20,12 +20,8 @@ class WorkSupplyParserGeneratedPerformanceSuite extends QaSuite {
     ),
     _GeneratedPerformanceContract(
       name: 'runner_knobs',
-      path: 'test/work_supply_parser_generated_fixture_runner_test.dart',
-      tokens: [
-        'PARSER_QA_GENERATED_FIXTURE_PATH',
-        'PARSER_QA_GENERATED_FIXTURE_MAX_CASES',
-        'PARSER_QA_GENERATED_REPORT_DIR',
-      ],
+      path: 'tool/work_supply_parser_qa_run_generated_fixtures.dart',
+      tokens: ['--fixture', '--max-cases', '--fixture-ids', '--report-dir'],
     ),
     _GeneratedPerformanceContract(
       name: 'runner_local_only',
@@ -33,12 +29,21 @@ class WorkSupplyParserGeneratedPerformanceSuite extends QaSuite {
       tokens: ['liveServicesAllowed', 'build/parser_qa_reports'],
     ),
     _GeneratedPerformanceContract(
+      name: 'runner_wrapper_status',
+      path: 'tool/work_supply_parser_qa_run_generated_fixtures.dart',
+      tokens: [
+        'QA_GENERATED_FIXTURE_RUN_WRAPPER',
+        'runner=flutter-test',
+        'parser_core_not_yet_extracted_for_dart_cli',
+      ],
+    ),
+    _GeneratedPerformanceContract(
       name: 'docs_generated_performance_artifact',
       path: 'docs/inventory_parser_qa_harness_plan.md',
       tokens: [
         'latest_generated_fixture_run.json',
-        'slow cases',
-        'PARSER_QA_GENERATED_REPORT_DIR',
+        '--report-dir',
+        'parser_core_not_yet_extracted_for_dart_cli',
       ],
     ),
   ];
