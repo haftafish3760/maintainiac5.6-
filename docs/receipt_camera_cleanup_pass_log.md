@@ -3,6 +3,26 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 802 - 09:22:00 EDT to active cleanup
+
+Scope:
+- Added a pre-save privacy-safe receipt line review contract to the assisted
+  receipt entry draft line model.
+- Kept draft price-only versus detailed-line decisions aligned with saved
+  receipt line records.
+- Added safe OCR source line and section-line anchors for pre-save review and
+  customer proof/redaction tooling.
+- Added source regressions so draft contracts use sanitized line numbers and
+  do not expose raw section-line input directly.
+- Recorded `BUG-RECEIPT-0286` under `receipt_line_numbering`.
+- Archived Pass 770 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused assisted-review source
+  regression.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 801 - 09:14:00 EDT to active cleanup
 
 Scope:
@@ -471,23 +491,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer for review-opening offset changes.
-- Passed focused Flutter capture-flow shareability regression.
-- Passed doc-size, bug-ledger, source-audit, and test-audit gates.
-
-## Pass 770 - 05:41:14 EDT to active cleanup
-
-Scope:
-- Hardened initial photo-review capture diagnostics so raw map keys are
-  normalized and matched against the normalized initial receipt photo list
-  before entering mutable review state.
-- Dropped blank, unnormalized, duplicate, or non-review diagnostics keys and
-  froze accepted diagnostic maps at the screen boundary.
-- Added a source regression preventing raw `initialCaptureDiagnosticsByPath`
-  spreads from returning.
-- Recorded `BUG-RECEIPT-0258` under `camera_review_state`.
-- Archived Pass 742 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer for initial diagnostics key changes.
 - Passed focused Flutter capture-flow shareability regression.
 - Passed doc-size, bug-ledger, source-audit, and test-audit gates.

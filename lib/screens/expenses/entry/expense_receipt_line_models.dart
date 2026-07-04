@@ -199,6 +199,42 @@ class _ExpenseReceiptLine {
     return 'receipt_line_${lineToken}_${family}_${use.name}';
   }
 
+  Map<String, Object?> get privacySafeLineReviewContract {
+    final sectionLine = _expenseReceiptSafeLineNumber(
+      ocrSourceSectionLineNumber,
+    );
+    final lineNumber = _expenseReceiptSafeLineNumber(ocrSourceLineNumber);
+    return {
+      'lineId': receiptProofRedactionAnchorCode,
+      'lineNumberLabel': receiptProofLineReferenceLabel,
+      'businessUse': use.name,
+      'businessPercent': effectiveBusinessPercent,
+      'personalPercent': effectivePersonalPercent,
+      'hasDetailText': !isAllocationOnlyLine,
+      'redactionAnchorCode': receiptProofRedactionAnchorCode,
+      'ocrSourceLineNumber': ?lineNumber,
+      'ocrSourceSectionLineNumber': ?sectionLine,
+    };
+  }
+
+  bool get isAllocationOnlyLine =>
+      _hasAllocationOnlyDescription && !hasReceiptLineDetailEvidence;
+
+  bool get hasReceiptLineDetailEvidence =>
+      !_hasAllocationOnlyDescription ||
+      rawReceiptText.trim().isNotEmpty ||
+      (catalogItemName ?? '').trim().isNotEmpty ||
+      hasParserClassification;
+
+  bool get _hasAllocationOnlyDescription {
+    final clean = description.trim().toLowerCase();
+    return clean.isEmpty ||
+        clean == 'receipt item' ||
+        clean == 'business receipt items' ||
+        clean == 'personal receipt items' ||
+        clean == 'split receipt items';
+  }
+
   bool get hasParserClassification {
     return (parserExpenseFamily ?? '').trim().isNotEmpty ||
         (parserHint ?? '').trim().isNotEmpty;

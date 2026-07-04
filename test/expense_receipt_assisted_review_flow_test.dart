@@ -81,6 +81,23 @@ void main() {
         contains('_expenseReceiptPrivateSafeLineToken(ocrSourceLineId'),
       );
       expect(
+        lineModels,
+        contains('Map<String, Object?> get privacySafeLineReviewContract'),
+      );
+      expect(lineModels, contains("'ocrSourceLineNumber': ?lineNumber"));
+      expect(
+        lineModels,
+        contains("'ocrSourceSectionLineNumber': ?sectionLine"),
+      );
+      expect(lineModels, contains('bool get isAllocationOnlyLine'));
+      expect(lineModels, contains('rawReceiptText.trim().isNotEmpty'));
+      expect(
+        lineModels,
+        isNot(
+          contains("'ocrSourceSectionLineNumber': ocrSourceSectionLineNumber"),
+        ),
+      );
+      expect(
         entryScreen,
         contains('_expenseReceiptPrivateSafeLineReferenceLabel(sourceId)'),
       );
