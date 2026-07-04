@@ -3,6 +3,23 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 687 - 00:45:35 EDT to active cleanup
+
+Scope:
+- Removed old focus-assist wording from blurry receipt quality guidance so the
+  user-facing camera flow stays aligned with continuous autofocus as the primary
+  product behavior.
+- Added regression expectations that blurry receipt guidance names continuous
+  autofocus and does not reintroduce focus-assist or tap-focus wording.
+- Recorded `BUG-RECEIPT-0174` under `camera_capture_quality`.
+- Archived Pass 616 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer for receipt photo quality guidance.
+- Passed focused Flutter receipt camera quality guidance regression.
+- Passed cleanup log, doc size, bug ledger, source audit, tests-only source
+  audit, and diff whitespace gates.
+
 ## Pass 686 - 00:41:29 EDT to active cleanup
 
 Scope:
@@ -472,21 +489,4 @@ Scope:
 Verification:
 - Passed targeted Dart analyzer for native auto-capture source-contract tests.
 - Passed focused Flutter Android/iOS native auto-capture/settings regressions.
-- Passed cleanup log, doc size, source audit, and diff whitespace gates.
-
-## Pass 616 - 21:37:36 EDT to active cleanup
-
-Scope:
-- Carried `manual_only_quality_review` into receipt review copy so users see
-  sharpness, light, and receipt-text guidance instead of a silent unknown state.
-- Extended native camera result diagnostics so the new readiness state appears
-  in health counts, receipt-reader handoff counts, and held-back auto-capture
-  evidence.
-- Added focused handoff regressions for the source copy and result-level
-  diagnostics.
-- Recorded `BUG-RECEIPT-0137` under `camera_capture_quality`.
-
-Verification:
-- Passed targeted Dart format/analyzer for review copy and diagnostics tests.
-- Passed focused Flutter quality handoff and native quality regressions.
 - Passed cleanup log, doc size, source audit, and diff whitespace gates.

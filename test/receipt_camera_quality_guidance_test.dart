@@ -32,8 +32,9 @@ void main() {
       expect(readable.reviewScore, inInclusiveRange(80, 100));
       expect(blurry.focusLabel, 'may be blurry');
       expect(blurry.reviewTitle, 'Retake Recommended');
-      expect(blurry.reviewGuidance, contains('let the camera refocus'));
-      expect(blurry.reviewGuidance, contains('focus assist only'));
+      expect(blurry.reviewGuidance, contains('continuous autofocus'));
+      expect(blurry.reviewGuidance, isNot(contains('focus assist')));
+      expect(blurry.reviewGuidance, isNot(contains('tap focus')));
       expect(readable.focusLabel, 'sharp');
     },
   );
