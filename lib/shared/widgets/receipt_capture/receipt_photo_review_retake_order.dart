@@ -89,6 +89,12 @@ class ReceiptPhotoRetakeOrderPlan {
               alignmentContext.hasNextContext,
           'receiptRetakeHasTwoSidedAlignmentContext':
               alignmentContext.hasTwoSidedContext,
+          if (alignmentContext.hasPreviousContext)
+            'receiptRetakePreviousContextSectionNumber':
+                alignmentContext.targetIndex,
+          if (alignmentContext.hasNextContext)
+            'receiptRetakeNextContextSectionNumber':
+                alignmentContext.targetIndex + 2,
           'receiptRetakeOrderPolicy':
               'preserve_original_slot_insert_extra_sections_after_target',
         },

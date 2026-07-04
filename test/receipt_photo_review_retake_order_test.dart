@@ -63,6 +63,14 @@ void main() {
         ),
       );
       expect(
+        diagnostics['middle-new-a.jpg'],
+        containsPair('receiptRetakePreviousContextSectionNumber', 1),
+      );
+      expect(
+        diagnostics['middle-new-a.jpg'],
+        containsPair('receiptRetakeNextContextSectionNumber', 3),
+      );
+      expect(
         diagnostics['middle-new-b.jpg'],
         containsPair('receiptRetakeInsertedExtraSection', true),
       );
@@ -416,6 +424,24 @@ void main() {
     expect(context.nextPhotoPath, 'middle.jpg');
     expect(context.preferredGuidePhotoPath, 'middle.jpg');
     expect(context.guidanceCode, 'retake_top_with_next_context');
+
+    final plan = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const ['top-old.jpg', 'middle.jpg', 'bottom.jpg'],
+      targetPhotoPath: 'top-old.jpg',
+      replacementPhotoPaths: const ['top-new.jpg'],
+    );
+    final diagnostics = plan!.captureDiagnosticsForReplacementPaths(const [
+      'top-new.jpg',
+    ]);
+
+    expect(
+      diagnostics['top-new.jpg'],
+      isNot(contains('receiptRetakePreviousContextSectionNumber')),
+    );
+    expect(
+      diagnostics['top-new.jpg'],
+      containsPair('receiptRetakeNextContextSectionNumber', 2),
+    );
   });
 
   test('retaking the bottom section uses the previous section as context', () {
@@ -429,5 +455,23 @@ void main() {
     expect(context.nextPhotoPath, isNull);
     expect(context.preferredGuidePhotoPath, 'middle.jpg');
     expect(context.guidanceCode, 'retake_bottom_with_previous_context');
+
+    final plan = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'bottom-old.jpg'],
+      targetPhotoPath: 'bottom-old.jpg',
+      replacementPhotoPaths: const ['bottom-new.jpg'],
+    );
+    final diagnostics = plan!.captureDiagnosticsForReplacementPaths(const [
+      'bottom-new.jpg',
+    ]);
+
+    expect(
+      diagnostics['bottom-new.jpg'],
+      containsPair('receiptRetakePreviousContextSectionNumber', 2),
+    );
+    expect(
+      diagnostics['bottom-new.jpg'],
+      isNot(contains('receiptRetakeNextContextSectionNumber')),
+    );
   });
 }
