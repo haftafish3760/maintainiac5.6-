@@ -50,6 +50,7 @@ class WorkSupplyParserConfidenceCalibrationSuite extends QaSuite {
 
     _checkConfidenceBands(failures);
     _checkConfidenceEngineEvidenceContract(failures, engineSource);
+    _checkDirectConfidenceOrdersEvidenceBeforeBounding(failures, engineSource);
     for (final fixture in fixtures) {
       switch (fixture.caseType) {
         case 'clear_match':
@@ -82,7 +83,7 @@ class WorkSupplyParserConfidenceCalibrationSuite extends QaSuite {
           6 +
           _requiredEngineTokens.length +
           _forbiddenEngineTokens.length +
-          1,
+          2,
       failures: failures,
       maxFailures: context.maxFailuresPerSuite,
       metrics: {
@@ -175,6 +176,58 @@ class WorkSupplyParserConfidenceCalibrationSuite extends QaSuite {
         ),
       );
     }
+  }
+
+  void _checkDirectConfidenceOrdersEvidenceBeforeBounding(
+    List<QaFailure> failures,
+    String source,
+  ) {
+    final methodStart = source.indexOf('double _directReceiptConfidence(');
+    final methodEnd = source.indexOf(
+      'double _learnedCorrectionConfidence(',
+      methodStart,
+    );
+    if (methodStart < 0 || methodEnd < 0) {
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'direct_confidence_method_not_found',
+          message: 'Direct receipt confidence method could not be inspected.',
+          severity: QaSeverity.error,
+          expected:
+              'direct confidence computes evidence and ambiguity before final bounding',
+          actual: 'method boundary missing',
+          suggestedFix:
+              'Keep direct confidence as an inspectable evidence-based method.',
+        ),
+      );
+      return;
+    }
+    final body = source.substring(methodStart, methodEnd);
+    final specificity = body.indexOf('confidence += _specificityEvidenceScore');
+    final ambiguity = body.indexOf('confidence -= _receiptAmbiguityRisk');
+    final bounded = body.indexOf(
+      'return _boundedReceiptConfidence(confidence)',
+    );
+    final ordered =
+        specificity >= 0 && ambiguity > specificity && bounded > ambiguity;
+    if (ordered) return;
+    failures.add(
+      QaFailure(
+        suite: name,
+        id: 'direct_confidence_evidence_order',
+        message:
+            'Direct receipt confidence must apply specificity and ambiguity before final numeric bounding.',
+        severity: QaSeverity.critical,
+        expected:
+            'specificity evidence, then ambiguity risk, then final bounded return',
+        actual:
+            'specificityIndex=$specificity ambiguityIndex=$ambiguity boundedIndex=$bounded',
+        suggestedFix:
+            'Do not cap overconfidence to hide ambiguity; add context/evidence and preserve review uncertainty before final display-safe bounding.',
+        metadata: const {'triageCategory': QaFailureTriage.reviewSafety},
+      ),
+    );
   }
 
   void _requireClearMatchEvidence(

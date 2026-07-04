@@ -3319,3 +3319,11 @@ Release boundaries:
   checks with 0 failures, and the live evidence summary reported 5/5 artifacts
   present, `ready=true`, no unsafe findings, and all local-only safety flags
   false.
+- **09:28 Harness Pass 2442:** Added a confidence-calibration regression guard
+  that inspects direct receipt confidence ordering. Specificity evidence and
+  ambiguity risk must be applied before the final numeric bounding helper, so a
+  future overconfidence shortcut cannot hide ambiguity by capping/suppressing
+  uncertainty. The first run exposed an invalid triage token in the new check;
+  that compile failure was fixed immediately. Analyzer was clean and the focused
+  `inventory.confidence_calibration,qa.threshold_gate` slice passed 94 checks
+  with 0 failures.
