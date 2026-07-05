@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 896 - 06:42:00 EDT to active cleanup
+
+Scope:
+- Added real-device QA privacy checkpoints for Help Improve Receipt Camera.
+- Required the real-device matrix gate to prove diagnostics default off,
+  owner-visible diagnostics stay metadata-only, and receipt images/text are not
+  owner-visible.
+- Recorded `BUG-RECEIPT-0345` under `qa_harness`.
+- Archived Pass 860 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused real-device matrix regression,
+  direct matrix gate run, cleanup/doc/ledger/source gates, and diff whitespace
+  gate.
+
 ## Pass 895 - 06:28:00 EDT to active cleanup
 
 Scope:
@@ -472,19 +487,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused iOS native bridge regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 860 - 12:23:00 EDT to active cleanup
-
-Scope:
-- Added focused barcode/QR QA for repeated invalid input paths so warning
-  results stay capped while valid receipt images still scan.
-- Pinned `skippedInvalidImageCount` and privacy-safe invalid-path warning
-  buckets without exposing raw bad path strings.
-- Archived Pass 794 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused barcode scanner regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

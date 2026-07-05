@@ -48,6 +48,17 @@ Interruption conditions:
 - Low-storage mode or smallest saved-proof setting.
 - Save-space proof size preview before accepting the receipt.
 
+Privacy diagnostics conditions:
+- Help Improve Receipt Camera must be default off.
+- When Help Improve Receipt Camera is off, owner-visible diagnostics stay
+  metadata-only and no camera diagnostic event is published from the receipt
+  capture callback.
+- When Help Improve Receipt Camera is on, receipt images and receipt text are
+  not owner-visible; only machine-quality review flags and privacy-safe camera
+  failure counts may be used.
+- Privacy checkpoint: owner-visible diagnostics stay metadata-only.
+- Privacy checkpoint: receipt images and receipt text are not owner-visible.
+
 ## Build Cadence
 
 - Do not reinstall after every small change.
