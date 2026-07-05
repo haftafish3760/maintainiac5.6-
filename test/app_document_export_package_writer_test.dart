@@ -8,6 +8,7 @@ import 'package:maintaniac/shared/documents/app_document_export_manifest.dart';
 import 'package:maintaniac/shared/documents/app_document_export_package_writer.dart';
 import 'package:maintaniac/shared/documents/app_document_models.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
+import 'package:path/path.dart' as path;
 
 void main() {
   late Directory tempDirectory;
@@ -178,6 +179,109 @@ void main() {
       expect(await blockingDirectory.exists(), isTrue);
       expect(await proof.exists(), isTrue);
       expect(await _fileHash(proof), plan.files.single.sha256);
+    },
+  );
+
+  test(
+    'document export writer removes stale app-owned partial packages only',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nStale partial proof\n%%EOF'),
+      );
+      final record = _documentRecord(
+        attachment: _pdfAttachment(
+          path: proof.path,
+          byteSize: await proof.length(),
+          fileHash: await _fileHash(proof),
+          displayName: 'job-packet.pdf',
+        ),
+      );
+      final outputDirectory = Directory('${tempDirectory.path}/exports');
+      await outputDirectory.create(recursive: true);
+      final plan = await AppDocumentExportManager.buildPackagePlan(
+        record,
+        freeStorageReader: () async => 500,
+      );
+      final baseName =
+          'maintainiac-${plan.manifest.kind.name}-'
+          '${plan.manifestSha256.substring(0, 12)}.zip';
+      final stalePartial = File('${outputDirectory.path}/$baseName.partial');
+      final freshPartial = File('${outputDirectory.path}/fresh.zip.partial');
+      final hostilePartial = File(
+        '${outputDirectory.path}/customer-export.zip.partial',
+      );
+      final completePackage = File('${outputDirectory.path}/$baseName');
+      await stalePartial.writeAsString('stale partial', flush: true);
+      await freshPartial.writeAsString('fresh partial', flush: true);
+      await hostilePartial.writeAsString('not app owned', flush: true);
+      await completePackage.writeAsString('complete package', flush: true);
+      final oldTime = DateTime.now().subtract(const Duration(hours: 13));
+      await stalePartial.setLastModified(oldTime);
+      await hostilePartial.setLastModified(oldTime);
+
+      final deleted = await AppDocumentExportPackageWriter.cleanupStalePartials(
+        outputDirectory,
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: record,
+        outputDirectory: outputDirectory,
+        freeStorageReader: () async => 500,
+      );
+
+      expect(deleted, [path.basename(stalePartial.path)]);
+      expect(await stalePartial.exists(), isFalse);
+      expect(await freshPartial.exists(), isTrue);
+      expect(await hostilePartial.exists(), isTrue);
+      expect(await completePackage.exists(), isTrue);
+      expect(result.fileName, contains('-copy-2.zip'));
+      expect(await proof.exists(), isTrue);
+    },
+  );
+
+  test(
+    'document export writer keeps fresh matching partial and writes copy',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nFresh partial proof\n%%EOF'),
+      );
+      final record = _documentRecord(
+        attachment: _pdfAttachment(
+          path: proof.path,
+          byteSize: await proof.length(),
+          fileHash: await _fileHash(proof),
+          displayName: 'job-packet.pdf',
+        ),
+      );
+      final outputDirectory = Directory('${tempDirectory.path}/exports');
+      await outputDirectory.create(recursive: true);
+      final plan = await AppDocumentExportManager.buildPackagePlan(
+        record,
+        freeStorageReader: () async => 500,
+      );
+      final baseName =
+          'maintainiac-${plan.manifest.kind.name}-'
+          '${plan.manifestSha256.substring(0, 12)}.zip';
+      final freshPartial = File('${outputDirectory.path}/$baseName.partial');
+      await freshPartial.writeAsString('fresh partial', flush: true);
+
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: record,
+        outputDirectory: outputDirectory,
+        freeStorageReader: () async => 500,
+      );
+
+      expect(await freshPartial.exists(), isTrue);
+      expect(result.fileName, contains('-copy-2.zip'));
+      expect(
+        await AppDocumentExportPackageWriter.readZipPackage(
+          File(result.filePath),
+        ),
+        isA<AppDocumentExportPackageReadResult>(),
+      );
     },
   );
 

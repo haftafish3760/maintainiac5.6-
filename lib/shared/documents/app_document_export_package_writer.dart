@@ -91,6 +91,7 @@ class AppDocumentExportPackageWriter {
   static const String packageIndexEntryName =
       'maintainiac_document_package_index.json';
   static const int maxReadablePackageBytes = 500 * 1024 * 1024;
+  static const Duration stalePartialAge = Duration(hours: 12);
   static final DateTime _fixedZipModified = DateTime.utc(2026);
 
   final AppDocumentExportZipBytesBuilder? zipBytesBuilder;
@@ -107,6 +108,7 @@ class AppDocumentExportPackageWriter {
     final zipBytes = await (zipBytesBuilder ?? buildZipBytes)(plan);
     _verifyZipBytes(plan, zipBytes);
     await _createDirectory(outputDirectory);
+    await cleanupStalePartials(outputDirectory);
 
     final destination = await _destinationFile(outputDirectory, plan);
     final partial = File('${destination.path}.partial');
@@ -303,6 +305,47 @@ class AppDocumentExportPackageWriter {
       fileEntries: List.unmodifiable(fileEntries),
       totalProofBytes: totalProofBytes,
     );
+  }
+
+  static Future<List<String>> cleanupStalePartials(
+    Directory outputDirectory, {
+    DateTime? now,
+  }) async {
+    if (!await outputDirectory.exists()) return const [];
+    final cutoff = (now ?? DateTime.now()).subtract(stalePartialAge);
+    final deleted = <String>[];
+    await for (final entity in outputDirectory.list(followLinks: false)) {
+      if (entity is! File) continue;
+      final fileName = path.basename(entity.path);
+      if (!_isAppOwnedPartialName(fileName)) continue;
+      FileStat stat;
+      try {
+        stat = await entity.stat();
+      } catch (_) {
+        continue;
+      }
+      if (stat.type != FileSystemEntityType.file) continue;
+      if (!stat.modified.isBefore(cutoff)) continue;
+      try {
+        await entity.delete();
+        deleted.add(fileName);
+      } catch (_) {
+        throw const AppDocumentExportPackageException(
+          'Maintainiac could not clean up a stale document export package.',
+        );
+      }
+    }
+    deleted.sort();
+    return List.unmodifiable(deleted);
+  }
+
+  static bool _isAppOwnedPartialName(String fileName) {
+    return fileName.startsWith('maintainiac-') &&
+        fileName.endsWith('.zip.partial') &&
+        !fileName.contains('..') &&
+        !fileName.contains('/') &&
+        !fileName.contains('\\') &&
+        !fileName.contains(RegExp(r'[\x00-\x1F\x7F]'));
   }
 
   static Map<String, ArchiveFile> _entryMap(Archive archive) {

@@ -1,5 +1,31 @@
 # PDF System Pass Log
 
+## Pass 54 - 2026-07-05 06:11 EDT - Document export package partial recovery
+
+- Scope: shared app document export package stale-partial cleanup, fresh-partial
+  preservation, and PDF QA fixture inventory only. No inventory, camera, native
+  capture, receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Added stale app-owned ZIP `.partial` cleanup before document export package
+    writes allocate their destination file.
+  - Limited cleanup to `maintainiac-*.zip.partial` files older than 12 hours so
+    user files, foreign packages, complete ZIP packages, and fresh in-flight
+    writes are preserved.
+  - Preserved fresh matching partials by writing the new export package to a
+    deterministic copy filename instead of deleting possible active work.
+  - Kept source proof files untouched through cleanup, rollback, and successful
+    package writes.
+  - Added regressions for stale partial deletion, foreign partial preservation,
+    complete package preservation, fresh partial preservation, and copy-name
+    allocation after a fresh partial.
+  - Updated the shared PDF fixture inventory for document export package
+    stale/fresh partial recovery.
+- Verification completed 2026-07-05 06:11 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart test/app_document_export_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_manifest_test.dart test/app_document_export_package_writer_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 53 - 2026-07-05 06:09 EDT - Document export package readback verification
 
 - Scope: shared app document export package readback validation, package index
