@@ -1527,6 +1527,61 @@ void main() {
     expect(await File(result.filePath).exists(), isTrue);
   });
 
+  test(
+    'document export package extraction cleanup removes symlink only',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nExtract symlink cleanup proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final importDirectory = Directory('${tempDirectory.path}/imports');
+      await importDirectory.create(recursive: true);
+      final outsideTarget = Directory(
+        '${tempDirectory.path}/outside-extraction-target',
+      );
+      await outsideTarget.create(recursive: true);
+      final targetFile = File('${outsideTarget.path}/private-proof.pdf');
+      await targetFile.writeAsString(
+        '%PDF-1.7\nOutside extraction target\n%%EOF',
+        flush: true,
+      );
+      final partialLink = Link(
+        '${importDirectory.path}/'
+        'maintainiac-document-export-${result.manifestSha256.substring(0, 12)}'
+        '.partial',
+      );
+      await partialLink.create(outsideTarget.path);
+
+      final extraction = await AppDocumentExportPackageWriter.extractZipPackage(
+        File(result.filePath),
+        outputDirectory: importDirectory,
+      );
+
+      expect(await partialLink.exists(), isFalse);
+      expect(await outsideTarget.exists(), isTrue);
+      expect(await targetFile.exists(), isTrue);
+      expect(
+        await File(
+          '${importDirectory.path}/${extraction.directoryName}/job-packet.pdf',
+        ).exists(),
+        isTrue,
+      );
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
   test('document export package reader blocks directory entries', () async {
     final directoryArchive = Archive()
       ..addFile(ArchiveFile.directory('proofs'));

@@ -184,7 +184,8 @@
         "document_export_zip_package_import_source_preservation",
         "document_export_zip_package_import_stale_partial_cleanup",
         "document_export_zip_package_import_stale_complete_cleanup",
-        "document_export_zip_package_import_foreign_folder_preservation"
+        "document_export_zip_package_import_foreign_folder_preservation",
+        "document_export_zip_package_extract_symlink_cleanup_target_preservation"
       ]
     },
     "privacy_and_security_logs": {

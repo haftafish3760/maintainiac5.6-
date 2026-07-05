@@ -1149,8 +1149,8 @@ class AppDocumentExportPackageWriter {
         'maintainiac-${plan.manifest.kind.name}-${plan.manifestSha256.substring(0, 12)}';
     var candidate = File('${outputDirectory.path}/$baseName.zip');
     var index = 2;
-    while (await candidate.exists() ||
-        await File('${candidate.path}.partial').exists()) {
+    while (await _fileOrLinkExistsNoFollow(candidate.path) ||
+        await _fileOrLinkExistsNoFollow('${candidate.path}.partial')) {
       candidate = File('${outputDirectory.path}/$baseName-copy-$index.zip');
       index += 1;
     }
@@ -1165,8 +1165,7 @@ class AppDocumentExportPackageWriter {
         'maintainiac-document-export-${readResult.manifestSha256.substring(0, 12)}';
     var candidate = Directory('${outputDirectory.path}/$baseName');
     var index = 2;
-    while (await candidate.exists() ||
-        await Directory('${candidate.path}.partial').exists()) {
+    while (await _entityExistsNoFollow(candidate.path)) {
       candidate = Directory('${outputDirectory.path}/$baseName-copy-$index');
       index += 1;
     }
@@ -1213,7 +1212,8 @@ class AppDocumentExportPackageWriter {
     required File destination,
     required List<int> expectedBytes,
   }) async {
-    if (await destination.exists() || await partialFile.exists()) {
+    if (await _entityExistsNoFollow(destination.path) ||
+        await _entityExistsNoFollow(partialFile.path)) {
       throw const AppDocumentExportPackageException(
         'Document export package extraction would overwrite a file.',
       );
@@ -1248,13 +1248,30 @@ class AppDocumentExportPackageWriter {
 
   static Future<void> _deleteDirectoryIfExists(Directory directory) async {
     try {
-      if (await directory.exists()) {
+      final type = await FileSystemEntity.type(
+        directory.path,
+        followLinks: false,
+      );
+      if (type == FileSystemEntityType.directory) {
         await directory.delete(recursive: true);
+      } else if (type == FileSystemEntityType.link) {
+        await Link(directory.path).delete();
       }
     } catch (_) {
       throw const AppDocumentExportPackageException(
         'Maintainiac could not clean up a failed document export package.',
       );
     }
+  }
+
+  static Future<bool> _entityExistsNoFollow(String entityPath) async {
+    final type = await FileSystemEntity.type(entityPath, followLinks: false);
+    return type != FileSystemEntityType.notFound;
+  }
+
+  static Future<bool> _fileOrLinkExistsNoFollow(String entityPath) async {
+    final type = await FileSystemEntity.type(entityPath, followLinks: false);
+    return type == FileSystemEntityType.file ||
+        type == FileSystemEntityType.link;
   }
 }

@@ -1,5 +1,25 @@
 # PDF System Pass Log
 
+## Pass 109 - 2026-07-05 10:49 EDT - Document package extraction cleanup hardening
+
+- Scope: document export package extraction cleanup safety only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Inspected extraction cleanup targets without following symlinks.
+  - Removed stale extraction symlink entries without deleting their external
+    targets.
+  - Hardened extraction file collision checks so partial symlinks cannot be
+    followed during writes.
+  - Preserved existing rollback behavior when a real directory blocks package
+    creation.
+  - Added regression coverage proving extraction cleanup preserves an outside
+    symlink target.
+  - Added the extraction symlink cleanup case to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:49 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart`
+
 ## Pass 108 - 2026-07-05 11:18 EDT - Receipt line quantity preflight hardening
 
 - Scope: generated receipt PDF confirmed-line validation only. No inventory,
