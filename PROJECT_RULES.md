@@ -2,6 +2,18 @@
 
 Maintaniac is a professional-grade record keeping app for people and small crews who use vehicles for work. Treat every change as release-track work, even when a screen is still early.
 
+## Codex Rate-Limit And Evidence Rule
+
+This is a top-priority operating rule for every Codex agent working on Maintaniac.
+
+- For simple or direct user questions, answer from current working context quickly and concisely.
+- Do not scan broad repo paths, pass logs, docs, Git history, or prior chat/context just to answer a simple question.
+- If exact evidence is not explicitly required, give a quick estimate or clearly state that the answer is memory/current-context based.
+- If the answer may need proof, ask first: `Do you want a quick estimate or a verified audit?`
+- Only run broad searches, audits, or log scans after the user asks for verified detail or when a coding task genuinely requires current-file evidence.
+- For coding tasks, inspect the smallest relevant files first. Do not use whole-repo searches unless narrow searches fail or the task requires repo-wide proof.
+- Long-running checks must run non-interactively. Do not narrate or monitor scrolling output; inspect final logs and summarize actionable results only.
+
 ## Product Identity
 
 - Maintaniac is one app under one roof that contains several connected record keeping tools: trip tracking, expense tracking, invoices, payments, maintenance, materials/inventory, receipts, reports, and related workflows.
