@@ -34,6 +34,7 @@ void main() {
     expect(settings.cameraAutoCapture, isFalse);
     expect(settings.cameraVoiceCapture, isFalse);
     expect(settings.cameraLongReceiptTips, isTrue);
+    expect(settings.cameraDiagnosticsImprovementOptIn, isFalse);
 
     await settings.setCameraSetupComplete(true);
     await settings.setCameraGuidanceEnabled(false);
@@ -41,6 +42,7 @@ void main() {
     await settings.setCameraAutoCapture(true);
     await settings.setCameraVoiceCapture(true);
     await settings.setCameraLongReceiptTips(false);
+    await settings.setCameraDiagnosticsImprovementOptIn(true);
 
     expect(settings.cameraSetupComplete, isTrue);
     expect(settings.cameraGuidanceEnabled, isFalse);
@@ -48,6 +50,7 @@ void main() {
     expect(settings.cameraAutoCapture, isTrue);
     expect(settings.cameraVoiceCapture, isTrue);
     expect(settings.cameraLongReceiptTips, isFalse);
+    expect(settings.cameraDiagnosticsImprovementOptIn, isTrue);
   });
 
   test('stores receipt performance mode preference', () async {
@@ -139,8 +142,11 @@ void main() {
       expect(source, contains('effectiveCameraRuntimeProfile'));
       expect(source, contains('profile.summaryLabel'));
       expect(source, contains('profile.notesLabel'));
+      expect(source, contains('Help Improve Receipt Camera'));
+      expect(source, contains('cameraDiagnosticsImprovementOptIn'));
       expect(source, contains('Automatic photo capture stays off'));
       expect(source, contains('You stay in control'));
+      expect(source, contains('Receipt images and receipt text stay out'));
       expect(source, isNot(contains('deviceModel')));
       expect(source, isNot(contains('availableRamLabel')));
       expect(source, isNot(contains('Android SDK')));
@@ -156,6 +162,7 @@ void main() {
     await settings.setCameraAutoCapture(true);
     await settings.setCameraVoiceCapture(true);
     await settings.setCameraLongReceiptTips(false);
+    await settings.setCameraDiagnosticsImprovementOptIn(true);
     await settings.setDefaultDataSaverLevel(ReceiptDataSaverLevel.maximum);
     await settings.setReceiptPerformanceMode(
       ReceiptPerformanceMode.maximumPerformance,
@@ -169,6 +176,7 @@ void main() {
     expect(settings.cameraAutoCapture, isFalse);
     expect(settings.cameraVoiceCapture, isFalse);
     expect(settings.cameraLongReceiptTips, isTrue);
+    expect(settings.cameraDiagnosticsImprovementOptIn, isFalse);
     expect(settings.defaultDataSaverUsesDeviceRecommendation, isTrue);
     expect(settings.receiptPerformanceMode, ReceiptPerformanceMode.automatic);
   });

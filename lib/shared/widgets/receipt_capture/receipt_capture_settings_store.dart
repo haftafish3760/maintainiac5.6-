@@ -92,6 +92,8 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
   bool get cameraVoiceCapture => _readBool(_Keys.cameraVoiceCapture, false);
   bool get cameraLongReceiptTips =>
       _readBool(_Keys.cameraLongReceiptTips, true);
+  bool get cameraDiagnosticsImprovementOptIn =>
+      _readBool(_Keys.cameraDiagnosticsImprovementOptIn, false);
   bool get googleVisionAccess => _readBool(_Keys.googleVisionAccess, false);
   int get monthlyGoogleVisionLimit =>
       _readInt(_Keys.monthlyGoogleVisionLimit, 30);
@@ -137,6 +139,8 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
       _writeBool(_Keys.cameraVoiceCapture, value);
   Future<void> setCameraLongReceiptTips(bool value) =>
       _writeBool(_Keys.cameraLongReceiptTips, value);
+  Future<void> setCameraDiagnosticsImprovementOptIn(bool value) =>
+      _writeBool(_Keys.cameraDiagnosticsImprovementOptIn, value);
   Future<void> setGoogleVisionAccess(bool value) =>
       _writeBool(_Keys.googleVisionAccess, value);
   Future<void> setMonthlyGoogleVisionLimit(int value) async {
@@ -174,6 +178,7 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
     await _box.put(_Keys.cameraAutoCapture, false);
     await _box.put(_Keys.cameraVoiceCapture, false);
     await _box.put(_Keys.cameraLongReceiptTips, true);
+    await _box.put(_Keys.cameraDiagnosticsImprovementOptIn, false);
     await _box.delete(_Keys.defaultDataSaverLevel);
     await _box.put(
       _Keys.receiptPerformanceMode,
@@ -269,6 +274,8 @@ class _Keys {
   static const cameraAutoCapture = 'camera_auto_capture';
   static const cameraVoiceCapture = 'camera_voice_capture';
   static const cameraLongReceiptTips = 'camera_long_receipt_tips';
+  static const cameraDiagnosticsImprovementOptIn =
+      'camera_diagnostics_improvement_opt_in';
   static const defaultDataSaverLevel = 'default_data_saver_level';
   static const receiptPerformanceMode = 'receipt_performance_mode';
   static const googleVisionAccess = 'google_vision_access';

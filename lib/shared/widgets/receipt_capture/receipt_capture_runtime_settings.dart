@@ -137,6 +137,13 @@ class _ReceiptScannerBehaviorSettings extends StatelessWidget {
             value: settings.cameraLongReceiptTips,
             onChanged: settings.setCameraLongReceiptTips,
           ),
+          _ReceiptSettingsSwitch(
+            title: 'Help Improve Receipt Camera',
+            detail:
+                'Shares privacy-safe camera failure counts only when enabled. Receipt images and receipt text stay out of owner-visible diagnostics.',
+            value: settings.cameraDiagnosticsImprovementOptIn,
+            onChanged: settings.setCameraDiagnosticsImprovementOptIn,
+          ),
         ],
       ),
     );

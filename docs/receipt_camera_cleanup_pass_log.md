@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 893 - 05:58:00 EDT to active cleanup
+
+Scope:
+- Added a default-off Help Improve Receipt Camera setting to the shared receipt
+  camera settings store.
+- Exposed the setting in the scanner behavior panel with privacy copy that
+  keeps receipt images and receipt text out of owner-visible diagnostics.
+- Reset the opt-in to off with receipt photo defaults.
+- Recorded `BUG-RECEIPT-0342` under `privacy_redaction`.
+- Archived Pass 841 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused receipt settings store
+  regressions, cleanup/doc/ledger/source gates, and diff whitespace gate.
+
 ## Pass 892 - 05:55:00 EDT to active cleanup
 
 Scope:
@@ -466,21 +481,6 @@ Scope:
 - Kept the scanner service under the 500-line cap after the coverage-count
   hardening without changing behavior.
 - Archived Pass 791 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused barcode scanner regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 841 - 11:51:00 EDT to active cleanup
-
-Scope:
-- Added privacy-safe batch barcode/QR summary counts for scanned images,
-  warning images, and invalid images.
-- Pinned mixed valid/invalid long-receipt barcode inputs so QA/admin diagnostics
-  can see scan coverage without exposing raw paths.
-- Recorded `BUG-RECEIPT-0315` under `barcode_qr_scanning`.
-- Archived Pass 790 from the active cleanup log to keep the doc under cap.
 
 Verification:
 - Passed targeted Dart format/analyzer and focused barcode scanner regression.
