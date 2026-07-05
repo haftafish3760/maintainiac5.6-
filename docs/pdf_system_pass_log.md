@@ -1,5 +1,32 @@
 # PDF System Pass Log
 
+## Pass 48 - 2026-07-05 05:48 EDT - Document export package integrity gate
+
+- Scope: shared app document export package planning, proof-file integrity,
+  deterministic manifest JSON, and PDF QA fixture inventory only. No inventory,
+  camera, native capture, receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Added deterministic manifest JSON generation and SHA-256 fingerprints for
+    document export package plans.
+  - Added verified export package file planning that checks read-only proof
+    files before export without modifying source records or proof files.
+  - Blocked missing proof files, `.partial` files, unreadable files, byte-size
+    mismatches, hash mismatches, mutable proofs, and unsupported attachment
+    types before export package creation.
+  - Kept exported package metadata pathless by exposing public attachment IDs,
+    display names, sizes, hashes, and read-only proof state without source
+    filesystem paths.
+  - Added regressions for package determinism, manifest hash, total byte count,
+    file hash verification, tampered proof blocking, partial-file blocking,
+    missing-file blocking, and wrong-size blocking.
+  - Updated the shared PDF fixture inventory for document export package
+    integrity cases.
+- Verification completed 2026-07-05 05:48 EDT:
+  - `dart format lib/shared/documents/app_document_export_manifest.dart test/app_document_export_manifest_test.dart`
+  - `flutter test test/app_document_export_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart test/app_document_export_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 47 - 2026-07-05 05:44 EDT - Document export manifest privacy gate
 
 - Scope: shared app document export metadata, pathless manifest generation,

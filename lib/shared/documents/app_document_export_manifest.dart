@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
@@ -42,6 +43,62 @@ class AppDocumentExportManifest {
       'importedText': importedText,
       'notes': notes,
       'attachments': [for (final attachment in attachments) attachment.toMap()],
+    };
+  }
+}
+
+class AppDocumentExportPackagePlan {
+  const AppDocumentExportPackagePlan({
+    required this.manifest,
+    required this.manifestJson,
+    required this.manifestSha256,
+    required this.files,
+    required this.totalBytes,
+  });
+
+  final AppDocumentExportManifest manifest;
+  final String manifestJson;
+  final String manifestSha256;
+  final List<AppDocumentExportPackageFile> files;
+  final int totalBytes;
+
+  Map<String, Object?> toMap() {
+    return {
+      'manifestSha256': manifestSha256,
+      'totalBytes': totalBytes,
+      'files': [for (final file in files) file.toMap()],
+      'manifest': manifest.toMap(),
+    };
+  }
+}
+
+class AppDocumentExportPackageFile {
+  const AppDocumentExportPackageFile({
+    required this.attachmentId,
+    required this.displayName,
+    required this.path,
+    required this.kind,
+    required this.byteSize,
+    required this.sha256,
+    required this.readOnlyProof,
+  });
+
+  final String attachmentId;
+  final String displayName;
+  final String path;
+  final ReceiptAttachmentKind kind;
+  final int byteSize;
+  final String sha256;
+  final bool readOnlyProof;
+
+  Map<String, Object?> toMap() {
+    return {
+      'attachmentId': attachmentId,
+      'displayName': displayName,
+      'kind': kind.name,
+      'byteSize': byteSize,
+      'sha256': sha256,
+      'readOnlyProof': readOnlyProof,
     };
   }
 }
@@ -119,6 +176,38 @@ class AppDocumentExportReview {
   }
 }
 
+class AppDocumentExportIntegrityIssue {
+  const AppDocumentExportIntegrityIssue({
+    required this.code,
+    required this.attachmentLabel,
+  });
+
+  static const missingFile = 'missing_file';
+  static const partialFile = 'partial_file';
+  static const unreadableFile = 'unreadable_file';
+  static const byteSizeMismatch = 'byte_size_mismatch';
+  static const hashMismatch = 'hash_mismatch';
+  static const mutableProof = 'mutable_proof';
+  static const unsupportedAttachment = 'unsupported_attachment';
+
+  final String code;
+  final String attachmentLabel;
+
+  Map<String, Object?> toMap() {
+    return {'code': code, 'attachmentLabel': attachmentLabel};
+  }
+}
+
+class AppDocumentExportIntegrityException implements Exception {
+  const AppDocumentExportIntegrityException(this.message, this.issues);
+
+  final String message;
+  final List<AppDocumentExportIntegrityIssue> issues;
+
+  @override
+  String toString() => message;
+}
+
 class AppDocumentExportManager {
   const AppDocumentExportManager._();
 
@@ -144,6 +233,179 @@ class AppDocumentExportManager {
     final manifest = review.manifest;
     if (manifest != null) return manifest;
     throw AppDocumentExportBlockedException(review.userMessage, review.issues);
+  }
+
+  static Future<AppDocumentExportPackagePlan> buildPackagePlan(
+    AppDocumentRecord record,
+  ) async {
+    final manifest = requireManifest(record);
+    final files = await _verifiedPackageFiles(record, manifest);
+    final manifestJson = canonicalManifestJson(manifest);
+    final totalBytes = files.fold<int>(
+      utf8.encode(manifestJson).length,
+      (total, file) => total + file.byteSize,
+    );
+    return AppDocumentExportPackagePlan(
+      manifest: manifest,
+      manifestJson: manifestJson,
+      manifestSha256: sha256.convert(utf8.encode(manifestJson)).toString(),
+      files: files,
+      totalBytes: totalBytes,
+    );
+  }
+
+  static String canonicalManifestJson(AppDocumentExportManifest manifest) {
+    return const JsonEncoder.withIndent('  ').convert(manifest.toMap());
+  }
+
+  static Future<List<AppDocumentExportPackageFile>> _verifiedPackageFiles(
+    AppDocumentRecord record,
+    AppDocumentExportManifest manifest,
+  ) async {
+    final issues = <AppDocumentExportIntegrityIssue>[];
+    final files = <AppDocumentExportPackageFile>[];
+    for (var index = 0; index < record.attachments.length; index += 1) {
+      final attachment = record.attachments[index];
+      if (attachment.isImportedText) continue;
+      final manifestAttachment = manifest.attachments[index];
+      final label = manifestAttachment.displayName;
+      final issue = await _verifyPackageFile(
+        attachment,
+        manifestAttachment,
+        label,
+      );
+      if (issue.issue != null) {
+        issues.add(issue.issue!);
+      } else if (issue.file != null) {
+        files.add(issue.file!);
+      }
+    }
+    if (issues.isEmpty) return List.unmodifiable(files);
+    throw AppDocumentExportIntegrityException(
+      _integrityMessage(issues),
+      List.unmodifiable(issues),
+    );
+  }
+
+  static Future<_PackageFileVerification> _verifyPackageFile(
+    ReceiptAttachmentRecord attachment,
+    AppDocumentExportAttachment manifestAttachment,
+    String label,
+  ) async {
+    if (!attachment.isReadOnlyProof) {
+      return _PackageFileVerification.issue(
+        AppDocumentExportIntegrityIssue(
+          code: AppDocumentExportIntegrityIssue.mutableProof,
+          attachmentLabel: label,
+        ),
+      );
+    }
+    if (!attachment.isPdf && !attachment.isPhoto) {
+      return _PackageFileVerification.issue(
+        AppDocumentExportIntegrityIssue(
+          code: AppDocumentExportIntegrityIssue.unsupportedAttachment,
+          attachmentLabel: label,
+        ),
+      );
+    }
+    final sourcePath = attachment.path.trim();
+    if (sourcePath.isEmpty || sourcePath.toLowerCase().endsWith('.partial')) {
+      return _PackageFileVerification.issue(
+        AppDocumentExportIntegrityIssue(
+          code: sourcePath.isEmpty
+              ? AppDocumentExportIntegrityIssue.missingFile
+              : AppDocumentExportIntegrityIssue.partialFile,
+          attachmentLabel: label,
+        ),
+      );
+    }
+    final file = File(sourcePath);
+    FileStat stat;
+    try {
+      stat = await file.stat();
+    } catch (_) {
+      return _PackageFileVerification.issue(
+        AppDocumentExportIntegrityIssue(
+          code: AppDocumentExportIntegrityIssue.missingFile,
+          attachmentLabel: label,
+        ),
+      );
+    }
+    if (stat.type != FileSystemEntityType.file) {
+      return _PackageFileVerification.issue(
+        AppDocumentExportIntegrityIssue(
+          code: AppDocumentExportIntegrityIssue.missingFile,
+          attachmentLabel: label,
+        ),
+      );
+    }
+    final expectedByteSize = attachment.byteSize;
+    if (expectedByteSize != null && expectedByteSize != stat.size) {
+      return _PackageFileVerification.issue(
+        AppDocumentExportIntegrityIssue(
+          code: AppDocumentExportIntegrityIssue.byteSizeMismatch,
+          attachmentLabel: label,
+        ),
+      );
+    }
+    final actualHash = await _safeFileHash(file);
+    if (actualHash.isEmpty) {
+      return _PackageFileVerification.issue(
+        AppDocumentExportIntegrityIssue(
+          code: AppDocumentExportIntegrityIssue.unreadableFile,
+          attachmentLabel: label,
+        ),
+      );
+    }
+    final expectedHash = attachment.fileHash.trim();
+    if (expectedHash.isNotEmpty && expectedHash != actualHash) {
+      return _PackageFileVerification.issue(
+        AppDocumentExportIntegrityIssue(
+          code: AppDocumentExportIntegrityIssue.hashMismatch,
+          attachmentLabel: label,
+        ),
+      );
+    }
+    return _PackageFileVerification.file(
+      AppDocumentExportPackageFile(
+        attachmentId: manifestAttachment.id,
+        displayName: manifestAttachment.displayName,
+        path: file.path,
+        kind: attachment.kind,
+        byteSize: stat.size,
+        sha256: actualHash,
+        readOnlyProof: attachment.isReadOnlyProof,
+      ),
+    );
+  }
+
+  static Future<String> _safeFileHash(File file) async {
+    try {
+      return (await sha256.bind(file.openRead()).first).toString();
+    } catch (_) {
+      return '';
+    }
+  }
+
+  static String _integrityMessage(
+    List<AppDocumentExportIntegrityIssue> issues,
+  ) {
+    if (issues.any(
+      (issue) => issue.code == AppDocumentExportIntegrityIssue.hashMismatch,
+    )) {
+      return 'Maintainiac stopped this document export because a proof file changed after it was saved.';
+    }
+    if (issues.any(
+      (issue) => issue.code == AppDocumentExportIntegrityIssue.byteSizeMismatch,
+    )) {
+      return 'Maintainiac stopped this document export because a proof file size did not match its saved record.';
+    }
+    if (issues.any(
+      (issue) => issue.code == AppDocumentExportIntegrityIssue.partialFile,
+    )) {
+      return 'Maintainiac stopped this document export because a proof file is still being written.';
+    }
+    return 'Maintainiac stopped this document export because one or more proof files could not be verified.';
   }
 
   static AppDocumentExportManifest _manifestFor(AppDocumentRecord record) {
@@ -259,4 +521,21 @@ class AppDocumentExportBlockedException implements Exception {
 
   @override
   String toString() => message;
+}
+
+class _PackageFileVerification {
+  const _PackageFileVerification({this.file, this.issue});
+
+  factory _PackageFileVerification.file(AppDocumentExportPackageFile file) {
+    return _PackageFileVerification(file: file);
+  }
+
+  factory _PackageFileVerification.issue(
+    AppDocumentExportIntegrityIssue issue,
+  ) {
+    return _PackageFileVerification(issue: issue);
+  }
+
+  final AppDocumentExportPackageFile? file;
+  final AppDocumentExportIntegrityIssue? issue;
 }

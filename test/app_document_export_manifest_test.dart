@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/documents/app_document_export_manifest.dart';
 import 'package:maintaniac/shared/documents/app_document_models.dart';
@@ -5,6 +9,20 @@ import 'package:maintaniac/shared/pdf/app_pdf_privacy_policy.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 void main() {
+  late Directory tempDirectory;
+
+  setUp(() async {
+    tempDirectory = await Directory.systemTemp.createTemp(
+      'app_document_export_manifest_test_',
+    );
+  });
+
+  tearDown(() async {
+    if (await tempDirectory.exists()) {
+      await tempDirectory.delete(recursive: true);
+    }
+  });
+
   test('document export manifest is deterministic and pathless', () {
     final record = _documentRecord(
       title: 'Signed customer packet',
@@ -111,6 +129,146 @@ void main() {
       ),
     );
   });
+
+  test('document export package verifies file size and hash', () async {
+    final pdf = File('${tempDirectory.path}/job-packet.pdf');
+    final bytes = utf8.encode('%PDF-1.7\nConfirmed job packet\n%%EOF');
+    await pdf.writeAsBytes(bytes, flush: true);
+    final hash = sha256.convert(bytes).toString();
+    final record = _documentRecord(
+      attachment: _pdfAttachment(
+        path: pdf.path,
+        displayName: 'job-packet.pdf',
+        originalFileName: 'job-packet.pdf',
+        byteSize: bytes.length,
+        fileHash: hash,
+      ),
+    );
+
+    final first = await AppDocumentExportManager.buildPackagePlan(record);
+    final second = await AppDocumentExportManager.buildPackagePlan(record);
+
+    expect(first.manifestJson, second.manifestJson);
+    expect(
+      first.manifestSha256,
+      sha256.convert(utf8.encode(first.manifestJson)).toString(),
+    );
+    expect(first.files.single.byteSize, bytes.length);
+    expect(first.files.single.sha256, hash);
+    expect(first.files.single.path, pdf.path);
+    expect(first.files.single.toMap().toString(), isNot(contains(pdf.path)));
+    expect(
+      first.totalBytes,
+      bytes.length + utf8.encode(first.manifestJson).length,
+    );
+  });
+
+  test('document export package rejects tampered proof hash', () async {
+    final pdf = File('${tempDirectory.path}/tampered.pdf');
+    final bytes = utf8.encode('%PDF-1.7\nOriginal text\n%%EOF');
+    await pdf.writeAsBytes(bytes, flush: true);
+    final record = _documentRecord(
+      attachment: _pdfAttachment(
+        path: pdf.path,
+        displayName: 'tampered.pdf',
+        originalFileName: 'tampered.pdf',
+        byteSize: bytes.length,
+        fileHash: sha256.convert(bytes).toString(),
+      ),
+    );
+    await pdf.writeAsBytes(
+      utf8.encode('%PDF-1.7\nChanged text!\n%%EOF'),
+      flush: true,
+    );
+
+    await expectLater(
+      AppDocumentExportManager.buildPackagePlan(record),
+      throwsA(
+        isA<AppDocumentExportIntegrityException>()
+            .having(
+              (error) => error.issues.map((issue) => issue.code),
+              'issue codes',
+              contains(AppDocumentExportIntegrityIssue.hashMismatch),
+            )
+            .having(
+              (error) => error.message,
+              'message',
+              contains('proof file changed'),
+            ),
+      ),
+    );
+  });
+
+  test('document export package rejects stale partial files', () async {
+    final partial = File('${tempDirectory.path}/job-packet.pdf.partial');
+    final bytes = utf8.encode('%PDF-1.7\nStill writing\n%%EOF');
+    await partial.writeAsBytes(bytes, flush: true);
+
+    await expectLater(
+      AppDocumentExportManager.buildPackagePlan(
+        _documentRecord(
+          attachment: _pdfAttachment(
+            path: partial.path,
+            displayName: 'job-packet.pdf',
+            originalFileName: 'job-packet.pdf',
+            byteSize: bytes.length,
+            fileHash: sha256.convert(bytes).toString(),
+          ),
+        ),
+      ),
+      throwsA(
+        isA<AppDocumentExportIntegrityException>().having(
+          (error) => error.issues.map((issue) => issue.code),
+          'issue codes',
+          contains(AppDocumentExportIntegrityIssue.partialFile),
+        ),
+      ),
+    );
+  });
+
+  test(
+    'document export package rejects missing and wrong-size files',
+    () async {
+      final missing = File('${tempDirectory.path}/missing.pdf');
+      await expectLater(
+        AppDocumentExportManager.buildPackagePlan(
+          _documentRecord(
+            attachment: _pdfAttachment(path: missing.path, byteSize: 12),
+          ),
+        ),
+        throwsA(
+          isA<AppDocumentExportIntegrityException>().having(
+            (error) => error.issues.map((issue) => issue.code),
+            'issue codes',
+            contains(AppDocumentExportIntegrityIssue.missingFile),
+          ),
+        ),
+      );
+
+      final wrongSize = File('${tempDirectory.path}/wrong-size.pdf');
+      await wrongSize.writeAsString('%PDF-1.7\n%%EOF', flush: true);
+      await expectLater(
+        AppDocumentExportManager.buildPackagePlan(
+          _documentRecord(
+            attachment: _pdfAttachment(
+              path: wrongSize.path,
+              byteSize: 999,
+              fileHash: sha256
+                  .convert(await wrongSize.readAsBytes())
+                  .toString(),
+            ),
+          ),
+        ),
+        throwsA(
+          isA<AppDocumentExportIntegrityException>().having(
+            (error) => error.issues.map((issue) => issue.code),
+            'issue codes',
+            contains(AppDocumentExportIntegrityIssue.byteSizeMismatch),
+          ),
+        ),
+      );
+    },
+  );
 }
 
 AppDocumentRecord _documentRecord({
@@ -138,6 +296,8 @@ ReceiptAttachmentRecord _pdfAttachment({
   String displayName = 'job-packet.pdf',
   String originalFileName = 'job-packet.pdf',
   String sourceLabel = '',
+  int? byteSize,
+  String fileHash = 'abc123',
   List<String> documentSignals = const ['invoice', 'job'],
 }) {
   return ReceiptAttachmentRecord(
@@ -149,8 +309,8 @@ ReceiptAttachmentRecord _pdfAttachment({
     displayName: displayName,
     originalFileName: originalFileName,
     mimeType: 'application/pdf',
-    byteSize: 1024,
-    fileHash: 'abc123',
+    byteSize: byteSize ?? 1024,
+    fileHash: fileHash,
     pageCount: 3,
     documentSignals: documentSignals,
     sourceLabel: sourceLabel,
