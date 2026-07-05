@@ -91,6 +91,7 @@ void main() {
             'zoomGestureStartTotal': 2,
             'zoomChangeTotal': 1,
             'zoomUnavailableTotal': 1,
+            'captureReadinessCodeCounts': {'manual_only_quality_review': 1},
             'zoomStatusBuckets': {'zoom_changed': 2, 'camera_unavailable': 1},
             'acceptedPhotoQualityOutcomeCounts': {'needs_review_before_ocr': 1},
             'acceptedPhotoHandoffOutcome': 'needs_review_before_ocr',

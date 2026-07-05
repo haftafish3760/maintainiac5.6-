@@ -163,6 +163,7 @@ const expectedExpenseTelemetryRedactedMapFields = {
   'nativeSettingsContractVersionCounts',
   'nativeControlContractVersionCounts',
   'nativePreCaptureExposureAbortReasonCounts',
+  'nativeCaptureReadinessCodeCounts',
   'nativeZoomStatusCounts',
   'nativeBackDispatchPathCounts',
   'receiptCloudAssistPlanCounts',

@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 891 - 05:30:00 EDT to active cleanup
+
+Scope:
+- Added privacy-safe native capture-readiness code counts and top reason to the
+  Command1/Command Center camera health summary.
+- Wired capture-readiness reason buckets through telemetry snapshots,
+  Firestore sanitizer/parity, and command-summary fixtures.
+- Preserved the no-private-receipt-content contract while improving camera
+  failure visibility for manual-only, waiting, and ready capture states.
+- Recorded `BUG-RECEIPT-0340` under `qa_harness`.
+- Archived Pass 834 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused camera admin telemetry
+  regressions.
+- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+
 ## Pass 890 - 17:17:00 EDT to active cleanup
 
 Scope:
@@ -453,22 +471,5 @@ Scope:
 
 Verification:
 - Passed targeted Dart format/analyzer and focused barcode scanner regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 834 - 11:41:00 EDT to active cleanup
-
-Scope:
-- Set Android native camera focus diagnostics from the effective continuous
-  focus policy after CameraX bind.
-- Pinned configured, unavailable, and not-requested focus-status tokens in the
-  Android native bridge regression so review/admin telemetry does not fall back
-  to `not_used` after autofocus setup.
-- Recorded `BUG-RECEIPT-0314` under `native_bridge`.
-- Archived Pass 789 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused Android native bridge
-  analysis/exposure regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

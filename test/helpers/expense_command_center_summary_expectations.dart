@@ -92,6 +92,10 @@ void expectExpenseCommandCenterSummaryTelemetry(
   expect(snapshot.nativeZoomGestureStartCount, 2);
   expect(snapshot.nativeZoomChangeCount, 1);
   expect(snapshot.nativeZoomUnavailableCount, 1);
+  expect(snapshot.nativeCaptureReadinessCodeCounts, {
+    'manual_only_quality_review': 1,
+  });
+  expect(snapshot.topNativeCaptureReadinessCode, 'manual_only_quality_review');
   expect(snapshot.nativeZoomStatusCounts, {
     'zoom_changed': 2,
     'camera_unavailable': 1,
@@ -364,6 +368,10 @@ void expectExpenseCommandCenterSummaryTelemetry(
   expect(map['nativeZoomGestureStartCount'], 2);
   expect(map['nativeZoomChangeCount'], 1);
   expect(map['nativeZoomUnavailableCount'], 1);
+  expect(map['nativeCaptureReadinessCodeCounts'], {
+    'manual_only_quality_review': 1,
+  });
+  expect(map['topNativeCaptureReadinessCode'], 'manual_only_quality_review');
   expect(map['nativeZoomStatusCounts'], {
     'zoom_changed': 2,
     'camera_unavailable': 1,

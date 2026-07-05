@@ -30,8 +30,11 @@ extension ExpenseTelemetryHealthSnapshotNativeCommandCenterMap
       'nativeZoomGestureStartCount': nativeZoomGestureStartCount,
       'nativeZoomChangeCount': nativeZoomChangeCount,
       'nativeZoomUnavailableCount': nativeZoomUnavailableCount,
+      'nativeCaptureReadinessCodeCounts': nativeCaptureReadinessCodeCounts,
       'nativeZoomStatusCounts': nativeZoomStatusCounts,
       'nativeBackDispatchPathCounts': nativeBackDispatchPathCounts,
+      if (topNativeCaptureReadinessCode.isNotEmpty)
+        'topNativeCaptureReadinessCode': topNativeCaptureReadinessCode,
       if (topNativeZoomStatus.isNotEmpty)
         'topNativeZoomStatus': topNativeZoomStatus,
       if (topNativePreCaptureExposureAbortReason.isNotEmpty)

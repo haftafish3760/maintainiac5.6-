@@ -14,13 +14,22 @@ class _ExpenseTelemetryNativeControlsSummary {
   var zoomChangeCount = 0;
   var zoomUnavailableCount = 0;
 
+  final _captureReadinessCodeCounts = <String, int>{};
   final _zoomStatusCounts = <String, int>{};
   final _backDispatchPathCounts = <String, int>{};
+
+  Map<String, int> get captureReadinessCodeCounts {
+    return Map.unmodifiable(_captureReadinessCodeCounts);
+  }
 
   Map<String, int> get zoomStatusCounts => Map.unmodifiable(_zoomStatusCounts);
 
   Map<String, int> get backDispatchPathCounts =>
       Map.unmodifiable(_backDispatchPathCounts);
+
+  String get topCaptureReadinessCode {
+    return _topCountKey(_captureReadinessCodeCounts);
+  }
 
   String get topZoomStatus => _topCountKey(_zoomStatusCounts);
 
@@ -51,6 +60,14 @@ class _ExpenseTelemetryNativeControlsSummary {
     zoomGestureStartCount += _intValue(metadata['zoomGestureStartTotal']);
     zoomChangeCount += _intValue(metadata['zoomChangeTotal']);
     zoomUnavailableCount += _intValue(metadata['zoomUnavailableTotal']);
+    _mergeCountMap(
+      _captureReadinessCodeCounts,
+      _metadataValue(metadata['captureReadinessCodeCounts']),
+    );
+    _increment(
+      _captureReadinessCodeCounts,
+      _stringValue(metadata['captureReadinessCode']),
+    );
     _mergeCountMap(
       _zoomStatusCounts,
       _metadataValue(metadata['zoomStatusBuckets']),

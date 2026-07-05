@@ -34,6 +34,7 @@ Map<String, Object?> buildExpenseTelemetryCommandCenterOcrStartedMetadata() {
     'zoomGestureStartTotal': 2,
     'zoomChangeTotal': 1,
     'zoomUnavailableTotal': 1,
+    'captureReadinessCodeCounts': {'manual_only_quality_review': 1},
     'zoomStatusBuckets': {'zoom_applied': 1},
     'backDispatchPathBuckets': {'top_bar_back_button': 1},
     'acceptedPhotoQualityOutcomeCounts': {'needs_review_before_ocr': 1},

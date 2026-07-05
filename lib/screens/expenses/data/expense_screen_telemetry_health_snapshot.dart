@@ -80,7 +80,8 @@ class ExpenseTelemetryHealthSnapshot {
     required this.nativeTapFocusControlExpectedCount, required this.nativeContinuousFocusExpectedCount, required this.nativePinchZoomControlExpectedCount, required this.nativeExposureSliderControlExpectedCount,
     required this.nativeExposureResetControlExpectedCount, required this.nativeSettingsControlExpectedCount, required this.nativeBackControlExpectedCount,
     required this.nativeTorchControlExpectedCount, required this.nativeSettingsOpenCount, required this.nativeZoomGestureStartCount, required this.nativeZoomChangeCount,
-    required this.nativeZoomUnavailableCount, required this.nativeZoomStatusCounts, required this.nativeBackDispatchPathCounts, required this.topNativeZoomStatus,
+    required this.nativeZoomUnavailableCount, required this.nativeCaptureReadinessCodeCounts, required this.nativeZoomStatusCounts, required this.nativeBackDispatchPathCounts,
+    required this.topNativeCaptureReadinessCode, required this.topNativeZoomStatus,
     required this.topNativePreCaptureExposureAbortReason, required this.topNativeBackDispatchPath, required this.topNativeCameraEngine,
     required this.topNativeReceiptCameraSurfaceActual, required this.topNativeReceiptCameraSurfaceVerification, required this.topNativeCameraIdentity,
     required this.topNativeSettingsContractVersion, required this.topNativeControlContractVersion, required this.topReceiptCloudAssistPlan, required this.topReceiptLocalOcrMode,
@@ -180,8 +181,9 @@ class ExpenseTelemetryHealthSnapshot {
   final int nativeTapFocusControlExpectedCount, nativeContinuousFocusExpectedCount, nativePinchZoomControlExpectedCount, nativeExposureSliderControlExpectedCount, nativeExposureResetControlExpectedCount;
   final int nativeSettingsControlExpectedCount, nativeBackControlExpectedCount;
   final int nativeTorchControlExpectedCount, nativeSettingsOpenCount, nativeZoomGestureStartCount, nativeZoomChangeCount, nativeZoomUnavailableCount;
-  final Map<String, int> nativeZoomStatusCounts, nativeBackDispatchPathCounts;
-  final String topNativeZoomStatus, topNativePreCaptureExposureAbortReason, topNativeBackDispatchPath, topNativeCameraEngine, topNativeReceiptCameraSurfaceActual, topNativeReceiptCameraSurfaceVerification;
+  final Map<String, int> nativeCaptureReadinessCodeCounts, nativeZoomStatusCounts, nativeBackDispatchPathCounts;
+  final String topNativeCaptureReadinessCode, topNativeZoomStatus, topNativePreCaptureExposureAbortReason, topNativeBackDispatchPath;
+  final String topNativeCameraEngine, topNativeReceiptCameraSurfaceActual, topNativeReceiptCameraSurfaceVerification;
   final String topNativeCameraIdentity, topNativeSettingsContractVersion, topNativeControlContractVersion, topReceiptCloudAssistPlan, topReceiptLocalOcrMode, topReceiptParserDepth;
   final String topReceiptParserPackCode, topReceiptOptionalLocalParserPackCode, topReceiptCloudFallbackParserPackCode, topReceiptParserPackAccuracyBand, topNativeDevicePolicy, topNativeCameraWorkloadTier;
   final String topNativeCameraResolutionTier, topNativeRecoveryResumeStatus, topNativeRecoveryFreshness, topNativeRecoveryStorageStatus, topNativeRecoveryAction;

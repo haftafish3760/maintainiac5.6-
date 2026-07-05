@@ -111,6 +111,7 @@ class _ExpenseTelemetryFirestoreRedactor {
     'nativeSettingsContractVersionCounts',
     'nativeControlContractVersionCounts',
     'nativePreCaptureExposureAbortReasonCounts',
+    'nativeCaptureReadinessCodeCounts',
     'nativeZoomStatusCounts',
     'nativeBackDispatchPathCounts',
     'receiptCloudAssistPlanCounts',

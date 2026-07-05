@@ -383,9 +383,13 @@ extension _ExpenseTelemetryHealthSnapshotAccumulatorSnapshot
       nativeZoomGestureStartCount: nativeControlsSummary.zoomGestureStartCount,
       nativeZoomChangeCount: nativeControlsSummary.zoomChangeCount,
       nativeZoomUnavailableCount: nativeControlsSummary.zoomUnavailableCount,
+      nativeCaptureReadinessCodeCounts:
+          nativeControlsSummary.captureReadinessCodeCounts,
       nativeZoomStatusCounts: nativeControlsSummary.zoomStatusCounts,
       nativeBackDispatchPathCounts:
           nativeControlsSummary.backDispatchPathCounts,
+      topNativeCaptureReadinessCode:
+          nativeControlsSummary.topCaptureReadinessCode,
       topNativeZoomStatus: nativeControlsSummary.topZoomStatus,
       topNativePreCaptureExposureAbortReason: _topCountKey(
         nativePreCaptureExposureAbortReasonCounts,

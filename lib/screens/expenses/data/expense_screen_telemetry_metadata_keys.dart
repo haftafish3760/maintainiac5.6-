@@ -280,6 +280,8 @@ const _expenseTelemetryAllowedMetadataKeys = <String>{
   'backDispatchPathBuckets',
   'pendingCloseAfterCaptureCount',
   'closeResultDeliveredCount',
+  'captureReadinessCode',
+  'captureReadinessCodeCounts',
   'autoCaptureAllowedCount',
   'autoCaptureCurrentlyAllowedCount',
   'storageSafetyLevelBuckets',
