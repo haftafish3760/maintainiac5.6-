@@ -356,4 +356,71 @@ void main() {
       );
     },
   );
+
+  test(
+    'native service drops private diagnostic content before review',
+    () async {
+      const channel = MethodChannel(
+        'maintainiac/receipt_camera_private_diagnostics_test',
+      );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            expect(call.method, 'captureReceipt');
+            return {
+              'originalPhotoPaths': ['/tmp/private-diagnostics.jpg'],
+              'temporaryCaptureIds': ['private-diagnostics'],
+              'capturedAt': '2026-07-05T11:06:00.000Z',
+              'captureDiagnostics': {
+                'captureSurface': 'maintainiac_native_android',
+                'nativeCameraIdentity': 'maintainiac_in_app_receipt_camera',
+                'receiptText': 'PRIVATE STORE TOTAL 51.68',
+                'rawOcrText': 'PRIVATE STORE TOTAL 51.68',
+                'sourcePath': '/tmp/private-diagnostics.jpg',
+                'deviceId': 'abc-private-device',
+                'deviceModel': 'Galaxy S25 Ultra',
+                'nested': {
+                  'safeCount': 1,
+                  'receiptText': 'PRIVATE STORE',
+                  'sourcePath': '/tmp/private.jpg',
+                },
+                'warningLabel': 'TOTAL 51.68',
+              },
+            };
+          });
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null);
+      });
+
+      const capabilities = ReceiptNativeCameraCapabilities(
+        engine: ReceiptNativeCameraEngine.cameraX,
+        available: true,
+        cameraPermissionGranted: true,
+        hasRearCamera: true,
+      );
+      final config = const ReceiptNativeCameraSettings().sessionFor(
+        deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+        nativeCapabilities: capabilities,
+      );
+
+      final result = await ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(config);
+      final diagnostics = result.captureDiagnostics;
+      final encoded = diagnostics.toString().toLowerCase();
+
+      expect(diagnostics['captureSurface'], 'maintainiac_native_android');
+      expect(diagnostics, isNot(contains('receiptText')));
+      expect(diagnostics, isNot(contains('rawOcrText')));
+      expect(diagnostics, isNot(contains('sourcePath')));
+      expect(diagnostics, isNot(contains('deviceId')));
+      expect(diagnostics, isNot(contains('deviceModel')));
+      expect(diagnostics['nested'], {'safeCount': 1});
+      expect(diagnostics, isNot(contains('warningLabel')));
+      expect(encoded, isNot(contains('private store')));
+      expect(encoded, isNot(contains('/tmp/')));
+      expect(encoded, isNot(contains('galaxy')));
+      expect(encoded, isNot(contains('51.68')));
+    },
+  );
 }

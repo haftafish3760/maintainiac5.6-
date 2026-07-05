@@ -3,6 +3,20 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 899 - 07:23:00 EDT to active cleanup
+
+Scope:
+- Hardened the native camera diagnostics sanitizer before review handoff.
+- Dropped private-looking diagnostic keys and path/receipt-text/device evidence
+  returned by Android or iOS native capture.
+- Added a native service regression proving raw receipt text, paths, device IDs,
+  and device models do not reach review diagnostics.
+- Recorded `BUG-RECEIPT-0348` under `privacy_redaction`.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused native camera result rejection
+  regression, and diff whitespace gate.
+
 ## Pass 898 - 07:08:00 EDT to active cleanup
 
 Scope:
