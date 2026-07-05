@@ -1,5 +1,31 @@
 # PDF System Pass Log
 
+## Pass 47 - 2026-07-05 05:44 EDT - Document export manifest privacy gate
+
+- Scope: shared app document export metadata, pathless manifest generation,
+  privacy blocking, and PDF QA gate wiring only. No inventory, camera, native
+  capture, receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Added `AppDocumentExportManager` as a shared export-manager foundation for
+    app-wide read-only document records.
+  - Added deterministic, pathless document export manifests that expose public
+    document and attachment IDs instead of app-internal record IDs or source
+    file paths.
+  - Reused shared PDF privacy policy checks so document exports block private
+    metadata, private attachment labels/signals, unconfirmed OCR suggestions,
+    VINs, patient/passenger data, payment fragments, private paths, and
+    internal IDs before a manifest is produced.
+  - Added regression coverage for deterministic manifests, private metadata
+    blocking, attachment-signal blocking, path stripping, public IDs, and typed
+    blocked-export failures.
+  - Wired document export manifest coverage into the shared PDF quality gate,
+    gate contract, and PDF fixture inventory.
+- Verification completed 2026-07-05 05:44 EDT:
+  - `dart format lib/shared/documents/app_document_export_manifest.dart test/app_document_export_manifest_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `flutter test test/app_document_export_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart test/app_document_export_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 46 - 2026-07-05 05:39 EDT - Generated PDF archive recovery hardening
 
 - Scope: generated PDF permanent archive storage, recovery cleanup, final
