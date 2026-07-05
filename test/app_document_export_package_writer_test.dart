@@ -460,6 +460,95 @@ void main() {
     );
   });
 
+  test('document export package share plan is verified and pathless', () async {
+    final proof = await _writeProof(
+      tempDirectory,
+      name: 'job-packet.pdf',
+      bytes: utf8.encode('%PDF-1.7\nShare plan proof\n%%EOF'),
+    );
+    final result = await AppDocumentExportPackageWriter().writeZipPackage(
+      record: _documentRecord(
+        attachment: _pdfAttachment(
+          path: proof.path,
+          byteSize: await proof.length(),
+          fileHash: await _fileHash(proof),
+        ),
+      ),
+      outputDirectory: Directory('${tempDirectory.path}/exports'),
+      freeStorageReader: () async => 500,
+    );
+
+    final sharePlan = await AppDocumentExportPackageWriter.buildSharePlan(
+      File(result.filePath),
+      appName: ' Maintainiac \n Documents ',
+    );
+
+    expect(sharePlan.filePath, result.filePath);
+    expect(sharePlan.fileName, result.fileName);
+    expect(sharePlan.mimeType, 'application/zip');
+    expect(
+      sharePlan.subject,
+      startsWith('Maintainiac Documents document export'),
+    );
+    expect(sharePlan.message, contains('Document type: jobContractorDocument'));
+    expect(sharePlan.message, contains('Files: 1'));
+    expect(sharePlan.message, contains(sharePlan.sha256));
+    expect(sharePlan.sha256, result.sha256);
+    expect(sharePlan.manifestSha256, result.manifestSha256);
+    expect(sharePlan.fileEntries, ['job-packet.pdf']);
+    expect(sharePlan.toMap().toString(), isNot(contains(tempDirectory.path)));
+    expect(sharePlan.toMap().toString(), isNot(contains('filePath')));
+  });
+
+  test('document export package share plan refuses tampered package', () async {
+    final proof = await _writeProof(
+      tempDirectory,
+      name: 'job-packet.pdf',
+      bytes: utf8.encode('%PDF-1.7\nShare tamper proof\n%%EOF'),
+    );
+    final result = await AppDocumentExportPackageWriter().writeZipPackage(
+      record: _documentRecord(
+        attachment: _pdfAttachment(
+          path: proof.path,
+          byteSize: await proof.length(),
+          fileHash: await _fileHash(proof),
+        ),
+      ),
+      outputDirectory: Directory('${tempDirectory.path}/exports'),
+      freeStorageReader: () async => 500,
+    );
+    final archive = ZipDecoder().decodeBytes(
+      await File(result.filePath).readAsBytes(),
+    );
+    final tampered = Archive();
+    for (final entry in archive.files) {
+      tampered.addFile(
+        ArchiveFile.bytes(
+          entry.name,
+          entry.name == 'job-packet.pdf'
+              ? utf8.encode('%PDF-1.7\nChanged before share\n%%EOF')
+              : entry.readBytes()!,
+        ),
+      );
+    }
+    final tamperedFile = File('${tempDirectory.path}/share-tampered.zip');
+    await tamperedFile.writeAsBytes(
+      ZipEncoder().encode(tampered, modified: DateTime.utc(2026)),
+      flush: true,
+    );
+
+    await expectLater(
+      AppDocumentExportPackageWriter.buildSharePlan(tamperedFile),
+      throwsA(
+        isA<AppDocumentExportPackageException>().having(
+          (error) => error.message,
+          'message',
+          contains('file verification failed'),
+        ),
+      ),
+    );
+  });
+
   test('document export package reader blocks directory entries', () async {
     final directoryArchive = Archive()
       ..addFile(ArchiveFile.directory('proofs'));

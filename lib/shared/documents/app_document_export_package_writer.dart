@@ -84,12 +84,56 @@ class AppDocumentExportPackageReadResult {
   }
 }
 
+class AppDocumentExportPackageSharePlan {
+  const AppDocumentExportPackageSharePlan({
+    required this.filePath,
+    required this.fileName,
+    required this.mimeType,
+    required this.subject,
+    required this.message,
+    required this.byteSize,
+    required this.sha256,
+    required this.manifestSha256,
+    required this.documentId,
+    required this.kindName,
+    required this.fileEntries,
+  });
+
+  final String filePath;
+  final String fileName;
+  final String mimeType;
+  final String subject;
+  final String message;
+  final int byteSize;
+  final String sha256;
+  final String manifestSha256;
+  final String documentId;
+  final String kindName;
+  final List<String> fileEntries;
+
+  Map<String, Object?> toMap() {
+    return {
+      'fileName': fileName,
+      'mimeType': mimeType,
+      'subject': subject,
+      'message': message,
+      'byteSize': byteSize,
+      'sha256': sha256,
+      'manifestSha256': manifestSha256,
+      'documentId': documentId,
+      'kindName': kindName,
+      'fileEntries': fileEntries,
+    };
+  }
+}
+
 class AppDocumentExportPackageWriter {
   const AppDocumentExportPackageWriter({this.zipBytesBuilder});
 
   static const String manifestEntryName = 'maintainiac_document_manifest.json';
   static const String packageIndexEntryName =
       'maintainiac_document_package_index.json';
+  static const String packageMimeType = 'application/zip';
   static const int maxReadablePackageBytes = 500 * 1024 * 1024;
   static const int maxPackageEntries = 200;
   static const int maxPackageMetadataEntryBytes = 2 * 1024 * 1024;
@@ -320,6 +364,41 @@ class AppDocumentExportPackageWriter {
       fileEntries: List.unmodifiable(fileEntries),
       totalProofBytes: totalProofBytes,
     );
+  }
+
+  static Future<AppDocumentExportPackageSharePlan> buildSharePlan(
+    File packageFile, {
+    String appName = 'Maintainiac',
+  }) async {
+    final readResult = await readZipPackage(packageFile);
+    final cleanAppName = _cleanShareText(appName).isEmpty
+        ? 'Maintainiac'
+        : _cleanShareText(appName);
+    return AppDocumentExportPackageSharePlan(
+      filePath: packageFile.path,
+      fileName: readResult.fileName,
+      mimeType: packageMimeType,
+      subject:
+          '$cleanAppName document export ${readResult.manifestSha256.substring(0, 12)}',
+      message:
+          '$cleanAppName document export package. '
+          'Document type: ${readResult.kindName}. '
+          'Files: ${readResult.fileEntries.length}. '
+          'Package SHA-256: ${readResult.sha256}.',
+      byteSize: readResult.byteSize,
+      sha256: readResult.sha256,
+      manifestSha256: readResult.manifestSha256,
+      documentId: readResult.documentId,
+      kindName: readResult.kindName,
+      fileEntries: readResult.fileEntries,
+    );
+  }
+
+  static String _cleanShareText(String value) {
+    return value
+        .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
   }
 
   static void _verifyEntryBudget(

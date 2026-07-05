@@ -1,5 +1,31 @@
 # PDF System Pass Log
 
+## Pass 56 - 2026-07-05 06:17 EDT - Document export package share plan
+
+- Scope: shared app document export package share-plan preparation, pre-share
+  readback validation, and PDF QA fixture inventory only. No inventory, camera,
+  native capture, receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Added a verified share plan for document export ZIP packages with MIME
+    type, subject, message, byte count, package hash, manifest hash, document
+    kind, document ID, and verified file entries.
+  - Routed share-plan creation through package readback so malformed, unsafe,
+    oversized, partial, missing-index, or tampered packages are refused before
+    a caller opens the platform share sheet.
+  - Kept share-plan public metadata pathless while preserving the internal file
+    path only for the eventual platform share call.
+  - Normalized app-name text used in the share subject/message to avoid control
+    characters and unstable whitespace.
+  - Added regressions for verified share metadata, pathless share-plan maps,
+    MIME type, subject/message content, and tampered package refusal.
+  - Updated the shared PDF fixture inventory for document package share-plan
+    coverage.
+- Verification completed 2026-07-05 06:17 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart test/app_document_export_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_manifest_test.dart test/app_document_export_package_writer_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 55 - 2026-07-05 06:14 EDT - Document export package zip-bomb guard
 
 - Scope: shared app document export package readback budgets, unsupported ZIP

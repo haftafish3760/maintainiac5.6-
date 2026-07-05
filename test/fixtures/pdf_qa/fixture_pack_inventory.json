@@ -111,7 +111,9 @@
         "document_export_zip_package_write",
         "document_export_zip_package_determinism",
         "document_export_zip_package_duplicate_names",
-        "document_export_zip_package_readback"
+        "document_export_zip_package_readback",
+        "document_export_zip_package_share_plan",
+        "document_export_zip_package_share_tamper_block"
       ]
     },
     "storage_cleanup": {
