@@ -148,6 +148,8 @@ class AppGeneratedPdfValidationReport {
         document.safeFileName,
         document.shareSubject,
         document.shareText,
+        document.sourceModule,
+        document.sourceRecordId,
       ],
     );
   }
@@ -169,6 +171,12 @@ class AppGeneratedPdfValidationReport {
     }
     if (!_hasPdfEndMarker(bytes)) {
       issues.add('missing_pdf_end_marker');
+    }
+    if (AppPdfSecurityPolicy.containsPdfName(
+      latin1.decode(bytes, allowInvalid: true),
+      'encrypt',
+    )) {
+      issues.add('encrypted_pdf');
     }
     issues.addAll(AppPdfSecurityPolicy.activeContentIssueCodesForBytes(bytes));
     issues.addAll(

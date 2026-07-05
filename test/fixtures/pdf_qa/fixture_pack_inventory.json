@@ -149,9 +149,13 @@
         "valid_3_page",
         "stale_generated_pdf_partial_cleanup",
         "fresh_generated_pdf_partial_reservation",
+        "temporary_generated_pdf_stale_partial_cleanup",
+        "temporary_generated_pdf_fresh_partial_preservation",
         "generated_pdf_destination_hash_verification",
+        "generated_pdf_share_partial_block",
         "generated_pdf_save_failure_rollback",
         "generated_pdf_replacement_cleanup",
+        "generated_pdf_nested_folder_cleanup_preservation",
         "document_export_zip_package_rollback",
         "document_export_zip_package_stale_partial_cleanup",
         "document_export_zip_package_fresh_partial_preservation",
@@ -208,6 +212,7 @@
         "broken_flate_stream",
         "private_text_redaction_probe",
         "generated_pdf_unsafe_filename_sanitization",
+        "generated_pdf_source_metadata_private_block",
         "document_export_private_metadata_block",
         "document_export_private_attachment_block",
         "document_export_unconfirmed_ocr_block",
@@ -215,7 +220,10 @@
         "document_export_wrong_size_block",
         "document_export_partial_file_block",
         "document_export_active_pdf_block",
-        "document_export_private_pdf_block"
+        "document_export_private_pdf_block",
+        "generated_pdf_archive_private_label_block",
+        "generated_pdf_archive_human_label_privacy",
+        "generated_pdf_encrypted_output_block"
       ]
     },
     "pdf_to_receipt_review": {
@@ -250,6 +258,7 @@
         "long_unbroken_text",
         "decimal_refund_overpayment",
         "template_matrix",
+        "portrait_landscape_page_formats",
         "pagination_boundaries",
         "private_invoice_export_block",
         "invoice_text_layer_export_verifier",

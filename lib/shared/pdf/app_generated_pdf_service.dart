@@ -22,6 +22,8 @@ class AppGeneratedPdfException implements Exception {
 class AppGeneratedPdfService {
   const AppGeneratedPdfService();
 
+  static const stalePartialAge = Duration(hours: 12);
+
   Future<AppGeneratedPdfFile> writeTemporary(
     AppGeneratedPdfDocument document,
   ) async {
@@ -29,6 +31,7 @@ class AppGeneratedPdfService {
     await _ensureStorage(document);
     final directory = await _generatedPdfDirectory();
     await _createDirectory(directory);
+    await _deleteStalePartialFiles(directory, now: DateTime.now());
     final destination = await _availableDestination(directory, document);
     final partial = File('${destination.path}.partial');
     try {
@@ -76,6 +79,11 @@ class AppGeneratedPdfService {
   ) async {
     _ensureSendablePdf(generated.document);
     final file = File(generated.path);
+    if (file.path.toLowerCase().endsWith('.partial')) {
+      throw const AppGeneratedPdfException(
+        'Maintainiac stopped this PDF because the prepared file is still being written.',
+      );
+    }
     if (!await file.exists()) {
       throw const AppGeneratedPdfException(
         'Maintainiac could not find that prepared PDF. Please create it again.',
@@ -116,7 +124,7 @@ class AppGeneratedPdfService {
     final directory = await _generatedPdfDirectory();
     if (!await directory.exists()) return;
     final cutoff = (now ?? DateTime.now()).subtract(olderThan);
-    await for (final entity in directory.list(recursive: true)) {
+    await for (final entity in directory.list(followLinks: false)) {
       if (entity is! File) continue;
       if (!_isGeneratedPdfCleanupTarget(entity)) continue;
       try {
@@ -184,5 +192,27 @@ class AppGeneratedPdfService {
   bool _isGeneratedPdfCleanupTarget(File file) {
     final name = path.basename(file.path).toLowerCase();
     return name.endsWith('.pdf') || name.endsWith('.pdf.partial');
+  }
+
+  Future<int> _deleteStalePartialFiles(
+    Directory directory, {
+    required DateTime now,
+    Duration olderThan = stalePartialAge,
+  }) async {
+    if (!await directory.exists()) return 0;
+    var deleted = 0;
+    await for (final entity in directory.list(followLinks: false)) {
+      if (entity is! File) continue;
+      if (!entity.path.toLowerCase().endsWith('.pdf.partial')) continue;
+      try {
+        final modified = await entity.lastModified();
+        if (now.difference(modified) < olderThan) continue;
+        await entity.delete();
+        deleted += 1;
+      } catch (_) {
+        continue;
+      }
+    }
+    return deleted;
   }
 }

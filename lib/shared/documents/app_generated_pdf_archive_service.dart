@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../pdf/app_generated_pdf_models.dart';
 import '../pdf/app_generated_pdf_storage.dart';
+import '../pdf/app_pdf_privacy_policy.dart';
 import '../storage/app_storage_guard.dart';
 import '../widgets/receipt_capture/receipt_capture_models.dart';
 import 'app_document_models.dart';
@@ -25,6 +26,7 @@ class AppGeneratedPdfArchiveService {
     String notes = '',
   }) async {
     final documentKind = kind ?? _kindForGeneratedPdf(document.kind);
+    _ensureSafeArchiveMetadata(title: title, notes: notes);
     final savedFile = await _writePermanentPdf(document, documentKind);
     final byteSize = await _safeLength(savedFile);
     var fileHash = await _safeHash(savedFile);
@@ -165,6 +167,20 @@ class AppGeneratedPdfArchiveService {
     final validation = document.validation;
     if (validation.isValid) return;
     throw AppGeneratedPdfArchiveException(validation.userMessage);
+  }
+
+  static void _ensureSafeArchiveMetadata({
+    required String title,
+    required String notes,
+  }) {
+    final issues = AppPdfPrivacyPolicy.issueCodesForExport(
+      bytes: const [],
+      metadata: [title, notes],
+    );
+    if (issues.isEmpty) return;
+    throw const AppGeneratedPdfArchiveException(
+      'Maintainiac stopped this PDF record because its title or notes may contain private information.',
+    );
   }
 
   static Future<void> _createDirectory(Directory directory) async {

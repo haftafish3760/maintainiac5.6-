@@ -1,5 +1,131 @@
 # PDF System Pass Log
 
+## Milestone - 2026-07-05 09:15 EDT - Passes 71-77 storage and orientation hardening
+
+- Scope: PDF/Document Engine only. No inventory, camera, native capture, OCR
+  engine, or parser behavior changes.
+- Bundled work:
+  - Hardened generated PDF temp cleanup, stale partial recovery, partial share
+    blocking, encrypted output blocking, and source metadata privacy.
+  - Added shared PDF page sizing for portrait and landscape output.
+  - Fixed landscape invoice PDF output to use true horizontal pages.
+  - Blocked private archive labels before permanent generated PDF writes.
+- Verification completed 2026-07-05 09:15 EDT:
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 77 - 2026-07-05 09:13 EDT - Generated PDF archive label privacy
+
+- Scope: generated PDF archive metadata privacy only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Blocked private data in custom generated PDF archive titles and notes before
+    permanent file writes.
+  - Added regression coverage proving blocked archive labels leave no record or
+    file behind.
+  - Added coverage proving source record metadata stays linked internally
+    without leaking into human-facing document labels.
+  - Added archive label privacy cases to the PDF QA registry.
+- Verification completed 2026-07-05 09:14 EDT:
+  - `dart format lib/shared/documents/app_generated_pdf_archive_service.dart test/app_generated_pdf_archive_recovery_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_generated_pdf_archive_recovery_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_generated_pdf_archive_service.dart test/app_generated_pdf_archive_recovery_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 76 - 2026-07-05 09:11 EDT - Document page orientation support
+
+- Scope: shared Document Engine page sizing and invoice PDF orientation only.
+  No inventory, camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added a shared PDF page spec for letter, legal, A4, portrait, and
+    landscape output.
+  - Moved invoice page sizing through the shared page spec instead of hardcoded
+    letter pages.
+  - Fixed the landscape invoice template so it emits true horizontal PDF pages.
+  - Added regression coverage that reads PDF MediaBox values for vertical and
+    horizontal documents.
+  - Added portrait/landscape page format coverage to the PDF QA registry.
+- Verification completed 2026-07-05 09:12 EDT:
+  - `dart format lib/shared/pdf/app_pdf_page_spec.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/invoice_document_engine_layout_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_pdf_page_spec.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 75 - 2026-07-05 09:08 EDT - Generated PDF source metadata privacy
+
+- Scope: generated PDF validation privacy and PDF QA fixture inventory only.
+  No inventory, camera, native capture, receipt parser, or OCR engine behavior
+  changes.
+- Bundled work:
+  - Included generated PDF source module and source record ID in validation
+    privacy checks.
+  - Blocked generated PDFs whose source metadata contains private identifiers
+    such as VINs before write, share, print, or archive.
+  - Added regression coverage and fixture inventory tracking.
+- Verification completed 2026-07-05 09:12 EDT:
+  - `dart format lib/shared/pdf/app_generated_pdf_models.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_models.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 74 - 2026-07-05 09:06 EDT - Generated PDF encryption block
+
+- Scope: generated PDF validation and PDF QA fixture inventory only. No
+  inventory, camera, native capture, receipt parser, or OCR engine behavior
+  changes.
+- Bundled work:
+  - Blocked generated PDFs that contain an `/Encrypt` marker.
+  - Kept encrypted generated output in the unsupported-output failure path
+    before write, share, print, or archive.
+  - Added regression coverage and fixture inventory tracking.
+- Verification completed 2026-07-05 09:06 EDT:
+  - `dart format lib/shared/pdf/app_generated_pdf_models.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_models.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 73 - 2026-07-05 09:05 EDT - Generated PDF share partial guard
+
+- Scope: generated temporary PDF share preflight and PDF QA fixture inventory
+  only. No inventory, camera, native capture, receipt parser, or OCR engine
+  behavior changes.
+- Bundled work:
+  - Blocked sharing `.partial` generated PDF paths even if their bytes and hash
+    match the generated document.
+  - Kept the failure user-safe and pathless.
+  - Added regression coverage and fixture inventory tracking.
+- Verification completed 2026-07-05 09:05 EDT:
+  - `dart format lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 72 - 2026-07-05 09:04 EDT - Temporary generated PDF partial recovery
+
+- Scope: generated temporary PDF storage recovery and PDF QA fixture inventory
+  only. No inventory, camera, native capture, receipt parser, or OCR engine
+  behavior changes.
+- Bundled work:
+  - Added stale `.pdf.partial` cleanup before temporary generated PDF writes.
+  - Cleared stale partials that block the requested generated PDF filename.
+  - Preserved fresh partials and wrote to a copy filename instead.
+  - Kept cleanup non-recursive so nested support/customer files are not swept.
+  - Added regression coverage and fixture inventory tracking.
+- Verification completed 2026-07-05 09:04 EDT:
+  - `dart format lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 71 - 2026-07-05 09:02 EDT - Generated PDF cleanup scope
+
+- Scope: generated temporary PDF cleanup hardening and PDF QA fixture inventory
+  only. No inventory, camera, native capture, receipt parser, or OCR engine
+  behavior changes.
+- Bundled work:
+  - Stopped temporary generated-PDF cleanup from recursing into nested folders.
+  - Preserved nested support/customer files even when they look like stale PDF
+    or `.pdf.partial` files.
+  - Kept direct generated PDF and direct partial cleanup behavior unchanged.
+  - Added regression coverage and fixture inventory tracking.
+- Verification completed 2026-07-05 09:02 EDT:
+  - `dart format lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
 ## Pass 70 - 2026-07-05 08:58 EDT - Generated package index total verification
 
 - Scope: generated document export package index verification and PDF QA

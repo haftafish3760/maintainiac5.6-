@@ -198,6 +198,57 @@ void main() {
   });
 
   test(
+    'archive refuses private custom title and notes before permanent write',
+    () async {
+      final store = AppDocumentStore.memory();
+      await expectLater(
+        AppGeneratedPdfArchiveService(store: store).archive(
+          _document(
+            fileName: 'private-title.pdf',
+            sourceRecordId: 'private_title',
+          ),
+          title: 'Invoice for VIN 1HGCM82633A004352',
+        ),
+        throwsA(
+          isA<AppGeneratedPdfArchiveException>().having(
+            (error) => error.message,
+            'message',
+            contains('private information'),
+          ),
+        ),
+      );
+      await expectLater(
+        AppGeneratedPdfArchiveService(store: store).archive(
+          _document(
+            fileName: 'private-note.pdf',
+            sourceRecordId: 'private_note',
+          ),
+          notes: 'Passenger name: Jane Customer',
+        ),
+        throwsA(isA<AppGeneratedPdfArchiveException>()),
+      );
+
+      expect(store.records, isEmpty);
+      expect(_filesUnder(documentsDirectory), isEmpty);
+    },
+  );
+
+  test('archive keeps source metadata out of human document labels', () async {
+    final store = AppDocumentStore.memory();
+    final archived = await AppGeneratedPdfArchiveService(store: store).archive(
+      _document(fileName: 'metadata-safe.pdf', sourceRecordId: 'metadata_safe'),
+      title: 'Customer invoice',
+      notes: 'Generated from confirmed invoice data.',
+    );
+
+    expect(archived.document.title, 'Customer invoice');
+    expect(archived.document.notes, 'Generated from confirmed invoice data.');
+    expect(archived.document.title, isNot(contains('metadata_safe')));
+    expect(archived.document.notes, isNot(contains('metadata_safe')));
+    expect(archived.attachment.linkedRecordId, 'metadata_safe');
+  });
+
+  test(
     'archive recovery source keeps final verification and stale cleanup',
     () {
       final source = File(
@@ -208,6 +259,8 @@ void main() {
       expect(source, contains('_deleteStalePartialFiles'));
       expect(source, contains("endsWith('.pdf.partial')"));
       expect(source, contains('_verifyPermanentWrite(destination, document)'));
+      expect(source, contains('_ensureSafeArchiveMetadata'));
+      expect(source, contains('AppPdfPrivacyPolicy.issueCodesForExport'));
       expect(source, contains("throw const FileSystemException("));
       expect(source, contains("'Generated PDF final file was incomplete.'"));
       expect(source, contains("'Generated PDF final file did not verify.'"));

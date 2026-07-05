@@ -10,6 +10,7 @@ import 'package:maintaniac/screens/invoices/data/invoice_pdf_template_renderer.d
 import 'package:maintaniac/screens/invoices/data/invoice_record.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_template_catalog.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
+import 'package:maintaniac/shared/pdf/app_pdf_page_spec.dart';
 import 'package:maintaniac/shared/pdf/app_pdf_privacy_policy.dart';
 import 'package:maintaniac/shared/pdf/app_pdf_text_decoder.dart';
 
@@ -140,6 +141,58 @@ void main() {
       );
     }
   });
+
+  test(
+    'invoice Document Engine supports portrait and landscape page formats',
+    () async {
+      expect(
+        AppPdfPageSpec.letterPortrait.width,
+        lessThan(AppPdfPageSpec.letterPortrait.height),
+      );
+      expect(
+        AppPdfPageSpec.letterLandscape.width,
+        greaterThan(AppPdfPageSpec.letterLandscape.height),
+      );
+      expect(
+        AppPdfPageSpec.letterLandscape.rotated().key,
+        AppPdfPageSpec.letterPortrait.key,
+      );
+
+      final renderer = const InvoicePdfTemplateRenderer();
+      final record =
+          InvoiceDocumentEngineFixtureFactory.missingOptionalFields();
+      final portraitBytes = await renderer.buildRecordDocumentBytes(
+        record: record.copyWith(templateId: 'structured-logo'),
+        template: InvoiceTemplateCatalog.byId('structured-logo'),
+      );
+      final landscapeBytes = await renderer.buildRecordDocumentBytes(
+        record: record.copyWith(templateId: 'landscaping-garden-artwork-v1'),
+        template: InvoiceTemplateCatalog.byId('landscaping-garden-artwork-v1'),
+      );
+
+      final portraitBoxes = _mediaBoxes(portraitBytes);
+      final landscapeBoxes = _mediaBoxes(landscapeBytes);
+
+      expect(portraitBoxes, isNotEmpty);
+      expect(landscapeBoxes, isNotEmpty);
+      expect(
+        portraitBoxes.every((box) => box.isPortrait),
+        isTrue,
+        reason: 'structured-logo must stay vertical for normal invoices',
+      );
+      expect(
+        landscapeBoxes.every((box) => box.isLandscape),
+        isTrue,
+        reason: 'landscaping artwork must generate horizontal PDF pages',
+      );
+      expect(
+        AppGeneratedPdfValidationReport.inspect(
+          Uint8List.fromList(landscapeBytes),
+        ).isValid,
+        isTrue,
+      );
+    },
+  );
 
   test(
     'invoice Document Engine never exports private vehicle or passenger data',
@@ -380,4 +433,31 @@ class _InvoiceRenderFixture {
   final InvoiceRecord record;
   final String templateId;
   final int minimumPages;
+}
+
+List<_MediaBox> _mediaBoxes(List<int> bytes) {
+  final raw = latin1.decode(bytes, allowInvalid: true);
+  final pattern = RegExp(
+    r'/MediaBox\s*\[\s*0\s+0\s+([0-9.]+)\s+([0-9.]+)\s*\]',
+  );
+  return pattern
+      .allMatches(raw)
+      .map(
+        (match) => _MediaBox(
+          width: double.parse(match.group(1)!),
+          height: double.parse(match.group(2)!),
+        ),
+      )
+      .toList(growable: false);
+}
+
+class _MediaBox {
+  const _MediaBox({required this.width, required this.height});
+
+  final double width;
+  final double height;
+
+  bool get isPortrait => height > width;
+
+  bool get isLandscape => width > height;
 }

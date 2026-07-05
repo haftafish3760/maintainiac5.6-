@@ -207,6 +207,62 @@ void main() {
     expect(destination!.path, endsWith('invoice-copy-3.pdf'));
   });
 
+  test(
+    'generated PDF service clears stale partial blocking filename',
+    () async {
+      final document = AppGeneratedPdfDocument(
+        kind: AppGeneratedPdfKind.invoice,
+        title: 'Invoice',
+        fileName: 'invoice.pdf',
+        bytes: Uint8List.fromList('%PDF-1.7\nInvoice\n%%EOF'.codeUnits),
+        createdAt: DateTime(2026, 7, 5),
+      );
+      final directory = Directory(
+        '${temporaryDirectory.path}/maintainiac_generated_pdfs',
+      );
+      await directory.create(recursive: true);
+      final stalePartial = File('${directory.path}/invoice.pdf.partial');
+      await stalePartial.writeAsString('stale', flush: true);
+      await stalePartial.setLastModified(DateTime(2020, 1, 1));
+
+      final generated = await const AppGeneratedPdfService().writeTemporary(
+        document,
+      );
+
+      expect(await stalePartial.exists(), isFalse);
+      expect(generated.path, endsWith('/invoice.pdf'));
+      expect(await File(generated.path).exists(), isTrue);
+    },
+  );
+
+  test(
+    'generated PDF service preserves fresh partial and writes copy',
+    () async {
+      final document = AppGeneratedPdfDocument(
+        kind: AppGeneratedPdfKind.invoice,
+        title: 'Invoice',
+        fileName: 'invoice.pdf',
+        bytes: Uint8List.fromList('%PDF-1.7\nInvoice\n%%EOF'.codeUnits),
+        createdAt: DateTime(2026, 7, 5),
+      );
+      final directory = Directory(
+        '${temporaryDirectory.path}/maintainiac_generated_pdfs',
+      );
+      await directory.create(recursive: true);
+      final freshPartial = File('${directory.path}/invoice.pdf.partial');
+      await freshPartial.writeAsString('fresh', flush: true);
+      await freshPartial.setLastModified(DateTime.now());
+
+      final generated = await const AppGeneratedPdfService().writeTemporary(
+        document,
+      );
+
+      expect(await freshPartial.exists(), isTrue);
+      expect(generated.path, endsWith('/invoice-copy-2.pdf'));
+      expect(await File(generated.path).exists(), isTrue);
+    },
+  );
+
   test('generated PDF service verifies temporary byte count before rename', () {
     final source = File(
       'lib/shared/pdf/app_generated_pdf_service.dart',
@@ -228,6 +284,8 @@ void main() {
       contains("FileSystemException('Generated PDF write was incomplete.')"),
     );
     expect(source, contains('await partial.rename(destination.path);'));
+    expect(source, contains('_deleteStalePartialFiles'));
+    expect(source, contains('stalePartialAge'));
   });
 
   test('generated PDF share refuses same-size tampered files', () async {
@@ -257,6 +315,35 @@ void main() {
           (error) => error.message,
           'message',
           contains('did not verify'),
+        ),
+      ),
+    );
+  });
+
+  test('generated PDF share refuses partial files', () async {
+    final document = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList('%PDF-1.7\nTotal 12.34\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 4),
+    );
+    final partial = File('${temporaryDirectory.path}/invoice.pdf.partial');
+    await partial.writeAsBytes(document.bytes, flush: true);
+
+    await expectLater(
+      const AppGeneratedPdfService().shareGeneratedFile(
+        AppGeneratedPdfFile(
+          document: document,
+          path: partial.path,
+          byteSize: document.byteSize,
+        ),
+      ),
+      throwsA(
+        isA<AppGeneratedPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('still being written'),
         ),
       ),
     );
@@ -311,6 +398,41 @@ void main() {
     expect(invalid.validation.hasIssue('missing_pdf_end_marker'), isTrue);
     expect(active.validation.isValid, isFalse);
     expect(active.validation.hasIssue('active_javascript'), isTrue);
+  });
+
+  test('generated PDF validation rejects encrypted PDF bytes', () {
+    final encrypted = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\n'
+                '1 0 obj << /Encrypt 2 0 R >> endobj\n'
+                '%%EOF'
+            .codeUnits,
+      ),
+      createdAt: DateTime(2026, 7, 5),
+    );
+
+    expect(encrypted.validation.isValid, isFalse);
+    expect(encrypted.validation.hasIssue('encrypted_pdf'), isTrue);
+    expect(encrypted.validation.userMessage, contains('unsupported'));
+  });
+
+  test('generated PDF validation checks source metadata privacy', () {
+    final privateSource = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList('%PDF-1.7\nInvoice\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 5),
+      sourceModule: 'invoices',
+      sourceRecordId: 'VIN 1HGCM82633A004352',
+    );
+
+    expect(privateSource.validation.isValid, isFalse);
+    expect(privateSource.validation.hasIssue('private_vin'), isTrue);
+    expect(privateSource.validation.userMessage, contains('private'));
   });
 
   test('generated PDF validation shares active-content policy coverage', () {
@@ -415,6 +537,35 @@ void main() {
     expect(await oldPartial.exists(), isFalse);
     expect(await keepText.exists(), isTrue);
     expect(await keepImage.exists(), isTrue);
+  });
+
+  test('generated PDF cleanup does not recurse into nested folders', () async {
+    final document = await const InvoicePdfPreviewFactory()
+        .buildEstimatePreview();
+    final generated = await const AppGeneratedPdfService().writeTemporary(
+      document,
+    );
+    final generatedDirectory = File(generated.path).parent;
+    final nestedDirectory = Directory('${generatedDirectory.path}/support');
+    await nestedDirectory.create(recursive: true);
+    final nestedPdf = File('${nestedDirectory.path}/customer-proof.pdf');
+    final nestedPartial = File(
+      '${nestedDirectory.path}/customer-proof.pdf.partial',
+    );
+    final oldStamp = DateTime(2026, 6, 1);
+
+    await nestedPdf.writeAsString('%PDF-1.7\nNested proof\n%%EOF', flush: true);
+    await nestedPartial.writeAsString('nested partial', flush: true);
+    await nestedPdf.setLastModified(oldStamp);
+    await nestedPartial.setLastModified(oldStamp);
+
+    await const AppGeneratedPdfService().cleanOldGeneratedFiles(
+      olderThan: Duration(days: 7),
+      now: DateTime(2026, 6, 15),
+    );
+
+    expect(await nestedPdf.exists(), isTrue);
+    expect(await nestedPartial.exists(), isTrue);
   });
 
   test('generated invoice PDF archives as a permanent app document', () async {

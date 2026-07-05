@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import '../../../shared/pdf/app_pdf_determinism.dart';
 import '../../../shared/pdf/app_pdf_formatters.dart';
+import '../../../shared/pdf/app_pdf_page_spec.dart';
 import '../../../shared/pdf/app_pdf_typography.dart';
 import 'invoice_ledger_models.dart';
 import 'invoice_pdf_export_verifier.dart';
@@ -49,9 +50,10 @@ class InvoicePdfTemplateRenderer {
     final pdfTheme = await AppPdfTypography.loadTheme();
     for (var index = 0; index < chunks.length; index++) {
       final page = chunks[index];
+      final pageSpec = _pageSpecForTemplate(template);
       pdf.addPage(
         pw.Page(
-          pageFormat: PdfPageFormat.letter,
+          pageFormat: pageSpec.format,
           theme: pdfTheme,
           margin: pw.EdgeInsets.zero,
           build: (context) => pw.Stack(
@@ -1055,7 +1057,14 @@ pw.Widget _singleLine(String value, {pw.TextStyle? style}) {
 }
 
 bool _usesLandscapeArtwork(InvoiceTemplateDefinition template) {
-  return template.id == 'landscaping-garden-artwork-v1';
+  return _pageSpecForTemplate(template).isLandscape;
+}
+
+AppPdfPageSpec _pageSpecForTemplate(InvoiceTemplateDefinition template) {
+  if (template.id == 'landscaping-garden-artwork-v1') {
+    return AppPdfPageSpec.letterLandscape;
+  }
+  return AppPdfPageSpec.letterPortrait;
 }
 
 class _InvoiceTemplateArtwork {
