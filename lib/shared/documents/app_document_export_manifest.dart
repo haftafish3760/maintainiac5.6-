@@ -196,6 +196,7 @@ class AppDocumentExportIntegrityIssue {
   static const byteSizeMismatch = 'byte_size_mismatch';
   static const hashMismatch = 'hash_mismatch';
   static const mutableProof = 'mutable_proof';
+  static const symlinkProof = 'symlink_proof';
   static const unsupportedAttachment = 'unsupported_attachment';
   static const unsafePdfContent = 'unsafe_pdf_content';
   static const privatePdfContent = 'private_pdf_content';
@@ -391,6 +392,26 @@ class AppDocumentExportManager {
     final file = File(sourcePath);
     FileStat stat;
     try {
+      final entityType = await FileSystemEntity.type(
+        sourcePath,
+        followLinks: false,
+      );
+      if (entityType == FileSystemEntityType.link) {
+        return _PackageFileVerification.issue(
+          AppDocumentExportIntegrityIssue(
+            code: AppDocumentExportIntegrityIssue.symlinkProof,
+            attachmentLabel: label,
+          ),
+        );
+      }
+      if (entityType != FileSystemEntityType.file) {
+        return _PackageFileVerification.issue(
+          AppDocumentExportIntegrityIssue(
+            code: AppDocumentExportIntegrityIssue.missingFile,
+            attachmentLabel: label,
+          ),
+        );
+      }
       stat = await file.stat();
     } catch (_) {
       return _PackageFileVerification.issue(
@@ -514,6 +535,11 @@ class AppDocumentExportManager {
       (issue) => issue.code == AppDocumentExportIntegrityIssue.partialFile,
     )) {
       return 'Maintainiac stopped this document export because a proof file is still being written.';
+    }
+    if (issues.any(
+      (issue) => issue.code == AppDocumentExportIntegrityIssue.symlinkProof,
+    )) {
+      return 'Maintainiac stopped this document export because a proof file is a storage link instead of a verified app-owned file.';
     }
     if (issues.any(
       (issue) => issue.code == AppDocumentExportIntegrityIssue.unsafePdfContent,

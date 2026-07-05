@@ -1,5 +1,23 @@
 # PDF System Pass Log
 
+## Pass 118 - 2026-07-05 11:28 EDT - Document export proof symlink block
+
+- Scope: document export package proof verification only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Rejected symlinked PDF proof files before hashing, byte-size checks,
+    active-content checks, or privacy scans can follow the linked target.
+  - Rejected symlinked photo proof files before export package planning.
+  - Added PDF and photo proof symlink regression cases to the PDF QA fixture
+    registry.
+  - Confirmed shared receipt flow and portrait/landscape requirements are
+    already covered in the Document Engine directive and QA registry.
+- Verification completed 2026-07-05 11:28 EDT:
+  - `flutter test test/app_document_export_manifest_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart test/app_document_export_manifest_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+  - `flutter test test/pdf_qa_fixture_inventory_test.dart -r compact`
+
 ## Pass 117 - 2026-07-05 11:23 EDT - Generated PDF archive symlink cleanup
 
 - Scope: permanent generated PDF archive cleanup safety only. No inventory,

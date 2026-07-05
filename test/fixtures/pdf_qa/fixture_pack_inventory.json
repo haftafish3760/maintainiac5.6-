@@ -198,7 +198,9 @@
         "document_export_zip_package_partial_symlink_cleanup",
         "document_export_zip_package_symlinked_output_directory_block",
         "document_export_zip_package_symlinked_package_file_block",
-        "document_export_zip_package_symlinked_import_root_block"
+        "document_export_zip_package_symlinked_import_root_block",
+        "document_export_symlinked_pdf_proof_block",
+        "document_export_symlinked_photo_proof_block"
       ]
     },
     "privacy_and_security_logs": {
@@ -234,6 +236,8 @@
         "document_export_tampered_hash_block",
         "document_export_wrong_size_block",
         "document_export_partial_file_block",
+        "document_export_symlinked_pdf_proof_block",
+        "document_export_symlinked_photo_proof_block",
         "document_export_active_pdf_block",
         "document_export_private_pdf_block",
         "document_export_dangerous_proof_entry_extension_strip",

@@ -235,6 +235,82 @@ void main() {
   });
 
   test(
+    'document export package rejects symlinked PDF proof files',
+    () async {
+      final outsidePdf = File('${tempDirectory.path}/outside-proof.pdf');
+      final bytes = utf8.encode('%PDF-1.7\nOutside proof\n%%EOF');
+      await outsidePdf.writeAsBytes(bytes, flush: true);
+      final proofLink = Link('${tempDirectory.path}/linked-proof.pdf');
+      await proofLink.create(outsidePdf.path);
+
+      await expectLater(
+        AppDocumentExportManager.buildPackagePlan(
+          _documentRecord(
+            attachment: _pdfAttachment(
+              path: proofLink.path,
+              displayName: 'linked-proof.pdf',
+              originalFileName: 'linked-proof.pdf',
+              byteSize: bytes.length,
+              fileHash: sha256.convert(bytes).toString(),
+            ),
+          ),
+        ),
+        throwsA(
+          isA<AppDocumentExportIntegrityException>()
+              .having(
+                (error) => error.issues.map((issue) => issue.code),
+                'issue codes',
+                contains(AppDocumentExportIntegrityIssue.symlinkProof),
+              )
+              .having(
+                (error) => error.message,
+                'message',
+                contains('storage link'),
+              ),
+        ),
+      );
+
+      expect(await proofLink.exists(), isTrue);
+      expect(await outsidePdf.exists(), isTrue);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
+    'document export package rejects symlinked photo proof files',
+    () async {
+      final outsidePhoto = File('${tempDirectory.path}/outside-photo.jpg');
+      final bytes = List<int>.generate(256, (index) => index % 251);
+      await outsidePhoto.writeAsBytes(bytes, flush: true);
+      final photoLink = Link('${tempDirectory.path}/linked-photo.jpg');
+      await photoLink.create(outsidePhoto.path);
+
+      await expectLater(
+        AppDocumentExportManager.buildPackagePlan(
+          _documentRecord(
+            attachment: _photoAttachment(
+              path: photoLink.path,
+              byteSize: bytes.length,
+              fileHash: sha256.convert(bytes).toString(),
+            ),
+          ),
+        ),
+        throwsA(
+          isA<AppDocumentExportIntegrityException>().having(
+            (error) => error.issues.map((issue) => issue.code),
+            'issue codes',
+            contains(AppDocumentExportIntegrityIssue.symlinkProof),
+          ),
+        ),
+      );
+
+      expect(await photoLink.exists(), isTrue);
+      expect(await outsidePhoto.exists(), isTrue);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
     'document export package rejects missing and wrong-size files',
     () async {
       final missing = File('${tempDirectory.path}/missing.pdf');
