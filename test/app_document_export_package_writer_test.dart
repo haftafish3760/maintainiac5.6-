@@ -648,6 +648,227 @@ void main() {
     },
   );
 
+  test('document export package extraction is verified and pathless', () async {
+    final pdf = await _writeProof(
+      tempDirectory,
+      name: 'invoice-proof.pdf',
+      bytes: utf8.encode('%PDF-1.7\nExtract invoice proof\n%%EOF'),
+    );
+    final photo = await _writeProof(
+      tempDirectory,
+      name: 'receipt-photo.jpg',
+      bytes: List<int>.generate(128, (index) => (index * 7) % 251),
+    );
+    final result = await AppDocumentExportPackageWriter().writeZipPackage(
+      record: _documentRecord(
+        attachments: [
+          _pdfAttachment(
+            id: 'invoice',
+            path: pdf.path,
+            displayName: 'invoice-proof.pdf',
+            byteSize: await pdf.length(),
+            fileHash: await _fileHash(pdf),
+          ),
+          _photoAttachment(
+            id: 'receipt',
+            path: photo.path,
+            displayName: 'receipt-photo.jpg',
+            byteSize: await photo.length(),
+            fileHash: await _fileHash(photo),
+          ),
+        ],
+      ),
+      outputDirectory: Directory('${tempDirectory.path}/exports'),
+      freeStorageReader: () async => 500,
+    );
+    final extraction = await AppDocumentExportPackageWriter.extractZipPackage(
+      File(result.filePath),
+      outputDirectory: Directory('${tempDirectory.path}/imports'),
+    );
+    final extractedDirectory = Directory(
+      '${tempDirectory.path}/imports/${extraction.directoryName}',
+    );
+
+    expect(await extractedDirectory.exists(), isTrue);
+    expect(extraction.fileEntries, [
+      'maintainiac_document_manifest.json',
+      'maintainiac_document_package_index.json',
+      'invoice-proof.pdf',
+      'receipt-photo.jpg',
+    ]);
+    expect(extraction.packageFileName, result.fileName);
+    expect(extraction.packageSha256, result.sha256);
+    expect(extraction.manifestSha256, result.manifestSha256);
+    expect(extraction.kindName, 'jobContractorDocument');
+    expect(
+      extraction.totalBytes,
+      greaterThan(await pdf.length() + await photo.length()),
+    );
+    expect(extraction.toMap().toString(), isNot(contains(tempDirectory.path)));
+    expect(
+      await _fileHash(File('${extractedDirectory.path}/invoice-proof.pdf')),
+      await _fileHash(pdf),
+    );
+    expect(
+      await _fileHash(File('${extractedDirectory.path}/receipt-photo.jpg')),
+      await _fileHash(photo),
+    );
+    expect(
+      await File(
+        '${extractedDirectory.path}/maintainiac_document_manifest.json',
+      ).readAsString(),
+      contains('"documentId": "${extraction.documentId}"'),
+    );
+  });
+
+  test(
+    'document export package extraction refuses tampering before writing',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nExtract tamper proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final archive = ZipDecoder().decodeBytes(
+        await File(result.filePath).readAsBytes(),
+      );
+      final tampered = Archive();
+      for (final entry in archive.files) {
+        tampered.addFile(
+          ArchiveFile.bytes(
+            entry.name,
+            entry.name == 'job-packet.pdf'
+                ? utf8.encode('%PDF-1.7\nChanged before extract\n%%EOF')
+                : entry.readBytes()!,
+          ),
+        );
+      }
+      final tamperedFile = File('${tempDirectory.path}/extract-tampered.zip');
+      await tamperedFile.writeAsBytes(
+        ZipEncoder().encode(tampered, modified: DateTime.utc(2026)),
+        flush: true,
+      );
+      final importDirectory = Directory('${tempDirectory.path}/imports');
+
+      await expectLater(
+        AppDocumentExportPackageWriter.extractZipPackage(
+          tamperedFile,
+          outputDirectory: importDirectory,
+        ),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('file verification failed'),
+          ),
+        ),
+      );
+
+      expect(await importDirectory.exists(), isFalse);
+      expect(await tamperedFile.exists(), isTrue);
+    },
+  );
+
+  test(
+    'document export package extraction preserves source on folder failures',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nExtract rollback proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final importDirectory = Directory('${tempDirectory.path}/imports');
+      final blockingFile = File(importDirectory.path);
+      await blockingFile.writeAsString('not a directory', flush: true);
+
+      await expectLater(
+        AppDocumentExportPackageWriter.extractZipPackage(
+          File(result.filePath),
+          outputDirectory: importDirectory,
+        ),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('could not prepare'),
+          ),
+        ),
+      );
+
+      expect(await blockingFile.exists(), isTrue);
+      expect(
+        await Directory(
+          '${importDirectory.path}/'
+          'maintainiac-document-export-${result.manifestSha256.substring(0, 12)}',
+        ).exists(),
+        isFalse,
+      );
+      expect(await File(result.filePath).exists(), isTrue);
+      expect(await proof.exists(), isTrue);
+    },
+  );
+
+  test('document export package extraction writes copy directories', () async {
+    final proof = await _writeProof(
+      tempDirectory,
+      name: 'job-packet.pdf',
+      bytes: utf8.encode('%PDF-1.7\nExtract copy proof\n%%EOF'),
+    );
+    final result = await AppDocumentExportPackageWriter().writeZipPackage(
+      record: _documentRecord(
+        attachment: _pdfAttachment(
+          path: proof.path,
+          byteSize: await proof.length(),
+          fileHash: await _fileHash(proof),
+        ),
+      ),
+      outputDirectory: Directory('${tempDirectory.path}/exports'),
+      freeStorageReader: () async => 500,
+    );
+    final importDirectory = Directory('${tempDirectory.path}/imports');
+
+    final first = await AppDocumentExportPackageWriter.extractZipPackage(
+      File(result.filePath),
+      outputDirectory: importDirectory,
+    );
+    final second = await AppDocumentExportPackageWriter.extractZipPackage(
+      File(result.filePath),
+      outputDirectory: importDirectory,
+    );
+
+    expect(first.directoryName, startsWith('maintainiac-document-export-'));
+    expect(second.directoryName, '${first.directoryName}-copy-2');
+    expect(
+      await File(
+        '${importDirectory.path}/${second.directoryName}/job-packet.pdf',
+      ).exists(),
+      isTrue,
+    );
+    expect(await File(result.filePath).exists(), isTrue);
+  });
+
   test('document export package reader blocks directory entries', () async {
     final directoryArchive = Archive()
       ..addFile(ArchiveFile.directory('proofs'));

@@ -130,6 +130,41 @@ class AppDocumentExportPackageSharePlan {
   }
 }
 
+class AppDocumentExportPackageExtractResult {
+  const AppDocumentExportPackageExtractResult({
+    required this.directoryName,
+    required this.packageFileName,
+    required this.packageSha256,
+    required this.manifestSha256,
+    required this.documentId,
+    required this.kindName,
+    required this.fileEntries,
+    required this.totalBytes,
+  });
+
+  final String directoryName;
+  final String packageFileName;
+  final String packageSha256;
+  final String manifestSha256;
+  final String documentId;
+  final String kindName;
+  final List<String> fileEntries;
+  final int totalBytes;
+
+  Map<String, Object?> toMap() {
+    return {
+      'directoryName': directoryName,
+      'packageFileName': packageFileName,
+      'packageSha256': packageSha256,
+      'manifestSha256': manifestSha256,
+      'documentId': documentId,
+      'kindName': kindName,
+      'fileEntries': fileEntries,
+      'totalBytes': totalBytes,
+    };
+  }
+}
+
 class AppDocumentExportPackageWriter {
   const AppDocumentExportPackageWriter({
     this.zipBytesBuilder,
@@ -410,6 +445,76 @@ class AppDocumentExportPackageWriter {
     return invoker(plan);
   }
 
+  static Future<AppDocumentExportPackageExtractResult> extractZipPackage(
+    File packageFile, {
+    required Directory outputDirectory,
+  }) async {
+    final readResult = await readZipPackage(packageFile);
+    await _createDirectory(outputDirectory);
+
+    final packageBytes = await packageFile.readAsBytes();
+    final entries = _entryMap(ZipDecoder().decodeBytes(packageBytes));
+    _verifyReadableEntryNames(entries.keys);
+    final index = _decodeIndex(
+      _requiredTextEntry(entries, packageIndexEntryName),
+    );
+    final files = _fileIndexList(index);
+    final extractionDirectory = await _extractionDirectory(
+      outputDirectory,
+      readResult,
+    );
+    final partialDirectory = Directory('${extractionDirectory.path}.partial');
+    final extractedEntryNames = <String>[
+      manifestEntryName,
+      packageIndexEntryName,
+      for (final file in files) _stringValue(file, 'packageEntryName'),
+    ];
+    var totalBytes = 0;
+
+    try {
+      await _deleteDirectoryIfExists(partialDirectory);
+      await partialDirectory.create(recursive: true);
+      for (final entryName in extractedEntryNames) {
+        _verifyExtractionEntryName(entryName);
+        final entryBytes = entries[entryName]?.readBytes();
+        if (entryBytes == null) {
+          throw const AppDocumentExportPackageException(
+            'Document export package is missing a verified file.',
+          );
+        }
+        final destination = _extractedDestinationFile(
+          partialDirectory,
+          entryName,
+        );
+        final partialFile = File('${destination.path}.partial');
+        await _writeVerifiedExtractionFile(
+          partialFile: partialFile,
+          destination: destination,
+          expectedBytes: entryBytes,
+        );
+        totalBytes += entryBytes.length;
+      }
+      await partialDirectory.rename(extractionDirectory.path);
+      return AppDocumentExportPackageExtractResult(
+        directoryName: path.basename(extractionDirectory.path),
+        packageFileName: readResult.fileName,
+        packageSha256: readResult.sha256,
+        manifestSha256: readResult.manifestSha256,
+        documentId: readResult.documentId,
+        kindName: readResult.kindName,
+        fileEntries: List.unmodifiable(extractedEntryNames),
+        totalBytes: totalBytes,
+      );
+    } catch (_) {
+      await _deleteDirectoryIfExists(partialDirectory);
+      await _deleteDirectoryIfExists(extractionDirectory);
+      throw const AppDocumentExportPackageException(
+        'Maintainiac could not extract this document export package. '
+        'The original package was preserved.',
+      );
+    }
+  }
+
   static Future<ShareResultStatus> _shareWithPlatform(
     AppDocumentExportPackageSharePlan plan,
   ) async {
@@ -541,6 +646,7 @@ class AppDocumentExportPackageWriter {
           name.startsWith('/') ||
           name.startsWith('\\') ||
           name.contains('..') ||
+          name.contains('/') ||
           name.contains(RegExp(r'[\\:*?"<>|]')) ||
           name.contains(RegExp(r'[\x00-\x1F\x7F]'))) {
         throw const AppDocumentExportPackageException(
@@ -709,6 +815,64 @@ class AppDocumentExportPackageWriter {
     return candidate;
   }
 
+  static Future<Directory> _extractionDirectory(
+    Directory outputDirectory,
+    AppDocumentExportPackageReadResult readResult,
+  ) async {
+    final baseName =
+        'maintainiac-document-export-${readResult.manifestSha256.substring(0, 12)}';
+    var candidate = Directory('${outputDirectory.path}/$baseName');
+    var index = 2;
+    while (await candidate.exists() ||
+        await Directory('${candidate.path}.partial').exists()) {
+      candidate = Directory('${outputDirectory.path}/$baseName-copy-$index');
+      index += 1;
+    }
+    return candidate;
+  }
+
+  static void _verifyExtractionEntryName(String entryName) {
+    if (entryName.isEmpty ||
+        path.basename(entryName) != entryName ||
+        entryName.endsWith('.partial')) {
+      throw const AppDocumentExportPackageException(
+        'Document export package contains an unsafe file name.',
+      );
+    }
+  }
+
+  static File _extractedDestinationFile(
+    Directory extractionDirectory,
+    String entryName,
+  ) {
+    final basePath = path.normalize(extractionDirectory.absolute.path);
+    final destinationPath = path.normalize(
+      path.join(extractionDirectory.absolute.path, entryName),
+    );
+    if (destinationPath != path.join(basePath, path.basename(entryName))) {
+      throw const AppDocumentExportPackageException(
+        'Document export package contains an unsafe file name.',
+      );
+    }
+    return File(destinationPath);
+  }
+
+  static Future<void> _writeVerifiedExtractionFile({
+    required File partialFile,
+    required File destination,
+    required List<int> expectedBytes,
+  }) async {
+    if (await destination.exists() || await partialFile.exists()) {
+      throw const AppDocumentExportPackageException(
+        'Document export package extraction would overwrite a file.',
+      );
+    }
+    await partialFile.writeAsBytes(expectedBytes, flush: true);
+    await _verifyWrittenFile(partialFile, expectedBytes);
+    await partialFile.rename(destination.path);
+    await _verifyWrittenFile(destination, expectedBytes);
+  }
+
   static Future<void> _createDirectory(Directory directory) async {
     try {
       await directory.create(recursive: true);
@@ -723,6 +887,18 @@ class AppDocumentExportPackageWriter {
     try {
       if (await file.exists()) {
         await file.delete();
+      }
+    } catch (_) {
+      throw const AppDocumentExportPackageException(
+        'Maintainiac could not clean up a failed document export package.',
+      );
+    }
+  }
+
+  static Future<void> _deleteDirectoryIfExists(Directory directory) async {
+    try {
+      if (await directory.exists()) {
+        await directory.delete(recursive: true);
       }
     } catch (_) {
       throw const AppDocumentExportPackageException(
