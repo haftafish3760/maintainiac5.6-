@@ -1,5 +1,20 @@
 # PDF System Pass Log
 
+## Pass 123 - 2026-07-05 11:46 EDT - Receipt proof source copy verification
+
+- Scope: receipt proof source copy verification only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Verified receipt proof source files without following links before copy.
+  - Captured expected source byte count and hash before copy, then rechecked the
+    source after copy before promoting the partial file.
+  - Blocked source files that changed or became unsafe during the copy window.
+  - Added receipt proof copy source reread coverage to the QA registry.
+- Verification completed 2026-07-05 11:46 EDT:
+  - `flutter test test/receipt_proof_storage_hardening_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/widgets/receipt_capture/receipt_proof_storage_copy.dart test/receipt_proof_storage_hardening_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 122 - 2026-07-05 11:41 EDT - Generated PDF share reread hardening
 
 - Scope: temporary generated PDF share verification only. No inventory,

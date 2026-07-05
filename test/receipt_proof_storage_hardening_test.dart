@@ -266,6 +266,28 @@ void main() {
     skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
   );
 
+  test('receipt proof copy rechecks source without following links', () {
+    final source = File(
+      'lib/shared/widgets/receipt_capture/receipt_proof_storage_copy.dart',
+    ).readAsStringSync();
+
+    expect(
+      source,
+      contains('await _ensureRegularFileForStorage(source, message);'),
+    );
+    expect(
+      source,
+      contains('final expectedSourceBytes = await _safeLength(source);'),
+    );
+    expect(
+      source,
+      contains('final expectedSourceHash = await _safeHash(source);'),
+    );
+    expect(source, contains('await source.copy(temp.path);'));
+    expect(source, contains('sourceBytes != expectedSourceBytes'));
+    expect(source, contains('sourceHash != expectedSourceHash'));
+  });
+
   test(
     'discarding staged proof symlink deletes link without target',
     () async {
