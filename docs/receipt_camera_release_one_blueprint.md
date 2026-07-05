@@ -7,6 +7,35 @@ must consume this system later instead of pulling the camera work off course.
 Use `docs/receipt_camera_completion_map.md` for evidence-based progress and
 pass forecasts. Do not estimate remaining passes from memory or hunches.
 
+## Active Operating Goal
+
+Finish the Maintainiac shared receipt capture workflow, not a standalone camera
+app. The phone's native camera stack does the heavy camera work. Maintainiac
+adds the receipt workflow around it: launch, permissions, manual shutter, torch,
+receipt framing guidance, long-receipt continuation, review, retake, stitch or
+ordered fallback, and OCR-source handoff.
+
+The current release-track pass forecast lives in
+`docs/receipt_camera_completion_map.md`: **400-550 focused receipt workflow
+passes**, with **450** as the working anchor. Do not revive older oversized
+camera-app estimates unless new evidence changes the completion map.
+
+### Required Controls
+
+- Manual shutter.
+- Torch/flash button when the device supports it.
+- Brightness/readability guidance that helps the user get a usable receipt
+  photo.
+- Settings for camera guidance and capture assistance.
+
+### Optional/Future Controls
+
+- Manual focus assist may be considered only as a deliberate reversible control
+  after device-capability proof. It is not a release-one blocker.
+- Screen-preview tap focus remains off limits.
+- ISO, RAW, pro white balance, exposure lock, and similar pro-camera controls
+  are not part of this receipt workflow.
+
 ## Release-One Target
 
 The goal is an 80-90% solid release-one receipt camera system that can keep
@@ -281,22 +310,24 @@ Evidence needed:
 
 ## Pass Budget
 
-The practical release-one target is about 1,500-2,500 additional focused camera
-passes from the reset point, with roughly 2,000 as the planning anchor. This is
-not a guarantee and not a hard cap. Stop earlier if the evidence proves release
-readiness; continue longer if real receipt/device testing exposes important
-failure families.
+Use `docs/receipt_camera_completion_map.md` as the source of truth for pass
+budgeting. The current practical release-track target is **400-550 focused
+receipt workflow passes**, with **450** as the working anchor.
 
 Budget by lane:
 
-- Lane A blueprint/audit: 25-75 passes.
-- Lane B capture shell: 200-350 passes.
-- Lane C single receipt quality: 250-400 passes.
-- Lane D multi-segment flow: 250-450 passes.
-- Lane E ghost/overlap guidance: 200-350 passes.
-- Lane F stitching/artifacts: 250-450 passes.
-- Lane G device/storage safety: 150-300 passes.
-- Lane H real receipt QA: 300-500 passes before release, then ongoing.
+- Lane A blueprint/audit: 10-25 passes.
+- Lane B capture shell: 50-80 passes.
+- Lane C single receipt quality: 55-85 passes.
+- Lane D multi-segment flow: 70-100 passes.
+- Lane E ghost/overlap guidance: 55-85 passes.
+- Lane F stitching/artifacts: 80-120 passes.
+- Lane G device/storage safety: 35-60 passes.
+- Lane H real receipt QA: 45-80 passes before release, then ongoing.
+
+Stop earlier if the evidence proves release readiness. Continue longer only
+when real receipt/device testing exposes important camera-workflow failure
+families.
 
 ## Pass Discipline
 

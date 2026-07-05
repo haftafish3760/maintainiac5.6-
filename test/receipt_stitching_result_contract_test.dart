@@ -141,6 +141,10 @@ void main() {
       'Manual overlap was outside the safe range',
     );
     expect(
+      fallback('manual_order_review').userFallbackReasonLabel,
+      'Receipt section order needs review',
+    );
+    expect(
       fallback('overlap_confidence_low').userFallbackReasonLabel,
       'Overlap was not clear enough',
     );
@@ -153,6 +157,37 @@ void main() {
       'Stitching hit a safe fallback',
     );
   });
+
+  test(
+    'stitch fallback reason codes normalize without leaking private text',
+    () {
+      final noisy = ReceiptStitchResult.fallback(
+        inputPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+        warning: 'Fallback for test.',
+        fallbackReasonCode: ' OVERLAP confidence LOW ',
+      );
+      final privateLooking = ReceiptStitchResult.fallback(
+        inputPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+        warning: 'Fallback for test.',
+        fallbackReasonCode: 'merchant total 42.18 private line text',
+      );
+
+      expect(noisy.diagnosticReasonLabel, 'overlap_confidence_low');
+      expect(
+        noisy.ocrHandoffSafetyCode,
+        'ordered_sections_after_overlap_confidence_low_fallback',
+      );
+      expect(privateLooking.diagnosticReasonLabel, 'unknown');
+      expect(
+        privateLooking.privacySafeOcrHandoffSafety.toString(),
+        isNot(contains('merchant total')),
+      );
+      expect(
+        privateLooking.ocrHandoffSafetyCode,
+        'ordered_sections_after_unknown_fallback',
+      );
+    },
+  );
 
   test('stitch result can be rebound to final OCR artifact paths', () {
     const preview = ReceiptStitchResult(

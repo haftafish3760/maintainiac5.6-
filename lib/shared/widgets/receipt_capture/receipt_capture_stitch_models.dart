@@ -117,7 +117,7 @@ class ReceiptStitchResult {
 
   String get diagnosticReasonLabel {
     if (!usedFallback) return status.name;
-    return fallbackReasonCode.trim().isEmpty ? 'unknown' : fallbackReasonCode;
+    return _safeStitchFallbackReasonCode(fallbackReasonCode);
   }
 
   String get userFallbackReasonLabel {
@@ -126,6 +126,7 @@ class ReceiptStitchResult {
       'decode_failed' => 'One photo could not be read',
       'manual_overlap_unsafe' => 'Manual overlap was outside the safe range',
       'duplicate_input_paths' => 'Duplicate receipt section photo',
+      'manual_order_review' => 'Receipt section order needs review',
       'overlap_confidence_low' => 'Overlap was not clear enough',
       'output_too_large' => 'Receipt is too long for this device',
       'stitch_exception' => 'Stitching hit a safe fallback',
@@ -333,4 +334,23 @@ class ReceiptStitchResult {
       fallbackReasonCode: fallbackReasonCode,
     );
   }
+}
+
+String _safeStitchFallbackReasonCode(String value) {
+  final token = value
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_|_$'), '');
+  return switch (token) {
+    'decode_failed' ||
+    'manual_overlap_unsafe' ||
+    'duplicate_input_paths' ||
+    'manual_order_review' ||
+    'overlap_confidence_low' ||
+    'output_too_large' ||
+    'stitch_exception' => token,
+    _ => 'unknown',
+  };
 }

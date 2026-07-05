@@ -26,5 +26,10 @@ void main() {
 
     expect(blueprint, contains('docs/receipt_camera_completion_map.md'));
     expect(blueprint, contains('Do not estimate remaining passes'));
+    expect(blueprint, contains('400-550 focused'));
+    expect(blueprint, contains('receipt workflow passes'));
+    expect(blueprint, contains('450'));
+    expect(blueprint, isNot(contains('1,500-2,500')));
+    expect(blueprint, isNot(contains('4,000-pass camera-app')));
   });
 }
