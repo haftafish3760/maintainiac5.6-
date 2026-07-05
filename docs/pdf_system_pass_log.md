@@ -1,5 +1,24 @@
 # PDF System Pass Log
 
+## Pass 114 - 2026-07-05 11:10 EDT - Receipt proof storage symlink hardening
+
+- Scope: receipt PDF proof storage safety only. No inventory, camera, native
+  capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Blocked PDF proof staging into symlinked app storage directories.
+  - Refused symlink source files for receipt proof storage copies.
+  - Cleaned staged/orphan proof symlinks without deleting their external
+    targets.
+  - Reserved destination and partial filenames using no-follow filesystem
+    checks.
+  - Added the storage hardening suite to the full PDF quality gate and fixture
+    registry.
+- Verification completed 2026-07-05 11:10 EDT:
+  - `dart format lib/shared/widgets/receipt_capture/receipt_proof_storage.dart test/receipt_proof_storage_hardening_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `flutter test test/receipt_proof_storage_hardening_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/widgets/receipt_capture/receipt_proof_storage.dart test/receipt_proof_storage_hardening_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 113 - 2026-07-05 11:28 EDT - PDF paper format coverage
 
 - Scope: shared PDF page-size and orientation behavior only. No inventory,

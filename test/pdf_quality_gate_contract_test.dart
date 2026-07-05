@@ -125,6 +125,10 @@ void main() {
       expect(script, contains('test/invoice_pdf_money_precision_test.dart'));
       expect(script, contains('test/pdf_formatters_contract_test.dart'));
       expect(script, contains('test/pdf_health_diagnostics_test.dart'));
+      expect(
+        script,
+        contains('test/receipt_proof_storage_hardening_test.dart'),
+      );
       expect(script, contains('test/receipt_pdf_torture_test.dart'));
       expect(script, contains('test/receipt_pdf_torture_storage_test.dart'));
       expect(script, isNot(contains('service_pdf_security_test.dart')));

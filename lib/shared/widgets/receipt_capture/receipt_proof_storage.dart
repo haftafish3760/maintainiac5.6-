@@ -41,6 +41,10 @@ class ReceiptProofStorage {
     }
     final source = File(attachment.path);
     if (!await source.exists()) return attachment;
+    await _ensureRegularFileForStorage(
+      source,
+      'That receipt proof could not be saved into Maintainiac storage.',
+    );
     await _validatePdfSourceForStorage(attachment, source);
 
     final proofRoot = await _proofRoot();
@@ -133,6 +137,10 @@ class ReceiptProofStorage {
     }
     final source = File(attachment.path);
     if (!await source.exists()) return attachment;
+    await _ensureRegularFileForStorage(
+      source,
+      'That receipt proof could not be copied into Maintainiac storage.',
+    );
     await _validatePdfSourceForStorage(attachment, source);
     final stagingDir = await _stagingRoot();
     await _createProofDirectory(
@@ -189,6 +197,10 @@ class ReceiptProofStorage {
         storageState: ReceiptAttachmentStorageState.missing,
       );
     }
+    await _ensureRegularFileForStorage(
+      source,
+      'That receipt proof could not be saved into permanent receipt storage.',
+    );
     await _validatePdfSourceForStorage(attachment, source);
     final proofRoot = await _proofRoot();
     final destinationDir = Directory(
@@ -248,10 +260,7 @@ class ReceiptProofStorage {
     if (attachment.storageState != ReceiptAttachmentStorageState.staged) return;
     final stagingRoot = await _stagingRoot();
     if (!path.isWithin(stagingRoot.path, attachment.path)) return;
-    final file = File(attachment.path);
-    try {
-      if (await file.exists()) await file.delete();
-    } catch (_) {}
+    await _deleteIfExists(File(attachment.path));
   }
 
   Future<void> deleteStagedAttachments(
@@ -271,15 +280,11 @@ class ReceiptProofStorage {
         .toSet();
     final root = await _proofRoot();
     if (!await root.exists()) return;
-    await for (final entity in root.list(recursive: true)) {
-      if (entity is! File) continue;
+    await for (final entity in root.list(recursive: true, followLinks: false)) {
+      if (entity is! File && entity is! Link) continue;
       final normalized = path.normalize(entity.path);
       if (retained.contains(normalized)) continue;
-      try {
-        await entity.delete();
-      } catch (_) {
-        continue;
-      }
+      await _deleteIfExists(File(entity.path));
     }
   }
 
@@ -295,14 +300,18 @@ class ReceiptProofStorage {
     final root = await _stagingRoot();
     if (!await root.exists()) return;
     final cutoff = (now ?? DateTime.now()).subtract(olderThan);
-    await for (final entity in root.list(recursive: true)) {
-      if (entity is! File) continue;
+    await for (final entity in root.list(recursive: true, followLinks: false)) {
+      if (entity is! File && entity is! Link) continue;
       final normalized = path.normalize(entity.path);
       if (retained.contains(normalized)) continue;
       try {
+        if (entity is Link) {
+          await _deleteIfExists(File(entity.path));
+          continue;
+        }
         final stat = await entity.stat();
         if (stat.modified.isAfter(cutoff)) continue;
-        await entity.delete();
+        await _deleteIfExists(File(entity.path));
       } catch (_) {
         continue;
       }
@@ -390,8 +399,18 @@ class ReceiptProofStorage {
 
   Future<void> _deleteIfExists(File file) async {
     try {
-      if (await file.exists()) await file.delete();
+      final type = await FileSystemEntity.type(file.path, followLinks: false);
+      if (type == FileSystemEntityType.link) {
+        await Link(file.path).delete();
+      } else if (type == FileSystemEntityType.file) {
+        await file.delete();
+      }
     } catch (_) {}
+  }
+
+  Future<bool> _entityExistsNoFollow(String entityPath) async {
+    final type = await FileSystemEntity.type(entityPath, followLinks: false);
+    return type != FileSystemEntityType.notFound;
   }
 
   Future<File> _availableDestinationFile(
@@ -399,8 +418,8 @@ class ReceiptProofStorage {
     String fileName,
   ) async {
     final first = File(path.join(directory.path, fileName));
-    if (!await first.exists() &&
-        !await File('${first.path}.partial').exists()) {
+    if (!await _entityExistsNoFollow(first.path) &&
+        !await _entityExistsNoFollow('${first.path}.partial')) {
       return first;
     }
     final extension = path.extension(fileName);
@@ -409,8 +428,8 @@ class ReceiptProofStorage {
       final candidate = File(
         path.join(directory.path, '$baseName-copy-$index$extension'),
       );
-      if (!await candidate.exists() &&
-          !await File('${candidate.path}.partial').exists()) {
+      if (!await _entityExistsNoFollow(candidate.path) &&
+          !await _entityExistsNoFollow('${candidate.path}.partial')) {
         return candidate;
       }
     }
@@ -424,8 +443,46 @@ class ReceiptProofStorage {
     String message,
   ) async {
     try {
+      await _rejectSymlinkedStoragePath(directory, message);
       await directory.create(recursive: true);
+      final type = await FileSystemEntity.type(
+        directory.path,
+        followLinks: false,
+      );
+      if (type != FileSystemEntityType.directory) {
+        throw const FileSystemException('Receipt proof directory is unsafe.');
+      }
     } catch (_) {
+      throw ReceiptProofStorageException(message);
+    }
+  }
+
+  Future<void> _rejectSymlinkedStoragePath(
+    Directory directory,
+    String message,
+  ) async {
+    final documents = await getApplicationDocumentsDirectory();
+    final root = path.normalize(documents.path);
+    final target = path.normalize(directory.path);
+    if (target != root && !path.isWithin(root, target)) {
+      throw ReceiptProofStorageException(message);
+    }
+    final relative = path.relative(target, from: root);
+    if (relative == '.') return;
+    var current = root;
+    for (final segment in path.split(relative)) {
+      current = path.join(current, segment);
+      final type = await FileSystemEntity.type(current, followLinks: false);
+      if (type == FileSystemEntityType.link) {
+        throw ReceiptProofStorageException(message);
+      }
+      if (type == FileSystemEntityType.notFound) break;
+    }
+  }
+
+  Future<void> _ensureRegularFileForStorage(File file, String message) async {
+    final type = await FileSystemEntity.type(file.path, followLinks: false);
+    if (type != FileSystemEntityType.file) {
       throw ReceiptProofStorageException(message);
     }
   }

@@ -225,4 +225,109 @@ void main() {
       throwsA(isA<ReceiptProofStorageException>()),
     );
   });
+
+  test(
+    'storage refuses symlinked receipt proof staging directory',
+    () async {
+      final source = File('${Directory.systemTemp.path}/symlink_dir.pdf');
+      await source.writeAsString(
+        '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
+        flush: true,
+      );
+      final outside = await Directory.systemTemp.createTemp(
+        'outside_receipt_staging_',
+      );
+      final stagingLink = Link(
+        '${documentsDirectory.path}/receipt_proofs_staging',
+      );
+      await stagingLink.create(outside.path);
+      addTearDown(() async {
+        if (source.existsSync()) source.deleteSync();
+        if (await stagingLink.exists()) await stagingLink.delete();
+        if (await outside.exists()) await outside.delete(recursive: true);
+      });
+
+      await expectLater(
+        ReceiptProofStorage.instance.stageAttachment(
+          ReceiptAttachmentRecord(
+            id: 'symlinked-staging-dir',
+            path: source.path,
+            kind: ReceiptAttachmentKind.pdf,
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+            createdAt: DateTime(2026, 7, 5),
+          ),
+        ),
+        throwsA(isA<ReceiptProofStorageException>()),
+      );
+
+      expect(await outside.list().isEmpty, isTrue);
+      expect(await source.exists(), isTrue);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
+    'discarding staged proof symlink deletes link without target',
+    () async {
+      final stagingRoot = Directory(
+        '${documentsDirectory.path}/receipt_proofs_staging',
+      );
+      await stagingRoot.create(recursive: true);
+      final outsideTarget = File('${Directory.systemTemp.path}/outside.pdf');
+      await outsideTarget.writeAsString(
+        '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
+        flush: true,
+      );
+      final stagedLink = Link('${stagingRoot.path}/linked-proof.pdf');
+      await stagedLink.create(outsideTarget.path);
+      addTearDown(() async {
+        if (await stagedLink.exists()) await stagedLink.delete();
+        if (outsideTarget.existsSync()) outsideTarget.deleteSync();
+      });
+
+      await ReceiptProofStorage.instance.deleteStagedAttachment(
+        ReceiptAttachmentRecord(
+          id: 'staged-link-delete',
+          path: stagedLink.path,
+          kind: ReceiptAttachmentKind.pdf,
+          dataSaverLevel: ReceiptDataSaverLevel.original,
+          createdAt: DateTime(2026, 7, 5),
+          storageState: ReceiptAttachmentStorageState.staged,
+        ),
+      );
+
+      expect(await stagedLink.exists(), isFalse);
+      expect(await outsideTarget.exists(), isTrue);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
+    'orphan cleanup removes proof symlink without deleting target',
+    () async {
+      final proofRoot = Directory(
+        '${documentsDirectory.path}/receipt_proofs/pdfs',
+      );
+      await proofRoot.create(recursive: true);
+      final outsideTarget = File('${Directory.systemTemp.path}/orphan.pdf');
+      await outsideTarget.writeAsString(
+        '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
+        flush: true,
+      );
+      final proofLink = Link('${proofRoot.path}/orphan-link.pdf');
+      await proofLink.create(outsideTarget.path);
+      addTearDown(() async {
+        if (await proofLink.exists()) await proofLink.delete();
+        if (outsideTarget.existsSync()) outsideTarget.deleteSync();
+      });
+
+      await ReceiptProofStorage.instance.cleanOrphanProofFiles(
+        retainedPaths: const [],
+      );
+
+      expect(await proofLink.exists(), isFalse);
+      expect(await outsideTarget.exists(), isTrue);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
 }

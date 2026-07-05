@@ -55,6 +55,7 @@ dart analyze \
   test/receipt_pdf_inspector_edge_cases_test.dart \
   test/receipt_pdf_inspector_security_flags_test.dart \
   test/receipt_pdf_performance_profile_test.dart \
+  test/receipt_proof_storage_hardening_test.dart \
   test/receipt_pdf_torture_storage_test.dart \
   test/receipt_pdf_torture_test.dart \
   test/pdf_quality_gate_contract_test.dart \
@@ -101,6 +102,7 @@ flutter test \
   test/receipt_pdf_inspector_edge_cases_test.dart \
   test/receipt_pdf_inspector_security_flags_test.dart \
   test/receipt_pdf_performance_profile_test.dart \
+  test/receipt_proof_storage_hardening_test.dart \
   test/receipt_pdf_torture_storage_test.dart \
   test/receipt_pdf_torture_test.dart \
   test/pdf_quality_gate_contract_test.dart \
