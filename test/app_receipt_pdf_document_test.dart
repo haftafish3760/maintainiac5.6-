@@ -66,6 +66,42 @@ void main() {
     );
   });
 
+  test('receipt PDF renderer refuses empty confirmed receipt lines', () async {
+    final data = _receiptData(lineCount: 0);
+
+    await expectLater(
+      const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: data,
+        theme: await AppPdfTypography.loadTheme(),
+      ),
+      throwsA(
+        isA<AppReceiptPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('at least one confirmed receipt line'),
+        ),
+      ),
+    );
+  });
+
+  test('receipt PDF renderer refuses mismatched confirmed totals', () async {
+    final data = _receiptData(lineCount: 2, totalCents: 999999);
+
+    await expectLater(
+      const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: data,
+        theme: await AppPdfTypography.loadTheme(),
+      ),
+      throwsA(
+        isA<AppReceiptPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('confirmed line totals do not match'),
+        ),
+      ),
+    );
+  });
+
   test('receipt PDF renderer blocks private receipt metadata', () async {
     final data = _receiptData(
       lineCount: 1,
@@ -106,6 +142,7 @@ AppReceiptPdfData _receiptData({
   required int lineCount,
   bool confirmedByUser = true,
   String merchantName = 'Supply House',
+  int totalCents = 45678,
 }) {
   return AppReceiptPdfData(
     merchantName: merchantName,
@@ -115,8 +152,8 @@ AppReceiptPdfData _receiptData({
     businessUseLabel: 'Business',
     sourceRecordId: 'receipt_42',
     subtotalCents: 42108,
-    taxCents: 3560,
-    totalCents: 45678,
+    taxCents: 3570,
+    totalCents: totalCents,
     notes: 'Confirmed by user before export.',
     lines: [
       for (var index = 1; index <= lineCount; index++)

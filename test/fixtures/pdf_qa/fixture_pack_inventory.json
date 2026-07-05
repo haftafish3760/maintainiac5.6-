@@ -278,8 +278,11 @@
       "fixtureKeys": [
         "generated_confirmed_receipt_pdf",
         "receipt_generation_requires_user_confirmation",
+        "receipt_generation_requires_confirmed_lines",
+        "receipt_generation_total_mismatch_block",
         "receipt_generation_private_metadata_block",
         "receipt_generation_landscape_page_format",
+        "receipt_generation_archive_mapping",
         "receipt_generation_determinism"
       ]
     },

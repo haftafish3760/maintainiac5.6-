@@ -1,5 +1,47 @@
 # PDF System Pass Log
 
+## Milestone - 2026-07-05 09:34 EDT - Passes 82-83 receipt PDF validation and archive proof
+
+- Scope: shared receipt PDF validation and generated receipt PDF archive mapping
+  only. No inventory, camera, native capture, OCR engine, or parser behavior
+  changes.
+- Bundled work:
+  - Blocked receipt PDF generation for empty confirmed lines and mismatched
+    totals.
+  - Added generated receipt PDF archive proof coverage for document storage,
+    links, safe filename, and hash.
+- Verification completed 2026-07-05 09:34 EDT:
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 83 - 2026-07-05 09:32 EDT - Receipt PDF archive mapping
+
+- Scope: generated receipt PDF archive behavior only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added regression coverage proving generated receipt PDFs archive as app
+    document proof without invoice-ledger storage.
+  - Verified receipt archive IDs, linked receipt metadata, safe file naming,
+    permanent storage path, and SHA-256 proof hash.
+  - Added receipt archive mapping coverage to the PDF QA registry.
+- Verification completed 2026-07-05 09:33 EDT:
+  - `dart format test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 82 - 2026-07-05 09:31 EDT - Receipt PDF confirmed-total guards
+
+- Scope: shared receipt PDF generation validation only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Blocked receipt PDF generation when confirmed line items are empty.
+  - Blocked receipt PDF generation when confirmed totals do not match receipt
+    totals.
+  - Added regression coverage and fixture registry entries for these guards.
+- Verification completed 2026-07-05 09:32 EDT:
+  - `dart format lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_receipt_pdf_document_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
 ## Milestone - 2026-07-05 09:29 EDT - Pass 81 confirmed receipt PDFs
 
 - Scope: shared receipt PDF generation only. No inventory, camera, native

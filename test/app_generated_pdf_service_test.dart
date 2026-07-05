@@ -694,6 +694,37 @@ void main() {
     expect(store.recordById('DOC-invoice-invoice_42'), isNotNull);
   });
 
+  test('generated receipt PDF archives as an app document proof', () async {
+    final store = AppDocumentStore.memory();
+    final document = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.receipt,
+      title: 'Supply House Receipt',
+      fileName: 'supply_house_receipt.pdf',
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\nReceipt total 42.00\n%%EOF'.codeUnits,
+      ),
+      createdAt: DateTime(2026, 7, 5),
+      sourceModule: 'receipts',
+      sourceRecordId: 'receipt_42',
+    );
+
+    final archived = await AppGeneratedPdfArchiveService(
+      store: store,
+    ).archive(document);
+
+    expect(archived.document.kind, AppDocumentKind.otherDocument);
+    expect(archived.document.id, 'DOC-receipt-receipt_42');
+    expect(archived.attachment.linkedModule, 'receipts');
+    expect(archived.attachment.linkedRecordId, 'receipt_42');
+    expect(archived.attachment.originalFileName, document.safeFileName);
+    expect(archived.attachment.fileHash, archived.fileHashSha256);
+    expect(
+      archived.attachment.path,
+      contains('app_documents/documents/generated_pdfs'),
+    );
+    expect(store.recordById('DOC-receipt-receipt_42'), isNotNull);
+  });
+
   test(
     'record invoice PDF is sendable, safe-named, archived, and not stored in ledger',
     () async {

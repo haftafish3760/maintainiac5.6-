@@ -69,6 +69,17 @@ class AppReceiptPdfData {
 
   int get safeTotalCents => totalCents ?? confirmedLineTotalCents;
 
+  bool get hasConfirmedLines => lines.isNotEmpty;
+
+  bool get totalsMatchConfirmedLines {
+    if (totalCents == null) return true;
+    final knownParts =
+        (subtotalCents ?? confirmedLineTotalCents) +
+        (taxCents ?? 0) +
+        (tipCents ?? 0);
+    return knownParts == totalCents;
+  }
+
   String get safeMerchantName {
     final clean = _cleanText(merchantName);
     return clean.isEmpty ? 'Receipt' : clean;
@@ -93,6 +104,16 @@ class AppReceiptPdfRenderer {
     if (!data.confirmedByUser) {
       throw const AppReceiptPdfException(
         'Maintainiac will only export receipt PDFs after the user confirms the receipt data.',
+      );
+    }
+    if (!data.hasConfirmedLines) {
+      throw const AppReceiptPdfException(
+        'Maintainiac needs at least one confirmed receipt line before creating a receipt PDF.',
+      );
+    }
+    if (!data.totalsMatchConfirmedLines) {
+      throw const AppReceiptPdfException(
+        'Maintainiac stopped this receipt PDF because the confirmed line totals do not match the receipt total.',
       );
     }
     final generatedAt = createdAt ?? DateTime.now();
