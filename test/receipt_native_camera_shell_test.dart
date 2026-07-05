@@ -300,4 +300,57 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('native camera shell keeps controls inside compact phones', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 568));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReceiptNativeCameraShell(
+          capabilities: const ReceiptNativeCameraCapabilities(
+            engine: ReceiptNativeCameraEngine.cameraX,
+            available: true,
+            hasRearCamera: true,
+            supportsTorch: true,
+            supportsContinuousFocus: true,
+            supportsExposureCompensation: true,
+            minExposureOffset: -2,
+            maxExposureOffset: 2,
+          ),
+          settings: const ReceiptNativeCameraSettings(
+            assistedReceiptFill: true,
+            dataSaverLevel: ReceiptDataSaverLevel.balanced,
+          ),
+          preview: const ColoredBox(color: Color(0xFF38444B)),
+          onBack: () {},
+          onCapture: () {},
+          onSettings: () {},
+          onTorch: () {},
+          onExposureChanged: (_) {},
+          onExposureReset: () {},
+          guidanceTitle: 'Hold steady',
+          guidanceMessage: 'Receipt text should fill the screen.',
+          guidanceStatus: 'Manual capture is ready.',
+          qualityLabel: 'Readable',
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byTooltip('Back'), findsOneWidget);
+    expect(find.byTooltip('Receipt camera settings'), findsOneWidget);
+    expect(find.byTooltip('Turn light on'), findsOneWidget);
+    expect(find.bySemanticsLabel('Take receipt photo'), findsOneWidget);
+
+    final shutterRect = tester.getRect(
+      find.bySemanticsLabel('Take receipt photo'),
+    );
+    final bottomSafeY =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    expect(shutterRect.bottom, lessThanOrEqualTo(bottomSafeY - 8));
+    expect(shutterRect.center.dx, closeTo(160, 2));
+  });
 }

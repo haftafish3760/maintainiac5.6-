@@ -122,12 +122,15 @@ class ReceiptNativeCameraShell extends StatelessWidget {
                 right: 10,
                 top: MediaQuery.sizeOf(context).height * .34,
                 bottom: MediaQuery.sizeOf(context).height * .22,
-                child: _ReceiptNativeExposureControl(
-                  min: capabilities.minExposureOffset,
-                  max: capabilities.maxExposureOffset,
-                  value: currentExposureOffset,
-                  onChanged: onExposureChanged,
-                  onReset: onExposureReset,
+                child: Material(
+                  color: Colors.transparent,
+                  child: _ReceiptNativeExposureControl(
+                    min: capabilities.minExposureOffset,
+                    max: capabilities.maxExposureOffset,
+                    value: currentExposureOffset,
+                    onChanged: onExposureChanged,
+                    onReset: onExposureReset,
+                  ),
                 ),
               ),
             Positioned(
