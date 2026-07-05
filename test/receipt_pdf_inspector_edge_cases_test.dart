@@ -161,6 +161,68 @@ void main() {
     expect(geometry, contains(ReceiptPdfInspector.croppedPageSignal));
   });
 
+  test('PDF document signals distinguish portrait and landscape pages', () {
+    final portrait = ReceiptPdfInspector.detectDocumentSignals(
+      '%PDF-1.7\n'
+              '1 0 obj << /Type /Page /MediaBox [0 0 612 792] >> endobj\n'
+              '%%EOF'
+          .codeUnits,
+    );
+    final landscape = ReceiptPdfInspector.detectDocumentSignals(
+      '%PDF-1.7\n'
+              '1 0 obj << /Type /Page /MediaBox [0 0 792 612] >> endobj\n'
+              '%%EOF'
+          .codeUnits,
+    );
+    final mixed = ReceiptPdfInspector.detectDocumentSignals(
+      '%PDF-1.7\n'
+              '1 0 obj << /Type /Page /MediaBox [0 0 612 792] >> endobj\n'
+              '2 0 obj << /Type /Page /MediaBox [0 0 792 612] >> endobj\n'
+              '%%EOF'
+          .codeUnits,
+    );
+
+    expect(portrait, contains(ReceiptPdfInspector.portraitPageSignal));
+    expect(portrait, isNot(contains(ReceiptPdfInspector.landscapePageSignal)));
+    expect(landscape, contains(ReceiptPdfInspector.landscapePageSignal));
+    expect(landscape, isNot(contains(ReceiptPdfInspector.portraitPageSignal)));
+    expect(mixed, contains(ReceiptPdfInspector.portraitPageSignal));
+    expect(mixed, contains(ReceiptPdfInspector.landscapePageSignal));
+  });
+
+  test('PDF page orientation uses true box dimensions and crop boxes', () {
+    final offsetPortrait = ReceiptPdfInspector.detectDocumentSignals(
+      '%PDF-1.7\n'
+              '1 0 obj << /Type /Page /MediaBox [72 36 684 828] >> endobj\n'
+              '%%EOF'
+          .codeUnits,
+    );
+    final reversedLandscape = ReceiptPdfInspector.detectDocumentSignals(
+      '%PDF-1.7\n'
+              '1 0 obj << /Type /Page /MediaBox [792 612 0 0] >> endobj\n'
+              '%%EOF'
+          .codeUnits,
+    );
+    final croppedLandscape = ReceiptPdfInspector.detectDocumentSignals(
+      '%PDF-1.7\n'
+              '1 0 obj << /Type /Page /CropBox [18 18 810 630] >> endobj\n'
+              '%%EOF'
+          .codeUnits,
+    );
+
+    expect(offsetPortrait, contains(ReceiptPdfInspector.portraitPageSignal));
+    expect(
+      offsetPortrait,
+      isNot(contains(ReceiptPdfInspector.landscapePageSignal)),
+    );
+    expect(
+      reversedLandscape,
+      contains(ReceiptPdfInspector.landscapePageSignal),
+    );
+    expect(croppedLandscape, contains(ReceiptPdfInspector.landscapePageSignal));
+    expect(croppedLandscape, contains(ReceiptPdfInspector.croppedPageSignal));
+  });
+
   test('PDF text-layer signals include simple hex encoded receipt text', () {
     final hexTextLayer = ReceiptPdfInspector.detectDocumentSignals(
       '%PDF-1.7\n'

@@ -86,7 +86,13 @@
       "fixtureKeys": [
         "rotated_pages",
         "landscape_pages",
-        "cropped_pages"
+        "cropped_pages",
+        "portrait_media_box_signal",
+        "landscape_media_box_signal",
+        "mixed_orientation_media_box_signal",
+        "offset_media_box_orientation",
+        "reversed_media_box_orientation",
+        "crop_box_orientation"
       ]
     },
     "import_ownership": {
@@ -122,6 +128,7 @@
         "document_export_zip_package_import_preview",
         "document_export_zip_package_import_pathless_metadata",
         "document_export_zip_package_import_attachment_ownership",
+        "document_export_zip_package_import_supported_kind_block",
         "document_export_zip_package_import_record_save",
         "document_export_zip_package_import_linked_proof"
       ]
@@ -157,10 +164,15 @@
         "document_export_zip_package_extract_source_preservation",
         "document_export_zip_package_extract_folder_failure",
         "document_export_zip_package_import_private_manifest_block",
+        "document_export_zip_package_import_private_pdf_proof_block",
+        "document_export_zip_package_import_active_pdf_proof_block",
         "document_export_zip_package_import_manifest_index_mismatch_block",
         "document_export_zip_package_import_extraction_cleanup",
         "document_export_zip_package_import_rollback_cleanup",
-        "document_export_zip_package_import_source_preservation"
+        "document_export_zip_package_import_source_preservation",
+        "document_export_zip_package_import_stale_partial_cleanup",
+        "document_export_zip_package_import_stale_complete_cleanup",
+        "document_export_zip_package_import_foreign_folder_preservation"
       ]
     },
     "privacy_and_security_logs": {

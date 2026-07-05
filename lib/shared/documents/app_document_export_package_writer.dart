@@ -7,7 +7,9 @@ import 'package:path/path.dart' as path;
 import 'package:share_plus/share_plus.dart';
 
 import '../pdf/app_pdf_privacy_policy.dart';
+import '../pdf/app_pdf_security_policy.dart';
 import '../storage/app_storage_guard.dart';
+import '../widgets/receipt_capture/receipt_capture_models.dart';
 import 'app_document_export_manifest.dart';
 import 'app_document_models.dart';
 
@@ -549,6 +551,7 @@ class AppDocumentExportPackageWriter {
         );
       }
       final attachment = _importAttachment(file, manifestAttachment);
+      _verifyImportProofContent(entries: entries, attachment: attachment);
       attachments.add(attachment);
     }
     if (_stringValue(manifest, 'documentId') != readResult.documentId ||
@@ -773,12 +776,14 @@ class AppDocumentExportPackageWriter {
     final manifestHash = _stringValue(manifestAttachment, 'fileHash');
     final readOnlyProof = manifestAttachment['isReadOnlyProof'];
     final indexedReadOnlyProof = file['readOnlyProof'];
+    final mimeType = _stringValue(manifestAttachment, 'mimeType');
     if (fileDisplayName != manifestDisplayName ||
         fileKind != manifestKind ||
         fileByteSize != manifestByteSize ||
         fileHash != manifestHash ||
         readOnlyProof != true ||
-        indexedReadOnlyProof != true) {
+        indexedReadOnlyProof != true ||
+        !_isSupportedImportAttachment(fileKind, mimeType)) {
       throw const AppDocumentExportPackageException(
         'Document export package metadata has invalid file entries.',
       );
@@ -787,11 +792,57 @@ class AppDocumentExportPackageWriter {
       packageEntryName: _stringValue(file, 'packageEntryName'),
       displayName: manifestDisplayName,
       kindName: manifestKind,
-      mimeType: _stringValue(manifestAttachment, 'mimeType'),
+      mimeType: mimeType,
       byteSize: fileByteSize,
       sha256: fileHash,
       readOnlyProof: true,
     );
+  }
+
+  static bool _isSupportedImportAttachment(String kindName, String mimeType) {
+    final normalizedKind = kindName.trim().toLowerCase();
+    final normalizedMime = mimeType.trim().toLowerCase();
+    if (normalizedKind == ReceiptAttachmentKind.pdf.name) {
+      return normalizedMime == 'application/pdf' ||
+          normalizedMime == 'application/x-pdf' ||
+          normalizedMime == 'application/acrobat' ||
+          normalizedMime == 'application/vnd.pdf';
+    }
+    if (normalizedKind == ReceiptAttachmentKind.photo.name) {
+      return normalizedMime == 'image/*' || normalizedMime.startsWith('image/');
+    }
+    return false;
+  }
+
+  static void _verifyImportProofContent({
+    required Map<String, ArchiveFile> entries,
+    required AppDocumentExportPackageImportAttachment attachment,
+  }) {
+    final entryBytes = entries[attachment.packageEntryName]?.readBytes();
+    if (entryBytes == null ||
+        entryBytes.length != attachment.byteSize ||
+        sha256.convert(entryBytes).toString() != attachment.sha256) {
+      throw const AppDocumentExportPackageException(
+        'Document export package file verification failed.',
+      );
+    }
+    if (attachment.kindName != ReceiptAttachmentKind.pdf.name) return;
+    final securityIssues = AppPdfSecurityPolicy.activeContentIssueCodesForBytes(
+      entryBytes,
+    );
+    if (securityIssues.isNotEmpty) {
+      throw const AppDocumentExportPackageException(
+        'Maintainiac stopped this document package import because a PDF proof includes unsupported active content.',
+      );
+    }
+    final privacyIssues = AppPdfPrivacyPolicy.issueCodesForExport(
+      bytes: entryBytes,
+    );
+    if (privacyIssues.isNotEmpty) {
+      throw const AppDocumentExportPackageException(
+        'Maintainiac stopped this document package import because a PDF proof includes private information.',
+      );
+    }
   }
 
   static void _verifyEntryBudget(

@@ -67,9 +67,16 @@ report, or future document paths.
 - Single receipts
 - Multi-page receipts
 - Camera stitched receipts
+- Shared receipt proof flow for expenses, inventory/material receipts,
+  vendor invoices, job proof, maintenance proof, and future app modules.
+- PDF receipt handling must prepare, validate, store, preview, and hand off
+  proof to the existing app flow without changing parser, OCR, inventory, or
+  expense classification logic.
 - OCR metadata attachment
 - Receipt thumbnails where appropriate
 - Proper scaling without clipping
+- Portrait, landscape, mixed-orientation, rotated, and cropped receipt pages
+  must stay attachable as proof and must be scaled without clipping.
 
 ## Invoice And Estimate Support
 
@@ -153,6 +160,51 @@ The Document Engine must never export:
 
 Security and privacy rules apply to generated PDFs, imported PDFs, logs,
 warnings, QA reports, fixture reports, and export/share paths.
+
+## Support And Debugging Privacy Boundary
+
+Maintainiac is a trust-first app. User PDFs, receipt images, invoices, job
+packets, OCR text, and extracted document text are private user content.
+
+Human access rules:
+
+- The owner/developer must not see raw user PDFs, receipt images, invoice text,
+  receipt text, job notes, customer messages, patient information, passenger
+  information, VINs, license plates, addresses, phone numbers, email addresses,
+  exact locations, or any other identifying user content during normal support,
+  admin review, QA review, or Command 1 monitoring.
+- Human-visible support surfaces may show only non-identifying operational
+  evidence such as file type, size, page count, hash, app version, platform,
+  storage state, import/export step, failure code, safe warning label, timing,
+  retry count, and redacted fixture category.
+- If a user voluntarily provides a PDF or screenshot for support, it must be
+  treated as private support evidence. The default handling is still to redact
+  or summarize it before any human review.
+
+Codex/AI debugging rules:
+
+- Codex may inspect user-provided PDFs or extracted text only when that access
+  is required to diagnose or fix Maintainiac behavior, the user has opted in or
+  explicitly provided the file for support, and the work is limited to fixing
+  the app.
+- Codex must not store, publish, quote, train on, summarize for unrelated use,
+  or expose personal information from those files. Any regression created from
+  a real issue must use synthetic or redacted fixtures unless the user
+  explicitly provides a safe non-identifying fixture.
+- Debug artifacts, logs, QA reports, Command 1 records, Git commits, tests, and
+  documentation must not contain raw private PDF text or identifying content.
+- If private content is accidentally exposed during debugging, stop and replace
+  it with a redacted or synthetic fixture before continuing.
+
+Command 1 boundary:
+
+- Command 1 may monitor PDF health and failure patterns, but it must not become
+  a private PDF viewer for the owner.
+- Command 1 PDF diagnostics should use counters, hashes, sizes, page counts,
+  status labels, failure buckets, safe action labels, and redacted examples.
+- Any future owner/developer review workflow must preserve the rule that humans
+  see non-identifying evidence by default, while Codex-assisted repair access is
+  tightly scoped to fixing confirmed app problems.
 
 ## Operating Rules
 

@@ -264,6 +264,77 @@ void main() {
       }
     },
   );
+
+  test(
+    'document package import cleanup removes stale app-owned folders only',
+    () async {
+      final importRoot = Directory('${documentsDirectory.path}/imports');
+      await importRoot.create(recursive: true);
+      final stalePartial = Directory(
+        '${importRoot.path}/maintainiac-document-export-abcdef123456.partial',
+      );
+      final staleComplete = Directory(
+        '${importRoot.path}/maintainiac-document-export-abcdef123456-copy-2',
+      );
+      final foreignPartial = Directory(
+        '${importRoot.path}/customer-document-export-abcdef123456.partial',
+      );
+      for (final directory in [stalePartial, staleComplete, foreignPartial]) {
+        await directory.create(recursive: true);
+        await File(
+          '${directory.path}/proof.pdf',
+        ).writeAsString('temporary import proof', flush: true);
+      }
+
+      final deleted =
+          await AppDocumentImportService.cleanupStaleDocumentPackageImports(
+            importRoot,
+            now: DateTime.now().add(const Duration(hours: 13)),
+          );
+
+      expect(deleted, [
+        'maintainiac-document-export-abcdef123456-copy-2',
+        'maintainiac-document-export-abcdef123456.partial',
+      ]);
+      expect(await stalePartial.exists(), isFalse);
+      expect(await staleComplete.exists(), isFalse);
+      expect(await foreignPartial.exists(), isTrue);
+    },
+  );
+
+  test('document package import runs stale cleanup before extraction', () async {
+    final store = AppDocumentStore.memory();
+    final packageFile = await _writeDocumentExportPackage(
+      outputDirectory: Directory('${documentsDirectory.path}/exports'),
+      title: 'Cleanup before import',
+    );
+    final extractionParent = Directory('${documentsDirectory.path}/imports');
+    await extractionParent.create(recursive: true);
+    final stalePartial = Directory(
+      '${extractionParent.path}/maintainiac-document-export-abcdef123456.partial',
+    );
+    await stalePartial.create(recursive: true);
+    await File(
+      '${stalePartial.path}/orphan.pdf',
+    ).writeAsString('old orphaned import', flush: true);
+
+    final saved = await AppDocumentImportService(store: store)
+        .saveDocumentExportPackage(
+          packageFile: packageFile,
+          extractionParentDirectory: extractionParent,
+          now: DateTime(2026, 7, 5, 11),
+          cleanupNow: DateTime.now().add(const Duration(hours: 13)),
+        );
+
+    expect(store.recordById(saved.id), isNotNull);
+    expect(await stalePartial.exists(), isFalse);
+    expect(await File(saved.attachments.single.path).exists(), isTrue);
+    final leftovers = await extractionParent
+        .list(recursive: true)
+        .where((entity) => entity is File)
+        .toList();
+    expect(leftovers, isEmpty);
+  });
 }
 
 Future<File> _writeDocumentExportPackage({

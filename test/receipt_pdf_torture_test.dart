@@ -128,6 +128,14 @@ void main() {
         expect(twenty.userWarning, contains('longer than most'));
         expect(fifty.exceedsAssistedReadPageLimit, isFalse);
         expect(fifty.longReceiptWarning, contains('unusually long'));
+        expect(
+          simple.documentSignals,
+          contains(ReceiptPdfInspector.portraitPageSignal),
+        );
+        expect(
+          landscape.documentSignals,
+          contains(ReceiptPdfInspector.landscapePageSignal),
+        );
         expect(imageLayer.appearsImageOnly, isTrue);
         expect(imageLayer.documentFitWarning, contains('image-based pages'));
         expect(cropped.hasRotatedOrCroppedPages, isTrue);

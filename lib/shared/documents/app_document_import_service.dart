@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../widgets/receipt_capture/receipt_capture_models.dart';
 import '../widgets/receipt_capture/receipt_proof_storage.dart';
+import 'app_document_export_manifest.dart';
 import 'app_document_export_package_writer.dart';
 import 'app_document_models.dart';
 import 'app_document_store.dart';
@@ -15,6 +16,8 @@ class AppDocumentImportService {
     this.proofStorage = ReceiptProofStorage.instance,
   });
 
+  static const Duration stalePackageImportAge = Duration(hours: 12);
+
   final AppDocumentStore? store;
   final ReceiptProofStorage proofStorage;
 
@@ -22,6 +25,7 @@ class AppDocumentImportService {
     required File packageFile,
     Directory? extractionParentDirectory,
     DateTime? now,
+    DateTime? cleanupNow,
   }) async {
     final preview =
         await AppDocumentExportPackageWriter.previewZipPackageImport(
@@ -31,6 +35,10 @@ class AppDocumentImportService {
         extractionParentDirectory ?? await _defaultPackageImportDirectory();
     AppDocumentExportPackageExtractResult? extraction;
     try {
+      await cleanupStaleDocumentPackageImports(
+        extractionParent,
+        now: cleanupNow,
+      );
       extraction = await AppDocumentExportPackageWriter.extractZipPackage(
         packageFile,
         outputDirectory: extractionParent,
@@ -58,6 +66,38 @@ class AppDocumentImportService {
         );
       }
     }
+  }
+
+  static Future<List<String>> cleanupStaleDocumentPackageImports(
+    Directory importDirectory, {
+    DateTime? now,
+  }) async {
+    if (!await importDirectory.exists()) return const [];
+    final cutoff = (now ?? DateTime.now()).subtract(stalePackageImportAge);
+    final deleted = <String>[];
+    await for (final entity in importDirectory.list(followLinks: false)) {
+      if (entity is! Directory) continue;
+      final directoryName = path.basename(entity.path);
+      if (!_isAppOwnedPackageImportDirectory(directoryName)) continue;
+      FileStat stat;
+      try {
+        stat = await entity.stat();
+      } catch (_) {
+        continue;
+      }
+      if (stat.type != FileSystemEntityType.directory) continue;
+      if (!stat.modified.isBefore(cutoff)) continue;
+      try {
+        await entity.delete(recursive: true);
+        deleted.add(directoryName);
+      } catch (_) {
+        throw const AppDocumentExportPackageException(
+          'Maintainiac could not clean up a stale document package import.',
+        );
+      }
+    }
+    deleted.sort();
+    return List.unmodifiable(deleted);
   }
 
   Future<AppDocumentRecord> saveReadOnlyDocument({
@@ -108,6 +148,25 @@ class AppDocumentImportService {
   static Future<Directory> _defaultPackageImportDirectory() async {
     final root = await getApplicationDocumentsDirectory();
     return Directory(path.join(root.path, 'document_package_imports'));
+  }
+
+  static bool _isAppOwnedPackageImportDirectory(String directoryName) {
+    final normalized = directoryName.trim();
+    if (normalized.isEmpty ||
+        normalized.contains('..') ||
+        normalized.contains('/') ||
+        normalized.contains('\\') ||
+        normalized.contains(RegExp(r'[\x00-\x1F\x7F]'))) {
+      return false;
+    }
+    final completeName = RegExp(
+      r'^maintainiac-document-export-[a-f0-9]{12}(-copy-[0-9]+)?$',
+    );
+    final partialName = RegExp(
+      r'^maintainiac-document-export-[a-f0-9]{12}(-copy-[0-9]+)?\.partial$',
+    );
+    return completeName.hasMatch(normalized) ||
+        partialName.hasMatch(normalized);
   }
 
   static List<ReceiptAttachmentRecord> _attachmentsForPackageImport(

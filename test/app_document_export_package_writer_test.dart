@@ -600,6 +600,148 @@ void main() {
   );
 
   test(
+    'document export package import preview blocks private PDF proof content',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nImport proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final privateBytes = utf8.encode(
+        '%PDF-1.7\n'
+        '1 0 obj << /Type /Page >> stream\n'
+        'Passenger: Jane Customer\n'
+        'VIN 1HGCM82633A004352\n'
+        'endstream endobj\n'
+        '%%EOF',
+      );
+      final privatePackage = await _rewritePackageProof(
+        sourcePackage: File(result.filePath),
+        destinationName: 'private-proof-import.zip',
+        entryName: 'job-packet.pdf',
+        replacementBytes: privateBytes,
+      );
+
+      await expectLater(
+        AppDocumentExportPackageWriter.previewZipPackageImport(privatePackage),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('private information'),
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
+    'document export package import preview blocks active PDF proof content',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nImport proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final activeBytes = utf8.encode(
+        '%PDF-1.7\n'
+        '1 0 obj << /OpenAction 2 0 R >> endobj\n'
+        '2 0 obj << /S /JavaScript /JS (app.alert("x")) >> endobj\n'
+        '%%EOF',
+      );
+      final activePackage = await _rewritePackageProof(
+        sourcePackage: File(result.filePath),
+        destinationName: 'active-proof-import.zip',
+        entryName: 'job-packet.pdf',
+        replacementBytes: activeBytes,
+      );
+
+      await expectLater(
+        AppDocumentExportPackageWriter.previewZipPackageImport(activePackage),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('unsupported active content'),
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
+    'document export package import preview blocks unsupported proof kinds',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nUnsupported import proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final unsupportedPackage = await _rewritePackageManifestAndIndex(
+        sourcePackage: File(result.filePath),
+        destinationName: 'unsupported-proof-kind.zip',
+        mutateManifest: (manifest) {
+          final attachments = manifest['attachments']! as List;
+          final first = attachments.first! as Map<String, Object?>;
+          first['kind'] = 'textMessageText';
+          first['mimeType'] = 'text/plain';
+        },
+        mutateIndex: (index) {
+          final files = index['files']! as List;
+          final first = files.first! as Map<String, Object?>;
+          first['kind'] = 'textMessageText';
+        },
+      );
+
+      await expectLater(
+        AppDocumentExportPackageWriter.previewZipPackageImport(
+          unsupportedPackage,
+        ),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('invalid file entries'),
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
     'document export package import preview blocks manifest index mismatch',
     () async {
       final proof = await _writeProof(
@@ -1213,6 +1355,133 @@ Future<File> _rewritePackageManifest({
       AppDocumentExportPackageWriter.packageIndexEntryName => utf8.encode(
         indexJson,
       ),
+      _ => entry.readBytes()!,
+    };
+    rewritten.addFile(ArchiveFile.bytes(entry.name, bytes));
+  }
+  final destination = File('${sourcePackage.parent.path}/$destinationName');
+  await destination.writeAsBytes(
+    ZipEncoder().encode(rewritten, modified: DateTime.utc(2026)),
+    flush: true,
+  );
+  return destination;
+}
+
+Future<File> _rewritePackageManifestAndIndex({
+  required File sourcePackage,
+  required String destinationName,
+  required void Function(Map<String, Object?> manifest) mutateManifest,
+  required void Function(Map<String, Object?> index) mutateIndex,
+}) async {
+  final archive = ZipDecoder().decodeBytes(await sourcePackage.readAsBytes());
+  final entries = <String, ArchiveFile>{
+    for (final entry in archive.files) entry.name: entry,
+  };
+  final manifest =
+      (jsonDecode(
+                utf8.decode(
+                  entries[AppDocumentExportPackageWriter.manifestEntryName]!
+                      .readBytes()!,
+                ),
+              )
+              as Map)
+          .cast<String, Object?>();
+  final index =
+      (jsonDecode(
+                utf8.decode(
+                  entries[AppDocumentExportPackageWriter.packageIndexEntryName]!
+                      .readBytes()!,
+                ),
+              )
+              as Map)
+          .cast<String, Object?>();
+  mutateManifest(manifest);
+  mutateIndex(index);
+  final manifestJson = const JsonEncoder.withIndent('  ').convert(manifest);
+  index['manifestSha256'] = sha256
+      .convert(utf8.encode(manifestJson))
+      .toString();
+  final indexJson = const JsonEncoder.withIndent('  ').convert(index);
+  final rewritten = Archive();
+  for (final entry in archive.files) {
+    final bytes = switch (entry.name) {
+      AppDocumentExportPackageWriter.manifestEntryName => utf8.encode(
+        manifestJson,
+      ),
+      AppDocumentExportPackageWriter.packageIndexEntryName => utf8.encode(
+        indexJson,
+      ),
+      _ => entry.readBytes()!,
+    };
+    rewritten.addFile(ArchiveFile.bytes(entry.name, bytes));
+  }
+  final destination = File('${sourcePackage.parent.path}/$destinationName');
+  await destination.writeAsBytes(
+    ZipEncoder().encode(rewritten, modified: DateTime.utc(2026)),
+    flush: true,
+  );
+  return destination;
+}
+
+Future<File> _rewritePackageProof({
+  required File sourcePackage,
+  required String destinationName,
+  required String entryName,
+  required List<int> replacementBytes,
+}) async {
+  final replacementHash = sha256.convert(replacementBytes).toString();
+  final archive = ZipDecoder().decodeBytes(await sourcePackage.readAsBytes());
+  final entries = <String, ArchiveFile>{
+    for (final entry in archive.files) entry.name: entry,
+  };
+  final manifest =
+      (jsonDecode(
+                utf8.decode(
+                  entries[AppDocumentExportPackageWriter.manifestEntryName]!
+                      .readBytes()!,
+                ),
+              )
+              as Map)
+          .cast<String, Object?>();
+  final index =
+      (jsonDecode(
+                utf8.decode(
+                  entries[AppDocumentExportPackageWriter.packageIndexEntryName]!
+                      .readBytes()!,
+                ),
+              )
+              as Map)
+          .cast<String, Object?>();
+  final files = index['files']! as List;
+  final indexedFile = files
+      .whereType<Map>()
+      .map((item) => item.cast<String, Object?>())
+      .firstWhere((item) => item['packageEntryName'] == entryName);
+  indexedFile['byteSize'] = replacementBytes.length;
+  indexedFile['sha256'] = replacementHash;
+  final attachmentId = indexedFile['attachmentId'];
+  final attachments = manifest['attachments']! as List;
+  final manifestAttachment = attachments
+      .whereType<Map>()
+      .map((item) => item.cast<String, Object?>())
+      .firstWhere((item) => item['id'] == attachmentId);
+  manifestAttachment['byteSize'] = replacementBytes.length;
+  manifestAttachment['fileHash'] = replacementHash;
+  final manifestJson = const JsonEncoder.withIndent('  ').convert(manifest);
+  index['manifestSha256'] = sha256
+      .convert(utf8.encode(manifestJson))
+      .toString();
+  final indexJson = const JsonEncoder.withIndent('  ').convert(index);
+  final rewritten = Archive();
+  for (final entry in archive.files) {
+    final bytes = switch (entry.name) {
+      AppDocumentExportPackageWriter.manifestEntryName => utf8.encode(
+        manifestJson,
+      ),
+      AppDocumentExportPackageWriter.packageIndexEntryName => utf8.encode(
+        indexJson,
+      ),
+      _ when entry.name == entryName => replacementBytes,
       _ => entry.readBytes()!,
     };
     rewritten.addFile(ArchiveFile.bytes(entry.name, bytes));

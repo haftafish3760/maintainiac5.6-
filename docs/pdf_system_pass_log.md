@@ -1,5 +1,81 @@
 # PDF System Pass Log
 
+## Pass 64 - 2026-07-05 08:47 EDT - Document package import proof preflight
+
+- Scope: shared app document export package import preflight, hostile package
+  defense, and PDF QA fixture inventory only. No inventory, camera, native
+  capture, receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Rechecked imported package proof bytes during import preview, not only
+    package hashes and manifest metadata.
+  - Blocked imported PDF proof files that contain active PDF content before any
+    save or extraction path can trust them.
+  - Blocked imported PDF proof files that contain private PDF text such as VINs
+    or passenger data, even when the malicious package manifest was rewritten
+    to match the file hash.
+  - Blocked unsupported proof kinds and MIME pairings so package import cannot
+    downgrade unknown text attachments into photos through enum fallbacks.
+  - Added regressions for private PDF proof import, active PDF proof import,
+    unsupported proof kind import, and fixture inventory tracking.
+- Verification completed 2026-07-05 08:47 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart`
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 63 - 2026-07-05 08:43 EDT - Shared receipt PDF orientation hardening
+
+- Scope: shared PDF receipt proof inspection, Document Engine directive
+  guardrails, privacy/support documentation, and PDF QA fixture inventory only.
+  No inventory, camera, native capture, receipt parser, or OCR engine behavior
+  changes.
+- Bundled work:
+  - Documented the shared receipt proof flow for expenses,
+    inventory/material receipts, vendor invoices, job proof, maintenance proof,
+    and future modules.
+  - Preserved the rule that PDF receipt handling prepares, validates, stores,
+    previews, and hands off proof without mutating parser, OCR, inventory, or
+    expense classification behavior.
+  - Added the support/debugging privacy boundary: humans see non-identifying
+    operational evidence by default; Codex support access is limited to
+    opted-in app repair work with synthetic or redacted regressions.
+  - Added portrait and landscape document signals for PDF proof inspection.
+  - Hardened orientation detection to use true page-box dimensions from
+    MediaBox and CropBox values, including non-zero and reversed coordinates.
+  - Added regressions for portrait, landscape, mixed orientation, offset page
+    boxes, reversed boxes, crop boxes, and fixture inventory tracking.
+- Verification completed 2026-07-05 08:43 EDT:
+  - `dart format lib/shared/documents/app_document_import_service.dart lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart test/app_document_store_test.dart test/document_engine_operating_directive_test.dart test/receipt_pdf_inspector_edge_cases_test.dart test/receipt_pdf_torture_test.dart`
+  - `flutter test test/app_document_store_test.dart test/receipt_pdf_inspector_edge_cases_test.dart test/receipt_pdf_torture_test.dart test/document_engine_operating_directive_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_import_service.dart lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart test/app_document_store_test.dart test/document_engine_operating_directive_test.dart test/receipt_pdf_inspector_edge_cases_test.dart test/receipt_pdf_torture_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 61 - 2026-07-05 06:37 EDT - Document package import stale cleanup
+
+- Scope: shared app document package import cleanup, crash-recovery storage
+  hygiene, and PDF QA fixture inventory only. No inventory, camera, native
+  capture, receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Added stale document-package import cleanup for app-owned extraction
+    folders left behind by interrupted imports.
+  - Covered both complete extraction folders and `.partial` extraction folders
+    while preserving foreign/customer folders.
+  - Ran stale cleanup before package extraction so retries start from a clean
+    import workspace without deleting the source ZIP package.
+  - Kept cleanup fenced to deterministic
+    `maintainiac-document-export-<hash>` directory names.
+  - Added regressions for stale partial cleanup, stale complete cleanup,
+    foreign folder preservation, pre-extraction cleanup, extracted-file
+    cleanup, saved proof preservation, and source package preservation.
+  - Updated the shared PDF fixture inventory for document package import
+    crash-recovery cleanup coverage.
+- Verification completed 2026-07-05 06:37 EDT:
+  - `dart format lib/shared/documents/app_document_import_service.dart test/app_document_store_test.dart`
+  - `flutter test test/app_document_store_test.dart -r compact`
+
 ## Pass 60 - 2026-07-05 06:33 EDT - Document export package import save
 
 - Scope: shared app document export package import materialization, proof

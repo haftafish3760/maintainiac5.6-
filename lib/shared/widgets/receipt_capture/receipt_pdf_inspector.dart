@@ -16,6 +16,8 @@ class ReceiptPdfInspector {
   static const encryptionRiskFlag = 'encryption or password security';
   static const imageContentSignal = 'image content';
   static const textLayerSignal = 'text layer';
+  static const portraitPageSignal = 'portrait pages';
+  static const landscapePageSignal = 'landscape pages';
   static const rotatedPageSignal = 'rotated pages';
   static const croppedPageSignal = 'cropped pages';
   static const headerOffsetRiskFlag = 'PDF header is not at the start';
@@ -162,6 +164,8 @@ class ReceiptPdfInspector {
       signals.add(imageContentSignal);
     }
     if (_hasLikelyTextLayer(text)) signals.add(textLayerSignal);
+    final pageOrientations = _pageOrientationSignals(text);
+    signals.addAll(pageOrientations);
     if (AppPdfSecurityPolicy.containsPdfName(text, 'rotate')) {
       signals.add(rotatedPageSignal);
     }
@@ -169,6 +173,34 @@ class ReceiptPdfInspector {
       signals.add(croppedPageSignal);
     }
     return List.unmodifiable(signals);
+  }
+
+  static List<String> _pageOrientationSignals(String text) {
+    final orientations = <String>{};
+    final pageBoxPattern = RegExp(
+      r'/(?:media|crop)box\s*\[\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\]',
+      caseSensitive: false,
+    );
+    for (final match in pageBoxPattern.allMatches(text)) {
+      final left = double.tryParse(match.group(1) ?? '');
+      final bottom = double.tryParse(match.group(2) ?? '');
+      final right = double.tryParse(match.group(3) ?? '');
+      final top = double.tryParse(match.group(4) ?? '');
+      if (left == null || bottom == null || right == null || top == null) {
+        continue;
+      }
+      final width = (right - left).abs();
+      final height = (top - bottom).abs();
+      if (width <= 0 || height <= 0) {
+        continue;
+      }
+      if (width > height) {
+        orientations.add(landscapePageSignal);
+      } else if (height > width) {
+        orientations.add(portraitPageSignal);
+      }
+    }
+    return List.unmodifiable(orientations);
   }
 
   static bool _containsPhrase(String text, String phrase) {
