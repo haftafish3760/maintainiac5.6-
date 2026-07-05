@@ -251,6 +251,7 @@
         "generated_pdf_archive_private_label_block",
         "generated_pdf_archive_human_label_privacy",
         "generated_pdf_archive_symlinked_directory_block",
+        "generated_pdf_archive_metadata_no_follow_verification",
         "generated_pdf_share_outside_storage_block",
         "generated_pdf_share_symlink_block",
         "generated_pdf_symlinked_temp_directory_block",

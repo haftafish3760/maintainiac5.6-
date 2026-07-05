@@ -28,11 +28,9 @@ class AppGeneratedPdfArchiveService {
     final documentKind = kind ?? _kindForGeneratedPdf(document.kind);
     _ensureSafeArchiveMetadata(title: title, notes: notes);
     final savedFile = await _writePermanentPdf(document, documentKind);
-    final byteSize = await _safeLength(savedFile);
-    var fileHash = await _safeHash(savedFile);
-    if (fileHash.isEmpty) {
-      fileHash = sha256.convert(document.bytes).toString();
-    }
+    final metadata = await _verifiedPermanentPdfMetadata(savedFile, document);
+    final byteSize = metadata.byteSize;
+    final fileHash = metadata.sha256;
     final now = DateTime.now();
     final recordId = _documentId(document, now);
     final attachment = ReceiptAttachmentRecord(
@@ -266,12 +264,14 @@ class AppGeneratedPdfArchiveService {
     File destination,
     AppGeneratedPdfDocument document,
   ) async {
+    await _requireRegularPdfFile(destination);
     final finalBytes = await _safeLength(destination);
     if (finalBytes == null || finalBytes != document.byteSize) {
       throw const FileSystemException(
         'Generated PDF final file was incomplete.',
       );
     }
+    await _requireRegularPdfFile(destination);
     final finalHash = await _safeHash(destination);
     final expectedHash = sha256.convert(document.bytes).toString();
     if (finalHash.isEmpty || finalHash != expectedHash) {
@@ -279,6 +279,30 @@ class AppGeneratedPdfArchiveService {
         'Generated PDF final file did not verify.',
       );
     }
+    await _requireRegularPdfFile(destination);
+  }
+
+  static Future<_VerifiedPermanentPdfMetadata> _verifiedPermanentPdfMetadata(
+    File file,
+    AppGeneratedPdfDocument document,
+  ) async {
+    try {
+      await _verifyPermanentWrite(file, document);
+      return _VerifiedPermanentPdfMetadata(
+        byteSize: document.byteSize,
+        sha256: sha256.convert(document.bytes).toString(),
+      );
+    } catch (_) {
+      throw const AppGeneratedPdfArchiveException(
+        'Maintainiac could not verify the generated PDF after it was saved.',
+      );
+    }
+  }
+
+  static Future<void> _requireRegularPdfFile(File file) async {
+    final type = await FileSystemEntity.type(file.path, followLinks: false);
+    if (type == FileSystemEntityType.file) return;
+    throw const FileSystemException('Generated PDF file was not regular.');
   }
 
   static Future<int?> _safeLength(File file) async {
@@ -328,4 +352,14 @@ class AppGeneratedPdfArchiveException implements Exception {
 
   @override
   String toString() => message;
+}
+
+class _VerifiedPermanentPdfMetadata {
+  const _VerifiedPermanentPdfMetadata({
+    required this.byteSize,
+    required this.sha256,
+  });
+
+  final int byteSize;
+  final String sha256;
 }

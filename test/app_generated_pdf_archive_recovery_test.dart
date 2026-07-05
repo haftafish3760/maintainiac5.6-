@@ -362,6 +362,27 @@ void main() {
       expect(source, contains("'Generated PDF final file did not verify.'"));
     },
   );
+
+  test('archive metadata verifies final PDF without following links', () {
+    final source = File(
+      'lib/shared/documents/app_generated_pdf_archive_service.dart',
+    ).readAsStringSync();
+
+    expect(
+      source,
+      contains('_verifiedPermanentPdfMetadata(savedFile, document)'),
+    );
+    expect(source, contains('Future<_VerifiedPermanentPdfMetadata>'));
+    expect(source, contains('await _requireRegularPdfFile(destination);'));
+    expect(source, contains('await _verifyPermanentWrite(file, document);'));
+    expect(source, contains('followLinks: false'));
+    expect(
+      source,
+      contains(
+        'Maintainiac could not verify the generated PDF after it was saved.',
+      ),
+    );
+  });
 }
 
 AppGeneratedPdfDocument _document({

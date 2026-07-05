@@ -1,5 +1,22 @@
 # PDF System Pass Log
 
+## Pass 121 - 2026-07-05 11:38 EDT - Generated PDF archive metadata verification
+
+- Scope: generated PDF archive final-file metadata verification only. No
+  inventory, camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Verified archived generated PDFs without following links before final
+    byte-size and hash reads.
+  - Rechecked the archived file as a regular file between byte-size and hash
+    verification.
+  - Removed fallback hash behavior that could have recorded a document hash
+    after an unreadable archive file.
+  - Added archive metadata no-follow verification coverage to the QA registry.
+- Verification completed 2026-07-05 11:38 EDT:
+  - `flutter test test/app_generated_pdf_archive_recovery_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_generated_pdf_archive_service.dart test/app_generated_pdf_archive_recovery_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 120 - 2026-07-05 11:35 EDT - Document package read recheck hardening
 
 - Scope: document export package read/preview/extract file verification only.
