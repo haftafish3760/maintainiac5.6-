@@ -132,13 +132,22 @@ class _ReceiptPreviousSectionGhostLabel extends StatelessWidget {
 
   bool get _missingBottomAndTotals =>
       reasonCode?.trim() == 'missing_bottom_edge_and_totals';
+  bool get _usesNextContext =>
+      reasonCode?.trim() == 'retake_top_with_next_context';
 
-  String get _title =>
-      _missingBottomAndTotals ? 'Match the bottom section' : 'Match sections';
+  String get _title {
+    if (_usesNextContext) return 'Match the next section';
+    return _missingBottomAndTotals
+        ? 'Match the bottom section'
+        : 'Match sections';
+  }
 
   String get _message {
     final custom = guidance?.trim();
     if (custom != null && custom.isNotEmpty) return custom;
+    if (_usesNextContext) {
+      return 'Use the next section as context, then confirm the join in review.';
+    }
     if (_missingBottomAndTotals) {
       return 'Repeat 3-5 readable lines here so subtotal, total, and final lines can be matched.';
     }

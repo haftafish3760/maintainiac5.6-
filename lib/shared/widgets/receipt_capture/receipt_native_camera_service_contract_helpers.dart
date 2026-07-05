@@ -133,6 +133,8 @@ Map<String, Object?> _previousSectionArguments(
     'previousSectionGuidePhotoPath': config.previousSectionGuidePhotoPath,
     'previousSectionReasonCode': config.previousSectionGuideReasonCode,
     'previousSectionGhostGuidePolicy': config.previousSectionGhostGuidePolicy,
+    'previousSectionGhostGuideUsesNextContext':
+        config.previousSectionGuideUsesNextContext,
     'previousSectionGhostGuideRepeatLineTarget':
         config.previousSectionGhostGuideRepeatLineTarget,
     'previousSectionGhostGuidePlacement':

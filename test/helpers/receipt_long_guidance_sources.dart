@@ -23,6 +23,8 @@ class ReceiptLongGuidanceSources {
     required this.realDeviceScript,
     required this.policySource,
     required this.imageEditActions,
+    required this.nativeGhostGuide,
+    required this.nativeGhostShell,
   });
 
   final String reviewControls;
@@ -44,6 +46,8 @@ class ReceiptLongGuidanceSources {
   final String realDeviceScript;
   final String policySource;
   final String imageEditActions;
+  final String nativeGhostGuide;
+  final String nativeGhostShell;
 }
 
 Future<ReceiptLongGuidanceSources> readReceiptLongGuidanceSources() async {
@@ -111,6 +115,12 @@ Future<ReceiptLongGuidanceSources> readReceiptLongGuidanceSources() async {
     ),
     imageEditActions: await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_image_edit_actions.dart',
+    ).readAsString(),
+    nativeGhostGuide: await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_session_ghost_guide.dart',
+    ).readAsString(),
+    nativeGhostShell: await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_ghost_guidance.dart',
     ).readAsString(),
   );
 }

@@ -110,6 +110,7 @@ void main() {
       ),
     );
     expect(sources.captureActions, contains('previousSectionGuidePhotoPath'));
+    expect(sources.captureActions, contains('preferredGuidePhotoPath'));
     expect(sources.captureActions, contains('alignmentReasonCode:'));
     expect(sources.captureActions, contains('retakeContext?.guidanceCode'));
     expect(sources.captureActions, contains('alignmentGuidance:'));
@@ -148,6 +149,16 @@ void main() {
       contains('...?pickedDiagnostics[entry.key]'),
     );
     expect(sources.captureActions, contains('_mergeRetakeCaptureDiagnostics'));
+    expect(
+      sources.nativeGhostGuide,
+      contains('previousSectionGuideUsesNextContext'),
+    );
+    expect(
+      sources.nativeGhostGuide,
+      contains('next_section_top_context_ghost_at_top_repeat_3_to_5_lines'),
+    );
+    expect(sources.nativeGhostGuide, contains('next_section_top_lines'));
+    expect(sources.nativeGhostShell, contains('Match the next section'));
     expect(sources.reviewActions, contains('Line Up The Next Receipt Photo'));
     expect(sources.reviewControls, contains('Add Bottom Section'));
     expect(

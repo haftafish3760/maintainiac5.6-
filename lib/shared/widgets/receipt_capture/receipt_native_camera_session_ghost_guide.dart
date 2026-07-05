@@ -16,8 +16,14 @@ extension ReceiptNativeCameraSessionGhostGuide
   bool get previousSectionGuideMissingBottomAndTotals =>
       previousSectionGuideReasonCode == 'missing_bottom_edge_and_totals';
 
+  bool get previousSectionGuideUsesNextContext =>
+      previousSectionGuideReasonCode == 'retake_top_with_next_context';
+
   String get previousSectionGhostGuidePolicy {
     if (!hasPreviousSectionGuide) return 'not_requested';
+    if (previousSectionGuideUsesNextContext) {
+      return 'next_section_top_context_ghost_at_top_repeat_3_to_5_lines';
+    }
     if (previousSectionGuideMissingBottomAndTotals) {
       return 'bottom_overlap_ghost_at_top_repeat_3_to_5_lines';
     }
@@ -31,6 +37,7 @@ extension ReceiptNativeCameraSessionGhostGuide
       hasPreviousSectionGuide ? 'top_ghost_slice' : 'none';
 
   double get previousSectionGhostSourceStartFractionOrDefault {
+    if (previousSectionGuideUsesNextContext) return 0;
     final fallback = previousSectionGuideMissingBottomAndTotals ? .80 : .78;
     return _boundedGhostGuideValue(
       previousSectionGhostSourceStartFraction,
@@ -81,6 +88,9 @@ extension ReceiptNativeCameraSessionGhostGuide
 
   String get previousSectionGhostGuideMatchTarget {
     if (!hasPreviousSectionGuide) return 'none';
+    if (previousSectionGuideUsesNextContext) {
+      return 'next_section_top_lines';
+    }
     if (previousSectionGuideMissingBottomAndTotals) {
       return 'subtotal_total_and_final_lines';
     }
@@ -91,6 +101,9 @@ extension ReceiptNativeCameraSessionGhostGuide
     final guidance = previousSectionGuidance?.trim();
     if (guidance != null && guidance.isNotEmpty) return guidance;
     if (!hasPreviousSectionGuide) return '';
+    if (previousSectionGuideUsesNextContext) {
+      return 'Use the top of the next receipt section as context, then confirm the retake still joins cleanly in photo review.';
+    }
     if (previousSectionGuideMissingBottomAndTotals) {
       return 'Keep the last readable lines in the top ghost slice, then repeat 3-5 readable lines near the top of the next photo so subtotal, total, and final lines can be matched.';
     }
