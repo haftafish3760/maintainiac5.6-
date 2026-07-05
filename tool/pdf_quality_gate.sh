@@ -14,6 +14,7 @@ dart analyze \
   lib/shared/pdf \
   lib/shared/documents/app_document_import_service.dart \
   lib/shared/documents/app_document_export_manifest.dart \
+  lib/shared/documents/app_document_export_package_writer.dart \
   lib/shared/documents/app_generated_pdf_archive_service.dart \
   lib/shared/documents/app_document_models.dart \
   lib/shared/documents/app_document_store.dart \
@@ -28,6 +29,7 @@ dart analyze \
   test/app_generated_pdf_archive_recovery_test.dart \
   test/app_generated_pdf_service_test.dart \
   test/app_document_export_manifest_test.dart \
+  test/app_document_export_package_writer_test.dart \
   test/app_document_store_test.dart \
   test/cloud_backup_pdf_policy_test.dart \
   test/document_engine_operating_directive_test.dart \
@@ -67,6 +69,7 @@ flutter test \
   test/app_generated_pdf_archive_recovery_test.dart \
   test/app_generated_pdf_service_test.dart \
   test/app_document_export_manifest_test.dart \
+  test/app_document_export_package_writer_test.dart \
   test/app_document_store_test.dart \
   test/cloud_backup_pdf_policy_test.dart \
   test/document_engine_operating_directive_test.dart \

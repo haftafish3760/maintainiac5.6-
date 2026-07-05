@@ -1,5 +1,34 @@
 # PDF System Pass Log
 
+## Pass 52 - 2026-07-05 06:03 EDT - Document export zip package writer
+
+- Scope: shared app document export package writing, deterministic ZIP output,
+  rollback behavior, and PDF QA gate wiring only. No inventory, camera, native
+  capture, receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Added `AppDocumentExportPackageWriter` for verified document export ZIP
+    creation on top of the shared document export package plan.
+  - Added deterministic ZIP bytes with a fixed modified timestamp, stable
+    manifest entry name, safe verified proof entry names, and manifest hash
+    verification.
+  - Added atomic `.partial` package writes with byte-count and SHA-256
+    verification before and after promotion.
+  - Added rollback behavior so failed package writes remove partial output and
+    leave source records/proof files untouched.
+  - Kept result metadata pathless while returning file name, package hash,
+    manifest hash, file entries, byte count, and storage warning state.
+  - Added regressions for deterministic ZIP output, manifest/file-entry
+    verification, duplicate entry preservation, tampered ZIP rejection, source
+    proof preservation, pathless result metadata, and rollback on rename
+    failure.
+  - Wired package-writer coverage into the shared PDF quality gate, gate
+    contract, and PDF fixture inventory.
+- Verification completed 2026-07-05 06:03 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart test/app_document_export_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_manifest_test.dart test/app_document_export_package_writer_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 51 - 2026-07-05 05:58 EDT - Document export package entry naming
 
 - Scope: shared app document export package entry naming and PDF QA fixture

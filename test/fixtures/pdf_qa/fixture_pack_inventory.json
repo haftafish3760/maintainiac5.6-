@@ -107,14 +107,18 @@
         "document_export_missing_file_block",
         "document_export_low_storage_block",
         "document_export_storage_warning",
-        "document_export_safe_package_entry_names"
+        "document_export_safe_package_entry_names",
+        "document_export_zip_package_write",
+        "document_export_zip_package_determinism",
+        "document_export_zip_package_duplicate_names"
       ]
     },
     "storage_cleanup": {
       "status": "covered",
       "currentTestFiles": [
         "test/receipt_pdf_torture_storage_test.dart",
-        "test/app_generated_pdf_archive_recovery_test.dart"
+        "test/app_generated_pdf_archive_recovery_test.dart",
+        "test/app_document_export_package_writer_test.dart"
       ],
       "fixtureKeys": [
         "valid_3_page",
@@ -122,7 +126,9 @@
         "fresh_generated_pdf_partial_reservation",
         "generated_pdf_destination_hash_verification",
         "generated_pdf_save_failure_rollback",
-        "generated_pdf_replacement_cleanup"
+        "generated_pdf_replacement_cleanup",
+        "document_export_zip_package_rollback",
+        "document_export_zip_package_tamper_block"
       ]
     },
     "privacy_and_security_logs": {

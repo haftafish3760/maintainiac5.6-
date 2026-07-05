@@ -71,6 +71,12 @@ void main() {
       expect(
         script,
         contains(
+          'lib/shared/documents/app_document_export_package_writer.dart',
+        ),
+      );
+      expect(
+        script,
+        contains(
           'lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart',
         ),
       );
@@ -94,6 +100,10 @@ void main() {
       );
       expect(script, contains('test/app_generated_pdf_service_test.dart'));
       expect(script, contains('test/app_document_export_manifest_test.dart'));
+      expect(
+        script,
+        contains('test/app_document_export_package_writer_test.dart'),
+      );
       expect(
         script,
         contains('test/invoice_document_engine_layout_contract_test.dart'),
