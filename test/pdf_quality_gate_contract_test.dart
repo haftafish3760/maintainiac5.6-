@@ -42,8 +42,13 @@ void main() {
       expect(script, contains('bash tool/pdf_render_smoke_gate.sh'));
       expect(script, contains('cmp -s /tmp/maintainiac_gate_invoice_a.pdf'));
       expect(script, contains('cmp -s /tmp/maintainiac_gate_receipt_a.pdf'));
+      expect(
+        script,
+        contains('cmp -s /tmp/maintainiac_gate_long_receipt_a.pdf'),
+      );
       expect(script, contains('dart analyze'));
       expect(script, contains('tool/generate_sample_receipt_pdf.dart'));
+      expect(script, contains('tool/generate_long_receipt_pdf.dart'));
       expect(script, contains('flutter test'));
       expect(script, contains('git diff --check'));
       expect(script, contains('lib/shared/pdf'));
@@ -140,12 +145,14 @@ void main() {
         'tool/pdf_render_pixel_assertions.py',
       ).readAsStringSync();
       expect(renderGate, contains('tool/pdf_render_pixel_assertions.py'));
+      expect(renderGate, contains('long_receipt.pdf'));
       expect(renderGate, contains('PDF_RENDER_GATE_INVOICE_OUTPUT'));
       expect(renderGate, contains('PDF_RENDER_GATE_LONG_TEXT_INVOICE_OUTPUT'));
       expect(renderGate, contains('PDF_RENDER_GATE_LANDSCAPE_INVOICE_OUTPUT'));
       expect(renderGate, contains('page_count'));
       expect(renderGate, contains('rendered_count'));
       expect(renderGate, contains('Real invoice render fixture'));
+      expect(renderGate, contains('Long receipt render fixture'));
       expect(renderGate, contains('Long-text invoice render fixture'));
       expect(renderGate, contains('Landscape invoice render fixture'));
       expect(renderGate, contains(r'--orientation "$orientation"'));
@@ -153,6 +160,8 @@ void main() {
         renderGate,
         contains(r'for page_number in $(seq 1 "$page_count")'),
       );
+      expect(renderGate, contains(r'printf "%02d" "$page_number"'));
+      expect(renderGate, contains(r'printf "%03d" "$page_number"'));
       expect(
         renderGate,
         contains('test/pdf_render_gate_invoice_generator_test.dart'),

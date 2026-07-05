@@ -277,15 +277,20 @@
       ],
       "fixtureKeys": [
         "generated_confirmed_receipt_pdf",
+        "generated_long_confirmed_receipt_pdf",
         "receipt_generation_requires_user_confirmation",
         "receipt_generation_requires_confirmed_lines",
         "receipt_generation_total_mismatch_block",
         "receipt_generation_private_metadata_block",
         "receipt_generation_landscape_page_format",
+        "receipt_generation_long_receipt_sections",
+        "receipt_generation_totals_free_space",
         "receipt_generation_portrait_landscape_image_embedding",
         "receipt_generation_empty_image_block",
         "receipt_generation_unsupported_image_block",
         "receipt_generation_too_many_images_block",
+        "receipt_generation_oversized_image_block",
+        "receipt_generation_oversized_image_batch_block",
         "receipt_generation_archive_mapping",
         "receipt_generation_determinism"
       ]
@@ -315,6 +320,7 @@
       ],
       "fixtureKeys": [
         "sample_receipt_pdf",
+        "long_receipt_pdf",
         "sample_receipt_pdf_embedded_portrait_landscape_images",
         "sample_invoice_pdf",
         "landscape_invoice_pdf",

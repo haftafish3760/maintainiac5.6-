@@ -12,6 +12,7 @@ python3 -m py_compile tool/pdf_render_pixel_assertions.py
 dart analyze \
   tool/generate_sample_invoice_pdf.dart \
   tool/generate_sample_receipt_pdf.dart \
+  tool/generate_long_receipt_pdf.dart \
   lib/shared/pdf \
   lib/shared/documents/app_document_import_service.dart \
   lib/shared/documents/app_document_export_manifest.dart \
@@ -64,6 +65,9 @@ cmp -s /tmp/maintainiac_gate_invoice_a.pdf /tmp/maintainiac_gate_invoice_b.pdf
 dart run tool/generate_sample_receipt_pdf.dart /tmp/maintainiac_gate_receipt_a.pdf >/dev/null
 dart run tool/generate_sample_receipt_pdf.dart /tmp/maintainiac_gate_receipt_b.pdf >/dev/null
 cmp -s /tmp/maintainiac_gate_receipt_a.pdf /tmp/maintainiac_gate_receipt_b.pdf
+dart run tool/generate_long_receipt_pdf.dart /tmp/maintainiac_gate_long_receipt_a.pdf >/dev/null
+dart run tool/generate_long_receipt_pdf.dart /tmp/maintainiac_gate_long_receipt_b.pdf >/dev/null
+cmp -s /tmp/maintainiac_gate_long_receipt_a.pdf /tmp/maintainiac_gate_long_receipt_b.pdf
 
 bash tool/pdf_render_smoke_gate.sh
 

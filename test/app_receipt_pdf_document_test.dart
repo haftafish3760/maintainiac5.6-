@@ -140,6 +140,44 @@ void main() {
   });
 
   test(
+    'receipt PDF renderer paginates long receipts with repeated context',
+    () async {
+      const renderer = AppReceiptPdfRenderer();
+      final data = _receiptData(lineCount: 160);
+      final sections = renderer.planLineSections(data);
+      final document = await const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: data,
+        createdAt: DateTime.utc(2026, 7, 5, 12),
+        theme: await AppPdfTypography.loadTheme(),
+      );
+      final boxes = _mediaBoxes(document.bytes);
+      final decoded = AppPdfTextDecoder.textWithDecodedPdfStreams(
+        document.bytes,
+      );
+
+      expect(document.validation.isValid, isTrue);
+      expect(boxes.length, greaterThan(1));
+      expect(decoded, contains('Confirmed'));
+      expect(decoded, contains('material'));
+      expect(decoded, contains('line'));
+      expect(decoded, contains('80'));
+      expect(decoded, contains('160'));
+      expect(sections, hasLength(5));
+      expect(sections.first.label, 'Receipt line items section 1 of 5');
+      expect(sections.last.label, 'Receipt line items section 5 of 5');
+      expect(sections.every((section) => section.lines.length <= 32), isTrue);
+      expect(decoded, contains('Item'));
+      expect(decoded, contains('Category'));
+      expect(
+        _textOccurrences(decoded, 'Page'),
+        greaterThanOrEqualTo(boxes.length),
+      );
+      expect(decoded, contains('Total'));
+      expect(decoded, contains(r'$456.78'));
+    },
+  );
+
+  test(
     'receipt PDF renderer embeds portrait and landscape proof images',
     () async {
       const renderer = AppReceiptPdfRenderer();
@@ -256,6 +294,63 @@ void main() {
       ),
     );
   });
+
+  test('receipt PDF renderer refuses oversized proof image bytes', () async {
+    final data = _receiptData(
+      lineCount: 1,
+      proofImages: [
+        AppReceiptPdfImage(
+          bytes: _fakePngBytes(appReceiptPdfMaxEmbeddedImageBytes + 1),
+          label: 'oversized',
+        ),
+      ],
+    );
+
+    await expectLater(
+      const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: data,
+        theme: await AppPdfTypography.loadTheme(),
+      ),
+      throwsA(
+        isA<AppReceiptPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('receipt proof image was too large'),
+        ),
+      ),
+    );
+  });
+
+  test('receipt PDF renderer refuses oversized proof image batch', () async {
+    final data = _receiptData(
+      lineCount: 1,
+      proofImages: [
+        for (var index = 0; index < 3; index++)
+          AppReceiptPdfImage(
+            bytes: _fakePngBytes(9 * 1024 * 1024),
+            label: 'batch $index',
+          ),
+      ],
+    );
+
+    await expectLater(
+      const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: data,
+        theme: await AppPdfTypography.loadTheme(),
+      ),
+      throwsA(
+        isA<AppReceiptPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('receipt proof images were too large together'),
+        ),
+      ),
+    );
+  });
+}
+
+int _textOccurrences(String text, String value) {
+  return RegExp(RegExp.escape(value)).allMatches(text).length;
 }
 
 AppReceiptPdfData _receiptData({
@@ -314,6 +409,13 @@ Uint8List _receiptPng({int width = 240, int height = 480}) {
     thickness: 2,
   );
   return Uint8List.fromList(img.encodePng(image));
+}
+
+Uint8List _fakePngBytes(int length) {
+  final bytes = Uint8List(length);
+  const header = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+  bytes.setRange(0, header.length, header);
+  return bytes;
 }
 
 List<_MediaBox> _mediaBoxes(List<int> bytes) {

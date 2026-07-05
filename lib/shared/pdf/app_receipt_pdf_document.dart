@@ -11,6 +11,9 @@ import 'app_pdf_page_spec.dart';
 const int appReceiptPdfMaxEmbeddedImages = 12;
 const int appReceiptPdfMaxEmbeddedImageBytes = 10 * 1024 * 1024;
 const int appReceiptPdfMaxTotalEmbeddedImageBytes = 24 * 1024 * 1024;
+const int appReceiptPdfLineRowsPerSection = 32;
+const double appReceiptPdfMinimumTotalsFreeSpace = 120;
+const double appReceiptPdfMinimumProofImageFreeSpace = 380;
 
 class AppReceiptPdfLine {
   const AppReceiptPdfLine({
@@ -63,6 +66,25 @@ class AppReceiptPdfImage {
   int get byteSize => bytes.lengthInBytes;
 
   String get sha256Hex => sha256.convert(bytes).toString();
+}
+
+class AppReceiptPdfLineSection {
+  const AppReceiptPdfLineSection({
+    required this.sectionNumber,
+    required this.sectionCount,
+    required this.startIndex,
+    required this.lines,
+  });
+
+  final int sectionNumber;
+  final int sectionCount;
+  final int startIndex;
+  final List<AppReceiptPdfLine> lines;
+
+  String get label {
+    if (sectionCount == 1) return 'Receipt line items';
+    return 'Receipt line items section $sectionNumber of $sectionCount';
+  }
 }
 
 class AppReceiptPdfData {
@@ -130,6 +152,32 @@ class AppReceiptPdfData {
 class AppReceiptPdfRenderer {
   const AppReceiptPdfRenderer();
 
+  List<AppReceiptPdfLineSection> planLineSections(AppReceiptPdfData data) {
+    final sectionCount = (data.lines.length / appReceiptPdfLineRowsPerSection)
+        .ceil();
+    return [
+      for (
+        var start = 0;
+        start < data.lines.length;
+        start += appReceiptPdfLineRowsPerSection
+      )
+        AppReceiptPdfLineSection(
+          sectionNumber: (start ~/ appReceiptPdfLineRowsPerSection) + 1,
+          sectionCount: sectionCount,
+          startIndex: start,
+          lines: List<AppReceiptPdfLine>.unmodifiable(
+            data.lines.sublist(
+              start,
+              (start + appReceiptPdfLineRowsPerSection).clamp(
+                0,
+                data.lines.length,
+              ),
+            ),
+          ),
+        ),
+    ];
+  }
+
   Future<AppGeneratedPdfDocument> buildReceiptDocument({
     required AppReceiptPdfData data,
     DateTime? createdAt,
@@ -164,11 +212,13 @@ class AppReceiptPdfRenderer {
         build: (context) => [
           _receiptSummary(data),
           pw.SizedBox(height: 14),
-          _lineTable(data),
+          ..._lineTables(data),
           pw.SizedBox(height: 12),
+          pw.NewPage(freeSpace: appReceiptPdfMinimumTotalsFreeSpace),
           _totals(data),
           if (data.proofImages.isNotEmpty) ...[
             pw.SizedBox(height: 16),
+            pw.NewPage(freeSpace: appReceiptPdfMinimumProofImageFreeSpace),
             ..._receiptProofImages(data.proofImages),
           ],
           if (data.safeNotes.isNotEmpty) ...[
@@ -282,13 +332,44 @@ class AppReceiptPdfRenderer {
     );
   }
 
-  pw.Widget _lineTable(AppReceiptPdfData data) {
+  List<pw.Widget> _lineTables(AppReceiptPdfData data) {
+    final widgets = <pw.Widget>[];
+    for (final section in planLineSections(data)) {
+      if (section.startIndex > 0) {
+        widgets.add(pw.NewPage());
+      }
+      widgets.add(
+        pw.Text(
+          section.label,
+          style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+        ),
+      );
+      widgets.add(pw.SizedBox(height: 6));
+      widgets.add(_lineTable(section.lines));
+    }
+    return widgets;
+  }
+
+  pw.Widget _lineTable(List<AppReceiptPdfLine> lines) {
     return pw.TableHelper.fromTextArray(
       headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
       cellStyle: const pw.TextStyle(fontSize: 8),
       headers: const ['Item', 'Category', 'Qty', 'Total'],
+      columnWidths: const {
+        0: pw.FlexColumnWidth(4.5),
+        1: pw.FlexColumnWidth(2.2),
+        2: pw.FlexColumnWidth(1.2),
+        3: pw.FlexColumnWidth(1.4),
+      },
+      cellAlignments: const {
+        0: pw.Alignment.centerLeft,
+        1: pw.Alignment.centerLeft,
+        2: pw.Alignment.centerRight,
+        3: pw.Alignment.centerRight,
+      },
+      headerAlignment: pw.Alignment.centerLeft,
       data: [
-        for (final line in data.lines)
+        for (final line in lines)
           [
             line.safeDescription,
             line.safeCategory,

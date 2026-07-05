@@ -1,5 +1,70 @@
 # PDF System Pass Log
 
+## Milestone - 2026-07-05 09:51 EDT - Passes 86-88 long receipt hardening
+
+- Scope: shared receipt PDF generation and render QA only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added deterministic long-receipt line section planning and sectioned
+    rendering.
+  - Added receipt totals/proof-image free-space guards.
+  - Added proof-image size regression coverage.
+  - Added a long receipt generator to deterministic PDF generation and Poppler
+    render smoke gates.
+  - Fixed the render smoke gate for Poppler padded page image names on 10+
+    page PDFs.
+- Verification completed 2026-07-05 09:51 EDT:
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 88 - 2026-07-05 09:51 EDT - Long receipt render gate
+
+- Scope: shared PDF render QA only. No inventory, camera, native capture, OCR
+  engine, or parser behavior changes.
+- Bundled work:
+  - Added a long confirmed receipt PDF generator using the shared receipt
+    renderer.
+  - Added deterministic long-receipt generation and Poppler render coverage to
+    the PDF quality gate.
+  - Fixed the render smoke gate to handle Poppler's padded page image names for
+    documents with 10 or more pages.
+  - Added contract and fixture-registry coverage for the long receipt render
+    gate.
+- Verification completed 2026-07-05 09:51 EDT:
+  - `dart format tool/generate_long_receipt_pdf.dart lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `dart analyze tool/generate_long_receipt_pdf.dart tool/generate_sample_receipt_pdf.dart lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `dart run tool/generate_long_receipt_pdf.dart /tmp/maintainiac_pass88_long_receipt.pdf`
+  - `bash tool/pdf_render_smoke_gate.sh`
+  - `flutter test test/app_receipt_pdf_document_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+
+## Pass 87 - 2026-07-05 09:49 EDT - Receipt image size regressions
+
+- Scope: shared receipt PDF image validation only. No inventory, camera, native
+  capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added regression coverage for per-image proof size limits.
+  - Added regression coverage for total embedded proof image batch limits.
+  - Added those receipt generation guards to the PDF QA fixture registry.
+- Verification completed 2026-07-05 09:49 EDT:
+  - `dart format lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+  - `flutter test test/app_receipt_pdf_document_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+
+## Pass 86 - 2026-07-05 09:47 EDT - Long receipt pagination
+
+- Scope: shared receipt PDF generation only. No inventory, camera, native
+  capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added deterministic line-section planning for long receipt PDFs.
+  - Added explicit page sections so long receipt line items keep repeated
+    context instead of relying on one oversized table.
+  - Added free-space guards before totals and proof image sections.
+  - Added regression coverage for 160-line receipt pagination and section
+    planning.
+- Verification completed 2026-07-05 09:48 EDT:
+  - `dart format lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+  - `flutter test test/app_receipt_pdf_document_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+
 ## Milestone - 2026-07-05 09:41 EDT - Passes 84-85 receipt image embedding and render proof
 
 - Scope: shared receipt PDF generation and render QA only. No inventory,
