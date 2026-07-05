@@ -238,4 +238,42 @@ void main() {
     expect(lampholder!.item.trade, 'Electrical');
     expect(lampholder.item.name, contains('Porcelain Lampholder'));
   });
+
+  test('electrical parser understands modern connector and label stock', () {
+    final lever = matchReceiptLineToCatalog(
+      '3 PORT LEVER CONNECTOR 25PK',
+      tradeScope: 'Electrical',
+      maxCandidates: 180,
+    );
+    expect(lever, isNotNull);
+    expect(lever!.item.trade, 'Electrical');
+    expect(lever.item.name, contains('Lever Connector'));
+
+    final antiShort = matchReceiptLineToCatalog(
+      'MC ANTI SHORT BUSHING 100PK',
+      tradeScope: 'Electrical',
+      maxCandidates: 180,
+    );
+    expect(antiShort, isNotNull);
+    expect(antiShort!.item.trade, 'Electrical');
+    expect(antiShort.item.name, contains('Anti Short Bushing'));
+
+    final marker = matchReceiptLineToCatalog(
+      'WIRE MARKER NUMBER BOOK',
+      tradeScope: 'Electrical',
+      maxCandidates: 180,
+    );
+    expect(marker, isNotNull);
+    expect(marker!.item.trade, 'Electrical');
+    expect(marker.item.name, contains('Wire Marker Number Book'));
+
+    final directory = matchReceiptLineToCatalog(
+      'CIRCUIT DIRECTORY LABEL PACK',
+      tradeScope: 'Electrical',
+      maxCandidates: 180,
+    );
+    expect(directory, isNotNull);
+    expect(directory!.item.trade, 'Electrical');
+    expect(directory.item.name, contains('Circuit Directory Label Pack'));
+  });
 }

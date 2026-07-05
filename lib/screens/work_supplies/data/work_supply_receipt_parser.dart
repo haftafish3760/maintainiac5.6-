@@ -624,21 +624,40 @@ WorkSupplyItem? _directElectricalServiceRepairMatch(
     return null;
   }
   final wantedName = switch (text) {
-    final value when RegExp(r'\b(romex|nm|nm-b)\b').hasMatch(value) &&
-        RegExp(r'\b(connector|conn|clamp)\b').hasMatch(value) =>
+    final value
+        when RegExp(r'\b(romex|nm|nm-b)\b').hasMatch(value) &&
+            RegExp(r'\b(connector|conn|clamp)\b').hasMatch(value) =>
       'romex connector',
     final value when RegExp(r'\binsulated\s+bushing\b').hasMatch(value) =>
       'insulated bushing',
     final value when RegExp(r'\b(conduit\s+)?locknut\b').hasMatch(value) =>
       'conduit locknut',
+    final value when RegExp(r'\blever\s+connector\b').hasMatch(value) =>
+      'lever connector',
+    final value
+        when RegExp(r'\bpush[\s-]?in\s+wire\s+connector\b').hasMatch(value) =>
+      'push-in wire connector',
+    final value
+        when RegExp(r'\binline\s+splice\s+connector\b').hasMatch(value) =>
+      'inline splice connector',
+    final value when RegExp(r'\banti[\s-]?short\b').hasMatch(value) =>
+      'anti short bushing',
     final value when RegExp(r'\bground\s+pigtail\b').hasMatch(value) =>
       'ground pigtail',
     final value when RegExp(r'\bgfci\s+tester\b').hasMatch(value) =>
       'gfci tester',
+    final value when RegExp(r'\bvoltage\s+detector\b').hasMatch(value) =>
+      'voltage detector',
+    final value when RegExp(r'\bwire\s+marker\b').hasMatch(value) =>
+      'wire marker',
+    final value when RegExp(r'\bcircuit\s+directory\b').hasMatch(value) =>
+      'circuit directory',
     final value when RegExp(r'\bporcelain\s+lampholder\b').hasMatch(value) =>
       'porcelain lampholder',
-    final value when RegExp(r'\b(keyless|pull\s+chain|weatherproof)\s+lampholder\b')
-        .hasMatch(value) =>
+    final value
+        when RegExp(
+          r'\b(keyless|pull\s+chain|weatherproof)\s+lampholder\b',
+        ).hasMatch(value) =>
       'lampholder',
     _ => null,
   };
@@ -980,6 +999,48 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
     }
   }
 
+  final wantsCondensateDrainGun =
+      RegExp(r'\b(drain|condensate)\b').hasMatch(text) &&
+      RegExp(r'\b(gun|cartridge|cartucho)\b').hasMatch(text);
+  if (wantsCondensateDrainGun) {
+    final wantsCartridge = RegExp(r'\b(cartridge|cartucho)\b').hasMatch(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade != 'HVAC') continue;
+      if (wantsCartridge && name.contains('drain gun cartridge')) return item;
+      if (!wantsCartridge && name.contains('condensate drain gun')) {
+        return item;
+      }
+    }
+  }
+
+  final wantsHumidifierPart = RegExp(r'\bhumidifier\b').hasMatch(text);
+  if (wantsHumidifierPart) {
+    final wantedName = switch (text) {
+      final value when RegExp(r'\b(pad|water\s+panel)\b').hasMatch(value) =>
+        RegExp(r'\bwater\s+panel\b').hasMatch(value)
+            ? 'humidifier water panel'
+            : 'humidifier pad',
+      final value when RegExp(r'\bsolenoid\b').hasMatch(value) =>
+        'humidifier solenoid valve',
+      final value when RegExp(r'\bfeed\s+tube\b').hasMatch(value) =>
+        'humidifier feed tube',
+      final value when RegExp(r'\bdrain\s+tube\b').hasMatch(value) =>
+        'humidifier drain tube',
+      final value when RegExp(r'\bsaddle\s+valve\b').hasMatch(value) =>
+        'humidifier saddle valve',
+      final value when RegExp(r'\bbypass\s+damper\b').hasMatch(value) =>
+        'humidifier bypass damper',
+      _ => null,
+    };
+    if (wantedName != null) {
+      for (final item in workSupplyCatalogItems) {
+        final name = item.name.toLowerCase();
+        if (item.trade == 'HVAC' && name.contains(wantedName)) return item;
+      }
+    }
+  }
+
   final wantsMiniSplitCleaningBib =
       RegExp(r'\b(mini\s*split|ductless)\b').hasMatch(text) &&
       RegExp(
@@ -1266,16 +1327,19 @@ WorkSupplyItem? _directApplianceInstallMatch(
     return null;
   }
   final wantedName = switch (text) {
-    final value when RegExp(r'\b(dishwasher|dw)\b').hasMatch(value) &&
-        RegExp(
-          r'\b(connector|connecter|conn|supply|line|kit|compression)\b',
-        ).hasMatch(value) =>
+    final value
+        when RegExp(r'\b(dishwasher|dw)\b').hasMatch(value) &&
+            RegExp(
+              r'\b(connector|connecter|conn|supply|line|kit|compression)\b',
+            ).hasMatch(value) =>
       'compression dishwasher connector kit',
-    final value when RegExp(r'\b(dishwasher|dw)\b').hasMatch(value) &&
-        RegExp(r'\b(drain\s+hose|hose)\b').hasMatch(value) =>
+    final value
+        when RegExp(r'\b(dishwasher|dw)\b').hasMatch(value) &&
+            RegExp(r'\b(drain\s+hose|hose)\b').hasMatch(value) =>
       'dishwasher drain hose',
-    final value when RegExp(r'\b(dishwasher|dw)\b').hasMatch(value) &&
-        RegExp(r'\b(power\s+cord|cord)\b').hasMatch(value) =>
+    final value
+        when RegExp(r'\b(dishwasher|dw)\b').hasMatch(value) &&
+            RegExp(r'\b(power\s+cord|cord)\b').hasMatch(value) =>
       'dishwasher power cord kit',
     _ => null,
   };

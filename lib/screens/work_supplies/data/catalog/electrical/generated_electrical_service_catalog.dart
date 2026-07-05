@@ -556,8 +556,25 @@ final electricalGeneratedServiceCatalogCategory = _category(
                 '250 Pack',
               ])
                 '$size $count',
+            for (final port in ['2 Port', '3 Port', '5 Port'])
+              for (final count in ['10 Pack', '25 Pack', '50 Pack'])
+                '$port Lever Connector $count',
+            for (final count in ['10 Pack', '25 Pack'])
+              for (final item in [
+                'Inline Splice Connector',
+                'Push-In Wire Connector',
+                'Waterproof Wire Connector',
+              ])
+                '$item $count',
           ],
-          aliases: const ['wire nut', 'wirenut', 'twist connector'],
+          aliases: const [
+            'wire nut',
+            'wirenut',
+            'twist connector',
+            'lever connector',
+            'push in connector',
+            'splice connector',
+          ],
         ),
       ),
       _type(
@@ -650,6 +667,18 @@ final electricalGeneratedServiceCatalogCategory = _category(
               'Breaker Filler Plate Pack',
               'Wire Pulling Lubricant Quart',
               'Electrical Putty Pad',
+              'Anti Short Bushing Assortment',
+              'MC Anti Short Bushing 100 Pack',
+              'Cable Ripper Tool',
+              'Circuit Directory Label Pack',
+              'Blank Panel Directory Card',
+              'Voltage Detector Pen',
+              'Continuity Tester',
+              'Outlet Polarity Tester',
+              'Wire Marker Number Book',
+              'Panel Screw Assortment',
+              'Device Yoke Repair Clip Pack',
+              'Old Work Box Support Clip Pack',
             ])
               item,
           ],
@@ -669,6 +698,16 @@ final electricalGeneratedServiceCatalogCategory = _category(
             'panel filler',
             'wire pulling lube',
             'putty pad',
+            'anti short bushing',
+            'red head bushing',
+            'cable ripper',
+            'circuit directory',
+            'panel label',
+            'voltage detector',
+            'polarity tester',
+            'wire marker',
+            'yoke repair',
+            'box support clip',
           ],
         ),
       ),

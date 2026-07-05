@@ -112,12 +112,14 @@ bool _isElectricalCoreItem(WorkSupplyItem item, String text) {
   }
   if (category == 'wire and cable') {
     if (system == 'nm-b cable') return _hasAny(text, _electricalCoreCableSizes);
-    if (system == 'conduit wire')
+    if (system == 'conduit wire') {
       return _hasAny(text, _electricalCoreWireSizes);
+    }
   }
   if (category == 'devices') return _hasAny(text, _electricalCoreDeviceSignals);
-  if (category == 'breakers')
+  if (category == 'breakers') {
     return _hasAny(text, _electricalCoreBreakerSignals);
+  }
   if (category == 'boxes and covers') {
     return _hasAny(text, _electricalCoreBoxSignals);
   }
@@ -174,10 +176,12 @@ bool _isHvacCoreItem(WorkSupplyItem item, String text) {
   if (category == 'controls and electrical') {
     return _hasAny(text, _hvacCoreControlSignals);
   }
-  if (category == 'condensate')
+  if (category == 'condensate') {
     return _hasAny(text, _hvacCoreCondensateSignals);
-  if (category == 'tape and sealants')
+  }
+  if (category == 'tape and sealants') {
     return _hasAny(text, _hvacCoreSealSignals);
+  }
   if (category == 'motors and blower parts') {
     return _hasAny(text, _hvacCoreMotorSignals);
   }
@@ -482,6 +486,12 @@ const _electricalCoreBoxSignals = [
 const _electricalCoreConsumableSignals = [
   'wire connector',
   'wire nut',
+  'lever connector',
+  'push-in wire connector',
+  'push in connector',
+  'inline splice connector',
+  'splice connector',
+  'waterproof wire connector',
   'electrical tape',
   'ground screw',
   'ground pigtail',
@@ -495,6 +505,18 @@ const _electricalCoreConsumableSignals = [
   'gfci tester',
   'wire pulling lube',
   'putty pad',
+  'anti short bushing',
+  'red head bushing',
+  'cable ripper',
+  'circuit directory',
+  'panel directory',
+  'voltage detector',
+  'continuity tester',
+  'polarity tester',
+  'wire marker',
+  'panel screw',
+  'yoke repair',
+  'box support clip',
   'anti short',
   'no ox',
   'noalox',
@@ -670,6 +692,9 @@ const _hvacCoreCondensateSignals = [
   'wet switch',
   'overflow switch',
   'pan switch',
+  'primary drain line safety switch',
+  'secondary drain pan float switch',
+  'inline condensate float switch',
   'condensate cleanout',
   'condensate trap',
   'condensate tee',
@@ -683,7 +708,12 @@ const _hvacCoreCondensateSignals = [
   'drain pan tablets',
   'drain pan strip',
   'drain line cleaner',
+  'drain gun',
+  'drain cartridge',
   'drain brush',
+  'trap brush',
+  'pump check valve',
+  'replacement tubing kit',
 ];
 
 const _hvacCoreSealSignals = [
@@ -778,6 +808,16 @@ const _hvacCoreServiceTruckSignals = [
   ..._hvacCoreMotorSignals,
   ..._hvacCoreIgnitionSignals,
   'coil cleaner',
+  'humidifier pad',
+  'water panel',
+  'humidifier solenoid',
+  'humidifier feed tube',
+  'humidifier drain tube',
+  'humidifier saddle valve',
+  'humidifier bypass damper',
+  'humidifier orifice',
+  'media cabinet gasket',
+  'filter rack door latch',
   'leak detector',
   'service chemical',
   'service sticker',
