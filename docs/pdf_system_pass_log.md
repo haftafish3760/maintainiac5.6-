@@ -1,5 +1,19 @@
 # PDF System Pass Log
 
+## Pass 122 - 2026-07-05 11:41 EDT - Generated PDF share reread hardening
+
+- Scope: temporary generated PDF share verification only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Rechecked prepared generated PDFs as regular files without following links
+    before byte-size verification, before hash verification, and before share.
+  - Treated directories, links, and non-file entities as unsafe prepared PDFs.
+  - Added generated PDF share no-follow reread coverage to the QA registry.
+- Verification completed 2026-07-05 11:41 EDT:
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 121 - 2026-07-05 11:38 EDT - Generated PDF archive metadata verification
 
 - Scope: generated PDF archive final-file metadata verification only. No

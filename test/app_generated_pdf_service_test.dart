@@ -346,6 +346,22 @@ void main() {
     expect(source, contains('stalePartialAge'));
   });
 
+  test('generated PDF share rechecks file without following links', () {
+    final source = File(
+      'lib/shared/pdf/app_generated_pdf_service.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('Future<void> _requireRegularGeneratedFile('));
+    expect(source, contains('await _requireRegularGeneratedFile(file);'));
+    expect(source, contains('final actualBytes = await file.length();'));
+    expect(
+      source,
+      contains('final actualHash = await sha256.bind(file.openRead()).first;'),
+    );
+    expect(source, contains('followLinks: false'));
+    expect(source, contains('type != FileSystemEntityType.file'));
+  });
+
   test('generated PDF share refuses same-size tampered files', () async {
     final document = AppGeneratedPdfDocument(
       kind: AppGeneratedPdfKind.invoice,

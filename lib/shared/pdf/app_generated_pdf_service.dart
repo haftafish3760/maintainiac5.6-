@@ -90,12 +90,14 @@ class AppGeneratedPdfService {
         'Maintainiac could not find that prepared PDF. Please create it again.',
       );
     }
+    await _requireRegularGeneratedFile(file);
     final actualBytes = await file.length();
     if (actualBytes != generated.byteSize) {
       throw const AppGeneratedPdfException(
         'Maintainiac stopped this PDF because the prepared file was incomplete.',
       );
     }
+    await _requireRegularGeneratedFile(file);
     final expectedHash = sha256.convert(generated.document.bytes).toString();
     final actualHash = await sha256.bind(file.openRead()).first;
     if (actualHash.toString() != expectedHash) {
@@ -103,6 +105,7 @@ class AppGeneratedPdfService {
         'Maintainiac stopped this PDF because the prepared file did not verify.',
       );
     }
+    await _requireRegularGeneratedFile(file);
     final result = await SharePlus.instance.share(
       ShareParams(
         title: generated.document.title,
@@ -163,11 +166,19 @@ class AppGeneratedPdfService {
       );
     }
     final type = await FileSystemEntity.type(file.path, followLinks: false);
-    if (type == FileSystemEntityType.link) {
+    if (type != FileSystemEntityType.file) {
       throw const AppGeneratedPdfException(
         'Maintainiac stopped this PDF because the prepared file could not be verified safely.',
       );
     }
+  }
+
+  Future<void> _requireRegularGeneratedFile(File file) async {
+    final type = await FileSystemEntity.type(file.path, followLinks: false);
+    if (type == FileSystemEntityType.file) return;
+    throw const AppGeneratedPdfException(
+      'Maintainiac stopped this PDF because the prepared file could not be verified safely.',
+    );
   }
 
   void _ensureSendablePdf(AppGeneratedPdfDocument document) {
