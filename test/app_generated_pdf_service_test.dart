@@ -284,12 +284,49 @@ void main() {
     },
   );
 
+  test(
+    'generated PDF service refuses symlinked storage directory',
+    () async {
+      final document = AppGeneratedPdfDocument(
+        kind: AppGeneratedPdfKind.invoice,
+        title: 'Invoice',
+        fileName: 'invoice.pdf',
+        bytes: Uint8List.fromList('%PDF-1.7\nInvoice\n%%EOF'.codeUnits),
+        createdAt: DateTime(2026, 7, 5),
+      );
+      final outsideDirectory = Directory(
+        '${temporaryDirectory.path}/outside_generated_pdfs',
+      );
+      await outsideDirectory.create(recursive: true);
+      final storageLink = Link(
+        '${temporaryDirectory.path}/maintainiac_generated_pdfs',
+      );
+      await storageLink.create(outsideDirectory.path);
+
+      await expectLater(
+        const AppGeneratedPdfService().writeTemporary(document),
+        throwsA(
+          isA<AppGeneratedPdfException>().having(
+            (error) => error.message,
+            'message',
+            contains('prepare PDF storage'),
+          ),
+        ),
+      );
+      expect(outsideDirectory.listSync(), isEmpty);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
   test('generated PDF service verifies temporary byte count before rename', () {
     final source = File(
       'lib/shared/pdf/app_generated_pdf_service.dart',
     ).readAsStringSync();
 
     expect(source, contains('final writtenBytes = await partial.length();'));
+    expect(source, contains('FileSystemEntity.type('));
+    expect(source, contains('followLinks: false'));
+    expect(source, contains('Generated PDF directory is not a directory.'));
     expect(source, contains('writtenBytes != document.byteSize'));
     expect(source, contains('final expectedHash = sha256.convert'));
     expect(source, contains('final actualHash = await sha256.bind'));

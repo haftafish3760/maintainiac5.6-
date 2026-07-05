@@ -180,6 +180,15 @@ class AppGeneratedPdfService {
   Future<void> _createDirectory(Directory directory) async {
     try {
       await directory.create(recursive: true);
+      final type = await FileSystemEntity.type(
+        directory.path,
+        followLinks: false,
+      );
+      if (type != FileSystemEntityType.directory) {
+        throw const FileSystemException(
+          'Generated PDF directory is not a directory.',
+        );
+      }
     } catch (_) {
       throw const AppGeneratedPdfException(
         'Maintainiac could not prepare PDF storage on this device.',

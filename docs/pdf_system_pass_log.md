@@ -1,5 +1,22 @@
 # PDF System Pass Log
 
+## Pass 104 - 2026-07-05 10:48 EDT - Generated PDF storage directory hardening
+
+- Scope: generated PDF temporary storage safety only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Verified the generated-PDF storage path is a real directory without
+    following symlinks after creation.
+  - Blocked symlinked generated-PDF temp directories before any PDF bytes are
+    written.
+  - Added regression coverage proving a symlinked temp directory cannot redirect
+    generated PDFs outside app-owned temp storage.
+  - Added the symlinked-temp-directory case to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:48 EDT:
+  - `dart format lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart`
+
 ## Pass 103 - 2026-07-05 10:40 EDT - Receipt proof image validation hardening
 
 - Scope: generated receipt PDF proof-image validation only. No inventory,

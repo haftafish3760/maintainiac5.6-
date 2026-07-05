@@ -228,6 +228,7 @@
         "generated_pdf_archive_human_label_privacy",
         "generated_pdf_share_outside_storage_block",
         "generated_pdf_share_symlink_block",
+        "generated_pdf_symlinked_temp_directory_block",
         "generated_pdf_encrypted_output_block",
         "generated_pdf_filename_privacy_block",
         "separator_normalized_vehicle_privacy_block"
