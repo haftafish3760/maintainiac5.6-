@@ -110,6 +110,43 @@ void main() {
     expect(store.recordById('DOC-invoice-fresh_keep'), isNotNull);
   });
 
+  test(
+    'archive refuses symlinked permanent generated PDF directory',
+    () async {
+      final store = AppDocumentStore.memory();
+      final outsideDirectory = Directory(
+        '${documentsDirectory.path}/outside_generated_pdf_archive',
+      );
+      await outsideDirectory.create(recursive: true);
+      final storageParent = Directory(
+        '${documentsDirectory.path}/app_documents/invoices',
+      );
+      await storageParent.create(recursive: true);
+      final storageLink = Link('${storageParent.path}/generated_pdfs');
+      await storageLink.create(outsideDirectory.path);
+
+      await expectLater(
+        AppGeneratedPdfArchiveService(store: store).archive(
+          _document(
+            fileName: 'symlinked-archive.pdf',
+            sourceRecordId: 'symlinked_archive',
+          ),
+        ),
+        throwsA(
+          isA<AppGeneratedPdfArchiveException>().having(
+            (error) => error.message,
+            'message',
+            contains('permanent document storage'),
+          ),
+        ),
+      );
+
+      expect(outsideDirectory.listSync(), isEmpty);
+      expect(store.recordById('DOC-invoice-symlinked_archive'), isNull);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
   test('archive stores final file with exact byte count and hash', () async {
     final store = AppDocumentStore.memory();
     final document = _document(
@@ -257,6 +294,12 @@ void main() {
 
       expect(source, contains('stalePartialAge'));
       expect(source, contains('_deleteStalePartialFiles'));
+      expect(source, contains('FileSystemEntity.type('));
+      expect(source, contains('followLinks: false'));
+      expect(
+        source,
+        contains('Generated PDF archive directory is not a directory.'),
+      );
       expect(source, contains("endsWith('.pdf.partial')"));
       expect(source, contains('_verifyPermanentWrite(destination, document)'));
       expect(source, contains('_ensureSafeArchiveMetadata'));

@@ -1,5 +1,21 @@
 # PDF System Pass Log
 
+## Pass 105 - 2026-07-05 10:56 EDT - Generated PDF archive directory hardening
+
+- Scope: generated PDF permanent document archive storage safety only. No
+  inventory, camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Verified permanent generated-PDF archive folders are real directories
+    without following symlinks after creation.
+  - Blocked symlinked archive folders before permanent PDF bytes are written.
+  - Added regression coverage proving a symlinked archive folder cannot redirect
+    generated invoice PDFs outside app-owned document storage.
+  - Added the symlinked-archive-directory case to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:56 EDT:
+  - `dart format lib/shared/documents/app_generated_pdf_archive_service.dart test/app_generated_pdf_archive_recovery_test.dart`
+  - `flutter test test/app_generated_pdf_archive_recovery_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_generated_pdf_archive_service.dart test/app_generated_pdf_archive_recovery_test.dart`
+
 ## Pass 104 - 2026-07-05 10:48 EDT - Generated PDF storage directory hardening
 
 - Scope: generated PDF temporary storage safety only. No inventory, camera,
