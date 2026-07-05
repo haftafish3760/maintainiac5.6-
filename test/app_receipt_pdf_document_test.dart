@@ -125,6 +125,63 @@ void main() {
     );
   });
 
+  test('receipt PDF renderer blocks private line item text', () async {
+    final data = AppReceiptPdfData(
+      merchantName: 'Supply House',
+      receiptDate: DateTime(2026, 7, 5),
+      confirmedByUser: true,
+      subtotalCents: 1899,
+      totalCents: 1899,
+      lines: const [
+        AppReceiptPdfLine(
+          description: 'VIN 1HGCM82633A004352 oil filter',
+          category: 'Vehicle Supplies',
+          totalCents: 1899,
+        ),
+      ],
+    );
+
+    await expectLater(
+      const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: data,
+        theme: await AppPdfTypography.loadTheme(),
+      ),
+      throwsA(
+        isA<AppReceiptPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('private information'),
+        ),
+      ),
+    );
+  });
+
+  test('receipt PDF renderer blocks private proof image labels', () async {
+    final data = _receiptData(
+      lineCount: 1,
+      proofImages: [
+        AppReceiptPdfImage(
+          bytes: _receiptPng(),
+          label: 'License plate ABC 123 proof image',
+        ),
+      ],
+    );
+
+    await expectLater(
+      const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: data,
+        theme: await AppPdfTypography.loadTheme(),
+      ),
+      throwsA(
+        isA<AppReceiptPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('private information'),
+        ),
+      ),
+    );
+  });
+
   test('receipt PDF renderer supports landscape receipt output', () async {
     final document = await const AppReceiptPdfRenderer().buildReceiptDocument(
       data: _receiptData(lineCount: 6),
@@ -137,6 +194,23 @@ void main() {
     expect(document.validation.isValid, isTrue);
     expect(boxes, isNotEmpty);
     expect(boxes.every((box) => box.isLandscape), isTrue);
+  });
+
+  test('receipt PDF renderer supports shared receipt source modules', () async {
+    final document = await const AppReceiptPdfRenderer().buildReceiptDocument(
+      data: _receiptData(
+        lineCount: 3,
+        sourceModule: 'Inventory Receipts',
+        sourceRecordId: 'inventory_receipt_42',
+      ),
+      createdAt: DateTime.utc(2026, 7, 5, 12),
+      theme: await AppPdfTypography.loadTheme(),
+    );
+
+    expect(document.validation.isValid, isTrue);
+    expect(document.sourceModule, 'inventory_receipts');
+    expect(document.sourceRecordId, 'inventory_receipt_42');
+    expect(document.kind, AppGeneratedPdfKind.receipt);
   });
 
   test(
@@ -359,6 +433,8 @@ AppReceiptPdfData _receiptData({
   String merchantName = 'Supply House',
   int totalCents = 45678,
   List<AppReceiptPdfImage> proofImages = const [],
+  String sourceModule = 'receipts',
+  String sourceRecordId = 'receipt_42',
 }) {
   return AppReceiptPdfData(
     merchantName: merchantName,
@@ -366,7 +442,8 @@ AppReceiptPdfData _receiptData({
     confirmedByUser: confirmedByUser,
     receiptNumber: 'R-2042',
     businessUseLabel: 'Business',
-    sourceRecordId: 'receipt_42',
+    sourceModule: sourceModule,
+    sourceRecordId: sourceRecordId,
     subtotalCents: 42108,
     taxCents: 3570,
     totalCents: totalCents,

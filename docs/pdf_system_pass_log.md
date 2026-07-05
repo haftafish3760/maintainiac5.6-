@@ -1,5 +1,67 @@
 # PDF System Pass Log
 
+## Milestone - 2026-07-05 09:56 EDT - Passes 89-91 receipt privacy and source modules
+
+- Scope: shared receipt PDF privacy, source metadata, and archive linking only.
+  No inventory, camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added receipt PDF privacy preflight before PDF generation.
+  - Added private line item and proof image label regressions.
+  - Added configurable source modules for shared receipt flows.
+  - Sanitized receipt source modules and generated PDF archive linked modules.
+- Verification completed 2026-07-05 09:56 EDT:
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 91 - 2026-07-05 09:56 EDT - Receipt source module sanitizing
+
+- Scope: generated PDF receipt metadata and archive linking only. No
+  inventory, camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Sanitized receipt PDF source module keys while preserving
+    `inventory_receipts` style module routing.
+  - Sanitized generated PDF archive linked-module values before writing
+    permanent document attachments.
+  - Added regression coverage for sanitized receipt source modules and archive
+    linked modules.
+  - Added those source-module cases to the PDF QA fixture registry.
+- Verification completed 2026-07-05 09:56 EDT:
+  - `dart format lib/shared/pdf/app_receipt_pdf_document.dart lib/shared/documents/app_generated_pdf_archive_service.dart test/app_receipt_pdf_document_test.dart test/app_generated_pdf_service_test.dart`
+  - `flutter test test/app_receipt_pdf_document_test.dart test/app_generated_pdf_service_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_receipt_pdf_document.dart lib/shared/documents/app_generated_pdf_archive_service.dart test/app_receipt_pdf_document_test.dart test/app_generated_pdf_service_test.dart`
+
+## Pass 90 - 2026-07-05 09:55 EDT - Shared receipt source module
+
+- Scope: shared receipt PDF generation metadata only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added configurable receipt PDF source modules so the same receipt document
+    path can represent expense receipts, inventory/material receipts, vendor
+    invoices, job proof, and future receipt flows.
+  - Kept the default source module as `receipts`.
+  - Added regression coverage for a generated receipt PDF using an
+    `inventory_receipts` source module without touching inventory logic.
+  - Added shared-source-module coverage to the PDF QA fixture registry.
+- Verification completed 2026-07-05 09:55 EDT:
+  - `dart format lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+  - `flutter test test/app_receipt_pdf_document_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+
+## Pass 89 - 2026-07-05 09:55 EDT - Receipt privacy preflight
+
+- Scope: shared receipt PDF generation privacy only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added receipt PDF privacy preflight before PDF bytes are generated.
+  - Extended privacy checks to receipt line descriptions, categories, units,
+    notes, receipt metadata, source IDs, and proof image labels.
+  - Added regression coverage for private line item text and private proof image
+    labels.
+  - Added the new receipt privacy blocks to the PDF QA fixture registry.
+- Verification completed 2026-07-05 09:55 EDT:
+  - `dart format lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+  - `flutter test test/app_receipt_pdf_document_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+
 ## Milestone - 2026-07-05 09:51 EDT - Passes 86-88 long receipt hardening
 
 - Scope: shared receipt PDF generation and render QA only. No inventory,

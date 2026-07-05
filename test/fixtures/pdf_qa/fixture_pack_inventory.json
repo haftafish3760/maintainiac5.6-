@@ -282,6 +282,10 @@
         "receipt_generation_requires_confirmed_lines",
         "receipt_generation_total_mismatch_block",
         "receipt_generation_private_metadata_block",
+        "receipt_generation_private_line_item_block",
+        "receipt_generation_private_image_label_block",
+        "receipt_generation_shared_source_module",
+        "receipt_generation_sanitized_source_module",
         "receipt_generation_landscape_page_format",
         "receipt_generation_long_receipt_sections",
         "receipt_generation_totals_free_space",
@@ -292,6 +296,7 @@
         "receipt_generation_oversized_image_block",
         "receipt_generation_oversized_image_batch_block",
         "receipt_generation_archive_mapping",
+        "receipt_generation_archive_linked_module_sanitizing",
         "receipt_generation_determinism"
       ]
     },

@@ -7,6 +7,7 @@ import 'app_generated_pdf_models.dart';
 import 'app_pdf_determinism.dart';
 import 'app_pdf_formatters.dart';
 import 'app_pdf_page_spec.dart';
+import 'app_pdf_privacy_policy.dart';
 
 const int appReceiptPdfMaxEmbeddedImages = 12;
 const int appReceiptPdfMaxEmbeddedImageBytes = 10 * 1024 * 1024;
@@ -95,6 +96,7 @@ class AppReceiptPdfData {
     required this.confirmedByUser,
     this.receiptNumber = '',
     this.businessUseLabel = '',
+    this.sourceModule = 'receipts',
     this.sourceRecordId = '',
     this.subtotalCents,
     this.taxCents,
@@ -110,6 +112,7 @@ class AppReceiptPdfData {
   final bool confirmedByUser;
   final String receiptNumber;
   final String businessUseLabel;
+  final String sourceModule;
   final String sourceRecordId;
   final int? subtotalCents;
   final int? taxCents;
@@ -142,6 +145,15 @@ class AppReceiptPdfData {
   String get safeReceiptNumber => _cleanText(receiptNumber);
 
   String get safeBusinessUseLabel => _cleanText(businessUseLabel);
+
+  String get safeSourceModule {
+    final clean = _cleanText(sourceModule)
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9_-]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+    return clean.isEmpty ? 'receipts' : clean;
+  }
 
   String get safeNotes => _cleanText(notes);
 
@@ -199,6 +211,7 @@ class AppReceiptPdfRenderer {
         'Maintainiac stopped this receipt PDF because the confirmed line totals do not match the receipt total.',
       );
     }
+    _validatePrivacyText(data);
     _validateProofImages(data.proofImages);
     final generatedAt = createdAt ?? DateTime.now();
     final pdf = pw.Document();
@@ -238,6 +251,7 @@ class AppReceiptPdfRenderer {
         data.receiptDate.toIso8601String(),
         data.safeReceiptNumber,
         data.safeBusinessUseLabel,
+        data.safeSourceModule,
         data.lines
             .map(
               (line) => [
@@ -270,7 +284,7 @@ class AppReceiptPdfRenderer {
       fileName: _fileNameFor(data),
       bytes: Uint8List.fromList(bytes),
       createdAt: generatedAt,
-      sourceModule: 'receipts',
+      sourceModule: data.safeSourceModule,
       sourceRecordId: data.sourceRecordId,
       shareSubject: 'Maintainiac receipt - ${data.safeMerchantName}',
       shareText: [
@@ -478,6 +492,30 @@ class AppReceiptPdfRenderer {
         'Maintainiac stopped this receipt PDF because the receipt proof images were too large together.',
       );
     }
+  }
+
+  void _validatePrivacyText(AppReceiptPdfData data) {
+    final issues = AppPdfPrivacyPolicy.issueCodesForExport(
+      bytes: const [],
+      metadata: [
+        data.merchantName,
+        data.receiptNumber,
+        data.businessUseLabel,
+        data.sourceModule,
+        data.sourceRecordId,
+        data.notes,
+        for (final line in data.lines) ...[
+          line.description,
+          line.category,
+          line.unit,
+        ],
+        for (final image in data.proofImages) image.label,
+      ],
+    );
+    if (issues.isEmpty) return;
+    throw const AppReceiptPdfException(
+      'Maintainiac stopped this receipt PDF because it may contain private information that should not be exported.',
+    );
   }
 
   String _fileNameFor(AppReceiptPdfData data) {

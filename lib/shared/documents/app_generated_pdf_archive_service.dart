@@ -46,9 +46,7 @@ class AppGeneratedPdfArchiveService {
       mimeType: 'application/pdf',
       byteSize: byteSize,
       fileHash: fileHash,
-      linkedModule: document.sourceModule.trim().isEmpty
-          ? documentKind.storageModule
-          : document.sourceModule.trim(),
+      linkedModule: _safeLinkedModule(document, documentKind),
       linkedRecordId: document.sourceRecordId,
       storageState: ReceiptAttachmentStorageState.permanent,
       promotedAt: now,
@@ -162,6 +160,15 @@ class AppGeneratedPdfArchiveService {
         .replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '-')
         .replaceAll(RegExp(r'-+'), '-')
         .replaceAll(RegExp(r'^-+|-+$'), '');
+  }
+
+  static String _safeLinkedModule(
+    AppGeneratedPdfDocument document,
+    AppDocumentKind documentKind,
+  ) {
+    final sourceModule = _safeId(document.sourceModule).toLowerCase();
+    if (sourceModule.isNotEmpty) return sourceModule;
+    return documentKind.storageModule;
   }
 
   static void _ensureArchivablePdf(AppGeneratedPdfDocument document) {
