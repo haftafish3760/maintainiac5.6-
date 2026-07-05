@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:image/image.dart' as img;
 import 'package:pdf/widgets.dart' as pw;
 
 import 'app_generated_pdf_models.dart';
@@ -12,6 +13,8 @@ import 'app_pdf_privacy_policy.dart';
 const int appReceiptPdfMaxEmbeddedImages = 12;
 const int appReceiptPdfMaxEmbeddedImageBytes = 10 * 1024 * 1024;
 const int appReceiptPdfMaxTotalEmbeddedImageBytes = 24 * 1024 * 1024;
+const int appReceiptPdfMaxEmbeddedImagePixels = 28 * 1000 * 1000;
+const int appReceiptPdfMaxEmbeddedImageEdgePixels = 9000;
 const int appReceiptPdfLineRowsPerSection = 32;
 const double appReceiptPdfMinimumTotalsFreeSpace = 120;
 const double appReceiptPdfMinimumProofImageFreeSpace = 380;
@@ -480,17 +483,33 @@ class AppReceiptPdfRenderer {
           'Maintainiac stopped this receipt PDF because a receipt proof image was too large.',
         );
       }
-      if (!_isSupportedReceiptImage(image.bytes)) {
+      totalBytes += byteSize;
+      if (totalBytes > appReceiptPdfMaxTotalEmbeddedImageBytes) {
+        throw const AppReceiptPdfException(
+          'Maintainiac stopped this receipt PDF because the receipt proof images were too large together.',
+        );
+      }
+    }
+    for (final image in proofImages) {
+      final decodedImage = _decodeSupportedReceiptImage(image.bytes);
+      if (decodedImage == null) {
         throw const AppReceiptPdfException(
           'Maintainiac stopped this receipt PDF because a receipt proof image was not a supported image file.',
         );
       }
-      totalBytes += byteSize;
-    }
-    if (totalBytes > appReceiptPdfMaxTotalEmbeddedImageBytes) {
-      throw const AppReceiptPdfException(
-        'Maintainiac stopped this receipt PDF because the receipt proof images were too large together.',
-      );
+      if (decodedImage.width < 1 || decodedImage.height < 1) {
+        throw const AppReceiptPdfException(
+          'Maintainiac stopped this receipt PDF because a receipt proof image had invalid dimensions.',
+        );
+      }
+      if (decodedImage.width > appReceiptPdfMaxEmbeddedImageEdgePixels ||
+          decodedImage.height > appReceiptPdfMaxEmbeddedImageEdgePixels ||
+          decodedImage.width * decodedImage.height >
+              appReceiptPdfMaxEmbeddedImagePixels) {
+        throw const AppReceiptPdfException(
+          'Maintainiac stopped this receipt PDF because a receipt proof image was too large to render safely.',
+        );
+      }
     }
   }
 
@@ -539,8 +558,21 @@ class AppReceiptPdfException implements Exception {
   String toString() => message;
 }
 
-bool _isSupportedReceiptImage(Uint8List bytes) {
-  if (bytes.length >= 8 &&
+img.Image? _decodeSupportedReceiptImage(Uint8List bytes) {
+  if (!_hasSupportedReceiptImageHeader(bytes)) return null;
+  try {
+    return img.decodeImage(bytes);
+  } on Object {
+    return null;
+  }
+}
+
+bool _hasSupportedReceiptImageHeader(Uint8List bytes) {
+  return _hasPngHeader(bytes) || _hasJpegHeader(bytes);
+}
+
+bool _hasPngHeader(Uint8List bytes) {
+  return bytes.length >= 8 &&
       bytes[0] == 0x89 &&
       bytes[1] == 0x50 &&
       bytes[2] == 0x4E &&
@@ -548,16 +580,14 @@ bool _isSupportedReceiptImage(Uint8List bytes) {
       bytes[4] == 0x0D &&
       bytes[5] == 0x0A &&
       bytes[6] == 0x1A &&
-      bytes[7] == 0x0A) {
-    return true;
-  }
-  if (bytes.length >= 3 &&
+      bytes[7] == 0x0A;
+}
+
+bool _hasJpegHeader(Uint8List bytes) {
+  return bytes.length >= 3 &&
       bytes[0] == 0xFF &&
       bytes[1] == 0xD8 &&
-      bytes[2] == 0xFF) {
-    return true;
-  }
-  return false;
+      bytes[2] == 0xFF;
 }
 
 String _cleanText(String value) {

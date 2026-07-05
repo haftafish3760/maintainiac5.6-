@@ -344,6 +344,61 @@ void main() {
     );
   });
 
+  test('receipt PDF renderer refuses corrupt proof image payloads', () async {
+    final data = _receiptData(
+      lineCount: 1,
+      proofImages: [
+        AppReceiptPdfImage(
+          bytes: _fakePngBytes(512),
+          label: 'corrupt receipt image',
+        ),
+      ],
+    );
+
+    await expectLater(
+      const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: data,
+        theme: await AppPdfTypography.loadTheme(),
+      ),
+      throwsA(
+        isA<AppReceiptPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('not a supported image file'),
+        ),
+      ),
+    );
+  });
+
+  test('receipt PDF renderer refuses unsafe proof image dimensions', () async {
+    final data = _receiptData(
+      lineCount: 1,
+      proofImages: [
+        AppReceiptPdfImage(
+          bytes: _receiptPng(
+            width: appReceiptPdfMaxEmbeddedImageEdgePixels + 1,
+            height: 12,
+          ),
+          label: 'wide receipt strip',
+        ),
+      ],
+    );
+
+    await expectLater(
+      const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: data,
+        theme: await AppPdfTypography.loadTheme(),
+      ),
+      throwsA(
+        isA<AppReceiptPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('too large to render safely'),
+        ),
+      ),
+    );
+  });
+
   test('receipt PDF renderer refuses too many proof images', () async {
     final image = AppReceiptPdfImage(bytes: _receiptPng());
     final data = _receiptData(

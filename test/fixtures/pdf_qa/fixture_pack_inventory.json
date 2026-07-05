@@ -305,6 +305,8 @@
         "receipt_generation_portrait_landscape_image_embedding",
         "receipt_generation_empty_image_block",
         "receipt_generation_unsupported_image_block",
+        "receipt_generation_corrupt_image_payload_block",
+        "receipt_generation_unsafe_image_dimensions_block",
         "receipt_generation_too_many_images_block",
         "receipt_generation_oversized_image_block",
         "receipt_generation_oversized_image_batch_block",

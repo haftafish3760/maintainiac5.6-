@@ -1,5 +1,23 @@
 # PDF System Pass Log
 
+## Pass 103 - 2026-07-05 10:40 EDT - Receipt proof image validation hardening
+
+- Scope: generated receipt PDF proof-image validation only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Validated receipt proof images by decoding PNG/JPEG payloads instead of
+    trusting file headers alone.
+  - Blocked corrupt image payloads before PDF rendering.
+  - Added render-safety limits for extreme image dimensions and pixel counts.
+  - Preserved existing byte-count and batch-size failures as first-pass
+    preflight checks.
+  - Added regression coverage for corrupt proof payloads and unsafe dimensions.
+  - Added the new proof-image failure cases to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:40 EDT:
+  - `dart format lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+  - `flutter test test/app_receipt_pdf_document_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+
 ## Milestone - 2026-07-05 10:32 EDT - Passes 101-102 package filename hardening
 
 - Scope: shared document export package filename safety only. No inventory,
