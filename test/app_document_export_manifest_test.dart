@@ -162,6 +162,7 @@ void main() {
     expect(first.files.single.byteSize, bytes.length);
     expect(first.files.single.sha256, hash);
     expect(first.files.single.path, pdf.path);
+    expect(first.files.single.packageEntryName, 'job-packet.pdf');
     expect(first.files.single.toMap().toString(), isNot(contains(pdf.path)));
     expect(first.storageWarningMessage, isEmpty);
     expect(
@@ -447,6 +448,59 @@ void main() {
     expect(plan.storageWarningMessage, contains('could not verify'));
     expect(plan.toMap().toString(), isNot(contains(pdf.path)));
   });
+
+  test('document export package creates unique safe entry names', () async {
+    final firstPdf = File('${tempDirectory.path}/first.pdf');
+    final secondPdf = File('${tempDirectory.path}/second.pdf');
+    final photo = File('${tempDirectory.path}/photo.jpg');
+    final firstBytes = utf8.encode('%PDF-1.7\nFirst\n%%EOF');
+    final secondBytes = utf8.encode('%PDF-1.7\nSecond\n%%EOF');
+    final photoBytes = List<int>.generate(128, (index) => index % 251);
+    await firstPdf.writeAsBytes(firstBytes, flush: true);
+    await secondPdf.writeAsBytes(secondBytes, flush: true);
+    await photo.writeAsBytes(photoBytes, flush: true);
+
+    final plan = await AppDocumentExportManager.buildPackagePlan(
+      _documentRecord(
+        attachments: [
+          _pdfAttachment(
+            id: 'first',
+            path: firstPdf.path,
+            displayName: r'C:\Users\Owner\Downloads\packet?.pdf',
+            originalFileName: 'packet.pdf',
+            byteSize: firstBytes.length,
+            fileHash: sha256.convert(firstBytes).toString(),
+          ),
+          _pdfAttachment(
+            id: 'second',
+            path: secondPdf.path,
+            displayName: '/Users/owner/Desktop/packet?.pdf',
+            originalFileName: 'packet.pdf',
+            byteSize: secondBytes.length,
+            fileHash: sha256.convert(secondBytes).toString(),
+          ),
+          _photoAttachment(
+            id: 'photo',
+            path: photo.path,
+            byteSize: photoBytes.length,
+            fileHash: sha256.convert(photoBytes).toString(),
+            displayName: '../../proof/photo:name',
+          ),
+        ],
+      ),
+      freeStorageReader: () async => 500,
+    );
+
+    final entryNames = plan.files
+        .map((file) => file.packageEntryName)
+        .toList(growable: false);
+    expect(entryNames, ['packet-.pdf', 'packet--copy-2.pdf', 'photo-name.bin']);
+    expect(entryNames.toSet(), hasLength(entryNames.length));
+    expect(entryNames.join('\n'), isNot(contains('/Users')));
+    expect(entryNames.join('\n'), isNot(contains(r'C:\Users')));
+    expect(entryNames.join('\n'), isNot(contains('..')));
+    expect(plan.toMap().toString(), contains('packageEntryName'));
+  });
 }
 
 AppDocumentRecord _documentRecord({
@@ -454,6 +508,7 @@ AppDocumentRecord _documentRecord({
   String importedText = '',
   String notes = '',
   ReceiptAttachmentRecord? attachment,
+  List<ReceiptAttachmentRecord>? attachments,
 }) {
   return AppDocumentRecord(
     id: 'DOC-job-123',
@@ -464,7 +519,7 @@ AppDocumentRecord _documentRecord({
     sourceLabel: 'Shared import',
     createdAt: DateTime.utc(2026, 7, 5, 9),
     updatedAt: DateTime.utc(2026, 7, 5, 9, 30),
-    attachments: [attachment ?? _pdfAttachment()],
+    attachments: attachments ?? [attachment ?? _pdfAttachment()],
   );
 }
 
@@ -503,6 +558,7 @@ ReceiptAttachmentRecord _photoAttachment({
   required String path,
   required int byteSize,
   required String fileHash,
+  String displayName = 'receipt-photo.jpg',
 }) {
   return ReceiptAttachmentRecord(
     id: id,
@@ -510,8 +566,8 @@ ReceiptAttachmentRecord _photoAttachment({
     kind: ReceiptAttachmentKind.photo,
     dataSaverLevel: ReceiptDataSaverLevel.original,
     createdAt: DateTime.utc(2026, 7, 5, 9),
-    displayName: 'receipt-photo.jpg',
-    originalFileName: 'receipt-photo.jpg',
+    displayName: displayName,
+    originalFileName: displayName,
     mimeType: 'image/jpeg',
     byteSize: byteSize,
     fileHash: fileHash,

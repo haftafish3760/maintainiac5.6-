@@ -81,6 +81,7 @@ class AppDocumentExportPackageFile {
   const AppDocumentExportPackageFile({
     required this.attachmentId,
     required this.displayName,
+    required this.packageEntryName,
     required this.path,
     required this.kind,
     required this.byteSize,
@@ -90,6 +91,7 @@ class AppDocumentExportPackageFile {
 
   final String attachmentId;
   final String displayName;
+  final String packageEntryName;
   final String path;
   final ReceiptAttachmentKind kind;
   final int byteSize;
@@ -100,6 +102,7 @@ class AppDocumentExportPackageFile {
     return {
       'attachmentId': attachmentId,
       'displayName': displayName,
+      'packageEntryName': packageEntryName,
       'kind': kind.name,
       'byteSize': byteSize,
       'sha256': sha256,
@@ -305,6 +308,7 @@ class AppDocumentExportManager {
   ) async {
     final issues = <AppDocumentExportIntegrityIssue>[];
     final files = <AppDocumentExportPackageFile>[];
+    final usedEntryNames = <String>{};
     for (var index = 0; index < record.attachments.length; index += 1) {
       final attachment = record.attachments[index];
       if (attachment.isImportedText) continue;
@@ -318,7 +322,14 @@ class AppDocumentExportManager {
       if (issue.issue != null) {
         issues.add(issue.issue!);
       } else if (issue.file != null) {
-        files.add(issue.file!);
+        files.add(
+          issue.file!.copyWith(
+            packageEntryName: _uniquePackageEntryName(
+              issue.file!.displayName,
+              usedEntryNames,
+            ),
+          ),
+        );
       }
     }
     if (issues.isEmpty) return List.unmodifiable(files);
@@ -443,6 +454,7 @@ class AppDocumentExportManager {
       AppDocumentExportPackageFile(
         attachmentId: manifestAttachment.id,
         displayName: manifestAttachment.displayName,
+        packageEntryName: '',
         path: file.path,
         kind: attachment.kind,
         byteSize: stat.size,
@@ -498,6 +510,43 @@ class AppDocumentExportManager {
       return 'Maintainiac stopped this document export because a PDF proof includes private information.';
     }
     return 'Maintainiac stopped this document export because one or more proof files could not be verified.';
+  }
+
+  static String _uniquePackageEntryName(String displayName, Set<String> used) {
+    final clean = _packageEntryBaseName(displayName);
+    final extension = path.extension(clean);
+    final baseName = path.basenameWithoutExtension(clean);
+    var candidate = clean;
+    var index = 2;
+    while (used.contains(candidate.toLowerCase())) {
+      candidate = '$baseName-copy-$index$extension';
+      index += 1;
+    }
+    used.add(candidate.toLowerCase());
+    return candidate;
+  }
+
+  static String _packageEntryBaseName(String displayName) {
+    final raw = _basename(displayName)
+        .replaceAll(RegExp(r'[\x00-\x1F\x7F]+'), '-')
+        .replaceAll(
+          RegExp(r'[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+'),
+          '-',
+        )
+        .replaceAll(RegExp(r'[\\/:*?"<>|]+'), '-')
+        .replaceAll(RegExp(r'\.{2,}'), '-')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim()
+        .replaceAll(RegExp(r'^[.\s-]+|[.\s-]+$'), '');
+    final normalized = raw.isEmpty ? 'document-proof' : raw;
+    final extension = path.extension(normalized).trim();
+    final baseName = path.basenameWithoutExtension(normalized).trim();
+    final safeBase = baseName.isEmpty ? 'document-proof' : baseName;
+    final safeExtension = extension.isEmpty ? '.bin' : extension.toLowerCase();
+    final entry = '$safeBase$safeExtension';
+    if (entry.length <= 120) return entry;
+    final maxBaseLength = 120 - safeExtension.length;
+    return '${safeBase.substring(0, maxBaseLength.clamp(1, safeBase.length))}$safeExtension';
   }
 
   static AppDocumentExportManifest _manifestFor(AppDocumentRecord record) {
@@ -630,4 +679,19 @@ class _PackageFileVerification {
 
   final AppDocumentExportPackageFile? file;
   final AppDocumentExportIntegrityIssue? issue;
+}
+
+extension on AppDocumentExportPackageFile {
+  AppDocumentExportPackageFile copyWith({String? packageEntryName}) {
+    return AppDocumentExportPackageFile(
+      attachmentId: attachmentId,
+      displayName: displayName,
+      packageEntryName: packageEntryName ?? this.packageEntryName,
+      path: this.path,
+      kind: kind,
+      byteSize: byteSize,
+      sha256: this.sha256,
+      readOnlyProof: readOnlyProof,
+    );
+  }
 }

@@ -106,7 +106,8 @@
         "document_export_verified_package_plan",
         "document_export_missing_file_block",
         "document_export_low_storage_block",
-        "document_export_storage_warning"
+        "document_export_storage_warning",
+        "document_export_safe_package_entry_names"
       ]
     },
     "storage_cleanup": {

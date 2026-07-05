@@ -1,5 +1,29 @@
 # PDF System Pass Log
 
+## Pass 51 - 2026-07-05 05:58 EDT - Document export package entry naming
+
+- Scope: shared app document export package entry naming and PDF QA fixture
+  inventory only. No inventory, camera, native capture, receipt parser, or OCR
+  engine behavior changes.
+- Bundled work:
+  - Added deterministic package entry names for verified document export files.
+  - Sanitized package entry names against path separators, traversal fragments,
+    Windows-style source paths, control characters, and unsafe filename
+    characters.
+  - Added collision handling so duplicate display names become stable copy
+    names instead of overwriting each other in a future package writer.
+  - Kept source filesystem paths out of exported file metadata while preserving
+    internal read paths for the eventual writer.
+  - Added regressions for duplicate PDF names, Windows/macOS path display
+    labels, traversal-like photo labels, unique entry names, pathless package
+    metadata, and manifest map exposure.
+  - Updated the shared PDF fixture inventory for safe package entry naming.
+- Verification completed 2026-07-05 05:58 EDT:
+  - `dart format lib/shared/documents/app_document_export_manifest.dart test/app_document_export_manifest_test.dart`
+  - `flutter test test/app_document_export_manifest_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart test/app_document_export_manifest_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 50 - 2026-07-05 05:55 EDT - Document export storage safety gate
 
 - Scope: shared app document export package storage preflight and PDF QA
