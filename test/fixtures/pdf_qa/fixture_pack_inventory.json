@@ -189,7 +189,11 @@
         "document_export_zip_package_extract_symlink_cleanup_target_preservation",
         "receipt_proof_staging_symlinked_directory_block",
         "receipt_proof_staged_symlink_cleanup_target_preservation",
-        "receipt_proof_orphan_symlink_cleanup_target_preservation"
+        "receipt_proof_orphan_symlink_cleanup_target_preservation",
+        "document_export_zip_package_partial_symlink_cleanup",
+        "document_export_zip_package_symlinked_output_directory_block",
+        "document_export_zip_package_symlinked_package_file_block",
+        "document_export_zip_package_symlinked_import_root_block"
       ]
     },
     "privacy_and_security_logs": {

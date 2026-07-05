@@ -242,6 +242,96 @@ void main() {
   );
 
   test(
+    'document export writer removes app-owned symlink partial only',
+    () async {
+      final outputDirectory = Directory('${tempDirectory.path}/exports');
+      await outputDirectory.create(recursive: true);
+      final outsideTarget = File('${tempDirectory.path}/outside-partial.zip');
+      await outsideTarget.writeAsString('outside partial target', flush: true);
+      final partialLink = Link(
+        '${outputDirectory.path}/maintainiac-job-abcdef123456.zip.partial',
+      );
+      await partialLink.create(outsideTarget.path);
+
+      final deleted = await AppDocumentExportPackageWriter.cleanupStalePartials(
+        outputDirectory,
+      );
+
+      expect(deleted, [path.basename(partialLink.path)]);
+      expect(await partialLink.exists(), isFalse);
+      expect(await outsideTarget.exists(), isTrue);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
+    'document export writer refuses symlinked output directory',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nSymlinked export proof\n%%EOF'),
+      );
+      final outside = Directory('${tempDirectory.path}/outside-exports');
+      await outside.create(recursive: true);
+      final outputLink = Link('${tempDirectory.path}/exports-link');
+      await outputLink.create(outside.path);
+
+      await expectLater(
+        AppDocumentExportPackageWriter().writeZipPackage(
+          record: _documentRecord(
+            attachment: _pdfAttachment(
+              path: proof.path,
+              byteSize: await proof.length(),
+              fileHash: await _fileHash(proof),
+            ),
+          ),
+          outputDirectory: Directory(outputLink.path),
+          freeStorageReader: () async => 500,
+        ),
+        throwsA(isA<AppDocumentExportPackageException>()),
+      );
+
+      expect(await outside.list().isEmpty, isTrue);
+      expect(await proof.exists(), isTrue);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
+    'document export package reader refuses symlinked package file',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nSymlinked package proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final packageLink = Link('${tempDirectory.path}/package-link.zip');
+      await packageLink.create(result.filePath);
+
+      await expectLater(
+        AppDocumentExportPackageWriter.readZipPackage(File(packageLink.path)),
+        throwsA(isA<AppDocumentExportPackageException>()),
+      );
+
+      expect(await packageLink.exists(), isTrue);
+      expect(await File(result.filePath).exists(), isTrue);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
     'document export writer keeps fresh matching partial and writes copy',
     () async {
       final proof = await _writeProof(

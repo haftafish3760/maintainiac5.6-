@@ -73,6 +73,15 @@ class AppDocumentImportService {
     DateTime? now,
   }) async {
     if (!await importDirectory.exists()) return const [];
+    final importDirectoryType = await FileSystemEntity.type(
+      importDirectory.path,
+      followLinks: false,
+    );
+    if (importDirectoryType != FileSystemEntityType.directory) {
+      throw const AppDocumentExportPackageException(
+        'Maintainiac could not clean up a stale document package import.',
+      );
+    }
     final cutoff = (now ?? DateTime.now()).subtract(stalePackageImportAge);
     final deleted = <String>[];
     await for (final entity in importDirectory.list(followLinks: false)) {

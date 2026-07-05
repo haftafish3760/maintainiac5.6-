@@ -417,12 +417,16 @@ class AppDocumentExportPackageWriter {
         'Maintainiac cannot read a document export package that is still being written.',
       );
     }
-    final stat = await packageFile.stat();
-    if (stat.type != FileSystemEntityType.file) {
+    final type = await FileSystemEntity.type(
+      packageFile.path,
+      followLinks: false,
+    );
+    if (type != FileSystemEntityType.file) {
       throw const AppDocumentExportPackageException(
         'Maintainiac could not find this document export package.',
       );
     }
+    final stat = await packageFile.stat();
     if (stat.size <= 0 || stat.size > maxPackageBytes) {
       throw const AppDocumentExportPackageException(
         'Maintainiac stopped reading this document export package because its size is unsafe.',
@@ -929,11 +933,21 @@ class AppDocumentExportPackageWriter {
     final cutoff = (now ?? DateTime.now()).subtract(stalePartialAge);
     final deleted = <String>[];
     await for (final entity in outputDirectory.list(followLinks: false)) {
-      if (entity is! File) continue;
+      if (entity is! File && entity is! Link) continue;
       final fileName = path.basename(entity.path);
       if (!_isAppOwnedPartialName(fileName)) continue;
       FileStat stat;
       try {
+        final type = await FileSystemEntity.type(
+          entity.path,
+          followLinks: false,
+        );
+        if (type == FileSystemEntityType.link) {
+          await _deleteLink(entity.path);
+          deleted.add(fileName);
+          continue;
+        }
+        if (type != FileSystemEntityType.file) continue;
         stat = await entity.stat();
       } catch (_) {
         continue;
@@ -1227,6 +1241,13 @@ class AppDocumentExportPackageWriter {
   static Future<void> _createDirectory(Directory directory) async {
     try {
       await directory.create(recursive: true);
+      final type = await FileSystemEntity.type(
+        directory.path,
+        followLinks: false,
+      );
+      if (type != FileSystemEntityType.directory) {
+        throw const FileSystemException('Document export directory is unsafe.');
+      }
     } catch (_) {
       throw const AppDocumentExportPackageException(
         'Maintainiac could not prepare the document export folder.',
@@ -1236,7 +1257,10 @@ class AppDocumentExportPackageWriter {
 
   static Future<void> _deleteIfExists(File file) async {
     try {
-      if (await file.exists()) {
+      final type = await FileSystemEntity.type(file.path, followLinks: false);
+      if (type == FileSystemEntityType.link) {
+        await _deleteLink(file.path);
+      } else if (type == FileSystemEntityType.file) {
         await file.delete();
       }
     } catch (_) {
@@ -1244,6 +1268,10 @@ class AppDocumentExportPackageWriter {
         'Maintainiac could not clean up a failed document export package.',
       );
     }
+  }
+
+  static Future<void> _deleteLink(String linkPath) {
+    return Link(linkPath).delete();
   }
 
   static Future<void> _deleteDirectoryIfExists(Directory directory) async {

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/documents/app_document_export_manifest.dart';
 import 'package:maintaniac/shared/documents/app_document_export_package_writer.dart';
 import 'package:maintaniac/shared/documents/app_document_import_service.dart';
 import 'package:maintaniac/shared/documents/app_document_models.dart';
@@ -384,6 +385,42 @@ void main() {
       expect(await outsideTarget.exists(), isTrue);
       expect(
         await File('${outsideTarget.path}/private-proof.pdf').exists(),
+        isTrue,
+      );
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
+    'document package import cleanup refuses symlinked import root',
+    () async {
+      final outsideRoot = Directory(
+        '${Directory.systemTemp.path}/outside_package_import_root',
+      );
+      await outsideRoot.create(recursive: true);
+      await File(
+        '${outsideRoot.path}/private-proof.pdf',
+      ).writeAsString('%PDF-1.7\nOutside import root\n%%EOF', flush: true);
+      final importRootLink = Link('${documentsDirectory.path}/imports-link');
+      await importRootLink.create(outsideRoot.path);
+      addTearDown(() async {
+        if (await importRootLink.exists()) await importRootLink.delete();
+        if (await outsideRoot.exists()) {
+          await outsideRoot.delete(recursive: true);
+        }
+      });
+
+      await expectLater(
+        AppDocumentImportService.cleanupStaleDocumentPackageImports(
+          Directory(importRootLink.path),
+          now: DateTime.now().add(const Duration(hours: 13)),
+        ),
+        throwsA(isA<AppDocumentExportPackageException>()),
+      );
+
+      expect(await importRootLink.exists(), isTrue);
+      expect(
+        await File('${outsideRoot.path}/private-proof.pdf').exists(),
         isTrue,
       );
     },

@@ -1,5 +1,23 @@
 # PDF System Pass Log
 
+## Pass 115 - 2026-07-05 11:15 EDT - Document package symlink hardening
+
+- Scope: document export/import package filesystem safety only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Blocked symlinked document export output directories.
+  - Blocked symlinked document export package files before package read,
+    preview, share, or extraction.
+  - Cleaned app-owned export partial symlinks without deleting external
+    targets.
+  - Blocked stale package import cleanup when the import root itself is a
+    symlink.
+  - Added regression cases to the PDF QA fixture registry.
+- Verification completed 2026-07-05 11:15 EDT:
+  - `flutter test test/app_document_export_package_writer_test.dart test/app_document_store_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_package_writer.dart lib/shared/documents/app_document_import_service.dart test/app_document_export_package_writer_test.dart test/app_document_store_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 114 - 2026-07-05 11:10 EDT - Receipt proof storage symlink hardening
 
 - Scope: receipt PDF proof storage safety only. No inventory, camera, native
