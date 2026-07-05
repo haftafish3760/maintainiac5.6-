@@ -4923,10 +4923,45 @@ bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
       !RegExp(r'\b(hvac|duct|mastic|ul181|fsk)\b').hasMatch(text)) {
     return true;
   }
+  if (RegExp(r'\bwire\s+connector\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(lever|push[\s-]?in|butt|closed\s+end|inline|splice|'
+        r'waterproof|grounding|twister|electrical|electric|elec)\b',
+      ).hasMatch(text)) {
+    return true;
+  }
+  if (RegExp(r'\bbushing\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(anti[\s-]?short|insulated|conduit|emt|rigid|mc|electrical|'
+        r'electric|elec)\b',
+      ).hasMatch(text)) {
+    return true;
+  }
+  if (RegExp(r'\bcondensate\s+drain\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(gun|cartridge|tablet|tab|pan|pump|trap|tee|cleanout|tubing|'
+        r'hvac|furnace|air\s*handler|ac|a/c)\b',
+      ).hasMatch(text)) {
+    return true;
+  }
+  if (RegExp(r'\bsalt\s+pellets?\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(water\s+)?softener|brine|ablandador|suavizador\b',
+      ).hasMatch(text)) {
+    return true;
+  }
+  if (RegExp(r'\bconnector\s+kit\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(dishwasher|toilet|faucet|gas|dryer|washer|appliance|romex|'
+        r'nm|electrical|electric|elec)\b',
+      ).hasMatch(text)) {
+    return true;
+  }
   return switch (text) {
     'adapter' ||
     'black' ||
     'box' ||
+    'bushing' ||
     'cap' ||
     'cement' ||
     'condensate' ||

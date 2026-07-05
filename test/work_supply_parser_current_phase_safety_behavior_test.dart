@@ -159,6 +159,65 @@ void main() {
     });
 
     test(
+      'new Core service-stock generic families require specific evidence',
+      () {
+        const genericLines = [
+          'BUSHING',
+          'WIRE CONNECTOR',
+          'CONDENSATE DRAIN',
+          'SALT PELLETS',
+          'CONNECTOR KIT',
+        ];
+
+        for (final line in genericLines) {
+          final match = matchReceiptLineToCatalog(line, maxCandidates: 420);
+
+          expect(
+            match == null || match.confidence <= .81,
+            isTrue,
+            reason:
+                'Generic service-stock wording must not become a confident '
+                'single answer without stronger item/trade evidence: $line '
+                '=> ${match?.item.path} confidence=${match?.confidence}',
+          );
+        }
+
+        final antiShort = matchReceiptLineToCatalog(
+          'MC ANTI SHORT BUSHING 100PK',
+          tradeScope: 'Electrical',
+          maxCandidates: 420,
+        );
+        expect(antiShort, isNotNull);
+        expect(antiShort!.item.trade, 'Electrical');
+        expect(antiShort.item.name, contains('Anti Short Bushing'));
+        expect(antiShort.confidenceLevel, ReceiptConfidenceLevel.good);
+
+        final drainGun = matchReceiptLineToCatalog(
+          'CONDENSATE DRAIN GUN',
+          tradeScope: 'HVAC',
+          maxCandidates: 420,
+        );
+        expect(drainGun, isNotNull);
+        expect(drainGun!.item.trade, 'HVAC');
+        expect(drainGun.item.name, contains('Condensate Drain Gun'));
+        expect(drainGun.confidenceLevel, ReceiptConfidenceLevel.good);
+
+        final softenerSalt = matchReceiptLineToCatalog(
+          '40LB WATER SOFTENER SALT PELLETS',
+          tradeScope: 'Plumbing',
+          maxCandidates: 420,
+        );
+        expect(softenerSalt, isNotNull);
+        expect(softenerSalt!.item.trade, 'Plumbing');
+        expect(
+          softenerSalt.item.name.toLowerCase(),
+          contains('water softener salt'),
+        );
+        expect(softenerSalt.confidenceLevel, ReceiptConfidenceLevel.good);
+      },
+    );
+
+    test(
       'bare PVC COND shorthand stays review-level even in electrical scope',
       () {
         for (final line in const [
