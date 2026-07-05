@@ -1,5 +1,64 @@
 # PDF System Pass Log
 
+## Milestone - 2026-07-05 09:21 EDT - Passes 78-80 render and share hardening
+
+- Scope: PDF/Document Engine QA and generated PDF share/storage only. No
+  inventory, camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added landscape PDF render smoke coverage with actual rendered PNG
+    orientation assertions.
+  - Hardened generated PDF sharing against outside-storage and symlinked paths.
+  - Hardened generated PDF destination allocation against symlink reservations.
+- Verification completed 2026-07-05 09:21 EDT:
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 80 - 2026-07-05 09:19 EDT - Generated PDF symlink reservation
+
+- Scope: generated PDF storage allocation only. No inventory, camera, native
+  capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Treated files, directories, and symlinks as reserved generated PDF names
+    without following links.
+  - Blocked broken destination and partial symlinks from being reused as write
+    targets.
+  - Added regression coverage for symlink reservation.
+  - Added symlink reservation coverage to the PDF QA registry.
+- Verification completed 2026-07-05 09:20 EDT:
+  - `dart format lib/shared/pdf/app_generated_pdf_storage.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_storage.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 79 - 2026-07-05 09:18 EDT - Generated PDF share path ownership
+
+- Scope: generated PDF share preflight only. No inventory, camera, native
+  capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Blocked sharing prepared PDFs from outside app-generated temporary storage.
+  - Blocked symlinked generated PDF share paths before byte and hash checks.
+  - Added regression coverage for outside-path and symlink share attempts.
+  - Added share path ownership cases to the PDF QA registry.
+- Verification completed 2026-07-05 09:19 EDT:
+  - `dart format lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 78 - 2026-07-05 09:16 EDT - Landscape render smoke gate
+
+- Scope: PDF render QA tooling only. No inventory, camera, native capture, OCR
+  engine, or parser behavior changes.
+- Bundled work:
+  - Added a landscape invoice render fixture to the Poppler smoke gate.
+  - Added rendered PNG orientation assertions so portrait and landscape pages
+    cannot silently swap.
+  - Extended the PDF quality-gate contract to lock landscape render coverage.
+  - Added landscape render coverage to the PDF QA registry.
+- Verification completed 2026-07-05 09:17 EDT:
+  - `dart format test/pdf_render_gate_invoice_generator_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash -n tool/pdf_render_smoke_gate.sh`
+  - `python3 -m py_compile tool/pdf_render_pixel_assertions.py`
+  - `flutter test test/pdf_render_gate_invoice_generator_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `bash tool/pdf_render_smoke_gate.sh`
+
 ## Milestone - 2026-07-05 09:15 EDT - Passes 71-77 storage and orientation hardening
 
 - Scope: PDF/Document Engine only. No inventory, camera, native capture, OCR

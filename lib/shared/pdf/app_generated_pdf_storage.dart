@@ -29,7 +29,14 @@ class AppGeneratedPdfStorage {
   }
 
   static Future<bool> _isAvailable(File file) async {
-    if (await file.exists()) return false;
-    return !await File('${file.path}.partial').exists();
+    if (await _entityExistsWithoutFollowingLinks(file.path)) return false;
+    return !await _entityExistsWithoutFollowingLinks('${file.path}.partial');
+  }
+
+  static Future<bool> _entityExistsWithoutFollowingLinks(
+    String entityPath,
+  ) async {
+    final type = await FileSystemEntity.type(entityPath, followLinks: false);
+    return type != FileSystemEntityType.notFound;
   }
 }

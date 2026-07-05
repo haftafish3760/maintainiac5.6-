@@ -29,6 +29,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-dark-ratio", type=float, default=0.70)
     parser.add_argument("--edge-margin", type=int, default=4)
     parser.add_argument("--max-edge-ink-ratio", type=float, default=0.18)
+    parser.add_argument(
+        "--orientation",
+        choices=("any", "portrait", "landscape"),
+        default="any",
+    )
     return parser.parse_args()
 
 
@@ -138,6 +143,20 @@ def main() -> int:
         print(
             f"{args.png} rendered too small: {width}x{height}, expected at least "
             f"{args.min_width}x{args.min_height}",
+            file=sys.stderr,
+        )
+        return 1
+    if args.orientation == "portrait" and width >= height:
+        print(
+            f"{args.png} rendered with wrong orientation: {width}x{height}, "
+            "expected portrait",
+            file=sys.stderr,
+        )
+        return 1
+    if args.orientation == "landscape" and width <= height:
+        print(
+            f"{args.png} rendered with wrong orientation: {width}x{height}, "
+            "expected landscape",
             file=sys.stderr,
         )
         return 1

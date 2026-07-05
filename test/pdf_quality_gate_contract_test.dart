@@ -140,10 +140,13 @@ void main() {
       expect(renderGate, contains('tool/pdf_render_pixel_assertions.py'));
       expect(renderGate, contains('PDF_RENDER_GATE_INVOICE_OUTPUT'));
       expect(renderGate, contains('PDF_RENDER_GATE_LONG_TEXT_INVOICE_OUTPUT'));
+      expect(renderGate, contains('PDF_RENDER_GATE_LANDSCAPE_INVOICE_OUTPUT'));
       expect(renderGate, contains('page_count'));
       expect(renderGate, contains('rendered_count'));
       expect(renderGate, contains('Real invoice render fixture'));
       expect(renderGate, contains('Long-text invoice render fixture'));
+      expect(renderGate, contains('Landscape invoice render fixture'));
+      expect(renderGate, contains(r'--orientation "$orientation"'));
       expect(
         renderGate,
         contains(r'for page_number in $(seq 1 "$page_count")'),
@@ -154,6 +157,8 @@ void main() {
       );
       expect(renderGate, contains('pdftoppm'));
       expect(pixelAssertions, contains('--max-edge-ink-ratio'));
+      expect(pixelAssertions, contains('--orientation'));
+      expect(pixelAssertions, contains('expected landscape'));
       expect(pixelAssertions, contains('_edge_ink_ratio'));
       expect(pixelAssertions, contains('too much ink at the page edge'));
     },

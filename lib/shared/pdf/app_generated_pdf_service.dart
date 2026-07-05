@@ -79,6 +79,7 @@ class AppGeneratedPdfService {
   ) async {
     _ensureSendablePdf(generated.document);
     final file = File(generated.path);
+    await _ensureShareableGeneratedPath(file);
     if (file.path.toLowerCase().endsWith('.partial')) {
       throw const AppGeneratedPdfException(
         'Maintainiac stopped this PDF because the prepared file is still being written.',
@@ -145,6 +146,23 @@ class AppGeneratedPdfService {
     );
     if (!check.hasEnoughSpace) {
       throw AppGeneratedPdfException(check.blockingMessage());
+    }
+  }
+
+  Future<void> _ensureShareableGeneratedPath(File file) async {
+    final directory = await _generatedPdfDirectory();
+    final directoryPath = path.normalize(path.absolute(directory.path));
+    final filePath = path.normalize(path.absolute(file.path));
+    if (!path.isWithin(directoryPath, filePath)) {
+      throw const AppGeneratedPdfException(
+        'Maintainiac stopped this PDF because the prepared file is outside app-generated PDF storage.',
+      );
+    }
+    final type = await FileSystemEntity.type(file.path, followLinks: false);
+    if (type == FileSystemEntityType.link) {
+      throw const AppGeneratedPdfException(
+        'Maintainiac stopped this PDF because the prepared file could not be verified safely.',
+      );
     }
   }
 

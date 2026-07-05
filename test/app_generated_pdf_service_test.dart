@@ -208,6 +208,26 @@ void main() {
   });
 
   test(
+    'generated PDF destination allocator reserves symlink paths',
+    () async {
+      final directory = await temporaryDirectory.createTemp('pdf_names_');
+      final destinationLink = Link('${directory.path}/invoice.pdf');
+      final partialLink = Link('${directory.path}/invoice-copy-2.pdf.partial');
+      await destinationLink.create('${directory.path}/missing-target.pdf');
+      await partialLink.create('${directory.path}/missing-partial-target.pdf');
+
+      final destination = await AppGeneratedPdfStorage.availableDestination(
+        directory: directory,
+        requestedFileName: 'invoice.pdf',
+      );
+
+      expect(destination, isNotNull);
+      expect(destination!.path, endsWith('invoice-copy-3.pdf'));
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
     'generated PDF service clears stale partial blocking filename',
     () async {
       final document = AppGeneratedPdfDocument(
@@ -296,7 +316,11 @@ void main() {
       bytes: Uint8List.fromList('%PDF-1.7\nTotal 12.34\n%%EOF'.codeUnits),
       createdAt: DateTime(2026, 7, 4),
     );
-    final tampered = File('${temporaryDirectory.path}/tampered.pdf');
+    final directory = Directory(
+      '${temporaryDirectory.path}/maintainiac_generated_pdfs',
+    );
+    await directory.create(recursive: true);
+    final tampered = File('${directory.path}/tampered.pdf');
     await tampered.writeAsBytes(
       Uint8List.fromList('%PDF-1.7\nTotal 56.78\n%%EOF'.codeUnits),
       flush: true,
@@ -328,7 +352,11 @@ void main() {
       bytes: Uint8List.fromList('%PDF-1.7\nTotal 12.34\n%%EOF'.codeUnits),
       createdAt: DateTime(2026, 7, 4),
     );
-    final partial = File('${temporaryDirectory.path}/invoice.pdf.partial');
+    final directory = Directory(
+      '${temporaryDirectory.path}/maintainiac_generated_pdfs',
+    );
+    await directory.create(recursive: true);
+    final partial = File('${directory.path}/invoice.pdf.partial');
     await partial.writeAsBytes(document.bytes, flush: true);
 
     await expectLater(
@@ -348,6 +376,74 @@ void main() {
       ),
     );
   });
+
+  test('generated PDF share refuses files outside generated storage', () async {
+    final document = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList('%PDF-1.7\nTotal 12.34\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 5),
+    );
+    final outside = File('${temporaryDirectory.path}/external-invoice.pdf');
+    await outside.writeAsBytes(document.bytes, flush: true);
+
+    await expectLater(
+      const AppGeneratedPdfService().shareGeneratedFile(
+        AppGeneratedPdfFile(
+          document: document,
+          path: outside.path,
+          byteSize: document.byteSize,
+        ),
+      ),
+      throwsA(
+        isA<AppGeneratedPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('outside app-generated PDF storage'),
+        ),
+      ),
+    );
+  });
+
+  test(
+    'generated PDF share refuses symlinked generated files',
+    () async {
+      final document = AppGeneratedPdfDocument(
+        kind: AppGeneratedPdfKind.invoice,
+        title: 'Invoice',
+        fileName: 'invoice.pdf',
+        bytes: Uint8List.fromList('%PDF-1.7\nTotal 12.34\n%%EOF'.codeUnits),
+        createdAt: DateTime(2026, 7, 5),
+      );
+      final outside = File('${temporaryDirectory.path}/outside-target.pdf');
+      await outside.writeAsBytes(document.bytes, flush: true);
+      final directory = Directory(
+        '${temporaryDirectory.path}/maintainiac_generated_pdfs',
+      );
+      await directory.create(recursive: true);
+      final symlink = Link('${directory.path}/linked-invoice.pdf');
+      await symlink.create(outside.path);
+
+      await expectLater(
+        const AppGeneratedPdfService().shareGeneratedFile(
+          AppGeneratedPdfFile(
+            document: document,
+            path: symlink.path,
+            byteSize: document.byteSize,
+          ),
+        ),
+        throwsA(
+          isA<AppGeneratedPdfException>().having(
+            (error) => error.message,
+            'message',
+            contains('could not be verified safely'),
+          ),
+        ),
+      );
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
 
   test('generated PDF model validates sendable PDF bytes and filenames', () {
     final document = AppGeneratedPdfDocument(

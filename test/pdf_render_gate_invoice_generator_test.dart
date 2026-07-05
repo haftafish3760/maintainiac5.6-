@@ -154,4 +154,72 @@ void main() {
     expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
     expect(invoicePdfPageCountForRecord(record), greaterThan(1));
   });
+
+  test('writes landscape invoice renderer sample for PDF render gate', () async {
+    final outputPath =
+        Platform.environment['PDF_RENDER_GATE_LANDSCAPE_INVOICE_OUTPUT'] ??
+        '${Directory.systemTemp.path}/maintainiac_landscape_invoice_render_gate.pdf';
+    final now = DateTime(2026, 7, 4, 10, 30);
+    final record = InvoiceRecord(
+      id: 'render-landscape-invoice',
+      documentType: InvoiceDocumentType.invoice,
+      invoiceNumber: 'LAND-2041',
+      numberMode: InvoiceNumberMode.automatic,
+      status: InvoiceRecordStatus.draft,
+      title: 'Landscape Bed Refresh And Weekly Service',
+      issueDate: now,
+      dueDate: now.add(const Duration(days: 14)),
+      templateId: 'landscaping-garden-artwork-v1',
+      company: const InvoicePartySnapshot(
+        companyName: 'Maintainiac Grounds',
+        street: '44 Garden Row',
+        city: 'Columbus',
+        state: 'OH',
+        postalCode: '43004',
+        phone: '(555) 010-2244',
+        email: 'grounds@example.com',
+      ),
+      client: const InvoicePartySnapshot(
+        displayName: 'Sample Property Manager',
+        street: '18 Landscape Court',
+        city: 'Dayton',
+        state: 'OH',
+        postalCode: '45402',
+        phone: '(555) 010-8818',
+        email: 'property@example.com',
+      ),
+      lines: [
+        for (var index = 1; index <= 9; index++)
+          InvoiceLineItemRecord(
+            id: 'render-landscape-line-$index',
+            name: 'Landscape service item $index',
+            details:
+                'Confirmed mulch, edging, cleanup, and haul-away service $index',
+            quantity: index.isEven ? 2 : 1,
+            unit: index.isEven ? 'yd' : 'ea',
+            unitPrice: index.isEven ? 48.25 : 95.50,
+            taxRate: index.isEven ? 0 : 6.25,
+            taxable: !index.isEven,
+          ),
+      ],
+      terms: 'Payment due on receipt after confirmed property walkthrough.',
+      meta: InvoiceSyncMetadata(createdAt: now, updatedAt: now),
+    );
+
+    final bytes = await const InvoicePdfTemplateRenderer()
+        .buildRecordDocumentBytes(
+          record: record,
+          template: InvoiceTemplateCatalog.byId(
+            'landscaping-garden-artwork-v1',
+          ),
+        );
+    final output = File(outputPath);
+    await output.parent.create(recursive: true);
+    await output.writeAsBytes(bytes, flush: true);
+
+    expect(output.existsSync(), isTrue);
+    expect(output.lengthSync(), greaterThan(1000));
+    expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
+    expect(invoicePdfPageCountForRecord(record), greaterThanOrEqualTo(1));
+  });
 }

@@ -221,8 +221,11 @@
         "document_export_partial_file_block",
         "document_export_active_pdf_block",
         "document_export_private_pdf_block",
+        "generated_pdf_destination_symlink_reservation",
         "generated_pdf_archive_private_label_block",
         "generated_pdf_archive_human_label_privacy",
+        "generated_pdf_share_outside_storage_block",
+        "generated_pdf_share_symlink_block",
         "generated_pdf_encrypted_output_block"
       ]
     },
@@ -291,7 +294,9 @@
       "fixtureKeys": [
         "sample_receipt_pdf",
         "sample_invoice_pdf",
-        "poppler_first_page_png"
+        "landscape_invoice_pdf",
+        "poppler_first_page_png",
+        "rendered_page_orientation_assertion"
       ]
     }
   }
