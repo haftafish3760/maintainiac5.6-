@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_attachment_panel.dart';
 
 void main() {
-  testWidgets('receipt import route exposes common sources and help returns', (
+  testWidgets('receipt import sheet exposes common sources and help returns', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -25,7 +25,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Capture or upload receipt'), findsOneWidget);
-    expect(find.byIcon(Icons.arrow_back_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
     expect(find.text('Help'), findsOneWidget);
     expect(find.text('Capture Receipt Photo'), findsOneWidget);
     expect(find.text('Upload Receipt Photos'), findsOneWidget);
@@ -64,7 +64,7 @@ void main() {
     expect(find.text('Upload PDF/File'), findsOneWidget);
   });
 
-  testWidgets('receipt import route remains usable on short screens', (
+  testWidgets('receipt import sheet remains usable on short screens', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(390, 620);
@@ -105,7 +105,7 @@ void main() {
     expect(find.text('Capture or upload receipt'), findsOneWidget);
   });
 
-  test('receipt import chooser is a safe full-screen route', () async {
+  test('receipt import chooser keeps original compact sheet grid', () async {
     final source = await File(
       'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
     ).readAsString();
@@ -117,16 +117,17 @@ void main() {
     final openEnd = source.indexOf('Future<void> _showReceiptShareHelp');
     final openBlock = source.substring(openStart, openEnd);
 
-    expect(openBlock, contains('Navigator.of(context).push'));
-    expect(openBlock, contains('MaterialPageRoute'));
-    expect(openBlock, contains('fullscreenDialog: true'));
-    expect(openBlock, isNot(contains('showModalBottomSheet')));
-    expect(source, contains('return Scaffold('));
+    expect(openBlock, contains('showModalBottomSheet'));
+    expect(openBlock, isNot(contains('Navigator.of(context).push')));
+    expect(openBlock, isNot(contains('MaterialPageRoute')));
+    expect(openBlock, isNot(contains('fullscreenDialog: true')));
+    expect(source, isNot(contains('return Scaffold(')));
     expect(source, contains('SafeArea('));
-    expect(source, contains('ListView('));
-    expect(source, contains('_ReceiptPrimaryImportTile'));
-    expect(tile, contains('class _ReceiptPrimaryImportTile'));
-    expect(tile, contains('width: 58'));
-    expect(tile, contains('height: 58'));
+    expect(source, contains('SingleChildScrollView('));
+    expect(source, contains('crossAxisCount: 2'));
+    expect(source, isNot(contains('_ReceiptPrimaryImportTile')));
+    expect(tile, isNot(contains('class _ReceiptPrimaryImportTile')));
+    expect(tile, isNot(contains('width: 58')));
+    expect(tile, isNot(contains('height: 58')));
   });
 }
