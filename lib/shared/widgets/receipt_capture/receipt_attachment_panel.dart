@@ -10,6 +10,7 @@ import '../../state/expense_settings_store.dart';
 import '../receipt_form/receipt_form_panel.dart';
 import 'receipt_capture_flow.dart';
 import 'receipt_capture_models.dart';
+import 'receipt_capture_diagnostics_policy.dart';
 import 'receipt_capture_settings_store.dart';
 import 'receipt_image_processor.dart';
 import 'receipt_image_picker.dart';
@@ -134,12 +135,12 @@ class _SharedReceiptAttachmentPanelState
   }
 
   void _publishReceiptCaptureDiagnostic(Map<String, Object?> diagnostic) {
-    if (!_receiptCaptureDiagnosticsImprovementEnabled) return;
-    widget.onReceiptCaptureDiagnostic?.call({
-      'cameraDiagnosticsImprovementOptIn': true,
-      'adminDiagnosticOwnerImagePreviewAllowed': false,
-      ...diagnostic,
-    });
+    final envelope = const ReceiptCaptureDiagnosticPublishPolicy().envelope(
+      improvementOptIn: _receiptCaptureDiagnosticsImprovementEnabled,
+      diagnostic: diagnostic,
+    );
+    if (envelope.isEmpty) return;
+    widget.onReceiptCaptureDiagnostic?.call(envelope);
   }
 
   @override

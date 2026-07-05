@@ -197,6 +197,7 @@ Future<String> _readReceiptCaptureSettingsSource() async {
     'lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart',
     'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
     'lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart',
+    'lib/shared/widgets/receipt_capture/receipt_capture_diagnostics_policy.dart',
   ];
   final contents = <String>[];
   for (final path in paths) {

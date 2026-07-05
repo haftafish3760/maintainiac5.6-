@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 895 - 06:28:00 EDT to active cleanup
+
+Scope:
+- Split the receipt camera diagnostic publish boundary into a small testable
+  policy object.
+- Added direct regressions proving opt-out blocks diagnostic publication and
+  opt-in envelopes carry machine-only privacy flags.
+- Kept the shared attachment panel routed through the policy.
+- Recorded `BUG-RECEIPT-0344` under `qa_harness`.
+- Archived Pass 855 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused diagnostic policy/settings
+  regressions, cleanup/doc/ledger/source gates, and diff whitespace gate.
+
 ## Pass 894 - 06:10:00 EDT to active cleanup
 
 Scope:
@@ -468,21 +483,6 @@ Scope:
 - Pinned `skippedInvalidImageCount` and privacy-safe invalid-path warning
   buckets without exposing raw bad path strings.
 - Archived Pass 794 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused barcode scanner regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 855 - 12:15:00 EDT to active cleanup
-
-Scope:
-- Changed barcode/QR batch scanning so invalid input paths do not consume the
-  valid-image decoder limit.
-- Added separate privacy-safe input, scanned, invalid, and skipped-invalid
-  summary counts for long-receipt scan batches.
-- Recorded `BUG-RECEIPT-0316` under `barcode_qr_scanning`.
-- Archived Pass 792 from the active cleanup log to keep the doc under cap.
 
 Verification:
 - Passed targeted Dart format/analyzer and focused barcode scanner regression.
