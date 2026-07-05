@@ -5,8 +5,11 @@ extension _ReceiptPhotoReviewAlignmentActions
   Future<bool> _showLongReceiptAlignmentGuide(
     String photoPath, {
     required ReceiptPhotoCoverageDecision coverageDecision,
+    String? alignmentReasonCode,
+    String? alignmentGuidance,
   }) async {
     if (!_reviewWorkActive) return false;
+    final reasonCode = alignmentReasonCode?.trim().toLowerCase() ?? '';
     final result = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: const Color(0xFF1F2528),
@@ -21,11 +24,10 @@ extension _ReceiptPhotoReviewAlignmentActions
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  coverageDecision.isMissingBottomEdgeAndTotals
-                      ? 'Add Bottom Receipt Section'
-                      : coverageDecision.shouldPromptForMorePhotos
-                      ? 'Add Next Receipt Section'
-                      : 'Line Up The Next Receipt Photo',
+                  _alignmentGuideTitle(
+                    coverageDecision,
+                    reasonCode: reasonCode,
+                  ),
                   style: const TextStyle(
                     color: Color(0xFFE8ECEE),
                     fontSize: 18,
@@ -35,9 +37,11 @@ extension _ReceiptPhotoReviewAlignmentActions
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  coverageDecision.shouldPromptForMorePhotos
-                      ? '${coverageDecision.completionDialogMessage} Use the bottom of the last photo as the top ghost-slice guide and repeat 3-5 readable lines in the next photo.'
-                      : 'Use the bottom of the last photo as the top ghost-slice guide. Start the next photo by repeating 3-5 readable receipt lines so Maintainiac can match the sections.',
+                  _alignmentGuideMessage(
+                    coverageDecision,
+                    reasonCode: reasonCode,
+                    alignmentGuidance: alignmentGuidance,
+                  ),
                   style: const TextStyle(
                     color: Color(0xFFC7D0D4),
                     fontSize: 13,
@@ -67,7 +71,12 @@ extension _ReceiptPhotoReviewAlignmentActions
                       child: FilledButton.icon(
                         onPressed: () => Navigator.of(context).pop(true),
                         icon: const Icon(Icons.camera_alt_rounded),
-                        label: Text(coverageDecision.addSectionButtonLabel),
+                        label: Text(
+                          _alignmentGuideButtonLabel(
+                            coverageDecision,
+                            reasonCode: reasonCode,
+                          ),
+                        ),
                         style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xFF28A745),
                           foregroundColor: Colors.white,
@@ -83,5 +92,53 @@ extension _ReceiptPhotoReviewAlignmentActions
       },
     );
     return result ?? false;
+  }
+
+  String _alignmentGuideTitle(
+    ReceiptPhotoCoverageDecision coverageDecision, {
+    required String reasonCode,
+  }) {
+    return switch (reasonCode) {
+      'retake_top_with_next_context' => 'Retake Top Receipt Section',
+      'retake_middle_with_previous_next_context' =>
+        'Retake Middle Receipt Section',
+      'retake_bottom_with_previous_context' => 'Retake Bottom Receipt Section',
+      _ =>
+        coverageDecision.isMissingBottomEdgeAndTotals
+            ? 'Add Bottom Receipt Section'
+            : coverageDecision.shouldPromptForMorePhotos
+            ? 'Add Next Receipt Section'
+            : 'Line Up The Next Receipt Photo',
+    };
+  }
+
+  String _alignmentGuideMessage(
+    ReceiptPhotoCoverageDecision coverageDecision, {
+    required String reasonCode,
+    String? alignmentGuidance,
+  }) {
+    final guidance = alignmentGuidance?.trim();
+    if (guidance != null && guidance.isNotEmpty) return guidance;
+    if (reasonCode == 'retake_top_with_next_context') {
+      return 'Use the next receipt section as context, retake the top section, then confirm the join in photo review.';
+    }
+    if (reasonCode == 'retake_middle_with_previous_next_context') {
+      return 'Use the previous and next receipt sections as context, then retake this middle section without changing its order.';
+    }
+    if (reasonCode == 'retake_bottom_with_previous_context') {
+      return 'Use the previous receipt section as the top ghost guide, then retake the bottom section in the same slot.';
+    }
+    if (coverageDecision.shouldPromptForMorePhotos) {
+      return '${coverageDecision.completionDialogMessage} Use the bottom of the last photo as the top ghost-slice guide and repeat 3-5 readable lines in the next photo.';
+    }
+    return 'Use the bottom of the last photo as the top ghost-slice guide. Start the next photo by repeating 3-5 readable receipt lines so Maintainiac can match the sections.';
+  }
+
+  String _alignmentGuideButtonLabel(
+    ReceiptPhotoCoverageDecision coverageDecision, {
+    required String reasonCode,
+  }) {
+    if (reasonCode.startsWith('retake_')) return 'Retake Section';
+    return coverageDecision.addSectionButtonLabel;
   }
 }

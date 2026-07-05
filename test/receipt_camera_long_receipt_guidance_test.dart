@@ -99,6 +99,8 @@ void main() {
       contains('Opening the phone camera as backup capture'),
     );
     expect(sources.reviewActions, contains('_showLongReceiptAlignmentGuide'));
+    expect(sources.reviewActions, contains('alignmentReasonCode:'));
+    expect(sources.reviewActions, contains('alignmentGuidance:'));
     expect(
       sources.captureActions,
       contains('final targetPhotoPath = _photoPaths[_selectedIndex]'),
@@ -159,6 +161,10 @@ void main() {
     );
     expect(sources.nativeGhostGuide, contains('next_section_top_lines'));
     expect(sources.nativeGhostShell, contains('Match the next section'));
+    expect(sources.reviewActions, contains('Retake Top Receipt Section'));
+    expect(sources.reviewActions, contains('Retake Middle Receipt Section'));
+    expect(sources.reviewActions, contains('Retake Bottom Receipt Section'));
+    expect(sources.reviewActions, contains('Retake Section'));
     expect(sources.reviewActions, contains('Line Up The Next Receipt Photo'));
     expect(sources.reviewControls, contains('Add Bottom Section'));
     expect(

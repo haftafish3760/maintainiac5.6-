@@ -124,6 +124,8 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
         final shouldContinue = await _showLongReceiptAlignmentGuide(
           alignmentGuidePhotoPath,
           coverageDecision: coverageDecision,
+          alignmentReasonCode: alignmentReasonCode,
+          alignmentGuidance: alignmentGuidance,
         );
         if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();
         if (!shouldContinue) return const _PickedReceiptPhotos.empty();
