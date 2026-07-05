@@ -52,7 +52,17 @@ void main() {
       directive,
       contains('Google ML Kit is the primary local OCR engine'),
     );
-    expect(directive, contains('Preserve original receipt captures'));
+    expect(
+      directive,
+      contains('temporary full-quality capture for OCR before saved proof'),
+    );
+    expect(
+      directive,
+      contains(
+        'full-quality original proof retention is an explicit user choice',
+      ),
+    );
+    expect(directive, isNot(contains('Preserve original receipt captures')));
     expect(
       directive,
       contains('Support simple and detailed receipt review modes'),

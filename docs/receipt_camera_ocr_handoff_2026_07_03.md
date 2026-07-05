@@ -189,27 +189,28 @@ The intended receipt camera flow is:
 10. If retaking a section, replacement preserves the original section index.
 11. If adding after a selected section, inserted sections are tracked after that
     anchor.
-12. Original photo/proof sources remain preserved.
+12. OCR uses a temporary full-quality source before saved proof compression.
 13. Derived OCR-ready images, cropped images, stitched images, compressed proof
     images, and redacted images are artifacts, not source truth.
-14. OCR reads the clearest/original prepared source before compressed proof
+14. OCR reads the clearest prepared temporary source before compressed proof
     copies.
 15. OCR/parser output is suggestion data.
 16. User review confirms financial truth.
 17. Saved expense records preserve proof, line references, confidence, warnings,
     and correction/audit state.
 
-## Original Source Preservation Rule
+## Temporary OCR Source And Saved Proof Rule
 
 This rule is central:
 
-- Never destroy the original receipt capture.
-- Never mutate source proof in place.
+- Never imply full-quality original proof retention is the default.
+- Never mutate saved proof in place.
 - Cropped, stitched, enhanced, OCR-ready, compressed, PDF-rendered, and redacted
   copies are derived artifacts.
-- OCR should read the clearest available source first, usually original or
-  prepared OCR source, not the smaller saved proof.
+- OCR should read the clearest available temporary source first, usually the
+  capture/prepared OCR source, not the smaller saved proof.
 - Saved proof/storage copies may be compressed after OCR source selection.
+- Full-quality original proof retention must be an explicit user choice.
 - Customer-safe redacted views must be separate derived artifacts.
 
 ## OCR Boundary

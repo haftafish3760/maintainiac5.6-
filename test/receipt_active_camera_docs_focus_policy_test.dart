@@ -72,6 +72,11 @@ void main() {
         isNot(contains('original receipt images are source truth')),
         reason: '$path must not make full originals the retained source truth.',
       );
+      expect(
+        text,
+        isNot(contains('never destroy the original receipt capture')),
+        reason: '$path must not imply default full-quality original retention.',
+      );
     }
   });
 }
