@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
+import 'package:share_plus/share_plus.dart';
 
 import '../storage/app_storage_guard.dart';
 import 'app_document_export_manifest.dart';
@@ -11,6 +12,8 @@ import 'app_document_models.dart';
 
 typedef AppDocumentExportZipBytesBuilder =
     Future<List<int>> Function(AppDocumentExportPackagePlan plan);
+typedef AppDocumentExportShareInvoker =
+    Future<ShareResultStatus> Function(AppDocumentExportPackageSharePlan plan);
 
 class AppDocumentExportPackageWriteResult {
   const AppDocumentExportPackageWriteResult({
@@ -128,7 +131,10 @@ class AppDocumentExportPackageSharePlan {
 }
 
 class AppDocumentExportPackageWriter {
-  const AppDocumentExportPackageWriter({this.zipBytesBuilder});
+  const AppDocumentExportPackageWriter({
+    this.zipBytesBuilder,
+    this.shareInvoker,
+  });
 
   static const String manifestEntryName = 'maintainiac_document_manifest.json';
   static const String packageIndexEntryName =
@@ -143,6 +149,7 @@ class AppDocumentExportPackageWriter {
   static final DateTime _fixedZipModified = DateTime.utc(2026);
 
   final AppDocumentExportZipBytesBuilder? zipBytesBuilder;
+  final AppDocumentExportShareInvoker? shareInvoker;
 
   Future<AppDocumentExportPackageWriteResult> writeZipPackage({
     required AppDocumentRecord record,
@@ -392,6 +399,31 @@ class AppDocumentExportPackageWriter {
       kindName: readResult.kindName,
       fileEntries: readResult.fileEntries,
     );
+  }
+
+  Future<ShareResultStatus> shareZipPackage(
+    File packageFile, {
+    String appName = 'Maintainiac',
+  }) async {
+    final plan = await buildSharePlan(packageFile, appName: appName);
+    final invoker = shareInvoker ?? _shareWithPlatform;
+    return invoker(plan);
+  }
+
+  static Future<ShareResultStatus> _shareWithPlatform(
+    AppDocumentExportPackageSharePlan plan,
+  ) async {
+    final result = await SharePlus.instance.share(
+      ShareParams(
+        title: plan.subject,
+        subject: plan.subject,
+        text: plan.message,
+        files: [
+          XFile(plan.filePath, name: plan.fileName, mimeType: plan.mimeType),
+        ],
+      ),
+    );
+    return result.status;
   }
 
   static String _cleanShareText(String value) {

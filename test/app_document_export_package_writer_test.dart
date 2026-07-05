@@ -9,6 +9,7 @@ import 'package:maintaniac/shared/documents/app_document_export_package_writer.d
 import 'package:maintaniac/shared/documents/app_document_models.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'package:path/path.dart' as path;
+import 'package:share_plus/share_plus.dart';
 
 void main() {
   late Directory tempDirectory;
@@ -548,6 +549,104 @@ void main() {
       ),
     );
   });
+
+  test(
+    'document export package share verifies before invoking platform share',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nVerified platform share\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final invokedPlans = <AppDocumentExportPackageSharePlan>[];
+      final writer = AppDocumentExportPackageWriter(
+        shareInvoker: (plan) async {
+          invokedPlans.add(plan);
+          return ShareResultStatus.success;
+        },
+      );
+
+      final status = await writer.shareZipPackage(
+        File(result.filePath),
+        appName: 'Maintainiac',
+      );
+
+      expect(status, ShareResultStatus.success);
+      expect(invokedPlans, hasLength(1));
+      expect(invokedPlans.single.filePath, result.filePath);
+      expect(invokedPlans.single.sha256, result.sha256);
+      expect(invokedPlans.single.mimeType, 'application/zip');
+      expect(
+        invokedPlans.single.toMap().toString(),
+        isNot(contains('filePath')),
+      );
+    },
+  );
+
+  test(
+    'document export package share refuses tampered file before invocation',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nBlocked platform share\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final archive = ZipDecoder().decodeBytes(
+        await File(result.filePath).readAsBytes(),
+      );
+      final tampered = Archive();
+      for (final entry in archive.files) {
+        tampered.addFile(
+          ArchiveFile.bytes(
+            entry.name,
+            entry.name == 'job-packet.pdf'
+                ? utf8.encode('%PDF-1.7\nChanged before invoke\n%%EOF')
+                : entry.readBytes()!,
+          ),
+        );
+      }
+      final tamperedFile = File('${tempDirectory.path}/invoke-tampered.zip');
+      await tamperedFile.writeAsBytes(
+        ZipEncoder().encode(tampered, modified: DateTime.utc(2026)),
+        flush: true,
+      );
+      var invoked = false;
+      final writer = AppDocumentExportPackageWriter(
+        shareInvoker: (_) async {
+          invoked = true;
+          return ShareResultStatus.success;
+        },
+      );
+
+      await expectLater(
+        writer.shareZipPackage(tamperedFile),
+        throwsA(isA<AppDocumentExportPackageException>()),
+      );
+      expect(invoked, isFalse);
+    },
+  );
 
   test('document export package reader blocks directory entries', () async {
     final directoryArchive = Archive()

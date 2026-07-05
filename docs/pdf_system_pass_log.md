@@ -1,5 +1,29 @@
 # PDF System Pass Log
 
+## Pass 57 - 2026-07-05 06:20 EDT - Document export package platform share
+
+- Scope: shared app document export package platform-share invocation,
+  pre-share verification, and PDF QA fixture inventory only. No inventory,
+  camera, native capture, receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Added `shareZipPackage` to route verified document export ZIP packages to
+    `SharePlus` with subject, text, MIME type, file name, and file path.
+  - Kept platform sharing behind an injectable share invoker so QA can prove
+    pre-share verification without opening fragile UI flows.
+  - Ensured `shareZipPackage` rebuilds and verifies the share plan before
+    invoking the platform share sheet.
+  - Blocked tampered packages before the injected or real share invoker can be
+    called.
+  - Added regressions for successful verified invocation, MIME/file metadata,
+    pathless public share-plan maps, and tampered-package preflight blocking.
+  - Updated the shared PDF fixture inventory for platform share invocation and
+    preflight blocking.
+- Verification completed 2026-07-05 06:20 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart test/app_document_export_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_manifest_test.dart test/app_document_export_package_writer_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 56 - 2026-07-05 06:17 EDT - Document export package share plan
 
 - Scope: shared app document export package share-plan preparation, pre-share
