@@ -52,7 +52,8 @@ void main() {
         'receiptText': 'PRIVATE STORE TOTAL 51.68',
         'rawOcrText': 'PRIVATE STORE TOTAL 51.68',
         'deviceId': 'abc-private-device',
-        'deviceModel': 'Galaxy S25 Ultra',
+        'deviceModel': 'Galaxy_S25_Ultra',
+        'deviceName': 'Robbies_Phone',
         'nested': {
           'safeCount': 1,
           'receiptText': 'PRIVATE STORE',
@@ -72,6 +73,7 @@ void main() {
       expect(envelope.containsKey('rawOcrText'), isFalse);
       expect(envelope.containsKey('deviceId'), isFalse);
       expect(envelope.containsKey('deviceModel'), isFalse);
+      expect(envelope.containsKey('deviceName'), isFalse);
       expect(envelope['nested'], {'safeCount': 1});
       expect(encoded, isNot(contains('/tmp/')));
       expect(encoded, isNot(contains('private store')));

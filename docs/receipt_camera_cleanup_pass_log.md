@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 900 - 07:25:00 EDT to active cleanup
+
+Scope:
+- Hardened the opted-in camera diagnostic publish denylist for tokenized device
+  model and device name keys.
+- Added regression coverage for safe-token-looking model/name values so they
+  cannot bypass the privacy filter.
+- Recorded `BUG-RECEIPT-0349` under `privacy_redaction`.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused diagnostic policy regression,
+  cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
+  whitespace gates.
+- Archived Pass 870 from the active cleanup log to keep the doc under cap.
+
 ## Pass 899 - 07:23:00 EDT to active cleanup
 
 Scope:
@@ -472,26 +487,6 @@ Scope:
 - Added focused retake-order and long-receipt guidance regressions.
 - Recorded `BUG-RECEIPT-0320` under `ghost_overlap_stitching`.
 - Archived Pass 798 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused retake-order/long-receipt
-  guidance regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 870 - 16:09:00 EDT to active cleanup
-
-Scope:
-- Forwarded long-receipt retake alignment reason and guidance into the native
-  camera session when a user retakes a top, middle, or bottom receipt segment.
-- Kept generic coverage guidance as the fallback only when no retake alignment
-  context exists.
-- Added retake guidance text regressions for top, middle, and bottom segment
-  replacement.
-- Added long-receipt handoff regressions proving the retake context is wired
-  through to native previous-section reason/guidance fields.
-- Recorded `BUG-RECEIPT-0319` under `ghost_overlap_stitching`.
-- Archived Pass 797 from the active cleanup log to keep the doc under cap.
 
 Verification:
 - Passed targeted Dart format/analyzer and focused retake-order/long-receipt
