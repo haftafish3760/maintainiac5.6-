@@ -195,7 +195,12 @@ void main() {
       processRunner:
           (String command, List<String> args, {bool runInShell = false}) async {
             arguments = args;
-            return ProcessResult(43, 0, 'QA_GENERATED_FIXTURE_RUN', '');
+            return ProcessResult(
+              43,
+              0,
+              'QA_GENERATED_FIXTURE_RUN checked=1 failures=0 parserCalls=2',
+              '',
+            );
           },
     );
 
@@ -376,6 +381,114 @@ void main() {
         ),
         [11, 12],
       );
+    },
+  );
+
+  test(
+    'generated fixture wrapper fails green child output with failures',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_generated_fixture_runner_reported_failure_',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final fixture = File('${root.path}/generated_fixtures.json')
+        ..writeAsStringSync(
+          const JsonEncoder.withIndent('  ').convert([
+            {
+              'id': 'fixture_1',
+              'caseType': 'clear_match',
+              'rawLine': 'LOWES TOILET WAX RING 4.98',
+              'expectedTrade': 'Plumbing',
+              'expectedNameContains': 'wax ring',
+              'tradeScope': 'Plumbing',
+            },
+          ]),
+        );
+
+      final stdout = _MemorySink();
+      final stderr = _MemorySink();
+      final exit = await runGeneratedParserFixtures(
+        [
+          '--fixture',
+          fixture.path,
+          '--max-cases',
+          '1',
+          '--report-dir',
+          '${root.path}/reports',
+        ],
+        stdout: stdout,
+        stderr: stderr,
+        processRunner:
+            (
+              String command,
+              List<String> args, {
+              bool runInShell = false,
+            }) async {
+              return ProcessResult(
+                60,
+                0,
+                'QA_GENERATED_FIXTURE_RUN checked=1 failures=1 parserCalls=2',
+                '',
+              );
+            },
+      );
+
+      expect(exit, 1);
+      expect(stdout.content, contains('failures=1'));
+    },
+  );
+
+  test(
+    'generated fixture wrapper fails checked runs without parser calls',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_generated_fixture_runner_zero_parser_calls_',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final fixture = File('${root.path}/generated_fixtures.json')
+        ..writeAsStringSync(
+          const JsonEncoder.withIndent('  ').convert([
+            {
+              'id': 'fixture_1',
+              'caseType': 'clear_match',
+              'rawLine': 'LOWES TOILET WAX RING 4.98',
+              'expectedTrade': 'Plumbing',
+              'expectedNameContains': 'wax ring',
+              'tradeScope': 'Plumbing',
+            },
+          ]),
+        );
+
+      final stdout = _MemorySink();
+      final stderr = _MemorySink();
+      final exit = await runGeneratedParserFixtures(
+        [
+          '--fixture',
+          fixture.path,
+          '--max-cases',
+          '1',
+          '--report-dir',
+          '${root.path}/reports',
+        ],
+        stdout: stdout,
+        stderr: stderr,
+        processRunner:
+            (
+              String command,
+              List<String> args, {
+              bool runInShell = false,
+            }) async {
+              return ProcessResult(
+                61,
+                0,
+                'QA_GENERATED_FIXTURE_RUN checked=1 failures=0 parserCalls=0',
+                '',
+              );
+            },
+      );
+
+      expect(exit, 1);
+      expect(stdout.content, contains('parserCalls=0'));
     },
   );
 }

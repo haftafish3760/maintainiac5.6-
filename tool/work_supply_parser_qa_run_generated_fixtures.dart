@@ -118,9 +118,13 @@ Future<int> runGeneratedParserFixtures(
   stdout.writeln(
     'QA_GENERATED_FIXTURE_RUN_AGGREGATE '
     'checked=${aggregate.checked} failures=${aggregate.failures} '
+    'parserCalls=${aggregate.parserCalls} '
     'completedChunks=${chunkResults.length} plannedChunks=${chunks.length} '
     'report=${aggregate.reportPath}',
   );
+  if (exitCode != 0) return exitCode;
+  if (aggregate.failures > 0) return 1;
+  if (aggregate.checked > 0 && aggregate.parserCalls <= 0) return 1;
   return exitCode;
 }
 
@@ -365,6 +369,7 @@ _AggregateRunSummary _writeAggregateReport({
   return _AggregateRunSummary(
     checked: checked,
     failures: failures,
+    parserCalls: parserCalls,
     reportPath: latest.path,
   );
 }
@@ -407,11 +412,13 @@ class _AggregateRunSummary {
   const _AggregateRunSummary({
     required this.checked,
     required this.failures,
+    required this.parserCalls,
     required this.reportPath,
   });
 
   final int checked;
   final int failures;
+  final int parserCalls;
   final String reportPath;
 }
 
