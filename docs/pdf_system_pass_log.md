@@ -1,5 +1,21 @@
 # PDF System Pass Log
 
+## Pass 117 - 2026-07-05 11:23 EDT - Generated PDF archive symlink cleanup
+
+- Scope: permanent generated PDF archive cleanup safety only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Cleaned archived generated PDF `.pdf.partial` symlinks without deleting
+    external targets.
+  - Cleared stale partial symlinks before permanent archive writes so valid
+    generated PDFs keep their requested file names.
+  - Reused no-follow deletion for archive rollback cleanup.
+  - Added archive partial-symlink cases to the PDF QA fixture registry.
+- Verification completed 2026-07-05 11:23 EDT:
+  - `flutter test test/app_generated_pdf_archive_recovery_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_generated_pdf_archive_service.dart test/app_generated_pdf_archive_recovery_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 116 - 2026-07-05 11:19 EDT - Generated PDF cleanup symlink hardening
 
 - Scope: generated temporary PDF cleanup safety only. No inventory, camera,

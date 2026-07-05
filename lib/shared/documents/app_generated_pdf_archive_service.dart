@@ -243,12 +243,17 @@ class AppGeneratedPdfArchiveService {
       recursive: false,
       followLinks: false,
     )) {
-      if (entity is! File) continue;
+      if (entity is! File && entity is! Link) continue;
       if (!entity.path.toLowerCase().endsWith('.pdf.partial')) continue;
       try {
-        final modified = await entity.lastModified();
+        if (entity is Link) {
+          await _deleteIfExists(File(entity.path));
+          deleted += 1;
+          continue;
+        }
+        final modified = await File(entity.path).lastModified();
         if (now.difference(modified) < olderThan) continue;
-        await entity.delete();
+        await _deleteIfExists(File(entity.path));
         deleted += 1;
       } catch (_) {
         continue;
@@ -294,7 +299,12 @@ class AppGeneratedPdfArchiveService {
 
   static Future<void> _deleteIfExists(File file) async {
     try {
-      if (await file.exists()) await file.delete();
+      final type = await FileSystemEntity.type(file.path, followLinks: false);
+      if (type == FileSystemEntityType.link) {
+        await Link(file.path).delete();
+      } else if (type == FileSystemEntityType.file) {
+        await file.delete();
+      }
     } catch (_) {}
   }
 }

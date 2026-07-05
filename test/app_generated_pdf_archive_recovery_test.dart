@@ -91,6 +91,59 @@ void main() {
     },
   );
 
+  test(
+    'archive cleanup removes partial symlink without deleting target',
+    () async {
+      final directory = await Directory(
+        '${documentsDirectory.path}/app_documents/invoices/generated_pdfs',
+      ).create(recursive: true);
+      final outsideTarget = File('${documentsDirectory.path}/outside.partial');
+      await outsideTarget.writeAsString('outside partial target', flush: true);
+      final partialLink = Link('${directory.path}/invoice.pdf.partial');
+      await partialLink.create(outsideTarget.path);
+
+      final deleted =
+          await AppGeneratedPdfArchiveService.deleteStalePartialFiles(
+            directory,
+            now: DateTime(2026, 7, 5, 5),
+          );
+
+      expect(deleted, 1);
+      expect(await partialLink.exists(), isFalse);
+      expect(await outsideTarget.exists(), isTrue);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
+    'archive clears partial symlink before permanent write',
+    () async {
+      final store = AppDocumentStore.memory();
+      final directory = await Directory(
+        '${documentsDirectory.path}/app_documents/invoices/generated_pdfs',
+      ).create(recursive: true);
+      final outsideTarget = File('${documentsDirectory.path}/outside.partial');
+      await outsideTarget.writeAsString('outside partial target', flush: true);
+      final partialLink = Link('${directory.path}/invoice.pdf.partial');
+      await partialLink.create(outsideTarget.path);
+
+      final archived = await AppGeneratedPdfArchiveService(store: store)
+          .archive(
+            _document(
+              fileName: 'invoice.pdf',
+              sourceRecordId: 'stale_symlink_clear',
+            ),
+          );
+
+      expect(await partialLink.exists(), isFalse);
+      expect(await outsideTarget.exists(), isTrue);
+      expect(archived.attachment.path, endsWith('/invoice.pdf'));
+      expect(await File(archived.attachment.path).exists(), isTrue);
+      expect(store.recordById('DOC-invoice-stale_symlink_clear'), isNotNull);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
   test('archive keeps fresh partial and writes to copy filename', () async {
     final store = AppDocumentStore.memory();
     final directory = await Directory(
