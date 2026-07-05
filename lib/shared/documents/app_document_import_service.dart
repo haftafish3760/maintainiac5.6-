@@ -1,5 +1,11 @@
+import 'dart:io';
+
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+
 import '../widgets/receipt_capture/receipt_capture_models.dart';
 import '../widgets/receipt_capture/receipt_proof_storage.dart';
+import 'app_document_export_package_writer.dart';
 import 'app_document_models.dart';
 import 'app_document_store.dart';
 
@@ -11,6 +17,48 @@ class AppDocumentImportService {
 
   final AppDocumentStore? store;
   final ReceiptProofStorage proofStorage;
+
+  Future<AppDocumentRecord> saveDocumentExportPackage({
+    required File packageFile,
+    Directory? extractionParentDirectory,
+    DateTime? now,
+  }) async {
+    final preview =
+        await AppDocumentExportPackageWriter.previewZipPackageImport(
+          packageFile,
+        );
+    final extractionParent =
+        extractionParentDirectory ?? await _defaultPackageImportDirectory();
+    AppDocumentExportPackageExtractResult? extraction;
+    try {
+      extraction = await AppDocumentExportPackageWriter.extractZipPackage(
+        packageFile,
+        outputDirectory: extractionParent,
+      );
+      final extractionDirectory = Directory(
+        path.join(extractionParent.path, extraction.directoryName),
+      );
+      final attachments = _attachmentsForPackageImport(
+        preview,
+        extractionDirectory,
+        now: now,
+      );
+      return await saveReadOnlyDocument(
+        kind: AppDocumentKind.fromName(preview.kindName),
+        attachments: attachments,
+        title: preview.title,
+        sourceLabel: 'Maintainiac document export package',
+        now: now,
+      );
+    } finally {
+      final directoryName = extraction?.directoryName;
+      if (directoryName != null && directoryName.isNotEmpty) {
+        await _deleteDirectoryQuietly(
+          Directory(path.join(extractionParent.path, directoryName)),
+        );
+      }
+    }
+  }
 
   Future<AppDocumentRecord> saveReadOnlyDocument({
     required AppDocumentKind kind,
@@ -55,5 +103,53 @@ class AppDocumentImportService {
       );
       rethrow;
     }
+  }
+
+  static Future<Directory> _defaultPackageImportDirectory() async {
+    final root = await getApplicationDocumentsDirectory();
+    return Directory(path.join(root.path, 'document_package_imports'));
+  }
+
+  static List<ReceiptAttachmentRecord> _attachmentsForPackageImport(
+    AppDocumentExportPackageImportPreview preview,
+    Directory extractionDirectory, {
+    DateTime? now,
+  }) {
+    final createdAt = now ?? DateTime.now();
+    return [
+      for (final attachment in preview.attachments)
+        ReceiptAttachmentRecord(
+          id:
+              'package-${preview.manifestSha256.substring(0, 12)}-'
+              '${attachment.sha256.substring(0, 12)}',
+          path: path.join(
+            extractionDirectory.path,
+            attachment.packageEntryName,
+          ),
+          kind: ReceiptAttachmentKind.fromName(attachment.kindName),
+          dataSaverLevel: ReceiptDataSaverLevel.original,
+          createdAt: createdAt,
+          displayName: attachment.displayName,
+          originalFileName: attachment.displayName,
+          mimeType: attachment.mimeType,
+          byteSize: attachment.byteSize,
+          fileHash: attachment.sha256,
+          documentSignals: const ['document-export-package'],
+          sourceLabel: preview.fileName,
+          isOriginalImmutable: true,
+          storageState: ReceiptAttachmentStorageState.permanent,
+          readState: ReceiptAttachmentReadState.notRead,
+        ),
+    ];
+  }
+
+  static Future<void> _deleteDirectoryQuietly(Directory directory) async {
+    try {
+      if (await directory.exists()) await directory.delete(recursive: true);
+    } catch (_) {}
+    try {
+      final partial = Directory('${directory.path}.partial');
+      if (await partial.exists()) await partial.delete(recursive: true);
+    } catch (_) {}
   }
 }
