@@ -22,6 +22,8 @@ Camera scope includes:
 
 - launch shared receipt capture
 - take or import a normal receipt photo
+- use the platform-native camera stack as the baseline instead of building a
+  pro camera replacement
 - guide the user toward a clear image
 - review, retake, add photo, or use receipt
 - capture long receipts in ordered segments
@@ -34,7 +36,10 @@ Camera scope includes:
 
 Camera scope excludes:
 
+- replacing Samsung, Google, Apple, or other device camera software
 - trying to outbuild Google ML Kit OCR
+- ISO, RAW, white-balance lock, exposure lock, screen-tap focus, focus lock, or
+  manual lens-distance controls without explicit approval
 - full receipt parser perfection
 - inventory parser work
 - PDF generation or import polish
@@ -45,6 +50,7 @@ Camera scope excludes:
 
 | Work package | Target proof | Current evidence | Status |
 | --- | --- | --- | --- |
+| Native camera baseline | CameraX/AVFoundation use device defaults for core camera behavior while Maintainiac owns receipt UI/review/stitching only. | Contract docs/tests exist; production code now has a native-baseline policy. | Strong |
 | Shared entry and permissions | User can start receipt capture from shared flow with safe fallback. | Source and tests exist for camera actions, permission, and fallback contracts. | Partial |
 | Native camera contract | Android CameraX and iOS AVFoundation expose matching high-level settings and capture metadata. | Flutter contract and native bridge tests exist; real-device proof still required. | Partial |
 | No preview tap focus | Preview/screen tap focus is banned; continuous focus/readability guidance is primary. | Active docs and regression tests exist. | Strong |

@@ -7,6 +7,9 @@ Maintainiac receipt capture is not a generic scanner. The goal is a worker-grade
 - Clear image first, OCR second, storage saving third.
 - Maintainiac owns the production receipt camera UI; Android uses CameraX and
   iOS uses AVFoundation under a Maintainiac service bridge.
+- Maintainiac is not a pro camera replacement. Use the platform-native camera
+  stack as the baseline and let the phone handle normal autofocus, exposure,
+  lens, stabilization, and still-capture behavior.
 - Preview tap focus is off limits. Use continuous autofocus/readability
   guidance; any future manual focus must be an explicit reversible control such
   as plus/minus fine-focus buttons or a slider, and must be device-supported.
@@ -44,6 +47,8 @@ Use this as the camera experience benchmark.
 - Manual shutter must always work, even when automatic guidance is uncertain.
 - Continuous autofocus/readability guidance and pinch-to-zoom should behave
   like a normal camera app.
+- The app must not expose ISO, RAW, white-balance lock, focus lock, exposure
+  lock, or manual lens-distance controls as normal receipt controls.
 - The app can guide the user, but it must not block a good manual photo.
 
 ### Expensify Standard

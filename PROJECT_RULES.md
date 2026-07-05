@@ -27,6 +27,30 @@ This is a top-priority operating rule for every Codex agent working on Maintania
 - Full quality gates belong at milestones, handoffs, or broad shared changes, not after every small edit.
 - Never continue adding features on a known failing analyzer, test, source audit, or quality gate.
 
+## Receipt Camera Native-Baseline Rule
+
+This is a top-priority rule for receipt camera work.
+
+- Maintainiac is not a general camera app and must not try to replace Samsung,
+  Google, Apple, or other device camera teams.
+- Receipt capture should use the platform-native camera stack as the baseline:
+  Android CameraX and iOS AVFoundation, with the device's normal autofocus,
+  exposure, lens, stabilization, and still-capture behavior doing the heavy
+  camera work.
+- Maintainiac owns the receipt workflow around that baseline: permission,
+  receipt-shaped overlay, manual shutter, torch, brightness assist, readability
+  guidance, long-receipt ghost guidance, section order, retake review,
+  stitching or ordered fallback, OCR-source handoff, compression preview, and
+  receipt review.
+- Do not add pro-camera controls such as ISO, RAW capture, white-balance lock,
+  exposure lock, screen-tap focus, focus lock, or manual lens-distance controls
+  unless the user explicitly approves a narrow release-track need.
+- Any future focus control must be a deliberate control with reversible
+  adjustment and device capability checks. Preview/screen tap focus remains off
+  limits.
+- If a requested camera idea conflicts with the native-baseline rule, document
+  the conflict before building instead of drifting into a custom camera app.
+
 ## Product Identity
 
 - Maintaniac is one app under one roof that contains several connected record keeping tools: trip tracking, expense tracking, invoices, payments, maintenance, materials/inventory, receipts, reports, and related workflows.
@@ -58,7 +82,7 @@ This is a top-priority operating rule for every Codex agent working on Maintania
 - The app must work on older and lower-end phones, not only current flagship devices. Assume users may have older Android phones such as a Galaxy S9 Plus class device, older iPhones from roughly the 2017 era, prepaid/low-end Android phones, weak cameras, limited RAM, slower CPUs, and 32 GB or nearly-full storage.
 - Device capability detection is a first-class runtime responsibility for the whole app. At startup and before heavy workflows, Maintaniac should use capability tiers instead of hardcoded phone models to scale camera capture, OCR, PDF parsing, receipt parsing, barcode scanning, catalog matching, cache sizes, animation/workload intensity, and cleanup behavior. Older or constrained devices get lighter local work and clear manual fallbacks; capable devices can use heavier local assistance.
 - Do not raise Android `minSdk`, iOS deployment target, plugin platform floors, storage requirements, camera requirements, or hardware assumptions without explicit approval and clear evidence of what devices would be excluded.
-- Every advanced feature must have a safe fallback. If OCR, document scanning, custom camera controls, cloud sync, file import, PDF parsing, torch, tap-to-focus, GPS, barcode scanning, or a storage provider is unavailable, the user must still have a clear manual/local path whenever the workflow can reasonably continue.
+- Every advanced feature must have a safe fallback. If OCR, document scanning, custom camera controls, cloud sync, file import, PDF parsing, torch, receipt focus aids, GPS, barcode scanning, or a storage provider is unavailable, the user must still have a clear manual/local path whenever the workflow can reasonably continue.
 - Every secondary screen, detail screen, flow step, review screen, picker, catalog, add-supplies screen, receipt screen, and settings sub-screen must show a clear back control and must handle Android/iOS system back. Back goes to the previous step or previous screen, not randomly to a section home, unless the user is already on that section's primary home screen.
 - Every form or capture flow must handle interruption. Phone calls, app switching, camera interruption, low-memory process death, screen lock, notification taps, accidental back, and OS permission dialogs must not destroy important in-progress user work. Save drafts or ask the user whether to save/leave when appropriate.
 - Always check the edge-case checklist in `docs/edge_case_checklist.md` for non-trivial work. If the checklist reveals a known gap, document the gap instead of pretending the feature is complete.

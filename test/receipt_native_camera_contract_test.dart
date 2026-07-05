@@ -21,6 +21,15 @@ void main() {
       expect(settings.focusMode, ReceiptNativeFocusMode.continuous);
       expect(settings.usesContinuousFocusPrimary, isTrue);
       expect(settings.tapFocusIsAssistOnly, isFalse);
+      expect(
+        settings.nativeCameraBaselinePolicy,
+        'camerax_avfoundation_native_baseline_receipt_workflow_overlay',
+      );
+      expect(
+        settings.proCameraReplacementPolicy,
+        'no_iso_raw_white_balance_lock_exposure_lock_or_tap_focus',
+      );
+      expect(settings.avoidsProCameraReplacementControls, isTrue);
       expect(settings.hasExposureAndSharpnessGuidance, isTrue);
       expect(settings.hasReceiptReadabilityGuidance, isTrue);
       expect(
@@ -155,6 +164,18 @@ void main() {
     );
 
     expect(config.ocrSourceProtected, isTrue);
+    expect(
+      config.nativeCameraBaselinePolicy,
+      'camerax_avfoundation_native_baseline_receipt_workflow_overlay',
+    );
+    expect(
+      config.proCameraReplacementPolicy,
+      'no_iso_raw_white_balance_lock_exposure_lock_or_tap_focus',
+    );
+    expect(
+      config.nativeControlContractTags,
+      contains('native_camera_baseline'),
+    );
     expect(source, contains('settings.ocrUsesTemporaryFullQualitySourceFirst'));
     expect(
       source,

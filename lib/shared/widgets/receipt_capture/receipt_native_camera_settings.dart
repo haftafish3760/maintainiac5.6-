@@ -113,6 +113,19 @@ class ReceiptNativeCameraSettings {
 
   bool get ocrUsesTemporaryFullQualitySourceFirst => ocrUsesOriginalFirst;
 
+  String get nativeCameraBaselinePolicy =>
+      'camerax_avfoundation_native_baseline_receipt_workflow_overlay';
+
+  String get proCameraReplacementPolicy =>
+      'no_iso_raw_white_balance_lock_exposure_lock_or_tap_focus';
+
+  bool get avoidsProCameraReplacementControls =>
+      focusMode == ReceiptNativeFocusMode.continuous &&
+      exposureMode == ReceiptNativeExposureMode.auto &&
+      whiteBalanceMode == ReceiptNativeWhiteBalanceMode.auto &&
+      imageFormat == ReceiptNativeImageFormat.jpeg &&
+      !tapFocusEnabled;
+
   String get receiptFocusStrategyCode {
     if (usesContinuousFocusPrimary) {
       return 'continuous_focus_primary_no_tap_assist';

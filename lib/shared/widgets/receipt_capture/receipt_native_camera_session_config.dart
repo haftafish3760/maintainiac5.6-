@@ -247,6 +247,10 @@ class ReceiptNativeCameraSessionConfig {
     return 'prefer_fast_document_shutter_manual_capture_anytime';
   }
 
+  String get nativeCameraBaselinePolicy => settings.nativeCameraBaselinePolicy;
+
+  String get proCameraReplacementPolicy => settings.proCameraReplacementPolicy;
+
   String get tapToFocusPolicy {
     return 'continuous_focus_primary_no_tap_focus';
   }
@@ -288,6 +292,7 @@ class ReceiptNativeCameraSessionConfig {
       'manual_shutter',
       'review_next',
       'receipt_guidance',
+      'native_camera_baseline',
       'safe_close',
     ];
     if (pinchZoomEnabled) tags.add('pinch_zoom');
