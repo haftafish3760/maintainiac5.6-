@@ -3,6 +3,21 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 897 - 06:57:00 EDT to active cleanup
+
+Scope:
+- Hardened the receipt camera diagnostic publish policy with local payload
+  sanitizing before any opted-in diagnostic reaches the expense callback.
+- Dropped unsafe diagnostic keys for paths, receipt text, raw OCR text, device
+  identifiers, and raw device model evidence while preserving safe tokens and
+  counts.
+- Recorded `BUG-RECEIPT-0346` under `privacy_redaction`.
+- Archived Pass 865 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused diagnostic policy regression,
+  cleanup/doc/ledger/source gates, and diff whitespace gate.
+
 ## Pass 896 - 06:42:00 EDT to active cleanup
 
 Scope:
@@ -471,21 +486,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer and focused native UI health/ready
   regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 865 - 12:29:00 EDT to active cleanup
-
-Scope:
-- Added an explicit iOS `continuous_focus_not_requested` diagnostic for
-  non-continuous focus sessions instead of leaving `lastFocusStatus` as
-  `not_used`.
-- Pinned the iOS native bridge source regression for configured, unavailable,
-  and not-requested focus-status families.
-- Recorded `BUG-RECEIPT-0317` under `native_bridge`.
-- Archived Pass 822 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused iOS native bridge regression.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

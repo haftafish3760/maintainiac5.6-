@@ -40,4 +40,42 @@ void main() {
     expect(envelope.toString().toLowerCase(), isNot(contains('receipt text')));
     expect(envelope.toString().toLowerCase(), isNot(contains('/tmp/')));
   });
+
+  test(
+    'published camera diagnostics drop receipt content paths and devices',
+    () {
+      const policy = ReceiptCaptureDiagnosticPublishPolicy();
+      const diagnostic = {
+        'captureFlow': 'maintainiac_native_receipt_camera',
+        'nativeCaptureFailureReason': 'native_camera_plugin_missing',
+        'sourcePath': '/tmp/private-receipt.jpg',
+        'receiptText': 'PRIVATE STORE TOTAL 51.68',
+        'rawOcrText': 'PRIVATE STORE TOTAL 51.68',
+        'deviceId': 'abc-private-device',
+        'deviceModel': 'Galaxy S25 Ultra',
+        'nested': {
+          'safeCount': 1,
+          'receiptText': 'PRIVATE STORE',
+          'sourcePath': '/tmp/private.jpg',
+        },
+      };
+
+      final envelope = policy.envelope(
+        improvementOptIn: true,
+        diagnostic: diagnostic,
+      );
+      final encoded = envelope.toString().toLowerCase();
+
+      expect(envelope['captureFlow'], 'maintainiac_native_receipt_camera');
+      expect(envelope.containsKey('sourcePath'), isFalse);
+      expect(envelope.containsKey('receiptText'), isFalse);
+      expect(envelope.containsKey('rawOcrText'), isFalse);
+      expect(envelope.containsKey('deviceId'), isFalse);
+      expect(envelope.containsKey('deviceModel'), isFalse);
+      expect(envelope['nested'], {'safeCount': 1});
+      expect(encoded, isNot(contains('/tmp/')));
+      expect(encoded, isNot(contains('private store')));
+      expect(encoded, isNot(contains('galaxy')));
+    },
+  );
 }
