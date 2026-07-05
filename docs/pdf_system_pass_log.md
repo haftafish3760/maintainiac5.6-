@@ -1,5 +1,26 @@
 # PDF System Pass Log
 
+## Pass 132 - 2026-07-05 12:46 EDT - Document package write verification hardening
+
+- Scope: Document Engine export-package output verification and invoice PDF
+  pagination structure only. No camera, native capture, OCR engine, inventory,
+  or parser behavior changes.
+- Bundled work:
+  - Rechecked written document export package files without following links
+    before stat reads, hash reads, and final verification decisions.
+  - Added regression coverage so package output verification cannot silently
+    lose the no-follow regular-file checks.
+  - Registered the package output no-follow recheck fixture in the PDF QA
+    inventory.
+  - Split invoice PDF pagination into a dedicated renderer part file so
+    pagination rules stay isolated from the large visual template renderer.
+  - Added an architecture regression so invoice pagination does not drift back
+    into the renderer body.
+- Verification completed 2026-07-05 12:46 EDT:
+  - `dart analyze lib/screens/invoices/data/invoice_pdf_template_renderer.dart lib/screens/invoices/data/invoice_pdf_pagination.dart lib/shared/documents/app_document_export_package_writer.dart test/invoice_document_engine_layout_contract_test.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/invoice_document_engine_layout_contract_test.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 131 - 2026-07-05 12:40 EDT - PDF QA reality-check hardening
 
 - Scope: generated PDF write safety plus failures found by the expanded

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
@@ -18,6 +19,24 @@ import 'helpers/invoice_document_engine_fixture_factory.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('invoice Document Engine keeps pagination isolated from rendering', () {
+    final rendererSource = File(
+      'lib/screens/invoices/data/invoice_pdf_template_renderer.dart',
+    ).readAsStringSync();
+    final paginationSource = File(
+      'lib/screens/invoices/data/invoice_pdf_pagination.dart',
+    ).readAsStringSync();
+
+    expect(rendererSource, contains("part 'invoice_pdf_pagination.dart';"));
+    expect(
+      paginationSource,
+      contains("part of 'invoice_pdf_template_renderer.dart';"),
+    );
+    expect(paginationSource, contains('class _InvoicePaginator'));
+    expect(paginationSource, contains('_minimumContinuationLines'));
+    expect(rendererSource, isNot(contains('class _InvoicePaginator')));
+  });
 
   test('invoice Document Engine fixture factory keeps arithmetic stable', () {
     final standard = InvoiceDocumentEngineFixtureFactory.standardInvoice(

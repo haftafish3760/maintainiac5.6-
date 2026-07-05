@@ -14,6 +14,8 @@ import 'invoice_pdf_privacy_guard.dart';
 import 'invoice_record.dart';
 import 'invoice_template_catalog.dart';
 
+part 'invoice_pdf_pagination.dart';
+
 int invoicePdfPageCountForRecord(InvoiceRecord record) {
   return _InvoicePaginator(record).pages.length;
 }
@@ -1483,66 +1485,4 @@ InvoiceRecord _sampleRecord({
         'Payment due within 7 days of invoice date. Signing confirms customer approval of the listed price and scope.',
     meta: InvoiceSyncMetadata(createdAt: createdAt, updatedAt: createdAt),
   );
-}
-
-enum _InvoicePageRole { first, continuation, finalPage }
-
-class _InvoicePageLines {
-  const _InvoicePageLines({required this.role, required this.lines});
-
-  final _InvoicePageRole role;
-  final List<InvoiceLineItemRecord> lines;
-}
-
-class _InvoicePaginator {
-  const _InvoicePaginator(this.record);
-
-  static const _firstPageLineCapacity = 7;
-  static const _continuationPageLineCapacity = 12;
-  static const _finalPageLineCapacity = 10;
-  static const _minimumContinuationLines = 4;
-
-  final InvoiceRecord record;
-
-  List<_InvoicePageLines> get pages {
-    final lines = record.lines;
-    if (lines.length <= _firstPageLineCapacity) {
-      return [
-        _InvoicePageLines(role: _InvoicePageRole.finalPage, lines: lines),
-      ];
-    }
-    final pages = <_InvoicePageLines>[];
-    var index = 0;
-    pages.add(
-      _InvoicePageLines(
-        role: _InvoicePageRole.first,
-        lines: lines.sublist(0, _firstPageLineCapacity),
-      ),
-    );
-    index = _firstPageLineCapacity;
-    while (lines.length - index > _finalPageLineCapacity) {
-      final remaining = lines.length - index;
-      final take =
-          remaining <= _finalPageLineCapacity + _minimumContinuationLines
-          ? (remaining / 2).floor()
-          : (remaining - _finalPageLineCapacity).clamp(
-              _minimumContinuationLines,
-              _continuationPageLineCapacity,
-            );
-      pages.add(
-        _InvoicePageLines(
-          role: _InvoicePageRole.continuation,
-          lines: lines.sublist(index, index + take),
-        ),
-      );
-      index += take;
-    }
-    pages.add(
-      _InvoicePageLines(
-        role: _InvoicePageRole.finalPage,
-        lines: lines.sublist(index),
-      ),
-    );
-    return pages;
-  }
 }

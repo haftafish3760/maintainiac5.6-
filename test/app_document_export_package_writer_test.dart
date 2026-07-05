@@ -348,6 +348,24 @@ void main() {
     );
   });
 
+  test('document export package writer rechecks output files safely', () {
+    final source = File(
+      'lib/shared/documents/app_document_export_package_writer.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('Future<void> _verifyWrittenFile('));
+    expect(source, contains('Future<void> _requireRegularWrittenPackageFile('));
+    expect(
+      RegExp(
+        r'await _requireRegularWrittenPackageFile\(file\);',
+      ).allMatches(source),
+      hasLength(greaterThanOrEqualTo(3)),
+    );
+    expect(source, contains('final stat = await file.stat();'));
+    expect(source, contains('file.openRead()'));
+    expect(source, contains('followLinks: false'));
+  });
+
   test(
     'document export writer keeps fresh matching partial and writes copy',
     () async {

@@ -1195,6 +1195,7 @@ class AppDocumentExportPackageWriter {
     File file,
     List<int> expectedBytes,
   ) async {
+    await _requireRegularWrittenPackageFile(file);
     final stat = await file.stat();
     if (stat.type != FileSystemEntityType.file ||
         stat.size != expectedBytes.length) {
@@ -1202,13 +1203,23 @@ class AppDocumentExportPackageWriter {
         'Document export package write verification failed.',
       );
     }
+    await _requireRegularWrittenPackageFile(file);
     final actualHash = (await sha256.bind(file.openRead()).first).toString();
+    await _requireRegularWrittenPackageFile(file);
     final expectedHash = sha256.convert(expectedBytes).toString();
     if (actualHash != expectedHash) {
       throw const AppDocumentExportPackageException(
         'Document export package write verification failed.',
       );
     }
+  }
+
+  static Future<void> _requireRegularWrittenPackageFile(File file) async {
+    final type = await FileSystemEntity.type(file.path, followLinks: false);
+    if (type == FileSystemEntityType.file) return;
+    throw const AppDocumentExportPackageException(
+      'Document export package write verification failed.',
+    );
   }
 
   static Future<File> _destinationFile(
