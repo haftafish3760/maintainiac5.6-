@@ -102,7 +102,12 @@ void main() {
           sourceModule: 'Jane Customer HVAC packet',
           byteSize: 2400,
           pageCount: 1,
-          riskFlags: const ['Call 555-123-4567', 'Deliver to 123 Main Street'],
+          issueCodes: const ['Customer Jane private issue'],
+          riskFlags: const [
+            'Jane Customer opened this file',
+            'Call 555-123-4567',
+            'Deliver to 123 Main Street',
+          ],
           recoveryAction:
               'Ask Jane Customer to resend file from content://downloads/private.pdf',
         ),
@@ -123,6 +128,8 @@ void main() {
     final serialized = map.toString().toLowerCase();
 
     expect(serialized, contains('custom_source'));
+    expect(serialized, contains('custom_issue'));
+    expect(serialized, contains('custom_risk'));
     expect(serialized, contains('vendor_pdf_export'));
     expect(serialized, contains('private_signal'));
     expect(serialized, contains('review_pdf_proof_only'));

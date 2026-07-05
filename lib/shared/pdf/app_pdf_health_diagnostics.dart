@@ -75,8 +75,8 @@ class AppPdfHealthEvent {
         'sourceModule': _safeSourceModule(sourceModule),
       'byteSizeBucket': _byteSizeBucket(byteSize),
       if (pageCount != null) 'pageCountBucket': _pageCountBucket(pageCount!),
-      if (issueCodes.isNotEmpty) 'issueCodes': _safeTokenList(issueCodes),
-      if (riskFlags.isNotEmpty) 'riskFlags': _safeTokenList(riskFlags),
+      if (issueCodes.isNotEmpty) 'issueCodes': _safeIssueCodeList(issueCodes),
+      if (riskFlags.isNotEmpty) 'riskFlags': _safeRiskFlagList(riskFlags),
       if (_safeRecoveryAction(recoveryAction).isNotEmpty)
         'recoveryAction': _safeRecoveryAction(recoveryAction),
     };
@@ -141,10 +141,10 @@ class AppPdfHealthSnapshot {
         events.map((event) => _safeSourceModule(event.sourceModule)),
       ),
       'issueCounts': _countBy(
-        events.expand((event) => _safeTokenList(event.issueCodes)),
+        events.expand((event) => _safeIssueCodeList(event.issueCodes)),
       ),
       'riskCounts': _countBy(
-        events.expand((event) => _safeTokenList(event.riskFlags)),
+        events.expand((event) => _safeRiskFlagList(event.riskFlags)),
       ),
       'recentAttentionEvents': limitedEvents,
     };
@@ -161,9 +161,35 @@ Map<String, int> _countBy(Iterable<String> values) {
   return Map.unmodifiable(counts);
 }
 
-List<String> _safeTokenList(Iterable<String> values) {
+List<String> _safeIssueCodeList(Iterable<String> values) {
+  return _safeOperationalTokenList(
+    values,
+    fallback: 'custom_issue',
+    allowedWords: _safeIssueCodeWords,
+  );
+}
+
+List<String> _safeRiskFlagList(Iterable<String> values) {
+  return _safeOperationalTokenList(
+    values,
+    fallback: 'custom_risk',
+    allowedWords: _safeRiskFlagWords,
+  );
+}
+
+List<String> _safeOperationalTokenList(
+  Iterable<String> values, {
+  required String fallback,
+  required Set<String> allowedWords,
+}) {
   return values
-      .map(_safeToken)
+      .map(
+        (value) => _safeOperationalToken(
+          value,
+          fallback: fallback,
+          allowedWords: allowedWords,
+        ),
+      )
       .where((value) => value.isNotEmpty)
       .toSet()
       .toList(growable: false)
@@ -300,6 +326,79 @@ const Set<String> _safeRecoveryActionWords = {
   'share',
   'storage',
   'try',
+};
+
+const Set<String> _safeIssueCodeWords = {
+  'active',
+  'blocked',
+  'content',
+  'dynamic',
+  'empty',
+  'encrypted',
+  'export',
+  'external',
+  'file',
+  'form',
+  'id',
+  'internal',
+  'invalid',
+  'issue',
+  'javascript',
+  'large',
+  'launch',
+  'license',
+  'missing',
+  'ocr',
+  'passenger',
+  'patient',
+  'path',
+  'payment',
+  'pdf',
+  'plate',
+  'private',
+  'source',
+  'suggestion',
+  'unsafe',
+  'unconfirmed',
+  'unsupported',
+  'vin',
+};
+
+const Set<String> _safeRiskFlagWords = {
+  'action',
+  'actions',
+  'active',
+  'automatic',
+  'compressed',
+  'content',
+  'cropped',
+  'dynamic',
+  'embedded',
+  'encrypted',
+  'encryption',
+  'eof',
+  'external',
+  'file',
+  'form',
+  'header',
+  'image',
+  'javascript',
+  'launch',
+  'link',
+  'links',
+  'marker',
+  'missing',
+  'only',
+  'page',
+  'pages',
+  'pdf',
+  'rotated',
+  'script',
+  'stream',
+  'text',
+  'trailer',
+  'unknown',
+  'xref',
 };
 
 String _byteSizeBucket(int bytes) {

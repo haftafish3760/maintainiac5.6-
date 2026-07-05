@@ -1,5 +1,21 @@
 # PDF System Pass Log
 
+## Pass 128 - 2026-07-05 12:19 EDT - PDF diagnostics label privacy hardening
+
+- Scope: PDF health diagnostics issue/risk labels only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Restricted PDF health issue-code labels to known safe diagnostic words.
+  - Restricted PDF health risk labels to known safe diagnostic words.
+  - Reduced arbitrary issue/risk text to generic buckets before it can reach
+    Command 1/admin health summaries.
+  - Added regression coverage for arbitrary private names inside issue and risk
+    labels.
+- Verification completed 2026-07-05 12:19 EDT:
+  - `flutter test test/pdf_health_diagnostics_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_pdf_health_diagnostics.dart test/pdf_health_diagnostics_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 127 - 2026-07-05 12:16 EDT - PDF diagnostics privacy hardening
 
 - Scope: PDF health diagnostics and QA registry only. No inventory, camera,
