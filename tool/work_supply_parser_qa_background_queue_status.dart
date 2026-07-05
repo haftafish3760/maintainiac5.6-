@@ -4,7 +4,7 @@ import 'dart:io';
 const _usage =
     'dart run tool/work_supply_parser_qa_background_queue_status.dart '
     '[--root build/parser_qa_background_queue] [--queue-id pass160-live] '
-    '[--max-active-cell-ms 900000]';
+    '[--max-active-cell-ms 900000] [--max-status-age-ms 900000]';
 
 Future<void> main(List<String> args) async {
   final exit = runWorkSupplyParserQaBackgroundQueueStatus(
@@ -29,6 +29,8 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
   final queueId = _value(args, 'queue-id', '');
   final maxActiveCellMs =
       int.tryParse(_value(args, 'max-active-cell-ms', '0')) ?? 0;
+  final maxStatusAgeMs =
+      int.tryParse(_value(args, 'max-status-age-ms', '0')) ?? 0;
   final statusFile = File(
     queueId.isEmpty
         ? '$root/latest_status.json'
@@ -60,10 +62,16 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
     now ?? DateTime.now().toUtc(),
     json['activeCellElapsedMs'],
   );
+  final statusAgeMs = _elapsedSinceIso(
+    json['updatedAtIso'] as String?,
+    now ?? DateTime.now().toUtc(),
+  );
   final activeCellStale =
       maxActiveCellMs > 0 &&
       activeCellElapsedMs != null &&
       activeCellElapsedMs > maxActiveCellMs;
+  final statusStale =
+      maxStatusAgeMs > 0 && statusAgeMs != null && statusAgeMs > maxStatusAgeMs;
   final summary = <String, Object?>{
     'schemaVersion': 1,
     'report': 'work_supply_parser_qa_background_queue_status_readout',
@@ -82,8 +90,16 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
     'unsafeFlagCount': unsafeFailures.length,
     if (maxActiveCellMs > 0) 'maxActiveCellMs': maxActiveCellMs,
     if (maxActiveCellMs > 0) 'activeCellStale': activeCellStale,
+    if (maxStatusAgeMs > 0) 'maxStatusAgeMs': maxStatusAgeMs,
+    if (maxStatusAgeMs > 0) 'statusStale': statusStale,
     if (unsafeFailures.isNotEmpty) 'unsafeFlags': unsafeFailures,
   };
+  if (json['updatedAtIso'] != null) {
+    summary['updatedAtIso'] = json['updatedAtIso'];
+  }
+  if (statusAgeMs != null) {
+    summary['statusAgeMs'] = statusAgeMs;
+  }
   if (activeCellStartedAtIso != null) {
     summary['activeCellStartedAtIso'] = activeCellStartedAtIso;
   }
@@ -104,7 +120,18 @@ int runWorkSupplyParserQaBackgroundQueueStatus(
       '${activeCellElapsedMs}ms exceeds ${maxActiveCellMs}ms.',
     );
   }
-  return failed == 0 && unsafeFailures.isEmpty && !activeCellStale ? 0 : 1;
+  if (statusStale) {
+    stderr.writeln(
+      'Stale background queue status: updated ${statusAgeMs}ms ago exceeds '
+      '${maxStatusAgeMs}ms.',
+    );
+  }
+  return failed == 0 &&
+          unsafeFailures.isEmpty &&
+          !activeCellStale &&
+          !statusStale
+      ? 0
+      : 1;
 }
 
 List<String> _unsafeFailures(Map json, List<Object?> results) {
@@ -140,6 +167,15 @@ int? _activeCellElapsedMs(
   final startedAt = DateTime.tryParse(activeCellStartedAtIso);
   if (startedAt == null) return storedElapsedMs is int ? storedElapsedMs : null;
   final elapsedMs = now.toUtc().difference(startedAt.toUtc()).inMilliseconds;
+  if (elapsedMs < 0) return 0;
+  return elapsedMs;
+}
+
+int? _elapsedSinceIso(String? iso, DateTime now) {
+  if (iso == null || iso.isEmpty) return null;
+  final instant = DateTime.tryParse(iso);
+  if (instant == null) return null;
+  final elapsedMs = now.toUtc().difference(instant.toUtc()).inMilliseconds;
   if (elapsedMs < 0) return 0;
   return elapsedMs;
 }

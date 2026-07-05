@@ -155,6 +155,52 @@ void main() {
     expect(stderr.content, contains('Stale active background queue cell'));
   });
 
+  test('background queue status fails stale status update evidence', () async {
+    final root = await Directory.systemTemp.createTemp(
+      'maintainiac_background_queue_status_age_',
+    );
+    addTearDown(() => root.delete(recursive: true));
+    final queue = Directory('${root.path}/queue-status-age')..createSync();
+    File('${queue.path}/latest_status.json').writeAsStringSync(
+      const JsonEncoder.withIndent('  ').convert({
+        'queueId': 'queue-status-age',
+        'state': 'running',
+        'cellCount': 6,
+        'completedCellCount': 0,
+        'failedCellCount': 0,
+        'updatedAtIso': '2026-07-04T14:00:00.000Z',
+        'dryRun': false,
+        'liveServicesAllowed': false,
+        'writesProductionCatalog': false,
+        'firebaseWritesAllowed': false,
+        'ocrCameraExpensesTouched': false,
+        'results': [],
+      }),
+    );
+
+    final stdout = _MemorySink();
+    final stderr = _MemorySink();
+    final exit = runWorkSupplyParserQaBackgroundQueueStatus(
+      [
+        '--root',
+        root.path,
+        '--queue-id',
+        'queue-status-age',
+        '--max-status-age-ms',
+        '900000',
+      ],
+      stdout: stdout,
+      stderr: stderr,
+      now: DateTime.parse('2026-07-04T14:20:00.000Z'),
+    );
+
+    expect(exit, 1);
+    expect(stdout.content, contains('"statusStale": true'));
+    expect(stdout.content, contains('"maxStatusAgeMs": 900000'));
+    expect(stdout.content, contains('"statusAgeMs": 1200000'));
+    expect(stderr.content, contains('Stale background queue status'));
+  });
+
   test('background queue status fails when no artifact exists', () {
     final stderr = _MemorySink();
     final exit = runWorkSupplyParserQaBackgroundQueueStatus(
