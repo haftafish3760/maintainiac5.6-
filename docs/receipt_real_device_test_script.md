@@ -15,6 +15,7 @@ This script is for controlled phone testing after a meaningful receipt-camera bu
 
 - Galaxy S9 Plus class device: proves older-phone limits, memory safety, and simpler camera behavior.
 - Galaxy S24/S25 class device: proves flagship capture, stitching, image cleanup, and app-assisted review.
+- Second available Android device: proves the flow is not tuned only to Samsung flagship behavior.
 - iPhone SE class device: proves iOS capture, photo proof, PDF/import behavior, and route parity.
 
 ## Required Test Matrix
@@ -25,6 +26,8 @@ whenever possible. The goal is to separate camera behavior from receipt content.
 Device tiers:
 - Older Android: Galaxy S9 Plus class or similar low-memory Android.
 - Current Android: Galaxy S24/S25 class or similar flagship Android.
+- Additional Android: any available non-primary Android device, especially if
+  it differs in camera hardware or OS version.
 - Current iPhone: iPhone SE/current iPhone class device.
 
 Lighting conditions:

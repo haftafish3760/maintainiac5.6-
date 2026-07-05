@@ -1,8 +1,8 @@
 # Receipt Camera Completion Map
 
-This file is the estimating source of truth for Maintainiac receipt-camera work.
-Do not answer "how many passes are left" from a hunch. Use this map, update the
-evidence, then answer from the current completion state.
+This file is the estimating source of truth for Maintainiac receipt workflow
+capture work. Do not answer "how many passes are left" from a hunch. Use this
+map, update the evidence, then answer from the current completion state.
 
 ## Estimating Rules
 
@@ -12,13 +12,15 @@ evidence, then answer from the current completion state.
 - For quick answers, state that the number is a quick estimate.
 - For verified answers, inspect current source, tests, docs, native contracts,
   and device evidence before answering.
-- The release target is 90-93% reliability for core receipt-camera workflows,
-  not 99% scanner-app perfection.
+- The release target is 90-93% reliability for core receipt workflow paths, not
+  99% scanner-app or pro-camera perfection.
+- Passes are app-work passes only. Clarifying questions, git status, or
+  push-only activity are not passes.
 - Real receipt/device testing can move the estimate up or down.
 
 ## Current Scope
 
-Camera scope includes:
+Receipt workflow scope includes:
 
 - launch shared receipt capture
 - take or import a normal receipt photo
@@ -34,9 +36,10 @@ Camera scope includes:
 - hand OCR the best available camera evidence
 - keep source and derived image responsibilities explicit
 
-Camera scope excludes:
+Receipt workflow scope excludes:
 
 - replacing Samsung, Google, Apple, or other device camera software
+- building a generic camera application
 - trying to outbuild Google ML Kit OCR
 - ISO, RAW, white-balance lock, exposure lock, screen-tap focus, focus lock, or
   manual lens-distance controls without explicit approval
@@ -60,47 +63,62 @@ Camera scope excludes:
 | Ghost/overlap guidance | Previous segment bottom 15-20% guides the next capture; middle retake can use previous/next context. | Ghost guide contract/source exists; real-device visual proof is missing. | Partial |
 | Stitch/fallback | Strong overlap stitches; weak overlap falls back to ordered OCR handoff without corrupting sources. | Stitch source/tests exist; synthetic and real receipt fixtures need expansion. | Partial |
 | OCR source handoff | OCR gets temporary full-quality source or ordered segments; saved compressed proof is separate. | Handoff tests exist; final app-flow proof still required. | Partial |
-| Review mode line handoff | Camera output can carry numbered line/segment evidence for price-only or detailed review later. | Some handoff/line signal source exists; end-to-end review proof incomplete. | Early |
-| Barcode/QR handoff | Receipt capture can hand barcode/QR evidence forward without owning inventory work. | Service files exist; camera-flow integration proof incomplete. | Early |
+| Review mode handoff | Camera output carries price-only versus detailed-line review intent; parser owns final line extraction/numbering. | Review-depth contracts and expense line numbering already exist; needs app-flow proof. | Partial |
+| Barcode/QR handoff | Receipt capture can hand barcode/QR evidence forward without owning inventory work. | Service files and camera summary tests exist; flow proof can wait behind capture/stitch. | Partial |
 | Device/storage safety | Older devices reduce heavy work; low storage avoids unsafe processing. | Capability/storage contracts exist; real-device proof missing. | Partial |
-| Fixture QA | Synthetic and real receipt fixtures cover camera failure families. | Many camera tests exist; fixture matrix is not yet release-grade. | Partial |
+| Fixture QA | Synthetic and real receipt fixtures cover camera failure families. | Many camera tests exist; release-one camera fixture matrix exists and needs real receipt additions. | Partial |
 | Milestone quality gate | Targeted camera tests, source audit, doc gate, analyzer, and real-device notes pass together. | Targeted checks have passed in recent passes; final milestone gate is not proven. | Missing |
 
 ## Forecast Method
 
 Use this formula for pass forecasts:
 
-1. Count the remaining work packages that are `Missing`, `Early`, or `Partial`.
+1. Count only remaining receipt workflow packages, not generic camera-app work.
 2. Weight each package:
-   - `Strong`: 0-50 passes for regression maintenance.
-   - `Partial`: 120-260 passes depending on UI/native/test depth.
-   - `Early`: 220-420 passes because contracts and tests both need work.
-   - `Missing`: 300-600 passes because implementation and proof are absent.
-3. Add 20-30% contingency for real-device camera behavior.
+   - `Strong`: 0-15 passes for regression maintenance.
+   - `Partial`: 20-70 passes depending on UI/native/test depth.
+   - `Missing`: 70-140 passes because implementation and proof are absent.
+3. Add 15-25% contingency for real-device camera behavior and stitching.
 4. Do not count unrelated PDF, inventory, maintenance, maps, invoices, or parser
    work against this estimate.
+5. Do not count normal user context as parser work. If the user starts from
+   Fuel, Maintenance, Materials, or another category, that selected context is
+   already parser evidence.
 
 ## Current Forecast
 
 From the current evidence table, the strongest single-number planning forecast
 is:
 
-**2,400 to 3,100 focused camera passes from this map's creation.**
+**400 to 550 focused receipt workflow passes from this remap.**
 
-That range is not a guess from the air. It comes from:
+That range comes from:
 
-- ten `Partial` packages
-- two `Early` packages
-- one `Missing` package
-- one `Strong` package needing only regression maintenance
-- real-device and real-receipt contingency
+- the existing native camera/review foundation already being substantial
+- remaining single-photo app-flow proof
+- long-receipt order/retake polish
+- stitching/fallback hardening as the main technical risk
+- real-device proof on the available phones
 
 If a single planning anchor is required, use:
 
-**2,750 focused camera passes.**
+**450 focused receipt workflow passes.**
 
-Do not treat `2,750` as a promise. Treat it as the working anchor until the
+Do not treat `450` as a promise. Treat it as the working anchor until the
 evidence table is updated.
+
+## Four-Phone Real-Device Proof
+
+The real-device path should use the user's available phones as the proof set:
+
+- Galaxy S9 Plus: older Android baseline, memory pressure, lower-camera margin.
+- Galaxy S24 Ultra: current Android flagship baseline.
+- Additional Android phone: brand/device variation when available.
+- iPhone: iOS AVFoundation route parity when available.
+
+If fewer than four phones are connected during a QA window, test the available
+phones and record the missing device class as a remaining risk instead of
+inflating pass estimates.
 
 ## Reliability Target
 
