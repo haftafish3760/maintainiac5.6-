@@ -99,6 +99,9 @@ Report Back:
 - Did the preview feel blocked?
 - Did continuous autofocus settle on readable receipt text without extra user
   work?
+- Confirm preview tap focus is off limits: no screen-tap focus prompt, preview
+  focus setting, or preview tap focus diagnostic should appear during receipt
+  capture.
 - Did brightness, glare, and sharpness guidance match the real photo?
 - Did the app move to receipt review after using the photo?
 - What merchant, total, tax, and date did it detect?

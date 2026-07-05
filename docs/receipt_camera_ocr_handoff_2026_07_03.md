@@ -181,16 +181,20 @@ The intended receipt camera flow is:
 5. Optional auto capture may help only when enabled and safe.
 6. User gets continuous autofocus/readability guidance, can pinch zoom, adjust
    brightness/exposure, and use torch when supported.
-7. User captures one receipt photo or multiple ordered sections.
-8. Long receipt continuation shows previous-section ghost/overlap guidance where
+7. Preview tap focus is off limits: no screen-tap focus prompts, settings,
+   bridge arguments, diagnostics, or compatibility paths belong in receipt
+   capture. Future manual focus must be an explicit reversible control such as
+   plus/minus fine-focus buttons or a slider.
+8. User captures one receipt photo or multiple ordered sections.
+9. Long receipt continuation shows previous-section ghost/overlap guidance where
    practical.
-9. User can review, crop, retake, add another section, remove, reorder, or
+10. User can review, crop, retake, add another section, remove, reorder, or
    continue.
-10. If retaking a section, replacement preserves the original section index.
-11. If adding after a selected section, inserted sections are tracked after that
+11. If retaking a section, replacement preserves the original section index.
+12. If adding after a selected section, inserted sections are tracked after that
     anchor.
-12. OCR uses a temporary full-quality source before saved proof compression.
-13. Derived OCR-ready images, cropped images, stitched images, compressed proof
+13. OCR uses a temporary full-quality source before saved proof compression.
+14. Derived OCR-ready images, cropped images, stitched images, compressed proof
     images, and redacted images are artifacts, not source truth.
 14. OCR reads the clearest prepared temporary source before compressed proof
     copies.

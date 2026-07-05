@@ -34,6 +34,11 @@ Maintainiac receipt capture is three layers:
 - Do not expose raw phone model/capability details in normal user UI.
 - Do not require Google Play Services scanner downloads before receipt capture works.
 - Do not start PDF work until the photo receipt flow is stable.
+- Preview tap focus is off limits. Do not add screen-tap focus gestures, bridge
+  arguments, settings, diagnostics, or user copy; use continuous
+  autofocus/readability guidance, with only explicit reversible controls such as
+  plus/minus fine-focus buttons or a slider allowed if a future supported-device
+  path proves necessary.
 
 ## Settings And Controls Contract
 
@@ -61,6 +66,8 @@ Every setting below must live behind a service/controller contract so UI can mov
 - Pinch zoom.
 - Optional zoom slider.
 - Continuous autofocus/readability guidance is the primary focus path.
+- Preview tap focus is not a control, fallback, setting, diagnostic
+  requirement, or compatibility target for Maintainiac.
 - Focus mode: continuous by default with readability guidance.
 - Exposure/brightness slider.
 - Auto brightness assist.

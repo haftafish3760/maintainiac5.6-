@@ -23,6 +23,11 @@ void main() {
       );
       expect(
         text,
+        contains('preview tap focus is off limits'),
+        reason: '$path must hard-ban preview tap focus, not merely omit it.',
+      );
+      expect(
+        text,
         isNot(contains('tap-to-focus')),
         reason: '$path must not reintroduce tap-focus-first guidance.',
       );
@@ -30,6 +35,11 @@ void main() {
         text,
         isNot(contains('tap-focus')),
         reason: '$path must not keep tap-focus wording in active docs.',
+      );
+      expect(
+        text,
+        isNot(contains('touch-based focus metering')),
+        reason: '$path must not rename tap focus to touch-based metering.',
       );
       expect(
         text,

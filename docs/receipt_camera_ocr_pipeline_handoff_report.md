@@ -116,6 +116,8 @@ Already modeled:
 - Continuous autofocus/readability guidance.
 - Pinch zoom.
 - Exposure slider.
+- Preview tap focus is off limits; do not add screen-tap focus controls,
+  settings, bridge arguments, diagnostics, or user copy.
 - Exposure reset.
 - Auto exposure assist.
 - Focus mode.

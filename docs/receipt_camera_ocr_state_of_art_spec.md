@@ -112,7 +112,7 @@ Maintainiac must go beyond generic scanner apps:
 - Do not require Google Play Services document-scanner downloads before a user can photograph a receipt.
 - Do not work on PDF before the camera/photo review path is stable unless the active pass explicitly says PDF.
 - Do not work on maintenance receipt parsing until the shared camera flow is ready.
-- Do not expose raw device capability details in normal user UI.
+- Preview tap focus is off limits; do not add screen-tap focus gestures, copy, bridge arguments, diagnostics, or compatibility paths. Future manual focus must be explicit, reversible, and device-supported.
 - Do not silently update inventory from an expense receipt.
 - Do not store private receipt text/images in analytics.
 
