@@ -429,6 +429,43 @@ class AppDocumentExportPackageWriter {
     }
   }
 
+  static Future<List<int>> _readVerifiedPackageBytes(
+    File packageFile, {
+    int maxPackageBytes = maxReadablePackageBytes,
+  }) async {
+    try {
+      await _requireRegularPackageFile(packageFile);
+      final bytes = await packageFile.readAsBytes();
+      await _requireRegularPackageFile(packageFile);
+      final currentSize = await packageFile.length();
+      if (currentSize != bytes.length ||
+          bytes.isEmpty ||
+          bytes.length > maxPackageBytes) {
+        throw const AppDocumentExportPackageException(
+          'Maintainiac stopped reading this document export package because its size is unsafe.',
+        );
+      }
+      return bytes;
+    } on AppDocumentExportPackageException {
+      rethrow;
+    } catch (_) {
+      throw const AppDocumentExportPackageException(
+        'Maintainiac could not read this document export package.',
+      );
+    }
+  }
+
+  static Future<void> _requireRegularPackageFile(File packageFile) async {
+    final type = await FileSystemEntity.type(
+      packageFile.path,
+      followLinks: false,
+    );
+    if (type == FileSystemEntityType.file) return;
+    throw const AppDocumentExportPackageException(
+      'Maintainiac could not find this document export package.',
+    );
+  }
+
   static Future<AppDocumentExportPackageReadResult> readZipPackage(
     File packageFile, {
     int maxPackageBytes = maxReadablePackageBytes,
@@ -443,22 +480,15 @@ class AppDocumentExportPackageWriter {
         'Maintainiac cannot read a document export package that is still being written.',
       );
     }
-    final type = await FileSystemEntity.type(
-      packageFile.path,
-      followLinks: false,
+    final zipBytes = await _readVerifiedPackageBytes(
+      packageFile,
+      maxPackageBytes: maxPackageBytes,
     );
-    if (type != FileSystemEntityType.file) {
-      throw const AppDocumentExportPackageException(
-        'Maintainiac could not find this document export package.',
-      );
-    }
-    final stat = await packageFile.stat();
-    if (stat.size <= 0 || stat.size > maxPackageBytes) {
+    if (zipBytes.isEmpty || zipBytes.length > maxPackageBytes) {
       throw const AppDocumentExportPackageException(
         'Maintainiac stopped reading this document export package because its size is unsafe.',
       );
     }
-    final zipBytes = await packageFile.readAsBytes();
     Archive archive;
     try {
       archive = ZipDecoder().decodeBytes(zipBytes);
@@ -586,7 +616,7 @@ class AppDocumentExportPackageWriter {
     File packageFile,
   ) async {
     final readResult = await readZipPackage(packageFile);
-    final packageBytes = await packageFile.readAsBytes();
+    final packageBytes = await _readVerifiedPackageBytes(packageFile);
     final entries = _entryMap(ZipDecoder().decodeBytes(packageBytes));
     _verifyReadableEntryNames(entries.keys);
     final manifest = _decodeObject(
@@ -642,7 +672,7 @@ class AppDocumentExportPackageWriter {
     final readResult = await readZipPackage(packageFile);
     await _createDirectory(outputDirectory);
 
-    final packageBytes = await packageFile.readAsBytes();
+    final packageBytes = await _readVerifiedPackageBytes(packageFile);
     final entries = _entryMap(ZipDecoder().decodeBytes(packageBytes));
     _verifyReadableEntryNames(entries.keys);
     final index = _decodeIndex(

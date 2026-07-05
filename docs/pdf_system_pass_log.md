@@ -1,5 +1,20 @@
 # PDF System Pass Log
 
+## Pass 120 - 2026-07-05 11:35 EDT - Document package read recheck hardening
+
+- Scope: document export package read/preview/extract file verification only.
+  No inventory, camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Centralized ZIP package reads through a no-follow verifier.
+  - Rechecked package files before and after reading bytes for readback,
+    import preview, share planning, and extraction.
+  - Blocked empty, oversized, replaced, or unsafe package files before decode.
+  - Added a regression contract for package read no-follow rereads.
+- Verification completed 2026-07-05 11:35 EDT:
+  - `flutter test test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 119 - 2026-07-05 11:31 EDT - Document package source reread hardening
 
 - Scope: document export package source-file verification only. No inventory,

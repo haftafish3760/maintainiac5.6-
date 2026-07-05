@@ -331,6 +331,23 @@ void main() {
     skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
   );
 
+  test('document export package reader rechecks package files safely', () {
+    final source = File(
+      'lib/shared/documents/app_document_export_package_writer.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('Future<List<int>> _readVerifiedPackageBytes('));
+    expect(source, contains('await _requireRegularPackageFile(packageFile);'));
+    expect(source, contains('final bytes = await packageFile.readAsBytes();'));
+    expect(source, contains('final currentSize = await packageFile.length();'));
+    expect(source, contains('currentSize != bytes.length'));
+    expect(source, contains('followLinks: false'));
+    expect(
+      source,
+      contains('final packageBytes = await _readVerifiedPackageBytes'),
+    );
+  });
+
   test(
     'document export writer keeps fresh matching partial and writes copy',
     () async {
