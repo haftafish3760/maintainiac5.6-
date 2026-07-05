@@ -42,9 +42,11 @@ void main() {
         'invoice_generation',
         'cross_platform_storage',
         'render_smoke',
+        'qa_registry_integrity',
       ]),
     );
 
+    final registeredTestFiles = <String>{};
     for (final entry in suites.entries) {
       final suite = entry.value! as Map<String, Object?>;
       expect(suite['status'], isA<String>(), reason: entry.key);
@@ -52,12 +54,36 @@ void main() {
       final testFiles = suite['currentTestFiles']! as List<Object?>;
       expect(testFiles, isNotEmpty, reason: entry.key);
       for (final path in testFiles.cast<String>()) {
+        registeredTestFiles.add(path);
         expect(File(path).existsSync(), isTrue, reason: path);
       }
       expect(
         suite['fixtureKeys'] as List<Object?>,
         isNotEmpty,
         reason: entry.key,
+      );
+    }
+
+    final pdfFocusedTestFiles =
+        Directory('test')
+            .listSync(recursive: true, followLinks: false)
+            .whereType<File>()
+            .map((file) => file.path)
+            .where(
+              (path) =>
+                  path.endsWith('_test.dart') &&
+                  (path.contains('pdf') ||
+                      path.contains('document_engine') ||
+                      path.contains('receipt_proof')),
+            )
+            .toList()
+          ..sort();
+    for (final testFile in pdfFocusedTestFiles) {
+      expect(
+        registeredTestFiles,
+        contains(testFile),
+        reason:
+            '$testFile is PDF-focused and must be registered in the PDF QA inventory.',
       );
     }
 

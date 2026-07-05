@@ -145,6 +145,7 @@
       "status": "covered",
       "currentTestFiles": [
         "test/receipt_proof_storage_hardening_test.dart",
+        "test/receipt_proof_storage_lifecycle_test.dart",
         "test/receipt_pdf_torture_storage_test.dart",
         "test/app_generated_pdf_service_test.dart",
         "test/app_generated_pdf_archive_recovery_test.dart",
@@ -275,12 +276,16 @@
       "currentTestFiles": [
         "test/incoming_receipt_share_pdf_hardening_test.dart",
         "test/receipt_pdf_import_copy_test.dart",
+        "test/receipt_pdf_viewer_accessibility_test.dart",
+        "test/receipt_pdf_viewer_preflight_test.dart",
         "test/receipt_pdf_torture_storage_test.dart"
       ],
       "fixtureKeys": [
         "valid_1_page",
         "password_marker",
-        "active_actions"
+        "active_actions",
+        "proof_only_viewer_state",
+        "missing_pdf_accessibility_recovery"
       ]
     },
     "invoice_generation": {
@@ -289,7 +294,9 @@
         "test/invoice_document_engine_layout_contract_test.dart",
         "test/invoice_pdf_export_verifier_contract_test.dart",
         "test/app_generated_pdf_service_test.dart",
+        "test/app_generated_pdf_preview_screen_test.dart",
         "test/invoice_template_pdf_factory_test.dart",
+        "test/invoice_pdf_money_precision_test.dart",
         "test/invoice_pdf_preview_action_tracking_test.dart"
       ],
       "fixtureKeys": [
@@ -316,6 +323,12 @@
         "invoice_generation_non_finite_payment_block",
         "invoice_preview_content_preflight_failure",
         "invoice_archive_content_preflight_failure",
+        "generated_pdf_preview_retry_failure",
+        "generated_pdf_preview_share_failure",
+        "generated_pdf_preview_print_failure",
+        "generated_pdf_preview_action_tracking",
+        "generated_pdf_preview_dismissed_actions",
+        "shared_money_formatting_contract",
         "invoice_text_layer_export_verifier",
         "internal_record_id_export_block"
       ]
@@ -380,7 +393,9 @@
     "render_smoke": {
       "status": "covered",
       "currentTestFiles": [
-        "test/pdf_quality_gate_contract_test.dart"
+        "test/pdf_quality_gate_contract_test.dart",
+        "test/pdf_render_gate_invoice_generator_test.dart",
+        "test/pdf_typography_contract_test.dart"
       ],
       "fixtureKeys": [
         "sample_receipt_pdf",
@@ -392,7 +407,26 @@
         "rendered_page_orientation_assertion",
         "sample_receipt_pdf_golden_hash",
         "long_receipt_pdf_golden_hash",
-        "sample_invoice_pdf_golden_hash"
+        "sample_invoice_pdf_golden_hash",
+        "embedded_pdf_fonts_contract",
+        "real_invoice_render_fixture",
+        "long_text_invoice_render_fixture",
+        "landscape_invoice_render_fixture"
+      ]
+    },
+    "qa_registry_integrity": {
+      "status": "covered",
+      "currentTestFiles": [
+        "test/document_engine_operating_directive_test.dart",
+        "test/pdf_formatters_contract_test.dart",
+        "test/pdf_qa_fixture_inventory_test.dart"
+      ],
+      "fixtureKeys": [
+        "document_engine_operating_directive",
+        "pdf_quality_gate_complete_test_registry",
+        "pdf_fixture_inventory_complete_test_registry",
+        "safe_file_size_formatting",
+        "safe_date_formatting"
       ]
     }
   }

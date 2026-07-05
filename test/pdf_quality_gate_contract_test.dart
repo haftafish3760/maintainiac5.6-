@@ -74,6 +74,10 @@ void main() {
       );
       expect(
         script,
+        contains('lib/shared/documents/app_document_review_screen.dart'),
+      );
+      expect(
+        script,
         contains('lib/shared/documents/app_document_export_manifest.dart'),
       );
       expect(
@@ -86,6 +90,48 @@ void main() {
         script,
         contains(
           'lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart',
+        ),
+      );
+      expect(
+        script,
+        contains(
+          'lib/shared/widgets/receipt_capture/receipt_pdf_import_actions.dart',
+        ),
+      );
+      expect(
+        script,
+        contains(
+          'lib/shared/widgets/receipt_capture/receipt_pdf_import_sheets.dart',
+        ),
+      );
+      expect(
+        script,
+        contains(
+          'lib/shared/widgets/receipt_capture/receipt_pdf_selection_tile.dart',
+        ),
+      );
+      expect(
+        script,
+        contains(
+          'lib/shared/widgets/receipt_capture/receipt_pdf_viewer_header.dart',
+        ),
+      );
+      expect(
+        script,
+        contains(
+          'lib/shared/widgets/receipt_capture/receipt_pdf_viewer_screen.dart',
+        ),
+      );
+      expect(
+        script,
+        contains(
+          'lib/shared/widgets/receipt_capture/receipt_pdf_viewer_status.dart',
+        ),
+      );
+      expect(
+        script,
+        contains(
+          'lib/shared/widgets/receipt_capture/receipt_proof_storage_copy.dart',
         ),
       );
       expect(script, contains('test/pdf_qa_fixture_inventory_test.dart'));
@@ -105,6 +151,10 @@ void main() {
       expect(
         script,
         contains('test/app_generated_pdf_archive_recovery_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/app_generated_pdf_preview_screen_test.dart'),
       );
       expect(script, contains('test/app_generated_pdf_service_test.dart'));
       expect(script, contains('test/app_receipt_pdf_document_test.dart'));
@@ -129,17 +179,18 @@ void main() {
         script,
         contains('test/receipt_proof_storage_hardening_test.dart'),
       );
+      expect(
+        script,
+        contains('test/receipt_proof_storage_lifecycle_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_pdf_viewer_accessibility_test.dart'),
+      );
+      expect(script, contains('test/receipt_pdf_viewer_preflight_test.dart'));
       expect(script, contains('test/receipt_pdf_torture_test.dart'));
       expect(script, contains('test/receipt_pdf_torture_storage_test.dart'));
       expect(script, isNot(contains('service_pdf_security_test.dart')));
-      expect(
-        script,
-        isNot(contains('test/app_generated_pdf_preview_screen_test.dart')),
-      );
-      expect(
-        script,
-        isNot(contains('test/receipt_pdf_viewer_accessibility_test.dart')),
-      );
       expect(
         script,
         isNot(contains('test/receipt_pdf_viewer_hardening_test.dart')),
@@ -191,4 +242,31 @@ void main() {
       expect(goldenGate, contains('shasum -a 256'));
     },
   );
+
+  test('PDF quality gate runs every PDF-focused test file', () {
+    final script = File('tool/pdf_quality_gate.sh').readAsStringSync();
+    final pdfTestFiles =
+        Directory('test')
+            .listSync(recursive: true, followLinks: false)
+            .whereType<File>()
+            .map((file) => file.path)
+            .where(
+              (path) =>
+                  path.endsWith('_test.dart') &&
+                  (path.contains('pdf') ||
+                      path.contains('document_engine') ||
+                      path.contains('receipt_proof')),
+            )
+            .toList()
+          ..sort();
+
+    expect(pdfTestFiles, isNotEmpty);
+    for (final testFile in pdfTestFiles) {
+      expect(
+        script,
+        contains(testFile),
+        reason: '$testFile is PDF-focused and must stay in the PDF gate.',
+      );
+    }
+  });
 }

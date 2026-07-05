@@ -1,5 +1,25 @@
 # PDF System Pass Log
 
+## Pass 125 - 2026-07-05 12:03 EDT - PDF QA gate registry closure
+
+- Scope: PDF QA gate and fixture registry coverage only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added stable PDF preview, viewer, receipt-proof lifecycle, and document
+    review coverage to the main PDF quality gate.
+  - Added a quality-gate contract that fails if any PDF-focused test file is
+    left out of the gate.
+  - Registered previously untracked PDF-focused tests in the PDF QA fixture
+    inventory.
+  - Added a fixture-inventory contract that fails if any PDF-focused test file
+    is not registered in the PDF QA inventory.
+- Verification completed 2026-07-05 12:03 EDT:
+  - `flutter test test/pdf_quality_gate_contract_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_review_screen.dart test/pdf_quality_gate_contract_test.dart`
+  - `flutter test test/pdf_qa_fixture_inventory_test.dart test/pdf_quality_gate_contract_test.dart -r compact`
+  - `dart analyze test/pdf_qa_fixture_inventory_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 124 - 2026-07-05 11:55 EDT - Prior-work rollback edge audit
 
 - Scope: PDF receipt proof rollback restore edge cases found during prior-work

@@ -20,16 +20,28 @@ dart analyze \
   lib/shared/documents/app_document_export_package_writer.dart \
   lib/shared/documents/app_generated_pdf_archive_service.dart \
   lib/shared/documents/app_document_models.dart \
+  lib/shared/documents/app_document_review_screen.dart \
   lib/shared/documents/app_document_store.dart \
   lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart \
   lib/shared/widgets/receipt_capture/receipt_pdf_inspection.dart \
   lib/shared/widgets/receipt_capture/receipt_pdf_limits.dart \
+  lib/shared/widgets/receipt_capture/receipt_pdf_import_actions.dart \
+  lib/shared/widgets/receipt_capture/receipt_pdf_import_sheets.dart \
+  lib/shared/widgets/receipt_capture/receipt_pdf_selection_tile.dart \
+  lib/shared/widgets/receipt_capture/receipt_pdf_viewer_header.dart \
   lib/shared/widgets/receipt_capture/receipt_pdf_viewer_preview_plan.dart \
+  lib/shared/widgets/receipt_capture/receipt_pdf_viewer_screen.dart \
+  lib/shared/widgets/receipt_capture/receipt_pdf_viewer_status.dart \
   lib/shared/widgets/receipt_capture/receipt_proof_storage.dart \
+  lib/shared/widgets/receipt_capture/receipt_proof_storage_copy.dart \
+  lib/shared/widgets/receipt_capture/receipt_proof_storage_exception.dart \
+  lib/shared/widgets/receipt_capture/receipt_proof_storage_file_names.dart \
   lib/screens/invoices/data/invoice_pdf_export_verifier.dart \
+  lib/screens/invoices/data/invoice_pdf_preview_factory.dart \
   lib/screens/invoices/data/invoice_pdf_privacy_guard.dart \
   lib/screens/invoices/data/invoice_pdf_template_renderer.dart \
   test/app_generated_pdf_archive_recovery_test.dart \
+  test/app_generated_pdf_preview_screen_test.dart \
   test/app_generated_pdf_service_test.dart \
   test/app_receipt_pdf_document_test.dart \
   test/app_document_export_manifest_test.dart \
@@ -55,7 +67,10 @@ dart analyze \
   test/receipt_pdf_inspector_edge_cases_test.dart \
   test/receipt_pdf_inspector_security_flags_test.dart \
   test/receipt_pdf_performance_profile_test.dart \
+  test/receipt_pdf_viewer_accessibility_test.dart \
+  test/receipt_pdf_viewer_preflight_test.dart \
   test/receipt_proof_storage_hardening_test.dart \
+  test/receipt_proof_storage_lifecycle_test.dart \
   test/receipt_pdf_torture_storage_test.dart \
   test/receipt_pdf_torture_test.dart \
   test/pdf_quality_gate_contract_test.dart \
@@ -77,6 +92,7 @@ bash tool/pdf_golden_snapshot_gate.sh
 
 flutter test \
   test/app_generated_pdf_archive_recovery_test.dart \
+  test/app_generated_pdf_preview_screen_test.dart \
   test/app_generated_pdf_service_test.dart \
   test/app_receipt_pdf_document_test.dart \
   test/app_document_export_manifest_test.dart \
@@ -102,7 +118,10 @@ flutter test \
   test/receipt_pdf_inspector_edge_cases_test.dart \
   test/receipt_pdf_inspector_security_flags_test.dart \
   test/receipt_pdf_performance_profile_test.dart \
+  test/receipt_pdf_viewer_accessibility_test.dart \
+  test/receipt_pdf_viewer_preflight_test.dart \
   test/receipt_proof_storage_hardening_test.dart \
+  test/receipt_proof_storage_lifecycle_test.dart \
   test/receipt_pdf_torture_storage_test.dart \
   test/receipt_pdf_torture_test.dart \
   test/pdf_quality_gate_contract_test.dart \
