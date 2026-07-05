@@ -1,5 +1,22 @@
 # PDF System Pass Log
 
+## Pass 127 - 2026-07-05 12:16 EDT - PDF diagnostics privacy hardening
+
+- Scope: PDF health diagnostics and QA registry only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Restricted Command 1/admin PDF health source-module labels to known safe
+    operational words, with unknown text reduced to a generic source bucket.
+  - Restricted PDF health recovery actions to safe operational words, with
+    arbitrary support text reduced to generic or private-signal buckets.
+  - Added redaction coverage for names, phone numbers, street addresses,
+    content URLs, device paths, and arbitrary support text in PDF diagnostics.
+  - Registered the diagnostics privacy fixture in the PDF QA inventory.
+- Verification completed 2026-07-05 12:16 EDT:
+  - `flutter test test/pdf_health_diagnostics_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_pdf_health_diagnostics.dart test/pdf_health_diagnostics_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 126 - 2026-07-05 12:12 EDT - Receipt PDF inspector symlink hardening
 
 - Scope: receipt PDF inspector and viewer preflight hardening only. No

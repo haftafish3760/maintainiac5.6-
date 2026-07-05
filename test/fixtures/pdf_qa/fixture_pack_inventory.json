@@ -269,7 +269,8 @@
         "generated_pdf_filename_privacy_block",
         "separator_normalized_vehicle_privacy_block",
         "pdf_health_diagnostics_safe_command_center_snapshot",
-        "pdf_health_diagnostics_private_signal_redaction"
+        "pdf_health_diagnostics_private_signal_redaction",
+        "pdf_health_diagnostics_arbitrary_operational_text_redaction"
       ]
     },
     "pdf_to_receipt_review": {

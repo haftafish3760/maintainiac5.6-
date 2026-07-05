@@ -71,14 +71,14 @@ class AppPdfHealthEvent {
       'status': status.name,
       'occurredAtUtc': occurredAtUtc.toUtc().toIso8601String(),
       if (kind != null) 'kind': kind!.name,
-      if (_safeToken(sourceModule).isNotEmpty)
-        'sourceModule': _safeToken(sourceModule),
+      if (_safeSourceModule(sourceModule).isNotEmpty)
+        'sourceModule': _safeSourceModule(sourceModule),
       'byteSizeBucket': _byteSizeBucket(byteSize),
       if (pageCount != null) 'pageCountBucket': _pageCountBucket(pageCount!),
       if (issueCodes.isNotEmpty) 'issueCodes': _safeTokenList(issueCodes),
       if (riskFlags.isNotEmpty) 'riskFlags': _safeTokenList(riskFlags),
-      if (_safeToken(recoveryAction).isNotEmpty)
-        'recoveryAction': _safeToken(recoveryAction),
+      if (_safeRecoveryAction(recoveryAction).isNotEmpty)
+        'recoveryAction': _safeRecoveryAction(recoveryAction),
     };
   }
 }
@@ -138,7 +138,7 @@ class AppPdfHealthSnapshot {
         events.map((event) => event.kind?.name ?? 'unknown'),
       ),
       'sourceModuleCounts': _countBy(
-        events.map((event) => _safeToken(event.sourceModule)),
+        events.map((event) => _safeSourceModule(event.sourceModule)),
       ),
       'issueCounts': _countBy(
         events.expand((event) => _safeTokenList(event.issueCodes)),
@@ -170,6 +170,37 @@ List<String> _safeTokenList(Iterable<String> values) {
     ..sort();
 }
 
+String _safeSourceModule(String value) {
+  return _safeOperationalToken(
+    value,
+    fallback: 'custom_source',
+    allowedWords: _safeSourceModuleWords,
+  );
+}
+
+String _safeRecoveryAction(String value) {
+  return _safeOperationalToken(
+    value,
+    fallback: 'custom_action',
+    allowedWords: _safeRecoveryActionWords,
+  );
+}
+
+String _safeOperationalToken(
+  String value, {
+  required String fallback,
+  required Set<String> allowedWords,
+}) {
+  final token = _safeToken(value);
+  if (token.isEmpty || token == 'private_signal' || token == 'long_token') {
+    return token;
+  }
+  final words = token.split('_').where((word) => word.isNotEmpty).toList();
+  if (words.isEmpty) return '';
+  if (words.every(allowedWords.contains)) return token;
+  return fallback;
+}
+
 String _safeToken(String value) {
   final lowered = value.toLowerCase();
   if (_looksPrivate(lowered)) return 'private_signal';
@@ -189,14 +220,87 @@ bool _looksPrivate(String value) {
   return value.contains(RegExp(r'[/\\]users[/\\]')) ||
       value.contains(RegExp(r'[/\\]private[/\\]')) ||
       value.contains(RegExp(r'[/\\]documents[/\\]')) ||
+      value.contains(RegExp(r'[/\\]storage[/\\]emulated[/\\]')) ||
+      value.contains(RegExp(r'[/\\]data[/\\]user[/\\]')) ||
+      value.contains('content://') ||
+      value.contains('file://') ||
       value.contains(RegExp(r'\bvin\b')) ||
       value.contains(RegExp(r'\bpatient\b')) ||
       value.contains(RegExp(r'\bpassenger\b')) ||
       value.contains(RegExp(r'\blicense\s*plate\b')) ||
       value.contains(RegExp(r'\bplate\s*[:#]')) ||
       RegExp(r'\b[a-hj-npr-z0-9]{17}\b').hasMatch(value) ||
-      RegExp(r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}').hasMatch(value);
+      RegExp(r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}').hasMatch(value) ||
+      RegExp(
+        r'\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b',
+      ).hasMatch(value) ||
+      RegExp(
+        r'\b[0-9]{1,6}\s+[a-z0-9]+(?:\s+[a-z0-9]+){0,5}\s+(?:street|st|road|rd|avenue|ave|drive|dr|lane|ln|court|ct|boulevard|blvd|highway|hwy|way|circle|cir)\b',
+      ).hasMatch(value);
 }
+
+const Set<String> _safeSourceModuleWords = {
+  'app',
+  'archive',
+  'cloud',
+  'customer',
+  'customers',
+  'daily',
+  'document',
+  'documents',
+  'engine',
+  'estimate',
+  'estimates',
+  'expense',
+  'expenses',
+  'export',
+  'generated',
+  'import',
+  'inventory',
+  'invoice',
+  'invoices',
+  'job',
+  'jobs',
+  'maintenance',
+  'monthly',
+  'package',
+  'pdf',
+  'proof',
+  'receipt',
+  'receipts',
+  'recap',
+  'report',
+  'reports',
+  'share',
+  'storage',
+  'vendor',
+  'weekly',
+};
+
+const Set<String> _safeRecoveryActionWords = {
+  'attach',
+  'choose',
+  'clear',
+  'confirm',
+  'export',
+  'file',
+  'import',
+  'open',
+  'only',
+  'original',
+  'package',
+  'pdf',
+  'proof',
+  'read',
+  'retry',
+  'review',
+  'safe',
+  'save',
+  'select',
+  'share',
+  'storage',
+  'try',
+};
 
 String _byteSizeBucket(int bytes) {
   if (bytes <= 0) return 'empty';

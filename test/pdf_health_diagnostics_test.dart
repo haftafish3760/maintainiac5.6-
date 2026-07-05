@@ -90,6 +90,48 @@ void main() {
     expect(serialized, isNot(contains('/users/')));
     expect(serialized, isNot(contains('private-customer')));
   });
+
+  test('PDF health diagnostics redacts arbitrary operational text', () {
+    final snapshot = AppPdfHealthSnapshot(
+      generatedAtUtc: DateTime.utc(2026, 7, 5, 16),
+      events: [
+        AppPdfHealthEvent(
+          operation: AppPdfHealthOperation.importProof,
+          status: AppPdfHealthStatus.failed,
+          occurredAtUtc: DateTime.utc(2026, 7, 5, 15, 3),
+          sourceModule: 'Jane Customer HVAC packet',
+          byteSize: 2400,
+          pageCount: 1,
+          riskFlags: const ['Call 555-123-4567', 'Deliver to 123 Main Street'],
+          recoveryAction:
+              'Ask Jane Customer to resend file from content://downloads/private.pdf',
+        ),
+        AppPdfHealthEvent(
+          operation: AppPdfHealthOperation.exportPackage,
+          status: AppPdfHealthStatus.blocked,
+          occurredAtUtc: DateTime.utc(2026, 7, 5, 15, 4),
+          sourceModule: 'Vendor PDF Export',
+          byteSize: 700,
+          pageCount: 2,
+          riskFlags: const ['missing trailer marker'],
+          recoveryAction: 'Review PDF proof only',
+        ),
+      ],
+    );
+
+    final map = snapshot.toCommandCenterMap();
+    final serialized = map.toString().toLowerCase();
+
+    expect(serialized, contains('custom_source'));
+    expect(serialized, contains('vendor_pdf_export'));
+    expect(serialized, contains('private_signal'));
+    expect(serialized, contains('review_pdf_proof_only'));
+    expect(serialized, isNot(contains('jane')));
+    expect(serialized, isNot(contains('555')));
+    expect(serialized, isNot(contains('123 main')));
+    expect(serialized, isNot(contains('content://')));
+    expect(serialized, isNot(contains('downloads')));
+  });
 }
 
 class AppGeneratedPdfValidationReportIssue {
