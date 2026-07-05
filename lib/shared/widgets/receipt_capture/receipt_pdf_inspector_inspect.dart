@@ -16,7 +16,8 @@ Future<ReceiptPdfInspection> _inspectReceiptPdf(String path) async {
     );
   }
   final file = File(trimmed);
-  if (!await file.exists()) {
+  final entityType = await FileSystemEntity.type(trimmed, followLinks: false);
+  if (entityType == FileSystemEntityType.notFound) {
     return ReceiptPdfInspection(
       path: trimmed,
       exists: false,
@@ -25,6 +26,19 @@ Future<ReceiptPdfInspection> _inspectReceiptPdf(String path) async {
       hasPdfHeader: false,
       pageCountStatus: ReceiptPdfPageCountStatus.unknown,
       validationStatus: ReceiptPdfValidationStatus.missing,
+      riskFlags: const [],
+      documentSignals: const [],
+    );
+  }
+  if (entityType != FileSystemEntityType.file) {
+    return ReceiptPdfInspection(
+      path: trimmed,
+      exists: true,
+      byteSize: 0,
+      pageCount: null,
+      hasPdfHeader: false,
+      pageCountStatus: ReceiptPdfPageCountStatus.failed,
+      validationStatus: ReceiptPdfValidationStatus.failed,
       riskFlags: const [],
       documentSignals: const [],
     );
@@ -60,6 +74,13 @@ Future<ReceiptPdfInspection> _inspectReceiptPdf(String path) async {
   }
   late final List<int> header;
   try {
+    final currentType = await FileSystemEntity.type(
+      trimmed,
+      followLinks: false,
+    );
+    if (currentType != FileSystemEntityType.file) {
+      throw const FileSystemException('PDF path is not a regular file.');
+    }
     header = await _readHeader(file);
   } catch (_) {
     return ReceiptPdfInspection(
@@ -104,6 +125,13 @@ Future<ReceiptPdfInspection> _inspectReceiptPdf(String path) async {
   }
   late final _ReceiptPdfInspectionBytes inspectionBytes;
   try {
+    final currentType = await FileSystemEntity.type(
+      trimmed,
+      followLinks: false,
+    );
+    if (currentType != FileSystemEntityType.file) {
+      throw const FileSystemException('PDF path is not a regular file.');
+    }
     inspectionBytes = await _readInspectionBytes(file, byteSize);
   } catch (_) {
     return ReceiptPdfInspection(

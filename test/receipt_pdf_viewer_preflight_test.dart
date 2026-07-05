@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_inspector.dart';
@@ -47,6 +49,32 @@ void main() {
       ReceiptPdfPreviewStatus.ready,
     );
   });
+
+  test(
+    'PDF viewer preflight treats symlinked files as unreadable',
+    () async {
+      final target = File('${Directory.systemTemp.path}/viewer_target.pdf');
+      await target.writeAsString(
+        '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
+        flush: true,
+      );
+      final link = Link('${Directory.systemTemp.path}/viewer_linked.pdf');
+      await link.create(target.path);
+      addTearDown(() async {
+        if (await link.exists()) await link.delete();
+        if (target.existsSync()) target.deleteSync();
+      });
+
+      final inspection = await ReceiptPdfInspector.inspect(link.path);
+
+      expect(
+        receiptPdfPreviewStatusForInspection(inspection),
+        ReceiptPdfPreviewStatus.unreadable,
+      );
+      expect(inspection.importBlocker, contains('could not be read'));
+    },
+    skip: Platform.isWindows,
+  );
 
   test('PDF viewer summary makes proof-only and no-editing state obvious', () {
     const longProof = ReceiptPdfInspection(

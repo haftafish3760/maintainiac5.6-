@@ -20,6 +20,49 @@ void main() {
     expect(missing.canAttachAsProof, isFalse);
   });
 
+  test(
+    'PDF inspector refuses symlinked files without reading target',
+    () async {
+      final target = File('${Directory.systemTemp.path}/private_target.pdf');
+      await target.writeAsString(
+        '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
+        flush: true,
+      );
+      final link = Link('${Directory.systemTemp.path}/linked_receipt.pdf');
+      await link.create(target.path);
+      addTearDown(() async {
+        if (await link.exists()) await link.delete();
+        if (target.existsSync()) target.deleteSync();
+      });
+
+      final inspection = await ReceiptPdfInspector.inspect(link.path);
+
+      expect(inspection.exists, isTrue);
+      expect(inspection.validationStatus, ReceiptPdfValidationStatus.failed);
+      expect(inspection.importBlocker, contains('could not be read'));
+      expect(inspection.hasPdfHeader, isFalse);
+      expect(inspection.pageCount, isNull);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test('PDF inspector rechecks file type before every file read phase', () {
+    final source = File(
+      'lib/shared/widgets/receipt_capture/receipt_pdf_inspector_inspect.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('followLinks: false'));
+    expect(source, contains('_readHeader(file)'));
+    expect(source, contains('_readInspectionBytes(file, byteSize)'));
+    expect(
+      RegExp(
+        r'FileSystemEntity\.type\(\s*trimmed,\s*followLinks: false,?\s*\)',
+        multiLine: true,
+      ).allMatches(source),
+      hasLength(greaterThanOrEqualTo(3)),
+    );
+  });
+
   test('PDF header may appear after leading transport bytes', () async {
     final file = File('${Directory.systemTemp.path}/offset_header.pdf');
     await file.writeAsString(

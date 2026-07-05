@@ -1,5 +1,23 @@
 # PDF System Pass Log
 
+## Pass 126 - 2026-07-05 12:12 EDT - Receipt PDF inspector symlink hardening
+
+- Scope: receipt PDF inspector and viewer preflight hardening only. No
+  inventory, camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Refused symlinked and non-regular PDF paths before reading receipt proof
+    headers or sampled inspection bytes.
+  - Rechecked receipt PDF file type without following links before each read
+    phase so path swaps fail closed.
+  - Made unreadable PDF failures take priority over empty-file messaging so
+    unsafe file paths do not look like harmless empty PDFs.
+  - Added inspector and viewer preflight regressions plus PDF QA fixture
+    registry coverage for symlinked PDF imports.
+- Verification completed 2026-07-05 12:12 EDT:
+  - `flutter test test/receipt_pdf_inspector_edge_cases_test.dart test/receipt_pdf_viewer_accessibility_test.dart test/receipt_pdf_viewer_preflight_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart lib/shared/widgets/receipt_capture/receipt_pdf_inspection.dart lib/shared/widgets/receipt_capture/receipt_pdf_inspector_inspect.dart lib/shared/widgets/receipt_capture/receipt_pdf_viewer_screen.dart test/receipt_pdf_inspector_edge_cases_test.dart test/receipt_pdf_viewer_accessibility_test.dart test/receipt_pdf_viewer_preflight_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 125 - 2026-07-05 12:03 EDT - PDF QA gate registry closure
 
 - Scope: PDF QA gate and fixture registry coverage only. No inventory, camera,

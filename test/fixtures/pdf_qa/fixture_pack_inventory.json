@@ -22,7 +22,8 @@
         "corrupted_pdf",
         "truncated_pdf",
         "invalid_header",
-        "no_pages"
+        "no_pages",
+        "symlinked_pdf_file_block"
       ]
     },
     "large_pdfs": {
@@ -285,7 +286,8 @@
         "password_marker",
         "active_actions",
         "proof_only_viewer_state",
-        "missing_pdf_accessibility_recovery"
+        "missing_pdf_accessibility_recovery",
+        "symlinked_pdf_viewer_unreadable"
       ]
     },
     "invoice_generation": {

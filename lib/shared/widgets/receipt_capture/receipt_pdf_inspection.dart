@@ -82,12 +82,12 @@ class ReceiptPdfInspection {
 
   String? get importBlocker {
     if (!exists) return 'That PDF receipt could not be found on this device.';
+    if (validationStatus == ReceiptPdfValidationStatus.failed) {
+      return 'That PDF could not be read from this device. Choose the original file or try saving it again.';
+    }
     if (isEmpty) return 'That PDF receipt is empty.';
     if (!hasPdfHeader) {
       return 'That file does not look like a valid PDF. Choose the original PDF receipt file.';
-    }
-    if (validationStatus == ReceiptPdfValidationStatus.failed) {
-      return 'That PDF could not be read from this device. Choose the original file or try saving it again.';
     }
     if (exceedsImportSizeLimit) {
       return 'That PDF is $sizeLabel, which is too large to attach as receipt proof.';
