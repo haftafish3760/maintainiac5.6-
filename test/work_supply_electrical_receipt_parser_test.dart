@@ -180,4 +180,62 @@ void main() {
     expect(bubbleCover!.item.trade, 'Electrical');
     expect(bubbleCover.item.name, contains('Weatherproof'));
   });
+
+  test('electrical parser understands service connector repair stock', () {
+    final romexConnector = matchReceiptLineToCatalog(
+      '1/2IN ROMEX CONNECTOR 10PK',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(romexConnector, isNotNull);
+    expect(romexConnector!.item.trade, 'Electrical');
+    expect(romexConnector.item.name, contains('Romex Connector'));
+
+    final bushing = matchReceiptLineToCatalog(
+      '3/4IN INSULATED BUSHING PACK',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(bushing, isNotNull);
+    expect(bushing!.item.trade, 'Electrical');
+    expect(bushing.item.name, contains('Insulated Bushing'));
+
+    final locknut = matchReceiptLineToCatalog(
+      '1IN CONDUIT LOCKNUT',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(locknut, isNotNull);
+    expect(locknut!.item.trade, 'Electrical');
+    expect(locknut.item.name, contains('Conduit Locknut'));
+  });
+
+  test('electrical parser understands trim-out service consumables', () {
+    final groundPigtail = matchReceiptLineToCatalog(
+      'GROUND PIGTAIL 25PK',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(groundPigtail, isNotNull);
+    expect(groundPigtail!.item.trade, 'Electrical');
+    expect(groundPigtail.item.name, contains('Ground Pigtail'));
+
+    final gfciTester = matchReceiptLineToCatalog(
+      'GFCI TESTER',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(gfciTester, isNotNull);
+    expect(gfciTester!.item.trade, 'Electrical');
+    expect(gfciTester.item.name, contains('GFCI Tester'));
+
+    final lampholder = matchReceiptLineToCatalog(
+      'PORCELAIN LAMPHOLDER',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(lampholder, isNotNull);
+    expect(lampholder!.item.trade, 'Electrical');
+    expect(lampholder.item.name, contains('Porcelain Lampholder'));
+  });
 }

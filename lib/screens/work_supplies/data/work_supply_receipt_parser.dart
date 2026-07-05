@@ -614,6 +614,44 @@ WorkSupplyItem? _directElectricalConsumableMatch(
   return null;
 }
 
+WorkSupplyItem? _directElectricalServiceRepairMatch(
+  String text, {
+  String? tradeScope,
+}) {
+  if (tradeScope != null &&
+      tradeScope.trim().isNotEmpty &&
+      tradeScope.trim().toLowerCase() != 'electrical') {
+    return null;
+  }
+  final wantedName = switch (text) {
+    final value when RegExp(r'\b(romex|nm|nm-b)\b').hasMatch(value) &&
+        RegExp(r'\b(connector|conn|clamp)\b').hasMatch(value) =>
+      'romex connector',
+    final value when RegExp(r'\binsulated\s+bushing\b').hasMatch(value) =>
+      'insulated bushing',
+    final value when RegExp(r'\b(conduit\s+)?locknut\b').hasMatch(value) =>
+      'conduit locknut',
+    final value when RegExp(r'\bground\s+pigtail\b').hasMatch(value) =>
+      'ground pigtail',
+    final value when RegExp(r'\bgfci\s+tester\b').hasMatch(value) =>
+      'gfci tester',
+    final value when RegExp(r'\bporcelain\s+lampholder\b').hasMatch(value) =>
+      'porcelain lampholder',
+    final value when RegExp(r'\b(keyless|pull\s+chain|weatherproof)\s+lampholder\b')
+        .hasMatch(value) =>
+      'lampholder',
+    _ => null,
+  };
+  if (wantedName == null) return null;
+  final size = _nominalReceiptSize(text);
+  for (final item in workSupplyCatalogItems) {
+    final name = item.name.toLowerCase();
+    if (item.trade != 'Electrical' || !name.contains(wantedName)) continue;
+    if (size == null || _nameMatchesReceiptSize(name, size)) return item;
+  }
+  return null;
+}
+
 WorkSupplyItem? _directElectricalRacewayMatch(
   String text, {
   String? tradeScope,
@@ -1076,12 +1114,23 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
   }
 
   final wantsHvacFloatSwitch =
-      RegExp(r'\b(float|flotador|overflow)\b').hasMatch(text) &&
+      RegExp(r'\b(float|flotador|overflow|wet)\b').hasMatch(text) &&
       RegExp(r'\b(sw|switch|pan|bandeja|inlinea|inline)\b').hasMatch(text);
   if (wantsHvacFloatSwitch) {
+    final wantsWetSwitch = RegExp(r'\bwet\s+switch\b').hasMatch(text);
+    final wantsSecondaryPan =
+        RegExp(r'\b(secondary|sec|pan|bandeja)\b').hasMatch(text) &&
+        RegExp(r'\bfloat\b').hasMatch(text);
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('float switch')) {
+      if (item.trade != 'HVAC') continue;
+      if (wantsWetSwitch && name.contains('wet switch')) return item;
+      if (wantsSecondaryPan &&
+          name.contains('secondary pan') &&
+          name.contains('float switch')) {
+        return item;
+      }
+      if (!wantsWetSwitch && name.contains('float switch')) {
         return item;
       }
     }
@@ -1193,6 +1242,54 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
   return null;
 }
 
+WorkSupplyItem? _directUnscopedHvacEvidenceMatch(String text) {
+  final wantsCondensatePump = RegExp(
+    r'\b(little\s+pump|condensate\s+pump|cond\s+pump|bomba\s+condensado)\b',
+  ).hasMatch(text);
+  if (!wantsCondensatePump) return null;
+  for (final item in workSupplyCatalogItems) {
+    final name = item.name.toLowerCase();
+    if (item.trade == 'HVAC' && name.contains('condensate pump')) {
+      return item;
+    }
+  }
+  return null;
+}
+
+WorkSupplyItem? _directApplianceInstallMatch(
+  String text, {
+  String? tradeScope,
+}) {
+  if (tradeScope != null &&
+      tradeScope.trim().isNotEmpty &&
+      tradeScope.trim().toLowerCase() != 'appliance installation and repair') {
+    return null;
+  }
+  final wantedName = switch (text) {
+    final value when RegExp(r'\b(dishwasher|dw)\b').hasMatch(value) &&
+        RegExp(
+          r'\b(connector|connecter|conn|supply|line|kit|compression)\b',
+        ).hasMatch(value) =>
+      'compression dishwasher connector kit',
+    final value when RegExp(r'\b(dishwasher|dw)\b').hasMatch(value) &&
+        RegExp(r'\b(drain\s+hose|hose)\b').hasMatch(value) =>
+      'dishwasher drain hose',
+    final value when RegExp(r'\b(dishwasher|dw)\b').hasMatch(value) &&
+        RegExp(r'\b(power\s+cord|cord)\b').hasMatch(value) =>
+      'dishwasher power cord kit',
+    _ => null,
+  };
+  if (wantedName == null) return null;
+  for (final item in workSupplyCatalogItems) {
+    final name = item.name.toLowerCase();
+    if (item.trade == 'Appliance Installation and Repair' &&
+        name.contains(wantedName)) {
+      return item;
+    }
+  }
+  return null;
+}
+
 WorkSupplyItem? _directHighSpecificityReceiptMatch(
   String text, {
   String? tradeScope,
@@ -1201,6 +1298,11 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   final receiptText = originalText ?? text;
   final fastDirect = _directFastReceiptMatch(text, tradeScope: tradeScope);
   if (fastDirect != null) return fastDirect;
+  final electricalServiceRepair = _directElectricalServiceRepairMatch(
+    text,
+    tradeScope: tradeScope,
+  );
+  if (electricalServiceRepair != null) return electricalServiceRepair;
   final electricalConsumable = _directElectricalConsumableMatch(
     text,
     tradeScope: tradeScope,
@@ -1225,6 +1327,15 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (electricalCableStaple != null) return electricalCableStaple;
   final hvacCore = _directHvacCoreMatch(text, tradeScope: tradeScope);
   if (hvacCore != null) return hvacCore;
+  if (tradeScope == null || tradeScope.trim().isEmpty) {
+    final unscopedHvac = _directUnscopedHvacEvidenceMatch(text);
+    if (unscopedHvac != null) return unscopedHvac;
+  }
+  final applianceDirect = _directApplianceInstallMatch(
+    text,
+    tradeScope: tradeScope,
+  );
+  if (applianceDirect != null) return applianceDirect;
   if (tradeScope != null &&
       tradeScope.trim().isNotEmpty &&
       tradeScope.trim().toLowerCase() != 'plumbing') {

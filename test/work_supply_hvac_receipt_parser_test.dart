@@ -450,4 +450,55 @@ void main() {
     expect(tubing!.item.trade, 'HVAC');
     expect(tubing.item.name, contains('Condensate Tubing'));
   });
+
+  test('hvac parser understands condensate safety and drain treatment stock', () {
+    final floatSwitch = matchReceiptLineToCatalog(
+      'SECONDARY PAN FLOAT SWITCH',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(floatSwitch, isNotNull);
+    expect(floatSwitch!.item.trade, 'HVAC');
+    expect(floatSwitch.item.name, contains('Float Switch'));
+
+    final wetSwitch = matchReceiptLineToCatalog(
+      'WET SWITCH FLOOD DETECTOR',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(wetSwitch, isNotNull);
+    expect(wetSwitch!.item.trade, 'HVAC');
+    expect(wetSwitch.item.name, contains('Wet Switch'));
+
+    final tablets = matchReceiptLineToCatalog(
+      'CONDENSATE DRAIN PAN TABLETS',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(tablets, isNotNull);
+    expect(tablets!.item.trade, 'HVAC');
+    expect(tablets.item.name, contains('Condensate Drain Tablets'));
+  });
+
+  test('hvac parser understands condensate PVC service fittings', () {
+    final trap = matchReceiptLineToCatalog(
+      '3/4IN PVC CONDENSATE TRAP',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(trap, isNotNull);
+    expect(trap!.item.trade, 'HVAC');
+    expect(trap.item.name, contains('Condensate'));
+    expect(trap.item.name, contains('Trap'));
+
+    final cleanout = matchReceiptLineToCatalog(
+      '1IN PVC TEE CLEANOUT CONDENSATE',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(cleanout, isNotNull);
+    expect(cleanout!.item.trade, 'HVAC');
+    expect(cleanout.item.name, contains('Condensate'));
+    expect(cleanout.item.name, contains('Tee Cleanout'));
+  });
 }
