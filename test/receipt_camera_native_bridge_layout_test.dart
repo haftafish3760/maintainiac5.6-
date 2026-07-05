@@ -43,6 +43,13 @@ void main() {
     expect(androidCameraUnit, contains('"focusLockControlActual"'));
     expect(androidCameraUnit, contains('"exposureLockControlActual"'));
     expect(androidCameraUnit, contains('"whiteBalanceLockControlActual"'));
+    expect(androidCameraUnit, contains('previousSectionGuideUsesNextContext'));
+    expect(
+      androidCameraUnit,
+      contains('next_section_top_context_ghost_at_top_repeat_3_to_5_lines'),
+    );
+    expect(androidCameraUnit, contains('next_section_top_lines'));
+    expect(androidCameraUnit, contains('Match the next section'));
     expect(androidCameraUnit, contains('latestCapturedBottomTopLumaDelta'));
     expect(
       androidCameraUnit,
@@ -78,6 +85,13 @@ void main() {
     expect(iosCameraUnit, contains('"focusLockControlActual"'));
     expect(iosCameraUnit, contains('"exposureLockControlActual"'));
     expect(iosCameraUnit, contains('"whiteBalanceLockControlActual"'));
+    expect(iosCameraUnit, contains('previousSectionGuideUsesNextContext'));
+    expect(
+      iosCameraUnit,
+      contains('next_section_top_context_ghost_at_top_repeat_3_to_5_lines'),
+    );
+    expect(iosCameraUnit, contains('next_section_top_lines'));
+    expect(iosCameraUnit, contains('Match the next section'));
     expect(iosCameraUnit, contains('latestCapturedBottomTopLumaDelta'));
     expect(iosCameraUnit, contains('latestCapturedBottomTopLumaDeltaBucket'));
     expect(iosCameraUnit, contains('setTitle("Next", for: .normal)'));

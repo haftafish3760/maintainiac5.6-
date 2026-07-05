@@ -120,10 +120,10 @@ internal fun ReceiptCameraActivity.boundedFraction(value: Double, fallback: Doub
 }
 
 internal fun ReceiptCameraActivity.previousSectionGhostGuideTitle(): String {
-    return if (previousSectionReasonCode == "missing_bottom_edge_and_totals") {
-        "Match the bottom section"
-    } else {
-        "Match receipt sections"
+    return when {
+        previousSectionGuideUsesNextContext() -> "Match the next section"
+        previousSectionReasonCode == "missing_bottom_edge_and_totals" -> "Match the bottom section"
+        else -> "Match receipt sections"
     }
 }
 
@@ -131,11 +131,36 @@ internal fun ReceiptCameraActivity.previousSectionGhostGuideInstruction(): Strin
     return previousSectionGuidance
         .trim()
         .takeIf { it.isNotEmpty() }
-        ?: if (previousSectionReasonCode == "missing_bottom_edge_and_totals") {
-            "Keep the last readable lines in the top ghost slice, then repeat 3-5 readable lines so subtotal, total, and final lines can be matched."
-        } else {
-            "Repeat 3-5 readable lines near the top ghost slice of this photo."
+        ?: when {
+            previousSectionGuideUsesNextContext() ->
+                "Use the top of the next receipt section as context, then confirm the retake still joins cleanly in photo review."
+            previousSectionReasonCode == "missing_bottom_edge_and_totals" ->
+                "Keep the last readable lines in the top ghost slice, then repeat 3-5 readable lines so subtotal, total, and final lines can be matched."
+            else -> "Repeat 3-5 readable lines near the top ghost slice of this photo."
         }
+}
+
+internal fun ReceiptCameraActivity.previousSectionGuideUsesNextContext(): Boolean {
+    return previousSectionReasonCode == "retake_top_with_next_context"
+}
+
+internal fun ReceiptCameraActivity.previousSectionGhostGuidePolicy(): String {
+    return when {
+        previousSectionGuideUsesNextContext() ->
+            "next_section_top_context_ghost_at_top_repeat_3_to_5_lines"
+        previousSectionReasonCode == "missing_bottom_edge_and_totals" ->
+            "bottom_overlap_ghost_at_top_repeat_3_to_5_lines"
+        else -> "section_overlap_ghost_at_top_repeat_3_to_5_lines"
+    }
+}
+
+internal fun ReceiptCameraActivity.previousSectionGhostGuideMatchTarget(): String {
+    return when {
+        previousSectionGuideUsesNextContext() -> "next_section_top_lines"
+        previousSectionReasonCode == "missing_bottom_edge_and_totals" ->
+            "subtotal_total_and_final_lines"
+        else -> "repeated_receipt_lines"
+    }
 }
 
 internal fun ReceiptCameraActivity.addSectionButtonTitle(): String {

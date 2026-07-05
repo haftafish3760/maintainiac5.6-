@@ -86,6 +86,9 @@ extension ReceiptCameraViewController {
   }
 
   func previousSectionGhostGuideTitle() -> String {
+    if previousSectionGuideUsesNextContext() {
+      return "Match the next section"
+    }
     if previousSectionReasonCode == "missing_bottom_edge_and_totals" {
       return "Match the bottom section"
     }
@@ -97,10 +100,37 @@ extension ReceiptCameraViewController {
     if !trimmed.isEmpty {
       return trimmed
     }
+    if previousSectionGuideUsesNextContext() {
+      return "Use the top of the next receipt section as context, then confirm the retake still joins cleanly in photo review."
+    }
     if previousSectionReasonCode == "missing_bottom_edge_and_totals" {
       return "Keep the last readable lines in the top ghost slice, then repeat 3-5 readable lines so subtotal, total, and final lines can be matched."
     }
     return "Repeat 3-5 readable lines near the top ghost slice of this photo."
+  }
+
+  func previousSectionGuideUsesNextContext() -> Bool {
+    return previousSectionReasonCode == "retake_top_with_next_context"
+  }
+
+  func previousSectionGhostGuidePolicy() -> String {
+    if previousSectionGuideUsesNextContext() {
+      return "next_section_top_context_ghost_at_top_repeat_3_to_5_lines"
+    }
+    if previousSectionReasonCode == "missing_bottom_edge_and_totals" {
+      return "bottom_overlap_ghost_at_top_repeat_3_to_5_lines"
+    }
+    return "section_overlap_ghost_at_top_repeat_3_to_5_lines"
+  }
+
+  func previousSectionGhostGuideMatchTarget() -> String {
+    if previousSectionGuideUsesNextContext() {
+      return "next_section_top_lines"
+    }
+    if previousSectionReasonCode == "missing_bottom_edge_and_totals" {
+      return "subtotal_total_and_final_lines"
+    }
+    return "repeated_receipt_lines"
   }
 
   func addSectionButtonTitle() -> String {
