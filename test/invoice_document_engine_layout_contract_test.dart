@@ -38,6 +38,31 @@ void main() {
     expect(rendererSource, isNot(contains('class _InvoicePaginator')));
   });
 
+  test(
+    'invoice Document Engine keeps content rules isolated from rendering',
+    () {
+      final rendererSource = File(
+        'lib/screens/invoices/data/invoice_pdf_template_renderer.dart',
+      ).readAsStringSync();
+      final contentRulesSource = File(
+        'lib/screens/invoices/data/invoice_pdf_content_rules.dart',
+      ).readAsStringSync();
+
+      expect(
+        rendererSource,
+        contains("part 'invoice_pdf_content_rules.dart';"),
+      );
+      expect(
+        contentRulesSource,
+        contains("part of 'invoice_pdf_template_renderer.dart';"),
+      );
+      expect(contentRulesSource, contains('class InvoicePdfContentRules'));
+      expect(contentRulesSource, contains('issueCodesForRecord'));
+      expect(contentRulesSource, contains('messageFor'));
+      expect(rendererSource, isNot(contains('lineSubtotalsAreFinite')));
+    },
+  );
+
   test('invoice Document Engine fixture factory keeps arithmetic stable', () {
     final standard = InvoiceDocumentEngineFixtureFactory.standardInvoice(
       lineCount: 14,

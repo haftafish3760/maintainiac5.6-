@@ -1,5 +1,21 @@
 # PDF System Pass Log
 
+## Pass 133 - 2026-07-05 12:51 EDT - Invoice PDF content-rule isolation
+
+- Scope: invoice/estimate PDF content validation architecture only. No camera,
+  native capture, OCR engine, inventory, or parser behavior changes.
+- Bundled work:
+  - Split invoice PDF content rules into a dedicated Document Engine part file.
+  - Preserved the existing renderer API for missing line items, identity,
+    dates, taxes, discounts, payments, and content issue messages.
+  - Added an architecture regression so invoice content validation does not
+    drift back into the large visual template renderer.
+  - Kept pagination isolation from the prior pass intact.
+- Verification completed 2026-07-05 12:51 EDT:
+  - `dart analyze lib/screens/invoices/data/invoice_pdf_template_renderer.dart lib/screens/invoices/data/invoice_pdf_content_rules.dart lib/screens/invoices/data/invoice_pdf_pagination.dart test/invoice_document_engine_layout_contract_test.dart`
+  - `flutter test test/invoice_document_engine_layout_contract_test.dart test/invoice_template_pdf_factory_test.dart test/invoice_pdf_money_precision_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 132 - 2026-07-05 12:46 EDT - Document package write verification hardening
 
 - Scope: Document Engine export-package output verification and invoice PDF
