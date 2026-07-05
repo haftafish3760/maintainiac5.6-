@@ -69,6 +69,9 @@ report, or future document paths.
 - Camera stitched receipts
 - Shared receipt proof flow for expenses, inventory/material receipts,
   vendor invoices, job proof, maintenance proof, and future app modules.
+- Supplier or store invoices that prove purchased inventory/materials are
+  handled as receipt proof in the shared receipt flow; they are not treated as
+  customer invoice/estimate documents unless the user explicitly creates one.
 - PDF receipt handling must prepare, validate, store, preview, and hand off
   proof to the existing app flow without changing parser, OCR, inventory, or
   expense classification logic.

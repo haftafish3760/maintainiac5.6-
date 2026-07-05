@@ -1,5 +1,20 @@
 # PDF System Pass Log
 
+## Pass 110 - 2026-07-05 10:54 EDT - Shared receipt source guard
+
+- Scope: generated receipt PDF source-module contract only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Documented that supplier/vendor invoices used for inventory proof stay in
+    the shared receipt flow.
+  - Added regression coverage for vendor-invoice receipt source modules.
+  - Added the vendor-invoice receipt source case to the PDF QA fixture
+    registry.
+- Verification completed 2026-07-05 10:54 EDT:
+  - `dart format test/app_receipt_pdf_document_test.dart`
+  - `flutter test test/app_receipt_pdf_document_test.dart -r compact`
+  - `dart analyze test/app_receipt_pdf_document_test.dart`
+
 ## Pass 109 - 2026-07-05 10:49 EDT - Document package extraction cleanup hardening
 
 - Scope: document export package extraction cleanup safety only. No inventory,

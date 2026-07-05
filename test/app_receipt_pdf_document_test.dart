@@ -232,20 +232,35 @@ void main() {
   });
 
   test('receipt PDF renderer supports shared receipt source modules', () async {
-    final document = await const AppReceiptPdfRenderer().buildReceiptDocument(
-      data: _receiptData(
-        lineCount: 3,
-        sourceModule: 'Inventory Receipts',
-        sourceRecordId: 'inventory_receipt_42',
+    final cases = <({String module, String recordId, String normalized})>[
+      (
+        module: 'Inventory Receipts',
+        recordId: 'inventory_receipt_42',
+        normalized: 'inventory_receipts',
       ),
-      createdAt: DateTime.utc(2026, 7, 5, 12),
-      theme: await AppPdfTypography.loadTheme(),
-    );
+      (
+        module: 'Vendor Invoice Receipts',
+        recordId: 'vendor_invoice_receipt_7',
+        normalized: 'vendor_invoice_receipts',
+      ),
+    ];
 
-    expect(document.validation.isValid, isTrue);
-    expect(document.sourceModule, 'inventory_receipts');
-    expect(document.sourceRecordId, 'inventory_receipt_42');
-    expect(document.kind, AppGeneratedPdfKind.receipt);
+    for (final receiptCase in cases) {
+      final document = await const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: _receiptData(
+          lineCount: 3,
+          sourceModule: receiptCase.module,
+          sourceRecordId: receiptCase.recordId,
+        ),
+        createdAt: DateTime.utc(2026, 7, 5, 12),
+        theme: await AppPdfTypography.loadTheme(),
+      );
+
+      expect(document.validation.isValid, isTrue);
+      expect(document.sourceModule, receiptCase.normalized);
+      expect(document.sourceRecordId, receiptCase.recordId);
+      expect(document.kind, AppGeneratedPdfKind.receipt);
+    }
   });
 
   test(
