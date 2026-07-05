@@ -118,7 +118,10 @@
         "document_export_zip_package_platform_share_preflight_block",
         "document_export_zip_package_extract_verified",
         "document_export_zip_package_extract_pathless_metadata",
-        "document_export_zip_package_extract_copy_directory"
+        "document_export_zip_package_extract_copy_directory",
+        "document_export_zip_package_import_preview",
+        "document_export_zip_package_import_pathless_metadata",
+        "document_export_zip_package_import_attachment_ownership"
       ]
     },
     "storage_cleanup": {
@@ -150,7 +153,9 @@
         "document_export_zip_package_directory_entry_block",
         "document_export_zip_package_extract_tamper_block",
         "document_export_zip_package_extract_source_preservation",
-        "document_export_zip_package_extract_folder_failure"
+        "document_export_zip_package_extract_folder_failure",
+        "document_export_zip_package_import_private_manifest_block",
+        "document_export_zip_package_import_manifest_index_mismatch_block"
       ]
     },
     "privacy_and_security_logs": {

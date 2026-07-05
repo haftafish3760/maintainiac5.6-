@@ -1,5 +1,36 @@
 # PDF System Pass Log
 
+## Pass 59 - 2026-07-05 06:29 EDT - Document export package import preview
+
+- Scope: shared app document export package import-preview validation,
+  package metadata ownership checks, and PDF QA fixture inventory only. No
+  inventory, camera, native capture, receipt parser, or OCR engine behavior
+  changes.
+- Bundled work:
+  - Added `previewZipPackageImport` to verify a document export ZIP package
+    before any caller imports extracted files into app records.
+  - Added typed import-preview metadata for package identity, document kind,
+    document title, timestamps, and verified proof attachments.
+  - Kept preview metadata pathless while preserving package hashes,
+    manifest hash, safe entry names, display names, MIME types, byte counts,
+    and read-only proof state.
+  - Revalidated imported package manifests against the PDF privacy policy so
+    hostile or hand-edited packages cannot reintroduce VINs, license plates,
+    passenger data, patient data, private paths, or unconfirmed OCR text.
+  - Cross-checked manifest attachments against the package index so mismatched
+    hashes, byte counts, kinds, display names, or mutable proof flags are
+    blocked before import.
+  - Added regressions for successful import preview, pathless preview maps,
+    private manifest refusal, and manifest/index mismatch blocking.
+  - Updated the shared PDF fixture inventory for document export package
+    import-preview coverage.
+- Verification completed 2026-07-05 06:29 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart -r compact`
+  - `flutter test test/app_document_export_package_writer_test.dart test/app_document_export_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_manifest_test.dart test/app_document_export_package_writer_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 58 - 2026-07-05 06:25 EDT - Document export package extraction
 
 - Scope: shared app document export package extraction, import-side storage

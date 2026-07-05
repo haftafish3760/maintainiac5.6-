@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
 import 'package:share_plus/share_plus.dart';
 
+import '../pdf/app_pdf_privacy_policy.dart';
 import '../storage/app_storage_guard.dart';
 import 'app_document_export_manifest.dart';
 import 'app_document_models.dart';
@@ -161,6 +162,82 @@ class AppDocumentExportPackageExtractResult {
       'kindName': kindName,
       'fileEntries': fileEntries,
       'totalBytes': totalBytes,
+    };
+  }
+}
+
+class AppDocumentExportPackageImportAttachment {
+  const AppDocumentExportPackageImportAttachment({
+    required this.packageEntryName,
+    required this.displayName,
+    required this.kindName,
+    required this.mimeType,
+    required this.byteSize,
+    required this.sha256,
+    required this.readOnlyProof,
+  });
+
+  final String packageEntryName;
+  final String displayName;
+  final String kindName;
+  final String mimeType;
+  final int byteSize;
+  final String sha256;
+  final bool readOnlyProof;
+
+  Map<String, Object?> toMap() {
+    return {
+      'packageEntryName': packageEntryName,
+      'displayName': displayName,
+      'kindName': kindName,
+      'mimeType': mimeType,
+      'byteSize': byteSize,
+      'sha256': sha256,
+      'readOnlyProof': readOnlyProof,
+    };
+  }
+}
+
+class AppDocumentExportPackageImportPreview {
+  const AppDocumentExportPackageImportPreview({
+    required this.fileName,
+    required this.byteSize,
+    required this.sha256,
+    required this.manifestSha256,
+    required this.documentId,
+    required this.kindName,
+    required this.title,
+    required this.sourceLabel,
+    required this.createdAtIso8601,
+    required this.updatedAtIso8601,
+    required this.attachments,
+  });
+
+  final String fileName;
+  final int byteSize;
+  final String sha256;
+  final String manifestSha256;
+  final String documentId;
+  final String kindName;
+  final String title;
+  final String sourceLabel;
+  final String createdAtIso8601;
+  final String updatedAtIso8601;
+  final List<AppDocumentExportPackageImportAttachment> attachments;
+
+  Map<String, Object?> toMap() {
+    return {
+      'fileName': fileName,
+      'byteSize': byteSize,
+      'sha256': sha256,
+      'manifestSha256': manifestSha256,
+      'documentId': documentId,
+      'kindName': kindName,
+      'title': title,
+      'sourceLabel': sourceLabel,
+      'createdAtIso8601': createdAtIso8601,
+      'updatedAtIso8601': updatedAtIso8601,
+      'attachments': [for (final attachment in attachments) attachment.toMap()],
     };
   }
 }
@@ -445,6 +522,57 @@ class AppDocumentExportPackageWriter {
     return invoker(plan);
   }
 
+  static Future<AppDocumentExportPackageImportPreview> previewZipPackageImport(
+    File packageFile,
+  ) async {
+    final readResult = await readZipPackage(packageFile);
+    final packageBytes = await packageFile.readAsBytes();
+    final entries = _entryMap(ZipDecoder().decodeBytes(packageBytes));
+    _verifyReadableEntryNames(entries.keys);
+    final manifest = _decodeObject(
+      _requiredTextEntry(entries, manifestEntryName),
+    );
+    final index = _decodeIndex(
+      _requiredTextEntry(entries, packageIndexEntryName),
+    );
+    _verifyImportManifestPrivacy(manifest);
+    _verifyImportDates(manifest);
+    final indexedFiles = _fileIndexList(index);
+    final manifestAttachments = _manifestAttachmentMap(manifest);
+    final attachments = <AppDocumentExportPackageImportAttachment>[];
+    for (final file in indexedFiles) {
+      final attachmentId = _stringValue(file, 'attachmentId');
+      final manifestAttachment = manifestAttachments[attachmentId];
+      if (manifestAttachment == null) {
+        throw const AppDocumentExportPackageException(
+          'Document export package metadata has invalid file entries.',
+        );
+      }
+      final attachment = _importAttachment(file, manifestAttachment);
+      attachments.add(attachment);
+    }
+    if (_stringValue(manifest, 'documentId') != readResult.documentId ||
+        _stringValue(manifest, 'kind') != readResult.kindName ||
+        attachments.length != readResult.fileEntries.length) {
+      throw const AppDocumentExportPackageException(
+        'Document export package metadata does not match Maintainiac format.',
+      );
+    }
+    return AppDocumentExportPackageImportPreview(
+      fileName: readResult.fileName,
+      byteSize: readResult.byteSize,
+      sha256: readResult.sha256,
+      manifestSha256: readResult.manifestSha256,
+      documentId: readResult.documentId,
+      kindName: readResult.kindName,
+      title: _stringValue(manifest, 'title'),
+      sourceLabel: _stringValue(manifest, 'sourceLabel'),
+      createdAtIso8601: _stringValue(manifest, 'createdAt'),
+      updatedAtIso8601: _stringValue(manifest, 'updatedAt'),
+      attachments: List.unmodifiable(attachments),
+    );
+  }
+
   static Future<AppDocumentExportPackageExtractResult> extractZipPackage(
     File packageFile, {
     required Directory outputDirectory,
@@ -536,6 +664,134 @@ class AppDocumentExportPackageWriter {
         .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
+  }
+
+  static void _verifyImportManifestPrivacy(Map<String, Object?> manifest) {
+    final attachmentMaps = _manifestAttachmentList(manifest);
+    final metadata = <String>[
+      _stringValue(manifest, 'documentId'),
+      _stringValue(manifest, 'kind'),
+      _stringValue(manifest, 'title'),
+      _stringValue(manifest, 'sourceLabel'),
+      manifest['importedText'] as String? ?? '',
+      manifest['notes'] as String? ?? '',
+      for (final attachment in attachmentMaps) ...[
+        _stringValue(attachment, 'id'),
+        _stringValue(attachment, 'displayName'),
+        _stringValue(attachment, 'mimeType'),
+        ..._stringListValue(attachment, 'riskFlags'),
+        ..._stringListValue(attachment, 'documentSignals'),
+      ],
+    ];
+    final issues = AppPdfPrivacyPolicy.issueCodesForExport(
+      bytes: const [],
+      metadata: metadata,
+    );
+    if (issues.isNotEmpty) {
+      throw const AppDocumentExportPackageException(
+        'Maintainiac stopped this document package import because it may include private information.',
+      );
+    }
+  }
+
+  static void _verifyImportDates(Map<String, Object?> manifest) {
+    for (final key in ['createdAt', 'updatedAt']) {
+      final value = _stringValue(manifest, key);
+      if (DateTime.tryParse(value) == null) {
+        throw const AppDocumentExportPackageException(
+          'Document export package metadata does not match Maintainiac format.',
+        );
+      }
+    }
+  }
+
+  static List<Map<String, Object?>> _manifestAttachmentList(
+    Map<String, Object?> manifest,
+  ) {
+    final attachments = manifest['attachments'];
+    if (attachments is! List) {
+      throw const AppDocumentExportPackageException(
+        'Document export package metadata is missing file entries.',
+      );
+    }
+    return [
+      for (final attachment in attachments)
+        if (attachment is Map<String, Object?>)
+          attachment
+        else
+          throw const AppDocumentExportPackageException(
+            'Document export package metadata has invalid file entries.',
+          ),
+    ];
+  }
+
+  static Map<String, Map<String, Object?>> _manifestAttachmentMap(
+    Map<String, Object?> manifest,
+  ) {
+    final map = <String, Map<String, Object?>>{};
+    for (final attachment in _manifestAttachmentList(manifest)) {
+      final id = _stringValue(attachment, 'id');
+      if (map.containsKey(id)) {
+        throw const AppDocumentExportPackageException(
+          'Document export package metadata has invalid file entries.',
+        );
+      }
+      map[id] = attachment;
+    }
+    return map;
+  }
+
+  static List<String> _stringListValue(Map<String, Object?> map, String key) {
+    final value = map[key];
+    if (value is! List) {
+      throw const AppDocumentExportPackageException(
+        'Document export package metadata has invalid file entries.',
+      );
+    }
+    return [
+      for (final item in value)
+        if (item is String)
+          item
+        else
+          throw const AppDocumentExportPackageException(
+            'Document export package metadata has invalid file entries.',
+          ),
+    ];
+  }
+
+  static AppDocumentExportPackageImportAttachment _importAttachment(
+    Map<String, Object?> file,
+    Map<String, Object?> manifestAttachment,
+  ) {
+    final fileDisplayName = _stringValue(file, 'displayName');
+    final manifestDisplayName = _stringValue(manifestAttachment, 'displayName');
+    final fileKind = _stringValue(file, 'kind');
+    final manifestKind = _stringValue(manifestAttachment, 'kind');
+    final fileByteSize = _intValue(file, 'byteSize');
+    final manifestByteSize = _intValue(manifestAttachment, 'byteSize');
+    final fileHash = _stringValue(file, 'sha256');
+    final manifestHash = _stringValue(manifestAttachment, 'fileHash');
+    final readOnlyProof = manifestAttachment['isReadOnlyProof'];
+    final indexedReadOnlyProof = file['readOnlyProof'];
+    if (fileDisplayName != manifestDisplayName ||
+        fileKind != manifestKind ||
+        fileByteSize != manifestByteSize ||
+        fileHash != manifestHash ||
+        readOnlyProof != true ||
+        indexedReadOnlyProof != true) {
+      throw const AppDocumentExportPackageException(
+        'Document export package metadata has invalid file entries.',
+      );
+    }
+    return AppDocumentExportPackageImportAttachment(
+      packageEntryName: _stringValue(file, 'packageEntryName'),
+      displayName: manifestDisplayName,
+      kindName: manifestKind,
+      mimeType: _stringValue(manifestAttachment, 'mimeType'),
+      byteSize: fileByteSize,
+      sha256: fileHash,
+      readOnlyProof: true,
+    );
   }
 
   static void _verifyEntryBudget(
