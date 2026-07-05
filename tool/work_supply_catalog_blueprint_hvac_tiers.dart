@@ -53,10 +53,6 @@ const hvacResidentialCoreFamilies = [
     receiptTemplates: ['{size} COND PVC CPLG', '{size} PVC DRAIN COUP'],
     negativeTokens: ['electrical conduit', 'pressure fitting', 'DWV'],
   ),
-];
-
-const hvacResidentialStandardFamilies = [
-  ...hvacResidentialCoreFamilies,
   CatalogFamily(
     slug: 'dual_run_capacitor',
     category: 'Electrical Controls',
@@ -135,10 +131,6 @@ const hvacResidentialStandardFamilies = [
     receiptTemplates: ['{size} START COLLAR', '{size} DUCT TAKEOFF'],
     negativeTokens: ['pipe collar', 'animal collar', 'plumbing adapter'],
   ),
-];
-
-const hvacResidentialProfessionalFamilies = [
-  ...hvacResidentialStandardFamilies,
   CatalogFamily(
     slug: 'furnace_flame_sensor',
     category: 'Heating Controls',
@@ -165,6 +157,79 @@ const hvacResidentialProfessionalFamilies = [
     receiptTemplates: ['{size} HSI IGNITOR', '{size} HOT SURF IGN'],
     negativeTokens: ['spark plug', 'grill ignitor', 'pilot assembly'],
   ),
+  CatalogFamily(
+    slug: 'thermostat_wire',
+    category: 'Electrical Controls',
+    system: 'Low Voltage',
+    itemType: 'Thermostat Wire',
+    material: 'copper',
+    unit: 'roll',
+    sizes: ['18/5', '18/7', '18/8'],
+    nameTemplate: '{size} Thermostat Wire',
+    aliasTemplates: ['{size} stat wire', '{size} tstat cable'],
+    receiptTemplates: ['{size} TSTAT WIRE', '{size} THERMOSTAT WIRE'],
+    negativeTokens: ['nm-b', 'speaker wire', 'security cable'],
+  ),
+  CatalogFamily(
+    slug: 'humidifier_water_panel',
+    category: 'Indoor Air Quality',
+    system: 'Humidifier',
+    itemType: 'Water Panel',
+    material: 'coated media',
+    unit: 'each',
+    sizes: ['model 10', 'model 35', 'model 45'],
+    nameTemplate: '{size} Humidifier Water Panel',
+    aliasTemplates: ['{size} humidifier pad', '{size} water panel'],
+    receiptTemplates: ['{size} HUMIDIFIER PAD', '{size} WATER PANEL'],
+    negativeTokens: ['air filter', 'water filter', 'furnace panel'],
+  ),
+];
+
+const hvacResidentialStandardFamilies = [
+  ...hvacResidentialCoreFamilies,
+  CatalogFamily(
+    slug: 'liquid_line_filter_drier',
+    category: 'Refrigerant Service',
+    system: 'Line Set',
+    itemType: 'Filter Drier',
+    material: 'copper and desiccant',
+    unit: 'each',
+    sizes: ['1/4 in', '3/8 in', '1/2 in'],
+    nameTemplate: '{size} Liquid Line Filter Drier',
+    aliasTemplates: ['{size} filter drier', '{size} liquid line drier'],
+    receiptTemplates: ['{size} FILTER DRIER', '{size} LIQ LINE DRIER'],
+    negativeTokens: ['air filter', 'water filter', 'oil filter'],
+  ),
+  CatalogFamily(
+    slug: 'service_valve_cap',
+    category: 'Refrigerant Service',
+    system: 'Service Port',
+    itemType: 'Service Valve Cap',
+    material: 'brass',
+    unit: 'pack',
+    sizes: ['1/4 in', '5/16 in'],
+    nameTemplate: '{size} Refrigerant Service Valve Cap',
+    aliasTemplates: ['{size} service cap', '{size} valve cap'],
+    receiptTemplates: ['{size} SERVICE CAP', '{size} VALVE CAP'],
+    negativeTokens: ['plumbing cap', 'pipe cap', 'wire cap'],
+  ),
+  CatalogFamily(
+    slug: 'condensate_trap',
+    category: 'Condensate Drain',
+    system: 'Condensate',
+    itemType: 'Condensate Trap',
+    material: 'PVC',
+    unit: 'each',
+    sizes: ['3/4 in', '1 in'],
+    nameTemplate: '{size} PVC Condensate Trap',
+    aliasTemplates: ['{size} condensate trap', '{size} ez trap'],
+    receiptTemplates: ['{size} COND TRAP', '{size} PVC EZ TRAP'],
+    negativeTokens: ['sink trap', 'p-trap', 'animal trap'],
+  ),
+];
+
+const hvacResidentialProfessionalFamilies = [
+  ...hvacResidentialStandardFamilies,
   CatalogFamily(
     slug: 'furnace_pressure_switch',
     category: 'Heating Controls',

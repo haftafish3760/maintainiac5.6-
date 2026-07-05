@@ -302,39 +302,42 @@ void main() {
     expect(blueprints.toString(), contains('heat_pump_defrost_board'));
   });
 
-  test('catalog blueprint generator supports plumbing professional tier', () async {
-    final output = await Directory.systemTemp.createTemp(
-      'maintainiac_catalog_blueprints_plumbing_professional_',
-    );
-    addTearDown(() => output.delete(recursive: true));
+  test(
+    'catalog blueprint generator supports plumbing professional tier',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_catalog_blueprints_plumbing_professional_',
+      );
+      addTearDown(() => output.delete(recursive: true));
 
-    final exit = await runWorkSupplyCatalogBlueprintGenerator(
-      [
-        '--trade',
-        'plumbing',
-        '--scope',
-        'residential',
-        '--tier',
-        'professional',
-        '--limit',
-        '18',
-        '--output-dir',
-        output.path,
-      ],
-      stdout: _MemorySink(),
-      stderr: _MemorySink(),
-    );
+      final exit = await runWorkSupplyCatalogBlueprintGenerator(
+        [
+          '--trade',
+          'plumbing',
+          '--scope',
+          'residential',
+          '--tier',
+          'professional',
+          '--limit',
+          '28',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
 
-    expect(exit, 0);
-    final blueprintFile = File(
-      '${output.path}/work_supply_catalog/plumbing/residential/professional/'
-      'en-US/item_blueprints.json',
-    );
-    final blueprints = jsonDecode(blueprintFile.readAsStringSync()) as List;
-    expect(blueprints, hasLength(18));
-    expect(blueprints.toString(), contains('tubular_p_trap'));
-    expect(blueprints.toString(), contains('sump_pump_check_valve'));
-  });
+      expect(exit, 0);
+      final blueprintFile = File(
+        '${output.path}/work_supply_catalog/plumbing/residential/professional/'
+        'en-US/item_blueprints.json',
+      );
+      final blueprints = jsonDecode(blueprintFile.readAsStringSync()) as List;
+      expect(blueprints, hasLength(28));
+      expect(blueprints.toString(), contains('tubular_p_trap'));
+      expect(blueprints.toString(), contains('sump_pump_check_valve'));
+    },
+  );
 
   test('catalog blueprint generator supports plumbing complete tier', () async {
     final output = await Directory.systemTemp.createTemp(
@@ -351,7 +354,7 @@ void main() {
         '--tier',
         'complete',
         '--limit',
-        '24',
+        '40',
         '--output-dir',
         output.path,
       ],
@@ -365,78 +368,156 @@ void main() {
       'en-US/item_blueprints.json',
     );
     final blueprints = jsonDecode(blueprintFile.readAsStringSync()) as List;
-    expect(blueprints, hasLength(24));
+    expect(blueprints, hasLength(40));
     expect(blueprints.toString(), contains('cleanout_plug_cover'));
     expect(blueprints.toString(), contains('pressure_reducing_valve'));
   });
 
-  test('catalog blueprint generator supports electrical professional tier', () async {
-    final output = await Directory.systemTemp.createTemp(
-      'maintainiac_catalog_blueprints_electrical_professional_',
-    );
-    addTearDown(() => output.delete(recursive: true));
+  test(
+    'catalog blueprint generator supports electrical professional tier',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_catalog_blueprints_electrical_professional_',
+      );
+      addTearDown(() => output.delete(recursive: true));
 
-    final exit = await runWorkSupplyCatalogBlueprintGenerator(
-      [
-        '--trade',
-        'electrical',
-        '--scope',
-        'residential',
-        '--tier',
-        'professional',
-        '--limit',
-        '22',
-        '--output-dir',
-        output.path,
-      ],
-      stdout: _MemorySink(),
-      stderr: _MemorySink(),
-    );
+      final exit = await runWorkSupplyCatalogBlueprintGenerator(
+        [
+          '--trade',
+          'electrical',
+          '--scope',
+          'residential',
+          '--tier',
+          'professional',
+          '--limit',
+          '22',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
 
-    expect(exit, 0);
-    final blueprintFile = File(
-      '${output.path}/work_supply_catalog/electrical/residential/'
-      'professional/en-US/item_blueprints.json',
-    );
-    final blueprints = jsonDecode(blueprintFile.readAsStringSync()) as List;
-    expect(blueprints, hasLength(22));
-    expect(blueprints.toString(), contains('double_pole_breaker'));
-    expect(blueprints.toString(), contains('ground_rod_copper'));
-  });
+      expect(exit, 0);
+      final blueprintFile = File(
+        '${output.path}/work_supply_catalog/electrical/residential/'
+        'professional/en-US/item_blueprints.json',
+      );
+      final blueprints = jsonDecode(blueprintFile.readAsStringSync()) as List;
+      expect(blueprints, hasLength(22));
+      expect(blueprints.toString(), contains('double_pole_breaker'));
+      expect(blueprints.toString(), contains('ground_rod_copper'));
+    },
+  );
 
-  test('catalog blueprint generator supports electrical complete tier', () async {
-    final output = await Directory.systemTemp.createTemp(
-      'maintainiac_catalog_blueprints_electrical_complete_',
-    );
-    addTearDown(() => output.delete(recursive: true));
+  test(
+    'catalog blueprint generator supports electrical complete tier',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_catalog_blueprints_electrical_complete_',
+      );
+      addTearDown(() => output.delete(recursive: true));
 
-    final exit = await runWorkSupplyCatalogBlueprintGenerator(
-      [
-        '--trade',
-        'electrical',
-        '--scope',
-        'residential',
-        '--tier',
-        'complete',
-        '--limit',
-        '28',
-        '--output-dir',
-        output.path,
-      ],
-      stdout: _MemorySink(),
-      stderr: _MemorySink(),
-    );
+      final exit = await runWorkSupplyCatalogBlueprintGenerator(
+        [
+          '--trade',
+          'electrical',
+          '--scope',
+          'residential',
+          '--tier',
+          'complete',
+          '--limit',
+          '28',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
 
-    expect(exit, 0);
-    final blueprintFile = File(
-      '${output.path}/work_supply_catalog/electrical/residential/complete/'
-      'en-US/item_blueprints.json',
-    );
-    final blueprints = jsonDecode(blueprintFile.readAsStringSync()) as List;
-    expect(blueprints, hasLength(28));
-    expect(blueprints.toString(), contains('weatherproof_in_use_cover'));
-    expect(blueprints.toString(), contains('conduit_body_lb'));
-  });
+      expect(exit, 0);
+      final blueprintFile = File(
+        '${output.path}/work_supply_catalog/electrical/residential/complete/'
+        'en-US/item_blueprints.json',
+      );
+      final blueprints = jsonDecode(blueprintFile.readAsStringSync()) as List;
+      expect(blueprints, hasLength(28));
+      expect(blueprints.toString(), contains('weatherproof_in_use_cover'));
+      expect(blueprints.toString(), contains('conduit_body_lb'));
+    },
+  );
+
+  test(
+    'catalog blueprint generator covers release-one Core service families',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_catalog_blueprints_core_service_families_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+
+      const expectedFamiliesByTrade = {
+        'plumbing': [
+          'toilet_fill_valve',
+          'lavatory_p_trap',
+          'water_softener_salt_pellets',
+          'well_pressure_switch',
+        ],
+        'electrical': [
+          'gfci_receptacle_white',
+          'single_pole_breaker',
+          'lever_wire_connector',
+          'anti_short_bushing',
+        ],
+        'hvac': [
+          'dual_run_capacitor',
+          'definite_purpose_contactor',
+          'condensate_pump',
+          'furnace_flame_sensor',
+          'humidifier_water_panel',
+        ],
+      };
+
+      for (final entry in expectedFamiliesByTrade.entries) {
+        final exit = await runWorkSupplyCatalogBlueprintGenerator(
+          [
+            '--trade',
+            entry.key,
+            '--scope',
+            'residential',
+            '--tier',
+            'core',
+            '--locale',
+            'en-US',
+            '--limit',
+            '120',
+            '--output-dir',
+            output.path,
+          ],
+          stdout: _MemorySink(),
+          stderr: _MemorySink(),
+        );
+
+        expect(exit, 0, reason: entry.key);
+        final blueprintFile = File(
+          '${output.path}/work_supply_catalog/${entry.key}/residential/'
+          'core/en-US/item_blueprints.json',
+        );
+        final blueprints = jsonDecode(blueprintFile.readAsStringSync()) as List;
+        final families = {
+          for (final row in blueprints.cast<Map>())
+            row['itemFamily'].toString(),
+        };
+
+        expect(
+          families,
+          containsAll(entry.value),
+          reason:
+              '${entry.key} Core blueprints must cover daily residential '
+              'service families, not just legacy starter examples.',
+        );
+      }
+    },
+  );
 
   test('catalog blueprint generator rejects unsupported tier cells', () async {
     final stderr = _MemorySink();
