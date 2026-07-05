@@ -320,7 +320,7 @@ class AppDocumentExportPackageWriter {
         ..lastModTime = 0,
     );
     for (final file in plan.files) {
-      final bytes = await _readPackageSourceBytes(file.path);
+      final bytes = await _readVerifiedPackageSourceBytes(file);
       archive.addFile(
         ArchiveFile.bytes(file.packageEntryName, bytes)..lastModTime = 0,
       );
@@ -328,14 +328,40 @@ class AppDocumentExportPackageWriter {
     return ZipEncoder().encode(archive, modified: _fixedZipModified);
   }
 
-  static Future<List<int>> _readPackageSourceBytes(String filePath) async {
+  static Future<List<int>> _readVerifiedPackageSourceBytes(
+    AppDocumentExportPackageFile file,
+  ) async {
     try {
-      return await File(filePath).readAsBytes();
+      await _requireRegularPackageSource(file.path);
+      final bytes = await File(file.path).readAsBytes();
+      await _requireRegularPackageSource(file.path);
+      if (bytes.length != file.byteSize ||
+          sha256.convert(bytes).toString() != file.sha256) {
+        throw const AppDocumentExportPackageException(
+          'Maintainiac could not verify a proof file for this document export package.',
+        );
+      }
+      return bytes;
+    } on AppDocumentExportPackageException {
+      rethrow;
     } catch (_) {
       throw const AppDocumentExportPackageException(
         'Maintainiac could not read a verified proof file for this document export package.',
       );
     }
+  }
+
+  static Future<void> _requireRegularPackageSource(String filePath) async {
+    final type = await FileSystemEntity.type(filePath, followLinks: false);
+    if (type == FileSystemEntityType.file) return;
+    if (type == FileSystemEntityType.notFound) {
+      throw const AppDocumentExportPackageException(
+        'Maintainiac could not read a verified proof file for this document export package.',
+      );
+    }
+    throw const AppDocumentExportPackageException(
+      'Maintainiac could not verify a proof file for this document export package.',
+    );
   }
 
   static void _verifyZipBytes(

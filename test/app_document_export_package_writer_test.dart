@@ -467,6 +467,94 @@ void main() {
   );
 
   test(
+    'document export writer rejects source proof changed after planning',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nOriginal planned proof\n%%EOF'),
+      );
+      final outputDirectory = Directory('${tempDirectory.path}/exports');
+      final writer = AppDocumentExportPackageWriter(
+        zipBytesBuilder: (plan) async {
+          await proof.writeAsBytes(
+            utf8.encode('%PDF-1.7\nChanged after planning\n%%EOF'),
+            flush: true,
+          );
+          return AppDocumentExportPackageWriter.buildZipBytes(plan);
+        },
+      );
+
+      await expectLater(
+        writer.writeZipPackage(
+          record: _documentRecord(
+            attachment: _pdfAttachment(
+              path: proof.path,
+              byteSize: await proof.length(),
+              fileHash: await _fileHash(proof),
+            ),
+          ),
+          outputDirectory: outputDirectory,
+          freeStorageReader: () async => 500,
+        ),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('verify a proof file'),
+          ),
+        ),
+      );
+
+      expect(await outputDirectory.exists(), isFalse);
+    },
+  );
+
+  test(
+    'document export writer rejects source proof replaced by symlink',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nOriginal file proof\n%%EOF'),
+      );
+      final outside = await _writeProof(
+        tempDirectory,
+        name: 'outside-proof.pdf',
+        bytes: utf8.encode('%PDF-1.7\nOriginal file proof\n%%EOF'),
+      );
+      final outputDirectory = Directory('${tempDirectory.path}/exports');
+      final writer = AppDocumentExportPackageWriter(
+        zipBytesBuilder: (plan) async {
+          await proof.delete();
+          await Link(proof.path).create(outside.path);
+          return AppDocumentExportPackageWriter.buildZipBytes(plan);
+        },
+      );
+
+      await expectLater(
+        writer.writeZipPackage(
+          record: _documentRecord(
+            attachment: _pdfAttachment(
+              path: proof.path,
+              byteSize: await proof.length(),
+              fileHash: await _fileHash(proof),
+            ),
+          ),
+          outputDirectory: outputDirectory,
+          freeStorageReader: () async => 500,
+        ),
+        throwsA(isA<AppDocumentExportPackageException>()),
+      );
+
+      expect(await Link(proof.path).exists(), isTrue);
+      expect(await outside.exists(), isTrue);
+      expect(await outputDirectory.exists(), isFalse);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
     'document export writer rejects generated index byte total mismatch',
     () async {
       final proof = await _writeProof(

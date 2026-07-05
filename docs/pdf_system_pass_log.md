@@ -1,5 +1,23 @@
 # PDF System Pass Log
 
+## Pass 119 - 2026-07-05 11:31 EDT - Document package source reread hardening
+
+- Scope: document export package source-file verification only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Rechecked each planned proof file without following symlinks immediately
+    before and after package source reads.
+  - Blocked proof files changed after package planning before ZIP bytes are
+    accepted.
+  - Blocked proof files replaced by symlinks after package planning.
+  - Preserved pathless read-failure messages for missing proof files.
+  - Added post-plan mutation and symlink-replacement cases to the PDF QA
+    fixture registry.
+- Verification completed 2026-07-05 11:31 EDT:
+  - `flutter test test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 118 - 2026-07-05 11:28 EDT - Document export proof symlink block
 
 - Scope: document export package proof verification only. No inventory,
