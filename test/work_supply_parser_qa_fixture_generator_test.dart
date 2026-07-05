@@ -112,7 +112,7 @@ void main() {
             '--locale',
             locale,
             '--limit',
-            '10',
+            '24',
             '--output-dir',
             output.path,
           ],
@@ -125,9 +125,77 @@ void main() {
           'generated_fixtures.json',
         );
         final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
-        expect(fixtures, hasLength(10));
+        expect(fixtures, hasLength(24));
         expect(fixtures.first['sourceType'], 'synthetic');
         expect(fixtures.any((entry) => entry['expectUnknown'] == true), isTrue);
+      }
+    }
+  });
+
+  test('fixture generator covers release-one Core service families', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_core_service_families_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    const expectedFixtureSlugs = {
+      'plumbing': [
+        'toilet_fill_valve',
+        'lavatory_p_trap',
+        'water_softener_salt',
+        'well_pressure_switch',
+      ],
+      'electrical': [
+        'gfci_receptacle',
+        'single_pole_breaker',
+        'lever_connector',
+        'anti_short_bushing',
+      ],
+      'hvac': [
+        'dual_run_capacitor',
+        'hvac_contactor',
+        'condensate_pump',
+        'flame_sensor',
+        'humidifier_water_panel',
+      ],
+    };
+
+    for (final entry in expectedFixtureSlugs.entries) {
+      final exit = await runWorkSupplyParserFixtureGenerator(
+        [
+          '--trade',
+          entry.key,
+          '--scope',
+          'residential',
+          '--tier',
+          'core',
+          '--locale',
+          'en-US',
+          '--limit',
+          '140',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 0, reason: entry.key);
+      final fixtureFile = File(
+        '${output.path}/work_supply_parser/${entry.key}/residential/core/'
+        'en-US/generated_fixtures.json',
+      );
+      final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
+      final ids = fixtures
+          .map((entry) => (entry as Map)['id'].toString())
+          .join(' ');
+
+      for (final slug in entry.value) {
+        expect(
+          ids,
+          contains(slug),
+          reason: '${entry.key} Core generated fixtures must exercise $slug.',
+        );
       }
     }
   });
@@ -161,7 +229,7 @@ void main() {
         '--locale',
         'es-US',
         '--limit',
-        '18',
+        '28',
         '--output-dir',
         output.path,
       ],
@@ -175,8 +243,8 @@ void main() {
       'generated_fixtures.json',
     );
     final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
-    expect(fixtures, hasLength(18));
-    expect(fixtures.toString(), contains('PERNO SANITARIO'));
+    expect(fixtures, hasLength(28));
+    expect(_fixtureIds(fixtures), contains('perno_sanitario'));
     expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
   });
 
@@ -197,7 +265,7 @@ void main() {
         '--locale',
         'es-US',
         '--limit',
-        '20',
+        '28',
         '--output-dir',
         output.path,
       ],
@@ -211,9 +279,9 @@ void main() {
       'generated_fixtures.json',
     );
     final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
-    expect(fixtures, hasLength(20));
-    expect(fixtures.toString(), contains('TOMACORRIENTE GFI'));
-    expect(fixtures.toString(), contains('CLAMP TIERRA'));
+    expect(fixtures, hasLength(28));
+    expect(_fixtureIds(fixtures), contains('receptaculo_gfci'));
+    expect(_fixtureIds(fixtures), contains('abrazadera_tierra'));
     expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
   });
 
@@ -328,42 +396,48 @@ void main() {
     expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
   });
 
-  test('fixture generator supports plumbing professional spanish tier', () async {
-    final output = await Directory.systemTemp.createTemp(
-      'maintainiac_fixture_generator_plumbing_professional_',
-    );
-    addTearDown(() => output.delete(recursive: true));
+  test(
+    'fixture generator supports plumbing professional spanish tier',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_fixture_generator_plumbing_professional_',
+      );
+      addTearDown(() => output.delete(recursive: true));
 
-    final exit = await runWorkSupplyParserFixtureGenerator(
-      [
-        '--trade',
-        'plumbing',
-        '--scope',
-        'residential',
-        '--tier',
-        'professional',
-        '--locale',
-        'es-US',
-        '--limit',
-        '18',
-        '--output-dir',
-        output.path,
-      ],
-      stdout: _MemorySink(),
-      stderr: _MemorySink(),
-    );
+      final exit = await runWorkSupplyParserFixtureGenerator(
+        [
+          '--trade',
+          'plumbing',
+          '--scope',
+          'residential',
+          '--tier',
+          'professional',
+          '--locale',
+          'es-US',
+          '--limit',
+          '18',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
 
-    expect(exit, 0);
-    final fixtureFile = File(
-      '${output.path}/work_supply_parser/plumbing/residential/professional/'
-      'es-US/generated_fixtures.json',
-    );
-    final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
-    expect(fixtures, hasLength(18));
-    expect(fixtures.toString(), contains('TRAMPA P'));
-    expect(fixtures.toString(), contains('MANGUERA LAVANDERIA'));
-    expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
-  });
+      expect(exit, 0);
+      final fixtureFile = File(
+        '${output.path}/work_supply_parser/plumbing/residential/professional/'
+        'es-US/generated_fixtures.json',
+      );
+      final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
+      expect(fixtures, hasLength(18));
+      expect(fixtures.toString(), contains('TRAMPA P'));
+      expect(fixtures.toString(), contains('MANGUERA LAVANDERIA'));
+      expect(
+        fixtures.every((entry) => entry['localePackId'] == 'es-US'),
+        isTrue,
+      );
+    },
+  );
 
   test('fixture generator supports plumbing complete spanish tier', () async {
     final output = await Directory.systemTemp.createTemp(
@@ -448,4 +522,8 @@ Set<String> _riskTags(Map manifest) {
   final raw = manifest['riskTags'];
   if (raw is! List) return const {};
   return raw.map((value) => value.toString()).toSet();
+}
+
+String _fixtureIds(List fixtures) {
+  return fixtures.map((entry) => (entry as Map)['id'].toString()).join(' ');
 }
