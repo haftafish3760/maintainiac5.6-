@@ -81,4 +81,35 @@ class ReceiptCaptureFlow {
       formats: formats,
     );
   }
+
+  static Map<String, Object?> barcodeCameraHandoffSummary(
+    ReceiptPhotoReviewResult result,
+    ReceiptBarcodeBatchScanResult scan,
+  ) {
+    final sourcePaths = result.ocrSourcePhotoPaths.isNotEmpty
+        ? result.ocrSourcePhotoPaths
+        : result.photoPaths;
+    return Map.unmodifiable({
+      'schema': 'receipt_barcode_camera_handoff_v1',
+      'privacyScope': 'summary_only_no_barcode_values',
+      'purpose': scan.purpose.name,
+      'sourcePolicy': result.ocrSourceFirstDecisionCode,
+      'sourceRelationship': result.ocrSourceProofRelationship,
+      'usedOcrSources': result.hasOcrSourcePhotos,
+      'usedSavedProofFallback': result.ocrUsesSavedProofOnlyAsFallback,
+      'sourceImageCount': sourcePaths.length,
+      'scanInputImageCount': scan.inputImageCount,
+      'scannedImageCount': scan.scannedImageCount,
+      'codeCount': scan.codeCount,
+      'qrCodeCount': scan.qrCodeCount,
+      'inventoryLookupCandidateCount': scan.inventoryLookupValues.length,
+      'stitchOcrHandoffSafetyCode': result.stitchResult.ocrHandoffSafetyCode,
+      'stitchOcrHandoffUsesOrderedSections':
+          result.stitchResult.usedFallback ||
+          result.stitchResult.status == ReceiptStitchStatus.notNeeded,
+      'stitchOcrHandoffUsesCombinedImage': result.stitchResult.didStitch,
+      'warningImageCount': scan.warningImageCount,
+      'invalidImageCount': scan.invalidImageCount,
+    });
+  }
 }

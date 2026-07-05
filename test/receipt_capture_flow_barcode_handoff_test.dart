@@ -33,6 +33,30 @@ void main() {
     });
     expect(scan.privacySafeSummaryMap.toString(), isNot(contains('012345')));
     expect(scan.privacySafeSummaryMap.toString(), isNot(contains('QRWORK')));
+
+    final handoff = ReceiptCaptureFlow.barcodeCameraHandoffSummary(
+      result,
+      scan,
+    );
+    expect(
+      handoff,
+      containsPair('schema', 'receipt_barcode_camera_handoff_v1'),
+    );
+    expect(
+      handoff,
+      containsPair('privacyScope', 'summary_only_no_barcode_values'),
+    );
+    expect(
+      handoff,
+      containsPair('sourcePolicy', result.ocrSourceFirstDecisionCode),
+    );
+    expect(handoff, containsPair('usedOcrSources', true));
+    expect(handoff, containsPair('usedSavedProofFallback', false));
+    expect(handoff, containsPair('sourceImageCount', 2));
+    expect(handoff, containsPair('codeCount', 3));
+    expect(handoff, containsPair('qrCodeCount', 1));
+    expect(handoff.toString(), isNot(contains('012345')));
+    expect(handoff.toString(), isNot(contains('QRWORK')));
   });
 
   test(
@@ -57,6 +81,49 @@ void main() {
       expect(decoder.paths, const ['/tmp/proof-only.jpg']);
       expect(scan.imageCount, 1);
       expect(scan.privacySafeSummaryMap['purpose'], 'maintenance');
+      expect(
+        ReceiptCaptureFlow.barcodeCameraHandoffSummary(result, scan),
+        containsPair('usedSavedProofFallback', true),
+      );
+    },
+  );
+
+  test(
+    'barcode handoff carries stitch fallback safety without values',
+    () async {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: const ReceiptStitchResult.fallback(
+          inputPaths: ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
+          warning: 'Overlap confidence low.',
+          fallbackReasonCode: 'overlap_confidence_low',
+        ),
+      );
+      final decoder = _RecordingBarcodeDecoder();
+
+      final scan = await ReceiptCaptureFlow.scanBarcodesFromReviewResult(
+        result,
+        barcodeScanner: ReceiptBarcodeScannerService(decoder: decoder),
+        purpose: ReceiptBarcodeScanPurpose.shared,
+      );
+      final handoff = ReceiptCaptureFlow.barcodeCameraHandoffSummary(
+        result,
+        scan,
+      );
+
+      expect(
+        handoff['stitchOcrHandoffSafetyCode'],
+        {'ordered_sections_after_overlap_confidence_low_fallback'}.single,
+      );
+      expect(
+        handoff,
+        containsPair('stitchOcrHandoffUsesOrderedSections', true),
+      );
+      expect(handoff, containsPair('stitchOcrHandoffUsesCombinedImage', false));
+      expect(handoff.toString(), isNot(contains('/tmp/top-ocr.jpg')));
+      expect(handoff.toString(), isNot(contains('QRWORK')));
     },
   );
 }
