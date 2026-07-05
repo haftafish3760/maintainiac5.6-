@@ -83,20 +83,27 @@ class AppDocumentStore extends ChangeNotifier {
     Set<String> keepPaths = const {},
   }) async {
     final root = await getApplicationDocumentsDirectory();
-    final rootPath = path.normalize(root.path);
+    final rootPath = path.normalize(path.absolute(root.path));
     final retained = keepPaths
-        .map((item) => path.normalize(item.trim()))
+        .map((item) => path.normalize(path.absolute(item.trim())))
         .where((item) => item.isNotEmpty)
         .toSet();
     for (final attachment in attachments) {
       final attachmentPath = attachment.path?.toString().trim() ?? '';
       if (attachmentPath.isEmpty) continue;
-      final normalized = path.normalize(attachmentPath);
+      final normalized = path.normalize(path.absolute(attachmentPath));
       if (retained.contains(normalized)) continue;
       if (!path.isWithin(rootPath, normalized)) continue;
       try {
-        final file = File(normalized);
-        if (await file.exists()) await file.delete();
+        final type = await FileSystemEntity.type(
+          normalized,
+          followLinks: false,
+        );
+        if (type == FileSystemEntityType.file) {
+          await File(normalized).delete();
+        } else if (type == FileSystemEntityType.link) {
+          await Link(normalized).delete();
+        }
       } catch (_) {
         continue;
       }

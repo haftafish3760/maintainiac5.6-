@@ -1,5 +1,23 @@
 # PDF System Pass Log
 
+## Pass 106 - 2026-07-05 11:03 EDT - Document proof cleanup symlink hardening
+
+- Scope: shared document proof cleanup safety only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Normalized document cleanup paths through absolute paths before app-owned
+    storage checks.
+  - Switched attachment deletion to inspect filesystem entities without
+    following symlinks.
+  - Deleted app-owned symlink entries without deleting their external targets.
+  - Added regression coverage proving document deletion preserves a symlink
+    target outside app document storage.
+  - Added the symlink-cleanup case to the PDF QA fixture registry.
+- Verification completed 2026-07-05 11:03 EDT:
+  - `dart format lib/shared/documents/app_document_store.dart test/app_document_store_test.dart`
+  - `flutter test test/app_document_store_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_store.dart test/app_document_store_test.dart`
+
 ## Pass 105 - 2026-07-05 10:56 EDT - Generated PDF archive directory hardening
 
 - Scope: generated PDF permanent document archive storage safety only. No

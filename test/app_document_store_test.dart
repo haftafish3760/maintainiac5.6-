@@ -128,6 +128,55 @@ void main() {
   );
 
   test(
+    'deleting app document removes symlink proof without touching target',
+    () async {
+      final store = AppDocumentStore.memory();
+      final appProofDirectory = Directory(
+        '${documentsDirectory.path}/receipt_proofs/pdfs',
+      );
+      await appProofDirectory.create(recursive: true);
+      final outsideTarget = File(
+        '${Directory.systemTemp.path}/outside_app_document_target.pdf',
+      );
+      await outsideTarget.writeAsString(
+        '%PDF-1.7\nOutside target\n%%EOF',
+        flush: true,
+      );
+      addTearDown(() async {
+        if (await outsideTarget.exists()) await outsideTarget.delete();
+      });
+      final symlink = Link('${appProofDirectory.path}/linked-proof.pdf');
+      await symlink.create(outsideTarget.path);
+      await store.saveRecord(
+        AppDocumentRecord(
+          id: 'DOC-symlink-delete',
+          kind: AppDocumentKind.jobContractorDocument,
+          title: 'Linked proof',
+          createdAt: DateTime(2026, 7, 5),
+          updatedAt: DateTime(2026, 7, 5),
+          attachments: [
+            ReceiptAttachmentRecord(
+              id: 'linked-proof',
+              path: symlink.path,
+              kind: ReceiptAttachmentKind.pdf,
+              dataSaverLevel: ReceiptDataSaverLevel.original,
+              createdAt: DateTime(2026, 7, 5),
+              storageState: ReceiptAttachmentStorageState.permanent,
+            ),
+          ],
+        ),
+      );
+
+      await store.deleteRecord('DOC-symlink-delete');
+
+      expect(store.recordById('DOC-symlink-delete'), isNull);
+      expect(await symlink.exists(), isFalse);
+      expect(await outsideTarget.exists(), isTrue);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
     'document import save failure rolls back promoted proof for retry',
     () async {
       final staged = await ReceiptProofStorage.instance.stageAttachment(
@@ -334,6 +383,18 @@ void main() {
         .where((entity) => entity is File)
         .toList();
     expect(leftovers, isEmpty);
+  });
+
+  test('document store cleanup source avoids following symlinks', () {
+    final source = File(
+      'lib/shared/documents/app_document_store.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('FileSystemEntity.type('));
+    expect(source, contains('followLinks: false'));
+    expect(source, contains('FileSystemEntityType.link'));
+    expect(source, contains('await Link(normalized).delete();'));
+    expect(source, contains('path.absolute(root.path)'));
   });
 }
 
