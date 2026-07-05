@@ -107,6 +107,9 @@ bool _isElectricalCoreItem(WorkSupplyItem item, String text) {
   final category = item.category.toLowerCase();
   final system = item.system.toLowerCase();
   if (_hasAny(text, _electricalProfessionalTierSignals)) return false;
+  if (category == 'expanded electrical service stock') {
+    return _isExpandedElectricalServiceCore(system, text);
+  }
   if (category == 'wire and cable') {
     if (system == 'nm-b cable') return _hasAny(text, _electricalCoreCableSizes);
     if (system == 'conduit wire')
@@ -125,6 +128,40 @@ bool _isElectricalCoreItem(WorkSupplyItem item, String text) {
   if (category == 'conduit and fittings') {
     return _hasAny(text, _electricalCoreRacewaySignals) &&
         _hasAny(text, _electricalCoreRacewaySizes);
+  }
+  return false;
+}
+
+bool _isExpandedElectricalServiceCore(String system, String text) {
+  if (system == 'expanded wire and cable') {
+    if (text.contains('service entrance')) return false;
+    return _hasAny(text, _electricalCoreCableSignals) &&
+        !_hasAny(text, _electricalLargeWireSignals);
+  }
+  if (system == 'expanded breakers and disconnects') {
+    return _hasAny(text, _electricalCoreBreakerSignals) &&
+        !text.contains('safety switch');
+  }
+  if (system == 'expanded devices and plates') {
+    return _hasAny(text, _electricalCoreDeviceSignals) ||
+        _hasAny(text, _electricalCoreBoxSignals) ||
+        _hasAny(text, _electricalCoreFixtureSignals);
+  }
+  if (system == 'expanded boxes and covers') {
+    return _hasAny(text, _electricalCoreBoxSignals) &&
+        !_hasAny(text, _electricalLargeBoxSignals);
+  }
+  if (system == 'expanded raceway and fittings') {
+    if (_hasAny(text, _electricalServiceEntranceSignals)) return false;
+    return _hasAny(text, _electricalCoreRacewaySignals) &&
+        _hasAny(text, _electricalCoreRacewaySizes);
+  }
+  if (system == 'expanded connectors grounding and consumables') {
+    return _hasAny(text, _electricalCoreConsumableSignals) ||
+        _hasAny(text, _electricalCoreGroundingSignals);
+  }
+  if (system == 'expanded lighting and lamps') {
+    return _hasAny(text, _electricalCoreLightingSignals);
   }
   return false;
 }
@@ -350,6 +387,32 @@ const _electricalCoreWireSizes = ['14 awg', '12 awg', '10 awg'];
 
 const _electricalCoreRacewaySizes = ['1/2 in', '3/4 in', '1 in'];
 
+const _electricalCoreCableSignals = [
+  ..._electricalCoreCableSizes,
+  ..._electricalCoreWireSizes,
+  'nm-b cable',
+  'nmb',
+  'romex',
+  'house wire',
+  'uf-b cable',
+  'uf cable',
+  'thhn',
+  'thwn',
+  'low voltage cable',
+  'doorbell wire',
+  'control wire',
+];
+
+const _electricalLargeWireSignals = [
+  '8 awg',
+  '6 awg',
+  '4 awg',
+  '2 awg',
+  'ser',
+  'seu',
+  '500 ft',
+];
+
 const _electricalCoreDeviceSignals = [
   'duplex receptacle',
   'gfci',
@@ -387,6 +450,25 @@ const _electricalCoreBoxSignals = [
   'blank cover',
   'cover plate',
   'wall plate',
+  'fan box',
+  'ceiling box',
+  'fixture box',
+  'bar hanger',
+  'fan brace',
+  'knockout seal',
+  'ko seal',
+  'reducing washer',
+  'locknut',
+  'plastic bushing',
+  'grounding clip',
+  'box extender',
+  'mud ring',
+  'weatherproof',
+  'in-use cover',
+  'gfci cover',
+  'bell box',
+  'outdoor cover',
+  'bubble cover',
 ];
 
 const _electricalCoreConsumableSignals = [
@@ -400,6 +482,12 @@ const _electricalCoreConsumableSignals = [
   'nm connector',
   'anti short',
   'no ox',
+  'noalox',
+  'anti-oxidant',
+  'pull string',
+  'fish tape',
+  'plastic bushings',
+  'reducing washer',
 ];
 
 const _electricalCoreRacewaySignals = [
@@ -415,6 +503,76 @@ const _electricalCoreRacewaySignals = [
   'pvc electrical female adapter',
   'gray pvc conduit',
   'terminal adapter',
+  'set screw',
+  'compression fitting',
+  'lb body',
+  'll body',
+  'lr body',
+  'conduit body',
+  'body cover',
+  'mini strap',
+  'one hole strap',
+  'two hole strap',
+  'conduit hanger',
+  'fmc connector',
+  'flex conduit',
+  'liquidtight connector',
+  'liquid tight',
+  'sealtite',
+  'fmc',
+];
+
+const _electricalCoreGroundingSignals = [
+  'ground wire',
+  'ground rod',
+  'ground rod clamp',
+  'grounding pigtail',
+  'green ground screw',
+  'bonding jumper',
+  'ground clamp',
+];
+
+const _electricalCoreFixtureSignals = [
+  'smoke alarm',
+  'smoke detector',
+  'carbon monoxide',
+  'co alarm',
+  'doorbell transformer',
+  'doorbell chime',
+  'video doorbell',
+];
+
+const _electricalCoreLightingSignals = [
+  'flush mount',
+  'vanity',
+  'recessed trim',
+  'outdoor wall',
+  'flood light',
+  'a19',
+  'br30',
+  'par38',
+  'led lamp',
+  'led driver',
+  'led tape light',
+  'shop light',
+  'bulb',
+];
+
+const _electricalLargeBoxSignals = ['6 x 6', '8 x 8', 'pull box'];
+
+const _electricalServiceEntranceSignals = [
+  'service entrance',
+  'weatherhead',
+  'service head',
+  'mast clamp',
+  'meter socket',
+  'main breaker kit',
+  'main lug kit',
+  'panel accessory',
+  'surge protective device',
+  'interlock kit',
+  'ground bar kit',
+  'neutral bar kit',
 ];
 
 const _electricalProfessionalTierSignals = [
