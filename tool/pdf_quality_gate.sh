@@ -37,6 +37,7 @@ dart analyze \
   lib/shared/widgets/receipt_capture/receipt_proof_storage_exception.dart \
   lib/shared/widgets/receipt_capture/receipt_proof_storage_file_names.dart \
   lib/screens/invoices/data/invoice_pdf_export_verifier.dart \
+  lib/screens/invoices/data/invoice_ledger_store.dart \
   lib/screens/invoices/data/invoice_pdf_preview_factory.dart \
   lib/screens/invoices/data/invoice_pdf_privacy_guard.dart \
   lib/screens/invoices/data/invoice_pdf_template_renderer.dart \
@@ -50,7 +51,10 @@ dart analyze \
   test/cloud_backup_pdf_policy_test.dart \
   test/document_engine_operating_directive_test.dart \
   test/incoming_receipt_share_pdf_hardening_test.dart \
+  test/expense_firestore_documents_test.dart \
   test/invoice_document_engine_layout_contract_test.dart \
+  test/invoice_ledger_store_test.dart \
+  test/invoice_signature_guard_test.dart \
   test/invoice_pdf_export_verifier_contract_test.dart \
   test/invoice_pdf_preview_action_tracking_test.dart \
   test/invoice_template_pdf_factory_test.dart \
@@ -101,7 +105,10 @@ flutter test \
   test/cloud_backup_pdf_policy_test.dart \
   test/document_engine_operating_directive_test.dart \
   test/incoming_receipt_share_pdf_hardening_test.dart \
+  test/expense_firestore_documents_test.dart \
   test/invoice_document_engine_layout_contract_test.dart \
+  test/invoice_ledger_store_test.dart \
+  test/invoice_signature_guard_test.dart \
   test/invoice_pdf_export_verifier_contract_test.dart \
   test/invoice_pdf_preview_action_tracking_test.dart \
   test/invoice_template_pdf_factory_test.dart \

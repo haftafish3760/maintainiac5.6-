@@ -2633,3 +2633,23 @@
   - `flutter test test/app_document_store_test.dart test/receipt_proof_storage_lifecycle_test.dart test/pdf_typography_contract_test.dart -r compact`
   - `flutter test test/app_document_store_test.dart --plain-name 'document package import stores hash label instead of package filename' -r compact`
   - `bash tool/pdf_quality_gate.sh`
+
+## Pass 135 - 2026-07-05 13:07 EDT - PDF gate invoice data coverage
+
+- Scope: PDF quality gate coverage only. No inventory, camera, native capture,
+  OCR engine, parser behavior, or fragile invoice UI tests changed.
+- Bundled work:
+  - Added invoice ledger store analysis and tests to the PDF gate so generated
+    PDF metadata, backup batching, and cloud-safe PDF metadata stay covered.
+  - Added invoice signature guard coverage to the PDF gate so signed invoice
+    totals and line-item changes keep invalidation protection.
+  - Added expense receipt Firestore document privacy coverage to the PDF gate so
+    raw OCR/proof paths stay out of backup documents.
+  - Extended the PDF gate contract so those data/privacy tests cannot silently
+    fall out of the milestone QA run.
+- Verification completed 2026-07-05 13:07 EDT:
+  - `dart format test/pdf_quality_gate_contract_test.dart`
+  - `bash -n tool/pdf_quality_gate.sh`
+  - `dart analyze test/pdf_quality_gate_contract_test.dart test/expense_firestore_documents_test.dart test/invoice_ledger_store_test.dart test/invoice_signature_guard_test.dart lib/screens/invoices/data/invoice_ledger_store.dart`
+  - `flutter test test/pdf_quality_gate_contract_test.dart test/expense_firestore_documents_test.dart test/invoice_ledger_store_test.dart test/invoice_signature_guard_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`

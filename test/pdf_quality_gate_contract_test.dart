@@ -60,6 +60,10 @@ void main() {
       );
       expect(
         script,
+        contains('lib/screens/invoices/data/invoice_ledger_store.dart'),
+      );
+      expect(
+        script,
         contains('lib/screens/invoices/data/invoice_pdf_privacy_guard.dart'),
       );
       expect(
@@ -167,6 +171,9 @@ void main() {
         script,
         contains('test/invoice_document_engine_layout_contract_test.dart'),
       );
+      expect(script, contains('test/expense_firestore_documents_test.dart'));
+      expect(script, contains('test/invoice_ledger_store_test.dart'));
+      expect(script, contains('test/invoice_signature_guard_test.dart'));
       expect(
         script,
         contains('test/invoice_pdf_export_verifier_contract_test.dart'),
