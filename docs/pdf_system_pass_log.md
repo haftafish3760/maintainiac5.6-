@@ -1,5 +1,57 @@
 # PDF System Pass Log
 
+## Milestone - 2026-07-05 10:22 EDT - Passes 99-100 filename privacy hardening
+
+- Scope: shared generated-PDF filename and metadata privacy only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Stripped dangerous executable-style trailing extensions from generated PDF
+    filenames.
+  - Added generated-PDF filename privacy preflight coverage.
+  - Fixed separator-normalized VIN and license-plate detection for filenames
+    and metadata.
+  - Added new filename security/privacy cases to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:22 EDT:
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 100 - 2026-07-05 10:20 EDT - Generated PDF filename privacy
+
+- Scope: shared generated-PDF privacy validation only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added regression coverage proving generated PDF filenames are part of the
+    privacy preflight.
+  - Fixed vehicle privacy detection so underscore/hyphen-separated `vin` and
+    `plate` labels are blocked in filenames and metadata.
+  - Verified private filenames are refused before temporary generated-PDF
+    writes.
+  - Added the filename/privacy cases to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:20 EDT:
+  - `dart format lib/shared/pdf/app_pdf_privacy_policy.dart test/app_generated_pdf_service_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_privacy_policy_contract_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_pdf_privacy_policy.dart test/app_generated_pdf_service_test.dart test/pdf_privacy_policy_contract_test.dart`
+  - `flutter test test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 99 - 2026-07-05 10:18 EDT - Generated PDF filename hardening
+
+- Scope: shared generated-PDF filename safety only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Stripped dangerous executable-style trailing extensions before generated
+    PDF filenames are finalized.
+  - Prevented disguised names such as `.pdf.exe`, `.scr`, and `.ps1` from
+    surviving in app-generated PDF names.
+  - Added regression coverage in generated-PDF service and cross-platform
+    filename tests.
+  - Added the hostile trailing-extension case to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:18 EDT:
+  - `dart format lib/shared/pdf/app_generated_pdf_models.dart test/app_generated_pdf_service_test.dart test/pdf_cross_platform_contract_test.dart`
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_cross_platform_contract_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_models.dart test/app_generated_pdf_service_test.dart test/pdf_cross_platform_contract_test.dart`
+  - `flutter test test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze test/pdf_qa_fixture_inventory_test.dart`
+
 ## Milestone - 2026-07-05 10:15 EDT - Passes 96-98 invoice failure recovery
 
 - Scope: invoice/estimate PDF content failure recovery and date preflight only.

@@ -15,6 +15,7 @@ import 'package:maintaniac/shared/documents/app_generated_pdf_archive_service.da
 import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_service.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_storage.dart';
+import 'package:maintaniac/shared/pdf/app_pdf_privacy_policy.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -461,6 +462,15 @@ void main() {
     expect(document.safeFileName, isNot(contains(':')));
     expect(document.safeFileName, isNot(contains('*')));
     expect(document.safeFileName.length, lessThanOrEqualTo(120));
+    expect(
+      AppGeneratedPdfFileName.clean('customer_invoice.pdf.exe'),
+      'customer_invoice.pdf',
+    );
+    expect(
+      AppGeneratedPdfFileName.clean('invoice.final.PDF.scr'),
+      'invoice.final.pdf',
+    );
+    expect(AppGeneratedPdfFileName.clean('malware.exe'), 'malware.pdf');
     final defaultNameDocument = AppGeneratedPdfDocument(
       kind: AppGeneratedPdfKind.invoice,
       title: 'Invoice',
@@ -529,6 +539,33 @@ void main() {
     expect(privateSource.validation.isValid, isFalse);
     expect(privateSource.validation.hasIssue('private_vin'), isTrue);
     expect(privateSource.validation.userMessage, contains('private'));
+  });
+
+  test('generated PDF validation checks safe filename privacy', () async {
+    final document = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice_for_plate_ABC-1234.pdf',
+      bytes: Uint8List.fromList('%PDF-1.7\nInvoice\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 5),
+    );
+
+    expect(document.safeFileName, contains('plate_ABC-1234'));
+    expect(document.validation.isValid, isFalse);
+    expect(
+      document.validation.issues,
+      contains(AppPdfPrivacyPolicy.licensePlate),
+    );
+    await expectLater(
+      const AppGeneratedPdfService().writeTemporary(document),
+      throwsA(
+        isA<AppGeneratedPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('private information'),
+        ),
+      ),
+    );
   });
 
   test('generated PDF validation shares active-content policy coverage', () {

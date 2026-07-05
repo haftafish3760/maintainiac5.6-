@@ -56,6 +56,9 @@ void main() {
       'aux.',
       'invoice\u0000with\u001Fcontrols.pdf',
       'invoice\u202Efdp.exe',
+      'invoice.pdf.exe',
+      'estimate.final.PDF.scr',
+      'customer_statement.ps1',
       'estimate\u2066job42\u2069.pdf',
       'customer\uFEFFstatement.pdf',
       '.hidden-receipt.pdf',
@@ -76,6 +79,9 @@ void main() {
         ),
       );
       expect(safe, isNot(contains('..')));
+      expect(safe.toLowerCase(), isNot(contains('.exe')));
+      expect(safe.toLowerCase(), isNot(contains('.scr')));
+      expect(safe.toLowerCase(), isNot(contains('.ps1')));
       expect(safe.trim(), safe);
       expect(
         baseName,

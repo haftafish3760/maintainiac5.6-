@@ -95,6 +95,23 @@ class AppGeneratedPdfFileName {
     'lpt8',
     'lpt9',
   };
+  static const Set<String> _dangerousTrailingExtensions = {
+    'apk',
+    'bat',
+    'cmd',
+    'com',
+    'dmg',
+    'exe',
+    'ipa',
+    'jar',
+    'js',
+    'msi',
+    'pkg',
+    'ps1',
+    'scr',
+    'sh',
+    'vbs',
+  };
 
   static String clean(String fileName) {
     final cleaned = fileName
@@ -122,11 +139,30 @@ class AppGeneratedPdfFileName {
       RegExp(r'^[.\s-]+|[.\s-]+$'),
       '',
     );
+    baseName = _stripDangerousTrailingExtensions(baseName);
+    if (baseName.toLowerCase().endsWith('.pdf')) {
+      baseName = baseName.substring(0, baseName.length - 4).trim();
+    }
     if (baseName.isEmpty) baseName = 'maintainiac-document';
     if (_windowsReservedNames.contains(baseName.toLowerCase())) {
       return 'maintainiac-$baseName';
     }
     return baseName;
+  }
+
+  static String _stripDangerousTrailingExtensions(String value) {
+    var cleaned = value;
+    while (true) {
+      final dotIndex = cleaned.lastIndexOf('.');
+      if (dotIndex <= 0 || dotIndex == cleaned.length - 1) return cleaned;
+      final extension = cleaned.substring(dotIndex + 1).toLowerCase();
+      if (!_dangerousTrailingExtensions.contains(extension)) return cleaned;
+      cleaned = cleaned
+          .substring(0, dotIndex)
+          .trim()
+          .replaceAll(RegExp(r'^[.\s-]+|[.\s-]+$'), '');
+      if (cleaned.isEmpty) return cleaned;
+    }
   }
 }
 

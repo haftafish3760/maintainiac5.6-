@@ -226,7 +226,9 @@
         "generated_pdf_archive_human_label_privacy",
         "generated_pdf_share_outside_storage_block",
         "generated_pdf_share_symlink_block",
-        "generated_pdf_encrypted_output_block"
+        "generated_pdf_encrypted_output_block",
+        "generated_pdf_filename_privacy_block",
+        "separator_normalized_vehicle_privacy_block"
       ]
     },
     "pdf_to_receipt_review": {
@@ -322,6 +324,7 @@
         "windows_reserved_device_name",
         "control_character_filename",
         "unicode_bidi_override_filename",
+        "dangerous_trailing_extension_filename",
         "unicode_isolate_filename",
         "unicode_bom_filename",
         "traversal_like_filename"
