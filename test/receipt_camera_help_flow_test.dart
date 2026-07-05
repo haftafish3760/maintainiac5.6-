@@ -86,16 +86,16 @@ void main() {
     expect(settingsSheet, contains('Receipt Photo Help'));
     expect(settingsSheet, isNot(contains('How Receipt Photos Work')));
     expect(helpSheet, contains('Receipt Photo Help'));
-    expect(helpSheet, contains('Before Your First Receipt Photo'));
+    expect(helpSheet, contains('Receipt Camera Setup'));
     expect(helpSheet, contains('Continue To Camera'));
     expect(helpSheet, contains('Open Receipt Settings'));
     expect(helpSheet, contains('Clear Photo First'));
-    expect(helpSheet, contains('Review Before Saving'));
-    expect(helpSheet, contains('Receipt Camera Controls'));
+    expect(helpSheet, contains('App-Assisted Fill'));
+    expect(helpSheet, contains('Receipt Controls'));
     expect(
       helpSheet,
       contains(
-        'Use the in-camera settings for receipt help, long receipt guidance, flash, readability guidance, and saved proof size.',
+        'Use flash, readability guidance, long receipt help, and proof-size settings when they help.',
       ),
     );
     expect(helpSheet, contains('continuous autofocus/readability guidance'));

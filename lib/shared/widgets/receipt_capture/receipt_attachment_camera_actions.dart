@@ -247,18 +247,21 @@ extension _ReceiptAttachmentCameraActions
   Future<bool> _showFirstUseReceiptCameraIntro(
     ReceiptCaptureSettingsController settings,
   ) async {
-    final action = await showModalBottomSheet<_ReceiptFirstUseCameraAction>(
-      context: context,
-      backgroundColor: const Color(0xFF161D20),
-      showDragHandle: true,
-      builder: (context) => _ReceiptFirstUseCameraIntroSheet(
-        area: widget.area,
-        profile: settings.effectiveCameraRuntimeProfile,
-        installChoice: settings.deviceCapability
-            .cloudAssistPlanFor(dataSaverLevel: settings.defaultDataSaverLevel)
-            .parserPackInstallChoice,
-      ),
-    );
+    final action = await Navigator.of(context)
+        .push<_ReceiptFirstUseCameraAction>(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (context) => _ReceiptFirstUseCameraIntroSheet(
+              area: widget.area,
+              profile: settings.effectiveCameraRuntimeProfile,
+              installChoice: settings.deviceCapability
+                  .cloudAssistPlanFor(
+                    dataSaverLevel: settings.defaultDataSaverLevel,
+                  )
+                  .parserPackInstallChoice,
+            ),
+          ),
+        );
     if (!mounted || action == null) return false;
     await settings.setCameraSetupComplete(true);
     if (!mounted) return false;

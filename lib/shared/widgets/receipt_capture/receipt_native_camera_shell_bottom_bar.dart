@@ -27,18 +27,14 @@ class _ReceiptNativeCameraBottomBar extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
+        minimum: const EdgeInsets.only(bottom: 8),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 16, 12, 14),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _ReceiptNativeCameraNextStepStrip(
-                settings: settings,
-                capabilities: capabilities,
-              ),
-              const SizedBox(height: 10),
               Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: _ReceiptNativeCameraModePill(
@@ -49,12 +45,12 @@ class _ReceiptNativeCameraBottomBar extends StatelessWidget {
                           ? 'Receipt assist'
                           : 'Manual receipt',
                       detail: settings.assistedReceiptFill
-                          ? 'Next reviews text'
-                          : 'Save photo only',
+                          ? 'Review next'
+                          : 'Photo only',
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: _ReceiptNativeCameraShutterButton(
                       capturing: capturing,
                       onPressed: capturing ? null : onCapture,
@@ -69,6 +65,11 @@ class _ReceiptNativeCameraBottomBar extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 8),
+              _ReceiptNativeCameraNextStepStrip(
+                settings: settings,
+                capabilities: capabilities,
               ),
             ],
           ),

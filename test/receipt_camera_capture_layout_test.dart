@@ -279,4 +279,43 @@ void main() {
     );
     expect(previewActionTray, contains('isPhoneCameraBackupCapture'));
   });
+
+  test(
+    'first-use receipt camera setup is full screen, not a slide-up sheet',
+    () async {
+      final actions = await readReceiptAttachmentImportActionsSource();
+      final intro = await File(
+        'lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart',
+      ).readAsString();
+      final bottomBar = await File(
+        'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart',
+      ).readAsString();
+
+      final firstUseStart = actions.indexOf(
+        'Future<bool> _showFirstUseReceiptCameraIntro',
+      );
+      final firstUseEnd = actions.indexOf(
+        'String _nativeCameraOpenErrorMessage',
+        firstUseStart,
+      );
+      final firstUseBlock = actions.substring(firstUseStart, firstUseEnd);
+
+      expect(firstUseBlock, contains('Navigator.of(context)'));
+      expect(firstUseBlock, contains('.push<_ReceiptFirstUseCameraAction>'));
+      expect(firstUseBlock, contains('MaterialPageRoute'));
+      expect(firstUseBlock, contains('fullscreenDialog: true'));
+      expect(firstUseBlock, isNot(contains('showModalBottomSheet')));
+      expect(intro, contains('return Scaffold('));
+      expect(intro, contains('Receipt Camera Setup'));
+      expect(intro, contains('ListView('));
+      expect(intro, contains('Continue To Camera'));
+      expect(intro, contains('Open Receipt Settings'));
+      expect(bottomBar, contains('SafeArea('));
+      expect(bottomBar, contains('minimum: const EdgeInsets.only(bottom: 8)'));
+      expect(
+        bottomBar.indexOf('_ReceiptNativeCameraShutterButton'),
+        lessThan(bottomBar.indexOf('_ReceiptNativeCameraNextStepStrip')),
+      );
+    },
+  );
 }
