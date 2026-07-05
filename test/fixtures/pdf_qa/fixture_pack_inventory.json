@@ -282,6 +282,10 @@
         "receipt_generation_total_mismatch_block",
         "receipt_generation_private_metadata_block",
         "receipt_generation_landscape_page_format",
+        "receipt_generation_portrait_landscape_image_embedding",
+        "receipt_generation_empty_image_block",
+        "receipt_generation_unsupported_image_block",
+        "receipt_generation_too_many_images_block",
         "receipt_generation_archive_mapping",
         "receipt_generation_determinism"
       ]
@@ -311,6 +315,7 @@
       ],
       "fixtureKeys": [
         "sample_receipt_pdf",
+        "sample_receipt_pdf_embedded_portrait_landscape_images",
         "sample_invoice_pdf",
         "landscape_invoice_pdf",
         "poppler_first_page_png",

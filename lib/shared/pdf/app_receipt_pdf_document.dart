@@ -1,11 +1,16 @@
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'app_generated_pdf_models.dart';
 import 'app_pdf_determinism.dart';
 import 'app_pdf_formatters.dart';
 import 'app_pdf_page_spec.dart';
+
+const int appReceiptPdfMaxEmbeddedImages = 12;
+const int appReceiptPdfMaxEmbeddedImageBytes = 10 * 1024 * 1024;
+const int appReceiptPdfMaxTotalEmbeddedImageBytes = 24 * 1024 * 1024;
 
 class AppReceiptPdfLine {
   const AppReceiptPdfLine({
@@ -35,6 +40,31 @@ class AppReceiptPdfLine {
   String get totalLabel => AppPdfFormatters.moneyCents(totalCents);
 }
 
+class AppReceiptPdfImage {
+  const AppReceiptPdfImage({
+    required this.bytes,
+    this.label = '',
+    this.sourcePageNumber,
+  });
+
+  final Uint8List bytes;
+  final String label;
+  final int? sourcePageNumber;
+
+  String get safeLabel => _cleanText(label);
+
+  String get displayLabel {
+    final page = sourcePageNumber;
+    final base = safeLabel.isEmpty ? 'Receipt proof image' : safeLabel;
+    if (page == null || page < 1) return base;
+    return '$base $page';
+  }
+
+  int get byteSize => bytes.lengthInBytes;
+
+  String get sha256Hex => sha256.convert(bytes).toString();
+}
+
 class AppReceiptPdfData {
   const AppReceiptPdfData({
     required this.merchantName,
@@ -49,6 +79,7 @@ class AppReceiptPdfData {
     this.tipCents,
     this.totalCents,
     this.notes = '',
+    this.proofImages = const [],
   });
 
   final String merchantName;
@@ -63,6 +94,7 @@ class AppReceiptPdfData {
   final int? tipCents;
   final int? totalCents;
   final String notes;
+  final List<AppReceiptPdfImage> proofImages;
 
   int get confirmedLineTotalCents =>
       lines.fold<int>(0, (total, line) => total + line.totalCents);
@@ -90,6 +122,9 @@ class AppReceiptPdfData {
   String get safeBusinessUseLabel => _cleanText(businessUseLabel);
 
   String get safeNotes => _cleanText(notes);
+
+  int get totalProofImageBytes =>
+      proofImages.fold<int>(0, (total, image) => total + image.byteSize);
 }
 
 class AppReceiptPdfRenderer {
@@ -116,6 +151,7 @@ class AppReceiptPdfRenderer {
         'Maintainiac stopped this receipt PDF because the confirmed line totals do not match the receipt total.',
       );
     }
+    _validateProofImages(data.proofImages);
     final generatedAt = createdAt ?? DateTime.now();
     final pdf = pw.Document();
     pdf.addPage(
@@ -131,6 +167,10 @@ class AppReceiptPdfRenderer {
           _lineTable(data),
           pw.SizedBox(height: 12),
           _totals(data),
+          if (data.proofImages.isNotEmpty) ...[
+            pw.SizedBox(height: 16),
+            ..._receiptProofImages(data.proofImages),
+          ],
           if (data.safeNotes.isNotEmpty) ...[
             pw.SizedBox(height: 12),
             _notes(data.safeNotes),
@@ -163,6 +203,15 @@ class AppReceiptPdfRenderer {
         data.tipCents,
         data.safeTotalCents,
         data.safeNotes,
+        data.proofImages
+            .map(
+              (image) => [
+                image.displayLabel,
+                image.byteSize,
+                image.sha256Hex,
+              ].join('|'),
+            )
+            .join('||'),
       ].join('\n'),
     );
     final document = AppGeneratedPdfDocument(
@@ -284,6 +333,72 @@ class AppReceiptPdfRenderer {
     );
   }
 
+  List<pw.Widget> _receiptProofImages(List<AppReceiptPdfImage> images) {
+    return [
+      pw.Text(
+        'Receipt Proof Images',
+        style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+      ),
+      pw.SizedBox(height: 8),
+      for (final entry in images.indexed) ...[
+        pw.Text(
+          entry.$2.displayLabel,
+          style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.SizedBox(height: 4),
+        pw.Container(
+          height: 330,
+          width: double.infinity,
+          decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
+          padding: const pw.EdgeInsets.all(6),
+          child: pw.Image(
+            pw.MemoryImage(entry.$2.bytes),
+            fit: pw.BoxFit.contain,
+            alignment: pw.Alignment.center,
+          ),
+        ),
+        pw.Text(
+          'Proof image SHA-256: ${entry.$2.sha256Hex}',
+          style: const pw.TextStyle(fontSize: 6),
+        ),
+        if (entry.$1 != images.length - 1) pw.SizedBox(height: 12),
+      ],
+    ];
+  }
+
+  void _validateProofImages(List<AppReceiptPdfImage> proofImages) {
+    if (proofImages.length > appReceiptPdfMaxEmbeddedImages) {
+      throw const AppReceiptPdfException(
+        'Maintainiac stopped this receipt PDF because it has too many receipt proof images.',
+      );
+    }
+    var totalBytes = 0;
+    for (final image in proofImages) {
+      final byteSize = image.byteSize;
+      if (byteSize == 0) {
+        throw const AppReceiptPdfException(
+          'Maintainiac stopped this receipt PDF because a receipt proof image was empty.',
+        );
+      }
+      if (byteSize > appReceiptPdfMaxEmbeddedImageBytes) {
+        throw const AppReceiptPdfException(
+          'Maintainiac stopped this receipt PDF because a receipt proof image was too large.',
+        );
+      }
+      if (!_isSupportedReceiptImage(image.bytes)) {
+        throw const AppReceiptPdfException(
+          'Maintainiac stopped this receipt PDF because a receipt proof image was not a supported image file.',
+        );
+      }
+      totalBytes += byteSize;
+    }
+    if (totalBytes > appReceiptPdfMaxTotalEmbeddedImageBytes) {
+      throw const AppReceiptPdfException(
+        'Maintainiac stopped this receipt PDF because the receipt proof images were too large together.',
+      );
+    }
+  }
+
   String _fileNameFor(AppReceiptPdfData data) {
     final merchant = data.safeMerchantName
         .toLowerCase()
@@ -303,6 +418,27 @@ class AppReceiptPdfException implements Exception {
 
   @override
   String toString() => message;
+}
+
+bool _isSupportedReceiptImage(Uint8List bytes) {
+  if (bytes.length >= 8 &&
+      bytes[0] == 0x89 &&
+      bytes[1] == 0x50 &&
+      bytes[2] == 0x4E &&
+      bytes[3] == 0x47 &&
+      bytes[4] == 0x0D &&
+      bytes[5] == 0x0A &&
+      bytes[6] == 0x1A &&
+      bytes[7] == 0x0A) {
+    return true;
+  }
+  if (bytes.length >= 3 &&
+      bytes[0] == 0xFF &&
+      bytes[1] == 0xD8 &&
+      bytes[2] == 0xFF) {
+    return true;
+  }
+  return false;
 }
 
 String _cleanText(String value) {

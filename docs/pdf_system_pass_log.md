@@ -1,5 +1,47 @@
 # PDF System Pass Log
 
+## Milestone - 2026-07-05 09:41 EDT - Passes 84-85 receipt image embedding and render proof
+
+- Scope: shared receipt PDF generation and render QA only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added receipt proof image embedding for portrait and landscape receipt
+    images with deterministic hashing and size/type guards.
+  - Added the image-backed receipt sample to the render smoke gate fixture.
+  - Added receipt-image regression coverage to the PDF QA registry.
+- Verification completed 2026-07-05 09:41 EDT:
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 85 - 2026-07-05 09:40 EDT - Receipt proof render fixture
+
+- Scope: shared PDF render QA fixture only. No inventory, camera, native
+  capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Updated the sample receipt PDF generator to include synthetic portrait and
+    landscape proof images.
+  - Added the embedded-image receipt sample to the PDF QA fixture registry.
+  - Verified Poppler rendering for the generated multi-page receipt PDF.
+- Verification completed 2026-07-05 09:40 EDT:
+  - `dart format tool/generate_sample_receipt_pdf.dart lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+  - `dart analyze tool/generate_sample_receipt_pdf.dart lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+  - `dart run tool/generate_sample_receipt_pdf.dart /tmp/maintainiac_pass85_receipt.pdf`
+  - `bash tool/pdf_render_smoke_gate.sh`
+
+## Pass 84 - 2026-07-05 09:38 EDT - Receipt proof image embedding
+
+- Scope: shared receipt PDF generation only. No inventory, camera, native
+  capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added receipt proof image embedding for portrait and landscape receipt
+    images with contain scaling.
+  - Added image count, empty image, unsupported image, per-image size, and
+    total image size guards.
+  - Added deterministic proof-image hashing and PDF QA registry coverage.
+- Verification completed 2026-07-05 09:39 EDT:
+  - `dart format lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+  - `flutter test test/app_receipt_pdf_document_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+
 ## Milestone - 2026-07-05 09:34 EDT - Passes 82-83 receipt PDF validation and archive proof
 
 - Scope: shared receipt PDF validation and generated receipt PDF archive mapping

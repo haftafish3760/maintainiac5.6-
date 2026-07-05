@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
 import 'package:maintaniac/shared/pdf/app_pdf_page_spec.dart';
 import 'package:maintaniac/shared/pdf/app_pdf_text_decoder.dart';
@@ -136,6 +138,124 @@ void main() {
     expect(boxes, isNotEmpty);
     expect(boxes.every((box) => box.isLandscape), isTrue);
   });
+
+  test(
+    'receipt PDF renderer embeds portrait and landscape proof images',
+    () async {
+      const renderer = AppReceiptPdfRenderer();
+      final portrait = AppReceiptPdfImage(
+        bytes: _receiptPng(width: 240, height: 520),
+        label: 'Portrait receipt proof',
+        sourcePageNumber: 1,
+      );
+      final landscape = AppReceiptPdfImage(
+        bytes: _receiptPng(width: 520, height: 240),
+        label: 'Landscape receipt proof',
+        sourcePageNumber: 2,
+      );
+
+      final first = await renderer.buildReceiptDocument(
+        data: _receiptData(lineCount: 4, proofImages: [portrait, landscape]),
+        createdAt: DateTime.utc(2026, 7, 5, 12),
+        theme: await AppPdfTypography.loadTheme(),
+      );
+      final second = await renderer.buildReceiptDocument(
+        data: _receiptData(lineCount: 4, proofImages: [portrait, landscape]),
+        createdAt: DateTime.utc(2026, 7, 5, 12),
+        theme: await AppPdfTypography.loadTheme(),
+      );
+      final decoded = AppPdfTextDecoder.textWithDecodedPdfStreams(first.bytes);
+      final raw = latin1.decode(first.bytes, allowInvalid: true);
+
+      expect(first.validation.isValid, isTrue);
+      expect(first.bytes, second.bytes);
+      expect(decoded, contains('Receipt'));
+      expect(decoded, contains('Proof'));
+      expect(decoded, contains('Images'));
+      expect(decoded, contains('Portrait'));
+      expect(decoded, contains('Landscape'));
+      expect(decoded, contains('receipt'));
+      expect(decoded, contains('proof'));
+      expect(decoded, contains(portrait.sha256Hex));
+      expect(decoded, contains(landscape.sha256Hex));
+      expect(
+        RegExp(r'/Subtype\s*/Image').allMatches(raw).length,
+        greaterThanOrEqualTo(2),
+      );
+    },
+  );
+
+  test('receipt PDF renderer refuses empty proof image bytes', () async {
+    final data = _receiptData(
+      lineCount: 1,
+      proofImages: [AppReceiptPdfImage(bytes: Uint8List(0), label: 'empty')],
+    );
+
+    await expectLater(
+      const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: data,
+        theme: await AppPdfTypography.loadTheme(),
+      ),
+      throwsA(
+        isA<AppReceiptPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('receipt proof image was empty'),
+        ),
+      ),
+    );
+  });
+
+  test('receipt PDF renderer refuses unsupported proof image bytes', () async {
+    final data = _receiptData(
+      lineCount: 1,
+      proofImages: [
+        AppReceiptPdfImage(
+          bytes: Uint8List.fromList([1, 2, 3, 4]),
+          label: 'not an image',
+        ),
+      ],
+    );
+
+    await expectLater(
+      const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: data,
+        theme: await AppPdfTypography.loadTheme(),
+      ),
+      throwsA(
+        isA<AppReceiptPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('not a supported image file'),
+        ),
+      ),
+    );
+  });
+
+  test('receipt PDF renderer refuses too many proof images', () async {
+    final image = AppReceiptPdfImage(bytes: _receiptPng());
+    final data = _receiptData(
+      lineCount: 1,
+      proofImages: [
+        for (var index = 0; index < appReceiptPdfMaxEmbeddedImages + 1; index++)
+          image,
+      ],
+    );
+
+    await expectLater(
+      const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: data,
+        theme: await AppPdfTypography.loadTheme(),
+      ),
+      throwsA(
+        isA<AppReceiptPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('too many receipt proof images'),
+        ),
+      ),
+    );
+  });
 }
 
 AppReceiptPdfData _receiptData({
@@ -143,6 +263,7 @@ AppReceiptPdfData _receiptData({
   bool confirmedByUser = true,
   String merchantName = 'Supply House',
   int totalCents = 45678,
+  List<AppReceiptPdfImage> proofImages = const [],
 }) {
   return AppReceiptPdfData(
     merchantName: merchantName,
@@ -155,6 +276,7 @@ AppReceiptPdfData _receiptData({
     taxCents: 3570,
     totalCents: totalCents,
     notes: 'Confirmed by user before export.',
+    proofImages: proofImages,
     lines: [
       for (var index = 1; index <= lineCount; index++)
         AppReceiptPdfLine(
@@ -166,6 +288,32 @@ AppReceiptPdfData _receiptData({
         ),
     ],
   );
+}
+
+Uint8List _receiptPng({int width = 240, int height = 480}) {
+  final image = img.Image(width: width, height: height);
+  img.fill(image, color: img.ColorRgb8(250, 250, 250));
+  for (var y = 20; y < height - 20; y += 34) {
+    img.drawLine(
+      image,
+      x1: 18,
+      y1: y,
+      x2: width - 18,
+      y2: y,
+      color: img.ColorRgb8(40, 40, 40),
+      thickness: 2,
+    );
+  }
+  img.drawRect(
+    image,
+    x1: 4,
+    y1: 4,
+    x2: width - 5,
+    y2: height - 5,
+    color: img.ColorRgb8(70, 70, 70),
+    thickness: 2,
+  );
+  return Uint8List.fromList(img.encodePng(image));
 }
 
 List<_MediaBox> _mediaBoxes(List<int> bytes) {
