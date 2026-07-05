@@ -144,6 +144,7 @@ class AppGeneratedPdfArchiveService {
       AppGeneratedPdfKind.customerStatement => AppDocumentKind.invoiceDocument,
       AppGeneratedPdfKind.maintenanceReport =>
         AppDocumentKind.maintenanceRecord,
+      AppGeneratedPdfKind.receipt ||
       AppGeneratedPdfKind.expenseExport ||
       AppGeneratedPdfKind.inventoryReport => AppDocumentKind.otherDocument,
     };

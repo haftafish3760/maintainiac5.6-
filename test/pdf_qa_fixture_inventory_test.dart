@@ -38,6 +38,7 @@ void main() {
         'storage_cleanup',
         'privacy_and_security_logs',
         'pdf_to_receipt_review',
+        'receipt_generation',
         'invoice_generation',
         'cross_platform_storage',
         'render_smoke',

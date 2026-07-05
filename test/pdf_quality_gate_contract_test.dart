@@ -43,6 +43,7 @@ void main() {
       expect(script, contains('cmp -s /tmp/maintainiac_gate_invoice_a.pdf'));
       expect(script, contains('cmp -s /tmp/maintainiac_gate_receipt_a.pdf'));
       expect(script, contains('dart analyze'));
+      expect(script, contains('tool/generate_sample_receipt_pdf.dart'));
       expect(script, contains('flutter test'));
       expect(script, contains('git diff --check'));
       expect(script, contains('lib/shared/pdf'));
@@ -99,6 +100,7 @@ void main() {
         contains('test/app_generated_pdf_archive_recovery_test.dart'),
       );
       expect(script, contains('test/app_generated_pdf_service_test.dart'));
+      expect(script, contains('test/app_receipt_pdf_document_test.dart'));
       expect(script, contains('test/app_document_export_manifest_test.dart'));
       expect(
         script,

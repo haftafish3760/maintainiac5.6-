@@ -268,6 +268,21 @@
         "internal_record_id_export_block"
       ]
     },
+    "receipt_generation": {
+      "status": "covered",
+      "currentTestFiles": [
+        "test/app_receipt_pdf_document_test.dart",
+        "test/app_generated_pdf_service_test.dart",
+        "test/pdf_quality_gate_contract_test.dart"
+      ],
+      "fixtureKeys": [
+        "generated_confirmed_receipt_pdf",
+        "receipt_generation_requires_user_confirmation",
+        "receipt_generation_private_metadata_block",
+        "receipt_generation_landscape_page_format",
+        "receipt_generation_determinism"
+      ]
+    },
     "cross_platform_storage": {
       "status": "covered",
       "currentTestFiles": [

@@ -1,5 +1,38 @@
 # PDF System Pass Log
 
+## Milestone - 2026-07-05 09:29 EDT - Pass 81 confirmed receipt PDFs
+
+- Scope: shared receipt PDF generation only. No inventory, camera, native
+  capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added reusable confirmed receipt PDF generation with deterministic output,
+    user-confirmation guardrails, privacy validation, and portrait/landscape
+    support.
+  - Added receipt PDF generation to the shared PDF quality gate and fixture
+    registry.
+  - Moved the sample receipt render smoke fixture onto the shared receipt
+    renderer.
+- Verification completed 2026-07-05 09:29 EDT:
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 81 - 2026-07-05 09:24 EDT - Confirmed receipt PDF generation
+
+- Scope: shared confirmed receipt PDF generation only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added a reusable receipt PDF renderer for confirmed receipt data.
+  - Added receipt PDF validation for user confirmation, privacy blocks,
+    deterministic output, and portrait/landscape page formats.
+  - Added a generated PDF receipt kind and archive mapping.
+  - Moved the sample receipt PDF tool onto the shared receipt renderer instead
+    of one-off PDF drawing.
+  - Wired receipt generation into the PDF quality gate and fixture registry.
+- Verification completed 2026-07-05 09:28 EDT:
+  - `dart format lib/shared/pdf/app_receipt_pdf_document.dart tool/generate_sample_receipt_pdf.dart test/app_receipt_pdf_document_test.dart`
+  - `flutter test test/app_receipt_pdf_document_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_models.dart lib/shared/documents/app_generated_pdf_archive_service.dart lib/shared/pdf/app_receipt_pdf_document.dart tool/generate_sample_receipt_pdf.dart test/app_receipt_pdf_document_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `dart run tool/generate_sample_receipt_pdf.dart /tmp/maintainiac_pass81_receipt.pdf`
+
 ## Milestone - 2026-07-05 09:21 EDT - Passes 78-80 render and share hardening
 
 - Scope: PDF/Document Engine QA and generated PDF share/storage only. No

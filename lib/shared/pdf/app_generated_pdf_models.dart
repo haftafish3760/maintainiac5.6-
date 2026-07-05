@@ -7,6 +7,7 @@ import 'app_pdf_security_policy.dart';
 const int appGeneratedPdfMaxBytes = 25 * 1024 * 1024;
 
 enum AppGeneratedPdfKind {
+  receipt,
   estimate,
   invoice,
   expenseExport,
@@ -40,6 +41,7 @@ class AppGeneratedPdfDocument {
 
   String get kindLabel {
     return switch (kind) {
+      AppGeneratedPdfKind.receipt => 'Receipt',
       AppGeneratedPdfKind.estimate => 'Estimate',
       AppGeneratedPdfKind.invoice => 'Invoice',
       AppGeneratedPdfKind.expenseExport => 'Expense Export',

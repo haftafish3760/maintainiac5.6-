@@ -11,6 +11,7 @@ python3 -m py_compile tool/pdf_render_pixel_assertions.py
 
 dart analyze \
   tool/generate_sample_invoice_pdf.dart \
+  tool/generate_sample_receipt_pdf.dart \
   lib/shared/pdf \
   lib/shared/documents/app_document_import_service.dart \
   lib/shared/documents/app_document_export_manifest.dart \
@@ -28,6 +29,7 @@ dart analyze \
   lib/screens/invoices/data/invoice_pdf_template_renderer.dart \
   test/app_generated_pdf_archive_recovery_test.dart \
   test/app_generated_pdf_service_test.dart \
+  test/app_receipt_pdf_document_test.dart \
   test/app_document_export_manifest_test.dart \
   test/app_document_export_package_writer_test.dart \
   test/app_document_store_test.dart \
@@ -68,6 +70,7 @@ bash tool/pdf_render_smoke_gate.sh
 flutter test \
   test/app_generated_pdf_archive_recovery_test.dart \
   test/app_generated_pdf_service_test.dart \
+  test/app_receipt_pdf_document_test.dart \
   test/app_document_export_manifest_test.dart \
   test/app_document_export_package_writer_test.dart \
   test/app_document_store_test.dart \
