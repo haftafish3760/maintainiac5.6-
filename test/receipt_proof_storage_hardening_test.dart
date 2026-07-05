@@ -325,6 +325,314 @@ void main() {
   );
 
   test(
+    'rollback restore refuses saved proof symlink sources',
+    () async {
+      final stagingRoot = Directory(
+        '${documentsDirectory.path}/receipt_proofs_staging',
+      );
+      final proofRoot = Directory('${documentsDirectory.path}/receipt_proofs');
+      final proofPdfRoot = Directory('${proofRoot.path}/pdfs');
+      await stagingRoot.create(recursive: true);
+      await proofPdfRoot.create(recursive: true);
+
+      final outsideTarget = File('${Directory.systemTemp.path}/private.pdf');
+      await outsideTarget.writeAsString(
+        '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
+        flush: true,
+      );
+      final savedLink = Link('${proofPdfRoot.path}/saved-link.pdf');
+      await savedLink.create(outsideTarget.path);
+      final stagedPath = '${stagingRoot.path}/missing-staged.pdf';
+      addTearDown(() async {
+        if (await savedLink.exists()) await savedLink.delete();
+        if (outsideTarget.existsSync()) outsideTarget.deleteSync();
+        final staged = File(stagedPath);
+        if (staged.existsSync()) staged.deleteSync();
+      });
+
+      await ReceiptProofStorage.instance.rollbackPersistedAttachments(
+        [
+          ReceiptAttachmentRecord(
+            id: 'rollback-link',
+            path: savedLink.path,
+            kind: ReceiptAttachmentKind.pdf,
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+            createdAt: DateTime(2026, 7, 5),
+            storageState: ReceiptAttachmentStorageState.permanent,
+          ),
+        ],
+        [
+          ReceiptAttachmentRecord(
+            id: 'rollback-link',
+            path: stagedPath,
+            kind: ReceiptAttachmentKind.pdf,
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+            createdAt: DateTime(2026, 7, 5),
+            storageState: ReceiptAttachmentStorageState.staged,
+          ),
+        ],
+      );
+
+      expect(await File(stagedPath).exists(), isFalse);
+      expect(await savedLink.exists(), isFalse);
+      expect(await outsideTarget.exists(), isTrue);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
+    'rollback restore rechecks saved proof before replacing staged copy',
+    () {
+      final source = File(
+        'lib/shared/widgets/receipt_capture/receipt_proof_storage.dart',
+      ).readAsStringSync();
+
+      expect(
+        source,
+        contains('final expectedSavedBytes = await _safeLength(savedFile);'),
+      );
+      expect(
+        source,
+        contains('final expectedSavedHash = await _safeHash(savedFile);'),
+      );
+      expect(source, contains('await _rejectSymlinkedStoragePath'));
+      expect(
+        source,
+        contains(r"final temp = File('${staged.path}.restore_partial');"),
+      );
+      expect(source, contains('await savedFile.copy(temp.path);'));
+      expect(source, contains('currentSavedBytes != expectedSavedBytes'));
+      expect(source, contains('currentSavedHash != expectedSavedHash'));
+      expect(source, contains('await temp.rename(staged.path);'));
+    },
+  );
+
+  test(
+    'rollback restore refuses symlinked staged parent directory',
+    () async {
+      final outsideStaging = await Directory.systemTemp.createTemp(
+        'outside_rollback_staging_',
+      );
+      final stagingLink = Link(
+        '${documentsDirectory.path}/receipt_proofs_staging',
+      );
+      await stagingLink.create(outsideStaging.path);
+
+      final proofRoot = Directory('${documentsDirectory.path}/receipt_proofs');
+      final proofPdfRoot = Directory('${proofRoot.path}/pdfs');
+      await proofPdfRoot.create(recursive: true);
+      final saved = File('${proofPdfRoot.path}/saved-proof.pdf');
+      await saved.writeAsString(
+        '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
+        flush: true,
+      );
+      final stagedPath = '${stagingLink.path}/restore-target.pdf';
+      addTearDown(() async {
+        if (saved.existsSync()) saved.deleteSync();
+        if (await stagingLink.exists()) await stagingLink.delete();
+        if (await outsideStaging.exists()) {
+          await outsideStaging.delete(recursive: true);
+        }
+      });
+
+      await ReceiptProofStorage.instance.rollbackPersistedAttachments(
+        [
+          ReceiptAttachmentRecord(
+            id: 'rollback-symlink-parent',
+            path: saved.path,
+            kind: ReceiptAttachmentKind.pdf,
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+            createdAt: DateTime(2026, 7, 5),
+            storageState: ReceiptAttachmentStorageState.permanent,
+          ),
+        ],
+        [
+          ReceiptAttachmentRecord(
+            id: 'rollback-symlink-parent',
+            path: stagedPath,
+            kind: ReceiptAttachmentKind.pdf,
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+            createdAt: DateTime(2026, 7, 5),
+            storageState: ReceiptAttachmentStorageState.staged,
+          ),
+        ],
+      );
+
+      expect(await File(stagedPath).exists(), isFalse);
+      expect(await outsideStaging.list().isEmpty, isTrue);
+      expect(await saved.exists(), isFalse);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
+    'rollback restore replaces stale partial link without touching target',
+    () async {
+      final stagingRoot = Directory(
+        '${documentsDirectory.path}/receipt_proofs_staging',
+      );
+      final proofRoot = Directory('${documentsDirectory.path}/receipt_proofs');
+      final proofPdfRoot = Directory('${proofRoot.path}/pdfs');
+      await stagingRoot.create(recursive: true);
+      await proofPdfRoot.create(recursive: true);
+
+      final saved = File('${proofPdfRoot.path}/saved-proof.pdf');
+      await saved.writeAsString(
+        '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
+        flush: true,
+      );
+      final outsideTarget = File('${Directory.systemTemp.path}/outside.pdf');
+      await outsideTarget.writeAsString('do not delete', flush: true);
+      final stagedPath = '${stagingRoot.path}/restore-target.pdf';
+      final partialLink = Link('$stagedPath.restore_partial');
+      await partialLink.create(outsideTarget.path);
+      addTearDown(() async {
+        if (saved.existsSync()) saved.deleteSync();
+        final staged = File(stagedPath);
+        if (staged.existsSync()) staged.deleteSync();
+        if (await partialLink.exists()) await partialLink.delete();
+        if (outsideTarget.existsSync()) outsideTarget.deleteSync();
+      });
+
+      await ReceiptProofStorage.instance.rollbackPersistedAttachments(
+        [
+          ReceiptAttachmentRecord(
+            id: 'rollback-partial-link',
+            path: saved.path,
+            kind: ReceiptAttachmentKind.pdf,
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+            createdAt: DateTime(2026, 7, 5),
+            storageState: ReceiptAttachmentStorageState.permanent,
+          ),
+        ],
+        [
+          ReceiptAttachmentRecord(
+            id: 'rollback-partial-link',
+            path: stagedPath,
+            kind: ReceiptAttachmentKind.pdf,
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+            createdAt: DateTime(2026, 7, 5),
+            storageState: ReceiptAttachmentStorageState.staged,
+          ),
+        ],
+      );
+
+      expect(await File(stagedPath).exists(), isTrue);
+      expect(await partialLink.exists(), isFalse);
+      expect(await outsideTarget.exists(), isTrue);
+      expect(await saved.exists(), isFalse);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
+    'rollback restore refuses staged destinations outside app storage',
+    () async {
+      final proofRoot = Directory('${documentsDirectory.path}/receipt_proofs');
+      final proofPdfRoot = Directory('${proofRoot.path}/pdfs');
+      await proofPdfRoot.create(recursive: true);
+      final saved = File('${proofPdfRoot.path}/saved-proof.pdf');
+      await saved.writeAsString(
+        '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
+        flush: true,
+      );
+      final outsideDir = await Directory.systemTemp.createTemp(
+        'outside_restore_destination_',
+      );
+      final outsideStagedPath = '${outsideDir.path}/restore-target.pdf';
+      addTearDown(() async {
+        if (saved.existsSync()) saved.deleteSync();
+        final outsideStaged = File(outsideStagedPath);
+        if (outsideStaged.existsSync()) outsideStaged.deleteSync();
+        if (await outsideDir.exists()) await outsideDir.delete(recursive: true);
+      });
+
+      await ReceiptProofStorage.instance.rollbackPersistedAttachments(
+        [
+          ReceiptAttachmentRecord(
+            id: 'rollback-outside-destination',
+            path: saved.path,
+            kind: ReceiptAttachmentKind.pdf,
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+            createdAt: DateTime(2026, 7, 5),
+            storageState: ReceiptAttachmentStorageState.permanent,
+          ),
+        ],
+        [
+          ReceiptAttachmentRecord(
+            id: 'rollback-outside-destination',
+            path: outsideStagedPath,
+            kind: ReceiptAttachmentKind.pdf,
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+            createdAt: DateTime(2026, 7, 5),
+            storageState: ReceiptAttachmentStorageState.staged,
+          ),
+        ],
+      );
+
+      expect(await File(outsideStagedPath).exists(), isFalse);
+      expect(await saved.exists(), isFalse);
+    },
+  );
+
+  test(
+    'rollback restore leaves existing staged symlink target untouched',
+    () async {
+      final stagingRoot = Directory(
+        '${documentsDirectory.path}/receipt_proofs_staging',
+      );
+      final proofRoot = Directory('${documentsDirectory.path}/receipt_proofs');
+      final proofPdfRoot = Directory('${proofRoot.path}/pdfs');
+      await stagingRoot.create(recursive: true);
+      await proofPdfRoot.create(recursive: true);
+
+      final saved = File('${proofPdfRoot.path}/saved-proof.pdf');
+      await saved.writeAsString(
+        '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
+        flush: true,
+      );
+      final outsideTarget = File('${Directory.systemTemp.path}/existing.pdf');
+      await outsideTarget.writeAsString('do not modify', flush: true);
+      final stagedLink = Link('${stagingRoot.path}/existing-link.pdf');
+      await stagedLink.create(outsideTarget.path);
+      addTearDown(() async {
+        if (saved.existsSync()) saved.deleteSync();
+        if (await stagedLink.exists()) await stagedLink.delete();
+        if (outsideTarget.existsSync()) outsideTarget.deleteSync();
+      });
+
+      await ReceiptProofStorage.instance.rollbackPersistedAttachments(
+        [
+          ReceiptAttachmentRecord(
+            id: 'rollback-existing-link',
+            path: saved.path,
+            kind: ReceiptAttachmentKind.pdf,
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+            createdAt: DateTime(2026, 7, 5),
+            storageState: ReceiptAttachmentStorageState.permanent,
+          ),
+        ],
+        [
+          ReceiptAttachmentRecord(
+            id: 'rollback-existing-link',
+            path: stagedLink.path,
+            kind: ReceiptAttachmentKind.pdf,
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+            createdAt: DateTime(2026, 7, 5),
+            storageState: ReceiptAttachmentStorageState.staged,
+          ),
+        ],
+      );
+
+      expect(await stagedLink.exists(), isTrue);
+      expect(await outsideTarget.exists(), isTrue);
+      expect(await outsideTarget.readAsString(), 'do not modify');
+      expect(await saved.exists(), isFalse);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
     'orphan cleanup removes proof symlink without deleting target',
     () async {
       final proofRoot = Directory(

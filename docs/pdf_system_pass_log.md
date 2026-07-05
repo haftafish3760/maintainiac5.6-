@@ -1,5 +1,26 @@
 # PDF System Pass Log
 
+## Pass 124 - 2026-07-05 11:55 EDT - Prior-work rollback edge audit
+
+- Scope: PDF receipt proof rollback restore edge cases found during prior-work
+  audit. No inventory, camera, native capture, OCR engine, or parser behavior
+  changes.
+- Bundled work:
+  - Hardened staged proof restore during persisted-batch rollback with no-follow
+    source checks, expected byte/hash capture, partial restore verification,
+    safe parent verification, and final destination existence checks.
+  - Added regression coverage for saved proof symlink sources, symlinked staged
+    parent directories, stale partial symlinks, outside staged destinations,
+    existing staged symlink preservation, and saved-proof reread/hash drift.
+  - Added rollback restore edge fixtures to the PDF QA registry.
+- Verification completed 2026-07-05 11:55 EDT:
+  - `flutter test test/receipt_proof_storage_hardening_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/widgets/receipt_capture/receipt_proof_storage.dart test/receipt_proof_storage_hardening_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+  - `flutter test test/app_generated_pdf_preview_screen_test.dart test/receipt_pdf_viewer_preflight_test.dart test/receipt_pdf_viewer_accessibility_test.dart test/receipt_proof_storage_lifecycle_test.dart -r compact`
+  - `flutter test $(rg --files test | rg '(pdf|document_engine|receipt_proof).*_test\.dart$' | sort) -r compact`
+  - `dart analyze $(rg --files lib test tool | rg '(pdf|document_engine|receipt_proof).*\.dart$' | sort)`
+
 ## Pass 123 - 2026-07-05 11:46 EDT - Receipt proof source copy verification
 
 - Scope: receipt proof source copy verification only. No inventory, camera,

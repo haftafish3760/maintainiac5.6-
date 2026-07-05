@@ -364,10 +364,50 @@ class ReceiptProofStorage {
       return;
     }
     final staged = File(original.path);
-    if (await staged.exists()) return;
+    if (await _entityExistsNoFollow(staged.path)) return;
+    final restoreMessage =
+        'That receipt proof could not be restored into staged storage.';
     try {
+      final savedFile = File(saved.path);
+      await _ensureRegularFileForStorage(savedFile, restoreMessage);
+      final expectedSavedBytes = await _safeLength(savedFile);
+      final expectedSavedHash = await _safeHash(savedFile);
+      if (expectedSavedBytes == null || expectedSavedHash.isEmpty) return;
+      await _rejectSymlinkedStoragePath(staged.parent, restoreMessage);
       await staged.parent.create(recursive: true);
-      await File(saved.path).copy(staged.path);
+      final parentType = await FileSystemEntity.type(
+        staged.parent.path,
+        followLinks: false,
+      );
+      if (parentType != FileSystemEntityType.directory) return;
+      final temp = File('${staged.path}.restore_partial');
+      await _deleteIfExists(temp);
+      await savedFile.copy(temp.path);
+      await _ensureRegularFileForStorage(savedFile, restoreMessage);
+      await _ensureRegularFileForStorage(temp, restoreMessage);
+      final copiedBytes = await _safeLength(temp);
+      final currentSavedBytes = await _safeLength(savedFile);
+      if (copiedBytes == null ||
+          currentSavedBytes == null ||
+          copiedBytes != currentSavedBytes ||
+          currentSavedBytes != expectedSavedBytes) {
+        await _deleteIfExists(temp);
+        return;
+      }
+      final currentSavedHash = await _safeHash(savedFile);
+      final copiedHash = await _safeHash(temp);
+      if (currentSavedHash.isEmpty ||
+          copiedHash.isEmpty ||
+          currentSavedHash != copiedHash ||
+          currentSavedHash != expectedSavedHash) {
+        await _deleteIfExists(temp);
+        return;
+      }
+      if (await _entityExistsNoFollow(staged.path)) {
+        await _deleteIfExists(temp);
+        return;
+      }
+      await temp.rename(staged.path);
     } catch (_) {}
   }
 
