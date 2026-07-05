@@ -104,6 +104,41 @@ void main() {
     );
   });
 
+  test(
+    'receipt PDF renderer refuses invalid confirmed line quantities',
+    () async {
+      final data = AppReceiptPdfData(
+        merchantName: 'Supply House',
+        receiptDate: DateTime(2026, 7, 5),
+        confirmedByUser: true,
+        subtotalCents: 1899,
+        totalCents: 1899,
+        lines: const [
+          AppReceiptPdfLine(
+            description: 'Confirmed material line',
+            category: 'Materials',
+            quantity: double.infinity,
+            totalCents: 1899,
+          ),
+        ],
+      );
+
+      await expectLater(
+        const AppReceiptPdfRenderer().buildReceiptDocument(
+          data: data,
+          theme: await AppPdfTypography.loadTheme(),
+        ),
+        throwsA(
+          isA<AppReceiptPdfException>().having(
+            (error) => error.message,
+            'message',
+            contains('invalid quantity'),
+          ),
+        ),
+      );
+    },
+  );
+
   test('receipt PDF renderer blocks private receipt metadata', () async {
     final data = _receiptData(
       lineCount: 1,

@@ -1,5 +1,21 @@
 # PDF System Pass Log
 
+## Pass 108 - 2026-07-05 11:18 EDT - Receipt line quantity preflight hardening
+
+- Scope: generated receipt PDF confirmed-line validation only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added receipt PDF preflight validation for non-finite confirmed line
+    quantities.
+  - Converted what would have been a low-level formatter/layout failure into a
+    user-facing receipt PDF block.
+  - Added regression coverage for invalid confirmed receipt quantities.
+  - Added the non-finite quantity case to the PDF QA fixture registry.
+- Verification completed 2026-07-05 11:18 EDT:
+  - `dart format lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+  - `flutter test test/app_receipt_pdf_document_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_receipt_pdf_document.dart test/app_receipt_pdf_document_test.dart`
+
 ## Pass 107 - 2026-07-05 11:11 EDT - Document package import cleanup hardening
 
 - Scope: document export package import cleanup safety only. No inventory,

@@ -298,6 +298,7 @@
         "receipt_generation_requires_user_confirmation",
         "receipt_generation_requires_confirmed_lines",
         "receipt_generation_total_mismatch_block",
+        "receipt_generation_non_finite_quantity_block",
         "receipt_generation_private_metadata_block",
         "receipt_generation_private_line_item_block",
         "receipt_generation_private_image_label_block",

@@ -214,6 +214,7 @@ class AppReceiptPdfRenderer {
         'Maintainiac stopped this receipt PDF because the confirmed line totals do not match the receipt total.',
       );
     }
+    _validateLineItems(data.lines);
     _validatePrivacyText(data);
     _validateProofImages(data.proofImages);
     final generatedAt = createdAt ?? DateTime.now();
@@ -508,6 +509,16 @@ class AppReceiptPdfRenderer {
               appReceiptPdfMaxEmbeddedImagePixels) {
         throw const AppReceiptPdfException(
           'Maintainiac stopped this receipt PDF because a receipt proof image was too large to render safely.',
+        );
+      }
+    }
+  }
+
+  void _validateLineItems(List<AppReceiptPdfLine> lines) {
+    for (final line in lines) {
+      if (!line.quantity.isFinite) {
+        throw const AppReceiptPdfException(
+          'Maintainiac stopped this receipt PDF because a confirmed receipt line has an invalid quantity.',
         );
       }
     }
