@@ -126,12 +126,16 @@ class AppGeneratedPdfService {
     if (!await directory.exists()) return;
     final cutoff = (now ?? DateTime.now()).subtract(olderThan);
     await for (final entity in directory.list(followLinks: false)) {
-      if (entity is! File) continue;
-      if (!_isGeneratedPdfCleanupTarget(entity)) continue;
+      if (entity is! File && entity is! Link) continue;
+      if (!_isGeneratedPdfCleanupTargetPath(entity.path)) continue;
       try {
+        if (entity is Link) {
+          await _deleteIfExists(File(entity.path));
+          continue;
+        }
         final stat = await entity.stat();
         if (stat.modified.isAfter(cutoff)) continue;
-        await entity.delete();
+        await _deleteIfExists(File(entity.path));
       } catch (_) {
         continue;
       }
@@ -212,12 +216,17 @@ class AppGeneratedPdfService {
 
   Future<void> _deleteIfExists(File file) async {
     try {
-      if (await file.exists()) await file.delete();
+      final type = await FileSystemEntity.type(file.path, followLinks: false);
+      if (type == FileSystemEntityType.link) {
+        await Link(file.path).delete();
+      } else if (type == FileSystemEntityType.file) {
+        await file.delete();
+      }
     } catch (_) {}
   }
 
-  bool _isGeneratedPdfCleanupTarget(File file) {
-    final name = path.basename(file.path).toLowerCase();
+  bool _isGeneratedPdfCleanupTargetPath(String filePath) {
+    final name = path.basename(filePath).toLowerCase();
     return name.endsWith('.pdf') || name.endsWith('.pdf.partial');
   }
 
@@ -229,12 +238,17 @@ class AppGeneratedPdfService {
     if (!await directory.exists()) return 0;
     var deleted = 0;
     await for (final entity in directory.list(followLinks: false)) {
-      if (entity is! File) continue;
+      if (entity is! File && entity is! Link) continue;
       if (!entity.path.toLowerCase().endsWith('.pdf.partial')) continue;
       try {
-        final modified = await entity.lastModified();
+        if (entity is Link) {
+          await _deleteIfExists(File(entity.path));
+          deleted += 1;
+          continue;
+        }
+        final modified = await File(entity.path).lastModified();
         if (now.difference(modified) < olderThan) continue;
-        await entity.delete();
+        await _deleteIfExists(File(entity.path));
         deleted += 1;
       } catch (_) {
         continue;

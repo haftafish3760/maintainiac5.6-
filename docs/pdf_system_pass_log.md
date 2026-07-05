@@ -1,5 +1,21 @@
 # PDF System Pass Log
 
+## Pass 116 - 2026-07-05 11:19 EDT - Generated PDF cleanup symlink hardening
+
+- Scope: generated temporary PDF cleanup safety only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Cleaned generated PDF symlink entries without deleting external targets.
+  - Cleaned stale generated `.pdf.partial` symlinks before new writes without
+    deleting external targets.
+  - Kept generated PDF cleanup non-recursive and limited to generated PDF file
+    names.
+  - Added generated PDF cleanup coverage to the PDF QA fixture registry.
+- Verification completed 2026-07-05 11:19 EDT:
+  - `flutter test test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_generated_pdf_service.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 115 - 2026-07-05 11:15 EDT - Document package symlink hardening
 
 - Scope: document export/import package filesystem safety only. No inventory,

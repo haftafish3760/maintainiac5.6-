@@ -143,6 +143,7 @@
       "currentTestFiles": [
         "test/receipt_proof_storage_hardening_test.dart",
         "test/receipt_pdf_torture_storage_test.dart",
+        "test/app_generated_pdf_service_test.dart",
         "test/app_generated_pdf_archive_recovery_test.dart",
         "test/app_document_export_package_writer_test.dart"
       ],
@@ -152,6 +153,8 @@
         "fresh_generated_pdf_partial_reservation",
         "temporary_generated_pdf_stale_partial_cleanup",
         "temporary_generated_pdf_fresh_partial_preservation",
+        "temporary_generated_pdf_symlink_cleanup_target_preservation",
+        "temporary_generated_pdf_partial_symlink_cleanup_target_preservation",
         "generated_pdf_destination_hash_verification",
         "generated_pdf_share_partial_block",
         "generated_pdf_save_failure_rollback",

@@ -709,6 +709,65 @@ void main() {
     expect(await keepImage.exists(), isTrue);
   });
 
+  test(
+    'generated PDF cleanup removes symlink without deleting target',
+    () async {
+      final document = await const InvoicePdfPreviewFactory()
+          .buildEstimatePreview();
+      final generated = await const AppGeneratedPdfService().writeTemporary(
+        document,
+      );
+      final generatedDirectory = File(generated.path).parent;
+      final outsideTarget = File('${temporaryDirectory.path}/outside.pdf');
+      await outsideTarget.writeAsString(
+        '%PDF-1.7\nOutside generated target\n%%EOF',
+        flush: true,
+      );
+      final generatedLink = Link('${generatedDirectory.path}/linked-old.pdf');
+      await generatedLink.create(outsideTarget.path);
+
+      await const AppGeneratedPdfService().cleanOldGeneratedFiles(
+        olderThan: Duration(days: 7),
+        now: DateTime(2026, 6, 15),
+      );
+
+      expect(await generatedLink.exists(), isFalse);
+      expect(await outsideTarget.exists(), isTrue);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
+  test(
+    'generated PDF stale partial cleanup removes symlink only',
+    () async {
+      final document = AppGeneratedPdfDocument(
+        kind: AppGeneratedPdfKind.invoice,
+        title: 'Invoice',
+        fileName: 'linked-partial.pdf',
+        bytes: Uint8List.fromList('%PDF-1.7\nInvoice\n%%EOF'.codeUnits),
+        createdAt: DateTime(2026, 7, 5),
+      );
+      final directory = Directory(
+        '${temporaryDirectory.path}/maintainiac_generated_pdfs',
+      );
+      await directory.create(recursive: true);
+      final outsideTarget = File('${temporaryDirectory.path}/outside.partial');
+      await outsideTarget.writeAsString('outside partial target', flush: true);
+      final partialLink = Link('${directory.path}/linked-partial.pdf.partial');
+      await partialLink.create(outsideTarget.path);
+
+      final generated = await const AppGeneratedPdfService().writeTemporary(
+        document,
+      );
+
+      expect(await partialLink.exists(), isFalse);
+      expect(await outsideTarget.exists(), isTrue);
+      expect(generated.path, endsWith('/linked-partial.pdf'));
+      expect(await File(generated.path).exists(), isTrue);
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
   test('generated PDF cleanup does not recurse into nested folders', () async {
     final document = await const InvoicePdfPreviewFactory()
         .buildEstimatePreview();
