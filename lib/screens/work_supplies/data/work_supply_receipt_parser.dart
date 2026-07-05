@@ -640,6 +640,15 @@ WorkSupplyItem? _directElectricalServiceRepairMatch(
     final value
         when RegExp(r'\binline\s+splice\s+connector\b').hasMatch(value) =>
       'inline splice connector',
+    final value when RegExp(r'\bbutt\s+splice\b').hasMatch(value) =>
+      'butt splice connector',
+    final value when RegExp(r'\bclosed\s+end\s+splice\b').hasMatch(value) =>
+      'closed end splice connector',
+    final value
+        when RegExp(
+          r'\bcompact\s+splic(e|ing)\s+connector\b',
+        ).hasMatch(value) =>
+      'compact splicing connector',
     final value when RegExp(r'\banti[\s-]?short\b').hasMatch(value) =>
       'anti short bushing',
     final value when RegExp(r'\bground\s+pigtail\b').hasMatch(value) =>
@@ -1031,6 +1040,31 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
         'humidifier saddle valve',
       final value when RegExp(r'\bbypass\s+damper\b').hasMatch(value) =>
         'humidifier bypass damper',
+      _ => null,
+    };
+    if (wantedName != null) {
+      for (final item in workSupplyCatalogItems) {
+        final name = item.name.toLowerCase();
+        if (item.trade == 'HVAC' && name.contains(wantedName)) return item;
+      }
+    }
+  }
+
+  final wantsAirCleanerPart =
+      RegExp(r'\b(air\s+scrubber|air\s+cleaner)\b').hasMatch(text) ||
+      RegExp(r'\bionizing\s+wire\b').hasMatch(text);
+  if (wantsAirCleanerPart) {
+    final wantedName = switch (text) {
+      final value when RegExp(r'\bballast\b').hasMatch(value) =>
+        'air scrubber ballast',
+      final value
+          when RegExp(r'\b(cell)\b').hasMatch(value) &&
+              RegExp(r'\bair\s+scrubber\b').hasMatch(value) =>
+        'air scrubber cell',
+      final value when RegExp(r'\bprefilter\b').hasMatch(value) =>
+        'electronic air cleaner prefilter',
+      final value when RegExp(r'\bionizing\s+wire\b').hasMatch(value) =>
+        'electronic air cleaner ionizing wire',
       _ => null,
     };
     if (wantedName != null) {

@@ -275,5 +275,14 @@ void main() {
     expect(directory, isNotNull);
     expect(directory!.item.trade, 'Electrical');
     expect(directory.item.name, contains('Circuit Directory Label Pack'));
+
+    final buttSplice = matchReceiptLineToCatalog(
+      'BUTT SPLICE CONNECTOR 25PK',
+      tradeScope: 'Electrical',
+      maxCandidates: 180,
+    );
+    expect(buttSplice, isNotNull);
+    expect(buttSplice!.item.trade, 'Electrical');
+    expect(buttSplice.item.name, contains('Butt Splice Connector'));
   });
 }

@@ -541,5 +541,14 @@ void main() {
     expect(cartridge, isNotNull);
     expect(cartridge!.item.trade, 'HVAC');
     expect(cartridge.item.name, contains('Drain Gun Cartridge'));
+
+    final airCleaner = matchReceiptLineToCatalog(
+      'ELECTRONIC AIR CLEANER IONIZING WIRE',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(airCleaner, isNotNull);
+    expect(airCleaner!.item.trade, 'HVAC');
+    expect(airCleaner.item.name, contains('Ionizing Wire'));
   });
 }

@@ -82,6 +82,29 @@ void main() {
       }
     });
 
+    test('priority trade Core packs cover required service families', () {
+      final missing = <String>[];
+      for (final requirement in _requiredCoreFamilies) {
+        final matches = _coreItemsFor(
+          requirement.trade,
+        ).where((item) => _hasAny(_text(item), requirement.signals)).length;
+        if (matches < requirement.minimumRows) {
+          missing.add(
+            '${requirement.trade} ${requirement.family}: '
+            '$matches/${requirement.minimumRows}',
+          );
+        }
+      }
+
+      expect(
+        missing,
+        isEmpty,
+        reason:
+            'Residential Core must cover the named release-one service-truck '
+            'families, not just hit a total item count.\n${missing.join('\n')}',
+      );
+    });
+
     test('electrical and hvac core tiers require trade-specific signals', () {
       final unsafe = <String>[];
       for (final item in _priorityCoreItems()) {
@@ -227,8 +250,9 @@ bool _isOversizedForCore(WorkSupplyItem item, double? size) {
   }
   if (item.trade == 'HVAC') {
     if (!_hvacNominalSizeMatters(item)) return false;
-    if (text.contains('line set') || text.contains('copper'))
+    if (text.contains('line set') || text.contains('copper')) {
       return size > 1.125;
+    }
     if (text.contains('duct') || text.contains('flex')) return size > 16;
   }
   return false;
@@ -422,6 +446,181 @@ String _directItemText(WorkSupplyItem item) {
 }
 
 const _priorityTrades = ['Plumbing', 'Electrical', 'HVAC'];
+
+const _requiredCoreFamilies = [
+  _CoreFamilyRequirement(
+    trade: 'Plumbing',
+    family: 'pipe fittings and transition repair',
+    minimumRows: 300,
+    signals: [
+      'pex',
+      'copper',
+      'cpvc',
+      'pvc schedule 40',
+      'trap adapter',
+      'no-hub',
+      'fernco',
+    ],
+  ),
+  _CoreFamilyRequirement(
+    trade: 'Plumbing',
+    family: 'fixture and toilet service repair',
+    minimumRows: 80,
+    signals: [
+      'toilet',
+      'closet',
+      'wax ring',
+      'fill valve',
+      'flush valve',
+      'flapper',
+      'faucet',
+      'sink',
+    ],
+  ),
+  _CoreFamilyRequirement(
+    trade: 'Plumbing',
+    family: 'water treatment and well service',
+    minimumRows: 40,
+    signals: [
+      'water softener',
+      'softener salt',
+      'reverse osmosis',
+      'uv water',
+      'well pump',
+      'pressure tank',
+      'pitless adapter',
+    ],
+  ),
+  _CoreFamilyRequirement(
+    trade: 'Electrical',
+    family: 'wire cable and connectors',
+    minimumRows: 120,
+    signals: [
+      'nm-b',
+      'romex',
+      'uf-b',
+      'thhn',
+      'thwn',
+      'building wire',
+      'low voltage cable',
+      'bare copper ground wire',
+      'wire connector',
+      'wire nut',
+      'lever connector',
+      'push-in wire connector',
+      'inline splice connector',
+      'butt splice',
+      'closed end splice',
+      'compact splicing connector',
+      'grounding wire connector',
+      'ground pigtail',
+    ],
+  ),
+  _CoreFamilyRequirement(
+    trade: 'Electrical',
+    family: 'boxes devices and plates',
+    minimumRows: 120,
+    signals: [
+      'old work',
+      'new work',
+      'electrical box',
+      'wall plate',
+      'gfci',
+      'receptacle',
+      'wall switch',
+      'dimmer',
+    ],
+  ),
+  _CoreFamilyRequirement(
+    trade: 'Electrical',
+    family: 'raceway breakers and service stock',
+    minimumRows: 120,
+    signals: [
+      'emt',
+      'pvc electrical',
+      'conduit',
+      'breaker',
+      'disconnect',
+      'ground rod',
+      'gfci tester',
+      'anti short',
+    ],
+  ),
+  _CoreFamilyRequirement(
+    trade: 'HVAC',
+    family: 'controls ignition and motors',
+    minimumRows: 180,
+    signals: [
+      'capacitor',
+      'contactor',
+      'relay',
+      'sequencer',
+      'transformer',
+      'fuse',
+      'ignitor',
+      'flame sensor',
+      'limit switch',
+      'pressure switch',
+      'gas valve',
+      'thermocouple',
+      'blower motor',
+      'condenser fan motor',
+      'fan blade',
+      'v belt',
+    ],
+  ),
+  _CoreFamilyRequirement(
+    trade: 'HVAC',
+    family: 'condensate and IAQ service',
+    minimumRows: 80,
+    signals: [
+      'condensate',
+      'float switch',
+      'wet switch',
+      'humidifier',
+      'solenoid',
+      'feed tube',
+      'drain tube',
+      'media cabinet',
+      'air scrubber',
+      'air cleaner',
+      'ionizing wire',
+      'uv lamp',
+      'water panel',
+      'drain gun',
+    ],
+  ),
+  _CoreFamilyRequirement(
+    trade: 'HVAC',
+    family: 'airflow duct seal and filters',
+    minimumRows: 140,
+    signals: [
+      'air filter',
+      'furnace filter',
+      'merv',
+      'duct',
+      'register',
+      'grille',
+      'foil tape',
+      'mastic',
+      'sheet metal screw',
+    ],
+  ),
+];
+
+class _CoreFamilyRequirement {
+  const _CoreFamilyRequirement({
+    required this.trade,
+    required this.family,
+    required this.minimumRows,
+    required this.signals,
+  });
+
+  final String trade;
+  final String family;
+  final int minimumRows;
+  final List<String> signals;
+}
 
 const _electricalCoreSignals = [
   '14/2',
