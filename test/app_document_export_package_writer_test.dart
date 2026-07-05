@@ -390,6 +390,97 @@ void main() {
     },
   );
 
+  test('document export package reader enforces zip bomb budgets', () async {
+    final proof = await _writeProof(
+      tempDirectory,
+      name: 'job-packet.pdf',
+      bytes: utf8.encode('%PDF-1.7\nBudget proof\n%%EOF'),
+    );
+    final result = await AppDocumentExportPackageWriter().writeZipPackage(
+      record: _documentRecord(
+        attachment: _pdfAttachment(
+          path: proof.path,
+          byteSize: await proof.length(),
+          fileHash: await _fileHash(proof),
+        ),
+      ),
+      outputDirectory: Directory('${tempDirectory.path}/exports'),
+      freeStorageReader: () async => 500,
+    );
+    final packageFile = File(result.filePath);
+
+    await expectLater(
+      AppDocumentExportPackageWriter.readZipPackage(packageFile, maxEntries: 2),
+      throwsA(
+        isA<AppDocumentExportPackageException>().having(
+          (error) => error.message,
+          'message',
+          contains('too many files'),
+        ),
+      ),
+    );
+    await expectLater(
+      AppDocumentExportPackageWriter.readZipPackage(
+        packageFile,
+        maxMetadataEntryBytes: 20,
+      ),
+      throwsA(
+        isA<AppDocumentExportPackageException>().having(
+          (error) => error.message,
+          'message',
+          contains('metadata is too large'),
+        ),
+      ),
+    );
+    await expectLater(
+      AppDocumentExportPackageWriter.readZipPackage(
+        packageFile,
+        maxProofEntryBytes: 4,
+      ),
+      throwsA(
+        isA<AppDocumentExportPackageException>().having(
+          (error) => error.message,
+          'message',
+          contains('proof file is too large'),
+        ),
+      ),
+    );
+    await expectLater(
+      AppDocumentExportPackageWriter.readZipPackage(
+        packageFile,
+        maxTotalUncompressedBytes: 40,
+      ),
+      throwsA(
+        isA<AppDocumentExportPackageException>().having(
+          (error) => error.message,
+          'message',
+          contains('uncompressed size is unsafe'),
+        ),
+      ),
+    );
+  });
+
+  test('document export package reader blocks directory entries', () async {
+    final directoryArchive = Archive()
+      ..addFile(ArchiveFile.directory('proofs'));
+    final directoryPackage = File('${tempDirectory.path}/directory.zip');
+    await directoryPackage.writeAsBytes(
+      ZipEncoder().encode(directoryArchive, modified: DateTime.utc(2026)),
+      flush: true,
+    );
+
+    await expectLater(
+      AppDocumentExportPackageWriter.readZipPackage(directoryPackage),
+      throwsA(
+        isA<AppDocumentExportPackageException>().having(
+          (error) => error.message,
+          'message',
+          contains('unsupported entries'),
+        ),
+      ),
+    );
+  });
+
   test(
     'document export package reader blocks missing index and file tampering',
     () async {

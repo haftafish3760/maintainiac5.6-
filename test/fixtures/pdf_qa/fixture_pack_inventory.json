@@ -135,7 +135,12 @@
         "document_export_zip_package_tamper_block",
         "document_export_zip_package_missing_index_block",
         "document_export_zip_package_malformed_block",
-        "document_export_zip_package_unsafe_entry_block"
+        "document_export_zip_package_unsafe_entry_block",
+        "document_export_zip_package_entry_count_block",
+        "document_export_zip_package_metadata_size_block",
+        "document_export_zip_package_proof_size_block",
+        "document_export_zip_package_uncompressed_size_block",
+        "document_export_zip_package_directory_entry_block"
       ]
     },
     "privacy_and_security_logs": {

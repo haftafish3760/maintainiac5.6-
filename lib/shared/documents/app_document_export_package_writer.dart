@@ -91,6 +91,10 @@ class AppDocumentExportPackageWriter {
   static const String packageIndexEntryName =
       'maintainiac_document_package_index.json';
   static const int maxReadablePackageBytes = 500 * 1024 * 1024;
+  static const int maxPackageEntries = 200;
+  static const int maxPackageMetadataEntryBytes = 2 * 1024 * 1024;
+  static const int maxPackageProofEntryBytes = 200 * 1024 * 1024;
+  static const int maxTotalUncompressedPackageBytes = 750 * 1024 * 1024;
   static const Duration stalePartialAge = Duration(hours: 12);
   static final DateTime _fixedZipModified = DateTime.utc(2026);
 
@@ -217,6 +221,10 @@ class AppDocumentExportPackageWriter {
   static Future<AppDocumentExportPackageReadResult> readZipPackage(
     File packageFile, {
     int maxPackageBytes = maxReadablePackageBytes,
+    int maxEntries = maxPackageEntries,
+    int maxMetadataEntryBytes = maxPackageMetadataEntryBytes,
+    int maxProofEntryBytes = maxPackageProofEntryBytes,
+    int maxTotalUncompressedBytes = maxTotalUncompressedPackageBytes,
   }) async {
     final fileName = path.basename(packageFile.path);
     if (packageFile.path.toLowerCase().endsWith('.partial')) {
@@ -250,6 +258,13 @@ class AppDocumentExportPackageWriter {
       );
     }
     final entries = _entryMap(archive);
+    _verifyEntryBudget(
+      entries,
+      maxEntries: maxEntries,
+      maxMetadataEntryBytes: maxMetadataEntryBytes,
+      maxProofEntryBytes: maxProofEntryBytes,
+      maxTotalUncompressedBytes: maxTotalUncompressedBytes,
+    );
     _verifyReadableEntryNames(entries.keys);
     final manifest = _requiredTextEntry(entries, manifestEntryName);
     final indexJson = _requiredTextEntry(entries, packageIndexEntryName);
@@ -305,6 +320,53 @@ class AppDocumentExportPackageWriter {
       fileEntries: List.unmodifiable(fileEntries),
       totalProofBytes: totalProofBytes,
     );
+  }
+
+  static void _verifyEntryBudget(
+    Map<String, ArchiveFile> entries, {
+    required int maxEntries,
+    required int maxMetadataEntryBytes,
+    required int maxProofEntryBytes,
+    required int maxTotalUncompressedBytes,
+  }) {
+    if (entries.length > maxEntries) {
+      throw const AppDocumentExportPackageException(
+        'Maintainiac stopped reading this document export package because it contains too many files.',
+      );
+    }
+    var totalBytes = 0;
+    for (final entry in entries.values) {
+      if (!entry.isFile || entry.isSymbolicLink) {
+        throw const AppDocumentExportPackageException(
+          'Maintainiac stopped reading this document export package because it contains unsupported entries.',
+        );
+      }
+      final entrySize = entry.size;
+      if (entrySize < 0) {
+        throw const AppDocumentExportPackageException(
+          'Maintainiac stopped reading this document export package because an entry size is invalid.',
+        );
+      }
+      totalBytes += entrySize;
+      if (totalBytes > maxTotalUncompressedBytes) {
+        throw const AppDocumentExportPackageException(
+          'Maintainiac stopped reading this document export package because its uncompressed size is unsafe.',
+        );
+      }
+      final isMetadata =
+          entry.name == manifestEntryName ||
+          entry.name == packageIndexEntryName;
+      final entryLimit = isMetadata
+          ? maxMetadataEntryBytes
+          : maxProofEntryBytes;
+      if (entrySize > entryLimit) {
+        throw AppDocumentExportPackageException(
+          isMetadata
+              ? 'Maintainiac stopped reading this document export package because its metadata is too large.'
+              : 'Maintainiac stopped reading this document export package because a proof file is too large.',
+        );
+      }
+    }
   }
 
   static Future<List<String>> cleanupStalePartials(

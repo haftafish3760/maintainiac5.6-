@@ -1,5 +1,29 @@
 # PDF System Pass Log
 
+## Pass 55 - 2026-07-05 06:14 EDT - Document export package zip-bomb guard
+
+- Scope: shared app document export package readback budgets, unsupported ZIP
+  entry blocking, and PDF QA fixture inventory only. No inventory, camera,
+  native capture, receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Added readback limits for package entry count, metadata entry size, proof
+    entry size, and total uncompressed ZIP size before entry bytes are trusted.
+  - Blocked unsupported directory and symbolic-link archive entries during
+    package readback so export packages are treated as files-only proof
+    bundles.
+  - Preserved existing package file-size, malformed ZIP, unsafe entry-name,
+    manifest, index, and proof-hash verification after the new budget checks.
+  - Added regressions for entry-count overflow, metadata-size overflow,
+    proof-size overflow, total-uncompressed-size overflow, and directory-entry
+    blocking.
+  - Updated the shared PDF fixture inventory for ZIP bomb and unsupported-entry
+    coverage.
+- Verification completed 2026-07-05 06:14 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart test/app_document_export_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_manifest_test.dart test/app_document_export_package_writer_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 54 - 2026-07-05 06:11 EDT - Document export package partial recovery
 
 - Scope: shared app document export package stale-partial cleanup, fresh-partial
