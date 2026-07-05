@@ -1,5 +1,21 @@
 # PDF System Pass Log
 
+## Pass 130 - 2026-07-05 12:26 EDT - Document package filename privacy hardening
+
+- Scope: document package import proof metadata only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Stopped storing imported package filenames as proof source labels.
+  - Replaced package proof source labels with deterministic Maintainiac package
+    manifest hash labels.
+  - Added regression coverage proving private package filenames, phone numbers,
+    and source paths do not survive into stored document proof metadata.
+  - Registered the private-package-filename fixture in the PDF QA inventory.
+- Verification completed 2026-07-05 12:26 EDT:
+  - `flutter test test/app_document_store_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_import_service.dart test/app_document_store_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 129 - 2026-07-05 12:23 EDT - Document import proof boundary hardening
 
 - Scope: read-only document import proof validation only. No inventory, camera,

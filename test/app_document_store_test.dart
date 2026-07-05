@@ -301,7 +301,11 @@ void main() {
       expect(saved.attachments.single.storageState.name, 'permanent');
       expect(
         saved.attachments.single.sourceLabel,
-        packageFile.path.split('/').last,
+        startsWith('Maintainiac document export '),
+      );
+      expect(
+        saved.attachments.single.sourceLabel.split(' ').last,
+        hasLength(12),
       );
       expect(await File(saved.attachments.single.path).exists(), isTrue);
       expect(await packageFile.exists(), isTrue);
@@ -312,6 +316,37 @@ void main() {
           .toList();
       expect(extractedFiles, isEmpty);
       expect(store.recordById(saved.id), isNotNull);
+    },
+  );
+
+  test(
+    'document package import stores hash label instead of package filename',
+    () async {
+      final store = AppDocumentStore.memory();
+      final packageFile = await _writeDocumentExportPackage(
+        outputDirectory: Directory('${documentsDirectory.path}/exports'),
+        title: 'Imported private filename packet',
+      );
+      final renamedPackage = File(
+        '${documentsDirectory.path}/exports/Jane Customer 555-123-4567.zip',
+      );
+      await packageFile.rename(renamedPackage.path);
+
+      final saved = await AppDocumentImportService(store: store)
+          .saveDocumentExportPackage(
+            packageFile: renamedPackage,
+            extractionParentDirectory: Directory(
+              '${documentsDirectory.path}/imports',
+            ),
+            now: DateTime(2026, 7, 5, 11),
+          );
+      final serialized = saved.toMap().toString().toLowerCase();
+
+      expect(saved.attachments.single.sourceLabel, startsWith('Maintainiac'));
+      expect(serialized, isNot(contains('jane')));
+      expect(serialized, isNot(contains('555')));
+      expect(serialized, isNot(contains(renamedPackage.path.toLowerCase())));
+      expect(await renamedPackage.exists(), isTrue);
     },
   );
 

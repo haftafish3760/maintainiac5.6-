@@ -220,12 +220,18 @@ class AppDocumentImportService {
           byteSize: attachment.byteSize,
           fileHash: attachment.sha256,
           documentSignals: const ['document-export-package'],
-          sourceLabel: preview.fileName,
+          sourceLabel: _packageSourceLabel(preview),
           isOriginalImmutable: true,
           storageState: ReceiptAttachmentStorageState.permanent,
           readState: ReceiptAttachmentReadState.notRead,
         ),
     ];
+  }
+
+  static String _packageSourceLabel(
+    AppDocumentExportPackageImportPreview preview,
+  ) {
+    return 'Maintainiac document export ${preview.manifestSha256.substring(0, 12)}';
   }
 
   static Future<void> _deleteDirectoryQuietly(Directory directory) async {
