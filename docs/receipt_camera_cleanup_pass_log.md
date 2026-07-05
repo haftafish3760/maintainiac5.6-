@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 901 - 07:37:00 EDT to active cleanup
+
+Scope:
+- Hardened the native session focus contract so stale manual/tap-focus settings
+  cannot demote a continuous-focus-capable device into fallback review mode.
+- Added regression coverage proving legacy manual/tap settings still produce
+  continuous-focus, no-tap, live-readability session contracts.
+- Recorded `BUG-RECEIPT-0350` under `native_bridge`.
+
+Verification:
+- Passed targeted Dart format/analyzer and focused native session focus
+  contract regression.
+- Passed cleanup log, bug-ledger, source-audit, test-audit, and diff whitespace
+  gates.
+- Archived Pass 871 from the active cleanup log to keep the doc under cap.
+
 ## Pass 900 - 07:25:00 EDT to active cleanup
 
 Scope:
@@ -472,24 +488,5 @@ Scope:
 Verification:
 - Passed targeted Dart format/analyzer and focused section-order/stitch-scanner
   regressions.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 871 - 16:12:00 EDT to active cleanup
-
-Scope:
-- Stopped top-section retakes from feeding the next receipt section into the
-  native previous-section ghost overlay field.
-- Added a previous-section-only retake guide handoff so native top ghost
-  overlays are used only when the retake has true previous-section context.
-- Kept top-section next-context guidance as review guidance until a real
-  next-section overlay exists.
-- Added focused retake-order and long-receipt guidance regressions.
-- Recorded `BUG-RECEIPT-0320` under `ghost_overlap_stitching`.
-- Archived Pass 798 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused retake-order/long-receipt
-  guidance regressions.
 - Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
   whitespace gates.

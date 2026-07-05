@@ -59,9 +59,7 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
             nativeCapabilities.minExposureOffset;
     final effectiveExposureAssist =
         autoExposureAssistEnabled && effectiveExposureSlider;
-    final effectiveContinuousFocus =
-        focusMode == ReceiptNativeFocusMode.continuous &&
-        nativeCapabilities.supportsContinuousFocus;
+    final effectiveContinuousFocus = nativeCapabilities.supportsContinuousFocus;
     final effectiveFocusLock = false;
     final effectiveExposureLock = false;
     final effectiveWhiteBalanceLock = false;

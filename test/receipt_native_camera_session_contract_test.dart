@@ -242,6 +242,56 @@ void main() {
   });
 
   test(
+    'session forces legacy manual focus settings back to continuous focus',
+    () {
+      const settings = ReceiptNativeCameraSettings(
+        tapFocusEnabled: true,
+        focusMode: ReceiptNativeFocusMode.manual,
+      );
+      const native = ReceiptNativeCameraCapabilities(
+        engine: ReceiptNativeCameraEngine.cameraX,
+        available: true,
+        cameraPermissionGranted: true,
+        cameraCount: 2,
+        hasRearCamera: true,
+        supportsTapFocus: true,
+        supportsContinuousFocus: true,
+        supportsManualFocusDistance: true,
+        supportsYuvLiveFrames: true,
+        supportsNativeEdgeSignals: true,
+      );
+
+      final config = settings.sessionFor(
+        deviceCapability: const ReceiptDeviceCapability.standard(),
+        nativeCapabilities: native,
+      );
+
+      expect(config.tapFocusEnabled, isFalse);
+      expect(config.continuousFocusEnabled, isTrue);
+      expect(
+        config.focusStrategyPolicy,
+        'continuous_focus_primary_no_tap_assist',
+      );
+      expect(
+        config.focusReadabilityFallbackPolicy,
+        'not_needed_continuous_focus_live_guidance',
+      );
+      expect(config.nativeControlContractTags, contains('continuous_focus'));
+      expect(
+        config.nativeControlContractTags,
+        isNot(contains('focus_readability_review')),
+      );
+      expect(config.focusLockEnabled, isFalse);
+      expect(config.exposureLockEnabled, isFalse);
+      expect(config.whiteBalanceLockEnabled, isFalse);
+      expect(
+        config.capabilityPolicyCodes,
+        isNot(contains('continuous_focus_unavailable')),
+      );
+    },
+  );
+
+  test(
     'session does not send fake camera controls when native lacks support',
     () {
       const native = ReceiptNativeCameraCapabilities(

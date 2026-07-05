@@ -252,13 +252,10 @@ class ReceiptNativeCameraSessionConfig {
   }
 
   String get focusStrategyPolicy {
-    if (settings.usesContinuousFocusPrimary && continuousFocusEnabled) {
+    if (continuousFocusEnabled) {
       return 'continuous_focus_primary_no_tap_assist';
     }
-    if (settings.usesContinuousFocusPrimary) {
-      return 'continuous_focus_unavailable_readability_review_required';
-    }
-    return 'non_continuous_focus_requires_device_review';
+    return 'continuous_focus_unavailable_readability_review_required';
   }
 
   String get focusReadabilityFallbackPolicy {
@@ -267,13 +264,9 @@ class ReceiptNativeCameraSessionConfig {
     }
     if (readabilityGuidancePolicy ==
         'live_readability_guides_blur_glare_light_edges_and_text_size') {
-      return settings.usesContinuousFocusPrimary
-          ? 'continuous_focus_unavailable_live_readability_review_required'
-          : 'non_continuous_focus_live_readability_review_required';
+      return 'continuous_focus_unavailable_live_readability_review_required';
     }
-    return settings.usesContinuousFocusPrimary
-        ? 'continuous_focus_unavailable_saved_photo_review_required'
-        : 'non_continuous_focus_saved_photo_review_required';
+    return 'continuous_focus_unavailable_saved_photo_review_required';
   }
 
   String get readabilityGuidancePolicy {
