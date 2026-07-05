@@ -380,6 +380,13 @@ Map<String, Object?> _sanitizeExpenseTelemetryMap(Map<String, Object?> source) {
     'parserSuccessRate',
     'parserReviewRate',
     'parserFailureRate',
+    'parserCategoryCounts',
+    'parserNeedsReviewCategoryCounts',
+    'parserFailedCategoryCounts',
+    'parserFieldConfidenceCounts',
+    'topParserCategory',
+    'topParserNeedsReviewCategory',
+    'topParserFailedCategory',
     'ocrCorrectionOpenedCount',
     'appFilledReceiptLineConfirmedCount',
     'appFilledReceiptLineCorrectedCount',
@@ -517,6 +524,10 @@ class _ExpenseTelemetryFirestoreRedactor {
     'ocrFailureCauseCounts',
     'ocrFailureStageCounts',
     'expenseSummaryOcrContractSkippedReasonCounts',
+    'parserCategoryCounts',
+    'parserNeedsReviewCategoryCounts',
+    'parserFailedCategoryCounts',
+    'parserFieldConfidenceCounts',
   };
 
   static final _knownMerchantPattern = RegExp(
@@ -528,7 +539,7 @@ class _ExpenseTelemetryFirestoreRedactor {
     caseSensitive: false,
   );
   static final _privateReferencePattern = RegExp(
-    r'\b(?:auth(?:code)?|approval|barcode|card|customer|client|employee|driver|email|invoice|member|name|note|notes|order|phone|sale|store|terminal|transaction|trans|user)\s+[a-z0-9]+\b',
+    r'\b(?:auth(?:code)?|approval|barcode|card|customer|client|employee|driver|email|invoice|member|name|note|notes|order|phone|sale|store|terminal|transaction|trans|user)\s+(?!(?:number|amount|merchant|location|unknown|private|reference)\b)[a-z0-9]+\b',
     caseSensitive: false,
   );
   static final _privateNotePattern = RegExp(
@@ -542,6 +553,7 @@ class _ExpenseTelemetryFirestoreRedactor {
 
   static String readableText(String value) {
     final safe = redactPrivateReceiptHints(value)
+        .replaceAll(RegExp(r'\bMerchant\b'), 'merchant')
         .replaceAll(RegExp(r'[^A-Za-z0-9 .,;:/()%-]+'), ' ')
         .replaceAll(RegExp(r'\s+'), ' ');
     if (safe.isEmpty) return 'Unknown';
@@ -574,10 +586,6 @@ class _ExpenseTelemetryFirestoreRedactor {
         .replaceAll(_privateNotePattern, 'private reference')
         .replaceAll(_knownMerchantPattern, 'merchant')
         .replaceAll(_knownLocationPattern, 'location')
-        .replaceAll(
-          RegExp(r'\breceipt\s+number\b', caseSensitive: false),
-          'private reference',
-        )
         .replaceAll(_privateReferencePattern, 'private reference');
   }
 }

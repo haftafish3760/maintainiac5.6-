@@ -1012,8 +1012,11 @@ Total 13.34
     expect(failureBreakdown['missingEvidence'], 'auth_number');
     expect(recentFailure['causeLabel'], contains('merchant'));
     expect(recentFailure['causeLabel'], contains('amount'));
-    expect(recentFailure['failedAtLabel'], contains('number'));
-    expect(recentFailure['missingEvidenceLabel'], contains('number'));
+    expect(recentFailure['failedAtLabel'], contains('private reference'));
+    expect(
+      recentFailure['missingEvidenceLabel'],
+      contains('private reference'),
+    );
   });
 
   test('stress scrubs fuel auto barcode and currency failure hints', () {
@@ -1451,6 +1454,13 @@ ExpenseTelemetryHealthSnapshot _expenseTelemetrySnapshotForSanitizer({
     parserCompletedCount: 1,
     parserNeedsReviewCount: 0,
     parserFailedCount: 0,
+    parserCategoryCounts: const {'fuel': 1},
+    parserNeedsReviewCategoryCounts: const {},
+    parserFailedCategoryCounts: const {},
+    parserFieldConfidenceCounts: const {},
+    topParserCategory: 'fuel',
+    topParserNeedsReviewCategory: '',
+    topParserFailedCategory: '',
     ocrCorrectionOpenedCount: 0,
     appFilledReceiptLineConfirmedCount: 1,
     appFilledReceiptLineCorrectedCount: 0,

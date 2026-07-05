@@ -36,15 +36,18 @@ class AppGeneratedPdfService {
     final partial = File('${destination.path}.partial');
     try {
       await partial.writeAsBytes(document.bytes, flush: true);
+      await _requireRegularGeneratedFile(partial);
       final writtenBytes = await partial.length();
       if (writtenBytes != document.byteSize) {
         throw const FileSystemException('Generated PDF write was incomplete.');
       }
+      await _requireRegularGeneratedFile(partial);
       final expectedHash = sha256.convert(document.bytes).toString();
       final writtenHash = await sha256.bind(partial.openRead()).first;
       if (writtenHash.toString() != expectedHash) {
         throw const FileSystemException('Generated PDF write did not verify.');
       }
+      await _requireRegularGeneratedFile(partial);
       if (await destination.exists()) await destination.delete();
       await partial.rename(destination.path);
     } catch (_) {

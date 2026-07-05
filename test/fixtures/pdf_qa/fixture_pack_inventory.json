@@ -166,6 +166,7 @@
         "generated_pdf_share_partial_block",
         "generated_pdf_save_failure_rollback",
         "generated_pdf_replacement_cleanup",
+        "generated_pdf_partial_no_follow_pre_rename_rechecks",
         "generated_pdf_nested_folder_cleanup_preservation",
         "document_export_zip_package_rollback",
         "document_export_zip_package_stale_partial_cleanup",

@@ -1,5 +1,28 @@
 # PDF System Pass Log
 
+## Pass 131 - 2026-07-05 12:40 EDT - PDF QA reality-check hardening
+
+- Scope: generated PDF write safety plus failures found by the expanded
+  invoice/document QA sweep. No camera, native capture, OCR engine, inventory,
+  or parser parsing logic changes.
+- Bundled work:
+  - Rechecked generated PDF partial files without following links before size
+    checks, hash reads, and final rename.
+  - Added regression coverage so generated PDF partial-file verification cannot
+    silently skip the no-follow regular-file checks.
+  - Fixed the Firestore telemetry sanitizer contract so new parser telemetry
+    summary fields survive privacy-safe upload without leaking private receipt
+    hints.
+  - Fixed the invoice calendar so filtered invoice records focus the calendar
+    month containing the visible records instead of drifting stale with the
+    current month.
+  - Registered the generated-PDF partial verification fixture in the PDF QA
+    inventory.
+- Verification completed 2026-07-05 12:40 EDT:
+  - `bash tool/pdf_quality_gate.sh`
+  - `dart analyze test/expense_firestore_documents_test.dart test/invoice_ledger_store_test.dart test/invoice_signature_guard_test.dart test/invoice_signature_sheet_test.dart test/invoices_home_screen_test.dart test/maintainiac_firestore_documents_test.dart lib/screens/invoices/home lib/screens/expenses/data/expense_screen_telemetry.dart lib/shared/firebase/maintainiac_firestore_documents.dart`
+  - `flutter test test/expense_firestore_documents_test.dart test/invoice_ledger_store_test.dart test/invoice_signature_guard_test.dart test/invoice_signature_sheet_test.dart test/invoices_home_screen_test.dart test/maintainiac_firestore_documents_test.dart -r compact`
+
 ## Pass 130 - 2026-07-05 12:26 EDT - Document package filename privacy hardening
 
 - Scope: document package import proof metadata only. No inventory, camera,

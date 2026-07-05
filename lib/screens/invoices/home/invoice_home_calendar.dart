@@ -20,8 +20,25 @@ class InvoiceMonthCalendarPanel extends StatefulWidget {
 }
 
 class _InvoiceMonthCalendarPanelState extends State<InvoiceMonthCalendarPanel> {
-  var _focusedDay = DateTime.now();
+  late DateTime _focusedDay;
   DateTime? _selectedDay;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusedDay = _initialFocusedDay(widget.entries);
+  }
+
+  @override
+  void didUpdateWidget(covariant InvoiceMonthCalendarPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.entries == oldWidget.entries ||
+        widget.entries.isEmpty ||
+        _hasEntryInFocusedMonth(widget.entries)) {
+      return;
+    }
+    _focusedDay = _initialFocusedDay(widget.entries);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -155,6 +172,20 @@ class _InvoiceMonthCalendarPanelState extends State<InvoiceMonthCalendarPanel> {
 
   int _countForDay(DateTime day) {
     return widget.entries.where((entry) => isSameDay(entry.day, day)).length;
+  }
+
+  DateTime _initialFocusedDay(List<InvoiceTimelineEntry> entries) {
+    if (entries.isEmpty) return DateTime.now();
+    final sorted = [...entries]..sort((a, b) => a.day.compareTo(b.day));
+    return sorted.first.day;
+  }
+
+  bool _hasEntryInFocusedMonth(List<InvoiceTimelineEntry> entries) {
+    return entries.any(
+      (entry) =>
+          entry.day.year == _focusedDay.year &&
+          entry.day.month == _focusedDay.month,
+    );
   }
 }
 

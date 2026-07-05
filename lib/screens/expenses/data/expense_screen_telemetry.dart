@@ -1036,11 +1036,9 @@ class ExpenseTelemetryHealthSnapshot {
       'parserNeedsReviewCategoryCounts': parserNeedsReviewCategoryCounts,
       'parserFailedCategoryCounts': parserFailedCategoryCounts,
       'parserFieldConfidenceCounts': parserFieldConfidenceCounts,
-      if (topParserCategory.isNotEmpty) 'topParserCategory': topParserCategory,
-      if (topParserNeedsReviewCategory.isNotEmpty)
-        'topParserNeedsReviewCategory': topParserNeedsReviewCategory,
-      if (topParserFailedCategory.isNotEmpty)
-        'topParserFailedCategory': topParserFailedCategory,
+      'topParserCategory': topParserCategory,
+      'topParserNeedsReviewCategory': topParserNeedsReviewCategory,
+      'topParserFailedCategory': topParserFailedCategory,
       'ocrCorrectionOpenedCount': ocrCorrectionOpenedCount,
       'appFilledReceiptLineConfirmedCount': appFilledReceiptLineConfirmedCount,
       'appFilledReceiptLineCorrectedCount': appFilledReceiptLineCorrectedCount,

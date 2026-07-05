@@ -324,6 +324,12 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('final writtenBytes = await partial.length();'));
+    expect(
+      RegExp(
+        r'await _requireRegularGeneratedFile\(partial\);',
+      ).allMatches(source),
+      hasLength(greaterThanOrEqualTo(3)),
+    );
     expect(source, contains('FileSystemEntity.type('));
     expect(source, contains('followLinks: false'));
     expect(source, contains('Generated PDF directory is not a directory.'));
