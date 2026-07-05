@@ -1,5 +1,66 @@
 # PDF System Pass Log
 
+## Milestone - 2026-07-05 10:15 EDT - Passes 96-98 invoice failure recovery
+
+- Scope: invoice/estimate PDF content failure recovery and date preflight only.
+  No inventory, camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added safe user-facing PDF preflight failure messages.
+  - Recorded explicit preview and archive content-blocked failure reasons.
+  - Added final-save and preview regressions for empty draft PDF blocks.
+  - Added due-date-before-issue-date PDF preflight.
+  - Updated the PDF QA fixture registry for each new failure case.
+- Verification completed 2026-07-05 10:15 EDT:
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 98 - 2026-07-05 10:13 EDT - Invoice date preflight
+
+- Scope: invoice/estimate PDF generation content guard only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Blocked invoice PDFs when the due date is before the issue date.
+  - Added a safe user-facing date failure message.
+  - Added regression coverage and fixture-registry tracking for impossible
+    invoice dates.
+- Verification completed 2026-07-05 10:13 EDT:
+  - `dart format lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart`
+  - `flutter test test/invoice_document_engine_layout_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 97 - 2026-07-05 10:12 EDT - Invoice archive preflight recovery
+
+- Scope: invoice/estimate PDF final-save failure handling only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added regression coverage proving final save blocks empty draft PDFs with
+    the explicit content-preflight failure path.
+  - Verified the final-save failure records `archive_pdf_content_blocked`
+    instead of a generic archive failure.
+  - Added the final-save preflight failure case to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:12 EDT:
+  - `dart format test/invoice_pdf_preview_action_tracking_test.dart`
+  - `flutter test test/invoice_pdf_preview_action_tracking_test.dart -r compact`
+  - `dart analyze test/invoice_pdf_preview_action_tracking_test.dart lib/screens/invoices/home/invoice_form_screen.dart`
+  - `flutter test test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 96 - 2026-07-05 10:11 EDT - Invoice preflight failure recovery
+
+- Scope: invoice/estimate PDF failure handling only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added safe user-facing messages for invoice PDF content preflight blocks.
+  - Recorded explicit preview/archive content-blocked PDF failure reason codes.
+  - Added regression coverage proving empty drafts are blocked without a
+    generic PDF failure.
+  - Added the preflight failure case to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:11 EDT:
+  - `dart format lib/screens/invoices/data/invoice_pdf_template_renderer.dart lib/screens/invoices/home/invoice_form_screen.dart test/invoice_pdf_preview_action_tracking_test.dart`
+  - `flutter test test/invoice_pdf_preview_action_tracking_test.dart -r compact`
+  - `dart analyze lib/screens/invoices/data/invoice_pdf_template_renderer.dart lib/screens/invoices/home/invoice_form_screen.dart test/invoice_pdf_preview_action_tracking_test.dart`
+  - `flutter test test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze test/pdf_qa_fixture_inventory_test.dart`
+
 ## Milestone - 2026-07-05 10:09 EDT - Passes 92-95 invoice preflight hardening
 
 - Scope: invoice/estimate PDF generation and preview QA only. No inventory,

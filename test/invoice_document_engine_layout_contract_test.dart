@@ -306,6 +306,36 @@ void main() {
     },
   );
 
+  test('invoice Document Engine refuses impossible invoice dates', () async {
+    final record =
+        InvoiceDocumentEngineFixtureFactory.standardInvoice(
+          lineCount: 1,
+        ).copyWith(
+          issueDate: InvoiceDocumentEngineFixtureFactory.fixedNow,
+          dueDate: InvoiceDocumentEngineFixtureFactory.fixedNow.subtract(
+            const Duration(days: 1),
+          ),
+        );
+
+    expect(
+      InvoicePdfTemplateRenderer.contentIssueCodesForRecord(record),
+      contains(InvoicePdfTemplateRenderer.dueDateBeforeIssueDate),
+    );
+    await expectLater(
+      const InvoicePdfTemplateRenderer().buildRecordDocumentBytes(
+        record: record,
+        template: InvoiceTemplateCatalog.byId('structured-logo'),
+      ),
+      throwsA(
+        isA<InvoicePdfContentException>().having(
+          (error) => error.message,
+          'message',
+          'Check the invoice dates before preparing the PDF.',
+        ),
+      ),
+    );
+  });
+
   test('invoice Document Engine refuses blank line items', () async {
     final record =
         InvoiceDocumentEngineFixtureFactory.standardInvoice(

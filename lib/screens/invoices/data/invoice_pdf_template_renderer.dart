@@ -23,9 +23,11 @@ class InvoicePdfContentException implements Exception {
 
   final List<String> issues;
 
+  String get message => InvoicePdfTemplateRenderer.contentIssueMessage(issues);
+
   @override
   String toString() {
-    return 'Invoice PDF content blocked: ${issues.join(', ')}';
+    return message;
   }
 }
 
@@ -37,6 +39,7 @@ class InvoicePdfTemplateRenderer {
   static const missingInvoiceNumber = 'missing_invoice_number';
   static const missingCompanyName = 'missing_company_name';
   static const missingClientName = 'missing_client_name';
+  static const dueDateBeforeIssueDate = 'due_date_before_issue_date';
   static const nonFiniteLineQuantity = 'non_finite_line_quantity';
   static const nonFiniteLineUnitPrice = 'non_finite_line_unit_price';
   static const nonFiniteLineTaxRate = 'non_finite_line_tax_rate';
@@ -153,6 +156,10 @@ class InvoicePdfTemplateRenderer {
     if (record.invoiceNumber.trim().isEmpty) issues.add(missingInvoiceNumber);
     if (record.company.bestName.trim().isEmpty) issues.add(missingCompanyName);
     if (record.client.bestName.trim().isEmpty) issues.add(missingClientName);
+    final dueDate = record.dueDate;
+    if (dueDate != null && dueDate.isBefore(record.issueDate)) {
+      issues.add(dueDateBeforeIssueDate);
+    }
     if (record.lines.isEmpty) issues.add(missingLineItems);
     if (record.lines.any(_isBlankLineItem)) issues.add(blankLineItem);
     for (final line in record.lines) {
@@ -197,6 +204,29 @@ class InvoicePdfTemplateRenderer {
     final issues = contentIssueCodesForRecord(record);
     if (issues.isEmpty) return;
     throw InvoicePdfContentException(issues);
+  }
+
+  static String contentIssueMessage(Iterable<String> issues) {
+    final issueSet = issues.toSet();
+    final missingIdentity =
+        issueSet.contains(missingInvoiceNumber) ||
+        issueSet.contains(missingCompanyName) ||
+        issueSet.contains(missingClientName);
+    final missingLines =
+        issueSet.contains(missingLineItems) || issueSet.contains(blankLineItem);
+    if (missingIdentity && missingLines) {
+      return 'Add the missing invoice business details and confirmed line items before preparing the PDF.';
+    }
+    if (missingIdentity) {
+      return 'Add the missing invoice business details before preparing the PDF.';
+    }
+    if (missingLines) {
+      return 'Add confirmed invoice line items before preparing the PDF.';
+    }
+    if (issueSet.contains(dueDateBeforeIssueDate)) {
+      return 'Check the invoice dates before preparing the PDF.';
+    }
+    return 'Check invoice amounts, taxes, discounts, and payments before preparing the PDF.';
   }
 
   static bool _isBlankLineItem(InvoiceLineItemRecord line) {

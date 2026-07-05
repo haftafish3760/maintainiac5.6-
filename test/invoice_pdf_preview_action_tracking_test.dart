@@ -146,6 +146,53 @@ void main() {
     expect(pdfService.writeCount, 2);
   });
 
+  testWidgets('invoice preview records content preflight blocks empty drafts', (
+    tester,
+  ) async {
+    final appState = AppStateController();
+    final odometer = GlobalOdometerController();
+    final ledger = InvoiceLedgerStore.memory();
+    addTearDown(appState.dispose);
+    addTearDown(odometer.dispose);
+
+    await tester.pumpWidget(
+      AppStateScope(
+        controller: appState,
+        child: GlobalOdometerScope(
+          controller: odometer,
+          child: InvoiceLedgerScope(
+            controller: ledger,
+            child: const MaterialApp(home: InvoiceFormScreen()),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.dragUntilVisible(
+      find.text('Preview'),
+      find.byType(ListView).first,
+      const Offset(0, -220),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Preview'));
+    await _pumpPdfPreview(tester);
+
+    expect(
+      find.text(
+        'Add the missing invoice business details and confirmed line items before preparing the PDF.',
+      ),
+      findsOneWidget,
+    );
+    expect(ledger.records.single.pdfEvents.map((event) => event.type), [
+      InvoicePdfDeliveryEventType.failed,
+    ]);
+    expect(
+      ledger.records.single.pdfEvents.single.reasonCode,
+      'preview_pdf_content_blocked',
+    );
+  });
+
   testWidgets(
     'invoice preview records dismissed share and print as cancelled',
     (tester) async {
@@ -266,6 +313,53 @@ void main() {
     expect(record.toMap().containsKey('pdfBytes'), isFalse);
     expect(record.toMap().containsKey('pdfPath'), isFalse);
     expect(documentStore.records, hasLength(1));
+  });
+
+  testWidgets('final save records content preflight failure for empty draft', (
+    tester,
+  ) async {
+    final appState = AppStateController();
+    final odometer = GlobalOdometerController();
+    final ledger = InvoiceLedgerStore.memory();
+    addTearDown(appState.dispose);
+    addTearDown(odometer.dispose);
+
+    await tester.pumpWidget(
+      AppStateScope(
+        controller: appState,
+        child: GlobalOdometerScope(
+          controller: odometer,
+          child: InvoiceLedgerScope(
+            controller: ledger,
+            child: const MaterialApp(home: InvoiceFormScreen()),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.dragUntilVisible(
+      find.text('Save Invoice'),
+      find.byType(ListView).first,
+      const Offset(0, -220),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save Invoice'));
+    await _pumpPdfPreview(tester);
+
+    expect(
+      find.text(
+        'Add the missing invoice business details and confirmed line items before preparing the PDF.',
+      ),
+      findsOneWidget,
+    );
+    expect(ledger.records.single.pdfEvents.map((event) => event.type), [
+      InvoicePdfDeliveryEventType.failed,
+    ]);
+    expect(
+      ledger.records.single.pdfEvents.single.reasonCode,
+      'archive_pdf_content_blocked',
+    );
   });
 }
 

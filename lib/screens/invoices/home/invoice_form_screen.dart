@@ -15,6 +15,7 @@ import '../../../shared/widgets/app_screen_shell.dart';
 import '../../../shared/widgets/industrial_panel_surface.dart';
 import '../data/invoice_ledger_models.dart';
 import '../data/invoice_ledger_store.dart';
+import '../data/invoice_pdf_template_renderer.dart';
 import '../data/invoice_pdf_preview_factory.dart';
 import '../data/invoice_record.dart';
 import '../data/invoice_template_catalog.dart';
@@ -377,6 +378,14 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
             : 'Invoice saved with permanent PDF proof.',
       );
       return true;
+    } on InvoicePdfContentException catch (error) {
+      if (!mounted) return false;
+      await _recordPdfFailure(
+        record: _record ?? record,
+        reasonCode: 'archive_pdf_content_blocked',
+      );
+      _showMessage(error.message);
+      return false;
     } on AppGeneratedPdfArchiveException catch (error) {
       if (!mounted) return false;
       await _recordPdfFailure(
@@ -427,6 +436,13 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
           ),
         ),
       );
+    } on InvoicePdfContentException catch (error) {
+      if (!mounted) return;
+      await _recordPdfFailure(
+        record: _record ?? saved,
+        reasonCode: 'preview_pdf_content_blocked',
+      );
+      _showMessage(error.message);
     } catch (_) {
       if (!mounted) return;
       await _recordPdfFailure(
