@@ -7,6 +7,7 @@ set -euo pipefail
 
 bash -n tool/pdf_quality_gate.sh
 bash -n tool/pdf_render_smoke_gate.sh
+bash -n tool/pdf_golden_snapshot_gate.sh
 python3 -m py_compile tool/pdf_render_pixel_assertions.py
 
 dart analyze \
@@ -71,6 +72,7 @@ dart run tool/generate_long_receipt_pdf.dart /tmp/maintainiac_gate_long_receipt_
 cmp -s /tmp/maintainiac_gate_long_receipt_a.pdf /tmp/maintainiac_gate_long_receipt_b.pdf
 
 bash tool/pdf_render_smoke_gate.sh
+bash tool/pdf_golden_snapshot_gate.sh
 
 flutter test \
   test/app_generated_pdf_archive_recovery_test.dart \

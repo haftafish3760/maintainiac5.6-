@@ -356,7 +356,10 @@
         "sample_invoice_pdf",
         "landscape_invoice_pdf",
         "poppler_first_page_png",
-        "rendered_page_orientation_assertion"
+        "rendered_page_orientation_assertion",
+        "sample_receipt_pdf_golden_hash",
+        "long_receipt_pdf_golden_hash",
+        "sample_invoice_pdf_golden_hash"
       ]
     }
   }

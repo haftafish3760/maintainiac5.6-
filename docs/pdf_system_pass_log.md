@@ -1,5 +1,21 @@
 # PDF System Pass Log
 
+## Pass 112 - 2026-07-05 11:16 EDT - PDF golden snapshot gate
+
+- Scope: PDF golden snapshot QA only. No inventory, camera, native capture, OCR
+  engine, or parser behavior changes.
+- Bundled work:
+  - Added a golden snapshot gate for sample receipt, long receipt, and sample
+    invoice PDFs.
+  - Locked the generated PDF SHA-256 hashes so accidental rendering drift is
+    caught by the PDF quality gate.
+  - Added the golden gate to the PDF quality gate contract and fixture
+    registry.
+- Verification completed 2026-07-05 11:16 EDT:
+  - `bash -n tool/pdf_golden_snapshot_gate.sh`
+  - `bash tool/pdf_golden_snapshot_gate.sh`
+  - `flutter test test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+
 ## Pass 111 - 2026-07-05 11:05 EDT - PDF health diagnostics privacy guard
 
 - Scope: PDF health diagnostics and Command 1-safe summary contracts only. No

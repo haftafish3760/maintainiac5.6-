@@ -35,11 +35,13 @@ void main() {
       expect(script, contains('set -euo pipefail'));
       expect(script, contains('bash -n tool/pdf_quality_gate.sh'));
       expect(script, contains('bash -n tool/pdf_render_smoke_gate.sh'));
+      expect(script, contains('bash -n tool/pdf_golden_snapshot_gate.sh'));
       expect(
         script,
         contains('python3 -m py_compile tool/pdf_render_pixel_assertions.py'),
       );
       expect(script, contains('bash tool/pdf_render_smoke_gate.sh'));
+      expect(script, contains('bash tool/pdf_golden_snapshot_gate.sh'));
       expect(script, contains('cmp -s /tmp/maintainiac_gate_invoice_a.pdf'));
       expect(script, contains('cmp -s /tmp/maintainiac_gate_receipt_a.pdf'));
       expect(
@@ -142,6 +144,9 @@ void main() {
       final renderGate = File(
         'tool/pdf_render_smoke_gate.sh',
       ).readAsStringSync();
+      final goldenGate = File(
+        'tool/pdf_golden_snapshot_gate.sh',
+      ).readAsStringSync();
       final pixelAssertions = File(
         'tool/pdf_render_pixel_assertions.py',
       ).readAsStringSync();
@@ -173,6 +178,13 @@ void main() {
       expect(pixelAssertions, contains('expected landscape'));
       expect(pixelAssertions, contains('_edge_ink_ratio'));
       expect(pixelAssertions, contains('too much ink at the page edge'));
+      expect(goldenGate, contains('generate_sample_receipt_pdf.dart'));
+      expect(goldenGate, contains('generate_long_receipt_pdf.dart'));
+      expect(goldenGate, contains('generate_sample_invoice_pdf.dart'));
+      expect(goldenGate, contains('expected_sample_receipt'));
+      expect(goldenGate, contains('expected_long_receipt'));
+      expect(goldenGate, contains('expected_sample_invoice'));
+      expect(goldenGate, contains('shasum -a 256'));
     },
   );
 }
