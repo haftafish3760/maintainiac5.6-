@@ -45,8 +45,8 @@ class _ReceiptNativeCameraBottomBar extends StatelessWidget {
                           ? 'Receipt assist'
                           : 'Manual receipt',
                       detail: settings.assistedReceiptFill
-                          ? 'Review next'
-                          : 'Photo only',
+                          ? 'Next reviews text'
+                          : 'Save photo only',
                     ),
                   ),
                   Padding(
