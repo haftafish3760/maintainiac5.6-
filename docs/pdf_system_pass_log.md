@@ -1,5 +1,29 @@
 # PDF System Pass Log
 
+## Pass 49 - 2026-07-05 05:52 EDT - Document export PDF content safety gate
+
+- Scope: shared app document export package safety, PDF proof content scanning,
+  and PDF QA fixture inventory only. No inventory, camera, native capture,
+  receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Routed exported PDF proof files through the shared PDF security policy
+    before package creation.
+  - Routed exported PDF proof file bytes through the shared PDF privacy policy
+    before package creation.
+  - Blocked active PDF content and private PDF content in export packages even
+    when file size and hash integrity are otherwise valid.
+  - Preserved verified photo-proof package support without treating image bytes
+    as PDF content.
+  - Added regressions for active PDF proof blocking, private PDF proof blocking,
+    and verified photo proof inclusion.
+  - Updated the shared PDF fixture inventory for document export active/private
+    PDF proof blocking.
+- Verification completed 2026-07-05 05:52 EDT:
+  - `dart format lib/shared/documents/app_document_export_manifest.dart test/app_document_export_manifest_test.dart`
+  - `flutter test test/app_document_export_manifest_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart test/app_document_export_manifest_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 48 - 2026-07-05 05:48 EDT - Document export package integrity gate
 
 - Scope: shared app document export package planning, proof-file integrity,

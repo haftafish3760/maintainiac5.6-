@@ -152,7 +152,9 @@
         "document_export_unconfirmed_ocr_block",
         "document_export_tampered_hash_block",
         "document_export_wrong_size_block",
-        "document_export_partial_file_block"
+        "document_export_partial_file_block",
+        "document_export_active_pdf_block",
+        "document_export_private_pdf_block"
       ]
     },
     "pdf_to_receipt_review": {

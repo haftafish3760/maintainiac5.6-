@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
 
 import '../pdf/app_pdf_privacy_policy.dart';
+import '../pdf/app_pdf_security_policy.dart';
 import '../widgets/receipt_capture/receipt_capture_models.dart';
 import 'app_document_models.dart';
 
@@ -189,6 +190,8 @@ class AppDocumentExportIntegrityIssue {
   static const hashMismatch = 'hash_mismatch';
   static const mutableProof = 'mutable_proof';
   static const unsupportedAttachment = 'unsupported_attachment';
+  static const unsafePdfContent = 'unsafe_pdf_content';
+  static const privatePdfContent = 'private_pdf_content';
 
   final String code;
   final String attachmentLabel;
@@ -366,6 +369,38 @@ class AppDocumentExportManager {
         ),
       );
     }
+    if (attachment.isPdf) {
+      final pdfBytes = await _safeReadBytes(file);
+      if (pdfBytes == null) {
+        return _PackageFileVerification.issue(
+          AppDocumentExportIntegrityIssue(
+            code: AppDocumentExportIntegrityIssue.unreadableFile,
+            attachmentLabel: label,
+          ),
+        );
+      }
+      final securityIssues =
+          AppPdfSecurityPolicy.activeContentIssueCodesForBytes(pdfBytes);
+      if (securityIssues.isNotEmpty) {
+        return _PackageFileVerification.issue(
+          AppDocumentExportIntegrityIssue(
+            code: AppDocumentExportIntegrityIssue.unsafePdfContent,
+            attachmentLabel: label,
+          ),
+        );
+      }
+      final privacyIssues = AppPdfPrivacyPolicy.issueCodesForExport(
+        bytes: pdfBytes,
+      );
+      if (privacyIssues.isNotEmpty) {
+        return _PackageFileVerification.issue(
+          AppDocumentExportIntegrityIssue(
+            code: AppDocumentExportIntegrityIssue.privatePdfContent,
+            attachmentLabel: label,
+          ),
+        );
+      }
+    }
     return _PackageFileVerification.file(
       AppDocumentExportPackageFile(
         attachmentId: manifestAttachment.id,
@@ -387,6 +422,14 @@ class AppDocumentExportManager {
     }
   }
 
+  static Future<List<int>?> _safeReadBytes(File file) async {
+    try {
+      return await file.readAsBytes();
+    } catch (_) {
+      return null;
+    }
+  }
+
   static String _integrityMessage(
     List<AppDocumentExportIntegrityIssue> issues,
   ) {
@@ -404,6 +447,17 @@ class AppDocumentExportManager {
       (issue) => issue.code == AppDocumentExportIntegrityIssue.partialFile,
     )) {
       return 'Maintainiac stopped this document export because a proof file is still being written.';
+    }
+    if (issues.any(
+      (issue) => issue.code == AppDocumentExportIntegrityIssue.unsafePdfContent,
+    )) {
+      return 'Maintainiac stopped this document export because a PDF proof includes unsupported active content.';
+    }
+    if (issues.any(
+      (issue) =>
+          issue.code == AppDocumentExportIntegrityIssue.privatePdfContent,
+    )) {
+      return 'Maintainiac stopped this document export because a PDF proof includes private information.';
     }
     return 'Maintainiac stopped this document export because one or more proof files could not be verified.';
   }

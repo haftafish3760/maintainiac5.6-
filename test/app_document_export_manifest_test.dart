@@ -269,6 +269,104 @@ void main() {
       );
     },
   );
+
+  test('document export package blocks active PDF proof content', () async {
+    final pdf = File('${tempDirectory.path}/active-proof.pdf');
+    final bytes = utf8.encode(
+      '%PDF-1.7\n'
+      '1 0 obj << /OpenAction 2 0 R /AA 3 0 R >> endobj\n'
+      '2 0 obj << /S /JavaScript /JS (app.alert("x")) >> endobj\n'
+      '%%EOF',
+    );
+    await pdf.writeAsBytes(bytes, flush: true);
+
+    await expectLater(
+      AppDocumentExportManager.buildPackagePlan(
+        _documentRecord(
+          attachment: _pdfAttachment(
+            path: pdf.path,
+            displayName: 'active-proof.pdf',
+            originalFileName: 'active-proof.pdf',
+            byteSize: bytes.length,
+            fileHash: sha256.convert(bytes).toString(),
+          ),
+        ),
+      ),
+      throwsA(
+        isA<AppDocumentExportIntegrityException>()
+            .having(
+              (error) => error.issues.map((issue) => issue.code),
+              'issue codes',
+              contains(AppDocumentExportIntegrityIssue.unsafePdfContent),
+            )
+            .having(
+              (error) => error.message,
+              'message',
+              contains('unsupported active content'),
+            ),
+      ),
+    );
+  });
+
+  test('document export package blocks private PDF proof content', () async {
+    final pdf = File('${tempDirectory.path}/private-proof.pdf');
+    final bytes = utf8.encode(
+      '%PDF-1.7\n'
+      '1 0 obj << /Type /Page >> stream\n'
+      'VIN 1HGCM82633A004352\n'
+      'Passenger: Jane Customer\n'
+      'endstream endobj\n'
+      '%%EOF',
+    );
+    await pdf.writeAsBytes(bytes, flush: true);
+
+    await expectLater(
+      AppDocumentExportManager.buildPackagePlan(
+        _documentRecord(
+          attachment: _pdfAttachment(
+            path: pdf.path,
+            displayName: 'private-proof.pdf',
+            originalFileName: 'private-proof.pdf',
+            byteSize: bytes.length,
+            fileHash: sha256.convert(bytes).toString(),
+          ),
+        ),
+      ),
+      throwsA(
+        isA<AppDocumentExportIntegrityException>()
+            .having(
+              (error) => error.issues.map((issue) => issue.code),
+              'issue codes',
+              contains(AppDocumentExportIntegrityIssue.privatePdfContent),
+            )
+            .having(
+              (error) => error.message,
+              'message',
+              contains('private information'),
+            ),
+      ),
+    );
+  });
+
+  test('document export package allows verified photo proof files', () async {
+    final photo = File('${tempDirectory.path}/receipt-photo.jpg');
+    final bytes = List<int>.generate(256, (index) => index % 255);
+    await photo.writeAsBytes(bytes, flush: true);
+
+    final plan = await AppDocumentExportManager.buildPackagePlan(
+      _documentRecord(
+        attachment: _photoAttachment(
+          path: photo.path,
+          byteSize: bytes.length,
+          fileHash: sha256.convert(bytes).toString(),
+        ),
+      ),
+    );
+
+    expect(plan.files.single.kind, ReceiptAttachmentKind.photo);
+    expect(plan.files.single.sha256, sha256.convert(bytes).toString());
+    expect(plan.files.single.toMap().toString(), isNot(contains(photo.path)));
+  });
 }
 
 AppDocumentRecord _documentRecord({
@@ -314,6 +412,30 @@ ReceiptAttachmentRecord _pdfAttachment({
     pageCount: 3,
     documentSignals: documentSignals,
     sourceLabel: sourceLabel,
+    linkedModule: 'jobs',
+    linkedRecordId: 'DOC-job-123',
+    readState: ReceiptAttachmentReadState.notRead,
+  );
+}
+
+ReceiptAttachmentRecord _photoAttachment({
+  String id = 'photo-local-id',
+  required String path,
+  required int byteSize,
+  required String fileHash,
+}) {
+  return ReceiptAttachmentRecord(
+    id: id,
+    path: path,
+    kind: ReceiptAttachmentKind.photo,
+    dataSaverLevel: ReceiptDataSaverLevel.original,
+    createdAt: DateTime.utc(2026, 7, 5, 9),
+    displayName: 'receipt-photo.jpg',
+    originalFileName: 'receipt-photo.jpg',
+    mimeType: 'image/jpeg',
+    byteSize: byteSize,
+    fileHash: fileHash,
+    documentSignals: const ['receipt'],
     linkedModule: 'jobs',
     linkedRecordId: 'DOC-job-123',
     readState: ReceiptAttachmentReadState.notRead,
