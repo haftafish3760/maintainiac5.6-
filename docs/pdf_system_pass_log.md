@@ -1,5 +1,22 @@
 # PDF System Pass Log
 
+## Pass 129 - 2026-07-05 12:23 EDT - Document import proof boundary hardening
+
+- Scope: read-only document import proof validation only. No inventory, camera,
+  native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Blocked read-only document imports that contain no proof attachment and no
+    imported text.
+  - Added a typed document-import failure for empty proof attempts.
+  - Preserved text-only imports as valid read-only proof while trimming stored
+    imported text.
+  - Registered empty-proof and text-only import fixtures in the PDF QA
+    inventory.
+- Verification completed 2026-07-05 12:23 EDT:
+  - `flutter test test/app_document_store_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_import_service.dart lib/shared/documents/app_document_store.dart test/app_document_store_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 128 - 2026-07-05 12:19 EDT - PDF diagnostics label privacy hardening
 
 - Scope: PDF health diagnostics issue/risk labels only. No inventory, camera,

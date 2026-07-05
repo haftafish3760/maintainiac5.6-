@@ -193,6 +193,8 @@
         "document_export_zip_package_import_extraction_cleanup",
         "document_export_zip_package_import_rollback_cleanup",
         "document_export_zip_package_import_source_preservation",
+        "document_export_zip_package_import_empty_proof_block",
+        "document_export_zip_package_import_text_only_proof_accept",
         "document_export_zip_package_import_stale_partial_cleanup",
         "document_export_zip_package_import_stale_complete_cleanup",
         "document_export_zip_package_import_foreign_folder_preservation",

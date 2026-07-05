@@ -129,6 +129,12 @@ class AppDocumentImportService {
     String sourceLabel = 'Shared import',
     DateTime? now,
   }) async {
+    final cleanImportedText = importedText.trim();
+    if (attachments.isEmpty && cleanImportedText.isEmpty) {
+      throw const AppDocumentImportException(
+        'Maintainiac could not save this document because it has no proof file or imported text.',
+      );
+    }
     final savedAt = now ?? DateTime.now();
     final id = 'DOC-${savedAt.microsecondsSinceEpoch}';
     final linkedAttachments = attachments
@@ -148,7 +154,7 @@ class AppDocumentImportService {
           id: id,
           kind: kind,
           title: title.trim(),
-          importedText: importedText.trim(),
+          importedText: cleanImportedText,
           notes: notes.trim(),
           sourceLabel: sourceLabel.trim(),
           createdAt: savedAt,
@@ -239,4 +245,13 @@ class AppDocumentImportService {
       await Link(entityPath).delete();
     }
   }
+}
+
+class AppDocumentImportException implements Exception {
+  const AppDocumentImportException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }

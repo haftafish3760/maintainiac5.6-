@@ -233,6 +233,47 @@ void main() {
     },
   );
 
+  test('document import refuses empty read-only records', () async {
+    final store = AppDocumentStore.memory();
+
+    await expectLater(
+      AppDocumentImportService(store: store).saveReadOnlyDocument(
+        kind: AppDocumentKind.jobContractorDocument,
+        attachments: const [],
+        title: 'Empty packet',
+        notes: 'Notes are not proof.',
+        now: DateTime(2026, 7, 5, 12),
+      ),
+      throwsA(
+        isA<AppDocumentImportException>().having(
+          (error) => error.message,
+          'message',
+          contains('no proof file or imported text'),
+        ),
+      ),
+    );
+
+    expect(store.records, isEmpty);
+  });
+
+  test('document import accepts imported text as read-only proof', () async {
+    final store = AppDocumentStore.memory();
+
+    final saved = await AppDocumentImportService(store: store)
+        .saveReadOnlyDocument(
+          kind: AppDocumentKind.jobContractorDocument,
+          attachments: const [],
+          importedText: '  Confirmed supplier PDF text layer.  ',
+          title: 'Supplier packet',
+          now: DateTime(2026, 7, 5, 12),
+        );
+
+    expect(saved.hasProof, isTrue);
+    expect(saved.importedText, 'Confirmed supplier PDF text layer.');
+    expect(saved.attachments, isEmpty);
+    expect(store.recordById(saved.id), isNotNull);
+  });
+
   test(
     'document package import saves verified proof and cleans extraction',
     () async {
