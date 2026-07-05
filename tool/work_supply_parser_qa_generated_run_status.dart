@@ -113,6 +113,8 @@ Map<String, Object?> _readCell(
   final safety = _cellSafety(json);
   final parserCalls = _parserCallCount(json);
   final chunkRunComplete = _chunkRunComplete(json);
+  final nonZeroChunkExitCount = (json['nonZeroChunkExitCount'] as int?) ?? 0;
+  final timedOutChunkCount = (json['timedOutChunkCount'] as int?) ?? 0;
   return _cell(
     trade: trade,
     scope: scope,
@@ -120,10 +122,17 @@ Map<String, Object?> _readCell(
     locale: locale,
     status: failureCount == 0 ? 'passed' : 'failed',
     reportPath: reportPath,
-    localOnlySafe: safety.isSafe && parserCalls > 0 && chunkRunComplete,
+    localOnlySafe:
+        safety.isSafe &&
+        parserCalls > 0 &&
+        chunkRunComplete &&
+        nonZeroChunkExitCount == 0 &&
+        timedOutChunkCount == 0,
     safetyFlags: safety.flags,
     safetyMissingFields: safety.missingFields,
     chunkRunComplete: chunkRunComplete,
+    nonZeroChunkExitCount: nonZeroChunkExitCount,
+    timedOutChunkCount: timedOutChunkCount,
     checked: (json['checked'] as int?) ?? 0,
     failureCount: failureCount,
     parserCalls: parserCalls,
@@ -179,6 +188,8 @@ Map<String, Object?> _cell({
   Map<String, Object?> safetyFlags = const {},
   List<String> safetyMissingFields = const [],
   bool chunkRunComplete = true,
+  int nonZeroChunkExitCount = 0,
+  int timedOutChunkCount = 0,
   int checked = 0,
   int failureCount = 0,
   int parserCalls = 0,
@@ -201,6 +212,8 @@ Map<String, Object?> _cell({
     'safetyFlags': safetyFlags,
     'safetyMissingFields': safetyMissingFields,
     'chunkRunComplete': chunkRunComplete,
+    'nonZeroChunkExitCount': nonZeroChunkExitCount,
+    'timedOutChunkCount': timedOutChunkCount,
   };
 }
 

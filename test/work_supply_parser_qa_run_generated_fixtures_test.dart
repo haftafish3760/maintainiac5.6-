@@ -375,6 +375,8 @@ void main() {
       expect(aggregate['checked'], 2);
       expect(aggregate['failureCount'], 0);
       expect(aggregate['parserCalls'], 23);
+      expect(aggregate['nonZeroChunkExitCount'], 0);
+      expect(aggregate['timedOutChunkCount'], 0);
       expect(
         (aggregate['chunkReports'] as List).map(
           (chunk) => (chunk as Map)['parserCalls'],
@@ -489,6 +491,67 @@ void main() {
 
       expect(exit, 1);
       expect(stdout.content, contains('parserCalls=0'));
+    },
+  );
+
+  test(
+    'generated fixture wrapper reports non-zero and timeout chunks',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_generated_fixture_runner_timeout_report_',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final fixture = File('${root.path}/generated_fixtures.json')
+        ..writeAsStringSync(
+          const JsonEncoder.withIndent('  ').convert([
+            for (var index = 0; index < 2; index++)
+              {
+                'id': 'fixture_$index',
+                'caseType': 'clear_match',
+                'rawLine': 'LOWES TOILET WAX RING 4.98',
+                'expectedTrade': 'Plumbing',
+                'expectedNameContains': 'wax ring',
+                'tradeScope': 'Plumbing',
+              },
+          ]),
+        );
+
+      final stdout = _MemorySink();
+      final stderr = _MemorySink();
+      final exit = await runGeneratedParserFixtures(
+        [
+          '--fixture',
+          fixture.path,
+          '--max-cases',
+          '2',
+          '--chunk-size',
+          '1',
+          '--report-dir',
+          '${root.path}/reports',
+        ],
+        stdout: stdout,
+        stderr: stderr,
+        processRunner:
+            (
+              String command,
+              List<String> args, {
+              bool runInShell = false,
+            }) async {
+              return ProcessResult(62, 124, '', 'timeout');
+            },
+      );
+
+      final aggregate =
+          jsonDecode(
+                File(
+                  '${root.path}/reports/latest_generated_fixture_run.json',
+                ).readAsStringSync(),
+              )
+              as Map;
+
+      expect(exit, 124);
+      expect(aggregate['nonZeroChunkExitCount'], 1);
+      expect(aggregate['timedOutChunkCount'], 1);
     },
   );
 }

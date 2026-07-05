@@ -333,6 +333,12 @@ _AggregateRunSummary _writeAggregateReport({
     0,
     (sum, chunk) => sum + chunk.parserCalls,
   );
+  final nonZeroChunkExitCount = chunks
+      .where((chunk) => chunk.exitCode != 0)
+      .length;
+  final timedOutChunkCount = chunks
+      .where((chunk) => chunk.exitCode == 124)
+      .length;
   final report = {
     'schemaVersion': 1,
     'domain': 'work_supply_inventory_parser_generated_fixtures',
@@ -344,6 +350,8 @@ _AggregateRunSummary _writeAggregateReport({
     'checked': checked,
     'failureCount': failures,
     'parserCalls': parserCalls,
+    'nonZeroChunkExitCount': nonZeroChunkExitCount,
+    'timedOutChunkCount': timedOutChunkCount,
     'chunkReports': [
       for (final chunk in chunks)
         {
@@ -370,6 +378,8 @@ _AggregateRunSummary _writeAggregateReport({
     checked: checked,
     failures: failures,
     parserCalls: parserCalls,
+    nonZeroChunkExitCount: nonZeroChunkExitCount,
+    timedOutChunkCount: timedOutChunkCount,
     reportPath: latest.path,
   );
 }
@@ -413,12 +423,16 @@ class _AggregateRunSummary {
     required this.checked,
     required this.failures,
     required this.parserCalls,
+    required this.nonZeroChunkExitCount,
+    required this.timedOutChunkCount,
     required this.reportPath,
   });
 
   final int checked;
   final int failures;
   final int parserCalls;
+  final int nonZeroChunkExitCount;
+  final int timedOutChunkCount;
   final String reportPath;
 }
 

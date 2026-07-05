@@ -320,6 +320,52 @@ void main() {
     expect(cells.single, containsPair('chunkRunComplete', false));
     expect(cells.single, containsPair('localOnlySafe', false));
   });
+
+  test('generated run status fails timeout chunk reports', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_generated_run_timeout_chunks_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeRun(
+      'build/reports/electrical/residential/core/en-US/reports/latest_generated_fixture_run.json',
+      checked: 6,
+      parserCalls: 8,
+      plannedChunkCount: 1,
+      completedChunkCount: 1,
+      nonZeroChunkExitCount: 1,
+      timedOutChunkCount: 1,
+    );
+
+    final exit = runWorkSupplyParserQaGeneratedRunStatus(
+      [
+        '--report-root',
+        'build/reports',
+        '--trades',
+        'electrical',
+        '--tiers',
+        'core',
+        '--locales',
+        'en-US',
+        '--require-complete',
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    final status = _readJson(
+      'build/parser_qa_pipeline/core_generated_run_status.json',
+    );
+    final cells = status['cells'] as List;
+
+    expect(exit, 1);
+    expect(status['unsafeCells'], 1);
+    expect(cells.single, containsPair('nonZeroChunkExitCount', 1));
+    expect(cells.single, containsPair('timedOutChunkCount', 1));
+    expect(cells.single, containsPair('localOnlySafe', false));
+  });
 }
 
 void _writeRun(
@@ -334,6 +380,8 @@ void _writeRun(
   bool includeSafetyFields = true,
   int? plannedChunkCount,
   int? completedChunkCount,
+  int? nonZeroChunkExitCount,
+  int? timedOutChunkCount,
 }) {
   final file = File(path)..parent.createSync(recursive: true);
   final payload = <String, Object?>{
@@ -353,6 +401,12 @@ void _writeRun(
   }
   if (completedChunkCount != null) {
     payload['completedChunkCount'] = completedChunkCount;
+  }
+  if (nonZeroChunkExitCount != null) {
+    payload['nonZeroChunkExitCount'] = nonZeroChunkExitCount;
+  }
+  if (timedOutChunkCount != null) {
+    payload['timedOutChunkCount'] = timedOutChunkCount;
   }
   file.writeAsStringSync(jsonEncode(payload));
 }
