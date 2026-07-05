@@ -8,6 +8,8 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_proof_storage.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'helpers/pdf_test_typography.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late Directory documentsDirectory;
@@ -26,8 +28,9 @@ void main() {
           },
         );
     sourcePdf = File('${Directory.systemTemp.path}/draft_source_receipt.pdf');
+    final theme = await PdfTestTypography.loadTheme();
     final pdf = pw.Document()
-      ..addPage(pw.Page(build: (_) => pw.Text('Draft receipt')));
+      ..addPage(pw.Page(theme: theme, build: (_) => pw.Text('Draft receipt')));
     await sourcePdf.writeAsBytes(await pdf.save(), flush: true);
   });
 

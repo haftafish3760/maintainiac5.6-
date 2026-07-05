@@ -46,6 +46,7 @@ void main() {
   test('PDF storage test fixtures avoid default Helvetica pages', () {
     for (final testPath in const [
       'test/app_document_store_test.dart',
+      'test/expense_draft_storage_lifecycle_test.dart',
       'test/receipt_proof_storage_lifecycle_test.dart',
     ]) {
       final source = File(testPath).readAsStringSync();

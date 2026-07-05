@@ -2653,3 +2653,24 @@
   - `dart analyze test/pdf_quality_gate_contract_test.dart test/expense_firestore_documents_test.dart test/invoice_ledger_store_test.dart test/invoice_signature_guard_test.dart lib/screens/invoices/data/invoice_ledger_store.dart`
   - `flutter test test/pdf_quality_gate_contract_test.dart test/expense_firestore_documents_test.dart test/invoice_ledger_store_test.dart test/invoice_signature_guard_test.dart -r compact`
   - `bash tool/pdf_quality_gate.sh`
+
+## Pass 136 - 2026-07-05 13:10 EDT - Receipt draft PDF recovery coverage
+
+- Scope: PDF QA coverage for receipt draft proof recovery and cloud backup
+  manifest policy. No inventory, camera, native capture, OCR engine, parser
+  behavior, or fragile UI tests changed.
+- Bundled work:
+  - Added receipt draft staged-PDF lifecycle tests to the PDF quality gate.
+  - Added expense draft store staged-PDF cleanup tests to the PDF quality gate.
+  - Added cloud backup manifest tests to the PDF quality gate so invoice
+    document opt-in and large receipt PDF backup policies stay covered.
+  - Registered draft recovery and cloud backup manifest fixture coverage in the
+    PDF QA inventory.
+  - Switched the draft storage PDF fixture to embedded test fonts and extended
+    the typography regression so default Helvetica fixture pages do not return.
+- Verification completed 2026-07-05 13:10 EDT:
+  - `dart format test/expense_draft_storage_lifecycle_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_typography_contract_test.dart`
+  - `bash -n tool/pdf_quality_gate.sh`
+  - `dart analyze test/expense_draft_storage_lifecycle_test.dart test/expense_draft_store_test.dart test/cloud_backup_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_typography_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/expense_draft_storage_lifecycle_test.dart test/expense_draft_store_test.dart test/cloud_backup_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_typography_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`

@@ -49,9 +49,12 @@ dart analyze \
   test/app_document_export_package_writer_test.dart \
   test/app_document_store_test.dart \
   test/cloud_backup_pdf_policy_test.dart \
+  test/cloud_backup_manifest_test.dart \
   test/document_engine_operating_directive_test.dart \
   test/incoming_receipt_share_pdf_hardening_test.dart \
   test/expense_firestore_documents_test.dart \
+  test/expense_draft_storage_lifecycle_test.dart \
+  test/expense_draft_store_test.dart \
   test/invoice_document_engine_layout_contract_test.dart \
   test/invoice_ledger_store_test.dart \
   test/invoice_signature_guard_test.dart \
@@ -103,9 +106,12 @@ flutter test \
   test/app_document_export_package_writer_test.dart \
   test/app_document_store_test.dart \
   test/cloud_backup_pdf_policy_test.dart \
+  test/cloud_backup_manifest_test.dart \
   test/document_engine_operating_directive_test.dart \
   test/incoming_receipt_share_pdf_hardening_test.dart \
   test/expense_firestore_documents_test.dart \
+  test/expense_draft_storage_lifecycle_test.dart \
+  test/expense_draft_store_test.dart \
   test/invoice_document_engine_layout_contract_test.dart \
   test/invoice_ledger_store_test.dart \
   test/invoice_signature_guard_test.dart \
