@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 
 import '../pdf/app_pdf_privacy_policy.dart';
 import '../pdf/app_pdf_security_policy.dart';
+import '../storage/app_storage_guard.dart';
 import '../widgets/receipt_capture/receipt_capture_models.dart';
 import 'app_document_models.dart';
 
@@ -55,6 +56,7 @@ class AppDocumentExportPackagePlan {
     required this.manifestSha256,
     required this.files,
     required this.totalBytes,
+    this.storageWarningMessage = '',
   });
 
   final AppDocumentExportManifest manifest;
@@ -62,11 +64,13 @@ class AppDocumentExportPackagePlan {
   final String manifestSha256;
   final List<AppDocumentExportPackageFile> files;
   final int totalBytes;
+  final String storageWarningMessage;
 
   Map<String, Object?> toMap() {
     return {
       'manifestSha256': manifestSha256,
       'totalBytes': totalBytes,
+      'storageWarningMessage': storageWarningMessage,
       'files': [for (final file in files) file.toMap()],
       'manifest': manifest.toMap(),
     };
@@ -211,8 +215,19 @@ class AppDocumentExportIntegrityException implements Exception {
   String toString() => message;
 }
 
+class AppDocumentExportPackageException implements Exception {
+  const AppDocumentExportPackageException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 class AppDocumentExportManager {
   const AppDocumentExportManager._();
+
+  static const int packageScratchBytes = 1024 * 1024;
 
   static AppDocumentExportReview review(AppDocumentRecord record) {
     final privacyIssues = _privacyIssues(record);
@@ -239,8 +254,9 @@ class AppDocumentExportManager {
   }
 
   static Future<AppDocumentExportPackagePlan> buildPackagePlan(
-    AppDocumentRecord record,
-  ) async {
+    AppDocumentRecord record, {
+    AppFreeStorageReader? freeStorageReader,
+  }) async {
     final manifest = requireManifest(record);
     final files = await _verifiedPackageFiles(record, manifest);
     final manifestJson = canonicalManifestJson(manifest);
@@ -248,17 +264,39 @@ class AppDocumentExportManager {
       utf8.encode(manifestJson).length,
       (total, file) => total + file.byteSize,
     );
+    final storageWarningMessage = await _storageWarningForPackage(
+      totalBytes,
+      freeStorageReader: freeStorageReader,
+    );
     return AppDocumentExportPackagePlan(
       manifest: manifest,
       manifestJson: manifestJson,
       manifestSha256: sha256.convert(utf8.encode(manifestJson)).toString(),
       files: files,
       totalBytes: totalBytes,
+      storageWarningMessage: storageWarningMessage,
     );
   }
 
   static String canonicalManifestJson(AppDocumentExportManifest manifest) {
     return const JsonEncoder.withIndent('  ').convert(manifest.toMap());
+  }
+
+  static Future<String> _storageWarningForPackage(
+    int totalBytes, {
+    AppFreeStorageReader? freeStorageReader,
+  }) async {
+    final check = await AppStorageGuard.checkForBytes(
+      operationBytes: totalBytes + packageScratchBytes,
+      purpose: AppStoragePurpose.exportFile,
+      freeStorageReader: freeStorageReader,
+    );
+    if (!check.hasEnoughSpace) {
+      throw AppDocumentExportPackageException(check.blockingMessage());
+    }
+    if (!check.canVerify) return check.unknownMessage();
+    if (check.shouldWarnLowStorage) return check.warningMessage();
+    return '';
   }
 
   static Future<List<AppDocumentExportPackageFile>> _verifiedPackageFiles(

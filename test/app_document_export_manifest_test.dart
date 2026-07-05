@@ -145,8 +145,14 @@ void main() {
       ),
     );
 
-    final first = await AppDocumentExportManager.buildPackagePlan(record);
-    final second = await AppDocumentExportManager.buildPackagePlan(record);
+    final first = await AppDocumentExportManager.buildPackagePlan(
+      record,
+      freeStorageReader: () async => 500,
+    );
+    final second = await AppDocumentExportManager.buildPackagePlan(
+      record,
+      freeStorageReader: () async => 500,
+    );
 
     expect(first.manifestJson, second.manifestJson);
     expect(
@@ -157,6 +163,7 @@ void main() {
     expect(first.files.single.sha256, hash);
     expect(first.files.single.path, pdf.path);
     expect(first.files.single.toMap().toString(), isNot(contains(pdf.path)));
+    expect(first.storageWarningMessage, isEmpty);
     expect(
       first.totalBytes,
       bytes.length + utf8.encode(first.manifestJson).length,
@@ -361,11 +368,84 @@ void main() {
           fileHash: sha256.convert(bytes).toString(),
         ),
       ),
+      freeStorageReader: () async => 500,
     );
 
     expect(plan.files.single.kind, ReceiptAttachmentKind.photo);
     expect(plan.files.single.sha256, sha256.convert(bytes).toString());
     expect(plan.files.single.toMap().toString(), isNot(contains(photo.path)));
+  });
+
+  test('document export package blocks when storage is too low', () async {
+    final pdf = File('${tempDirectory.path}/low-storage.pdf');
+    final bytes = utf8.encode('%PDF-1.7\nLow storage export\n%%EOF');
+    await pdf.writeAsBytes(bytes, flush: true);
+
+    await expectLater(
+      AppDocumentExportManager.buildPackagePlan(
+        _documentRecord(
+          attachment: _pdfAttachment(
+            path: pdf.path,
+            displayName: 'low-storage.pdf',
+            originalFileName: 'low-storage.pdf',
+            byteSize: bytes.length,
+            fileHash: sha256.convert(bytes).toString(),
+          ),
+        ),
+        freeStorageReader: () async => 1,
+      ),
+      throwsA(
+        isA<AppDocumentExportPackageException>().having(
+          (error) => error.message,
+          'message',
+          contains('not enough free storage'),
+        ),
+      ),
+    );
+  });
+
+  test('document export package carries low-storage warning', () async {
+    final pdf = File('${tempDirectory.path}/low-warning.pdf');
+    final bytes = utf8.encode('%PDF-1.7\nLow warning export\n%%EOF');
+    await pdf.writeAsBytes(bytes, flush: true);
+
+    final plan = await AppDocumentExportManager.buildPackagePlan(
+      _documentRecord(
+        attachment: _pdfAttachment(
+          path: pdf.path,
+          displayName: 'low-warning.pdf',
+          originalFileName: 'low-warning.pdf',
+          byteSize: bytes.length,
+          fileHash: sha256.convert(bytes).toString(),
+        ),
+      ),
+      freeStorageReader: () async => 75,
+    );
+
+    expect(plan.storageWarningMessage, contains('low on storage'));
+    expect(plan.toMap()['storageWarningMessage'], plan.storageWarningMessage);
+  });
+
+  test('document export package records unknown storage warning', () async {
+    final pdf = File('${tempDirectory.path}/unknown-storage.pdf');
+    final bytes = utf8.encode('%PDF-1.7\nUnknown storage export\n%%EOF');
+    await pdf.writeAsBytes(bytes, flush: true);
+
+    final plan = await AppDocumentExportManager.buildPackagePlan(
+      _documentRecord(
+        attachment: _pdfAttachment(
+          path: pdf.path,
+          displayName: 'unknown-storage.pdf',
+          originalFileName: 'unknown-storage.pdf',
+          byteSize: bytes.length,
+          fileHash: sha256.convert(bytes).toString(),
+        ),
+      ),
+      freeStorageReader: () async => null,
+    );
+
+    expect(plan.storageWarningMessage, contains('could not verify'));
+    expect(plan.toMap().toString(), isNot(contains(pdf.path)));
   });
 }
 

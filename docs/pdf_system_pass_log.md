@@ -1,5 +1,32 @@
 # PDF System Pass Log
 
+## Pass 50 - 2026-07-05 05:55 EDT - Document export storage safety gate
+
+- Scope: shared app document export package storage preflight and PDF QA
+  fixture inventory only. No inventory, camera, native capture, receipt parser,
+  or OCR engine behavior changes.
+- Bundled work:
+  - Added export-package storage preflight using the shared app storage guard
+    before a document export package plan is returned.
+  - Added package scratch-space accounting so export package planning reserves
+    room for manifest and temporary package creation instead of checking only
+    saved proof bytes.
+  - Blocked document export packages when free storage is below the protected
+    device reserve.
+  - Preserved export package creation with explicit warnings when storage is
+    low or free-space verification is unavailable.
+  - Kept exported package metadata pathless while carrying storage warning
+    state in the package plan.
+  - Added regressions for low-storage blocking, low-storage warning, unknown
+    storage warning, and verified storage-clear package creation.
+  - Updated the shared PDF fixture inventory for document export storage
+    blocking and warning cases.
+- Verification completed 2026-07-05 05:55 EDT:
+  - `dart format lib/shared/documents/app_document_export_manifest.dart test/app_document_export_manifest_test.dart`
+  - `flutter test test/app_document_export_manifest_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart test/app_document_export_manifest_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 49 - 2026-07-05 05:52 EDT - Document export PDF content safety gate
 
 - Scope: shared app document export package safety, PDF proof content scanning,
