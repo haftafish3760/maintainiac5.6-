@@ -129,6 +129,13 @@ void main() {
   test(
     'blocks raw receipt content and paths from admin telemetry metadata',
     () {
+      final safe = ExpenseTelemetryPolicy.sanitizeMetadata({
+        'cameraDiagnosticsImprovementOptIn': true,
+        'adminDiagnosticOwnerImagePreviewAllowed': false,
+      });
+
+      expect(safe['cameraDiagnosticsImprovementOptIn'], isTrue);
+      expect(safe['adminDiagnosticOwnerImagePreviewAllowed'], isFalse);
       expect(
         () => ExpenseTelemetryPolicy.sanitizeMetadata({
           'adminDiagnosticArtifactId': 'safe_token',

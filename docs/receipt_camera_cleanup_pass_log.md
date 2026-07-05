@@ -3,6 +3,22 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 894 - 06:10:00 EDT to active cleanup
+
+Scope:
+- Routed shared receipt capture diagnostics through a single opt-in publisher
+  so Help Improve Receipt Camera must be enabled before the callback fires.
+- Stamped allowed diagnostics with privacy metadata proving owner receipt image
+  preview stays disabled.
+- Added telemetry policy coverage for the new opt-in and owner-preview flags.
+- Recorded `BUG-RECEIPT-0343` under `privacy_redaction`.
+- Archived Pass 847 from the active cleanup log to keep the doc under cap.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused receipt settings/admin
+  diagnostic regressions, cleanup/doc/ledger/source gates, and diff whitespace
+  gate.
+
 ## Pass 893 - 05:58:00 EDT to active cleanup
 
 Scope:
@@ -467,20 +483,6 @@ Scope:
   summary counts for long-receipt scan batches.
 - Recorded `BUG-RECEIPT-0316` under `barcode_qr_scanning`.
 - Archived Pass 792 from the active cleanup log to keep the doc under cap.
-
-Verification:
-- Passed targeted Dart format/analyzer and focused barcode scanner regression.
-- Passed cleanup log, doc-size, bug-ledger, source-audit, test-audit, and diff
-  whitespace gates.
-
-## Pass 847 - 12:00:00 EDT to active cleanup
-
-Scope:
-- Split ML Kit barcode format mapping out of the barcode scanner service into a
-  focused part file.
-- Kept the scanner service under the 500-line cap after the coverage-count
-  hardening without changing behavior.
-- Archived Pass 791 from the active cleanup log to keep the doc under cap.
 
 Verification:
 - Passed targeted Dart format/analyzer and focused barcode scanner regression.

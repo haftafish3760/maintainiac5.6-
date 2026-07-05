@@ -202,7 +202,7 @@ extension _ReceiptAttachmentReviewReadActions
       _receiptReadStatusMessage =
           'Receipt photo saved. Add the bottom receipt section before receipt details open. $evidence $nextStep';
     });
-    widget.onReceiptCaptureDiagnostic?.call({
+    _publishReceiptCaptureDiagnostic({
       'captureFlow': 'maintainiac_native_receipt_camera',
       'receiptPhotoReviewPausedBeforeOcr': true,
       'receiptPhotoReviewPauseRoute': route,

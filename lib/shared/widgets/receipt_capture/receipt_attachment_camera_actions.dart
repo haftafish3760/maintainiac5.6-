@@ -188,7 +188,7 @@ extension _ReceiptAttachmentCameraActions
 
   void _publishSharedReceiptCaptureDiagnostic(ReceiptCaptureFlowResult result) {
     if (result.diagnostics.isEmpty) return;
-    widget.onReceiptCaptureDiagnostic?.call(result.diagnostics);
+    _publishReceiptCaptureDiagnostic(result.diagnostics);
   }
 
   Future<void> _clearAcceptedNativeRecovery(
@@ -225,7 +225,7 @@ extension _ReceiptAttachmentCameraActions
     ReceiptNativeCameraCapabilities? nativeCapabilities,
     Map<String, Object?> extraMetadata = const {},
   }) {
-    widget.onReceiptCaptureDiagnostic?.call({
+    _publishReceiptCaptureDiagnostic({
       'captureFlow': 'maintainiac_native_receipt_camera',
       'nativeCaptureFailureStage': stage,
       'nativeCaptureFailureReason': reason,

@@ -126,6 +126,22 @@ class _SharedReceiptAttachmentPanelState
   bool get _hasAttachment =>
       _photoPaths.isNotEmpty || _documentAttachments.isNotEmpty;
 
+  bool get _receiptCaptureDiagnosticsImprovementEnabled {
+    return ReceiptCaptureSettingsScope.maybeOf(
+          context,
+        )?.cameraDiagnosticsImprovementOptIn ??
+        false;
+  }
+
+  void _publishReceiptCaptureDiagnostic(Map<String, Object?> diagnostic) {
+    if (!_receiptCaptureDiagnosticsImprovementEnabled) return;
+    widget.onReceiptCaptureDiagnostic?.call({
+      'cameraDiagnosticsImprovementOptIn': true,
+      'adminDiagnosticOwnerImagePreviewAllowed': false,
+      ...diagnostic,
+    });
+  }
+
   @override
   void initState() {
     super.initState();

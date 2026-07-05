@@ -321,6 +321,7 @@ const _expenseTelemetryAllowedMetadataKeys = <String>{
   'scannerCleanupUsedCount',
   'cleanupActionCount',
   'cleanupActions',
+  'cameraDiagnosticsImprovementOptIn',
   'stitchStatus',
   'stitchFallbackReason',
   'stitchConfidenceBucket',

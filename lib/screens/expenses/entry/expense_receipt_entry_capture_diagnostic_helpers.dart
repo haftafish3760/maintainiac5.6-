@@ -44,6 +44,12 @@ extension _ExpenseReceiptEntryCaptureDiagnosticHelpers
         'nativeCaptureFailureStage': stage,
         'nativeCaptureFailureReason': reason,
         'nativeCaptureRecoveryAction': action,
+        if (diagnostic['cameraDiagnosticsImprovementOptIn'] is bool)
+          'cameraDiagnosticsImprovementOptIn':
+              diagnostic['cameraDiagnosticsImprovementOptIn'],
+        if (diagnostic['adminDiagnosticOwnerImagePreviewAllowed'] is bool)
+          'adminDiagnosticOwnerImagePreviewAllowed':
+              diagnostic['adminDiagnosticOwnerImagePreviewAllowed'],
         if (diagnostic['nativeCameraEngine'] != null)
           'nativeCameraEngine': _safeTelemetryToken(
             diagnostic['nativeCameraEngine'],
@@ -103,6 +109,12 @@ extension _ExpenseReceiptEntryCaptureDiagnosticHelpers
         'nativeCaptureFailureStage': stage,
         'nativeCaptureFailureReason': reason,
         'nativeCaptureRecoveryAction': action,
+        if (diagnostic['cameraDiagnosticsImprovementOptIn'] is bool)
+          'cameraDiagnosticsImprovementOptIn':
+              diagnostic['cameraDiagnosticsImprovementOptIn'],
+        if (diagnostic['adminDiagnosticOwnerImagePreviewAllowed'] is bool)
+          'adminDiagnosticOwnerImagePreviewAllowed':
+              diagnostic['adminDiagnosticOwnerImagePreviewAllowed'],
         if (recoveryStage.isNotEmpty)
           'nativeRecoveryResumeStatusBuckets': {recoveryStage: 1},
         if (recoveryFreshness.isNotEmpty)

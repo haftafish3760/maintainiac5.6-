@@ -144,6 +144,12 @@ void main() {
       expect(source, contains('profile.notesLabel'));
       expect(source, contains('Help Improve Receipt Camera'));
       expect(source, contains('cameraDiagnosticsImprovementOptIn'));
+      expect(source, contains('_receiptCaptureDiagnosticsImprovementEnabled'));
+      expect(source, contains('_publishReceiptCaptureDiagnostic'));
+      expect(
+        source,
+        contains("'adminDiagnosticOwnerImagePreviewAllowed': false"),
+      );
       expect(source, contains('Automatic photo capture stays off'));
       expect(source, contains('You stay in control'));
       expect(source, contains('Receipt images and receipt text stay out'));
@@ -188,6 +194,9 @@ Future<String> _readReceiptCaptureSettingsSource() async {
     'lib/shared/widgets/receipt_capture/receipt_capture_runtime_settings.dart',
     'lib/shared/widgets/receipt_capture/receipt_expense_review_default_picker.dart',
     'lib/shared/widgets/receipt_capture/receipt_capture_review_storage_settings.dart',
+    'lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart',
+    'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
+    'lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart',
   ];
   final contents = <String>[];
   for (final path in paths) {
