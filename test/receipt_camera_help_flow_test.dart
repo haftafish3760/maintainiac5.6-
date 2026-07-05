@@ -222,7 +222,7 @@ void main() {
     expect(
       reviewScreen,
       contains(
-        '_ReceiptReviewMode.preview => _photoPaths.length > 1 ? 164.0 : 142.0',
+        '_ReceiptReviewMode.preview => _photoPaths.length > 1 ? 188.0 : 166.0',
       ),
     );
     expect(
@@ -230,8 +230,8 @@ void main() {
       contains('maxHeight: _reviewBottomControlsMaxHeight(context)'),
     );
     expect(reviewScreen, contains('double _reviewBottomControlsMaxHeight'));
-    expect(reviewScreen, contains('164.0 : 142.0'));
-    expect(reviewScreen, contains('_ReceiptReviewMode.preview => .20'));
+    expect(reviewScreen, contains('188.0 : 166.0'));
+    expect(reviewScreen, contains('_ReceiptReviewMode.preview => .22'));
     expect(reviewScreen, contains('_ReceiptReviewMode.stitch => .20'));
     expect(reviewScreen, contains('_ReceiptReviewMode.dataSaver => .20'));
     expect(reviewScreen, contains('_ReceiptReviewMode.stitch => 164.0'));

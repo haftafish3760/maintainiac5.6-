@@ -271,8 +271,8 @@ void main() {
 
     expect(controls, contains('Next: Review Receipt Details'));
     expect(controls, contains("return 'Next: Review Receipt Details';"));
-    expect(screen, contains('_ReceiptReviewMode.preview => .20'));
-    expect(screen, contains('_photoPaths.length > 1 ? 164.0 : 142.0'));
+    expect(screen, contains('_ReceiptReviewMode.preview => .22'));
+    expect(screen, contains('_photoPaths.length > 1 ? 188.0 : 166.0'));
     expect(topBar, contains('_ReceiptNextReviewLabel(label: label)'));
     expect(commonControls, isNot(contains("normalized == 'Next: Details'")));
     expect(previewControls, contains("'Add Another Photo'"));

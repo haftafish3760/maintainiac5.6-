@@ -60,14 +60,14 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
     final proportional =
         safeHeight *
         switch (_reviewMode) {
-          _ReceiptReviewMode.preview => .20,
+          _ReceiptReviewMode.preview => .22,
           _ReceiptReviewMode.crop => .10,
           _ReceiptReviewMode.order => .18,
           _ReceiptReviewMode.stitch => .20,
           _ReceiptReviewMode.dataSaver => .20,
         };
     final absolute = switch (_reviewMode) {
-      _ReceiptReviewMode.preview => _photoPaths.length > 1 ? 164.0 : 142.0,
+      _ReceiptReviewMode.preview => _photoPaths.length > 1 ? 188.0 : 166.0,
       _ReceiptReviewMode.crop => 78.0,
       _ReceiptReviewMode.order => 142.0,
       _ReceiptReviewMode.stitch => 164.0,

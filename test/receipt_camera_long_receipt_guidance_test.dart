@@ -281,7 +281,7 @@ void main() {
     expect(
       sources.reviewScreen,
       contains(
-        '_ReceiptReviewMode.preview => _photoPaths.length > 1 ? 164.0 : 142.0',
+        '_ReceiptReviewMode.preview => _photoPaths.length > 1 ? 188.0 : 166.0',
       ),
     );
     expect(sources.reviewScreen, contains('_ReceiptReviewMode.order => 142.0'));

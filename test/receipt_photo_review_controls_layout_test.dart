@@ -40,7 +40,7 @@ void main() {
       reviewScreen,
       contains('double _reviewBottomControlsMaxHeight(BuildContext context)'),
     );
-    expect(reviewScreen, contains('_ReceiptReviewMode.preview => .20'));
+    expect(reviewScreen, contains('_ReceiptReviewMode.preview => .22'));
     expect(
       reviewScreen,
       contains('relying on a hidden scroll-only continuation path'),
@@ -52,7 +52,7 @@ void main() {
     expect(
       reviewScreen,
       contains(
-        '_ReceiptReviewMode.preview => _photoPaths.length > 1 ? 164.0 : 142.0',
+        '_ReceiptReviewMode.preview => _photoPaths.length > 1 ? 188.0 : 166.0',
       ),
     );
     expect(reviewScreen, contains('_ReceiptReviewMode.dataSaver => 168.0'));
@@ -85,6 +85,7 @@ void main() {
     expect(commonControls, contains('minimumSize: const Size(0, 32)'));
     expect(previewControls, contains('height: 32'));
     expect(previewControls, contains('minimumSize: const Size(92, 36)'));
+    expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));
     expect(
       reviewScreen,
       contains('_photoPreviewTransformController.value = Matrix4.identity()'),
@@ -129,6 +130,8 @@ void main() {
       'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',
     ).readAsString();
     expect(previewControls, contains('class _ReceiptPreviewPrimaryRow'));
+    expect(previewControls, contains('mainAxisSize: MainAxisSize.min'));
+    expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));
     expect(controls, contains('Flexible('));
     expect(controls, contains('fit: FlexFit.loose'));
     expect(controls, contains('SingleChildScrollView('));
