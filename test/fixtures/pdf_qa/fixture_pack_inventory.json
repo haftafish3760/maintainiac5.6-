@@ -199,7 +199,8 @@
         "test/app_document_export_manifest_test.dart",
         "test/pdf_privacy_policy_contract_test.dart",
         "test/pdf_security_policy_contract_test.dart",
-        "test/pdf_text_decoder_contract_test.dart"
+        "test/pdf_text_decoder_contract_test.dart",
+        "test/pdf_health_diagnostics_test.dart"
       ],
       "fixtureKeys": [
         "active_actions",
@@ -235,7 +236,9 @@
         "generated_pdf_symlinked_temp_directory_block",
         "generated_pdf_encrypted_output_block",
         "generated_pdf_filename_privacy_block",
-        "separator_normalized_vehicle_privacy_block"
+        "separator_normalized_vehicle_privacy_block",
+        "pdf_health_diagnostics_safe_command_center_snapshot",
+        "pdf_health_diagnostics_private_signal_redaction"
       ]
     },
     "pdf_to_receipt_review": {

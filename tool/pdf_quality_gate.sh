@@ -43,6 +43,7 @@ dart analyze \
   test/invoice_template_pdf_factory_test.dart \
   test/invoice_pdf_money_precision_test.dart \
   test/pdf_formatters_contract_test.dart \
+  test/pdf_health_diagnostics_test.dart \
   test/pdf_qa_fixture_inventory_test.dart \
   test/pdf_privacy_policy_contract_test.dart \
   test/pdf_security_policy_contract_test.dart \
@@ -87,6 +88,7 @@ flutter test \
   test/invoice_template_pdf_factory_test.dart \
   test/invoice_pdf_money_precision_test.dart \
   test/pdf_formatters_contract_test.dart \
+  test/pdf_health_diagnostics_test.dart \
   test/pdf_qa_fixture_inventory_test.dart \
   test/pdf_privacy_policy_contract_test.dart \
   test/pdf_security_policy_contract_test.dart \
