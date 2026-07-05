@@ -276,6 +276,26 @@ void main() {
     skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
   );
 
+  test('document export package planning rechecks proof files safely', () {
+    final source = File(
+      'lib/shared/documents/app_document_export_manifest.dart',
+    ).readAsStringSync();
+
+    expect(
+      source,
+      contains('Future<AppDocumentExportIntegrityIssue?> _regularProofIssue('),
+    );
+    expect(source, contains('followLinks: false'));
+    expect(
+      RegExp(
+        r'await _regularProofIssue\(sourcePath, label\);',
+      ).allMatches(source),
+      hasLength(greaterThanOrEqualTo(5)),
+    );
+    expect(source, contains('final actualHash = await _safeFileHash(file);'));
+    expect(source, contains('final pdfBytes = await _safeReadBytes(file);'));
+  });
+
   test(
     'document export package rejects symlinked photo proof files',
     () async {

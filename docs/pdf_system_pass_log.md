@@ -2607,3 +2607,29 @@
   - `dart analyze test/receipt_pdf_inspector_edge_cases_test.dart`
   - `flutter test test/receipt_pdf_inspector_edge_cases_test.dart -r compact`
   - `bash tool/pdf_quality_gate.sh`
+
+## Pass 134 - 2026-07-05 13:03 EDT - Document export proof planning hardening
+
+- Scope: Document export package proof planning and PDF QA reliability only. No
+  inventory, camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Rechecked package proof source files without following links after stat,
+    before hash, after hash, before PDF proof read, and after PDF proof read.
+  - Added regression coverage to keep those no-follow proof planning rechecks in
+    place.
+  - Registered the proof-planning coverage in the PDF QA inventory.
+  - Removed default-Helvetica PDF fixture generation from document storage and
+    receipt proof lifecycle tests by using embedded test PDF fonts.
+  - Added typography regression coverage so those storage tests do not drift
+    back to default unembedded PDF fonts.
+  - Fixed a flaky privacy assertion that treated random hash digits as leaked
+    phone data; the test now checks the actual private filename and phone token.
+- Verification completed 2026-07-05 13:03 EDT:
+  - `dart format lib/shared/documents/app_document_export_manifest.dart test/app_document_export_manifest_test.dart`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart test/app_document_export_manifest_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_document_export_manifest_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart format test/app_document_store_test.dart test/receipt_proof_storage_lifecycle_test.dart test/pdf_typography_contract_test.dart`
+  - `dart analyze test/app_document_store_test.dart test/receipt_proof_storage_lifecycle_test.dart test/pdf_typography_contract_test.dart`
+  - `flutter test test/app_document_store_test.dart test/receipt_proof_storage_lifecycle_test.dart test/pdf_typography_contract_test.dart -r compact`
+  - `flutter test test/app_document_store_test.dart --plain-name 'document package import stores hash label instead of package filename' -r compact`
+  - `bash tool/pdf_quality_gate.sh`

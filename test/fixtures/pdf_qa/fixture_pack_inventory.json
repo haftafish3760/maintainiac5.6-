@@ -120,6 +120,7 @@
         "document_export_zip_package_malformed_builder_block",
         "document_export_zip_package_source_changed_after_plan_block",
         "document_export_zip_package_source_replaced_by_symlink_block",
+        "document_export_zip_package_source_no_follow_planning_rechecks",
         "document_export_zip_package_generated_total_mismatch_block",
         "document_export_zip_package_source_read_failure_pathless",
         "document_export_zip_package_duplicate_names",

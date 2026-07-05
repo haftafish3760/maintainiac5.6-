@@ -429,6 +429,10 @@ class AppDocumentExportManager {
         ),
       );
     }
+    final statRecheckIssue = await _regularProofIssue(sourcePath, label);
+    if (statRecheckIssue != null) {
+      return _PackageFileVerification.issue(statRecheckIssue);
+    }
     final expectedByteSize = attachment.byteSize;
     if (expectedByteSize != null && expectedByteSize != stat.size) {
       return _PackageFileVerification.issue(
@@ -438,7 +442,15 @@ class AppDocumentExportManager {
         ),
       );
     }
+    final preHashIssue = await _regularProofIssue(sourcePath, label);
+    if (preHashIssue != null) {
+      return _PackageFileVerification.issue(preHashIssue);
+    }
     final actualHash = await _safeFileHash(file);
+    final postHashIssue = await _regularProofIssue(sourcePath, label);
+    if (postHashIssue != null) {
+      return _PackageFileVerification.issue(postHashIssue);
+    }
     if (actualHash.isEmpty) {
       return _PackageFileVerification.issue(
         AppDocumentExportIntegrityIssue(
@@ -457,7 +469,15 @@ class AppDocumentExportManager {
       );
     }
     if (attachment.isPdf) {
+      final preReadIssue = await _regularProofIssue(sourcePath, label);
+      if (preReadIssue != null) {
+        return _PackageFileVerification.issue(preReadIssue);
+      }
       final pdfBytes = await _safeReadBytes(file);
+      final postReadIssue = await _regularProofIssue(sourcePath, label);
+      if (postReadIssue != null) {
+        return _PackageFileVerification.issue(postReadIssue);
+      }
       if (pdfBytes == null) {
         return _PackageFileVerification.issue(
           AppDocumentExportIntegrityIssue(
@@ -500,6 +520,30 @@ class AppDocumentExportManager {
         readOnlyProof: attachment.isReadOnlyProof,
       ),
     );
+  }
+
+  static Future<AppDocumentExportIntegrityIssue?> _regularProofIssue(
+    String sourcePath,
+    String label,
+  ) async {
+    try {
+      final entityType = await FileSystemEntity.type(
+        sourcePath,
+        followLinks: false,
+      );
+      if (entityType == FileSystemEntityType.file) return null;
+      return AppDocumentExportIntegrityIssue(
+        code: entityType == FileSystemEntityType.link
+            ? AppDocumentExportIntegrityIssue.symlinkProof
+            : AppDocumentExportIntegrityIssue.missingFile,
+        attachmentLabel: label,
+      );
+    } catch (_) {
+      return AppDocumentExportIntegrityIssue(
+        code: AppDocumentExportIntegrityIssue.missingFile,
+        attachmentLabel: label,
+      );
+    }
   }
 
   static Future<String> _safeFileHash(File file) async {

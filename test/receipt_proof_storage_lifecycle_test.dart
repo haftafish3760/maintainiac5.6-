@@ -6,6 +6,8 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_proof_storage.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'helpers/pdf_test_typography.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late Directory documentsDirectory;
@@ -37,9 +39,7 @@ void main() {
 
   test('receipt proof storage copies a picked PDF into app storage', () async {
     final source = File('${Directory.systemTemp.path}/picked_receipt.pdf');
-    final pdf = pw.Document()
-      ..addPage(pw.Page(build: (_) => pw.Text('Counter receipt')));
-    await source.writeAsBytes(await pdf.save(), flush: true);
+    await _writeTestPdf(source, 'Counter receipt');
     addTearDown(() {
       if (source.existsSync()) source.deleteSync();
     });
@@ -68,9 +68,7 @@ void main() {
 
   test('pdf import stages proof before permanent save', () async {
     final source = File('${Directory.systemTemp.path}/staged_receipt.pdf');
-    final pdf = pw.Document()
-      ..addPage(pw.Page(build: (_) => pw.Text('Staged receipt')));
-    await source.writeAsBytes(await pdf.save(), flush: true);
+    await _writeTestPdf(source, 'Staged receipt');
     addTearDown(() {
       if (source.existsSync()) source.deleteSync();
     });
@@ -100,9 +98,7 @@ void main() {
 
   test('removing a staged PDF deletes the staged copy only', () async {
     final source = File('${Directory.systemTemp.path}/cancel_receipt.pdf');
-    final pdf = pw.Document()
-      ..addPage(pw.Page(build: (_) => pw.Text('Cancel receipt')));
-    await source.writeAsBytes(await pdf.save(), flush: true);
+    await _writeTestPdf(source, 'Cancel receipt');
     addTearDown(() {
       if (source.existsSync()) source.deleteSync();
     });
@@ -124,9 +120,7 @@ void main() {
 
   test('saving a staged PDF promotes it to permanent proof storage', () async {
     final source = File('${Directory.systemTemp.path}/promote_receipt.pdf');
-    final pdf = pw.Document()
-      ..addPage(pw.Page(build: (_) => pw.Text('Prom receipt')));
-    await source.writeAsBytes(await pdf.save(), flush: true);
+    await _writeTestPdf(source, 'Prom receipt');
     addTearDown(() {
       if (source.existsSync()) source.deleteSync();
     });
@@ -155,59 +149,61 @@ void main() {
     expect(await source.exists(), isTrue);
   });
 
-  test('failed batch save restores staged PDFs and removes orphan proof', () async {
-    final source = File('${Directory.systemTemp.path}/batch_receipt.pdf');
-    final bad = File('${Directory.systemTemp.path}/batch_bad.pdf');
-    final pdf = pw.Document()
-      ..addPage(pw.Page(build: (_) => pw.Text('Batch receipt')));
-    await source.writeAsBytes(await pdf.save(), flush: true);
-    await bad.writeAsString('not a pdf', flush: true);
-    addTearDown(() {
-      if (source.existsSync()) source.deleteSync();
-      if (bad.existsSync()) bad.deleteSync();
-    });
+  test(
+    'failed batch save restores staged PDFs and removes orphan proof',
+    () async {
+      final source = File('${Directory.systemTemp.path}/batch_receipt.pdf');
+      final bad = File('${Directory.systemTemp.path}/batch_bad.pdf');
+      await _writeTestPdf(source, 'Batch receipt');
+      await bad.writeAsString('not a pdf', flush: true);
+      addTearDown(() {
+        if (source.existsSync()) source.deleteSync();
+        if (bad.existsSync()) bad.deleteSync();
+      });
 
-    final staged = await ReceiptProofStorage.instance.stageAttachment(
-      ReceiptAttachmentRecord(
-        id: 'pdf-batch-good',
-        path: source.path,
-        kind: ReceiptAttachmentKind.pdf,
-        dataSaverLevel: ReceiptDataSaverLevel.original,
-        createdAt: DateTime(2026, 6, 13),
-      ),
-    );
-    final stagedPath = staged.path;
-
-    await expectLater(
-      ReceiptProofStorage.instance.persistAttachments([
-        staged.copyWith(linkedModule: 'expenses', linkedRecordId: 'EXP-batch'),
+      final staged = await ReceiptProofStorage.instance.stageAttachment(
         ReceiptAttachmentRecord(
-          id: 'pdf-batch-bad',
-          path: bad.path,
+          id: 'pdf-batch-good',
+          path: source.path,
           kind: ReceiptAttachmentKind.pdf,
           dataSaverLevel: ReceiptDataSaverLevel.original,
           createdAt: DateTime(2026, 6, 13),
         ),
-      ]),
-      throwsA(isA<ReceiptProofStorageException>()),
-    );
+      );
+      final stagedPath = staged.path;
 
-    expect(await File(stagedPath).exists(), isTrue);
-    final permanentPdfDir = Directory(
-      '${documentsDirectory.path}/receipt_proofs/pdfs',
-    );
-    final permanentFiles = permanentPdfDir.existsSync()
-        ? permanentPdfDir.listSync().whereType<File>().toList()
-        : <File>[];
-    expect(permanentFiles, isEmpty);
-  });
+      await expectLater(
+        ReceiptProofStorage.instance.persistAttachments([
+          staged.copyWith(
+            linkedModule: 'expenses',
+            linkedRecordId: 'EXP-batch',
+          ),
+          ReceiptAttachmentRecord(
+            id: 'pdf-batch-bad',
+            path: bad.path,
+            kind: ReceiptAttachmentKind.pdf,
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+            createdAt: DateTime(2026, 6, 13),
+          ),
+        ]),
+        throwsA(isA<ReceiptProofStorageException>()),
+      );
+
+      expect(await File(stagedPath).exists(), isTrue);
+      final permanentPdfDir = Directory(
+        '${documentsDirectory.path}/receipt_proofs/pdfs',
+      );
+      final permanentFiles = permanentPdfDir.existsSync()
+          ? permanentPdfDir.listSync().whereType<File>().toList()
+          : <File>[];
+      expect(permanentFiles, isEmpty);
+    },
+  );
 
   test('failed batch save removes copied external PDFs', () async {
     final source = File('${Directory.systemTemp.path}/batch_external.pdf');
     final bad = File('${Directory.systemTemp.path}/batch_external_bad.pdf');
-    final pdf = pw.Document()
-      ..addPage(pw.Page(build: (_) => pw.Text('External batch receipt')));
-    await source.writeAsBytes(await pdf.save(), flush: true);
+    await _writeTestPdf(source, 'External batch receipt');
     await bad.writeAsString('not a pdf', flush: true);
     addTearDown(() {
       if (source.existsSync()) source.deleteSync();
@@ -247,10 +243,9 @@ void main() {
   test('receipt proof storage can clean orphan proof files', () async {
     final kept = File('${Directory.systemTemp.path}/kept_receipt.pdf');
     final orphan = File('${Directory.systemTemp.path}/orphan_receipt.pdf');
-    final pdf = pw.Document()
-      ..addPage(pw.Page(build: (_) => pw.Text('Counter receipt')));
-    await kept.writeAsBytes(await pdf.save(), flush: true);
-    await orphan.writeAsBytes(await pdf.save(), flush: true);
+    final bytes = await _testPdfBytes('Counter receipt');
+    await kept.writeAsBytes(bytes, flush: true);
+    await orphan.writeAsBytes(bytes, flush: true);
     addTearDown(() {
       if (kept.existsSync()) kept.deleteSync();
       if (orphan.existsSync()) orphan.deleteSync();
@@ -285,9 +280,7 @@ void main() {
 
   test('startup cleanup removes only old unreferenced staged PDFs', () async {
     final source = File('${Directory.systemTemp.path}/cleanup_receipt.pdf');
-    final pdf = pw.Document()
-      ..addPage(pw.Page(build: (_) => pw.Text('Cleanup receipt')));
-    await source.writeAsBytes(await pdf.save(), flush: true);
+    await _writeTestPdf(source, 'Cleanup receipt');
     addTearDown(() {
       if (source.existsSync()) source.deleteSync();
     });
@@ -320,4 +313,15 @@ void main() {
     expect(await File(retained.path).exists(), isTrue);
     expect(await File(orphan.path).exists(), isFalse);
   });
+}
+
+Future<void> _writeTestPdf(File file, String title) async {
+  await file.writeAsBytes(await _testPdfBytes(title), flush: true);
+}
+
+Future<List<int>> _testPdfBytes(String title) async {
+  final theme = await PdfTestTypography.loadTheme();
+  final pdf = pw.Document()
+    ..addPage(pw.Page(theme: theme, build: (_) => pw.Text(title)));
+  return pdf.save();
 }

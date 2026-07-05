@@ -12,6 +12,8 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_proof_storage.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'helpers/pdf_test_typography.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late Directory documentsDirectory;
@@ -30,9 +32,7 @@ void main() {
           },
         );
     sourcePdf = File('${Directory.systemTemp.path}/job_packet.pdf');
-    final pdf = pw.Document()
-      ..addPage(pw.Page(build: (_) => pw.Text('Job packet')));
-    await sourcePdf.writeAsBytes(await pdf.save(), flush: true);
+    await _writeTestPdf(sourcePdf, 'Job packet');
   });
 
   tearDown(() async {
@@ -344,7 +344,7 @@ void main() {
 
       expect(saved.attachments.single.sourceLabel, startsWith('Maintainiac'));
       expect(serialized, isNot(contains('jane')));
-      expect(serialized, isNot(contains('555')));
+      expect(serialized, isNot(contains('555-123-4567')));
       expect(serialized, isNot(contains(renamedPackage.path.toLowerCase())));
       expect(await renamedPackage.exists(), isTrue);
     },
@@ -567,8 +567,7 @@ Future<File> _writeDocumentExportPackage({
   required String title,
 }) async {
   final source = File('${outputDirectory.parent.path}/package_source.pdf');
-  final pdf = pw.Document()..addPage(pw.Page(build: (_) => pw.Text(title)));
-  final bytes = await pdf.save();
+  final bytes = await _testPdfBytes(title);
   await source.writeAsBytes(bytes, flush: true);
   final hash = sha256.convert(bytes).toString();
   final result = await AppDocumentExportPackageWriter().writeZipPackage(
@@ -602,6 +601,17 @@ Future<File> _writeDocumentExportPackage({
     freeStorageReader: () async => 500,
   );
   return File(result.filePath);
+}
+
+Future<void> _writeTestPdf(File file, String title) async {
+  await file.writeAsBytes(await _testPdfBytes(title), flush: true);
+}
+
+Future<List<int>> _testPdfBytes(String title) async {
+  final theme = await PdfTestTypography.loadTheme();
+  final pdf = pw.Document()
+    ..addPage(pw.Page(theme: theme, build: (_) => pw.Text(title)));
+  return pdf.save();
 }
 
 class _FailingAppDocumentStore extends AppDocumentStore {
