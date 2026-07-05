@@ -21,6 +21,11 @@ enum ExpenseAdminDiagnosticPrivateRegionHandling {
 
 enum ExpenseAdminDiagnosticQualityProofPurpose { none, imageQualityReviewOnly }
 
+enum ExpenseAdminDiagnosticViewerPolicy {
+  metadataOnly,
+  machineQualityReviewOnly,
+}
+
 class ExpenseAdminDiagnosticArtifact {
   const ExpenseAdminDiagnosticArtifact({
     required this.artifactId,
@@ -30,6 +35,9 @@ class ExpenseAdminDiagnosticArtifact {
     required this.sourceHandling,
     required this.privateRegionHandling,
     required this.qualityProofPurpose,
+    this.viewerPolicy =
+        ExpenseAdminDiagnosticViewerPolicy.machineQualityReviewOnly,
+    this.ownerImagePreviewAllowed = false,
     required this.retentionPolicy,
     required this.ocrSourceRole,
     required this.redactionStatus,
@@ -100,6 +108,8 @@ class ExpenseAdminDiagnosticArtifact {
   final ExpenseAdminDiagnosticSourceHandling sourceHandling;
   final ExpenseAdminDiagnosticPrivateRegionHandling privateRegionHandling;
   final ExpenseAdminDiagnosticQualityProofPurpose qualityProofPurpose;
+  final ExpenseAdminDiagnosticViewerPolicy viewerPolicy;
+  final bool ownerImagePreviewAllowed;
   final String retentionPolicy;
   final String ocrSourceRole;
   final String redactionStatus;
@@ -128,6 +138,8 @@ class ExpenseAdminDiagnosticArtifact {
       'adminDiagnosticOcrSourceRole': ocrSourceRole,
       'adminDiagnosticRedactionStatus': redactionStatus,
       'adminDiagnosticCropStatus': cropStatus,
+      'adminDiagnosticViewerPolicy': viewerPolicy.name,
+      'adminDiagnosticOwnerImagePreviewAllowed': ownerImagePreviewAllowed,
       'adminDiagnosticBlurBucket': blurBucket,
       'adminDiagnosticGlareBucket': glareBucket,
       'adminDiagnosticReadabilityBucket': readabilityBucket,
@@ -156,6 +168,9 @@ class ExpenseAdminDiagnosticArtifact {
                 .cropOrMaskUserIdentifyingRegions &&
         qualityProofPurpose ==
             ExpenseAdminDiagnosticQualityProofPurpose.imageQualityReviewOnly &&
+        viewerPolicy ==
+            ExpenseAdminDiagnosticViewerPolicy.machineQualityReviewOnly &&
+        ownerImagePreviewAllowed == false &&
         redactionStatus == 'redacted_private_regions' &&
         cropStatus == 'cropped_to_quality_evidence';
   }

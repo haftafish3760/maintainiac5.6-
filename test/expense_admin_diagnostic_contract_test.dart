@@ -44,6 +44,11 @@ void main() {
         'expense_admin_diagnostic_artifact_v1',
       );
       expect(metadata['adminDiagnosticOcrSourceRole'], 'original_ocr_source');
+      expect(
+        metadata['adminDiagnosticViewerPolicy'],
+        ExpenseAdminDiagnosticViewerPolicy.machineQualityReviewOnly.name,
+      );
+      expect(metadata['adminDiagnosticOwnerImagePreviewAllowed'], isFalse);
       expect(metadata['adminDiagnosticBlurBucket'], 'soft_blur_medium');
       expect(metadata['adminDiagnosticDeviceTier'], 'lightweight');
       expect(metadata['adminDiagnosticOsFamily'], 'android');
@@ -59,6 +64,40 @@ void main() {
       expect(metadata.toString(), isNot(contains('deviceId')));
     },
   );
+
+  test('blocks owner-visible receipt diagnostic images by contract', () {
+    const artifact = ExpenseAdminDiagnosticArtifact(
+      artifactId: 'ocr_source_preview_20260705T055500Z',
+      consentStatus: ExpenseAdminDiagnosticConsentStatus.granted,
+      imageKind: ExpenseAdminDiagnosticImageKind.redactedOcrSourcePreview,
+      privacyScope:
+          ExpenseAdminDiagnosticPrivacyScope.redactedImageNoReceiptText,
+      sourceHandling: ExpenseAdminDiagnosticSourceHandling
+          .originalUsedLocallyPreviewDerivedOnly,
+      privateRegionHandling: ExpenseAdminDiagnosticPrivateRegionHandling
+          .cropOrMaskUserIdentifyingRegions,
+      qualityProofPurpose:
+          ExpenseAdminDiagnosticQualityProofPurpose.imageQualityReviewOnly,
+      ownerImagePreviewAllowed: true,
+      retentionPolicy: 'auto_delete_14_days',
+      ocrSourceRole: 'original_ocr_source',
+      redactionStatus: 'redacted_private_regions',
+      cropStatus: 'cropped_to_quality_evidence',
+      blurBucket: 'soft_blur_medium',
+      glareBucket: 'glare_low',
+      readabilityBucket: 'readable_review',
+      failureStage: 'receipt_ocr',
+    );
+
+    final metadata = artifact.toTelemetryMetadata();
+
+    expect(artifact.canUploadImagePreview, isFalse);
+    expect(metadata['adminDiagnosticOwnerImagePreviewAllowed'], isTrue);
+    expect(
+      metadata['adminDiagnosticViewerPolicy'],
+      ExpenseAdminDiagnosticViewerPolicy.machineQualityReviewOnly.name,
+    );
+  });
 
   test(
     'blocks admin image upload when original receipt is not derived safely',

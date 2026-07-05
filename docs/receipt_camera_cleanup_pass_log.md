@@ -3,6 +3,19 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 892 - 05:55:00 EDT to active cleanup
+
+Scope:
+- Hardened the admin OCR-quality diagnostic artifact contract so receipt-image
+  previews are machine-quality-review-only by default.
+- Added telemetry metadata proving owner image preview is not allowed for
+  diagnostic artifacts and blocked upload eligibility if that flag is enabled.
+- Recorded `BUG-RECEIPT-0341` under `privacy_redaction`.
+
+Verification:
+- Passed targeted Dart format/analyzer, focused admin diagnostic contract
+  regressions, and diff whitespace gate.
+
 ## Pass 891 - 05:30:00 EDT to active cleanup
 
 Scope:

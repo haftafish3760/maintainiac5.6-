@@ -334,6 +334,8 @@ const _expenseTelemetryAllowedMetadataKeys = <String>{
   'adminDiagnosticOcrSourceRole',
   'adminDiagnosticRedactionStatus',
   'adminDiagnosticCropStatus',
+  'adminDiagnosticViewerPolicy',
+  'adminDiagnosticOwnerImagePreviewAllowed',
   'adminDiagnosticBlurBucket',
   'adminDiagnosticGlareBucket',
   'adminDiagnosticReadabilityBucket',
