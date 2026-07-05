@@ -231,6 +231,23 @@ class AppDocumentExportManager {
   const AppDocumentExportManager._();
 
   static const int packageScratchBytes = 1024 * 1024;
+  static const Set<String> dangerousPackageEntryExtensions = {
+    'apk',
+    'bat',
+    'cmd',
+    'com',
+    'dmg',
+    'exe',
+    'ipa',
+    'jar',
+    'js',
+    'msi',
+    'pkg',
+    'ps1',
+    'scr',
+    'sh',
+    'vbs',
+  };
 
   static AppDocumentExportReview review(AppDocumentRecord record) {
     final privacyIssues = _privacyIssues(record);
@@ -538,7 +555,8 @@ class AppDocumentExportManager {
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim()
         .replaceAll(RegExp(r'^[.\s-]+|[.\s-]+$'), '');
-    final normalized = raw.isEmpty ? 'document-proof' : raw;
+    final stripped = _stripDangerousTrailingExtensions(raw);
+    final normalized = stripped.isEmpty ? 'document-proof' : stripped;
     final extension = path.extension(normalized).trim();
     final baseName = path.basenameWithoutExtension(normalized).trim();
     final safeBase = baseName.isEmpty ? 'document-proof' : baseName;
@@ -547,6 +565,23 @@ class AppDocumentExportManager {
     if (entry.length <= 120) return entry;
     final maxBaseLength = 120 - safeExtension.length;
     return '${safeBase.substring(0, maxBaseLength.clamp(1, safeBase.length))}$safeExtension';
+  }
+
+  static String _stripDangerousTrailingExtensions(String value) {
+    var cleaned = value;
+    while (true) {
+      final extension = path.extension(cleaned);
+      if (extension.length <= 1) return cleaned;
+      final extensionName = extension.substring(1).toLowerCase();
+      if (!dangerousPackageEntryExtensions.contains(extensionName)) {
+        return cleaned;
+      }
+      cleaned = path
+          .basenameWithoutExtension(cleaned)
+          .trim()
+          .replaceAll(RegExp(r'^[.\s-]+|[.\s-]+$'), '');
+      if (cleaned.isEmpty) return cleaned;
+    }
   }
 
   static AppDocumentExportManifest _manifestFor(AppDocumentRecord record) {

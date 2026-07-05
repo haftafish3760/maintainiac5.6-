@@ -221,6 +221,8 @@
         "document_export_partial_file_block",
         "document_export_active_pdf_block",
         "document_export_private_pdf_block",
+        "document_export_dangerous_proof_entry_extension_strip",
+        "document_export_dangerous_import_entry_extension_block",
         "generated_pdf_destination_symlink_reservation",
         "generated_pdf_archive_private_label_block",
         "generated_pdf_archive_human_label_privacy",

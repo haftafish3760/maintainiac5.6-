@@ -1,5 +1,57 @@
 # PDF System Pass Log
 
+## Milestone - 2026-07-05 10:32 EDT - Passes 101-102 package filename hardening
+
+- Scope: shared document export package filename safety only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Stripped dangerous executable-style trailing extensions from proof filenames
+    written into document export ZIP packages.
+  - Blocked imported package entries with dangerous executable-style trailing
+    extensions before package read/extraction.
+  - Kept legitimate PDF and image proof extensions while removing disguised
+    suffixes such as `.exe` and `.scr`.
+  - Added export and import regression coverage plus PDF QA fixture registry
+    entries for both cases.
+- Verification completed 2026-07-05 10:32 EDT:
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 102 - 2026-07-05 10:31 EDT - Export package import filename hardening
+
+- Scope: shared document export package import/read entry names only. No
+  inventory, camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Blocked imported document export ZIP entries with dangerous executable-style
+    trailing extensions.
+  - Applied the same dangerous-extension deny list during package read and
+    extraction entry verification.
+  - Added regression coverage proving a disguised PDF package entry is refused
+    before import/extraction.
+  - Added the hostile import-entry filename case to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:31 EDT:
+  - `dart format lib/shared/documents/app_document_export_manifest.dart lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart`
+
+## Pass 101 - 2026-07-05 10:24 EDT - Export package proof filename hardening
+
+- Scope: shared document export package proof entry names only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Stripped dangerous executable-style trailing extensions from proof filenames
+    written into document export ZIP packages.
+  - Preserved legitimate `.pdf` and image proof extensions after stripping
+    disguised suffixes such as `.exe` and `.scr`.
+  - Added regression coverage proving hostile proof display names are exported
+    as safe package entries.
+  - Added the proof-entry filename case to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:24 EDT:
+  - `dart format lib/shared/documents/app_document_export_manifest.dart test/app_document_export_package_writer_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_manifest.dart test/app_document_export_package_writer_test.dart`
+  - `flutter test test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze test/pdf_qa_fixture_inventory_test.dart`
+
 ## Milestone - 2026-07-05 10:22 EDT - Passes 99-100 filename privacy hardening
 
 - Scope: shared generated-PDF filename and metadata privacy only. No inventory,

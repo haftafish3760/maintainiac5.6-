@@ -984,7 +984,8 @@ class AppDocumentExportPackageWriter {
           name.contains('..') ||
           name.contains('/') ||
           name.contains(RegExp(r'[\\:*?"<>|]')) ||
-          name.contains(RegExp(r'[\x00-\x1F\x7F]'))) {
+          name.contains(RegExp(r'[\x00-\x1F\x7F]')) ||
+          _hasDangerousTrailingExtension(name)) {
         throw const AppDocumentExportPackageException(
           'Document export package contains an unsafe file name.',
         );
@@ -1175,7 +1176,8 @@ class AppDocumentExportPackageWriter {
   static void _verifyExtractionEntryName(String entryName) {
     if (entryName.isEmpty ||
         path.basename(entryName) != entryName ||
-        entryName.endsWith('.partial')) {
+        entryName.endsWith('.partial') ||
+        _hasDangerousTrailingExtension(entryName)) {
       throw const AppDocumentExportPackageException(
         'Document export package contains an unsafe file name.',
       );
@@ -1196,6 +1198,14 @@ class AppDocumentExportPackageWriter {
       );
     }
     return File(destinationPath);
+  }
+
+  static bool _hasDangerousTrailingExtension(String fileName) {
+    final extension = path.extension(fileName);
+    if (extension.length <= 1) return false;
+    return AppDocumentExportManager.dangerousPackageEntryExtensions.contains(
+      extension.substring(1).toLowerCase(),
+    );
   }
 
   static Future<void> _writeVerifiedExtractionFile({

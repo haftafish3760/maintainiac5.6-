@@ -535,6 +535,33 @@ void main() {
         ),
       );
 
+      final dangerousArchive = Archive();
+      for (final entry in archive.files) {
+        dangerousArchive.addFile(
+          ArchiveFile.bytes(
+            entry.name == 'job-packet.pdf' ? 'job-packet.pdf.exe' : entry.name,
+            entry.readBytes()!,
+          ),
+        );
+      }
+      final dangerousPackage = File(
+        '${tempDirectory.path}/dangerous-entry.zip',
+      );
+      await dangerousPackage.writeAsBytes(
+        ZipEncoder().encode(dangerousArchive, modified: DateTime.utc(2026)),
+        flush: true,
+      );
+      await expectLater(
+        AppDocumentExportPackageWriter.readZipPackage(dangerousPackage),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('unsafe file name'),
+          ),
+        ),
+      );
+
       final malformed = File('${tempDirectory.path}/malformed.zip');
       await malformed.writeAsString('not a zip', flush: true);
       await expectLater(
@@ -1681,6 +1708,56 @@ void main() {
       expect(names.join('\n'), isNot(contains('/Users')));
       expect(names.join('\n'), isNot(contains(r'C:\Users')));
       expect(names.join('\n'), isNot(contains('..')));
+    },
+  );
+
+  test(
+    'document export writer strips dangerous proof entry extensions',
+    () async {
+      final pdf = await _writeProof(
+        tempDirectory,
+        name: 'invoice-source.pdf',
+        bytes: utf8.encode('%PDF-1.7\nDisguised invoice proof\n%%EOF'),
+      );
+      final photo = await _writeProof(
+        tempDirectory,
+        name: 'receipt-source.jpg',
+        bytes: List<int>.generate(128, (index) => (index * 7) % 251),
+      );
+      final record = _documentRecord(
+        attachments: [
+          _pdfAttachment(
+            id: 'invoice',
+            path: pdf.path,
+            displayName: 'invoice.pdf.exe',
+            byteSize: await pdf.length(),
+            fileHash: await _fileHash(pdf),
+          ),
+          _photoAttachment(
+            id: 'receipt',
+            path: photo.path,
+            displayName: 'receipt-photo.jpg.scr',
+            byteSize: await photo.length(),
+            fileHash: await _fileHash(photo),
+          ),
+        ],
+      );
+
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: record,
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final decoded = ZipDecoder().decodeBytes(
+        await File(result.filePath).readAsBytes(),
+      );
+      final names = decoded.files.map((entry) => entry.name).toList();
+
+      expect(result.fileEntries, ['invoice.pdf', 'receipt-photo.jpg']);
+      expect(names, contains('invoice.pdf'));
+      expect(names, contains('receipt-photo.jpg'));
+      expect(names.join('\n').toLowerCase(), isNot(contains('.exe')));
+      expect(names.join('\n').toLowerCase(), isNot(contains('.scr')));
     },
   );
 }
