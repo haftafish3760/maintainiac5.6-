@@ -33,6 +33,20 @@ WorkSupplyPackTier _resolveWorkSupplyPackTier(WorkSupplyItem item) {
   if (item.trade == 'Plumbing') return _resolvePlumbingPackTier(item);
   final text = item.searchableText;
   if (_hasAny(text, _completeTierSignals)) return WorkSupplyPackTier.complete;
+  if (item.trade == 'Electrical') {
+    if (_isElectricalCoreItem(item, text)) return WorkSupplyPackTier.core;
+    if (_hasAny(text, _electricalProfessionalTierSignals)) {
+      return WorkSupplyPackTier.professional;
+    }
+    return WorkSupplyPackTier.standard;
+  }
+  if (item.trade == 'HVAC') {
+    if (_isHvacCoreItem(item, text)) return WorkSupplyPackTier.core;
+    if (_hasAny(text, _hvacProfessionalTierSignals)) {
+      return WorkSupplyPackTier.professional;
+    }
+    return WorkSupplyPackTier.standard;
+  }
   if (_isEverydayNonPlumbingCore(item, text)) return WorkSupplyPackTier.core;
   if (_hasAny(text, _professionalTierSignals)) {
     return WorkSupplyPackTier.professional;
@@ -54,6 +68,24 @@ WorkSupplyParserPriority _resolveWorkSupplyParserPriority(WorkSupplyItem item) {
   if (_hasAny(text, _completeTierSignals)) {
     return WorkSupplyParserPriority.specialty;
   }
+  if (item.trade == 'Electrical') {
+    if (_isElectricalCoreItem(item, text)) {
+      return WorkSupplyParserPriority.everydayCore;
+    }
+    if (_hasAny(text, _electricalProfessionalTierSignals)) {
+      return WorkSupplyParserPriority.occasional;
+    }
+    return WorkSupplyParserPriority.common;
+  }
+  if (item.trade == 'HVAC') {
+    if (_isHvacCoreItem(item, text)) {
+      return WorkSupplyParserPriority.everydayCore;
+    }
+    if (_hasAny(text, _hvacProfessionalTierSignals)) {
+      return WorkSupplyParserPriority.occasional;
+    }
+    return WorkSupplyParserPriority.common;
+  }
   if (_isEverydayNonPlumbingCore(item, text)) {
     return WorkSupplyParserPriority.everydayCore;
   }
@@ -68,6 +100,56 @@ WorkSupplyParserPriority _resolveWorkSupplyParserPriority(WorkSupplyItem item) {
 
 bool _isEverydayNonPlumbingCore(WorkSupplyItem item, String text) {
   if (item.trade == 'HVAC' && text.contains('condensate pump')) return true;
+  return false;
+}
+
+bool _isElectricalCoreItem(WorkSupplyItem item, String text) {
+  final category = item.category.toLowerCase();
+  final system = item.system.toLowerCase();
+  if (_hasAny(text, _electricalProfessionalTierSignals)) return false;
+  if (category == 'wire and cable') {
+    if (system == 'nm-b cable') return _hasAny(text, _electricalCoreCableSizes);
+    if (system == 'conduit wire')
+      return _hasAny(text, _electricalCoreWireSizes);
+  }
+  if (category == 'devices') return _hasAny(text, _electricalCoreDeviceSignals);
+  if (category == 'breakers')
+    return _hasAny(text, _electricalCoreBreakerSignals);
+  if (category == 'boxes and covers') {
+    return _hasAny(text, _electricalCoreBoxSignals);
+  }
+  if (category == 'connectors and consumables' ||
+      category == 'grounding and bonding') {
+    return _hasAny(text, _electricalCoreConsumableSignals);
+  }
+  if (category == 'conduit and fittings') {
+    return _hasAny(text, _electricalCoreRacewaySignals) &&
+        _hasAny(text, _electricalCoreRacewaySizes);
+  }
+  return false;
+}
+
+bool _isHvacCoreItem(WorkSupplyItem item, String text) {
+  final category = item.category.toLowerCase();
+  final system = item.system.toLowerCase();
+  if (_hasAny(text, _hvacProfessionalTierSignals)) return false;
+  if (category == 'air filters') return _hasAny(text, _hvacCoreFilterSignals);
+  if (category == 'controls and electrical') {
+    return _hasAny(text, _hvacCoreControlSignals);
+  }
+  if (category == 'condensate')
+    return _hasAny(text, _hvacCoreCondensateSignals);
+  if (category == 'tape and sealants')
+    return _hasAny(text, _hvacCoreSealSignals);
+  if (category == 'motors and blower parts') {
+    return _hasAny(text, _hvacCoreMotorSignals);
+  }
+  if (category == 'ignition and gas heat') {
+    return _hasAny(text, _hvacCoreIgnitionSignals);
+  }
+  if (system.contains('service truck') || text.contains('service truck')) {
+    return _hasAny(text, _hvacCoreServiceTruckSignals);
+  }
   return false;
 }
 
@@ -260,6 +342,199 @@ const _coreTierSignals = [
   'faucet',
   'water heater',
   'washer',
+];
+
+const _electricalCoreCableSizes = ['14/2', '14/3', '12/2', '12/3', '10/2'];
+
+const _electricalCoreWireSizes = ['14 awg', '12 awg', '10 awg'];
+
+const _electricalCoreRacewaySizes = ['1/2 in', '3/4 in', '1 in'];
+
+const _electricalCoreDeviceSignals = [
+  'duplex receptacle',
+  'gfci',
+  'outlet',
+  'toggle switch',
+  'single pole',
+  '3-way',
+  'dimmer',
+  'light switch',
+  '15 amp',
+  '20 amp',
+];
+
+const _electricalCoreBreakerSignals = [
+  'single-pole breaker',
+  'double-pole breaker',
+  '15 amp single-pole',
+  '20 amp single-pole',
+  '15 amp',
+  '20 amp',
+  'gfci breaker',
+  'afci breaker',
+  'arc fault breaker',
+];
+
+const _electricalCoreBoxSignals = [
+  '1 gang',
+  '2 gang',
+  'single gang',
+  'old work',
+  'new work',
+  'junction box',
+  'device box',
+  'handy box',
+  'blank cover',
+  'cover plate',
+  'wall plate',
+];
+
+const _electricalCoreConsumableSignals = [
+  'wire connector',
+  'wire nut',
+  'electrical tape',
+  'ground screw',
+  'ground pigtail',
+  'cable staple',
+  'romex connector',
+  'nm connector',
+  'anti short',
+  'no ox',
+];
+
+const _electricalCoreRacewaySignals = [
+  'emt conduit',
+  'emt connector',
+  'emt coupling',
+  'emt 90 elbow',
+  'emt strap',
+  'pvc electrical conduit',
+  'pvc electrical 90 elbow',
+  'pvc electrical coupling',
+  'pvc electrical male adapter',
+  'pvc electrical female adapter',
+  'gray pvc conduit',
+  'terminal adapter',
+];
+
+const _electricalProfessionalTierSignals = [
+  '2-1/2 in',
+  '3 in',
+  '3-1/2 in',
+  '4 in',
+  '5 in',
+  '6 in',
+  'rigid metal conduit',
+  'rigid pipe',
+  'imc',
+  'service entrance',
+  'meter',
+  'load center',
+  'panel',
+  'disconnect',
+  'commercial',
+  'bulk',
+];
+
+const _hvacCoreFilterSignals = [
+  'pleated air filter',
+  'furnace filter',
+  'ac filter',
+];
+
+const _hvacCoreControlSignals = [
+  'run capacitor',
+  'dual run capacitor',
+  'contactor',
+  'compressor contactor',
+  'thermostat',
+  'thermostat wire',
+  'low voltage wire',
+  'fuse',
+  'relay',
+  'transformer',
+];
+
+const _hvacCoreCondensateSignals = [
+  'condensate pump',
+  'condensate line',
+  'condensate drain',
+  'condensate safety switch',
+  'float switch',
+  'pvc condensate',
+  'vinyl tubing',
+  'drain pan tablet',
+];
+
+const _hvacCoreSealSignals = [
+  'foil hvac tape',
+  'foil tape',
+  'duct tape',
+  'mastic',
+  'duct sealant',
+  'hvac service tape',
+  'line set tape',
+];
+
+const _hvacCoreAirDistributionSignals = [
+  'floor register',
+  'return air grille',
+  'return filter grille',
+  'ceiling diffuser',
+  'eggcrate return grille',
+  'filter grille replacement door',
+  'air distribution face',
+];
+
+const _hvacCoreMotorSignals = [
+  'blower belt',
+  'motor capacitor',
+  'fan blade',
+  'blower wheel',
+];
+
+const _hvacCoreIgnitionSignals = [
+  'flame sensor',
+  'hot surface ignitor',
+  'ignitor',
+  'thermocouple',
+];
+
+const _hvacCoreServiceTruckSignals = [
+  ..._hvacCoreFilterSignals,
+  ..._hvacCoreControlSignals,
+  ..._hvacCoreCondensateSignals,
+  ..._hvacCoreSealSignals,
+  ..._hvacCoreAirDistributionSignals,
+  ..._hvacCoreMotorSignals,
+  ..._hvacCoreIgnitionSignals,
+  'coil cleaner',
+  'leak detector',
+  'service chemical',
+];
+
+const _hvacProfessionalTierSignals = [
+  'heat pump',
+  'condenser',
+  'air handler',
+  'furnace',
+  'boiler',
+  'package unit',
+  'rooftop',
+  'rtu',
+  'mini split',
+  'evaporator coil',
+  'plenum',
+  'brazing',
+  'refrigerant',
+  'recovery',
+  'hydronic',
+  'gas valve',
+  'flue',
+  'b vent',
+  'commercial',
+  'detail',
+  'equipment',
 ];
 
 const _professionalTierSignals = [

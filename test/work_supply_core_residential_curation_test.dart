@@ -17,7 +17,17 @@ void main() {
           'severity=${finding.severity.name} ${finding.message}',
         );
       }
-      expect(findings.length, greaterThanOrEqualTo(0));
+      final blockers = findings
+          .where((finding) => finding.severity == _Severity.blocker)
+          .toList(growable: false);
+      expect(
+        blockers,
+        isEmpty,
+        reason:
+            'Residential Core must not contain known oversized, major-equipment, '
+            'warehouse, or unjustified legacy items.\n'
+            '${blockers.take(100).map((finding) => finding.message).join('\n')}',
+      );
     });
 
     test(
@@ -70,6 +80,55 @@ void main() {
         );
         expect(entry.value, greaterThan(0));
       }
+    });
+
+    test('electrical and hvac core tiers require trade-specific signals', () {
+      final unsafe = <String>[];
+      for (final item in _priorityCoreItems()) {
+        if (item.trade == 'Plumbing') continue;
+        final text = _text(item);
+        final hasTradeSignal = item.trade == 'Electrical'
+            ? _hasAny(text, _electricalCoreSignals)
+            : _hasAny(text, _hvacCoreSignals);
+        if (!hasTradeSignal) {
+          unsafe.add('${item.id}: ${item.trade}: ${item.name}');
+        }
+      }
+
+      expect(
+        unsafe,
+        isEmpty,
+        reason:
+            'Electrical/HVAC Core cannot be promoted by generic words like PVC, '
+            'filter, elbow, coupling, adapter, box, or tape alone.\n'
+            '${unsafe.take(100).join('\n')}',
+      );
+    });
+
+    test('oversized electrical raceway is not residential Core', () {
+      final oversized = _coreItemsFor('Electrical')
+          .where((item) {
+            final text = _text(item);
+            return text.contains('conduit') &&
+                _hasAny(text, [
+                  '2-1/2 in',
+                  '3 in',
+                  '3-1/2 in',
+                  '4 in',
+                  '5 in',
+                  '6 in',
+                ]);
+          })
+          .map((item) => '${item.id}: ${item.name}')
+          .toList(growable: false);
+
+      expect(
+        oversized,
+        isEmpty,
+        reason:
+            'Large conduit/raceway sizes belong in Standard/Professional/Complete, '
+            'not everyday residential Core.\n${oversized.take(100).join('\n')}',
+      );
     });
   });
 }
@@ -135,10 +194,18 @@ List<String> _positiveServiceSignals(WorkSupplyItem item) {
   return signals;
 }
 
+bool _hasAny(String text, List<String> signals) {
+  return signals.any(text.contains);
+}
+
 bool _isOversizedForCore(WorkSupplyItem item, double? size) {
   if (size == null) return false;
-  final text = _text(item);
+  final text = _directItemText(item);
   if (item.trade == 'Plumbing') {
+    if (!_plumbingNominalSizeMatters(item)) return false;
+    if (item.category.toLowerCase() == 'hangers and supports') {
+      return size > 2;
+    }
     if (text.contains('dwv') ||
         text.contains('drain') ||
         text.contains('sewer')) {
@@ -159,11 +226,37 @@ bool _isOversizedForCore(WorkSupplyItem item, double? size) {
     return false;
   }
   if (item.trade == 'HVAC') {
+    if (!_hvacNominalSizeMatters(item)) return false;
     if (text.contains('line set') || text.contains('copper'))
       return size > 1.125;
     if (text.contains('duct') || text.contains('flex')) return size > 16;
   }
   return false;
+}
+
+bool _plumbingNominalSizeMatters(WorkSupplyItem item) {
+  final text = _directItemText(item);
+  if (item.category.toLowerCase() == 'fittings') return true;
+  if (item.category.toLowerCase() == 'pipe and tubing') return true;
+  if (item.category.toLowerCase() == 'valves') return true;
+  if (text.contains('pipe strap') ||
+      text.contains('pipe j-hook') ||
+      text.contains('bell hanger') ||
+      text.contains('split ring hanger')) {
+    return true;
+  }
+  return false;
+}
+
+bool _hvacNominalSizeMatters(WorkSupplyItem item) {
+  final text = _directItemText(item);
+  if (text.contains('zip tie')) return false;
+  return text.contains('line set') ||
+      text.contains('copper tubing') ||
+      text.contains('flex duct') ||
+      text.contains('round duct') ||
+      text.contains('sheet metal duct') ||
+      text.contains('duct board');
 }
 
 bool _commonResidentialSize(WorkSupplyItem item) {
@@ -227,8 +320,7 @@ bool _isLegacyRepairBridge(WorkSupplyItem item) {
 }
 
 bool _looksLikeMajorEquipment(String text) {
-  return text.contains('water heater') ||
-      text.contains('heat pump') ||
+  return text.contains('heat pump') ||
       text.contains('condenser') ||
       text.contains('air handler') ||
       text.contains('furnace') ||
@@ -269,7 +361,14 @@ double? _largestNominalInches(String text) {
 }
 
 double? _nominalCoreSizeInches(WorkSupplyItem item) {
-  final text = _directItemText(item);
+  final text = [item.name, item.variant].join(' ').toLowerCase();
+  final leadingInchNominal = RegExp(
+    r'(?<!\d)(\d+(?:-\d+/\d+)?|\d+/\d+|\d+(?:\.\d+)?)\s*(?:in|inch|")\s*x\s+',
+  ).firstMatch(text);
+  if (leadingInchNominal != null) {
+    final parsed = _parseNominalNumber(leadingInchNominal.group(1)!);
+    if (parsed != null) return parsed;
+  }
   final leadingNominal = RegExp(
     r'(?<!\d)(\d+(?:-\d+/\d+)?|\d+/\d+|\d+(?:\.\d+)?)\s*x\s+',
   ).firstMatch(text);
@@ -323,6 +422,89 @@ String _directItemText(WorkSupplyItem item) {
 }
 
 const _priorityTrades = ['Plumbing', 'Electrical', 'HVAC'];
+
+const _electricalCoreSignals = [
+  '14/2',
+  '14/3',
+  '12/2',
+  '12/3',
+  '10/2',
+  '14 awg',
+  '12 awg',
+  '10 awg',
+  'duplex receptacle',
+  'gfci',
+  'outlet',
+  'toggle switch',
+  'single pole',
+  '3-way',
+  'dimmer',
+  'single-pole breaker',
+  'double-pole breaker',
+  'afci breaker',
+  'arc fault breaker',
+  'old work',
+  'new work',
+  'junction box',
+  'device box',
+  'handy box',
+  'blank cover',
+  'cover plate',
+  'wall plate',
+  'wire connector',
+  'wire nut',
+  'electrical tape',
+  'ground screw',
+  'ground pigtail',
+  'cable staple',
+  'romex connector',
+  'nm connector',
+  'emt conduit',
+  'emt connector',
+  'emt coupling',
+  'emt 90 elbow',
+  'emt strap',
+  'pvc electrical conduit',
+  'pvc electrical 90 elbow',
+  'pvc electrical coupling',
+  'terminal adapter',
+];
+
+const _hvacCoreSignals = [
+  'pleated air filter',
+  'furnace filter',
+  'ac filter',
+  'run capacitor',
+  'dual run capacitor',
+  'contactor',
+  'thermostat',
+  'thermostat wire',
+  'low voltage wire',
+  'condensate pump',
+  'condensate line',
+  'condensate drain',
+  'float switch',
+  'foil hvac tape',
+  'foil tape',
+  'duct tape',
+  'mastic',
+  'duct sealant',
+  'floor register',
+  'return air grille',
+  'return filter grille',
+  'ceiling diffuser',
+  'eggcrate return grille',
+  'filter grille replacement door',
+  'air distribution face',
+  'blower belt',
+  'flame sensor',
+  'hot surface ignitor',
+  'ignitor',
+  'thermocouple',
+  'coil cleaner',
+  'leak detector',
+  'service chemical',
+];
 
 const _serviceTruckSignals = {
   'service truck',

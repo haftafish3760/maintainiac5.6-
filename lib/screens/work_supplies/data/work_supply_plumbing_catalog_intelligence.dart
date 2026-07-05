@@ -38,6 +38,13 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
   final category = item.category.toLowerCase();
   final system = item.system.toLowerCase();
   final type = item.itemType.toLowerCase();
+  if (category == 'valves' && _isOversizedPlumbingValveForCore(item)) {
+    return false;
+  }
+  if (category == 'hangers and supports' &&
+      _isOversizedPlumbingSupportForCore(item)) {
+    return false;
+  }
   if (_hasAny(text, _plumbingAlwaysCoreServiceSignals)) return true;
   if (system == 'pvc dwv' &&
       type.contains('reducing sanitary') &&
@@ -45,6 +52,9 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
     return true;
   }
   if (_hasPlumbingCommercialCoreExclusion(text)) return false;
+  if (category == 'fittings' && _isOversizedPlumbingFittingForCore(item)) {
+    return false;
+  }
   if (category == 'fittings' && type.contains('expanded')) {
     return _isCoreExpandedPlumbingFitting(item, text);
   }
@@ -105,9 +115,44 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
   return false;
 }
 
+bool _isOversizedPlumbingFittingForCore(WorkSupplyItem item) {
+  final system = item.system.toLowerCase();
+  final largestVariantSize = _largestPlumbingVariantSize(item.variant);
+  if (largestVariantSize == null) return false;
+  if (system == 'copper' ||
+      system == 'brass' ||
+      system == 'pex' ||
+      system == 'cpvc' ||
+      system == 'push-fit') {
+    return largestVariantSize > 1;
+  }
+  if (system == 'pvc schedule 40') return largestVariantSize > 2;
+  if (system == 'pvc dwv' || system == 'abs dwv') return largestVariantSize > 4;
+  return false;
+}
+
+bool _isOversizedPlumbingValveForCore(WorkSupplyItem item) {
+  final largestVariantSize = _largestPlumbingVariantSize(item.variant);
+  if (largestVariantSize == null) return false;
+  final text = item.searchableText;
+  if (text.contains('ball valve') ||
+      text.contains('gate valve') ||
+      text.contains('check valve')) {
+    return largestVariantSize > 1;
+  }
+  return false;
+}
+
+bool _isOversizedPlumbingSupportForCore(WorkSupplyItem item) {
+  final largestVariantSize = _largestPlumbingVariantSize(item.variant);
+  if (largestVariantSize == null) return false;
+  return largestVariantSize > 2;
+}
+
 bool _isCoreExpandedPlumbingFitting(WorkSupplyItem item, String text) {
   final system = item.system.toLowerCase();
   final type = item.itemType.toLowerCase();
+  final largestVariantSize = _largestPlumbingVariantSize(item.variant);
   if (!_isCommonPlumbingVariant(item.variant)) return false;
   if (_hasPlumbingProfessionalSignal(text)) return false;
   if (type.contains('street')) return false;
@@ -121,10 +166,12 @@ bool _isCoreExpandedPlumbingFitting(WorkSupplyItem item, String text) {
         _hasAny(type, _coreExpandedThreadedOrSweatTypes);
   }
   if (system == 'pvc schedule 40') {
+    if (largestVariantSize == null || largestVariantSize > 2) return false;
     return _hasAny(text, _coreExpandedPressurePipeSizes) &&
         _hasAny(type, _coreExpandedPressurePipeTypes);
   }
   if (system == 'pvc dwv') {
+    if (largestVariantSize == null || largestVariantSize > 4) return false;
     return _hasAny(text, _coreExpandedDwvSizes) &&
         _hasAny(type, _coreExpandedDwvTypes);
   }
@@ -195,6 +242,31 @@ bool _isCommonPlumbingVariant(String variant) {
     '3 x 2',
   ];
   return commonMatrices.any(normalized.contains);
+}
+
+double? _largestPlumbingVariantSize(String variant) {
+  final values = <double>[];
+  final normalized = variant.toLowerCase();
+  final mixed = RegExp(r'(\d+)-(\d+)/(\d+)');
+  for (final match in mixed.allMatches(normalized)) {
+    values.add(
+      double.parse(match.group(1)!) +
+          double.parse(match.group(2)!) / double.parse(match.group(3)!),
+    );
+  }
+  final withoutMixed = normalized.replaceAll(mixed, ' ');
+  final fraction = RegExp(r'(?<!\d)(\d+)/(\d+)(?!\d)');
+  for (final match in fraction.allMatches(withoutMixed)) {
+    values.add(double.parse(match.group(1)!) / double.parse(match.group(2)!));
+  }
+  final withoutFractions = withoutMixed.replaceAll(fraction, ' ');
+  final whole = RegExp(r'(?<![\d/])(\d+)(?![\d/])');
+  for (final match in whole.allMatches(withoutFractions)) {
+    values.add(double.parse(match.group(1)!));
+  }
+  if (values.isEmpty) return null;
+  values.sort();
+  return values.last;
 }
 
 bool _hasQuarterInchMatrixBranch(String normalizedVariant) {

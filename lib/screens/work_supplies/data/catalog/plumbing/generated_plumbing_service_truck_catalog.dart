@@ -471,6 +471,70 @@ final plumbingServiceTruckCategory = _category('Service Truck Stock', [
         ],
       ),
     ),
+    _type(
+      'Water Softener and Treatment Service Parts',
+      _plumbingServiceMatrixItems(
+        baseName: 'Water Treatment Service Part',
+        unit: 'each',
+        variants: [
+          for (final size in ['24K grain', '32K grain', '48K grain'])
+            for (final part in [
+              'water softener bypass valve',
+              'water softener control valve seal kit',
+              'water softener brine valve',
+              'water softener brine line flow control',
+              'water softener distributor tube',
+              'water softener resin tank o-ring',
+              'water softener injector screen',
+            ])
+              '$size $part',
+          for (final bag in ['40 lb', '50 lb'])
+            for (final salt in [
+              'solar salt crystals',
+              'water softener salt pellets',
+              'potassium chloride softener pellets',
+              'rust remover softener salt',
+            ])
+              '$bag $salt',
+          for (final resin in ['0.5 cu ft', '1 cu ft', '1.5 cu ft'])
+            '$resin cation softener resin bag',
+          for (final ro in ['50 GPD', '75 GPD', '100 GPD'])
+            for (final part in [
+              'reverse osmosis sediment prefilter',
+              'reverse osmosis carbon prefilter',
+              'reverse osmosis membrane',
+              'reverse osmosis post filter',
+              'reverse osmosis tank shutoff valve',
+            ])
+              '$ro $part',
+          for (final watt in ['12W', '25W'])
+            for (final part in [
+              'uv water treatment lamp',
+              'uv quartz sleeve',
+              'uv sleeve o-ring',
+            ])
+              '$watt $part',
+        ],
+        aliases: const [
+          'water softener',
+          'softener salt',
+          'salt pellets',
+          'solar salt',
+          'potassium chloride pellets',
+          'brine tank',
+          'brine valve',
+          'softener resin',
+          'resin bag',
+          'bypass valve',
+          'ro filter',
+          'reverse osmosis',
+          'ro membrane',
+          'uv lamp',
+          'uv sleeve',
+          'water treatment',
+        ],
+      ),
+    ),
   ]),
   plumbingServiceTruckToolsSystem,
 ]);
