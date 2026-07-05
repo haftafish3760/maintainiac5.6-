@@ -264,6 +264,12 @@
         "portrait_landscape_page_formats",
         "pagination_boundaries",
         "private_invoice_export_block",
+        "invoice_generation_missing_business_identity_block",
+        "invoice_generation_missing_line_items_block",
+        "invoice_generation_blank_line_item_block",
+        "invoice_generation_non_finite_line_number_block",
+        "invoice_generation_unsafe_discount_block",
+        "invoice_generation_non_finite_payment_block",
         "invoice_text_layer_export_verifier",
         "internal_record_id_export_block"
       ]

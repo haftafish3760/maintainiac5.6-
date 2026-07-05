@@ -18,8 +18,34 @@ int invoicePdfPageCountForRecord(InvoiceRecord record) {
   return _InvoicePaginator(record).pages.length;
 }
 
+class InvoicePdfContentException implements Exception {
+  const InvoicePdfContentException(this.issues);
+
+  final List<String> issues;
+
+  @override
+  String toString() {
+    return 'Invoice PDF content blocked: ${issues.join(', ')}';
+  }
+}
+
 class InvoicePdfTemplateRenderer {
   const InvoicePdfTemplateRenderer();
+
+  static const missingLineItems = 'missing_line_items';
+  static const blankLineItem = 'blank_line_item';
+  static const missingInvoiceNumber = 'missing_invoice_number';
+  static const missingCompanyName = 'missing_company_name';
+  static const missingClientName = 'missing_client_name';
+  static const nonFiniteLineQuantity = 'non_finite_line_quantity';
+  static const nonFiniteLineUnitPrice = 'non_finite_line_unit_price';
+  static const nonFiniteLineTaxRate = 'non_finite_line_tax_rate';
+  static const negativeLineTaxRate = 'negative_line_tax_rate';
+  static const nonFiniteDiscountValue = 'non_finite_discount_value';
+  static const negativeDiscountValue = 'negative_discount_value';
+  static const excessiveDiscountPercent = 'excessive_discount_percent';
+  static const excessiveDiscountAmount = 'excessive_discount_amount';
+  static const nonFinitePaymentAmount = 'non_finite_payment_amount';
 
   Future<Uint8List> buildDocumentBytes({
     required DateTime createdAt,
@@ -42,6 +68,7 @@ class InvoicePdfTemplateRenderer {
     required InvoiceRecord record,
     required InvoiceTemplateDefinition template,
   }) async {
+    _ensureRenderableRecord(record);
     InvoicePdfPrivacyGuard.ensureRecordCanExport(record);
     final pdf = pw.Document();
     final chunks = _InvoicePaginator(record).pages;
@@ -119,6 +146,61 @@ class InvoicePdfTemplateRenderer {
       bytes: bytes,
     );
     return bytes;
+  }
+
+  static List<String> contentIssueCodesForRecord(InvoiceRecord record) {
+    final issues = <String>[];
+    if (record.invoiceNumber.trim().isEmpty) issues.add(missingInvoiceNumber);
+    if (record.company.bestName.trim().isEmpty) issues.add(missingCompanyName);
+    if (record.client.bestName.trim().isEmpty) issues.add(missingClientName);
+    if (record.lines.isEmpty) issues.add(missingLineItems);
+    if (record.lines.any(_isBlankLineItem)) issues.add(blankLineItem);
+    for (final line in record.lines) {
+      if (!line.quantity.isFinite) issues.add(nonFiniteLineQuantity);
+      if (!line.unitPrice.isFinite) issues.add(nonFiniteLineUnitPrice);
+      if (!line.taxRate.isFinite) issues.add(nonFiniteLineTaxRate);
+      if (line.taxRate < 0) issues.add(negativeLineTaxRate);
+    }
+    if (!record.discount.value.isFinite) {
+      issues.add(nonFiniteDiscountValue);
+    } else {
+      if (record.discount.value < 0) issues.add(negativeDiscountValue);
+      if (record.discount.type == InvoiceDiscountType.percent &&
+          record.discount.value > 100) {
+        issues.add(excessiveDiscountPercent);
+      }
+      final lineSubtotalsAreFinite = record.lines.every(
+        (line) => line.quantity.isFinite && line.unitPrice.isFinite,
+      );
+      if (record.discount.type == InvoiceDiscountType.amount &&
+          lineSubtotalsAreFinite &&
+          AppInvoiceMoney.cents(record.discount.value) >
+              record.lines.fold(
+                0,
+                (sum, line) =>
+                    sum +
+                    AppInvoiceMoney.lineSubtotalCents(
+                      quantity: line.quantity,
+                      unitPrice: line.unitPrice,
+                    ),
+              )) {
+        issues.add(excessiveDiscountAmount);
+      }
+    }
+    if (record.payments.any((payment) => !payment.amount.isFinite)) {
+      issues.add(nonFinitePaymentAmount);
+    }
+    return issues.toSet().toList(growable: false);
+  }
+
+  static void _ensureRenderableRecord(InvoiceRecord record) {
+    final issues = contentIssueCodesForRecord(record);
+    if (issues.isEmpty) return;
+    throw InvoicePdfContentException(issues);
+  }
+
+  static bool _isBlankLineItem(InvoiceLineItemRecord line) {
+    return line.name.trim().isEmpty && line.details.trim().isEmpty;
   }
 
   pw.Widget _landscapeArtworkBody({

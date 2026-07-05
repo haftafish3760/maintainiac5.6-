@@ -1,5 +1,83 @@
 # PDF System Pass Log
 
+## Milestone - 2026-07-05 10:09 EDT - Passes 92-95 invoice preflight hardening
+
+- Scope: invoice/estimate PDF generation and preview QA only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added invoice PDF content preflight for missing line items and blank line
+    items.
+  - Added numeric preflight for non-finite line values, unsafe tax rates,
+    unsafe discounts, and non-finite payments.
+  - Added identity preflight for missing document number, company, or client.
+  - Re-aligned preview action regressions to use PDF-ready confirmed records
+    under the stricter preflight rules.
+  - Added all new guard cases to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:09 EDT:
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 95 - 2026-07-05 10:08 EDT - Invoice preview regression alignment
+
+- Scope: invoice/estimate PDF preview tests only. No inventory, camera, native
+  capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Updated invoice PDF preview action tests to use a PDF-ready confirmed
+    record instead of an empty draft.
+  - Preserved share, print, retry, cancel, and archive event regression
+    coverage under the stricter invoice PDF preflight rules.
+- Verification completed 2026-07-05 10:08 EDT:
+  - `dart format test/invoice_pdf_preview_action_tracking_test.dart`
+  - `flutter test test/invoice_pdf_preview_action_tracking_test.dart -r compact`
+  - `dart analyze test/invoice_pdf_preview_action_tracking_test.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart`
+
+## Pass 94 - 2026-07-05 10:04 EDT - Invoice identity preflight
+
+- Scope: invoice/estimate PDF generation content guard only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Blocked invoice/estimate PDF generation when the business document number
+    is missing.
+  - Blocked invoice/estimate PDF generation when company or client identity is
+    missing.
+  - Added regression coverage for missing business identity blocks.
+  - Added the new identity guard to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:04 EDT:
+  - `dart format lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart`
+  - `flutter test test/invoice_document_engine_layout_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 93 - 2026-07-05 10:02 EDT - Invoice numeric preflight
+
+- Scope: invoice/estimate PDF generation content guard only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Blocked non-finite invoice line quantities, prices, and tax rates before
+    PDF rendering.
+  - Blocked negative line tax rates, negative discounts, over-100% discounts,
+    excessive fixed discounts, and non-finite payments.
+  - Added regression coverage for unsafe line-item, discount, and payment
+    content.
+  - Added the new numeric guards to the PDF QA fixture registry.
+- Verification completed 2026-07-05 10:02 EDT:
+  - `dart format lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart`
+  - `flutter test test/invoice_document_engine_layout_contract_test.dart -r compact`
+  - `dart analyze lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/pdf_qa_fixture_inventory_test.dart -r compact`
+
+## Pass 92 - 2026-07-05 10:00 EDT - Invoice content preflight
+
+- Scope: invoice/estimate PDF generation content guard only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Added invoice PDF content preflight before rendering.
+  - Blocked missing line-item documents from exporting as professional PDFs.
+  - Blocked blank invoice/estimate line items before PDF generation.
+  - Added regression coverage and fixture-registry entries for both blocks.
+- Verification completed 2026-07-05 10:00 EDT:
+  - `dart format lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart`
+  - `flutter test test/invoice_document_engine_layout_contract_test.dart -r compact`
+  - `dart analyze lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart`
+
 ## Milestone - 2026-07-05 09:56 EDT - Passes 89-91 receipt privacy and source modules
 
 - Scope: shared receipt PDF privacy, source metadata, and archive linking only.

@@ -23,6 +23,7 @@ void main() {
     final appState = AppStateController();
     final odometer = GlobalOdometerController();
     final ledger = InvoiceLedgerStore.memory();
+    final recordId = await _createPdfReadyRecord(ledger);
     final pdfService = _FakeGeneratedPdfService(
       tempPath: '${Directory.systemTemp.path}/invoice-preview-actions.pdf',
     );
@@ -37,7 +38,10 @@ void main() {
           child: InvoiceLedgerScope(
             controller: ledger,
             child: MaterialApp(
-              home: InvoiceFormScreen(pdfPreviewService: pdfService),
+              home: InvoiceFormScreen(
+                recordId: recordId,
+                pdfPreviewService: pdfService,
+              ),
             ),
           ),
         ),
@@ -81,6 +85,7 @@ void main() {
     final appState = AppStateController();
     final odometer = GlobalOdometerController();
     final ledger = InvoiceLedgerStore.memory();
+    final recordId = await _createPdfReadyRecord(ledger);
     final pdfService = _FakeGeneratedPdfService(
       tempPath: '${Directory.systemTemp.path}/invoice-preview-retry.pdf',
       failFirstWrite: true,
@@ -96,7 +101,10 @@ void main() {
           child: InvoiceLedgerScope(
             controller: ledger,
             child: MaterialApp(
-              home: InvoiceFormScreen(pdfPreviewService: pdfService),
+              home: InvoiceFormScreen(
+                recordId: recordId,
+                pdfPreviewService: pdfService,
+              ),
             ),
           ),
         ),
@@ -144,6 +152,7 @@ void main() {
       final appState = AppStateController();
       final odometer = GlobalOdometerController();
       final ledger = InvoiceLedgerStore.memory();
+      final recordId = await _createPdfReadyRecord(ledger);
       final pdfService = _FakeGeneratedPdfService(
         tempPath: '${Directory.systemTemp.path}/invoice-preview-cancelled.pdf',
         shareStatus: ShareResultStatus.dismissed,
@@ -160,7 +169,10 @@ void main() {
             child: InvoiceLedgerScope(
               controller: ledger,
               child: MaterialApp(
-                home: InvoiceFormScreen(pdfPreviewService: pdfService),
+                home: InvoiceFormScreen(
+                  recordId: recordId,
+                  pdfPreviewService: pdfService,
+                ),
               ),
             ),
           ),
@@ -198,6 +210,7 @@ void main() {
     final appState = AppStateController();
     final odometer = GlobalOdometerController();
     final ledger = InvoiceLedgerStore.memory();
+    final recordId = await _createPdfReadyRecord(ledger);
     final documentStore = AppDocumentStore.memory();
     addTearDown(appState.dispose);
     addTearDown(odometer.dispose);
@@ -211,6 +224,7 @@ void main() {
             controller: ledger,
             child: MaterialApp(
               home: InvoiceFormScreen(
+                recordId: recordId,
                 pdfArchiveService: _FakeArchiveService(store: documentStore),
               ),
             ),
@@ -253,6 +267,31 @@ void main() {
     expect(record.toMap().containsKey('pdfPath'), isFalse);
     expect(documentStore.records, hasLength(1));
   });
+}
+
+Future<String> _createPdfReadyRecord(InvoiceLedgerStore ledger) async {
+  final draft = await ledger.createDraft(
+    type: InvoiceDocumentType.invoice,
+    now: DateTime(2026, 7, 5, 10),
+  );
+  final saved = await ledger.saveRecord(
+    draft.copyWith(
+      company: const InvoicePartySnapshot(companyName: 'Maintainiac Repairs'),
+      client: const InvoicePartySnapshot(displayName: 'Confirmed Customer'),
+      lines: const [
+        InvoiceLineItemRecord(
+          id: 'labor-1',
+          name: 'Confirmed service labor',
+          details: 'User-confirmed invoice line item',
+          quantity: 1,
+          unit: 'hr',
+          unitPrice: 125,
+          taxable: false,
+        ),
+      ],
+    ),
+  );
+  return saved.id;
 }
 
 Future<void> _pumpPdfPreview(WidgetTester tester) async {

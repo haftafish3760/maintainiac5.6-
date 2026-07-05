@@ -242,6 +242,205 @@ void main() {
     },
   );
 
+  test('invoice Document Engine refuses missing line items', () async {
+    final record = InvoiceDocumentEngineFixtureFactory.standardInvoice(
+      lineCount: 1,
+    ).copyWith(lines: const []);
+
+    expect(
+      InvoicePdfTemplateRenderer.contentIssueCodesForRecord(record),
+      contains(InvoicePdfTemplateRenderer.missingLineItems),
+    );
+    await expectLater(
+      const InvoicePdfTemplateRenderer().buildRecordDocumentBytes(
+        record: record,
+        template: InvoiceTemplateCatalog.byId('structured-logo'),
+      ),
+      throwsA(
+        isA<InvoicePdfContentException>().having(
+          (error) => error.issues,
+          'issues',
+          contains(InvoicePdfTemplateRenderer.missingLineItems),
+        ),
+      ),
+    );
+  });
+
+  test(
+    'invoice Document Engine refuses missing business document identity',
+    () async {
+      final record =
+          InvoiceDocumentEngineFixtureFactory.standardInvoice(
+            lineCount: 1,
+          ).copyWith(
+            invoiceNumber: '   ',
+            company: const InvoicePartySnapshot(),
+            client: const InvoicePartySnapshot(),
+          );
+
+      expect(
+        InvoicePdfTemplateRenderer.contentIssueCodesForRecord(record),
+        containsAll([
+          InvoicePdfTemplateRenderer.missingInvoiceNumber,
+          InvoicePdfTemplateRenderer.missingCompanyName,
+          InvoicePdfTemplateRenderer.missingClientName,
+        ]),
+      );
+      await expectLater(
+        const InvoicePdfTemplateRenderer().buildRecordDocumentBytes(
+          record: record,
+          template: InvoiceTemplateCatalog.byId('structured-logo'),
+        ),
+        throwsA(
+          isA<InvoicePdfContentException>().having(
+            (error) => error.issues,
+            'issues',
+            containsAll([
+              InvoicePdfTemplateRenderer.missingInvoiceNumber,
+              InvoicePdfTemplateRenderer.missingCompanyName,
+              InvoicePdfTemplateRenderer.missingClientName,
+            ]),
+          ),
+        ),
+      );
+    },
+  );
+
+  test('invoice Document Engine refuses blank line items', () async {
+    final record =
+        InvoiceDocumentEngineFixtureFactory.standardInvoice(
+          lineCount: 1,
+        ).copyWith(
+          lines: const [
+            InvoiceLineItemRecord(
+              id: 'blank-line',
+              name: '   ',
+              details: '   ',
+              quantity: 1,
+              unit: 'ea',
+              unitPrice: 10,
+              taxable: false,
+            ),
+          ],
+        );
+
+    expect(
+      InvoicePdfTemplateRenderer.contentIssueCodesForRecord(record),
+      contains(InvoicePdfTemplateRenderer.blankLineItem),
+    );
+    await expectLater(
+      const InvoicePdfTemplateRenderer().buildRecordDocumentBytes(
+        record: record,
+        template: InvoiceTemplateCatalog.byId('structured-logo'),
+      ),
+      throwsA(
+        isA<InvoicePdfContentException>().having(
+          (error) => error.issues,
+          'issues',
+          contains(InvoicePdfTemplateRenderer.blankLineItem),
+        ),
+      ),
+    );
+  });
+
+  test('invoice Document Engine refuses unsafe line-item numbers', () async {
+    final record =
+        InvoiceDocumentEngineFixtureFactory.standardInvoice(
+          lineCount: 1,
+        ).copyWith(
+          lines: const [
+            InvoiceLineItemRecord(
+              id: 'bad-quantity',
+              name: 'Bad quantity',
+              quantity: double.nan,
+              unitPrice: 10,
+              taxRate: 0,
+            ),
+            InvoiceLineItemRecord(
+              id: 'bad-price',
+              name: 'Bad price',
+              quantity: 1,
+              unitPrice: double.infinity,
+              taxRate: 0,
+            ),
+            InvoiceLineItemRecord(
+              id: 'bad-tax',
+              name: 'Bad tax',
+              quantity: 1,
+              unitPrice: 10,
+              taxRate: -5,
+            ),
+          ],
+        );
+
+    expect(
+      InvoicePdfTemplateRenderer.contentIssueCodesForRecord(record),
+      containsAll([
+        InvoicePdfTemplateRenderer.nonFiniteLineQuantity,
+        InvoicePdfTemplateRenderer.nonFiniteLineUnitPrice,
+        InvoicePdfTemplateRenderer.negativeLineTaxRate,
+      ]),
+    );
+    await expectLater(
+      const InvoicePdfTemplateRenderer().buildRecordDocumentBytes(
+        record: record,
+        template: InvoiceTemplateCatalog.byId('structured-logo'),
+      ),
+      throwsA(isA<InvoicePdfContentException>()),
+    );
+  });
+
+  test(
+    'invoice Document Engine refuses unsafe discounts and payments',
+    () async {
+      final badDiscount =
+          InvoiceDocumentEngineFixtureFactory.standardInvoice(
+            lineCount: 1,
+          ).copyWith(
+            discount: const InvoiceDiscountRecord(
+              type: InvoiceDiscountType.percent,
+              value: 150,
+            ),
+          );
+      final badPayment =
+          InvoiceDocumentEngineFixtureFactory.standardInvoice(
+            lineCount: 1,
+          ).copyWith(
+            payments: [
+              InvoicePaymentRecord(
+                id: 'bad-payment',
+                amount: double.infinity,
+                paidAt: InvoiceDocumentEngineFixtureFactory.fixedNow,
+                method: 'Card',
+              ),
+            ],
+          );
+
+      expect(
+        InvoicePdfTemplateRenderer.contentIssueCodesForRecord(badDiscount),
+        contains(InvoicePdfTemplateRenderer.excessiveDiscountPercent),
+      );
+      expect(
+        InvoicePdfTemplateRenderer.contentIssueCodesForRecord(badPayment),
+        contains(InvoicePdfTemplateRenderer.nonFinitePaymentAmount),
+      );
+      await expectLater(
+        const InvoicePdfTemplateRenderer().buildRecordDocumentBytes(
+          record: badDiscount,
+          template: InvoiceTemplateCatalog.byId('structured-logo'),
+        ),
+        throwsA(isA<InvoicePdfContentException>()),
+      );
+      await expectLater(
+        const InvoicePdfTemplateRenderer().buildRecordDocumentBytes(
+          record: badPayment,
+          template: InvoiceTemplateCatalog.byId('structured-logo'),
+        ),
+        throwsA(isA<InvoicePdfContentException>()),
+      );
+    },
+  );
+
   test(
     'invoice Document Engine validates huge invoice pagination boundaries',
     () async {
