@@ -15,4 +15,15 @@ void main() {
     expect(rules, contains('smallest relevant files first'));
     expect(rules, contains('long-running checks must run non-interactively'));
   });
+
+  test('project rules require bundled work and non-idle testing', () {
+    final rules = File('PROJECT_RULES.md').readAsStringSync().toLowerCase();
+
+    expect(rules, contains('codex bundling and non-idle testing rule'));
+    expect(rules, contains('bundle related edits'));
+    expect(rules, contains('run targeted tests after a bundle'));
+    expect(rules, contains('use test/build wait time'));
+    expect(rules, contains('rerun the narrow failed test first'));
+    expect(rules, contains('full quality gates belong at milestones'));
+  });
 }

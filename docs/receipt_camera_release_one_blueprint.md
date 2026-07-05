@@ -4,6 +4,8 @@ This is the active architecture map for Maintainiac's shared receipt camera
 system. It narrows the current work to the camera and receipt-image flow needed
 for release one. OCR, parsing, PDFs, inventory, maps, invoices, and cloud sync
 must consume this system later instead of pulling the camera work off course.
+Use `docs/receipt_camera_completion_map.md` for evidence-based progress and
+pass forecasts. Do not estimate remaining passes from memory or hunches.
 
 ## Release-One Target
 

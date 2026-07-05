@@ -14,6 +14,19 @@ This is a top-priority operating rule for every Codex agent working on Maintania
 - For coding tasks, inspect the smallest relevant files first. Do not use whole-repo searches unless narrow searches fail or the task requires repo-wide proof.
 - Long-running checks must run non-interactively. Do not narrate or monitor scrolling output; inspect final logs and summarize actionable results only.
 
+## Codex Bundling And Non-Idle Testing Rule
+
+This is a top-priority operating rule for every Codex agent working on Maintaniac.
+
+- Do not run tiny one-off feature passes when related work can be safely bundled.
+- Bundle related edits into meaningful workflow chunks, especially in receipt camera, OCR handoff, review, QA, and regression work.
+- Run targeted tests after a bundle, not after every tiny edit, unless fixing a specific failed test.
+- While a long-running test, analyzer, build, or quality gate runs, do not watch scrolling output. Let it finish and inspect the final result.
+- When it is safe to do so, use test/build wait time to inspect or prepare the next bounded work bundle instead of idling.
+- If one test fails, fix the root cause and rerun the narrow failed test first. Do not rerun the full pack unless the fix changes shared behavior or a milestone gate requires it.
+- Full quality gates belong at milestones, handoffs, or broad shared changes, not after every small edit.
+- Never continue adding features on a known failing analyzer, test, source audit, or quality gate.
+
 ## Product Identity
 
 - Maintaniac is one app under one roof that contains several connected record keeping tools: trip tracking, expense tracking, invoices, payments, maintenance, materials/inventory, receipts, reports, and related workflows.
