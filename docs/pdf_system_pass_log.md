@@ -1,5 +1,23 @@
 # PDF System Pass Log
 
+## Pass 113 - 2026-07-05 11:28 EDT - PDF paper format coverage
+
+- Scope: shared PDF page-size and orientation behavior only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Completed the shared PDF page spec set for letter, legal, and A4 in both
+    portrait and landscape.
+  - Added a stable page-spec registry and key parser for future document
+    templates.
+  - Added invoice renderer page-spec override coverage so invoice/estimate
+    generation can be proven on legal portrait and A4 landscape formats.
+  - Added receipt renderer coverage for letter, legal, and A4 landscape output.
+  - Added the paper-format cases to the PDF QA fixture registry.
+- Verification completed 2026-07-05 11:28 EDT:
+  - `dart format lib/shared/pdf/app_pdf_page_spec.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart test/app_receipt_pdf_document_test.dart`
+  - `flutter test test/invoice_document_engine_layout_contract_test.dart test/app_receipt_pdf_document_test.dart -r compact`
+  - `dart analyze lib/shared/pdf/app_pdf_page_spec.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart test/app_receipt_pdf_document_test.dart`
+
 ## Pass 112 - 2026-07-05 11:16 EDT - PDF golden snapshot gate
 
 - Scope: PDF golden snapshot QA only. No inventory, camera, native capture, OCR

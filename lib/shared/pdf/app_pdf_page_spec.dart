@@ -22,15 +22,36 @@ class AppPdfPageSpec {
     orientation: AppPdfPageOrientation.portrait,
   );
 
+  static const legalLandscape = AppPdfPageSpec(
+    paperSize: AppPdfPaperSize.legal,
+    orientation: AppPdfPageOrientation.landscape,
+  );
+
   static const a4Portrait = AppPdfPageSpec(
     paperSize: AppPdfPaperSize.a4,
     orientation: AppPdfPageOrientation.portrait,
   );
 
+  static const a4Landscape = AppPdfPageSpec(
+    paperSize: AppPdfPaperSize.a4,
+    orientation: AppPdfPageOrientation.landscape,
+  );
+
+  static const all = <AppPdfPageSpec>[
+    letterPortrait,
+    letterLandscape,
+    legalPortrait,
+    legalLandscape,
+    a4Portrait,
+    a4Landscape,
+  ];
+
   final AppPdfPaperSize paperSize;
   final AppPdfPageOrientation orientation;
 
   bool get isLandscape => orientation == AppPdfPageOrientation.landscape;
+
+  bool get isPortrait => orientation == AppPdfPageOrientation.portrait;
 
   PdfPageFormat get format {
     final base = switch (paperSize) {
@@ -46,6 +67,14 @@ class AppPdfPageSpec {
   double get height => format.height;
 
   String get key => '${paperSize.name}_${orientation.name}';
+
+  static AppPdfPageSpec fromKey(String key) {
+    final normalized = key.trim().toLowerCase();
+    for (final spec in all) {
+      if (spec.key == normalized) return spec;
+    }
+    return letterPortrait;
+  }
 
   AppPdfPageSpec rotated() {
     return AppPdfPageSpec(

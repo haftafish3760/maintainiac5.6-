@@ -218,17 +218,27 @@ void main() {
   });
 
   test('receipt PDF renderer supports landscape receipt output', () async {
-    final document = await const AppReceiptPdfRenderer().buildReceiptDocument(
-      data: _receiptData(lineCount: 6),
-      pageSpec: AppPdfPageSpec.letterLandscape,
-      createdAt: DateTime.utc(2026, 7, 5, 12),
-      theme: await AppPdfTypography.loadTheme(),
-    );
-    final boxes = _mediaBoxes(document.bytes);
+    for (final pageSpec in const [
+      AppPdfPageSpec.letterLandscape,
+      AppPdfPageSpec.legalLandscape,
+      AppPdfPageSpec.a4Landscape,
+    ]) {
+      final document = await const AppReceiptPdfRenderer().buildReceiptDocument(
+        data: _receiptData(lineCount: 6),
+        pageSpec: pageSpec,
+        createdAt: DateTime.utc(2026, 7, 5, 12),
+        theme: await AppPdfTypography.loadTheme(),
+      );
+      final boxes = _mediaBoxes(document.bytes);
 
-    expect(document.validation.isValid, isTrue);
-    expect(boxes, isNotEmpty);
-    expect(boxes.every((box) => box.isLandscape), isTrue);
+      expect(document.validation.isValid, isTrue, reason: pageSpec.key);
+      expect(boxes, isNotEmpty, reason: pageSpec.key);
+      expect(
+        boxes.every((box) => box.isLandscape),
+        isTrue,
+        reason: pageSpec.key,
+      );
+    }
   });
 
   test('receipt PDF renderer supports shared receipt source modules', () async {

@@ -157,6 +157,16 @@ void main() {
         AppPdfPageSpec.letterLandscape.rotated().key,
         AppPdfPageSpec.letterPortrait.key,
       );
+      expect(AppPdfPageSpec.all.map((spec) => spec.key).toSet(), {
+        'letter_portrait',
+        'letter_landscape',
+        'legal_portrait',
+        'legal_landscape',
+        'a4_portrait',
+        'a4_landscape',
+      });
+      expect(AppPdfPageSpec.fromKey(' A4_LANDSCAPE ').key, 'a4_landscape');
+      expect(AppPdfPageSpec.fromKey('unsupported').key, 'letter_portrait');
 
       final renderer = const InvoicePdfTemplateRenderer();
       final record =
@@ -169,12 +179,26 @@ void main() {
         record: record.copyWith(templateId: 'landscaping-garden-artwork-v1'),
         template: InvoiceTemplateCatalog.byId('landscaping-garden-artwork-v1'),
       );
+      final legalBytes = await renderer.buildRecordDocumentBytes(
+        record: record.copyWith(templateId: 'structured-logo'),
+        template: InvoiceTemplateCatalog.byId('structured-logo'),
+        pageSpecOverride: AppPdfPageSpec.legalPortrait,
+      );
+      final a4LandscapeBytes = await renderer.buildRecordDocumentBytes(
+        record: record.copyWith(templateId: 'structured-logo'),
+        template: InvoiceTemplateCatalog.byId('structured-logo'),
+        pageSpecOverride: AppPdfPageSpec.a4Landscape,
+      );
 
       final portraitBoxes = _mediaBoxes(portraitBytes);
       final landscapeBoxes = _mediaBoxes(landscapeBytes);
+      final legalBoxes = _mediaBoxes(legalBytes);
+      final a4LandscapeBoxes = _mediaBoxes(a4LandscapeBytes);
 
       expect(portraitBoxes, isNotEmpty);
       expect(landscapeBoxes, isNotEmpty);
+      expect(legalBoxes, isNotEmpty);
+      expect(a4LandscapeBoxes, isNotEmpty);
       expect(
         portraitBoxes.every((box) => box.isPortrait),
         isTrue,
@@ -185,6 +209,8 @@ void main() {
         isTrue,
         reason: 'landscaping artwork must generate horizontal PDF pages',
       );
+      expect(legalBoxes.every((box) => box.isPortrait), isTrue);
+      expect(a4LandscapeBoxes.every((box) => box.isLandscape), isTrue);
       expect(
         AppGeneratedPdfValidationReport.inspect(
           Uint8List.fromList(landscapeBytes),

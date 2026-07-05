@@ -70,6 +70,7 @@ class InvoicePdfTemplateRenderer {
   Future<Uint8List> buildRecordDocumentBytes({
     required InvoiceRecord record,
     required InvoiceTemplateDefinition template,
+    AppPdfPageSpec? pageSpecOverride,
   }) async {
     _ensureRenderableRecord(record);
     InvoicePdfPrivacyGuard.ensureRecordCanExport(record);
@@ -80,7 +81,7 @@ class InvoicePdfTemplateRenderer {
     final pdfTheme = await AppPdfTypography.loadTheme();
     for (var index = 0; index < chunks.length; index++) {
       final page = chunks[index];
-      final pageSpec = _pageSpecForTemplate(template);
+      final pageSpec = pageSpecOverride ?? _pageSpecForTemplate(template);
       pdf.addPage(
         pw.Page(
           pageFormat: pageSpec.format,
