@@ -112,6 +112,7 @@ Map<String, Object?> _readCell(
   final failureCount = (json['failureCount'] as int?) ?? 0;
   final safety = _cellSafety(json);
   final parserCalls = _parserCallCount(json);
+  final chunkRunComplete = _chunkRunComplete(json);
   return _cell(
     trade: trade,
     scope: scope,
@@ -119,14 +120,23 @@ Map<String, Object?> _readCell(
     locale: locale,
     status: failureCount == 0 ? 'passed' : 'failed',
     reportPath: reportPath,
-    localOnlySafe: safety.isSafe && parserCalls > 0,
+    localOnlySafe: safety.isSafe && parserCalls > 0 && chunkRunComplete,
     safetyFlags: safety.flags,
     safetyMissingFields: safety.missingFields,
+    chunkRunComplete: chunkRunComplete,
     checked: (json['checked'] as int?) ?? 0,
     failureCount: failureCount,
     parserCalls: parserCalls,
     fixturePath: json['fixturePath']?.toString() ?? '',
   );
+}
+
+bool _chunkRunComplete(Map<String, Object?> json) {
+  final planned = json['plannedChunkCount'];
+  final completed = json['completedChunkCount'];
+  if (planned is! int && completed is! int) return true;
+  if (planned is! int || completed is! int) return false;
+  return planned > 0 && completed == planned;
 }
 
 int _parserCallCount(Map<String, Object?> json) {
@@ -168,6 +178,7 @@ Map<String, Object?> _cell({
   required bool localOnlySafe,
   Map<String, Object?> safetyFlags = const {},
   List<String> safetyMissingFields = const [],
+  bool chunkRunComplete = true,
   int checked = 0,
   int failureCount = 0,
   int parserCalls = 0,
@@ -189,6 +200,7 @@ Map<String, Object?> _cell({
     'localOnlySafe': localOnlySafe,
     'safetyFlags': safetyFlags,
     'safetyMissingFields': safetyMissingFields,
+    'chunkRunComplete': chunkRunComplete,
   };
 }
 
