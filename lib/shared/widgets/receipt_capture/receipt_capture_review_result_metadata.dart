@@ -76,6 +76,7 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
       'stitchMissingPairCount': stitchResult.missingPairCount,
       'stitchAllPairsHaveOverlapEvidence':
           stitchResult.allPairsHaveOverlapEvidence,
+      ...stitchResult.privacySafeOcrHandoffSafety,
       if (stitchResult.usedFallback)
         'stitchFallbackReasonCode': stitchResult.diagnosticReasonLabel,
       if (stitchResult.usedFallback)

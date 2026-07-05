@@ -186,6 +186,47 @@ class ReceiptStitchResult {
     };
   }
 
+  String get ocrHandoffSafetyCode {
+    if (inputPaths.length <= 1) return 'single_section_review_ready';
+    return switch (status) {
+      ReceiptStitchStatus.notNeeded => 'ordered_sections_review_ready',
+      ReceiptStitchStatus.stitched =>
+        allPairsHaveOverlapEvidence
+            ? 'stitched_overlap_verified'
+            : 'stitched_overlap_needs_review',
+      ReceiptStitchStatus.fallback =>
+        'ordered_sections_after_${diagnosticReasonLabel}_fallback',
+    };
+  }
+
+  String get ocrHandoffSafetyLabel {
+    return switch (ocrHandoffSafetyCode) {
+      'single_section_review_ready' =>
+        'OCR will read one receipt photo after review.',
+      'ordered_sections_review_ready' =>
+        'OCR will read ordered receipt sections from top to bottom.',
+      'stitched_overlap_verified' =>
+        'OCR will read one stitched receipt image with verified overlap.',
+      'stitched_overlap_needs_review' =>
+        'OCR will read one stitched image, but overlap evidence still needs review.',
+      _ when usedFallback =>
+        'OCR will read ordered sections because stitching was not trusted.',
+      _ => 'OCR handoff needs receipt-photo review.',
+    };
+  }
+
+  Map<String, Object?> get privacySafeOcrHandoffSafety {
+    return Map.unmodifiable({
+      'stitchOcrHandoffSafetyCode': ocrHandoffSafetyCode,
+      'stitchOcrHandoffSafetyLabel': ocrHandoffSafetyLabel,
+      'stitchOcrHandoffUsesCombinedImage': didStitch,
+      'stitchOcrHandoffUsesOrderedSections':
+          usedFallback || status == ReceiptStitchStatus.notNeeded,
+      'stitchOcrHandoffSourceCount': ocrSourcePaths.length,
+      'stitchOcrHandoffChecklistLabel': ocrHandoffChecklistLabel,
+    });
+  }
+
   String get overlapExpectationLabel {
     if (inputPaths.length <= 1) return 'Full receipt in one photo';
     return switch (status) {

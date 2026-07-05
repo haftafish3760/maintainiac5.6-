@@ -91,6 +91,14 @@ void main() {
       stitched.nextReviewDiagnosticLabel,
       'stitched:stitched:coverage_ok:1:details_ready',
     );
+    expect(
+      stitched.stitchResult.ocrHandoffSafetyCode,
+      {'stitched_overlap_verified'}.single,
+    );
+    expect(
+      stitched.stitchResult.privacySafeOcrHandoffSafety,
+      containsPair('stitchOcrHandoffUsesCombinedImage', true),
+    );
 
     expect(fallback.nextReviewUsesCombinedReceiptImage, isFalse);
     expect(
@@ -137,6 +145,14 @@ void main() {
     expect(
       fallback.nextReviewDiagnosticLabel,
       'fallback:overlap_confidence_low:coverage_ok:2:details_ready',
+    );
+    expect(
+      fallback.stitchResult.ocrHandoffSafetyCode,
+      'ordered_sections_after_overlap_confidence_low_fallback',
+    );
+    expect(
+      fallback.stitchResult.ocrHandoffSafetyLabel,
+      'OCR will read ordered sections because stitching was not trusted.',
     );
     expect(
       fallback.privacySafeReceiptReaderHandoffMetadata,
@@ -189,6 +205,17 @@ void main() {
     expect(
       fallback.privacySafeReceiptReaderHandoffMetadata,
       containsPair('stitchMissingPairCount', 1),
+    );
+    expect(
+      fallback.privacySafeReceiptReaderHandoffMetadata,
+      containsPair(
+        'stitchOcrHandoffSafetyCode',
+        'ordered_sections_after_overlap_confidence_low_fallback',
+      ),
+    );
+    expect(
+      fallback.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('stitchOcrHandoffUsesOrderedSections', true),
     );
 
     final stitchedAttachments = ReceiptCaptureFlow.attachmentsFromReviewResult(
