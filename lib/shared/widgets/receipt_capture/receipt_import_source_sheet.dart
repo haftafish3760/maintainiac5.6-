@@ -2,13 +2,12 @@ part of 'receipt_attachment_panel.dart';
 
 extension _ReceiptImportSourceSheet on _SharedReceiptAttachmentPanelState {
   Future<void> openReceiptImportOptions() async {
-    final action = await showModalBottomSheet<_ReceiptImportAction>(
-      context: context,
-      backgroundColor: const Color(0xFF161D20),
-      showDragHandle: true,
-      builder: (context) {
-        return _ReceiptImportSourceSheetBody(showCamera: widget.showCamera);
-      },
+    final action = await Navigator.of(context).push<_ReceiptImportAction>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) =>
+            _ReceiptImportSourceSheetBody(showCamera: widget.showCamera),
+      ),
     );
     if (!mounted || action == null) return;
     switch (action) {
@@ -97,48 +96,88 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
         color: Color(0xFFC7B8FF),
       ),
     ];
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(14, 0, 14, 18),
+    return Scaffold(
+      backgroundColor: const Color(0xFF050607),
+      body: SafeArea(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Capture or upload receipt',
-                    style: TextStyle(
-                      color: Color(0xFFE8ECEE),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 12, 6),
+              child: Row(
+                children: [
+                  IconButton(
+                    tooltip: 'Back',
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    color: Colors.white,
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xDD11181B),
+                      minimumSize: const Size(46, 46),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: const BorderSide(color: Color(0xFF526168)),
+                      ),
                     ),
                   ),
-                ),
-                TextButton(
-                  onPressed: () =>
-                      Navigator.of(context).pop(_ReceiptImportAction.shareHelp),
-                  child: const Text('Help'),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Capture or upload receipt',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Color(0xFFE8ECEE),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pop(_ReceiptImportAction.shareHelp),
+                    child: const Text('Help'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            GridView.count(
-              crossAxisCount: 2,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              childAspectRatio: 1.75,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                for (final source in sources)
-                  _ReceiptImportTile(source: source),
-              ],
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 420;
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(14, 8, 14, 18),
+                    children: [
+                      _ReceiptPrimaryImportTile(
+                        source: sources.firstWhere(
+                          (source) =>
+                              source.action == _ReceiptImportAction.camera,
+                          orElse: () => sources.first,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      GridView.count(
+                        crossAxisCount: compact ? 1 : 2,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        childAspectRatio: compact ? 4.2 : 1.75,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          for (final source in sources)
+                            if (source.action != _ReceiptImportAction.camera)
+                              _ReceiptImportTile(source: source),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      const _ReceiptImportShareHint(),
+                    ],
+                  );
+                },
+              ),
             ),
-            const SizedBox(height: 14),
-            const _ReceiptImportShareHint(),
           ],
         ),
       ),
