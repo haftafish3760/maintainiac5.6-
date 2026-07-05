@@ -27,6 +27,8 @@ Receipt workflow scope includes:
 - use the platform-native camera stack as the baseline instead of building a
   pro camera replacement
 - guide the user toward a clear image
+- provide the release-one receipt controls: manual shutter, torch when
+  supported, brightness/readability guidance, and settings
 - review, retake, add photo, or use receipt
 - capture long receipts in ordered segments
 - preserve segment order during retakes
@@ -43,6 +45,9 @@ Receipt workflow scope excludes:
 - trying to outbuild Google ML Kit OCR
 - ISO, RAW, white-balance lock, exposure lock, screen-tap focus, focus lock, or
   manual lens-distance controls without explicit approval
+- treating a focus slider as required release-one work. A focus slider is not a
+  release blocker; any manual focus adjustment is optional, device-supported,
+  and future-facing unless real-device proof shows it is needed
 - full receipt parser perfection
 - inventory parser work
 - PDF generation or import polish
@@ -54,6 +59,7 @@ Receipt workflow scope excludes:
 | Work package | Target proof | Current evidence | Status |
 | --- | --- | --- | --- |
 | Native camera baseline | CameraX/AVFoundation use device defaults for core camera behavior while Maintainiac owns receipt UI/review/stitching only. | Contract docs/tests exist; production code now has a native-baseline policy. | Strong |
+| Receipt control priority | Manual shutter, torch, brightness guidance, settings, and receipt review are prioritized over pro-camera controls. | Native Android/iOS torch exists; contract now states torch and optional focus policy. | Strong |
 | Shared entry and permissions | User can start receipt capture from shared flow with safe fallback. | Source and tests exist for camera actions, permission, and fallback contracts. | Partial |
 | Native camera contract | Android CameraX and iOS AVFoundation expose matching high-level settings and capture metadata. | Flutter contract and native bridge tests exist; real-device proof still required. | Partial |
 | No preview tap focus | Preview/screen tap focus is banned; continuous focus/readability guidance is primary. | Active docs and regression tests exist. | Strong |

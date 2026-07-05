@@ -119,6 +119,15 @@ class ReceiptNativeCameraSettings {
   String get proCameraReplacementPolicy =>
       'no_iso_raw_white_balance_lock_exposure_lock_or_tap_focus';
 
+  String get receiptWorkflowControlPriorityPolicy =>
+      'manual_shutter_torch_brightness_guidance_first';
+
+  String get torchControlPolicy =>
+      'show_receipt_light_when_device_supports_torch';
+
+  String get manualFocusAdjustmentPolicy =>
+      'optional_future_device_supported_control_not_release_blocker';
+
   bool get avoidsProCameraReplacementControls =>
       focusMode == ReceiptNativeFocusMode.continuous &&
       exposureMode == ReceiptNativeExposureMode.auto &&

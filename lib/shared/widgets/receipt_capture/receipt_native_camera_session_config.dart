@@ -251,6 +251,19 @@ class ReceiptNativeCameraSessionConfig {
 
   String get proCameraReplacementPolicy => settings.proCameraReplacementPolicy;
 
+  String get receiptWorkflowControlPriorityPolicy =>
+      settings.receiptWorkflowControlPriorityPolicy;
+
+  String get torchControlPolicy {
+    if (!nativeCapabilities.supportsTorch) {
+      return 'torch_unavailable_keep_manual_capture';
+    }
+    return settings.torchControlPolicy;
+  }
+
+  String get manualFocusAdjustmentPolicy =>
+      settings.manualFocusAdjustmentPolicy;
+
   String get tapToFocusPolicy {
     return 'continuous_focus_primary_no_tap_focus';
   }
@@ -305,6 +318,7 @@ class ReceiptNativeCameraSessionConfig {
       tags.add('focus_readability_review');
     }
     if (nativeCapabilities.supportsTorch) tags.add('receipt_light');
+    tags.add('manual_focus_optional_future');
     if (edgeOverlayEnabled) tags.add('edge_overlay');
     if (hasPreviousSectionGuide) tags.add('previous_section_ghost');
     return List.unmodifiable(tags);

@@ -29,6 +29,18 @@ void main() {
         settings.proCameraReplacementPolicy,
         'no_iso_raw_white_balance_lock_exposure_lock_or_tap_focus',
       );
+      expect(
+        settings.receiptWorkflowControlPriorityPolicy,
+        'manual_shutter_torch_brightness_guidance_first',
+      );
+      expect(
+        settings.torchControlPolicy,
+        'show_receipt_light_when_device_supports_torch',
+      );
+      expect(
+        settings.manualFocusAdjustmentPolicy,
+        'optional_future_device_supported_control_not_release_blocker',
+      );
       expect(settings.avoidsProCameraReplacementControls, isTrue);
       expect(settings.hasExposureAndSharpnessGuidance, isTrue);
       expect(settings.hasReceiptReadabilityGuidance, isTrue);
@@ -154,6 +166,7 @@ void main() {
       cameraCount: 2,
       hasRearCamera: true,
       supportsContinuousFocus: true,
+      supportsTorch: true,
       supportsYuvLiveFrames: true,
       supportsNativeEdgeSignals: true,
     );
@@ -173,8 +186,25 @@ void main() {
       'no_iso_raw_white_balance_lock_exposure_lock_or_tap_focus',
     );
     expect(
+      config.receiptWorkflowControlPriorityPolicy,
+      'manual_shutter_torch_brightness_guidance_first',
+    );
+    expect(
+      config.torchControlPolicy,
+      'show_receipt_light_when_device_supports_torch',
+    );
+    expect(
+      config.manualFocusAdjustmentPolicy,
+      'optional_future_device_supported_control_not_release_blocker',
+    );
+    expect(
       config.nativeControlContractTags,
       contains('native_camera_baseline'),
+    );
+    expect(config.nativeControlContractTags, contains('receipt_light'));
+    expect(
+      config.nativeControlContractTags,
+      contains('manual_focus_optional_future'),
     );
     expect(source, contains('settings.ocrUsesTemporaryFullQualitySourceFirst'));
     expect(
