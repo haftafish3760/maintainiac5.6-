@@ -19,7 +19,7 @@ class InvoicePdfPrivacyGuard {
   static List<String> issueCodesForRecord(InvoiceRecord record) {
     return AppPdfPrivacyPolicy.issueCodesForExport(
       bytes: const [],
-      metadata: _recordExportText(record),
+      metadata: recordExportMetadata(record),
     );
   }
 
@@ -29,7 +29,7 @@ class InvoicePdfPrivacyGuard {
     throw InvoicePdfPrivacyException(issues);
   }
 
-  static Iterable<String> _recordExportText(InvoiceRecord record) sync* {
+  static Iterable<String> recordExportMetadata(InvoiceRecord record) sync* {
     yield record.title;
     yield record.invoiceNumber;
     yield record.poNumber;

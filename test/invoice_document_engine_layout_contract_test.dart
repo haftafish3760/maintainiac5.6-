@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_ledger_models.dart';
+import 'package:maintaniac/screens/invoices/data/invoice_pdf_export_verifier.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_pdf_privacy_guard.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_pdf_template_renderer.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_record.dart';
@@ -262,6 +263,76 @@ void main() {
       expect(decoded, contains(r'$186.15'));
       expect(decoded, contains(r'$1.01'));
       expect(decoded, contains(r'-$815.57'));
+    },
+  );
+
+  test(
+    'invoice Document Engine verifier proves rendered export essentials',
+    () async {
+      final renderer = const InvoicePdfTemplateRenderer();
+      final records = <InvoiceRecord>[
+        InvoiceDocumentEngineFixtureFactory.standardInvoice(lineCount: 16),
+        InvoiceDocumentEngineFixtureFactory.estimate(lineCount: 13),
+        InvoiceDocumentEngineFixtureFactory.decimalsRefundsAndOverpayment(),
+      ];
+
+      for (final record in records) {
+        final template = InvoiceTemplateCatalog.byId(record.templateId);
+        final bytes = await renderer.buildRecordDocumentBytes(
+          record: record,
+          template: template,
+        );
+        final issues = InvoicePdfExportVerifier.issueCodesForExport(
+          record: record,
+          template: template,
+          bytes: bytes,
+        );
+
+        expect(issues, isEmpty, reason: record.invoiceNumber);
+        expect(
+          AppPdfTextDecoder.textWithDecodedPdfStreams(bytes),
+          isNot(contains(record.id)),
+          reason: record.invoiceNumber,
+        );
+      }
+    },
+  );
+
+  test(
+    'invoice Document Engine verifier rejects missing text and internal ids',
+    () {
+      final record = InvoiceDocumentEngineFixtureFactory.standardInvoice(
+        id: 'internal-record-777',
+        lineCount: 2,
+      );
+      final template = InvoiceTemplateCatalog.byId(record.templateId);
+      final noTextIssues = InvoicePdfExportVerifier.issueCodesForExport(
+        record: record,
+        template: template,
+        bytes: latin1.encode('%PDF-1.7\n1 0 obj<<>>endobj\n%%EOF'),
+      );
+      final internalIdIssues = InvoicePdfExportVerifier.issueCodesForExport(
+        record: record,
+        template: template,
+        bytes: latin1.encode(
+          '%PDF-1.7\n'
+          'Invoice ${record.invoiceNumber}\n'
+          '${record.company.bestName}\n'
+          '${record.client.bestName}\n'
+          '${record.balanceDue}\n'
+          'Subtotal Total Balance internal-record-777\n'
+          '%%EOF',
+        ),
+      );
+
+      expect(
+        noTextIssues,
+        contains(InvoicePdfExportVerifier.missingPdfTextLayer),
+      );
+      expect(
+        internalIdIssues,
+        contains(InvoicePdfExportVerifier.internalRecordIdExported),
+      );
     },
   );
 

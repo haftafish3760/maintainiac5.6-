@@ -1,5 +1,34 @@
 # PDF System Pass Log
 
+## Pass 45 - 2026-07-05 05:31 EDT - Invoice PDF export verifier matrix
+
+- Scope: invoice generated-PDF export verification, privacy/security blocking,
+  searchable text diagnostics, and PDF QA gate wiring only. No inventory,
+  camera, native capture, receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Added `InvoicePdfExportVerifier` to validate generated invoice/estimate
+    PDFs after deterministic rendering and before export.
+  - Kept hard blocking focused on unsafe generated PDFs, active content,
+    private data, unconfirmed OCR text, source paths, and internal record ID
+    leakage.
+  - Added QA diagnostics for missing searchable text, document labels, invoice
+    numbers, and rendered money totals without falsely blocking otherwise safe
+    PDFs when text extraction is imperfect.
+  - Exposed invoice record export metadata from the privacy guard so render
+    preflight and post-render verification share the same privacy source.
+  - Added a verifier regression matrix covering malformed PDFs, incomplete
+    PDFs, active JavaScript/open actions, embedded files, URI actions, VINs,
+    passenger data, patient data, payment fragments, private source paths,
+    unconfirmed OCR suggestions, internal IDs, invoice/estimate labels,
+    missing totals, missing numbers, and QA-only nonblocking findings.
+  - Wired verifier coverage into the shared PDF quality gate, gate contract,
+    and PDF fixture inventory.
+- Verification completed 2026-07-05 05:31 EDT:
+  - `dart format lib/screens/invoices/data/invoice_pdf_export_verifier.dart lib/screens/invoices/data/invoice_pdf_privacy_guard.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart test/invoice_pdf_export_verifier_contract_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `flutter test test/invoice_document_engine_layout_contract_test.dart test/invoice_pdf_export_verifier_contract_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/screens/invoices/data/invoice_pdf_export_verifier.dart lib/screens/invoices/data/invoice_pdf_privacy_guard.dart lib/screens/invoices/data/invoice_pdf_template_renderer.dart test/invoice_document_engine_layout_contract_test.dart test/invoice_pdf_export_verifier_contract_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 44 - 2026-07-04 17:15 EDT - Invoice Document Engine layout QA bundle
 
 - Scope: invoice Document Engine PDF generation, shared PDF text extraction,

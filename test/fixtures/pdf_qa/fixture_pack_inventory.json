@@ -152,6 +152,7 @@
       "status": "covered",
       "currentTestFiles": [
         "test/invoice_document_engine_layout_contract_test.dart",
+        "test/invoice_pdf_export_verifier_contract_test.dart",
         "test/app_generated_pdf_service_test.dart",
         "test/invoice_template_pdf_factory_test.dart",
         "test/invoice_pdf_preview_action_tracking_test.dart"
@@ -167,7 +168,9 @@
         "decimal_refund_overpayment",
         "template_matrix",
         "pagination_boundaries",
-        "private_invoice_export_block"
+        "private_invoice_export_block",
+        "invoice_text_layer_export_verifier",
+        "internal_record_id_export_block"
       ]
     },
     "cross_platform_storage": {

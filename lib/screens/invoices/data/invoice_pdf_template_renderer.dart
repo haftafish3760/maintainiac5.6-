@@ -8,6 +8,7 @@ import '../../../shared/pdf/app_pdf_determinism.dart';
 import '../../../shared/pdf/app_pdf_formatters.dart';
 import '../../../shared/pdf/app_pdf_typography.dart';
 import 'invoice_ledger_models.dart';
+import 'invoice_pdf_export_verifier.dart';
 import 'invoice_pdf_privacy_guard.dart';
 import 'invoice_record.dart';
 import 'invoice_template_catalog.dart';
@@ -82,9 +83,8 @@ class InvoicePdfTemplateRenderer {
         ),
       );
     }
-    final bytes = await pdf.save();
-    return AppPdfDeterminism.normalizeDocumentId(
-      bytes,
+    final bytes = AppPdfDeterminism.normalizeDocumentId(
+      await pdf.save(),
       [
         'invoice-template-v1',
         template.id,
@@ -111,6 +111,12 @@ class InvoicePdfTemplateRenderer {
         record.terms,
       ].join('\n'),
     );
+    InvoicePdfExportVerifier.ensureSafeExport(
+      record: record,
+      template: template,
+      bytes: bytes,
+    );
+    return bytes;
   }
 
   pw.Widget _landscapeArtworkBody({

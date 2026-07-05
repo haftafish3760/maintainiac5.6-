@@ -48,6 +48,10 @@ void main() {
       expect(script, contains('lib/shared/pdf'));
       expect(
         script,
+        contains('lib/screens/invoices/data/invoice_pdf_export_verifier.dart'),
+      );
+      expect(
+        script,
         contains('lib/screens/invoices/data/invoice_pdf_privacy_guard.dart'),
       );
       expect(
@@ -84,6 +88,10 @@ void main() {
       expect(
         script,
         contains('test/invoice_document_engine_layout_contract_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/invoice_pdf_export_verifier_contract_test.dart'),
       );
       expect(script, contains('test/invoice_template_pdf_factory_test.dart'));
       expect(script, contains('test/invoice_pdf_money_precision_test.dart'));
