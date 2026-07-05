@@ -320,7 +320,7 @@ class AppDocumentExportPackageWriter {
         ..lastModTime = 0,
     );
     for (final file in plan.files) {
-      final bytes = await File(file.path).readAsBytes();
+      final bytes = await _readPackageSourceBytes(file.path);
       archive.addFile(
         ArchiveFile.bytes(file.packageEntryName, bytes)..lastModTime = 0,
       );
@@ -328,11 +328,21 @@ class AppDocumentExportPackageWriter {
     return ZipEncoder().encode(archive, modified: _fixedZipModified);
   }
 
+  static Future<List<int>> _readPackageSourceBytes(String filePath) async {
+    try {
+      return await File(filePath).readAsBytes();
+    } catch (_) {
+      throw const AppDocumentExportPackageException(
+        'Maintainiac could not read a verified proof file for this document export package.',
+      );
+    }
+  }
+
   static void _verifyZipBytes(
     AppDocumentExportPackagePlan plan,
     List<int> zipBytes,
   ) {
-    final archive = ZipDecoder().decodeBytes(zipBytes);
+    final archive = _decodeGeneratedZipBytes(zipBytes);
     final entries = _entryMap(archive);
     final expectedNames = <String>[
       manifestEntryName,
@@ -380,6 +390,16 @@ class AppDocumentExportPackageWriter {
           'Document export package file verification failed.',
         );
       }
+    }
+  }
+
+  static Archive _decodeGeneratedZipBytes(List<int> zipBytes) {
+    try {
+      return ZipDecoder().decodeBytes(zipBytes);
+    } catch (_) {
+      throw const AppDocumentExportPackageException(
+        'Document export package ZIP verification failed.',
+      );
     }
   }
 
@@ -475,6 +495,13 @@ class AppDocumentExportPackageWriter {
       totalProofBytes += byteSize;
       fileEntries.add(entryName);
     }
+    final indexedTotalBytes = _intValue(index, 'totalBytes');
+    final expectedTotalBytes = utf8.encode(manifest).length + totalProofBytes;
+    if (indexedTotalBytes != expectedTotalBytes) {
+      throw const AppDocumentExportPackageException(
+        'Document export package metadata does not match Maintainiac format.',
+      );
+    }
     return AppDocumentExportPackageReadResult(
       fileName: fileName,
       byteSize: zipBytes.length,
@@ -491,6 +518,7 @@ class AppDocumentExportPackageWriter {
     File packageFile, {
     String appName = 'Maintainiac',
   }) async {
+    await previewZipPackageImport(packageFile);
     final readResult = await readZipPackage(packageFile);
     final cleanAppName = _cleanShareText(appName).isEmpty
         ? 'Maintainiac'
@@ -580,6 +608,7 @@ class AppDocumentExportPackageWriter {
     File packageFile, {
     required Directory outputDirectory,
   }) async {
+    await previewZipPackageImport(packageFile);
     final readResult = await readZipPackage(packageFile);
     await _createDirectory(outputDirectory);
 
@@ -1061,6 +1090,11 @@ class AppDocumentExportPackageWriter {
   ) {
     final index = _decodeIndex(indexJson);
     if (_stringValue(index, 'manifestSha256') != plan.manifestSha256) {
+      throw const AppDocumentExportPackageException(
+        'Document export package index verification failed.',
+      );
+    }
+    if (_intValue(index, 'totalBytes') != plan.totalBytes) {
       throw const AppDocumentExportPackageException(
         'Document export package index verification failed.',
       );

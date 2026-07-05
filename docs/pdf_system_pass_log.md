@@ -1,5 +1,115 @@
 # PDF System Pass Log
 
+## Pass 70 - 2026-07-05 08:58 EDT - Generated package index total verification
+
+- Scope: generated document export package index verification and PDF QA
+  fixture inventory only. No inventory, camera, native capture, receipt parser,
+  or OCR engine behavior changes.
+- Bundled work:
+  - Verified generated package index `totalBytes` against the planned package
+    byte total before writing any ZIP package.
+  - Blocked package byte builders that return a valid ZIP with correct files
+    and hashes but a mismatched index total.
+  - Preserved no-output/no-source-mutation behavior when generated package
+    index verification fails.
+  - Added regression coverage and fixture inventory tracking.
+- Verification completed 2026-07-05 08:58 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
+## Pass 69 - 2026-07-05 08:56 EDT - Document package byte-total integrity
+
+- Scope: document export package index integrity and PDF QA fixture inventory
+  only. No inventory, camera, native capture, receipt parser, or OCR engine
+  behavior changes.
+- Bundled work:
+  - Verified the package index `totalBytes` value against the canonical
+    manifest byte length plus verified proof-entry byte lengths.
+  - Blocked hand-edited packages whose file hashes still match but whose index
+    byte total no longer matches the package contents.
+  - Added regression coverage for byte-total tampering and fixture inventory
+    tracking.
+- Verification completed 2026-07-05 08:56 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 68 - 2026-07-05 08:54 EDT - Document package ZIP verification safety
+
+- Scope: document export package ZIP-byte verification and PDF QA fixture
+  inventory only. No inventory, camera, native capture, receipt parser, or OCR
+  engine behavior changes.
+- Bundled work:
+  - Converted malformed ZIP bytes returned by a package byte builder into a
+    typed document package exception.
+  - Preserved the no-output/no-source-mutation behavior when generated ZIP
+    verification fails before writing.
+  - Added regression coverage for malformed generated ZIP bytes and fixture
+    inventory tracking.
+- Verification completed 2026-07-05 08:54 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 67 - 2026-07-05 08:53 EDT - Document package source-read privacy
+
+- Scope: document export package build failure privacy and PDF QA fixture
+  inventory only. No inventory, camera, native capture, receipt parser, or OCR
+  engine behavior changes.
+- Bundled work:
+  - Converted proof-file read failures during ZIP byte construction into a
+    typed, pathless document package exception.
+  - Added a regression where a proof file disappears after package planning but
+    before ZIP construction.
+  - Verified the failure message does not leak the local temp/source path.
+  - Added fixture inventory tracking for source-read failure privacy.
+- Verification completed 2026-07-05 08:53 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 66 - 2026-07-05 08:51 EDT - Document package share preflight
+
+- Scope: document export package share preflight and PDF QA fixture inventory
+  only. No inventory, camera, native capture, receipt parser, or OCR engine
+  behavior changes.
+- Bundled work:
+  - Routed package share planning through the same import preview preflight used
+    by package import and extraction.
+  - Blocked malicious packages with rewritten hashes and private PDF proof text
+    before the app builds a share plan.
+  - Blocked malicious packages with active PDF proof content before platform
+    share can be invoked.
+  - Added regressions for private-proof and active-proof package share
+    preflight, plus fixture inventory tracking.
+- Verification completed 2026-07-05 08:51 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
+## Pass 65 - 2026-07-05 08:50 EDT - Document package extraction preflight
+
+- Scope: direct document export package extraction hardening and PDF QA
+  fixture inventory only. No inventory, camera, native capture, receipt parser,
+  or OCR engine behavior changes.
+- Bundled work:
+  - Routed direct package extraction through the same import preview preflight
+    used by package save.
+  - Blocked malicious packages with rewritten hashes and private PDF proof text
+    before extraction creates any import directory.
+  - Blocked malicious packages with active PDF proof content before extraction
+    writes files.
+  - Preserved source packages and avoided extraction-folder creation on blocked
+    preflight.
+  - Added regressions for private-proof and active-proof extraction preflight,
+    plus fixture inventory tracking.
+- Verification completed 2026-07-05 08:50 EDT:
+  - `dart format lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_export_package_writer.dart test/app_document_export_package_writer_test.dart test/pdf_qa_fixture_inventory_test.dart`
+
 ## Pass 64 - 2026-07-05 08:47 EDT - Document package import proof preflight
 
 - Scope: shared app document export package import preflight, hostile package

@@ -329,6 +329,165 @@ void main() {
   );
 
   test(
+    'document export writer rejects malformed generated zip bytes safely',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nMalformed builder proof\n%%EOF'),
+      );
+      final outputDirectory = Directory('${tempDirectory.path}/exports');
+      final writer = AppDocumentExportPackageWriter(
+        zipBytesBuilder: (_) async => const [0, 1, 2, 3, 4, 5],
+      );
+
+      await expectLater(
+        writer.writeZipPackage(
+          record: _documentRecord(
+            attachment: _pdfAttachment(
+              path: proof.path,
+              byteSize: await proof.length(),
+              fileHash: await _fileHash(proof),
+            ),
+          ),
+          outputDirectory: outputDirectory,
+          freeStorageReader: () async => 500,
+        ),
+        throwsA(
+          isA<AppDocumentExportPackageException>()
+              .having(
+                (error) => error.message,
+                'message',
+                anyOf(
+                  contains('ZIP verification failed'),
+                  contains('unexpected entries'),
+                ),
+              )
+              .having(
+                (error) => error.message,
+                'message',
+                isNot(contains(tempDirectory.path)),
+              ),
+        ),
+      );
+
+      expect(await outputDirectory.exists(), isFalse);
+      expect(await proof.exists(), isTrue);
+    },
+  );
+
+  test(
+    'document export writer rejects generated index byte total mismatch',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nBad generated total proof\n%%EOF'),
+      );
+      final outputDirectory = Directory('${tempDirectory.path}/exports');
+      final writer = AppDocumentExportPackageWriter(
+        zipBytesBuilder: (plan) async {
+          final archive = Archive()
+            ..addFile(
+              ArchiveFile.string(
+                AppDocumentExportPackageWriter.manifestEntryName,
+                plan.manifestJson,
+              ),
+            )
+            ..addFile(
+              ArchiveFile.string(
+                AppDocumentExportPackageWriter.packageIndexEntryName,
+                const JsonEncoder.withIndent('  ').convert({
+                  'schema': 'maintainiac_document_export_package_index_v1',
+                  'manifestEntryName':
+                      AppDocumentExportPackageWriter.manifestEntryName,
+                  'packageIndexEntryName':
+                      AppDocumentExportPackageWriter.packageIndexEntryName,
+                  'manifestSha256': plan.manifestSha256,
+                  'totalBytes': 1,
+                  'files': [for (final file in plan.files) file.toMap()],
+                }),
+              ),
+            );
+          for (final file in plan.files) {
+            archive.addFile(
+              ArchiveFile.bytes(
+                file.packageEntryName,
+                await File(file.path).readAsBytes(),
+              ),
+            );
+          }
+          return ZipEncoder().encode(archive, modified: DateTime.utc(2026));
+        },
+      );
+
+      await expectLater(
+        writer.writeZipPackage(
+          record: _documentRecord(
+            attachment: _pdfAttachment(
+              path: proof.path,
+              byteSize: await proof.length(),
+              fileHash: await _fileHash(proof),
+            ),
+          ),
+          outputDirectory: outputDirectory,
+          freeStorageReader: () async => 500,
+        ),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('index verification failed'),
+          ),
+        ),
+      );
+
+      expect(await outputDirectory.exists(), isFalse);
+      expect(await proof.exists(), isTrue);
+    },
+  );
+
+  test(
+    'document export package build hides source paths when proof read fails',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'missing-during-build.pdf',
+        bytes: utf8.encode('%PDF-1.7\nRead failure proof\n%%EOF'),
+      );
+      final plan = await AppDocumentExportManager.buildPackagePlan(
+        _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+            displayName: 'missing-during-build.pdf',
+          ),
+        ),
+        freeStorageReader: () async => 500,
+      );
+      await proof.delete();
+
+      await expectLater(
+        AppDocumentExportPackageWriter.buildZipBytes(plan),
+        throwsA(
+          isA<AppDocumentExportPackageException>()
+              .having(
+                (error) => error.message,
+                'message',
+                contains('could not read a verified proof file'),
+              )
+              .having(
+                (error) => error.message,
+                'message',
+                isNot(contains(tempDirectory.path)),
+              ),
+        ),
+      );
+    },
+  );
+
+  test(
     'document export package reader blocks unsafe or malformed packages',
     () async {
       final proof = await _writeProof(
@@ -499,6 +658,90 @@ void main() {
     expect(sharePlan.fileEntries, ['job-packet.pdf']);
     expect(sharePlan.toMap().toString(), isNot(contains(tempDirectory.path)));
     expect(sharePlan.toMap().toString(), isNot(contains('filePath')));
+  });
+
+  test('document export package share plan preflights private proof', () async {
+    final proof = await _writeProof(
+      tempDirectory,
+      name: 'job-packet.pdf',
+      bytes: utf8.encode('%PDF-1.7\nShare preflight proof\n%%EOF'),
+    );
+    final result = await AppDocumentExportPackageWriter().writeZipPackage(
+      record: _documentRecord(
+        attachment: _pdfAttachment(
+          path: proof.path,
+          byteSize: await proof.length(),
+          fileHash: await _fileHash(proof),
+        ),
+      ),
+      outputDirectory: Directory('${tempDirectory.path}/exports'),
+      freeStorageReader: () async => 500,
+    );
+    final privatePackage = await _rewritePackageProof(
+      sourcePackage: File(result.filePath),
+      destinationName: 'private-share-preflight.zip',
+      entryName: 'job-packet.pdf',
+      replacementBytes: utf8.encode(
+        '%PDF-1.7\n'
+        '1 0 obj << /Type /Page >> stream\n'
+        'Passenger: Jane Customer\n'
+        'VIN 1HGCM82633A004352\n'
+        'endstream endobj\n'
+        '%%EOF',
+      ),
+    );
+
+    await expectLater(
+      AppDocumentExportPackageWriter.buildSharePlan(privatePackage),
+      throwsA(
+        isA<AppDocumentExportPackageException>().having(
+          (error) => error.message,
+          'message',
+          contains('private information'),
+        ),
+      ),
+    );
+  });
+
+  test('document export package share plan preflights active proof', () async {
+    final proof = await _writeProof(
+      tempDirectory,
+      name: 'job-packet.pdf',
+      bytes: utf8.encode('%PDF-1.7\nShare preflight proof\n%%EOF'),
+    );
+    final result = await AppDocumentExportPackageWriter().writeZipPackage(
+      record: _documentRecord(
+        attachment: _pdfAttachment(
+          path: proof.path,
+          byteSize: await proof.length(),
+          fileHash: await _fileHash(proof),
+        ),
+      ),
+      outputDirectory: Directory('${tempDirectory.path}/exports'),
+      freeStorageReader: () async => 500,
+    );
+    final activePackage = await _rewritePackageProof(
+      sourcePackage: File(result.filePath),
+      destinationName: 'active-share-preflight.zip',
+      entryName: 'job-packet.pdf',
+      replacementBytes: utf8.encode(
+        '%PDF-1.7\n'
+        '1 0 obj << /OpenAction 2 0 R >> endobj\n'
+        '2 0 obj << /S /JavaScript /JS (app.alert("x")) >> endobj\n'
+        '%%EOF',
+      ),
+    );
+
+    await expectLater(
+      AppDocumentExportPackageWriter.buildSharePlan(activePackage),
+      throwsA(
+        isA<AppDocumentExportPackageException>().having(
+          (error) => error.message,
+          'message',
+          contains('unsupported active content'),
+        ),
+      ),
+    );
   });
 
   test(
@@ -1065,6 +1308,110 @@ void main() {
   );
 
   test(
+    'document export package extraction preflights private proof content',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nExtract preflight proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final privatePackage = await _rewritePackageProof(
+        sourcePackage: File(result.filePath),
+        destinationName: 'private-extract-preflight.zip',
+        entryName: 'job-packet.pdf',
+        replacementBytes: utf8.encode(
+          '%PDF-1.7\n'
+          '1 0 obj << /Type /Page >> stream\n'
+          'VIN 1HGCM82633A004352\n'
+          'Passenger: Jane Customer\n'
+          'endstream endobj\n'
+          '%%EOF',
+        ),
+      );
+      final importDirectory = Directory('${tempDirectory.path}/imports');
+
+      await expectLater(
+        AppDocumentExportPackageWriter.extractZipPackage(
+          privatePackage,
+          outputDirectory: importDirectory,
+        ),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('private information'),
+          ),
+        ),
+      );
+
+      expect(await importDirectory.exists(), isFalse);
+      expect(await privatePackage.exists(), isTrue);
+    },
+  );
+
+  test(
+    'document export package extraction preflights active proof content',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nExtract preflight proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final activePackage = await _rewritePackageProof(
+        sourcePackage: File(result.filePath),
+        destinationName: 'active-extract-preflight.zip',
+        entryName: 'job-packet.pdf',
+        replacementBytes: utf8.encode(
+          '%PDF-1.7\n'
+          '1 0 obj << /OpenAction 2 0 R >> endobj\n'
+          '2 0 obj << /S /JavaScript /JS (app.alert("x")) >> endobj\n'
+          '%%EOF',
+        ),
+      );
+      final importDirectory = Directory('${tempDirectory.path}/imports');
+
+      await expectLater(
+        AppDocumentExportPackageWriter.extractZipPackage(
+          activePackage,
+          outputDirectory: importDirectory,
+        ),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('unsupported active content'),
+          ),
+        ),
+      );
+
+      expect(await importDirectory.exists(), isFalse);
+      expect(await activePackage.exists(), isTrue);
+    },
+  );
+
+  test(
     'document export package extraction preserves source on folder failures',
     () async {
       final proof = await _writeProof(
@@ -1247,6 +1594,45 @@ void main() {
     },
   );
 
+  test('document export package reader blocks tampered byte totals', () async {
+    final proof = await _writeProof(
+      tempDirectory,
+      name: 'job-packet.pdf',
+      bytes: utf8.encode('%PDF-1.7\nByte total proof\n%%EOF'),
+    );
+    final result = await AppDocumentExportPackageWriter().writeZipPackage(
+      record: _documentRecord(
+        attachment: _pdfAttachment(
+          path: proof.path,
+          byteSize: await proof.length(),
+          fileHash: await _fileHash(proof),
+        ),
+      ),
+      outputDirectory: Directory('${tempDirectory.path}/exports'),
+      freeStorageReader: () async => 500,
+    );
+    final tamperedPackage = await _rewritePackageManifestAndIndex(
+      sourcePackage: File(result.filePath),
+      destinationName: 'bad-byte-total.zip',
+      mutateManifest: (_) {},
+      mutateIndex: (index) {
+        index['totalBytes'] = 1;
+      },
+      recalculateTotalBytes: false,
+    );
+
+    await expectLater(
+      AppDocumentExportPackageWriter.readZipPackage(tamperedPackage),
+      throwsA(
+        isA<AppDocumentExportPackageException>().having(
+          (error) => error.message,
+          'message',
+          contains('metadata does not match'),
+        ),
+      ),
+    );
+  });
+
   test(
     'document export writer preserves safe duplicate package entries',
     () async {
@@ -1342,9 +1728,7 @@ Future<File> _rewritePackageManifest({
           .cast<String, Object?>();
   mutateManifest(manifest);
   final manifestJson = const JsonEncoder.withIndent('  ').convert(manifest);
-  index['manifestSha256'] = sha256
-      .convert(utf8.encode(manifestJson))
-      .toString();
+  _syncPackageIndexManifestHashAndTotal(index, manifestJson);
   final indexJson = const JsonEncoder.withIndent('  ').convert(index);
   final rewritten = Archive();
   for (final entry in archive.files) {
@@ -1372,6 +1756,7 @@ Future<File> _rewritePackageManifestAndIndex({
   required String destinationName,
   required void Function(Map<String, Object?> manifest) mutateManifest,
   required void Function(Map<String, Object?> index) mutateIndex,
+  bool recalculateTotalBytes = true,
 }) async {
   final archive = ZipDecoder().decodeBytes(await sourcePackage.readAsBytes());
   final entries = <String, ArchiveFile>{
@@ -1398,9 +1783,11 @@ Future<File> _rewritePackageManifestAndIndex({
   mutateManifest(manifest);
   mutateIndex(index);
   final manifestJson = const JsonEncoder.withIndent('  ').convert(manifest);
-  index['manifestSha256'] = sha256
-      .convert(utf8.encode(manifestJson))
-      .toString();
+  _syncPackageIndexManifestHashAndTotal(
+    index,
+    manifestJson,
+    recalculateTotalBytes: recalculateTotalBytes,
+  );
   final indexJson = const JsonEncoder.withIndent('  ').convert(index);
   final rewritten = Archive();
   for (final entry in archive.files) {
@@ -1468,9 +1855,7 @@ Future<File> _rewritePackageProof({
   manifestAttachment['byteSize'] = replacementBytes.length;
   manifestAttachment['fileHash'] = replacementHash;
   final manifestJson = const JsonEncoder.withIndent('  ').convert(manifest);
-  index['manifestSha256'] = sha256
-      .convert(utf8.encode(manifestJson))
-      .toString();
+  _syncPackageIndexManifestHashAndTotal(index, manifestJson);
   final indexJson = const JsonEncoder.withIndent('  ').convert(index);
   final rewritten = Archive();
   for (final entry in archive.files) {
@@ -1492,6 +1877,23 @@ Future<File> _rewritePackageProof({
     flush: true,
   );
   return destination;
+}
+
+void _syncPackageIndexManifestHashAndTotal(
+  Map<String, Object?> index,
+  String manifestJson, {
+  bool recalculateTotalBytes = true,
+}) {
+  index['manifestSha256'] = sha256
+      .convert(utf8.encode(manifestJson))
+      .toString();
+  if (!recalculateTotalBytes) return;
+  final files = index['files']! as List;
+  final proofBytes = files
+      .whereType<Map>()
+      .map((item) => item.cast<String, Object?>())
+      .fold<int>(0, (total, item) => total + (item['byteSize']! as int));
+  index['totalBytes'] = utf8.encode(manifestJson).length + proofBytes;
 }
 
 AppDocumentRecord _documentRecord({
