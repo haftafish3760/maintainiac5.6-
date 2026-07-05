@@ -1,5 +1,28 @@
 # PDF System Pass Log
 
+## Pass 46 - 2026-07-05 05:39 EDT - Generated PDF archive recovery hardening
+
+- Scope: generated PDF permanent archive storage, recovery cleanup, final
+  write verification, and PDF QA gate wiring only. No inventory, camera,
+  native capture, receipt parser, or OCR engine behavior changes.
+- Bundled work:
+  - Added stale `.pdf.partial` cleanup for generated PDF archive storage with a
+    12-hour recovery window.
+  - Added final permanent file byte-count and SHA-256 verification after rename,
+    so archive writes are verified both before and after promotion.
+  - Preserved fresh partial reservations so active or recent writes move the
+    requested archive to a copy filename instead of deleting in-flight work.
+  - Added archive recovery regressions for stale versus fresh partials, final
+    hash and byte integrity, save-failure rollback, replacement cleanup, unsafe
+    filename sanitization, and source-contract coverage.
+  - Wired archive recovery coverage into the shared PDF quality gate, gate
+    contract, and PDF fixture inventory.
+- Verification completed 2026-07-05 05:39 EDT:
+  - `dart format lib/shared/documents/app_generated_pdf_archive_service.dart test/app_generated_pdf_archive_recovery_test.dart test/pdf_quality_gate_contract_test.dart`
+  - `flutter test test/app_generated_pdf_archive_recovery_test.dart test/app_generated_pdf_service_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_generated_pdf_archive_service.dart test/app_generated_pdf_archive_recovery_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `bash tool/pdf_quality_gate.sh`
+
 ## Pass 45 - 2026-07-05 05:31 EDT - Invoice PDF export verifier matrix
 
 - Scope: invoice generated-PDF export verification, privacy/security blocking,

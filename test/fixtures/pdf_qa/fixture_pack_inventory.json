@@ -105,10 +105,16 @@
     "storage_cleanup": {
       "status": "covered",
       "currentTestFiles": [
-        "test/receipt_pdf_torture_storage_test.dart"
+        "test/receipt_pdf_torture_storage_test.dart",
+        "test/app_generated_pdf_archive_recovery_test.dart"
       ],
       "fixtureKeys": [
-        "valid_3_page"
+        "valid_3_page",
+        "stale_generated_pdf_partial_cleanup",
+        "fresh_generated_pdf_partial_reservation",
+        "generated_pdf_destination_hash_verification",
+        "generated_pdf_save_failure_rollback",
+        "generated_pdf_replacement_cleanup"
       ]
     },
     "privacy_and_security_logs": {
@@ -118,6 +124,7 @@
         "test/receipt_pdf_inspector_security_flags_test.dart",
         "test/receipt_pdf_inspector_edge_cases_test.dart",
         "test/app_generated_pdf_service_test.dart",
+        "test/app_generated_pdf_archive_recovery_test.dart",
         "test/pdf_privacy_policy_contract_test.dart",
         "test/pdf_security_policy_contract_test.dart",
         "test/pdf_text_decoder_contract_test.dart"
@@ -132,7 +139,8 @@
         "flate_compressed_active_stream",
         "flate_compressed_private_text",
         "broken_flate_stream",
-        "private_text_redaction_probe"
+        "private_text_redaction_probe",
+        "generated_pdf_unsafe_filename_sanitization"
       ]
     },
     "pdf_to_receipt_review": {

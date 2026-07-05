@@ -84,6 +84,10 @@ void main() {
       expect(script, contains('test/pdf_text_decoder_contract_test.dart'));
       expect(script, contains('test/pdf_privacy_policy_contract_test.dart'));
       expect(script, contains('test/pdf_typography_contract_test.dart'));
+      expect(
+        script,
+        contains('test/app_generated_pdf_archive_recovery_test.dart'),
+      );
       expect(script, contains('test/app_generated_pdf_service_test.dart'));
       expect(
         script,

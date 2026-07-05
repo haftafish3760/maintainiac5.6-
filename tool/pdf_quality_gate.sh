@@ -24,6 +24,7 @@ dart analyze \
   lib/screens/invoices/data/invoice_pdf_export_verifier.dart \
   lib/screens/invoices/data/invoice_pdf_privacy_guard.dart \
   lib/screens/invoices/data/invoice_pdf_template_renderer.dart \
+  test/app_generated_pdf_archive_recovery_test.dart \
   test/app_generated_pdf_service_test.dart \
   test/app_document_store_test.dart \
   test/cloud_backup_pdf_policy_test.dart \
@@ -61,6 +62,7 @@ cmp -s /tmp/maintainiac_gate_receipt_a.pdf /tmp/maintainiac_gate_receipt_b.pdf
 bash tool/pdf_render_smoke_gate.sh
 
 flutter test \
+  test/app_generated_pdf_archive_recovery_test.dart \
   test/app_generated_pdf_service_test.dart \
   test/app_document_store_test.dart \
   test/cloud_backup_pdf_policy_test.dart \

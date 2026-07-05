@@ -14,6 +14,8 @@ import 'app_document_store.dart';
 class AppGeneratedPdfArchiveService {
   const AppGeneratedPdfArchiveService({this.store});
 
+  static const stalePartialAge = Duration(hours: 12);
+
   final AppDocumentStore? store;
 
   Future<AppDocumentArchiveResult> archive(
@@ -106,6 +108,7 @@ class AppGeneratedPdfArchiveService {
       ),
     );
     await _createDirectory(directory);
+    await _deleteStalePartialFiles(directory, now: DateTime.now());
     final destination = await _availableDestination(directory, document);
     final partial = File('${destination.path}.partial');
     try {
@@ -121,6 +124,7 @@ class AppGeneratedPdfArchiveService {
       }
       await _deleteIfExists(destination);
       await partial.rename(destination.path);
+      await _verifyPermanentWrite(destination, document);
       return destination;
     } catch (_) {
       await _deleteIfExists(partial);
@@ -185,6 +189,58 @@ class AppGeneratedPdfArchiveService {
     throw const AppGeneratedPdfArchiveException(
       'Maintainiac could not create a safe permanent PDF file name.',
     );
+  }
+
+  static Future<int> deleteStalePartialFiles(
+    Directory directory, {
+    required DateTime now,
+    Duration olderThan = stalePartialAge,
+  }) {
+    return _deleteStalePartialFiles(directory, now: now, olderThan: olderThan);
+  }
+
+  static Future<int> _deleteStalePartialFiles(
+    Directory directory, {
+    required DateTime now,
+    Duration olderThan = stalePartialAge,
+  }) async {
+    if (!await directory.exists()) return 0;
+    var deleted = 0;
+    await for (final entity in directory.list(
+      recursive: false,
+      followLinks: false,
+    )) {
+      if (entity is! File) continue;
+      if (!entity.path.toLowerCase().endsWith('.pdf.partial')) continue;
+      try {
+        final modified = await entity.lastModified();
+        if (now.difference(modified) < olderThan) continue;
+        await entity.delete();
+        deleted += 1;
+      } catch (_) {
+        continue;
+      }
+    }
+    return deleted;
+  }
+
+  static Future<void> _verifyPermanentWrite(
+    File destination,
+    AppGeneratedPdfDocument document,
+  ) async {
+    final finalBytes = await _safeLength(destination);
+    if (finalBytes == null || finalBytes != document.byteSize) {
+      throw const FileSystemException(
+        'Generated PDF final file was incomplete.',
+      );
+    }
+    final finalHash = await _safeHash(destination);
+    final expectedHash = sha256.convert(document.bytes).toString();
+    if (finalHash.isEmpty || finalHash != expectedHash) {
+      throw const FileSystemException(
+        'Generated PDF final file did not verify.',
+      );
+    }
   }
 
   static Future<int?> _safeLength(File file) async {
