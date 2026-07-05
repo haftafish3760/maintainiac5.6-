@@ -34,6 +34,7 @@ part 'receipt_photo_coverage_decision.dart';
 part 'receipt_photo_coverage_decision_from_signals.dart';
 part 'receipt_photo_coverage_evidence_helpers.dart';
 part 'receipt_photo_coverage_decision_labels.dart';
+part 'receipt_camera_fixture_matrix.dart';
 part 'receipt_attachment_record.dart';
 part 'receipt_attachment_record_serialization.dart';
 part 'receipt_attachment_storage_models.dart';
