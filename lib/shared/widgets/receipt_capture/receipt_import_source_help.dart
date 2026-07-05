@@ -14,7 +14,7 @@ class _ReceiptImportShareHint extends StatelessWidget {
       child: const Padding(
         padding: EdgeInsets.fromLTRB(10, 9, 10, 9),
         child: Text(
-          'For emailed or texted receipts, use the phone Share button and choose Maintainiac, or save the receipt to your device and choose PDF Or File or Text File here.',
+          'For emailed or texted receipts, use the phone Share button and choose Maintainiac, or save the receipt to your device and choose Upload PDF/File or Text File here.',
           style: TextStyle(
             color: Color(0xFFC8D0D3),
             fontSize: 12,
@@ -61,19 +61,19 @@ class _ReceiptShareHelpSheet extends StatelessWidget {
                     children: [
                       _ReceiptHelpRow(
                         icon: Icons.photo_camera_rounded,
-                        title: 'Take Receipt Photo',
+                        title: 'Capture Receipt Photo',
                         text:
                             'Open Maintainiac receipt camera for a new paper receipt, then review the accepted photo before reading it.',
                       ),
                       _ReceiptHelpRow(
                         icon: Icons.photo_library_rounded,
-                        title: 'Gallery',
+                        title: 'Upload Photos',
                         text:
                             'Choose one or more receipt photos already on this device. Use this for long receipts captured in multiple photos.',
                       ),
                       _ReceiptHelpRow(
                         icon: Icons.folder_rounded,
-                        title: 'PDF Or File',
+                        title: 'Upload PDF/File',
                         text:
                             'Choose a PDF receipt from device storage, Drive, Files, or another document provider.',
                       ),

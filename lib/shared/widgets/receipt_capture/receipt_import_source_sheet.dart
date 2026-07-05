@@ -57,21 +57,21 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
         const _ReceiptImportSource(
           action: _ReceiptImportAction.camera,
           icon: Icons.photo_camera_rounded,
-          label: 'Take Receipt Photo',
+          label: 'Capture Receipt Photo',
           detail: 'Open Maintainiac receipt camera.',
           color: Color(0xFF8EF6A4),
         ),
       const _ReceiptImportSource(
         action: _ReceiptImportAction.image,
         icon: Icons.photo_library_rounded,
-        label: 'Gallery Photos',
+        label: 'Upload Receipt Photos',
         detail: 'Use saved receipt photos.',
         color: Color(0xFFFFD166),
       ),
       const _ReceiptImportSource(
         action: _ReceiptImportAction.pdf,
         icon: Icons.folder_rounded,
-        label: 'PDF Or File',
+        label: 'Upload PDF/File',
         detail: 'Import downloaded receipts.',
         color: Color(0xFFA9DFFF),
       ),
@@ -108,7 +108,7 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
               children: [
                 const Expanded(
                   child: Text(
-                    'Add receipt',
+                    'Capture or upload receipt',
                     style: TextStyle(
                       color: Color(0xFFE8ECEE),
                       fontSize: 18,

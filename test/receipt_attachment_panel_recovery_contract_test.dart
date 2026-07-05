@@ -186,7 +186,7 @@ void main() {
     expect(
       importActions,
       contains(
-        'Receipt photo review did not open. Try Take Receipt Photo again, or choose an existing receipt image instead.',
+        'Receipt photo review did not open. Try Capture Receipt Photo again, or choose an existing receipt image instead.',
       ),
     );
     expect(importActions, contains('return true;'));

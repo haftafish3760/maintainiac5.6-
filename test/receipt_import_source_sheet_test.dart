@@ -22,11 +22,11 @@ void main() {
     await tester.tap(find.text('Add Receipt'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Add receipt'), findsOneWidget);
+    expect(find.text('Capture or upload receipt'), findsOneWidget);
     expect(find.text('Help'), findsOneWidget);
-    expect(find.text('Take Receipt Photo'), findsOneWidget);
-    expect(find.text('Gallery Photos'), findsOneWidget);
-    expect(find.text('PDF Or File'), findsOneWidget);
+    expect(find.text('Capture Receipt Photo'), findsOneWidget);
+    expect(find.text('Upload Receipt Photos'), findsOneWidget);
+    expect(find.text('Upload PDF/File'), findsOneWidget);
     expect(find.text('Text File'), findsOneWidget);
     expect(find.text('Paste Text'), findsOneWidget);
     expect(find.text('Share Help'), findsOneWidget);
@@ -36,7 +36,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Receipt Import Help'), findsOneWidget);
-    expect(find.text('Take Receipt Photo'), findsOneWidget);
+    expect(find.text('Capture Receipt Photo'), findsOneWidget);
     expect(find.text('Paste Text'), findsOneWidget);
     expect(find.text('Share Help'), findsOneWidget);
     expect(find.text('Text File'), findsOneWidget);
@@ -46,8 +46,8 @@ void main() {
     await tester.tap(find.text('Got It'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Add receipt'), findsOneWidget);
-    expect(find.text('PDF Or File'), findsOneWidget);
+    expect(find.text('Capture or upload receipt'), findsOneWidget);
+    expect(find.text('Upload PDF/File'), findsOneWidget);
   });
 
   testWidgets('receipt import help remains usable on short screens', (
@@ -84,6 +84,6 @@ void main() {
     await tester.tap(find.text('Got It'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Add receipt'), findsOneWidget);
+    expect(find.text('Capture or upload receipt'), findsOneWidget);
   });
 }

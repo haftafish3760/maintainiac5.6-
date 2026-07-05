@@ -50,7 +50,7 @@ extension _ReceiptAttachmentCameraActions
         action: 'retry_or_import_existing_photo',
       );
       showPickerError(
-        'The receipt camera did not open. Try Take Receipt Photo again, or choose an existing receipt image instead.',
+        'The receipt camera did not open. Try Capture Receipt Photo again, or choose an existing receipt image instead.',
       );
     } finally {
       if (mounted) updateAttachmentState(() => _openingPicker = false);
@@ -116,7 +116,7 @@ extension _ReceiptAttachmentCameraActions
           },
         );
         showPickerError(
-          'Receipt photo review did not open. Try Take Receipt Photo again, or choose an existing receipt image instead.',
+          'Receipt photo review did not open. Try Capture Receipt Photo again, or choose an existing receipt image instead.',
         );
         return _MaintainiacNativeCameraPhotoOutcome.canceled;
       case ReceiptCaptureFlowStatus.permissionDenied:
@@ -275,15 +275,15 @@ extension _ReceiptAttachmentCameraActions
     if (combined.contains('permission') ||
         combined.contains('denied') ||
         combined.contains('restricted')) {
-      return 'Camera permission is blocked. Open your phone settings, allow camera access for Maintainiac, then try Take Receipt Photo again.';
+      return 'Camera permission is blocked. Open your phone settings, allow camera access for Maintainiac, then try Capture Receipt Photo again.';
     }
     if (combined.contains('cancel')) {
       return 'Camera was canceled. No receipt photo was added.';
     }
     if (message != null && message.isNotEmpty) {
-      return '$message Try Take Receipt Photo again, or choose an existing receipt image instead.';
+      return '$message Try Capture Receipt Photo again, or choose an existing receipt image instead.';
     }
-    return 'Maintainiac receipt camera could not open. Try Take Receipt Photo again, or choose an existing receipt image instead.';
+    return 'Maintainiac receipt camera could not open. Try Capture Receipt Photo again, or choose an existing receipt image instead.';
   }
 
   String _platformCameraFailureReason(PlatformException error) {

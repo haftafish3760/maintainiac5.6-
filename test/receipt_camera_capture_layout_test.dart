@@ -139,7 +139,7 @@ void main() {
       );
       expect(actions, contains('existing_receipt_photo_import'));
       expect(flow, contains('staged.captureDiagnosticsByPhotoPath'));
-      expect(importSheet, contains('Take Receipt Photo'));
+      expect(importSheet, contains('Capture Receipt Photo'));
       expect(importSheet, isNot(contains('Scan Receipt')));
       expect(scanner, contains('return Platform.isIOS;'));
       expect(

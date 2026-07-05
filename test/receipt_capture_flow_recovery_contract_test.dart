@@ -229,7 +229,7 @@ void main() {
     expect(
       flow,
       contains(
-        'No receipt photo was added. Tap Take Receipt Photo again, or choose an existing receipt image.',
+        'No receipt photo was added. Tap Capture Receipt Photo again, or choose an existing receipt image.',
       ),
     );
     expect(flow, contains('retry_or_import_existing_photo'));

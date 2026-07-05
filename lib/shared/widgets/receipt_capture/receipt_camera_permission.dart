@@ -17,7 +17,7 @@ class ReceiptCameraPermissionResult {
   String get userMessage {
     if (canUseCamera) return '';
     if (needsSystemSettings) {
-      return 'Camera permission is blocked. Open your phone settings, allow camera access for Maintainiac, then try Take Receipt Photo again.';
+      return 'Camera permission is blocked. Open your phone settings, allow camera access for Maintainiac, then try Capture Receipt Photo again.';
     }
     return 'Camera permission is needed before Maintainiac can photograph a receipt.';
   }

@@ -64,7 +64,7 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
   } on ReceiptNativeCameraCanceledException catch (error) {
     return ReceiptCaptureFlowResult.canceled(
       message:
-          'No receipt photo was added. Tap Take Receipt Photo again, or choose an existing receipt image.',
+          'No receipt photo was added. Tap Capture Receipt Photo again, or choose an existing receipt image.',
       nativeCapabilities: nativeCapabilities,
       diagnostics: _diagnostics(
         stage: 'native_camera_close',
@@ -106,7 +106,7 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
     return ReceiptCaptureFlowResult.failed(
       status: ReceiptCaptureFlowStatus.nativeUnavailable,
       message:
-          'Maintainiac receipt camera did not return a photo. Try Take Receipt Photo again, or choose an existing receipt image.',
+          'Maintainiac receipt camera did not return a photo. Try Capture Receipt Photo again, or choose an existing receipt image.',
       nativeCapabilities: nativeCapabilities,
       diagnostics: _diagnostics(
         stage: 'native_camera_result',
