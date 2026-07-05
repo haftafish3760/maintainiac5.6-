@@ -159,6 +159,21 @@ const _spanishUnitedStatesReceiptTermAliases = {
   'emt coupling': ['cople emt', 'acople emt', 'union emt'],
   'conduit body': ['cuerpo conduit', 'caja lb', 'lb conduit'],
   'wire connector': ['tuerca cable', 'wire nut', 'conector cable'],
+  'lever connector': [
+    'conector palanca',
+    'conector de palanca',
+    'conector rapido palanca',
+  ],
+  'butt splice connector': [
+    'conector empalme tope',
+    'empalme tope',
+    'butt splice',
+  ],
+  'anti short bushing': [
+    'bushing anti corto',
+    'buje anti corto',
+    'anti corto mc',
+  ],
   'smoke alarm': ['alarma humo', 'detector humo'],
   'carbon monoxide alarm': ['alarma monoxido', 'detector co'],
   'weatherproof cover': [
@@ -205,6 +220,14 @@ const _spanishUnitedStatesReceiptTermAliases = {
   ],
   'drain pan': ['charola drenaje', 'bandeja condensado'],
   'condensate safety switch': ['switch flotador', 'interruptor condensado'],
+  'condensate drain gun': ['pistola drenaje condensado', 'pistola condensado'],
+  'humidifier pad': [
+    'panel humidificador',
+    'almohadilla humidificador',
+    'pad humidificador',
+  ],
+  'humidifier solenoid': ['solenoide humidificador'],
+  'ionizing wire': ['alambre ionizador', 'cable ionizador', 'ionizing wire'],
   'foil tape': ['cinta aluminio', 'cinta foil', 'cinta hvac'],
   'duct mastic': ['mastique ducto', 'sellador ducto'],
   'line set': ['line set', 'linea refrigerante', 'tuberia refrigerante'],

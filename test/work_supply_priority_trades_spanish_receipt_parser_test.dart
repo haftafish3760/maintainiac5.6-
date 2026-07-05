@@ -75,6 +75,38 @@ void main() {
     },
   );
 
+  test('electrical es-US parser handles service connector stock', () {
+    final leverConnector = matchReceiptLineToCatalog(
+      'HD CONECTOR PALANCA 3 PUERTOS 25PK',
+      localePackId: 'es-US',
+      tradeScope: 'Electrical',
+      maxCandidates: 320,
+    );
+    expect(leverConnector, isNotNull);
+    expect(leverConnector!.item.trade, 'Electrical');
+    expect(leverConnector.item.name.toLowerCase(), contains('lever'));
+
+    final antiShort = matchReceiptLineToCatalog(
+      'SUPPLY BUSHING ANTI CORTO MC 100PK',
+      localePackId: 'es-US',
+      tradeScope: 'Electrical',
+      maxCandidates: 320,
+    );
+    expect(antiShort, isNotNull);
+    expect(antiShort!.item.trade, 'Electrical');
+    expect(antiShort.item.name.toLowerCase(), contains('anti short'));
+
+    final buttSplice = matchReceiptLineToCatalog(
+      'ACE CONECTOR EMPALME TOPE 25PK',
+      localePackId: 'es-US',
+      tradeScope: 'Electrical',
+      maxCandidates: 320,
+    );
+    expect(buttSplice, isNotNull);
+    expect(buttSplice!.item.trade, 'Electrical');
+    expect(buttSplice.item.name.toLowerCase(), contains('butt splice'));
+  });
+
   test('hvac es-US parser handles common service-truck receipt wording', () {
     final capacitor = matchReceiptLineToCatalog(
       'FERG 35/5 MFD CAPACITOR MARCHA',
@@ -141,6 +173,38 @@ void main() {
     expect(mervFilter!.item.trade, 'HVAC');
     expect(mervFilter.item.name, contains('MERV 11'));
     expect(mervFilter.confidenceLevel, ReceiptConfidenceLevel.good);
+  });
+
+  test('hvac es-US parser handles IAQ and condensate service stock', () {
+    final humidifierPad = matchReceiptLineToCatalog(
+      'SUPPLY PANEL HUMIDIFICADOR MODELO 10',
+      localePackId: 'es-US',
+      tradeScope: 'HVAC',
+      maxCandidates: 320,
+    );
+    expect(humidifierPad, isNotNull);
+    expect(humidifierPad!.item.trade, 'HVAC');
+    expect(humidifierPad.item.name.toLowerCase(), contains('humidifier'));
+
+    final drainGun = matchReceiptLineToCatalog(
+      'FERG PISTOLA DRENAJE CONDENSADO',
+      localePackId: 'es-US',
+      tradeScope: 'HVAC',
+      maxCandidates: 320,
+    );
+    expect(drainGun, isNotNull);
+    expect(drainGun!.item.trade, 'HVAC');
+    expect(drainGun.item.name.toLowerCase(), contains('drain gun'));
+
+    final ionizingWire = matchReceiptLineToCatalog(
+      'SUPPLY ALAMBRE IONIZADOR AIR CLEANER',
+      localePackId: 'es-US',
+      tradeScope: 'HVAC',
+      maxCandidates: 320,
+    );
+    expect(ionizingWire, isNotNull);
+    expect(ionizingWire!.item.trade, 'HVAC');
+    expect(ionizingWire.item.name.toLowerCase(), contains('ionizing wire'));
   });
 
   test('garage es-US parser handles common door and opener wording', () {

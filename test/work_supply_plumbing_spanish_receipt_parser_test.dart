@@ -115,4 +115,28 @@ void main() {
     expect(studGuard!.item.name.toLowerCase(), contains('stud guard'));
     expect(studGuard.confidenceLevel, ReceiptConfidenceLevel.good);
   });
+
+  test('plumbing es-US parser handles water treatment service wording', () {
+    final softenerSalt = matchReceiptLineToCatalog(
+      'LOWES 40LB SAL SUAVIZADOR AGUA',
+      localePackId: 'es-US',
+      tradeScope: 'Plumbing',
+      maxCandidates: 320,
+    );
+    expect(softenerSalt, isNotNull);
+    expect(softenerSalt!.item.trade, 'Plumbing');
+    expect(softenerSalt.item.name.toLowerCase(), contains('softener'));
+    expect(softenerSalt.item.name.toLowerCase(), contains('salt'));
+
+    final roMembrane = matchReceiptLineToCatalog(
+      'HD MEMBRANA OSMOSIS INVERSA 75 GPD',
+      localePackId: 'es-US',
+      tradeScope: 'Plumbing',
+      maxCandidates: 320,
+    );
+    expect(roMembrane, isNotNull);
+    expect(roMembrane!.item.trade, 'Plumbing');
+    expect(roMembrane.item.name.toLowerCase(), contains('reverse osmosis'));
+    expect(roMembrane.item.name.toLowerCase(), contains('membrane'));
+  });
 }

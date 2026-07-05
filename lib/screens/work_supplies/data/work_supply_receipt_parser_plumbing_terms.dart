@@ -8,37 +8,51 @@ WorkSupplyItem? _directPlumbingFastMatch(String text) {
 
 WorkSupplyItem? _directPlumbingWaterTreatmentMatch(String text) {
   final wantedName = switch (text) {
-    final value when RegExp(
-      r'\b(brine\s+valve|brine\s+pickup|brine\s+pick\s*up)\b',
-    ).hasMatch(value) =>
+    final value
+        when RegExp(
+          r'\b(brine\s+valve|brine\s+pickup|brine\s+pick\s*up)\b',
+        ).hasMatch(value) =>
       'water softener brine valve',
-    final value when RegExp(
-      r'\b(brine\s+line|flow\s+control|flow\s+restrictor)\b',
-    ).hasMatch(value) =>
+    final value
+        when RegExp(
+          r'\b(brine\s+line|flow\s+control|flow\s+restrictor)\b',
+        ).hasMatch(value) =>
       'water softener brine line flow control',
     final value when RegExp(r'\b(bypass\s+valve|bypass)\b').hasMatch(value) =>
       'water softener bypass valve',
     final value when RegExp(r'\b(resin|resina)\b').hasMatch(value) =>
       'softener resin bag',
-    final value when RegExp(
-      r'\b(ro|reverse\s+osmosis)\b',
-    ).hasMatch(value) &&
-        RegExp(r'\b(membrane|membrana)\b').hasMatch(value) =>
+    final value
+        when RegExp(r'\b(ro|reverse\s+osmosis)\b').hasMatch(value) &&
+            RegExp(r'\b(membrane|membrana)\b').hasMatch(value) =>
       'reverse osmosis membrane',
-    final value when RegExp(r'\b(uv|ultraviolet)\b').hasMatch(value) &&
-        RegExp(r'\b(quartz\s+sleeve|sleeve|manga)\b').hasMatch(value) =>
+    final value
+        when RegExp(r'\b(uv|ultraviolet)\b').hasMatch(value) &&
+            RegExp(r'\b(quartz\s+sleeve|sleeve|manga)\b').hasMatch(value) =>
       'uv quartz sleeve',
-    final value when RegExp(r'\b(uv|ultraviolet)\b').hasMatch(value) &&
-        RegExp(r'\b(lamp|bulb|lampara)\b').hasMatch(value) =>
+    final value
+        when RegExp(r'\b(uv|ultraviolet)\b').hasMatch(value) &&
+            RegExp(r'\b(lamp|bulb|lampara)\b').hasMatch(value) =>
       'uv water treatment lamp',
-    final value when RegExp(
-      r'\b(softener\s+salt|salt\s+pellets|solar\s+salt|potassium\s+chloride)\b',
-    ).hasMatch(value) =>
+    final value
+        when RegExp(
+          r'\b(softener\s+salt|salt\s+pellets|solar\s+salt|potassium\s+chloride)\b',
+        ).hasMatch(value) =>
       RegExp(r'\b(solar)\b').hasMatch(value)
           ? 'solar salt crystals'
           : RegExp(r'\b(potassium)\b').hasMatch(value)
           ? 'potassium chloride softener pellets'
           : 'water softener salt pellets',
+    final value
+        when RegExp(
+          r'\b(sal\s+suavizador|sal\s+ablandador|sal\s+para\s+suavizador)\b',
+        ).hasMatch(value) =>
+      'water softener salt pellets',
+    final value
+        when RegExp(
+          r'\b(osmosis\s+inversa|osmosis inversa|membrana\s+osmosis)\b',
+        ).hasMatch(value) =>
+      'reverse osmosis membrane',
     _ => null,
   };
   if (wantedName == null) return null;

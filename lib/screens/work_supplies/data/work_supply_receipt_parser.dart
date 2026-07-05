@@ -635,12 +635,20 @@ WorkSupplyItem? _directElectricalServiceRepairMatch(
     final value when RegExp(r'\blever\s+connector\b').hasMatch(value) =>
       'lever connector',
     final value
+        when RegExp(r'\bconector\s+(de\s+)?palanca\b').hasMatch(value) =>
+      'lever connector',
+    final value
         when RegExp(r'\bpush[\s-]?in\s+wire\s+connector\b').hasMatch(value) =>
       'push-in wire connector',
     final value
         when RegExp(r'\binline\s+splice\s+connector\b').hasMatch(value) =>
       'inline splice connector',
     final value when RegExp(r'\bbutt\s+splice\b').hasMatch(value) =>
+      'butt splice connector',
+    final value
+        when RegExp(
+          r'\b(empalme\s+tope|conector\s+empalme)\b',
+        ).hasMatch(value) =>
       'butt splice connector',
     final value when RegExp(r'\bclosed\s+end\s+splice\b').hasMatch(value) =>
       'closed end splice connector',
@@ -650,6 +658,11 @@ WorkSupplyItem? _directElectricalServiceRepairMatch(
         ).hasMatch(value) =>
       'compact splicing connector',
     final value when RegExp(r'\banti[\s-]?short\b').hasMatch(value) =>
+      'anti short bushing',
+    final value
+        when RegExp(
+          r'\b(anti\s+corto|bushing\s+anti\s+corto)\b',
+        ).hasMatch(value) =>
       'anti short bushing',
     final value when RegExp(r'\bground\s+pigtail\b').hasMatch(value) =>
       'ground pigtail',
