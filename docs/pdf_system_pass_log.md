@@ -2674,3 +2674,22 @@
   - `dart analyze test/expense_draft_storage_lifecycle_test.dart test/expense_draft_store_test.dart test/cloud_backup_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_typography_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
   - `flutter test test/expense_draft_storage_lifecycle_test.dart test/expense_draft_store_test.dart test/cloud_backup_manifest_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_typography_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
   - `bash tool/pdf_quality_gate.sh`
+
+## Pass 137 - 2026-07-05 13:14 EDT - Incoming share PDF handoff coverage
+
+- Scope: incoming shared PDF handoff QA only. No inventory, camera, native
+  capture, OCR engine, parser behavior, or fragile UI tests changed.
+- Bundled work:
+  - Added incoming shared receipt PDF tests to the PDF quality gate.
+  - Registered incoming share mapping, pre-storage validation, staging,
+    duplicate suppression, and discard cleanup fixtures in the PDF QA inventory.
+  - Switched incoming share valid/duplicate/discard PDF fixtures to embedded
+    test fonts instead of minimal raw Helvetica-style PDFs.
+  - Extended the typography drift regression so incoming share PDF fixtures stay
+    on embedded fonts.
+- Verification completed 2026-07-05 13:14 EDT:
+  - `dart format test/incoming_receipt_share_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_typography_contract_test.dart`
+  - `bash -n tool/pdf_quality_gate.sh`
+  - `dart analyze test/incoming_receipt_share_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_typography_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
+  - `flutter test test/incoming_receipt_share_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_typography_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
+  - `bash tool/pdf_quality_gate.sh`

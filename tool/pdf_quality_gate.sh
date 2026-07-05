@@ -52,6 +52,7 @@ dart analyze \
   test/cloud_backup_manifest_test.dart \
   test/document_engine_operating_directive_test.dart \
   test/incoming_receipt_share_pdf_hardening_test.dart \
+  test/incoming_receipt_share_test.dart \
   test/expense_firestore_documents_test.dart \
   test/expense_draft_storage_lifecycle_test.dart \
   test/expense_draft_store_test.dart \
@@ -109,6 +110,7 @@ flutter test \
   test/cloud_backup_manifest_test.dart \
   test/document_engine_operating_directive_test.dart \
   test/incoming_receipt_share_pdf_hardening_test.dart \
+  test/incoming_receipt_share_test.dart \
   test/expense_firestore_documents_test.dart \
   test/expense_draft_storage_lifecycle_test.dart \
   test/expense_draft_store_test.dart \

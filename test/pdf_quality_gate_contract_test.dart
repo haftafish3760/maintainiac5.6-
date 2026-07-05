@@ -166,6 +166,11 @@ void main() {
       expect(script, contains('test/app_document_export_manifest_test.dart'));
       expect(
         script,
+        contains('test/incoming_receipt_share_pdf_hardening_test.dart'),
+      );
+      expect(script, contains('test/incoming_receipt_share_test.dart'));
+      expect(
+        script,
         contains('test/app_document_export_package_writer_test.dart'),
       );
       expect(

@@ -4,7 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/incoming_receipt_share.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+
+import 'helpers/pdf_test_typography.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -252,10 +255,7 @@ void main() {
       'incoming_share_staging_',
     );
     final source = File('${Directory.systemTemp.path}/shared_valid.pdf');
-    await source.writeAsString(
-      '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
-      flush: true,
-    );
+    await _writeIncomingSharePdf(source, 'Shared valid receipt');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
@@ -358,10 +358,7 @@ void main() {
       'incoming_share_duplicate_',
     );
     final source = File('${Directory.systemTemp.path}/shared_duplicate.pdf');
-    await source.writeAsString(
-      '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
-      flush: true,
-    );
+    await _writeIncomingSharePdf(source, 'Shared duplicate receipt');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
@@ -409,10 +406,7 @@ void main() {
       'incoming_share_discard_',
     );
     final source = File('${Directory.systemTemp.path}/shared_discard.pdf');
-    await source.writeAsString(
-      '%PDF-1.7\n1 0 obj << /Type /Page >> endobj\n%%EOF',
-      flush: true,
-    );
+    await _writeIncomingSharePdf(source, 'Shared discard receipt');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
@@ -454,4 +448,11 @@ void main() {
     expect(await File(stagedPath).exists(), isFalse);
     expect(await source.exists(), isTrue);
   });
+}
+
+Future<void> _writeIncomingSharePdf(File file, String title) async {
+  final theme = await PdfTestTypography.loadTheme();
+  final pdf = pw.Document()
+    ..addPage(pw.Page(theme: theme, build: (_) => pw.Text(title)));
+  await file.writeAsBytes(await pdf.save(), flush: true);
 }

@@ -47,6 +47,7 @@ void main() {
     for (final testPath in const [
       'test/app_document_store_test.dart',
       'test/expense_draft_storage_lifecycle_test.dart',
+      'test/incoming_receipt_share_test.dart',
       'test/receipt_proof_storage_lifecycle_test.dart',
     ]) {
       final source = File(testPath).readAsStringSync();

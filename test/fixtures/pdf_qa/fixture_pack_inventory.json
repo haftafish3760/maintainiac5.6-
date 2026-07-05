@@ -291,6 +291,7 @@
       "status": "covered_without_parser_mutation",
       "currentTestFiles": [
         "test/incoming_receipt_share_pdf_hardening_test.dart",
+        "test/incoming_receipt_share_test.dart",
         "test/receipt_pdf_import_copy_test.dart",
         "test/receipt_pdf_viewer_accessibility_test.dart",
         "test/receipt_pdf_viewer_preflight_test.dart",
@@ -300,6 +301,11 @@
         "valid_1_page",
         "password_marker",
         "active_actions",
+        "incoming_shared_pdf_mapping",
+        "incoming_shared_pdf_pre_storage_validation",
+        "incoming_shared_pdf_staging",
+        "incoming_shared_pdf_duplicate_suppression",
+        "incoming_shared_pdf_discard_cleanup",
         "proof_only_viewer_state",
         "missing_pdf_accessibility_recovery",
         "symlinked_pdf_viewer_unreadable"
