@@ -351,6 +351,45 @@ void main() {
     },
   );
 
+  test(
+    'document package import cleanup removes symlink without touching target',
+    () async {
+      final importRoot = Directory('${documentsDirectory.path}/imports');
+      await importRoot.create(recursive: true);
+      final outsideTarget = Directory(
+        '${Directory.systemTemp.path}/outside_package_import_target',
+      );
+      await outsideTarget.create(recursive: true);
+      await File(
+        '${outsideTarget.path}/private-proof.pdf',
+      ).writeAsString('%PDF-1.7\nOutside import target\n%%EOF', flush: true);
+      addTearDown(() async {
+        if (await outsideTarget.exists()) {
+          await outsideTarget.delete(recursive: true);
+        }
+      });
+      final staleLink = Link(
+        '${importRoot.path}/maintainiac-document-export-abcdef123456.partial',
+      );
+      await staleLink.create(outsideTarget.path);
+
+      final deleted =
+          await AppDocumentImportService.cleanupStaleDocumentPackageImports(
+            importRoot,
+            now: DateTime.now().add(const Duration(hours: 13)),
+          );
+
+      expect(deleted, ['maintainiac-document-export-abcdef123456.partial']);
+      expect(await staleLink.exists(), isFalse);
+      expect(await outsideTarget.exists(), isTrue);
+      expect(
+        await File('${outsideTarget.path}/private-proof.pdf').exists(),
+        isTrue,
+      );
+    },
+    skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
+  );
+
   test('document package import runs stale cleanup before extraction', () async {
     final store = AppDocumentStore.memory();
     final packageFile = await _writeDocumentExportPackage(
@@ -395,6 +434,18 @@ void main() {
     expect(source, contains('FileSystemEntityType.link'));
     expect(source, contains('await Link(normalized).delete();'));
     expect(source, contains('path.absolute(root.path)'));
+  });
+
+  test('document package import cleanup source avoids following symlinks', () {
+    final source = File(
+      'lib/shared/documents/app_document_import_service.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('_deletePackageImportEntity'));
+    expect(source, contains('FileSystemEntity.type(entityPath'));
+    expect(source, contains('followLinks: false'));
+    expect(source, contains('FileSystemEntityType.link'));
+    expect(source, contains('await Link(entityPath).delete();'));
   });
 }
 

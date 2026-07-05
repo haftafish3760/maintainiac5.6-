@@ -1,5 +1,25 @@
 # PDF System Pass Log
 
+## Pass 107 - 2026-07-05 11:11 EDT - Document package import cleanup hardening
+
+- Scope: document export package import cleanup safety only. No inventory,
+  camera, native capture, OCR engine, or parser behavior changes.
+- Bundled work:
+  - Inspected stale document-package import cleanup targets without following
+    symlinks.
+  - Removed app-owned symlink cleanup entries without deleting their external
+    targets.
+  - Reused the same safe delete path for normal extraction cleanup and rollback
+    cleanup.
+  - Added regression coverage proving package-import cleanup preserves a
+    symlink target outside app document storage.
+  - Added the package-import symlink cleanup case to the PDF QA fixture
+    registry.
+- Verification completed 2026-07-05 11:11 EDT:
+  - `dart format lib/shared/documents/app_document_import_service.dart test/app_document_store_test.dart`
+  - `flutter test test/app_document_store_test.dart -r compact`
+  - `dart analyze lib/shared/documents/app_document_import_service.dart test/app_document_store_test.dart`
+
 ## Pass 106 - 2026-07-05 11:03 EDT - Document proof cleanup symlink hardening
 
 - Scope: shared document proof cleanup safety only. No inventory, camera,

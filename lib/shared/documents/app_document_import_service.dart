@@ -76,19 +76,30 @@ class AppDocumentImportService {
     final cutoff = (now ?? DateTime.now()).subtract(stalePackageImportAge);
     final deleted = <String>[];
     await for (final entity in importDirectory.list(followLinks: false)) {
-      if (entity is! Directory) continue;
       final directoryName = path.basename(entity.path);
       if (!_isAppOwnedPackageImportDirectory(directoryName)) continue;
       FileStat stat;
       try {
+        final type = await FileSystemEntity.type(
+          entity.path,
+          followLinks: false,
+        );
+        if (type == FileSystemEntityType.link) {
+          await _deletePackageImportEntity(entity.path);
+          deleted.add(directoryName);
+          continue;
+        }
+        if (type != FileSystemEntityType.directory &&
+            type != FileSystemEntityType.link) {
+          continue;
+        }
         stat = await entity.stat();
       } catch (_) {
         continue;
       }
-      if (stat.type != FileSystemEntityType.directory) continue;
       if (!stat.modified.isBefore(cutoff)) continue;
       try {
-        await entity.delete(recursive: true);
+        await _deletePackageImportEntity(entity.path);
         deleted.add(directoryName);
       } catch (_) {
         throw const AppDocumentExportPackageException(
@@ -204,11 +215,19 @@ class AppDocumentImportService {
 
   static Future<void> _deleteDirectoryQuietly(Directory directory) async {
     try {
-      if (await directory.exists()) await directory.delete(recursive: true);
+      await _deletePackageImportEntity(directory.path);
     } catch (_) {}
     try {
-      final partial = Directory('${directory.path}.partial');
-      if (await partial.exists()) await partial.delete(recursive: true);
+      await _deletePackageImportEntity('${directory.path}.partial');
     } catch (_) {}
+  }
+
+  static Future<void> _deletePackageImportEntity(String entityPath) async {
+    final type = await FileSystemEntity.type(entityPath, followLinks: false);
+    if (type == FileSystemEntityType.directory) {
+      await Directory(entityPath).delete(recursive: true);
+    } else if (type == FileSystemEntityType.link) {
+      await Link(entityPath).delete();
+    }
   }
 }
