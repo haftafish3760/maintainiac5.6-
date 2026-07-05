@@ -78,6 +78,10 @@ void main() {
       expect(first.byteSize, firstBytes.length);
       expect(first.sha256, sha256.convert(firstBytes).toString());
       expect(first.manifestSha256, isNotEmpty);
+      expect(
+        first.packageIndexEntryName,
+        'maintainiac_document_package_index.json',
+      );
       expect(first.toMap().toString(), isNot(contains(tempDirectory.path)));
       expect(await pdf.exists(), isTrue);
       expect(await photo.exists(), isTrue);
@@ -87,6 +91,7 @@ void main() {
         for (final entry in decoded.files) entry.name: entry,
       };
       expect(entries.keys, contains('maintainiac_document_manifest.json'));
+      expect(entries.keys, contains('maintainiac_document_package_index.json'));
       expect(entries.keys, contains('invoice-proof.pdf'));
       expect(entries.keys, contains('receipt-photo.jpg'));
       final manifestBytes = entries['maintainiac_document_manifest.json']!
@@ -105,6 +110,23 @@ void main() {
       expect(
         sha256.convert(entries['receipt-photo.jpg']!.readBytes()!).toString(),
         await _fileHash(photo),
+      );
+      final readResult = await AppDocumentExportPackageWriter.readZipPackage(
+        File(first.filePath),
+      );
+      expect(readResult.fileName, first.fileName);
+      expect(readResult.byteSize, first.byteSize);
+      expect(readResult.sha256, first.sha256);
+      expect(readResult.manifestSha256, first.manifestSha256);
+      expect(readResult.kindName, 'jobContractorDocument');
+      expect(readResult.fileEntries, first.fileEntries);
+      expect(
+        readResult.totalProofBytes,
+        await pdf.length() + await photo.length(),
+      );
+      expect(
+        readResult.toMap().toString(),
+        isNot(contains(tempDirectory.path)),
       );
     },
   );
@@ -198,6 +220,142 @@ void main() {
 
       expect(await outputDirectory.exists(), isFalse);
       expect(await proof.exists(), isTrue);
+    },
+  );
+
+  test(
+    'document export package reader blocks unsafe or malformed packages',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nVerified proof\n%%EOF'),
+      );
+      final record = _documentRecord(
+        attachment: _pdfAttachment(
+          path: proof.path,
+          byteSize: await proof.length(),
+          fileHash: await _fileHash(proof),
+        ),
+      );
+      final valid = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: record,
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final validBytes = await File(valid.filePath).readAsBytes();
+      final archive = ZipDecoder().decodeBytes(validBytes);
+      final unsafeArchive = Archive();
+      for (final entry in archive.files) {
+        unsafeArchive.addFile(
+          ArchiveFile.bytes(
+            entry.name == 'job-packet.pdf' ? '../job-packet.pdf' : entry.name,
+            entry.readBytes()!,
+          ),
+        );
+      }
+      final unsafePackage = File('${tempDirectory.path}/unsafe.zip');
+      await unsafePackage.writeAsBytes(
+        ZipEncoder().encode(unsafeArchive, modified: DateTime.utc(2026)),
+        flush: true,
+      );
+
+      await expectLater(
+        AppDocumentExportPackageWriter.readZipPackage(unsafePackage),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('unsafe file name'),
+          ),
+        ),
+      );
+
+      final malformed = File('${tempDirectory.path}/malformed.zip');
+      await malformed.writeAsString('not a zip', flush: true);
+      await expectLater(
+        AppDocumentExportPackageWriter.readZipPackage(malformed),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('could not read'),
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
+    'document export package reader blocks missing index and file tampering',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nVerified proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final archive = ZipDecoder().decodeBytes(
+        await File(result.filePath).readAsBytes(),
+      );
+      final missingIndex = Archive();
+      final tampered = Archive();
+      for (final entry in archive.files) {
+        if (entry.name != 'maintainiac_document_package_index.json') {
+          missingIndex.addFile(
+            ArchiveFile.bytes(entry.name, entry.readBytes()!),
+          );
+        }
+        tampered.addFile(
+          ArchiveFile.bytes(
+            entry.name,
+            entry.name == 'job-packet.pdf'
+                ? utf8.encode('%PDF-1.7\nChanged proof\n%%EOF')
+                : entry.readBytes()!,
+          ),
+        );
+      }
+      final missingIndexFile = File('${tempDirectory.path}/missing-index.zip');
+      final tamperedFile = File('${tempDirectory.path}/tampered.zip');
+      await missingIndexFile.writeAsBytes(
+        ZipEncoder().encode(missingIndex, modified: DateTime.utc(2026)),
+        flush: true,
+      );
+      await tamperedFile.writeAsBytes(
+        ZipEncoder().encode(tampered, modified: DateTime.utc(2026)),
+        flush: true,
+      );
+
+      await expectLater(
+        AppDocumentExportPackageWriter.readZipPackage(missingIndexFile),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('missing required metadata'),
+          ),
+        ),
+      );
+      await expectLater(
+        AppDocumentExportPackageWriter.readZipPackage(tamperedFile),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('file verification failed'),
+          ),
+        ),
+      );
     },
   );
 
