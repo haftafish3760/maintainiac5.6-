@@ -4009,3 +4009,16 @@ Release boundaries:
   `DISP DRAIN ELB` and `DISP INSTALL KIT` are present. Verification passed with
   the bundled Plumbing Core metadata/pack/curation/generated batch group;
   generated batch shard remains 250/250 with 0 failures.
+- **19:22-19:31 Plumbing Core Family Metadata Expansion:** Expanded the family
+  metadata gate from the first 10 service families to 23 Plumbing Core families,
+  adding coverage for angle/supply stops, fixture supply lines, closet flange
+  repair, cleanouts, trap adapters, DWV wyes, PEX, push-fit/SharkBite, CPVC,
+  water heater service, well pressure service, water treatment/softener stock,
+  and pipe supports. Strengthened the catalog intelligence overlay so those
+  families get concrete English aliases, compact merchant receipt shorthand,
+  Spanish terms, and ambiguity negatives instead of only generic metadata.
+  Focused verification passed:
+  `flutter test test/work_supply_plumbing_core_metadata_gate_test.dart`.
+  The broader bundled Plumbing Core gate command was attempted afterward but
+  hit the local Windows timeout before final results, so do not treat that
+  bundle as newly reverified until rerun at the next logical milestone.

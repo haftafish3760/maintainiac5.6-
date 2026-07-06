@@ -236,6 +236,116 @@ final _requiredFamilies = <_RequiredFamily>[
     spanishTerms: const ['tee sanitaria'],
     negativeTerms: const ['electrical conduit', 'hvac condensate drain'],
   ),
+  _RequiredFamily(
+    name: 'angle stop and supply stop',
+    selector: (text) =>
+        text.contains('angle stop') || text.contains('supply stop'),
+    englishTerms: const ['angle stop', 'supply stop', 'quarter turn stop'],
+    compactReceiptTerms: const ['ANGLE STOP'],
+    spanishTerms: const ['llave escuadra', 'valvula cierre'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'fixture supply lines',
+    selector: (text) => text.contains('supply line'),
+    englishTerms: const ['supply line', 'faucet supply', 'toilet supply'],
+    compactReceiptTerms: const ['SUPPLY LINE'],
+    spanishTerms: const ['linea suministro'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'closet flange repair',
+    selector: (text) => text.contains('closet flange'),
+    englishTerms: const ['closet flange', 'toilet flange', 'flange repair'],
+    compactReceiptTerms: const ['CLOSET FLANGE'],
+    spanishTerms: const ['brida sanitario'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'cleanout access',
+    selector: (text) => text.contains('cleanout'),
+    englishTerms: const ['cleanout', 'clean out', 'cleanout plug'],
+    compactReceiptTerms: const ['CLEANOUT'],
+    spanishTerms: const ['registro limpieza'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'trap adapters',
+    selector: (text) => text.contains('trap adapter'),
+    englishTerms: const ['trap adapter', 'trap adpt'],
+    compactReceiptTerms: const ['TRAP ADPT'],
+    spanishTerms: const ['adaptador trampa'],
+    negativeTerms: const ['electrical conduit', 'hvac condensate drain'],
+  ),
+  _RequiredFamily(
+    name: 'dwv wyes',
+    selector: (text) => text.contains('dwv wye'),
+    englishTerms: const ['wye', 'dwv wye'],
+    compactReceiptTerms: const ['DWV WYE'],
+    spanishTerms: const ['yee sanitaria'],
+    negativeTerms: const ['electrical conduit', 'hvac condensate drain'],
+  ),
+  _RequiredFamily(
+    name: 'pex service fittings',
+    selector: (text) => text.contains('pex') && text.contains('fitting'),
+    englishTerms: const ['pex', 'pex crimp', 'pex fitting'],
+    compactReceiptTerms: const ['PEX'],
+    spanishTerms: const ['conexion pex'],
+    negativeTerms: const ['electrical conduit', 'hvac refrigerant copper'],
+  ),
+  _RequiredFamily(
+    name: 'push-fit service fittings',
+    selector: (text) => text.contains('push-fit') || text.contains('sharkbite'),
+    englishTerms: const ['push fit', 'push connect', 'sharkbite'],
+    compactReceiptTerms: const ['PUSH FIT'],
+    spanishTerms: const ['conexion rapida'],
+    negativeTerms: const ['electrical connector', 'hvac refrigerant copper'],
+  ),
+  _RequiredFamily(
+    name: 'cpvc service fittings',
+    selector: (text) => text.contains('cpvc') && text.contains('fitting'),
+    englishTerms: const ['cpvc', 'cpvc flowguard'],
+    compactReceiptTerms: const ['CPVC'],
+    spanishTerms: const ['cpvc'],
+    negativeTerms: const ['electrical conduit', 'hvac condensate drain'],
+  ),
+  _RequiredFamily(
+    name: 'water heater service',
+    selector: (text) => text.contains('water heater'),
+    englishTerms: const ['water heater', 'heater connector'],
+    compactReceiptTerms: const ['WATER HEATER'],
+    spanishTerms: const ['calentador agua'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'well pressure service',
+    selector: (text) =>
+        text.contains('pressure tank') || text.contains('tank tee'),
+    englishTerms: const ['pressure tank', 'tank tee', 'pressure gauge'],
+    compactReceiptTerms: const ['PRESSURE TANK'],
+    spanishTerms: const ['tanque presion'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'water treatment service',
+    selector: (text) =>
+        text.contains('softener') || text.contains('filter cartridge'),
+    englishTerms: const ['water softener', 'softener salt', 'filter cartridge'],
+    compactReceiptTerms: const ['WATER SOFTENER'],
+    spanishTerms: const ['suavizador agua'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'pipe supports',
+    selector: (text) =>
+        text.contains('j hook') ||
+        text.contains('pipe hook') ||
+        text.contains('pipe hanger'),
+    englishTerms: const ['j hook', 'pipe hook', 'pipe hanger'],
+    compactReceiptTerms: const ['J HOOK'],
+    spanishTerms: const ['soporte tubo'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
 ];
 
 void _expect(

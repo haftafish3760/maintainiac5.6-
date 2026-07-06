@@ -1598,6 +1598,66 @@ List<String> _plumbingCoreFamilyTermsFor(WorkSupplyItem item, String shape) {
   if (text.contains('escutcheon')) {
     return const ['escutcheon', 'esc plate', 'cover plate'];
   }
+  if (text.contains('angle stop') || text.contains('supply stop')) {
+    return const [
+      'angle stop',
+      'supply stop',
+      'stop valve',
+      'quarter turn stop',
+    ];
+  }
+  if (text.contains('supply line')) {
+    return const [
+      'supply line',
+      'toilet supply',
+      'faucet supply',
+      'connector line',
+    ];
+  }
+  if (text.contains('closet flange')) {
+    return const [
+      'closet flange',
+      'toilet flange',
+      'flange repair',
+      'flange spacer',
+    ];
+  }
+  if (text.contains('cleanout')) {
+    return const ['cleanout', 'clean out', 'cleanout plug', 'cleanout cover'];
+  }
+  if (text.contains('trap adapter')) {
+    return const ['trap adapter', 'trap adpt', 'dwv adapter'];
+  }
+  if (text.contains('wye')) return const ['wye', 'dwv wye', 'combo wye'];
+  if (text.contains('pex')) {
+    return const ['pex', 'pex crimp', 'pex barb', 'pex fitting', 'poly pipe'];
+  }
+  if (text.contains('push-fit') ||
+      text.contains('push fit') ||
+      text.contains('sharkbite')) {
+    return const ['push fit', 'push-fit', 'push connect', 'sharkbite'];
+  }
+  if (text.contains('cpvc')) return const ['cpvc', 'cpvc flowguard'];
+  if (text.contains('water heater')) {
+    return const ['water heater', 'wtr htr', 'heater connector', 'heater pan'];
+  }
+  if (text.contains('pressure tank') || text.contains('tank tee')) {
+    return const ['pressure tank', 'well tank', 'tank tee', 'pressure gauge'];
+  }
+  if (text.contains('softener') || text.contains('filter cartridge')) {
+    return const [
+      'water softener',
+      'softener salt',
+      'filter cartridge',
+      'water filter',
+    ];
+  }
+  if (text.contains('j hook') ||
+      text.contains('pipe hook') ||
+      text.contains('pipe hanger') ||
+      text.contains('pipe support')) {
+    return const ['j hook', 'pipe hook', 'pipe hanger', 'tube strap'];
+  }
   if (text.contains('sanitary tee')) {
     return const ['sanitary tee', 'san tee', 'sanitary t'];
   }
@@ -1661,6 +1721,42 @@ List<String> _plumbingSpanishCoreFamilyTermsFor(
     return const ['triturador', 'codo triturador', 'kit triturador'];
   }
   if (text.contains('escutcheon')) return const ['chapeton', 'placa cubierta'];
+  if (text.contains('angle stop') || text.contains('supply stop')) {
+    return const ['llave escuadra', 'valvula cierre', 'valvula angular'];
+  }
+  if (text.contains('supply line')) {
+    return const ['linea suministro', 'manguera suministro'];
+  }
+  if (text.contains('closet flange')) {
+    return const ['brida sanitario', 'brida inodoro'];
+  }
+  if (text.contains('cleanout')) {
+    return const ['registro limpieza', 'tapon limpieza'];
+  }
+  if (text.contains('trap adapter')) return const ['adaptador trampa'];
+  if (text.contains('wye')) return const ['yee sanitaria', 'conector yee'];
+  if (text.contains('pex')) return const ['pex', 'conexion pex'];
+  if (text.contains('push-fit') ||
+      text.contains('push fit') ||
+      text.contains('sharkbite')) {
+    return const ['conexion rapida', 'push fit'];
+  }
+  if (text.contains('cpvc')) return const ['cpvc'];
+  if (text.contains('water heater')) {
+    return const ['calentador agua', 'conector calentador'];
+  }
+  if (text.contains('pressure tank') || text.contains('tank tee')) {
+    return const ['tanque presion', 'tee tanque', 'pozo'];
+  }
+  if (text.contains('softener') || text.contains('filter cartridge')) {
+    return const ['suavizador agua', 'sal suavizador', 'filtro agua'];
+  }
+  if (text.contains('j hook') ||
+      text.contains('pipe hook') ||
+      text.contains('pipe hanger') ||
+      text.contains('pipe support')) {
+    return const ['soporte tubo', 'gancho tubo'];
+  }
   if (text.contains('sanitary tee'))
     return const ['tee sanitaria', 't sanitaria'];
   if (text.contains('coupling')) return const ['cople', 'acople'];
