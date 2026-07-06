@@ -37,8 +37,24 @@ void main() {
       containsPair('receipt_section_order_failed_pair_photo_2_to_3', 1),
     );
     expect(
+      summary.sectionOrderReviewStatus,
+      'receipt_section_order_action_review_retaken_section_order_before_ocr',
+    );
+    expect(
+      summary.sectionOrderFailedPairStatus,
+      'ocr_source_section_order_failed_pair_photo_2_to_3',
+    );
+    expect(
       summary.riskFlagCounts,
       containsPair('ocr_source_section_order_failed_pair_photo_2_to_3', 1),
+    );
+    expect(
+      summary.privacySafeContract['sectionOrderReviewStatus'],
+      'receipt_section_order_action_review_retaken_section_order_before_ocr',
+    );
+    expect(
+      summary.privacySafeContract['sectionOrderFailedPairStatus'],
+      'ocr_source_section_order_failed_pair_photo_2_to_3',
     );
   });
 }

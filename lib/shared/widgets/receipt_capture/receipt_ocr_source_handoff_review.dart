@@ -234,6 +234,39 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       ]) >
       0;
 
+  String get sectionOrderReviewStatus {
+    for (final token in const [
+      'receipt_section_order_action_review_retaken_section_order_before_ocr',
+      'receipt_section_order_action_review_inserted_section_order_before_ocr',
+      'receipt_section_order_action_review_manual_section_order_before_ocr',
+      'receipt_section_order_retake_order_invalid',
+      'receipt_section_order_insert_order_invalid',
+      'receipt_section_order_manual_order_invalid',
+      'receipt_section_order_review_required',
+    ]) {
+      if ((sectionOrderSignalCounts[token] ?? 0) > 0 ||
+          (riskFlagCounts[token] ?? 0) > 0) {
+        return token;
+      }
+    }
+    return 'section_order_not_reported';
+  }
+
+  String get sectionOrderFailedPairStatus {
+    for (final counts in [sectionOrderSignalCounts, riskFlagCounts]) {
+      final matching = counts.keys.where(
+        (key) =>
+            key.startsWith('receipt_section_order_failed_pair_') ||
+            key.startsWith('ocr_source_section_order_failed_pair_'),
+      );
+      if (matching.isNotEmpty) {
+        final ordered = matching.toList()..sort();
+        return ordered.first;
+      }
+    }
+    return 'section_order_failed_pair_not_reported';
+  }
+
   bool get hasStitchContractReviewRisk =>
       stitchSignalCounts.containsKey(
         'stitch_ocr_source_contract_review_required',
@@ -317,6 +350,12 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
         'reviewDepthStatus': reviewDepthStatus,
       if (sectionOrderSignalCounts.isNotEmpty)
         'sectionOrderSignalCounts': sectionOrderSignalCounts,
+      if (sectionOrderSignalCounts.isNotEmpty &&
+          sectionOrderReviewStatus != 'section_order_not_reported')
+        'sectionOrderReviewStatus': sectionOrderReviewStatus,
+      if (sectionOrderFailedPairStatus !=
+          'section_order_failed_pair_not_reported')
+        'sectionOrderFailedPairStatus': sectionOrderFailedPairStatus,
       if (sourceQualityReviewStatus != 'source_quality_ready_or_not_reported')
         'sourceQualityReviewStatus': sourceQualityReviewStatus,
       if (sourceQualityReviewStatus != 'source_quality_ready_or_not_reported')
