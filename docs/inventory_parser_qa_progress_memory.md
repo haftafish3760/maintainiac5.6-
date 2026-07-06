@@ -3864,3 +3864,15 @@ Release boundaries:
   needs to produce fresh per-cell reports with explicit safety fields,
   `durationMs`, nonzero `parserCalls`, zero failures, and enough checked cases to
   satisfy the current `--min-checked-per-cell` gate.
+- **02:42 Harness Pass 3010-3012:** Tightened supply-house fixture tagging,
+  aligned the Release 1 generated-status command report root with its Core plus
+  Standard priority scope, and added direct single-cell output support to
+  `tool/work_supply_parser_qa_generated_run_status.dart`. A real focused
+  Plumbing residential Core `en-US` smoke under
+  `build/parser_qa_pipeline/pass3012-plumbing-core-smoke` generated 40
+  blueprints, validated 40 with 0 issues, generated 40 parser fixtures, ran 3
+  parser fixture cases with 0 failures and 3 parser calls, then passed the
+  direct generated-run status gate with 1 present cell, 0 missing cells, 0
+  unsafe cells, `durationMs=186856`, and all local-only safety flags false.
+  This proves the hardened single-cell path works, but it is smoke evidence
+  only; it does not replace the required full six-cell Core PEH rerun.
