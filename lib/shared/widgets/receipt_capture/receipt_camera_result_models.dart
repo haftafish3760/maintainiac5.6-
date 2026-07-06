@@ -3,14 +3,17 @@ part of 'receipt_capture_models.dart';
 enum ReceiptCameraCaptureMode { singleImage, bestShotCandidates }
 
 class ReceiptCameraResult {
-  const ReceiptCameraResult({
-    required this.photoPaths,
+  ReceiptCameraResult({
+    required List<String> photoPaths,
     required this.mode,
-    this.qualityChecks = const [],
+    List<ReceiptPhotoQualityCheck> qualityChecks = const [],
     this.captureEvidence,
-  });
+  }) : photoPaths = List<String>.unmodifiable(photoPaths),
+       qualityChecks = List<ReceiptPhotoQualityCheck>.unmodifiable(
+         qualityChecks,
+       );
 
-  const ReceiptCameraResult.single(
+  ReceiptCameraResult.single(
     List<String> photoPaths, {
     List<ReceiptPhotoQualityCheck> qualityChecks = const [],
     ReceiptCameraCaptureEvidence? captureEvidence,
@@ -21,7 +24,7 @@ class ReceiptCameraResult {
          captureEvidence: captureEvidence,
        );
 
-  const ReceiptCameraResult.bestShotCandidates(
+  ReceiptCameraResult.bestShotCandidates(
     List<String> photoPaths, {
     List<ReceiptPhotoQualityCheck> qualityChecks = const [],
     ReceiptCameraCaptureEvidence? captureEvidence,
@@ -62,12 +65,14 @@ class ReceiptCameraResult {
       final index = photoPaths.indexOf(path);
       if (index < 0) return const {};
       final photoIndex = index;
-      diagnostics[path] = evidence.toCaptureDiagnostics(
-        quality: qualityForIndex(photoIndex),
-        photoIndex: photoIndex,
+      diagnostics[path] = Map<String, Object?>.unmodifiable(
+        evidence.toCaptureDiagnostics(
+          quality: qualityForIndex(photoIndex),
+          photoIndex: photoIndex,
+        ),
       );
     }
-    return Map.unmodifiable(diagnostics);
+    return Map<String, Map<String, Object?>>.unmodifiable(diagnostics);
   }
 
   bool get hasQuestionablePhoto =>

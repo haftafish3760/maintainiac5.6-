@@ -30,7 +30,7 @@ void main() {
       candidateExposureOffsets: [0, .32],
     );
 
-    const result = ReceiptCameraResult.bestShotCandidates([
+    final result = ReceiptCameraResult.bestShotCandidates([
       '/tmp/receipt.jpg',
     ], captureEvidence: evidence);
 
@@ -154,7 +154,7 @@ void main() {
       selectedExposureOffset: .5,
       candidateExposureOffsets: [0, .5],
     );
-    const result = ReceiptCameraResult.single(
+    final result = ReceiptCameraResult.single(
       ['/tmp/receipt-a.jpg'],
       qualityChecks: [quality],
       captureEvidence: evidence,
@@ -243,12 +243,12 @@ void main() {
       liveReadiness: 'ready',
       imageStreamActiveAtCapture: true,
     );
-    const duplicateResult = ReceiptCameraResult.single(
+    final duplicateResult = ReceiptCameraResult.single(
       ['/tmp/section.jpg', '/tmp/section.jpg'],
       qualityChecks: [firstQuality, secondQuality],
       captureEvidence: evidence,
     );
-    const uniqueResult = ReceiptCameraResult.single(
+    final uniqueResult = ReceiptCameraResult.single(
       ['/tmp/section-a.jpg', '/tmp/section-b.jpg'],
       qualityChecks: [firstQuality, secondQuality],
       captureEvidence: evidence,
@@ -299,12 +299,12 @@ void main() {
       liveReadiness: 'ready',
       imageStreamActiveAtCapture: true,
     );
-    const unnormalizedResult = ReceiptCameraResult.single(
+    final unnormalizedResult = ReceiptCameraResult.single(
       [' /tmp/section-a.jpg ', '/tmp/section-b.jpg'],
       qualityChecks: [quality, quality],
       captureEvidence: evidence,
     );
-    const cleanResult = ReceiptCameraResult.single(
+    final cleanResult = ReceiptCameraResult.single(
       ['/tmp/section-a.jpg', '/tmp/section-b.jpg'],
       qualityChecks: [quality, quality],
       captureEvidence: evidence,
@@ -355,7 +355,7 @@ void main() {
       liveReadiness: 'ready',
       imageStreamActiveAtCapture: true,
     );
-    const result = ReceiptCameraResult.single(
+    final result = ReceiptCameraResult.single(
       ['/tmp/current-top.jpg', '/tmp/current-bottom.jpg'],
       qualityChecks: [quality, quality],
       captureEvidence: evidence,

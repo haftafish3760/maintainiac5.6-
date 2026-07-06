@@ -71,7 +71,7 @@ void main() {
       isLikelyReadable: true,
     );
 
-    const result = ReceiptCameraResult.bestShotCandidates(
+    final result = ReceiptCameraResult.bestShotCandidates(
       ['/tmp/best.jpg', '/tmp/backup.jpg'],
       qualityChecks: [first, second],
     );
@@ -177,7 +177,7 @@ void main() {
       textBandScore: 12,
       isLikelyReadable: true,
     );
-    const result = ReceiptCameraResult.single(
+    final result = ReceiptCameraResult.single(
       ['/tmp/receipt.jpg'],
       qualityChecks: [quality],
       captureEvidence: evidence,
@@ -218,7 +218,7 @@ void main() {
       isLikelyReadable: true,
     );
 
-    const result = ReceiptCameraResult.bestShotCandidates(
+    final result = ReceiptCameraResult.bestShotCandidates(
       ['/tmp/dim.jpg', '/tmp/readable.jpg'],
       qualityChecks: [dim, readable],
     );
@@ -257,7 +257,7 @@ void main() {
       isLikelyReadable: true,
     );
 
-    const result = ReceiptCameraResult.single(
+    final result = ReceiptCameraResult.single(
       ['/tmp/receipt.jpg'],
       qualityChecks: [quality],
     );
@@ -291,7 +291,7 @@ void main() {
       liveReadiness: 'ready',
       imageStreamActiveAtCapture: true,
     );
-    const result = ReceiptCameraResult.single([
+    final result = ReceiptCameraResult.single([
       '/tmp/receipt/top.jpg',
       '/tmp/receipt/../receipt/top.jpg',
     ], captureEvidence: evidence);
@@ -302,6 +302,67 @@ void main() {
         '/tmp/receipt/../receipt/top.jpg',
       ]),
       isEmpty,
+    );
+  });
+
+  test('camera result freezes paths quality checks and diagnostics', () {
+    const quality = ReceiptPhotoQualityCheck(
+      width: 1400,
+      height: 1900,
+      focusScore: 12,
+      brightness: 140,
+      isLikelyReadable: true,
+    );
+    const evidence = ReceiptCameraCaptureEvidence(
+      captureSurface: 'native',
+      captureFlow: 'receipt_camera',
+      resolutionTier: 'high',
+      resolutionPreset: 'max',
+      flashMode: 'off',
+      exposureMode: 'auto',
+      focusMode: 'continuous',
+      exposurePointSupported: true,
+      focusPointSupported: true,
+      exposureOffset: 0,
+      minExposureOffset: -2,
+      maxExposureOffset: 2,
+      zoomLevel: 1,
+      minZoomLevel: 1,
+      maxZoomLevel: 4,
+      previewWidth: 1080,
+      previewHeight: 1920,
+      liveBrightness: 140,
+      liveContrast: 20,
+      liveFocusScore: 12,
+      liveReadiness: 'ready',
+      imageStreamActiveAtCapture: true,
+    );
+    final paths = ['/tmp/receipt.jpg'];
+    final checks = [quality];
+
+    final result = ReceiptCameraResult.single(
+      paths,
+      qualityChecks: checks,
+      captureEvidence: evidence,
+    );
+
+    paths.add('/tmp/late.jpg');
+    checks.clear();
+    final diagnostics = result.captureDiagnosticsByPhotoPath(const [
+      '/tmp/receipt.jpg',
+    ]);
+
+    expect(result.photoPaths, ['/tmp/receipt.jpg']);
+    expect(result.qualityChecks, [quality]);
+    expect(
+      diagnostics['/tmp/receipt.jpg'],
+      containsPair('captureFlow', 'receipt_camera'),
+    );
+    expect(() => result.photoPaths.add('/tmp/ui.jpg'), throwsUnsupportedError);
+    expect(() => result.qualityChecks.clear(), throwsUnsupportedError);
+    expect(
+      () => diagnostics['/tmp/receipt.jpg']!['captureFlow'] = 'ui_mutation',
+      throwsUnsupportedError,
     );
   });
 }
