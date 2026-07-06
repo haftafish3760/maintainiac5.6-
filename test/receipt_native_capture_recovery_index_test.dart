@@ -255,6 +255,14 @@ void main() {
     expect(entry.captureDiagnostics, isNot(contains('stringifiedBad')));
     expect(entry.captureDiagnostics['nested'], {'safe': 2.5});
     expect(entry.captureDiagnostics['list'], ['ok', 3]);
+    final nested = entry.captureDiagnostics['nested'] as Map<String, Object?>;
+    final list = entry.captureDiagnostics['list'] as List<Object>;
+    expect(
+      () => entry.captureDiagnostics['late'] = true,
+      throwsA(isA<UnsupportedError>()),
+    );
+    expect(() => nested['safe'] = 3.5, throwsA(isA<UnsupportedError>()));
+    expect(() => list.add('late'), throwsA(isA<UnsupportedError>()));
     expect(entry.recoverySafety['hiveIndexSaved'], isTrue);
     expect(entry.recoverySafety, isNot(contains('maxLocalPhotoBytes')));
     expect(entry.toMap().toString(), isNot(contains('NaN')));
@@ -267,6 +275,10 @@ void main() {
 
     expect(record.captureDiagnostics['photoCount'], 1);
     expect(record.captureDiagnostics['nested'], {'safe': 2.5});
+    expect(
+      () => record.captureDiagnostics['late'] = true,
+      throwsA(isA<UnsupportedError>()),
+    );
     expect(record.recoverySafety['hiveIndexSaved'], isTrue);
     expect(record.privacySafeRecoveryEvidenceLabel, contains('hiveIndexSaved'));
   });

@@ -10,7 +10,7 @@ Map<String, Object?> receiptNativeCaptureSanitizedDiagnostics(
     final value = _safeNativeDiagnosticValue(entry.value);
     if (value != null) diagnostics[key] = value;
   }
-  return diagnostics;
+  return Map<String, Object?>.unmodifiable(diagnostics);
 }
 
 Object? _safeNativeDiagnosticValue(Object? value) {
@@ -33,7 +33,7 @@ Object? _safeNativeDiagnosticValue(Object? value) {
       final nestedValue = _safeNativeDiagnosticValue(entry.value);
       if (nestedValue != null) nested[key] = nestedValue;
     }
-    return nested.isEmpty ? null : nested;
+    return nested.isEmpty ? null : Map<String, Object?>.unmodifiable(nested);
   }
   if (value is Iterable) {
     final safeItems = <Object>[];
@@ -41,7 +41,7 @@ Object? _safeNativeDiagnosticValue(Object? value) {
       final safeItem = _safeNativeDiagnosticValue(item);
       if (safeItem != null) safeItems.add(safeItem);
     }
-    return safeItems.isEmpty ? null : safeItems;
+    return safeItems.isEmpty ? null : List<Object>.unmodifiable(safeItems);
   }
   return value.toString();
 }
