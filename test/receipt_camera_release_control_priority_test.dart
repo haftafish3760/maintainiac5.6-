@@ -18,7 +18,9 @@ void main() {
 
       expect(map, contains('manual shutter'));
       expect(map, contains('torch when'));
-      expect(map, contains('brightness/readability guidance'));
+      expect(map, contains('basic brightness control'));
+      expect(map, contains('phone-native autofocus'));
+      expect(map, contains('unproven live quality claims are default-off'));
       expect(map, contains('focus slider'));
       expect(map, contains('focus slider is not a'));
       expect(map, contains('release blocker'));

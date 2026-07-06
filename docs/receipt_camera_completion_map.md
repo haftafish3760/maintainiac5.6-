@@ -26,9 +26,11 @@ Receipt workflow scope includes:
 - take or import a normal receipt photo
 - use the platform-native camera stack as the baseline instead of building a
   pro camera replacement
-- guide the user toward a clear image
+- guide the user through receipt capture without pretending unproven live
+  quality heuristics are truth
 - provide the release-one receipt controls: manual shutter, torch when
-  supported, brightness/readability guidance, and settings
+  supported, phone-native autofocus, basic brightness control, receipt framing
+  guidance, and settings
 - review, retake, add photo, or use receipt
 - capture long receipts in ordered segments
 - preserve segment order during retakes
@@ -62,9 +64,9 @@ Receipt workflow scope excludes:
 | Receipt control priority | Manual shutter, torch, brightness guidance, settings, and receipt review are prioritized over pro-camera controls. | Native Android/iOS torch exists; contract now states torch and optional focus policy. | Strong |
 | Shared entry and permissions | User can start receipt capture from shared flow with safe fallback. | Source and tests exist for camera actions, permission, and fallback contracts. | Partial |
 | Native camera contract | Android CameraX and iOS AVFoundation expose matching high-level settings and capture metadata. | Flutter contract and native bridge tests exist; real-device proof still required. | Partial |
-| No preview tap focus | Preview/screen tap focus is banned; continuous focus/readability guidance is primary. | Active docs and regression tests exist. | Strong |
+| No preview tap focus | Preview/screen tap focus is banned; phone-native continuous autofocus is primary. Any manual focus control must be explicit, reversible, device-supported, and separately approved. | Active docs and regression tests exist. | Strong |
 | Single photo capture | Manual capture works, review opens, retake/use actions are stable. | Capture/review source and tests exist; real-device proof still required. | Partial |
-| Quality guidance | Blur, glare, low-light, edge/crop, bottom, and readability warnings are advisory and do not block manual capture. | Quality model/tests exist; thresholds need real receipt calibration. | Partial |
+| Quality guidance | Release-one live guidance stays conservative: receipt framing, small-text/distance, and edge visibility can guide capture; blur, glare, shadow, dirty-lens, and low-light claims stay disabled by default unless separately proven. Post-capture review may surface saved-photo quality risks as advisory review prompts. | Quality model/tests exist; unproven live quality claims are default-off and need real receipt calibration before promotion. | Partial |
 | Long receipt ordering | Add Photo creates ordered segments; retake preserves index and context. | Continuation/order tests exist; more UI and interruption evidence needed. | Partial |
 | Ghost/overlap guidance | Previous segment bottom 15-20% guides the next capture; middle retake can use previous/next context. | Ghost guide contract/source exists; real-device visual proof is missing. | Partial |
 | Stitch/fallback | Strong overlap stitches; weak overlap falls back to ordered OCR handoff without corrupting sources. | Stitch source/tests exist; synthetic and real receipt fixtures need expansion. | Partial |
