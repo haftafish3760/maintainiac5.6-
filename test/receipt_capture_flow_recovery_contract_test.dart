@@ -77,6 +77,19 @@ void main() {
     expect(flow, contains("action: 'keep_staged_receipt_for_recovery'"));
     expect(flow, contains("stage: 'review_opening'"));
     expect(flow, contains("stage: 'review_accepted'"));
+    expect(flow, contains('_normalizedInitialReviewPhotoPaths(options)'));
+    expect(
+      flow,
+      contains(
+        'final initialPhotoPaths = _normalizedInitialReviewPhotoPaths(options);',
+      ),
+    );
+    expect(
+      flow,
+      contains(
+        'initialPhotoPaths: [...initialPhotoPaths, ...staged.photoPaths]',
+      ),
+    );
     expect(flow, contains('_previousSectionGuideDiagnostics(options)'));
     expect(flow, contains('options.previousSectionReasonCode'));
     expect(flow, contains('?.toLowerCase()'));
@@ -221,7 +234,19 @@ void main() {
     expect(
       flow,
       contains(
-        'final firstRecoveredPhotoIndex = uniqueNormalizedReceiptPhotoPaths(',
+        'final reviewPhotoPaths = [...initialPhotoPaths, ...photoPaths];',
+      ),
+    );
+    expect(
+      flow,
+      contains('final firstRecoveredPhotoIndex = initialPhotoPaths.length;'),
+    );
+    expect(
+      flow,
+      isNot(
+        contains(
+          'final reviewPhotoPaths = [...options.initialPhotoPaths, ...photoPaths];',
+        ),
       ),
     );
     expect(nativeStaging, contains('File(photoPath).existsSync()'));

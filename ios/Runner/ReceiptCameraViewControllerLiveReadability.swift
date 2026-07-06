@@ -34,6 +34,7 @@ extension ReceiptCameraViewController {
     if !hasReceiptTarget {
       latestMotionSignal = "waiting_for_receipt_target"
       latestReadabilitySignal = "waiting_for_receipt_target"
+      resetExperimentalReceiptQualityGuidanceIfNeeded()
       return
     }
     let currentGuidance = guidanceLabel.text ?? ""
@@ -68,6 +69,18 @@ extension ReceiptCameraViewController {
           currentGuidance.hasPrefix("Hold steady") {
         guidanceLabel.text = guidanceText()
       }
+    }
+  }
+
+  func resetExperimentalReceiptQualityGuidanceIfNeeded() {
+    let currentGuidance = guidanceLabel.text ?? ""
+    if currentGuidance.hasPrefix("Receipt quality needs another look") ||
+        currentGuidance.hasPrefix("Hold steady so the receipt text stays sharp") ||
+        currentGuidance.hasPrefix("Receipt looks dark") ||
+        currentGuidance.hasPrefix("Receipt is very bright") ||
+        currentGuidance.hasPrefix("Receipt has heavy shadows") ||
+        currentGuidance.hasPrefix("Lens may be smudged") {
+      guidanceLabel.text = guidanceText()
     }
   }
 

@@ -116,6 +116,18 @@ void main() {
     expect(cameraActivity, contains('waiting_for_receipt_target'));
     expect(
       cameraActivity,
+      contains('resetExperimentalReceiptQualityGuidanceIfNeeded()'),
+    );
+    expect(
+      cameraActivity,
+      contains('currentGuidance.startsWith("Receipt has heavy shadows")'),
+    );
+    expect(
+      cameraActivity,
+      contains('currentGuidance.startsWith("Lens may be smudged")'),
+    );
+    expect(
+      cameraActivity,
       contains('var hasReceiptTarget = !edgeDetectionEnabled'),
     );
     expect(

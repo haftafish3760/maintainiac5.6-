@@ -271,6 +271,18 @@ void main() {
       expect(cameraController, contains('waiting_for_receipt_target'));
       expect(
         cameraController,
+        contains('resetExperimentalReceiptQualityGuidanceIfNeeded()'),
+      );
+      expect(
+        cameraController,
+        contains('currentGuidance.hasPrefix("Receipt has heavy shadows")'),
+      );
+      expect(
+        cameraController,
+        contains('currentGuidance.hasPrefix("Lens may be smudged")'),
+      );
+      expect(
+        cameraController,
         contains(
           'let hasReceiptTarget = !edgeDetectionEnabled || hasUsableLiveFramingBounds(framing)',
         ),

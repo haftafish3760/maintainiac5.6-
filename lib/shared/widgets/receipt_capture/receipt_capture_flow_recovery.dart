@@ -18,10 +18,9 @@ extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
       return _missingRecoveryPhotosResult(record, nativeCapabilities, options);
     }
 
-    final reviewPhotoPaths = [...options.initialPhotoPaths, ...photoPaths];
-    final firstRecoveredPhotoIndex = uniqueNormalizedReceiptPhotoPaths(
-      options.initialPhotoPaths,
-    ).length;
+    final initialPhotoPaths = _normalizedInitialReviewPhotoPaths(options);
+    final reviewPhotoPaths = [...initialPhotoPaths, ...photoPaths];
+    final firstRecoveredPhotoIndex = initialPhotoPaths.length;
     final recoveryDiagnostics = <String, Object?>{
       ...record.captureDiagnostics,
       'nativeRecoveryResumeStatus': 'resume_review_started',

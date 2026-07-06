@@ -203,6 +203,7 @@ internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
         if (!hasReceiptTarget) {
             latestMotionSignal = "waiting_for_receipt_target"
             latestReadabilitySignal = "waiting_for_receipt_target"
+            resetExperimentalReceiptQualityGuidanceIfNeeded()
             return
         }
         val currentGuidance = guidance.text.toString()
@@ -243,6 +244,20 @@ internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
         }
     } finally {
         image.close()
+    }
+}
+
+internal fun ReceiptCameraActivity.resetExperimentalReceiptQualityGuidanceIfNeeded() {
+    val currentGuidance = guidance.text.toString()
+    if (
+        currentGuidance.startsWith("Receipt quality needs another look") ||
+        currentGuidance.startsWith("Hold steady so the receipt text stays sharp") ||
+        currentGuidance.startsWith("Receipt looks dark") ||
+        currentGuidance.startsWith("Receipt is very bright") ||
+        currentGuidance.startsWith("Receipt has heavy shadows") ||
+        currentGuidance.startsWith("Lens may be smudged")
+    ) {
+        guidance.text = guidanceText()
     }
 }
 

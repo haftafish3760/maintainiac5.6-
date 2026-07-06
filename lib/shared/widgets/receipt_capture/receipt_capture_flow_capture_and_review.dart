@@ -203,15 +203,13 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
     photoCount: staged.photoPaths.length,
     options: options,
   );
+  final initialPhotoPaths = _normalizedInitialReviewPhotoPaths(options);
   final reviewResult = await Navigator.of(context)
       .push<ReceiptPhotoReviewResult>(
         appNativeRoute(
           context,
           ReceiptPhotoReviewScreen(
-            initialPhotoPaths: [
-              ...options.initialPhotoPaths,
-              ...staged.photoPaths,
-            ],
+            initialPhotoPaths: [...initialPhotoPaths, ...staged.photoPaths],
             initialSelectedIndex: _reviewInitialSelectedIndex(
               options: options,
               staged: staged,
@@ -242,13 +240,17 @@ int _reviewInitialSelectedIndex({
   required ReceiptCaptureFlowOptions options,
   required ReceiptNativeCaptureStagingResult staged,
 }) {
-  final initialPhotoCount = uniqueNormalizedReceiptPhotoPaths(
-    options.initialPhotoPaths,
-  ).length;
+  final initialPhotoCount = _normalizedInitialReviewPhotoPaths(options).length;
   final addedPhotoCount = staged.photoPaths.length;
   if (addedPhotoCount <= 0) return initialPhotoCount;
   final addedPhotoIndex = options.initialSelectedIndex
       .clamp(0, addedPhotoCount - 1)
       .toInt();
   return initialPhotoCount + addedPhotoIndex;
+}
+
+List<String> _normalizedInitialReviewPhotoPaths(
+  ReceiptCaptureFlowOptions options,
+) {
+  return uniqueNormalizedReceiptPhotoPaths(options.initialPhotoPaths);
 }
