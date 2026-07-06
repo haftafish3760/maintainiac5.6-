@@ -11,9 +11,15 @@ enum AppGeneratedPdfKind {
   estimate,
   invoice,
   expenseExport,
+  expenseReport,
+  dailyRecap,
+  weeklyRecap,
+  monthlyRecap,
+  extendedRecap,
   inventoryReport,
   maintenanceReport,
   customerStatement,
+  jobPacket,
 }
 
 class AppGeneratedPdfDocument {
@@ -45,9 +51,15 @@ class AppGeneratedPdfDocument {
       AppGeneratedPdfKind.estimate => 'Estimate',
       AppGeneratedPdfKind.invoice => 'Invoice',
       AppGeneratedPdfKind.expenseExport => 'Expense Export',
+      AppGeneratedPdfKind.expenseReport => 'Expense Report',
+      AppGeneratedPdfKind.dailyRecap => 'Daily Recap',
+      AppGeneratedPdfKind.weeklyRecap => 'Weekly Recap',
+      AppGeneratedPdfKind.monthlyRecap => 'Monthly Recap',
+      AppGeneratedPdfKind.extendedRecap => 'Extended Recap',
       AppGeneratedPdfKind.inventoryReport => 'Inventory Report',
       AppGeneratedPdfKind.maintenanceReport => 'Maintenance Report',
       AppGeneratedPdfKind.customerStatement => 'Customer Statement',
+      AppGeneratedPdfKind.jobPacket => 'Job Packet',
     };
   }
 
@@ -206,6 +218,8 @@ class AppGeneratedPdfValidationReport {
     }
     if (!_hasPdfHeader(bytes)) {
       issues.add('missing_pdf_header');
+    } else if (!_hasSupportedPdfVersion(bytes)) {
+      issues.add('unsupported_pdf_version');
     }
     if (!_hasPdfEndMarker(bytes)) {
       issues.add('missing_pdf_end_marker');
@@ -247,6 +261,9 @@ class AppGeneratedPdfValidationReport {
     if (hasIssue('missing_pdf_header') || hasIssue('missing_pdf_end_marker')) {
       return 'Maintainiac could not create that PDF because the generated file was incomplete.';
     }
+    if (hasIssue('unsupported_pdf_version')) {
+      return 'Maintainiac stopped this PDF because it used an unsupported PDF version.';
+    }
     if (hasIssue('multiple_pdf_end_markers')) {
       return 'Maintainiac stopped this PDF because the generated file had unexpected appended PDF revisions.';
     }
@@ -259,6 +276,19 @@ class AppGeneratedPdfValidationReport {
   }
 
   static bool _hasPdfHeader(Uint8List bytes) {
+    return _pdfHeaderOffset(bytes) != null;
+  }
+
+  static bool _hasSupportedPdfVersion(Uint8List bytes) {
+    final index = _pdfHeaderOffset(bytes);
+    if (index == null || bytes.length - index < 8) return false;
+    final major = bytes[index + 5] - 0x30;
+    final minor = bytes[index + 7] - 0x30;
+    if (major == 1) return minor >= 0 && minor <= 7;
+    return major == 2 && minor == 0;
+  }
+
+  static int? _pdfHeaderOffset(Uint8List bytes) {
     var index = 0;
     while (index < bytes.length && index < 32) {
       final value = bytes[index];
@@ -271,18 +301,20 @@ class AppGeneratedPdfValidationReport {
       }
       index += 1;
     }
-    if (bytes.length - index < 5) return false;
+    if (bytes.length - index < 5) return null;
     if (bytes[index] != 0x25 ||
         bytes[index + 1] != 0x50 ||
         bytes[index + 2] != 0x44 ||
         bytes[index + 3] != 0x46 ||
         bytes[index + 4] != 0x2D) {
-      return false;
+      return null;
     }
-    if (bytes.length - index < 8) return false;
+    if (bytes.length - index < 8) return null;
     return _isAsciiDigit(bytes[index + 5]) &&
-        bytes[index + 6] == 0x2E &&
-        _isAsciiDigit(bytes[index + 7]);
+            bytes[index + 6] == 0x2E &&
+            _isAsciiDigit(bytes[index + 7])
+        ? index
+        : null;
   }
 
   static bool _hasPdfEndMarker(Uint8List bytes) {

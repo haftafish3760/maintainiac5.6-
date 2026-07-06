@@ -1345,6 +1345,47 @@ void main() {
   );
 
   test(
+    'document export package import preview blocks unsupported PDF versions',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nImport proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final unsupportedPackage = await _rewritePackageProof(
+        sourcePackage: File(result.filePath),
+        destinationName: 'unsupported-version-import.zip',
+        entryName: 'job-packet.pdf',
+        replacementBytes: utf8.encode('%PDF-9.9\nUnsupported version\n%%EOF'),
+      );
+
+      await expectLater(
+        AppDocumentExportPackageWriter.previewZipPackageImport(
+          unsupportedPackage,
+        ),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('unsupported PDF version'),
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
     'document export package import preview blocks unsupported proof kinds',
     () async {
       final proof = await _writeProof(

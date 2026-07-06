@@ -140,8 +140,14 @@ class AppGeneratedPdfArchiveService {
       AppGeneratedPdfKind.customerStatement => AppDocumentKind.invoiceDocument,
       AppGeneratedPdfKind.maintenanceReport =>
         AppDocumentKind.maintenanceRecord,
+      AppGeneratedPdfKind.jobPacket => AppDocumentKind.jobContractorDocument,
       AppGeneratedPdfKind.receipt ||
       AppGeneratedPdfKind.expenseExport ||
+      AppGeneratedPdfKind.expenseReport ||
+      AppGeneratedPdfKind.dailyRecap ||
+      AppGeneratedPdfKind.weeklyRecap ||
+      AppGeneratedPdfKind.monthlyRecap ||
+      AppGeneratedPdfKind.extendedRecap ||
       AppGeneratedPdfKind.inventoryReport => AppDocumentKind.otherDocument,
     };
   }

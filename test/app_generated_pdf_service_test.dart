@@ -85,6 +85,68 @@ void main() {
     expect(document.bytes, isNotEmpty);
   });
 
+  test('generated PDF kinds cover Maintainiac document engine roadmap', () {
+    final labels = {
+      for (final kind in AppGeneratedPdfKind.values)
+        kind.name: AppGeneratedPdfDocument(
+          kind: kind,
+          title: kind.name,
+          fileName: '${kind.name}.pdf',
+          bytes: Uint8List.fromList('%PDF-1.7\n%%EOF'.codeUnits),
+          createdAt: DateTime(2026, 7, 6),
+        ).kindLabel,
+    };
+
+    expect(labels['receipt'], 'Receipt');
+    expect(labels['invoice'], 'Invoice');
+    expect(labels['estimate'], 'Estimate');
+    expect(labels['expenseExport'], 'Expense Export');
+    expect(labels['expenseReport'], 'Expense Report');
+    expect(labels['dailyRecap'], 'Daily Recap');
+    expect(labels['weeklyRecap'], 'Weekly Recap');
+    expect(labels['monthlyRecap'], 'Monthly Recap');
+    expect(labels['extendedRecap'], 'Extended Recap');
+    expect(labels['inventoryReport'], 'Inventory Report');
+    expect(labels['maintenanceReport'], 'Maintenance Report');
+    expect(labels['customerStatement'], 'Customer Statement');
+    expect(labels['jobPacket'], 'Job Packet');
+  });
+
+  test(
+    'generated PDF archive maps roadmap kinds to document ownership',
+    () async {
+      final store = AppDocumentStore.memory();
+      final service = AppGeneratedPdfArchiveService(store: store);
+      final jobPacket = await service.archive(
+        AppGeneratedPdfDocument(
+          kind: AppGeneratedPdfKind.jobPacket,
+          title: 'Job packet',
+          fileName: 'job_packet.pdf',
+          bytes: Uint8List.fromList('%PDF-1.7\nJob packet\n%%EOF'.codeUnits),
+          createdAt: DateTime(2026, 7, 6),
+          sourceModule: 'jobs',
+          sourceRecordId: 'job_packet',
+        ),
+      );
+      final report = await service.archive(
+        AppGeneratedPdfDocument(
+          kind: AppGeneratedPdfKind.monthlyRecap,
+          title: 'Monthly recap',
+          fileName: 'monthly_recap.pdf',
+          bytes: Uint8List.fromList('%PDF-1.7\nMonthly recap\n%%EOF'.codeUnits),
+          createdAt: DateTime(2026, 7, 6),
+          sourceModule: 'reports',
+          sourceRecordId: 'monthly_recap',
+        ),
+      );
+
+      expect(jobPacket.document.kind, AppDocumentKind.jobContractorDocument);
+      expect(report.document.kind, AppDocumentKind.otherDocument);
+      expect(store.recordById(jobPacket.document.id), isNotNull);
+      expect(store.recordById(report.document.id), isNotNull);
+    },
+  );
+
   test(
     'expense export summary PDF is deterministic for same snapshot',
     () async {
@@ -703,6 +765,41 @@ void main() {
     expect(shortHeader.validation.isValid, isFalse);
     expect(shortHeader.validation.hasIssue('missing_pdf_header'), isTrue);
     expect(normalHeaderAfterWhitespace.validation.isValid, isTrue);
+  });
+
+  test('generated PDF validation rejects unsupported PDF versions', () {
+    final oldVersion = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList('%PDF-0.9\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 6),
+    );
+    final futureVersion = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList('%PDF-9.9\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 6),
+    );
+    final supportedModern = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList('%PDF-2.0\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 6),
+    );
+
+    expect(oldVersion.validation.hasIssue('unsupported_pdf_version'), isTrue);
+    expect(
+      futureVersion.validation.hasIssue('unsupported_pdf_version'),
+      isTrue,
+    );
+    expect(
+      futureVersion.validation.userMessage,
+      contains('unsupported PDF version'),
+    );
+    expect(supportedModern.validation.isValid, isTrue);
   });
 
   test('generated PDF validation rejects encrypted PDF bytes', () {

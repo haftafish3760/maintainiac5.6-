@@ -7,5 +7,9 @@ abstract final class MaintainiacDocumentSourceModule {
   static const String invoices = 'invoices';
   static const String receipts = 'receipts';
   static const String estimates = 'estimates';
+  static const String jobs = 'jobs';
+  static const String customers = 'customers';
+  static const String maintenance = 'maintenance';
   static const String reports = 'reports';
+  static const String exports = 'exports';
 }

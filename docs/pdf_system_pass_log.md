@@ -2741,3 +2741,27 @@
   - Focused `dart analyze` on changed Document Engine/PDF safety files.
   - Focused Flutter regression bundle for document export manifests, document
     import/storage, PDF privacy, generated PDF service, and package writer.
+
+## Passes 291-294 - 2026-07-06 02:50 EDT - PDF version and roadmap coverage
+
+- Scope: generated PDF validation, package import preflight, and Document
+  Engine roadmap kind/source coverage only. No inventory, camera, native
+  capture, OCR engine, parser behavior, or fragile UI tests changed.
+- Added lines at QA checkpoint: 208.
+- Bundled work:
+  - Added generated PDF version validation for supported PDF 1.0-1.7 and 2.0
+    files, with unsupported-version user messaging.
+  - Reused generated PDF validation during document package proof import so
+    unsupported PDF versions are blocked before preview, extraction, or share.
+  - Added generated PDF kinds for expense reports, recap reports, and job
+    packets so the Document Engine can represent planned Maintainiac document
+    outputs without one-off model changes later.
+  - Expanded Document Engine source module constants for jobs, customers,
+    maintenance, reports, and exports.
+- Verification completed 2026-07-06 02:48 EDT:
+  - `dart format` on changed Dart files.
+  - `git diff --check`
+  - Focused `dart analyze` on changed generated PDF, package writer, archive,
+    and Document Engine entrypoint files.
+  - Focused Flutter regression bundle for generated PDF service, document
+    package writer, and Document Engine entrypoint contracts.

@@ -21,6 +21,13 @@ void main() {
     expect(AppPdfFormatters.money(12.3), r'$12.30');
     expect(MaintainiacDocumentSourceModule.expenses, 'expenses');
     expect(MaintainiacDocumentSourceModule.invoices, 'invoices');
+    expect(MaintainiacDocumentSourceModule.receipts, 'receipts');
+    expect(MaintainiacDocumentSourceModule.estimates, 'estimates');
+    expect(MaintainiacDocumentSourceModule.jobs, 'jobs');
+    expect(MaintainiacDocumentSourceModule.customers, 'customers');
+    expect(MaintainiacDocumentSourceModule.maintenance, 'maintenance');
+    expect(MaintainiacDocumentSourceModule.reports, 'reports');
+    expect(MaintainiacDocumentSourceModule.exports, 'exports');
     expect(AppPdfPrivacyPolicy.issueCodesForExport(bytes: const []), isEmpty);
     expect(
       document_engine.AppGeneratedPdfFileName.clean('invoice.pdf.exe'),

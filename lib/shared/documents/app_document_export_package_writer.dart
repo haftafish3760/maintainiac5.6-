@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
 import 'package:share_plus/share_plus.dart';
 
+import '../pdf/app_generated_pdf_models.dart';
 import '../pdf/app_pdf_privacy_policy.dart';
 import '../pdf/app_pdf_security_policy.dart';
 import '../storage/app_storage_guard.dart';
@@ -1164,6 +1166,20 @@ class AppDocumentExportPackageWriter {
       );
     }
     if (attachment.kindName != ReceiptAttachmentKind.pdf.name) return;
+    final validation = AppGeneratedPdfValidationReport.inspect(
+      Uint8List.fromList(entryBytes),
+    );
+    if (validation.hasIssue('missing_pdf_header') ||
+        validation.hasIssue('missing_pdf_end_marker')) {
+      throw const AppDocumentExportPackageException(
+        'Maintainiac stopped this document package import because a PDF proof is incomplete.',
+      );
+    }
+    if (validation.hasIssue('unsupported_pdf_version')) {
+      throw const AppDocumentExportPackageException(
+        'Maintainiac stopped this document package import because a PDF proof uses an unsupported PDF version.',
+      );
+    }
     final pdfText = latin1.decode(entryBytes, allowInvalid: true);
     if (AppPdfSecurityPolicy.containsPdfName(pdfText, 'encrypt')) {
       throw const AppDocumentExportPackageException(
