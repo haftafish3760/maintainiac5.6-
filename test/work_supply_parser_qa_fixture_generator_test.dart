@@ -58,12 +58,85 @@ void main() {
       expect(manifest['generatedCount'], 24);
       expect(manifest['parserCalls'], 0);
       expect(manifest['liveServicesAllowed'], isFalse);
+      expect(manifest['ocrCameraExpensesTouched'], isFalse);
       expect(manifest['generationSeed'], contains('fixture-generator-v1'));
       expect(manifest['riskTags'].toString(), contains('generated_batch'));
       expect(_riskTags(manifest), containsAll(_sourceModalityRiskTags));
       expect(fixtures.first['sourceType'], 'synthetic');
       expect(fixtures.first['reviewStatus'], 'generated-not-release-approved');
       expect(fixtures.any((entry) => entry['expectUnknown'] == true), isTrue);
+    },
+  );
+
+  test(
+    'fixture generator covers merchant-agnostic release-one families',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_fixture_generator_merchant_families_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+
+      final exit = await runWorkSupplyParserFixtureGenerator(
+        [
+          '--trade',
+          'plumbing',
+          '--scope',
+          'residential',
+          '--tier',
+          'core',
+          '--locale',
+          'en-US',
+          '--limit',
+          '170',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 0);
+      final generatedRoot = Directory(
+        '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+      );
+      final manifest =
+          jsonDecode(
+                File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+              )
+              as Map;
+      final merchants = (manifest['merchants'] as List)
+          .map((entry) => entry.toString())
+          .toSet();
+      final tags = _riskTags(manifest);
+
+      expect(
+        merchants,
+        containsAll({
+          'Tractor Supply',
+          'Northern Tool',
+          'Electrical Supply House',
+          'HVAC Supply House',
+          'Plumbing Supply House',
+          'Regional Supplier',
+          'Counter Sale',
+          'Local Hardware',
+          'unknown',
+        }),
+      );
+      expect(
+        tags,
+        containsAll({
+          'tractor_supply_style',
+          'northern_tool_style',
+          'electrical_supply_house_style',
+          'hvac_supply_house_style',
+          'plumbing_supply_house_style',
+          'regional_supplier_style',
+          'counter_sale_style',
+          'local_hardware_style',
+          'unknown_merchant_style',
+        }),
+      );
     },
   );
 
