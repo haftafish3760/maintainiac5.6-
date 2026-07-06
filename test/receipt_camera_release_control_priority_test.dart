@@ -103,6 +103,11 @@ void main() {
       expect(source, contains('Lens may be smudged'));
     }
     for (final source in [androidDiagnostics, iosDiagnostics]) {
+      expect(source, contains('motionBlurWarningEnabled'));
+      expect(source, contains('glareWarningEnabled'));
+      expect(source, contains('dirtyLensWarningEnabled'));
+      expect(source, contains('lowLightWarningEnabled'));
+      expect(source, contains('shadowWarningEnabled'));
       expect(source, contains('experimentalReceiptQualityCandidateSignal'));
       expect(source, contains('experimentalReceiptQualityCandidateCount'));
     }
