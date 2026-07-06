@@ -34,6 +34,7 @@ int runWorkSupplyParserQaGeneratedRunStatus(
   var unsafe = 0;
   var checkedTotal = 0;
   var parserCalls = 0;
+  var durationMs = 0;
 
   for (final trade in options.trades) {
     for (final scope in options.scopes) {
@@ -46,6 +47,7 @@ int runWorkSupplyParserQaGeneratedRunStatus(
           if (cell['localOnlySafe'] == false) unsafe++;
           checkedTotal += (cell['checked'] as int?) ?? 0;
           parserCalls += (cell['parserCalls'] as int?) ?? 0;
+          durationMs += (cell['durationMs'] as int?) ?? 0;
         }
       }
     }
@@ -62,6 +64,7 @@ int runWorkSupplyParserQaGeneratedRunStatus(
     'unsafeCells': unsafe,
     'checkedTotal': checkedTotal,
     'parserCalls': parserCalls,
+    'durationMs': durationMs,
     'requireComplete': options.requireComplete,
     'liveServicesAllowed': false,
     'writesProductionCatalog': false,
@@ -112,6 +115,7 @@ Map<String, Object?> _readCell(
   final failureCount = (json['failureCount'] as int?) ?? 0;
   final safety = _cellSafety(json);
   final parserCalls = _parserCallCount(json);
+  final durationMs = _durationMs(json);
   final chunkRunComplete = _chunkRunComplete(json);
   final nonZeroChunkExitCount = (json['nonZeroChunkExitCount'] as int?) ?? 0;
   final timedOutChunkCount = (json['timedOutChunkCount'] as int?) ?? 0;
@@ -136,6 +140,7 @@ Map<String, Object?> _readCell(
     checked: (json['checked'] as int?) ?? 0,
     failureCount: failureCount,
     parserCalls: parserCalls,
+    durationMs: durationMs,
     fixturePath: json['fixturePath']?.toString() ?? '',
   );
 }
@@ -177,6 +182,20 @@ int _parserCallCount(Map<String, Object?> json) {
   return total;
 }
 
+int _durationMs(Map<String, Object?> json) {
+  final direct = json['durationMs'];
+  if (direct is int && direct >= 0) return direct;
+  final chunkReports = json['chunkReports'];
+  if (chunkReports is! List) return 0;
+  var total = 0;
+  for (final chunk in chunkReports) {
+    if (chunk is! Map) continue;
+    final inline = chunk['durationMs'];
+    if (inline is int && inline >= 0) total += inline;
+  }
+  return total;
+}
+
 Map<String, Object?> _cell({
   required String trade,
   required String scope,
@@ -193,6 +212,7 @@ Map<String, Object?> _cell({
   int checked = 0,
   int failureCount = 0,
   int parserCalls = 0,
+  int durationMs = 0,
   String fixturePath = '',
 }) {
   return {
@@ -207,6 +227,7 @@ Map<String, Object?> _cell({
     'checked': checked,
     'failureCount': failureCount,
     'parserCalls': parserCalls,
+    'durationMs': durationMs,
     'fixturePath': fixturePath,
     'localOnlySafe': localOnlySafe,
     'safetyFlags': safetyFlags,

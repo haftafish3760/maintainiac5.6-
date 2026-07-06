@@ -18,11 +18,13 @@ void main() {
       'build/reports/plumbing/residential/core/en-US/reports/latest_generated_fixture_run.json',
       checked: 110,
       parserCalls: 126,
+      durationMs: 7000,
     );
     _writeRun(
       'build/reports/plumbing/residential/core/es-US/reports/latest_generated_fixture_run.json',
       checked: 110,
       parserCalls: 126,
+      durationMs: 9000,
     );
 
     final exit = runWorkSupplyParserQaGeneratedRunStatus(
@@ -52,6 +54,7 @@ void main() {
     expect(status['unsafeCells'], 0);
     expect(status['checkedTotal'], 220);
     expect(status['parserCalls'], 252);
+    expect(status['durationMs'], 16000);
     expect(status['liveServicesAllowed'], isFalse);
     final cells = status['cells'] as List;
     expect(cells, everyElement(containsPair('localOnlySafe', true)));
@@ -200,8 +203,18 @@ void main() {
         'checked': 20,
         'failureCount': 0,
         'chunkReports': [
-          {'checked': 10, 'failureCount': 0, 'reportPath': chunkOne.path},
-          {'checked': 10, 'failureCount': 0, 'reportPath': chunkTwo.path},
+          {
+            'checked': 10,
+            'failureCount': 0,
+            'durationMs': 1700,
+            'reportPath': chunkOne.path,
+          },
+          {
+            'checked': 10,
+            'failureCount': 0,
+            'durationMs': 1900,
+            'reportPath': chunkTwo.path,
+          },
         ],
         'liveServicesAllowed': false,
         'writesProductionCatalog': false,
@@ -233,7 +246,9 @@ void main() {
 
     expect(exit, 0);
     expect(status['parserCalls'], 36);
+    expect(status['durationMs'], 3600);
     expect(cells.single, containsPair('parserCalls', 36));
+    expect(cells.single, containsPair('durationMs', 3600));
     expect(cells.single, containsPair('localOnlySafe', true));
   });
 
@@ -382,6 +397,7 @@ void _writeRun(
   int? completedChunkCount,
   int? nonZeroChunkExitCount,
   int? timedOutChunkCount,
+  int? durationMs,
 }) {
   final file = File(path)..parent.createSync(recursive: true);
   final payload = <String, Object?>{
@@ -389,6 +405,7 @@ void _writeRun(
     'checked': checked,
     'failureCount': failureCount,
     'parserCalls': parserCalls,
+    'durationMs': ?durationMs,
     if (includeSafetyFields) ...{
       'liveServicesAllowed': liveServicesAllowed,
       'writesProductionCatalog': writesProductionCatalog,
