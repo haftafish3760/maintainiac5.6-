@@ -135,6 +135,13 @@ void main() {
     expect(actions, contains('ocr_source_retake_risk'));
     expect(flow, contains("'ocr_reads_prepared_source_not_saved_backup'"));
     expect(actions, contains("'ocr_reads_prepared_source_not_saved_backup'"));
+    expect(flow, contains('if (result.ocrReadsClearSourceBeforeSavedProof)'));
+    expect(
+      actions,
+      contains('if (result.ocrReadsClearSourceBeforeSavedProof)'),
+    );
+    expect(flow, contains('ocr_reads_saved_proof_fallback_requires_review'));
+    expect(actions, contains('ocr_reads_saved_proof_fallback_requires_review'));
     expect(flow, contains("'receiptReaderHandoffOcrSourcePolicy'"));
     expect(flow, contains("'receiptReaderHandoffOcrSourceOutcome'"));
     expect(flow, contains("'receiptReaderHandoffOcrSourceActionLabel'"));
@@ -224,6 +231,9 @@ void main() {
           'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
         ).readAsString() +
         await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_exit_actions.dart',
+        ).readAsString() +
+        await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_tray.dart',
         ).readAsString() +
         await File(
@@ -251,6 +261,9 @@ void main() {
         ).readAsString() +
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_mode_controls.dart',
         ).readAsString();
     final models =
         await File(
@@ -277,10 +290,10 @@ void main() {
     expect(commonControls, isNot(contains("normalized == 'Next: Details'")));
     expect(previewControls, contains("'Add Another Photo'"));
     expect(previewControls, contains('minimumSize: const Size(92, 36)'));
-    expect(controls, contains('Next opens receipt'));
+    expect(controls, contains('open receipt details'));
     expect(
       controls,
-      contains('details with item prices, totals, and business/personal use.'),
+      contains('store, date, total, and item prices are readable'),
     );
     expect(
       models,
@@ -288,7 +301,7 @@ void main() {
     );
     expect(models, contains(r'Next reviews $nextReviewSourceLabel'));
     expect(controls, isNot(contains('Read receipt')));
-    expect(controls, isNot(contains('Use this photo')));
+    expect(controls, contains('Use this photo, retake it'));
     expect(controls, isNot(contains('Saved copy')));
   });
 
@@ -296,6 +309,9 @@ void main() {
     final controls =
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_exit_actions.dart',
         ).readAsString() +
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_tray.dart',

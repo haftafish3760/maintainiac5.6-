@@ -10,7 +10,6 @@ List<String> _ocrSourceDocumentSignalsFor(
       const {};
   final signals = <String>{
     'receipt_ocr_source_photo',
-    'ocr_reads_prepared_source_not_saved_backup',
     'ocr_source_first_${_signalToken(result.ocrSourceFirstDecisionCode)}',
     'ocr_source_first_outcome_${_signalToken(result.ocrSourceFirstOutcome)}',
     'ocr_source_review_risk_${_signalToken(result.ocrSourceReviewRiskCode)}',
@@ -40,8 +39,10 @@ List<String> _ocrSourceDocumentSignalsFor(
   }
   if (result.usedSavedProofAsOcrSourceFallback) {
     signals.add('receipt_handoff_ocr_source_fallback_saved_proof');
+    signals.add('ocr_reads_saved_proof_fallback_requires_review');
   }
   if (result.ocrReadsClearSourceBeforeSavedProof) {
+    signals.add('ocr_reads_prepared_source_not_saved_backup');
     signals.add('ocr_reads_clear_source_before_saved_proof');
   }
   final scannerDecisionCodes = preparation['scannerDecisionCodes'];
