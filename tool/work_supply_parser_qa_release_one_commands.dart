@@ -4,7 +4,8 @@ import 'dart:io';
 const _usage =
     'dart run tool/work_supply_parser_qa_release_one_commands.dart '
     '[--output build/parser_qa_pipeline/release_one_commands.json] '
-    '[--limit 500] [--fixture-run-limit 50]';
+    '[--limit 500] [--fixture-run-limit 50] '
+    '[--min-generated-checked-per-cell 500]';
 
 const _trades = ['plumbing', 'electrical', 'hvac'];
 const _tiers = ['core', 'standard', 'professional', 'complete'];
@@ -32,8 +33,14 @@ int runWorkSupplyParserQaReleaseOneCommands(
   final limit = int.tryParse(_value(args, 'limit', '500')) ?? 500;
   final fixtureRunLimit =
       int.tryParse(_value(args, 'fixture-run-limit', '50')) ?? 50;
-  if (limit <= 0 || fixtureRunLimit <= 0) {
-    stderr.writeln('--limit and --fixture-run-limit must be positive.');
+  final minGeneratedCheckedPerCell =
+      int.tryParse(_value(args, 'min-generated-checked-per-cell', '500')) ??
+      500;
+  if (limit <= 0 || fixtureRunLimit <= 0 || minGeneratedCheckedPerCell <= 0) {
+    stderr.writeln(
+      '--limit, --fixture-run-limit, and '
+      '--min-generated-checked-per-cell must be positive.',
+    );
     return 64;
   }
   final commands = [
@@ -82,6 +89,27 @@ int runWorkSupplyParserQaReleaseOneCommands(
         .length,
     'limit': limit,
     'fixtureRunLimit': fixtureRunLimit,
+    'minGeneratedCheckedPerCell': minGeneratedCheckedPerCell,
+    'generatedFixtureStatusCommand': [
+      'dart',
+      'run',
+      'tool/work_supply_parser_qa_generated_run_status.dart',
+      '--report-root',
+      'build/parser_qa_background_queue/release-one-core-generated/cells',
+      '--trades',
+      _trades.join(','),
+      '--scopes',
+      'residential',
+      '--tiers',
+      'core,standard',
+      '--locales',
+      _locales.join(','),
+      '--require-complete',
+      '--min-checked-per-cell',
+      '$minGeneratedCheckedPerCell',
+      '--output',
+      'build/parser_qa_pipeline/release_one_generated_run_status.json',
+    ],
     'executionPolicy':
         'Commands are dry-run/safe by default; --execute must be added deliberately.',
     'liveServicesAllowed': false,

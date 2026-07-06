@@ -23,6 +23,7 @@ void main() {
       expect(summary['priorityCellCount'], 12);
       expect(summary['limit'], 250);
       expect(summary['fixtureRunLimit'], 25);
+      expect(summary['minGeneratedCheckedPerCell'], 500);
       expect(summary['liveServicesAllowed'], isFalse);
       expect(summary['writesProductionCatalog'], isFalse);
       expect(summary['firebaseWritesAllowed'], isFalse);
@@ -52,6 +53,15 @@ void main() {
         ),
         isTrue,
       );
+      final generatedStatusCommand =
+          summary['generatedFixtureStatusCommand'] as List;
+      expect(
+        generatedStatusCommand,
+        contains('tool/work_supply_parser_qa_generated_run_status.dart'),
+      );
+      expect(generatedStatusCommand, contains('--require-complete'));
+      expect(generatedStatusCommand, contains('--min-checked-per-cell'));
+      expect(generatedStatusCommand, contains('500'));
     },
   );
 
@@ -75,6 +85,19 @@ void main() {
     expect(summary['cellCount'], 24);
     expect(summary['priorityCellCount'], 12);
     expect(summary['executionPolicy'].toString(), contains('--execute'));
+  });
+
+  test('release-one command manifest rejects invalid coverage gates', () {
+    final stderr = _MemorySink();
+
+    final exit = runWorkSupplyParserQaReleaseOneCommands(
+      const ['--min-generated-checked-per-cell', '0'],
+      stdout: _MemorySink(),
+      stderr: stderr,
+    );
+
+    expect(exit, 64);
+    expect(stderr.content, contains('--min-generated-checked-per-cell'));
   });
 }
 
