@@ -44,7 +44,7 @@ void main() {
           'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
           'lastFocusStatus': 'continuous_autofocus_configured',
           'readabilityGuidancePolicy':
-              'live_readability_guides_blur_glare_light_edges_and_text_size',
+              'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
           'receiptCameraQualityBaseline': true,
           'pinchZoomControlExpected': true,
           'pinchZoomControlActual': 'ready',
@@ -128,7 +128,8 @@ void main() {
       1,
     );
     expect(
-      result.nativeCameraUiHealthCounts['readability_guidance_live_ready'],
+      result
+          .nativeCameraUiHealthCounts['readability_guidance_neutral_workflow_ready'],
       1,
     );
     expect(
@@ -195,7 +196,7 @@ void main() {
     );
     expect(
       result
-          .receiptReaderHandoffCounts['native_camera_ui_readability_guidance_live_ready'],
+          .receiptReaderHandoffCounts['native_camera_ui_readability_guidance_neutral_workflow_ready'],
       1,
     );
     expect(
@@ -239,7 +240,7 @@ void main() {
     );
     expect(
       attachments.single.documentSignals,
-      contains('native_camera_ui_readability_guidance_live_ready'),
+      contains('native_camera_ui_readability_guidance_neutral_workflow_ready'),
     );
     expect(
       attachments.single.documentSignals,

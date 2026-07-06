@@ -32,11 +32,11 @@ extension ReceiptCameraViewController {
     pinchZoomEnabled = arguments["pinchZoomEnabled"] as? Bool ?? true
     exposureSliderEnabled = arguments["exposureSliderEnabled"] as? Bool ?? true
     exposureResetEnabled = arguments["exposureResetEnabled"] as? Bool ?? true
-    lowLightWarningEnabled = arguments["lowLightWarningEnabled"] as? Bool ?? true
-    glareWarningEnabled = arguments["glareWarningEnabled"] as? Bool ?? true
-    dirtyLensWarningEnabled = arguments["dirtyLensWarningEnabled"] as? Bool ?? true
-    motionBlurWarningEnabled = arguments["motionBlurWarningEnabled"] as? Bool ?? true
-    shadowWarningEnabled = arguments["shadowWarningEnabled"] as? Bool ?? true
+    lowLightWarningEnabled = arguments["lowLightWarningEnabled"] as? Bool ?? false
+    glareWarningEnabled = arguments["glareWarningEnabled"] as? Bool ?? false
+    dirtyLensWarningEnabled = arguments["dirtyLensWarningEnabled"] as? Bool ?? false
+    motionBlurWarningEnabled = arguments["motionBlurWarningEnabled"] as? Bool ?? false
+    shadowWarningEnabled = arguments["shadowWarningEnabled"] as? Bool ?? false
     tooFarTooCloseWarningEnabled = arguments["tooFarTooCloseWarningEnabled"] as? Bool ?? true
     receiptFullyVisibleWarningEnabled = arguments["receiptFullyVisibleWarningEnabled"] as? Bool ?? true
     textTooSmallWarningEnabled = arguments["textTooSmallWarningEnabled"] as? Bool ?? true

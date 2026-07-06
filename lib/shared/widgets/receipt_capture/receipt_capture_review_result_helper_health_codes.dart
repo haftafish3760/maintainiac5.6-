@@ -114,8 +114,8 @@ List<String> _nativeFocusReadabilityHealthCodes(
   }
 
   if (readabilityPolicy ==
-      'live_readability_guides_blur_glare_light_edges_and_text_size') {
-    codes.add('readability_guidance_live_ready');
+      'live_receipt_workflow_guidance_only_unproven_quality_claims_off') {
+    codes.add('readability_guidance_neutral_workflow_ready');
   } else if (readabilityPolicy != 'unknown') {
     codes.add('readability_guidance_live_missing');
   }

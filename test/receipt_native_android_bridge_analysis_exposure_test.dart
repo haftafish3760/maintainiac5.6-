@@ -17,7 +17,6 @@ void main() {
       cameraActivity,
       contains('OCR reads the temporary full-quality photo first.'),
     );
-    expect(cameraActivity, contains('OCR reads temp full-quality first'));
     expect(cameraActivity, isNot(contains('OCR reads original first')));
     expect(
       cameraActivity,
@@ -53,11 +52,11 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('intent.getBooleanExtra("shadowWarningEnabled", true)'),
+      contains('intent.getBooleanExtra("shadowWarningEnabled", false)'),
     );
     expect(
       cameraActivity,
-      contains('intent.getBooleanExtra("dirtyLensWarningEnabled", true)'),
+      contains('intent.getBooleanExtra("dirtyLensWarningEnabled", false)'),
     );
     expect(
       cameraActivity,
@@ -115,6 +114,16 @@ void main() {
       contains('autoAdjustExposureForLiveFrame(brightness, now, framing)'),
     );
     expect(cameraActivity, contains('waiting_for_receipt_target'));
+    expect(
+      cameraActivity,
+      contains('var hasReceiptTarget = !edgeDetectionEnabled'),
+    );
+    expect(
+      cameraActivity,
+      contains(
+        'if (!hasReceiptTarget) {\n            latestMotionSignal = "waiting_for_receipt_target"',
+      ),
+    );
     expect(cameraActivity, contains('brightness <= 150.0'));
     expect(cameraActivity, contains('brightness <= 138.0'));
     expect(cameraActivity, contains('brightness <= 104.0'));

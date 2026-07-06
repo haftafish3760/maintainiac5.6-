@@ -72,11 +72,11 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var liveAnalysisEnabled = true
     internal var edgeDetectionEnabled = true
     internal var edgeOverlayEnabled = true
-    internal var lowLightWarningEnabled = true
-    internal var glareWarningEnabled = true
-    internal var dirtyLensWarningEnabled = true
-    internal var motionBlurWarningEnabled = true
-    internal var shadowWarningEnabled = true
+    internal var lowLightWarningEnabled = false
+    internal var glareWarningEnabled = false
+    internal var dirtyLensWarningEnabled = false
+    internal var motionBlurWarningEnabled = false
+    internal var shadowWarningEnabled = false
     internal var tooFarTooCloseWarningEnabled = true
     internal var receiptFullyVisibleWarningEnabled = true
     internal var textTooSmallWarningEnabled = true
@@ -120,7 +120,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var focusStrategyPolicy = "continuous_focus_primary_no_tap_assist"
     internal var continuousFocusEnabled = true
     internal var readabilityGuidancePolicy =
-        "live_readability_guides_blur_glare_light_edges_and_text_size"
+        "live_receipt_workflow_guidance_only_unproven_quality_claims_off"
     internal var receiptCameraQualityBaseline = true
     internal var zoomGesturePolicy = "cameraX_zoom_ratio_clamped_to_capability"
     internal var autoCapturePolicy = "off_by_default_manual_shutter_primary"

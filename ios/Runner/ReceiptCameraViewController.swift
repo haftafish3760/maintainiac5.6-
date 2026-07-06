@@ -63,11 +63,11 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var liveAnalysisEnabled = true
   var edgeDetectionEnabled = true
   var edgeOverlayEnabled = true
-  var lowLightWarningEnabled = true
-  var glareWarningEnabled = true
-  var dirtyLensWarningEnabled = true
-  var motionBlurWarningEnabled = true
-  var shadowWarningEnabled = true
+  var lowLightWarningEnabled = false
+  var glareWarningEnabled = false
+  var dirtyLensWarningEnabled = false
+  var motionBlurWarningEnabled = false
+  var shadowWarningEnabled = false
   var tooFarTooCloseWarningEnabled = true
   var receiptFullyVisibleWarningEnabled = true
   var textTooSmallWarningEnabled = true
@@ -102,7 +102,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var tapToFocusPolicy = "continuous_focus_primary_no_tap_focus"
   var focusStrategyPolicy = "continuous_focus_primary_no_tap_assist"
   var continuousFocusEnabled = true
-  var readabilityGuidancePolicy = "live_readability_guides_blur_glare_light_edges_and_text_size"
+  var readabilityGuidancePolicy = "live_receipt_workflow_guidance_only_unproven_quality_claims_off"
   var receiptCameraQualityBaseline = true
   var zoomGesturePolicy = "avfoundation_video_zoom_factor_clamped_to_capability"
   var autoCapturePolicy = "off_by_default_manual_shutter_primary"

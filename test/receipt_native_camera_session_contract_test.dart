@@ -160,7 +160,7 @@ void main() {
     );
     expect(
       config.readabilityGuidancePolicy,
-      'live_readability_guides_blur_glare_light_edges_and_text_size',
+      'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
     );
     expect(config.zoomGesturePolicy, 'pinch_zoom_receipt_preview_1.0_to_8.0');
     expect(
@@ -173,12 +173,14 @@ void main() {
       'manual_shutter',
       'review_next',
       'receipt_guidance',
+      'native_camera_baseline',
       'safe_close',
       'pinch_zoom',
       'brightness_slider',
       'brightness_reset',
       'auto_brightness_assist',
       'continuous_focus',
+      'manual_focus_optional_future',
       'edge_overlay',
     ]);
     expect(config.focusLockEnabled, isFalse);
@@ -338,8 +340,10 @@ void main() {
         'manual_shutter',
         'review_next',
         'receipt_guidance',
+        'native_camera_baseline',
         'safe_close',
         'focus_readability_review',
+        'manual_focus_optional_future',
         'edge_overlay',
       ]);
       expect(config.focusLockEnabled, isFalse);

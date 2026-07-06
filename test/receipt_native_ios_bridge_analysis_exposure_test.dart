@@ -148,11 +148,11 @@ void main() {
       expect(cameraController, contains('orientationCorrectionEnabled'));
       expect(
         cameraController,
-        contains('arguments["shadowWarningEnabled"] as? Bool ?? true'),
+        contains('arguments["shadowWarningEnabled"] as? Bool ?? false'),
       );
       expect(
         cameraController,
-        contains('arguments["dirtyLensWarningEnabled"] as? Bool ?? true'),
+        contains('arguments["dirtyLensWarningEnabled"] as? Bool ?? false'),
       );
       expect(
         cameraController,
@@ -269,6 +269,18 @@ void main() {
       expect(cameraController, contains('autoAdjustExposureForLiveFrame('));
       expect(cameraController, contains('framing: framing'));
       expect(cameraController, contains('waiting_for_receipt_target'));
+      expect(
+        cameraController,
+        contains(
+          'let hasReceiptTarget = !edgeDetectionEnabled || hasUsableLiveFramingBounds(framing)',
+        ),
+      );
+      expect(
+        cameraController,
+        contains(
+          'if !hasReceiptTarget {\n      latestMotionSignal = "waiting_for_receipt_target"',
+        ),
+      );
       expect(cameraController, contains('brightness <= 150'));
       expect(cameraController, contains('brightness <= 138'));
       expect(cameraController, contains('brightness <= 104'));

@@ -30,6 +30,12 @@ extension ReceiptCameraViewController {
       nowMs: nowMs,
       framing: framing
     )
+    let hasReceiptTarget = !edgeDetectionEnabled || hasUsableLiveFramingBounds(framing)
+    if !hasReceiptTarget {
+      latestMotionSignal = "waiting_for_receipt_target"
+      latestReadabilitySignal = "waiting_for_receipt_target"
+      return
+    }
     let currentGuidance = guidanceLabel.text ?? ""
     if !brightness.isFinite || !motionScore.isFinite || !shadowScore.isFinite {
       latestMotionSignal = "unknown"

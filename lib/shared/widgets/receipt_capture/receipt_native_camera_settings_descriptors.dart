@@ -88,21 +88,22 @@ const _receiptNativeCameraSettingDescriptors = <ReceiptNativeCameraSettingDescri
   ),
   ReceiptNativeCameraSettingDescriptor(
     id: 'readability_warnings',
-    label: 'Receipt readability warnings',
+    label: 'Experimental readability warnings',
     description:
-        'Warn about blur, glare, low light, shadows, tiny text, or missing receipt sections.',
+        'Future detector hooks for blur, glare, low light, and shadows. Off by default until proven by QA; neutral receipt workflow guidance stays on.',
     group: ReceiptNativeSettingGroup.receiptGuidance,
     type: ReceiptNativeSettingType.toggle,
-    defaultEnabled: true,
+    defaultEnabled: false,
+    advanced: true,
   ),
   ReceiptNativeCameraSettingDescriptor(
     id: 'dirty_lens_warning',
-    label: 'Dirty lens warning',
+    label: 'Experimental dirty lens warning',
     description:
-        'Warn when the camera view looks hazy enough that receipt text may not read clearly.',
+        'Future detector hook for lens haze. Off by default until proven by QA; the phone camera still handles normal focus and exposure.',
     group: ReceiptNativeSettingGroup.receiptGuidance,
     type: ReceiptNativeSettingType.toggle,
-    defaultEnabled: true,
+    defaultEnabled: false,
     advanced: true,
   ),
   ReceiptNativeCameraSettingDescriptor(

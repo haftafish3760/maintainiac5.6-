@@ -43,7 +43,7 @@ void main() {
           'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
           'lastFocusStatus': 'continuous_autofocus_configured',
           'readabilityGuidancePolicy':
-              'live_readability_guides_blur_glare_light_edges_and_text_size',
+              'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
           'receiptCameraQualityBaseline': true,
         },
       },
@@ -150,7 +150,7 @@ void main() {
           'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
           'lastFocusStatus': 'continuous_autofocus_unavailable',
           'readabilityGuidancePolicy':
-              'live_readability_guides_blur_glare_light_edges_and_text_size',
+              'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
           'receiptCameraQualityBaseline': true,
         },
       },

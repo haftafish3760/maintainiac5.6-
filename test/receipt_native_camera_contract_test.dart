@@ -31,7 +31,7 @@ void main() {
       );
       expect(
         settings.receiptWorkflowControlPriorityPolicy,
-        'manual_shutter_torch_brightness_guidance_first',
+        'manual_shutter_torch_neutral_receipt_workflow_guidance_first',
       );
       expect(
         settings.torchControlPolicy,
@@ -52,7 +52,11 @@ void main() {
       expect(settings.pinchZoomEnabled, isTrue);
       expect(settings.autoExposureAssistEnabled, isTrue);
       expect(settings.edgeDetectionEnabled, isTrue);
-      expect(settings.dirtyLensWarningEnabled, isTrue);
+      expect(settings.motionBlurWarningEnabled, isFalse);
+      expect(settings.glareWarningEnabled, isFalse);
+      expect(settings.dirtyLensWarningEnabled, isFalse);
+      expect(settings.lowLightWarningEnabled, isFalse);
+      expect(settings.shadowWarningEnabled, isFalse);
       expect(settings.previousSectionGhostGuideEnabled, isTrue);
       expect(settings.saveOriginalTemporarily, isTrue);
       expect(settings.queueAcceptedCaptureLocally, isTrue);
@@ -103,9 +107,9 @@ void main() {
     final dirtyLens = descriptors.singleWhere(
       (descriptor) => descriptor.id == 'dirty_lens_warning',
     );
-    expect(dirtyLens.defaultEnabled, isTrue);
+    expect(dirtyLens.defaultEnabled, isFalse);
     expect(dirtyLens.advanced, isTrue);
-    expect(dirtyLens.description, contains('hazy'));
+    expect(dirtyLens.description, contains('Off by default until proven'));
 
     final edgeDetection = descriptors.singleWhere(
       (descriptor) => descriptor.id == 'edge_detection',
@@ -118,15 +122,15 @@ void main() {
     final readabilityWarnings = descriptors.singleWhere(
       (descriptor) => descriptor.id == 'readability_warnings',
     );
-    expect(readabilityWarnings.defaultEnabled, isTrue);
+    expect(readabilityWarnings.defaultEnabled, isFalse);
+    expect(readabilityWarnings.advanced, isTrue);
     expect(readabilityWarnings.description, contains('blur'));
     expect(readabilityWarnings.description, contains('glare'));
     expect(readabilityWarnings.description, contains('low light'));
     expect(readabilityWarnings.description, contains('shadows'));
-    expect(readabilityWarnings.description, contains('tiny text'));
     expect(
       readabilityWarnings.description,
-      contains('missing receipt sections'),
+      contains('neutral receipt workflow guidance stays on'),
     );
 
     final longReceipt = descriptors.singleWhere(
@@ -187,7 +191,7 @@ void main() {
     );
     expect(
       config.receiptWorkflowControlPriorityPolicy,
-      'manual_shutter_torch_brightness_guidance_first',
+      'manual_shutter_torch_neutral_receipt_workflow_guidance_first',
     );
     expect(
       config.torchControlPolicy,
@@ -236,7 +240,7 @@ void main() {
     expect(config.tapToFocusPolicy, 'continuous_focus_primary_no_tap_focus');
     expect(
       config.readabilityGuidancePolicy,
-      'live_readability_guides_blur_glare_light_edges_and_text_size',
+      'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
     );
   });
 

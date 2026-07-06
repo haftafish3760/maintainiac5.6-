@@ -22,11 +22,11 @@ class ReceiptNativeCameraSettings {
     this.edgeDetectionEnabled = true,
     this.edgeOverlayEnabled = true,
     this.perspectiveCorrectionEnabled = true,
-    this.motionBlurWarningEnabled = true,
-    this.glareWarningEnabled = true,
-    this.dirtyLensWarningEnabled = true,
-    this.lowLightWarningEnabled = true,
-    this.shadowWarningEnabled = true,
+    this.motionBlurWarningEnabled = false,
+    this.glareWarningEnabled = false,
+    this.dirtyLensWarningEnabled = false,
+    this.lowLightWarningEnabled = false,
+    this.shadowWarningEnabled = false,
     this.tooFarTooCloseWarningEnabled = true,
     this.receiptFullyVisibleWarningEnabled = true,
     this.textTooSmallWarningEnabled = true,
@@ -95,18 +95,11 @@ class ReceiptNativeCameraSettings {
   bool get hasExposureAndSharpnessGuidance =>
       autoExposureAssistEnabled &&
       exposureSliderEnabled &&
-      exposureResetEnabled &&
-      motionBlurWarningEnabled &&
-      lowLightWarningEnabled &&
-      glareWarningEnabled;
+      exposureResetEnabled;
 
   bool get hasReceiptReadabilityGuidance =>
       liveYuvAnalysisEnabled &&
       edgeDetectionEnabled &&
-      motionBlurWarningEnabled &&
-      glareWarningEnabled &&
-      lowLightWarningEnabled &&
-      shadowWarningEnabled &&
       tooFarTooCloseWarningEnabled &&
       receiptFullyVisibleWarningEnabled &&
       textTooSmallWarningEnabled;
@@ -120,7 +113,7 @@ class ReceiptNativeCameraSettings {
       'no_iso_raw_white_balance_lock_exposure_lock_or_tap_focus';
 
   String get receiptWorkflowControlPriorityPolicy =>
-      'manual_shutter_torch_brightness_guidance_first';
+      'manual_shutter_torch_neutral_receipt_workflow_guidance_first';
 
   String get torchControlPolicy =>
       'show_receipt_light_when_device_supports_torch';
