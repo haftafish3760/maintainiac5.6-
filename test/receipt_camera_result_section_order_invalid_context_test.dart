@@ -248,6 +248,11 @@ void main() {
           .privacySafeReceiptReaderHandoffMetadata['receiptSectionOrderReviewActionLabel'],
       'Review the retaken receipt section order before OCR reads the receipt. Photo 2 to 3 still needs review.',
     );
+    expect(
+      result
+          .privacySafeReceiptReaderHandoffMetadata['receiptSectionOrderFailedPairLabel'],
+      'Photo 2 to 3',
+    );
   });
 
   test('retake metadata missing section numbers requires order review', () {
@@ -347,5 +352,97 @@ void main() {
       1,
     );
     expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
+  });
+
+  test('invalid insert review keeps later failed stitch pair explicit', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const [
+        '/tmp/top-proof.jpg',
+        '/tmp/middle-proof.jpg',
+        '/tmp/insert-proof.jpg',
+      ],
+      ocrSourcePhotoPaths: const [
+        '/tmp/top-ocr.jpg',
+        '/tmp/middle-ocr.jpg',
+        '/tmp/insert-ocr.jpg',
+      ],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.fallback(
+        inputPaths: [
+          '/tmp/top-ocr.jpg',
+          '/tmp/middle-ocr.jpg',
+          '/tmp/insert-ocr.jpg',
+        ],
+        warning: 'Inserted section order still needs review.',
+        fallbackReasonCode: 'overlap_confidence_low',
+        failedPairIndex: 1,
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/insert-proof.jpg': {
+          'receiptInsertAfterAnchorSectionNumber': 2,
+          'receiptInsertAfterOffset': 2,
+          'receiptInsertFinalSectionNumber': 3,
+          'receiptInsertPreservedAnchorSlot': true,
+          'receiptInsertOrderPolicy':
+              'insert_new_sections_after_selected_anchor',
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderOutcome, 'insert_order_invalid');
+    expect(
+      result.acceptedPhotoHandoffActionLabel,
+      'Review the inserted receipt section order before OCR reads the receipt. Photo 2 to 3 still needs review.',
+    );
+    expect(
+      result
+          .privacySafeReceiptReaderHandoffMetadata['receiptSectionOrderFailedPairLabel'],
+      'Photo 2 to 3',
+    );
+  });
+
+  test('invalid manual reorder review keeps later failed stitch pair explicit', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const [
+        '/tmp/top-proof.jpg',
+        '/tmp/bottom-proof.jpg',
+        '/tmp/middle-proof.jpg',
+      ],
+      ocrSourcePhotoPaths: const [
+        '/tmp/top-ocr.jpg',
+        '/tmp/bottom-ocr.jpg',
+        '/tmp/middle-ocr.jpg',
+      ],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.fallback(
+        inputPaths: [
+          '/tmp/top-ocr.jpg',
+          '/tmp/bottom-ocr.jpg',
+          '/tmp/middle-ocr.jpg',
+        ],
+        warning: 'Manual order still needs review.',
+        fallbackReasonCode: 'overlap_confidence_low',
+        failedPairIndex: 1,
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/middle-proof.jpg': {
+          'receiptManualReorderOriginalSectionNumber': 2,
+          'receiptManualReorderFinalSectionNumber': 5,
+          'receiptManualReorderDirection': 'later',
+          'receiptManualReorderPreservedPhotoPath': true,
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderOutcome, 'manual_reorder_invalid');
+    expect(
+      result.acceptedPhotoHandoffActionLabel,
+      'Review the manually reordered receipt sections before OCR reads the receipt. Photo 2 to 3 still needs review.',
+    );
+    expect(
+      result
+          .privacySafeReceiptReaderHandoffMetadata['receiptSectionOrderFailedPairLabel'],
+      'Photo 2 to 3',
+    );
   });
 }

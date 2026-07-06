@@ -144,6 +144,9 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
           receiptSectionOrderReviewActionCode,
       'receiptSectionOrderReviewActionLabel':
           receiptSectionOrderReviewActionLabel,
+      if (receiptSectionOrderNeedsReview &&
+          stitchResult.failedPairLabel.isNotEmpty)
+        'receiptSectionOrderFailedPairLabel': stitchResult.failedPairLabel,
       ...privacySafeReceiptBrainInstallMetadata,
       if (nativeCloseCapturedPhotoOutcomeCounts.isNotEmpty)
         'nativeCloseCapturedPhotoOutcomeCounts':
