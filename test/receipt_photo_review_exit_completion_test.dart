@@ -15,11 +15,10 @@ void main() {
     expect(saveActions, contains('_confirmReceiptReviewExit'));
     expect(saveActions, contains('final navigator = Navigator.of(context);'));
     expect(reviewScreen, contains('_coverageDecisionForPhotoPath(photoPath)'));
-    expect(reviewScreen, contains("return 'Next: Details If Complete';"));
+    expect(reviewScreen, contains("'Use Photo'"));
     expect(saveActions, contains('_selectedExitCoverageDecision()'));
-    expect(saveActions, contains('_exitContinueLabelFor(coverageDecision)'));
     expect(saveActions, contains("return 'Add Bottom Section';"));
-    expect(saveActions, contains("return 'Next: Details If Complete';"));
+    expect(saveActions, contains('decision.shouldPromptForMorePhotos'));
     expect(
       saveActions,
       contains(

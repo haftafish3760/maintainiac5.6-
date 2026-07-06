@@ -252,6 +252,12 @@ void main() {
       contains('final pickedPaths = _pickedReceiptPhotoUniquePaths(paths);'),
     );
     expect(saveActions, contains('paths: pickedPaths'));
+    expect(saveActions, contains('paths = List<String>.unmodifiable(paths)'));
+    expect(
+      saveActions,
+      contains('Map<String, ReceiptPhotoQualityCheck>.unmodifiable'),
+    );
+    expect(saveActions, contains('_freezePickedReceiptDiagnostics('));
     expect(saveActions, contains('_pickedReceiptDiagnosticsForPaths('));
     expect(
       saveActions,

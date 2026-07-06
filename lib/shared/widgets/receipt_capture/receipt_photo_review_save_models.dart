@@ -1,12 +1,18 @@
 part of 'receipt_photo_review_screen.dart';
 
 class _PickedReceiptPhotos {
-  const _PickedReceiptPhotos({
-    required this.paths,
-    required this.qualityChecksByPath,
-    required this.captureDiagnosticsByPath,
+  _PickedReceiptPhotos({
+    required List<String> paths,
+    required Map<String, ReceiptPhotoQualityCheck> qualityChecksByPath,
+    required Map<String, Map<String, Object?>> captureDiagnosticsByPath,
     this.wasCanceled = false,
-  });
+  }) : paths = List<String>.unmodifiable(paths),
+       qualityChecksByPath = Map<String, ReceiptPhotoQualityCheck>.unmodifiable(
+         qualityChecksByPath,
+       ),
+       captureDiagnosticsByPath = _freezePickedReceiptDiagnostics(
+         captureDiagnosticsByPath,
+       );
 
   const _PickedReceiptPhotos.empty()
     : paths = const [],
@@ -73,7 +79,7 @@ class _PickedReceiptPhotos {
     return _PickedReceiptPhotos(
       paths: pickedPaths,
       qualityChecksByPath: const {},
-      captureDiagnosticsByPath: {
+      captureDiagnosticsByPath: _freezePickedReceiptDiagnostics({
         for (final path in pickedPaths)
           path: {
             'captureFlow': 'phone_camera_backup_receipt_photo',
@@ -108,7 +114,7 @@ class _PickedReceiptPhotos {
             'nativeCaptureFailureStage': 'maintainiac_camera_unavailable',
             'nativeCaptureRecoveryAction': 'review_phone_camera_receipt_photo',
           },
-      },
+      }),
       wasCanceled: false,
     );
   }
@@ -117,6 +123,16 @@ class _PickedReceiptPhotos {
   final Map<String, ReceiptPhotoQualityCheck> qualityChecksByPath;
   final Map<String, Map<String, Object?>> captureDiagnosticsByPath;
   final bool wasCanceled;
+}
+
+Map<String, Map<String, Object?>> _freezePickedReceiptDiagnostics(
+  Map<String, Map<String, Object?>> diagnosticsByPath,
+) {
+  if (diagnosticsByPath.isEmpty) return const {};
+  return Map<String, Map<String, Object?>>.unmodifiable({
+    for (final entry in diagnosticsByPath.entries)
+      entry.key: Map<String, Object?>.unmodifiable(entry.value),
+  });
 }
 
 List<String> _pickedReceiptPhotoUniquePaths(List<String> paths) {
