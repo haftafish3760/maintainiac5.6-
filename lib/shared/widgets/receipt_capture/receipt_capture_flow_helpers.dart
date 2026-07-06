@@ -44,9 +44,9 @@ Map<String, Map<String, Object?>> _withReviewOpeningDiagnostics(
   required int photoCount,
   required ReceiptCaptureFlowOptions options,
 }) {
-  return {
+  return Map<String, Map<String, Object?>>.unmodifiable({
     for (final entry in diagnosticsByPath.entries)
-      entry.key: {
+      entry.key: Map<String, Object?>.unmodifiable({
         ...entry.value,
         'receiptReviewOpeningRoute': route,
         'receiptReviewOpeningSource': source,
@@ -62,8 +62,8 @@ Map<String, Map<String, Object?>> _withReviewOpeningDiagnostics(
             'receipt_details_store_date_total_tax_items',
         'receiptReviewOpeningPhotoCount': photoCount,
         ..._previousSectionGuideDiagnostics(options),
-      },
-  };
+      }),
+  });
 }
 
 Map<String, Object?> _diagnostics({
@@ -74,7 +74,7 @@ Map<String, Object?> _diagnostics({
   required ReceiptCaptureFlowOptions options,
   Map<String, Object?> extraMetadata = const {},
 }) {
-  return {
+  return Map<String, Object?>.unmodifiable({
     'captureFlow': 'maintainiac_shared_receipt_camera',
     'primaryCaptureFlow': 'maintainiac_native_receipt_camera',
     'maintainiacCustomCameraPrimary': true,
@@ -92,7 +92,7 @@ Map<String, Object?> _diagnostics({
     'nativeCameraHasRearCamera': nativeCapabilities.hasRearCamera,
     ..._previousSectionGuideDiagnostics(options),
     ...extraMetadata,
-  };
+  });
 }
 
 Map<String, Object?> _previousSectionGuideDiagnostics(
@@ -121,7 +121,7 @@ Map<String, Object?> _previousSectionGuideDiagnostics(
     options.previousSectionGhostOpacity,
   );
   final missingBottomAndTotals = reason == 'missing_bottom_edge_and_totals';
-  return {
+  return Map<String, Object?>.unmodifiable({
     'previousSectionGuideRequested': reason != null || guidePhotoPath != null,
     'previousSectionGuidePhotoAvailable': guidePhotoPath != null,
     'previousSectionReasonCode': reason ?? 'none',
@@ -144,7 +144,7 @@ Map<String, Object?> _previousSectionGuideDiagnostics(
         : guidePhotoPath == null
         ? 'reason_without_prior_photo'
         : 'ready_with_previous_photo',
-  };
+  });
 }
 
 double _boundedPreviousSectionGhostFraction(double? value) {

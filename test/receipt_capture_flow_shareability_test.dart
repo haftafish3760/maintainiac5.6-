@@ -230,6 +230,12 @@ void main() {
     expect(source, contains('ReceiptPhotoReviewScreen'));
     expect(source, contains('reviewDepth:'));
     expect(source, contains('options.forceReviewDepth'));
+    expect(
+      source,
+      contains('Map<String, Map<String, Object?>>.unmodifiable({'),
+    );
+    expect(source, contains('entry.key: Map<String, Object?>.unmodifiable({'));
+    expect(source, contains('return Map<String, Object?>.unmodifiable({'));
     expect(source, isNot(contains("screens/expenses")));
     expect(source, isNot(contains("screens/work_supplies")));
     expect(source, isNot(contains("screens/maintenance")));
