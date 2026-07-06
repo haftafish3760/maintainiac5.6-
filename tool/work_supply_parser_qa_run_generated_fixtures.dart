@@ -6,6 +6,7 @@ const _usage =
     '--fixture build/.../generated_fixtures.json '
     '[--max-cases 1000] [--fixture-ids id1,id2] '
     '[--chunk-size 200] '
+    '[--start-index 0] [--max-chunks 0] '
     '[--report-dir build/parser_qa_reports/generated_fixtures] '
     '[--timeout-ms 900000] '
     '[--verbose]';
@@ -54,6 +55,7 @@ Future<int> runGeneratedParserFixtures(
     'reason=parser_core_not_yet_extracted_for_dart_cli '
     'fixture=${options.fixturePath} maxCases=${options.maxCases} '
     'chunkSize=${options.chunkSize} chunks=${chunks.length} '
+    'startIndex=${options.startIndex} maxChunks=${options.maxChunks} '
     'timeoutMs=${options.timeoutMs} '
     'outputMode=${options.verbose ? 'verbose' : 'summary'}',
   );
@@ -87,6 +89,7 @@ Future<int> runGeneratedParserFixtures(
       chunkNumber: index + 1,
       chunkCount: chunks.length,
       fixtureCount: chunk.count,
+      startIndex: chunk.startIndex,
       output: output,
       reportDir: chunkReportDir,
       exitCode: result.exitCode,
@@ -135,6 +138,8 @@ class _FixtureRunnerOptions {
     required this.reportDir,
     required this.fixtureIds,
     required this.chunkSize,
+    required this.startIndex,
+    required this.maxChunks,
     required this.timeoutMs,
     required this.verbose,
   });
@@ -144,6 +149,8 @@ class _FixtureRunnerOptions {
   final String reportDir;
   final Set<String> fixtureIds;
   final int chunkSize;
+  final int startIndex;
+  final int maxChunks;
   final int timeoutMs;
   final bool verbose;
 
@@ -152,6 +159,10 @@ class _FixtureRunnerOptions {
         int.tryParse(_valueAfter(args, '--timeout-ms') ?? '') ?? 900000;
     final chunkSize =
         int.tryParse(_valueAfter(args, '--chunk-size') ?? '') ?? 200;
+    final startIndex =
+        int.tryParse(_valueAfter(args, '--start-index') ?? '') ?? 0;
+    final maxChunks =
+        int.tryParse(_valueAfter(args, '--max-chunks') ?? '') ?? 0;
     return _FixtureRunnerOptions(
       fixturePath: _valueAfter(args, '--fixture') ?? '',
       maxCases: int.tryParse(_valueAfter(args, '--max-cases') ?? '') ?? 1000,
@@ -160,6 +171,8 @@ class _FixtureRunnerOptions {
           'build/parser_qa_reports/generated_fixtures',
       fixtureIds: _csvSet(_valueAfter(args, '--fixture-ids') ?? ''),
       chunkSize: chunkSize <= 0 ? 200 : chunkSize,
+      startIndex: startIndex < 0 ? 0 : startIndex,
+      maxChunks: maxChunks < 0 ? 0 : maxChunks,
       timeoutMs: timeoutMs <= 0 ? 900000 : timeoutMs,
       verbose: args.contains('--verbose'),
     );
@@ -171,12 +184,16 @@ List<_FixtureChunk> _fixtureChunks(_FixtureRunnerOptions options) {
   if (selectedCount == 0) {
     return [const _FixtureChunk(startIndex: 0, count: 0)];
   }
+  if (options.startIndex >= selectedCount) {
+    return [_FixtureChunk(startIndex: options.startIndex, count: 0)];
+  }
   final chunks = <_FixtureChunk>[];
   for (
-    var startIndex = 0;
+    var startIndex = options.startIndex;
     startIndex < selectedCount;
     startIndex += options.chunkSize
   ) {
+    if (options.maxChunks > 0 && chunks.length >= options.maxChunks) break;
     final count = startIndex + options.chunkSize > selectedCount
         ? selectedCount - startIndex
         : options.chunkSize;
@@ -269,6 +286,7 @@ _ChunkRunSummary _chunkSummary({
   required int chunkNumber,
   required int chunkCount,
   required int fixtureCount,
+  required int startIndex,
   required String output,
   required String reportDir,
   required int exitCode,
@@ -286,6 +304,8 @@ _ChunkRunSummary _chunkSummary({
         warmupMs: json['warmupMs'] as int? ?? 0,
         parserCalls: json['parserCalls'] as int? ?? 0,
         exitCode: exitCode,
+        startIndex: startIndex,
+        fixtureCount: fixtureCount,
         reportPath: report.path,
       );
     } catch (_) {
@@ -308,6 +328,8 @@ _ChunkRunSummary _chunkSummary({
     warmupMs: _intField(line, 'warmupMs') ?? 0,
     parserCalls: _intField(line, 'parserCalls') ?? 0,
     exitCode: exitCode,
+    startIndex: startIndex,
+    fixtureCount: fixtureCount,
     reportPath: report.path,
   );
 }
@@ -345,6 +367,8 @@ _AggregateRunSummary _writeAggregateReport({
     'fixturePath': options.fixturePath,
     'maxCases': options.maxCases,
     'chunkSize': options.chunkSize,
+    'startIndex': options.startIndex,
+    'maxChunks': options.maxChunks,
     'plannedChunkCount': plannedChunkCount,
     'completedChunkCount': completedChunkCount,
     'checked': checked,
@@ -352,11 +376,16 @@ _AggregateRunSummary _writeAggregateReport({
     'parserCalls': parserCalls,
     'nonZeroChunkExitCount': nonZeroChunkExitCount,
     'timedOutChunkCount': timedOutChunkCount,
+    'failedChunkStartIndex': _failedChunkStartIndex(chunks),
+    'nextResumeStartIndex': _nextResumeStartIndex(chunks, plannedChunkCount),
+    'resumeCommand': _resumeCommand(options, chunks, plannedChunkCount),
     'chunkReports': [
       for (final chunk in chunks)
         {
           'chunkNumber': chunk.chunkNumber,
           'chunkCount': chunk.chunkCount,
+          'startIndex': chunk.startIndex,
+          'fixtureCount': chunk.fixtureCount,
           'checked': chunk.checked,
           'failureCount': chunk.failures,
           'warmupMs': chunk.warmupMs,
@@ -384,6 +413,46 @@ _AggregateRunSummary _writeAggregateReport({
   );
 }
 
+int? _failedChunkStartIndex(List<_ChunkRunSummary> chunks) {
+  for (final chunk in chunks) {
+    if (chunk.exitCode != 0) return chunk.startIndex;
+  }
+  return null;
+}
+
+int? _nextResumeStartIndex(
+  List<_ChunkRunSummary> chunks,
+  int plannedChunkCount,
+) {
+  if (chunks.isEmpty || chunks.length >= plannedChunkCount) return null;
+  final last = chunks.last;
+  if (last.exitCode != 0) return last.startIndex;
+  return last.startIndex + last.fixtureCount;
+}
+
+String _resumeCommand(
+  _FixtureRunnerOptions options,
+  List<_ChunkRunSummary> chunks,
+  int plannedChunkCount,
+) {
+  final failedIndex = _failedChunkStartIndex(chunks);
+  final resumeIndex =
+      failedIndex ?? _nextResumeStartIndex(chunks, plannedChunkCount);
+  if (resumeIndex == null) return '';
+  return [
+    'dart run tool/work_supply_parser_qa_run_generated_fixtures.dart',
+    '--fixture ${options.fixturePath}',
+    '--max-cases ${options.maxCases}',
+    '--chunk-size ${options.chunkSize}',
+    '--start-index $resumeIndex',
+    if (options.maxChunks > 0) '--max-chunks ${options.maxChunks}',
+    if (options.fixtureIds.isNotEmpty)
+      '--fixture-ids ${options.fixtureIds.join(',')}',
+    '--report-dir ${options.reportDir}',
+    '--timeout-ms ${options.timeoutMs}',
+  ].join(' ');
+}
+
 int? _intField(String line, String name) {
   final match = RegExp('(?:^| )$name=([0-9]+)(?: |\$)').firstMatch(line);
   return int.tryParse(match?.group(1) ?? '');
@@ -398,6 +467,8 @@ class _ChunkRunSummary {
     required this.warmupMs,
     required this.parserCalls,
     required this.exitCode,
+    required this.startIndex,
+    required this.fixtureCount,
     required this.reportPath,
   });
 
@@ -408,11 +479,14 @@ class _ChunkRunSummary {
   final int warmupMs;
   final int parserCalls;
   final int exitCode;
+  final int startIndex;
+  final int fixtureCount;
   final String reportPath;
 
   String toLogLine() {
     return 'QA_GENERATED_FIXTURE_RUN_CHUNK '
-        'chunk=$chunkNumber/$chunkCount checked=$checked failures=$failures '
+        'chunk=$chunkNumber/$chunkCount startIndex=$startIndex '
+        'fixtureCount=$fixtureCount checked=$checked failures=$failures '
         'warmupMs=$warmupMs parserCalls=$parserCalls '
         'exitCode=$exitCode report=$reportPath';
   }

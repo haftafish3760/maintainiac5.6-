@@ -387,6 +387,94 @@ void main() {
   );
 
   test(
+    'generated fixture wrapper resumes from a fixture index window',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_generated_fixture_runner_resume_window_',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final fixture = File('${root.path}/generated_fixtures.json')
+        ..writeAsStringSync(
+          const JsonEncoder.withIndent('  ').convert([
+            for (var index = 0; index < 6; index++)
+              {
+                'id': 'fixture_$index',
+                'caseType': 'clear_match',
+                'rawLine': 'LOWES TOILET WAX RING 4.98',
+                'expectedTrade': 'Plumbing',
+                'expectedNameContains': 'wax ring',
+                'tradeScope': 'Plumbing',
+              },
+          ]),
+        );
+
+      final calls = <List<String>>[];
+      final stdout = _MemorySink();
+      final stderr = _MemorySink();
+      final exit = await runGeneratedParserFixtures(
+        [
+          '--fixture',
+          fixture.path,
+          '--max-cases',
+          '6',
+          '--chunk-size',
+          '2',
+          '--start-index',
+          '2',
+          '--max-chunks',
+          '2',
+          '--report-dir',
+          '${root.path}/reports',
+        ],
+        stdout: stdout,
+        stderr: stderr,
+        processRunner:
+            (
+              String command,
+              List<String> args, {
+              bool runInShell = false,
+            }) async {
+              calls.add(args);
+              return ProcessResult(
+                70 + calls.length,
+                0,
+                'QA_GENERATED_FIXTURE_RUN checked=2 failures=0 parserCalls=4',
+                '',
+              );
+            },
+      );
+
+      final aggregate =
+          jsonDecode(
+                File(
+                  '${root.path}/reports/latest_generated_fixture_run.json',
+                ).readAsStringSync(),
+              )
+              as Map;
+
+      expect(exit, 0, reason: stderr.content);
+      expect(calls, hasLength(2));
+      expect(
+        calls[0],
+        contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_START_INDEX=2'),
+      );
+      expect(
+        calls[1],
+        contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_START_INDEX=4'),
+      );
+      expect(aggregate['startIndex'], 2);
+      expect(aggregate['maxChunks'], 2);
+      expect(
+        (aggregate['chunkReports'] as List).map(
+          (chunk) => (chunk as Map)['startIndex'],
+        ),
+        [2, 4],
+      );
+      expect(stdout.content, contains('startIndex=2 maxChunks=2'));
+    },
+  );
+
+  test(
     'generated fixture wrapper fails green child output with failures',
     () async {
       final root = await Directory.systemTemp.createTemp(
@@ -552,6 +640,8 @@ void main() {
       expect(exit, 124);
       expect(aggregate['nonZeroChunkExitCount'], 1);
       expect(aggregate['timedOutChunkCount'], 1);
+      expect(aggregate['failedChunkStartIndex'], 0);
+      expect(aggregate['resumeCommand'], contains('--start-index 0'));
     },
   );
 }
