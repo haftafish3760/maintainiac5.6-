@@ -81,6 +81,8 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
         'stitchFallbackReasonCode': stitchResult.diagnosticReasonLabel,
       if (stitchResult.usedFallback)
         'stitchFallbackReasonLabel': stitchResult.userFallbackReasonLabel,
+      if (stitchResult.usedFallback && stitchResult.failedPairLabel.isNotEmpty)
+        'stitchFailedPairLabel': stitchResult.failedPairLabel,
       if (stitchResult.failedPairIndex != null)
         'stitchFailedPairStartSectionNumber': stitchResult.failedPairIndex! + 1,
       if (stitchResult.failedPairIndex != null)
