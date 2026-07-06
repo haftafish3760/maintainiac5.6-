@@ -69,6 +69,7 @@ extension ReceiptCameraViewController {
       latestReadabilitySignal = "lighting_ok"
       if currentGuidance.hasPrefix("Receipt looks dark") ||
           currentGuidance.hasPrefix("Receipt is very bright") ||
+          currentGuidance.hasPrefix("Receipt has heavy shadows") ||
           currentGuidance.hasPrefix("Lens may be smudged") ||
           currentGuidance.hasPrefix("Hold steady") {
         guidanceLabel.text = guidanceText()

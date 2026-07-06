@@ -290,6 +290,12 @@ void main() {
         contains('currentGuidance.hasPrefix("Receipt has heavy shadows")'),
       );
       expect(
+        'Receipt has heavy shadows'.allMatches(cameraController).length,
+        greaterThanOrEqualTo(3),
+        reason:
+            'Shadow guidance must be emitted, cleared on recovery, and cleared by defensive reset.',
+      );
+      expect(
         cameraController,
         contains('currentGuidance.hasPrefix("Lens may be smudged")'),
       );

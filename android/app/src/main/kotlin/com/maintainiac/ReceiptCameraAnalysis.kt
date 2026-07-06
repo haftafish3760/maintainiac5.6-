@@ -240,6 +240,7 @@ internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
             if (
                 currentGuidance.startsWith("Receipt looks dark") ||
                 currentGuidance.startsWith("Receipt is very bright") ||
+                currentGuidance.startsWith("Receipt has heavy shadows") ||
                 currentGuidance.startsWith("Lens may be smudged") ||
                 currentGuidance.startsWith("Hold steady")
             ) {

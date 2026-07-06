@@ -160,6 +160,12 @@ void main() {
         cameraActivity,
         contains('if (!hasExperimentalReceiptQualityWarningsEnabled())'),
       );
+      expect(
+        'Receipt has heavy shadows'.allMatches(cameraActivity).length,
+        greaterThanOrEqualTo(3),
+        reason:
+            'Shadow guidance must be emitted, cleared on recovery, and cleared by defensive reset.',
+      );
       final guidanceToggleStart = cameraActivity.indexOf(
         'internal fun ReceiptCameraActivity.receiptGuidanceWarningsEnabled()',
       );
