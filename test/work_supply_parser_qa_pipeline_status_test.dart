@@ -63,8 +63,9 @@ void main() {
       expect(summary['missingCells'], 2);
       expect(summary['unsafeCells'], 0);
       expect(summary['parserCalls'], 0);
+      expect(summary['fixtureEvidenceRequiredCells'], 0);
       expect(summary['parserEvidenceCells'], 0);
-      expect(summary['missingParserEvidenceCells'], 2);
+      expect(summary['missingParserEvidenceCells'], 0);
       expect(summary['requireComplete'], isFalse);
       expect(summary['liveServicesAllowed'], isFalse);
       expect(summary['writesProductionCatalog'], isFalse);
@@ -117,6 +118,7 @@ void main() {
     final summary = _extractStatusSummary(stdout.content);
     expect(summary['requireComplete'], isTrue);
     expect(summary['parserCalls'], 0);
+    expect(summary['fixtureEvidenceRequiredCells'], 0);
     expect(summary['parserEvidenceCells'], 0);
     expect(summary['missingParserEvidenceCells'], 0);
     expect(summary['missingCells'], 2);
@@ -192,11 +194,135 @@ void main() {
     final summary = _extractStatusSummary(stdout.content);
     final cell = (summary['cells'] as List).single as Map;
     expect(summary['parserCalls'], 48);
+    expect(summary['fixtureEvidenceRequiredCells'], 0);
     expect(summary['parserEvidenceCells'], 1);
     expect(summary['missingParserEvidenceCells'], 0);
     expect(cell['localOnlySafe'], isTrue);
     expect(cell['parserEvidenceReady'], isTrue);
   });
+
+  test(
+    'pipeline status reads generated fixture reports as required evidence',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_parser_pipeline_status_fixture_evidence_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+      final pipelineDir = Directory(
+        '${output.path}/plumbing/residential/core/en-US/pipeline_reports',
+      )..createSync(recursive: true);
+      final fixtureReportDir = Directory(
+        '${output.path}/plumbing/residential/core/en-US/reports',
+      )..createSync(recursive: true);
+      final fixtureReportPath =
+          '${fixtureReportDir.path}/latest_generated_fixture_run.json';
+      File(fixtureReportPath).writeAsStringSync(
+        jsonEncode({
+          'checked': 5,
+          'failureCount': 0,
+          'parserCalls': 5,
+          'timedOutChunkCount': 0,
+          'nonZeroChunkExitCount': 0,
+          'liveServicesAllowed': false,
+          'writesProductionCatalog': false,
+          'firebaseWritesAllowed': false,
+          'ocrCameraExpensesTouched': false,
+        }),
+      );
+      File(
+        '${pipelineDir.path}/latest_pipeline_summary.json',
+      ).writeAsStringSync(
+        jsonEncode({
+          'trade': 'plumbing',
+          'marketScope': 'residential',
+          'tier': 'core',
+          'localePackId': 'en-US',
+          'dryRun': false,
+          'runFixtures': true,
+          'liveServicesAllowed': false,
+          'writesProductionCatalog': false,
+          'firebaseWritesAllowed': false,
+          'ocrCameraExpensesTouched': false,
+          'blueprintPath': '${output.path}/fake_blueprints.json',
+          'fixturePath': '${output.path}/fake_fixtures.json',
+          'reportOutput': fixtureReportDir.path,
+        }),
+      );
+
+      final stdout = _MemorySink();
+      final statusExit = runWorkSupplyParserQaPipelineStatus(
+        [
+          '--output-root',
+          output.path,
+          '--locales',
+          'en-US',
+          '--require-complete',
+        ],
+        stdout: stdout,
+        stderr: _MemorySink(),
+      );
+
+      expect(statusExit, 0);
+      final summary = _extractStatusSummary(stdout.content);
+      final cell = (summary['cells'] as List).single as Map;
+      expect(summary['fixtureEvidenceRequiredCells'], 1);
+      expect(summary['parserCalls'], 5);
+      expect(summary['parserEvidenceCells'], 1);
+      expect(summary['missingParserEvidenceCells'], 0);
+      expect(cell['parserEvidenceReady'], isTrue);
+      expect(cell['generatedFixtureReportPath'], fixtureReportPath);
+    },
+  );
+
+  test(
+    'pipeline status fails complete gate when run fixtures lack evidence',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_parser_pipeline_status_missing_fixture_evidence_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+      final pipelineDir = Directory(
+        '${output.path}/plumbing/residential/core/en-US/pipeline_reports',
+      )..createSync(recursive: true);
+      File(
+        '${pipelineDir.path}/latest_pipeline_summary.json',
+      ).writeAsStringSync(
+        jsonEncode({
+          'trade': 'plumbing',
+          'marketScope': 'residential',
+          'tier': 'core',
+          'localePackId': 'en-US',
+          'runFixtures': true,
+          'liveServicesAllowed': false,
+          'writesProductionCatalog': false,
+          'firebaseWritesAllowed': false,
+          'ocrCameraExpensesTouched': false,
+          'blueprintPath': '${output.path}/fake_blueprints.json',
+          'fixturePath': '${output.path}/fake_fixtures.json',
+          'reportOutput': '${output.path}/missing_reports',
+        }),
+      );
+
+      final stdout = _MemorySink();
+      final statusExit = runWorkSupplyParserQaPipelineStatus(
+        [
+          '--output-root',
+          output.path,
+          '--locales',
+          'en-US',
+          '--require-complete',
+        ],
+        stdout: stdout,
+        stderr: _MemorySink(),
+      );
+
+      expect(statusExit, 3);
+      final summary = _extractStatusSummary(stdout.content);
+      expect(summary['fixtureEvidenceRequiredCells'], 1);
+      expect(summary['parserEvidenceCells'], 0);
+      expect(summary['missingParserEvidenceCells'], 1);
+    },
+  );
 }
 
 Map<String, Object?> _extractStatusSummary(String output) {

@@ -32,6 +32,7 @@ int runWorkSupplyParserQaPipelineStatus(
   var unsafe = 0;
   var parserCalls = 0;
   var parserEvidenceCells = 0;
+  var fixtureEvidenceRequiredCells = 0;
   for (final trade in options.trades) {
     for (final scope in options.scopes) {
       for (final tier in options.tiers) {
@@ -41,12 +42,20 @@ int runWorkSupplyParserQaPipelineStatus(
           if (cell['status'] == 'missing') missing++;
           if (cell['localOnlySafe'] == false) unsafe++;
           parserCalls += (cell['parserCalls'] as int?) ?? 0;
+          if (cell['fixtureEvidenceRequired'] == true) {
+            fixtureEvidenceRequiredCells++;
+          }
           if (cell['parserEvidenceReady'] == true) parserEvidenceCells++;
         }
       }
     }
   }
   final present = cells.length - missing;
+  final missingParserEvidenceRaw =
+      fixtureEvidenceRequiredCells - parserEvidenceCells;
+  final missingParserEvidence = missingParserEvidenceRaw < 0
+      ? 0
+      : missingParserEvidenceRaw;
   final summary = {
     'schemaVersion': 1,
     'report': 'work_supply_parser_qa_pipeline_status',
@@ -56,8 +65,9 @@ int runWorkSupplyParserQaPipelineStatus(
     'missingCells': missing,
     'unsafeCells': unsafe,
     'parserCalls': parserCalls,
+    'fixtureEvidenceRequiredCells': fixtureEvidenceRequiredCells,
     'parserEvidenceCells': parserEvidenceCells,
-    'missingParserEvidenceCells': present - parserEvidenceCells,
+    'missingParserEvidenceCells': missingParserEvidence,
     'requireComplete': options.requireComplete,
     'liveServicesAllowed': false,
     'writesProductionCatalog': false,
@@ -77,6 +87,7 @@ int runWorkSupplyParserQaPipelineStatus(
   );
   if (unsafe > 0) return 1;
   if (options.requireComplete && missing > 0) return 2;
+  if (options.requireComplete && missingParserEvidence > 0) return 3;
   return 0;
 }
 
@@ -146,10 +157,22 @@ Map<String, Object?> _readCell(
   }
   final blueprintPath = json['blueprintPath'] as String?;
   final fixturePath = json['fixturePath'] as String?;
-  final parserCalls = (json['parserCalls'] as int?) ?? 0;
-  final localOnlySafe =
-      json['liveServicesAllowed'] == false &&
-      json['writesProductionCatalog'] == false;
+  final fixtureReport = _readGeneratedFixtureReport(json);
+  final parserCalls =
+      (fixtureReport?['parserCalls'] as int?) ??
+      (json['parserCalls'] as int?) ??
+      0;
+  final fixtureFailures = (fixtureReport?['failureCount'] as int?) ?? 0;
+  final timedOutChunks = (fixtureReport?['timedOutChunkCount'] as int?) ?? 0;
+  final nonZeroChunks = (fixtureReport?['nonZeroChunkExitCount'] as int?) ?? 0;
+  final localOnlySafe = _isLocalOnlySafe(json, fixtureReport);
+  final parserEvidenceReady =
+      parserCalls > 0 &&
+      fixtureFailures == 0 &&
+      timedOutChunks == 0 &&
+      nonZeroChunks == 0;
+  final fixtureEvidenceRequired =
+      json['runFixtures'] == true && json['dryRun'] != true;
   return _cell(
     trade: trade,
     scope: scope,
@@ -163,8 +186,38 @@ Map<String, Object?> _readCell(
     dryRun: json['dryRun'] == true,
     runFixtures: json['runFixtures'] == true,
     parserCalls: parserCalls,
-    parserEvidenceReady: parserCalls > 0,
+    fixtureEvidenceRequired: fixtureEvidenceRequired,
+    parserEvidenceReady: parserEvidenceReady,
+    generatedFixtureReportPath: fixtureReport?['_path'] as String?,
+    generatedFixtureFailureCount: fixtureFailures,
+    timedOutChunkCount: timedOutChunks,
+    nonZeroChunkExitCount: nonZeroChunks,
   );
+}
+
+Map<String, Object?>? _readGeneratedFixtureReport(Map json) {
+  final reportOutput = json['reportOutput'] as String?;
+  if (reportOutput == null || reportOutput.isEmpty) return null;
+  final report = File('$reportOutput/latest_generated_fixture_run.json');
+  if (!report.existsSync()) return null;
+  final decoded = jsonDecode(report.readAsStringSync()) as Map<String, Object?>;
+  return {...decoded, '_path': report.path};
+}
+
+bool _isLocalOnlySafe(Map summary, Map<String, Object?>? fixtureReport) {
+  bool falseOrMissing(Map source, String key) =>
+      !source.containsKey(key) || source[key] == false;
+  final summarySafe =
+      summary['liveServicesAllowed'] == false &&
+      summary['writesProductionCatalog'] == false &&
+      falseOrMissing(summary, 'firebaseWritesAllowed') &&
+      falseOrMissing(summary, 'ocrCameraExpensesTouched');
+  if (fixtureReport == null) return summarySafe;
+  return summarySafe &&
+      fixtureReport['liveServicesAllowed'] == false &&
+      fixtureReport['writesProductionCatalog'] == false &&
+      falseOrMissing(fixtureReport, 'firebaseWritesAllowed') &&
+      falseOrMissing(fixtureReport, 'ocrCameraExpensesTouched');
 }
 
 String? _summaryPathFor(
@@ -198,7 +251,12 @@ Map<String, Object?> _cell({
   bool dryRun = false,
   bool runFixtures = false,
   int parserCalls = 0,
+  bool fixtureEvidenceRequired = false,
   bool parserEvidenceReady = false,
+  String? generatedFixtureReportPath,
+  int generatedFixtureFailureCount = 0,
+  int timedOutChunkCount = 0,
+  int nonZeroChunkExitCount = 0,
 }) {
   return {
     'trade': trade,
@@ -212,7 +270,12 @@ Map<String, Object?> _cell({
     'dryRun': dryRun,
     'runFixtures': runFixtures,
     'parserCalls': parserCalls,
+    'fixtureEvidenceRequired': fixtureEvidenceRequired,
     'parserEvidenceReady': parserEvidenceReady,
+    'generatedFixtureReportPath': ?generatedFixtureReportPath,
+    'generatedFixtureFailureCount': generatedFixtureFailureCount,
+    'timedOutChunkCount': timedOutChunkCount,
+    'nonZeroChunkExitCount': nonZeroChunkExitCount,
     'localOnlySafe': localOnlySafe,
   };
 }
