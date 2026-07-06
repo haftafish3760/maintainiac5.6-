@@ -166,7 +166,9 @@ List<String> _supplementalRiskTags({
   return [
     'merchant_abbreviation',
     if (locale == 'es-US') 'locale_pack',
-    if (merchant.name == 'Supply House' || merchant.name == 'Ferguson')
+    if (merchant.name == 'Supply House' ||
+        merchant.name == 'Ferguson' ||
+        merchant.name.endsWith('Supply House'))
       'supply_house',
     switch (index % 6) {
       0 => 'quantity',

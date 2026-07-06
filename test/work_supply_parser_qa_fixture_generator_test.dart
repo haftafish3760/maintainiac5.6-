@@ -137,6 +137,7 @@ void main() {
           'unknown_merchant_style',
         }),
       );
+      expect(tags, contains('supply_house'));
     },
   );
 
