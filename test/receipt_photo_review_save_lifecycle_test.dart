@@ -275,6 +275,10 @@ void main() {
     );
     expect(
       saveActions,
+      contains('entry.key: Map<String, Object?>.unmodifiable(entry.value)'),
+    );
+    expect(
+      saveActions,
       contains('entry.key: Map<String, Object?>.unmodifiable({'),
     );
     expect(

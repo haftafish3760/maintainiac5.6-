@@ -333,7 +333,8 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
     Map<String, Map<String, Object?>> orderDiagnostics,
   ) {
     return Map<String, Map<String, Object?>>.unmodifiable({
-      for (final entry in pickedDiagnostics.entries) entry.key: entry.value,
+      for (final entry in pickedDiagnostics.entries)
+        entry.key: Map<String, Object?>.unmodifiable(entry.value),
       for (final entry in orderDiagnostics.entries)
         entry.key: Map<String, Object?>.unmodifiable({
           ...?pickedDiagnostics[entry.key],
