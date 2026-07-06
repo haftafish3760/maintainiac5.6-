@@ -245,10 +245,18 @@ void main() {
     );
     expect(
       source,
-      contains('final initialPhotoCount = uniqueNormalizedReceiptPhotoPaths('),
+      contains(
+        'final initialPhotoCount = _normalizedInitialReviewPhotoPaths(options)',
+      ),
     );
     expect(source, contains('return initialPhotoCount + addedPhotoIndex'));
     expect(source, contains('.clamp(0, addedPhotoCount - 1)'));
+    expect(
+      source,
+      contains(
+        'return uniqueNormalizedReceiptPhotoPaths(options.initialPhotoPaths)',
+      ),
+    );
     expect(
       source,
       isNot(

@@ -332,10 +332,13 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
     Map<String, Map<String, Object?>> pickedDiagnostics,
     Map<String, Map<String, Object?>> orderDiagnostics,
   ) {
-    return {
+    return Map<String, Map<String, Object?>>.unmodifiable({
       for (final entry in pickedDiagnostics.entries) entry.key: entry.value,
       for (final entry in orderDiagnostics.entries)
-        entry.key: {...?pickedDiagnostics[entry.key], ...entry.value},
-    };
+        entry.key: Map<String, Object?>.unmodifiable({
+          ...?pickedDiagnostics[entry.key],
+          ...entry.value,
+        }),
+    });
   }
 }

@@ -271,7 +271,11 @@ void main() {
     );
     expect(
       saveActions,
-      contains('entry.key: {...?pickedDiagnostics[entry.key], ...entry.value}'),
+      contains('return Map<String, Map<String, Object?>>.unmodifiable({'),
+    );
+    expect(
+      saveActions,
+      contains('entry.key: Map<String, Object?>.unmodifiable({'),
     );
     expect(
       saveActions,
