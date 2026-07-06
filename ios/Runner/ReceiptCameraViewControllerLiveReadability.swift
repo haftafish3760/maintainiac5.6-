@@ -38,7 +38,7 @@ extension ReceiptCameraViewController {
       return
     }
     if !hasExperimentalReceiptQualityWarningsEnabled() {
-      latestMotionSignal = motionScore >= 0 ? "steady" : "unknown"
+      latestMotionSignal = "neutral_workflow_guidance_only"
       latestReadabilitySignal = "neutral_workflow_guidance_only"
       resetExperimentalReceiptQualityGuidanceIfNeeded()
       return

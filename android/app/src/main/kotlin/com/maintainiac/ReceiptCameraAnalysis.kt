@@ -207,7 +207,7 @@ internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
             return
         }
         if (!hasExperimentalReceiptQualityWarningsEnabled()) {
-            latestMotionSignal = if (motionScore >= 0) "steady" else "unknown"
+            latestMotionSignal = "neutral_workflow_guidance_only"
             latestReadabilitySignal = "neutral_workflow_guidance_only"
             resetExperimentalReceiptQualityGuidanceIfNeeded()
             return

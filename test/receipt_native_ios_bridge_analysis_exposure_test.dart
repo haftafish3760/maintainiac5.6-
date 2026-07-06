@@ -197,6 +197,29 @@ void main() {
       );
       expect(
         cameraController,
+        contains('latestMotionSignal = "neutral_workflow_guidance_only"'),
+      );
+      final neutralQualityStart = cameraController.indexOf(
+        'if !hasExperimentalReceiptQualityWarningsEnabled()',
+      );
+      final neutralQualityEnd = cameraController.indexOf(
+        'let currentGuidance = guidanceLabel.text ?? ""',
+        neutralQualityStart,
+      );
+      expect(neutralQualityStart, greaterThanOrEqualTo(0));
+      expect(neutralQualityEnd, greaterThan(neutralQualityStart));
+      final neutralQualityBlock = cameraController.substring(
+        neutralQualityStart,
+        neutralQualityEnd,
+      );
+      expect(
+        neutralQualityBlock,
+        contains('latestMotionSignal = "neutral_workflow_guidance_only"'),
+      );
+      expect(neutralQualityBlock, isNot(contains('motionScore >= 0')));
+      expect(neutralQualityBlock, isNot(contains('"steady"')));
+      expect(
+        cameraController,
         contains(
           '"experimentalReceiptQualityWarningsEnabled": hasExperimentalReceiptQualityWarningsEnabled()',
         ),

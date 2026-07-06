@@ -158,8 +158,31 @@ void main() {
       );
       expect(
         cameraActivity,
+        contains('latestMotionSignal = "neutral_workflow_guidance_only"'),
+      );
+      expect(
+        cameraActivity,
         contains('if (!hasExperimentalReceiptQualityWarningsEnabled())'),
       );
+      final neutralQualityStart = cameraActivity.indexOf(
+        'if (!hasExperimentalReceiptQualityWarningsEnabled())',
+      );
+      final neutralQualityEnd = cameraActivity.indexOf(
+        'val currentGuidance = guidance.text.toString()',
+        neutralQualityStart,
+      );
+      expect(neutralQualityStart, greaterThanOrEqualTo(0));
+      expect(neutralQualityEnd, greaterThan(neutralQualityStart));
+      final neutralQualityBlock = cameraActivity.substring(
+        neutralQualityStart,
+        neutralQualityEnd,
+      );
+      expect(
+        neutralQualityBlock,
+        contains('latestMotionSignal = "neutral_workflow_guidance_only"'),
+      );
+      expect(neutralQualityBlock, isNot(contains('latestMotionSignal = if')));
+      expect(neutralQualityBlock, isNot(contains('"steady"')));
       expect(
         cameraActivity,
         contains(
