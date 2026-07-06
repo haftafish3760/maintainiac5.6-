@@ -90,7 +90,7 @@ const _receiptNativeCameraSettingDescriptors = <ReceiptNativeCameraSettingDescri
     id: 'readability_warnings',
     label: 'Experimental readability warnings',
     description:
-        'Future detector hooks for blur, glare, low light, and shadows. Off by default until proven by QA; neutral receipt workflow guidance stays on.',
+        'Reserved for a future QA-proven mode. The native camera baseline ignores live blur, glare, low-light, and shadow warnings today.',
     group: ReceiptNativeSettingGroup.receiptGuidance,
     type: ReceiptNativeSettingType.toggle,
     defaultEnabled: false,
@@ -100,7 +100,7 @@ const _receiptNativeCameraSettingDescriptors = <ReceiptNativeCameraSettingDescri
     id: 'dirty_lens_warning',
     label: 'Experimental dirty lens warning',
     description:
-        'Future detector hook for lens haze. Off by default until proven by QA; the phone camera still handles normal focus and exposure.',
+        'Reserved for a future QA-proven mode. The phone camera still owns normal focus and exposure behavior today.',
     group: ReceiptNativeSettingGroup.receiptGuidance,
     type: ReceiptNativeSettingType.toggle,
     defaultEnabled: false,

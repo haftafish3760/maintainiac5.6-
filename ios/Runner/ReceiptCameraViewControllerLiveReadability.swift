@@ -92,6 +92,9 @@ extension ReceiptCameraViewController {
   }
 
   func hasExperimentalReceiptQualityWarningsEnabled() -> Bool {
+    guard experimentalLiveReceiptQualityPolicyEnabled() else {
+      return false
+    }
     return motionBlurWarningEnabled ||
         lowLightWarningEnabled ||
         glareWarningEnabled ||

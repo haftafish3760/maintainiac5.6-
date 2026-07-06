@@ -150,7 +150,11 @@ void main() {
     );
     expect(dirtyLens.defaultEnabled, isFalse);
     expect(dirtyLens.advanced, isTrue);
-    expect(dirtyLens.description, contains('Off by default until proven'));
+    expect(dirtyLens.description, contains('future QA-proven mode'));
+    expect(
+      dirtyLens.description,
+      contains('phone camera still owns normal focus and exposure'),
+    );
 
     final edgeDetection = descriptors.singleWhere(
       (descriptor) => descriptor.id == 'edge_detection',
@@ -167,11 +171,11 @@ void main() {
     expect(readabilityWarnings.advanced, isTrue);
     expect(readabilityWarnings.description, contains('blur'));
     expect(readabilityWarnings.description, contains('glare'));
-    expect(readabilityWarnings.description, contains('low light'));
-    expect(readabilityWarnings.description, contains('shadows'));
+    expect(readabilityWarnings.description, contains('low-light'));
+    expect(readabilityWarnings.description, contains('shadow warnings'));
     expect(
       readabilityWarnings.description,
-      contains('neutral receipt workflow guidance stays on'),
+      contains('native camera baseline ignores live'),
     );
 
     final longReceipt = descriptors.singleWhere(

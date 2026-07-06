@@ -141,14 +141,18 @@ internal fun ReceiptCameraActivity.receiptStillJpegQuality(): Int {
 }
 
 internal fun ReceiptCameraActivity.buildImageAnalysis(targetRotation: Int): ImageAnalysis? {
+    val experimentalQualityWarningsEnabled =
+        experimentalLiveReceiptQualityPolicyEnabled() && (
+            lowLightWarningEnabled ||
+                glareWarningEnabled ||
+                motionBlurWarningEnabled ||
+                shadowWarningEnabled ||
+                dirtyLensWarningEnabled
+            )
     if (
         !liveAnalysisEnabled ||
         (
-                !lowLightWarningEnabled &&
-                !glareWarningEnabled &&
-                !motionBlurWarningEnabled &&
-                !shadowWarningEnabled &&
-                !dirtyLensWarningEnabled &&
+                !experimentalQualityWarningsEnabled &&
                 !edgeDetectionEnabled &&
                 !tooFarTooCloseWarningEnabled &&
                 !receiptFullyVisibleWarningEnabled &&
@@ -265,6 +269,9 @@ internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
 }
 
 internal fun ReceiptCameraActivity.hasExperimentalReceiptQualityWarningsEnabled(): Boolean {
+    if (!experimentalLiveReceiptQualityPolicyEnabled()) {
+        return false
+    }
     return motionBlurWarningEnabled ||
         lowLightWarningEnabled ||
         glareWarningEnabled ||

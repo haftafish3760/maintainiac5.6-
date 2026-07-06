@@ -90,6 +90,10 @@ extension ReceiptCameraViewController {
       textTooSmallWarningEnabled
   }
 
+  func experimentalLiveReceiptQualityPolicyEnabled() -> Bool {
+    readabilityGuidancePolicy == "experimental_live_receipt_quality_opt_in"
+  }
+
   func setReceiptGuidanceWarningsEnabled(_ enabled: Bool) {
     tooFarTooCloseWarningEnabled = enabled
     receiptFullyVisibleWarningEnabled = enabled

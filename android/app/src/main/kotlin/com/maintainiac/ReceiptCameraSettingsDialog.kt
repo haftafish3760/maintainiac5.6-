@@ -96,7 +96,7 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     })
     content.addView(settingSwitch(
         "Receipt framing checks",
-        "Warn when the receipt may be too far away, text may be small, or paper edges may be cut off. Experimental blur, glare, and shadow warnings stay separate.",
+        "Warn when the receipt may be too far away, text may be small, or paper edges may be cut off. The phone's native camera still owns focus, blur, glare, and exposure behavior.",
         receiptGuidanceWarningsEnabled(),
     ) {
         setReceiptGuidanceWarningsEnabled(it)
@@ -202,6 +202,10 @@ internal fun ReceiptCameraActivity.receiptGuidanceWarningsEnabled(): Boolean {
     return tooFarTooCloseWarningEnabled ||
         receiptFullyVisibleWarningEnabled ||
         textTooSmallWarningEnabled
+}
+
+internal fun ReceiptCameraActivity.experimentalLiveReceiptQualityPolicyEnabled(): Boolean {
+    return readabilityGuidancePolicy == "experimental_live_receipt_quality_opt_in"
 }
 
 internal fun ReceiptCameraActivity.setReceiptGuidanceWarningsEnabled(enabled: Boolean) {

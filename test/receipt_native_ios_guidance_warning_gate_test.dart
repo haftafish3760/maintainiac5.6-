@@ -43,6 +43,16 @@ void main() {
       );
       expect(
         cameraController,
+        contains('func experimentalLiveReceiptQualityPolicyEnabled() -> Bool'),
+      );
+      expect(
+        cameraController,
+        contains(
+          'readabilityGuidancePolicy == "experimental_live_receipt_quality_opt_in"',
+        ),
+      );
+      expect(
+        cameraController,
         contains('latestReadabilitySignal = "neutral_workflow_guidance_only"'),
       );
     },

@@ -64,13 +64,18 @@ extension ReceiptCameraViewController {
   }
 
   func configureVideoAnalysisIfNeeded() {
-    guard
-      liveAnalysisEnabled,
-      lowLightWarningEnabled ||
+    let experimentalQualityWarningsEnabled =
+      experimentalLiveReceiptQualityPolicyEnabled() &&
+      (
+        lowLightWarningEnabled ||
         glareWarningEnabled ||
         motionBlurWarningEnabled ||
         shadowWarningEnabled ||
-        dirtyLensWarningEnabled ||
+        dirtyLensWarningEnabled
+      )
+    guard
+      liveAnalysisEnabled,
+      experimentalQualityWarningsEnabled ||
         edgeDetectionEnabled ||
         tooFarTooCloseWarningEnabled ||
         receiptFullyVisibleWarningEnabled ||
