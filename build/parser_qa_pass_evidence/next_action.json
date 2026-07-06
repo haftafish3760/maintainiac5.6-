@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "report": "work_supply_parser_qa_next_action",
+  "readyForNextBatch": true,
+  "releaseOneCellCount": 24,
+  "sampleCells": [
+    "plumbing.residential.core.en-US",
+    "plumbing.residential.core.es-US",
+    "plumbing.residential.standard.en-US",
+    "plumbing.residential.standard.es-US",
+    "plumbing.residential.professional.en-US",
+    "plumbing.residential.professional.es-US"
+  ],
+  "activeWaveCount": 0,
+  "activeWaves": [],
+  "blockingWaveCount": 0,
+  "blockingWaves": [],
+  "remediatedWaveCount": 0,
+  "remediatedWaves": [],
+  "waveRemediations": [],
+  "maxStatusAgeMs": 900000,
+  "maxActiveCellMs": 900000,
+  "missingArtifactNames": [],
+  "unsafeFindings": [],
+  "activeWaveUnsafeFindings": [],
+  "nextActions": [
+    "Start the next local-only residential parser QA batch wave."
+  ],
+  "liveServicesAllowed": false,
+  "writesProductionCatalog": false,
+  "firebaseWritesAllowed": false,
+  "ocrCameraExpensesTouched": false
+}
