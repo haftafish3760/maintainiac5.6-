@@ -87,6 +87,12 @@ void main() {
     final receiptParseReviewHandoffPanel = await File(
       'lib/screens/expenses/entry/expense_receipt_parse_review_handoff_panel.dart',
     ).readAsString();
+    final captureFlow = await File(
+      'lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_signals.dart',
+    ).readAsString();
+    final attachmentPanel = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart',
+    ).readAsString();
     expect(reviewActions, contains('prepareForOcrAndBackup'));
     expect(reviewActions, contains('captureDiagnosticsByPath'));
     expect(reviewActions, contains('staged.captureDiagnosticsByPhotoPath'));
@@ -179,6 +185,30 @@ void main() {
       receiptEntryScreen,
       contains(
         'Receipt reader is using the saved proof copy because a clearer OCR source was not available.',
+      ),
+    );
+    expect(
+      captureFlow,
+      contains(
+        r'ocr_source_review_risk_${_signalToken(result.ocrSourceReviewRiskCode)}',
+      ),
+    );
+    expect(
+      captureFlow,
+      contains(
+        r'ocr_source_review_requirement_${_signalToken(result.ocrSourceReviewRequirement)}',
+      ),
+    );
+    expect(
+      attachmentPanel,
+      contains(
+        r'ocr_source_review_risk_${attachmentSignalToken(result.ocrSourceReviewRiskCode)}',
+      ),
+    );
+    expect(
+      attachmentPanel,
+      contains(
+        r'ocr_source_review_requirement_${attachmentSignalToken(result.ocrSourceReviewRequirement)}',
       ),
     );
     expect(receiptEntryScreen, contains("'saved_proof_fallback'"));

@@ -198,6 +198,56 @@ void main() {
     },
   );
 
+  test('ocr source fallback review risk reaches diagnostics contract', () async {
+    final result = await const ReceiptOcrService().recognizeTextFromAttachments([
+      ReceiptAttachmentRecord(
+        id: 'fallback-proof',
+        path: '',
+        kind: ReceiptAttachmentKind.emailText,
+        dataSaverLevel: ReceiptDataSaverLevel.maximum,
+        createdAt: DateTime(2026, 7, 5),
+        importedText: 'TOTAL 3.24',
+        documentSignals: const [
+          'receipt_ocr_source_photo',
+          'ocr_source_first_saved_proof_fallback_review_required',
+          'ocr_source_first_outcome_fallback_saved_proof_review_required',
+          'ocr_source_review_risk_saved_proof_ocr_fallback_review_required',
+          'ocr_source_review_requirement_manual_review_required_before_saving_receipt',
+        ],
+      ),
+    ]);
+
+    final summary = result.sourceHandoffSummary;
+    final contract = result.diagnostics.ocrSourceHandoffContract;
+
+    expect(
+      summary.sourceReviewRiskStatus,
+      'ocr_source_review_risk_saved_proof_ocr_fallback_review_required',
+    );
+    expect(
+      summary.sourceReviewRequirementStatus,
+      'ocr_source_review_requirement_manual_review_required_before_saving_receipt',
+    );
+    expect(
+      summary.sourceQualityReviewStatus,
+      'ocr_source_fallback_review_required',
+    );
+    expect(summary.sourceQualityReviewAction, 'review_or_enter_receipt_manually');
+    expect(
+      contract['sourceReviewRiskStatus'],
+      'ocr_source_review_risk_saved_proof_ocr_fallback_review_required',
+    );
+    expect(
+      contract['sourceReviewRequirementStatus'],
+      'ocr_source_review_requirement_manual_review_required_before_saving_receipt',
+    );
+    expect(
+      contract['sourceQualityReviewStatus'],
+      'ocr_source_fallback_review_required',
+    );
+    expect(contract.toString(), isNot(contains('3.24')));
+  });
+
   test('source handoff reports bottom saved-photo quality review', () {
     final summary = ReceiptOcrSourceHandoffSummary.fromAttachments([
       ReceiptAttachmentRecord(

@@ -73,6 +73,34 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
     return 'ocr_source_first_outcome_unknown';
   }
 
+  String get sourceReviewRiskStatus {
+    for (final token in const [
+      'ocr_source_review_risk_ocr_source_missing_manual_entry_required',
+      'ocr_source_review_risk_saved_proof_ocr_fallback_review_required',
+      'ocr_source_review_risk_scanner_preparation_review_required',
+      'ocr_source_review_risk_ocr_source_ready',
+    ]) {
+      if ((sourceSignalCounts[token] ?? 0) > 0 ||
+          (riskFlagCounts[token] ?? 0) > 0) {
+        return token;
+      }
+    }
+    return 'ocr_source_review_risk_unknown';
+  }
+
+  String get sourceReviewRequirementStatus {
+    for (final token in const [
+      'ocr_source_review_requirement_manual_review_required_before_saving_receipt',
+      'ocr_source_review_requirement_standard_user_confirmation_required',
+    ]) {
+      if ((sourceSignalCounts[token] ?? 0) > 0 ||
+          (riskFlagCounts[token] ?? 0) > 0) {
+        return token;
+      }
+    }
+    return 'ocr_source_review_requirement_unknown';
+  }
+
   String get reviewDepthStatus {
     if ((reviewDepthSignalCounts['receipt_review_depth_detailedlines'] ?? 0) >
             0 ||
@@ -200,6 +228,12 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       0;
 
   String get sourceQualityReviewStatus {
+    if (sourceReviewRiskStatus ==
+            'ocr_source_review_risk_ocr_source_missing_manual_entry_required' ||
+        sourceReviewRiskStatus ==
+            'ocr_source_review_risk_saved_proof_ocr_fallback_review_required') {
+      return 'ocr_source_fallback_review_required';
+    }
     if (hasMissingBottomEdgeAndTotalsEvidence) {
       return 'missing_bottom_edge_and_totals_first';
     }
@@ -219,6 +253,8 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
     return switch (sourceQualityReviewStatus) {
       'missing_bottom_edge_and_totals_first' =>
         'add_bottom_section_with_ghost_slice',
+      'ocr_source_fallback_review_required' =>
+        'review_or_enter_receipt_manually',
       'section_order_review_required' => 'review_receipt_section_order',
       'saved_bottom_quality_review' => 'check_bottom_or_add_photo',
       'saved_dark_exposure_review' => 'retake_or_raise_brightness',
@@ -246,6 +282,11 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
         'sourceFirstOutcomeCounts': sourceFirstOutcomeCounts,
       if (sourceFirstOutcomeCounts.isNotEmpty)
         'sourceFirstOutcomeStatus': sourceFirstOutcomeStatus,
+      if (sourceReviewRiskStatus != 'ocr_source_review_risk_unknown')
+        'sourceReviewRiskStatus': sourceReviewRiskStatus,
+      if (sourceReviewRequirementStatus !=
+          'ocr_source_review_requirement_unknown')
+        'sourceReviewRequirementStatus': sourceReviewRequirementStatus,
       if (handoffWarningProfileCounts.isNotEmpty)
         'handoffWarningProfileCounts': handoffWarningProfileCounts,
       if (handoffWarningProfileCounts.isNotEmpty)

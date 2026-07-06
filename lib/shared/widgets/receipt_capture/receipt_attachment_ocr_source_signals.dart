@@ -19,6 +19,8 @@ extension _ReceiptAttachmentOcrSourceSignals
       'ocr_reads_clear_source_before_saved_proof',
       'ocr_source_first_${attachmentSignalToken(result.ocrSourceFirstDecisionCode)}',
       'ocr_source_first_outcome_${attachmentSignalToken(result.ocrSourceFirstOutcome)}',
+      'ocr_source_review_risk_${attachmentSignalToken(result.ocrSourceReviewRiskCode)}',
+      'ocr_source_review_requirement_${attachmentSignalToken(result.ocrSourceReviewRequirement)}',
       'linked_module_$_receiptAttachmentLinkedModule',
       'data_saver_${result.dataSaverLevel.name}',
       'proof_data_saver_${result.dataSaverLevel.name}',

@@ -13,6 +13,8 @@ List<String> _ocrSourceDocumentSignalsFor(
     'ocr_reads_prepared_source_not_saved_backup',
     'ocr_source_first_${_signalToken(result.ocrSourceFirstDecisionCode)}',
     'ocr_source_first_outcome_${_signalToken(result.ocrSourceFirstOutcome)}',
+    'ocr_source_review_risk_${_signalToken(result.ocrSourceReviewRiskCode)}',
+    'ocr_source_review_requirement_${_signalToken(result.ocrSourceReviewRequirement)}',
     'data_saver_${result.dataSaverLevel.name}',
     'proof_data_saver_${result.dataSaverLevel.name}',
     'receipt_review_depth_${_signalToken(result.nativeReceiptReviewDepth)}',
