@@ -37,7 +37,7 @@ class ReceiptCaptureDiagnosticPublishPolicy {
 
   static final RegExp _safeTokenPattern = RegExp(r'^[A-Za-z0-9_.-]+$');
   static final RegExp _unsafeKeyPattern = RegExp(
-    r'(path|receiptText|ocrText|rawText|rawOcr|imageBytes|imageUri|merchantName|storeName|address|phone|email|deviceId|deviceModel|deviceName|rawDevice)',
+    r'(path|receiptText|ocrText|rawText|rawOcr|imageBytes|imageUri|merchantName|storeName|address|phone|email|deviceId|deviceModel|deviceName|rawDevice|customer|passenger|patient|vin|licensePlate|lineItem|itemName|note|comment|message|label|title|description)',
     caseSensitive: false,
   );
 
@@ -78,7 +78,8 @@ class ReceiptCaptureDiagnosticPublishPolicy {
     if (token == null ||
         token.isEmpty ||
         token.length > 64 ||
-        !_safeTokenPattern.hasMatch(token)) {
+        !_safeTokenPattern.hasMatch(token) ||
+        token != token.toLowerCase()) {
       return null;
     }
     return token;

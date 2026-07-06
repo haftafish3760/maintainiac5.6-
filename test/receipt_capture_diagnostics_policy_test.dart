@@ -81,6 +81,46 @@ void main() {
     },
   );
 
+  test(
+    'published camera diagnostics drop human-facing text and merchant-like tokens',
+    () {
+      const policy = ReceiptCaptureDiagnosticPublishPolicy();
+      const diagnostic = {
+        'captureFlow': 'maintainiac_native_receipt_camera',
+        'safeReasonCode': 'ocr_source_ready',
+        'operatorNote': 'LOWES_AUSTIN_TX_78745',
+        'failureLabel': 'LOWES',
+        'guidanceMessage': 'move_closer',
+        'lineItemName': 'plumbers_putty',
+        'receiptCategory': 'fuel',
+        'nested': {
+          'safeCode': 'stitch_ready',
+          'userMessage': 'LOWES',
+          'storeNameToken': 'lowes',
+          'receiptLineLabel': 'sale_total_3_24',
+        },
+      };
+
+      final envelope = policy.envelope(
+        improvementOptIn: true,
+        diagnostic: diagnostic,
+      );
+      final encoded = envelope.toString().toLowerCase();
+
+      expect(envelope['captureFlow'], 'maintainiac_native_receipt_camera');
+      expect(envelope['safeReasonCode'], 'ocr_source_ready');
+      expect(envelope.containsKey('operatorNote'), isFalse);
+      expect(envelope.containsKey('failureLabel'), isFalse);
+      expect(envelope.containsKey('guidanceMessage'), isFalse);
+      expect(envelope.containsKey('lineItemName'), isFalse);
+      expect(envelope['receiptCategory'], 'fuel');
+      expect(envelope['nested'], {'safeCode': 'stitch_ready'});
+      expect(encoded, isNot(contains('lowes')));
+      expect(encoded, isNot(contains('plumbers')));
+      expect(encoded, isNot(contains('sale_total')));
+    },
+  );
+
   test('published camera diagnostics keep finite scores only', () {
     const policy = ReceiptCaptureDiagnosticPublishPolicy();
     const diagnostic = {
