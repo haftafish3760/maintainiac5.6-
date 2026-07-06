@@ -10,6 +10,13 @@ void main() {
     final flowHelpers = await File(
       'lib/shared/widgets/receipt_capture/receipt_capture_flow_helpers.dart',
     ).readAsString();
+    final nativeSettings = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_settings.dart',
+    ).readAsString();
+    final nativeDescriptors = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_settings_descriptors.dart',
+    ).readAsString();
+    final photoReviewScreen = await _readReceiptPhotoReviewSource();
     final readBoundarySource = await _readReceiptReadBoundarySource();
 
     expect(
@@ -31,6 +38,18 @@ void main() {
     expect(
       flowHelpers,
       contains('settings?.appAssistedEnabledFor(area) ?? false'),
+    );
+    expect(nativeSettings, contains('this.assistedReceiptFill = false'));
+    expect(nativeDescriptors, contains('defaultEnabled: false'));
+    expect(photoReviewScreen, contains('this.assistedReceiptFill = false'));
+    expect(
+      photoReviewScreen,
+      contains('assistedReceiptFill: widget.assistedReceiptFill'),
+    );
+    expect(photoReviewScreen, isNot(contains('assistedReceiptFill: true')));
+    expect(
+      readBoundarySource,
+      contains('assistedReceiptFill: _appAssistedReceiptFillEnabled'),
     );
     expect(flowHelpers, isNot(contains('area == null ? true')));
     expect(flowHelpers, isNot(contains('?? true)')));
@@ -57,6 +76,21 @@ Future<String> _readReceiptReadBoundarySource() async {
     'lib/shared/widgets/receipt_capture/receipt_pdf_import_sheets.dart',
     'lib/shared/widgets/receipt_capture/receipt_attachment_text_document_actions.dart',
     'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_actions.dart',
+    'lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart',
+  ];
+  final contents = <String>[];
+  for (final path in paths) {
+    contents.add(await File(path).readAsString());
+  }
+  return contents.join('\n');
+}
+
+Future<String> _readReceiptPhotoReviewSource() async {
+  final paths = [
+    'lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart',
+    'lib/shared/widgets/receipt_capture/receipt_photo_review_capture_actions.dart',
+    'lib/shared/widgets/receipt_capture/receipt_capture_flow_capture_and_review.dart',
+    'lib/shared/widgets/receipt_capture/receipt_capture_flow_recovery.dart',
     'lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart',
   ];
   final contents = <String>[];

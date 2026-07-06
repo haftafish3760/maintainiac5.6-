@@ -13,7 +13,7 @@ void main() {
     () {
       const settings = ReceiptNativeCameraSettings();
 
-      expect(settings.assistedReceiptFill, isTrue);
+      expect(settings.assistedReceiptFill, isFalse);
       expect(settings.reviewDepth, ReceiptNativeReviewDepth.pricesOnly);
       expect(settings.manualShutterAlwaysAvailable, isTrue);
       expect(settings.autoCaptureEnabled, isFalse);
@@ -89,6 +89,13 @@ void main() {
     expect(ids, contains('image_cleanup'));
     expect(ids, contains('safe_capture_queue'));
     expect(ids, contains('save_space_preview'));
+
+    final assistedReceiptFill = descriptors.singleWhere(
+      (descriptor) => descriptor.id == 'assisted_receipt_fill',
+    );
+    expect(assistedReceiptFill.defaultEnabled, isFalse);
+    expect(assistedReceiptFill.description, contains('Optional'));
+    expect(assistedReceiptFill.description, contains('turn Receipt Assist on'));
 
     final autoCapture = descriptors.singleWhere(
       (descriptor) => descriptor.id == 'auto_capture',

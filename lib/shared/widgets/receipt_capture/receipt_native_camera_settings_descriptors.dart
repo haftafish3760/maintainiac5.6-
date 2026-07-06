@@ -5,10 +5,10 @@ const _receiptNativeCameraSettingDescriptors = <ReceiptNativeCameraSettingDescri
     id: 'assisted_receipt_fill',
     label: 'Help fill my receipt',
     description:
-        'Maintainiac reads the receipt and opens the review form for you.',
+        'Optional. Maintainiac reads the receipt and opens the review form after you turn Receipt Assist on.',
     group: ReceiptNativeSettingGroup.capture,
     type: ReceiptNativeSettingType.toggle,
-    defaultEnabled: true,
+    defaultEnabled: false,
   ),
   ReceiptNativeCameraSettingDescriptor(
     id: 'review_depth',

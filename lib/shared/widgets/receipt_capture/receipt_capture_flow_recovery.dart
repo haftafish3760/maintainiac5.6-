@@ -10,6 +10,8 @@ extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
       engine: record.engine,
       available: record.engine != ReceiptNativeCameraEngine.unavailable,
     );
+    final settings = ReceiptCaptureSettingsScope.maybeOf(context);
+    final cameraSettings = _cameraSettingsFor(settings, options);
     final photoPaths = _existingUniqueRecoveryPhotoPaths(
       record.recoverablePhotoPaths,
     );
@@ -98,6 +100,7 @@ extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
                 ...options.initialCaptureDiagnosticsByPath,
                 ...reviewOpeningDiagnostics,
               },
+              assistedReceiptFill: cameraSettings.assistedReceiptFill,
             ),
           ),
         );

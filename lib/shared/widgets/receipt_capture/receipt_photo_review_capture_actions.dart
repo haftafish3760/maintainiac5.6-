@@ -268,7 +268,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
     final deviceCapability =
         settings?.deviceCapability ?? const ReceiptDeviceCapability.standard();
     final cameraSettings = ReceiptNativeCameraSettings(
-      assistedReceiptFill: true,
+      assistedReceiptFill: widget.assistedReceiptFill,
       longReceiptMode: settings?.cameraLongReceiptTips ?? true,
       autoCaptureEnabled: settings?.cameraAutoCapture ?? false,
       dataSaverLevel: _dataSaverLevel,

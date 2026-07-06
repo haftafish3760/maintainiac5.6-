@@ -88,6 +88,7 @@ class ReceiptPhotoReviewScreen extends StatefulWidget {
     this.initialQualityChecks = const [],
     this.initialQualityChecksByPath = const {},
     this.initialCaptureDiagnosticsByPath = const {},
+    this.assistedReceiptFill = false,
   });
 
   final List<String> initialPhotoPaths;
@@ -97,6 +98,7 @@ class ReceiptPhotoReviewScreen extends StatefulWidget {
   final List<ReceiptPhotoQualityCheck> initialQualityChecks;
   final Map<String, ReceiptPhotoQualityCheck> initialQualityChecksByPath;
   final Map<String, Map<String, Object?>> initialCaptureDiagnosticsByPath;
+  final bool assistedReceiptFill;
 
   @override
   State<ReceiptPhotoReviewScreen> createState() =>

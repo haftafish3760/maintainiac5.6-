@@ -28,6 +28,7 @@ extension _ReceiptAttachmentReviewReadActions
             ..._photoCaptureDiagnosticsByPath,
             ...initialCaptureDiagnosticsByPath,
           },
+          assistedReceiptFill: _appAssistedReceiptFillEnabled,
         ),
       ),
     );
@@ -112,6 +113,7 @@ extension _ReceiptAttachmentReviewReadActions
           initialDataSaverLevel: _dataSaverLevel,
           initialQualityChecksByPath: _photoQualityByPath,
           initialCaptureDiagnosticsByPath: _photoCaptureDiagnosticsByPath,
+          assistedReceiptFill: _appAssistedReceiptFillEnabled,
         ),
       ),
     );

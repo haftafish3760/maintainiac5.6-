@@ -223,6 +223,7 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
               ...options.initialCaptureDiagnosticsByPath,
               ...reviewOpeningDiagnostics,
             },
+            assistedReceiptFill: cameraSettings.assistedReceiptFill,
           ),
         ),
       );
