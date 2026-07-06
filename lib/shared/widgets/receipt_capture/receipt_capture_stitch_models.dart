@@ -375,6 +375,24 @@ bool _sameReceiptArtifactPath(String left, String right) {
   return normalizedLeft != null && normalizedLeft == normalizedRight;
 }
 
+ReceiptStitchResult _frozenStitchResult(ReceiptStitchResult result) {
+  return ReceiptStitchResult(
+    status: result.status,
+    inputPaths: List<String>.unmodifiable(result.inputPaths),
+    ocrSourcePaths: List<String>.unmodifiable(result.ocrSourcePaths),
+    stitchedPath: result.stitchedPath,
+    confidence: result.confidence,
+    overlapPixels: List<int>.unmodifiable(result.overlapPixels),
+    pairs: List<ReceiptStitchPairResult>.unmodifiable(result.pairs),
+    failedPairIndex: result.failedPairIndex,
+    stitchedWidth: result.stitchedWidth,
+    stitchedHeight: result.stitchedHeight,
+    warning: result.warning,
+    usedManualAdjustment: result.usedManualAdjustment,
+    fallbackReasonCode: result.fallbackReasonCode,
+  );
+}
+
 String _safeStitchFallbackReasonCode(String value) {
   final token = value
       .trim()

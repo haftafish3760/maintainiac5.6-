@@ -147,7 +147,7 @@ class ReceiptPhotoReviewResult {
     required List<String> photoPaths,
     required List<String> ocrSourcePhotoPaths,
     required this.dataSaverLevel,
-    required this.stitchResult,
+    required ReceiptStitchResult stitchResult,
     Map<String, ReceiptPhotoQualityCheck> photoQualityChecksByPath = const {},
     Map<String, Map<String, Object?>> preparationDiagnosticsByOcrPath =
         const {},
@@ -176,6 +176,7 @@ class ReceiptPhotoReviewResult {
          captureDiagnosticsByPhotoPath,
          _uniqueNonBlankPaths(photoPaths),
        ),
+       stitchResult = _frozenStitchResult(stitchResult),
        photoPathInputWasSanitized = _pathInputWasSanitized(photoPaths),
        ocrSourcePathInputWasSanitized = _pathInputWasSanitized(
          ocrSourcePhotoPaths,

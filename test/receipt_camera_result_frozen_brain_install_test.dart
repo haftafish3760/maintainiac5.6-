@@ -303,4 +303,79 @@ void main() {
       'quality=ready_for_receipt_review;stitch=notNeeded;reason=notNeeded;sources=1;ocr_source_first=true;scanner=enhanced_ocr_source;saved=saved_warning_none;coverage=coverage_ok;ui=native_ui_signal_missing',
     );
   });
+
+  test('review result deep freezes nested diagnostics maps', () {
+    final captureDiagnostics = <String, Map<String, Object?>>{
+      '/tmp/proof.jpg': {'captureFlow': 'before_result'},
+    };
+    final preparationDiagnostics = <String, Map<String, Object?>>{
+      '/tmp/ocr.jpg': {'ocrPrep': 'before_result'},
+    };
+
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/proof.jpg']),
+      captureDiagnosticsByPhotoPath: captureDiagnostics,
+      preparationDiagnosticsByOcrPath: preparationDiagnostics,
+    );
+
+    captureDiagnostics['/tmp/proof.jpg']!['captureFlow'] = 'mutated_later';
+    preparationDiagnostics['/tmp/ocr.jpg']!['ocrPrep'] = 'mutated_later';
+
+    expect(
+      result.captureDiagnosticsByPhotoPath['/tmp/proof.jpg'],
+      containsPair('captureFlow', 'before_result'),
+    );
+    expect(
+      result.preparationDiagnosticsByOcrPath['/tmp/ocr.jpg'],
+      containsPair('ocrPrep', 'before_result'),
+    );
+    expect(
+      () =>
+          result.captureDiagnosticsByPhotoPath['/tmp/proof.jpg']!['captureFlow'] =
+              'ui_mutation',
+      throwsUnsupportedError,
+    );
+    expect(
+      () => result.preparationDiagnosticsByOcrPath['/tmp/ocr.jpg']!['ocrPrep'] =
+          'ui_mutation',
+      throwsUnsupportedError,
+    );
+  });
+
+  test('review result freezes stitch source contract lists', () {
+    final stitchInputPaths = ['/tmp/ocr.jpg'];
+    final stitchOcrPaths = ['/tmp/ocr.jpg'];
+    final overlapPixels = [120];
+
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult(
+        status: ReceiptStitchStatus.notNeeded,
+        inputPaths: stitchInputPaths,
+        ocrSourcePaths: stitchOcrPaths,
+        overlapPixels: overlapPixels,
+      ),
+    );
+
+    stitchInputPaths.add('/tmp/late-proof.jpg');
+    stitchOcrPaths.add('/tmp/late-ocr.jpg');
+    overlapPixels.add(999);
+
+    expect(result.stitchResult.inputPaths, ['/tmp/ocr.jpg']);
+    expect(result.stitchResult.ocrSourcePaths, ['/tmp/ocr.jpg']);
+    expect(result.stitchResult.overlapPixels, [120]);
+    expect(
+      result.acceptedPhotoHandoffRoute,
+      'photo_review_accepted_to_receipt_details',
+    );
+    expect(
+      () => result.stitchResult.ocrSourcePaths.add('/tmp/ui-mutation.jpg'),
+      throwsUnsupportedError,
+    );
+  });
 }
