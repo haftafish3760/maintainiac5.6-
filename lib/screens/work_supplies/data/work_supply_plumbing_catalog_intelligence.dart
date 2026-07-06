@@ -57,8 +57,7 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
   if (category == 'fittings' && _isOversizedPlumbingFittingForCore(item)) {
     return false;
   }
-  if (category == 'fittings' &&
-      (type.contains('street') || type.contains('reducing sanitary'))) {
+  if (category == 'fittings' && type.contains('street')) {
     return false;
   }
   if (category == 'fittings' && type.contains('expanded')) {
@@ -148,9 +147,41 @@ bool _isOversizedPlumbingValveForCore(WorkSupplyItem item) {
 }
 
 bool _isOversizedPlumbingSupportForCore(WorkSupplyItem item) {
-  final largestVariantSize = _largestPlumbingVariantSize(item.variant);
-  if (largestVariantSize == null) return false;
-  return largestVariantSize > 2;
+  final text = item.searchableText;
+  if (text.contains('stud guard') || text.contains('nail plate')) {
+    return false;
+  }
+  final primarySize = _primaryPlumbingVariantSize(item.variant);
+  if (primarySize == null) return false;
+  return primarySize > 2;
+}
+
+double? _primaryPlumbingVariantSize(String variant) {
+  final normalized = variant.toLowerCase().trim();
+  final leadingBeforeBy = RegExp(
+    r'^(\d+-\d+/\d+|\d+/\d+|\d+(?:\.\d+)?)\s*x\b',
+  ).firstMatch(normalized);
+  if (leadingBeforeBy != null) {
+    return _parsePlumbingNumber(leadingBeforeBy.group(1)!);
+  }
+  final leading = RegExp(
+    r'^(\d+-\d+/\d+|\d+/\d+|\d+(?:\.\d+)?)\s*(?:in|inch|")?\b',
+  ).firstMatch(normalized);
+  if (leading == null) return null;
+  return _parsePlumbingNumber(leading.group(1)!);
+}
+
+double? _parsePlumbingNumber(String raw) {
+  final mixed = RegExp(r'^(\d+)-(\d+)/(\d+)$').firstMatch(raw);
+  if (mixed != null) {
+    return double.parse(mixed.group(1)!) +
+        double.parse(mixed.group(2)!) / double.parse(mixed.group(3)!);
+  }
+  final fraction = RegExp(r'^(\d+)/(\d+)$').firstMatch(raw);
+  if (fraction != null) {
+    return double.parse(fraction.group(1)!) / double.parse(fraction.group(2)!);
+  }
+  return double.tryParse(raw);
 }
 
 bool _isPlumbingStandardItem(WorkSupplyItem item, String text) {

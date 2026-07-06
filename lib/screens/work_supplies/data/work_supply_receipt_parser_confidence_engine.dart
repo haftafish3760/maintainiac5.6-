@@ -9,6 +9,7 @@ double _directReceiptConfidence(
   final receiptText = _normalize(originalText.isEmpty ? text : originalText);
   final evidence = _directMatchedTerms(text, item);
   var confidence = 0.70 + (evidence.length * 0.035);
+  if (_isPTrapReceiptMatch(receiptText, item)) confidence += 0.18;
   confidence += _specificityEvidenceScore(receiptText, item);
   confidence -= _receiptAmbiguityRisk(receiptText, item, tradeScope);
   return _boundedReceiptConfidence(confidence);
@@ -44,6 +45,7 @@ double _vendorMappingConfidence(
 double _specificityEvidenceScore(String text, WorkSupplyItem item) {
   var score = 0.0;
   if (_nominalReceiptSize(text) != null) score += 0.04;
+  if (_receiptSizeMatrix(text) != null) score += 0.05;
   if (_receiptContainsVariantTokens(text, item.variant)) score += 0.06;
   if (_containsExactPhrase(text, item.itemType)) score += 0.04;
   if (_containsExactPhrase(text, item.system)) score += 0.04;
@@ -63,7 +65,70 @@ double _specificityEvidenceScore(String text, WorkSupplyItem item) {
   ).hasMatch(itemText)) {
     score += 0.03;
   }
+  final rawItemText = '${item.name} ${item.variant} ${item.itemType}'
+      .toLowerCase();
+  if (_hasPTrapReceiptPhrase(text) &&
+      (rawItemText.contains('p-trap') || rawItemText.contains('p trap'))) {
+    score += 0.24;
+  }
+  score += _plumbingCoreReceiptEvidenceScore(text, itemText);
   return score;
+}
+
+double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
+  var score = 0.0;
+  if (RegExp(r'\bpvc\b').hasMatch(text) &&
+      RegExp(r'\b(90|90d|ell|elb|elbow)\b').hasMatch(text) &&
+      itemText.contains('pvc schedule 40 90 elbow')) {
+    score += 0.10;
+  }
+  if (RegExp(
+        r'\b(reducing cplg|reducing coupling|reducer coupling)\b',
+      ).hasMatch(text) &&
+      itemText.contains('reducing coupling')) {
+    score += 0.10;
+  }
+  final serviceFamilies = <RegExp, List<String>>{
+    RegExp(r'\b(p trap|p-trap)\b'): ['p trap', 'p-trap'],
+    RegExp(r'\bfill valve\b'): ['fill valve'],
+    RegExp(r'\btank lever\b'): ['tank lever'],
+    RegExp(r'\baerator\b'): ['aerator'],
+    RegExp(r'\b(o ring|o-ring|oring)\b'): ['o ring', 'o-ring', 'oring'],
+    RegExp(r'\bdisposal drain elb'): ['disposal drain elbow'],
+    RegExp(r'\bcontinuous waste\b|\bcont waste\b'): ['continuous waste'],
+    RegExp(r'\bdisposal install kit\b'): ['disposal install kit'],
+    RegExp(r'\bdisposal elbow gasket\b|\bdisposal gasket\b'): [
+      'disposal gasket',
+      'disposal elbow gasket',
+    ],
+    RegExp(r'\bescutcheon\b|\besc plate\b'): ['escutcheon'],
+  };
+  for (final entry in serviceFamilies.entries) {
+    if (entry.key.hasMatch(text) &&
+        entry.value.any((phrase) => itemText.contains(phrase))) {
+      score += entry.value.contains('p trap') ? 0.24 : 0.16;
+      break;
+    }
+  }
+  return score;
+}
+
+bool _hasPTrapReceiptPhrase(String text) {
+  final normalized = ' ${text.toLowerCase()} ';
+  return normalized.contains(' p trap ') ||
+      normalized.contains(' p-trap ') ||
+      normalized.contains(' ptrap ');
+}
+
+bool _isPTrapReceiptMatch(String text, WorkSupplyItem item) {
+  if (!_hasPTrapReceiptPhrase(text) && !text.toLowerCase().contains('trap')) {
+    return false;
+  }
+  final itemText = '${item.name} ${item.variant} ${item.itemType}'
+      .toLowerCase();
+  return itemText.contains('p-trap') ||
+      itemText.contains('p trap') ||
+      (itemText.contains('tubular') && itemText.contains('trap'));
 }
 
 double _receiptAmbiguityRisk(

@@ -1470,7 +1470,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(trampa p|trampa lavamanos|trampa lavabo|p trap|p-trap)\b',
   ).hasMatch(text)) {
-    final size = _nominalReceiptSize(text);
+    final size = _nominalReceiptSize(text) ?? _explicitTubularTrapSize(text);
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
@@ -2120,7 +2120,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(p-trap|p trap|tubular p-trap|tubular p trap)\b',
   ).hasMatch(text)) {
-    final size = _nominalReceiptSize(text);
+    final size = _nominalReceiptSize(text) ?? _explicitTubularTrapSize(text);
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
@@ -4354,6 +4354,20 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
   }
+  if (RegExp(r'\b(pvc|dwv)\b').hasMatch(text) &&
+      RegExp(
+        r'\b(reducing san tee|reducing sanitary|reducing sanitary tee)\b',
+      ).hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade != 'Plumbing') continue;
+      if (name.contains('pvc dwv reducing sanitary tee') &&
+          (_nameMatchesReceiptMatrix(name, text) ||
+              _receiptMatchesVariant(text, item.variant))) {
+        return item;
+      }
+    }
+  }
   if (RegExp(r'\b(pvc|dwv|drain)\b').hasMatch(text) &&
       RegExp(
         r'\b(san tee|sanitary tee|sanitary tees|sanitary t)\b',
@@ -4372,18 +4386,6 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       if (item.trade == 'Plumbing' &&
           name.contains('pvc dwv sanitary tee') &&
           _nameMatchesReceiptSize(name, size)) {
-        return item;
-      }
-    }
-  }
-  if (RegExp(r'\b(pvc|dwv)\b').hasMatch(text) &&
-      RegExp(r'\b(reducing san tee|reducing sanitary)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade != 'Plumbing') continue;
-      if (name.contains('pvc dwv reducing sanitary tee') &&
-          (_nameMatchesReceiptMatrix(name, text) ||
-              _receiptMatchesVariant(text, item.variant))) {
         return item;
       }
     }
@@ -4853,10 +4855,28 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
   }
   final pexServiceFitting = _directPlumbingPexServiceFittingMatch(text);
   if (pexServiceFitting != null) return pexServiceFitting;
+  final wantsPvcSch40ReducingCoupling =
+      RegExp(r'\bpvc\b').hasMatch(text) &&
+      RegExp(r'\b(sch40|sch 40|schedule 40)\b').hasMatch(text) &&
+      RegExp(
+        r'\b(reducing cplg|reducing coupling|reducer coupling)\b',
+      ).hasMatch(text);
+  if (wantsPvcSch40ReducingCoupling) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('pvc schedule 40 reducing coupling') &&
+          (_nameMatchesReceiptMatrix(name, text) ||
+              _receiptMatchesVariant(text, item.variant))) {
+        return item;
+      }
+    }
+  }
   final wantsPvcSch40Coupling =
       RegExp(r'\bpvc\b').hasMatch(text) &&
-      RegExp(r'\b(sch40|schedule 40)\b').hasMatch(text) &&
-      RegExp(r'\b(coupling|cplg|coup)\b').hasMatch(text);
+      RegExp(r'\b(sch40|sch 40|schedule 40)\b').hasMatch(text) &&
+      RegExp(r'\b(coupling|cplg|coup)\b').hasMatch(text) &&
+      !RegExp(r'\b(reducing|reducer)\b').hasMatch(text);
   if (wantsPvcSch40Coupling) {
     final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
@@ -5106,6 +5126,11 @@ bool _containsBareSingleInchSize(String text, String variant) {
 
 String? _nominalReceiptSize(String text) {
   final normalized = _normalize(text);
+  for (final size in const ['1-1/2', '1-1/4', '2-1/2']) {
+    if (RegExp('(^| )${RegExp.escape(size)}( |\$)').hasMatch(normalized)) {
+      return size;
+    }
+  }
   final match = RegExp(
     r'(^| )(1/4|3/8|1/2|5/8|3/4|1-1/4|1-1/2|2-1/2|10|12|1|2|3|4|6|8)( |$)',
   ).firstMatch(normalized);
@@ -5192,7 +5217,7 @@ String _normalizeVariantTokenText(String value) {
 bool _nameMatchesReceiptMatrix(String name, String text) {
   final matrix = _receiptSizeMatrix(text);
   if (matrix == null) return false;
-  return name.startsWith('$matrix ');
+  return RegExp('^${RegExp.escape(matrix)}(?! x )').hasMatch(name);
 }
 
 String? _receiptSizeMatrix(String text) {
@@ -5200,6 +5225,12 @@ String? _receiptSizeMatrix(String text) {
     r'\b\d+(?:-\d/\d|/\d)?(?: x \d+(?:-\d/\d|/\d)?){1,2}\b',
   ).firstMatch(text);
   return matrix?.group(0);
+}
+
+String? _explicitTubularTrapSize(String text) {
+  if (RegExp(r'(^| )1-1/2( |$)').hasMatch(text)) return '1-1/2';
+  if (RegExp(r'(^| )1-1/4( |$)').hasMatch(text)) return '1-1/4';
+  return null;
 }
 
 bool _containsExactPhrase(String text, String phrase) {
@@ -5233,6 +5264,7 @@ double _confidence(
     confidence += 0.05;
   }
   if (text.contains(item.variant.toLowerCase())) confidence += 0.04;
+  if (_isPTrapReceiptMatch(text, item)) confidence += 0.18;
   confidence += _specificityEvidenceScore(text, item);
   confidence -= _receiptAmbiguityRisk(text, item, tradeScope);
   return _boundedReceiptConfidence(confidence);

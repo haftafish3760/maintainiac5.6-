@@ -1265,8 +1265,9 @@ List<String> _receiptPatternsFor(
     for (final seed in seeds) seed,
     for (final seed in seeds) seed.toUpperCase().replaceAll(' IN ', 'IN '),
     ...vendorStyleSeeds,
+    ..._plumbingCoreReceiptPatternsFor(item, material, size, shape),
     ..._spanishSignalsFor(item, material, size, shape),
-  ]).take(16).toList(growable: false);
+  ]).take(item.trade == 'Plumbing' ? 32 : 16).toList(growable: false);
 }
 
 List<String> _vendorStyleReceiptPatterns(String value) {
@@ -1323,6 +1324,7 @@ List<String> _attributeTokensFor(
     size,
     connectionType,
     ...item.aliases,
+    ..._plumbingCoreAttributeTokensFor(item, material, size, shape),
     ..._spanishSignalsFor(item, material, size, shape),
   ]);
 }
@@ -1412,6 +1414,7 @@ List<String> _negativeMatchTokensFor(
     if (shape.isNotEmpty && !shape.contains('drop-ear')) 'drop-ear $shape',
     if (shape.isNotEmpty && material.toLowerCase() != 'pex') 'PEX crimp $shape',
     if (shape.isNotEmpty && material.toLowerCase() != 'pvc') 'PVC DWV $shape',
+    ..._plumbingCoreNegativeMatchTokensFor(item, material, shape, text),
     ..._riskConflictNegativeMatchTokensFor(item, text),
   ]);
 }
@@ -1437,7 +1440,228 @@ List<String> _highImportanceTokensFor(
     if (_containsWord(text, 'filter')) item.system,
     if (_containsWord(text, 'pvc')) item.system,
     if (_containsWord(text, 'pipe')) item.system,
+    ..._plumbingCoreHighImportanceTokensFor(
+      item,
+      material,
+      size,
+      connectionType,
+      shape,
+    ),
   ]);
+}
+
+List<String> _plumbingCoreReceiptPatternsFor(
+  WorkSupplyItem item,
+  String material,
+  String size,
+  String shape,
+) {
+  if (!_isPlumbingCoreMetadataTarget(item)) return const [];
+  final family = _plumbingCoreFamilyTermsFor(item, shape);
+  final compactFamily = _plumbingCompactFamilyTermsFor(item, shape);
+  final spanish = _plumbingSpanishCoreFamilyTermsFor(item, shape);
+  final sizeToken = size.isEmpty ? item.variant : size;
+  final base = _cleanList([
+    item.name,
+    item.variant,
+    item.itemType,
+    material,
+    shape,
+    ...family,
+  ]).join(' ');
+  return _cleanList([
+    base,
+    '$sizeToken $base',
+    '$material $sizeToken ${family.join(' ')}',
+    '$sizeToken ${compactFamily.join(' ')}',
+    for (final term in family) '$sizeToken $material $term',
+    for (final term in compactFamily) '$sizeToken $term',
+    for (final term in compactFamily) 'HD $sizeToken $term',
+    for (final term in compactFamily) 'LOWES $sizeToken $term',
+    for (final term in compactFamily) 'ACE $sizeToken $term',
+    for (final term in compactFamily) 'SUPPLY $sizeToken $term',
+    for (final term in spanish) '$sizeToken $term',
+    for (final term in spanish) '$term $sizeToken',
+  ]);
+}
+
+List<String> _plumbingCoreAttributeTokensFor(
+  WorkSupplyItem item,
+  String material,
+  String size,
+  String shape,
+) {
+  if (!_isPlumbingCoreMetadataTarget(item)) return const [];
+  return _cleanList([
+    'plumbing-core',
+    'residential-service',
+    'service-truck',
+    'hardware-store-stock',
+    'box-store-stock',
+    'user-review-required',
+    'english-us',
+    'spanish-us',
+    item.path,
+    material,
+    size,
+    shape,
+    ..._plumbingCoreFamilyTermsFor(item, shape),
+    ..._plumbingCompactFamilyTermsFor(item, shape),
+    ..._plumbingSpanishCoreFamilyTermsFor(item, shape),
+  ]);
+}
+
+List<String> _plumbingCoreHighImportanceTokensFor(
+  WorkSupplyItem item,
+  String material,
+  String size,
+  String connectionType,
+  String shape,
+) {
+  if (!_isPlumbingCoreMetadataTarget(item)) return const [];
+  return _cleanList([
+    'plumbing-core',
+    'residential-service',
+    item.system,
+    item.itemType,
+    item.variant,
+    material,
+    size,
+    connectionType,
+    shape,
+    ..._plumbingCoreFamilyTermsFor(item, shape),
+  ]);
+}
+
+List<String> _plumbingCoreNegativeMatchTokensFor(
+  WorkSupplyItem item,
+  String material,
+  String shape,
+  String text,
+) {
+  if (!_isPlumbingCoreMetadataTarget(item)) return const [];
+  final itemText = '$text ${item.name} ${item.itemType}'.toLowerCase();
+  return _cleanList([
+    if (!itemText.contains('conduit')) 'electrical conduit',
+    if (!itemText.contains('condensate')) 'hvac condensate drain',
+    if (!itemText.contains('filter')) 'hvac air filter',
+    if (!itemText.contains('paint')) 'paint supplies',
+    if (!itemText.contains('irrigation')) 'irrigation sprinkler',
+    if (material != 'PVC') 'pvc electrical conduit',
+    if (material != 'copper') 'hvac refrigerant copper',
+    if (shape != 'valve') 'gas appliance valve',
+  ]);
+}
+
+bool _isPlumbingCoreMetadataTarget(WorkSupplyItem item) {
+  return item.trade == 'Plumbing' &&
+      _resolvePlumbingPackTier(item) == WorkSupplyPackTier.core &&
+      item.marketScopes.contains(WorkSupplyMarketScope.residential);
+}
+
+List<String> _plumbingCoreFamilyTermsFor(WorkSupplyItem item, String shape) {
+  final text =
+      '${item.name} ${item.itemType} ${item.system} ${item.aliases.join(' ')}'
+          .toLowerCase();
+  if (text.contains('p-trap') || text.contains('p trap')) {
+    return const ['p trap', 'p-trap', 'sink trap', 'lav trap'];
+  }
+  if (text.contains('fill valve')) {
+    return const ['fill valve', 'toilet fill valve', 'ballcock'];
+  }
+  if (text.contains('tank lever')) {
+    return const ['tank lever', 'toilet handle', 'flush lever'];
+  }
+  if (text.contains('aerator')) {
+    return const ['aerator', 'faucet aerator', 'faucet screen'];
+  }
+  if (text.contains('o-ring') || text.contains('o ring')) {
+    return const ['o ring', 'o-ring', 'faucet o ring', 'seal kit'];
+  }
+  if (text.contains('disposal drain elbow')) {
+    return const [
+      'disposal drain elbow',
+      'disposal elbow',
+      'garbage disposal elbow',
+    ];
+  }
+  if (text.contains('disposal install kit')) {
+    return const [
+      'disposal install kit',
+      'disposal kit',
+      'garbage disposal connector',
+    ];
+  }
+  if (text.contains('continuous waste')) {
+    return const ['continuous waste', 'cont waste', 'double bowl waste'];
+  }
+  if (text.contains('escutcheon')) {
+    return const ['escutcheon', 'esc plate', 'cover plate'];
+  }
+  if (text.contains('sanitary tee')) {
+    return const ['sanitary tee', 'san tee', 'sanitary t'];
+  }
+  if (text.contains('reducing coupling')) {
+    return const ['reducing coupling', 'reducing cplg', 'reducer coupling'];
+  }
+  if (text.contains('coupling')) return const ['coupling', 'cplg', 'coupler'];
+  if (text.contains('elbow') || shape == 'elbow') {
+    return const ['elbow', 'elb', 'ell'];
+  }
+  if (text.contains('adapter') || shape == 'adapter') {
+    return const ['adapter', 'adpt', 'adaptor'];
+  }
+  if (text.contains('tee') || shape == 'tee') return const ['tee', 't fitting'];
+  if (text.contains('valve') || shape == 'valve') return const ['valve'];
+  if (text.contains('pipe')) return const ['pipe', 'tube', 'tubing'];
+  return _cleanList([item.itemType, shape]);
+}
+
+List<String> _plumbingCompactFamilyTermsFor(WorkSupplyItem item, String shape) {
+  return _cleanList([
+    for (final term in _plumbingCoreFamilyTermsFor(item, shape))
+      term
+          .toUpperCase()
+          .replaceAll(' COUPLING', ' CPLG')
+          .replaceAll(' ADAPTER', ' ADPT')
+          .replaceAll(' ELBOW', ' ELB')
+          .replaceAll(' CONNECTOR', ' CONN')
+          .replaceAll(' DISPOSAL', ' DISP')
+          .replaceAll(' TOILET', ' TLT')
+          .replaceAll(' FAUCET', ' FCT'),
+  ]);
+}
+
+List<String> _plumbingSpanishCoreFamilyTermsFor(
+  WorkSupplyItem item,
+  String shape,
+) {
+  final text = '${item.name} ${item.itemType} ${item.system}'.toLowerCase();
+  if (text.contains('p-trap') || text.contains('p trap')) {
+    return const ['trampa p', 'trampa lavabo', 'trampa lavamanos'];
+  }
+  if (text.contains('fill valve')) {
+    return const ['valvula llenado', 'valvula de llenado sanitario'];
+  }
+  if (text.contains('tank lever')) {
+    return const ['palanca tanque', 'manija sanitario'];
+  }
+  if (text.contains('aerator')) return const ['aireador', 'aireador grifo'];
+  if (text.contains('o-ring') || text.contains('o ring')) {
+    return const ['o ring', 'empaque llave', 'sello llave'];
+  }
+  if (text.contains('disposal')) {
+    return const ['triturador', 'codo triturador', 'kit triturador'];
+  }
+  if (text.contains('escutcheon')) return const ['chapeton', 'placa cubierta'];
+  if (text.contains('sanitary tee'))
+    return const ['tee sanitaria', 't sanitaria'];
+  if (text.contains('coupling')) return const ['cople', 'acople'];
+  if (text.contains('elbow') || shape == 'elbow') return const ['codo'];
+  if (text.contains('adapter') || shape == 'adapter')
+    return const ['adaptador'];
+  if (text.contains('valve') || shape == 'valve') return const ['valvula'];
+  return const ['plomeria residencial'];
 }
 
 List<String> _riskConflictNegativeMatchTokensFor(

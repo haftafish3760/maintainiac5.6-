@@ -3961,3 +3961,23 @@ Release boundaries:
   This is catalog-curation evidence, not release parser accuracy evidence; do
   not treat Plumbing as Mac-ready until parser fixtures/Spanish/ambiguity runs
   are executed against this locked Core set.
+- **18:35-19:02 Plumbing Core Metadata/Parser Gate:** Added a reusable
+  Plumbing Core metadata overlay in the catalog intelligence generator so Core
+  rows receive richer residential-service, service-truck, box-store,
+  English/Spanish, compact receipt, high-importance, and negative-match tokens
+  by family instead of relying on one-off parser hacks. Fixed Plumbing Core
+  parser seams exposed by the pack gate: reducing sanitary tees no longer get
+  swallowed by generic sanitary tee matching, reducing PVC Schedule 40
+  couplings resolve before generic couplings, mixed-fraction nominal sizes
+  prefer `1-1/2`/`1-1/4` before `1/2`/`1/4`, and exact Tubular P-Trap receipt
+  matches receive family-specific confidence evidence. Latest focused report:
+  `build/parser_qa_curation/plumbing_core/latest_plumbing_core_curation_audit.json`
+  shows Plumbing Core at 1,119 rows, 0 missing required families, 0 suspicious
+  Core rows, and 179 outside-Core review candidates. Focused gates passed:
+  `flutter test test/work_supply_plumbing_core_pack_gate_test.dart`,
+  `flutter test test/work_supply_plumbing_core_curation_audit_test.dart
+  test/work_supply_plumbing_core_curation_audit_report_test.dart
+  test/work_supply_plumbing_core_batch_gate_test.dart`. Generated batch shard
+  evidence: 250 checked cases out of 3,357 generated Plumbing Core cases, 0
+  failures. This is still Plumbing Core only; continue family-bundled metadata
+  enrichment before broad/full release waves.
