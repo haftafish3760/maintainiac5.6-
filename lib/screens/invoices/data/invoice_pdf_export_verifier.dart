@@ -21,6 +21,9 @@ class InvoicePdfExportVerifier {
 
   static const missingInvoiceNumber = 'missing_invoice_number';
   static const missingDocumentLabel = 'missing_document_label';
+  static const missingCompanyName = 'missing_company_name';
+  static const missingClientName = 'missing_client_name';
+  static const missingLineItemText = 'missing_line_item_text';
   static const missingBalanceDue = 'missing_balance_due';
   static const missingPdfTextLayer = 'missing_pdf_text_layer';
   static const wrongDocumentLabel = 'wrong_document_label';
@@ -116,6 +119,20 @@ class InvoicePdfExportVerifier {
     if (record.invoiceNumber.trim().isNotEmpty &&
         !_containsNormalized(normalized, record.invoiceNumber)) {
       issues.add(missingInvoiceNumber);
+    }
+    final companyName = record.company.bestName.trim();
+    if (companyName.isNotEmpty &&
+        !_containsNormalized(normalized, companyName)) {
+      issues.add(missingCompanyName);
+    }
+    final clientName = record.client.bestName.trim();
+    if (clientName.isNotEmpty && !_containsNormalized(normalized, clientName)) {
+      issues.add(missingClientName);
+    }
+    if (record.lines
+        .where((line) => line.name.trim().isNotEmpty)
+        .any((line) => !_containsNormalized(normalized, line.name))) {
+      issues.add(missingLineItemText);
     }
     final balance = AppPdfFormatters.money(record.balanceDue);
     final total = AppPdfFormatters.money(record.total);

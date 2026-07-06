@@ -16,10 +16,7 @@ void main() {
       lineCount: 2,
     );
     final template = InvoiceTemplateCatalog.byId(record.templateId);
-    final bytes = _pdfWithText(
-      'Invoice ${record.invoiceNumber}\n'
-      'Subtotal Total Balance ${_moneyText(record.balanceDue)}\n',
-    );
+    final bytes = _validInvoiceBytes(record);
 
     final blockingIssues = InvoicePdfExportVerifier.blockingIssueCodesForExport(
       record: record,
@@ -74,6 +71,78 @@ void main() {
     expect(issues, contains(InvoicePdfExportVerifier.missingInvoiceNumber));
   });
 
+  test(
+    'invoice PDF export verifier reports missing company and client names',
+    () {
+      final record = InvoiceDocumentEngineFixtureFactory.standardInvoice(
+        lineCount: 2,
+      );
+      final template = InvoiceTemplateCatalog.byId(record.templateId);
+      final issues = InvoicePdfExportVerifier.issueCodesForExport(
+        record: record,
+        template: template,
+        bytes: _pdfWithText(
+          'Invoice ${record.invoiceNumber} Subtotal Total Balance '
+          '${_moneyText(record.balanceDue)}',
+        ),
+      );
+
+      expect(issues, contains(InvoicePdfExportVerifier.missingCompanyName));
+      expect(issues, contains(InvoicePdfExportVerifier.missingClientName));
+      expect(
+        InvoicePdfExportVerifier.blockingIssueCodesForExport(
+          record: record,
+          template: template,
+          bytes: _pdfWithText(
+            'Invoice ${record.invoiceNumber} Subtotal Total Balance '
+            '${_moneyText(record.balanceDue)}',
+          ),
+        ),
+        isEmpty,
+      );
+    },
+  );
+
+  test('invoice PDF export verifier reports missing line item text', () {
+    final record = InvoiceDocumentEngineFixtureFactory.standardInvoice(
+      lineCount: 2,
+    );
+    final template = InvoiceTemplateCatalog.byId(record.templateId);
+    final issues = InvoicePdfExportVerifier.issueCodesForExport(
+      record: record,
+      template: template,
+      bytes: _pdfWithText(
+        'Invoice ${record.invoiceNumber} ${record.company.bestName} '
+        '${record.client.bestName} Subtotal Total Balance '
+        '${_moneyText(record.balanceDue)}',
+      ),
+    );
+
+    expect(issues, contains(InvoicePdfExportVerifier.missingLineItemText));
+    expect(
+      InvoicePdfExportVerifier.blockingIssueCodesForExport(
+        record: record,
+        template: template,
+        bytes: _validInvoiceBytes(record),
+      ),
+      isEmpty,
+    );
+  });
+
+  test('invoice PDF export verifier accepts all confirmed line item names', () {
+    final record = InvoiceDocumentEngineFixtureFactory.standardInvoice(
+      lineCount: 4,
+    );
+    final template = InvoiceTemplateCatalog.byId(record.templateId);
+    final issues = InvoicePdfExportVerifier.issueCodesForExport(
+      record: record,
+      template: template,
+      bytes: _validInvoiceBytes(record),
+    );
+
+    expect(issues, isEmpty);
+  });
+
   test('invoice PDF export verifier reports missing document label', () {
     final record = InvoiceDocumentEngineFixtureFactory.standardInvoice(
       lineCount: 2,
@@ -111,8 +180,10 @@ void main() {
       record: record,
       template: template,
       bytes: _pdfWithText(
-        'Estimate ${record.invoiceNumber} Subtotal Total Balance '
-        '${_moneyText(record.balanceDue)}',
+        'Estimate ${record.invoiceNumber} ${record.company.bestName} '
+        '${record.client.bestName} Subtotal Total Balance '
+        '${_moneyText(record.balanceDue)} '
+        '${record.lines.map((line) => line.name).join(' ')}',
       ),
     );
 
@@ -422,6 +493,27 @@ void main() {
     expect(issues, contains('missing_pdf_end_marker'));
     expect(issues, contains(InvoicePdfExportVerifier.unsafeGeneratedPdf));
   });
+
+  test('invoice PDF export verifier blocks unsupported PDF versions', () {
+    final record = InvoiceDocumentEngineFixtureFactory.standardInvoice(
+      lineCount: 2,
+    );
+    final template = InvoiceTemplateCatalog.byId(record.templateId);
+    final issues = InvoicePdfExportVerifier.blockingIssueCodesForExport(
+      record: record,
+      template: template,
+      bytes: latin1.encode(
+        '%PDF-9.9\n'
+        'Invoice ${record.invoiceNumber} ${record.company.bestName} '
+        '${record.client.bestName} Subtotal Total Balance '
+        '${_moneyText(record.balanceDue)}\n'
+        '%%EOF',
+      ),
+    );
+
+    expect(issues, contains('unsupported_pdf_version'));
+    expect(issues, contains(InvoicePdfExportVerifier.unsafeGeneratedPdf));
+  });
 }
 
 List<int> _pdfWithText(String text) {
@@ -430,8 +522,10 @@ List<int> _pdfWithText(String text) {
 
 List<int> _validInvoiceBytes(InvoiceRecord record) {
   return _pdfWithText(
-    'Invoice ${record.invoiceNumber} Subtotal Total Balance '
-    '${_moneyText(record.balanceDue)}',
+    'Invoice ${record.invoiceNumber} ${record.company.bestName} '
+    '${record.client.bestName} Subtotal Total Balance '
+    '${_moneyText(record.balanceDue)} '
+    '${record.lines.map((line) => line.name).join(' ')}',
   );
 }
 
