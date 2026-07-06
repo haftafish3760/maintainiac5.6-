@@ -1,6 +1,6 @@
 # Inventory Parser Laptop QA Shard - 2026-07-06
 
-Issued: 2026-07-06 14:06 EDT
+Issued: 2026-07-06 14:14 EDT
 
 This handoff is for a second Windows machine to run Maintainiac inventory/parser
 QA without editing source code or touching unrelated app areas.
@@ -32,7 +32,7 @@ Hard rules:
   sync, Firebase, or any unrelated QA.
 - Do not run a second shard after this one finishes.
 - Do not broaden the command to more tiers, more trades, more locales, or a
-  higher fixture count.
+  higher fixture count than the 750-case assignment below.
 - Do not change parser thresholds, confidence caps, catalog data, aliases,
   fixtures, tests, or harness code just to make a run pass.
 - Do not delete build artifacts from the desktop or laptop unless the human
@@ -68,8 +68,9 @@ Stop immediately and report back if:
 ## Machine Assignment
 
 Use the laptop for one Standard residential PEH shard while the desktop
-continues Core escalation. This is intentionally a limited assignment, not the
-whole remaining QA roadmap.
+continues Core escalation. This is intentionally a limited assignment of about
+25 percent of the near-term synthetic parser QA target, not the whole remaining
+QA roadmap.
 
 The laptop shard is:
 
@@ -77,9 +78,10 @@ The laptop shard is:
 - Scope: Residential
 - Tier: Standard
 - Locales: `en-US`, `es-US`
-- Fixture limit: 5 cases per cell first
+- Fixture limit: 125 cases per cell
 - Expected cells: 6
-- Expected parser calls if complete: 30
+- Expected checked cases if complete: 750
+- Expected parser calls if complete: 750
 
 This intentionally does not overlap the desktop Core wave.
 
@@ -92,16 +94,17 @@ cd "C:\Users\rjenk\Documents\Mainteniac 5.6"
 New-Item -ItemType Directory -Force -Path build\parser_qa_batch_waves | Out-Null
 dart run tool\work_supply_parser_qa_batch_wave.dart `
   --execute `
-  --wave-id laptop-2026-07-06-peh-standard-baby-5 `
-  --qa-layer laptop-generated-fixture-standard-baby-5 `
+  --wave-id laptop-2026-07-06-peh-standard-750 `
+  --qa-layer laptop-generated-fixture-standard-750 `
   --trades plumbing,electrical,hvac `
   --tiers standard `
   --locales en-US,es-US `
-  --limit 60 `
-  --fixture-run-limit 5 `
-  --fixture-run-timeout-ms 900000 `
+  --limit 500 `
+  --fixture-run-limit 125 `
+  --fixture-run-timeout-ms 21600000 `
   --fixture-run-stale-report-timeout-ms 300000 `
-  --output-root build\parser_qa_batch_waves *> build\parser_qa_batch_waves\laptop_2026-07-06_standard_baby_5_transcript.txt
+  --cell-timeout-ms 25200000 `
+  --output-root build\parser_qa_batch_waves *> build\parser_qa_batch_waves\laptop_2026-07-06_standard_750_transcript.txt
 ```
 
 Do not watch the transcript continuously. Let it finish, then inspect summaries.
@@ -109,7 +112,7 @@ Do not watch the transcript continuously. Let it finish, then inspect summaries.
 ## Status Check
 
 ```powershell
-$status = "build\parser_qa_batch_waves\laptop-2026-07-06-peh-standard-baby-5\queue\latest_status.json"
+$status = "build\parser_qa_batch_waves\laptop-2026-07-06-peh-standard-750\queue\latest_status.json"
 if (Test-Path $status) {
   $s = Get-Content $status -Raw | ConvertFrom-Json
   "STATE=$($s.state) CELLS=$($s.cellCount) COMPLETED=$($s.completedCellCount) FAILED=$($s.failedCellCount) ACTIVE=$($s.activeCellId) UPDATED=$($s.updatedAtIso)"
@@ -122,14 +125,14 @@ After the wave finishes, run:
 
 ```powershell
 dart run tool\work_supply_parser_qa_generated_run_status.dart `
-  --report-root build\parser_qa_batch_waves\laptop-2026-07-06-peh-standard-baby-5\queue\laptop_2026_07_06_peh_standard_baby_5_laptop_generated_fixture_standard_baby_5\cells `
+  --report-root build\parser_qa_batch_waves\laptop-2026-07-06-peh-standard-750\queue\laptop_2026_07_06_peh_standard_750_laptop_generated_fixture_standard_750\cells `
   --trades plumbing,electrical,hvac `
   --scopes residential `
   --tiers standard `
   --locales en-US,es-US `
   --require-complete `
-  --min-checked-per-cell 5 `
-  --output build\parser_qa_batch_waves\laptop-2026-07-06-peh-standard-baby-5\generated_run_status.json
+  --min-checked-per-cell 125 `
+  --output build\parser_qa_batch_waves\laptop-2026-07-06-peh-standard-750\generated_run_status.json
 ```
 
 Passing evidence must show:
@@ -140,8 +143,8 @@ Passing evidence must show:
 - `failedCells: 0`
 - `unsafeCells: 0`
 - `underMinCheckedCells: 0`
-- `checkedTotal: 30`
-- `parserCalls: 30`
+- `checkedTotal: 750`
+- `parserCalls: 750`
 - all local-only safety flags false
 
 ## If It Passes
@@ -152,7 +155,7 @@ transcripts unless specifically asked.
 Recommended commit label format:
 
 ```text
-QA testing 2026-07-06 HHMM EDT: laptop PEH Standard baby-5 evidence
+QA testing 2026-07-06 HHMM EDT: laptop PEH Standard 750-case evidence
 ```
 
 Then stop and report the evidence back to the main inventory/parser QA thread.
@@ -173,5 +176,5 @@ Do not start another heavy run until the failure is understood.
 
 ## Do Not Continue Past This Shard
 
-After baby-5 passes or fails, stop. The next shard will be assigned separately
+After the 750-case shard passes or fails, stop. The next shard will be assigned separately
 after the main thread reviews the evidence.
