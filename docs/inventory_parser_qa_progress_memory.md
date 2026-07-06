@@ -3941,3 +3941,23 @@ Release boundaries:
   flags false. This remains baby harness evidence only. Per the sequencing
   correction, do not start larger generated waves until PEH Core catalog
   curation is proven trade-by-trade, starting with Plumbing Core.
+- **15:51-16:52 Plumbing Core Curation Gate:** Added the reusable Plumbing Core
+  curation audit and report writer so catalog membership is reviewed before
+  broad generated parser waves. The audit now produces exact Plumbing Core
+  counts, required family coverage, suspicious Core review queues, outside-Core
+  review queues, and per-item readiness samples. Fixed well-service Core
+  signals so pressure tanks, tank tees, pressure gauges, and well-service
+  fittings are counted as release-one Plumbing Core. Locked Plumbing Service
+  Truck Stock to Core with a regression test after generic size/material rules
+  had pushed water filter cartridges and a service saw blade into later tiers.
+  Demoted expanded/generated long-tail fitting matrices, mixed-size tees,
+  street elbows, and reducing sanitary tees out of Plumbing Core so Core is not
+  a random warehouse slice. Latest focused report:
+  `build/parser_qa_curation/plumbing_core/latest_plumbing_core_curation_audit.json`
+  shows Plumbing Core at 1,108 rows, 0 missing required families, 0 suspicious
+  Core rows, and 186 outside-Core review candidates. Focused tests passed:
+  `flutter test test/work_supply_plumbing_core_curation_audit_test.dart` and
+  `flutter test test/work_supply_plumbing_core_curation_audit_report_test.dart`.
+  This is catalog-curation evidence, not release parser accuracy evidence; do
+  not treat Plumbing as Mac-ready until parser fixtures/Spanish/ambiguity runs
+  are executed against this locked Core set.
