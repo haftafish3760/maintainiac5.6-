@@ -15,6 +15,12 @@ void main() {
 
       expect(result.ocrSourceProofRelationship, 'same_accepted_source');
       expect(result.ocrSourceFirstOutcome, 'saved_source_matched_original');
+      expect(result.ocrSourceReviewRiskCode, 'ocr_source_ready');
+      expect(
+        result.ocrSourceReviewRequirement,
+        'standard_user_confirmation_required',
+      );
+      expect(result.ocrSourceFallbackRequiresManualReview, isFalse);
       expect(result.usedSavedProofAsOcrSourceFallback, isFalse);
       expect(result.ocrReadsClearSourceBeforeSavedProof, isTrue);
       expect(
@@ -39,10 +45,33 @@ void main() {
         result.ocrSourceFirstDecisionCode,
         'saved_proof_fallback_review_required',
       );
+      expect(
+        result.ocrSourceReviewRiskCode,
+        'saved_proof_ocr_fallback_review_required',
+      );
+      expect(
+        result.ocrSourceReviewRequirement,
+        'manual_review_required_before_saving_receipt',
+      );
+      expect(result.ocrSourceFallbackRequiresManualReview, isTrue);
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair(
+          'ocr_source_review_risk_saved_proof_ocr_fallback_review_required',
+          1,
+        ),
+      );
       expect(result.ocrReadsClearSourceBeforeSavedProof, isFalse);
       expect(
         result.privacySafeOcrSourceFirstSummary,
         containsPair('ocrSourceProofRelationship', 'saved_proof_fallback'),
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair(
+          'ocrSourceReviewRequirement',
+          'manual_review_required_before_saving_receipt',
+        ),
       );
     });
 
@@ -58,6 +87,8 @@ void main() {
 
       expect(result.ocrSourceProofRelationship, 'separate_clear_source');
       expect(result.usesSeparateOcrSourceCopies, isTrue);
+      expect(result.ocrSourceReviewRiskCode, 'ocr_source_ready');
+      expect(result.ocrSourceFallbackRequiresManualReview, isFalse);
       expect(result.ocrReadsClearSourceBeforeSavedProof, isTrue);
       expect(
         result.privacySafeOcrSourceFirstSummary,

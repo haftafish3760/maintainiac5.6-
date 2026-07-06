@@ -15,6 +15,8 @@ extension ReceiptPhotoReviewResultHandoffCounts on ReceiptPhotoReviewResult {
         'ocr_source_matches_saved_backup': 1,
       if (usedSavedProofAsOcrSourceFallback)
         'ocr_source_fallback_saved_proof': 1,
+      'ocr_source_review_risk_$ocrSourceReviewRiskCode': 1,
+      'ocr_source_review_requirement_$ocrSourceReviewRequirement': 1,
     };
     if (stitchResult.didStitch) {
       counts['ocr_source_combined_stitch'] = 1;

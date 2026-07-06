@@ -9,6 +9,27 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
     return hasOcrSourcePhotos && usedSavedProofAsOcrSourceFallback;
   }
 
+  bool get ocrSourceFallbackRequiresManualReview {
+    return !hasOcrSourcePhotos || usedSavedProofAsOcrSourceFallback;
+  }
+
+  String get ocrSourceReviewRiskCode {
+    if (!hasOcrSourcePhotos) return 'ocr_source_missing_manual_entry_required';
+    if (usedSavedProofAsOcrSourceFallback) {
+      return 'saved_proof_ocr_fallback_review_required';
+    }
+    if (scannerNeedsOperatorReview) {
+      return 'scanner_preparation_review_required';
+    }
+    return 'ocr_source_ready';
+  }
+
+  String get ocrSourceReviewRequirement {
+    return ocrSourceFallbackRequiresManualReview || scannerNeedsOperatorReview
+        ? 'manual_review_required_before_saving_receipt'
+        : 'standard_user_confirmation_required';
+  }
+
   String get ocrSourceFirstDecisionCode {
     if (!hasOcrSourcePhotos) return 'ocr_source_missing_block_review';
     if (ocrUsesSavedProofOnlyAsFallback) {
@@ -62,6 +83,10 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
       'ocrSourceFirstActionLabel': ocrSourceFirstActionLabel,
       'ocrSourceFirstReviewCue': ocrSourceFirstReviewCue,
       'ocrSourceProofRelationship': ocrSourceProofRelationship,
+      'ocrSourceReviewRiskCode': ocrSourceReviewRiskCode,
+      'ocrSourceReviewRequirement': ocrSourceReviewRequirement,
+      'ocrSourceFallbackRequiresManualReview':
+          ocrSourceFallbackRequiresManualReview,
       'ocrReadsClearSourceBeforeSavedProof':
           ocrReadsClearSourceBeforeSavedProof,
       'ocrUsesSavedProofOnlyAsFallback': ocrUsesSavedProofOnlyAsFallback,
