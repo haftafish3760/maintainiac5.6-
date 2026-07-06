@@ -34,6 +34,9 @@ class _ReceiptStitchReadinessCard extends StatelessWidget {
       }
     }
     final failedPairLabel = preview?.failedPairLabel ?? '';
+    final fallbackRecoveryLabel = failedPairLabel.isEmpty
+        ? 'Fix Photo Order'
+        : 'Fix $failedPairLabel';
     final selectedPairLabel = selectedPair == null
         ? failedPairLabel.isEmpty
               ? ''
@@ -180,7 +183,7 @@ class _ReceiptStitchReadinessCard extends StatelessWidget {
                   Expanded(
                     child: _ReceiptMatchRecoveryPill(
                       icon: Icons.swap_vert_rounded,
-                      label: 'Fix Photo Order',
+                      label: fallbackRecoveryLabel,
                       onTap: onOpenOrder,
                     ),
                   ),

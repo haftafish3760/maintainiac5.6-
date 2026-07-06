@@ -67,12 +67,14 @@ void main() {
     expect(sources.modeControls, contains("label: 'Match Photos'"));
     expect(
       sources.reviewControls,
-      contains("return photoPaths.length > 1 ? 'Check Photo Match' : 'Next';"),
+      contains(
+        "return photoPaths.length > 1 ? 'Check Photo Match' : 'Use Photo';",
+      ),
     );
     expect(sources.reviewControls, contains('waitingForStitch'));
     expect(sources.reviewControls, contains('continueEnabled'));
     expect(
-      sources.reviewControls,
+      sources.reviewActions,
       contains("return 'Next: Review Receipt Details';"),
     );
     expect(
@@ -248,7 +250,12 @@ void main() {
       sources.reviewScreen,
       contains('Next will review them from top to bottom'),
     );
+    expect(
+      sources.stitchControls,
+      contains("final fallbackRecoveryLabel = failedPairLabel.isEmpty"),
+    );
     expect(sources.stitchControls, contains('Fix Photo Order'));
+    expect(sources.stitchControls, contains(r'Fix $failedPairLabel'));
     expect(sources.stitchControls, contains('Next Reviews Top To Bottom'));
     expect(sources.reviewScreen, contains('ReceiptStitchDeviceLimits'));
     expect(sources.reviewScreen, contains('_deviceCapability.stitchLimits'));
@@ -266,7 +273,7 @@ void main() {
     expect(sources.reviewScreen, contains('bottomInset'));
     expect(
       sources.reviewPreviewControls,
-      contains('minimumSize: const Size(92, 36)'),
+      contains('minimumSize: const Size(0, 38)'),
     );
     expect(
       sources.contextControls,

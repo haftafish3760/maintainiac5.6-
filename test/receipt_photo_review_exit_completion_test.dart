@@ -236,6 +236,12 @@ void main() {
     expect(stitchControls, contains('Previous Pair'));
     expect(stitchControls, contains('Next Pair'));
     expect(stitchControls, contains('selectedPair.matchEvidenceLabel'));
+    expect(
+      stitchControls,
+      contains("final fallbackRecoveryLabel = failedPairLabel.isEmpty"),
+    );
+    expect(stitchControls, contains("'Fix Photo Order'"));
+    expect(stitchControls, contains("'Fix \$failedPairLabel'"));
     expect(commonControls, contains('_ReceiptLocalPhotoLimitStrip'));
     expect(
       commonControls,
