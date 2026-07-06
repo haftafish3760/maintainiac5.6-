@@ -202,13 +202,18 @@ class ReceiptNativeCameraCapabilities {
 }
 
 class ReceiptNativeCaptureResult {
-  const ReceiptNativeCaptureResult({
+  ReceiptNativeCaptureResult({
     required this.engine,
-    required this.originalPhotoPaths,
-    required this.temporaryCaptureIds,
+    required List<String> originalPhotoPaths,
+    required List<String> temporaryCaptureIds,
     required this.capturedAt,
-    this.captureDiagnostics = const {},
-  });
+    Map<String, Object?> captureDiagnostics = const {},
+  }) : originalPhotoPaths = List<String>.unmodifiable(originalPhotoPaths),
+       temporaryCaptureIds = List<String>.unmodifiable(temporaryCaptureIds),
+       captureDiagnostics = Map<String, Object?>.unmodifiable({
+         for (final entry in captureDiagnostics.entries)
+           entry.key: _freezeNativeCaptureDiagnosticValue(entry.value),
+       });
 
   final ReceiptNativeCameraEngine engine;
   final List<String> originalPhotoPaths;
@@ -218,4 +223,19 @@ class ReceiptNativeCaptureResult {
 
   bool get hasPhotos => originalPhotoPaths.isNotEmpty;
   bool get hasSafeLocalCopies => temporaryCaptureIds.isNotEmpty;
+}
+
+Object? _freezeNativeCaptureDiagnosticValue(Object? value) {
+  if (value is Map) {
+    return Map<String, Object?>.unmodifiable({
+      for (final entry in value.entries)
+        entry.key.toString(): _freezeNativeCaptureDiagnosticValue(entry.value),
+    });
+  }
+  if (value is Iterable) {
+    return List<Object?>.unmodifiable(
+      value.map(_freezeNativeCaptureDiagnosticValue),
+    );
+  }
+  return value;
 }

@@ -66,6 +66,40 @@ void main() {
     },
   );
 
+  test('native capture result freezes returned paths and diagnostics', () {
+    final originalPhotoPaths = ['/tmp/receipt-a.jpg'];
+    final temporaryCaptureIds = ['capture-a'];
+    final nestedDiagnostics = <String, Object?>{
+      'stage': 'captured',
+      'codes': ['edge_ready'],
+    };
+    final captureDiagnostics = <String, Object?>{'nested': nestedDiagnostics};
+
+    final result = ReceiptNativeCaptureResult(
+      engine: ReceiptNativeCameraEngine.cameraX,
+      originalPhotoPaths: originalPhotoPaths,
+      temporaryCaptureIds: temporaryCaptureIds,
+      capturedAt: DateTime.utc(2026, 7, 6),
+      captureDiagnostics: captureDiagnostics,
+    );
+
+    originalPhotoPaths.add('/tmp/late.jpg');
+    temporaryCaptureIds.add('late-id');
+    nestedDiagnostics['stage'] = 'mutated';
+    (nestedDiagnostics['codes'] as List<String>).add('late-code');
+
+    expect(result.originalPhotoPaths, ['/tmp/receipt-a.jpg']);
+    expect(result.temporaryCaptureIds, ['capture-a']);
+    final nested = result.captureDiagnostics['nested'] as Map<String, Object?>;
+    expect(nested['stage'], 'captured');
+    expect(nested['codes'], ['edge_ready']);
+    expect(
+      () => result.originalPhotoPaths.add('/tmp/nope.jpg'),
+      throwsA(isA<UnsupportedError>()),
+    );
+    expect(() => nested['stage'] = 'nope', throwsA(isA<UnsupportedError>()));
+  });
+
   test('settings descriptors cover the receipt camera control package', () {
     final descriptors = ReceiptNativeCameraSettings.descriptors;
     final ids = descriptors.map((descriptor) => descriptor.id).toSet();
