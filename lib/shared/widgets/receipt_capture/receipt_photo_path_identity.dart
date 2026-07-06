@@ -43,3 +43,19 @@ bool receiptPhotoPathSetContains(
   }
   return false;
 }
+
+bool receiptPhotoPathOrderMatches(
+  Iterable<String> expectedPaths,
+  Iterable<String> currentPaths,
+) {
+  final expected = expectedPaths.toList(growable: false);
+  final current = currentPaths.toList(growable: false);
+  if (expected.length != current.length) return false;
+  for (var index = 0; index < expected.length; index++) {
+    final expectedPath = normalizedReceiptPhotoPath(expected[index]);
+    final currentPath = normalizedReceiptPhotoPath(current[index]);
+    if (expectedPath == null || currentPath == null) return false;
+    if (expectedPath != currentPath) return false;
+  }
+  return true;
+}

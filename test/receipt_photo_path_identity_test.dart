@@ -55,4 +55,35 @@ void main() {
       isFalse,
     );
   });
+
+  test('receipt photo order matching uses normalized identity and order', () {
+    expect(
+      receiptPhotoPathOrderMatches(
+        const ['/tmp/receipt/top.jpg', '/tmp/receipt/middle.jpg'],
+        const ['/tmp/receipt/top.jpg', '/tmp/receipt/middle.jpg'],
+      ),
+      isTrue,
+    );
+    expect(
+      receiptPhotoPathOrderMatches(
+        const ['/tmp/receipt/top.jpg', '/tmp/receipt/middle.jpg'],
+        const ['/tmp/receipt/middle.jpg', '/tmp/receipt/top.jpg'],
+      ),
+      isFalse,
+    );
+    expect(
+      receiptPhotoPathOrderMatches(
+        const ['/tmp/receipt/top.jpg', '/tmp/receipt/middle.jpg'],
+        const ['/tmp/receipt/top.jpg', '/tmp/receipt/../receipt/middle.jpg'],
+      ),
+      isFalse,
+    );
+    expect(
+      receiptPhotoPathOrderMatches(
+        const ['/tmp/receipt/top.jpg'],
+        const [' /tmp/receipt/top.jpg'],
+      ),
+      isFalse,
+    );
+  });
 }

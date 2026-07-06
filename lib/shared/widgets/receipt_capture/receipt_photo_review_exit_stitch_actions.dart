@@ -86,11 +86,7 @@ extension _ReceiptPhotoReviewExitStitchActions
   }
 
   bool _sameReceiptPhotoOrder(List<String> expected, List<String> current) {
-    if (expected.length != current.length) return false;
-    for (var index = 0; index < expected.length; index++) {
-      if (expected[index] != current[index]) return false;
-    }
-    return true;
+    return receiptPhotoPathOrderMatches(expected, current);
   }
 
   Map<String, Map<String, Object?>> _preparationDiagnosticsForFinalOcrSources({
