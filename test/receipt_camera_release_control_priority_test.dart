@@ -32,13 +32,46 @@ void main() {
       expect(map, contains('basic brightness control'));
       expect(map, contains('phone-native autofocus'));
       expect(map, contains('unproven live quality claims are default-off'));
+      expect(map, contains('neutral receipt framing/readability guidance'));
+      expect(map, contains('optional experimental blur/focus'));
       expect(map, contains('focus slider'));
       expect(map, contains('focus slider is not a'));
       expect(map, contains('release blocker'));
+      expect(
+        map,
+        isNot(
+          contains(
+            'the app can warn about blur, glare, low light, crop/edge risk',
+          ),
+        ),
+      );
+      expect(
+        map,
+        isNot(contains('add blur, glare, low-light, edge, and crop contracts')),
+      );
       expect(nativeSpec, contains('experimental receipt-quality guidance'));
       expect(
         nativeSpec,
         contains('default release-one guidance remains neutral'),
+      );
+      final expenseBlueprint = File(
+        'docs/expense_release_one_blueprint.md',
+      ).readAsStringSync().toLowerCase();
+      expect(
+        expenseBlueprint,
+        contains('neutral receipt framing, crop, edge, bottom-coverage'),
+      );
+      expect(
+        expenseBlueprint,
+        contains('experimental blur, glare, low-light, shadow, dirty-lens'),
+      );
+      expect(
+        expenseBlueprint,
+        isNot(
+          contains(
+            'blur, glare, low-light, crop, edge, and bottom-coverage warnings',
+          ),
+        ),
       );
       expect(
         nativeSpec,

@@ -44,7 +44,9 @@ Responsibilities:
 - multi-photo long receipt capture
 - retake by segment index
 - ghost/overlap guidance
-- blur, glare, low-light, crop, edge, and bottom-coverage warnings
+- neutral receipt framing, crop, edge, bottom-coverage, and overlap guidance
+- experimental blur, glare, low-light, shadow, dirty-lens, and steadiness
+  warnings only when explicitly enabled and proven outside the default flow
 - conservative stitching and ordered fallback
 - source preservation and derived-artifact lineage
 - camera handoff to OCR/parser review
@@ -271,8 +273,9 @@ Evidence:
 Evidence:
 
 - receipt camera release-one milestone gates pass
-- camera handoff has source references, derived artifacts, quality warnings,
-  stitch confidence, and review status
+- camera handoff has source references, derived artifacts, neutral guidance
+  warnings, optional experimental-quality warning state, stitch confidence, and
+  review status
 - expense review can consume the handoff without owning camera internals
 
 ### Milestone 3 - Manual Expense Ready

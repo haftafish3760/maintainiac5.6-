@@ -55,8 +55,11 @@ Release one must prove:
   default storage behavior.
 - Derived crop, stitch, OCR-ready, thumbnail, and compressed images never
   silently replace the OCR source before handoff.
-- The app can warn about blur, glare, low light, crop/edge risk, missing bottom,
-  and weak overlap without blocking manual capture.
+- Release-one capture guidance is neutral by default: framing, receipt edges,
+  readable text size, missing bottom, and weak overlap may guide the user
+  without blocking manual capture. Blur, glare, low-light, shadow, dirty-lens,
+  and steadiness claims stay experimental/off by default unless separately
+  proven on real devices.
 - OCR receives the clearest available image or ordered segment set, but OCR
   results remain suggestions until the user confirms them.
 
@@ -74,7 +77,9 @@ Release one must prove:
 - Segment thumbnails, ordering, retake, and review.
 - Ghost/overlap guidance for continuation capture.
 - Clear-photo quality scoring contracts.
-- Edge, blur, glare, low-light, cropped-edge, and bottom-coverage diagnostics.
+- Edge, cropped-edge, bottom-coverage, and overlap diagnostics.
+- Experimental blur, glare, low-light, shadow, dirty-lens, and steadiness
+  diagnostics only when explicitly enabled and separately proven.
 - Stitching/overlap handling good enough for receipt readability and OCR handoff.
 - Source preservation and derived-artifact tracking.
 - Camera-specific QA, fixture, and regression infrastructure.
@@ -167,14 +172,13 @@ follows user storage settings.
 
 Quality scoring should guide the user without pretending to be perfect:
 
-- blur and focus confidence
-- brightness and low-light risk
-- glare or hot-spot risk
 - crop/edge confidence
 - bottom-of-receipt confidence
 - overlap confidence for long receipts
 - device capability tier
 - memory and storage safety
+- optional experimental blur/focus, low-light, glare, shadow, dirty-lens, and
+  steadiness scores only after real-device proof
 
 Optional auto-capture can be added only as an opt-in setting. It should require a
 stable good-quality signal for a short window, then capture without blocking
@@ -216,9 +220,9 @@ only when the dependency is direct and documented.
 
 ### Lane C - Single Receipt Quality
 
-- Improve live clarity guidance.
-- Add blur, glare, low-light, edge, and crop contracts.
-- Keep warnings helpful and non-blocking.
+- Improve neutral receipt framing/readability guidance.
+- Add edge, crop, bottom-coverage, and text-size contracts.
+- Keep any experimental quality warnings helpful, opt-in, and non-blocking.
 - Add regression tests for rejected/bad images.
 
 ### Lane D - Multi-Segment Flow
