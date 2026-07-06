@@ -144,6 +144,7 @@ _Candidate? _candidateOutsideCore(WorkSupplyItem item) {
     return null;
   }
   final text = _text(item);
+  final directText = _directText(item);
   final reasons = <String>[];
   for (final rule in _positiveCoreRules) {
     if (_hasAny(text, rule.signals)) reasons.add(rule.reason);
@@ -151,19 +152,21 @@ _Candidate? _candidateOutsideCore(WorkSupplyItem item) {
   if (_commonResidentialSize(item)) reasons.add('common_residential_size');
   if (reasons.isEmpty) return null;
   if (_isOversizedForPlumbingCore(item)) return null;
-  if (_looksLegacyMaterial(text) && !_looksLegacyRepairBridge(text)) {
+  if (_looksLegacyMaterial(directText) &&
+      !_looksLegacyRepairBridge(directText)) {
     return null;
   }
-  if (_looksWarehouseOrSpecialOrder(text)) return null;
-  if (_looksMajorEquipment(text) && !_looksServiceReplacementPart(text)) {
+  if (_looksWarehouseOrSpecialOrder(directText)) return null;
+  if (_looksMajorEquipment(directText) &&
+      !_looksServiceReplacementPart(directText)) {
     return null;
   }
-  if (!_hasStrongCoreCandidateEvidence(reasons)) return null;
+  if (!_hasStrongCoreCandidateEvidence(item, reasons)) return null;
   return _Candidate(item, reasons.toSet().toList(growable: false));
 }
 
 _Finding? _suspiciousCoreFinding(WorkSupplyItem item) {
-  final text = _text(item);
+  final text = _directText(item);
   final reasons = <String>[];
   if (_isOversizedForPlumbingCore(item)) {
     reasons.add('oversized_for_daily_residential_core');
@@ -279,7 +282,11 @@ String _ambiguityRisk(WorkSupplyItem item) {
 bool _isOversizedForPlumbingCore(WorkSupplyItem item) {
   final size = _primaryNominalInches([item.name, item.variant].join(' '));
   if (size == null) return false;
-  final text = _text(item);
+  final text = _directText(item);
+  if (_hasNonPipeServiceDimension(text)) return false;
+  if (_hasAny(text, ['bell hanger', 'pipe j-hook', 'toilet flange'])) {
+    return false;
+  }
   if (_hasOversizedSupplyNominalText(text)) return true;
   if (_hasAny(text, ['dwv', 'drain', 'sewer', 'closet flange']))
     return size > 4;
@@ -294,7 +301,7 @@ bool _isOversizedForPlumbingCore(WorkSupplyItem item) {
 bool _commonResidentialSize(WorkSupplyItem item) {
   final size = _primaryNominalInches([item.name, item.variant].join(' '));
   if (size == null) return false;
-  final text = _text(item);
+  final text = _directText(item);
   if (_hasAny(text, ['dwv', 'drain', 'sewer'])) return size <= 4;
   if (_hasAny(text, ['pex', 'copper', 'cpvc', 'push', 'sharkbite'])) {
     return size <= 1;
@@ -320,6 +327,12 @@ bool _hasOversizedSupplyNominalText(String text) {
 
 double? _primaryNominalInches(String raw) {
   final text = raw.toLowerCase();
+  final leadingBeforeBy = RegExp(
+    r'^\s*(\d+(?:-\d+/\d+)?|\d+/\d+|\d+(?:\.\d+)?)\s*x\b',
+  ).firstMatch(text);
+  if (leadingBeforeBy != null) {
+    return _parseNominalNumber(leadingBeforeBy.group(1)!);
+  }
   final leading = RegExp(
     r'^\s*(\d+(?:-\d+/\d+)?|\d+/\d+|\d+(?:\.\d+)?)\s*(?:in|inch|")\b',
   ).firstMatch(text);
@@ -389,6 +402,13 @@ bool _looksMajorEquipment(String text) {
     'anode',
     'drain valve',
     'expansion tank',
+    'pressure tank',
+    'well tank',
+    'pressure gauge',
+    'dielectric union',
+    'dielectric nipple',
+    'mixing valve',
+    'water heater service fitting',
   ])) {
     return false;
   }
@@ -401,6 +421,24 @@ bool _looksMajorEquipment(String text) {
   ]);
 }
 
+bool _hasNonPipeServiceDimension(String text) {
+  return _hasAny(text, [
+    'supply line',
+    'gas appliance connector',
+    'water heater connector',
+    'water heater supply connector',
+    'drain pan',
+    'restraint strap',
+    'anode rod',
+    'filter cartridge',
+    'water filter service part',
+    'floor drain grate',
+    'floor drain finish',
+    'hole saw',
+    'saw blade',
+  ]);
+}
+
 bool _looksServiceReplacementPart(String text) {
   return _hasAny(text, [
     'connector',
@@ -408,6 +446,10 @@ bool _looksServiceReplacementPart(String text) {
     'drain pan',
     'restraint strap',
     'install accessory',
+    'dielectric union',
+    'dielectric nipple',
+    'mixing valve',
+    'water heater service fitting',
     'element',
     'thermostat',
     't&p valve',
@@ -415,6 +457,9 @@ bool _looksServiceReplacementPart(String text) {
     'anode',
     'drain valve',
     'pressure switch',
+    'pressure gauge',
+    'pressure tank',
+    'well tank',
     'tank tee',
     'relief valve',
     'filter cartridge',
@@ -422,33 +467,45 @@ bool _looksServiceReplacementPart(String text) {
   ]);
 }
 
-bool _hasStrongCoreCandidateEvidence(List<String> reasons) {
+bool _hasStrongCoreCandidateEvidence(
+  WorkSupplyItem item,
+  List<String> reasons,
+) {
   final set = reasons.toSet();
-  if (set.contains('common_residential_size') &&
-      set.intersection({
-        'modern_supply_material',
-        'drain_trap_repair',
-        'toilet_service',
-        'faucet_sink_service',
-        'valves_stops',
-        'well_service',
-        'water_treatment',
-        'service_consumables',
-        'service_tools',
-      }).isNotEmpty) {
+  final directText = _directText(item);
+  final serviceFamilies = {
+    'drain_trap_repair',
+    'toilet_service',
+    'faucet_sink_service',
+    'valves_stops',
+    'well_service',
+    'well_pressure_stock',
+    'water_treatment',
+    'service_consumables',
+    'service_tools',
+  };
+  if (set.intersection(serviceFamilies).isNotEmpty) {
     return true;
   }
-  return set.intersection({
-        'drain_trap_repair',
-        'toilet_service',
-        'faucet_sink_service',
-        'valves_stops',
-        'well_service',
-        'water_treatment',
-        'service_consumables',
-        'service_tools',
-      }).length >=
-      2;
+  if (_isLongTailGeneratedFitting(item, directText)) return false;
+  if (set.contains('common_residential_size') &&
+      set.contains('pipe_fittings') &&
+      set.contains('modern_supply_material')) {
+    return true;
+  }
+  return false;
+}
+
+bool _isLongTailGeneratedFitting(WorkSupplyItem item, String directText) {
+  final type = item.itemType.toLowerCase();
+  if (type.contains('expanded')) return true;
+  if (_hasAny(directText, ['street 45', 'street 90', '22.5 elbow'])) {
+    return true;
+  }
+  final byCount = RegExp(
+    r'\sx\s',
+  ).allMatches(item.variant.toLowerCase()).length;
+  return byCount >= 2;
 }
 
 bool _looksLegacyMaterial(String text) {
@@ -487,6 +544,20 @@ String _text(WorkSupplyItem item) {
   ].join(' ').toLowerCase();
 }
 
+String _directText(WorkSupplyItem item) {
+  return [
+    item.id,
+    item.name,
+    item.trade,
+    item.category,
+    item.system,
+    item.itemType,
+    item.variant,
+    item.unit,
+    ...item.aliases,
+  ].join(' ').toLowerCase();
+}
+
 String _itemLabel(WorkSupplyItem item) => '${item.id}: ${item.name}';
 
 String? _argValue(List<String> args, String name) {
@@ -520,6 +591,7 @@ const _positiveCoreRules = [
     'valve',
   ]),
   _SignalRule('well_service', ['well pump', 'pressure switch', 'pitless']),
+  _SignalRule('well_pressure_stock', ['pressure tank', 'pressure gauge']),
   _SignalRule('water_treatment', ['water filter', 'softener', 'salt pellet']),
   _SignalRule('service_consumables', ['cement', 'primer', 'tape', 'putty']),
   _SignalRule('service_tools', ['pipe cutter', 'basin wrench', 'drain snake']),
