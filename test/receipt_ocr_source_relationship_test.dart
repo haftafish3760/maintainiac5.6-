@@ -186,6 +186,67 @@ void main() {
       );
     });
 
+    test('marks sanitized OCR source input as review risk', () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+        ocrSourcePhotoPaths: const [
+          '/tmp/top.jpg',
+          '/tmp/top.jpg',
+          '/tmp/bottom.jpg',
+        ],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: const ReceiptStitchResult.notNeeded([
+          '/tmp/top.jpg',
+          '/tmp/bottom.jpg',
+        ]),
+      );
+
+      expect(result.ocrSourcePhotoPaths, ['/tmp/top.jpg', '/tmp/bottom.jpg']);
+      expect(result.photoPathInputWasSanitized, isFalse);
+      expect(result.ocrSourcePathInputWasSanitized, isTrue);
+      expect(result.ocrSourcePathsMatchStitchContract, isTrue);
+      expect(
+        result.ocrSourceReviewRiskCode,
+        'receipt_source_path_input_sanitized_review_required',
+      );
+      expect(
+        result.ocrSourceReviewRequirement,
+        'manual_review_required_before_saving_receipt',
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair('ocrSourcePathInputWasSanitized', true),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair(
+          'ocr_source_review_risk_receipt_source_path_input_sanitized_review_required',
+          1,
+        ),
+      );
+    });
+
+    test('marks sanitized saved proof input as review risk', () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/top.jpg', '/tmp/top.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/top.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/top.jpg']),
+      );
+
+      expect(result.photoPaths, ['/tmp/top.jpg']);
+      expect(result.photoPathInputWasSanitized, isTrue);
+      expect(result.ocrSourcePathInputWasSanitized, isFalse);
+      expect(
+        result.ocrSourceReviewRiskCode,
+        'receipt_source_path_input_sanitized_review_required',
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair('photoPathInputWasSanitized', true),
+      );
+    });
+
     test('marks fallback-disabled missing OCR source as not ready', () {
       final result = ReceiptPhotoReviewResult(
         photoPaths: const ['/tmp/proof-only.jpg'],

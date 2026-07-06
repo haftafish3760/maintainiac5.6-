@@ -176,6 +176,10 @@ class ReceiptPhotoReviewResult {
          captureDiagnosticsByPhotoPath,
          _uniqueNonBlankPaths(photoPaths),
        ),
+       photoPathInputWasSanitized = _pathInputWasSanitized(photoPaths),
+       ocrSourcePathInputWasSanitized = _pathInputWasSanitized(
+         ocrSourcePhotoPaths,
+       ),
        usedSavedProofAsOcrSourceFallback =
            allowSavedProofOcrFallback &&
            _uniqueNonBlankPaths(ocrSourcePhotoPaths).isEmpty &&
@@ -214,6 +218,8 @@ class ReceiptPhotoReviewResult {
   final Map<String, ReceiptPhotoQualityCheck> photoQualityChecksByPath;
   final Map<String, Map<String, Object?>> preparationDiagnosticsByOcrPath;
   final Map<String, Map<String, Object?>> captureDiagnosticsByPhotoPath;
+  final bool photoPathInputWasSanitized;
+  final bool ocrSourcePathInputWasSanitized;
   final bool usedSavedProofAsOcrSourceFallback;
   final String reviewExitAction;
 }

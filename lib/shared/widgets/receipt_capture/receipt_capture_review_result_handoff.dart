@@ -36,6 +36,9 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
   }
 
   String get ocrSourceReviewRiskCode {
+    if (photoPathInputWasSanitized || ocrSourcePathInputWasSanitized) {
+      return 'receipt_source_path_input_sanitized_review_required';
+    }
     if (!hasOcrSourcePhotos) return 'ocr_source_missing_manual_entry_required';
     if (!stitchResult.hasValidOcrSourceContract ||
         !ocrSourcePathsMatchStitchContract) {
@@ -52,6 +55,8 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
 
   String get ocrSourceReviewRequirement {
     return ocrSourceFallbackRequiresManualReview ||
+            photoPathInputWasSanitized ||
+            ocrSourcePathInputWasSanitized ||
             scannerNeedsOperatorReview ||
             !stitchResult.hasValidOcrSourceContract ||
             !ocrSourcePathsMatchStitchContract
@@ -120,6 +125,8 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
       'ocrReadsClearSourceBeforeSavedProof':
           ocrReadsClearSourceBeforeSavedProof,
       'ocrUsesSavedProofOnlyAsFallback': ocrUsesSavedProofOnlyAsFallback,
+      'photoPathInputWasSanitized': photoPathInputWasSanitized,
+      'ocrSourcePathInputWasSanitized': ocrSourcePathInputWasSanitized,
       'ocrSourceCount': ocrSourcePhotoCount,
       'savedProofCount': savedBackupPhotoCount,
       'savedProofDataSaverLevel': dataSaverLevel.name,

@@ -104,3 +104,12 @@ List<String> _uniqueNonBlankPaths(List<String> paths) {
       if (seen.add(path)) path,
   ];
 }
+
+bool _pathInputWasSanitized(List<String> paths) {
+  if (paths.any((path) => path.trim().isEmpty || path.trim() != path)) {
+    return true;
+  }
+  final uniquePaths = _uniqueNonBlankPaths(paths);
+  if (uniquePaths.length != paths.length) return true;
+  return !receiptPhotoPathsAreUniqueAndNormalized(uniquePaths);
+}
