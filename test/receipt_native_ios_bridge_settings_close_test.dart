@@ -282,7 +282,11 @@ void main() {
       expect(cameraController, contains('Long receipt mode'));
       expect(
         cameraController,
-        contains('continuous autofocus/readability guidance'),
+        contains("Hold steady for the phone camera's autofocus."),
+      );
+      expect(
+        cameraController,
+        isNot(contains('continuous autofocus/readability guidance')),
       );
       expect(cameraController, isNot(contains('Use focus assist only if')));
       expect(cameraController, contains('if !canUseLongReceiptMode()'));
@@ -345,6 +349,10 @@ void main() {
       );
       expect(cameraController, contains('receipt guidance warnings'));
       expect(cameraController, contains('Receipt guidance warnings'));
+      expect(
+        cameraController,
+        contains("Hold steady for the phone camera's autofocus."),
+      );
       expect(cameraController, contains('receiptGuidanceWarningsEnabled'));
       expect(cameraController, contains('setReceiptGuidanceWarningsEnabled'));
       final guidanceToggleStart = cameraController.indexOf(

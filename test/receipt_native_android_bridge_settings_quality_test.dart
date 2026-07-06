@@ -97,7 +97,11 @@ void main() {
       );
       expect(
         cameraActivity,
-        contains('continuous autofocus/readability guidance'),
+        contains("Hold steady for the phone camera's autofocus."),
+      );
+      expect(
+        cameraActivity,
+        isNot(contains('continuous autofocus/readability guidance')),
       );
       expect(cameraActivity, isNot(contains('Use focus assist only if')));
       expect(cameraActivity, contains('Automatic capture'));
@@ -126,7 +130,20 @@ void main() {
         ),
       );
       expect(cameraActivity, contains('Receipt guidance warnings'));
-      expect(cameraActivity, contains('Warn about shake, glare, low light'));
+      expect(
+        cameraActivity,
+        contains(
+          'Warn when the receipt may be too far away, text may be small',
+        ),
+      );
+      expect(
+        cameraActivity,
+        isNot(contains('Warn about shake, glare, low light')),
+      );
+      expect(
+        cameraActivity,
+        contains("Hold steady for the phone camera's autofocus."),
+      );
       expect(cameraActivity, contains('receiptGuidanceWarningsEnabled'));
       expect(cameraActivity, contains('setReceiptGuidanceWarningsEnabled'));
       final guidanceToggleStart = cameraActivity.indexOf(

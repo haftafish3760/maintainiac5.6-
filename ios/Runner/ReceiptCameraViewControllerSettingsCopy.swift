@@ -24,7 +24,7 @@ extension ReceiptCameraViewController {
     OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.
     Manual shutter always works immediately. Automatic capture is optional.
 
-    Hold steady for continuous autofocus/readability guidance. Pinch to zoom if the print is small. Use Brightness anytime.
+    Hold steady for the phone camera's autofocus. Pinch to zoom if the print is small. Use Brightness anytime.
     """
   }
 

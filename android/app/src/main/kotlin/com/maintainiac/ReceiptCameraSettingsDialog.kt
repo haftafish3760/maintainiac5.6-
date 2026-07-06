@@ -96,7 +96,7 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     })
     content.addView(settingSwitch(
         "Receipt guidance warnings",
-        "Warn about shake, glare, low light, tiny text, or cut-off receipt edges.",
+        "Warn when the receipt may be too far away, text may be small, or paper edges may be cut off.",
         receiptGuidanceWarningsEnabled(),
     ) {
         setReceiptGuidanceWarningsEnabled(it)
@@ -148,7 +148,7 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     ))
     content.addView(settingSummary(
         "Camera controls",
-        "Hold steady for continuous autofocus/readability guidance. Pinch to zoom if the print is small. Use Brightness anytime.",
+        "Hold steady for the phone camera's autofocus. Pinch to zoom if the print is small. Use Brightness anytime.",
     ))
     val scroll = ScrollView(this).apply {
         isFillViewport = false
