@@ -1,9 +1,53 @@
 part of 'work_supply_receipt_parser.dart';
 
 WorkSupplyItem? _directPlumbingFastMatch(String text) {
-  return _directPlumbingWaterTreatmentMatch(text) ??
+  return _directPlumbingPexServiceFittingMatch(text) ??
+      _directPlumbingWaterTreatmentMatch(text) ??
       _directPlumbingRepairKitMatch(text) ??
       _directPlumbingHandToolMatch(text);
+}
+
+WorkSupplyItem? _directPlumbingPexServiceFittingMatch(String text) {
+  if (!RegExp(r'\bpex\b').hasMatch(text)) return null;
+  final size = _nominalReceiptSize(text);
+  final wantedItemType = switch (text) {
+    final value
+        when RegExp(
+          r'\b(drop\s*ear|drop-ear|shower\s+elbow|stub\s*out\s+elbow)\b',
+        ).hasMatch(value) =>
+      'drop-ear elbows',
+    final value
+        when RegExp(
+          r'\b(mip|male\s+adapter|m\s+adapter|m\s+adpt|crimp\s+male)\b',
+        ).hasMatch(value) =>
+      'male adapters',
+    final value
+        when RegExp(
+          r'\b(fip|female\s+adapter|f\s+adapter|f\s+adpt|crimp\s+female)\b',
+        ).hasMatch(value) =>
+      'female adapters',
+    final value when RegExp(r'\b(tee|t)\b').hasMatch(value) => 'tees',
+    final value when RegExp(r'\b(cplg|coupling|coupler)\b').hasMatch(value) =>
+      RegExp(r'\b(transition|trans)\b').hasMatch(value)
+          ? 'transition couplings'
+          : 'couplings',
+    final value when RegExp(r'\b(90|ell|elb|elbow|codo)\b').hasMatch(value) =>
+      '90 elbows',
+    _ => null,
+  };
+  if (wantedItemType == null) return null;
+  for (final item in workSupplyCatalogItems) {
+    final itemType = _normalize(item.itemType);
+    final system = _normalize(item.system);
+    final variant = _normalize(item.variant);
+    if (item.trade == 'Plumbing' &&
+        system == 'pex' &&
+        itemType == wantedItemType &&
+        (size == null || variant == '$size in')) {
+      return item;
+    }
+  }
+  return null;
 }
 
 WorkSupplyItem? _directPlumbingWaterTreatmentMatch(String text) {

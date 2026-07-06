@@ -1,8 +1,21 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_confidence.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser.dart';
 
 void main() {
+  test('plumbing core catalog contains PEX drop-ear service fittings', () {
+    final dropEar = workSupplyCatalogItems.firstWhere(
+      (item) =>
+          item.trade == 'Plumbing' &&
+          item.system == 'PEX' &&
+          item.itemType == 'Drop-Ear Elbows' &&
+          item.variant == '1/2 in',
+    );
+
+    expect(dropEar.name.toLowerCase(), contains('pex drop-ear elbow'));
+  });
+
   test('plumbing core parser handles PEX fitting shorthand batch three', () {
     final pexTee = matchReceiptLineToCatalog(
       'LOWES 1/2 PEX CRIMP TEE',

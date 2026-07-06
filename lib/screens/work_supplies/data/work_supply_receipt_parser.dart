@@ -165,6 +165,22 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isReceiptNoiseLine(normalized)) return null;
   if (_looksLikeHostileInputText(rawText, normalized)) return null;
   if (_isUnscopedDangerousShortLine(normalized, tradeScope)) return null;
+  if (tradeScope != null && tradeScope.trim().toLowerCase() == 'plumbing') {
+    final pexServiceFitting = _directPlumbingPexServiceFittingMatch(normalized);
+    if (pexServiceFitting != null) {
+      return ReceiptLineMatch(
+        rawText: rawText,
+        item: pexServiceFitting,
+        confidence: _directReceiptConfidence(
+          normalized,
+          pexServiceFitting,
+          tradeScope: tradeScope,
+          originalText: normalized,
+        ),
+        matchedTerms: const ['pex-service-fitting'],
+      );
+    }
+  }
   final expanded = _expandAliases(normalized, localePackId: localePackId);
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
@@ -276,17 +292,14 @@ bool _looksLikeHostileInputText(String rawText, String normalized) {
   if (raw.contains(r'$ne') || raw.contains(r'\system32')) return true;
   final compact = normalized.replaceAll(' ', '');
   if (compact.contains('..') || raw.contains('\\')) return true;
+  if (RegExp(
+    r'\b(drop\s+table|select\s+.+\s+from|insert\s+into|delete\s+from|'
+    r'update\s+.+\s+set|where\s+.+\s*=)\b',
+  ).hasMatch(normalized)) {
+    return true;
+  }
   const hostileTokens = {
     'script',
-    'drop',
-    'table',
-    'select',
-    'insert',
-    'delete',
-    'update',
-    'where',
-    'ne',
-    'null',
     'hyperlink',
     'http',
     'https',
@@ -4838,6 +4851,8 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       tradeScope.trim().toLowerCase() != 'plumbing') {
     return null;
   }
+  final pexServiceFitting = _directPlumbingPexServiceFittingMatch(text);
+  if (pexServiceFitting != null) return pexServiceFitting;
   final wantsPvcSch40Coupling =
       RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(sch40|schedule 40)\b').hasMatch(text) &&

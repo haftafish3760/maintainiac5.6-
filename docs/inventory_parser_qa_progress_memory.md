@@ -3894,3 +3894,23 @@ Release boundaries:
   proving no live services, production catalog writes, Firebase writes, or
   OCR/camera/Expenses touches. The remaining PEH Core cells still need a fresh
   hardened matrix rerun after this fix.
+- **Overnight Parser Fix Pass 3017-3019:** A fresh PEH Core generated-fixture
+  matrix under `build/parser_qa_pipeline/pass3017-peh-core-hardened-25`
+  repeatedly stalled at the first Plumbing Core `en-US` generated case
+  (`HD 1/2 PEX CRMP ELL 1.00`) with `checked=0`, so the run was stopped instead
+  of burning a long batch on stale evidence. The follow-up watchdog work in
+  commit `3a18513` now fails stale generated fixture chunks instead of letting
+  incomplete reports look successful. Focused parser triage then exposed a real
+  safety/parser interaction: the hostile-input guard treated the ordinary trade
+  word `drop` as hostile by itself, causing legitimate receipt lines like
+  `FERG 1/2 PEX DROP EAR ELBOW` to return null before parser logic could run.
+  The parser now blocks contextual SQL/script probes such as `DROP TABLE` while
+  allowing normal inventory terms such as `drop ear`, and PEX service fittings
+  now have an early structured fast path keyed by `system`, `itemType`, and
+  `variant`. Verification passed with analyzer clean for touched parser files,
+  `test/work_supply_plumbing_core_receipt_parser_batch3_test.dart` focused PEX
+  regression passing, and the hostile receipt-like parser security regression
+  still passing. The exact generated fixture rerun still hit the Windows
+  Flutter stale cutoff at 90 seconds with `checked=0`, so the next long run
+  should use the improved parser state plus a realistic stale timeout for this
+  machine and then inspect final logs only.
