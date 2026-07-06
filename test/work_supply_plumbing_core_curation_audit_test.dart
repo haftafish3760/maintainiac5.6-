@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
 
 import '../tool/work_supply_plumbing_core_curation_audit.dart';
 
@@ -52,6 +54,27 @@ void main() {
       expect(summary['readyForMacValidation'], isFalse);
       expect(summary['readinessFloor'], isA<int>());
       expect(summary['readinessAverage'], isA<double>());
+    });
+
+    test('Plumbing service-truck stock resolves to Core', () {
+      final drift = workSupplyCatalogItems
+          .where(
+            (item) =>
+                item.trade == 'Plumbing' &&
+                item.category == 'Service Truck Stock' &&
+                item.packTier != WorkSupplyPackTier.core,
+          )
+          .map((item) => '${item.id}: ${item.name} (${item.packTier.name})')
+          .toList(growable: false);
+
+      expect(
+        drift,
+        isEmpty,
+        reason:
+            'Plumbing Service Truck Stock must stay Core; otherwise common '
+            'same-day water treatment, drain, and repair rows can fall into '
+            'later packs.\n${drift.take(50).join('\n')}',
+      );
     });
   });
 }

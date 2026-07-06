@@ -51,6 +51,13 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
       _isCommonPlumbingVariant(item.variant)) {
     return true;
   }
+  if (category == 'service truck stock') return true;
+  if (category == 'drain and finish service stock') {
+    return _hasAny(text, _plumbingCoreDrainFinishSignals);
+  }
+  if (category == 'seals packing and thread service') {
+    return _hasAny(text, _plumbingCoreSealServiceSignals);
+  }
   if (_hasPlumbingCommercialCoreExclusion(text)) return false;
   if (category == 'fittings' && _isOversizedPlumbingFittingForCore(item)) {
     return false;
@@ -59,13 +66,6 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
     return _isCoreExpandedPlumbingFitting(item, text);
   }
   if (type.contains('expanded')) return false;
-  if (category == 'service truck stock') return true;
-  if (category == 'drain and finish service stock') {
-    return _hasAny(text, _plumbingCoreDrainFinishSignals);
-  }
-  if (category == 'seals packing and thread service') {
-    return _hasAny(text, _plumbingCoreSealServiceSignals);
-  }
   if (category == 'toilet repair' || category == 'sink and faucet repair') {
     return true;
   }

@@ -509,6 +509,9 @@ bool _isLongTailGeneratedFitting(WorkSupplyItem item, String directText) {
 }
 
 bool _looksLegacyMaterial(String text) {
+  if (_hasAny(text, ['saw blade', 'hole saw', 'cutting wheel', 'hand tool'])) {
+    return false;
+  }
   return _hasAny(text, ['galvanized', 'black iron', 'cast iron']);
 }
 
