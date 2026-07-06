@@ -23,13 +23,23 @@ part 'receipt_native_capture_staging_cleanup.dart';
 part 'receipt_native_capture_staging_stage_helpers.dart';
 
 class ReceiptNativeCaptureStagingResult {
-  const ReceiptNativeCaptureStagingResult({
-    required this.photoPaths,
-    required this.originalToStagedPath,
-    required this.captureDiagnosticsByPhotoPath,
-    required this.stagedAttachments,
+  ReceiptNativeCaptureStagingResult({
+    required List<String> photoPaths,
+    required Map<String, String> originalToStagedPath,
+    required Map<String, Map<String, Object?>> captureDiagnosticsByPhotoPath,
+    required List<ReceiptAttachmentRecord> stagedAttachments,
     required this.recoveryManifestPath,
-  });
+  }) : photoPaths = List<String>.unmodifiable(photoPaths),
+       originalToStagedPath = Map<String, String>.unmodifiable(
+         originalToStagedPath,
+       ),
+       captureDiagnosticsByPhotoPath =
+           _frozenNativeCaptureDiagnosticsByPhotoPath(
+             captureDiagnosticsByPhotoPath,
+           ),
+       stagedAttachments = List<ReceiptAttachmentRecord>.unmodifiable(
+         stagedAttachments,
+       );
 
   final List<String> photoPaths;
   final Map<String, String> originalToStagedPath;
@@ -44,6 +54,16 @@ class ReceiptNativeCaptureStagingResult {
   }) {
     return staging.discard(this);
   }
+}
+
+Map<String, Map<String, Object?>> _frozenNativeCaptureDiagnosticsByPhotoPath(
+  Map<String, Map<String, Object?>> diagnosticsByPhotoPath,
+) {
+  if (diagnosticsByPhotoPath.isEmpty) return const {};
+  return Map<String, Map<String, Object?>>.unmodifiable({
+    for (final entry in diagnosticsByPhotoPath.entries)
+      entry.key: Map<String, Object?>.unmodifiable(entry.value),
+  });
 }
 
 class ReceiptNativeCaptureStaging {

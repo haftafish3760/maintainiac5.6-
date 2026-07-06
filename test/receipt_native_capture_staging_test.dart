@@ -41,6 +41,54 @@ void main() {
     );
   });
 
+  test('native staging result freezes returned workflow collections', () {
+    final photoPaths = ['/tmp/staged.jpg'];
+    final originalToStagedPath = {'/tmp/original.jpg': '/tmp/staged.jpg'};
+    final diagnosticsByPath = <String, Map<String, Object?>>{
+      '/tmp/staged.jpg': {'nativeCaptureStage': 'staged_for_receipt_review'},
+    };
+    final attachments = [
+      ReceiptAttachmentRecord(
+        id: 'capture-1',
+        path: '/tmp/staged.jpg',
+        kind: ReceiptAttachmentKind.photo,
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        createdAt: DateTime(2026, 7, 6, 1, 4),
+      ),
+    ];
+
+    final result = ReceiptNativeCaptureStagingResult(
+      photoPaths: photoPaths,
+      originalToStagedPath: originalToStagedPath,
+      captureDiagnosticsByPhotoPath: diagnosticsByPath,
+      stagedAttachments: attachments,
+      recoveryManifestPath: '/tmp/manifest.json',
+    );
+
+    photoPaths.add('/tmp/late.jpg');
+    originalToStagedPath['/tmp/late-original.jpg'] = '/tmp/late.jpg';
+    diagnosticsByPath['/tmp/staged.jpg']!['nativeCaptureStage'] =
+        'mutated_later';
+    attachments.clear();
+
+    expect(result.photoPaths, ['/tmp/staged.jpg']);
+    expect(result.originalToStagedPath, {
+      '/tmp/original.jpg': '/tmp/staged.jpg',
+    });
+    expect(
+      result.captureDiagnosticsByPhotoPath['/tmp/staged.jpg'],
+      containsPair('nativeCaptureStage', 'staged_for_receipt_review'),
+    );
+    expect(result.stagedAttachments.single.path, '/tmp/staged.jpg');
+    expect(() => result.photoPaths.add('/tmp/ui.jpg'), throwsUnsupportedError);
+    expect(
+      () =>
+          result.captureDiagnosticsByPhotoPath['/tmp/staged.jpg']!['nativeCaptureStage'] =
+              'ui_mutation',
+      throwsUnsupportedError,
+    );
+  });
+
   test('accepted native capture is copied into receipt staging', () async {
     final sourceDir = await Directory.systemTemp.createTemp(
       'native_camera_cache_',
