@@ -55,7 +55,9 @@ List<String> _receiptRetakeInvalidOrderCodes({
   if (hasRetakeMetadata && finalSection == null) {
     codes.add('retake_invalid_missing_final_section');
   }
-  if (originalSection == null || finalSection == null) return codes;
+  if (originalSection == null || finalSection == null) {
+    return List.unmodifiable(codes);
+  }
   if (finalSection < originalSection) {
     codes.add('retake_invalid_final_before_original');
   }
@@ -106,7 +108,7 @@ List<String> _receiptRetakeInvalidOrderCodes({
   if (hasPrevious == true && hasNext == true && hasTwoSided != true) {
     codes.add('retake_invalid_two_sided_section_without_flag');
   }
-  return codes;
+  return List.unmodifiable(codes);
 }
 
 List<String> _receiptNativeGhostRetakeInvalidOrderCodes({
@@ -140,7 +142,7 @@ List<String> _receiptNativeGhostRetakeInvalidOrderCodes({
       codes.add('retake_invalid_ghost_previous_gap');
     }
   }
-  return codes;
+  return List.unmodifiable(codes);
 }
 
 List<String> _receiptRetakeInvalidGuidanceCodes({
@@ -204,7 +206,9 @@ List<String> _receiptInsertInvalidOrderCodes({
   if (hasInsertMetadata && finalSection == null) {
     codes.add('insert_invalid_missing_final_section');
   }
-  if (anchorSection == null || finalSection == null) return codes;
+  if (anchorSection == null || finalSection == null) {
+    return List.unmodifiable(codes);
+  }
   if (finalSection <= anchorSection) {
     codes.add('insert_invalid_final_not_after_anchor');
   }
@@ -216,7 +220,7 @@ List<String> _receiptInsertInvalidOrderCodes({
   } else if (finalSection != anchorSection + offset + 1) {
     codes.add('insert_invalid_offset_final_mismatch');
   }
-  return codes;
+  return List.unmodifiable(codes);
 }
 
 List<String> _receiptManualReorderInvalidOrderCodes({
@@ -241,7 +245,7 @@ List<String> _receiptManualReorderInvalidOrderCodes({
       true) {
     codes.add('manual_reorder_invalid_missing_preserved_path');
   }
-  return codes;
+  return List.unmodifiable(codes);
 }
 
 List<String> _receiptRetakeContextCodes(Map<String, Object?> diagnostics) {
@@ -290,7 +294,7 @@ List<String> _receiptRetakeContextCodes(Map<String, Object?> diagnostics) {
           : 'retake_next_context_section_$nextSection',
     );
   }
-  return codes;
+  return List.unmodifiable(codes);
 }
 
 List<String> _receiptInsertContextCodes(Map<String, Object?> diagnostics) {
@@ -305,7 +309,7 @@ List<String> _receiptInsertContextCodes(Map<String, Object?> diagnostics) {
   if (offset != null) {
     codes.add(offset > 9 ? 'insert_offset_10_plus' : 'insert_offset_$offset');
   }
-  return codes;
+  return List.unmodifiable(codes);
 }
 
 List<String> _receiptManualReorderContextCodes(
@@ -316,5 +320,5 @@ List<String> _receiptManualReorderContextCodes(
       true) {
     codes.add('manual_reorder_preserved_photo_path');
   }
-  return codes;
+  return List.unmodifiable(codes);
 }

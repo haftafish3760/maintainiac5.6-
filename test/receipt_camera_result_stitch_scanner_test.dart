@@ -1,8 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_flow.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 void main() {
+  test('section order helper lists are frozen before handoff', () {
+    final source = File(
+      'lib/shared/widgets/receipt_capture/receipt_capture_review_result_section_order_helpers.dart',
+    ).readAsStringSync();
+
+    expect(source, isNot(contains('return codes;')));
+    expect(source, contains('return List.unmodifiable(codes);'));
+  });
+
   test('photo review result explains stitched and fallback handoffs', () {
     final stitched = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],
