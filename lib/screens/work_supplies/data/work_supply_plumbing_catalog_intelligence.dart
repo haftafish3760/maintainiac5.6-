@@ -46,11 +46,6 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
     return false;
   }
   if (_hasAny(text, _plumbingAlwaysCoreServiceSignals)) return true;
-  if (system == 'pvc dwv' &&
-      type.contains('reducing sanitary') &&
-      _isCommonPlumbingVariant(item.variant)) {
-    return true;
-  }
   if (category == 'service truck stock') return true;
   if (category == 'drain and finish service stock') {
     return _hasAny(text, _plumbingCoreDrainFinishSignals);
@@ -62,8 +57,12 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
   if (category == 'fittings' && _isOversizedPlumbingFittingForCore(item)) {
     return false;
   }
+  if (category == 'fittings' &&
+      (type.contains('street') || type.contains('reducing sanitary'))) {
+    return false;
+  }
   if (category == 'fittings' && type.contains('expanded')) {
-    return _isCoreExpandedPlumbingFitting(item, text);
+    return false;
   }
   if (type.contains('expanded')) return false;
   if (category == 'toilet repair' || category == 'sink and faucet repair') {
@@ -87,12 +86,14 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
       if (item.variant.toLowerCase().startsWith('2 x')) return false;
       return _hasAny(text, _plumbingCoreFittingMaterialSignals) &&
           _hasAny(text, _plumbingCoreFittingFamilySignals) &&
-          (_hasAny(text, _residentialSupplySizes) || _hasAny(text, ['1 x']));
+          (_hasAny(text, _residentialSupplySizes) || _hasAny(text, ['1 x'])) &&
+          _isCommonPlumbingVariant(item.variant);
     }
     if (system == 'pex' || system == 'cpvc' || system == 'push-fit') {
       return _hasAny(text, _plumbingCoreFittingMaterialSignals) &&
           _hasAny(text, _plumbingCoreFittingFamilySignals) &&
-          (_hasAny(text, _residentialSupplySizes) || _hasAny(text, ['1 x']));
+          (_hasAny(text, _residentialSupplySizes) || _hasAny(text, ['1 x'])) &&
+          _isCommonPlumbingVariant(item.variant);
     }
     return _hasAny(text, _plumbingCoreFittingMaterialSignals) &&
         _hasAny(text, _plumbingCoreFittingFamilySignals) &&
@@ -152,35 +153,6 @@ bool _isOversizedPlumbingSupportForCore(WorkSupplyItem item) {
   return largestVariantSize > 2;
 }
 
-bool _isCoreExpandedPlumbingFitting(WorkSupplyItem item, String text) {
-  final system = item.system.toLowerCase();
-  final type = item.itemType.toLowerCase();
-  final largestVariantSize = _largestPlumbingVariantSize(item.variant);
-  if (!_isCommonPlumbingVariant(item.variant)) return false;
-  if (_hasPlumbingProfessionalSignal(text)) return false;
-  if (type.contains('street')) return false;
-  if (type.contains('reducing') || type.contains('reducer')) return false;
-  if (system == 'pex' || system == 'cpvc' || system == 'push-fit') {
-    return _hasAny(text, _coreExpandedSupplySizes) &&
-        _hasAny(type, _coreExpandedSupplyFittingTypes);
-  }
-  if (system == 'copper' || system == 'brass') {
-    return _hasAny(text, _coreExpandedSupplySizes) &&
-        _hasAny(type, _coreExpandedThreadedOrSweatTypes);
-  }
-  if (system == 'pvc schedule 40') {
-    if (largestVariantSize == null || largestVariantSize > 2) return false;
-    return _hasAny(text, _coreExpandedPressurePipeSizes) &&
-        _hasAny(type, _coreExpandedPressurePipeTypes);
-  }
-  if (system == 'pvc dwv') {
-    if (largestVariantSize == null || largestVariantSize > 4) return false;
-    return _hasAny(text, _coreExpandedDwvSizes) &&
-        _hasAny(type, _coreExpandedDwvTypes);
-  }
-  return false;
-}
-
 bool _isPlumbingStandardItem(WorkSupplyItem item, String text) {
   final category = item.category.toLowerCase();
   final system = item.system.toLowerCase();
@@ -222,6 +194,12 @@ bool _isCommonPlumbingVariant(String variant) {
   final normalized = variant.toLowerCase().trim();
   if (!normalized.contains(' x ')) return true;
   if (_hasQuarterInchMatrixBranch(normalized)) return false;
+  final dimensions = normalized
+      .split(RegExp(r'\s+x\s+'))
+      .map((part) => part.trim())
+      .where((part) => part.isNotEmpty)
+      .toList(growable: false);
+  if (dimensions.length >= 3) return dimensions.toSet().length == 1;
   const commonMatrices = [
     '1/2 x 1/2',
     '3/4 x 3/4',
@@ -230,21 +208,13 @@ bool _isCommonPlumbingVariant(String variant) {
     '1-1/2 x 1-1/2',
     '2 x 2',
     '3 x 3',
-    '1/2 x 1/2 x 1/2',
-    '3/4 x 3/4 x 3/4',
-    '1 x 1 x 1',
-    '1-1/4 x 1-1/4 x 1-1/4',
-    '1-1/2 x 1-1/2 x 1-1/2',
-    '2 x 2 x 2',
-    '3 x 3 x 3',
-    '3 x 3 x 2',
     '3/4 x 1/2',
     '1 x 3/4',
     '1-1/2 x 1-1/4',
     '2 x 1-1/2',
     '3 x 2',
   ];
-  return commonMatrices.any(normalized.contains);
+  return commonMatrices.contains(normalized);
 }
 
 double? _largestPlumbingVariantSize(String variant) {
@@ -521,21 +491,6 @@ const _residentialSupplySizes = ['1/2', '3/4', '1 in', '3/8', '5/8'];
 
 const _coreDrainSizes = ['1-1/4', '1-1/2', '2 in', '3 in'];
 
-const _coreExpandedSupplySizes = ['1/2', '3/4', '1 in', '1 x'];
-
-const _coreExpandedPressurePipeSizes = [
-  '1/2',
-  '3/4',
-  '1 in',
-  '1 x',
-  '1-1/4',
-  '1-1/2',
-  '2 in',
-  '3 in',
-];
-
-const _coreExpandedDwvSizes = ['1-1/4', '1-1/2', '2 in', '3 in'];
-
 const _standardPlumbingSizes = [
   '1/4',
   '3/8',
@@ -574,46 +529,6 @@ const _coreFittingTypes = [
   'trap',
   'washer',
   'ring',
-];
-
-const _coreExpandedSupplyFittingTypes = [
-  '90 elbows',
-  '45 elbows',
-  'tees',
-  'couplings',
-  'caps',
-  'male adapters',
-  'female adapters',
-];
-
-const _coreExpandedThreadedOrSweatTypes = [
-  '90 elbows',
-  '45 elbows',
-  'tees',
-  'couplings',
-  'caps',
-  'male adapters',
-  'female adapters',
-];
-
-const _coreExpandedPressurePipeTypes = [
-  '90 elbows',
-  '45 elbows',
-  'tees',
-  'couplings',
-  'caps',
-  'plugs',
-  'male adapters',
-  'female adapters',
-];
-
-const _coreExpandedDwvTypes = [
-  '90 elbows',
-  '45 elbows',
-  'wyes',
-  'sanitary tees',
-  'couplings',
-  'cleanouts',
 ];
 
 const _standardFittingTypes = [

@@ -171,6 +171,9 @@ _Finding? _suspiciousCoreFinding(WorkSupplyItem item) {
   if (_isOversizedForPlumbingCore(item)) {
     reasons.add('oversized_for_daily_residential_core');
   }
+  if (_isLongTailGeneratedFitting(item, text)) {
+    reasons.add('long_tail_generated_fitting_matrix_in_core');
+  }
   if (_looksWarehouseOrSpecialOrder(text)) {
     reasons.add('warehouse_special_order_or_non_residential_signal');
   }
@@ -502,10 +505,14 @@ bool _isLongTailGeneratedFitting(WorkSupplyItem item, String directText) {
   if (_hasAny(directText, ['street 45', 'street 90', '22.5 elbow'])) {
     return true;
   }
-  final byCount = RegExp(
-    r'\sx\s',
-  ).allMatches(item.variant.toLowerCase()).length;
-  return byCount >= 2;
+  final dimensions = item.variant
+      .toLowerCase()
+      .split(RegExp(r'\s+x\s+'))
+      .map((part) => part.trim())
+      .where((part) => part.isNotEmpty)
+      .toList(growable: false);
+  if (dimensions.length < 3) return false;
+  return dimensions.toSet().length > 1;
 }
 
 bool _looksLegacyMaterial(String text) {
