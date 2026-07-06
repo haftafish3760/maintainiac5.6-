@@ -293,6 +293,51 @@ void main() {
     expect(cells.single, containsPair('localOnlySafe', false));
   });
 
+  test('generated run status fails cells below the minimum checked gate', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_generated_run_min_checked_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeRun(
+      'build/reports/electrical/residential/core/en-US/reports/latest_generated_fixture_run.json',
+      checked: 6,
+      parserCalls: 6,
+    );
+
+    final exit = runWorkSupplyParserQaGeneratedRunStatus(
+      [
+        '--report-root',
+        'build/reports',
+        '--trades',
+        'electrical',
+        '--tiers',
+        'core',
+        '--locales',
+        'en-US',
+        '--require-complete',
+        '--min-checked-per-cell',
+        '50',
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    final status = _readJson(
+      'build/parser_qa_pipeline/core_generated_run_status.json',
+    );
+    final cells = status['cells'] as List;
+
+    expect(exit, 1);
+    expect(status['underMinCheckedCells'], 1);
+    expect(status['minCheckedPerCell'], 50);
+    expect(cells.single, containsPair('underMinChecked', true));
+    expect(cells.single, containsPair('minCheckedPerCell', 50));
+    expect(cells.single, containsPair('localOnlySafe', false));
+  });
+
   test('generated run status fails incomplete chunk reports', () {
     final root = Directory.systemTemp.createTempSync(
       'maintainiac_generated_run_incomplete_chunks_',

@@ -6,6 +6,7 @@ const _usage =
     '[--report-root build/parser_qa_background_queue/pass2372-core-semantic-fixtures/cells] '
     '[--trades plumbing,electrical,hvac] [--scopes residential] '
     '[--tiers core] [--locales en-US,es-US] '
+    '[--min-checked-per-cell 0] '
     '[--output build/parser_qa_pipeline/core_generated_run_status.json] '
     '[--require-complete]';
 
@@ -35,6 +36,7 @@ int runWorkSupplyParserQaGeneratedRunStatus(
   var checkedTotal = 0;
   var parserCalls = 0;
   var durationMs = 0;
+  var underMinChecked = 0;
 
   for (final trade in options.trades) {
     for (final scope in options.scopes) {
@@ -45,6 +47,7 @@ int runWorkSupplyParserQaGeneratedRunStatus(
           if (cell['status'] == 'missing') missing++;
           if (((cell['failureCount'] as int?) ?? 0) > 0) failed++;
           if (cell['localOnlySafe'] == false) unsafe++;
+          if (cell['underMinChecked'] == true) underMinChecked++;
           checkedTotal += (cell['checked'] as int?) ?? 0;
           parserCalls += (cell['parserCalls'] as int?) ?? 0;
           durationMs += (cell['durationMs'] as int?) ?? 0;
@@ -62,6 +65,8 @@ int runWorkSupplyParserQaGeneratedRunStatus(
     'missingCells': missing,
     'failedCells': failed,
     'unsafeCells': unsafe,
+    'underMinCheckedCells': underMinChecked,
+    'minCheckedPerCell': options.minCheckedPerCell,
     'checkedTotal': checkedTotal,
     'parserCalls': parserCalls,
     'durationMs': durationMs,
@@ -85,7 +90,7 @@ int runWorkSupplyParserQaGeneratedRunStatus(
   );
   stdout.writeln('QA_GENERATED_RUN_STATUS_ARTIFACT json=${output.path}');
 
-  if (unsafe > 0 || failed > 0) return 1;
+  if (unsafe > 0 || failed > 0 || underMinChecked > 0) return 1;
   if (options.requireComplete && missing > 0) return 2;
   return 0;
 }
@@ -119,6 +124,9 @@ Map<String, Object?> _readCell(
   final chunkRunComplete = _chunkRunComplete(json);
   final nonZeroChunkExitCount = (json['nonZeroChunkExitCount'] as int?) ?? 0;
   final timedOutChunkCount = (json['timedOutChunkCount'] as int?) ?? 0;
+  final checked = (json['checked'] as int?) ?? 0;
+  final underMinChecked =
+      options.minCheckedPerCell > 0 && checked < options.minCheckedPerCell;
   return _cell(
     trade: trade,
     scope: scope,
@@ -131,16 +139,19 @@ Map<String, Object?> _readCell(
         parserCalls > 0 &&
         chunkRunComplete &&
         nonZeroChunkExitCount == 0 &&
-        timedOutChunkCount == 0,
+        timedOutChunkCount == 0 &&
+        !underMinChecked,
     safetyFlags: safety.flags,
     safetyMissingFields: safety.missingFields,
     chunkRunComplete: chunkRunComplete,
     nonZeroChunkExitCount: nonZeroChunkExitCount,
     timedOutChunkCount: timedOutChunkCount,
-    checked: (json['checked'] as int?) ?? 0,
+    checked: checked,
     failureCount: failureCount,
     parserCalls: parserCalls,
     durationMs: durationMs,
+    minCheckedPerCell: options.minCheckedPerCell,
+    underMinChecked: underMinChecked,
     fixturePath: json['fixturePath']?.toString() ?? '',
   );
 }
@@ -213,6 +224,8 @@ Map<String, Object?> _cell({
   int failureCount = 0,
   int parserCalls = 0,
   int durationMs = 0,
+  int minCheckedPerCell = 0,
+  bool underMinChecked = false,
   String fixturePath = '',
 }) {
   return {
@@ -228,6 +241,8 @@ Map<String, Object?> _cell({
     'failureCount': failureCount,
     'parserCalls': parserCalls,
     'durationMs': durationMs,
+    'minCheckedPerCell': minCheckedPerCell,
+    'underMinChecked': underMinChecked,
     'fixturePath': fixturePath,
     'localOnlySafe': localOnlySafe,
     'safetyFlags': safetyFlags,
@@ -279,6 +294,7 @@ class _Options {
     required this.locales,
     required this.output,
     required this.requireComplete,
+    required this.minCheckedPerCell,
   });
 
   final String reportRoot;
@@ -288,6 +304,7 @@ class _Options {
   final List<String> locales;
   final String output;
   final bool requireComplete;
+  final int minCheckedPerCell;
 
   static _Options parse(List<String> args) {
     final values = <String, String>{};
@@ -314,6 +331,8 @@ class _Options {
           values['output'] ??
           'build/parser_qa_pipeline/core_generated_run_status.json',
       requireComplete: flags.contains('require-complete'),
+      minCheckedPerCell:
+          int.tryParse(values['min-checked-per-cell'] ?? '') ?? 0,
     );
   }
 }
