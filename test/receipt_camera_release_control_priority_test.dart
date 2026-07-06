@@ -95,6 +95,16 @@ void main() {
     expect(android, contains('Turn light on'));
     expect(ios, contains('cameraDevice.torchMode'));
     expect(ios, contains('Turn light on'));
+    expect(androidDiagnostics, contains('"tapFocusEnabled" to false'));
+    expect(
+      androidDiagnostics,
+      isNot(contains('"tapFocusEnabled" to tapFocusEnabled')),
+    );
+    expect(iosDiagnostics, contains('"tapFocusEnabled": false'));
+    expect(
+      iosDiagnostics,
+      isNot(contains('"tapFocusEnabled": tapFocusEnabled')),
+    );
     for (final source in [androidAnalysis, iosReadability]) {
       expect(source, contains('updateExperimentalReceiptQualityGuidance'));
       expect(source, contains('stableExperimentalReceiptQualitySignal'));

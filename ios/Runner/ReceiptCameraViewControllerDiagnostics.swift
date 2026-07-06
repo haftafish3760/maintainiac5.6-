@@ -261,7 +261,7 @@ extension ReceiptCameraViewController {
       "sessionMaxZoom": sessionMaxZoom,
       "sessionMinExposureOffset": sessionMinExposureOffset,
       "sessionMaxExposureOffset": sessionMaxExposureOffset,
-      "tapFocusEnabled": tapFocusEnabled,
+      "tapFocusEnabled": false,
       "pinchZoomEnabled": pinchZoomEnabled,
       "exposureSliderEnabled": exposureSliderEnabled,
       "exposureResetEnabled": exposureResetEnabled,

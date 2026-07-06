@@ -213,7 +213,7 @@ internal fun ReceiptCameraActivity.nativeCaptureDiagnostics(
         "sessionMaxZoom" to sessionMaxZoom,
         "sessionMinExposureOffset" to sessionMinExposureOffset,
         "sessionMaxExposureOffset" to sessionMaxExposureOffset,
-        "tapFocusEnabled" to tapFocusEnabled,
+        "tapFocusEnabled" to false,
         "pinchZoomEnabled" to pinchZoomEnabled,
         "exposureSliderEnabled" to exposureSliderEnabled,
         "exposureResetEnabled" to exposureResetEnabled,
