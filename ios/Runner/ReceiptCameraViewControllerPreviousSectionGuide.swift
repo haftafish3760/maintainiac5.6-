@@ -137,13 +137,13 @@ extension ReceiptCameraViewController {
     if previousSectionReasonCode == "missing_bottom_edge_and_totals" {
       return "Add Bottom"
     }
-    return "Add Section \(nextReceiptSectionNumber())"
+    return "Add Photo"
   }
 
   func addSectionButtonAccessibilityLabel() -> String {
     if previousSectionReasonCode == "missing_bottom_edge_and_totals" {
       return "Add bottom receipt section with overlap from this photo"
     }
-    return "Add receipt section \(nextReceiptSectionNumber()) if this receipt continues"
+    return "Add another receipt photo if this receipt continues"
   }
 }

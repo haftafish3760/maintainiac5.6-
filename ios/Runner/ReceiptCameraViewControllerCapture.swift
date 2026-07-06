@@ -261,16 +261,7 @@ extension ReceiptCameraViewController {
         finishWithCapturedPhotos(closeReason: "back_returned_captured_sections")
         return
       }
-      if longReceiptMode && capturedPhotoPaths.count < maxSectionCount {
-        captureInFlight = false
-        shutterButton.isEnabled = true
-        updateDoneButton()
-        updatePreviousSectionGuide(url.path)
-        guidanceLabel.text =
-          "Section \(capturedPhotoPaths.count) saved. Next photo is section \(capturedPhotoPaths.count + 1). Line up the ghost guide at the top, repeat 3-5 readable lines, or tap Next: Review Receipt Details."
-      } else {
-        finishWithCapturedPhotos()
-      }
+      finishWithCapturedPhotos(closeReason: "capture_saved_open_review")
     } catch {
       captureInFlight = false
       if pendingCloseAfterCapture {

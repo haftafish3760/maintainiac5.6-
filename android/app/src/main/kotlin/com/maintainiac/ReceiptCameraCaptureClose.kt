@@ -112,18 +112,7 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
                     finishWithCapturedPhotos(closeReason = "back_returned_captured_sections")
                     return
                 }
-                if (longReceiptMode && capturedPhotoPaths.size < maxSectionCount) {
-                    shutterButton.isEnabled = true
-                    updateDoneButton()
-                    updatePreviousSectionGuide(outputFile.absolutePath)
-                    guidance.text =
-                        "Section ${capturedPhotoPaths.size} saved. " +
-                            "Next photo is section ${capturedPhotoPaths.size + 1}. " +
-                            "Line up the ghost guide at the top, repeat 3-5 readable lines, " +
-                            "or tap Next: Review Receipt Details."
-                } else {
-                    finishWithCapturedPhotos()
-                }
+                finishWithCapturedPhotos(closeReason = "capture_saved_open_review")
             }
 
             override fun onError(exception: ImageCaptureException) {

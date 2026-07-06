@@ -57,14 +57,14 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
         const _ReceiptImportSource(
           action: _ReceiptImportAction.camera,
           icon: Icons.photo_camera_rounded,
-          label: 'Capture Receipt Photo',
+          label: 'Capture Photo',
           detail: 'Open Maintainiac receipt camera.',
           color: Color(0xFF8EF6A4),
         ),
       const _ReceiptImportSource(
         action: _ReceiptImportAction.image,
         icon: Icons.photo_library_rounded,
-        label: 'Upload Receipt Photos',
+        label: 'Upload Photos',
         detail: 'Use saved receipt photos.',
         color: Color(0xFFFFD166),
       ),
@@ -76,25 +76,11 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
         color: Color(0xFFA9DFFF),
       ),
       const _ReceiptImportSource(
-        action: _ReceiptImportAction.savedText,
-        icon: Icons.description_rounded,
-        label: 'Text File',
-        detail: 'Use copied receipt text.',
-        color: Color(0xFFFF8FA3),
-      ),
-      const _ReceiptImportSource(
         action: _ReceiptImportAction.pasteText,
         icon: Icons.content_paste_rounded,
-        label: 'Paste Text',
-        detail: 'Paste receipt text here.',
+        label: 'Paste/Text',
+        detail: 'Paste or enter receipt text.',
         color: Color(0xFF8FD3FF),
-      ),
-      const _ReceiptImportSource(
-        action: _ReceiptImportAction.shareHelp,
-        icon: Icons.ios_share_rounded,
-        label: 'Share Help',
-        detail: 'Send receipts into the app.',
-        color: Color(0xFFC7B8FF),
       ),
     ];
     return SafeArea(

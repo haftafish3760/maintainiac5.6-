@@ -69,31 +69,25 @@ void main() {
     expect(find.text('Native receipt controls'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget);
     expect(find.text('Move closer'), findsOneWidget);
-    expect(find.text('Receipt assist'), findsOneWidget);
-    expect(find.text('Next reviews text'), findsOneWidget);
-    expect(
-      find.text(
-        'After capture: review receipt text, then choose business, personal, or mixed.',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Ready'), findsOneWidget);
-    expect(find.text('Readable'), findsOneWidget);
+    expect(find.text('Receipt assist'), findsNothing);
+    expect(find.text('Next reviews text'), findsNothing);
+    expect(find.textContaining('After capture:'), findsNothing);
+    expect(find.text('Ready'), findsNothing);
+    expect(find.text('Readable'), findsNothing);
     expect(find.text('Save space'), findsNothing);
     expect(find.text('Saved proof'), findsNothing);
     expect(find.text('Proof size'), findsNothing);
     expect(find.text('1 of 1'), findsOneWidget);
     expect(find.text('Tap text to focus'), findsNothing);
-    expect(find.text('Auto sharpness'), findsOneWidget);
-    expect(find.text('Pinch to zoom'), findsOneWidget);
-    expect(find.text('Brightness assist'), findsOneWidget);
-    expect(find.byTooltip('Reset brightness'), findsOneWidget);
+    expect(find.text('Auto sharpness'), findsNothing);
+    expect(find.text('Pinch to zoom'), findsNothing);
+    expect(find.text('Brightness assist'), findsNothing);
+    expect(find.byTooltip('Reset brightness'), findsNothing);
 
     await tester.tap(find.byTooltip('Receipt camera settings'));
     await tester.tap(find.byTooltip('Turn light on'));
     await tester.tap(find.bySemanticsLabel('Take receipt photo'));
     await tester.tap(find.byTooltip('Back'));
-    await tester.tap(find.byTooltip('Reset brightness'));
     await tester.tapAt(const Offset(206, 330));
     final firstFinger = await tester.startGesture(const Offset(180, 460));
     final secondFinger = await tester.startGesture(const Offset(232, 460));
@@ -107,12 +101,11 @@ void main() {
     expect(toggledTorch, isTrue);
     expect(captured, isTrue);
     expect(wentBack, isTrue);
-    expect(resetExposure, isTrue);
+    expect(resetExposure, isFalse);
     expect(zoomValue, greaterThan(2));
 
-    final slider = tester.widget<Slider>(find.byType(Slider));
-    slider.onChanged!(1.25);
-    expect(exposureValue, 1.25);
+    expect(find.byType(Slider), findsNothing);
+    expect(exposureValue, isNull);
 
     final previewRect = tester.getRect(
       find.byKey(const ValueKey('receipt-preview')),
@@ -195,7 +188,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('Tap text to focus'), findsNothing);
-    expect(find.text('Auto sharpness'), findsOneWidget);
+    expect(find.text('Auto sharpness'), findsNothing);
   });
 
   test('native camera shell exposes no tap focus callback hook', () async {
@@ -262,9 +255,9 @@ void main() {
     expect(find.text('Pinch to zoom'), findsNothing);
     expect(find.text('Brightness assist'), findsNothing);
     expect(find.text('Native receipt controls'), findsOneWidget);
-    expect(find.text('Manual receipt'), findsOneWidget);
-    expect(find.text('Save photo only'), findsOneWidget);
-    expect(find.text('Saved proof'), findsOneWidget);
+    expect(find.text('Manual receipt'), findsNothing);
+    expect(find.text('Save photo only'), findsNothing);
+    expect(find.text('Saved proof'), findsNothing);
     expect(find.text('Proof size'), findsNothing);
     expect(find.text('Save space'), findsNothing);
   });
@@ -291,14 +284,9 @@ void main() {
       ),
     );
 
-    expect(find.text('Manual receipt'), findsOneWidget);
-    expect(find.text('Save photo only'), findsOneWidget);
-    expect(
-      find.text(
-        'After capture: keep the receipt photo attached to this expense.',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Manual receipt'), findsNothing);
+    expect(find.text('Save photo only'), findsNothing);
+    expect(find.textContaining('After capture:'), findsNothing);
   });
 
   testWidgets('native camera shell keeps controls inside compact phones', (
@@ -343,11 +331,9 @@ void main() {
     expect(find.byTooltip('Back'), findsOneWidget);
     expect(find.byTooltip('Receipt camera settings'), findsOneWidget);
     expect(find.byTooltip('Turn light on'), findsOneWidget);
-    expect(find.bySemanticsLabel('Take receipt photo'), findsOneWidget);
+    expect(find.byIcon(Icons.receipt_long_rounded), findsOneWidget);
 
-    final shutterRect = tester.getRect(
-      find.bySemanticsLabel('Take receipt photo'),
-    );
+    final shutterRect = tester.getRect(find.byIcon(Icons.receipt_long_rounded));
     final bottomSafeY =
         tester.view.physicalSize.height / tester.view.devicePixelRatio;
     expect(shutterRect.bottom, lessThanOrEqualTo(bottomSafeY - 8));

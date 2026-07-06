@@ -139,7 +139,7 @@ void main() {
       );
       expect(actions, contains('existing_receipt_photo_import'));
       expect(flow, contains('staged.captureDiagnosticsByPhotoPath'));
-      expect(importSheet, contains('Capture Receipt Photo'));
+      expect(importSheet, contains('Capture Photo'));
       expect(importSheet, isNot(contains('Scan Receipt')));
       expect(scanner, contains('return Platform.isIOS;'));
       expect(
@@ -306,16 +306,23 @@ void main() {
       expect(firstUseBlock, contains('fullscreenDialog: true'));
       expect(firstUseBlock, isNot(contains('showModalBottomSheet')));
       expect(intro, contains('return Scaffold('));
-      expect(intro, contains('Receipt Camera Setup'));
-      expect(intro, contains('ListView('));
-      expect(intro, contains('Continue To Camera'));
-      expect(intro, contains('Open Receipt Settings'));
+      expect(intro, contains('Receipt Assist'));
+      expect(
+        intro,
+        contains(
+          'Would you like Maintainiac to help fill out receipt details?',
+        ),
+      );
+      expect(intro, contains('Yes, Use Receipt Assist'));
+      expect(intro, contains('No, Manual Entry'));
+      expect(intro, isNot(contains('Receipt Camera Setup')));
+      expect(intro, isNot(contains('ListView(')));
+      expect(intro, isNot(contains('Continue To Camera')));
+      expect(intro, isNot(contains('Open Receipt Settings')));
       expect(bottomBar, contains('SafeArea('));
       expect(bottomBar, contains('minimum: const EdgeInsets.only(bottom: 8)'));
-      expect(
-        bottomBar.indexOf('_ReceiptNativeCameraShutterButton'),
-        lessThan(bottomBar.indexOf('_ReceiptNativeCameraNextStepStrip')),
-      );
+      expect(bottomBar, contains('_ReceiptNativeCameraShutterButton'));
+      expect(bottomBar, isNot(contains('_ReceiptNativeCameraNextStepStrip')));
     },
   );
 }

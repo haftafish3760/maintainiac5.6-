@@ -60,7 +60,7 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains(r'Maintainiac receipt camera • $assist • $depth'),
+      contains(r'return "$assist • $depth • $length • $light"'),
     );
     expect(
       cameraActivity,

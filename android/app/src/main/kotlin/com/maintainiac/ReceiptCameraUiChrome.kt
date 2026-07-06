@@ -1,6 +1,8 @@
 package com.maintainiac
 
 import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -22,7 +24,7 @@ internal fun ReceiptCameraActivity.buildContentView(): View {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT,
         )
-        scaleType = PreviewView.ScaleType.FIT_CENTER
+        scaleType = PreviewView.ScaleType.FILL_CENTER
     }
     root.addView(previewView)
     root.addView(buildReceiptFrameGuide())
@@ -44,10 +46,10 @@ internal fun ReceiptCameraActivity.buildReceiptFrameGuide(): View {
             ViewGroup.LayoutParams.MATCH_PARENT,
             Gravity.CENTER,
         ).apply {
-            leftMargin = dp(26)
-            rightMargin = dp(26)
-            topMargin = dp(120)
-            bottomMargin = dp(156)
+            leftMargin = dp(22)
+            rightMargin = dp(22)
+            topMargin = dp(86)
+            bottomMargin = dp(118)
         }
         alpha = 0.54f
     }
@@ -58,10 +60,10 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
     val row = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        setPadding(dp(12), dp(8), dp(12), 0)
+        setPadding(dp(12), dp(8), dp(12), dp(4))
         layoutParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            dp(64),
+            dp(62),
             Gravity.TOP,
         )
     }
@@ -70,19 +72,19 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
     })
     row.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
     doneButton = Button(this).apply {
-        text = "Next"
-        contentDescription = "Review captured receipt photos in Maintainiac"
+        text = "Use Photos"
+        contentDescription = "Use captured receipt photos"
         isEnabled = false
-        visibility = if (longReceiptMode) View.VISIBLE else View.GONE
+        visibility = View.GONE
         setOnClickListener { finishWithCapturedPhotos() }
     }
     row.addView(doneButton)
-    row.addView(iconButton("Receipt camera settings", android.R.drawable.ic_menu_manage) {
+    row.addView(iconButton("Receipt camera settings", R.drawable.ic_receipt_camera_settings) {
         showReceiptCameraSettings()
     })
     torchButton = iconButton(
         "Turn light on",
-        android.R.drawable.ic_menu_upload,
+        R.drawable.ic_receipt_camera_flash,
     ) {
         toggleTorch()
     }
@@ -94,18 +96,19 @@ internal fun ReceiptCameraActivity.buildGuidance(): View {
     guidance = TextView(this).apply {
         text = guidanceText()
         setTextColor(Color.WHITE)
-        textSize = 15f
-        setTypeface(typeface, android.graphics.Typeface.BOLD)
-        setBackgroundColor(Color.argb(126, 5, 6, 7))
-        setPadding(dp(10), dp(8), dp(10), dp(8))
+        textSize = 14f
+        gravity = Gravity.CENTER
+        setTypeface(typeface, Typeface.BOLD)
+        background = pillDrawable(Color.argb(168, 5, 6, 7))
+        setPadding(dp(12), dp(8), dp(12), dp(8))
         layoutParams = FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT,
-            Gravity.TOP,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
         ).apply {
-            topMargin = dp(74)
-            leftMargin = dp(18)
-            rightMargin = dp(18)
+            bottomMargin = dp(104)
+            leftMargin = dp(16)
+            rightMargin = dp(16)
         }
     }
     return guidance
@@ -117,6 +120,7 @@ internal fun ReceiptCameraActivity.buildExposureControls(): View {
         gravity = Gravity.CENTER_VERTICAL
         setPadding(dp(10), dp(6), dp(10), dp(6))
         setBackgroundColor(Color.argb(118, 5, 6, 7))
+        visibility = View.GONE
         layoutParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             dp(48),
@@ -175,6 +179,7 @@ internal fun ReceiptCameraActivity.buildSettingsStatusStrip(): View {
             leftMargin = dp(18)
             rightMargin = dp(18)
         }
+        visibility = View.GONE
     }
     return settingsStatusStrip
 }
@@ -188,26 +193,25 @@ internal fun ReceiptCameraActivity.settingsStatusText(): String {
     val assist = if (assistedReceiptFill) "Assist on" else "Manual fill"
     val depth = if (reviewDepth == "detailedLines") "Detailed lines" else "Price review"
     val length = if (longReceiptMode) "Long receipt on" else "Single photo"
-    val storage = "${dataSaverLabel()} saved proof"
-    val brightness = if (autoExposureAssistEnabled) "Brightness assist" else "Manual brightness"
-    return "Maintainiac receipt camera • $assist • $depth • $length • $brightness • $storage • OCR reads temp full-quality first"
+    val light = if (autoExposureAssistEnabled) "Auto light" else "Manual light"
+    return "$assist • $depth • $length • $light"
 }
 
 internal fun ReceiptCameraActivity.buildBottomBar(): View {
     val row = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER
-        setPadding(dp(12), dp(10), dp(12), dp(14))
-        setBackgroundColor(Color.argb(134, 5, 6, 7))
+        setPadding(dp(12), dp(8), dp(12), dp(18))
+        setBackgroundColor(Color.TRANSPARENT)
         layoutParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            dp(104),
+            dp(98),
             Gravity.BOTTOM,
         )
     }
     addPhotoButton = Button(this).apply {
-        text = "Add Next"
-        contentDescription = "Add next receipt section photo"
+        text = "Add Photo"
+        contentDescription = "Add another receipt photo"
         isEnabled = false
         visibility = View.GONE
         setOnClickListener { capturePhoto("manual_add_photo") }
@@ -218,8 +222,8 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
         contentDescription = "Take receipt photo"
         setImageResource(android.R.drawable.ic_menu_camera)
         setColorFilter(Color.BLACK)
-        setBackgroundColor(Color.WHITE)
-        layoutParams = LinearLayout.LayoutParams(dp(72), dp(72)).apply {
+        background = shutterDrawable()
+        layoutParams = LinearLayout.LayoutParams(dp(70), dp(70)).apply {
             leftMargin = dp(16)
             rightMargin = dp(16)
         }
@@ -227,12 +231,28 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
     }
     row.addView(shutterButton)
     bottomReviewButton = Button(this).apply {
-        text = "Next"
-        contentDescription = "Review captured receipt photos in Maintainiac"
+        text = "Use Photos"
+        contentDescription = "Use captured receipt photos"
         isEnabled = false
+        visibility = View.GONE
         setOnClickListener { finishWithCapturedPhotos() }
         layoutParams = LinearLayout.LayoutParams(0, dp(54), 1f)
     }
     row.addView(bottomReviewButton)
     return row
+}
+
+internal fun ReceiptCameraActivity.pillDrawable(color: Int): GradientDrawable {
+    return GradientDrawable().apply {
+        setColor(color)
+        cornerRadius = dp(999).toFloat()
+    }
+}
+
+internal fun ReceiptCameraActivity.shutterDrawable(): GradientDrawable {
+    return GradientDrawable().apply {
+        shape = GradientDrawable.OVAL
+        setColor(Color.WHITE)
+        setStroke(dp(4), Color.argb(210, 5, 6, 7))
+    }
 }

@@ -179,9 +179,11 @@ internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
         val brightness = averageLuma(image)
         latestFrameBrightness = brightness
         latestShadowScore = shadowScore
+        var hasReceiptTarget = !edgeDetectionEnabled
         if (edgeDetectionEnabled) {
             val framing = estimateReceiptFraming(image)
             applyLiveFraming(framing)
+            hasReceiptTarget = hasUsableLiveFramingBounds(framing)
             maybeAutoCapture(framing, brightness, motionScore, now)
             autoAdjustExposureForLiveFrame(brightness, now, framing)
         } else {
@@ -197,6 +199,11 @@ internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
             }
             lastAutoExposureBrightnessBucket = brightnessBucket(brightness)
             lastAutoExposureDecision = "waiting_for_receipt_target"
+        }
+        if (!hasReceiptTarget) {
+            latestMotionSignal = "waiting_for_receipt_target"
+            latestReadabilitySignal = "waiting_for_receipt_target"
+            return
         }
         val currentGuidance = guidance.text.toString()
         if (!brightness.isFinite() || !motionScore.isFinite() || !shadowScore.isFinite()) {

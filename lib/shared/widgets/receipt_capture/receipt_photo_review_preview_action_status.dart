@@ -63,24 +63,23 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
             : 'add the next receipt section now';
         return '$recoveryPrefix$photoCount receipt sections are saved locally. '
             '$sectionGuidance $sectionAction $matchStatus '
-            '${coverageDecision.title}: $addPhotoAction, or tap Next only if '
-            'this already shows the full receipt; Next opens parsed receipt '
-            'details.$editedPhotoCopy$memoryPolicyCopy';
+            '${coverageDecision.title}: $addPhotoAction, or use these photos only if '
+            'they already show the full receipt.$editedPhotoCopy$memoryPolicyCopy';
       }
       return '$recoveryPrefix$photoCount receipt sections are saved locally. '
-          '$sectionGuidance $sectionAction $matchStatus Next opens receipt '
-          'details with item prices, totals, and business/personal use.'
+          '$sectionGuidance $sectionAction $matchStatus Use these photos when '
+          'the full receipt is visible.'
           '$editedPhotoCopy$memoryPolicyCopy';
     }
     final nativeWarning = nativeCaptureReviewWarning;
     if (nativeWarning != null) {
-      return '$recoveryPrefix${nativeWarning.message} Recommended: ${nativeWarning.primaryActionLabel}. If the store, date, total, and item prices are readable, Next stays available.$editedPhotoCopy$memoryPolicyCopy';
+      return '$recoveryPrefix${nativeWarning.message} Recommended: ${nativeWarning.primaryActionLabel}. If the store, date, total, and item prices are readable, you can still use the photo.$editedPhotoCopy$memoryPolicyCopy';
     }
     if (coverageDecision.shouldPromptForMorePhotos) {
       final addPhotoAction = coverageDecision.isMissingBottomEdgeAndTotals
           ? 'add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice'
           : 'add the next receipt section now';
-      return '$recoveryPrefix${coverageDecision.title}: $addPhotoAction, or tap Next only if this photo already shows the full receipt; Next opens parsed receipt details.$editedPhotoCopy$memoryPolicyCopy';
+      return '$recoveryPrefix${coverageDecision.title}: $addPhotoAction, or use this photo only if it already shows the full receipt.$editedPhotoCopy$memoryPolicyCopy';
     }
     final readinessCopy = _ReceiptCaptureReadinessReviewCopy.fromDiagnostics(
       selectedCaptureDiagnostics,
@@ -92,10 +91,10 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
     if (quality != null) {
       return '${recoveryPrefix}Photo captured locally. '
           '${quality.userFacingStatusLabel} ${quality.reviewScoreMeaningLabel} '
-          'Next opens receipt details. Use Add Another Photo only if the '
+          'Use this photo, retake it, or add another photo if the '
           'receipt continues.$editedPhotoCopy$memoryPolicyCopy';
     }
-    return '${recoveryPrefix}Photo captured locally. Next opens receipt details. Use Add Another Photo only if the receipt continues.$editedPhotoCopy$memoryPolicyCopy';
+    return '${recoveryPrefix}Photo captured locally. Use this photo, retake it, or add another photo if the receipt continues.$editedPhotoCopy$memoryPolicyCopy';
   }
 
   String get captureSourcePrefix {
@@ -165,7 +164,7 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
       return 'Use Match Photos to check whether one combined receipt image can be made.';
     }
     if (preview.didStitch) {
-      return 'Photo match is ready: Next will use one combined receipt image.';
+      return 'Photo match is ready: Use Photos will use one combined receipt image.';
     }
     if (preview.usedFallback) {
       return 'Photo match will use ordered sections from top to bottom because stitching was not safe enough.';

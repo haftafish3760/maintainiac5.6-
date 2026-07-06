@@ -86,34 +86,32 @@ void main() {
     expect(settingsSheet, contains('Receipt Photo Help'));
     expect(settingsSheet, isNot(contains('How Receipt Photos Work')));
     expect(helpSheet, contains('Receipt Photo Help'));
-    expect(helpSheet, contains('Receipt Camera Setup'));
-    expect(helpSheet, contains('Continue To Camera'));
-    expect(helpSheet, contains('Open Receipt Settings'));
-    expect(helpSheet, contains('Clear Photo First'));
-    expect(helpSheet, contains('App-Assisted Fill'));
-    expect(helpSheet, contains('Receipt Controls'));
+    expect(helpSheet, contains('Receipt Assist'));
+    expect(helpSheet, contains('Yes, Use Receipt Assist'));
+    expect(helpSheet, contains('No, Manual Entry'));
     expect(
       helpSheet,
       contains(
-        'Use flash, readability guidance, long receipt help, and proof-size settings when they help.',
+        'Receipt Assist reads the photo and suggests totals and lines. You review everything before saving.',
       ),
     );
-    expect(helpSheet, contains('continuous autofocus/readability guidance'));
+    expect(helpSheet, isNot(contains('Clear Photo First')));
+    expect(helpSheet, isNot(contains('Open Receipt Settings')));
     expect(helpSheet, isNot(contains('flash, focus')));
-    expect(helpSheet, contains('Storage And Privacy'));
-    expect(helpSheet, contains('installChoice.userFacingDownloadChoiceLabel'));
-    expect(importActions, contains('parserPackInstallChoice'));
+    expect(helpSheet, isNot(contains('Storage And Privacy')));
+    expect(importActions, isNot(contains('parserPackInstallChoice')));
     expect(attachmentOcrSourceRiskFlags, contains('ocr_source_retake_risk'));
-    expect(helpSheet, contains('profile.summaryLabel'));
+    expect(helpSheet, isNot(contains('profile.summaryLabel')));
     expect(helpSheet, isNot(contains('deviceModel')));
     expect(helpSheet, isNot(contains('availableRamLabel')));
     expect(importActions, contains('_showFirstUseReceiptCameraIntro'));
     expect(importActions, contains('!settings.cameraSetupComplete'));
     expect(importActions, contains('settings.setCameraSetupComplete(true)'));
     expect(
-      importActions,
-      contains('_ReceiptFirstUseCameraAction.openSettings'),
+      helpSheet,
+      contains('_ReceiptFirstUseCameraAction.useReceiptAssist'),
     );
+    expect(helpSheet, contains('_ReceiptFirstUseCameraAction.manualEntry'));
     expect(attachmentPublishHelpers, contains('openReceiptCaptureSettings()'));
     expect(settingsSheet, contains('Expense Receipt Settings'));
     expect(
@@ -195,7 +193,8 @@ void main() {
       reviewCropAndProofControls,
       contains('Receipt Details And Saved Proof'),
     );
-    expect(reviewControls, contains("return 'Next: Review Receipt Details';"));
+    expect(reviewControls, contains("return 'Use Photo';"));
+    expect(reviewControls, contains("return 'Use Photos';"));
     expect(reviewControls, contains('_ReceiptPreviewActionTray'));
     expect(reviewPreviewControls, contains('_ReceiptMultiPhotoActionRail'));
     expect(reviewPreviewControls, contains('_ReceiptSectionPositionChip'));
@@ -203,17 +202,17 @@ void main() {
     expect(
       contextControls,
       contains(
-        'Photo captured locally. Next opens receipt details. Use Add Another Photo only if the receipt continues.',
+        'Photo captured locally. Use this photo, retake it, or add another photo if the receipt continues.',
       ),
     );
     expect(
       reviewPreviewActionTray,
       contains('receipt sections are saved locally.'),
     );
-    expect(reviewPreviewActionTray, contains('Next opens receipt'));
+    expect(reviewPreviewActionTray, contains('Use these photos'));
     expect(
       reviewPreviewActionTray,
-      contains('details with item prices, totals, and business/personal use.'),
+      contains('Use Photos will use one combined receipt image.'),
     );
     expect(sectionLabels, contains('Receipt Sections'));
     expect(reviewPreviewControls, contains('addNextSectionLabel'));

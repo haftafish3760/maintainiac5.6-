@@ -83,15 +83,14 @@ extension ReceiptPhotoCoverageDecisionLabels on ReceiptPhotoCoverageDecision {
     if (isMissingBottomEdgeAndTotals) {
       return '$guidance If this photo already includes the whole receipt, you can continue, but the subtotal/total may need manual review.';
     }
-    return '$guidance If the receipt continues below this photo, add the next section now. If this photo has the full receipt, tap Next to review receipt details.';
+    return '$guidance If the receipt continues below this photo, add another photo now. If this photo has the full receipt, use this photo.';
   }
 
   String get addSectionButtonLabel =>
-      isMissingBottomEdgeAndTotals ? 'Add Bottom Section' : 'Add Next Section';
+      isMissingBottomEdgeAndTotals ? 'Add Bottom Section' : 'Add Another Photo';
 
-  String get continueAnywayButtonLabel => isMissingBottomEdgeAndTotals
-      ? 'Continue And Review'
-      : 'Next: Review Receipt Details';
+  String get continueAnywayButtonLabel =>
+      isMissingBottomEdgeAndTotals ? 'Continue And Review' : 'Use Photo';
 
   bool get shouldPromptForMorePhotos =>
       status == ReceiptPhotoCoverageStatus.likelyCutOff ||

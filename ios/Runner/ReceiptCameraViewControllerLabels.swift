@@ -43,8 +43,8 @@ extension ReceiptCameraViewController {
     let fillMode = assistedReceiptFill ? "Assist on" : "Manual fill"
     let reviewMode = reviewDepth == "detailedLines" ? "Detailed lines" : "Price-only lines"
     let receiptMode = longReceiptMode ? "Long receipt" : "Single photo"
-    let brightnessMode = autoExposureAssistEnabled ? "Brightness assist" : "Manual brightness"
-    return "Maintainiac receipt camera | \(fillMode) | \(reviewMode) | \(receiptMode) | \(brightnessMode) | \(dataSaverLabel()) saved proof\nOCR reads the temporary full-quality photo first."
+    let lightMode = autoExposureAssistEnabled ? "Auto light" : "Manual light"
+    return "\(fillMode) | \(reviewMode) | \(receiptMode) | \(lightMode)"
   }
 
   func dataSaverLabel() -> String {

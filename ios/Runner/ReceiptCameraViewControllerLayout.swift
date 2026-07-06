@@ -61,7 +61,7 @@ extension ReceiptCameraViewController {
 
     let backButton = iconButton(title: "Back", symbol: "chevron.left")
     backButton.addTarget(self, action: #selector(cancelCapture), for: .touchUpInside)
-    let settingsButton = iconButton(title: "Receipt camera settings", symbol: "slider.horizontal.3")
+    let settingsButton = iconButton(title: "Receipt camera settings", symbol: "gearshape.fill")
     settingsButton.addTarget(self, action: #selector(showReceiptCameraSettings), for: .touchUpInside)
     torchButton.setTitle("", for: .normal)
     torchButton.setImage(UIImage(systemName: "flashlight.off.fill"), for: .normal)
@@ -70,13 +70,13 @@ extension ReceiptCameraViewController {
     torchButton.layer.cornerRadius = 8
     torchButton.accessibilityLabel = "Turn light on"
     torchButton.addTarget(self, action: #selector(toggleTorch), for: .touchUpInside)
-    doneButton.setTitle("Next", for: .normal)
+    doneButton.setTitle("Use Photos", for: .normal)
     doneButton.setTitleColor(.white, for: .normal)
     doneButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
     doneButton.layer.cornerRadius = 8
-    doneButton.accessibilityLabel = "Review captured receipt photos in Maintainiac"
+    doneButton.accessibilityLabel = "Use captured receipt photos"
     doneButton.isEnabled = false
-    doneButton.isHidden = !longReceiptMode
+    doneButton.isHidden = true
     doneButton.addTarget(self, action: #selector(finishWithCapturedPhotos), for: .touchUpInside)
 
     let spacer = UIView()
@@ -119,22 +119,23 @@ extension ReceiptCameraViewController {
     shutterButton.accessibilityLabel = "Take receipt photo"
     shutterButton.addTarget(self, action: #selector(capturePrimaryPhoto), for: .touchUpInside)
 
-    addPhotoButton.setTitle("Add Next", for: .normal)
+    addPhotoButton.setTitle("Add Photo", for: .normal)
     addPhotoButton.setTitleColor(.white, for: .normal)
     addPhotoButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
     addPhotoButton.layer.cornerRadius = 8
-    addPhotoButton.accessibilityLabel = "Add next receipt section photo"
+    addPhotoButton.accessibilityLabel = "Add another receipt photo"
     addPhotoButton.isEnabled = false
     addPhotoButton.isHidden = true
     addPhotoButton.addTarget(self, action: #selector(captureAdditionalPhoto), for: .touchUpInside)
     bottomBar.addArrangedSubview(addPhotoButton)
     bottomBar.addArrangedSubview(shutterButton)
-    bottomReviewButton.setTitle("Next", for: .normal)
+    bottomReviewButton.setTitle("Use Photos", for: .normal)
     bottomReviewButton.setTitleColor(.white, for: .normal)
     bottomReviewButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
     bottomReviewButton.layer.cornerRadius = 8
-    bottomReviewButton.accessibilityLabel = "Review captured receipt photos in Maintainiac"
+    bottomReviewButton.accessibilityLabel = "Use captured receipt photos"
     bottomReviewButton.isEnabled = false
+    bottomReviewButton.isHidden = true
     bottomReviewButton.addTarget(self, action: #selector(finishWithCapturedPhotos), for: .touchUpInside)
     bottomBar.addArrangedSubview(bottomReviewButton)
     view.addSubview(bottomBar)
@@ -200,6 +201,7 @@ extension ReceiptCameraViewController {
     settingsStatusStrip.textAlignment = .center
     settingsStatusStrip.accessibilityLabel = "Receipt camera active settings"
     settingsStatusStrip.translatesAutoresizingMaskIntoConstraints = false
+    settingsStatusStrip.isHidden = true
     return settingsStatusStrip
   }
 
@@ -212,6 +214,7 @@ extension ReceiptCameraViewController {
     panel.layoutMargins = UIEdgeInsets(top: 6, left: 10, bottom: 6, right: 10)
     panel.isLayoutMarginsRelativeArrangement = true
     panel.translatesAutoresizingMaskIntoConstraints = false
+    panel.isHidden = true
 
     let label = UILabel()
     label.text = "Brightness"

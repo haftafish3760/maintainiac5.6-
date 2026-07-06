@@ -177,10 +177,7 @@ void main() {
       expect(cameraActivity, contains('dataSaverLevel = selected'));
       expect(cameraActivity, contains('reviewDepth = selected'));
       expect(cameraActivity, contains('Take receipt photo'));
-      expect(
-        cameraActivity,
-        contains(r'Add receipt section ${nextReceiptSectionNumber()}'),
-      );
+      expect(cameraActivity, contains('Add another receipt photo'));
       expect(
         cameraActivity,
         contains('internal fun ReceiptCameraActivity.addSectionButtonTitle()'),
@@ -206,14 +203,14 @@ void main() {
           'addPhotoButton.contentDescription = addSectionButtonAccessibilityLabel()',
         ),
       );
-      expect(cameraActivity, contains('Add Next'));
+      expect(cameraActivity, contains('Add Photo'));
       expect(cameraActivity, contains('controls.add("add_photo")'));
       expect(cameraActivity, contains('Receipt camera settings'));
       expect(cameraActivity, contains('doneButton'));
       expect(cameraActivity, contains('Finish'));
       expect(cameraActivity, contains('finishWithCapturedPhotos'));
       expect(cameraActivity, contains('capturedPhotoPaths'));
-      expect(cameraActivity, contains(r'"Next ($count photos)"'));
+      expect(cameraActivity, contains(r'"Use $count Photos"'));
       expect(
         cameraActivity,
         contains(r'Section ${capturedPhotoPaths.size} saved'),

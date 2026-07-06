@@ -251,24 +251,33 @@ extension _ReceiptAttachmentCameraActions
         .push<_ReceiptFirstUseCameraAction>(
           MaterialPageRoute(
             fullscreenDialog: true,
-            builder: (context) => _ReceiptFirstUseCameraIntroSheet(
-              area: widget.area,
-              profile: settings.effectiveCameraRuntimeProfile,
-              installChoice: settings.deviceCapability
-                  .cloudAssistPlanFor(
-                    dataSaverLevel: settings.defaultDataSaverLevel,
-                  )
-                  .parserPackInstallChoice,
-            ),
+            builder: (context) =>
+                _ReceiptFirstUseCameraIntroSheet(area: widget.area),
           ),
         );
     if (!mounted || action == null) return false;
-    await settings.setCameraSetupComplete(true);
+    await _applyFirstUseReceiptAssistChoice(settings, action);
     if (!mounted) return false;
-    if (action == _ReceiptFirstUseCameraAction.openSettings) {
-      return openReceiptCaptureSettings();
-    }
+    await settings.setCameraSetupComplete(true);
     return true;
+  }
+
+  Future<void> _applyFirstUseReceiptAssistChoice(
+    ReceiptCaptureSettingsController settings,
+    _ReceiptFirstUseCameraAction action,
+  ) async {
+    final useAssist = action == _ReceiptFirstUseCameraAction.useReceiptAssist;
+    if (useAssist) {
+      await settings.setAppAssistedReceiptFill(true);
+    }
+    switch (widget.area) {
+      case ReceiptCaptureArea.expenses:
+        await settings.setAppAssistedExpenses(useAssist);
+      case ReceiptCaptureArea.materialsInventory:
+        await settings.setAppAssistedMaterials(useAssist);
+      case ReceiptCaptureArea.maintenanceRepair:
+        await settings.setAppAssistedMaintenance(useAssist);
+    }
   }
 
   String _nativeCameraOpenErrorMessage(PlatformException error) {

@@ -123,13 +123,6 @@ class _ReceiptReviewTopBar extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          _ReceiptTopBarNextButton(
-            label: continueLabel,
-            savingPhotos: savingPhotos,
-            onPressed: continueLabel == 'Checking' ? null : onContinue,
-          ),
-          const SizedBox(width: 4),
           _OverlayIconButton(
             icon: Icons.fullscreen_rounded,
             label: 'Hide controls',

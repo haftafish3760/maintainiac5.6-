@@ -259,27 +259,27 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
     }
     if (reviewMode == _ReceiptReviewMode.preview &&
         coverageDecision.shouldPromptForMorePhotos) {
-      return 'Next: Details If Complete';
+      return photoPaths.length == 1 ? 'Use Photo' : 'Use Photos';
     }
     if (reviewMode == _ReceiptReviewMode.preview &&
         selectedQualityCheck?.hasCriticalIssue == true) {
-      return 'Next: Review Anyway';
+      return 'Use Anyway';
     }
     if (bestShotCandidateMode || photoPaths.length == 1) {
-      return 'Next: Review Receipt Details';
+      return 'Use Photo';
     }
     if (reviewMode != _ReceiptReviewMode.stitch) {
-      return photoPaths.length > 1 ? 'Check Photo Match' : 'Next';
+      return photoPaths.length > 1 ? 'Check Photo Match' : 'Use Photo';
     }
     if (stitchPreviewInFlight || stitchPreview == null) {
       return 'Checking Match';
     }
     if (stitchPreview?.didStitch == true) {
-      return 'Next: Review Receipt Details';
+      return 'Use Photos';
     }
     if (stitchPreview?.usedFallback == true) {
-      return 'Next: Review Receipt Details';
+      return 'Use Photos';
     }
-    return 'Next: Review Receipt Details';
+    return 'Use Photos';
   }
 }

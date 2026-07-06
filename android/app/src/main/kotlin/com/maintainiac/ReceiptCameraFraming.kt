@@ -196,8 +196,8 @@ internal fun ReceiptCameraActivity.resetFrameGuideBounds() {
     ).apply {
         leftMargin = dp(26)
         rightMargin = dp(26)
-        topMargin = dp(146)
-        bottomMargin = dp(214)
+        topMargin = dp(92)
+        bottomMargin = dp(136)
     }
 }
 
@@ -209,9 +209,9 @@ internal fun ReceiptCameraActivity.updateFrameGuideBounds(
     val previewHeight = previewView.height
     if (previewWidth <= 0 || previewHeight <= 0) return
     val minLeft = dp(10)
-    val minTop = dp(84)
+    val minTop = dp(76)
     val maxRight = previewWidth - dp(10)
-    val maxBottom = previewHeight - dp(142)
+    val maxBottom = previewHeight - dp(116)
     val left = (framing.leftRatio * previewWidth).roundToInt()
         .coerceIn(minLeft, maxRight)
     val top = (framing.topRatio * previewHeight).roundToInt()

@@ -1,15 +1,9 @@
 part of 'receipt_attachment_panel.dart';
 
 class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
-  const _ReceiptFirstUseCameraIntroSheet({
-    required this.area,
-    required this.profile,
-    required this.installChoice,
-  });
+  const _ReceiptFirstUseCameraIntroSheet({required this.area});
 
   final ReceiptCaptureArea area;
-  final ReceiptCameraRuntimeProfile profile;
-  final ReceiptParserPackInstallChoice installChoice;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +34,7 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
                   const SizedBox(width: 8),
                   const Expanded(
                     child: Text(
-                      'Receipt Camera Setup',
+                      'Receipt Assist',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -55,52 +49,59 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                children: [
-                  Text(
-                    'These tips apply when adding ${area.label.toLowerCase()} receipts.',
-                    style: const TextStyle(
-                      color: Color(0xFFC7D0D4),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0,
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 520),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Icon(
+                          Icons.receipt_long_rounded,
+                          color: Color(0xFFFFD166),
+                          size: 44,
+                        ),
+                        const SizedBox(height: 18),
+                        const Text(
+                          'Would you like Maintainiac to help fill out receipt details?',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFFE8ECEE),
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            height: 1.08,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Receipt Assist reads the photo and suggests totals and lines. You review everything before saving.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFFC7D0D4),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            height: 1.28,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Manual entry is always available for ${area.label.toLowerCase()} receipts.',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Color(0xFF8FA0A8),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            height: 1.25,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  _ReceiptFirstUseCameraRuntimeCard(profile: profile),
-                  const SizedBox(height: 12),
-                  const _ReceiptFirstUseTip(
-                    icon: Icons.center_focus_strong_rounded,
-                    title: 'Clear Photo First',
-                    text:
-                        'Keep the receipt readable, avoid glare, and hold steady while the phone camera refocuses.',
-                  ),
-                  const _ReceiptFirstUseTip(
-                    icon: Icons.receipt_long_rounded,
-                    title: 'Long Receipts',
-                    text:
-                        'Use Add Photo and repeat a few readable lines so Maintainiac can match receipt sections safely.',
-                  ),
-                  const _ReceiptFirstUseTip(
-                    icon: Icons.fact_check_rounded,
-                    title: 'App-Assisted Fill',
-                    text:
-                        'Maintainiac can read the receipt and suggest fields, but you review before anything is trusted.',
-                  ),
-                  const _ReceiptFirstUseTip(
-                    icon: Icons.tune_rounded,
-                    title: 'Receipt Controls',
-                    text:
-                        'Use flash, readability guidance, long receipt help, and proof-size settings when they help.',
-                  ),
-                  _ReceiptFirstUseTip(
-                    icon: Icons.lock_outline_rounded,
-                    title: 'Storage And Privacy',
-                    text:
-                        'OCR uses the clear working photo first. The saved proof follows your storage setting. ${installChoice.userFacingDownloadChoiceLabel}',
-                  ),
-                ],
+                ),
               ),
             ),
             Padding(
@@ -111,9 +112,9 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: () => Navigator.of(
                       context,
-                    ).pop(_ReceiptFirstUseCameraAction.continueToCamera),
-                    icon: const Icon(Icons.photo_camera_rounded),
-                    label: const Text('Continue To Camera'),
+                    ).pop(_ReceiptFirstUseCameraAction.useReceiptAssist),
+                    icon: const Icon(Icons.auto_awesome_rounded),
+                    label: const Text('Yes, Use Receipt Assist'),
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF28A745),
                       foregroundColor: Colors.white,
@@ -127,9 +128,9 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: () => Navigator.of(
                       context,
-                    ).pop(_ReceiptFirstUseCameraAction.openSettings),
-                    icon: const Icon(Icons.tune_rounded),
-                    label: const Text('Open Receipt Settings'),
+                    ).pop(_ReceiptFirstUseCameraAction.manualEntry),
+                    icon: const Icon(Icons.edit_note_rounded),
+                    label: const Text('No, Manual Entry'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFFFD166),
                       side: const BorderSide(color: Color(0xFFFFD166)),
@@ -144,98 +145,6 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ReceiptFirstUseCameraRuntimeCard extends StatelessWidget {
-  const _ReceiptFirstUseCameraRuntimeCard({required this.profile});
-
-  final ReceiptCameraRuntimeProfile profile;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFF101719),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFF344047)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.auto_awesome_rounded, color: Color(0xFFFFD166)),
-            const SizedBox(width: 9),
-            Expanded(
-              child: Text(
-                profile.summaryLabel,
-                style: const TextStyle(
-                  color: Color(0xFFE8ECEE),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                  height: 1.2,
-                  letterSpacing: 0,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ReceiptFirstUseTip extends StatelessWidget {
-  const _ReceiptFirstUseTip({
-    required this.icon,
-    required this.title,
-    required this.text,
-  });
-
-  final IconData icon;
-  final String title;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: const Color(0xFFFFD166), size: 20),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFFE8ECEE),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  text,
-                  style: const TextStyle(
-                    color: Color(0xFFC7D0D4),
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    height: 1.22,
-                    letterSpacing: 0,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

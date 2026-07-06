@@ -11,6 +11,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
     required this.coverageDecision,
     required this.savingPhotos,
     required this.continueLabel,
+    required this.onRetake,
     required this.onAddPhoto,
     required this.onContinue,
   });
@@ -24,6 +25,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
   final ReceiptPhotoCoverageDecision coverageDecision;
   final bool savingPhotos;
   final String continueLabel;
+  final VoidCallback? onRetake;
   final VoidCallback? onAddPhoto;
   final VoidCallback? onContinue;
 
@@ -35,8 +37,8 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
     final addPhotoLabel = coverageDecision.isMissingBottomEdgeAndTotals
         ? 'Add Bottom Section'
         : shouldAddNextSection
-        ? 'Add Next Section'
-        : 'Add Photo';
+        ? 'Add Another Photo'
+        : 'Add Another Photo';
     final addPhotoTooltip = coverageDecision.isMissingBottomEdgeAndTotals
         ? 'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice'
         : shouldAddNextSection
@@ -53,32 +55,61 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (!compact) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _ReceiptPhotoCountBadge(current: current, total: total),
+                  const SizedBox(width: 8),
+                  Icon(statusIcon, color: statusColor, size: 17),
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                      statusText,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFFE8ECEE),
+                        fontSize: 11,
+                        height: 1.12,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 7),
+            ],
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _ReceiptPhotoCountBadge(current: current, total: total),
-                const SizedBox(width: 8),
-                Icon(statusIcon, color: statusColor, size: 17),
-                const SizedBox(width: 7),
                 Expanded(
-                  child: Text(
-                    statusText,
-                    maxLines: compact ? 1 : 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFFE8ECEE),
-                      fontSize: 11,
-                      height: 1.12,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0,
+                  child: OutlinedButton.icon(
+                    onPressed: savingPhotos ? null : onRetake,
+                    icon: const Icon(Icons.camera_alt_rounded, size: 16),
+                    label: const Text(
+                      'Retake',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 38),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      foregroundColor: const Color(0xFFE8ECEE),
+                      disabledForegroundColor: const Color(0xFF758188),
+                      side: const BorderSide(color: Color(0xFF526168)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: compact ? 5 : 7),
-            Row(
-              children: [
+                const SizedBox(width: 7),
                 Expanded(
                   child: Tooltip(
                     message: addPhotoTooltip,
@@ -94,7 +125,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(0, 36),
+                          minimumSize: const Size(0, 38),
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           foregroundColor: const Color(0xFFE8ECEE),
                           disabledForegroundColor: const Color(0xFF758188),
@@ -112,7 +143,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 7),
                 Expanded(
                   child: Tooltip(
                     message: savingPhotos
@@ -138,16 +169,16 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Icon(Icons.arrow_forward_rounded),
+                            : const Icon(Icons.check_rounded),
                         label: savingPhotos
                             ? const Text(
-                                'Opening Details',
+                                'Preparing',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               )
                             : _ReceiptNextReviewLabel(label: continueLabel),
                         style: FilledButton.styleFrom(
-                          minimumSize: const Size(92, 36),
+                          minimumSize: const Size(0, 38),
                           backgroundColor: const Color(0xFF28A745),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(

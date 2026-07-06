@@ -1,6 +1,7 @@
 package com.maintainiac
 
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.util.Range
 import android.view.Gravity
 import android.view.ViewGroup
@@ -22,7 +23,10 @@ internal fun ReceiptCameraActivity.iconButton(
         contentDescription = label
         setImageResource(icon)
         setColorFilter(Color.WHITE)
-        setBackgroundColor(Color.argb(220, 17, 24, 27))
+        background = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(Color.argb(220, 17, 24, 27))
+        }
         layoutParams = LinearLayout.LayoutParams(dp(52), dp(52)).apply {
             leftMargin = dp(4)
             rightMargin = dp(4)

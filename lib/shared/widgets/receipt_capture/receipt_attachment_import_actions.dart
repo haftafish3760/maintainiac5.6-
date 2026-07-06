@@ -9,7 +9,7 @@ enum _ReceiptImportAction {
   shareHelp,
 }
 
-enum _ReceiptFirstUseCameraAction { continueToCamera, openSettings }
+enum _ReceiptFirstUseCameraAction { useReceiptAssist, manualEntry }
 
 enum _MaintainiacNativeCameraPhotoOutcome { added, unavailable, canceled }
 

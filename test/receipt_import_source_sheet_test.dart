@@ -27,12 +27,12 @@ void main() {
     expect(find.text('Capture or upload receipt'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
     expect(find.text('Help'), findsOneWidget);
-    expect(find.text('Capture Receipt Photo'), findsOneWidget);
-    expect(find.text('Upload Receipt Photos'), findsOneWidget);
+    expect(find.text('Capture Photo'), findsOneWidget);
+    expect(find.text('Upload Photos'), findsOneWidget);
     expect(find.text('Upload PDF/File'), findsOneWidget);
-    expect(find.text('Text File'), findsOneWidget);
-    expect(find.text('Paste Text'), findsOneWidget);
-    expect(find.text('Share Help'), findsOneWidget);
+    expect(find.text('Paste/Text'), findsOneWidget);
+    expect(find.text('Text File'), findsNothing);
+    expect(find.text('Share Help'), findsNothing);
 
     await tester.scrollUntilVisible(
       find.textContaining('choose Maintainiac'),
@@ -90,7 +90,7 @@ void main() {
     await tester.tap(find.text('Add Receipt'));
     await tester.pumpAndSettle();
     expect(find.text('Capture or upload receipt'), findsOneWidget);
-    expect(find.text('Capture Receipt Photo'), findsOneWidget);
+    expect(find.text('Capture Photo'), findsOneWidget);
     expect(find.text('Upload PDF/File'), findsOneWidget);
 
     await tester.tap(find.text('Help'));
@@ -125,6 +125,12 @@ void main() {
     expect(source, contains('SafeArea('));
     expect(source, contains('SingleChildScrollView('));
     expect(source, contains('crossAxisCount: 2'));
+    expect(source, contains("label: 'Capture Photo'"));
+    expect(source, contains("label: 'Upload Photos'"));
+    expect(source, contains("label: 'Upload PDF/File'"));
+    expect(source, contains("label: 'Paste/Text'"));
+    expect(source, isNot(contains("label: 'Text File'")));
+    expect(source, isNot(contains("label: 'Share Help'")));
     expect(source, isNot(contains('_ReceiptPrimaryImportTile')));
     expect(tile, isNot(contains('class _ReceiptPrimaryImportTile')));
     expect(tile, isNot(contains('width: 58')));

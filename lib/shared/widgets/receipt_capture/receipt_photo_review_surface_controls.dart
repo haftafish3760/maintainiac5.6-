@@ -86,11 +86,11 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
     }
     if (_reviewMode == _ReceiptReviewMode.preview &&
         coverageDecision.shouldPromptForMorePhotos) {
-      return 'Next: Details If Complete';
+      return _photoPaths.length == 1 ? 'Use Photo' : 'Use Photos';
     }
     if (_reviewMode == _ReceiptReviewMode.preview &&
         quality?.hasCriticalIssue == true) {
-      return 'Next: Review Anyway';
+      return 'Use Anyway';
     }
     if (_reviewMode == _ReceiptReviewMode.stitch &&
         _photoPaths.length > 1 &&
@@ -98,9 +98,9 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
       return 'Checking';
     }
     if (_reviewMode == _ReceiptReviewMode.preview) {
-      return 'Next: Review Receipt Details';
+      return _photoPaths.length == 1 ? 'Use Photo' : 'Use Photos';
     }
-    return 'Next';
+    return _photoPaths.length == 1 ? 'Use Photo' : 'Use Photos';
   }
 
   ReceiptPhotoCoverageDecision _coverageDecisionForPhotoPath(String photoPath) {

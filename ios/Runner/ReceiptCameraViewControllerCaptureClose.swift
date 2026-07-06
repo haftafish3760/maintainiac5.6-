@@ -172,7 +172,7 @@ extension ReceiptCameraViewController {
   }
 
   func updateDoneButton() {
-    doneButton.isHidden = !longReceiptMode
+    doneButton.isHidden = true
     doneButton.isEnabled = !capturedPhotoPaths.isEmpty
     let title: String
     if capturedPhotoPaths.isEmpty {
@@ -183,17 +183,18 @@ extension ReceiptCameraViewController {
       title = "Next (\(capturedPhotoPaths.count) photos)"
     }
     doneButton.setTitle(title, for: .normal)
-    addPhotoButton.isHidden = capturedPhotoPaths.isEmpty
-    addPhotoButton.isEnabled = !capturedPhotoPaths.isEmpty && capturedPhotoPaths.count < maxSectionCount
+    addPhotoButton.isHidden = true
+    addPhotoButton.isEnabled = false
     addPhotoButton.setTitle(addSectionButtonTitle(), for: .normal)
     addPhotoButton.accessibilityLabel = addSectionButtonAccessibilityLabel()
     shutterButton.accessibilityLabel = capturedPhotoPaths.isEmpty
       ? "Take receipt photo"
-      : "Add receipt section \(nextReceiptSectionNumber())"
-    bottomReviewButton.isEnabled = !capturedPhotoPaths.isEmpty
+      : "Take receipt photo"
+    bottomReviewButton.isHidden = true
+    bottomReviewButton.isEnabled = false
     bottomReviewButton.setTitle(title, for: .normal)
-    bottomReviewButton.accessibilityLabel = "Next: review captured receipt photos in Maintainiac"
-    doneButton.accessibilityLabel = "Next: review captured receipt photos in Maintainiac"
+    bottomReviewButton.accessibilityLabel = "Use captured receipt photos"
+    doneButton.accessibilityLabel = "Use captured receipt photos"
     updateSettingsStatusStrip()
   }
 

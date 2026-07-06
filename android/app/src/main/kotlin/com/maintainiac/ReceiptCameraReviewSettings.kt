@@ -41,41 +41,36 @@ internal fun ReceiptCameraActivity.finishWithCapturedPhotos(closeReason: String 
 }
 
 internal fun ReceiptCameraActivity.updateDoneButton() {
-    doneButton.visibility = if (longReceiptMode) View.VISIBLE else View.GONE
+    doneButton.visibility = View.GONE
     doneButton.isEnabled = capturedPhotoPaths.isNotEmpty()
     val count = capturedPhotoPaths.size
     val title = when (count) {
-        0 -> "Next"
-        1 -> "Next"
-        else -> "Next ($count photos)"
+        0 -> "Use Photos"
+        1 -> "Use Photo"
+        else -> "Use $count Photos"
     }
     doneButton.text = title
     doneButton.contentDescription =
-        "Next: review captured receipt photos in Maintainiac"
+        "Use captured receipt photos"
     if (hasInitializedReceiptCameraField { addPhotoButton }) {
-        addPhotoButton.visibility = if (capturedPhotoPaths.isEmpty()) View.GONE else View.VISIBLE
-        addPhotoButton.isEnabled =
-            capturedPhotoPaths.isNotEmpty() && capturedPhotoPaths.size < maxSectionCount
+        addPhotoButton.visibility = View.GONE
+        addPhotoButton.isEnabled = false
         addPhotoButton.text = addSectionButtonTitle()
         addPhotoButton.contentDescription = addSectionButtonAccessibilityLabel()
     }
     if (hasInitializedReceiptCameraField { shutterButton }) {
-        shutterButton.contentDescription =
-            if (capturedPhotoPaths.isEmpty()) {
-                "Take receipt photo"
-            } else {
-                "Add receipt section ${nextReceiptSectionNumber()}"
-            }
+        shutterButton.contentDescription = "Take receipt photo"
     }
     if (hasInitializedReceiptCameraField { bottomReviewButton }) {
-        bottomReviewButton.isEnabled = capturedPhotoPaths.isNotEmpty()
+        bottomReviewButton.visibility = View.GONE
+        bottomReviewButton.isEnabled = false
         bottomReviewButton.text = when (count) {
-            0 -> "Next"
-            1 -> "Next"
-            else -> "Next ($count photos)"
+            0 -> "Use Photos"
+            1 -> "Use Photo"
+            else -> "Use $count Photos"
         }
         bottomReviewButton.contentDescription =
-            "Next: review captured receipt photos in Maintainiac"
+            "Use captured receipt photos"
     }
     updateSettingsStatusStrip()
 }

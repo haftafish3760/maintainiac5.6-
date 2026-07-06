@@ -15,7 +15,7 @@ class _ReceiptPersistentContinueButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final semanticLabel = savingPhotos ? 'Opening receipt details' : label;
+    final semanticLabel = savingPhotos ? 'Preparing receipt details' : label;
     return Tooltip(
       message: semanticLabel,
       child: Semantics(
@@ -29,12 +29,12 @@ class _ReceiptPersistentContinueButton extends StatelessWidget {
                   height: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : const Icon(Icons.document_scanner_rounded),
+                  color: Colors.white,
+                ),
+              )
+              : const Icon(Icons.check_rounded),
           label: savingPhotos
-              ? const Text('Opening Details')
+              ? const Text('Preparing')
               : _ReceiptNextReviewLabel(label: label),
           style: FilledButton.styleFrom(
             minimumSize: const Size.fromHeight(42),
@@ -59,24 +59,6 @@ class _ReceiptNextReviewLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final normalized = label.trim();
-    if (normalized == 'Next: Review Receipt Details') {
-      return const _ReceiptStackedButtonLabel(
-        primary: 'Next',
-        secondary: 'Receipt Details',
-      );
-    }
-    if (normalized == 'Next: Review Anyway') {
-      return const _ReceiptStackedButtonLabel(
-        primary: 'Next',
-        secondary: 'Review Anyway',
-      );
-    }
-    if (normalized == 'Next: Details If Complete') {
-      return const _ReceiptStackedButtonLabel(
-        primary: 'Next',
-        secondary: 'If Complete',
-      );
-    }
     if (normalized == 'Add Bottom Section') {
       return const _ReceiptStackedButtonLabel(
         primary: 'Add',

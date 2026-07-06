@@ -107,7 +107,7 @@ class ReceiptNativeCameraShell extends StatelessWidget {
             Positioned(
               left: 12,
               right: 12,
-              top: MediaQuery.viewPaddingOf(context).top + 68,
+              bottom: MediaQuery.viewPaddingOf(context).bottom + 112,
               child: _ReceiptNativeCameraGuidance(
                 title: guidanceTitle,
                 message: guidanceMessage,
@@ -117,22 +117,6 @@ class ReceiptNativeCameraShell extends StatelessWidget {
               ),
             ),
             ...children,
-            if (_exposureControlAvailable)
-              Positioned(
-                right: 10,
-                top: MediaQuery.sizeOf(context).height * .34,
-                bottom: MediaQuery.sizeOf(context).height * .22,
-                child: Material(
-                  color: Colors.transparent,
-                  child: _ReceiptNativeExposureControl(
-                    min: capabilities.minExposureOffset,
-                    max: capabilities.maxExposureOffset,
-                    value: currentExposureOffset,
-                    onChanged: onExposureChanged,
-                    onReset: onExposureReset,
-                  ),
-                ),
-              ),
             Positioned(
               left: 0,
               right: 0,
@@ -149,12 +133,5 @@ class ReceiptNativeCameraShell extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  bool get _exposureControlAvailable {
-    return settings.exposureSliderEnabled &&
-        capabilities.supportsExposureCompensation &&
-        capabilities.maxExposureOffset > capabilities.minExposureOffset &&
-        onExposureChanged != null;
   }
 }

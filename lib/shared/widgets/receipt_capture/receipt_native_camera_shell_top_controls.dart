@@ -126,7 +126,7 @@ class _ReceiptNativeCameraTopBar extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
         child: Row(
           children: [
             _ReceiptNativeCameraIconButton(
@@ -134,20 +134,15 @@ class _ReceiptNativeCameraTopBar extends StatelessWidget {
               label: 'Back',
               onPressed: onBack,
             ),
-            const SizedBox(width: 8),
-            Expanded(child: _ReceiptNativeCameraTitlePill(engine: engine)),
-            const SizedBox(width: 8),
+            const Spacer(),
             _ReceiptNativeCameraIconButton(
               icon: Icons.settings_rounded,
               label: 'Receipt camera settings',
               onPressed: onSettings,
-              visibleLabel: 'Settings',
             ),
             const SizedBox(width: 8),
             _ReceiptNativeCameraIconButton(
-              icon: torchOn
-                  ? Icons.flashlight_on_rounded
-                  : Icons.flashlight_off_rounded,
+              icon: torchOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
               label: torchOn ? 'Turn light off' : 'Turn light on',
               onPressed: torchSupported ? onTorch : null,
               active: torchOn,
@@ -156,68 +151,5 @@ class _ReceiptNativeCameraTopBar extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _ReceiptNativeCameraTitlePill extends StatelessWidget {
-  const _ReceiptNativeCameraTitlePill({required this.engine});
-
-  final ReceiptNativeCameraEngine engine;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 188),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: const Color(0xCC11181B),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: const Color(0xFF526168), width: .8),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Maintainiac Receipt Camera',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0,
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  _engineLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFFD4DEE2),
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  String get _engineLabel {
-    return switch (engine) {
-      ReceiptNativeCameraEngine.cameraX => 'Native receipt controls',
-      ReceiptNativeCameraEngine.avFoundation => 'Native receipt controls',
-      ReceiptNativeCameraEngine.unavailable => 'Receipt controls',
-    };
   }
 }

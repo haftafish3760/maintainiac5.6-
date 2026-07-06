@@ -139,9 +139,9 @@ class _ReceiptReviewContextRow extends StatelessWidget {
     if (readinessCopy != null) return readinessCopy.contextStatus;
     final quality = selectedQualityCheck;
     if (quality != null && quality.needsReview) {
-      return '${quality.reviewGuidance} If the store, date, total, and item prices are readable, tap Next.';
+      return '${quality.reviewGuidance} If the store, date, total, and item prices are readable, use this photo.';
     }
-    return 'Photo captured locally. Next opens receipt details. Use Add Another Photo only if the receipt continues.';
+    return 'Photo captured locally. Use this photo, retake it, or add another photo if the receipt continues.';
   }
 }
 
@@ -166,41 +166,41 @@ class _ReceiptCaptureReadinessReviewCopy {
     return switch (rawCode) {
       'auto_capture_ready' => const _ReceiptCaptureReadinessReviewCopy._(
         contextStatus:
-            'Receipt looked steady at capture. Next opens receipt details; add another photo only if the receipt continues.',
+            'Receipt looked steady at capture. Use this photo, or add another photo only if the receipt continues.',
         previewStatus:
-            'Receipt looked steady at capture. Next opens receipt details; use Add Another Photo only if the receipt continues.',
+            'Receipt looked steady at capture. Use this photo, or add another photo only if the receipt continues.',
       ),
       'manual_only_check_framing' => const _ReceiptCaptureReadinessReviewCopy._(
         contextStatus:
-            'Check that every receipt line is visible. Retake if the edges are cut off, or tap Next if the full receipt is readable.',
+            'Check that every receipt line is visible. Retake if the edges are cut off, or use this photo if the full receipt is readable.',
         previewStatus:
-            'Check that every receipt line is visible. Retake if the edges are cut off; Next stays available when the full receipt is readable.',
+            'Check that every receipt line is visible. Retake if the edges are cut off, or use this photo if the full receipt is readable.',
       ),
       'manual_only_quality_retake_recommended' =>
         const _ReceiptCaptureReadinessReviewCopy._(
           contextStatus:
               'Retake is safer for OCR quality. Next still works if the store, date, total, and item prices are readable.',
           previewStatus:
-              'Retake is safer for OCR quality. Next still works if the store, date, total, and item prices are readable.',
+              'Retake is safer for receipt reading. Use this photo only if the store, date, total, and item prices are readable.',
         ),
       'manual_only_quality_review' => const _ReceiptCaptureReadinessReviewCopy._(
         contextStatus:
-            'Check sharpness, light, and receipt text before relying on automatic capture. Retake if prices look fuzzy, or tap Next if the receipt is readable.',
+            'Check sharpness, light, and receipt text before relying on automatic capture. Retake if prices look fuzzy, or use this photo if the receipt is readable.',
         previewStatus:
-            'Check sharpness, light, and receipt text before relying on automatic capture. Retake if prices look fuzzy; Next stays available when the receipt is readable.',
+            'Check sharpness, light, and receipt text. Retake if prices look fuzzy, or use this photo if the receipt is readable.',
       ),
       'auto_capture_waiting_for_stability' =>
         const _ReceiptCaptureReadinessReviewCopy._(
           contextStatus:
-              'This capture was taken before automatic capture considered the frame steady. Check sharpness, then retake or tap Next.',
+              'This capture was taken before automatic capture considered the frame steady. Check sharpness, then retake or use this photo.',
           previewStatus:
-              'This capture was taken before automatic capture considered the frame steady. Check sharpness, then retake or tap Next.',
+              'This capture was taken before automatic capture considered the frame steady. Check sharpness, then retake or use this photo.',
         ),
       'manual_ready_auto_capture_off' => const _ReceiptCaptureReadinessReviewCopy._(
         contextStatus:
-            'Manual capture was used. Next opens receipt details; add another photo only if the receipt continues.',
+            'Manual capture was used. Use this photo, or add another photo only if the receipt continues.',
         previewStatus:
-            'Manual capture was used. Next opens receipt details; use Add Another Photo only if the receipt continues.',
+            'Manual capture was used. Use this photo, or add another photo only if the receipt continues.',
       ),
       _ => null,
     };

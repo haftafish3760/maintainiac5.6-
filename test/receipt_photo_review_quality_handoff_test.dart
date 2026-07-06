@@ -79,13 +79,14 @@ void main() {
         'add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
       ),
     );
-    expect(controls, contains('Next: Details If Complete'));
-    expect(commonControls, contains("secondary: 'If Complete'"));
+    expect(controls, contains("'Use Photo'"));
+    expect(commonControls, isNot(contains("Next: Details If Complete")));
+    expect(commonControls, isNot(contains("secondary: 'If Complete'")));
     expect(
       qualityRecovery,
       contains('coverageDecision.shouldEmphasizeAddPhoto'),
     );
-    expect(previewControls, contains('Add Next Section'));
+    expect(previewControls, contains('Add Another Photo'));
     expect(commonControls, contains("secondary: 'Bottom Section'"));
     expect(
       previewControls,
@@ -99,7 +100,7 @@ void main() {
         'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
       ),
     );
-    expect(previewControls, contains("'Add Photo'"));
+    expect(previewControls, contains("'Add Another Photo'"));
     expect(previewControls, isNot(contains(": 'Add Another';")));
     expect(controls, contains('quality.userFacingStatusLabel'));
     expect(controls, contains('quality.reviewScoreMeaningLabel'));
@@ -141,10 +142,10 @@ void main() {
     expect(
       contextControls,
       contains(
-        'Photo captured locally. Next opens receipt details. Use Add Another Photo only if the receipt continues.',
+        'Photo captured locally. Use this photo, retake it, or add another photo if the receipt continues.',
       ),
     );
-    expect(controls, contains('Next: Review Receipt Details'));
+    expect(controls, contains('Use Photos'));
     expect(models, contains('Next opens receipt details from each section'));
     final saveActions = await readReceiptPhotoReviewSaveActionsSource();
     final importActions = await readReceiptAttachmentImportActionsSource();

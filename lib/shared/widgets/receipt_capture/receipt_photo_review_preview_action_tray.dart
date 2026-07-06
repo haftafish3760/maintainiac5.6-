@@ -79,6 +79,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                   coverageDecision: coverageDecision,
                   savingPhotos: savingPhotos,
                   continueLabel: continueLabel,
+                  onRetake: openingCamera ? null : onRetake,
                   onAddPhoto: openingCamera ? null : onAddPhoto,
                   onContinue: onContinue,
                 ),
