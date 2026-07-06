@@ -11,6 +11,7 @@ const _usage =
     '[--trade plumbing] [--scope residential] [--tier core] '
     '[--locale en-US] [--locales en-US,es-US] [--limit 500] '
     '[--fixture-run-limit 50] [--fixture-run-timeout-ms 900000] '
+    '[--fixture-run-stale-report-timeout-ms 120000] '
     '[--execute] [--resume] '
     '[--run-fixtures]';
 
@@ -133,6 +134,8 @@ Future<int> runWorkSupplyParserQaPipeline(
         reportOutput,
         '--timeout-ms',
         '${options.fixtureRunTimeoutMs}',
+        '--stale-report-timeout-ms',
+        '${options.fixtureRunStaleReportTimeoutMs}',
       ],
       willExecute: options.execute && options.runFixtures,
     ),
@@ -177,6 +180,7 @@ Future<int> runWorkSupplyParserQaPipeline(
     'limit': options.limit,
     'fixtureRunLimit': options.fixtureRunLimit,
     'fixtureRunTimeoutMs': options.fixtureRunTimeoutMs,
+    'fixtureRunStaleReportTimeoutMs': options.fixtureRunStaleReportTimeoutMs,
     'dryRun': !options.execute,
     'resume': options.resume,
     'runFixtures': options.runFixtures,
@@ -232,6 +236,8 @@ Future<int> _runMultiLocalePipeline({
       '${options.fixtureRunLimit}',
       '--fixture-run-timeout-ms',
       '${options.fixtureRunTimeoutMs}',
+      '--fixture-run-stale-report-timeout-ms',
+      '${options.fixtureRunStaleReportTimeoutMs}',
       '--output-root',
       localeOutput,
     ];
@@ -259,6 +265,7 @@ Future<int> _runMultiLocalePipeline({
     'limit': options.limit,
     'fixtureRunLimit': options.fixtureRunLimit,
     'fixtureRunTimeoutMs': options.fixtureRunTimeoutMs,
+    'fixtureRunStaleReportTimeoutMs': options.fixtureRunStaleReportTimeoutMs,
     'dryRun': !options.execute,
     'resume': options.resume,
     'runFixtures': options.runFixtures,
@@ -429,6 +436,7 @@ class _PipelineOptions {
     required this.limit,
     required this.fixtureRunLimit,
     required this.fixtureRunTimeoutMs,
+    required this.fixtureRunStaleReportTimeoutMs,
     required this.outputRoot,
     required this.execute,
     required this.resume,
@@ -443,6 +451,7 @@ class _PipelineOptions {
   final int limit;
   final int fixtureRunLimit;
   final int fixtureRunTimeoutMs;
+  final int fixtureRunStaleReportTimeoutMs;
   final String outputRoot;
   final bool execute;
   final bool resume;
@@ -476,6 +485,9 @@ class _PipelineOptions {
           500,
       fixtureRunTimeoutMs:
           int.tryParse(values['fixture-run-timeout-ms'] ?? '') ?? 900000,
+      fixtureRunStaleReportTimeoutMs:
+          int.tryParse(values['fixture-run-stale-report-timeout-ms'] ?? '') ??
+          120000,
       outputRoot: values['output-root'] ?? 'build/parser_qa_pipeline',
       execute: flags.contains('execute'),
       resume: flags.contains('resume'),

@@ -10,6 +10,7 @@ const _usage =
     '[--trades plumbing,electrical,hvac] [--scopes residential] '
     '[--tiers core] [--locales en-US,es-US] [--limit 500] '
     '[--fixture-run-limit 50] [--fixture-run-timeout-ms 900000] '
+    '[--fixture-run-stale-report-timeout-ms 120000] '
     '[--output-root build/parser_qa_pipeline] [--execute] [--resume] '
     '[--run-fixtures] [--status-gate] [--first-round]';
 
@@ -68,6 +69,8 @@ Future<int> runWorkSupplyParserQaMatrixPipeline(
           '${options.fixtureRunLimit}',
           '--fixture-run-timeout-ms',
           '${options.fixtureRunTimeoutMs}',
+          '--fixture-run-stale-report-timeout-ms',
+          '${options.fixtureRunStaleReportTimeoutMs}',
           '--output-root',
           pipelineOutputRoot,
         ];
@@ -121,6 +124,7 @@ Future<int> runWorkSupplyParserQaMatrixPipeline(
     'limit': options.limit,
     'fixtureRunLimit': options.fixtureRunLimit,
     'fixtureRunTimeoutMs': options.fixtureRunTimeoutMs,
+    'fixtureRunStaleReportTimeoutMs': options.fixtureRunStaleReportTimeoutMs,
     'dryRun': !options.execute,
     'resume': options.resume,
     'firstRound': options.firstRound,
@@ -155,6 +159,7 @@ class _MatrixOptions {
     required this.limit,
     required this.fixtureRunLimit,
     required this.fixtureRunTimeoutMs,
+    required this.fixtureRunStaleReportTimeoutMs,
     required this.outputRoot,
     required this.execute,
     required this.resume,
@@ -170,6 +175,7 @@ class _MatrixOptions {
   final int limit;
   final int fixtureRunLimit;
   final int fixtureRunTimeoutMs;
+  final int fixtureRunStaleReportTimeoutMs;
   final String outputRoot;
   final bool execute;
   final bool resume;
@@ -203,6 +209,9 @@ class _MatrixOptions {
           (firstRound ? 25 : limit),
       fixtureRunTimeoutMs:
           int.tryParse(values['fixture-run-timeout-ms'] ?? '') ?? 900000,
+      fixtureRunStaleReportTimeoutMs:
+          int.tryParse(values['fixture-run-stale-report-timeout-ms'] ?? '') ??
+          120000,
       outputRoot: values['output-root'] ?? 'build/parser_qa_pipeline',
       execute: flags.contains('execute'),
       resume: flags.contains('resume'),

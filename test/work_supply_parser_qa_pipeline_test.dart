@@ -115,12 +115,18 @@ void main() {
     expect(stdout.content, contains('"fixtureRunTimeoutMs": 900000'));
     expect(
       stdout.content,
+      contains('"fixtureRunStaleReportTimeoutMs": 120000'),
+    );
+    expect(
+      stdout.content,
       contains('work_supply_parser_qa_run_generated_fixtures.dart'),
     );
     expect(stdout.content, contains('--max-cases'));
     expect(stdout.content, contains('25'));
     expect(stdout.content, contains('--timeout-ms'));
     expect(stdout.content, contains('900000'));
+    expect(stdout.content, contains('--stale-report-timeout-ms'));
+    expect(stdout.content, contains('120000'));
   });
 
   test(

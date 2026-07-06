@@ -215,6 +215,8 @@ void main() {
         '25',
         '--fixture-run-timeout-ms',
         '60000',
+        '--fixture-run-stale-report-timeout-ms',
+        '300000',
       ],
       stdout: stdout,
       stderr: _MemorySink(),
@@ -226,15 +228,22 @@ void main() {
     expect(stdout.content, contains('"fixtureRunTimeoutMs": 60000'));
     expect(
       stdout.content,
+      contains('"fixtureRunStaleReportTimeoutMs": 300000'),
+    );
+    expect(
+      stdout.content,
       contains('work_supply_parser_qa_run_generated_fixtures.dart'),
     );
     expect(stdout.content, contains('--max-cases'));
     expect(stdout.content, contains('25'));
     expect(stdout.content, contains('--timeout-ms'));
     expect(stdout.content, contains('60000'));
+    expect(stdout.content, contains('--stale-report-timeout-ms'));
+    expect(stdout.content, contains('300000'));
     final summary = _extractMatrixSummary(stdout.content);
     expect(summary['fixtureRunLimit'], 25);
     expect(summary['fixtureRunTimeoutMs'], 60000);
+    expect(summary['fixtureRunStaleReportTimeoutMs'], 300000);
   });
 
   test('matrix pipeline first-round preset plans capped QA gate', () async {
