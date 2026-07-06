@@ -1,9 +1,6 @@
 import 'dart:typed_data';
 
-import '../../../shared/pdf/app_generated_pdf_models.dart';
-import '../../../shared/pdf/app_pdf_formatters.dart';
-import '../../../shared/pdf/app_pdf_privacy_policy.dart';
-import '../../../shared/pdf/app_pdf_text_decoder.dart';
+import '../../../shared/document_engine/document_engine_core.dart';
 import 'invoice_pdf_privacy_guard.dart';
 import 'invoice_record.dart';
 import 'invoice_template_catalog.dart';

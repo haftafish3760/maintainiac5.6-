@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/pdf/app_generated_pdf_models.dart';
-import '../../../shared/pdf/app_generated_pdf_preview_screen.dart';
+import '../../../shared/document_engine/maintainiac_document_engine.dart';
 
 class InvoiceTemplatePreviewScreen extends StatefulWidget {
   const InvoiceTemplatePreviewScreen({

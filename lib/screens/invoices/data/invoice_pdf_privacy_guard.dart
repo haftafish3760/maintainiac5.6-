@@ -1,4 +1,4 @@
-import '../../../shared/pdf/app_pdf_privacy_policy.dart';
+import '../../../shared/document_engine/document_engine_core.dart';
 import 'invoice_ledger_models.dart';
 import 'invoice_record.dart';
 

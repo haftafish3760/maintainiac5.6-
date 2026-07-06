@@ -3,11 +3,8 @@ import 'dart:async';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 
-import '../../../shared/documents/app_generated_pdf_archive_service.dart';
+import '../../../shared/document_engine/maintainiac_document_engine.dart';
 import '../../../shared/navigation/app_page_routes.dart';
-import '../../../shared/pdf/app_generated_pdf_models.dart';
-import '../../../shared/pdf/app_generated_pdf_preview_screen.dart';
-import '../../../shared/pdf/app_generated_pdf_service.dart';
 import '../../../shared/signatures/app_signature_models.dart';
 import '../../../shared/signatures/app_signature_store.dart';
 import '../../../shared/widgets/app_back_button.dart';

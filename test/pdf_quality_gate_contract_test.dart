@@ -53,6 +53,7 @@ void main() {
       expect(script, contains('tool/generate_long_receipt_pdf.dart'));
       expect(script, contains('flutter test'));
       expect(script, contains('git diff --check'));
+      expect(script, contains('lib/shared/document_engine'));
       expect(script, contains('lib/shared/pdf'));
       expect(
         script,
@@ -148,6 +149,10 @@ void main() {
       expect(
         script,
         contains('test/document_engine_operating_directive_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/document_engine_entrypoint_contract_test.dart'),
       );
       expect(script, contains('test/pdf_cross_platform_contract_test.dart'));
       expect(

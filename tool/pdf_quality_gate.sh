@@ -14,6 +14,7 @@ dart analyze \
   tool/generate_sample_invoice_pdf.dart \
   tool/generate_sample_receipt_pdf.dart \
   tool/generate_long_receipt_pdf.dart \
+  lib/shared/document_engine \
   lib/shared/pdf \
   lib/shared/documents/app_document_import_service.dart \
   lib/shared/documents/app_document_export_manifest.dart \
@@ -51,6 +52,7 @@ dart analyze \
   test/app_document_store_test.dart \
   test/cloud_backup_pdf_policy_test.dart \
   test/cloud_backup_manifest_test.dart \
+  test/document_engine_entrypoint_contract_test.dart \
   test/document_engine_operating_directive_test.dart \
   test/incoming_receipt_share_pdf_hardening_test.dart \
   test/incoming_receipt_share_test.dart \
@@ -114,6 +116,7 @@ flutter test \
   test/app_document_store_test.dart \
   test/cloud_backup_pdf_policy_test.dart \
   test/cloud_backup_manifest_test.dart \
+  test/document_engine_entrypoint_contract_test.dart \
   test/document_engine_operating_directive_test.dart \
   test/incoming_receipt_share_pdf_hardening_test.dart \
   test/incoming_receipt_share_test.dart \

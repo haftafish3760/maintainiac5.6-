@@ -1,5 +1,5 @@
 import '../../../shared/data_export/csv_writer.dart';
-import '../../../shared/pdf/app_pdf_privacy_policy.dart';
+import '../../../shared/document_engine/document_engine_core.dart';
 import 'expense_ledger_models.dart';
 
 enum ExpenseExportRangePreset {
@@ -761,16 +761,15 @@ List<int> _allocatedMoneyCents(
   double Function(ExpenseReceiptLineRecord line) rawAmountForLine,
 ) {
   if (lines.isEmpty) return const [];
-  final rawAmounts = [
-    for (final line in lines) rawAmountForLine(line),
-  ];
+  final rawAmounts = [for (final line in lines) rawAmountForLine(line)];
   final targetCents = _moneyCents(
     rawAmounts.fold<double>(0, (sum, amount) => sum + amount),
   );
   final floors = [
     for (final amount in rawAmounts) _floorTowardNegativeInfinity(amount * 100),
   ];
-  var remainder = targetCents - floors.fold<int>(0, (sum, cents) => sum + cents);
+  var remainder =
+      targetCents - floors.fold<int>(0, (sum, cents) => sum + cents);
   final order = List<int>.generate(lines.length, (index) => index)
     ..sort((left, right) {
       final remainderCompare = _centRemainder(
@@ -822,7 +821,10 @@ String _proofTypes(ExpenseReceiptRecord receipt) {
   return types.toSet().join('|');
 }
 
-Iterable<String> _mapPrivacyMetadata(String name, Map<String, int> values) sync* {
+Iterable<String> _mapPrivacyMetadata(
+  String name,
+  Map<String, int> values,
+) sync* {
   for (final entry in values.entries) {
     yield '$name.${entry.key}=${entry.value}';
   }

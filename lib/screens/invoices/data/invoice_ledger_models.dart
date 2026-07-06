@@ -1,5 +1,5 @@
 import '../../../shared/media/app_media_asset.dart';
-import '../../../shared/pdf/app_generated_pdf_models.dart';
+import '../../../shared/document_engine/document_engine_core.dart';
 
 enum InvoiceDocumentType { invoice, estimate }
 

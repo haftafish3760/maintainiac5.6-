@@ -2693,3 +2693,28 @@
   - `dart analyze test/incoming_receipt_share_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_typography_contract_test.dart test/pdf_qa_fixture_inventory_test.dart`
   - `flutter test test/incoming_receipt_share_test.dart test/pdf_quality_gate_contract_test.dart test/pdf_typography_contract_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact`
   - `bash tool/pdf_quality_gate.sh`
+
+## Pass 287 - 2026-07-06 01:43 EDT - Document Engine entrypoint boundary
+
+- Scope: shared PDF/Document Engine boundary only. No inventory, camera, native
+  capture, OCR engine, parser behavior, or fragile UI tests changed.
+- Added lines at QA checkpoint: 202.
+- Bundled work:
+  - Added shared Document Engine entrypoints for core PDF/document services and
+    UI review/preview surfaces.
+  - Added engine-owned document source module labels so invoice and expense PDF
+    callers stop duplicating local source strings.
+  - Migrated invoice and expense PDF adapters to import the Document Engine
+    entrypoint instead of raw shared PDF/document internals.
+  - Added a Document Engine boundary regression test that blocks screen adapters
+    from importing raw PDF/document internals or reaching into camera, OCR, or
+    inventory ownership.
+  - Registered the boundary regression in the PDF QA fixture inventory and the
+    PDF quality gate contract.
+- Verification completed 2026-07-06 01:45 EDT:
+  - `dart format` on changed Dart files.
+  - `git diff --check`
+  - PDF QA fixture JSON validation.
+  - Focused `dart analyze` on changed Document Engine/PDF adapter files.
+  - Focused Flutter regression bundle for Document Engine, invoices, exports,
+    and PDF QA fixture inventory.

@@ -4,10 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-import '../../../shared/pdf/app_pdf_determinism.dart';
-import '../../../shared/pdf/app_pdf_formatters.dart';
-import '../../../shared/pdf/app_pdf_page_spec.dart';
-import '../../../shared/pdf/app_pdf_typography.dart';
+import '../../../shared/document_engine/document_engine_core.dart';
 import 'invoice_ledger_models.dart';
 import 'invoice_pdf_export_verifier.dart';
 import 'invoice_pdf_privacy_guard.dart';

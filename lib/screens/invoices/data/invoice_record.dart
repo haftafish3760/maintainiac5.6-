@@ -1,5 +1,5 @@
 import 'invoice_ledger_models.dart';
-import '../../../shared/pdf/app_generated_pdf_models.dart';
+import '../../../shared/document_engine/document_engine_core.dart';
 
 class InvoiceRecord {
   const InvoiceRecord({

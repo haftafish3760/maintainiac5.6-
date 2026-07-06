@@ -8,11 +8,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 
-import '../../../shared/pdf/app_generated_pdf_models.dart';
-import '../../../shared/pdf/app_generated_pdf_service.dart';
-import '../../../shared/pdf/app_pdf_determinism.dart';
-import '../../../shared/pdf/app_pdf_formatters.dart';
-import '../../../shared/pdf/app_pdf_typography.dart';
+import '../../../shared/document_engine/document_engine_core.dart';
 import '../../../shared/storage/app_storage_guard.dart';
 import 'expense_export_file_writer.dart';
 import 'expense_export_models.dart';
@@ -390,7 +386,7 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
     fileName: fileName,
     bytes: bytes,
     createdAt: snapshot.exportedAt,
-    sourceModule: 'expenses',
+    sourceModule: MaintainiacDocumentSourceModule.expenses,
     shareSubject: _shareSubject(snapshot),
     shareText: _shareBody(snapshot),
   );

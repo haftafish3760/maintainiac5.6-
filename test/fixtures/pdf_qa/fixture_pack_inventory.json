@@ -527,10 +527,13 @@
       "status": "covered",
       "currentTestFiles": [
         "test/document_engine_operating_directive_test.dart",
+        "test/document_engine_entrypoint_contract_test.dart",
         "test/pdf_formatters_contract_test.dart",
         "test/pdf_qa_fixture_inventory_test.dart"
       ],
       "fixtureKeys": [
+        "document_engine_shared_entrypoint",
+        "document_engine_screen_adapter_boundary",
         "document_engine_operating_directive",
         "pdf_quality_gate_complete_test_registry",
         "pdf_fixture_inventory_complete_test_registry",
