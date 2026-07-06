@@ -21,6 +21,14 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
     if (receiptSectionOrderNeedsReview) {
       return receiptSectionOrderReviewActionLabel;
     }
+    if (receiptSectionOrderReviewActionCode ==
+            'review_retaken_section_then_continue' ||
+        receiptSectionOrderReviewActionCode ==
+            'review_inserted_section_then_continue' ||
+        receiptSectionOrderReviewActionCode ==
+            'review_reordered_sections_then_continue') {
+      return receiptSectionOrderReviewActionLabel;
+    }
     final warningProfile = acceptedPhotoWarningProfile;
     if (warningProfile != 'saved_photo_ok') {
       return switch (warningProfile) {
@@ -198,6 +206,15 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       ? 'add_next_section_or_confirm_complete_receipt'
       : receiptSectionOrderNeedsReview
       ? 'review_receipt_section_order'
+      : receiptSectionOrderReviewActionCode ==
+            'review_retaken_section_then_continue'
+      ? 'confirm_retaken_section_order_then_continue'
+      : receiptSectionOrderReviewActionCode ==
+            'review_inserted_section_then_continue'
+      ? 'confirm_inserted_section_order_then_continue'
+      : receiptSectionOrderReviewActionCode ==
+            'review_reordered_sections_then_continue'
+      ? 'confirm_reordered_section_order_then_continue'
       : ocrSourceReviewRequirement ==
             'manual_review_required_before_saving_receipt'
       ? 'review_ocr_source_handoff'

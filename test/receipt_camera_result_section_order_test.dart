@@ -83,6 +83,14 @@ void main() {
       'multi_section_photos=0;ghost_unknown;retake_preserved',
     );
     expect(
+      result.acceptedPhotoHandoffActionLabel,
+      'Confirm the retaken section stayed in its original receipt position.',
+    );
+    expect(
+      result.acceptedPhotoHandoffUserAction,
+      'confirm_retaken_section_order_then_continue',
+    );
+    expect(
       result.privacySafeReceiptReaderHandoffMetadata.toString(),
       isNot(contains('/tmp/')),
     );
@@ -153,6 +161,14 @@ void main() {
       'multi_section_photos=0;ghost_unknown;insert_preserved',
     );
     expect(
+      result.acceptedPhotoHandoffActionLabel,
+      'Confirm the inserted receipt section appears after the selected section.',
+    );
+    expect(
+      result.acceptedPhotoHandoffUserAction,
+      'confirm_inserted_section_order_then_continue',
+    );
+    expect(
       result.privacySafeReceiptReaderHandoffMetadata.toString(),
       isNot(contains('/tmp/')),
     );
@@ -201,6 +217,14 @@ void main() {
       result.receiptSectionOrderEvidenceLabel,
       'section_order=retake_order_preserved;'
       'multi_section_photos=1;ghost_visible;retake_preserved',
+    );
+    expect(
+      result.acceptedPhotoHandoffActionLabel,
+      'Confirm the retaken section stayed in its original receipt position.',
+    );
+    expect(
+      result.acceptedPhotoHandoffUserAction,
+      'confirm_retaken_section_order_then_continue',
     );
   });
 
@@ -380,6 +404,14 @@ void main() {
       result.receiptSectionOrderEvidenceLabel,
       'section_order=manual_reorder_preserved;'
       'multi_section_photos=0;ghost_unknown;manual_reorder_preserved',
+    );
+    expect(
+      result.acceptedPhotoHandoffActionLabel,
+      'Confirm the manual receipt section order before continuing.',
+    );
+    expect(
+      result.acceptedPhotoHandoffUserAction,
+      'confirm_reordered_section_order_then_continue',
     );
     expect(
       result.privacySafeReceiptReaderHandoffMetadata.toString(),
