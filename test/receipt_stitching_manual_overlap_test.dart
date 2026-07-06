@@ -125,4 +125,40 @@ void main() {
     expect(result.failedPairIndex, 0);
     expect(result.ocrSourcePaths, [first.path, second.path]);
   });
+
+  test(
+    'manual overlap supports multi-section long receipt stitching',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 21, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 22, topTextOffset: 24);
+      final sectionC = receiptStitchingSection(seed: 23, topTextOffset: 48);
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 240);
+      copyReceiptStitchingOverlap(from: sectionB, to: sectionC, pixels: 280);
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'manual_multi_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        sectionB,
+        'manual_multi_b',
+      );
+      final third = await writeTempReceiptStitchingImage(
+        sectionC,
+        'manual_multi_c',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path, third.path],
+        manualOverlapPixels: const [240, 280],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.usedManualAdjustment, isTrue);
+      expect(result.overlapPixels, [240, 280]);
+      expect(result.pairs, hasLength(2));
+      expect(result.pairs.every((pair) => pair.usedManualAdjustment), isTrue);
+      expect(result.ocrSourcePaths, hasLength(1));
+    },
+  );
 }
