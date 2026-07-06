@@ -138,11 +138,17 @@ extension _ExpenseTelemetryHealthSnapshotAccumulatorSnapshot
       ocrSourceScannerDecisionCounts: ocrSourceSummary.scannerDecisionCounts,
       ocrSourceCaptureSourceSignalCounts:
           ocrSourceSummary.captureSourceSignalCounts,
+      ocrSourceSectionOrderSignalCounts:
+          ocrSourceSummary.sectionOrderSignalCounts,
       ocrSourcePhotoQualityRiskCounts: ocrSourceSummary.photoQualityRiskCounts,
       ocrSourceQualityReviewStatusCounts:
           ocrSourceSummary.qualityReviewStatusCounts,
       ocrSourceQualityReviewActionCounts:
           ocrSourceSummary.qualityReviewActionCounts,
+      ocrSourceSectionOrderReviewStatusCounts:
+          ocrSourceSummary.sectionOrderReviewStatusCounts,
+      ocrSourceSectionOrderFailedPairStatusCounts:
+          ocrSourceSummary.sectionOrderFailedPairStatusCounts,
       clientProofRedactionStatusCounts:
           clientProofSummary.redactionStatusCounts,
       clientProofVisibilityCounts: clientProofSummary.visibilityCounts,
@@ -228,9 +234,14 @@ extension _ExpenseTelemetryHealthSnapshotAccumulatorSnapshot
       topOcrSourceStitchSignal: ocrSourceSummary.topStitchSignal,
       topOcrSourceScannerDecision: ocrSourceSummary.topScannerDecision,
       topOcrSourceCaptureSourceSignal: ocrSourceSummary.topCaptureSourceSignal,
+      topOcrSourceSectionOrderSignal: ocrSourceSummary.topSectionOrderSignal,
       topOcrSourcePhotoQualityRisk: ocrSourceSummary.topPhotoQualityRisk,
       topOcrSourceQualityReviewStatus: ocrSourceSummary.topQualityReviewStatus,
       topOcrSourceQualityReviewAction: ocrSourceSummary.topQualityReviewAction,
+      topOcrSourceSectionOrderReviewStatus:
+          ocrSourceSummary.topSectionOrderReviewStatus,
+      topOcrSourceSectionOrderFailedPairStatus:
+          ocrSourceSummary.topSectionOrderFailedPairStatus,
       topClientProofRedactionStatus: clientProofSummary.topRedactionStatus,
       topClientProofVisibility: clientProofSummary.topVisibility,
       topReceiptSelectedLinePurpose: clientProofSummary.topSelectedLinePurpose,

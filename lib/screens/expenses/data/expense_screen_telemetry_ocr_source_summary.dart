@@ -8,9 +8,12 @@ class _ExpenseTelemetryOcrSourceSummary {
   final _stitchSignalCounts = <String, int>{};
   final _scannerDecisionCounts = <String, int>{};
   final _captureSourceSignalCounts = <String, int>{};
+  final _sectionOrderSignalCounts = <String, int>{};
   final _photoQualityRiskCounts = <String, int>{};
   final _qualityReviewStatusCounts = <String, int>{};
   final _qualityReviewActionCounts = <String, int>{};
+  final _sectionOrderReviewStatusCounts = <String, int>{};
+  final _sectionOrderFailedPairStatusCounts = <String, int>{};
 
   Map<String, int> get handoffStatusCounts {
     return Map.unmodifiable(_handoffStatusCounts);
@@ -40,6 +43,10 @@ class _ExpenseTelemetryOcrSourceSummary {
     return Map.unmodifiable(_captureSourceSignalCounts);
   }
 
+  Map<String, int> get sectionOrderSignalCounts {
+    return Map.unmodifiable(_sectionOrderSignalCounts);
+  }
+
   Map<String, int> get photoQualityRiskCounts {
     return Map.unmodifiable(_photoQualityRiskCounts);
   }
@@ -52,6 +59,14 @@ class _ExpenseTelemetryOcrSourceSummary {
     return Map.unmodifiable(_qualityReviewActionCounts);
   }
 
+  Map<String, int> get sectionOrderReviewStatusCounts {
+    return Map.unmodifiable(_sectionOrderReviewStatusCounts);
+  }
+
+  Map<String, int> get sectionOrderFailedPairStatusCounts {
+    return Map.unmodifiable(_sectionOrderFailedPairStatusCounts);
+  }
+
   String get topHandoffStatus => _topCountKey(_handoffStatusCounts);
   String get topHandoffSignal => _topCountKey(_handoffSignalCounts);
   String get topReviewDepthSignal => _topCountKey(_reviewDepthSignalCounts);
@@ -59,9 +74,14 @@ class _ExpenseTelemetryOcrSourceSummary {
   String get topStitchSignal => _topCountKey(_stitchSignalCounts);
   String get topScannerDecision => _topCountKey(_scannerDecisionCounts);
   String get topCaptureSourceSignal => _topCountKey(_captureSourceSignalCounts);
+  String get topSectionOrderSignal => _topCountKey(_sectionOrderSignalCounts);
   String get topPhotoQualityRisk => _topCountKey(_photoQualityRiskCounts);
   String get topQualityReviewStatus => _topCountKey(_qualityReviewStatusCounts);
   String get topQualityReviewAction => _topCountKey(_qualityReviewActionCounts);
+  String get topSectionOrderReviewStatus =>
+      _topCountKey(_sectionOrderReviewStatusCounts);
+  String get topSectionOrderFailedPairStatus =>
+      _topCountKey(_sectionOrderFailedPairStatusCounts);
 
   void record(Map<String, Object?> metadata) {
     _increment(
@@ -93,6 +113,10 @@ class _ExpenseTelemetryOcrSourceSummary {
       _metadataValue(metadata['ocrSourceCaptureSourceSignalCounts']),
     );
     _mergeCountMap(
+      _sectionOrderSignalCounts,
+      _metadataValue(metadata['ocrSourceSectionOrderSignalCounts']),
+    );
+    _mergeCountMap(
       _photoQualityRiskCounts,
       _metadataValue(metadata['ocrSourcePhotoQualityRiskCounts']),
     );
@@ -103,6 +127,14 @@ class _ExpenseTelemetryOcrSourceSummary {
     _increment(
       _qualityReviewActionCounts,
       _stringValue(metadata['ocrSourceQualityReviewAction']),
+    );
+    _increment(
+      _sectionOrderReviewStatusCounts,
+      _stringValue(metadata['ocrSourceSectionOrderReviewStatus']),
+    );
+    _increment(
+      _sectionOrderFailedPairStatusCounts,
+      _stringValue(metadata['ocrSourceSectionOrderFailedPairStatus']),
     );
   }
 }

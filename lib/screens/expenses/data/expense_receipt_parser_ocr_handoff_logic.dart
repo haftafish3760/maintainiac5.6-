@@ -126,6 +126,8 @@ ExpenseReceiptParseResult parseExpenseReceiptOcrResult(
           ocrDiagnostics.ocrSourceCoverageSignalCounts,
       ocrSourceContinuationSignalCounts:
           ocrDiagnostics.ocrSourceContinuationSignalCounts,
+      ocrSourceSectionOrderSignalCounts:
+          ocrDiagnostics.ocrSourceSectionOrderSignalCounts,
       ocrSourcePhotoQualityRiskCounts:
           ocrDiagnostics.ocrSourcePhotoQualityRiskCounts,
       ocrSourceQualityReviewStatus: _stringMetadataValue(
@@ -133,6 +135,12 @@ ExpenseReceiptParseResult parseExpenseReceiptOcrResult(
       ),
       ocrSourceQualityReviewAction: _stringMetadataValue(
         ocrDiagnostics.ocrSourceHandoffContract['sourceQualityReviewAction'],
+      ),
+      ocrSourceSectionOrderReviewStatus: _stringMetadataValue(
+        ocrDiagnostics.ocrSourceHandoffContract['sectionOrderReviewStatus'],
+      ),
+      ocrSourceSectionOrderFailedPairStatus: _stringMetadataValue(
+        ocrDiagnostics.ocrSourceHandoffContract['sectionOrderFailedPairStatus'],
       ),
       missingBottomTotalsEvidenceCode: _stringMetadataValue(
         totalsCoverageEvidence['missingBottomTotalsEvidenceCode'],

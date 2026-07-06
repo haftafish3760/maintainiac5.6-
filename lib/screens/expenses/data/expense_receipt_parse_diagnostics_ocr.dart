@@ -67,9 +67,12 @@ extension ExpenseReceiptParseDiagnosticsOcr on ExpenseReceiptParseDiagnostics {
       ocrSourceCaptureSourceSignalCounts.isNotEmpty ||
       ocrSourceCoverageSignalCounts.isNotEmpty ||
       ocrSourceContinuationSignalCounts.isNotEmpty ||
+      ocrSourceSectionOrderSignalCounts.isNotEmpty ||
       ocrSourcePhotoQualityRiskCounts.isNotEmpty ||
       ocrSourceQualityReviewStatus.trim().isNotEmpty ||
       ocrSourceQualityReviewAction.trim().isNotEmpty ||
+      ocrSourceSectionOrderReviewStatus.trim().isNotEmpty ||
+      ocrSourceSectionOrderFailedPairStatus.trim().isNotEmpty ||
       hasMissingBottomTotalsLocalEvidence;
   bool get hasMissingBottomTotalsLocalEvidence {
     final code = missingBottomTotalsEvidenceCode.trim();

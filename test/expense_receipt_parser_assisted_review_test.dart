@@ -258,8 +258,23 @@ TOTAL 7.99
   test(
     'routes out-of-order OCR sections into long-receipt review guidance',
     () {
+      final sourceHandoff = ReceiptOcrSourceHandoffSummary.fromAttachments([
+        ReceiptAttachmentRecord(
+          id: 'section-order-source',
+          path: '',
+          kind: ReceiptAttachmentKind.emailText,
+          dataSaverLevel: ReceiptDataSaverLevel.balanced,
+          createdAt: DateTime(2026, 7, 6),
+          importedText: 'STORE\nTOTAL 14.50',
+          documentSignals: const [
+            'receipt_section_order_expected_order_invalid',
+            'receipt_section_order_review_required',
+          ],
+          riskFlags: const ['ocr_source_section_order_review_required'],
+        ),
+      ]);
       final parsed = parseExpenseReceiptOcrResult(
-        const ReceiptOcrResult(
+        ReceiptOcrResult(
           rawText: '''
 LOWE'S
 06/12/2026
@@ -274,6 +289,7 @@ TOTAL 14.50
 ''',
           textByAttachmentId: {'photo-1': 'private receipt text omitted'},
           source: ReceiptProcessingSource.photo,
+          sourceHandoffSummary: sourceHandoff,
           parserLineSourceLocations: [
             ReceiptOcrParserLineLocation(
               sectionNumber: 2,
@@ -300,6 +316,16 @@ TOTAL 14.50
         parsed.diagnostics.ocrSourceSectionContinuityStatus,
         'out_of_order_sections',
       );
+      expect(parsed.diagnostics.ocrSourceSectionOrderSignalCounts, {
+        'receipt_section_order_expected_order_invalid': 1,
+        'receipt_section_order_review_required': 1,
+        'ocr_source_section_order_review_required': 1,
+      });
+      expect(
+        parsed.diagnostics.ocrSourceSectionOrderReviewStatus,
+        'receipt_section_order_review_required',
+      );
+      expect(parsed.diagnostics.ocrSourceSectionOrderFailedPairStatus, '');
       expect(
         parsed.diagnostics.receiptSequenceReviewStatus,
         'section_order_review_needed',

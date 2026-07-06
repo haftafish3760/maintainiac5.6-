@@ -33,7 +33,8 @@ class ExpenseTelemetryHealthSnapshot {
     required this.ocrParserTaskCounts, required this.ocrFieldReadinessCounts, required this.ocrSourceHandoffStatusCounts, required this.ocrSourceHandoffSignalCounts,
     required this.ocrSourceReviewDepthSignalCounts, required this.ocrSourceReviewDepthStatusCounts,
     required this.ocrSourceStitchSignalCounts, required this.ocrSourceScannerDecisionCounts, required this.ocrSourceCaptureSourceSignalCounts,
-    required this.ocrSourcePhotoQualityRiskCounts, required this.ocrSourceQualityReviewStatusCounts, required this.ocrSourceQualityReviewActionCounts,
+    required this.ocrSourceSectionOrderSignalCounts, required this.ocrSourcePhotoQualityRiskCounts, required this.ocrSourceQualityReviewStatusCounts, required this.ocrSourceQualityReviewActionCounts,
+    required this.ocrSourceSectionOrderReviewStatusCounts, required this.ocrSourceSectionOrderFailedPairStatusCounts,
     required this.clientProofRedactionStatusCounts, required this.clientProofVisibilityCounts, required this.receiptSelectedLinePurposeCounts,
     required this.receiptSelectedLineCountTotal, required this.receiptExcludedLineCountTotal, required this.receiptClientProofReviewLineCountTotal,
     required this.receiptRedactedLineCountTotal, required this.clientProofRedactionPlanStatusCounts, required this.clientProofVisibleLineCountTotal,
@@ -52,7 +53,8 @@ class ExpenseTelemetryHealthSnapshot {
     required this.topLocalParserEvidenceOutcome, required this.topOcrParserTask, required this.topOcrFieldReadiness, required this.topOcrSourceHandoffStatus,
     required this.topOcrSourceHandoffSignal, required this.topOcrSourceReviewDepthSignal, required this.topOcrSourceReviewDepthStatus,
     required this.topOcrSourceStitchSignal, required this.topOcrSourceScannerDecision, required this.topOcrSourceCaptureSourceSignal,
-    required this.topOcrSourcePhotoQualityRisk, required this.topOcrSourceQualityReviewStatus, required this.topOcrSourceQualityReviewAction,
+    required this.topOcrSourceSectionOrderSignal, required this.topOcrSourcePhotoQualityRisk, required this.topOcrSourceQualityReviewStatus, required this.topOcrSourceQualityReviewAction,
+    required this.topOcrSourceSectionOrderReviewStatus, required this.topOcrSourceSectionOrderFailedPairStatus,
     required this.topClientProofRedactionStatus, required this.topClientProofVisibility, required this.topReceiptSelectedLinePurpose, required this.topClientProofRedactionPlanStatus,
     required this.topClientProofLayoutRedactionStatus,
     required this.receiptPhotoCoverageStatusCounts, required this.receiptPhotoCoverageReasonCounts, required this.receiptPhotoCoverageNeedsMoreCount,
@@ -126,8 +128,8 @@ class ExpenseTelemetryHealthSnapshot {
   final int localReceiptParserKeptLocalCount, localReceiptParserOptionalPackOfferCount;
   final Map<String, int> ocrParserTaskCounts, ocrFieldReadinessCounts, ocrSourceHandoffStatusCounts, ocrSourceHandoffSignalCounts;
   final Map<String, int> ocrSourceReviewDepthSignalCounts, ocrSourceReviewDepthStatusCounts;
-  final Map<String, int> ocrSourceStitchSignalCounts, ocrSourceScannerDecisionCounts, ocrSourceCaptureSourceSignalCounts, ocrSourcePhotoQualityRiskCounts;
-  final Map<String, int> ocrSourceQualityReviewStatusCounts, ocrSourceQualityReviewActionCounts, clientProofRedactionStatusCounts, clientProofVisibilityCounts;
+  final Map<String, int> ocrSourceStitchSignalCounts, ocrSourceScannerDecisionCounts, ocrSourceCaptureSourceSignalCounts, ocrSourceSectionOrderSignalCounts, ocrSourcePhotoQualityRiskCounts;
+  final Map<String, int> ocrSourceQualityReviewStatusCounts, ocrSourceQualityReviewActionCounts, ocrSourceSectionOrderReviewStatusCounts, ocrSourceSectionOrderFailedPairStatusCounts, clientProofRedactionStatusCounts, clientProofVisibilityCounts;
   final Map<String, int> receiptSelectedLinePurposeCounts;
   final int receiptSelectedLineCountTotal, receiptExcludedLineCountTotal, receiptClientProofReviewLineCountTotal, receiptRedactedLineCountTotal;
   final Map<String, int> clientProofRedactionPlanStatusCounts;
@@ -146,8 +148,8 @@ class ExpenseTelemetryHealthSnapshot {
   final String topOcrFieldReadiness, topOcrSourceHandoffStatus;
   final String topOcrSourceHandoffSignal, topOcrSourceReviewDepthSignal;
   final String topOcrSourceReviewDepthStatus, topOcrSourceStitchSignal;
-  final String topOcrSourceScannerDecision, topOcrSourceCaptureSourceSignal;
-  final String topOcrSourcePhotoQualityRisk, topOcrSourceQualityReviewStatus, topOcrSourceQualityReviewAction, topClientProofRedactionStatus, topClientProofVisibility, topReceiptSelectedLinePurpose;
+  final String topOcrSourceScannerDecision, topOcrSourceCaptureSourceSignal, topOcrSourceSectionOrderSignal;
+  final String topOcrSourcePhotoQualityRisk, topOcrSourceQualityReviewStatus, topOcrSourceQualityReviewAction, topOcrSourceSectionOrderReviewStatus, topOcrSourceSectionOrderFailedPairStatus, topClientProofRedactionStatus, topClientProofVisibility, topReceiptSelectedLinePurpose;
   final String topClientProofRedactionPlanStatus, topClientProofLayoutRedactionStatus;
   final Map<String, int> receiptPhotoCoverageStatusCounts, receiptPhotoCoverageReasonCounts;
   final int receiptPhotoCoverageNeedsMoreCount;

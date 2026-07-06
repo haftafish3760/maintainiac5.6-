@@ -72,9 +72,12 @@ extension ExpenseReceiptParseDiagnosticsCopy on ExpenseReceiptParseDiagnostics {
     Map<String, int>? ocrSourceCaptureSourceSignalCounts,
     Map<String, int>? ocrSourceCoverageSignalCounts,
     Map<String, int>? ocrSourceContinuationSignalCounts,
+    Map<String, int>? ocrSourceSectionOrderSignalCounts,
     Map<String, int>? ocrSourcePhotoQualityRiskCounts,
     String? ocrSourceQualityReviewStatus,
     String? ocrSourceQualityReviewAction,
+    String? ocrSourceSectionOrderReviewStatus,
+    String? ocrSourceSectionOrderFailedPairStatus,
     String? missingBottomTotalsEvidenceCode,
     String? missingBottomTotalsEvidenceLabel,
     int? missingBottomTotalsEvidenceFamilyCount,
@@ -261,6 +264,9 @@ extension ExpenseReceiptParseDiagnosticsCopy on ExpenseReceiptParseDiagnostics {
       ocrSourceContinuationSignalCounts:
           ocrSourceContinuationSignalCounts ??
           this.ocrSourceContinuationSignalCounts,
+      ocrSourceSectionOrderSignalCounts:
+          ocrSourceSectionOrderSignalCounts ??
+          this.ocrSourceSectionOrderSignalCounts,
       ocrSourcePhotoQualityRiskCounts:
           ocrSourcePhotoQualityRiskCounts ??
           this.ocrSourcePhotoQualityRiskCounts,
@@ -268,6 +274,12 @@ extension ExpenseReceiptParseDiagnosticsCopy on ExpenseReceiptParseDiagnostics {
           ocrSourceQualityReviewStatus ?? this.ocrSourceQualityReviewStatus,
       ocrSourceQualityReviewAction:
           ocrSourceQualityReviewAction ?? this.ocrSourceQualityReviewAction,
+      ocrSourceSectionOrderReviewStatus:
+          ocrSourceSectionOrderReviewStatus ??
+          this.ocrSourceSectionOrderReviewStatus,
+      ocrSourceSectionOrderFailedPairStatus:
+          ocrSourceSectionOrderFailedPairStatus ??
+          this.ocrSourceSectionOrderFailedPairStatus,
       missingBottomTotalsEvidenceCode:
           missingBottomTotalsEvidenceCode ??
           this.missingBottomTotalsEvidenceCode,

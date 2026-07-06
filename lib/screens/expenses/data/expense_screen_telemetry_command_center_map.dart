@@ -76,9 +76,14 @@ extension ExpenseTelemetryHealthSnapshotCommandCenterMap
       'ocrSourceStitchSignalCounts': ocrSourceStitchSignalCounts,
       'ocrSourceScannerDecisionCounts': ocrSourceScannerDecisionCounts,
       'ocrSourceCaptureSourceSignalCounts': ocrSourceCaptureSourceSignalCounts,
+      'ocrSourceSectionOrderSignalCounts': ocrSourceSectionOrderSignalCounts,
       'ocrSourcePhotoQualityRiskCounts': ocrSourcePhotoQualityRiskCounts,
       'ocrSourceQualityReviewStatusCounts': ocrSourceQualityReviewStatusCounts,
       'ocrSourceQualityReviewActionCounts': ocrSourceQualityReviewActionCounts,
+      'ocrSourceSectionOrderReviewStatusCounts':
+          ocrSourceSectionOrderReviewStatusCounts,
+      'ocrSourceSectionOrderFailedPairStatusCounts':
+          ocrSourceSectionOrderFailedPairStatusCounts,
       'clientProofRedactionStatusCounts': clientProofRedactionStatusCounts,
       'clientProofVisibilityCounts': clientProofVisibilityCounts,
       'receiptSelectedLinePurposeCounts': receiptSelectedLinePurposeCounts,
@@ -144,12 +149,20 @@ extension ExpenseTelemetryHealthSnapshotCommandCenterMap
         'topOcrSourceScannerDecision': topOcrSourceScannerDecision,
       if (topOcrSourceCaptureSourceSignal.isNotEmpty)
         'topOcrSourceCaptureSourceSignal': topOcrSourceCaptureSourceSignal,
+      if (topOcrSourceSectionOrderSignal.isNotEmpty)
+        'topOcrSourceSectionOrderSignal': topOcrSourceSectionOrderSignal,
       if (topOcrSourcePhotoQualityRisk.isNotEmpty)
         'topOcrSourcePhotoQualityRisk': topOcrSourcePhotoQualityRisk,
       if (topOcrSourceQualityReviewStatus.isNotEmpty)
         'topOcrSourceQualityReviewStatus': topOcrSourceQualityReviewStatus,
       if (topOcrSourceQualityReviewAction.isNotEmpty)
         'topOcrSourceQualityReviewAction': topOcrSourceQualityReviewAction,
+      if (topOcrSourceSectionOrderReviewStatus.isNotEmpty)
+        'topOcrSourceSectionOrderReviewStatus':
+            topOcrSourceSectionOrderReviewStatus,
+      if (topOcrSourceSectionOrderFailedPairStatus.isNotEmpty)
+        'topOcrSourceSectionOrderFailedPairStatus':
+            topOcrSourceSectionOrderFailedPairStatus,
       if (topClientProofRedactionStatus.isNotEmpty)
         'topClientProofRedactionStatus': topClientProofRedactionStatus,
       if (topClientProofVisibility.isNotEmpty)

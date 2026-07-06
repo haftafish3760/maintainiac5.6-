@@ -13,6 +13,14 @@ extension _ExpenseReceiptEntryReadHandoffMetadata
         .ocrSourceHandoffContract['sourceQualityReviewAction']
         ?.toString()
         .trim();
+    final sectionOrderReviewStatus = diagnostics
+        .ocrSourceHandoffContract['sectionOrderReviewStatus']
+        ?.toString()
+        .trim();
+    final sectionOrderFailedPairStatus = diagnostics
+        .ocrSourceHandoffContract['sectionOrderFailedPairStatus']
+        ?.toString()
+        .trim();
     return {
       'receiptCompletionReviewReasonCode':
           diagnostics.receiptCompletionReviewReasonCode,
@@ -34,12 +42,21 @@ extension _ExpenseReceiptEntryReadHandoffMetadata
       if (sourceQualityReviewAction != null &&
           sourceQualityReviewAction.isNotEmpty)
         'ocrSourceQualityReviewAction': sourceQualityReviewAction,
+      if (sectionOrderReviewStatus != null &&
+          sectionOrderReviewStatus.isNotEmpty)
+        'ocrSourceSectionOrderReviewStatus': sectionOrderReviewStatus,
+      if (sectionOrderFailedPairStatus != null &&
+          sectionOrderFailedPairStatus.isNotEmpty)
+        'ocrSourceSectionOrderFailedPairStatus': sectionOrderFailedPairStatus,
       if (diagnostics.ocrSourceCoverageSignalCounts.isNotEmpty)
         'ocrSourceCoverageSignalCounts':
             diagnostics.ocrSourceCoverageSignalCounts,
       if (diagnostics.ocrSourceContinuationSignalCounts.isNotEmpty)
         'ocrSourceContinuationSignalCounts':
             diagnostics.ocrSourceContinuationSignalCounts,
+      if (diagnostics.ocrSourceSectionOrderSignalCounts.isNotEmpty)
+        'ocrSourceSectionOrderSignalCounts':
+            diagnostics.ocrSourceSectionOrderSignalCounts,
       'receiptTotalsTextEvidenceStatus':
           diagnostics.receiptTotalsTextEvidenceStatus,
       'receiptSubtotalCandidateLineCount':

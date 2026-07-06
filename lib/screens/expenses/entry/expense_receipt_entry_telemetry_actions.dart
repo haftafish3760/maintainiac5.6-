@@ -92,11 +92,23 @@ extension _ExpenseReceiptEntryTelemetryActions
     final action = handoffContract['sourceQualityReviewAction']
         ?.toString()
         .trim();
+    final sectionOrderReviewStatus = handoffContract['sectionOrderReviewStatus']
+        ?.toString()
+        .trim();
+    final sectionOrderFailedPairStatus = handoffContract['sectionOrderFailedPairStatus']
+        ?.toString()
+        .trim();
     return {
       if (status != null && status.isNotEmpty)
         'ocrSourceQualityReviewStatus': status,
       if (action != null && action.isNotEmpty)
         'ocrSourceQualityReviewAction': action,
+      if (sectionOrderReviewStatus != null &&
+          sectionOrderReviewStatus.isNotEmpty)
+        'ocrSourceSectionOrderReviewStatus': sectionOrderReviewStatus,
+      if (sectionOrderFailedPairStatus != null &&
+          sectionOrderFailedPairStatus.isNotEmpty)
+        'ocrSourceSectionOrderFailedPairStatus': sectionOrderFailedPairStatus,
     };
   }
 

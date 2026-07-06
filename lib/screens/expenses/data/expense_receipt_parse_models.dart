@@ -89,9 +89,12 @@ class ExpenseReceiptParseDiagnostics {
     this.ocrSourceCaptureSourceSignalCounts = const {},
     this.ocrSourceCoverageSignalCounts = const {},
     this.ocrSourceContinuationSignalCounts = const {},
+    this.ocrSourceSectionOrderSignalCounts = const {},
     this.ocrSourcePhotoQualityRiskCounts = const {},
     this.ocrSourceQualityReviewStatus = '',
     this.ocrSourceQualityReviewAction = '',
+    this.ocrSourceSectionOrderReviewStatus = '',
+    this.ocrSourceSectionOrderFailedPairStatus = '',
     this.missingBottomTotalsEvidenceCode = '',
     this.missingBottomTotalsEvidenceLabel = '',
     this.missingBottomTotalsEvidenceFamilyCount = 0,
@@ -207,9 +210,12 @@ class ExpenseReceiptParseDiagnostics {
   final Map<String, int> ocrSourceCaptureSourceSignalCounts;
   final Map<String, int> ocrSourceCoverageSignalCounts;
   final Map<String, int> ocrSourceContinuationSignalCounts;
+  final Map<String, int> ocrSourceSectionOrderSignalCounts;
   final Map<String, int> ocrSourcePhotoQualityRiskCounts;
   final String ocrSourceQualityReviewStatus;
   final String ocrSourceQualityReviewAction;
+  final String ocrSourceSectionOrderReviewStatus;
+  final String ocrSourceSectionOrderFailedPairStatus;
   final String missingBottomTotalsEvidenceCode;
   final String missingBottomTotalsEvidenceLabel;
   final int missingBottomTotalsEvidenceFamilyCount;

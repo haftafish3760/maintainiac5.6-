@@ -44,6 +44,9 @@ extension _ExpenseReceiptEntryParserTelemetryMetadata
       if (result.diagnostics.ocrSourceCaptureSourceSignalCounts.isNotEmpty)
         'ocrSourceCaptureSourceSignalCounts':
             result.diagnostics.ocrSourceCaptureSourceSignalCounts,
+      if (result.diagnostics.ocrSourceSectionOrderSignalCounts.isNotEmpty)
+        'ocrSourceSectionOrderSignalCounts':
+            result.diagnostics.ocrSourceSectionOrderSignalCounts,
       if (result.diagnostics.ocrSourceContinuationSignalCounts.isNotEmpty)
         'ocrSourceContinuationSignalCounts':
             result.diagnostics.ocrSourceContinuationSignalCounts,
@@ -56,6 +59,16 @@ extension _ExpenseReceiptEntryParserTelemetryMetadata
       if (result.diagnostics.ocrSourceQualityReviewAction.trim().isNotEmpty)
         'ocrSourceQualityReviewAction':
             result.diagnostics.ocrSourceQualityReviewAction,
+      if (result.diagnostics.ocrSourceSectionOrderReviewStatus
+          .trim()
+          .isNotEmpty)
+        'ocrSourceSectionOrderReviewStatus':
+            result.diagnostics.ocrSourceSectionOrderReviewStatus,
+      if (result.diagnostics.ocrSourceSectionOrderFailedPairStatus
+          .trim()
+          .isNotEmpty)
+        'ocrSourceSectionOrderFailedPairStatus':
+            result.diagnostics.ocrSourceSectionOrderFailedPairStatus,
       'clientProofRedactionStatus':
           result.diagnostics.clientProofRedactionStatus,
       if (result.diagnostics.clientProofVisibilityCounts.isNotEmpty)

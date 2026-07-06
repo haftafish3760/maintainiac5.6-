@@ -107,11 +107,19 @@ void main() {
             'ocrSourceCaptureSourceSignalCounts': {
               'native_capture_source_phone_camera_backup': 1,
             },
+            'ocrSourceSectionOrderSignalCounts': {
+              'receipt_section_order_review_required': 1,
+              'ocr_source_section_order_failed_pair_photo_2_to_3': 1,
+            },
             'ocrSourcePhotoQualityRiskCounts': {
               'ocr_source_saved_photo_soft_blur_risk': 1,
             },
             'ocrSourceQualityReviewStatus': 'saved_soft_blur_review',
             'ocrSourceQualityReviewAction': 'retake_hold_steady',
+            'ocrSourceSectionOrderReviewStatus':
+                'section_order_review_required',
+            'ocrSourceSectionOrderFailedPairStatus':
+                'ocr_source_section_order_failed_pair_photo_2_to_3',
             'parserReviewRootCauseCode': 'ocr_required_fields',
             'clientProofRedactionStatus': 'needs_client_redaction_review',
             'clientProofVisibilityCounts': {
@@ -223,6 +231,10 @@ void main() {
         'native_capture_source_imported_photo': 1,
         'native_capture_source_recovery_photo': 1,
       });
+      expect(snapshot.ocrSourceSectionOrderSignalCounts, {
+        'receipt_section_order_review_required': 1,
+        'ocr_source_section_order_failed_pair_photo_2_to_3': 1,
+      });
       expect(snapshot.ocrSourcePhotoQualityRiskCounts, {
         'ocr_source_saved_photo_dimmer_than_preview': 2,
         'ocr_source_saved_photo_soft_blur_risk': 1,
@@ -240,6 +252,12 @@ void main() {
         'retake_hold_steady': 1,
         'review_scanner_preparation': 1,
         'check_bottom_or_add_photo': 1,
+      });
+      expect(snapshot.ocrSourceSectionOrderReviewStatusCounts, {
+        'section_order_review_required': 1,
+      });
+      expect(snapshot.ocrSourceSectionOrderFailedPairStatusCounts, {
+        'ocr_source_section_order_failed_pair_photo_2_to_3': 1,
       });
       expect(snapshot.parserReviewRootCauseCounts, {
         'camera_source_quality': 1,
