@@ -3931,3 +3931,13 @@ Release boundaries:
   flags false. This is still baby evidence, not release coverage; the next
   larger Core PEH wave should increase `fixtureRunLimit` only after keeping the
   same generated-run status gate and final-log-only workflow.
+- **14:50 Harness Pass 2922-2931:** Completed the PEH Core baby-10 generated
+  queue evidence gate under
+  `build/parser_qa_batch_waves/pass2922-peh-core-queue-baby-10`. Generated-run
+  status verified all 6 release-one Core cells present for Plumbing,
+  Electrical, and HVAC in `en-US` and `es-US`: 60 checked cases, 60 parser
+  calls, 0 missing cells, 0 failed cells, 0 unsafe cells, 0 under-minimum cells,
+  zero non-zero chunk exits, zero timed-out chunks, and all local-only safety
+  flags false. This remains baby harness evidence only. Per the sequencing
+  correction, do not start larger generated waves until PEH Core catalog
+  curation is proven trade-by-trade, starting with Plumbing Core.
