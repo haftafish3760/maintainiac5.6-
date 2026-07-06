@@ -542,6 +542,10 @@ void main() {
 
       expect(summary.status, 'stitch_contract_review_required');
       expect(
+        summary.sourceReviewRiskStatus,
+        'ocr_source_review_risk_stitch_ocr_source_contract_review_required',
+      );
+      expect(
         summary.sourceQualityReviewStatus,
         'stitch_contract_review_required',
       );

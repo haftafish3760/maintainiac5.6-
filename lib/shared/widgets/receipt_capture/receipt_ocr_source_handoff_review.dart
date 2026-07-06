@@ -80,6 +80,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
     for (final token in const [
       'ocr_source_review_risk_ocr_source_missing_manual_entry_required',
       'ocr_source_review_risk_saved_proof_ocr_fallback_review_required',
+      'ocr_source_review_risk_stitch_ocr_source_contract_review_required',
       'ocr_source_review_risk_scanner_preparation_review_required',
       'ocr_source_review_risk_ocr_source_ready',
     ]) {
@@ -87,6 +88,9 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
           (riskFlagCounts[token] ?? 0) > 0) {
         return token;
       }
+    }
+    if (hasStitchContractReviewRisk) {
+      return 'ocr_source_review_risk_stitch_ocr_source_contract_review_required';
     }
     return 'ocr_source_review_risk_unknown';
   }
