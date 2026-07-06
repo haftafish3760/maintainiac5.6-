@@ -186,4 +186,43 @@ void main() {
       isNot(contains('/tmp/edited-proof.jpg')),
     );
   });
+
+  test('edited photo source selection avoids original-retention wording', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/edited-proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/edited-proof.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.notNeeded([
+        '/tmp/edited-proof.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/edited-proof.jpg': {
+          'userEditedPhoto': true,
+          'photoEditAction': 'manual_crop',
+          'photoEditReplacedOriginal': false,
+        },
+      },
+    );
+
+    expect(result.editedPhotoSourceSelectionCounts, {
+      'accepted_source_retained': 1,
+    });
+    expect(
+      result.receiptReaderHandoffCounts,
+      containsPair(
+        'review_photo_edit_source_selected_accepted_source_retained',
+        1,
+      ),
+    );
+    expect(
+      result.receiptReaderHandoffCounts.toString(),
+      isNot(contains('original_source_retained')),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('reviewPhotoEditSourceSelectionCounts', {
+        'accepted_source_retained': 1,
+      }),
+    );
+  });
 }

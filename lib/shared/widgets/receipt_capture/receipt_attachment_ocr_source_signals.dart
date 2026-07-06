@@ -113,7 +113,7 @@ extension _ReceiptAttachmentOcrSourceSignals
         );
         final sourceSelection = diagnostics['photoEditReplacedOriginal'] == true
             ? 'edited_copy_selected'
-            : 'original_source_retained';
+            : 'accepted_source_retained';
         signals.add('review_photo_edited');
         signals.add('review_photo_edit_$editAction');
         signals.add('review_photo_edit_source_selected');

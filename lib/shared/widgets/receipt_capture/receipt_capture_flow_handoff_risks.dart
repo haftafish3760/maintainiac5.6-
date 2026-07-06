@@ -130,7 +130,7 @@ void _addEditedPhotoRiskFlags(
   );
   final sourceSelection = diagnostics['photoEditReplacedOriginal'] == true
       ? 'edited_copy_selected'
-      : 'original_source_retained';
+      : 'accepted_source_retained';
   flags.add('ocr_source_review_photo_edited');
   flags.add('ocr_source_review_photo_edit_$editAction');
   flags.add('ocr_source_review_photo_edit_source_selected');

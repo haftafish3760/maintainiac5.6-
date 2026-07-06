@@ -250,6 +250,8 @@ void main() {
       importActions,
       contains(r"'review_photo_edit_source_selected_$sourceSelection'"),
     );
+    expect(importActions, contains('accepted_source_retained'));
+    expect(importActions, isNot(contains('original_source_retained')));
     expect(importActions, contains("'review_photo_edit_replaced_original'"));
     expect(
       importActions,
@@ -276,6 +278,10 @@ void main() {
       contains(
         r"'ocr_source_review_photo_edit_source_selected_$sourceSelection'",
       ),
+    );
+    expect(
+      importActions,
+      contains('ocr_source_review_photo_edit_source_selected'),
     );
     expect(
       importActions,

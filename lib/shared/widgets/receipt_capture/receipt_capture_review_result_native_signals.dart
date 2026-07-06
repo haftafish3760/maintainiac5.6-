@@ -47,7 +47,7 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       if (diagnostics['userEditedPhoto'] != true) continue;
       final token = diagnostics['photoEditReplacedOriginal'] == true
           ? 'edited_copy_selected'
-          : 'original_source_retained';
+          : 'accepted_source_retained';
       if (token == 'unknown') continue;
       counts[token] = (counts[token] ?? 0) + 1;
     }
