@@ -41,6 +41,22 @@ void main() {
       }
     });
 
+    test('locks the current Plumbing Core curation baseline', () {
+      final report = buildPlumbingCoreCurationAudit();
+
+      expect(report['coreCount'], 1119);
+      expect(report['missingRequiredFamilies'], isEmpty);
+      expect(report['suspiciousCoreItems'], isEmpty);
+      expect(report['likelyCoreOutsideCore'], hasLength(179));
+
+      final summary = report['summary']! as Map<String, Object?>;
+      expect(summary['suspiciousCoreTotal'], 0);
+      expect(summary['likelyCoreOutsideCoreTotal'], 179);
+      expect(summary['readinessFloor'], greaterThanOrEqualTo(64));
+      expect(summary['readinessAverage'], greaterThanOrEqualTo(80.0));
+      expect(summary['readyForMacValidation'], isFalse);
+    });
+
     test('surfaces candidates and suspicious rows as review queues', () {
       final report = buildPlumbingCoreCurationAudit();
 

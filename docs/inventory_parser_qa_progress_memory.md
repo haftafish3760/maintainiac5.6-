@@ -4022,3 +4022,12 @@ Release boundaries:
   The broader bundled Plumbing Core gate command was attempted afterward but
   hit the local Windows timeout before final results, so do not treat that
   bundle as newly reverified until rerun at the next logical milestone.
+- **19:32-19:36 Plumbing Core Curation Baseline Lock:** Added a focused
+  baseline lock to `test/work_supply_plumbing_core_curation_audit_test.dart`
+  so the current reviewed Plumbing Core shape cannot silently drift while
+  parser work continues. The locked baseline is 1,119 Core rows, 0 missing
+  required families, 0 suspicious Core rows, 179 outside-Core review
+  candidates, readiness floor >= 64, readiness average >= 80.0, and
+  `readyForMacValidation=false` until parser evidence is complete. Focused
+  verification passed:
+  `flutter test test/work_supply_plumbing_core_curation_audit_test.dart`.
