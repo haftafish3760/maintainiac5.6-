@@ -997,15 +997,66 @@ void main() {
       final entries = ZipDecoder().decodeBytes(zipBytes).files;
 
       expect(entries.map((entry) => entry.name), [
-        'expense_receipts.csv',
-        'expense_line_items.csv',
         'expense_export_manifest.json',
+        'expense_line_items.csv',
+        'expense_receipts.csv',
       ]);
       expect(
         entries.map((entry) => entry.name).join('\n'),
         isNot(contains(outputDirectory.path)),
       );
-      expect(utf8.decode(entries.first.readBytes()!), contains('Fuel Stop'));
+      final receiptsEntry = entries.singleWhere(
+        (entry) => entry.name == 'expense_receipts.csv',
+      );
+      expect(utf8.decode(receiptsEntry.readBytes()!), contains('Fuel Stop'));
+
+      await outputDirectory.delete(recursive: true);
+    },
+  );
+
+  test(
+    'expense export package is deterministic for same prepared files',
+    () async {
+      final outputDirectory = await Directory.systemTemp.createTemp(
+        'maintainiac_export_zip_deterministic_test_',
+      );
+      final exportDirectory = Directory(
+        '${outputDirectory.path}/maintainiac_expense_export_stable',
+      );
+      await exportDirectory.create(recursive: true);
+      final manifest = File(
+        '${exportDirectory.path}/expense_export_manifest.json',
+      );
+      final lines = File('${exportDirectory.path}/expense_line_items.csv');
+      final receipts = File('${exportDirectory.path}/expense_receipts.csv');
+      await manifest.writeAsString('{"stable":true}', flush: true);
+      await lines.writeAsString('line,total\none,1.00\n', flush: true);
+      await receipts.writeAsString('receipt,total\none,1.00\n', flush: true);
+
+      final first = await buildExpenseExportZipBytes(
+        ExpenseExportFileSet(
+          directoryPath: exportDirectory.path,
+          files: [receipts.path, lines.path, manifest.path],
+        ),
+      );
+      final second = await buildExpenseExportZipBytes(
+        ExpenseExportFileSet(
+          directoryPath: exportDirectory.path,
+          files: [manifest.path, receipts.path, lines.path],
+        ),
+      );
+      final entryNames = ZipDecoder()
+          .decodeBytes(first)
+          .files
+          .map((entry) => entry.name)
+          .toList(growable: false);
+
+      expect(first, second);
+      expect(entryNames, [
+        'expense_export_manifest.json',
+        'expense_line_items.csv',
+        'expense_receipts.csv',
+      ]);
 
       await outputDirectory.delete(recursive: true);
     },
@@ -1112,6 +1163,55 @@ void main() {
     skip: Platform.isWindows ? 'POSIX symlink coverage only.' : false,
   );
 
+  test('expense export package enforces file count and byte budgets', () async {
+    final outputDirectory = await Directory.systemTemp.createTemp(
+      'maintainiac_export_zip_budget_test_',
+    );
+    final filePaths = <String>[];
+    for (var index = 0; index < 3; index++) {
+      final file = File('${outputDirectory.path}/export_$index.csv');
+      await file.writeAsString('12345', flush: true);
+      filePaths.add(file.path);
+    }
+    final fileSet = ExpenseExportFileSet(
+      directoryPath: outputDirectory.path,
+      files: filePaths,
+    );
+
+    await expectLater(
+      buildExpenseExportZipBytes(fileSet, maxSourceFiles: 2),
+      throwsA(
+        isA<AppGeneratedPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('too many export files'),
+        ),
+      ),
+    );
+    await expectLater(
+      buildExpenseExportZipBytes(fileSet, maxSourceFileBytes: 4),
+      throwsA(
+        isA<AppGeneratedPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('export file was too large'),
+        ),
+      ),
+    );
+    await expectLater(
+      buildExpenseExportZipBytes(fileSet, maxTotalSourceBytes: 12),
+      throwsA(
+        isA<AppGeneratedPdfException>().having(
+          (error) => error.message,
+          'message',
+          contains('prepared export files were too large'),
+        ),
+      ),
+    );
+
+    await outputDirectory.delete(recursive: true);
+  });
+
   test('expense export package write verifies partial and final ZIP files', () {
     final source = File(
       'lib/screens/expenses/data/expense_export_handoff.dart',
@@ -1126,7 +1226,17 @@ void main() {
     expect(source, contains('partialLength != zipBytes.length'));
     expect(source, contains('await _requireRegularExportPackageFile(target);'));
     expect(source, contains('targetLength != zipBytes.length'));
+    expect(
+      source,
+      contains('_bytesEqual(await partial.readAsBytes(), zipBytes)'),
+    );
+    expect(
+      source,
+      contains('_bytesEqual(await target.readAsBytes(), zipBytes)'),
+    );
     expect(source, contains('followLinks: false'));
     expect(source, contains('could not save the export package'));
+    expect(source, contains('bytes.length != fileLength'));
+    expect(source, contains('changed while the package was being prepared'));
   });
 }

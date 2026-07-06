@@ -898,6 +898,41 @@ void main() {
     expect(sharePlan.fileEntries, ['job-packet.pdf']);
     expect(sharePlan.toMap().toString(), isNot(contains(tempDirectory.path)));
     expect(sharePlan.toMap().toString(), isNot(contains('filePath')));
+    final diagnostics = sharePlan.toSupportDiagnosticsMap();
+    final serializedDiagnostics = diagnostics.toString().toLowerCase();
+    expect(diagnostics['schema'], 'document_export_package_diagnostics_v1');
+    expect(diagnostics['operation'], 'share_package');
+    expect(diagnostics['status'], 'success');
+    expect(diagnostics['packageExtension'], 'zip');
+    expect(diagnostics['fileCountBucket'], 'one');
+    expect(diagnostics['manifestHashPrefix'], hasLength(12));
+    expect(diagnostics['packageHashPrefix'], hasLength(12));
+    expect(serializedDiagnostics, isNot(contains(tempDirectory.path)));
+    expect(serializedDiagnostics, isNot(contains('job-packet')));
+    expect(serializedDiagnostics, isNot(contains('filePath')));
+  });
+
+  test('document export package diagnostics redacts unsafe tokens', () {
+    final diagnostics = AppDocumentExportPackageDiagnostics.blocked(
+      operation: 'Import package for Jane Customer',
+      issueCode: 'VIN 1HGCM82633A004352',
+      packageFileName: '/Users/rbbie/Documents/Jane Customer packet.zip',
+      byteSize: 14 * 1024 * 1024,
+      kindName: 'VIN 1HGCM82633A004352',
+      fileCount: 9,
+    ).toMap();
+    final serialized = diagnostics.toString().toLowerCase();
+
+    expect(diagnostics['operation'], 'custom_operation');
+    expect(diagnostics['issueCode'], 'custom_issue');
+    expect(diagnostics['kindName'], isNull);
+    expect(diagnostics['packageExtension'], 'zip');
+    expect(diagnostics['byteSizeBucket'], 'under_100mb');
+    expect(diagnostics['fileCountBucket'], 'six_to_twenty');
+    expect(serialized, isNot(contains('jane')));
+    expect(serialized, isNot(contains('1hgcm')));
+    expect(serialized, isNot(contains('/users/')));
+    expect(serialized, isNot(contains('documents')));
   });
 
   test('document export package share plan preflights private proof', () async {
@@ -985,6 +1020,95 @@ void main() {
   });
 
   test(
+    'document export package share plan preflights encrypted proof',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nShare preflight proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final encryptedPackage = await _rewritePackageProof(
+        sourcePackage: File(result.filePath),
+        destinationName: 'encrypted-share-preflight.zip',
+        entryName: 'job-packet.pdf',
+        replacementBytes: utf8.encode(
+          '%PDF-1.7\n'
+          '1 0 obj << /Type /Page >> endobj\n'
+          'trailer << /Encrypt 2 0 R >>\n'
+          '%%EOF',
+        ),
+      );
+
+      await expectLater(
+        AppDocumentExportPackageWriter.buildSharePlan(encryptedPackage),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('PDF proof is encrypted'),
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
+    'document export package share plan preflights appended PDF revisions',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nShare preflight proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final incrementalPackage = await _rewritePackageProof(
+        sourcePackage: File(result.filePath),
+        destinationName: 'incremental-share-preflight.zip',
+        entryName: 'job-packet.pdf',
+        replacementBytes: utf8.encode(
+          '%PDF-1.7\n'
+          '1 0 obj << /Type /Page >> endobj\n'
+          '%%EOF\n'
+          '2 0 obj << /Type /Page >> endobj\n'
+          '%%EOF',
+        ),
+      );
+
+      await expectLater(
+        AppDocumentExportPackageWriter.buildSharePlan(incrementalPackage),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('appended PDF revisions'),
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
     'document export package import preview validates manifest safely',
     () async {
       final pdf = await _writeProof(
@@ -1066,6 +1190,52 @@ void main() {
         destinationName: 'private-import.zip',
         mutateManifest: (manifest) {
           manifest['title'] = 'Invoice for VIN 1HGCM82633A004352';
+        },
+      );
+
+      await expectLater(
+        AppDocumentExportPackageWriter.previewZipPackageImport(privatePackage),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('private information'),
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
+    'document export package import preview blocks private nested index data',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nImport private index proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final privatePackage = await _rewritePackageManifestAndIndex(
+        sourcePackage: File(result.filePath),
+        destinationName: 'private-index-import.zip',
+        mutateManifest: (_) {},
+        mutateIndex: (index) {
+          final files = index['files']! as List;
+          final first = files.first! as Map<String, Object?>;
+          first['supportDiagnostics'] = {
+            'rawCustomerNote': 'Passenger: Jane Customer',
+            'localPath': '/Users/rbbie/Documents/private-customer.pdf',
+          };
         },
       );
 
@@ -1648,6 +1818,109 @@ void main() {
 
       expect(await importDirectory.exists(), isFalse);
       expect(await activePackage.exists(), isTrue);
+    },
+  );
+
+  test(
+    'document export package extraction preflights encrypted proof content',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nExtract preflight proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final encryptedPackage = await _rewritePackageProof(
+        sourcePackage: File(result.filePath),
+        destinationName: 'encrypted-extract-preflight.zip',
+        entryName: 'job-packet.pdf',
+        replacementBytes: utf8.encode(
+          '%PDF-1.7\n'
+          '1 0 obj << /Type /Page >> endobj\n'
+          'trailer << /Encrypt 2 0 R >>\n'
+          '%%EOF',
+        ),
+      );
+      final importDirectory = Directory('${tempDirectory.path}/imports');
+
+      await expectLater(
+        AppDocumentExportPackageWriter.extractZipPackage(
+          encryptedPackage,
+          outputDirectory: importDirectory,
+        ),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('PDF proof is encrypted'),
+          ),
+        ),
+      );
+
+      expect(await importDirectory.exists(), isFalse);
+      expect(await encryptedPackage.exists(), isTrue);
+    },
+  );
+
+  test(
+    'document export package extraction preflights appended PDF revisions',
+    () async {
+      final proof = await _writeProof(
+        tempDirectory,
+        name: 'job-packet.pdf',
+        bytes: utf8.encode('%PDF-1.7\nExtract preflight proof\n%%EOF'),
+      );
+      final result = await AppDocumentExportPackageWriter().writeZipPackage(
+        record: _documentRecord(
+          attachment: _pdfAttachment(
+            path: proof.path,
+            byteSize: await proof.length(),
+            fileHash: await _fileHash(proof),
+          ),
+        ),
+        outputDirectory: Directory('${tempDirectory.path}/exports'),
+        freeStorageReader: () async => 500,
+      );
+      final incrementalPackage = await _rewritePackageProof(
+        sourcePackage: File(result.filePath),
+        destinationName: 'incremental-extract-preflight.zip',
+        entryName: 'job-packet.pdf',
+        replacementBytes: utf8.encode(
+          '%PDF-1.7\n'
+          '1 0 obj << /Type /Page >> endobj\n'
+          '%%EOF\n'
+          '2 0 obj << /Type /Page >> endobj\n'
+          '%%EOF',
+        ),
+      );
+      final importDirectory = Directory('${tempDirectory.path}/imports');
+
+      await expectLater(
+        AppDocumentExportPackageWriter.extractZipPackage(
+          incrementalPackage,
+          outputDirectory: importDirectory,
+        ),
+        throwsA(
+          isA<AppDocumentExportPackageException>().having(
+            (error) => error.message,
+            'message',
+            contains('appended PDF revisions'),
+          ),
+        ),
+      );
+
+      expect(await importDirectory.exists(), isFalse);
+      expect(await incrementalPackage.exists(), isTrue);
     },
   );
 

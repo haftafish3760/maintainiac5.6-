@@ -25,6 +25,7 @@ class ReceiptPdfInspector {
   static const openActionRiskFlag = 'auto-open actions';
   static const launchActionRiskFlag = 'launch actions';
   static const automaticActionRiskFlag = 'automatic actions';
+  static const incrementalUpdateRiskFlag = 'incremental PDF updates';
   static const embeddedFileRiskFlag = 'embedded files';
   static const embeddedMediaRiskFlag = 'embedded media';
   static const formSubmissionRiskFlag = 'form submission actions';
@@ -89,7 +90,7 @@ class ReceiptPdfInspector {
 
   static int? estimatePageCount(List<int> bytes) {
     if (bytes.isEmpty) return null;
-    final text = String.fromCharCodes(bytes);
+    final text = _withoutPdfStreams(String.fromCharCodes(bytes));
     final matches = RegExp(r'/Type\s*/Page\b').allMatches(text).length;
     if (matches > 0) return matches;
     final count = RegExp(
@@ -97,6 +98,13 @@ class ReceiptPdfInspector {
     ).firstMatch(text)?.group(1);
     if (count == null) return null;
     return int.tryParse(count);
+  }
+
+  static String _withoutPdfStreams(String text) {
+    return text.replaceAll(
+      RegExp(r'\bstream(?:\r\n|\n|\r).*?\bendstream\b', dotAll: true),
+      ' ',
+    );
   }
 
   static List<String> detectRiskFlags(List<int> bytes, {int? headerOffset}) {
@@ -138,6 +146,9 @@ class ReceiptPdfInspector {
       flags.add('annotations');
     }
     if (!text.contains('%%eof')) flags.add('missing EOF marker');
+    if (RegExp('%%eof').allMatches(text).length > 1) {
+      flags.add(incrementalUpdateRiskFlag);
+    }
     if (!text.contains('startxref')) flags.add('missing startxref marker');
     if (!RegExp(r'(^|\s)xref(\s|$)').hasMatch(text)) {
       flags.add('missing xref table marker');

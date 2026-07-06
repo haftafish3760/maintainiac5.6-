@@ -377,6 +377,32 @@ dart analyze lib/screens/expenses/data/expense_export_models.dart lib/screens/ex
 flutter test test/expense_export_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact
 ```
 
+Focused checks passed after Pass 204-245:
+
+```bash
+dart analyze lib/screens/expenses/data/expense_export_handoff.dart test/expense_export_test.dart test/pdf_qa_fixture_inventory_test.dart
+flutter test test/expense_export_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact
+```
+
+```bash
+dart analyze lib/shared/pdf/app_generated_pdf_models.dart test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart
+flutter test test/app_generated_pdf_service_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact
+```
+
+```bash
+dart analyze lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart lib/shared/widgets/receipt_capture/receipt_pdf_inspection.dart test/receipt_pdf_inspector_edge_cases_test.dart test/pdf_qa_fixture_inventory_test.dart
+flutter test test/receipt_pdf_inspector_edge_cases_test.dart test/pdf_qa_fixture_inventory_test.dart -r compact
+```
+
+Pass 204-245 adds:
+
+- Expense export ZIP source file count, per-file byte, and total byte budgets.
+- Deterministic expense ZIP entry ordering independent of caller file order.
+- Generated PDF rejection for multiple EOF markers / appended PDF revisions.
+- Receipt PDF import warning and proof-only handling for incremental PDF updates.
+- Receipt PDF page count protection so `/Type /Page` inside content streams does not inflate page counts.
+- Document export package import/share/extract preflight blocks encrypted PDF proof files and appended PDF revisions before package sharing or extraction.
+
 Important failure/fix:
 
 - The first changed-test bundle failed because the new invoice internal-ID guard was too broad and treated normal fixture IDs such as `service-line-1` as leaked internal IDs.
@@ -388,6 +414,10 @@ Important failure/fix:
 - Work stopped immediately, the invoice renderer was switched to supported `TextOverflow.span`, and a no-hard-clip regression was added.
 - A later expense export QA run failed because the new PDF-summary assertion needed the Flutter test binding.
 - Work stopped immediately, `TestWidgetsFlutterBinding.ensureInitialized()` was added to the expense export suite, and the focused QA reran green.
+- A later deterministic ZIP QA run failed because the test still assumed the first ZIP entry was the receipts CSV.
+- Work stopped immediately, the test was corrected to find the receipts entry by name, and the focused QA reran green.
+- A later package-import QA command failed because two `--plain-name` filters were combined too narrowly and matched no tests.
+- Work stopped immediately, the tests were rerun as separate focused commands, and both package-import regressions passed.
 
 ## Current Modified Files
 

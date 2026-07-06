@@ -102,6 +102,20 @@ void main() {
     expect(inspection.canAttachAsProof, isFalse);
   });
 
+  test('PDF page counter ignores page markers inside content streams', () {
+    final pageCount = ReceiptPdfInspector.estimatePageCount(
+      '%PDF-1.7\n'
+              '1 0 obj << /Type /Page /Contents 2 0 R >> endobj\n'
+              '2 0 obj << /Length 40 >> stream\n'
+              'BT (/Type /Page is printed text) Tj ET\n'
+              'endstream endobj\n'
+              '%%EOF'
+          .codeUnits,
+    );
+
+    expect(pageCount, 1);
+  });
+
   test(
     'PDF structure warnings are soft proof warnings, not hard blockers',
     () async {
@@ -123,6 +137,39 @@ void main() {
       expect(inspection.riskFlags, contains('missing xref table marker'));
       expect(inspection.riskFlags, contains('missing trailer marker'));
       expect(inspection.userWarning, contains('will not run scripts'));
+    },
+  );
+
+  test(
+    'PDF incremental updates stay proof-only for assisted reading',
+    () async {
+      final file = File('${Directory.systemTemp.path}/incremental_receipt.pdf');
+      await file.writeAsString(
+        '%PDF-1.7\n'
+        '1 0 obj << /Type /Page >> endobj\n'
+        '%%EOF\n'
+        '2 0 obj << /Type /Page >> endobj\n'
+        '%%EOF',
+        flush: true,
+      );
+      addTearDown(() {
+        if (file.existsSync()) file.deleteSync();
+      });
+
+      final inspection = await ReceiptPdfInspector.inspect(file.path);
+
+      expect(inspection.importBlocker, isNull);
+      expect(inspection.canAttachAsProof, isTrue);
+      expect(
+        inspection.riskFlags,
+        contains(ReceiptPdfInspector.incrementalUpdateRiskFlag),
+      );
+      expect(inspection.canUseAssistedRead, isFalse);
+      expect(inspection.assistedReadBlocker, contains('incremental updates'));
+      expect(
+        inspection.handlingDisposition,
+        ReceiptPdfHandlingDisposition.proofOnly,
+      );
     },
   );
 

@@ -88,6 +88,21 @@ class AppDocumentExportPackageReadResult {
       'totalProofBytes': totalProofBytes,
     };
   }
+
+  Map<String, Object?> toSupportDiagnosticsMap({
+    String operation = 'read_package',
+  }) {
+    return AppDocumentExportPackageDiagnostics.success(
+      operation: operation,
+      packageFileName: fileName,
+      byteSize: byteSize,
+      manifestSha256: manifestSha256,
+      packageSha256: sha256,
+      kindName: kindName,
+      fileCount: fileEntries.length,
+      totalProofBytes: totalProofBytes,
+    ).toMap();
+  }
 }
 
 class AppDocumentExportPackageSharePlan {
@@ -131,6 +146,20 @@ class AppDocumentExportPackageSharePlan {
       'fileEntries': fileEntries,
     };
   }
+
+  Map<String, Object?> toSupportDiagnosticsMap({
+    String operation = 'share_package',
+  }) {
+    return AppDocumentExportPackageDiagnostics.success(
+      operation: operation,
+      packageFileName: fileName,
+      byteSize: byteSize,
+      manifestSha256: manifestSha256,
+      packageSha256: sha256,
+      kindName: kindName,
+      fileCount: fileEntries.length,
+    ).toMap();
+  }
 }
 
 class AppDocumentExportPackageExtractResult {
@@ -165,6 +194,21 @@ class AppDocumentExportPackageExtractResult {
       'fileEntries': fileEntries,
       'totalBytes': totalBytes,
     };
+  }
+
+  Map<String, Object?> toSupportDiagnosticsMap({
+    String operation = 'extract_package',
+  }) {
+    return AppDocumentExportPackageDiagnostics.success(
+      operation: operation,
+      packageFileName: packageFileName,
+      byteSize: totalBytes,
+      manifestSha256: manifestSha256,
+      packageSha256: packageSha256,
+      kindName: kindName,
+      fileCount: fileEntries.length,
+      totalProofBytes: totalBytes,
+    ).toMap();
   }
 }
 
@@ -241,6 +285,218 @@ class AppDocumentExportPackageImportPreview {
       'updatedAtIso8601': updatedAtIso8601,
       'attachments': [for (final attachment in attachments) attachment.toMap()],
     };
+  }
+
+  Map<String, Object?> toSupportDiagnosticsMap({
+    String operation = 'preview_import',
+  }) {
+    return AppDocumentExportPackageDiagnostics.success(
+      operation: operation,
+      packageFileName: fileName,
+      byteSize: byteSize,
+      manifestSha256: manifestSha256,
+      packageSha256: sha256,
+      kindName: kindName,
+      fileCount: attachments.length,
+      totalProofBytes: attachments.fold<int>(
+        0,
+        (total, attachment) => total + attachment.byteSize,
+      ),
+    ).toMap();
+  }
+}
+
+class AppDocumentExportPackageDiagnostics {
+  const AppDocumentExportPackageDiagnostics({
+    required this.operation,
+    required this.status,
+    required this.packageExtension,
+    required this.byteSizeBucket,
+    required this.kindName,
+    required this.fileCount,
+    required this.totalProofBytesBucket,
+    required this.manifestHashPrefix,
+    required this.packageHashPrefix,
+    this.issueCode = '',
+  });
+
+  factory AppDocumentExportPackageDiagnostics.success({
+    required String operation,
+    required String packageFileName,
+    required int byteSize,
+    required String manifestSha256,
+    required String packageSha256,
+    required String kindName,
+    required int fileCount,
+    int totalProofBytes = 0,
+  }) {
+    return AppDocumentExportPackageDiagnostics(
+      operation: _safeOperation(operation),
+      status: 'success',
+      packageExtension: _safePackageExtension(packageFileName),
+      byteSizeBucket: _byteSizeBucket(byteSize),
+      kindName: _safeKindName(kindName),
+      fileCount: fileCount < 0 ? 0 : fileCount,
+      totalProofBytesBucket: _byteSizeBucket(totalProofBytes),
+      manifestHashPrefix: _hashPrefix(manifestSha256),
+      packageHashPrefix: _hashPrefix(packageSha256),
+    );
+  }
+
+  factory AppDocumentExportPackageDiagnostics.blocked({
+    required String operation,
+    required String issueCode,
+    String packageFileName = '',
+    int byteSize = 0,
+    String kindName = '',
+    int fileCount = 0,
+  }) {
+    return AppDocumentExportPackageDiagnostics(
+      operation: _safeOperation(operation),
+      status: 'blocked',
+      packageExtension: _safePackageExtension(packageFileName),
+      byteSizeBucket: _byteSizeBucket(byteSize),
+      kindName: _safeKindName(kindName),
+      fileCount: fileCount < 0 ? 0 : fileCount,
+      totalProofBytesBucket: _byteSizeBucket(0),
+      manifestHashPrefix: '',
+      packageHashPrefix: '',
+      issueCode: _safeIssueCode(issueCode),
+    );
+  }
+
+  final String operation;
+  final String status;
+  final String packageExtension;
+  final String byteSizeBucket;
+  final String kindName;
+  final int fileCount;
+  final String totalProofBytesBucket;
+  final String manifestHashPrefix;
+  final String packageHashPrefix;
+  final String issueCode;
+
+  Map<String, Object?> toMap() {
+    return {
+      'schema': 'document_export_package_diagnostics_v1',
+      'operation': operation,
+      'status': status,
+      if (issueCode.isNotEmpty) 'issueCode': issueCode,
+      if (packageExtension.isNotEmpty) 'packageExtension': packageExtension,
+      'byteSizeBucket': byteSizeBucket,
+      if (kindName.isNotEmpty) 'kindName': kindName,
+      'fileCountBucket': _fileCountBucket(fileCount),
+      'totalProofBytesBucket': totalProofBytesBucket,
+      if (manifestHashPrefix.isNotEmpty)
+        'manifestHashPrefix': manifestHashPrefix,
+      if (packageHashPrefix.isNotEmpty) 'packageHashPrefix': packageHashPrefix,
+    };
+  }
+
+  static String _safeOperation(String value) {
+    final token = _safeToken(value);
+    const allowed = {
+      'read_package',
+      'share_package',
+      'preview_import',
+      'extract_package',
+      'write_package',
+      'import_package',
+    };
+    return allowed.contains(token) ? token : 'custom_operation';
+  }
+
+  static String _safeIssueCode(String value) {
+    final token = _safeToken(value);
+    const allowedWords = {
+      'active',
+      'appended',
+      'byte',
+      'content',
+      'directory',
+      'duplicate',
+      'encrypted',
+      'entry',
+      'hash',
+      'index',
+      'manifest',
+      'metadata',
+      'missing',
+      'package',
+      'pdf',
+      'private',
+      'proof',
+      'revision',
+      'size',
+      'storage',
+      'tamper',
+      'unsafe',
+      'zip',
+    };
+    final words = token.split('_').where((word) => word.isNotEmpty);
+    if (words.isEmpty) return 'custom_issue';
+    return words.every(allowedWords.contains) ? token : 'custom_issue';
+  }
+
+  static String _safeKindName(String value) {
+    final token = _safeToken(value);
+    const allowed = {
+      'expense_document',
+      'invoice_document',
+      'job_contractor_document',
+      'maintenance_document',
+      'other_document',
+      'receipt_document',
+      'vehicle_document',
+      'jobcontractordocument',
+      'invoicedocument',
+      'otherdocument',
+    };
+    return allowed.contains(token) ? token : '';
+  }
+
+  static String _safePackageExtension(String fileName) {
+    final extension = path.extension(fileName).toLowerCase();
+    if (extension == '.zip') return 'zip';
+    if (extension == '.pdf') return 'pdf';
+    return '';
+  }
+
+  static String _safeToken(String value) {
+    final lowered = value.toLowerCase();
+    if (AppPdfPrivacyPolicy.issueCodesForExport(
+      metadata: [lowered],
+      bytes: const [],
+    ).isNotEmpty) {
+      return 'private_signal';
+    }
+    return lowered
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+  }
+
+  static String _hashPrefix(String hash) {
+    final normalized = hash.toLowerCase();
+    if (!RegExp(r'^[a-f0-9]{64}$').hasMatch(normalized)) return '';
+    return normalized.substring(0, 12);
+  }
+
+  static String _byteSizeBucket(int bytes) {
+    if (bytes <= 0) return 'empty';
+    if (bytes < 100 * 1024) return 'under_100kb';
+    if (bytes < 1024 * 1024) return 'under_1mb';
+    if (bytes < 10 * 1024 * 1024) return 'under_10mb';
+    if (bytes < 100 * 1024 * 1024) return 'under_100mb';
+    return 'over_100mb';
+  }
+
+  static String _fileCountBucket(int count) {
+    if (count <= 0) return 'none';
+    if (count == 1) return 'one';
+    if (count <= 5) return 'two_to_five';
+    if (count <= 20) return 'six_to_twenty';
+    return 'over_twenty';
   }
 }
 
@@ -625,7 +881,7 @@ class AppDocumentExportPackageWriter {
     final index = _decodeIndex(
       _requiredTextEntry(entries, packageIndexEntryName),
     );
-    _verifyImportManifestPrivacy(manifest);
+    _verifyImportMetadataPrivacy(manifest: manifest, index: index);
     _verifyImportDates(manifest);
     final indexedFiles = _fileIndexList(index);
     final manifestAttachments = _manifestAttachmentMap(manifest);
@@ -758,22 +1014,13 @@ class AppDocumentExportPackageWriter {
         .trim();
   }
 
-  static void _verifyImportManifestPrivacy(Map<String, Object?> manifest) {
-    final attachmentMaps = _manifestAttachmentList(manifest);
+  static void _verifyImportMetadataPrivacy({
+    required Map<String, Object?> manifest,
+    required Map<String, Object?> index,
+  }) {
     final metadata = <String>[
-      _stringValue(manifest, 'documentId'),
-      _stringValue(manifest, 'kind'),
-      _stringValue(manifest, 'title'),
-      _stringValue(manifest, 'sourceLabel'),
-      manifest['importedText'] as String? ?? '',
-      manifest['notes'] as String? ?? '',
-      for (final attachment in attachmentMaps) ...[
-        _stringValue(attachment, 'id'),
-        _stringValue(attachment, 'displayName'),
-        _stringValue(attachment, 'mimeType'),
-        ..._stringListValue(attachment, 'riskFlags'),
-        ..._stringListValue(attachment, 'documentSignals'),
-      ],
+      ..._metadataStringValues(manifest),
+      ..._metadataStringValues(index),
     ];
     final issues = AppPdfPrivacyPolicy.issueCodesForExport(
       bytes: const [],
@@ -783,6 +1030,25 @@ class AppDocumentExportPackageWriter {
       throw const AppDocumentExportPackageException(
         'Maintainiac stopped this document package import because it may include private information.',
       );
+    }
+  }
+
+  static Iterable<String> _metadataStringValues(Object? value) sync* {
+    if (value is String) {
+      yield value;
+      return;
+    }
+    if (value is Map) {
+      for (final entry in value.entries) {
+        yield entry.key.toString();
+        yield* _metadataStringValues(entry.value);
+      }
+      return;
+    }
+    if (value is Iterable) {
+      for (final item in value) {
+        yield* _metadataStringValues(item);
+      }
     }
   }
 
@@ -831,24 +1097,6 @@ class AppDocumentExportPackageWriter {
       map[id] = attachment;
     }
     return map;
-  }
-
-  static List<String> _stringListValue(Map<String, Object?> map, String key) {
-    final value = map[key];
-    if (value is! List) {
-      throw const AppDocumentExportPackageException(
-        'Document export package metadata has invalid file entries.',
-      );
-    }
-    return [
-      for (final item in value)
-        if (item is String)
-          item
-        else
-          throw const AppDocumentExportPackageException(
-            'Document export package metadata has invalid file entries.',
-          ),
-    ];
   }
 
   static AppDocumentExportPackageImportAttachment _importAttachment(
@@ -916,6 +1164,17 @@ class AppDocumentExportPackageWriter {
       );
     }
     if (attachment.kindName != ReceiptAttachmentKind.pdf.name) return;
+    final pdfText = latin1.decode(entryBytes, allowInvalid: true);
+    if (AppPdfSecurityPolicy.containsPdfName(pdfText, 'encrypt')) {
+      throw const AppDocumentExportPackageException(
+        'Maintainiac stopped this document package import because a PDF proof is encrypted.',
+      );
+    }
+    if (RegExp('%%EOF').allMatches(pdfText).length > 1) {
+      throw const AppDocumentExportPackageException(
+        'Maintainiac stopped this document package import because a PDF proof includes appended PDF revisions.',
+      );
+    }
     final securityIssues = AppPdfSecurityPolicy.activeContentIssueCodesForBytes(
       entryBytes,
     );

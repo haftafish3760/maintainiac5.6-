@@ -210,6 +210,9 @@ class AppGeneratedPdfValidationReport {
     if (!_hasPdfEndMarker(bytes)) {
       issues.add('missing_pdf_end_marker');
     }
+    if (_hasMultiplePdfEndMarkers(bytes)) {
+      issues.add('multiple_pdf_end_markers');
+    }
     if (AppPdfSecurityPolicy.containsPdfName(
       latin1.decode(bytes, allowInvalid: true),
       'encrypt',
@@ -243,6 +246,9 @@ class AppGeneratedPdfValidationReport {
     }
     if (hasIssue('missing_pdf_header') || hasIssue('missing_pdf_end_marker')) {
       return 'Maintainiac could not create that PDF because the generated file was incomplete.';
+    }
+    if (hasIssue('multiple_pdf_end_markers')) {
+      return 'Maintainiac stopped this PDF because the generated file had unexpected appended PDF revisions.';
     }
     if (issues.any((issue) => issue.startsWith('private_')) ||
         hasIssue(AppPdfPrivacyPolicy.unconfirmedOcrSuggestion) ||
@@ -283,6 +289,11 @@ class AppGeneratedPdfValidationReport {
     final start = bytes.length > 2048 ? bytes.length - 2048 : 0;
     final tail = latin1.decode(bytes.sublist(start));
     return RegExp(r'%%EOF[\s\x00]*$').hasMatch(tail);
+  }
+
+  static bool _hasMultiplePdfEndMarkers(Uint8List bytes) {
+    final text = latin1.decode(bytes, allowInvalid: true);
+    return RegExp('%%EOF').allMatches(text).length > 1;
   }
 
   static bool _isAsciiDigit(int value) => value >= 0x30 && value <= 0x39;

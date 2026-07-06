@@ -237,14 +237,8 @@ void main() {
     expect(document.shareText, contains(r'Total: -$0.10'));
     expect(document.validation.isValid, isTrue);
     expect(source, contains('AppPdfFormatters.money(snapshot.total)'));
-    expect(
-      source,
-      contains('AppPdfFormatters.money('),
-    );
-    expect(
-      source,
-      contains('snapshot.taxAdjustedTotalForLine(receipt, line)'),
-    );
+    expect(source, contains('AppPdfFormatters.money('));
+    expect(source, contains('snapshot.taxAdjustedTotalForLine(receipt, line)'));
   });
 
   test('generated PDF service writes safe temporary PDF files', () async {
@@ -657,6 +651,28 @@ void main() {
     expect(appended.validation.hasIssue('missing_pdf_end_marker'), isTrue);
     expect(appended.validation.hasIssue('active_javascript'), isTrue);
     expect(normalTrailingWhitespace.validation.isValid, isTrue);
+  });
+
+  test('generated PDF validation rejects multiple EOF markers', () {
+    final incrementalUpdate = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\n1 0 obj\n%%EOF\n2 0 obj\n%%EOF'.codeUnits,
+      ),
+      createdAt: DateTime(2026, 7, 5),
+    );
+
+    expect(incrementalUpdate.validation.isValid, isFalse);
+    expect(
+      incrementalUpdate.validation.hasIssue('multiple_pdf_end_markers'),
+      isTrue,
+    );
+    expect(
+      incrementalUpdate.validation.userMessage,
+      contains('unexpected appended PDF revisions'),
+    );
   });
 
   test('generated PDF validation rejects fake versionless PDF headers', () {

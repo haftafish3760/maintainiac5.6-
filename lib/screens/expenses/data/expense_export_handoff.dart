@@ -160,7 +160,21 @@ Future<File> _writeZipPackage(
   return package;
 }
 
-Future<List<int>> buildExpenseExportZipBytes(ExpenseExportFileSet files) async {
+const int expenseExportMaxZipSourceFiles = 16;
+const int expenseExportMaxZipSourceFileBytes = 25 * 1024 * 1024;
+const int expenseExportMaxZipSourceTotalBytes = 50 * 1024 * 1024;
+
+Future<List<int>> buildExpenseExportZipBytes(
+  ExpenseExportFileSet files, {
+  int maxSourceFiles = expenseExportMaxZipSourceFiles,
+  int maxSourceFileBytes = expenseExportMaxZipSourceFileBytes,
+  int maxTotalSourceBytes = expenseExportMaxZipSourceTotalBytes,
+}) async {
+  if (files.files.length > maxSourceFiles) {
+    throw const AppGeneratedPdfException(
+      'Maintainiac could not build the export package because too many export files were prepared.',
+    );
+  }
   final root = Directory(files.directoryPath);
   final rootType = await FileSystemEntity.type(root.path, followLinks: false);
   if (rootType != FileSystemEntityType.directory) {
@@ -171,7 +185,10 @@ Future<List<int>> buildExpenseExportZipBytes(ExpenseExportFileSet files) async {
   final rootPath = p.canonicalize(await root.resolveSymbolicLinks());
   final archive = Archive();
   final entryNames = <String>{};
-  for (final filePath in files.files) {
+  var totalSourceBytes = 0;
+  final sortedFilePaths = files.files.toList(growable: false)
+    ..sort((left, right) => p.basename(left).compareTo(p.basename(right)));
+  for (final filePath in sortedFilePaths) {
     final file = File(filePath);
     final type = await FileSystemEntity.type(file.path, followLinks: false);
     if (type != FileSystemEntityType.file) {
@@ -191,7 +208,24 @@ Future<List<int>> buildExpenseExportZipBytes(ExpenseExportFileSet files) async {
         'Maintainiac could not build the export package because export file names were not unique.',
       );
     }
+    final fileLength = await file.length();
+    if (fileLength > maxSourceFileBytes) {
+      throw const AppGeneratedPdfException(
+        'Maintainiac could not build the export package because an export file was too large.',
+      );
+    }
+    totalSourceBytes += fileLength;
+    if (totalSourceBytes > maxTotalSourceBytes) {
+      throw const AppGeneratedPdfException(
+        'Maintainiac could not build the export package because the prepared export files were too large.',
+      );
+    }
     final bytes = await file.readAsBytes();
+    if (bytes.length != fileLength || bytes.length > maxSourceFileBytes) {
+      throw const AppGeneratedPdfException(
+        'Maintainiac could not build the export package because an export file changed while the package was being prepared.',
+      );
+    }
     archive.addFile(ArchiveFile(name, bytes.length, bytes));
   }
   return ZipEncoder().encode(archive);
@@ -226,11 +260,17 @@ Future<void> _writeZipAtomically(File target, List<int> zipBytes) async {
     if (partialLength != zipBytes.length) {
       throw const FileSystemException('Export package write was incomplete.');
     }
+    if (!_bytesEqual(await partial.readAsBytes(), zipBytes)) {
+      throw const FileSystemException('Export package write was corrupted.');
+    }
     await _requireRegularExportPackageFile(partial);
     await partial.rename(target.path);
     await _requireRegularExportPackageFile(target);
     final targetLength = await target.length();
     if (targetLength != zipBytes.length) {
+      throw const FileSystemException('Export package verification failed.');
+    }
+    if (!_bytesEqual(await target.readAsBytes(), zipBytes)) {
       throw const FileSystemException('Export package verification failed.');
     }
   } catch (_) {
@@ -247,6 +287,14 @@ Future<void> _requireRegularExportPackageFile(File file) async {
   final type = await FileSystemEntity.type(file.path, followLinks: false);
   if (type == FileSystemEntityType.file) return;
   throw const FileSystemException('Export package file was unsafe.');
+}
+
+bool _bytesEqual(List<int> left, List<int> right) {
+  if (left.length != right.length) return false;
+  for (var index = 0; index < left.length; index += 1) {
+    if (left[index] != right[index]) return false;
+  }
+  return true;
 }
 
 Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(

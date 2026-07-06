@@ -44,6 +44,8 @@ class ReceiptPdfInspection {
       riskFlags.contains(ReceiptPdfInspector.encryptionRiskFlag);
   bool get hasActiveContentRisk =>
       riskFlags.any(ReceiptPdfInspector.activeContentRiskFlags.contains);
+  bool get hasIncrementalUpdateRisk =>
+      riskFlags.contains(ReceiptPdfInspector.incrementalUpdateRiskFlag);
   bool get hasReceiptSignals => documentSignals.any(
     (signal) => ReceiptPdfInspector.receiptSignals.contains(signal),
   );
@@ -155,6 +157,9 @@ class ReceiptPdfInspection {
     }
     if (hasActiveContentRisk) {
       return 'This PDF contains active content. It can be saved as read-only proof, but app-assisted reading will not open it or run scripts.';
+    }
+    if (hasIncrementalUpdateRisk) {
+      return 'This PDF uses incremental updates. It can be saved as proof, but app-assisted reading needs a simpler receipt PDF or clear receipt photos.';
     }
     if (exceedsLocalReadSizeLimit) {
       return 'That PDF is $sizeLabel. It was attached as proof, but app-assisted reading needs a smaller file.';
