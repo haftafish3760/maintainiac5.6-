@@ -43,7 +43,7 @@ void main() {
           'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
           'lastFocusStatus': 'continuous_autofocus_configured',
           'readabilityGuidancePolicy':
-              'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
+              'native_camera_baseline_neutral_receipt_guidance',
           'receiptCameraQualityBaseline': true,
         },
       },
@@ -99,7 +99,7 @@ void main() {
           'continuousFocusExpected': false,
           'focusStrategyPolicy': 'non_continuous_focus_requires_device_review',
           'focusReadabilityFallbackPolicy':
-              'non_continuous_focus_saved_photo_review_required',
+              'continuous_focus_unavailable_saved_photo_review_required',
           'lastFocusStatus': 'continuous_autofocus_unavailable',
           'readabilityGuidancePolicy':
               'saved_photo_readability_review_required',
@@ -150,7 +150,7 @@ void main() {
           'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
           'lastFocusStatus': 'continuous_autofocus_unavailable',
           'readabilityGuidancePolicy':
-              'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
+              'native_camera_baseline_neutral_receipt_guidance',
           'receiptCameraQualityBaseline': true,
         },
       },
@@ -187,7 +187,7 @@ void main() {
           'continuousFocusExpected': false,
           'focusStrategyPolicy': 'non_continuous_focus_requires_device_review',
           'focusReadabilityFallbackPolicy':
-              'non_continuous_focus_saved_photo_review_required',
+              'continuous_focus_unavailable_saved_photo_review_required',
           'lastFocusStatus': 'continuous_autofocus_configured',
           'readabilityGuidancePolicy':
               'saved_photo_readability_review_required',

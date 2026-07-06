@@ -147,7 +147,7 @@ void main() {
           'continuousFocusExpected': false,
           'focusStrategyPolicy': 'non_continuous_focus_requires_device_review',
           'focusReadabilityFallbackPolicy':
-              'non_continuous_focus_saved_photo_review_required',
+              'continuous_focus_unavailable_saved_photo_review_required',
           'lastFocusStatus': 'continuous_autofocus_unavailable',
           'readabilityGuidancePolicy':
               'saved_photo_readability_review_required',
@@ -165,7 +165,7 @@ void main() {
     );
     expect(
       result
-          .nativeCameraUiHealthCounts['focus_readability_fallback_non_continuous_focus_saved_photo_review_required'],
+          .nativeCameraUiHealthCounts['focus_readability_fallback_continuous_focus_unavailable_saved_photo_review_required'],
       1,
     );
     expect(
@@ -194,7 +194,7 @@ void main() {
     expect(
       attachments.single.riskFlags,
       contains(
-        'native_camera_ui_focus_readability_fallback_non_continuous_focus_saved_photo_review_required',
+        'native_camera_ui_focus_readability_fallback_continuous_focus_unavailable_saved_photo_review_required',
       ),
     );
   });
@@ -224,7 +224,7 @@ void main() {
           'continuousFocusExpected': true,
           'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
           'readabilityGuidancePolicy':
-              'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
+              'native_camera_baseline_neutral_receipt_guidance',
           'receiptCameraQualityBaseline': true,
         },
       },
@@ -270,7 +270,7 @@ void main() {
           'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
           'lastFocusStatus': 'continuous_autofocus_configuration_failed',
           'readabilityGuidancePolicy':
-              'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
+              'native_camera_baseline_neutral_receipt_guidance',
           'receiptCameraQualityBaseline': true,
         },
       },
@@ -295,7 +295,7 @@ void main() {
           'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
           'lastFocusStatus': 'not_used',
           'readabilityGuidancePolicy':
-              'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
+              'native_camera_baseline_neutral_receipt_guidance',
           'receiptCameraQualityBaseline': true,
         },
       },

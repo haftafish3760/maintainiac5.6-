@@ -44,7 +44,7 @@ void main() {
           'focusStrategyPolicy': 'continuous_focus_primary_no_tap_assist',
           'lastFocusStatus': 'continuous_autofocus_configured',
           'readabilityGuidancePolicy':
-              'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
+              'native_camera_baseline_neutral_receipt_guidance',
           'receiptCameraQualityBaseline': true,
           'pinchZoomControlExpected': true,
           'pinchZoomControlActual': 'ready',
