@@ -250,6 +250,10 @@ void main() {
     });
 
     expect(entry.captureDiagnostics['photoCount'], 1);
+    expect(
+      () => entry.stagedPhotoPaths.add('/tmp/late.jpg'),
+      throwsA(isA<UnsupportedError>()),
+    );
     expect(entry.captureDiagnostics, isNot(contains('latestFrameBrightness')));
     expect(entry.captureDiagnostics, isNot(contains('zoomRatio')));
     expect(entry.captureDiagnostics, isNot(contains('stringifiedBad')));

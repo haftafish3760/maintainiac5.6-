@@ -9,14 +9,16 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('recovery record explains resume context without receipt content', () {
+    final stagedPhotoPaths = ['/tmp/section-one.jpg', '/tmp/section-two.jpg'];
+    final attachments = <ReceiptAttachmentRecord>[];
     final record = ReceiptNativeCaptureRecoveryRecord(
       manifestPath: '/tmp/recovery.json',
       sessionId: 'native-session',
       engine: ReceiptNativeCameraEngine.cameraX,
       capturedAt: DateTime(2026, 6, 28, 15),
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stagedPhotoPaths: const ['/tmp/section-one.jpg', '/tmp/section-two.jpg'],
-      attachments: const [],
+      stagedPhotoPaths: stagedPhotoPaths,
+      attachments: attachments,
       captureDiagnostics: const {
         'closeAction': 'back_returned_captured_sections',
         'storageSafetyLevel': 'strong',
@@ -30,7 +32,12 @@ void main() {
       },
     );
 
+    stagedPhotoPaths.add('/tmp/late-source.jpg');
     expect(record.recoveredPhotoCount, 2);
+    expect(
+      () => record.stagedPhotoPaths.add('/tmp/late.jpg'),
+      throwsA(isA<UnsupportedError>()),
+    );
     expect(record.assistedReceiptFillAtCapture, isTrue);
     expect(record.recoveryAge(now: DateTime(2026, 6, 29, 15)).inHours, 24);
     expect(

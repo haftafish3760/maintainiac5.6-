@@ -1,17 +1,18 @@
 part of 'receipt_native_capture_staging.dart';
 
 class ReceiptNativeCaptureRecoveryRecord {
-  const ReceiptNativeCaptureRecoveryRecord({
+  ReceiptNativeCaptureRecoveryRecord({
     required this.manifestPath,
     required this.sessionId,
     required this.engine,
     required this.capturedAt,
     required this.dataSaverLevel,
-    required this.stagedPhotoPaths,
-    required this.attachments,
+    required List<String> stagedPhotoPaths,
+    required List<ReceiptAttachmentRecord> attachments,
     required this.captureDiagnostics,
     this.recoverySafety = const {},
-  });
+  }) : stagedPhotoPaths = List<String>.unmodifiable(stagedPhotoPaths),
+       attachments = List<ReceiptAttachmentRecord>.unmodifiable(attachments);
 
   factory ReceiptNativeCaptureRecoveryRecord.fromManifest(
     String manifestPath,

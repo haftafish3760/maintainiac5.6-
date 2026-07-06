@@ -6,18 +6,19 @@ import 'receipt_capture_models.dart';
 import 'receipt_native_capture_diagnostics_sanitizer.dart';
 
 class ReceiptNativeCaptureRecoveryIndexEntry {
-  const ReceiptNativeCaptureRecoveryIndexEntry({
+  ReceiptNativeCaptureRecoveryIndexEntry({
     required this.sessionId,
     required this.manifestPath,
     required this.engineName,
     required this.capturedAt,
     required this.dataSaverLevelName,
     required this.photoCount,
-    required this.stagedPhotoPaths,
-    required this.attachments,
+    required List<String> stagedPhotoPaths,
+    required List<ReceiptAttachmentRecord> attachments,
     required this.captureDiagnostics,
     this.recoverySafety = const {},
-  });
+  }) : stagedPhotoPaths = List<String>.unmodifiable(stagedPhotoPaths),
+       attachments = List<ReceiptAttachmentRecord>.unmodifiable(attachments);
 
   factory ReceiptNativeCaptureRecoveryIndexEntry.fromMap(
     Map<dynamic, dynamic> map,
