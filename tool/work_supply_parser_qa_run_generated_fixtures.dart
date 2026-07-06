@@ -9,6 +9,7 @@ const _usage =
     '[--start-index 0] [--max-chunks 0] '
     '[--report-dir build/parser_qa_reports/generated_fixtures] '
     '[--timeout-ms 900000] '
+    '[--stale-report-timeout-ms 120000] '
     '[--warmup] [--verbose]';
 
 Future<void> main(List<String> args) async {
@@ -57,6 +58,7 @@ Future<int> runGeneratedParserFixtures(
     'chunkSize=${options.chunkSize} chunks=${chunks.length} '
     'startIndex=${options.startIndex} maxChunks=${options.maxChunks} '
     'timeoutMs=${options.timeoutMs} '
+    'staleReportTimeoutMs=${options.staleReportTimeoutMs} '
     'warmup=${options.warmup} '
     'outputMode=${options.verbose ? 'verbose' : 'summary'}',
   );
@@ -79,6 +81,9 @@ Future<int> runGeneratedParserFixtures(
             'flutter',
             ['test', ...command],
             timeoutMs: options.timeoutMs,
+            staleReportTimeoutMs: options.staleReportTimeoutMs,
+            activeReportPath:
+                '$chunkReportDir/latest_generated_fixture_run.json',
             runInShell: Platform.isWindows,
           )
         : await processRunner('flutter', [
@@ -145,6 +150,7 @@ class _FixtureRunnerOptions {
     required this.startIndex,
     required this.maxChunks,
     required this.timeoutMs,
+    required this.staleReportTimeoutMs,
     required this.warmup,
     required this.verbose,
   });
@@ -157,12 +163,16 @@ class _FixtureRunnerOptions {
   final int startIndex;
   final int maxChunks;
   final int timeoutMs;
+  final int staleReportTimeoutMs;
   final bool warmup;
   final bool verbose;
 
   static _FixtureRunnerOptions parse(List<String> args) {
     final timeoutMs =
         int.tryParse(_valueAfter(args, '--timeout-ms') ?? '') ?? 900000;
+    final staleReportTimeoutMs =
+        int.tryParse(_valueAfter(args, '--stale-report-timeout-ms') ?? '') ??
+        120000;
     final chunkSize =
         int.tryParse(_valueAfter(args, '--chunk-size') ?? '') ?? 200;
     final startIndex =
@@ -180,6 +190,7 @@ class _FixtureRunnerOptions {
       startIndex: startIndex < 0 ? 0 : startIndex,
       maxChunks: maxChunks < 0 ? 0 : maxChunks,
       timeoutMs: timeoutMs <= 0 ? 900000 : timeoutMs,
+      staleReportTimeoutMs: staleReportTimeoutMs < 0 ? 0 : staleReportTimeoutMs,
       warmup: args.contains('--warmup'),
       verbose: args.contains('--verbose'),
     );
@@ -256,6 +267,8 @@ Future<ProcessResult> _runProcessWithTimeout(
   String executable,
   List<String> arguments, {
   required int timeoutMs,
+  required int staleReportTimeoutMs,
+  required String activeReportPath,
   required bool runInShell,
 }) async {
   final process = await Process.start(
@@ -265,29 +278,92 @@ Future<ProcessResult> _runProcessWithTimeout(
   );
   final stdoutFuture = process.stdout.transform(utf8.decoder).join();
   final stderrFuture = process.stderr.transform(utf8.decoder).join();
-  var timedOut = false;
-  final exitCode = await process.exitCode.timeout(
-    Duration(milliseconds: timeoutMs),
-    onTimeout: () {
-      timedOut = true;
-      if (Platform.isWindows) {
-        Process.runSync('taskkill', ['/PID', '${process.pid}', '/T', '/F']);
-      } else {
-        process.kill(ProcessSignal.sigkill);
-      }
+  var stopReason = '';
+  final futures = <Future<int>>[
+    process.exitCode,
+    Future<int>.delayed(Duration(milliseconds: timeoutMs), () {
+      stopReason = 'timed out after ${timeoutMs}ms';
+      _killProcessTree(process.pid);
       return 124;
-    },
-  );
+    }),
+  ];
+  if (staleReportTimeoutMs > 0) {
+    futures.add(
+      _staleActiveReportExitCode(
+        activeReportPath,
+        staleReportTimeoutMs: staleReportTimeoutMs,
+        processId: process.pid,
+      ).then((staleExit) async {
+        if (staleExit != null) {
+          stopReason =
+              'stalled with no completed parser cases for '
+              '${staleReportTimeoutMs}ms';
+          return staleExit;
+        }
+        return process.exitCode;
+      }),
+    );
+  }
+  final exitCode = await Future.any<int>(futures);
   final stdoutText = await stdoutFuture;
   final stderrText = await stderrFuture;
   return ProcessResult(
     process.pid,
     exitCode,
     stdoutText,
-    timedOut
-        ? '$stderrText\nGenerated fixture runner timed out after ${timeoutMs}ms.'
+    stopReason.isNotEmpty
+        ? '$stderrText\nGenerated fixture runner $stopReason.'
         : stderrText,
   );
+}
+
+Future<int?> _staleActiveReportExitCode(
+  String reportPath, {
+  required int staleReportTimeoutMs,
+  required int processId,
+}) async {
+  final deadline = DateTime.now().add(
+    Duration(milliseconds: staleReportTimeoutMs),
+  );
+  while (DateTime.now().isBefore(deadline)) {
+    await Future<void>.delayed(const Duration(seconds: 2));
+    if (!_isProcessAlive(processId)) return null;
+    final report = File(reportPath);
+    if (!report.existsSync()) continue;
+    try {
+      final json = jsonDecode(report.readAsStringSync()) as Map;
+      final checked = json['checked'] as int? ?? 0;
+      final incomplete = json['incomplete'] == true;
+      if (checked > 0 || !incomplete) return null;
+    } catch (_) {
+      return null;
+    }
+  }
+  if (_isProcessAlive(processId)) {
+    _killProcessTree(processId);
+    return 124;
+  }
+  return null;
+}
+
+bool _isProcessAlive(int processId) {
+  try {
+    if (Platform.isWindows) {
+      final result = Process.runSync('tasklist', ['/FI', 'PID eq $processId']);
+      return '${result.stdout}'.contains('$processId');
+    }
+    return Process.runSync('kill', ['-0', '$processId']).exitCode == 0;
+  } catch (_) {
+    return false;
+  }
+}
+
+void _killProcessTree(int processId) {
+  if (Platform.isWindows) {
+    Process.runSync('taskkill', ['/PID', '$processId', '/T', '/F']);
+  } else {
+    Process.killPid(processId, ProcessSignal.sigkill);
+  }
 }
 
 _ChunkRunSummary _chunkSummary({
@@ -305,14 +381,15 @@ _ChunkRunSummary _chunkSummary({
     try {
       final json =
           jsonDecode(report.readAsStringSync()) as Map<String, dynamic>;
+      final incomplete = json['incomplete'] == true;
       return _ChunkRunSummary(
         chunkNumber: chunkNumber,
         chunkCount: chunkCount,
         checked: json['checked'] as int? ?? fixtureCount,
-        failures: json['failureCount'] as int? ?? 0,
+        failures: incomplete ? 1 : json['failureCount'] as int? ?? 0,
         warmupMs: json['warmupMs'] as int? ?? 0,
         parserCalls: json['parserCalls'] as int? ?? 0,
-        exitCode: exitCode,
+        exitCode: incomplete && exitCode == 0 ? 1 : exitCode,
         startIndex: startIndex,
         fixtureCount: fixtureCount,
         durationMs: durationMs,
@@ -467,6 +544,7 @@ String _resumeCommand(
       '--fixture-ids ${options.fixtureIds.join(',')}',
     '--report-dir ${options.reportDir}',
     '--timeout-ms ${options.timeoutMs}',
+    '--stale-report-timeout-ms ${options.staleReportTimeoutMs}',
   ].join(' ');
 }
 

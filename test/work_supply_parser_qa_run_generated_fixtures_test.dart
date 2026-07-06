@@ -718,6 +718,93 @@ void main() {
       expect(aggregate['resumeCommand'], contains('--start-index 0'));
     },
   );
+
+  test(
+    'generated fixture wrapper rejects incomplete active fixture reports',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_generated_fixture_runner_incomplete_report_',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final fixture = File('${root.path}/generated_fixtures.json')
+        ..writeAsStringSync(
+          const JsonEncoder.withIndent('  ').convert([
+            {
+              'id': 'fixture_0',
+              'caseType': 'clear_match',
+              'rawLine': 'HD 1/2 PEX CRMP ELL 1.00',
+              'expectedTrade': 'Plumbing',
+              'expectedNameContains': 'PEX',
+              'tradeScope': 'Plumbing',
+            },
+          ]),
+        );
+
+      final stdout = _MemorySink();
+      final stderr = _MemorySink();
+      final exit = await runGeneratedParserFixtures(
+        [
+          '--fixture',
+          fixture.path,
+          '--max-cases',
+          '1',
+          '--stale-report-timeout-ms',
+          '250',
+          '--report-dir',
+          '${root.path}/reports',
+        ],
+        stdout: stdout,
+        stderr: stderr,
+        processRunner:
+            (
+              String command,
+              List<String> args, {
+              bool runInShell = false,
+            }) async {
+              final reportDirArg = args.firstWhere(
+                (arg) => arg.startsWith(
+                  '--dart-define=PARSER_QA_GENERATED_REPORT_DIR=',
+                ),
+              );
+              final reportDir = reportDirArg.split('=').last;
+              Directory(reportDir).createSync(recursive: true);
+              File(
+                '$reportDir/latest_generated_fixture_run.json',
+              ).writeAsStringSync(
+                const JsonEncoder.withIndent('  ').convert({
+                  'schemaVersion': 1,
+                  'checked': 0,
+                  'failureCount': 0,
+                  'parserCalls': 0,
+                  'incomplete': true,
+                  'activeStage': 'fixture',
+                  'activeId': 'fixture_0',
+                }),
+              );
+              return ProcessResult(63, 0, '', '');
+            },
+      );
+
+      final aggregate =
+          jsonDecode(
+                File(
+                  '${root.path}/reports/latest_generated_fixture_run.json',
+                ).readAsStringSync(),
+              )
+              as Map;
+
+      expect(exit, 1);
+      expect(stdout.content, contains('staleReportTimeoutMs=250'));
+      expect(aggregate['failureCount'], 1);
+      expect(aggregate['nonZeroChunkExitCount'], 1);
+      expect(aggregate['failedChunkStartIndex'], 0);
+      expect(aggregate['resumeCommand'], contains('--start-index 0'));
+      expect(
+        aggregate['resumeCommand'],
+        contains('--stale-report-timeout-ms 250'),
+      );
+    },
+  );
 }
 
 class _MemorySink implements IOSink {
