@@ -84,6 +84,11 @@ extension _ReceiptAttachmentOcrSourceRiskFlags
       flags.add(
         'ocr_source_section_order_action_${attachmentSignalToken(result.receiptSectionOrderReviewActionCode)}',
       );
+      if (result.stitchResult.failedPairLabel.isNotEmpty) {
+        flags.add(
+          'ocr_source_section_order_failed_pair_${attachmentSignalToken(result.stitchResult.failedPairLabel)}',
+        );
+      }
     }
     flags.add(
       'ocr_source_first_${attachmentSignalToken(result.ocrSourceFirstDecisionCode)}',

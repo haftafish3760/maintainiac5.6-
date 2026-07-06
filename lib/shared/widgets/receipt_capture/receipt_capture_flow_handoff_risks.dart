@@ -39,6 +39,11 @@ List<String> _ocrSourceRiskFlagsFor(
     flags.add(
       'ocr_source_section_order_action_${_signalToken(result.receiptSectionOrderReviewActionCode)}',
     );
+    if (result.stitchResult.failedPairLabel.isNotEmpty) {
+      flags.add(
+        'ocr_source_section_order_failed_pair_${_signalToken(result.stitchResult.failedPairLabel)}',
+      );
+    }
   }
   flags.add(
     'ocr_source_first_${_signalToken(result.ocrSourceFirstDecisionCode)}',

@@ -244,6 +244,22 @@ void main() {
       attachmentRisks,
       contains('ocr_source_stitch_result_contract_mismatch'),
     );
+    expect(
+      captureFlow,
+      contains('receipt_section_order_failed_pair_'),
+    );
+    expect(
+      captureRisks,
+      contains('ocr_source_section_order_failed_pair_'),
+    );
+    expect(
+      attachmentPanel,
+      contains('receipt_section_order_failed_pair_'),
+    );
+    expect(
+      attachmentRisks,
+      contains('ocr_source_section_order_failed_pair_'),
+    );
     expect(receiptEntryScreen, contains("'saved_proof_fallback'"));
     expect(receiptEntryScreen, contains('ocrSourceHandoffSignalCounts'));
     expect(receiptEntryScreen, contains('result.receiptReaderHandoffCounts'));

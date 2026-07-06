@@ -81,6 +81,12 @@ void main() {
         'ocr_source_section_order_action_review_retaken_section_order_before_ocr',
       ),
     );
+    expect(
+      attachments.single.documentSignals.contains(
+        'receipt_section_order_failed_pair_photo_2_to_3',
+      ),
+      isFalse,
+    );
     final metadata = result.privacySafeReceiptReaderHandoffMetadata.toString();
     expect(metadata, contains('review_retaken_section_order_before_ocr'));
     expect(metadata, isNot(contains('/tmp/')));
@@ -252,6 +258,18 @@ void main() {
       result
           .privacySafeReceiptReaderHandoffMetadata['receiptSectionOrderFailedPairLabel'],
       'Photo 2 to 3',
+    );
+    final attachments = ReceiptCaptureFlow.attachmentsFromReviewResult(
+      result,
+      ReceiptCaptureFlowModule.expenses,
+    );
+    expect(
+      attachments.expand((attachment) => attachment.documentSignals),
+      contains('receipt_section_order_failed_pair_photo_2_to_3'),
+    );
+    expect(
+      attachments.expand((attachment) => attachment.riskFlags),
+      contains('ocr_source_section_order_failed_pair_photo_2_to_3'),
     );
   });
 

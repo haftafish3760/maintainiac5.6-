@@ -39,6 +39,11 @@ extension _ReceiptAttachmentOcrSourceSignals
     }
     if (result.receiptSectionOrderNeedsReview) {
       signals.add('receipt_section_order_review_required');
+      if (result.stitchResult.failedPairLabel.isNotEmpty) {
+        signals.add(
+          'receipt_section_order_failed_pair_${attachmentSignalToken(result.stitchResult.failedPairLabel)}',
+        );
+      }
     }
     if (result.usesSeparateOcrSourceCopies) {
       signals.add('receipt_handoff_separate_ocr_source');
