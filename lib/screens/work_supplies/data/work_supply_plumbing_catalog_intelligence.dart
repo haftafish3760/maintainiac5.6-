@@ -79,6 +79,9 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
     return _hasAny(text, _plumbingCoreValveAndWaterHeaterSignals) ||
         !_hasPlumbingProfessionalSignal(text);
   }
+  if (category == 'pumps' && system == 'well service') {
+    return _hasAny(text, _plumbingCoreWellServiceSignals);
+  }
   if (category == 'fittings') {
     if (system == 'copper' || system == 'brass') {
       if (item.variant.toLowerCase().startsWith('2 x')) return false;
@@ -316,6 +319,17 @@ const _plumbingCompleteTermSignals = [
   'interceptor',
   'mop sink',
   'industrial',
+];
+
+const _plumbingCoreWellServiceSignals = [
+  'well pump',
+  'pressure switch',
+  'well switch',
+  'well pipe',
+  'pitless adapter',
+  'well check valve',
+  'pump check valve',
+  'pressure gauge',
 ];
 
 const _plumbingProfessionalTermSignals = [

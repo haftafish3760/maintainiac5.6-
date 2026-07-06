@@ -67,9 +67,9 @@ List<WorkSupplyItem> _hvacDetailFilterProducts() {
         for (final depth in ['1 in', '2 in', '4 in', '5 in'])
           for (final rating in ['MERV 8', 'MERV 11', 'MERV 13', 'MERV 16'])
             for (final item in [
-              'Pleated Air Filter',
+              'Pleated Furnace Filter',
               'Return Air Filter',
-              'Media Cabinet Filter',
+              'Media Cabinet Furnace Filter',
             ])
               '$size x $depth $rating $item',
     ],

@@ -344,6 +344,7 @@ bool _isLegacyRepairBridge(WorkSupplyItem item) {
 }
 
 bool _looksLikeMajorEquipment(String text) {
+  if (_looksLikeFurnaceServicePart(text)) return false;
   return text.contains('heat pump') ||
       text.contains('condenser') ||
       text.contains('air handler') ||
@@ -351,6 +352,13 @@ bool _looksLikeMajorEquipment(String text) {
       text.contains('boiler') ||
       text.contains('tankless') ||
       text.contains('mini split');
+}
+
+bool _looksLikeFurnaceServicePart(String text) {
+  return text.contains('furnace filter') ||
+      text.contains('furnace door switch') ||
+      text.contains('furnace control board') ||
+      text.contains('furnace service part');
 }
 
 bool _looksSpecialOrderOrWarehouse(String text) {
@@ -920,6 +928,7 @@ const _serviceTruckSignals = {
   'supply house',
   'stocked',
   'daily',
+  'pressure gauge',
 };
 
 enum _Severity { blocker }

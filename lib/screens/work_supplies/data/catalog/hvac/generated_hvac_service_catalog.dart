@@ -7,7 +7,7 @@ final hvacGeneratedServiceCatalogCategory = _category(
       _type(
         'MERV Pleated Filters',
         _hvacProducts(
-          baseName: 'Pleated Air Filter',
+          baseName: 'Pleated Furnace Filter',
           unit: 'each',
           variants: [
             for (final rating in ['MERV 8', 'MERV 11', 'MERV 13'])
@@ -19,13 +19,18 @@ final hvacGeneratedServiceCatalogCategory = _category(
       _type(
         'Media Cabinet Filters',
         _hvacProducts(
-          baseName: 'Media Cabinet Filter',
+          baseName: 'Media Cabinet Furnace Filter',
           unit: 'each',
           variants: [
             for (final size in _hvacMediaFilterSizes)
               for (final depth in ['4 in', '5 in']) '$size x $depth',
           ],
-          aliases: const ['media filter', 'air cleaner filter'],
+          aliases: const [
+            'media filter',
+            'air cleaner filter',
+            'furnace filter',
+            'return filter',
+          ],
         ),
       ),
       _type(

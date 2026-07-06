@@ -171,8 +171,10 @@ bool _isExpandedElectricalServiceCore(String system, String text) {
 bool _isHvacCoreItem(WorkSupplyItem item, String text) {
   final category = item.category.toLowerCase();
   final system = item.system.toLowerCase();
+  if (category == 'air filters' || system == 'expanded air filters') {
+    return _hasAny(text, _hvacCoreFilterSignals);
+  }
   if (_hasAny(text, _hvacProfessionalTierSignals)) return false;
-  if (category == 'air filters') return _hasAny(text, _hvacCoreFilterSignals);
   if (category == 'controls and electrical') {
     return _hasAny(text, _hvacCoreControlSignals);
   }
@@ -644,8 +646,6 @@ const _electricalProfessionalTierSignals = [
   'service entrance',
   'meter',
   'load center',
-  'panel',
-  'disconnect',
   'commercial',
   'bulk',
 ];
