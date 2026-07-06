@@ -96,6 +96,52 @@ void main() {
     },
   );
 
+  test('generated run status accepts direct single-cell pipeline reports', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_generated_run_direct_cell_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeRun(
+      'build/direct/reports/latest_generated_fixture_run.json',
+      checked: 25,
+      parserCalls: 25,
+      durationMs: 1200,
+    );
+
+    final exit = runWorkSupplyParserQaGeneratedRunStatus(
+      [
+        '--report-root',
+        'build/direct',
+        '--trades',
+        'plumbing',
+        '--tiers',
+        'core',
+        '--locales',
+        'en-US',
+        '--require-complete',
+        '--min-checked-per-cell',
+        '25',
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    final status = _readJson(
+      'build/parser_qa_pipeline/core_generated_run_status.json',
+    );
+    final cells = status['cells'] as List;
+
+    expect(exit, 0);
+    expect(status['presentCells'], 1);
+    expect(status['checkedTotal'], 25);
+    expect(status['durationMs'], 1200);
+    expect(cells.single, containsPair('reportPath', contains('build/direct')));
+    expect(cells.single, containsPair('localOnlySafe', true));
+  });
+
   test('generated run status fails failed or unsafe report cells', () {
     final root = Directory.systemTemp.createTempSync(
       'maintainiac_generated_run_unsafe_',

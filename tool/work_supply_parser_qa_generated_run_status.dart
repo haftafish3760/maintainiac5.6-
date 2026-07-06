@@ -102,8 +102,7 @@ Map<String, Object?> _readCell(
   String tier,
   String locale,
 ) {
-  final reportPath =
-      '${options.reportRoot}/$trade/$scope/$tier/$locale/reports/latest_generated_fixture_run.json';
+  final reportPath = _reportPathFor(options, trade, scope, tier, locale);
   final file = File(reportPath);
   if (!file.existsSync()) {
     return _cell(
@@ -154,6 +153,27 @@ Map<String, Object?> _readCell(
     underMinChecked: underMinChecked,
     fixturePath: json['fixturePath']?.toString() ?? '',
   );
+}
+
+String _reportPathFor(
+  _Options options,
+  String trade,
+  String scope,
+  String tier,
+  String locale,
+) {
+  final matrixPath =
+      '${options.reportRoot}/$trade/$scope/$tier/$locale/reports/latest_generated_fixture_run.json';
+  if (File(matrixPath).existsSync()) return matrixPath;
+  final directPath =
+      '${options.reportRoot}/reports/latest_generated_fixture_run.json';
+  final singleCell =
+      options.trades.length == 1 &&
+      options.scopes.length == 1 &&
+      options.tiers.length == 1 &&
+      options.locales.length == 1;
+  if (singleCell && File(directPath).existsSync()) return directPath;
+  return matrixPath;
 }
 
 bool _chunkRunComplete(Map<String, Object?> json) {
