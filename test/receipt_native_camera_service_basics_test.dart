@@ -55,7 +55,15 @@ void main() {
       ).captureReceipt(config);
 
       expect(sentArguments['longReceiptMode'], isFalse);
+      expect(sentArguments['motionBlurWarningEnabled'], isFalse);
+      expect(sentArguments['glareWarningEnabled'], isFalse);
       expect(sentArguments['dirtyLensWarningEnabled'], isFalse);
+      expect(sentArguments['lowLightWarningEnabled'], isFalse);
+      expect(sentArguments['shadowWarningEnabled'], isFalse);
+      expect(
+        sentArguments['readabilityGuidancePolicy'],
+        'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
+      );
       expect(sentArguments['maxSectionCount'], 1);
       expect(
         sentArguments['focusReadabilityFallbackPolicy'],
