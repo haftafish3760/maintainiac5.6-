@@ -162,6 +162,48 @@ void main() {
     );
   });
 
+  test('retake preserved outcome outranks generic numbered ghost guidance', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/top.jpg', '/tmp/middle-new.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.fallback(
+        inputPaths: ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
+        warning: 'Review retaken section order.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/middle-new.jpg': {
+          'receiptSectionCount': 2,
+          'nextReceiptSectionNumber': 2,
+          'receiptSectionOrderPolicy': 'top_to_bottom_numbered_sections',
+          'previousSectionGhostGuideVisible': true,
+          'receiptRetakePreservedOriginalSlot': true,
+          'receiptRetakeOriginalSectionNumber': 2,
+          'receiptRetakeFinalSectionNumber': 2,
+          'receiptRetakeGuidanceCode':
+              'retake_middle_with_previous_next_context',
+          'receiptRetakeHasPreviousAlignmentContext': true,
+          'receiptRetakeHasNextAlignmentContext': true,
+          'receiptRetakeHasTwoSidedAlignmentContext': true,
+          'receiptRetakePreviousContextSectionNumber': 1,
+          'receiptRetakeNextContextSectionNumber': 3,
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderOutcome, 'retake_order_preserved');
+    expect(
+      result.receiptSectionOrderReviewActionCode,
+      'review_retaken_section_then_continue',
+    );
+    expect(
+      result.receiptSectionOrderEvidenceLabel,
+      'section_order=retake_order_preserved;'
+      'multi_section_photos=1;ghost_visible;retake_preserved',
+    );
+  });
+
   test('malformed retake section metadata is counted without leaking paths', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/top.jpg', '/tmp/middle-new.jpg'],

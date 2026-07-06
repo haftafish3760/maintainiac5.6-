@@ -14,13 +14,6 @@ extension ReceiptPhotoReviewResultSectionOrderOutcome
     if (counts.keys.any((key) => key.startsWith('manual_reorder_invalid_'))) {
       return 'manual_reorder_invalid';
     }
-    if ((counts['policy_top_to_bottom_numbered_sections'] ?? 0) > 0 &&
-        (counts['ghost_guide_visible'] ?? 0) > 0) {
-      return 'numbered_sections_with_ghost_guide';
-    }
-    if ((counts['policy_top_to_bottom_numbered_sections'] ?? 0) > 0) {
-      return 'numbered_sections_top_to_bottom';
-    }
     if ((counts['retake_preserved_original_slot'] ?? 0) > 0) {
       return 'retake_order_preserved';
     }
@@ -29,6 +22,13 @@ extension ReceiptPhotoReviewResultSectionOrderOutcome
     }
     if ((counts['manual_reorder_preserved_photo_path'] ?? 0) > 0) {
       return 'manual_reorder_preserved';
+    }
+    if ((counts['policy_top_to_bottom_numbered_sections'] ?? 0) > 0 &&
+        (counts['ghost_guide_visible'] ?? 0) > 0) {
+      return 'numbered_sections_with_ghost_guide';
+    }
+    if ((counts['policy_top_to_bottom_numbered_sections'] ?? 0) > 0) {
+      return 'numbered_sections_top_to_bottom';
     }
     if (counts.keys.any((key) => key.startsWith('multi_section_'))) {
       return 'multi_section_order_tracked';
