@@ -146,6 +146,20 @@ void main() {
       );
       expect(cameraActivity, contains('receiptGuidanceWarningsEnabled'));
       expect(cameraActivity, contains('setReceiptGuidanceWarningsEnabled'));
+      expect(
+        cameraActivity,
+        contains(
+          'internal fun ReceiptCameraActivity.hasExperimentalReceiptQualityWarningsEnabled()',
+        ),
+      );
+      expect(
+        cameraActivity,
+        contains('latestReadabilitySignal = "neutral_workflow_guidance_only"'),
+      );
+      expect(
+        cameraActivity,
+        contains('if (!hasExperimentalReceiptQualityWarningsEnabled())'),
+      );
       final guidanceToggleStart = cameraActivity.indexOf(
         'internal fun ReceiptCameraActivity.receiptGuidanceWarningsEnabled()',
       );

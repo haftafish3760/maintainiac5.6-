@@ -185,6 +185,18 @@ void main() {
       expect(cameraController, contains('latestMotionScore'));
       expect(
         cameraController,
+        contains('func hasExperimentalReceiptQualityWarningsEnabled() -> Bool'),
+      );
+      expect(
+        cameraController,
+        contains('if !hasExperimentalReceiptQualityWarningsEnabled()'),
+      );
+      expect(
+        cameraController,
+        contains('latestReadabilitySignal = "neutral_workflow_guidance_only"'),
+      );
+      expect(
+        cameraController,
         contains('Hold steady so the receipt text stays sharp.'),
       );
       expect(

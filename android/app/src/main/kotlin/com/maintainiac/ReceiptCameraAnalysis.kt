@@ -206,13 +206,17 @@ internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
             resetExperimentalReceiptQualityGuidanceIfNeeded()
             return
         }
+        if (!hasExperimentalReceiptQualityWarningsEnabled()) {
+            latestMotionSignal = if (motionScore >= 0) "steady" else "unknown"
+            latestReadabilitySignal = "neutral_workflow_guidance_only"
+            resetExperimentalReceiptQualityGuidanceIfNeeded()
+            return
+        }
         val currentGuidance = guidance.text.toString()
         if (!brightness.isFinite() || !motionScore.isFinite() || !shadowScore.isFinite()) {
             latestMotionSignal = "unknown"
             latestReadabilitySignal = "readability_unknown"
-            if (receiptFullyVisibleWarningEnabled) {
-                guidance.text = "Receipt quality needs another look. Keep it flat and readable."
-            }
+            guidance.text = "Receipt quality needs another look. Keep it flat and readable."
         } else if (motionBlurWarningEnabled && motionScore > 22.0) {
             latestMotionSignal = "moving_too_much"
             guidance.text = "Hold steady so the receipt text stays sharp."
@@ -245,6 +249,14 @@ internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
     } finally {
         image.close()
     }
+}
+
+internal fun ReceiptCameraActivity.hasExperimentalReceiptQualityWarningsEnabled(): Boolean {
+    return motionBlurWarningEnabled ||
+        lowLightWarningEnabled ||
+        glareWarningEnabled ||
+        shadowWarningEnabled ||
+        dirtyLensWarningEnabled
 }
 
 internal fun ReceiptCameraActivity.resetExperimentalReceiptQualityGuidanceIfNeeded() {

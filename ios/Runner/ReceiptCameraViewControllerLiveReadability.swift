@@ -37,13 +37,17 @@ extension ReceiptCameraViewController {
       resetExperimentalReceiptQualityGuidanceIfNeeded()
       return
     }
+    if !hasExperimentalReceiptQualityWarningsEnabled() {
+      latestMotionSignal = motionScore >= 0 ? "steady" : "unknown"
+      latestReadabilitySignal = "neutral_workflow_guidance_only"
+      resetExperimentalReceiptQualityGuidanceIfNeeded()
+      return
+    }
     let currentGuidance = guidanceLabel.text ?? ""
     if !brightness.isFinite || !motionScore.isFinite || !shadowScore.isFinite {
       latestMotionSignal = "unknown"
       latestReadabilitySignal = "readability_unknown"
-      if receiptFullyVisibleWarningEnabled {
-        guidanceLabel.text = "Receipt quality needs another look. Keep it flat and readable."
-      }
+      guidanceLabel.text = "Receipt quality needs another look. Keep it flat and readable."
     } else if motionBlurWarningEnabled && motionScore > 22 {
       latestMotionSignal = "moving_too_much"
       guidanceLabel.text = "Hold steady so the receipt text stays sharp."
@@ -70,6 +74,14 @@ extension ReceiptCameraViewController {
         guidanceLabel.text = guidanceText()
       }
     }
+  }
+
+  func hasExperimentalReceiptQualityWarningsEnabled() -> Bool {
+    return motionBlurWarningEnabled ||
+        lowLightWarningEnabled ||
+        glareWarningEnabled ||
+        shadowWarningEnabled ||
+        dirtyLensWarningEnabled
   }
 
   func resetExperimentalReceiptQualityGuidanceIfNeeded() {
