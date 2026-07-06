@@ -16,7 +16,7 @@ extension _ReceiptPdfImportSheets on _SharedReceiptAttachmentPanelState {
   ) async {
     final settings = ReceiptCaptureSettingsScope.maybeOf(context);
     if (widget.onImportedText == null ||
-        settings?.appAssistedEnabledFor(widget.area) == false ||
+        !_appAssistedReceiptFillEnabled ||
         !inspections.any((inspection) => inspection.canUseAssistedRead)) {
       return _PdfReceiptReadMode.saveProofOnly;
     }

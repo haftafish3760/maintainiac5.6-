@@ -86,8 +86,7 @@ extension _ReceiptAttachmentPanelBuild on _SharedReceiptAttachmentPanelState {
             photoCount: _photoPaths.length,
             documents: _documentAttachments,
             dataSaverLevel: _dataSaverLevel,
-            appAssistedEnabled:
-                settings?.appAssistedEnabledFor(widget.area) != false,
+            appAssistedEnabled: _appAssistedReceiptFillEnabled,
             onReview: reviewReceiptPhotos,
           ),
           const SizedBox(height: 8),

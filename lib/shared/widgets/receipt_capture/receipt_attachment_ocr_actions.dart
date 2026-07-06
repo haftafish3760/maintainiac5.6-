@@ -36,7 +36,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
     final settings = ReceiptCaptureSettingsScope.maybeOf(context);
     if (widget.onImportedText == null ||
         readable.isEmpty ||
-        settings?.appAssistedEnabledFor(widget.area) == false) {
+        !_appAssistedReceiptFillEnabled) {
       if (showDisabledMessage) {
         showPickerError('Receipt assistance is turned off for this area.');
       }

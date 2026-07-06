@@ -169,8 +169,7 @@ extension _ReceiptAttachmentReviewReadActions
 
   void _startReviewedPhotoReadStatus(ReceiptPhotoReviewResult result) {
     if (widget.onImportedText == null) return;
-    final settings = ReceiptCaptureSettingsScope.maybeOf(context);
-    if (settings?.appAssistedEnabledFor(widget.area) == false) return;
+    if (!_appAssistedReceiptFillEnabled) return;
     widget.onReceiptReadStarted?.call();
     final reviewDecision = result.nextReviewHandoffLabel;
     final action = result.acceptedPhotoHandoffActionLabel;
@@ -253,9 +252,7 @@ extension _ReceiptAttachmentReviewReadActions
         _ReceiptAttachmentReadOutcome.skipped,
       );
     }
-    final settings = ReceiptCaptureSettingsScope.maybeOf(context);
-    if (settings?.appAssistedEnabledFor(widget.area) == false ||
-        widget.onImportedText == null) {
+    if (!_appAssistedReceiptFillEnabled || widget.onImportedText == null) {
       updateAttachmentState(() {
         _receiptReadStatus = _ReceiptReadStatusKind.warning;
         _receiptReadStatusMessage =

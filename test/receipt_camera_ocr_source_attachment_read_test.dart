@@ -48,7 +48,7 @@ void main() {
 
     expect(importActions, contains('ReceiptAttachmentReadState.readIntoForm'));
     expect(importActions, contains('ReceiptAttachmentReadState.unreadable'));
-    expect(importActions, contains('appAssistedEnabledFor(widget.area)'));
+    expect(importActions, contains('_appAssistedReceiptFillEnabled'));
     expect(importActions, contains('widget.onImportedText == null'));
     expect(importActions, contains('result.ocrSourcePhotoPaths.isEmpty'));
     expect(

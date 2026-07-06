@@ -95,8 +95,7 @@ extension _ReceiptAttachmentTextDocumentActions
         _documentAttachments[index] = attachment;
       }
     });
-    final settings = ReceiptCaptureSettingsScope.maybeOf(context);
-    if (settings?.appAssistedEnabledFor(widget.area) != false) {
+    if (_appAssistedReceiptFillEnabled) {
       final onImportedText = widget.onImportedText;
       if (onImportedText != null) {
         await Future<void>.sync(() => onImportedText(attachment.importedText));

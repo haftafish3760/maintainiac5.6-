@@ -134,6 +134,13 @@ class _SharedReceiptAttachmentPanelState
         false;
   }
 
+  bool get _appAssistedReceiptFillEnabled {
+    return ReceiptCaptureSettingsScope.maybeOf(
+          context,
+        )?.appAssistedEnabledFor(widget.area) ==
+        true;
+  }
+
   void _publishReceiptCaptureDiagnostic(Map<String, Object?> diagnostic) {
     final envelope = const ReceiptCaptureDiagnosticPublishPolicy().envelope(
       improvementOptIn: _receiptCaptureDiagnosticsImprovementEnabled,
