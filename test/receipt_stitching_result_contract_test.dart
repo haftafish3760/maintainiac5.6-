@@ -38,6 +38,16 @@ void main() {
     );
 
     expect(stitched.summaryLabel, contains('combined'));
+    expect(stitched.ocrSourceContractCode, 'stitched_ocr_source_ready');
+    expect(stitched.hasValidOcrSourceContract, isTrue);
+    expect(
+      stitched.privacySafeOcrHandoffSafety,
+      containsPair('stitchOcrSourceContractCode', 'stitched_ocr_source_ready'),
+    );
+    expect(
+      stitched.privacySafeOcrHandoffSafety,
+      containsPair('stitchOcrSourceContractReady', true),
+    );
     expect(stitched.detailLabel, contains('3 photos became 1 receipt image'));
     expect(stitched.detailLabel, contains('1200 x 4200'));
     expect(stitched.detailLabel, contains('86%'));
@@ -72,6 +82,8 @@ void main() {
     expect(zoomAndTilt.userCheckLabel, contains('zoom difference'));
     expect(zoomAndTilt.userCheckLabel, contains('slight tilt'));
     expect(fallback.summaryLabel, contains('reviewed separately'));
+    expect(fallback.ocrSourceContractCode, 'fallback_ordered_sources_ready');
+    expect(fallback.hasValidOcrSourceContract, isTrue);
     expect(fallback.ocrSourcePaths, ['/tmp/a.jpg', '/tmp/b.jpg']);
     expect(fallback.failedPairLabel, 'Photo 1 to 2');
     expect(fallback.matchedPairCount, 0);
@@ -90,6 +102,44 @@ void main() {
     expect(fallback.diagnosticCodeLabel, 'unknown');
     expect(fallback.userFallbackReasonLabel, 'Stitching was not trusted');
     expect(fallback.detailLabel, 'Photo 1 to 2: Overlap was not clear enough.');
+  });
+
+  test('stitch OCR handoff contract catches mismatched source paths', () {
+    const stitchedMismatch = ReceiptStitchResult(
+      status: ReceiptStitchStatus.stitched,
+      inputPaths: ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+      ocrSourcePaths: ['/tmp/different_stitch.jpg'],
+      stitchedPath: '/tmp/final_stitch.jpg',
+    );
+    const stitchedMissing = ReceiptStitchResult(
+      status: ReceiptStitchStatus.stitched,
+      inputPaths: ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+      ocrSourcePaths: [],
+    );
+    final fallbackMismatch =
+        const ReceiptStitchResult.fallback(
+          inputPaths: ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+          warning: 'Fallback for test.',
+        ).copyForFinalOcr(
+          inputPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+          ocrSourcePaths: const ['/tmp/top.jpg'],
+        );
+
+    expect(
+      stitchedMismatch.ocrSourceContractCode,
+      'stitched_ocr_source_path_mismatch',
+    );
+    expect(stitchedMismatch.hasValidOcrSourceContract, isFalse);
+    expect(
+      stitchedMissing.ocrSourceContractCode,
+      'stitched_ocr_source_missing',
+    );
+    expect(stitchedMissing.hasValidOcrSourceContract, isFalse);
+    expect(
+      fallbackMismatch.ocrSourceContractCode,
+      'fallback_ordered_source_count_mismatch',
+    );
+    expect(fallbackMismatch.hasValidOcrSourceContract, isFalse);
   });
 
   test('single and manual stitch overlap coverage stay explicit', () {
@@ -157,6 +207,34 @@ void main() {
       'Stitching hit a safe fallback',
     );
   });
+
+  test(
+    'stitch rejects duplicate or alias section paths before decoding',
+    () async {
+      final duplicate = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: const ['/tmp/receipt/top.jpg', '/tmp/receipt/top.jpg'],
+      );
+      final alias = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: const [
+          '/tmp/receipt/top.jpg',
+          '/tmp/receipt/../receipt/top.jpg',
+        ],
+      );
+
+      for (final result in [duplicate, alias]) {
+        expect(result.usedFallback, isTrue);
+        expect(result.diagnosticReasonLabel, 'duplicate_input_paths');
+        expect(
+          result.sourcePreservationCode,
+          'original_sections_preserved_ordered_ocr_sources',
+        );
+        expect(
+          result.ocrHandoffSafetyCode,
+          'ordered_sections_after_duplicate_input_paths_fallback',
+        );
+      }
+    },
+  );
 
   test(
     'stitch fallback reason codes normalize without leaking private text',

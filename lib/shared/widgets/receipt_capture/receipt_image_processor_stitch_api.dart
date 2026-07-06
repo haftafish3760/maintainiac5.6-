@@ -182,7 +182,9 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
 bool _stitchInputPathsAreUnique(List<String> inputPaths) {
   final seen = <String>{};
   for (final path in inputPaths) {
-    if (!seen.add(path)) return false;
+    final normalized = normalizedReceiptPhotoPath(path);
+    if (normalized == null) return false;
+    if (!seen.add(normalized)) return false;
   }
   return true;
 }

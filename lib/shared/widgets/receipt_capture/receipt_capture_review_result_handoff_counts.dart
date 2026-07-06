@@ -23,6 +23,8 @@ extension ReceiptPhotoReviewResultHandoffCounts on ReceiptPhotoReviewResult {
     } else if (ocrSourcePhotoCount > 1) {
       counts['ocr_source_ordered_sections'] = ocrSourcePhotoCount;
     }
+    counts['stitch_ocr_source_contract_${stitchResult.ocrSourceContractCode}'] =
+        1;
     counts['match_readiness_$nextReviewMatchReadinessOutcome'] = 1;
     if (hasPossiblePartialReceiptPhotos) {
       counts['possible_partial_receipt'] =

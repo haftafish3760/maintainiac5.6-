@@ -109,6 +109,37 @@ class ReceiptStitchResult {
     return 'original_section_source_policy_unknown';
   }
 
+  String get ocrSourceContractCode {
+    if (didStitch) {
+      if (stitchedPath == null || ocrSourcePaths.length != 1) {
+        return 'stitched_ocr_source_missing';
+      }
+      return _sameReceiptArtifactPath(ocrSourcePaths.single, stitchedPath!)
+          ? 'stitched_ocr_source_ready'
+          : 'stitched_ocr_source_path_mismatch';
+    }
+    if (inputPaths.length != ocrSourcePaths.length) {
+      return usedFallback
+          ? 'fallback_ordered_source_count_mismatch'
+          : 'ordered_source_count_mismatch';
+    }
+    for (var index = 0; index < inputPaths.length; index++) {
+      if (!_sameReceiptArtifactPath(inputPaths[index], ocrSourcePaths[index])) {
+        return usedFallback
+            ? 'fallback_ordered_source_path_mismatch'
+            : 'ordered_source_path_mismatch';
+      }
+    }
+    if (usedFallback) return 'fallback_ordered_sources_ready';
+    return 'ordered_sources_ready';
+  }
+
+  bool get hasValidOcrSourceContract {
+    return ocrSourceContractCode == 'stitched_ocr_source_ready' ||
+        ocrSourceContractCode == 'fallback_ordered_sources_ready' ||
+        ocrSourceContractCode == 'ordered_sources_ready';
+  }
+
   String get failedPairLabel {
     final index = failedPairIndex;
     if (index == null) return '';
@@ -224,6 +255,8 @@ class ReceiptStitchResult {
       'stitchOcrHandoffUsesOrderedSections':
           usedFallback || status == ReceiptStitchStatus.notNeeded,
       'stitchOcrHandoffSourceCount': ocrSourcePaths.length,
+      'stitchOcrSourceContractCode': ocrSourceContractCode,
+      'stitchOcrSourceContractReady': hasValidOcrSourceContract,
       'stitchOcrHandoffChecklistLabel': ocrHandoffChecklistLabel,
     });
   }
@@ -334,6 +367,12 @@ class ReceiptStitchResult {
       fallbackReasonCode: fallbackReasonCode,
     );
   }
+}
+
+bool _sameReceiptArtifactPath(String left, String right) {
+  final normalizedLeft = normalizedReceiptPhotoPath(left);
+  final normalizedRight = normalizedReceiptPhotoPath(right);
+  return normalizedLeft != null && normalizedLeft == normalizedRight;
 }
 
 String _safeStitchFallbackReasonCode(String value) {
