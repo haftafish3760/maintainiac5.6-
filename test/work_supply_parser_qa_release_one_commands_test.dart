@@ -6,64 +6,65 @@ import 'package:flutter_test/flutter_test.dart';
 import '../tool/work_supply_parser_qa_release_one_commands.dart';
 
 void main() {
-  test(
-    'release-one command manifest covers all residential priority cells',
-    () {
-      final stdout = _MemorySink();
+  test('release-one command manifest covers all residential priority cells', () {
+    final stdout = _MemorySink();
 
-      final exit = runWorkSupplyParserQaReleaseOneCommands(
-        const ['--limit', '250', '--fixture-run-limit', '25'],
-        stdout: stdout,
-        stderr: _MemorySink(),
-      );
+    final exit = runWorkSupplyParserQaReleaseOneCommands(
+      const ['--limit', '250', '--fixture-run-limit', '25'],
+      stdout: stdout,
+      stderr: _MemorySink(),
+    );
 
-      expect(exit, 0);
-      final summary = _extract(stdout.content);
-      expect(summary['cellCount'], 24);
-      expect(summary['priorityCellCount'], 12);
-      expect(summary['limit'], 250);
-      expect(summary['fixtureRunLimit'], 25);
-      expect(summary['minGeneratedCheckedPerCell'], 500);
-      expect(summary['liveServicesAllowed'], isFalse);
-      expect(summary['writesProductionCatalog'], isFalse);
-      expect(summary['firebaseWritesAllowed'], isFalse);
-      expect(summary['ocrCameraExpensesTouched'], isFalse);
-      final commands = summary['commands'] as List<dynamic>;
-      expect(commands.toString(), contains('plumbing.residential.core.en-US'));
-      expect(
-        commands.toString(),
-        contains('electrical.residential.standard.es-US'),
-      );
-      expect(commands.toString(), contains('hvac.residential.complete.es-US'));
-      final priorityCommands = commands
-          .where((entry) => (entry as Map)['priorityCell'] == true)
-          .toList();
-      expect(priorityCommands, hasLength(12));
-      expect(
-        priorityCommands.toString(),
-        contains('plumbing.residential.core.es-US'),
-      );
-      expect(
-        priorityCommands.toString(),
-        contains('hvac.residential.standard.en-US'),
-      );
-      expect(
-        commands.every(
-          (entry) => (entry as Map)['executeFlagRequired'] == true,
-        ),
-        isTrue,
-      );
-      final generatedStatusCommand =
-          summary['generatedFixtureStatusCommand'] as List;
-      expect(
-        generatedStatusCommand,
-        contains('tool/work_supply_parser_qa_generated_run_status.dart'),
-      );
-      expect(generatedStatusCommand, contains('--require-complete'));
-      expect(generatedStatusCommand, contains('--min-checked-per-cell'));
-      expect(generatedStatusCommand, contains('500'));
-    },
-  );
+    expect(exit, 0);
+    final summary = _extract(stdout.content);
+    expect(summary['cellCount'], 24);
+    expect(summary['priorityCellCount'], 12);
+    expect(summary['limit'], 250);
+    expect(summary['fixtureRunLimit'], 25);
+    expect(summary['minGeneratedCheckedPerCell'], 500);
+    expect(summary['liveServicesAllowed'], isFalse);
+    expect(summary['writesProductionCatalog'], isFalse);
+    expect(summary['firebaseWritesAllowed'], isFalse);
+    expect(summary['ocrCameraExpensesTouched'], isFalse);
+    final commands = summary['commands'] as List<dynamic>;
+    expect(commands.toString(), contains('plumbing.residential.core.en-US'));
+    expect(
+      commands.toString(),
+      contains('electrical.residential.standard.es-US'),
+    );
+    expect(commands.toString(), contains('hvac.residential.complete.es-US'));
+    final priorityCommands = commands
+        .where((entry) => (entry as Map)['priorityCell'] == true)
+        .toList();
+    expect(priorityCommands, hasLength(12));
+    expect(
+      priorityCommands.toString(),
+      contains('plumbing.residential.core.es-US'),
+    );
+    expect(
+      priorityCommands.toString(),
+      contains('hvac.residential.standard.en-US'),
+    );
+    expect(
+      commands.every((entry) => (entry as Map)['executeFlagRequired'] == true),
+      isTrue,
+    );
+    final generatedStatusCommand =
+        summary['generatedFixtureStatusCommand'] as List;
+    expect(
+      generatedStatusCommand,
+      contains('tool/work_supply_parser_qa_generated_run_status.dart'),
+    );
+    expect(generatedStatusCommand, contains('--require-complete'));
+    expect(generatedStatusCommand, contains('--min-checked-per-cell'));
+    expect(generatedStatusCommand, contains('500'));
+    expect(
+      generatedStatusCommand,
+      contains(
+        'build/parser_qa_background_queue/release-one-priority-generated/cells',
+      ),
+    );
+  });
 
   test('release-one command manifest can write an artifact', () {
     final root = Directory.systemTemp.createTempSync(

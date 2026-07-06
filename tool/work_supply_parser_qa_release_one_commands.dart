@@ -95,7 +95,7 @@ int runWorkSupplyParserQaReleaseOneCommands(
       'run',
       'tool/work_supply_parser_qa_generated_run_status.dart',
       '--report-root',
-      'build/parser_qa_background_queue/release-one-core-generated/cells',
+      'build/parser_qa_background_queue/release-one-priority-generated/cells',
       '--trades',
       _trades.join(','),
       '--scopes',
