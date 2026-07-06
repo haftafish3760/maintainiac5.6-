@@ -88,6 +88,15 @@ class ReceiptNativeCaptureRecoveryRecord {
 
   bool get hasMultipleReceiptSections => recoveredPhotoCount > 1;
 
+  bool? get assistedReceiptFillAtCapture {
+    final value = captureDiagnostics['assistedReceiptFill'];
+    if (value is bool) return value;
+    final normalized = value?.toString().trim().toLowerCase();
+    if (normalized == 'true') return true;
+    if (normalized == 'false') return false;
+    return null;
+  }
+
   String get recoveryStorageStatus {
     if (hasCompleteLocalRecovery) return 'all_photos_available';
     if (hasExistingPhotos) return 'partial_photos_available';

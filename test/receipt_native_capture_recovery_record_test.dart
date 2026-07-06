@@ -25,11 +25,13 @@ void main() {
             'small_local_proof_temporary_source_for_ocr_then_cleanup',
         'cameraWorkloadTier': 'light',
         'latestCapturedExposureMismatch': 'live_ok_capture_dim',
+        'assistedReceiptFill': true,
         'receiptText': 'PRIVATE RECEIPT TEXT',
       },
     );
 
     expect(record.recoveredPhotoCount, 2);
+    expect(record.assistedReceiptFillAtCapture, isTrue);
     expect(record.recoveryAge(now: DateTime(2026, 6, 29, 15)).inHours, 24);
     expect(
       record.recoveryFreshnessBucket(now: DateTime(2026, 6, 28, 20)),
@@ -110,6 +112,46 @@ void main() {
     );
     expect(record.recoveryResumeDetail, isNot(contains('PRIVATE')));
     expect(record.privacySafeRecoveryEvidenceLabel, isNot(contains('PRIVATE')));
+  });
+
+  test('recovery record restores saved Receipt Assist choice', () {
+    final enabled = ReceiptNativeCaptureRecoveryRecord.fromManifest(
+      '/tmp/native-recovery-enabled.json',
+      {
+        'sessionId': 'enabled',
+        'engine': 'cameraX',
+        'capturedAt': '2026-07-06T04:00:00.000Z',
+        'dataSaverLevel': 'balanced',
+        'stagedPhotoPaths': ['/tmp/top.jpg'],
+        'captureDiagnostics': {'assistedReceiptFill': true},
+      },
+    );
+    final disabled = ReceiptNativeCaptureRecoveryRecord.fromManifest(
+      '/tmp/native-recovery-disabled.json',
+      {
+        'sessionId': 'disabled',
+        'engine': 'cameraX',
+        'capturedAt': '2026-07-06T04:00:00.000Z',
+        'dataSaverLevel': 'balanced',
+        'stagedPhotoPaths': ['/tmp/top.jpg'],
+        'captureDiagnostics': {'assistedReceiptFill': 'false'},
+      },
+    );
+    final missing = ReceiptNativeCaptureRecoveryRecord.fromManifest(
+      '/tmp/native-recovery-missing.json',
+      {
+        'sessionId': 'missing',
+        'engine': 'cameraX',
+        'capturedAt': '2026-07-06T04:00:00.000Z',
+        'dataSaverLevel': 'balanced',
+        'stagedPhotoPaths': ['/tmp/top.jpg'],
+        'captureDiagnostics': const <String, Object?>{},
+      },
+    );
+
+    expect(enabled.assistedReceiptFillAtCapture, isTrue);
+    expect(disabled.assistedReceiptFillAtCapture, isFalse);
+    expect(missing.assistedReceiptFillAtCapture, isNull);
   });
 
   test('recovery record falls back to attachment paths for resume', () async {

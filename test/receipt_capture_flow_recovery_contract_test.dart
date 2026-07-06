@@ -235,6 +235,15 @@ void main() {
     expect(flow, contains('reviewRecoveredCapture('));
     expect(flow, contains('ReceiptNativeCaptureRecoveryRecord record'));
     expect(flow, contains('record.recoverablePhotoPaths'));
+    expect(flow, contains('record.assistedReceiptFillAtCapture'));
+    expect(
+      flow,
+      contains(
+        'record.assistedReceiptFillAtCapture ??\n'
+        '        cameraSettings.assistedReceiptFill',
+      ),
+    );
+    expect(flow, contains('assistedReceiptFill: assistedReceiptFill'));
     expect(
       flow,
       contains(

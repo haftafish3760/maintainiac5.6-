@@ -12,6 +12,9 @@ extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
     );
     final settings = ReceiptCaptureSettingsScope.maybeOf(context);
     final cameraSettings = _cameraSettingsFor(settings, options);
+    final assistedReceiptFill =
+        record.assistedReceiptFillAtCapture ??
+        cameraSettings.assistedReceiptFill;
     final photoPaths = _existingUniqueRecoveryPhotoPaths(
       record.recoverablePhotoPaths,
     );
@@ -100,7 +103,7 @@ extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
                 ...options.initialCaptureDiagnosticsByPath,
                 ...reviewOpeningDiagnostics,
               },
-              assistedReceiptFill: cameraSettings.assistedReceiptFill,
+              assistedReceiptFill: assistedReceiptFill,
             ),
           ),
         );
