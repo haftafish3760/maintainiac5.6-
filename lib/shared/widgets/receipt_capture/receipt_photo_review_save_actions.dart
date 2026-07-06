@@ -119,10 +119,10 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       }
       _forgetAcceptedReceiptPrepArtifacts(generatedPrepArtifacts, {
         ...savedPaths,
-        ...ocrSourcePaths,
         ...stitch.ocrSourcePaths,
         if (stitch.stitchedPath != null) stitch.stitchedPath!,
       });
+      unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));
       final navigator = Navigator.of(context);
       beginReceiptReviewClose();
       navigator.pop(

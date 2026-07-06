@@ -114,9 +114,36 @@ void main() {
       saveActions,
       contains('_forgetAcceptedReceiptPrepArtifacts(generatedPrepArtifacts, {'),
     );
+    final forgetStart = saveActions.indexOf(
+      '_forgetAcceptedReceiptPrepArtifacts(generatedPrepArtifacts, {',
+    );
+    final forgetEnd = saveActions.indexOf('});', forgetStart);
+    expect(forgetStart, greaterThanOrEqualTo(0));
+    expect(forgetEnd, greaterThan(forgetStart));
+    final acceptedPrepKeepSet = saveActions.substring(forgetStart, forgetEnd);
+    expect(acceptedPrepKeepSet, contains('...savedPaths'));
+    expect(acceptedPrepKeepSet, contains('...stitch.ocrSourcePaths'));
+    expect(
+      acceptedPrepKeepSet,
+      isNot(contains('...ocrSourcePaths')),
+      reason:
+          'When stitch succeeds, per-section OCR prep files are temporary and should not be kept after the final stitched OCR artifact exists.',
+    );
+    expect(
+      saveActions,
+      contains(
+        'unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));',
+      ),
+    );
     expect(
       saveActions.indexOf(
         '_forgetAcceptedReceiptPrepArtifacts(generatedPrepArtifacts, {',
+      ),
+      lessThan(saveActions.indexOf('beginReceiptReviewClose();')),
+    );
+    expect(
+      saveActions.indexOf(
+        'unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));',
       ),
       lessThan(saveActions.indexOf('beginReceiptReviewClose();')),
     );
