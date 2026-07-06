@@ -154,7 +154,7 @@ Map<String, Object?> _receiptReaderHandoffDiagnosticsFor(
 ) {
   final nativeUiCounts = result.nativeCameraUiHealthCounts;
   final closeCounts = result.nativeCloseCapturedPhotoOutcomeCounts;
-  return {
+  return Map<String, Object?>.unmodifiable({
     'receiptReaderHandoffIntegrity': result.receiptReaderHandoffIntegrityLabel,
     'receiptDetailsHandoffIntegrity':
         result.receiptDetailsHandoffIntegrityLabel,
@@ -216,7 +216,7 @@ Map<String, Object?> _receiptReaderHandoffDiagnosticsFor(
           result.nativeCloseCapturedPhotoActionLabel,
     if (closeCounts.isNotEmpty)
       'nativeCloseCapturedPhotoOutcomeCounts': closeCounts,
-  };
+  });
 }
 
 String _signalToken(String value) {

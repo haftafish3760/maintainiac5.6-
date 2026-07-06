@@ -14,6 +14,18 @@ void main() {
     expect(source, contains('return List.unmodifiable(codes);'));
   });
 
+  test('receipt reader handoff diagnostics are frozen before flow handoff', () {
+    final source = File(
+      'lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_signals.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('return Map<String, Object?>.unmodifiable({'));
+    expect(
+      source,
+      isNot(contains("return {\n    'receiptReaderHandoffIntegrity'")),
+    );
+  });
+
   test('photo review result explains stitched and fallback handoffs', () {
     final stitched = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],
