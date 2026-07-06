@@ -83,6 +83,7 @@ void main() {
     expect(stdout.content, contains('runner=flutter-test'));
     expect(stdout.content, contains('QA_GENERATED_FIXTURE_RUN_CHUNK'));
     expect(stdout.content, contains('parserCalls=3'));
+    expect(stdout.content, contains('durationMs='));
     expect(stdout.content, contains('QA_GENERATED_FIXTURE_RUN_AGGREGATE'));
     expect(stdout.content, isNot(contains('flutter progress spam')));
   });
@@ -441,6 +442,7 @@ void main() {
       expect(aggregate['checked'], 2);
       expect(aggregate['failureCount'], 0);
       expect(aggregate['parserCalls'], 23);
+      expect(aggregate['durationMs'], isA<int>());
       expect(aggregate['nonZeroChunkExitCount'], 0);
       expect(aggregate['timedOutChunkCount'], 0);
       expect(
@@ -448,6 +450,12 @@ void main() {
           (chunk) => (chunk as Map)['parserCalls'],
         ),
         [11, 12],
+      );
+      expect(
+        (aggregate['chunkReports'] as List).every(
+          (chunk) => (chunk as Map)['durationMs'] is int,
+        ),
+        isTrue,
       );
     },
   );

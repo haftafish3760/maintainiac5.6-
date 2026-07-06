@@ -73,6 +73,7 @@ Future<int> runGeneratedParserFixtures(
       chunk: chunk,
       reportDir: chunkReportDir,
     );
+    final timer = Stopwatch()..start();
     final result = processRunner == null
         ? await _runProcessWithTimeout(
             'flutter',
@@ -84,6 +85,7 @@ Future<int> runGeneratedParserFixtures(
             'test',
             ...command,
           ], runInShell: Platform.isWindows);
+    timer.stop();
     final output = '${result.stdout}';
     final errorOutput = '${result.stderr}';
     final summary = _chunkSummary(
@@ -91,6 +93,7 @@ Future<int> runGeneratedParserFixtures(
       chunkCount: chunks.length,
       fixtureCount: chunk.count,
       startIndex: chunk.startIndex,
+      durationMs: timer.elapsedMilliseconds,
       output: output,
       reportDir: chunkReportDir,
       exitCode: result.exitCode,
@@ -292,6 +295,7 @@ _ChunkRunSummary _chunkSummary({
   required int chunkCount,
   required int fixtureCount,
   required int startIndex,
+  required int durationMs,
   required String output,
   required String reportDir,
   required int exitCode,
@@ -311,6 +315,7 @@ _ChunkRunSummary _chunkSummary({
         exitCode: exitCode,
         startIndex: startIndex,
         fixtureCount: fixtureCount,
+        durationMs: durationMs,
         reportPath: report.path,
       );
     } catch (_) {
@@ -335,6 +340,7 @@ _ChunkRunSummary _chunkSummary({
     exitCode: exitCode,
     startIndex: startIndex,
     fixtureCount: fixtureCount,
+    durationMs: durationMs,
     reportPath: report.path,
   );
 }
@@ -360,6 +366,10 @@ _AggregateRunSummary _writeAggregateReport({
     0,
     (sum, chunk) => sum + chunk.parserCalls,
   );
+  final durationMs = chunks.fold<int>(
+    0,
+    (sum, chunk) => sum + chunk.durationMs,
+  );
   final nonZeroChunkExitCount = chunks
       .where((chunk) => chunk.exitCode != 0)
       .length;
@@ -379,6 +389,7 @@ _AggregateRunSummary _writeAggregateReport({
     'checked': checked,
     'failureCount': failures,
     'parserCalls': parserCalls,
+    'durationMs': durationMs,
     'nonZeroChunkExitCount': nonZeroChunkExitCount,
     'timedOutChunkCount': timedOutChunkCount,
     'failedChunkStartIndex': _failedChunkStartIndex(chunks),
@@ -396,6 +407,7 @@ _AggregateRunSummary _writeAggregateReport({
           'warmupMs': chunk.warmupMs,
           'parserCalls': chunk.parserCalls,
           'exitCode': chunk.exitCode,
+          'durationMs': chunk.durationMs,
           'reportPath': chunk.reportPath,
         },
     ],
@@ -474,6 +486,7 @@ class _ChunkRunSummary {
     required this.exitCode,
     required this.startIndex,
     required this.fixtureCount,
+    required this.durationMs,
     required this.reportPath,
   });
 
@@ -486,13 +499,14 @@ class _ChunkRunSummary {
   final int exitCode;
   final int startIndex;
   final int fixtureCount;
+  final int durationMs;
   final String reportPath;
 
   String toLogLine() {
     return 'QA_GENERATED_FIXTURE_RUN_CHUNK '
         'chunk=$chunkNumber/$chunkCount startIndex=$startIndex '
         'fixtureCount=$fixtureCount checked=$checked failures=$failures '
-        'warmupMs=$warmupMs parserCalls=$parserCalls '
+        'warmupMs=$warmupMs parserCalls=$parserCalls durationMs=$durationMs '
         'exitCode=$exitCode report=$reportPath';
   }
 }
