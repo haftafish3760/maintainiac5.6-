@@ -80,4 +80,29 @@ void main() {
       expect(encoded, isNot(contains('galaxy')));
     },
   );
+
+  test('published camera diagnostics keep finite scores only', () {
+    const policy = ReceiptCaptureDiagnosticPublishPolicy();
+    const diagnostic = {
+      'latestEdgeCoverage': 0.82,
+      'latestMotionScore': 3.5,
+      'latestShadowScore': double.nan,
+      'latestFrameBrightness': double.infinity,
+      'nested': {
+        'latestCapturedAverageLuma': 188.25,
+        'latestCapturedSharpness': double.negativeInfinity,
+      },
+    };
+
+    final envelope = policy.envelope(
+      improvementOptIn: true,
+      diagnostic: diagnostic,
+    );
+
+    expect(envelope['latestEdgeCoverage'], 0.82);
+    expect(envelope['latestMotionScore'], 3.5);
+    expect(envelope.containsKey('latestShadowScore'), isFalse);
+    expect(envelope.containsKey('latestFrameBrightness'), isFalse);
+    expect(envelope['nested'], {'latestCapturedAverageLuma': 188.25});
+  });
 }

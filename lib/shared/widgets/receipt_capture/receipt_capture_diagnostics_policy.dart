@@ -49,7 +49,8 @@ class ReceiptCaptureDiagnosticPublishPolicy {
   }
 
   Object? _safeValue(Object? value) {
-    if (value == null || value is bool || value is int) return value;
+    if (value == null || value is bool) return value;
+    if (value is num) return value.isFinite ? value : null;
     if (value is String) return _safeString(value);
     if (value is Iterable) {
       final safe = <String>[];
