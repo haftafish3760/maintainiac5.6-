@@ -201,6 +201,55 @@ void main() {
     expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
   });
 
+  test('invalid retake review keeps later failed stitch pair explicit', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const [
+        '/tmp/top-proof.jpg',
+        '/tmp/middle-proof.jpg',
+        '/tmp/bottom-retake-proof.jpg',
+      ],
+      ocrSourcePhotoPaths: const [
+        '/tmp/top-ocr.jpg',
+        '/tmp/middle-ocr.jpg',
+        '/tmp/bottom-retake-ocr.jpg',
+      ],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: const ReceiptStitchResult.fallback(
+        inputPaths: [
+          '/tmp/top-ocr.jpg',
+          '/tmp/middle-ocr.jpg',
+          '/tmp/bottom-retake-ocr.jpg',
+        ],
+        warning: 'Bottom overlap was not trusted.',
+        fallbackReasonCode: 'overlap_confidence_low',
+        failedPairIndex: 1,
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/bottom-retake-proof.jpg': {
+          'receiptRetakeOriginalSectionNumber': 3,
+          'receiptRetakeFinalSectionNumber': 3,
+          'receiptRetakeGuidanceCode':
+              'retake_middle_with_previous_next_context',
+          'receiptRetakeHasPreviousAlignmentContext': true,
+          'receiptRetakeHasNextAlignmentContext': true,
+          'receiptRetakeHasTwoSidedAlignmentContext': true,
+          'receiptRetakePreviousContextSectionNumber': 2,
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderOutcome, 'retake_order_invalid');
+    expect(
+      result.acceptedPhotoHandoffActionLabel,
+      'Review the retaken receipt section order before OCR reads the receipt. Photo 2 to 3 still needs review.',
+    );
+    expect(
+      result
+          .privacySafeReceiptReaderHandoffMetadata['receiptSectionOrderReviewActionLabel'],
+      'Review the retaken receipt section order before OCR reads the receipt. Photo 2 to 3 still needs review.',
+    );
+  });
+
   test('retake metadata missing section numbers requires order review', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/retake.jpg'],
