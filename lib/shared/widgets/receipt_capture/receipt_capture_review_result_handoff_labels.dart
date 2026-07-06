@@ -75,6 +75,9 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
         'stitch_ocr_source_contract_review_required') {
       return 'accepted_stitch_ocr_source_review_required';
     }
+    if (ocrSourceReviewRiskCode == 'scanner_preparation_review_required') {
+      return 'accepted_scanner_preparation_review_required';
+    }
     if (stitchResult.didStitch) return 'accepted_stitched_combined_image';
     if (stitchResult.usedFallback) return 'accepted_ordered_sections_fallback';
     if (ocrSourcePhotoCount > 1) return 'accepted_ordered_sections';
@@ -92,6 +95,8 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
         'Accepted photo review using saved proof as OCR fallback.',
       'accepted_stitch_ocr_source_review_required' =>
         'Accepted photo review, but stitch/OCR source handoff needs review.',
+      'accepted_scanner_preparation_review_required' =>
+        'Accepted photo review, but OCR source preparation needs review.',
       'accepted_stitched_combined_image' =>
         'Accepted long receipt as one stitched OCR image.',
       'accepted_ordered_sections_fallback' =>

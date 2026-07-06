@@ -355,6 +355,21 @@ void main() {
     expect(result.scannerKeptTemporaryFullQualitySourceForQuality, isTrue);
     expect(result.scannerUsedEnhancedOcrSource, isFalse);
     expect(result.scannerNeedsOperatorReview, isTrue);
+    expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
+    expect(
+      result.receiptPhotoReviewHandoffPath,
+      'accepted_scanner_preparation_review_required',
+    );
+    expect(
+      result.receiptPhotoReviewHandoffPathLabel,
+      'Accepted photo review, but OCR source preparation needs review.',
+    );
+    expect(
+      result.acceptedPhotoHandoffRoute,
+      'photo_review_ocr_source_review_required',
+    );
+    expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, isFalse);
+    expect(result.acceptedPhotoHandoffMustOpenFilledReview, isFalse);
     expect(
       result.receiptProofStoragePolicyOutcome,
       'temporary_full_quality_source_guard_review',
