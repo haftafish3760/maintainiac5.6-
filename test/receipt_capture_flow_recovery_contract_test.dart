@@ -172,6 +172,10 @@ void main() {
       actions,
       contains('receipt_handoff_ocr_source_fallback_saved_proof'),
     );
+    expect(
+      actions,
+      contains('if (result.ocrReadsClearSourceBeforeSavedProof)'),
+    );
     expect(actions, contains('receiptCompletionHandoffDocumentSignalsFor'));
     expect(actions, contains('receiptCompletionHandoffRiskFlagsFor'));
     expect(actions, contains('receiptCoverageDecisionDocumentSignalsFor'));
