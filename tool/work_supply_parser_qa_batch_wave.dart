@@ -9,7 +9,8 @@ const _usage =
     '[--previous-wave-id residential-core-wave-000] '
     '[--qa-layer merchant-abbreviation-v1] [--trades plumbing] '
     '[--tiers core] [--locales en-US,es-US] [--limit 500] '
-    '[--fixture-run-limit 25]';
+    '[--fixture-run-limit 25] [--fixture-run-timeout-ms 1500000] '
+    '[--fixture-run-stale-report-timeout-ms 300000]';
 
 Future<void> main(List<String> args) async {
   final exit = await runWorkSupplyParserQaBatchWave(
@@ -60,6 +61,10 @@ Future<int> runWorkSupplyParserQaBatchWave(
     '${options.limit}',
     '--fixture-run-limit',
     '${options.fixtureRunLimit}',
+    '--fixture-run-timeout-ms',
+    '${options.fixtureRunTimeoutMs}',
+    '--fixture-run-stale-report-timeout-ms',
+    '${options.fixtureRunStaleReportTimeoutMs}',
     '--queue-id',
     queueId,
     '--output-root',
@@ -85,6 +90,8 @@ Future<int> runWorkSupplyParserQaBatchWave(
     'localePackIds': options.locales,
     'limit': options.limit,
     'fixtureRunLimit': options.fixtureRunLimit,
+    'fixtureRunTimeoutMs': options.fixtureRunTimeoutMs,
+    'fixtureRunStaleReportTimeoutMs': options.fixtureRunStaleReportTimeoutMs,
     'queueArgs': queueArgs,
     'liveServicesAllowed': false,
     'writesProductionCatalog': false,
@@ -143,6 +150,8 @@ class _WaveOptions {
     required this.locales,
     required this.limit,
     required this.fixtureRunLimit,
+    required this.fixtureRunTimeoutMs,
+    required this.fixtureRunStaleReportTimeoutMs,
     required this.outputRoot,
     required this.execute,
     required this.resume,
@@ -158,6 +167,8 @@ class _WaveOptions {
   final List<String> locales;
   final int limit;
   final int fixtureRunLimit;
+  final int fixtureRunTimeoutMs;
+  final int fixtureRunStaleReportTimeoutMs;
   final String outputRoot;
   final bool execute;
   final bool resume;
@@ -188,6 +199,11 @@ class _WaveOptions {
       locales: _csv(values['locales'] ?? 'en-US,es-US', lowerCase: false),
       limit: int.tryParse(values['limit'] ?? '') ?? 500,
       fixtureRunLimit: int.tryParse(values['fixture-run-limit'] ?? '') ?? 25,
+      fixtureRunTimeoutMs:
+          int.tryParse(values['fixture-run-timeout-ms'] ?? '') ?? 1500000,
+      fixtureRunStaleReportTimeoutMs:
+          int.tryParse(values['fixture-run-stale-report-timeout-ms'] ?? '') ??
+          300000,
       outputRoot: values['output-root'] ?? 'build/parser_qa_batch_waves',
       execute: flags.contains('execute'),
       resume: !flags.contains('no-resume'),

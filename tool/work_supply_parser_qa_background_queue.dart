@@ -6,7 +6,9 @@ const _usage =
     'dart run tool/work_supply_parser_qa_background_queue.dart '
     '[--execute] [--trades plumbing] [--tiers core,standard] '
     '[--locales en-US,es-US] [--limit 500] [--fixture-run-limit 25] '
-    '[--cell-timeout-ms 900000]';
+    '[--fixture-run-timeout-ms 1500000] '
+    '[--fixture-run-stale-report-timeout-ms 300000] '
+    '[--cell-timeout-ms 1800000]';
 
 Future<void> main(List<String> args) async {
   final exit = await runWorkSupplyParserQaBackgroundQueue(
@@ -160,6 +162,8 @@ Future<int> runWorkSupplyParserQaBackgroundQueue(
     'resumedCellCount': resumedCellCount,
     'limit': options.limit,
     'fixtureRunLimit': options.fixtureRunLimit,
+    'fixtureRunTimeoutMs': options.fixtureRunTimeoutMs,
+    'fixtureRunStaleReportTimeoutMs': options.fixtureRunStaleReportTimeoutMs,
     if (options.cellTimeoutMs > 0) 'cellTimeoutMs': options.cellTimeoutMs,
     'liveServicesAllowed': false,
     'writesProductionCatalog': false,
@@ -371,6 +375,10 @@ List<String> _matrixCommand(_QueueOptions options, _QueueCell cell) {
     '${options.limit}',
     '--fixture-run-limit',
     '${options.fixtureRunLimit}',
+    '--fixture-run-timeout-ms',
+    '${options.fixtureRunTimeoutMs}',
+    '--fixture-run-stale-report-timeout-ms',
+    '${options.fixtureRunStaleReportTimeoutMs}',
     '--output-root',
     '${options.outputRoot}/${options.queueId}/cells',
   ];
@@ -384,6 +392,8 @@ class _QueueOptions {
     required this.locales,
     required this.limit,
     required this.fixtureRunLimit,
+    required this.fixtureRunTimeoutMs,
+    required this.fixtureRunStaleReportTimeoutMs,
     required this.cellTimeoutMs,
     required this.outputRoot,
     required this.queueId,
@@ -399,6 +409,8 @@ class _QueueOptions {
   final List<String> locales;
   final int limit;
   final int fixtureRunLimit;
+  final int fixtureRunTimeoutMs;
+  final int fixtureRunStaleReportTimeoutMs;
   final int cellTimeoutMs;
   final String outputRoot;
   final String queueId;
@@ -428,7 +440,12 @@ class _QueueOptions {
       locales: _csv(values['locales'] ?? 'en-US,es-US', lowerCase: false),
       limit: int.tryParse(values['limit'] ?? '') ?? 500,
       fixtureRunLimit: int.tryParse(values['fixture-run-limit'] ?? '') ?? 25,
-      cellTimeoutMs: int.tryParse(values['cell-timeout-ms'] ?? '') ?? 1200000,
+      fixtureRunTimeoutMs:
+          int.tryParse(values['fixture-run-timeout-ms'] ?? '') ?? 1500000,
+      fixtureRunStaleReportTimeoutMs:
+          int.tryParse(values['fixture-run-stale-report-timeout-ms'] ?? '') ??
+          300000,
+      cellTimeoutMs: int.tryParse(values['cell-timeout-ms'] ?? '') ?? 1800000,
       outputRoot: values['output-root'] ?? 'build/parser_qa_background_queue',
       queueId: values['queue-id'] ?? now.replaceAll(RegExp(r'[:.]'), ''),
       execute: flags.contains('execute'),

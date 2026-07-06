@@ -31,6 +31,10 @@ void main() {
         '75',
         '--fixture-run-limit',
         '12',
+        '--fixture-run-timeout-ms',
+        '700000',
+        '--fixture-run-stale-report-timeout-ms',
+        '310000',
         '--output-root',
         output.path,
       ],
@@ -46,10 +50,10 @@ void main() {
     final plan = _readJson('$waveDir/wave_plan.json');
     expect(plan['dryRun'], true);
     expect(plan['qaLayer'], 'merchant-abbreviation-v1');
-    expect(
-      plan['accumulatedWaveIds'],
-      ['residential-core-wave-001', 'residential-core-wave-002'],
-    );
+    expect(plan['accumulatedWaveIds'], [
+      'residential-core-wave-001',
+      'residential-core-wave-002',
+    ]);
     expect(plan['liveServicesAllowed'], false);
     expect(plan['writesProductionCatalog'], false);
     expect(plan['firebaseWritesAllowed'], false);
@@ -58,6 +62,8 @@ void main() {
     final summary = _readJson('$waveDir/wave_summary.json');
     expect(summary['queueExitCode'], 0);
     expect(summary['fixtureRunLimit'], 12);
+    expect(summary['fixtureRunTimeoutMs'], 700000);
+    expect(summary['fixtureRunStaleReportTimeoutMs'], 310000);
     expect(summary['queueSummaryPath'], contains('summary.json'));
 
     final queueSummaryPath = summary['queueSummaryPath'].toString();
@@ -65,6 +71,8 @@ void main() {
     expect(queueSummary['dryRun'], true);
     expect(queueSummary['cellCount'], 4);
     expect(queueSummary['completedCellCount'], 4);
+    expect(queueSummary['fixtureRunTimeoutMs'], 700000);
+    expect(queueSummary['fixtureRunStaleReportTimeoutMs'], 310000);
     expect(queueSummary['liveServicesAllowed'], false);
     expect(queueSummary['writesProductionCatalog'], false);
   });
