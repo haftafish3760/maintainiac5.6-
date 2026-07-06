@@ -5,19 +5,22 @@ enum ReceiptStitchStatus { notNeeded, stitched, fallback }
 class ReceiptStitchResult {
   const ReceiptStitchResult({
     required this.status,
-    required this.inputPaths,
-    required this.ocrSourcePaths,
+    required List<String> inputPaths,
+    required List<String> ocrSourcePaths,
     this.stitchedPath,
     this.confidence = 0,
-    this.overlapPixels = const [],
-    this.pairs = const [],
+    List<int> overlapPixels = const [],
+    List<ReceiptStitchPairResult> pairs = const [],
     this.failedPairIndex,
     this.stitchedWidth = 0,
     this.stitchedHeight = 0,
     this.warning = '',
     this.usedManualAdjustment = false,
     this.fallbackReasonCode = '',
-  });
+  }) : _inputPaths = inputPaths,
+       _ocrSourcePaths = ocrSourcePaths,
+       _overlapPixels = overlapPixels,
+       _pairs = pairs;
 
   const ReceiptStitchResult.notNeeded(List<String> paths)
     : this(
@@ -49,12 +52,12 @@ class ReceiptStitchResult {
        );
 
   final ReceiptStitchStatus status;
-  final List<String> inputPaths;
-  final List<String> ocrSourcePaths;
+  final List<String> _inputPaths;
+  final List<String> _ocrSourcePaths;
   final String? stitchedPath;
   final double confidence;
-  final List<int> overlapPixels;
-  final List<ReceiptStitchPairResult> pairs;
+  final List<int> _overlapPixels;
+  final List<ReceiptStitchPairResult> _pairs;
   final int? failedPairIndex;
   final int stitchedWidth;
   final int stitchedHeight;
@@ -62,6 +65,11 @@ class ReceiptStitchResult {
   final bool usedManualAdjustment;
   final String fallbackReasonCode;
 
+  List<String> get inputPaths => List<String>.unmodifiable(_inputPaths);
+  List<String> get ocrSourcePaths => List<String>.unmodifiable(_ocrSourcePaths);
+  List<int> get overlapPixels => List<int>.unmodifiable(_overlapPixels);
+  List<ReceiptStitchPairResult> get pairs =>
+      List<ReceiptStitchPairResult>.unmodifiable(_pairs);
   bool get didStitch => status == ReceiptStitchStatus.stitched;
   bool get usedFallback => status == ReceiptStitchStatus.fallback;
   bool get hasMultipleSections => inputPaths.length > 1;

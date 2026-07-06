@@ -175,6 +175,65 @@ void main() {
     expect(manual.overlapExpectationLabel, 'Manual overlap accepted');
   });
 
+  test('stitch result handoff lists are immutable views', () {
+    final inputPaths = ['/tmp/a.jpg', '/tmp/b.jpg'];
+    final ocrSourcePaths = ['/tmp/stitched.jpg'];
+    final overlapPixels = [240];
+    final pairs = [
+      const ReceiptStitchPairResult(
+        pairIndex: 0,
+        overlapPixels: 240,
+        confidence: .86,
+      ),
+    ];
+    final stitched = ReceiptStitchResult(
+      status: ReceiptStitchStatus.stitched,
+      inputPaths: inputPaths,
+      ocrSourcePaths: ocrSourcePaths,
+      stitchedPath: '/tmp/stitched.jpg',
+      overlapPixels: overlapPixels,
+      pairs: pairs,
+    );
+
+    inputPaths.add('/tmp/c.jpg');
+    ocrSourcePaths.add('/tmp/late.jpg');
+    overlapPixels.add(260);
+    pairs.add(
+      const ReceiptStitchPairResult(
+        pairIndex: 1,
+        overlapPixels: 260,
+        confidence: .84,
+      ),
+    );
+
+    expect(stitched.inputPaths, ['/tmp/a.jpg', '/tmp/b.jpg', '/tmp/c.jpg']);
+    expect(stitched.ocrSourcePaths, ['/tmp/stitched.jpg', '/tmp/late.jpg']);
+    expect(stitched.overlapPixels, [240, 260]);
+    expect(stitched.pairs, hasLength(2));
+    expect(
+      () => stitched.inputPaths.add('/tmp/nope.jpg'),
+      throwsA(isA<UnsupportedError>()),
+    );
+    expect(
+      () => stitched.ocrSourcePaths.add('/tmp/nope.jpg'),
+      throwsA(isA<UnsupportedError>()),
+    );
+    expect(
+      () => stitched.overlapPixels.add(999),
+      throwsA(isA<UnsupportedError>()),
+    );
+    expect(
+      () => stitched.pairs.add(
+        const ReceiptStitchPairResult(
+          pairIndex: 9,
+          overlapPixels: 120,
+          confidence: .5,
+        ),
+      ),
+      throwsA(isA<UnsupportedError>()),
+    );
+  });
+
   test('stitch labels sanitize non-finite numeric evidence safely', () {
     const stitched = ReceiptStitchResult(
       status: ReceiptStitchStatus.stitched,
