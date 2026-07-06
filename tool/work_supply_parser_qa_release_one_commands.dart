@@ -5,6 +5,8 @@ const _usage =
     'dart run tool/work_supply_parser_qa_release_one_commands.dart '
     '[--output build/parser_qa_pipeline/release_one_commands.json] '
     '[--limit 500] [--fixture-run-limit 50] '
+    '[--fixture-run-timeout-ms 900000] '
+    '[--fixture-run-stale-report-timeout-ms 300000] '
     '[--min-generated-checked-per-cell 500]';
 
 const _trades = ['plumbing', 'electrical', 'hvac'];
@@ -33,12 +35,24 @@ int runWorkSupplyParserQaReleaseOneCommands(
   final limit = int.tryParse(_value(args, 'limit', '500')) ?? 500;
   final fixtureRunLimit =
       int.tryParse(_value(args, 'fixture-run-limit', '50')) ?? 50;
+  final fixtureRunTimeoutMs =
+      int.tryParse(_value(args, 'fixture-run-timeout-ms', '900000')) ?? 900000;
+  final fixtureRunStaleReportTimeoutMs =
+      int.tryParse(
+        _value(args, 'fixture-run-stale-report-timeout-ms', '300000'),
+      ) ??
+      300000;
   final minGeneratedCheckedPerCell =
       int.tryParse(_value(args, 'min-generated-checked-per-cell', '500')) ??
       500;
-  if (limit <= 0 || fixtureRunLimit <= 0 || minGeneratedCheckedPerCell <= 0) {
+  if (limit <= 0 ||
+      fixtureRunLimit <= 0 ||
+      fixtureRunTimeoutMs <= 0 ||
+      fixtureRunStaleReportTimeoutMs <= 0 ||
+      minGeneratedCheckedPerCell <= 0) {
     stderr.writeln(
       '--limit, --fixture-run-limit, and '
+      '--fixture-run-timeout-ms, --fixture-run-stale-report-timeout-ms, and '
       '--min-generated-checked-per-cell must be positive.',
     );
     return 64;
@@ -70,6 +84,10 @@ int runWorkSupplyParserQaReleaseOneCommands(
               '$limit',
               '--fixture-run-limit',
               '$fixtureRunLimit',
+              '--fixture-run-timeout-ms',
+              '$fixtureRunTimeoutMs',
+              '--fixture-run-stale-report-timeout-ms',
+              '$fixtureRunStaleReportTimeoutMs',
               '--resume',
             ],
             'executeFlagRequired': true,
@@ -89,6 +107,8 @@ int runWorkSupplyParserQaReleaseOneCommands(
         .length,
     'limit': limit,
     'fixtureRunLimit': fixtureRunLimit,
+    'fixtureRunTimeoutMs': fixtureRunTimeoutMs,
+    'fixtureRunStaleReportTimeoutMs': fixtureRunStaleReportTimeoutMs,
     'minGeneratedCheckedPerCell': minGeneratedCheckedPerCell,
     'generatedFixtureStatusCommand': [
       'dart',

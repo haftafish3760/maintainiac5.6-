@@ -10,7 +10,16 @@ void main() {
     final stdout = _MemorySink();
 
     final exit = runWorkSupplyParserQaReleaseOneCommands(
-      const ['--limit', '250', '--fixture-run-limit', '25'],
+      const [
+        '--limit',
+        '250',
+        '--fixture-run-limit',
+        '25',
+        '--fixture-run-timeout-ms',
+        '600000',
+        '--fixture-run-stale-report-timeout-ms',
+        '300000',
+      ],
       stdout: stdout,
       stderr: _MemorySink(),
     );
@@ -21,6 +30,8 @@ void main() {
     expect(summary['priorityCellCount'], 12);
     expect(summary['limit'], 250);
     expect(summary['fixtureRunLimit'], 25);
+    expect(summary['fixtureRunTimeoutMs'], 600000);
+    expect(summary['fixtureRunStaleReportTimeoutMs'], 300000);
     expect(summary['minGeneratedCheckedPerCell'], 500);
     expect(summary['liveServicesAllowed'], isFalse);
     expect(summary['writesProductionCatalog'], isFalse);
@@ -48,6 +59,11 @@ void main() {
     expect(
       commands.every((entry) => (entry as Map)['executeFlagRequired'] == true),
       isTrue,
+    );
+    expect(commands.toString(), contains('--fixture-run-timeout-ms'));
+    expect(
+      commands.toString(),
+      contains('--fixture-run-stale-report-timeout-ms'),
     );
     final generatedStatusCommand =
         summary['generatedFixtureStatusCommand'] as List;
