@@ -17,8 +17,16 @@ import 'invoice_template_catalog.dart';
 part 'invoice_pdf_content_rules.dart';
 part 'invoice_pdf_pagination.dart';
 
-int invoicePdfPageCountForRecord(InvoiceRecord record) {
-  return _InvoicePaginator(record).pages.length;
+int invoicePdfPageCountForRecord(
+  InvoiceRecord record, {
+  InvoiceTemplateDefinition? template,
+}) {
+  return _InvoicePaginator(
+    record,
+    fixedLineCapacity: template != null && _usesLandscapeArtwork(template)
+        ? 7
+        : null,
+  ).pages.length;
 }
 
 class InvoicePdfContentException implements Exception {
@@ -88,7 +96,10 @@ class InvoicePdfTemplateRenderer {
     _ensureRenderableRecord(record);
     InvoicePdfPrivacyGuard.ensureRecordCanExport(record);
     final pdf = pw.Document();
-    final chunks = _InvoicePaginator(record).pages;
+    final chunks = _InvoicePaginator(
+      record,
+      fixedLineCapacity: _usesLandscapeArtwork(template) ? 7 : null,
+    ).pages;
     final artwork = await _InvoiceTemplateArtwork.load(template);
     final logo = await _InvoiceLogoImage.load(record.company.logoPath);
     final pdfTheme = await AppPdfTypography.loadTheme();
@@ -418,7 +429,7 @@ class InvoicePdfTemplateRenderer {
       child: pw.Text(
         value,
         maxLines: 1,
-        overflow: pw.TextOverflow.clip,
+        overflow: pw.TextOverflow.span,
         textAlign: align,
         style: pw.TextStyle(
           fontSize: fontSize,
@@ -526,7 +537,7 @@ class InvoicePdfTemplateRenderer {
                       ? 'My Company'
                       : record.company.bestName,
                   maxLines: 1,
-                  overflow: pw.TextOverflow.clip,
+                  overflow: pw.TextOverflow.span,
                   style: pw.TextStyle(
                     fontSize: 22,
                     fontWeight: pw.FontWeight.bold,
@@ -539,7 +550,7 @@ class InvoicePdfTemplateRenderer {
                       ? 'Service document'
                       : record.title.trim(),
                   maxLines: 1,
-                  overflow: pw.TextOverflow.clip,
+                  overflow: pw.TextOverflow.span,
                   style: const pw.TextStyle(
                     fontSize: 10,
                     color: PdfColors.grey700,
@@ -645,7 +656,7 @@ class InvoicePdfTemplateRenderer {
             pw.Text(
               line,
               maxLines: 1,
-              overflow: pw.TextOverflow.clip,
+              overflow: pw.TextOverflow.span,
               style: const pw.TextStyle(fontSize: 9.5),
             ),
         ],
@@ -718,7 +729,7 @@ class InvoicePdfTemplateRenderer {
           pw.Text(
             line.name.trim().isEmpty ? 'Item' : line.name.trim(),
             maxLines: 1,
-            overflow: pw.TextOverflow.clip,
+            overflow: pw.TextOverflow.span,
             style: pw.TextStyle(
               color: PdfColors.grey900,
               fontSize: 9,
@@ -730,7 +741,7 @@ class InvoicePdfTemplateRenderer {
             pw.Text(
               details,
               maxLines: 2,
-              overflow: pw.TextOverflow.clip,
+              overflow: pw.TextOverflow.span,
               style: const pw.TextStyle(
                 fontSize: 7.5,
                 color: PdfColors.grey700,
@@ -748,7 +759,7 @@ class InvoicePdfTemplateRenderer {
       child: pw.Text(
         value,
         maxLines: 1,
-        overflow: pw.TextOverflow.clip,
+        overflow: pw.TextOverflow.span,
         style: pw.TextStyle(
           color: header ? PdfColors.white : PdfColors.grey900,
           fontSize: header ? 9.5 : 9,
@@ -781,7 +792,7 @@ class InvoicePdfTemplateRenderer {
                 ? 'Payment due according to the terms shown on this document. Signing confirms customer approval of the listed price and scope.'
                 : record.terms.trim(),
             maxLines: 6,
-            overflow: pw.TextOverflow.clip,
+            overflow: pw.TextOverflow.span,
             style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800),
           ),
         ],
@@ -829,7 +840,7 @@ class InvoicePdfTemplateRenderer {
           pw.Text(
             label,
             maxLines: 1,
-            overflow: pw.TextOverflow.clip,
+            overflow: pw.TextOverflow.span,
             style: pw.TextStyle(
               fontSize: emphasized ? 12 : 9,
               fontWeight: emphasized
@@ -840,7 +851,7 @@ class InvoicePdfTemplateRenderer {
           pw.Text(
             value,
             maxLines: 1,
-            overflow: pw.TextOverflow.clip,
+            overflow: pw.TextOverflow.span,
             style: pw.TextStyle(
               color: emphasized ? template?.accent : PdfColors.grey900,
               fontSize: emphasized ? 15 : 9,
@@ -879,7 +890,7 @@ class InvoicePdfTemplateRenderer {
       child: pw.Text(
         'Continued on next page',
         maxLines: 1,
-        overflow: pw.TextOverflow.clip,
+        overflow: pw.TextOverflow.span,
         style: pw.TextStyle(
           color: template.accent,
           fontSize: 10,
@@ -1109,7 +1120,7 @@ pw.Widget _singleLine(String value, {pw.TextStyle? style}) {
   return pw.Text(
     value,
     maxLines: 1,
-    overflow: pw.TextOverflow.clip,
+    overflow: pw.TextOverflow.span,
     style: style,
   );
 }

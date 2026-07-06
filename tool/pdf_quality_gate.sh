@@ -32,6 +32,7 @@ dart analyze \
   lib/shared/widgets/receipt_capture/receipt_pdf_viewer_preview_plan.dart \
   lib/shared/widgets/receipt_capture/receipt_pdf_viewer_screen.dart \
   lib/shared/widgets/receipt_capture/receipt_pdf_viewer_status.dart \
+  lib/shared/widgets/receipt_capture/receipt_assistance_policy.dart \
   lib/shared/widgets/receipt_capture/receipt_proof_storage.dart \
   lib/shared/widgets/receipt_capture/receipt_proof_storage_copy.dart \
   lib/shared/widgets/receipt_capture/receipt_proof_storage_exception.dart \
@@ -56,6 +57,11 @@ dart analyze \
   test/expense_firestore_documents_test.dart \
   test/expense_draft_storage_lifecycle_test.dart \
   test/expense_draft_store_test.dart \
+  test/expense_export_test.dart \
+  test/expense_ledger_store_test.dart \
+  test/expense_duplicate_detection_test.dart \
+  test/expense_receipt_classifier_test.dart \
+  test/receipt_assistance_policy_test.dart \
   test/invoice_document_engine_layout_contract_test.dart \
   test/invoice_ledger_store_test.dart \
   test/invoice_signature_guard_test.dart \
@@ -114,6 +120,11 @@ flutter test \
   test/expense_firestore_documents_test.dart \
   test/expense_draft_storage_lifecycle_test.dart \
   test/expense_draft_store_test.dart \
+  test/expense_export_test.dart \
+  test/expense_ledger_store_test.dart \
+  test/expense_duplicate_detection_test.dart \
+  test/expense_receipt_classifier_test.dart \
+  test/receipt_assistance_policy_test.dart \
   test/invoice_document_engine_layout_contract_test.dart \
   test/invoice_ledger_store_test.dart \
   test/invoice_signature_guard_test.dart \

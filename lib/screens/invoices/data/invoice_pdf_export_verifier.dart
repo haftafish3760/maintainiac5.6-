@@ -64,8 +64,7 @@ class InvoicePdfExportVerifier {
       ),
     );
     final decoded = AppPdfTextDecoder.textWithDecodedPdfStreams(bytes);
-    if (record.id.trim().length >= 6 &&
-        _containsNormalized(_normalize(decoded), record.id)) {
+    if (_containsInternalExportId(record, decoded)) {
       issues.add(internalRecordIdExported);
     }
     return issues.toSet().toList(growable: false);
@@ -127,8 +126,7 @@ class InvoicePdfExportVerifier {
         !_containsNormalized(normalized, total)) {
       issues.add(missingBalanceDue);
     }
-    if (record.id.trim().length >= 6 &&
-        _containsNormalized(normalized, record.id)) {
+    if (_containsInternalExportId(record, decoded)) {
       issues.add(internalRecordIdExported);
     }
     return issues;
@@ -146,6 +144,43 @@ class InvoicePdfExportVerifier {
     final normalizedNeedle = _normalize(needle);
     if (normalizedNeedle.isEmpty) return true;
     return haystack.contains(normalizedNeedle);
+  }
+
+  static bool _containsInternalExportId(InvoiceRecord record, String decoded) {
+    final normalized = _normalize(decoded);
+    for (final id in _internalExportIds(record)) {
+      if (_containsNormalized(normalized, id)) return true;
+    }
+    return false;
+  }
+
+  static Iterable<String> _internalExportIds(InvoiceRecord record) sync* {
+    final recordId = record.id.trim();
+    if (_looksInternalExportId(recordId)) yield recordId;
+    for (final line in record.lines) {
+      final lineId = line.id.trim();
+      if (_looksInternalExportId(lineId)) yield lineId;
+    }
+    for (final payment in record.payments) {
+      final paymentId = payment.id.trim();
+      if (_looksInternalExportId(paymentId)) yield paymentId;
+    }
+  }
+
+  static bool _looksInternalExportId(String value) {
+    final normalized = _normalize(value);
+    if (normalized.length < 12) return false;
+    if (RegExp(
+      r'\b(?:internal|firebase|firestore|hive|record|uuid)\b',
+    ).hasMatch(normalized)) {
+      return true;
+    }
+    if (RegExp(
+      r'\b[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\b',
+    ).hasMatch(normalized)) {
+      return true;
+    }
+    return RegExp(r'\b[a-f0-9]{24,}\b').hasMatch(normalized);
   }
 
   static String _normalize(String value) {

@@ -135,6 +135,12 @@ void main() {
       expect(
         script,
         contains(
+          'lib/shared/widgets/receipt_capture/receipt_assistance_policy.dart',
+        ),
+      );
+      expect(
+        script,
+        contains(
           'lib/shared/widgets/receipt_capture/receipt_proof_storage_copy.dart',
         ),
       );
@@ -178,6 +184,11 @@ void main() {
         contains('test/invoice_document_engine_layout_contract_test.dart'),
       );
       expect(script, contains('test/expense_firestore_documents_test.dart'));
+      expect(script, contains('test/expense_export_test.dart'));
+      expect(script, contains('test/expense_ledger_store_test.dart'));
+      expect(script, contains('test/expense_duplicate_detection_test.dart'));
+      expect(script, contains('test/expense_receipt_classifier_test.dart'));
+      expect(script, contains('test/receipt_assistance_policy_test.dart'));
       expect(script, contains('test/invoice_ledger_store_test.dart'));
       expect(script, contains('test/invoice_signature_guard_test.dart'));
       expect(

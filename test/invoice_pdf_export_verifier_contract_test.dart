@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/screens/invoices/data/invoice_ledger_models.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_pdf_export_verifier.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_record.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_template_catalog.dart';
@@ -169,6 +170,61 @@ void main() {
     );
 
     expect(issues, contains(AppPdfPrivacyPolicy.vin));
+  });
+
+  test('invoice PDF export verifier blocks internal line and payment IDs', () {
+    final record =
+        InvoiceDocumentEngineFixtureFactory.standardInvoice(
+          lineCount: 2,
+        ).copyWith(
+          lines: const [
+            InvoiceLineItemRecord(
+              id: 'line-internal-123456',
+              name: 'Service labor',
+              quantity: 1,
+              unitPrice: 85,
+            ),
+          ],
+          payments: [
+            InvoicePaymentRecord(
+              id: 'payment-internal-123456',
+              amount: 50,
+              paidAt: InvoiceDocumentEngineFixtureFactory.fixedNow,
+              method: 'Card',
+            ),
+          ],
+        );
+    final template = InvoiceTemplateCatalog.byId(record.templateId);
+    final issues = InvoicePdfExportVerifier.blockingIssueCodesForExport(
+      record: record,
+      template: template,
+      bytes: _pdfWithText(
+        'Invoice ${record.invoiceNumber} Subtotal Total Balance '
+        '${_moneyText(record.balanceDue)} '
+        'line-internal-123456 payment-internal-123456',
+      ),
+    );
+
+    expect(issues, contains(InvoicePdfExportVerifier.internalRecordIdExported));
+  });
+
+  test('invoice PDF export verifier allows normal visible line labels', () {
+    final record = InvoiceDocumentEngineFixtureFactory.standardInvoice(
+      id: 'invoice-standard-fixture',
+      lineCount: 2,
+    );
+    final template = InvoiceTemplateCatalog.byId(record.templateId);
+    final issues = InvoicePdfExportVerifier.blockingIssueCodesForExport(
+      record: record,
+      template: template,
+      bytes: _pdfWithText(
+        'Invoice ${record.invoiceNumber} Subtotal Total Balance '
+        '${_moneyText(record.balanceDue)} '
+        'Material and service item 1 Labor task 2 Confirmed business line',
+      ),
+    );
+
+    expect(issues, isEmpty);
   });
 
   test('invoice PDF export verifier blocks passenger invoice metadata', () {

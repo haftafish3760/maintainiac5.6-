@@ -40,6 +40,7 @@ void main() {
         'pdf_to_receipt_review',
         'receipt_generation',
         'invoice_generation',
+        'export_report_generation',
         'cross_platform_storage',
         'render_smoke',
         'qa_registry_integrity',

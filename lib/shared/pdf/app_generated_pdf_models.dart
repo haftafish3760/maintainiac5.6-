@@ -266,18 +266,26 @@ class AppGeneratedPdfValidationReport {
       index += 1;
     }
     if (bytes.length - index < 5) return false;
-    return bytes[index] == 0x25 &&
-        bytes[index + 1] == 0x50 &&
-        bytes[index + 2] == 0x44 &&
-        bytes[index + 3] == 0x46 &&
-        bytes[index + 4] == 0x2D;
+    if (bytes[index] != 0x25 ||
+        bytes[index + 1] != 0x50 ||
+        bytes[index + 2] != 0x44 ||
+        bytes[index + 3] != 0x46 ||
+        bytes[index + 4] != 0x2D) {
+      return false;
+    }
+    if (bytes.length - index < 8) return false;
+    return _isAsciiDigit(bytes[index + 5]) &&
+        bytes[index + 6] == 0x2E &&
+        _isAsciiDigit(bytes[index + 7]);
   }
 
   static bool _hasPdfEndMarker(Uint8List bytes) {
     final start = bytes.length > 2048 ? bytes.length - 2048 : 0;
     final tail = latin1.decode(bytes.sublist(start));
-    return tail.contains('%%EOF');
+    return RegExp(r'%%EOF[\s\x00]*$').hasMatch(tail);
   }
+
+  static bool _isAsciiDigit(int value) => value >= 0x30 && value <= 0x39;
 }
 
 class AppGeneratedPdfFile {

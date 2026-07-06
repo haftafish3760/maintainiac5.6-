@@ -16,6 +16,7 @@ import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_service.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_storage.dart';
 import 'package:maintaniac/shared/pdf/app_pdf_privacy_policy.dart';
+import 'package:maintaniac/shared/pdf/app_pdf_text_decoder.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -126,6 +127,69 @@ void main() {
     },
   );
 
+  test(
+    'expense export summary PDF respects selected category filters',
+    () async {
+      final snapshot = buildExpenseExportSnapshot(
+        receipts: [
+          ExpenseReceiptRecord(
+            id: 'receipt-filtered-export',
+            receiptDate: DateTime(2026, 6, 12),
+            merchantName: 'Supply House',
+            lines: const [
+              ExpenseReceiptLineRecord(
+                id: 'line-business-filter',
+                description: 'Business pipe fittings',
+                category: 'Materials',
+                use: ExpenseLineUse.business,
+                quantity: 1,
+                unitsPerPackage: 1,
+                unit: 'each',
+                subtotal: 42.75,
+              ),
+              ExpenseReceiptLineRecord(
+                id: 'line-personal-filter',
+                description: 'Personal cooler',
+                category: 'Supplies',
+                use: ExpenseLineUse.personal,
+                quantity: 1,
+                unitsPerPackage: 1,
+                unit: 'each',
+                subtotal: 18.50,
+              ),
+            ],
+          ),
+        ],
+        range: ExpenseDateRange(
+          start: DateTime(2026, 6, 1),
+          end: DateTime(2026, 6, 30),
+        ),
+        categoryFilter: ExpenseExportCategoryFilter.business,
+        exportedAt: DateTime.utc(2026, 6, 15),
+      );
+
+      final document = await buildExpenseExportSummaryPdf(snapshot);
+      final decoded = AppPdfTextDecoder.textWithDecodedPdfStreams(
+        document.bytes,
+      );
+
+      expect(snapshot.lineCount, 1);
+      expect(document.validation.isValid, isTrue);
+      expect(decoded, contains('Materials'));
+      expect(decoded, contains('pipe'));
+      expect(decoded, contains('fittings'));
+      expect(decoded, contains(r'$42.75'));
+      expect(decoded, isNot(contains('Personal cooler')));
+      expect(decoded, isNot(contains(r'$18.50')));
+      expect(
+        sha256.convert(document.bytes).toString(),
+        sha256
+            .convert((await buildExpenseExportSummaryPdf(snapshot)).bytes)
+            .toString(),
+      );
+    },
+  );
+
   test('expense export summary uses shared PDF money formatting', () async {
     final snapshot = buildExpenseExportSnapshot(
       receipts: [
@@ -175,7 +239,11 @@ void main() {
     expect(source, contains('AppPdfFormatters.money(snapshot.total)'));
     expect(
       source,
-      contains('AppPdfFormatters.money(receipt.totalForLine(line))'),
+      contains('AppPdfFormatters.money('),
+    );
+    expect(
+      source,
+      contains('snapshot.taxAdjustedTotalForLine(receipt, line)'),
     );
   });
 
@@ -563,6 +631,62 @@ void main() {
     expect(invalid.validation.hasIssue('missing_pdf_end_marker'), isTrue);
     expect(active.validation.isValid, isFalse);
     expect(active.validation.hasIssue('active_javascript'), isTrue);
+  });
+
+  test('generated PDF validation rejects non-whitespace after EOF', () {
+    final appended = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\n1 0 obj\n%%EOF\n/OpenAction /JavaScript'.codeUnits,
+      ),
+      createdAt: DateTime(2026, 7, 5),
+    );
+    final normalTrailingWhitespace = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\n1 0 obj\n%%EOF\n \n\u0000'.codeUnits,
+      ),
+      createdAt: DateTime(2026, 7, 5),
+    );
+
+    expect(appended.validation.isValid, isFalse);
+    expect(appended.validation.hasIssue('missing_pdf_end_marker'), isTrue);
+    expect(appended.validation.hasIssue('active_javascript'), isTrue);
+    expect(normalTrailingWhitespace.validation.isValid, isTrue);
+  });
+
+  test('generated PDF validation rejects fake versionless PDF headers', () {
+    final fakeHeader = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList('%PDF-not-a-version\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 5),
+    );
+    final shortHeader = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList('%PDF-\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 5),
+    );
+    final normalHeaderAfterWhitespace = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList('\u0000 \n%PDF-2.0\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 5),
+    );
+
+    expect(fakeHeader.validation.isValid, isFalse);
+    expect(fakeHeader.validation.hasIssue('missing_pdf_header'), isTrue);
+    expect(shortHeader.validation.isValid, isFalse);
+    expect(shortHeader.validation.hasIssue('missing_pdf_header'), isTrue);
+    expect(normalHeaderAfterWhitespace.validation.isValid, isTrue);
   });
 
   test('generated PDF validation rejects encrypted PDF bytes', () {

@@ -5,10 +5,18 @@ PDF generator and not a generic PDF viewer.
 
 ## Scope
 
-- Generate professional business documents for Maintainiac now and in the
-  future: receipt PDFs, invoice PDFs, estimate PDFs, expense reports, daily
-  recap reports, extended recap reports, inventory reports, job packets, and
-  future document types.
+- Generate professional business documents for Maintainiac's actual app scope:
+  receipt PDFs, invoice PDFs, estimate PDFs, and export/report PDFs for the
+  records Maintainiac already owns.
+- Keep the engine reusable inside those app-owned document families, not open
+  ended like a general office PDF suite.
+- Supported export/report PDFs include expense reports, daily recap reports,
+  extended recap reports, income and pay reports, trip reports, invoice and
+  payment reports, inventory/material receipt summaries, job summaries, and
+  app-wide export packets built from confirmed records.
+- Do not build or preserve scope for unrelated office documents, arbitrary PDF
+  editing, general PDF viewing, generic PDF form handling, or future document
+  families that are not tied to Maintainiac records.
 - Build shared infrastructure, not one-off document generators.
 - Treat this subsystem as read-only. It must never modify source records.
 - Read confirmed data only.
@@ -44,7 +52,7 @@ Everything should flow through shared components:
 - Export manager
 
 Rendering logic should not be duplicated between receipt, invoice, estimate,
-report, or future document paths.
+or export/report paths.
 
 ## Document Features
 
@@ -83,6 +91,11 @@ report, or future document paths.
 
 ## Invoice And Estimate Support
 
+- Estimates and invoices are the same business document family. The engine
+  should treat the title/status and lifecycle state as the difference, not as a
+  separate rendering system.
+- Estimates must be able to become job-facing records and then final invoices
+  without forcing a PDF redesign.
 - Customer information
 - Job information
 - Labor
@@ -103,9 +116,20 @@ report, or future document paths.
 - Weekly recap
 - Monthly recap
 - Expense reports
-- Inventory reports
+- Income and pay reports
+- Trip reports
+- Invoice and payment reports
+- Inventory/material receipt summaries and export packets built from confirmed
+  inventory/material records without modifying inventory logic.
 - Job summaries
-- Future reports built on the same engine
+- App-wide export packets that combine confirmed trip, income, expense,
+  invoice, inventory/material, job, and receipt proof summaries.
+- Export reports must be shareable through the platform share sheet so users can
+  email, text, print, save, or otherwise send the generated PDF outside the app.
+- Report generation must use confirmed app records only and must not require
+  UI screens to own PDF layout or pagination logic.
+- Future report support must stay inside Maintainiac's record-keeping app scope.
+  Do not expand this into a general document platform.
 
 ## QA Requirements
 

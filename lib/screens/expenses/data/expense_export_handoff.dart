@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as p;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
@@ -68,7 +69,7 @@ class ExpenseExportHandoff {
     ExpenseExportSnapshot snapshot,
     ExpenseExportFileSet files,
   ) async {
-    final zipBytes = await _buildZipBytes(files);
+    final zipBytes = await buildExpenseExportZipBytes(files);
     final fileName = _exportPackageName(snapshot);
     final path = await FilePicker.saveFile(
       dialogTitle: 'Save Maintainiac export',
@@ -144,7 +145,7 @@ Future<File> _writeZipPackage(
   ExpenseExportSnapshot snapshot,
   ExpenseExportFileSet files,
 ) async {
-  final zipBytes = await _buildZipBytes(files);
+  final zipBytes = await buildExpenseExportZipBytes(files);
   final storageCheck = await AppStorageGuard.checkForBytes(
     operationBytes: zipBytes.length + (1024 * 1024),
     purpose: AppStoragePurpose.exportFile,
@@ -155,23 +156,103 @@ Future<File> _writeZipPackage(
   final package = File(
     '${files.directoryPath}/${_exportPackageName(snapshot)}',
   );
-  await package.writeAsBytes(zipBytes, flush: true);
+  await _writeZipAtomically(package, zipBytes);
   return package;
 }
 
-Future<List<int>> _buildZipBytes(ExpenseExportFileSet files) async {
+Future<List<int>> buildExpenseExportZipBytes(ExpenseExportFileSet files) async {
+  final root = Directory(files.directoryPath);
+  final rootType = await FileSystemEntity.type(root.path, followLinks: false);
+  if (rootType != FileSystemEntityType.directory) {
+    throw const AppGeneratedPdfException(
+      'Maintainiac could not build the export package because the prepared export folder is missing.',
+    );
+  }
+  final rootPath = p.canonicalize(await root.resolveSymbolicLinks());
   final archive = Archive();
-  for (final path in files.files) {
-    final file = File(path);
+  final entryNames = <String>{};
+  for (final filePath in files.files) {
+    final file = File(filePath);
+    final type = await FileSystemEntity.type(file.path, followLinks: false);
+    if (type != FileSystemEntityType.file) {
+      throw const AppGeneratedPdfException(
+        'Maintainiac could not build the export package because an export file was not a regular file.',
+      );
+    }
+    final canonicalFilePath = p.canonicalize(await file.resolveSymbolicLinks());
+    if (!p.isWithin(rootPath, canonicalFilePath)) {
+      throw const AppGeneratedPdfException(
+        'Maintainiac blocked this export package because a prepared file was outside the export folder.',
+      );
+    }
+    final name = p.basename(file.path);
+    if (name.isEmpty || !entryNames.add(name)) {
+      throw const AppGeneratedPdfException(
+        'Maintainiac could not build the export package because export file names were not unique.',
+      );
+    }
     final bytes = await file.readAsBytes();
-    archive.addFile(ArchiveFile(_fileName(path), bytes.length, bytes));
+    archive.addFile(ArchiveFile(name, bytes.length, bytes));
   }
   return ZipEncoder().encode(archive);
+}
+
+Future<void> _writeZipAtomically(File target, List<int> zipBytes) async {
+  final targetType = await FileSystemEntity.type(
+    target.path,
+    followLinks: false,
+  );
+  if (targetType != FileSystemEntityType.notFound) {
+    throw const AppGeneratedPdfException(
+      'Maintainiac could not save the export package because the destination already exists.',
+    );
+  }
+  final partial = File('${target.path}.partial');
+  final partialType = await FileSystemEntity.type(
+    partial.path,
+    followLinks: false,
+  );
+  if (partialType == FileSystemEntityType.file) {
+    await partial.delete();
+  } else if (partialType != FileSystemEntityType.notFound) {
+    throw const AppGeneratedPdfException(
+      'Maintainiac could not save the export package because a stale partial file was unsafe.',
+    );
+  }
+  try {
+    await partial.writeAsBytes(zipBytes, flush: true);
+    await _requireRegularExportPackageFile(partial);
+    final partialLength = await partial.length();
+    if (partialLength != zipBytes.length) {
+      throw const FileSystemException('Export package write was incomplete.');
+    }
+    await _requireRegularExportPackageFile(partial);
+    await partial.rename(target.path);
+    await _requireRegularExportPackageFile(target);
+    final targetLength = await target.length();
+    if (targetLength != zipBytes.length) {
+      throw const FileSystemException('Export package verification failed.');
+    }
+  } catch (_) {
+    if (await partial.exists()) {
+      await partial.delete();
+    }
+    throw const AppGeneratedPdfException(
+      'Maintainiac could not save the export package. Please free up storage and try again.',
+    );
+  }
+}
+
+Future<void> _requireRegularExportPackageFile(File file) async {
+  final type = await FileSystemEntity.type(file.path, followLinks: false);
+  if (type == FileSystemEntityType.file) return;
+  throw const FileSystemException('Export package file was unsafe.');
 }
 
 Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
   ExpenseExportSnapshot snapshot,
 ) async {
+  snapshot.ensureCanExport();
   final pdf = pw.Document();
   final pdfTheme = await AppPdfTypography.loadTheme();
   pdf.addPage(
@@ -204,13 +285,15 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
           ],
           data: [
             for (final receipt in snapshot.receipts)
-              for (final line in receipt.lines)
+              for (final line in snapshot.filteredLinesFor(receipt))
                 [
                   _date(receipt.receiptDate),
                   receipt.merchantName,
                   line.category,
                   line.description,
-                  AppPdfFormatters.money(receipt.totalForLine(line)),
+                  AppPdfFormatters.money(
+                    snapshot.taxAdjustedTotalForLine(receipt, line),
+                  ),
                 ],
           ],
         ),
@@ -234,12 +317,15 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
               receipt.id,
               receipt.receiptDate.toIso8601String(),
               receipt.merchantName,
-              receipt.lines
+              snapshot
+                  .filteredLinesFor(receipt)
                   .map(
                     (line) => [
                       line.category,
                       line.description,
-                      AppPdfFormatters.money(receipt.totalForLine(line)),
+                      AppPdfFormatters.money(
+                        snapshot.taxAdjustedTotalForLine(receipt, line),
+                      ),
                     ].join('|'),
                   )
                   .join('::'),
@@ -287,5 +373,3 @@ String _fileDate(DateTime day) {
 }
 
 String _date(DateTime day) => AppPdfFormatters.date(day);
-
-String _fileName(String path) => path.split(Platform.pathSeparator).last;

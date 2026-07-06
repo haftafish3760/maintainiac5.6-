@@ -1,4 +1,5 @@
 import '../../../shared/data_export/csv_writer.dart';
+import '../../../shared/pdf/app_pdf_privacy_policy.dart';
 import 'expense_ledger_models.dart';
 
 enum ExpenseExportRangePreset {
@@ -116,10 +117,87 @@ class ExpenseExportSnapshot {
     return sum + _filteredReceiptTotal(receipt);
   });
 
+  List<String> get privacyIssueCodes {
+    return AppPdfPrivacyPolicy.issueCodesForExport(
+      bytes: const [],
+      metadata: exportPrivacyMetadata,
+    );
+  }
+
+  bool get canExport => privacyIssueCodes.isEmpty;
+
+  void ensureCanExport() {
+    final issues = privacyIssueCodes;
+    if (issues.isEmpty) return;
+    throw ExpenseExportPrivacyException(issues);
+  }
+
+  Iterable<String> get exportPrivacyMetadata sync* {
+    yield range.start.toIso8601String();
+    yield range.end.toIso8601String();
+    yield categoryFilter.name;
+    yield source.name;
+    yield destination.name;
+    yield ocrReadStatus;
+    yield ocrReadSummary;
+    yield ocrTopCheck;
+    yield ocrTopSource;
+    yield ocrTopPrimaryIssue;
+    yield ocrTopPrimaryAction;
+    yield ocrTopRecoveryAction;
+    yield ocrTopRecoveryTarget;
+    yield* _mapPrivacyMetadata('ocrSourceCounts', ocrSourceCounts);
+    yield* _mapPrivacyMetadata(
+      'ocrPrimaryWarningKindCounts',
+      ocrPrimaryWarningKindCounts,
+    );
+    yield* _mapPrivacyMetadata(
+      'ocrRecoveryActionCounts',
+      ocrRecoveryActionCounts,
+    );
+    yield* _mapPrivacyMetadata(
+      'ocrRecoveryTargetCounts',
+      ocrRecoveryTargetCounts,
+    );
+    for (var receiptIndex = 0; receiptIndex < receipts.length; receiptIndex++) {
+      final receipt = receipts[receiptIndex];
+      yield _receiptExportRef(receiptIndex);
+      yield receipt.merchantName;
+      yield receipt.phone;
+      yield receipt.street;
+      yield receipt.city;
+      yield receipt.state;
+      yield receipt.zip;
+      yield receipt.email;
+      yield receipt.website;
+      yield receipt.vehicleId ?? '';
+      yield '${receipt.odometerReading ?? ''}';
+      yield receipt.sourceScreen;
+      yield receipt.notes;
+      yield receipt.ocrReview.severity;
+      yield receipt.ocrReview.source;
+      yield receipt.ocrReview.primaryWarningKind;
+      yield receipt.ocrReview.commandCenterPrimaryIssue;
+      yield receipt.ocrReview.commandCenterPrimaryAction;
+      for (final entry in receipt.ocrReview.commandCenterSummary.entries) {
+        yield 'ocrSummary.${entry.key}=${entry.value}';
+      }
+      for (final line in _filteredLines(receipt)) {
+        yield _lineExportRef(receiptIndex, receipt.lines.indexOf(line));
+        yield line.description;
+        yield line.category;
+        yield line.unit;
+        yield line.fuelType ?? '';
+        yield line.fillType ?? '';
+        yield '${line.odometerReading ?? ''}';
+      }
+    }
+  }
+
   String toReceiptsCsv() {
     return buildCsv([
       [
-        'receipt_id',
+        'receipt_export_ref',
         'receipt_date',
         'receipt_time_minutes',
         'merchant_name',
@@ -157,45 +235,53 @@ class ExpenseExportSnapshot {
         'created_at',
         'updated_at',
       ],
-      for (final receipt in receipts)
+      for (var receiptIndex = 0; receiptIndex < receipts.length; receiptIndex++)
         [
-          receipt.id,
-          _date(receipt.receiptDate),
-          receipt.receiptTimeMinutes,
-          receipt.merchantName,
-          receipt.phone,
-          receipt.street,
-          receipt.city,
-          receipt.state,
-          receipt.zip,
-          receipt.email,
-          receipt.website,
-          receipt.hasReceiptAttachment,
-          receipt.attachments.length,
-          _proofTypes(receipt),
-          _attachmentBytes(receipt),
-          receipt.ocrReview.hasData ? receipt.ocrReview.severity : '',
-          receipt.ocrReview.warningCount,
-          receipt.ocrReview.primaryWarningKind,
-          receipt.ocrReview.commandCenterSummary['recoveryAction'] ?? '',
-          receipt.ocrReview.commandCenterSummary['recoveryTarget'] ?? '',
-          receipt.ocrReview.commandCenterPrimaryIssue,
-          receipt.ocrReview.commandCenterPrimaryAction,
-          receipt.ocrReview.parserLineCount,
-          receipt.ocrReview.pdfPagesRequested,
-          _moneyValue(receipt.lineSubtotal),
-          _moneyValue(receipt.receiptSubtotal),
-          _moneyValue(receipt.receiptTax),
-          _ratioValue(receipt.effectiveTaxRate),
-          _moneyValue(_filteredReceiptTotal(receipt)),
-          _moneyValue(_filteredBusinessTotal(receipt)),
-          _moneyValue(_filteredPersonalTotal(receipt)),
-          receipt.vehicleId,
-          receipt.odometerReading,
-          receipt.sourceScreen,
-          receipt.notes,
-          _date(receipt.createdAt),
-          _date(receipt.updatedAt),
+          _receiptExportRef(receiptIndex),
+          _date(receipts[receiptIndex].receiptDate),
+          receipts[receiptIndex].receiptTimeMinutes,
+          receipts[receiptIndex].merchantName,
+          receipts[receiptIndex].phone,
+          receipts[receiptIndex].street,
+          receipts[receiptIndex].city,
+          receipts[receiptIndex].state,
+          receipts[receiptIndex].zip,
+          receipts[receiptIndex].email,
+          receipts[receiptIndex].website,
+          receipts[receiptIndex].hasReceiptAttachment,
+          receipts[receiptIndex].attachments.length,
+          _proofTypes(receipts[receiptIndex]),
+          _attachmentBytes(receipts[receiptIndex]),
+          receipts[receiptIndex].ocrReview.hasData
+              ? receipts[receiptIndex].ocrReview.severity
+              : '',
+          receipts[receiptIndex].ocrReview.warningCount,
+          receipts[receiptIndex].ocrReview.primaryWarningKind,
+          receipts[receiptIndex]
+                  .ocrReview
+                  .commandCenterSummary['recoveryAction'] ??
+              '',
+          receipts[receiptIndex]
+                  .ocrReview
+                  .commandCenterSummary['recoveryTarget'] ??
+              '',
+          receipts[receiptIndex].ocrReview.commandCenterPrimaryIssue,
+          receipts[receiptIndex].ocrReview.commandCenterPrimaryAction,
+          receipts[receiptIndex].ocrReview.parserLineCount,
+          receipts[receiptIndex].ocrReview.pdfPagesRequested,
+          _moneyValue(receipts[receiptIndex].lineSubtotal),
+          _moneyValue(receipts[receiptIndex].receiptSubtotal),
+          _moneyValue(receipts[receiptIndex].receiptTax),
+          _ratioValue(receipts[receiptIndex].effectiveTaxRate),
+          _moneyValue(_filteredReceiptTotal(receipts[receiptIndex])),
+          _moneyValue(_filteredBusinessTotal(receipts[receiptIndex])),
+          _moneyValue(_filteredPersonalTotal(receipts[receiptIndex])),
+          receipts[receiptIndex].vehicleId,
+          receipts[receiptIndex].odometerReading,
+          receipts[receiptIndex].sourceScreen,
+          receipts[receiptIndex].notes,
+          _date(receipts[receiptIndex].createdAt),
+          _date(receipts[receiptIndex].updatedAt),
         ],
     ]);
   }
@@ -203,8 +289,8 @@ class ExpenseExportSnapshot {
   String toLineItemsCsv() {
     return buildCsv([
       [
-        'receipt_id',
-        'line_id',
+        'receipt_export_ref',
+        'line_export_ref',
         'line_number',
         'receipt_date',
         'merchant_name',
@@ -225,31 +311,60 @@ class ExpenseExportSnapshot {
         'fill_type',
         'unit_price',
       ],
-      for (final receipt in receipts)
-        for (var index = 0; index < receipt.lines.length; index++)
-          if (_includesLine(receipt.lines[index]))
+      for (var receiptIndex = 0; receiptIndex < receipts.length; receiptIndex++)
+        for (
+          var lineIndex = 0;
+          lineIndex < receipts[receiptIndex].lines.length;
+          lineIndex++
+        )
+          if (_includesLine(receipts[receiptIndex].lines[lineIndex]))
             [
-              receipt.id,
-              receipt.lines[index].id,
-              index + 1,
-              _date(receipt.receiptDate),
-              receipt.merchantName,
-              receipt.lines[index].description,
-              receipt.lines[index].category,
-              receipt.lines[index].use.label,
-              _ratioValue(receipt.lines[index].effectiveBusinessPercent),
-              _ratioValue(receipt.lines[index].effectivePersonalPercent),
-              _quantityValue(receipt.lines[index].quantity),
-              _quantityValue(receipt.lines[index].unitsPerPackage),
-              receipt.lines[index].unit,
-              _moneyValue(receipt.lines[index].subtotal),
-              _moneyValue(receipt.totalForLine(receipt.lines[index])),
-              _moneyValue(receipt.businessTotalForLine(receipt.lines[index])),
-              _moneyValue(receipt.personalTotalForLine(receipt.lines[index])),
-              receipt.lines[index].odometerReading,
-              receipt.lines[index].fuelType,
-              receipt.lines[index].fillType,
-              _moneyValue(receipt.lines[index].unitPrice),
+              _receiptExportRef(receiptIndex),
+              _lineExportRef(receiptIndex, lineIndex),
+              lineIndex + 1,
+              _date(receipts[receiptIndex].receiptDate),
+              receipts[receiptIndex].merchantName,
+              receipts[receiptIndex].lines[lineIndex].description,
+              receipts[receiptIndex].lines[lineIndex].category,
+              receipts[receiptIndex].lines[lineIndex].use.label,
+              _ratioValue(
+                receipts[receiptIndex]
+                    .lines[lineIndex]
+                    .effectiveBusinessPercent,
+              ),
+              _ratioValue(
+                receipts[receiptIndex]
+                    .lines[lineIndex]
+                    .effectivePersonalPercent,
+              ),
+              _quantityValue(receipts[receiptIndex].lines[lineIndex].quantity),
+              _quantityValue(
+                receipts[receiptIndex].lines[lineIndex].unitsPerPackage,
+              ),
+              receipts[receiptIndex].lines[lineIndex].unit,
+              _moneyValue(receipts[receiptIndex].lines[lineIndex].subtotal),
+              _moneyValue(
+                taxAdjustedTotalForLine(
+                  receipts[receiptIndex],
+                  receipts[receiptIndex].lines[lineIndex],
+                ),
+              ),
+              _moneyValue(
+                businessTotalForLine(
+                  receipts[receiptIndex],
+                  receipts[receiptIndex].lines[lineIndex],
+                ),
+              ),
+              _moneyValue(
+                personalTotalForLine(
+                  receipts[receiptIndex],
+                  receipts[receiptIndex].lines[lineIndex],
+                ),
+              ),
+              receipts[receiptIndex].lines[lineIndex].odometerReading,
+              receipts[receiptIndex].lines[lineIndex].fuelType,
+              receipts[receiptIndex].lines[lineIndex].fillType,
+              _moneyValue(receipts[receiptIndex].lines[lineIndex].unitPrice),
             ],
     ]);
   }
@@ -512,30 +627,92 @@ class ExpenseExportSnapshot {
     'expense_export_manifest.json',
   ];
 
+  List<ExpenseReceiptLineRecord> filteredLinesFor(
+    ExpenseReceiptRecord receipt,
+  ) {
+    return _filteredLines(receipt);
+  }
+
+  double taxAdjustedTotalForLine(
+    ExpenseReceiptRecord receipt,
+    ExpenseReceiptLineRecord line,
+  ) {
+    return _allocatedMoneyForFilteredLine(receipt, line, receipt.totalForLine);
+  }
+
+  double businessTotalForLine(
+    ExpenseReceiptRecord receipt,
+    ExpenseReceiptLineRecord line,
+  ) {
+    return _allocatedMoneyForFilteredLine(
+      receipt,
+      line,
+      receipt.businessTotalForLine,
+    );
+  }
+
+  double personalTotalForLine(
+    ExpenseReceiptRecord receipt,
+    ExpenseReceiptLineRecord line,
+  ) {
+    return _allocatedMoneyForFilteredLine(
+      receipt,
+      line,
+      receipt.personalTotalForLine,
+    );
+  }
+
   List<ExpenseReceiptLineRecord> _filteredLines(ExpenseReceiptRecord receipt) {
     return receipt.lines.where(_includesLine).toList(growable: false);
   }
 
   double _filteredReceiptTotal(ExpenseReceiptRecord receipt) {
-    return _filteredLines(
-      receipt,
-    ).fold(0, (sum, line) => sum + receipt.totalForLine(line));
+    return _allocatedMoneyTotal(receipt, receipt.totalForLine);
   }
 
   double _filteredBusinessTotal(ExpenseReceiptRecord receipt) {
-    return _filteredLines(
-      receipt,
-    ).fold(0, (sum, line) => sum + receipt.businessTotalForLine(line));
+    return _allocatedMoneyTotal(receipt, receipt.businessTotalForLine);
   }
 
   double _filteredPersonalTotal(ExpenseReceiptRecord receipt) {
-    return _filteredLines(
-      receipt,
-    ).fold(0, (sum, line) => sum + receipt.personalTotalForLine(line));
+    return _allocatedMoneyTotal(receipt, receipt.personalTotalForLine);
   }
 
   bool _includesLine(ExpenseReceiptLineRecord line) {
     return _lineMatchesFilter(line, categoryFilter);
+  }
+
+  double _allocatedMoneyForFilteredLine(
+    ExpenseReceiptRecord receipt,
+    ExpenseReceiptLineRecord line,
+    double Function(ExpenseReceiptLineRecord line) rawAmountForLine,
+  ) {
+    final lines = _filteredLines(receipt);
+    final lineIndex = lines.indexOf(line);
+    if (lineIndex < 0) return 0;
+    return _allocatedMoneyCents(lines, rawAmountForLine)[lineIndex] / 100;
+  }
+
+  double _allocatedMoneyTotal(
+    ExpenseReceiptRecord receipt,
+    double Function(ExpenseReceiptLineRecord line) rawAmountForLine,
+  ) {
+    return _allocatedMoneyCents(
+          _filteredLines(receipt),
+          rawAmountForLine,
+        ).fold<int>(0, (sum, cents) => sum + cents) /
+        100;
+  }
+}
+
+class ExpenseExportPrivacyException implements Exception {
+  const ExpenseExportPrivacyException(this.issues);
+
+  final List<String> issues;
+
+  @override
+  String toString() {
+    return 'Expense export blocked for private fields: ${issues.join(', ')}';
   }
 }
 
@@ -579,6 +756,61 @@ String _quantityValue(num value) {
       : value.toString();
 }
 
+List<int> _allocatedMoneyCents(
+  List<ExpenseReceiptLineRecord> lines,
+  double Function(ExpenseReceiptLineRecord line) rawAmountForLine,
+) {
+  if (lines.isEmpty) return const [];
+  final rawAmounts = [
+    for (final line in lines) rawAmountForLine(line),
+  ];
+  final targetCents = _moneyCents(
+    rawAmounts.fold<double>(0, (sum, amount) => sum + amount),
+  );
+  final floors = [
+    for (final amount in rawAmounts) _floorTowardNegativeInfinity(amount * 100),
+  ];
+  var remainder = targetCents - floors.fold<int>(0, (sum, cents) => sum + cents);
+  final order = List<int>.generate(lines.length, (index) => index)
+    ..sort((left, right) {
+      final remainderCompare = _centRemainder(
+        rawAmounts[right],
+      ).compareTo(_centRemainder(rawAmounts[left]));
+      if (remainderCompare != 0) return remainderCompare;
+      return left.compareTo(right);
+    });
+  final cents = floors.toList(growable: false);
+  var orderIndex = 0;
+  while (remainder > 0 && order.isNotEmpty) {
+    cents[order[orderIndex % order.length]] += 1;
+    remainder -= 1;
+    orderIndex += 1;
+  }
+  while (remainder < 0 && order.isNotEmpty) {
+    cents[order.reversed.elementAt(orderIndex % order.length)] -= 1;
+    remainder += 1;
+    orderIndex += 1;
+  }
+  return cents;
+}
+
+int _moneyCents(num value) => (value * 100).round();
+
+int _floorTowardNegativeInfinity(num value) => value.floor();
+
+double _centRemainder(num value) {
+  final cents = value * 100;
+  return (cents - cents.floor()).toDouble();
+}
+
+String _receiptExportRef(int receiptIndex) {
+  return 'receipt_${(receiptIndex + 1).toString().padLeft(4, '0')}';
+}
+
+String _lineExportRef(int receiptIndex, int lineIndex) {
+  return '${_receiptExportRef(receiptIndex)}_line_${(lineIndex + 1).toString().padLeft(4, '0')}';
+}
+
 int _attachmentBytes(ExpenseReceiptRecord receipt) {
   return receipt.attachments.fold(0, (sum, attachment) {
     return sum + (attachment.byteSize ?? 0);
@@ -588,6 +820,12 @@ int _attachmentBytes(ExpenseReceiptRecord receipt) {
 String _proofTypes(ExpenseReceiptRecord receipt) {
   final types = receipt.attachments.map((attachment) => attachment.kind.name);
   return types.toSet().join('|');
+}
+
+Iterable<String> _mapPrivacyMetadata(String name, Map<String, int> values) sync* {
+  for (final entry in values.entries) {
+    yield '$name.${entry.key}=${entry.value}';
+  }
 }
 
 String _topCountKey(Map<String, int> counts) {

@@ -15,9 +15,20 @@ void main() {
       'invoice PDFs',
       'estimate PDFs',
       'expense reports',
+      'app scope',
+      'not open ended like a general office PDF suite',
+      'Income and pay reports',
+      'Trip reports',
+      'Invoice and payment reports',
       'daily recap reports',
-      'inventory reports',
-      'job packets',
+      'inventory/material receipt summaries',
+      'job summaries',
+      'App-wide export packets that combine confirmed trip, income, expense, invoice, inventory/material, job, and receipt proof summaries',
+      'email, text, print, save',
+      'must not require UI screens to own PDF layout or pagination logic',
+      'unrelated office documents',
+      'arbitrary PDF editing',
+      'generic PDF form handling',
       'read-only',
       'never modify source records',
       'Read confirmed data only',
@@ -40,6 +51,8 @@ void main() {
       'Shared receipt proof flow for expenses, inventory/material receipts',
       'without changing parser, OCR, inventory, or expense classification logic',
       'Portrait, landscape, mixed-orientation, rotated, and cropped receipt pages',
+      'Estimates and invoices are the same business document family',
+      'final invoices without forcing a PDF redesign',
       'Golden snapshot tests',
       'PDF-to-receipt review transfer',
       'No private text in logs',
@@ -68,5 +81,7 @@ void main() {
 
     expect(normalizedDirective, contains('not a generic PDF generator'));
     expect(normalizedDirective, contains('not a generic PDF viewer'));
+    expect(normalizedDirective, isNot(contains('future document types')));
+    expect(normalizedDirective, isNot(contains('arbitrary future document')));
   });
 }

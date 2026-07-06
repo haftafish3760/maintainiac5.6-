@@ -222,7 +222,18 @@
         "document_export_zip_package_symlinked_package_file_block",
         "document_export_zip_package_symlinked_import_root_block",
         "document_export_symlinked_pdf_proof_block",
-        "document_export_symlinked_photo_proof_block"
+        "document_export_symlinked_photo_proof_block",
+        "expense_export_atomic_file_write",
+        "expense_export_partial_file_absence",
+        "expense_export_unique_directory_collision",
+        "expense_export_symlinked_directory_skip",
+        "expense_export_symlinked_base_directory_block",
+        "expense_export_zip_regular_file_only",
+        "expense_export_zip_outside_folder_block",
+        "expense_export_zip_duplicate_entry_block",
+        "expense_export_zip_symlink_entry_block",
+        "expense_export_zip_partial_write_verification",
+        "expense_export_zip_final_write_verification"
       ]
     },
     "privacy_and_security_logs": {
@@ -230,6 +241,9 @@
       "currentTestFiles": [
         "test/cloud_backup_pdf_policy_test.dart",
         "test/cloud_backup_manifest_test.dart",
+        "test/expense_export_test.dart",
+        "test/expense_ledger_store_test.dart",
+        "test/expense_duplicate_detection_test.dart",
         "test/receipt_pdf_inspector_security_flags_test.dart",
         "test/receipt_pdf_inspector_edge_cases_test.dart",
         "test/app_generated_pdf_service_test.dart",
@@ -279,12 +293,22 @@
         "generated_pdf_share_outside_storage_block",
         "generated_pdf_share_symlink_block",
         "generated_pdf_symlinked_temp_directory_block",
+        "generated_pdf_fake_versionless_header_block",
+        "generated_pdf_trailing_payload_after_eof_block",
         "generated_pdf_encrypted_output_block",
         "generated_pdf_filename_privacy_block",
         "separator_normalized_vehicle_privacy_block",
         "pdf_health_diagnostics_safe_command_center_snapshot",
         "pdf_health_diagnostics_private_signal_redaction",
-        "pdf_health_diagnostics_arbitrary_operational_text_redaction"
+        "pdf_health_diagnostics_arbitrary_operational_text_redaction",
+        "expense_export_pdf_proof_metadata",
+        "expense_export_private_vin_block",
+        "expense_export_private_plate_block",
+        "expense_export_private_passenger_block",
+        "expense_export_internal_receipt_id_redaction",
+        "expense_export_internal_line_id_redaction",
+        "expense_ledger_pdf_attachment_round_trip",
+        "expense_duplicate_pdf_hash_detection"
       ]
     },
     "pdf_to_receipt_review": {
@@ -292,6 +316,8 @@
       "currentTestFiles": [
         "test/incoming_receipt_share_pdf_hardening_test.dart",
         "test/incoming_receipt_share_test.dart",
+        "test/expense_receipt_classifier_test.dart",
+        "test/receipt_assistance_policy_test.dart",
         "test/receipt_pdf_import_copy_test.dart",
         "test/receipt_pdf_viewer_accessibility_test.dart",
         "test/receipt_pdf_viewer_preflight_test.dart",
@@ -306,6 +332,9 @@
         "incoming_shared_pdf_staging",
         "incoming_shared_pdf_duplicate_suppression",
         "incoming_shared_pdf_discard_cleanup",
+        "shared_pdf_destination_suggestion",
+        "unsafe_pdf_proof_only_decision",
+        "older_phone_pdf_proof_only_decision",
         "proof_only_viewer_state",
         "missing_pdf_accessibility_recovery",
         "symlinked_pdf_viewer_unreadable"
@@ -330,9 +359,11 @@
         "missing_optional_fields",
         "missing_logo",
         "long_unbroken_text",
+        "invoice_layout_no_hard_text_clipping",
         "decimal_refund_overpayment",
         "template_matrix",
         "portrait_landscape_page_formats",
+        "landscape_template_no_dropped_line_items",
         "legal_invoice_page_format",
         "a4_landscape_invoice_page_format",
         "pagination_boundaries",
@@ -353,7 +384,10 @@
         "generated_pdf_preview_dismissed_actions",
         "shared_money_formatting_contract",
         "invoice_text_layer_export_verifier",
-        "internal_record_id_export_block"
+        "internal_record_id_export_block",
+        "internal_line_item_id_export_block",
+        "internal_payment_id_export_block",
+        "internal_id_false_positive_visible_line_label"
       ]
     },
     "receipt_generation": {
@@ -392,6 +426,48 @@
         "receipt_generation_archive_mapping",
         "receipt_generation_archive_linked_module_sanitizing",
         "receipt_generation_determinism"
+      ]
+    },
+    "export_report_generation": {
+      "status": "covered_by_export_contracts",
+      "currentTestFiles": [
+        "test/expense_export_test.dart",
+        "test/expense_recap_models_test.dart",
+        "test/app_document_export_manifest_test.dart",
+        "test/app_document_export_package_writer_test.dart",
+        "test/invoice_ledger_store_test.dart",
+        "test/invoice_pdf_export_verifier_contract_test.dart"
+      ],
+      "fixtureKeys": [
+        "expense_export_pdf_proof_metadata",
+        "expense_recap_daily_summary_totals",
+        "expense_recap_vehicle_business_use_split",
+        "expense_recap_fuel_mpg_summary",
+        "invoice_payment_export_summary",
+        "document_export_verified_package_plan",
+        "document_export_zip_package_determinism",
+        "document_export_zip_package_share_plan",
+        "document_export_zip_package_extract_verified",
+        "expense_export_atomic_file_write",
+        "expense_export_partial_file_absence",
+        "expense_export_unique_directory_collision",
+        "expense_export_symlinked_directory_skip",
+        "expense_export_symlinked_base_directory_block",
+        "expense_export_private_metadata_block",
+        "expense_export_ocr_source_privacy_block",
+        "expense_export_ocr_summary_privacy_block",
+        "expense_export_public_receipt_references",
+        "expense_export_public_line_references",
+        "expense_export_zip_safe_entry_names",
+        "expense_export_zip_outside_folder_block",
+        "expense_export_zip_duplicate_entry_block",
+        "expense_export_zip_symlink_entry_block",
+        "expense_export_zip_write_verification",
+        "expense_export_pdf_category_filter_respected",
+        "expense_export_deterministic_penny_allocation",
+        "export_reports_confirmed_records_only",
+        "export_reports_no_ui_owned_pagination",
+        "export_reports_app_scope_only"
       ]
     },
     "cross_platform_storage": {

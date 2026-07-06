@@ -63,6 +63,15 @@ void main() {
     },
   );
 
+  test('invoice Document Engine layout text never uses hard clipping', () {
+    final rendererSource = File(
+      'lib/screens/invoices/data/invoice_pdf_template_renderer.dart',
+    ).readAsStringSync();
+
+    expect(rendererSource, isNot(contains('pw.TextOverflow.clip')));
+    expect(rendererSource, contains('pw.TextOverflow.span'));
+  });
+
   test('invoice Document Engine fixture factory keeps arithmetic stable', () {
     final standard = InvoiceDocumentEngineFixtureFactory.standardInvoice(
       lineCount: 14,
@@ -258,6 +267,58 @@ void main() {
       expect(
         AppGeneratedPdfValidationReport.inspect(
           Uint8List.fromList(landscapeBytes),
+        ).isValid,
+        isTrue,
+      );
+    },
+  );
+
+  test(
+    'invoice Document Engine landscape templates do not drop line items',
+    () async {
+      final renderer = const InvoicePdfTemplateRenderer();
+      final template = InvoiceTemplateCatalog.byId(
+        'landscaping-garden-artwork-v1',
+      );
+      final record =
+          InvoiceDocumentEngineFixtureFactory.standardInvoice(
+            lineCount: 17,
+          ).copyWith(
+            templateId: template.id,
+            lines: [
+              for (var index = 1; index <= 17; index++)
+                InvoiceLineItemRecord(
+                  id: 'landscape-retained-$index',
+                  name: 'Landscape retained item $index',
+                  details: 'Confirmed landscape page item $index',
+                  quantity: 1,
+                  unit: 'ea',
+                  unitPrice: 10.0 + index,
+                  taxRate: 0,
+                  taxable: false,
+                ),
+            ],
+          );
+
+      final pageCount = invoicePdfPageCountForRecord(
+        record,
+        template: template,
+      );
+      final bytes = await renderer.buildRecordDocumentBytes(
+        record: record,
+        template: template,
+      );
+      final decoded = AppPdfTextDecoder.textWithDecodedPdfStreams(bytes);
+
+      expect(pageCount, 3);
+      expect(_mediaBoxes(bytes).every((box) => box.isLandscape), isTrue);
+      expect(decoded, contains(r'$11.00'));
+      expect(decoded, contains(r'$18.00'));
+      expect(decoded, contains(r'$25.00'));
+      expect(decoded, contains(r'$27.00'));
+      expect(
+        AppGeneratedPdfValidationReport.inspect(
+          Uint8List.fromList(bytes),
         ).isValid,
         isTrue,
       );
