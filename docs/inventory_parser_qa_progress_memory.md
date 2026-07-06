@@ -3839,3 +3839,28 @@ Release boundaries:
   `inventory.dangerous_words,inventory.runtime_profile_contract,qa.threshold_gate`
   smoke gate passed with 66 checks, 0 failures, and dangerous-word runtime of
   about 10 ms.
+- **02:03 Harness Pass 3003-3007:** Hardened generated-fixture runtime evidence
+  without touching OCR, camera, expenses, UI, or unrelated modules. The generated
+  fixture wrapper now records per-chunk and aggregate `durationMs`; generated
+  run status rolls duration up per cell and summary; generated run status can
+  fail `--require-complete` when a cell is below `--min-checked-per-cell`; and
+  the Release 1 command manifest exposes the generated fixture status command
+  with a minimum checked-count gate so one-fixture smoke evidence cannot
+  masquerade as release coverage. Verification passed with focused wrapper,
+  generated-run-status, release-one-command, inventory-consumer, and analyzer
+  checks before commits `fe621a3`, `6c6d53c`, `c5ba330`, and `6cae97e`.
+- **02:06 Harness Pass 3007-3008:** Broadened generated synthetic merchant
+  fixture families beyond popular big-box names. Fixture generation now includes
+  Tractor Supply, Northern Tool, explicit Electrical/HVAC/Plumbing supply-house
+  families, Regional Supplier, Counter Sale, Local Hardware, and unknown
+  merchant shapes, while generated manifests explicitly preserve
+  `ocrCameraExpensesTouched: false`. The generated-manifest governance suite now
+  requires those merchant-family and safety tokens. Verification passed with
+  focused fixture generator, inventory-consumer, generated-manifest, and analyzer
+  checks before commits `7cd3414` and `d9f84ca`.
+- **Current evidence note:** The old deep Core queue artifacts are not present
+  in this working copy under `build/parser_qa_background_queue`, so they cannot
+  be counted as current proof. A hardened Core PEH generated-fixture rerun still
+  needs to produce fresh per-cell reports with explicit safety fields,
+  `durationMs`, nonzero `parserCalls`, zero failures, and enough checked cases to
+  satisfy the current `--min-checked-per-cell` gate.
