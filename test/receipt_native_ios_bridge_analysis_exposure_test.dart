@@ -197,6 +197,12 @@ void main() {
       );
       expect(
         cameraController,
+        contains(
+          '"experimentalReceiptQualityWarningsEnabled": hasExperimentalReceiptQualityWarningsEnabled()',
+        ),
+      );
+      expect(
+        cameraController,
         contains('Hold steady so the receipt text stays sharp.'),
       );
       expect(

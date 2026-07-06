@@ -82,6 +82,7 @@ ReceiptNativeCaptureResult acceptedNativeCaptureStagingFixture({
       'dirtyLensWarningEnabled': false,
       'lowLightWarningEnabled': false,
       'shadowWarningEnabled': true,
+      'experimentalReceiptQualityWarningsEnabled': true,
       'tooFarTooCloseWarningEnabled': true,
       'receiptFullyVisibleWarningEnabled': true,
       'textTooSmallWarningEnabled': true,

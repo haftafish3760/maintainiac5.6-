@@ -253,6 +253,10 @@ Future<void> expectAcceptedNativeCaptureRecoveryIndex({
   expect(indexEntry.captureDiagnostics['dirtyLensWarningEnabled'], isFalse);
   expect(indexEntry.captureDiagnostics['lowLightWarningEnabled'], isFalse);
   expect(indexEntry.captureDiagnostics['shadowWarningEnabled'], isTrue);
+  expect(
+    indexEntry.captureDiagnostics['experimentalReceiptQualityWarningsEnabled'],
+    isTrue,
+  );
   expect(indexEntry.captureDiagnostics['tooFarTooCloseWarningEnabled'], isTrue);
   expect(
     indexEntry.captureDiagnostics['receiptFullyVisibleWarningEnabled'],

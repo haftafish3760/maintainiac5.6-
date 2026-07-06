@@ -241,6 +241,11 @@ void expectAcceptedNativeCaptureRecoveryManifest(
     isTrue,
   );
   expect(
+    (manifest['captureDiagnostics']
+        as Map)['experimentalReceiptQualityWarningsEnabled'],
+    isTrue,
+  );
+  expect(
     (manifest['captureDiagnostics'] as Map)['tooFarTooCloseWarningEnabled'],
     isTrue,
   );

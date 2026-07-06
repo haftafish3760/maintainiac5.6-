@@ -127,6 +127,7 @@ extension ReceiptCameraViewController {
       "adaptiveThresholdEnabled": adaptiveThresholdEnabled,
       "orientationCorrectionEnabled": orientationCorrectionEnabled,
       "receiptGuidanceWarningsEnabled": receiptGuidanceWarningsEnabled(),
+      "experimentalReceiptQualityWarningsEnabled": hasExperimentalReceiptQualityWarningsEnabled(),
       "autoExposureAdjustmentCount": autoExposureAdjustmentCount,
       "preCaptureExposureAdjustmentCount": preCaptureExposureAdjustmentCount,
       "preCaptureExposureAdjustmentConfirmedCount": preCaptureExposureAdjustmentConfirmedCount,

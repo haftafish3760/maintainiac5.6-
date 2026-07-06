@@ -161,6 +161,12 @@ void main() {
         contains('if (!hasExperimentalReceiptQualityWarningsEnabled())'),
       );
       expect(
+        cameraActivity,
+        contains(
+          '"experimentalReceiptQualityWarningsEnabled" to hasExperimentalReceiptQualityWarningsEnabled()',
+        ),
+      );
+      expect(
         'Receipt has heavy shadows'.allMatches(cameraActivity).length,
         greaterThanOrEqualTo(3),
         reason:

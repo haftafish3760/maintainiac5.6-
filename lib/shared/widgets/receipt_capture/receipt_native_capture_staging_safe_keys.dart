@@ -147,6 +147,7 @@ const _receiptNativeCaptureSafeDiagnosticKeys = {
   'previewBrightnessGuardPolicy',
   'shutterSpeedPolicy',
   'receiptGuidanceWarningsEnabled',
+  'experimentalReceiptQualityWarningsEnabled',
   'autoExposureAdjustmentCount',
   'preCaptureExposureAdjustmentCount',
   'preCaptureExposureAbortCount',

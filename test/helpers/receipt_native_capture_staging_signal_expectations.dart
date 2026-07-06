@@ -96,6 +96,7 @@ Future<void> expectAcceptedNativeCaptureStagingSignals(
   expect(diagnostics['dirtyLensWarningEnabled'], isFalse);
   expect(diagnostics['lowLightWarningEnabled'], isFalse);
   expect(diagnostics['shadowWarningEnabled'], isTrue);
+  expect(diagnostics['experimentalReceiptQualityWarningsEnabled'], isTrue);
   expect(diagnostics['tooFarTooCloseWarningEnabled'], isTrue);
   expect(diagnostics['receiptFullyVisibleWarningEnabled'], isTrue);
   expect(diagnostics['textTooSmallWarningEnabled'], isTrue);
