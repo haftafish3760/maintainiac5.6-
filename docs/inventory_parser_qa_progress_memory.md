@@ -3981,3 +3981,19 @@ Release boundaries:
   evidence: 250 checked cases out of 3,357 generated Plumbing Core cases, 0
   failures. This is still Plumbing Core only; continue family-bundled metadata
   enrichment before broad/full release waves.
+- **19:01-19:10 Plumbing Core Metadata Gate:** Added
+  `test/work_supply_plumbing_core_metadata_gate_test.dart` to prove the full
+  residential Plumbing Core set carries professional parser metadata instead
+  of relying on intent. The gate checks every Core row for aliases, rich
+  receipt patterns, negative-match ambiguity tokens, high-importance parser
+  tokens, Plumbing Core/residential-service attributes, Spanish metadata,
+  classification metadata, source confidence, and catalog/parser versions.
+  Verification passed with the bundled Plumbing Core group:
+  `flutter test test/work_supply_plumbing_core_metadata_gate_test.dart
+  test/work_supply_plumbing_core_pack_gate_test.dart
+  test/work_supply_plumbing_core_curation_audit_test.dart
+  test/work_supply_plumbing_core_curation_audit_report_test.dart
+  test/work_supply_plumbing_core_batch_gate_test.dart`. Current report remains
+  Plumbing Core 1,119 rows, 0 missing required families, 0 suspicious Core
+  rows, 179 outside-Core review candidates, and generated batch shard 250/250
+  with 0 failures.
