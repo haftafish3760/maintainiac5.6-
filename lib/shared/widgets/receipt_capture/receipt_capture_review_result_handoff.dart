@@ -15,6 +15,9 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
 
   String get ocrSourceReviewRiskCode {
     if (!hasOcrSourcePhotos) return 'ocr_source_missing_manual_entry_required';
+    if (!stitchResult.hasValidOcrSourceContract) {
+      return 'stitch_ocr_source_contract_review_required';
+    }
     if (usedSavedProofAsOcrSourceFallback) {
       return 'saved_proof_ocr_fallback_review_required';
     }
@@ -25,7 +28,9 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
   }
 
   String get ocrSourceReviewRequirement {
-    return ocrSourceFallbackRequiresManualReview || scannerNeedsOperatorReview
+    return ocrSourceFallbackRequiresManualReview ||
+            scannerNeedsOperatorReview ||
+            !stitchResult.hasValidOcrSourceContract
         ? 'manual_review_required_before_saving_receipt'
         : 'standard_user_confirmation_required';
   }

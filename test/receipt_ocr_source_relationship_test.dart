@@ -95,5 +95,40 @@ void main() {
         containsPair('ocrSourceProofRelationship', 'separate_clear_source'),
       );
     });
+
+    test('marks invalid stitch OCR contract as manual review risk', () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/stitched-wrong.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: const ReceiptStitchResult(
+          status: ReceiptStitchStatus.stitched,
+          inputPaths: ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+          ocrSourcePaths: ['/tmp/stitched-wrong.jpg'],
+          stitchedPath: '/tmp/stitched-ready.jpg',
+        ),
+      );
+
+      expect(
+        result.stitchResult.ocrSourceContractCode,
+        'stitched_ocr_source_path_mismatch',
+      );
+      expect(result.stitchResult.hasValidOcrSourceContract, isFalse);
+      expect(
+        result.ocrSourceReviewRiskCode,
+        'stitch_ocr_source_contract_review_required',
+      );
+      expect(
+        result.ocrSourceReviewRequirement,
+        'manual_review_required_before_saving_receipt',
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair(
+          'ocr_source_review_risk_stitch_ocr_source_contract_review_required',
+          1,
+        ),
+      );
+    });
   });
 }
