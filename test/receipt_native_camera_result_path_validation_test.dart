@@ -183,6 +183,82 @@ void main() {
     );
   });
 
+  test('native service rejects missing temporary capture ids', () async {
+    const channel = MethodChannel(
+      'maintainiac/receipt_missing_capture_ids_test',
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'captureReceipt');
+          return {
+            'originalPhotoPaths': [
+              '/tmp/receipt-top.jpg',
+              '/tmp/receipt-bottom.jpg',
+            ],
+            'temporaryCaptureIds': ['receipt-top'],
+            'capturedAt': '2026-07-03T10:49:30.000Z',
+            'captureDiagnostics': {
+              'captureSurface': 'maintainiac_native_android',
+            },
+          };
+        });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    await expectLater(
+      const ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(_highCapacityConfig()),
+      throwsA(
+        isA<ReceiptNativeCameraUnavailableException>().having(
+          (error) => error.message,
+          'message',
+          contains('incomplete temporary capture ids'),
+        ),
+      ),
+    );
+  });
+
+  test('native service rejects duplicate temporary capture ids', () async {
+    const channel = MethodChannel(
+      'maintainiac/receipt_duplicate_capture_ids_test',
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'captureReceipt');
+          return {
+            'originalPhotoPaths': [
+              '/tmp/receipt-top.jpg',
+              '/tmp/receipt-bottom.jpg',
+            ],
+            'temporaryCaptureIds': ['same-capture-id', 'same-capture-id'],
+            'capturedAt': '2026-07-03T10:49:45.000Z',
+            'captureDiagnostics': {
+              'captureSurface': 'maintainiac_native_android',
+            },
+          };
+        });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    await expectLater(
+      const ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(_highCapacityConfig()),
+      throwsA(
+        isA<ReceiptNativeCameraUnavailableException>().having(
+          (error) => error.message,
+          'message',
+          contains('duplicate temporary capture ids'),
+        ),
+      ),
+    );
+  });
+
   test('native service rejects oversized receipt photo diagnostics', () async {
     const channel = MethodChannel('maintainiac/receipt_oversized_path_test');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

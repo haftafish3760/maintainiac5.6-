@@ -85,6 +85,16 @@ class ReceiptNativeCameraService {
         result['temporaryCaptureIds'],
         paths.length,
       );
+      if (captureIds.length != paths.length) {
+        throw const ReceiptNativeCameraUnavailableException(
+          'Maintainiac receipt camera returned incomplete temporary capture ids.',
+        );
+      }
+      if (_hasDuplicateNativeCaptureIds(captureIds)) {
+        throw const ReceiptNativeCameraUnavailableException(
+          'Maintainiac receipt camera returned duplicate temporary capture ids.',
+        );
+      }
       final nativeDiagnostics = receiptNativeCaptureSanitizedDiagnostics(
         result['captureDiagnostics'],
       );
@@ -186,6 +196,14 @@ bool _hasDuplicateNativeReceiptPaths(List<String> paths) {
   final seen = <String>{};
   for (final path in paths) {
     if (!seen.add(path)) return true;
+  }
+  return false;
+}
+
+bool _hasDuplicateNativeCaptureIds(List<String> captureIds) {
+  final seen = <String>{};
+  for (final id in captureIds) {
+    if (!seen.add(id)) return true;
   }
   return false;
 }
