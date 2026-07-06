@@ -92,12 +92,12 @@ class ReceiptNativeCameraSettings {
 
   bool get tapFocusIsAssistOnly => false;
 
-  bool get hasExposureAndSharpnessGuidance =>
+  bool get hasExposureControls =>
       autoExposureAssistEnabled &&
       exposureSliderEnabled &&
       exposureResetEnabled;
 
-  bool get hasReceiptReadabilityGuidance =>
+  bool get hasConservativeLiveReceiptGuidance =>
       liveYuvAnalysisEnabled &&
       edgeDetectionEnabled &&
       tooFarTooCloseWarningEnabled &&
@@ -137,8 +137,8 @@ class ReceiptNativeCameraSettings {
 
   bool get meetsReceiptCameraQualityBaseline =>
       usesContinuousFocusPrimary &&
-      hasExposureAndSharpnessGuidance &&
-      hasReceiptReadabilityGuidance;
+      hasExposureControls &&
+      hasConservativeLiveReceiptGuidance;
 
   static List<ReceiptNativeCameraSettingDescriptor> get descriptors =>
       _receiptNativeCameraSettingDescriptors;

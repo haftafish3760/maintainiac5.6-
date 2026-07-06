@@ -287,7 +287,7 @@ class ReceiptNativeCameraSessionConfig {
   }
 
   String get readabilityGuidancePolicy {
-    if (liveAnalysisEnabled && settings.hasReceiptReadabilityGuidance) {
+    if (liveAnalysisEnabled && settings.hasConservativeLiveReceiptGuidance) {
       return 'live_receipt_workflow_guidance_only_unproven_quality_claims_off';
     }
     return 'saved_photo_readability_review_required';

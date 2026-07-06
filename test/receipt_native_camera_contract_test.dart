@@ -42,8 +42,8 @@ void main() {
         'optional_future_device_supported_control_not_release_blocker',
       );
       expect(settings.avoidsProCameraReplacementControls, isTrue);
-      expect(settings.hasExposureAndSharpnessGuidance, isTrue);
-      expect(settings.hasReceiptReadabilityGuidance, isTrue);
+      expect(settings.hasExposureControls, isTrue);
+      expect(settings.hasConservativeLiveReceiptGuidance, isTrue);
       expect(
         settings.receiptFocusStrategyCode,
         'continuous_focus_primary_no_tap_assist',
