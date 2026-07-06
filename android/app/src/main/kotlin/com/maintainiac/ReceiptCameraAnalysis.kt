@@ -203,49 +203,61 @@ internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
         if (!hasReceiptTarget) {
             latestMotionSignal = "waiting_for_receipt_target"
             latestReadabilitySignal = "waiting_for_receipt_target"
+            resetExperimentalReceiptQualityCandidate()
             resetExperimentalReceiptQualityGuidanceIfNeeded()
             return
         }
         if (!hasExperimentalReceiptQualityWarningsEnabled()) {
             latestMotionSignal = "neutral_workflow_guidance_only"
             latestReadabilitySignal = "neutral_workflow_guidance_only"
+            resetExperimentalReceiptQualityCandidate()
             resetExperimentalReceiptQualityGuidanceIfNeeded()
             return
         }
-        val currentGuidance = guidance.text.toString()
         if (!brightness.isFinite() || !motionScore.isFinite() || !shadowScore.isFinite()) {
             latestMotionSignal = "unknown"
             latestReadabilitySignal = "readability_unknown"
-            guidance.text = "Receipt quality needs another look. Keep it flat and readable."
+            updateExperimentalReceiptQualityGuidance(
+                "readability_unknown",
+                "Receipt quality needs another look. Keep it flat and readable.",
+            )
         } else if (motionBlurWarningEnabled && motionScore > 22.0) {
             latestMotionSignal = "moving_too_much"
-            guidance.text = "Hold steady so the receipt text stays sharp."
+            updateExperimentalReceiptQualityGuidance(
+                "moving_too_much",
+                "Hold steady so the receipt text stays sharp.",
+            )
         } else if (lowLightWarningEnabled && brightness in 0.0..58.0) {
             latestReadabilitySignal = "low_light"
-            guidance.text = "Receipt looks dark. Add light or raise Brightness."
+            updateExperimentalReceiptQualityGuidance(
+                "low_light",
+                "Receipt looks dark. Add light or raise Brightness.",
+            )
         } else if (glareWarningEnabled && brightness >= 246.0) {
             latestReadabilitySignal = "glare_or_overbright"
-            guidance.text = "Receipt is very bright. Tilt it or lower Brightness."
+            updateExperimentalReceiptQualityGuidance(
+                "glare_or_overbright",
+                "Receipt is very bright. Tilt it or lower Brightness.",
+            )
         } else if (shadowWarningEnabled && shadowScore >= 150.0) {
             latestReadabilitySignal = "shadow_risk"
-            guidance.text = "Receipt has heavy shadows. Move it into even light."
+            updateExperimentalReceiptQualityGuidance(
+                "shadow_risk",
+                "Receipt has heavy shadows. Move it into even light.",
+            )
         } else if (dirtyLensWarningEnabled && brightness in 120.0..235.0 &&
             shadowScore in 0.0..24.0 && motionScore in 0.0..7.0
         ) {
             latestReadabilitySignal = "dirty_lens_or_haze"
-            guidance.text = "Lens may be smudged. Wipe it if the receipt looks hazy."
+            updateExperimentalReceiptQualityGuidance(
+                "dirty_lens_or_haze",
+                "Lens may be smudged. Wipe it if the receipt looks hazy.",
+            )
         } else {
             latestMotionSignal = if (motionScore >= 0) "steady" else "unknown"
             latestReadabilitySignal = "lighting_ok"
-            if (
-                currentGuidance.startsWith("Receipt looks dark") ||
-                currentGuidance.startsWith("Receipt is very bright") ||
-                currentGuidance.startsWith("Receipt has heavy shadows") ||
-                currentGuidance.startsWith("Lens may be smudged") ||
-                currentGuidance.startsWith("Hold steady")
-            ) {
-                guidance.text = guidanceText()
-            }
+            resetExperimentalReceiptQualityCandidate()
+            resetExperimentalReceiptQualityGuidanceIfNeeded()
         }
     } finally {
         image.close()
@@ -258,6 +270,32 @@ internal fun ReceiptCameraActivity.hasExperimentalReceiptQualityWarningsEnabled(
         glareWarningEnabled ||
         shadowWarningEnabled ||
         dirtyLensWarningEnabled
+}
+
+internal fun ReceiptCameraActivity.updateExperimentalReceiptQualityGuidance(
+    signal: String,
+    message: String,
+) {
+    if (stableExperimentalReceiptQualitySignal(signal)) {
+        guidance.text = message
+    } else {
+        resetExperimentalReceiptQualityGuidanceIfNeeded()
+    }
+}
+
+internal fun ReceiptCameraActivity.stableExperimentalReceiptQualitySignal(signal: String): Boolean {
+    if (experimentalReceiptQualityCandidateSignal == signal) {
+        experimentalReceiptQualityCandidateCount += 1
+    } else {
+        experimentalReceiptQualityCandidateSignal = signal
+        experimentalReceiptQualityCandidateCount = 1
+    }
+    return experimentalReceiptQualityCandidateCount >= 2
+}
+
+internal fun ReceiptCameraActivity.resetExperimentalReceiptQualityCandidate() {
+    experimentalReceiptQualityCandidateSignal = "none"
+    experimentalReceiptQualityCandidateCount = 0
 }
 
 internal fun ReceiptCameraActivity.resetExperimentalReceiptQualityGuidanceIfNeeded() {

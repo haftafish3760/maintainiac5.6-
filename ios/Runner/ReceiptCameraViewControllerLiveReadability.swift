@@ -34,46 +34,60 @@ extension ReceiptCameraViewController {
     if !hasReceiptTarget {
       latestMotionSignal = "waiting_for_receipt_target"
       latestReadabilitySignal = "waiting_for_receipt_target"
+      resetExperimentalReceiptQualityCandidate()
       resetExperimentalReceiptQualityGuidanceIfNeeded()
       return
     }
     if !hasExperimentalReceiptQualityWarningsEnabled() {
       latestMotionSignal = "neutral_workflow_guidance_only"
       latestReadabilitySignal = "neutral_workflow_guidance_only"
+      resetExperimentalReceiptQualityCandidate()
       resetExperimentalReceiptQualityGuidanceIfNeeded()
       return
     }
-    let currentGuidance = guidanceLabel.text ?? ""
     if !brightness.isFinite || !motionScore.isFinite || !shadowScore.isFinite {
       latestMotionSignal = "unknown"
       latestReadabilitySignal = "readability_unknown"
-      guidanceLabel.text = "Receipt quality needs another look. Keep it flat and readable."
+      updateExperimentalReceiptQualityGuidance(
+        signal: "readability_unknown",
+        message: "Receipt quality needs another look. Keep it flat and readable."
+      )
     } else if motionBlurWarningEnabled && motionScore > 22 {
       latestMotionSignal = "moving_too_much"
-      guidanceLabel.text = "Hold steady so the receipt text stays sharp."
+      updateExperimentalReceiptQualityGuidance(
+        signal: "moving_too_much",
+        message: "Hold steady so the receipt text stays sharp."
+      )
     } else if lowLightWarningEnabled && brightness >= 0 && brightness <= 58 {
       latestReadabilitySignal = "low_light"
-      guidanceLabel.text = "Receipt looks dark. Add light or raise Brightness."
+      updateExperimentalReceiptQualityGuidance(
+        signal: "low_light",
+        message: "Receipt looks dark. Add light or raise Brightness."
+      )
     } else if glareWarningEnabled && brightness >= 246 {
       latestReadabilitySignal = "glare_or_overbright"
-      guidanceLabel.text = "Receipt is very bright. Tilt it or lower Brightness."
+      updateExperimentalReceiptQualityGuidance(
+        signal: "glare_or_overbright",
+        message: "Receipt is very bright. Tilt it or lower Brightness."
+      )
     } else if shadowWarningEnabled && shadowScore >= 150 {
       latestReadabilitySignal = "shadow_risk"
-      guidanceLabel.text = "Receipt has heavy shadows. Move it into even light."
+      updateExperimentalReceiptQualityGuidance(
+        signal: "shadow_risk",
+        message: "Receipt has heavy shadows. Move it into even light."
+      )
     } else if dirtyLensWarningEnabled && brightness >= 120 && brightness <= 235 &&
         shadowScore >= 0 && shadowScore <= 24 && motionScore >= 0 && motionScore <= 7 {
       latestReadabilitySignal = "dirty_lens_or_haze"
-      guidanceLabel.text = "Lens may be smudged. Wipe it if the receipt looks hazy."
+      updateExperimentalReceiptQualityGuidance(
+        signal: "dirty_lens_or_haze",
+        message: "Lens may be smudged. Wipe it if the receipt looks hazy."
+      )
     } else {
       latestMotionSignal = motionScore >= 0 ? "steady" : "unknown"
       latestReadabilitySignal = "lighting_ok"
-      if currentGuidance.hasPrefix("Receipt looks dark") ||
-          currentGuidance.hasPrefix("Receipt is very bright") ||
-          currentGuidance.hasPrefix("Receipt has heavy shadows") ||
-          currentGuidance.hasPrefix("Lens may be smudged") ||
-          currentGuidance.hasPrefix("Hold steady") {
-        guidanceLabel.text = guidanceText()
-      }
+      resetExperimentalReceiptQualityCandidate()
+      resetExperimentalReceiptQualityGuidanceIfNeeded()
     }
   }
 
@@ -83,6 +97,32 @@ extension ReceiptCameraViewController {
         glareWarningEnabled ||
         shadowWarningEnabled ||
         dirtyLensWarningEnabled
+  }
+
+  func updateExperimentalReceiptQualityGuidance(
+    signal: String,
+    message: String
+  ) {
+    if stableExperimentalReceiptQualitySignal(signal) {
+      guidanceLabel.text = message
+    } else {
+      resetExperimentalReceiptQualityGuidanceIfNeeded()
+    }
+  }
+
+  func stableExperimentalReceiptQualitySignal(_ signal: String) -> Bool {
+    if experimentalReceiptQualityCandidateSignal == signal {
+      experimentalReceiptQualityCandidateCount += 1
+    } else {
+      experimentalReceiptQualityCandidateSignal = signal
+      experimentalReceiptQualityCandidateCount = 1
+    }
+    return experimentalReceiptQualityCandidateCount >= 2
+  }
+
+  func resetExperimentalReceiptQualityCandidate() {
+    experimentalReceiptQualityCandidateSignal = "none"
+    experimentalReceiptQualityCandidateCount = 0
   }
 
   func resetExperimentalReceiptQualityGuidanceIfNeeded() {

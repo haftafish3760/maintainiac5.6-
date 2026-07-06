@@ -121,6 +121,8 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var latestFrameBrightness = -1.0
   var latestShadowScore = -1.0
   var latestReadabilitySignal = "unknown"
+  var experimentalReceiptQualityCandidateSignal = "none"
+  var experimentalReceiptQualityCandidateCount = 0
   var latestFramingSignal = "unknown"
   var latestFramingConfidence = "unknown"
   var latestEdgeCoverage = -1.0
