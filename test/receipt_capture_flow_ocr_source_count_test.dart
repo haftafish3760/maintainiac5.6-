@@ -52,4 +52,26 @@ void main() {
       contains('ocr_source_ocr_source_full_quality_selected_quality_guard'),
     );
   });
+
+  test('kept-for-later review does not create OCR attachments', () {
+    final result = ReceiptPhotoReviewResult.keptForLater(
+      photoPaths: const ['/tmp/manual-proof.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+    );
+
+    final attachments = ReceiptCaptureFlow.attachmentsFromReviewResult(
+      result,
+      ReceiptCaptureFlowModule.expenses,
+    );
+
+    expect(result.keptForLater, isTrue);
+    expect(result.ocrSourcePhotoPaths, isEmpty);
+    expect(attachments, isEmpty);
+    expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, isFalse);
+    expect(result.acceptedPhotoHandoffMustOpenFilledReview, isFalse);
+    expect(
+      result.receiptReaderHandoffCounts,
+      containsPair('receipt_review_ocr_deferred', 1),
+    );
+  });
 }
