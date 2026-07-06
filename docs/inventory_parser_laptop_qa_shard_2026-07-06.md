@@ -1,5 +1,7 @@
 # Inventory Parser Laptop QA Shard - 2026-07-06
 
+Issued: 2026-07-06 13:56 EDT
+
 This handoff is for a second Windows machine to run Maintainiac inventory/parser
 QA without editing source code or touching unrelated app areas.
 
