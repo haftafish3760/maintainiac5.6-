@@ -3914,3 +3914,20 @@ Release boundaries:
   Flutter stale cutoff at 90 seconds with `checked=0`, so the next long run
   should use the improved parser state plus a realistic stale timeout for this
   machine and then inspect final logs only.
+- **09:10-11:18 Harness Pass 2880-2919:** Completed the bounded PEH Core
+  baby validation path on the Windows machine without touching OCR, camera,
+  expenses, UI, PDF, or unrelated modules. The parser pipeline now passes
+  `--fixture-run-stale-report-timeout-ms` through pipeline, matrix, release-one
+  command, batch-wave, and background-queue layers so slow but healthy Flutter
+  chunks do not get misclassified as stale on this hardware. The status gate was
+  strengthened so `runFixtures: true` cells must have real generated-fixture
+  reports with parser calls, zero fixture failures, zero timed-out chunks, zero
+  non-zero chunk exits, and explicit local-only safety flags. A real queued PEH
+  Core baby wave under
+  `build/parser_qa_batch_waves/pass2913-peh-core-queue-baby-5` completed all
+  6 release-one Core cells: Plumbing/Electrical/HVAC in `en-US` and `es-US`.
+  Generated-run status verified 30 checked cases, 30 parser calls, 0 missing
+  cells, 0 failed cells, 0 unsafe cells, 0 under-minimum cells, and all safety
+  flags false. This is still baby evidence, not release coverage; the next
+  larger Core PEH wave should increase `fixtureRunLimit` only after keeping the
+  same generated-run status gate and final-log-only workflow.

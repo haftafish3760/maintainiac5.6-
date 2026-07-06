@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "tool": "work_supply_parser_qa_batch_wave",
+  "waveId": "pass2913-peh-core-queue-baby-5",
+  "previousWaveId": "",
+  "accumulatedWaveIds": [
+    "pass2913-peh-core-queue-baby-5"
+  ],
+  "qaLayer": "generated-fixture-queue-baby-5",
+  "batchPolicy": "generate current wave coverage, run the current QA layer against the accumulated wave set, and do not rerun already-passed prior layers unless their rules or expected outputs changed",
+  "dryRun": false,
+  "resume": true,
+  "trades": [
+    "plumbing",
+    "electrical",
+    "hvac"
+  ],
+  "marketScopes": [
+    "residential"
+  ],
+  "tiers": [
+    "core"
+  ],
+  "localePackIds": [
+    "en-US",
+    "es-US"
+  ],
+  "limit": 60,
+  "fixtureRunLimit": 5,
+  "fixtureRunTimeoutMs": 900000,
+  "fixtureRunStaleReportTimeoutMs": 300000,
+  "queueArgs": [
+    "--execute",
+    "--trades",
+    "plumbing,electrical,hvac",
+    "--scopes",
+    "residential",
+    "--tiers",
+    "core",
+    "--locales",
+    "en-US,es-US",
+    "--limit",
+    "60",
+    "--fixture-run-limit",
+    "5",
+    "--fixture-run-timeout-ms",
+    "900000",
+    "--fixture-run-stale-report-timeout-ms",
+    "300000",
+    "--queue-id",
+    "pass2913_peh_core_queue_baby_5_generated_fixture_queue_baby_5",
+    "--output-root",
+    "build\\parser_qa_batch_waves/pass2913-peh-core-queue-baby-5/queue"
+  ],
+  "liveServicesAllowed": false,
+  "writesProductionCatalog": false,
+  "ocrCameraExpensesTouched": false,
+  "firebaseWritesAllowed": false,
+  "queueExitCode": 0,
+  "queueSummaryPath": "build\\parser_qa_batch_waves/pass2913-peh-core-queue-baby-5/queue/pass2913_peh_core_queue_baby_5_generated_fixture_queue_baby_5/summary.json",
+  "wavePlanPath": "build\\parser_qa_batch_waves/pass2913-peh-core-queue-baby-5/wave_plan.json"
+}
