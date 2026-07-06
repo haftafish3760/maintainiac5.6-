@@ -26,6 +26,8 @@ const _allowedCategories = {
   'native_bridge',
   'barcode_qr_scanning',
   'camera_review_state',
+  'camera_diagnostics',
+  'camera_docs',
   'storage_recovery',
 };
 

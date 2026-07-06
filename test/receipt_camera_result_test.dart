@@ -78,11 +78,17 @@ void main() {
       );
       expect(
         result.receiptReaderHandoffCounts,
-        containsPair(
-          'native_camera_ui_native_capture_review_transition_ready',
-          1,
+        isNot(
+          contains('native_camera_ui_native_capture_review_transition_ready'),
         ),
       );
+      expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
+      expect(
+        result.acceptedPhotoHandoffRoute,
+        'photo_review_ocr_source_review_required',
+      );
+      expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, isFalse);
+      expect(result.acceptedPhotoHandoffMustOpenFilledReview, isFalse);
       expect(
         result.receiptPhotoReviewHandoffPath,
         'accepted_saved_proof_ocr_fallback',

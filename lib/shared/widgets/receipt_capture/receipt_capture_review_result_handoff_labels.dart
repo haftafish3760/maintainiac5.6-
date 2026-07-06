@@ -71,6 +71,10 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
     if (usedSavedProofAsOcrSourceFallback) {
       return 'accepted_saved_proof_ocr_fallback';
     }
+    if (ocrSourceReviewRiskCode ==
+        'stitch_ocr_source_contract_review_required') {
+      return 'accepted_stitch_ocr_source_review_required';
+    }
     if (stitchResult.didStitch) return 'accepted_stitched_combined_image';
     if (stitchResult.usedFallback) return 'accepted_ordered_sections_fallback';
     if (ocrSourcePhotoCount > 1) return 'accepted_ordered_sections';
@@ -86,6 +90,8 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
         'Accepted photo review but OCR source is missing; review by hand.',
       'accepted_saved_proof_ocr_fallback' =>
         'Accepted photo review using saved proof as OCR fallback.',
+      'accepted_stitch_ocr_source_review_required' =>
+        'Accepted photo review, but stitch/OCR source handoff needs review.',
       'accepted_stitched_combined_image' =>
         'Accepted long receipt as one stitched OCR image.',
       'accepted_ordered_sections_fallback' =>
@@ -104,6 +110,9 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       ? 'photo_review_add_next_receipt_section'
       : receiptSectionOrderNeedsReview
       ? 'photo_review_section_order_review_required'
+      : ocrSourceReviewRequirement ==
+            'manual_review_required_before_saving_receipt'
+      ? 'photo_review_ocr_source_review_required'
       : 'photo_review_accepted_to_receipt_details';
 
   String get acceptedPhotoHandoffNextScreen => keptForLater
@@ -112,6 +121,9 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       ? 'receipt_photo_capture_bottom_section'
       : receiptSectionOrderNeedsReview
       ? 'receipt_photo_section_order_review'
+      : ocrSourceReviewRequirement ==
+            'manual_review_required_before_saving_receipt'
+      ? 'receipt_photo_ocr_source_review'
       : 'receipt_details_store_date_total_tax_items';
 
   String get acceptedPhotoHandoffNextStepLabel => keptForLater
@@ -124,6 +136,9 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
                     'before receipt details, or confirm this photo already shows the full receipt.',
               )
             : 'Add the next receipt section before receipt details, or confirm this photo already shows the full receipt.'
+      : ocrSourceReviewRequirement ==
+            'manual_review_required_before_saving_receipt'
+      ? 'Review the OCR source handoff before opening receipt details.'
       : 'Next opens receipt details with store, date, total, tax, item prices, and Business/Personal/Mixed choices.';
 
   String get acceptedPhotoHandoffProcessingLabel => keptForLater
@@ -132,6 +147,9 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       ? 'Receipt details stay paused until the bottom section is added or the user confirms this photo already shows the full receipt.'
       : receiptSectionOrderNeedsReview
       ? 'Receipt details stay paused until the user confirms the receipt section order.'
+      : ocrSourceReviewRequirement ==
+            'manual_review_required_before_saving_receipt'
+      ? 'Receipt details stay paused until the OCR source handoff is reviewed.'
       : 'Next reads the clearest OCR source first before the smaller saved proof copy is kept, then opens the filled receipt review.';
 
   String get acceptedPhotoHandoffRouteResultLabel => keptForLater
@@ -148,17 +166,24 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
             : 'Receipt details can open only after the user accepts that this photo covers the full receipt or adds the next section.'
       : receiptSectionOrderNeedsReview
       ? 'Receipt details can open only after the receipt section order is reviewed.'
+      : ocrSourceReviewRequirement ==
+            'manual_review_required_before_saving_receipt'
+      ? 'Receipt details can open only after the OCR source handoff is reviewed.'
       : 'Accepted photo review must open receipt details next, not the previous expense screen.';
 
   bool get acceptedPhotoHandoffMustOpenFilledReview =>
       !keptForLater &&
       !needsAnotherReceiptSectionBeforeDetails &&
-      !receiptSectionOrderNeedsReview;
+      !receiptSectionOrderNeedsReview &&
+      ocrSourceReviewRequirement !=
+          'manual_review_required_before_saving_receipt';
 
   bool get acceptedPhotoHandoffMustOpenReceiptDetails =>
       !keptForLater &&
       !needsAnotherReceiptSectionBeforeDetails &&
-      !receiptSectionOrderNeedsReview;
+      !receiptSectionOrderNeedsReview &&
+      ocrSourceReviewRequirement !=
+          'manual_review_required_before_saving_receipt';
 
   String get acceptedPhotoHandoffUserAction => keptForLater
       ? 'resume_saved_photo_review'
@@ -168,6 +193,9 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       ? 'add_next_section_or_confirm_complete_receipt'
       : receiptSectionOrderNeedsReview
       ? 'review_receipt_section_order'
+      : ocrSourceReviewRequirement ==
+            'manual_review_required_before_saving_receipt'
+      ? 'review_ocr_source_handoff'
       : 'tap_next_after_photo_review';
 
   String get acceptedPhotoHandoffEvidenceLabel {

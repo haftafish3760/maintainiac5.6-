@@ -154,6 +154,29 @@ void main() {
         result.privacySafeOcrSourceFirstSummary,
         containsPair('ocrSourcePathsMatchStitchContract', false),
       );
+      expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
+      expect(
+        result.receiptPhotoReviewHandoffPath,
+        'accepted_stitch_ocr_source_review_required',
+      );
+      expect(
+        result.receiptPhotoReviewHandoffPathLabel,
+        'Accepted photo review, but stitch/OCR source handoff needs review.',
+      );
+      expect(
+        result.acceptedPhotoHandoffRoute,
+        'photo_review_ocr_source_review_required',
+      );
+      expect(
+        result.acceptedPhotoHandoffNextScreen,
+        'receipt_photo_ocr_source_review',
+      );
+      expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, isFalse);
+      expect(result.acceptedPhotoHandoffMustOpenFilledReview, isFalse);
+      expect(
+        result.acceptedPhotoHandoffUserAction,
+        'review_ocr_source_handoff',
+      );
       expect(
         result.receiptReaderHandoffCounts,
         containsPair(

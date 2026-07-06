@@ -180,6 +180,10 @@ extension ReceiptPhotoReviewResultWarnings on ReceiptPhotoReviewResult {
   String get acceptedPhotoHandoffOutcome {
     if (keptForLater) return 'not_accepted_for_receipt_details_yet';
     if (receiptSectionOrderNeedsReview) return 'needs_review_before_ocr';
+    if (ocrSourceReviewRequirement ==
+        'manual_review_required_before_saving_receipt') {
+      return 'needs_review_before_ocr';
+    }
     final counts = acceptedPhotoQualityOutcomeCounts;
     for (final outcome in const [
       'critical_quality_retake_recommended',
