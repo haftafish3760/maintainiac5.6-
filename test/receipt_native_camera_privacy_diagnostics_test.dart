@@ -215,6 +215,14 @@ void main() {
       stagingSafeKeysSource,
       contains('previousSectionGhostGuideMatchTarget'),
     );
+    expect(stagingSafeKeysSource, contains('nativeRecoveryOriginalPhotoCount'));
+    expect(stagingSafeKeysSource, contains('nativeRecoveryExistingPhotoCount'));
+    expect(stagingSafeKeysSource, contains('nativeRecoveryMissingPhotoCount'));
+    expect(stagingSafeKeysSource, contains('nativeRecoveryResumeReadiness'));
+    expect(
+      stagingSafeKeysSource,
+      contains('nativeRecoveryPartialResumeReviewRequired'),
+    );
     expect(
       stagingSafeKeysSource,
       isNot(contains('previousSectionGuidePhotoPath')),

@@ -28,9 +28,14 @@ extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
       'nativeRecoveryResumeRoute':
           'receipt_photo_review_before_receipt_details',
       'nativeRecoveryRecoveredPhotoCount': photoPaths.length,
+      'nativeRecoveryOriginalPhotoCount': record.recoveredPhotoCount,
+      'nativeRecoveryExistingPhotoCount': record.existingPhotoCount,
+      'nativeRecoveryMissingPhotoCount': record.missingPhotoCount,
       'nativeRecoveryMultipleSections': photoPaths.length > 1,
       'nativeRecoveryFreshness': record.recoveryFreshnessBucket(),
       'nativeRecoveryStorageStatus': record.recoveryStorageStatus,
+      'nativeRecoveryResumeReadiness': record.recoveryResumeOutcomeCode,
+      'nativeRecoveryPartialResumeReviewRequired': record.missingPhotoCount > 0,
       'nativeRecoveryReviewOpened': true,
       'nativeRecoveryOcrPending': true,
     };
@@ -54,7 +59,13 @@ extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
         'nativeRecoveryResumeRoute':
             'receipt_photo_review_before_receipt_details',
         'nativeRecoveryRecoveredPhotoCount': photoPaths.length,
+        'nativeRecoveryOriginalPhotoCount': record.recoveredPhotoCount,
+        'nativeRecoveryExistingPhotoCount': record.existingPhotoCount,
+        'nativeRecoveryMissingPhotoCount': record.missingPhotoCount,
         'nativeRecoveryMultipleSections': photoPaths.length > 1,
+        'nativeRecoveryResumeReadiness': record.recoveryResumeOutcomeCode,
+        'nativeRecoveryPartialResumeReviewRequired':
+            record.missingPhotoCount > 0,
       },
     );
     if (!context.mounted) {

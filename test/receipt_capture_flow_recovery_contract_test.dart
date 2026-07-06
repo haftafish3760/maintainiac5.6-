@@ -287,6 +287,12 @@ void main() {
     expect(flow, contains('nativeRecoveryResumeSource'));
     expect(flow, contains('nativeRecoveryResumeRoute'));
     expect(flow, contains('nativeRecoveryRecoveredPhotoCount'));
+    expect(flow, contains('nativeRecoveryOriginalPhotoCount'));
+    expect(flow, contains('nativeRecoveryExistingPhotoCount'));
+    expect(flow, contains('nativeRecoveryMissingPhotoCount'));
+    expect(flow, contains('nativeRecoveryResumeReadiness'));
+    expect(flow, contains('nativeRecoveryPartialResumeReviewRequired'));
+    expect(flow, contains('record.missingPhotoCount > 0'));
     expect(flow, contains("stage: 'recovery_review_opening'"));
     expect(flow, contains("stage: 'recovery_review_closed'"));
     expect(flow, contains("stage: 'recovery_review_accepted'"));
