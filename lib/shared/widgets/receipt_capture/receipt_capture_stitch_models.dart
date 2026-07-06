@@ -170,7 +170,7 @@ class ReceiptStitchResult {
       return 'Match not needed';
     }
     if (usedManualAdjustment) return 'Manual match';
-    return '${(confidence * 100).round()}% match';
+    return '${(_safeStitchUnitInterval(confidence) * 100).round()}% match';
   }
 
   String get pairDiagnosticsLabel {
@@ -335,7 +335,7 @@ class ReceiptStitchResult {
       ReceiptStitchStatus.stitched =>
         '${inputPaths.length} photos became 1 receipt image'
             '${stitchedSizeLabel.isEmpty ? '' : ' ($stitchedSizeLabel)'}. '
-            '${usedManualAdjustment ? 'Manual match was used.' : 'Photo match confidence ${(confidence * 100).round()}%.'}'
+            '${usedManualAdjustment ? 'Manual match was used.' : 'Photo match confidence ${(_safeStitchUnitInterval(confidence) * 100).round()}%.'}'
             '${pairDiagnosticsLabel.isEmpty ? '' : ' $pairDiagnosticsLabel'}',
       ReceiptStitchStatus.fallback =>
         warning.trim().isEmpty
@@ -392,4 +392,9 @@ String _safeStitchFallbackReasonCode(String value) {
     'stitch_exception' => token,
     _ => 'unknown',
   };
+}
+
+double _safeStitchUnitInterval(double value) {
+  if (!value.isFinite) return 0;
+  return value.clamp(0, 1).toDouble();
 }

@@ -18,44 +18,52 @@ class ReceiptStitchPairResult {
   final double rotationCorrectionDegrees;
 
   String get pairLabel => 'Photo ${pairIndex + 1} to ${pairIndex + 2}';
+  double get _safeConfidence => _safeStitchUnitInterval(confidence);
+  double get _safeScaleCorrection =>
+      scaleCorrection.isFinite ? scaleCorrection : 1;
+  double get _safeRotationCorrectionDegrees =>
+      rotationCorrectionDegrees.isFinite ? rotationCorrectionDegrees : 0;
+  int get _confidencePercent => (_safeConfidence * 100).round();
   bool get hasTrustedOverlapEvidence =>
-      usedManualAdjustment || (overlapPixels > 0 && confidence >= .50);
+      usedManualAdjustment || (overlapPixels > 0 && _safeConfidence >= .50);
 
   String get summaryLabel {
     final match = overlapPixels <= 0
         ? 'no repeated text'
         : 'repeated text found';
     if (usedManualAdjustment) return '$pairLabel: manual match, $match';
-    final rotationText = rotationCorrectionDegrees.abs() >= .5
-        ? ', straighten ${rotationCorrectionDegrees.toStringAsFixed(1)} deg'
+    final rotationText = _safeRotationCorrectionDegrees.abs() >= .5
+        ? ', straighten ${_safeRotationCorrectionDegrees.toStringAsFixed(1)} deg'
         : '';
-    if ((scaleCorrection - 1).abs() >= .03) {
-      return '$pairLabel: ${(confidence * 100).round()}% match, $match, zoom adjusted$rotationText';
+    if ((_safeScaleCorrection - 1).abs() >= .03) {
+      return '$pairLabel: $_confidencePercent% match, $match, zoom adjusted$rotationText';
     }
-    return '$pairLabel: ${(confidence * 100).round()}% match, $match$rotationText';
+    return '$pairLabel: $_confidencePercent% match, $match$rotationText';
   }
 
   String get matchEvidenceLabel {
     if (usedManualAdjustment) return 'manual overlap';
-    if (overlapPixels <= 0) return '${(confidence * 100).round()}% no overlap';
-    if ((scaleCorrection - 1).abs() >= .03) {
-      return '${(confidence * 100).round()}% with zoom fix';
+    if (overlapPixels <= 0) return '$_confidencePercent% no overlap';
+    if ((_safeScaleCorrection - 1).abs() >= .03) {
+      return '$_confidencePercent% with zoom fix';
     }
-    if (rotationCorrectionDegrees.abs() >= .5) {
-      return '${(confidence * 100).round()}% with straightening';
+    if (_safeRotationCorrectionDegrees.abs() >= .5) {
+      return '$_confidencePercent% with straightening';
     }
-    return '${(confidence * 100).round()}% overlap';
+    return '$_confidencePercent% overlap';
   }
 
   String get diagnosticCode {
     if (usedManualAdjustment) return 'manual_overlap';
     if (overlapPixels <= 0) return 'no_repeated_text';
-    if ((scaleCorrection - 1).abs() >= .03 &&
-        rotationCorrectionDegrees.abs() >= .5) {
+    if ((_safeScaleCorrection - 1).abs() >= .03 &&
+        _safeRotationCorrectionDegrees.abs() >= .5) {
       return 'zoom_and_straighten_adjusted';
     }
-    if ((scaleCorrection - 1).abs() >= .03) return 'zoom_adjusted';
-    if (rotationCorrectionDegrees.abs() >= .5) return 'straighten_adjusted';
+    if ((_safeScaleCorrection - 1).abs() >= .03) return 'zoom_adjusted';
+    if (_safeRotationCorrectionDegrees.abs() >= .5) {
+      return 'straighten_adjusted';
+    }
     return 'overlap_matched';
   }
 
@@ -67,10 +75,10 @@ class ReceiptStitchPairResult {
       return '$pairLabel did not show repeated receipt text.';
     }
     final adjustments = <String>[];
-    if ((scaleCorrection - 1).abs() >= .03) {
+    if ((_safeScaleCorrection - 1).abs() >= .03) {
       adjustments.add('zoom difference');
     }
-    if (rotationCorrectionDegrees.abs() >= .5) {
+    if (_safeRotationCorrectionDegrees.abs() >= .5) {
       adjustments.add('slight tilt');
     }
     if (adjustments.isEmpty) {

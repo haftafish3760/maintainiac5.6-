@@ -175,6 +175,41 @@ void main() {
     expect(manual.overlapExpectationLabel, 'Manual overlap accepted');
   });
 
+  test('stitch labels sanitize non-finite numeric evidence safely', () {
+    const stitched = ReceiptStitchResult(
+      status: ReceiptStitchStatus.stitched,
+      inputPaths: ['/tmp/a.jpg', '/tmp/b.jpg'],
+      ocrSourcePaths: ['/tmp/stitched.jpg'],
+      stitchedPath: '/tmp/stitched.jpg',
+      confidence: double.nan,
+      overlapPixels: [140],
+      pairs: [
+        ReceiptStitchPairResult(
+          pairIndex: 0,
+          overlapPixels: 140,
+          confidence: double.infinity,
+          scaleCorrection: double.nan,
+          rotationCorrectionDegrees: double.infinity,
+        ),
+      ],
+    );
+
+    expect(stitched.matchConfidenceLabel, '0% match');
+    expect(stitched.detailLabel, contains('Photo match confidence 0%.'));
+    expect(stitched.detailLabel, isNot(contains('NaN')));
+    expect(stitched.detailLabel, isNot(contains('Infinity')));
+    expect(stitched.pairs.single.hasTrustedOverlapEvidence, isFalse);
+    expect(stitched.pairs.single.summaryLabel, contains('0% match'));
+    expect(stitched.pairs.single.summaryLabel, isNot(contains('NaN')));
+    expect(stitched.pairs.single.summaryLabel, isNot(contains('Infinity')));
+    expect(stitched.pairs.single.matchEvidenceLabel, '0% overlap');
+    expect(stitched.pairs.single.diagnosticCode, 'overlap_matched');
+    expect(
+      stitched.pairs.single.userCheckLabel,
+      'Photo 1 to 2 matched repeated receipt text.',
+    );
+  });
+
   test('stitch fallback reasons have user-safe plain labels', () {
     ReceiptStitchResult fallback(String reason) => ReceiptStitchResult.fallback(
       inputPaths: const ['/tmp/a.jpg', '/tmp/b.jpg'],
