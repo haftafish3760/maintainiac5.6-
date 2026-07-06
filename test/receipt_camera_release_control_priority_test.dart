@@ -30,6 +30,12 @@ void main() {
     final iosReadability = File(
       'ios/Runner/ReceiptCameraViewControllerLiveReadability.swift',
     ).readAsStringSync();
+    final androidDiagnostics = File(
+      'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsPayload.kt',
+    ).readAsStringSync();
+    final iosDiagnostics = File(
+      'ios/Runner/ReceiptCameraViewControllerDiagnostics.swift',
+    ).readAsStringSync();
 
     expect(map, contains('manual shutter'));
     expect(map, contains('torch when'));
@@ -95,6 +101,10 @@ void main() {
       expect(source, contains('resetExperimentalReceiptQualityCandidate'));
       expect(source, contains('Receipt has heavy shadows'));
       expect(source, contains('Lens may be smudged'));
+    }
+    for (final source in [androidDiagnostics, iosDiagnostics]) {
+      expect(source, contains('experimentalReceiptQualityCandidateSignal'));
+      expect(source, contains('experimentalReceiptQualityCandidateCount'));
     }
     for (final guidance in [androidGuidance, iosGuidance]) {
       expect(guidance, contains('Fill the screen with readable receipt text'));

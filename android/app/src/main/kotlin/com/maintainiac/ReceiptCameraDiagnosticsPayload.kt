@@ -82,6 +82,8 @@ internal fun ReceiptCameraActivity.nativeCaptureDiagnostics(
         "orientationCorrectionEnabled" to orientationCorrectionEnabled,
         "receiptGuidanceWarningsEnabled" to receiptGuidanceWarningsEnabled(),
         "experimentalReceiptQualityWarningsEnabled" to hasExperimentalReceiptQualityWarningsEnabled(),
+        "experimentalReceiptQualityCandidateSignal" to experimentalReceiptQualityCandidateSignal,
+        "experimentalReceiptQualityCandidateCount" to experimentalReceiptQualityCandidateCount,
         "autoExposureAdjustmentCount" to autoExposureAdjustmentCount,
         "preCaptureExposureAdjustmentCount" to preCaptureExposureAdjustmentCount,
         "preCaptureExposureAdjustmentConfirmedCount" to preCaptureExposureAdjustmentConfirmedCount,

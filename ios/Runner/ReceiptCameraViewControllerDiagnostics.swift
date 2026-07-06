@@ -128,6 +128,8 @@ extension ReceiptCameraViewController {
       "orientationCorrectionEnabled": orientationCorrectionEnabled,
       "receiptGuidanceWarningsEnabled": receiptGuidanceWarningsEnabled(),
       "experimentalReceiptQualityWarningsEnabled": hasExperimentalReceiptQualityWarningsEnabled(),
+      "experimentalReceiptQualityCandidateSignal": experimentalReceiptQualityCandidateSignal,
+      "experimentalReceiptQualityCandidateCount": experimentalReceiptQualityCandidateCount,
       "autoExposureAdjustmentCount": autoExposureAdjustmentCount,
       "preCaptureExposureAdjustmentCount": preCaptureExposureAdjustmentCount,
       "preCaptureExposureAdjustmentConfirmedCount": preCaptureExposureAdjustmentConfirmedCount,
