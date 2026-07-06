@@ -2,11 +2,46 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_native_capture_diagnostics_sanitizer.dart';
 
 import 'helpers/receipt_camera_capture_layout_source_readers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    'native diagnostic sanitizer removes receipt content in generic values',
+    () {
+      final sanitized = receiptNativeCaptureSanitizedDiagnostics({
+        'status': 'camera_ready',
+        'genericMerchantValue': "LOWE'S HOME CENTERS, LLC",
+        'genericAddressValue': '6400 BRODIE LANE',
+        'genericPhoneValue': '(512) 895-5560',
+        'genericTotalValue': 'TOTAL: 3.24',
+        'genericSubtotalValue': 'SUBTOTAL: 2.99',
+        'genericCurrencyValue': r'$3.24',
+        'nested': {
+          'safeBucket': 'waiting_for_receipt_target',
+          'genericStore': 'Home Depot',
+          'genericTax': 'TAX: 0.25',
+        },
+        'safeList': ['edge_ready', 'TOTAL: 3.24', 'manual_capture_ready'],
+      });
+
+      expect(sanitized, containsPair('status', 'camera_ready'));
+      expect(sanitized, isNot(contains('genericMerchantValue')));
+      expect(sanitized, isNot(contains('genericAddressValue')));
+      expect(sanitized, isNot(contains('genericPhoneValue')));
+      expect(sanitized, isNot(contains('genericTotalValue')));
+      expect(sanitized, isNot(contains('genericSubtotalValue')));
+      expect(sanitized, isNot(contains('genericCurrencyValue')));
+      expect(sanitized['nested'], {'safeBucket': 'waiting_for_receipt_target'});
+      expect(sanitized['safeList'], ['edge_ready', 'manual_capture_ready']);
+      expect(sanitized.toString(), isNot(contains("LOWE'S")));
+      expect(sanitized.toString(), isNot(contains('3.24')));
+      expect(sanitized.toString(), isNot(contains('6400')));
+    },
+  );
 
   test('hardware profile exposes privacy-safe capability buckets', () {
     const hardware = ReceiptHardwareProfile(

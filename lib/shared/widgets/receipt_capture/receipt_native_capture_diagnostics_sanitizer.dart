@@ -62,6 +62,16 @@ bool _looksLikePrivateNativeDiagnosticText(String text) {
       lower.contains('file://') ||
       lower.contains('://') ||
       lower.contains('total ') ||
+      RegExp(r'\b(total|subtotal|tax|merchant|store)\s*[:$]').hasMatch(lower) ||
+      RegExp(r'\$\s*\d+(?:\.\d{2})?\b').hasMatch(lower) ||
+      RegExp(r'\b\d{3}[-.)\s]+\d{3}[-.\s]+\d{4}\b').hasMatch(lower) ||
+      RegExp(
+        r'\b\d{2,6}\s+[a-z0-9 .-]+'
+        r'\b(st|street|rd|road|ave|avenue|ln|lane|dr|drive|blvd|boulevard)\b',
+      ).hasMatch(lower) ||
+      RegExp(
+        r"\b(lowe'?s|home depot|walmart|target|costco|shell|exxon)\b",
+      ).hasMatch(lower) ||
       lower.contains('subtotal ') ||
       lower.contains('card ') ||
       lower.contains('customer ') ||
