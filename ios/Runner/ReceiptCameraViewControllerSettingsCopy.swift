@@ -16,7 +16,7 @@ extension ReceiptCameraViewController {
     \(autoCaptureDetail())
     Auto brightness assist: \(autoExposureAssistEnabled ? "On" : "Off")
     Receipt edge guidance: \(edgeDetectionEnabled ? "On" : "Off")
-    Receipt guidance warnings: \(receiptGuidanceWarningsEnabled() ? "On" : "Off")
+    Receipt framing checks: \(receiptGuidanceWarningsEnabled() ? "On" : "Off")
     Capture quality: take the clearest receipt photo for OCR first. Save-space proof size is applied only after receipt assistance uses the clearest source.
     Image cleanup: crop, straighten, grayscale, contrast, and shadow cleanup after capture.
     Review style: \(review)

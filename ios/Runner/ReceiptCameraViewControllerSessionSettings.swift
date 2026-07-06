@@ -208,15 +208,15 @@ extension ReceiptCameraViewController {
     })
     alert.addAction(UIAlertAction(
       title: receiptGuidanceWarningsEnabled()
-        ? "Turn receipt guidance warnings off"
-        : "Turn receipt guidance warnings on",
+        ? "Turn receipt framing checks off"
+        : "Turn receipt framing checks on",
       style: .default
     ) { [weak self] _ in
       guard let self else { return }
       self.setReceiptGuidanceWarningsEnabled(!self.receiptGuidanceWarningsEnabled())
       self.guidanceLabel.text = self.receiptGuidanceWarningsEnabled()
-        ? "Receipt guidance warnings are on."
-        : "Receipt guidance warnings are off. Manual shutter still works."
+        ? "Receipt framing checks are on."
+        : "Receipt framing checks are off. Manual shutter still works."
       self.updateSettingsStatusStrip()
     })
     alert.addAction(UIAlertAction(

@@ -95,15 +95,15 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         updateSettingsStatusStrip()
     })
     content.addView(settingSwitch(
-        "Receipt guidance warnings",
-        "Warn when the receipt may be too far away, text may be small, or paper edges may be cut off.",
+        "Receipt framing checks",
+        "Warn when the receipt may be too far away, text may be small, or paper edges may be cut off. Experimental blur, glare, and shadow warnings stay separate.",
         receiptGuidanceWarningsEnabled(),
     ) {
         setReceiptGuidanceWarningsEnabled(it)
         guidance.text = if (it) {
-            "Receipt guidance warnings are on."
+            "Receipt framing checks are on."
         } else {
-            "Receipt guidance warnings are off. Manual shutter still works."
+            "Receipt framing checks are off. Manual shutter still works."
         }
         updateSettingsStatusStrip()
     })

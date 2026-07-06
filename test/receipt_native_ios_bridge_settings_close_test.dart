@@ -347,8 +347,9 @@ void main() {
           'Receipt edge guidance is off. Take the clearest photo you can.',
         ),
       );
-      expect(cameraController, contains('receipt guidance warnings'));
-      expect(cameraController, contains('Receipt guidance warnings'));
+      expect(cameraController, contains('receipt framing checks'));
+      expect(cameraController, contains('Receipt framing checks'));
+      expect(cameraController, isNot(contains('Receipt guidance warnings')));
       expect(
         cameraController,
         contains("Hold steady for the phone camera's autofocus."),

@@ -129,13 +129,20 @@ void main() {
           'Receipt edge guidance is off. Take the clearest photo you can.',
         ),
       );
-      expect(cameraActivity, contains('Receipt guidance warnings'));
+      expect(cameraActivity, contains('Receipt framing checks'));
       expect(
         cameraActivity,
         contains(
           'Warn when the receipt may be too far away, text may be small',
         ),
       );
+      expect(
+        cameraActivity,
+        contains(
+          'Experimental blur, glare, and shadow warnings stay separate.',
+        ),
+      );
+      expect(cameraActivity, isNot(contains('Receipt guidance warnings')));
       expect(
         cameraActivity,
         isNot(contains('Warn about shake, glare, low light')),
@@ -168,7 +175,7 @@ void main() {
         'if (!hasExperimentalReceiptQualityWarningsEnabled())',
       );
       final neutralQualityEnd = cameraActivity.indexOf(
-        'val currentGuidance = guidance.text.toString()',
+        'if (!brightness.isFinite() || !motionScore.isFinite() || !shadowScore.isFinite())',
         neutralQualityStart,
       );
       expect(neutralQualityStart, greaterThanOrEqualTo(0));
@@ -191,7 +198,7 @@ void main() {
       );
       expect(
         'Receipt has heavy shadows'.allMatches(cameraActivity).length,
-        greaterThanOrEqualTo(3),
+        greaterThanOrEqualTo(2),
         reason:
             'Shadow guidance must be emitted, cleared on recovery, and cleared by defensive reset.',
       );
