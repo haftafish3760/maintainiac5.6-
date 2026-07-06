@@ -67,7 +67,12 @@ void main() {
       arguments,
       contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=1'),
     );
+    expect(
+      arguments,
+      isNot(contains('--dart-define=PARSER_QA_GENERATED_WARMUP=true')),
+    );
     expect(stdout.content, contains('timeoutMs=12345'));
+    expect(stdout.content, contains('warmup=false'));
     expect(
       arguments,
       contains(
@@ -148,6 +153,67 @@ void main() {
       expect(exit, 0, reason: stderr.content);
       expect(stdout.content, contains('outputMode=verbose'));
       expect(stdout.content, contains('flutter progress spam'));
+    },
+  );
+
+  test(
+    'generated fixture wrapper enables warmup only when requested',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_generated_fixture_runner_warmup_flag_',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final fixture = File('${root.path}/generated_fixtures.json')
+        ..writeAsStringSync(
+          const JsonEncoder.withIndent('  ').convert([
+            {
+              'id': 'fixture_1',
+              'caseType': 'clear_match',
+              'rawLine': 'LOWES TOILET WAX RING 4.98',
+              'expectedTrade': 'Plumbing',
+              'expectedNameContains': 'wax ring',
+              'tradeScope': 'Plumbing',
+            },
+          ]),
+        );
+
+      late List<String> arguments;
+      final stdout = _MemorySink();
+      final stderr = _MemorySink();
+      final exit = await runGeneratedParserFixtures(
+        [
+          '--fixture',
+          fixture.path,
+          '--max-cases',
+          '1',
+          '--warmup',
+          '--report-dir',
+          '${root.path}/reports',
+        ],
+        stdout: stdout,
+        stderr: stderr,
+        processRunner:
+            (
+              String command,
+              List<String> args, {
+              bool runInShell = false,
+            }) async {
+              arguments = args;
+              return ProcessResult(
+                46,
+                0,
+                'QA_GENERATED_FIXTURE_RUN checked=1 failures=0 parserCalls=5',
+                '',
+              );
+            },
+      );
+
+      expect(exit, 0, reason: stderr.content);
+      expect(
+        arguments,
+        contains('--dart-define=PARSER_QA_GENERATED_WARMUP=true'),
+      );
+      expect(stdout.content, contains('warmup=true'));
     },
   );
 

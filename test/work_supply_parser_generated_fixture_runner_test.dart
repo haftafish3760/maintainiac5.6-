@@ -23,6 +23,7 @@ void main() {
     const startIndex = int.fromEnvironment(
       'PARSER_QA_GENERATED_FIXTURE_START_INDEX',
     );
+    const warmupEnabled = bool.fromEnvironment('PARSER_QA_GENERATED_WARMUP');
     if (fixturePath.trim().isEmpty) {
       // This entry point is intentionally opt-in so normal smoke runs do not
       // accidentally pay parser-call cost.
@@ -52,12 +53,27 @@ void main() {
           ? fixturePath
           : 'No generated fixtures matched PARSER_QA_GENERATED_FIXTURE_IDS=$fixtureIdsCsv',
     );
-    final warmupLines = _warmupLinesFor(fixtures);
+    final warmupLines = warmupEnabled
+        ? _warmupLinesFor(fixtures)
+        : const <_WarmupProbe>[];
     final warmupTimer = Stopwatch()..start();
-    for (final line in warmupLines) {
+    for (var index = 0; index < warmupLines.length; index++) {
+      final probe = warmupLines[index];
+      _writeGeneratedFixtureProgress(
+        reportDir: reportDir,
+        fixturePath: fixturePath,
+        stage: 'warmup',
+        activeId: 'warmup_$index',
+        activeRawLine: probe.rawLine,
+        activeTradeScope: probe.tradeScope,
+        checked: 0,
+        parserCallsStarted: index,
+        maxCases: maxCases,
+        fixtureIds: fixtureIds,
+      );
       matchReceiptLineToCatalog(
-        line,
-        tradeScope: 'Plumbing',
+        probe.rawLine,
+        tradeScope: probe.tradeScope,
         maxCandidates: 24,
       );
     }
@@ -65,7 +81,20 @@ void main() {
 
     final failures = <String>[];
     final timings = <Map<String, Object?>>[];
-    for (final fixture in fixtures) {
+    for (var index = 0; index < fixtures.length; index++) {
+      final fixture = fixtures[index];
+      _writeGeneratedFixtureProgress(
+        reportDir: reportDir,
+        fixturePath: fixturePath,
+        stage: 'fixture',
+        activeId: fixture.id,
+        activeRawLine: fixture.rawLine,
+        activeTradeScope: fixture.tradeScope,
+        checked: index,
+        parserCallsStarted: warmupLines.length + index,
+        maxCases: maxCases,
+        fixtureIds: fixtureIds,
+      );
       final timer = Stopwatch()..start();
       final match = matchReceiptLineToCatalog(
         fixture.rawLine,
@@ -125,6 +154,7 @@ void main() {
       maxCases: maxCases,
       fixtureIds: fixtureIds,
       warmupCallCount: warmupLines.length,
+      warmupEnabled: warmupEnabled,
     );
     // ignore: avoid_print
     print(
@@ -186,19 +216,110 @@ void main() {
 
     expect(selected.map((fixture) => fixture.id), ['fixture_2', 'fixture_3']);
   });
+
+  test('generated fixture warmup keeps each fixture trade scope', () {
+    final probes = _warmupLinesFor(const [
+      _GeneratedFixture(
+        id: 'electrical_box',
+        rawLine: 'HD 1G OLD WORK BOX 1.00',
+        caseType: 'clear_match',
+        tradeScope: 'Electrical',
+      ),
+      _GeneratedFixture(
+        id: 'hvac_filter',
+        rawLine: 'HD 16X25X1 MERV 8 FILTER 8.97',
+        caseType: 'clear_match',
+        tradeScope: 'HVAC',
+      ),
+    ]);
+
+    expect(
+      probes,
+      contains(const _WarmupProbe('HD 1G OLD WORK BOX 1.00', 'Electrical')),
+    );
+    expect(
+      probes,
+      contains(const _WarmupProbe('HD 16X25X1 MERV 8 FILTER 8.97', 'HVAC')),
+    );
+    expect(
+      probes.where(
+        (probe) =>
+            probe.rawLine == 'HD 1G OLD WORK BOX 1.00' &&
+            probe.tradeScope == 'Plumbing',
+      ),
+      isEmpty,
+    );
+  });
+
+  test('generated fixture report records no warmup by default', () async {
+    final root = await Directory.systemTemp.createTemp(
+      'maintainiac_generated_fixture_child_no_warmup_',
+    );
+    addTearDown(() => root.delete(recursive: true));
+
+    _writeGeneratedFixtureReport(
+      reportDir: '${root.path}/reports',
+      fixturePath: '${root.path}/generated_fixtures.json',
+      checked: 1,
+      failures: const [],
+      warmupMs: 0,
+      timings: const [],
+      maxCases: 1,
+      fixtureIds: const {},
+      warmupCallCount: 0,
+      warmupEnabled: false,
+    );
+
+    final report =
+        jsonDecode(
+              File(
+                '${root.path}/reports/latest_generated_fixture_run.json',
+              ).readAsStringSync(),
+            )
+            as Map;
+
+    expect(report['warmupEnabled'], isFalse);
+    expect(report['warmupCallCount'], 0);
+    expect(report['parserCalls'], 1);
+  });
 }
 
-List<String> _warmupLinesFor(List<_GeneratedFixture> fixtures) {
-  final lines = <String>{
-    'HD 3/4 PVC SCH40 COUPLING',
-    'HD 1/2 PEX CRMP ELL',
-    'HD TOILET WAX RING',
-    'HD 3/8 ALL THREAD ROD',
+List<_WarmupProbe> _warmupLinesFor(List<_GeneratedFixture> fixtures) {
+  final probes = <_WarmupProbe>{
+    const _WarmupProbe('HD 3/4 PVC SCH40 COUPLING', 'Plumbing'),
+    const _WarmupProbe('HD 1/2 PEX CRMP ELL', 'Plumbing'),
+    const _WarmupProbe('HD TOILET WAX RING', 'Plumbing'),
+    const _WarmupProbe('HD 12/2 NM-B WIRE', 'Electrical'),
+    const _WarmupProbe('HD 1G OLD WORK BOX', 'Electrical'),
+    const _WarmupProbe('HD 16X25X1 MERV 8 FILTER', 'HVAC'),
+    const _WarmupProbe('HD CONDENSATE FLOAT SWITCH', 'HVAC'),
   };
   for (final fixture in fixtures.take(12)) {
-    if (fixture.rawLine.trim().isNotEmpty) lines.add(fixture.rawLine);
+    final tradeScope = fixture.tradeScope?.trim();
+    if (fixture.rawLine.trim().isNotEmpty &&
+        tradeScope != null &&
+        tradeScope.isNotEmpty) {
+      probes.add(_WarmupProbe(fixture.rawLine, tradeScope));
+    }
   }
-  return lines.toList(growable: false);
+  return probes.toList(growable: false);
+}
+
+class _WarmupProbe {
+  const _WarmupProbe(this.rawLine, this.tradeScope);
+
+  final String rawLine;
+  final String tradeScope;
+
+  @override
+  bool operator ==(Object other) {
+    return other is _WarmupProbe &&
+        other.rawLine == rawLine &&
+        other.tradeScope == tradeScope;
+  }
+
+  @override
+  int get hashCode => Object.hash(rawLine, tradeScope);
 }
 
 Set<String> _csvSet(String value) {
@@ -231,6 +352,7 @@ _GeneratedFixtureRunArtifact _writeGeneratedFixtureReport({
   required int maxCases,
   required Set<String> fixtureIds,
   required int warmupCallCount,
+  required bool warmupEnabled,
 }) {
   final directory = Directory(reportDir)..createSync(recursive: true);
   final stamp = DateTime.now().toUtc().toIso8601String().replaceAll(
@@ -251,6 +373,7 @@ _GeneratedFixtureRunArtifact _writeGeneratedFixtureReport({
     'failureCount': failures.length,
     'failures': failures.take(100).toList(),
     'warmupMs': warmupMs,
+    'warmupEnabled': warmupEnabled,
     'semanticTimingExcludesWarmup': true,
     'slowestCases': timings.take(20).toList(),
     'liveServicesAllowed': false,
@@ -267,6 +390,50 @@ _GeneratedFixtureRunArtifact _writeGeneratedFixtureReport({
   return _GeneratedFixtureRunArtifact(
     timestampedJsonPath: timestamped.path,
     latestJsonPath: latest.path,
+  );
+}
+
+void _writeGeneratedFixtureProgress({
+  required String reportDir,
+  required String fixturePath,
+  required String stage,
+  required String activeId,
+  required String activeRawLine,
+  required String? activeTradeScope,
+  required int checked,
+  required int parserCallsStarted,
+  required int maxCases,
+  required Set<String> fixtureIds,
+}) {
+  final directory = Directory(reportDir)..createSync(recursive: true);
+  final latest = File('${directory.path}/latest_generated_fixture_run.json');
+  latest.writeAsStringSync(
+    const JsonEncoder.withIndent('  ').convert({
+      'schemaVersion': 1,
+      'domain': 'work_supply_inventory_parser_generated_fixtures',
+      'fixturePath': fixturePath,
+      'maxCases': maxCases,
+      'fixtureIds': fixtureIds.toList()..sort(),
+      'checked': checked,
+      'failureCount': 0,
+      'failures': const <String>[],
+      'warmupMs': 0,
+      'semanticTimingExcludesWarmup': true,
+      'slowestCases': const <Map<String, Object?>>[],
+      'liveServicesAllowed': false,
+      'writesProductionCatalog': false,
+      'firebaseWritesAllowed': false,
+      'ocrCameraExpensesTouched': false,
+      'parserCalls': parserCallsStarted,
+      'warmupCallCount': 0,
+      'incomplete': true,
+      'activeStage': stage,
+      'activeId': activeId,
+      'activeRawLine': activeRawLine,
+      'activeTradeScope': activeTradeScope ?? '',
+      'generatedAtIso': DateTime.now().toUtc().toIso8601String(),
+    }),
+    flush: true,
   );
 }
 

@@ -9,7 +9,7 @@ const _usage =
     '[--start-index 0] [--max-chunks 0] '
     '[--report-dir build/parser_qa_reports/generated_fixtures] '
     '[--timeout-ms 900000] '
-    '[--verbose]';
+    '[--warmup] [--verbose]';
 
 Future<void> main(List<String> args) async {
   final exit = await runGeneratedParserFixtures(
@@ -57,6 +57,7 @@ Future<int> runGeneratedParserFixtures(
     'chunkSize=${options.chunkSize} chunks=${chunks.length} '
     'startIndex=${options.startIndex} maxChunks=${options.maxChunks} '
     'timeoutMs=${options.timeoutMs} '
+    'warmup=${options.warmup} '
     'outputMode=${options.verbose ? 'verbose' : 'summary'}',
   );
 
@@ -141,6 +142,7 @@ class _FixtureRunnerOptions {
     required this.startIndex,
     required this.maxChunks,
     required this.timeoutMs,
+    required this.warmup,
     required this.verbose,
   });
 
@@ -152,6 +154,7 @@ class _FixtureRunnerOptions {
   final int startIndex;
   final int maxChunks;
   final int timeoutMs;
+  final bool warmup;
   final bool verbose;
 
   static _FixtureRunnerOptions parse(List<String> args) {
@@ -174,6 +177,7 @@ class _FixtureRunnerOptions {
       startIndex: startIndex < 0 ? 0 : startIndex,
       maxChunks: maxChunks < 0 ? 0 : maxChunks,
       timeoutMs: timeoutMs <= 0 ? 900000 : timeoutMs,
+      warmup: args.contains('--warmup'),
       verbose: args.contains('--verbose'),
     );
   }
@@ -230,6 +234,7 @@ List<String> _flutterCommandFor(
     '--dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=${chunk.count}',
     '--dart-define=PARSER_QA_GENERATED_REPORT_DIR=$reportDir',
     '--dart-define=PARSER_QA_GENERATED_FIXTURE_START_INDEX=${chunk.startIndex}',
+    if (options.warmup) '--dart-define=PARSER_QA_GENERATED_WARMUP=true',
     if (options.fixtureIds.isNotEmpty)
       '--dart-define=PARSER_QA_GENERATED_FIXTURE_IDS=${options.fixtureIds.join(',')}',
     '--reporter',
