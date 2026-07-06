@@ -97,7 +97,7 @@ bool _receiptCameraPathsAreUnique(List<String> paths) {
 }
 
 class ReceiptCameraCaptureEvidence {
-  const ReceiptCameraCaptureEvidence({
+  ReceiptCameraCaptureEvidence({
     required this.captureSurface,
     required this.captureFlow,
     required this.resolutionTier,
@@ -121,8 +121,10 @@ class ReceiptCameraCaptureEvidence {
     required this.liveReadiness,
     required this.imageStreamActiveAtCapture,
     this.selectedExposureOffset,
-    this.candidateExposureOffsets = const [],
-  });
+    List<double?> candidateExposureOffsets = const [],
+  }) : candidateExposureOffsets = List<double?>.unmodifiable(
+         candidateExposureOffsets,
+       );
 
   final String captureSurface;
   final String captureFlow;

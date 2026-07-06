@@ -143,7 +143,7 @@ void main() {
   });
 
   test('camera result diagnostics ignore non-finite live brightness', () {
-    const evidence = ReceiptCameraCaptureEvidence(
+    final evidence = ReceiptCameraCaptureEvidence(
       captureSurface: 'native',
       captureFlow: 'receipt_camera',
       resolutionTier: 'high',
@@ -267,7 +267,7 @@ void main() {
   });
 
   test('camera result diagnostics reject normalized path aliases', () {
-    const evidence = ReceiptCameraCaptureEvidence(
+    final evidence = ReceiptCameraCaptureEvidence(
       captureSurface: 'native',
       captureFlow: 'receipt_camera',
       resolutionTier: 'high',
@@ -313,7 +313,7 @@ void main() {
       brightness: 140,
       isLikelyReadable: true,
     );
-    const evidence = ReceiptCameraCaptureEvidence(
+    final evidence = ReceiptCameraCaptureEvidence(
       captureSurface: 'native',
       captureFlow: 'receipt_camera',
       resolutionTier: 'high',

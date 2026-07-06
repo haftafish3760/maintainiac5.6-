@@ -60,13 +60,13 @@ extension ReceiptCameraCaptureEvidenceDiagnostics
       'selectedExposureBucket': _exposureBucket(
         selectedExposureOffset ?? exposureOffset,
       ),
-      'scannerDecisionCodes': [
+      'scannerDecisionCodes': List<String>.unmodifiable([
         'receipt_camera_result_bridge',
         if (hasDarkLiveFrame) 'live_preview_dark',
         if (hasUnderexposedLiveFrame) 'live_preview_underexposed',
         if (quality?.isLikelyReadable == true) 'captured_readable',
         if (quality?.isLikelyReadable == false) 'captured_needs_review',
-      ],
+      ]),
     };
   }
 

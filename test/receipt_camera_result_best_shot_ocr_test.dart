@@ -3,7 +3,7 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models
 
 void main() {
   test('camera results carry privacy-safe native capture evidence', () {
-    const evidence = ReceiptCameraCaptureEvidence(
+    final evidence = ReceiptCameraCaptureEvidence(
       captureSurface: 'maintainiac_native_android',
       captureFlow: 'assisted',
       resolutionTier: 'high',
@@ -39,6 +39,10 @@ void main() {
     expect(evidence.exposureAtNativeBaseline, isFalse);
     expect(evidence.selectedExposureOffset, .32);
     expect(evidence.candidateExposureOffsets, [0, .32]);
+    expect(
+      () => evidence.candidateExposureOffsets.add(.64),
+      throwsUnsupportedError,
+    );
     expect(evidence.hasDarkLiveFrame, isTrue);
     expect(evidence.brightnessSummaryLabel, 'Live preview was dark');
     expect(
@@ -46,7 +50,7 @@ void main() {
       'Bracketed brighter exposure candidate',
     );
 
-    const underexposedEvidence = ReceiptCameraCaptureEvidence(
+    final underexposedEvidence = ReceiptCameraCaptureEvidence(
       captureSurface: 'maintainiac_native_ios',
       captureFlow: 'manual',
       resolutionTier: 'high',
@@ -81,7 +85,7 @@ void main() {
       'Native auto exposure baseline',
     );
 
-    const malformedEvidence = ReceiptCameraCaptureEvidence(
+    final malformedEvidence = ReceiptCameraCaptureEvidence(
       captureSurface: 'maintainiac_native_ios',
       captureFlow: 'manual',
       resolutionTier: 'high',
@@ -128,7 +132,7 @@ void main() {
       brightness: 62,
       isLikelyReadable: false,
     );
-    const evidence = ReceiptCameraCaptureEvidence(
+    final evidence = ReceiptCameraCaptureEvidence(
       captureSurface: 'maintainiac_native_android',
       captureFlow: 'assisted',
       resolutionTier: 'high',
@@ -198,6 +202,11 @@ void main() {
       ]),
     );
     expect(
+      () =>
+          (photoDiagnostics['scannerDecisionCodes'] as List<String>).add('bad'),
+      throwsUnsupportedError,
+    );
+    expect(
       photoDiagnostics.toString().toLowerCase(),
       isNot(contains('lowe private fixture')),
     );
@@ -219,7 +228,7 @@ void main() {
       brightness: 48,
       isLikelyReadable: false,
     );
-    const evidence = ReceiptCameraCaptureEvidence(
+    final evidence = ReceiptCameraCaptureEvidence(
       captureSurface: 'maintainiac_native_android',
       captureFlow: 'assisted',
       resolutionTier: 'high',
@@ -275,7 +284,7 @@ void main() {
       brightness: 142,
       isLikelyReadable: true,
     );
-    const evidence = ReceiptCameraCaptureEvidence(
+    final evidence = ReceiptCameraCaptureEvidence(
       captureSurface: 'maintainiac_native_android',
       captureFlow: 'assisted',
       resolutionTier: 'high',
@@ -331,7 +340,7 @@ void main() {
       brightness: 142,
       isLikelyReadable: true,
     );
-    const evidence = ReceiptCameraCaptureEvidence(
+    final evidence = ReceiptCameraCaptureEvidence(
       captureSurface: 'maintainiac_native_android',
       captureFlow: 'assisted',
       resolutionTier: 'high',
@@ -398,7 +407,7 @@ void main() {
   });
 
   test('capture evidence uses saved-photo buckets for review warnings', () {
-    const evidence = ReceiptCameraCaptureEvidence(
+    final evidence = ReceiptCameraCaptureEvidence(
       captureSurface: 'maintainiac_native_android',
       captureFlow: 'manual',
       resolutionTier: 'high',
