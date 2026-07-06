@@ -1618,18 +1618,25 @@ List<String> _plumbingCoreFamilyTermsFor(WorkSupplyItem item, String shape) {
 }
 
 List<String> _plumbingCompactFamilyTermsFor(WorkSupplyItem item, String shape) {
+  final terms = _plumbingCoreFamilyTermsFor(item, shape);
   return _cleanList([
-    for (final term in _plumbingCoreFamilyTermsFor(item, shape))
-      term
-          .toUpperCase()
-          .replaceAll(' COUPLING', ' CPLG')
-          .replaceAll(' ADAPTER', ' ADPT')
-          .replaceAll(' ELBOW', ' ELB')
-          .replaceAll(' CONNECTOR', ' CONN')
-          .replaceAll(' DISPOSAL', ' DISP')
-          .replaceAll(' TOILET', ' TLT')
-          .replaceAll(' FAUCET', ' FCT'),
+    for (final term in terms) _compactPlumbingReceiptTerm(term),
+    for (final term in terms)
+      if (term.toLowerCase().startsWith('disposal '))
+        _compactPlumbingReceiptTerm(term.replaceFirst('disposal', 'disp')),
   ]);
+}
+
+String _compactPlumbingReceiptTerm(String value) {
+  return value
+      .toUpperCase()
+      .replaceAll(' COUPLING', ' CPLG')
+      .replaceAll(' ADAPTER', ' ADPT')
+      .replaceAll(' ELBOW', ' ELB')
+      .replaceAll(' CONNECTOR', ' CONN')
+      .replaceAll(' DISPOSAL', ' DISP')
+      .replaceAll(' TOILET', ' TLT')
+      .replaceAll(' FAUCET', ' FCT');
 }
 
 List<String> _plumbingSpanishCoreFamilyTermsFor(

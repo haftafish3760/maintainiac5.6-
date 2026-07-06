@@ -3997,3 +3997,15 @@ Release boundaries:
   Plumbing Core 1,119 rows, 0 missing required families, 0 suspicious Core
   rows, 179 outside-Core review candidates, and generated batch shard 250/250
   with 0 failures.
+- **19:11-19:21 Plumbing Core Family Metadata Gate:** Strengthened
+  `test/work_supply_plumbing_core_metadata_gate_test.dart` beyond generic
+  non-empty metadata checks by adding family-specific expectations for major
+  Plumbing Core service families: tubular P-traps, toilet fill valves, toilet
+  tank levers, faucet aerators, faucet O-rings, disposal drain elbows,
+  disposal install kits, continuous waste, PVC reducing couplings, and PVC DWV
+  sanitary tees. The gate now proves each family carries concrete English
+  terms, compact merchant receipt shorthand, Spanish terms, and ambiguity
+  negative-match terms. Fixed compact disposal shorthand generation so
+  `DISP DRAIN ELB` and `DISP INSTALL KIT` are present. Verification passed with
+  the bundled Plumbing Core metadata/pack/curation/generated batch group;
+  generated batch shard remains 250/250 with 0 failures.

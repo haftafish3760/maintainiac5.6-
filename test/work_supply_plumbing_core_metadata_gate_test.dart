@@ -85,7 +85,158 @@ void main() {
     expect(coreRows.length, greaterThan(1000));
     expect(failures, isEmpty, reason: failures.take(80).join('\n'));
   });
+
+  test('Plumbing Core service families carry family-specific metadata', () {
+    final failures = <String>[];
+    final coreRows = workSupplyCatalogItems
+        .where(
+          (item) =>
+              item.trade == 'Plumbing' &&
+              item.packTier == WorkSupplyPackTier.core &&
+              item.marketScopes.contains(WorkSupplyMarketScope.residential),
+        )
+        .toList(growable: false);
+
+    for (final family in _requiredFamilies) {
+      final matches = coreRows
+          .where((item) => family.selector(item.searchableText))
+          .toList(growable: false);
+      if (matches.isEmpty) {
+        failures.add('${family.name}: missing Core items');
+        continue;
+      }
+      final familyText = matches
+          .map((item) => item.searchableText)
+          .join(' ')
+          .toLowerCase();
+      for (final term in family.englishTerms) {
+        if (!familyText.contains(term)) {
+          failures.add('${family.name}: missing English term "$term"');
+        }
+      }
+      for (final term in family.compactReceiptTerms) {
+        if (!familyText.contains(term.toLowerCase())) {
+          failures.add('${family.name}: missing compact term "$term"');
+        }
+      }
+      for (final term in family.spanishTerms) {
+        if (!familyText.contains(term)) {
+          failures.add('${family.name}: missing Spanish term "$term"');
+        }
+      }
+      for (final term in family.negativeTerms) {
+        if (!familyText.contains(term)) {
+          failures.add('${family.name}: missing negative term "$term"');
+        }
+      }
+    }
+
+    expect(failures, isEmpty, reason: failures.take(120).join('\n'));
+  });
 }
+
+class _RequiredFamily {
+  const _RequiredFamily({
+    required this.name,
+    required this.selector,
+    required this.englishTerms,
+    required this.compactReceiptTerms,
+    required this.spanishTerms,
+    required this.negativeTerms,
+  });
+
+  final String name;
+  final bool Function(String searchableText) selector;
+  final List<String> englishTerms;
+  final List<String> compactReceiptTerms;
+  final List<String> spanishTerms;
+  final List<String> negativeTerms;
+}
+
+final _requiredFamilies = <_RequiredFamily>[
+  _RequiredFamily(
+    name: 'tubular p-trap',
+    selector: (text) => text.contains('tubular p-trap'),
+    englishTerms: const ['p trap', 'sink trap', 'lav trap'],
+    compactReceiptTerms: const ['P TRAP'],
+    spanishTerms: const ['trampa p', 'trampa lavabo'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'toilet fill valve',
+    selector: (text) => text.contains('toilet fill valve'),
+    englishTerms: const ['fill valve', 'ballcock'],
+    compactReceiptTerms: const ['FILL VALVE'],
+    spanishTerms: const ['valvula llenado'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'toilet tank lever',
+    selector: (text) => text.contains('toilet tank lever'),
+    englishTerms: const ['tank lever', 'flush lever'],
+    compactReceiptTerms: const ['TANK LEVER'],
+    spanishTerms: const ['palanca tanque'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'faucet aerator',
+    selector: (text) => text.contains('faucet aerator'),
+    englishTerms: const ['aerator', 'faucet screen'],
+    compactReceiptTerms: const ['AERATOR'],
+    spanishTerms: const ['aireador'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'faucet o-ring',
+    selector: (text) => text.contains('faucet o-ring'),
+    englishTerms: const ['o ring', 'seal kit'],
+    compactReceiptTerms: const ['O RING'],
+    spanishTerms: const ['empaque llave'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'disposal drain elbow',
+    selector: (text) => text.contains('disposal drain elbow'),
+    englishTerms: const ['disposal elbow', 'garbage disposal elbow'],
+    compactReceiptTerms: const ['DISP DRAIN ELB'],
+    spanishTerms: const ['codo triturador'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'disposal install kit',
+    selector: (text) => text.contains('disposal install kit'),
+    englishTerms: const ['disposal kit', 'garbage disposal connector'],
+    compactReceiptTerms: const ['DISP INSTALL KIT'],
+    spanishTerms: const ['kit triturador'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'continuous waste',
+    selector: (text) => text.contains('continuous waste'),
+    englishTerms: const ['cont waste', 'double bowl waste'],
+    compactReceiptTerms: const ['CONTINUOUS WASTE'],
+    spanishTerms: const ['plomeria residencial'],
+    negativeTerms: const ['electrical conduit', 'hvac air filter'],
+  ),
+  _RequiredFamily(
+    name: 'pvc reducing coupling',
+    selector: (text) =>
+        text.contains('pvc schedule 40 reducing coupling') ||
+        text.contains('pvc dwv reducing coupling'),
+    englishTerms: const ['reducing coupling', 'reducer coupling'],
+    compactReceiptTerms: const ['REDUCING CPLG'],
+    spanishTerms: const ['cople'],
+    negativeTerms: const ['electrical conduit', 'hvac condensate drain'],
+  ),
+  _RequiredFamily(
+    name: 'pvc sanitary tee',
+    selector: (text) => text.contains('pvc dwv sanitary tee'),
+    englishTerms: const ['sanitary tee', 'san tee'],
+    compactReceiptTerms: const ['SANITARY TEE'],
+    spanishTerms: const ['tee sanitaria'],
+    negativeTerms: const ['electrical conduit', 'hvac condensate drain'],
+  ),
+];
 
 void _expect(
   List<String> failures,
