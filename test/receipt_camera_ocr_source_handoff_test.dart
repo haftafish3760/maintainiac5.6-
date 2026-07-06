@@ -96,6 +96,9 @@ void main() {
     final attachmentPanel = await File(
       'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart',
     ).readAsString();
+    final attachmentRisks = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_risk_flags.dart',
+    ).readAsString();
     expect(reviewActions, contains('prepareForOcrAndBackup'));
     expect(reviewActions, contains('captureDiagnosticsByPath'));
     expect(reviewActions, contains('staged.captureDiagnosticsByPhotoPath'));
@@ -211,6 +214,12 @@ void main() {
         r'ocr_source_review_requirement_${_signalToken(result.ocrSourceReviewRequirement)}',
       ),
     );
+    expect(captureFlow, contains('!result.ocrSourcePathsMatchStitchContract'));
+    expect(captureFlow, contains('stitch_ocr_source_result_contract_mismatch'));
+    expect(
+      captureRisks,
+      contains('ocr_source_stitch_result_contract_mismatch'),
+    );
     expect(
       attachmentPanel,
       contains(
@@ -222,6 +231,18 @@ void main() {
       contains(
         r'ocr_source_review_requirement_${attachmentSignalToken(result.ocrSourceReviewRequirement)}',
       ),
+    );
+    expect(
+      attachmentPanel,
+      contains('!result.ocrSourcePathsMatchStitchContract'),
+    );
+    expect(
+      attachmentPanel,
+      contains('stitch_ocr_source_result_contract_mismatch'),
+    );
+    expect(
+      attachmentRisks,
+      contains('ocr_source_stitch_result_contract_mismatch'),
     );
     expect(receiptEntryScreen, contains("'saved_proof_fallback'"));
     expect(receiptEntryScreen, contains('ocrSourceHandoffSignalCounts'));
