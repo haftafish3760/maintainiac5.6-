@@ -274,6 +274,97 @@ void main() {
     expect(store.recordById(saved.id), isNotNull);
   });
 
+  test('document import rejects unconfirmed OCR text before storage', () async {
+    final store = AppDocumentStore.memory();
+
+    await expectLater(
+      AppDocumentImportService(store: store).saveReadOnlyDocument(
+        kind: AppDocumentKind.jobContractorDocument,
+        attachments: const [],
+        importedText: 'Unconfirmed OCR suggestion subtotal 44.10',
+        title: 'Supplier packet',
+        now: DateTime(2026, 7, 5, 12),
+      ),
+      throwsA(
+        isA<AppDocumentImportException>().having(
+          (error) => error.message,
+          'message',
+          contains('unconfirmed OCR suggestions'),
+        ),
+      ),
+    );
+
+    expect(store.records, isEmpty);
+  });
+
+  test('document import rejects private metadata before promotion', () async {
+    final store = AppDocumentStore.memory();
+
+    await expectLater(
+      AppDocumentImportService(store: store).saveReadOnlyDocument(
+        kind: AppDocumentKind.jobContractorDocument,
+        attachments: const [],
+        importedText: 'Confirmed supplier packet text.',
+        title: 'Packet for license plate ABC 123',
+        sourceLabel: '/Users/owner/Documents/customer-packet.pdf',
+        now: DateTime(2026, 7, 5, 12),
+      ),
+      throwsA(
+        isA<AppDocumentImportException>().having(
+          (error) => error.message,
+          'message',
+          contains('private device paths'),
+        ),
+      ),
+    );
+
+    expect(store.records, isEmpty);
+  });
+
+  test(
+    'document import privacy rejection does not promote staged proof',
+    () async {
+      final store = AppDocumentStore.memory();
+      final staged = await ReceiptProofStorage.instance.stageAttachment(
+        ReceiptAttachmentRecord(
+          id: 'private-import-proof',
+          path: sourcePdf.path,
+          kind: ReceiptAttachmentKind.pdf,
+          dataSaverLevel: ReceiptDataSaverLevel.original,
+          createdAt: DateTime(2026, 7, 5),
+        ),
+      );
+      final stagingPath = staged.path;
+
+      await expectLater(
+        AppDocumentImportService(store: store).saveReadOnlyDocument(
+          kind: AppDocumentKind.jobContractorDocument,
+          attachments: [
+            staged.copyWith(
+              sourceLabel: '/Users/owner/Documents/customer-packet.pdf',
+            ),
+          ],
+          title: 'Supplier packet',
+          now: DateTime(2026, 7, 5, 12),
+        ),
+        throwsA(isA<AppDocumentImportException>()),
+      );
+
+      expect(store.records, isEmpty);
+      expect(await File(stagingPath).exists(), isTrue);
+      final permanentPdfRoot = Directory(
+        '${documentsDirectory.path}/receipt_proofs/pdfs',
+      );
+      if (await permanentPdfRoot.exists()) {
+        final leftovers = await permanentPdfRoot
+            .list(recursive: true)
+            .where((entity) => entity is File)
+            .toList();
+        expect(leftovers, isEmpty);
+      }
+    },
+  );
+
   test(
     'document package import saves verified proof and cleans extraction',
     () async {

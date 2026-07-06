@@ -7,6 +7,7 @@ import 'package:maintaniac/shared/documents/app_document_export_manifest.dart';
 import 'package:maintaniac/shared/documents/app_document_models.dart';
 import 'package:maintaniac/shared/pdf/app_pdf_privacy_policy.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
+import 'package:path/path.dart' as path;
 
 void main() {
   late Directory tempDirectory;
@@ -597,6 +598,67 @@ void main() {
     expect(entryNames.join('\n'), isNot(contains('..')));
     expect(plan.toMap().toString(), contains('packageEntryName'));
   });
+
+  test(
+    'document export package entry names are safe on every platform',
+    () async {
+      final firstPdf = File('${tempDirectory.path}/first.pdf');
+      final secondPdf = File('${tempDirectory.path}/second.pdf');
+      final thirdPhoto = File('${tempDirectory.path}/third.jpg');
+      final firstBytes = utf8.encode('%PDF-1.7\nReserved name\n%%EOF');
+      final secondBytes = utf8.encode('%PDF-1.7\nDangerous extension\n%%EOF');
+      final thirdBytes = List<int>.generate(64, (index) => 255 - index);
+      await firstPdf.writeAsBytes(firstBytes, flush: true);
+      await secondPdf.writeAsBytes(secondBytes, flush: true);
+      await thirdPhoto.writeAsBytes(thirdBytes, flush: true);
+
+      final plan = await AppDocumentExportManager.buildPackagePlan(
+        _documentRecord(
+          attachments: [
+            _pdfAttachment(
+              id: 'reserved-name',
+              path: firstPdf.path,
+              displayName: 'CON.pdf',
+              originalFileName: 'CON.pdf',
+              byteSize: firstBytes.length,
+              fileHash: sha256.convert(firstBytes).toString(),
+            ),
+            _pdfAttachment(
+              id: 'dangerous-extension',
+              path: secondPdf.path,
+              displayName: 'customer-packet.pdf.exe.scr',
+              originalFileName: 'customer-packet.pdf.exe.scr',
+              byteSize: secondBytes.length,
+              fileHash: sha256.convert(secondBytes).toString(),
+            ),
+            _photoAttachment(
+              id: 'empty-name',
+              path: thirdPhoto.path,
+              byteSize: thirdBytes.length,
+              fileHash: sha256.convert(thirdBytes).toString(),
+              displayName: '...',
+            ),
+          ],
+        ),
+        freeStorageReader: () async => 500,
+      );
+
+      final entryNames = plan.files
+          .map((file) => file.packageEntryName)
+          .toList(growable: false);
+      expect(entryNames, [
+        'maintainiac-CON.pdf',
+        'customer-packet.pdf',
+        'document-proof.bin',
+      ]);
+      expect(
+        entryNames.map((entry) => path.basenameWithoutExtension(entry)),
+        isNot(contains('CON')),
+      );
+      expect(entryNames.join('\n'), isNot(contains('.exe')));
+      expect(entryNames.join('\n'), isNot(contains('.scr')));
+    },
+  );
 }
 
 AppDocumentRecord _documentRecord({

@@ -62,6 +62,45 @@ void main() {
     expect(issues, contains(AppPdfPrivacyPolicy.patientData));
   });
 
+  test('PDF privacy policy blocks government and bank identifiers', () {
+    final issues = AppPdfPrivacyPolicy.issueCodesForExport(
+      bytes: Uint8List.fromList(
+        '%PDF-1.7\n'
+                'SSN: 123-45-6789\n'
+                'Driver license: D123456789\n'
+                'Bank account number: ****123456\n'
+                'Routing number: 021000021\n'
+                '%%EOF'
+            .codeUnits,
+      ),
+    );
+
+    expect(issues, contains(AppPdfPrivacyPolicy.governmentId));
+    expect(issues, contains(AppPdfPrivacyPolicy.bankAccount));
+  });
+
+  test('PDF privacy policy blocks identifier leaks in metadata only', () {
+    final document = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.expenseExport,
+      title: 'Tax packet for SSN xxx-xx-1234',
+      fileName: 'expense_export.pdf',
+      bytes: Uint8List.fromList('%PDF-1.7\nConfirmed totals\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 6),
+      shareText: 'Routing number 021000021 should not export.',
+    );
+
+    expect(document.validation.isValid, isFalse);
+    expect(
+      document.validation.issues,
+      contains(AppPdfPrivacyPolicy.governmentId),
+    );
+    expect(
+      document.validation.issues,
+      contains(AppPdfPrivacyPolicy.bankAccount),
+    );
+    expect(document.validation.userMessage, contains('private information'));
+  });
+
   test('PDF privacy policy blocks unlabeled VINs and short plate labels', () {
     final issues = AppPdfPrivacyPolicy.issueCodesForExport(
       bytes: Uint8List.fromList(

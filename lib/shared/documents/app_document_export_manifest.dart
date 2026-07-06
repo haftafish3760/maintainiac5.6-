@@ -249,6 +249,30 @@ class AppDocumentExportManager {
     'sh',
     'vbs',
   };
+  static const Set<String> windowsReservedPackageEntryNames = {
+    'con',
+    'prn',
+    'aux',
+    'nul',
+    'com1',
+    'com2',
+    'com3',
+    'com4',
+    'com5',
+    'com6',
+    'com7',
+    'com8',
+    'com9',
+    'lpt1',
+    'lpt2',
+    'lpt3',
+    'lpt4',
+    'lpt5',
+    'lpt6',
+    'lpt7',
+    'lpt8',
+    'lpt9',
+  };
 
   static AppDocumentExportReview review(AppDocumentRecord record) {
     final privacyIssues = _privacyIssues(record);
@@ -629,12 +653,23 @@ class AppDocumentExportManager {
     final normalized = stripped.isEmpty ? 'document-proof' : stripped;
     final extension = path.extension(normalized).trim();
     final baseName = path.basenameWithoutExtension(normalized).trim();
-    final safeBase = baseName.isEmpty ? 'document-proof' : baseName;
+    final safeBase = _safePackageEntryBase(
+      baseName.isEmpty ? 'document-proof' : baseName,
+    );
     final safeExtension = extension.isEmpty ? '.bin' : extension.toLowerCase();
     final entry = '$safeBase$safeExtension';
     if (entry.length <= 120) return entry;
     final maxBaseLength = 120 - safeExtension.length;
     return '${safeBase.substring(0, maxBaseLength.clamp(1, safeBase.length))}$safeExtension';
+  }
+
+  static String _safePackageEntryBase(String baseName) {
+    final cleaned = baseName.trim().replaceAll(RegExp(r'^[.\s]+|[.\s]+$'), '');
+    if (cleaned.isEmpty) return 'document-proof';
+    if (windowsReservedPackageEntryNames.contains(cleaned.toLowerCase())) {
+      return 'maintainiac-$cleaned';
+    }
+    return cleaned;
   }
 
   static String _stripDangerousTrailingExtensions(String value) {

@@ -8,6 +8,8 @@ class AppPdfPrivacyPolicy {
   static const passengerData = 'private_passenger_data';
   static const patientData = 'private_patient_data';
   static const paymentFragment = 'private_payment_fragment';
+  static const governmentId = 'private_government_id';
+  static const bankAccount = 'private_bank_account';
   static const unconfirmedOcrSuggestion = 'unconfirmed_ocr_suggestion';
   static const privateSourcePath = 'private_source_path';
   static const internalId = 'internal_id';
@@ -26,6 +28,8 @@ class AppPdfPrivacyPolicy {
     if (_containsPassengerData(text)) issues.add(passengerData);
     if (_containsPatientData(text)) issues.add(patientData);
     if (_containsPaymentFragment(text)) issues.add(paymentFragment);
+    if (_containsGovernmentId(text)) issues.add(governmentId);
+    if (_containsBankAccount(text)) issues.add(bankAccount);
     if (_containsUnconfirmedOcrSuggestion(text)) {
       issues.add(unconfirmedOcrSuggestion);
     }
@@ -63,6 +67,24 @@ class AppPdfPrivacyPolicy {
     return RegExp(
       r'\b(?:card|cc|visa|mastercard|amex|discover)\s*(?:ending|last\s*4|#|number)?\s*[:#-]?\s*(?:x{2,}|[*]{2,}|[0-9 ]{4,})\b',
     ).hasMatch(text);
+  }
+
+  static bool _containsGovernmentId(String text) {
+    return RegExp(
+          r'\b(?:ssn|social security(?: number)?)[\s_-]*[:#-]?[\s_-]*(?:\d{3}[- ]?\d{2}[- ]?\d{4}|x{3}[- ]?x{2}[- ]?\d{4}|[*]{3}[- ]?[*]{2}[- ]?\d{4})\b',
+        ).hasMatch(text) ||
+        RegExp(
+          r"\b(?:driver(?:s|'s)? license|drivers license|dl number|driver id)[\s_-]*[:#-]?[\s_-]*[a-z0-9][a-z0-9 -]{4,24}\b",
+        ).hasMatch(text);
+  }
+
+  static bool _containsBankAccount(String text) {
+    return RegExp(
+          r'\b(?:bank account|account number|acct number|routing number|aba routing)[\s_-]*[:#-]?[\s_-]*(?:x{2,}|[*]{2,}|[0-9][0-9 -]{5,24})\b',
+        ).hasMatch(text) ||
+        RegExp(
+          r'\biban[\s_-]*[:#-]?[\s_-]*[a-z]{2}[0-9]{2}[a-z0-9 ]{8,30}\b',
+        ).hasMatch(text);
   }
 
   static bool _containsUnconfirmedOcrSuggestion(String text) {

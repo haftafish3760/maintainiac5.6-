@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
+import '../pdf/app_pdf_privacy_policy.dart';
 import '../widgets/receipt_capture/receipt_capture_models.dart';
 import '../widgets/receipt_capture/receipt_proof_storage.dart';
 import 'app_document_export_manifest.dart';
@@ -135,6 +136,16 @@ class AppDocumentImportService {
         'Maintainiac could not save this document because it has no proof file or imported text.',
       );
     }
+    final privacyIssues = _importPrivacyIssues(
+      attachments: attachments,
+      title: title,
+      importedText: cleanImportedText,
+      notes: notes,
+      sourceLabel: sourceLabel,
+    );
+    if (privacyIssues.isNotEmpty) {
+      throw AppDocumentImportException(_privacyImportMessage(privacyIssues));
+    }
     final savedAt = now ?? DateTime.now();
     final id = 'DOC-${savedAt.microsecondsSinceEpoch}';
     final linkedAttachments = attachments
@@ -232,6 +243,47 @@ class AppDocumentImportService {
     AppDocumentExportPackageImportPreview preview,
   ) {
     return 'Maintainiac document export ${preview.manifestSha256.substring(0, 12)}';
+  }
+
+  static List<String> _importPrivacyIssues({
+    required List<ReceiptAttachmentRecord> attachments,
+    required String title,
+    required String importedText,
+    required String notes,
+    required String sourceLabel,
+  }) {
+    final metadata = <String>[
+      title,
+      importedText,
+      notes,
+      sourceLabel,
+      for (final attachment in attachments) ...[
+        attachment.displayName,
+        attachment.originalFileName,
+        attachment.mimeType,
+        attachment.importedText,
+        attachment.sourceLabel,
+        ...attachment.riskFlags,
+        ...attachment.documentSignals,
+      ],
+    ];
+    return AppPdfPrivacyPolicy.issueCodesForExport(
+      bytes: const [],
+      metadata: metadata,
+    );
+  }
+
+  static String _privacyImportMessage(List<String> issues) {
+    if (issues.contains(AppPdfPrivacyPolicy.unconfirmedOcrSuggestion)) {
+      return 'Maintainiac could not save this document because it includes unconfirmed OCR suggestions.';
+    }
+    if (issues.contains(AppPdfPrivacyPolicy.privateSourcePath)) {
+      return 'Maintainiac could not save this document because it includes private device paths.';
+    }
+    if (issues.contains(AppPdfPrivacyPolicy.internalId)) {
+      return 'Maintainiac could not save this document because it includes internal record IDs.';
+    }
+    return 'Maintainiac could not save this document because it may include private information.';
   }
 
   static Future<void> _deleteDirectoryQuietly(Directory directory) async {

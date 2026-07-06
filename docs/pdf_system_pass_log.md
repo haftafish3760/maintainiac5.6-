@@ -2718,3 +2718,26 @@
   - Focused `dart analyze` on changed Document Engine/PDF adapter files.
   - Focused Flutter regression bundle for Document Engine, invoices, exports,
     and PDF QA fixture inventory.
+
+## Passes 288-290 - 2026-07-06 02:22 EDT - Export/import privacy hardening
+
+- Scope: Document Engine export/import safety and PDF privacy policy only. No
+  inventory, camera, native capture, OCR engine, parser behavior, or fragile UI
+  tests changed.
+- Added lines at QA checkpoint: 302.
+- Bundled work:
+  - Hardened document export package entry names for Windows reserved names,
+    dangerous proof extensions, and empty proof names.
+  - Added import-time privacy blocking before read-only documents are stored or
+    staged proof files are promoted.
+  - Added regression coverage proving privacy rejection leaves staged proof in
+    place and creates no permanent proof leftovers.
+  - Expanded PDF privacy detection for government IDs and bank/routing
+    identifiers in PDF text and export metadata.
+- Verification completed 2026-07-06 02:20 EDT:
+  - `dart format` on changed Dart files.
+  - `git diff --check`
+  - PDF QA fixture JSON validation.
+  - Focused `dart analyze` on changed Document Engine/PDF safety files.
+  - Focused Flutter regression bundle for document export manifests, document
+    import/storage, PDF privacy, generated PDF service, and package writer.
