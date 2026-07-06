@@ -70,6 +70,15 @@ extension ReceiptPhotoReviewResultSectionOrderOutcome
 
 extension ReceiptPhotoReviewResultSectionOrderReview
     on ReceiptPhotoReviewResult {
+  bool get receiptSectionOrderHasFollowThroughAction {
+    return switch (receiptSectionOrderReviewActionCode) {
+      'review_retaken_section_then_continue' ||
+      'review_inserted_section_then_continue' ||
+      'review_reordered_sections_then_continue' => true,
+      _ => false,
+    };
+  }
+
   bool get receiptSectionOrderNeedsReview =>
       receiptSectionOrderReviewActionCode.startsWith('review_') &&
       (receiptSectionOrderReviewActionCode.contains('_before_ocr') ||
