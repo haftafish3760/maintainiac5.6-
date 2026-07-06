@@ -1454,7 +1454,9 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   final plumbingDirect = _directPlumbingFastMatch(text);
   if (plumbingDirect != null) return plumbingDirect;
-  if (RegExp(r'\b(trampa p|p trap|p-trap)\b').hasMatch(text)) {
+  if (RegExp(
+    r'\b(trampa p|trampa lavamanos|trampa lavabo|p trap|p-trap)\b',
+  ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -1964,7 +1966,8 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(
-    r'\b(faucet conn|faucet conns|faucet connector|faucet supply)\b',
+    r'\b(faucet conn|faucet conns|faucet connector|faucet supply|'
+    r'linea lavamanos|linea lavabo|linea suministro llave|conector grifo)\b',
   ).hasMatch(text)) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -2103,6 +2106,19 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(
     r'\b(p-trap|p trap|tubular p-trap|tubular p trap)\b',
+  ).hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('tubular p-trap') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(
+    r'\b(trampa lavamanos|trampa lavabo|trampa sanitaria|trampa p)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
@@ -4541,7 +4557,11 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
   }
-  if (receiptText.contains('p trap') || receiptText.contains('p-trap')) {
+  if (receiptText.contains('p trap') ||
+      receiptText.contains('p-trap') ||
+      receiptText.contains('trampa lavamanos') ||
+      receiptText.contains('trampa lavabo') ||
+      receiptText.contains('trampa p')) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       final variant = item.variant.toLowerCase();

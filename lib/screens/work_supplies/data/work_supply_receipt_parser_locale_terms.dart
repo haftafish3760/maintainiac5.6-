@@ -54,7 +54,10 @@ const _spanishUnitedStatesReceiptTermAliases = {
   'well pressure tank': ['tanque presion', 'tanque de presion', 'tanque pozo'],
   'well pressure switch': [
     'switch presion',
+    'switch presion pozo',
     'interruptor presion',
+    'interruptor bomba',
+    'interruptor presion pozo',
     'presostato',
   ],
   'well pipe adapter': [
@@ -75,6 +78,7 @@ const _spanishUnitedStatesReceiptTermAliases = {
     'juego reparacion sanitario',
   ],
   'faucet cartridge': ['cartucho llave', 'cartucho grifo', 'cartucho faucet'],
+  'single handle': ['monomando', 'una manija', 'una llave'],
   'faucet repair kit': [
     'kit reparacion llave',
     'kit reparacion grifo',
@@ -94,8 +98,16 @@ const _spanishUnitedStatesReceiptTermAliases = {
   'closet flange': ['brida sanitario', 'brida inodoro', 'brida wc'],
   'faucet supply line': [
     'linea suministro llave',
+    'linea lavamanos',
+    'linea lavabo',
     'conector llave',
     'manguera llave',
+  ],
+  'p-trap': [
+    'trampa lavamanos',
+    'trampa lavabo',
+    'trampa p',
+    'trampa sanitaria',
   ],
   'toilet supply line': [
     'linea suministro sanitario',

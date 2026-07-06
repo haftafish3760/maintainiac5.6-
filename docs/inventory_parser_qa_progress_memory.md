@@ -3876,3 +3876,21 @@ Release boundaries:
   unsafe cells, `durationMs=186856`, and all local-only safety flags false.
   This proves the hardened single-cell path works, but it is smoke evidence
   only; it does not replace the required full six-cell Core PEH rerun.
+- **03:47 Harness Pass 3015-3016:** Ran a hardened PEH Core generated-fixture
+  matrix pass under `build/parser_qa_pipeline/pass3015-peh-core-hardened-25`.
+  The run was intentionally stopped after real failures appeared instead of
+  stacking more evidence on a known-bad parser state. The failures exposed two
+  concrete issues: ambiguous dangerous-word fixtures were accidentally getting
+  a generated Plumbing trade scope, and Spanish plumbing evidence was missing
+  for faucet cartridge, lavatory supply-line, lavatory P-trap, and well
+  pressure-switch wording. Fixed the generator so ambiguous/review fixtures
+  stay unscoped, added Spanish parser evidence for `monomando`,
+  `linea lavamanos`, `trampa lavamanos`, and well pressure-switch phrases, and
+  added a generator regression that fails if ambiguous dangerous-word fixtures
+  regain an injected trade scope. Verification passed with focused fixture
+  generator tests, Spanish plumbing parser tests, fresh Plumbing Core generated
+  reruns for `en-US` and `es-US` with 25 checked cases each, 0 failures, 50
+  parser calls total, no timed-out chunks, and generated-run status gates
+  proving no live services, production catalog writes, Firebase writes, or
+  OCR/camera/Expenses touches. The remaining PEH Core cells still need a fresh
+  hardened matrix rerun after this fix.

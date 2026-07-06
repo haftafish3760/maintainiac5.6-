@@ -131,9 +131,7 @@ List<Map<String, Object?>> _buildCases({
       'expectedNameContains': recipe.expectedNameContains.isEmpty
           ? _fallbackExpectedName(recipe)
           : recipe.expectedNameContains,
-      'tradeScope': recipe.tradeScope.isEmpty
-          ? _title(options.trade)
-          : recipe.tradeScope,
+      'tradeScope': _fixtureTradeScope(options, recipe),
       if (options.locale != 'en-US') 'localePackId': options.locale,
       if (recipe.expectUnknown) 'expectUnknown': true,
       if (recipe.maxConfidence < 1) 'maxConfidence': recipe.maxConfidence,
@@ -144,6 +142,15 @@ List<Map<String, Object?>> _buildCases({
     index++;
   }
   return cases;
+}
+
+String _fixtureTradeScope(
+  _GeneratorOptions options,
+  WorkSupplyFixtureRecipe recipe,
+) {
+  if (recipe.tradeScope.isNotEmpty) return recipe.tradeScope;
+  if (recipe.expectUnknown || recipe.caseType == 'ambiguous_review') return '';
+  return _title(options.trade);
 }
 
 String _fallbackExpectedName(WorkSupplyFixtureRecipe recipe) {

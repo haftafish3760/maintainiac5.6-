@@ -65,6 +65,16 @@ void main() {
       expect(fixtures.first['sourceType'], 'synthetic');
       expect(fixtures.first['reviewStatus'], 'generated-not-release-approved');
       expect(fixtures.any((entry) => entry['expectUnknown'] == true), isTrue);
+      final ambiguous = fixtures.cast<Map>().firstWhere(
+        (entry) => entry['caseType'] == 'ambiguous_review',
+      );
+      expect(
+        ambiguous['tradeScope'],
+        isEmpty,
+        reason:
+            'Ambiguous dangerous-word fixtures must stay unscoped so the '
+            'parser cannot become confident from an injected trade context.',
+      );
     },
   );
 
