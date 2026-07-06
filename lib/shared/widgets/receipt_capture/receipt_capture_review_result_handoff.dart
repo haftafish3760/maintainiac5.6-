@@ -13,9 +13,32 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
     return !hasOcrSourcePhotos || usedSavedProofAsOcrSourceFallback;
   }
 
+  bool get ocrSourcePathsMatchStitchContract {
+    if (!hasOcrSourcePhotos) return false;
+    final stitchedPath = stitchResult.stitchedPath;
+    if (stitchResult.didStitch) {
+      return stitchedPath != null &&
+          ocrSourcePhotoPaths.length == 1 &&
+          _sameReceiptArtifactPath(ocrSourcePhotoPaths.single, stitchedPath);
+    }
+    if (stitchResult.ocrSourcePaths.length != ocrSourcePhotoPaths.length) {
+      return false;
+    }
+    for (var index = 0; index < ocrSourcePhotoPaths.length; index++) {
+      if (!_sameReceiptArtifactPath(
+        ocrSourcePhotoPaths[index],
+        stitchResult.ocrSourcePaths[index],
+      )) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   String get ocrSourceReviewRiskCode {
     if (!hasOcrSourcePhotos) return 'ocr_source_missing_manual_entry_required';
-    if (!stitchResult.hasValidOcrSourceContract) {
+    if (!stitchResult.hasValidOcrSourceContract ||
+        !ocrSourcePathsMatchStitchContract) {
       return 'stitch_ocr_source_contract_review_required';
     }
     if (usedSavedProofAsOcrSourceFallback) {
@@ -30,7 +53,8 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
   String get ocrSourceReviewRequirement {
     return ocrSourceFallbackRequiresManualReview ||
             scannerNeedsOperatorReview ||
-            !stitchResult.hasValidOcrSourceContract
+            !stitchResult.hasValidOcrSourceContract ||
+            !ocrSourcePathsMatchStitchContract
         ? 'manual_review_required_before_saving_receipt'
         : 'standard_user_confirmation_required';
   }
@@ -92,6 +116,7 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
       'ocrSourceReviewRequirement': ocrSourceReviewRequirement,
       'ocrSourceFallbackRequiresManualReview':
           ocrSourceFallbackRequiresManualReview,
+      'ocrSourcePathsMatchStitchContract': ocrSourcePathsMatchStitchContract,
       'ocrReadsClearSourceBeforeSavedProof':
           ocrReadsClearSourceBeforeSavedProof,
       'ocrUsesSavedProofOnlyAsFallback': ocrUsesSavedProofOnlyAsFallback,

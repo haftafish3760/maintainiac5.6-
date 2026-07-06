@@ -130,5 +130,64 @@ void main() {
         ),
       );
     });
+
+    test('marks result and stitch OCR source disagreement for review', () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/review-result-source.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: const ReceiptStitchResult(
+          status: ReceiptStitchStatus.stitched,
+          inputPaths: ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+          ocrSourcePaths: ['/tmp/stitched-ready.jpg'],
+          stitchedPath: '/tmp/stitched-ready.jpg',
+        ),
+      );
+
+      expect(result.stitchResult.hasValidOcrSourceContract, isTrue);
+      expect(result.ocrSourcePathsMatchStitchContract, isFalse);
+      expect(
+        result.ocrSourceReviewRiskCode,
+        'stitch_ocr_source_contract_review_required',
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair('ocrSourcePathsMatchStitchContract', false),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair(
+          'ocr_source_review_requirement_manual_review_required_before_saving_receipt',
+          1,
+        ),
+      );
+    });
+
+    test('marks fallback-disabled missing OCR source as not ready', () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/proof-only.jpg'],
+        ocrSourcePhotoPaths: const [],
+        dataSaverLevel: ReceiptDataSaverLevel.maximum,
+        stitchResult: const ReceiptStitchResult.notNeeded([
+          '/tmp/proof-only.jpg',
+        ]),
+        allowSavedProofOcrFallback: false,
+      );
+
+      expect(result.hasOcrSourcePhotos, isFalse);
+      expect(result.ocrSourcePathsMatchStitchContract, isFalse);
+      expect(
+        result.ocrSourceReviewRiskCode,
+        'ocr_source_missing_manual_entry_required',
+      );
+      expect(
+        result.ocrSourceReviewRequirement,
+        'manual_review_required_before_saving_receipt',
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair('ocrSourcePathsMatchStitchContract', false),
+      );
+    });
   });
 }
