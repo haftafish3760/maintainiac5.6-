@@ -199,22 +199,12 @@ internal fun ReceiptCameraActivity.resetReceiptCameraDefaults() {
 }
 
 internal fun ReceiptCameraActivity.receiptGuidanceWarningsEnabled(): Boolean {
-    return lowLightWarningEnabled ||
-        glareWarningEnabled ||
-        dirtyLensWarningEnabled ||
-        motionBlurWarningEnabled ||
-        shadowWarningEnabled ||
-        tooFarTooCloseWarningEnabled ||
+    return tooFarTooCloseWarningEnabled ||
         receiptFullyVisibleWarningEnabled ||
         textTooSmallWarningEnabled
 }
 
 internal fun ReceiptCameraActivity.setReceiptGuidanceWarningsEnabled(enabled: Boolean) {
-    lowLightWarningEnabled = enabled
-    glareWarningEnabled = enabled
-    dirtyLensWarningEnabled = enabled
-    motionBlurWarningEnabled = enabled
-    shadowWarningEnabled = enabled
     tooFarTooCloseWarningEnabled = enabled
     receiptFullyVisibleWarningEnabled = enabled
     textTooSmallWarningEnabled = enabled

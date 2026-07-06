@@ -360,8 +360,16 @@ void main() {
         guidanceToggleStart,
         guidanceToggleEnd,
       );
-      expect(guidanceToggleBlock, contains('shadowWarningEnabled'));
-      expect(guidanceToggleBlock, contains('dirtyLensWarningEnabled'));
+      expect(guidanceToggleBlock, isNot(contains('shadowWarningEnabled')));
+      expect(guidanceToggleBlock, isNot(contains('dirtyLensWarningEnabled')));
+      expect(guidanceToggleBlock, isNot(contains('glareWarningEnabled')));
+      expect(guidanceToggleBlock, isNot(contains('lowLightWarningEnabled')));
+      expect(guidanceToggleBlock, isNot(contains('motionBlurWarningEnabled')));
+      expect(guidanceToggleBlock, contains('tooFarTooCloseWarningEnabled'));
+      expect(
+        guidanceToggleBlock,
+        contains('receiptFullyVisibleWarningEnabled'),
+      );
       expect(guidanceToggleBlock, contains('textTooSmallWarningEnabled'));
       expect(cameraController, contains('Review style'));
       expect(cameraController, contains('Receipt details style: prices only'));
@@ -397,7 +405,7 @@ void main() {
       expect(
         cameraController,
         contains(
-          'saved proof\\nOCR reads the temporary full-quality photo first.',
+          'OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.',
         ),
       );
       expect(cameraController, contains('func setDataSaverLevel('));

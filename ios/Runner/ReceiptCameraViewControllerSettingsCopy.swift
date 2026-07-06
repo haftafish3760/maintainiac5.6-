@@ -85,22 +85,12 @@ extension ReceiptCameraViewController {
   }
 
   func receiptGuidanceWarningsEnabled() -> Bool {
-    lowLightWarningEnabled ||
-      glareWarningEnabled ||
-      dirtyLensWarningEnabled ||
-      motionBlurWarningEnabled ||
-      shadowWarningEnabled ||
-      tooFarTooCloseWarningEnabled ||
+    tooFarTooCloseWarningEnabled ||
       receiptFullyVisibleWarningEnabled ||
       textTooSmallWarningEnabled
   }
 
   func setReceiptGuidanceWarningsEnabled(_ enabled: Bool) {
-    lowLightWarningEnabled = enabled
-    glareWarningEnabled = enabled
-    dirtyLensWarningEnabled = enabled
-    motionBlurWarningEnabled = enabled
-    shadowWarningEnabled = enabled
     tooFarTooCloseWarningEnabled = enabled
     receiptFullyVisibleWarningEnabled = enabled
     textTooSmallWarningEnabled = enabled

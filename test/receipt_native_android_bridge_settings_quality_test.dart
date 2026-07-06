@@ -145,8 +145,16 @@ void main() {
         guidanceToggleStart,
         guidanceToggleEnd,
       );
-      expect(guidanceToggleBlock, contains('shadowWarningEnabled'));
-      expect(guidanceToggleBlock, contains('dirtyLensWarningEnabled'));
+      expect(guidanceToggleBlock, isNot(contains('shadowWarningEnabled')));
+      expect(guidanceToggleBlock, isNot(contains('dirtyLensWarningEnabled')));
+      expect(guidanceToggleBlock, isNot(contains('glareWarningEnabled')));
+      expect(guidanceToggleBlock, isNot(contains('lowLightWarningEnabled')));
+      expect(guidanceToggleBlock, isNot(contains('motionBlurWarningEnabled')));
+      expect(guidanceToggleBlock, contains('tooFarTooCloseWarningEnabled'));
+      expect(
+        guidanceToggleBlock,
+        contains('receiptFullyVisibleWarningEnabled'),
+      );
       expect(guidanceToggleBlock, contains('textTooSmallWarningEnabled'));
       expect(cameraActivity, contains('Receipt details style'));
       expect(
@@ -213,7 +221,7 @@ void main() {
       expect(cameraActivity, contains(r'"Use $count Photos"'));
       expect(
         cameraActivity,
-        contains(r'Section ${capturedPhotoPaths.size} saved'),
+        contains('Opening receipt photo review. Captured photos are kept.'),
       );
       expect(cameraActivity, contains('previousSectionGuidePhotoPath'));
       expect(cameraActivity, contains('previousSectionMissingBottomAndTotals'));
