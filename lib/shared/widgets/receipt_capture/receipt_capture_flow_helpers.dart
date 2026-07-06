@@ -8,7 +8,7 @@ ReceiptNativeCameraSettings _cameraSettingsFor(
   return ReceiptNativeCameraSettings(
     assistedReceiptFill:
         options.forceAssistedReceiptFill ??
-        (area == null ? true : settings?.appAssistedEnabledFor(area) ?? true),
+        (area == null ? false : settings?.appAssistedEnabledFor(area) ?? false),
     longReceiptMode:
         options.forceLongReceiptMode ?? settings?.cameraLongReceiptTips ?? true,
     autoCaptureEnabled:

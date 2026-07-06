@@ -79,11 +79,11 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
   }
 
   bool get appAssistedReceiptFill =>
-      _readBool(_Keys.appAssistedReceiptFill, true);
-  bool get appAssistedExpenses => _readBool(_Keys.appAssistedExpenses, true);
-  bool get appAssistedMaterials => _readBool(_Keys.appAssistedMaterials, true);
+      _readBool(_Keys.appAssistedReceiptFill, false);
+  bool get appAssistedExpenses => _readBool(_Keys.appAssistedExpenses, false);
+  bool get appAssistedMaterials => _readBool(_Keys.appAssistedMaterials, false);
   bool get appAssistedMaintenance =>
-      _readBool(_Keys.appAssistedMaintenance, true);
+      _readBool(_Keys.appAssistedMaintenance, false);
   bool get cameraSetupComplete => _readBool(_Keys.cameraSetupComplete, false);
   bool get cameraGuidanceEnabled =>
       _readBool(_Keys.cameraGuidanceEnabled, true);
@@ -164,14 +164,13 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
   }
 
   Future<void> resetReceiptPhotoDefaultsFor(ReceiptCaptureArea area) async {
-    await _box.put(_Keys.appAssistedReceiptFill, true);
     switch (area) {
       case ReceiptCaptureArea.expenses:
-        await _box.put(_Keys.appAssistedExpenses, true);
+        await _box.put(_Keys.appAssistedExpenses, false);
       case ReceiptCaptureArea.materialsInventory:
-        await _box.put(_Keys.appAssistedMaterials, true);
+        await _box.put(_Keys.appAssistedMaterials, false);
       case ReceiptCaptureArea.maintenanceRepair:
-        await _box.put(_Keys.appAssistedMaintenance, true);
+        await _box.put(_Keys.appAssistedMaintenance, false);
     }
     await _box.put(_Keys.cameraGuidanceEnabled, true);
     await _box.put(_Keys.cameraStartAssisted, false);

@@ -28,6 +28,22 @@ void main() {
   test('stores shared receipt camera preferences', () async {
     final settings = await ReceiptCaptureSettingsController.create();
 
+    expect(settings.appAssistedReceiptFill, isFalse);
+    expect(settings.appAssistedExpenses, isFalse);
+    expect(settings.appAssistedMaterials, isFalse);
+    expect(settings.appAssistedMaintenance, isFalse);
+    expect(
+      settings.appAssistedEnabledFor(ReceiptCaptureArea.expenses),
+      isFalse,
+    );
+    expect(
+      settings.appAssistedEnabledFor(ReceiptCaptureArea.materialsInventory),
+      isFalse,
+    );
+    expect(
+      settings.appAssistedEnabledFor(ReceiptCaptureArea.maintenanceRepair),
+      isFalse,
+    );
     expect(settings.cameraSetupComplete, isFalse);
     expect(settings.cameraGuidanceEnabled, isTrue);
     expect(settings.cameraStartAssisted, isFalse);
@@ -37,6 +53,10 @@ void main() {
     expect(settings.cameraDiagnosticsImprovementOptIn, isFalse);
 
     await settings.setCameraSetupComplete(true);
+    await settings.setAppAssistedReceiptFill(true);
+    await settings.setAppAssistedExpenses(true);
+    await settings.setAppAssistedMaterials(true);
+    await settings.setAppAssistedMaintenance(true);
     await settings.setCameraGuidanceEnabled(false);
     await settings.setCameraStartAssisted(false);
     await settings.setCameraAutoCapture(true);
@@ -45,6 +65,11 @@ void main() {
     await settings.setCameraDiagnosticsImprovementOptIn(true);
 
     expect(settings.cameraSetupComplete, isTrue);
+    expect(settings.appAssistedReceiptFill, isTrue);
+    expect(settings.appAssistedExpenses, isTrue);
+    expect(settings.appAssistedMaterials, isTrue);
+    expect(settings.appAssistedMaintenance, isTrue);
+    expect(settings.appAssistedEnabledFor(ReceiptCaptureArea.expenses), isTrue);
     expect(settings.cameraGuidanceEnabled, isFalse);
     expect(settings.cameraStartAssisted, isFalse);
     expect(settings.cameraAutoCapture, isTrue);
@@ -129,6 +154,7 @@ void main() {
     'receipt scanner settings include capability summary without raw hardware',
     () async {
       final source = await _readReceiptCaptureSettingsSource();
+      final displaySource = await _readReceiptCaptureSettingsDisplaySource();
 
       expect(source, contains('_ReceiptCameraRuntimeSummary'));
       expect(source, contains('defaultDataSaverLocalOnlyReadinessSummary'));
@@ -153,16 +179,18 @@ void main() {
       expect(source, contains('Automatic photo capture stays off'));
       expect(source, contains('You stay in control'));
       expect(source, contains('Receipt images and receipt text stay out'));
-      expect(source, isNot(contains('deviceModel')));
-      expect(source, isNot(contains('availableRamLabel')));
-      expect(source, isNot(contains('Android SDK')));
+      expect(displaySource, isNot(contains('deviceModel')));
+      expect(displaySource, isNot(contains('availableRamLabel')));
+      expect(displaySource, isNot(contains('Android SDK')));
     },
   );
 
   test('resets receipt photo settings to defaults for one area', () async {
     final settings = await ReceiptCaptureSettingsController.create();
 
-    await settings.setAppAssistedExpenses(false);
+    await settings.setAppAssistedReceiptFill(true);
+    await settings.setAppAssistedExpenses(true);
+    await settings.setAppAssistedMaterials(true);
     await settings.setCameraGuidanceEnabled(false);
     await settings.setCameraStartAssisted(true);
     await settings.setCameraAutoCapture(true);
@@ -176,7 +204,17 @@ void main() {
 
     await settings.resetReceiptPhotoDefaultsFor(ReceiptCaptureArea.expenses);
 
-    expect(settings.appAssistedExpenses, isTrue);
+    expect(settings.appAssistedReceiptFill, isTrue);
+    expect(settings.appAssistedExpenses, isFalse);
+    expect(settings.appAssistedMaterials, isTrue);
+    expect(
+      settings.appAssistedEnabledFor(ReceiptCaptureArea.expenses),
+      isFalse,
+    );
+    expect(
+      settings.appAssistedEnabledFor(ReceiptCaptureArea.materialsInventory),
+      isTrue,
+    );
     expect(settings.cameraGuidanceEnabled, isTrue);
     expect(settings.cameraStartAssisted, isFalse);
     expect(settings.cameraAutoCapture, isFalse);
@@ -190,13 +228,7 @@ void main() {
 
 Future<String> _readReceiptCaptureSettingsSource() async {
   final paths = [
-    'lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart',
-    'lib/shared/widgets/receipt_capture/receipt_capture_runtime_settings.dart',
-    'lib/shared/widgets/receipt_capture/receipt_expense_review_default_picker.dart',
-    'lib/shared/widgets/receipt_capture/receipt_capture_review_storage_settings.dart',
-    'lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart',
-    'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
-    'lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart',
+    ..._receiptCaptureSettingsDisplayPaths,
     'lib/shared/widgets/receipt_capture/receipt_capture_diagnostics_policy.dart',
   ];
   final contents = <String>[];
@@ -205,3 +237,21 @@ Future<String> _readReceiptCaptureSettingsSource() async {
   }
   return contents.join('\n');
 }
+
+Future<String> _readReceiptCaptureSettingsDisplaySource() async {
+  final contents = <String>[];
+  for (final path in _receiptCaptureSettingsDisplayPaths) {
+    contents.add(await File(path).readAsString());
+  }
+  return contents.join('\n');
+}
+
+const _receiptCaptureSettingsDisplayPaths = [
+  'lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart',
+  'lib/shared/widgets/receipt_capture/receipt_capture_runtime_settings.dart',
+  'lib/shared/widgets/receipt_capture/receipt_expense_review_default_picker.dart',
+  'lib/shared/widgets/receipt_capture/receipt_capture_review_storage_settings.dart',
+  'lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart',
+  'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
+  'lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart',
+];
