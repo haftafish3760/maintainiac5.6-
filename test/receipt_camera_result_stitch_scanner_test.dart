@@ -158,12 +158,12 @@ void main() {
     );
     expect(
       fallback.nextReviewMatchReadinessLabel,
-      'Photo match fallback: ordered receipt sections will be read top to bottom.',
+      'Photo match fallback: ordered receipt sections will be read top to bottom, and Photo 1 to 2 needs review.',
     );
     expect(fallback.nextReviewSourceLabel, '2 ordered receipt sections');
     expect(
       fallback.nextReviewHandoffLabel,
-      'Next reviews 2 ordered receipt sections from top to bottom. Stitch not trusted.',
+      'Next reviews 2 ordered receipt sections from top to bottom. Photo 1 to 2 needs adjustment. Stitch not trusted.',
     );
     expect(
       fallback.nextReviewDiagnosticLabel,
@@ -188,7 +188,7 @@ void main() {
       fallback.privacySafeReceiptReaderHandoffMetadata,
       containsPair(
         'nextReviewMatchReadinessLabel',
-        'Photo match fallback: ordered receipt sections will be read top to bottom.',
+        'Photo match fallback: ordered receipt sections will be read top to bottom, and Photo 1 to 2 needs review.',
       ),
     );
     expect(

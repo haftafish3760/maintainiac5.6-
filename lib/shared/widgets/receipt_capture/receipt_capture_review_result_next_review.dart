@@ -39,6 +39,10 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
       return 'Next reviews $nextReviewSourceLabel. $safety.';
     }
     if (nextReviewUsesOrderedSections) {
+      if (stitchResult.usedFallback &&
+          stitchResult.failedPairLabel.isNotEmpty) {
+        return 'Next reviews $nextReviewSourceLabel from top to bottom. ${stitchResult.failedPairLabel} needs adjustment. $safety.';
+      }
       return 'Next reviews $nextReviewSourceLabel from top to bottom. $safety.';
     }
     return 'Next reviews $nextReviewSourceLabel. $safety.';
@@ -71,7 +75,9 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
       'combined_receipt_image_ready' =>
         'Photo match ready: one combined receipt image will be read.',
       'ordered_sections_fallback_ready' =>
-        'Photo match fallback: ordered receipt sections will be read top to bottom.',
+        stitchResult.failedPairLabel.isEmpty
+            ? 'Photo match fallback: ordered receipt sections will be read top to bottom.'
+            : 'Photo match fallback: ordered receipt sections will be read top to bottom, and ${stitchResult.failedPairLabel} needs review.',
       'ordered_sections_ready' =>
         'Ordered receipt sections will be read top to bottom.',
       'missing_ocr_source' =>
