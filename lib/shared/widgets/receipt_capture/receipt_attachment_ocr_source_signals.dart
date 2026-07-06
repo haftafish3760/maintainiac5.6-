@@ -63,8 +63,14 @@ extension _ReceiptAttachmentOcrSourceSignals
     if (result.stitchResult.usedFallback) {
       signals.add('multiple_ocr_sources_fallback');
     }
+    if (!result.stitchResult.hasValidOcrSourceContract) {
+      signals.add('stitch_ocr_source_contract_review_required');
+    }
     signals.add(
       'stitch_overlap_${attachmentSignalToken(result.stitchResult.overlapCoverageCode)}',
+    );
+    signals.add(
+      'stitch_ocr_source_contract_${attachmentSignalToken(result.stitchResult.ocrSourceContractCode)}',
     );
     signals.add(
       'stitch_source_${attachmentSignalToken(result.stitchResult.sourcePreservationCode)}',

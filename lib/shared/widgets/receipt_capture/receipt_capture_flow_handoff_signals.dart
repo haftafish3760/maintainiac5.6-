@@ -55,8 +55,14 @@ List<String> _ocrSourceDocumentSignalsFor(
   if (result.stitchResult.usedFallback) {
     signals.add('multiple_ocr_sources_fallback');
   }
+  if (!result.stitchResult.hasValidOcrSourceContract) {
+    signals.add('stitch_ocr_source_contract_review_required');
+  }
   signals.add(
     'stitch_overlap_${_signalToken(result.stitchResult.overlapCoverageCode)}',
+  );
+  signals.add(
+    'stitch_ocr_source_contract_${_signalToken(result.stitchResult.ocrSourceContractCode)}',
   );
   signals.add(
     'stitch_source_${_signalToken(result.stitchResult.sourcePreservationCode)}',

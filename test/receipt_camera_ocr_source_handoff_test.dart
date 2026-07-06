@@ -90,6 +90,9 @@ void main() {
     final captureFlow = await File(
       'lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_signals.dart',
     ).readAsString();
+    final captureRisks = await File(
+      'lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_risks.dart',
+    ).readAsString();
     final attachmentPanel = await File(
       'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart',
     ).readAsString();
@@ -110,6 +113,15 @@ void main() {
     expect(reviewActions, contains('ocr_source_stitched_selected'));
     expect(reviewActions, contains('stitchedOcrSource'));
     expect(reviewActions, contains('sourceOcrPaths'));
+    expect(captureFlow, contains('stitch_ocr_source_contract_review_required'));
+    expect(
+      attachmentPanel,
+      contains('stitch_ocr_source_contract_review_required'),
+    );
+    expect(
+      captureRisks,
+      contains('ocr_source_stitch_contract_review_required'),
+    );
     expect(
       reviewActions,
       contains('captureDiagnosticsByPhotoPath: captureDiagnostics'),

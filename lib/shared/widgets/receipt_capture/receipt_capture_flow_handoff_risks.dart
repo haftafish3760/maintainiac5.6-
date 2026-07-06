@@ -13,6 +13,12 @@ List<String> _ocrSourceRiskFlagsFor(
   if (result.stitchResult.usedFallback) {
     flags.add('ocr_stitch_fallback_multiple_sources');
   }
+  if (!result.stitchResult.hasValidOcrSourceContract) {
+    flags.add('ocr_source_stitch_contract_review_required');
+    flags.add(
+      'ocr_source_stitch_contract_${_signalToken(result.stitchResult.ocrSourceContractCode)}',
+    );
+  }
   if (result.usedSavedProofAsOcrSourceFallback) {
     flags.add('ocr_source_fallback_saved_proof_review_required');
   }
