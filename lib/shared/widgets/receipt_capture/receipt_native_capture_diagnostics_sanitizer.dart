@@ -52,8 +52,17 @@ final RegExp _unsafeNativeDiagnosticKeyPattern = RegExp(
 );
 
 bool _isUnsafeNativeDiagnosticKey(String key) {
+  if (_safeNativeDiagnosticKeyAllowlist.contains(key) ||
+      key.startsWith('phoneCameraBackup')) {
+    return false;
+  }
   return _unsafeNativeDiagnosticKeyPattern.hasMatch(key);
 }
+
+const _safeNativeDiagnosticKeyAllowlist = {
+  'receiptBrainFirstInstallCanRunOnLowStoragePhones',
+  'receiptInstallBaseUsefulOnTinyPhones',
+};
 
 bool _looksLikePrivateNativeDiagnosticText(String text) {
   final lower = text.toLowerCase();

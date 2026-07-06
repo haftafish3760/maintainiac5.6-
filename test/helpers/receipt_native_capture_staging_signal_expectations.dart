@@ -91,7 +91,13 @@ Future<void> expectAcceptedNativeCaptureStagingSignals(
   expect(diagnostics['storageSafetyReason'], 'tight_storage_tiny_proofs');
   expect(diagnostics['edgeDetectionEnabled'], isTrue);
   expect(diagnostics['edgeOverlayEnabled'], isTrue);
+  expect(diagnostics['motionBlurWarningEnabled'], isFalse);
+  expect(diagnostics['glareWarningEnabled'], isFalse);
+  expect(diagnostics['dirtyLensWarningEnabled'], isFalse);
+  expect(diagnostics['lowLightWarningEnabled'], isFalse);
   expect(diagnostics['shadowWarningEnabled'], isTrue);
+  expect(diagnostics['tooFarTooCloseWarningEnabled'], isTrue);
+  expect(diagnostics['receiptFullyVisibleWarningEnabled'], isTrue);
   expect(diagnostics['textTooSmallWarningEnabled'], isTrue);
   expect(diagnostics['autoCropSuggestionEnabled'], isTrue);
   expect(diagnostics['orientationCorrectionEnabled'], isTrue);

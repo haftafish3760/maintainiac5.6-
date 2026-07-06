@@ -248,7 +248,16 @@ Future<void> expectAcceptedNativeCaptureRecoveryIndex({
   );
   expect(indexEntry.captureDiagnostics['edgeDetectionEnabled'], isTrue);
   expect(indexEntry.captureDiagnostics['edgeOverlayEnabled'], isTrue);
+  expect(indexEntry.captureDiagnostics['motionBlurWarningEnabled'], isFalse);
+  expect(indexEntry.captureDiagnostics['glareWarningEnabled'], isFalse);
+  expect(indexEntry.captureDiagnostics['dirtyLensWarningEnabled'], isFalse);
+  expect(indexEntry.captureDiagnostics['lowLightWarningEnabled'], isFalse);
   expect(indexEntry.captureDiagnostics['shadowWarningEnabled'], isTrue);
+  expect(indexEntry.captureDiagnostics['tooFarTooCloseWarningEnabled'], isTrue);
+  expect(
+    indexEntry.captureDiagnostics['receiptFullyVisibleWarningEnabled'],
+    isTrue,
+  );
   expect(indexEntry.captureDiagnostics['textTooSmallWarningEnabled'], isTrue);
   expect(indexEntry.captureDiagnostics['autoCropSuggestionEnabled'], isTrue);
   expect(indexEntry.captureDiagnostics['orientationCorrectionEnabled'], isTrue);

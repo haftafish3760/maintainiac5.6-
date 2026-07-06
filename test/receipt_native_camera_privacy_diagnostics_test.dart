@@ -26,9 +26,23 @@ void main() {
           'genericTax': 'TAX: 0.25',
         },
         'safeList': ['edge_ready', 'TOTAL: 3.24', 'manual_capture_ready'],
+        'phoneCameraBackupAllowed': true,
+        'phoneCameraBackupRole': 'fallback_only',
+        'receiptBrainFirstInstallCanRunOnLowStoragePhones': true,
+        'receiptInstallBaseUsefulOnTinyPhones': true,
       });
 
       expect(sanitized, containsPair('status', 'camera_ready'));
+      expect(sanitized, containsPair('phoneCameraBackupAllowed', true));
+      expect(sanitized, containsPair('phoneCameraBackupRole', 'fallback_only'));
+      expect(
+        sanitized,
+        containsPair('receiptBrainFirstInstallCanRunOnLowStoragePhones', true),
+      );
+      expect(
+        sanitized,
+        containsPair('receiptInstallBaseUsefulOnTinyPhones', true),
+      );
       expect(sanitized, isNot(contains('genericMerchantValue')));
       expect(sanitized, isNot(contains('genericAddressValue')));
       expect(sanitized, isNot(contains('genericPhoneValue')));

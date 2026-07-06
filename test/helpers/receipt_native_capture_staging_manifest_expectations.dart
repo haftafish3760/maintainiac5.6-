@@ -221,7 +221,32 @@ void expectAcceptedNativeCaptureRecoveryManifest(
   );
   expect((manifest['captureDiagnostics'] as Map)['edgeOverlayEnabled'], isTrue);
   expect(
+    (manifest['captureDiagnostics'] as Map)['motionBlurWarningEnabled'],
+    isFalse,
+  );
+  expect(
+    (manifest['captureDiagnostics'] as Map)['glareWarningEnabled'],
+    isFalse,
+  );
+  expect(
+    (manifest['captureDiagnostics'] as Map)['dirtyLensWarningEnabled'],
+    isFalse,
+  );
+  expect(
+    (manifest['captureDiagnostics'] as Map)['lowLightWarningEnabled'],
+    isFalse,
+  );
+  expect(
     (manifest['captureDiagnostics'] as Map)['shadowWarningEnabled'],
+    isTrue,
+  );
+  expect(
+    (manifest['captureDiagnostics'] as Map)['tooFarTooCloseWarningEnabled'],
+    isTrue,
+  );
+  expect(
+    (manifest['captureDiagnostics']
+        as Map)['receiptFullyVisibleWarningEnabled'],
     isTrue,
   );
   expect(
