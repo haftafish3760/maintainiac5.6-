@@ -53,6 +53,45 @@ void main() {
     expect(edited.byteSize, 29);
   });
 
+  test('receipt attachment signal lists are immutable handoff views', () {
+    final riskFlags = ['ocr_source_review'];
+    final documentSignals = ['receipt_ocr_source_photo'];
+    final photoQualityWarnings = ['photo_soft'];
+    final attachment = ReceiptAttachmentRecord(
+      id: 'photo-1',
+      path: '/tmp/receipt.jpg',
+      kind: ReceiptAttachmentKind.photo,
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      createdAt: DateTime(2026, 7, 6),
+      riskFlags: riskFlags,
+      documentSignals: documentSignals,
+      photoQualityWarnings: photoQualityWarnings,
+    );
+
+    riskFlags.add('late_risk');
+    documentSignals.add('late_signal');
+    photoQualityWarnings.add('late_warning');
+
+    expect(attachment.riskFlags, ['ocr_source_review', 'late_risk']);
+    expect(attachment.documentSignals, [
+      'receipt_ocr_source_photo',
+      'late_signal',
+    ]);
+    expect(attachment.photoQualityWarnings, ['photo_soft', 'late_warning']);
+    expect(
+      () => attachment.riskFlags.add('nope'),
+      throwsA(isA<UnsupportedError>()),
+    );
+    expect(
+      () => attachment.documentSignals.add('nope'),
+      throwsA(isA<UnsupportedError>()),
+    );
+    expect(
+      () => attachment.photoQualityWarnings.add('nope'),
+      throwsA(isA<UnsupportedError>()),
+    );
+  });
+
   test('receipt attachment metadata survives storage maps', () {
     final attachment = ReceiptAttachmentRecord(
       id: 'pdf-1',

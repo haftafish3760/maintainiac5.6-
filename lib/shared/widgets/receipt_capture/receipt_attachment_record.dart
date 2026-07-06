@@ -16,8 +16,8 @@ class ReceiptAttachmentRecord {
     this.pageCount,
     this.pageCountStatus = ReceiptPdfPageCountStatus.unknown,
     this.validationStatus = ReceiptPdfValidationStatus.notChecked,
-    this.riskFlags = const [],
-    this.documentSignals = const [],
+    List<String> riskFlags = const [],
+    List<String> documentSignals = const [],
     this.sourceLabel = '',
     this.linkedModule = '',
     this.linkedRecordId = '',
@@ -28,7 +28,7 @@ class ReceiptAttachmentRecord {
     this.readState = ReceiptAttachmentReadState.notRead,
     this.photoQualityScore,
     this.photoQualityIssueLabel = '',
-    this.photoQualityWarnings = const [],
+    List<String> photoQualityWarnings = const [],
     this.photoWidth,
     this.photoHeight,
     this.photoBrightness,
@@ -36,7 +36,9 @@ class ReceiptAttachmentRecord {
     this.photoFocusScore,
     this.photoCropScore,
     this.photoTextBandScore,
-  });
+  }) : _riskFlags = riskFlags,
+       _documentSignals = documentSignals,
+       _photoQualityWarnings = photoQualityWarnings;
 
   factory ReceiptAttachmentRecord.fromMap(Map<dynamic, dynamic> map) {
     return ReceiptAttachmentRecord(
@@ -115,8 +117,8 @@ class ReceiptAttachmentRecord {
   final int? pageCount;
   final ReceiptPdfPageCountStatus pageCountStatus;
   final ReceiptPdfValidationStatus validationStatus;
-  final List<String> riskFlags;
-  final List<String> documentSignals;
+  final List<String> _riskFlags;
+  final List<String> _documentSignals;
   final String sourceLabel;
   final String linkedModule;
   final String linkedRecordId;
@@ -127,7 +129,7 @@ class ReceiptAttachmentRecord {
   final ReceiptAttachmentReadState readState;
   final int? photoQualityScore;
   final String photoQualityIssueLabel;
-  final List<String> photoQualityWarnings;
+  final List<String> _photoQualityWarnings;
   final int? photoWidth;
   final int? photoHeight;
   final double? photoBrightness;
@@ -142,6 +144,11 @@ class ReceiptAttachmentRecord {
       kind == ReceiptAttachmentKind.emailText ||
       kind == ReceiptAttachmentKind.textMessageText;
   bool get isReadOnlyProof => isOriginalImmutable && !isImportedText;
+  List<String> get riskFlags => List<String>.unmodifiable(_riskFlags);
+  List<String> get documentSignals =>
+      List<String>.unmodifiable(_documentSignals);
+  List<String> get photoQualityWarnings =>
+      List<String>.unmodifiable(_photoQualityWarnings);
   bool get canEditProofFileInApp => false;
   bool get hasPhotoQualityReview =>
       isPhoto &&
