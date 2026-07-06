@@ -23,7 +23,7 @@ const _receiptNativeCameraSettingDescriptors = <ReceiptNativeCameraSettingDescri
     id: 'auto_capture',
     label: 'Automatic photo capture',
     description:
-        'Optional and off by default. Maintainiac waits for several steady, readable receipt frames before taking a photo. The shutter button still works anytime.',
+        'Optional and off by default. Maintainiac waits for several steady, well-framed receipt views before taking a photo. The shutter button still works anytime.',
     group: ReceiptNativeSettingGroup.capture,
     type: ReceiptNativeSettingType.toggle,
     defaultEnabled: false,

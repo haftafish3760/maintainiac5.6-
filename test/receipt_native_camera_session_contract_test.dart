@@ -156,11 +156,11 @@ void main() {
     );
     expect(
       config.focusReadabilityFallbackPolicy,
-      'not_needed_continuous_focus_live_guidance',
+      'not_needed_native_camera_continuous_focus_primary',
     );
     expect(
       config.readabilityGuidancePolicy,
-      'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
+      'native_camera_baseline_neutral_receipt_guidance',
     );
     expect(config.zoomGesturePolicy, 'pinch_zoom_receipt_preview_1.0_to_8.0');
     expect(
@@ -276,7 +276,7 @@ void main() {
       );
       expect(
         config.focusReadabilityFallbackPolicy,
-        'not_needed_continuous_focus_live_guidance',
+        'not_needed_native_camera_continuous_focus_primary',
       );
       expect(config.nativeControlContractTags, contains('continuous_focus'));
       expect(
@@ -328,7 +328,7 @@ void main() {
       );
       expect(
         config.focusReadabilityFallbackPolicy,
-        'continuous_focus_unavailable_live_readability_review_required',
+        'continuous_focus_unavailable_native_camera_review_required',
       );
       expect(
         config.zoomGesturePolicy,

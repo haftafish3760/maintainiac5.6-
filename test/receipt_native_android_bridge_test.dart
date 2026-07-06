@@ -26,7 +26,7 @@ void main() {
     expect(
       controller,
       contains(
-        'Maintainiac receipt camera: these settings control this receipt scanner, not the phone\'s regular camera app.',
+        'Maintainiac receipt camera: this uses the phone\'s native camera baseline with Maintainiac receipt workflow controls layered on top.',
       ),
     );
     expect(

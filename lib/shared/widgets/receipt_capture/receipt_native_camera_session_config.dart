@@ -277,18 +277,18 @@ class ReceiptNativeCameraSessionConfig {
 
   String get focusReadabilityFallbackPolicy {
     if (continuousFocusEnabled) {
-      return 'not_needed_continuous_focus_live_guidance';
+      return 'not_needed_native_camera_continuous_focus_primary';
     }
     if (readabilityGuidancePolicy ==
-        'live_receipt_workflow_guidance_only_unproven_quality_claims_off') {
-      return 'continuous_focus_unavailable_live_readability_review_required';
+        'native_camera_baseline_neutral_receipt_guidance') {
+      return 'continuous_focus_unavailable_native_camera_review_required';
     }
     return 'continuous_focus_unavailable_saved_photo_review_required';
   }
 
   String get readabilityGuidancePolicy {
     if (liveAnalysisEnabled && settings.hasConservativeLiveReceiptGuidance) {
-      return 'live_receipt_workflow_guidance_only_unproven_quality_claims_off';
+      return 'native_camera_baseline_neutral_receipt_guidance';
     }
     return 'saved_photo_readability_review_required';
   }

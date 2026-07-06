@@ -120,7 +120,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var focusStrategyPolicy = "continuous_focus_primary_no_tap_assist"
     internal var continuousFocusEnabled = true
     internal var readabilityGuidancePolicy =
-        "live_receipt_workflow_guidance_only_unproven_quality_claims_off"
+        "native_camera_baseline_neutral_receipt_guidance"
     internal var receiptCameraQualityBaseline = true
     internal var zoomGesturePolicy = "cameraX_zoom_ratio_clamped_to_capability"
     internal var autoCapturePolicy = "off_by_default_manual_shutter_primary"

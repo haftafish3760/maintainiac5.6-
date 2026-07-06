@@ -102,7 +102,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var tapToFocusPolicy = "continuous_focus_primary_no_tap_focus"
   var focusStrategyPolicy = "continuous_focus_primary_no_tap_assist"
   var continuousFocusEnabled = true
-  var readabilityGuidancePolicy = "live_receipt_workflow_guidance_only_unproven_quality_claims_off"
+  var readabilityGuidancePolicy = "native_camera_baseline_neutral_receipt_guidance"
   var receiptCameraQualityBaseline = true
   var zoomGesturePolicy = "avfoundation_video_zoom_factor_clamped_to_capability"
   var autoCapturePolicy = "off_by_default_manual_shutter_primary"

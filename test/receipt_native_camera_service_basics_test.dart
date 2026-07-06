@@ -62,12 +62,12 @@ void main() {
       expect(sentArguments['shadowWarningEnabled'], isFalse);
       expect(
         sentArguments['readabilityGuidancePolicy'],
-        'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
+        'native_camera_baseline_neutral_receipt_guidance',
       );
       expect(sentArguments['maxSectionCount'], 1);
       expect(
         sentArguments['focusReadabilityFallbackPolicy'],
-        'continuous_focus_unavailable_live_readability_review_required',
+        'continuous_focus_unavailable_native_camera_review_required',
       );
       expect(sentArguments, isNot(contains('previousSectionGuidePhotoPath')));
       expect(

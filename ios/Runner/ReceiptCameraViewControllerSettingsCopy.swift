@@ -9,7 +9,7 @@ extension ReceiptCameraViewController {
       ? "Detailed receipt lines"
       : "Price-only receipt lines"
     return """
-    Maintainiac receipt camera: these settings control this receipt scanner, not the phone's regular camera app.
+    Maintainiac receipt camera: this uses the phone's native camera baseline with Maintainiac receipt workflow controls layered on top.
     Assisted receipt fill: \(assistedReceiptFill ? "On" : "Off")
     Long receipt mode: \(longReceiptMode ? "On" : "Off"). Start at the top, add sections in order, and repeat a few readable lines so Maintainiac can match the receipt pieces.
     Automatic capture: \(autoCaptureEnabled ? "On" : "Off")

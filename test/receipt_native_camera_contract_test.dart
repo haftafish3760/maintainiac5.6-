@@ -139,7 +139,7 @@ void main() {
     expect(autoCapture.description, contains('off by default'));
     expect(
       autoCapture.description,
-      contains('several steady, readable receipt frames'),
+      contains('several steady, well-framed receipt views'),
     );
     expect(
       autoCapture.description,
@@ -275,13 +275,13 @@ void main() {
     );
     expect(
       config.focusReadabilityFallbackPolicy,
-      'not_needed_continuous_focus_live_guidance',
+      'not_needed_native_camera_continuous_focus_primary',
     );
     expect(config.continuousFocusEnabled, isTrue);
     expect(config.tapToFocusPolicy, 'continuous_focus_primary_no_tap_focus');
     expect(
       config.readabilityGuidancePolicy,
-      'live_receipt_workflow_guidance_only_unproven_quality_claims_off',
+      'native_camera_baseline_neutral_receipt_guidance',
     );
   });
 
@@ -321,7 +321,7 @@ void main() {
       );
       expect(
         config.focusReadabilityFallbackPolicy,
-        'not_needed_continuous_focus_live_guidance',
+        'not_needed_native_camera_continuous_focus_primary',
       );
     },
   );

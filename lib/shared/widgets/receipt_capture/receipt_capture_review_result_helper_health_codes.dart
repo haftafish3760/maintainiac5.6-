@@ -114,7 +114,7 @@ List<String> _nativeFocusReadabilityHealthCodes(
   }
 
   if (readabilityPolicy ==
-      'live_receipt_workflow_guidance_only_unproven_quality_claims_off') {
+      'native_camera_baseline_neutral_receipt_guidance') {
     codes.add('readability_guidance_neutral_workflow_ready');
   } else if (readabilityPolicy != 'unknown') {
     codes.add('readability_guidance_live_missing');
