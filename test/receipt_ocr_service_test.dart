@@ -232,7 +232,10 @@ void main() {
       summary.sourceQualityReviewStatus,
       'ocr_source_fallback_review_required',
     );
-    expect(summary.sourceQualityReviewAction, 'review_or_enter_receipt_manually');
+    expect(
+      summary.sourceQualityReviewAction,
+      'review_or_enter_receipt_manually',
+    );
     expect(
       contract['sourceReviewRiskStatus'],
       'ocr_source_review_risk_saved_proof_ocr_fallback_review_required',
@@ -508,4 +511,52 @@ void main() {
       contains('Attach at least one receipt photo'),
     );
   });
+
+  test(
+    'source handoff requires review for invalid stitch OCR contract',
+    () async {
+      final result = await const ReceiptOcrService()
+          .recognizeTextFromAttachments([
+            ReceiptAttachmentRecord(
+              id: 'stitch-contract-proof',
+              path: '',
+              kind: ReceiptAttachmentKind.emailText,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime(2026, 7, 5),
+              importedText: 'MARKET\nTOTAL 8.40',
+              documentSignals: const [
+                'receipt_ocr_source_photo',
+                'receipt_handoff_ready_for_receipt_review',
+                'receipt_handoff_stitch_stitched',
+                'stitch_ocr_source_contract_stitched_ocr_source_path_mismatch',
+                'stitch_ocr_source_contract_review_required',
+              ],
+              riskFlags: const [
+                'ocr_source_stitch_contract_review_required',
+                'ocr_source_stitch_contract_stitched_ocr_source_path_mismatch',
+              ],
+            ),
+          ]);
+
+      final summary = result.sourceHandoffSummary;
+
+      expect(summary.status, 'stitch_contract_review_required');
+      expect(
+        summary.sourceQualityReviewStatus,
+        'stitch_contract_review_required',
+      );
+      expect(
+        summary.sourceQualityReviewAction,
+        'review_receipt_stitch_sources',
+      );
+      expect(
+        summary.stitchSignalCounts,
+        containsPair('stitch_ocr_source_contract_review_required', 1),
+      );
+      expect(
+        summary.photoQualityRiskCounts,
+        containsPair('ocr_source_stitch_contract_review_required', 1),
+      );
+    },
+  );
 }

@@ -76,6 +76,7 @@ class ReceiptOcrSourceHandoffSummary {
         }
         if (token.startsWith('receipt_handoff_stitch_') ||
             token.startsWith('stitch_overlap_') ||
+            token.startsWith('stitch_ocr_source_contract_') ||
             token.startsWith('stitch_source_') ||
             token == 'stitched_ocr_source' ||
             token == 'multiple_ocr_sources_fallback') {

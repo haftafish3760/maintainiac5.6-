@@ -17,6 +17,9 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
     )) {
       return 'needs_review_before_ocr';
     }
+    if (hasStitchContractReviewRisk) {
+      return 'stitch_contract_review_required';
+    }
     if (stitchSignalCounts.containsKey('multiple_ocr_sources_fallback')) {
       return 'ordered_sections_stitch_fallback';
     }
@@ -227,6 +230,13 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       ]) >
       0;
 
+  bool get hasStitchContractReviewRisk =>
+      stitchSignalCounts.containsKey(
+        'stitch_ocr_source_contract_review_required',
+      ) ||
+      _countForPrefix(photoQualityRiskCounts, 'ocr_source_stitch_contract_') >
+          0;
+
   String get sourceQualityReviewStatus {
     if (sourceReviewRiskStatus ==
             'ocr_source_review_risk_ocr_source_missing_manual_entry_required' ||
@@ -236,6 +246,9 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
     }
     if (hasMissingBottomEdgeAndTotalsEvidence) {
       return 'missing_bottom_edge_and_totals_first';
+    }
+    if (hasStitchContractReviewRisk) {
+      return 'stitch_contract_review_required';
     }
     if (hasSectionOrderReviewRisk) return 'section_order_review_required';
     if (hasSavedPhotoBottomQualityRisk) return 'saved_bottom_quality_review';
@@ -256,6 +269,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       'ocr_source_fallback_review_required' =>
         'review_or_enter_receipt_manually',
       'section_order_review_required' => 'review_receipt_section_order',
+      'stitch_contract_review_required' => 'review_receipt_stitch_sources',
       'saved_bottom_quality_review' => 'check_bottom_or_add_photo',
       'saved_dark_exposure_review' => 'retake_or_raise_brightness',
       'saved_soft_blur_review' => 'retake_hold_steady',
@@ -358,6 +372,14 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
     var total = 0;
     for (final key in keys) {
       total += counts[key] ?? 0;
+    }
+    return total;
+  }
+
+  int _countForPrefix(Map<String, int> counts, String prefix) {
+    var total = 0;
+    for (final entry in counts.entries) {
+      if (entry.key.startsWith(prefix)) total += entry.value;
     }
     return total;
   }
