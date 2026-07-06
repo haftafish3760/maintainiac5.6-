@@ -38,6 +38,11 @@ void main() {
       () => record.stagedPhotoPaths.add('/tmp/late.jpg'),
       throwsA(isA<UnsupportedError>()),
     );
+    expect(record.captureDiagnostics, isNot(contains('receiptText')));
+    expect(
+      () => record.captureDiagnostics['late'] = true,
+      throwsA(isA<UnsupportedError>()),
+    );
     expect(record.assistedReceiptFillAtCapture, isTrue);
     expect(record.recoveryAge(now: DateTime(2026, 6, 29, 15)).inHours, 24);
     expect(

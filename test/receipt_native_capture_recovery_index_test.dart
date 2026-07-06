@@ -370,6 +370,10 @@ void main() {
 
       records = await staging.recoverableNativeCaptures();
       expect(records.single.engine, ReceiptNativeCameraEngine.avFoundation);
+      expect(
+        () => store.entries.single.captureDiagnostics['late'] = true,
+        throwsA(isA<UnsupportedError>()),
+      );
     },
   );
 

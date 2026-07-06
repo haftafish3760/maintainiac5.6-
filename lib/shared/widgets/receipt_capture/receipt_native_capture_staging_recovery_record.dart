@@ -9,10 +9,16 @@ class ReceiptNativeCaptureRecoveryRecord {
     required this.dataSaverLevel,
     required List<String> stagedPhotoPaths,
     required List<ReceiptAttachmentRecord> attachments,
-    required this.captureDiagnostics,
-    this.recoverySafety = const {},
+    required Map<String, Object?> captureDiagnostics,
+    Map<String, Object?> recoverySafety = const {},
   }) : stagedPhotoPaths = List<String>.unmodifiable(stagedPhotoPaths),
-       attachments = List<ReceiptAttachmentRecord>.unmodifiable(attachments);
+       attachments = List<ReceiptAttachmentRecord>.unmodifiable(attachments),
+       captureDiagnostics = receiptNativeCaptureSanitizedDiagnostics(
+         captureDiagnostics,
+       ),
+       recoverySafety = receiptNativeCaptureSanitizedDiagnostics(
+         recoverySafety,
+       );
 
   factory ReceiptNativeCaptureRecoveryRecord.fromManifest(
     String manifestPath,
