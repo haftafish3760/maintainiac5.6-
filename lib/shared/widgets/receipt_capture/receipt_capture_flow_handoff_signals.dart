@@ -178,9 +178,9 @@ Map<String, Object?> _receiptReaderHandoffDiagnosticsFor(
     'receiptDetailsHandoffNextStepLabel':
         result.acceptedPhotoHandoffNextStepLabel,
     'receiptReaderHandoffOcrSourcePolicy':
-        'read_original_or_prepared_source_before_saved_proof',
+        'read_temporary_full_quality_or_prepared_source_before_saved_proof',
     'receiptDetailsHandoffOcrSourcePolicy':
-        'read_original_or_prepared_source_before_saved_proof',
+        'read_temporary_full_quality_or_prepared_source_before_saved_proof',
     'receiptReaderHandoffOcrSourceOutcome': result.ocrSourceFirstOutcome,
     'receiptDetailsHandoffOcrSourceOutcome': result.ocrSourceFirstOutcome,
     'receiptReaderHandoffOcrSourceActionLabel':

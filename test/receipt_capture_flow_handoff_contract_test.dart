@@ -149,7 +149,13 @@ void main() {
     expect(flow, contains('result.ocrSourceFirstActionLabel'));
     expect(
       flow,
-      contains('read_original_or_prepared_source_before_saved_proof'),
+      contains(
+        'read_temporary_full_quality_or_prepared_source_before_saved_proof',
+      ),
+    );
+    expect(
+      flow,
+      isNot(contains('read_original_or_prepared_source_before_saved_proof')),
     );
     expect(flow, contains("'receiptReaderHandoffCompressionPolicy'"));
     expect(flow, contains('saved_proof_created_after_receipt_details_source'));
