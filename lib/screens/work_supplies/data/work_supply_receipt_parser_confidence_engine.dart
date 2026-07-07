@@ -102,6 +102,10 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'disposal elbow gasket',
     ],
     RegExp(r'\bescutcheon\b|\besc plate\b'): ['escutcheon'],
+    RegExp(r'\b(well pressure gauge|pressure gauge|well gauge)\b'): [
+      'pressure gauge',
+      'well pressure gauge',
+    ],
   };
   for (final entry in serviceFamilies.entries) {
     if (entry.key.hasMatch(text) &&
@@ -109,6 +113,13 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       score += entry.value.contains('p trap') ? 0.24 : 0.16;
       break;
     }
+  }
+  if (RegExp(
+        r'\b(well pressure gauge|pressure gauge|well gauge)\b',
+      ).hasMatch(text) &&
+      RegExp(r'\b(well|psi|pressure)\b').hasMatch(text) &&
+      itemText.contains('pressure gauge')) {
+    score += 0.08;
   }
   return score;
 }

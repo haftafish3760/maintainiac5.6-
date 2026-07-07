@@ -4031,3 +4031,19 @@ Release boundaries:
   `readyForMacValidation=false` until parser evidence is complete. Focused
   verification passed:
   `flutter test test/work_supply_plumbing_core_curation_audit_test.dart`.
+- **19:37-20:17 Plumbing Core Runtime Batch 5:** Added
+  `test/work_supply_plumbing_core_receipt_parser_batch5_test.dart` for
+  pressure-pipe, DWV access, fixture repair, well pressure, and water treatment
+  receipt shorthand against the locked Plumbing Core. The batch exposed a real
+  missing Core family: push-fit ball valves. Added that family to the plumbing
+  push-fit catalog, routed push-connect ball-valve receipts before generic ball
+  valves, fixed angle-stop precedence so non-push angle stop receipts do not
+  resolve to push-fit supply stops, added same-dimension 1/2 x 3/8 stop matching,
+  and raised well pressure gauge confidence through concrete well/PSI evidence.
+  Verification passed:
+  `flutter test test/work_supply_plumbing_core_receipt_parser_batch5_test.dart`,
+  `flutter test test/work_supply_plumbing_core_curation_audit_report_test.dart`,
+  and `flutter test test/work_supply_plumbing_core_curation_audit_test.dart
+  test/work_supply_plumbing_core_metadata_gate_test.dart`. New curation baseline
+  is 1,122 Core rows, 179 outside-Core review candidates, 0 suspicious Core
+  rows, 0 missing families, readiness floor 64, readiness average 80.51.

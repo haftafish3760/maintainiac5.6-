@@ -1874,13 +1874,18 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(quarter turn angle stop|angle stop)\b').hasMatch(text) &&
-      RegExp(r'\b(od|compression|oval handle|lever handle)\b').hasMatch(text)) {
+      RegExp(
+        r'\b(qt|quarter turn|od|compression|oval handle|lever handle)\b',
+      ).hasMatch(text)) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
-          name.contains('quarter turn angle stop') &&
+          !name.contains('push-fit') &&
+          (name.contains('quarter turn angle stop') ||
+              name.contains('angle stop valve')) &&
           (_receiptMatchesVariant(text, item.variant) ||
-              _receiptContainsVariantTokens(text, item.variant))) {
+              _receiptContainsVariantTokens(text, item.variant) ||
+              _matchesHalfByThreeEighthStop(text, item.variant))) {
         return item;
       }
     }
@@ -3858,6 +3863,18 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
   }
+  if (RegExp(r'\b(push|push fit|push-fit|sharkbite)\b').hasMatch(text) &&
+      RegExp(r'\b(ball valve|shutoff valve|shut off valve)\b').hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('push-fit ball valve') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
   if (RegExp(r'\b(straight stop|straight valve)\b').hasMatch(text)) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -4915,10 +4932,13 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
-      if (name.contains('quarter turn angle stop') &&
+      if (!name.contains('push-fit') &&
+          (name.contains('quarter turn angle stop') ||
+              name.contains('angle stop valve')) &&
           (size == null ||
               name.contains(size) ||
-              _nameMatchesReceiptMatrix(name, text))) {
+              _nameMatchesReceiptMatrix(name, text) ||
+              _matchesHalfByThreeEighthStop(text, item.variant))) {
         return item;
       }
     }
@@ -4951,6 +4971,15 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
     }
   }
   return null;
+}
+
+bool _matchesHalfByThreeEighthStop(String receiptText, String variant) {
+  final text = receiptText.toLowerCase();
+  final normalizedVariant = variant.toLowerCase();
+  return RegExp(r'\b1/2\b').hasMatch(text) &&
+      RegExp(r'\b3/8\b').hasMatch(text) &&
+      normalizedVariant.contains('1/2') &&
+      normalizedVariant.contains('3/8');
 }
 
 bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {

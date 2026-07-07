@@ -44,7 +44,7 @@ void main() {
     test('locks the current Plumbing Core curation baseline', () {
       final report = buildPlumbingCoreCurationAudit();
 
-      expect(report['coreCount'], 1119);
+      expect(report['coreCount'], 1122);
       expect(report['missingRequiredFamilies'], isEmpty);
       expect(report['suspiciousCoreItems'], isEmpty);
       expect(report['likelyCoreOutsideCore'], hasLength(179));
@@ -53,7 +53,7 @@ void main() {
       expect(summary['suspiciousCoreTotal'], 0);
       expect(summary['likelyCoreOutsideCoreTotal'], 179);
       expect(summary['readinessFloor'], greaterThanOrEqualTo(64));
-      expect(summary['readinessAverage'], greaterThanOrEqualTo(80.0));
+      expect(summary['readinessAverage'], greaterThanOrEqualTo(80.5));
       expect(summary['readyForMacValidation'], isFalse);
     });
 
