@@ -290,13 +290,13 @@ void main() {
     );
     expect(
       result.acceptedPhotoHandoffRouteResultLabel,
-      'Accepted photo review must open receipt details next, not the previous expense screen.',
+      'Accepted photo review must open receipt details now, not the previous expense screen.',
     );
     expect(result.acceptedPhotoHandoffMustOpenFilledReview, isTrue);
     expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, isTrue);
     expect(
       result.acceptedPhotoHandoffUserAction,
-      'tap_next_after_photo_review',
+      'tap_done_after_photo_review',
     );
     expect(
       result.privacySafeOcrHandoffEvidenceLabel,

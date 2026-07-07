@@ -199,7 +199,7 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       : ocrSourceReviewRequirement ==
             'manual_review_required_before_saving_receipt'
       ? 'Receipt details can open only after the OCR source handoff is reviewed.'
-      : 'Accepted photo review must open receipt details next, not the previous expense screen.';
+      : 'Accepted photo review must open receipt details now, not the previous expense screen.';
 
   bool get acceptedPhotoHandoffMustOpenFilledReview =>
       !keptForLater &&
@@ -237,7 +237,7 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       : ocrSourceReviewRequirement ==
             'manual_review_required_before_saving_receipt'
       ? 'review_ocr_source_handoff'
-      : 'tap_next_after_photo_review';
+      : 'tap_done_after_photo_review';
 
   String get acceptedPhotoHandoffEvidenceLabel {
     final outcome = acceptedPhotoHandoffOutcome;

@@ -227,14 +227,14 @@ void main() {
       handoffMetadata,
       containsPair(
         'receiptReaderHandoffRouteResultLabel',
-        'Accepted photo review must open receipt details next, not the previous expense screen.',
+        'Accepted photo review must open receipt details now, not the previous expense screen.',
       ),
     );
     expect(
       handoffMetadata,
       containsPair(
         'receiptDetailsHandoffRouteResultLabel',
-        'Accepted photo review must open receipt details next, not the previous expense screen.',
+        'Accepted photo review must open receipt details now, not the previous expense screen.',
       ),
     );
     expect(
@@ -257,14 +257,14 @@ void main() {
       handoffMetadata,
       containsPair(
         'receiptReaderHandoffUserAction',
-        'tap_next_after_photo_review',
+        'tap_done_after_photo_review',
       ),
     );
     expect(
       handoffMetadata,
       containsPair(
         'receiptDetailsHandoffUserAction',
-        'tap_next_after_photo_review',
+        'tap_done_after_photo_review',
       ),
     );
     expect(

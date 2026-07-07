@@ -86,7 +86,7 @@ void main() {
       importActions,
       contains('final processing = result.acceptedPhotoHandoffProcessingLabel'),
     );
-    expect(importActions, contains(r'Next accepted. $processing'));
+    expect(importActions, contains(r'Photo review accepted. $processing'));
     expect(
       stateActions,
       contains(
@@ -130,7 +130,10 @@ void main() {
     expect(receiptModels, contains('acceptedPhotoHandoffProcessingLabel'));
     expect(receiptModels, contains("'receiptReaderHandoffProcessingLabel'"));
     expect(receiptModels, contains("'receiptDetailsHandoffProcessingLabel'"));
-    expect(receiptModels, contains('Next reads the clearest OCR source first'));
+    expect(
+      receiptModels,
+      contains('Maintainiac reads the clearest OCR source first'),
+    );
     expect(receiptModels, contains("'receiptReaderHandoffUserAction'"));
     expect(receiptModels, contains("'receiptDetailsHandoffUserAction'"));
     expect(receiptModels, contains("'receiptReaderHandoffRouteResultLabel'"));
