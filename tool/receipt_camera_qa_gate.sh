@@ -10,9 +10,9 @@ fi
 mode="${1:-milestone}"
 
 case "$mode" in
-  phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | quick | stitch | milestone | full) ;;
+  phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | phase8 | quick | stitch | milestone | full) ;;
   *)
-    echo "Usage: tool/receipt_camera_qa_gate.sh [--print-plan] [phase2|phase3|phase4|phase5|phase6|phase7|quick|stitch|milestone|full]" >&2
+    echo "Usage: tool/receipt_camera_qa_gate.sh [--print-plan] [phase2|phase3|phase4|phase5|phase6|phase7|phase8|quick|stitch|milestone|full]" >&2
     exit 64
     ;;
 esac
@@ -70,6 +70,11 @@ phase7_tests=(
   test/receipt_ocr_source_relationship_test.dart
   test/receipt_ocr_source_review_risks_test.dart
   test/receipt_ocr_source_section_order_handoff_test.dart
+)
+
+phase8_tests=(
+  test/receipt_camera_phase8_storage_proof_timing_contract_test.dart
+  test/receipt_native_camera_phase8_storage_timing_test.dart
 )
 
 phase2_audit_paths=(
@@ -153,6 +158,16 @@ phase7_audit_paths=(
   test/receipt_ocr_source_relationship_test.dart
   test/receipt_ocr_source_review_risks_test.dart
   test/receipt_ocr_source_section_order_handoff_test.dart
+)
+
+phase8_audit_paths=(
+  lib/shared/widgets/receipt_capture/receipt_attachment_publish_helpers.dart
+  lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart
+  android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt
+  ios/Runner/ReceiptCameraViewControllerSessionSettings.swift
+  ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift
+  test/receipt_camera_phase8_storage_proof_timing_contract_test.dart
+  test/receipt_native_camera_phase8_storage_timing_test.dart
 )
 
 quick_tests=(
@@ -343,6 +358,9 @@ print_plan_for_mode() {
     phase7)
       print_test_pack phase7 "${phase7_tests[@]}"
       ;;
+    phase8)
+      print_test_pack phase8 "${phase8_tests[@]}"
+      ;;
     quick)
       print_test_pack quick "${quick_tests[@]}"
       ;;
@@ -518,6 +536,22 @@ run_phase7_stale_contract_scan() {
   fi
 }
 
+run_phase8_stale_contract_scan() {
+  local scan_roots=(
+    lib/shared/widgets/receipt_capture/receipt_attachment_publish_helpers.dart
+    lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt
+    ios/Runner/ReceiptCameraViewControllerSessionSettings.swift
+    ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift
+  )
+  local pattern='Saved proof size.*before.*capture|compression.*before.*capture|storage lecture|data saver setup first'
+
+  if rg -n "$pattern" "${scan_roots[@]}"; then
+    echo "Stale Phase 8 storage-proof timing contract found." >&2
+    return 1
+  fi
+}
+
 run_phase2() {
   bash tool/receipt_camera_scope_gate.sh
   dart analyze \
@@ -610,6 +644,22 @@ run_phase7() {
   git diff --check
 }
 
+run_phase8() {
+  bash tool/receipt_camera_scope_gate.sh
+  dart analyze \
+    lib/shared/widgets/receipt_capture/receipt_attachment_publish_helpers.dart \
+    lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart \
+    test/helpers/receipt_native_android_bridge_source_readers.dart \
+    test/helpers/receipt_native_ios_bridge_source_readers.dart \
+    "${phase8_tests[@]}"
+  dart tool/maintainiac_source_audit.dart \
+    "${phase8_audit_paths[@]}" \
+    --max-line-length=220
+  run_phase8_stale_contract_scan
+  run_flutter_tests "${phase8_tests[@]}"
+  git diff --check
+}
+
 run_quick() {
   bash -n \
     tool/android_receipt_camera_compile_gate.sh \
@@ -678,6 +728,7 @@ case "$mode" in
   phase5) run_phase5 ;;
   phase6) run_phase6 ;;
   phase7) run_phase7 ;;
+  phase8) run_phase8 ;;
   quick) run_quick ;;
   stitch) run_stitch ;;
   milestone) run_milestone ;;

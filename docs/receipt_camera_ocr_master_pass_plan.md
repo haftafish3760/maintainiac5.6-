@@ -32,7 +32,7 @@ Current phase order:
 8. Storage proof decision.
 9. Milestone validation.
 
-Current active phase: Phase 7, OCR source handoff.
+Current active phase: Phase 8, Storage proof decision.
 
 Phase 2 acceptance rules:
 

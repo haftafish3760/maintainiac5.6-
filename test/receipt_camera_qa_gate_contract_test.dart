@@ -15,24 +15,25 @@ void main() {
       expect(
         result.stderr.toString(),
         contains(
-          'Usage: tool/receipt_start_camera_qa_gate.sh [phase2|phase3|phase4|phase5|phase6|phase7|quick|stitch|milestone|full]',
+          'Usage: tool/receipt_start_camera_qa_gate.sh [phase2|phase3|phase4|phase5|phase6|phase7|phase8|quick|stitch|milestone|full]',
         ),
       );
     },
   );
 
-  test('camera QA gate exposes phase2 phase3 phase4 phase5 phase6 phase7 quick stitch milestone and full modes', () {
+  test('camera QA gate exposes phase2 phase3 phase4 phase5 phase6 phase7 phase8 quick stitch milestone and full modes', () {
     final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
 
     expect(script, contains('--print-plan'));
     expect(script, contains(r'mode="${1:-milestone}"'));
-    expect(script, contains('phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | quick | stitch | milestone | full'));
+    expect(script, contains('phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | phase8 | quick | stitch | milestone | full'));
     expect(script, contains('run_phase2'));
     expect(script, contains('run_phase3'));
     expect(script, contains('run_phase4'));
     expect(script, contains('run_phase5'));
     expect(script, contains('run_phase6'));
     expect(script, contains('run_phase7'));
+    expect(script, contains('run_phase8'));
     expect(script, contains('run_quick'));
     expect(script, contains('run_stitch'));
     expect(script, contains('run_milestone'));
@@ -43,6 +44,7 @@ void main() {
     expect(script, contains('phase5_tests=('));
     expect(script, contains('phase6_tests=('));
     expect(script, contains('phase7_tests=('));
+    expect(script, contains('phase8_tests=('));
     expect(script, contains('stitch_tests=('));
     expect(script, contains('milestone_only_tests=('));
     expect(script, contains('full_only_tests=('));
@@ -56,6 +58,8 @@ void main() {
     expect(script, contains('test/receipt_stitching_result_contract_test.dart'));
     expect(script, contains('test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart'));
     expect(script, contains('test/receipt_ocr_source_relationship_test.dart'));
+    expect(script, contains('test/receipt_camera_phase8_storage_proof_timing_contract_test.dart'));
+    expect(script, contains('test/receipt_native_camera_phase8_storage_timing_test.dart'));
     expect(script, contains('test/receipt_native_camera_shell_test.dart'));
     expect(script, contains('test/receipt_camera_result_test.dart'));
     expect(
@@ -218,7 +222,7 @@ void main() {
     ).readAsStringSync();
 
     expect(script, contains(r'mode="${1:-milestone}"'));
-    expect(script, contains('phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | quick | stitch | milestone | full'));
+    expect(script, contains('phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | phase8 | quick | stitch | milestone | full'));
     expect(script, contains(r'receipt_camera_qa_${mode}'));
     expect(script, contains('tool/receipt_quiet_batch.sh'));
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
@@ -237,6 +241,7 @@ void main() {
     expect(summary, contains('receipt_camera_qa_phase5'));
     expect(summary, contains('receipt_camera_qa_phase6'));
     expect(summary, contains('receipt_camera_qa_phase7'));
+    expect(summary, contains('receipt_camera_qa_phase8'));
     expect(summary, contains('receipt_camera_qa_quick'));
     expect(summary, contains('receipt_camera_qa_stitch'));
     expect(summary, contains('receipt_camera_qa_milestone'));
@@ -250,6 +255,7 @@ void main() {
     expect(summary, contains('failure_phase="camera_phase5_gate"'));
     expect(summary, contains('failure_phase="camera_phase6_gate"'));
     expect(summary, contains('failure_phase="camera_phase7_gate"'));
+    expect(summary, contains('failure_phase="camera_phase8_gate"'));
     expect(summary, contains('failure_phase="camera_quick_gate"'));
     expect(summary, contains('failure_phase="camera_stitch_gate"'));
     expect(summary, contains('failure_phase="camera_milestone_gate"'));
