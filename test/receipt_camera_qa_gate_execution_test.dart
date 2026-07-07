@@ -64,6 +64,10 @@ void main() {
       );
       expect(
         stitchPlan,
+        contains('stitch test/receipt_capture_flow_ocr_source_count_test.dart'),
+      );
+      expect(
+        stitchPlan,
         contains('stitch test/receipt_photo_review_retake_order_test.dart'),
       );
       expect(stitchPlan, isNot(contains('quick ')));
@@ -75,6 +79,12 @@ void main() {
       expect(
         milestonePlan,
         contains('milestone test/receipt_camera_ocr_source_handoff_test.dart'),
+      );
+      expect(
+        milestonePlan,
+        contains(
+          'milestone test/receipt_capture_flow_ocr_source_count_test.dart',
+        ),
       );
       expect(
         milestonePlan,
