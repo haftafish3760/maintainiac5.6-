@@ -148,6 +148,12 @@ void main() {
     expect(
       script,
       contains(
+        "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_qa_gate_execution_runtime_test.dart'",
+      ),
+    );
+    expect(
+      script,
+      contains(
         "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_quiet_batch_status.sh'",
       ),
     );
@@ -209,6 +215,10 @@ void main() {
     expect(script, contains('tool/receipt_start_camera_qa_gate.sh'));
     expect(script, contains('test/receipt_camera_qa_gate_contract_test.dart'));
     expect(script, contains('test/receipt_camera_qa_gate_execution_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_camera_qa_gate_execution_runtime_test.dart'),
+    );
     expect(script, contains('test/receipt_camera_footprint_audit_test.dart'));
     expect(script, contains('test/receipt_camera_result_test.dart'));
     expect(

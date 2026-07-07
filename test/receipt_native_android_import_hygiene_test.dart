@@ -12,6 +12,7 @@ void main() {
         'android.view.ScaleGestureDetector',
         'android.view.View',
         'android.widget.Button',
+        'android.widget.FrameLayout',
         'android.widget.ImageButton',
         'android.widget.ImageView',
         'android.widget.LinearLayout',
@@ -23,6 +24,7 @@ void main() {
         'androidx.camera.lifecycle.ProcessCameraProvider',
         'androidx.camera.view.PreviewView',
         'androidx.core.content.ContextCompat',
+        'androidx.core.view.WindowCompat',
         'androidx.lifecycle.Lifecycle',
         'androidx.lifecycle.LifecycleOwner',
         'androidx.lifecycle.LifecycleRegistry',
@@ -112,6 +114,10 @@ void main() {
         'android.widget.SeekBar',
         'android.widget.TextView',
         'androidx.camera.view.PreviewView',
+        'androidx.core.view.ViewCompat',
+        'androidx.core.view.WindowInsetsCompat',
+        'androidx.core.view.updateLayoutParams',
+        'androidx.core.view.updatePadding',
       },
     };
 

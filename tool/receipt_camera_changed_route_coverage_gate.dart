@@ -18,6 +18,7 @@ const milestoneRoutes = [
   'test/receipt_camera_dataset_qa_gate_contract_test.dart',
   'test/receipt_camera_qa_gate_contract_test.dart',
   'test/receipt_camera_qa_gate_execution_test.dart',
+  'test/receipt_camera_qa_gate_execution_runtime_test.dart',
   'test/receipt_external_dataset_local_audit_test.dart',
   'test/receipt_external_dataset_gate_test.dart',
   'test/receipt_external_fixture_schema_gate_test.dart',
@@ -37,6 +38,7 @@ const fastGuardSmokeRoutes = [
   'test/receipt_camera_changed_route_coverage_gate_test.dart',
   'test/receipt_camera_dataset_qa_gate_contract_test.dart',
   'test/receipt_camera_qa_gate_execution_test.dart',
+  'test/receipt_camera_qa_gate_execution_runtime_test.dart',
   'test/receipt_external_fixture_schema_gate_test.dart',
   'test/receipt_fast_guard_gate_contract_test.dart',
 ];

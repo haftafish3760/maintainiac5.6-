@@ -34,6 +34,7 @@ phase2_tests=(
 phase3_tests=(
   test/receipt_camera_phase3_viewer_contract_test.dart
   test/receipt_native_camera_shell_test.dart
+  test/receipt_native_camera_shell_controls_test.dart
   test/receipt_native_android_guidance_policy_gate_test.dart
   test/receipt_native_ios_guidance_warning_gate_test.dart
   test/receipt_native_android_bridge_false_positive_guard_test.dart
@@ -60,6 +61,7 @@ phase6_tests=(
   test/receipt_stitch_fallback_metadata_test.dart
   test/receipt_stitching_manual_overlap_test.dart
   test/receipt_stitching_result_contract_test.dart
+  test/receipt_stitching_variants_test.dart
 )
 
 phase7_tests=(
@@ -70,6 +72,8 @@ phase7_tests=(
   test/receipt_ocr_source_relationship_test.dart
   test/receipt_ocr_source_review_risks_test.dart
   test/receipt_ocr_source_section_order_handoff_test.dart
+  test/receipt_camera_result_stitch_handoff_followthrough_test.dart
+  test/receipt_camera_result_review_resume_test.dart
 )
 
 phase8_tests=(
@@ -101,6 +105,7 @@ phase3_audit_paths=(
   lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart
   lib/shared/widgets/receipt_capture/receipt_native_camera_shell_guidance.dart
   test/receipt_camera_phase3_viewer_contract_test.dart
+  test/receipt_native_camera_shell_controls_test.dart
   test/receipt_native_android_guidance_policy_gate_test.dart
   test/receipt_native_ios_guidance_warning_gate_test.dart
   test/receipt_native_android_bridge_false_positive_guard_test.dart
@@ -147,6 +152,7 @@ phase6_audit_paths=(
   test/receipt_stitch_fallback_metadata_test.dart
   test/receipt_stitching_manual_overlap_test.dart
   test/receipt_stitching_result_contract_test.dart
+  test/receipt_stitching_variants_test.dart
 )
 
 phase7_audit_paths=(
@@ -165,6 +171,8 @@ phase7_audit_paths=(
   test/receipt_ocr_source_relationship_test.dart
   test/receipt_ocr_source_review_risks_test.dart
   test/receipt_ocr_source_section_order_handoff_test.dart
+  test/receipt_camera_result_stitch_handoff_followthrough_test.dart
+  test/receipt_camera_result_review_resume_test.dart
 )
 
 phase8_audit_paths=(
@@ -213,6 +221,7 @@ quick_tests=(
   test/receipt_camera_dataset_qa_gate_contract_test.dart
   test/receipt_camera_qa_gate_contract_test.dart
   test/receipt_camera_qa_gate_execution_test.dart
+  test/receipt_camera_qa_gate_execution_runtime_test.dart
 )
 
 milestone_only_tests=(
@@ -235,6 +244,8 @@ milestone_only_tests=(
   test/receipt_camera_result_recovery_handoff_test.dart
   test/receipt_camera_result_saved_photo_warning_test.dart
   test/receipt_camera_result_stitch_scanner_test.dart
+  test/receipt_camera_result_stitch_handoff_followthrough_test.dart
+  test/receipt_camera_result_review_resume_test.dart
   test/receipt_camera_fixture_matrix_test.dart
   test/receipt_capture_flow_barcode_handoff_test.dart
   test/receipt_capture_flow_ocr_source_count_test.dart
@@ -256,6 +267,7 @@ milestone_only_tests=(
   test/receipt_native_camera_service_basics_test.dart
   test/receipt_native_camera_session_limits_test.dart
   test/receipt_native_camera_shell_test.dart
+  test/receipt_native_camera_shell_controls_test.dart
   test/receipt_native_camera_storage_contract_test.dart
   test/receipt_native_capture_staging_cleanup_test.dart
   test/receipt_native_capture_staging_test.dart
@@ -273,6 +285,7 @@ milestone_only_tests=(
   test/receipt_stitching_manual_overlap_test.dart
   test/receipt_stitching_result_contract_test.dart
   test/receipt_stitching_test.dart
+  test/receipt_stitching_variants_test.dart
 )
 
 stitch_tests=(
