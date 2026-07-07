@@ -278,6 +278,7 @@ bool _isCopperConnectionText(String text) {
 }
 
 bool _isTubularDrainAdapterText(String text) {
+  if (text.contains('trap adapter')) return true;
   return text.contains('tubular drain adapter') &&
       _hasAny(text, [
         'compression trap adapter',
@@ -412,11 +413,51 @@ String _classifyFamily(String text) {
   if (_hasAnySignal(text, ['j-hook', 'plumbing hand tool'])) {
     return 'service consumables and tools';
   }
+  if (_hasAnySignal(text, [
+    'pipe lubricant',
+    'ptfe thread tape',
+    'silicone sealant',
+  ])) {
+    return 'service consumables and tools';
+  }
   if (_hasAnySignal(text, ['sump pump discharge part'])) {
+    return 'sump pump discharge service';
+  }
+  if (_hasAnySignal(text, [
+    'battery backup sensor',
+    'float switch',
+    'high water alarm',
+    'pump control part',
+  ])) {
     return 'sump pump discharge service';
   }
   if (_hasAnySignal(text, ['well pump check valve', 'well pipe adapter'])) {
     return 'well pressure service';
+  }
+  if (_hasAnySignal(text, [
+    'barbed adapter well service',
+    'barbed coupling well service',
+    'barbed elbow well service',
+  ])) {
+    return 'well pressure service';
+  }
+  if (_hasAnySignal(text, [
+    'air gap',
+    'continuous waste',
+    'dishwasher drain hose',
+    'disposal drain elbow',
+    'disposal connector',
+    'disposal elbow',
+    'disposal install kit',
+    'kitchen sink center outlet waste',
+    'kitchen sink end outlet waste',
+    'lavatory drain',
+    'pop-up drain',
+    'rubber disposal splash guard',
+    'tubular extension tube',
+    'trap adapter',
+  ])) {
+    return 'tubular drains and traps';
   }
   for (final family in _familyContracts) {
     if (_hasAnySignal(text, family.signals)) return family.name;
@@ -445,20 +486,31 @@ _FamilyReadiness _familyReport(
 }
 
 Map<String, Object?> _summary(List<_ReadinessFinding> findings) {
+  final releaseReadyCount = findings
+      .where((item) => item.status == 'release_ready_candidate')
+      .length;
+  final metadataReadyCount = findings
+      .where((item) => item.status != 'needs_work')
+      .length;
+  final needsWorkCount = findings
+      .where((item) => item.status == 'needs_work')
+      .length;
+  final criticalCount = findings
+      .where((item) => item.severity == 'critical')
+      .length;
+  final readyForMacValidation =
+      findings.isNotEmpty &&
+      releaseReadyCount == findings.length &&
+      metadataReadyCount == findings.length &&
+      needsWorkCount == 0 &&
+      criticalCount == 0;
+
   return {
     'coreRows': findings.length,
-    'releaseReadyItems': findings
-        .where((item) => item.status == 'release_ready_candidate')
-        .length,
-    'metadataReadyCandidates': findings
-        .where((item) => item.status != 'needs_work')
-        .length,
-    'needsWorkItems': findings
-        .where((item) => item.status == 'needs_work')
-        .length,
-    'criticalItems': findings
-        .where((item) => item.severity == 'critical')
-        .length,
+    'releaseReadyItems': releaseReadyCount,
+    'metadataReadyCandidates': metadataReadyCount,
+    'needsWorkItems': needsWorkCount,
+    'criticalItems': criticalCount,
     'readinessFloor': findings.isEmpty
         ? 0
         : findings.map((item) => item.readinessPercent).reduce(_min),
@@ -471,10 +523,13 @@ Map<String, Object?> _summary(List<_ReadinessFinding> findings) {
                     findings.length)
                 .toStringAsFixed(2),
           ),
-    'readyForMacValidation': false,
-    'reason':
-        'Plumbing Core still needs item-level metadata and focused parser '
-        'evidence before Mac validation or broad generated parser waves.',
+    'readyForMacValidation': readyForMacValidation,
+    'reason': readyForMacValidation
+        ? 'Plumbing Core item metadata and focused parser evidence are clean '
+              'on the Windows deterministic readiness gate. Proceed to Mac '
+              'validation before final release signoff.'
+        : 'Plumbing Core still needs item-level metadata and focused parser '
+              'evidence before Mac validation or broad generated parser waves.',
   };
 }
 
@@ -567,6 +622,7 @@ int _score(List<String> issues, List<String> warnings) {
 
 bool _looksSpecialOrder(String text) {
   if (_isServiceToolOrConsumableText(text)) return false;
+  if (_isToiletFaucetCommonRepairText(text)) return false;
   if (_hasAny(text, [
     'water heater dielectric nipple',
     'stud guard',
@@ -580,6 +636,18 @@ bool _looksSpecialOrder(String text) {
   if (_isResidentialDwvAccessText(text)) return false;
   return _hasAny(text, ['commercial', 'industrial']) ||
       RegExp(r'(^|[^0-9/])(3|4|6)\s*(in|inch|")([^0-9]|$)').hasMatch(text);
+}
+
+bool _isToiletFaucetCommonRepairText(String text) {
+  return _hasAny(text, [
+    'closet flange',
+    'faucet',
+    'fill valve',
+    'flapper',
+    'flush valve',
+    'toilet',
+    'wax ring',
+  ]);
 }
 
 bool _isResidentialDwvAccessText(String text) {
@@ -606,12 +674,36 @@ bool _isWaterTreatmentDirectText(String text) {
 
 bool _isSmallRepairPartText(String text) {
   return _hasAny(text, [
+    'aerator',
+    'bib washer',
+    'bonnet packing',
+    'cartridge',
+    'closet bolt',
+    'closet seal',
     'compression sleeve puller',
     'escutcheon',
+    'faucet stem',
+    'faucet washer',
+    'fill valve',
+    'flapper',
+    'flat o-ring',
+    'flush valve',
+    'flush valve seal',
+    'graphite valve packing',
+    'handle',
     'handle screw',
+    'locknut',
+    'o-ring',
     'oval handle',
+    'packing',
     'repair part',
+    'seat washer',
+    'seal',
+    'shank washer',
     'split escutcheon',
+    'tank bolt gasket',
+    'tank to bowl',
+    'teflon valve packing',
   ]);
 }
 
@@ -724,6 +816,7 @@ const _familiesWithFocusedParserEvidence = {
   'pvc pressure fittings',
   'service consumables and tools',
   'sump pump discharge service',
+  'toilet and faucet repair',
   'tubular drains and traps',
   'water heater service',
   'water treatment',

@@ -4342,3 +4342,25 @@ Release boundaries:
   `build/parser_qa_reports/generated_fixtures/toilet_faucet_80_shard1_rerun3_20260707_085222`.
   Toilet/faucet repair is not locked yet; shard 2, shard 3, family promotion,
   and the readiness audit still remain.
+- **09:40-09:50 Toilet/Faucet Repair Shards 2-3 Evidence Lock:** Fixed the
+  generated fixture runner so `--max-cases` is treated as a window length after
+  `--start-index`, then regression-tested that offset behavior. The corrected
+  shard 2 run passed with 80 checked, 0 failures, and 80 parser calls at
+  `build/parser_qa_reports/generated_fixtures/toilet_faucet_80_shard2_corrected_20260707_094016`.
+  The corrected shard 3 run passed with 73 checked, 0 failures, and 73 parser
+  calls at
+  `build/parser_qa_reports/generated_fixtures/toilet_faucet_73_shard3_corrected_20260707_094538`.
+  The first case in shards 2 and 3 absorbed Flutter build/startup time, but the
+  remaining parser cases ran quickly. Toilet/faucet repair is now promoted into
+  focused parser evidence.
+- **09:51-09:56 Plumbing Core Readiness Lock:** Tightened the Plumbing Core
+  readiness audit taxonomy so service consumables, sump controls, well barbed
+  fittings, dishwasher/disposal drains, kitchen waste, tubular drain parts, and
+  trap adapters classify into the correct existing readiness families instead
+  of falling into unclassified Plumbing Core. Also corrected audit warnings for
+  normal toilet/faucet repair parts so common flappers, fill/flush valves,
+  faucet stems, washers, packing, seals, and closet repair parts are not
+  falsely treated as missing connection context or special-order items. The
+  focused readiness audit passed and the generated JSON now reports Plumbing
+  Core at 1122/1122 release-ready, 1122/1122 metadata-ready, 0 needs-work, 0
+  critical, readiness floor 100, average 100, and ready for Mac validation.

@@ -19,7 +19,11 @@ void main() {
       );
       expect(report['scope'], 'Plumbing / Residential / Core');
       expect(summary['coreRows'], greaterThan(1000));
-      expect(summary['readyForMacValidation'], isFalse);
+      expect(summary['needsWorkItems'], 0);
+      expect(summary['criticalItems'], 0);
+      expect(summary['metadataReadyCandidates'], summary['coreRows']);
+      expect(summary['releaseReadyItems'], summary['coreRows']);
+      expect(summary['readyForMacValidation'], isTrue);
       expect(actionQueues['finishFirst'], isA<List<Map<String, Object?>>>());
       expect(
         actionQueues['criticalMetadata'],
