@@ -307,7 +307,7 @@ void main() {
       models,
       contains('Review receipt details and mark Business, Personal, or Mixed.'),
     );
-    expect(models, contains(r'Next reviews $nextReviewSourceLabel'));
+    expect(models, contains(r'Receipt details open from $nextReviewSourceLabel'));
     expect(controls, isNot(contains('Read receipt')));
     expect(controls, contains('Use this photo, retake it'));
     expect(controls, isNot(contains('Saved copy')));

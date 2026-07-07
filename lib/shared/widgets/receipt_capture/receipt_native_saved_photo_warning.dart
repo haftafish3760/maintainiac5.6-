@@ -109,7 +109,7 @@ class ReceiptNativeSavedPhotoReviewWarning {
         title: 'Photo stayed too dark after brightness assist',
         causeCode: 'pre_capture_brightness_assist_failed',
         guidance:
-            'Retake with more light or turn on the receipt light before tapping Next.',
+            'Retake with more light or turn on the receipt light before using this photo.',
       );
     }
     if (mismatch == 'pre_capture_brightened_still_dim' ||
@@ -137,7 +137,7 @@ class ReceiptNativeSavedPhotoReviewWarning {
         title: 'Photo saved darker than preview',
         causeCode: 'saved_photo_darker_than_live_preview',
         guidance:
-            'Retake with more light or raise Brightness before tapping Next.',
+            'Retake with more light or raise Brightness before using this photo.',
       );
     }
     if (previewParitySignal ==

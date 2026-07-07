@@ -26,7 +26,7 @@ void main() {
     expect(bottomControls, contains('Color(0x30000000)'));
     expect(bottomControls, contains('Color(0x54000000)'));
     expect(bottomBar, contains('Color(0xB8050607)'));
-    expect(guidance, contains('Color(0xC0050607)'));
+    expect(guidance, contains('Color(0xB8050607)'));
     expect(bottomControls, contains('stops: [0, .16, .78, 1]'));
     expect(shell, isNot(contains('Color(0x52000000)')));
     expect(shell, isNot(contains('Color(0x76000000)')));
@@ -94,7 +94,7 @@ void main() {
       expect(
         panel,
         contains(
-          'Resume reviews the saved photos first; Next opens receipt details.',
+          'Resume reviews the saved photos first; receipt details open from the saved proof after review.',
         ),
       );
       expect(

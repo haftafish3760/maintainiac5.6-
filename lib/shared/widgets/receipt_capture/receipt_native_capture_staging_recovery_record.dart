@@ -181,9 +181,9 @@ class ReceiptNativeCaptureRecoveryRecord {
       'back_returned_captured_sections' =>
         'Back was pressed after photos were captured.',
       'done_returned_captured_sections' =>
-        'Next was pressed after photos were captured.',
+        'Use Photos was pressed after photos were captured.',
       'back_no_photo_cancel' => 'Back was pressed before a photo was saved.',
-      'done_no_photo_cancel' => 'Next was pressed before a photo was saved.',
+      'done_no_photo_cancel' => 'Use Photos was pressed before a photo was saved.',
       _ => 'Receipt capture was interrupted after photos were captured.',
     };
   }
@@ -198,7 +198,7 @@ class ReceiptNativeCaptureRecoveryRecord {
   String get recoveryNextActionLabel => 'Review saved receipt sections';
 
   String get recoveryNextActionDetail {
-    return 'Resume to review the saved sections in order, then tap Next to open receipt details from the saved proof. Discard only if these saved photos are not needed.';
+    return 'Resume to review the saved sections in order, then use the saved photos to open receipt details from the saved proof. Discard only if these saved photos are not needed.';
   }
 
   String get privacySafeRecoveryEvidenceLabel {

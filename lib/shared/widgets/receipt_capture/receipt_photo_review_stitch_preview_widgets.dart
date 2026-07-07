@@ -178,7 +178,7 @@ class _StitchFallbackBanner extends StatelessWidget {
                   Text(
                     '$detail If these sections show repeated lines, adjust the '
                     'match below. For bottom-section photos, keep 3-5 readable '
-                    'lines in the top ghost slice. If not, tap Next and '
+                    'lines in the top ghost slice. If not, use these photos and '
                     'Maintainiac opens receipt details from each section, top '
                     'to bottom.',
                     maxLines: 4,

@@ -362,7 +362,7 @@ void main() {
     );
     expect(
       result.acceptedPhotoHandoffActionLabel,
-      'Resume photo review, then tap Next to review receipt details.',
+      'Resume photo review, then use the saved photo review to open receipt details.',
     );
     expect(
       result.acceptedPhotoHandoffRoute,
@@ -374,7 +374,7 @@ void main() {
     );
     expect(
       result.acceptedPhotoHandoffNextStepLabel,
-      'Resume the saved receipt photo review, then tap Next to open receipt details.',
+      'Resume the saved receipt photo review, then use it to open receipt details.',
     );
     expect(result.acceptedPhotoHandoffMustOpenFilledReview, isFalse);
     expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, isFalse);

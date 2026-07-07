@@ -158,7 +158,7 @@ void main() {
     );
     expect(
       stagingSource,
-      contains('tap Next to open receipt details from the saved proof'),
+      contains('use the saved photos to open receipt details from the saved proof'),
     );
     expect(panelSource, contains('record.recoveredCountLabel'));
     expect(panelSource, contains('discardRecoveryRecord(record)'));

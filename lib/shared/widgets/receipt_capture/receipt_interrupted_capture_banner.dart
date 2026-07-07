@@ -25,7 +25,7 @@ class _ReceiptInterruptedCaptureBanner extends StatelessWidget {
         ? Icons.play_arrow_rounded
         : Icons.photo_camera_rounded;
     final nextStepCopy = record.hasCompleteLocalRecovery
-        ? 'Resume reviews the saved photos first; Next opens receipt details. Discard only removes this interrupted recovery copy.'
+        ? 'Resume reviews the saved photos first; receipt details open from the saved proof after review. Discard only removes this interrupted recovery copy.'
         : 'Some saved photos are missing. Retake the receipt photos, or discard this interrupted recovery copy.';
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),

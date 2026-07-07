@@ -32,7 +32,7 @@ void main() {
     expect(result.receiptSectionOrderHasFollowThroughAction, isTrue);
     expect(
       result.acceptedPhotoHandoffNextStepLabel,
-      'Confirm the retaken section stayed in its original receipt position. Then Next opens receipt details.',
+      'Confirm the retaken section stayed in its original receipt position. Then receipt details open.',
     );
     expect(
       result.acceptedPhotoHandoffRouteResultLabel,
@@ -77,7 +77,7 @@ void main() {
     expect(result.receiptSectionOrderHasFollowThroughAction, isTrue);
     expect(
       result.acceptedPhotoHandoffNextStepLabel,
-      'Confirm the inserted receipt section appears after the selected section. Then Next opens receipt details.',
+      'Confirm the inserted receipt section appears after the selected section. Then receipt details open.',
     );
     expect(
       result.acceptedPhotoHandoffRouteResultLabel,

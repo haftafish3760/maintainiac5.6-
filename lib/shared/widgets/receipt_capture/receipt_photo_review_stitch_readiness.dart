@@ -217,13 +217,13 @@ class _ReceiptStitchReadinessCard extends StatelessWidget {
     if (preview.didStitch) {
       final pairDiagnostics = preview.pairDiagnosticsLabel;
       return pairDiagnostics.isEmpty
-          ? 'Repeated receipt lines matched safely. Next reviews one combined receipt image before receipt details.'
-          : 'Repeated receipt lines matched safely. $pairDiagnostics Next reviews one combined receipt image before receipt details.';
+          ? 'Repeated receipt lines matched safely. Receipt details will open from one combined receipt image.'
+          : 'Repeated receipt lines matched safely. $pairDiagnostics Receipt details will open from one combined receipt image.';
     }
     if (preview.usedFallback) {
       return preview.warning.trim().isEmpty
-          ? '${preview.userFallbackReasonLabel}. Next still works by reading each section from top to bottom.'
-          : '${preview.userFallbackReasonLabel}. ${preview.warning} Next still works by reading each section from top to bottom.';
+          ? '${preview.userFallbackReasonLabel}. You can still use each section in top-to-bottom order.'
+          : '${preview.userFallbackReasonLabel}. ${preview.warning} You can still use each section in top-to-bottom order.';
     }
     return preview.detailLabel;
   }

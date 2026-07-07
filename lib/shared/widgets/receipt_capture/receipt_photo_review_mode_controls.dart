@@ -123,7 +123,7 @@ class _ReceiptToolModeHeader extends StatelessWidget {
         Icons.join_full_rounded,
         'Long Receipt Match',
         photoCount > 1
-            ? 'Match photos only when safe; otherwise Next reviews top to bottom.'
+            ? 'Match photos only when safe; otherwise receipt details open top to bottom.'
             : 'Use Add Another Photo before matching.',
       ),
       _ReceiptReviewMode.dataSaver => (

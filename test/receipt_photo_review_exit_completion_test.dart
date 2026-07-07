@@ -128,8 +128,14 @@ void main() {
     expect(saveActions, isNot(contains('Delete Staged Photo')));
     expect(saveActions, isNot(contains('Delete Staged Photos')));
     final staging = await readReceiptNativeCaptureStagingSource();
-    expect(staging, contains('Next was pressed after photos were captured.'));
-    expect(staging, contains('Next was pressed before a photo was saved.'));
+    expect(
+      staging,
+      contains('Use Photos was pressed after photos were captured.'),
+    );
+    expect(
+      staging,
+      contains('Use Photos was pressed before a photo was saved.'),
+    );
     expect(staging, isNot(contains('Done was pressed')));
     expect(saveActions, contains('Stay In Review'));
     expect(saveActions, contains('Text(nextLabel)'));
@@ -213,7 +219,7 @@ void main() {
     expect(models, contains('photos top to bottom'));
     expect(models, contains('make sure no middle section is missing'));
     expect(models, contains('Repeat 3-5 readable lines between sections'));
-    expect(orderControls, contains('Next reviews photos in this order.'));
+    expect(orderControls, contains('Receipt details open in this order.'));
     expect(stitchControls, contains("'Combined Receipt Ready'"));
     expect(stitchControls, contains("'Safe Fallback Ready'"));
     expect(stitchControls, contains('repeated receipt lines match safely'));
@@ -245,9 +251,12 @@ void main() {
     expect(commonControls, contains('_ReceiptLocalPhotoLimitStrip'));
     expect(
       commonControls,
-      contains('Next still works, but review every line before saving.'),
+      contains('You can still use these photos, but review every line before saving.'),
     );
-    expect(stitchControls, contains('before receipt details'));
+    expect(
+      stitchControls,
+      contains('You can still use each section in top-to-bottom order.'),
+    );
   });
 
   test('reviewed receipt photos announce app fill handoff safely', () async {

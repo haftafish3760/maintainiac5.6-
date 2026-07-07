@@ -59,7 +59,7 @@ class _ReceiptOrderToolControls extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '$sectionLabel, $countLabel. $sectionHint Next reviews photos in this order.',
+                    '$sectionLabel, $countLabel. $sectionHint Receipt details open in this order.',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(

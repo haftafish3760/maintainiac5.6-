@@ -301,12 +301,12 @@ class ReceiptStitchResult {
     return switch (status) {
       ReceiptStitchStatus.notNeeded =>
         inputPaths.length <= 1
-            ? 'Next reviews this receipt photo.'
-            : 'Next reviews these receipt sections in order.',
+            ? 'Receipt details open from this receipt photo.'
+            : 'Receipt details open from these receipt sections in order.',
       ReceiptStitchStatus.stitched =>
-        'Next reviews one combined receipt image.',
+        'Receipt details open from one combined receipt image.',
       ReceiptStitchStatus.fallback =>
-        'Next opens receipt details from each section, top to bottom.',
+        'Receipt details open from each section, top to bottom.',
     };
   }
 

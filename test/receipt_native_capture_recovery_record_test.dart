@@ -105,7 +105,7 @@ void main() {
     expect(record.recoveryNextActionLabel, 'Review saved receipt sections');
     expect(
       record.recoveryNextActionDetail,
-      'Resume to review the saved sections in order, then tap Next to open receipt details from the saved proof. Discard only if these saved photos are not needed.',
+      'Resume to review the saved sections in order, then use the saved photos to open receipt details from the saved proof. Discard only if these saved photos are not needed.',
     );
     expect(record.privacySafeRecoveryEvidenceLabel, contains('freshness='));
     expect(

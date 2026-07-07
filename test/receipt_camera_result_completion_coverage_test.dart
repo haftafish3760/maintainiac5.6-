@@ -100,7 +100,7 @@ void main() {
     expect(result.nextReviewSourceLabel, '2 ordered receipt sections');
     expect(
       result.nextReviewHandoffLabel,
-      'Next reviews 2 ordered receipt sections from top to bottom. No stitch needed.',
+      'Receipt details open from 2 ordered receipt sections in top-to-bottom order. No stitch needed.',
     );
     expect(
       result.nextReviewDiagnosticLabel,

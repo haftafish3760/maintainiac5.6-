@@ -3,7 +3,7 @@ part of 'receipt_capture_models.dart';
 extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
   String get acceptedPhotoHandoffActionLabel {
     if (keptForLater) {
-      return 'Resume photo review, then tap Next to review receipt details.';
+      return 'Resume photo review, then use the saved photo review to open receipt details.';
     }
     if (userConfirmedPossiblePartialReceiptComplete) {
       return 'Review receipt details next; the user confirmed this photo shows the full receipt.';
@@ -140,7 +140,7 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       : 'receipt_details_store_date_total_tax_items';
 
   String get acceptedPhotoHandoffNextStepLabel => keptForLater
-      ? 'Resume the saved receipt photo review, then tap Next to open receipt details.'
+      ? 'Resume the saved receipt photo review, then use it to open receipt details.'
       : needsAnotherReceiptSectionBeforeDetails
       ? firstPossiblePartialReceiptReasonCode ==
                 'missing_bottom_edge_and_totals'
@@ -150,11 +150,11 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
               )
             : 'Add the next receipt section before receipt details, or confirm this photo already shows the full receipt.'
       : receiptSectionOrderHasFollowThroughAction
-      ? '${receiptSectionOrderReviewActionLabel} Then Next opens receipt details.'
+      ? '${receiptSectionOrderReviewActionLabel} Then receipt details open.'
       : ocrSourceReviewRequirement ==
             'manual_review_required_before_saving_receipt'
       ? 'Review the OCR source handoff before opening receipt details.'
-      : 'Next opens receipt details with store, date, total, tax, item prices, and Business/Personal/Mixed choices.';
+      : 'Receipt details open with store, date, total, tax, item prices, and Business/Personal/Mixed choices.';
 
   String get acceptedPhotoHandoffProcessingLabel => keptForLater
       ? 'Receipt details stay closed until saved photo review is resumed.'
@@ -165,10 +165,10 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       : ocrSourceReviewRequirement ==
             'manual_review_required_before_saving_receipt'
       ? 'Receipt details stay paused until the OCR source handoff is reviewed.'
-      : 'Next reads the clearest OCR source first before the smaller saved proof copy is kept, then opens the filled receipt review.';
+      : 'Maintainiac reads the clearest OCR source first before the smaller saved proof copy is kept, then opens the filled receipt review.';
 
   String get acceptedPhotoHandoffRouteResultLabel => keptForLater
-      ? 'Photo review is saved for later; receipt details stay closed until the user resumes and taps Next.'
+      ? 'Photo review is saved for later; receipt details stay closed until the user resumes saved review.'
       : userConfirmedPossiblePartialReceiptComplete
       ? 'Receipt details can open because the user confirmed the flagged photo covers the full receipt.'
       : needsAnotherReceiptSectionBeforeDetails

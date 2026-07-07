@@ -149,7 +149,10 @@ void main() {
       ),
     );
     expect(controls, contains('Use Photos'));
-    expect(models, contains('Next opens receipt details from each section'));
+    expect(
+      models,
+      contains('Receipt details open from each section, top to bottom.'),
+    );
     final saveActions = await readReceiptPhotoReviewSaveActionsSource();
     final importActions = await readReceiptAttachmentImportActionsSource();
     final ocrActions = await File(

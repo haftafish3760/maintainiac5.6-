@@ -36,16 +36,16 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
       return 'Add the next receipt section before receipt details unless this photo already shows the full receipt. $safety.';
     }
     if (nextReviewUsesCombinedReceiptImage) {
-      return 'Next reviews $nextReviewSourceLabel. $safety.';
+      return 'Receipt details open from $nextReviewSourceLabel. $safety.';
     }
     if (nextReviewUsesOrderedSections) {
       if (stitchResult.usedFallback &&
           stitchResult.failedPairLabel.isNotEmpty) {
-        return 'Next reviews $nextReviewSourceLabel from top to bottom. ${stitchResult.failedPairLabel} needs adjustment. $safety.';
+        return 'Receipt details open from $nextReviewSourceLabel in top-to-bottom order. ${stitchResult.failedPairLabel} needs adjustment. $safety.';
       }
-      return 'Next reviews $nextReviewSourceLabel from top to bottom. $safety.';
+      return 'Receipt details open from $nextReviewSourceLabel in top-to-bottom order. $safety.';
     }
-    return 'Next reviews $nextReviewSourceLabel. $safety.';
+    return 'Receipt details open from $nextReviewSourceLabel. $safety.';
   }
 
   String get nextReviewDiagnosticLabel {

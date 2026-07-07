@@ -213,14 +213,14 @@ void main() {
       handoffMetadata,
       containsPair(
         'receiptReaderHandoffNextStepLabel',
-        'Next opens receipt details with store, date, total, tax, item prices, and Business/Personal/Mixed choices.',
+        'Receipt details open with store, date, total, tax, item prices, and Business/Personal/Mixed choices.',
       ),
     );
     expect(
       handoffMetadata,
       containsPair(
         'receiptDetailsHandoffNextStepLabel',
-        'Next opens receipt details with store, date, total, tax, item prices, and Business/Personal/Mixed choices.',
+        'Receipt details open with store, date, total, tax, item prices, and Business/Personal/Mixed choices.',
       ),
     );
     expect(

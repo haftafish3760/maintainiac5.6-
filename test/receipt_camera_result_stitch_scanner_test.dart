@@ -108,7 +108,7 @@ void main() {
     expect(stitched.nextReviewSourceLabel, 'one combined receipt image');
     expect(
       stitched.nextReviewHandoffLabel,
-      'Next reviews one combined receipt image. Automatic match accepted.',
+      'Receipt details open from one combined receipt image. Automatic match accepted.',
     );
     expect(
       stitched.nextReviewDiagnosticLabel,
@@ -163,7 +163,7 @@ void main() {
     expect(fallback.nextReviewSourceLabel, '2 ordered receipt sections');
     expect(
       fallback.nextReviewHandoffLabel,
-      'Next reviews 2 ordered receipt sections from top to bottom. Photo 1 to 2 needs adjustment. Stitch not trusted.',
+      'Receipt details open from 2 ordered receipt sections in top-to-bottom order. Photo 1 to 2 needs adjustment. Stitch not trusted.',
     );
     expect(
       fallback.nextReviewDiagnosticLabel,
