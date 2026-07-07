@@ -5,6 +5,9 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
     if (keptForLater) {
       return 'Resume photo review, then use the saved photo review to open receipt details.';
     }
+    if (!hasOcrSourcePhotos) {
+      return 'Add a clearer receipt photo, or continue by hand if app-assisted filling is not available.';
+    }
     if (userConfirmedPossiblePartialReceiptComplete) {
       return 'Review receipt details next; the user confirmed this photo shows the full receipt.';
     }
@@ -141,6 +144,8 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
 
   String get acceptedPhotoHandoffNextStepLabel => keptForLater
       ? 'Resume the saved receipt photo review, then use it to open receipt details.'
+      : !hasOcrSourcePhotos
+      ? 'Add a clearer receipt photo before opening receipt details, or continue by hand without app-assisted filling.'
       : needsAnotherReceiptSectionBeforeDetails
       ? firstPossiblePartialReceiptReasonCode ==
                 'missing_bottom_edge_and_totals'
@@ -158,6 +163,8 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
 
   String get acceptedPhotoHandoffProcessingLabel => keptForLater
       ? 'Receipt details stay closed until saved photo review is resumed.'
+      : !hasOcrSourcePhotos
+      ? 'Receipt details stay paused until a clearer OCR source is added or the user continues by hand.'
       : needsAnotherReceiptSectionBeforeDetails
       ? 'Receipt details stay paused until the bottom section is added or the user confirms this photo already shows the full receipt.'
       : receiptSectionOrderNeedsReview
@@ -169,6 +176,8 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
 
   String get acceptedPhotoHandoffRouteResultLabel => keptForLater
       ? 'Photo review is saved for later; receipt details stay closed until the user resumes saved review.'
+      : !hasOcrSourcePhotos
+      ? 'Receipt details can open only after a clearer OCR source is added, or the user continues by hand without app-assisted filling.'
       : userConfirmedPossiblePartialReceiptComplete
       ? 'Receipt details can open because the user confirmed the flagged photo covers the full receipt.'
       : needsAnotherReceiptSectionBeforeDetails

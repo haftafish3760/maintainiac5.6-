@@ -251,6 +251,22 @@ void main() {
         result.privacySafeOcrSourceFirstSummary,
         containsPair('ocrSourcePathsMatchStitchContract', false),
       );
+      expect(
+        result.acceptedPhotoHandoffActionLabel,
+        'Check readability, then review receipt details and mark Business, Personal, or Mixed.',
+      );
+      expect(
+        result.acceptedPhotoHandoffNextStepLabel,
+        'Review the OCR source handoff before opening receipt details.',
+      );
+      expect(
+        result.acceptedPhotoHandoffProcessingLabel,
+        'Receipt details stay paused until the OCR source handoff is reviewed.',
+      );
+      expect(
+        result.acceptedPhotoHandoffRouteResultLabel,
+        'Receipt details can open only after the OCR source handoff is reviewed.',
+      );
       expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
       expect(
         result.receiptPhotoReviewHandoffPath,
@@ -413,6 +429,14 @@ void main() {
       expect(
         result.receiptReaderHandoffCounts,
         containsPair('stitch_ocr_source_contract_fallback_no_ocr_sources', 1),
+      );
+      expect(
+        result.acceptedPhotoHandoffActionLabel,
+        'Add a clearer receipt photo, or continue by hand if app-assisted filling is not available.',
+      );
+      expect(
+        result.acceptedPhotoHandoffNextStepLabel,
+        'Add a clearer receipt photo before opening receipt details, or continue by hand without app-assisted filling.',
       );
       expect(
         result.stitchResult.privacySafeOcrHandoffSafety,
