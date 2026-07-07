@@ -31,6 +31,7 @@ void main() {
     expect(script, contains('run_stitch'));
     expect(script, contains('run_milestone'));
     expect(script, contains('run_full'));
+    expect(script, contains('stitch_tests=('));
     expect(script, contains('milestone_only_tests=('));
     expect(script, contains('full_only_tests=('));
     expect(script, contains('test/receipt_camera_result_test.dart'));
@@ -119,6 +120,8 @@ void main() {
       script,
       contains('test/receipt_native_ios_bridge_long_receipt_quality_test.dart'),
     );
+    expect(script, contains('print_test_pack stitch "\${stitch_tests[@]}"'));
+    expect(script, contains('run_flutter_tests "\${stitch_tests[@]}"'));
   });
 
   test('camera QA gate scans for stale wording and retired controls', () {
@@ -181,6 +184,11 @@ void main() {
     expect(fastGuard, contains('tool/receipt_camera_real_device_snapshot.sh'));
     expect(fastGuard, contains('tool/receipt_camera_stitch_gate.sh'));
     expect(fastGuard, contains('tool/receipt_start_camera_qa_gate.sh'));
+    final stitchGate = File(
+      'tool/receipt_camera_stitch_gate.sh',
+    ).readAsStringSync();
+    expect(stitchGate, contains('tool/receipt_camera_qa_gate.sh stitch'));
+    expect(stitchGate, isNot(contains('flutter test')));
   });
 
   test(
@@ -331,12 +339,15 @@ void main() {
   });
 
   test('camera stitch gate focuses long receipt stitching risk', () {
-    final script = File(
+    final stitchGate = File(
       'tool/receipt_camera_stitch_gate.sh',
     ).readAsStringSync();
+    final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
 
+    expect(stitchGate, contains('tool/receipt_camera_qa_gate.sh stitch'));
+    expect(stitchGate, isNot(contains('flutter test')));
+    expect(stitchGate, isNot(contains('dart analyze')));
     expect(script, contains('tool/receipt_camera_scope_gate.sh'));
-    expect(script, contains('bash -n tool/receipt_camera_stitch_gate.sh'));
     expect(
       script,
       contains('dart tool/receipt_bug_regression_ledger_gate.dart'),
