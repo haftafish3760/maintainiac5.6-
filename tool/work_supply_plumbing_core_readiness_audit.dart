@@ -225,6 +225,7 @@ bool _requiresSize(String text) {
 }
 
 bool _requiresMaterial(String text) {
+  if (_isWaterTreatmentDirectText(text)) return false;
   return _hasAny(text, [
     'adapter',
     'connector',
@@ -250,9 +251,7 @@ bool _requiresShape(String text) {
 }
 
 bool _requiresConnection(String text) {
-  if (_isWaterTreatmentDirectText(text) && !_hasAny(text, ['line', 'valve'])) {
-    return false;
-  }
+  if (_isWaterTreatmentDirectText(text)) return false;
   return _hasAny(text, [
     'adapter',
     'copper',

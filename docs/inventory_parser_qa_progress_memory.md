@@ -4109,7 +4109,9 @@ Release boundaries:
   tool/work_supply_plumbing_core_readiness_audit.dart
   test/work_supply_plumbing_core_readiness_audit_test.dart` and
   `flutter test test/work_supply_plumbing_core_readiness_audit_test.dart`.
-  Latest readiness report: 1,122 Core rows, 155 release-ready candidates, 244
-  metadata-ready candidates, 878 needing critical parser-evidence work,
-  readiness floor 82, readiness average 89.71. Water treatment now has 97/97
-  metadata-ready rows and 44 release-ready candidates.
+  A follow-up audit refinement correctly treats water-treatment service parts as
+  identity-complete without pipe-connection/material requirements that only make
+  sense for fittings and supply lines. Latest readiness report: 1,122 Core rows,
+  208 release-ready candidates, 244 metadata-ready candidates, 878 needing
+  critical parser-evidence work, readiness floor 82, readiness average 89.86.
+  Water treatment now has 97/97 release-ready candidates.
