@@ -235,6 +235,28 @@ void main() {
     expect(combined, isNot(contains('Stream.periodic')));
   });
 
+  test('native camera shell keeps a round shutter control contract', () async {
+    final bottomControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_controls.dart',
+    ).readAsString();
+    final shutterStart = bottomControls.indexOf(
+      'class _ReceiptNativeCameraShutterButton',
+    );
+    final shutterEnd = bottomControls.indexOf(
+      'class _ReceiptNativeCameraIconButton',
+      shutterStart,
+    );
+    final shutterBlock = bottomControls.substring(shutterStart, shutterEnd);
+
+    expect(shutterBlock, contains('label: \'Take receipt photo\''));
+    expect(shutterBlock, contains('shape: const CircleBorder()'));
+    expect(shutterBlock, contains('customBorder: const CircleBorder()'));
+    expect(shutterBlock, contains('shape: BoxShape.circle'));
+    expect(shutterBlock, contains('width: 70'));
+    expect(shutterBlock, contains('height: 70'));
+    expect(shutterBlock, isNot(contains('RoundedRectangleBorder(')));
+  });
+
   testWidgets('native camera shell can show long receipt ghost guide', (
     tester,
   ) async {
