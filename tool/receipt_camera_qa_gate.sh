@@ -25,6 +25,7 @@ quick_tests=(
   test/receipt_native_android_bridge_settings_quality_test.dart
   test/receipt_native_android_bridge_capture_quality_contract_test.dart
   test/receipt_camera_long_receipt_guidance_test.dart
+  test/receipt_camera_qa_gate_contract_test.dart
 )
 
 milestone_only_tests=(
