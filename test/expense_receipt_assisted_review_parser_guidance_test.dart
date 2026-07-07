@@ -143,9 +143,13 @@ void main() {
     expect(parseReview, contains('required this.routeResultLabel'));
     expect(parseReview, contains('final VoidCallback onReviewDetails;'));
     expect(parseReview, contains('final String routeResultLabel;'));
-    expect(parseReview, contains('onPressed: onReviewDetails'));
+    expect(
+      parseReview,
+      contains('onPressed: processingInFlight ? null : onReviewDetails'),
+    );
     expect(parseReview, contains("'Review Details'"));
     expect(parseReview, contains("'Show Filled Review'"));
+    expect(parseReview, contains("'Open Manual Review'"));
     expect(parseReview, isNot(contains("'Go To Review'")));
     expect(parseReview, contains('Preparing Receipt Details'));
     expect(
