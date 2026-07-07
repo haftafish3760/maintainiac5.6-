@@ -157,4 +157,51 @@ void main() {
     );
     expect(text, contains('Add a `BUG-RECEIPT-####` ledger row'));
   });
+
+  test('detached camera QA summary reports passed and failed batches', () async {
+    final passName =
+        'receipt_camera_summary_pass_${DateTime.now().microsecondsSinceEpoch}';
+    final failName =
+        'receipt_camera_summary_fail_${DateTime.now().microsecondsSinceEpoch}';
+    final passRoot = Directory('/tmp/maintainiac_receipt_quiet_batch/$passName')
+      ..createSync(recursive: true);
+    final failRoot = Directory('/tmp/maintainiac_receipt_quiet_batch/$failName')
+      ..createSync(recursive: true);
+    addTearDown(() {
+      if (passRoot.existsSync()) passRoot.deleteSync(recursive: true);
+      if (failRoot.existsSync()) failRoot.deleteSync(recursive: true);
+    });
+
+    File('${passRoot.path}/status.txt').writeAsStringSync('passed');
+    File('${passRoot.path}/exit_code').writeAsStringSync('0');
+    File('${passRoot.path}/run.log').writeAsStringSync('All tests passed\n');
+
+    File('${failRoot.path}/status.txt').writeAsStringSync('failed');
+    File('${failRoot.path}/exit_code').writeAsStringSync('1');
+    File('${failRoot.path}/run.log').writeAsStringSync(
+      'Expected: receipt camera stitch ready\n'
+      'Actual: missing OCR source handoff\n',
+    );
+
+    final passed = await Process.run('bash', [
+      'tool/receipt_camera_qa_summary.sh',
+      passName,
+    ]);
+    expect(passed.exitCode, 0, reason: passed.stderr.toString());
+    expect(
+      passed.stdout.toString(),
+      contains('summary=passed_no_actionable_failures'),
+    );
+
+    final failed = await Process.run('bash', [
+      'tool/receipt_camera_qa_summary.sh',
+      failName,
+    ]);
+    expect(failed.exitCode, 0, reason: failed.stderr.toString());
+    final output = failed.stdout.toString();
+    expect(output, contains('summary=failed_actionable_lines'));
+    expect(output, contains('regression_task_command='));
+    expect(output, contains('Expected: receipt camera stitch ready'));
+    expect(output, contains('Actual: missing OCR source handoff'));
+  });
 }
