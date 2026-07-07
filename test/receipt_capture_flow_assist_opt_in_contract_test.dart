@@ -168,7 +168,9 @@ void main() {
       lessThan(introHelper.indexOf('return true;')),
     );
 
-    final takePhotoStart = cameraActions.indexOf('Future<void> takeReceiptPhoto');
+    final takePhotoStart = cameraActions.indexOf(
+      'Future<void> takeReceiptPhoto',
+    );
     final takePhotoEnd = cameraActions.indexOf(
       'Future<_MaintainiacNativeCameraPhotoOutcome>',
       takePhotoStart,
@@ -181,6 +183,20 @@ void main() {
       takePhotoBlock.indexOf(
         'final ready = await _showFirstUseReceiptCameraIntro(settings);',
       ),
+      lessThan(
+        takePhotoBlock.indexOf(
+          'final nativeOutcome = await _takeMaintainiacNativeCameraPhoto(settings);',
+        ),
+      ),
+    );
+    expect(
+      takePhotoBlock,
+      contains(
+        'if (!ready) {\n          await returnToReceiptImportOptions();\n          return;\n        }',
+      ),
+    );
+    expect(
+      takePhotoBlock.indexOf('await returnToReceiptImportOptions();'),
       lessThan(
         takePhotoBlock.indexOf(
           'final nativeOutcome = await _takeMaintainiacNativeCameraPhoto(settings);',

@@ -9,7 +9,11 @@ extension _ReceiptAttachmentCameraActions
       final settings = ReceiptCaptureSettingsScope.maybeOf(context);
       if (settings != null && !settings.cameraSetupComplete) {
         final ready = await _showFirstUseReceiptCameraIntro(settings);
-        if (!mounted || !ready) return;
+        if (!mounted) return;
+        if (!ready) {
+          await returnToReceiptImportOptions();
+          return;
+        }
       }
       final nativeOutcome = await _takeMaintainiacNativeCameraPhoto(settings);
       if (nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.added) return;
