@@ -318,7 +318,7 @@ void main() {
       );
       expect(
         cameraController,
-        contains('Receipt edges found. Hold steady and tap the shutter.'),
+        contains('Receipt edges found. Hold steady and capture when ready.'),
       );
       expect(
         cameraController,

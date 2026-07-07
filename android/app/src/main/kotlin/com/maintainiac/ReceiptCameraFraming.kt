@@ -114,7 +114,7 @@ internal fun ReceiptCameraActivity.framingGuidanceCopy(
     confidenceBucket: String,
 ): String {
     return when (confidenceBucket) {
-        "strong_edges" -> "Receipt edges found. Hold steady and tap the shutter."
+        "strong_edges" -> "Receipt edges found. Hold steady and capture when ready."
         "usable_edges" -> "Receipt edges look usable. Tap the shutter if the text is clear."
         "weak_edges" -> "Receipt edges are weak. Leave paper edges visible if you can."
         else -> "Receipt edge hint found. Make sure all text is readable."

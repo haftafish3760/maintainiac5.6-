@@ -323,7 +323,7 @@ extension ReceiptCameraViewController {
   func framingGuidanceCopy(_ confidenceBucket: String) -> String {
     switch confidenceBucket {
     case "strong_edges":
-      return "Receipt edges found. Hold steady and tap the shutter."
+      return "Receipt edges found. Hold steady and capture when ready."
     case "usable_edges":
       return "Receipt edges look usable. Tap the shutter if the text is clear."
     case "weak_edges":
