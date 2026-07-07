@@ -68,6 +68,29 @@ Privacy diagnostics conditions:
 - Push a phone build only after a meaningful camera or receipt review batch.
 - After install, start with a clean new expense receipt entry so stale draft state does not hide flow bugs.
 
+### iPhone Native-Asset Preflight
+
+Before physical iPhone receipt-camera QA after a repo move, clone, or long gap:
+
+1. Run `flutter clean`.
+2. Run `flutter pub get`.
+3. Run `flutter build ios --debug --no-codesign` or the signed device build you
+   actually plan to install.
+4. Run `bash tool/receipt_camera_ios_native_asset_preflight.sh`.
+
+Expected:
+- The preflight reports `status=ok`.
+- `NativeAssetsManifest.json` advertises `ios_arm64`.
+- `objective_c.framework/objective_c` contains `arm64`.
+
+If the preflight fails and the framework is `x86_64` only, treat that as stale
+generated build contamination first, not as a receipt-camera feature failure.
+
+If `flutter run` installs the app and then fails with
+`Target native_assets required define SdkRoot but it was not provided`, treat
+that as a separate Flutter debug/native-assets tooling blocker after install,
+not as proof that the receipt-camera app bundle is still wrong.
+
 ## Flow 1: Single Photo Receipt
 
 Purpose:

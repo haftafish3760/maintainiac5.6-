@@ -215,6 +215,7 @@ quick_tests=(
   test/receipt_external_dataset_gate_test.dart
   test/receipt_external_fixture_schema_gate_test.dart
   test/receipt_photo_section_labels_test.dart
+  test/receipt_camera_ios_native_asset_preflight_contract_test.dart
   test/receipt_camera_real_device_snapshot_contract_test.dart
   test/receipt_camera_changed_gate_contract_test.dart
   test/receipt_camera_changed_route_coverage_gate_test.dart
