@@ -301,7 +301,7 @@ void main() {
         '--locale',
         'en-US',
         '--limit',
-        '16',
+        '64',
         '--include-risk-tags',
         'tubular',
         '--output-dir',
@@ -328,9 +328,17 @@ void main() {
             )
             as Map;
 
-    expect(fixtures, hasLength(16));
+    expect(fixtures, hasLength(64));
     expect(manifest['includeRiskTags'], ['tubular']);
-    expect(_fixtureIds(fixtures), contains('lavatory_p_trap'));
+    final ids = _fixtureIds(fixtures);
+    expect(ids, contains('lavatory_p_trap'));
+    expect(ids, contains('tubular_tailpiece'));
+    expect(ids, contains('tubular_extension_tube'));
+    expect(ids, contains('slip_joint_nut_washer'));
+    expect(ids, contains('beveled_washer_pack'));
+    expect(ids, contains('basket_strainer'));
+    expect(ids, contains('brass_j_bend'));
+    expect(ids, contains('flanged_tailpiece'));
     expect(_riskTags(manifest), contains('tubular'));
     expect(_riskTags(manifest), isNot(contains('water_treatment')));
   });
