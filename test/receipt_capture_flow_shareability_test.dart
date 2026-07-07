@@ -105,6 +105,40 @@ void main() {
     },
   );
 
+  test('continuation guide preserves top-retake next-section ghost policy', () {
+    final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
+      previousPhotoPaths: const ['/tmp/receipt-section-2.jpg'],
+      reasonCode: ' retake_top_with_next_context ',
+      guidance: 'Use the next receipt section as context.',
+    );
+
+    final options = guide.applyTo(
+      const ReceiptCaptureFlowOptions(
+        module: ReceiptCaptureFlowModule.expenses,
+      ),
+    );
+
+    expect(guide.hasReason, isTrue);
+    expect(guide.hasGuidePhoto, isTrue);
+    expect(guide.reasonCode, 'retake_top_with_next_context');
+    expect(guide.ghostSourceStartFraction, 0);
+    expect(guide.ghostSourceHeightFraction, .22);
+    expect(guide.ghostOverlayTopFraction, 0);
+    expect(guide.ghostOverlayHeightFraction, .22);
+    expect(guide.ghostOpacity, .32);
+    expect(options.previousSectionGuidePhotoPath, '/tmp/receipt-section-2.jpg');
+    expect(options.previousSectionReasonCode, 'retake_top_with_next_context');
+    expect(
+      options.previousSectionGuidance,
+      'Use the next receipt section as context.',
+    );
+    expect(options.previousSectionGhostSourceStartFraction, 0);
+    expect(options.previousSectionGhostSourceHeightFraction, .22);
+    expect(options.previousSectionGhostOverlayTopFraction, 0);
+    expect(options.previousSectionGhostOverlayHeightFraction, .22);
+    expect(options.previousSectionGhostOpacity, .32);
+  });
+
   test(
     'continuation guide activates manual add-photo ghost without reason',
     () {

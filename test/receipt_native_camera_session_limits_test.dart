@@ -198,6 +198,39 @@ void main() {
       uppercaseBottomReason.previousSectionGhostGuideMatchTarget,
       'subtotal_total_and_final_lines',
     );
+
+    final topRetakeGuide = const ReceiptNativeCameraSettings().sessionFor(
+      deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+      nativeCapabilities: native,
+      previousSectionGuidePhotoPath: '/tmp/receipt-section-2.jpg',
+      previousSectionReasonCode: 'retake_top_with_next_context',
+      previousSectionGhostSourceStartFraction: 0,
+      previousSectionGhostSourceHeightFraction: .22,
+      previousSectionGhostOverlayTopFraction: 0,
+      previousSectionGhostOverlayHeightFraction: .22,
+      previousSectionGhostOpacity: .32,
+    );
+    expect(topRetakeGuide.previousSectionGuideUsesNextContext, isTrue);
+    expect(
+      topRetakeGuide.previousSectionGhostGuidePolicy,
+      'next_section_top_context_ghost_at_top_repeat_3_to_5_lines',
+    );
+    expect(
+      topRetakeGuide.previousSectionGhostGuideMatchTarget,
+      'next_section_top_lines',
+    );
+    expect(topRetakeGuide.previousSectionGhostSourceStartFractionOrDefault, 0);
+    expect(
+      topRetakeGuide.previousSectionGhostSourceHeightFractionOrDefault,
+      .22,
+    );
+    expect(topRetakeGuide.previousSectionGhostOverlayTopFractionOrDefault, 0);
+    expect(
+      topRetakeGuide.previousSectionGhostOverlayHeightFractionOrDefault,
+      .22,
+    );
+    expect(topRetakeGuide.previousSectionGhostOpacityOrDefault, .32);
+    expect(topRetakeGuide.previousSectionGhostSlicePercent, 22);
   });
 
   test('session rejects unsafe previous section guide photo paths', () {

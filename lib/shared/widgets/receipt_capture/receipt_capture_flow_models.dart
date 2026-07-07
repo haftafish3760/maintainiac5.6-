@@ -173,6 +173,7 @@ class ReceiptCaptureContinuationGuide {
   }
 
   static double _ghostSourceStartFractionFor(String reasonCode) {
+    if (reasonCode == 'retake_top_with_next_context') return 0;
     if (reasonCode == 'missing_bottom_edge_and_totals') return .80;
     return .78;
   }
