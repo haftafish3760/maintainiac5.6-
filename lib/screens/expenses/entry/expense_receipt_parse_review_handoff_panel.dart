@@ -51,6 +51,17 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
         (stage.toLowerCase().contains('review ready') ||
             decision.toLowerCase().contains('open receipt details') ||
             routeResult.toLowerCase().contains('review opened'));
+    final needsBottomSection =
+        decision.toLowerCase().contains('add bottom receipt section') ||
+        stage.toLowerCase().contains('need bottom section') ||
+        routeResult.toLowerCase().contains('bottom receipt section') ||
+        coverageWarning.toLowerCase().contains('bottom receipt section');
+    final photoRecoveryLabel = needsBottomSection
+        ? 'Add Bottom Section'
+        : 'Retake / Add Photo';
+    final photoRecoveryIcon = needsBottomSection
+        ? Icons.vertical_align_bottom_rounded
+        : Icons.add_photo_alternate_rounded;
     return ReceiptFormPanel(
       title: processingInFlight
           ? 'Preparing Receipt Details'
@@ -217,8 +228,8 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
             const SizedBox(width: 8),
             OutlinedButton.icon(
               onPressed: onAddOrRetakePhoto,
-              icon: const Icon(Icons.add_photo_alternate_rounded),
-              label: const Text('Add / Retake'),
+              icon: Icon(photoRecoveryIcon),
+              label: Text(photoRecoveryLabel),
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFFFFD166),
                 side: const BorderSide(color: Color(0xFFFFD166), width: 1.2),

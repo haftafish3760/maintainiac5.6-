@@ -89,6 +89,19 @@ void main() {
     );
     expect(
       parseReview,
+      contains(
+        "decision.toLowerCase().contains('add bottom receipt section')",
+      ),
+    );
+    expect(
+      parseReview,
+      contains("final photoRecoveryLabel = needsBottomSection"),
+    );
+    expect(parseReview, contains("'Add Bottom Section'"));
+    expect(parseReview, contains("'Retake / Add Photo'"));
+    expect(parseReview, isNot(contains("const Text('Add / Retake')")));
+    expect(
+      parseReview,
       contains('onPressed: processingInFlight ? null : onReviewDetails'),
     );
     expect(
