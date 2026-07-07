@@ -4706,6 +4706,10 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         ? 'desanco adapter'
         : text.contains('compression trap')
         ? 'compression trap adapter'
+        : text.contains('wall bend')
+        ? 'wall bend'
+        : text.contains('trap arm')
+        ? 'trap arm'
         : null;
     if (wantsTubular) {
       for (final item in workSupplyCatalogItems) {
@@ -4899,6 +4903,8 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       tradeScope.trim().toLowerCase() != 'plumbing') {
     return null;
   }
+  final legacyAdapter = _directPlumbingLegacyAdapterFastMatch(text);
+  if (legacyAdapter != null) return legacyAdapter;
   final wantsTubularPTrap = RegExp(
     r'\b(p trap|p-trap|lav p trap|trampa lavamanos|trampa lavabo)\b',
   ).hasMatch(text);
@@ -5087,6 +5093,32 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
           _nameMatchesReceiptSize(name, size)) {
         return item;
       }
+    }
+  }
+  return null;
+}
+
+WorkSupplyItem? _directPlumbingLegacyAdapterFastMatch(String text) {
+  final preferredStyle = text.contains('desanco')
+      ? 'desanco adapter'
+      : text.contains('marvel')
+      ? 'marvel adapter'
+      : text.contains('wall bend')
+      ? 'wall bend'
+      : text.contains('trap arm')
+      ? 'trap arm'
+      : RegExp(r'\b(compression trap|comp trap)\b').hasMatch(text)
+      ? 'compression trap adapter'
+      : null;
+  if (preferredStyle == null) return null;
+  final size = _nominalReceiptSize(text);
+  for (final item in workSupplyCatalogItems) {
+    final name = item.name.toLowerCase();
+    if (item.trade == 'Plumbing' &&
+        name.contains(preferredStyle) &&
+        name.contains('tubular drain adapter') &&
+        _nameMatchesReceiptSize(name, size)) {
+      return item;
     }
   }
   return null;

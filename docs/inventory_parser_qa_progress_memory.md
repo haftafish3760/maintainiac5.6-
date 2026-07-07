@@ -4192,3 +4192,13 @@ Release boundaries:
   `build/parser_qa_reports/generated_fixtures/cpvc_30_single_chunk_20260707_0144`.
   CPVC fittings/valves can now be counted as focused-parser-evidence-covered by
   the Plumbing Core readiness audit.
+- **01:57-02:50 Legacy Repair Bridge Evidence:** Added legacy repair generated
+  fixture recipes for compression trap adapters, desanco adapters, marvel
+  adapters, wall-bend adapters, and trap-arm adapters, plus a generator
+  isolation regression for `--include-risk-tags legacy_repair`. The first probe
+  exposed real parser expectation mismatches around wall-bend/trap-arm routing.
+  Added an early legacy-adapter direct route so those receipt lines resolve to
+  the intended Tubular Drain Adapter rows. Verification passed with a surgical
+  two-fixture probe and then the full 25-case legacy single-chunk probe:
+  25 checked, 0 failures, 25 parser calls at
+  `build/parser_qa_reports/generated_fixtures/legacy_25_single_chunk_final_20260707_0235`.

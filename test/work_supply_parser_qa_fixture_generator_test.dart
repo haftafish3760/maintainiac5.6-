@@ -399,6 +399,65 @@ void main() {
     expect(_riskTags(manifest), isNot(contains('tubular')));
   });
 
+  test(
+    'fixture generator can isolate legacy repair Plumbing Core family',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_fixture_generator_plumbing_legacy_filter_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+
+      final exit = await runWorkSupplyParserFixtureGenerator(
+        [
+          '--trade',
+          'plumbing',
+          '--scope',
+          'residential',
+          '--tier',
+          'core',
+          '--locale',
+          'en-US',
+          '--limit',
+          '25',
+          '--include-risk-tags',
+          'legacy_repair',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 0);
+      final generatedRoot = Directory(
+        '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+      );
+      final fixtures =
+          jsonDecode(
+                File(
+                  '${generatedRoot.path}/generated_fixtures.json',
+                ).readAsStringSync(),
+              )
+              as List;
+      final manifest =
+          jsonDecode(
+                File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+              )
+              as Map;
+
+      expect(fixtures, hasLength(25));
+      expect(manifest['includeRiskTags'], ['legacy_repair']);
+      final ids = _fixtureIds(fixtures);
+      expect(ids, contains('compression_trap_adapter'));
+      expect(ids, contains('desanco_adapter'));
+      expect(ids, contains('marvel_adapter'));
+      expect(ids, contains('wall_bend_adapter'));
+      expect(ids, contains('trap_arm_adapter'));
+      expect(_riskTags(manifest), contains('legacy_repair'));
+      expect(_riskTags(manifest), isNot(contains('cpvc')));
+    },
+  );
+
   test('fixture generator rejects unsafe empty batches', () async {
     final stderr = _MemorySink();
     final exit = await runWorkSupplyParserFixtureGenerator(
