@@ -936,6 +936,72 @@ void main() {
     expect(_riskTags(manifest), isNot(contains('pipe_supports')));
   });
 
+  test(
+    'fixture generator can isolate water heater Plumbing Core family',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_fixture_generator_plumbing_water_heater_filter_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+
+      final exit = await runWorkSupplyParserFixtureGenerator(
+        [
+          '--trade',
+          'plumbing',
+          '--scope',
+          'residential',
+          '--tier',
+          'core',
+          '--locale',
+          'en-US',
+          '--limit',
+          '56',
+          '--include-risk-tags',
+          'water_heater_service',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 0);
+      final generatedRoot = Directory(
+        '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+      );
+      final fixtures =
+          jsonDecode(
+                File(
+                  '${generatedRoot.path}/generated_fixtures.json',
+                ).readAsStringSync(),
+              )
+              as List;
+      final manifest =
+          jsonDecode(
+                File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+              )
+              as Map;
+
+      expect(fixtures, hasLength(56));
+      expect(manifest['includeRiskTags'], ['water_heater_service']);
+      final ids = _fixtureIds(fixtures);
+      expect(ids, contains('water_heater_connector'));
+      expect(ids, contains('water_heater_element'));
+      expect(ids, contains('water_heater_thermostat'));
+      expect(ids, contains('water_heater_anode_rod'));
+      expect(ids, contains('water_heater_drain_pan'));
+      expect(ids, contains('water_heater_strap'));
+      expect(ids, contains('water_heater_expansion_tank'));
+      expect(ids, contains('water_heater_tpr_valve'));
+      expect(ids, contains('water_heater_drain_valve'));
+      expect(ids, contains('water_heater_dielectric'));
+      expect(ids, contains('water_heater_service_fitting'));
+      expect(ids, contains('water_heater_install_accessory'));
+      expect(_riskTags(manifest), contains('water_heater_service'));
+      expect(_riskTags(manifest), isNot(contains('general_valves')));
+    },
+  );
+
   test('fixture generator rejects unsafe empty batches', () async {
     final stderr = _MemorySink();
     final exit = await runWorkSupplyParserFixtureGenerator(

@@ -4292,3 +4292,21 @@ Release boundaries:
   `build/parser_qa_reports/generated_fixtures/general_valves_43_single_chunk_20260707_0510`.
   General valves and hose bibbs can now be counted as focused-parser-evidence-
   covered by the Plumbing Core readiness audit.
+- **05:34-06:08 Water Heater Service Evidence Lock:** Added focused water
+  heater recipes for supply/gas connectors, electric elements, thermostats,
+  anode rods, drain pans, restraint straps, expansion tanks, T&P/TPR relief,
+  drain valves, dielectric parts, service fittings, and install accessories,
+  plus a generator isolation regression for `--include-risk-tags
+  water_heater_service`. The first 56-case parser run exposed a real parser
+  precedence bug: merchant prefixes such as `PLBG SUPPLY` and `ELEC SUPPLY`
+  were falsely triggering standalone `supply` as a water-heater connector token.
+  The parser now routes specific water-heater repair/accessory/service-fitting
+  lines before broad connector matching and no longer treats merchant `SUPPLY`
+  as connector intent. A focused six-ID regression rerun passed with 6 checked,
+  0 failures, and 6 parser calls at
+  `build/parser_qa_reports/generated_fixtures/water_heater_6_failed_ids_20260707_053200`.
+  The corrected full 56-case water-heater single-chunk run passed with
+  56 checked, 0 failures, and 56 parser calls at
+  `build/parser_qa_reports/generated_fixtures/water_heater_56_single_chunk_20260707_054717`.
+  The readiness audit now reports water heater service at 56/56 release-ready
+  with 0 critical rows.

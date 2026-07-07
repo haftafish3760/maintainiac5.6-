@@ -1524,7 +1524,8 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(conector calentador|linea calentador|water heater|wtr htr)\b',
       ).hasMatch(text) &&
       RegExp(
-        r'\b(conector|linea|conn|connector|line|supply|hose)\b',
+        r'\b(conector|linea|conn|connector|line|hose|water heater line|'
+        r'heater supply)\b',
       ).hasMatch(text)) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -1983,11 +1984,166 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
   }
+  if (RegExp(r'\b(water htr|wtr htr|water heater|wh)\b').hasMatch(text) &&
+      RegExp(
+        r'\b(element|elem|4500w|5500w|4500 watt|5500 watt)\b',
+      ).hasMatch(text)) {
+    final watt = text.contains('5500') ? '5500' : '4500';
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('water heater repair part') &&
+          name.contains('$watt watt') &&
+          name.contains('element')) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\b(water htr|wtr htr|water heater|wh)\b').hasMatch(text) &&
+      RegExp(r'\b(anode|magnesium|aluminum zinc)\b').hasMatch(text)) {
+    final wantsAluminumZinc =
+        text.contains('aluminum') || text.contains('zinc');
+    final wants42 = RegExp(r'\b42\b').hasMatch(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade != 'Plumbing' ||
+          !name.contains('water heater repair part') ||
+          !name.contains('anode rod')) {
+        continue;
+      }
+      if (wantsAluminumZinc && name.contains('aluminum zinc')) return item;
+      if (wants42 && name.contains('42 in magnesium')) return item;
+      if (!wants42 && name.contains('24 in magnesium')) return item;
+    }
+  }
+  if (RegExp(
+    r'\b(upper thermostat|lower thermostat|wtr htr thermostat|'
+    r'water heater thermostat|thermostat and element|tune[- ]up kit)\b',
+  ).hasMatch(text)) {
+    final wantsUpper = text.contains('upper');
+    final wantsLower = text.contains('lower');
+    final wantsTuneUp = text.contains('tune') || text.contains('element');
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade != 'Plumbing' ||
+          !name.contains('water heater repair part')) {
+        continue;
+      }
+      if (wantsTuneUp && name.contains('tune-up kit')) return item;
+      if (wantsUpper && name.contains('upper thermostat')) return item;
+      if (wantsLower && name.contains('lower thermostat')) return item;
+      if (!wantsUpper && !wantsLower && name.contains('thermostat')) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(
+    r'\b(t and p|t&p|tpr|temperature and pressure|temp pressure)\b',
+  ).hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          (name.contains('temperature and pressure relief valve') ||
+              (name.contains('water heater repair part') &&
+                  name.contains('relief valve')))) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\b(water htr|wtr htr|water heater)\b').hasMatch(text) &&
+      RegExp(r'\b(drain pan|heater pan)\b').hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          (name.contains('water heater drain pan') ||
+              (name.contains('water heater install accessory') &&
+                  name.contains('drain pan')))) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\b(water htr|wtr htr|water heater)\b').hasMatch(text) &&
+      RegExp(
+        r'\b(restraint strap|seismic strap|heater strap)\b',
+      ).hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('water heater restraint strap')) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\b(earthquake strap|sediment trap|drip leg)\b').hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('water heater install accessory')) {
+        if (text.contains('earthquake') && name.contains('earthquake')) {
+          return item;
+        }
+        if ((text.contains('sediment') || text.contains('drip leg')) &&
+            name.contains('sediment')) {
+          return item;
+        }
+      }
+    }
+  }
+  if (RegExp(r'\b(water htr|wtr htr|water heater|thermal)\b').hasMatch(text) &&
+      RegExp(r'\b(exp tank|expansion tank)\b').hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' && name.contains('expansion tank')) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\b(water htr|wtr htr|water heater|boiler)\b').hasMatch(text) &&
+      RegExp(r'\b(drain valve|heater drain|boiler drain)\b').hasMatch(text) &&
+      !text.contains('pan')) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          ((name.contains('water heater drain valve')) ||
+              (name.contains('water heater repair part') &&
+                  name.contains('drain valve')))) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\b(water htr|wtr htr|water heater)\b').hasMatch(text) &&
+      RegExp(
+        r'\b(mixing valve|service fitting|wtr htr union)\b',
+      ).hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('water heater service fitting')) {
+        if (text.contains('mixing') && name.contains('mixing')) return item;
+        if (text.contains('union') && name.contains('union')) return item;
+        if (text.contains('service fitting')) return item;
+      }
+    }
+  }
+  if (RegExp(r'\b(water htr|wtr htr|water heater)\b').hasMatch(text) &&
+      RegExp(r'\b(vacuum relief|vac relief)\b').hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          (name.contains('water heater service fitting') ||
+              name.contains('water heater install accessory')) &&
+          name.contains('vacuum relief')) {
+        return item;
+      }
+    }
+  }
   if (RegExp(
     r'\b(wtr htr|water heater|heater connector|heater supply|'
     r'corrugated stainless)\b',
   ).hasMatch(text)) {
-    if (RegExp(r'\b(conn|connector|line|supply|hose)\b').hasMatch(text)) {
+    if (RegExp(
+      r'\b(conn|connector|line|hose|water heater line|heater supply)\b',
+    ).hasMatch(text)) {
       for (final item in workSupplyCatalogItems) {
         final name = item.name.toLowerCase();
         if (item.trade == 'Plumbing' &&
@@ -2863,7 +3019,8 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(water htr|wtr htr|water heater)\b').hasMatch(text) &&
       RegExp(
-        r'\b(flex connector|connector|supply connector|water heater line)\b',
+        r'\b(flex connector|connector|supply connector|water heater line|'
+        r'heater supply)\b',
       ).hasMatch(text)) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();

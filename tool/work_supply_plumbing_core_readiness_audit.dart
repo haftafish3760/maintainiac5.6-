@@ -215,8 +215,23 @@ _IdentityCompleteness _identityCompleteness(WorkSupplyItem item, String text) {
         _isTubularDrainAdapterText(text) ||
         _isDwvAdapterConnectionText(text) ||
         _isGeneralValveConnectionText(text) ||
+        _isWaterHeaterConnectionText(text) ||
         _isSolventWeldPressureFittingText(text),
   );
+}
+
+bool _isWaterHeaterConnectionText(String text) {
+  if (!text.contains('water heater')) return false;
+  return _hasAny(text, [
+    'mixing valve',
+    'relief valve',
+    'service fitting',
+    'temperature and pressure',
+    'union',
+    'vacuum relief valve',
+    'water heater dielectric nipple',
+    'water heater drain valve',
+  ]);
 }
 
 bool _isGeneralValveConnectionText(String text) {
@@ -545,6 +560,7 @@ int _score(List<String> issues, List<String> warnings) {
 
 bool _looksSpecialOrder(String text) {
   if (_hasAny(text, [
+    'water heater dielectric nipple',
     'stud guard',
     'tailpiece',
     'tubular extension tube',
@@ -675,6 +691,7 @@ const _familiesWithFocusedParserEvidence = {
   'pvc pressure fittings',
   'sump pump discharge service',
   'tubular drains and traps',
+  'water heater service',
   'water treatment',
   'well pressure service',
 };
