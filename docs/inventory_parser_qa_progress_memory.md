@@ -4099,3 +4099,17 @@ Release boundaries:
   candidates, 147 metadata-ready candidates, 975 needing work, 878 critical,
   readiness floor 82, readiness average 88.14. Broad generated parser shards
   remain blocked until family metadata/evidence queues are closed.
+- **22:01-22:05 Plumbing Core Water Treatment Ambiguity Metadata:** Used the
+  readiness audit to repair the water-treatment family centrally instead of
+  item-by-item. Added pool/chemical/ice-melt/table-salt ambiguity negatives for
+  Plumbing Core water-treatment rows and taught the readiness audit water
+  treatment identity terms such as GPD, cu ft, lb, resin, membrane, carbon,
+  sediment, quartz, salt, and potassium. Verification passed:
+  `dart analyze lib/screens/work_supplies/data/work_supply_catalog_intelligence.dart
+  tool/work_supply_plumbing_core_readiness_audit.dart
+  test/work_supply_plumbing_core_readiness_audit_test.dart` and
+  `flutter test test/work_supply_plumbing_core_readiness_audit_test.dart`.
+  Latest readiness report: 1,122 Core rows, 155 release-ready candidates, 244
+  metadata-ready candidates, 878 needing critical parser-evidence work,
+  readiness floor 82, readiness average 89.71. Water treatment now has 97/97
+  metadata-ready rows and 44 release-ready candidates.

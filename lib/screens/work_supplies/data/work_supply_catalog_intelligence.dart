@@ -1551,8 +1551,21 @@ List<String> _plumbingCoreNegativeMatchTokensFor(
     if (material != 'copper') 'hvac refrigerant copper',
     if (itemText.contains('push') && !itemText.contains('electrical'))
       'electrical connector',
+    if (_isWaterTreatmentCoreText(itemText)) 'pool filter',
+    if (_isWaterTreatmentCoreText(itemText)) 'swimming pool chemical',
+    if (_isWaterTreatmentCoreText(itemText)) 'ice melt salt',
+    if (_isWaterTreatmentCoreText(itemText)) 'table salt',
     if (shape != 'valve') 'gas appliance valve',
   ]);
+}
+
+bool _isWaterTreatmentCoreText(String text) {
+  return text.contains('water treatment') ||
+      text.contains('water filter') ||
+      text.contains('filter cartridge') ||
+      text.contains('reverse osmosis') ||
+      text.contains('softener') ||
+      text.contains('salt pellet');
 }
 
 bool _isPlumbingCoreMetadataTarget(WorkSupplyItem item) {
@@ -1759,12 +1772,14 @@ List<String> _plumbingSpanishCoreFamilyTermsFor(
       text.contains('pipe support')) {
     return const ['soporte tubo', 'gancho tubo'];
   }
-  if (text.contains('sanitary tee'))
+  if (text.contains('sanitary tee')) {
     return const ['tee sanitaria', 't sanitaria'];
+  }
   if (text.contains('coupling')) return const ['cople', 'acople'];
   if (text.contains('elbow') || shape == 'elbow') return const ['codo'];
-  if (text.contains('adapter') || shape == 'adapter')
+  if (text.contains('adapter') || shape == 'adapter') {
     return const ['adaptador'];
+  }
   if (text.contains('valve') || shape == 'valve') return const ['valvula'];
   return const ['plomeria residencial'];
 }

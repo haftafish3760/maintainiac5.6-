@@ -124,7 +124,9 @@ _ReadinessFinding _readinessFinding(WorkSupplyItem item) {
     'missing_source_confidence',
   );
 
-  if (!identity.hasMaterial) warnings.add('missing_material_context');
+  if (!identity.hasMaterial && _requiresMaterial(directText)) {
+    warnings.add('missing_material_context');
+  }
   if (!identity.hasSize && _requiresSize(directText)) {
     warnings.add('missing_size_context');
   }
@@ -222,6 +224,19 @@ bool _requiresSize(String text) {
   ]);
 }
 
+bool _requiresMaterial(String text) {
+  return _hasAny(text, [
+    'adapter',
+    'connector',
+    'coupling',
+    'fitting',
+    'hose',
+    'line',
+    'pipe',
+    'valve',
+  ]);
+}
+
 bool _requiresShape(String text) {
   return _hasAny(text, [
     'adapter',
@@ -235,10 +250,14 @@ bool _requiresShape(String text) {
 }
 
 bool _requiresConnection(String text) {
+  if (_isWaterTreatmentDirectText(text) && !_hasAny(text, ['line', 'valve'])) {
+    return false;
+  }
   return _hasAny(text, [
     'adapter',
     'copper',
     'cpvc',
+    'connector',
     'pex',
     'push',
     'supply',
@@ -273,7 +292,8 @@ bool _hasNegativeForRisk(WorkSupplyItem item, String risk) {
     'general_hardware' => _hasAny(negatives, [
       'ice melt',
       'pool',
-      'water softener',
+      'swimming pool',
+      'table salt',
     ]),
     'cross_trade' => _hasAny(negatives, ['air filter', 'electrical', 'hvac']),
     _ => false,
@@ -410,6 +430,10 @@ Map<String, int> _topIssues(List<_ReadinessFinding> rows) {
 
 String _familyNextAction(List<_ReadinessFinding> rows) {
   final top = _topIssues(rows);
+  final releaseReadyCount = rows
+      .where((row) => row.status == 'release_ready_candidate')
+      .length;
+  if (releaseReadyCount == rows.length) return 'candidate_for_release_lock';
   if (top.isEmpty) return 'run_focused_family_parser_evidence';
   final issue = top.keys.first;
   if (issue == 'missing_focused_parser_evidence') {
@@ -440,7 +464,18 @@ int _score(List<String> issues, List<String> warnings) {
 }
 
 bool _looksSpecialOrder(String text) {
-  return _hasAny(text, ['3 in', '4 in', '6 in', 'commercial', 'industrial']);
+  return _hasAny(text, ['commercial', 'industrial']) ||
+      RegExp(r'(^|[^0-9/])(3|4|6)\s*(in|inch|")([^0-9]|$)').hasMatch(text);
+}
+
+bool _isWaterTreatmentDirectText(String text) {
+  return _hasAny(text, [
+    'filter cartridge',
+    'reverse osmosis',
+    'softener',
+    'water filter',
+    'water treatment',
+  ]);
 }
 
 bool _looksLegacyWithoutRepairBridge(String text) {
@@ -575,12 +610,20 @@ const _familyContracts = [
 
 const _materials = [
   'brass',
+  'carbon',
   'copper',
   'cpvc',
+  'crystal',
+  'membrane',
   'plastic',
   'pex',
+  'potassium',
   'pvc',
+  'quartz',
+  'resin',
   'rubber',
+  'salt',
+  'sediment',
   'stainless',
   'steel',
 ];
@@ -601,9 +644,14 @@ const _shapes = [
 const _connections = [
   'clamp',
   'compression',
+  'connector',
+  'corrugated',
   'crimp',
   'female',
+  'fip',
+  'hose',
   'male',
+  'od',
   'push',
   'slip',
   'solvent',
@@ -630,7 +678,9 @@ const _spanishTerms = [
   'valvula',
 ];
 
-final _sizePattern = RegExp(r'\b\d+(/\d+)?\s*(in|inch|")\b|\b\d+/\d+\b');
+final _sizePattern = RegExp(
+  r'\b\d+(/\d+)?\s*(cu ft|gal|gpd|hp|in|inch|lb|psi|w|")\b|\b\d+/\d+\b|\b\d+k\b',
+);
 
 class _IdentityCompleteness {
   const _IdentityCompleteness({
