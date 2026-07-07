@@ -11,11 +11,23 @@ void main() {
     expect(script, contains('run_quick'));
     expect(script, contains('run_milestone'));
     expect(script, contains('run_full'));
+    expect(script, contains('milestone_only_tests=('));
+    expect(script, contains('full_only_tests=('));
     expect(script, contains('dart analyze lib/shared/widgets/receipt_capture'));
     expect(script, contains('dart tool/maintainiac_source_audit.dart'));
     expect(script, contains('run_line_cap_gate'));
     expect(script, contains('run_stale_contract_scan'));
     expect(script, contains('git diff --check'));
+  });
+
+  test('camera QA gate avoids rerunning broader packs already covered', () {
+    final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
+
+    expect(script, contains('run_flutter_tests "\${quick_tests[@]}"'));
+    expect(script, contains('run_flutter_tests "\${milestone_only_tests[@]}"'));
+    expect(script, contains('run_flutter_tests "\${full_only_tests[@]}"'));
+    expect(script, isNot(contains('milestone_tests=(')));
+    expect(script, isNot(contains('full_tests=(')));
   });
 
   test('camera QA gate owns camera capture and stitching regression packs', () {
@@ -60,7 +72,9 @@ void main() {
     final script = File(
       'tool/receipt_start_camera_qa_gate.sh',
     ).readAsStringSync();
-    final fastGuard = File('tool/receipt_fast_guard_gate.sh').readAsStringSync();
+    final fastGuard = File(
+      'tool/receipt_fast_guard_gate.sh',
+    ).readAsStringSync();
 
     expect(script, contains(r'mode="${1:-milestone}"'));
     expect(script, contains('quick | milestone | full'));

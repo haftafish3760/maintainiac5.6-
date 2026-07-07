@@ -27,8 +27,7 @@ quick_tests=(
   test/receipt_camera_long_receipt_guidance_test.dart
 )
 
-milestone_tests=(
-  "${quick_tests[@]}"
+milestone_only_tests=(
   test/receipt_camera_capture_layout_test.dart
   test/receipt_camera_native_bridge_layout_test.dart
   test/receipt_camera_ocr_source_handoff_test.dart
@@ -68,15 +67,16 @@ milestone_tests=(
   test/receipt_stitching_test.dart
 )
 
-full_tests=(
-  "${milestone_tests[@]}"
+full_only_tests=(
   test/receipt_native_android_bridge_analysis_exposure_test.dart
   test/receipt_native_ios_bridge_analysis_exposure_test.dart
 )
 
 line_cap_paths=(
   "${camera_source_roots[@]}"
-  "${full_tests[@]}"
+  "${quick_tests[@]}"
+  "${milestone_only_tests[@]}"
+  "${full_only_tests[@]}"
 )
 
 run_flutter_tests() {
@@ -139,7 +139,8 @@ run_quick() {
     tool/android_receipt_camera_compile_gate.sh \
     tool/ios_receipt_camera_compile_gate.sh \
     tool/receipt_camera_pipeline_gate.sh \
-    tool/receipt_camera_qa_gate.sh
+    tool/receipt_camera_qa_gate.sh \
+    tool/receipt_start_camera_qa_gate.sh
   dart analyze lib/shared/widgets/receipt_capture lib/shared/receipts
   run_source_audit
   run_line_cap_gate
@@ -150,12 +151,12 @@ run_quick() {
 
 run_milestone() {
   run_quick
-  run_flutter_tests "${milestone_tests[@]}"
+  run_flutter_tests "${milestone_only_tests[@]}"
 }
 
 run_full() {
   run_milestone
-  run_flutter_tests "${full_tests[@]}"
+  run_flutter_tests "${full_only_tests[@]}"
   bash tool/android_receipt_camera_compile_gate.sh
   bash tool/ios_receipt_camera_compile_gate.sh
 }
