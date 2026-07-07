@@ -32,6 +32,12 @@ void main() {
             'ocrSourceCaptureSourceSignalCounts': {
               'native_capture_source_maintainiac_native_camera': 1,
             },
+            'ocrSourceCoverageSignalCounts': {
+              'receipt_totals_missing_bottom_lines': 1,
+            },
+            'ocrSourceContinuationSignalCounts': {
+              'receipt_bottom_overlap_ghost_continuation': 1,
+            },
             'ocrSourcePhotoQualityRiskCounts': {
               'ocr_source_saved_photo_dimmer_than_preview': 1,
             },
@@ -106,6 +112,12 @@ void main() {
             },
             'ocrSourceCaptureSourceSignalCounts': {
               'native_capture_source_phone_camera_backup': 1,
+            },
+            'ocrSourceCoverageSignalCounts': {
+              'receipt_bottom_edge_missing': 1,
+            },
+            'ocrSourceContinuationSignalCounts': {
+              'receipt_continuation_needs_next_bottom_section': 1,
             },
             'ocrSourceSectionOrderSignalCounts': {
               'receipt_section_order_review_required': 1,
@@ -230,6 +242,14 @@ void main() {
         'native_capture_source_phone_camera_backup': 1,
         'native_capture_source_imported_photo': 1,
         'native_capture_source_recovery_photo': 1,
+      });
+      expect(snapshot.ocrSourceCoverageSignalCounts, {
+        'receipt_totals_missing_bottom_lines': 1,
+        'receipt_bottom_edge_missing': 1,
+      });
+      expect(snapshot.ocrSourceContinuationSignalCounts, {
+        'receipt_bottom_overlap_ghost_continuation': 1,
+        'receipt_continuation_needs_next_bottom_section': 1,
       });
       expect(snapshot.ocrSourceSectionOrderSignalCounts, {
         'receipt_section_order_review_required': 1,

@@ -8,6 +8,8 @@ class _ExpenseTelemetryOcrSourceSummary {
   final _stitchSignalCounts = <String, int>{};
   final _scannerDecisionCounts = <String, int>{};
   final _captureSourceSignalCounts = <String, int>{};
+  final _coverageSignalCounts = <String, int>{};
+  final _continuationSignalCounts = <String, int>{};
   final _sectionOrderSignalCounts = <String, int>{};
   final _photoQualityRiskCounts = <String, int>{};
   final _qualityReviewStatusCounts = <String, int>{};
@@ -43,6 +45,14 @@ class _ExpenseTelemetryOcrSourceSummary {
     return Map.unmodifiable(_captureSourceSignalCounts);
   }
 
+  Map<String, int> get coverageSignalCounts {
+    return Map.unmodifiable(_coverageSignalCounts);
+  }
+
+  Map<String, int> get continuationSignalCounts {
+    return Map.unmodifiable(_continuationSignalCounts);
+  }
+
   Map<String, int> get sectionOrderSignalCounts {
     return Map.unmodifiable(_sectionOrderSignalCounts);
   }
@@ -74,6 +84,8 @@ class _ExpenseTelemetryOcrSourceSummary {
   String get topStitchSignal => _topCountKey(_stitchSignalCounts);
   String get topScannerDecision => _topCountKey(_scannerDecisionCounts);
   String get topCaptureSourceSignal => _topCountKey(_captureSourceSignalCounts);
+  String get topCoverageSignal => _topCountKey(_coverageSignalCounts);
+  String get topContinuationSignal => _topCountKey(_continuationSignalCounts);
   String get topSectionOrderSignal => _topCountKey(_sectionOrderSignalCounts);
   String get topPhotoQualityRisk => _topCountKey(_photoQualityRiskCounts);
   String get topQualityReviewStatus => _topCountKey(_qualityReviewStatusCounts);
@@ -111,6 +123,14 @@ class _ExpenseTelemetryOcrSourceSummary {
     _mergeCountMap(
       _captureSourceSignalCounts,
       _metadataValue(metadata['ocrSourceCaptureSourceSignalCounts']),
+    );
+    _mergeCountMap(
+      _coverageSignalCounts,
+      _metadataValue(metadata['ocrSourceCoverageSignalCounts']),
+    );
+    _mergeCountMap(
+      _continuationSignalCounts,
+      _metadataValue(metadata['ocrSourceContinuationSignalCounts']),
     );
     _mergeCountMap(
       _sectionOrderSignalCounts,

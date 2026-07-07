@@ -76,6 +76,8 @@ extension ExpenseTelemetryHealthSnapshotCommandCenterMap
       'ocrSourceStitchSignalCounts': ocrSourceStitchSignalCounts,
       'ocrSourceScannerDecisionCounts': ocrSourceScannerDecisionCounts,
       'ocrSourceCaptureSourceSignalCounts': ocrSourceCaptureSourceSignalCounts,
+      'ocrSourceCoverageSignalCounts': ocrSourceCoverageSignalCounts,
+      'ocrSourceContinuationSignalCounts': ocrSourceContinuationSignalCounts,
       'ocrSourceSectionOrderSignalCounts': ocrSourceSectionOrderSignalCounts,
       'ocrSourcePhotoQualityRiskCounts': ocrSourcePhotoQualityRiskCounts,
       'ocrSourceQualityReviewStatusCounts': ocrSourceQualityReviewStatusCounts,
@@ -149,6 +151,10 @@ extension ExpenseTelemetryHealthSnapshotCommandCenterMap
         'topOcrSourceScannerDecision': topOcrSourceScannerDecision,
       if (topOcrSourceCaptureSourceSignal.isNotEmpty)
         'topOcrSourceCaptureSourceSignal': topOcrSourceCaptureSourceSignal,
+      if (topOcrSourceCoverageSignal.isNotEmpty)
+        'topOcrSourceCoverageSignal': topOcrSourceCoverageSignal,
+      if (topOcrSourceContinuationSignal.isNotEmpty)
+        'topOcrSourceContinuationSignal': topOcrSourceContinuationSignal,
       if (topOcrSourceSectionOrderSignal.isNotEmpty)
         'topOcrSourceSectionOrderSignal': topOcrSourceSectionOrderSignal,
       if (topOcrSourcePhotoQualityRisk.isNotEmpty)

@@ -38,7 +38,7 @@ extension ReceiptCameraViewController {
 
   func buildLayout() {
     let preview = AVCaptureVideoPreviewLayer(session: session)
-    preview.videoGravity = .resizeAspect
+    preview.videoGravity = .resizeAspectFill
     view.layer.addSublayer(preview)
     previewLayer = preview
     let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(zoomPreview(_:)))
@@ -82,7 +82,6 @@ extension ReceiptCameraViewController {
     let spacer = UIView()
     topBar.addArrangedSubview(backButton)
     topBar.addArrangedSubview(spacer)
-    topBar.addArrangedSubview(doneButton)
     topBar.addArrangedSubview(settingsButton)
     topBar.addArrangedSubview(torchButton)
     view.addSubview(topBar)
@@ -106,8 +105,8 @@ extension ReceiptCameraViewController {
     bottomBar.alignment = .center
     bottomBar.distribution = .fill
     bottomBar.spacing = 12
-    bottomBar.backgroundColor = UIColor(white: 0.02, alpha: 0.53)
-    bottomBar.layoutMargins = UIEdgeInsets(top: 10, left: 12, bottom: 14, right: 12)
+    bottomBar.backgroundColor = .clear
+    bottomBar.layoutMargins = UIEdgeInsets(top: 6, left: 12, bottom: 10, right: 12)
     bottomBar.isLayoutMarginsRelativeArrangement = true
     bottomBar.translatesAutoresizingMaskIntoConstraints = false
 
@@ -127,8 +126,20 @@ extension ReceiptCameraViewController {
     addPhotoButton.isEnabled = false
     addPhotoButton.isHidden = true
     addPhotoButton.addTarget(self, action: #selector(captureAdditionalPhoto), for: .touchUpInside)
-    bottomBar.addArrangedSubview(addPhotoButton)
+    let leftSpacer = UIView()
+    bottomBar.addArrangedSubview(leftSpacer)
+    leftSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+    leftSpacer.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+    leftSpacer.widthAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
+    leftSpacer.heightAnchor.constraint(equalToConstant: 1).isActive = true
+    bottomBar.setCustomSpacing(16, after: leftSpacer)
     bottomBar.addArrangedSubview(shutterButton)
+    let rightSpacer = UIView()
+    bottomBar.addArrangedSubview(rightSpacer)
+    rightSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+    rightSpacer.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+    rightSpacer.widthAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
+    rightSpacer.heightAnchor.constraint(equalToConstant: 1).isActive = true
     bottomReviewButton.setTitle("Use Photos", for: .normal)
     bottomReviewButton.setTitleColor(.white, for: .normal)
     bottomReviewButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
@@ -137,7 +148,6 @@ extension ReceiptCameraViewController {
     bottomReviewButton.isEnabled = false
     bottomReviewButton.isHidden = true
     bottomReviewButton.addTarget(self, action: #selector(finishWithCapturedPhotos), for: .touchUpInside)
-    bottomBar.addArrangedSubview(bottomReviewButton)
     view.addSubview(bottomBar)
 
     NSLayoutConstraint.activate([
@@ -148,10 +158,6 @@ extension ReceiptCameraViewController {
       backButton.heightAnchor.constraint(equalToConstant: 48),
       settingsButton.widthAnchor.constraint(equalToConstant: 48),
       settingsButton.heightAnchor.constraint(equalToConstant: 48),
-      doneButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 72),
-      doneButton.heightAnchor.constraint(equalToConstant: 48),
-      addPhotoButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 82),
-      addPhotoButton.heightAnchor.constraint(equalToConstant: 54),
       torchButton.widthAnchor.constraint(equalToConstant: 48),
       torchButton.heightAnchor.constraint(equalToConstant: 48),
 
@@ -176,11 +182,10 @@ extension ReceiptCameraViewController {
 
       bottomBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       bottomBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      bottomBar.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-      bottomBar.heightAnchor.constraint(equalToConstant: 104),
+      bottomBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -4),
+      bottomBar.heightAnchor.constraint(equalToConstant: 84),
       shutterButton.widthAnchor.constraint(equalToConstant: 72),
       shutterButton.heightAnchor.constraint(equalToConstant: 72),
-      bottomReviewButton.heightAnchor.constraint(equalToConstant: 54)
     ])
     NSLayoutConstraint.activate([
       previousSectionGuide.topAnchor.constraint(equalTo: settingsStatusStrip.bottomAnchor, constant: 8),

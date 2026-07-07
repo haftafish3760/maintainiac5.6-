@@ -191,11 +191,13 @@ void main() {
       ),
     );
     expect(cameraActivity, contains('"pinchZoomPolicy" to zoomGesturePolicy'));
-    expect(cameraActivity, contains('Color.argb(126, 5, 6, 7)'));
-    expect(cameraActivity, contains('Color.argb(134, 5, 6, 7)'));
+    expect(cameraActivity, contains('Color.argb(168, 5, 6, 7)'));
+    expect(cameraActivity, contains('Color.argb(118, 5, 6, 7)'));
+    expect(cameraActivity, contains('Color.argb(104, 5, 6, 7)'));
     expect(cameraActivity, contains('Color.argb(138, 255, 209, 102)'));
     expect(cameraActivity, contains('alpha = 0.54f'));
-    expect(cameraActivity, contains('PreviewView.ScaleType.FIT_CENTER'));
+    expect(cameraActivity, contains('PreviewView.ScaleType.FILL_CENTER'));
+    expect(cameraActivity, isNot(contains('PreviewView.ScaleType.FIT_CENTER')));
     expect(cameraActivity, contains('nativePreviewScaleMode'));
     expect(cameraActivity, contains('nativeControlDensity'));
     expect(
@@ -246,11 +248,14 @@ void main() {
         '"longReceiptSectionGuidance" to "top_to_bottom_with_readable_overlap"',
       ),
     );
-    expect(cameraActivity, isNot(contains('Color.argb(210, 5, 6, 7)')));
+    expect(cameraActivity, contains('Color.argb(210, 5, 6, 7)'));
     expect(cameraActivity, contains('val assist = if (assistedReceiptFill)'));
     expect(cameraActivity, contains('"Assist on"'));
     expect(cameraActivity, contains('"Manual fill"'));
-    expect(cameraActivity, contains('OCR reads temp full-quality first'));
+    expect(
+      cameraActivity,
+      contains('OCR reads the temporary full-quality photo first'),
+    );
     expect(cameraActivity, isNot(contains('OCR reads original first')));
     expect(cameraActivity, contains('open receipt details'));
     expect(cameraActivity, contains('proof and cloud backup'));

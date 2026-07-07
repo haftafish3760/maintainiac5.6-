@@ -94,7 +94,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var bestShotCandidateCount = 3
   var cameraResolutionTier = "high"
   var cameraWorkloadTier = "balanced"
-  let nativePreviewScaleMode = "resize_aspect_full_receipt"
+  let nativePreviewScaleMode = "resize_aspect_fill_full_receipt"
   let nativeControlDensity = "compact_receipt_controls"
   var previewExposurePolicy = "receipt_paper_metering_safe_auto_lift_manual_slider"
   var previewBrightnessGuardPolicy = "avoid_dark_preview_full_receipt_sampling"

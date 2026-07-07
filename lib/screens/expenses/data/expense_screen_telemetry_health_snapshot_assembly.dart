@@ -138,6 +138,9 @@ extension _ExpenseTelemetryHealthSnapshotAccumulatorSnapshot
       ocrSourceScannerDecisionCounts: ocrSourceSummary.scannerDecisionCounts,
       ocrSourceCaptureSourceSignalCounts:
           ocrSourceSummary.captureSourceSignalCounts,
+      ocrSourceCoverageSignalCounts: ocrSourceSummary.coverageSignalCounts,
+      ocrSourceContinuationSignalCounts:
+          ocrSourceSummary.continuationSignalCounts,
       ocrSourceSectionOrderSignalCounts:
           ocrSourceSummary.sectionOrderSignalCounts,
       ocrSourcePhotoQualityRiskCounts: ocrSourceSummary.photoQualityRiskCounts,
@@ -234,6 +237,9 @@ extension _ExpenseTelemetryHealthSnapshotAccumulatorSnapshot
       topOcrSourceStitchSignal: ocrSourceSummary.topStitchSignal,
       topOcrSourceScannerDecision: ocrSourceSummary.topScannerDecision,
       topOcrSourceCaptureSourceSignal: ocrSourceSummary.topCaptureSourceSignal,
+      topOcrSourceCoverageSignal: ocrSourceSummary.topCoverageSignal,
+      topOcrSourceContinuationSignal:
+          ocrSourceSummary.topContinuationSignal,
       topOcrSourceSectionOrderSignal: ocrSourceSummary.topSectionOrderSignal,
       topOcrSourcePhotoQualityRisk: ocrSourceSummary.topPhotoQualityRisk,
       topOcrSourceQualityReviewStatus: ocrSourceSummary.topQualityReviewStatus,

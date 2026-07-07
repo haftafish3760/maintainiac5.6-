@@ -45,7 +45,7 @@ void main() {
     );
     expect(
       cameraController,
-      contains('bottomReviewButton.isEnabled = !capturedPhotoPaths.isEmpty'),
+      contains('bottomReviewButton.isEnabled = false'),
     );
     expect(
       cameraController,
@@ -87,7 +87,6 @@ void main() {
     expect(cameraController, contains('receiptFrameGuide'));
     expect(cameraController, contains('alpha: 0.56'));
     expect(cameraController, contains('alpha: 0.50'));
-    expect(cameraController, contains('alpha: 0.53'));
     expect(cameraController, contains('alpha: 0.52'));
     expect(cameraController, contains('alpha: 0.41'));
     expect(cameraController, contains('alpha: 0.46'));
@@ -120,11 +119,8 @@ void main() {
     );
     expect(cameraController, contains('bottom_darker_than_top'));
     expect(cameraController, contains('bottom_brighter_than_top'));
-    expect(cameraController, contains('preview.videoGravity = .resizeAspect'));
-    expect(
-      cameraController,
-      isNot(contains('preview.videoGravity = .resizeAspectFill')),
-    );
+    expect(cameraController, contains('preview.videoGravity = .resizeAspectFill'));
+    expect(cameraController, isNot(contains('preview.videoGravity = .resizeAspect\n')));
     expect(cameraController, contains('nativePreviewScaleMode'));
     expect(cameraController, contains('nativeControlDensity'));
     expect(cameraController, contains('Reset receipt camera defaults'));
@@ -140,7 +136,7 @@ void main() {
     );
     expect(
       cameraController,
-      contains('Maintainiac receipt camera | \\(fillMode)'),
+      contains(r'return "\(fillMode) | \(reviewMode) | \(receiptMode) | \(lightMode)"'),
     );
     expect(cameraController, contains('private func safeReceiptReviewDepth'));
     expect(cameraController, contains('replacingOccurrences(of: "[\\\\s_-]+"'));

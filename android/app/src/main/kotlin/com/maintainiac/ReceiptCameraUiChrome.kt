@@ -78,7 +78,6 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
         visibility = View.GONE
         setOnClickListener { finishWithCapturedPhotos() }
     }
-    row.addView(doneButton)
     row.addView(iconButton("Receipt camera settings", R.drawable.ic_receipt_camera_settings) {
         showReceiptCameraSettings()
     })
@@ -201,11 +200,11 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
     val row = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER
-        setPadding(dp(12), dp(8), dp(12), dp(18))
+        setPadding(dp(12), dp(6), dp(12), dp(12))
         setBackgroundColor(Color.TRANSPARENT)
         layoutParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            dp(98),
+            dp(84),
             Gravity.BOTTOM,
         )
     }
@@ -217,7 +216,8 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
         setOnClickListener { capturePhoto("manual_add_photo") }
         layoutParams = LinearLayout.LayoutParams(0, dp(54), 1f)
     }
-    row.addView(addPhotoButton)
+    val leftSpacer = View(this)
+    row.addView(leftSpacer, LinearLayout.LayoutParams(0, 1, 1f))
     shutterButton = ImageButton(this).apply {
         contentDescription = "Take receipt photo"
         setImageResource(android.R.drawable.ic_menu_camera)
@@ -230,6 +230,8 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
         setOnClickListener { capturePhoto("manual_shutter") }
     }
     row.addView(shutterButton)
+    val rightSpacer = View(this)
+    row.addView(rightSpacer, LinearLayout.LayoutParams(0, 1, 1f))
     bottomReviewButton = Button(this).apply {
         text = "Use Photos"
         contentDescription = "Use captured receipt photos"
@@ -238,7 +240,6 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
         setOnClickListener { finishWithCapturedPhotos() }
         layoutParams = LinearLayout.LayoutParams(0, dp(54), 1f)
     }
-    row.addView(bottomReviewButton)
     return row
 }
 
