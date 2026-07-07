@@ -55,6 +55,7 @@ milestone_only_tests=(
   test/receipt_camera_result_native_quality_test.dart
   test/receipt_camera_result_native_ui_health_test.dart
   test/receipt_camera_result_recovery_handoff_test.dart
+  test/receipt_camera_result_saved_photo_warning_test.dart
   test/receipt_camera_result_stitch_scanner_test.dart
   test/receipt_camera_fixture_matrix_test.dart
   test/receipt_capture_flow_barcode_handoff_test.dart
@@ -130,7 +131,6 @@ full_only_tests=(
   test/receipt_camera_result_quality_test.dart
   test/receipt_camera_result_recovery_metadata_test.dart
   test/receipt_camera_result_retired_control_contract_test.dart
-  test/receipt_camera_result_saved_photo_warning_test.dart
   test/receipt_camera_result_section_order_follow_through_test.dart
   test/receipt_camera_result_section_order_invalid_context_test.dart
   test/receipt_camera_result_section_order_test.dart

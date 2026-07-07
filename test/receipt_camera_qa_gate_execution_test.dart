@@ -83,6 +83,12 @@ void main() {
       expect(
         milestonePlan,
         contains(
+          'milestone test/receipt_camera_result_saved_photo_warning_test.dart',
+        ),
+      );
+      expect(
+        milestonePlan,
+        contains(
           'milestone test/receipt_capture_flow_ocr_source_count_test.dart',
         ),
       );
