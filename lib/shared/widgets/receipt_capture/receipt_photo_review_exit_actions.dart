@@ -87,7 +87,10 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
     final hasLocallyStagedPhotos = _photoPaths.any(_isRecoverableReviewPhoto);
     final hasEditedReviewPhotos = _photoPaths.any(_generatedEditPaths.contains);
     final coverageDecision = _selectedExitCoverageDecision();
-    final nextLabel = _exitContinueLabelFor(coverageDecision);
+    final nextLabel = _exitContinueLabelFor(
+      coverageDecision,
+      hasMultipleSections: hasMultipleSections,
+    );
     final title = hasMultipleSections
         ? 'Review receipt details from these photos?'
         : 'Review receipt details from this photo?';
@@ -133,7 +136,7 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
             onPressed: () => Navigator.of(
               context,
             ).pop(_ReceiptReviewExitAction.keepReviewing),
-            child: const Text('Keep Reviewing'),
+            child: const Text('Stay In Review'),
           ),
           FilledButton(
             onPressed: () =>
@@ -194,14 +197,14 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
     return _coverageDecisionForPhotoPath(_photoPaths[selected]);
   }
 
-  String _exitContinueLabelFor(ReceiptPhotoCoverageDecision coverageDecision) {
+  String _exitContinueLabelFor(
+    ReceiptPhotoCoverageDecision coverageDecision, {
+    required bool hasMultipleSections,
+  }) {
     if (coverageDecision.isMissingBottomEdgeAndTotals) {
       return 'Add Bottom Section';
     }
-    if (coverageDecision.shouldPromptForMorePhotos) {
-      return 'Next: Details If Complete';
-    }
-    return 'Next: Review Receipt Details';
+    return hasMultipleSections ? 'Use Photos' : 'Use Photo';
   }
 
   String _receiptReviewExitNextCopy({

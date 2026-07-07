@@ -74,8 +74,8 @@ void main() {
     expect(sources.reviewControls, contains('waitingForStitch'));
     expect(sources.reviewControls, contains('continueEnabled'));
     expect(
-      sources.reviewActions,
-      contains("return 'Next: Review Receipt Details';"),
+      sources.reviewControls,
+      contains("return photoPaths.length == 1 ? 'Use Photo' : 'Use Photos';"),
     );
     expect(
       sources.reviewControls,

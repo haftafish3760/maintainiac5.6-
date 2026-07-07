@@ -36,14 +36,14 @@ class _ReceiptPhotoSectionLabels {
     required int total,
   }) {
     if (total <= 1) {
-      return 'If the receipt continues, add another photo. Otherwise tap Next.';
+      return 'If the receipt continues, add another photo. Otherwise use this photo.';
     }
     final selected = sectionNumberLabel(index: selectedIndex, total: total);
     if (selectedIndex <= 0) {
       return '$selected selected. This should be the top of the receipt. Add another photo if the receipt continues, or use Order if the sections are mixed up.';
     }
     if (selectedIndex >= total - 1) {
-      return '$selected selected. This should be the bottom of the receipt. Use Match Photos before Next so repeated lines are checked.';
+      return '$selected selected. This should be the bottom of the receipt. Use Match Photos before using these photos so repeated lines are checked.';
     }
     return '$selected selected. This should continue downward with 3-5 repeated readable lines from the previous photo. Use Order or Match Photos if anything looks out of place.';
   }

@@ -84,8 +84,8 @@ void main() {
     expect(reviewScreen, contains('void _resetPhotoPreviewZoom()'));
     expect(commonControls, contains('minimumSize: const Size(0, 32)'));
     expect(previewControls, contains('height: 32'));
-    expect(previewControls, contains('minimumSize: const Size(92, 36)'));
-    expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));
+    expect(previewControls, contains('minimumSize: const Size(0, 38)'));
+    expect(previewControls, contains('const SizedBox(height: 7)'));
     expect(
       reviewScreen,
       contains('_photoPreviewTransformController.value = Matrix4.identity()'),
@@ -131,7 +131,7 @@ void main() {
     ).readAsString();
     expect(previewControls, contains('class _ReceiptPreviewPrimaryRow'));
     expect(previewControls, contains('mainAxisSize: MainAxisSize.min'));
-    expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));
+    expect(previewControls, contains('const SizedBox(height: 7)'));
     expect(controls, contains('Flexible('));
     expect(controls, contains('fit: FlexFit.loose'));
     expect(controls, contains('SingleChildScrollView('));
@@ -148,9 +148,8 @@ void main() {
     expect(previewControls, contains('final addPhotoTooltip ='));
     expect(previewControls, contains('label: addPhotoTooltip'));
     expect(previewControls, contains("'Opening receipt details'"));
-    expect(commonControls, contains("'Opening Details'"));
-    expect(commonControls, contains("'Opening receipt details'"));
-    expect(commonControls, contains("secondary: 'Receipt Details'"));
+    expect(commonControls, contains("'Preparing receipt details'"));
+    expect(commonControls, contains("const Text('Preparing')"));
     expect(commonControls, isNot(contains("'Preparing receipt review'")));
     expect(controls, contains(': continueLabel'));
     expect(previewControls, contains(r"'Photo $current of $total'"));
@@ -182,10 +181,11 @@ void main() {
     expect(topBar, contains('Add Another Photo'));
     expect(topBar, contains('Review Receipt Photo'));
     expect(previewControls, contains('Crop Current'));
-    expect(controls, contains('Next opens receipt '));
     expect(
       controls,
-      contains('details with item prices, totals, and business/personal use.'),
+      contains(
+        'Photo captured locally. Use this photo, retake it, or add another photo if the receipt continues.',
+      ),
     );
     expect(
       controls,
@@ -197,11 +197,11 @@ void main() {
         'add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
       ),
     );
-    expect(controls, contains('or tap Next only if '));
+    expect(controls, contains('or use this photo only if '));
     expect(
       controls,
       contains(
-        'this already shows the full receipt; Next opens parsed receipt',
+        'it already shows the full receipt.',
       ),
     );
     expect(controls, contains('Saved locally for recovery.'));
@@ -216,19 +216,22 @@ void main() {
         'Maintainiac reads the full captured photo first; smaller saved copies are only for storage and recovery.',
       ),
     );
-    expect(controls, contains('Next: Review Receipt Details'));
-    expect(commonControls, contains("primary: 'Next'"));
-    expect(commonControls, contains("secondary: 'Receipt Details'"));
+    expect(
+      controls,
+      contains("return photoPaths.length == 1 ? 'Use Photo' : 'Use Photos';"),
+    );
+    expect(commonControls, contains("primary: 'Add'"));
+    expect(commonControls, contains("secondary: 'Bottom Section'"));
     expect(
       contextControls,
       contains(
-        'Next opens receipt details. Use Add Another Photo only if the receipt continues.',
+        'Use this photo, or add another photo only if the receipt continues.',
       ),
     );
     expect(
       contextControls,
       contains(
-        'If the store, date, total, and item prices are readable, tap Next.',
+        'Use this photo only if the store, date, total, and item prices are readable.',
       ),
     );
     expect(sectionLabels, contains('This should be the top of the receipt.'));
@@ -242,11 +245,10 @@ void main() {
       contains('Add another photo only if the receipt continues.'),
     );
     expect(sectionLabels, contains('Add Another Photo'));
-    expect(controls, contains('Add Another Photo'));
+    expect(contextControls, contains('Add Another Photo'));
     expect(controls, isNot(contains('Add Another Receipt Photo')));
     expect(controls, isNot(contains('Read receipt')));
     expect(controls, isNot(contains('Read Receipt')));
-    expect(controls, isNot(contains('Use this photo')));
     expect(controls, isNot(contains('Use This Photo')));
     expect(controls, isNot(contains('Saved copy')));
     expect(controls, isNot(contains('Saved Copy')));
@@ -283,16 +285,16 @@ void main() {
       controls,
       contains('Use Match Photos to check whether one combined receipt image'),
     );
-    expect(controls, contains('Next will use one combined receipt image.'));
+    expect(controls, contains('Use Photos will use one combined receipt image.'));
     expect(controls, contains('ordered sections from top to bottom'));
     expect(controls, isNot(contains('Read First')));
     expect(models, contains("readIntoForm('Ready for receipt review')"));
     expect(models, isNot(contains("readIntoForm('Read into form')")));
-    expect(controls, contains('Next opens receipt details'));
+    expect(controls, contains('Use this photo'));
     expect(
       controls,
       contains(
-        'Photo captured locally. Next opens receipt details. Use Add Another Photo only if the receipt continues.',
+        'Photo captured locally. Use this photo, retake it, or add another photo if the receipt continues.',
       ),
     );
     expect(dataSaverPanel, contains('Receipt Proof Storage'));

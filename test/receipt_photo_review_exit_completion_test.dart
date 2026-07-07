@@ -131,7 +131,7 @@ void main() {
     expect(staging, contains('Next was pressed after photos were captured.'));
     expect(staging, contains('Next was pressed before a photo was saved.'));
     expect(staging, isNot(contains('Done was pressed')));
-    expect(saveActions, contains('Keep Reviewing'));
+    expect(saveActions, contains('Stay In Review'));
     expect(saveActions, contains('Text(nextLabel)'));
     expect(saveActions, contains('_selectedExitCoverageDecision()'));
   });

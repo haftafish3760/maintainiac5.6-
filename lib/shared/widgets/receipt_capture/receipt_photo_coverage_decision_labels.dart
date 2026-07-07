@@ -90,7 +90,7 @@ extension ReceiptPhotoCoverageDecisionLabels on ReceiptPhotoCoverageDecision {
       isMissingBottomEdgeAndTotals ? 'Add Bottom Section' : 'Add Another Photo';
 
   String get continueAnywayButtonLabel =>
-      isMissingBottomEdgeAndTotals ? 'Continue And Review' : 'Use Photo';
+      'Use Photo';
 
   bool get shouldPromptForMorePhotos =>
       status == ReceiptPhotoCoverageStatus.likelyCutOff ||

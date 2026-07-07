@@ -179,7 +179,7 @@ class _ReceiptCaptureReadinessReviewCopy {
       'manual_only_quality_retake_recommended' =>
         const _ReceiptCaptureReadinessReviewCopy._(
           contextStatus:
-              'Retake is safer for OCR quality. Next still works if the store, date, total, and item prices are readable.',
+              'Retake is safer for OCR quality. Use this photo only if the store, date, total, and item prices are readable.',
           previewStatus:
               'Retake is safer for receipt reading. Use this photo only if the store, date, total, and item prices are readable.',
         ),

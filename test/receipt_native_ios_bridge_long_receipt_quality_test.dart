@@ -9,17 +9,18 @@ void main() {
       final sources = await readIosReceiptCameraBridgeSources();
       final cameraController = sources.cameraController;
 
+      expect(cameraController, contains('Add Photo'));
+      expect(cameraController, contains('Add another receipt photo'));
       expect(
         cameraController,
-        contains('Next photo is section \\(capturedPhotoPaths.count + 1)'),
+        contains('Previous receipt section overlap guide'),
       );
-      expect(cameraController, contains('Line up the ghost guide at the top'));
-      expect(cameraController, contains('tap Next: Review Receipt Details'));
+      expect(cameraController, contains('Use Photo'));
       expect(
         cameraController,
         contains('Saving this receipt photo before opening review.'),
       );
-      expect(cameraController, isNot(contains('Use captured receipt photos')));
+      expect(cameraController, contains('Use captured receipt photos'));
       expect(cameraController, contains('previousSectionGuidePhotoPath'));
       expect(
         cameraController,

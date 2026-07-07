@@ -288,8 +288,10 @@ void main() {
           'lib/shared/widgets/receipt_capture/receipt_capture_review_result_next_review.dart',
         ).readAsString();
 
-    expect(controls, contains('Next: Review Receipt Details'));
-    expect(controls, contains("return 'Next: Review Receipt Details';"));
+    expect(
+      controls,
+      contains("return photoPaths.length == 1 ? 'Use Photo' : 'Use Photos';"),
+    );
     expect(screen, contains('_ReceiptReviewMode.preview => .22'));
     expect(screen, contains('_photoPaths.length > 1 ? 188.0 : 166.0'));
     expect(topBar, contains('_ReceiptNextReviewLabel(label: label)'));
@@ -387,8 +389,8 @@ void main() {
     expect(controls, contains('onContinue'));
     expect(controls, contains('ReceiptPhotoCoverageDecision.fromSignals'));
     expect(controls, contains('Add Bottom Section'));
-    expect(controls, contains('Next: Details If Complete'));
-    expect(controls, contains('Next: Review Receipt Details'));
+    expect(controls, contains("'Use Photo'"));
+    expect(controls, contains("'Use Photos'"));
     expect(screen, contains('Future<void> addAnotherReceiptPhoto()'));
     expect(screen, contains('Future<void> retakeCurrentReceiptPhoto()'));
     expect(screen, contains('Future<void> continueReceiptPhotoReview()'));
