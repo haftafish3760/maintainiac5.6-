@@ -274,6 +274,12 @@ void main() {
       contains('selected milestone'),
     );
     expect(
+      await selectedModeFor(
+        'test/receipt_external_fixture_schema_gate_test.dart',
+      ),
+      contains('selected milestone'),
+    );
+    expect(
       await selectedModeFor('test/receipt_camera_qa_gate_execution_test.dart'),
       contains('selected milestone'),
     );

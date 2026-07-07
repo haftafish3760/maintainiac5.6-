@@ -43,6 +43,7 @@ void main() {
       'tool/receipt_external_fixture_schema_gate.dart',
       'test/receipt_external_dataset_local_audit_test.dart',
       'test/receipt_external_dataset_gate_test.dart',
+      'test/receipt_external_fixture_schema_gate_test.dart',
     ]) {
       expect(changedGate, contains(route));
     }
@@ -69,6 +70,12 @@ void main() {
       fastGuard,
       contains(
         "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_dataset_qa_gate_contract_test.dart'",
+      ),
+    );
+    expect(
+      fastGuard,
+      contains(
+        "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_external_fixture_schema_gate_test.dart'",
       ),
     );
   });
