@@ -4,10 +4,12 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
   const _ReceiptCaptureSettingsScreen({
     required this.settings,
     required this.area,
+    required this.hasSavedReceiptProof,
   });
 
   final ReceiptCaptureSettingsController settings;
   final ReceiptCaptureArea area;
+  final bool hasSavedReceiptProof;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +57,7 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
               child: _ReceiptCaptureSettingsSheet(
                 settings: settings,
                 area: area,
+                hasSavedReceiptProof: hasSavedReceiptProof,
                 showTitle: false,
               ),
             ),
@@ -77,11 +80,13 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
   const _ReceiptCaptureSettingsSheet({
     required this.settings,
     required this.area,
+    required this.hasSavedReceiptProof,
     this.showTitle = true,
   });
 
   final ReceiptCaptureSettingsController settings;
   final ReceiptCaptureArea area;
+  final bool hasSavedReceiptProof;
   final bool showTitle;
 
   @override
@@ -120,10 +125,11 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              const _ReceiptSettingsNote(
+              _ReceiptSettingsNote(
                 icon: Icons.save_rounded,
-                text:
-                    'Changes save as soon as you tap a switch or size choice. Apply Settings closes this screen.',
+                text: hasSavedReceiptProof
+                    ? 'Changes save as soon as you tap a switch or size choice. Apply Settings closes this screen.'
+                    : 'Changes save as soon as you tap a switch. Apply Settings closes this screen. Saved proof size appears after you capture or attach a receipt first.',
               ),
               const SizedBox(height: 8),
               _ReceiptSettingsSwitch(
@@ -145,8 +151,17 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 icon: const Icon(Icons.help_outline_rounded),
                 label: const Text('Receipt Photo Help'),
               ),
-              const SizedBox(height: 8),
-              _ReceiptDataSaverDefaultPicker(settings: settings),
+              if (hasSavedReceiptProof) ...[
+                const SizedBox(height: 8),
+                _ReceiptDataSaverDefaultPicker(settings: settings),
+              ] else ...[
+                const SizedBox(height: 8),
+                const _ReceiptSettingsNote(
+                  icon: Icons.photo_library_outlined,
+                  text:
+                      'Saved Receipt Proof Size appears after your first receipt photo or file is attached. Capture first, then review the saved proof size with real receipt proof.',
+                ),
+              ],
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 onPressed: () =>

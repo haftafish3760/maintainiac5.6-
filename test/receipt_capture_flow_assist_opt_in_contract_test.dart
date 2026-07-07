@@ -146,6 +146,14 @@ void main() {
     expect(firstUseSheet, isNot(contains('maximum savings')));
 
     expect(settingsSheet, contains('Saved Receipt Proof Size'));
+    expect(settingsSheet, contains('required this.hasSavedReceiptProof'));
+    expect(settingsSheet, contains('if (hasSavedReceiptProof) ...['));
+    expect(
+      settingsSheet,
+      contains(
+        'Saved proof size appears after you capture or attach a receipt first.',
+      ),
+    );
     expect(
       settingsSheet,
       contains('OCR still uses the clearest receipt source first'),

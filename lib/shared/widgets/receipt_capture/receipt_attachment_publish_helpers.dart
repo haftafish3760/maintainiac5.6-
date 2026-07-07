@@ -142,7 +142,12 @@ extension _ReceiptAttachmentPublishHelpers
     final result = await Navigator.of(context).push<bool>(
       appNativeRoute(
         context,
-        _ReceiptCaptureSettingsScreen(settings: settings, area: widget.area),
+        _ReceiptCaptureSettingsScreen(
+          settings: settings,
+          area: widget.area,
+          hasSavedReceiptProof:
+              _photoPaths.isNotEmpty || _documentAttachments.isNotEmpty,
+        ),
       ),
     );
     if (!mounted) return false;

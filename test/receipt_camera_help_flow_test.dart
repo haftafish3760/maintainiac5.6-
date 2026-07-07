@@ -137,6 +137,14 @@ void main() {
     expect(settingsSheet, isNot(contains('deviceName')));
     expect(settingsSheet, contains('Show Long Receipt Tips'));
     expect(settingsSheet, contains('Saved Receipt Proof Size'));
+    expect(settingsSheet, contains('required this.hasSavedReceiptProof'));
+    expect(settingsSheet, contains('if (hasSavedReceiptProof) ...['));
+    expect(
+      settingsSheet,
+      contains(
+        'Saved proof size appears after you capture or attach a receipt first.',
+      ),
+    );
     expect(
       settingsSheet,
       contains('OCR still uses the clearest receipt source first'),
@@ -179,6 +187,12 @@ void main() {
       settingsSheet,
       contains(
         'Changes save as soon as you tap a switch or size choice. Apply Settings closes this screen.',
+      ),
+    );
+    expect(
+      settingsSheet,
+      contains(
+        'Changes save as soon as you tap a switch. Apply Settings closes this screen. Saved proof size appears after you capture or attach a receipt first.',
       ),
     );
     expect(settingsSheet, contains('Reset Receipt Photo Defaults'));
