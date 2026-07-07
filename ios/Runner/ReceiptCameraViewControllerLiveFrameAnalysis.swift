@@ -206,7 +206,10 @@ extension ReceiptCameraViewController {
       latestFramingSignal = "receipt_not_found"
       setFrameGuideColor(UIColor(red: 1, green: 0.82, blue: 0.4, alpha: 0.76))
       if receiptFullyVisibleWarningEnabled {
-        guidanceLabel.text = "Place the receipt inside the frame. Manual capture still works."
+        updateStableFramingGuidance(
+          signal: "receipt_not_found",
+          message: "Place the receipt inside the frame. Manual capture still works."
+        )
       }
       return
     }
@@ -214,7 +217,10 @@ extension ReceiptCameraViewController {
       latestFramingSignal = "receipt_bounds_invalid"
       setFrameGuideColor(UIColor(red: 1, green: 0.82, blue: 0.4, alpha: 0.76))
       if receiptFullyVisibleWarningEnabled {
-        guidanceLabel.text = "Receipt edges need another look. Keep the paper flat and visible."
+        updateStableFramingGuidance(
+          signal: "receipt_bounds_invalid",
+          message: "Receipt edges need another look. Keep the paper flat and visible."
+        )
       }
       return
     }
@@ -222,7 +228,10 @@ extension ReceiptCameraViewController {
       latestFramingSignal = "move_closer"
       setFrameGuideColor(UIColor(red: 1, green: 0.82, blue: 0.4, alpha: 0.84))
       if textTooSmallWarningEnabled || tooFarTooCloseWarningEnabled {
-        guidanceLabel.text = "Move closer if text looks small; tap shutter if readable."
+        updateStableFramingGuidance(
+          signal: "move_closer",
+          message: "Move closer if text looks small; tap shutter if readable."
+        )
       }
       return
     }
@@ -230,15 +239,40 @@ extension ReceiptCameraViewController {
       latestFramingSignal = "possibly_cut_off"
       setFrameGuideColor(UIColor(red: 1, green: 0.69, blue: 0.13, alpha: 0.88))
       if receiptFullyVisibleWarningEnabled {
-        guidanceLabel.text = "Receipt may be cut off. Leave paper edge visible, or tap shutter if readable."
+        updateStableFramingGuidance(
+          signal: "possibly_cut_off",
+          message: "Receipt may be cut off. Leave paper edge visible, or tap shutter if readable."
+        )
       }
       return
     }
     latestFramingSignal = "framing_ok"
     setFrameGuideColor(UIColor(red: 0.56, green: 0.96, blue: 0.64, alpha: 0.82))
     if receiptFullyVisibleWarningEnabled {
-      guidanceLabel.text = framingGuidanceCopy(framing.confidenceBucket)
+      updateStableFramingGuidance(
+        signal: "framing_\(framing.confidenceBucket)",
+        message: framingGuidanceCopy(framing.confidenceBucket)
+      )
     }
+  }
+
+  func updateStableFramingGuidance(
+    signal: String,
+    message: String
+  ) {
+    if stableFramingGuidanceSignal(signal) {
+      guidanceLabel.text = message
+    }
+  }
+
+  func stableFramingGuidanceSignal(_ signal: String) -> Bool {
+    if framingGuidanceCandidateSignal == signal {
+      framingGuidanceCandidateCount += 1
+    } else {
+      framingGuidanceCandidateSignal = signal
+      framingGuidanceCandidateCount = 1
+    }
+    return framingGuidanceCandidateCount >= 2
   }
 
   func perspectiveReadiness(for framing: LiveReceiptFraming) -> String {

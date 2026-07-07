@@ -128,6 +128,8 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var latestEdgeCoverage = -1.0
   var latestFramingWidthRatio = -1.0
   var latestFramingHeightRatio = -1.0
+  var framingGuidanceCandidateSignal = "none"
+  var framingGuidanceCandidateCount = 0
   var latestPerspectiveReadiness = "unknown"
   var latestMotionSignal = "unknown"
   var latestMotionScore = -1.0

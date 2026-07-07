@@ -246,6 +246,10 @@ void main() {
       expect(cameraController, contains('applyLiveReadability'));
       expect(cameraController, contains('estimateReceiptFraming'));
       expect(cameraController, contains('applyLiveFraming'));
+      expect(cameraController, contains('updateStableFramingGuidance('));
+      expect(cameraController, contains('stableFramingGuidanceSignal(_ signal: String)'));
+      expect(cameraController, contains('framingGuidanceCandidateSignal'));
+      expect(cameraController, contains('framingGuidanceCandidateCount'));
       expect(cameraController, contains('latestFramingSignal'));
       expect(cameraController, contains('latestFramingConfidence'));
       expect(cameraController, contains('latestEdgeCoverage'));
@@ -294,7 +298,23 @@ void main() {
       );
       expect(
         cameraController,
+        isNot(
+          contains(
+            'guidanceLabel.text = "Place the receipt inside the frame. Manual capture still works."',
+          ),
+        ),
+      );
+      expect(
+        cameraController,
         contains('Receipt edges found. Hold steady and tap the shutter.'),
+      );
+      expect(
+        cameraController,
+        isNot(
+          contains(
+            'guidanceLabel.text = framingGuidanceCopy(framing.confidenceBucket)',
+          ),
+        ),
       );
       expect(
         cameraController,

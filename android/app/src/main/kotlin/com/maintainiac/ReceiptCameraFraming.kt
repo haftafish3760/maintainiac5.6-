@@ -19,7 +19,10 @@ internal fun ReceiptCameraActivity.applyLiveFraming(framing: LiveReceiptFraming)
         resetFrameGuideBounds()
         setFrameGuideColor(Color.argb(185, 255, 209, 102))
         if (receiptFullyVisibleWarningEnabled) {
-            guidance.text = "Place the receipt inside the frame. Manual capture still works."
+            updateStableFramingGuidance(
+                signal = "receipt_not_found",
+                message = "Place the receipt inside the frame. Manual capture still works.",
+            )
         }
         return
     }
@@ -28,7 +31,10 @@ internal fun ReceiptCameraActivity.applyLiveFraming(framing: LiveReceiptFraming)
         resetFrameGuideBounds()
         setFrameGuideColor(Color.argb(185, 255, 209, 102))
         if (receiptFullyVisibleWarningEnabled) {
-            guidance.text = "Receipt edges need another look. Keep the paper flat and visible."
+            updateStableFramingGuidance(
+                signal = "receipt_bounds_invalid",
+                message = "Receipt edges need another look. Keep the paper flat and visible.",
+            )
         }
         return
     }
@@ -37,7 +43,10 @@ internal fun ReceiptCameraActivity.applyLiveFraming(framing: LiveReceiptFraming)
         latestFramingSignal = "move_closer"
         setFrameGuideColor(Color.argb(210, 255, 209, 102))
         if (textTooSmallWarningEnabled || tooFarTooCloseWarningEnabled) {
-            guidance.text = "Move closer if text looks small; tap shutter if readable."
+            updateStableFramingGuidance(
+                signal = "move_closer",
+                message = "Move closer if text looks small; tap shutter if readable.",
+            )
         }
         return
     }
@@ -45,15 +54,40 @@ internal fun ReceiptCameraActivity.applyLiveFraming(framing: LiveReceiptFraming)
         latestFramingSignal = "possibly_cut_off"
         setFrameGuideColor(Color.argb(220, 255, 176, 32))
         if (receiptFullyVisibleWarningEnabled) {
-            guidance.text = "Receipt may be cut off. Leave paper edge visible, or tap shutter if readable."
+            updateStableFramingGuidance(
+                signal = "possibly_cut_off",
+                message = "Receipt may be cut off. Leave paper edge visible, or tap shutter if readable.",
+            )
         }
         return
     }
     latestFramingSignal = "framing_ok"
     setFrameGuideColor(Color.argb(205, 142, 246, 164))
     if (receiptFullyVisibleWarningEnabled) {
-        guidance.text = framingGuidanceCopy(framing.confidenceBucket)
+        updateStableFramingGuidance(
+            signal = "framing_${framing.confidenceBucket}",
+            message = framingGuidanceCopy(framing.confidenceBucket),
+        )
     }
+}
+
+internal fun ReceiptCameraActivity.updateStableFramingGuidance(
+    signal: String,
+    message: String,
+) {
+    if (stableFramingGuidanceSignal(signal)) {
+        guidance.text = message
+    }
+}
+
+internal fun ReceiptCameraActivity.stableFramingGuidanceSignal(signal: String): Boolean {
+    if (framingGuidanceCandidateSignal == signal) {
+        framingGuidanceCandidateCount += 1
+    } else {
+        framingGuidanceCandidateSignal = signal
+        framingGuidanceCandidateCount = 1
+    }
+    return framingGuidanceCandidateCount >= 2
 }
 
 internal fun ReceiptCameraActivity.perspectiveReadinessFor(

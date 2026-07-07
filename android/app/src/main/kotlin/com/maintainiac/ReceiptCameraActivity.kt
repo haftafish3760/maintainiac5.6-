@@ -145,6 +145,8 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var latestEdgeCoverage = -1.0
     internal var latestFramingWidthRatio = -1.0
     internal var latestFramingHeightRatio = -1.0
+    internal var framingGuidanceCandidateSignal = "none"
+    internal var framingGuidanceCandidateCount = 0
     internal var latestPerspectiveReadiness = "unknown"
     internal var latestMotionSignal = "unknown"
     internal var latestMotionScore = -1.0
