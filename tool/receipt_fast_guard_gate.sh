@@ -5,6 +5,7 @@ bash -n \
   tool/android_receipt_camera_compile_gate.sh \
   tool/ios_receipt_camera_compile_gate.sh \
   tool/receipt_camera_pipeline_gate.sh \
+  tool/receipt_camera_qa_gate.sh \
   tool/receipt_cleanup_log_gate.sh \
   tool/receipt_doc_size_gate.sh \
   tool/receipt_fast_guard_gate.sh \
@@ -62,6 +63,7 @@ flutter test \
   test/maintainiac_source_audit_contract_test.dart \
   test/receipt_doc_size_gate_contract_test.dart \
   test/receipt_fast_guard_gate_contract_test.dart \
+  test/receipt_camera_qa_gate_contract_test.dart \
   test/receipt_camera_footprint_audit_test.dart \
   test/receipt_camera_result_test.dart \
   test/receipt_photo_review_retake_order_test.dart \

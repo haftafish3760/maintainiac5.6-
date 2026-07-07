@@ -73,7 +73,10 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
     }
     final nativeWarning = nativeCaptureReviewWarning;
     if (nativeWarning != null) {
-      return '$recoveryPrefix${nativeWarning.message} Recommended: ${nativeWarning.primaryActionLabel}. If the store, date, total, and item prices are readable, you can still use the photo.$editedPhotoCopy$memoryPolicyCopy';
+      return '$recoveryPrefix${nativeWarning.message} Recommended: '
+          '${nativeWarning.primaryActionLabel}. If the store, date, total, '
+          'and item prices are readable, you can still use the photo.'
+          '$editedPhotoCopy$memoryPolicyCopy';
     }
     if (coverageDecision.shouldPromptForMorePhotos) {
       final addPhotoAction = coverageDecision.isMissingBottomEdgeAndTotals

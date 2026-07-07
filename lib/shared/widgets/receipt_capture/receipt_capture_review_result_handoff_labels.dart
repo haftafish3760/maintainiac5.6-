@@ -150,7 +150,7 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
               )
             : 'Add the next receipt section before receipt details, or confirm this photo already shows the full receipt.'
       : receiptSectionOrderHasFollowThroughAction
-      ? '${receiptSectionOrderReviewActionLabel} Then receipt details open.'
+      ? '$receiptSectionOrderReviewActionLabel Then receipt details open.'
       : ocrSourceReviewRequirement ==
             'manual_review_required_before_saving_receipt'
       ? 'Review the OCR source handoff before opening receipt details.'
@@ -180,7 +180,7 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
               )
             : 'Receipt details can open only after the user accepts that this photo covers the full receipt or adds the next section.'
       : receiptSectionOrderHasFollowThroughAction
-      ? '${receiptSectionOrderReviewActionLabel} Receipt details open immediately after that confirmation.'
+      ? '$receiptSectionOrderReviewActionLabel Receipt details open immediately after that confirmation.'
       : receiptSectionOrderNeedsReview
       ? 'Receipt details can open only after the receipt section order is reviewed.'
       : ocrSourceReviewRequirement ==

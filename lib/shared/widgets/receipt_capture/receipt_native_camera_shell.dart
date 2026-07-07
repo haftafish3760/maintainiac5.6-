@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'receipt_capture_models.dart';
 import 'receipt_native_camera_contract.dart';
 
 part 'receipt_native_camera_shell_top_controls.dart';

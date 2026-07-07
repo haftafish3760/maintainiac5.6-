@@ -145,7 +145,10 @@ class _ReceiptLocalPhotoLimitStrip extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '$photoCount photos attached. ${deviceCapability.profileName} is tuned for ${deviceCapability.maxLocalPhotoCount} local receipt photos. You can still use these photos, but review every line before saving.',
+                '$photoCount photos attached. ${deviceCapability.profileName} '
+                'is tuned for ${deviceCapability.maxLocalPhotoCount} local '
+                'receipt photos. You can still use these photos, but review '
+                'every line before saving.',
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(

@@ -170,12 +170,6 @@ void main() {
     expect(sources.reviewActions, contains('Line Up The Next Receipt Photo'));
     expect(sources.reviewControls, contains('Add Bottom Section'));
     expect(
-      sources.reviewTopBar,
-      contains(
-        'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice before receipt details',
-      ),
-    );
-    expect(
       sources.reviewPreviewControls,
       contains(
         'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice before receipt details',

@@ -71,6 +71,8 @@ void main() {
     expect(script, contains('dart tool/receipt_camera_io_guard.dart'));
     expect(script, contains('dart tool/receipt_camera_footprint_audit.dart'));
     expect(script, contains('test/receipt_fast_guard_gate_contract_test.dart'));
+    expect(script, contains('tool/receipt_camera_qa_gate.sh'));
+    expect(script, contains('test/receipt_camera_qa_gate_contract_test.dart'));
     expect(script, contains('test/receipt_camera_footprint_audit_test.dart'));
     expect(script, contains('test/receipt_camera_result_test.dart'));
     expect(

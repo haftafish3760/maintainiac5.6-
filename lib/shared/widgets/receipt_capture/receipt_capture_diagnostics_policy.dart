@@ -37,7 +37,10 @@ class ReceiptCaptureDiagnosticPublishPolicy {
 
   static final RegExp _safeTokenPattern = RegExp(r'^[A-Za-z0-9_.-]+$');
   static final RegExp _unsafeKeyPattern = RegExp(
-    r'(path|receiptText|ocrText|rawText|rawOcr|imageBytes|imageUri|merchantName|storeName|address|phone|email|deviceId|deviceModel|deviceName|rawDevice|customer|passenger|patient|vin|licensePlate|lineItem|itemName|note|comment|message|label|title|description)',
+    r'(path|receiptText|ocrText|rawText|rawOcr|imageBytes|imageUri|'
+    r'merchantName|storeName|address|phone|email|deviceId|deviceModel|'
+    r'deviceName|rawDevice|customer|passenger|patient|vin|licensePlate|'
+    r'lineItem|itemName|note|comment|message|label|title|description)',
     caseSensitive: false,
   );
 

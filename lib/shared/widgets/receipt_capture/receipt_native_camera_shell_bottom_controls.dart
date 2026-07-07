@@ -66,19 +66,16 @@ class _ReceiptNativeCameraIconButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.active = false,
-    this.visibleLabel,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback? onPressed;
   final bool active;
-  final String? visibleLabel;
 
   @override
   Widget build(BuildContext context) {
-    final visible = visibleLabel?.trim();
-    final button = IconButton(
+    return IconButton(
       onPressed: onPressed,
       tooltip: label,
       icon: Icon(icon),
@@ -96,33 +93,6 @@ class _ReceiptNativeCameraIconButton extends StatelessWidget {
           side: const BorderSide(color: Color(0xFF526168), width: .8),
         ),
       ),
-    );
-    if (visible == null || visible.isEmpty) return button;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        button,
-        const SizedBox(height: 3),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: const Color(0xCC11181B),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: const Color(0xFF526168), width: .7),
-          ),
-          child: Text(
-            visible,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Color(0xFFE8ECEE),
-              fontSize: 9.5,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
