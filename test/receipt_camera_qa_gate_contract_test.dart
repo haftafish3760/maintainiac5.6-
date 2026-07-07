@@ -234,6 +234,7 @@ void main() {
     expect(script, contains('camera_pipeline_contracts'));
     expect(script, contains('native_camera_compile'));
     expect(script, contains('camera_stitching'));
+    expect(script, contains('camera_stitch_gate'));
     expect(script, contains('phase="camera_pipeline_contracts"'));
     expect(script, contains('phase="native_camera_compile"'));
     expect(script, contains('receipt_camera_qa_failure'));

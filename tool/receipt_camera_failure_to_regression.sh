@@ -17,7 +17,8 @@ case "$camera_phase" in
   native_camera_compile)
     phase="native_camera_compile"
     ;;
-  camera_pipeline_contracts | camera_stitching | camera_changed_gate | \
+  camera_pipeline_contracts | camera_stitching | camera_stitch_gate | \
+  camera_changed_gate | \
   camera_quick_gate | camera_milestone_gate | camera_full_gate)
     phase="camera_pipeline_contracts"
     ;;
