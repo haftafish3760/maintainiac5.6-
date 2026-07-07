@@ -118,8 +118,15 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
   String get ocrSourceCountLabel {
     final count = ocrSourcePhotoPaths.length;
     if (count <= 0) return 'no clear OCR source';
-    final source = stitchResult.didStitch ? 'combined OCR image' : 'OCR photo';
-    return count == 1 ? '1 clear $source' : '$count clear ${source}s';
+    if (stitchResult.didStitch) {
+      return '1 clear combined OCR image';
+    }
+    if (nextReviewUsesOrderedSections) {
+      return count == 1
+          ? '1 clear ordered OCR section'
+          : '$count clear ordered OCR sections';
+    }
+    return count == 1 ? '1 clear OCR photo' : '$count clear OCR photos';
   }
 
   String get reviewPair => stitchResult.reviewFocusPairLabel;

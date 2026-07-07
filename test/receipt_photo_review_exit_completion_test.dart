@@ -8,6 +8,7 @@ void main() {
   test('receipt photo back protects captured images from silent discard', () async {
     final saveActions = await readReceiptPhotoReviewSaveActionsSource();
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
+    final models = await readReceiptCaptureModelsSource();
 
     expect(reviewScreen, contains('enum _ReceiptReviewExitAction'));
     expect(reviewScreen, contains('Return To Receipt Entry'));
@@ -140,6 +141,8 @@ void main() {
     expect(saveActions, contains('Stay In Review'));
     expect(saveActions, contains('Text(nextLabel)'));
     expect(saveActions, contains('_selectedExitCoverageDecision()'));
+    expect(models, contains('1 clear combined OCR image'));
+    expect(models, contains('clear ordered OCR sections'));
   });
 
   test('possible partial receipt prompts without blocking OCR', () async {
