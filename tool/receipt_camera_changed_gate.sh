@@ -80,6 +80,15 @@ while IFS= read -r path; do
         test/receipt_capture_flow_assist_opt_in_contract_test.dart
       )
       ;;
+    lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart | \
+    lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart | \
+    lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_controls.dart | \
+    lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart | \
+    lib/shared/widgets/receipt_capture/receipt_native_camera_shell_guidance.dart)
+      targeted_tests+=(
+        test/receipt_camera_phase3_viewer_contract_test.dart
+      )
+      ;;
     android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt)
       targeted_tests+=(
         test/receipt_native_android_bridge_settings_quality_test.dart
