@@ -72,7 +72,7 @@ void main() {
     expect(
       importActions,
       contains(
-        r'Next accepted. $processing $proofCount ready. OCR sources: $ocrSourceCount.',
+        r'Photo review accepted. $processing $proofCount ready. OCR sources: $ocrSourceCount.',
       ),
     );
     expect(captureModels, contains('Business/Personal/Mixed choices'));

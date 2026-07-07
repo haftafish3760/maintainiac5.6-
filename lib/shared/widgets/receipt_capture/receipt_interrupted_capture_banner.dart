@@ -22,7 +22,7 @@ class _ReceiptInterruptedCaptureBanner extends StatelessWidget {
     final freshnessLabel = record.recoveryFreshnessLabel();
     final extraLabel = total > 1 ? ' $total interrupted captures found.' : '';
     final resumeIcon = record.hasCompleteLocalRecovery
-        ? Icons.play_arrow_rounded
+        ? Icons.restore_rounded
         : Icons.photo_camera_rounded;
     final nextStepCopy = record.hasCompleteLocalRecovery
         ? 'Resume reviews the saved photos first; receipt details open from the saved proof after review. Discard only removes this interrupted recovery copy.'

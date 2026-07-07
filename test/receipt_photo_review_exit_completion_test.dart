@@ -322,7 +322,7 @@ void main() {
     expect(
       importActions,
       contains(
-        r'Next accepted. $processing $proofCount ready. OCR sources: $ocrSourceCount. $qualitySummary $reviewDecision $action',
+        r'Photo review accepted. $processing $proofCount ready. OCR sources: $ocrSourceCount. $qualitySummary $reviewDecision $action',
       ),
     );
     expect(importActions, isNot(contains('Read receipt')));

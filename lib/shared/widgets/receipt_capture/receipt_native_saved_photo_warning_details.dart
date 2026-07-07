@@ -72,7 +72,7 @@ extension ReceiptNativeSavedPhotoReviewWarningDetails
       'review_backup_scan_crop' => 'Check backup scan crop and totals',
       'review_phone_backup_focus' => 'Check phone backup focus and totals',
       'retake_before_review' => 'Retake before relying on automatic fill',
-      _ => 'Review readability before Next',
+      _ => 'Review readability before using this photo',
     };
   }
 

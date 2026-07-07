@@ -184,7 +184,7 @@ extension _ReceiptAttachmentReviewReadActions
       _needsBottomReceiptSection = false;
       _receiptReadStatus = _ReceiptReadStatusKind.reading;
       _receiptReadStatusMessage =
-          'Next accepted. $processing $proofCount ready. OCR sources: $ocrSourceCount. $qualitySummary $reviewDecision $action';
+          'Photo review accepted. $processing $proofCount ready. OCR sources: $ocrSourceCount. $qualitySummary $reviewDecision $action';
     });
   }
 

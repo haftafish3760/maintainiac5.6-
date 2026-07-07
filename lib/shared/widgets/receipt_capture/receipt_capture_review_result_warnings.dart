@@ -138,7 +138,7 @@ extension ReceiptPhotoReviewResultWarnings on ReceiptPhotoReviewResult {
   String get acceptedPhotoWarningReviewActionLabel {
     final labels = savedPhotoWarningReviewActionLabels;
     if (labels.isNotEmpty) return labels.first;
-    return 'Review readability before Next';
+    return 'Review readability before using this photo';
   }
 
   bool get hasSavedPhotoQualityWarning => savedPhotoWarningCodes.isNotEmpty;

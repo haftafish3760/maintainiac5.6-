@@ -148,6 +148,8 @@ void main() {
     expect(panelSource, contains('record.recoveryResumeActionLabel'));
     expect(panelSource, contains('record.recoveryResumeActionDetail'));
     expect(panelSource, contains('record.hasCompleteLocalRecovery'));
+    expect(panelSource, contains('Icons.restore_rounded'));
+    expect(panelSource, isNot(contains('Icons.play_arrow_rounded')));
     expect(panelSource, contains('recovered_review_screen_unavailable'));
     expect(panelSource, contains('recovery_review_unavailable_kept'));
     expect(

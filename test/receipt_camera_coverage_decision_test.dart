@@ -142,10 +142,25 @@ void main() {
     expect(contract, contains('tapFocusEnabled = false'));
     expect(contract, contains('pinchZoomEnabled = true'));
     expect(contract, contains('exposureSliderEnabled = true'));
+    expect(contract, contains('motionBlurWarningEnabled = false'));
+    expect(contract, contains('glareWarningEnabled = false'));
+    expect(contract, contains('shadowWarningEnabled = false'));
     expect(contract, contains('edgeDetectionEnabled = true'));
     expect(contract, contains('previousSectionGhostGuideEnabled = true'));
     expect(contract, contains('ocrUsesOriginalFirst = true'));
     expect(contract, contains('queueAcceptedCaptureLocally = true'));
+    expect(
+      androidActivity,
+      contains(
+        'readabilityGuidancePolicy == "experimental_live_receipt_quality_opt_in"',
+      ),
+    );
+    expect(
+      iosController,
+      contains(
+        'readabilityGuidancePolicy == "experimental_live_receipt_quality_opt_in"',
+      ),
+    );
     expect(androidActivity, contains('Take receipt photo'));
     expect(androidActivity, contains('Receipt camera settings'));
     expect(androidActivity, contains('manualShutterAlwaysAvailable'));
