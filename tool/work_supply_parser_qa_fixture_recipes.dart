@@ -266,6 +266,38 @@ const englishPlumbingCoreRecipes = [
     patterns: ['1-1/2 ROUND CLEANOUT COVER', '2 SQUARE CLEANOUT COVER'],
   ),
   WorkSupplyFixtureRecipe(
+    slug: 'sump_discharge_hose_kit',
+    caseType: 'clear_match',
+    expectedNameContains: 'discharge hose kit',
+    riskTags: ['sump_discharge', 'sump', 'discharge_hose', 'pump'],
+    patterns: [
+      '1-1/4 SUMP DISCHARGE HOSE KIT',
+      '1-1/2 DISCHARGE HOSE KIT',
+      'SUMP PUMP HOSE KIT',
+    ],
+  ),
+  WorkSupplyFixtureRecipe(
+    slug: 'sump_rubber_coupling',
+    caseType: 'clear_match',
+    expectedNameContains: 'rubber coupling',
+    riskTags: ['sump_discharge', 'sump', 'rubber_coupling', 'pump'],
+    patterns: ['1-1/4 SUMP RUBBER COUPLING', '1-1/2 RUBBER COUPLING SUMP'],
+  ),
+  WorkSupplyFixtureRecipe(
+    slug: 'sump_pvc_adapter',
+    caseType: 'clear_match',
+    expectedNameContains: 'PVC adapter',
+    riskTags: ['sump_discharge', 'sump', 'pvc_adapter', 'pump'],
+    patterns: ['1-1/4 SUMP PVC ADAPTER', '1-1/2 PVC ADAPTER SUMP PUMP'],
+  ),
+  WorkSupplyFixtureRecipe(
+    slug: 'sump_barbed_adapter',
+    caseType: 'clear_match',
+    expectedNameContains: 'barbed adapter',
+    riskTags: ['sump_discharge', 'sump', 'barbed_adapter', 'pump'],
+    patterns: ['1-1/4 SUMP BARBED ADAPTER', '1-1/2 BARBED ADAPTER SUMP PUMP'],
+  ),
+  WorkSupplyFixtureRecipe(
     slug: 'cpvc_elbow',
     caseType: 'clear_match',
     expectedNameContains: 'CPVC',

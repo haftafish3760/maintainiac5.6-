@@ -4256,3 +4256,11 @@ Release boundaries:
   and protection, and sump pump discharge service. This reduced the unclassified
   Plumbing Core queue from 154 rows to 47 rows and keeps future parser evidence
   work family-specific instead of hiding mixed items in an unclassified bucket.
+- **03:31-03:45 Sump Discharge Evidence Lock:** Added focused sump discharge
+  recipes for discharge hose kits, rubber couplings, PVC adapters, and barbed
+  adapters, plus a generator isolation regression for
+  `--include-risk-tags sump_discharge`. The 8-case single-chunk generated parser
+  probe passed with 8 checked, 0 failures, and 8 parser calls at
+  `build/parser_qa_reports/generated_fixtures/sump_discharge_8_single_chunk_20260707_0335`.
+  Sump pump discharge service can now be counted as focused-parser-evidence-
+  covered by the Plumbing Core readiness audit.

@@ -700,6 +700,64 @@ void main() {
     expect(_riskTags(manifest), isNot(contains('pex')));
   });
 
+  test(
+    'fixture generator can isolate sump discharge Plumbing Core family',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_fixture_generator_plumbing_sump_discharge_filter_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+
+      final exit = await runWorkSupplyParserFixtureGenerator(
+        [
+          '--trade',
+          'plumbing',
+          '--scope',
+          'residential',
+          '--tier',
+          'core',
+          '--locale',
+          'en-US',
+          '--limit',
+          '8',
+          '--include-risk-tags',
+          'sump_discharge',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 0);
+      final generatedRoot = Directory(
+        '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+      );
+      final fixtures =
+          jsonDecode(
+                File(
+                  '${generatedRoot.path}/generated_fixtures.json',
+                ).readAsStringSync(),
+              )
+              as List;
+      final manifest =
+          jsonDecode(
+                File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+              )
+              as Map;
+
+      expect(fixtures, hasLength(8));
+      expect(manifest['includeRiskTags'], ['sump_discharge']);
+      final ids = _fixtureIds(fixtures);
+      expect(ids, contains('sump_discharge_hose_kit'));
+      expect(ids, contains('sump_rubber_coupling'));
+      expect(ids, contains('sump_pvc_adapter'));
+      expect(ids, contains('sump_barbed_adapter'));
+      expect(_riskTags(manifest), contains('sump_discharge'));
+      expect(_riskTags(manifest), isNot(contains('pvc_dwv')));
+    },
+  );
+
   test('fixture generator rejects unsafe empty batches', () async {
     final stderr = _MemorySink();
     final exit = await runWorkSupplyParserFixtureGenerator(

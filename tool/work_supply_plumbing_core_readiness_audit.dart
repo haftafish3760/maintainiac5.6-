@@ -650,6 +650,7 @@ const _familiesWithFocusedParserEvidence = {
   'push-fit fittings and valves',
   'pvc dwv fittings and access',
   'pvc pressure fittings',
+  'sump pump discharge service',
   'tubular drains and traps',
   'water treatment',
   'well pressure service',
