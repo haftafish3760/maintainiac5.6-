@@ -63,8 +63,10 @@ while IFS= read -r path; do
   case "$path" in
     tool/receipt_camera_qa_gate.sh | \
     tool/receipt_camera_changed_gate.sh | \
+    tool/receipt_camera_scope_gate.sh | \
     tool/receipt_camera_changed_route_coverage_gate.dart | \
     tool/receipt_camera_qa_summary.sh | \
+    tool/receipt_fast_guard_gate.sh | \
     tool/receipt_external_dataset_local_audit.dart | \
     tool/receipt_external_dataset_gate.dart | \
     tool/receipt_external_fixture_schema_gate.dart | \

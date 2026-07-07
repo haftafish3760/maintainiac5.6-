@@ -64,6 +64,10 @@ RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_camera_qa_gate.sh' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_camera_changed_route_coverage_gate.dart' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
+RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_camera_scope_gate.sh' \
+  bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
+RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_fast_guard_gate.sh' \
+  bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_quiet_batch_status.sh' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_external_fixture_schema_gate.dart' \
