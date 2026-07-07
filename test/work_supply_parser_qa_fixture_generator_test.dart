@@ -1002,6 +1002,75 @@ void main() {
     },
   );
 
+  test(
+    'fixture generator can isolate service consumables and tools family',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_fixture_generator_plumbing_service_tools_filter_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+
+      final exit = await runWorkSupplyParserFixtureGenerator(
+        [
+          '--trade',
+          'plumbing',
+          '--scope',
+          'residential',
+          '--tier',
+          'core',
+          '--locale',
+          'en-US',
+          '--limit',
+          '77',
+          '--include-risk-tags',
+          'service_consumables_tools',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 0);
+      final generatedRoot = Directory(
+        '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+      );
+      final fixtures =
+          jsonDecode(
+                File(
+                  '${generatedRoot.path}/generated_fixtures.json',
+                ).readAsStringSync(),
+              )
+              as List;
+      final manifest =
+          jsonDecode(
+                File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+              )
+              as Map;
+
+      expect(fixtures, hasLength(77));
+      expect(manifest['includeRiskTags'], ['service_consumables_tools']);
+      final ids = _fixtureIds(fixtures);
+      expect(ids, contains('service_thread_sealant'));
+      expect(ids, contains('service_pipe_joint_compound'));
+      expect(ids, contains('service_ptfe_tape'));
+      expect(ids, contains('service_pvc_cement'));
+      expect(ids, contains('service_pvc_primer'));
+      expect(ids, contains('service_plumber_putty'));
+      expect(ids, contains('service_pipe_j_hook'));
+      expect(ids, contains('service_pex_tool'));
+      expect(ids, contains('service_press_jaw'));
+      expect(ids, contains('service_pipe_cutter'));
+      expect(ids, contains('service_deburr_reamer'));
+      expect(ids, contains('service_wrench'));
+      expect(ids, contains('service_auger_snake'));
+      expect(ids, contains('service_hole_saw'));
+      expect(ids, contains('service_recip_blade'));
+      expect(_riskTags(manifest), contains('service_consumables_tools'));
+      expect(_riskTags(manifest), isNot(contains('water_heater_service')));
+    },
+  );
+
   test('fixture generator rejects unsafe empty batches', () async {
     final stderr = _MemorySink();
     final exit = await runWorkSupplyParserFixtureGenerator(

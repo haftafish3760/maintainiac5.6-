@@ -616,6 +616,9 @@ String? _plumbingHandToolTarget(String text) {
   ).hasMatch(text)) {
     return 'pvc deburring tool';
   }
+  if (RegExp(r'\b(reaming tool|reamer|pipe reamer)\b').hasMatch(text)) {
+    return 'copper pipe reaming tool';
+  }
   if (RegExp(r'\binside pipe cutter\b').hasMatch(text)) {
     return 'inside pipe cutter';
   }
@@ -2642,7 +2645,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(
     r'\b(thread sealing detail|thread sealant detail|thread sealant supply|'
-    r'thread paste|ptfe paste|pipe dope|teflon tape|ptfe tape)\b',
+    r'thread sealant|thread paste|ptfe paste|pipe dope|teflon tape|ptfe tape)\b',
   ).hasMatch(text)) {
     final amount = _receiptPackageAmount(text, 'oz');
     final wantsGasTape =

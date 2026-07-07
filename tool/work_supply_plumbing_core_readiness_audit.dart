@@ -216,8 +216,13 @@ _IdentityCompleteness _identityCompleteness(WorkSupplyItem item, String text) {
         _isDwvAdapterConnectionText(text) ||
         _isGeneralValveConnectionText(text) ||
         _isWaterHeaterConnectionText(text) ||
+        _isPipeJHookConnectionText(text) ||
         _isSolventWeldPressureFittingText(text),
   );
+}
+
+bool _isPipeJHookConnectionText(String text) {
+  return _hasAny(text, ['pipe j-hook', 'pipe j hook', 'j-hook', 'j hook']);
 }
 
 bool _isWaterHeaterConnectionText(String text) {
@@ -299,6 +304,7 @@ bool _isSolventWeldPressureFittingText(String text) {
 
 bool _requiresSize(String text) {
   if (_isSmallRepairPartText(text)) return false;
+  if (_isServiceToolOrConsumableText(text)) return false;
   return _hasAny(text, [
     'adapter',
     'coupling',
@@ -312,6 +318,7 @@ bool _requiresSize(String text) {
 bool _requiresMaterial(String text) {
   if (_isSmallRepairPartText(text)) return false;
   if (_isWaterTreatmentDirectText(text)) return false;
+  if (_isServiceToolOrConsumableText(text)) return false;
   return _hasAny(text, [
     'adapter',
     'connector',
@@ -559,6 +566,7 @@ int _score(List<String> issues, List<String> warnings) {
 }
 
 bool _looksSpecialOrder(String text) {
+  if (_isServiceToolOrConsumableText(text)) return false;
   if (_hasAny(text, [
     'water heater dielectric nipple',
     'stud guard',
@@ -607,7 +615,32 @@ bool _isSmallRepairPartText(String text) {
   ]);
 }
 
+bool _isServiceToolOrConsumableText(String text) {
+  return _hasAny(text, [
+    'auger',
+    'basin wrench',
+    'blade',
+    'cement',
+    'crimp tool',
+    'deburring tool',
+    'drain snake',
+    'hole saw',
+    'pipe joint compound',
+    'plumber putty',
+    'primer',
+    'propress jaw',
+    'ptfe tape',
+    'reciprocating saw blade',
+    'reaming tool',
+    'sealant',
+    'strap wrench',
+    'thread tape',
+    'tubing cutter',
+  ]);
+}
+
 bool _looksLegacyWithoutRepairBridge(String text) {
+  if (_isServiceToolOrConsumableText(text)) return false;
   if (!_hasAny(text, ['black iron', 'cast iron', 'galvanized'])) return false;
   return !_hasAny(text, [
     'adapter',
@@ -689,6 +722,7 @@ const _familiesWithFocusedParserEvidence = {
   'push-fit fittings and valves',
   'pvc dwv fittings and access',
   'pvc pressure fittings',
+  'service consumables and tools',
   'sump pump discharge service',
   'tubular drains and traps',
   'water heater service',

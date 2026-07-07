@@ -4310,3 +4310,21 @@ Release boundaries:
   `build/parser_qa_reports/generated_fixtures/water_heater_56_single_chunk_20260707_054717`.
   The readiness audit now reports water heater service at 56/56 release-ready
   with 0 critical rows.
+- **06:11-07:16 Service Consumables/Tools Evidence Lock:** Added focused
+  recipes for thread sealants, pipe-joint compound, PTFE tape, PVC cement,
+  primer, plumber putty, pipe J-hooks, PEX tools, press jaws, pipe cutters,
+  deburr/reamer tools, wrenches, augers/snakes, hole saws, and reciprocating
+  blades, plus a generator isolation regression for `--include-risk-tags
+  service_consumables_tools`. The first 77-case parser run exposed three real
+  coverage gaps: generated thread-sealant variants were falling into legacy
+  pipe-joint compound, generic bi-metal hole-saw wording was too vague, and
+  copper reaming tools could be misread as copper pipe. The parser now routes
+  plain thread-sealant supply terms and copper reaming tools correctly, and the
+  fixture set splits pipe-joint compound from thread-sealant supply. A focused
+  two-ID regression passed at
+  `build/parser_qa_reports/generated_fixtures/service_tools_thread_split_2_ids_20260707_064105`.
+  The corrected full 77-case service-tools single-chunk run passed with
+  77 checked, 0 failures, and 77 parser calls at
+  `build/parser_qa_reports/generated_fixtures/service_tools_77_single_chunk_20260707_065627`.
+  The readiness audit now reports service consumables and tools at 77/77
+  release-ready with 0 critical rows.
