@@ -34,7 +34,7 @@ extension ReceiptCameraViewController {
       return "Fill the screen with readable receipt text. Use more photos for long receipts."
     }
     if autoCaptureEnabled {
-      return "Hold steady. Manual capture is always available."
+      return "Fill the screen with readable receipt text. Auto capture can help when the receipt is steady."
     }
     return "Fill the screen with readable receipt text, then tap the shutter."
   }

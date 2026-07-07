@@ -51,7 +51,7 @@ internal fun ReceiptCameraActivity.guidanceText(): String {
     return if (longReceiptMode) {
         "Fill the screen with readable receipt text. Use more photos for long receipts."
     } else if (autoCaptureEnabled) {
-        "Hold steady. Manual capture is always available."
+        "Fill the screen with readable receipt text. Auto capture can help when the receipt is steady."
     } else {
         "Fill the screen with readable receipt text, then tap the shutter."
     }

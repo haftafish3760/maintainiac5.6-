@@ -75,6 +75,10 @@ void main() {
     );
     expect(
       cameraActivity,
+      contains('Fill the screen with readable receipt text. Auto capture can help when the receipt is steady.'),
+    );
+    expect(
+      cameraActivity,
       contains('"nativeCameraIdentity" to "maintainiac_in_app_receipt_camera"'),
     );
     expect(
