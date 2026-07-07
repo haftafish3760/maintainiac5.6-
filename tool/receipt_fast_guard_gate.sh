@@ -110,6 +110,7 @@ flutter test \
   test/receipt_external_fixture_schema_gate_test.dart \
   test/receipt_bug_regression_ledger_archive_test.dart \
   test/receipt_fast_guard_gate_contract_test.dart \
+  test/receipt_camera_changed_gate_contract_test.dart \
   test/receipt_camera_changed_route_coverage_gate_test.dart \
   test/receipt_camera_dataset_qa_gate_contract_test.dart \
   test/receipt_camera_qa_gate_contract_test.dart \
