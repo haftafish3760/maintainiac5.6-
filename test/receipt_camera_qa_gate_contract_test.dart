@@ -78,6 +78,7 @@ void main() {
       contains('test/receipt_camera_long_receipt_guidance_test.dart'),
     );
     expect(script, contains('test/receipt_external_dataset_gate_test.dart'));
+    expect(script, contains('test/receipt_photo_section_labels_test.dart'));
     expect(script, contains('test/receipt_camera_qa_gate_execution_test.dart'));
     expect(
       script,
@@ -351,6 +352,7 @@ void main() {
       script,
       contains('test/receipt_photo_review_retake_order_test.dart'),
     );
+    expect(script, contains('test/receipt_photo_section_labels_test.dart'));
     expect(script, contains('test/receipt_stitch_fallback_metadata_test.dart'));
     expect(script, contains('test/receipt_stitching_manual_overlap_test.dart'));
     expect(
