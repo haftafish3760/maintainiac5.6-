@@ -93,5 +93,8 @@ void main() {
         'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
       ),
     );
+    expect(previewRow, contains('_ReceiptPhotoCountBadge(current: current, total: total)'));
+    expect(previewRow, contains('maxLines: compact ? 1 : 2'));
+    expect(previewRow, contains('SizedBox(height: compact ? 5 : 7)'));
   });
 }

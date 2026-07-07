@@ -90,7 +90,11 @@ void main() {
     expect(commonControls, contains('minimumSize: const Size(0, 32)'));
     expect(previewControls, contains('height: 32'));
     expect(previewControls, contains('minimumSize: const Size(0, 38)'));
-    expect(previewControls, contains('const SizedBox(height: 7)'));
+    expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));
+    expect(
+      previewControls,
+      contains('_ReceiptPhotoCountBadge(current: current, total: total)'),
+    );
     expect(
       reviewScreen,
       contains('_photoPreviewTransformController.value = Matrix4.identity()'),
@@ -149,7 +153,7 @@ void main() {
     ).readAsString();
     expect(previewControls, contains('class _ReceiptPreviewPrimaryRow'));
     expect(previewControls, contains('mainAxisSize: MainAxisSize.min'));
-    expect(previewControls, contains('const SizedBox(height: 7)'));
+    expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));
     expect(controls, contains('Flexible('));
     expect(controls, contains('fit: FlexFit.loose'));
     expect(controls, contains('SingleChildScrollView('));

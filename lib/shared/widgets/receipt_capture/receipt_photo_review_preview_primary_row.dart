@@ -63,32 +63,30 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (!compact) ...[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _ReceiptPhotoCountBadge(current: current, total: total),
-                  const SizedBox(width: 8),
-                  Icon(statusIcon, color: statusColor, size: 17),
-                  const SizedBox(width: 7),
-                  Expanded(
-                    child: Text(
-                      statusText,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFFE8ECEE),
-                        fontSize: 11,
-                        height: 1.12,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0,
-                      ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _ReceiptPhotoCountBadge(current: current, total: total),
+                const SizedBox(width: 8),
+                Icon(statusIcon, color: statusColor, size: compact ? 15 : 17),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    statusText,
+                    maxLines: compact ? 1 : 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: const Color(0xFFE8ECEE),
+                      fontSize: compact ? 10.5 : 11,
+                      height: 1.12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 7),
-            ],
+                ),
+              ],
+            ),
+            SizedBox(height: compact ? 5 : 7),
             Row(
               children: [
                 Expanded(
