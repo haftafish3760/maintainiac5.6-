@@ -72,6 +72,9 @@ void main() {
     final firstUseSheet = await File(
       'lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart',
     ).readAsString();
+    final cameraActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
+    ).readAsString();
     final settingsSheet =
         await File(
           'lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart',
@@ -126,6 +129,63 @@ void main() {
     expect(
       settingsSheet,
       contains('OCR still uses the clearest receipt source first'),
+    );
+
+    final introHelperStart = cameraActions.indexOf(
+      'Future<bool> _showFirstUseReceiptCameraIntro',
+    );
+    final introHelperEnd = cameraActions.indexOf(
+      'Future<void> _applyFirstUseReceiptAssistChoice',
+      introHelperStart,
+    );
+    final introHelper = cameraActions.substring(
+      introHelperStart,
+      introHelperEnd,
+    );
+
+    expect(
+      introHelper,
+      contains('if (!mounted || action == null) return false;'),
+    );
+    expect(
+      introHelper,
+      contains('await _applyFirstUseReceiptAssistChoice(settings, action);'),
+    );
+    expect(
+      introHelper,
+      contains('await settings.setCameraSetupComplete(true);'),
+    );
+    expect(
+      introHelper.indexOf(
+        'await _applyFirstUseReceiptAssistChoice(settings, action);',
+      ),
+      lessThan(
+        introHelper.indexOf('await settings.setCameraSetupComplete(true);'),
+      ),
+    );
+    expect(
+      introHelper.indexOf('await settings.setCameraSetupComplete(true);'),
+      lessThan(introHelper.indexOf('return true;')),
+    );
+
+    final takePhotoStart = cameraActions.indexOf('Future<void> takeReceiptPhoto');
+    final takePhotoEnd = cameraActions.indexOf(
+      'Future<_MaintainiacNativeCameraPhotoOutcome>',
+      takePhotoStart,
+    );
+    final takePhotoBlock = cameraActions.substring(
+      takePhotoStart,
+      takePhotoEnd,
+    );
+    expect(
+      takePhotoBlock.indexOf(
+        'final ready = await _showFirstUseReceiptCameraIntro(settings);',
+      ),
+      lessThan(
+        takePhotoBlock.indexOf(
+          'final nativeOutcome = await _takeMaintainiacNativeCameraPhoto(settings);',
+        ),
+      ),
     );
   });
 }
