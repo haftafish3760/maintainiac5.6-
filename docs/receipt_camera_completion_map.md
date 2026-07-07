@@ -75,7 +75,7 @@ Receipt workflow scope excludes:
 | Barcode/QR handoff | Receipt capture can hand barcode/QR evidence forward without owning inventory work. | Service files and camera summary tests exist; flow proof can wait behind capture/stitch. | Partial |
 | Device/storage safety | Older devices reduce heavy work; low storage avoids unsafe processing. | Capability/storage contracts exist; real-device proof missing. | Partial |
 | Fixture QA | Synthetic and real receipt fixtures cover camera failure families. | Many camera tests exist; release-one camera fixture matrix exists and needs real receipt additions. | Partial |
-| Milestone quality gate | Targeted camera tests, source audit, doc gate, analyzer, and real-device notes pass together. | Targeted checks have passed in recent passes; final milestone gate is not proven. | Missing |
+| Milestone quality gate | Targeted camera tests, source audit, doc gate, analyzer, and real-device notes pass together. | Dedicated phase gates now exist through Phase 9, and targeted phase checks are passing. The final bundled milestone gate plus real-device notes are still not proven together yet. | Partial |
 
 ## Forecast Method
 

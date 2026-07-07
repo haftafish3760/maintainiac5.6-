@@ -323,7 +323,12 @@ void main() {
         ),
       );
       expect(script, contains('ios/Runner/ReceiptCamera*.swift'));
+      expect(script, contains('docs/receipt_camera_completion_map.md'));
+      expect(script, contains('docs/receipt_camera_ocr_product_standard.md'));
       expect(script, contains('docs/receipt_camera_ocr_master_pass_plan.md'));
+      expect(script, contains('docs/receipt_camera_release_one_blueprint.md'));
+      expect(script, contains('docs/receipt_camera_world_class_readiness.md'));
+      expect(script, contains('docs/receipt_native_camera_service_spec.md'));
       expect(script, contains('docs/receipt_bug_regression_ledger.md'));
       expect(script, contains('test/receipt_camera_*'));
       expect(script, contains('test/receipt_native_*'));

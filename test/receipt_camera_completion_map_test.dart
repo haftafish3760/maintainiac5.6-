@@ -17,6 +17,21 @@ void main() {
     expect(map, contains('Four-Phone Real-Device Proof'));
     expect(map, contains('not generic camera-app work'));
     expect(map, contains('The final 7-10% must come from real receipt/device'));
+    expect(map, contains('| Milestone quality gate |'));
+    expect(
+      map,
+      contains(
+        'Dedicated phase gates now exist through Phase 9, and targeted phase checks are passing.',
+      ),
+    );
+    expect(
+      map,
+      contains(
+        'The final bundled milestone gate plus real-device notes are still not proven together yet.',
+      ),
+    );
+    expect(map, contains('| Partial |'));
+    expect(map, isNot(contains('| Missing |')));
   });
 
   test('release blueprint points future agents to completion map', () {
