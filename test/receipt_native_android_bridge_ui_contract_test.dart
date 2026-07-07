@@ -308,6 +308,10 @@ void main() {
     expect(cameraActivity, contains('val assist = if (assistedReceiptFill)'));
     expect(cameraActivity, contains('"Assist on"'));
     expect(cameraActivity, contains('"Manual fill"'));
+    expect(cameraActivity, contains('"Price-only lines"'));
+    expect(cameraActivity, contains('"Long receipt"'));
+    expect(cameraActivity, isNot(contains('"Price review"')));
+    expect(cameraActivity, isNot(contains('"Long receipt on"')));
     expect(
       cameraActivity,
       contains('OCR reads the temporary full-quality photo first'),
