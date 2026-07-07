@@ -1,15 +1,15 @@
 import 'package:image_picker/image_picker.dart';
 
 class ReceiptPickedPhotoSet {
-  const ReceiptPickedPhotoSet(this.paths);
+  ReceiptPickedPhotoSet(Iterable<String> paths)
+    : paths = List.unmodifiable(paths);
 
   factory ReceiptPickedPhotoSet.fromFiles(Iterable<XFile?> files) {
     return ReceiptPickedPhotoSet(
       files
           .whereType<XFile>()
           .map((file) => file.path.trim())
-          .where((path) => path.isNotEmpty)
-          .toList(growable: false),
+          .where((path) => path.isNotEmpty),
     );
   }
 

@@ -181,6 +181,7 @@ void main() {
       expect(script, contains('test/receipt_camera_*'));
       expect(script, contains('test/receipt_native_*'));
       expect(script, contains('test/receipt_ocr_source_*'));
+      expect(script, contains('test/receipt_photo_section_labels_test.dart'));
       expect(script, contains('test/receipt_stitching_*'));
       expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
       expect(script, contains('tool/receipt_camera_*'));

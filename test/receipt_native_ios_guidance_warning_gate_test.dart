@@ -30,7 +30,10 @@ void main() {
       );
 
       expect(guidanceToggleBlock, contains('tooFarTooCloseWarningEnabled'));
-      expect(guidanceToggleBlock, contains('receiptFullyVisibleWarningEnabled'));
+      expect(
+        guidanceToggleBlock,
+        contains('receiptFullyVisibleWarningEnabled'),
+      );
       expect(guidanceToggleBlock, contains('textTooSmallWarningEnabled'));
       expect(guidanceToggleBlock, isNot(contains('shadowWarningEnabled')));
       expect(guidanceToggleBlock, isNot(contains('dirtyLensWarningEnabled')));
@@ -57,4 +60,15 @@ void main() {
       );
     },
   );
+
+  test('iOS camera guidance does not use fake rotating warning copy', () async {
+    final sources = await readIosReceiptCameraBridgeSources();
+    final combined = sources.cameraController;
+
+    expect(combined, isNot(contains('Timer.scheduledTimer')));
+    expect(combined, isNot(contains('DispatchQueue.main.asyncAfter')));
+    expect(combined, isNot(contains('guidanceMessages')));
+    expect(combined, isNot(contains('warningCarousel')));
+    expect(combined, isNot(contains('randomGuidance')));
+  });
 }

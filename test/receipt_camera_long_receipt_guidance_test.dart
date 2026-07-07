@@ -85,6 +85,22 @@ void main() {
     expect(sources.reviewActions, contains('_needsStitchReviewBeforeSave'));
     expect(
       sources.reviewActions,
+      contains(
+        'return !widget.bestShotCandidateMode && _photoPaths.length > 1;',
+      ),
+    );
+    expect(sources.reviewActions, contains('_finalStitchResultForOcr'));
+    expect(sources.reviewActions, contains('preparedOcrPaths'));
+    expect(
+      sources.reviewActions,
+      contains('ReceiptImageProcessor.stitchReceiptPhotosForOcr'),
+    );
+    expect(
+      sources.reviewActions,
+      isNot(contains('widget.result.captureSource ==')),
+    );
+    expect(
+      sources.reviewActions,
       contains('_reviewMode = _ReceiptReviewMode.stitch'),
     );
     expect(

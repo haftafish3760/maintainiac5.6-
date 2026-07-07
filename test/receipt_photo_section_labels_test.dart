@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
 void main() {
   test('receipt review uses plain multi-photo wording', () async {
@@ -61,5 +63,26 @@ void main() {
     expect(picker, contains('pickMultiImage'));
     expect(importActions, contains('_pickAndReviewMultiple'));
     expect(attachmentList, contains('Photos kept in receipt order'));
+  });
+
+  test('uploaded receipt image sets preserve selected screenshot order', () {
+    final picked = ReceiptPickedPhotoSet.fromFiles([
+      XFile(' /tmp/advance-email-top.png '),
+      null,
+      XFile('   '),
+      XFile('/tmp/advance-email-middle.png'),
+      XFile('/tmp/advance-email-bottom.png'),
+    ]);
+
+    expect(picked.isEmpty, isFalse);
+    expect(picked.paths, [
+      '/tmp/advance-email-top.png',
+      '/tmp/advance-email-middle.png',
+      '/tmp/advance-email-bottom.png',
+    ]);
+    expect(
+      () => picked.paths.add('/tmp/advance-email-extra.png'),
+      throwsUnsupportedError,
+    );
   });
 }

@@ -31,4 +31,41 @@ void main() {
       );
     },
   );
+
+  test(
+    'Android camera guidance does not use fake rotating warning copy',
+    () async {
+      final sources = await readAndroidReceiptCameraBridgeSources();
+      final combined = sources.cameraActivity;
+
+      expect(combined, isNot(contains('Timer(')));
+      expect(combined, isNot(contains('postDelayed')));
+      expect(combined, isNot(contains('guidanceMessages')));
+      expect(combined, isNot(contains('warningCarousel')));
+      expect(combined, isNot(contains('randomGuidance')));
+
+      final guidanceToggleStart = combined.indexOf(
+        'internal fun ReceiptCameraActivity.setReceiptGuidanceWarningsEnabled',
+      );
+      expect(guidanceToggleStart, greaterThanOrEqualTo(0));
+      final guidanceToggleEnd = combined.indexOf('\n}', guidanceToggleStart);
+      expect(guidanceToggleEnd, greaterThan(guidanceToggleStart));
+      final guidanceToggleBlock = combined.substring(
+        guidanceToggleStart,
+        guidanceToggleEnd,
+      );
+
+      expect(guidanceToggleBlock, contains('tooFarTooCloseWarningEnabled'));
+      expect(
+        guidanceToggleBlock,
+        contains('receiptFullyVisibleWarningEnabled'),
+      );
+      expect(guidanceToggleBlock, contains('textTooSmallWarningEnabled'));
+      expect(guidanceToggleBlock, isNot(contains('shadowWarningEnabled')));
+      expect(guidanceToggleBlock, isNot(contains('dirtyLensWarningEnabled')));
+      expect(guidanceToggleBlock, isNot(contains('glareWarningEnabled')));
+      expect(guidanceToggleBlock, isNot(contains('lowLightWarningEnabled')));
+      expect(guidanceToggleBlock, isNot(contains('motionBlurWarningEnabled')));
+    },
+  );
 }

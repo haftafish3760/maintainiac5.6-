@@ -28,6 +28,7 @@ while IFS= read -r path; do
     test/receipt_camera_* | \
     test/receipt_native_* | \
     test/receipt_ocr_source_* | \
+    test/receipt_photo_section_labels_test.dart | \
     test/receipt_stitching_* | \
     tool/android_receipt_camera_* | \
     tool/ios_receipt_camera_* | \
