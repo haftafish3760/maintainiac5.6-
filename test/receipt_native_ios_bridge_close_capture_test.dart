@@ -11,7 +11,7 @@ void main() {
     expect(cameraController, contains('doneButton'));
     expect(
       cameraController,
-      contains('Review captured receipt photos in Maintainiac'),
+      contains('Next: review captured receipt photos in Maintainiac'),
     );
     expect(cameraController, contains('finishWithCapturedPhotos'));
     expect(cameraController, contains('@objc func cancelCapture()'));
@@ -72,7 +72,7 @@ void main() {
     final cameraController = sources.cameraController;
 
     expect(cameraController, contains('Next'));
-    expect(cameraController, contains('Add Next'));
+    expect(cameraController, contains('Add Photo'));
     expect(cameraController, contains('captureAdditionalPhoto'));
     expect(cameraController, contains('manual_add_photo'));
     expect(
@@ -85,9 +85,7 @@ void main() {
     );
     expect(
       cameraController,
-      contains(
-        'Add receipt section \\(nextReceiptSectionNumber()) if this receipt continues',
-      ),
+      contains('Add another receipt photo if this receipt continues'),
     );
     expect(
       cameraController,
@@ -114,9 +112,28 @@ void main() {
         'addPhotoButton.accessibilityLabel = addSectionButtonAccessibilityLabel()',
       ),
     );
+    expect(cameraController, contains('return "Add Photo"'));
     expect(
       cameraController,
-      contains('Add Section \\(nextReceiptSectionNumber())'),
+      contains('bottomBar.addArrangedSubview(addPhotoButton)'),
+    );
+    expect(
+      cameraController,
+      contains('bottomBar.addArrangedSubview(bottomReviewButton)'),
+    );
+    expect(
+      cameraController,
+      contains(
+        'bottomReviewButton.accessibilityLabel =\n      "Next: review captured receipt photos in Maintainiac"',
+      ),
+    );
+    expect(
+      cameraController,
+      contains('capturedPhotoPaths.isEmpty || !longReceiptMode'),
+    );
+    expect(
+      cameraController,
+      contains('bottomReviewButton.isHidden = capturedPhotoPaths.isEmpty'),
     );
     expect(cameraController, contains('controls.append("add_photo")'));
     expect(

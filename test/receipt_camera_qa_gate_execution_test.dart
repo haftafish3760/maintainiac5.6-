@@ -66,6 +66,11 @@ void main() {
           'full test/receipt_native_ios_bridge_analysis_exposure_test.dart',
         ),
       );
+      expect(fullPlan, contains('full test/receipt_camera_result_test.dart'));
+      expect(
+        fullPlan,
+        contains('full test/receipt_ocr_source_completion_test.dart'),
+      );
     },
   );
 
@@ -100,6 +105,46 @@ void main() {
 
     expect(missingPaths, isEmpty);
   });
+
+  test(
+    'full camera QA plan covers every camera native stitch and OCR test',
+    () async {
+      final result = await Process.run('bash', [
+        'tool/receipt_camera_qa_gate.sh',
+        '--print-plan',
+        'full',
+      ]);
+      expect(result.exitCode, 0, reason: result.stderr.toString());
+      final planned = result.stdout
+          .toString()
+          .split('\n')
+          .where(
+            (line) =>
+                line.startsWith('quick ') ||
+                line.startsWith('milestone ') ||
+                line.startsWith('full '),
+          )
+          .map((line) => line.split(' ').last)
+          .toSet();
+
+      final diskTests = Directory('test')
+          .listSync()
+          .whereType<File>()
+          .map((file) => file.path)
+          .where(
+            (path) =>
+                path.contains('/receipt_camera_') ||
+                path.contains('/receipt_native_') ||
+                path.contains('/receipt_stitch') ||
+                path.contains('/receipt_ocr_source'),
+          )
+          .where((path) => path.endsWith('.dart'))
+          .map((path) => path.replaceFirst('${Directory.current.path}/', ''))
+          .toSet();
+
+      expect(planned, containsAll(diskTests));
+    },
+  );
 
   test('camera changed gate mode selection is executable', () async {
     Future<String> selectedModeFor(String changedFiles) async {

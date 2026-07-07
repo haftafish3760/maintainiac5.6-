@@ -33,6 +33,20 @@ void main() {
     expect(script, contains('run_full'));
     expect(script, contains('milestone_only_tests=('));
     expect(script, contains('full_only_tests=('));
+    expect(script, contains('test/receipt_camera_result_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_camera_result_frozen_brain_install_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_native_android_diagnostics_payload_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_native_ios_project_membership_test.dart'),
+    );
+    expect(script, contains('test/receipt_ocr_source_completion_test.dart'));
     expect(script, contains('dart analyze'));
     expect(script, contains('lib/shared/widgets/receipt_capture'));
     expect(script, contains('lib/shared/receipts'));

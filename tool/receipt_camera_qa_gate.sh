@@ -85,8 +85,50 @@ milestone_only_tests=(
 )
 
 full_only_tests=(
+  test/receipt_camera_completion_map_test.dart
+  test/receipt_camera_footprint_audit_test.dart
+  test/receipt_camera_help_flow_test.dart
+  test/receipt_camera_native_baseline_policy_test.dart
+  test/receipt_camera_ocr_source_attachment_read_test.dart
+  test/receipt_camera_release_control_priority_test.dart
+  test/receipt_camera_release_one_blueprint_test.dart
+  test/receipt_camera_result_auto_capture_contract_test.dart
+  test/receipt_camera_result_continuation_handoff_test.dart
+  test/receipt_camera_result_focus_contract_test.dart
+  test/receipt_camera_result_frozen_brain_install_test.dart
+  test/receipt_camera_result_frozen_handoff_counts_test.dart
+  test/receipt_camera_result_frozen_metadata_brain_test.dart
+  test/receipt_camera_result_frozen_metadata_counts_test.dart
+  test/receipt_camera_result_frozen_metadata_routes_test.dart
+  test/receipt_camera_result_frozen_metadata_tail_test.dart
+  test/receipt_camera_result_native_ui_ready_test.dart
+  test/receipt_camera_result_quality_test.dart
+  test/receipt_camera_result_recovery_metadata_test.dart
+  test/receipt_camera_result_retired_control_contract_test.dart
+  test/receipt_camera_result_saved_photo_warning_test.dart
+  test/receipt_camera_result_section_order_follow_through_test.dart
+  test/receipt_camera_result_section_order_invalid_context_test.dart
+  test/receipt_camera_result_section_order_test.dart
+  test/receipt_camera_result_test.dart
+  test/receipt_camera_saved_photo_warning_diagnostics_test.dart
+  test/receipt_native_android_bridge_auto_capture_test.dart
+  test/receipt_native_android_bridge_test.dart
+  test/receipt_native_android_diagnostics_payload_test.dart
+  test/receipt_native_android_guidance_policy_gate_test.dart
+  test/receipt_native_camera_result_path_validation_test.dart
+  test/receipt_native_camera_session_contract_test.dart
+  test/receipt_native_capture_old_cleanup_test.dart
+  test/receipt_native_capture_recovery_index_test.dart
+  test/receipt_native_capture_recovery_record_test.dart
+  test/receipt_native_ios_bridge_close_capture_test.dart
+  test/receipt_native_ios_bridge_test.dart
+  test/receipt_native_ios_diagnostics_payload_test.dart
+  test/receipt_native_ios_guidance_warning_gate_test.dart
+  test/receipt_native_ios_project_membership_test.dart
   test/receipt_native_android_bridge_analysis_exposure_test.dart
   test/receipt_native_ios_bridge_analysis_exposure_test.dart
+  test/receipt_ocr_source_completion_test.dart
+  test/receipt_ocr_source_section_order_handoff_test.dart
 )
 
 line_cap_paths=(

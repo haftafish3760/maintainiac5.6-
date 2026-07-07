@@ -70,11 +70,11 @@ extension ReceiptCameraViewController {
     torchButton.layer.cornerRadius = 8
     torchButton.accessibilityLabel = "Turn light on"
     torchButton.addTarget(self, action: #selector(toggleTorch), for: .touchUpInside)
-    doneButton.setTitle("Use Photos", for: .normal)
+    doneButton.setTitle("Next", for: .normal)
     doneButton.setTitleColor(.white, for: .normal)
     doneButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
     doneButton.layer.cornerRadius = 8
-    doneButton.accessibilityLabel = "Use captured receipt photos"
+    doneButton.accessibilityLabel = "Next: review captured receipt photos in Maintainiac"
     doneButton.isEnabled = false
     doneButton.isHidden = true
     doneButton.addTarget(self, action: #selector(finishWithCapturedPhotos), for: .touchUpInside)
@@ -133,6 +133,7 @@ extension ReceiptCameraViewController {
     leftSpacer.widthAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
     leftSpacer.heightAnchor.constraint(equalToConstant: 1).isActive = true
     bottomBar.setCustomSpacing(16, after: leftSpacer)
+    bottomBar.addArrangedSubview(addPhotoButton)
     bottomBar.addArrangedSubview(shutterButton)
     let rightSpacer = UIView()
     bottomBar.addArrangedSubview(rightSpacer)
@@ -140,14 +141,15 @@ extension ReceiptCameraViewController {
     rightSpacer.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     rightSpacer.widthAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
     rightSpacer.heightAnchor.constraint(equalToConstant: 1).isActive = true
-    bottomReviewButton.setTitle("Use Photos", for: .normal)
+    bottomReviewButton.setTitle("Next", for: .normal)
     bottomReviewButton.setTitleColor(.white, for: .normal)
     bottomReviewButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
     bottomReviewButton.layer.cornerRadius = 8
-    bottomReviewButton.accessibilityLabel = "Use captured receipt photos"
+    bottomReviewButton.accessibilityLabel = "Next: review captured receipt photos in Maintainiac"
     bottomReviewButton.isEnabled = false
     bottomReviewButton.isHidden = true
     bottomReviewButton.addTarget(self, action: #selector(finishWithCapturedPhotos), for: .touchUpInside)
+    bottomBar.addArrangedSubview(bottomReviewButton)
     view.addSubview(bottomBar)
 
     NSLayoutConstraint.activate([
@@ -184,8 +186,12 @@ extension ReceiptCameraViewController {
       bottomBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       bottomBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -4),
       bottomBar.heightAnchor.constraint(equalToConstant: 84),
+      addPhotoButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 96),
+      addPhotoButton.heightAnchor.constraint(equalToConstant: 48),
       shutterButton.widthAnchor.constraint(equalToConstant: 72),
       shutterButton.heightAnchor.constraint(equalToConstant: 72),
+      bottomReviewButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 96),
+      bottomReviewButton.heightAnchor.constraint(equalToConstant: 48),
     ])
     NSLayoutConstraint.activate([
       previousSectionGuide.topAnchor.constraint(equalTo: settingsStatusStrip.bottomAnchor, constant: 8),
