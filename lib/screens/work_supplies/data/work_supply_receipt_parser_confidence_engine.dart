@@ -155,7 +155,46 @@ double _receiptAmbiguityRisk(
   if (_isCrossTradePvcLine(text, item, tradeScope)) risk += 0.16;
   if (_isCrossTradeCopperLine(text, item, tradeScope)) risk += 0.34;
   if (_isGenericFilterLine(text, item, tradeScope)) risk += 0.38;
+  if (_isVaguePushFitLine(text, item)) risk += 0.28;
+  if (_isVaguePressureGaugeLine(text, item)) risk += 0.24;
+  if (_isVagueSoftenerSaltLine(text, item)) risk += 0.30;
   return risk;
+}
+
+bool _isVaguePushFitLine(String text, WorkSupplyItem item) {
+  if (!RegExp(
+    r'\b(push|push fit|push-fit|push connect|sharkbite)\b',
+  ).hasMatch(text)) {
+    return false;
+  }
+  if (RegExp(
+    r'\b(elbow|ell|elb|tee|coupling|cplg|adapter|adpt|cap|stop|valve|'
+    r'shutoff|slip|repair|reducer|reducing|mip|fip|male|female)\b',
+  ).hasMatch(text)) {
+    return false;
+  }
+  return _indexedReceiptTextFor(item).contains('push');
+}
+
+bool _isVaguePressureGaugeLine(String text, WorkSupplyItem item) {
+  if (!RegExp(r'\b(pressure gauge|well gauge|manometro)\b').hasMatch(text)) {
+    return false;
+  }
+  if (RegExp(r'\b(well|pozo|psi|pump|bomba|water|agua)\b').hasMatch(text)) {
+    return false;
+  }
+  return _indexedReceiptTextFor(item).contains('pressure gauge');
+}
+
+bool _isVagueSoftenerSaltLine(String text, WorkSupplyItem item) {
+  if (!RegExp(r'\b(salt pellets?|sal)\b').hasMatch(text)) return false;
+  if (RegExp(
+    r'\b(softener|suavizador|ablandador|brine|water treatment|agua)\b',
+  ).hasMatch(text)) {
+    return false;
+  }
+  final itemText = _indexedReceiptTextFor(item);
+  return itemText.contains('softener') || itemText.contains('salt');
 }
 
 bool _isCrossTradePvcLine(

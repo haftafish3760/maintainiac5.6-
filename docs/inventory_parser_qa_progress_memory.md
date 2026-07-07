@@ -4057,3 +4057,12 @@ Release boundaries:
   the combined regression slice
   `flutter test test/work_supply_plumbing_core_spanish_batch2_test.dart
   test/work_supply_plumbing_core_receipt_parser_batch5_test.dart`.
+- **20:34-21:00 Plumbing Core Ambiguity Batch 5 Guard:** Extended batch five
+  with review-level ambiguity regressions for vague push-connect, pressure
+  gauge, softener salt, and Spanish valve lines. Added confidence risk guards
+  so generic `PUSH CONNECT`, plain `PRESSURE GAUGE`, and unspecific `SALT
+  PELLETS` do not become high-confidence matches without family/context
+  evidence, while clear well/PSI and softener/water-treatment lines still pass.
+  Verification passed:
+  `flutter test test/work_supply_plumbing_core_receipt_parser_batch5_test.dart`
+  and `flutter test test/work_supply_plumbing_core_spanish_batch2_test.dart`.

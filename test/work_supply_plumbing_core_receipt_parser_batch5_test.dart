@@ -104,4 +104,48 @@ void main() {
     expect(softenerSalt.item.name.toLowerCase(), contains('salt'));
     expect(softenerSalt.confidenceLevel, ReceiptConfidenceLevel.good);
   });
+
+  test(
+    'plumbing core parser avoids overconfidence on vague batch five lines',
+    () {
+      final vaguePush = matchReceiptLineToCatalog(
+        'LOWES 1/2 PUSH CONNECT',
+        tradeScope: 'Plumbing',
+        maxCandidates: 360,
+      );
+      expect(vaguePush, isNotNull);
+      expect(vaguePush!.confidenceLevel, isNot(ReceiptConfidenceLevel.good));
+
+      final vagueGauge = matchReceiptLineToCatalog(
+        'ACE PRESSURE GAUGE',
+        tradeScope: 'Plumbing',
+        maxCandidates: 360,
+      );
+      expect(vagueGauge, isNotNull);
+      expect(vagueGauge!.confidenceLevel, isNot(ReceiptConfidenceLevel.good));
+
+      final unspecificSalt = matchReceiptLineToCatalog(
+        'WALMART SALT PELLETS 40 LB',
+        tradeScope: 'Plumbing',
+        maxCandidates: 360,
+      );
+      expect(unspecificSalt, isNotNull);
+      expect(
+        unspecificSalt!.confidenceLevel,
+        isNot(ReceiptConfidenceLevel.good),
+      );
+
+      final vagueSpanishValve = matchReceiptLineToCatalog(
+        'ACE VALVULA 1/2',
+        localePackId: 'es-US',
+        tradeScope: 'Plumbing',
+        maxCandidates: 360,
+      );
+      expect(vagueSpanishValve, isNotNull);
+      expect(
+        vagueSpanishValve!.confidenceLevel,
+        isNot(ReceiptConfidenceLevel.good),
+      );
+    },
+  );
 }
