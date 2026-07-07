@@ -209,8 +209,23 @@ _IdentityCompleteness _identityCompleteness(WorkSupplyItem item, String text) {
         item.intelligence.shapeOrStyle.isNotEmpty || _shapes.any(text.contains),
     hasConnection:
         item.intelligence.connectionType.isNotEmpty ||
-        _connections.any(text.contains),
+        _connections.any(text.contains) ||
+        _isSolventWeldPressureFittingText(text),
   );
+}
+
+bool _isSolventWeldPressureFittingText(String text) {
+  if (!_hasAny(text, ['cpvc', 'pvc schedule 40', 'pvc pressure'])) {
+    return false;
+  }
+  return _hasAny(text, [
+    'adapter',
+    'bushing',
+    'coupling',
+    'elbow',
+    'fitting',
+    'tee',
+  ]);
 }
 
 bool _requiresSize(String text) {
@@ -558,6 +573,7 @@ int _min(int left, int right) => left < right ? left : right;
 
 const _familiesWithFocusedParserEvidence = {
   'angle stops and supply lines',
+  'cpvc fittings and valves',
   'push-fit fittings and valves',
   'tubular drains and traps',
   'water treatment',

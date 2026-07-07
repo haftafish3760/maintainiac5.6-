@@ -4184,3 +4184,11 @@ Release boundaries:
   nut/washer, beveled washer, basket strainer, J-bend, and flanged tailpiece
   receipt shapes across merchant styles. Tubular drains/traps can now be counted
   as focused-parser-evidence-covered by the Plumbing Core readiness audit.
+- **01:41-01:48 CPVC Family Single-Chunk Evidence:** Added CPVC generated
+  fixture recipes for elbows, couplings, male/female/transition adapters, tees,
+  and reducer bushings, plus a generator isolation regression for
+  `--include-risk-tags cpvc`. The 30-case CPVC single-chunk generated parser
+  probe passed with 30 checked, 0 failures, and 30 parser calls at
+  `build/parser_qa_reports/generated_fixtures/cpvc_30_single_chunk_20260707_0144`.
+  CPVC fittings/valves can now be counted as focused-parser-evidence-covered by
+  the Plumbing Core readiness audit.

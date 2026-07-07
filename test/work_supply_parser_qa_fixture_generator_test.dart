@@ -343,6 +343,62 @@ void main() {
     expect(_riskTags(manifest), isNot(contains('water_treatment')));
   });
 
+  test('fixture generator can isolate CPVC Plumbing Core family', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_plumbing_cpvc_filter_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'plumbing',
+        '--scope',
+        'residential',
+        '--tier',
+        'core',
+        '--locale',
+        'en-US',
+        '--limit',
+        '30',
+        '--include-risk-tags',
+        'cpvc',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final generatedRoot = Directory(
+      '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+    );
+    final fixtures =
+        jsonDecode(
+              File(
+                '${generatedRoot.path}/generated_fixtures.json',
+              ).readAsStringSync(),
+            )
+            as List;
+    final manifest =
+        jsonDecode(
+              File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+            )
+            as Map;
+
+    expect(fixtures, hasLength(30));
+    expect(manifest['includeRiskTags'], ['cpvc']);
+    final ids = _fixtureIds(fixtures);
+    expect(ids, contains('cpvc_elbow'));
+    expect(ids, contains('cpvc_coupling'));
+    expect(ids, contains('cpvc_adapter'));
+    expect(ids, contains('cpvc_tee'));
+    expect(ids, contains('cpvc_reducer_bushing'));
+    expect(_riskTags(manifest), contains('cpvc'));
+    expect(_riskTags(manifest), isNot(contains('tubular')));
+  });
+
   test('fixture generator rejects unsafe empty batches', () async {
     final stderr = _MemorySink();
     final exit = await runWorkSupplyParserFixtureGenerator(
