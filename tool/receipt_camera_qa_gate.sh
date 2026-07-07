@@ -256,15 +256,18 @@ run_quick() {
     tool/receipt_camera_real_device_snapshot.sh \
     tool/receipt_camera_scope_gate.sh \
     tool/receipt_camera_stitch_gate.sh \
+    tool/receipt_external_fixture_schema_gate.dart \
     tool/receipt_start_camera_qa_gate.sh
   bash tool/receipt_camera_scope_gate.sh
   dart analyze \
     lib/shared/widgets/receipt_capture \
     lib/shared/receipts \
     tool/receipt_external_dataset_gate.dart \
+    tool/receipt_external_fixture_schema_gate.dart \
     tool/receipt_bug_regression_ledger_gate.dart
   dart tool/receipt_bug_regression_ledger_gate.dart
   dart tool/receipt_external_dataset_gate.dart
+  dart tool/receipt_external_fixture_schema_gate.dart
   run_source_audit
   run_line_cap_gate
   run_stale_contract_scan

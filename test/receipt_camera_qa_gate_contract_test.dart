@@ -53,11 +53,16 @@ void main() {
     expect(script, contains('lib/shared/receipts'));
     expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
     expect(script, contains('tool/receipt_external_dataset_gate.dart'));
+    expect(script, contains('tool/receipt_external_fixture_schema_gate.dart'));
     expect(
       script,
       contains('dart tool/receipt_bug_regression_ledger_gate.dart'),
     );
     expect(script, contains('dart tool/receipt_external_dataset_gate.dart'));
+    expect(
+      script,
+      contains('dart tool/receipt_external_fixture_schema_gate.dart'),
+    );
     expect(script, contains('bash tool/receipt_camera_scope_gate.sh'));
     expect(script, contains('dart tool/maintainiac_source_audit.dart'));
     expect(script, contains('run_line_cap_gate'));
@@ -242,6 +247,10 @@ void main() {
       expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
       expect(script, contains('tool/receipt_camera_*'));
       expect(script, contains('tool/receipt_external_dataset_gate.dart'));
+      expect(
+        script,
+        contains('tool/receipt_external_fixture_schema_gate.dart'),
+      );
       expect(
         script,
         contains('tool/receipt_pipeline_failure_to_regression.dart'),

@@ -43,6 +43,7 @@ while IFS= read -r path; do
 	    tool/receipt_bug_regression_ledger_gate.dart | \
 	    tool/receipt_camera_* | \
 	    tool/receipt_external_dataset_gate.dart | \
+	    tool/receipt_external_fixture_schema_gate.dart | \
 	    tool/receipt_pipeline_failure_to_regression.dart | \
 	    tool/receipt_fast_guard_gate.sh | \
 	    tool/receipt_quiet_batch.sh | \
