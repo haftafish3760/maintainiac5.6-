@@ -141,6 +141,7 @@ run_quick() {
     tool/ios_receipt_camera_compile_gate.sh \
     tool/receipt_camera_pipeline_gate.sh \
     tool/receipt_camera_changed_gate.sh \
+    tool/receipt_camera_failure_to_regression.sh \
     tool/receipt_camera_qa_gate.sh \
     tool/receipt_camera_qa_summary.sh \
     tool/receipt_camera_scope_gate.sh \

@@ -149,6 +149,33 @@ void main() {
     expect(script, isNot(contains('git ls-files --others')));
   });
 
+  test('camera failure wrapper creates regression tasks from QA logs', () {
+    final script = File(
+      'tool/receipt_camera_failure_to_regression.sh',
+    ).readAsStringSync();
+    final gate = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
+    final fastGuard = File(
+      'tool/receipt_fast_guard_gate.sh',
+    ).readAsStringSync();
+
+    expect(script, contains('<phase> <log-file>'));
+    expect(script, contains('camera_pipeline_contracts'));
+    expect(script, contains('native_camera_compile'));
+    expect(script, contains('camera_stitching'));
+    expect(script, contains('phase="camera_pipeline_contracts"'));
+    expect(script, contains('phase="native_camera_compile"'));
+    expect(script, contains('receipt_camera_qa_failure'));
+    expect(script, contains('CAMERA_PHASE %s'));
+    expect(script, contains('FAILED_PHASE %s'));
+    expect(script, contains('LOG %s'));
+    expect(
+      script,
+      contains('tool/receipt_pipeline_failure_to_regression.dart'),
+    );
+    expect(gate, contains('tool/receipt_camera_failure_to_regression.sh'));
+    expect(fastGuard, contains('tool/receipt_camera_failure_to_regression.sh'));
+  });
+
   test('camera stitch gate focuses long receipt stitching risk', () {
     final script = File(
       'tool/receipt_camera_stitch_gate.sh',
