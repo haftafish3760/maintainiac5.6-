@@ -20,6 +20,12 @@ void main() {
       expect(quickPlan, contains('mode=quick'));
       expect(
         quickPlan,
+        contains(
+          'quick test/receipt_camera_dataset_qa_gate_contract_test.dart',
+        ),
+      );
+      expect(
+        quickPlan,
         contains('quick test/receipt_camera_qa_gate_contract_test.dart'),
       );
       expect(

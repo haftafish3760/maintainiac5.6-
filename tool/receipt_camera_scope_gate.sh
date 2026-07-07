@@ -29,6 +29,7 @@ while IFS= read -r path; do
     test/helpers/receipt_stitching_* | \
     test/receipt_capture_flow_barcode_handoff_test.dart | \
     test/receipt_capture_flow_ocr_source_count_test.dart | \
+    test/receipt_camera_dataset_qa_gate_contract_test.dart | \
     test/receipt_camera_* | \
     test/receipt_native_* | \
     test/receipt_ocr_source_* | \
