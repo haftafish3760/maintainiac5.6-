@@ -116,6 +116,12 @@ void main() {
         "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_quiet_batch_status.sh'",
       ),
     );
+    expect(
+      script,
+      contains(
+        "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_external_fixture_schema_gate.dart'",
+      ),
+    );
     expect(script, contains('tool/receipt_camera_stitch_gate.sh'));
     expect(script, contains('tool/receipt_start_camera_qa_gate.sh'));
     expect(script, contains('test/receipt_camera_qa_gate_contract_test.dart'));
