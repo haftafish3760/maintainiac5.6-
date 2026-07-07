@@ -251,7 +251,11 @@ void main() {
     expect(commonControls, contains('_ReceiptLocalPhotoLimitStrip'));
     expect(
       commonControls,
-      contains('You can still use these photos, but review every line before saving.'),
+      contains('You can still use these photos, but review '),
+    );
+    expect(
+      commonControls,
+      contains('every line before saving.'),
     );
     expect(
       stitchControls,

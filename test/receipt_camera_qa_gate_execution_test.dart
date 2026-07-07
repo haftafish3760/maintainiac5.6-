@@ -40,6 +40,14 @@ void main() {
       );
       expect(
         quickPlan,
+        contains('quick test/receipt_photo_review_exit_completion_test.dart'),
+      );
+      expect(
+        quickPlan,
+        contains('quick test/receipt_photo_review_quality_handoff_test.dart'),
+      );
+      expect(
+        quickPlan,
         contains('quick test/receipt_external_dataset_local_audit_test.dart'),
       );
       expect(

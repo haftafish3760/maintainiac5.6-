@@ -123,6 +123,14 @@ void main() {
     expect(script, contains('test/receipt_import_source_sheet_test.dart'));
     expect(
       script,
+      contains('test/receipt_photo_review_exit_completion_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_photo_review_quality_handoff_test.dart'),
+    );
+    expect(
+      script,
       contains('test/receipt_external_dataset_local_audit_test.dart'),
     );
     expect(script, contains('test/receipt_external_dataset_gate_test.dart'));
