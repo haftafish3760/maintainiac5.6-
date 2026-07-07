@@ -118,7 +118,7 @@ ReceiptNativeCaptureResult acceptedNativeCaptureStagingFixture({
       'nativeControlContractVersion': 'receipt_native_controls_v1',
       'controlDiagnosticsPrivacyScope': 'summary_only_no_receipt_content',
       'visibleControlSet':
-          'back|settings|manual_shutter|status|light|brightness|section_ghost_guide|edge_guide',
+          'back|settings|manual_shutter|status|light|section_ghost_guide|edge_guide',
       'previewDominanceTarget': 'receipt_preview_75_80_percent',
       'manualCapturePolicy': 'guidance_advisory_manual_shutter_always_allowed',
       'tapFocusControlExpected': false,

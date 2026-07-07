@@ -225,7 +225,13 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('if (exposureSliderEnabled) controls.add("brightness")'),
+      contains('if (exposureControlsVisible()) controls.add("brightness")'),
+    );
+    expect(
+      cameraActivity,
+      contains(
+        'internal fun ReceiptCameraActivity.exposureControlsVisible(): Boolean',
+      ),
     );
     expect(
       cameraActivity,

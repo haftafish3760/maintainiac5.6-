@@ -10,7 +10,7 @@ internal fun ReceiptCameraActivity.visibleControlSet(): String {
         "status",
     )
     if (torchButton.isEnabled) controls.add("light")
-    if (exposureSliderEnabled) controls.add("brightness")
+    if (exposureControlsVisible()) controls.add("brightness")
     if (
         hasInitializedReceiptCameraField { bottomReviewButton } &&
         bottomReviewButton.visibility == View.VISIBLE &&
@@ -27,6 +27,13 @@ internal fun ReceiptCameraActivity.visibleControlSet(): String {
     if (previousSectionGuidePhotoPath != null) controls.add("section_ghost_guide")
     if (edgeDetectionEnabled && edgeOverlayEnabled) controls.add("edge_guide")
     return controls.joinToString("|")
+}
+
+internal fun ReceiptCameraActivity.exposureControlsVisible(): Boolean {
+    if (!hasInitializedReceiptCameraField { exposureSlider }) return false
+    val parentView = exposureSlider.parent as? View
+    return exposureSlider.visibility == View.VISIBLE &&
+        parentView?.visibility == View.VISIBLE
 }
 
 internal fun ReceiptCameraActivity.controlStatus(visible: Boolean, enabled: Boolean): String {

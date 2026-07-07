@@ -313,8 +313,13 @@ void main() {
     expect(
       cameraController,
       contains(
-        'if exposureSliderEnabled {\n      controls.append("brightness")',
+        'if exposureControlsVisible() {\n'
+        '      controls.append("brightness")',
       ),
+    );
+    expect(
+      cameraController,
+      contains('func exposureControlsVisible() -> Bool'),
     );
     expect(
       cameraController,

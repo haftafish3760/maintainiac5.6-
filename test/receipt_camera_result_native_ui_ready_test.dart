@@ -12,7 +12,7 @@ void main() {
       captureDiagnosticsByPhotoPath: const {
         '/tmp/proof.jpg': {
           'visibleControlSet':
-              'back|settings|manual_shutter|status|light|brightness|edge_guide',
+              'back|settings|manual_shutter|status|light|edge_guide',
           'previewDominanceTarget': 'receipt_preview_75_80_percent',
           'settingsContractVersion': 'receipt_native_camera_settings_v1',
           'settingsButtonPlacement': 'top_bar_right',

@@ -93,7 +93,7 @@ extension ReceiptCameraViewController {
     if !torchButton.isHidden && torchButton.isEnabled {
       controls.append("light")
     }
-    if exposureSliderEnabled {
+    if exposureControlsVisible() {
       controls.append("brightness")
     }
     if !bottomReviewButton.isHidden && bottomReviewButton.isEnabled {
@@ -109,6 +109,13 @@ extension ReceiptCameraViewController {
       controls.append("edge_guide")
     }
     return controls.joined(separator: "|")
+  }
+
+  func exposureControlsVisible() -> Bool {
+    guard let parent = exposureSlider.superview else {
+      return false
+    }
+    return !exposureSlider.isHidden && !parent.isHidden
   }
 
   func controlStatus(visible: Bool, enabled: Bool) -> String {
