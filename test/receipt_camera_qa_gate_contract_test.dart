@@ -3,6 +3,24 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'camera detached QA starter rejects unknown modes before launching',
+    () async {
+      final result = await Process.run('bash', [
+        'tool/receipt_start_camera_qa_gate.sh',
+        'definitely-not-a-camera-mode',
+      ]);
+
+      expect(result.exitCode, 64);
+      expect(
+        result.stderr.toString(),
+        contains(
+          'Usage: tool/receipt_start_camera_qa_gate.sh [quick|stitch|milestone|full]',
+        ),
+      );
+    },
+  );
+
   test('camera QA gate exposes quick stitch milestone and full modes', () {
     final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
 
