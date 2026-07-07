@@ -32,7 +32,7 @@ extension ReceiptCameraViewController {
       "backButtonPlacement": "top_bar_left",
       "torchButtonPlacement": "top_bar_right",
       "shutterButtonPlacement": "bottom_center",
-      "reviewNextButtonPlacement": "top_and_bottom_after_capture",
+      "reviewNextButtonPlacement": "bottom_only_after_capture",
       "nativeCaptureReviewTransitionPolicy": "captured_photos_must_open_review_then_receipt_details",
       "nativeCaptureReviewTransitionTarget": "receipt_photo_review_next_to_receipt_details",
       "nativeCaptureReviewDiscardPolicy": "never_discard_captured_photo_on_back",

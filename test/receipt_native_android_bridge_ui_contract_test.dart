@@ -88,7 +88,7 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('"reviewNextButtonPlacement" to "top_and_bottom_after_capture"'),
+      contains('"reviewNextButtonPlacement" to "bottom_only_after_capture"'),
     );
     expect(
       cameraActivity,

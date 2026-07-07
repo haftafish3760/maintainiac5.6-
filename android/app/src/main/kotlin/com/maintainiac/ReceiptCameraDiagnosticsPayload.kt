@@ -31,7 +31,7 @@ internal fun ReceiptCameraActivity.nativeCaptureDiagnostics(
         "backButtonPlacement" to "top_bar_left",
         "torchButtonPlacement" to "top_bar_right",
         "shutterButtonPlacement" to "bottom_center",
-        "reviewNextButtonPlacement" to "top_and_bottom_after_capture",
+        "reviewNextButtonPlacement" to "bottom_only_after_capture",
         "nativeCaptureReviewTransitionPolicy" to "captured_photos_must_open_review_then_receipt_details",
         "nativeCaptureReviewTransitionTarget" to "receipt_photo_review_next_to_receipt_details",
         "nativeCaptureReviewDiscardPolicy" to "never_discard_captured_photo_on_back",

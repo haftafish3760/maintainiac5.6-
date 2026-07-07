@@ -175,7 +175,7 @@ void main() {
     );
     expect(
       cameraController,
-      contains('"reviewNextButtonPlacement": "top_and_bottom_after_capture"'),
+      contains('"reviewNextButtonPlacement": "bottom_only_after_capture"'),
     );
     expect(
       cameraController,
