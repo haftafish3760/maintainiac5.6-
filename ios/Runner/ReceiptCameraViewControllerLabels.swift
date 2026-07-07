@@ -44,7 +44,7 @@ extension ReceiptCameraViewController {
     let reviewMode = reviewDepth == "detailedLines" ? "Detailed lines" : "Price-only lines"
     let receiptMode = longReceiptMode ? "Long receipt" : "Single photo"
     let lightMode = autoExposureAssistEnabled ? "Auto light" : "Manual light"
-    return "\(fillMode) | \(reviewMode) | \(receiptMode) | \(lightMode)"
+    return "\(fillMode) • \(reviewMode) • \(receiptMode) • \(lightMode)"
   }
 
   func shouldShowSettingsStatusStrip() -> Bool {

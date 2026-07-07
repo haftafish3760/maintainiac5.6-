@@ -147,7 +147,7 @@ void main() {
     expect(
       cameraController,
       contains(
-        r'return "\(fillMode) | \(reviewMode) | \(receiptMode) | \(lightMode)"',
+        r'return "\(fillMode) • \(reviewMode) • \(receiptMode) • \(lightMode)"',
       ),
     );
     expect(cameraController, contains('private func safeReceiptReviewDepth'));
