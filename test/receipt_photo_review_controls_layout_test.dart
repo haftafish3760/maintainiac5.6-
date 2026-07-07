@@ -82,6 +82,11 @@ void main() {
     expect(reviewScreen, contains('boundaryMargin: const EdgeInsets.all(48)'));
     expect(reviewScreen, contains('void _togglePhotoPreviewZoom()'));
     expect(reviewScreen, contains('void _resetPhotoPreviewZoom()'));
+    expect(reviewScreen, contains('onHideControls: _openingCamera || _savingPhotos'));
+    expect(reviewScreen, contains('final interactionLocked = _openingCamera || _savingPhotos;'));
+    expect(reviewScreen, contains('if (interactionLocked && _controlsVisible) return;'));
+    expect(reviewScreen, contains('if (interactionLocked) {'));
+    expect(reviewScreen, contains('_controlsVisible = true;'));
     expect(commonControls, contains('minimumSize: const Size(0, 32)'));
     expect(previewControls, contains('height: 32'));
     expect(previewControls, contains('minimumSize: const Size(0, 38)'));

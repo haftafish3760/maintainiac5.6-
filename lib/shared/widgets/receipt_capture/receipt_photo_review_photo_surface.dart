@@ -12,8 +12,17 @@ extension _ReceiptPhotoReviewPhotoSurface on _ReceiptPhotoReviewScreenState {
           behavior: HitTestBehavior.opaque,
           onDoubleTapDown: (details) => _lastPhotoPreviewDoubleTap = details,
           onDoubleTap: _togglePhotoPreviewZoom,
-          onTap: () =>
-              _updateReviewState(() => _controlsVisible = !_controlsVisible),
+          onTap: () {
+            final interactionLocked = _openingCamera || _savingPhotos;
+            if (interactionLocked && _controlsVisible) return;
+            _updateReviewState(() {
+              if (interactionLocked) {
+                _controlsVisible = true;
+              } else {
+                _controlsVisible = !_controlsVisible;
+              }
+            });
+          },
           child: SafeArea(
             child: Padding(
               padding: EdgeInsets.fromLTRB(
