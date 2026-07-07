@@ -344,6 +344,66 @@ void main() {
     );
   });
 
+  test(
+    'low-confidence stitched preview cannot auto-clear assisted receipt read',
+    () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/stitched-low-confidence.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: ReceiptStitchResult(
+          status: ReceiptStitchStatus.stitched,
+          inputPaths: ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
+          ocrSourcePaths: ['/tmp/stitched-low-confidence.jpg'],
+          stitchedPath: '/tmp/stitched-low-confidence.jpg',
+          confidence: .55,
+          overlapPixels: [187],
+          pairs: [
+            ReceiptStitchPairResult(
+              pairIndex: 0,
+              overlapPixels: 187,
+              confidence: .55,
+            ),
+          ],
+        ),
+      );
+
+      expect(result.stitchResult.didStitch, isTrue);
+      expect(result.stitchResult.hasValidOcrSourceContract, isTrue);
+      expect(result.stitchResult.hasLowConfidenceAutomaticOverlap, isTrue);
+      expect(
+        result.stitchResult.requiresOcrSourceReviewBeforeAssistedRead,
+        isTrue,
+      );
+      expect(
+        result.stitchResult.assistedReadinessCode,
+        'stitched_overlap_review_required',
+      );
+      expect(
+        result.nextReviewMatchReadinessOutcome,
+        'ocr_source_review_required_before_assist',
+      );
+      expect(
+        result
+            .receiptReaderHandoffCounts['stitch_requires_ocr_source_review_before_assist'],
+        1,
+      );
+      expect(
+        result
+            .receiptReaderHandoffCounts['match_readiness_ocr_source_review_required_before_assist'],
+        1,
+      );
+      expect(
+        result.privacySafeReceiptReaderHandoffMetadata,
+        containsPair('stitchHasLowConfidenceAutomaticOverlap', true),
+      );
+      expect(
+        result.privacySafeReceiptReaderHandoffMetadata,
+        containsPair('nextReviewRequiresOcrSourceReviewBeforeAssist', true),
+      );
+    },
+  );
+
   test('native section order metadata preserves ghost guide handoff', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const [
