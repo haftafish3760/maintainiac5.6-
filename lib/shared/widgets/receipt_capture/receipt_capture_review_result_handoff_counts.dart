@@ -27,6 +27,8 @@ extension ReceiptPhotoReviewResultHandoffCounts on ReceiptPhotoReviewResult {
     }
     counts['stitch_ocr_source_contract_${stitchResult.ocrSourceContractCode}'] =
         1;
+    counts['stitch_assisted_readiness_${stitchResult.assistedReadinessCode}'] =
+        1;
     counts['match_readiness_$nextReviewMatchReadinessOutcome'] = 1;
     if (hasPossiblePartialReceiptPhotos) {
       counts['possible_partial_receipt'] =

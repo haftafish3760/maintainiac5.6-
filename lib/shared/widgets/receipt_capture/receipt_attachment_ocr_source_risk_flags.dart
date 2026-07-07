@@ -58,7 +58,7 @@ extension _ReceiptAttachmentOcrSourceRiskFlags
     if (result.stitchResult.usedFallback) {
       flags.add('ocr_stitch_fallback_multiple_sources');
     }
-    if (!result.stitchResult.hasValidOcrSourceContract ||
+    if (result.stitchResult.requiresOcrSourceReviewBeforeAssistedRead ||
         !result.ocrSourcePathsMatchStitchContract) {
       flags.add('ocr_source_stitch_contract_review_required');
       flags.add(

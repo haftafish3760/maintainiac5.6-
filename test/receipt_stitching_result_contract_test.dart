@@ -84,6 +84,22 @@ void main() {
     expect(fallback.summaryLabel, contains('reviewed separately'));
     expect(fallback.ocrSourceContractCode, 'fallback_ordered_sources_ready');
     expect(fallback.hasValidOcrSourceContract, isTrue);
+    expect(fallback.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+    expect(
+      fallback.assistedReadinessCode,
+      'ordered_sections_stitch_fallback_review_required',
+    );
+    expect(
+      fallback.privacySafeOcrHandoffSafety,
+      containsPair(
+        'stitchAssistedReadinessCode',
+        'ordered_sections_stitch_fallback_review_required',
+      ),
+    );
+    expect(
+      fallback.privacySafeOcrHandoffSafety,
+      containsPair('stitchRequiresOcrSourceReviewBeforeAssistedRead', true),
+    );
     expect(fallback.ocrSourcePaths, ['/tmp/a.jpg', '/tmp/b.jpg']);
     expect(fallback.failedPairLabel, 'Photo 1 to 2');
     expect(fallback.matchedPairCount, 0);
@@ -130,16 +146,23 @@ void main() {
       'stitched_ocr_source_path_mismatch',
     );
     expect(stitchedMismatch.hasValidOcrSourceContract, isFalse);
+    expect(stitchedMismatch.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+    expect(
+      stitchedMismatch.assistedReadinessCode,
+      'stitch_contract_review_required',
+    );
     expect(
       stitchedMissing.ocrSourceContractCode,
       'stitched_ocr_source_missing',
     );
     expect(stitchedMissing.hasValidOcrSourceContract, isFalse);
+    expect(stitchedMissing.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
     expect(
       fallbackMismatch.ocrSourceContractCode,
       'fallback_ordered_source_count_mismatch',
     );
     expect(fallbackMismatch.hasValidOcrSourceContract, isFalse);
+    expect(fallbackMismatch.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
   });
 
   test('single and manual stitch overlap coverage stay explicit', () {
@@ -165,12 +188,16 @@ void main() {
     expect(single.pairCount, 0);
     expect(single.overlapCoverageCode, 'single_section_no_overlap_needed');
     expect(single.preservesOriginalSectionSources, isTrue);
+    expect(single.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+    expect(single.assistedReadinessCode, 'single_section_ready');
     expect(
       single.sourcePreservationCode,
       'original_sections_preserved_ordered_ocr_sources',
     );
     expect(manual.pairs.single.hasTrustedOverlapEvidence, isTrue);
     expect(manual.matchedPairCount, 1);
+    expect(manual.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+    expect(manual.assistedReadinessCode, 'stitched_overlap_verified_ready');
     expect(manual.overlapCoverageCode, 'all_pairs_have_overlap_evidence');
     expect(manual.overlapExpectationLabel, 'Manual overlap accepted');
   });

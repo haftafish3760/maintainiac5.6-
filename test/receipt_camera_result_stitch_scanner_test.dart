@@ -154,6 +154,11 @@ void main() {
     );
     expect(
       fallback
+          .receiptReaderHandoffCounts['stitch_assisted_readiness_stitch_contract_review_required'],
+      1,
+    );
+    expect(
+      fallback
           .receiptReaderHandoffCounts['match_readiness_ordered_sections_fallback_ready'],
       1,
     );
@@ -187,6 +192,14 @@ void main() {
     expect(
       fallback.stitchResult.ocrHandoffSafetyCode,
       'ordered_sections_after_overlap_confidence_low_fallback',
+    );
+    expect(
+      fallback.stitchResult.requiresOcrSourceReviewBeforeAssistedRead,
+      isTrue,
+    );
+    expect(
+      fallback.stitchResult.assistedReadinessCode,
+      'stitch_contract_review_required',
     );
     expect(fallback.stitchResult.hasValidOcrSourceContract, isFalse);
     expect(
@@ -281,6 +294,17 @@ void main() {
     expect(
       fallback.privacySafeReceiptReaderHandoffMetadata,
       containsPair('stitchOcrHandoffUsesOrderedSections', true),
+    );
+    expect(
+      fallback.privacySafeReceiptReaderHandoffMetadata,
+      containsPair(
+        'stitchAssistedReadinessCode',
+        'stitch_contract_review_required',
+      ),
+    );
+    expect(
+      fallback.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('stitchRequiresOcrSourceReviewBeforeAssistedRead', true),
     );
 
     final stitchedAttachments = ReceiptCaptureFlow.attachmentsFromReviewResult(

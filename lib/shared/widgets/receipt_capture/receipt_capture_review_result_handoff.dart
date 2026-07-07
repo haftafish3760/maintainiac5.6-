@@ -40,7 +40,7 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
       return 'receipt_source_path_input_sanitized_review_required';
     }
     if (!hasOcrSourcePhotos) return 'ocr_source_missing_manual_entry_required';
-    if (!stitchResult.hasValidOcrSourceContract ||
+    if (stitchResult.requiresOcrSourceReviewBeforeAssistedRead ||
         !ocrSourcePathsMatchStitchContract) {
       return 'stitch_ocr_source_contract_review_required';
     }
@@ -58,7 +58,7 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
             photoPathInputWasSanitized ||
             ocrSourcePathInputWasSanitized ||
             scannerNeedsOperatorReview ||
-            !stitchResult.hasValidOcrSourceContract ||
+            stitchResult.requiresOcrSourceReviewBeforeAssistedRead ||
             !ocrSourcePathsMatchStitchContract
         ? 'manual_review_required_before_saving_receipt'
         : 'standard_user_confirmation_required';

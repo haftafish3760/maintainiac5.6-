@@ -171,6 +171,23 @@ class ReceiptStitchResult {
         ocrSourceContractCode == 'ordered_sources_ready';
   }
 
+  bool get requiresOcrSourceReviewBeforeAssistedRead {
+    return !hasValidOcrSourceContract || (usedFallback && hasMultipleSections);
+  }
+
+  String get assistedReadinessCode {
+    if (!hasValidOcrSourceContract) return 'stitch_contract_review_required';
+    if (didStitch && allPairsHaveOverlapEvidence) {
+      return 'stitched_overlap_verified_ready';
+    }
+    if (didStitch) return 'stitched_overlap_review_required';
+    if (usedFallback && hasMultipleSections) {
+      return 'ordered_sections_stitch_fallback_review_required';
+    }
+    if (inputPaths.length <= 1) return 'single_section_ready';
+    return 'ordered_sections_ready';
+  }
+
   String get failedPairLabel {
     final index = failedPairIndex;
     if (index == null) return '';
@@ -296,6 +313,9 @@ class ReceiptStitchResult {
       'stitchOcrHandoffSourceCount': ocrSourcePaths.length,
       'stitchOcrSourceContractCode': ocrSourceContractCode,
       'stitchOcrSourceContractReady': hasValidOcrSourceContract,
+      'stitchAssistedReadinessCode': assistedReadinessCode,
+      'stitchRequiresOcrSourceReviewBeforeAssistedRead':
+          requiresOcrSourceReviewBeforeAssistedRead,
       'stitchOcrHandoffChecklistLabel': ocrHandoffChecklistLabel,
     });
   }
