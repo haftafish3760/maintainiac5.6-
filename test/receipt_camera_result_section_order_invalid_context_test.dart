@@ -151,6 +151,7 @@ void main() {
           'receiptSectionCount': 2,
           'nextReceiptSectionNumber': 2,
           'receiptSectionOrderPolicy': 'top_to_bottom_numbered_sections',
+          'receiptCompletionUserConfirmedComplete': true,
           'previousSectionGhostGuideVisible': true,
           'previousSectionGhostGuidePolicy':
               'show_previous_bottom_slice_at_top',
@@ -163,8 +164,16 @@ void main() {
       'numbered_sections_with_ghost_guide',
     );
     expect(result.receiptSectionOrderNeedsReview, false);
-    expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, true);
-    expect(result.acceptedPhotoHandoffMustOpenFilledReview, true);
+    expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, false);
+    expect(
+      result.receiptPhotoReviewHandoffPath,
+      'accepted_stitch_ocr_source_review_required',
+    );
+    expect(
+      result.acceptedPhotoHandoffRoute,
+      'photo_review_ocr_source_review_required',
+    );
+    expect(result.acceptedPhotoHandoffMustOpenFilledReview, false);
     expect(
       result.receiptSectionOrderReviewActionCode,
       'review_long_receipt_order_with_ghost_guide',
