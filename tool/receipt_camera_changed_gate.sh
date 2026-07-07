@@ -31,11 +31,10 @@ USAGE
   exit 64
 fi
 
-bash tool/receipt_camera_scope_gate.sh
-
 if [[ -n "${RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST:-}" ]]; then
   changed_files="$RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST"
 else
+  bash tool/receipt_camera_scope_gate.sh
   changed_files="$(
     git diff --name-only --diff-filter=ACMRTUXB HEAD --
     git diff --name-only --cached --diff-filter=ACMRTUXB --

@@ -23,6 +23,11 @@ void main() {
     expect(script, contains('test/receipt_qa_runner_contract_test.dart'));
     expect(script, contains('test/receipt_qa_runner_pack_focus_test.dart'));
     expect(script, contains('test/receipt_camera_footprint_audit_test.dart'));
+    expect(script, contains('test/receipt_ocr_service_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_ocr_service_review_contract_test.dart'),
+    );
     expect(script, contains('bash tool/receipt_camera_pipeline_gate.sh'));
     expect(
       File('tool/receipt_camera_pipeline_gate.sh').readAsStringSync(),

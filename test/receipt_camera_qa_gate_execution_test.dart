@@ -63,7 +63,9 @@ void main() {
         environment: {'RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST': changedFiles},
       );
       expect(result.exitCode, 0, reason: result.stderr.toString());
-      return result.stdout.toString();
+      final output = result.stdout.toString();
+      expect(output, isNot(contains('Receipt camera scope gate')));
+      return output;
     }
 
     expect(

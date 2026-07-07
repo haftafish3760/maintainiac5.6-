@@ -38,5 +38,6 @@ bash tool/receipt_camera_pipeline_gate.sh
 
 flutter test \
   test/receipt_ocr_service_test.dart \
+  test/receipt_ocr_service_review_contract_test.dart \
   test/receipt_processing_contract_test.dart \
   -r compact

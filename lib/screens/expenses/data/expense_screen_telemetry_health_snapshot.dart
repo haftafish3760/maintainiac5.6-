@@ -130,8 +130,10 @@ class ExpenseTelemetryHealthSnapshot {
   final int localReceiptParserKeptLocalCount, localReceiptParserOptionalPackOfferCount;
   final Map<String, int> ocrParserTaskCounts, ocrFieldReadinessCounts, ocrSourceHandoffStatusCounts, ocrSourceHandoffSignalCounts;
   final Map<String, int> ocrSourceReviewDepthSignalCounts, ocrSourceReviewDepthStatusCounts;
-  final Map<String, int> ocrSourceStitchSignalCounts, ocrSourceScannerDecisionCounts, ocrSourceCaptureSourceSignalCounts, ocrSourceCoverageSignalCounts, ocrSourceContinuationSignalCounts, ocrSourceSectionOrderSignalCounts, ocrSourcePhotoQualityRiskCounts;
-  final Map<String, int> ocrSourceQualityReviewStatusCounts, ocrSourceQualityReviewActionCounts, ocrSourceSectionOrderReviewStatusCounts, ocrSourceSectionOrderFailedPairStatusCounts, clientProofRedactionStatusCounts, clientProofVisibilityCounts;
+  final Map<String, int> ocrSourceStitchSignalCounts, ocrSourceScannerDecisionCounts, ocrSourceCaptureSourceSignalCounts, ocrSourceCoverageSignalCounts;
+  final Map<String, int> ocrSourceContinuationSignalCounts, ocrSourceSectionOrderSignalCounts, ocrSourcePhotoQualityRiskCounts;
+  final Map<String, int> ocrSourceQualityReviewStatusCounts, ocrSourceQualityReviewActionCounts, ocrSourceSectionOrderReviewStatusCounts;
+  final Map<String, int> ocrSourceSectionOrderFailedPairStatusCounts, clientProofRedactionStatusCounts, clientProofVisibilityCounts;
   final Map<String, int> receiptSelectedLinePurposeCounts;
   final int receiptSelectedLineCountTotal, receiptExcludedLineCountTotal, receiptClientProofReviewLineCountTotal, receiptRedactedLineCountTotal;
   final Map<String, int> clientProofRedactionPlanStatusCounts;
@@ -151,7 +153,9 @@ class ExpenseTelemetryHealthSnapshot {
   final String topOcrSourceHandoffSignal, topOcrSourceReviewDepthSignal;
   final String topOcrSourceReviewDepthStatus, topOcrSourceStitchSignal;
   final String topOcrSourceScannerDecision, topOcrSourceCaptureSourceSignal, topOcrSourceCoverageSignal, topOcrSourceContinuationSignal, topOcrSourceSectionOrderSignal;
-  final String topOcrSourcePhotoQualityRisk, topOcrSourceQualityReviewStatus, topOcrSourceQualityReviewAction, topOcrSourceSectionOrderReviewStatus, topOcrSourceSectionOrderFailedPairStatus, topClientProofRedactionStatus, topClientProofVisibility, topReceiptSelectedLinePurpose;
+  final String topOcrSourcePhotoQualityRisk, topOcrSourceQualityReviewStatus, topOcrSourceQualityReviewAction;
+  final String topOcrSourceSectionOrderReviewStatus, topOcrSourceSectionOrderFailedPairStatus, topClientProofRedactionStatus;
+  final String topClientProofVisibility, topReceiptSelectedLinePurpose;
   final String topClientProofRedactionPlanStatus, topClientProofLayoutRedactionStatus;
   final Map<String, int> receiptPhotoCoverageStatusCounts, receiptPhotoCoverageReasonCounts;
   final int receiptPhotoCoverageNeedsMoreCount;
