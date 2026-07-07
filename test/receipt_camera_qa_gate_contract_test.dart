@@ -131,6 +131,9 @@ void main() {
       isNot(contains(r'''sed '' tool/receipt_camera_qa_gate.sh''')),
     );
     expect(summary, contains('tool/receipt_quiet_batch_status.sh'));
+    expect(summary, contains('status_output='));
+    expect(summary, contains('summary=batch_stale_requires_restart'));
+    expect(summary, contains('restart_command='));
     expect(summary, contains('receipt_camera_qa_quick'));
     expect(summary, contains('receipt_camera_qa_stitch'));
     expect(summary, contains('receipt_camera_qa_milestone'));

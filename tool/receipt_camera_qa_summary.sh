@@ -40,16 +40,30 @@ esac
 root="/tmp/maintainiac_receipt_quiet_batch/$name"
 log_file="$root/run.log"
 
-bash tool/receipt_quiet_batch_status.sh "$name"
+status_output="$(bash tool/receipt_quiet_batch_status.sh "$name")"
+printf '%s\n' "$status_output"
+status="$(printf '%s\n' "$status_output" | awk -F= '$1 == "status" { print $2; exit }')"
 
 if [[ ! -f "$log_file" ]]; then
   echo "summary=missing_log"
   exit 66
 fi
 
-status="$(cat "$root/status.txt" 2>/dev/null || echo unknown)"
 if [[ "$status" == "running" ]]; then
   echo "summary=batch_still_running"
+  exit 70
+fi
+
+if [[ "$status" == "stale" ]]; then
+  echo "summary=batch_stale_requires_restart"
+  case "$requested_name" in
+    quick | stitch | milestone | full)
+      echo "restart_command=tool/receipt_start_camera_qa_gate.sh $requested_name"
+      ;;
+    *)
+      echo "restart_command=manual_rerun_required_for_batch_$name"
+      ;;
+  esac
   exit 70
 fi
 

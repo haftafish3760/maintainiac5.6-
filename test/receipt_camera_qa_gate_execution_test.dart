@@ -204,4 +204,36 @@ void main() {
     expect(output, contains('Expected: receipt camera stitch ready'));
     expect(output, contains('Actual: missing OCR source handoff'));
   });
+
+  test(
+    'detached camera QA summary reports stale batches without log tailing',
+    () async {
+      final staleName =
+          'receipt_camera_summary_stale_${DateTime.now().microsecondsSinceEpoch}';
+      final staleRoot = Directory(
+        '/tmp/maintainiac_receipt_quiet_batch/$staleName',
+      )..createSync(recursive: true);
+      addTearDown(() {
+        if (staleRoot.existsSync()) staleRoot.deleteSync(recursive: true);
+      });
+
+      File('${staleRoot.path}/status.txt').writeAsStringSync('running');
+      File('${staleRoot.path}/pid').writeAsStringSync('999999');
+      File(
+        '${staleRoot.path}/run.log',
+      ).writeAsStringSync('This stale log should not be tailed.\n');
+
+      final result = await Process.run('bash', [
+        'tool/receipt_camera_qa_summary.sh',
+        staleName,
+      ]);
+
+      expect(result.exitCode, 70, reason: result.stderr.toString());
+      final output = result.stdout.toString();
+      expect(output, contains('status=stale'));
+      expect(output, contains('summary=batch_stale_requires_restart'));
+      expect(output, contains('restart_command='));
+      expect(output, isNot(contains('This stale log should not be tailed')));
+    },
+  );
 }
