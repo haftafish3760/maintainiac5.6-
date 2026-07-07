@@ -44,6 +44,7 @@ while IFS= read -r path; do
     tool/ios_receipt_camera_* | \
 	    tool/receipt_bug_regression_ledger_archive.dart | \
 	    tool/receipt_bug_regression_ledger_gate.dart | \
+	    tool/receipt_camera_changed_route_coverage_gate.dart | \
 	    tool/receipt_camera_* | \
 	    tool/receipt_external_dataset_local_audit.dart | \
 	    tool/receipt_external_dataset_gate.dart | \
@@ -54,6 +55,7 @@ while IFS= read -r path; do
 	    tool/receipt_quiet_batch_status.sh | \
 	    tool/receipt_start_camera_qa_gate.sh | \
 	    test/receipt_bug_regression_ledger_archive_test.dart | \
+	    test/receipt_camera_changed_route_coverage_gate_test.dart | \
 	    test/receipt_fast_guard_gate_contract_test.dart | \
 	    test/receipt_pipeline_failure_to_regression_test.dart)
       ;;

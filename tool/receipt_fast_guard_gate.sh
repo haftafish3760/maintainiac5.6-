@@ -29,6 +29,7 @@ bash tool/receipt_doc_size_gate.sh
 dart analyze \
   tool/receipt_bug_regression_ledger_gate.dart \
   tool/receipt_bug_regression_ledger_archive.dart \
+  tool/receipt_camera_changed_route_coverage_gate.dart \
   tool/receipt_external_dataset_local_audit.dart \
   tool/receipt_external_dataset_gate.dart \
   tool/receipt_external_fixture_schema_gate.dart \
@@ -50,6 +51,7 @@ dart analyze \
 dart tool/maintainiac_source_audit.dart --max-line-length=220
 dart tool/maintainiac_source_audit.dart --tests-only --max-line-length=220
 dart tool/receipt_bug_regression_ledger_gate.dart
+dart tool/receipt_camera_changed_route_coverage_gate.dart
 dart tool/receipt_external_dataset_gate.dart
 dart tool/receipt_external_dataset_local_audit.dart
 dart tool/receipt_external_fixture_schema_gate.dart
@@ -60,6 +62,8 @@ RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_qa_gate_contract_test
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_camera_qa_gate.sh' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
+RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_camera_changed_route_coverage_gate.dart' \
+  bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_quiet_batch_status.sh' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_external_fixture_schema_gate.dart' \
@@ -69,6 +73,8 @@ RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_external_dataset_local_audit
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_external_dataset_gate.dart' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_dataset_qa_gate_contract_test.dart' \
+  bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
+RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_changed_route_coverage_gate_test.dart' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_external_fixture_schema_gate_test.dart' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
@@ -100,6 +106,7 @@ flutter test \
   test/receipt_external_fixture_schema_gate_test.dart \
   test/receipt_bug_regression_ledger_archive_test.dart \
   test/receipt_fast_guard_gate_contract_test.dart \
+  test/receipt_camera_changed_route_coverage_gate_test.dart \
   test/receipt_camera_dataset_qa_gate_contract_test.dart \
   test/receipt_camera_qa_gate_contract_test.dart \
   test/receipt_camera_qa_gate_execution_test.dart \

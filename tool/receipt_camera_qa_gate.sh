@@ -36,6 +36,7 @@ quick_tests=(
   test/receipt_external_fixture_schema_gate_test.dart
   test/receipt_photo_section_labels_test.dart
   test/receipt_camera_real_device_snapshot_contract_test.dart
+  test/receipt_camera_changed_route_coverage_gate_test.dart
   test/receipt_camera_dataset_qa_gate_contract_test.dart
   test/receipt_camera_qa_gate_contract_test.dart
   test/receipt_camera_qa_gate_execution_test.dart
@@ -267,8 +268,10 @@ run_quick() {
     tool/receipt_external_dataset_local_audit.dart \
     tool/receipt_external_dataset_gate.dart \
     tool/receipt_external_fixture_schema_gate.dart \
+    tool/receipt_camera_changed_route_coverage_gate.dart \
     tool/receipt_bug_regression_ledger_gate.dart
   dart tool/receipt_bug_regression_ledger_gate.dart
+  dart tool/receipt_camera_changed_route_coverage_gate.dart
   dart tool/receipt_external_dataset_gate.dart
   dart tool/receipt_external_dataset_local_audit.dart
   dart tool/receipt_external_fixture_schema_gate.dart
