@@ -20,6 +20,7 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
   }
 
   void _selectStitchPairIndex(int index) {
+    if (!_reviewInteractiveControlsActive) return;
     _syncManualOverlapSlots();
     final maxPairIndex = _manualOverlapFractions.length - 1;
     final selected = maxPairIndex < 0 ? 0 : index.clamp(0, maxPairIndex);
@@ -27,6 +28,7 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
   }
 
   void _setManualOverlapFraction(double value) {
+    if (!_reviewInteractiveControlsActive) return;
     if (!value.isFinite) return;
     _syncManualOverlapSlots();
     if (_manualOverlapFractions.isEmpty) return;
@@ -37,6 +39,7 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
   }
 
   void _clearManualOverlapFraction() {
+    if (!_reviewInteractiveControlsActive) return;
     _syncManualOverlapSlots();
     if (_manualOverlapFractions.isEmpty) return;
     _updateReviewState(

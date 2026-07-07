@@ -125,6 +125,7 @@ void main() {
       contains('void _releaseStaleStitchPreview(String key)'),
     );
     expect(reviewScreen, contains('void _selectStitchPairIndex(int index)'));
+    expect(reviewScreen, contains('if (!_reviewInteractiveControlsActive) return;'));
     expect(
       reviewScreen,
       contains(
