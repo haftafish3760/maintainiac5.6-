@@ -23,7 +23,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
   final bool savingPhotos;
   final String continueLabel;
   final VoidCallback onClose;
-  final VoidCallback onHideControls;
+  final VoidCallback? onHideControls;
   final ValueChanged<_ReceiptReviewMenuAction> onMenuSelected;
   final VoidCallback? onContinue;
 

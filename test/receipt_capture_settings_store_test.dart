@@ -45,6 +45,14 @@ void main() {
       isFalse,
     );
     expect(settings.cameraSetupComplete, isFalse);
+    expect(
+      settings.hasReceiptAssistChoiceFor(ReceiptCaptureArea.expenses),
+      isFalse,
+    );
+    expect(
+      settings.hasReceiptAssistChoiceFor(ReceiptCaptureArea.materialsInventory),
+      isFalse,
+    );
     expect(settings.cameraGuidanceEnabled, isTrue);
     expect(settings.cameraStartAssisted, isFalse);
     expect(settings.cameraAutoCapture, isFalse);
@@ -52,7 +60,14 @@ void main() {
     expect(settings.cameraLongReceiptTips, isTrue);
     expect(settings.cameraDiagnosticsImprovementOptIn, isFalse);
 
-    await settings.setCameraSetupComplete(true);
+    await settings.setReceiptAssistChoiceMadeFor(
+      ReceiptCaptureArea.expenses,
+      true,
+    );
+    await settings.setReceiptAssistChoiceMadeFor(
+      ReceiptCaptureArea.materialsInventory,
+      true,
+    );
     await settings.setAppAssistedReceiptFill(true);
     await settings.setAppAssistedExpenses(true);
     await settings.setAppAssistedMaterials(true);
@@ -64,7 +79,19 @@ void main() {
     await settings.setCameraLongReceiptTips(false);
     await settings.setCameraDiagnosticsImprovementOptIn(true);
 
-    expect(settings.cameraSetupComplete, isTrue);
+    expect(settings.cameraSetupComplete, isFalse);
+    expect(
+      settings.hasReceiptAssistChoiceFor(ReceiptCaptureArea.expenses),
+      isTrue,
+    );
+    expect(
+      settings.hasReceiptAssistChoiceFor(ReceiptCaptureArea.materialsInventory),
+      isTrue,
+    );
+    expect(
+      settings.hasReceiptAssistChoiceFor(ReceiptCaptureArea.maintenanceRepair),
+      isFalse,
+    );
     expect(settings.appAssistedReceiptFill, isTrue);
     expect(settings.appAssistedExpenses, isTrue);
     expect(settings.appAssistedMaterials, isTrue);
@@ -214,6 +241,10 @@ void main() {
     expect(
       settings.appAssistedEnabledFor(ReceiptCaptureArea.materialsInventory),
       isTrue,
+    );
+    expect(
+      settings.hasReceiptAssistChoiceFor(ReceiptCaptureArea.expenses),
+      isFalse,
     );
     expect(settings.cameraGuidanceEnabled, isTrue);
     expect(settings.cameraStartAssisted, isFalse);

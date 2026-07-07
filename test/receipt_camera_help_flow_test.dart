@@ -105,8 +105,14 @@ void main() {
     expect(helpSheet, isNot(contains('deviceModel')));
     expect(helpSheet, isNot(contains('availableRamLabel')));
     expect(importActions, contains('_showFirstUseReceiptCameraIntro'));
-    expect(importActions, contains('!settings.cameraSetupComplete'));
-    expect(importActions, contains('settings.setCameraSetupComplete(true)'));
+    expect(
+      importActions,
+      contains('!settings.hasReceiptAssistChoiceFor(widget.area)'),
+    );
+    expect(
+      importActions,
+      contains('settings.setReceiptAssistChoiceMadeFor(widget.area, true)'),
+    );
     expect(
       helpSheet,
       contains('_ReceiptFirstUseCameraAction.useReceiptAssist'),

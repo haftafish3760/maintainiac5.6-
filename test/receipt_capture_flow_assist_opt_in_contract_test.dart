@@ -124,8 +124,14 @@ void main() {
       ),
     );
     expect(importActions, contains('_showFirstUseReceiptCameraIntro'));
-    expect(importActions, contains('!settings.cameraSetupComplete'));
-    expect(importActions, contains('settings.setCameraSetupComplete(true)'));
+    expect(
+      importActions,
+      contains('!settings.hasReceiptAssistChoiceFor(widget.area)'),
+    );
+    expect(
+      importActions,
+      contains('settings.setReceiptAssistChoiceMadeFor(widget.area, true)'),
+    );
 
     expect(firstUseSheet, isNot(contains('Saved Receipt Proof Size')));
     expect(firstUseSheet, isNot(contains('Saved proof')));
@@ -167,18 +173,24 @@ void main() {
     );
     expect(
       introHelper,
-      contains('await settings.setCameraSetupComplete(true);'),
+      contains(
+        'await settings.setReceiptAssistChoiceMadeFor(widget.area, true);',
+      ),
     );
     expect(
       introHelper.indexOf(
         'await _applyFirstUseReceiptAssistChoice(settings, action);',
       ),
       lessThan(
-        introHelper.indexOf('await settings.setCameraSetupComplete(true);'),
+        introHelper.indexOf(
+          'await settings.setReceiptAssistChoiceMadeFor(widget.area, true);',
+        ),
       ),
     );
     expect(
-      introHelper.indexOf('await settings.setCameraSetupComplete(true);'),
+      introHelper.indexOf(
+        'await settings.setReceiptAssistChoiceMadeFor(widget.area, true);',
+      ),
       lessThan(introHelper.indexOf('return true;')),
     );
 

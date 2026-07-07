@@ -85,6 +85,11 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
   bool get appAssistedMaintenance =>
       _readBool(_Keys.appAssistedMaintenance, false);
   bool get cameraSetupComplete => _readBool(_Keys.cameraSetupComplete, false);
+  bool hasReceiptAssistChoiceFor(ReceiptCaptureArea area) {
+    if (_readBool(_receiptAssistChoiceKey(area), false)) return true;
+    return cameraSetupComplete;
+  }
+
   bool get cameraGuidanceEnabled =>
       _readBool(_Keys.cameraGuidanceEnabled, true);
   bool get cameraStartAssisted => _readBool(_Keys.cameraStartAssisted, false);
@@ -121,6 +126,10 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
       _writeBool(_Keys.appAssistedMaterials, value);
   Future<void> setAppAssistedMaintenance(bool value) =>
       _writeBool(_Keys.appAssistedMaintenance, value);
+  Future<void> setReceiptAssistChoiceMadeFor(
+    ReceiptCaptureArea area,
+    bool value,
+  ) => _writeBool(_receiptAssistChoiceKey(area), value);
   Future<void> setCameraSetupComplete(bool value) =>
       _writeBool(_Keys.cameraSetupComplete, value);
   Future<void> setCameraGuidanceEnabled(bool value) =>
@@ -172,6 +181,7 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
       case ReceiptCaptureArea.maintenanceRepair:
         await _box.put(_Keys.appAssistedMaintenance, false);
     }
+    await _box.delete(_receiptAssistChoiceKey(area));
     await _box.put(_Keys.cameraGuidanceEnabled, true);
     await _box.put(_Keys.cameraStartAssisted, false);
     await _box.put(_Keys.cameraAutoCapture, false);
@@ -213,6 +223,16 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
   Future<void> _writeBool(String key, bool value) async {
     await _box.put(key, value);
     notifyListeners();
+  }
+
+  String _receiptAssistChoiceKey(ReceiptCaptureArea area) {
+    return switch (area) {
+      ReceiptCaptureArea.expenses => _Keys.receiptAssistChoiceExpenses,
+      ReceiptCaptureArea.materialsInventory =>
+        _Keys.receiptAssistChoiceMaterials,
+      ReceiptCaptureArea.maintenanceRepair =>
+        _Keys.receiptAssistChoiceMaintenance,
+    };
   }
 }
 
@@ -267,6 +287,10 @@ class _Keys {
   static const appAssistedExpenses = 'app_assisted_expenses';
   static const appAssistedMaterials = 'app_assisted_materials';
   static const appAssistedMaintenance = 'app_assisted_maintenance';
+  static const receiptAssistChoiceExpenses = 'receipt_assist_choice_expenses';
+  static const receiptAssistChoiceMaterials = 'receipt_assist_choice_materials';
+  static const receiptAssistChoiceMaintenance =
+      'receipt_assist_choice_maintenance';
   static const cameraSetupComplete = 'camera_setup_complete';
   static const cameraGuidanceEnabled = 'camera_guidance_enabled';
   static const cameraStartAssisted = 'camera_start_assisted';

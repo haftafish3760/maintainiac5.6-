@@ -79,7 +79,7 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
   final bool openingCamera;
   final VoidCallback onAddPhoto;
   final VoidCallback onRetake;
-  final VoidCallback onCrop;
+  final VoidCallback? onCrop;
   final ReceiptPhotoCoverageDecision coverageDecision;
 
   @override

@@ -7,7 +7,8 @@ extension _ReceiptAttachmentCameraActions
     updateAttachmentState(() => _openingPicker = true);
     try {
       final settings = ReceiptCaptureSettingsScope.maybeOf(context);
-      if (settings != null && !settings.cameraSetupComplete) {
+      if (settings != null &&
+          !settings.hasReceiptAssistChoiceFor(widget.area)) {
         final ready = await _showFirstUseReceiptCameraIntro(settings);
         if (!mounted) return;
         if (!ready) {
@@ -262,7 +263,7 @@ extension _ReceiptAttachmentCameraActions
     if (!mounted || action == null) return false;
     await _applyFirstUseReceiptAssistChoice(settings, action);
     if (!mounted) return false;
-    await settings.setCameraSetupComplete(true);
+    await settings.setReceiptAssistChoiceMadeFor(widget.area, true);
     return true;
   }
 
