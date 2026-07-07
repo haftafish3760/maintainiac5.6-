@@ -69,6 +69,9 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
     if (ocrUsesSavedProofOnlyAsFallback) {
       return 'saved_proof_fallback_review_required';
     }
+    if (stitchResult.didStitch) {
+      return 'combined_receipt_source_before_saved_proof';
+    }
     if (scannerUsedEnhancedOcrSource) {
       return 'prepared_receipt_source_before_saved_proof';
     }
@@ -84,6 +87,7 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
   String get ocrSourceProofRelationship {
     if (!hasOcrSourcePhotos) return 'missing_ocr_source';
     if (ocrUsesSavedProofOnlyAsFallback) return 'saved_proof_fallback';
+    if (stitchResult.didStitch) return 'combined_clear_source';
     if (scannerUsedEnhancedOcrSource) return 'prepared_clear_source';
     if (scannerKeptTemporaryFullQualitySourceForQuality) {
       return 'temporary_full_quality_source';
@@ -104,6 +108,8 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
         'OCR is using the accepted receipt source before any storage-saving proof copy.',
       'saved_proof_fallback_review_required' =>
         'OCR is using the saved proof only because a clearer source was not available. Review the filled receipt carefully.',
+      'combined_receipt_source_before_saved_proof' =>
+        'OCR is using one combined stitched receipt source before the smaller saved proof copy.',
       _ =>
         'OCR source was not ready. Add a clearer receipt photo or continue by hand.',
     };

@@ -197,6 +197,47 @@ void main() {
     },
   );
 
+  test('stitched OCR source classification is distinct from generic separate copies', () async {
+    final result = await const ReceiptOcrService().recognizeTextFromAttachments([
+      ReceiptAttachmentRecord(
+        id: 'stitched-source',
+        path: '',
+        kind: ReceiptAttachmentKind.emailText,
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        createdAt: DateTime(2026, 7, 7),
+        importedText: 'TOTAL 3.24',
+        documentSignals: const [
+          'receipt_ocr_source_photo',
+          'receipt_handoff_ready_for_receipt_review',
+          'receipt_handoff_stitch_stitched',
+          'stitched_ocr_source',
+          'ocr_source_first_combined_receipt_source_before_saved_proof',
+          'ocr_source_first_outcome_combined_source_ready',
+        ],
+      ),
+    ]);
+
+    final summary = result.sourceHandoffSummary;
+    final contract = result.diagnostics.ocrSourceHandoffContract;
+
+    expect(
+      summary.sourceFirstDecisionStatus,
+      'ocr_source_first_combined_receipt_source_before_saved_proof',
+    );
+    expect(
+      summary.sourceFirstOutcomeStatus,
+      'ocr_source_first_outcome_combined_source_ready',
+    );
+    expect(
+      contract['sourceFirstDecisionStatus'],
+      'ocr_source_first_combined_receipt_source_before_saved_proof',
+    );
+    expect(
+      contract['sourceFirstOutcomeStatus'],
+      'ocr_source_first_outcome_combined_source_ready',
+    );
+  });
+
   test('ocr source fallback review risk reaches diagnostics contract', () async {
     final result = await const ReceiptOcrService().recognizeTextFromAttachments([
       ReceiptAttachmentRecord(

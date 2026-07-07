@@ -92,6 +92,55 @@ void main() {
       );
     });
 
+    test('marks stitched combined OCR source separately from generic copies', () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/proof-top.jpg', '/tmp/proof-bottom.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/receipt-stitched.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: ReceiptStitchResult(
+          status: ReceiptStitchStatus.stitched,
+          inputPaths: ['/tmp/ocr-top.jpg', '/tmp/ocr-bottom.jpg'],
+          ocrSourcePaths: ['/tmp/receipt-stitched.jpg'],
+          stitchedPath: '/tmp/receipt-stitched.jpg',
+        ),
+      );
+
+      expect(
+        result.ocrSourceFirstDecisionCode,
+        'combined_receipt_source_before_saved_proof',
+      );
+      expect(result.ocrSourceFirstOutcome, 'combined_source_ready');
+      expect(
+        result.ocrSourceFirstReviewCue,
+        contains('one combined stitched receipt source before the smaller saved proof copy'),
+      );
+      expect(
+        result.ocrSourceFirstActionLabel,
+        'OCR reads one combined stitched source before saved proof',
+      );
+      expect(result.ocrSourceProofRelationship, 'combined_clear_source');
+      expect(result.usesSeparateOcrSourceCopies, isTrue);
+      expect(result.ocrReadsClearSourceBeforeSavedProof, isTrue);
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair(
+          'ocrSourceProofRelationship',
+          'combined_clear_source',
+        ),
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair(
+          'ocrSourceFirstDecisionCode',
+          'combined_receipt_source_before_saved_proof',
+        ),
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair('ocrSourceFirstOutcome', 'combined_source_ready'),
+      );
+    });
+
     test('keeps compressed saved proof separate from clear OCR source', () {
       final result = ReceiptPhotoReviewResult(
         photoPaths: const ['/tmp/saved-proof-750kb.jpg'],

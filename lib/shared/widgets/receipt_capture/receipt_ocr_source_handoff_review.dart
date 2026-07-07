@@ -52,6 +52,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
     for (final token in const [
       'ocr_source_first_ocr_source_missing_block_review',
       'ocr_source_first_saved_proof_fallback_review_required',
+      'ocr_source_first_combined_receipt_source_before_saved_proof',
       'ocr_source_first_prepared_receipt_source_before_saved_proof',
       'ocr_source_first_temporary_full_quality_source_before_saved_proof',
       'ocr_source_first_separate_receipt_source_before_saved_proof',
@@ -66,6 +67,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
     for (final token in const [
       'ocr_source_first_outcome_ocr_source_not_ready',
       'ocr_source_first_outcome_fallback_saved_proof_review_required',
+      'ocr_source_first_outcome_combined_source_ready',
       'ocr_source_first_outcome_prepared_source_ready',
       'ocr_source_first_outcome_temporary_full_quality_ready',
       'ocr_source_first_outcome_separate_source_ready',
