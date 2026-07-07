@@ -89,6 +89,18 @@ void main() {
       expect(
         milestonePlan,
         contains(
+          'milestone test/receipt_native_android_guidance_policy_gate_test.dart',
+        ),
+      );
+      expect(
+        milestonePlan,
+        contains(
+          'milestone test/receipt_native_ios_guidance_warning_gate_test.dart',
+        ),
+      );
+      expect(
+        milestonePlan,
+        contains(
           'milestone test/receipt_capture_flow_ocr_source_count_test.dart',
         ),
       );
