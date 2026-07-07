@@ -66,6 +66,7 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                     _ReceiptReadHandoffPanel(
                       savedProofCount: _receiptReadHandoffProofCount,
                       ocrSourceCount: _receiptReadHandoffOcrSourceCount,
+                      processingInFlight: _scanningReceiptPhotos,
                       decisionLabel: _receiptReadHandoffDecision,
                       actionLabel: _receiptReadHandoffAction,
                       stageLabel: _receiptReadHandoffStage,

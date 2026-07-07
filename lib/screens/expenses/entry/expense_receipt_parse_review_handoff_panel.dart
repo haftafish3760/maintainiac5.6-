@@ -4,6 +4,7 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
   const _ReceiptReadHandoffPanel({
     required this.savedProofCount,
     required this.ocrSourceCount,
+    required this.processingInFlight,
     required this.decisionLabel,
     required this.actionLabel,
     required this.stageLabel,
@@ -15,6 +16,7 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
 
   final int savedProofCount;
   final int ocrSourceCount;
+  final bool processingInFlight;
   final String decisionLabel;
   final String actionLabel;
   final String stageLabel;
@@ -36,26 +38,38 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
         ? '1 clear OCR source'
         : '$ocrSourceCount clear OCR sources';
     final stage = stageLabel.trim().isEmpty
-        ? 'Preparing receipt details'
+        ? processingInFlight
+              ? 'Preparing receipt details'
+              : 'Receipt details ready'
         : stageLabel.trim();
     final decision = decisionLabel.trim();
     final action = actionLabel.trim();
     final routeResult = routeResultLabel.trim();
     final coverageWarning = coverageWarningLabel.trim();
     final reviewReady =
-        stage.toLowerCase().contains('review ready') ||
-        decision.toLowerCase().contains('receipt details');
+        !processingInFlight &&
+        (stage.toLowerCase().contains('review ready') ||
+            decision.toLowerCase().contains('open receipt details') ||
+            routeResult.toLowerCase().contains('review opened'));
     return ReceiptFormPanel(
-      title: reviewReady
+      title: processingInFlight
+          ? 'Preparing Receipt Details'
+          : reviewReady
           ? 'Receipt Details Ready'
-          : 'Preparing Receipt Details',
-      subtitle: reviewReady
+          : 'Receipt Details Need Review',
+      subtitle: processingInFlight
+          ? 'Your receipt proof is saved. Maintainiac is still reading the clearest OCR source before the storage-saving proof copy. Keep this screen open until receipt details finish opening.'
+          : reviewReady
           ? 'Your receipt proof is saved. Maintainiac read the clear OCR source before the storage-saving proof copy; review what it filled in below before saving.'
-          : 'Your receipt proof is saved. Maintainiac uses the clearest OCR source before the storage-saving proof copy; next it opens receipt details.',
-      icon: reviewReady
+          : 'Your receipt proof is saved. Maintainiac already prepared receipt details, but this receipt still needs review before saving.',
+      icon: processingInFlight
+          ? Icons.hourglass_top_rounded
+          : reviewReady
           ? Icons.fact_check_rounded
           : Icons.document_scanner_rounded,
-      accentColor: reviewReady
+      accentColor: processingInFlight
+          ? const Color(0xFFFFD166)
+          : reviewReady
           ? const Color(0xFF8EF6A4)
           : const Color(0xFFFFD166),
       children: [
@@ -84,6 +98,34 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
           label: stage,
           color: const Color(0xFF8EF6A4),
         ),
+        if (processingInFlight) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: const [
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.2,
+                  color: Color(0xFFFFD166),
+                ),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Receipt details are still opening from the accepted photo. Review opens after OCR and parsing finish this handoff.',
+                  style: TextStyle(
+                    color: Color(0xFFC8D0D3),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    height: 1.22,
+                    letterSpacing: 0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
         if (decision.isNotEmpty) ...[
           const SizedBox(height: 8),
           _ReceiptReviewInstructionChip(
@@ -118,7 +160,9 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
         ],
         const SizedBox(height: 8),
         Text(
-          reviewReady
+          processingInFlight
+              ? 'Keep this screen open while receipt details finish opening. Add or retake photos only if the receipt coverage is wrong.'
+              : reviewReady
               ? 'Review the store, date, total, tax, item prices, and Business/Personal/Mixed choices below before saving.'
               : 'Do not go back unless you want to keep checking the photo. OCR uses the clearest source first; when receipt details are ready, check the store, date, total, tax, and item prices before saving.',
           style: const TextStyle(
@@ -134,13 +178,28 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
           children: [
             Expanded(
               child: FilledButton.icon(
-                onPressed: onReviewDetails,
-                icon: const Icon(Icons.fact_check_rounded),
+                onPressed: processingInFlight ? null : onReviewDetails,
+                icon: processingInFlight
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF101618),
+                        ),
+                      )
+                    : const Icon(Icons.fact_check_rounded),
                 label: Text(
-                  reviewReady ? 'Review Details' : 'Show Filled Review',
+                  processingInFlight
+                      ? 'Preparing'
+                      : reviewReady
+                      ? 'Review Details'
+                      : 'Show Filled Review',
                 ),
                 style: FilledButton.styleFrom(
-                  backgroundColor: reviewReady
+                  backgroundColor: processingInFlight
+                      ? const Color(0xFFFFD166)
+                      : reviewReady
                       ? const Color(0xFF8EF6A4)
                       : const Color(0xFFFFD166),
                   foregroundColor: const Color(0xFF101618),

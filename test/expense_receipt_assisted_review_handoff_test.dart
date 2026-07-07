@@ -15,8 +15,13 @@ void main() {
     final telemetry = source.telemetry;
     expect(
       entryScreen,
+      contains('processingInFlight: _scanningReceiptPhotos'),
+    );
+    expect(
+      entryScreen,
       contains('onAddOrRetakePhoto: _scrollToReceiptPhotoRecovery'),
     );
+    expect(parseReview, contains('processingInFlight'));
     expect(entryScreen, contains("stageLabel: _receiptReadHandoffStage"));
     expect(
       entryScreen,
@@ -76,6 +81,22 @@ void main() {
     );
     expect(parseReview, contains("stageLabel.trim().isEmpty"));
     expect(parseReview, contains('Preparing receipt details'));
+    expect(
+      parseReview,
+      contains(
+        'Receipt details are still opening from the accepted photo. Review opens after OCR and parsing finish this handoff.',
+      ),
+    );
+    expect(
+      parseReview,
+      contains('onPressed: processingInFlight ? null : onReviewDetails'),
+    );
+    expect(
+      parseReview,
+      contains(
+        "processingInFlight\n                      ? 'Preparing'",
+      ),
+    );
     expect(
       entryScreen,
       contains(
