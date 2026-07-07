@@ -12,6 +12,34 @@ class _GeneratedCoreReceipt {
 }
 
 void main() {
+  test(
+    'plumbing US English core generated batch shard plan covers all cases',
+    () {
+      final allCases = _coreGeneratedReceipts(
+        maxPerPath: 64,
+      ).take(4000).toList();
+      const shardSize = 250;
+      final shardCount = (allCases.length / shardSize).ceil();
+      final coveredIndexes = <int>{};
+
+      for (var shard = 0; shard < shardCount; shard += 1) {
+        final start = shard * shardSize;
+        final end = (start + shardSize).clamp(0, allCases.length);
+        expect(start, lessThan(allCases.length));
+        expect(end, greaterThan(start));
+        coveredIndexes.addAll(
+          List.generate(end - start, (index) => start + index),
+        );
+      }
+
+      expect(allCases.length, 3366);
+      expect(shardCount, 14);
+      expect(coveredIndexes.length, allCases.length);
+      expect(coveredIndexes.first, 0);
+      expect(coveredIndexes.last, allCases.length - 1);
+    },
+  );
+
   test('plumbing US English core generated batch gate', () {
     const shardStart = int.fromEnvironment(
       'PLUMBING_CORE_GATE_START',
@@ -270,10 +298,11 @@ bool _sameToiletSealProduct(WorkSupplyItem expected, WorkSupplyItem actual) {
 }
 
 String _normalizedSealVariant(String value) {
-  return value.toLowerCase().replaceAll('-', ' ').replaceAll(
-    RegExp(r'\s+'),
-    ' ',
-  ).trim();
+  return value
+      .toLowerCase()
+      .replaceAll('-', ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
 }
 
 String _leadingSize(String value) {

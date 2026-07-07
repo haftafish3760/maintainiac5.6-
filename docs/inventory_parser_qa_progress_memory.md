@@ -4073,3 +4073,10 @@ Release boundaries:
   negative tokens for push-fit Plumbing Core rows, protecting ambiguous
   `push connect` receipt language from electrical connector bleed. Verification
   passed: `flutter test test/work_supply_plumbing_core_metadata_gate_test.dart`.
+- **21:00 Plumbing Core Generated Shard Manifest Guard:** Added a non-parser
+  shard-plan guard to `test/work_supply_plumbing_core_batch_gate_test.dart` so
+  the generated Plumbing Core runtime evidence can be split surgically without
+  losing or duplicating cases. Current generated case manifest is 3,366 cases
+  across 14 shards at 250 cases per shard. Verification passed:
+  `flutter test test/work_supply_plumbing_core_batch_gate_test.dart --plain-name
+  "plumbing US English core generated batch shard plan covers all cases"`.
