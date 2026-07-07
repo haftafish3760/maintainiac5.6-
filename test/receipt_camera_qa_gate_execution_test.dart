@@ -259,6 +259,12 @@ void main() {
     );
     expect(
       await selectedModeFor(
+        'test/receipt_camera_dataset_qa_gate_contract_test.dart',
+      ),
+      contains('selected milestone'),
+    );
+    expect(
+      await selectedModeFor(
         'test/receipt_external_dataset_local_audit_test.dart',
       ),
       contains('selected milestone'),
