@@ -19,6 +19,7 @@ while IFS= read -r path; do
     android/app/src/main/kotlin/com/maintainiac/MainActivity.kt | \
     ios/Runner/ReceiptCamera*.swift | \
     ios/Runner/AppDelegate.swift | \
+    docs/receipt_bug_regression_ledger.md | \
     lib/shared/receipts/* | \
     lib/shared/widgets/receipt_capture/* | \
     test/helpers/receipt_native_* | \
@@ -28,6 +29,7 @@ while IFS= read -r path; do
     test/receipt_stitching_* | \
     tool/android_receipt_camera_* | \
     tool/ios_receipt_camera_* | \
+    tool/receipt_bug_regression_ledger_gate.dart | \
     tool/receipt_camera_* | \
     tool/receipt_fast_guard_gate.sh | \
     test/receipt_fast_guard_gate_contract_test.dart)

@@ -4,6 +4,29 @@ import 'helpers/receipt_stitching_image_helpers.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
 void main() {
+  test(
+    'stitching rejects empty receipt photo lists before OCR handoff',
+    () async {
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: const ['', '   '],
+      );
+
+      expect(result.usedFallback, isTrue);
+      expect(result.didStitch, isFalse);
+      expect(result.inputPaths, isEmpty);
+      expect(result.ocrSourcePaths, isEmpty);
+      expect(result.fallbackReasonCode, 'no_input_paths');
+      expect(result.diagnosticReasonLabel, 'no_input_paths');
+      expect(result.userFallbackReasonLabel, 'No receipt photos available');
+      expect(result.hasValidOcrSourceContract, isFalse);
+      expect(result.ocrSourceContractCode, 'fallback_no_ocr_sources');
+      expect(result.ocrHandoffSafetyCode, 'no_receipt_photo_available');
+      expect(result.reviewPathLabel, 'No receipt photos to review');
+      expect(result.nextStepLabel, 'Add a receipt photo before continuing.');
+      expect(result.warning, contains('No receipt photos'));
+    },
+  );
+
   test('stitching falls back cleanly for unreadable photo family', () async {
     final valid = await writeTempReceiptStitchingImage(
       receiptStitchingSection(seed: 71, topTextOffset: 0),

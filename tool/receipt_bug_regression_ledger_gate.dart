@@ -12,6 +12,7 @@ const _requiredHeaders = [
 ];
 const _allowedCategories = {
   'camera_capture_quality',
+  'camera_capture_contract',
   'multi_photo_ordering',
   'ghost_overlap_stitching',
   'source_preservation',

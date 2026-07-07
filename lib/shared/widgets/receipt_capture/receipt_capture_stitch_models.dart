@@ -72,6 +72,7 @@ class ReceiptStitchResult {
       List<ReceiptStitchPairResult>.unmodifiable(_pairs);
   bool get didStitch => status == ReceiptStitchStatus.stitched;
   bool get usedFallback => status == ReceiptStitchStatus.fallback;
+  bool get hasNoInputPaths => inputPaths.isEmpty;
   bool get hasMultipleSections => inputPaths.length > 1;
   int get pairCount => inputPaths.length <= 1 ? 0 : inputPaths.length - 1;
   int get matchedPairCount =>
@@ -118,6 +119,9 @@ class ReceiptStitchResult {
   }
 
   String get ocrSourceContractCode {
+    if (inputPaths.isEmpty) {
+      return usedFallback ? 'fallback_no_ocr_sources' : 'no_ocr_sources';
+    }
     if (didStitch) {
       if (stitchedPath == null || ocrSourcePaths.length != 1) {
         return 'stitched_ocr_source_missing';
@@ -165,6 +169,7 @@ class ReceiptStitchResult {
       'decode_failed' => 'One photo could not be read',
       'manual_overlap_unsafe' => 'Manual overlap was outside the safe range',
       'duplicate_input_paths' => 'Duplicate receipt section photo',
+      'no_input_paths' => 'No receipt photos available',
       'manual_order_review' => 'Receipt section order needs review',
       'overlap_confidence_low' => 'Overlap was not clear enough',
       'output_too_large' => 'Receipt is too long for this device',
@@ -193,6 +198,7 @@ class ReceiptStitchResult {
   }
 
   String get reviewPathLabel {
+    if (inputPaths.isEmpty) return 'No receipt photos to review';
     return switch (status) {
       ReceiptStitchStatus.notNeeded =>
         inputPaths.length <= 1
@@ -213,6 +219,9 @@ class ReceiptStitchResult {
   }
 
   String get ocrHandoffChecklistLabel {
+    if (inputPaths.isEmpty) {
+      return 'Before use: add at least one readable receipt photo.';
+    }
     if (inputPaths.length <= 1) {
       return 'Before use: confirm the full receipt is visible and readable.';
     }
@@ -227,6 +236,7 @@ class ReceiptStitchResult {
   }
 
   String get ocrHandoffSafetyCode {
+    if (inputPaths.isEmpty) return 'no_receipt_photo_available';
     if (inputPaths.length <= 1) return 'single_section_review_ready';
     return switch (status) {
       ReceiptStitchStatus.notNeeded => 'ordered_sections_review_ready',
@@ -243,6 +253,8 @@ class ReceiptStitchResult {
     return switch (ocrHandoffSafetyCode) {
       'single_section_review_ready' =>
         'OCR will read one receipt photo after review.',
+      'no_receipt_photo_available' =>
+        'OCR needs at least one receipt photo before app-assisted review.',
       'ordered_sections_review_ready' =>
         'OCR will read ordered receipt sections from top to bottom.',
       'stitched_overlap_verified' =>
@@ -298,6 +310,7 @@ class ReceiptStitchResult {
   }
 
   String get nextStepLabel {
+    if (inputPaths.isEmpty) return 'Add a receipt photo before continuing.';
     return switch (status) {
       ReceiptStitchStatus.notNeeded =>
         inputPaths.length <= 1
@@ -322,6 +335,7 @@ class ReceiptStitchResult {
   }
 
   String get summaryLabel {
+    if (inputPaths.isEmpty) return 'No receipt photo ready for review.';
     return switch (status) {
       ReceiptStitchStatus.notNeeded =>
         inputPaths.length <= 1
@@ -335,6 +349,11 @@ class ReceiptStitchResult {
   }
 
   String get detailLabel {
+    if (inputPaths.isEmpty) {
+      return warning.trim().isEmpty
+          ? 'No receipt photos were available.'
+          : warning;
+    }
     return switch (status) {
       ReceiptStitchStatus.notNeeded =>
         inputPaths.length <= 1
@@ -412,6 +431,7 @@ String _safeStitchFallbackReasonCode(String value) {
     'decode_failed' ||
     'manual_overlap_unsafe' ||
     'duplicate_input_paths' ||
+    'no_input_paths' ||
     'manual_order_review' ||
     'overlap_confidence_low' ||
     'output_too_large' ||
