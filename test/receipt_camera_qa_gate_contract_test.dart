@@ -77,6 +77,9 @@ void main() {
         stitchPlan,
         contains('stitch test/receipt_photo_review_retake_order_test.dart'),
       );
+      expect(stitchPlan, isNot(contains('quick ')));
+      expect(stitchPlan, isNot(contains('milestone ')));
+      expect(stitchPlan, isNot(contains('full ')));
 
       final milestonePlan = await planFor('milestone');
       expect(milestonePlan, contains('mode=milestone'));

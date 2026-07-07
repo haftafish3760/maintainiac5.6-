@@ -108,9 +108,9 @@ print_test_pack() {
 
 print_plan_for_mode() {
   echo "mode=$mode"
-  print_test_pack quick "${quick_tests[@]}"
   case "$mode" in
     quick)
+      print_test_pack quick "${quick_tests[@]}"
       ;;
     stitch)
       print_test_pack stitch \
@@ -128,6 +128,7 @@ print_plan_for_mode() {
         test/receipt_stitching_test.dart
       ;;
     milestone | full)
+      print_test_pack quick "${quick_tests[@]}"
       print_test_pack milestone "${milestone_only_tests[@]}"
       if [[ "$mode" == "full" ]]; then
         print_test_pack full "${full_only_tests[@]}"
