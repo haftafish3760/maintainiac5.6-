@@ -55,6 +55,38 @@ void main() {
     },
   );
 
+  test('camera QA printed plans only reference existing tests', () async {
+    final missingPaths = <String>[];
+
+    for (final mode in ['quick', 'stitch', 'milestone', 'full']) {
+      final result = await Process.run('bash', [
+        'tool/receipt_camera_qa_gate.sh',
+        '--print-plan',
+        mode,
+      ]);
+      expect(result.exitCode, 0, reason: result.stderr.toString());
+
+      final lines = result.stdout
+          .toString()
+          .split('\n')
+          .where(
+            (line) =>
+                line.startsWith('quick ') ||
+                line.startsWith('stitch ') ||
+                line.startsWith('milestone ') ||
+                line.startsWith('full '),
+          );
+      for (final line in lines) {
+        final path = line.split(' ').last;
+        if (!File(path).existsSync()) {
+          missingPaths.add('$mode: $path');
+        }
+      }
+    }
+
+    expect(missingPaths, isEmpty);
+  });
+
   test('camera changed gate mode selection is executable', () async {
     Future<String> selectedModeFor(String changedFiles) async {
       final result = await Process.run(
