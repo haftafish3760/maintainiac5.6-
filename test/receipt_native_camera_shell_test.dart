@@ -206,6 +206,18 @@ void main() {
     expect(previewControls, isNot(contains('_tapFocusAvailable')));
   });
 
+  test('native camera shell uses gear settings control instead of wrench', () async {
+    final topControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart',
+    ).readAsString();
+
+    expect(topControls, contains('Icons.settings_rounded'));
+    expect(topControls, contains("label: 'Receipt camera settings'"));
+    expect(topControls, isNot(contains('Icons.build_rounded')));
+    expect(topControls, isNot(contains('Icons.handyman_rounded')));
+    expect(topControls, isNot(contains('Icons.tune_rounded')));
+  });
+
   testWidgets('native camera shell can show long receipt ghost guide', (
     tester,
   ) async {
