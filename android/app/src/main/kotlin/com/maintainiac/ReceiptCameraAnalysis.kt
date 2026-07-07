@@ -305,7 +305,7 @@ internal fun ReceiptCameraActivity.stableExperimentalReceiptQualitySignal(signal
         experimentalReceiptQualityCandidateSignal = signal
         experimentalReceiptQualityCandidateCount = 1
     }
-    return experimentalReceiptQualityCandidateCount >= 2
+    return experimentalReceiptQualityCandidateCount >= experimentalReceiptQualityRequiredFrames
 }
 
 internal fun ReceiptCameraActivity.resetExperimentalReceiptQualityCandidate() {

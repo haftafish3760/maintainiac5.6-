@@ -127,7 +127,7 @@ extension ReceiptCameraViewController {
       experimentalReceiptQualityCandidateSignal = signal
       experimentalReceiptQualityCandidateCount = 1
     }
-    return experimentalReceiptQualityCandidateCount >= 2
+    return experimentalReceiptQualityCandidateCount >= experimentalReceiptQualityRequiredFrames
   }
 
   func resetExperimentalReceiptQualityCandidate() {

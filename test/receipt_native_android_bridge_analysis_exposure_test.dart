@@ -132,6 +132,10 @@ void main() {
     );
     expect(
       cameraActivity,
+      contains('internal val experimentalReceiptQualityRequiredFrames = 3'),
+    );
+    expect(
+      cameraActivity,
       contains('currentGuidance.startsWith("Receipt has heavy shadows")'),
     );
     expect(
@@ -141,6 +145,12 @@ void main() {
     expect(
       cameraActivity,
       contains('var hasReceiptTarget = !edgeDetectionEnabled'),
+    );
+    expect(
+      cameraActivity,
+      contains(
+        'return experimentalReceiptQualityCandidateCount >= experimentalReceiptQualityRequiredFrames',
+      ),
     );
     expect(
       cameraActivity,

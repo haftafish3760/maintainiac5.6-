@@ -24,6 +24,10 @@ void main() {
       );
       expect(
         cameraController,
+        contains('let experimentalReceiptQualityRequiredFrames = 3'),
+      );
+      expect(
+        cameraController,
         contains('currentGuidance.hasPrefix("Receipt has heavy shadows")'),
       );
       expect(
@@ -46,6 +50,12 @@ void main() {
         cameraController,
         contains(
           'if !hasReceiptTarget {\n      latestMotionSignal = "waiting_for_receipt_target"',
+        ),
+      );
+      expect(
+        cameraController,
+        contains(
+          'return experimentalReceiptQualityCandidateCount >= experimentalReceiptQualityRequiredFrames',
         ),
       );
       expect(cameraController, contains('brightness <= 150'));

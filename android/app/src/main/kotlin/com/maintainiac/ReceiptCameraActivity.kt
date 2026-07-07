@@ -144,6 +144,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var latestFrameBrightness = -1.0
     internal var latestShadowScore = -1.0
     internal var latestReadabilitySignal = "unknown"
+    internal val experimentalReceiptQualityRequiredFrames = 3
     internal var experimentalReceiptQualityCandidateSignal = "none"
     internal var experimentalReceiptQualityCandidateCount = 0
     internal var latestFramingSignal = "unknown"

@@ -109,6 +109,7 @@ void main() {
       expect(source, contains('updateExperimentalReceiptQualityGuidance'));
       expect(source, contains('stableExperimentalReceiptQualitySignal'));
       expect(source, contains('resetExperimentalReceiptQualityCandidate'));
+      expect(source, contains('experimentalReceiptQualityRequiredFrames'));
       expect(source, contains('Receipt has heavy shadows'));
       expect(source, contains('Lens may be smudged'));
     }
@@ -118,6 +119,7 @@ void main() {
       expect(source, contains('dirtyLensWarningEnabled'));
       expect(source, contains('lowLightWarningEnabled'));
       expect(source, contains('shadowWarningEnabled'));
+      expect(source, contains('experimentalReceiptQualityRequiredFrames'));
       expect(source, contains('experimentalReceiptQualityCandidateSignal'));
       expect(source, contains('experimentalReceiptQualityCandidateCount'));
     }
