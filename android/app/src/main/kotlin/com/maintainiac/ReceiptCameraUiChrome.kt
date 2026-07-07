@@ -72,8 +72,8 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
     })
     row.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
     doneButton = Button(this).apply {
-        text = "Use Photos"
-        contentDescription = "Use captured receipt photos"
+        text = "Next"
+        contentDescription = "Next: review captured receipt photos in Maintainiac"
         isEnabled = false
         visibility = View.GONE
         setOnClickListener { finishWithCapturedPhotos() }
@@ -234,8 +234,8 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
     val rightSpacer = View(this)
     row.addView(rightSpacer, LinearLayout.LayoutParams(0, 1, 1f))
     bottomReviewButton = Button(this).apply {
-        text = "Use Photos"
-        contentDescription = "Use captured receipt photos"
+        text = "Next"
+        contentDescription = "Next: review captured receipt photos in Maintainiac"
         isEnabled = false
         visibility = View.GONE
         setOnClickListener { finishWithCapturedPhotos() }

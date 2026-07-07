@@ -181,9 +181,9 @@ class ReceiptNativeCaptureRecoveryRecord {
       'back_returned_captured_sections' =>
         'Back was pressed after photos were captured.',
       'done_returned_captured_sections' =>
-        'Use Photos was pressed after photos were captured.',
+        'Next was pressed after photos were captured.',
       'back_no_photo_cancel' => 'Back was pressed before a photo was saved.',
-      'done_no_photo_cancel' => 'Use Photos was pressed before a photo was saved.',
+      'done_no_photo_cancel' => 'Next was pressed before a photo was saved.',
       _ => 'Receipt capture was interrupted after photos were captured.',
     };
   }
