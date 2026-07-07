@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_flow.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
@@ -73,5 +75,35 @@ void main() {
       result.receiptReaderHandoffCounts,
       containsPair('receipt_review_ocr_deferred', 1),
     );
+  });
+
+  test('camera and uploaded multi-photo receipts share the OCR stitch handoff', () async {
+    final importActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_import_actions.dart',
+    ).readAsString();
+    final cameraActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
+    ).readAsString();
+    final saveActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart',
+    ).readAsString();
+    final stitchActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_exit_stitch_actions.dart',
+    ).readAsString();
+
+    expect(importActions, contains('reviewPickedPhotoPaths('));
+    expect(importActions, contains('existing_receipt_photo_import'));
+    expect(cameraActions, contains('captureAndReview('));
+    expect(cameraActions, contains('_acceptReviewedPhotoResult(result)'));
+    expect(cameraActions, contains('native_receipt_camera'));
+    expect(saveActions, contains('ocrSourcePaths.add(prepared.ocrSourcePath)'));
+    expect(
+      saveActions,
+      contains(
+        '_finalStitchResultForOcr(\n        inputPaths: pathsToSave,\n        preparedOcrPaths: ocrSourcePaths,',
+      ),
+    );
+    expect(stitchActions, contains('paths: preparedOcrPaths'));
+    expect(stitchActions, isNot(contains('paths: inputPaths')));
   });
 }
