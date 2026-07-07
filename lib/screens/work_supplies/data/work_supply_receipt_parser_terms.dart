@@ -249,7 +249,15 @@ const receiptTermAliases = {
     'toilet connector',
     'closet line',
   ],
-  'faucet cartridge': ['faucet cartridge', 'faucet stem', 'faucet repair kit'],
+  'faucet cartridge': [
+    'faucet cartridge',
+    'faucet cart',
+    'fct cart',
+    'fct cartridge',
+    'single handle faucet cart',
+    'faucet stem',
+    'faucet repair kit',
+  ],
   'pop up drain': ['pop up drain', 'pop-up drain', 'sink stopper'],
   'basket strainer': ['basket strainer', 'sink strainer', 'basket drain'],
   'shower cartridge': ['shower cartridge', 'mixing valve cartridge'],
@@ -922,6 +930,10 @@ String _normalize(String value) {
       .replaceAll(RegExp(r'\bw\s+g\b'), 'with ground')
       .replaceAll(RegExp(r'\b1\s*p\b'), '1p')
       .replaceAll(RegExp(r'\b2\s*p\b'), '2p')
+      .replaceAll(RegExp(r'\bvalv\b'), 'valve')
+      .replaceAll(RegExp(r'\bbv\b'), 'ball valve')
+      .replaceAll(RegExp(r'\bc\s*x\s*m\b'), 'copper male adapter')
+      .replaceAll(RegExp(r'\bc\s*x\s*f\b'), 'copper female adapter')
       .replaceAll(RegExp(r'\bc\s*x\s*c\b'), 'copper copper')
       .replaceAll(RegExp(r'\bs\s*x\s*s\b'), 'slip slip')
       .replaceAll(RegExp(r'\bsx\s*m\b'), 'slip male')

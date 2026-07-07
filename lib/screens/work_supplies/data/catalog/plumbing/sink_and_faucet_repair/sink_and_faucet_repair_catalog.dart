@@ -46,7 +46,14 @@ final plumbingSinkAndFaucetRepairCategory = _category(
           'Lavatory Pop-Up Assembly',
           'each',
           ['chrome', 'brushed nickel', 'plastic'],
-          ['pop up drain', 'sink stopper'],
+          [
+            'pop up drain',
+            'pop up assembly',
+            'pop up rod kit',
+            'lav pop up',
+            'lavatory pop up',
+            'sink stopper',
+          ],
         ),
       ),
       _type(

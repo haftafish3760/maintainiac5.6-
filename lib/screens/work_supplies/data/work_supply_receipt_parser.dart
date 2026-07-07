@@ -2496,13 +2496,16 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
   }
-  if (RegExp(r'\b(faucet cartridge|cartridge|cartridges)\b').hasMatch(text)) {
+  if (RegExp(
+    r'\b(faucet cartridge|faucet cart|fct cart|cartridge|cartridges)\b',
+  ).hasMatch(text)) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing' || !name.contains('faucet cartridge')) {
         continue;
       }
       if (_receiptMatchesVariant(text, item.variant) ||
+          (text.contains('single handle') && name.contains('single handle')) ||
           (text.contains('hot stem') && name.contains('hot stem')) ||
           (text.contains('cold stem') && name.contains('cold stem'))) {
         return item;
@@ -2510,7 +2513,24 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(
-    r'\b(o-ring and seat kit|o ring and seat kit|faucet repair kit)\b',
+    r'\b(faucet stem|stem repair|stem hot repair|hot stem repair|'
+    r'cold stem repair|valve stem|stem assembly)\b',
+  ).hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade != 'Plumbing' || !name.contains('faucet stem')) {
+        continue;
+      }
+      if (_receiptMatchesVariant(text, item.variant) ||
+          (text.contains('hot') && name.contains('hot')) ||
+          (text.contains('cold') && name.contains('cold'))) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(
+    r'\b(o-ring and seat kit|o ring and seat kit|faucet repair kit|'
+    r'faucet o ring|faucet o-ring|faucet seat washer|seat washer kit)\b',
   ).hasMatch(text)) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -2573,6 +2593,8 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       if (item.trade == 'Plumbing' &&
           name.contains('faucet aerator') &&
           (_receiptMatchesVariant(text, item.variant) ||
+              (text.contains('15/16') && name.contains('15/16')) ||
+              (text.contains('55/64') && name.contains('55/64')) ||
               (text.contains('15/16-27') && name.contains('15/16-27')) ||
               (text.contains('55/64-27') && name.contains('55/64-27')))) {
         return item;
@@ -3095,6 +3117,17 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('backwater valve')) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\b(check valve|chk valve|one way valve)\b').hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('check valve') &&
+          _nameMatchesReceiptSize(name, size)) {
         return item;
       }
     }
@@ -3957,6 +3990,20 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
     if (hasMatrix) return null;
+  }
+  if (RegExp(r'\b(brass|brs)\b').hasMatch(text) &&
+      RegExp(
+        r'\b(comp\s+un|comp\s+union|compression\s+union)\b',
+      ).hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('brass compression union') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
   }
   if (RegExp(r'\bbrass\b').hasMatch(text) &&
       RegExp(

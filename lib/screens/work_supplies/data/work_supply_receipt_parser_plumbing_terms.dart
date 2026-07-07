@@ -1,12 +1,55 @@
 part of 'work_supply_receipt_parser.dart';
 
 WorkSupplyItem? _directPlumbingFastMatch(String text) {
-  return _directPlumbingPvcDwvMatch(text) ??
+  return _directPlumbingAbsDwvMatch(text) ??
+      _directPlumbingPvcDwvMatch(text) ??
       _directPlumbingPexServiceFittingMatch(text) ??
       _directPlumbingWaterTreatmentMatch(text) ??
       _directPlumbingRepairKitMatch(text) ??
       _directPlumbingHoseBibbRepairPartMatch(text) ??
       _directPlumbingHandToolMatch(text);
+}
+
+WorkSupplyItem? _directPlumbingAbsDwvMatch(String text) {
+  if (!RegExp(r'\b(abs|black\s+dwv|black\s+drain)\b').hasMatch(text)) {
+    return null;
+  }
+  final targetName = switch (text) {
+    final value
+        when RegExp(
+          r'\b(trap\s+adapter|trap\s+adpt|marvel\s+adapter)\b',
+        ).hasMatch(value) =>
+      'abs dwv trap adapter',
+    final value
+        when RegExp(
+          r'\b(san\s+tee|sanitary\s+tee|sanitary\s+t|santee)\b',
+        ).hasMatch(value) =>
+      'abs dwv sanitary tee',
+    final value
+        when RegExp(r'\b(wye|y\s+fitting|why\s+fitting)\b').hasMatch(value) =>
+      'abs dwv wye',
+    final value when RegExp(r'\b(cleanout|clean\s*out|co)\b').hasMatch(value) =>
+      'abs dwv cleanout',
+    final value when RegExp(r'\b45\b').hasMatch(value) => 'abs dwv 45 elbow',
+    final value when RegExp(r'\b(90|ell|elb|elbow)\b').hasMatch(value) =>
+      'abs dwv 90 elbow',
+    final value
+        when RegExp(r'\b(cpl|cplg|coupling|coupler)\b').hasMatch(value) =>
+      'abs dwv coupling',
+    _ => null,
+  };
+  if (targetName == null) return null;
+  final size = _nominalReceiptSize(text);
+  for (final item in workSupplyCatalogItems) {
+    final name = item.name.toLowerCase();
+    if (item.trade != 'Plumbing' || !name.contains(targetName)) continue;
+    if (_nameMatchesReceiptMatrix(name, text) ||
+        _receiptMatchesVariant(text, item.variant) ||
+        _nameMatchesReceiptSize(name, size)) {
+      return item;
+    }
+  }
+  return null;
 }
 
 WorkSupplyItem? _directPlumbingHoseBibbRepairPartMatch(String text) {
@@ -243,8 +286,8 @@ const plumbingReceiptTermAliases = {
   '90 elbow': ['90', '90d', 'el', 'ell', 'elbow'],
   '45 elbow': ['45', '45d', 'forty five', 'forty-five'],
   'tee': ['tee', 't fitting', 't'],
-  'coupling': ['cplg', 'coup', 'coupler', 'coupling'],
-  'reducing coupling': ['red coup', 'red cplg', 'reducer coupling'],
+  'coupling': ['cpl', 'cplg', 'coup', 'coupler', 'coupling'],
+  'reducing coupling': ['red cpl', 'red coup', 'red cplg', 'reducer coupling'],
   'reducer': ['red', 'reducer'],
   'bushing': ['bush', 'bushing'],
   'street': ['street', 'st 90', 'st ell'],
@@ -335,8 +378,17 @@ const plumbingReceiptTermAliases = {
   ],
   'slip joint': ['slip joint', 's/j', 'sj'],
   'union': ['union'],
+  'compression union': ['comp un', 'comp union', 'compression union'],
   'nipple': ['nipple', 'pipe nipple', 'npt nipple', 'nip', 'nipl'],
-  'ball valve': ['ball valve', 'bl valve', 'full port valve'],
+  'ball valve': [
+    'ball valve',
+    'ball valv',
+    'bl valve',
+    'bv',
+    'full port valve',
+  ],
+  'check valve': ['check valve', 'check valv', 'chk valve', 'one way valve'],
+  'gate valve': ['gate valve', 'gate valv', 'water valve'],
   'vacuum relief valve': [
     'vacuum relief valve',
     'vac relief valve',
@@ -361,6 +413,7 @@ const plumbingReceiptTermAliases = {
   ],
   'drain valve': ['drain valve', 'boiler drain', 'heater drain'],
   'anode rod': ['anode', 'anode rod'],
+  'faucet': ['faucet', 'fct'],
   'sillcock': ['sillcock', 'sill cock', 'hose bibb', 'hose bib', 'frost free'],
   'closet bolt': ['closet bolt', 'johnny bolt', 'toilet bolt'],
   'wax ring': ['wax ring', 'closet wax', 'toilet wax'],

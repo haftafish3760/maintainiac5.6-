@@ -81,6 +81,11 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
     return _hasAny(text, _plumbingCoreWellServiceSignals);
   }
   if (category == 'fittings') {
+    if (system == 'abs dwv') {
+      return _hasAny(text, _coreDrainSizes) &&
+          _hasAny(type, _coreFittingTypes) &&
+          _isCommonPlumbingVariant(item.variant);
+    }
     if (system == 'copper' || system == 'brass') {
       if (item.variant.toLowerCase().startsWith('2 x')) return false;
       return _hasAny(text, _plumbingCoreFittingMaterialSignals) &&
@@ -94,6 +99,10 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
           (_hasAny(text, _residentialSupplySizes) || _hasAny(text, ['1 x'])) &&
           _isCommonPlumbingVariant(item.variant);
     }
+    if (system == 'black iron' && type.contains('nipple')) {
+      final primarySize = _primaryPlumbingVariantSize(item.variant);
+      return primarySize != null && primarySize <= 1;
+    }
     return _hasAny(text, _plumbingCoreFittingMaterialSignals) &&
         _hasAny(text, _plumbingCoreFittingFamilySignals) &&
         _hasAny(text, _plumbingCoreFittingSizeSignals) &&
@@ -104,7 +113,9 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
         _hasAny(type, _coreFittingTypes) &&
         _isCommonPlumbingVariant(item.variant);
   }
-  if (system == 'pvc schedule 40' || system == 'pvc dwv') {
+  if (system == 'pvc schedule 40' ||
+      system == 'pvc dwv' ||
+      system == 'abs dwv') {
     return _hasAny(text, _coreDrainSizes) &&
         _hasAny(type, _coreFittingTypes) &&
         _isCommonPlumbingVariant(item.variant);
@@ -520,7 +531,7 @@ const _plumbingCoreSupportSignals = [
 
 const _residentialSupplySizes = ['1/2', '3/4', '1 in', '3/8', '5/8'];
 
-const _coreDrainSizes = ['1-1/4', '1-1/2', '2 in', '3 in'];
+const _coreDrainSizes = ['1-1/4', '1-1/2', '2 in', '3 in', '4 in'];
 
 const _standardPlumbingSizes = [
   '1/4',

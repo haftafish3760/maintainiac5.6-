@@ -73,6 +73,27 @@ bool _isBareElectricalPvcConduitShorthandLine(
 
 bool _isAmbiguousPlumbingCoreLine(String text, WorkSupplyItem item) {
   if (item.trade != 'Plumbing') return false;
+  if (RegExp(r'\bcopper\s+copper\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(90|45|elbow|ell|tee|wye|coupling|cpl|cplg|adapter|adpt|'
+        r'male|female|cap|plug|union|repair|street|stub|tube|pipe)\b',
+      ).hasMatch(text)) {
+    return true;
+  }
+  if (RegExp(r'\badapter\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(mip|fip|mpt|fpt|male|female|trap|pvc|cpvc|pex|copper|brass|'
+        r'barb|poly|cts|ips|dwv|schedule)\b',
+      ).hasMatch(text)) {
+    return true;
+  }
+  if (RegExp(r'\brepair\s+kit\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(faucet|toilet|sink|lav|tub|shower|hose|sillcock|water heater|'
+        r'vacuum breaker|pop up|o ring|o-ring|washer|stem|cartridge)\b',
+      ).hasMatch(text)) {
+    return true;
+  }
   final hasAmbiguousShape = RegExp(
     r'\b(elbow|ell|elb|adapter|adpt|valve|coupling|cplg|coup)\b',
   ).hasMatch(text);

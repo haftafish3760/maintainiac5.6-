@@ -1,0 +1,152 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_confidence.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser.dart';
+
+void main() {
+  test('plumbing core parses merchant-style copper fitting abbreviations', () {
+    _expectGoodPlumbingCore('HD 1/2 COP 90 CXC', ['copper', '90']);
+    _expectGoodPlumbingCore('LOWES 3/4 CU CPLG WROT', ['copper', 'coupling']);
+    _expectGoodPlumbingCore('MENARDS 1/2 COP FIP ADPT', ['copper', 'female']);
+    _expectGoodPlumbingCore('FERG 3/4 C X M ADAPTER', ['copper', 'male']);
+    _expectGoodPlumbingCore('ACE 1/2 SWEAT TEE COPPER', ['copper', 'tee']);
+    _expectGoodPlumbingCore('LOCAL SUPPLY 1 IN COP REPAIR CPLG', [
+      'copper',
+      'repair',
+    ]);
+  });
+
+  test('plumbing core parses merchant-style PEX fitting abbreviations', () {
+    _expectGoodPlumbingCore('LOWES 1/2 PEX ELB CRMP', ['pex', 'elbow']);
+    _expectGoodPlumbingCore('HD 3/4 PEX CPLG POLY', ['pex', 'coupling']);
+    _expectGoodPlumbingCore('MENARDS 1/2 PEX TEE CRIMP', ['pex', 'tee']);
+    _expectGoodPlumbingCore('FERG 1/2 PEX MIP ADPT', ['pex', 'male']);
+    _expectGoodPlumbingCore('WINSUPPLY 3/4 PEX FIP ADPT', ['pex', 'female']);
+    _expectGoodPlumbingCore('SUPPLYHOUSE 1/2 PEX DROP EAR ELL', ['drop-ear']);
+  });
+
+  test('plumbing core parses merchant-style PVC and CPVC abbreviations', () {
+    _expectGoodPlumbingCore('HD 3/4 PVC CPL 3/4 SCH40', [
+      'pvc schedule 40',
+      'coupling',
+    ]);
+    _expectGoodPlumbingCore('LOWES PVC S40 1/2 MIP ADPT', [
+      'pvc schedule 40',
+      'male',
+    ]);
+    _expectGoodPlumbingCore('MENARDS 1 IN PVC SCH40 TEE', [
+      'pvc schedule 40',
+      'tee',
+    ]);
+    _expectGoodPlumbingCore('ACE 1/2 CPVC CTS CPL', ['cpvc', 'coupling']);
+    _expectGoodPlumbingCore('FERG 3/4 CPVC FIP ADPT', ['cpvc', 'female']);
+    _expectGoodPlumbingCore('LOCAL SUPPLY 1/2 CPVC MIP ADPT', ['cpvc', 'male']);
+  });
+
+  test('plumbing core parses merchant-style DWV and ABS abbreviations', () {
+    _expectGoodPlumbingCore('HD 2 PVC DWV SAN TEE', ['pvc dwv', 'sanitary']);
+    _expectGoodPlumbingCore('LOWES 3 X 2 PVC DWV WYE', ['pvc dwv', 'wye']);
+    _expectGoodPlumbingCore('MENARDS 1-1/2 PVC DWV TRAP ADPT', [
+      'trap adapter',
+    ]);
+    _expectGoodPlumbingCore('ACE 2 ABS DWV 90 ELB', ['abs dwv', 'elbow']);
+    _expectGoodPlumbingCore('FERG 3 ABS DWV COUPLING', ['abs dwv', 'coupling']);
+  });
+
+  test(
+    'plumbing core parses merchant-style brass, black iron, and valve abbreviations',
+    () {
+      _expectGoodPlumbingCore('ACE 3/8 BRASS COMP UN', ['brass', 'union']);
+      _expectGoodPlumbingCore('FERG 1/2 BRS MIP ADPT', ['brass', 'male']);
+      _expectGoodPlumbingCore('GRAINGER 3/4 BLK IRON NIPPLE', ['black iron']);
+      _expectGoodPlumbing('LOCAL SUPPLY 1/2 GALV CPLG', ['galvanized']);
+      _expectGoodPlumbingCore('LOWES 3/4 BALL VALVE FIP', ['ball valve']);
+      _expectGoodPlumbingCore('HD 3/4 CHECK VALV', ['check valve']);
+    },
+  );
+
+  test('plumbing core parses merchant-style P-trap and tubular kit lines', () {
+    _expectGoodPlumbingCore('LOWES 1-1/2 P-TRAP KIT WHITE', ['p-trap']);
+    _expectGoodPlumbingCore('HD 1-1/2 TUBULAR P TRAP', ['p-trap']);
+    _expectGoodPlumbingCore('MENARDS 1-1/4 LAV P TRAP', ['p-trap']);
+    _expectGoodPlumbingCore('FERG 1-1/2 SJ P TRAP PVC', ['p-trap']);
+    _expectGoodPlumbingCore('ACE 1-1/2 SLIP JOINT P TRAP KIT', ['p-trap']);
+    _expectGoodPlumbingCore('LOCAL HARDWARE 1-1/2 J BEND TUBULAR', ['j-bend']);
+  });
+
+  test('plumbing core parses merchant-style faucet repair kit lines', () {
+    _expectGoodPlumbingCore('LOWES SINGLE HANDLE FAUCET CART', ['cartridge']);
+    _expectGoodPlumbingCore('HD FAUCET STEM HOT REPAIR', ['faucet stem']);
+    _expectGoodPlumbingCore('MENARDS FAUCET O RING ASSORT', ['o-ring']);
+    _expectGoodPlumbingCore('ACE FAUCET SEAT WASHER KIT', ['washer']);
+    _expectGoodPlumbingCore('TRUE VALUE 15/16 FCT AERATOR CHR', ['aerator']);
+    _expectGoodPlumbingCore('LOCAL SUPPLY LAV POP UP ROD KIT', ['pop-up']);
+  });
+
+  test(
+    'plumbing core parses farm-ranch and tool-store plumbing-adjacent lines',
+    () {
+      _expectGoodPlumbingCore('TRACTOR SUPPLY WELL PRESSURE GAUGE 100 PSI', [
+        'pressure gauge',
+      ]);
+      _expectGoodPlumbingCore('TSC 1 IN POLY BARB ADAPTER', ['barb']);
+      _expectGoodPlumbingCore('NORTHERN TOOL PVC PIPE CUTTER RATCHET', [
+        'pipe cutter',
+      ]);
+      _expectGoodPlumbingCore('N TOOL MINI TUBING CUTTER', ['tubing cutter']);
+    },
+  );
+
+  test(
+    'plumbing core keeps ultra-vague merchant abbreviations out of good confidence',
+    () {
+      _expectNotGoodPlumbing('LOWES 1/2 C X C');
+      _expectNotGoodPlumbing('HD 3/4 ADPT');
+      _expectNotGoodPlumbing('MENARDS REPAIR KIT');
+    },
+  );
+}
+
+void _expectGoodPlumbingCore(String line, List<String> expectedTerms) {
+  final match = _expectGoodPlumbing(line, expectedTerms);
+  expect(match.item.packTier, WorkSupplyPackTier.core, reason: line);
+}
+
+ReceiptLineMatch _expectGoodPlumbing(String line, List<String> expectedTerms) {
+  final match = matchReceiptLineToCatalog(
+    line,
+    tradeScope: 'Plumbing',
+    maxCandidates: 420,
+  );
+  expect(match, isNotNull, reason: line);
+  expect(match!.confidenceLevel, ReceiptConfidenceLevel.good, reason: line);
+  expect(match.item.trade, 'Plumbing', reason: line);
+
+  final searchable = [
+    match.item.name,
+    match.item.system,
+    match.item.itemType,
+    match.item.variant,
+    ...match.item.aliases,
+  ].join(' ').toLowerCase();
+  for (final term in expectedTerms) {
+    expect(searchable, contains(term), reason: '$line -> ${match.item.name}');
+  }
+  return match;
+}
+
+void _expectNotGoodPlumbing(String line) {
+  final match = matchReceiptLineToCatalog(
+    line,
+    tradeScope: 'Plumbing',
+    maxCandidates: 420,
+  );
+  if (match == null) {
+    return;
+  }
+  expect(
+    match.confidenceLevel,
+    isNot(ReceiptConfidenceLevel.good),
+    reason: line,
+  );
+}
