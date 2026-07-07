@@ -22,9 +22,30 @@
       "license": "CC-BY-4.0",
       "status": "approved_metadata_only",
       "localPath": ".external_datasets/receipts/cord",
+      "rawImagesCommittedToGit": false,
+      "attributionRequired": true,
+      "fixtureImportMode": "local_sampled_redacted_metadata_only",
       "requiredBeforeImport": [
         "downloaded_locally",
         "license_file_present",
+        "attribution_notes_present",
+        "no_raw_images_committed",
+        "fixture_outputs_redacted_or_synthetic"
+      ]
+    },
+    {
+      "id": "naver_clova_ix_cord_v2_huggingface",
+      "source": "https://huggingface.co/datasets/naver-clova-ix/cord-v2",
+      "license": "CC-BY-4.0",
+      "status": "approved_metadata_only",
+      "localPath": ".external_datasets/receipts/naver_clova_ix_cord_v2",
+      "rawImagesCommittedToGit": false,
+      "attributionRequired": true,
+      "fixtureImportMode": "local_sampled_redacted_metadata_only",
+      "requiredBeforeImport": [
+        "downloaded_locally",
+        "license_file_present",
+        "attribution_notes_present",
         "no_raw_images_committed",
         "fixture_outputs_redacted_or_synthetic"
       ]
@@ -35,9 +56,13 @@
       "license": "dataset_card_review_required",
       "status": "candidate_requires_license_review",
       "localPath": ".external_datasets/receipts/voxel51_scanned_receipts",
+      "rawImagesCommittedToGit": false,
+      "attributionRequired": true,
+      "fixtureImportMode": "local_sampled_redacted_metadata_only",
       "requiredBeforeImport": [
         "downloaded_locally",
         "license_file_present",
+        "attribution_notes_present",
         "no_raw_images_committed",
         "fixture_outputs_redacted_or_synthetic"
       ]
@@ -48,9 +73,13 @@
       "license": "Apache-2.0",
       "status": "approved_metadata_only",
       "localPath": ".external_datasets/receipts/openpdf_multireceipt_1k",
+      "rawImagesCommittedToGit": false,
+      "attributionRequired": true,
+      "fixtureImportMode": "local_sampled_redacted_metadata_only",
       "requiredBeforeImport": [
         "downloaded_locally",
         "license_file_present",
+        "attribution_notes_present",
         "no_raw_images_committed",
         "fixture_outputs_redacted_or_synthetic"
       ]

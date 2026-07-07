@@ -44,11 +44,22 @@ void main() {
         containsAll([
           'downloaded_locally',
           'license_file_present',
+          'attribution_notes_present',
           'no_raw_images_committed',
           'fixture_outputs_redacted_or_synthetic',
         ]),
       );
+      expect(entry['rawImagesCommittedToGit'], isFalse);
+      expect(entry['attributionRequired'], isTrue);
+      expect(
+        entry['fixtureImportMode'],
+        'local_sampled_redacted_metadata_only',
+      );
     }
+    expect(
+      datasets.cast<Map<String, Object?>>().map((entry) => entry['id']).toSet(),
+      contains('naver_clova_ix_cord_v2_huggingface'),
+    );
 
     expect(
       manifest['summaryReportExcludes'],

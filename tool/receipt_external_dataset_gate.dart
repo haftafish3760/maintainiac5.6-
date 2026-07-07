@@ -104,10 +104,25 @@ void _checkManifest(File manifestFile, List<String> failures) {
     final localPath = entry['localPath'];
     if (localPath is! String || !localPath.startsWith(_storageRoot)) {
       failures.add('Dataset $id must stay under $_storageRoot.');
+    } else if (localPath.contains('..') || localPath.contains('//')) {
+      failures.add('Dataset $id localPath must not contain traversal.');
+    }
+    final source = entry['source'];
+    if (source is! String ||
+        !(source.startsWith('https://huggingface.co/datasets/') ||
+            source.startsWith('https://github.com/'))) {
+      failures.add('Dataset $id must use an approved source URL.');
+    }
+    if (entry['rawImagesCommittedToGit'] != false) {
+      failures.add('Dataset $id must explicitly keep raw images out of Git.');
+    }
+    if (entry['attributionRequired'] != true) {
+      failures.add('Dataset $id must explicitly require attribution tracking.');
     }
     _expectListContains(entry, 'requiredBeforeImport', [
       'downloaded_locally',
       'license_file_present',
+      'attribution_notes_present',
       'no_raw_images_committed',
       'fixture_outputs_redacted_or_synthetic',
     ], failures);
