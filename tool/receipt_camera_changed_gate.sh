@@ -60,6 +60,26 @@ while IFS= read -r path; do
   [[ -z "$path" ]] && continue
 
   case "$path" in
+    lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart)
+      targeted_tests+=(
+        test/receipt_import_source_sheet_test.dart
+      )
+      ;;
+    lib/shared/widgets/receipt_capture/receipt_attachment_import_actions.dart)
+      targeted_tests+=(
+        test/receipt_import_source_sheet_test.dart
+      )
+      ;;
+    lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart)
+      targeted_tests+=(
+        test/receipt_capture_flow_assist_opt_in_contract_test.dart
+      )
+      ;;
+    lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart)
+      targeted_tests+=(
+        test/receipt_capture_flow_assist_opt_in_contract_test.dart
+      )
+      ;;
     android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt)
       targeted_tests+=(
         test/receipt_native_android_bridge_settings_quality_test.dart

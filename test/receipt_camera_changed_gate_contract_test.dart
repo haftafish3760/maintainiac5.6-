@@ -37,11 +37,28 @@ void main() {
     expect(script, contains('targeted_tests+=('));
     expect(
       script,
+      contains('lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart'),
+    );
+    expect(
+      script,
+      contains('lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart'),
+    );
+    expect(
+      script,
+      contains('lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart'),
+    );
+    expect(
+      script,
       contains('android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt'),
     );
     expect(
       script,
       contains('ios/Runner/ReceiptCameraViewControllerSessionSettings.swift'),
+    );
+    expect(script, contains('test/receipt_import_source_sheet_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_capture_flow_assist_opt_in_contract_test.dart'),
     );
     expect(
       script,
@@ -98,5 +115,34 @@ void main() {
       contains('targeted test/receipt_native_ios_bridge_settings_close_test.dart'),
     );
     expect(stdout, isNot(contains('quick test/receipt_camera_coverage_decision_test.dart')));
+  });
+
+  test('camera changed gate can print exact targeted tests for phase2 entry flow files', () async {
+    final result = await Process.run('bash', [
+      'tool/receipt_camera_changed_gate.sh',
+      '--print-tests',
+    ], environment: {
+      'RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST': [
+        'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
+        'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
+        'lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart',
+      ].join('\n'),
+    });
+
+    expect(result.exitCode, 0);
+    final stdout = result.stdout.toString();
+    expect(stdout, contains('mode=quick'));
+    expect(
+      stdout,
+      contains('targeted test/receipt_import_source_sheet_test.dart'),
+    );
+    expect(
+      stdout,
+      contains('targeted test/receipt_capture_flow_assist_opt_in_contract_test.dart'),
+    );
+    expect(
+      stdout,
+      isNot(contains('milestone test/receipt_camera_phase3_viewer_contract_test.dart')),
+    );
   });
 }
