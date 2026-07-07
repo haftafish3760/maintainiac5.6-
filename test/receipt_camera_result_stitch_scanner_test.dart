@@ -344,6 +344,52 @@ void main() {
     );
   });
 
+  test('duplicate section fallback stays in ordered review handoff lane', () {
+    final duplicateFallback = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/top-proof.jpg', '/tmp/dup-proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/dup-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: ['/tmp/top-ocr.jpg', '/tmp/dup-ocr.jpg'],
+        warning: 'Duplicate receipt section detected.',
+        fallbackReasonCode: 'duplicate_section_image',
+        failedPairIndex: 0,
+      ),
+    );
+
+    expect(
+      duplicateFallback.receiptPhotoReviewHandoffPath,
+      'accepted_stitch_ocr_source_review_required',
+    );
+    expect(duplicateFallback.nextReviewUsesOrderedSections, isTrue);
+    expect(
+      duplicateFallback.nextReviewMatchReadinessOutcome,
+      'ocr_source_review_required_before_assist',
+    );
+    expect(
+      duplicateFallback.stitchResult.ocrHandoffSafetyCode,
+      'ordered_sections_after_duplicate_section_image_fallback',
+    );
+    expect(
+      duplicateFallback.stitchResult.ocrSourceContractCode,
+      'fallback_duplicate_section_image',
+    );
+    expect(
+      duplicateFallback.receiptReaderHandoffCounts,
+      containsPair(
+        'stitch_ocr_source_contract_fallback_duplicate_section_image',
+        1,
+      ),
+    );
+    expect(
+      duplicateFallback.privacySafeReceiptReaderHandoffMetadata,
+      containsPair(
+        'stitchOcrHandoffSafetyCode',
+        'ordered_sections_after_duplicate_section_image_fallback',
+      ),
+    );
+  });
+
   test(
     'low-confidence stitched preview cannot auto-clear assisted receipt read',
     () {
