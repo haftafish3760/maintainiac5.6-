@@ -22,6 +22,10 @@ void main() {
         quickPlan,
         contains('quick test/receipt_camera_qa_gate_contract_test.dart'),
       );
+      expect(
+        quickPlan,
+        contains('quick test/receipt_external_dataset_gate_test.dart'),
+      );
       expect(quickPlan, isNot(contains('milestone ')));
       expect(quickPlan, isNot(contains('full ')));
 
