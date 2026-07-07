@@ -94,6 +94,7 @@ stitch_tests=(
   test/receipt_camera_long_receipt_guidance_test.dart
   test/receipt_camera_ocr_source_handoff_test.dart
   test/receipt_camera_fixture_matrix_test.dart
+  test/receipt_camera_result_frozen_handoff_counts_test.dart
   test/receipt_camera_result_stitch_scanner_test.dart
   test/receipt_capture_flow_barcode_handoff_test.dart
   test/receipt_ocr_source_relationship_test.dart

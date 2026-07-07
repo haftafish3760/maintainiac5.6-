@@ -58,6 +58,12 @@ void main() {
       expect(stitchPlan, contains('stitch test/receipt_stitching_test.dart'));
       expect(
         stitchPlan,
+        contains(
+          'stitch test/receipt_camera_result_frozen_handoff_counts_test.dart',
+        ),
+      );
+      expect(
+        stitchPlan,
         contains('stitch test/receipt_photo_review_retake_order_test.dart'),
       );
       expect(stitchPlan, isNot(contains('quick ')));
