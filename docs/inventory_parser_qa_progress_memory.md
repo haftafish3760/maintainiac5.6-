@@ -4115,3 +4115,16 @@ Release boundaries:
   208 release-ready candidates, 244 metadata-ready candidates, 878 needing
   critical parser-evidence work, readiness floor 82, readiness average 89.86.
   Water treatment now has 97/97 release-ready candidates.
+- **22:09-22:11 Plumbing Core Angle/Supply Readiness Audit Refinement:** Used
+  the readiness audit to separate real angle-stop connection gaps from false
+  positives on supply-stop repair parts and escutcheons. The audit no longer
+  requires pipe size/material/connection metadata for small repair parts where
+  those fields are not the item identity. Verification passed:
+  `dart analyze tool/work_supply_plumbing_core_readiness_audit.dart
+  test/work_supply_plumbing_core_readiness_audit_test.dart` and
+  `flutter test test/work_supply_plumbing_core_readiness_audit_test.dart`.
+  Latest readiness report: 1,122 Core rows, 231 release-ready candidates, 244
+  metadata-ready candidates, readiness floor 82, readiness average 90.02.
+  Angle stops/supply lines improved to 68/76 release-ready candidates; the
+  remaining 8 generic stop-valve rows stay manual-review because their names do
+  not prove connection type.

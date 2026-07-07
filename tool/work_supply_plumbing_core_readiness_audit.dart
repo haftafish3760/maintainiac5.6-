@@ -214,6 +214,7 @@ _IdentityCompleteness _identityCompleteness(WorkSupplyItem item, String text) {
 }
 
 bool _requiresSize(String text) {
+  if (_isSmallRepairPartText(text)) return false;
   return _hasAny(text, [
     'adapter',
     'coupling',
@@ -225,6 +226,7 @@ bool _requiresSize(String text) {
 }
 
 bool _requiresMaterial(String text) {
+  if (_isSmallRepairPartText(text)) return false;
   if (_isWaterTreatmentDirectText(text)) return false;
   return _hasAny(text, [
     'adapter',
@@ -251,6 +253,7 @@ bool _requiresShape(String text) {
 }
 
 bool _requiresConnection(String text) {
+  if (_isSmallRepairPartText(text)) return false;
   if (_isWaterTreatmentDirectText(text)) return false;
   return _hasAny(text, [
     'adapter',
@@ -474,6 +477,17 @@ bool _isWaterTreatmentDirectText(String text) {
     'softener',
     'water filter',
     'water treatment',
+  ]);
+}
+
+bool _isSmallRepairPartText(String text) {
+  return _hasAny(text, [
+    'compression sleeve puller',
+    'escutcheon',
+    'handle screw',
+    'oval handle',
+    'repair part',
+    'split escutcheon',
   ]);
 }
 
