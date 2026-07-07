@@ -143,6 +143,33 @@ void main() {
     expect(saveActions, contains('_selectedExitCoverageDecision()'));
     expect(models, contains('1 clear combined OCR image'));
     expect(models, contains('clear ordered OCR sections'));
+    expect(
+      saveActions,
+      contains('if (_closingReview || _confirmingReviewExit) return;'),
+    );
+    expect(saveActions, contains("if (_openingCamera) {"));
+    expect(
+      saveActions,
+      contains("_showCameraError('Camera is opening. Wait a moment.');"),
+    );
+    expect(saveActions, contains("if (_savingPhotos) {"));
+    expect(
+      saveActions,
+      contains(
+        "_showCameraError('Receipt photo is being prepared. Wait a moment.');",
+      ),
+    );
+    expect(saveActions, contains("if (_cropProcessing) {"));
+    expect(
+      saveActions,
+      contains("_showCameraError('Finish or cancel crop before leaving this review.');"),
+    );
+    expect(
+      saveActions,
+      contains(
+        'if (!_reviewWorkActive ||\n        action == _ReceiptReviewExitAction.keepReviewing) {',
+      ),
+    );
   });
 
   test('possible partial receipt prompts without blocking OCR', () async {
