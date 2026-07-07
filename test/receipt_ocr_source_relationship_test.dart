@@ -92,6 +92,107 @@ void main() {
       );
     });
 
+    test('keeps compressed saved proof separate from clear OCR source', () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/saved-proof-750kb.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/ocr-full-quality-source.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.maximum,
+        stitchResult: ReceiptStitchResult.notNeeded([
+          '/tmp/ocr-full-quality-source.jpg',
+        ]),
+        preparationDiagnosticsByOcrPath: const {
+          '/tmp/ocr-full-quality-source.jpg': {
+            'ocrStoragePolicyCode': 'ocr_clear_source_before_saved_proof_copy',
+            'ocrUsesPreparedSourceBeforeSavedProof': true,
+            'ocrUsesSavedProofFallback': false,
+          },
+        },
+      );
+
+      expect(result.ocrSourceProofRelationship, 'separate_clear_source');
+      expect(result.usesSeparateOcrSourceCopies, isTrue);
+      expect(result.ocrReadsClearSourceBeforeSavedProof, isTrue);
+      expect(result.ocrUsesSavedProofOnlyAsFallback, isFalse);
+      expect(
+        result.ocrStoragePolicyOutcome,
+        'ocr_clear_source_before_saved_proof_copy',
+      );
+      expect(
+        result.receiptProofStoragePolicyOutcome,
+        'temporary_ocr_source_saved_data_saver_proof',
+      );
+      expect(
+        result.ocrSourceReviewRequirement,
+        'standard_user_confirmation_required',
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('saved_proof_kept_for_receipt_record', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('ocr_source_used_for_reading_before_saved_proof', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('temporary_ocr_source_separate_from_saved_proof', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('clear_ocr_source_read_before_saved_proof_copy', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('normal_record_uses_data_saver_proof', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('accepted_review_allows_temporary_ocr_cleanup', 1),
+      );
+      expect(
+        result.privacySafeReceiptReaderHandoffMetadata,
+        isNot(containsValue(contains('/tmp/'))),
+      );
+    });
+
+    test('kept-for-later reviews do not create OCR source cleanup', () {
+      final result = ReceiptPhotoReviewResult.keptForLater(
+        photoPaths: const ['/tmp/saved-proof-750kb.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.maximum,
+      );
+
+      expect(result.keptForLater, isTrue);
+      expect(result.ocrSourcePhotoPaths, isEmpty);
+      expect(result.hasOcrSourcePhotos, isFalse);
+      expect(result.ocrSourceProofRelationship, 'missing_ocr_source');
+      expect(
+        result.ocrSourceFirstDecisionCode,
+        'ocr_source_missing_block_review',
+      );
+      expect(result.ocrReadsClearSourceBeforeSavedProof, isFalse);
+      expect(result.ocrUsesSavedProofOnlyAsFallback, isFalse);
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('saved_proof_kept_for_receipt_record', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('normal_record_uses_data_saver_proof', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('review_kept_for_later_no_cleanup_yet', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        isNot(contains('accepted_review_allows_temporary_ocr_cleanup')),
+      );
+      expect(
+        result.privacySafeReceiptReaderHandoffMetadata,
+        containsPair('receiptReviewKeptForLater', true),
+      );
+    });
+
     test('marks invalid stitch OCR contract as manual review risk', () {
       final result = ReceiptPhotoReviewResult(
         photoPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
