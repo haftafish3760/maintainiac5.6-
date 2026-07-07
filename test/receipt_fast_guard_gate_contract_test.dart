@@ -10,11 +10,19 @@ void main() {
     expect(script, contains('bash tool/receipt_doc_size_gate.sh'));
     expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
     expect(script, contains('tool/receipt_bug_regression_ledger_archive.dart'));
+    expect(
+      script,
+      contains('tool/receipt_camera_changed_route_coverage_gate.dart'),
+    );
     expect(script, contains('tool/receipt_external_dataset_local_audit.dart'));
     expect(script, contains('tool/receipt_external_dataset_gate.dart'));
     expect(
       script,
       contains('dart tool/receipt_bug_regression_ledger_gate.dart'),
+    );
+    expect(
+      script,
+      contains('dart tool/receipt_camera_changed_route_coverage_gate.dart'),
     );
     expect(
       script,
@@ -95,6 +103,10 @@ void main() {
       script,
       contains('test/receipt_camera_dataset_qa_gate_contract_test.dart'),
     );
+    expect(
+      script,
+      contains('test/receipt_camera_changed_route_coverage_gate_test.dart'),
+    );
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
     expect(
       script,
@@ -142,6 +154,12 @@ void main() {
     expect(
       script,
       contains(
+        "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_camera_changed_route_coverage_gate.dart'",
+      ),
+    );
+    expect(
+      script,
+      contains(
         "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_external_dataset_local_audit.dart'",
       ),
     );
@@ -149,6 +167,12 @@ void main() {
       script,
       contains(
         "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_external_dataset_gate.dart'",
+      ),
+    );
+    expect(
+      script,
+      contains(
+        "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_changed_route_coverage_gate_test.dart'",
       ),
     );
     expect(

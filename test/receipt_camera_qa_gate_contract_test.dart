@@ -52,6 +52,10 @@ void main() {
     expect(script, contains('lib/shared/widgets/receipt_capture'));
     expect(script, contains('lib/shared/receipts'));
     expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
+    expect(
+      script,
+      contains('tool/receipt_camera_changed_route_coverage_gate.dart'),
+    );
     expect(script, contains('tool/receipt_external_dataset_local_audit.dart'));
     expect(script, contains('tool/receipt_external_dataset_gate.dart'));
     expect(script, contains('tool/receipt_external_fixture_schema_gate.dart'));
@@ -63,6 +67,10 @@ void main() {
     expect(
       script,
       contains('dart tool/receipt_external_dataset_local_audit.dart'),
+    );
+    expect(
+      script,
+      contains('dart tool/receipt_camera_changed_route_coverage_gate.dart'),
     );
     expect(
       script,
@@ -125,6 +133,10 @@ void main() {
     expect(
       script,
       contains('test/receipt_camera_real_device_snapshot_contract_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_camera_changed_route_coverage_gate_test.dart'),
     );
     expect(script, contains('test/receipt_camera_qa_gate_execution_test.dart'));
     expect(
@@ -318,6 +330,10 @@ void main() {
     expect(script, contains('mode="milestone"'));
     expect(script, contains('mode="full"'));
     expect(script, contains('tool/receipt_start_camera_qa_gate.sh'));
+    expect(
+      script,
+      contains('tool/receipt_camera_changed_route_coverage_gate.dart'),
+    );
     expect(script, contains('tool/receipt_camera_qa_summary.sh'));
     expect(script, contains('tool/receipt_external_dataset_local_audit.dart'));
     expect(script, contains('tool/receipt_external_dataset_gate.dart'));
@@ -326,6 +342,10 @@ void main() {
     expect(script, contains('tool/receipt_quiet_batch_status.sh'));
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
     expect(script, contains('test/receipt_camera_qa_gate_contract_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_camera_changed_route_coverage_gate_test.dart'),
+    );
     expect(script, contains('test/receipt_camera_qa_gate_execution_test.dart'));
     expect(
       script,
