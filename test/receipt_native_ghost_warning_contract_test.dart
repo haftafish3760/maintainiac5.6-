@@ -180,9 +180,11 @@ void main() {
     );
     expect(
       controls,
-      contains(r'Recommended: ${nativeWarning.primaryActionLabel}'),
+      contains(
+        r"'${nativeWarning.primaryActionLabel}. If the store, date, total, '",
+      ),
     );
-    expect(controls, contains('Next stays available.'));
+    expect(controls, contains('you can still use the photo'));
     expect(qualityRecovery, contains('required this.primaryActionLabel'));
     expect(
       qualityRecovery,

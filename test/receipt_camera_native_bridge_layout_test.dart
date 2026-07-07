@@ -23,10 +23,10 @@ void main() {
     expect(androidCameraUnit, contains('CAPTURE_MODE_MINIMIZE_LATENCY'));
     expect(androidCameraUnit, contains('"receipt_latency_light_device"'));
     expect(androidCameraUnit, contains('"receipt_fast_document_shutter"'));
-    expect(androidCameraUnit, contains('PreviewView.ScaleType.FIT_CENTER'));
+    expect(androidCameraUnit, contains('PreviewView.ScaleType.FILL_CENTER'));
     expect(
       androidCameraUnit,
-      isNot(contains('PreviewView.ScaleType.FILL_CENTER')),
+      isNot(contains('PreviewView.ScaleType.FIT_CENTER')),
     );
     expect(
       androidCameraUnit,
@@ -55,10 +55,10 @@ void main() {
       androidCameraUnit,
       contains('latestCapturedBottomTopLumaDeltaBucket'),
     );
-    expect(androidCameraUnit, contains('text = "Next"'));
-    expect(androidCameraUnit, contains('text = "Add Next"'));
+    expect(androidCameraUnit, contains('text = "Use Photos"'));
+    expect(androidCameraUnit, contains('text = "Add Photo"'));
     expect(androidCameraUnit, contains('"manual_add_photo"'));
-    expect(androidCameraUnit, contains(r'"Next ($count photos)"'));
+    expect(androidCameraUnit, contains(r'"Use $count Photos"'));
     expect(
       androidCameraUnit,
       contains('Saving this receipt photo before opening review.'),
@@ -94,8 +94,8 @@ void main() {
     expect(iosCameraUnit, contains('Match the next section'));
     expect(iosCameraUnit, contains('latestCapturedBottomTopLumaDelta'));
     expect(iosCameraUnit, contains('latestCapturedBottomTopLumaDeltaBucket'));
-    expect(iosCameraUnit, contains('setTitle("Next", for: .normal)'));
-    expect(iosCameraUnit, contains('setTitle("Add Next", for: .normal)'));
+    expect(iosCameraUnit, contains('setTitle("Use Photos", for: .normal)'));
+    expect(iosCameraUnit, contains('setTitle("Add Photo", for: .normal)'));
     expect(iosCameraUnit, contains('captureAdditionalPhoto'));
     expect(
       iosCameraUnit,

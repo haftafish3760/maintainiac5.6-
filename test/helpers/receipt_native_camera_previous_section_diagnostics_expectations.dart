@@ -16,6 +16,7 @@ void expectPreviousSectionGuideCaptureDiagnostics(
     'manual_shutter',
     'review_next',
     'receipt_guidance',
+    'native_camera_baseline',
     'safe_close',
     'pinch_zoom',
     'brightness_slider',
@@ -23,6 +24,7 @@ void expectPreviousSectionGuideCaptureDiagnostics(
     'auto_brightness_assist',
     'continuous_focus',
     'receipt_light',
+    'manual_focus_optional_future',
     'edge_overlay',
     'previous_section_ghost',
   ]);

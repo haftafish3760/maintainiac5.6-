@@ -79,7 +79,7 @@ void main() {
       );
       expect(
         cameraActivity,
-        contains(r'Add Section ${nextReceiptSectionNumber()}'),
+        contains('"nextReceiptSectionNumber" to nextReceiptSectionNumber()'),
       );
       expect(
         cameraActivity,
@@ -94,9 +94,7 @@ void main() {
       );
       expect(
         cameraActivity,
-        contains(
-          r'Add receipt section ${nextReceiptSectionNumber()} if this receipt continues',
-        ),
+        contains('"nextReceiptSectionNumber" to nextReceiptSectionNumber()'),
       );
       expect(
         cameraActivity,

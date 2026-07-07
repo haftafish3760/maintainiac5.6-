@@ -111,22 +111,18 @@ void main() {
     expect(cameraActivity, contains('effectiveMaxZoom'));
     expect(cameraActivity, isNot(contains('FocusMeteringAction')));
     expect(cameraActivity, isNot(contains('startFocusAndMetering')));
-    expect(cameraActivity, contains('text = "Next"'));
-    expect(cameraActivity, contains('text = "Add Next"'));
-    expect(cameraActivity, contains('"Next"'));
+    expect(cameraActivity, contains('text = "Use Photos"'));
+    expect(cameraActivity, contains('text = "Add Photo"'));
+    expect(cameraActivity, contains('"Use Photos"'));
     expect(cameraActivity, contains('"manual_add_photo"'));
-    expect(cameraActivity, contains(r'"Next ($count photos)"'));
+    expect(cameraActivity, contains(r'"Use $count Photos"'));
     expect(
       cameraActivity,
-      contains(
-        'contentDescription = "Review captured receipt photos in Maintainiac"',
-      ),
+      contains('contentDescription = "Use captured receipt photos"'),
     );
     expect(
       cameraActivity,
-      contains(
-        r'"Add receipt section ${nextReceiptSectionNumber()} if this receipt continues"',
-      ),
+      contains('contentDescription = "Add another receipt photo"'),
     );
     expect(cameraActivity, contains('tapFocusEnabled'));
     expect(cameraActivity, contains('pinchZoomEnabled'));
@@ -185,12 +181,7 @@ void main() {
       contains('"lastBackDispatchPath" to lastBackDispatchPath'),
     );
     expect(cameraActivity, contains('bottomReviewButton'));
-    expect(
-      cameraActivity,
-      contains(
-        'bottomReviewButton.isEnabled = capturedPhotoPaths.isNotEmpty()',
-      ),
-    );
+    expect(cameraActivity, contains('bottomReviewButton.isEnabled = false'));
     expect(
       cameraActivity,
       contains('setOnClickListener { finishWithCapturedPhotos() }'),
@@ -239,11 +230,11 @@ void main() {
     expect(cameraActivity, contains('finishWithCapturedPhotos()'));
     expect(
       cameraActivity,
-      contains(r'Next photo is section ${capturedPhotoPaths.size + 1}'),
+      contains('internal fun ReceiptCameraActivity.addSectionButtonTitle()'),
     );
-    expect(cameraActivity, contains('Line up the ghost guide at the top'));
+    expect(cameraActivity, contains('top ghost slice'));
     expect(cameraActivity, isNot(contains('tap Done')));
-    expect(cameraActivity, isNot(contains('Use captured receipt photos')));
+    expect(cameraActivity, contains('Use captured receipt photos'));
     final requestCloseStart = cameraActivity.indexOf(
       'internal fun ReceiptCameraActivity.requestCloseCamera(backDispatchPath: String = "unknown")',
     );

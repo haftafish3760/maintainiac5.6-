@@ -62,6 +62,7 @@ void main() {
       'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsLabels.kt':
           {
             'android.graphics.Color',
+            'android.graphics.drawable.GradientDrawable',
             'android.util.Range',
             'android.view.Gravity',
             'android.view.ViewGroup',
@@ -99,6 +100,8 @@ void main() {
           },
       'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraUiChrome.kt': {
         'android.graphics.Color',
+        'android.graphics.Typeface',
+        'android.graphics.drawable.GradientDrawable',
         'android.view.Gravity',
         'android.view.View',
         'android.view.ViewGroup',

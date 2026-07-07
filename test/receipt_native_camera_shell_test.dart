@@ -65,10 +65,10 @@ void main() {
     );
 
     expect(find.byKey(const ValueKey('receipt-preview')), findsOneWidget);
-    expect(find.text('Maintainiac Receipt Camera'), findsOneWidget);
-    expect(find.text('Native receipt controls'), findsOneWidget);
-    expect(find.text('Settings'), findsOneWidget);
-    expect(find.text('Move closer'), findsOneWidget);
+    expect(find.byTooltip('Back'), findsOneWidget);
+    expect(find.byTooltip('Receipt camera settings'), findsOneWidget);
+    expect(find.byTooltip('Turn light on'), findsOneWidget);
+    expect(find.text('Manual capture is always available.'), findsOneWidget);
     expect(find.text('Receipt assist'), findsNothing);
     expect(find.text('Next reviews text'), findsNothing);
     expect(find.textContaining('After capture:'), findsNothing);
@@ -84,9 +84,15 @@ void main() {
     expect(find.text('Brightness assist'), findsNothing);
     expect(find.byTooltip('Reset brightness'), findsNothing);
 
+    final primaryShutterIcon = find.byWidgetPredicate(
+      (widget) =>
+          widget is Icon &&
+          widget.icon == Icons.receipt_long_rounded &&
+          widget.size == 30,
+    );
     await tester.tap(find.byTooltip('Receipt camera settings'));
     await tester.tap(find.byTooltip('Turn light on'));
-    await tester.tap(find.bySemanticsLabel('Take receipt photo'));
+    await tester.tap(primaryShutterIcon);
     await tester.tap(find.byTooltip('Back'));
     await tester.tapAt(const Offset(206, 330));
     final firstFinger = await tester.startGesture(const Offset(180, 460));
@@ -110,19 +116,13 @@ void main() {
     final previewRect = tester.getRect(
       find.byKey(const ValueKey('receipt-preview')),
     );
-    final shutterRect = tester.getRect(
-      find.bySemanticsLabel('Take receipt photo'),
-    );
+    final shutterRect = tester.getRect(primaryShutterIcon);
     final settingsRect = tester.getRect(
       find.byTooltip('Receipt camera settings'),
     );
-    final titleRect = tester.getRect(find.text('Maintainiac Receipt Camera'));
 
     expect(previewRect.height, 915);
     expect(settingsRect.center.dy, lessThan(90));
-    expect(titleRect.center.dy, lessThan(90));
-    expect(titleRect.left, greaterThan(60));
-    expect(titleRect.right, lessThan(340));
     expect(shutterRect.center.dy, greaterThan(760));
   });
 
@@ -254,7 +254,10 @@ void main() {
     expect(find.text('Tap text to focus'), findsNothing);
     expect(find.text('Pinch to zoom'), findsNothing);
     expect(find.text('Brightness assist'), findsNothing);
-    expect(find.text('Native receipt controls'), findsOneWidget);
+    expect(
+      find.text('Keep the last readable lines in the top ghost slice.'),
+      findsOneWidget,
+    );
     expect(find.text('Manual receipt'), findsNothing);
     expect(find.text('Save photo only'), findsNothing);
     expect(find.text('Saved proof'), findsNothing);
@@ -331,9 +334,15 @@ void main() {
     expect(find.byTooltip('Back'), findsOneWidget);
     expect(find.byTooltip('Receipt camera settings'), findsOneWidget);
     expect(find.byTooltip('Turn light on'), findsOneWidget);
-    expect(find.byIcon(Icons.receipt_long_rounded), findsOneWidget);
+    final shutterIcon = find.byWidgetPredicate(
+      (widget) =>
+          widget is Icon &&
+          widget.icon == Icons.receipt_long_rounded &&
+          widget.size == 30,
+    );
+    expect(shutterIcon, findsOneWidget);
 
-    final shutterRect = tester.getRect(find.byIcon(Icons.receipt_long_rounded));
+    final shutterRect = tester.getRect(shutterIcon);
     final bottomSafeY =
         tester.view.physicalSize.height / tester.view.devicePixelRatio;
     expect(shutterRect.bottom, lessThanOrEqualTo(bottomSafeY - 8));

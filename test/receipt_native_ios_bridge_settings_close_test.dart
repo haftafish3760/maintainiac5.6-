@@ -430,7 +430,8 @@ void main() {
       expect(cameraController, contains('settingsStatusStrip'));
       expect(cameraController, contains('settingsStatusText'));
       expect(cameraController, contains('Maintainiac receipt camera'));
-      expect(cameraController, contains("not the phone's regular camera app"));
+      expect(cameraController, contains("phone's native camera baseline"));
+      expect(cameraController, contains('workflow controls layered on top'));
       expect(
         cameraController,
         contains(
