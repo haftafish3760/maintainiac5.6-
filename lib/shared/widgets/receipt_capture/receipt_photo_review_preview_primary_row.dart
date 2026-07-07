@@ -34,6 +34,14 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
     final shouldAddNextSection = coverageDecision.shouldPromptForMorePhotos;
     final shouldCheckBottomFirst =
         coverageDecision.isMissingBottomEdgeAndTotals;
+    final retakeLabel = _ReceiptPhotoSectionLabels.retakeLabel(
+      index: current - 1,
+      total: total,
+    );
+    final retakeSemanticLabel = _ReceiptPhotoSectionLabels.retakeSemanticLabel(
+      index: current - 1,
+      total: total,
+    );
     final addPhotoLabel = coverageDecision.isMissingBottomEdgeAndTotals
         ? 'Add Bottom Section'
         : shouldAddNextSection
@@ -84,27 +92,34 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: savingPhotos ? null : onRetake,
-                    icon: const Icon(Icons.camera_alt_rounded, size: 16),
-                    label: const Text(
-                      'Retake',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(0, 38),
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      foregroundColor: const Color(0xFFE8ECEE),
-                      disabledForegroundColor: const Color(0xFF758188),
-                      side: const BorderSide(color: Color(0xFF526168)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0,
+                  child: Tooltip(
+                    message: retakeSemanticLabel,
+                    child: Semantics(
+                      button: true,
+                      label: retakeSemanticLabel,
+                      child: OutlinedButton.icon(
+                        onPressed: savingPhotos ? null : onRetake,
+                        icon: const Icon(Icons.camera_alt_rounded, size: 16),
+                        label: Text(
+                          retakeLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, 38),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          foregroundColor: const Color(0xFFE8ECEE),
+                          disabledForegroundColor: const Color(0xFF758188),
+                          side: const BorderSide(color: Color(0xFF526168)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0,
+                          ),
+                        ),
                       ),
                     ),
                   ),

@@ -145,8 +145,18 @@ void main() {
       contains('Add another receipt photo if the receipt continues'),
     );
     expect(previewControls, contains('OutlinedButton.icon'));
+    expect(
+      previewControls,
+      contains('_ReceiptPhotoSectionLabels.retakeLabel'),
+    );
+    expect(
+      previewControls,
+      contains('_ReceiptPhotoSectionLabels.retakeSemanticLabel'),
+    );
     expect(previewControls, contains('final addPhotoTooltip ='));
     expect(previewControls, contains('label: addPhotoTooltip'));
+    expect(previewControls, contains('message: retakeSemanticLabel'));
+    expect(previewControls, contains('label: retakeSemanticLabel'));
     expect(previewControls, contains("'Opening receipt details'"));
     expect(previewControls, contains('onPressed: savingPhotos ? null : onContinue'));
     expect(commonControls, contains("'Preparing receipt details'"));
