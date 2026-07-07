@@ -14,6 +14,7 @@ void main() {
     expect(script, contains('milestone_only_tests=('));
     expect(script, contains('full_only_tests=('));
     expect(script, contains('dart analyze lib/shared/widgets/receipt_capture'));
+    expect(script, contains('bash tool/receipt_camera_scope_gate.sh'));
     expect(script, contains('dart tool/maintainiac_source_audit.dart'));
     expect(script, contains('run_line_cap_gate'));
     expect(script, contains('run_stale_contract_scan'));
@@ -89,7 +90,35 @@ void main() {
     expect(summary, contains(r'receipt_camera_qa_$name'));
     expect(summary, contains('summary=failed_actionable_lines'));
     expect(summary, contains('tail -80'));
+    expect(fastGuard, contains('tool/receipt_camera_scope_gate.sh'));
     expect(fastGuard, contains('tool/receipt_camera_qa_summary.sh'));
     expect(fastGuard, contains('tool/receipt_start_camera_qa_gate.sh'));
   });
+
+  test(
+    'camera scope gate protects the branch from unrelated tracked edits',
+    () {
+      final script = File(
+        'tool/receipt_camera_scope_gate.sh',
+      ).readAsStringSync();
+
+      expect(script, contains('git diff --name-only'));
+      expect(script, contains('SCOPE_FAIL'));
+      expect(script, contains('tracked changes left the camera lane'));
+      expect(script, contains('lib/shared/widgets/receipt_capture/*'));
+      expect(script, contains('lib/shared/receipts/*'));
+      expect(
+        script,
+        contains(
+          'android/app/src/main/kotlin/com/maintainiac/ReceiptCamera*.kt',
+        ),
+      );
+      expect(script, contains('ios/Runner/ReceiptCamera*.swift'));
+      expect(script, contains('test/receipt_camera_*'));
+      expect(script, contains('test/receipt_native_*'));
+      expect(script, contains('test/receipt_stitching_*'));
+      expect(script, contains('tool/receipt_camera_*'));
+      expect(script, isNot(contains('git ls-files --others')));
+    },
+  );
 }

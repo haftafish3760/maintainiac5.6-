@@ -7,6 +7,7 @@ bash -n \
   tool/receipt_camera_pipeline_gate.sh \
   tool/receipt_camera_qa_gate.sh \
   tool/receipt_camera_qa_summary.sh \
+  tool/receipt_camera_scope_gate.sh \
   tool/receipt_start_camera_qa_gate.sh \
   tool/receipt_cleanup_log_gate.sh \
   tool/receipt_doc_size_gate.sh \
