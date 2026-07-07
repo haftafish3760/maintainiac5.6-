@@ -34,6 +34,7 @@ while IFS= read -r path; do
     test/receipt_camera_* | \
     test/receipt_native_* | \
     test/receipt_ocr_source_* | \
+    test/receipt_photo_review_* | \
     test/receipt_photo_section_labels_test.dart | \
     test/receipt_external_dataset_local_audit_test.dart | \
     test/receipt_external_dataset_gate_test.dart | \

@@ -3,7 +3,7 @@ set -euo pipefail
 
 if [[ $# -ne 1 ]]; then
   cat >&2 <<'USAGE'
-Usage: tool/receipt_camera_qa_summary.sh <phase2|phase3|phase4|quick|stitch|milestone|full|batch-name>
+Usage: tool/receipt_camera_qa_summary.sh <phase2|phase3|phase4|phase5|quick|stitch|milestone|full|batch-name>
 
 Summarizes a completed detached receipt camera QA batch without live log
 monitoring. The normal camera modes map to receipt_camera_qa_<mode>.
@@ -26,6 +26,10 @@ case "$name" in
   phase4)
     name="receipt_camera_qa_phase4"
     failure_phase="camera_phase4_gate"
+    ;;
+  phase5)
+    name="receipt_camera_qa_phase5"
+    failure_phase="camera_phase5_gate"
     ;;
   quick)
     name="receipt_camera_qa_quick"
@@ -69,7 +73,7 @@ fi
 if [[ "$status" == "stale" ]]; then
   echo "summary=batch_stale_requires_restart"
   case "$requested_name" in
-    phase2 | phase3 | phase4 | quick | stitch | milestone | full)
+    phase2 | phase3 | phase4 | phase5 | quick | stitch | milestone | full)
       echo "restart_command=tool/receipt_start_camera_qa_gate.sh $requested_name"
       ;;
     *)
