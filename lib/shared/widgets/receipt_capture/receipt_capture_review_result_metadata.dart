@@ -65,6 +65,8 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
         'savedPhotoWarningReviewActions': savedPhotoWarningReviewActionLabels,
       'nextReviewMatchReadinessOutcome': nextReviewMatchReadinessOutcome,
       'nextReviewMatchReadinessLabel': nextReviewMatchReadinessLabel,
+      'nextReviewRequiresOcrSourceReviewBeforeAssist':
+          stitchResult.requiresOcrSourceReviewBeforeAssistedRead,
       'stitchOverlapCoverageCode': stitchResult.overlapCoverageCode,
       'stitchOverlapCoverageLabel': stitchResult.overlapCoverageLabel,
       'stitchSourcePreservationCode': stitchResult.sourcePreservationCode,

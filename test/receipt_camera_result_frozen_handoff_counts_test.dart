@@ -22,6 +22,8 @@ void main() {
       'ocr_source_review_risk_ocr_source_ready': 1,
       'ocr_source_review_requirement_standard_user_confirmation_required': 1,
       'stitch_ocr_source_contract_ordered_sources_ready': 1,
+      'stitch_assisted_readiness_single_section_ready': 1,
+      'stitch_ready_for_assisted_read_without_extra_review': 1,
       'match_readiness_single_receipt_source_ready': 1,
       'native_camera_ui_native_capture_review_transition_ready': 1,
       'native_camera_ui_native_capture_review_target_receipt_details': 1,

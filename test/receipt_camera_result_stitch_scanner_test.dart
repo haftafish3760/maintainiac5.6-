@@ -159,7 +159,12 @@ void main() {
     );
     expect(
       fallback
-          .receiptReaderHandoffCounts['match_readiness_ordered_sections_fallback_ready'],
+          .receiptReaderHandoffCounts['stitch_requires_ocr_source_review_before_assist'],
+      1,
+    );
+    expect(
+      fallback
+          .receiptReaderHandoffCounts['match_readiness_ocr_source_review_required_before_assist'],
       1,
     );
     expect(
@@ -174,11 +179,11 @@ void main() {
     expect(fallback.nextReviewUsesOrderedSections, isTrue);
     expect(
       fallback.nextReviewMatchReadinessOutcome,
-      'ordered_sections_fallback_ready',
+      'ocr_source_review_required_before_assist',
     );
     expect(
       fallback.nextReviewMatchReadinessLabel,
-      'Photo match fallback: ordered receipt sections will be read top to bottom, and Photo 1 to 2 needs review.',
+      'Photo match needs review before app-assisted receipt filling, starting with Photo 1 to 2.',
     );
     expect(fallback.nextReviewSourceLabel, '2 ordered receipt sections');
     expect(
@@ -222,15 +227,19 @@ void main() {
       fallback.privacySafeReceiptReaderHandoffMetadata,
       containsPair(
         'nextReviewMatchReadinessOutcome',
-        'ordered_sections_fallback_ready',
+        'ocr_source_review_required_before_assist',
       ),
     );
     expect(
       fallback.privacySafeReceiptReaderHandoffMetadata,
       containsPair(
         'nextReviewMatchReadinessLabel',
-        'Photo match fallback: ordered receipt sections will be read top to bottom, and Photo 1 to 2 needs review.',
+        'Photo match needs review before app-assisted receipt filling, starting with Photo 1 to 2.',
       ),
+    );
+    expect(
+      fallback.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('nextReviewRequiresOcrSourceReviewBeforeAssist', true),
     );
     expect(
       stitched.privacySafeReceiptReaderHandoffMetadata,

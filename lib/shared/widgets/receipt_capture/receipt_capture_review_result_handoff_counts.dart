@@ -29,6 +29,11 @@ extension ReceiptPhotoReviewResultHandoffCounts on ReceiptPhotoReviewResult {
         1;
     counts['stitch_assisted_readiness_${stitchResult.assistedReadinessCode}'] =
         1;
+    if (stitchResult.requiresOcrSourceReviewBeforeAssistedRead) {
+      counts['stitch_requires_ocr_source_review_before_assist'] = 1;
+    } else {
+      counts['stitch_ready_for_assisted_read_without_extra_review'] = 1;
+    }
     counts['match_readiness_$nextReviewMatchReadinessOutcome'] = 1;
     if (hasPossiblePartialReceiptPhotos) {
       counts['possible_partial_receipt'] =

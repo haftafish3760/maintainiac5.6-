@@ -64,6 +64,9 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
     if (needsAnotherReceiptSectionBeforeDetails) {
       return 'needs_next_receipt_section';
     }
+    if (stitchResult.requiresOcrSourceReviewBeforeAssistedRead) {
+      return 'ocr_source_review_required_before_assist';
+    }
     if (stitchResult.didStitch) return 'combined_receipt_image_ready';
     if (stitchResult.usedFallback) return 'ordered_sections_fallback_ready';
     if (nextReviewUsesOrderedSections) return 'ordered_sections_ready';
@@ -80,6 +83,10 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
             : 'Photo match fallback: ordered receipt sections will be read top to bottom, and ${stitchResult.failedPairLabel} needs review.',
       'ordered_sections_ready' =>
         'Ordered receipt sections will be read top to bottom.',
+      'ocr_source_review_required_before_assist' =>
+        stitchResult.failedPairLabel.isEmpty
+            ? 'Photo match needs review before app-assisted receipt filling.'
+            : 'Photo match needs review before app-assisted receipt filling, starting with ${stitchResult.failedPairLabel}.',
       'missing_ocr_source' =>
         'No clear OCR source is ready for app-assisted receipt filling.',
       'needs_next_receipt_section' =>
