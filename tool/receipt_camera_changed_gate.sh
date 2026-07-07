@@ -64,6 +64,7 @@ while IFS= read -r path; do
     tool/receipt_camera_qa_gate.sh | \
     tool/receipt_camera_changed_gate.sh | \
     tool/receipt_camera_qa_summary.sh | \
+    tool/receipt_external_fixture_schema_gate.dart | \
     tool/receipt_start_camera_qa_gate.sh | \
     tool/receipt_quiet_batch.sh | \
     tool/receipt_quiet_batch_status.sh | \

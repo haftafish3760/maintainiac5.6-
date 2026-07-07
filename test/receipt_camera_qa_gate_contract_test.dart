@@ -284,6 +284,7 @@ void main() {
     expect(script, contains('mode="full"'));
     expect(script, contains('tool/receipt_start_camera_qa_gate.sh'));
     expect(script, contains('tool/receipt_camera_qa_summary.sh'));
+    expect(script, contains('tool/receipt_external_fixture_schema_gate.dart'));
     expect(script, contains('tool/receipt_quiet_batch.sh'));
     expect(script, contains('tool/receipt_quiet_batch_status.sh'));
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
