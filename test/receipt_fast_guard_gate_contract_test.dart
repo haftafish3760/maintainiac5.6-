@@ -9,6 +9,7 @@ void main() {
     expect(script, contains('bash tool/receipt_cleanup_log_gate.sh'));
     expect(script, contains('bash tool/receipt_doc_size_gate.sh'));
     expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
+    expect(script, contains('tool/receipt_bug_regression_ledger_archive.dart'));
     expect(
       script,
       contains('dart tool/receipt_bug_regression_ledger_gate.dart'),
@@ -65,6 +66,10 @@ void main() {
       contains('test/maintainiac_source_audit_contract_test.dart'),
     );
     expect(script, contains('test/receipt_doc_size_gate_contract_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_bug_regression_ledger_archive_test.dart'),
+    );
     expect(script, contains('dart tool/maintainiac_source_audit.dart'));
     expect(script, contains('--max-line-length=220'));
     expect(script, contains('--tests-only'));

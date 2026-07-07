@@ -1,6 +1,8 @@
 import 'dart:io';
 
 const _ledgerPath = 'docs/receipt_bug_regression_ledger.md';
+const _archivePrefix = 'receipt_bug_regression_ledger_archive_';
+const _activeLedgerMaxLines = 450;
 const _requiredHeaders = [
   'Bug ID',
   'Category',
@@ -38,7 +40,18 @@ void main() {
   if (!file.existsSync()) {
     failures.add('Missing receipt bug regression ledger: $_ledgerPath');
   } else {
-    _checkLedger(file.readAsStringSync(), failures);
+    final text = file.readAsStringSync();
+    final lineCount = text.split('\n').length;
+    if (lineCount > _activeLedgerMaxLines) {
+      failures.add(
+        'Active ledger has $lineCount lines; archive old rows before it '
+        'reaches the 500-line cap.',
+      );
+    }
+    _checkLedger(_ledgerPath, text, failures, requireCategoryCatalog: true);
+  }
+  for (final archive in _archiveFiles()) {
+    _checkLedger(archive.path, archive.readAsStringSync(), failures);
   }
   if (failures.isNotEmpty) {
     stderr.writeln('Receipt bug regression ledger gate failed:');
@@ -49,22 +62,43 @@ void main() {
   }
 }
 
-void _checkLedger(String text, List<String> failures) {
+List<File> _archiveFiles() {
+  final dir = Directory('docs');
+  if (!dir.existsSync()) return const [];
+  return dir
+      .listSync()
+      .whereType<File>()
+      .where((file) {
+        final name = file.uri.pathSegments.last;
+        return name.startsWith(_archivePrefix) && name.endsWith('.md');
+      })
+      .toList(growable: false)
+    ..sort((a, b) => a.path.compareTo(b.path));
+}
+
+void _checkLedger(
+  String label,
+  String text,
+  List<String> failures, {
+  bool requireCategoryCatalog = false,
+}) {
   for (final header in _requiredHeaders) {
     if (!text.contains(header)) {
-      failures.add('Ledger missing required field `$header`.');
+      failures.add('$label missing required field `$header`.');
     }
   }
-  for (final category in _allowedCategories) {
-    if (!text.contains('`$category`')) {
-      failures.add('Ledger missing allowed category `$category`.');
+  if (requireCategoryCatalog) {
+    for (final category in _allowedCategories) {
+      if (!text.contains('`$category`')) {
+        failures.add('$label missing allowed category `$category`.');
+      }
     }
   }
   final rows = text
       .split('\n')
       .where((line) => line.startsWith('| `BUG-RECEIPT-'))
       .toList(growable: false);
-  if (rows.isEmpty) failures.add('Ledger must contain at least one bug row.');
+  if (rows.isEmpty) failures.add('$label must contain at least one bug row.');
   for (final row in rows) {
     final cells = row
         .split('|')
@@ -72,15 +106,17 @@ void _checkLedger(String text, List<String> failures) {
         .where((cell) => cell.isNotEmpty)
         .toList(growable: false);
     if (cells.length != _requiredHeaders.length) {
-      failures.add('Bug row must have ${_requiredHeaders.length} cells: $row');
+      failures.add(
+        '$label bug row must have ${_requiredHeaders.length} cells: $row',
+      );
       continue;
     }
     final category = cells[1].replaceAll('`', '');
     if (!_allowedCategories.contains(category)) {
-      failures.add('Bug row uses unknown category `$category`.');
+      failures.add('$label bug row uses unknown category `$category`.');
     }
     if (cells.any((cell) => cell == '')) {
-      failures.add('Bug row has an empty required field: $row');
+      failures.add('$label bug row has an empty required field: $row');
     }
   }
 }

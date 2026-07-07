@@ -28,6 +28,7 @@ bash tool/receipt_doc_size_gate.sh
 
 dart analyze \
   tool/receipt_bug_regression_ledger_gate.dart \
+  tool/receipt_bug_regression_ledger_archive.dart \
   tool/receipt_external_fixture_schema_gate.dart \
   tool/receipt_real_device_matrix_gate.dart \
   tool/receipt_quiet_batch_policy_gate.dart \
@@ -76,6 +77,7 @@ flutter test \
   test/receipt_camera_release_one_blueprint_test.dart \
   test/maintainiac_source_audit_contract_test.dart \
   test/receipt_doc_size_gate_contract_test.dart \
+  test/receipt_bug_regression_ledger_archive_test.dart \
   test/receipt_fast_guard_gate_contract_test.dart \
   test/receipt_camera_qa_gate_contract_test.dart \
   test/receipt_camera_qa_gate_execution_test.dart \
