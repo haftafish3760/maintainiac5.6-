@@ -273,5 +273,59 @@ void main() {
         containsPair('ocrSourcePathsMatchStitchContract', false),
       );
     });
+
+    test('marks no receipt photos as blocked before OCR source handoff', () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const [],
+        ocrSourcePhotoPaths: const [],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: const ReceiptStitchResult.fallback(
+          inputPaths: [],
+          warning: 'No receipt photos available.',
+          fallbackReasonCode: 'no_input_paths',
+        ),
+      );
+
+      expect(result.hasOcrSourcePhotos, isFalse);
+      expect(result.stitchResult.hasNoInputPaths, isTrue);
+      expect(
+        result.stitchResult.ocrSourceContractCode,
+        'fallback_no_ocr_sources',
+      );
+      expect(result.stitchResult.hasValidOcrSourceContract, isFalse);
+      expect(result.ocrSourcePathsMatchStitchContract, isFalse);
+      expect(
+        result.ocrSourceReviewRiskCode,
+        'ocr_source_missing_manual_entry_required',
+      );
+      expect(
+        result.ocrSourceReviewRequirement,
+        'manual_review_required_before_saving_receipt',
+      );
+      expect(
+        result.ocrSourceFirstDecisionCode,
+        'ocr_source_missing_block_review',
+      );
+      expect(result.ocrSourceProofRelationship, 'missing_ocr_source');
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair('ocrSourceCount', 0),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair('ocr_source_missing', 1),
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair('stitch_ocr_source_contract_fallback_no_ocr_sources', 1),
+      );
+      expect(
+        result.stitchResult.privacySafeOcrHandoffSafety,
+        containsPair(
+          'stitchOcrHandoffSafetyCode',
+          'no_receipt_photo_available',
+        ),
+      );
+    });
   });
 }

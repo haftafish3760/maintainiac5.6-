@@ -26,6 +26,7 @@ while IFS= read -r path; do
     test/helpers/receipt_stitching_* | \
     test/receipt_camera_* | \
     test/receipt_native_* | \
+    test/receipt_ocr_source_* | \
     test/receipt_stitching_* | \
     tool/android_receipt_camera_* | \
     tool/ios_receipt_camera_* | \

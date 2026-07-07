@@ -53,6 +53,7 @@ while IFS= read -r path; do
     test/receipt_stitching_* | \
     test/receipt_native_* | \
     test/receipt_camera_result_* | \
+    test/receipt_ocr_source_* | \
     test/receipt_camera_ocr_source_handoff_test.dart)
       if [[ "$mode" == "quick" ]]; then
         mode="milestone"
