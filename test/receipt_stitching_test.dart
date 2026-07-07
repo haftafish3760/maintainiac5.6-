@@ -93,6 +93,87 @@ void main() {
     expect(await File(result.ocrSourcePaths.single).exists(), isTrue);
   });
 
+  test(
+    'stitches three ordered long-receipt sections into one OCR source',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 10, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 11, topTextOffset: 16);
+      final sectionC = receiptStitchingSection(seed: 12, topTextOffset: 32);
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 330);
+      copyReceiptStitchingOverlap(from: sectionB, to: sectionC, pixels: 310);
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'three_part_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        sectionB,
+        'three_part_b',
+      );
+      final third = await writeTempReceiptStitchingImage(
+        sectionC,
+        'three_part_c',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path, third.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(2));
+      expect(result.overlapPixels, hasLength(2));
+      expect(result.matchedPairCount, 2);
+      expect(result.missingPairCount, 0);
+      expect(result.allPairsHaveOverlapEvidence, isTrue);
+      expect(result.ocrSourcePaths, hasLength(1));
+      expect(result.hasValidOcrSourceContract, isTrue);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.overlapPixelTotal, greaterThan(0));
+      expect(result.stitchedHeight, greaterThan(sectionA.height));
+      expect(result.detailLabel, contains('3 photos became 1 receipt image'));
+    },
+  );
+
+  test(
+    'three-section stitch falls back when a later overlap is untrusted',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 20, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 21, topTextOffset: 18);
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 320);
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'three_part_fallback_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        sectionB,
+        'three_part_fallback_b',
+      );
+      final third = await writeTempReceiptStitchingImage(
+        blankDarkReceiptPhotoSection(),
+        'three_part_fallback_c',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path, third.path],
+      );
+
+      expect(result.usedFallback, isTrue);
+      expect(result.didStitch, isFalse);
+      expect(result.failedPairIndex, 1);
+      expect(result.fallbackReasonCode, 'overlap_confidence_low');
+      expect(result.ocrSourcePaths, [first.path, second.path, third.path]);
+      expect(result.hasValidOcrSourceContract, isFalse);
+      expect(
+        result.ocrSourceContractCode,
+        'fallback_overlap_untrusted_sources',
+      );
+      expect(result.pairs, hasLength(2));
+      expect(result.pairs.first.hasTrustedOverlapEvidence, isTrue);
+      expect(result.pairs.last.hasTrustedOverlapEvidence, isFalse);
+    },
+  );
+
   test('stitching rejects duplicate receipt section paths', () async {
     final section = receiptStitchingSection(seed: 90, topTextOffset: 0);
     final source = await writeTempReceiptStitchingImage(
