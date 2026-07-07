@@ -30,11 +30,13 @@ while IFS= read -r path; do
     test/receipt_stitching_* | \
     tool/android_receipt_camera_* | \
     tool/ios_receipt_camera_* | \
-    tool/receipt_bug_regression_ledger_gate.dart | \
-    tool/receipt_camera_* | \
-    tool/receipt_fast_guard_gate.sh | \
-    tool/receipt_start_camera_qa_gate.sh | \
-    test/receipt_fast_guard_gate_contract_test.dart)
+	    tool/receipt_bug_regression_ledger_gate.dart | \
+	    tool/receipt_camera_* | \
+	    tool/receipt_pipeline_failure_to_regression.dart | \
+	    tool/receipt_fast_guard_gate.sh | \
+	    tool/receipt_start_camera_qa_gate.sh | \
+	    test/receipt_fast_guard_gate_contract_test.dart | \
+	    test/receipt_pipeline_failure_to_regression_test.dart)
       ;;
     *)
       printf 'SCOPE_FAIL %s\n' "$path" >&2

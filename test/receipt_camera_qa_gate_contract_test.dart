@@ -164,6 +164,14 @@ void main() {
       expect(script, contains('test/receipt_stitching_*'));
       expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
       expect(script, contains('tool/receipt_camera_*'));
+      expect(
+        script,
+        contains('tool/receipt_pipeline_failure_to_regression.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_pipeline_failure_to_regression_test.dart'),
+      );
       expect(script, isNot(contains('git ls-files --others')));
     },
   );
