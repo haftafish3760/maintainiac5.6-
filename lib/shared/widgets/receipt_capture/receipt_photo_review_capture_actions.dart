@@ -17,10 +17,13 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
   }
 
   Future<void> addAnotherReceiptPhoto() async {
-    final guideIndex = _photoPaths.isEmpty ? -1 : _selectedIndex;
+    final selectedPhotoIndex = _photoPaths.isEmpty
+        ? -1
+        : _selectedIndex.clamp(0, _photoPaths.length - 1);
+    final guideIndex = _photoPaths.isEmpty ? -1 : selectedPhotoIndex;
     final guidePhotoPath = _photoPaths.isEmpty
         ? null
-        : _photoPaths[_selectedIndex];
+        : _photoPaths[selectedPhotoIndex];
     final picked = await _pickReceiptPhotos(
       alignmentGuidePhotoPath: guidePhotoPath,
     );
@@ -60,7 +63,8 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
 
   Future<void> retakeCurrentReceiptPhoto() async {
     if (_photoPaths.isEmpty) return;
-    final targetPhotoPath = _photoPaths[_selectedIndex];
+    final selectedPhotoIndex = _selectedIndex.clamp(0, _photoPaths.length - 1);
+    final targetPhotoPath = _photoPaths[selectedPhotoIndex];
     final retakeContext = ReceiptPhotoRetakeAlignmentContext.build(
       currentPhotoPaths: _photoPaths,
       targetPhotoPath: targetPhotoPath,

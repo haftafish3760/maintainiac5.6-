@@ -157,6 +157,14 @@ void main() {
     );
     expect(saveActions, contains('final guidePhotoPath = _photoPaths.isEmpty'));
     expect(saveActions, contains('final guideIndex = _photoPaths.isEmpty'));
+    expect(
+      saveActions,
+      contains('final selectedPhotoIndex = _photoPaths.isEmpty'),
+    );
+    expect(
+      saveActions,
+      contains('_selectedIndex.clamp(0, _photoPaths.length - 1);'),
+    );
     expect(saveActions, contains('final insertPlan = guidePhotoPath == null'));
     expect(saveActions, contains('ReceiptPhotoInsertAfterOrderPlan.build('));
     expect(
@@ -165,7 +173,7 @@ void main() {
     );
     expect(
       saveActions,
-      contains('final targetPhotoPath = _photoPaths[_selectedIndex];'),
+      contains('final targetPhotoPath = _photoPaths[selectedPhotoIndex];'),
     );
     expect(
       saveActions,

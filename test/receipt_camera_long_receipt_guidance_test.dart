@@ -119,7 +119,11 @@ void main() {
     expect(sources.reviewActions, contains('alignmentGuidance:'));
     expect(
       sources.captureActions,
-      contains('final targetPhotoPath = _photoPaths[_selectedIndex]'),
+      contains('final selectedPhotoIndex = _selectedIndex.clamp(0, _photoPaths.length - 1);'),
+    );
+    expect(
+      sources.captureActions,
+      contains('final targetPhotoPath = _photoPaths[selectedPhotoIndex]'),
     );
     expect(
       sources.captureActions,
