@@ -84,6 +84,8 @@ RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_changed_gate_contract
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_external_fixture_schema_gate_test.dart' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
+RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_fast_guard_gate_contract_test.dart' \
+  bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 bash tool/receipt_camera_qa_gate.sh --print-plan quick >/dev/null
 bash tool/receipt_camera_qa_gate.sh --print-plan stitch >/dev/null
 bash tool/receipt_camera_qa_gate.sh --print-plan milestone >/dev/null

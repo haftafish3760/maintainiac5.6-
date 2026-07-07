@@ -193,6 +193,12 @@ void main() {
         "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_external_fixture_schema_gate_test.dart'",
       ),
     );
+    expect(
+      script,
+      contains(
+        "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_fast_guard_gate_contract_test.dart'",
+      ),
+    );
     expect(script, contains('tool/receipt_camera_stitch_gate.sh'));
     expect(script, contains('tool/receipt_start_camera_qa_gate.sh'));
     expect(script, contains('test/receipt_camera_qa_gate_contract_test.dart'));

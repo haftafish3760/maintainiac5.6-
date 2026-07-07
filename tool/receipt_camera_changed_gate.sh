@@ -80,7 +80,8 @@ while IFS= read -r path; do
     test/receipt_camera_qa_gate_execution_test.dart | \
     test/receipt_external_dataset_local_audit_test.dart | \
     test/receipt_external_dataset_gate_test.dart | \
-    test/receipt_external_fixture_schema_gate_test.dart)
+    test/receipt_external_fixture_schema_gate_test.dart | \
+    test/receipt_fast_guard_gate_contract_test.dart)
       if [[ "$mode" == "quick" ]]; then
         mode="milestone"
       fi
