@@ -72,6 +72,9 @@ void main() {
     final script = File(
       'tool/receipt_start_camera_qa_gate.sh',
     ).readAsStringSync();
+    final summary = File(
+      'tool/receipt_camera_qa_summary.sh',
+    ).readAsStringSync();
     final fastGuard = File(
       'tool/receipt_fast_guard_gate.sh',
     ).readAsStringSync();
@@ -81,6 +84,11 @@ void main() {
     expect(script, contains(r'receipt_camera_qa_${mode}'));
     expect(script, contains('tool/receipt_quiet_batch.sh'));
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
+    expect(summary, contains('tool/receipt_quiet_batch_status.sh'));
+    expect(summary, contains(r'receipt_camera_qa_$name'));
+    expect(summary, contains('summary=failed_actionable_lines'));
+    expect(summary, contains('tail -80'));
+    expect(fastGuard, contains('tool/receipt_camera_qa_summary.sh'));
     expect(fastGuard, contains('tool/receipt_start_camera_qa_gate.sh'));
   });
 }

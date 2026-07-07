@@ -140,6 +140,7 @@ run_quick() {
     tool/ios_receipt_camera_compile_gate.sh \
     tool/receipt_camera_pipeline_gate.sh \
     tool/receipt_camera_qa_gate.sh \
+    tool/receipt_camera_qa_summary.sh \
     tool/receipt_start_camera_qa_gate.sh
   dart analyze lib/shared/widgets/receipt_capture lib/shared/receipts
   run_source_audit
