@@ -48,6 +48,7 @@ void main() {
             onBack: () => wentBack = true,
             onCapture: () => captured = true,
             onSettings: () => openedSettings = true,
+            onReviewCapturedPhotos: () {},
             onTorch: () => toggledTorch = true,
             onZoomChanged: (zoom) => zoomValue = zoom,
             onExposureChanged: (value) => exposureValue = value,
@@ -83,6 +84,8 @@ void main() {
     expect(find.text('Pinch to zoom'), findsNothing);
     expect(find.text('Brightness assist'), findsNothing);
     expect(find.byTooltip('Reset brightness'), findsNothing);
+    expect(find.text('Next'), findsNothing);
+    expect(find.text('Add Photo'), findsNothing);
 
     final primaryShutterIcon = find.byWidgetPredicate(
       (widget) =>
@@ -125,6 +128,53 @@ void main() {
     expect(settingsRect.center.dy, lessThan(90));
     expect(shutterRect.center.dy, greaterThan(760));
   });
+
+  testWidgets(
+    'native camera shell shows next-step controls only after a photo exists',
+    (tester) async {
+      var reviewed = false;
+      var addedPhoto = false;
+
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ReceiptNativeCameraShell(
+              capabilities: const ReceiptNativeCameraCapabilities(
+                engine: ReceiptNativeCameraEngine.cameraX,
+                available: true,
+                hasRearCamera: true,
+              ),
+              settings: const ReceiptNativeCameraSettings(
+                assistedReceiptFill: true,
+              ),
+              preview: const ColoredBox(color: Color(0xFF546068)),
+              onBack: () {},
+              onCapture: () {},
+              onSettings: () {},
+              onReviewCapturedPhotos: () => reviewed = true,
+              onAddPhoto: () => addedPhoto = true,
+              capturedPhotoCount: 2,
+              longReceiptMode: true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Next (2)'), findsOneWidget);
+      expect(find.text('Add Photo'), findsOneWidget);
+
+      await tester.tap(find.text('Next (2)'));
+      await tester.pump();
+      await tester.tap(find.text('Add Photo'));
+      await tester.pump();
+
+      expect(reviewed, isTrue);
+      expect(addedPhoto, isTrue);
+    },
+  );
 
   testWidgets('native camera shell routes system back through camera back', (
     tester,
@@ -206,34 +256,40 @@ void main() {
     expect(previewControls, isNot(contains('_tapFocusAvailable')));
   });
 
-  test('native camera shell uses gear settings control instead of wrench', () async {
-    final topControls = await File(
-      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart',
-    ).readAsString();
+  test(
+    'native camera shell uses gear settings control instead of wrench',
+    () async {
+      final topControls = await File(
+        'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart',
+      ).readAsString();
 
-    expect(topControls, contains('Icons.settings_rounded'));
-    expect(topControls, contains("label: 'Receipt camera settings'"));
-    expect(topControls, isNot(contains('Icons.build_rounded')));
-    expect(topControls, isNot(contains('Icons.handyman_rounded')));
-    expect(topControls, isNot(contains('Icons.tune_rounded')));
-  });
+      expect(topControls, contains('Icons.settings_rounded'));
+      expect(topControls, contains("label: 'Receipt camera settings'"));
+      expect(topControls, isNot(contains('Icons.build_rounded')));
+      expect(topControls, isNot(contains('Icons.handyman_rounded')));
+      expect(topControls, isNot(contains('Icons.tune_rounded')));
+    },
+  );
 
-  test('native camera shell does not rotate fake receipt guidance copy', () async {
-    final shell = await File(
-      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart',
-    ).readAsString();
-    final guidance = await File(
-      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_guidance.dart',
-    ).readAsString();
+  test(
+    'native camera shell does not rotate fake receipt guidance copy',
+    () async {
+      final shell = await File(
+        'lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart',
+      ).readAsString();
+      final guidance = await File(
+        'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_guidance.dart',
+      ).readAsString();
 
-    final combined = '$shell\n$guidance';
-    expect(combined, isNot(contains('guidanceMessages')));
-    expect(combined, isNot(contains('warningCarousel')));
-    expect(combined, isNot(contains('randomGuidance')));
-    expect(combined, isNot(contains('Timer.periodic')));
-    expect(combined, isNot(contains('Future.delayed')));
-    expect(combined, isNot(contains('Stream.periodic')));
-  });
+      final combined = '$shell\n$guidance';
+      expect(combined, isNot(contains('guidanceMessages')));
+      expect(combined, isNot(contains('warningCarousel')));
+      expect(combined, isNot(contains('randomGuidance')));
+      expect(combined, isNot(contains('Timer.periodic')));
+      expect(combined, isNot(contains('Future.delayed')));
+      expect(combined, isNot(contains('Stream.periodic')));
+    },
+  );
 
   test('native camera shell keeps a round shutter control contract', () async {
     final bottomControls = await File(
@@ -257,68 +313,108 @@ void main() {
     expect(shutterBlock, isNot(contains('RoundedRectangleBorder(')));
   });
 
-  test('native camera shell keeps top and bottom controls inside safe areas', () async {
-    final topControls = await File(
-      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart',
-    ).readAsString();
-    final bottomBar = await File(
-      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart',
-    ).readAsString();
+  test(
+    'native camera shell keeps top and bottom controls inside safe areas',
+    () async {
+      final topControls = await File(
+        'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart',
+      ).readAsString();
+      final bottomBar = await File(
+        'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart',
+      ).readAsString();
 
-    expect(topControls, contains('return SafeArea('));
-    expect(topControls, contains('bottom: false'));
-    expect(topControls, contains('padding: const EdgeInsets.fromLTRB(10, 8, 10, 0)'));
-    expect(bottomBar, contains('child: SafeArea('));
-    expect(bottomBar, contains('top: false'));
-    expect(bottomBar, contains('minimum: const EdgeInsets.only(bottom: 8)'));
-  });
+      expect(topControls, contains('return SafeArea('));
+      expect(topControls, contains('bottom: false'));
+      expect(
+        topControls,
+        contains('padding: const EdgeInsets.fromLTRB(10, 8, 10, 0)'),
+      );
+      expect(bottomBar, contains('child: SafeArea('));
+      expect(bottomBar, contains('top: false'));
+      expect(bottomBar, contains('minimum: const EdgeInsets.only(bottom: 8)'));
+    },
+  );
 
-  test('native camera shell keeps framed top-bar control sizing contract', () async {
-    final bottomControls = await File(
-      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_controls.dart',
-    ).readAsString();
-    final iconButtonStart = bottomControls.indexOf(
-      'class _ReceiptNativeCameraIconButton',
-    );
-    final iconButtonBlock = bottomControls.substring(iconButtonStart);
+  test(
+    'native camera shell keeps framed top-bar control sizing contract',
+    () async {
+      final bottomControls = await File(
+        'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_controls.dart',
+      ).readAsString();
+      final iconButtonStart = bottomControls.indexOf(
+        'class _ReceiptNativeCameraIconButton',
+      );
+      final iconButtonBlock = bottomControls.substring(iconButtonStart);
 
-    expect(iconButtonBlock, contains('minimumSize: const Size(44, 44)'));
-    expect(
-      iconButtonBlock,
-      contains('tapTargetSize: MaterialTapTargetSize.shrinkWrap'),
-    );
-    expect(iconButtonBlock, contains('RoundedRectangleBorder('));
-    expect(iconButtonBlock, contains('borderRadius: BorderRadius.circular(8)'));
-    expect(
-      iconButtonBlock,
-      contains('side: const BorderSide(color: Color(0xFF526168), width: .8)'),
-    );
-  });
+      expect(iconButtonBlock, contains('minimumSize: const Size(44, 44)'));
+      expect(
+        iconButtonBlock,
+        contains('tapTargetSize: MaterialTapTargetSize.shrinkWrap'),
+      );
+      expect(iconButtonBlock, contains('RoundedRectangleBorder('));
+      expect(
+        iconButtonBlock,
+        contains('borderRadius: BorderRadius.circular(8)'),
+      );
+      expect(
+        iconButtonBlock,
+        contains('side: const BorderSide(color: Color(0xFF526168), width: .8)'),
+      );
+    },
+  );
 
-  test('native camera shell keeps bottom bar accessibility summary contract', () async {
-    final bottomBar = await File(
-      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart',
-    ).readAsString();
+  test(
+    'native camera shell keeps bottom bar accessibility summary contract',
+    () async {
+      final bottomBar = await File(
+        'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart',
+      ).readAsString();
 
-    expect(bottomBar, contains("label: _semanticLabel"));
-    expect(bottomBar, contains("? 'receipt assist'"));
-    expect(bottomBar, contains(": 'manual receipt'"));
-    expect(bottomBar, contains("? 'quality pending'"));
-    expect(bottomBar, contains("? 'backup camera'"));
-    expect(bottomBar, contains(": 'native camera'"));
-    expect(bottomBar, contains("return '\$engine shutter, \$assist, \$quality';"));
-  });
+      expect(bottomBar, contains("label: _semanticLabel"));
+      expect(bottomBar, contains("? 'receipt assist'"));
+      expect(bottomBar, contains(": 'manual receipt'"));
+      expect(bottomBar, contains("? 'quality pending'"));
+      expect(bottomBar, contains("? 'backup camera'"));
+      expect(bottomBar, contains(": 'native camera'"));
+      expect(
+        bottomBar,
+        contains("return '\$engine shutter, \$assist, \$quality';"),
+      );
+      expect(
+        bottomBar,
+        contains('capturedPhotoCount > 0 && onReviewCapturedPhotos != null'),
+      );
+      expect(bottomBar, contains("label: _nextLabel"));
+      expect(
+        bottomBar,
+        contains(
+          "tooltip: 'Next: review captured receipt photos in Maintainiac'",
+        ),
+      );
+      expect(bottomBar, contains("label: 'Add Photo'"));
+      expect(bottomBar, contains("tooltip: 'Add another receipt photo'"));
+    },
+  );
 
-  test('native camera shell keeps torch control label and disable contract', () async {
-    final topControls = await File(
-      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart',
-    ).readAsString();
+  test(
+    'native camera shell keeps torch control label and disable contract',
+    () async {
+      final topControls = await File(
+        'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart',
+      ).readAsString();
 
-    expect(topControls, contains('Icons.flash_on_rounded'));
-    expect(topControls, contains('Icons.flash_off_rounded'));
-    expect(topControls, contains("label: torchOn ? 'Turn light off' : 'Turn light on'"));
-    expect(topControls, contains('onPressed: torchSupported ? onTorch : null'));
-  });
+      expect(topControls, contains('Icons.flash_on_rounded'));
+      expect(topControls, contains('Icons.flash_off_rounded'));
+      expect(
+        topControls,
+        contains("label: torchOn ? 'Turn light off' : 'Turn light on'"),
+      );
+      expect(
+        topControls,
+        contains('onPressed: torchSupported ? onTorch : null'),
+      );
+    },
+  );
 
   testWidgets('native camera shell can show long receipt ghost guide', (
     tester,

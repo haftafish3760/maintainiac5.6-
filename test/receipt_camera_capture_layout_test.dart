@@ -322,7 +322,14 @@ void main() {
       expect(bottomBar, contains('SafeArea('));
       expect(bottomBar, contains('minimum: const EdgeInsets.only(bottom: 8)'));
       expect(bottomBar, contains('_ReceiptNativeCameraShutterButton'));
-      expect(bottomBar, isNot(contains('_ReceiptNativeCameraNextStepStrip')));
+      expect(bottomBar, contains('class _ReceiptNativeCameraNextStepStrip'));
+      expect(
+        bottomBar,
+        contains('capturedPhotoCount > 0 && onReviewCapturedPhotos != null'),
+      );
+      expect(bottomBar, contains("return 'Next';"));
+      expect(bottomBar, contains("return 'Next (\$capturedPhotoCount)';"));
+      expect(bottomBar, contains("label: 'Add Photo'"));
     },
   );
 }

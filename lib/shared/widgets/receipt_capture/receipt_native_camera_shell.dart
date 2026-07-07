@@ -17,6 +17,8 @@ class ReceiptNativeCameraShell extends StatelessWidget {
     required this.onBack,
     required this.onCapture,
     required this.onSettings,
+    this.onReviewCapturedPhotos,
+    this.onAddPhoto,
     this.onTorch,
     this.onZoomChanged,
     this.onExposureChanged,
@@ -33,6 +35,8 @@ class ReceiptNativeCameraShell extends StatelessWidget {
     this.previousSectionGuidance,
     this.sectionLabel,
     this.qualityLabel,
+    this.capturedPhotoCount = 0,
+    this.longReceiptMode = false,
     this.children = const [],
   });
 
@@ -42,6 +46,8 @@ class ReceiptNativeCameraShell extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback onCapture;
   final VoidCallback onSettings;
+  final VoidCallback? onReviewCapturedPhotos;
+  final VoidCallback? onAddPhoto;
   final VoidCallback? onTorch;
   final ValueChanged<double>? onZoomChanged;
   final ValueChanged<double>? onExposureChanged;
@@ -58,6 +64,8 @@ class ReceiptNativeCameraShell extends StatelessWidget {
   final String? previousSectionGuidance;
   final String? sectionLabel;
   final String? qualityLabel;
+  final int capturedPhotoCount;
+  final bool longReceiptMode;
   final List<Widget> children;
 
   @override
@@ -125,6 +133,10 @@ class ReceiptNativeCameraShell extends StatelessWidget {
                 capabilities: capabilities,
                 settings: settings,
                 qualityLabel: qualityLabel,
+                capturedPhotoCount: capturedPhotoCount,
+                longReceiptMode: longReceiptMode,
+                onReviewCapturedPhotos: onReviewCapturedPhotos,
+                onAddPhoto: onAddPhoto,
                 onCapture: onCapture,
               ),
             ),
