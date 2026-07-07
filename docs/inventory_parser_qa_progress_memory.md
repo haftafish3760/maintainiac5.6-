@@ -4219,3 +4219,17 @@ Release boundaries:
   `build/parser_qa_reports/generated_fixtures/pvc_pressure_42_single_chunk_20260707_0320`.
   PVC pressure fittings can now be counted as focused-parser-evidence-covered by
   the Plumbing Core readiness audit.
+- **01:34-02:27 PEX Family Probe and Repair:** Added PEX Core recipes for
+  couplings, transition couplings, male/female adapters, tees, drop-ear elbows,
+  crimp rings, clamp/cinch rings, crimp tools, and clamp/cinch tools, plus a
+  generator isolation regression for `--include-risk-tags pex`. The first
+  77-case PEX run exposed crimp-ring/crimp-tool routing gaps. The parser now
+  distinguishes PEX crimp rings from clamp rings and recognizes `CRMP TOOL`
+  merchant abbreviations before generic hole-saw tool matching. The focused
+  two-case rerun passed at
+  `build/parser_qa_reports/generated_fixtures/pex_crimp_tool_2_case_20260707_0210`;
+  the full 77-case PEX single-chunk rerun passed with 77 checked, 0 failures,
+  and 77 parser calls at
+  `build/parser_qa_reports/generated_fixtures/pex_77_single_chunk_20260707_0212`.
+  PEX fittings and valves can now be counted as focused-parser-evidence-covered
+  by the Plumbing Core readiness audit.

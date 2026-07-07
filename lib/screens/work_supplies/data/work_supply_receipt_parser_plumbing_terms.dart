@@ -26,6 +26,16 @@ WorkSupplyItem? _directPlumbingPexServiceFittingMatch(String text) {
           r'\b(fip|female\s+adapter|f\s+adapter|f\s+adpt|crimp\s+female)\b',
         ).hasMatch(value) =>
       'female adapters',
+    final value
+        when RegExp(
+          r'\b(crimp\s+ring|crmp\s+ring|pex\s+ring)\b',
+        ).hasMatch(value) =>
+      'crimp rings',
+    final value
+        when RegExp(
+          r'\b(clamp\s+ring|cinch\s+ring|cinch\s+clamp)\b',
+        ).hasMatch(value) =>
+      'clamp rings',
     final value when RegExp(r'\b(tee|t)\b').hasMatch(value) => 'tees',
     final value when RegExp(r'\b(cplg|coupling|coupler)\b').hasMatch(value) =>
       RegExp(r'\b(transition|trans)\b').hasMatch(value)

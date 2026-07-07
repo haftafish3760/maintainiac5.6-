@@ -568,6 +568,11 @@ String? _plumbingHandToolTarget(String text) {
   ).hasMatch(text)) {
     return 'copper press fitting tool jaw';
   }
+  if (RegExp(
+    r'\bpex\s+(crimp|crmp)\s+tool|(crimp|crmp)\s+tool\b',
+  ).hasMatch(text)) {
+    return 'pex crimp tool';
+  }
   if (RegExp(r'\bbasin wrench\b').hasMatch(text)) return 'basin wrench';
   if (RegExp(r'\bstrap wrench\b').hasMatch(text)) return 'strap wrench';
   if (RegExp(r'\b(closet auger|toilet auger)\b').hasMatch(text)) {
@@ -599,9 +604,6 @@ String? _plumbingHandToolTarget(String text) {
   if (RegExp(r'\b6\s*in|6in\b').hasMatch(text) &&
       RegExp(r'\b(recip|sawzall).*blade|blade\b').hasMatch(text)) {
     return 'bi-metal reciprocating saw blade 6 in';
-  }
-  if (RegExp(r'\bpex crimp tool|crimp tool\b').hasMatch(text)) {
-    return 'pex crimp tool';
   }
   if (RegExp(r'\bmini tubing cutter|tubing cutter\b').hasMatch(text)) {
     return 'mini tubing cutter';

@@ -575,6 +575,68 @@ void main() {
     },
   );
 
+  test('fixture generator can isolate PEX Plumbing Core family', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_plumbing_pex_filter_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'plumbing',
+        '--scope',
+        'residential',
+        '--tier',
+        'core',
+        '--locale',
+        'en-US',
+        '--limit',
+        '77',
+        '--include-risk-tags',
+        'pex',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final generatedRoot = Directory(
+      '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+    );
+    final fixtures =
+        jsonDecode(
+              File(
+                '${generatedRoot.path}/generated_fixtures.json',
+              ).readAsStringSync(),
+            )
+            as List;
+    final manifest =
+        jsonDecode(
+              File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+            )
+            as Map;
+
+    expect(fixtures, hasLength(77));
+    expect(manifest['includeRiskTags'], ['pex']);
+    final ids = _fixtureIds(fixtures);
+    expect(ids, contains('pex_crimp_elbow'));
+    expect(ids, contains('pex_coupling'));
+    expect(ids, contains('pex_transition_coupling'));
+    expect(ids, contains('pex_male_adapter'));
+    expect(ids, contains('pex_female_adapter'));
+    expect(ids, contains('pex_tee'));
+    expect(ids, contains('pex_drop_ear_elbow'));
+    expect(ids, contains('pex_crimp_ring'));
+    expect(ids, contains('pex_clamp_ring'));
+    expect(ids, contains('pex_crimp_tool'));
+    expect(ids, contains('pex_cinch_tool'));
+    expect(_riskTags(manifest), contains('pex'));
+    expect(_riskTags(manifest), isNot(contains('pvc_pressure')));
+  });
+
   test('fixture generator rejects unsafe empty batches', () async {
     final stderr = _MemorySink();
     final exit = await runWorkSupplyParserFixtureGenerator(

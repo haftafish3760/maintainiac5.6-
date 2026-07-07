@@ -84,7 +84,7 @@ Map<String, Object?> buildPlumbingCoreReadinessAudit() {
 _ReadinessFinding _readinessFinding(WorkSupplyItem item) {
   final text = item.searchableText.toLowerCase();
   final directText = _directText(item);
-  final family = _classifyFamily(directText);
+  final family = _classifyFamily(_familyText(item));
   final issues = <String>[];
   final warnings = <String>[];
   final identity = _identityCompleteness(item, directText);
@@ -361,6 +361,9 @@ String _parserEvidenceStatus(WorkSupplyItem item, String text, String family) {
 }
 
 String _classifyFamily(String text) {
+  if (_hasAnySignal(text, ['j-hook', 'plumbing hand tool'])) {
+    return 'service consumables and tools';
+  }
   for (final family in _familyContracts) {
     if (_hasAnySignal(text, family.signals)) return family.name;
   }
@@ -578,6 +581,19 @@ String _directText(WorkSupplyItem item) {
   ].join(' ').toLowerCase();
 }
 
+String _familyText(WorkSupplyItem item) {
+  return [
+    item.id,
+    item.name,
+    item.trade,
+    item.category,
+    item.system,
+    item.itemType,
+    item.variant,
+    item.unit,
+  ].join(' ').toLowerCase();
+}
+
 String? _argValue(List<String> args, String name) {
   final index = args.indexOf(name);
   if (index == -1 || index + 1 >= args.length) return null;
@@ -604,6 +620,7 @@ const _familiesWithFocusedParserEvidence = {
   'copper fittings and valves',
   'cpvc fittings and valves',
   'legacy repair bridges',
+  'pex fittings and valves',
   'push-fit fittings and valves',
   'pvc pressure fittings',
   'tubular drains and traps',
@@ -664,6 +681,8 @@ const _familyContracts = [
     'basin wrench',
     'cement',
     'drain snake',
+    'j-hook',
+    'plumbing hand tool',
     'pipe cutter',
     'primer',
     'putty',
