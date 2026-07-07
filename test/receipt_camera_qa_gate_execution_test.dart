@@ -28,6 +28,10 @@ void main() {
       );
       expect(
         quickPlan,
+        contains('quick test/receipt_external_fixture_schema_gate_test.dart'),
+      );
+      expect(
+        quickPlan,
         contains('quick test/receipt_photo_section_labels_test.dart'),
       );
       expect(

@@ -86,6 +86,7 @@ flutter test \
   test/maintainiac_source_audit_contract_test.dart \
   test/receipt_doc_size_gate_contract_test.dart \
   test/receipt_external_dataset_gate_test.dart \
+  test/receipt_external_fixture_schema_gate_test.dart \
   test/receipt_bug_regression_ledger_archive_test.dart \
   test/receipt_fast_guard_gate_contract_test.dart \
   test/receipt_camera_qa_gate_contract_test.dart \

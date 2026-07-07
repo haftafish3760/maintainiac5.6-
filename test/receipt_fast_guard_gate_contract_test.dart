@@ -70,6 +70,10 @@ void main() {
     expect(script, contains('test/receipt_external_dataset_gate_test.dart'));
     expect(
       script,
+      contains('test/receipt_external_fixture_schema_gate_test.dart'),
+    );
+    expect(
+      script,
       contains('test/receipt_bug_regression_ledger_archive_test.dart'),
     );
     expect(script, contains('dart tool/maintainiac_source_audit.dart'));

@@ -34,6 +34,7 @@ while IFS= read -r path; do
     test/receipt_ocr_source_* | \
     test/receipt_photo_section_labels_test.dart | \
     test/receipt_external_dataset_gate_test.dart | \
+    test/receipt_external_fixture_schema_gate_test.dart | \
     test/receipt_stitch_fallback_metadata_test.dart | \
     test/fixtures/receipt_qa/external_dataset_manifest.json | \
     test/receipt_stitching_* | \

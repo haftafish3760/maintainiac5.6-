@@ -108,6 +108,10 @@ void main() {
       contains('test/receipt_camera_long_receipt_guidance_test.dart'),
     );
     expect(script, contains('test/receipt_external_dataset_gate_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_external_fixture_schema_gate_test.dart'),
+    );
     expect(script, contains('test/receipt_photo_section_labels_test.dart'));
     expect(
       script,
@@ -245,6 +249,10 @@ void main() {
       expect(script, contains('test/receipt_ocr_source_*'));
       expect(script, contains('test/receipt_photo_section_labels_test.dart'));
       expect(script, contains('test/receipt_external_dataset_gate_test.dart'));
+      expect(
+        script,
+        contains('test/receipt_external_fixture_schema_gate_test.dart'),
+      );
       expect(
         script,
         contains('test/receipt_stitch_fallback_metadata_test.dart'),

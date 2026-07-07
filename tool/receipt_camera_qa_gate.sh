@@ -32,6 +32,7 @@ quick_tests=(
   test/receipt_native_android_bridge_capture_quality_contract_test.dart
   test/receipt_camera_long_receipt_guidance_test.dart
   test/receipt_external_dataset_gate_test.dart
+  test/receipt_external_fixture_schema_gate_test.dart
   test/receipt_photo_section_labels_test.dart
   test/receipt_camera_real_device_snapshot_contract_test.dart
   test/receipt_camera_qa_gate_contract_test.dart
