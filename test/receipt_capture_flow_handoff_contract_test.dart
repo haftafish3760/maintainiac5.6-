@@ -145,12 +145,15 @@ void main() {
     expect(flow, contains("'receiptReaderHandoffOcrSourcePolicy'"));
     expect(flow, contains("'receiptReaderHandoffOcrSourceOutcome'"));
     expect(flow, contains("'receiptReaderHandoffOcrSourceActionLabel'"));
+    expect(flow, contains('result.ocrSourceFirstDecisionCode'));
     expect(flow, contains('result.ocrSourceFirstOutcome'));
     expect(flow, contains('result.ocrSourceFirstActionLabel'));
     expect(
       flow,
-      contains(
-        'read_temporary_full_quality_or_prepared_source_before_saved_proof',
+      isNot(
+        contains(
+          'read_temporary_full_quality_or_prepared_source_before_saved_proof',
+        ),
       ),
     );
     expect(

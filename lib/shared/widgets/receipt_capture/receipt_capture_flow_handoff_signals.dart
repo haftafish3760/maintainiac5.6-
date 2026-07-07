@@ -183,9 +183,9 @@ Map<String, Object?> _receiptReaderHandoffDiagnosticsFor(
     'receiptDetailsHandoffNextStepLabel':
         result.acceptedPhotoHandoffNextStepLabel,
     'receiptReaderHandoffOcrSourcePolicy':
-        'read_temporary_full_quality_or_prepared_source_before_saved_proof',
+        result.ocrSourceFirstDecisionCode,
     'receiptDetailsHandoffOcrSourcePolicy':
-        'read_temporary_full_quality_or_prepared_source_before_saved_proof',
+        result.ocrSourceFirstDecisionCode,
     'receiptReaderHandoffOcrSourceRelationship':
         result.ocrSourceProofRelationship,
     'receiptDetailsHandoffOcrSourceRelationship':
