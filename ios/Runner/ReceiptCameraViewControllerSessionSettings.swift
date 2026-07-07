@@ -236,36 +236,38 @@ extension ReceiptCameraViewController {
     ) { [weak self] _ in
       self?.setReceiptReviewStyle("detailedLines")
     })
-    alert.addAction(UIAlertAction(
-      title: "Save-space proof: local original",
-      style: .default
-    ) { [weak self] _ in
-      self?.setDataSaverLevel("original")
-    })
-    alert.addAction(UIAlertAction(
-      title: "Save-space proof: high quality",
-      style: .default
-    ) { [weak self] _ in
-      self?.setDataSaverLevel("light")
-    })
-    alert.addAction(UIAlertAction(
-      title: "Save-space proof: normal proof",
-      style: .default
-    ) { [weak self] _ in
-      self?.setDataSaverLevel("balanced")
-    })
-    alert.addAction(UIAlertAction(
-      title: "Save-space proof: low storage",
-      style: .default
-    ) { [weak self] _ in
-      self?.setDataSaverLevel("strong")
-    })
-    alert.addAction(UIAlertAction(
-      title: "Save-space proof: tiny proof",
-      style: .default
-    ) { [weak self] _ in
-      self?.setDataSaverLevel("maximum")
-    })
+    if !capturedPhotoPaths.isEmpty {
+      alert.addAction(UIAlertAction(
+        title: "Save-space proof: local original",
+        style: .default
+      ) { [weak self] _ in
+        self?.setDataSaverLevel("original")
+      })
+      alert.addAction(UIAlertAction(
+        title: "Save-space proof: high quality",
+        style: .default
+      ) { [weak self] _ in
+        self?.setDataSaverLevel("light")
+      })
+      alert.addAction(UIAlertAction(
+        title: "Save-space proof: normal proof",
+        style: .default
+      ) { [weak self] _ in
+        self?.setDataSaverLevel("balanced")
+      })
+      alert.addAction(UIAlertAction(
+        title: "Save-space proof: low storage",
+        style: .default
+      ) { [weak self] _ in
+        self?.setDataSaverLevel("strong")
+      })
+      alert.addAction(UIAlertAction(
+        title: "Save-space proof: tiny proof",
+        style: .default
+      ) { [weak self] _ in
+        self?.setDataSaverLevel("maximum")
+      })
+    }
     alert.addAction(UIAlertAction(title: "Reset receipt camera defaults", style: .default) { [weak self] _ in
       self?.resetReceiptCameraDefaults()
     })

@@ -127,21 +127,28 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         reviewDepth = selected
         updateSettingsStatusStrip()
     })
-    content.addView(settingChoiceGroup(
-        title = "Save-space proof size",
-        detail = "OCR reads the clear source first. This only changes the smaller saved proof kept for proof and cloud backup.",
-        selectedValue = dataSaverLevel,
-        options = listOf(
-            "original" to "Local original",
-            "light" to "High quality",
-            "balanced" to "Normal proof",
-            "strong" to "Low storage",
-            "maximum" to "Tiny proof",
-        ),
-    ) { selected ->
-        dataSaverLevel = selected
-        updateSettingsStatusStrip()
-    })
+    if (capturedPhotoPaths.isNotEmpty()) {
+        content.addView(settingChoiceGroup(
+            title = "Save-space proof size",
+            detail = "OCR reads the clear source first. This only changes the smaller saved proof kept for proof and cloud backup.",
+            selectedValue = dataSaverLevel,
+            options = listOf(
+                "original" to "Local original",
+                "light" to "High quality",
+                "balanced" to "Normal proof",
+                "strong" to "Low storage",
+                "maximum" to "Tiny proof",
+            ),
+        ) { selected ->
+            dataSaverLevel = selected
+            updateSettingsStatusStrip()
+        })
+    } else {
+        content.addView(settingSummary(
+            "Saved proof size",
+            "Saved proof size appears after your first receipt photo is captured. Capture first, then review the saved proof size with real receipt proof.",
+        ))
+    }
     content.addView(settingSummary(
         "Manual shutter",
         "The shutter button always works immediately. Automatic capture is optional and never blocks a clear manual photo.",

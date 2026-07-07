@@ -20,8 +20,12 @@ extension ReceiptCameraViewController {
     Capture quality: take the clearest receipt photo for OCR first. Save-space proof size is applied only after receipt assistance uses the clearest source.
     Image cleanup: crop, straighten, grayscale, contrast, and shadow cleanup after capture.
     Review style: \(review)
-    Saved proof size: \(dataSaverLabel()) for proof and cloud backup
-    OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.
+    \(capturedPhotoPaths.isEmpty
+      ? "Saved proof size appears after your first receipt photo is captured. Capture first, then review the saved proof size with real receipt proof."
+      : "Saved proof size: \(dataSaverLabel()) for proof and cloud backup")
+    \(capturedPhotoPaths.isEmpty
+      ? "OCR reads the temporary full-quality photo first. Saved proof size stays hidden until there is real receipt proof to review."
+      : "OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.")
     Manual shutter always works immediately. Automatic capture is optional.
 
     Hold steady for the phone camera's autofocus. Pinch to zoom if the print is small. Use Brightness anytime.
