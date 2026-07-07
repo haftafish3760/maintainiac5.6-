@@ -95,6 +95,7 @@ void main() {
     expect(controls, contains('trackVisibility: true'));
     expect(controls, contains('enabled: !openingCamera && !savingPhotos'));
     expect(controls, contains('previewEnabled: !openingCamera && !savingPhotos'));
+    expect(controls, contains('enabled: !openingCamera && !savingPhotos'));
   });
 
   test('photo review tray uses explicit long-receipt language', () async {
@@ -126,6 +127,9 @@ void main() {
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_order_thumbnail.dart',
         ).readAsString();
+    final cropAndProofControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_crop_and_proof_controls.dart',
+    ).readAsString();
     final contextControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_context_controls.dart',
     ).readAsString();
@@ -283,6 +287,8 @@ void main() {
     expect(orderControls, contains('canMoveEarlier && !interactionLocked'));
     expect(orderControls, contains('canMoveLater && !interactionLocked'));
     expect(controls, contains('disabled: openingCamera || savingPhotos'));
+    expect(cropAndProofControls, contains('final bool enabled;'));
+    expect(cropAndProofControls, contains('onTap: enabled ? () => onSelected(level) : null'));
     expect(controls, isNot(contains('Add Another Receipt Photo')));
     expect(controls, isNot(contains('Read receipt')));
     expect(controls, isNot(contains('Read Receipt')));

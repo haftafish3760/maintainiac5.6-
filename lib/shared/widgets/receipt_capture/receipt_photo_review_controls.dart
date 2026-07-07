@@ -191,6 +191,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
                         const SizedBox(height: 6),
                         _ReceiptDataSaverStrip(
                           selected: dataSaverLevel,
+                          enabled: !openingCamera && !savingPhotos,
                           onSelected: onDataSaverSelected,
                         ),
                       ],

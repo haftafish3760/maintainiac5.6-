@@ -3,10 +3,12 @@ part of 'receipt_photo_review_screen.dart';
 class _ReceiptDataSaverStrip extends StatelessWidget {
   const _ReceiptDataSaverStrip({
     required this.selected,
+    required this.enabled,
     required this.onSelected,
   });
 
   final ReceiptDataSaverLevel selected;
+  final bool enabled;
   final ValueChanged<ReceiptDataSaverLevel> onSelected;
 
   @override
@@ -23,7 +25,7 @@ class _ReceiptDataSaverStrip extends StatelessWidget {
           return SizedBox(
             width: 126,
             child: InkWell(
-              onTap: () => onSelected(level),
+              onTap: enabled ? () => onSelected(level) : null,
               borderRadius: BorderRadius.circular(6),
               child: DecoratedBox(
                 decoration: BoxDecoration(
