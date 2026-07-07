@@ -68,6 +68,16 @@ void main() {
     expect(script, contains('run_line_cap_gate'));
     expect(script, contains('run_stale_contract_scan'));
     expect(script, contains('git diff --check'));
+
+    final shellSyntaxBlock = script
+        .split('bash -n \\')
+        .last
+        .split('bash tool/receipt_camera_scope_gate.sh')
+        .first;
+    expect(
+      shellSyntaxBlock,
+      isNot(contains('tool/receipt_external_fixture_schema_gate.dart')),
+    );
   });
 
   test('camera QA gate avoids rerunning broader packs already covered', () {
