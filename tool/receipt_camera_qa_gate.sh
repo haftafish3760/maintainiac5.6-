@@ -31,6 +31,7 @@ quick_tests=(
   test/receipt_native_android_bridge_settings_quality_test.dart
   test/receipt_native_android_bridge_capture_quality_contract_test.dart
   test/receipt_camera_long_receipt_guidance_test.dart
+  test/receipt_external_dataset_local_audit_test.dart
   test/receipt_external_dataset_gate_test.dart
   test/receipt_external_fixture_schema_gate_test.dart
   test/receipt_photo_section_labels_test.dart
@@ -262,11 +263,13 @@ run_quick() {
   dart analyze \
     lib/shared/widgets/receipt_capture \
     lib/shared/receipts \
+    tool/receipt_external_dataset_local_audit.dart \
     tool/receipt_external_dataset_gate.dart \
     tool/receipt_external_fixture_schema_gate.dart \
     tool/receipt_bug_regression_ledger_gate.dart
   dart tool/receipt_bug_regression_ledger_gate.dart
   dart tool/receipt_external_dataset_gate.dart
+  dart tool/receipt_external_dataset_local_audit.dart
   dart tool/receipt_external_fixture_schema_gate.dart
   run_source_audit
   run_line_cap_gate

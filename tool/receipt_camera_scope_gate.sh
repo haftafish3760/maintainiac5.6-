@@ -33,6 +33,7 @@ while IFS= read -r path; do
     test/receipt_native_* | \
     test/receipt_ocr_source_* | \
     test/receipt_photo_section_labels_test.dart | \
+    test/receipt_external_dataset_local_audit_test.dart | \
     test/receipt_external_dataset_gate_test.dart | \
     test/receipt_external_fixture_schema_gate_test.dart | \
     test/receipt_stitch_fallback_metadata_test.dart | \
@@ -43,6 +44,7 @@ while IFS= read -r path; do
 	    tool/receipt_bug_regression_ledger_archive.dart | \
 	    tool/receipt_bug_regression_ledger_gate.dart | \
 	    tool/receipt_camera_* | \
+	    tool/receipt_external_dataset_local_audit.dart | \
 	    tool/receipt_external_dataset_gate.dart | \
 	    tool/receipt_external_fixture_schema_gate.dart | \
 	    tool/receipt_pipeline_failure_to_regression.dart | \

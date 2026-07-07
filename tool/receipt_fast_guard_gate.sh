@@ -29,6 +29,7 @@ bash tool/receipt_doc_size_gate.sh
 dart analyze \
   tool/receipt_bug_regression_ledger_gate.dart \
   tool/receipt_bug_regression_ledger_archive.dart \
+  tool/receipt_external_dataset_local_audit.dart \
   tool/receipt_external_dataset_gate.dart \
   tool/receipt_external_fixture_schema_gate.dart \
   tool/receipt_real_device_matrix_gate.dart \
@@ -50,6 +51,7 @@ dart tool/maintainiac_source_audit.dart --max-line-length=220
 dart tool/maintainiac_source_audit.dart --tests-only --max-line-length=220
 dart tool/receipt_bug_regression_ledger_gate.dart
 dart tool/receipt_external_dataset_gate.dart
+dart tool/receipt_external_dataset_local_audit.dart
 dart tool/receipt_external_fixture_schema_gate.dart
 dart tool/receipt_real_device_matrix_gate.dart
 dart tool/receipt_quiet_batch_policy_gate.dart
@@ -85,6 +87,7 @@ flutter test \
   test/receipt_camera_release_one_blueprint_test.dart \
   test/maintainiac_source_audit_contract_test.dart \
   test/receipt_doc_size_gate_contract_test.dart \
+  test/receipt_external_dataset_local_audit_test.dart \
   test/receipt_external_dataset_gate_test.dart \
   test/receipt_external_fixture_schema_gate_test.dart \
   test/receipt_bug_regression_ledger_archive_test.dart \

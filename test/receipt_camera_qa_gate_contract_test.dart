@@ -52,6 +52,7 @@ void main() {
     expect(script, contains('lib/shared/widgets/receipt_capture'));
     expect(script, contains('lib/shared/receipts'));
     expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
+    expect(script, contains('tool/receipt_external_dataset_local_audit.dart'));
     expect(script, contains('tool/receipt_external_dataset_gate.dart'));
     expect(script, contains('tool/receipt_external_fixture_schema_gate.dart'));
     expect(
@@ -59,6 +60,10 @@ void main() {
       contains('dart tool/receipt_bug_regression_ledger_gate.dart'),
     );
     expect(script, contains('dart tool/receipt_external_dataset_gate.dart'));
+    expect(
+      script,
+      contains('dart tool/receipt_external_dataset_local_audit.dart'),
+    );
     expect(
       script,
       contains('dart tool/receipt_external_fixture_schema_gate.dart'),
@@ -106,6 +111,10 @@ void main() {
     expect(
       script,
       contains('test/receipt_camera_long_receipt_guidance_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_external_dataset_local_audit_test.dart'),
     );
     expect(script, contains('test/receipt_external_dataset_gate_test.dart'));
     expect(
@@ -248,6 +257,10 @@ void main() {
       expect(script, contains('test/receipt_native_*'));
       expect(script, contains('test/receipt_ocr_source_*'));
       expect(script, contains('test/receipt_photo_section_labels_test.dart'));
+      expect(
+        script,
+        contains('test/receipt_external_dataset_local_audit_test.dart'),
+      );
       expect(script, contains('test/receipt_external_dataset_gate_test.dart'));
       expect(
         script,
@@ -264,6 +277,10 @@ void main() {
       expect(script, contains('test/receipt_stitching_*'));
       expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
       expect(script, contains('tool/receipt_camera_*'));
+      expect(
+        script,
+        contains('tool/receipt_external_dataset_local_audit.dart'),
+      );
       expect(script, contains('tool/receipt_external_dataset_gate.dart'));
       expect(
         script,
