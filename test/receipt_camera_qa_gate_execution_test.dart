@@ -56,6 +56,10 @@ void main() {
         milestonePlan,
         contains('milestone test/receipt_camera_ocr_source_handoff_test.dart'),
       );
+      expect(
+        milestonePlan,
+        contains('milestone test/receipt_photo_review_retake_order_test.dart'),
+      );
       expect(milestonePlan, isNot(contains('full ')));
 
       final fullPlan = await planFor('full');
@@ -136,6 +140,7 @@ void main() {
                 path.contains('/receipt_camera_') ||
                 path.contains('/receipt_native_') ||
                 path.contains('/receipt_stitch') ||
+                path.contains('/receipt_photo_review_retake_order') ||
                 path.contains('/receipt_ocr_source'),
           )
           .where((path) => path.endsWith('.dart'))

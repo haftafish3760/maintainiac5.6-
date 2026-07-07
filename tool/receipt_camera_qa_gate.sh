@@ -78,6 +78,7 @@ milestone_only_tests=(
   test/receipt_native_ios_bridge_settings_close_test.dart
   test/receipt_native_ios_bridge_storage_contract_test.dart
   test/receipt_native_ios_bridge_ui_session_test.dart
+  test/receipt_photo_review_retake_order_test.dart
   test/receipt_stitch_fallback_metadata_test.dart
   test/receipt_stitching_manual_overlap_test.dart
   test/receipt_stitching_result_contract_test.dart
