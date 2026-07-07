@@ -4080,3 +4080,18 @@ Release boundaries:
   across 14 shards at 250 cases per shard. Verification passed:
   `flutter test test/work_supply_plumbing_core_batch_gate_test.dart --plain-name
   "plumbing US English core generated batch shard plan covers all cases"`.
+- **21:46-21:54 Plumbing Core Item Readiness Audit:** Added
+  `tool/work_supply_plumbing_core_readiness_audit.dart` as the fast item-level
+  audit for Plumbing Core release readiness, plus
+  `test/work_supply_plumbing_core_readiness_audit_test.dart` as a narrow wrapper
+  because direct `dart run` currently crashes in the local Dart VM/FFI build
+  path before script logic executes. The audit reports exact action queues for
+  finish-first candidates, critical metadata, Spanish terms, ambiguity
+  negatives, parser evidence, and manual review. Verification passed:
+  `dart analyze tool/work_supply_plumbing_core_readiness_audit.dart
+  test/work_supply_plumbing_core_readiness_audit_test.dart` and
+  `flutter test test/work_supply_plumbing_core_readiness_audit_test.dart`.
+  Latest report summary: 1,122 Plumbing Core rows, 0 release-ready,
+  0 metadata-ready candidates, 1,122 needing work, 878 critical, readiness
+  floor 72, readiness average 80.35. Broad generated parser shards remain
+  blocked until family metadata/evidence queues are closed.
