@@ -113,7 +113,7 @@ extension ReceiptCameraViewController {
     if !addPhotoButton.isHidden && addPhotoButton.isEnabled {
       controls.append("add_photo")
     }
-    if previousSectionGuidePhotoPath != nil {
+    if !previousSectionGuidePanel.isHidden {
       controls.append("section_ghost_guide")
     }
     if edgeDetectionEnabled && edgeOverlayEnabled {

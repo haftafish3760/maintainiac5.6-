@@ -20,7 +20,12 @@ internal fun ReceiptCameraActivity.visibleControlSet(): String {
     ) {
         controls.add("add_photo")
     }
-    if (previousSectionGuidePhotoPath != null) controls.add("section_ghost_guide")
+    if (
+        hasInitializedReceiptCameraField { previousSectionGuidePanel } &&
+        previousSectionGuidePanel.visibility == View.VISIBLE
+    ) {
+        controls.add("section_ghost_guide")
+    }
     if (edgeDetectionEnabled && edgeOverlayEnabled) controls.add("edge_guide")
     return controls.joinToString("|")
 }

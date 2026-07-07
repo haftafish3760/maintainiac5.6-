@@ -259,6 +259,10 @@ void main() {
     );
     expect(
       cameraActivity,
+      contains('previousSectionGuidePanel.visibility == View.VISIBLE'),
+    );
+    expect(
+      cameraActivity,
       contains('if (torchButton.isEnabled) controls.add("light")'),
     );
     expect(
@@ -290,7 +294,7 @@ void main() {
     );
     expect(cameraActivity, contains('"manual_shutter"'));
     expect(cameraActivity, contains('controls.add("long_receipt_done")'));
-    expect(cameraActivity, contains('"section_ghost_guide"'));
+    expect(cameraActivity, contains('controls.add("section_ghost_guide")'));
     expect(cameraActivity, contains('"edge_guide"'));
     expect(
       cameraActivity,
