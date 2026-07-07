@@ -4091,7 +4091,11 @@ Release boundaries:
   `dart analyze tool/work_supply_plumbing_core_readiness_audit.dart
   test/work_supply_plumbing_core_readiness_audit_test.dart` and
   `flutter test test/work_supply_plumbing_core_readiness_audit_test.dart`.
-  Latest report summary: 1,122 Plumbing Core rows, 0 release-ready,
-  0 metadata-ready candidates, 1,122 needing work, 878 critical, readiness
-  floor 72, readiness average 80.35. Broad generated parser shards remain
-  blocked until family metadata/evidence queues are closed.
+  Initial report exposed two audit precision bugs before any catalog decisions:
+  family classification was matching `pex` inside derived `expenseCategory`, and
+  ambiguity risk was reading existing negative tokens. Fixed both so the report
+  classifies from direct item text and only uses direct item text for risk
+  detection. Latest report summary: 1,122 Plumbing Core rows, 46 release-ready
+  candidates, 147 metadata-ready candidates, 975 needing work, 878 critical,
+  readiness floor 82, readiness average 88.14. Broad generated parser shards
+  remain blocked until family metadata/evidence queues are closed.

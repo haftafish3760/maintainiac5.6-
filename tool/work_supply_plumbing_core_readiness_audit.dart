@@ -125,17 +125,17 @@ _ReadinessFinding _readinessFinding(WorkSupplyItem item) {
   );
 
   if (!identity.hasMaterial) warnings.add('missing_material_context');
-  if (!identity.hasSize && _requiresSize(text)) {
+  if (!identity.hasSize && _requiresSize(directText)) {
     warnings.add('missing_size_context');
   }
-  if (!identity.hasShape && _requiresShape(text)) {
+  if (!identity.hasShape && _requiresShape(directText)) {
     warnings.add('missing_shape_context');
   }
-  if (!identity.hasConnection && _requiresConnection(text)) {
+  if (!identity.hasConnection && _requiresConnection(directText)) {
     warnings.add('missing_connection_context');
   }
 
-  for (final risk in _ambiguityRisks(text)) {
+  for (final risk in _ambiguityRisks(directText)) {
     if (!_hasNegativeForRisk(item, risk)) {
       issues.add('missing_${risk}_ambiguity_negative');
     }
