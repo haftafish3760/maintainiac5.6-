@@ -10,9 +10,9 @@ fi
 mode="${1:-milestone}"
 
 case "$mode" in
-  phase2 | phase3 | phase4 | phase5 | phase6 | quick | stitch | milestone | full) ;;
+  phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | quick | stitch | milestone | full) ;;
   *)
-    echo "Usage: tool/receipt_camera_qa_gate.sh [--print-plan] [phase2|phase3|phase4|phase5|phase6|quick|stitch|milestone|full]" >&2
+    echo "Usage: tool/receipt_camera_qa_gate.sh [--print-plan] [phase2|phase3|phase4|phase5|phase6|phase7|quick|stitch|milestone|full]" >&2
     exit 64
     ;;
 esac
@@ -60,6 +60,16 @@ phase6_tests=(
   test/receipt_stitch_fallback_metadata_test.dart
   test/receipt_stitching_manual_overlap_test.dart
   test/receipt_stitching_result_contract_test.dart
+)
+
+phase7_tests=(
+  test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart
+  test/receipt_camera_ocr_source_handoff_test.dart
+  test/receipt_capture_flow_ocr_source_count_test.dart
+  test/receipt_image_ocr_source_guard_test.dart
+  test/receipt_ocr_source_relationship_test.dart
+  test/receipt_ocr_source_review_risks_test.dart
+  test/receipt_ocr_source_section_order_handoff_test.dart
 )
 
 phase2_audit_paths=(
@@ -125,6 +135,24 @@ phase6_audit_paths=(
   test/receipt_stitch_fallback_metadata_test.dart
   test/receipt_stitching_manual_overlap_test.dart
   test/receipt_stitching_result_contract_test.dart
+)
+
+phase7_audit_paths=(
+  lib/shared/receipts/receipt_ocr_contract.dart
+  lib/shared/widgets/receipt_capture/receipt_ocr_source_handoff.dart
+  lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart
+  lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_risk_flags.dart
+  lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_signals.dart
+  lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_risks.dart
+  lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_continuation_signals.dart
+  lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_continuation_flags.dart
+  test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart
+  test/receipt_camera_ocr_source_handoff_test.dart
+  test/receipt_capture_flow_ocr_source_count_test.dart
+  test/receipt_image_ocr_source_guard_test.dart
+  test/receipt_ocr_source_relationship_test.dart
+  test/receipt_ocr_source_review_risks_test.dart
+  test/receipt_ocr_source_section_order_handoff_test.dart
 )
 
 quick_tests=(
@@ -269,6 +297,7 @@ full_only_tests=(
   test/receipt_native_android_bridge_analysis_exposure_test.dart
   test/receipt_native_ios_bridge_analysis_exposure_test.dart
   test/receipt_ocr_source_completion_test.dart
+  test/receipt_ocr_source_review_risks_test.dart
   test/receipt_ocr_source_section_order_handoff_test.dart
 )
 
@@ -310,6 +339,9 @@ print_plan_for_mode() {
       ;;
     phase6)
       print_test_pack phase6 "${phase6_tests[@]}"
+      ;;
+    phase7)
+      print_test_pack phase7 "${phase7_tests[@]}"
       ;;
     quick)
       print_test_pack quick "${quick_tests[@]}"
@@ -469,6 +501,23 @@ run_phase6_stale_contract_scan() {
   fi
 }
 
+run_phase7_stale_contract_scan() {
+  local scan_roots=(
+    lib/shared/receipts/receipt_ocr_contract.dart
+    lib/shared/widgets/receipt_capture/receipt_ocr_source_handoff.dart
+    lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart
+    lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_risk_flags.dart
+    lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_signals.dart
+    lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_risks.dart
+  )
+  local pattern='ocr_is_truth|parser_is_truth|overwrite_confirmed_user_value|silent_overwrite_confirmed_value'
+
+  if rg -n "$pattern" "${scan_roots[@]}"; then
+    echo "Stale Phase 7 OCR-source handoff contract found." >&2
+    return 1
+  fi
+}
+
 run_phase2() {
   bash tool/receipt_camera_scope_gate.sh
   dart analyze \
@@ -544,6 +593,23 @@ run_phase6() {
   git diff --check
 }
 
+run_phase7() {
+  bash tool/receipt_camera_scope_gate.sh
+  dart analyze \
+    lib/shared/receipts/receipt_ocr_contract.dart \
+    lib/shared/widgets/receipt_capture/receipt_ocr_source_handoff.dart \
+    lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart \
+    lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_risk_flags.dart \
+    test/helpers/receipt_camera_source_readers.dart \
+    "${phase7_tests[@]}"
+  dart tool/maintainiac_source_audit.dart \
+    "${phase7_audit_paths[@]}" \
+    --max-line-length=220
+  run_phase7_stale_contract_scan
+  run_flutter_tests "${phase7_tests[@]}"
+  git diff --check
+}
+
 run_quick() {
   bash -n \
     tool/android_receipt_camera_compile_gate.sh \
@@ -611,6 +677,7 @@ case "$mode" in
   phase4) run_phase4 ;;
   phase5) run_phase5 ;;
   phase6) run_phase6 ;;
+  phase7) run_phase7 ;;
   quick) run_quick ;;
   stitch) run_stitch ;;
   milestone) run_milestone ;;
