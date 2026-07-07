@@ -30,6 +30,10 @@ void main() {
     );
     expect(
       androidCameraUnit,
+      contains('nativePreviewScaleMode = "fill_center_full_receipt"'),
+    );
+    expect(
+      androidCameraUnit,
       contains('setJpegQuality(stillCaptureJpegQuality)'),
     );
     expect(androidCameraUnit, contains('ScaleGestureDetector'));

@@ -199,6 +199,10 @@ void main() {
     expect(cameraActivity, contains('PreviewView.ScaleType.FILL_CENTER'));
     expect(cameraActivity, isNot(contains('PreviewView.ScaleType.FIT_CENTER')));
     expect(cameraActivity, contains('nativePreviewScaleMode'));
+    expect(
+      cameraActivity,
+      contains('internal val nativePreviewScaleMode = "fill_center_full_receipt"'),
+    );
     expect(cameraActivity, contains('nativeControlDensity'));
     expect(
       cameraActivity,
