@@ -38,4 +38,24 @@ void main() {
     expect(cameraGate, contains('tool/receipt_camera_real_device_snapshot.sh'));
     expect(fastGate, contains('tool/receipt_camera_real_device_snapshot.sh'));
   });
+
+  test('full camera QA records metadata snapshot without device control', () {
+    final cameraGate = File(
+      'tool/receipt_camera_qa_gate.sh',
+    ).readAsStringSync();
+
+    expect(
+      cameraGate,
+      contains('bash tool/receipt_camera_real_device_snapshot.sh'),
+    );
+    expect(
+      cameraGate.indexOf('run_milestone'),
+      lessThan(
+        cameraGate.indexOf('bash tool/receipt_camera_real_device_snapshot.sh'),
+      ),
+    );
+    expect(cameraGate, isNot(contains('adb shell input')));
+    expect(cameraGate, isNot(contains('flutter run')));
+    expect(cameraGate, isNot(contains('flutter install')));
+  });
 }

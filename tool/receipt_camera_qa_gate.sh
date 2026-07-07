@@ -180,6 +180,7 @@ run_milestone() {
 run_full() {
   run_milestone
   run_flutter_tests "${full_only_tests[@]}"
+  bash tool/receipt_camera_real_device_snapshot.sh
   bash tool/android_receipt_camera_compile_gate.sh
   bash tool/ios_receipt_camera_compile_gate.sh
 }
