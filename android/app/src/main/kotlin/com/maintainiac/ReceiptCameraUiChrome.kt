@@ -71,7 +71,7 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
             Gravity.TOP,
         )
     }
-    topBar.addView(iconButton("Back", android.R.drawable.ic_menu_revert) {
+    topBar.addView(iconButton("Back", R.drawable.ic_receipt_camera_back) {
         requestCloseCamera(backDispatchPath = "top_bar_back_button")
     })
     topBar.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))

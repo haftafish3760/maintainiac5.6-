@@ -12,6 +12,9 @@ void main() {
     final settingsIcon = await File(
       'android/app/src/main/res/drawable/ic_receipt_camera_settings.xml',
     ).readAsString();
+    final backIcon = await File(
+      'android/app/src/main/res/drawable/ic_receipt_camera_back.xml',
+    ).readAsString();
     final flashIcon = await File(
       'android/app/src/main/res/drawable/ic_receipt_camera_flash.xml',
     ).readAsString();
@@ -62,6 +65,12 @@ void main() {
     expect(
       cameraActivity,
       contains(
+        'topBar.addView(iconButton("Back", R.drawable.ic_receipt_camera_back) {',
+      ),
+    );
+    expect(
+      cameraActivity,
+      contains(
         'topBar.addView(iconButton("Receipt camera settings", R.drawable.ic_receipt_camera_settings) {',
       ),
     );
@@ -86,6 +95,9 @@ void main() {
 
     expect(settingsIcon, contains('android:viewportWidth="24"'));
     expect(settingsIcon, contains('android:viewportHeight="24"'));
+    expect(backIcon, contains('android:viewportWidth="24"'));
+    expect(backIcon, contains('android:viewportHeight="24"'));
+    expect(backIcon, contains('M14.7,5.3L8,12'));
     expect(settingsIcon, isNot(contains('wrench')));
     expect(flashIcon, contains('android:pathData="M7,2h10l-3,8h5L9,22'));
     expect(shutterIcon, contains('android:viewportWidth="24"'));
