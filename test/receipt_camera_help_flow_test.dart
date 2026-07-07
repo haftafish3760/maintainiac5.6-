@@ -193,8 +193,7 @@ void main() {
       reviewCropAndProofControls,
       contains('Receipt Details And Saved Proof'),
     );
-    expect(reviewControls, contains("return 'Use Photo';"));
-    expect(reviewControls, contains("return 'Use Photos';"));
+    expect(reviewControls, contains("return 'Use Receipt';"));
     expect(reviewControls, contains('_ReceiptPreviewActionTray'));
     expect(reviewPreviewControls, contains('_ReceiptMultiPhotoActionRail'));
     expect(reviewPreviewControls, contains('_ReceiptSectionPositionChip'));
@@ -209,10 +208,10 @@ void main() {
       reviewPreviewActionTray,
       contains('receipt sections are saved locally.'),
     );
-    expect(reviewPreviewActionTray, contains('Use these photos'));
+    expect(reviewPreviewActionTray, contains('Use this receipt'));
     expect(
       reviewPreviewActionTray,
-      contains('Use Photos will use one combined receipt image.'),
+      contains('Use Receipt will use one combined receipt image.'),
     );
     expect(sectionLabels, contains('Receipt Sections'));
     expect(reviewPreviewControls, contains('addNextSectionLabel'));

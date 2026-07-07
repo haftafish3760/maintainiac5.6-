@@ -211,7 +211,7 @@ void main() {
     expect(stateActions, contains('75% Business'));
     expect(stateActions, contains('Custom Business %'));
     expect(photoControls, contains('_ReceiptPreviewActionTray'));
-    expect(photoControls, contains('Use Photo'));
+    expect(photoControls, contains('Use Receipt'));
     expect(photoControls, contains('receipt sections are saved locally'));
     expect(photoPreviewControls, contains('Add Bottom Section'));
     expect(photoPreviewControls, contains('minimumSize: const Size(0, 38)'));
@@ -220,7 +220,7 @@ void main() {
     expect(photoPreviewControls, contains('Add Another Photo'));
     expect(photoControls, contains('Check Photo Match'));
     expect(photoControls, contains('Use this photo'));
-    expect(photoControls, contains("'Use Photo'"));
+    expect(photoControls, contains("'Use Receipt'"));
     expect(entryScreen, contains("'legacyTapFocusSuppressedAfterZoomTotal'"));
     expect(entryScreen, isNot(contains("'tapFocusSuppressedAfterZoomTotal'")));
     expect(entryScreen, contains("'zoomGestureStartTotal'"));

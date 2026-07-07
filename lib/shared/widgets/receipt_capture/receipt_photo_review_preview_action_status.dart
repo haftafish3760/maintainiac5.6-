@@ -63,11 +63,11 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
             : 'add the next receipt section now';
         return '$recoveryPrefix$photoCount receipt sections are saved locally. '
             '$sectionGuidance $sectionAction $matchStatus '
-            '${coverageDecision.title}: $addPhotoAction, or use these photos only if '
-            'they already show the full receipt.$editedPhotoCopy$memoryPolicyCopy';
+            '${coverageDecision.title}: $addPhotoAction, or use this receipt only if '
+            'these photos already show the full receipt.$editedPhotoCopy$memoryPolicyCopy';
       }
       return '$recoveryPrefix$photoCount receipt sections are saved locally. '
-          '$sectionGuidance $sectionAction $matchStatus Use these photos when '
+          '$sectionGuidance $sectionAction $matchStatus Use this receipt when '
           'the full receipt is visible.'
           '$editedPhotoCopy$memoryPolicyCopy';
     }
@@ -167,7 +167,7 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
       return 'Use Match Photos to check whether one combined receipt image can be made.';
     }
     if (preview.didStitch) {
-      return 'Photo match is ready: Use Photos will use one combined receipt image.';
+      return 'Photo match is ready: Use Receipt will use one combined receipt image.';
     }
     if (preview.usedFallback) {
       return 'Photo match will use ordered sections from top to bottom because stitching was not safe enough.';

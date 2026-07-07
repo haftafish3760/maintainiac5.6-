@@ -204,7 +204,7 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
     if (coverageDecision.isMissingBottomEdgeAndTotals) {
       return 'Add Bottom Section';
     }
-    return hasMultipleSections ? 'Use Photos' : 'Use Photo';
+    return 'Use Receipt';
   }
 
   String _receiptReviewExitNextCopy({

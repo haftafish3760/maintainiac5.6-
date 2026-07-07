@@ -290,18 +290,18 @@ void main() {
 
     expect(
       controls,
-      contains("return photoPaths.length == 1 ? 'Use Photo' : 'Use Photos';"),
+      contains("return 'Use Receipt';"),
     );
     expect(screen, contains('_ReceiptReviewMode.preview => .22'));
     expect(screen, contains('_photoPaths.length > 1 ? 188.0 : 166.0'));
-    expect(topBar, contains('_ReceiptNextReviewLabel(label: label)'));
+    expect(commonControls, contains('_ReceiptNextReviewLabel(label: label)'));
     expect(commonControls, isNot(contains("normalized == 'Next: Details'")));
     expect(previewControls, contains("'Add Another Photo'"));
     expect(previewControls, contains('minimumSize: const Size(92, 36)'));
     expect(controls, contains('open receipt details'));
     expect(
       controls,
-      contains('store, date, total, and item prices are readable'),
+      contains('Use this photo, retake it, or add another photo if the '),
     );
     expect(
       models,
@@ -389,8 +389,7 @@ void main() {
     expect(controls, contains('onContinue'));
     expect(controls, contains('ReceiptPhotoCoverageDecision.fromSignals'));
     expect(controls, contains('Add Bottom Section'));
-    expect(controls, contains("'Use Photo'"));
-    expect(controls, contains("'Use Photos'"));
+    expect(controls, contains("'Use Receipt'"));
     expect(screen, contains('Future<void> addAnotherReceiptPhoto()'));
     expect(screen, contains('Future<void> retakeCurrentReceiptPhoto()'));
     expect(screen, contains('Future<void> continueReceiptPhotoReview()'));

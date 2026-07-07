@@ -15,12 +15,15 @@ void main() {
         cameraController,
         contains('Previous receipt section overlap guide'),
       );
-      expect(cameraController, contains('Use Photo'));
+      expect(cameraController, contains('Next'));
       expect(
         cameraController,
         contains('Saving this receipt photo before opening review.'),
       );
-      expect(cameraController, contains('Use captured receipt photos'));
+      expect(
+        cameraController,
+        contains('review captured receipt photos in Maintainiac'),
+      );
       expect(cameraController, contains('previousSectionGuidePhotoPath'));
       expect(
         cameraController,

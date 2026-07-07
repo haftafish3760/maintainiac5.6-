@@ -67,15 +67,13 @@ void main() {
     expect(sources.modeControls, contains("label: 'Match Photos'"));
     expect(
       sources.reviewControls,
-      contains(
-        "return photoPaths.length > 1 ? 'Check Photo Match' : 'Use Photo';",
-      ),
+      contains("return photoPaths.length > 1 ? 'Check Photo Match' : 'Use Receipt';"),
     );
     expect(sources.reviewControls, contains('waitingForStitch'));
     expect(sources.reviewControls, contains('continueEnabled'));
     expect(
       sources.reviewControls,
-      contains("return photoPaths.length == 1 ? 'Use Photo' : 'Use Photos';"),
+      contains("return 'Use Receipt';"),
     );
     expect(
       sources.reviewControls,

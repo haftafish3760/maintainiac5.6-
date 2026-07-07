@@ -219,7 +219,7 @@ void main() {
     );
     expect(
       controls,
-      contains("return photoPaths.length == 1 ? 'Use Photo' : 'Use Photos';"),
+      contains("return 'Use Receipt';"),
     );
     expect(commonControls, contains("primary: 'Add'"));
     expect(commonControls, contains("secondary: 'Bottom Section'"));
@@ -286,7 +286,7 @@ void main() {
       controls,
       contains('Use Match Photos to check whether one combined receipt image'),
     );
-    expect(controls, contains('Use Photos will use one combined receipt image.'));
+    expect(controls, contains('Use Receipt will use one combined receipt image.'));
     expect(controls, contains('ordered sections from top to bottom'));
     expect(controls, isNot(contains('Read First')));
     expect(models, contains("readIntoForm('Ready for receipt review')"));

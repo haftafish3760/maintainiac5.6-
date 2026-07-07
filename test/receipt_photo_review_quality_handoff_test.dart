@@ -82,7 +82,7 @@ void main() {
         'add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
       ),
     );
-    expect(controls, contains("'Use Photo'"));
+    expect(controls, contains("'Use Receipt'"));
     expect(commonControls, isNot(contains("Next: Details If Complete")));
     expect(commonControls, isNot(contains("secondary: 'If Complete'")));
     expect(
@@ -148,7 +148,7 @@ void main() {
         'Photo captured locally. Use this photo, retake it, or add another photo if the receipt continues.',
       ),
     );
-    expect(controls, contains('Use Photos'));
+    expect(controls, contains('Use Receipt'));
     expect(
       models,
       contains('Receipt details open from each section, top to bottom.'),
