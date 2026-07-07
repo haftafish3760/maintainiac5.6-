@@ -93,6 +93,7 @@ void main() {
     expect(fastGuard, contains('tool/receipt_camera_scope_gate.sh'));
     expect(fastGuard, contains('tool/receipt_camera_changed_gate.sh'));
     expect(fastGuard, contains('tool/receipt_camera_qa_summary.sh'));
+    expect(fastGuard, contains('tool/receipt_camera_stitch_gate.sh'));
     expect(fastGuard, contains('tool/receipt_start_camera_qa_gate.sh'));
   });
 
@@ -146,5 +147,38 @@ void main() {
     expect(script, contains('ios/Runner/ReceiptCamera*.swift'));
     expect(script, contains('test/receipt_stitching_*'));
     expect(script, isNot(contains('git ls-files --others')));
+  });
+
+  test('camera stitch gate focuses long receipt stitching risk', () {
+    final script = File(
+      'tool/receipt_camera_stitch_gate.sh',
+    ).readAsStringSync();
+
+    expect(script, contains('tool/receipt_camera_scope_gate.sh'));
+    expect(script, contains('dart analyze'));
+    expect(script, contains('flutter test'));
+    expect(
+      script,
+      contains('test/receipt_camera_long_receipt_guidance_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_camera_ocr_source_handoff_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_camera_result_stitch_scanner_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_native_camera_previous_section_channel_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_photo_review_retake_order_test.dart'),
+    );
+    expect(script, contains('test/receipt_stitching_manual_overlap_test.dart'));
+    expect(script, contains('test/receipt_stitching_test.dart'));
+    expect(script, contains('git diff --check'));
   });
 }

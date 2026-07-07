@@ -144,6 +144,7 @@ run_quick() {
     tool/receipt_camera_qa_gate.sh \
     tool/receipt_camera_qa_summary.sh \
     tool/receipt_camera_scope_gate.sh \
+    tool/receipt_camera_stitch_gate.sh \
     tool/receipt_start_camera_qa_gate.sh
   bash tool/receipt_camera_scope_gate.sh
   dart analyze lib/shared/widgets/receipt_capture lib/shared/receipts
