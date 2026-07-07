@@ -11,9 +11,22 @@ USAGE
   exit 64
 fi
 
-name="$1"
+requested_name="$1"
+name="$requested_name"
+failure_phase="camera_pipeline_contracts"
 case "$name" in
-  quick | milestone | full) name="receipt_camera_qa_$name" ;;
+  quick)
+    name="receipt_camera_qa_quick"
+    failure_phase="camera_quick_gate"
+    ;;
+  milestone)
+    name="receipt_camera_qa_milestone"
+    failure_phase="camera_milestone_gate"
+    ;;
+  full)
+    name="receipt_camera_qa_full"
+    failure_phase="camera_full_gate"
+    ;;
   *[!A-Za-z0-9_.-]* | "")
     echo "Batch name must use only letters, numbers, dot, dash, or underscore." >&2
     exit 64
@@ -42,6 +55,7 @@ if [[ "$status" == "passed" ]]; then
 fi
 
 echo "summary=failed_actionable_lines"
+echo "regression_task_command=tool/receipt_camera_failure_to_regression.sh $failure_phase $log_file"
 if command -v rg >/dev/null 2>&1; then
   rg -n \
     '\\[E\\]|To run this test again|Expected:|Actual:|Which:|Some tests failed|Error:|FAIL|failed' \

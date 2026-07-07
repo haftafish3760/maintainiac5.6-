@@ -87,8 +87,15 @@ void main() {
     expect(script, contains('tool/receipt_quiet_batch.sh'));
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
     expect(summary, contains('tool/receipt_quiet_batch_status.sh'));
-    expect(summary, contains(r'receipt_camera_qa_$name'));
+    expect(summary, contains('receipt_camera_qa_quick'));
+    expect(summary, contains('receipt_camera_qa_milestone'));
+    expect(summary, contains('receipt_camera_qa_full'));
     expect(summary, contains('summary=failed_actionable_lines'));
+    expect(summary, contains('tool/receipt_camera_failure_to_regression.sh'));
+    expect(summary, contains('regression_task_command='));
+    expect(summary, contains('failure_phase="camera_quick_gate"'));
+    expect(summary, contains('failure_phase="camera_milestone_gate"'));
+    expect(summary, contains('failure_phase="camera_full_gate"'));
     expect(summary, contains('tail -80'));
     expect(fastGuard, contains('tool/receipt_camera_scope_gate.sh'));
     expect(fastGuard, contains('tool/receipt_camera_changed_gate.sh'));
