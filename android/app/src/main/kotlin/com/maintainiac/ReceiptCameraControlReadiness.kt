@@ -11,11 +11,7 @@ internal fun ReceiptCameraActivity.visibleControlSet(): String {
     )
     if (torchButton.isEnabled) controls.add("light")
     if (exposureControlsVisible()) controls.add("brightness")
-    if (
-        hasInitializedReceiptCameraField { bottomReviewButton } &&
-        bottomReviewButton.visibility == View.VISIBLE &&
-        bottomReviewButton.isEnabled
-    ) {
+    if (reviewNextControlReady()) {
         controls.add("long_receipt_done")
     }
     if (
@@ -27,6 +23,18 @@ internal fun ReceiptCameraActivity.visibleControlSet(): String {
     if (previousSectionGuidePhotoPath != null) controls.add("section_ghost_guide")
     if (edgeDetectionEnabled && edgeOverlayEnabled) controls.add("edge_guide")
     return controls.joinToString("|")
+}
+
+internal fun ReceiptCameraActivity.reviewNextControlReady(): Boolean {
+    val topReady =
+        hasInitializedReceiptCameraField { doneButton } &&
+            doneButton.visibility == View.VISIBLE &&
+            doneButton.isEnabled
+    val bottomReady =
+        hasInitializedReceiptCameraField { bottomReviewButton } &&
+            bottomReviewButton.visibility == View.VISIBLE &&
+            bottomReviewButton.isEnabled
+    return topReady || bottomReady
 }
 
 internal fun ReceiptCameraActivity.exposureControlsVisible(): Boolean {
@@ -60,6 +68,7 @@ internal fun ReceiptCameraActivity.nativeControlReadinessSummary(): String {
         backControlActualStatus(),
         settingsControlActualStatus(),
         manualShutterControlActualStatus(),
+        reviewNextControlActualStatus(),
     )
     return if (statuses.any { it == "missing" || it == "visible_disabled" }) {
         "review_needed"
@@ -79,6 +88,21 @@ internal fun ReceiptCameraActivity.settingsControlActualStatus(): String {
 internal fun ReceiptCameraActivity.manualShutterControlActualStatus(): String {
     val visible = hasInitializedReceiptCameraField { shutterButton }
     val enabled = visible && shutterButton.isEnabled && !closingCamera && !closeResultDelivered
+    return controlStatus(visible, enabled)
+}
+
+internal fun ReceiptCameraActivity.reviewNextControlActualStatus(): String {
+    if (capturedPhotoPaths.isEmpty()) return "ready"
+    val topVisible =
+        hasInitializedReceiptCameraField { doneButton } &&
+            doneButton.visibility == View.VISIBLE
+    val bottomVisible =
+        hasInitializedReceiptCameraField { bottomReviewButton } &&
+            bottomReviewButton.visibility == View.VISIBLE
+    val visible = topVisible || bottomVisible
+    val enabled =
+        (topVisible && doneButton.isEnabled) ||
+            (bottomVisible && bottomReviewButton.isEnabled)
     return controlStatus(visible, enabled)
 }
 

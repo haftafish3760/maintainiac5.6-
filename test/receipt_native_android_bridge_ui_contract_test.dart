@@ -260,10 +260,14 @@ void main() {
     expect(
       cameraActivity,
       contains(
-        'hasInitializedReceiptCameraField { bottomReviewButton } &&\n'
-        '        bottomReviewButton.visibility == View.VISIBLE &&\n'
-        '        bottomReviewButton.isEnabled',
+        'internal fun ReceiptCameraActivity.reviewNextControlReady(): Boolean',
       ),
+    );
+    expect(cameraActivity, contains('doneButton.visibility == View.VISIBLE'));
+    expect(cameraActivity, contains('bottomReviewButton.visibility == View.VISIBLE'));
+    expect(
+      cameraActivity,
+      contains('internal fun ReceiptCameraActivity.reviewNextControlActualStatus(): String'),
     );
     expect(cameraActivity, contains('return controls.joinToString("|")'));
     expect(
