@@ -32,7 +32,7 @@ Current phase order:
 8. Storage proof decision.
 9. Milestone validation.
 
-Current active phase: Phase 5, Long receipt capture.
+Current active phase: Phase 6, Stitching handoff.
 
 Phase 2 acceptance rules:
 

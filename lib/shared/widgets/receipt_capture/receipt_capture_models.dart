@@ -25,6 +25,7 @@ part 'receipt_capture_review_result_helper_diagnostics.dart';
 part 'receipt_capture_review_result_settings_health.dart';
 part 'receipt_capture_stitch_pair_models.dart';
 part 'receipt_capture_stitch_models.dart';
+part 'receipt_capture_stitch_model_helpers.dart';
 part 'receipt_camera_result_models.dart';
 part 'receipt_camera_result_diagnostics.dart';
 part 'receipt_photo_quality_models.dart';

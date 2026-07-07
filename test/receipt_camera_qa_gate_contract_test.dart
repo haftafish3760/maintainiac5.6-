@@ -15,22 +15,23 @@ void main() {
       expect(
         result.stderr.toString(),
         contains(
-          'Usage: tool/receipt_start_camera_qa_gate.sh [phase2|phase3|phase4|phase5|quick|stitch|milestone|full]',
+          'Usage: tool/receipt_start_camera_qa_gate.sh [phase2|phase3|phase4|phase5|phase6|quick|stitch|milestone|full]',
         ),
       );
     },
   );
 
-  test('camera QA gate exposes phase2 phase3 phase4 phase5 quick stitch milestone and full modes', () {
+  test('camera QA gate exposes phase2 phase3 phase4 phase5 phase6 quick stitch milestone and full modes', () {
     final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
 
     expect(script, contains('--print-plan'));
     expect(script, contains(r'mode="${1:-milestone}"'));
-    expect(script, contains('phase2 | phase3 | phase4 | phase5 | quick | stitch | milestone | full'));
+    expect(script, contains('phase2 | phase3 | phase4 | phase5 | phase6 | quick | stitch | milestone | full'));
     expect(script, contains('run_phase2'));
     expect(script, contains('run_phase3'));
     expect(script, contains('run_phase4'));
     expect(script, contains('run_phase5'));
+    expect(script, contains('run_phase6'));
     expect(script, contains('run_quick'));
     expect(script, contains('run_stitch'));
     expect(script, contains('run_milestone'));
@@ -39,6 +40,7 @@ void main() {
     expect(script, contains('phase3_tests=('));
     expect(script, contains('phase4_tests=('));
     expect(script, contains('phase5_tests=('));
+    expect(script, contains('phase6_tests=('));
     expect(script, contains('stitch_tests=('));
     expect(script, contains('milestone_only_tests=('));
     expect(script, contains('full_only_tests=('));
@@ -48,6 +50,8 @@ void main() {
     expect(script, contains('test/receipt_photo_review_exit_completion_test.dart'));
     expect(script, contains('test/receipt_camera_phase5_long_receipt_contract_test.dart'));
     expect(script, contains('test/receipt_photo_review_retake_order_test.dart'));
+    expect(script, contains('test/receipt_camera_phase6_stitching_handoff_contract_test.dart'));
+    expect(script, contains('test/receipt_stitching_result_contract_test.dart'));
     expect(script, contains('test/receipt_native_camera_shell_test.dart'));
     expect(script, contains('test/receipt_camera_result_test.dart'));
     expect(
@@ -210,7 +214,7 @@ void main() {
     ).readAsStringSync();
 
     expect(script, contains(r'mode="${1:-milestone}"'));
-    expect(script, contains('phase2 | phase3 | phase4 | phase5 | quick | stitch | milestone | full'));
+    expect(script, contains('phase2 | phase3 | phase4 | phase5 | phase6 | quick | stitch | milestone | full'));
     expect(script, contains(r'receipt_camera_qa_${mode}'));
     expect(script, contains('tool/receipt_quiet_batch.sh'));
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
@@ -227,6 +231,7 @@ void main() {
     expect(summary, contains('receipt_camera_qa_phase3'));
     expect(summary, contains('receipt_camera_qa_phase4'));
     expect(summary, contains('receipt_camera_qa_phase5'));
+    expect(summary, contains('receipt_camera_qa_phase6'));
     expect(summary, contains('receipt_camera_qa_quick'));
     expect(summary, contains('receipt_camera_qa_stitch'));
     expect(summary, contains('receipt_camera_qa_milestone'));
@@ -238,6 +243,7 @@ void main() {
     expect(summary, contains('failure_phase="camera_phase3_gate"'));
     expect(summary, contains('failure_phase="camera_phase4_gate"'));
     expect(summary, contains('failure_phase="camera_phase5_gate"'));
+    expect(summary, contains('failure_phase="camera_phase6_gate"'));
     expect(summary, contains('failure_phase="camera_quick_gate"'));
     expect(summary, contains('failure_phase="camera_stitch_gate"'));
     expect(summary, contains('failure_phase="camera_milestone_gate"'));
