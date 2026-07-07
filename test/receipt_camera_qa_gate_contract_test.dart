@@ -79,6 +79,10 @@ void main() {
     );
     expect(script, contains('test/receipt_external_dataset_gate_test.dart'));
     expect(script, contains('test/receipt_photo_section_labels_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_camera_real_device_snapshot_contract_test.dart'),
+    );
     expect(script, contains('test/receipt_camera_qa_gate_execution_test.dart'));
     expect(
       script,
