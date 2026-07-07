@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  cat <<'EOF'
+Usage: tool/receipt_camera_real_device_snapshot.sh [output_dir]
+
+Records metadata-only connected-device state for the receipt camera lane.
+This does not install, launch, tap, or navigate any device UI.
+EOF
+  exit 0
+fi
+
 out_dir="${1:-/tmp/maintainiac_receipt_camera_device_snapshot}"
 mkdir -p "$out_dir"
 

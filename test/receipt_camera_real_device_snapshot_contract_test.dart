@@ -18,6 +18,11 @@ void main() {
         script,
         contains('/tmp/maintainiac_receipt_camera_device_snapshot'),
       );
+      expect(script, contains('Usage: tool/receipt_camera_real_device_snapshot.sh [output_dir]'));
+      expect(
+        script,
+        contains('This does not install, launch, tap, or navigate any device UI.'),
+      );
       expect(
         script,
         contains('do not treat this metadata snapshot as capture proof'),
