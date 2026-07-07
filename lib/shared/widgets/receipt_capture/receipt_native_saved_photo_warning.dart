@@ -150,9 +150,9 @@ class ReceiptNativeSavedPhotoReviewWarning {
         return const ReceiptNativeSavedPhotoReviewWarning(
           code: 'saved_photo_glare_risk',
           severity: ReceiptNativeSavedPhotoWarningSeverity.warning,
-        title: 'Photo may have glare',
-        causeCode: 'saved_photo_glare_or_too_bright',
-        guidance:
+          title: 'Photo may have glare',
+          causeCode: 'saved_photo_glare_or_too_bright',
+          guidance:
               'Tilt the receipt or lighting, retake if totals are washed out, or use the photo if the text is readable.',
         );
       }
@@ -178,6 +178,7 @@ class ReceiptNativeSavedPhotoReviewWarning {
       );
     }
     if (readabilitySignal == 'dirty_lens_or_haze') {
+      if (edgeScore == null) return null;
       if (_isClearEnoughAfterLensWarning(edgeScore)) return null;
       return const ReceiptNativeSavedPhotoReviewWarning(
         code: 'saved_photo_dirty_lens_or_haze',
@@ -189,6 +190,7 @@ class ReceiptNativeSavedPhotoReviewWarning {
       );
     }
     if (readabilitySignal == 'shadow_risk') {
+      if (averageLuma == null || edgeScore == null) return null;
       if (_isBorderlineDimButReadable(averageLuma, edgeScore)) return null;
       return const ReceiptNativeSavedPhotoReviewWarning(
         code: 'saved_photo_shadow_risk',

@@ -143,4 +143,50 @@ void main() {
       1,
     );
   });
+
+  test('bare readability advisories do not create saved-photo warnings', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/advisory-shadow.jpg', '/tmp/advisory-haze.jpg'],
+      ocrSourcePhotoPaths: const [
+        '/tmp/advisory-shadow-ocr.jpg',
+        '/tmp/advisory-haze-ocr.jpg',
+      ],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.notNeeded([
+        '/tmp/advisory-shadow-ocr.jpg',
+        '/tmp/advisory-haze-ocr.jpg',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/advisory-shadow.jpg': {'latestReadabilitySignal': 'shadow_risk'},
+        '/tmp/advisory-haze.jpg': {
+          'latestReadabilitySignal': 'dirty_lens_or_haze',
+        },
+      },
+    );
+
+    expect(result.savedPhotoWarningCodes, isEmpty);
+    expect(result.acceptedPhotoWarningProfile, 'saved_photo_ok');
+    expect(result.hasSavedPhotoQualityWarning, isFalse);
+  });
+
+  test('shadow advisory needs captured luma and edge evidence', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/shadow.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/shadow-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/shadow-ocr.jpg']),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/shadow.jpg': {
+          'latestReadabilitySignal': 'shadow_risk',
+          'latestCapturedAverageLuma': 82.0,
+          'latestCapturedEdgeScore': 6.0,
+        },
+      },
+    );
+
+    expect(result.savedPhotoWarningCodes, ['saved_photo_shadow_risk']);
+    expect(result.savedPhotoWarningCauseCounts, {
+      'uneven_shadow_over_receipt_text': 1,
+    });
+  });
 }
