@@ -115,7 +115,9 @@ void main() {
     expect(cameraActivity, contains('text = "Add Photo"'));
     expect(cameraActivity, contains('"Use Photos"'));
     expect(cameraActivity, contains('"manual_add_photo"'));
-    expect(cameraActivity, contains(r'"Use $count Photos"'));
+    expect(cameraActivity, contains(r'else -> "Next ($count)"'));
+    expect(cameraActivity, contains('row.addView(addPhotoButton)'));
+    expect(cameraActivity, contains('row.addView(bottomReviewButton)'));
     expect(
       cameraActivity,
       contains('contentDescription = "Use captured receipt photos"'),
@@ -184,6 +186,10 @@ void main() {
     expect(cameraActivity, contains('bottomReviewButton.isEnabled = false'));
     expect(
       cameraActivity,
+      contains('bottomReviewButton.visibility = if (capturedPhotoPaths.isEmpty())'),
+    );
+    expect(
+      cameraActivity,
       contains('setOnClickListener { finishWithCapturedPhotos() }'),
     );
     expect(cameraActivity, contains('if (closeResultDelivered) {'));
@@ -231,6 +237,20 @@ void main() {
     expect(
       cameraActivity,
       contains('internal fun ReceiptCameraActivity.addSectionButtonTitle()'),
+    );
+    expect(cameraActivity, contains('addPhotoButton.visibility = if ('));
+    expect(cameraActivity, contains('!longReceiptMode'));
+    expect(cameraActivity, contains('capturedPhotoPaths.size >= maxSectionCount'));
+    expect(cameraActivity, contains('0 -> "Next"'));
+    expect(cameraActivity, contains('1 -> "Next"'));
+    expect(cameraActivity, contains(r'else -> "Next ($count)"'));
+    expect(
+      cameraActivity,
+      contains('doneButton.contentDescription =\n        "Next: review captured receipt photos in Maintainiac"'),
+    );
+    expect(
+      cameraActivity,
+      contains('bottomReviewButton.contentDescription =\n            "Next: review captured receipt photos in Maintainiac"'),
     );
     expect(cameraActivity, contains('top ghost slice'));
     expect(cameraActivity, isNot(contains('tap Done')));

@@ -216,6 +216,7 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
         setOnClickListener { capturePhoto("manual_add_photo") }
         layoutParams = LinearLayout.LayoutParams(0, dp(54), 1f)
     }
+    row.addView(addPhotoButton)
     val leftSpacer = View(this)
     row.addView(leftSpacer, LinearLayout.LayoutParams(0, 1, 1f))
     shutterButton = ImageButton(this).apply {
@@ -240,6 +241,7 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
         setOnClickListener { finishWithCapturedPhotos() }
         layoutParams = LinearLayout.LayoutParams(0, dp(54), 1f)
     }
+    row.addView(bottomReviewButton)
     return row
 }
 

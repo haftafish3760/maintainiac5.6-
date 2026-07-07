@@ -45,16 +45,24 @@ internal fun ReceiptCameraActivity.updateDoneButton() {
     doneButton.isEnabled = capturedPhotoPaths.isNotEmpty()
     val count = capturedPhotoPaths.size
     val title = when (count) {
-        0 -> "Use Photos"
-        1 -> "Use Photo"
-        else -> "Use $count Photos"
+        0 -> "Next"
+        1 -> "Next"
+        else -> "Next ($count)"
     }
     doneButton.text = title
     doneButton.contentDescription =
-        "Use captured receipt photos"
+        "Next: review captured receipt photos in Maintainiac"
     if (hasInitializedReceiptCameraField { addPhotoButton }) {
-        addPhotoButton.visibility = View.GONE
-        addPhotoButton.isEnabled = false
+        addPhotoButton.visibility = if (
+            capturedPhotoPaths.isEmpty() ||
+            !longReceiptMode ||
+            capturedPhotoPaths.size >= maxSectionCount
+        ) {
+            View.GONE
+        } else {
+            View.VISIBLE
+        }
+        addPhotoButton.isEnabled = addPhotoButton.visibility == View.VISIBLE
         addPhotoButton.text = addSectionButtonTitle()
         addPhotoButton.contentDescription = addSectionButtonAccessibilityLabel()
     }
@@ -62,15 +70,15 @@ internal fun ReceiptCameraActivity.updateDoneButton() {
         shutterButton.contentDescription = "Take receipt photo"
     }
     if (hasInitializedReceiptCameraField { bottomReviewButton }) {
-        bottomReviewButton.visibility = View.GONE
-        bottomReviewButton.isEnabled = false
-        bottomReviewButton.text = when (count) {
-            0 -> "Use Photos"
-            1 -> "Use Photo"
-            else -> "Use $count Photos"
+        bottomReviewButton.visibility = if (capturedPhotoPaths.isEmpty()) {
+            View.GONE
+        } else {
+            View.VISIBLE
         }
+        bottomReviewButton.isEnabled = capturedPhotoPaths.isNotEmpty()
+        bottomReviewButton.text = title
         bottomReviewButton.contentDescription =
-            "Use captured receipt photos"
+            "Next: review captured receipt photos in Maintainiac"
     }
     updateSettingsStatusStrip()
 }

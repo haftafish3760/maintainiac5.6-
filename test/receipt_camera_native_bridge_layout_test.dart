@@ -58,7 +58,9 @@ void main() {
     expect(androidCameraUnit, contains('text = "Use Photos"'));
     expect(androidCameraUnit, contains('text = "Add Photo"'));
     expect(androidCameraUnit, contains('"manual_add_photo"'));
-    expect(androidCameraUnit, contains(r'"Use $count Photos"'));
+    expect(androidCameraUnit, contains(r'else -> "Next ($count)"'));
+    expect(androidCameraUnit, contains('row.addView(addPhotoButton)'));
+    expect(androidCameraUnit, contains('row.addView(bottomReviewButton)'));
     expect(
       androidCameraUnit,
       contains('Saving this receipt photo before opening review.'),
@@ -94,13 +96,9 @@ void main() {
     expect(iosCameraUnit, contains('Match the next section'));
     expect(iosCameraUnit, contains('latestCapturedBottomTopLumaDelta'));
     expect(iosCameraUnit, contains('latestCapturedBottomTopLumaDeltaBucket'));
-    expect(iosCameraUnit, contains('setTitle("Use Photos", for: .normal)'));
-    expect(iosCameraUnit, contains('setTitle("Add Photo", for: .normal)'));
+    expect(iosCameraUnit, contains('let addPhotoButton = UIButton(type: .system)'));
+    expect(iosCameraUnit, contains('let bottomReviewButton = UIButton(type: .system)'));
     expect(iosCameraUnit, contains('captureAdditionalPhoto'));
-    expect(
-      iosCameraUnit,
-      contains('Next (\\(capturedPhotoPaths.count) photos)'),
-    );
     expect(
       iosCameraUnit,
       contains('Saving this receipt photo before opening review.'),
