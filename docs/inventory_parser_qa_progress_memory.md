@@ -4272,3 +4272,12 @@ Release boundaries:
   `build/parser_qa_reports/generated_fixtures/brass_26_single_chunk_20260707_0355`.
   The readiness audit now treats flare as explicit connection context, and brass
   fittings/adapters can be counted as focused-parser-evidence-covered.
+- **04:15-04:36 Pipe Supports Evidence Lock:** Added focused support/protection
+  recipes for pipe straps, split-ring hangers, bell hangers, stud guard plates,
+  and pipe insulation, plus a generator isolation regression for
+  `--include-risk-tags pipe_supports`. The 26-case pipe-support single-chunk
+  generated parser probe passed with 26 checked, 0 failures, and 26 parser calls
+  at
+  `build/parser_qa_reports/generated_fixtures/pipe_supports_26_single_chunk_20260707_0420`.
+  Pipe supports and protection can now be counted as focused-parser-evidence-
+  covered by the Plumbing Core readiness audit.

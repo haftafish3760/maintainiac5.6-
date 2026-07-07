@@ -526,6 +526,7 @@ int _score(List<String> issues, List<String> warnings) {
 
 bool _looksSpecialOrder(String text) {
   if (_hasAny(text, [
+    'stud guard',
     'tailpiece',
     'tubular extension tube',
     'extension tube',
@@ -648,6 +649,7 @@ const _familiesWithFocusedParserEvidence = {
   'cpvc fittings and valves',
   'legacy repair bridges',
   'pex fittings and valves',
+  'pipe supports and protection',
   'push-fit fittings and valves',
   'pvc dwv fittings and access',
   'pvc pressure fittings',

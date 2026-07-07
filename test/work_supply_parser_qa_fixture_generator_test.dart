@@ -816,6 +816,65 @@ void main() {
     expect(_riskTags(manifest), isNot(contains('sump_discharge')));
   });
 
+  test(
+    'fixture generator can isolate pipe supports Plumbing Core family',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_fixture_generator_plumbing_pipe_support_filter_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+
+      final exit = await runWorkSupplyParserFixtureGenerator(
+        [
+          '--trade',
+          'plumbing',
+          '--scope',
+          'residential',
+          '--tier',
+          'core',
+          '--locale',
+          'en-US',
+          '--limit',
+          '26',
+          '--include-risk-tags',
+          'pipe_supports',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 0);
+      final generatedRoot = Directory(
+        '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+      );
+      final fixtures =
+          jsonDecode(
+                File(
+                  '${generatedRoot.path}/generated_fixtures.json',
+                ).readAsStringSync(),
+              )
+              as List;
+      final manifest =
+          jsonDecode(
+                File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+              )
+              as Map;
+
+      expect(fixtures, hasLength(26));
+      expect(manifest['includeRiskTags'], ['pipe_supports']);
+      final ids = _fixtureIds(fixtures);
+      expect(ids, contains('pipe_support_strap'));
+      expect(ids, contains('pipe_support_split_ring'));
+      expect(ids, contains('pipe_support_bell_hanger'));
+      expect(ids, contains('pipe_support_stud_guard'));
+      expect(ids, contains('pipe_support_insulation'));
+      expect(_riskTags(manifest), contains('pipe_supports'));
+      expect(_riskTags(manifest), isNot(contains('brass_fittings')));
+    },
+  );
+
   test('fixture generator rejects unsafe empty batches', () async {
     final stderr = _MemorySink();
     final exit = await runWorkSupplyParserFixtureGenerator(
