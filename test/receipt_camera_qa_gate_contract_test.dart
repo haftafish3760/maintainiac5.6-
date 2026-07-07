@@ -104,6 +104,13 @@ void main() {
     expect(summary, contains('failure_phase="camera_quick_gate"'));
     expect(summary, contains('failure_phase="camera_milestone_gate"'));
     expect(summary, contains('failure_phase="camera_full_gate"'));
+    expect(summary, contains(r'actionable_pattern='));
+    expect(summary, contains(r'\[E\]|To run this test again'));
+    expect(summary, contains('|| true'));
+    expect(
+      summary,
+      contains('summary_detail=no_actionable_patterns_found_showing_log_tail'),
+    );
     expect(summary, contains('tail -80'));
     expect(fastGuard, contains('tool/receipt_camera_scope_gate.sh'));
     expect(fastGuard, contains('tool/receipt_camera_changed_gate.sh'));

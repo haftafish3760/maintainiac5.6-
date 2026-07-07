@@ -56,14 +56,16 @@ fi
 
 echo "summary=failed_actionable_lines"
 echo "regression_task_command=tool/receipt_camera_failure_to_regression.sh $failure_phase $log_file"
+actionable_pattern='\[E\]|To run this test again|Expected:|Actual:|Which:|Some tests failed|Error:|FAIL|failed'
 if command -v rg >/dev/null 2>&1; then
-  rg -n \
-    '\\[E\\]|To run this test again|Expected:|Actual:|Which:|Some tests failed|Error:|FAIL|failed' \
-    "$log_file" |
-    tail -80
+  actionable_lines="$(rg -n "$actionable_pattern" "$log_file" || true)"
 else
-  grep -En \
-    '\\[E\\]|To run this test again|Expected:|Actual:|Which:|Some tests failed|Error:|FAIL|failed' \
-    "$log_file" |
-    tail -80
+  actionable_lines="$(grep -En "$actionable_pattern" "$log_file" || true)"
+fi
+
+if [[ -n "$actionable_lines" ]]; then
+  printf '%s\n' "$actionable_lines" | tail -80
+else
+  echo "summary_detail=no_actionable_patterns_found_showing_log_tail"
+  tail -80 "$log_file"
 fi
