@@ -4264,3 +4264,11 @@ Release boundaries:
   `build/parser_qa_reports/generated_fixtures/sump_discharge_8_single_chunk_20260707_0335`.
   Sump pump discharge service can now be counted as focused-parser-evidence-
   covered by the Plumbing Core readiness audit.
+- **03:50-04:10 Brass Fittings Evidence Lock:** Added focused brass recipes for
+  male/female adapters, bushings, compression adapters/unions, flare fittings,
+  and barb fittings, plus a generator isolation regression for
+  `--include-risk-tags brass_fittings`. The 26-case brass single-chunk generated
+  parser probe passed with 26 checked, 0 failures, and 26 parser calls at
+  `build/parser_qa_reports/generated_fixtures/brass_26_single_chunk_20260707_0355`.
+  The readiness audit now treats flare as explicit connection context, and brass
+  fittings/adapters can be counted as focused-parser-evidence-covered.

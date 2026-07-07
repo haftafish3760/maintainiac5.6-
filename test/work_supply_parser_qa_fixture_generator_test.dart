@@ -758,6 +758,64 @@ void main() {
     },
   );
 
+  test('fixture generator can isolate brass Plumbing Core family', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_plumbing_brass_filter_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'plumbing',
+        '--scope',
+        'residential',
+        '--tier',
+        'core',
+        '--locale',
+        'en-US',
+        '--limit',
+        '26',
+        '--include-risk-tags',
+        'brass_fittings',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final generatedRoot = Directory(
+      '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+    );
+    final fixtures =
+        jsonDecode(
+              File(
+                '${generatedRoot.path}/generated_fixtures.json',
+              ).readAsStringSync(),
+            )
+            as List;
+    final manifest =
+        jsonDecode(
+              File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+            )
+            as Map;
+
+    expect(fixtures, hasLength(26));
+    expect(manifest['includeRiskTags'], ['brass_fittings']);
+    final ids = _fixtureIds(fixtures);
+    expect(ids, contains('brass_male_adapter'));
+    expect(ids, contains('brass_female_adapter'));
+    expect(ids, contains('brass_bushing'));
+    expect(ids, contains('brass_compression_adapter'));
+    expect(ids, contains('brass_compression_union'));
+    expect(ids, contains('brass_flare_fitting'));
+    expect(ids, contains('brass_barb_fitting'));
+    expect(_riskTags(manifest), contains('brass_fittings'));
+    expect(_riskTags(manifest), isNot(contains('sump_discharge')));
+  });
+
   test('fixture generator rejects unsafe empty batches', () async {
     final stderr = _MemorySink();
     final exit = await runWorkSupplyParserFixtureGenerator(

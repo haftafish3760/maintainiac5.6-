@@ -643,6 +643,7 @@ int _min(int left, int right) => left < right ? left : right;
 
 const _familiesWithFocusedParserEvidence = {
   'angle stops and supply lines',
+  'brass fittings and adapters',
   'copper fittings and valves',
   'cpvc fittings and valves',
   'legacy repair bridges',
@@ -800,6 +801,7 @@ const _connections = [
   'connector',
   'corrugated',
   'crimp',
+  'flare',
   'female',
   'fip',
   'hose',
