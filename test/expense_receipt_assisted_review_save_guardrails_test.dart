@@ -27,7 +27,7 @@ void main() {
     expect(
       parseReview,
       contains(
-        'Your receipt proof is saved. Maintainiac uses the clearest OCR source before the storage-saving proof copy; next it opens receipt details.',
+        'Your receipt proof is saved. Maintainiac is still reading the clearest OCR source before the storage-saving proof copy. Keep this screen open until receipt details finish opening.',
       ),
     );
     expect(parseReview, contains('Receipt Details Ready'));

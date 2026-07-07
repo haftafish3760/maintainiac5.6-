@@ -253,6 +253,10 @@ void main() {
     );
     expect(parseReview, contains('Add or retake receipt photos'));
     expect(parseReview, contains('Use this only if a section is missing'));
+    expect(parseReview, contains('manualReviewOnly'));
+    expect(parseReview, contains('Manual receipt review stays below.'));
+    expect(parseReview, contains("'Open Manual Review'"));
+    expect(parseReview, contains("'Back To Review'"));
     expect(entryScreen, contains("return 'Checking photo';"));
     expect(
       entryScreen,
@@ -302,6 +306,14 @@ void main() {
       contains(
         "_receiptReadHandoffStage = 'Receipt details need manual entry'",
       ),
+    );
+    expect(
+      entryScreen,
+      contains('bool get _receiptRecoveryNeedsManualReviewOnly'),
+    );
+    expect(
+      entryScreen,
+      contains('manualReviewOnly: _receiptRecoveryNeedsManualReviewOnly'),
     );
     expect(entryScreen, contains('Review parsed store, date, tax, and totals'));
     expect(stateActions, contains('_lastReceiptParseCompleted = false;'));

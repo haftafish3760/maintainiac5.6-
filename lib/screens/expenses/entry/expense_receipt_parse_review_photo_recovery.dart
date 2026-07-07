@@ -6,12 +6,14 @@ class _ReceiptPhotoRecoveryPanel extends StatelessWidget {
     required this.onReviewDetails,
     required this.missingBottomSection,
     required this.missingBottomEdgeAndTotals,
+    required this.manualReviewOnly,
   });
 
   final Widget child;
   final VoidCallback onReviewDetails;
   final bool missingBottomSection;
   final bool missingBottomEdgeAndTotals;
+  final bool manualReviewOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +40,8 @@ class _ReceiptPhotoRecoveryPanel extends StatelessWidget {
               ? 'Add bottom receipt section'
               : missingBottomSection
               ? 'Add bottom receipt section'
+              : manualReviewOnly
+              ? 'Retake or add receipt photos'
               : 'Add or retake receipt photos',
           style: TextStyle(
             color: Colors.white,
@@ -51,6 +55,8 @@ class _ReceiptPhotoRecoveryPanel extends StatelessWidget {
               ? 'Bottom edge and subtotal/total lines were not found together. Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice so subtotal, total, and final lines can be matched.'
               : missingBottomSection
               ? 'Subtotal/total lines were not found. Add the lower section if the receipt continues; your filled review stays below.'
+              : manualReviewOnly
+              ? 'Use this only if the saved receipt is blurry, incomplete, or unreadable. Manual receipt review stays below.'
               : 'Use this only if a section is missing, blurry, or out of order. Your filled receipt review stays below.',
           style: TextStyle(
             color: Color(0xFFC8D0D3),
@@ -69,7 +75,9 @@ class _ReceiptPhotoRecoveryPanel extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: onReviewDetails,
                     icon: const Icon(Icons.fact_check_rounded),
-                    label: const Text('Back To Review'),
+                    label: Text(
+                      manualReviewOnly ? 'Open Manual Review' : 'Back To Review',
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF8EF6A4),
                       side: const BorderSide(color: Color(0xFF8EF6A4)),

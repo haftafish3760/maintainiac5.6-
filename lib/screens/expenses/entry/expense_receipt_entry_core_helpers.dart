@@ -41,6 +41,18 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
                 )));
   }
 
+  bool get _receiptRecoveryNeedsManualReviewOnly {
+    if (!_shouldShowCollapsedReceiptPhotoRecovery) return false;
+    final decision = _receiptReadHandoffDecision.toLowerCase().trim();
+    final stage = _receiptReadHandoffStage.toLowerCase().trim();
+    final routeResult = _receiptReadHandoffRouteResult.toLowerCase().trim();
+    return _receiptReadAttemptedWithoutText ||
+        decision.contains('open manual receipt details') ||
+        stage.contains('manual entry') ||
+        routeResult.contains('manual receipt line review') ||
+        routeResult.contains('no readable text');
+  }
+
   int get _unreviewedParsedLineCount {
     return _lines.where((line) => line.parserNeedsReview).length;
   }

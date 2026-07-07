@@ -174,6 +174,7 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                   missingBottomEdgeAndTotals:
                       _lastOcrDiagnostics?.receiptMissingBottomEdgeAndTotals ==
                       true,
+                  manualReviewOnly: _receiptRecoveryNeedsManualReviewOnly,
                   child: receiptAttachmentPanel,
                 ),
               ),
