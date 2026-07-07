@@ -4281,3 +4281,14 @@ Release boundaries:
   `build/parser_qa_reports/generated_fixtures/pipe_supports_26_single_chunk_20260707_0420`.
   Pipe supports and protection can now be counted as focused-parser-evidence-
   covered by the Plumbing Core readiness audit.
+- **04:43-05:25 General Valves Probe and Repair:** Added focused valve recipes
+  for PVC/threaded/general ball valves, gate valves, check valves, pressure
+  reducing valves, hose bibbs, frost-free sillcocks, vacuum breakers, and hose
+  bibb repair parts. The first 43-case run exposed over-broad shutoff/frost-free
+  fixture wording plus a vacuum-breaker repair precedence issue. Tightened those
+  fixtures and added a direct hose-bibb repair-part route before generic vacuum
+  breaker matching. The corrected 43-case single-chunk run passed with
+  43 checked, 0 failures, and 43 parser calls at
+  `build/parser_qa_reports/generated_fixtures/general_valves_43_single_chunk_20260707_0510`.
+  General valves and hose bibbs can now be counted as focused-parser-evidence-
+  covered by the Plumbing Core readiness audit.

@@ -5,7 +5,43 @@ WorkSupplyItem? _directPlumbingFastMatch(String text) {
       _directPlumbingPexServiceFittingMatch(text) ??
       _directPlumbingWaterTreatmentMatch(text) ??
       _directPlumbingRepairKitMatch(text) ??
+      _directPlumbingHoseBibbRepairPartMatch(text) ??
       _directPlumbingHandToolMatch(text);
+}
+
+WorkSupplyItem? _directPlumbingHoseBibbRepairPartMatch(String text) {
+  final wantedName = switch (text) {
+    final value when RegExp(r'\bhose\s+bibb\s+washer\b').hasMatch(value) =>
+      'hose bibb washer',
+    final value when RegExp(r'\bhose\s+washer\b').hasMatch(value) =>
+      'hose washer',
+    final value when RegExp(r'\bsillcock\s+stem\s+packing\b').hasMatch(value) =>
+      'sillcock stem packing',
+    final value when RegExp(r'\bsillcock\s+handle\s+screw\b').hasMatch(value) =>
+      'sillcock handle screw',
+    final value when RegExp(r'\bsillcock\s+packing\s+nut\b').hasMatch(value) =>
+      'sillcock packing nut',
+    final value
+        when RegExp(r'\bfrost\s+free\s+stem\s+washer\b').hasMatch(value) =>
+      'frost free stem washer',
+    final value
+        when RegExp(
+          r'\bfrost\s+free\s+vacuum\s+breaker\s+kit\b',
+        ).hasMatch(value) =>
+      'frost free vacuum breaker kit',
+    final value
+        when RegExp(
+          r'\banti[-\s]*siphon\s+vacuum\s+breaker\s+kit\b',
+        ).hasMatch(value) =>
+      'anti-siphon vacuum breaker kit',
+    final value when RegExp(r'\bvacuum\s+breaker\s+cap\b').hasMatch(value) =>
+      'vacuum breaker cap',
+    final value when RegExp(r'\bvacuum\s+breaker\s+washer\b').hasMatch(value) =>
+      'vacuum breaker washer',
+    _ => null,
+  };
+  if (wantedName == null) return null;
+  return _firstPlumbingItemNamed(wantedName, ['hose bibb repair part']);
 }
 
 WorkSupplyItem? _directPlumbingPvcDwvMatch(String text) {

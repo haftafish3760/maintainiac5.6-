@@ -214,8 +214,21 @@ _IdentityCompleteness _identityCompleteness(WorkSupplyItem item, String text) {
         _isStopValveConnectionText(text) ||
         _isTubularDrainAdapterText(text) ||
         _isDwvAdapterConnectionText(text) ||
+        _isGeneralValveConnectionText(text) ||
         _isSolventWeldPressureFittingText(text),
   );
+}
+
+bool _isGeneralValveConnectionText(String text) {
+  return _hasAny(text, [
+    'ball valve',
+    'check valve',
+    'gate valve',
+    'hose bibb',
+    'pressure reducing valve',
+    'sillcock',
+    'vacuum breaker',
+  ]);
 }
 
 bool _isDwvAdapterConnectionText(String text) {
@@ -376,6 +389,12 @@ String _parserEvidenceStatus(WorkSupplyItem item, String text, String family) {
 String _classifyFamily(String text) {
   if (_hasAnySignal(text, ['j-hook', 'plumbing hand tool'])) {
     return 'service consumables and tools';
+  }
+  if (_hasAnySignal(text, ['sump pump discharge part'])) {
+    return 'sump pump discharge service';
+  }
+  if (_hasAnySignal(text, ['well pump check valve', 'well pipe adapter'])) {
+    return 'well pressure service';
   }
   for (final family in _familyContracts) {
     if (_hasAnySignal(text, family.signals)) return family.name;
@@ -647,6 +666,7 @@ const _familiesWithFocusedParserEvidence = {
   'brass fittings and adapters',
   'copper fittings and valves',
   'cpvc fittings and valves',
+  'general valves and hose bibbs',
   'legacy repair bridges',
   'pex fittings and valves',
   'pipe supports and protection',

@@ -875,6 +875,67 @@ void main() {
     },
   );
 
+  test('fixture generator can isolate valve Plumbing Core family', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_plumbing_valve_filter_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'plumbing',
+        '--scope',
+        'residential',
+        '--tier',
+        'core',
+        '--locale',
+        'en-US',
+        '--limit',
+        '43',
+        '--include-risk-tags',
+        'general_valves',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final generatedRoot = Directory(
+      '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+    );
+    final fixtures =
+        jsonDecode(
+              File(
+                '${generatedRoot.path}/generated_fixtures.json',
+              ).readAsStringSync(),
+            )
+            as List;
+    final manifest =
+        jsonDecode(
+              File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+            )
+            as Map;
+
+    expect(fixtures, hasLength(43));
+    expect(manifest['includeRiskTags'], ['general_valves']);
+    final ids = _fixtureIds(fixtures);
+    expect(ids, contains('general_pvc_ball_valve'));
+    expect(ids, contains('general_threaded_ball_valve'));
+    expect(ids, contains('general_ball_valve'));
+    expect(ids, contains('general_gate_valve'));
+    expect(ids, contains('general_check_valve'));
+    expect(ids, contains('general_pressure_reducing_valve'));
+    expect(ids, contains('general_hose_bibb'));
+    expect(ids, contains('general_frost_free_sillcock'));
+    expect(ids, contains('general_vacuum_breaker'));
+    expect(ids, contains('general_hose_bibb_repair'));
+    expect(_riskTags(manifest), contains('general_valves'));
+    expect(_riskTags(manifest), isNot(contains('pipe_supports')));
+  });
+
   test('fixture generator rejects unsafe empty batches', () async {
     final stderr = _MemorySink();
     final exit = await runWorkSupplyParserFixtureGenerator(
