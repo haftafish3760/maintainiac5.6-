@@ -172,13 +172,14 @@ class _ReceiptReviewTopBar extends StatelessWidget {
                   style: const TextStyle(color: Color(0xFFE8ECEE)),
                 ),
               ),
-              const PopupMenuItem(
-                value: _ReceiptReviewMenuAction.remove,
-                child: Text(
-                  'Remove Current Photo',
-                  style: TextStyle(color: Color(0xFFE8ECEE)),
+              if (total > 1)
+                const PopupMenuItem(
+                  value: _ReceiptReviewMenuAction.remove,
+                  child: Text(
+                    'Remove Current Photo',
+                    style: TextStyle(color: Color(0xFFE8ECEE)),
+                  ),
                 ),
-              ),
             ],
           ),
         ],

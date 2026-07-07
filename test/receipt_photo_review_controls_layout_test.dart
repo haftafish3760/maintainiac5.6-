@@ -218,6 +218,12 @@ void main() {
     expect(previewControls, isNot(contains("label: 'Proof Size'")));
     expect(previewControls, isNot(contains("label: 'Add Section'")));
     expect(topBar, contains('Add Another Photo'));
+    expect(
+      topBar,
+      contains(
+        'if (total > 1)\n                const PopupMenuItem(\n                  value: _ReceiptReviewMenuAction.remove,',
+      ),
+    );
     expect(topBar, contains('Review Receipt Photo'));
     expect(previewControls, contains('Crop Current'));
     expect(
