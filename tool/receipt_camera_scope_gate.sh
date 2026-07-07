@@ -33,6 +33,7 @@ while IFS= read -r path; do
     tool/receipt_bug_regression_ledger_gate.dart | \
     tool/receipt_camera_* | \
     tool/receipt_fast_guard_gate.sh | \
+    tool/receipt_start_camera_qa_gate.sh | \
     test/receipt_fast_guard_gate_contract_test.dart)
       ;;
     *)

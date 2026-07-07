@@ -94,6 +94,11 @@ void main() {
     expect(script, contains(r'receipt_camera_qa_${mode}'));
     expect(script, contains('tool/receipt_quiet_batch.sh'));
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
+    expect(script, contains(r'cp tool/receipt_camera_qa_gate.sh "$payload"'));
+    expect(
+      script,
+      isNot(contains(r'''sed '' tool/receipt_camera_qa_gate.sh''')),
+    );
     expect(summary, contains('tool/receipt_quiet_batch_status.sh'));
     expect(summary, contains('receipt_camera_qa_quick'));
     expect(summary, contains('receipt_camera_qa_milestone'));
