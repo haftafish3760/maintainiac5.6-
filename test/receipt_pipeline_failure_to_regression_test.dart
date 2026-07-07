@@ -54,4 +54,48 @@ void main() {
       expect(text, contains('Do not close the task as an uncategorized bug.'));
     },
   );
+
+  test('camera stitch failure task keeps stitch ledger category', () async {
+    final runName =
+        'receipt_stitch_failure_to_regression_test_${DateTime.now().microsecondsSinceEpoch}';
+    final root = Directory('/tmp/maintainiac_receipt_ocr_pipeline/$runName');
+    final phaseDir = Directory('${root.path}/phases')
+      ..createSync(recursive: true);
+    final failureReport = File('${root.path}/failure_report.txt')
+      ..writeAsStringSync(
+        'FAILED_PHASE camera_stitch_gate\n'
+        'LOG ${phaseDir.path}/camera_stitch_gate.log\n',
+      );
+    final phaseLog = File('${phaseDir.path}/camera_stitch_gate.log')
+      ..writeAsStringSync('long receipt stitch contract failed\n');
+
+    addTearDown(() {
+      if (root.existsSync()) root.deleteSync(recursive: true);
+    });
+
+    final result = await Process.run('dart', [
+      'run',
+      'tool/receipt_pipeline_failure_to_regression.dart',
+      runName,
+    ]);
+    final task = File(
+      '${root.path}/regression_tasks/camera_stitch_gate_regression_task.md',
+    );
+
+    expect(failureReport.existsSync(), isTrue);
+    expect(phaseLog.existsSync(), isTrue);
+    expect(result.exitCode, 0, reason: result.stderr.toString());
+    expect(task.existsSync(), isTrue);
+
+    final text = task.readAsStringSync();
+    expect(
+      text,
+      contains('Failure family: `long_receipt_stitch_ocr_source_contracts`'),
+    );
+    expect(
+      text,
+      contains('Suggested ledger category: `ghost_overlap_stitching`'),
+    );
+    expect(text, contains('Failed phase: `camera_stitch_gate`'));
+  });
 }
