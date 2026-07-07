@@ -37,7 +37,7 @@ void main() {
       ),
     );
     expect(cameraController, contains('let bottomReviewButton'));
-    expect(cameraController, contains('topBar.addArrangedSubview(doneButton)'));
+    expect(cameraController, isNot(contains('topBar.addArrangedSubview(doneButton)')));
     expect(
       cameraController,
       contains(
@@ -323,8 +323,8 @@ void main() {
       contains('func exposureControlsVisible() -> Bool'),
     );
     expect(cameraController, contains('func reviewNextControlReady() -> Bool'));
-    expect(cameraController, contains('let topReady = !doneButton.isHidden && doneButton.isEnabled'));
     expect(cameraController, contains('let bottomReady = !bottomReviewButton.isHidden && bottomReviewButton.isEnabled'));
+    expect(cameraController, isNot(contains('let topReady = !doneButton.isHidden && doneButton.isEnabled')));
     expect(cameraController, contains('if reviewNextControlReady() {'));
     expect(
       cameraController,

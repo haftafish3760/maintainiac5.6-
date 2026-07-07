@@ -26,15 +26,11 @@ internal fun ReceiptCameraActivity.visibleControlSet(): String {
 }
 
 internal fun ReceiptCameraActivity.reviewNextControlReady(): Boolean {
-    val topReady =
-        hasInitializedReceiptCameraField { doneButton } &&
-            doneButton.visibility == View.VISIBLE &&
-            doneButton.isEnabled
     val bottomReady =
         hasInitializedReceiptCameraField { bottomReviewButton } &&
             bottomReviewButton.visibility == View.VISIBLE &&
             bottomReviewButton.isEnabled
-    return topReady || bottomReady
+    return bottomReady
 }
 
 internal fun ReceiptCameraActivity.exposureControlsVisible(): Boolean {
@@ -93,16 +89,11 @@ internal fun ReceiptCameraActivity.manualShutterControlActualStatus(): String {
 
 internal fun ReceiptCameraActivity.reviewNextControlActualStatus(): String {
     if (capturedPhotoPaths.isEmpty()) return "ready"
-    val topVisible =
-        hasInitializedReceiptCameraField { doneButton } &&
-            doneButton.visibility == View.VISIBLE
     val bottomVisible =
         hasInitializedReceiptCameraField { bottomReviewButton } &&
             bottomReviewButton.visibility == View.VISIBLE
-    val visible = topVisible || bottomVisible
-    val enabled =
-        (topVisible && doneButton.isEnabled) ||
-            (bottomVisible && bottomReviewButton.isEnabled)
+    val visible = bottomVisible
+    val enabled = bottomVisible && bottomReviewButton.isEnabled
     return controlStatus(visible, enabled)
 }
 

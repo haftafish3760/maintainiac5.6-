@@ -112,9 +112,8 @@ extension ReceiptCameraViewController {
   }
 
   func reviewNextControlReady() -> Bool {
-    let topReady = !doneButton.isHidden && doneButton.isEnabled
     let bottomReady = !bottomReviewButton.isHidden && bottomReviewButton.isEnabled
-    return topReady || bottomReady
+    return bottomReady
   }
 
   func exposureControlsVisible() -> Bool {
@@ -173,10 +172,9 @@ extension ReceiptCameraViewController {
     if capturedPhotoPaths.isEmpty {
       return "ready"
     }
-    let topVisible = !doneButton.isHidden
     let bottomVisible = !bottomReviewButton.isHidden
-    let visible = topVisible || bottomVisible
-    let enabled = (topVisible && doneButton.isEnabled) || (bottomVisible && bottomReviewButton.isEnabled)
+    let visible = bottomVisible
+    let enabled = bottomVisible && bottomReviewButton.isEnabled
     return controlStatus(visible: visible, enabled: enabled)
   }
 

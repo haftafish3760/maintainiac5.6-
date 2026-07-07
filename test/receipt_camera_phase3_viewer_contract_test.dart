@@ -68,8 +68,8 @@ void main() {
     expect(cameraActivity, contains('text = "Done"'));
     expect(cameraActivity, contains('text = "Add Photo"'));
     expect(cameraActivity, contains('visibility = View.GONE'));
-    expect(cameraActivity, contains('doneButton = Button(this).apply {'));
     expect(cameraActivity, contains('bottomReviewButton = Button(this).apply {'));
+    expect(cameraActivity, isNot(contains('topBar.addView(doneButton)')));
     expect(
       cameraActivity,
       contains('WindowInsetsCompat.Type.displayCutout()'),
@@ -100,9 +100,9 @@ void main() {
     expect(cameraController, contains('shutterButton.layer.cornerRadius = 36'));
     expect(cameraController, contains('shutterButton.widthAnchor.constraint(equalToConstant: 72)'));
     expect(cameraController, contains('shutterButton.heightAnchor.constraint(equalToConstant: 72)'));
-    expect(cameraController, contains('doneButton.isHidden = true'));
     expect(cameraController, contains('addPhotoButton.isHidden = true'));
     expect(cameraController, contains('bottomReviewButton.isHidden = true'));
+    expect(cameraController, isNot(contains('topBar.addArrangedSubview(doneButton)')));
     expect(
       cameraController,
       contains('topBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6)'),

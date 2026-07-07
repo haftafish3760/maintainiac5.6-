@@ -172,8 +172,8 @@ extension ReceiptCameraViewController {
   }
 
   func updateDoneButton() {
-    doneButton.isHidden = capturedPhotoPaths.isEmpty
-    doneButton.isEnabled = !capturedPhotoPaths.isEmpty
+    doneButton.isHidden = true
+    doneButton.isEnabled = false
     let title: String
     if capturedPhotoPaths.isEmpty {
       title = "Done"

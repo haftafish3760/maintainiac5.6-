@@ -112,7 +112,7 @@ void main() {
     expect(cameraActivity, isNot(contains('FocusMeteringAction')));
     expect(cameraActivity, isNot(contains('startFocusAndMetering')));
     expect(cameraActivity, contains('text = "Done"'));
-    expect(cameraActivity, contains('topBar.addView(doneButton)'));
+    expect(cameraActivity, isNot(contains('topBar.addView(doneButton)')));
     expect(cameraActivity, contains('text = "Add Photo"'));
     expect(cameraActivity, isNot(contains('"Use Photos"')));
     expect(cameraActivity, contains('"manual_add_photo"'));
@@ -247,10 +247,6 @@ void main() {
     expect(cameraActivity, contains('0 -> "Done"'));
     expect(cameraActivity, contains('1 -> "Done"'));
     expect(cameraActivity, contains(r'else -> "Done ($count)"'));
-    expect(
-      cameraActivity,
-      contains('doneButton.contentDescription =\n        "Done: review captured receipt photos in Maintainiac"'),
-    );
     expect(
       cameraActivity,
       contains('bottomReviewButton.contentDescription =\n            "Done: review captured receipt photos in Maintainiac"'),

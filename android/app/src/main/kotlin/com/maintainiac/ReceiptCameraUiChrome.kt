@@ -82,7 +82,6 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
         visibility = View.GONE
         setOnClickListener { finishWithCapturedPhotos() }
     }
-    topBar.addView(doneButton)
     topBar.addView(iconButton("Receipt camera settings", R.drawable.ic_receipt_camera_settings) {
         showReceiptCameraSettings()
     })

@@ -263,8 +263,8 @@ void main() {
         'internal fun ReceiptCameraActivity.reviewNextControlReady(): Boolean',
       ),
     );
-    expect(cameraActivity, contains('doneButton.visibility == View.VISIBLE'));
     expect(cameraActivity, contains('bottomReviewButton.visibility == View.VISIBLE'));
+    expect(cameraActivity, isNot(contains('doneButton.visibility == View.VISIBLE')));
     expect(
       cameraActivity,
       contains('internal fun ReceiptCameraActivity.reviewNextControlActualStatus(): String'),
