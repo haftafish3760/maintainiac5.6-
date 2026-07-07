@@ -15,7 +15,7 @@ void main() {
         photoPaths: const ['/tmp/document-scanner-proof.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/document-scanner-proof.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult.notNeeded([
+        stitchResult: ReceiptStitchResult.notNeeded([
           '/tmp/document-scanner-proof.jpg',
         ]),
         captureDiagnosticsByPhotoPath: const {
@@ -66,7 +66,7 @@ void main() {
       photoPaths: const ['/tmp/phone-backup-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/phone-backup-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/phone-backup-ocr.jpg',
       ]),
       captureDiagnosticsByPhotoPath: const {
@@ -108,7 +108,7 @@ void main() {
       photoPaths: const ['/tmp/readable-but-darker.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/readable-but-darker-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/readable-but-darker-ocr.jpg',
       ]),
       captureDiagnosticsByPhotoPath: const {
@@ -211,7 +211,7 @@ void main() {
         '/tmp/review-quality-ocr.jpg',
       ],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/auto-ready-ocr.jpg',
         '/tmp/review-quality-ocr.jpg',
       ]),
@@ -259,7 +259,7 @@ void main() {
         '/tmp/manual-bright-ocr.jpg',
       ],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/dim-assisted-ocr.jpg',
         '/tmp/manual-bright-ocr.jpg',
       ]),
@@ -331,7 +331,7 @@ void main() {
       photoPaths: const ['/tmp/dark.jpg', '/tmp/soft.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/dark-ocr.jpg', '/tmp/soft-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/dark-ocr.jpg',
         '/tmp/soft-ocr.jpg',
       ]),

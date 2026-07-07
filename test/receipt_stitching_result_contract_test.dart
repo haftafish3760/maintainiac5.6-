@@ -7,7 +7,7 @@ import 'helpers/receipt_stitching_image_helpers.dart';
 
 void main() {
   test('stitch result labels explain stitched and fallback OCR handoff', () {
-    const stitched = ReceiptStitchResult(
+    final stitched = ReceiptStitchResult(
       status: ReceiptStitchStatus.stitched,
       inputPaths: ['/tmp/a.jpg', '/tmp/b.jpg', '/tmp/c.jpg'],
       ocrSourcePaths: ['/tmp/stitched.jpg'],
@@ -30,7 +30,7 @@ void main() {
         ),
       ],
     );
-    const fallback = ReceiptStitchResult.fallback(
+    final fallback = ReceiptStitchResult.fallback(
       inputPaths: ['/tmp/a.jpg', '/tmp/b.jpg'],
       warning: 'Overlap was not clear enough.',
       confidence: .34,
@@ -105,19 +105,19 @@ void main() {
   });
 
   test('stitch OCR handoff contract catches mismatched source paths', () {
-    const stitchedMismatch = ReceiptStitchResult(
+    final stitchedMismatch = ReceiptStitchResult(
       status: ReceiptStitchStatus.stitched,
       inputPaths: ['/tmp/top.jpg', '/tmp/bottom.jpg'],
       ocrSourcePaths: ['/tmp/different_stitch.jpg'],
       stitchedPath: '/tmp/final_stitch.jpg',
     );
-    const stitchedMissing = ReceiptStitchResult(
+    final stitchedMissing = ReceiptStitchResult(
       status: ReceiptStitchStatus.stitched,
       inputPaths: ['/tmp/top.jpg', '/tmp/bottom.jpg'],
       ocrSourcePaths: [],
     );
     final fallbackMismatch =
-        const ReceiptStitchResult.fallback(
+        ReceiptStitchResult.fallback(
           inputPaths: ['/tmp/top.jpg', '/tmp/bottom.jpg'],
           warning: 'Fallback for test.',
         ).copyForFinalOcr(
@@ -143,8 +143,8 @@ void main() {
   });
 
   test('single and manual stitch overlap coverage stay explicit', () {
-    const single = ReceiptStitchResult.notNeeded(['/tmp/single.jpg']);
-    const manual = ReceiptStitchResult(
+    final single = ReceiptStitchResult.notNeeded(['/tmp/single.jpg']);
+    final manual = ReceiptStitchResult(
       status: ReceiptStitchStatus.stitched,
       inputPaths: ['/tmp/a.jpg', '/tmp/b.jpg'],
       ocrSourcePaths: ['/tmp/stitched.jpg'],
@@ -206,10 +206,10 @@ void main() {
       ),
     );
 
-    expect(stitched.inputPaths, ['/tmp/a.jpg', '/tmp/b.jpg', '/tmp/c.jpg']);
-    expect(stitched.ocrSourcePaths, ['/tmp/stitched.jpg', '/tmp/late.jpg']);
-    expect(stitched.overlapPixels, [240, 260]);
-    expect(stitched.pairs, hasLength(2));
+    expect(stitched.inputPaths, ['/tmp/a.jpg', '/tmp/b.jpg']);
+    expect(stitched.ocrSourcePaths, ['/tmp/stitched.jpg']);
+    expect(stitched.overlapPixels, [240]);
+    expect(stitched.pairs, hasLength(1));
     expect(
       () => stitched.inputPaths.add('/tmp/nope.jpg'),
       throwsA(isA<UnsupportedError>()),
@@ -235,7 +235,7 @@ void main() {
   });
 
   test('stitch labels sanitize non-finite numeric evidence safely', () {
-    const stitched = ReceiptStitchResult(
+    final stitched = ReceiptStitchResult(
       status: ReceiptStitchStatus.stitched,
       inputPaths: ['/tmp/a.jpg', '/tmp/b.jpg'],
       ocrSourcePaths: ['/tmp/stitched.jpg'],
@@ -362,7 +362,7 @@ void main() {
   );
 
   test('stitch result can be rebound to final OCR artifact paths', () {
-    const preview = ReceiptStitchResult(
+    final preview = ReceiptStitchResult(
       status: ReceiptStitchStatus.stitched,
       inputPaths: ['/tmp/raw_a.jpg', '/tmp/raw_b.jpg'],
       ocrSourcePaths: ['/tmp/preview_stitched.jpg'],

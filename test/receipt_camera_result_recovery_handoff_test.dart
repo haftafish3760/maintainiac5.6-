@@ -203,9 +203,7 @@ void main() {
       photoPaths: const ['/tmp/edited-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/edited-proof.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
-        '/tmp/edited-proof.jpg',
-      ]),
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/edited-proof.jpg']),
       captureDiagnosticsByPhotoPath: const {
         '/tmp/edited-proof.jpg': {
           'userEditedPhoto': true,

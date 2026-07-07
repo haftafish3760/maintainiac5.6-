@@ -176,6 +176,18 @@ void main() {
       expect(script, contains('lib/shared/receipts/*'));
       expect(
         script,
+        contains('test/helpers/receipt_recovery_handoff_fixture.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_capture_flow_barcode_handoff_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_capture_flow_ocr_source_count_test.dart'),
+      );
+      expect(
+        script,
         contains(
           'android/app/src/main/kotlin/com/maintainiac/ReceiptCamera*.kt',
         ),
@@ -187,6 +199,10 @@ void main() {
       expect(script, contains('test/receipt_ocr_source_*'));
       expect(script, contains('test/receipt_photo_section_labels_test.dart'));
       expect(script, contains('test/receipt_external_dataset_gate_test.dart'));
+      expect(
+        script,
+        contains('test/receipt_stitch_fallback_metadata_test.dart'),
+      );
       expect(
         script,
         contains('test/fixtures/receipt_qa/external_dataset_manifest.json'),

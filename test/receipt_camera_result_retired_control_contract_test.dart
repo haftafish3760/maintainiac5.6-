@@ -8,7 +8,7 @@ void main() {
       photoPaths: const ['/tmp/proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
       captureDiagnosticsByPhotoPath: const {
         '/tmp/proof.jpg': {
           'visibleControlSet':
@@ -102,7 +102,7 @@ void main() {
       photoPaths: const ['/tmp/proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
       captureDiagnosticsByPhotoPath: const {
         '/tmp/proof.jpg': {
           'visibleControlSet':
@@ -192,7 +192,7 @@ void main() {
       photoPaths: const ['/tmp/proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
       captureDiagnosticsByPhotoPath: const {
         '/tmp/proof.jpg': {
           'visibleControlSet':

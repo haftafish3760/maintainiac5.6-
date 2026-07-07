@@ -7,7 +7,7 @@ void main() {
       photoPaths: const ['/tmp/proof-1.jpg', '/tmp/proof-2.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/ocr-1.jpg', '/tmp/ocr-2.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/ocr-1.jpg',
         '/tmp/ocr-2.jpg',
       ]),
@@ -66,9 +66,7 @@ void main() {
         photoPaths: const ['/tmp/proof-only.jpg'],
         ocrSourcePhotoPaths: const [],
         dataSaverLevel: ReceiptDataSaverLevel.maximum,
-        stitchResult: const ReceiptStitchResult.notNeeded([
-          '/tmp/proof-only.jpg',
-        ]),
+        stitchResult: ReceiptStitchResult.notNeeded(['/tmp/proof-only.jpg']),
       );
       final decoder = _RecordingBarcodeDecoder();
 
@@ -95,7 +93,7 @@ void main() {
         photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult.fallback(
+        stitchResult: ReceiptStitchResult.fallback(
           inputPaths: ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
           warning: 'Overlap confidence low.',
           fallbackReasonCode: 'overlap_confidence_low',

@@ -5,7 +5,7 @@ ReceiptPhotoReviewResult buildNativeRecoveryReviewResult() {
     photoPaths: const ['/tmp/recovered-top.jpg', '/tmp/recovered-bottom.jpg'],
     ocrSourcePhotoPaths: const ['/tmp/recovered-ocr.jpg'],
     dataSaverLevel: ReceiptDataSaverLevel.strong,
-    stitchResult: const ReceiptStitchResult(
+    stitchResult: ReceiptStitchResult(
       status: ReceiptStitchStatus.stitched,
       inputPaths: ['/tmp/recovered-top.jpg', '/tmp/recovered-bottom.jpg'],
       ocrSourcePaths: ['/tmp/recovered-ocr.jpg'],

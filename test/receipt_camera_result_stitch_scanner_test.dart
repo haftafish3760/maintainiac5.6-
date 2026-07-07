@@ -31,7 +31,7 @@ void main() {
       photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/stitched.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult(
+      stitchResult: ReceiptStitchResult(
         status: ReceiptStitchStatus.stitched,
         inputPaths: ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
         ocrSourcePaths: ['/tmp/stitched.jpg'],
@@ -51,7 +51,7 @@ void main() {
       photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
         warning:
             'Receipt photos did not match clearly enough to stitch safely.',
@@ -322,7 +322,7 @@ void main() {
         '/tmp/section-2-ocr.jpg',
       ],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: ['/tmp/section-1-ocr.jpg', '/tmp/section-2-ocr.jpg'],
         warning: 'Overlap confidence low.',
         fallbackReasonCode: 'overlap_confidence_low',
@@ -398,7 +398,7 @@ void main() {
       photoPaths: const ['/tmp/proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/ocr.jpg']),
       preparationDiagnosticsByOcrPath: const {
         '/tmp/ocr.jpg': {
           'scannerDecisionCodes': [

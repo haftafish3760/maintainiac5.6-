@@ -12,7 +12,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       .where((path) => path.isNotEmpty)
       .toList(growable: false);
   if (inputPaths.isEmpty) {
-    return const ReceiptStitchResult.fallback(
+    return ReceiptStitchResult.fallback(
       inputPaths: [],
       warning: 'No receipt photos were available for stitching.',
       fallbackReasonCode: 'no_input_paths',

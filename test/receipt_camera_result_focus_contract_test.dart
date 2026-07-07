@@ -7,9 +7,7 @@ void main() {
       photoPaths: const ['/tmp/continuous-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/continuous-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
-        '/tmp/continuous-ocr.jpg',
-      ]),
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/continuous-ocr.jpg']),
       captureDiagnosticsByPhotoPath: const {
         '/tmp/continuous-proof.jpg': {
           'visibleControlSet':
@@ -64,9 +62,7 @@ void main() {
       photoPaths: const ['/tmp/fallback-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/fallback-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
-        '/tmp/fallback-ocr.jpg',
-      ]),
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/fallback-ocr.jpg']),
       captureDiagnosticsByPhotoPath: const {
         '/tmp/fallback-proof.jpg': {
           'visibleControlSet':
@@ -121,7 +117,7 @@ void main() {
       photoPaths: const ['/tmp/expected-focus-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/expected-focus-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/expected-focus-ocr.jpg',
       ]),
       captureDiagnosticsByPhotoPath: const {
@@ -159,7 +155,7 @@ void main() {
       photoPaths: const ['/tmp/unexpected-focus-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/unexpected-focus-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/unexpected-focus-ocr.jpg',
       ]),
       captureDiagnosticsByPhotoPath: const {

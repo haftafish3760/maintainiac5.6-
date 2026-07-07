@@ -7,7 +7,7 @@ void main() {
       photoPaths: const ['/tmp/top.jpg', '/tmp/middle-new.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
         warning: 'Review retaken section order.',
         fallbackReasonCode: 'manual_overlap_unsafe',
@@ -113,7 +113,7 @@ void main() {
         '/tmp/middle-extra-ocr.jpg',
       ],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: [
           '/tmp/top-ocr.jpg',
           '/tmp/middle-ocr.jpg',
@@ -183,7 +183,7 @@ void main() {
       photoPaths: const ['/tmp/top.jpg', '/tmp/middle-new.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
         warning: 'Review retaken section order.',
         fallbackReasonCode: 'manual_overlap_unsafe',
@@ -233,7 +233,7 @@ void main() {
       photoPaths: const ['/tmp/top.jpg', '/tmp/middle-new.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
         warning: 'Review retaken section order.',
         fallbackReasonCode: 'manual_overlap_unsafe',
@@ -294,7 +294,7 @@ void main() {
       photoPaths: const ['/tmp/top.jpg', '/tmp/middle-extra.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg'],
         warning: 'Review inserted section order.',
         fallbackReasonCode: 'manual_overlap_unsafe',
@@ -346,7 +346,7 @@ void main() {
         '/tmp/middle-ocr.jpg',
       ],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: [
           '/tmp/top-ocr.jpg',
           '/tmp/bottom-ocr.jpg',
@@ -432,7 +432,7 @@ void main() {
         '/tmp/bottom-ocr.jpg',
       ],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: [
           '/tmp/top-ocr.jpg',
           '/tmp/middle-ocr.jpg',

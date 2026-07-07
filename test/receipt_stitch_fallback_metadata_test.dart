@@ -15,7 +15,7 @@ void main() {
         '/private/bottom-ocr.jpg',
       ],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: [
           '/private/top-ocr.jpg',
           '/private/middle-ocr.jpg',

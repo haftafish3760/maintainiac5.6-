@@ -3,7 +3,7 @@ part of 'receipt_capture_models.dart';
 enum ReceiptStitchStatus { notNeeded, stitched, fallback }
 
 class ReceiptStitchResult {
-  const ReceiptStitchResult({
+  ReceiptStitchResult({
     required this.status,
     required List<String> inputPaths,
     required List<String> ocrSourcePaths,
@@ -17,19 +17,19 @@ class ReceiptStitchResult {
     this.warning = '',
     this.usedManualAdjustment = false,
     this.fallbackReasonCode = '',
-  }) : _inputPaths = inputPaths,
-       _ocrSourcePaths = ocrSourcePaths,
-       _overlapPixels = overlapPixels,
-       _pairs = pairs;
+  }) : _inputPaths = List<String>.unmodifiable(inputPaths),
+       _ocrSourcePaths = List<String>.unmodifiable(ocrSourcePaths),
+       _overlapPixels = List<int>.unmodifiable(overlapPixels),
+       _pairs = List<ReceiptStitchPairResult>.unmodifiable(pairs);
 
-  const ReceiptStitchResult.notNeeded(List<String> paths)
+  ReceiptStitchResult.notNeeded(List<String> paths)
     : this(
         status: ReceiptStitchStatus.notNeeded,
         inputPaths: paths,
         ocrSourcePaths: paths,
       );
 
-  const ReceiptStitchResult.fallback({
+  ReceiptStitchResult.fallback({
     required List<String> inputPaths,
     required String warning,
     String fallbackReasonCode = 'unknown',

@@ -8,7 +8,7 @@ void main() {
         photoPaths: const ['/tmp/accepted-receipt.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/accepted-receipt.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult.notNeeded([
+        stitchResult: ReceiptStitchResult.notNeeded([
           '/tmp/accepted-receipt.jpg',
         ]),
       );
@@ -34,9 +34,7 @@ void main() {
         photoPaths: const ['/tmp/saved-proof.jpg'],
         ocrSourcePhotoPaths: const [],
         dataSaverLevel: ReceiptDataSaverLevel.maximum,
-        stitchResult: const ReceiptStitchResult.notNeeded([
-          '/tmp/saved-proof.jpg',
-        ]),
+        stitchResult: ReceiptStitchResult.notNeeded(['/tmp/saved-proof.jpg']),
       );
 
       expect(result.ocrSourcePhotoPaths, ['/tmp/saved-proof.jpg']);
@@ -80,9 +78,7 @@ void main() {
         photoPaths: const ['/tmp/saved-proof.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/ocr-clear.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.strong,
-        stitchResult: const ReceiptStitchResult.notNeeded([
-          '/tmp/ocr-clear.jpg',
-        ]),
+        stitchResult: ReceiptStitchResult.notNeeded(['/tmp/ocr-clear.jpg']),
       );
 
       expect(result.ocrSourceProofRelationship, 'separate_clear_source');
@@ -101,7 +97,7 @@ void main() {
         photoPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/stitched-wrong.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult(
+        stitchResult: ReceiptStitchResult(
           status: ReceiptStitchStatus.stitched,
           inputPaths: ['/tmp/top.jpg', '/tmp/bottom.jpg'],
           ocrSourcePaths: ['/tmp/stitched-wrong.jpg'],
@@ -136,7 +132,7 @@ void main() {
         photoPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/review-result-source.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult(
+        stitchResult: ReceiptStitchResult(
           status: ReceiptStitchStatus.stitched,
           inputPaths: ['/tmp/top.jpg', '/tmp/bottom.jpg'],
           ocrSourcePaths: ['/tmp/stitched-ready.jpg'],
@@ -195,7 +191,7 @@ void main() {
           '/tmp/bottom.jpg',
         ],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult.notNeeded([
+        stitchResult: ReceiptStitchResult.notNeeded([
           '/tmp/top.jpg',
           '/tmp/bottom.jpg',
         ]),
@@ -231,7 +227,7 @@ void main() {
         photoPaths: const ['/tmp/top.jpg', '/tmp/top.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/top.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/top.jpg']),
+        stitchResult: ReceiptStitchResult.notNeeded(['/tmp/top.jpg']),
       );
 
       expect(result.photoPaths, ['/tmp/top.jpg']);
@@ -252,9 +248,7 @@ void main() {
         photoPaths: const ['/tmp/proof-only.jpg'],
         ocrSourcePhotoPaths: const [],
         dataSaverLevel: ReceiptDataSaverLevel.maximum,
-        stitchResult: const ReceiptStitchResult.notNeeded([
-          '/tmp/proof-only.jpg',
-        ]),
+        stitchResult: ReceiptStitchResult.notNeeded(['/tmp/proof-only.jpg']),
         allowSavedProofOcrFallback: false,
       );
 
@@ -279,7 +273,7 @@ void main() {
         photoPaths: const [],
         ocrSourcePhotoPaths: const [],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult.fallback(
+        stitchResult: ReceiptStitchResult.fallback(
           inputPaths: [],
           warning: 'No receipt photos available.',
           fallbackReasonCode: 'no_input_paths',

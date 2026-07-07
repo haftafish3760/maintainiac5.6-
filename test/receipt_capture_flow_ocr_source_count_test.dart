@@ -12,7 +12,7 @@ void main() {
       ],
       ocrSourcePhotoPaths: const ['/tmp/stitched-ocr-source.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.strong,
-      stitchResult: const ReceiptStitchResult(
+      stitchResult: ReceiptStitchResult(
         status: ReceiptStitchStatus.stitched,
         inputPaths: [
           '/tmp/proof-section-1.jpg',

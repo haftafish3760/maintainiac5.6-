@@ -25,12 +25,16 @@ while IFS= read -r path; do
     lib/shared/receipts/* | \
     lib/shared/widgets/receipt_capture/* | \
     test/helpers/receipt_native_* | \
+    test/helpers/receipt_recovery_handoff_fixture.dart | \
     test/helpers/receipt_stitching_* | \
+    test/receipt_capture_flow_barcode_handoff_test.dart | \
+    test/receipt_capture_flow_ocr_source_count_test.dart | \
     test/receipt_camera_* | \
     test/receipt_native_* | \
     test/receipt_ocr_source_* | \
     test/receipt_photo_section_labels_test.dart | \
     test/receipt_external_dataset_gate_test.dart | \
+    test/receipt_stitch_fallback_metadata_test.dart | \
     test/fixtures/receipt_qa/external_dataset_manifest.json | \
     test/receipt_stitching_* | \
     tool/android_receipt_camera_* | \

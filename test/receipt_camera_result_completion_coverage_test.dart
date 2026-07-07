@@ -9,7 +9,7 @@ void main() {
         photoPaths: const ['/tmp/flagship.jpg', '/tmp/storage.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/flagship.jpg', '/tmp/storage.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult.notNeeded([
+        stitchResult: ReceiptStitchResult.notNeeded([
           '/tmp/flagship.jpg',
           '/tmp/storage.jpg',
         ]),
@@ -64,7 +64,7 @@ void main() {
       photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/top-ocr.jpg',
         '/tmp/bottom-ocr.jpg',
       ]),
@@ -119,7 +119,7 @@ void main() {
         photoPaths: const ['/tmp/top-proof.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/top-ocr.jpg']),
+        stitchResult: ReceiptStitchResult.notNeeded(['/tmp/top-ocr.jpg']),
         captureDiagnosticsByPhotoPath: const {
           '/tmp/top-proof.jpg': {
             'photoCoverageStatus': 'likelyCutOff',
@@ -165,7 +165,7 @@ void main() {
         photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult.notNeeded([
+        stitchResult: ReceiptStitchResult.notNeeded([
           '/tmp/top-ocr.jpg',
           '/tmp/bottom-ocr.jpg',
         ]),
@@ -243,9 +243,7 @@ void main() {
       photoPaths: const ['/tmp/section-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/section-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
-        '/tmp/section-ocr.jpg',
-      ]),
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/section-ocr.jpg']),
       captureDiagnosticsByPhotoPath: const {
         '/tmp/section-proof.jpg': {
           'photoCoverageStatus': 'bottom_soft_or_missing',
@@ -274,7 +272,7 @@ void main() {
         photoPaths: const ['/tmp/top-proof.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/top-ocr.jpg']),
+        stitchResult: ReceiptStitchResult.notNeeded(['/tmp/top-ocr.jpg']),
         captureDiagnosticsByPhotoPath: const {
           '/tmp/top-proof.jpg': {
             'photoCoverageStatus': 'likelyCutOff',

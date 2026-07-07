@@ -8,7 +8,7 @@ void main() {
       photoPaths: const ['/tmp/middle-new.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/middle-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: ['/tmp/middle-ocr.jpg'],
         warning: 'Review retaken section order.',
         fallbackReasonCode: 'manual_overlap_unsafe',
@@ -98,7 +98,7 @@ void main() {
       photoPaths: const ['/tmp/top-new.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: ['/tmp/top-ocr.jpg'],
         warning: 'Review retaken top section.',
         fallbackReasonCode: 'manual_overlap_unsafe',
@@ -141,7 +141,7 @@ void main() {
       photoPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
         warning: 'Review ordered sections.',
         fallbackReasonCode: 'manual_overlap_unsafe',
@@ -176,7 +176,7 @@ void main() {
       photoPaths: const ['/tmp/middle-extra.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/middle-extra-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: ['/tmp/middle-extra-ocr.jpg'],
         warning: 'Review retaken section insertion.',
         fallbackReasonCode: 'manual_overlap_unsafe',
@@ -220,7 +220,7 @@ void main() {
         '/tmp/bottom-retake-ocr.jpg',
       ],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: [
           '/tmp/top-ocr.jpg',
           '/tmp/middle-ocr.jpg',
@@ -278,7 +278,7 @@ void main() {
       photoPaths: const ['/tmp/retake.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/retake-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: ['/tmp/retake-ocr.jpg'],
         warning: 'Review retaken section.',
         fallbackReasonCode: 'manual_overlap_unsafe',
@@ -311,7 +311,7 @@ void main() {
       photoPaths: const ['/tmp/extra.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/extra-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: ['/tmp/extra-ocr.jpg'],
         warning: 'Review inserted section.',
         fallbackReasonCode: 'manual_overlap_unsafe',
@@ -345,7 +345,7 @@ void main() {
       photoPaths: const ['/tmp/insert.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/insert-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: ['/tmp/insert-ocr.jpg'],
         warning: 'Review inserted section.',
         fallbackReasonCode: 'manual_overlap_unsafe',
@@ -385,7 +385,7 @@ void main() {
         '/tmp/insert-ocr.jpg',
       ],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: [
           '/tmp/top-ocr.jpg',
           '/tmp/middle-ocr.jpg',
@@ -432,7 +432,7 @@ void main() {
         '/tmp/middle-ocr.jpg',
       ],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.fallback(
+      stitchResult: ReceiptStitchResult.fallback(
         inputPaths: [
           '/tmp/top-ocr.jpg',
           '/tmp/bottom-ocr.jpg',

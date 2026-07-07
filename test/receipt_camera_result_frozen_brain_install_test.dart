@@ -11,7 +11,7 @@ void main() {
         photoPaths: const ['/tmp/section-1.jpg', '/tmp/section-2.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/section-1.jpg', '/tmp/section-2.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult.notNeeded([
+        stitchResult: ReceiptStitchResult.notNeeded([
           '/tmp/section-1.jpg',
           '/tmp/section-2.jpg',
         ]),
@@ -47,7 +47,7 @@ void main() {
       photoPaths: const ['/tmp/section-1.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/section-1.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/section-1.jpg']),
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/section-1.jpg']),
       captureDiagnosticsByPhotoPath: {
         '/tmp/section-1.jpg': {'reviewDepth': longDepth},
       },
@@ -77,7 +77,7 @@ void main() {
         photoPaths: const ['/tmp/section-1.jpg', '/tmp/section-2.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/section-1.jpg', '/tmp/section-2.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult.notNeeded([
+        stitchResult: ReceiptStitchResult.notNeeded([
           '/tmp/section-1.jpg',
           '/tmp/section-2.jpg',
         ]),
@@ -316,7 +316,7 @@ void main() {
       photoPaths: const ['/tmp/proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/proof.jpg']),
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/proof.jpg']),
       captureDiagnosticsByPhotoPath: captureDiagnostics,
       preparationDiagnosticsByOcrPath: preparationDiagnostics,
     );

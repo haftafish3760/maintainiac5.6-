@@ -10,7 +10,7 @@ void main() {
         photoPaths: const ['/tmp/bottom-section-proof.jpg'],
         ocrSourcePhotoPaths: const ['/tmp/bottom-section-ocr.jpg'],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: const ReceiptStitchResult.notNeeded([
+        stitchResult: ReceiptStitchResult.notNeeded([
           '/tmp/bottom-section-ocr.jpg',
         ]),
         captureDiagnosticsByPhotoPath: const {
@@ -80,7 +80,7 @@ void main() {
       photoPaths: const ['/tmp/fallback-bottom-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/fallback-bottom-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/fallback-bottom-ocr.jpg',
       ]),
       captureDiagnosticsByPhotoPath: const {
@@ -121,7 +121,7 @@ void main() {
       photoPaths: const ['/tmp/malformed-ghost-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/malformed-ghost-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/malformed-ghost-ocr.jpg',
       ]),
       captureDiagnosticsByPhotoPath: const {
@@ -163,7 +163,7 @@ void main() {
       photoPaths: const ['/tmp/blank-native-bottom-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/blank-native-bottom-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/blank-native-bottom-ocr.jpg',
       ]),
       captureDiagnosticsByPhotoPath: const {

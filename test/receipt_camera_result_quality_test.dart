@@ -28,7 +28,7 @@ void main() {
       photoPaths: const ['/tmp/ready.jpg', '/tmp/crop.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/ready.jpg', '/tmp/crop.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/ready.jpg',
         '/tmp/crop.jpg',
       ]),

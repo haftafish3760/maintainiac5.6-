@@ -116,9 +116,7 @@ void main() {
       photoPaths: const ['/tmp/top-only-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/top-only-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
-        '/tmp/top-only-ocr.jpg',
-      ]),
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/top-only-ocr.jpg']),
       captureDiagnosticsByPhotoPath: {
         '/tmp/top-only-proof.jpg': {
           ReceiptCaptureDiagnosticKeys.photoCoverageStatus:

@@ -7,7 +7,7 @@ void main() {
       photoPaths: const ['/tmp/dim.jpg', '/tmp/readable.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/dim-ocr.jpg', '/tmp/readable-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded([
+      stitchResult: ReceiptStitchResult.notNeeded([
         '/tmp/dim-ocr.jpg',
         '/tmp/readable-ocr.jpg',
       ]),
@@ -114,7 +114,7 @@ void main() {
       photoPaths: const ['/tmp/hazy.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/hazy-ocr.jpg'],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
-      stitchResult: const ReceiptStitchResult.notNeeded(['/tmp/hazy-ocr.jpg']),
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/hazy-ocr.jpg']),
       captureDiagnosticsByPhotoPath: const {
         '/tmp/hazy.jpg': {
           'latestReadabilitySignal': 'dirty_lens_or_haze',
