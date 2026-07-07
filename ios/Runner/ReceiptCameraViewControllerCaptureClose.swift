@@ -172,8 +172,6 @@ extension ReceiptCameraViewController {
   }
 
   func updateDoneButton() {
-    doneButton.isHidden = true
-    doneButton.isEnabled = false
     let title: String
     if capturedPhotoPaths.isEmpty {
       title = "Done"
@@ -196,7 +194,6 @@ extension ReceiptCameraViewController {
     bottomReviewButton.setTitle(title, for: .normal)
     bottomReviewButton.accessibilityLabel =
       "Done: review captured receipt photos in Maintainiac"
-    doneButton.accessibilityLabel = "Done: review captured receipt photos in Maintainiac"
     updateSettingsStatusStrip()
   }
 

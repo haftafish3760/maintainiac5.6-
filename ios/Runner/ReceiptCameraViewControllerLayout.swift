@@ -70,14 +70,6 @@ extension ReceiptCameraViewController {
     torchButton.layer.cornerRadius = 8
     torchButton.accessibilityLabel = "Turn light on"
     torchButton.addTarget(self, action: #selector(toggleTorch), for: .touchUpInside)
-    doneButton.setTitle("Done", for: .normal)
-    doneButton.setTitleColor(.white, for: .normal)
-    doneButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
-    doneButton.layer.cornerRadius = 8
-    doneButton.accessibilityLabel = "Done: review captured receipt photos in Maintainiac"
-    doneButton.isEnabled = false
-    doneButton.isHidden = true
-    doneButton.addTarget(self, action: #selector(finishWithCapturedPhotos), for: .touchUpInside)
 
     let spacer = UIView()
     topBar.addArrangedSubview(backButton)

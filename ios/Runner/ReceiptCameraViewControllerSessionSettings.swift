@@ -119,7 +119,6 @@ extension ReceiptCameraViewController {
       pendingCloseAfterCapture = true
       latestAutoCaptureStatus = "closing_after_capture"
       shutterButton.isEnabled = false
-      doneButton.isEnabled = false
       guidanceLabel.text = "Saving this receipt photo before opening review."
       return
     }

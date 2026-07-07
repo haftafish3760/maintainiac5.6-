@@ -37,6 +37,7 @@ void main() {
       ),
     );
     expect(cameraController, contains('let bottomReviewButton'));
+    expect(cameraController, isNot(contains('let doneButton')));
     expect(cameraController, isNot(contains('topBar.addArrangedSubview(doneButton)')));
     expect(cameraController, contains('func shouldShowSettingsStatusStrip() -> Bool'));
     expect(cameraController, contains('settingsStatusStrip.isHidden = !shouldShowSettingsStatusStrip()'));

@@ -22,7 +22,6 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var closeResultDelivered = false
   let shutterButton = UIButton(type: .system)
   let torchButton = UIButton(type: .system)
-  let doneButton = UIButton(type: .system)
   let addPhotoButton = UIButton(type: .system)
   let bottomReviewButton = UIButton(type: .system)
   let guidanceLabel = UILabel()
