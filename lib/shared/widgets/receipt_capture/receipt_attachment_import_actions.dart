@@ -9,6 +9,8 @@ enum _ReceiptImportAction {
   shareHelp,
 }
 
+enum _ReceiptTextImportAction { pasteText, textFile }
+
 enum _ReceiptFirstUseCameraAction { useReceiptAssist, manualEntry }
 
 enum _MaintainiacNativeCameraPhotoOutcome { added, unavailable, canceled }

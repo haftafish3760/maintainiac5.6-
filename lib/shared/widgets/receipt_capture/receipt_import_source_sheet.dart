@@ -21,7 +21,18 @@ extension _ReceiptImportSourceSheet on _SharedReceiptAttachmentPanelState {
       case _ReceiptImportAction.savedText:
         await pickImportedTextFile(kind: ReceiptAttachmentKind.emailText);
       case _ReceiptImportAction.pasteText:
-        await openImportedTextSheet(kind: ReceiptAttachmentKind.emailText);
+        final textAction = await _chooseReceiptTextImportAction();
+        if (!mounted) return;
+        if (textAction == null) {
+          await returnToReceiptImportOptions();
+          return;
+        }
+        switch (textAction) {
+          case _ReceiptTextImportAction.pasteText:
+            await openImportedTextSheet(kind: ReceiptAttachmentKind.emailText);
+          case _ReceiptTextImportAction.textFile:
+            await pickImportedTextFile(kind: ReceiptAttachmentKind.emailText);
+        }
       case _ReceiptImportAction.shareHelp:
         await _showReceiptShareHelp();
         await returnToReceiptImportOptions();
@@ -42,6 +53,15 @@ extension _ReceiptImportSourceSheet on _SharedReceiptAttachmentPanelState {
     updateAttachmentState(() => _openingPicker = false);
     await Future<void>.delayed(const Duration(milliseconds: 120));
     if (mounted) await openReceiptImportOptions();
+  }
+
+  Future<_ReceiptTextImportAction?> _chooseReceiptTextImportAction() {
+    return showModalBottomSheet<_ReceiptTextImportAction>(
+      context: context,
+      backgroundColor: const Color(0xFF161D20),
+      showDragHandle: true,
+      builder: (context) => const _ReceiptTextImportSheet(),
+    );
   }
 }
 
@@ -146,4 +166,130 @@ class _ReceiptImportSource {
   final String label;
   final String detail;
   final Color color;
+}
+
+class _ReceiptTextImportSheet extends StatelessWidget {
+  const _ReceiptTextImportSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 0, 14, 18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Paste or import receipt text',
+              style: TextStyle(
+                color: Color(0xFFE8ECEE),
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Use pasted text from email or messages, or choose a saved text receipt file from this device.',
+              style: TextStyle(
+                color: Color(0xFFC8D0D3),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+                letterSpacing: 0,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _ReceiptTextImportTile(
+              icon: Icons.content_paste_rounded,
+              title: 'Paste Text',
+              detail: 'Paste copied receipt text now.',
+              onTap: () => Navigator.of(
+                context,
+              ).pop(_ReceiptTextImportAction.pasteText),
+            ),
+            const SizedBox(height: 8),
+            _ReceiptTextImportTile(
+              icon: Icons.description_rounded,
+              title: 'Text File',
+              detail: 'Choose a saved receipt text file.',
+              onTap: () =>
+                  Navigator.of(context).pop(_ReceiptTextImportAction.textFile),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiptTextImportTile extends StatelessWidget {
+  const _ReceiptTextImportTile({
+    required this.icon,
+    required this.title,
+    required this.detail,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String detail;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: const Color(0xFF0E1416),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFF3D4A50)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
+          child: Row(
+            children: [
+              Icon(icon, color: const Color(0xFF8FD3FF), size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Color(0xFFE8ECEE),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      detail,
+                      style: const TextStyle(
+                        color: Color(0xFFC8D0D3),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Color(0xFF8FA0A8),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

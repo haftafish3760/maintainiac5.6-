@@ -105,6 +105,37 @@ void main() {
     expect(find.text('Capture or upload receipt'), findsOneWidget);
   });
 
+  testWidgets('paste slash text opens paste or text file chooser', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: SharedReceiptAttachmentPanel(
+              hasReceipt: false,
+              onChanged: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Add Receipt'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Paste/Text'),
+      120,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.text('Paste/Text'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Paste or import receipt text'), findsOneWidget);
+    expect(find.text('Paste Text'), findsOneWidget);
+    expect(find.text('Text File'), findsOneWidget);
+  });
+
   test('receipt import chooser keeps original compact sheet grid', () async {
     final source = await File(
       'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
@@ -188,5 +219,31 @@ void main() {
     expect(intro, isNot(contains('compression')));
     expect(intro, isNot(contains('storage')));
     expect(intro, isNot(contains('Saved Receipt Proof Size')));
+  });
+
+  test('paste slash text path routes through a dedicated text choice', () async {
+    final source = await File(
+      'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
+    ).readAsString();
+
+    final openStart = source.indexOf('Future<void> openReceiptImportOptions');
+    final openEnd = source.indexOf('Future<void> _showReceiptShareHelp');
+    final openBlock = source.substring(openStart, openEnd);
+    final pasteCaseStart = openBlock.indexOf(
+      'case _ReceiptImportAction.pasteText',
+    );
+    final shareCaseStart = openBlock.indexOf('case _ReceiptImportAction.shareHelp');
+    final pasteCase = openBlock.substring(pasteCaseStart, shareCaseStart);
+
+    expect(pasteCase, contains('_chooseReceiptTextImportAction()'));
+    expect(pasteCase, contains('returnToReceiptImportOptions()'));
+    expect(pasteCase, contains('_ReceiptTextImportAction.pasteText'));
+    expect(pasteCase, contains('_ReceiptTextImportAction.textFile'));
+    expect(pasteCase, contains('openImportedTextSheet'));
+    expect(pasteCase, contains('pickImportedTextFile'));
+    expect(source, contains('class _ReceiptTextImportSheet'));
+    expect(source, contains('Paste or import receipt text'));
+    expect(source, contains('Paste Text'));
+    expect(source, contains('Text File'));
   });
 }
