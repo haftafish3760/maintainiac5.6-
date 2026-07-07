@@ -390,6 +390,53 @@ void main() {
     );
   });
 
+  test(
+    'duplicate later section fallback keeps the failed pair focused in handoff metadata',
+    () {
+      final duplicateLaterFallback = ReceiptPhotoReviewResult(
+        photoPaths: const [
+          '/tmp/top-proof.jpg',
+          '/tmp/middle-proof.jpg',
+          '/tmp/dup-proof.jpg',
+        ],
+        ocrSourcePhotoPaths: const [
+          '/tmp/top-ocr.jpg',
+          '/tmp/middle-ocr.jpg',
+          '/tmp/dup-ocr.jpg',
+        ],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: ReceiptStitchResult.fallback(
+          inputPaths: ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg', '/tmp/dup-ocr.jpg'],
+          warning: 'Duplicate receipt section detected.',
+          fallbackReasonCode: 'duplicate_section_image',
+          failedPairIndex: 1,
+        ),
+      );
+
+      expect(duplicateLaterFallback.nextReviewUsesOrderedSections, isTrue);
+      expect(
+        duplicateLaterFallback.stitchResult.failedPairLabel,
+        'Photo 2 to 3',
+      );
+      expect(
+        duplicateLaterFallback.nextReviewMatchReadinessLabel,
+        'Photo match needs review before app-assisted receipt filling, starting with Photo 2 to 3.',
+      );
+      expect(
+        duplicateLaterFallback.privacySafeReceiptReaderHandoffMetadata,
+        containsPair('stitchFailedPairLabel', 'Photo 2 to 3'),
+      );
+      expect(
+        duplicateLaterFallback.privacySafeReceiptReaderHandoffMetadata,
+        containsPair('stitchOverlapCoverageCode', 'fallback_pair_2_to_3'),
+      );
+      expect(
+        duplicateLaterFallback.receiptReaderHandoffCounts,
+        containsPair('stitch_ocr_source_contract_fallback_duplicate_section_image', 1),
+      );
+    },
+  );
+
   test('low-confidence stitched preview cannot auto-clear assisted receipt read', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],
