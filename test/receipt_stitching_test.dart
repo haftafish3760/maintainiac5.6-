@@ -174,6 +174,68 @@ void main() {
     },
   );
 
+  test(
+    'low-confidence reversed sections cannot auto-clear OCR assist',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 80, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 81, topTextOffset: 16);
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 330);
+
+      final top = await writeTempReceiptStitchingImage(
+        sectionA,
+        'reversed_top',
+      );
+      final bottom = await writeTempReceiptStitchingImage(
+        sectionB,
+        'reversed_bottom',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [bottom.path, top.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.hasValidOcrSourceContract, isTrue);
+      expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
+      expect(result.assistedReadinessCode, 'stitched_overlap_review_required');
+      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+    },
+  );
+
+  test(
+    'low-confidence missing middle section cannot auto-clear OCR assist',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 82, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 83, topTextOffset: 18);
+      final sectionC = receiptStitchingSection(seed: 84, topTextOffset: 36);
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 320);
+      copyReceiptStitchingOverlap(from: sectionB, to: sectionC, pixels: 320);
+
+      final top = await writeTempReceiptStitchingImage(
+        sectionA,
+        'missing_middle_top',
+      );
+      final bottom = await writeTempReceiptStitchingImage(
+        sectionC,
+        'missing_middle_bottom',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [top.path, bottom.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(1));
+      expect(result.pairs.single.hasTrustedOverlapEvidence, isTrue);
+      expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
+      expect(result.assistedReadinessCode, 'stitched_overlap_review_required');
+      expect(
+        result.privacySafeOcrHandoffSafety,
+        containsPair('stitchRequiresOcrSourceReviewBeforeAssistedRead', true),
+      );
+    },
+  );
+
   test('stitching rejects duplicate receipt section paths', () async {
     final section = receiptStitchingSection(seed: 90, topTextOffset: 0);
     final source = await writeTempReceiptStitchingImage(

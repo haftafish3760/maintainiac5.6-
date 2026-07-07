@@ -81,6 +81,13 @@ class ReceiptStitchResult {
       (pairCount - matchedPairCount).clamp(0, pairCount);
   bool get allPairsHaveOverlapEvidence =>
       pairCount == 0 || matchedPairCount >= pairCount;
+  bool get hasLowConfidenceAutomaticOverlap => pairs.any(
+    (pair) =>
+        !pair.usedManualAdjustment &&
+        pair.overlapPixels > 0 &&
+        pair.confidence.isFinite &&
+        pair.confidence < .70,
+  );
   bool get preservesOriginalSectionSources =>
       usedFallback || status == ReceiptStitchStatus.notNeeded;
   bool get usesDerivedCombinedOcrArtifact => didStitch && stitchedPath != null;
@@ -172,11 +179,16 @@ class ReceiptStitchResult {
   }
 
   bool get requiresOcrSourceReviewBeforeAssistedRead {
-    return !hasValidOcrSourceContract || (usedFallback && hasMultipleSections);
+    return !hasValidOcrSourceContract ||
+        (usedFallback && hasMultipleSections) ||
+        (didStitch && hasMultipleSections && hasLowConfidenceAutomaticOverlap);
   }
 
   String get assistedReadinessCode {
     if (!hasValidOcrSourceContract) return 'stitch_contract_review_required';
+    if (didStitch && hasLowConfidenceAutomaticOverlap) {
+      return 'stitched_overlap_review_required';
+    }
     if (didStitch && allPairsHaveOverlapEvidence) {
       return 'stitched_overlap_verified_ready';
     }

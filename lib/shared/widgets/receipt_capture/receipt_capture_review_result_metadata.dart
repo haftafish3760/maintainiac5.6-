@@ -76,6 +76,8 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
       'stitchUsedManualAdjustment': stitchResult.usedManualAdjustment,
       'stitchMatchedPairCount': stitchResult.matchedPairCount,
       'stitchMissingPairCount': stitchResult.missingPairCount,
+      'stitchHasLowConfidenceAutomaticOverlap':
+          stitchResult.hasLowConfidenceAutomaticOverlap,
       'stitchAllPairsHaveOverlapEvidence':
           stitchResult.allPairsHaveOverlapEvidence,
       ...stitchResult.privacySafeOcrHandoffSafety,
