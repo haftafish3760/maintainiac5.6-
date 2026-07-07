@@ -218,6 +218,23 @@ void main() {
     expect(topControls, isNot(contains('Icons.tune_rounded')));
   });
 
+  test('native camera shell does not rotate fake receipt guidance copy', () async {
+    final shell = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart',
+    ).readAsString();
+    final guidance = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_guidance.dart',
+    ).readAsString();
+
+    final combined = '$shell\n$guidance';
+    expect(combined, isNot(contains('guidanceMessages')));
+    expect(combined, isNot(contains('warningCarousel')));
+    expect(combined, isNot(contains('randomGuidance')));
+    expect(combined, isNot(contains('Timer.periodic')));
+    expect(combined, isNot(contains('Future.delayed')));
+    expect(combined, isNot(contains('Stream.periodic')));
+  });
+
   testWidgets('native camera shell can show long receipt ghost guide', (
     tester,
   ) async {
