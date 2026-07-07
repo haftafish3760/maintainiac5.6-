@@ -103,6 +103,12 @@ void main() {
     expect(result.userFallbackReasonLabel, 'Duplicate receipt section photo');
     expect(result.didStitch, isFalse);
     expect(result.ocrSourcePaths, [source.path, source.path]);
+    expect(result.hasValidOcrSourceContract, isFalse);
+    expect(result.ocrSourceContractCode, 'fallback_duplicate_input_sources');
+    expect(
+      result.privacySafeOcrHandoffSafety,
+      containsPair('stitchOcrSourceContractReady', false),
+    );
   });
 
   test('stitches receipt sections when the next photo is closer', () async {

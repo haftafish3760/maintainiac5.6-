@@ -122,6 +122,16 @@ class ReceiptStitchResult {
     if (inputPaths.isEmpty) {
       return usedFallback ? 'fallback_no_ocr_sources' : 'no_ocr_sources';
     }
+    if (_hasDuplicateReceiptArtifactPaths(inputPaths)) {
+      return usedFallback
+          ? 'fallback_duplicate_input_sources'
+          : 'duplicate_input_sources';
+    }
+    if (_hasDuplicateReceiptArtifactPaths(ocrSourcePaths)) {
+      return usedFallback
+          ? 'fallback_duplicate_ocr_sources'
+          : 'duplicate_ocr_sources';
+    }
     if (didStitch) {
       if (stitchedPath == null || ocrSourcePaths.length != 1) {
         return 'stitched_ocr_source_missing';
@@ -400,6 +410,16 @@ bool _sameReceiptArtifactPath(String left, String right) {
   final normalizedLeft = normalizedReceiptPhotoPath(left);
   final normalizedRight = normalizedReceiptPhotoPath(right);
   return normalizedLeft != null && normalizedLeft == normalizedRight;
+}
+
+bool _hasDuplicateReceiptArtifactPaths(List<String> paths) {
+  final seen = <String>{};
+  for (final path in paths) {
+    final normalizedPath = normalizedReceiptPhotoPath(path);
+    if (normalizedPath == null) continue;
+    if (!seen.add(normalizedPath)) return true;
+  }
+  return false;
 }
 
 ReceiptStitchResult _frozenStitchResult(ReceiptStitchResult result) {
