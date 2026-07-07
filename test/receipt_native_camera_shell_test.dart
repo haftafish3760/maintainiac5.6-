@@ -273,6 +273,28 @@ void main() {
     expect(bottomBar, contains('minimum: const EdgeInsets.only(bottom: 8)'));
   });
 
+  test('native camera shell keeps framed top-bar control sizing contract', () async {
+    final bottomControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_controls.dart',
+    ).readAsString();
+    final iconButtonStart = bottomControls.indexOf(
+      'class _ReceiptNativeCameraIconButton',
+    );
+    final iconButtonBlock = bottomControls.substring(iconButtonStart);
+
+    expect(iconButtonBlock, contains('minimumSize: const Size(44, 44)'));
+    expect(
+      iconButtonBlock,
+      contains('tapTargetSize: MaterialTapTargetSize.shrinkWrap'),
+    );
+    expect(iconButtonBlock, contains('RoundedRectangleBorder('));
+    expect(iconButtonBlock, contains('borderRadius: BorderRadius.circular(8)'));
+    expect(
+      iconButtonBlock,
+      contains('side: const BorderSide(color: Color(0xFF526168), width: .8)'),
+    );
+  });
+
   testWidgets('native camera shell can show long receipt ghost guide', (
     tester,
   ) async {
