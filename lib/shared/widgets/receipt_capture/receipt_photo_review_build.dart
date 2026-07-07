@@ -40,6 +40,7 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
                     total: _photoPaths.length,
                     reviewMode: _reviewMode,
                     bestShotCandidateMode: widget.bestShotCandidateMode,
+                    openingCamera: _openingCamera,
                     savingPhotos: _savingPhotos,
                     continueLabel: _reviewTopBarContinueLabel(photoPath),
                     onClose: _reviewMode == _ReceiptReviewMode.crop

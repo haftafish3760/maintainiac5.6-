@@ -6,6 +6,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
     required this.total,
     required this.reviewMode,
     required this.bestShotCandidateMode,
+    required this.openingCamera,
     required this.savingPhotos,
     required this.continueLabel,
     required this.onClose,
@@ -18,6 +19,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
   final int total;
   final _ReceiptReviewMode reviewMode;
   final bool bestShotCandidateMode;
+  final bool openingCamera;
   final bool savingPhotos;
   final String continueLabel;
   final VoidCallback onClose;
@@ -130,7 +132,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           PopupMenuButton<_ReceiptReviewMenuAction>(
-            enabled: !savingPhotos,
+            enabled: !openingCamera && !savingPhotos,
             tooltip: 'Receipt photo menu',
             color: const Color(0xFF172126),
             icon: const Icon(Icons.more_vert_rounded),
