@@ -144,6 +144,7 @@ void main() {
       previewControls,
       contains('Add another receipt photo if the receipt continues'),
     );
+    expect(controls, contains('final interactionLocked = openingCamera || savingPhotos;'));
     expect(previewControls, contains('OutlinedButton.icon'));
     expect(
       previewControls,
@@ -159,6 +160,11 @@ void main() {
     expect(previewControls, contains('label: retakeSemanticLabel'));
     expect(previewControls, contains("'Opening receipt details'"));
     expect(previewControls, contains('onPressed: savingPhotos ? null : onContinue'));
+    expect(controls, contains('onTap: interactionLocked'));
+    expect(controls, contains('onAddPhoto: interactionLocked ? null : onAddPhoto'));
+    expect(controls, contains('onOrder: interactionLocked'));
+    expect(controls, contains('onMatch: interactionLocked'));
+    expect(controls, contains('onCrop: interactionLocked'));
     expect(commonControls, contains("'Preparing receipt details'"));
     expect(commonControls, contains("const Text('Preparing')"));
     expect(commonControls, isNot(contains("'Preparing receipt review'")));
@@ -263,6 +269,18 @@ void main() {
     expect(controls, isNot(contains('Use This Photo')));
     expect(controls, isNot(contains('Saved copy')));
     expect(controls, isNot(contains('Saved Copy')));
+    expect(
+      previewControls,
+      contains('onPressed: openingCamera'),
+    );
+    expect(
+      previewControls,
+      contains(': () => onModeChanged(_ReceiptReviewMode.crop)'),
+    );
+    expect(
+      previewControls,
+      contains(': () => onModeChanged(_ReceiptReviewMode.dataSaver)'),
+    );
   });
 
   test('receipt review continuation copy explains the next screen', () async {

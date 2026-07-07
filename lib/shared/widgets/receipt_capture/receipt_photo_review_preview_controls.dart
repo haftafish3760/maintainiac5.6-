@@ -13,9 +13,9 @@ class _ReceiptMultiPhotoActionRail extends StatelessWidget {
   final int selectedIndex;
   final int total;
   final VoidCallback? onAddPhoto;
-  final VoidCallback onOrder;
-  final VoidCallback onMatch;
-  final VoidCallback onCrop;
+  final VoidCallback? onOrder;
+  final VoidCallback? onMatch;
+  final VoidCallback? onCrop;
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +137,9 @@ class _ReceiptSinglePhotoActionRow extends StatelessWidget {
           child: _ReceiptActionRailButton(
             icon: Icons.crop_rounded,
             label: 'Crop',
-            onPressed: () => onModeChanged(_ReceiptReviewMode.crop),
+            onPressed: openingCamera
+                ? null
+                : () => onModeChanged(_ReceiptReviewMode.crop),
           ),
         ),
         const SizedBox(width: 5),
@@ -145,7 +147,9 @@ class _ReceiptSinglePhotoActionRow extends StatelessWidget {
           child: _ReceiptActionRailButton(
             icon: Icons.storage_rounded,
             label: 'Proof',
-            onPressed: () => onModeChanged(_ReceiptReviewMode.dataSaver),
+            onPressed: openingCamera
+                ? null
+                : () => onModeChanged(_ReceiptReviewMode.dataSaver),
           ),
         ),
       ],

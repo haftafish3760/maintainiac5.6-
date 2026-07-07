@@ -35,6 +35,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final interactionLocked = openingCamera || savingPhotos;
     final statusText = this.statusText;
     final statusIcon = this.statusIcon;
     final statusColor = this.statusColor;
@@ -79,8 +80,8 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                   coverageDecision: coverageDecision,
                   savingPhotos: savingPhotos,
                   continueLabel: continueLabel,
-                  onRetake: openingCamera ? null : onRetake,
-                  onAddPhoto: openingCamera ? null : onAddPhoto,
+                  onRetake: interactionLocked ? null : onRetake,
+                  onAddPhoto: interactionLocked ? null : onAddPhoto,
                   onContinue: onContinue,
                 ),
                 Flexible(
@@ -103,13 +104,17 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                           _ReceiptMultiPhotoActionRail(
                             selectedIndex: selectedIndex,
                             total: photoCount,
-                            onAddPhoto: openingCamera ? null : onAddPhoto,
-                            onOrder: () =>
-                                onModeChanged(_ReceiptReviewMode.order),
-                            onMatch: () =>
-                                onModeChanged(_ReceiptReviewMode.stitch),
-                            onCrop: () =>
-                                onModeChanged(_ReceiptReviewMode.crop),
+                            onAddPhoto: interactionLocked ? null : onAddPhoto,
+                            onOrder: interactionLocked
+                                ? null
+                                : () => onModeChanged(_ReceiptReviewMode.order),
+                            onMatch: interactionLocked
+                                ? null
+                                : () =>
+                                      onModeChanged(_ReceiptReviewMode.stitch),
+                            onCrop: interactionLocked
+                                ? null
+                                : () => onModeChanged(_ReceiptReviewMode.crop),
                           ),
                           const SizedBox(height: 5),
                           SizedBox(
@@ -125,7 +130,9 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                                   index: index,
                                   total: photoPaths.length,
                                   selected: index == selectedIndex,
-                                  onTap: () => onPhotoSelected(index),
+                                  onTap: interactionLocked
+                                      ? null
+                                      : () => onPhotoSelected(index),
                                 );
                               },
                             ),
@@ -138,18 +145,19 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                             nativeWarning: nativeWarning,
                             compact: compactControls,
                             hasCriticalQualityIssue: hasCriticalQualityIssue,
-                            openingCamera: openingCamera,
+                            openingCamera: interactionLocked,
                             onAddPhoto: onAddPhoto,
                             onRetake: onRetake,
-                            onCrop: () =>
-                                onModeChanged(_ReceiptReviewMode.crop),
+                            onCrop: interactionLocked
+                                ? null
+                                : () => onModeChanged(_ReceiptReviewMode.crop),
                             coverageDecision: coverageDecision,
                           ),
                         ],
                         if (!hasMultiplePhotos && !hasQualityWarning) ...[
                           const SizedBox(height: 5),
                           _ReceiptSinglePhotoActionRow(
-                            openingCamera: openingCamera,
+                            openingCamera: interactionLocked,
                             onAddPhoto: onAddPhoto,
                             onRetake: onRetake,
                             onModeChanged: onModeChanged,

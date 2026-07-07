@@ -13,7 +13,7 @@ class _ReceiptOrderThumbnail extends StatelessWidget {
   final int index;
   final int total;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
