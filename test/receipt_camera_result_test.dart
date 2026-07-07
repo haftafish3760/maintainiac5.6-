@@ -274,6 +274,52 @@ void main() {
     },
   );
 
+  test(
+    'duplicate stitched receipt sections require OCR handoff review before details',
+    () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/proof-top.jpg', '/tmp/proof-dup.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/ocr-top.jpg', '/tmp/ocr-dup.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: ReceiptStitchResult.fallback(
+          inputPaths: const ['/tmp/ocr-top.jpg', '/tmp/ocr-dup.jpg'],
+          warning: 'Duplicate section fallback for test.',
+          fallbackReasonCode: 'duplicate_section_image',
+          failedPairIndex: 0,
+        ),
+      );
+
+      expect(
+        result.receiptPhotoReviewHandoffPath,
+        'accepted_stitch_ocr_source_review_required',
+      );
+      expect(
+        result.receiptPhotoReviewHandoffPathLabel,
+        'Accepted photo review, but stitch/OCR source handoff needs review.',
+      );
+      expect(result.nextReviewUsesOrderedSections, isTrue);
+      expect(
+        result.nextReviewMatchReadinessOutcome,
+        'ocr_source_review_required_before_assist',
+      );
+      expect(
+        result.nextReviewMatchReadinessLabel,
+        'Photo match needs review before app-assisted receipt filling, starting with Photo 1 to 2.',
+      );
+      expect(
+        result.stitchResult.ocrHandoffSafetyCode,
+        'ordered_sections_after_duplicate_section_image_fallback',
+      );
+      expect(
+        result.receiptReaderHandoffCounts,
+        containsPair(
+          'stitch_ocr_source_contract_fallback_duplicate_section_image',
+          1,
+        ),
+      );
+    },
+  );
+
   test('kept for later review does not open receipt details input', () {
     final result = ReceiptPhotoReviewResult.keptForLater(
       photoPaths: const ['/tmp/staged-top.jpg', '/tmp/staged-bottom.jpg'],

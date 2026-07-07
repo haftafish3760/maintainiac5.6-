@@ -312,6 +312,10 @@ void main() {
       'Manual overlap was outside the safe range',
     );
     expect(
+      fallback('duplicate_section_image').userFallbackReasonLabel,
+      'Duplicate receipt section photo',
+    );
+    expect(
       fallback('manual_order_review').userFallbackReasonLabel,
       'Receipt section order needs review',
     );
@@ -370,11 +374,21 @@ void main() {
         warning: 'Fallback for test.',
         fallbackReasonCode: 'merchant total 42.18 private line text',
       );
+      final duplicateSection = ReceiptStitchResult.fallback(
+        inputPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+        warning: 'Fallback for test.',
+        fallbackReasonCode: ' duplicate section image ',
+      );
 
       expect(noisy.diagnosticReasonLabel, 'overlap_confidence_low');
       expect(
         noisy.ocrHandoffSafetyCode,
         'ordered_sections_after_overlap_confidence_low_fallback',
+      );
+      expect(duplicateSection.diagnosticReasonLabel, 'duplicate_section_image');
+      expect(
+        duplicateSection.ocrHandoffSafetyCode,
+        'ordered_sections_after_duplicate_section_image_fallback',
       );
       expect(privateLooking.diagnosticReasonLabel, 'unknown');
       expect(
