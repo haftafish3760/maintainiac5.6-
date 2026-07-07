@@ -93,6 +93,8 @@ void main() {
     expect(controls, contains('Scrollbar('));
     expect(controls, contains('thumbVisibility: true'));
     expect(controls, contains('trackVisibility: true'));
+    expect(controls, contains('enabled: !openingCamera && !savingPhotos'));
+    expect(controls, contains('previewEnabled: !openingCamera && !savingPhotos'));
   });
 
   test('photo review tray uses explicit long-receipt language', () async {
@@ -254,6 +256,11 @@ void main() {
     expect(sectionLabels, contains('This should be the top of the receipt.'));
     expect(modeControls, contains('Photo Order'));
     expect(modeControls, contains('Match Photos'));
+    expect(modeControls, contains('final bool enabled;'));
+    expect(modeControls, contains('enabled ? () => onSelected(_ReceiptReviewMode.preview) : null'));
+    expect(modeControls, contains('enabled ? () => onSelected(_ReceiptReviewMode.crop) : null'));
+    expect(modeControls, contains('enabled && photoCount > 1'));
+    expect(modeControls, contains('onPressed: previewEnabled ? onBackToPreview : null'));
     expect(sectionLabels, contains('Receipt Sections'));
     expect(sectionLabels, contains(r'Section ${index + 1} of $total'));
     expect(sectionLabels, contains('Add Next Receipt Photo'));

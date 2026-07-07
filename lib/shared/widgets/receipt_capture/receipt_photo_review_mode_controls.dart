@@ -4,11 +4,13 @@ class _ReceiptReviewStepStrip extends StatelessWidget {
   const _ReceiptReviewStepStrip({
     required this.selected,
     required this.photoCount,
+    required this.enabled,
     required this.onSelected,
   });
 
   final _ReceiptReviewMode selected;
   final int photoCount;
+  final bool enabled;
   final ValueChanged<_ReceiptReviewMode> onSelected;
 
   @override
@@ -22,21 +24,21 @@ class _ReceiptReviewStepStrip extends StatelessWidget {
             label: 'Review',
             icon: Icons.visibility_rounded,
             selected: selected == _ReceiptReviewMode.preview,
-            onTap: () => onSelected(_ReceiptReviewMode.preview),
+            onTap: enabled ? () => onSelected(_ReceiptReviewMode.preview) : null,
           ),
           const SizedBox(width: 6),
           _StepStripButton(
             label: 'Crop',
             icon: Icons.crop_rounded,
             selected: selected == _ReceiptReviewMode.crop,
-            onTap: () => onSelected(_ReceiptReviewMode.crop),
+            onTap: enabled ? () => onSelected(_ReceiptReviewMode.crop) : null,
           ),
           const SizedBox(width: 6),
           _StepStripButton(
             label: 'Photo Order',
             icon: Icons.swap_vert_rounded,
             selected: selected == _ReceiptReviewMode.order,
-            onTap: photoCount > 1
+            onTap: enabled && photoCount > 1
                 ? () => onSelected(_ReceiptReviewMode.order)
                 : null,
           ),
@@ -45,7 +47,7 @@ class _ReceiptReviewStepStrip extends StatelessWidget {
             label: 'Match Photos',
             icon: Icons.join_full_rounded,
             selected: selected == _ReceiptReviewMode.stitch,
-            onTap: photoCount > 1
+            onTap: enabled && photoCount > 1
                 ? () => onSelected(_ReceiptReviewMode.stitch)
                 : null,
           ),
@@ -54,7 +56,9 @@ class _ReceiptReviewStepStrip extends StatelessWidget {
             label: 'Proof Size',
             icon: Icons.storage_rounded,
             selected: selected == _ReceiptReviewMode.dataSaver,
-            onTap: () => onSelected(_ReceiptReviewMode.dataSaver),
+            onTap: enabled
+                ? () => onSelected(_ReceiptReviewMode.dataSaver)
+                : null,
           ),
         ],
       ),
@@ -99,11 +103,13 @@ class _ReceiptToolModeHeader extends StatelessWidget {
   const _ReceiptToolModeHeader({
     required this.reviewMode,
     required this.photoCount,
+    required this.previewEnabled,
     required this.onBackToPreview,
   });
 
   final _ReceiptReviewMode reviewMode;
   final int photoCount;
+  final bool previewEnabled;
   final VoidCallback onBackToPreview;
 
   @override
@@ -180,7 +186,7 @@ class _ReceiptToolModeHeader extends StatelessWidget {
               ),
             ),
             TextButton.icon(
-              onPressed: onBackToPreview,
+              onPressed: previewEnabled ? onBackToPreview : null,
               icon: const Icon(Icons.visibility_rounded, size: 16),
               label: const Text('Preview'),
               style: TextButton.styleFrom(

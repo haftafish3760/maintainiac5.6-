@@ -152,12 +152,14 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
                       _ReceiptReviewStepStrip(
                         selected: reviewMode,
                         photoCount: photoPaths.length,
+                        enabled: !openingCamera && !savingPhotos,
                         onSelected: onModeChanged,
                       ),
                       const SizedBox(height: 6),
                       _ReceiptToolModeHeader(
                         reviewMode: reviewMode,
                         photoCount: photoPaths.length,
+                        previewEnabled: !openingCamera && !savingPhotos,
                         onBackToPreview: () =>
                             onModeChanged(_ReceiptReviewMode.preview),
                       ),
