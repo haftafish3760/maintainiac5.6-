@@ -119,6 +119,11 @@ void _checkManifest(File manifestFile, List<String> failures) {
     if (entry['attributionRequired'] != true) {
       failures.add('Dataset $id must explicitly require attribution tracking.');
     }
+    if (entry['fixtureImportMode'] != 'local_sampled_redacted_metadata_only') {
+      failures.add(
+        'Dataset $id must use local sampled redacted metadata-only import mode.',
+      );
+    }
     _expectListContains(entry, 'requiredBeforeImport', [
       'downloaded_locally',
       'license_file_present',

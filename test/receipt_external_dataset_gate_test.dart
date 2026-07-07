@@ -60,6 +60,10 @@ void main() {
       datasets.cast<Map<String, Object?>>().map((entry) => entry['id']).toSet(),
       contains('naver_clova_ix_cord_v2_huggingface'),
     );
+    expect(
+      datasets.cast<Map<String, Object?>>().map((entry) => entry['id']).toSet(),
+      contains('jsdnrs_icdar2019_sroie_huggingface'),
+    );
 
     expect(
       manifest['summaryReportExcludes'],

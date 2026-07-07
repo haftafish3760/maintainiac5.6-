@@ -52,10 +52,27 @@
     },
     {
       "id": "voxel51_scanned_receipts",
-      "source": "https://huggingface.co/datasets/Voxel51/scanned_receipts",
+      "source": "https://huggingface.co/datasets/Voxel51/consolidated_receipt_dataset",
       "license": "dataset_card_review_required",
       "status": "candidate_requires_license_review",
       "localPath": ".external_datasets/receipts/voxel51_scanned_receipts",
+      "rawImagesCommittedToGit": false,
+      "attributionRequired": true,
+      "fixtureImportMode": "local_sampled_redacted_metadata_only",
+      "requiredBeforeImport": [
+        "downloaded_locally",
+        "license_file_present",
+        "attribution_notes_present",
+        "no_raw_images_committed",
+        "fixture_outputs_redacted_or_synthetic"
+      ]
+    },
+    {
+      "id": "jsdnrs_icdar2019_sroie_huggingface",
+      "source": "https://huggingface.co/datasets/jsdnrs/ICDAR2019-SROIE",
+      "license": "dataset_card_review_required",
+      "status": "candidate_requires_license_review",
+      "localPath": ".external_datasets/receipts/jsdnrs_icdar2019_sroie",
       "rawImagesCommittedToGit": false,
       "attributionRequired": true,
       "fixtureImportMode": "local_sampled_redacted_metadata_only",
