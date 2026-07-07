@@ -466,6 +466,14 @@ int _score(List<String> issues, List<String> warnings) {
 }
 
 bool _looksSpecialOrder(String text) {
+  if (_hasAny(text, [
+    'tailpiece',
+    'tubular extension tube',
+    'extension tube',
+    'wall tube',
+  ])) {
+    return false;
+  }
   return _hasAny(text, ['commercial', 'industrial']) ||
       RegExp(r'(^|[^0-9/])(3|4|6)\s*(in|inch|")([^0-9]|$)').hasMatch(text);
 }
