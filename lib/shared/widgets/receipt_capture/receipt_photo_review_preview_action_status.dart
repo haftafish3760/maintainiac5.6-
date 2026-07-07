@@ -1,6 +1,11 @@
 part of 'receipt_photo_review_screen.dart';
 
 extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
+  int get effectiveSelectedIndex {
+    if (photoPaths.isEmpty) return 0;
+    return selectedIndex.clamp(0, photoPaths.length - 1);
+  }
+
   IconData get statusIcon {
     final nativeWarning = nativeCaptureReviewWarning;
     if (nativeWarning != null) return nativeWarning.icon;
@@ -49,11 +54,11 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
     final coverageDecision = coverageDecisionForSelectedPhoto;
     if (photoCount > 1) {
       final sectionGuidance = _ReceiptPhotoSectionLabels.selectedReviewGuidance(
-        selectedIndex: selectedIndex,
+        selectedIndex: effectiveSelectedIndex,
         total: photoCount,
       );
       final sectionAction = _ReceiptPhotoSectionLabels.selectedReviewAction(
-        selectedIndex: selectedIndex,
+        selectedIndex: effectiveSelectedIndex,
         total: photoCount,
       );
       final matchStatus = multiPhotoMatchStatusCopy;

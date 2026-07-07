@@ -36,6 +36,9 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final interactionLocked = openingCamera || savingPhotos;
+    final effectiveSelectedIndex = photoPaths.isEmpty
+        ? 0
+        : selectedIndex.clamp(0, photoPaths.length - 1);
     final statusText = this.statusText;
     final statusIcon = this.statusIcon;
     final statusColor = this.statusColor;
@@ -71,7 +74,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _ReceiptPreviewPrimaryRow(
-                  current: selectedIndex + 1,
+                  current: effectiveSelectedIndex + 1,
                   total: photoCount,
                   statusIcon: statusIcon,
                   statusColor: statusColor,
@@ -129,7 +132,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                                   path: photoPaths[index],
                                   index: index,
                                   total: photoPaths.length,
-                                  selected: index == selectedIndex,
+                                  selected: index == effectiveSelectedIndex,
                                   onTap: interactionLocked
                                       ? null
                                       : () => onPhotoSelected(index),

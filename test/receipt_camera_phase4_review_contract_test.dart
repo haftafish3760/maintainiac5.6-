@@ -40,6 +40,8 @@ void main() {
     expect(previewRow, contains('continueLabel'));
     expect(previewTray, contains('onRetake: interactionLocked ? null : onRetake'));
     expect(previewTray, contains('onAddPhoto: interactionLocked ? null : onAddPhoto'));
+    expect(previewTray, contains('final effectiveSelectedIndex = photoPaths.isEmpty'));
+    expect(previewTray, contains('selectedIndex.clamp(0, photoPaths.length - 1);'));
     expect(controls, contains('onContinue: continueEnabled ? onContinue : null'));
     expect(previewRow, contains("'Preparing'"));
     expect(commonControls, contains("const Text('Preparing')"));
@@ -101,5 +103,9 @@ void main() {
     expect(previewRow, contains('_ReceiptPhotoCountBadge(current: current, total: total)'));
     expect(previewRow, contains('maxLines: compact ? 1 : 2'));
     expect(previewRow, contains('SizedBox(height: compact ? 5 : 7)'));
+    expect(
+      contextControls,
+      contains('Use this photo only if the store, date, total, and item prices are readable.'),
+    );
   });
 }

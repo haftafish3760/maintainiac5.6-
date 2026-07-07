@@ -187,6 +187,7 @@ void main() {
     expect(controls, contains('onOrder: interactionLocked'));
     expect(controls, contains('onMatch: interactionLocked'));
     expect(controls, contains('onCrop: interactionLocked'));
+    expect(controls, contains('selected: index == effectiveSelectedIndex'));
     expect(commonControls, contains("'Preparing receipt details'"));
     expect(commonControls, contains("const Text('Preparing')"));
     expect(commonControls, isNot(contains("'Preparing receipt review'")));
@@ -226,6 +227,10 @@ void main() {
     );
     expect(topBar, contains('Review Receipt Photo'));
     expect(previewControls, contains('Crop Current'));
+    expect(
+      controls,
+      contains('selectedIndex: effectiveSelectedIndex'),
+    );
     expect(
       controls,
       contains(
