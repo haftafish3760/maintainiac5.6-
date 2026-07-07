@@ -16,6 +16,12 @@ void main() {
     final nativeDescriptors = await File(
       'lib/shared/widgets/receipt_capture/receipt_native_camera_settings_descriptors.dart',
     ).readAsString();
+    final androidSessionReader = await File(
+      'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSessionArguments.kt',
+    ).readAsString();
+    final iosSessionReader = await File(
+      'ios/Runner/ReceiptCameraViewControllerSessionArguments.swift',
+    ).readAsString();
     final photoReviewScreen = await _readReceiptPhotoReviewSource();
     final readBoundarySource = await _readReceiptReadBoundarySource();
 
@@ -38,6 +44,14 @@ void main() {
     expect(
       flowHelpers,
       contains('settings?.appAssistedEnabledFor(area) ?? false'),
+    );
+    expect(
+      androidSessionReader,
+      contains('intent.getBooleanExtra("assistedReceiptFill", false)'),
+    );
+    expect(
+      iosSessionReader,
+      contains('arguments["assistedReceiptFill"] as? Bool ?? false'),
     );
     expect(nativeSettings, contains('this.assistedReceiptFill = false'));
     expect(nativeDescriptors, contains('defaultEnabled: false'));

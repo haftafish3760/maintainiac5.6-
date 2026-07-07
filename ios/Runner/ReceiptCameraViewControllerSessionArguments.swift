@@ -2,7 +2,7 @@ import UIKit
 
 extension ReceiptCameraViewController {
   func readSessionArguments() {
-    assistedReceiptFill = arguments["assistedReceiptFill"] as? Bool ?? true
+    assistedReceiptFill = arguments["assistedReceiptFill"] as? Bool ?? false
     longReceiptMode = arguments["longReceiptMode"] as? Bool ?? true
     autoCaptureEnabled = arguments["autoCaptureEnabled"] as? Bool ?? false
     autoCaptureAllowed = arguments["autoCaptureAllowed"] as? Bool ?? autoCaptureEnabled

@@ -6,7 +6,7 @@ import android.window.OnBackInvokedDispatcher
 
 
 internal fun ReceiptCameraActivity.readSessionArguments() {
-    assistedReceiptFill = intent.getBooleanExtra("assistedReceiptFill", true)
+    assistedReceiptFill = intent.getBooleanExtra("assistedReceiptFill", false)
     longReceiptMode = intent.getBooleanExtra("longReceiptMode", true)
     autoCaptureEnabled = intent.getBooleanExtra("autoCaptureEnabled", false)
     autoCaptureAllowed = intent.getBooleanExtra("autoCaptureAllowed", autoCaptureEnabled)
