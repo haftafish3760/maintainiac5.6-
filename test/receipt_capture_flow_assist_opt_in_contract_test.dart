@@ -67,6 +67,67 @@ void main() {
       isNot(contains('appAssistedEnabledFor(widget.area) == false')),
     );
   });
+
+  test('first receipt camera choice stays assist-only before capture', () async {
+    final firstUseSheet = await File(
+      'lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart',
+    ).readAsString();
+    final settingsSheet =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_capture_review_storage_settings.dart',
+        ).readAsString();
+    final importActions =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_import_actions.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
+        ).readAsString();
+
+    expect(firstUseSheet, contains('Receipt Assist'));
+    expect(
+      firstUseSheet,
+      contains('Would you like Maintainiac to help fill out receipt details?'),
+    );
+    expect(firstUseSheet, contains('Yes, Use Receipt Assist'));
+    expect(firstUseSheet, contains('No, Manual Entry'));
+    expect(
+      firstUseSheet,
+      contains(
+        'Receipt Assist reads the photo and suggests totals and lines. You review everything before saving.',
+      ),
+    );
+    expect(
+      importActions,
+      contains(
+        'enum _ReceiptFirstUseCameraAction { useReceiptAssist, manualEntry }',
+      ),
+    );
+    expect(importActions, contains('_showFirstUseReceiptCameraIntro'));
+    expect(importActions, contains('!settings.cameraSetupComplete'));
+    expect(importActions, contains('settings.setCameraSetupComplete(true)'));
+
+    expect(firstUseSheet, isNot(contains('Saved Receipt Proof Size')));
+    expect(firstUseSheet, isNot(contains('Saved proof')));
+    expect(firstUseSheet, isNot(contains('Compression')));
+    expect(firstUseSheet, isNot(contains('compress')));
+    expect(firstUseSheet, isNot(contains('storage')));
+    expect(firstUseSheet, isNot(contains('Storage')));
+    expect(firstUseSheet, isNot(contains('Cloud backup')));
+    expect(firstUseSheet, isNot(contains('backup storage')));
+    expect(firstUseSheet, isNot(contains('Original photo')));
+    expect(firstUseSheet, isNot(contains('high quality')));
+    expect(firstUseSheet, isNot(contains('maximum savings')));
+
+    expect(settingsSheet, contains('Saved Receipt Proof Size'));
+    expect(
+      settingsSheet,
+      contains('OCR still uses the clearest receipt source first'),
+    );
+  });
 }
 
 Future<String> _readReceiptReadBoundarySource() async {

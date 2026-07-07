@@ -30,6 +30,12 @@ void main() {
       );
       expect(
         quickPlan,
+        contains(
+          'quick test/receipt_capture_flow_assist_opt_in_contract_test.dart',
+        ),
+      );
+      expect(
+        quickPlan,
         contains('quick test/receipt_external_dataset_local_audit_test.dart'),
       );
       expect(
