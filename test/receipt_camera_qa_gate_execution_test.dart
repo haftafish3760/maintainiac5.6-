@@ -228,6 +228,10 @@ void main() {
       contains('selected milestone'),
     );
     expect(
+      await selectedModeFor('tool/receipt_quiet_batch_status.sh'),
+      contains('selected milestone'),
+    );
+    expect(
       await selectedModeFor('test/receipt_camera_qa_gate_execution_test.dart'),
       contains('selected milestone'),
     );

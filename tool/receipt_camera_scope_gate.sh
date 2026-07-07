@@ -45,6 +45,8 @@ while IFS= read -r path; do
 	    tool/receipt_external_dataset_gate.dart | \
 	    tool/receipt_pipeline_failure_to_regression.dart | \
 	    tool/receipt_fast_guard_gate.sh | \
+	    tool/receipt_quiet_batch.sh | \
+	    tool/receipt_quiet_batch_status.sh | \
 	    tool/receipt_start_camera_qa_gate.sh | \
 	    test/receipt_bug_regression_ledger_archive_test.dart | \
 	    test/receipt_fast_guard_gate_contract_test.dart | \
