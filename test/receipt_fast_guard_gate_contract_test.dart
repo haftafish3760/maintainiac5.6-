@@ -72,10 +72,31 @@ void main() {
     expect(script, contains('dart tool/receipt_camera_footprint_audit.dart'));
     expect(script, contains('test/receipt_fast_guard_gate_contract_test.dart'));
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
+    expect(
+      script,
+      contains('tool/receipt_camera_qa_gate.sh --print-plan quick'),
+    );
+    expect(
+      script,
+      contains('tool/receipt_camera_qa_gate.sh --print-plan stitch'),
+    );
+    expect(
+      script,
+      contains('tool/receipt_camera_qa_gate.sh --print-plan milestone'),
+    );
+    expect(
+      script,
+      contains('tool/receipt_camera_qa_gate.sh --print-plan full'),
+    );
     expect(script, contains('tool/receipt_camera_qa_summary.sh'));
     expect(script, contains('tool/receipt_camera_real_device_snapshot.sh'));
     expect(script, contains('tool/receipt_camera_scope_gate.sh'));
     expect(script, contains('tool/receipt_camera_changed_gate.sh'));
+    expect(script, contains('RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST'));
+    expect(
+      script,
+      contains('tool/receipt_camera_changed_gate.sh --print-mode'),
+    );
     expect(script, contains('tool/receipt_camera_stitch_gate.sh'));
     expect(script, contains('tool/receipt_start_camera_qa_gate.sh'));
     expect(script, contains('test/receipt_camera_qa_gate_contract_test.dart'));

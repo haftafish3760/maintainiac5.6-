@@ -51,6 +51,13 @@ dart tool/receipt_external_fixture_schema_gate.dart
 dart tool/receipt_real_device_matrix_gate.dart
 dart tool/receipt_quiet_batch_policy_gate.dart
 
+RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_qa_gate_contract_test.dart' \
+  bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
+bash tool/receipt_camera_qa_gate.sh --print-plan quick >/dev/null
+bash tool/receipt_camera_qa_gate.sh --print-plan stitch >/dev/null
+bash tool/receipt_camera_qa_gate.sh --print-plan milestone >/dev/null
+bash tool/receipt_camera_qa_gate.sh --print-plan full >/dev/null
+
 if [[ -f tool/codex_rate_limit_probe.py ]]; then
   python3 -m py_compile tool/codex_rate_limit_probe.py
 fi
