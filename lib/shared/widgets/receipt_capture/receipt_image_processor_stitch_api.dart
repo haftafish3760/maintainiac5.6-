@@ -18,7 +18,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
     return ReceiptStitchResult.fallback(
       inputPaths: inputPaths,
       warning:
-          'Receipt photos included the same section more than once. Next will review the photos separately.',
+          'Receipt photos included the same section more than once. Receipt details will use the photos separately.',
       fallbackReasonCode: 'duplicate_input_paths',
     );
   }
@@ -129,7 +129,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       return ReceiptStitchResult.fallback(
         inputPaths: inputPaths,
         warning:
-            'Receipt is too long to stitch safely on this device. Next will review the photos separately.',
+            'Receipt is too long to stitch safely on this device. Receipt details will use the photos separately.',
         fallbackReasonCode: 'output_too_large',
         confidence: confidences.isEmpty ? 0 : confidences.reduce(math.min),
         pairs: pairResults,
@@ -173,7 +173,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
     return ReceiptStitchResult.fallback(
       inputPaths: inputPaths,
       warning:
-          'Receipt photos could not be stitched safely. Next will review them separately.',
+          'Receipt photos could not be stitched safely. Receipt details will use them separately.',
       fallbackReasonCode: 'stitch_exception',
     );
   }

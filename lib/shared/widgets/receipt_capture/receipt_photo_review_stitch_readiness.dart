@@ -191,7 +191,7 @@ class _ReceiptStitchReadinessCard extends StatelessWidget {
                   const Expanded(
                     child: _ReceiptMatchRecoveryPill(
                       icon: Icons.keyboard_double_arrow_down_rounded,
-                      label: 'Next Reviews Top To Bottom',
+                      label: 'Use Top To Bottom',
                     ),
                   ),
                 ],

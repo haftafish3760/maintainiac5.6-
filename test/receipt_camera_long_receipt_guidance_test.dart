@@ -248,7 +248,7 @@ void main() {
     expect(sources.reviewScreen, contains('Combined Receipt Preview'));
     expect(
       sources.reviewScreen,
-      contains('Next will review them from top to bottom'),
+      contains('Receipt details will use them from top to bottom'),
     );
     expect(
       sources.stitchControls,
@@ -256,7 +256,7 @@ void main() {
     );
     expect(sources.stitchControls, contains('Fix Photo Order'));
     expect(sources.stitchControls, contains(r'Fix $failedPairLabel'));
-    expect(sources.stitchControls, contains('Next Reviews Top To Bottom'));
+    expect(sources.stitchControls, contains('Use Top To Bottom'));
     expect(sources.reviewScreen, contains('ReceiptStitchDeviceLimits'));
     expect(sources.reviewScreen, contains('_deviceCapability.stitchLimits'));
     expect(sources.policySource, contains('ReceiptCapabilityTier.light'));

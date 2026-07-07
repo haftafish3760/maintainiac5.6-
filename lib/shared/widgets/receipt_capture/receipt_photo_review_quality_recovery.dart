@@ -95,7 +95,7 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
         ? 'Retake Recommended'
         : coverageDecision.shouldPromptForMorePhotos
         ? coverageDecision.title
-        : photoQuality?.nextReviewActionLabel ?? 'Check Photo Before Next';
+        : photoQuality?.nextReviewActionLabel ?? 'Check Photo Before Use';
     final detail = nativeCaptureWarning != null
         ? nativeCaptureWarning.detail
         : coverageDecision.shouldPromptForMorePhotos

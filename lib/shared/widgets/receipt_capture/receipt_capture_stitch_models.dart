@@ -214,15 +214,15 @@ class ReceiptStitchResult {
 
   String get ocrHandoffChecklistLabel {
     if (inputPaths.length <= 1) {
-      return 'Before Next: confirm the full receipt is visible and readable.';
+      return 'Before use: confirm the full receipt is visible and readable.';
     }
     return switch (status) {
       ReceiptStitchStatus.notNeeded =>
-        'Before Next: keep receipt sections top to bottom and make sure no middle section is missing.',
+        'Before use: keep receipt sections top to bottom and make sure no middle section is missing.',
       ReceiptStitchStatus.stitched =>
-        'Before Next: check repeated lines joined correctly and no receipt section is missing.',
+        'Before use: check repeated lines joined correctly and no receipt section is missing.',
       ReceiptStitchStatus.fallback =>
-        'Before Next: photos stay separate, so verify top-to-bottom order and any missing middle section.',
+        'Before use: photos stay separate, so verify top-to-bottom order and any missing middle section.',
     };
   }
 

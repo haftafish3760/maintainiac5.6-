@@ -119,7 +119,7 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
         _stitchPreviewResult = ReceiptStitchResult.fallback(
           inputPaths: _photoPaths,
           warning:
-              'Receipt photos could not be matched into one safe image. Next will review them from top to bottom.',
+              'Receipt photos could not be matched into one safe image. Receipt details will use them from top to bottom.',
         );
         _stitchPreviewInFlight = false;
       });
