@@ -280,3 +280,11 @@ double _overlapDifference({
       : rowProfileTotal / rowProfileSamples;
   return (lumaAverage * .62) + (rowProfileAverage * .38);
 }
+
+bool _receiptImageBytesMatch(List<int> a, List<int> b) {
+  if (a.length != b.length) return false;
+  for (var index = 0; index < a.length; index++) {
+    if (a[index] != b[index]) return false;
+  }
+  return true;
+}

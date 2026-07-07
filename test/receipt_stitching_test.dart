@@ -260,6 +260,35 @@ void main() {
     );
   });
 
+  test('stitching rejects duplicate receipt section images', () async {
+    final section = receiptStitchingSection(seed: 91, topTextOffset: 0);
+    final first = await writeTempReceiptStitchingImage(
+      section,
+      'duplicate_section_a',
+    );
+    final second = await writeTempReceiptStitchingImage(
+      section,
+      'duplicate_section_b',
+    );
+
+    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+      paths: [first.path, second.path],
+    );
+
+    expect(result.usedFallback, isTrue);
+    expect(result.didStitch, isFalse);
+    expect(result.fallbackReasonCode, 'duplicate_section_image');
+    expect(result.userFallbackReasonLabel, 'Duplicate receipt section photo');
+    expect(result.failedPairLabel, 'Photo 1 to 2');
+    expect(result.ocrSourcePaths, [first.path, second.path]);
+    expect(result.hasValidOcrSourceContract, isFalse);
+    expect(result.ocrSourceContractCode, 'fallback_duplicate_section_image');
+    expect(
+      result.privacySafeOcrHandoffSafety,
+      containsPair('stitchRequiresOcrSourceReviewBeforeAssistedRead', true),
+    );
+  });
+
   test('stitches receipt sections when the next photo is closer', () async {
     final sectionA = receiptStitchingSection(seed: 40, topTextOffset: 0);
     final sectionB = receiptStitchingSection(seed: 41, topTextOffset: 18);

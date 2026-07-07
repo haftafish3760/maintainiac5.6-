@@ -31,9 +31,30 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
   }
 
   final decoded = <img.Image>[];
+  final decodedBytes = <List<int>>[];
   try {
     for (final path in inputPaths) {
       final bytes = await ReceiptImageProcessor._readFileBytes(path);
+      final previousBytes = decodedBytes.isEmpty ? null : decodedBytes.last;
+      if (bytes != null &&
+          previousBytes != null &&
+          _receiptImageBytesMatch(previousBytes, bytes)) {
+        final pairIndex = decodedBytes.length - 1;
+        return ReceiptStitchResult.fallback(
+          inputPaths: inputPaths,
+          warning:
+              'Two neighboring receipt photos appear to show the same section. Receipt details will use the photos separately.',
+          fallbackReasonCode: 'duplicate_section_image',
+          failedPairIndex: pairIndex,
+          pairs: [
+            ReceiptStitchPairResult(
+              pairIndex: pairIndex,
+              overlapPixels: 0,
+              confidence: 1,
+            ),
+          ],
+        );
+      }
       final image = bytes == null
           ? null
           : ReceiptImageProcessor._decodeImage(bytes);
@@ -44,6 +65,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
           fallbackReasonCode: 'decode_failed',
         );
       }
+      decodedBytes.add(bytes!);
       decoded.add(_enhanceReceiptForReading(_autoStraightenReceipt(image)));
     }
 

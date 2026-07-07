@@ -148,6 +148,9 @@ class ReceiptStitchResult {
     if (usedFallback && diagnosticReasonLabel == 'overlap_confidence_low') {
       return 'fallback_overlap_untrusted_sources';
     }
+    if (usedFallback && diagnosticReasonLabel == 'duplicate_section_image') {
+      return 'fallback_duplicate_section_image';
+    }
     if (didStitch) {
       if (stitchedPath == null || ocrSourcePaths.length != 1) {
         return 'stitched_ocr_source_missing';
@@ -217,6 +220,7 @@ class ReceiptStitchResult {
       'decode_failed' => 'One photo could not be read',
       'manual_overlap_unsafe' => 'Manual overlap was outside the safe range',
       'duplicate_input_paths' => 'Duplicate receipt section photo',
+      'duplicate_section_image' => 'Duplicate receipt section photo',
       'no_input_paths' => 'No receipt photos available',
       'manual_order_review' => 'Receipt section order needs review',
       'overlap_confidence_low' => 'Overlap was not clear enough',
@@ -492,6 +496,7 @@ String _safeStitchFallbackReasonCode(String value) {
     'decode_failed' ||
     'manual_overlap_unsafe' ||
     'duplicate_input_paths' ||
+    'duplicate_section_image' ||
     'no_input_paths' ||
     'manual_order_review' ||
     'overlap_confidence_low' ||
