@@ -95,6 +95,8 @@ class ReceiptPhotoRetakeOrderPlan {
           'receiptRetakeOriginalSectionNumber': originalSectionNumber,
           'receiptRetakeReplacementOffset': offset,
           'receiptRetakeFinalSectionNumber': originalSectionNumber + offset,
+          'receiptRetakeReplacementCount': replacementPhotoPaths.length,
+          'receiptRetakeFinalSectionCount': photoPaths.length,
           'receiptRetakeInsertedExtraSection': offset > 0,
           'receiptRetakeGuidanceCode': alignmentContext.guidanceCode,
           'receiptRetakeHasPreviousAlignmentContext':
@@ -192,6 +194,8 @@ class ReceiptPhotoInsertAfterOrderPlan {
           'receiptInsertAfterAnchorSectionNumber': anchorSectionNumber,
           'receiptInsertAfterOffset': offset,
           'receiptInsertFinalSectionNumber': anchorSectionNumber + offset + 1,
+          'receiptInsertCount': insertedPhotoPaths.length,
+          'receiptInsertFinalSectionCount': photoPaths.length,
           'receiptInsertPreservedAnchorSlot': true,
           'receiptInsertOrderPolicy':
               'insert_new_sections_after_selected_anchor',
@@ -297,6 +301,7 @@ class ReceiptPhotoMoveOrderPlan {
       'receiptManualReorderOriginalSectionNumber': originalSectionNumber,
       'receiptManualReorderFinalSectionNumber': finalSectionNumber,
       'receiptManualReorderDirection': directionCode,
+      'receiptManualReorderSectionCount': photoPaths.length,
       'receiptManualReorderPreservedPhotoPath': true,
       'receiptManualReorderPolicy': 'user_reordered_sections_preserve_paths',
     };

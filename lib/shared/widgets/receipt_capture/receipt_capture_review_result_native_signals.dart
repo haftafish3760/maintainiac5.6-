@@ -225,6 +225,12 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       final retakeFinalSection = _diagnosticPositiveInt(
         diagnostics['receiptRetakeFinalSectionNumber'],
       );
+      final retakeReplacementCount = _diagnosticPositiveInt(
+        diagnostics['receiptRetakeReplacementCount'],
+      );
+      final retakeFinalSectionCount = _diagnosticPositiveInt(
+        diagnostics['receiptRetakeFinalSectionCount'],
+      );
       final retakeGuidance = _diagnosticToken(
         diagnostics['receiptRetakeGuidanceCode']?.toString() ?? '',
       );
@@ -245,6 +251,12 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       final insertFinalSection = _diagnosticPositiveInt(
         diagnostics['receiptInsertFinalSectionNumber'],
       );
+      final insertCount = _diagnosticPositiveInt(
+        diagnostics['receiptInsertCount'],
+      );
+      final insertFinalSectionCount = _diagnosticPositiveInt(
+        diagnostics['receiptInsertFinalSectionCount'],
+      );
       final insertPolicy = _diagnosticToken(
         diagnostics['receiptInsertOrderPolicy']?.toString() ?? '',
       );
@@ -256,6 +268,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       );
       final manualReorderDirection = _diagnosticToken(
         diagnostics['receiptManualReorderDirection']?.toString() ?? '',
+      );
+      final manualReorderSectionCount = _diagnosticPositiveInt(
+        diagnostics['receiptManualReorderSectionCount'],
       );
       final manualReorderPolicy = _diagnosticToken(
         diagnostics['receiptManualReorderPolicy']?.toString() ?? '',
@@ -284,6 +299,18 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
             : 'retake_final_section_$retakeFinalSection';
         counts[bucket] = (counts[bucket] ?? 0) + 1;
       }
+      if (retakeReplacementCount != null) {
+        final bucket = retakeReplacementCount > 9
+            ? 'retake_replacement_count_10_plus'
+            : 'retake_replacement_count_$retakeReplacementCount';
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
+      if (retakeFinalSectionCount != null) {
+        final bucket = retakeFinalSectionCount > 9
+            ? 'retake_final_section_count_10_plus'
+            : 'retake_final_section_count_$retakeFinalSectionCount';
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
       if (insertAnchorSection != null) {
         final bucket = insertAnchorSection > 9
             ? 'insert_anchor_section_10_plus'
@@ -296,10 +323,28 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
             : 'insert_final_section_$insertFinalSection';
         counts[bucket] = (counts[bucket] ?? 0) + 1;
       }
+      if (insertCount != null) {
+        final bucket = insertCount > 9
+            ? 'insert_count_10_plus'
+            : 'insert_count_$insertCount';
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
+      if (insertFinalSectionCount != null) {
+        final bucket = insertFinalSectionCount > 9
+            ? 'insert_final_section_count_10_plus'
+            : 'insert_final_section_count_$insertFinalSectionCount';
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
       if (manualReorderOriginalSection != null) {
         final bucket = manualReorderOriginalSection > 9
             ? 'manual_reorder_original_section_10_plus'
             : 'manual_reorder_original_section_$manualReorderOriginalSection';
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
+      if (manualReorderSectionCount != null) {
+        final bucket = manualReorderSectionCount > 9
+            ? 'manual_reorder_section_count_10_plus'
+            : 'manual_reorder_section_count_$manualReorderSectionCount';
         counts[bucket] = (counts[bucket] ?? 0) + 1;
       }
       if (manualReorderFinalSection != null) {

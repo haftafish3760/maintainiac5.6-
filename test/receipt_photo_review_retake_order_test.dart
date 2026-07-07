@@ -83,6 +83,14 @@ void main() {
         diagnostics['middle-new-b.jpg'],
         containsPair('receiptRetakeFinalSectionNumber', 3),
       );
+      expect(
+        diagnostics['middle-new-a.jpg'],
+        containsPair('receiptRetakeReplacementCount', 2),
+      );
+      expect(
+        diagnostics['middle-new-b.jpg'],
+        containsPair('receiptRetakeFinalSectionCount', 4),
+      );
       expect(diagnostics.values.toString(), isNot(contains('top.jpg')));
       expect(diagnostics.values.toString(), isNot(contains('bottom.jpg')));
     },
@@ -264,6 +272,14 @@ void main() {
       containsPair('receiptInsertFinalSectionNumber', 4),
     );
     expect(
+      diagnostics['middle-extra-a.jpg'],
+      containsPair('receiptInsertCount', 2),
+    );
+    expect(
+      diagnostics['middle-extra-b.jpg'],
+      containsPair('receiptInsertFinalSectionCount', 5),
+    );
+    expect(
       diagnostics['middle-extra-b.jpg'],
       containsPair(
         'receiptInsertOrderPolicy',
@@ -372,6 +388,7 @@ void main() {
       containsPair('receiptManualReorderFinalSectionNumber', 3),
     );
     expect(diagnostics, containsPair('receiptManualReorderDirection', 'later'));
+    expect(diagnostics, containsPair('receiptManualReorderSectionCount', 3));
     expect(
       diagnostics,
       containsPair('receiptManualReorderPreservedPhotoPath', true),

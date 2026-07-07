@@ -18,6 +18,8 @@ void main() {
           'receiptRetakeOriginalSectionNumber': 2,
           'receiptRetakeReplacementOffset': 0,
           'receiptRetakeFinalSectionNumber': 2,
+          'receiptRetakeReplacementCount': 1,
+          'receiptRetakeFinalSectionCount': 3,
           'receiptRetakeGuidanceCode':
               'retake_middle_with_previous_next_context',
           'receiptRetakeHasPreviousAlignmentContext': true,
@@ -40,6 +42,8 @@ void main() {
     );
     expect(result.receiptSectionOrderCounts['retake_original_section_2'], 1);
     expect(result.receiptSectionOrderCounts['retake_final_section_2'], 1);
+    expect(result.receiptSectionOrderCounts['retake_replacement_count_1'], 1);
+    expect(result.receiptSectionOrderCounts['retake_final_section_count_3'], 1);
     expect(
       result
           .receiptSectionOrderCounts['retake_guidance_retake_middle_with_previous_next_context'],
@@ -127,6 +131,8 @@ void main() {
           'receiptInsertAfterAnchorSectionNumber': 2,
           'receiptInsertAfterOffset': 0,
           'receiptInsertFinalSectionNumber': 3,
+          'receiptInsertCount': 1,
+          'receiptInsertFinalSectionCount': 4,
           'receiptInsertPreservedAnchorSlot': true,
           'receiptInsertOrderPolicy':
               'insert_new_sections_after_selected_anchor',
@@ -143,6 +149,8 @@ void main() {
     );
     expect(result.receiptSectionOrderCounts['insert_anchor_section_2'], 1);
     expect(result.receiptSectionOrderCounts['insert_final_section_3'], 1);
+    expect(result.receiptSectionOrderCounts['insert_count_1'], 1);
+    expect(result.receiptSectionOrderCounts['insert_final_section_count_4'], 1);
     expect(result.receiptSectionOrderCounts['insert_offset_0'], 1);
     expect(
       result
@@ -360,6 +368,7 @@ void main() {
           'receiptManualReorderOriginalSectionNumber': 2,
           'receiptManualReorderFinalSectionNumber': 3,
           'receiptManualReorderDirection': 'later',
+          'receiptManualReorderSectionCount': 3,
           'receiptManualReorderPreservedPhotoPath': true,
           'receiptManualReorderPolicy':
               'user_reordered_sections_preserve_paths',
@@ -380,6 +389,10 @@ void main() {
     );
     expect(
       result.receiptSectionOrderCounts['manual_reorder_final_section_3'],
+      1,
+    );
+    expect(
+      result.receiptSectionOrderCounts['manual_reorder_section_count_3'],
       1,
     );
     expect(
