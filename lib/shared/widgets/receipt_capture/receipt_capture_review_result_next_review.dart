@@ -15,6 +15,9 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
   int get nextReviewSourceCount => ocrSourcePhotoPaths.length;
 
   String get nextReviewSourceLabel {
+    if (nextReviewSourceCount <= 0) {
+      return 'no clear OCR source';
+    }
     if (nextReviewUsesCombinedReceiptImage) {
       return 'one combined receipt image';
     }
@@ -27,6 +30,9 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
   }
 
   String get nextReviewHandoffLabel {
+    if (!hasOcrSourcePhotos) {
+      return 'No clear OCR source is ready for app-assisted receipt filling. Add a clearer receipt photo or continue by hand. OCR needs at least one receipt photo before app-assisted review.';
+    }
     final safety =
         stitchResult.hasLowConfidenceAutomaticOverlap &&
             stitchResult.requiresOcrSourceReviewBeforeAssistedRead
