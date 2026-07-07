@@ -168,6 +168,7 @@ print_plan_for_mode() {
         test/receipt_capture_flow_barcode_handoff_test.dart \
         test/receipt_ocr_source_relationship_test.dart \
         test/receipt_native_camera_previous_section_channel_test.dart \
+        test/receipt_photo_section_labels_test.dart \
         test/receipt_photo_review_retake_order_test.dart \
         test/receipt_stitch_fallback_metadata_test.dart \
         test/receipt_stitching_manual_overlap_test.dart \
