@@ -159,7 +159,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                           ? 'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice before receipt details'
                           : continueLabel,
                       child: FilledButton.icon(
-                        onPressed: onContinue,
+                        onPressed: savingPhotos ? null : onContinue,
                         icon: savingPhotos
                             ? const SizedBox(
                                 width: 18,

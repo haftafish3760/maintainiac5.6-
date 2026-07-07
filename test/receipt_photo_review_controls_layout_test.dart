@@ -148,6 +148,7 @@ void main() {
     expect(previewControls, contains('final addPhotoTooltip ='));
     expect(previewControls, contains('label: addPhotoTooltip'));
     expect(previewControls, contains("'Opening receipt details'"));
+    expect(previewControls, contains('onPressed: savingPhotos ? null : onContinue'));
     expect(commonControls, contains("'Preparing receipt details'"));
     expect(commonControls, contains("const Text('Preparing')"));
     expect(commonControls, isNot(contains("'Preparing receipt review'")));
