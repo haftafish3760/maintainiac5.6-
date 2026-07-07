@@ -79,12 +79,14 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasCapturedPhotos = photoPaths.isNotEmpty;
+    final effectiveSavingPhotos = savingPhotos && hasCapturedPhotos;
     final continueLabel = _continueLabel;
     final waitingForStitch =
         reviewMode == _ReceiptReviewMode.stitch &&
         photoPaths.length > 1 &&
         (stitchPreviewInFlight || stitchPreview == null);
-    final continueEnabled = !savingPhotos && !waitingForStitch;
+    final continueEnabled = !effectiveSavingPhotos && !waitingForStitch;
     if (reviewMode == _ReceiptReviewMode.crop) {
       return Align(
         alignment: Alignment.bottomCenter,
@@ -117,8 +119,8 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
         selectedCaptureDiagnostics: selectedCaptureDiagnostics,
         stitchPreview: stitchPreview,
         stitchPreviewInFlight: stitchPreviewInFlight,
-        openingCamera: openingCamera || savingPhotos,
-        savingPhotos: savingPhotos,
+        openingCamera: openingCamera || effectiveSavingPhotos,
+        savingPhotos: effectiveSavingPhotos,
         continueLabel: continueLabel,
         onPhotoSelected: onPhotoSelected,
         onModeChanged: onModeChanged,
@@ -173,7 +175,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
                         selectedQualityCheck: selectedQualityCheck,
                         selectedCaptureDiagnostics: selectedCaptureDiagnostics,
                         bestShotCandidateMode: bestShotCandidateMode,
-                        openingCamera: openingCamera || savingPhotos,
+                        openingCamera: openingCamera || effectiveSavingPhotos,
                         canRemove: canRemove,
                         onAddPhoto: onAddPhoto,
                         onRetake: onRetake,
@@ -217,7 +219,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
                           manualOverlapFraction: manualOverlapFraction,
                           stitchPreview: stitchPreview,
                           stitchPreviewInFlight: stitchPreviewInFlight,
-                          disabled: openingCamera || savingPhotos,
+                          disabled: openingCamera || effectiveSavingPhotos,
                           onPairSelected: onStitchPairSelected,
                           onOverlapChanged: onManualOverlapChanged,
                           onClear: onClearManualOverlap,
@@ -225,9 +227,9 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
                               onModeChanged(_ReceiptReviewMode.order),
                         ),
                       ],
-                      if (openingCamera || savingPhotos) ...[
+                      if (openingCamera || effectiveSavingPhotos) ...[
                         const SizedBox(height: 6),
-                        savingPhotos
+                        effectiveSavingPhotos
                             ? const ReceiptPickerStatus(
                                 label: 'Opening receipt details...',
                               )
@@ -241,7 +243,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
             const SizedBox(height: 6),
             _ReceiptPersistentContinueButton(
               enabled: continueEnabled,
-              savingPhotos: savingPhotos,
+              savingPhotos: effectiveSavingPhotos,
               label: continueLabel,
               onContinue: onContinue,
             ),

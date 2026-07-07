@@ -29,6 +29,11 @@ void main() {
     );
     expect(reviewScreen, contains('if (_photoPaths.isEmpty) return _buildEmptyReviewRecovery();'));
     expect(reviewScreen, isNot(contains("return _ReceiptReviewMode.stitch;")));
+    expect(controls, contains('final hasCapturedPhotos = photoPaths.isNotEmpty;'));
+    expect(
+      controls,
+      contains('final effectiveSavingPhotos = savingPhotos && hasCapturedPhotos;'),
+    );
     expect(controls, contains("return 'Use Receipt';"));
     expect(previewRow, contains("'Add Another Photo'"));
     expect(previewRow, contains('retakeLabel'));
@@ -47,7 +52,7 @@ void main() {
     expect(
       controls,
       contains(
-        "savingPhotos\n                            ? const ReceiptPickerStatus(\n                                label: 'Opening receipt details...',",
+        "effectiveSavingPhotos\n                            ? const ReceiptPickerStatus(\n                                label: 'Opening receipt details...',",
       ),
     );
     expect(
