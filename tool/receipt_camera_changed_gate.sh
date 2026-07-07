@@ -45,18 +45,29 @@ while IFS= read -r path; do
   esac
 
   case "$path" in
-    lib/shared/widgets/receipt_capture/*stitch* | \
     lib/shared/widgets/receipt_capture/*native* | \
     lib/shared/widgets/receipt_capture/*review* | \
     lib/shared/widgets/receipt_capture/*handoff* | \
-    lib/shared/receipts/*stitch* | \
-    test/receipt_stitching_* | \
     test/receipt_native_* | \
     test/receipt_camera_result_* | \
-    test/receipt_ocr_source_* | \
     test/receipt_camera_ocr_source_handoff_test.dart)
       if [[ "$mode" == "quick" ]]; then
         mode="milestone"
+      fi
+      ;;
+  esac
+
+  case "$path" in
+    lib/shared/widgets/receipt_capture/*stitch* | \
+    lib/shared/receipts/*stitch* | \
+    test/helpers/receipt_stitching_* | \
+    test/receipt_stitching_* | \
+    test/receipt_stitch_fallback_metadata_test.dart | \
+    test/receipt_camera_result_stitch_scanner_test.dart | \
+    test/receipt_ocr_source_* | \
+    test/receipt_ocr_source_relationship_test.dart)
+      if [[ "$mode" == "quick" ]]; then
+        mode="stitch"
       fi
       ;;
   esac

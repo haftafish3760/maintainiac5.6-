@@ -3,7 +3,7 @@ set -euo pipefail
 
 if [[ $# -ne 1 ]]; then
   cat >&2 <<'USAGE'
-Usage: tool/receipt_camera_qa_summary.sh <quick|milestone|full|batch-name>
+Usage: tool/receipt_camera_qa_summary.sh <quick|stitch|milestone|full|batch-name>
 
 Summarizes a completed detached receipt camera QA batch without live log
 monitoring. The normal camera modes map to receipt_camera_qa_<mode>.
@@ -18,6 +18,10 @@ case "$name" in
   quick)
     name="receipt_camera_qa_quick"
     failure_phase="camera_quick_gate"
+    ;;
+  stitch)
+    name="receipt_camera_qa_stitch"
+    failure_phase="camera_stitch_gate"
     ;;
   milestone)
     name="receipt_camera_qa_milestone"

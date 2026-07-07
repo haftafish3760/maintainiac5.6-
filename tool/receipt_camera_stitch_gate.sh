@@ -2,10 +2,13 @@
 set -euo pipefail
 
 bash tool/receipt_camera_scope_gate.sh
+bash -n tool/receipt_camera_stitch_gate.sh
+dart tool/receipt_bug_regression_ledger_gate.dart
 
 dart analyze \
   lib/shared/widgets/receipt_capture \
   lib/shared/receipts \
+  tool/receipt_bug_regression_ledger_gate.dart \
   test/helpers/receipt_stitching_* \
   test/receipt_camera_long_receipt_guidance_test.dart \
   test/receipt_camera_ocr_source_handoff_test.dart \

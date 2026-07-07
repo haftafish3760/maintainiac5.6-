@@ -4,9 +4,9 @@ set -euo pipefail
 mode="${1:-milestone}"
 
 case "$mode" in
-  quick | milestone | full) ;;
+  quick | stitch | milestone | full) ;;
   *)
-    echo "Usage: tool/receipt_camera_qa_gate.sh [quick|milestone|full]" >&2
+    echo "Usage: tool/receipt_camera_qa_gate.sh [quick|stitch|milestone|full]" >&2
     exit 64
     ;;
 esac
@@ -163,6 +163,11 @@ run_quick() {
   git diff --check
 }
 
+run_stitch() {
+  bash -n tool/receipt_camera_stitch_gate.sh
+  bash tool/receipt_camera_stitch_gate.sh
+}
+
 run_milestone() {
   run_quick
   run_flutter_tests "${milestone_only_tests[@]}"
@@ -177,6 +182,7 @@ run_full() {
 
 case "$mode" in
   quick) run_quick ;;
+  stitch) run_stitch ;;
   milestone) run_milestone ;;
   full) run_full ;;
 esac

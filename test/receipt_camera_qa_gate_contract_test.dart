@@ -3,12 +3,13 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('camera QA gate exposes quick milestone and full modes', () {
+  test('camera QA gate exposes quick stitch milestone and full modes', () {
     final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
 
     expect(script, contains(r'mode="${1:-milestone}"'));
-    expect(script, contains('quick | milestone | full'));
+    expect(script, contains('quick | stitch | milestone | full'));
     expect(script, contains('run_quick'));
+    expect(script, contains('run_stitch'));
     expect(script, contains('run_milestone'));
     expect(script, contains('run_full'));
     expect(script, contains('milestone_only_tests=('));
@@ -90,7 +91,7 @@ void main() {
     ).readAsStringSync();
 
     expect(script, contains(r'mode="${1:-milestone}"'));
-    expect(script, contains('quick | milestone | full'));
+    expect(script, contains('quick | stitch | milestone | full'));
     expect(script, contains(r'receipt_camera_qa_${mode}'));
     expect(script, contains('tool/receipt_quiet_batch.sh'));
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
@@ -101,12 +102,14 @@ void main() {
     );
     expect(summary, contains('tool/receipt_quiet_batch_status.sh'));
     expect(summary, contains('receipt_camera_qa_quick'));
+    expect(summary, contains('receipt_camera_qa_stitch'));
     expect(summary, contains('receipt_camera_qa_milestone'));
     expect(summary, contains('receipt_camera_qa_full'));
     expect(summary, contains('summary=failed_actionable_lines'));
     expect(summary, contains('tool/receipt_camera_failure_to_regression.sh'));
     expect(summary, contains('regression_task_command='));
     expect(summary, contains('failure_phase="camera_quick_gate"'));
+    expect(summary, contains('failure_phase="camera_stitch_gate"'));
     expect(summary, contains('failure_phase="camera_milestone_gate"'));
     expect(summary, contains('failure_phase="camera_full_gate"'));
     expect(summary, contains(r'actionable_pattern='));
@@ -167,6 +170,7 @@ void main() {
     );
     expect(script, contains('no tracked camera changes; skipping QA rerun'));
     expect(script, contains('mode="quick"'));
+    expect(script, contains('mode="stitch"'));
     expect(script, contains('mode="milestone"'));
     expect(script, contains('mode="full"'));
     expect(script, contains('tool/receipt_start_camera_qa_gate.sh'));
@@ -180,6 +184,32 @@ void main() {
     expect(script, contains('test/receipt_ocr_source_*'));
     expect(script, isNot(contains('git ls-files --others')));
   });
+
+  test(
+    'camera changed gate uses focused stitch mode for stitch-only edits',
+    () {
+      final script = File(
+        'tool/receipt_camera_changed_gate.sh',
+      ).readAsStringSync();
+
+      expect(script, contains('lib/shared/widgets/receipt_capture/*stitch*'));
+      expect(script, contains('lib/shared/receipts/*stitch*'));
+      expect(script, contains('test/helpers/receipt_stitching_*'));
+      expect(
+        script,
+        contains('test/receipt_stitch_fallback_metadata_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_camera_result_stitch_scanner_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_ocr_source_relationship_test.dart'),
+      );
+      expect(script, contains('mode="stitch"'));
+    },
+  );
 
   test('camera failure wrapper creates regression tasks from QA logs', () {
     final script = File(
@@ -214,7 +244,13 @@ void main() {
     ).readAsStringSync();
 
     expect(script, contains('tool/receipt_camera_scope_gate.sh'));
+    expect(script, contains('bash -n tool/receipt_camera_stitch_gate.sh'));
+    expect(
+      script,
+      contains('dart tool/receipt_bug_regression_ledger_gate.dart'),
+    );
     expect(script, contains('dart analyze'));
+    expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
     expect(script, contains('flutter test'));
     expect(
       script,
