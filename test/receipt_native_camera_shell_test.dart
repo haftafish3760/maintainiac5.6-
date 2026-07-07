@@ -558,4 +558,57 @@ void main() {
     expect(shutterRect.bottom, lessThanOrEqualTo(bottomSafeY - 8));
     expect(shutterRect.center.dx, closeTo(160, 2));
   });
+
+  testWidgets(
+    'native camera shell keeps next-step controls inside compact phones',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 568));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReceiptNativeCameraShell(
+            capabilities: const ReceiptNativeCameraCapabilities(
+              engine: ReceiptNativeCameraEngine.cameraX,
+              available: true,
+              hasRearCamera: true,
+              supportsTorch: true,
+            ),
+            settings: const ReceiptNativeCameraSettings(
+              assistedReceiptFill: true,
+            ),
+            preview: const ColoredBox(color: Color(0xFF38444B)),
+            onBack: () {},
+            onCapture: () {},
+            onSettings: () {},
+            onTorch: () {},
+            onReviewCapturedPhotos: _noop,
+            onAddPhoto: _noop,
+            capturedPhotoCount: 3,
+            longReceiptMode: true,
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Next (3)'), findsOneWidget);
+      expect(find.text('Add Photo'), findsOneWidget);
+
+      final nextRect = tester.getRect(find.text('Next (3)'));
+      final addRect = tester.getRect(find.text('Add Photo'));
+      final shutterIcon = find.byWidgetPredicate(
+        (widget) =>
+            widget is Icon &&
+            widget.icon == Icons.receipt_long_rounded &&
+            widget.size == 30,
+      );
+      final shutterRect = tester.getRect(shutterIcon);
+
+      expect(nextRect.right, lessThanOrEqualTo(320));
+      expect(addRect.left, greaterThanOrEqualTo(0));
+      expect(nextRect.bottom, lessThan(shutterRect.top));
+    },
+  );
 }
+
+void _noop() {}
