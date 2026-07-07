@@ -120,6 +120,42 @@ void main() {
     expect(stdout.content, contains('timeoutMs=1'));
   });
 
+  test('generated fixture wrapper kills stale zero-call progress', () async {
+    final root = await Directory.systemTemp.createTemp(
+      'maintainiac_generated_fixture_runner_stale_progress_',
+    );
+    addTearDown(() => root.delete(recursive: true));
+    final report = File('${root.path}/latest_generated_fixture_run.json')
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert({
+          'schemaVersion': 1,
+          'domain': 'work_supply_inventory_parser_generated_fixtures',
+          'checked': 0,
+          'parserCalls': 0,
+          'incomplete': true,
+          'activeStage': 'fixture',
+          'activeId': 'stalled-first-case',
+          'generatedAtIso': '2026-07-06T23:25:00.000Z',
+        }),
+      );
+    final process = await Process.start(
+      Platform.isWindows ? 'powershell' : 'sleep',
+      Platform.isWindows
+          ? ['-NoProfile', '-Command', 'Start-Sleep -Seconds 30']
+          : ['30'],
+    );
+
+    final staleExit = await staleActiveReportExitCodeForTest(
+      report.path,
+      staleReportTimeoutMs: 50,
+      processId: process.pid,
+    );
+
+    expect(staleExit, 124);
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    expect(await _processStillAlive(process.pid), isFalse);
+  });
+
   test(
     'generated fixture wrapper verbose mode passes through full output',
     () async {
@@ -805,6 +841,15 @@ void main() {
       );
     },
   );
+}
+
+Future<bool> _processStillAlive(int pid) async {
+  if (Platform.isWindows) {
+    final result = await Process.run('tasklist', ['/FI', 'PID eq $pid']);
+    return '${result.stdout}'.contains('$pid');
+  }
+  final result = await Process.run('kill', ['-0', '$pid']);
+  return result.exitCode == 0;
 }
 
 class _MemorySink implements IOSink {

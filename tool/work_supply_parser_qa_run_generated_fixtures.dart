@@ -317,24 +317,51 @@ Future<ProcessResult> _runProcessWithTimeout(
   );
 }
 
+Future<int?> staleActiveReportExitCodeForTest(
+  String reportPath, {
+  required int staleReportTimeoutMs,
+  required int processId,
+}) {
+  return _staleActiveReportExitCode(
+    reportPath,
+    staleReportTimeoutMs: staleReportTimeoutMs,
+    processId: processId,
+  );
+}
+
 Future<int?> _staleActiveReportExitCode(
   String reportPath, {
   required int staleReportTimeoutMs,
   required int processId,
 }) async {
-  final deadline = DateTime.now().add(
-    Duration(milliseconds: staleReportTimeoutMs),
-  );
-  while (DateTime.now().isBefore(deadline)) {
+  var lastSignature = '';
+  var lastProgressAt = DateTime.now();
+  while (_isProcessAlive(processId)) {
     await Future<void>.delayed(const Duration(seconds: 2));
-    if (!_isProcessAlive(processId)) return null;
     final report = File(reportPath);
-    if (!report.existsSync()) continue;
+    if (!report.existsSync()) {
+      if (_elapsedMsSince(lastProgressAt) >= staleReportTimeoutMs) break;
+      continue;
+    }
     try {
       final json = jsonDecode(report.readAsStringSync()) as Map;
       final checked = json['checked'] as int? ?? 0;
+      final parserCalls = json['parserCalls'] as int? ?? 0;
       final incomplete = json['incomplete'] == true;
-      if (checked > 0 || !incomplete) return null;
+      final signature = [
+        checked,
+        parserCalls,
+        json['activeId'] ?? '',
+        json['activeStage'] ?? '',
+        json['generatedAtIso'] ?? '',
+      ].join('|');
+      if (signature != lastSignature) {
+        lastSignature = signature;
+        lastProgressAt = DateTime.now();
+      }
+      if (!incomplete) return null;
+      if (checked > 0 || parserCalls > 0) return null;
+      if (_elapsedMsSince(lastProgressAt) >= staleReportTimeoutMs) break;
     } catch (_) {
       return null;
     }
@@ -344,6 +371,10 @@ Future<int?> _staleActiveReportExitCode(
     return 124;
   }
   return null;
+}
+
+int _elapsedMsSince(DateTime time) {
+  return DateTime.now().difference(time).inMilliseconds;
 }
 
 bool _isProcessAlive(int processId) {
@@ -361,6 +392,7 @@ bool _isProcessAlive(int processId) {
 void _killProcessTree(int processId) {
   if (Platform.isWindows) {
     Process.runSync('taskkill', ['/PID', '$processId', '/T', '/F']);
+    Process.killPid(processId);
   } else {
     Process.killPid(processId, ProcessSignal.sigkill);
   }
