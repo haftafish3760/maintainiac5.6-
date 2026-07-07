@@ -114,7 +114,9 @@ class ReceiptNativeCameraShell extends StatelessWidget {
             Positioned(
               left: 12,
               right: 12,
-              bottom: MediaQuery.viewPaddingOf(context).bottom + 112,
+              bottom:
+                  MediaQuery.viewPaddingOf(context).bottom +
+                  _guidanceBottomOffset,
               child: _ReceiptNativeCameraGuidance(
                 title: guidanceTitle,
                 message: guidanceMessage,
@@ -144,5 +146,12 @@ class ReceiptNativeCameraShell extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  double get _guidanceBottomOffset {
+    if (capturedPhotoCount > 0 && onReviewCapturedPhotos != null) {
+      return 166;
+    }
+    return 112;
   }
 }

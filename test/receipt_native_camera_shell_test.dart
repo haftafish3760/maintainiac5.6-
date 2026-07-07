@@ -640,6 +640,46 @@ void main() {
       expect(nextRect.bottom, lessThan(shutterRect.top));
     },
   );
+
+  testWidgets(
+    'native camera shell keeps guidance above next-step controls on compact phones',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 568));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReceiptNativeCameraShell(
+            capabilities: const ReceiptNativeCameraCapabilities(
+              engine: ReceiptNativeCameraEngine.cameraX,
+              available: true,
+              hasRearCamera: true,
+            ),
+            settings: const ReceiptNativeCameraSettings(
+              assistedReceiptFill: true,
+            ),
+            preview: const ColoredBox(color: Color(0xFF38444B)),
+            onBack: () {},
+            onCapture: () {},
+            onSettings: () {},
+            onReviewCapturedPhotos: _noop,
+            onAddPhoto: _noop,
+            capturedPhotoCount: 3,
+            longReceiptMode: true,
+            guidanceStatus: 'Manual capture is ready.',
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      final guidanceRect = tester.getRect(find.text('Manual capture is ready.'));
+      final nextRect = tester.getRect(find.text('Done (3)'));
+      final addRect = tester.getRect(find.text('Add Photo'));
+
+      expect(guidanceRect.bottom, lessThan(nextRect.top));
+      expect(guidanceRect.bottom, lessThan(addRect.top));
+    },
+  );
 }
 
 void _noop() {}
