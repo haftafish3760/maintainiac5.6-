@@ -136,4 +136,57 @@ void main() {
     expect(tile, isNot(contains('width: 58')));
     expect(tile, isNot(contains('height: 58')));
   });
+
+  test('capture path asks only receipt assist before camera launch', () async {
+    final source = await File(
+      'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
+    ).readAsString();
+    final cameraActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
+    ).readAsString();
+    final intro = await File(
+      'lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart',
+    ).readAsString();
+
+    final openStart = source.indexOf('Future<void> openReceiptImportOptions');
+    final openEnd = source.indexOf('Future<void> _showReceiptShareHelp');
+    final openBlock = source.substring(openStart, openEnd);
+    final captureCaseStart = openBlock.indexOf(
+      'case _ReceiptImportAction.camera',
+    );
+    final imageCaseStart = openBlock.indexOf('case _ReceiptImportAction.image');
+    final captureCase = openBlock.substring(captureCaseStart, imageCaseStart);
+
+    expect(captureCase, contains('await takeReceiptPhoto();'));
+    expect(captureCase, isNot(contains('openReceiptCaptureSettings')));
+    expect(captureCase, isNot(contains('defaultDataSaverLevel')));
+    expect(captureCase, isNot(contains('parserPackInstallChoice')));
+
+    final takeStart = cameraActions.indexOf('Future<void> takeReceiptPhoto');
+    final takeEnd = cameraActions.indexOf(
+      'Future<_MaintainiacNativeCameraPhotoOutcome>',
+    );
+    final takeBlock = cameraActions.substring(takeStart, takeEnd);
+    final introIndex = takeBlock.indexOf('_showFirstUseReceiptCameraIntro');
+    final nativeIndex = takeBlock.indexOf('_takeMaintainiacNativeCameraPhoto');
+
+    expect(introIndex, greaterThanOrEqualTo(0));
+    expect(nativeIndex, greaterThan(introIndex));
+    expect(takeBlock, isNot(contains('openReceiptCaptureSettings')));
+    expect(takeBlock, isNot(contains('Saved Receipt Proof Size')));
+    expect(takeBlock, isNot(contains('defaultDataSaverLevel')));
+    expect(takeBlock, isNot(contains('parserPackInstallChoice')));
+
+    expect(
+      intro,
+      contains('Would you like Maintainiac to help fill out receipt details?'),
+    );
+    expect(intro, contains('Yes, Use Receipt Assist'));
+    expect(intro, contains('No, Manual Entry'));
+    expect(intro, contains('Manual entry is always available'));
+    expect(intro, isNot(contains('OCR')));
+    expect(intro, isNot(contains('compression')));
+    expect(intro, isNot(contains('storage')));
+    expect(intro, isNot(contains('Saved Receipt Proof Size')));
+  });
 }

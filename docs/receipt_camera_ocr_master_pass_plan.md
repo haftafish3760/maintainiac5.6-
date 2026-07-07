@@ -10,6 +10,52 @@ This is the working execution plan for making Maintainiac's receipt capture, OCR
 
 The plan is intentionally numbered. Every receipt-hardening pass should be reported as `Pass NN` after the state-of-art spec reset, so progress is easy to track and the work does not drift.
 
+## Current Receipt Camera Roadmap Lock
+
+Active roadmap source:
+`/Users/rbbie/.codex/attachments/9f1b3106-a148-4132-981e-4f2e16404c97/goal-objective.md`.
+
+Work must stay on the receipt camera/capture/review/stitch/OCR-source handoff
+lane unless a documented camera dependency requires otherwise. PDF, inventory,
+admin, maintenance, maps, invoices, and cloud sync are out of scope for this
+camera pass stream.
+
+Current phase order:
+
+1. Roadmap and scope lock.
+2. Receipt entry flow.
+3. Camera viewer.
+4. Post-photo review.
+5. Long receipt capture.
+6. Stitching handoff.
+7. OCR source handoff.
+8. Storage proof decision.
+9. Milestone validation.
+
+Current active phase: Phase 2, Receipt entry flow.
+
+Phase 2 acceptance rules:
+
+- Add Receipt opens a compact source chooser.
+- Source choices stay Capture Photo, Upload Photos, Upload PDF/File, and
+  Paste/Text.
+- Capture Photo may ask exactly one first-use Receipt Assist question before
+  opening the camera.
+- Receipt Assist copy must describe app-assisted receipt filling, not raw OCR.
+- Manual entry must remain available.
+- Camera launch must not require compression, storage, parser pack, or data
+  saver setup first.
+- Storage proof decisions belong after capture/review/OCR-source work, not
+  before the first photo.
+
+QA cadence:
+
+- Add targeted tests or source contracts as behavior lands.
+- Fix failing targeted checks before adding dependent feature work.
+- Run full gates only at roadmap milestones, not after tiny edits.
+- Bundle related edits inside the current phase; use surgical passes only for
+  blockers or narrow regressions.
+
 ## Native Camera Architecture Reset
 
 The old phone-camera production path is no longer the target. Maintainiac must
