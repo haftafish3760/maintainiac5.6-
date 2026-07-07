@@ -216,7 +216,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
                           manualOverlapFraction: manualOverlapFraction,
                           stitchPreview: stitchPreview,
                           stitchPreviewInFlight: stitchPreviewInFlight,
-                          disabled: savingPhotos,
+                          disabled: openingCamera || savingPhotos,
                           onPairSelected: onStitchPairSelected,
                           onOverlapChanged: onManualOverlapChanged,
                           onClear: onClearManualOverlap,

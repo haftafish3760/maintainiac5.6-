@@ -282,6 +282,7 @@ void main() {
     expect(orderControls, contains('onTap: interactionLocked ? null : () => onPhotoSelected(index)'));
     expect(orderControls, contains('canMoveEarlier && !interactionLocked'));
     expect(orderControls, contains('canMoveLater && !interactionLocked'));
+    expect(controls, contains('disabled: openingCamera || savingPhotos'));
     expect(controls, isNot(contains('Add Another Receipt Photo')));
     expect(controls, isNot(contains('Read receipt')));
     expect(controls, isNot(contains('Read Receipt')));
