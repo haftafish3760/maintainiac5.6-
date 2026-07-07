@@ -55,4 +55,18 @@ void main() {
     expect(script, contains('Use focus assist only if'));
     expect(script, contains('continuous autofocus/readability guidance'));
   });
+
+  test('camera QA gate can run detached without terminal monitoring', () {
+    final script = File(
+      'tool/receipt_start_camera_qa_gate.sh',
+    ).readAsStringSync();
+    final fastGuard = File('tool/receipt_fast_guard_gate.sh').readAsStringSync();
+
+    expect(script, contains(r'mode="${1:-milestone}"'));
+    expect(script, contains('quick | milestone | full'));
+    expect(script, contains(r'receipt_camera_qa_${mode}'));
+    expect(script, contains('tool/receipt_quiet_batch.sh'));
+    expect(script, contains('tool/receipt_camera_qa_gate.sh'));
+    expect(fastGuard, contains('tool/receipt_start_camera_qa_gate.sh'));
+  });
 }
