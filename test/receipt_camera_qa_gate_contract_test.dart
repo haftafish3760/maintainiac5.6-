@@ -60,8 +60,18 @@ void main() {
       script,
       contains('test/receipt_camera_result_stitch_scanner_test.dart'),
     );
+    expect(script, contains('test/receipt_camera_fixture_matrix_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_capture_flow_barcode_handoff_test.dart'),
+    );
     expect(script, contains('test/receipt_ocr_source_relationship_test.dart'));
+    expect(script, contains('test/receipt_stitch_fallback_metadata_test.dart'));
     expect(script, contains('test/receipt_stitching_manual_overlap_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_stitching_result_contract_test.dart'),
+    );
     expect(script, contains('test/receipt_stitching_test.dart'));
     expect(
       script,
@@ -260,9 +270,14 @@ void main() {
       script,
       contains('test/receipt_camera_ocr_source_handoff_test.dart'),
     );
+    expect(script, contains('test/receipt_camera_fixture_matrix_test.dart'));
     expect(
       script,
       contains('test/receipt_camera_result_stitch_scanner_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_capture_flow_barcode_handoff_test.dart'),
     );
     expect(script, contains('test/receipt_ocr_source_relationship_test.dart'));
     expect(
@@ -273,7 +288,12 @@ void main() {
       script,
       contains('test/receipt_photo_review_retake_order_test.dart'),
     );
+    expect(script, contains('test/receipt_stitch_fallback_metadata_test.dart'));
     expect(script, contains('test/receipt_stitching_manual_overlap_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_stitching_result_contract_test.dart'),
+    );
     expect(script, contains('test/receipt_stitching_test.dart'));
     expect(script, contains('git diff --check'));
   });

@@ -41,6 +41,8 @@ milestone_only_tests=(
   test/receipt_camera_result_native_ui_health_test.dart
   test/receipt_camera_result_recovery_handoff_test.dart
   test/receipt_camera_result_stitch_scanner_test.dart
+  test/receipt_camera_fixture_matrix_test.dart
+  test/receipt_capture_flow_barcode_handoff_test.dart
   test/receipt_image_ocr_source_guard_test.dart
   test/receipt_ocr_source_relationship_test.dart
   test/receipt_native_android_import_hygiene_test.dart
@@ -66,7 +68,9 @@ milestone_only_tests=(
   test/receipt_native_ios_bridge_settings_close_test.dart
   test/receipt_native_ios_bridge_storage_contract_test.dart
   test/receipt_native_ios_bridge_ui_session_test.dart
+  test/receipt_stitch_fallback_metadata_test.dart
   test/receipt_stitching_manual_overlap_test.dart
+  test/receipt_stitching_result_contract_test.dart
   test/receipt_stitching_test.dart
 )
 
