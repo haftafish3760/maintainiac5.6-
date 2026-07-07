@@ -96,7 +96,7 @@ extension ReceiptCameraViewController {
     if exposureSliderEnabled {
       controls.append("brightness")
     }
-    if longReceiptMode {
+    if !bottomReviewButton.isHidden && bottomReviewButton.isEnabled {
       controls.append("long_receipt_done")
     }
     if !addPhotoButton.isHidden && addPhotoButton.isEnabled {

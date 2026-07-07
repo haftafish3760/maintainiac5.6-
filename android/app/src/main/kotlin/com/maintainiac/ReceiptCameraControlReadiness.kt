@@ -11,7 +11,13 @@ internal fun ReceiptCameraActivity.visibleControlSet(): String {
     )
     if (torchButton.isEnabled) controls.add("light")
     if (exposureSliderEnabled) controls.add("brightness")
-    if (longReceiptMode) controls.add("long_receipt_done")
+    if (
+        hasInitializedReceiptCameraField { bottomReviewButton } &&
+        bottomReviewButton.visibility == View.VISIBLE &&
+        bottomReviewButton.isEnabled
+    ) {
+        controls.add("long_receipt_done")
+    }
     if (
         hasInitializedReceiptCameraField { addPhotoButton } &&
         addPhotoButton.visibility == View.VISIBLE

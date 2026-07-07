@@ -43,10 +43,7 @@ void main() {
         'bottomReviewButton.addTarget(self, action: #selector(finishWithCapturedPhotos)',
       ),
     );
-    expect(
-      cameraController,
-      contains('bottomReviewButton.isEnabled = false'),
-    );
+    expect(cameraController, contains('bottomReviewButton.isEnabled = false'));
     expect(
       cameraController,
       contains('bottomReviewButton.setTitle(title, for: .normal)'),
@@ -119,8 +116,14 @@ void main() {
     );
     expect(cameraController, contains('bottom_darker_than_top'));
     expect(cameraController, contains('bottom_brighter_than_top'));
-    expect(cameraController, contains('preview.videoGravity = .resizeAspectFill'));
-    expect(cameraController, isNot(contains('preview.videoGravity = .resizeAspect\n')));
+    expect(
+      cameraController,
+      contains('preview.videoGravity = .resizeAspectFill'),
+    );
+    expect(
+      cameraController,
+      isNot(contains('preview.videoGravity = .resizeAspect\n')),
+    );
     expect(cameraController, contains('nativePreviewScaleMode'));
     expect(cameraController, contains('nativeControlDensity'));
     expect(cameraController, contains('Reset receipt camera defaults'));
@@ -136,7 +139,9 @@ void main() {
     );
     expect(
       cameraController,
-      contains(r'return "\(fillMode) | \(reviewMode) | \(receiptMode) | \(lightMode)"'),
+      contains(
+        r'return "\(fillMode) | \(reviewMode) | \(receiptMode) | \(lightMode)"',
+      ),
     );
     expect(cameraController, contains('private func safeReceiptReviewDepth'));
     expect(cameraController, contains('replacingOccurrences(of: "[\\\\s_-]+"'));
@@ -313,6 +318,14 @@ void main() {
     );
     expect(
       cameraController,
+      contains(
+        'if !bottomReviewButton.isHidden && bottomReviewButton.isEnabled {\n'
+        '      controls.append("long_receipt_done")\n'
+        '    }',
+      ),
+    );
+    expect(
+      cameraController,
       contains('return controls.joined(separator: "|")'),
     );
     expect(
@@ -320,7 +333,7 @@ void main() {
       contains('"previewDominanceTarget": "receipt_preview_75_80_percent"'),
     );
     expect(cameraController, contains('"manual_shutter"'));
-    expect(cameraController, contains('"long_receipt_done"'));
+    expect(cameraController, contains('controls.append("long_receipt_done")'));
     expect(cameraController, contains('"section_ghost_guide"'));
     expect(cameraController, contains('"edge_guide"'));
     expect(

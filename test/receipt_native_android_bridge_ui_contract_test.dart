@@ -227,13 +227,21 @@ void main() {
       cameraActivity,
       contains('if (exposureSliderEnabled) controls.add("brightness")'),
     );
+    expect(
+      cameraActivity,
+      contains(
+        'hasInitializedReceiptCameraField { bottomReviewButton } &&\n'
+        '        bottomReviewButton.visibility == View.VISIBLE &&\n'
+        '        bottomReviewButton.isEnabled',
+      ),
+    );
     expect(cameraActivity, contains('return controls.joinToString("|")'));
     expect(
       cameraActivity,
       contains('"previewDominanceTarget" to "receipt_preview_75_80_percent"'),
     );
     expect(cameraActivity, contains('"manual_shutter"'));
-    expect(cameraActivity, contains('"long_receipt_done"'));
+    expect(cameraActivity, contains('controls.add("long_receipt_done")'));
     expect(cameraActivity, contains('"section_ghost_guide"'));
     expect(cameraActivity, contains('"edge_guide"'));
     expect(
