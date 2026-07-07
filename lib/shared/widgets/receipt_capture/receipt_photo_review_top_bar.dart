@@ -130,6 +130,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           PopupMenuButton<_ReceiptReviewMenuAction>(
+            enabled: !savingPhotos,
             tooltip: 'Receipt photo menu',
             color: const Color(0xFF172126),
             icon: const Icon(Icons.more_vert_rounded),

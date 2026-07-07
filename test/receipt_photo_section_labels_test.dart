@@ -51,6 +51,7 @@ void main() {
     expect(topBar, contains('Add Another Photo'));
     expect(topBar, contains('Move Photo Up'));
     expect(topBar, contains('Move Photo Down'));
+    expect(topBar, contains('enabled: !savingPhotos'));
     expect(topBar, contains('_ReceiptPhotoSectionLabels.retakeLabel'));
     expect(topBar, isNot(contains('Retake Current Photo')));
     expect(controls, isNot(contains('_ReceiptPageOrderActions')));
