@@ -200,6 +200,8 @@ void main() {
     ).readAsStringSync();
 
     expect(script, contains('tool/receipt_camera_scope_gate.sh'));
+    expect(script, contains('RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST'));
+    expect(script, contains('--print-mode'));
     expect(
       script,
       contains('git diff --name-only --diff-filter=ACMRTUXB HEAD'),
@@ -219,6 +221,37 @@ void main() {
     expect(script, contains('test/receipt_stitching_*'));
     expect(script, contains('test/receipt_ocr_source_*'));
     expect(script, isNot(contains('git ls-files --others')));
+  });
+
+  test('camera changed gate mode selection is executable', () async {
+    Future<String> selectedModeFor(String changedFiles) async {
+      final result = await Process.run(
+        'bash',
+        ['tool/receipt_camera_changed_gate.sh', '--print-mode'],
+        environment: {'RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST': changedFiles},
+      );
+      expect(result.exitCode, 0, reason: result.stderr.toString());
+      return result.stdout.toString();
+    }
+
+    expect(
+      await selectedModeFor('test/receipt_camera_coverage_decision_test.dart'),
+      contains('selected quick'),
+    );
+    expect(
+      await selectedModeFor('test/receipt_stitching_test.dart'),
+      contains('selected stitch'),
+    );
+    expect(
+      await selectedModeFor(
+        'lib/shared/widgets/receipt_capture/receipt_capture_review_result.dart',
+      ),
+      contains('selected milestone'),
+    );
+    expect(
+      await selectedModeFor('ios/Runner/ReceiptCameraViewController.swift'),
+      contains('selected full'),
+    );
   });
 
   test(
