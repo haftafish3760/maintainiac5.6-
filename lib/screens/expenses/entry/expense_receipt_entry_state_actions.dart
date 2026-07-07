@@ -97,6 +97,7 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
       ),
     );
     if (picked == null) return;
+    _receiptDateLockedByUser = true;
     _updateReceiptState(() => _selectedDate = picked);
     _scheduleDraftSave();
   }
@@ -116,6 +117,7 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
       ),
     );
     if (picked == null) return;
+    _receiptTimeLockedByUser = true;
     _updateReceiptState(() => _selectedTime = picked);
     _scheduleDraftSave();
   }

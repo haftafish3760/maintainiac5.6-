@@ -7,7 +7,9 @@ extension _ExpenseReceiptEntryParseApplyActions
       _applyUnusableParsedReceipt(parsed);
       return;
     }
+    final mergedParsedLines = _mergeParsedReceiptLines(parsed);
     _updateReceiptState(() {
+      _applyingParsedFieldValues = true;
       _rawReceiptText = parsed.sourceText;
       _receiptReviewFlowStarted = true;
       _receiptReadAttemptedWithoutText = false;
@@ -24,11 +26,13 @@ extension _ExpenseReceiptEntryParseApplyActions
         ..clear()
         ..addAll(parsed.maintenanceHints);
       _applyDefaultReviewModeForParsedReceipt(parsed);
-      if ((parsed.merchantName ?? '').trim().isNotEmpty) {
-        _storeController.text = parsed.merchantName!.trim();
+      final parsedMerchant = (parsed.merchantName ?? '').trim();
+      if (_shouldApplyParsedMerchantValue(parsedMerchant)) {
+        _storeController.text = parsedMerchant;
+        _lastParsedMerchantValue = parsedMerchant;
       }
       final parsedDate = parsed.receiptDate;
-      if (parsedDate != null) {
+      if (parsedDate != null && _shouldApplyParsedDateValue()) {
         _selectedDate = DateTime(
           parsedDate.year,
           parsedDate.month,
@@ -36,33 +40,36 @@ extension _ExpenseReceiptEntryParseApplyActions
         );
       }
       final parsedTime = parsed.receiptTimeMinutes;
-      if (parsedTime != null) {
+      if (parsedTime != null && _shouldApplyParsedTimeValue()) {
         _selectedTime = TimeOfDay(
           hour: parsedTime ~/ 60,
           minute: parsedTime % 60,
         );
       }
       if (parsed.enteredSubtotal != null) {
-        _receiptSubtotalController.text = _moneyInputText(
-          parsed.enteredSubtotal,
-        );
+        final subtotalText = _moneyInputText(parsed.enteredSubtotal);
+        if (_shouldApplyParsedSubtotalValue(subtotalText)) {
+          _receiptSubtotalController.text = subtotalText;
+          _lastParsedSubtotalValue = subtotalText;
+        }
       }
       if (parsed.enteredTax != null) {
-        _salesTaxController.text = _moneyInputText(parsed.enteredTax);
+        final taxText = _moneyInputText(parsed.enteredTax);
+        if (_shouldApplyParsedTaxValue(taxText)) {
+          _salesTaxController.text = taxText;
+          _lastParsedTaxValue = taxText;
+        }
       }
       if (parsed.enteredTotal != null) {
-        _receiptTotalController.text = _moneyInputText(parsed.enteredTotal);
+        final totalText = _moneyInputText(parsed.enteredTotal);
+        if (_shouldApplyParsedTotalValue(totalText)) {
+          _receiptTotalController.text = totalText;
+          _lastParsedTotalValue = totalText;
+        }
       }
       _removeAppAssistedReceiptLines();
-      for (var index = 0; index < parsed.lines.length; index++) {
-        _lines.add(
-          _lineFromParsedReceipt(
-            parsed.lines[index],
-            review: index < parsed.lineReviews.length
-                ? parsed.lineReviews[index]
-                : null,
-          ),
-        );
+      for (final line in mergedParsedLines) {
+        _lines.add(_ExpenseReceiptLine.fromLedgerLine(line));
       }
       _receiptReadHandoffDecision = _receiptDecisionLabelForParsedReceipt(
         parsed,
@@ -71,6 +78,7 @@ extension _ExpenseReceiptEntryParseApplyActions
       _receiptReadHandoffStage = _receiptStageLabelForParsedReceipt(parsed);
       _receiptReadHandoffRouteResult =
           _receiptDetailsRouteResultForParsedReceipt(parsed);
+      _applyingParsedFieldValues = false;
     });
     _scheduleDraftSave();
     _scrollToReceiptReview();
@@ -84,6 +92,56 @@ extension _ExpenseReceiptEntryParseApplyActions
         ),
       ),
     );
+  }
+
+  List<ExpenseReceiptLineRecord> _mergeParsedReceiptLines(
+    ExpenseReceiptParseResult parsed,
+  ) {
+    final parsedLines = <ExpenseReceiptLineRecord>[];
+    for (var index = 0; index < parsed.lines.length; index++) {
+      final line = _lineFromParsedReceipt(
+        parsed.lines[index],
+        review: index < parsed.lineReviews.length
+            ? parsed.lineReviews[index]
+            : null,
+      );
+      parsedLines.add(line.toLedgerLine(id: line.id));
+    }
+    final existingAppAssistedLines = _lines
+        .where((line) => line.cameFromAppAssistedReceiptRead)
+        .map((line) => line.toLedgerLine(id: line.id))
+        .toList(growable: false);
+    return mergeParsedReceiptLinesWithReviewedLines(
+      parsedLines: parsedLines,
+      existingLines: existingAppAssistedLines,
+    );
+  }
+
+  bool _shouldApplyParsedMerchantValue(String parsedMerchant) {
+    if (parsedMerchant.isEmpty) return false;
+    return !_merchantValueLockedByUser || _storeController.text.trim().isEmpty;
+  }
+
+  bool _shouldApplyParsedDateValue() {
+    return !_receiptDateLockedByUser;
+  }
+
+  bool _shouldApplyParsedTimeValue() {
+    return !_receiptTimeLockedByUser || _selectedTime == null;
+  }
+
+  bool _shouldApplyParsedSubtotalValue(String subtotalText) {
+    return !_receiptSubtotalLockedByUser ||
+        _receiptSubtotalController.text.trim().isEmpty;
+  }
+
+  bool _shouldApplyParsedTaxValue(String taxText) {
+    return !_receiptTaxLockedByUser || _salesTaxController.text.trim().isEmpty;
+  }
+
+  bool _shouldApplyParsedTotalValue(String totalText) {
+    return !_receiptTotalLockedByUser ||
+        _receiptTotalController.text.trim().isEmpty;
   }
 
   void _applyUnusableParsedReceipt(ExpenseReceiptParseResult parsed) {

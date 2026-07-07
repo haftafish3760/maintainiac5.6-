@@ -124,26 +124,20 @@ void main() {
         'if (nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.added) return;',
       ),
     );
-    expect(
-      takePhotoBlock.indexOf(
-        'if (nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.added) return;',
-      ),
-      lessThan(takePhotoBlock.indexOf('returnToReceiptImportOptions();')),
+    final addedReturnIndex = takePhotoBlock.indexOf(
+      'if (nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.added) return;',
     );
-    expect(
-      takePhotoBlock.indexOf(
-        'if (nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.added) return;',
-      ),
-      lessThan(
-        takePhotoBlock.indexOf(
-          '_openReceiptBackupCaptureAfterNativeUnavailable(settings)',
-        ),
-      ),
+    final canceledReturnIndex = takePhotoBlock.indexOf(
+      'await returnToReceiptImportOptions();',
+      addedReturnIndex,
     );
+    final backupCaptureIndex = takePhotoBlock.indexOf(
+      '_openReceiptBackupCaptureAfterNativeUnavailable(settings)',
+    );
+    expect(addedReturnIndex, lessThan(canceledReturnIndex));
+    expect(addedReturnIndex, lessThan(backupCaptureIndex));
     expect(
-      takePhotoBlock.indexOf(
-        'if (nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.added) return;',
-      ),
+      addedReturnIndex,
       lessThan(takePhotoBlock.indexOf('_takePhoneCameraBackupPhoto();')),
     );
     expect(

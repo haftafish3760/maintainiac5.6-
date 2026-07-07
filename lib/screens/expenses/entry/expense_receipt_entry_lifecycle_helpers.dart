@@ -29,6 +29,7 @@ extension _ExpenseReceiptEntryLifecycleHelpers
     ]) {
       controller.addListener(_scheduleDraftSave);
     }
+    _storeController.addListener(_trackMerchantUserEdit);
     for (final controller in [
       _receiptSubtotalController,
       _salesTaxController,
@@ -36,6 +37,9 @@ extension _ExpenseReceiptEntryLifecycleHelpers
     ]) {
       controller.addListener(_refreshReceiptTotals);
     }
+    _receiptSubtotalController.addListener(_trackSubtotalUserEdit);
+    _salesTaxController.addListener(_trackTaxUserEdit);
+    _receiptTotalController.addListener(_trackTotalUserEdit);
     if (_rawReceiptText.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) unawaited(_parseImportedReceiptText(_rawReceiptText));
@@ -152,6 +156,7 @@ extension _ExpenseReceiptEntryLifecycleHelpers
     ]) {
       controller.removeListener(_scheduleDraftSave);
     }
+    _storeController.removeListener(_trackMerchantUserEdit);
     for (final controller in [
       _receiptSubtotalController,
       _salesTaxController,
@@ -159,6 +164,9 @@ extension _ExpenseReceiptEntryLifecycleHelpers
     ]) {
       controller.removeListener(_refreshReceiptTotals);
     }
+    _receiptSubtotalController.removeListener(_trackSubtotalUserEdit);
+    _salesTaxController.removeListener(_trackTaxUserEdit);
+    _receiptTotalController.removeListener(_trackTotalUserEdit);
     _storeController.dispose();
     _phoneController.dispose();
     _streetController.dispose();
@@ -184,5 +192,37 @@ extension _ExpenseReceiptEntryLifecycleHelpers
           !originalIds.contains(attachment.id),
     );
     return ReceiptProofStorage.instance.deleteStagedAttachments(uncommitted);
+  }
+
+  void _trackMerchantUserEdit() {
+    if (_applyingParsedFieldValues) return;
+    final current = _storeController.text.trim();
+    final parsed = (_lastParsedMerchantValue ?? '').trim();
+    if (current == parsed) return;
+    _merchantValueLockedByUser = true;
+  }
+
+  void _trackSubtotalUserEdit() {
+    if (_applyingParsedFieldValues) return;
+    final current = _receiptSubtotalController.text.trim();
+    final parsed = (_lastParsedSubtotalValue ?? '').trim();
+    if (current == parsed) return;
+    _receiptSubtotalLockedByUser = true;
+  }
+
+  void _trackTaxUserEdit() {
+    if (_applyingParsedFieldValues) return;
+    final current = _salesTaxController.text.trim();
+    final parsed = (_lastParsedTaxValue ?? '').trim();
+    if (current == parsed) return;
+    _receiptTaxLockedByUser = true;
+  }
+
+  void _trackTotalUserEdit() {
+    if (_applyingParsedFieldValues) return;
+    final current = _receiptTotalController.text.trim();
+    final parsed = (_lastParsedTotalValue ?? '').trim();
+    if (current == parsed) return;
+    _receiptTotalLockedByUser = true;
   }
 }
