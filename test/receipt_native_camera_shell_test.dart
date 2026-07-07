@@ -257,6 +257,22 @@ void main() {
     expect(shutterBlock, isNot(contains('RoundedRectangleBorder(')));
   });
 
+  test('native camera shell keeps top and bottom controls inside safe areas', () async {
+    final topControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart',
+    ).readAsString();
+    final bottomBar = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart',
+    ).readAsString();
+
+    expect(topControls, contains('return SafeArea('));
+    expect(topControls, contains('bottom: false'));
+    expect(topControls, contains('padding: const EdgeInsets.fromLTRB(10, 8, 10, 0)'));
+    expect(bottomBar, contains('child: SafeArea('));
+    expect(bottomBar, contains('top: false'));
+    expect(bottomBar, contains('minimum: const EdgeInsets.only(bottom: 8)'));
+  });
+
   testWidgets('native camera shell can show long receipt ghost guide', (
     tester,
   ) async {
