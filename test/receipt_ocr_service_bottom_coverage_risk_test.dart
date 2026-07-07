@@ -230,4 +230,80 @@ PVC GLUE 7.99
       contains('subtotal, total, and final lines can be matched'),
     );
   });
+
+  test('ocr handoff keeps top-retake next-section ghost alignment evidence', () {
+    final sourceHandoff = ReceiptOcrSourceHandoffSummary.fromAttachments([
+      ReceiptAttachmentRecord(
+        id: 'ocr-source-top-retake',
+        path: '/tmp/receipt-top-retake.jpg',
+        kind: ReceiptAttachmentKind.photo,
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        createdAt: DateTime(2026, 7, 7),
+        documentSignals: const [
+          'receipt_continuation_handoff_reason_retake_top_with_next_context',
+          'receipt_continuation_handoff_ghost_policy_next_section_top_context_ghost_at_top_repeat_3_to_5_lines',
+          'receipt_continuation_handoff_ghost_repeat_target_repeat_3_to_5_readable_lines',
+          'receipt_continuation_handoff_ghost_placement_top_ghost_slice',
+          'receipt_continuation_handoff_ghost_match_target_next_section_top_lines',
+        ],
+      ),
+    ]);
+    final result = ReceiptOcrResult(
+      rawText: '''
+LOWE'S
+07/07/2026
+PVC GLUE 7.99
+''',
+      parserText: '''
+LOWE'S
+07/07/2026
+PVC GLUE 7.99
+''',
+      textByAttachmentId: const {
+        'photo-top-retake': 'private receipt text omitted',
+      },
+      source: ReceiptProcessingSource.photo,
+      sourceHandoffSummary: sourceHandoff,
+    );
+
+    final diagnostics = result.diagnostics;
+
+    expect(sourceHandoff.hasGhostSliceAlignmentContract, isTrue);
+    expect(sourceHandoff.hasTopGhostSlicePlacement, isTrue);
+    expect(sourceHandoff.hasRepeatLineGhostTarget, isTrue);
+    expect(sourceHandoff.hasNextSectionTopLineMatchTarget, isTrue);
+    expect(sourceHandoff.hasMissingBottomEdgeAndTotalsEvidence, isFalse);
+    expect(
+      sourceHandoff.ghostSliceAlignmentStatus,
+      'top_ghost_slice_repeat_3_to_5_lines_match_next_section_top',
+    );
+    expect(
+      sourceHandoff.ghostSliceReviewInstruction,
+      contains('next receipt section can be matched'),
+    );
+    expect(
+      diagnostics.ocrSourceHandoffContract['ghostSliceAlignmentStatus'],
+      'top_ghost_slice_repeat_3_to_5_lines_match_next_section_top',
+    );
+    expect(
+      diagnostics.ocrSourceHandoffContract['ghostSlicePlacement'],
+      'top_ghost_slice',
+    );
+    expect(
+      diagnostics.ocrSourceHandoffContract['ghostSliceRepeatTarget'],
+      'repeat_3_to_5_readable_lines',
+    );
+    expect(
+      diagnostics.ocrSourceHandoffContract['ghostSliceMatchTarget'],
+      'next_section_top_lines',
+    );
+    expect(
+      diagnostics.ocrSourceGhostSliceAlignmentStatus,
+      'top_ghost_slice_repeat_3_to_5_lines_match_next_section_top',
+    );
+    expect(
+      diagnostics.ocrSourceGhostSliceReviewInstruction,
+      contains('next receipt section can be matched'),
+    );
+  });
 }

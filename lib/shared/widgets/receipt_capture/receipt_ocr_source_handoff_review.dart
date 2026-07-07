@@ -392,6 +392,8 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       if (hasGhostSliceAlignmentContract)
         'ghostSliceMatchTarget': hasSubtotalTotalFinalLineMatchTarget
             ? 'subtotal_total_and_final_lines'
+            : hasNextSectionTopLineMatchTarget
+            ? 'next_section_top_lines'
             : 'unknown',
       if (completionSignalCounts.isNotEmpty)
         'completionSignalCounts': completionSignalCounts,

@@ -15,7 +15,9 @@ extension ReceiptOcrSourceHandoffLongReceipt on ReceiptOcrSourceHandoffSummary {
           'receipt_continuation_handoff_ghost_repeat_target_repeat_3_to_5_readable_lines',
           'receipt_continuation_ghost_repeat_target_repeat_3_to_5_readable_lines',
           'receipt_continuation_ghost_policy_bottom_overlap_ghost_at_top_repeat_3_to_5_lines',
+          'receipt_continuation_ghost_policy_next_section_top_context_ghost_at_top_repeat_3_to_5_lines',
           'receipt_continuation_handoff_ghost_policy_bottom_overlap_ghost_at_top_repeat_3_to_5_lines',
+          'receipt_continuation_handoff_ghost_policy_next_section_top_context_ghost_at_top_repeat_3_to_5_lines',
           'ocr_source_continuation_bottom_overlap_ghost_policy',
           'ghost_repeat_target_repeat_3_to_5_readable_lines',
         ]) >
@@ -31,11 +33,20 @@ extension ReceiptOcrSourceHandoffLongReceipt on ReceiptOcrSourceHandoffSummary {
         0;
   }
 
+  bool get hasNextSectionTopLineMatchTarget {
+    return _countLongReceiptHandoffKeys(continuationSignalCounts, const [
+          'receipt_continuation_handoff_ghost_match_target_next_section_top_lines',
+          'receipt_continuation_ghost_match_target_next_section_top_lines',
+          'ghost_match_target_next_section_top_lines',
+        ]) >
+        0;
+  }
+
   bool get hasGhostSliceAlignmentContract =>
-      hasMissingBottomEdgeAndTotalsEvidence &&
-      (hasTopGhostSlicePlacement ||
-          hasRepeatLineGhostTarget ||
-          hasSubtotalTotalFinalLineMatchTarget);
+      hasTopGhostSlicePlacement &&
+      (hasRepeatLineGhostTarget ||
+          hasSubtotalTotalFinalLineMatchTarget ||
+          hasNextSectionTopLineMatchTarget);
 
   int get missingBottomTotalsEvidenceFamilyCount {
     var count = 0;
@@ -113,6 +124,11 @@ extension ReceiptOcrSourceHandoffLongReceipt on ReceiptOcrSourceHandoffSummary {
         hasSubtotalTotalFinalLineMatchTarget) {
       return 'top_ghost_slice_repeat_3_to_5_lines_match_subtotal_total_final';
     }
+    if (hasTopGhostSlicePlacement &&
+        hasRepeatLineGhostTarget &&
+        hasNextSectionTopLineMatchTarget) {
+      return 'top_ghost_slice_repeat_3_to_5_lines_match_next_section_top';
+    }
     if (hasTopGhostSlicePlacement && hasRepeatLineGhostTarget) {
       return 'top_ghost_slice_repeat_3_to_5_lines';
     }
@@ -123,6 +139,9 @@ extension ReceiptOcrSourceHandoffLongReceipt on ReceiptOcrSourceHandoffSummary {
     if (!hasGhostSliceAlignmentContract) return '';
     if (hasSubtotalTotalFinalLineMatchTarget) {
       return 'Repeat 3-5 readable lines in the top ghost slice so subtotal, total, and final lines can be matched.';
+    }
+    if (hasNextSectionTopLineMatchTarget) {
+      return 'Repeat 3-5 readable lines in the top ghost slice so the next receipt section can be matched.';
     }
     return 'Repeat 3-5 readable lines in the top ghost slice so receipt sections can be matched.';
   }
