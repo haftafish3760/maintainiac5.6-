@@ -132,6 +132,9 @@ class ReceiptStitchResult {
           ? 'fallback_duplicate_ocr_sources'
           : 'duplicate_ocr_sources';
     }
+    if (usedFallback && diagnosticReasonLabel == 'decode_failed') {
+      return 'fallback_unreadable_input_source';
+    }
     if (didStitch) {
       if (stitchedPath == null || ocrSourcePaths.length != 1) {
         return 'stitched_ocr_source_missing';

@@ -60,6 +60,12 @@ void main() {
       expect(result.fallbackReasonCode, 'decode_failed');
       expect(result.userFallbackReasonLabel, 'One photo could not be read');
       expect(result.ocrSourcePaths, [valid.path, badPath]);
+      expect(result.hasValidOcrSourceContract, isFalse);
+      expect(result.ocrSourceContractCode, 'fallback_unreadable_input_source');
+      expect(
+        result.privacySafeOcrHandoffSafety,
+        containsPair('stitchOcrSourceContractReady', false),
+      );
     }
   });
 
