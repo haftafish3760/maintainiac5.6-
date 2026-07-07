@@ -209,6 +209,28 @@ class ReceiptStitchResult {
     return 'Photo ${index + 1} to ${index + 2}';
   }
 
+  String get reviewFocusPairLabel {
+    final failed = failedPairLabel;
+    if (failed.isNotEmpty) return failed;
+    if (!didStitch || !hasLowConfidenceAutomaticOverlap) return '';
+    ReceiptStitchPairResult? lowestConfidencePair;
+    for (final pair in pairs) {
+      if (pair.usedManualAdjustment ||
+          pair.overlapPixels <= 0 ||
+          !pair.confidence.isFinite ||
+          pair.confidence >= .70) {
+        continue;
+      }
+      if (lowestConfidencePair == null ||
+          pair.confidence < lowestConfidencePair.confidence) {
+        lowestConfidencePair = pair;
+      }
+    }
+    if (lowestConfidencePair == null) return '';
+    final pairIndex = lowestConfidencePair.pairIndex;
+    return 'Photo ${pairIndex + 1} to ${pairIndex + 2}';
+  }
+
   String get diagnosticReasonLabel {
     if (!usedFallback) return status.name;
     return _safeStitchFallbackReasonCode(fallbackReasonCode);
@@ -293,7 +315,7 @@ class ReceiptStitchResult {
     return switch (status) {
       ReceiptStitchStatus.notNeeded => 'ordered_sections_review_ready',
       ReceiptStitchStatus.stitched =>
-        allPairsHaveOverlapEvidence
+        allPairsHaveOverlapEvidence && !hasLowConfidenceAutomaticOverlap
             ? 'stitched_overlap_verified'
             : 'stitched_overlap_needs_review',
       ReceiptStitchStatus.fallback =>
@@ -333,6 +355,8 @@ class ReceiptStitchResult {
       'stitchRequiresOcrSourceReviewBeforeAssistedRead':
           requiresOcrSourceReviewBeforeAssistedRead,
       'stitchOcrHandoffChecklistLabel': ocrHandoffChecklistLabel,
+      if (reviewFocusPairLabel.isNotEmpty)
+        'stitchReviewFocusPairLabel': reviewFocusPairLabel,
     });
   }
 

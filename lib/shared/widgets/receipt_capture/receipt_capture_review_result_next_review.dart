@@ -27,25 +27,34 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
   }
 
   String get nextReviewHandoffLabel {
-    final safety = stitchResult.stitchSafetyLabel;
+    final safety =
+        stitchResult.hasLowConfidenceAutomaticOverlap &&
+            stitchResult.requiresOcrSourceReviewBeforeAssistedRead
+        ? stitchResult.ocrHandoffSafetyLabel
+        : stitchResult.stitchSafetyLabel;
+    final normalizedSafety = safety.endsWith('.') ? safety : '$safety.';
+    final reviewPair = stitchResult.reviewFocusPairLabel;
     if (needsAnotherReceiptSectionBeforeDetails) {
       if (firstPossiblePartialReceiptReasonCode ==
           'missing_bottom_edge_and_totals') {
-        return '${_bottomGhostSliceHandoffInstruction(suffix: 'before receipt details unless this photo already shows the full receipt.')} $safety.';
+        return '${_bottomGhostSliceHandoffInstruction(suffix: 'before receipt details unless this photo already shows the full receipt.')} $normalizedSafety';
       }
-      return 'Add the next receipt section before receipt details unless this photo already shows the full receipt. $safety.';
+      return 'Add the next receipt section before receipt details unless this photo already shows the full receipt. $normalizedSafety';
     }
     if (nextReviewUsesCombinedReceiptImage) {
-      return 'Receipt details open from $nextReviewSourceLabel. $safety.';
+      if (stitchResult.hasLowConfidenceAutomaticOverlap &&
+          reviewPair.isNotEmpty) {
+        return 'Receipt details open from $nextReviewSourceLabel. $reviewPair still needs review. $normalizedSafety';
+      }
+      return 'Receipt details open from $nextReviewSourceLabel. $normalizedSafety';
     }
     if (nextReviewUsesOrderedSections) {
-      if (stitchResult.usedFallback &&
-          stitchResult.failedPairLabel.isNotEmpty) {
-        return 'Receipt details open from $nextReviewSourceLabel in top-to-bottom order. ${stitchResult.failedPairLabel} needs adjustment. $safety.';
+      if (stitchResult.usedFallback && reviewPair.isNotEmpty) {
+        return 'Receipt details open from $nextReviewSourceLabel in top-to-bottom order. $reviewPair needs adjustment. $normalizedSafety';
       }
-      return 'Receipt details open from $nextReviewSourceLabel in top-to-bottom order. $safety.';
+      return 'Receipt details open from $nextReviewSourceLabel in top-to-bottom order. $normalizedSafety';
     }
-    return 'Receipt details open from $nextReviewSourceLabel. $safety.';
+    return 'Receipt details open from $nextReviewSourceLabel. $normalizedSafety';
   }
 
   String get nextReviewDiagnosticLabel {
@@ -78,15 +87,15 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
       'combined_receipt_image_ready' =>
         'Photo match ready: one combined receipt image will be read.',
       'ordered_sections_fallback_ready' =>
-        stitchResult.failedPairLabel.isEmpty
+        reviewPair.isEmpty
             ? 'Photo match fallback: ordered receipt sections will be read top to bottom.'
-            : 'Photo match fallback: ordered receipt sections will be read top to bottom, and ${stitchResult.failedPairLabel} needs review.',
+            : 'Photo match fallback: ordered receipt sections will be read top to bottom, and $reviewPair needs review.',
       'ordered_sections_ready' =>
         'Ordered receipt sections will be read top to bottom.',
       'ocr_source_review_required_before_assist' =>
-        stitchResult.failedPairLabel.isEmpty
+        reviewPair.isEmpty
             ? 'Photo match needs review before app-assisted receipt filling.'
-            : 'Photo match needs review before app-assisted receipt filling, starting with ${stitchResult.failedPairLabel}.',
+            : 'Photo match needs review before app-assisted receipt filling, starting with $reviewPair.',
       'missing_ocr_source' =>
         'No clear OCR source is ready for app-assisted receipt filling.',
       'needs_next_receipt_section' =>
@@ -106,4 +115,6 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
     final source = stitchResult.didStitch ? 'combined OCR image' : 'OCR photo';
     return count == 1 ? '1 clear $source' : '$count clear ${source}s';
   }
+
+  String get reviewPair => stitchResult.reviewFocusPairLabel;
 }
