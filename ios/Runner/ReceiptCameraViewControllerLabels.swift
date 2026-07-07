@@ -96,7 +96,7 @@ extension ReceiptCameraViewController {
     if exposureControlsVisible() {
       controls.append("brightness")
     }
-    if !bottomReviewButton.isHidden && bottomReviewButton.isEnabled {
+    if reviewNextControlReady() {
       controls.append("long_receipt_done")
     }
     if !addPhotoButton.isHidden && addPhotoButton.isEnabled {
@@ -109,6 +109,12 @@ extension ReceiptCameraViewController {
       controls.append("edge_guide")
     }
     return controls.joined(separator: "|")
+  }
+
+  func reviewNextControlReady() -> Bool {
+    let topReady = !doneButton.isHidden && doneButton.isEnabled
+    let bottomReady = !bottomReviewButton.isHidden && bottomReviewButton.isEnabled
+    return topReady || bottomReady
   }
 
   func exposureControlsVisible() -> Bool {
@@ -140,7 +146,8 @@ extension ReceiptCameraViewController {
     let statuses = [
       backControlActualStatus(),
       settingsControlActualStatus(),
-      manualShutterControlActualStatus()
+      manualShutterControlActualStatus(),
+      reviewNextControlActualStatus()
     ]
     return statuses.contains("missing") || statuses.contains("visible_disabled")
       ? "review_needed"
@@ -160,6 +167,17 @@ extension ReceiptCameraViewController {
       visible: shutterButton.superview != nil,
       enabled: shutterButton.isEnabled && !closingCamera && !closeResultDelivered
     )
+  }
+
+  func reviewNextControlActualStatus() -> String {
+    if capturedPhotoPaths.isEmpty {
+      return "ready"
+    }
+    let topVisible = !doneButton.isHidden
+    let bottomVisible = !bottomReviewButton.isHidden
+    let visible = topVisible || bottomVisible
+    let enabled = (topVisible && doneButton.isEnabled) || (bottomVisible && bottomReviewButton.isEnabled)
+    return controlStatus(visible: visible, enabled: enabled)
   }
 
   func tapFocusControlActualStatus() -> String {

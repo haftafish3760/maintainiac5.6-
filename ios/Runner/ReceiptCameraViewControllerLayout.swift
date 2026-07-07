@@ -82,6 +82,7 @@ extension ReceiptCameraViewController {
     let spacer = UIView()
     topBar.addArrangedSubview(backButton)
     topBar.addArrangedSubview(spacer)
+    topBar.addArrangedSubview(doneButton)
     topBar.addArrangedSubview(settingsButton)
     topBar.addArrangedSubview(torchButton)
     view.addSubview(topBar)

@@ -37,6 +37,7 @@ void main() {
       ),
     );
     expect(cameraController, contains('let bottomReviewButton'));
+    expect(cameraController, contains('topBar.addArrangedSubview(doneButton)'));
     expect(
       cameraController,
       contains(
@@ -321,14 +322,10 @@ void main() {
       cameraController,
       contains('func exposureControlsVisible() -> Bool'),
     );
-    expect(
-      cameraController,
-      contains(
-        'if !bottomReviewButton.isHidden && bottomReviewButton.isEnabled {\n'
-        '      controls.append("long_receipt_done")\n'
-        '    }',
-      ),
-    );
+    expect(cameraController, contains('func reviewNextControlReady() -> Bool'));
+    expect(cameraController, contains('let topReady = !doneButton.isHidden && doneButton.isEnabled'));
+    expect(cameraController, contains('let bottomReady = !bottomReviewButton.isHidden && bottomReviewButton.isEnabled'));
+    expect(cameraController, contains('if reviewNextControlReady() {'));
     expect(
       cameraController,
       contains('return controls.joined(separator: "|")'),
@@ -339,6 +336,7 @@ void main() {
     );
     expect(cameraController, contains('"manual_shutter"'));
     expect(cameraController, contains('controls.append("long_receipt_done")'));
+    expect(cameraController, contains('func reviewNextControlActualStatus() -> String'));
     expect(cameraController, contains('"section_ghost_guide"'));
     expect(cameraController, contains('"edge_guide"'));
     expect(
