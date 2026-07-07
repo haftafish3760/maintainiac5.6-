@@ -10,9 +10,9 @@ fi
 mode="${1:-milestone}"
 
 case "$mode" in
-  phase2 | quick | stitch | milestone | full) ;;
+  phase2 | phase3 | quick | stitch | milestone | full) ;;
   *)
-    echo "Usage: tool/receipt_camera_qa_gate.sh [--print-plan] [phase2|quick|stitch|milestone|full]" >&2
+    echo "Usage: tool/receipt_camera_qa_gate.sh [--print-plan] [phase2|phase3|quick|stitch|milestone|full]" >&2
     exit 64
     ;;
 esac
@@ -31,6 +31,15 @@ phase2_tests=(
   test/receipt_capture_flow_handoff_order_test.dart
 )
 
+phase3_tests=(
+  test/receipt_camera_phase3_viewer_contract_test.dart
+  test/receipt_native_camera_shell_test.dart
+  test/receipt_native_android_guidance_policy_gate_test.dart
+  test/receipt_native_ios_guidance_warning_gate_test.dart
+  test/receipt_native_android_bridge_false_positive_guard_test.dart
+  test/receipt_native_ios_bridge_false_positive_guard_test.dart
+)
+
 phase2_audit_paths=(
   lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart
   lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart
@@ -39,6 +48,19 @@ phase2_audit_paths=(
   test/receipt_capture_flow_assist_opt_in_contract_test.dart
   test/receipt_camera_capture_layout_test.dart
   test/receipt_capture_flow_handoff_order_test.dart
+)
+
+phase3_audit_paths=(
+  lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart
+  lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart
+  lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_controls.dart
+  lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart
+  lib/shared/widgets/receipt_capture/receipt_native_camera_shell_guidance.dart
+  test/receipt_camera_phase3_viewer_contract_test.dart
+  test/receipt_native_android_guidance_policy_gate_test.dart
+  test/receipt_native_ios_guidance_warning_gate_test.dart
+  test/receipt_native_android_bridge_false_positive_guard_test.dart
+  test/receipt_native_ios_bridge_false_positive_guard_test.dart
 )
 
 quick_tests=(
@@ -213,6 +235,9 @@ print_plan_for_mode() {
     phase2)
       print_test_pack phase2 "${phase2_tests[@]}"
       ;;
+    phase3)
+      print_test_pack phase3 "${phase3_tests[@]}"
+      ;;
     quick)
       print_test_pack quick "${quick_tests[@]}"
       ;;
@@ -299,6 +324,28 @@ run_phase2_stale_contract_scan() {
   fi
 }
 
+run_phase3_stale_contract_scan() {
+  local scan_roots=(
+    lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart
+    lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart
+    lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_controls.dart
+    lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart
+    lib/shared/widgets/receipt_capture/receipt_native_camera_shell_guidance.dart
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraActivity.kt
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraUiChrome.kt
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt
+    ios/Runner/ReceiptCameraViewController.swift
+    ios/Runner/ReceiptCameraViewControllerLayout.swift
+    ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift
+  )
+  local pattern='Icons\.play_arrow_rounded|wrench|Tap text to focus|warningCarousel|guidanceMessages|randomGuidance|Continue To Camera|Open Receipt Settings'
+
+  if rg -n "$pattern" "${scan_roots[@]}"; then
+    echo "Stale Phase 3 viewer wording or retired control contract found." >&2
+    return 1
+  fi
+}
+
 run_phase2() {
   bash tool/receipt_camera_scope_gate.sh
   dart analyze \
@@ -309,6 +356,21 @@ run_phase2() {
     --max-line-length=220
   run_phase2_stale_contract_scan
   run_flutter_tests "${phase2_tests[@]}"
+  git diff --check
+}
+
+run_phase3() {
+  bash tool/receipt_camera_scope_gate.sh
+  dart analyze \
+    lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart \
+    test/helpers/receipt_native_android_bridge_source_readers.dart \
+    test/helpers/receipt_native_ios_bridge_source_readers.dart \
+    "${phase3_tests[@]}"
+  dart tool/maintainiac_source_audit.dart \
+    "${phase3_audit_paths[@]}" \
+    --max-line-length=220
+  run_phase3_stale_contract_scan
+  run_flutter_tests "${phase3_tests[@]}"
   git diff --check
 }
 
@@ -375,6 +437,7 @@ run_full() {
 
 case "$mode" in
   phase2) run_phase2 ;;
+  phase3) run_phase3 ;;
   quick) run_quick ;;
   stitch) run_stitch ;;
   milestone) run_milestone ;;

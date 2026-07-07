@@ -40,6 +40,44 @@ void main() {
       expect(phase2Plan, isNot(contains('milestone ')));
       expect(phase2Plan, isNot(contains('full ')));
 
+      final phase3Plan = await planFor('phase3');
+      expect(phase3Plan, contains('mode=phase3'));
+      expect(
+        phase3Plan,
+        contains('phase3 test/receipt_camera_phase3_viewer_contract_test.dart'),
+      );
+      expect(
+        phase3Plan,
+        contains('phase3 test/receipt_native_camera_shell_test.dart'),
+      );
+      expect(
+        phase3Plan,
+        contains(
+          'phase3 test/receipt_native_android_guidance_policy_gate_test.dart',
+        ),
+      );
+      expect(
+        phase3Plan,
+        contains(
+          'phase3 test/receipt_native_ios_guidance_warning_gate_test.dart',
+        ),
+      );
+      expect(
+        phase3Plan,
+        contains(
+          'phase3 test/receipt_native_android_bridge_false_positive_guard_test.dart',
+        ),
+      );
+      expect(
+        phase3Plan,
+        contains(
+          'phase3 test/receipt_native_ios_bridge_false_positive_guard_test.dart',
+        ),
+      );
+      expect(phase3Plan, isNot(contains('quick ')));
+      expect(phase3Plan, isNot(contains('milestone ')));
+      expect(phase3Plan, isNot(contains('full ')));
+
       final quickPlan = await planFor('quick');
       expect(quickPlan, contains('mode=quick'));
       expect(
@@ -171,7 +209,7 @@ void main() {
   test('camera QA printed plans only reference existing tests', () async {
     final missingPaths = <String>[];
 
-    for (final mode in ['phase2', 'quick', 'stitch', 'milestone', 'full']) {
+    for (final mode in ['phase2', 'phase3', 'quick', 'stitch', 'milestone', 'full']) {
       final result = await Process.run('bash', [
         'tool/receipt_camera_qa_gate.sh',
         '--print-plan',
@@ -185,6 +223,7 @@ void main() {
           .where(
             (line) =>
                 line.startsWith('phase2 ') ||
+                line.startsWith('phase3 ') ||
                 line.startsWith('quick ') ||
                 line.startsWith('stitch ') ||
                 line.startsWith('milestone ') ||
