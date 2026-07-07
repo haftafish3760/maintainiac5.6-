@@ -4128,3 +4128,15 @@ Release boundaries:
   Angle stops/supply lines improved to 68/76 release-ready candidates; the
   remaining 8 generic stop-valve rows stay manual-review because their names do
   not prove connection type.
+- **22:12-22:13 Plumbing Core Well Pressure Readiness Audit Refinement:** Used
+  the readiness audit to finish the well-pressure family without guessing. The
+  remaining rows were well pipe adapters whose catalog aliases already prove
+  `poly pipe insert` / `pitless adapter`; the audit now recognizes `poly`,
+  `polyethylene`, `insert`, and `pitless` as valid identity terms. Verification
+  passed:
+  `dart analyze tool/work_supply_plumbing_core_readiness_audit.dart
+  test/work_supply_plumbing_core_readiness_audit_test.dart` and
+  `flutter test test/work_supply_plumbing_core_readiness_audit_test.dart`.
+  Latest readiness report: 1,122 Core rows, 236 release-ready candidates, 244
+  metadata-ready candidates, readiness average 90.06. Well pressure now has
+  20/20 release-ready candidates.
