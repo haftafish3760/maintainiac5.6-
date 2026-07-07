@@ -91,6 +91,7 @@ void main() {
     expect(summary, contains('summary=failed_actionable_lines'));
     expect(summary, contains('tail -80'));
     expect(fastGuard, contains('tool/receipt_camera_scope_gate.sh'));
+    expect(fastGuard, contains('tool/receipt_camera_changed_gate.sh'));
     expect(fastGuard, contains('tool/receipt_camera_qa_summary.sh'));
     expect(fastGuard, contains('tool/receipt_start_camera_qa_gate.sh'));
   });
@@ -121,4 +122,29 @@ void main() {
       expect(script, isNot(contains('git ls-files --others')));
     },
   );
+
+  test('camera changed gate selects safe QA depth from tracked edits', () {
+    final script = File(
+      'tool/receipt_camera_changed_gate.sh',
+    ).readAsStringSync();
+
+    expect(script, contains('tool/receipt_camera_scope_gate.sh'));
+    expect(
+      script,
+      contains('git diff --name-only --diff-filter=ACMRTUXB HEAD'),
+    );
+    expect(script, contains('no tracked camera changes; skipping QA rerun'));
+    expect(script, contains('mode="quick"'));
+    expect(script, contains('mode="milestone"'));
+    expect(script, contains('mode="full"'));
+    expect(script, contains('tool/receipt_start_camera_qa_gate.sh'));
+    expect(script, contains('tool/receipt_camera_qa_gate.sh'));
+    expect(
+      script,
+      contains('android/app/src/main/kotlin/com/maintainiac/ReceiptCamera*.kt'),
+    );
+    expect(script, contains('ios/Runner/ReceiptCamera*.swift'));
+    expect(script, contains('test/receipt_stitching_*'));
+    expect(script, isNot(contains('git ls-files --others')));
+  });
 }
