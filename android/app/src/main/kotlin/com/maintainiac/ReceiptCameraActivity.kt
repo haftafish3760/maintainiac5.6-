@@ -6,6 +6,7 @@ import android.view.KeyEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -17,6 +18,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -25,14 +27,18 @@ import java.util.concurrent.Executor
 class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal val lifecycleRegistry = LifecycleRegistry(this)
     internal var systemBackCallback: OnBackInvokedCallback? = null
+    internal lateinit var cameraRootView: FrameLayout
     internal lateinit var previewView: PreviewView
+    internal lateinit var topBar: LinearLayout
     internal lateinit var shutterButton: ImageButton
     internal lateinit var torchButton: ImageButton
     internal lateinit var doneButton: Button
     internal lateinit var addPhotoButton: Button
+    internal lateinit var bottomBar: LinearLayout
     internal lateinit var bottomReviewButton: Button
     internal lateinit var guidance: TextView
     internal lateinit var receiptFrameGuide: View
+    internal lateinit var exposurePanel: LinearLayout
     internal lateinit var exposureSlider: SeekBar
     internal lateinit var exposureResetButton: Button
     internal lateinit var settingsStatusStrip: TextView
@@ -254,7 +260,9 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
         readSessionArguments()
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         registerSystemBackHandler()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(buildContentView())
+        applyEdgeToEdgeReceiptInsets()
         startCamera()
     }
 

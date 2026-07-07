@@ -13,10 +13,14 @@ import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.camera.view.PreviewView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 
 
 internal fun ReceiptCameraActivity.buildContentView(): View {
-    val root = FrameLayout(this).apply {
+    cameraRootView = FrameLayout(this).apply {
         setBackgroundColor(Color.BLACK)
     }
     previewView = PreviewView(this).apply {
@@ -26,15 +30,15 @@ internal fun ReceiptCameraActivity.buildContentView(): View {
         )
         scaleType = PreviewView.ScaleType.FILL_CENTER
     }
-    root.addView(previewView)
-    root.addView(buildReceiptFrameGuide())
-    root.addView(buildTopBar())
-    root.addView(buildGuidance())
-    root.addView(buildPreviousSectionGuide())
-    root.addView(buildSettingsStatusStrip())
-    root.addView(buildExposureControls())
-    root.addView(buildBottomBar())
-    return root
+    cameraRootView.addView(previewView)
+    cameraRootView.addView(buildReceiptFrameGuide())
+    cameraRootView.addView(buildTopBar())
+    cameraRootView.addView(buildGuidance())
+    cameraRootView.addView(buildPreviousSectionGuide())
+    cameraRootView.addView(buildSettingsStatusStrip())
+    cameraRootView.addView(buildExposureControls())
+    cameraRootView.addView(buildBottomBar())
+    return cameraRootView
 }
 
 internal fun ReceiptCameraActivity.buildReceiptFrameGuide(): View {
@@ -57,7 +61,7 @@ internal fun ReceiptCameraActivity.buildReceiptFrameGuide(): View {
 }
 
 internal fun ReceiptCameraActivity.buildTopBar(): View {
-    val row = LinearLayout(this).apply {
+    topBar = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         setPadding(dp(12), dp(8), dp(12), dp(4))
@@ -67,10 +71,10 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
             Gravity.TOP,
         )
     }
-    row.addView(iconButton("Back", android.R.drawable.ic_menu_revert) {
+    topBar.addView(iconButton("Back", android.R.drawable.ic_menu_revert) {
         requestCloseCamera(backDispatchPath = "top_bar_back_button")
     })
-    row.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
+    topBar.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
     doneButton = Button(this).apply {
         text = "Next"
         contentDescription = "Next: review captured receipt photos in Maintainiac"
@@ -78,7 +82,7 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
         visibility = View.GONE
         setOnClickListener { finishWithCapturedPhotos() }
     }
-    row.addView(iconButton("Receipt camera settings", R.drawable.ic_receipt_camera_settings) {
+    topBar.addView(iconButton("Receipt camera settings", R.drawable.ic_receipt_camera_settings) {
         showReceiptCameraSettings()
     })
     torchButton = iconButton(
@@ -87,8 +91,8 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
     ) {
         toggleTorch()
     }
-    row.addView(torchButton)
-    return row
+    topBar.addView(torchButton)
+    return topBar
 }
 
 internal fun ReceiptCameraActivity.buildGuidance(): View {
@@ -114,7 +118,7 @@ internal fun ReceiptCameraActivity.buildGuidance(): View {
 }
 
 internal fun ReceiptCameraActivity.buildExposureControls(): View {
-    val panel = LinearLayout(this).apply {
+    exposurePanel = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         setPadding(dp(10), dp(6), dp(10), dp(6))
@@ -130,7 +134,7 @@ internal fun ReceiptCameraActivity.buildExposureControls(): View {
             rightMargin = dp(18)
         }
     }
-    panel.addView(TextView(this).apply {
+    exposurePanel.addView(TextView(this).apply {
         text = "Brightness"
         setTextColor(Color.WHITE)
         textSize = 12f
@@ -150,14 +154,14 @@ internal fun ReceiptCameraActivity.buildExposureControls(): View {
             override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
         })
     }
-    panel.addView(exposureSlider)
+    exposurePanel.addView(exposureSlider)
     exposureResetButton = Button(this).apply {
         text = "Reset"
         isEnabled = false
         setOnClickListener { resetExposure() }
     }
-    panel.addView(exposureResetButton)
-    return panel
+    exposurePanel.addView(exposureResetButton)
+    return exposurePanel
 }
 
 internal fun ReceiptCameraActivity.buildSettingsStatusStrip(): View {
@@ -197,7 +201,7 @@ internal fun ReceiptCameraActivity.settingsStatusText(): String {
 }
 
 internal fun ReceiptCameraActivity.buildBottomBar(): View {
-    val row = LinearLayout(this).apply {
+    bottomBar = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER
         setPadding(dp(12), dp(6), dp(12), dp(12))
@@ -216,9 +220,9 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
         setOnClickListener { capturePhoto("manual_add_photo") }
         layoutParams = LinearLayout.LayoutParams(0, dp(54), 1f)
     }
-    row.addView(addPhotoButton)
+    bottomBar.addView(addPhotoButton)
     val leftSpacer = View(this)
-    row.addView(leftSpacer, LinearLayout.LayoutParams(0, 1, 1f))
+    bottomBar.addView(leftSpacer, LinearLayout.LayoutParams(0, 1, 1f))
     shutterButton = ImageButton(this).apply {
         contentDescription = "Take receipt photo"
         setImageResource(android.R.drawable.ic_menu_camera)
@@ -230,9 +234,9 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
         }
         setOnClickListener { capturePhoto("manual_shutter") }
     }
-    row.addView(shutterButton)
+    bottomBar.addView(shutterButton)
     val rightSpacer = View(this)
-    row.addView(rightSpacer, LinearLayout.LayoutParams(0, 1, 1f))
+    bottomBar.addView(rightSpacer, LinearLayout.LayoutParams(0, 1, 1f))
     bottomReviewButton = Button(this).apply {
         text = "Next"
         contentDescription = "Next: review captured receipt photos in Maintainiac"
@@ -241,8 +245,63 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
         setOnClickListener { finishWithCapturedPhotos() }
         layoutParams = LinearLayout.LayoutParams(0, dp(54), 1f)
     }
-    row.addView(bottomReviewButton)
-    return row
+    bottomBar.addView(bottomReviewButton)
+    return bottomBar
+}
+
+internal fun ReceiptCameraActivity.applyEdgeToEdgeReceiptInsets() {
+    ViewCompat.setOnApplyWindowInsetsListener(cameraRootView) { _, windowInsets ->
+        val insets = windowInsets.getInsets(
+            WindowInsetsCompat.Type.systemBars() or
+                WindowInsetsCompat.Type.displayCutout(),
+        )
+        topBar.updatePadding(
+            left = dp(12) + insets.left,
+            top = dp(8) + insets.top,
+            right = dp(12) + insets.right,
+            bottom = dp(4),
+        )
+        topBar.updateLayoutParams<FrameLayout.LayoutParams> {
+            height = dp(62) + insets.top
+        }
+        guidance.updateLayoutParams<FrameLayout.LayoutParams> {
+            leftMargin = dp(16) + insets.left
+            rightMargin = dp(16) + insets.right
+            bottomMargin = dp(104) + insets.bottom
+        }
+        settingsStatusStrip.updateLayoutParams<FrameLayout.LayoutParams> {
+            leftMargin = dp(18) + insets.left
+            rightMargin = dp(18) + insets.right
+            bottomMargin = dp(154) + insets.bottom
+        }
+        previousSectionGuidePanel.updateLayoutParams<FrameLayout.LayoutParams> {
+            leftMargin = dp(18) + insets.left
+            rightMargin = dp(18) + insets.right
+            topMargin = dp(130) + insets.top
+        }
+        exposurePanel.updateLayoutParams<FrameLayout.LayoutParams> {
+            leftMargin = dp(18) + insets.left
+            rightMargin = dp(18) + insets.right
+            bottomMargin = dp(104) + insets.bottom
+        }
+        bottomBar.updatePadding(
+            left = dp(12) + insets.left,
+            top = dp(6),
+            right = dp(12) + insets.right,
+            bottom = dp(12) + insets.bottom,
+        )
+        bottomBar.updateLayoutParams<FrameLayout.LayoutParams> {
+            height = dp(84) + insets.bottom
+        }
+        receiptFrameGuide.updateLayoutParams<FrameLayout.LayoutParams> {
+            leftMargin = dp(22) + insets.left
+            rightMargin = dp(22) + insets.right
+            topMargin = dp(86) + insets.top
+            bottomMargin = dp(118) + insets.bottom
+        }
+        windowInsets
+    }
+    ViewCompat.requestApplyInsets(cameraRootView)
 }
 
 internal fun ReceiptCameraActivity.pillDrawable(color: Int): GradientDrawable {

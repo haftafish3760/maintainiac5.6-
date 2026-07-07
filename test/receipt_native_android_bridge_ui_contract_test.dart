@@ -137,6 +137,26 @@ void main() {
       cameraActivity,
       contains('"readabilityGuidancePolicy" to readabilityGuidancePolicy'),
     );
+    expect(
+      cameraActivity,
+      contains('WindowCompat.setDecorFitsSystemWindows(window, false)'),
+    );
+    expect(cameraActivity, contains('applyEdgeToEdgeReceiptInsets()'));
+    expect(
+      cameraActivity,
+      contains('ViewCompat.setOnApplyWindowInsetsListener(cameraRootView)'),
+    );
+    expect(
+      cameraActivity,
+      contains('WindowInsetsCompat.Type.systemBars() or'),
+    );
+    expect(
+      cameraActivity,
+      contains('WindowInsetsCompat.Type.displayCutout()'),
+    );
+    expect(cameraActivity, contains('topBar.updatePadding('));
+    expect(cameraActivity, contains('bottomBar.updatePadding('));
+    expect(cameraActivity, contains('receiptFrameGuide.updateLayoutParams'));
     expect(cameraActivity, contains('"tapFocusControlExpected" to false'));
     expect(cameraActivity, contains('"focusLockControlExpected" to false'));
     expect(cameraActivity, contains('"exposureLockControlExpected" to false'));

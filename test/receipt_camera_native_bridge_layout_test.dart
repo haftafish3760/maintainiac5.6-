@@ -63,8 +63,11 @@ void main() {
     expect(androidCameraUnit, contains('text = "Add Photo"'));
     expect(androidCameraUnit, contains('"manual_add_photo"'));
     expect(androidCameraUnit, contains(r'else -> "Next ($count)"'));
-    expect(androidCameraUnit, contains('row.addView(addPhotoButton)'));
-    expect(androidCameraUnit, contains('row.addView(bottomReviewButton)'));
+    expect(androidCameraUnit, contains('bottomBar.addView(addPhotoButton)'));
+    expect(
+      androidCameraUnit,
+      contains('bottomBar.addView(bottomReviewButton)'),
+    );
     expect(
       androidCameraUnit,
       contains('Saving this receipt photo before opening review.'),
