@@ -78,6 +78,7 @@ flutter test \
   test/receipt_doc_size_gate_contract_test.dart \
   test/receipt_fast_guard_gate_contract_test.dart \
   test/receipt_camera_qa_gate_contract_test.dart \
+  test/receipt_camera_qa_gate_execution_test.dart \
   test/receipt_camera_footprint_audit_test.dart \
   test/receipt_camera_result_test.dart \
   test/receipt_photo_review_retake_order_test.dart \
