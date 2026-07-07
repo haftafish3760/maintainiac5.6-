@@ -178,6 +178,12 @@ void main() {
     expect(
       script,
       contains(
+        "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_changed_gate_contract_test.dart'",
+      ),
+    );
+    expect(
+      script,
+      contains(
         "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_dataset_qa_gate_contract_test.dart'",
       ),
     );

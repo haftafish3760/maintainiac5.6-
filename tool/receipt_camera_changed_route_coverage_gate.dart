@@ -32,6 +32,7 @@ const fastGuardSmokeRoutes = [
   'tool/receipt_external_fixture_schema_gate.dart',
   'tool/receipt_external_dataset_local_audit.dart',
   'tool/receipt_external_dataset_gate.dart',
+  'test/receipt_camera_changed_gate_contract_test.dart',
   'test/receipt_camera_changed_route_coverage_gate_test.dart',
   'test/receipt_camera_dataset_qa_gate_contract_test.dart',
   'test/receipt_external_fixture_schema_gate_test.dart',
