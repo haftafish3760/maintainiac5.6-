@@ -1823,7 +1823,9 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('toilet tank seal part') &&
-          _receiptContainsVariantTokens(text, item.variant)) {
+          (_receiptContainsVariantTokens(text, item.variant) ||
+              (text.contains('tank bolt gasket') &&
+                  name.contains('tank bolt gasket')))) {
         return item;
       }
     }
@@ -2398,6 +2400,29 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'wax ring.*toilet seal|flange spacer.*toilet seal|'
     r'flange repair ring.*toilet seal)\b',
   ).hasMatch(text);
+  if (RegExp(
+    r'\b(tank bolt gasket|fill valve shank washer|flush valve locknut|'
+    r'fill valve locknut|toilet supply shank washer)\b',
+  ).hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('toilet tank seal part') &&
+          _receiptContainsVariantTokens(text, item.variant)) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(
+    r'\b(tank to bowl bolts|toilet tank bolt kit|tank bolt kit)\b',
+  ).hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' && name.contains('toilet tank bolt kit')) {
+        return item;
+      }
+    }
+  }
   if (hasToiletServiceContext || hasGeneratedToiletServiceAlias) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();

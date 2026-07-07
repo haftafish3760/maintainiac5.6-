@@ -4328,3 +4328,17 @@ Release boundaries:
   `build/parser_qa_reports/generated_fixtures/service_tools_77_single_chunk_20260707_065627`.
   The readiness audit now reports service consumables and tools at 77/77
   release-ready with 0 critical rows.
+- **07:18-09:25 Toilet/Faucet Repair Shard 1 Stabilization:** Added focused
+  toilet/faucet repair recipes for toilet flush valves, flappers, tank levers,
+  tank bolt kits, tank seals, closet flanges, flange repair, flange spacers,
+  closet bolts, closet seals, faucet washers/seats, O-rings/packing, O-ring and
+  seat kits, faucet cartridges/stems, repair assortments, aerators, lavatory
+  pop-ups, kitchen basket strainers, sink repair kits, and toilet finish trim,
+  plus a generator isolation regression for `--include-risk-tags
+  toilet_faucet_repair`. Shard 1 exposed valid fixture expectation gaps and a
+  real tank-bolt gasket precedence issue; the parser now routes tank-bolt
+  gaskets before generic tank-bolt kits. The corrected 80-case shard 1 run
+  passed with 80 checked, 0 failures, and 80 parser calls at
+  `build/parser_qa_reports/generated_fixtures/toilet_faucet_80_shard1_rerun3_20260707_085222`.
+  Toilet/faucet repair is not locked yet; shard 2, shard 3, family promotion,
+  and the readiness audit still remain.

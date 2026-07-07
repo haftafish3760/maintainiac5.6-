@@ -1071,6 +1071,80 @@ void main() {
     },
   );
 
+  test(
+    'fixture generator can isolate toilet and faucet repair family',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_fixture_generator_plumbing_toilet_faucet_filter_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+
+      final exit = await runWorkSupplyParserFixtureGenerator(
+        [
+          '--trade',
+          'plumbing',
+          '--scope',
+          'residential',
+          '--tier',
+          'core',
+          '--locale',
+          'en-US',
+          '--limit',
+          '233',
+          '--include-risk-tags',
+          'toilet_faucet_repair',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 0);
+      final generatedRoot = Directory(
+        '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+      );
+      final fixtures =
+          jsonDecode(
+                File(
+                  '${generatedRoot.path}/generated_fixtures.json',
+                ).readAsStringSync(),
+              )
+              as List;
+      final manifest =
+          jsonDecode(
+                File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+              )
+              as Map;
+
+      expect(fixtures, hasLength(233));
+      expect(manifest['includeRiskTags'], ['toilet_faucet_repair']);
+      final ids = _fixtureIds(fixtures);
+      expect(ids, contains('toilet_flush_valve'));
+      expect(ids, contains('toilet_flapper'));
+      expect(ids, contains('toilet_tank_lever'));
+      expect(ids, contains('toilet_tank_bolt_kit'));
+      expect(ids, contains('toilet_tank_seal'));
+      expect(ids, contains('closet_flange'));
+      expect(ids, contains('closet_flange_repair'));
+      expect(ids, contains('closet_flange_spacer'));
+      expect(ids, contains('closet_bolt_repair'));
+      expect(ids, contains('closet_seal'));
+      expect(ids, contains('faucet_washer_seat'));
+      expect(ids, contains('faucet_o_ring_packing'));
+      expect(ids, contains('faucet_o_ring_seat_kit'));
+      expect(ids, contains('faucet_cartridge'));
+      expect(ids, contains('faucet_repair_assortment'));
+      expect(ids, contains('faucet_aerator'));
+      expect(ids, contains('lavatory_pop_up'));
+      expect(ids, contains('kitchen_basket_strainer_repair'));
+      expect(ids, contains('sink_repair_kit'));
+      expect(ids, contains('toilet_finish_trim'));
+      expect(_riskTags(manifest), contains('toilet_faucet_repair'));
+      expect(_riskTags(manifest), isNot(contains('service_consumables_tools')));
+    },
+  );
+
   test('fixture generator rejects unsafe empty batches', () async {
     final stderr = _MemorySink();
     final exit = await runWorkSupplyParserFixtureGenerator(
