@@ -78,6 +78,31 @@ void main() {
     expect(result.matchConfidenceLabel, isNot('Manual match'));
   });
 
+  test('zero manual overlap pixels do not block automatic stitching', () async {
+    final sectionA = receiptStitchingSection(seed: 19, topTextOffset: 0);
+    final sectionB = receiptStitchingSection(seed: 20, topTextOffset: 20);
+    copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 320);
+    final first = await writeTempReceiptStitchingImage(
+      sectionA,
+      'manual_zero_pixels_a',
+    );
+    final second = await writeTempReceiptStitchingImage(
+      sectionB,
+      'manual_zero_pixels_b',
+    );
+
+    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+      paths: [first.path, second.path],
+      manualOverlapPixels: const [0],
+    );
+
+    expect(result.didStitch, isTrue, reason: result.detailLabel);
+    expect(result.usedManualAdjustment, isFalse);
+    expect(result.pairs.single.usedManualAdjustment, isFalse);
+    expect(result.fallbackReasonCode, isEmpty);
+    expect(result.ocrSourcePaths, hasLength(1));
+  });
+
   test(
     'manual overlap falls back when the requested overlap is unsafe',
     () async {

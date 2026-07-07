@@ -225,7 +225,9 @@ int? _manualOverlapFor({
   required List<double>? manualOverlapFractions,
 }) {
   if (manualOverlapPixels != null && pairIndex < manualOverlapPixels.length) {
-    return manualOverlapPixels[pairIndex];
+    final pixels = manualOverlapPixels[pairIndex];
+    if (pixels <= 0) return null;
+    return pixels;
   }
   if (manualOverlapFractions != null &&
       pairIndex < manualOverlapFractions.length) {
