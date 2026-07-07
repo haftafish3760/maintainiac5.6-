@@ -24,6 +24,7 @@ void main() {
   test('camera QA gate exposes quick stitch milestone and full modes', () {
     final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
 
+    expect(script, contains('--print-plan'));
     expect(script, contains(r'mode="${1:-milestone}"'));
     expect(script, contains('quick | stitch | milestone | full'));
     expect(script, contains('run_quick'));
@@ -46,6 +47,55 @@ void main() {
     expect(script, contains('run_stale_contract_scan'));
     expect(script, contains('git diff --check'));
   });
+
+  test(
+    'camera QA gate prints executable mode plans without running QA',
+    () async {
+      Future<String> planFor(String mode) async {
+        final result = await Process.run('bash', [
+          'tool/receipt_camera_qa_gate.sh',
+          '--print-plan',
+          mode,
+        ]);
+        expect(result.exitCode, 0, reason: result.stderr.toString());
+        return result.stdout.toString();
+      }
+
+      final quickPlan = await planFor('quick');
+      expect(quickPlan, contains('mode=quick'));
+      expect(
+        quickPlan,
+        contains('quick test/receipt_camera_qa_gate_contract_test.dart'),
+      );
+      expect(quickPlan, isNot(contains('milestone ')));
+      expect(quickPlan, isNot(contains('full ')));
+
+      final stitchPlan = await planFor('stitch');
+      expect(stitchPlan, contains('mode=stitch'));
+      expect(stitchPlan, contains('stitch test/receipt_stitching_test.dart'));
+      expect(
+        stitchPlan,
+        contains('stitch test/receipt_photo_review_retake_order_test.dart'),
+      );
+
+      final milestonePlan = await planFor('milestone');
+      expect(milestonePlan, contains('mode=milestone'));
+      expect(
+        milestonePlan,
+        contains('milestone test/receipt_camera_ocr_source_handoff_test.dart'),
+      );
+      expect(milestonePlan, isNot(contains('full ')));
+
+      final fullPlan = await planFor('full');
+      expect(fullPlan, contains('mode=full'));
+      expect(
+        fullPlan,
+        contains(
+          'full test/receipt_native_ios_bridge_analysis_exposure_test.dart',
+        ),
+      );
+    },
+  );
 
   test('camera QA gate avoids rerunning broader packs already covered', () {
     final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();

@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+print_plan=false
+if [[ "${1:-}" == "--print-plan" ]]; then
+  print_plan=true
+  shift
+fi
+
 mode="${1:-milestone}"
 
 case "$mode" in
   quick | stitch | milestone | full) ;;
   *)
-    echo "Usage: tool/receipt_camera_qa_gate.sh [quick|stitch|milestone|full]" >&2
+    echo "Usage: tool/receipt_camera_qa_gate.sh [--print-plan] [quick|stitch|milestone|full]" >&2
     exit 64
     ;;
 esac
@@ -89,6 +95,51 @@ line_cap_paths=(
 run_flutter_tests() {
   flutter test "$@" -r compact
 }
+
+print_test_pack() {
+  local pack_name="$1"
+  shift
+  local test_path
+
+  for test_path in "$@"; do
+    printf '%s %s\n' "$pack_name" "$test_path"
+  done
+}
+
+print_plan_for_mode() {
+  echo "mode=$mode"
+  print_test_pack quick "${quick_tests[@]}"
+  case "$mode" in
+    quick)
+      ;;
+    stitch)
+      print_test_pack stitch \
+        test/receipt_camera_long_receipt_guidance_test.dart \
+        test/receipt_camera_ocr_source_handoff_test.dart \
+        test/receipt_camera_fixture_matrix_test.dart \
+        test/receipt_camera_result_stitch_scanner_test.dart \
+        test/receipt_capture_flow_barcode_handoff_test.dart \
+        test/receipt_ocr_source_relationship_test.dart \
+        test/receipt_native_camera_previous_section_channel_test.dart \
+        test/receipt_photo_review_retake_order_test.dart \
+        test/receipt_stitch_fallback_metadata_test.dart \
+        test/receipt_stitching_manual_overlap_test.dart \
+        test/receipt_stitching_result_contract_test.dart \
+        test/receipt_stitching_test.dart
+      ;;
+    milestone | full)
+      print_test_pack milestone "${milestone_only_tests[@]}"
+      if [[ "$mode" == "full" ]]; then
+        print_test_pack full "${full_only_tests[@]}"
+      fi
+      ;;
+  esac
+}
+
+if [[ "$print_plan" == "true" ]]; then
+  print_plan_for_mode
+  exit 0
+fi
 
 run_source_audit() {
   dart tool/maintainiac_source_audit.dart \
