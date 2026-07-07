@@ -210,9 +210,25 @@ _IdentityCompleteness _identityCompleteness(WorkSupplyItem item, String text) {
     hasConnection:
         item.intelligence.connectionType.isNotEmpty ||
         _connections.any(text.contains) ||
+        _isCopperConnectionText(text) ||
         _isTubularDrainAdapterText(text) ||
         _isSolventWeldPressureFittingText(text),
   );
+}
+
+bool _isCopperConnectionText(String text) {
+  if (!text.contains('copper')) return false;
+  return _hasAny(text, [
+    'adapter',
+    'bell hanger',
+    'coupling',
+    'dielectric union',
+    'elbow',
+    'repair coupling',
+    'reducer',
+    'tee',
+    'union',
+  ]);
 }
 
 bool _isTubularDrainAdapterText(String text) {
@@ -585,6 +601,7 @@ int _min(int left, int right) => left < right ? left : right;
 
 const _familiesWithFocusedParserEvidence = {
   'angle stops and supply lines',
+  'copper fittings and valves',
   'cpvc fittings and valves',
   'legacy repair bridges',
   'push-fit fittings and valves',

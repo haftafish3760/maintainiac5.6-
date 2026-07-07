@@ -4202,3 +4202,11 @@ Release boundaries:
   two-fixture probe and then the full 25-case legacy single-chunk probe:
   25 checked, 0 failures, 25 parser calls at
   `build/parser_qa_reports/generated_fixtures/legacy_25_single_chunk_final_20260707_0235`.
+- **02:57-03:10 Copper Family Single-Chunk Evidence:** Added copper generated
+  fixture recipes for elbows, couplings, repair couplings, adapters, tees,
+  dielectric unions, and bell hangers, plus a generator isolation regression for
+  `--include-risk-tags copper`. The 42-case copper single-chunk generated parser
+  probe passed with 42 checked, 0 failures, and 42 parser calls at
+  `build/parser_qa_reports/generated_fixtures/copper_42_single_chunk_20260707_0303`.
+  Copper fittings/valves can now be counted as focused-parser-evidence-covered
+  by the Plumbing Core readiness audit.
