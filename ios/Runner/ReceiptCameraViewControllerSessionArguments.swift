@@ -32,11 +32,11 @@ extension ReceiptCameraViewController {
     pinchZoomEnabled = arguments["pinchZoomEnabled"] as? Bool ?? true
     exposureSliderEnabled = arguments["exposureSliderEnabled"] as? Bool ?? true
     exposureResetEnabled = arguments["exposureResetEnabled"] as? Bool ?? true
-    lowLightWarningEnabled = arguments["lowLightWarningEnabled"] as? Bool ?? false
-    glareWarningEnabled = arguments["glareWarningEnabled"] as? Bool ?? false
-    dirtyLensWarningEnabled = arguments["dirtyLensWarningEnabled"] as? Bool ?? false
-    motionBlurWarningEnabled = arguments["motionBlurWarningEnabled"] as? Bool ?? false
-    shadowWarningEnabled = arguments["shadowWarningEnabled"] as? Bool ?? false
+    lowLightWarningEnabled = experimentalReceiptQualityWarningFlag("lowLightWarningEnabled")
+    glareWarningEnabled = experimentalReceiptQualityWarningFlag("glareWarningEnabled")
+    dirtyLensWarningEnabled = experimentalReceiptQualityWarningFlag("dirtyLensWarningEnabled")
+    motionBlurWarningEnabled = experimentalReceiptQualityWarningFlag("motionBlurWarningEnabled")
+    shadowWarningEnabled = experimentalReceiptQualityWarningFlag("shadowWarningEnabled")
     tooFarTooCloseWarningEnabled = arguments["tooFarTooCloseWarningEnabled"] as? Bool ?? true
     receiptFullyVisibleWarningEnabled = arguments["receiptFullyVisibleWarningEnabled"] as? Bool ?? true
     textTooSmallWarningEnabled = arguments["textTooSmallWarningEnabled"] as? Bool ?? true
@@ -169,6 +169,11 @@ extension ReceiptCameraViewController {
       return value.doubleValue.isFinite ? value.doubleValue : fallback
     }
     return fallback
+  }
+
+  private func experimentalReceiptQualityWarningFlag(_ key: String) -> Bool {
+    guard experimentalLiveReceiptQualityPolicyEnabled() else { return false }
+    return arguments[key] as? Bool ?? false
   }
 
   private func boundedFraction(_ value: Double?, fallback: CGFloat) -> CGFloat {

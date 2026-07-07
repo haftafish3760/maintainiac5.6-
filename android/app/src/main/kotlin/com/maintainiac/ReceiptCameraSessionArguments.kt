@@ -38,11 +38,11 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     pinchZoomEnabled = intent.getBooleanExtra("pinchZoomEnabled", true)
     exposureSliderEnabled = intent.getBooleanExtra("exposureSliderEnabled", true)
     exposureResetEnabled = intent.getBooleanExtra("exposureResetEnabled", true)
-    lowLightWarningEnabled = intent.getBooleanExtra("lowLightWarningEnabled", false)
-    glareWarningEnabled = intent.getBooleanExtra("glareWarningEnabled", false)
-    dirtyLensWarningEnabled = intent.getBooleanExtra("dirtyLensWarningEnabled", false)
-    motionBlurWarningEnabled = intent.getBooleanExtra("motionBlurWarningEnabled", false)
-    shadowWarningEnabled = intent.getBooleanExtra("shadowWarningEnabled", false)
+    lowLightWarningEnabled = readExperimentalReceiptQualityWarningFlag("lowLightWarningEnabled")
+    glareWarningEnabled = readExperimentalReceiptQualityWarningFlag("glareWarningEnabled")
+    dirtyLensWarningEnabled = readExperimentalReceiptQualityWarningFlag("dirtyLensWarningEnabled")
+    motionBlurWarningEnabled = readExperimentalReceiptQualityWarningFlag("motionBlurWarningEnabled")
+    shadowWarningEnabled = readExperimentalReceiptQualityWarningFlag("shadowWarningEnabled")
     tooFarTooCloseWarningEnabled = intent.getBooleanExtra("tooFarTooCloseWarningEnabled", true)
     receiptFullyVisibleWarningEnabled = intent.getBooleanExtra("receiptFullyVisibleWarningEnabled", true)
     textTooSmallWarningEnabled = intent.getBooleanExtra("textTooSmallWarningEnabled", true)
@@ -176,6 +176,13 @@ private fun safeReceiptReviewDepth(value: String?): String {
 internal fun ReceiptCameraActivity.finiteDoubleExtra(key: String, fallback: Double): Double {
     val value = intent.getDoubleExtra(key, fallback)
     return if (value.isFinite()) value else fallback
+}
+
+internal fun ReceiptCameraActivity.readExperimentalReceiptQualityWarningFlag(
+    key: String,
+): Boolean {
+    if (!experimentalLiveReceiptQualityPolicyEnabled()) return false
+    return intent.getBooleanExtra(key, false)
 }
 
 internal fun ReceiptCameraActivity.registerSystemBackHandler() {

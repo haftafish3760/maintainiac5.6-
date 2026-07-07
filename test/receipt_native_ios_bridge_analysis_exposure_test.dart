@@ -148,11 +148,23 @@ void main() {
       expect(cameraController, contains('orientationCorrectionEnabled'));
       expect(
         cameraController,
-        contains('arguments["shadowWarningEnabled"] as? Bool ?? false'),
+        contains(
+          'shadowWarningEnabled = experimentalReceiptQualityWarningFlag("shadowWarningEnabled")',
+        ),
       );
       expect(
         cameraController,
-        contains('arguments["dirtyLensWarningEnabled"] as? Bool ?? false'),
+        contains(
+          'dirtyLensWarningEnabled = experimentalReceiptQualityWarningFlag("dirtyLensWarningEnabled")',
+        ),
+      );
+      expect(
+        cameraController,
+        contains('guard experimentalLiveReceiptQualityPolicyEnabled() else { return false }'),
+      );
+      expect(
+        cameraController,
+        contains('return arguments[key] as? Bool ?? false'),
       );
       expect(
         cameraController,

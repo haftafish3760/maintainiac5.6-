@@ -52,11 +52,23 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('intent.getBooleanExtra("shadowWarningEnabled", false)'),
+      contains(
+        'shadowWarningEnabled = readExperimentalReceiptQualityWarningFlag("shadowWarningEnabled")',
+      ),
     );
     expect(
       cameraActivity,
-      contains('intent.getBooleanExtra("dirtyLensWarningEnabled", false)'),
+      contains(
+        'dirtyLensWarningEnabled = readExperimentalReceiptQualityWarningFlag("dirtyLensWarningEnabled")',
+      ),
+    );
+    expect(
+      cameraActivity,
+      contains('if (!experimentalLiveReceiptQualityPolicyEnabled()) return false'),
+    );
+    expect(
+      cameraActivity,
+      contains('return intent.getBooleanExtra(key, false)'),
     );
     expect(
       cameraActivity,
@@ -67,7 +79,7 @@ void main() {
     expect(cameraActivity, contains('estimateShadowScore'));
     expect(cameraActivity, contains('latestShadowScore'));
     expect(cameraActivity, contains('"shadow_risk"'));
-    expect(cameraActivity, contains('!dirtyLensWarningEnabled &&'));
+    expect(cameraActivity, contains('} else if (dirtyLensWarningEnabled &&'));
     expect(cameraActivity, contains('"dirty_lens_or_haze"'));
     expect(
       cameraActivity,
