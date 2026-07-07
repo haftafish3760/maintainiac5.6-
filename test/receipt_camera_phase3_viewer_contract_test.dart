@@ -93,6 +93,10 @@ void main() {
       contains('torchButton.setImage(UIImage(systemName: "flashlight.off.fill"), for: .normal)'),
     );
     expect(cameraController, contains('bottomBar.backgroundColor = .clear'));
+    expect(cameraController, contains('let viewerInfoStack = UIStackView()'));
+    expect(cameraController, contains('viewerInfoStack.axis = .vertical'));
+    expect(cameraController, contains('viewerInfoStack.addArrangedSubview(buildSettingsStatusStrip())'));
+    expect(cameraController, contains('viewerInfoStack.addArrangedSubview(previousSectionGuide)'));
     expect(
       cameraController,
       contains('shutterButton.setImage(UIImage(systemName: "doc.text.viewfinder"), for: .normal)'),
@@ -106,6 +110,10 @@ void main() {
     expect(
       cameraController,
       contains('topBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6)'),
+    );
+    expect(
+      cameraController,
+      contains('viewerInfoStack.topAnchor.constraint(equalTo: guidanceLabel.bottomAnchor, constant: 8)'),
     );
     expect(
       cameraController,

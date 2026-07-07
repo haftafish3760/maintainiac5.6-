@@ -26,6 +26,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   let addPhotoButton = UIButton(type: .system)
   let bottomReviewButton = UIButton(type: .system)
   let guidanceLabel = UILabel()
+  let viewerInfoStack = UIStackView()
   let settingsStatusStrip = UILabel()
   let receiptFrameGuide = UIView()
   let exposureSlider = UISlider()

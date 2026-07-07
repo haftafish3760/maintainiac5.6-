@@ -95,9 +95,13 @@ extension ReceiptCameraViewController {
     guidanceLabel.layer.masksToBounds = true
     guidanceLabel.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(guidanceLabel)
-    view.addSubview(buildSettingsStatusStrip())
+    viewerInfoStack.axis = .vertical
+    viewerInfoStack.spacing = 8
+    viewerInfoStack.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(viewerInfoStack)
+    viewerInfoStack.addArrangedSubview(buildSettingsStatusStrip())
     let previousSectionGuide = buildPreviousSectionGuide()
-    view.addSubview(previousSectionGuide)
+    viewerInfoStack.addArrangedSubview(previousSectionGuide)
     view.addSubview(buildExposureControls())
 
     let bottomBar = UIStackView()
@@ -172,9 +176,9 @@ extension ReceiptCameraViewController {
       guidanceLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 18),
       guidanceLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
 
-      settingsStatusStrip.topAnchor.constraint(equalTo: guidanceLabel.bottomAnchor, constant: 8),
-      settingsStatusStrip.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 18),
-      settingsStatusStrip.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
+      viewerInfoStack.topAnchor.constraint(equalTo: guidanceLabel.bottomAnchor, constant: 8),
+      viewerInfoStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 18),
+      viewerInfoStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
       settingsStatusStrip.heightAnchor.constraint(greaterThanOrEqualToConstant: 30),
 
       exposureSlider.superview!.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 18),
@@ -194,10 +198,7 @@ extension ReceiptCameraViewController {
       bottomReviewButton.heightAnchor.constraint(equalToConstant: 48),
     ])
     NSLayoutConstraint.activate([
-      previousSectionGuide.topAnchor.constraint(equalTo: settingsStatusStrip.bottomAnchor, constant: 8),
-      previousSectionGuide.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 18),
-      previousSectionGuide.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
-      previousSectionGuide.heightAnchor.constraint(equalToConstant: 102)
+      previousSectionGuide.heightAnchor.constraint(equalToConstant: 102),
     ])
   }
 
