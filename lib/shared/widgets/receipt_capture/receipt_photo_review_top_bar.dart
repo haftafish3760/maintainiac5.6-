@@ -203,14 +203,14 @@ class _ReceiptTopBarNextButton extends StatelessWidget {
           ? 'Opening receipt details'
           : needsBottomCheck
           ? 'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice before receipt details'
-          : 'Next: review the receipt details',
+          : 'Use this photo to review the receipt details',
       child: Semantics(
         button: true,
         label: savingPhotos
             ? 'Opening receipt details'
             : needsBottomCheck
             ? 'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice before receipt details'
-            : 'Next: review the receipt details',
+            : 'Use this photo to review the receipt details',
         child: FilledButton.icon(
           onPressed: savingPhotos ? null : onPressed,
           icon: savingPhotos

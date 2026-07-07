@@ -63,7 +63,7 @@ ReceiptPhotoCoverageDecision _receiptPhotoCoverageDecisionFromSignals({
       reasonCode: 'native_cut_off_readable_check',
       title: 'Check Receipt Edges',
       guidance:
-          'The receipt looks readable. Check that the top and bottom are included, then tap Next if nothing is missing.',
+          'The receipt looks readable. Check that the top and bottom are included, then use this photo if nothing is missing.',
     );
   }
   if (nativeCutOffRisk) {
@@ -81,7 +81,7 @@ ReceiptPhotoCoverageDecision _receiptPhotoCoverageDecisionFromSignals({
       reasonCode: 'quality_poor_framing',
       title: 'Check Receipt Edges',
       guidance:
-          'Part of the receipt may be outside the photo. Crop, retake, or use Add Another Photo before Next.',
+          'Part of the receipt may be outside the photo. Crop, retake, or add another photo before using this photo.',
     );
   }
   if (framingSignal == ReceiptNativeCoverageSignalValues.moveCloser ||
@@ -112,7 +112,7 @@ ReceiptPhotoCoverageDecision _receiptPhotoCoverageDecisionFromSignals({
       reasonCode: 'framing_ok_readable',
       title: 'Receipt Looks Complete',
       guidance:
-          'Tap Next if the store, date, total, and item prices are readable.',
+          'Use this photo if the store, date, total, and item prices are readable.',
     );
   }
   if (quality?.isLikelyReadable == true && quality!.cropScore >= .50) {
@@ -120,7 +120,7 @@ ReceiptPhotoCoverageDecision _receiptPhotoCoverageDecisionFromSignals({
       status: ReceiptPhotoCoverageStatus.likelyComplete,
       reasonCode: 'readable_framed_photo',
       title: 'Receipt Looks Complete',
-      guidance: 'Tap Next if the receipt does not continue below this photo.',
+      guidance: 'Use this photo if the receipt does not continue below this photo.',
     );
   }
   if (framingSignal == ReceiptNativeCoverageSignalValues.receiptNotFound) {
@@ -137,6 +137,6 @@ ReceiptPhotoCoverageDecision _receiptPhotoCoverageDecisionFromSignals({
     reasonCode: 'coverage_unknown',
     title: 'Check Receipt Coverage',
     guidance:
-        'Make sure this photo includes the part of the receipt you intended before tapping Next.',
+        'Make sure this photo includes the part of the receipt you intended before using it.',
   );
 }

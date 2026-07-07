@@ -77,8 +77,14 @@ void main() {
     expect(glare.reviewActionFamily, 'retake');
     expect(glare.shouldRetakeBeforeOcr, isTrue);
     expect(glare.reviewScoreMeaningLabel, contains('Retake is safer'));
-    expect(glare.reviewScoreMeaningLabel, contains('Next is still available'));
-    expect(glare.nextReviewActionLabel, contains('Next still works'));
+    expect(
+      glare.reviewScoreMeaningLabel,
+      contains('you can still use the photo'),
+    );
+    expect(
+      glare.nextReviewActionLabel,
+      contains('use the photo only if the text is readable'),
+    );
   });
 
   test('photo review exposes stable action codes for UI flow', () {
@@ -115,7 +121,7 @@ void main() {
 
     expect(ready.reviewActionCode, 'continue_to_receipt_details');
     expect(ready.reviewActionFamily, 'continue');
-    expect(ready.nextReviewActionLabel, 'Tap Next for receipt details');
+    expect(ready.nextReviewActionLabel, 'Use this photo for receipt details');
     expect(cropReview.reviewActionCode, 'crop_or_retake_then_next');
     expect(cropReview.reviewActionFamily, 'review');
     expect(cropReview.nextReviewActionLabel, contains('Crop or retake'));
@@ -341,7 +347,7 @@ void main() {
     expect(brightReadable.reviewGuidance, contains('bright but usable'));
     expect(
       brightReadable.nextReviewActionLabel,
-      'Tap Next for receipt details',
+      'Use this photo for receipt details',
     );
   });
 
@@ -401,12 +407,15 @@ void main() {
     expect(readableButTightFrame.reviewBandLabel, 'Readable receipt photo');
     expect(
       readableButTightFrame.reviewScoreMeaningLabel,
-      contains('Tap Next if the receipt text is readable'),
+      contains('Use the photo if the receipt text is readable'),
     );
     expect(readableButTightFrame.qualityEvidenceLabel, contains('photo check'));
     expect(darkReceipt.hasCriticalIssue, isTrue);
     expect(darkReceipt.reviewTitle, 'Retake Recommended');
-    expect(darkReceipt.nextReviewActionLabel, contains('Next still works'));
+    expect(
+      darkReceipt.nextReviewActionLabel,
+      contains('use the photo only if the text is readable'),
+    );
   });
 
   test(

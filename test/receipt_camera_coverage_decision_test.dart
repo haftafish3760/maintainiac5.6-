@@ -32,7 +32,10 @@ void main() {
     expect(decision.shouldPromptForMorePhotos, isFalse);
     expect(decision.shouldEmphasizeAddPhoto, isFalse);
     expect(decision.title, 'Check Receipt Edges');
-    expect(decision.guidance, contains('tap Next if nothing is missing'));
+    expect(
+      decision.guidance,
+      contains('use this photo if nothing is missing'),
+    );
   });
 
   test(
@@ -114,7 +117,7 @@ void main() {
     expect(decision.status, ReceiptPhotoCoverageStatus.likelyComplete);
     expect(decision.shouldPromptForMorePhotos, isFalse);
     expect(decision.isLikelyComplete, isTrue);
-    expect(decision.guidance, contains('Tap Next'));
+    expect(decision.guidance, contains('Use this photo'));
   });
 
   test('native camera contract carries user control and OCR-first rules', () async {

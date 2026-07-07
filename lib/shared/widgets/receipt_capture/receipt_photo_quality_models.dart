@@ -116,15 +116,15 @@ class ReceiptPhotoQualityCheck {
   }
 
   String get nextReviewActionLabel {
-    if (shouldRetakeBeforeOcr) return 'Retake recommended; Next still works';
+    if (shouldRetakeBeforeOcr) return 'Retake recommended; use the photo only if the text is readable';
     if (reviewActionCode == 'crop_or_retake_then_next') {
-      return 'Crop or retake if text is missing; Next still works';
+      return 'Crop or retake if text is missing; use the photo only if the text is readable';
     }
     if (reviewActionCode == 'check_readability_or_add_closer_photo') {
       return 'Check readability or add a closer photo';
     }
-    if (needsReview) return 'Check photo, then tap Next';
-    return 'Tap Next for receipt details';
+    if (needsReview) return 'Check photo, then use it if the text is readable';
+    return 'Use this photo for receipt details';
   }
 
   String get userFacingStatusLabel {
@@ -150,17 +150,17 @@ class ReceiptPhotoQualityCheck {
 
   String get reviewScoreMeaningLabel {
     if (shouldRetakeBeforeOcr) {
-      return 'Retake is safer, but Next is still available if the receipt text is readable.';
+      return 'Retake is safer, but you can still use the photo if the receipt text is readable.';
     }
     if (needsReview) {
-      return 'Photo check is guidance only. If the receipt text is readable, tap Next.';
+      return 'Photo check is guidance only. If the receipt text is readable, you can still use the photo.';
     }
-    return 'Photo check is guidance only. Tap Next if the receipt text is readable.';
+    return 'Photo check is guidance only. Use the photo if the receipt text is readable.';
   }
 
   String get reviewBandLabel {
     if (hasCriticalIssue || reviewScore < 50) return 'Retake recommended';
-    if (reviewScore < 70) return 'Check before Next';
+    if (reviewScore < 70) return 'Check before using';
     if (isExcellentScore) return 'Excellent receipt photo';
     return 'Readable receipt photo';
   }
@@ -217,7 +217,7 @@ class ReceiptPhotoQualityCheck {
       return 'Reduce glare by tilting the phone or receipt before taking another photo.';
     }
     if (isBrightButReadable) {
-      return 'The receipt is bright but usable. Check for glare, then tap Next if the store, date, total, and item prices are readable.';
+      return 'The receipt is bright but usable. Check for glare, then use the photo if the store, date, total, and item prices are readable.';
     }
     if (isVerySoft) {
       return 'Hold steady and let continuous autofocus settle. Retake if the store, date, total, or item prices stay fuzzy.';
@@ -229,21 +229,21 @@ class ReceiptPhotoQualityCheck {
       return 'The receipt is readable but darker than ideal. Add light, turn on the torch, or retake if the bottom text looks dim.';
     }
     if (isLowResolution) {
-      return 'If item text is too small, add another closer photo. If every line is readable, tap Next.';
+      return 'If item text is too small, add another closer photo. If every line is readable, use this photo.';
     }
     if (isLowContrast) {
       return 'Check that the printed text stands out from the paper before continuing.';
     }
     if (isPoorlyFramed) {
-      return 'If every line of the receipt is visible, tap Next. Use crop or retake only if part of the receipt is missing.';
+      return 'If every line of the receipt is visible, use this photo. Use crop or retake only if part of the receipt is missing.';
     }
     if (isMissingTextBands) {
       return 'Some printed lines look weak. Check the item prices before saving.';
     }
     if (reviewScore >= 70) {
-      return 'This looks readable. Tap Next for receipt details, or use Add Another Photo only if the receipt continues.';
+      return 'This looks readable. Use this photo for receipt details, or add another photo only if the receipt continues.';
     }
-    return 'Check the store, date, total, and item prices. If they are readable, tap Next; otherwise retake or use Add Another Photo.';
+    return 'Check the store, date, total, and item prices. If they are readable, use this photo; otherwise retake or add another photo.';
   }
 
   List<String> get qualityWarnings {

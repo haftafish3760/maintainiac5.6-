@@ -61,8 +61,11 @@ void main() {
     expect(models, contains('receiptTotalDetected'));
     expect(models, contains('receiptTotalAmountDetected'));
     expect(models, contains('text_may_be_too_small'));
-    expect(models, contains('Retake recommended; Next still works'));
-    expect(models, contains('Tap Next for receipt details'));
+    expect(
+      models,
+      contains('Retake recommended; use the photo only if the text is readable'),
+    );
+    expect(models, contains('Use this photo for receipt details'));
     expect(
       models,
       contains(r'$reviewBandLabel; photo check $reviewScoreLabel'),

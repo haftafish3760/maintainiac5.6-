@@ -24,7 +24,7 @@ class ReceiptNativeSavedPhotoReviewWarning {
       title = 'Saved photo looks usable',
       causeCode = 'saved_photo_ok',
       guidance =
-          'Check the store, date, total, and item prices, then tap Next.';
+          'Check the store, date, total, and item prices, then use this photo.';
 
   static ReceiptNativeSavedPhotoReviewWarning? maybeFromDiagnostics(
     Map<String, Object?>? diagnostics,
@@ -150,10 +150,10 @@ class ReceiptNativeSavedPhotoReviewWarning {
         return const ReceiptNativeSavedPhotoReviewWarning(
           code: 'saved_photo_glare_risk',
           severity: ReceiptNativeSavedPhotoWarningSeverity.warning,
-          title: 'Photo may have glare',
-          causeCode: 'saved_photo_glare_or_too_bright',
-          guidance:
-              'Tilt the receipt or lighting, retake if totals are washed out, or tap Next if the text is readable.',
+        title: 'Photo may have glare',
+        causeCode: 'saved_photo_glare_or_too_bright',
+        guidance:
+              'Tilt the receipt or lighting, retake if totals are washed out, or use the photo if the text is readable.',
         );
       }
       if (_isBrightReadablePaper(averageLuma, edgeScore)) return null;
@@ -237,7 +237,7 @@ class ReceiptNativeSavedPhotoReviewWarning {
         title: 'Photo saved a little dimmer than preview',
         causeCode: 'saved_photo_dim_or_live_to_saved_mismatch',
         guidance:
-            'Check the receipt text, retake if the bottom looks dim, or tap Next if it is readable.',
+            'Check the receipt text, retake if the bottom looks dim, or use the photo if it is readable.',
       );
     }
     if (lightingEvidence == 'capture_glare_risk' ||
@@ -251,7 +251,7 @@ class ReceiptNativeSavedPhotoReviewWarning {
         title: 'Photo may have glare',
         causeCode: 'saved_photo_glare_or_too_bright',
         guidance:
-            'Tilt the receipt or lighting, retake if totals are washed out, or tap Next if the text is readable.',
+            'Tilt the receipt or lighting, retake if totals are washed out, or use the photo if the text is readable.',
       );
     }
     return null;
