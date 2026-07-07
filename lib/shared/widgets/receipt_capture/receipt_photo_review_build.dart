@@ -2,6 +2,9 @@ part of 'receipt_photo_review_screen.dart';
 
 extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
   Widget _buildPhotoReviewScaffold(BuildContext context, String photoPath) {
+    final effectiveSelectedIndex = _photoPaths.isEmpty
+        ? 0
+        : _selectedIndex.clamp(0, _photoPaths.length - 1);
     final dataSaverPreviewPath =
         _dataSaverPreviewPaths[_dataSaverPreviewKey(photoPath)];
     return PopScope(
@@ -36,7 +39,7 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
                 child: IgnorePointer(
                   ignoring: !_controlsVisible,
                   child: _ReceiptReviewTopBar(
-                    current: _selectedIndex + 1,
+                    current: effectiveSelectedIndex + 1,
                     total: _photoPaths.length,
                     reviewMode: _reviewMode,
                     bestShotCandidateMode: widget.bestShotCandidateMode,

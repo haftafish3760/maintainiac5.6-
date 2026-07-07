@@ -108,6 +108,7 @@ void main() {
   });
 
   test('photo review tray uses explicit long-receipt language', () async {
+    final reviewScreen = await readReceiptPhotoReviewScreenSource();
     final controls = [
       await File(
         'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
@@ -225,6 +226,8 @@ void main() {
         'if (total > 1)\n                const PopupMenuItem(\n                  value: _ReceiptReviewMenuAction.remove,',
       ),
     );
+    expect(reviewScreen, contains('final effectiveSelectedIndex = _photoPaths.isEmpty'));
+    expect(reviewScreen, contains('current: effectiveSelectedIndex + 1'));
     expect(topBar, contains('Review Receipt Photo'));
     expect(previewControls, contains('Crop Current'));
     expect(

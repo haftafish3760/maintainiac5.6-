@@ -212,7 +212,8 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   @override
   Widget build(BuildContext context) {
     if (_photoPaths.isEmpty) return _buildEmptyReviewRecovery();
-    final photoPath = _photoPaths[_selectedIndex];
+    final selectedPhotoIndex = _selectedIndex.clamp(0, _photoPaths.length - 1);
+    final photoPath = _photoPaths[selectedPhotoIndex];
     _syncManualOverlapSlots();
     _schedulePostFrameReviewWork(photoPath);
     if (_reviewMode == _ReceiptReviewMode.dataSaver) {

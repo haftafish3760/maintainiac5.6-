@@ -28,6 +28,11 @@ void main() {
       ),
     );
     expect(reviewScreen, contains('if (_photoPaths.isEmpty) return _buildEmptyReviewRecovery();'));
+    expect(
+      reviewScreen,
+      contains('final selectedPhotoIndex = _selectedIndex.clamp(0, _photoPaths.length - 1);'),
+    );
+    expect(reviewScreen, contains('final photoPath = _photoPaths[selectedPhotoIndex];'));
     expect(reviewScreen, isNot(contains("return _ReceiptReviewMode.stitch;")));
     expect(controls, contains('final hasCapturedPhotos = photoPaths.isNotEmpty;'));
     expect(
