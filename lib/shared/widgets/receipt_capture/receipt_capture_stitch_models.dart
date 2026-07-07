@@ -135,6 +135,12 @@ class ReceiptStitchResult {
     if (usedFallback && diagnosticReasonLabel == 'decode_failed') {
       return 'fallback_unreadable_input_source';
     }
+    if (usedFallback && diagnosticReasonLabel == 'output_too_large') {
+      return 'fallback_derived_stitch_too_large';
+    }
+    if (usedFallback && diagnosticReasonLabel == 'overlap_confidence_low') {
+      return 'fallback_overlap_untrusted_sources';
+    }
     if (didStitch) {
       if (stitchedPath == null || ocrSourcePaths.length != 1) {
         return 'stitched_ocr_source_missing';

@@ -222,6 +222,12 @@ void main() {
       expect(result.stitchedWidth, greaterThan(0));
       expect(result.stitchedHeight, greaterThan(100));
       expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.hasValidOcrSourceContract, isFalse);
+      expect(result.ocrSourceContractCode, 'fallback_derived_stitch_too_large');
+      expect(
+        result.privacySafeOcrHandoffSafety,
+        containsPair('stitchOcrSourceContractReady', false),
+      );
     },
   );
 
@@ -254,6 +260,8 @@ void main() {
       expect(result.stitchedPixelCount, greaterThan(500000));
       expect(result.stitchedPath, isNull);
       expect(result.warning, contains('too long'));
+      expect(result.hasValidOcrSourceContract, isFalse);
+      expect(result.ocrSourceContractCode, 'fallback_derived_stitch_too_large');
     },
   );
 
@@ -286,6 +294,15 @@ void main() {
       expect(result.pairs, hasLength(1));
       expect(result.pairs.single.confidence, lessThan(.50));
       expect(result.pairs.single.summaryLabel, contains('Photo 1 to 2'));
+      expect(result.hasValidOcrSourceContract, isFalse);
+      expect(
+        result.ocrSourceContractCode,
+        'fallback_overlap_untrusted_sources',
+      );
+      expect(
+        result.privacySafeOcrHandoffSafety,
+        containsPair('stitchOcrSourceContractReady', false),
+      );
     },
   );
 }

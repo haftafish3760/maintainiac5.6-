@@ -126,15 +126,30 @@ void main() {
     expect(fallback.nextReviewUsesCombinedReceiptImage, isFalse);
     expect(
       fallback.receiptPhotoReviewHandoffPath,
-      'accepted_ordered_sections_fallback',
+      'accepted_stitch_ocr_source_review_required',
     );
     expect(
       fallback.receiptPhotoReviewHandoffPathLabel,
-      'Accepted long receipt as ordered OCR sections after stitch fallback.',
+      'Accepted photo review, but stitch/OCR source handoff needs review.',
     );
     expect(
       fallback
           .receiptReaderHandoffCounts['ocr_source_ordered_sections_stitch_fallback'],
+      1,
+    );
+    expect(
+      fallback
+          .receiptReaderHandoffCounts['ocr_source_review_risk_stitch_ocr_source_contract_review_required'],
+      1,
+    );
+    expect(
+      fallback
+          .receiptReaderHandoffCounts['ocr_source_review_requirement_manual_review_required_before_saving_receipt'],
+      1,
+    );
+    expect(
+      fallback
+          .receiptReaderHandoffCounts['stitch_ocr_source_contract_fallback_overlap_untrusted_sources'],
       1,
     );
     expect(
@@ -172,6 +187,19 @@ void main() {
     expect(
       fallback.stitchResult.ocrHandoffSafetyCode,
       'ordered_sections_after_overlap_confidence_low_fallback',
+    );
+    expect(fallback.stitchResult.hasValidOcrSourceContract, isFalse);
+    expect(
+      fallback.stitchResult.ocrSourceContractCode,
+      'fallback_overlap_untrusted_sources',
+    );
+    expect(
+      fallback.ocrSourceReviewRiskCode,
+      'stitch_ocr_source_contract_review_required',
+    );
+    expect(
+      fallback.ocrSourceReviewRequirement,
+      'manual_review_required_before_saving_receipt',
     );
     expect(
       fallback.stitchResult.ocrHandoffSafetyLabel,
@@ -234,6 +262,20 @@ void main() {
       containsPair(
         'stitchOcrHandoffSafetyCode',
         'ordered_sections_after_overlap_confidence_low_fallback',
+      ),
+    );
+    expect(
+      fallback.privacySafeReceiptReaderHandoffMetadata,
+      containsPair(
+        'ocrSourceReviewRiskCode',
+        'stitch_ocr_source_contract_review_required',
+      ),
+    );
+    expect(
+      fallback.privacySafeReceiptReaderHandoffMetadata,
+      containsPair(
+        'ocrSourceReviewRequirement',
+        'manual_review_required_before_saving_receipt',
       ),
     );
     expect(
