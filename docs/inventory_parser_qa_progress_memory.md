@@ -4251,3 +4251,8 @@ Release boundaries:
   `build/parser_qa_reports/generated_fixtures/pvc_dwv_95_single_chunk_20260707_0259`.
   PVC DWV fittings and access can now be counted as focused-parser-evidence-
   covered by the Plumbing Core readiness audit.
+- **03:24-03:29 Plumbing Core Taxonomy Split:** Added readiness-audit family
+  buckets for general valves/hose bibbs, brass fittings/adapters, pipe supports
+  and protection, and sump pump discharge service. This reduced the unclassified
+  Plumbing Core queue from 154 rows to 47 rows and keeps future parser evidence
+  work family-specific instead of hiding mixed items in an unclassified bucket.
