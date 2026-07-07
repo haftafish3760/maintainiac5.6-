@@ -1549,6 +1549,8 @@ List<String> _plumbingCoreNegativeMatchTokensFor(
     if (!itemText.contains('irrigation')) 'irrigation sprinkler',
     if (material != 'PVC') 'pvc electrical conduit',
     if (material != 'copper') 'hvac refrigerant copper',
+    if (itemText.contains('push') && !itemText.contains('electrical'))
+      'electrical connector',
     if (shape != 'valve') 'gas appliance valve',
   ]);
 }

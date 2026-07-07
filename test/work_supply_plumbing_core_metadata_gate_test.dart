@@ -302,6 +302,14 @@ final _requiredFamilies = <_RequiredFamily>[
     negativeTerms: const ['electrical connector', 'hvac refrigerant copper'],
   ),
   _RequiredFamily(
+    name: 'push-fit ball valves',
+    selector: (text) => text.contains('push-fit ball valve'),
+    englishTerms: const ['push fit', 'push connect', 'sharkbite', 'valve'],
+    compactReceiptTerms: const ['PUSH FIT'],
+    spanishTerms: const ['conexion rapida', 'valvula'],
+    negativeTerms: const ['electrical connector', 'hvac refrigerant copper'],
+  ),
+  _RequiredFamily(
     name: 'cpvc service fittings',
     selector: (text) => text.contains('cpvc') && text.contains('fitting'),
     englishTerms: const ['cpvc', 'cpvc flowguard'],

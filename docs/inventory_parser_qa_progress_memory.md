@@ -4066,3 +4066,10 @@ Release boundaries:
   Verification passed:
   `flutter test test/work_supply_plumbing_core_receipt_parser_batch5_test.dart`
   and `flutter test test/work_supply_plumbing_core_spanish_batch2_test.dart`.
+- **21:01-21:06 Plumbing Core Push-Fit Ball Valve Metadata Guard:** Added the
+  new push-fit ball-valve family to the family-specific metadata gate so the
+  catalog family added in batch five cannot lose parser metadata coverage.
+  Fixed the catalog intelligence overlay to include electrical-connector
+  negative tokens for push-fit Plumbing Core rows, protecting ambiguous
+  `push connect` receipt language from electrical connector bleed. Verification
+  passed: `flutter test test/work_supply_plumbing_core_metadata_gate_test.dart`.
