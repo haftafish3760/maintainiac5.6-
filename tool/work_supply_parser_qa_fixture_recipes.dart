@@ -45,6 +45,51 @@ const englishPlumbingCoreRecipes = [
     patterns: ['3/4 PVC SCH40 CPLG', '1 PVC S40 COUPLING', '1/2 PVC CPLG'],
   ),
   WorkSupplyFixtureRecipe(
+    slug: 'pvc_schedule_40_elbow',
+    caseType: 'clear_match',
+    expectedNameContains: 'PVC Schedule 40',
+    riskTags: ['pvc_pressure', 'pvc', 'schedule_40', 'elbow'],
+    patterns: ['1/2 PVC SCH 40 90 ELB', '3/4 PVC S40 45 ELL', '1 IN PVC 90'],
+  ),
+  WorkSupplyFixtureRecipe(
+    slug: 'pvc_schedule_40_adapter',
+    caseType: 'clear_match',
+    expectedNameContains: 'PVC Schedule 40',
+    riskTags: ['pvc_pressure', 'pvc', 'schedule_40', 'adapter'],
+    patterns: [
+      '1/2 PVC SCH 40 MALE ADPT',
+      '3/4 PVC SCH40 FEMALE ADAPTER',
+      '1 IN PVC S40 F ADPT',
+    ],
+  ),
+  WorkSupplyFixtureRecipe(
+    slug: 'pvc_schedule_40_tee',
+    caseType: 'clear_match',
+    expectedNameContains: 'PVC Schedule 40 Tee',
+    riskTags: ['pvc_pressure', 'pvc', 'schedule_40', 'tee'],
+    patterns: ['1/2 PVC SCH40 TEE', '3/4 PVC S40 T', '1 X 3/4 PVC SCH40 TEE'],
+  ),
+  WorkSupplyFixtureRecipe(
+    slug: 'pvc_schedule_40_reducer_bushing',
+    caseType: 'clear_match',
+    expectedNameContains: 'PVC Schedule 40 Reducer',
+    riskTags: ['pvc_pressure', 'pvc', 'schedule_40', 'reducer', 'bushing'],
+    patterns: [
+      '3/4 X 1/2 PVC SCH40 RED BUSH',
+      '1 X 3/4 PVC S40 REDUCER BUSHING',
+    ],
+  ),
+  WorkSupplyFixtureRecipe(
+    slug: 'pvc_schedule_40_reducing_coupling',
+    caseType: 'clear_match',
+    expectedNameContains: 'PVC Schedule 40 Reducing Coupling',
+    riskTags: ['pvc_pressure', 'pvc', 'schedule_40', 'reducing_coupling'],
+    patterns: [
+      '3/4 X 1/2 PVC SCH40 REDUCING CPLG',
+      '1 X 3/4 PVC S40 REDUCER COUPLING',
+    ],
+  ),
+  WorkSupplyFixtureRecipe(
     slug: 'cpvc_elbow',
     caseType: 'clear_match',
     expectedNameContains: 'CPVC',

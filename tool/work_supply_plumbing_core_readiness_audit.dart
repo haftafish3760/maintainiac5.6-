@@ -605,6 +605,7 @@ const _familiesWithFocusedParserEvidence = {
   'cpvc fittings and valves',
   'legacy repair bridges',
   'push-fit fittings and valves',
+  'pvc pressure fittings',
   'tubular drains and traps',
   'water treatment',
   'well pressure service',

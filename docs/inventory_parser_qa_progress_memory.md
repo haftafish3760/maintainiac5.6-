@@ -4210,3 +4210,12 @@ Release boundaries:
   `build/parser_qa_reports/generated_fixtures/copper_42_single_chunk_20260707_0303`.
   Copper fittings/valves can now be counted as focused-parser-evidence-covered
   by the Plumbing Core readiness audit.
+- **03:17-03:29 PVC Pressure Family Single-Chunk Evidence:** Added PVC
+  Schedule 40 pressure fixture recipes for elbows, adapters, tees, reducer
+  bushings, and reducing couplings, plus a generator isolation regression for
+  `--include-risk-tags pvc_pressure`. The 42-case PVC pressure single-chunk
+  generated parser probe passed with 42 checked, 0 failures, and 42 parser calls
+  at
+  `build/parser_qa_reports/generated_fixtures/pvc_pressure_42_single_chunk_20260707_0320`.
+  PVC pressure fittings can now be counted as focused-parser-evidence-covered by
+  the Plumbing Core readiness audit.

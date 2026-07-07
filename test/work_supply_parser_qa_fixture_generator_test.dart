@@ -516,6 +516,65 @@ void main() {
     expect(_riskTags(manifest), isNot(contains('legacy_repair')));
   });
 
+  test(
+    'fixture generator can isolate PVC pressure Plumbing Core family',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_fixture_generator_plumbing_pvc_pressure_filter_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+
+      final exit = await runWorkSupplyParserFixtureGenerator(
+        [
+          '--trade',
+          'plumbing',
+          '--scope',
+          'residential',
+          '--tier',
+          'core',
+          '--locale',
+          'en-US',
+          '--limit',
+          '42',
+          '--include-risk-tags',
+          'pvc_pressure',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 0);
+      final generatedRoot = Directory(
+        '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+      );
+      final fixtures =
+          jsonDecode(
+                File(
+                  '${generatedRoot.path}/generated_fixtures.json',
+                ).readAsStringSync(),
+              )
+              as List;
+      final manifest =
+          jsonDecode(
+                File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+              )
+              as Map;
+
+      expect(fixtures, hasLength(42));
+      expect(manifest['includeRiskTags'], ['pvc_pressure']);
+      final ids = _fixtureIds(fixtures);
+      expect(ids, contains('pvc_schedule_40_elbow'));
+      expect(ids, contains('pvc_schedule_40_adapter'));
+      expect(ids, contains('pvc_schedule_40_tee'));
+      expect(ids, contains('pvc_schedule_40_reducer_bushing'));
+      expect(ids, contains('pvc_schedule_40_reducing_coupling'));
+      expect(_riskTags(manifest), contains('pvc_pressure'));
+      expect(_riskTags(manifest), isNot(contains('copper')));
+    },
+  );
+
   test('fixture generator rejects unsafe empty batches', () async {
     final stderr = _MemorySink();
     final exit = await runWorkSupplyParserFixtureGenerator(
