@@ -186,6 +186,10 @@ Map<String, Object?> _receiptReaderHandoffDiagnosticsFor(
         'read_temporary_full_quality_or_prepared_source_before_saved_proof',
     'receiptDetailsHandoffOcrSourcePolicy':
         'read_temporary_full_quality_or_prepared_source_before_saved_proof',
+    'receiptReaderHandoffOcrSourceRelationship':
+        result.ocrSourceProofRelationship,
+    'receiptDetailsHandoffOcrSourceRelationship':
+        result.ocrSourceProofRelationship,
     'receiptReaderHandoffOcrSourceOutcome': result.ocrSourceFirstOutcome,
     'receiptDetailsHandoffOcrSourceOutcome': result.ocrSourceFirstOutcome,
     'receiptReaderHandoffOcrSourceActionLabel':

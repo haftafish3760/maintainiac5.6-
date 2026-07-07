@@ -39,6 +39,20 @@ void main() {
       expect(
         handoffMetadata,
         containsPair(
+          'receiptReaderHandoffOcrSourceRelationship',
+          'prepared_clear_source',
+        ),
+      );
+      expect(
+        handoffMetadata,
+        containsPair(
+          'receiptDetailsHandoffOcrSourceRelationship',
+          'prepared_clear_source',
+        ),
+      );
+      expect(
+        handoffMetadata,
+        containsPair(
           'ocrSourceFirstActionLabel',
           'OCR reads prepared receipt source before saved proof',
         ),

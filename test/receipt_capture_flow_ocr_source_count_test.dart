@@ -53,6 +53,20 @@ void main() {
       attachments.single.riskFlags,
       contains('ocr_source_ocr_source_full_quality_selected_quality_guard'),
     );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair(
+        'receiptReaderHandoffOcrSourceRelationship',
+        'combined_clear_source',
+      ),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair(
+        'receiptDetailsHandoffOcrSourceRelationship',
+        'combined_clear_source',
+      ),
+    );
   });
 
   test('kept-for-later review does not create OCR attachments', () {

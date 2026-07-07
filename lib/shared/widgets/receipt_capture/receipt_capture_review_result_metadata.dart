@@ -37,6 +37,10 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
           acceptedPhotoHandoffMustOpenFilledReview,
       'receiptDetailsHandoffMustOpenFilledReview':
           acceptedPhotoHandoffMustOpenFilledReview,
+      'receiptReaderHandoffOcrSourceRelationship':
+          ocrSourceProofRelationship,
+      'receiptDetailsHandoffOcrSourceRelationship':
+          ocrSourceProofRelationship,
       'receiptReaderHandoffUserAction': acceptedPhotoHandoffUserAction,
       'receiptDetailsHandoffUserAction': acceptedPhotoHandoffUserAction,
       'receiptReaderHandoffEvidence': privacySafeOcrHandoffEvidenceLabel,
