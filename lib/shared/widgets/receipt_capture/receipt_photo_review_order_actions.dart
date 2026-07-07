@@ -143,9 +143,7 @@ extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
       } else if (_selectedStitchPairIndex > maxPairIndex) {
         _selectedStitchPairIndex = maxPairIndex;
       }
-      _reviewMode = _photoPaths.length > 1
-          ? _ReceiptReviewMode.order
-          : _ReceiptReviewMode.preview;
+      _reviewMode = _ReceiptReviewMode.preview;
       _controlsVisible = true;
       _savingPhotos = false;
       _cropProcessing = false;

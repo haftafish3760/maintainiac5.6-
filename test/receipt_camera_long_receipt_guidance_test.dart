@@ -332,6 +332,20 @@ void main() {
     expect(sources.reviewTopBar, isNot(contains('Back to receipt form')));
     expect(sources.reviewTopBar, contains('Icons.arrow_back_rounded'));
     expect(sources.reviewTopBar, isNot(contains('Close receipt preview')));
+    expect(
+      sources.reviewActions,
+      contains('_reviewMode = _ReceiptReviewMode.preview;'),
+    );
+    expect(
+      sources.reviewActions,
+      isNot(
+        contains(
+          '_reviewMode = _photoPaths.length > 1\n'
+          '          ? _ReceiptReviewMode.order\n'
+          '          : _ReceiptReviewMode.preview;',
+        ),
+      ),
+    );
     expect(sources.reviewTopBar, contains('Add Another Photo'));
     expect(sources.reviewTopBar, contains('Move Photo Up'));
     expect(sources.reviewTopBar, contains('Move Photo Down'));
