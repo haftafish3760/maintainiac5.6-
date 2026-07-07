@@ -198,8 +198,44 @@ void main() {
     expect(manual.matchedPairCount, 1);
     expect(manual.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
     expect(manual.assistedReadinessCode, 'stitched_overlap_verified_ready');
+    expect(manual.ocrHandoffSafetyCode, 'stitched_overlap_verified');
     expect(manual.overlapCoverageCode, 'all_pairs_have_overlap_evidence');
     expect(manual.overlapExpectationLabel, 'Manual overlap accepted');
+  });
+
+  test('low-confidence automatic stitch keeps OCR handoff in review lane', () {
+    final stitched = ReceiptStitchResult(
+      status: ReceiptStitchStatus.stitched,
+      inputPaths: ['/tmp/a.jpg', '/tmp/b.jpg'],
+      ocrSourcePaths: ['/tmp/stitched.jpg'],
+      stitchedPath: '/tmp/stitched.jpg',
+      confidence: .55,
+      overlapPixels: [187],
+      pairs: const [
+        ReceiptStitchPairResult(
+          pairIndex: 0,
+          overlapPixels: 187,
+          confidence: .55,
+        ),
+      ],
+    );
+
+    expect(stitched.didStitch, isTrue);
+    expect(stitched.allPairsHaveOverlapEvidence, isTrue);
+    expect(stitched.hasLowConfidenceAutomaticOverlap, isTrue);
+    expect(stitched.hasValidOcrSourceContract, isTrue);
+    expect(stitched.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+    expect(stitched.assistedReadinessCode, 'stitched_overlap_review_required');
+    expect(stitched.ocrHandoffSafetyCode, 'stitched_overlap_needs_review');
+    expect(
+      stitched.ocrHandoffSafetyLabel,
+      'OCR will read one stitched image, but overlap evidence still needs review.',
+    );
+    expect(stitched.reviewFocusPairLabel, 'Photo 1 to 2');
+    expect(
+      stitched.privacySafeOcrHandoffSafety,
+      containsPair('stitchReviewFocusPairLabel', 'Photo 1 to 2'),
+    );
   });
 
   test('stitch result handoff lists are immutable views', () {
