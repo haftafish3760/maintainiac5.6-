@@ -32,11 +32,6 @@ extension ReceiptCameraViewController {
     pinchZoomEnabled = arguments["pinchZoomEnabled"] as? Bool ?? true
     exposureSliderEnabled = arguments["exposureSliderEnabled"] as? Bool ?? true
     exposureResetEnabled = arguments["exposureResetEnabled"] as? Bool ?? true
-    lowLightWarningEnabled = experimentalReceiptQualityWarningFlag("lowLightWarningEnabled")
-    glareWarningEnabled = experimentalReceiptQualityWarningFlag("glareWarningEnabled")
-    dirtyLensWarningEnabled = experimentalReceiptQualityWarningFlag("dirtyLensWarningEnabled")
-    motionBlurWarningEnabled = experimentalReceiptQualityWarningFlag("motionBlurWarningEnabled")
-    shadowWarningEnabled = experimentalReceiptQualityWarningFlag("shadowWarningEnabled")
     tooFarTooCloseWarningEnabled = arguments["tooFarTooCloseWarningEnabled"] as? Bool ?? true
     receiptFullyVisibleWarningEnabled = arguments["receiptFullyVisibleWarningEnabled"] as? Bool ?? true
     textTooSmallWarningEnabled = arguments["textTooSmallWarningEnabled"] as? Bool ?? true
@@ -74,6 +69,12 @@ extension ReceiptCameraViewController {
     focusStrategyPolicy = arguments["focusStrategyPolicy"] as? String ?? focusStrategyPolicy
     continuousFocusEnabled = arguments["continuousFocusEnabled"] as? Bool ?? continuousFocusEnabled
     readabilityGuidancePolicy = arguments["readabilityGuidancePolicy"] as? String ?? readabilityGuidancePolicy
+    lowLightWarningEnabled = experimentalReceiptQualityWarningFlag("lowLightWarningEnabled")
+    glareWarningEnabled = experimentalReceiptQualityWarningFlag("glareWarningEnabled")
+    dirtyLensWarningEnabled = experimentalReceiptQualityWarningFlag("dirtyLensWarningEnabled")
+    motionBlurWarningEnabled = experimentalReceiptQualityWarningFlag("motionBlurWarningEnabled")
+    shadowWarningEnabled = experimentalReceiptQualityWarningFlag("shadowWarningEnabled")
+    enforceExperimentalReceiptQualityPolicyGuard()
     receiptCameraQualityBaseline = arguments["receiptCameraQualityBaseline"] as? Bool ?? receiptCameraQualityBaseline
     zoomGesturePolicy = arguments["zoomGesturePolicy"] as? String ?? zoomGesturePolicy
     autoCapturePolicy = arguments["autoCapturePolicy"] as? String ?? autoCapturePolicy
@@ -174,6 +175,15 @@ extension ReceiptCameraViewController {
   private func experimentalReceiptQualityWarningFlag(_ key: String) -> Bool {
     guard experimentalLiveReceiptQualityPolicyEnabled() else { return false }
     return arguments[key] as? Bool ?? false
+  }
+
+  private func enforceExperimentalReceiptQualityPolicyGuard() {
+    guard !experimentalLiveReceiptQualityPolicyEnabled() else { return }
+    lowLightWarningEnabled = false
+    glareWarningEnabled = false
+    dirtyLensWarningEnabled = false
+    motionBlurWarningEnabled = false
+    shadowWarningEnabled = false
   }
 
   private func boundedFraction(_ value: Double?, fallback: CGFloat) -> CGFloat {

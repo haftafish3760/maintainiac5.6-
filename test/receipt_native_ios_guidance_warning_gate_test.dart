@@ -56,6 +56,19 @@ void main() {
       );
       expect(
         cameraController,
+        contains('private func enforceExperimentalReceiptQualityPolicyGuard()'),
+      );
+      expect(
+        cameraController,
+        contains('enforceExperimentalReceiptQualityPolicyGuard()'),
+      );
+      expect(cameraController, contains('lowLightWarningEnabled = false'));
+      expect(cameraController, contains('glareWarningEnabled = false'));
+      expect(cameraController, contains('dirtyLensWarningEnabled = false'));
+      expect(cameraController, contains('motionBlurWarningEnabled = false'));
+      expect(cameraController, contains('shadowWarningEnabled = false'));
+      expect(
+        cameraController,
         contains('latestReadabilitySignal = "neutral_workflow_guidance_only"'),
       );
     },

@@ -29,6 +29,24 @@ void main() {
         cameraActivity,
         contains('val experimentalQualityWarningsEnabled ='),
       );
+      expect(
+        cameraActivity,
+        contains(
+          'internal fun ReceiptCameraActivity.enforceExperimentalReceiptQualityPolicyGuard()',
+        ),
+      );
+      expect(
+        cameraActivity,
+        contains('enforceExperimentalReceiptQualityPolicyGuard()'),
+      );
+      expect(
+        cameraActivity,
+        contains('lowLightWarningEnabled = false'),
+      );
+      expect(cameraActivity, contains('glareWarningEnabled = false'));
+      expect(cameraActivity, contains('dirtyLensWarningEnabled = false'));
+      expect(cameraActivity, contains('motionBlurWarningEnabled = false'));
+      expect(cameraActivity, contains('shadowWarningEnabled = false'));
     },
   );
 

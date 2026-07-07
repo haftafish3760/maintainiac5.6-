@@ -38,11 +38,6 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     pinchZoomEnabled = intent.getBooleanExtra("pinchZoomEnabled", true)
     exposureSliderEnabled = intent.getBooleanExtra("exposureSliderEnabled", true)
     exposureResetEnabled = intent.getBooleanExtra("exposureResetEnabled", true)
-    lowLightWarningEnabled = readExperimentalReceiptQualityWarningFlag("lowLightWarningEnabled")
-    glareWarningEnabled = readExperimentalReceiptQualityWarningFlag("glareWarningEnabled")
-    dirtyLensWarningEnabled = readExperimentalReceiptQualityWarningFlag("dirtyLensWarningEnabled")
-    motionBlurWarningEnabled = readExperimentalReceiptQualityWarningFlag("motionBlurWarningEnabled")
-    shadowWarningEnabled = readExperimentalReceiptQualityWarningFlag("shadowWarningEnabled")
     tooFarTooCloseWarningEnabled = intent.getBooleanExtra("tooFarTooCloseWarningEnabled", true)
     receiptFullyVisibleWarningEnabled = intent.getBooleanExtra("receiptFullyVisibleWarningEnabled", true)
     textTooSmallWarningEnabled = intent.getBooleanExtra("textTooSmallWarningEnabled", true)
@@ -76,6 +71,12 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
         intent.getBooleanExtra("continuousFocusEnabled", continuousFocusEnabled)
     readabilityGuidancePolicy = intent.getStringExtra("readabilityGuidancePolicy")
         ?: readabilityGuidancePolicy
+    lowLightWarningEnabled = readExperimentalReceiptQualityWarningFlag("lowLightWarningEnabled")
+    glareWarningEnabled = readExperimentalReceiptQualityWarningFlag("glareWarningEnabled")
+    dirtyLensWarningEnabled = readExperimentalReceiptQualityWarningFlag("dirtyLensWarningEnabled")
+    motionBlurWarningEnabled = readExperimentalReceiptQualityWarningFlag("motionBlurWarningEnabled")
+    shadowWarningEnabled = readExperimentalReceiptQualityWarningFlag("shadowWarningEnabled")
+    enforceExperimentalReceiptQualityPolicyGuard()
     receiptCameraQualityBaseline =
         intent.getBooleanExtra("receiptCameraQualityBaseline", receiptCameraQualityBaseline)
     zoomGesturePolicy = intent.getStringExtra("zoomGesturePolicy") ?: zoomGesturePolicy
@@ -183,6 +184,15 @@ internal fun ReceiptCameraActivity.readExperimentalReceiptQualityWarningFlag(
 ): Boolean {
     if (!experimentalLiveReceiptQualityPolicyEnabled()) return false
     return intent.getBooleanExtra(key, false)
+}
+
+internal fun ReceiptCameraActivity.enforceExperimentalReceiptQualityPolicyGuard() {
+    if (experimentalLiveReceiptQualityPolicyEnabled()) return
+    lowLightWarningEnabled = false
+    glareWarningEnabled = false
+    dirtyLensWarningEnabled = false
+    motionBlurWarningEnabled = false
+    shadowWarningEnabled = false
 }
 
 internal fun ReceiptCameraActivity.registerSystemBackHandler() {
