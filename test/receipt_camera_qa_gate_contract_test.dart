@@ -360,6 +360,44 @@ void main() {
     expect(fastGuard, contains('tool/receipt_camera_failure_to_regression.sh'));
   });
 
+  test('camera failure wrapper executable creates stitch task', () async {
+    final root = Directory(
+      '/tmp/maintainiac_receipt_ocr_pipeline/receipt_camera_qa_failure',
+    );
+    if (root.existsSync()) root.deleteSync(recursive: true);
+    addTearDown(() {
+      if (root.existsSync()) root.deleteSync(recursive: true);
+    });
+
+    final log = File('/tmp/receipt_camera_failure_wrapper_contract.log')
+      ..writeAsStringSync('long receipt overlap regression failed\n');
+    addTearDown(() {
+      if (log.existsSync()) log.deleteSync();
+    });
+
+    final result = await Process.run('bash', [
+      'tool/receipt_camera_failure_to_regression.sh',
+      'camera_stitch_gate',
+      log.path,
+    ]);
+    expect(result.exitCode, 0, reason: result.stderr.toString());
+
+    final task = File(
+      '${root.path}/regression_tasks/camera_stitch_gate_regression_task.md',
+    );
+    expect(task.existsSync(), isTrue);
+    final text = task.readAsStringSync();
+    expect(
+      text,
+      contains('Failure family: `long_receipt_stitch_ocr_source_contracts`'),
+    );
+    expect(
+      text,
+      contains('Suggested ledger category: `ghost_overlap_stitching`'),
+    );
+    expect(text, contains('Add a `BUG-RECEIPT-####` ledger row'));
+  });
+
   test('camera stitch gate focuses long receipt stitching risk', () {
     final script = File(
       'tool/receipt_camera_stitch_gate.sh',
