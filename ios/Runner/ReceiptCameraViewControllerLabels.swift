@@ -97,8 +97,10 @@ extension ReceiptCameraViewController {
       "back",
       "settings",
       "manual_shutter",
-      "status"
     ]
+    if shouldShowSettingsStatusStrip() {
+      controls.append("status")
+    }
     if !torchButton.isHidden && torchButton.isEnabled {
       controls.append("light")
     }

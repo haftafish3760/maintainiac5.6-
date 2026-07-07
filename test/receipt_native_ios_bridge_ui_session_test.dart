@@ -304,9 +304,16 @@ void main() {
         '      "back",\n'
         '      "settings",\n'
         '      "manual_shutter",\n'
-        '      "status"\n'
         '    ]',
       ),
+    );
+    expect(
+      cameraController,
+      contains('if shouldShowSettingsStatusStrip() {'),
+    );
+    expect(
+      cameraController,
+      contains('controls.append("status")'),
     );
     expect(
       cameraController,

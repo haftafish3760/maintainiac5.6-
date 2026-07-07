@@ -250,9 +250,12 @@ void main() {
         '        "back",\n'
         '        "settings",\n'
         '        "manual_shutter",\n'
-        '        "status",\n'
         '    )',
       ),
+    );
+    expect(
+      cameraActivity,
+      contains('if (shouldShowSettingsStatusStrip()) controls.add("status")'),
     );
     expect(
       cameraActivity,
