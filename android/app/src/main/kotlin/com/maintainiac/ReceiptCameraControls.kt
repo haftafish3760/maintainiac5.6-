@@ -72,28 +72,29 @@ internal fun ReceiptCameraActivity.configureTouchControls() {
         if (!pinchZoomEnabled) {
             return@OnTouchListener false
         }
-        if (pinchZoomEnabled) {
+        if (event.pointerCount > 1 || event.actionMasked == MotionEvent.ACTION_POINTER_DOWN) {
             scaleGestureDetector?.onTouchEvent(event)
         }
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                return@OnTouchListener false
+            }
+            MotionEvent.ACTION_POINTER_DOWN -> {
                 view.parent?.requestDisallowInterceptTouchEvent(true)
                 return@OnTouchListener true
             }
-            MotionEvent.ACTION_POINTER_DOWN,
             MotionEvent.ACTION_MOVE -> {
-                return@OnTouchListener true
+                return@OnTouchListener event.pointerCount > 1
             }
             MotionEvent.ACTION_UP -> {
                 view.parent?.requestDisallowInterceptTouchEvent(false)
-                view.performClick()
-                return@OnTouchListener true
+                return@OnTouchListener false
             }
             MotionEvent.ACTION_CANCEL -> {
                 view.parent?.requestDisallowInterceptTouchEvent(false)
-                return@OnTouchListener true
+                return@OnTouchListener false
             }
-            else -> return@OnTouchListener true
+            else -> return@OnTouchListener false
         }
     }
     previewView.setOnTouchListener(previewTouchListener)

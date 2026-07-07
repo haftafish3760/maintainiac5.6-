@@ -98,7 +98,7 @@ void main() {
     expect(cameraActivity, contains('MotionEvent.ACTION_DOWN'));
     expect(
       cameraActivity,
-      contains('requestDisallowInterceptTouchEvent(true)'),
+      contains('return@OnTouchListener false'),
     );
     expect(
       cameraActivity,
@@ -106,7 +106,8 @@ void main() {
     );
     expect(cameraActivity, contains('MotionEvent.ACTION_POINTER_DOWN'));
     expect(cameraActivity, contains('MotionEvent.ACTION_MOVE'));
-    expect(cameraActivity, contains('view.performClick()'));
+    expect(cameraActivity, contains('event.pointerCount > 1'));
+    expect(cameraActivity, isNot(contains('view.performClick()')));
     expect(cameraActivity, contains('effectiveMinZoom'));
     expect(cameraActivity, contains('effectiveMaxZoom'));
     expect(cameraActivity, isNot(contains('FocusMeteringAction')));
