@@ -10,6 +10,7 @@ void main() {
     expect(script, contains('bash tool/receipt_doc_size_gate.sh'));
     expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
     expect(script, contains('tool/receipt_bug_regression_ledger_archive.dart'));
+    expect(script, contains('tool/receipt_external_dataset_gate.dart'));
     expect(
       script,
       contains('dart tool/receipt_bug_regression_ledger_gate.dart'),
@@ -66,6 +67,7 @@ void main() {
       contains('test/maintainiac_source_audit_contract_test.dart'),
     );
     expect(script, contains('test/receipt_doc_size_gate_contract_test.dart'));
+    expect(script, contains('test/receipt_external_dataset_gate_test.dart'));
     expect(
       script,
       contains('test/receipt_bug_regression_ledger_archive_test.dart'),

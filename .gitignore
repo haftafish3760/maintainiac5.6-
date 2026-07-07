@@ -51,6 +51,7 @@ app.*.map.json
 # Codex/local review artifacts
 .codex_screenshots/
 asset_reviews/
+.external_datasets/
 firebase_emulator_tests/node_modules/
 firebase_emulator_tests/.firebase/
 

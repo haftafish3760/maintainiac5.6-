@@ -1,0 +1,68 @@
+{
+  "schema": "maintainiac_receipt_external_dataset_manifest_v1",
+  "rawDatasetPolicy": {
+    "storageRoot": ".external_datasets/receipts",
+    "committedToGit": false,
+    "gitignoreRequired": true,
+    "allowedUse": [
+      "camera_ocr_fixture_generation",
+      "parser_regression_discovery",
+      "stitching_and_upload_flow_validation"
+    ],
+    "blockedUse": [
+      "shipping_raw_third_party_images",
+      "committing_unredacted_receipts",
+      "training_without_license_review"
+    ]
+  },
+  "approvedDatasets": [
+    {
+      "id": "cord",
+      "source": "https://github.com/clovaai/cord",
+      "license": "CC-BY-4.0",
+      "status": "approved_metadata_only",
+      "localPath": ".external_datasets/receipts/cord",
+      "requiredBeforeImport": [
+        "downloaded_locally",
+        "license_file_present",
+        "no_raw_images_committed",
+        "fixture_outputs_redacted_or_synthetic"
+      ]
+    },
+    {
+      "id": "voxel51_scanned_receipts",
+      "source": "https://huggingface.co/datasets/Voxel51/scanned_receipts",
+      "license": "dataset_card_review_required",
+      "status": "candidate_requires_license_review",
+      "localPath": ".external_datasets/receipts/voxel51_scanned_receipts",
+      "requiredBeforeImport": [
+        "downloaded_locally",
+        "license_file_present",
+        "no_raw_images_committed",
+        "fixture_outputs_redacted_or_synthetic"
+      ]
+    },
+    {
+      "id": "openpdf_multireceipt_1k",
+      "source": "https://huggingface.co/datasets/prithivMLmods/Openpdf-MultiReceipt-1K",
+      "license": "Apache-2.0",
+      "status": "approved_metadata_only",
+      "localPath": ".external_datasets/receipts/openpdf_multireceipt_1k",
+      "requiredBeforeImport": [
+        "downloaded_locally",
+        "license_file_present",
+        "no_raw_images_committed",
+        "fixture_outputs_redacted_or_synthetic"
+      ]
+    }
+  ],
+  "summaryReportExcludes": [
+    "rawText",
+    "ocrText",
+    "receiptImagePath",
+    "sourceImageBytes",
+    "cardNumber",
+    "customerName",
+    "streetAddress"
+  ]
+}

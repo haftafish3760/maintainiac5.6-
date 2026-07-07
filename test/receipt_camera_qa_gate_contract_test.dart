@@ -168,6 +168,7 @@ void main() {
       expect(script, contains('git diff --name-only'));
       expect(script, contains('SCOPE_FAIL'));
       expect(script, contains('tracked changes left the camera lane'));
+      expect(script, contains('.gitignore'));
       expect(script, contains('lib/shared/widgets/receipt_capture/*'));
       expect(script, contains('lib/shared/receipts/*'));
       expect(
@@ -182,9 +183,15 @@ void main() {
       expect(script, contains('test/receipt_native_*'));
       expect(script, contains('test/receipt_ocr_source_*'));
       expect(script, contains('test/receipt_photo_section_labels_test.dart'));
+      expect(script, contains('test/receipt_external_dataset_gate_test.dart'));
+      expect(
+        script,
+        contains('test/fixtures/receipt_qa/external_dataset_manifest.json'),
+      );
       expect(script, contains('test/receipt_stitching_*'));
       expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
       expect(script, contains('tool/receipt_camera_*'));
+      expect(script, contains('tool/receipt_external_dataset_gate.dart'));
       expect(
         script,
         contains('tool/receipt_pipeline_failure_to_regression.dart'),

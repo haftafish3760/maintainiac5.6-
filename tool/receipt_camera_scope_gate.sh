@@ -17,6 +17,7 @@ while IFS= read -r path; do
   case "$path" in
     android/app/src/main/kotlin/com/maintainiac/ReceiptCamera*.kt | \
     android/app/src/main/kotlin/com/maintainiac/MainActivity.kt | \
+    .gitignore | \
     ios/Runner/ReceiptCamera*.swift | \
     ios/Runner/AppDelegate.swift | \
     docs/receipt_bug_regression_ledger.md | \
@@ -29,12 +30,15 @@ while IFS= read -r path; do
     test/receipt_native_* | \
     test/receipt_ocr_source_* | \
     test/receipt_photo_section_labels_test.dart | \
+    test/receipt_external_dataset_gate_test.dart | \
+    test/fixtures/receipt_qa/external_dataset_manifest.json | \
     test/receipt_stitching_* | \
     tool/android_receipt_camera_* | \
     tool/ios_receipt_camera_* | \
 	    tool/receipt_bug_regression_ledger_archive.dart | \
 	    tool/receipt_bug_regression_ledger_gate.dart | \
 	    tool/receipt_camera_* | \
+	    tool/receipt_external_dataset_gate.dart | \
 	    tool/receipt_pipeline_failure_to_regression.dart | \
 	    tool/receipt_fast_guard_gate.sh | \
 	    tool/receipt_start_camera_qa_gate.sh | \
