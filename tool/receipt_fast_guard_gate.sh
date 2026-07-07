@@ -60,6 +60,8 @@ dart tool/receipt_quiet_batch_policy_gate.dart
 
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_qa_gate_contract_test.dart' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
+RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_qa_gate_execution_test.dart' \
+  bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_camera_qa_gate.sh' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_camera_changed_route_coverage_gate.dart' \

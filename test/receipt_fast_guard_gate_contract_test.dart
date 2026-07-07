@@ -142,6 +142,12 @@ void main() {
     expect(
       script,
       contains(
+        "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_qa_gate_execution_test.dart'",
+      ),
+    );
+    expect(
+      script,
+      contains(
         "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_quiet_batch_status.sh'",
       ),
     );
