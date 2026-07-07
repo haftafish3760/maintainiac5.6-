@@ -35,15 +35,14 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
   try {
     for (final path in inputPaths) {
       final bytes = await ReceiptImageProcessor._readFileBytes(path);
-      final previousBytes = decodedBytes.isEmpty ? null : decodedBytes.last;
-      if (bytes != null &&
-          previousBytes != null &&
-          _receiptImageBytesMatch(previousBytes, bytes)) {
+      final duplicateSourceIndex =
+          bytes == null ? -1 : _findDuplicateReceiptImageIndex(decodedBytes, bytes);
+      if (duplicateSourceIndex >= 0) {
         final pairIndex = decodedBytes.length - 1;
         return ReceiptStitchResult.fallback(
           inputPaths: inputPaths,
           warning:
-              'Two neighboring receipt photos appear to show the same section. Receipt details will use the photos separately.',
+              'Two receipt photos appear to show the same section. Receipt details will use the photos separately.',
           fallbackReasonCode: 'duplicate_section_image',
           failedPairIndex: pairIndex,
           pairs: [
@@ -216,4 +215,13 @@ bool _stitchInputPathsAreUnique(List<String> inputPaths) {
     if (!seen.add(normalized)) return false;
   }
   return true;
+}
+
+int _findDuplicateReceiptImageIndex(List<List<int>> decodedBytes, List<int> candidate) {
+  for (var index = 0; index < decodedBytes.length; index++) {
+    if (_receiptImageBytesMatch(decodedBytes[index], candidate)) {
+      return index;
+    }
+  }
+  return -1;
 }
