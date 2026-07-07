@@ -95,10 +95,17 @@ void main() {
     );
     expect(
       parseReview,
+      contains(
+        "decision.toLowerCase().contains('open manual receipt details')",
+      ),
+    );
+    expect(
+      parseReview,
       contains("final photoRecoveryLabel = needsBottomSection"),
     );
     expect(parseReview, contains("'Add Bottom Section'"));
     expect(parseReview, contains("'Retake / Add Photo'"));
+    expect(parseReview, contains("'Open Manual Review'"));
     expect(parseReview, isNot(contains("const Text('Add / Retake')")));
     expect(
       parseReview,

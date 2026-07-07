@@ -51,6 +51,12 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
         (stage.toLowerCase().contains('review ready') ||
             decision.toLowerCase().contains('open receipt details') ||
             routeResult.toLowerCase().contains('review opened'));
+    final manualReviewOnly =
+        !processingInFlight &&
+        (decision.toLowerCase().contains('open manual receipt details') ||
+            stage.toLowerCase().contains('manual entry') ||
+            routeResult.toLowerCase().contains('manual receipt line review') ||
+            routeResult.toLowerCase().contains('no readable text'));
     final needsBottomSection =
         decision.toLowerCase().contains('add bottom receipt section') ||
         stage.toLowerCase().contains('need bottom section') ||
@@ -205,6 +211,8 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
                       ? 'Preparing'
                       : reviewReady
                       ? 'Review Details'
+                      : manualReviewOnly
+                      ? 'Open Manual Review'
                       : 'Show Filled Review',
                 ),
                 style: FilledButton.styleFrom(
