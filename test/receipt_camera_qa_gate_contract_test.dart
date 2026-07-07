@@ -320,6 +320,7 @@ void main() {
     expect(script, contains('tool/receipt_start_camera_qa_gate.sh'));
     expect(script, contains('tool/receipt_camera_qa_summary.sh'));
     expect(script, contains('tool/receipt_external_dataset_local_audit.dart'));
+    expect(script, contains('tool/receipt_external_dataset_gate.dart'));
     expect(script, contains('tool/receipt_external_fixture_schema_gate.dart'));
     expect(script, contains('tool/receipt_quiet_batch.sh'));
     expect(script, contains('tool/receipt_quiet_batch_status.sh'));
@@ -330,6 +331,7 @@ void main() {
       script,
       contains('test/receipt_external_dataset_local_audit_test.dart'),
     );
+    expect(script, contains('test/receipt_external_dataset_gate_test.dart'));
     expect(
       script,
       contains('android/app/src/main/kotlin/com/maintainiac/ReceiptCamera*.kt'),

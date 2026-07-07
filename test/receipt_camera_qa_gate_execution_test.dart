@@ -248,9 +248,17 @@ void main() {
       contains('selected milestone'),
     );
     expect(
+      await selectedModeFor('tool/receipt_external_dataset_gate.dart'),
+      contains('selected milestone'),
+    );
+    expect(
       await selectedModeFor(
         'test/receipt_external_dataset_local_audit_test.dart',
       ),
+      contains('selected milestone'),
+    );
+    expect(
+      await selectedModeFor('test/receipt_external_dataset_gate_test.dart'),
       contains('selected milestone'),
     );
     expect(
