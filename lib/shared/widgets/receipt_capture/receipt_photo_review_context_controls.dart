@@ -90,7 +90,7 @@ class _ReceiptReviewContextRow extends StatelessWidget {
                   _MiniReceiptActionButton(
                     icon: Icons.delete_outline_rounded,
                     label: 'Remove',
-                    onPressed: canRemove ? onRemove : null,
+                    onPressed: canRemove && !openingCamera ? onRemove : null,
                   ),
                 ],
               ),

@@ -23,6 +23,7 @@ class _ReceiptOrderToolControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final interactionLocked = openingCamera;
     final canMoveEarlier = selectedIndex > 0;
     final canMoveLater = selectedIndex < photoPaths.length - 1;
     final sectionLabel = _ReceiptPhotoSectionLabels.label(
@@ -86,7 +87,7 @@ class _ReceiptOrderToolControls extends StatelessWidget {
                     index: index,
                     total: photoPaths.length,
                     selected: index == selectedIndex,
-                    onTap: () => onPhotoSelected(index),
+                    onTap: interactionLocked ? null : () => onPhotoSelected(index),
                   );
                 },
               ),
@@ -96,7 +97,9 @@ class _ReceiptOrderToolControls extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: canMoveEarlier ? onMoveEarlier : null,
+                    onPressed: canMoveEarlier && !interactionLocked
+                        ? onMoveEarlier
+                        : null,
                     icon: const Icon(Icons.arrow_upward_rounded, size: 17),
                     label: Text(
                       _ReceiptPhotoSectionLabels.moveEarlierLabel(
@@ -109,7 +112,9 @@ class _ReceiptOrderToolControls extends StatelessWidget {
                 const SizedBox(width: 7),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: canMoveLater ? onMoveLater : null,
+                    onPressed: canMoveLater && !interactionLocked
+                        ? onMoveLater
+                        : null,
                     icon: const Icon(Icons.arrow_downward_rounded, size: 17),
                     label: Text(
                       _ReceiptPhotoSectionLabels.moveLaterLabel(
@@ -127,7 +132,7 @@ class _ReceiptOrderToolControls extends StatelessWidget {
                     index: selectedIndex,
                     total: photoPaths.length,
                   ),
-                  onPressed: openingCamera ? null : onAddPhoto,
+                  onPressed: interactionLocked ? null : onAddPhoto,
                 ),
                 const SizedBox(width: 5),
                 _MiniReceiptIconButton(
@@ -140,7 +145,7 @@ class _ReceiptOrderToolControls extends StatelessWidget {
                     index: selectedIndex,
                     total: photoPaths.length,
                   ),
-                  onPressed: openingCamera ? null : onRetake,
+                  onPressed: interactionLocked ? null : onRetake,
                 ),
               ],
             ),

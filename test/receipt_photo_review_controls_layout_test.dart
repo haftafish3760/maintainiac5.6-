@@ -119,6 +119,13 @@ void main() {
     final commonControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart',
     ).readAsString();
+    final orderControls =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_order_controls.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_order_thumbnail.dart',
+        ).readAsString();
     final contextControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_context_controls.dart',
     ).readAsString();
@@ -270,6 +277,11 @@ void main() {
     );
     expect(sectionLabels, contains('Add Another Photo'));
     expect(contextControls, contains('Add Another Photo'));
+    expect(contextControls, contains('canRemove && !openingCamera ? onRemove : null'));
+    expect(orderControls, contains('final interactionLocked = openingCamera;'));
+    expect(orderControls, contains('onTap: interactionLocked ? null : () => onPhotoSelected(index)'));
+    expect(orderControls, contains('canMoveEarlier && !interactionLocked'));
+    expect(orderControls, contains('canMoveLater && !interactionLocked'));
     expect(controls, isNot(contains('Add Another Receipt Photo')));
     expect(controls, isNot(contains('Read receipt')));
     expect(controls, isNot(contains('Read Receipt')));
