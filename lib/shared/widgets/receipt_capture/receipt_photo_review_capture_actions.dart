@@ -167,6 +167,8 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       return _PickedReceiptPhotos.fromPhoneCameraBackupPaths(
         picked.paths,
         hadPreviousSectionGuide: alignmentGuidePhotoPath != null,
+        previousSectionReasonCode: alignmentReasonCode,
+        previousSectionGuidance: alignmentGuidance,
         previousSectionCoverageDecision: coverageDecision,
       );
     } on MissingPluginException {
@@ -189,6 +191,8 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
         return _PickedReceiptPhotos.fromPhoneCameraBackupPaths(
           picked.paths,
           hadPreviousSectionGuide: alignmentGuidePhotoPath != null,
+          previousSectionReasonCode: alignmentReasonCode,
+          previousSectionGuidance: alignmentGuidance,
           previousSectionCoverageDecision: coverageDecision,
         );
       } on MissingPluginException {
@@ -313,6 +317,8 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       return _PickedReceiptPhotos.fromPhoneCameraBackupPaths(
         picked.paths,
         hadPreviousSectionGuide: previousSectionGuidePhotoPath != null,
+        previousSectionReasonCode: previousSectionReasonCode,
+        previousSectionGuidance: previousSectionGuidance,
         previousSectionCoverageDecision: previousSectionCoverageDecision,
       );
     } on ReceiptProofStorageException catch (error) {

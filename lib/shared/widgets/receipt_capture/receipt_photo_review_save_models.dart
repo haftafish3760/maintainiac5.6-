@@ -73,9 +73,27 @@ class _PickedReceiptPhotos {
   static _PickedReceiptPhotos fromPhoneCameraBackupPaths(
     List<String> paths, {
     required bool hadPreviousSectionGuide,
+    String? previousSectionReasonCode,
+    String? previousSectionGuidance,
     ReceiptPhotoCoverageDecision? previousSectionCoverageDecision,
   }) {
     final pickedPaths = _pickedReceiptPhotoUniquePaths(paths);
+    final normalizedReasonCode = _trimmedBackupPreviousSectionValue(
+      previousSectionReasonCode,
+    )?.toLowerCase();
+    final guidance =
+        _trimmedBackupPreviousSectionValue(previousSectionGuidance) ??
+        previousSectionCoverageDecision?.guidance;
+    final missingBottomAndTotals =
+        normalizedReasonCode == 'missing_bottom_edge_and_totals';
+    final usesNextContext =
+        normalizedReasonCode == 'retake_top_with_next_context';
+    final ghostGuidePolicy = _phoneCameraBackupGhostGuidePolicy(
+      normalizedReasonCode,
+    );
+    final ghostGuideMatchTarget = _phoneCameraBackupGhostGuideMatchTarget(
+      normalizedReasonCode,
+    );
     return _PickedReceiptPhotos(
       paths: pickedPaths,
       qualityChecksByPath: const {},
@@ -89,28 +107,27 @@ class _PickedReceiptPhotos {
                 'Phone camera backup; returns to Maintainiac review',
             'phoneCameraBackupUsed': true,
             'phoneCameraBackupHadPreviousSectionGuide': hadPreviousSectionGuide,
-            if (previousSectionCoverageDecision != null)
+            if (normalizedReasonCode != null)
               'phoneCameraBackupPreviousSectionReasonCode':
-                  previousSectionCoverageDecision.reasonCode,
-            if (previousSectionCoverageDecision != null)
-              'phoneCameraBackupPreviousSectionGuidance':
-                  previousSectionCoverageDecision.guidance,
-            if (previousSectionCoverageDecision?.isMissingBottomEdgeAndTotals ==
-                true)
+                  normalizedReasonCode,
+            if (guidance != null)
+              'phoneCameraBackupPreviousSectionGuidance': guidance,
+            if (missingBottomAndTotals)
               'phoneCameraBackupPreviousSectionMissingBottomAndTotals': true,
-            if (previousSectionCoverageDecision != null)
+            if (ghostGuidePolicy != null)
               'phoneCameraBackupPreviousSectionGhostGuidePolicy':
-                  previousSectionCoverageDecision.ghostGuidePolicyCode,
-            if (previousSectionCoverageDecision != null)
+                  ghostGuidePolicy,
+            if (normalizedReasonCode != null)
               'phoneCameraBackupPreviousSectionGhostGuideRepeatLineTarget':
                   'repeat_3_to_5_readable_lines',
-            if (previousSectionCoverageDecision != null)
+            if (normalizedReasonCode != null)
               'phoneCameraBackupPreviousSectionGhostGuidePlacement':
                   'top_ghost_slice',
-            if (previousSectionCoverageDecision?.isMissingBottomEdgeAndTotals ==
-                true)
+            if (ghostGuideMatchTarget != null)
               'phoneCameraBackupPreviousSectionGhostGuideMatchTarget':
-                  'subtotal_total_and_final_lines',
+                  ghostGuideMatchTarget,
+            if (usesNextContext)
+              'phoneCameraBackupPreviousSectionGhostGuideUsesNextContext': true,
             'nativeCaptureFailureStage': 'maintainiac_camera_unavailable',
             'nativeCaptureRecoveryAction': 'review_phone_camera_receipt_photo',
           },
@@ -163,4 +180,32 @@ bool _pickedReceiptPhotoPathsAreCameraResultMembers(
     if (!receiptPhotoPathSetContains(resultPaths, pickedPath)) return false;
   }
   return true;
+}
+
+String? _trimmedBackupPreviousSectionValue(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  return trimmed;
+}
+
+String? _phoneCameraBackupGhostGuidePolicy(String? reasonCode) {
+  if (reasonCode == null) return null;
+  if (reasonCode == 'retake_top_with_next_context') {
+    return 'next_section_top_context_ghost_at_top_repeat_3_to_5_lines';
+  }
+  if (reasonCode == 'missing_bottom_edge_and_totals') {
+    return 'bottom_overlap_ghost_at_top_repeat_3_to_5_lines';
+  }
+  return 'section_overlap_ghost_at_top_repeat_3_to_5_lines';
+}
+
+String? _phoneCameraBackupGhostGuideMatchTarget(String? reasonCode) {
+  if (reasonCode == null) return null;
+  if (reasonCode == 'retake_top_with_next_context') {
+    return 'next_section_top_lines';
+  }
+  if (reasonCode == 'missing_bottom_edge_and_totals') {
+    return 'subtotal_total_and_final_lines';
+  }
+  return 'repeated_receipt_lines';
 }

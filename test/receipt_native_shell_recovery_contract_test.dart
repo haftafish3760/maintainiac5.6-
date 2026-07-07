@@ -230,8 +230,22 @@ void main() {
         actions,
         contains('previousSectionCoverageDecision: coverageDecision'),
       );
+      expect(
+        actions,
+        contains('previousSectionReasonCode: alignmentReasonCode'),
+      );
+      expect(actions, contains('previousSectionGuidance: alignmentGuidance'));
       expect(actions, contains('phoneCameraBackupPreviousSectionReasonCode'));
       expect(actions, contains('phoneCameraBackupPreviousSectionGuidance'));
+      expect(
+        actions,
+        contains('phoneCameraBackupPreviousSectionGhostGuideUsesNextContext'),
+      );
+      expect(
+        actions,
+        contains('next_section_top_context_ghost_at_top_repeat_3_to_5_lines'),
+      );
+      expect(actions, contains('next_section_top_lines'));
       expect(
         actions,
         contains('phoneCameraBackupPreviousSectionMissingBottomAndTotals'),

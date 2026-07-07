@@ -116,6 +116,55 @@ void main() {
     );
   });
 
+  test('phone camera fallback preserves top-retake next-section context', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/top-retake-proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/top-retake-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.notNeeded(['/tmp/top-retake-ocr.jpg']),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/top-retake-proof.jpg': {
+          'phoneCameraBackupUsed': true,
+          'phoneCameraBackupHadPreviousSectionGuide': true,
+          'phoneCameraBackupPreviousSectionReasonCode':
+              'retake_top_with_next_context',
+          'phoneCameraBackupPreviousSectionGuidance':
+              'Use the next receipt section as context.',
+          'phoneCameraBackupPreviousSectionGhostGuidePolicy':
+              'next_section_top_context_ghost_at_top_repeat_3_to_5_lines',
+          'phoneCameraBackupPreviousSectionGhostGuideRepeatLineTarget':
+              'repeat_3_to_5_readable_lines',
+          'phoneCameraBackupPreviousSectionGhostGuidePlacement':
+              'top_ghost_slice',
+          'phoneCameraBackupPreviousSectionGhostGuideMatchTarget':
+              'next_section_top_lines',
+          'phoneCameraBackupPreviousSectionGhostGuideUsesNextContext': true,
+        },
+      },
+    );
+
+    expect(result.hasPreviousSectionContinuationRequest, isTrue);
+    expect(
+      result.receiptContinuationSignalCounts,
+      containsPair('reason_retake_top_with_next_context', 1),
+    );
+    expect(
+      result.receiptContinuationSignalCounts,
+      containsPair(
+        'ghost_policy_next_section_top_context_ghost_at_top_repeat_3_to_5_lines',
+        1,
+      ),
+    );
+    expect(
+      result.receiptContinuationSignalCounts,
+      containsPair('ghost_match_target_next_section_top_lines', 1),
+    );
+    expect(
+      result.privacySafeReceiptContinuationSummary.toString(),
+      contains('retake_top_with_next_context'),
+    );
+  });
+
   test('continuation handoff ignores malformed ghost slice diagnostics', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/malformed-ghost-proof.jpg'],
