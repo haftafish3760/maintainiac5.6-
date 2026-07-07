@@ -341,4 +341,39 @@ void main() {
       expect(output, isNot(contains('This stale log should not be tailed')));
     },
   );
+
+  test(
+    'detached camera QA summary avoids noisy tails without patterns',
+    () async {
+      final quietName =
+          'receipt_camera_summary_quiet_${DateTime.now().microsecondsSinceEpoch}';
+      final quietRoot = Directory(
+        '/tmp/maintainiac_receipt_quiet_batch/$quietName',
+      )..createSync(recursive: true);
+      addTearDown(() {
+        if (quietRoot.existsSync()) quietRoot.deleteSync(recursive: true);
+      });
+
+      File('${quietRoot.path}/status.txt').writeAsStringSync('failed');
+      File('${quietRoot.path}/exit_code').writeAsStringSync('1');
+      File('${quietRoot.path}/run.log').writeAsStringSync(
+        'long neutral diagnostic line that should stay in the file only\n',
+      );
+
+      final result = await Process.run('bash', [
+        'tool/receipt_camera_qa_summary.sh',
+        quietName,
+      ]);
+
+      expect(result.exitCode, 0, reason: result.stderr.toString());
+      final output = result.stdout.toString();
+      expect(output, contains('summary=failed_actionable_lines'));
+      expect(
+        output,
+        contains('summary_detail=no_actionable_patterns_found_check_log_path'),
+      );
+      expect(output, contains('log_path=${quietRoot.path}/run.log'));
+      expect(output, isNot(contains('long neutral diagnostic line')));
+    },
+  );
 }

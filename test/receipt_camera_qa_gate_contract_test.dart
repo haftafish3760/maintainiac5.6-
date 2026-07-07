@@ -175,9 +175,10 @@ void main() {
     expect(summary, contains('|| true'));
     expect(
       summary,
-      contains('summary_detail=no_actionable_patterns_found_showing_log_tail'),
+      contains('summary_detail=no_actionable_patterns_found_check_log_path'),
     );
-    expect(summary, contains('tail -80'));
+    expect(summary, contains('log_path='));
+    expect(summary, isNot(contains(r'tail -80 "$log_file"')));
     expect(fastGuard, contains('tool/receipt_camera_scope_gate.sh'));
     expect(fastGuard, contains('tool/receipt_camera_changed_gate.sh'));
     expect(fastGuard, contains('tool/receipt_camera_qa_summary.sh'));

@@ -84,6 +84,6 @@ fi
 if [[ -n "$actionable_lines" ]]; then
   printf '%s\n' "$actionable_lines" | tail -80
 else
-  echo "summary_detail=no_actionable_patterns_found_showing_log_tail"
-  tail -80 "$log_file"
+  echo "summary_detail=no_actionable_patterns_found_check_log_path"
+  echo "log_path=$log_file"
 fi
