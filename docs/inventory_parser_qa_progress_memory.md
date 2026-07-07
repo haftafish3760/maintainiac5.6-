@@ -4233,3 +4233,8 @@ Release boundaries:
   `build/parser_qa_reports/generated_fixtures/pex_77_single_chunk_20260707_0212`.
   PEX fittings and valves can now be counted as focused-parser-evidence-covered
   by the Plumbing Core readiness audit.
+- **02:42-02:46 Angle/Straight Stop Readiness Lock:** Refined the readiness
+  audit so straight stop valves classify with angle stops and supply lines, and
+  compression-style `x` stop-valve sizes count as valid connection context.
+  The focused readiness audit now reports angle stops and supply lines at 73/73
+  release-ready with 0 critical rows.

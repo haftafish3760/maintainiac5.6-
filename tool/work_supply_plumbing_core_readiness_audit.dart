@@ -211,9 +211,17 @@ _IdentityCompleteness _identityCompleteness(WorkSupplyItem item, String text) {
         item.intelligence.connectionType.isNotEmpty ||
         _connections.any(text.contains) ||
         _isCopperConnectionText(text) ||
+        _isStopValveConnectionText(text) ||
         _isTubularDrainAdapterText(text) ||
         _isSolventWeldPressureFittingText(text),
   );
+}
+
+bool _isStopValveConnectionText(String text) {
+  if (!_hasAny(text, ['angle stop valve', 'straight stop valve'])) {
+    return false;
+  }
+  return RegExp(r'\b\d(?:/\d)?\s*x\s*\d(?:/\d)?\s*in\b').hasMatch(text);
 }
 
 bool _isCopperConnectionText(String text) {
@@ -648,6 +656,7 @@ const _familyContracts = [
     'angle stop',
     'supply line',
     'supply stop',
+    'straight stop',
   ]),
   _FamilyContract('toilet and faucet repair', [
     'aerator',
