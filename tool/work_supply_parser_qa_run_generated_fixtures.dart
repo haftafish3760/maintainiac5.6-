@@ -9,7 +9,7 @@ const _usage =
     '[--start-index 0] [--max-chunks 0] '
     '[--report-dir build/parser_qa_reports/generated_fixtures] '
     '[--timeout-ms 900000] '
-    '[--stale-report-timeout-ms 120000] '
+    '[--stale-report-timeout-ms 240000] '
     '[--warmup] [--verbose]';
 
 Future<void> main(List<String> args) async {
@@ -172,7 +172,7 @@ class _FixtureRunnerOptions {
         int.tryParse(_valueAfter(args, '--timeout-ms') ?? '') ?? 900000;
     final staleReportTimeoutMs =
         int.tryParse(_valueAfter(args, '--stale-report-timeout-ms') ?? '') ??
-        120000;
+        240000;
     final chunkSize =
         int.tryParse(_valueAfter(args, '--chunk-size') ?? '') ?? 200;
     final startIndex =

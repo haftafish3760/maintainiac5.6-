@@ -165,6 +165,37 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isReceiptNoiseLine(normalized)) return null;
   if (_looksLikeHostileInputText(rawText, normalized)) return null;
   if (_isUnscopedDangerousShortLine(normalized, tradeScope)) return null;
+  final trustedIdentity = _directTrustedItemIdentityMatch(
+    normalized,
+    trustedItemIdentityIds,
+    tradeScope: tradeScope,
+  );
+  if (trustedIdentity != null) {
+    return ReceiptLineMatch(
+      rawText: rawText,
+      item: trustedIdentity,
+      confidence: _trustedItemIdentityConfidence(normalized, trustedIdentity),
+      matchedTerms: const ['trusted-item-identity'],
+      source: ReceiptMatchSource.trustedItemIdentity,
+    );
+  }
+  final fastDirect = _directFastReceiptMatch(
+    normalized,
+    tradeScope: tradeScope,
+  );
+  if (fastDirect != null) {
+    return ReceiptLineMatch(
+      rawText: rawText,
+      item: fastDirect,
+      confidence: _directReceiptConfidence(
+        normalized,
+        fastDirect,
+        tradeScope: tradeScope,
+        originalText: normalized,
+      ),
+      matchedTerms: _directMatchedTerms(normalized, fastDirect),
+    );
+  }
   if (tradeScope != null && tradeScope.trim().toLowerCase() == 'plumbing') {
     final pexServiceFitting = _directPlumbingPexServiceFittingMatch(normalized);
     if (pexServiceFitting != null) {
@@ -182,20 +213,6 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
     }
   }
   final expanded = _expandAliases(normalized, localePackId: localePackId);
-  final trustedIdentity = _directTrustedItemIdentityMatch(
-    normalized,
-    trustedItemIdentityIds,
-    tradeScope: tradeScope,
-  );
-  if (trustedIdentity != null) {
-    return ReceiptLineMatch(
-      rawText: rawText,
-      item: trustedIdentity,
-      confidence: _trustedItemIdentityConfidence(normalized, trustedIdentity),
-      matchedTerms: const ['trusted-item-identity'],
-      source: ReceiptMatchSource.trustedItemIdentity,
-    );
-  }
   final direct = _directHighSpecificityReceiptMatch(
     expanded,
     tradeScope: tradeScope,
@@ -4881,6 +4898,96 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       tradeScope.trim().isNotEmpty &&
       tradeScope.trim().toLowerCase() != 'plumbing') {
     return null;
+  }
+  final wantsTubularPTrap = RegExp(
+    r'\b(p trap|p-trap|lav p trap|trampa lavamanos|trampa lavabo)\b',
+  ).hasMatch(text);
+  if (wantsTubularPTrap) {
+    final size = _nominalReceiptSize(text) ?? _explicitTubularTrapSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('tubular p-trap') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+  final wantsTubularTailpiece = RegExp(
+    r'\b(tailpiece|tail piece|flanged tailpiece|flange tail piece)\b',
+  ).hasMatch(text);
+  if (wantsTubularTailpiece) {
+    final size = _nominalReceiptSize(text);
+    final wantsFlanged = RegExp(r'\b(flanged|flange)\b').hasMatch(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade != 'Plumbing') continue;
+      if (wantsFlanged &&
+          name.contains('flanged tailpiece') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+      if (!wantsFlanged &&
+          name.contains('tailpiece') &&
+          !name.contains('flanged') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\b(extension tube|ext tube)\b').hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('extension tube') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(
+    r'\b(slip joint nut|sj nut|nut washer|nut and washer)\b',
+  ).hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('slip joint nut and washer') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\b(beveled washer|slip washer)\b').hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('beveled washers') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\b(basket strainer|sink strainer)\b').hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' && name.contains('basket strainer')) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\b(j bend|j-bend)\b').hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('j-bend') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
   }
   final pexServiceFitting = _directPlumbingPexServiceFittingMatch(text);
   if (pexServiceFitting != null) return pexServiceFitting;

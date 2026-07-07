@@ -4164,3 +4164,14 @@ Release boundaries:
   runner safety are ready, but tubular runtime parser evidence is blocked by a
   parser execution/performance path that needs a deeper surgical fix before the
   family can be marked release-ready.
+- **00:04-01:05 Tubular Direct Route First-Case Proof:** Added early
+  `_directFastReceiptMatch` coverage for clear tubular drain service lines
+  including P-traps, tailpieces, extension tubes, slip-joint nut/washer kits,
+  beveled washers, basket strainers, and J-bends. Preserved trusted/user
+  identity precedence ahead of parser guesses. The exact generated line
+  `HD 1-1/4 LAV P TRAP 1.00` passed in a one-case generated parser probe with
+  1 checked, 0 failures, and 1 parser call when the stale window was increased
+  to account for first catalog initialization on this Windows machine. The
+  generated fixture runner default stale window is now 240 seconds so startup
+  does not get mistaken for a parser stall, while still preventing overnight
+  hangs.

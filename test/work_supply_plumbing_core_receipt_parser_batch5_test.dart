@@ -53,6 +53,33 @@ void main() {
     expect(trapAdapter!.item.name.toLowerCase(), contains('trap adapter'));
     expect(trapAdapter.confidenceLevel, ReceiptConfidenceLevel.good);
 
+    final lavPTrap = matchReceiptLineToCatalog(
+      'HD 1-1/4 LAV P TRAP 1.00',
+      tradeScope: 'Plumbing',
+      maxCandidates: 24,
+    );
+    expect(lavPTrap, isNotNull);
+    expect(lavPTrap!.item.name.toLowerCase(), contains('tubular p-trap'));
+    expect(lavPTrap.confidenceLevel, ReceiptConfidenceLevel.good);
+
+    final tailpiece = matchReceiptLineToCatalog(
+      'LOWES 1-1/4 LAV TAILPIECE 2.07',
+      tradeScope: 'Plumbing',
+      maxCandidates: 24,
+    );
+    expect(tailpiece, isNotNull);
+    expect(tailpiece!.item.name.toLowerCase(), contains('tailpiece'));
+    expect(tailpiece.confidenceLevel, ReceiptConfidenceLevel.good);
+
+    final slipJoint = matchReceiptLineToCatalog(
+      'ACE 1-1/2 SLIP JOINT NUT WASHER 3.14',
+      tradeScope: 'Plumbing',
+      maxCandidates: 24,
+    );
+    expect(slipJoint, isNotNull);
+    expect(slipJoint!.item.name.toLowerCase(), contains('slip joint'));
+    expect(slipJoint.confidenceLevel, ReceiptConfidenceLevel.good);
+
     final cleanoutPlug = matchReceiptLineToCatalog(
       'LOWES 4IN PVC CLEANOUT PLUG',
       tradeScope: 'Plumbing',
