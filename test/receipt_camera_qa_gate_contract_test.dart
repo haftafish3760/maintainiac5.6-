@@ -15,25 +15,28 @@ void main() {
       expect(
         result.stderr.toString(),
         contains(
-          'Usage: tool/receipt_start_camera_qa_gate.sh [quick|stitch|milestone|full]',
+          'Usage: tool/receipt_start_camera_qa_gate.sh [phase2|quick|stitch|milestone|full]',
         ),
       );
     },
   );
 
-  test('camera QA gate exposes quick stitch milestone and full modes', () {
+  test('camera QA gate exposes phase2 quick stitch milestone and full modes', () {
     final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
 
     expect(script, contains('--print-plan'));
     expect(script, contains(r'mode="${1:-milestone}"'));
-    expect(script, contains('quick | stitch | milestone | full'));
+    expect(script, contains('phase2 | quick | stitch | milestone | full'));
+    expect(script, contains('run_phase2'));
     expect(script, contains('run_quick'));
     expect(script, contains('run_stitch'));
     expect(script, contains('run_milestone'));
     expect(script, contains('run_full'));
+    expect(script, contains('phase2_tests=('));
     expect(script, contains('stitch_tests=('));
     expect(script, contains('milestone_only_tests=('));
     expect(script, contains('full_only_tests=('));
+    expect(script, contains('test/receipt_capture_flow_handoff_order_test.dart'));
     expect(script, contains('test/receipt_camera_result_test.dart'));
     expect(
       script,
@@ -195,7 +198,7 @@ void main() {
     ).readAsStringSync();
 
     expect(script, contains(r'mode="${1:-milestone}"'));
-    expect(script, contains('quick | stitch | milestone | full'));
+    expect(script, contains('phase2 | quick | stitch | milestone | full'));
     expect(script, contains(r'receipt_camera_qa_${mode}'));
     expect(script, contains('tool/receipt_quiet_batch.sh'));
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
@@ -208,6 +211,7 @@ void main() {
     expect(summary, contains('status_output='));
     expect(summary, contains('summary=batch_stale_requires_restart'));
     expect(summary, contains('restart_command='));
+    expect(summary, contains('receipt_camera_qa_phase2'));
     expect(summary, contains('receipt_camera_qa_quick'));
     expect(summary, contains('receipt_camera_qa_stitch'));
     expect(summary, contains('receipt_camera_qa_milestone'));
@@ -215,6 +219,7 @@ void main() {
     expect(summary, contains('summary=failed_actionable_lines'));
     expect(summary, contains('tool/receipt_camera_failure_to_regression.sh'));
     expect(summary, contains('regression_task_command='));
+    expect(summary, contains('failure_phase="camera_phase2_gate"'));
     expect(summary, contains('failure_phase="camera_quick_gate"'));
     expect(summary, contains('failure_phase="camera_stitch_gate"'));
     expect(summary, contains('failure_phase="camera_milestone_gate"'));

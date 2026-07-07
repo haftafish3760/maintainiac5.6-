@@ -10,9 +10,9 @@ fi
 mode="${1:-milestone}"
 
 case "$mode" in
-  quick | stitch | milestone | full) ;;
+  phase2 | quick | stitch | milestone | full) ;;
   *)
-    echo "Usage: tool/receipt_camera_qa_gate.sh [--print-plan] [quick|stitch|milestone|full]" >&2
+    echo "Usage: tool/receipt_camera_qa_gate.sh [--print-plan] [phase2|quick|stitch|milestone|full]" >&2
     exit 64
     ;;
 esac
@@ -22,6 +22,23 @@ camera_source_roots=(
   lib/shared/receipts
   android/app/src/main/kotlin/com/maintainiac
   ios/Runner
+)
+
+phase2_tests=(
+  test/receipt_import_source_sheet_test.dart
+  test/receipt_capture_flow_assist_opt_in_contract_test.dart
+  test/receipt_camera_capture_layout_test.dart
+  test/receipt_capture_flow_handoff_order_test.dart
+)
+
+phase2_audit_paths=(
+  lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart
+  lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart
+  lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart
+  test/receipt_import_source_sheet_test.dart
+  test/receipt_capture_flow_assist_opt_in_contract_test.dart
+  test/receipt_camera_capture_layout_test.dart
+  test/receipt_capture_flow_handoff_order_test.dart
 )
 
 quick_tests=(
@@ -49,6 +66,12 @@ quick_tests=(
 
 milestone_only_tests=(
   test/receipt_camera_capture_layout_test.dart
+  test/receipt_camera_phase3_viewer_contract_test.dart
+  test/receipt_camera_phase4_review_contract_test.dart
+  test/receipt_camera_phase5_long_receipt_contract_test.dart
+  test/receipt_camera_phase6_stitching_handoff_contract_test.dart
+  test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart
+  test/receipt_camera_phase8_storage_proof_timing_contract_test.dart
   test/receipt_camera_native_bridge_layout_test.dart
   test/receipt_camera_ocr_source_handoff_test.dart
   test/receipt_camera_quality_guidance_test.dart
@@ -68,12 +91,14 @@ milestone_only_tests=(
   test/receipt_ocr_source_relationship_test.dart
   test/receipt_native_android_import_hygiene_test.dart
   test/receipt_native_android_bridge_capture_flow_test.dart
+  test/receipt_native_android_bridge_false_positive_guard_test.dart
   test/receipt_native_android_bridge_close_controls_test.dart
   test/receipt_native_android_bridge_diagnostics_storage_test.dart
   test/receipt_native_android_bridge_ui_contract_test.dart
   test/receipt_native_android_guidance_policy_gate_test.dart
   test/receipt_native_android_source_size_test.dart
   test/receipt_native_camera_contract_test.dart
+  test/receipt_native_camera_phase8_storage_timing_test.dart
   test/receipt_native_camera_previous_section_channel_test.dart
   test/receipt_native_camera_privacy_diagnostics_test.dart
   test/receipt_native_camera_result_rejection_test.dart
@@ -86,6 +111,7 @@ milestone_only_tests=(
   test/receipt_native_ghost_warning_contract_test.dart
   test/receipt_native_ios_bridge_app_delegate_test.dart
   test/receipt_native_ios_bridge_exposure_shutter_contract_test.dart
+  test/receipt_native_ios_bridge_false_positive_guard_test.dart
   test/receipt_native_ios_bridge_long_receipt_quality_test.dart
   test/receipt_native_ios_bridge_settings_close_test.dart
   test/receipt_native_ios_bridge_storage_contract_test.dart
@@ -184,6 +210,9 @@ print_test_pack() {
 print_plan_for_mode() {
   echo "mode=$mode"
   case "$mode" in
+    phase2)
+      print_test_pack phase2 "${phase2_tests[@]}"
+      ;;
     quick)
       print_test_pack quick "${quick_tests[@]}"
       ;;
@@ -256,6 +285,33 @@ run_stale_contract_scan() {
   fi
 }
 
+run_phase2_stale_contract_scan() {
+  local scan_roots=(
+    lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart
+    lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart
+    lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart
+  )
+  local pattern='Receipt Camera Setup|Open Receipt Settings|Clear Photo First|Continue To Camera|Before Next|tap Next|Icons.play_arrow_rounded'
+
+  if rg -n "$pattern" "${scan_roots[@]}"; then
+    echo "Stale Phase 2 receipt-entry wording or retired control contract found." >&2
+    return 1
+  fi
+}
+
+run_phase2() {
+  bash tool/receipt_camera_scope_gate.sh
+  dart analyze \
+    lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart \
+    "${phase2_tests[@]}"
+  dart tool/maintainiac_source_audit.dart \
+    "${phase2_audit_paths[@]}" \
+    --max-line-length=220
+  run_phase2_stale_contract_scan
+  run_flutter_tests "${phase2_tests[@]}"
+  git diff --check
+}
+
 run_quick() {
   bash -n \
     tool/android_receipt_camera_compile_gate.sh \
@@ -318,6 +374,7 @@ run_full() {
 }
 
 case "$mode" in
+  phase2) run_phase2 ;;
   quick) run_quick ;;
   stitch) run_stitch ;;
   milestone) run_milestone ;;

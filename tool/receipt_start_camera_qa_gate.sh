@@ -4,9 +4,9 @@ set -euo pipefail
 mode="${1:-milestone}"
 
 case "$mode" in
-  quick | stitch | milestone | full) ;;
+  phase2 | quick | stitch | milestone | full) ;;
   *)
-    echo "Usage: tool/receipt_start_camera_qa_gate.sh [quick|stitch|milestone|full]" >&2
+    echo "Usage: tool/receipt_start_camera_qa_gate.sh [phase2|quick|stitch|milestone|full]" >&2
     exit 64
     ;;
 esac

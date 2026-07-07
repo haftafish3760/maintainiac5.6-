@@ -16,6 +16,30 @@ void main() {
         return result.stdout.toString();
       }
 
+      final phase2Plan = await planFor('phase2');
+      expect(phase2Plan, contains('mode=phase2'));
+      expect(
+        phase2Plan,
+        contains('phase2 test/receipt_import_source_sheet_test.dart'),
+      );
+      expect(
+        phase2Plan,
+        contains(
+          'phase2 test/receipt_capture_flow_assist_opt_in_contract_test.dart',
+        ),
+      );
+      expect(
+        phase2Plan,
+        contains('phase2 test/receipt_camera_capture_layout_test.dart'),
+      );
+      expect(
+        phase2Plan,
+        contains('phase2 test/receipt_capture_flow_handoff_order_test.dart'),
+      );
+      expect(phase2Plan, isNot(contains('quick ')));
+      expect(phase2Plan, isNot(contains('milestone ')));
+      expect(phase2Plan, isNot(contains('full ')));
+
       final quickPlan = await planFor('quick');
       expect(quickPlan, contains('mode=quick'));
       expect(
@@ -147,7 +171,7 @@ void main() {
   test('camera QA printed plans only reference existing tests', () async {
     final missingPaths = <String>[];
 
-    for (final mode in ['quick', 'stitch', 'milestone', 'full']) {
+    for (final mode in ['phase2', 'quick', 'stitch', 'milestone', 'full']) {
       final result = await Process.run('bash', [
         'tool/receipt_camera_qa_gate.sh',
         '--print-plan',
@@ -160,6 +184,7 @@ void main() {
           .split('\n')
           .where(
             (line) =>
+                line.startsWith('phase2 ') ||
                 line.startsWith('quick ') ||
                 line.startsWith('stitch ') ||
                 line.startsWith('milestone ') ||
