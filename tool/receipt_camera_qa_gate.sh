@@ -211,8 +211,10 @@ run_quick() {
   dart analyze \
     lib/shared/widgets/receipt_capture \
     lib/shared/receipts \
+    tool/receipt_external_dataset_gate.dart \
     tool/receipt_bug_regression_ledger_gate.dart
   dart tool/receipt_bug_regression_ledger_gate.dart
+  dart tool/receipt_external_dataset_gate.dart
   run_source_audit
   run_line_cap_gate
   run_stale_contract_scan
