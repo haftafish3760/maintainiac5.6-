@@ -213,8 +213,13 @@ _IdentityCompleteness _identityCompleteness(WorkSupplyItem item, String text) {
         _isCopperConnectionText(text) ||
         _isStopValveConnectionText(text) ||
         _isTubularDrainAdapterText(text) ||
+        _isDwvAdapterConnectionText(text) ||
         _isSolventWeldPressureFittingText(text),
   );
+}
+
+bool _isDwvAdapterConnectionText(String text) {
+  return _hasAny(text, ['pvc dwv trap adapter', 'trap primer adapter']);
 }
 
 bool _isStopValveConnectionText(String text) {
@@ -528,8 +533,21 @@ bool _looksSpecialOrder(String text) {
   ])) {
     return false;
   }
+  if (_isResidentialDwvAccessText(text)) return false;
   return _hasAny(text, ['commercial', 'industrial']) ||
       RegExp(r'(^|[^0-9/])(3|4|6)\s*(in|inch|")([^0-9]|$)').hasMatch(text);
+}
+
+bool _isResidentialDwvAccessText(String text) {
+  if (!RegExp(r'(^|[^0-9/])(3|4)\s*(in|inch|")([^0-9]|$)').hasMatch(text)) {
+    return false;
+  }
+  return _hasAny(text, [
+    'cleanout',
+    'floor drain',
+    'pvc dwv',
+    'trap primer adapter',
+  ]);
 }
 
 bool _isWaterTreatmentDirectText(String text) {
@@ -630,6 +648,7 @@ const _familiesWithFocusedParserEvidence = {
   'legacy repair bridges',
   'pex fittings and valves',
   'push-fit fittings and valves',
+  'pvc dwv fittings and access',
   'pvc pressure fittings',
   'tubular drains and traps',
   'water treatment',

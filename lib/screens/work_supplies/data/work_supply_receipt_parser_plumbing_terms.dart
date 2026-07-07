@@ -1,10 +1,66 @@
 part of 'work_supply_receipt_parser.dart';
 
 WorkSupplyItem? _directPlumbingFastMatch(String text) {
-  return _directPlumbingPexServiceFittingMatch(text) ??
+  return _directPlumbingPvcDwvMatch(text) ??
+      _directPlumbingPexServiceFittingMatch(text) ??
       _directPlumbingWaterTreatmentMatch(text) ??
       _directPlumbingRepairKitMatch(text) ??
       _directPlumbingHandToolMatch(text);
+}
+
+WorkSupplyItem? _directPlumbingPvcDwvMatch(String text) {
+  if (!RegExp(r'\b(pvc|dwv)\b').hasMatch(text)) return null;
+  if (RegExp(r'\b(abs|black\s+dwv|black\s+drain)\b').hasMatch(text)) {
+    return null;
+  }
+  final targetName = switch (text) {
+    final value
+        when RegExp(
+          r'\b(reducing\s+san\s+tee|reducing\s+sanitary|reducing\s+sanitary\s+tee)\b',
+        ).hasMatch(value) =>
+      'pvc dwv reducing sanitary tee',
+    final value
+        when RegExp(
+          r'\b(reducing\s+cplg|reducing\s+coupling|reducer\s+coupling|dwv\s+reducer)\b',
+        ).hasMatch(value) =>
+      'pvc dwv reducing coupling',
+    final value
+        when RegExp(r'\b(test\s+tee|cleanout\s+tee)\b').hasMatch(value) =>
+      'pvc dwv test tee',
+    final value
+        when RegExp(
+          r'\b(trap\s+adapter|trap\s+adpt|marvel\s+adapter)\b',
+        ).hasMatch(value) =>
+      'pvc dwv trap adapter',
+    final value
+        when RegExp(
+          r'\b(san\s+tee|sanitary\s+tee|sanitary\s+t|santee)\b',
+        ).hasMatch(value) =>
+      'pvc dwv sanitary tee',
+    final value
+        when RegExp(r'\b(wye|y\s+fitting|why\s+fitting)\b').hasMatch(value) =>
+      'pvc dwv wye',
+    final value when RegExp(r'\b(cleanout|clean\s*out|co)\b').hasMatch(value) =>
+      'pvc dwv cleanout',
+    final value when RegExp(r'\b45\b').hasMatch(value) => 'pvc dwv 45 elbow',
+    final value when RegExp(r'\b(90|ell|elb|elbow)\b').hasMatch(value) =>
+      'pvc dwv 90 elbow',
+    final value when RegExp(r'\b(cplg|coupling|coupler)\b').hasMatch(value) =>
+      'pvc dwv coupling',
+    _ => null,
+  };
+  if (targetName == null) return null;
+  final size = _nominalReceiptSize(text);
+  for (final item in workSupplyCatalogItems) {
+    final name = item.name.toLowerCase();
+    if (item.trade != 'Plumbing' || !name.contains(targetName)) continue;
+    if (_nameMatchesReceiptMatrix(name, text) ||
+        _receiptMatchesVariant(text, item.variant) ||
+        _nameMatchesReceiptSize(name, size)) {
+      return item;
+    }
+  }
+  return null;
 }
 
 WorkSupplyItem? _directPlumbingPexServiceFittingMatch(String text) {

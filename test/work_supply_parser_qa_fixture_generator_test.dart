@@ -637,6 +637,69 @@ void main() {
     expect(_riskTags(manifest), isNot(contains('pvc_pressure')));
   });
 
+  test('fixture generator can isolate PVC DWV Plumbing Core family', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_plumbing_pvc_dwv_filter_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'plumbing',
+        '--scope',
+        'residential',
+        '--tier',
+        'core',
+        '--locale',
+        'en-US',
+        '--limit',
+        '95',
+        '--include-risk-tags',
+        'pvc_dwv',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final generatedRoot = Directory(
+      '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+    );
+    final fixtures =
+        jsonDecode(
+              File(
+                '${generatedRoot.path}/generated_fixtures.json',
+              ).readAsStringSync(),
+            )
+            as List;
+    final manifest =
+        jsonDecode(
+              File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+            )
+            as Map;
+
+    expect(fixtures, hasLength(95));
+    expect(manifest['includeRiskTags'], ['pvc_dwv']);
+    final ids = _fixtureIds(fixtures);
+    expect(ids, contains('pvc_dwv_90_elbow'));
+    expect(ids, contains('pvc_dwv_45_elbow'));
+    expect(ids, contains('pvc_dwv_wye'));
+    expect(ids, contains('pvc_dwv_sanitary_tee'));
+    expect(ids, contains('pvc_dwv_reducing_sanitary_tee'));
+    expect(ids, contains('pvc_dwv_coupling'));
+    expect(ids, contains('pvc_dwv_reducing_coupling'));
+    expect(ids, contains('pvc_dwv_trap_adapter'));
+    expect(ids, contains('pvc_dwv_cleanout'));
+    expect(ids, contains('pvc_dwv_test_tee'));
+    expect(ids, contains('cleanout_access_plug'));
+    expect(ids, contains('cleanout_access_cover'));
+    expect(_riskTags(manifest), contains('pvc_dwv'));
+    expect(_riskTags(manifest), isNot(contains('pex')));
+  });
+
   test('fixture generator rejects unsafe empty batches', () async {
     final stderr = _MemorySink();
     final exit = await runWorkSupplyParserFixtureGenerator(

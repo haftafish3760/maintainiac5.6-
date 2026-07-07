@@ -4238,3 +4238,16 @@ Release boundaries:
   compression-style `x` stop-valve sizes count as valid connection context.
   The focused readiness audit now reports angle stops and supply lines at 73/73
   release-ready with 0 critical rows.
+- **02:48-03:10 PVC DWV/Access Probe and Repair:** Added focused PVC DWV
+  recipes for 90/45 elbows, wyes, sanitary tees, reducing sanitary tees,
+  couplings, reducing couplings, trap adapters, cleanouts, test tees, and
+  cleanout access covers/plugs, plus a generator isolation regression for
+  `--include-risk-tags pvc_dwv`. The first 95-case probe exposed real parser
+  precedence gaps where PVC DWV lines could fall into ABS DWV, generic trap
+  adapters, cleanout access plugs, or non-reducing sanitary tees. Added an early
+  PVC DWV direct route and corrected invalid trap-adapter/reducing-tee fixture
+  sizes. The corrected 95-case single-chunk run passed with 95 checked,
+  0 failures, and 95 parser calls at
+  `build/parser_qa_reports/generated_fixtures/pvc_dwv_95_single_chunk_20260707_0259`.
+  PVC DWV fittings and access can now be counted as focused-parser-evidence-
+  covered by the Plumbing Core readiness audit.
