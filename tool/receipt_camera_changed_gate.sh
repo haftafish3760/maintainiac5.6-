@@ -3,6 +3,7 @@ set -euo pipefail
 
 detached=false
 print_mode=false
+print_tests=false
 while [[ $# -gt 0 ]]; do
   case "${1:-}" in
     --detached)
@@ -11,6 +12,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --print-mode)
       print_mode=true
+      shift
+      ;;
+    --print-tests)
+      print_tests=true
       shift
       ;;
     *)
@@ -22,11 +27,13 @@ done
 if [[ $# -ne 0 ]]; then
   cat >&2 <<'USAGE'
 Usage: tool/receipt_camera_changed_gate.sh [--detached] [--print-mode]
+       tool/receipt_camera_changed_gate.sh [--print-tests]
 
 Runs the smallest safe receipt camera QA mode for tracked camera-lane changes.
 Untracked files are intentionally ignored so unrelated handoff drafts do not
 force camera QA. Use --detached to start the chosen gate without log streaming.
 Use --print-mode for contract tests that prove mode routing without running QA.
+Use --print-tests to print the exact targeted test pack for the selected mode.
 USAGE
   exit 64
 fi
@@ -47,8 +54,46 @@ if [[ -z "${changed_files//[$'\n'[:space:]]/}" ]]; then
 fi
 
 mode="quick"
+targeted_tests=()
+exact_targeted=true
 while IFS= read -r path; do
   [[ -z "$path" ]] && continue
+
+  case "$path" in
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt)
+      targeted_tests+=(
+        test/receipt_native_android_bridge_settings_quality_test.dart
+      )
+      ;;
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControls.kt)
+      targeted_tests+=(
+        test/receipt_native_android_bridge_close_controls_test.dart
+      )
+      ;;
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt)
+      targeted_tests+=(
+        test/receipt_native_android_bridge_settings_quality_test.dart
+      )
+      ;;
+    ios/Runner/ReceiptCameraViewControllerSessionSettings.swift)
+      targeted_tests+=(
+        test/receipt_native_ios_bridge_settings_close_test.dart
+      )
+      ;;
+    ios/Runner/ReceiptCameraViewControllerLabels.swift)
+      targeted_tests+=(
+        test/receipt_native_ios_bridge_ui_session_test.dart
+      )
+      ;;
+    ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift)
+      targeted_tests+=(
+        test/receipt_native_ios_bridge_analysis_exposure_test.dart
+      )
+      ;;
+    *)
+      exact_targeted=false
+      ;;
+  esac
 
   case "$path" in
     android/app/src/main/kotlin/com/maintainiac/ReceiptCameraActivity.kt | \
@@ -125,6 +170,15 @@ echo "Receipt camera changed gate: selected $mode for tracked camera changes."
 
 if [[ "$print_mode" == "true" ]]; then
   exit 0
+fi
+
+if [[ "$print_tests" == "true" ]]; then
+  if [[ "$exact_targeted" == "true" && "${#targeted_tests[@]}" -gt 0 ]]; then
+    echo "mode=$mode"
+    printf '%s\n' "${targeted_tests[@]}" | awk '!seen[$0]++ { print "targeted " $0 }'
+    exit 0
+  fi
+  exec bash tool/receipt_camera_qa_gate.sh --print-plan "$mode"
 fi
 
 if [[ "$detached" == "true" ]]; then
