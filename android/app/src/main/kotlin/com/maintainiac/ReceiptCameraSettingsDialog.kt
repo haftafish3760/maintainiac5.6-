@@ -56,7 +56,7 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         }
         autoCaptureEnabled = it
         guidance.text = if (it) {
-            "Automatic capture is on. Hold steady, or tap the shutter anytime."
+            "Automatic capture is on. Hold steady, or capture anytime."
         } else {
             guidanceText()
         }

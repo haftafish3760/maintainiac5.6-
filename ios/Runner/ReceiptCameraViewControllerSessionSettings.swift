@@ -178,7 +178,7 @@ extension ReceiptCameraViewController {
       }
       self.autoCaptureEnabled.toggle()
       self.guidanceLabel.text = self.autoCaptureEnabled
-        ? "Automatic capture is on. Hold steady, or tap the shutter anytime."
+        ? "Automatic capture is on. Hold steady, or capture anytime."
         : self.guidanceText()
       self.updateSettingsStatusStrip()
     })

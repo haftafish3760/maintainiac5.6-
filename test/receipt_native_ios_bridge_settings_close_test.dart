@@ -305,7 +305,7 @@ void main() {
       expect(
         cameraController,
         contains(
-          'Automatic capture is on. Hold steady, or tap the shutter anytime.',
+          'Automatic capture is on. Hold steady, or capture anytime.',
         ),
       );
       expect(

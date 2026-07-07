@@ -134,7 +134,7 @@ void main() {
       expect(
         cameraActivity,
         contains(
-          'Automatic capture is on. Hold steady, or tap the shutter anytime.',
+          'Automatic capture is on. Hold steady, or capture anytime.',
         ),
       );
       expect(cameraActivity, contains('Auto brightness assist'));
