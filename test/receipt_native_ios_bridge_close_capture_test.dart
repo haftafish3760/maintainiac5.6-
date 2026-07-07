@@ -11,7 +11,7 @@ void main() {
     expect(cameraController, contains('doneButton'));
     expect(
       cameraController,
-      contains('Next: review captured receipt photos in Maintainiac'),
+      contains('Done: review captured receipt photos in Maintainiac'),
     );
     expect(cameraController, contains('finishWithCapturedPhotos'));
     expect(cameraController, contains('@objc func cancelCapture()'));
@@ -71,17 +71,17 @@ void main() {
     final sources = await readIosReceiptCameraBridgeSources();
     final cameraController = sources.cameraController;
 
-    expect(cameraController, contains('Next'));
+    expect(cameraController, contains('Done'));
     expect(cameraController, contains('Add Photo'));
     expect(cameraController, contains('captureAdditionalPhoto'));
     expect(cameraController, contains('manual_add_photo'));
     expect(
       cameraController,
-      contains('Next (\\(capturedPhotoPaths.count) photos)'),
+      contains('Done (\\(capturedPhotoPaths.count) photos)'),
     );
     expect(
       cameraController,
-      contains('Next: review captured receipt photos in Maintainiac'),
+      contains('Done: review captured receipt photos in Maintainiac'),
     );
     expect(
       cameraController,
@@ -124,7 +124,7 @@ void main() {
     expect(
       cameraController,
       contains(
-        'bottomReviewButton.accessibilityLabel =\n      "Next: review captured receipt photos in Maintainiac"',
+        'bottomReviewButton.accessibilityLabel =\n      "Done: review captured receipt photos in Maintainiac"',
       ),
     );
     expect(

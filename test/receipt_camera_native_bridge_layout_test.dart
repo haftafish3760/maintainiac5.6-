@@ -59,10 +59,10 @@ void main() {
       androidCameraUnit,
       contains('latestCapturedBottomTopLumaDeltaBucket'),
     );
-    expect(androidCameraUnit, contains('text = "Next"'));
+    expect(androidCameraUnit, contains('text = "Done"'));
     expect(androidCameraUnit, contains('text = "Add Photo"'));
     expect(androidCameraUnit, contains('"manual_add_photo"'));
-    expect(androidCameraUnit, contains(r'else -> "Next ($count)"'));
+    expect(androidCameraUnit, contains(r'else -> "Done ($count)"'));
     expect(androidCameraUnit, contains('bottomBar.addView(addPhotoButton)'));
     expect(
       androidCameraUnit,

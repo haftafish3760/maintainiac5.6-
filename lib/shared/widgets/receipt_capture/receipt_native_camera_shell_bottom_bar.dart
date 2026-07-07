@@ -123,7 +123,7 @@ class _ReceiptNativeCameraNextStepStrip extends StatelessWidget {
         Expanded(
           child: _ReceiptNativeCameraActionButton(
             label: _nextLabel,
-            tooltip: 'Next: review captured receipt photos in Maintainiac',
+            tooltip: 'Done: review captured receipt photos in Maintainiac',
             icon: Icons.arrow_forward_rounded,
             onPressed: onReviewCapturedPhotos,
           ),
@@ -135,8 +135,8 @@ class _ReceiptNativeCameraNextStepStrip extends StatelessWidget {
   bool get _showAddPhoto => longReceiptMode && onAddPhoto != null;
 
   String get _nextLabel {
-    if (capturedPhotoCount <= 1) return 'Next';
-    return 'Next ($capturedPhotoCount)';
+    if (capturedPhotoCount <= 1) return 'Done';
+    return 'Done ($capturedPhotoCount)';
   }
 }
 

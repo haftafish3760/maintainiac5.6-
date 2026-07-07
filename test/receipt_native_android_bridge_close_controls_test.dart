@@ -111,18 +111,18 @@ void main() {
     expect(cameraActivity, contains('effectiveMaxZoom'));
     expect(cameraActivity, isNot(contains('FocusMeteringAction')));
     expect(cameraActivity, isNot(contains('startFocusAndMetering')));
-    expect(cameraActivity, contains('text = "Next"'));
+    expect(cameraActivity, contains('text = "Done"'));
     expect(cameraActivity, contains('topBar.addView(doneButton)'));
     expect(cameraActivity, contains('text = "Add Photo"'));
     expect(cameraActivity, isNot(contains('"Use Photos"')));
     expect(cameraActivity, contains('"manual_add_photo"'));
-    expect(cameraActivity, contains(r'else -> "Next ($count)"'));
+    expect(cameraActivity, contains(r'else -> "Done ($count)"'));
     expect(cameraActivity, contains('bottomBar.addView(addPhotoButton)'));
     expect(cameraActivity, contains('bottomBar.addView(bottomReviewButton)'));
     expect(
       cameraActivity,
       contains(
-        'contentDescription = "Next: review captured receipt photos in Maintainiac"',
+        'contentDescription = "Done: review captured receipt photos in Maintainiac"',
       ),
     );
     expect(
@@ -244,22 +244,22 @@ void main() {
     expect(cameraActivity, contains('addPhotoButton.visibility = if ('));
     expect(cameraActivity, contains('!longReceiptMode'));
     expect(cameraActivity, contains('capturedPhotoPaths.size >= maxSectionCount'));
-    expect(cameraActivity, contains('0 -> "Next"'));
-    expect(cameraActivity, contains('1 -> "Next"'));
-    expect(cameraActivity, contains(r'else -> "Next ($count)"'));
+    expect(cameraActivity, contains('0 -> "Done"'));
+    expect(cameraActivity, contains('1 -> "Done"'));
+    expect(cameraActivity, contains(r'else -> "Done ($count)"'));
     expect(
       cameraActivity,
-      contains('doneButton.contentDescription =\n        "Next: review captured receipt photos in Maintainiac"'),
+      contains('doneButton.contentDescription =\n        "Done: review captured receipt photos in Maintainiac"'),
     );
     expect(
       cameraActivity,
-      contains('bottomReviewButton.contentDescription =\n            "Next: review captured receipt photos in Maintainiac"'),
+      contains('bottomReviewButton.contentDescription =\n            "Done: review captured receipt photos in Maintainiac"'),
     );
     expect(cameraActivity, contains('top ghost slice'));
     expect(cameraActivity, isNot(contains('tap Done')));
     expect(
       cameraActivity,
-      contains('Next: review captured receipt photos in Maintainiac'),
+      contains('Done: review captured receipt photos in Maintainiac'),
     );
     final requestCloseStart = cameraActivity.indexOf(
       'internal fun ReceiptCameraActivity.requestCloseCamera(backDispatchPath: String = "unknown")',

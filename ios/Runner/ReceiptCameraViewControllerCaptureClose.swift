@@ -176,11 +176,11 @@ extension ReceiptCameraViewController {
     doneButton.isEnabled = !capturedPhotoPaths.isEmpty
     let title: String
     if capturedPhotoPaths.isEmpty {
-      title = "Next"
+      title = "Done"
     } else if capturedPhotoPaths.count == 1 {
-      title = "Next"
+      title = "Done"
     } else {
-      title = "Next (\(capturedPhotoPaths.count) photos)"
+      title = "Done (\(capturedPhotoPaths.count) photos)"
     }
     doneButton.setTitle(title, for: .normal)
     addPhotoButton.isHidden =
@@ -195,8 +195,8 @@ extension ReceiptCameraViewController {
     bottomReviewButton.isEnabled = !capturedPhotoPaths.isEmpty
     bottomReviewButton.setTitle(title, for: .normal)
     bottomReviewButton.accessibilityLabel =
-      "Next: review captured receipt photos in Maintainiac"
-    doneButton.accessibilityLabel = "Next: review captured receipt photos in Maintainiac"
+      "Done: review captured receipt photos in Maintainiac"
+    doneButton.accessibilityLabel = "Done: review captured receipt photos in Maintainiac"
     updateSettingsStatusStrip()
   }
 

@@ -47,7 +47,7 @@ void main() {
       expect(cameraActivity, contains('Finish'));
       expect(cameraActivity, contains('finishWithCapturedPhotos'));
       expect(cameraActivity, contains('capturedPhotoPaths'));
-      expect(cameraActivity, contains(r'else -> "Next ($count)"'));
+      expect(cameraActivity, contains(r'else -> "Done ($count)"'));
       expect(
         cameraActivity,
         contains('Opening receipt photo review. Captured photos are kept.'),

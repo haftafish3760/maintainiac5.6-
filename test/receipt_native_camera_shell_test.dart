@@ -163,10 +163,10 @@ void main() {
         ),
       );
 
-      expect(find.text('Next (2)'), findsOneWidget);
+      expect(find.text('Done (2)'), findsOneWidget);
       expect(find.text('Add Photo'), findsOneWidget);
 
-      await tester.tap(find.text('Next (2)'));
+      await tester.tap(find.text('Done (2)'));
       await tester.pump();
       await tester.tap(find.text('Add Photo'));
       await tester.pump();
@@ -388,7 +388,7 @@ void main() {
       expect(
         bottomBar,
         contains(
-          "tooltip: 'Next: review captured receipt photos in Maintainiac'",
+          "tooltip: 'Done: review captured receipt photos in Maintainiac'",
         ),
       );
       expect(bottomBar, contains("label: 'Add Photo'"));
@@ -591,10 +591,10 @@ void main() {
       );
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Next (3)'), findsOneWidget);
+      expect(find.text('Done (3)'), findsOneWidget);
       expect(find.text('Add Photo'), findsOneWidget);
 
-      final nextRect = tester.getRect(find.text('Next (3)'));
+      final nextRect = tester.getRect(find.text('Done (3)'));
       final addRect = tester.getRect(find.text('Add Photo'));
       final shutterIcon = find.byWidgetPredicate(
         (widget) =>

@@ -70,11 +70,11 @@ extension ReceiptCameraViewController {
     torchButton.layer.cornerRadius = 8
     torchButton.accessibilityLabel = "Turn light on"
     torchButton.addTarget(self, action: #selector(toggleTorch), for: .touchUpInside)
-    doneButton.setTitle("Next", for: .normal)
+    doneButton.setTitle("Done", for: .normal)
     doneButton.setTitleColor(.white, for: .normal)
     doneButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
     doneButton.layer.cornerRadius = 8
-    doneButton.accessibilityLabel = "Next: review captured receipt photos in Maintainiac"
+    doneButton.accessibilityLabel = "Done: review captured receipt photos in Maintainiac"
     doneButton.isEnabled = false
     doneButton.isHidden = true
     doneButton.addTarget(self, action: #selector(finishWithCapturedPhotos), for: .touchUpInside)
@@ -142,11 +142,11 @@ extension ReceiptCameraViewController {
     rightSpacer.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     rightSpacer.widthAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
     rightSpacer.heightAnchor.constraint(equalToConstant: 1).isActive = true
-    bottomReviewButton.setTitle("Next", for: .normal)
+    bottomReviewButton.setTitle("Done", for: .normal)
     bottomReviewButton.setTitleColor(.white, for: .normal)
     bottomReviewButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
     bottomReviewButton.layer.cornerRadius = 8
-    bottomReviewButton.accessibilityLabel = "Next: review captured receipt photos in Maintainiac"
+    bottomReviewButton.accessibilityLabel = "Done: review captured receipt photos in Maintainiac"
     bottomReviewButton.isEnabled = false
     bottomReviewButton.isHidden = true
     bottomReviewButton.addTarget(self, action: #selector(finishWithCapturedPhotos), for: .touchUpInside)
