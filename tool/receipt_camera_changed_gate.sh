@@ -51,9 +51,9 @@ while IFS= read -r path; do
   [[ -z "$path" ]] && continue
 
   case "$path" in
-    android/app/src/main/kotlin/com/maintainiac/ReceiptCamera*.kt | \
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraActivity.kt | \
     android/app/src/main/kotlin/com/maintainiac/MainActivity.kt | \
-    ios/Runner/ReceiptCamera*.swift | \
+    ios/Runner/ReceiptCameraViewController.swift | \
     ios/Runner/AppDelegate.swift)
       mode="full"
       break
@@ -89,6 +89,8 @@ while IFS= read -r path; do
   esac
 
   case "$path" in
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCamera*.kt | \
+    ios/Runner/ReceiptCamera*.swift | \
     lib/shared/widgets/receipt_capture/*native* | \
     lib/shared/widgets/receipt_capture/*review* | \
     lib/shared/widgets/receipt_capture/*handoff* | \

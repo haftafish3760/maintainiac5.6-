@@ -290,6 +290,16 @@ void main() {
       contains('selected full'),
     );
     expect(
+      await selectedModeFor('ios/Runner/ReceiptCameraViewControllerLabels.swift'),
+      contains('selected milestone'),
+    );
+    expect(
+      await selectedModeFor(
+        'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraUiChrome.kt',
+      ),
+      contains('selected milestone'),
+    );
+    expect(
       await selectedModeFor('tool/receipt_camera_qa_gate.sh'),
       contains('selected milestone'),
     );
