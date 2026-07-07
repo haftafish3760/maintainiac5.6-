@@ -1,0 +1,115 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+
+import 'helpers/receipt_native_android_bridge_source_readers.dart';
+import 'helpers/receipt_native_ios_bridge_source_readers.dart';
+
+void main() {
+  test('Android receipt camera keeps full-preview chrome contract', () async {
+    final android = await readAndroidReceiptCameraBridgeSources();
+    final cameraActivity = android.cameraActivity;
+    final settingsIcon = await File(
+      'android/app/src/main/res/drawable/ic_receipt_camera_settings.xml',
+    ).readAsString();
+    final flashIcon = await File(
+      'android/app/src/main/res/drawable/ic_receipt_camera_flash.xml',
+    ).readAsString();
+
+    expect(
+      cameraActivity,
+      contains(
+        'previewView = PreviewView(this).apply {\n'
+        '        layoutParams = FrameLayout.LayoutParams(\n'
+        '            ViewGroup.LayoutParams.MATCH_PARENT,\n'
+        '            ViewGroup.LayoutParams.MATCH_PARENT,',
+      ),
+    );
+    expect(
+      cameraActivity,
+      contains('scaleType = PreviewView.ScaleType.FILL_CENTER'),
+    );
+    expect(
+      cameraActivity,
+      contains(
+        'cameraRootView.addView(previewView)\n'
+        '    cameraRootView.addView(buildReceiptFrameGuide())',
+      ),
+    );
+    expect(cameraActivity, contains('setBackgroundColor(Color.TRANSPARENT)'));
+    expect(
+      cameraActivity,
+      contains(
+        'shutterButton = ImageButton(this).apply {\n'
+        '        contentDescription = "Take receipt photo"',
+      ),
+    );
+    expect(
+      cameraActivity,
+      contains(
+        'layoutParams = LinearLayout.LayoutParams(dp(70), dp(70)).apply {',
+      ),
+    );
+    expect(cameraActivity, contains('shape = GradientDrawable.OVAL'));
+    expect(
+      cameraActivity,
+      contains(
+        'topBar.addView(iconButton("Receipt camera settings", R.drawable.ic_receipt_camera_settings) {',
+      ),
+    );
+    expect(
+      cameraActivity,
+      contains(
+        'torchButton = iconButton(\n'
+        '        "Turn light on",\n'
+        '        R.drawable.ic_receipt_camera_flash,',
+      ),
+    );
+    expect(cameraActivity, contains('text = "Done"'));
+    expect(cameraActivity, contains('text = "Add Photo"'));
+    expect(cameraActivity, contains('visibility = View.GONE'));
+    expect(cameraActivity, contains('doneButton = Button(this).apply {'));
+    expect(cameraActivity, contains('bottomReviewButton = Button(this).apply {'));
+    expect(
+      cameraActivity,
+      contains('WindowInsetsCompat.Type.displayCutout()'),
+    );
+
+    expect(settingsIcon, contains('android:viewportWidth="24"'));
+    expect(settingsIcon, contains('android:viewportHeight="24"'));
+    expect(settingsIcon, isNot(contains('wrench')));
+    expect(flashIcon, contains('android:pathData="M7,2h10l-3,8h5L9,22'));
+  });
+
+  test('iOS receipt camera keeps full-preview chrome contract', () async {
+    final ios = await readIosReceiptCameraBridgeSources();
+    final cameraController = ios.cameraController;
+
+    expect(cameraController, contains('preview.videoGravity = .resizeAspectFill'));
+    expect(cameraController, contains('previewLayer?.frame = view.bounds'));
+    expect(cameraController, contains('let settingsButton = iconButton(title: "Receipt camera settings", symbol: "gearshape.fill")'));
+    expect(
+      cameraController,
+      contains('torchButton.setImage(UIImage(systemName: "flashlight.off.fill"), for: .normal)'),
+    );
+    expect(cameraController, contains('bottomBar.backgroundColor = .clear'));
+    expect(
+      cameraController,
+      contains('shutterButton.setImage(UIImage(systemName: "doc.text.viewfinder"), for: .normal)'),
+    );
+    expect(cameraController, contains('shutterButton.layer.cornerRadius = 36'));
+    expect(cameraController, contains('shutterButton.widthAnchor.constraint(equalToConstant: 72)'));
+    expect(cameraController, contains('shutterButton.heightAnchor.constraint(equalToConstant: 72)'));
+    expect(cameraController, contains('doneButton.isHidden = true'));
+    expect(cameraController, contains('addPhotoButton.isHidden = true'));
+    expect(cameraController, contains('bottomReviewButton.isHidden = true'));
+    expect(
+      cameraController,
+      contains('topBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6)'),
+    );
+    expect(
+      cameraController,
+      contains('bottomBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -4)'),
+    );
+  });
+}
