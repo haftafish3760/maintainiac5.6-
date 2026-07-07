@@ -126,6 +126,8 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       ? 'photo_review_add_next_receipt_section'
       : receiptSectionOrderNeedsReview
       ? 'photo_review_section_order_review_required'
+      : !hasOcrSourcePhotos
+      ? 'photo_review_ocr_source_missing_manual_entry_required'
       : ocrSourceReviewRequirement ==
             'manual_review_required_before_saving_receipt'
       ? 'photo_review_ocr_source_review_required'
@@ -137,6 +139,8 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       ? 'receipt_photo_capture_bottom_section'
       : receiptSectionOrderNeedsReview
       ? 'receipt_photo_section_order_review'
+      : !hasOcrSourcePhotos
+      ? 'receipt_photo_ocr_source_missing_manual_entry'
       : ocrSourceReviewRequirement ==
             'manual_review_required_before_saving_receipt'
       ? 'receipt_photo_ocr_source_review'
@@ -228,6 +232,8 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       : receiptSectionOrderReviewActionCode ==
             'review_reordered_sections_then_continue'
       ? 'confirm_reordered_section_order_then_continue'
+      : !hasOcrSourcePhotos
+      ? 'add_clearer_photo_or_continue_manual_entry'
       : ocrSourceReviewRequirement ==
             'manual_review_required_before_saving_receipt'
       ? 'review_ocr_source_handoff'

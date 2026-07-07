@@ -383,6 +383,18 @@ void main() {
         result.privacySafeOcrSourceFirstSummary,
         containsPair('ocrSourcePathsMatchStitchContract', false),
       );
+      expect(
+        result.acceptedPhotoHandoffRoute,
+        'photo_review_ocr_source_missing_manual_entry_required',
+      );
+      expect(
+        result.acceptedPhotoHandoffNextScreen,
+        'receipt_photo_ocr_source_missing_manual_entry',
+      );
+      expect(
+        result.acceptedPhotoHandoffUserAction,
+        'add_clearer_photo_or_continue_manual_entry',
+      );
     });
 
     test('marks no receipt photos as blocked before OCR source handoff', () {
@@ -437,6 +449,18 @@ void main() {
       expect(
         result.acceptedPhotoHandoffNextStepLabel,
         'Add a clearer receipt photo before opening receipt details, or continue by hand without app-assisted filling.',
+      );
+      expect(
+        result.acceptedPhotoHandoffRoute,
+        'photo_review_ocr_source_missing_manual_entry_required',
+      );
+      expect(
+        result.acceptedPhotoHandoffNextScreen,
+        'receipt_photo_ocr_source_missing_manual_entry',
+      );
+      expect(
+        result.acceptedPhotoHandoffUserAction,
+        'add_clearer_photo_or_continue_manual_entry',
       );
       expect(
         result.stitchResult.privacySafeOcrHandoffSafety,
