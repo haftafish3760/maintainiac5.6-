@@ -243,8 +243,7 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
     bottomBar.addView(leftSpacer, LinearLayout.LayoutParams(0, 1, 1f))
     shutterButton = ImageButton(this).apply {
         contentDescription = "Take receipt photo"
-        setImageResource(android.R.drawable.ic_menu_camera)
-        setColorFilter(Color.BLACK)
+        setImageResource(R.drawable.ic_receipt_camera_shutter)
         background = shutterDrawable()
         layoutParams = LinearLayout.LayoutParams(dp(70), dp(70)).apply {
             leftMargin = dp(16)

@@ -15,6 +15,9 @@ void main() {
     final flashIcon = await File(
       'android/app/src/main/res/drawable/ic_receipt_camera_flash.xml',
     ).readAsString();
+    final shutterIcon = await File(
+      'android/app/src/main/res/drawable/ic_receipt_camera_shutter.xml',
+    ).readAsString();
 
     expect(
       cameraActivity,
@@ -44,6 +47,11 @@ void main() {
         '        contentDescription = "Take receipt photo"',
       ),
     );
+    expect(
+      cameraActivity,
+      contains('setImageResource(R.drawable.ic_receipt_camera_shutter)'),
+    );
+    expect(cameraActivity, isNot(contains('android.R.drawable.ic_menu_camera')));
     expect(
       cameraActivity,
       contains(
@@ -79,6 +87,9 @@ void main() {
     expect(settingsIcon, contains('android:viewportHeight="24"'));
     expect(settingsIcon, isNot(contains('wrench')));
     expect(flashIcon, contains('android:pathData="M7,2h10l-3,8h5L9,22'));
+    expect(shutterIcon, contains('android:viewportWidth="24"'));
+    expect(shutterIcon, contains('android:viewportHeight="24"'));
+    expect(shutterIcon, contains('M6,3h12a1,1'));
   });
 
   test('iOS receipt camera keeps full-preview chrome contract', () async {
