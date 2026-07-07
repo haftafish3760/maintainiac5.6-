@@ -585,6 +585,77 @@ void main() {
   );
 
   test(
+    'generated fixture wrapper treats max cases as window length after offset',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_generated_fixture_runner_offset_window_',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final fixture = File('${root.path}/generated_fixtures.json')
+        ..writeAsStringSync(
+          const JsonEncoder.withIndent('  ').convert([
+            for (var index = 0; index < 6; index++)
+              {
+                'id': 'fixture_$index',
+                'caseType': 'clear_match',
+                'rawLine': 'LOWES TOILET WAX RING 4.98',
+                'expectedTrade': 'Plumbing',
+                'expectedNameContains': 'wax ring',
+                'tradeScope': 'Plumbing',
+              },
+          ]),
+        );
+
+      final calls = <List<String>>[];
+      final stdout = _MemorySink();
+      final stderr = _MemorySink();
+      final exit = await runGeneratedParserFixtures(
+        [
+          '--fixture',
+          fixture.path,
+          '--max-cases',
+          '2',
+          '--chunk-size',
+          '2',
+          '--start-index',
+          '2',
+          '--report-dir',
+          '${root.path}/reports',
+        ],
+        stdout: stdout,
+        stderr: stderr,
+        processRunner:
+            (
+              String command,
+              List<String> args, {
+              bool runInShell = false,
+            }) async {
+              calls.add(args);
+              return ProcessResult(
+                80 + calls.length,
+                0,
+                'QA_GENERATED_FIXTURE_RUN checked=2 failures=0 parserCalls=2',
+                '',
+              );
+            },
+      );
+
+      expect(exit, 0, reason: stderr.content);
+      expect(calls, hasLength(1));
+      expect(
+        calls.single,
+        contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_START_INDEX=2'),
+      );
+      expect(
+        calls.single,
+        contains('--dart-define=PARSER_QA_GENERATED_FIXTURE_MAX_CASES=2'),
+      );
+      expect(stdout.content, contains('fixtureCount=2'));
+      expect(stdout.content, contains('checked=2'));
+    },
+  );
+
+  test(
     'generated fixture wrapper fails green child output with failures',
     () async {
       final root = await Directory.systemTemp.createTemp(

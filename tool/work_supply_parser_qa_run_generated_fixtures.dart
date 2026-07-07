@@ -205,15 +205,18 @@ List<_FixtureChunk> _fixtureChunks(_FixtureRunnerOptions options) {
   if (options.startIndex >= selectedCount) {
     return [_FixtureChunk(startIndex: options.startIndex, count: 0)];
   }
+  final endExclusive = options.startIndex + options.maxCases > selectedCount
+      ? selectedCount
+      : options.startIndex + options.maxCases;
   final chunks = <_FixtureChunk>[];
   for (
     var startIndex = options.startIndex;
-    startIndex < selectedCount;
+    startIndex < endExclusive;
     startIndex += options.chunkSize
   ) {
     if (options.maxChunks > 0 && chunks.length >= options.maxChunks) break;
-    final count = startIndex + options.chunkSize > selectedCount
-        ? selectedCount - startIndex
+    final count = startIndex + options.chunkSize > endExclusive
+        ? endExclusive - startIndex
         : options.chunkSize;
     chunks.add(_FixtureChunk(startIndex: startIndex, count: count));
   }
@@ -232,7 +235,6 @@ int _selectedFixtureCount(_FixtureRunnerOptions options) {
       continue;
     }
     count++;
-    if (count >= options.maxCases) break;
   }
   return count;
 }
