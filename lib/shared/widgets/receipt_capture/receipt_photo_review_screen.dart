@@ -171,9 +171,8 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   }
 
   _ReceiptReviewMode _initialReviewMode() {
-    if (!widget.bestShotCandidateMode && _initialPhotoPaths.length > 1) {
-      return _ReceiptReviewMode.order;
-    }
+    // Even for long receipts, start on the actual captured photo preview so
+    // the user can immediately review, retake, add another section, or use it.
     return _ReceiptReviewMode.preview;
   }
 

@@ -243,8 +243,16 @@ void main() {
     expect(
       sources.reviewScreen,
       contains(
-        '!widget.bestShotCandidateMode && _initialPhotoPaths.length > 1',
+        'start on the actual captured photo preview so',
       ),
+    );
+    expect(
+      sources.reviewScreen,
+      contains('return _ReceiptReviewMode.preview;'),
+    );
+    expect(
+      sources.reviewScreen,
+      isNot(contains('return _ReceiptReviewMode.order;')),
     );
     expect(
       sources.reviewScreen,
