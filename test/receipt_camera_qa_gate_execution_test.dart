@@ -180,35 +180,15 @@ void main() {
   });
 
   test(
-    'printed stitch plan matches the focused stitch gate test list',
+    'focused stitch gate delegates to the reusable camera QA gate',
     () async {
-      final planResult = await Process.run('bash', [
-        'tool/receipt_camera_qa_gate.sh',
-        '--print-plan',
-        'stitch',
-      ]);
-      expect(planResult.exitCode, 0, reason: planResult.stderr.toString());
-      final printedPlan = planResult.stdout
-          .toString()
-          .split('\n')
-          .where((line) => line.startsWith('stitch '))
-          .map((line) => line.split(' ').last)
-          .toSet();
-
       final stitchGate = await File(
         'tool/receipt_camera_stitch_gate.sh',
       ).readAsString();
-      final testListMatch = RegExp(
-        r'flutter test\s+\\(?<body>.*?)\s+-r compact',
-        dotAll: true,
-      ).firstMatch(stitchGate);
-      expect(testListMatch, isNotNull);
-      final actualGateTests = RegExp(r'test/[^\s\\]+\.dart')
-          .allMatches(testListMatch!.namedGroup('body')!)
-          .map((match) => match.group(0)!)
-          .toSet();
 
-      expect(printedPlan, actualGateTests);
+      expect(stitchGate, contains('receipt_camera_qa_gate.sh stitch'));
+      expect(stitchGate, isNot(contains('flutter test')));
+      expect(stitchGate, isNot(contains('dart analyze')));
     },
   );
 
