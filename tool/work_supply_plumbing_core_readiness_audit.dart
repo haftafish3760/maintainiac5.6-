@@ -551,6 +551,7 @@ int _min(int left, int right) => left < right ? left : right;
 const _familiesWithFocusedParserEvidence = {
   'angle stops and supply lines',
   'push-fit fittings and valves',
+  'tubular drains and traps',
   'water treatment',
   'well pressure service',
 };

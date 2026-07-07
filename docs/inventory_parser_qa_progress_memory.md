@@ -4175,3 +4175,12 @@ Release boundaries:
   generated fixture runner default stale window is now 240 seconds so startup
   does not get mistaken for a parser stall, while still preventing overnight
   hangs.
+- **01:19-01:28 Tubular Family Single-Chunk Evidence:** Confirmed the
+  generated tubular family should run as one chunk on this Windows machine to
+  avoid repeated Flutter cold-start cost. The 16-case single-chunk tubular run
+  passed with 16 checked, 0 failures, and 16 parser calls at
+  `build/parser_qa_reports/generated_fixtures/tubular_16_single_chunk_20260707_0119`.
+  This covers representative P-trap, tailpiece, extension tube, slip-joint
+  nut/washer, beveled washer, basket strainer, J-bend, and flanged tailpiece
+  receipt shapes across merchant styles. Tubular drains/traps can now be counted
+  as focused-parser-evidence-covered by the Plumbing Core readiness audit.
