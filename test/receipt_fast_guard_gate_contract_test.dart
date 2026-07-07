@@ -73,6 +73,7 @@ void main() {
     expect(script, contains('test/receipt_fast_guard_gate_contract_test.dart'));
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
     expect(script, contains('tool/receipt_camera_qa_summary.sh'));
+    expect(script, contains('tool/receipt_camera_real_device_snapshot.sh'));
     expect(script, contains('tool/receipt_camera_scope_gate.sh'));
     expect(script, contains('tool/receipt_camera_changed_gate.sh'));
     expect(script, contains('tool/receipt_camera_stitch_gate.sh'));
