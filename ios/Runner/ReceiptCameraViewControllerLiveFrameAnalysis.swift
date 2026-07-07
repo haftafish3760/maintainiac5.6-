@@ -186,6 +186,13 @@ extension ReceiptCameraViewController {
       top < Int(Double(height) * 0.035) ||
       right > Int(Double(width) * 0.965) ||
       bottom > Int(Double(height) * 0.965)
+    if looksLikeFullDisplayFalsePositive(
+      widthRatio: widthRatio,
+      heightRatio: heightRatio,
+      touchesEdge: touchesEdge
+    ) {
+      return LiveReceiptFraming()
+    }
     return LiveReceiptFraming(
       found: true,
       widthRatio: widthRatio,
@@ -273,6 +280,16 @@ extension ReceiptCameraViewController {
       framingGuidanceCandidateCount = 1
     }
     return framingGuidanceCandidateCount >= 2
+  }
+
+  func looksLikeFullDisplayFalsePositive(
+    widthRatio: Double,
+    heightRatio: Double,
+    touchesEdge: Bool
+  ) -> Bool {
+    guard touchesEdge else { return false }
+    guard widthRatio.isFinite, heightRatio.isFinite else { return false }
+    return widthRatio >= 0.78 && heightRatio >= 0.78
   }
 
   func perspectiveReadiness(for framing: LiveReceiptFraming) -> String {

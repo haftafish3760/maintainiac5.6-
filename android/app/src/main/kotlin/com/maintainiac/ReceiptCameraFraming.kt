@@ -168,6 +168,9 @@ internal fun ReceiptCameraActivity.estimateReceiptFraming(
         top < height * .035 ||
         right > width * .965 ||
         bottom > height * .965
+    if (looksLikeFullDisplayFalsePositive(widthRatio, heightRatio, touchesEdge)) {
+        return LiveReceiptFraming()
+    }
     return LiveReceiptFraming(
         found = true,
         widthRatio = widthRatio,
@@ -189,6 +192,16 @@ internal fun ReceiptCameraActivity.framingConfidenceBucket(score: Double): Strin
         score >= 0.28 -> "weak_edges"
         else -> "edge_hint_only"
     }
+}
+
+internal fun ReceiptCameraActivity.looksLikeFullDisplayFalsePositive(
+    widthRatio: Double,
+    heightRatio: Double,
+    touchesEdge: Boolean,
+): Boolean {
+    if (!touchesEdge) return false
+    if (!widthRatio.isFinite() || !heightRatio.isFinite()) return false
+    return widthRatio >= 0.78 && heightRatio >= 0.78
 }
 
 internal fun ReceiptCameraActivity.hasUsableLiveFramingBounds(
