@@ -150,7 +150,6 @@ internal fun ReceiptCameraActivity.requestCloseCamera(backDispatchPath: String =
         pendingCloseAfterCapture = true
         latestAutoCaptureStatus = "closing_after_capture"
         shutterButton.isEnabled = false
-        doneButton.isEnabled = false
         if (hasInitializedReceiptCameraField { addPhotoButton }) addPhotoButton.isEnabled = false
         if (hasInitializedReceiptCameraField { bottomReviewButton }) bottomReviewButton.isEnabled = false
         guidance.text = "Saving this receipt photo before opening review."

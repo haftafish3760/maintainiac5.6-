@@ -101,6 +101,7 @@ void main() {
       cameraActivity,
       contains('"reviewNextButtonPlacement" to "bottom_only_after_capture"'),
     );
+    expect(cameraActivity, isNot(contains('internal lateinit var doneButton: Button')));
     expect(
       cameraActivity,
       contains(

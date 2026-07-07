@@ -41,17 +41,12 @@ internal fun ReceiptCameraActivity.finishWithCapturedPhotos(closeReason: String 
 }
 
 internal fun ReceiptCameraActivity.updateDoneButton() {
-    doneButton.visibility = View.GONE
-    doneButton.isEnabled = false
     val count = capturedPhotoPaths.size
     val title = when (count) {
         0 -> "Done"
         1 -> "Done"
         else -> "Done ($count)"
     }
-    doneButton.text = title
-    doneButton.contentDescription =
-        "Done: review captured receipt photos in Maintainiac"
     if (hasInitializedReceiptCameraField { addPhotoButton }) {
         addPhotoButton.visibility = if (
             capturedPhotoPaths.isEmpty() ||

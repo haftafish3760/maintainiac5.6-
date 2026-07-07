@@ -75,17 +75,6 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
         requestCloseCamera(backDispatchPath = "top_bar_back_button")
     })
     topBar.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
-    doneButton = Button(this).apply {
-        text = "Done"
-        contentDescription = "Done: review captured receipt photos in Maintainiac"
-        isEnabled = false
-        visibility = if (shouldShowSettingsStatusStrip()) {
-            View.VISIBLE
-        } else {
-            View.GONE
-        }
-        setOnClickListener { finishWithCapturedPhotos() }
-    }
     topBar.addView(iconButton("Receipt camera settings", R.drawable.ic_receipt_camera_settings) {
         showReceiptCameraSettings()
     })

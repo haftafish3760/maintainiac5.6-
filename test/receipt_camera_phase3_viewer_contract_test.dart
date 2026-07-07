@@ -78,6 +78,7 @@ void main() {
     expect(cameraActivity, contains('visibility = View.GONE'));
     expect(cameraActivity, contains('bottomReviewButton = Button(this).apply {'));
     expect(cameraActivity, isNot(contains('topBar.addView(doneButton)')));
+    expect(cameraActivity, isNot(contains('doneButton = Button(this).apply {')));
     expect(
       cameraActivity,
       contains('WindowInsetsCompat.Type.displayCutout()'),

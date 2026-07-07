@@ -32,7 +32,6 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal lateinit var topBar: LinearLayout
     internal lateinit var shutterButton: ImageButton
     internal lateinit var torchButton: ImageButton
-    internal lateinit var doneButton: Button
     internal lateinit var addPhotoButton: Button
     internal lateinit var bottomBar: LinearLayout
     internal lateinit var bottomReviewButton: Button
