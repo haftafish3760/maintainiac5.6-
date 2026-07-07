@@ -4140,3 +4140,27 @@ Release boundaries:
   Latest readiness report: 1,122 Core rows, 236 release-ready candidates, 244
   metadata-ready candidates, readiness average 90.06. Well pressure now has
   20/20 release-ready candidates.
+- **23:03-23:28 Plumbing Core Family-Isolated Fixture Runner:** Added
+  `tool/work_supply_plumbing_core_status.dart` for fast, bounded status reads
+  from the readiness JSON without dumping the full report. Added
+  `--include-risk-tags` to the generated fixture builder so Plumbing Core
+  families can be isolated before runtime parser waves. Expanded the tubular
+  generated fixture family beyond one repeated P-trap recipe to cover
+  tailpieces, extension tubes, slip-joint nut/washer kits, beveled washers,
+  basket strainers, J-bends, and flanged tailpieces. Hardened
+  `tool/work_supply_parser_qa_run_generated_fixtures.dart` so an incomplete
+  zero-call active fixture is killed instead of hanging on the first parser
+  case. Verification passed:
+  `flutter test test/work_supply_parser_qa_fixture_generator_test.dart`,
+  `flutter test test/work_supply_parser_qa_run_generated_fixtures_test.dart`,
+  and targeted `dart analyze` on the touched QA tools/tests. Pushed commits
+  `71e9607`, `c01ef72`, and `49992e4`.
+- **23:29-23:58 Tubular Parser Evidence Blocker:** Ran a bounded one-case
+  tubular generated parser probe for `HD 1-1/4 LAV P TRAP 1.00`. The hardened
+  runner stopped safely with exit 124 after zero completed parser calls instead
+  of hanging indefinitely. A attempted parser fast-route reorder plus exact
+  regression test still timed out and was backed out; no unverified parser
+  change was kept. Current conclusion: tubular family fixture generation and
+  runner safety are ready, but tubular runtime parser evidence is blocked by a
+  parser execution/performance path that needs a deeper surgical fix before the
+  family can be marked release-ready.
