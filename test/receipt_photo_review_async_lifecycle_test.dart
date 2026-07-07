@@ -150,6 +150,11 @@ void main() {
     );
     expect(
       reviewScreen,
+      contains('await _deleteStitchPreviewPath(previousPreviewPath);'),
+    );
+    expect(reviewScreen, contains("fallbackReasonCode: 'stitch_exception'"));
+    expect(
+      reviewScreen,
       contains(
         '_stitchPreviewInFlight = false;\n    });\n    _scheduleStitchPreviewRefresh();',
       ),

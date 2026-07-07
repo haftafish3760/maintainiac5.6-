@@ -115,11 +115,13 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
         _releaseStaleStitchPreview(key);
         return;
       }
+      await _deleteStitchPreviewPath(previousPreviewPath);
       _updateReviewState(() {
         _stitchPreviewResult = ReceiptStitchResult.fallback(
           inputPaths: _photoPaths,
           warning:
               'Receipt photos could not be matched into one safe image. Receipt details will use them from top to bottom.',
+          fallbackReasonCode: 'stitch_exception',
         );
         _stitchPreviewInFlight = false;
       });
