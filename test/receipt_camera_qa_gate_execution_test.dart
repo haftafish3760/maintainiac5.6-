@@ -223,6 +223,14 @@ void main() {
       await selectedModeFor('ios/Runner/ReceiptCameraViewController.swift'),
       contains('selected full'),
     );
+    expect(
+      await selectedModeFor('tool/receipt_camera_qa_gate.sh'),
+      contains('selected milestone'),
+    );
+    expect(
+      await selectedModeFor('test/receipt_camera_qa_gate_execution_test.dart'),
+      contains('selected milestone'),
+    );
   });
 
   test('camera failure wrapper executable creates stitch task', () async {

@@ -272,7 +272,12 @@ void main() {
     expect(script, contains('mode="milestone"'));
     expect(script, contains('mode="full"'));
     expect(script, contains('tool/receipt_start_camera_qa_gate.sh'));
+    expect(script, contains('tool/receipt_camera_qa_summary.sh'));
+    expect(script, contains('tool/receipt_quiet_batch.sh'));
+    expect(script, contains('tool/receipt_quiet_batch_status.sh'));
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
+    expect(script, contains('test/receipt_camera_qa_gate_contract_test.dart'));
+    expect(script, contains('test/receipt_camera_qa_gate_execution_test.dart'));
     expect(
       script,
       contains('android/app/src/main/kotlin/com/maintainiac/ReceiptCamera*.kt'),

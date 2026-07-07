@@ -61,6 +61,21 @@ while IFS= read -r path; do
   esac
 
   case "$path" in
+    tool/receipt_camera_qa_gate.sh | \
+    tool/receipt_camera_changed_gate.sh | \
+    tool/receipt_camera_qa_summary.sh | \
+    tool/receipt_start_camera_qa_gate.sh | \
+    tool/receipt_quiet_batch.sh | \
+    tool/receipt_quiet_batch_status.sh | \
+    test/receipt_camera_qa_gate_contract_test.dart | \
+    test/receipt_camera_qa_gate_execution_test.dart)
+      if [[ "$mode" == "quick" ]]; then
+        mode="milestone"
+      fi
+      ;;
+  esac
+
+  case "$path" in
     lib/shared/widgets/receipt_capture/*native* | \
     lib/shared/widgets/receipt_capture/*review* | \
     lib/shared/widgets/receipt_capture/*handoff* | \
