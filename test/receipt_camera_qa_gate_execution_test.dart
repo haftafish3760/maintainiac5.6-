@@ -36,6 +36,10 @@ void main() {
       );
       expect(
         quickPlan,
+        contains('quick test/receipt_import_source_sheet_test.dart'),
+      );
+      expect(
+        quickPlan,
         contains('quick test/receipt_external_dataset_local_audit_test.dart'),
       );
       expect(

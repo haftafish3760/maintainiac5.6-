@@ -120,6 +120,7 @@ void main() {
       script,
       contains('test/receipt_camera_long_receipt_guidance_test.dart'),
     );
+    expect(script, contains('test/receipt_import_source_sheet_test.dart'));
     expect(
       script,
       contains('test/receipt_external_dataset_local_audit_test.dart'),
