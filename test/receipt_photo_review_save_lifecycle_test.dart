@@ -43,6 +43,10 @@ void main() {
     );
     expect(
       saveActions,
+      contains("if (_openingCamera) {\n      _showCameraError('Camera is opening. Wait a moment.');"),
+    );
+    expect(
+      saveActions,
       contains('await _deleteGeneratedEditPhotos(_photoPaths.toSet())'),
     );
     expect(

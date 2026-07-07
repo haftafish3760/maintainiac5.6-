@@ -26,6 +26,10 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
 
   Future<void> leaveReceiptReviewWithoutSaving() async {
     if (_closingReview || _confirmingReviewExit) return;
+    if (_openingCamera) {
+      _showCameraError('Camera is opening. Wait a moment.');
+      return;
+    }
     if (_savingPhotos) {
       _showCameraError('Receipt photo is being prepared. Wait a moment.');
       return;
