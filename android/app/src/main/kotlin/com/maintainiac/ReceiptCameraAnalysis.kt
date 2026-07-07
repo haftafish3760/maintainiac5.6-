@@ -183,9 +183,10 @@ internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
         val brightness = averageLuma(image)
         latestFrameBrightness = brightness
         latestShadowScore = shadowScore
+        var framing = LiveReceiptFraming()
         var hasReceiptTarget = !edgeDetectionEnabled
         if (edgeDetectionEnabled) {
-            val framing = estimateReceiptFraming(image)
+            framing = estimateReceiptFraming(image)
             applyLiveFraming(framing)
             hasReceiptTarget = hasUsableLiveFramingBounds(framing)
             maybeAutoCapture(framing, brightness, motionScore, now)
@@ -205,6 +206,13 @@ internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
             lastAutoExposureDecision = "waiting_for_receipt_target"
         }
         if (!hasReceiptTarget) {
+            latestMotionSignal = "waiting_for_receipt_target"
+            latestReadabilitySignal = "waiting_for_receipt_target"
+            resetExperimentalReceiptQualityCandidate()
+            resetExperimentalReceiptQualityGuidanceIfNeeded()
+            return
+        }
+        if (!hasReliableLiveReceiptTargetForQualityWarnings(framing)) {
             latestMotionSignal = "waiting_for_receipt_target"
             latestReadabilitySignal = "waiting_for_receipt_target"
             resetExperimentalReceiptQualityCandidate()

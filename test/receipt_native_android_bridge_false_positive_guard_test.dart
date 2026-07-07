@@ -9,6 +9,9 @@ void main() {
       final framing = await File(
         'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt',
       ).readAsString();
+      final analysis = await File(
+        'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt',
+      ).readAsString();
 
       expect(
         framing,
@@ -25,6 +28,30 @@ void main() {
           '        return LiveReceiptFraming()\n'
           '    }',
         ),
+      );
+      expect(
+        framing,
+        contains(
+          'internal fun ReceiptCameraActivity.hasReliableLiveReceiptTargetForQualityWarnings',
+        ),
+      );
+      expect(framing, contains('if (!edgeDetectionEnabled) return false'));
+      expect(
+        framing,
+        contains('if (!framing.found || !hasUsableLiveFramingBounds(framing)) return false'),
+      );
+      expect(framing, contains('if (framing.touchesEdge) return false'));
+      expect(
+        framing,
+        contains('if (framing.widthRatio < 0.42 || framing.heightRatio < 0.36) return false'),
+      );
+      expect(
+        analysis,
+        contains('if (!hasReliableLiveReceiptTargetForQualityWarnings(framing)) {'),
+      );
+      expect(
+        analysis,
+        contains('latestReadabilitySignal = "waiting_for_receipt_target"'),
       );
     },
   );

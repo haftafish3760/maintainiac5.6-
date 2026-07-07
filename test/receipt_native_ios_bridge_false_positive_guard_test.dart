@@ -9,6 +9,9 @@ void main() {
       final framing = await File(
         'ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift',
       ).readAsString();
+      final readability = await File(
+        'ios/Runner/ReceiptCameraViewControllerLiveReadability.swift',
+      ).readAsString();
 
       expect(
         framing,
@@ -30,6 +33,28 @@ void main() {
           '      return LiveReceiptFraming()\n'
           '    }',
         ),
+      );
+      expect(
+        framing,
+        contains('func hasReliableLiveReceiptTargetForQualityWarnings('),
+      );
+      expect(framing, contains('if !edgeDetectionEnabled { return false }'));
+      expect(
+        framing,
+        contains('if !framing.found || !hasUsableLiveFramingBounds(framing) { return false }'),
+      );
+      expect(framing, contains('if framing.touchesEdge { return false }'));
+      expect(
+        framing,
+        contains('if framing.widthRatio < 0.42 || framing.heightRatio < 0.36 { return false }'),
+      );
+      expect(
+        readability,
+        contains('if !hasReliableLiveReceiptTargetForQualityWarnings(framing) {'),
+      );
+      expect(
+        readability,
+        contains('latestReadabilitySignal = "waiting_for_receipt_target"'),
       );
     },
   );

@@ -229,6 +229,17 @@ internal fun ReceiptCameraActivity.hasUsableLiveFramingBounds(
         framing.topRatio < framing.bottomRatio
 }
 
+internal fun ReceiptCameraActivity.hasReliableLiveReceiptTargetForQualityWarnings(
+    framing: LiveReceiptFraming,
+): Boolean {
+    if (!edgeDetectionEnabled) return false
+    if (!framing.found || !hasUsableLiveFramingBounds(framing)) return false
+    if (framing.touchesEdge) return false
+    if (framing.widthRatio < 0.42 || framing.heightRatio < 0.36) return false
+    return framing.confidenceBucket == "strong_edges" ||
+        framing.confidenceBucket == "usable_edges"
+}
+
 internal fun ReceiptCameraActivity.setFrameGuideColor(color: Int) {
     if (!hasInitializedReceiptCameraField { receiptFrameGuide }) return
     receiptFrameGuide.background = frameGuideDrawable(color)

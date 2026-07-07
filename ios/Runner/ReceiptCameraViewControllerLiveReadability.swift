@@ -38,6 +38,13 @@ extension ReceiptCameraViewController {
       resetExperimentalReceiptQualityGuidanceIfNeeded()
       return
     }
+    if !hasReliableLiveReceiptTargetForQualityWarnings(framing) {
+      latestMotionSignal = "waiting_for_receipt_target"
+      latestReadabilitySignal = "waiting_for_receipt_target"
+      resetExperimentalReceiptQualityCandidate()
+      resetExperimentalReceiptQualityGuidanceIfNeeded()
+      return
+    }
     if !hasExperimentalReceiptQualityWarningsEnabled() {
       latestMotionSignal = "neutral_workflow_guidance_only"
       latestReadabilitySignal = "neutral_workflow_guidance_only"

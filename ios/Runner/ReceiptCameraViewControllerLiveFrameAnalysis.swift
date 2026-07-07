@@ -345,6 +345,17 @@ extension ReceiptCameraViewController {
       framing.edgeCoverage <= 1
   }
 
+  func hasReliableLiveReceiptTargetForQualityWarnings(
+    _ framing: LiveReceiptFraming
+  ) -> Bool {
+    if !edgeDetectionEnabled { return false }
+    if !framing.found || !hasUsableLiveFramingBounds(framing) { return false }
+    if framing.touchesEdge { return false }
+    if framing.widthRatio < 0.42 || framing.heightRatio < 0.36 { return false }
+    return framing.confidenceBucket == "strong_edges" ||
+      framing.confidenceBucket == "usable_edges"
+  }
+
   func framingConfidenceBucket(_ score: Double) -> String {
     if score >= 0.72 {
       return "strong_edges"
