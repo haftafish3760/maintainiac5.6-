@@ -4047,3 +4047,13 @@ Release boundaries:
   test/work_supply_plumbing_core_metadata_gate_test.dart`. New curation baseline
   is 1,122 Core rows, 179 outside-Core review candidates, 0 suspicious Core
   rows, 0 missing families, readiness floor 64, readiness average 80.51.
+- **20:18-20:33 Plumbing Core Spanish Runtime Batch 2:** Added
+  `test/work_supply_plumbing_core_spanish_batch2_test.dart` for es-US push-fit
+  ball valves, angle stops, trap adapters, cleanouts, and well pressure gauges.
+  The batch exposed missing Spanish parser vocabulary for `llave escuadra` and
+  `manometro presion pozo`; fixed those with Plumbing-scoped routes and added
+  Spanish pressure-gauge confidence evidence. Verification passed:
+  `flutter test test/work_supply_plumbing_core_spanish_batch2_test.dart` and
+  the combined regression slice
+  `flutter test test/work_supply_plumbing_core_spanish_batch2_test.dart
+  test/work_supply_plumbing_core_receipt_parser_batch5_test.dart`.

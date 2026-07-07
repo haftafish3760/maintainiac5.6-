@@ -102,7 +102,9 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'disposal elbow gasket',
     ],
     RegExp(r'\bescutcheon\b|\besc plate\b'): ['escutcheon'],
-    RegExp(r'\b(well pressure gauge|pressure gauge|well gauge)\b'): [
+    RegExp(
+      r'\b(well pressure gauge|pressure gauge|well gauge|manometro presion pozo|manometro de presion)\b',
+    ): [
       'pressure gauge',
       'well pressure gauge',
     ],
@@ -115,9 +117,9 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
     }
   }
   if (RegExp(
-        r'\b(well pressure gauge|pressure gauge|well gauge)\b',
+        r'\b(well pressure gauge|pressure gauge|well gauge|manometro presion pozo|manometro de presion)\b',
       ).hasMatch(text) &&
-      RegExp(r'\b(well|psi|pressure)\b').hasMatch(text) &&
+      RegExp(r'\b(well|psi|pressure|presion|pozo)\b').hasMatch(text) &&
       itemText.contains('pressure gauge')) {
     score += 0.08;
   }

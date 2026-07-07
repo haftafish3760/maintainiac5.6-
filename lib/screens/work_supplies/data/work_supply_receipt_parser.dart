@@ -1539,12 +1539,24 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(
-    r'\b(valvula angulo|llave angular|br ang stop|comp stop)\b',
+    r'\b(valvula angulo|llave angular|llave escuadra|br ang stop|comp stop)\b',
   ).hasMatch(text)) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
-          name.contains('quarter turn angle stop')) {
+          !name.contains('push-fit') &&
+          (name.contains('quarter turn angle stop') ||
+              name.contains('angle stop valve'))) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(
+    r'\b(manometro presion pozo|manometro de presion|presion pozo|well pressure gauge|pressure gauge|well gauge)\b',
+  ).hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' && name.contains('pressure gauge')) {
         return item;
       }
     }
