@@ -188,6 +188,28 @@ void main() {
       expect(phase8Plan, isNot(contains('milestone ')));
       expect(phase8Plan, isNot(contains('full ')));
 
+      final phase9Plan = await planFor('phase9');
+      expect(phase9Plan, contains('mode=phase9'));
+      expect(
+        phase9Plan,
+        contains('phase9 test/receipt_camera_completion_map_test.dart'),
+      );
+      expect(
+        phase9Plan,
+        contains('phase9 test/receipt_camera_release_one_blueprint_test.dart'),
+      );
+      expect(
+        phase9Plan,
+        contains('phase9 test/receipt_camera_release_control_priority_test.dart'),
+      );
+      expect(
+        phase9Plan,
+        contains('phase9 test/receipt_camera_native_baseline_policy_test.dart'),
+      );
+      expect(phase9Plan, isNot(contains('quick ')));
+      expect(phase9Plan, isNot(contains('milestone ')));
+      expect(phase9Plan, isNot(contains('full ')));
+
       final quickPlan = await planFor('quick');
       expect(quickPlan, contains('mode=quick'));
       expect(

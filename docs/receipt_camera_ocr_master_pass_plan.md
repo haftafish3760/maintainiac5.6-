@@ -32,7 +32,7 @@ Current phase order:
 8. Storage proof decision.
 9. Milestone validation.
 
-Current active phase: Phase 8, Storage proof decision.
+Current active phase: Phase 9, Milestone validation.
 
 Phase 2 acceptance rules:
 
