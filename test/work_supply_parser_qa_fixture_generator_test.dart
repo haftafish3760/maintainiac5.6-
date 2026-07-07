@@ -284,6 +284,57 @@ void main() {
     }
   });
 
+  test('fixture generator can isolate one Plumbing Core family', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_plumbing_family_filter_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'plumbing',
+        '--scope',
+        'residential',
+        '--tier',
+        'core',
+        '--locale',
+        'en-US',
+        '--limit',
+        '16',
+        '--include-risk-tags',
+        'tubular',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final generatedRoot = Directory(
+      '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+    );
+    final fixtures =
+        jsonDecode(
+              File(
+                '${generatedRoot.path}/generated_fixtures.json',
+              ).readAsStringSync(),
+            )
+            as List;
+    final manifest =
+        jsonDecode(
+              File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+            )
+            as Map;
+
+    expect(fixtures, hasLength(16));
+    expect(manifest['includeRiskTags'], ['tubular']);
+    expect(_fixtureIds(fixtures), contains('lavatory_p_trap'));
+    expect(_riskTags(manifest), contains('tubular'));
+    expect(_riskTags(manifest), isNot(contains('water_treatment')));
+  });
+
   test('fixture generator rejects unsafe empty batches', () async {
     final stderr = _MemorySink();
     final exit = await runWorkSupplyParserFixtureGenerator(

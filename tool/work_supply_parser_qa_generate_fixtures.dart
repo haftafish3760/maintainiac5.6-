@@ -9,7 +9,8 @@ import 'work_supply_parser_qa_fixture_recipes_hvac_professional.dart';
 const _usage =
     'dart run tool/work_supply_parser_qa_generate_fixtures.dart '
     '[--trade plumbing] [--scope residential] [--tier core] '
-    '[--locale en-US] [--limit 500] [--output-dir build/parser_qa_generated]';
+    '[--locale en-US] [--limit 500] [--output-dir build/parser_qa_generated] '
+    '[--include-risk-tags tubular,drainage]';
 
 Future<void> main(List<String> args) async {
   final exit = await runWorkSupplyParserFixtureGenerator(
@@ -35,7 +36,7 @@ Future<int> runWorkSupplyParserFixtureGenerator(
     return 64;
   }
 
-  final recipes = _recipesFor(options);
+  final recipes = _filteredRecipesFor(options);
   if (recipes.isEmpty) {
     stderr.writeln(
       'No fixture recipes matched trade=${options.trade} '
@@ -71,6 +72,7 @@ Future<int> runWorkSupplyParserFixtureGenerator(
       'caseTypes': _unique(cases, 'caseType'),
       'merchants': _unique(cases, 'merchant'),
       'riskTags': _riskTags(cases),
+      'includeRiskTags': options.includeRiskTags.toList()..sort(),
       'parserCalls': 0,
       'liveServicesAllowed': false,
       'writesProductionCatalog': false,
@@ -201,6 +203,15 @@ String _sourceModalityTag(int index) {
     8 => 'generic_unknown_merchant_receipt_text',
     _ => 'local_regional_supplier_receipt_text',
   };
+}
+
+List<WorkSupplyFixtureRecipe> _filteredRecipesFor(_GeneratorOptions options) {
+  final recipes = _recipesFor(options);
+  if (options.includeRiskTags.isEmpty) return recipes;
+  return [
+    for (final recipe in recipes)
+      if (recipe.riskTags.any(options.includeRiskTags.contains)) recipe,
+  ];
 }
 
 List<WorkSupplyFixtureRecipe> _recipesFor(_GeneratorOptions options) {
@@ -348,6 +359,7 @@ class _GeneratorOptions {
     required this.limit,
     required this.outputDir,
     required this.seed,
+    required this.includeRiskTags,
   });
 
   final String trade;
@@ -357,6 +369,7 @@ class _GeneratorOptions {
   final int limit;
   final String outputDir;
   final String seed;
+  final Set<String> includeRiskTags;
 
   static _GeneratorOptions parse(List<String> args) {
     final values = <String, String>{};
@@ -383,8 +396,17 @@ class _GeneratorOptions {
       outputDir: values['output-dir'] ?? 'build/parser_qa_generated',
       seed:
           values['seed'] ?? 'fixture-generator-v1-$trade-$scope-$tier-$locale',
+      includeRiskTags: _csvSet(values['include-risk-tags'] ?? ''),
     );
   }
+}
+
+Set<String> _csvSet(String value) {
+  return value
+      .split(',')
+      .map((entry) => entry.trim())
+      .where((entry) => entry.isNotEmpty)
+      .toSet();
 }
 
 class _MerchantShape {
