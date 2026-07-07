@@ -32,7 +32,7 @@ Current phase order:
 8. Storage proof decision.
 9. Milestone validation.
 
-Current active phase: Phase 2, Receipt entry flow.
+Current active phase: Phase 4, Post-photo review.
 
 Phase 2 acceptance rules:
 

@@ -10,9 +10,9 @@ fi
 mode="${1:-milestone}"
 
 case "$mode" in
-  phase2 | phase3 | quick | stitch | milestone | full) ;;
+  phase2 | phase3 | phase4 | quick | stitch | milestone | full) ;;
   *)
-    echo "Usage: tool/receipt_camera_qa_gate.sh [--print-plan] [phase2|phase3|quick|stitch|milestone|full]" >&2
+    echo "Usage: tool/receipt_camera_qa_gate.sh [--print-plan] [phase2|phase3|phase4|quick|stitch|milestone|full]" >&2
     exit 64
     ;;
 esac
@@ -40,6 +40,13 @@ phase3_tests=(
   test/receipt_native_ios_bridge_false_positive_guard_test.dart
 )
 
+phase4_tests=(
+  test/receipt_camera_phase4_review_contract_test.dart
+  test/receipt_photo_review_exit_completion_test.dart
+  test/receipt_photo_review_quality_handoff_test.dart
+  test/receipt_photo_section_labels_test.dart
+)
+
 phase2_audit_paths=(
   lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart
   lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart
@@ -61,6 +68,19 @@ phase3_audit_paths=(
   test/receipt_native_ios_guidance_warning_gate_test.dart
   test/receipt_native_android_bridge_false_positive_guard_test.dart
   test/receipt_native_ios_bridge_false_positive_guard_test.dart
+)
+
+phase4_audit_paths=(
+  lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart
+  lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart
+  lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart
+  lib/shared/widgets/receipt_capture/receipt_photo_review_completion_actions.dart
+  lib/shared/widgets/receipt_capture/receipt_photo_review_section_labels.dart
+  lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart
+  test/receipt_camera_phase4_review_contract_test.dart
+  test/receipt_photo_review_exit_completion_test.dart
+  test/receipt_photo_review_quality_handoff_test.dart
+  test/receipt_photo_section_labels_test.dart
 )
 
 quick_tests=(
@@ -238,6 +258,9 @@ print_plan_for_mode() {
     phase3)
       print_test_pack phase3 "${phase3_tests[@]}"
       ;;
+    phase4)
+      print_test_pack phase4 "${phase4_tests[@]}"
+      ;;
     quick)
       print_test_pack quick "${quick_tests[@]}"
       ;;
@@ -346,6 +369,23 @@ run_phase3_stale_contract_scan() {
   fi
 }
 
+run_phase4_stale_contract_scan() {
+  local scan_roots=(
+    lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart
+    lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart
+    lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart
+    lib/shared/widgets/receipt_capture/receipt_photo_review_completion_actions.dart
+    lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart
+    lib/shared/widgets/receipt_capture/receipt_photo_review_section_labels.dart
+  )
+  local pattern='Preparing receipt details\.\.\.|Next if complete|Next: Review Details|Leave Without Reading|Back To Receipt Form|Save Photo For Later|Save Photos For Later|Keep Photo Saved For Later|Keep Photos Saved For Later'
+
+  if rg -n "$pattern" "${scan_roots[@]}"; then
+    echo "Stale Phase 4 review wording or retired review-flow contract found." >&2
+    return 1
+  fi
+}
+
 run_phase2() {
   bash tool/receipt_camera_scope_gate.sh
   dart analyze \
@@ -371,6 +411,20 @@ run_phase3() {
     --max-line-length=220
   run_phase3_stale_contract_scan
   run_flutter_tests "${phase3_tests[@]}"
+  git diff --check
+}
+
+run_phase4() {
+  bash tool/receipt_camera_scope_gate.sh
+  dart analyze \
+    lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart \
+    test/helpers/receipt_camera_capture_layout_source_readers.dart \
+    "${phase4_tests[@]}"
+  dart tool/maintainiac_source_audit.dart \
+    "${phase4_audit_paths[@]}" \
+    --max-line-length=220
+  run_phase4_stale_contract_scan
+  run_flutter_tests "${phase4_tests[@]}"
   git diff --check
 }
 
@@ -438,6 +492,7 @@ run_full() {
 case "$mode" in
   phase2) run_phase2 ;;
   phase3) run_phase3 ;;
+  phase4) run_phase4 ;;
   quick) run_quick ;;
   stitch) run_stitch ;;
   milestone) run_milestone ;;

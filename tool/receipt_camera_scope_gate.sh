@@ -20,6 +20,7 @@ while IFS= read -r path; do
     .gitignore | \
     ios/Runner/ReceiptCamera*.swift | \
     ios/Runner/AppDelegate.swift | \
+    docs/receipt_camera_ocr_master_pass_plan.md | \
     docs/receipt_bug_regression_ledger.md | \
     docs/receipt_bug_regression_ledger_archive_*.md | \
     lib/shared/receipts/* | \
