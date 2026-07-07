@@ -225,6 +225,7 @@ void main() {
         script,
         contains('test/receipt_ocr_source_relationship_test.dart'),
       );
+      expect(script, contains('tool/receipt_camera_stitch_gate.sh'));
       expect(script, contains('mode="stitch"'));
     },
   );

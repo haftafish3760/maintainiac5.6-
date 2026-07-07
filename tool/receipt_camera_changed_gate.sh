@@ -65,7 +65,8 @@ while IFS= read -r path; do
     test/receipt_stitch_fallback_metadata_test.dart | \
     test/receipt_camera_result_stitch_scanner_test.dart | \
     test/receipt_ocr_source_* | \
-    test/receipt_ocr_source_relationship_test.dart)
+    test/receipt_ocr_source_relationship_test.dart | \
+    tool/receipt_camera_stitch_gate.sh)
       if [[ "$mode" == "quick" ]]; then
         mode="stitch"
       fi
