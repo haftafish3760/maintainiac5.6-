@@ -21,13 +21,13 @@ void main() {
     expect(
       map,
       contains(
-        'Dedicated phase gates now exist through Phase 9, and targeted phase checks are passing.',
+        'Phase 2 through Phase 9 targeted gates are green, the source/line-count/scope/regression gates are green, and `tool/receipt_camera_qa_gate.sh milestone` passed on 2026-07-07.',
       ),
     );
     expect(
       map,
       contains(
-        'The final bundled milestone gate plus real-device notes are still not proven together yet.',
+        'Real-device notes are still the remaining gap.',
       ),
     );
     expect(map, contains('| Partial |'));
