@@ -213,7 +213,7 @@ extension ReceiptCameraViewController {
     settingsStatusStrip.textAlignment = .center
     settingsStatusStrip.accessibilityLabel = "Receipt camera active settings"
     settingsStatusStrip.translatesAutoresizingMaskIntoConstraints = false
-    settingsStatusStrip.isHidden = true
+    settingsStatusStrip.isHidden = !shouldShowSettingsStatusStrip()
     return settingsStatusStrip
   }
 

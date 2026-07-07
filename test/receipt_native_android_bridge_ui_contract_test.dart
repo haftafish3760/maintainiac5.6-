@@ -47,6 +47,10 @@ void main() {
     expect(cameraActivity, contains('shouldShowSettingsStatusStrip()'));
     expect(
       cameraActivity,
+      contains('visibility = if (shouldShowSettingsStatusStrip()) {'),
+    );
+    expect(
+      cameraActivity,
       contains('settingsStatusStrip.visibility = if (shouldShowSettingsStatusStrip()) {'),
     );
     expect(cameraActivity, contains('dataSaverLevel != "balanced"'));

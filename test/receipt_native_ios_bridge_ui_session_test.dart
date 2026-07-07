@@ -40,6 +40,7 @@ void main() {
     expect(cameraController, isNot(contains('topBar.addArrangedSubview(doneButton)')));
     expect(cameraController, contains('func shouldShowSettingsStatusStrip() -> Bool'));
     expect(cameraController, contains('settingsStatusStrip.isHidden = !shouldShowSettingsStatusStrip()'));
+    expect(cameraController, contains('settingsStatusStrip.isHidden = !shouldShowSettingsStatusStrip()'));
     expect(cameraController, contains('dataSaverLevel != "balanced"'));
     expect(cameraController, contains('storageConstrained'));
     expect(
