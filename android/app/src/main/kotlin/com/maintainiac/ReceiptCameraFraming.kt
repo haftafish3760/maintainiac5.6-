@@ -201,7 +201,9 @@ internal fun ReceiptCameraActivity.looksLikeFullDisplayFalsePositive(
 ): Boolean {
     if (!touchesEdge) return false
     if (!widthRatio.isFinite() || !heightRatio.isFinite()) return false
-    return widthRatio >= 0.78 && heightRatio >= 0.78
+    val nearFullDisplay = widthRatio >= 0.78 && heightRatio >= 0.78
+    val tallScreenLikePanel = heightRatio >= 0.88 && widthRatio in 0.46..0.82
+    return nearFullDisplay || tallScreenLikePanel
 }
 
 internal fun ReceiptCameraActivity.hasUsableLiveFramingBounds(

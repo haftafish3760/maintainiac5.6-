@@ -289,7 +289,9 @@ extension ReceiptCameraViewController {
   ) -> Bool {
     guard touchesEdge else { return false }
     guard widthRatio.isFinite, heightRatio.isFinite else { return false }
-    return widthRatio >= 0.78 && heightRatio >= 0.78
+    let nearFullDisplay = widthRatio >= 0.78 && heightRatio >= 0.78
+    let tallScreenLikePanel = heightRatio >= 0.88 && (0.46...0.82).contains(widthRatio)
+    return nearFullDisplay || tallScreenLikePanel
   }
 
   func perspectiveReadiness(for framing: LiveReceiptFraming) -> String {

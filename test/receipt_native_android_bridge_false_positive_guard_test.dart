@@ -20,7 +20,19 @@ void main() {
         ),
       );
       expect(framing, contains('if (!touchesEdge) return false'));
-      expect(framing, contains('return widthRatio >= 0.78 && heightRatio >= 0.78'));
+      expect(
+        framing,
+        contains(
+          'val nearFullDisplay = widthRatio >= 0.78 && heightRatio >= 0.78',
+        ),
+      );
+      expect(
+        framing,
+        contains(
+          'val tallScreenLikePanel = heightRatio >= 0.88 && widthRatio in 0.46..0.82',
+        ),
+      );
+      expect(framing, contains('return nearFullDisplay || tallScreenLikePanel'));
       expect(
         framing,
         contains(

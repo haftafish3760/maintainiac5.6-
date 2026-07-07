@@ -20,7 +20,15 @@ void main() {
       expect(framing, contains('guard touchesEdge else { return false }'));
       expect(
         framing,
-        contains('return widthRatio >= 0.78 && heightRatio >= 0.78'),
+        contains('let nearFullDisplay = widthRatio >= 0.78 && heightRatio >= 0.78'),
+      );
+      expect(
+        framing,
+        contains('let tallScreenLikePanel = heightRatio >= 0.88 && (0.46...0.82).contains(widthRatio)'),
+      );
+      expect(
+        framing,
+        contains('return nearFullDisplay || tallScreenLikePanel'),
       );
       expect(
         framing,
