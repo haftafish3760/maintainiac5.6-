@@ -309,6 +309,17 @@ void main() {
     expect(bottomBar, contains("return '\$engine shutter, \$assist, \$quality';"));
   });
 
+  test('native camera shell keeps torch control label and disable contract', () async {
+    final topControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart',
+    ).readAsString();
+
+    expect(topControls, contains('Icons.flash_on_rounded'));
+    expect(topControls, contains('Icons.flash_off_rounded'));
+    expect(topControls, contains("label: torchOn ? 'Turn light off' : 'Turn light on'"));
+    expect(topControls, contains('onPressed: torchSupported ? onTorch : null'));
+  });
+
   testWidgets('native camera shell can show long receipt ghost guide', (
     tester,
   ) async {
