@@ -161,4 +161,42 @@ void main() {
       expect(result.ocrSourcePaths, hasLength(1));
     },
   );
+
+  test(
+    'manual overlap can guide one pair while auto matching handles the next',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 31, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 32, topTextOffset: 18);
+      final sectionC = receiptStitchingSection(seed: 33, topTextOffset: 36);
+      copyReceiptStitchingOverlap(from: sectionB, to: sectionC, pixels: 260);
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'manual_then_auto_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        sectionB,
+        'manual_then_auto_b',
+      );
+      final third = await writeTempReceiptStitchingImage(
+        sectionC,
+        'manual_then_auto_c',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path, third.path],
+        manualOverlapPixels: const [220],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.overlapPixels, hasLength(2));
+      expect(result.overlapPixels.first, 220);
+      expect(result.pairs, hasLength(2));
+      expect(result.pairs.first.usedManualAdjustment, isTrue);
+      expect(result.pairs.last.usedManualAdjustment, isFalse);
+      expect(result.pairs.last.confidence, greaterThanOrEqualTo(.50));
+      expect(result.usedManualAdjustment, isTrue);
+      expect(result.ocrSourcePaths, hasLength(1));
+    },
+  );
 }

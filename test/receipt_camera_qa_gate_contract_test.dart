@@ -51,6 +51,7 @@ void main() {
       script,
       contains('test/receipt_camera_result_stitch_scanner_test.dart'),
     );
+    expect(script, contains('test/receipt_stitching_manual_overlap_test.dart'));
     expect(script, contains('test/receipt_stitching_test.dart'));
     expect(
       script,
