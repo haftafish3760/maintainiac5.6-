@@ -295,6 +295,20 @@ void main() {
     );
   });
 
+  test('native camera shell keeps bottom bar accessibility summary contract', () async {
+    final bottomBar = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart',
+    ).readAsString();
+
+    expect(bottomBar, contains("label: _semanticLabel"));
+    expect(bottomBar, contains("? 'receipt assist'"));
+    expect(bottomBar, contains(": 'manual receipt'"));
+    expect(bottomBar, contains("? 'quality pending'"));
+    expect(bottomBar, contains("? 'backup camera'"));
+    expect(bottomBar, contains(": 'native camera'"));
+    expect(bottomBar, contains("return '\$engine shutter, \$assist, \$quality';"));
+  });
+
   testWidgets('native camera shell can show long receipt ghost guide', (
     tester,
   ) async {
