@@ -241,6 +241,37 @@ void main() {
     expect(find.text('Auto sharpness'), findsNothing);
   });
 
+  testWidgets('native camera shell shows custom guidance message when status is absent', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReceiptNativeCameraShell(
+          capabilities: const ReceiptNativeCameraCapabilities(
+            engine: ReceiptNativeCameraEngine.cameraX,
+            available: true,
+            hasRearCamera: true,
+          ),
+          settings: const ReceiptNativeCameraSettings(
+            assistedReceiptFill: false,
+          ),
+          preview: const ColoredBox(color: Color(0xFF38444B)),
+          onBack: () {},
+          onCapture: () {},
+          onSettings: () {},
+          guidanceTitle: 'Line up the receipt',
+          guidanceMessage: 'Keep the receipt inside the frame from top to bottom.',
+        ),
+      ),
+    );
+
+    expect(
+      find.text('Keep the receipt inside the frame from top to bottom.'),
+      findsOneWidget,
+    );
+    expect(find.text('Fill the screen with readable receipt text'), findsNothing);
+  });
+
   test('native camera shell exposes no tap focus callback hook', () async {
     final shell = await File(
       'lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart',

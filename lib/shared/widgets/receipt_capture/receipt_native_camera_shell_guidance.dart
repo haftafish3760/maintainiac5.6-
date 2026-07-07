@@ -92,6 +92,8 @@ class _ReceiptNativeCameraGuidance extends StatelessWidget {
     if (titleText.isNotEmpty && titleText != 'Line up the receipt') {
       return titleText;
     }
+    final messageText = message.trim();
+    if (messageText.isNotEmpty) return messageText;
     return 'Fill the screen with readable receipt text';
   }
 }
