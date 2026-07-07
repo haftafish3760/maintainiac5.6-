@@ -40,10 +40,14 @@ void main() {
       expect(cameraActivity, contains('controls.add("add_photo")'));
       expect(cameraActivity, contains('Receipt camera settings'));
       expect(cameraActivity, contains('doneButton'));
+      expect(
+        cameraActivity,
+        contains('doneButton.visibility = if (capturedPhotoPaths.isEmpty())'),
+      );
       expect(cameraActivity, contains('Finish'));
       expect(cameraActivity, contains('finishWithCapturedPhotos'));
       expect(cameraActivity, contains('capturedPhotoPaths'));
-      expect(cameraActivity, contains(r'"Use $count Photos"'));
+      expect(cameraActivity, contains(r'else -> "Next ($count)"'));
       expect(
         cameraActivity,
         contains('Opening receipt photo review. Captured photos are kept.'),

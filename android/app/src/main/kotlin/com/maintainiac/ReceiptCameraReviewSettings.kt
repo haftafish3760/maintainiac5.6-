@@ -41,7 +41,11 @@ internal fun ReceiptCameraActivity.finishWithCapturedPhotos(closeReason: String 
 }
 
 internal fun ReceiptCameraActivity.updateDoneButton() {
-    doneButton.visibility = View.GONE
+    doneButton.visibility = if (capturedPhotoPaths.isEmpty()) {
+        View.GONE
+    } else {
+        View.VISIBLE
+    }
     doneButton.isEnabled = capturedPhotoPaths.isNotEmpty()
     val count = capturedPhotoPaths.size
     val title = when (count) {
