@@ -47,6 +47,15 @@ extension ReceiptCameraViewController {
     return "\(fillMode) | \(reviewMode) | \(receiptMode) | \(lightMode)"
   }
 
+  func shouldShowSettingsStatusStrip() -> Bool {
+    return !assistedReceiptFill ||
+      reviewDepth == "detailedLines" ||
+      !longReceiptMode ||
+      !autoExposureAssistEnabled ||
+      dataSaverLevel != "balanced" ||
+      storageConstrained
+  }
+
   func dataSaverLabel() -> String {
     switch dataSaverLevel {
     case "original":

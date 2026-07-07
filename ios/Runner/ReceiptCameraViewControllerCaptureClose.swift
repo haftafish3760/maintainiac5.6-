@@ -202,6 +202,7 @@ extension ReceiptCameraViewController {
 
   func updateSettingsStatusStrip() {
     settingsStatusStrip.text = settingsStatusText()
+    settingsStatusStrip.isHidden = !shouldShowSettingsStatusStrip()
   }
 
   func newReceiptCaptureUrl() throws -> URL {

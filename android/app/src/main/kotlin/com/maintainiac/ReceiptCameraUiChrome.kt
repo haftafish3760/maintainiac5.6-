@@ -190,6 +190,11 @@ internal fun ReceiptCameraActivity.buildSettingsStatusStrip(): View {
 internal fun ReceiptCameraActivity.updateSettingsStatusStrip() {
     if (!hasInitializedReceiptCameraField { settingsStatusStrip }) return
     settingsStatusStrip.text = settingsStatusText()
+    settingsStatusStrip.visibility = if (shouldShowSettingsStatusStrip()) {
+        View.VISIBLE
+    } else {
+        View.GONE
+    }
 }
 
 internal fun ReceiptCameraActivity.settingsStatusText(): String {
@@ -198,6 +203,15 @@ internal fun ReceiptCameraActivity.settingsStatusText(): String {
     val length = if (longReceiptMode) "Long receipt on" else "Single photo"
     val light = if (autoExposureAssistEnabled) "Auto light" else "Manual light"
     return "$assist • $depth • $length • $light"
+}
+
+internal fun ReceiptCameraActivity.shouldShowSettingsStatusStrip(): Boolean {
+    return !assistedReceiptFill ||
+        reviewDepth == "detailedLines" ||
+        !longReceiptMode ||
+        !autoExposureAssistEnabled ||
+        dataSaverLevel != "balanced" ||
+        storageConstrained
 }
 
 internal fun ReceiptCameraActivity.buildBottomBar(): View {

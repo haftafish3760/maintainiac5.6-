@@ -44,6 +44,13 @@ void main() {
     expect(cameraActivity, contains('settingsStatusStrip'));
     expect(cameraActivity, contains('buildSettingsStatusStrip'));
     expect(cameraActivity, contains('settingsStatusText'));
+    expect(cameraActivity, contains('shouldShowSettingsStatusStrip()'));
+    expect(
+      cameraActivity,
+      contains('settingsStatusStrip.visibility = if (shouldShowSettingsStatusStrip()) {'),
+    );
+    expect(cameraActivity, contains('dataSaverLevel != "balanced"'));
+    expect(cameraActivity, contains('storageConstrained'));
     expect(cameraActivity, contains('private fun safeReceiptReviewDepth'));
     expect(cameraActivity, contains('Regex("[\\\\s_-]+")'));
     expect(cameraActivity, contains('?.lowercase()'));
