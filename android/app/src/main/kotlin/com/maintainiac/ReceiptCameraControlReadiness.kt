@@ -16,7 +16,8 @@ internal fun ReceiptCameraActivity.visibleControlSet(): String {
     }
     if (
         hasInitializedReceiptCameraField { addPhotoButton } &&
-        addPhotoButton.visibility == View.VISIBLE
+        addPhotoButton.visibility == View.VISIBLE &&
+        addPhotoButton.isEnabled
     ) {
         controls.add("add_photo")
     }

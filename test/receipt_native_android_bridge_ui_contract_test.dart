@@ -263,6 +263,10 @@ void main() {
     );
     expect(
       cameraActivity,
+      contains('addPhotoButton.isEnabled'),
+    );
+    expect(
+      cameraActivity,
       contains('if (torchButton.isEnabled) controls.add("light")'),
     );
     expect(
