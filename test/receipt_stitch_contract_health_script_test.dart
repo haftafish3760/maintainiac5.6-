@@ -20,9 +20,16 @@ void main() {
       ),
     );
     expect(source, contains('receipt_stitching_weak_overlap_safety_test.dart'));
+    expect(source, contains('--concurrency=1'));
     expect(source, contains('receipt_stitching_horizontal_drift_test.dart'));
     expect(source, contains('receipt_stitching_worn_receipt_test.dart'));
     expect(source, contains('Receipt stitch edge-case health: PASS'));
+    expect(source, contains('long_stack)'));
+    expect(source, contains('Receipt stitch long-stack health: PASS'));
+    expect(
+      source,
+      contains(r'Usage: $0 [delayed_overlap|edge_cases|long_stack|full]'),
+    );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));
     expect(source, contains('receipt_capture_flow_shareability_test.dart'));
     expect(
@@ -35,6 +42,7 @@ void main() {
     expect(source, contains('receipt_stitching_scale_rotation_test.dart'));
     expect(source, contains('receipt_stitching_horizontal_drift_test.dart'));
     expect(source, contains('receipt_stitching_worn_receipt_test.dart'));
+    expect(source, contains('receipt_stitching_long_stack_test.dart'));
     expect(source, contains('receipt_stitching_variants_test.dart'));
     expect(source, contains('receipt_camera_result_stitch_scanner_test.dart'));
     expect(

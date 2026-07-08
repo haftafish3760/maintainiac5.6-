@@ -23,8 +23,16 @@ case "$mode" in
       test/receipt_stitching_worn_receipt_test.dart \
       test/receipt_stitching_weak_overlap_safety_test.dart \
       --name 'delayed overlap|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|continuation edge is clipped|faded receipt sections when continuation edge is clipped|missing middle section|reverse order' \
+      --concurrency=1 \
       -r compact
     echo "Receipt stitch edge-case health: PASS"
+    ;;
+  long_stack)
+    echo "Receipt stitch long-stack health"
+    flutter test \
+      test/receipt_stitching_long_stack_test.dart \
+      -r compact
+    echo "Receipt stitch long-stack health: PASS"
     ;;
   full)
     echo "Receipt stitch contract health"
@@ -38,6 +46,7 @@ case "$mode" in
       test/receipt_stitching_scale_rotation_test.dart \
       test/receipt_stitching_horizontal_drift_test.dart \
       test/receipt_stitching_worn_receipt_test.dart \
+      test/receipt_stitching_long_stack_test.dart \
       test/receipt_stitching_variants_test.dart \
       test/receipt_stitching_weak_overlap_safety_test.dart \
       test/receipt_camera_result_stitch_scanner_test.dart \
@@ -47,7 +56,7 @@ case "$mode" in
     echo "Receipt stitch contract health: PASS"
     ;;
   *)
-    echo "Usage: $0 [delayed_overlap|edge_cases|full]" >&2
+    echo "Usage: $0 [delayed_overlap|edge_cases|long_stack|full]" >&2
     exit 64
     ;;
 esac
