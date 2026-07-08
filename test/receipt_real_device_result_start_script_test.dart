@@ -60,6 +60,14 @@ void main() {
       text,
       contains('- Flutter devices snapshot: captured;'),
     );
+    expect(
+      text,
+      contains('- Xcode devices snapshot: captured;'),
+    );
+    expect(
+      text,
+      isNot(contains('- Xcode devices snapshot: captured; inspect linked log `')),
+    );
 
     final snapshotSummaryMatch = RegExp(
       r'- Metadata snapshot summary: `([^`]+)`',
