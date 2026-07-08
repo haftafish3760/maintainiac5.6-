@@ -59,7 +59,7 @@ void main() {
     expect(
       source,
       contains(
-        "--name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|out-of-order phone-window|dark display borders|eleven-section|ugly seven-section|ragged phone-window'",
+        "--name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|out-of-order phone-window|dark display borders|status and nav bars|eleven-section|ugly seven-section|ragged phone-window'",
       ),
     );
     expect(source, contains('--concurrency=1'));
@@ -69,7 +69,7 @@ void main() {
     expect(
       source,
       contains(
-        "--name 'skipped phone-window|out-of-order phone-window|dark display borders'",
+        "--name 'skipped phone-window|out-of-order phone-window|dark display borders|status and nav bars'",
       ),
     );
     expect(source, contains('Receipt stitch phone-window fast health: PASS'));
