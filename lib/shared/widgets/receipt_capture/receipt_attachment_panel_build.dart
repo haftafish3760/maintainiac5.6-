@@ -12,20 +12,6 @@ extension _ReceiptAttachmentPanelBuild on _SharedReceiptAttachmentPanelState {
       subtitle:
           'Add receipt proof from the camera, gallery, device files, or another app.',
       icon: Icons.receipt_long_rounded,
-      trailing: IconButton(
-        tooltip: 'Receipt photo settings',
-        onPressed: openReceiptCaptureSettings,
-        icon: const Icon(Icons.settings_rounded),
-        style: IconButton.styleFrom(
-          backgroundColor: const Color(0xFF11181B),
-          foregroundColor: const Color(0xFFFFD166),
-          minimumSize: const Size(36, 36),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
-            side: const BorderSide(color: Color(0xFF56666E)),
-          ),
-        ),
-      ),
       children: [
         Row(
           children: [

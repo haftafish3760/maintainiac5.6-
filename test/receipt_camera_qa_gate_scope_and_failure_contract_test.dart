@@ -15,6 +15,7 @@ void main() {
     expect(script, contains('test/helpers/receipt_recovery_handoff_fixture.dart'));
     expect(script, contains('test/receipt_capture_flow_barcode_handoff_test.dart'));
     expect(script, contains('test/receipt_capture_flow_ocr_source_count_test.dart'));
+    expect(script, contains('test/receipt_attachment_panel_actions_test.dart'));
     expect(script, contains('test/receipt_photo_review_*'));
     expect(
       script,

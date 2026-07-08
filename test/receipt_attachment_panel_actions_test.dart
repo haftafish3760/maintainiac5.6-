@@ -24,6 +24,7 @@ void main() {
     expect(find.text('Add Receipt'), findsOneWidget);
     expect(find.text('Long receipt? Scan top to bottom.'), findsNothing);
     expect(find.text('Need another receipt section?'), findsNothing);
+    expect(find.byTooltip('Receipt photo settings'), findsNothing);
   });
 
   testWidgets('removing an imported proof asks before deleting it', (
