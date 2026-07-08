@@ -403,7 +403,7 @@ void main() {
         pixels: 330,
         dstY: 48,
       );
-      final shiftedSecond = shiftReceiptStitchingShot(sectionB, dx: 24);
+      final shiftedSecond = shiftReceiptStitchingShot(sectionB, dx: 24, dy: 0);
 
       final first = await writeTempReceiptStitchingImage(
         sectionA,
@@ -412,6 +412,44 @@ void main() {
       final second = await writeTempReceiptStitchingImage(
         shiftedSecond,
         'delayed_drift_overlap_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.overlapPixels.single, greaterThan(330));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+    },
+  );
+
+  test(
+    'stitches faded thermal receipt sections with delayed overlap',
+    () async {
+      final sectionA = fadeReceiptStitchingInk(
+        receiptStitchingSection(seed: 72, topTextOffset: 0),
+        amount: .58,
+      );
+      final sectionB = fadeReceiptStitchingInk(
+        receiptStitchingSection(seed: 73, topTextOffset: 18),
+        amount: .54,
+      );
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 330,
+        dstY: 36,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'faded_delayed_overlap_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        sectionB,
+        'faded_delayed_overlap_b',
       );
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(

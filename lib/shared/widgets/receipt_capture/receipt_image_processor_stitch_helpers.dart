@@ -252,6 +252,7 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
     previous: previous,
     next: next,
     pixels: bestPixels,
+    nextYOffset: bestNextYOffset,
   );
   final offsetPenalty = _stitchHorizontalOffsetPenalty(
     width: previous.width,
@@ -424,6 +425,7 @@ double _overlapHorizontalDriftPenalty({
   required img.Image previous,
   required img.Image next,
   required int pixels,
+  int nextYOffset = 0,
 }) {
   final sampleWidth = math.min(previous.width, next.width);
   final stepX = math.max(6, (sampleWidth / 100).round());
@@ -436,7 +438,7 @@ double _overlapHorizontalDriftPenalty({
   for (var y = 0; y < pixels; y += stepY) {
     for (var x = sampleWidth ~/ 14; x < sampleWidth * 13 ~/ 14; x += stepX) {
       final previousLuma = _luma(previous.getPixel(x, previousStartY + y));
-      final nextLuma = _luma(next.getPixel(x, y));
+      final nextLuma = _luma(next.getPixel(x, nextYOffset + y));
       if (previousLuma < 170) {
         previousWeightedX += x;
         previousInkTotal++;
