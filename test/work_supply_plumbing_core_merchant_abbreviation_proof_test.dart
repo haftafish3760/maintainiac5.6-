@@ -239,6 +239,24 @@ void main() {
     ]);
   });
 
+  test('plumbing core parses manufacturer-heavy receipt lines', () {
+    _expectGoodPlumbingCore('LOWES SHARKBITE 1/2 PUSH COUP', [
+      'push-fit',
+      'coupling',
+    ]);
+    _expectGoodPlumbingCore('FERG WATTS 3/4 PRV PRESS RED VALVE', [
+      'pressure reducing valve',
+    ]);
+    _expectGoodPlumbingCore('ACE OATEY 4X3 PVC CLOSET FLANGE', ['flange']);
+    _expectGoodPlumbingCore('TRUE VALUE RECTORSEAL PIPE DOPE 4OZ', [
+      'thread sealant',
+    ]);
+    _expectGoodPlumbingCore('SUPPLYHOUSE NIBCO 1/2 COP 90 CXC', [
+      'copper',
+      '90',
+    ]);
+  });
+
   test(
     'plumbing core keeps ultra-vague merchant abbreviations out of good confidence',
     () {

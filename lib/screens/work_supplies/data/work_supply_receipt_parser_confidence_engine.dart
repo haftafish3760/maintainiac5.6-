@@ -121,6 +121,8 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'flexible coupling',
       'flexible drain repair coupling',
     ],
+    RegExp(r'\b(sharkbite|push|push fit|push-fit)\b.*\b(coup|coupling|cplg)\b'):
+        ['push-fit coupling', 'push coupling', 'push connect coupling'],
     RegExp(r'\b(cinta teflon|cinta de teflon|ptfe tape|teflon tape)\b'): [
       'ptfe thread tape',
       'ptfe tape',
