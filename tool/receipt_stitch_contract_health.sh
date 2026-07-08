@@ -12,6 +12,12 @@ run_flutter_test() {
   local tmp
   tmp="$(mktemp -t maintainiac_receipt_stitch_${label//[^A-Za-z0-9]/_}.XXXXXX)"
   if flutter test "$@" -r compact > "$tmp" 2>&1; then
+    if perl -pe 's/\r/\n/g' "$tmp" | grep -q 'Some tests failed'; then
+      echo "Receipt stitch $label reported failed tests despite a zero exit code. Log tail:" >&2
+      perl -pe 's/\r/\n/g' "$tmp" | tail -n 180 >&2
+      rm -f "$tmp"
+      return 1
+    fi
     perl -pe 's/\r/\n/g' "$tmp" | grep -E 'All tests passed|Some tests failed' | tail -n 3
     rm -f "$tmp"
     return 0
@@ -51,7 +57,8 @@ run_phone_windows() {
     test/receipt_stitching_long_stack_test.dart \
     test/receipt_stitching_phone_window_safety_test.dart \
     test/receipt_stitching_phone_window_edge_crop_test.dart \
-    --name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|out-of-order phone-window|eleven-section|ugly seven-section|ragged phone-window'
+    --name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|out-of-order phone-window|dark display borders|eleven-section|ugly seven-section|ragged phone-window' \
+    --concurrency=1
   echo "Receipt stitch phone-window health: PASS"
 }
 

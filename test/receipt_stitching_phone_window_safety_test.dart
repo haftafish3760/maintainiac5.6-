@@ -112,6 +112,30 @@ void main() {
     },
     timeout: _phoneWindowTimeout,
   );
+
+  test(
+    'stitches phone-screen receipt windows with dark display borders',
+    () async {
+      final files = await _writeDarkBorderPhoneWindowStack(
+        'dark_border_phone_window',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [for (final file in files) file.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(3));
+      expect(result.overlapPixels, hasLength(3));
+      expect(
+        result.pairs.map((pair) => pair.confidence),
+        everyElement(greaterThanOrEqualTo(.50)),
+      );
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+    },
+    timeout: _phoneWindowTimeout,
+  );
 }
 
 void expectSkippedWindowRequiresReview(
@@ -272,4 +296,44 @@ Future<List<File>> _writeRaggedPhoneWindowStack(String prefix) async {
     );
   }
   return files;
+}
+
+Future<List<File>> _writeDarkBorderPhoneWindowStack(String prefix) async {
+  final tallReceipt = tallReceiptStitchingCanvas(sectionCount: 4);
+  final starts = <int>[0, 1120, 2240, 3360];
+  final files = <File>[];
+  for (var index = 0; index < starts.length; index++) {
+    var receiptWindow = img.copyCrop(
+      tallReceipt,
+      x: 0,
+      y: starts[index],
+      width: tallReceipt.width,
+      height: 1500,
+    );
+    receiptWindow = shiftReceiptStitchingShot(
+      receiptWindow,
+      dx: index.isEven ? 12 : -14,
+      dy: 0,
+    );
+    final capture = _wrapPhoneWindowWithDarkDisplayBorder(
+      receiptWindow,
+      left: index.isEven ? 74 : 58,
+      top: index.isEven ? 42 : 66,
+    );
+    files.add(
+      await writeTempReceiptStitchingImage(capture, '${prefix}_$index'),
+    );
+  }
+  return files;
+}
+
+img.Image _wrapPhoneWindowWithDarkDisplayBorder(
+  img.Image receiptWindow, {
+  required int left,
+  required int top,
+}) {
+  final canvas = img.Image(width: 1080, height: 1760, numChannels: 3);
+  img.fill(canvas, color: img.ColorRgb8(12, 12, 14));
+  img.compositeImage(canvas, receiptWindow, dstX: left, dstY: top);
+  return canvas;
 }

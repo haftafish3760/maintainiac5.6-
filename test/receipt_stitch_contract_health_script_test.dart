@@ -13,6 +13,7 @@ void main() {
     expect(source, contains(r'> "$tmp" 2>&1'));
     expect(source, contains(r"perl -pe 's/\r/\n/g'"));
     expect(source, contains(r'Receipt stitch $label failed. Log tail:'));
+    expect(source, contains('reported failed tests despite a zero exit code'));
     expect(source, contains('tail -n 180'));
     expect(source, contains('run_flutter_test delayed-overlap'));
     expect(source, contains('run_flutter_test edge-case'));
@@ -57,9 +58,10 @@ void main() {
     expect(
       source,
       contains(
-        "--name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|out-of-order phone-window|eleven-section|ugly seven-section|ragged phone-window'",
+        "--name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|out-of-order phone-window|dark display borders|eleven-section|ugly seven-section|ragged phone-window'",
       ),
     );
+    expect(source, contains('--concurrency=1'));
     expect(source, contains('Receipt stitch phone-window health: PASS'));
     expect(source, contains('manual_overlap)'));
     expect(source, contains('Receipt stitch manual-overlap health'));
