@@ -67,6 +67,7 @@ phase6_tests=(
 phase7_tests=(
   test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart
   test/receipt_camera_ocr_source_handoff_test.dart
+  test/receipt_camera_attachment_helper_parity_test.dart
   test/receipt_capture_flow_ocr_source_count_test.dart
   test/receipt_image_ocr_source_guard_test.dart
   test/receipt_ocr_source_relationship_test.dart
@@ -172,6 +173,7 @@ phase7_audit_paths=(
   lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_continuation_flags.dart
   test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart
   test/receipt_camera_ocr_source_handoff_test.dart
+  test/receipt_camera_attachment_helper_parity_test.dart
   test/receipt_capture_flow_ocr_source_count_test.dart
   test/receipt_image_ocr_source_guard_test.dart
   test/receipt_ocr_source_relationship_test.dart
