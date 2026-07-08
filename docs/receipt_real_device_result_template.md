@@ -32,6 +32,11 @@ Suggested file path:
 
 List the device classes covered in this session:
 
+- Metadata snapshot summary:
+- Flutter devices snapshot log:
+- ADB devices snapshot log:
+- Xcode devices snapshot log:
+
 - Older Android:
 - Current Android:
 - Additional Android:

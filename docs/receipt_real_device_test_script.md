@@ -16,6 +16,9 @@ This script is for controlled phone testing after a meaningful receipt-camera bu
 - Or run `tool/receipt_real_device_result_start.sh [slug]` to generate that
   note with branch, commit, workspace, and metadata-only device snapshots
   already filled in.
+- The starter script also runs
+  `tool/receipt_camera_real_device_snapshot.sh` so the session note points to
+  the exact non-UI device-state logs captured at the start of manual testing.
 
 ## Device Targets
 

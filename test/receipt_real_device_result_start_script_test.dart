@@ -33,11 +33,32 @@ void main() {
     expect(text, contains('- Branch: '));
     expect(text, contains('- Commit: '));
     expect(text, contains('- Workspace: `'));
+    expect(text, contains('- Metadata snapshot summary: `'));
+    expect(text, contains('- Flutter devices snapshot log: `'));
+    expect(text, contains('- ADB devices snapshot log: `'));
+    expect(text, contains('- Xcode devices snapshot log: `'));
     expect(text, contains('- Flutter devices snapshot: '));
     expect(text, contains('- ADB devices snapshot: '));
     expect(text, contains('- Xcode devices snapshot: '));
 
+    final snapshotSummaryMatch = RegExp(
+      r'- Metadata snapshot summary: `([^`]+)`',
+    ).firstMatch(text);
+    expect(snapshotSummaryMatch, isNotNull);
+
+    final snapshotSummaryPath = snapshotSummaryMatch!.group(1)!;
+    final snapshotSummaryFile = File(snapshotSummaryPath);
+    expect(snapshotSummaryFile.existsSync(), isTrue);
+    expect(
+      snapshotSummaryFile.readAsStringSync(),
+      contains('purpose=metadata_only_no_install_no_ui_navigation'),
+    );
+
     outputFile.deleteSync();
+    snapshotSummaryFile.parent.listSync().whereType<File>().forEach((file) {
+      file.deleteSync();
+    });
+    snapshotSummaryFile.parent.deleteSync();
   });
 
   test('real-device result start script stays metadata-only and non-interactive', () {
@@ -55,6 +76,7 @@ void main() {
     );
     expect(script, contains('docs/receipt_real_device_result_template.md'));
     expect(script, contains('docs/receipt_real_device_runs'));
+    expect(script, contains('tool/receipt_camera_real_device_snapshot.sh'));
     expect(script, contains('flutter devices'));
     expect(script, contains('adb devices -l'));
     expect(script, contains('xcrun xctrace list devices'));

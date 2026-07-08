@@ -20,6 +20,8 @@ timestamp="$(date '+%Y-%m-%d %H:%M:%S %Z')"
 template_path="docs/receipt_real_device_result_template.md"
 output_dir="docs/receipt_real_device_runs"
 output_path="$output_dir/${date_stamp}-${safe_slug}.md"
+snapshot_root="${TMPDIR:-/tmp}/maintainiac_receipt_camera_device_snapshot"
+snapshot_dir="$snapshot_root/${date_stamp}-${safe_slug}"
 
 mkdir -p "$output_dir"
 
@@ -64,12 +66,14 @@ fi
 
 cp "$template_path" "$output_path"
 
-python3 - "$output_path" "$timestamp" "$branch" "$commit" "$workspace" "$flutter_summary" "$adb_summary" "$xcrun_summary" <<'PY'
+bash tool/receipt_camera_real_device_snapshot.sh "$snapshot_dir" >/dev/null
+
+python3 - "$output_path" "$timestamp" "$branch" "$commit" "$workspace" "$flutter_summary" "$adb_summary" "$xcrun_summary" "$snapshot_dir" <<'PY'
 from pathlib import Path
 import sys
 
 path = Path(sys.argv[1])
-timestamp, branch, commit, workspace, flutter_summary, adb_summary, xcrun_summary = sys.argv[2:]
+timestamp, branch, commit, workspace, flutter_summary, adb_summary, xcrun_summary, snapshot_dir = sys.argv[2:]
 text = path.read_text()
 replacements = {
     "- Date:": f"- Date: {timestamp}",
@@ -81,6 +85,10 @@ replacements = {
     "- Receipt set:": "- Receipt set: NOT FILLED YET",
     "## Environment And Device Matrix": "## Environment And Device Matrix\n\n"
     f"- Workspace: `{workspace}`\n"
+    f"- Metadata snapshot summary: `{snapshot_dir}/summary.txt`\n"
+    f"- Flutter devices snapshot log: `{snapshot_dir}/flutter_devices.txt`\n"
+    f"- ADB devices snapshot log: `{snapshot_dir}/adb_devices.txt`\n"
+    f"- Xcode devices snapshot log: `{snapshot_dir}/xcrun_devices.txt`\n"
     f"- Flutter devices snapshot: {flutter_summary}\n"
     f"- ADB devices snapshot: {adb_summary}\n"
     f"- Xcode devices snapshot: {xcrun_summary}",

@@ -22,6 +22,10 @@ void main() {
 
     expect(template, contains('## Session Metadata'));
     expect(template, contains('## Environment And Device Matrix'));
+    expect(template, contains('- Metadata snapshot summary:'));
+    expect(template, contains('- Flutter devices snapshot log:'));
+    expect(template, contains('- ADB devices snapshot log:'));
+    expect(template, contains('- Xcode devices snapshot log:'));
     expect(template, contains('## Flow Results'));
     expect(template, contains('### Flow 1: Single Photo Receipt'));
     expect(template, contains('### Flow 6: Interruption And Recovery'));
