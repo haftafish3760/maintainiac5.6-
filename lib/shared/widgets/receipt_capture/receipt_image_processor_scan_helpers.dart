@@ -36,12 +36,45 @@ _ScannerImageDecision _autoCropReceiptWithDecision(img.Image source) {
       cropQuality.textBandScore >= sourceQuality.textBandScore * .90 &&
       cropQuality.contrast >= sourceQuality.contrast * .68;
   final cropImprovesFraming = cropQuality.cropScore >= sourceQuality.cropScore;
-  if (cropQuality.reviewScore + 2 < sourceQuality.reviewScore ||
-      !cropKeepsText ||
-      !cropImprovesFraming) {
+  final darkFrameCrop =
+      _sourceHasDarkFrameAroundReceipt(source, bounds) &&
+      cropQuality.textBandScore >= sourceQuality.textBandScore * .58 &&
+      cropQuality.contrast >= 12 &&
+      cropQuality.cropScore >= sourceQuality.cropScore * .82;
+  if (!darkFrameCrop &&
+      (cropQuality.reviewScore + 2 < sourceQuality.reviewScore ||
+          !cropKeepsText ||
+          !cropImprovesFraming)) {
     return _ScannerImageDecision(source, 'crop_skipped_quality_guard');
   }
   return _ScannerImageDecision(cropped, 'crop_applied_safe_bounds');
+}
+
+bool _sourceHasDarkFrameAroundReceipt(
+  img.Image source,
+  _ReceiptImageBounds bounds,
+) {
+  final widthRatio = bounds.width / source.width;
+  final heightRatio = bounds.height / source.height;
+  if (widthRatio > .94 && heightRatio > .94) return false;
+  final stepX = math.max(1, source.width ~/ 48);
+  final stepY = math.max(1, source.height ~/ 64);
+  final leftEdge = source.width * .08;
+  final rightEdge = source.width * .92;
+  final topEdge = source.height * .06;
+  final bottomEdge = source.height * .94;
+  var dark = 0;
+  var samples = 0;
+  for (var y = 0; y < source.height; y += stepY) {
+    for (var x = 0; x < source.width; x += stepX) {
+      final onFrame =
+          x < leftEdge || x > rightEdge || y < topEdge || y > bottomEdge;
+      if (!onFrame) continue;
+      samples++;
+      if (_luma(source.getPixel(x, y)) < 86) dark++;
+    }
+  }
+  return samples > 0 && dark / samples >= .30;
 }
 
 String _receiptBoundsSafetyCode(img.Image source, _ReceiptImageBounds bounds) {

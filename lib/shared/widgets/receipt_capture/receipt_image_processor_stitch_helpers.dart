@@ -234,11 +234,11 @@ List<int> _stitchHorizontalOffsets(int width) {
 
 List<int> _stitchNextTopOffsets(int height, int pixels) {
   final maxOffset = math.min(
-    220,
-    math.max(0, math.min((height * .20).round(), height - pixels - 24)),
+    320,
+    math.max(0, math.min((height * .26).round(), height - pixels - 24)),
   );
   if (maxOffset <= 0) return const [0];
-  final offsets = <int>{0, 12, 24, 36, 48, 72, 96, 132, 168, 220};
+  final offsets = <int>{0, 12, 24, 36, 48, 72, 96, 132, 168, 220, 260, 320};
   return offsets.where((offset) => offset <= maxOffset).toList(growable: false);
 }
 

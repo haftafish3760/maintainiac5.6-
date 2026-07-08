@@ -100,7 +100,10 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       }
       decodedBytes.add(bytes!);
       decodedSources.add(image);
-      decoded.add(_enhanceReceiptForReading(_autoStraightenReceipt(image)));
+      final receiptFramed = _autoCropReceipt(image);
+      decoded.add(
+        _enhanceReceiptForReading(_autoStraightenReceipt(receiptFramed)),
+      );
     }
 
     final targetWidth = _stitchTargetWidth(decoded.length);
@@ -372,10 +375,10 @@ int _maxAutoNextSkipBound({
     math.max(48, (shortest * .46).round()),
   );
   final maxNextTopOffset = math.min(
-    220,
+    320,
     math.max(
       0,
-      math.min((next.height * .20).round(), next.height - maxPixels - 24),
+      math.min((next.height * .26).round(), next.height - maxPixels - 24),
     ),
   );
   return math.min(next.height - 1, maxPixels + maxNextTopOffset);
