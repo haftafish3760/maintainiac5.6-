@@ -59,6 +59,7 @@ void main() {
       expect(result.didStitch, isFalse);
       expect(result.fallbackReasonCode, 'output_too_large');
       expect(result.stitchedPath, isNull);
+      expect(result.pairs, isEmpty);
       expect(result.ocrSourcePaths, [for (final file in files) file.path]);
       expect(result.ocrSourceContractCode, 'fallback_derived_stitch_too_large');
       expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);

@@ -34,6 +34,15 @@ case "$mode" in
       -r compact
     echo "Receipt stitch long-stack health: PASS"
     ;;
+  handoff)
+    echo "Receipt stitch handoff health"
+    flutter test \
+      test/receipt_camera_phase5_long_receipt_contract_test.dart \
+      test/receipt_camera_phase6_stitching_handoff_contract_test.dart \
+      test/receipt_camera_result_stitch_handoff_followthrough_test.dart \
+      -r compact
+    echo "Receipt stitch handoff health: PASS"
+    ;;
   full)
     echo "Receipt stitch contract health"
     flutter test \
@@ -56,7 +65,7 @@ case "$mode" in
     echo "Receipt stitch contract health: PASS"
     ;;
   *)
-    echo "Usage: $0 [delayed_overlap|edge_cases|long_stack|full]" >&2
+    echo "Usage: $0 [delayed_overlap|edge_cases|long_stack|handoff|full]" >&2
     exit 64
     ;;
 esac

@@ -125,6 +125,17 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
     final overlaps = <int>[];
     final confidences = <double>[];
     final pairResults = <ReceiptStitchPairResult>[];
+    ReceiptStitchResult? oversizedFallback() => _oversizedStitchFallback(
+      inputPaths: inputPaths,
+      targetWidth: targetWidth,
+      expectedHeight: expectedHeight,
+      maxOutputPixels: maxOutputPixels,
+      maxOutputHeight: maxOutputHeight,
+      confidences: confidences,
+      pairResults: pairResults,
+    );
+    final initialOversizedFallback = oversizedFallback();
+    if (initialOversizedFallback != null) return initialOversizedFallback;
 
     for (var index = 1; index < prepared.length; index++) {
       final pairIndex = index - 1;
@@ -160,6 +171,8 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
         );
         normalized.add(prepared[index]);
         expectedHeight += prepared[index].height - manualOverlap;
+        final fallback = oversizedFallback();
+        if (fallback != null) return fallback;
       } else {
         final match = _bestScaleTolerantVerticalOverlap(
           previous: previous,
@@ -197,21 +210,9 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
           ),
         );
         expectedHeight += match.nextImage.height - match.nextSkipPixels;
+        final fallback = oversizedFallback();
+        if (fallback != null) return fallback;
       }
-    }
-
-    final expectedPixels = targetWidth * expectedHeight;
-    if (expectedHeight > maxOutputHeight || expectedPixels > maxOutputPixels) {
-      return ReceiptStitchResult.fallback(
-        inputPaths: inputPaths,
-        warning:
-            'Receipt is too long to stitch safely on this device. Receipt details will use the photos separately.',
-        fallbackReasonCode: 'output_too_large',
-        confidence: confidences.isEmpty ? 0 : confidences.reduce(math.min),
-        pairs: pairResults,
-        stitchedWidth: targetWidth,
-        stitchedHeight: expectedHeight,
-      );
     }
 
     final canvas = img.Image(
@@ -263,6 +264,31 @@ bool _stitchInputPathsAreUnique(List<String> inputPaths) {
     if (!seen.add(normalized)) return false;
   }
   return true;
+}
+
+ReceiptStitchResult? _oversizedStitchFallback({
+  required List<String> inputPaths,
+  required int targetWidth,
+  required int expectedHeight,
+  required int maxOutputPixels,
+  required int maxOutputHeight,
+  required List<double> confidences,
+  required List<ReceiptStitchPairResult> pairResults,
+}) {
+  final expectedPixels = targetWidth * expectedHeight;
+  if (expectedHeight <= maxOutputHeight && expectedPixels <= maxOutputPixels) {
+    return null;
+  }
+  return ReceiptStitchResult.fallback(
+    inputPaths: inputPaths,
+    warning:
+        'Receipt is too long to stitch safely on this device. Receipt details will use the photos separately.',
+    fallbackReasonCode: 'output_too_large',
+    confidence: confidences.isEmpty ? 0 : confidences.reduce(math.min),
+    pairs: pairResults,
+    stitchedWidth: targetWidth,
+    stitchedHeight: expectedHeight,
+  );
 }
 
 int _findDuplicateReceiptImageIndex(
