@@ -10,6 +10,21 @@ void main() {
     final settingsSheet = await File(
       'lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart',
     ).readAsString();
+    final storageSettings = await File(
+      'lib/shared/widgets/receipt_capture/receipt_capture_review_storage_settings.dart',
+    ).readAsString();
+    final storageHandoff = await File(
+      'lib/shared/widgets/receipt_capture/receipt_capture_review_result_handoff_storage.dart',
+    ).readAsString();
+    final androidSettings = await File(
+      'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt',
+    ).readAsString();
+    final iosSettings = await File(
+      'ios/Runner/ReceiptCameraViewControllerSessionSettings.swift',
+    ).readAsString();
+    final iosCopy = await File(
+      'ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift',
+    ).readAsString();
 
     expect(publishHelpers, contains('hasSavedReceiptProof:'));
     expect(
@@ -34,6 +49,69 @@ void main() {
       contains(
         'Changes save as soon as you tap a switch. Apply Settings closes this screen. Saved proof size appears after you capture or attach a receipt first.',
       ),
+    );
+    expect(
+      storageSettings,
+      contains('OCR still uses the clearest receipt source first'),
+    );
+    expect(
+      storageSettings,
+      contains('You preview the actual saved proof after taking a photo.'),
+    );
+    expect(
+      storageSettings,
+      contains('Receipt Details And Saved Proof'),
+    );
+    expect(
+      storageHandoff,
+      contains('saved_proof_kept_for_receipt_record'),
+    );
+    expect(
+      storageHandoff,
+      contains('ocr_source_used_for_reading_before_saved_proof'),
+    );
+    expect(
+      storageHandoff,
+      contains('temporary_ocr_source_separate_from_saved_proof'),
+    );
+    expect(
+      storageHandoff,
+      contains('clear_ocr_source_read_before_saved_proof_copy'),
+    );
+    expect(
+      storageHandoff,
+      contains("return 'saved_proof_ocr_fallback_review';"),
+    );
+    expect(
+      storageHandoff,
+      contains("return 'temporary_full_quality_source_guard_review';"),
+    );
+    expect(
+      storageHandoff,
+      contains("return 'temporary_ocr_source_saved_data_saver_proof';"),
+    );
+    expect(
+      storageHandoff,
+      contains("return 'temporary_ocr_source_original_quality_proof';"),
+    );
+    expect(
+      storageHandoff,
+      contains("return 'saved_proof_storage_ready';"),
+    );
+
+    expect(androidSettings, contains('if (capturedPhotoPaths.isNotEmpty()) {'));
+    expect(iosSettings, contains('if !capturedPhotoPaths.isEmpty {'));
+    expect(
+      androidSettings,
+      contains('OCR reads the clear source first. This only changes the smaller saved proof kept for proof and cloud backup.'),
+    );
+    expect(
+      iosCopy,
+      contains('OCR reads the temporary full-quality photo first. Saved proof size stays hidden until there is real receipt proof to review.'),
+    );
+    expect(
+      iosCopy,
+      contains('OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.'),
     );
   });
 }
