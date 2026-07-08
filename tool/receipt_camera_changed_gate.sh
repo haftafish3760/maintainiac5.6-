@@ -104,6 +104,36 @@ while IFS= read -r path; do
         test/receipt_capture_flow_assist_opt_in_contract_test.dart
       )
       ;;
+    docs/receipt_camera_ocr_master_pass_plan.md | \
+    docs/receipt_camera_completion_map.md | \
+    docs/receipt_camera_ocr_pipeline_handoff_report.md | \
+    docs/receipt_camera_release_one_blueprint.md | \
+    docs/receipt_camera_world_class_readiness.md | \
+    docs/receipt_native_camera_service_spec.md | \
+    docs/receipt_camera_ocr_product_standard.md | \
+    docs/receipt_camera_roadmap.md | \
+    PROJECT_RULES.md | \
+    README.md | \
+    test/receipt_camera_active_phase_docs_test.dart | \
+    test/receipt_camera_completion_map_test.dart | \
+    test/receipt_camera_pipeline_handoff_status_test.dart | \
+    test/receipt_camera_release_one_blueprint_test.dart | \
+    test/receipt_camera_release_control_priority_test.dart | \
+    test/receipt_camera_native_baseline_policy_test.dart | \
+    test/receipt_camera_world_class_readiness_test.dart)
+      if [[ "$mode" == "quick" ]]; then
+        mode="phase9"
+      fi
+      targeted_tests+=(
+        test/receipt_camera_active_phase_docs_test.dart
+        test/receipt_camera_completion_map_test.dart
+        test/receipt_camera_pipeline_handoff_status_test.dart
+        test/receipt_camera_release_one_blueprint_test.dart
+        test/receipt_camera_release_control_priority_test.dart
+        test/receipt_camera_native_baseline_policy_test.dart
+        test/receipt_camera_world_class_readiness_test.dart
+      )
+      ;;
     lib/shared/widgets/receipt_capture/receipt_capture_stitch_models.dart | \
     lib/shared/widgets/receipt_capture/receipt_capture_stitch_model_helpers.dart | \
     lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_api.dart | \

@@ -48,6 +48,16 @@ void main() {
       script,
       contains('lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart'),
     );
+    expect(script, contains('docs/receipt_camera_ocr_master_pass_plan.md'));
+    expect(script, contains('docs/receipt_camera_completion_map.md'));
+    expect(script, contains('docs/receipt_camera_ocr_pipeline_handoff_report.md'));
+    expect(script, contains('docs/receipt_camera_release_one_blueprint.md'));
+    expect(script, contains('docs/receipt_camera_world_class_readiness.md'));
+    expect(script, contains('docs/receipt_native_camera_service_spec.md'));
+    expect(script, contains('docs/receipt_camera_ocr_product_standard.md'));
+    expect(script, contains('docs/receipt_camera_roadmap.md'));
+    expect(script, contains('PROJECT_RULES.md'));
+    expect(script, contains('README.md'));
     expect(
       script,
       contains('lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart'),
@@ -133,6 +143,10 @@ void main() {
     expect(
       script,
       contains('test/receipt_camera_attachment_helper_parity_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_camera_pipeline_handoff_status_test.dart'),
     );
     expect(
       script,
@@ -243,6 +257,42 @@ void main() {
     expect(
       stdout,
       isNot(contains('milestone test/receipt_camera_phase4_review_contract_test.dart')),
+    );
+  });
+
+  test('camera changed gate prints exact phase9 checks for receipt-camera doc edits', () async {
+    final result = await Process.run('bash', [
+      'tool/receipt_camera_changed_gate.sh',
+      '--print-tests',
+    ], environment: {
+      'RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST': [
+        'docs/receipt_camera_ocr_pipeline_handoff_report.md',
+        'docs/receipt_camera_completion_map.md',
+      ].join('\n'),
+    });
+
+    expect(result.exitCode, 0);
+    final stdout = result.stdout.toString();
+    expect(stdout, contains('mode=phase9'));
+    expect(
+      stdout,
+      contains('targeted test/receipt_camera_active_phase_docs_test.dart'),
+    );
+    expect(
+      stdout,
+      contains('targeted test/receipt_camera_completion_map_test.dart'),
+    );
+    expect(
+      stdout,
+      contains('targeted test/receipt_camera_pipeline_handoff_status_test.dart'),
+    );
+    expect(
+      stdout,
+      contains('targeted test/receipt_camera_world_class_readiness_test.dart'),
+    );
+    expect(
+      stdout,
+      isNot(contains('quick test/receipt_camera_coverage_decision_test.dart')),
     );
   });
 
