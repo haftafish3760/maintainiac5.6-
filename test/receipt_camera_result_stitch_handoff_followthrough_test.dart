@@ -98,6 +98,27 @@ void main() {
           1,
         ),
       );
+
+      final attachment = ReceiptCaptureFlow.attachmentsFromReviewResult(
+        duplicateLaterFallback,
+        ReceiptCaptureFlowModule.expenses,
+      ).first;
+      expect(
+        attachment.documentSignals,
+        contains('stitch_failed_pair_photo_2_to_3'),
+      );
+      expect(
+        attachment.documentSignals,
+        contains('stitch_review_focus_pair_photo_2_to_3'),
+      );
+      expect(
+        attachment.riskFlags,
+        contains('ocr_source_stitch_failed_pair_photo_2_to_3'),
+      );
+      expect(
+        attachment.riskFlags,
+        contains('ocr_source_stitch_review_focus_pair_photo_2_to_3'),
+      );
     },
   );
 
@@ -175,6 +196,19 @@ void main() {
     expect(
       result.privacySafeReceiptReaderHandoffMetadata,
       containsPair('nextReviewRequiresOcrSourceReviewBeforeAssist', true),
+    );
+
+    final attachment = ReceiptCaptureFlow.attachmentsFromReviewResult(
+      result,
+      ReceiptCaptureFlowModule.expenses,
+    ).single;
+    expect(
+      attachment.documentSignals,
+      contains('stitch_review_focus_pair_photo_1_to_2'),
+    );
+    expect(
+      attachment.riskFlags,
+      contains('ocr_source_stitch_review_focus_pair_photo_1_to_2'),
     );
   });
 

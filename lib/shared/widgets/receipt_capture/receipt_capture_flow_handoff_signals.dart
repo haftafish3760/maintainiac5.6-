@@ -72,6 +72,16 @@ List<String> _ocrSourceDocumentSignalsFor(
   if (!result.ocrSourcePathsMatchStitchContract) {
     signals.add('stitch_ocr_source_result_contract_mismatch');
   }
+  if (result.stitchResult.failedPairLabel.isNotEmpty) {
+    signals.add(
+      'stitch_failed_pair_${_signalToken(result.stitchResult.failedPairLabel)}',
+    );
+  }
+  if (result.stitchResult.reviewFocusPairLabel.isNotEmpty) {
+    signals.add(
+      'stitch_review_focus_pair_${_signalToken(result.stitchResult.reviewFocusPairLabel)}',
+    );
+  }
   signals.add(
     'stitch_overlap_${_signalToken(result.stitchResult.overlapCoverageCode)}',
   );

@@ -68,6 +68,16 @@ extension _ReceiptAttachmentOcrSourceRiskFlags
     if (!result.ocrSourcePathsMatchStitchContract) {
       flags.add('ocr_source_stitch_result_contract_mismatch');
     }
+    if (result.stitchResult.failedPairLabel.isNotEmpty) {
+      flags.add(
+        'ocr_source_stitch_failed_pair_${attachmentSignalToken(result.stitchResult.failedPairLabel)}',
+      );
+    }
+    if (result.stitchResult.reviewFocusPairLabel.isNotEmpty) {
+      flags.add(
+        'ocr_source_stitch_review_focus_pair_${attachmentSignalToken(result.stitchResult.reviewFocusPairLabel)}',
+      );
+    }
     if (result.usedSavedProofAsOcrSourceFallback) {
       flags.add('ocr_source_fallback_saved_proof_review_required');
     }
