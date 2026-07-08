@@ -77,6 +77,56 @@ void main() {
     },
     timeout: _stitchingHeavyTimeout,
   );
+
+  test(
+    'preserves cumulative horizontal drift across three receipt sections',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 120, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 121, topTextOffset: 18);
+      final sectionC = receiptStitchingSection(seed: 122, topTextOffset: 36);
+      _drawHorizontalAlignmentMarks(sectionA, seed: 1);
+      _drawHorizontalAlignmentMarks(sectionB, seed: 2);
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 340,
+        dstX: 108,
+      );
+      _blankTopOverlapEdge(sectionB, width: 108);
+      copyReceiptStitchingOverlap(
+        from: sectionB,
+        to: sectionC,
+        pixels: 340,
+        dstX: 108,
+      );
+      _blankTopOverlapEdge(sectionC, width: 108);
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'cumulative_horizontal_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        sectionB,
+        'cumulative_horizontal_b',
+      );
+      final third = await writeTempReceiptStitchingImage(
+        sectionC,
+        'cumulative_horizontal_c',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path, third.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(2));
+      expect(result.overlapPixels, hasLength(2));
+      expect(result.stitchedWidth, greaterThan(900));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      await _expectStitchedImageMatchesReportedSize(result);
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
 }
 
 Future<void> _expectStitchedImageMatchesReportedSize(
@@ -89,4 +139,31 @@ Future<void> _expectStitchedImageMatchesReportedSize(
   expect(decoded!.width, result.stitchedWidth);
   expect(decoded.height, result.stitchedHeight);
   expect(result.ocrSourcePaths, [stitchedPath]);
+}
+
+void _blankTopOverlapEdge(img.Image image, {required int width}) {
+  img.fillRect(
+    image,
+    x1: 0,
+    y1: 0,
+    x2: width.clamp(0, image.width - 1),
+    y2: 360,
+    color: img.ColorRgb8(255, 255, 255),
+  );
+}
+
+void _drawHorizontalAlignmentMarks(img.Image image, {required int seed}) {
+  final startY = image.height - 318;
+  for (var index = 0; index < 8; index++) {
+    final x = 72 + ((index * 91 + seed * 17) % 680);
+    final y = startY + index * 31;
+    img.fillRect(
+      image,
+      x1: x,
+      y1: y,
+      x2: (x + 28 + index * 3).clamp(0, image.width - 1),
+      y2: (y + 18).clamp(0, image.height - 1),
+      color: img.ColorRgb8(12, 12, 12),
+    );
+  }
 }

@@ -212,21 +212,47 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       }
     }
 
+    final horizontalPlacements = _stitchHorizontalPlacements(
+      horizontalOffsets,
+    );
+    final minPlacementX = horizontalPlacements.reduce(math.min);
+    final maxPlacementX = horizontalPlacements
+        .map((x) => x + targetWidth)
+        .reduce(math.max);
+    final canvasWidth = maxPlacementX - minPlacementX;
+    final expandedPixels = canvasWidth * expectedHeight;
+    if (expectedHeight > maxOutputHeight || expandedPixels > maxOutputPixels) {
+      return _oversizedStitchFallback(
+        inputPaths: inputPaths,
+        targetWidth: canvasWidth,
+        expectedHeight: expectedHeight,
+        maxOutputPixels: maxOutputPixels,
+        maxOutputHeight: maxOutputHeight,
+        confidences: confidences,
+        pairResults: pairResults,
+      )!;
+    }
+    final placementShiftX = -minPlacementX;
     final canvas = img.Image(
-      width: targetWidth,
+      width: canvasWidth,
       height: expectedHeight,
       numChannels: 3,
     );
     img.fill(canvas, color: img.ColorRgb8(255, 255, 255));
     var y = 0;
-    img.compositeImage(canvas, normalized.first, dstX: 0, dstY: y);
+    img.compositeImage(
+      canvas,
+      normalized.first,
+      dstX: horizontalPlacements.first + placementShiftX,
+      dstY: y,
+    );
     y += normalized.first.height;
     for (var index = 1; index < normalized.length; index++) {
       y -= overlaps[index - 1];
       img.compositeImage(
         canvas,
         normalized[index],
-        dstX: -horizontalOffsets[index - 1],
+        dstX: horizontalPlacements[index] + placementShiftX,
         dstY: y,
       );
       y += normalized[index].height;
@@ -242,7 +268,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       confidence: confidence,
       overlapPixels: overlaps,
       pairs: pairResults,
-      stitchedWidth: targetWidth,
+      stitchedWidth: canvasWidth,
       stitchedHeight: expectedHeight,
       usedManualAdjustment: pairResults.any(
         (pair) => pair.usedManualAdjustment,
@@ -256,6 +282,14 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       fallbackReasonCode: 'stitch_exception',
     );
   }
+}
+
+List<int> _stitchHorizontalPlacements(List<int> pairOffsets) {
+  final placements = <int>[0];
+  for (final offset in pairOffsets) {
+    placements.add(placements.last - offset);
+  }
+  return placements;
 }
 
 bool _stitchInputPathsAreUnique(List<String> inputPaths) {
