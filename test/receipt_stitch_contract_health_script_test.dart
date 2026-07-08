@@ -10,8 +10,21 @@ void main() {
       expect(script.existsSync(), isTrue);
 
       final source = script.readAsStringSync();
+      expect(
+        source,
+        contains('receipt_native_camera_session_limits_test.dart'),
+      );
+      expect(source, contains('receipt_capture_flow_shareability_test.dart'));
+      expect(
+        source,
+        contains('receipt_camera_phase5_long_receipt_contract_test.dart'),
+      );
       expect(source, contains('receipt_stitching_test.dart'));
       expect(source, contains('receipt_stitching_variants_test.dart'));
+      expect(
+        source,
+        contains('receipt_camera_result_stitch_scanner_test.dart'),
+      );
       expect(
         source,
         contains('receipt_camera_phase6_stitching_handoff_contract_test.dart'),
