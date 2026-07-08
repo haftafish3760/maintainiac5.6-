@@ -73,7 +73,7 @@ run_phone_windows() {
     test/receipt_stitching_long_stack_test.dart \
     test/receipt_stitching_phone_window_safety_test.dart \
     test/receipt_stitching_phone_window_edge_crop_test.dart \
-    --name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|out-of-order phone-window|dark display borders|status and nav bars|eleven-section|ugly seven-section|ragged phone-window|tight-overlap phone-window' \
+    --name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|tight-overlap phone windows with alternating vertical edge clips|skipped phone-window|out-of-order phone-window|dark display borders|status and nav bars|eleven-section|ugly seven-section|ragged phone-window|tight-overlap phone-window' \
     --concurrency=1
   echo "Receipt stitch phone-window health: PASS"
 }
