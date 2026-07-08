@@ -119,6 +119,53 @@ void main() {
     },
     timeout: _stitchingHeavyTimeout,
   );
+
+  test(
+    'stitches folded faded phone-window long receipt sections',
+    () async {
+      final tallReceipt = _addFoldShadows(
+        fadeReceiptStitchingInk(
+          tallReceiptStitchingCanvas(sectionCount: 5),
+          amount: .24,
+        ),
+      );
+      final starts = <int>[0, 1040, 2080, 3120, 4160];
+      final files = <File>[];
+      for (var index = 0; index < starts.length; index++) {
+        final window = cropReceiptStitchingPhoneWindow(
+          tallReceipt,
+          y: starts[index],
+          height: 1500,
+        );
+        final adjusted = index.isEven
+            ? adjustReceiptStitchingBrightness(window, delta: -18)
+            : adjustReceiptStitchingBrightness(window, delta: 22);
+        files.add(
+          await writeTempReceiptStitchingImage(
+            shiftReceiptStitchingShot(
+              adjusted,
+              dx: index.isEven ? 18 : -22,
+              dy: 0,
+            ),
+            'folded_faded_window_$index',
+          ),
+        );
+      }
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: files.map((file) => file.path).toList(growable: false),
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.overlapPixels, hasLength(4));
+      expect(result.overlapPixelTotal, greaterThan(1500));
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.stitchedPixelCount, lessThan(16000000));
+      await _expectReadableStitchedArtifact(result);
+    },
+    timeout: const Timeout(Duration(minutes: 3)),
+  );
 }
 
 img.Image _uglySection({
@@ -157,4 +204,29 @@ Future<void> _expectReadableStitchedArtifact(ReceiptStitchResult result) async {
   expect(decoded!.width, result.stitchedWidth);
   expect(decoded.height, result.stitchedHeight);
   expect(decoded.height, greaterThan(3600));
+}
+
+img.Image _addFoldShadows(img.Image source) {
+  final folded = img.copyResize(source, width: source.width);
+  for (var y = 160; y < folded.height - 120; y += 420) {
+    img.drawLine(
+      folded,
+      x1: 38,
+      y1: y,
+      x2: folded.width - 42,
+      y2: y + 76,
+      color: img.ColorRgb8(198, 198, 194),
+      thickness: 5,
+    );
+    img.drawLine(
+      folded,
+      x1: 70,
+      y1: y + 14,
+      x2: folded.width - 76,
+      y2: y + 88,
+      color: img.ColorRgb8(232, 232, 228),
+      thickness: 3,
+    );
+  }
+  return folded;
 }
