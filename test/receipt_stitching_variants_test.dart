@@ -340,6 +340,92 @@ void main() {
   );
 
   test(
+    'stitches three receipt sections with delayed overlap in each continuation',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 69, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 70, topTextOffset: 12);
+      final sectionC = receiptStitchingSection(seed: 71, topTextOffset: 24);
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 320,
+        dstY: 36,
+      );
+      copyReceiptStitchingOverlap(
+        from: sectionB,
+        to: sectionC,
+        pixels: 360,
+        dstY: 60,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'delayed_overlap_stack_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        sectionB,
+        'delayed_overlap_stack_b',
+      );
+      final third = await writeTempReceiptStitchingImage(
+        sectionC,
+        'delayed_overlap_stack_c',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path, third.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(2));
+      expect(result.overlapPixels, hasLength(2));
+      expect(result.overlapPixels.first, greaterThan(320));
+      expect(result.overlapPixels.last, greaterThan(360));
+      final normalizedSectionHeight =
+          (sectionA.height * result.stitchedWidth / sectionA.width).round();
+      expect(
+        result.stitchedHeight,
+        normalizedSectionHeight * 3 -
+            result.overlapPixels.reduce((total, pixels) => total + pixels),
+      );
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+    },
+  );
+
+  test(
+    'stitches receipt sections with delayed overlap and handheld drift',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 72, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 73, topTextOffset: 30);
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 330,
+        dstY: 48,
+      );
+      final shiftedSecond = shiftReceiptStitchingShot(sectionB, dx: 24);
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'delayed_drift_overlap_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        shiftedSecond,
+        'delayed_drift_overlap_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.overlapPixels.single, greaterThan(330));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+    },
+  );
+
+  test(
     'falls back when horizontal drift leaves the overlap unreadable',
     () async {
       final sectionA = receiptStitchingSection(seed: 66, topTextOffset: 0);
