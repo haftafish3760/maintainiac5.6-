@@ -38,12 +38,26 @@ void main() {
     );
     expect(
       map,
+      contains('`tool/receipt_camera_qa_gate.sh core_remaining` also passed on 2026-07-07'),
+    );
+    expect(
+      map,
       contains(
         'Real-device notes are still the remaining gap.',
       ),
     );
     expect(map, contains('| Partial |'));
     expect(map, isNot(contains('| Missing |')));
+    expect(
+      map,
+      contains(
+        '`tool/receipt_camera_qa_gate.sh core_remaining` passed on 2026-07-07, so',
+      ),
+    );
+    expect(
+      map,
+      contains('the non-UI lane is ready for live device/UI proof.'),
+    );
   });
 
   test('release blueprint points future agents to completion map', () {

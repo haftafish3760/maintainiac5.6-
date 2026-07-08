@@ -69,11 +69,11 @@ Receipt workflow scope excludes:
 | Quality guidance | Release-one live guidance stays conservative: neutral receipt framing/readability guidance, small-text/distance, and edge visibility can guide capture; blur, glare, shadow, dirty-lens, low-light, and steadiness claims stay disabled by default unless separately proven. Post-capture review may surface saved-photo quality risks as advisory review prompts. | Quality model/tests exist; unproven live quality claims are default-off and need real receipt calibration before promotion. Experimental live warnings now also wait for a reliable framed receipt target instead of any vague bounds hit. Optional experimental blur/focus scoring stays out of the default flow. | Partial |
 | Long receipt ordering | Add Photo creates ordered segments; retake preserves index and context. | Phase 5 contracts are green for numbering, continuation ordering, retake slot preservation, and section-order regressions. Real-device UI/interruption proof is still required. | Partial |
 | Ghost/overlap guidance | Previous segment bottom 15-20% guides the next capture; middle retake can use previous/next context. | Ghost-guide contracts are green through Phase 5 and the milestone gate. Real-device visual proof is still missing. | Partial |
-| Stitch/fallback | Strong overlap stitches; weak overlap falls back to ordered OCR handoff without corrupting sources. | Phase 6 synthetic stitching, overlap removal, low-confidence fallback, and source-preservation tests are green, including the bundled milestone gate. Real-receipt fixture expansion is still needed. | Partial |
-| OCR source handoff | OCR gets temporary full-quality source or ordered segments; saved compressed proof is separate. | Phase 7 handoff, privacy, source-count, and stitch-followthrough contracts are green. Final app-flow and real-device proof are still required. | Partial |
+| Stitch/fallback | Strong overlap stitches; weak overlap falls back to ordered OCR handoff without corrupting sources. | Phase 6 synthetic stitching, overlap removal, low-confidence fallback, and source-preservation tests are green. `tool/receipt_camera_qa_gate.sh core_remaining` also passed on 2026-07-07, so the remaining gap is fixture expansion plus real-device proof, not late non-UI gate uncertainty. | Partial |
+| OCR source handoff | OCR gets temporary full-quality source or ordered segments; saved compressed proof is separate. | Phase 7 handoff, privacy, source-count, and stitch-followthrough contracts are green. `tool/receipt_camera_qa_gate.sh core_remaining` passed on 2026-07-07 for the stitched, fallback, and imported-photo handoff lane. Final app-flow and real-device proof are still required. | Partial |
 | Review mode handoff | Camera output carries price-only versus detailed-line review intent; parser owns final line extraction/numbering. | Review-depth contracts and expense line numbering already exist; needs app-flow proof. | Partial |
 | Barcode/QR handoff | Receipt capture can hand barcode/QR evidence forward without owning inventory work. | Service files and camera summary tests exist; flow proof can wait behind capture/stitch. | Partial |
-| Device/storage safety | Older devices reduce heavy work; low storage avoids unsafe processing. | Capability/storage and Phase 8 storage-proof timing contracts are green. Real-device proof is still missing. | Partial |
+| Device/storage safety | Older devices reduce heavy work; low storage avoids unsafe processing. | Capability/storage and Phase 8 storage-proof timing contracts are green, and `tool/receipt_camera_qa_gate.sh core_remaining` passed on 2026-07-07 after analyzer cleanup. Real-device proof is still missing. | Partial |
 | Fixture QA | Synthetic and real receipt fixtures cover camera failure families. | Many camera tests exist; release-one camera fixture matrix exists and needs real receipt additions. | Partial |
 | Milestone quality gate | Targeted camera tests, source audit, doc gate, analyzer, and real-device notes pass together. | Phase 2 through Phase 9 targeted gates are green, the source/line-count/scope/regression gates are green, and `tool/receipt_camera_qa_gate.sh milestone` passed on 2026-07-07. iPhone stale native-asset contamination was reproduced and cleared with a clean rebuild plus native-asset preflight, but final real-device capture proof is still waiting on the remaining Flutter debug/native-assets run-mode blocker and manual device flows. Real-device notes are still the remaining gap. | Partial |
 
@@ -119,14 +119,14 @@ evidence table is updated.
 
 Use this punch list before any new camera UI polish:
 
-1. Finish Phase 6 stitch/fallback hardening for any remaining contract or
-   regression gaps.
-2. Finish Phase 7 OCR-source handoff follow-through for stitched, fallback, and
-   imported-photo paths.
-3. Finish Phase 8 storage-proof timing verification so OCR-source preservation
-   stays correct after capture/review.
-4. Run `tool/receipt_camera_qa_gate.sh core_remaining` before claiming the
-   non-UI camera lane is ready for live device/UI proof.
+1. Keep Phase 6 stitch/fallback regressions green as real receipt fixtures are
+   added.
+2. Keep Phase 7 OCR-source handoff follow-through green as app-flow and
+   device-proof work lands.
+3. Keep Phase 8 storage-proof timing verification green while device/UI proof
+   is added.
+4. `tool/receipt_camera_qa_gate.sh core_remaining` passed on 2026-07-07, so
+   the non-UI lane is ready for live device/UI proof.
 
 ## Four-Phone Real-Device Proof
 
