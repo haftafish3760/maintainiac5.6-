@@ -216,6 +216,12 @@ void main() {
       );
       expect(
         phase9Plan,
+        contains(
+          'phase9 test/receipt_camera_real_device_snapshot_contract_test.dart',
+        ),
+      );
+      expect(
+        phase9Plan,
         contains('phase9 test/receipt_real_device_matrix_gate_test.dart'),
       );
       expect(
