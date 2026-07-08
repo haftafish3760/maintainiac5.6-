@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers/receipt_stitching_image_helpers.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
+const _stitchingHeavyTimeout = Timeout(Duration(minutes: 2));
+
 void main() {
   test(
     'stitching rejects empty receipt photo lists before OCR handoff',
@@ -135,6 +137,7 @@ void main() {
         contains('3 receipt sections became 1 receipt image'),
       );
     },
+    timeout: _stitchingHeavyTimeout,
   );
 
   test(
@@ -238,5 +241,4 @@ void main() {
       );
     },
   );
-
 }

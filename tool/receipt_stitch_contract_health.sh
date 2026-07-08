@@ -31,6 +31,7 @@ case "$mode" in
       test/receipt_capture_flow_shareability_test.dart \
       test/receipt_camera_phase5_long_receipt_contract_test.dart \
       test/receipt_stitching_test.dart \
+      test/receipt_stitching_manual_overlap_test.dart \
       test/receipt_stitching_variants_test.dart \
       test/receipt_stitching_weak_overlap_safety_test.dart \
       test/receipt_camera_result_stitch_scanner_test.dart \

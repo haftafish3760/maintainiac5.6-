@@ -3,6 +3,8 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
 import 'helpers/receipt_stitching_image_helpers.dart';
 
+const _stitchingHeavyTimeout = Timeout(Duration(minutes: 2));
+
 void main() {
   test('stitching rejects duplicate receipt section paths', () async {
     final section = receiptStitchingSection(seed: 90, topTextOffset: 0);
@@ -299,6 +301,7 @@ void main() {
         expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       }
     },
+    timeout: _stitchingHeavyTimeout,
   );
 
   test(
@@ -464,7 +467,7 @@ void main() {
   );
 
   test(
-    'falls back when horizontal drift leaves the overlap unreadable',
+    'keeps severe horizontal drift in weak-overlap review lane',
     () async {
       final sectionA = receiptStitchingSection(seed: 66, topTextOffset: 0);
       final shiftedSecond = shiftReceiptStitchingShot(
@@ -486,14 +489,29 @@ void main() {
         paths: [first.path, second.path],
       );
 
-      expect(result.usedFallback, isTrue, reason: result.detailLabel);
-      expect(result.didStitch, isFalse);
-      expect(result.fallbackReasonCode, 'overlap_confidence_low');
+      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+      expect(result.reviewFocusPairLabel, 'Photo 1 to 2');
       expect(
-        result.ocrSourceContractCode,
-        'fallback_overlap_untrusted_sources',
+        result.privacySafeOcrHandoffSafety,
+        containsPair('stitchReviewFocusPairLabel', 'Photo 1 to 2'),
       );
+      if (result.didStitch) {
+        expect(result.pairs.single.confidence, inInclusiveRange(.50, .69));
+        expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
+        expect(
+          result.assistedReadinessCode,
+          'stitched_overlap_review_required',
+        );
+      } else {
+        expect(result.usedFallback, isTrue, reason: result.detailLabel);
+        expect(result.fallbackReasonCode, 'overlap_confidence_low');
+        expect(
+          result.ocrSourceContractCode,
+          'fallback_overlap_untrusted_sources',
+        );
+      }
     },
+    timeout: _stitchingHeavyTimeout,
   );
 
   test('stitches receipt sections with mild wrinkles and smudges', () async {

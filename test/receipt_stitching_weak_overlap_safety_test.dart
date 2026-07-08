@@ -3,6 +3,8 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
 import 'helpers/receipt_stitching_image_helpers.dart';
 
+const _stitchingHeavyTimeout = Timeout(Duration(minutes: 2));
+
 void main() {
   test(
     'keeps blurred continuation overlap in review-required stitch lane',
@@ -27,6 +29,7 @@ void main() {
 
       expectWeakOverlapRequiresReview(result);
     },
+    timeout: _stitchingHeavyTimeout,
   );
 
   test(

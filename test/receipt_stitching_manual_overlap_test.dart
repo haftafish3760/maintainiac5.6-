@@ -224,4 +224,66 @@ void main() {
       expect(result.ocrSourcePaths, hasLength(1));
     },
   );
+
+  test(
+    'manual overlap can rescue an unclear continuation intentionally',
+    () async {
+      final top = receiptStitchingSection(seed: 120, topTextOffset: 0);
+      final bottom = blankDarkReceiptPhotoSection();
+
+      final first = await writeTempReceiptStitchingImage(
+        top,
+        'manual_overlap_top',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        bottom,
+        'manual_overlap_unclear_bottom',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+        manualOverlapPixels: const [180],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.usedManualAdjustment, isTrue);
+      expect(result.overlapPixels, [180]);
+      expect(result.pairs.single.usedManualAdjustment, isTrue);
+      expect(result.pairs.single.hasTrustedOverlapEvidence, isTrue);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.assistedReadinessCode, 'stitched_overlap_verified_ready');
+    },
+  );
+
+  test('unsafe manual overlap keeps OCR source in review lane', () async {
+    final top = receiptStitchingSection(seed: 121, topTextOffset: 0);
+    final bottom = receiptStitchingSection(seed: 122, topTextOffset: 18);
+    copyReceiptStitchingOverlap(from: top, to: bottom, pixels: 320);
+
+    final first = await writeTempReceiptStitchingImage(
+      top,
+      'manual_overlap_unsafe_top',
+    );
+    final second = await writeTempReceiptStitchingImage(
+      bottom,
+      'manual_overlap_unsafe_bottom',
+    );
+
+    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+      paths: [first.path, second.path],
+      manualOverlapFractions: const [1.25],
+    );
+
+    expect(result.usedFallback, isTrue);
+    expect(result.fallbackReasonCode, 'manual_overlap_unsafe');
+    expect(result.failedPairLabel, 'Photo 1 to 2');
+    expect(result.ocrSourcePaths, [first.path, second.path]);
+    expect(result.hasValidOcrSourceContract, isTrue);
+    expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
+    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+    expect(
+      result.assistedReadinessCode,
+      'ordered_sections_stitch_fallback_review_required',
+    );
+  });
 }
