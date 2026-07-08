@@ -24,6 +24,23 @@ void main() {
       expect(result.usedSavedProofAsOcrSourceFallback, isFalse);
       expect(result.ocrReadsClearSourceBeforeSavedProof, isTrue);
       expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('saved_proof_kept_for_receipt_record', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('ocr_source_used_for_reading_before_saved_proof', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        isNot(contains('temporary_ocr_source_separate_from_saved_proof')),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        isNot(contains('accepted_review_allows_temporary_ocr_cleanup')),
+      );
+      expect(result.receiptProofStoragePolicyOutcome, 'saved_proof_storage_ready');
+      expect(
         result.privacySafeOcrSourceFirstSummary,
         containsPair('ocrSourceProofRelationship', 'same_accepted_source'),
       );

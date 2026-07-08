@@ -140,7 +140,8 @@ extension ReceiptPhotoReviewResultHandoffStorage on ReceiptPhotoReviewResult {
     }
     if (keptForLater) {
       counts['review_kept_for_later_no_cleanup_yet'] = photoPaths.length;
-    } else {
+    } else if (usesSeparateOcrSourceCopies ||
+        scannerKeptTemporaryFullQualitySourceForQuality) {
       counts['accepted_review_allows_temporary_ocr_cleanup'] =
           ocrSourcePhotoPaths.length;
     }
