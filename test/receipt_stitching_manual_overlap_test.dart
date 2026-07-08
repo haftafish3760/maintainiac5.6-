@@ -358,4 +358,43 @@ void main() {
       'ordered_sections_stitch_fallback_review_required',
     );
   });
+
+  test(
+    'unsafe later manual overlap preserves prior pair evidence',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 123, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 124, topTextOffset: 18);
+      final sectionC = receiptStitchingSection(seed: 125, topTextOffset: 36);
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 260);
+      copyReceiptStitchingOverlap(from: sectionB, to: sectionC, pixels: 280);
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'manual_overlap_later_unsafe_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        sectionB,
+        'manual_overlap_later_unsafe_b',
+      );
+      final third = await writeTempReceiptStitchingImage(
+        sectionC,
+        'manual_overlap_later_unsafe_c',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path, third.path],
+        manualOverlapPixels: const [260, 999999],
+      );
+
+      expect(result.usedFallback, isTrue);
+      expect(result.fallbackReasonCode, 'manual_overlap_unsafe');
+      expect(result.failedPairIndex, 1);
+      expect(result.failedPairLabel, 'Photo 2 to 3');
+      expect(result.pairs, hasLength(1));
+      expect(result.pairs.single.usedManualAdjustment, isTrue);
+      expect(result.pairs.single.overlapPixels, 260);
+      expect(result.ocrSourcePaths, [first.path, second.path, third.path]);
+      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+    },
+  );
 }
