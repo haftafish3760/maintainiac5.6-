@@ -234,6 +234,7 @@ run_core_stitch() {
   run_long_stack
   run_ugly_long_receipts
   run_uploaded_screenshots
+  run_bad_inputs
   run_manual_overlap
   run_duplicates
   run_handoff
