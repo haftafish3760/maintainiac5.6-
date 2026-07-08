@@ -168,4 +168,31 @@ void main() {
     expect(metadata.toString(), isNot(contains('ocr-middle')));
     expect(metadata.toString(), isNot(contains('proof-bottom')));
   });
+
+  test('stitch fallback reason count uses privacy-safe normalized code', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/private/proof-top.jpg', '/private/proof-bottom.jpg'],
+      ocrSourcePhotoPaths: const [
+        '/private/ocr-top.jpg',
+        '/private/ocr-bottom.jpg',
+      ],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: ['/private/ocr-top.jpg', '/private/ocr-bottom.jpg'],
+        warning: 'Overlap was not trusted.',
+        fallbackReasonCode: ' OVERLAP confidence LOW ',
+        failedPairIndex: 0,
+      ),
+    );
+
+    final counts = result.receiptReaderHandoffCounts;
+
+    expect(counts, containsPair('stitch_fallback_overlap_confidence_low', 1));
+    expect(
+      counts.keys,
+      isNot(contains('stitch_fallback_ OVERLAP confidence LOW ')),
+    );
+    expect(counts.keys.join('|'), isNot(contains('/private/')));
+    expect(counts.keys.join('|'), isNot(contains('ocr-bottom')));
+  });
 }

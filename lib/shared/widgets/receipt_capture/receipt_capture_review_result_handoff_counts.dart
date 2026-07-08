@@ -22,7 +22,7 @@ extension ReceiptPhotoReviewResultHandoffCounts on ReceiptPhotoReviewResult {
       counts['ocr_source_combined_stitch'] = 1;
     } else if (stitchResult.usedFallback) {
       counts['ocr_source_ordered_sections_stitch_fallback'] = 1;
-      final fallbackReason = stitchResult.fallbackReasonCode.trim();
+      final fallbackReason = stitchResult.diagnosticReasonLabel;
       if (fallbackReason.isNotEmpty) {
         counts['stitch_fallback_$fallbackReason'] = 1;
       }
