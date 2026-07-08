@@ -151,6 +151,38 @@ void main() {
     _expectGoodPlumbingCore('TRUE VALUE 3/4 BALL VALV FlP', ['ball valve']);
   });
 
+  test('plumbing core parses toilet repair and flange service lines', () {
+    _expectGoodPlumbingCore('ACE UNIV TOILET FILL VALVE', ['fill valve']);
+    _expectGoodPlumbingCore('TRUE VALUE 3IN TOILET FLAPPER', ['flapper']);
+    _expectGoodPlumbingCore('LOCAL HW CLOSET WAX RING BOLTS', ['wax ring']);
+    _expectGoodPlumbingCore('FERG TOILET TANK BOLT KIT', ['tank bolt']);
+    _expectGoodPlumbingCore('WINSUPPLY TOILET FLANGE REPAIR RING', ['flange']);
+  });
+
+  test('plumbing core parses sealant and tape receipt lines', () {
+    _expectGoodPlumbingCore('ACE PIPE DOPE PTFE PASTE', ['thread sealant']);
+    _expectGoodPlumbingCore('TRUE VALUE WHITE PTFE THREAD TAPE', ['ptfe']);
+    _expectGoodPlumbingCore('LOCAL SUPPLY GAS LINE THREAD SEALANT', [
+      'thread sealant',
+    ]);
+    _expectGoodPlumbingCore('FERG YELLOW GAS PTFE TAPE', ['ptfe']);
+    _expectGoodPlumbingCore('WINSUPPLY PIPE JOINT COMPOUND', [
+      'thread sealant',
+    ]);
+  });
+
+  test('plumbing core parses water-heater service receipt lines', () {
+    _expectGoodPlumbingCore('ACE 4500W WH ELEMENT', ['element']);
+    _expectGoodPlumbingCore('TRUE VALUE WATER HTR ANODE ROD', ['anode']);
+    _expectGoodPlumbingCore('LOCAL SUPPLY WTR HTR DIELECTRIC NIPPLE', [
+      'dielectric',
+    ]);
+    _expectGoodPlumbingCore('FERG WTR HTR SUPPLY CONNECTOR 3/4X18', [
+      'water heater',
+    ]);
+    _expectGoodPlumbingCore('WINSUPPLY T&P RELIEF VALVE 3/4', ['relief valve']);
+  });
+
   test(
     'plumbing core keeps ultra-vague merchant abbreviations out of good confidence',
     () {

@@ -2850,6 +2850,9 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'thread sealant|thread paste|ptfe paste|pipe dope|teflon tape|ptfe tape)\b',
   ).hasMatch(text)) {
     final amount = _receiptPackageAmount(text, 'oz');
+    final wantsPasteOrDope = RegExp(
+      r'\b(pipe dope|thread paste|ptfe paste|paste|compound)\b',
+    ).hasMatch(text);
     final wantsGasTape =
         RegExp(r'\b(gas|yellow)\b').hasMatch(text) &&
         RegExp(r'\b(ptfe|teflon)\b').hasMatch(text);
@@ -2859,6 +2862,10 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
           name.contains('thread sealant supply') &&
           (_receiptContainsVariantTokens(text, item.variant) ||
               (amount != null && _nameStartsWithAmount(name, amount, 'oz')) ||
+              (wantsPasteOrDope &&
+                  (name.contains('pipe joint compound') ||
+                      name.contains('ptfe paste') ||
+                      name.contains('thread sealant'))) ||
               (wantsGasTape && name.contains('yellow gas ptfe tape')))) {
         return item;
       }
