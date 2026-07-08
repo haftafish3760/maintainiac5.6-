@@ -55,6 +55,22 @@ void main() {
     _expectNoPlumbingMatch('VISA APPROVED AUTH 12345');
     _expectNoPlumbingMatch('CASHIER 08 REG 03 THANK Y0U');
   });
+
+  test('plumbing core handles dirty random-store service receipts', () {
+    _expectGoodPlumbingCore('FERG QTY1 WATTS PRV PRESS RED VLV 3/4', [
+      'pressure reducing valve',
+    ]);
+    _expectGoodPlumbingCore('WlNSUPPLY 1/2 ANG ST0P COMP X OD CHR', [
+      'angle stop',
+    ]);
+    _expectGoodPlumbingCore('RURAL KING WELL PRESS SW 40/60', [
+      'pressure switch',
+    ]);
+    _expectGoodPlumbingCore('SUPPLYH0USE 3/4 VAC BRKR H0SE BIBB', [
+      'vacuum',
+    ]);
+    _expectGoodPlumbingCore('LOCAL HW 3 X 2 FERNCO RED CPLG', ['fernco']);
+  });
 }
 
 void _expectGoodPlumbingCore(String line, List<String> expectedTerms) {

@@ -926,6 +926,8 @@ String _normalize(String value) {
       .replaceAll(RegExp(r'\be1b\b'), 'elb')
       .replaceAll(RegExp(r'\be18\b'), 'elb')
       .replaceAll(RegExp(r'\bsw1tch\b'), 'switch')
+      .replaceAll(RegExp(r'\bpress\s+sw\b'), 'pressure switch')
+      .replaceAll(RegExp(r'\bvac\s+brkr\b'), 'vacuum breaker')
       .replaceAll(RegExp(r'\bkt\b'), 'kit')
       .replaceAll(RegExp(r'(?<=\d)"'), ' in')
       .replaceAll(RegExp(r'(?<=\d)x(?=\d)'), ' x ')
