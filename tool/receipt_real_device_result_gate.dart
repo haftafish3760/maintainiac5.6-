@@ -54,6 +54,14 @@ const _forbiddenRunContent = <String>[
   '<image',
 ];
 
+const _forbiddenDeviceOutputSignatures = <String>[
+  'Found 4 connected devices:',
+  'Checking for wireless devices...',
+  'List of devices attached',
+  '== Devices ==',
+  '== Simulators ==',
+];
+
 const _snapshotPathLabels = <String>[
   'Metadata snapshot summary',
   'Flutter devices snapshot log',
@@ -103,6 +111,18 @@ void main() {
       _fail(
         'Receipt real-device result gate failed.\n'
         'Run note ${runFile.path} contains forbidden content: ${forbidden.join(', ')}',
+      );
+    }
+
+    final forbiddenDeviceOutput = [
+      for (final token in _forbiddenDeviceOutputSignatures)
+        if (text.contains(token)) token,
+    ];
+    if (forbiddenDeviceOutput.isNotEmpty) {
+      _fail(
+        'Receipt real-device result gate failed.\n'
+        'Run note ${runFile.path} contains raw device output: '
+        '${forbiddenDeviceOutput.join(', ')}',
       );
     }
 

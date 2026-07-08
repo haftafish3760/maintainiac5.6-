@@ -126,6 +126,61 @@ void main() {
       contains('Receipt real-device result gate: template=ok'),
     );
   });
+
+  test('real-device result gate rejects raw device-list output in note body', () async {
+    final runDir = await Directory.systemTemp.createTemp(
+      'receipt_real_device_gate_device_dump_',
+    );
+    addTearDown(() async {
+      if (runDir.existsSync()) {
+        await runDir.delete(recursive: true);
+      }
+    });
+
+    final tempDir = await Directory.systemTemp.createTemp(
+      'receipt_real_device_gate_device_dump_files_',
+    );
+    addTearDown(() async {
+      if (tempDir.existsSync()) {
+        await tempDir.delete(recursive: true);
+      }
+    });
+
+    final summary = File('${tempDir.path}/summary.txt')..writeAsStringSync('ok');
+    final flutter = File('${tempDir.path}/flutter_devices.txt')
+      ..writeAsStringSync('ok');
+    final adb = File('${tempDir.path}/adb_devices.txt')..writeAsStringSync('ok');
+    final xcode = File('${tempDir.path}/xcrun_devices.txt')
+      ..writeAsStringSync('ok');
+
+    final runFile = File('${runDir.path}/9999-12-31-raw-device-dump-test.md');
+    runFile.writeAsStringSync(
+      _runNote(
+        metadataSummary: summary.path,
+        flutterLog: flutter.path,
+        adbLog: adb.path,
+        xcodeLog: xcode.path,
+      ) +
+          '\n- Flutter devices snapshot: Found 4 connected devices:\n'
+          '- Xcode devices snapshot: == Devices ==\n',
+    );
+
+    final result = await Process.run('dart', [
+      'tool/receipt_real_device_result_gate.dart',
+    ], environment: {
+      'RECEIPT_REAL_DEVICE_RUNS_DIR': runDir.path,
+    });
+
+    expect(result.exitCode, 1);
+    expect(
+      result.stderr.toString(),
+      contains('contains raw device output'),
+    );
+    expect(
+      result.stderr.toString(),
+      contains('Found 4 connected devices:'),
+    );
+  });
 }
 
 String _runNote({
