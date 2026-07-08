@@ -243,6 +243,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       'receipt_section_order_action_review_retaken_section_order_before_ocr',
       'receipt_section_order_action_review_inserted_section_order_before_ocr',
       'receipt_section_order_action_review_manual_section_order_before_ocr',
+      'receipt_section_order_action_review_multi_section_order',
       'receipt_section_order_retake_order_invalid',
       'receipt_section_order_insert_order_invalid',
       'receipt_section_order_manual_order_invalid',

@@ -54,4 +54,60 @@ void main() {
     );
     expect(diagnostics.ocrSourcePhotoQualityRiskCounts, isEmpty);
   });
+
+  test(
+    'ocr source handoff reports multi-section fallback review action',
+    () async {
+      final result = await const ReceiptOcrService()
+          .recognizeTextFromAttachments([
+            ReceiptAttachmentRecord(
+              id: 'multi-section-fallback-review',
+              path: '',
+              kind: ReceiptAttachmentKind.emailText,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime(2026, 7, 8),
+              importedText: 'STORE\nTOTAL 9.99',
+              documentSignals: const [
+                'receipt_ocr_source_photo',
+                'receipt_section_order_multi_section_order_tracked',
+                'receipt_section_order_action_review_multi_section_order',
+                'multiple_ocr_sources_fallback',
+                'stitch_ocr_source_contract_review_required',
+              ],
+              riskFlags: const [
+                'ocr_stitch_fallback_multiple_sources',
+                'ocr_source_stitch_contract_fallback_overlap_untrusted_sources',
+              ],
+            ),
+          ]);
+
+      final summary = result.sourceHandoffSummary;
+      final diagnostics = result.diagnostics;
+
+      expect(
+        summary.sectionOrderReviewStatus,
+        'receipt_section_order_action_review_multi_section_order',
+      );
+      expect(
+        diagnostics.ocrSourceHandoffContract['sectionOrderReviewStatus'],
+        'receipt_section_order_action_review_multi_section_order',
+      );
+      expect(
+        diagnostics.ocrSourceHandoffContract['sourceQualityReviewStatus'],
+        'stitch_contract_review_required',
+      );
+      expect(
+        diagnostics.ocrSourceHandoffContract['sourceQualityReviewAction'],
+        'review_receipt_stitch_sources',
+      );
+      expect(
+        diagnostics.ocrSourcePhotoQualityRiskCounts,
+        isNot(
+          contains(
+            'ocr_source_section_order_action_review_multi_section_order',
+          ),
+        ),
+      );
+    },
+  );
 }
