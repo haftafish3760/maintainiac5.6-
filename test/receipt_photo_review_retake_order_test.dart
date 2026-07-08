@@ -96,6 +96,85 @@ void main() {
     },
   );
 
+  test('top-section multi-photo retake stays before the original next section', () {
+    final plan = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const ['top-old.jpg', 'middle.jpg', 'bottom.jpg'],
+      targetPhotoPath: 'top-old.jpg',
+      replacementPhotoPaths: const ['top-new-a.jpg', 'top-new-b.jpg'],
+    );
+
+    expect(plan, isNotNull);
+    expect(plan!.selectedIndex, 0);
+    expect(plan.photoPaths, const [
+      'top-new-a.jpg',
+      'top-new-b.jpg',
+      'middle.jpg',
+      'bottom.jpg',
+    ]);
+    expect(plan.alignmentContext.previousPhotoPath, isNull);
+    expect(plan.alignmentContext.nextPhotoPath, 'middle.jpg');
+    expect(plan.alignmentContext.guidanceCode, 'retake_top_with_next_context');
+    final diagnostics = plan.captureDiagnosticsForReplacementPaths(const [
+      'top-new-a.jpg',
+      'top-new-b.jpg',
+    ]);
+    expect(
+      diagnostics['top-new-a.jpg'],
+      containsPair('receiptRetakePreservedOriginalSlot', true),
+    );
+    expect(
+      diagnostics['top-new-b.jpg'],
+      containsPair('receiptRetakeInsertedExtraSection', true),
+    );
+    expect(
+      diagnostics['top-new-b.jpg'],
+      containsPair('receiptRetakeFinalSectionNumber', 2),
+    );
+    expect(
+      diagnostics['top-new-a.jpg'],
+      containsPair('receiptRetakeNextContextSectionNumber', 2),
+    );
+  });
+
+  test('bottom-section multi-photo retake appends extras after bottom slot', () {
+    final plan = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'bottom-old.jpg'],
+      targetPhotoPath: 'bottom-old.jpg',
+      replacementPhotoPaths: const ['bottom-new-a.jpg', 'bottom-new-b.jpg'],
+    );
+
+    expect(plan, isNotNull);
+    expect(plan!.selectedIndex, 2);
+    expect(plan.photoPaths, const [
+      'top.jpg',
+      'middle.jpg',
+      'bottom-new-a.jpg',
+      'bottom-new-b.jpg',
+    ]);
+    expect(plan.alignmentContext.previousPhotoPath, 'middle.jpg');
+    expect(plan.alignmentContext.nextPhotoPath, isNull);
+    expect(
+      plan.alignmentContext.guidanceCode,
+      'retake_bottom_with_previous_context',
+    );
+    final diagnostics = plan.captureDiagnosticsForReplacementPaths(const [
+      'bottom-new-a.jpg',
+      'bottom-new-b.jpg',
+    ]);
+    expect(
+      diagnostics['bottom-new-a.jpg'],
+      containsPair('receiptRetakeOriginalSectionNumber', 3),
+    );
+    expect(
+      diagnostics['bottom-new-b.jpg'],
+      containsPair('receiptRetakeFinalSectionNumber', 4),
+    );
+    expect(
+      diagnostics['bottom-new-a.jpg'],
+      containsPair('receiptRetakePreviousContextSectionNumber', 2),
+    );
+  });
+
   test('retake diagnostics reject stale replacement path lists', () {
     final plan = ReceiptPhotoRetakeOrderPlan.build(
       currentPhotoPaths: const ['top.jpg', 'middle-old.jpg', 'bottom.jpg'],
