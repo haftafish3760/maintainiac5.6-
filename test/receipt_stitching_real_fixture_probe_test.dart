@@ -25,22 +25,7 @@ void main() {
         paths: paths,
       );
 
-      expect(result.inputPaths, paths);
-      expect(result.ocrSourcePaths, isNotEmpty);
-      expect(
-        result.didStitch || result.requiresOcrSourceReviewBeforeAssistedRead,
-        isTrue,
-        reason: result.detailLabel,
-      );
-      if (result.didStitch) {
-        expect(result.stitchedPath, isNotNull);
-        expect(File(result.stitchedPath!).existsSync(), isTrue);
-        expect(result.ocrSourcePaths, [result.stitchedPath]);
-        expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
-      } else {
-        expect(result.usedFallback, isTrue, reason: result.detailLabel);
-        expect(result.ocrSourcePaths, paths);
-      }
+      _expectRealProbeOutcome(result, paths);
     },
     timeout: const Timeout(Duration(minutes: 4)),
   );
@@ -76,16 +61,41 @@ void main() {
         paths: sectionPaths,
       );
 
-      expect(result.inputPaths, sectionPaths);
-      expect(result.ocrSourcePaths, isNotEmpty);
-      expect(
-        result.didStitch || result.requiresOcrSourceReviewBeforeAssistedRead,
-        isTrue,
-        reason: result.detailLabel,
-      );
+      _expectRealProbeOutcome(result, sectionPaths);
     },
     timeout: const Timeout(Duration(minutes: 4)),
   );
+}
+
+void _expectRealProbeOutcome(ReceiptStitchResult result, List<String> paths) {
+  if (_strictRealProbeStitchExpected()) {
+    expect(result.didStitch, isTrue, reason: result.detailLabel);
+    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+  }
+  expect(result.inputPaths, paths);
+  expect(result.ocrSourcePaths, isNotEmpty);
+  expect(
+    result.didStitch || result.requiresOcrSourceReviewBeforeAssistedRead,
+    isTrue,
+    reason: result.detailLabel,
+  );
+  if (result.didStitch) {
+    expect(result.stitchedPath, isNotNull);
+    expect(File(result.stitchedPath!).existsSync(), isTrue);
+    expect(result.ocrSourcePaths, [result.stitchedPath]);
+    expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+  } else {
+    expect(result.usedFallback, isTrue, reason: result.detailLabel);
+    expect(result.ocrSourcePaths, paths);
+  }
+}
+
+bool _strictRealProbeStitchExpected() {
+  final raw = Platform.environment['RECEIPT_STITCH_REAL_EXPECT'] ?? '';
+  final normalized = raw.trim().toLowerCase();
+  return normalized == 'stitched' ||
+      normalized == 'stitch' ||
+      normalized == 'true';
 }
 
 List<String> _realReceiptProbePaths() {
@@ -134,6 +144,7 @@ Future<List<String>> _writeTallReceiptWindows(
       '${Directory.systemTemp.path}/maintainiac_real_receipt_${baseName}_$entry.jpg',
     );
     await file.writeAsBytes(img.encodeJpg(window, quality: 94), flush: true);
+
     paths.add(file.path);
   }
   return paths;
