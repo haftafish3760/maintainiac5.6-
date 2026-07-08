@@ -97,6 +97,7 @@ while IFS= read -r path; do
     android/app/src/main/kotlin/com/maintainiac/ReceiptCameraPreviousSectionGuide.kt)
       targeted_tests+=(
         test/receipt_camera_phase3_viewer_contract_test.dart
+        test/receipt_native_android_bridge_ui_contract_test.dart
       )
       ;;
     android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt | \
@@ -114,6 +115,7 @@ while IFS= read -r path; do
     ios/Runner/ReceiptCameraViewControllerPreviousSectionGuide.swift)
       targeted_tests+=(
         test/receipt_camera_phase3_viewer_contract_test.dart
+        test/receipt_native_ios_bridge_ui_session_test.dart
       )
       ;;
     ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift | \

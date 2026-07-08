@@ -94,11 +94,19 @@ void main() {
     );
     expect(
       script,
+      contains('test/receipt_native_android_bridge_ui_contract_test.dart'),
+    );
+    expect(
+      script,
       contains('test/receipt_native_android_bridge_false_positive_guard_test.dart'),
     );
     expect(
       script,
       contains('test/receipt_native_ios_guidance_warning_gate_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_native_ios_bridge_ui_session_test.dart'),
     );
     expect(
       script,
@@ -237,6 +245,10 @@ void main() {
     );
     expect(
       stdout,
+      contains('targeted test/receipt_native_android_bridge_ui_contract_test.dart'),
+    );
+    expect(
+      stdout,
       contains('targeted test/receipt_native_android_guidance_policy_gate_test.dart'),
     );
     expect(
@@ -246,6 +258,10 @@ void main() {
     expect(
       stdout,
       contains('targeted test/receipt_native_ios_guidance_warning_gate_test.dart'),
+    );
+    expect(
+      stdout,
+      contains('targeted test/receipt_native_ios_bridge_ui_session_test.dart'),
     );
     expect(
       stdout,
