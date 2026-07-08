@@ -33,6 +33,10 @@ void main() {
     expect(source, contains('Receipt stitch edge-case health: PASS'));
     expect(source, contains('long_stack)'));
     expect(source, contains('Receipt stitch long-stack health: PASS'));
+    expect(source, contains('phone_windows)'));
+    expect(source, contains('Receipt stitch phone-window health'));
+    expect(source, contains("--name 'phone-window captures'"));
+    expect(source, contains('Receipt stitch phone-window health: PASS'));
     expect(source, contains('handoff)'));
     expect(
       source,
@@ -64,6 +68,7 @@ void main() {
     expect(source, contains('milestone)'));
     expect(source, contains(r'bash "$script_path" source_size'));
     expect(source, contains(r'bash "$script_path" edge_cases'));
+    expect(source, contains(r'bash "$script_path" phone_windows'));
     expect(source, contains(r'bash "$script_path" long_stack'));
     expect(source, contains(r'bash "$script_path" duplicates'));
     expect(source, contains(r'bash "$script_path" handoff'));
@@ -71,7 +76,7 @@ void main() {
     expect(
       source,
       contains(
-        r'Usage: $0 [delayed_overlap|edge_cases|long_stack|handoff|duplicates|source_size|milestone|full]',
+        r'Usage: $0 [delayed_overlap|edge_cases|long_stack|phone_windows|handoff|duplicates|source_size|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));

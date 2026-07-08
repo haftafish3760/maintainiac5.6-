@@ -36,6 +36,14 @@ case "$mode" in
       -r compact
     echo "Receipt stitch long-stack health: PASS"
     ;;
+  phone_windows)
+    echo "Receipt stitch phone-window health"
+    flutter test \
+      test/receipt_stitching_long_stack_test.dart \
+      --name 'phone-window captures' \
+      -r compact
+    echo "Receipt stitch phone-window health: PASS"
+    ;;
   handoff)
     echo "Receipt stitch handoff health"
     flutter test \
@@ -76,6 +84,7 @@ case "$mode" in
   milestone)
     bash "$script_path" source_size
     bash "$script_path" edge_cases
+    bash "$script_path" phone_windows
     bash "$script_path" long_stack
     bash "$script_path" duplicates
     bash "$script_path" handoff
@@ -107,7 +116,7 @@ case "$mode" in
     echo "Receipt stitch contract health: PASS"
     ;;
   *)
-    echo "Usage: $0 [delayed_overlap|edge_cases|long_stack|handoff|duplicates|source_size|milestone|full]" >&2
+    echo "Usage: $0 [delayed_overlap|edge_cases|long_stack|phone_windows|handoff|duplicates|source_size|milestone|full]" >&2
     exit 64
     ;;
 esac
