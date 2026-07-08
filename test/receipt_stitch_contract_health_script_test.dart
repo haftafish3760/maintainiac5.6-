@@ -9,12 +9,7 @@ void main() {
 
     final source = script.readAsStringSync();
     expect(source, contains(r'mode="${1:-full}"'));
-    expect(
-      source,
-      contains(
-        r'script_path="$repo_root/tool/receipt_stitch_contract_health.sh"',
-      ),
-    );
+    expect(source, contains('run_milestone()'));
     expect(source, contains('delayed_overlap)'));
     expect(source, contains("--name 'delayed overlap'"));
     expect(source, contains('Receipt stitch delayed-overlap health: PASS'));
@@ -79,17 +74,17 @@ void main() {
     expect(source, contains(r'exceeds $max_lines-line stitch source cap'));
     expect(source, contains('Receipt stitch source-size health: PASS'));
     expect(source, contains('milestone)'));
-    expect(source, contains(r'bash "$script_path" source_size'));
-    expect(source, contains(r'bash "$script_path" edge_cases'));
-    expect(source, contains(r'bash "$script_path" phone_windows'));
-    expect(source, contains(r'bash "$script_path" long_stack'));
-    expect(source, contains(r'bash "$script_path" duplicates'));
-    expect(source, contains(r'bash "$script_path" handoff'));
+    expect(source, contains('run_source_size'));
+    expect(source, contains('run_edge_cases'));
+    expect(source, contains('run_phone_windows'));
+    expect(source, contains('run_long_stack'));
+    expect(source, contains('run_duplicates'));
+    expect(source, contains('run_handoff'));
     expect(source, contains('Receipt stitch milestone health: PASS'));
     expect(
       source,
       contains(
-        r'Usage: $0 [delayed_overlap|edge_cases|long_stack|phone_windows|handoff|duplicates|source_size|milestone|full]',
+        r'Usage: $0 [delayed_overlap|edge_cases|phone_windows|long_stack|duplicates|handoff|source_size|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));
