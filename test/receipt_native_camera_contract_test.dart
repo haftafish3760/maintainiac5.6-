@@ -122,7 +122,7 @@ void main() {
     expect(ids, contains('long_receipt_mode'));
     expect(ids, contains('image_cleanup'));
     expect(ids, contains('safe_capture_queue'));
-    expect(ids, contains('save_space_preview'));
+    expect(ids, isNot(contains('save_space_preview')));
 
     final assistedReceiptFill = descriptors.singleWhere(
       (descriptor) => descriptor.id == 'assisted_receipt_fill',
@@ -176,6 +176,10 @@ void main() {
       (descriptor) => descriptor.id == 'safe_capture_queue',
     );
     expect(safeQueue.description, contains('call, crash, or app switch'));
+    expect(
+      descriptors.where((descriptor) => descriptor.group == ReceiptNativeSettingGroup.storage),
+      hasLength(1),
+    );
   });
 
   test('session config keeps OCR source and edge guidance protected', () {

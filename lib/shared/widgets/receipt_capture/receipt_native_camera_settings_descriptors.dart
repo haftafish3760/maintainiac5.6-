@@ -113,13 +113,4 @@ const _receiptNativeCameraSettingDescriptors = <ReceiptNativeCameraSettingDescri
     type: ReceiptNativeSettingType.automatic,
     defaultEnabled: true,
   ),
-  ReceiptNativeCameraSettingDescriptor(
-    id: 'save_space_preview',
-    label: 'Space-saving proof size',
-    description:
-        'Preview the smaller proof copy used for storage after receipt assistance uses the clearest source.',
-    group: ReceiptNativeSettingGroup.storage,
-    type: ReceiptNativeSettingType.segmented,
-    defaultValueLabel: 'Normal 200-300 KB',
-  ),
 ];
