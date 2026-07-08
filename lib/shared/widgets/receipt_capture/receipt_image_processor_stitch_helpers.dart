@@ -53,7 +53,16 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
 
   final rotationCandidates = candidates.take(3).toList(growable: false);
   for (final base in rotationCandidates) {
-    for (final rotationDegrees in const [-.8, .8, -1.4, 1.4]) {
+    for (final rotationDegrees in const [
+      -.8,
+      .8,
+      -1.4,
+      1.4,
+      -2.2,
+      2.2,
+      -3.0,
+      3.0,
+    ]) {
       final candidateImage = _transformForStitchComparison(
         nextSample,
         targetWidth: sampleWidth,
@@ -226,10 +235,7 @@ List<int> _stitchHorizontalOffsets(int width) {
   }
   final maxOffset = math.max(unit * 2, (width * .14).round());
   offsets.addAll([-maxOffset, maxOffset]);
-  return offsets
-      .where((offset) => offset.abs() <= maxOffset)
-      .toSet()
-      .toList();
+  return offsets.where((offset) => offset.abs() <= maxOffset).toSet().toList();
 }
 
 List<int> _stitchNextTopOffsets(int height, int pixels) {
