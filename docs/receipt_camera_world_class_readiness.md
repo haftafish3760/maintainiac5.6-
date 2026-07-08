@@ -7,14 +7,14 @@ materials/inventory, and future receipt-backed flows.
 
 ## Readiness Position
 
-As of Pass 410, the current codebase is not 70% complete against the full
-world-class camera goal. The cleanup and guardrail foundation is materially
-advanced, but the finished product-quality camera/OCR system is closer to the
-first quarter of the full scope.
+The current codebase is not "nearly done" against the full world-class receipt
+camera goal. The cleanup and guardrail foundation is materially stronger than
+before, but the finished product-quality camera/OCR system still depends on
+late synthetic QA, real-device receipt proof, and release-build measurement.
 
-The current source footprint audit reports the receipt camera/OCR source scope
-at about 1.68 MB after excluding PDF import/viewer helpers. That number is a
-source-size measure, not an installed app-size guarantee. Native libraries,
+Any source-footprint number in this lane must come from a fresh current audit,
+not an older pass log. Source-size snapshots are useful for maintenance
+pressure, but they are not installed app-size guarantees. Native libraries,
 Flutter build output, images, ML Kit packaging, and platform build settings
 still need release-build measurement before claiming phone install size.
 

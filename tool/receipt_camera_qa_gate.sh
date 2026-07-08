@@ -87,6 +87,7 @@ phase9_tests=(
   test/receipt_camera_release_one_blueprint_test.dart
   test/receipt_camera_release_control_priority_test.dart
   test/receipt_camera_native_baseline_policy_test.dart
+  test/receipt_camera_world_class_readiness_test.dart
 )
 
 core_remaining_tests=(
@@ -206,6 +207,7 @@ phase9_audit_paths=(
   test/receipt_camera_release_one_blueprint_test.dart
   test/receipt_camera_release_control_priority_test.dart
   test/receipt_camera_native_baseline_policy_test.dart
+  test/receipt_camera_world_class_readiness_test.dart
 )
 
 core_remaining_audit_paths=(
@@ -247,6 +249,7 @@ milestone_only_tests=(
   test/receipt_camera_phase5_long_receipt_contract_test.dart
   test/receipt_camera_phase6_stitching_handoff_contract_test.dart
   test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart
+  test/receipt_camera_attachment_helper_parity_test.dart
   test/receipt_camera_phase8_storage_proof_timing_contract_test.dart
   test/receipt_camera_native_bridge_layout_test.dart
   test/receipt_camera_ocr_source_handoff_test.dart
@@ -327,6 +330,7 @@ full_only_tests=(
   test/receipt_camera_footprint_audit_test.dart
   test/receipt_camera_help_flow_test.dart
   test/receipt_camera_native_baseline_policy_test.dart
+  test/receipt_camera_world_class_readiness_test.dart
   test/receipt_camera_ocr_source_attachment_read_test.dart
   test/receipt_camera_release_control_priority_test.dart
   test/receipt_camera_release_one_blueprint_test.dart

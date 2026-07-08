@@ -206,6 +206,10 @@ void main() {
         phase9Plan,
         contains('phase9 test/receipt_camera_native_baseline_policy_test.dart'),
       );
+      expect(
+        phase9Plan,
+        contains('phase9 test/receipt_camera_world_class_readiness_test.dart'),
+      );
       expect(phase9Plan, isNot(contains('quick ')));
       expect(phase9Plan, isNot(contains('milestone ')));
       expect(phase9Plan, isNot(contains('full ')));

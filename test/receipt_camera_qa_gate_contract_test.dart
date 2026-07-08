@@ -68,6 +68,7 @@ void main() {
     expect(script, contains('test/receipt_camera_release_one_blueprint_test.dart'));
     expect(script, contains('test/receipt_camera_release_control_priority_test.dart'));
     expect(script, contains('test/receipt_camera_native_baseline_policy_test.dart'));
+    expect(script, contains('test/receipt_camera_world_class_readiness_test.dart'));
     expect(script, contains('test/receipt_native_camera_shell_test.dart'));
     expect(script, contains('test/receipt_camera_result_test.dart'));
     expect(
