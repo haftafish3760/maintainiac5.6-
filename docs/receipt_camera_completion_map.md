@@ -141,6 +141,10 @@ If fewer than four phones are connected during a QA window, test the available
 phones and record the missing device class as a remaining risk instead of
 inflating pass estimates.
 
+`tool/receipt_camera_real_device_snapshot.sh` is metadata-only environment
+evidence. Do not treat that snapshot as receipt capture proof. Real-device proof
+still requires manual receipt flows on the connected phones.
+
 ## Reliability Target
 
 The expected quality target after this map is completed and verified:

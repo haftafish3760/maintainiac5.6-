@@ -15,6 +15,18 @@ void main() {
     expect(map, contains('400 to 550 focused receipt workflow passes'));
     expect(map, contains('450 focused receipt workflow passes'));
     expect(map, contains('Four-Phone Real-Device Proof'));
+    expect(
+      map,
+      contains('`tool/receipt_camera_real_device_snapshot.sh` is metadata-only environment'),
+    );
+    expect(
+      map,
+      contains('Do not treat that snapshot as receipt capture proof.'),
+    );
+    expect(
+      map,
+      contains('Real-device proof\nstill requires manual receipt flows'),
+    );
     expect(map, contains('not generic camera-app work'));
     expect(map, contains('The final 7-10% must come from real receipt/device'));
     expect(map, contains('| Milestone quality gate |'));
