@@ -44,6 +44,10 @@ void main() {
       ),
     );
     expect(source, contains('Receipt stitch phone-window health: PASS'));
+    expect(source, contains('manual_overlap)'));
+    expect(source, contains('Receipt stitch manual-overlap health'));
+    expect(source, contains('receipt_stitching_manual_overlap_test.dart'));
+    expect(source, contains('Receipt stitch manual-overlap health: PASS'));
     expect(source, contains('handoff)'));
     expect(
       source,
@@ -92,13 +96,14 @@ void main() {
     expect(source, contains('run_edge_cases'));
     expect(source, contains('run_phone_windows'));
     expect(source, contains('run_long_stack'));
+    expect(source, contains('run_manual_overlap'));
     expect(source, contains('run_duplicates'));
     expect(source, contains('run_handoff'));
     expect(source, contains('Receipt stitch milestone health: PASS'));
     expect(
       source,
       contains(
-        r'Usage: $0 [delayed_overlap|edge_cases|phone_windows|long_stack|duplicates|handoff|source_size|milestone|full]',
+        r'Usage: $0 [delayed_overlap|edge_cases|phone_windows|long_stack|manual_overlap|duplicates|handoff|source_size|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));

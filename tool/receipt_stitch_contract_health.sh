@@ -55,6 +55,14 @@ run_duplicates() {
   echo "Receipt stitch duplicate-section health: PASS"
 }
 
+run_manual_overlap() {
+  echo "Receipt stitch manual-overlap health"
+  flutter test \
+    test/receipt_stitching_manual_overlap_test.dart \
+    -r compact
+  echo "Receipt stitch manual-overlap health: PASS"
+}
+
 run_handoff() {
   echo "Receipt stitch handoff health"
   flutter test \
@@ -110,6 +118,7 @@ run_milestone() {
   run_edge_cases
   run_phone_windows
   run_long_stack
+  run_manual_overlap
   run_duplicates
   run_handoff
   echo "Receipt stitch milestone health: PASS"
@@ -146,13 +155,14 @@ case "$mode" in
   edge_cases) run_edge_cases; exit 0 ;;
   phone_windows) run_phone_windows; exit 0 ;;
   long_stack) run_long_stack; exit 0 ;;
+  manual_overlap) run_manual_overlap; exit 0 ;;
   duplicates) run_duplicates; exit 0 ;;
   handoff) run_handoff; exit 0 ;;
   source_size) run_source_size; exit 0 ;;
   milestone) run_milestone; exit 0 ;;
   full) run_full; exit 0 ;;
   *)
-    echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|long_stack|duplicates|handoff|source_size|milestone|full]" >&2
+    echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|long_stack|manual_overlap|duplicates|handoff|source_size|milestone|full]" >&2
     exit 64
     ;;
 esac

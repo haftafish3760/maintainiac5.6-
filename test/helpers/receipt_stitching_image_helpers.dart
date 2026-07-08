@@ -322,3 +322,17 @@ img.Image tallReceiptStitchingCanvas({int sectionCount = 4}) {
   }
   return addReceiptStitchingWear(canvas, seed: 440, wrinkleCount: 11);
 }
+
+img.Image cropReceiptStitchingPhoneWindow(
+  img.Image tallReceipt, {
+  required int y,
+  int height = 1500,
+}) {
+  return img.copyCrop(
+    tallReceipt,
+    x: 0,
+    y: y,
+    width: tallReceipt.width,
+    height: height,
+  );
+}

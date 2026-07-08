@@ -188,6 +188,41 @@ void main() {
   );
 
   test(
+    'manual overlap long receipt respects derived output size cap',
+    () async {
+      final tallReceipt = tallReceiptStitchingCanvas(sectionCount: 6);
+      final files = <String>[];
+      for (var index = 0; index < 6; index++) {
+        final window = cropReceiptStitchingPhoneWindow(
+          tallReceipt,
+          y: index * 1120,
+        );
+        final file = await writeTempReceiptStitchingImage(
+          window,
+          'manual_overlap_size_cap_$index',
+        );
+        files.add(file.path);
+      }
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: files,
+        manualOverlapPixels: const [260, 260, 260, 260, 260],
+        maxOutputPixels: 4000000,
+      );
+
+      expect(result.usedFallback, isTrue);
+      expect(result.fallbackReasonCode, 'output_too_large');
+      expect(result.stitchedPath, isNull);
+      expect(result.ocrSourcePaths, files);
+      expect(result.ocrSourceContractCode, 'fallback_derived_stitch_too_large');
+      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+      expect(result.pairs.length, lessThan(5));
+      expect(result.pairs.every((pair) => pair.usedManualAdjustment), isTrue);
+      expect(result.stitchedPixelCount, greaterThan(900000));
+    },
+  );
+
+  test(
     'manual overlap can guide one pair while auto matching handles the next',
     () async {
       final sectionA = receiptStitchingSection(seed: 31, topTextOffset: 0);
