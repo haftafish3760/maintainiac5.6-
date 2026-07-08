@@ -60,10 +60,15 @@ void main() {
     final corrupted = File(
       '${Directory.systemTemp.path}/maintainiac_receipt_stitch_corrupt.jpg',
     );
-    await corrupted.writeAsBytes(
-      const [0xFF, 0xD8, 0x00, 0x11, 0x22, 0x33, 0x44],
-      flush: true,
-    );
+    await corrupted.writeAsBytes(const [
+      0xFF,
+      0xD8,
+      0x00,
+      0x11,
+      0x22,
+      0x33,
+      0x44,
+    ], flush: true);
 
     final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
       paths: [valid.path, corrupted.path],
@@ -72,22 +77,25 @@ void main() {
     expectBadInputFallback(result, [valid.path, corrupted.path]);
   });
 
-  test('keeps ordered OCR sources when a stitch input is the wrong type', () async {
-    final valid = await writeTempReceiptStitchingImage(
-      receiptStitchingSection(seed: 624, topTextOffset: 0),
-      'bad_input_wrong_type_valid_section',
-    );
-    final wrongType = File(
-      '${Directory.systemTemp.path}/maintainiac_receipt_stitch_wrong_type.txt',
-    );
-    await wrongType.writeAsString('not a receipt image', flush: true);
+  test(
+    'keeps ordered OCR sources when a stitch input is the wrong type',
+    () async {
+      final valid = await writeTempReceiptStitchingImage(
+        receiptStitchingSection(seed: 624, topTextOffset: 0),
+        'bad_input_wrong_type_valid_section',
+      );
+      final wrongType = File(
+        '${Directory.systemTemp.path}/maintainiac_receipt_stitch_wrong_type.txt',
+      );
+      await wrongType.writeAsString('not a receipt image', flush: true);
 
-    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
-      paths: [valid.path, wrongType.path],
-    );
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [valid.path, wrongType.path],
+      );
 
-    expectBadInputFallback(result, [valid.path, wrongType.path]);
-  });
+      expectBadInputFallback(result, [valid.path, wrongType.path]);
+    },
+  );
 
   test('keeps non-local stitch input paths review blocked', () async {
     final valid = await writeTempReceiptStitchingImage(
@@ -103,14 +111,16 @@ void main() {
     expect(result.usedFallback, isTrue);
     expect(result.didStitch, isFalse);
     expect(result.fallbackReasonCode, 'invalid_input_paths');
+    expect(result.diagnosticReasonLabel, 'invalid_input_paths');
+    expect(
+      result.userFallbackReasonLabel,
+      'Receipt section path was not trusted',
+    );
     expect(result.ocrSourcePaths, [valid.path, nonLocalPath]);
     expect(result.hasValidOcrSourceContract, isFalse);
     expect(result.ocrSourceContractCode, 'fallback_invalid_input_sources');
     expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
-    expect(
-      result.assistedReadinessCode,
-      'stitch_contract_review_required',
-    );
+    expect(result.assistedReadinessCode, 'stitch_contract_review_required');
   });
 }
 

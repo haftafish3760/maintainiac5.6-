@@ -32,6 +32,16 @@ bool _receiptArtifactPathSetContains(List<String> paths, String candidate) {
   return false;
 }
 
+String _invalidInputSourceContractCode(bool usedFallback) {
+  return usedFallback
+      ? 'fallback_invalid_input_sources'
+      : 'invalid_input_sources';
+}
+
+String _invalidOcrSourceContractCode(bool usedFallback) {
+  return usedFallback ? 'fallback_invalid_ocr_sources' : 'invalid_ocr_sources';
+}
+
 ReceiptStitchResult _frozenStitchResult(ReceiptStitchResult result) {
   return ReceiptStitchResult(
     status: result.status,
@@ -60,6 +70,7 @@ String _safeStitchFallbackReasonCode(String value) {
   return switch (token) {
     'decode_failed' ||
     'manual_overlap_unsafe' ||
+    'invalid_input_paths' ||
     'duplicate_input_paths' ||
     'duplicate_section_image' ||
     'no_input_paths' ||

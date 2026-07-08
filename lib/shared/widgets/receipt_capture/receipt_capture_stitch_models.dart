@@ -130,10 +130,10 @@ class ReceiptStitchResult {
       return usedFallback ? 'fallback_no_ocr_sources' : 'no_ocr_sources';
     }
     if (_hasInvalidReceiptArtifactPaths(inputPaths)) {
-      return usedFallback ? 'fallback_invalid_input_sources' : 'invalid_input_sources';
+      return _invalidInputSourceContractCode(usedFallback);
     }
     if (_hasInvalidReceiptArtifactPaths(ocrSourcePaths)) {
-      return usedFallback ? 'fallback_invalid_ocr_sources' : 'invalid_ocr_sources';
+      return _invalidOcrSourceContractCode(usedFallback);
     }
     if (_hasDuplicateReceiptArtifactPaths(inputPaths)) {
       return usedFallback
@@ -250,6 +250,7 @@ class ReceiptStitchResult {
     return switch (diagnosticReasonLabel) {
       'decode_failed' => 'One photo could not be read',
       'manual_overlap_unsafe' => 'Manual overlap was outside the safe range',
+      'invalid_input_paths' => 'Receipt section path was not trusted',
       'duplicate_input_paths' => 'Duplicate receipt section photo',
       'duplicate_section_image' => 'Duplicate receipt section photo',
       'no_input_paths' => 'No receipt photos available',
