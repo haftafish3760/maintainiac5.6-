@@ -855,6 +855,47 @@ WorkSupplyItem? _directElectricalDeviceMatch(
   return null;
 }
 
+WorkSupplyItem? _directElectricalControlMatch(
+  String text, {
+  String? tradeScope,
+}) {
+  if (tradeScope != null &&
+      tradeScope.trim().isNotEmpty &&
+      tradeScope.trim().toLowerCase() != 'electrical') {
+    return null;
+  }
+  final wantedName = switch (text) {
+    final value when RegExp(r'\bcontactor\b').hasMatch(value) => 'contactor',
+    final value
+        when RegExp(r'\b(time\s+clock|timer\s+clock)\b').hasMatch(value) =>
+      'time clock',
+    final value
+        when RegExp(r'\bfan\s+speed\s+(control|ctrl)\b').hasMatch(value) =>
+      'fan speed control',
+    final value
+        when RegExp(r'\b(photo\s*cell|photocell|photoeye)\b').hasMatch(value) =>
+      'photocell',
+    final value
+        when RegExp(r'\brelay\b').hasMatch(value) &&
+            !RegExp(r'\b(time\s+delay|delay)\b').hasMatch(value) =>
+      'relay',
+    _ => null,
+  };
+  if (wantedName == null) return null;
+  final amp = RegExp(r'\b(15|20|30|40)\s*amp\b').firstMatch(text)?.group(1);
+  final voltage = RegExp(r'\b(120|240)\s*v\b').firstMatch(text)?.group(1);
+  WorkSupplyItem? fallback;
+  for (final item in workSupplyCatalogItems) {
+    final name = item.name.toLowerCase();
+    if (item.trade != 'Electrical' || !name.contains(wantedName)) continue;
+    if (amp != null && !name.contains('$amp amp')) continue;
+    if (voltage != null && !name.contains('${voltage}v')) continue;
+    if (item.packTier == WorkSupplyPackTier.core) return item;
+    fallback ??= item;
+  }
+  return fallback;
+}
+
 WorkSupplyItem? _directElectricalRacewayMatch(
   String text, {
   String? tradeScope,
@@ -1661,6 +1702,11 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     tradeScope: tradeScope,
   );
   if (electricalDevice != null) return electricalDevice;
+  final electricalControl = _directElectricalControlMatch(
+    text,
+    tradeScope: tradeScope,
+  );
+  if (electricalControl != null) return electricalControl;
   final electricalProfessional = _directElectricalProfessionalMatch(
     text,
     tradeScope: tradeScope,

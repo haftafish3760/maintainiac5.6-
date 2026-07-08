@@ -44,6 +44,16 @@ void main() {
       'photocell',
     ]);
     _expectGoodElectricalCore('ACE 3/4 PVC LB B0DY GRY', ['conduit']);
+    _expectGoodElectricalCore('LOCAL SUPPLY 120V 20A CONTACT0R', [
+      'contactor',
+    ]);
+    _expectGoodElectricalCore('ACE 120V FAN SPEED CTRL', [
+      'fan speed control',
+    ]);
+    _expectGoodElectricalCore('TRUE VALUE 240V TIME CL0CK 40A', [
+      'time clock',
+    ]);
+    _expectGoodElectricalCore('MENARDS 120V RELAY 20A', ['relay']);
   });
 }
 

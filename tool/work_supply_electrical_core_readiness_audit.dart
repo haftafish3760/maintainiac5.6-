@@ -518,12 +518,17 @@ const _familyContracts = [
     'weatherproof',
   ]),
   _FamilyContract('devices and controls', [
+    'contactor',
     'dimmer',
+    'fan speed control',
     'gfci',
     'outlet',
+    'photocell',
     'receptacle',
+    'relay',
     'smart control',
     'switch',
+    'time clock',
     'timer',
   ]),
   _FamilyContract('service equipment and disconnects', [
