@@ -735,7 +735,7 @@ WorkSupplyItem? _directElectricalServiceRepairMatch(
         ).hasMatch(value) =>
       'lampholder',
     final value when RegExp(r'\b(photo\s*eye|photocell)\b').hasMatch(value) =>
-      'photo',
+      'photocell control',
     _ => null,
   };
   if (wantedName == null) return null;
@@ -753,7 +753,14 @@ WorkSupplyItem? _directElectricalServiceRepairMatch(
   WorkSupplyItem? fallback;
   for (final item in workSupplyCatalogItems) {
     final name = item.name.toLowerCase();
-    if (item.trade != 'Electrical' || !name.contains(wantedName)) continue;
+    if (item.trade != 'Electrical') continue;
+    if (wantedName == 'photocell control') {
+      final searchable = item.searchableText.toLowerCase();
+      if (!name.contains('photocell') && !name.contains('photo eye')) continue;
+      if (!searchable.contains('control')) continue;
+    } else if (!name.contains(wantedName)) {
+      continue;
+    }
     if (size != null && !_nameMatchesReceiptSize(name, size)) continue;
     if (name.contains('electrical service repair part') ||
         item.category.toLowerCase() == 'connectors and consumables') {
