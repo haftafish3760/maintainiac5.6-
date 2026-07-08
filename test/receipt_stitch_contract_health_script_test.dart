@@ -9,6 +9,12 @@ void main() {
 
     final source = script.readAsStringSync();
     expect(source, contains(r'mode="${1:-full}"'));
+    expect(
+      source,
+      contains(
+        r'script_path="$repo_root/tool/receipt_stitch_contract_health.sh"',
+      ),
+    );
     expect(source, contains('delayed_overlap)'));
     expect(source, contains("--name 'delayed overlap'"));
     expect(source, contains('Receipt stitch delayed-overlap health: PASS'));
@@ -50,16 +56,22 @@ void main() {
     expect(source, contains('Receipt stitch duplicate-section health'));
     expect(source, contains('receipt_stitching_duplicate_safety_test.dart'));
     expect(source, contains('Receipt stitch duplicate-section health: PASS'));
+    expect(source, contains('source_size)'));
+    expect(source, contains('Receipt stitch source-size health'));
+    expect(source, contains('receipt_image_processor_stitch_helpers.dart'));
+    expect(source, contains(r'exceeds $max_lines-line stitch source cap'));
+    expect(source, contains('Receipt stitch source-size health: PASS'));
     expect(source, contains('milestone)'));
-    expect(source, contains(r'"$0" edge_cases'));
-    expect(source, contains(r'"$0" long_stack'));
-    expect(source, contains(r'"$0" duplicates'));
-    expect(source, contains(r'"$0" handoff'));
+    expect(source, contains(r'bash "$script_path" source_size'));
+    expect(source, contains(r'bash "$script_path" edge_cases'));
+    expect(source, contains(r'bash "$script_path" long_stack'));
+    expect(source, contains(r'bash "$script_path" duplicates'));
+    expect(source, contains(r'bash "$script_path" handoff'));
     expect(source, contains('Receipt stitch milestone health: PASS'));
     expect(
       source,
       contains(
-        r'Usage: $0 [delayed_overlap|edge_cases|long_stack|handoff|duplicates|milestone|full]',
+        r'Usage: $0 [delayed_overlap|edge_cases|long_stack|handoff|duplicates|source_size|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));

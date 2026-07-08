@@ -355,6 +355,7 @@ stitch_tests=(
   test/receipt_stitch_fallback_metadata_test.dart
   test/receipt_stitching_duplicate_safety_test.dart
   test/receipt_stitching_horizontal_drift_test.dart
+  test/receipt_stitching_horizontal_placement_test.dart
   test/receipt_stitching_long_stack_test.dart
   test/receipt_stitching_manual_overlap_test.dart
   test/receipt_stitching_result_contract_test.dart

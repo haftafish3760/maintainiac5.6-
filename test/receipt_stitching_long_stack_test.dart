@@ -186,6 +186,31 @@ void main() {
     },
     timeout: _longStackTimeout,
   );
+
+  test(
+    'stitches six phone-window captures with alternating side crops',
+    () async {
+      final files = await _writeSixPhoneWindowStack(
+        'six_phone_window_side_crops',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [for (final file in files) file.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(5));
+      expect(result.overlapPixels, hasLength(5));
+      expect(
+        result.pairs.map((pair) => pair.confidence),
+        everyElement(greaterThanOrEqualTo(.50)),
+      );
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.stitchedPixelCount, lessThan(16000000));
+    },
+    timeout: _longStackTimeout,
+  );
 }
 
 void expectOutputTooLargeFallback(
@@ -359,15 +384,49 @@ Future<List<File>> _writePhoneWindowStack(String prefix) async {
   return files;
 }
 
-img.Image _tallReceiptCanvas() {
-  final canvas = img.Image(width: 900, height: 4860, numChannels: 3);
+Future<List<File>> _writeSixPhoneWindowStack(String prefix) async {
+  final tallReceipt = _tallReceiptCanvas(sectionCount: 6);
+  final starts = <int>[0, 1120, 2240, 3360, 4480, 5600];
+  final captures = <img.Image>[];
+  for (var index = 0; index < starts.length; index++) {
+    final window = img.copyCrop(
+      tallReceipt,
+      x: 0,
+      y: starts[index],
+      width: tallReceipt.width,
+      height: 1500,
+    );
+    final cropped = index.isEven
+        ? clipReceiptStitchingSide(window, right: 42)
+        : clipReceiptStitchingSide(window, left: 36);
+    captures.add(
+      shiftReceiptStitchingShot(
+        cropped,
+        dx: index.isEven ? 16 : -18,
+        dy: 0,
+      ),
+    );
+  }
+  final files = <File>[];
+  for (var index = 0; index < captures.length; index++) {
+    files.add(
+      await writeTempReceiptStitchingImage(captures[index], '${prefix}_$index'),
+    );
+  }
+  return files;
+}
+
+img.Image _tallReceiptCanvas({int sectionCount = 4}) {
+  const sectionStride = 1120;
+  final height = sectionStride * (sectionCount - 1) + 1500;
+  final canvas = img.Image(width: 900, height: height, numChannels: 3);
   img.fill(canvas, color: img.ColorRgb8(248, 248, 244));
-  for (var index = 0; index < 4; index++) {
+  for (var index = 0; index < sectionCount; index++) {
     final section = receiptStitchingSection(
       seed: 260 + index,
       topTextOffset: index * 11,
     );
-    img.compositeImage(canvas, section, dstX: 0, dstY: index * 1120);
+    img.compositeImage(canvas, section, dstX: 0, dstY: index * sectionStride);
   }
   return addReceiptStitchingWear(canvas, seed: 440, wrinkleCount: 11);
 }

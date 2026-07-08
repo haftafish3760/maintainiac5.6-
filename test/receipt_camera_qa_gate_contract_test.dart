@@ -315,6 +315,10 @@ void main() {
     expect(script, contains('test/receipt_stitch_fallback_metadata_test.dart'));
     expect(script, contains('test/receipt_stitching_duplicate_safety_test.dart'));
     expect(script, contains('test/receipt_stitching_horizontal_drift_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_stitching_horizontal_placement_test.dart'),
+    );
     expect(script, contains('test/receipt_stitching_long_stack_test.dart'));
     expect(script, contains('test/receipt_stitching_manual_overlap_test.dart'));
     expect(
