@@ -65,7 +65,7 @@ void main() {
     expect(
       source,
       contains(
-        "--name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|out-of-order phone-window|dark display borders|status and nav bars|eleven-section|ugly seven-section|ragged phone-window'",
+        "--name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|out-of-order phone-window|dark display borders|status and nav bars|eleven-section|ugly seven-section|ragged phone-window|tight-overlap phone-window'",
       ),
     );
     expect(source, contains('--concurrency=1'));
@@ -164,6 +164,26 @@ void main() {
     expect(
       source,
       contains('test/receipt_native_camera_session_limits_test.dart'),
+    );
+    expect(
+      source,
+      contains('test/receipt_photo_review_retake_order_test.dart'),
+    );
+    expect(
+      source,
+      contains('test/receipt_camera_result_section_order_test.dart'),
+    );
+    expect(
+      source,
+      contains(
+        'test/receipt_camera_result_section_order_follow_through_test.dart',
+      ),
+    );
+    expect(
+      source,
+      contains(
+        'test/receipt_camera_result_section_order_invalid_context_test.dart',
+      ),
     );
     expect(source, contains(r'exceeds $max_lines-line stitch test cap'));
     expect(source, contains('Receipt stitch source-size health: PASS'));

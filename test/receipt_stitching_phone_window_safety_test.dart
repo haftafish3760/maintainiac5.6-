@@ -114,6 +114,31 @@ void main() {
   );
 
   test(
+    'stitches tight-overlap phone-window captures without dropping lines',
+    () async {
+      final files = await _writeTightOverlapPhoneWindowStack(
+        'tight_overlap_phone_window',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [for (final file in files) file.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(4));
+      expect(result.overlapPixels, hasLength(4));
+      expect(
+        result.pairs.map((pair) => pair.confidence),
+        everyElement(greaterThanOrEqualTo(.50)),
+      );
+      expect(result.overlapPixelTotal, greaterThan(780));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+    },
+    timeout: _phoneWindowTimeout,
+  );
+
+  test(
     'stitches phone-screen receipt windows with dark display borders',
     () async {
       final files = await _writeDarkBorderPhoneWindowStack(
@@ -314,6 +339,36 @@ Future<List<File>> _writeRaggedPhoneWindowStack(String prefix) async {
     }
     if (index == 3) {
       capture = scaleReceiptStitchingShot(capture, scale: 1.04);
+    }
+    files.add(
+      await writeTempReceiptStitchingImage(capture, '${prefix}_$index'),
+    );
+  }
+  return files;
+}
+
+Future<List<File>> _writeTightOverlapPhoneWindowStack(String prefix) async {
+  final tallReceipt = tallReceiptStitchingCanvas(sectionCount: 5);
+  final starts = <int>[0, 1270, 2545, 3820, 5090];
+  final files = <File>[];
+  for (var index = 0; index < starts.length; index++) {
+    var capture = img.copyCrop(
+      tallReceipt,
+      x: 0,
+      y: starts[index],
+      width: tallReceipt.width,
+      height: 1500,
+    );
+    capture = shiftReceiptStitchingShot(
+      capture,
+      dx: index.isEven ? 16 : -18,
+      dy: 0,
+    );
+    if (index == 2) {
+      capture = fadeReceiptStitchingInk(capture, amount: .18);
+    }
+    if (index == 3) {
+      capture = adjustReceiptStitchingBrightness(capture, delta: 18);
     }
     files.add(
       await writeTempReceiptStitchingImage(capture, '${prefix}_$index'),

@@ -57,7 +57,7 @@ run_phone_windows() {
     test/receipt_stitching_long_stack_test.dart \
     test/receipt_stitching_phone_window_safety_test.dart \
     test/receipt_stitching_phone_window_edge_crop_test.dart \
-    --name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|out-of-order phone-window|dark display borders|status and nav bars|eleven-section|ugly seven-section|ragged phone-window' \
+    --name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|out-of-order phone-window|dark display borders|status and nav bars|eleven-section|ugly seven-section|ragged phone-window|tight-overlap phone-window' \
     --concurrency=1
   echo "Receipt stitch phone-window health: PASS"
 }
@@ -155,6 +155,10 @@ run_source_size() {
     test/receipt_camera_result_stitch_handoff_followthrough_test.dart
     test/receipt_camera_stitch_candidate_metadata_test.dart
     test/receipt_native_camera_session_limits_test.dart
+    test/receipt_photo_review_retake_order_test.dart
+    test/receipt_camera_result_section_order_test.dart
+    test/receipt_camera_result_section_order_follow_through_test.dart
+    test/receipt_camera_result_section_order_invalid_context_test.dart
   )
   for file in "${test_files[@]}"; do
     local lines
