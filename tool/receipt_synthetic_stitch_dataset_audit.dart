@@ -92,10 +92,10 @@ void _auditReceipt(
   final id = _stringValue(receipt['id']);
   final prefix = id == null ? 'receipts[$index]' : 'receipt $id';
   if (id == null || id.isEmpty) failures.add('$prefix needs non-empty id.');
-  _expectOneOf(
+  final lengthClass = _expectOneOf(
     receipt,
     'lengthClass',
-    const {'very_short', 'short', 'medium', 'long', 'extreme'},
+    _lengthClassRanges.keys.toSet(),
     failures,
     prefix,
   );
@@ -132,6 +132,14 @@ void _auditReceipt(
     final items = groundTruth['items'];
     if (items is! List || items.isEmpty) {
       failures.add('$prefix groundTruth.items must be a non-empty list.');
+    } else if (lengthClass != null) {
+      final range = _lengthClassRanges[lengthClass]!;
+      if (items.length < range.min || items.length > range.max) {
+        failures.add(
+          '$prefix $lengthClass receipts must have ${range.min}-${range.max} '
+          'items, found ${items.length}.',
+        );
+      }
     }
   }
 
@@ -226,7 +234,7 @@ void _expectBool(
   if (map[key] != expected) failures.add('$key must be $expected.');
 }
 
-void _expectOneOf(
+String? _expectOneOf(
   Map<String, Object?> map,
   String key,
   Set<String> allowed,
@@ -236,7 +244,24 @@ void _expectOneOf(
   final value = _stringValue(map[key]);
   if (value == null || !allowed.contains(value)) {
     failures.add('$prefix $key must be one of ${allowed.join(', ')}.');
+    return null;
   }
+  return value;
 }
 
 String? _stringValue(Object? value) => value is String ? value.trim() : null;
+
+const _lengthClassRanges = <String, _IntRange>{
+  'very_short': _IntRange(8, 15),
+  'short': _IntRange(15, 35),
+  'medium': _IntRange(35, 75),
+  'long': _IntRange(75, 150),
+  'extreme': _IntRange(150, 300),
+};
+
+class _IntRange {
+  const _IntRange(this.min, this.max);
+
+  final int min;
+  final int max;
+}

@@ -4,6 +4,27 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('synthetic stitch dataset manifest template documents safe contract', () {
+    final template = File(
+      'test/fixtures/receipt_qa/synthetic_stitch_dataset_manifest.template.json',
+    );
+    expect(template.existsSync(), isTrue);
+    final decoded = jsonDecode(template.readAsStringSync()) as Map;
+
+    expect(
+      decoded['schema'],
+      'maintainiac_synthetic_receipt_stitch_dataset_v1',
+    );
+    expect(decoded['expectedReceiptCount'], 10000);
+    expect(decoded['commercialSafeOriginalGenerationOnly'], isTrue);
+    expect(decoded['containsRealReceipts'], isFalse);
+    expect(decoded['containsCopyrightedReceipts'], isFalse);
+    expect(decoded['containsLogosOrTrademarks'], isFalse);
+    expect(decoded['containsRealAddressesOrPhones'], isFalse);
+    expect(decoded['requiredCaptureSetsPerReceipt'], [2, 3, 4, 5]);
+    expect((decoded['lengthClassItemRanges'] as Map)['extreme'], [150, 300]);
+  });
+
   test(
     'synthetic stitch dataset audit accepts generated original manifest',
     () async {
@@ -76,6 +97,29 @@ void main() {
       );
     },
   );
+
+  test(
+    'synthetic stitch dataset audit enforces receipt length classes',
+    () async {
+      final root = Directory.systemTemp.createTempSync(
+        'maintainiac_synthetic_stitch_dataset_length_',
+      );
+      addTearDown(() {
+        if (root.existsSync()) root.deleteSync(recursive: true);
+      });
+      _writeSyntheticDatasetFiles(root);
+      final manifestData = _validManifest();
+      final receipt = (manifestData['receipts'] as List).first as Map;
+      receipt['lengthClass'] = 'extreme';
+      final manifest = File('${root.path}/manifest.json')
+        ..writeAsStringSync(jsonEncode(manifestData));
+
+      final result = await _runAudit(manifest);
+
+      expect(result.exitCode, 1);
+      expect(result.stderr.toString(), contains('extreme receipts must have'));
+    },
+  );
 }
 
 Future<ProcessResult> _runAudit(File manifest) {
@@ -122,7 +166,8 @@ Map<String, Object?> _validManifest() => {
       'groundTruth': {
         'storeName': 'Blue Ridge Tool Depot',
         'items': [
-          {'description': 'Copper Elbow Half Inch', 'price': 2.48},
+          for (var index = 0; index < 80; index++)
+            {'description': 'Synthetic Item $index', 'price': 2.48},
         ],
         'subtotal': 2.48,
         'tax': 0.13,

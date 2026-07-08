@@ -1,0 +1,97 @@
+{
+  "schema": "maintainiac_synthetic_receipt_stitch_dataset_v1",
+  "expectedReceiptCount": 10000,
+  "commercialSafeOriginalGenerationOnly": true,
+  "containsRealReceipts": false,
+  "containsCopyrightedReceipts": false,
+  "containsLogosOrTrademarks": false,
+  "containsRealAddressesOrPhones": false,
+  "generationPolicy": {
+    "businessNames": "fictional_only",
+    "items": "fictional_or_generic_only",
+    "images": "procedurally_generated_only"
+  },
+  "lengthClassItemRanges": {
+    "very_short": [8, 15],
+    "short": [15, 35],
+    "medium": [35, 75],
+    "long": [75, 150],
+    "extreme": [150, 300]
+  },
+  "requiredCaptureSetsPerReceipt": [2, 3, 4, 5],
+  "receipts": [
+    {
+      "id": "synthetic_000001",
+      "lengthClass": "long",
+      "originalReceiptPath": "receipts/synthetic_000001/original.jpg",
+      "expectedStitchedPath": "receipts/synthetic_000001/expected_stitched.jpg",
+      "groundTruth": {
+        "storeName": "Fictional Ridge Tool Supply",
+        "items": [
+          {
+            "lineNumber": 1,
+            "description": "Copper Elbow Half Inch",
+            "quantity": 1,
+            "unitPrice": 2.48,
+            "price": 2.48
+          }
+        ],
+        "subtotal": 2.48,
+        "tax": 0.13,
+        "discounts": [],
+        "coupons": [],
+        "change": 0.0,
+        "total": 2.61,
+        "paymentMethod": "credit",
+        "transactionId": "SYN-TRX-000001",
+        "receiptId": "SYN-RCPT-000001",
+        "registerId": "REG-04",
+        "cashierId": "CASHIER-19",
+        "timestamp": "2026-07-08T15:36:00-04:00",
+        "ocrText": "FICTIONAL RIDGE TOOL SUPPLY\nCOPPER ELBOW HALF INCH 2.48\nTOTAL 2.61"
+      },
+      "captures": [
+        {
+          "imageCount": 2,
+          "images": [
+            {
+              "index": 0,
+              "path": "receipts/synthetic_000001/2_part_0.jpg"
+            },
+            {
+              "index": 1,
+              "path": "receipts/synthetic_000001/2_part_1.jpg"
+            }
+          ],
+          "expectedImageOrdering": [0, 1],
+          "expectedOverlaps": [
+            {
+              "fromIndex": 0,
+              "toIndex": 1,
+              "overlapPercent": 18,
+              "overlapPixels": 270
+            }
+          ]
+        },
+        {
+          "imageCount": 3,
+          "images": [],
+          "expectedImageOrdering": [0, 1, 2],
+          "expectedOverlaps": []
+        },
+        {
+          "imageCount": 4,
+          "images": [],
+          "expectedImageOrdering": [0, 1, 2, 3],
+          "expectedOverlaps": []
+        },
+        {
+          "imageCount": 5,
+          "images": [],
+          "expectedImageOrdering": [0, 1, 2, 3, 4],
+          "expectedOverlaps": []
+        }
+      ]
+    }
+  ]
+}
