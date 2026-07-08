@@ -12,35 +12,7 @@ void main() {
     () async {
       final receipt = _storeReceiptShape();
       final starts = <int>[0, 1200, 2400, 3600];
-      final files = <File>[];
-      for (var index = 0; index < starts.length; index++) {
-        var window = cropReceiptStitchingPhoneWindow(
-          receipt,
-          y: starts[index],
-          height: 1500,
-        );
-        window = shiftReceiptStitchingShot(
-          adjustReceiptStitchingBrightness(
-            window,
-            delta: index.isEven ? -10 : 16,
-          ),
-          dx: index.isEven ? 18 : -22,
-          dy: 0,
-        );
-        window = frameReceiptStitchingShotOnDarkSurface(
-          window,
-          left: index.isEven ? 70 : 92,
-          top: index.isEven ? 48 : 60,
-          right: index.isEven ? 96 : 74,
-          bottom: index.isEven ? 72 : 84,
-        );
-        files.add(
-          await writeTempReceiptStitchingImage(
-            window,
-            'store_receipt_shape_$index',
-          ),
-        );
-      }
+      final files = await _writeStoreReceiptWindows(receipt, starts, 'shape');
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: files.map((file) => file.path).toList(growable: false),
@@ -64,6 +36,70 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );
+
+  test(
+    'requires review when store receipt windows skip the middle section',
+    () async {
+      final receipt = _storeReceiptShape();
+      final files = await _writeStoreReceiptWindows(receipt, const [
+        0,
+        1200,
+        3600,
+      ], 'skipped_middle');
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: files.map((file) => file.path).toList(growable: false),
+      );
+
+      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+      expect(
+        result.assistedReadinessCode,
+        anyOf(
+          'stitched_overlap_review_required',
+          'ordered_sections_stitch_fallback_review_required',
+        ),
+      );
+      expect(
+        result.ocrHandoffSafetyCode,
+        isNot('stitched_ocr_ready_for_assisted_read'),
+      );
+    },
+    timeout: const Timeout(Duration(minutes: 3)),
+  );
+}
+
+Future<List<File>> _writeStoreReceiptWindows(
+  img.Image receipt,
+  List<int> starts,
+  String label,
+) async {
+  final files = <File>[];
+  for (var index = 0; index < starts.length; index++) {
+    var window = cropReceiptStitchingPhoneWindow(
+      receipt,
+      y: starts[index],
+      height: 1500,
+    );
+    window = shiftReceiptStitchingShot(
+      adjustReceiptStitchingBrightness(window, delta: index.isEven ? -10 : 16),
+      dx: index.isEven ? 18 : -22,
+      dy: 0,
+    );
+    window = frameReceiptStitchingShotOnDarkSurface(
+      window,
+      left: index.isEven ? 70 : 92,
+      top: index.isEven ? 48 : 60,
+      right: index.isEven ? 96 : 74,
+      bottom: index.isEven ? 72 : 84,
+    );
+    files.add(
+      await writeTempReceiptStitchingImage(
+        window,
+        'store_receipt_${label}_$index',
+      ),
+    );
+  }
+  return files;
 }
 
 img.Image _storeReceiptShape() {
