@@ -120,6 +120,33 @@ void main() {
       expect(result.stderr.toString(), contains('extreme receipts must have'));
     },
   );
+
+  test('synthetic stitch dataset audit rejects weak stitch metadata', () async {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_synthetic_stitch_dataset_stress_',
+    );
+    addTearDown(() {
+      if (root.existsSync()) root.deleteSync(recursive: true);
+    });
+    _writeSyntheticDatasetFiles(root);
+    final manifestData = _validManifest();
+    final receipt = (manifestData['receipts'] as List).first as Map;
+    receipt.remove('degradationTags');
+    final capture = (receipt['captures'] as List).first as Map;
+    capture['expectedOverlaps'] = [
+      {'fromIndex': 0, 'toIndex': 3, 'overlapPercent': 95, 'overlapPixels': 0},
+    ];
+    final manifest = File('${root.path}/manifest.json')
+      ..writeAsStringSync(jsonEncode(manifestData));
+
+    final result = await _runAudit(manifest);
+
+    expect(result.exitCode, 1);
+    expect(result.stderr.toString(), contains('degradationTags'));
+    expect(result.stderr.toString(), contains('adjacent images'));
+    expect(result.stderr.toString(), contains('overlapPercent'));
+    expect(result.stderr.toString(), contains('overlapPixels'));
+  });
 }
 
 Future<ProcessResult> _runAudit(File manifest) {
@@ -163,6 +190,7 @@ Map<String, Object?> _validManifest() => {
       'lengthClass': 'long',
       'originalReceiptPath': 'receipts/r001/original.jpg',
       'expectedStitchedPath': 'receipts/r001/expected_stitched.jpg',
+      'degradationTags': ['wrinkles', 'rotation', 'uneven_lighting'],
       'groundTruth': {
         'storeName': 'Blue Ridge Tool Depot',
         'items': [

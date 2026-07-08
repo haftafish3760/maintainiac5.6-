@@ -25,6 +25,24 @@
       "lengthClass": "long",
       "originalReceiptPath": "receipts/synthetic_000001/original.jpg",
       "expectedStitchedPath": "receipts/synthetic_000001/expected_stitched.jpg",
+      "degradationTags": [
+        "thermal_fading",
+        "curl",
+        "wrinkles",
+        "folds",
+        "stains",
+        "smudges",
+        "camera_blur",
+        "motion_blur",
+        "jpeg_compression",
+        "perspective_distortion",
+        "rotation",
+        "shadows",
+        "low_light",
+        "flash_glare",
+        "uneven_lighting",
+        "noise"
+      ],
       "groundTruth": {
         "storeName": "Fictional Ridge Tool Supply",
         "items": [

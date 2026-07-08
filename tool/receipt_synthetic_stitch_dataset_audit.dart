@@ -113,6 +113,7 @@ void _auditReceipt(
     failures,
     prefix,
   );
+  _expectDegradationTags(receipt, failures, prefix);
 
   final groundTruth = receipt['groundTruth'];
   if (groundTruth is! Map<String, Object?>) {
@@ -182,6 +183,8 @@ void _auditReceipt(
       failures.add(
         '$prefix capture $count expectedOverlaps must have ${count - 1} entries.',
       );
+    } else {
+      _auditOverlaps(overlaps, count, failures, prefix);
     }
     final order = capture['expectedImageOrdering'];
     if (order is! List || order.length != count) {
@@ -192,6 +195,71 @@ void _auditReceipt(
   }
   if (!seenCounts.containsAll(const {2, 3, 4, 5})) {
     failures.add('$prefix captures must include imageCount 2, 3, 4, and 5.');
+  }
+}
+
+void _expectDegradationTags(
+  Map<String, Object?> receipt,
+  List<String> failures,
+  String prefix,
+) {
+  final tags = receipt['degradationTags'];
+  if (tags is! List || tags.isEmpty) {
+    failures.add('$prefix degradationTags must be a non-empty list.');
+    return;
+  }
+  final normalized = <String>{};
+  for (final tag in tags) {
+    final value = _stringValue(tag);
+    if (value == null || value.isEmpty) {
+      failures.add(
+        '$prefix degradationTags must contain only non-empty strings.',
+      );
+      continue;
+    }
+    normalized.add(value);
+  }
+  if (!normalized.any(_requiredStitchStressTags.contains)) {
+    failures.add(
+      '$prefix degradationTags must include at least one stitch stress tag: '
+      '${_requiredStitchStressTags.join(', ')}.',
+    );
+  }
+}
+
+void _auditOverlaps(
+  List<Object?> overlaps,
+  int imageCount,
+  List<String> failures,
+  String prefix,
+) {
+  for (var index = 0; index < overlaps.length; index++) {
+    final overlap = overlaps[index];
+    if (overlap is! Map<String, Object?>) {
+      failures.add('$prefix overlap $index must be an object.');
+      continue;
+    }
+    final fromIndex = overlap['fromIndex'];
+    final toIndex = overlap['toIndex'];
+    if (fromIndex is! int || toIndex is! int || toIndex != fromIndex + 1) {
+      failures.add('$prefix overlap $index must connect adjacent images.');
+    }
+    if (fromIndex is int && (fromIndex < 0 || fromIndex >= imageCount - 1)) {
+      failures.add('$prefix overlap $index fromIndex is outside image range.');
+    }
+    if (toIndex is int && (toIndex < 1 || toIndex >= imageCount)) {
+      failures.add('$prefix overlap $index toIndex is outside image range.');
+    }
+    final percent = overlap['overlapPercent'];
+    if (percent is! num || percent <= 0 || percent >= 60) {
+      failures.add(
+        '$prefix overlap $index overlapPercent must be > 0 and < 60.',
+      );
+    }
+    final pixels = overlap['overlapPixels'];
+    if (pixels is! int || pixels <= 0) {
+      failures.add('$prefix overlap $index overlapPixels must be positive.');
+    }
   }
 }
 
@@ -257,6 +325,25 @@ const _lengthClassRanges = <String, _IntRange>{
   'medium': _IntRange(35, 75),
   'long': _IntRange(75, 150),
   'extreme': _IntRange(150, 300),
+};
+
+const _requiredStitchStressTags = <String>{
+  'curl',
+  'wrinkles',
+  'folds',
+  'tears',
+  'stains',
+  'smudges',
+  'camera_blur',
+  'motion_blur',
+  'jpeg_compression',
+  'perspective_distortion',
+  'rotation',
+  'shadows',
+  'low_light',
+  'flash_glare',
+  'uneven_lighting',
+  'noise',
 };
 
 class _IntRange {
