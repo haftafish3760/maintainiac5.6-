@@ -4,9 +4,20 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('real-device result gate passes the active template', () async {
+    final runDir = await Directory.systemTemp.createTemp(
+      'receipt_real_device_gate_empty_',
+    );
+    addTearDown(() async {
+      if (runDir.existsSync()) {
+        await runDir.delete(recursive: true);
+      }
+    });
+
     final result = await Process.run('dart', [
       'tool/receipt_real_device_result_gate.dart',
-    ]);
+    ], environment: {
+      'RECEIPT_REAL_DEVICE_RUNS_DIR': runDir.path,
+    });
 
     expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
     expect(
@@ -39,16 +50,16 @@ void main() {
   });
 
   test('real-device result gate rejects run notes with missing snapshot files', () async {
-    final runDir = Directory('docs/receipt_real_device_runs');
-    runDir.createSync(recursive: true);
-
-    final runFile = File('${runDir.path}/9999-12-31-missing-snapshot-test.md');
-    addTearDown(() {
-      if (runFile.existsSync()) {
-        runFile.deleteSync();
+    final runDir = await Directory.systemTemp.createTemp(
+      'receipt_real_device_gate_missing_',
+    );
+    addTearDown(() async {
+      if (runDir.existsSync()) {
+        await runDir.delete(recursive: true);
       }
     });
 
+    final runFile = File('${runDir.path}/9999-12-31-missing-snapshot-test.md');
     runFile.writeAsStringSync(_runNote(
       metadataSummary: '/tmp/does-not-exist-summary.txt',
       flutterLog: '/tmp/does-not-exist-flutter.txt',
@@ -58,7 +69,9 @@ void main() {
 
     final result = await Process.run('dart', [
       'tool/receipt_real_device_result_gate.dart',
-    ]);
+    ], environment: {
+      'RECEIPT_REAL_DEVICE_RUNS_DIR': runDir.path,
+    });
 
     expect(result.exitCode, 1);
     expect(
@@ -68,8 +81,14 @@ void main() {
   });
 
   test('real-device result gate accepts run notes with existing snapshot files', () async {
-    final runDir = Directory('docs/receipt_real_device_runs');
-    runDir.createSync(recursive: true);
+    final runDir = await Directory.systemTemp.createTemp(
+      'receipt_real_device_gate_present_',
+    );
+    addTearDown(() async {
+      if (runDir.existsSync()) {
+        await runDir.delete(recursive: true);
+      }
+    });
 
     final tempDir = await Directory.systemTemp.createTemp(
       'receipt_real_device_gate_',
@@ -88,12 +107,6 @@ void main() {
       ..writeAsStringSync('ok');
 
     final runFile = File('${runDir.path}/9999-12-31-existing-snapshot-test.md');
-    addTearDown(() {
-      if (runFile.existsSync()) {
-        runFile.deleteSync();
-      }
-    });
-
     runFile.writeAsStringSync(_runNote(
       metadataSummary: summary.path,
       flutterLog: flutter.path,
@@ -103,7 +116,9 @@ void main() {
 
     final result = await Process.run('dart', [
       'tool/receipt_real_device_result_gate.dart',
-    ]);
+    ], environment: {
+      'RECEIPT_REAL_DEVICE_RUNS_DIR': runDir.path,
+    });
 
     expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
     expect(

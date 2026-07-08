@@ -12,10 +12,23 @@ void main() {
         '${date.day.toString().padLeft(2, '0')}';
     final outputPath = 'docs/receipt_real_device_runs/$stamp-$slug.md';
     final outputFile = File(outputPath);
+    File? snapshotSummaryFile;
 
     if (outputFile.existsSync()) {
       outputFile.deleteSync();
     }
+    addTearDown(() {
+      if (outputFile.existsSync()) {
+        outputFile.deleteSync();
+      }
+      final summary = snapshotSummaryFile;
+      if (summary != null && summary.existsSync()) {
+        summary.parent.listSync().whereType<File>().forEach((file) {
+          file.deleteSync();
+        });
+        summary.parent.deleteSync();
+      }
+    });
 
     final result = await Process.run('bash', [
       'tool/receipt_real_device_result_start.sh',
@@ -40,6 +53,13 @@ void main() {
     expect(text, contains('- Flutter devices snapshot: '));
     expect(text, contains('- ADB devices snapshot: '));
     expect(text, contains('- Xcode devices snapshot: '));
+    expect(text, isNot(contains('Found 4 connected devices:')));
+    expect(text, isNot(contains('Checking for wireless devices...')));
+    expect(text, isNot(contains('robbie’s iPhone')));
+    expect(
+      text,
+      contains('- Flutter devices snapshot: captured;'),
+    );
 
     final snapshotSummaryMatch = RegExp(
       r'- Metadata snapshot summary: `([^`]+)`',
@@ -47,7 +67,7 @@ void main() {
     expect(snapshotSummaryMatch, isNotNull);
 
     final snapshotSummaryPath = snapshotSummaryMatch!.group(1)!;
-    final snapshotSummaryFile = File(snapshotSummaryPath);
+    snapshotSummaryFile = File(snapshotSummaryPath);
     expect(snapshotSummaryFile.existsSync(), isTrue);
     expect(
       snapshotSummaryFile.readAsStringSync(),
@@ -77,12 +97,6 @@ void main() {
           .length,
       1,
     );
-
-    outputFile.deleteSync();
-    snapshotSummaryFile.parent.listSync().whereType<File>().forEach((file) {
-      file.deleteSync();
-    });
-    snapshotSummaryFile.parent.deleteSync();
   });
 
   test('real-device result start script stays metadata-only and non-interactive', () {
@@ -101,9 +115,10 @@ void main() {
     expect(script, contains('docs/receipt_real_device_result_template.md'));
     expect(script, contains('docs/receipt_real_device_runs'));
     expect(script, contains('tool/receipt_camera_real_device_snapshot.sh'));
-    expect(script, contains('flutter devices'));
-    expect(script, contains('adb devices -l'));
-    expect(script, contains('xcrun xctrace list devices'));
+    expect(script, contains('summarize_log('));
+    expect(script, contains('captured; inspect linked log'));
+    expect(script, contains('captured; no devices listed'));
+    expect(script, contains('missing snapshot log; inspect setup'));
     expect(script, contains('Refusing to overwrite existing result note'));
     expect(script, isNot(contains('flutter run')));
     expect(script, isNot(contains('flutter install')));

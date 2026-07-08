@@ -39,42 +39,56 @@ branch="$(git branch --show-current 2>/dev/null || echo unknown)"
 commit="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
 workspace="$(pwd -P)"
 
-flutter_summary="NOT CHECKED"
-adb_summary="NOT CHECKED"
-xcrun_summary="NOT CHECKED"
-
-if command -v flutter >/dev/null 2>&1; then
-  flutter_summary="$(
-    flutter devices 2>/dev/null | awk 'NF { print }' | paste -sd ' | ' - || true
-  )"
-  flutter_summary="${flutter_summary:-NO DEVICES LISTED}"
-fi
-
-if command -v adb >/dev/null 2>&1; then
-  adb_summary="$(
-    adb devices -l 2>/dev/null | awk 'NR > 1 && NF { print }' | paste -sd ' | ' - || true
-  )"
-  adb_summary="${adb_summary:-NO DEVICES LISTED}"
-fi
-
-if [[ "$(uname -s)" == "Darwin" ]] && command -v xcrun >/dev/null 2>&1; then
-  xcrun_summary="$(
-    xcrun xctrace list devices 2>/dev/null | awk 'NF { print }' | head -n 5 | paste -sd ' | ' - || true
-  )"
-  xcrun_summary="${xcrun_summary:-NO DEVICES LISTED}"
-fi
-
 cp "$template_path" "$output_path"
 
 bash tool/receipt_camera_real_device_snapshot.sh "$snapshot_dir" >/dev/null
 
-python3 - "$output_path" "$timestamp" "$branch" "$commit" "$workspace" "$flutter_summary" "$adb_summary" "$xcrun_summary" "$snapshot_dir" <<'PY'
+python3 - "$output_path" "$timestamp" "$branch" "$commit" "$workspace" "$snapshot_dir" <<'PY'
 from pathlib import Path
+import re
 import sys
 
 path = Path(sys.argv[1])
-timestamp, branch, commit, workspace, flutter_summary, adb_summary, xcrun_summary, snapshot_dir = sys.argv[2:]
+timestamp, branch, commit, workspace, snapshot_dir = sys.argv[2:]
 text = path.read_text()
+
+def summarize_log(log_path: Path, no_devices_patterns: list[str]) -> str:
+    if not log_path.exists():
+        return "missing snapshot log; inspect setup"
+
+    raw = log_path.read_text()
+    if "SKIPPED missing command:" in raw:
+        missing = raw.split("SKIPPED missing command:", 1)[1].strip().splitlines()[0]
+        return f"skipped; missing command {missing}"
+    if "EXIT_CODE " in raw:
+        return "command failed; inspect linked log"
+
+    payload_lines = [
+        line.strip()
+        for line in raw.splitlines()
+        if line.strip() and not line.startswith("COMMAND ")
+    ]
+    payload = "\n".join(payload_lines)
+    if any(pattern in payload for pattern in no_devices_patterns):
+        return "captured; no devices listed"
+    if not payload_lines:
+        return "captured; no device details reported"
+    return "captured; inspect linked log"
+
+snapshot_path = Path(snapshot_dir)
+flutter_summary = summarize_log(
+    snapshot_path / "flutter_devices.txt",
+    ["No devices were found", "NO DEVICES LISTED"],
+)
+adb_summary = summarize_log(
+    snapshot_path / "adb_devices.txt",
+    ["List of devices attached"],
+)
+xcrun_summary = summarize_log(
+    snapshot_path / "xcrun_devices.txt",
+    ["NO DEVICES LISTED", "SKIPPED non-Darwin host"],
+)
+
 replacements = {
     "- Date:": f"- Date: {timestamp}",
     "- Branch:": f"- Branch: {branch}",

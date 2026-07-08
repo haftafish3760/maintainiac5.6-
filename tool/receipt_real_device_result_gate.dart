@@ -1,7 +1,11 @@
 import 'dart:io';
 
-const _templatePath = 'docs/receipt_real_device_result_template.md';
-const _runsDir = 'docs/receipt_real_device_runs';
+final _templatePath =
+    Platform.environment['RECEIPT_REAL_DEVICE_TEMPLATE_PATH'] ??
+    'docs/receipt_real_device_result_template.md';
+final _runsDir =
+    Platform.environment['RECEIPT_REAL_DEVICE_RUNS_DIR'] ??
+    'docs/receipt_real_device_runs';
 
 const _templateRequirements = <String>[
   '# Receipt Real-Device Result Template',
