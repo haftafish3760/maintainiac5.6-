@@ -102,6 +102,7 @@ void main() {
 
     expect(result.usedFallback, isTrue);
     expect(result.didStitch, isFalse);
+    expect(result.fallbackReasonCode, 'invalid_input_paths');
     expect(result.ocrSourcePaths, [valid.path, nonLocalPath]);
     expect(result.hasValidOcrSourceContract, isFalse);
     expect(result.ocrSourceContractCode, 'fallback_invalid_input_sources');

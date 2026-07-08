@@ -21,6 +21,19 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
   if (inputPaths.length <= 1) {
     return ReceiptStitchResult.notNeeded(inputPaths);
   }
+  if (!receiptPhotoPathsAreUniqueAndNormalized(inputPaths)) {
+    final hasInvalidPath = inputPaths.any(
+      (path) => normalizedReceiptPhotoPath(path) == null,
+    );
+    return ReceiptStitchResult.fallback(
+      inputPaths: inputPaths,
+      warning:
+          'Receipt photos included invalid or repeated section paths. Receipt details will use the photos separately.',
+      fallbackReasonCode: hasInvalidPath
+          ? 'invalid_input_paths'
+          : 'duplicate_input_paths',
+    );
+  }
   if (!_stitchInputPathsAreUnique(inputPaths)) {
     return ReceiptStitchResult.fallback(
       inputPaths: inputPaths,
