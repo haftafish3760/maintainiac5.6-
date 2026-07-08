@@ -202,4 +202,46 @@ void main() {
       );
     },
   );
+
+  test('final unreadable fallback blocks assisted OCR path-free', () {
+    final preview = ReceiptStitchResult.fallback(
+      inputPaths: const ['/tmp/top.jpg', '/tmp/unreadable.jpg'],
+      warning: 'One receipt photo could not be read.',
+      fallbackReasonCode: 'decode_failed',
+    );
+
+    final finalResult = preview.copyForFinalOcr(
+      inputPaths: const ['/private/top.jpg', '/private/unreadable.jpg'],
+      ocrSourcePaths: const [
+        '/private/ocr-top.jpg',
+        '/private/ocr-unreadable.jpg',
+      ],
+    );
+    final review = ReceiptPhotoReviewResult(
+      photoPaths: const ['/private/proof-top.jpg', '/private/proof-bad.jpg'],
+      ocrSourcePhotoPaths: finalResult.ocrSourcePaths,
+      stitchResult: finalResult,
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+    );
+
+    expect(finalResult.usedFallback, isTrue);
+    expect(
+      finalResult.ocrSourceContractCode,
+      'fallback_unreadable_input_source',
+    );
+    expect(finalResult.hasValidOcrSourceContract, isFalse);
+    expect(finalResult.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+    expect(review.ocrSourcePathsMatchStitchContract, isFalse);
+    expect(
+      review.privacySafeReceiptReaderHandoffMetadata,
+      containsPair(
+        'stitchOcrSourceContractCode',
+        'fallback_unreadable_input_source',
+      ),
+    );
+    expect(
+      review.privacySafeReceiptReaderHandoffMetadata.toString(),
+      isNot(contains('/private/')),
+    );
+  });
 }

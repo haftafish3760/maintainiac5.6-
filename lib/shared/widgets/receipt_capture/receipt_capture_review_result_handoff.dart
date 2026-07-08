@@ -19,6 +19,10 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
 
   bool get ocrSourcePathsMatchStitchContract {
     if (!hasOcrSourcePhotos) return false;
+    if (stitchResult.ocrSourceContractCode ==
+        'fallback_unreadable_input_source') {
+      return false;
+    }
     final stitchedPath = stitchResult.stitchedPath;
     if (stitchResult.didStitch) {
       return stitchedPath != null &&
