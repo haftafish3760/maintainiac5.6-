@@ -27,7 +27,7 @@ double _overlapDifference({
     var previousInk = 0;
     var nextInk = 0;
     var rowSamples = 0;
-    for (var x = sampleWidth ~/ 10; x < sampleWidth * 9 ~/ 10; x += stepX) {
+    for (var x = sampleWidth ~/ 24; x < sampleWidth * 23 ~/ 24; x += stepX) {
       final nextX = x + horizontalOffset;
       if (nextX < 0 || nextX >= sampleWidth) continue;
       final a = _luma(previous.getPixel(x, previousStartY + y));
@@ -47,7 +47,7 @@ double _overlapDifference({
       rowProfileSamples++;
     }
   }
-  for (var x = sampleWidth ~/ 12; x < sampleWidth * 11 ~/ 12; x += stepX) {
+  for (var x = sampleWidth ~/ 24; x < sampleWidth * 23 ~/ 24; x += stepX) {
     final nextX = x + horizontalOffset;
     if (nextX < 0 || nextX >= sampleWidth) continue;
     var previousInk = 0;
@@ -143,7 +143,7 @@ double _overlapFlatTexturePenalty({
     var previousInk = 0;
     var nextInk = 0;
     var samples = 0;
-    for (var x = sampleWidth ~/ 10; x < sampleWidth * 9 ~/ 10; x += stepX) {
+    for (var x = sampleWidth ~/ 24; x < sampleWidth * 23 ~/ 24; x += stepX) {
       final nextX = x + horizontalOffset;
       if (nextX < 0 || nextX >= sampleWidth) continue;
       if (_luma(previous.getPixel(x, previousStartY + y)) < 170) {
