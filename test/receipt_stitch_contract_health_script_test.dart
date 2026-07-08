@@ -30,6 +30,7 @@ void main() {
     expect(source, contains('tail -n 180'));
     expect(source, contains('run_flutter_test delayed-overlap'));
     expect(source, contains('run_flutter_test edge-case'));
+    expect(source, contains('run_flutter_test size-cap'));
     expect(source, contains('run_flutter_test phone-window'));
     expect(source, contains('run_flutter_test phone-window-fast'));
     expect(source, contains('run_flutter_test long-stack'));
@@ -62,6 +63,9 @@ void main() {
     expect(source, contains('receipt_stitching_worn_receipt_test.dart'));
     expect(source, contains('crops delayed-overlap top strip'));
     expect(source, contains('Receipt stitch edge-case health: PASS'));
+    expect(source, contains('size_caps)'));
+    expect(source, contains('Receipt stitch size-cap health'));
+    expect(source, contains('Receipt stitch size-cap health: PASS'));
     expect(source, contains('long_stack)'));
     expect(source, contains('Receipt stitch long-stack health: PASS'));
     expect(source, contains('bad_inputs)'));
@@ -248,6 +252,7 @@ void main() {
     expect(coreSource, contains('run_bad_inputs'));
     expect(coreSource, contains('run_manual_overlap'));
     expect(coreSource, contains('run_duplicates'));
+    expect(coreSource, contains('run_size_caps'));
     expect(coreSource, contains('run_section_order'));
     expect(coreSource, contains('run_ghost_handoff'));
     expect(coreSource, contains('run_handoff'));
@@ -255,6 +260,7 @@ void main() {
     expect(source, contains('milestone)'));
     expect(source, contains('run_source_size'));
     expect(source, contains('run_edge_cases'));
+    expect(source, contains('run_size_caps'));
     expect(source, contains('run_phone_windows'));
     expect(source, contains('run_long_stack'));
     expect(source, contains('run_ugly_long_receipts'));
@@ -267,7 +273,7 @@ void main() {
     expect(
       source,
       contains(
-        r'Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|source_size|fast|core|milestone|full]',
+        r'Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|source_size|fast|core|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));

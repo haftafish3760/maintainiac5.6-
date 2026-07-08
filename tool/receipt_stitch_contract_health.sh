@@ -68,6 +68,12 @@ run_edge_cases() {
   echo "Receipt stitch edge-case health: PASS"
 }
 
+run_size_caps() {
+  echo "Receipt stitch size-cap health"
+  run_flutter_test size-cap test/receipt_stitching_size_cap_test.dart
+  echo "Receipt stitch size-cap health: PASS"
+}
+
 run_phone_windows() {
   echo "Receipt stitch phone-window health"
   run_flutter_test phone-window \
@@ -212,6 +218,7 @@ run_source_size() {
 run_milestone() {
   run_source_size
   run_edge_cases
+  run_size_caps
   run_phone_windows
   run_long_stack
   run_ugly_long_receipts
@@ -236,6 +243,7 @@ run_core_stitch() {
   run_long_stack
   run_ugly_long_receipts
   run_uploaded_screenshots
+  run_size_caps
   run_bad_inputs
   run_manual_overlap
   run_duplicates
@@ -263,6 +271,7 @@ run_full() {
     test/receipt_stitching_duplicate_safety_test.dart \
     test/receipt_stitching_ocr_source_contract_test.dart \
     test/receipt_stitching_scale_rotation_test.dart \
+    test/receipt_stitching_size_cap_test.dart \
     test/receipt_stitching_horizontal_placement_test.dart \
     test/receipt_stitching_horizontal_drift_test.dart \
     test/receipt_stitching_worn_receipt_test.dart \
@@ -286,6 +295,7 @@ run_full() {
 case "$mode" in
   delayed_overlap) run_delayed_overlap; exit 0 ;;
   edge_cases) run_edge_cases; exit 0 ;;
+  size_caps) run_size_caps; exit 0 ;;
   phone_windows) run_phone_windows; exit 0 ;;
   phone_windows_fast) run_phone_windows_fast; exit 0 ;;
   long_stack) run_long_stack; exit 0 ;;
@@ -303,7 +313,7 @@ case "$mode" in
   milestone) run_milestone; exit 0 ;;
   full) run_full; exit 0 ;;
   *)
-    echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|source_size|fast|core|milestone|full]" >&2
+    echo "Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|source_size|fast|core|milestone|full]" >&2
     exit 64
     ;;
 esac
