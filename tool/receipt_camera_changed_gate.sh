@@ -61,23 +61,47 @@ while IFS= read -r path; do
 
   case "$path" in
     lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart)
+      if [[ "$mode" == "quick" ]]; then
+        mode="phase2"
+      fi
       targeted_tests+=(
         test/receipt_import_source_sheet_test.dart
       )
       ;;
     lib/shared/widgets/receipt_capture/receipt_attachment_import_actions.dart)
+      if [[ "$mode" == "quick" ]]; then
+        mode="phase2"
+      fi
       targeted_tests+=(
         test/receipt_import_source_sheet_test.dart
       )
       ;;
     lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart)
+      if [[ "$mode" == "quick" ]]; then
+        mode="phase2"
+      fi
       targeted_tests+=(
         test/receipt_capture_flow_assist_opt_in_contract_test.dart
       )
       ;;
     lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart)
+      if [[ "$mode" == "quick" ]]; then
+        mode="phase2"
+      fi
       targeted_tests+=(
         test/receipt_capture_flow_assist_opt_in_contract_test.dart
+      )
+      ;;
+    lib/shared/widgets/receipt_capture/receipt_capture_stitch_models.dart | \
+    lib/shared/widgets/receipt_capture/receipt_capture_stitch_model_helpers.dart | \
+    lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_api.dart | \
+    lib/shared/widgets/receipt_capture/receipt_image_processor_storage_helpers.dart | \
+    lib/shared/widgets/receipt_capture/receipt_photo_review_exit_stitch_actions.dart)
+      if [[ "$mode" == "quick" ]]; then
+        mode="phase6"
+      fi
+      targeted_tests+=(
+        test/receipt_camera_phase6_stitching_handoff_contract_test.dart
       )
       ;;
     lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart | \
@@ -229,7 +253,7 @@ while IFS= read -r path; do
     test/receipt_ocr_source_* | \
     test/receipt_ocr_source_relationship_test.dart | \
     test/receipt_native_camera_phase8_storage_timing_test.dart)
-      if [[ "$mode" == "quick" || "$mode" == "milestone" ]]; then
+      if [[ "$mode" == "quick" || "$mode" == "milestone" || "$mode" == "stitch" || "$mode" == "phase6" ]]; then
         mode="core_remaining"
       fi
       ;;

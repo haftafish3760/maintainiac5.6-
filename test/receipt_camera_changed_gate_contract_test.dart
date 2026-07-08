@@ -197,7 +197,7 @@ void main() {
 
     expect(result.exitCode, 0);
     final stdout = result.stdout.toString();
-    expect(stdout, contains('mode=quick'));
+    expect(stdout, contains('mode=phase2'));
     expect(
       stdout,
       contains('targeted test/receipt_import_source_sheet_test.dart'),
@@ -209,6 +209,24 @@ void main() {
     expect(
       stdout,
       isNot(contains('milestone test/receipt_camera_phase3_viewer_contract_test.dart')),
+    );
+  });
+
+  test('camera changed gate selects phase2 for entry flow files by default', () async {
+    final result = await Process.run('bash', [
+      'tool/receipt_camera_changed_gate.sh',
+      '--print-mode',
+    ], environment: {
+      'RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST': [
+        'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
+        'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
+      ].join('\n'),
+    });
+
+    expect(result.exitCode, 0);
+    expect(
+      result.stdout.toString(),
+      contains('Receipt camera changed gate: selected phase2 for tracked camera changes.'),
     );
   });
 
@@ -233,6 +251,32 @@ void main() {
     expect(
       stdout,
       isNot(contains('milestone test/receipt_camera_phase4_review_contract_test.dart')),
+    );
+  });
+
+  test('camera changed gate can print exact targeted tests for phase6 stitch files', () async {
+    final result = await Process.run('bash', [
+      'tool/receipt_camera_changed_gate.sh',
+      '--print-tests',
+    ], environment: {
+      'RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST': [
+        'lib/shared/widgets/receipt_capture/receipt_capture_stitch_models.dart',
+        'lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_api.dart',
+      ].join('\n'),
+    });
+
+    expect(result.exitCode, 0);
+    final stdout = result.stdout.toString();
+    expect(stdout, contains('mode=phase6'));
+    expect(
+      stdout,
+      contains(
+        'targeted test/receipt_camera_phase6_stitching_handoff_contract_test.dart',
+      ),
+    );
+    expect(
+      stdout,
+      isNot(contains('core_remaining test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart')),
     );
   });
 
