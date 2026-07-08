@@ -271,6 +271,55 @@ void main() {
       );
     });
 
+    test('keeps original proof while tracking separate OCR source cleanup', () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/original-proof.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/ocr-cleanup-copy.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.original,
+        stitchResult: ReceiptStitchResult.notNeeded([
+          '/tmp/ocr-cleanup-copy.jpg',
+        ]),
+        preparationDiagnosticsByOcrPath: const {
+          '/tmp/ocr-cleanup-copy.jpg': {
+            'ocrStoragePolicyCode': 'ocr_clear_source_before_saved_proof_copy',
+            'ocrUsesPreparedSourceBeforeSavedProof': true,
+            'ocrUsesSavedProofFallback': false,
+          },
+        },
+      );
+
+      expect(result.ocrSourceProofRelationship, 'separate_clear_source');
+      expect(result.usesSeparateOcrSourceCopies, isTrue);
+      expect(result.ocrReadsClearSourceBeforeSavedProof, isTrue);
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('saved_proof_kept_for_receipt_record', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('temporary_ocr_source_separate_from_saved_proof', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('normal_record_keeps_original_quality_proof', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyCounts,
+        containsPair('accepted_review_allows_temporary_ocr_cleanup', 1),
+      );
+      expect(
+        result.receiptProofStoragePolicyOutcome,
+        'temporary_ocr_source_original_quality_proof',
+      );
+      expect(
+        result.privacySafeReceiptReaderHandoffMetadata,
+        containsPair(
+          'receiptProofStoragePolicyOutcome',
+          'temporary_ocr_source_original_quality_proof',
+        ),
+      );
+    });
+
     test('kept-for-later reviews do not create OCR source cleanup', () {
       final result = ReceiptPhotoReviewResult.keptForLater(
         photoPaths: const ['/tmp/saved-proof-750kb.jpg'],

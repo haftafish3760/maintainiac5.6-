@@ -161,6 +161,10 @@ extension ReceiptPhotoReviewResultHandoffStorage on ReceiptPhotoReviewResult {
         (counts['normal_record_uses_data_saver_proof'] ?? 0) > 0) {
       return 'temporary_ocr_source_saved_data_saver_proof';
     }
+    if ((counts['temporary_ocr_source_separate_from_saved_proof'] ?? 0) > 0 &&
+        (counts['normal_record_keeps_original_quality_proof'] ?? 0) > 0) {
+      return 'temporary_ocr_source_original_quality_proof';
+    }
     if ((counts['normal_record_keeps_original_quality_proof'] ?? 0) > 0) {
       return 'original_quality_proof_kept';
     }
