@@ -127,9 +127,18 @@ void main() {
           'imported_receipt_source_before_saved_proof',
         ),
       );
+      expect(result.ocrSourceFirstOutcome, 'imported_source_ready');
+      expect(
+        result.ocrSourceFirstActionLabel,
+        'OCR reads the imported receipt photo source before saved proof',
+      );
       expect(
         result.privacySafeOcrSourceFirstSummary,
         containsPair('ocrSourceProofRelationship', 'imported_clear_source'),
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair('ocrSourceFirstOutcome', 'imported_source_ready'),
       );
     });
 

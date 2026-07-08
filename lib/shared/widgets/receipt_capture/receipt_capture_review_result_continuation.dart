@@ -171,6 +171,7 @@ extension ReceiptPhotoReviewResultContinuation on ReceiptPhotoReviewResult {
       return 'fallback_saved_proof_review_required';
     }
     if (stitchResult.didStitch) return 'combined_source_ready';
+    if (usesImportedReceiptPhotoSource) return 'imported_source_ready';
     if (scannerUsedEnhancedOcrSource) return 'prepared_source_ready';
     if (scannerKeptTemporaryFullQualitySourceForQuality) {
       return 'temporary_full_quality_ready';
@@ -187,6 +188,8 @@ extension ReceiptPhotoReviewResultContinuation on ReceiptPhotoReviewResult {
         'OCR reads temporary full-quality source before saved proof',
       'combined_source_ready' =>
         'OCR reads one combined stitched source before saved proof',
+      'imported_source_ready' =>
+        'OCR reads the imported receipt photo source before saved proof',
       'separate_source_ready' =>
         'OCR reads separate source copies before saved proof',
       'saved_source_matched_original' =>

@@ -57,6 +57,7 @@ void main() {
       result.ocrSourceFirstDecisionCode,
       'imported_receipt_source_before_saved_proof',
     );
+    expect(result.ocrSourceFirstOutcome, 'imported_source_ready');
     expect(result.ocrSourceProofRelationship, 'imported_clear_source');
   });
 
