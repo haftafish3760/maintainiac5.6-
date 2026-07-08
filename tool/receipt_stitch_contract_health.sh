@@ -19,8 +19,10 @@ case "$mode" in
     echo "Receipt stitch edge-case health"
     flutter test \
       test/receipt_stitching_variants_test.dart \
+      test/receipt_stitching_horizontal_drift_test.dart \
+      test/receipt_stitching_worn_receipt_test.dart \
       test/receipt_stitching_weak_overlap_safety_test.dart \
-      --name 'delayed overlap|blurred continuation overlap|continuation edge is clipped|faded receipt sections when continuation edge is clipped|missing middle section' \
+      --name 'delayed overlap|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|continuation edge is clipped|faded receipt sections when continuation edge is clipped|missing middle section' \
       -r compact
     echo "Receipt stitch edge-case health: PASS"
     ;;
@@ -32,6 +34,10 @@ case "$mode" in
       test/receipt_camera_phase5_long_receipt_contract_test.dart \
       test/receipt_stitching_test.dart \
       test/receipt_stitching_manual_overlap_test.dart \
+      test/receipt_stitching_duplicate_safety_test.dart \
+      test/receipt_stitching_scale_rotation_test.dart \
+      test/receipt_stitching_horizontal_drift_test.dart \
+      test/receipt_stitching_worn_receipt_test.dart \
       test/receipt_stitching_variants_test.dart \
       test/receipt_stitching_weak_overlap_safety_test.dart \
       test/receipt_camera_result_stitch_scanner_test.dart \
