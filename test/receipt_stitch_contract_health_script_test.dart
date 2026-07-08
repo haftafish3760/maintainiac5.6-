@@ -10,6 +10,10 @@ void main() {
       expect(script.existsSync(), isTrue);
 
       final source = script.readAsStringSync();
+      expect(source, contains(r'mode="${1:-full}"'));
+      expect(source, contains('delayed_overlap)'));
+      expect(source, contains("--name 'delayed overlap'"));
+      expect(source, contains('Receipt stitch delayed-overlap health: PASS'));
       expect(
         source,
         contains('receipt_native_camera_session_limits_test.dart'),
