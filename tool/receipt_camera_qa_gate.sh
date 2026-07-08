@@ -205,6 +205,7 @@ phase9_audit_paths=(
   docs/receipt_camera_release_one_blueprint.md
   docs/receipt_camera_world_class_readiness.md
   docs/receipt_real_device_test_script.md
+  tool/receipt_real_device_matrix_gate.dart
   docs/receipt_native_camera_service_spec.md
   docs/receipt_camera_ocr_product_standard.md
   PROJECT_RULES.md
@@ -754,6 +755,7 @@ run_phase8() {
 run_phase9() {
   bash tool/receipt_camera_scope_gate.sh
   dart analyze \
+    tool/receipt_real_device_matrix_gate.dart \
     "${phase9_tests[@]}"
   dart tool/maintainiac_source_audit.dart \
     "${phase9_audit_paths[@]}" \
