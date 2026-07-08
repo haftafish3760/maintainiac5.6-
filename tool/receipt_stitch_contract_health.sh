@@ -109,7 +109,9 @@ run_duplicates() {
 
 run_ugly_long_receipts() {
   echo "Receipt stitch ugly-long-receipt health"
-  run_flutter_test ugly-long-receipt test/receipt_stitching_ugly_long_receipt_test.dart
+  run_flutter_test ugly-long-receipt \
+    test/receipt_stitching_ugly_long_receipt_test.dart \
+    test/receipt_stitching_store_receipt_shape_test.dart
   echo "Receipt stitch ugly-long-receipt health: PASS"
 }
 
@@ -275,6 +277,7 @@ run_full() {
     test/receipt_stitching_horizontal_drift_test.dart \
     test/receipt_stitching_worn_receipt_test.dart \
     test/receipt_stitching_ugly_long_receipt_test.dart \
+    test/receipt_stitching_store_receipt_shape_test.dart \
     test/receipt_stitching_long_stack_test.dart \
     test/receipt_stitching_phone_window_edge_crop_test.dart \
     test/receipt_stitching_uploaded_screenshot_test.dart \
