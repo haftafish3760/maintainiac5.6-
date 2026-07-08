@@ -111,6 +111,31 @@ void main() {
     },
     timeout: _longStackTimeout,
   );
+
+  test(
+    'stitches four faded worn long-receipt sections with delayed overlap',
+    () async {
+      final files = await _writeFadedWornSectionStack(
+        'four_section_faded_worn',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [for (final file in files) file.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(3));
+      expect(result.overlapPixels, hasLength(3));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+      expect(
+        result.pairs.map((pair) => pair.confidence),
+        everyElement(greaterThanOrEqualTo(.50)),
+      );
+      expect(result.stitchedPixelCount, lessThan(16000000));
+    },
+    timeout: _longStackTimeout,
+  );
 }
 
 void expectOutputTooLargeFallback(
@@ -167,6 +192,42 @@ Future<List<File>> _writeFiveSectionStackWithDrift(String prefix) async {
     shiftReceiptStitchingShot(sections[2], dx: -18, dy: 0),
     shiftReceiptStitchingShot(sections[3], dx: 30, dy: 0),
     shiftReceiptStitchingShot(sections[4], dx: -24, dy: 0),
+  ];
+  final files = <File>[];
+  for (var index = 0; index < drifted.length; index++) {
+    files.add(
+      await writeTempReceiptStitchingImage(drifted[index], '${prefix}_$index'),
+    );
+  }
+  return files;
+}
+
+Future<List<File>> _writeFadedWornSectionStack(String prefix) async {
+  final sections = [
+    for (var index = 0; index < 4; index++)
+      fadeReceiptStitchingInk(
+        addReceiptStitchingWear(
+          receiptStitchingSection(seed: 180 + index, topTextOffset: index * 16),
+          seed: 310 + index,
+          wrinkleCount: 7,
+          smudgeCount: 4,
+        ),
+        amount: .42 + (index * .03),
+      ),
+  ];
+  for (var index = 1; index < sections.length; index++) {
+    copyReceiptStitchingOverlap(
+      from: sections[index - 1],
+      to: sections[index],
+      pixels: 330,
+      dstY: index.isEven ? 42 : 24,
+    );
+  }
+  final drifted = [
+    sections[0],
+    shiftReceiptStitchingShot(sections[1], dx: 18, dy: 0),
+    shiftReceiptStitchingShot(sections[2], dx: -15, dy: 0),
+    shiftReceiptStitchingShot(sections[3], dx: 21, dy: 0),
   ];
   final files = <File>[];
   for (var index = 0; index < drifted.length; index++) {

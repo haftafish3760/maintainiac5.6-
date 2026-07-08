@@ -93,6 +93,28 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
           ],
         );
       }
+      final shiftedDuplicateIndex = _findShiftedDuplicateReceiptImageIndex(
+        decodedSources,
+        image,
+        maxIndexExclusive: decodedSources.length - 1,
+      );
+      if (shiftedDuplicateIndex >= 0) {
+        final pairIndex = math.max(0, decodedSources.length - 1);
+        return ReceiptStitchResult.fallback(
+          inputPaths: inputPaths,
+          warning:
+              'Two receipt photos appear to show the same section. Receipt details will use the photos separately.',
+          fallbackReasonCode: 'duplicate_section_image',
+          failedPairIndex: pairIndex,
+          pairs: [
+            ReceiptStitchPairResult(
+              pairIndex: pairIndex,
+              overlapPixels: 0,
+              confidence: 1,
+            ),
+          ],
+        );
+      }
       if (duplicateHashIndex >= 0) {
         final pairIndex = decodedHashes.length - 1;
         return ReceiptStitchResult.fallback(
@@ -120,6 +142,54 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
     final prepared = decoded
         .map((image) => _resizeToWidth(_autoCropReceipt(image), targetWidth))
         .toList(growable: false);
+    final preparedSources = <img.Image>[];
+    for (var index = 0; index < prepared.length; index++) {
+      final duplicatePreparedIndex = _findDuplicateReceiptDecodedImageIndex(
+        preparedSources,
+        prepared[index],
+      );
+      if (duplicatePreparedIndex >= 0) {
+        final pairIndex = math.max(0, index - 1);
+        return ReceiptStitchResult.fallback(
+          inputPaths: inputPaths,
+          warning:
+              'Two receipt photos appear to show the same section. Receipt details will use the photos separately.',
+          fallbackReasonCode: 'duplicate_section_image',
+          failedPairIndex: pairIndex,
+          pairs: [
+            ReceiptStitchPairResult(
+              pairIndex: pairIndex,
+              overlapPixels: 0,
+              confidence: 1,
+            ),
+          ],
+        );
+      }
+      final shiftedDuplicatePreparedIndex =
+          _findShiftedDuplicateReceiptImageIndex(
+            preparedSources,
+            prepared[index],
+            maxIndexExclusive: index - 1,
+          );
+      if (shiftedDuplicatePreparedIndex >= 0) {
+        final pairIndex = math.max(0, index - 1);
+        return ReceiptStitchResult.fallback(
+          inputPaths: inputPaths,
+          warning:
+              'Two receipt photos appear to show the same section. Receipt details will use the photos separately.',
+          fallbackReasonCode: 'duplicate_section_image',
+          failedPairIndex: pairIndex,
+          pairs: [
+            ReceiptStitchPairResult(
+              pairIndex: pairIndex,
+              overlapPixels: 0,
+              confidence: 1,
+            ),
+          ],
+        );
+      }
+      preparedSources.add(prepared[index]);
+    }
     if (manualOverlapPixels == null && manualOverlapFractions == null) {
       final minimumAutoHeight = _minimumAutoStitchHeight(prepared);
       final minimumAutoPixels = targetWidth * minimumAutoHeight;
@@ -358,6 +428,20 @@ int _findDuplicateReceiptDecodedImageIndex(
   for (var index = 0; index < decoded.length; index++) {
     if (_receiptImageAverageHashDistance(decoded[index], candidate) <= 12 ||
         _receiptImageContentMatches(decoded[index], candidate)) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+int _findShiftedDuplicateReceiptImageIndex(
+  List<img.Image> decoded,
+  img.Image candidate, {
+  required int maxIndexExclusive,
+}) {
+  final limit = maxIndexExclusive.clamp(0, decoded.length);
+  for (var index = 0; index < limit; index++) {
+    if (_receiptShiftedImageContentMatches(decoded[index], candidate)) {
       return index;
     }
   }
