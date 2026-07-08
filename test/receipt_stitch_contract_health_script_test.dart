@@ -16,7 +16,7 @@ void main() {
     expect(
       source,
       contains(
-        "--name 'delayed overlap|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|continuation edge is clipped|faded receipt sections when continuation edge is clipped|missing middle section'",
+        "--name 'delayed overlap|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|continuation edge is clipped|faded receipt sections when continuation edge is clipped|missing middle section|reverse order'",
       ),
     );
     expect(source, contains('receipt_stitching_weak_overlap_safety_test.dart'));

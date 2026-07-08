@@ -120,6 +120,77 @@ void main() {
     },
   );
 
+  test('unsafe manual overlap fallback stays blocked for receipt assist', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
+        warning: 'Manual overlap was outside the safe range.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+        failedPairIndex: 0,
+      ),
+    );
+
+    expect(
+      result.receiptPhotoReviewHandoffPath,
+      'accepted_stitch_ocr_source_review_required',
+    );
+    expect(result.nextReviewUsesOrderedSections, isTrue);
+    expect(
+      result.nextReviewMatchReadinessOutcome,
+      'ocr_source_review_required_before_assist',
+    );
+    expect(
+      result.nextReviewMatchReadinessLabel,
+      'Photo match needs review before app-assisted receipt filling, starting with Photo 1 to 2.',
+    );
+    expect(
+      result.stitchResult.assistedReadinessCode,
+      'ordered_sections_stitch_fallback_review_required',
+    );
+    expect(
+      result.stitchResult.ocrHandoffSafetyCode,
+      'ordered_sections_after_manual_overlap_unsafe_fallback',
+    );
+    expect(
+      result.receiptReaderHandoffCounts,
+      containsPair(
+        'stitch_ocr_source_contract_fallback_ordered_sources_ready',
+        1,
+      ),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('stitchFailedPairLabel', 'Photo 1 to 2'),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('nextReviewRequiresOcrSourceReviewBeforeAssist', true),
+    );
+
+    final attachments = ReceiptCaptureFlow.attachmentsFromReviewResult(
+      result,
+      ReceiptCaptureFlowModule.expenses,
+    );
+    expect(attachments, hasLength(2));
+    expect(
+      attachments.map((attachment) => attachment.documentSignals),
+      everyElement(contains('stitch_failed_pair_photo_1_to_2')),
+    );
+    expect(
+      attachments.map((attachment) => attachment.documentSignals),
+      everyElement(
+        contains('stitch_ocr_source_contract_fallback_ordered_sources_ready'),
+      ),
+    );
+    expect(
+      attachments.map((attachment) => attachment.riskFlags),
+      everyElement(contains('ocr_source_stitch_failed_pair_photo_1_to_2')),
+    );
+  });
+
   test('low-confidence stitched preview cannot auto-clear assisted receipt read', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],

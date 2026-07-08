@@ -57,6 +57,31 @@ void main() {
       expectWeakOverlapRequiresReview(result);
     },
   );
+
+  test(
+    'requires review when receipt sections are provided in reverse order',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 87, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 88, topTextOffset: 18);
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 330);
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionB,
+        'reverse_order_b',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        sectionA,
+        'reverse_order_a',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expectWeakOverlapRequiresReview(result);
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
 }
 
 void expectWeakOverlapRequiresReview(ReceiptStitchResult result) {
