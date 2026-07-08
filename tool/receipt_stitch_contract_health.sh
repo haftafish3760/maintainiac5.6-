@@ -239,6 +239,7 @@ run_core_stitch() {
   run_manual_overlap
   run_duplicates
   run_section_order
+  run_ghost_handoff
   run_handoff
   echo "Receipt stitch core health: PASS"
 }

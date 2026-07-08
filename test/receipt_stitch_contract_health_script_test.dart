@@ -131,7 +131,10 @@ void main() {
       contains('receipt_continuation_ghost_handoff_contract_test.dart'),
     );
     expect(source, contains('receipt_stitch_fallback_metadata_test.dart'));
-    expect(source, contains('receipt_stitching_artifact_copy_contract_test.dart'));
+    expect(
+      source,
+      contains('receipt_stitching_artifact_copy_contract_test.dart'),
+    );
     expect(source, contains('receipt_stitching_result_contract_test.dart'));
     expect(source, contains('receipt_stitching_ocr_source_contract_test.dart'));
     expect(source, contains('Receipt stitch handoff health: PASS'));
@@ -158,10 +161,7 @@ void main() {
     expect(source, contains('uploaded_screenshots)'));
     expect(source, contains('Receipt stitch uploaded-screenshot health'));
     expect(source, contains('receipt_stitching_uploaded_screenshot_test.dart'));
-    expect(
-      source,
-      contains('Receipt stitch uploaded-screenshot health: PASS'),
-    );
+    expect(source, contains('Receipt stitch uploaded-screenshot health: PASS'));
     expect(source, contains('section_order)'));
     expect(source, contains('Receipt stitch section-order health'));
     expect(source, contains('receipt_photo_review_retake_order_test.dart'));
@@ -247,6 +247,7 @@ void main() {
     expect(coreSource, contains('run_manual_overlap'));
     expect(coreSource, contains('run_duplicates'));
     expect(coreSource, contains('run_section_order'));
+    expect(coreSource, contains('run_ghost_handoff'));
     expect(coreSource, contains('run_handoff'));
     expect(source, contains('Receipt stitch core health: PASS'));
     expect(source, contains('milestone)'));
@@ -284,7 +285,10 @@ void main() {
       contains('receipt_camera_result_section_order_invalid_context_test.dart'),
     );
     expect(source, contains('receipt_stitching_test.dart'));
-    expect(source, contains('receipt_stitching_artifact_copy_contract_test.dart'));
+    expect(
+      source,
+      contains('receipt_stitching_artifact_copy_contract_test.dart'),
+    );
     expect(source, contains('receipt_stitching_result_contract_test.dart'));
     expect(source, contains('receipt_stitching_manual_overlap_test.dart'));
     expect(source, contains('receipt_stitching_duplicate_safety_test.dart'));
