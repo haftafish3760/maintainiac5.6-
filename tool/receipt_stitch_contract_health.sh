@@ -238,6 +238,7 @@ run_core_stitch() {
   run_bad_inputs
   run_manual_overlap
   run_duplicates
+  run_section_order
   run_handoff
   echo "Receipt stitch core health: PASS"
 }
