@@ -241,6 +241,7 @@ void main() {
     expect(source, contains('run_core_stitch'));
     expect(source, contains('run_bad_inputs'));
     expect(source, contains('run_manual_overlap'));
+    expect(source, contains('run_section_order'));
     expect(source, contains('Receipt stitch core health: PASS'));
     expect(source, contains('milestone)'));
     expect(source, contains('run_source_size'));
