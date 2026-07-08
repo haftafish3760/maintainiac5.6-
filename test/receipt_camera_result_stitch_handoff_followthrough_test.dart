@@ -65,7 +65,11 @@ void main() {
         ],
         dataSaverLevel: ReceiptDataSaverLevel.balanced,
         stitchResult: ReceiptStitchResult.fallback(
-          inputPaths: ['/tmp/top-ocr.jpg', '/tmp/middle-ocr.jpg', '/tmp/dup-ocr.jpg'],
+          inputPaths: [
+            '/tmp/top-ocr.jpg',
+            '/tmp/middle-ocr.jpg',
+            '/tmp/dup-ocr.jpg',
+          ],
           warning: 'Duplicate receipt section detected.',
           fallbackReasonCode: 'duplicate_section_image',
           failedPairIndex: 1,

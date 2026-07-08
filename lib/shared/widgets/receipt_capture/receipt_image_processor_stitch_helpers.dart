@@ -406,6 +406,17 @@ bool _receiptImageContentMatches(img.Image a, img.Image b) {
   );
 }
 
+bool _receiptImageImmediateDuplicateContentMatches(img.Image a, img.Image b) {
+  return _receiptImageContentMatchScore(
+    a,
+    b,
+    maxLumaAverage: 32,
+    maxNormalizedLumaAverage: 8,
+    maxInkProfileAverage: .04,
+    maxBandDifference: 32,
+  );
+}
+
 bool _receiptImageContentMatchScore(
   img.Image a,
   img.Image b, {

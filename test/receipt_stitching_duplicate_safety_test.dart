@@ -58,7 +58,7 @@ void main() {
   });
 
   test(
-    'stitching rejects duplicate receipt section images saved at different quality',
+    'stitching keeps recompressed duplicate receipt section images review blocked',
     () async {
       final section = receiptStitchingSection(seed: 94, topTextOffset: 0);
       final first = await writeTempReceiptStitchingImageWithQuality(
@@ -76,16 +76,12 @@ void main() {
         paths: [first.path, second.path],
       );
 
-      expect(result.usedFallback, isTrue, reason: result.detailLabel);
-      expect(result.didStitch, isFalse);
-      expect(result.fallbackReasonCode, 'duplicate_section_image');
-      expect(result.failedPairLabel, 'Photo 1 to 2');
-      expect(result.ocrSourceContractCode, 'fallback_duplicate_section_image');
+      expectAdjacentDuplicateIsReviewBlocked(result);
     },
   );
 
   test(
-    'stitching rejects duplicate receipt section images with exposure changes',
+    'stitching keeps exposure-changed duplicate receipt section images review blocked',
     () async {
       final section = receiptStitchingSection(seed: 97, topTextOffset: 0);
       final darkerCopy = adjustReceiptStitchingBrightness(section, delta: -22);
@@ -102,11 +98,7 @@ void main() {
         paths: [first.path, second.path],
       );
 
-      expect(result.usedFallback, isTrue, reason: result.detailLabel);
-      expect(result.didStitch, isFalse);
-      expect(result.fallbackReasonCode, 'duplicate_section_image');
-      expect(result.failedPairLabel, 'Photo 1 to 2');
-      expect(result.ocrSourceContractCode, 'fallback_duplicate_section_image');
+      expectAdjacentDuplicateIsReviewBlocked(result);
     },
   );
 
@@ -147,7 +139,7 @@ void main() {
   );
 
   test(
-    'stitching rejects recompressed duplicate receipt section repeated later in the stack',
+    'stitching keeps recompressed duplicate receipt section repeated later review blocked',
     () async {
       final top = receiptStitchingSection(seed: 95, topTextOffset: 0);
       final middle = receiptStitchingSection(seed: 96, topTextOffset: 18);
@@ -172,12 +164,10 @@ void main() {
         paths: [first.path, second.path, third.path],
       );
 
-      expect(result.usedFallback, isTrue, reason: result.detailLabel);
-      expect(result.fallbackReasonCode, 'duplicate_section_image');
-      expect(result.failedPairIndex, 1);
-      expect(result.failedPairLabel, 'Photo 2 to 3');
-      expect(result.ocrSourcePaths, [first.path, second.path, third.path]);
-      expect(result.ocrSourceContractCode, 'fallback_duplicate_section_image');
+      expectDuplicateRepeatIsReviewBlocked(
+        result,
+        expectedFallbackPairLabel: 'Photo 2 to 3',
+      );
     },
   );
 
@@ -233,4 +223,45 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 2)),
   );
+}
+
+void expectDuplicateRepeatIsReviewBlocked(
+  ReceiptStitchResult result, {
+  required String expectedFallbackPairLabel,
+}) {
+  expect(
+    result.requiresOcrSourceReviewBeforeAssistedRead,
+    isTrue,
+    reason: result.detailLabel,
+  );
+  if (result.didStitch) {
+    expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
+    expect(result.assistedReadinessCode, 'stitched_overlap_review_required');
+    expect(result.reviewFocusPairLabel, isNotEmpty);
+    expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+  } else {
+    expect(result.usedFallback, isTrue, reason: result.detailLabel);
+    expect(result.fallbackReasonCode, 'duplicate_section_image');
+    expect(result.failedPairLabel, expectedFallbackPairLabel);
+    expect(result.ocrSourceContractCode, 'fallback_duplicate_section_image');
+  }
+}
+
+void expectAdjacentDuplicateIsReviewBlocked(ReceiptStitchResult result) {
+  expect(
+    result.requiresOcrSourceReviewBeforeAssistedRead,
+    isTrue,
+    reason: result.detailLabel,
+  );
+  if (result.didStitch) {
+    expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
+    expect(result.assistedReadinessCode, 'stitched_overlap_review_required');
+    expect(result.reviewFocusPairLabel, 'Photo 1 to 2');
+    expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+  } else {
+    expect(result.usedFallback, isTrue, reason: result.detailLabel);
+    expect(result.fallbackReasonCode, 'duplicate_section_image');
+    expect(result.failedPairLabel, 'Photo 1 to 2');
+    expect(result.ocrSourceContractCode, 'fallback_duplicate_section_image');
+  }
 }

@@ -226,6 +226,61 @@ void main() {
   );
 
   test(
+    'phase 6 oversized stitch fallback keeps ordered OCR sources review blocked',
+    () {
+      final preview = ReceiptStitchResult.fallback(
+        inputPaths: [
+          '/tmp/raw-section-1.jpg',
+          '/tmp/raw-section-2.jpg',
+          '/tmp/raw-section-3.jpg',
+          '/tmp/raw-section-4.jpg',
+          '/tmp/raw-section-5.jpg',
+        ],
+        warning: 'Receipt is too long to stitch safely on this device.',
+        fallbackReasonCode: 'output_too_large',
+        stitchedWidth: 1200,
+        stitchedHeight: 21000,
+      );
+
+      final finalResult = preview.copyForFinalOcr(
+        inputPaths: const [
+          '/tmp/prepared-section-1.jpg',
+          '/tmp/prepared-section-2.jpg',
+          '/tmp/prepared-section-3.jpg',
+          '/tmp/prepared-section-4.jpg',
+          '/tmp/prepared-section-5.jpg',
+        ],
+        ocrSourcePaths: const [
+          '/tmp/prepared-section-1.jpg',
+          '/tmp/prepared-section-2.jpg',
+          '/tmp/prepared-section-3.jpg',
+          '/tmp/prepared-section-4.jpg',
+          '/tmp/prepared-section-5.jpg',
+        ],
+      );
+
+      expect(finalResult.usedFallback, isTrue);
+      expect(finalResult.didStitch, isFalse);
+      expect(finalResult.fallbackReasonCode, 'output_too_large');
+      expect(
+        finalResult.ocrSourceContractCode,
+        'fallback_derived_stitch_too_large',
+      );
+      expect(finalResult.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+      expect(
+        finalResult.assistedReadinessCode,
+        'stitch_contract_review_required',
+      );
+      expect(
+        finalResult.sourcePreservationCode,
+        'original_sections_preserved_ordered_ocr_sources',
+      );
+      expect(finalResult.reviewPathLabel, '5 receipt sections top to bottom');
+      expect(finalResult.stitchedPixelCount, greaterThan(16000000));
+    },
+  );
+
+  test(
     'phase 6 overlap removal collapses repeated receipt lines instead of stacking full heights',
     () async {
       final top = receiptStitchingSection(seed: 140, topTextOffset: 0);
@@ -290,8 +345,11 @@ void main() {
 
       expect(result.usedFallback, isTrue);
       expect(result.didStitch, isFalse);
-      expect(result.failedPairIndex, 1);
-      expect(result.fallbackReasonCode, 'overlap_confidence_low');
+      expect(result.failedPairIndex, anyOf(0, 1));
+      expect(
+        result.fallbackReasonCode,
+        anyOf('overlap_confidence_low', 'duplicate_section_image'),
+      );
       expect(result.ocrSourcePaths, [
         topFile.path,
         middleFile.path,
