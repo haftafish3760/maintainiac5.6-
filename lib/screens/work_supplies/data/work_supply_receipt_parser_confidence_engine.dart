@@ -168,6 +168,13 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'uf-b cable',
       'direct burial',
     ],
+    RegExp(r'\b(tstat|thermostat|termostato)\b'): ['thermostat'],
+    RegExp(r'\b(cond|condensate)\b.*\b(pump|bomba)\b'): ['condensate pump'],
+    RegExp(r'\bflame\s+sensor\b'): ['flame sensor'],
+    RegExp(r'\b(hot\s+surface\s+ignitor|hsi|ignitor)\b'): [
+      'hot surface ignitor',
+      'ignitor',
+    ],
   };
   for (final entry in serviceFamilies.entries) {
     if (entry.key.hasMatch(text) &&

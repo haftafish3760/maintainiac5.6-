@@ -1181,6 +1181,18 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
     }
   }
 
+  final wantsThermostat = RegExp(
+    r'\b(tstat|thermostat|thermo stat|termostato)\b',
+  ).hasMatch(text);
+  if (wantsThermostat) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'HVAC' && name.contains('thermostat')) {
+        return item;
+      }
+    }
+  }
+
   final wantsSheetMetalScrew = RegExp(
     r'\b(sheet metal screw|sheet mtl scr|zip screw|tek screw|'
     r'self drilling screw|self tapping screw|sms|tornillo lamina|'
