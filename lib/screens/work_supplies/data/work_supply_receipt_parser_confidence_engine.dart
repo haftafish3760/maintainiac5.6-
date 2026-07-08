@@ -102,11 +102,39 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'disposal elbow gasket',
     ],
     RegExp(r'\bescutcheon\b|\besc plate\b'): ['escutcheon'],
+    RegExp(r'\b(boiler drain|heater drain|drain valve)\b'): [
+      'drain valve',
+      'boiler drain',
+      'heater drain',
+    ],
+    RegExp(r'\b(fernco|rubber coupling|flexible coupling)\b'): [
+      'fernco',
+      'rubber coupling',
+      'flexible coupling',
+      'flexible drain repair coupling',
+    ],
     RegExp(
       r'\b(well pressure gauge|pressure gauge|well gauge|manometro presion pozo|manometro de presion)\b',
     ): [
       'pressure gauge',
       'well pressure gauge',
+    ],
+    RegExp(
+      r'\b(well pressure switch|pump pressure switch|pressure switch|well switch)\b',
+    ): [
+      'pressure switch',
+      'well pressure switch',
+      'pump pressure switch',
+      'well switch',
+    ],
+    RegExp(
+      r'\b(poly|polyethylene|well pipe)\b.*\b(insert|barb|barbed|coupling|adapter)\b',
+    ): [
+      'poly pipe insert',
+      'poly well fitting',
+      'well pipe fitting',
+      'barbed coupling',
+      'well service fitting',
     ],
   };
   for (final entry in serviceFamilies.entries) {
@@ -241,6 +269,7 @@ bool _isGenericFilterLine(
       _hasHvacAirFilterReceiptEvidence(text) ||
       RegExp(
         r'\b(return grille|return air grille|filter grille|water filter|'
+        r'sediment filter|carbon filter|pleated filter|filter cartridge|'
         r'oil filter|fuel filter|pool filter|filter drier|secador)\b',
       ).hasMatch(text);
   if (hasSpecificFilterEvidence) return false;
@@ -266,7 +295,8 @@ bool _hasHvacAirFilterReceiptEvidence(String text) {
     return false;
   }
   final hasAirFilterWords = RegExp(
-    r'\b(air|furnace|pleated|merv|hvac|ac)\b',
+    r'\b(air|furn|furnace|pleated|merv|hvac|ac)\b',
   ).hasMatch(text);
-  return hasAirFilterWords && _nominalReceiptSize(text) != null;
+  return hasAirFilterWords &&
+      (_nominalReceiptSize(text) != null || _receiptSizeMatrix(text) != null);
 }

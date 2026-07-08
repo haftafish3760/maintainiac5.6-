@@ -380,6 +380,28 @@ final plumbingServiceTruckCategory = _category('Service Truck Stock', [
   ]),
   _system('Pump and Discharge Service Stock', [
     _type(
+      'Flexible Drain Repair Couplings',
+      _plumbingServiceMatrixItems(
+        baseName: 'Flexible Drain Repair Coupling',
+        unit: 'each',
+        variants: [
+          for (final size in ['1-1/2 in', '2 in', '3 in', '4 in'])
+            '$size straight Fernco-style rubber coupling',
+          for (final size in ['2 x 1-1/2 in', '3 x 2 in', '4 x 3 in'])
+            '$size reducing Fernco-style rubber coupling',
+        ],
+        aliases: const [
+          'fernco',
+          'fernco coupling',
+          'rubber coupling',
+          'flexible coupling',
+          'flex drain coupling',
+          'drain repair coupling',
+          'red cplg',
+        ],
+      ),
+    ),
+    _type(
       'Sump Pump Discharge Parts',
       _plumbingServiceMatrixItems(
         baseName: 'Sump Pump Discharge Part',

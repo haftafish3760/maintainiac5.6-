@@ -53,6 +53,9 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
   if (category == 'seals packing and thread service') {
     return _hasAny(text, _plumbingCoreSealServiceSignals);
   }
+  if (category == 'fittings' && _isCommonResidentialNoHubRepair(item)) {
+    return true;
+  }
   if (_hasPlumbingCommercialCoreExclusion(text)) return false;
   if (category == 'fittings' && _isOversizedPlumbingFittingForCore(item)) {
     return false;
@@ -127,6 +130,17 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
   }
   if (category == 'supply lines' || category == 'consumables') return true;
   return false;
+}
+
+bool _isCommonResidentialNoHubRepair(WorkSupplyItem item) {
+  final system = item.system.toLowerCase();
+  final type = item.itemType.toLowerCase();
+  if (system != 'cast iron and no-hub') return false;
+  if (!type.contains('no-hub coupling') && !type.contains('no-hub band')) {
+    return false;
+  }
+  final variant = item.variant.toLowerCase();
+  return _hasAny(variant, ['1-1/2', '2 in', '3 in', '4 in']);
 }
 
 bool _isOversizedPlumbingFittingForCore(WorkSupplyItem item) {
@@ -469,6 +483,7 @@ const _plumbingCoreFittingSizeSignals = [
   '1-1/2',
   '2 in',
   '3 in',
+  '4 in',
 ];
 
 const _plumbingCoreDrainServiceSignals = [
@@ -566,6 +581,7 @@ const _coreFittingTypes = [
   'adapter',
   'cap',
   'plug',
+  'cleanout',
   'valve',
   'stop',
   'trap',

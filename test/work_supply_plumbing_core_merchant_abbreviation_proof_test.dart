@@ -98,6 +98,60 @@ void main() {
   );
 
   test(
+    'plumbing core parses supply-house valve and pressure-control lines',
+    () {
+      _expectGoodPlumbingCore('FERG 3/4 PRV PRESS RED VALVE', [
+        'pressure reducing valve',
+      ]);
+      _expectGoodPlumbingCore('WINSUPPLY 1/2 ANG STOP COMP X OD', [
+        'angle stop',
+      ]);
+      _expectGoodPlumbingCore('SUPPLYHOUSE 3/4 VAC BREAKER HOSE BIBB', [
+        'vacuum',
+      ]);
+      _expectGoodPlumbingCore('LOCAL SUPPLY 3/4 GATE VALV FIP', ['gate valve']);
+      _expectGoodPlumbingCore('TRUE VALUE 1/2 BOILER DRAIN VALVE', [
+        'drain valve',
+      ]);
+    },
+  );
+
+  test('plumbing core parses local supply drain and no-hub repair lines', () {
+    _expectGoodPlumbingCore('LOCAL SUPPLY 2IN NO HUB COUPLING', ['no-hub']);
+    _expectGoodPlumbingCore('FERG 3 X 2 FERNCO RED CPLG', ['fernco']);
+    _expectGoodPlumbingCore('WINSUPPLY 4 PVC DWV CLEANOUT PLUG', ['cleanout']);
+    _expectGoodPlumbingCore('ACE 1-1/2 TRAP ADAPTER SJ PVC', ['trap adapter']);
+    _expectGoodPlumbingCore('TRUE VALUE 2IN RUBBER COUPLING', ['rubber']);
+  });
+
+  test('plumbing core parses water treatment and well-service local lines', () {
+    _expectGoodPlumbingCore('LOCAL SUPPLY WATER SOFTENER SALT 40LB', [
+      'softener',
+    ]);
+    _expectGoodPlumbingCore('RURAL KING WELL PRESSURE SWITCH 40/60', [
+      'pressure switch',
+    ]);
+    _expectGoodPlumbingCore('TRACTOR SUPPLY 1IN POLY INSERT COUPLING', [
+      'poly',
+    ]);
+    _expectGoodPlumbingCore('FERG 10IN SEDIMENT FILTER CART', ['sediment']);
+    _expectGoodPlumbingCore('SUPPLYHOUSE 3/4 WELL CHECK VALVE', [
+      'check valve',
+    ]);
+  });
+
+  test('plumbing core handles OCR-damaged local supply abbreviations', () {
+    _expectGoodPlumbingCore('L0CAL SUPPLY 1/2 C0P 90 ELL CXC', [
+      'copper',
+      '90',
+    ]);
+    _expectGoodPlumbingCore('FERG 3/4 PEX C0UP CR1MP', ['pex', 'coupling']);
+    _expectGoodPlumbingCore('WINSUPPLY 1/2 CPVC F1P ADPT', ['cpvc', 'female']);
+    _expectGoodPlumbingCore('ACE 1 1/2 P TRAP K1T', ['p-trap']);
+    _expectGoodPlumbingCore('TRUE VALUE 3/4 BALL VALV FlP', ['ball valve']);
+  });
+
+  test(
     'plumbing core keeps ultra-vague merchant abbreviations out of good confidence',
     () {
       _expectNotGoodPlumbing('LOWES 1/2 C X C');
@@ -109,7 +163,11 @@ void main() {
 
 void _expectGoodPlumbingCore(String line, List<String> expectedTerms) {
   final match = _expectGoodPlumbing(line, expectedTerms);
-  expect(match.item.packTier, WorkSupplyPackTier.core, reason: line);
+  expect(
+    match.item.packTier,
+    WorkSupplyPackTier.core,
+    reason: '$line -> ${match.item.name}',
+  );
 }
 
 ReceiptLineMatch _expectGoodPlumbing(String line, List<String> expectedTerms) {
@@ -119,7 +177,11 @@ ReceiptLineMatch _expectGoodPlumbing(String line, List<String> expectedTerms) {
     maxCandidates: 420,
   );
   expect(match, isNotNull, reason: line);
-  expect(match!.confidenceLevel, ReceiptConfidenceLevel.good, reason: line);
+  expect(
+    match!.confidenceLevel,
+    ReceiptConfidenceLevel.good,
+    reason: '$line -> ${match.item.name} (${match.confidence})',
+  );
   expect(match.item.trade, 'Plumbing', reason: line);
 
   final searchable = [

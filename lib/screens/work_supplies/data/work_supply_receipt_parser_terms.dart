@@ -258,7 +258,12 @@ const receiptTermAliases = {
   'pressure tank': ['pressure tank', 'well tank'],
   'tank tee': ['tank tee', 'well tank tee'],
   'pitless adapter': ['pitless adapter', 'well pitless'],
-  'sediment filter': ['sediment filter', 'water filter cartridge'],
+  'sediment filter': [
+    'sediment filter',
+    'water filter cartridge',
+    'filter cart',
+    'sediment filter cart',
+  ],
   'faucet supply line': [
     'faucet supply line',
     'faucet connector',
@@ -952,6 +957,8 @@ String _normalize(String value) {
       .replaceAll(RegExp(r'\bw\s+g\b'), 'with ground')
       .replaceAll(RegExp(r'\b1\s*p\b'), '1p')
       .replaceAll(RegExp(r'\b2\s*p\b'), '2p')
+      .replaceAll(RegExp(r'\b1p\s+24v\b'), '1 pole 24v')
+      .replaceAll(RegExp(r'\b2p\s+24v\b'), '2 pole 24v')
       .replaceAll(RegExp(r'\bvalv\b'), 'valve')
       .replaceAll(RegExp(r'\bbv\b'), 'ball valve')
       .replaceAll(RegExp(r'\bc\s*x\s*m\b'), 'copper male adapter')

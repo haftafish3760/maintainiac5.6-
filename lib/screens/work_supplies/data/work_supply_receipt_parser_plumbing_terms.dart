@@ -396,6 +396,7 @@ const plumbingReceiptTermAliases = {
     'water heater vacuum relief',
     'wh vacuum relief',
   ],
+  'vacuum breaker': ['vacuum breaker', 'vac breaker', 'vac brkr'],
   'angle stop': ['angle stop', 'angle valve', 'ang stop', 'shutoff'],
   'straight stop': ['straight stop', 'str stop', 'fixture stop'],
   'pressure reducing valve': [
