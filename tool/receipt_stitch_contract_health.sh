@@ -46,7 +46,7 @@ run_edge_cases() {
     test/receipt_stitching_horizontal_drift_test.dart \
     test/receipt_stitching_worn_receipt_test.dart \
     test/receipt_stitching_weak_overlap_safety_test.dart \
-    --name 'delayed overlap|stronger handheld rotation|combined scale rotation and drift|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|crops delayed-overlap top strip|continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order' \
+    --name 'delayed overlap|stronger handheld rotation|combined scale rotation and drift|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|crops delayed-overlap top strip|continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order|boilerplate footer bands' \
     --concurrency=1
   echo "Receipt stitch edge-case health: PASS"
 }
@@ -60,6 +60,15 @@ run_phone_windows() {
     --name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|out-of-order phone-window|dark display borders|eleven-section|ugly seven-section|ragged phone-window' \
     --concurrency=1
   echo "Receipt stitch phone-window health: PASS"
+}
+
+run_phone_windows_fast() {
+  echo "Receipt stitch phone-window fast health"
+  run_flutter_test phone-window-fast \
+    test/receipt_stitching_phone_window_safety_test.dart \
+    --name 'skipped phone-window|out-of-order phone-window|dark display borders' \
+    --concurrency=1
+  echo "Receipt stitch phone-window fast health: PASS"
 }
 
 run_long_stack() {
@@ -103,6 +112,7 @@ run_source_size() {
     lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_api.dart
     lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_helpers.dart
     lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_scoring_helpers.dart
+    lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_transform_helpers.dart
   )
   local file
   for file in "${files[@]}"; do
@@ -178,6 +188,7 @@ case "$mode" in
   delayed_overlap) run_delayed_overlap; exit 0 ;;
   edge_cases) run_edge_cases; exit 0 ;;
   phone_windows) run_phone_windows; exit 0 ;;
+  phone_windows_fast) run_phone_windows_fast; exit 0 ;;
   long_stack) run_long_stack; exit 0 ;;
   manual_overlap) run_manual_overlap; exit 0 ;;
   duplicates) run_duplicates; exit 0 ;;
@@ -186,7 +197,7 @@ case "$mode" in
   milestone) run_milestone; exit 0 ;;
   full) run_full; exit 0 ;;
   *)
-    echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|long_stack|manual_overlap|duplicates|handoff|source_size|milestone|full]" >&2
+    echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|manual_overlap|duplicates|handoff|source_size|milestone|full]" >&2
     exit 64
     ;;
 esac
