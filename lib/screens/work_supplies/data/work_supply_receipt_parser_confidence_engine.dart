@@ -190,7 +190,9 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'hot surface ignitor',
       'ignitor',
     ],
-    RegExp(r'\b(hard\s+start|spp6|start kit)\b'): ['hard start kit'],
+    RegExp(r'\b(hard\s+start|spp6|start kit|start kt)\b'): [
+      'hard start kit',
+    ],
     RegExp(r'\b(cinta|foil|ul181|ul 181)\b.*\b(tape|cinta|hvac)\b'): [
       'foil tape',
       'foil hvac tape',
@@ -247,7 +249,7 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       itemText.contains('relay')) {
     score += 0.10;
   }
-  if (RegExp(r'\b(hard\s+start|spp6|start kit)\b').hasMatch(text) &&
+  if (RegExp(r'\b(hard\s+start|spp6|start kit|start kt)\b').hasMatch(text) &&
       itemText.contains('hard start')) {
     score += 0.08;
   }
@@ -316,10 +318,27 @@ double _receiptAmbiguityRisk(
   if (_isCrossTradePvcLine(text, item, tradeScope)) risk += 0.16;
   if (_isCrossTradeCopperLine(text, item, tradeScope)) risk += 0.34;
   if (_isGenericFilterLine(text, item, tradeScope)) risk += 0.38;
+  if (_isBrokenElectricalSizeLine(text, item)) risk += 0.30;
   if (_isVaguePushFitLine(text, item)) risk += 0.28;
   if (_isVaguePressureGaugeLine(text, item)) risk += 0.24;
   if (_isVagueSoftenerSaltLine(text, item)) risk += 0.30;
   return risk;
+}
+
+bool _isBrokenElectricalSizeLine(String text, WorkSupplyItem item) {
+  if (item.trade != 'Electrical') return false;
+  final normalized = _normalize(text);
+  if (!RegExp(r'\b(nm-b|nmb|romex|mc|armored|wire|cable)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  if (RegExp(r'(^|\s)/\s*\d+\b').hasMatch(normalized)) return true;
+  if (RegExp(r'\b\d+\s*/(\s|$)').hasMatch(normalized)) return true;
+  if (RegExp(r'\b\d+\s*/\s*\b(nm-b|nmb|romex|mc|wire|cable)\b')
+      .hasMatch(normalized)) {
+    return true;
+  }
+  return false;
 }
 
 bool _isVaguePushFitLine(String text, WorkSupplyItem item) {

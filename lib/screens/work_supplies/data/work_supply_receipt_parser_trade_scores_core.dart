@@ -588,7 +588,9 @@ int _electricalReceiptScore(
   final receiptSaysDoublePole = RegExp(
     r'\b(double pole|double-pole|2p)\b',
   ).hasMatch(text);
-  final receiptSaysGfci = RegExp(r'\b(gfci|gfi|ground fault)\b').hasMatch(text);
+  final receiptSaysGfci = RegExp(
+    r'\b(gfci|gfc1|gfi|ground fault)\b',
+  ).hasMatch(text);
   final receiptSaysAfci = RegExp(r'\b(afci|arc fault)\b').hasMatch(text);
   final receiptSaysDualFunction = RegExp(
     r'\b(dual function|dual-function)\b',
@@ -704,7 +706,7 @@ int _electricalReceiptScore(
       score -= 10;
     }
   }
-  if (receiptSaysGfci && itemType.contains('gfci')) score += 20;
+  if (receiptSaysGfci && itemType.contains('gfci')) score += 36;
   if (receiptSaysGfci && !itemType.contains('gfci')) score -= 12;
   if (receiptSaysAfci && itemType.contains('afci')) score += 20;
   if (receiptSaysAfci && !itemType.contains('afci')) score -= 12;
@@ -1491,6 +1493,10 @@ int _hvacReceiptScore(String text, String trade, WorkSupplyItem item) {
     }
     if (!text.contains('merv') && itemName.contains('merv')) {
       score -= 72;
+    }
+    if (!RegExp(r'\b(12\s*pack|pack|case|carton|ct)\b').hasMatch(text) &&
+        RegExp(r'\b(12\s*pack|case stock|filter case)\b').hasMatch(itemName)) {
+      score -= 84;
     }
     if (text.contains('media cabinet') &&
         itemName.contains('media cabinet filter')) {

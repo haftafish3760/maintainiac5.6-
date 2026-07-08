@@ -40,7 +40,7 @@ const receiptTermAliases = {
   'nm-b cable': ['nm-b', 'nmb', 'nm b', 'romex', 'house wire'],
   'thhn wire': ['thhn', 'building wire'],
   'with ground': ['with ground', 'w ground', 'wg'],
-  'gfci': ['gfci', 'gfi', 'ground fault'],
+  'gfci': ['gfci', 'gfc1', 'gfi', 'ground fault'],
   'afci': ['afci', 'arc fault'],
   'breaker': ['brkr', 'breaker', 'circuit breaker'],
   'single-pole breaker': ['single pole brkr', '1 pole breaker', '1p breaker'],
@@ -925,6 +925,8 @@ String _normalize(String value) {
       .replaceAll(RegExp(r'\bcpv\s*g\b'), 'cpvc')
       .replaceAll(RegExp(r'\be1b\b'), 'elb')
       .replaceAll(RegExp(r'\be18\b'), 'elb')
+      .replaceAll(RegExp(r'\bsw1tch\b'), 'switch')
+      .replaceAll(RegExp(r'\bkt\b'), 'kit')
       .replaceAll(RegExp(r'(?<=\d)"'), ' in')
       .replaceAll(RegExp(r'(?<=\d)x(?=\d)'), ' x ')
       .replaceAll(RegExp(r'(?<=\d)\s*/\s*(?=\d)'), '/')
