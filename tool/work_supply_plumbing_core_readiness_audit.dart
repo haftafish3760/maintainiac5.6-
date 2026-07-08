@@ -400,6 +400,9 @@ String _parserEvidenceStatus(WorkSupplyItem item, String text, String family) {
   }
   if (_hasAny(text, [
     'angle stop',
+    'black iron nipple',
+    'no hub',
+    'no-hub',
     'pressure gauge',
     'push-fit ball valve',
     'supply line',
@@ -433,6 +436,9 @@ String _classifyFamily(String text) {
   }
   if (_hasAnySignal(text, ['well pump check valve', 'well pipe adapter'])) {
     return 'well pressure service';
+  }
+  if (_hasAnySignal(text, ['black iron nipple', 'no hub', 'no-hub'])) {
+    return 'legacy repair bridges';
   }
   if (_hasAnySignal(text, [
     'barbed adapter well service',
@@ -624,6 +630,12 @@ bool _looksSpecialOrder(String text) {
   if (_isServiceToolOrConsumableText(text)) return false;
   if (_isToiletFaucetCommonRepairText(text)) return false;
   if (_hasAny(text, [
+    'abs dwv',
+    'black iron nipple',
+    'fernco-style rubber coupling',
+    'flexible drain repair coupling',
+    'no hub',
+    'no-hub',
     'water heater dielectric nipple',
     'stud guard',
     'tailpiece',
@@ -733,6 +745,7 @@ bool _isServiceToolOrConsumableText(String text) {
 
 bool _looksLegacyWithoutRepairBridge(String text) {
   if (_isServiceToolOrConsumableText(text)) return false;
+  if (_hasAny(text, ['black iron nipple', 'no hub', 'no-hub'])) return false;
   if (!_hasAny(text, ['black iron', 'cast iron', 'galvanized'])) return false;
   return !_hasAny(text, [
     'adapter',
@@ -919,8 +932,11 @@ const _familyContracts = [
     'thread seal',
   ]),
   _FamilyContract('legacy repair bridges', [
+    'black iron',
+    'black iron nipple',
     'fernco',
     'no hub',
+    'no-hub',
     'shielded',
     'transition',
   ]),
