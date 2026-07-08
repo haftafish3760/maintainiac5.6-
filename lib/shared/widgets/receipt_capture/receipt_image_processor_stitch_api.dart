@@ -32,11 +32,14 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
 
   final decoded = <img.Image>[];
   final decodedBytes = <List<int>>[];
+  final decodedSources = <img.Image>[];
+  final decodedHashes = <List<bool>>[];
   try {
     for (final path in inputPaths) {
       final bytes = await ReceiptImageProcessor._readFileBytes(path);
-      final duplicateSourceIndex =
-          bytes == null ? -1 : _findDuplicateReceiptImageIndex(decodedBytes, bytes);
+      final duplicateSourceIndex = bytes == null
+          ? -1
+          : _findDuplicateReceiptImageIndex(decodedBytes, bytes);
       if (duplicateSourceIndex >= 0) {
         final pairIndex = decodedBytes.length - 1;
         return ReceiptStitchResult.fallback(
@@ -64,7 +67,52 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
           fallbackReasonCode: 'decode_failed',
         );
       }
+      final duplicateDecodedIndex = _findDuplicateReceiptDecodedImageIndex(
+        decodedSources,
+        image,
+      );
+      final imageHash = _receiptImageAverageHash(image);
+      final duplicateHashIndex = _findDuplicateReceiptImageHashIndex(
+        decodedHashes,
+        imageHash,
+      );
+      if (duplicateDecodedIndex >= 0) {
+        final pairIndex = decodedSources.length - 1;
+        return ReceiptStitchResult.fallback(
+          inputPaths: inputPaths,
+          warning:
+              'Two receipt photos appear to show the same section. Receipt details will use the photos separately.',
+          fallbackReasonCode: 'duplicate_section_image',
+          failedPairIndex: pairIndex,
+          pairs: [
+            ReceiptStitchPairResult(
+              pairIndex: pairIndex,
+              overlapPixels: 0,
+              confidence: 1,
+            ),
+          ],
+        );
+      }
+      if (duplicateHashIndex >= 0) {
+        final pairIndex = decodedHashes.length - 1;
+        return ReceiptStitchResult.fallback(
+          inputPaths: inputPaths,
+          warning:
+              'Two receipt photos appear to show the same section. Receipt details will use the photos separately.',
+          fallbackReasonCode: 'duplicate_section_image',
+          failedPairIndex: pairIndex,
+          pairs: [
+            ReceiptStitchPairResult(
+              pairIndex: pairIndex,
+              overlapPixels: 0,
+              confidence: 1,
+            ),
+          ],
+        );
+      }
       decodedBytes.add(bytes!);
+      decodedSources.add(image);
+      decodedHashes.add(imageHash);
       decoded.add(_enhanceReceiptForReading(_autoStraightenReceipt(image)));
     }
 
@@ -217,9 +265,38 @@ bool _stitchInputPathsAreUnique(List<String> inputPaths) {
   return true;
 }
 
-int _findDuplicateReceiptImageIndex(List<List<int>> decodedBytes, List<int> candidate) {
+int _findDuplicateReceiptImageIndex(
+  List<List<int>> decodedBytes,
+  List<int> candidate,
+) {
   for (var index = 0; index < decodedBytes.length; index++) {
     if (_receiptImageBytesMatch(decodedBytes[index], candidate)) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+int _findDuplicateReceiptDecodedImageIndex(
+  List<img.Image> decoded,
+  img.Image candidate,
+) {
+  for (var index = 0; index < decoded.length; index++) {
+    if (_receiptImageAverageHashDistance(decoded[index], candidate) <= 12 ||
+        _receiptImageContentMatches(decoded[index], candidate)) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+int _findDuplicateReceiptImageHashIndex(
+  List<List<bool>> hashes,
+  List<bool> candidate,
+) {
+  for (var index = 0; index < hashes.length; index++) {
+    if (_receiptImageAverageHashHammingDistance(hashes[index], candidate) <=
+        12) {
       return index;
     }
   }

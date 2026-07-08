@@ -58,6 +58,33 @@ void main() {
   });
 
   test(
+    'stitching rejects duplicate receipt section images saved at different quality',
+    () async {
+      final section = receiptStitchingSection(seed: 94, topTextOffset: 0);
+      final first = await writeTempReceiptStitchingImageWithQuality(
+        section,
+        'duplicate_quality_a',
+        quality: 94,
+      );
+      final second = await writeTempReceiptStitchingImageWithQuality(
+        section,
+        'duplicate_quality_b',
+        quality: 72,
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.usedFallback, isTrue, reason: result.detailLabel);
+      expect(result.didStitch, isFalse);
+      expect(result.fallbackReasonCode, 'duplicate_section_image');
+      expect(result.failedPairLabel, 'Photo 1 to 2');
+      expect(result.ocrSourceContractCode, 'fallback_duplicate_section_image');
+    },
+  );
+
+  test(
     'stitching rejects duplicate receipt section images even when repeated later in the stack',
     () async {
       final top = receiptStitchingSection(seed: 92, topTextOffset: 0);
@@ -89,10 +116,7 @@ void main() {
       expect(result.ocrSourcePaths, [first.path, second.path, third.path]);
       expect(result.hasValidOcrSourceContract, isFalse);
       expect(result.ocrSourceContractCode, 'fallback_duplicate_section_image');
-      expect(
-        result.warning,
-        contains('same section'),
-      );
+      expect(result.warning, contains('same section'));
     },
   );
 
@@ -171,6 +195,30 @@ void main() {
     expect(result.pairs.single.summaryLabel, contains('%'));
     expect(result.pairs.single.diagnosticCode, isNotEmpty);
     expect(result.ocrSourcePaths, hasLength(1));
+  });
+
+  test('stitches receipt sections with mild wrinkles and smudges', () async {
+    final sectionA = addReceiptStitchingWear(
+      receiptStitchingSection(seed: 62, topTextOffset: 0),
+      seed: 620,
+    );
+    final sectionB = addReceiptStitchingWear(
+      receiptStitchingSection(seed: 63, topTextOffset: 18),
+      seed: 630,
+    );
+    copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 340);
+
+    final first = await writeTempReceiptStitchingImage(sectionA, 'worn_a');
+    final second = await writeTempReceiptStitchingImage(sectionB, 'worn_b');
+
+    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+      paths: [first.path, second.path],
+    );
+
+    expect(result.didStitch, isTrue, reason: result.detailLabel);
+    expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+    expect(result.overlapPixels.single, greaterThan(120));
+    expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
   });
 
   test(

@@ -134,9 +134,57 @@ Future<File> writeTempReceiptStitchingImage(
   img.Image image,
   String name,
 ) async {
+  return writeTempReceiptStitchingImageWithQuality(image, name, quality: 94);
+}
+
+Future<File> writeTempReceiptStitchingImageWithQuality(
+  img.Image image,
+  String name, {
+  required int quality,
+}) async {
   final file = File(
     '${Directory.systemTemp.path}/maintainiac_receipt_stitch_$name.jpg',
   );
-  await file.writeAsBytes(img.encodeJpg(image, quality: 94), flush: true);
+  await file.writeAsBytes(
+    img.encodeJpg(image, quality: quality.clamp(30, 100)),
+    flush: true,
+  );
   return file;
+}
+
+img.Image addReceiptStitchingWear(
+  img.Image source, {
+  required int seed,
+  int wrinkleCount = 9,
+  int smudgeCount = 5,
+}) {
+  final worn = img.copyResize(source, width: source.width);
+  for (var index = 0; index < wrinkleCount; index++) {
+    final x = 40 + ((seed * 37 + index * 113) % (worn.width - 80));
+    final yStart = 20 + ((seed * 23 + index * 71) % 180);
+    final shade = 188 + ((seed + index * 17) % 44);
+    img.drawLine(
+      worn,
+      x1: x,
+      y1: yStart,
+      x2: (x + 24 + index * 3).clamp(0, worn.width - 1),
+      y2: (worn.height - 40 - index * 19).clamp(0, worn.height - 1),
+      color: img.ColorRgb8(shade, shade, shade),
+      thickness: index.isEven ? 2 : 1,
+    );
+  }
+  for (var index = 0; index < smudgeCount; index++) {
+    final cx = 90 + ((seed * 53 + index * 149) % (worn.width - 180));
+    final cy = 160 + ((seed * 47 + index * 127) % (worn.height - 320));
+    final radius = 22 + ((seed + index * 11) % 34);
+    final shade = 204 + ((seed + index * 13) % 28);
+    img.fillCircle(
+      worn,
+      x: cx,
+      y: cy,
+      radius: radius,
+      color: img.ColorRgba8(shade, shade, shade, 96),
+    );
+  }
+  return worn;
 }
