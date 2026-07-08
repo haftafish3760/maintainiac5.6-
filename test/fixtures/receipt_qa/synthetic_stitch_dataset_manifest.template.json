@@ -74,11 +74,37 @@
           "images": [
             {
               "index": 0,
-              "path": "receipts/synthetic_000001/2_part_0.jpg"
+              "path": "receipts/synthetic_000001/2_part_0.jpg",
+              "transform": {
+                "rotationDegrees": -2.5,
+                "scale": 1.0,
+                "perspectiveX": -0.04,
+                "perspectiveY": 0.03,
+                "blurRadius": 0.8,
+                "motionBlurPixels": 0,
+                "jpegQuality": 82,
+                "brightnessDelta": -0.08,
+                "shadowStrength": 0.18,
+                "glareStrength": 0.02,
+                "lightingProfile": "shadowed"
+              }
             },
             {
               "index": 1,
-              "path": "receipts/synthetic_000001/2_part_1.jpg"
+              "path": "receipts/synthetic_000001/2_part_1.jpg",
+              "transform": {
+                "rotationDegrees": 3.0,
+                "scale": 1.0,
+                "perspectiveX": 0.05,
+                "perspectiveY": -0.02,
+                "blurRadius": 1.4,
+                "motionBlurPixels": 2,
+                "jpegQuality": 82,
+                "brightnessDelta": 0.06,
+                "shadowStrength": 0.05,
+                "glareStrength": 0.12,
+                "lightingProfile": "uneven"
+              }
             }
           ],
           "expectedImageOrdering": [0, 1],
@@ -93,21 +119,285 @@
         },
         {
           "imageCount": 3,
-          "images": [],
+          "images": [
+            {
+              "index": 0,
+              "path": "receipts/synthetic_000001/3_part_0.jpg",
+              "transform": {
+                "rotationDegrees": -3.0,
+                "scale": 0.98,
+                "perspectiveX": -0.06,
+                "perspectiveY": 0.04,
+                "blurRadius": 1.1,
+                "motionBlurPixels": 1,
+                "jpegQuality": 78,
+                "brightnessDelta": -0.12,
+                "shadowStrength": 0.22,
+                "glareStrength": 0.04,
+                "lightingProfile": "shadowed"
+              }
+            },
+            {
+              "index": 1,
+              "path": "receipts/synthetic_000001/3_part_1.jpg",
+              "transform": {
+                "rotationDegrees": 2.0,
+                "scale": 1.02,
+                "perspectiveX": 0.02,
+                "perspectiveY": -0.03,
+                "blurRadius": 1.6,
+                "motionBlurPixels": 3,
+                "jpegQuality": 74,
+                "brightnessDelta": 0.02,
+                "shadowStrength": 0.08,
+                "glareStrength": 0.18,
+                "lightingProfile": "flash_glare"
+              }
+            },
+            {
+              "index": 2,
+              "path": "receipts/synthetic_000001/3_part_2.jpg",
+              "transform": {
+                "rotationDegrees": -1.0,
+                "scale": 1.0,
+                "perspectiveX": 0.04,
+                "perspectiveY": 0.01,
+                "blurRadius": 0.9,
+                "motionBlurPixels": 0,
+                "jpegQuality": 84,
+                "brightnessDelta": -0.04,
+                "shadowStrength": 0.1,
+                "glareStrength": 0.03,
+                "lightingProfile": "normal"
+              }
+            }
+          ],
           "expectedImageOrdering": [0, 1, 2],
-          "expectedOverlaps": []
+          "expectedOverlaps": [
+            {
+              "fromIndex": 0,
+              "toIndex": 1,
+              "overlapPercent": 16,
+              "overlapPixels": 240
+            },
+            {
+              "fromIndex": 1,
+              "toIndex": 2,
+              "overlapPercent": 20,
+              "overlapPixels": 300
+            }
+          ]
         },
         {
           "imageCount": 4,
-          "images": [],
+          "images": [
+            {
+              "index": 0,
+              "path": "receipts/synthetic_000001/4_part_0.jpg",
+              "transform": {
+                "rotationDegrees": -4.0,
+                "scale": 0.96,
+                "perspectiveX": -0.08,
+                "perspectiveY": 0.05,
+                "blurRadius": 1.2,
+                "motionBlurPixels": 1,
+                "jpegQuality": 76,
+                "brightnessDelta": -0.18,
+                "shadowStrength": 0.28,
+                "glareStrength": 0.02,
+                "lightingProfile": "low_light"
+              }
+            },
+            {
+              "index": 1,
+              "path": "receipts/synthetic_000001/4_part_1.jpg",
+              "transform": {
+                "rotationDegrees": 2.5,
+                "scale": 1.03,
+                "perspectiveX": 0.06,
+                "perspectiveY": -0.04,
+                "blurRadius": 1.7,
+                "motionBlurPixels": 4,
+                "jpegQuality": 72,
+                "brightnessDelta": 0.08,
+                "shadowStrength": 0.06,
+                "glareStrength": 0.22,
+                "lightingProfile": "flash_glare"
+              }
+            },
+            {
+              "index": 2,
+              "path": "receipts/synthetic_000001/4_part_2.jpg",
+              "transform": {
+                "rotationDegrees": -1.5,
+                "scale": 1.0,
+                "perspectiveX": -0.02,
+                "perspectiveY": 0.02,
+                "blurRadius": 0.9,
+                "motionBlurPixels": 0,
+                "jpegQuality": 86,
+                "brightnessDelta": -0.03,
+                "shadowStrength": 0.09,
+                "glareStrength": 0.04,
+                "lightingProfile": "normal"
+              }
+            },
+            {
+              "index": 3,
+              "path": "receipts/synthetic_000001/4_part_3.jpg",
+              "transform": {
+                "rotationDegrees": 3.5,
+                "scale": 0.99,
+                "perspectiveX": 0.04,
+                "perspectiveY": -0.06,
+                "blurRadius": 1.3,
+                "motionBlurPixels": 2,
+                "jpegQuality": 80,
+                "brightnessDelta": 0.04,
+                "shadowStrength": 0.14,
+                "glareStrength": 0.09,
+                "lightingProfile": "uneven"
+              }
+            }
+          ],
           "expectedImageOrdering": [0, 1, 2, 3],
-          "expectedOverlaps": []
+          "expectedOverlaps": [
+            {
+              "fromIndex": 0,
+              "toIndex": 1,
+              "overlapPercent": 14,
+              "overlapPixels": 220
+            },
+            {
+              "fromIndex": 1,
+              "toIndex": 2,
+              "overlapPercent": 18,
+              "overlapPixels": 280
+            },
+            {
+              "fromIndex": 2,
+              "toIndex": 3,
+              "overlapPercent": 22,
+              "overlapPixels": 330
+            }
+          ]
         },
         {
           "imageCount": 5,
-          "images": [],
+          "images": [
+            {
+              "index": 0,
+              "path": "receipts/synthetic_000001/5_part_0.jpg",
+              "transform": {
+                "rotationDegrees": -4.5,
+                "scale": 0.95,
+                "perspectiveX": -0.09,
+                "perspectiveY": 0.06,
+                "blurRadius": 1.4,
+                "motionBlurPixels": 2,
+                "jpegQuality": 70,
+                "brightnessDelta": -0.2,
+                "shadowStrength": 0.32,
+                "glareStrength": 0.03,
+                "lightingProfile": "low_light"
+              }
+            },
+            {
+              "index": 1,
+              "path": "receipts/synthetic_000001/5_part_1.jpg",
+              "transform": {
+                "rotationDegrees": 2.0,
+                "scale": 1.04,
+                "perspectiveX": 0.07,
+                "perspectiveY": -0.05,
+                "blurRadius": 1.8,
+                "motionBlurPixels": 5,
+                "jpegQuality": 68,
+                "brightnessDelta": 0.1,
+                "shadowStrength": 0.07,
+                "glareStrength": 0.25,
+                "lightingProfile": "flash_glare"
+              }
+            },
+            {
+              "index": 2,
+              "path": "receipts/synthetic_000001/5_part_2.jpg",
+              "transform": {
+                "rotationDegrees": -2.0,
+                "scale": 1.0,
+                "perspectiveX": -0.03,
+                "perspectiveY": 0.02,
+                "blurRadius": 1.0,
+                "motionBlurPixels": 1,
+                "jpegQuality": 84,
+                "brightnessDelta": -0.06,
+                "shadowStrength": 0.11,
+                "glareStrength": 0.05,
+                "lightingProfile": "normal"
+              }
+            },
+            {
+              "index": 3,
+              "path": "receipts/synthetic_000001/5_part_3.jpg",
+              "transform": {
+                "rotationDegrees": 3.0,
+                "scale": 0.99,
+                "perspectiveX": 0.05,
+                "perspectiveY": -0.07,
+                "blurRadius": 1.3,
+                "motionBlurPixels": 2,
+                "jpegQuality": 80,
+                "brightnessDelta": 0.05,
+                "shadowStrength": 0.16,
+                "glareStrength": 0.1,
+                "lightingProfile": "uneven"
+              }
+            },
+            {
+              "index": 4,
+              "path": "receipts/synthetic_000001/5_part_4.jpg",
+              "transform": {
+                "rotationDegrees": -1.0,
+                "scale": 1.01,
+                "perspectiveX": 0.02,
+                "perspectiveY": 0.01,
+                "blurRadius": 0.8,
+                "motionBlurPixels": 0,
+                "jpegQuality": 88,
+                "brightnessDelta": -0.02,
+                "shadowStrength": 0.06,
+                "glareStrength": 0.02,
+                "lightingProfile": "normal"
+              }
+            }
+          ],
           "expectedImageOrdering": [0, 1, 2, 3, 4],
-          "expectedOverlaps": []
+          "expectedOverlaps": [
+            {
+              "fromIndex": 0,
+              "toIndex": 1,
+              "overlapPercent": 13,
+              "overlapPixels": 210
+            },
+            {
+              "fromIndex": 1,
+              "toIndex": 2,
+              "overlapPercent": 17,
+              "overlapPixels": 260
+            },
+            {
+              "fromIndex": 2,
+              "toIndex": 3,
+              "overlapPercent": 21,
+              "overlapPixels": 320
+            },
+            {
+              "fromIndex": 3,
+              "toIndex": 4,
+              "overlapPercent": 19,
+              "overlapPixels": 290
+            }
+          ]
         }
       ]
     }

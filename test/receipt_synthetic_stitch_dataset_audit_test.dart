@@ -147,6 +147,38 @@ void main() {
     expect(result.stderr.toString(), contains('overlapPercent'));
     expect(result.stderr.toString(), contains('overlapPixels'));
   });
+
+  test(
+    'synthetic stitch dataset audit rejects unordered capture transforms',
+    () async {
+      final root = Directory.systemTemp.createTempSync(
+        'maintainiac_synthetic_stitch_dataset_transform_',
+      );
+      addTearDown(() {
+        if (root.existsSync()) root.deleteSync(recursive: true);
+      });
+      _writeSyntheticDatasetFiles(root);
+      final manifestData = _validManifest();
+      final receipt = (manifestData['receipts'] as List).first as Map;
+      final capture = (receipt['captures'] as List).first as Map;
+      final images = capture['images'] as List;
+      final firstImage = images.first as Map;
+      firstImage['index'] = 1;
+      firstImage['transform'] = {'jpegQuality': 10};
+      capture['expectedImageOrdering'] = [0, 0];
+      final manifest = File('${root.path}/manifest.json')
+        ..writeAsStringSync(jsonEncode(manifestData));
+
+      final result = await _runAudit(manifest);
+
+      expect(result.exitCode, 1);
+      expect(result.stderr.toString(), contains('preserve segment order'));
+      expect(result.stderr.toString(), contains('duplicate 0'));
+      expect(result.stderr.toString(), contains('rotationDegrees'));
+      expect(result.stderr.toString(), contains('jpegQuality'));
+      expect(result.stderr.toString(), contains('lightingProfile'));
+    },
+  );
 }
 
 Future<ProcessResult> _runAudit(File manifest) {
@@ -211,6 +243,7 @@ Map<String, Object?> _validManifest() => {
                 {
                   'index': index,
                   'path': 'receipts/r001/${count}_part_$index.jpg',
+                  'transform': _captureTransform(index),
                 },
             ],
             'expectedImageOrdering': [
@@ -229,4 +262,18 @@ Map<String, Object?> _validManifest() => {
       ],
     },
   ],
+};
+
+Map<String, Object?> _captureTransform(int index) => {
+  'rotationDegrees': index.isEven ? -2.5 : 3.0,
+  'scale': 1.0,
+  'perspectiveX': index.isEven ? -0.04 : 0.05,
+  'perspectiveY': index.isEven ? 0.03 : -0.02,
+  'blurRadius': index == 0 ? 0.8 : 1.4,
+  'motionBlurPixels': index == 0 ? 0 : 2,
+  'jpegQuality': 82,
+  'brightnessDelta': index.isEven ? -0.08 : 0.06,
+  'shadowStrength': index.isEven ? 0.18 : 0.05,
+  'glareStrength': index.isEven ? 0.02 : 0.12,
+  'lightingProfile': index.isEven ? 'shadowed' : 'uneven',
 };

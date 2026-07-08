@@ -164,15 +164,24 @@ void _auditReceipt(
     if (count < 2 || count > 5) {
       failures.add('$prefix capture.imageCount must be 2, 3, 4, or 5.');
     }
+    final order = _auditExpectedOrder(capture, count, failures, prefix);
     final images = capture['images'];
     if (images is! List || images.length != count) {
       failures.add(
         '$prefix capture $count images length must equal imageCount.',
       );
     } else {
-      for (final image in images) {
+      for (var imageIndex = 0; imageIndex < images.length; imageIndex++) {
+        final image = images[imageIndex];
         if (image is Map<String, Object?>) {
-          _expectRelativeFile(manifestDir, image, 'path', failures, prefix);
+          _auditCaptureImage(
+            manifestDir,
+            image,
+            imageIndex,
+            order,
+            failures,
+            prefix,
+          );
         } else {
           failures.add('$prefix capture $count images must be objects.');
         }
@@ -186,16 +195,96 @@ void _auditReceipt(
     } else {
       _auditOverlaps(overlaps, count, failures, prefix);
     }
-    final order = capture['expectedImageOrdering'];
-    if (order is! List || order.length != count) {
-      failures.add(
-        '$prefix capture $count expectedImageOrdering length mismatch.',
-      );
-    }
   }
   if (!seenCounts.containsAll(const {2, 3, 4, 5})) {
     failures.add('$prefix captures must include imageCount 2, 3, 4, and 5.');
   }
+}
+
+Set<int> _auditExpectedOrder(
+  Map<String, Object?> capture,
+  int count,
+  List<String> failures,
+  String prefix,
+) {
+  final order = capture['expectedImageOrdering'];
+  final values = <int>{};
+  if (order is! List || order.length != count) {
+    failures.add(
+      '$prefix capture $count expectedImageOrdering length mismatch.',
+    );
+    return values;
+  }
+  for (var index = 0; index < order.length; index++) {
+    final value = order[index];
+    if (value is! int || value < 0 || value >= count) {
+      failures.add(
+        '$prefix capture $count expectedImageOrdering[$index] is invalid.',
+      );
+      continue;
+    }
+    if (!values.add(value)) {
+      failures.add(
+        '$prefix capture $count expectedImageOrdering has duplicate $value.',
+      );
+    }
+  }
+  for (var index = 0; index < count; index++) {
+    if (!values.contains(index)) {
+      failures.add(
+        '$prefix capture $count expectedImageOrdering missing image $index.',
+      );
+    }
+  }
+  return values;
+}
+
+void _auditCaptureImage(
+  Directory manifestDir,
+  Map<String, Object?> image,
+  int imageIndex,
+  Set<int> expectedOrder,
+  List<String> failures,
+  String prefix,
+) {
+  _expectRelativeFile(manifestDir, image, 'path', failures, prefix);
+  final index = image['index'];
+  if (index is! int) {
+    failures.add('$prefix capture image $imageIndex index must be an int.');
+  } else {
+    if (index != imageIndex) {
+      failures.add(
+        '$prefix capture image $imageIndex index must preserve segment order.',
+      );
+    }
+    if (expectedOrder.isNotEmpty && !expectedOrder.contains(index)) {
+      failures.add(
+        '$prefix capture image $imageIndex index must appear in ordering.',
+      );
+    }
+  }
+  final transform = image['transform'];
+  if (transform is! Map<String, Object?>) {
+    failures.add('$prefix capture image $imageIndex transform must be object.');
+    return;
+  }
+  _expectNumber(transform, 'rotationDegrees', -45, 45, failures, prefix);
+  _expectNumber(transform, 'scale', 0.6, 1.4, failures, prefix);
+  _expectNumber(transform, 'perspectiveX', -0.35, 0.35, failures, prefix);
+  _expectNumber(transform, 'perspectiveY', -0.35, 0.35, failures, prefix);
+  _expectNumber(transform, 'blurRadius', 0, 12, failures, prefix);
+  _expectNumber(transform, 'motionBlurPixels', 0, 80, failures, prefix);
+  _expectNumber(transform, 'jpegQuality', 30, 100, failures, prefix);
+  _expectNumber(transform, 'brightnessDelta', -1, 1, failures, prefix);
+  _expectNumber(transform, 'shadowStrength', 0, 1, failures, prefix);
+  _expectNumber(transform, 'glareStrength', 0, 1, failures, prefix);
+  _expectOneOf(
+    transform,
+    'lightingProfile',
+    _allowedLightingProfiles,
+    failures,
+    prefix,
+  );
 }
 
 void _expectDegradationTags(
@@ -317,6 +406,20 @@ String? _expectOneOf(
   return value;
 }
 
+void _expectNumber(
+  Map<String, Object?> map,
+  String key,
+  num min,
+  num max,
+  List<String> failures,
+  String prefix,
+) {
+  final value = map[key];
+  if (value is! num || value < min || value > max) {
+    failures.add('$prefix $key must be numeric from $min to $max.');
+  }
+}
+
 String? _stringValue(Object? value) => value is String ? value.trim() : null;
 
 const _lengthClassRanges = <String, _IntRange>{
@@ -344,6 +447,14 @@ const _requiredStitchStressTags = <String>{
   'flash_glare',
   'uneven_lighting',
   'noise',
+};
+
+const _allowedLightingProfiles = <String>{
+  'normal',
+  'low_light',
+  'uneven',
+  'flash_glare',
+  'shadowed',
 };
 
 class _IntRange {
