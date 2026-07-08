@@ -57,6 +57,17 @@ internal fun ReceiptCameraActivity.guidanceText(): String {
     }
 }
 
+internal fun ReceiptCameraActivity.isTemporaryControlGuidance(message: String): Boolean {
+    return message.startsWith("Zoom ") || message.startsWith("Brightness ")
+}
+
+internal fun ReceiptCameraActivity.restoreWorkflowGuidanceIfNeeded() {
+    val current = guidance.text?.toString()?.trim().orEmpty()
+    if (isTemporaryControlGuidance(current)) {
+        guidance.text = guidanceText()
+    }
+}
+
 internal fun ReceiptCameraActivity.dataSaverLabel(): String {
     return when (dataSaverLevel) {
         "original" -> "Local original"

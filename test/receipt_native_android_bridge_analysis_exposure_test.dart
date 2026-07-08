@@ -279,6 +279,15 @@ void main() {
     );
     expect(cameraActivity, contains('zoomChangeCount'));
     expect(cameraActivity, contains('manualExposureChangeCount'));
+    expect(cameraActivity, contains('isTemporaryControlGuidance'));
+    expect(cameraActivity, contains('restoreWorkflowGuidanceIfNeeded()'));
+    expect(
+      cameraActivity,
+      contains(
+        'override fun onStopTrackingTouch(seekBar: SeekBar?) {\n                restoreWorkflowGuidanceIfNeeded()',
+      ),
+    );
+    expect(cameraActivity, contains('MotionEvent.ACTION_POINTER_UP -> {'));
     expect(cameraActivity, contains('lastFocusStatus'));
     expect(
       cameraActivity,

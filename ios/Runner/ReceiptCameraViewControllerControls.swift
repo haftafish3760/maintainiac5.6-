@@ -67,6 +67,9 @@ extension ReceiptCameraViewController {
       lastZoomStatus = "zoom_failed"
       guidanceLabel.text = "Zoom could not be adjusted right now."
     }
+    if recognizer.state == .ended || recognizer.state == .cancelled || recognizer.state == .failed {
+      restoreWorkflowGuidanceIfNeeded()
+    }
   }
 
   @objc func exposureChanged(_ slider: UISlider) {
@@ -86,6 +89,10 @@ extension ReceiptCameraViewController {
     userExposureOverride = false
     manualExposureChangeCount += 1
     setExposureBias(resetBias, message: "Brightness reset.")
+  }
+
+  @objc func exposureInteractionEnded() {
+    restoreWorkflowGuidanceIfNeeded()
   }
 
   func setExposureBias(_ bias: Float, message: String) {

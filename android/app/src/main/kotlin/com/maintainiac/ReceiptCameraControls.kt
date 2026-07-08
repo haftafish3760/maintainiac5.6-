@@ -83,15 +83,22 @@ internal fun ReceiptCameraActivity.configureTouchControls() {
                 view.parent?.requestDisallowInterceptTouchEvent(true)
                 return@OnTouchListener true
             }
+            MotionEvent.ACTION_POINTER_UP -> {
+                view.parent?.requestDisallowInterceptTouchEvent(false)
+                restoreWorkflowGuidanceIfNeeded()
+                return@OnTouchListener true
+            }
             MotionEvent.ACTION_MOVE -> {
                 return@OnTouchListener event.pointerCount > 1
             }
             MotionEvent.ACTION_UP -> {
                 view.parent?.requestDisallowInterceptTouchEvent(false)
+                restoreWorkflowGuidanceIfNeeded()
                 return@OnTouchListener false
             }
             MotionEvent.ACTION_CANCEL -> {
                 view.parent?.requestDisallowInterceptTouchEvent(false)
+                restoreWorkflowGuidanceIfNeeded()
                 return@OnTouchListener false
             }
             else -> return@OnTouchListener false

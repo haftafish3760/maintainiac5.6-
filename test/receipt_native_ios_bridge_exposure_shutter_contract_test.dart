@@ -159,6 +159,15 @@ void main() {
       );
       expect(cameraController, contains('zoomChangeCount'));
       expect(cameraController, contains('manualExposureChangeCount'));
+      expect(cameraController, contains('isTemporaryControlGuidance'));
+      expect(cameraController, contains('restoreWorkflowGuidanceIfNeeded()'));
+      expect(cameraController, contains('@objc func exposureInteractionEnded()'));
+      expect(
+        cameraController,
+        contains(
+          'if recognizer.state == .ended || recognizer.state == .cancelled || recognizer.state == .failed {',
+        ),
+      );
       expect(cameraController, contains('lastFocusStatus'));
       expect(
         cameraController,

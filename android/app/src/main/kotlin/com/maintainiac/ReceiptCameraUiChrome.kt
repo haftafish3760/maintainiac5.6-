@@ -147,7 +147,9 @@ internal fun ReceiptCameraActivity.buildExposureControls(): View {
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
-            override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                restoreWorkflowGuidanceIfNeeded()
+            }
         })
     }
     exposurePanel.addView(exposureSlider)

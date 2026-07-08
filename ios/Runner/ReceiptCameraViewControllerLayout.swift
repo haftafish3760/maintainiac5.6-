@@ -241,6 +241,9 @@ extension ReceiptCameraViewController {
     exposureSlider.value = 0
     exposureSlider.isEnabled = false
     exposureSlider.addTarget(self, action: #selector(exposureChanged(_:)), for: .valueChanged)
+    exposureSlider.addTarget(self, action: #selector(exposureInteractionEnded), for: .touchUpInside)
+    exposureSlider.addTarget(self, action: #selector(exposureInteractionEnded), for: .touchUpOutside)
+    exposureSlider.addTarget(self, action: #selector(exposureInteractionEnded), for: .touchCancel)
     panel.addArrangedSubview(exposureSlider)
 
     exposureResetButton.setTitle("Reset", for: .normal)

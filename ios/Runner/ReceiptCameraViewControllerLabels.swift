@@ -39,6 +39,17 @@ extension ReceiptCameraViewController {
     return "Fill the screen with readable receipt text, then tap the shutter."
   }
 
+  func isTemporaryControlGuidance(_ message: String) -> Bool {
+    return message.hasPrefix("Zoom ") || message.hasPrefix("Brightness ")
+  }
+
+  func restoreWorkflowGuidanceIfNeeded() {
+    let current = guidanceLabel.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    if isTemporaryControlGuidance(current) {
+      guidanceLabel.text = guidanceText()
+    }
+  }
+
   func settingsStatusText() -> String {
     let fillMode = assistedReceiptFill ? "Assist on" : "Manual fill"
     let reviewMode = reviewDepth == "detailedLines" ? "Detailed lines" : "Price-only lines"
