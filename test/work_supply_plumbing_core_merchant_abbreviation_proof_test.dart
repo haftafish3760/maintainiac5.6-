@@ -207,6 +207,18 @@ void main() {
     ]);
   });
 
+  test('plumbing core parses Spanish and mixed-language receipt lines', () {
+    _expectGoodPlumbingCore('FERRETERIA 1/2 COBRE CODO 90', ['copper', '90']);
+    _expectGoodPlumbingCore('SUMINISTRO VALVULA LLENADO WC UNIVERSAL', [
+      'fill valve',
+    ]);
+    _expectGoodPlumbingCore('LOCAL TRAMPA P LAVABO 1-1/2', ['p-trap']);
+    _expectGoodPlumbingCore('FERG CINTA TEFLON ROSCA BLANCA', ['ptfe']);
+    _expectGoodPlumbingCore('WINSUPPLY VALVULA ALIVIO T&P 3/4', [
+      'relief valve',
+    ]);
+  });
+
   test(
     'plumbing core keeps ultra-vague merchant abbreviations out of good confidence',
     () {

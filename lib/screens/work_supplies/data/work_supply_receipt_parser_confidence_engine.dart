@@ -90,7 +90,9 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
   }
   final serviceFamilies = <RegExp, List<String>>{
     RegExp(r'\b(p trap|p-trap)\b'): ['p trap', 'p-trap'],
-    RegExp(r'\bfill valve\b'): ['fill valve'],
+    RegExp(r'\b(fill valve|valvula llenado|valvula de llenado)\b'): [
+      'fill valve',
+    ],
     RegExp(r'\btank lever\b'): ['tank lever'],
     RegExp(r'\baerator\b'): ['aerator'],
     RegExp(r'\b(o ring|o-ring|oring)\b'): ['o ring', 'o-ring', 'oring'],
@@ -107,11 +109,22 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'boiler drain',
       'heater drain',
     ],
+    RegExp(r'\b(t and p|t p|t&p|tpr|valvula alivio|valvula t p)\b'): [
+      'temperature and pressure relief valve',
+      'relief valve',
+      't&p valve',
+      'tpr valve',
+    ],
     RegExp(r'\b(fernco|rubber coupling|flexible coupling)\b'): [
       'fernco',
       'rubber coupling',
       'flexible coupling',
       'flexible drain repair coupling',
+    ],
+    RegExp(r'\b(cinta teflon|cinta de teflon|ptfe tape|teflon tape)\b'): [
+      'ptfe thread tape',
+      'ptfe tape',
+      'teflon tape',
     ],
     RegExp(
       r'\b(well pressure gauge|pressure gauge|well gauge|manometro presion pozo|manometro de presion)\b',

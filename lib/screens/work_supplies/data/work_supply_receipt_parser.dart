@@ -1700,6 +1700,19 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
   }
+  if (RegExp(
+        r'\b(valvula llenado|valvula de llenado|toilet fill|fill valve|ballcock)\b',
+      ).hasMatch(text) &&
+      RegExp(
+        r'\b(wc|toilet|inodoro|sanitario|universal|tank)\b',
+      ).hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' && name.contains('toilet fill valve')) {
+        return item;
+      }
+    }
+  }
   if (RegExp(r'\b(sediment|carbon|pleated|water)\b').hasMatch(text) &&
       RegExp(r'\b(filter|flt)\b').hasMatch(text) &&
       RegExp(r'\b(cartridge|cart|element)\b').hasMatch(text)) {
@@ -2195,7 +2208,8 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(
-    r'\b(t and p|t&p|tpr|temperature and pressure|temp pressure)\b',
+    r'\b(t and p|t p|t&p|tpr|temperature and pressure|temp pressure|'
+    r'valvula alivio|valvula t p|valvula t&p)\b',
   ).hasMatch(text)) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
