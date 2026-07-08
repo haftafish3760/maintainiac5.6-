@@ -41,6 +41,19 @@ void main() {
         normalizedSectionHeight * 2 - result.overlapPixels.single,
       );
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+
+      final boundedResult =
+          await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+            paths: [first.path, second.path],
+            maxOutputPixels: result.stitchedPixelCount + 500,
+          );
+
+      expect(
+        boundedResult.didStitch,
+        isTrue,
+        reason: boundedResult.detailLabel,
+      );
+      expect(boundedResult.ocrSourceContractCode, 'stitched_ocr_source_ready');
     },
     timeout: _stitchingHeavyTimeout,
   );

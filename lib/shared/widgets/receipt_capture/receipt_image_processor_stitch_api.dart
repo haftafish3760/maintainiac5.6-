@@ -312,7 +312,7 @@ int _minimumAutoStitchHeight(List<img.Image> prepared) {
   for (var index = 1; index < prepared.length; index++) {
     height +=
         prepared[index].height -
-        _maxAutoOverlapBound(
+        _maxAutoNextSkipBound(
           previous: prepared[index - 1],
           next: prepared[index],
         );
@@ -320,12 +320,23 @@ int _minimumAutoStitchHeight(List<img.Image> prepared) {
   return math.max(1, height);
 }
 
-int _maxAutoOverlapBound({
+int _maxAutoNextSkipBound({
   required img.Image previous,
   required img.Image next,
 }) {
   final shortest = math.min(previous.height, next.height);
-  return math.min(shortest - 1, math.max(48, (shortest * .46).round()));
+  final maxPixels = math.min(
+    shortest - 1,
+    math.max(48, (shortest * .46).round()),
+  );
+  final maxNextTopOffset = math.min(
+    220,
+    math.max(
+      0,
+      math.min((next.height * .20).round(), next.height - maxPixels - 24),
+    ),
+  );
+  return math.min(next.height - 1, maxPixels + maxNextTopOffset);
 }
 
 int _findDuplicateReceiptImageIndex(
