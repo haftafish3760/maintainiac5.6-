@@ -6,11 +6,16 @@ void main() {
   test('receipt stitch contract health script runs stitch and handoff tests', () {
     final script = File('tool/receipt_stitch_contract_health.sh');
     final realProbeScript = File('tool/receipt_stitch_real_probe.sh');
+    final realWindowProbeScript = File(
+      'tool/receipt_stitch_real_window_probe.sh',
+    );
     expect(script.existsSync(), isTrue);
     expect(realProbeScript.existsSync(), isTrue);
+    expect(realWindowProbeScript.existsSync(), isTrue);
 
     final source = script.readAsStringSync();
     final realProbeSource = realProbeScript.readAsStringSync();
+    final realWindowProbeSource = realWindowProbeScript.readAsStringSync();
     expect(realProbeSource, contains('RECEIPT_STITCH_REAL_PATHS'));
     expect(
       realProbeSource,
@@ -18,6 +23,19 @@ void main() {
     );
     expect(realProbeSource, contains(r'Usage: $0 <receipt-section-1>'));
     expect(realProbeSource, contains('Missing receipt image:'));
+    expect(realWindowProbeSource, contains('RECEIPT_STITCH_REAL_TALL_IMAGE'));
+    expect(
+      realWindowProbeSource,
+      contains('RECEIPT_STITCH_REAL_WINDOW_HEIGHT'),
+    );
+    expect(
+      realWindowProbeSource,
+      contains('RECEIPT_STITCH_REAL_WINDOW_STRIDE'),
+    );
+    expect(
+      realWindowProbeSource,
+      contains('real tall receipt probe crops local receipt windows'),
+    );
     expect(source, contains(r'mode="${1:-full}"'));
     expect(source, contains('run_flutter_test()'));
     expect(source, contains(r'> "$tmp" 2>&1'));

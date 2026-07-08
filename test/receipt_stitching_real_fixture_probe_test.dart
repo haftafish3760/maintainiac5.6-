@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
 void main() {
@@ -43,6 +44,48 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 4)),
   );
+
+  test(
+    'real tall receipt probe crops local receipt windows before stitching',
+    () async {
+      final sourcePath = Platform.environment['RECEIPT_STITCH_REAL_TALL_IMAGE']
+          ?.trim();
+      if (sourcePath == null || sourcePath.isEmpty) {
+        markTestSkipped(
+          'Set RECEIPT_STITCH_REAL_TALL_IMAGE to a tall receipt image path '
+          'to run the local tall-receipt window probe.',
+        );
+        return;
+      }
+      expect(File(sourcePath).existsSync(), isTrue, reason: sourcePath);
+      final bytes = await File(sourcePath).readAsBytes();
+      final source = img.decodeImage(bytes);
+      expect(source, isNotNull, reason: sourcePath);
+
+      final windowHeight = _intEnv('RECEIPT_STITCH_REAL_WINDOW_HEIGHT', 1500);
+      final stride = _intEnv('RECEIPT_STITCH_REAL_WINDOW_STRIDE', 1120);
+      final sectionPaths = await _writeTallReceiptWindows(
+        source!,
+        sourcePath: sourcePath,
+        windowHeight: windowHeight,
+        stride: stride,
+      );
+      expect(sectionPaths.length, greaterThanOrEqualTo(2));
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: sectionPaths,
+      );
+
+      expect(result.inputPaths, sectionPaths);
+      expect(result.ocrSourcePaths, isNotEmpty);
+      expect(
+        result.didStitch || result.requiresOcrSourceReviewBeforeAssistedRead,
+        isTrue,
+        reason: result.detailLabel,
+      );
+    },
+    timeout: const Timeout(Duration(minutes: 4)),
+  );
 }
 
 List<String> _realReceiptProbePaths() {
@@ -53,4 +96,45 @@ List<String> _realReceiptProbePaths() {
       .map((path) => path.trim())
       .where((path) => path.isNotEmpty)
       .toList(growable: false);
+}
+
+int _intEnv(String key, int fallback) {
+  final raw = Platform.environment[key];
+  final parsed = raw == null ? null : int.tryParse(raw.trim());
+  return parsed == null || parsed <= 0 ? fallback : parsed;
+}
+
+Future<List<String>> _writeTallReceiptWindows(
+  img.Image source, {
+  required String sourcePath,
+  required int windowHeight,
+  required int stride,
+}) async {
+  final safeHeight = windowHeight.clamp(320, source.height);
+  final safeStride = stride.clamp(160, safeHeight - 24);
+  final starts = <int>{0};
+  for (var y = safeStride; y < source.height - safeHeight; y += safeStride) {
+    starts.add(y);
+  }
+  starts.add((source.height - safeHeight).clamp(0, source.height));
+  final baseName = sourcePath
+      .split(Platform.pathSeparator)
+      .last
+      .replaceAll(RegExp(r'[^A-Za-z0-9_.-]'), '_');
+  final paths = <String>[];
+  for (final entry in starts.toList()..sort()) {
+    final window = img.copyCrop(
+      source,
+      x: 0,
+      y: entry,
+      width: source.width,
+      height: safeHeight,
+    );
+    final file = File(
+      '${Directory.systemTemp.path}/maintainiac_real_receipt_${baseName}_$entry.jpg',
+    );
+    await file.writeAsBytes(img.encodeJpg(window, quality: 94), flush: true);
+    paths.add(file.path);
+  }
+  return paths;
 }
