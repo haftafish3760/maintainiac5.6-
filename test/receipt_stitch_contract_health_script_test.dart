@@ -35,7 +35,10 @@ void main() {
     expect(source, contains('Receipt stitch long-stack health: PASS'));
     expect(source, contains('phone_windows)'));
     expect(source, contains('Receipt stitch phone-window health'));
-    expect(source, contains("--name 'phone-window captures'"));
+    expect(
+      source,
+      contains("--name 'phone-window captures|skipped phone-window'"),
+    );
     expect(source, contains('Receipt stitch phone-window health: PASS'));
     expect(source, contains('handoff)'));
     expect(

@@ -40,7 +40,7 @@ case "$mode" in
     echo "Receipt stitch phone-window health"
     flutter test \
       test/receipt_stitching_long_stack_test.dart \
-      --name 'phone-window captures' \
+      --name 'phone-window captures|skipped phone-window' \
       -r compact
     echo "Receipt stitch phone-window health: PASS"
     ;;
