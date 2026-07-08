@@ -54,6 +54,21 @@ void main() {
         reason: boundedResult.detailLabel,
       );
       expect(boundedResult.ocrSourceContractCode, 'stitched_ocr_source_ready');
+
+      final boundedFallback =
+          await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+            paths: [first.path, second.path],
+            maxOutputPixels: result.stitchedPixelCount - 500,
+          );
+
+      expect(boundedFallback.usedFallback, isTrue);
+      expect(boundedFallback.fallbackReasonCode, 'output_too_large');
+      expect(boundedFallback.stitchedPath, isNull);
+      expect(boundedFallback.ocrSourcePaths, [first.path, second.path]);
+      expect(
+        boundedFallback.ocrSourceContractCode,
+        'fallback_derived_stitch_too_large',
+      );
     },
     timeout: _stitchingHeavyTimeout,
   );
