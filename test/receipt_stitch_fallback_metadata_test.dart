@@ -176,6 +176,11 @@ void main() {
       containsPair('receipt_section_order_review_required', 1),
     );
     expect(metadata['receiptSectionOrderNeedsReview'], true);
+    expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
+    expect(
+      result.acceptedPhotoHandoffUserAction,
+      'review_receipt_section_order',
+    );
     expect(
       result.receiptReaderHandoffCounts,
       isNot(contains('receipt_section_order_action_review_single_section')),
