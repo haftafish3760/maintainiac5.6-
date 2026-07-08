@@ -55,6 +55,21 @@ void main() {
     ]);
     _expectGoodElectricalCore('MENARDS 120V RELAY 20A', ['relay']);
   });
+
+  test('electrical core covers named regional merchant receipt families', () {
+    _expectGoodElectricalCore('FERG 12/2 NM-B W/G 100FT', ['nm-b']);
+    _expectGoodElectricalCore('WINSUPPLY 20A GFCI RECPT WR WHT', ['gfci']);
+    _expectGoodElectricalCore('SUPPLYHOUSE 1/2 EMT COMP CONN STL', [
+      'connector',
+    ]);
+    _expectGoodElectricalCore('TRACTOR SUPPLY 5/8 GROUND ROD CLAMP', [
+      'ground',
+    ]);
+    _expectGoodElectricalCore('RURAL KING 15A SINGLE POLE SWITCH', ['switch']);
+    _expectGoodElectricalCore('NORTHERN TOOL 3/4 PVC LB BODY GRY', [
+      'conduit',
+    ]);
+  });
 }
 
 void _expectGoodElectricalCore(String line, List<String> expectedTerms) {

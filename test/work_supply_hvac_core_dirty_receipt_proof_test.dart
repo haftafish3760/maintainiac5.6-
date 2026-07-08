@@ -46,6 +46,18 @@ void main() {
     _expectGoodHvacCore('LOCAL SUPPLY 3/4X3/8 LINESET 50FT', ['line set']);
     _expectGoodHvacCore('ACE HVAC F0IL TAPE UL181', ['tape']);
   });
+
+  test('hvac core covers named regional merchant receipt families', () {
+    _expectGoodHvacCore('MENARDS 16X25X1 FURN FILTER MERV 8', ['filter']);
+    _expectGoodHvacCore('TRUE VALUE 45/5 MFD DUAL RUN CAP', ['capacitor']);
+    _expectGoodHvacCore('FERG 3/4 CONDENSATE FLOAT SWITCH', ['switch']);
+    _expectGoodHvacCore('FASTENAL UL181 FOIL HVAC TAPE', ['tape']);
+    _expectGoodHvacCore('TRACTOR SUPPLY 1H/1C TSTAT WHT', ['thermostat']);
+    _expectGoodHvacCore('RURAL KING PAN TABS CONDENSATE', ['tablet']);
+    _expectGoodHvacCore('NORTHERN TOOL 1/2 IN X 6FT EQUIP WHIP', [
+      'equipment whip',
+    ]);
+  });
 }
 
 void _expectGoodHvacCore(String line, List<String> expectedTerms) {

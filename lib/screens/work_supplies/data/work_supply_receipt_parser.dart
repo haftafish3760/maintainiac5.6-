@@ -1249,6 +1249,21 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
     }
   }
 
+  final wantsEquipmentWhip =
+      RegExp(r'\b(ac|a/c|equipment|equip|hvac)\b').hasMatch(text) &&
+      RegExp(r'\b(whip|liquid\s*tight|liquidtight|sealtite)\b').hasMatch(text);
+  if (wantsEquipmentWhip) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'HVAC' &&
+          name.contains('equipment whip') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+
   final wantsSheetMetalScrew = RegExp(
     r'\b(sheet metal screw|sheet mtl scr|zip screw|tek screw|'
     r'self drilling screw|self tapping screw|sms|tornillo lamina|'
