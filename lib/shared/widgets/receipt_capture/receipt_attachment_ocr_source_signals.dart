@@ -112,6 +112,18 @@ extension _ReceiptAttachmentOcrSourceSignals
       if (diagnostics['nativeRecoveryMultipleSections'] == true) {
         signals.add('native_recovery_multiple_sections');
       }
+      final freshness = attachmentSignalToken(
+        diagnostics['nativeRecoveryFreshness']?.toString() ?? '',
+      );
+      if (freshness != 'unknown') {
+        signals.add('native_recovery_freshness_$freshness');
+      }
+      final storageStatus = attachmentSignalToken(
+        diagnostics['nativeRecoveryStorageStatus']?.toString() ?? '',
+      );
+      if (storageStatus != 'unknown') {
+        signals.add('native_recovery_storage_$storageStatus');
+      }
       if (diagnostics['userEditedPhoto'] == true) {
         final editAction = attachmentPhotoEditActionToken(
           diagnostics['photoEditAction'],

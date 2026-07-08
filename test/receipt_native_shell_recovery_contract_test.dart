@@ -114,6 +114,12 @@ void main() {
     () async {
       final flow = await readReceiptCaptureFlowSource();
       final importActions = await readReceiptAttachmentImportActionsSource();
+      final panelSignals = await File(
+        'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart',
+      ).readAsString();
+      final panelRisks = await File(
+        'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_risk_flags.dart',
+      ).readAsString();
 
       for (final token in const [
         'proof_data_saver_',
@@ -151,6 +157,26 @@ void main() {
         "storageStatus == 'partial_photos_available'",
       ]) {
         expect(flow, contains(token), reason: 'main flow missing $token');
+      }
+      for (final token in const [
+        'native_recovery_freshness_',
+        'native_recovery_storage_',
+      ]) {
+        expect(
+          panelSignals,
+          contains(token),
+          reason: 'attachment panel signals missing $token',
+        );
+      }
+      for (final token in const [
+        "freshness == 'stale'",
+        "storageStatus == 'partial_photos_available'",
+      ]) {
+        expect(
+          panelRisks,
+          contains(token),
+          reason: 'attachment panel risks missing $token',
+        );
       }
       final nativeStaging = await readReceiptNativeCaptureStagingSource();
       expect(nativeStaging, contains('resume_review_before_receipt_details'));

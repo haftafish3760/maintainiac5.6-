@@ -106,6 +106,19 @@ extension _ReceiptAttachmentOcrSourceRiskFlags
       if (diagnostics['nativeRecoveryMultipleSections'] == true) {
         flags.add('ocr_source_native_recovery_multiple_sections');
       }
+      final freshness = attachmentSignalToken(
+        diagnostics['nativeRecoveryFreshness']?.toString() ?? '',
+      );
+      if (freshness == 'stale' || freshness == 'very_stale') {
+        flags.add('ocr_source_native_recovery_$freshness');
+      }
+      final storageStatus = attachmentSignalToken(
+        diagnostics['nativeRecoveryStorageStatus']?.toString() ?? '',
+      );
+      if (storageStatus == 'partial_photos_available' ||
+          storageStatus == 'photos_missing') {
+        flags.add('ocr_source_native_recovery_$storageStatus');
+      }
       if (diagnostics['userEditedPhoto'] == true) {
         final editAction = attachmentPhotoEditActionToken(
           diagnostics['photoEditAction'],
