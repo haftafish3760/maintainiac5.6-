@@ -238,10 +238,15 @@ void main() {
     expect(script, contains('docs/receipt_camera_world_class_readiness.md'));
     expect(script, contains('docs/receipt_real_device_test_script.md'));
     expect(script, contains('docs/receipt_real_device_result_template.md'));
+    expect(script, contains('tool/receipt_camera_real_device_snapshot.sh'));
     expect(script, contains('tool/receipt_real_device_matrix_gate.dart'));
     expect(script, contains('tool/receipt_real_device_result_gate.dart'));
     expect(script, contains('tool/receipt_real_device_result_start.sh'));
     expect(script, contains('PROJECT_RULES.md'));
+    expect(
+      script,
+      contains('test/receipt_camera_real_device_snapshot_contract_test.dart'),
+    );
     expect(script, contains('Current active phase: Phase 8'));
     expect(
       script,

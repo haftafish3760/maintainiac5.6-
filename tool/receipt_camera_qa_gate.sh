@@ -212,6 +212,7 @@ phase9_audit_paths=(
   docs/receipt_camera_world_class_readiness.md
   docs/receipt_real_device_test_script.md
   docs/receipt_real_device_result_template.md
+  tool/receipt_camera_real_device_snapshot.sh
   tool/receipt_real_device_matrix_gate.dart
   tool/receipt_real_device_result_gate.dart
   tool/receipt_real_device_result_start.sh
@@ -225,6 +226,7 @@ phase9_audit_paths=(
   test/receipt_camera_release_one_blueprint_test.dart
   test/receipt_camera_release_control_priority_test.dart
   test/receipt_camera_native_baseline_policy_test.dart
+  test/receipt_camera_real_device_snapshot_contract_test.dart
   test/receipt_real_device_test_script_test.dart
   test/receipt_real_device_result_gate_test.dart
   test/receipt_real_device_result_start_script_test.dart
