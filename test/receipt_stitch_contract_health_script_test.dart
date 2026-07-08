@@ -57,7 +57,7 @@ void main() {
     expect(
       source,
       contains(
-        "--name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|eleven-section|ugly seven-section|ragged phone-window'",
+        "--name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|out-of-order phone-window|eleven-section|ugly seven-section|ragged phone-window'",
       ),
     );
     expect(source, contains('Receipt stitch phone-window health: PASS'));
