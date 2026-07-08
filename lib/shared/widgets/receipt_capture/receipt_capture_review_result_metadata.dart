@@ -37,10 +37,8 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
           acceptedPhotoHandoffMustOpenFilledReview,
       'receiptDetailsHandoffMustOpenFilledReview':
           acceptedPhotoHandoffMustOpenFilledReview,
-      'receiptReaderHandoffOcrSourceRelationship':
-          ocrSourceProofRelationship,
-      'receiptDetailsHandoffOcrSourceRelationship':
-          ocrSourceProofRelationship,
+      'receiptReaderHandoffOcrSourceRelationship': ocrSourceProofRelationship,
+      'receiptDetailsHandoffOcrSourceRelationship': ocrSourceProofRelationship,
       'receiptReaderHandoffUserAction': acceptedPhotoHandoffUserAction,
       'receiptDetailsHandoffUserAction': acceptedPhotoHandoffUserAction,
       'receiptReaderHandoffEvidence': privacySafeOcrHandoffEvidenceLabel,
@@ -76,6 +74,12 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
       'stitchSourcePreservationCode': stitchResult.sourcePreservationCode,
       'stitchInputSourceCount': stitchResult.inputPaths.length,
       'stitchOcrSourceCount': stitchResult.ocrSourcePaths.length,
+      if (stitchResult.stitchedWidth > 0)
+        'stitchCandidateWidth': stitchResult.stitchedWidth,
+      if (stitchResult.stitchedHeight > 0)
+        'stitchCandidateHeight': stitchResult.stitchedHeight,
+      if (stitchResult.stitchedPixelCount > 0)
+        'stitchCandidatePixelCount': stitchResult.stitchedPixelCount,
       'stitchOverlapPixelTotal': stitchResult.overlapPixelTotal,
       'stitchUsedManualAdjustment': stitchResult.usedManualAdjustment,
       'stitchMatchedPairCount': stitchResult.matchedPairCount,

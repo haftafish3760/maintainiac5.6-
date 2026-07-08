@@ -64,6 +64,18 @@ void main() {
         result.privacySafeReceiptReaderHandoffMetadata,
         containsPair('stitchFallbackReasonCode', 'output_too_large'),
       );
+      expect(
+        result.privacySafeReceiptReaderHandoffMetadata,
+        containsPair('stitchCandidateWidth', 1200),
+      );
+      expect(
+        result.privacySafeReceiptReaderHandoffMetadata,
+        containsPair('stitchCandidateHeight', 21000),
+      );
+      expect(
+        result.privacySafeReceiptReaderHandoffMetadata,
+        containsPair('stitchCandidatePixelCount', 25200000),
+      );
     },
   );
 }
