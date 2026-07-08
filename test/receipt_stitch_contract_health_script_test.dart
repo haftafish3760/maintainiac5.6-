@@ -5,9 +5,19 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('receipt stitch contract health script runs stitch and handoff tests', () {
     final script = File('tool/receipt_stitch_contract_health.sh');
+    final realProbeScript = File('tool/receipt_stitch_real_probe.sh');
     expect(script.existsSync(), isTrue);
+    expect(realProbeScript.existsSync(), isTrue);
 
     final source = script.readAsStringSync();
+    final realProbeSource = realProbeScript.readAsStringSync();
+    expect(realProbeSource, contains('RECEIPT_STITCH_REAL_PATHS'));
+    expect(
+      realProbeSource,
+      contains('test/receipt_stitching_real_fixture_probe_test.dart'),
+    );
+    expect(realProbeSource, contains(r'Usage: $0 <receipt-section-1>'));
+    expect(realProbeSource, contains('Missing receipt image:'));
     expect(source, contains(r'mode="${1:-full}"'));
     expect(source, contains('run_flutter_test()'));
     expect(source, contains(r'> "$tmp" 2>&1'));
