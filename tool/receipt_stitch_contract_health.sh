@@ -152,6 +152,15 @@ run_handoff() {
   echo "Receipt stitch handoff health: PASS"
 }
 
+run_ghost_handoff() {
+  echo "Receipt stitch ghost-handoff health"
+  run_flutter_test ghost-handoff \
+    test/receipt_continuation_ghost_handoff_contract_test.dart \
+    test/receipt_camera_result_continuation_handoff_test.dart \
+    test/receipt_capture_flow_shareability_test.dart
+  echo "Receipt stitch ghost-handoff health: PASS"
+}
+
 run_source_size() {
   echo "Receipt stitch source-size health"
   local max_lines=500
@@ -281,13 +290,14 @@ case "$mode" in
   manual_overlap) run_manual_overlap; exit 0 ;;
   duplicates) run_duplicates; exit 0 ;;
   handoff) run_handoff; exit 0 ;;
+  ghost_handoff) run_ghost_handoff; exit 0 ;;
   source_size) run_source_size; exit 0 ;;
   fast) run_fast; exit 0 ;;
   core) run_core_stitch; exit 0 ;;
   milestone) run_milestone; exit 0 ;;
   full) run_full; exit 0 ;;
   *)
-    echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|source_size|fast|core|milestone|full]" >&2
+    echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|source_size|fast|core|milestone|full]" >&2
     exit 64
     ;;
 esac

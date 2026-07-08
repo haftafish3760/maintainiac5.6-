@@ -135,6 +135,18 @@ void main() {
     expect(source, contains('receipt_stitching_result_contract_test.dart'));
     expect(source, contains('receipt_stitching_ocr_source_contract_test.dart'));
     expect(source, contains('Receipt stitch handoff health: PASS'));
+    expect(source, contains('ghost_handoff)'));
+    expect(source, contains('run_flutter_test ghost-handoff'));
+    expect(
+      source,
+      contains('receipt_continuation_ghost_handoff_contract_test.dart'),
+    );
+    expect(
+      source,
+      contains('receipt_camera_result_continuation_handoff_test.dart'),
+    );
+    expect(source, contains('receipt_capture_flow_shareability_test.dart'));
+    expect(source, contains('Receipt stitch ghost-handoff health: PASS'));
     expect(source, contains('duplicates)'));
     expect(source, contains('Receipt stitch duplicate-section health'));
     expect(source, contains('receipt_stitching_duplicate_safety_test.dart'));
@@ -243,7 +255,7 @@ void main() {
     expect(
       source,
       contains(
-        r'Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|source_size|fast|core|milestone|full]',
+        r'Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|source_size|fast|core|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));
