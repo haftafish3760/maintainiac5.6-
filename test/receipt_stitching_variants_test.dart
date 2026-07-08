@@ -334,7 +334,7 @@ void main() {
       expect(result.diagnosticReasonLabel, 'output_too_large');
       expect(result.stitchedWidth, greaterThan(0));
       expect(result.stitchedHeight, greaterThan(100));
-      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.pairs, isEmpty);
       expect(result.hasValidOcrSourceContract, isFalse);
       expect(result.ocrSourceContractCode, 'fallback_derived_stitch_too_large');
       expect(

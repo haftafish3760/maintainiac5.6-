@@ -50,23 +50,40 @@ void main() {
     () async {
       final files = await _writeFiveSectionStack('five_section_cap');
 
-      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
-        paths: [for (final file in files) file.path],
-        maxOutputPixels: 900000,
-      );
+      final pixelCapResult =
+          await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+            paths: [for (final file in files) file.path],
+            maxOutputPixels: 900000,
+          );
 
-      expect(result.usedFallback, isTrue, reason: result.detailLabel);
-      expect(result.didStitch, isFalse);
-      expect(result.fallbackReasonCode, 'output_too_large');
-      expect(result.stitchedPath, isNull);
-      expect(result.pairs, isEmpty);
-      expect(result.ocrSourcePaths, [for (final file in files) file.path]);
-      expect(result.ocrSourceContractCode, 'fallback_derived_stitch_too_large');
-      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
-      expect(result.stitchedPixelCount, greaterThan(900000));
+      expectOutputTooLargeFallback(pixelCapResult, files);
+      expect(pixelCapResult.pairs, isEmpty);
+      expect(pixelCapResult.stitchedPixelCount, greaterThan(900000));
+
+      final heightCapResult =
+          await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+            paths: [for (final file in files) file.path],
+            maxOutputHeight: 3000,
+          );
+
+      expectOutputTooLargeFallback(heightCapResult, files);
+      expect(heightCapResult.stitchedHeight, greaterThan(3000));
     },
     timeout: _longStackTimeout,
   );
+}
+
+void expectOutputTooLargeFallback(
+  ReceiptStitchResult result,
+  List<File> files,
+) {
+  expect(result.usedFallback, isTrue, reason: result.detailLabel);
+  expect(result.didStitch, isFalse);
+  expect(result.fallbackReasonCode, 'output_too_large');
+  expect(result.stitchedPath, isNull);
+  expect(result.ocrSourcePaths, [for (final file in files) file.path]);
+  expect(result.ocrSourceContractCode, 'fallback_derived_stitch_too_large');
+  expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
 }
 
 Future<List<File>> _writeFiveSectionStack(String prefix) async {
