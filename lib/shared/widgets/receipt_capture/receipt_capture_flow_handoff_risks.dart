@@ -10,6 +10,22 @@ List<String> _ocrSourceRiskFlagsFor(
     flags.add('ocr_source_small_proof_copy_review_required');
     flags.add('ocr_source_proof_data_saver_${result.dataSaverLevel.name}');
   }
+  final quality = _qualityForOcrSourceIndex(result, index);
+  if (quality != null) {
+    flags.add(
+      'ocr_source_quality_action_${_signalToken(quality.reviewActionCode)}',
+    );
+    flags.add(
+      'ocr_source_quality_family_${_signalToken(quality.reviewActionFamily)}',
+    );
+    if (quality.shouldRetakeBeforeOcr) flags.add('ocr_source_retake_risk');
+    if (quality.needsReview) flags.add('ocr_source_needs_review');
+    if (quality.isTooDark || quality.isUnderexposedForReceipt) {
+      flags.add('ocr_source_dark');
+    }
+    if (quality.isSoft || quality.isVerySoft) flags.add('ocr_source_soft');
+    if (quality.isPoorlyFramed) flags.add('ocr_source_possible_cutoff');
+  }
   if (result.stitchResult.usedFallback) {
     flags.add('ocr_stitch_fallback_multiple_sources');
   }

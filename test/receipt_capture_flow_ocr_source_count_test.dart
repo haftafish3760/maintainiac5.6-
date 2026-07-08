@@ -26,10 +26,43 @@ void main() {
       ),
       preparationDiagnosticsByOcrPath: const {
         '/tmp/stitched-ocr-source.jpg': {
+          'ocrSourcePath': '/tmp/stitched-ocr-source.jpg',
           'scannerDecisionCodes': [
             'ocr_source_full_quality_selected_quality_guard',
           ],
         },
+      },
+      photoQualityChecksByPath: const {
+        '/tmp/proof-section-1.jpg': ReceiptPhotoQualityCheck(
+          width: 1200,
+          height: 3200,
+          focusScore: 3,
+          brightness: 48,
+          contrast: 18,
+          cropScore: .52,
+          textBandScore: 8,
+          isLikelyReadable: false,
+        ),
+        '/tmp/proof-section-2.jpg': ReceiptPhotoQualityCheck(
+          width: 1200,
+          height: 3200,
+          focusScore: 6,
+          brightness: 118,
+          contrast: 24,
+          cropScore: .71,
+          textBandScore: 12,
+          isLikelyReadable: true,
+        ),
+        '/tmp/proof-section-3.jpg': ReceiptPhotoQualityCheck(
+          width: 1200,
+          height: 3200,
+          focusScore: 7,
+          brightness: 126,
+          contrast: 28,
+          cropScore: .78,
+          textBandScore: 14,
+          isLikelyReadable: true,
+        ),
       },
     );
 
@@ -47,8 +80,24 @@ void main() {
     );
     expect(
       attachments.single.documentSignals,
+      contains('ocr_source_artifact_available'),
+    );
+    expect(
+      attachments.single.documentSignals,
       isNot(contains('ocr_reads_saved_proof_fallback_requires_review')),
     );
+    expect(
+      attachments.single.riskFlags,
+      contains('ocr_source_quality_action_retake_recommended_continue_allowed'),
+    );
+    expect(
+      attachments.single.riskFlags,
+      contains('ocr_source_quality_family_retake'),
+    );
+    expect(attachments.single.riskFlags, contains('ocr_source_retake_risk'));
+    expect(attachments.single.riskFlags, contains('ocr_source_needs_review'));
+    expect(attachments.single.riskFlags, contains('ocr_source_dark'));
+    expect(attachments.single.riskFlags, contains('ocr_source_soft'));
     expect(
       attachments.single.riskFlags,
       contains('ocr_source_ocr_source_full_quality_selected_quality_guard'),

@@ -57,6 +57,10 @@ List<String> _ocrSourceDocumentSignalsFor(
       if (code != 'unknown') signals.add('scanner_decision_$code');
     }
   }
+  final ocrSourcePath = preparation['ocrSourcePath']?.toString().trim();
+  if (ocrSourcePath != null && ocrSourcePath.isNotEmpty) {
+    signals.add('ocr_source_artifact_available');
+  }
   if (result.stitchResult.didStitch) signals.add('stitched_ocr_source');
   if (result.stitchResult.usedFallback) {
     signals.add('multiple_ocr_sources_fallback');
