@@ -40,10 +40,15 @@ void main() {
       contains('receipt_camera_result_stitch_handoff_followthrough_test.dart'),
     );
     expect(source, contains('Receipt stitch handoff health: PASS'));
+    expect(source, contains('milestone)'));
+    expect(source, contains(r'"$0" edge_cases'));
+    expect(source, contains(r'"$0" long_stack'));
+    expect(source, contains(r'"$0" handoff'));
+    expect(source, contains('Receipt stitch milestone health: PASS'));
     expect(
       source,
       contains(
-        r'Usage: $0 [delayed_overlap|edge_cases|long_stack|handoff|full]',
+        r'Usage: $0 [delayed_overlap|edge_cases|long_stack|handoff|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));

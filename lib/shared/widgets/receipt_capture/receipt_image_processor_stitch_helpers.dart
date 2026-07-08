@@ -186,9 +186,11 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
   var secondBestScore = double.infinity;
   var bestHorizontalOffset = 0;
   var bestNextYOffset = 0;
+  final horizontalOffsets = _stitchHorizontalOffsets(previous.width);
   for (var pixels = minPixels; pixels <= maxPixels; pixels += 12) {
-    for (final horizontalOffset in _stitchHorizontalOffsets(previous.width)) {
-      for (final nextYOffset in _stitchNextTopOffsets(next.height, pixels)) {
+    final nextTopOffsets = _stitchNextTopOffsets(next.height, pixels);
+    for (final horizontalOffset in horizontalOffsets) {
+      for (final nextYOffset in nextTopOffsets) {
         final score = _overlapDifference(
           previous: previous,
           next: next,
@@ -217,8 +219,9 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
   final refinedStart = (bestPixels - 18).clamp(minPixels, maxPixels);
   final refinedEnd = (bestPixels + 18).clamp(minPixels, maxPixels);
   for (var pixels = refinedStart; pixels <= refinedEnd; pixels += 3) {
-    for (final horizontalOffset in _stitchHorizontalOffsets(previous.width)) {
-      for (final nextYOffset in _stitchNextTopOffsets(next.height, pixels)) {
+    final nextTopOffsets = _stitchNextTopOffsets(next.height, pixels);
+    for (final horizontalOffset in horizontalOffsets) {
+      for (final nextYOffset in nextTopOffsets) {
         final score = _overlapDifference(
           previous: previous,
           next: next,

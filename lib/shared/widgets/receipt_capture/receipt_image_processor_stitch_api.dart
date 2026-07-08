@@ -120,6 +120,22 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
     final prepared = decoded
         .map((image) => _resizeToWidth(_autoCropReceipt(image), targetWidth))
         .toList(growable: false);
+    if (manualOverlapPixels == null && manualOverlapFractions == null) {
+      final minimumAutoHeight = _minimumAutoStitchHeight(prepared);
+      final minimumAutoPixels = targetWidth * minimumAutoHeight;
+      if (minimumAutoHeight > maxOutputHeight ||
+          minimumAutoPixels > maxOutputPixels) {
+        return _oversizedStitchFallback(
+          inputPaths: inputPaths,
+          targetWidth: targetWidth,
+          expectedHeight: minimumAutoHeight,
+          maxOutputPixels: maxOutputPixels,
+          maxOutputHeight: maxOutputHeight,
+          confidences: const [],
+          pairResults: const [],
+        )!;
+      }
+    }
     final normalized = <img.Image>[prepared.first];
     var expectedHeight = normalized.first.height;
     final overlaps = <int>[];
@@ -289,6 +305,27 @@ ReceiptStitchResult? _oversizedStitchFallback({
     stitchedWidth: targetWidth,
     stitchedHeight: expectedHeight,
   );
+}
+
+int _minimumAutoStitchHeight(List<img.Image> prepared) {
+  var height = prepared.first.height;
+  for (var index = 1; index < prepared.length; index++) {
+    height +=
+        prepared[index].height -
+        _maxAutoOverlapBound(
+          previous: prepared[index - 1],
+          next: prepared[index],
+        );
+  }
+  return math.max(1, height);
+}
+
+int _maxAutoOverlapBound({
+  required img.Image previous,
+  required img.Image next,
+}) {
+  final shortest = math.min(previous.height, next.height);
+  return math.min(shortest - 1, math.max(48, (shortest * .46).round()));
 }
 
 int _findDuplicateReceiptImageIndex(

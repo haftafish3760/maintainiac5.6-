@@ -22,18 +22,29 @@ void main() {
         'lib/shared/widgets/receipt_capture/receipt_image_processor.dart',
       ).readAsString();
 
-      expect(saveActions, contains('Future<void> continueReceiptPhotoReview()'));
+      expect(
+        saveActions,
+        contains('Future<void> continueReceiptPhotoReview()'),
+      );
       expect(saveActions, contains('_needsStitchReviewBeforeSave'));
       expect(saveActions, contains('_reviewMode = _ReceiptReviewMode.stitch;'));
       expect(saveActions, contains('_ensureStitchPreview(force: true)'));
-      expect(saveActions, contains('final stitch = await _finalStitchResultForOcr('));
+      expect(
+        saveActions,
+        contains('final stitch = await _finalStitchResultForOcr('),
+      );
       expect(saveActions, contains('await _deleteGeneratedStitchPreview();'));
       expect(
         saveActions.indexOf('prepareForOcrAndBackup('),
-        lessThan(saveActions.indexOf('final stitch = await _finalStitchResultForOcr(')),
+        lessThan(
+          saveActions.indexOf('final stitch = await _finalStitchResultForOcr('),
+        ),
       );
 
-      expect(stitchPreviewAsync, contains('ReceiptImageProcessor.stitchReceiptPhotosForOcr('));
+      expect(
+        stitchPreviewAsync,
+        contains('ReceiptImageProcessor.stitchReceiptPhotosForOcr('),
+      );
       expect(
         stitchPreviewAsync,
         contains('// Best effort cleanup for app-created stitch previews.'),
@@ -46,9 +57,15 @@ void main() {
           '            preview.status == ReceiptStitchStatus.notNeeded)) {',
         ),
       );
-      expect(stitchExitActions, contains('ReceiptImageProcessor.copyReceiptOcrArtifact('));
+      expect(
+        stitchExitActions,
+        contains('ReceiptImageProcessor.copyReceiptOcrArtifact('),
+      );
       expect(stitchExitActions, contains('preview.copyForFinalOcr('));
-      expect(stitchExitActions, contains('return ReceiptImageProcessor.stitchReceiptPhotosForOcr('));
+      expect(
+        stitchExitActions,
+        contains('return ReceiptImageProcessor.stitchReceiptPhotosForOcr('),
+      );
       expect(imageProcessor, contains('copyReceiptOcrArtifact'));
 
       expect(
@@ -111,6 +128,68 @@ void main() {
   );
 
   test(
+    'phase 6 five-section stitched handoff still uses one derived OCR artifact',
+    () {
+      final preview = ReceiptStitchResult(
+        status: ReceiptStitchStatus.stitched,
+        inputPaths: [
+          for (var index = 1; index <= 5; index++) '/tmp/raw-$index.jpg',
+        ],
+        ocrSourcePaths: ['/tmp/preview-five-section-stitched.jpg'],
+        stitchedPath: '/tmp/preview-five-section-stitched.jpg',
+        confidence: .91,
+        overlapPixels: [242, 238, 246, 240],
+        stitchedWidth: 1080,
+        stitchedHeight: 6120,
+        pairs: const [
+          ReceiptStitchPairResult(
+            pairIndex: 0,
+            overlapPixels: 242,
+            confidence: .91,
+          ),
+          ReceiptStitchPairResult(
+            pairIndex: 1,
+            overlapPixels: 238,
+            confidence: .92,
+          ),
+          ReceiptStitchPairResult(
+            pairIndex: 2,
+            overlapPixels: 246,
+            confidence: .93,
+          ),
+          ReceiptStitchPairResult(
+            pairIndex: 3,
+            overlapPixels: 240,
+            confidence: .91,
+          ),
+        ],
+      );
+
+      final finalResult = preview.copyForFinalOcr(
+        inputPaths: [
+          for (var index = 1; index <= 5; index++) '/tmp/prepared-$index.jpg',
+        ],
+        ocrSourcePaths: const ['/tmp/final-five-section-stitched.jpg'],
+        stitchedPath: '/tmp/final-five-section-stitched.jpg',
+      );
+
+      expect(finalResult.didStitch, isTrue);
+      expect(finalResult.inputPaths, hasLength(5));
+      expect(finalResult.ocrSourcePaths, [
+        '/tmp/final-five-section-stitched.jpg',
+      ]);
+      expect(finalResult.usesDerivedCombinedOcrArtifact, isTrue);
+      expect(finalResult.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(
+        finalResult.sourcePreservationCode,
+        'original_sections_preserved_derived_stitched_ocr_artifact',
+      );
+      expect(finalResult.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+      expect(finalResult.overlapPixels, [242, 238, 246, 240]);
+    },
+  );
+
+  test(
     'phase 6 ordered fallback preview can be rebound for final OCR without losing review metadata',
     () {
       final preview = ReceiptStitchResult.fallback(
@@ -123,7 +202,10 @@ void main() {
 
       final finalResult = preview.copyForFinalOcr(
         inputPaths: const ['/tmp/prepared-top.jpg', '/tmp/prepared-bottom.jpg'],
-        ocrSourcePaths: const ['/tmp/prepared-top.jpg', '/tmp/prepared-bottom.jpg'],
+        ocrSourcePaths: const [
+          '/tmp/prepared-top.jpg',
+          '/tmp/prepared-bottom.jpg',
+        ],
       );
 
       expect(finalResult.usedFallback, isTrue);

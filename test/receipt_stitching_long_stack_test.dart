@@ -59,6 +59,14 @@ void main() {
       expectOutputTooLargeFallback(pixelCapResult, files);
       expect(pixelCapResult.pairs, isEmpty);
       expect(pixelCapResult.stitchedPixelCount, greaterThan(900000));
+      expect(
+        pixelCapResult.sourcePreservationCode,
+        'original_sections_preserved_ordered_ocr_sources',
+      );
+      expect(
+        pixelCapResult.assistedReadinessCode,
+        'stitch_contract_review_required',
+      );
 
       final heightCapResult =
           await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
@@ -67,7 +75,12 @@ void main() {
           );
 
       expectOutputTooLargeFallback(heightCapResult, files);
+      expect(heightCapResult.pairs, isEmpty);
       expect(heightCapResult.stitchedHeight, greaterThan(3000));
+      expect(
+        heightCapResult.assistedReadinessCode,
+        'stitch_contract_review_required',
+      );
     },
     timeout: _longStackTimeout,
   );
