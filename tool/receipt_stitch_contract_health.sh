@@ -22,7 +22,7 @@ case "$mode" in
       test/receipt_stitching_horizontal_drift_test.dart \
       test/receipt_stitching_worn_receipt_test.dart \
       test/receipt_stitching_weak_overlap_safety_test.dart \
-      --name 'delayed overlap|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|continuation edge is clipped|faded receipt sections when continuation edge is clipped|missing middle section|reverse order' \
+      --name 'delayed overlap|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|continuation edge is clipped|severely cropped|faded receipt sections when continuation edge is clipped|missing middle section|reverse order' \
       --concurrency=1 \
       -r compact
     echo "Receipt stitch edge-case health: PASS"

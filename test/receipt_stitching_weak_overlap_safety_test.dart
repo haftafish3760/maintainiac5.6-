@@ -82,6 +82,36 @@ void main() {
     },
     timeout: _stitchingHeavyTimeout,
   );
+
+  test(
+    'requires review when a continuation edge is severely cropped',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 98, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 99, topTextOffset: 18);
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 330);
+      final clippedSecond = clipReceiptStitchingSide(
+        sectionB,
+        left: 170,
+        right: 170,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'severe_crop_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        clippedSecond,
+        'severe_crop_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expectWeakOverlapRequiresReview(result);
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
 }
 
 void expectWeakOverlapRequiresReview(ReceiptStitchResult result) {
