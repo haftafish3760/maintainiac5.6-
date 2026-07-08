@@ -208,6 +208,31 @@ img.Image shiftReceiptStitchingShot(
   return canvas;
 }
 
+img.Image rippleReceiptStitchingRows(
+  img.Image source, {
+  required int amplitude,
+  required double period,
+  required double phase,
+}) {
+  final safeAmplitude = amplitude.clamp(1, 36);
+  final safePeriod = period.clamp(120.0, 900.0);
+  final canvas = img.Image(
+    width: source.width,
+    height: source.height,
+    numChannels: 3,
+  );
+  img.fill(canvas, color: img.ColorRgb8(255, 255, 255));
+  for (var y = 0; y < source.height; y++) {
+    final dx = (math.sin((y / safePeriod) + phase) * safeAmplitude).round();
+    final xStart = math.max(0, -dx);
+    final width = source.width - dx.abs();
+    if (width <= 0) continue;
+    final row = img.copyCrop(source, x: xStart, y: y, width: width, height: 1);
+    img.compositeImage(canvas, row, dstX: math.max(0, dx), dstY: y);
+  }
+  return canvas;
+}
+
 img.Image frameReceiptStitchingShotOnDarkSurface(
   img.Image source, {
   int left = 72,
