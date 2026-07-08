@@ -89,6 +89,16 @@ run_ugly_long_receipts() {
   echo "Receipt stitch ugly-long-receipt health: PASS"
 }
 
+run_section_order() {
+  echo "Receipt stitch section-order health"
+  run_flutter_test section-order \
+    test/receipt_photo_review_retake_order_test.dart \
+    test/receipt_camera_result_section_order_test.dart \
+    test/receipt_camera_result_section_order_follow_through_test.dart \
+    test/receipt_camera_result_section_order_invalid_context_test.dart
+  echo "Receipt stitch section-order health: PASS"
+}
+
 run_bad_inputs() {
   echo "Receipt stitch bad-input health"
   run_flutter_test bad-input test/receipt_stitching_bad_input_test.dart
@@ -163,6 +173,7 @@ run_milestone() {
   run_phone_windows
   run_long_stack
   run_ugly_long_receipts
+  run_section_order
   run_bad_inputs
   run_manual_overlap
   run_duplicates
@@ -184,6 +195,10 @@ run_full() {
     test/receipt_native_camera_session_limits_test.dart \
     test/receipt_capture_flow_shareability_test.dart \
     test/receipt_camera_phase5_long_receipt_contract_test.dart \
+    test/receipt_photo_review_retake_order_test.dart \
+    test/receipt_camera_result_section_order_test.dart \
+    test/receipt_camera_result_section_order_follow_through_test.dart \
+    test/receipt_camera_result_section_order_invalid_context_test.dart \
     test/receipt_stitching_test.dart \
     test/receipt_stitching_manual_overlap_test.dart \
     test/receipt_stitching_duplicate_safety_test.dart \
@@ -214,6 +229,7 @@ case "$mode" in
   phone_windows_fast) run_phone_windows_fast; exit 0 ;;
   long_stack) run_long_stack; exit 0 ;;
   ugly_long_receipts) run_ugly_long_receipts; exit 0 ;;
+  section_order) run_section_order; exit 0 ;;
   bad_inputs) run_bad_inputs; exit 0 ;;
   manual_overlap) run_manual_overlap; exit 0 ;;
   duplicates) run_duplicates; exit 0 ;;
@@ -223,7 +239,7 @@ case "$mode" in
   milestone) run_milestone; exit 0 ;;
   full) run_full; exit 0 ;;
   *)
-    echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|bad_inputs|manual_overlap|duplicates|handoff|source_size|fast|milestone|full]" >&2
+    echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|section_order|bad_inputs|manual_overlap|duplicates|handoff|source_size|fast|milestone|full]" >&2
     exit 64
     ;;
 esac
