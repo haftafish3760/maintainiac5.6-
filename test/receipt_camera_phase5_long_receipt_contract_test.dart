@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_flow.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_native_camera_contract.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_photo_review_retake_order.dart';
 
@@ -183,4 +184,54 @@ void main() {
       expect(topRetake.previousSectionGhostSlicePercent, 20);
     },
   );
+
+  test('continuation guide bounds ghost fractions before native handoff', () {
+    const guide = ReceiptCaptureContinuationGuide(
+      guidePhotoPath: '/tmp/receipt-section-1.jpg',
+      reasonCode: 'missing_bottom_edge_and_totals',
+      ghostSourceStartFraction: 1.40,
+      ghostSourceHeightFraction: -.20,
+      ghostOverlayTopFraction: double.infinity,
+      ghostOverlayHeightFraction: .24,
+      ghostOpacity: .80,
+    );
+
+    final options = guide.applyTo(
+      const ReceiptCaptureFlowOptions(module: ReceiptCaptureFlowModule.expenses),
+    );
+
+    expect(options.previousSectionGhostSourceStartFraction, 1);
+    expect(options.previousSectionGhostSourceHeightFraction, 0);
+    expect(options.previousSectionGhostOverlayTopFraction, isNull);
+    expect(options.previousSectionGhostOverlayHeightFraction, .24);
+    expect(options.previousSectionGhostOpacity, .80);
+
+    final session = const ReceiptNativeCameraSettings().sessionFor(
+      deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+      nativeCapabilities: const ReceiptNativeCameraCapabilities(
+        engine: ReceiptNativeCameraEngine.cameraX,
+        available: true,
+        cameraPermissionGranted: true,
+        hasRearCamera: true,
+      ),
+      previousSectionGuidePhotoPath: options.previousSectionGuidePhotoPath,
+      previousSectionReasonCode: options.previousSectionReasonCode,
+      previousSectionGhostSourceStartFraction:
+          options.previousSectionGhostSourceStartFraction,
+      previousSectionGhostSourceHeightFraction:
+          options.previousSectionGhostSourceHeightFraction,
+      previousSectionGhostOverlayTopFraction:
+          options.previousSectionGhostOverlayTopFraction,
+      previousSectionGhostOverlayHeightFraction:
+          options.previousSectionGhostOverlayHeightFraction,
+      previousSectionGhostOpacity: options.previousSectionGhostOpacity,
+    );
+
+    expect(session.hasPreviousSectionGuide, isTrue);
+    expect(session.previousSectionGhostSourceStartFractionOrDefault, .92);
+    expect(session.previousSectionGhostSourceHeightFractionOrDefault, .15);
+    expect(session.previousSectionGhostOverlayTopFractionOrDefault, 0);
+    expect(session.previousSectionGhostOverlayHeightFractionOrDefault, .20);
+    expect(session.previousSectionGhostOpacityOrDefault, .62);
+  });
 }
