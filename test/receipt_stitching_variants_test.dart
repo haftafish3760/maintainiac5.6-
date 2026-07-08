@@ -302,6 +302,38 @@ void main() {
   );
 
   test(
+    'stitches receipt sections when overlap starts below the next photo top',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 67, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 68, topTextOffset: 18);
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 340,
+        dstY: 48,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'delayed_overlap_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        sectionB,
+        'delayed_overlap_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.overlapPixels.single, greaterThan(340));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+    },
+  );
+
+  test(
     'falls back when horizontal drift leaves the overlap unreadable',
     () async {
       final sectionA = receiptStitchingSection(seed: 66, topTextOffset: 0);

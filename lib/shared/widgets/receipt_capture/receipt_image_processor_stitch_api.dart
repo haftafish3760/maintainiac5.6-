@@ -184,7 +184,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             pairs: List.unmodifiable([...pairResults, failedPair]),
           );
         }
-        overlaps.add(match.pixels);
+        overlaps.add(match.nextSkipPixels);
         confidences.add(match.confidence);
         normalized.add(match.nextImage);
         pairResults.add(

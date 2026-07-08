@@ -336,12 +336,16 @@ milestone_only_tests=(
 stitch_tests=(
   test/receipt_camera_long_receipt_guidance_test.dart
   test/receipt_camera_ocr_source_handoff_test.dart
+  test/receipt_camera_phase5_long_receipt_contract_test.dart
+  test/receipt_camera_phase6_stitching_handoff_contract_test.dart
   test/receipt_camera_fixture_matrix_test.dart
   test/receipt_camera_result_frozen_handoff_counts_test.dart
   test/receipt_camera_result_stitch_scanner_test.dart
+  test/receipt_capture_flow_shareability_test.dart
   test/receipt_capture_flow_barcode_handoff_test.dart
   test/receipt_capture_flow_ocr_source_count_test.dart
   test/receipt_ocr_source_relationship_test.dart
+  test/receipt_native_camera_session_limits_test.dart
   test/receipt_native_camera_previous_section_channel_test.dart
   test/receipt_photo_section_labels_test.dart
   test/receipt_photo_review_retake_order_test.dart
@@ -349,6 +353,7 @@ stitch_tests=(
   test/receipt_stitching_manual_overlap_test.dart
   test/receipt_stitching_result_contract_test.dart
   test/receipt_stitching_test.dart
+  test/receipt_stitching_variants_test.dart
 )
 
 full_only_tests=(

@@ -21,121 +21,201 @@ void main() {
     },
   );
 
-  test('camera QA gate exposes phase2 phase3 phase4 phase5 phase6 phase7 phase8 phase9 core_remaining quick stitch milestone and full modes', () {
-    final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
+  test(
+    'camera QA gate exposes phase2 phase3 phase4 phase5 phase6 phase7 phase8 phase9 core_remaining quick stitch milestone and full modes',
+    () {
+      final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
 
-    expect(script, contains('--print-plan'));
-    expect(script, contains(r'mode="${1:-milestone}"'));
-    expect(script, contains('phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | phase8 | phase9 | core_remaining | quick | stitch | milestone | full'));
-    expect(script, contains('run_phase2'));
-    expect(script, contains('run_phase3'));
-    expect(script, contains('run_phase4'));
-    expect(script, contains('run_phase5'));
-    expect(script, contains('run_phase6'));
-    expect(script, contains('run_phase7'));
-    expect(script, contains('run_phase8'));
-    expect(script, contains('run_phase9'));
-    expect(script, contains('run_core_remaining'));
-    expect(script, contains('run_quick'));
-    expect(script, contains('run_stitch'));
-    expect(script, contains('run_milestone'));
-    expect(script, contains('run_full'));
-    expect(script, contains('phase2_tests=('));
-    expect(script, contains('phase3_tests=('));
-    expect(script, contains('phase4_tests=('));
-    expect(script, contains('phase5_tests=('));
-    expect(script, contains('phase6_tests=('));
-    expect(script, contains('phase7_tests=('));
-    expect(script, contains('phase8_tests=('));
-    expect(script, contains('phase9_tests=('));
-    expect(script, contains('core_remaining_tests=('));
-    expect(script, contains('stitch_tests=('));
-    expect(script, contains('milestone_only_tests=('));
-    expect(script, contains('full_only_tests=('));
-    expect(script, contains('test/receipt_capture_flow_handoff_order_test.dart'));
-    expect(script, contains('test/receipt_camera_phase3_viewer_contract_test.dart'));
-    expect(script, contains('test/receipt_camera_phase4_review_contract_test.dart'));
-    expect(script, contains('test/receipt_photo_review_exit_completion_test.dart'));
-    expect(script, contains('test/receipt_camera_phase5_long_receipt_contract_test.dart'));
-    expect(script, contains('test/receipt_photo_review_retake_order_test.dart'));
-    expect(script, contains('test/receipt_camera_phase6_stitching_handoff_contract_test.dart'));
-    expect(script, contains('test/receipt_stitching_result_contract_test.dart'));
-    expect(script, contains('test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart'));
-    expect(script, contains('test/receipt_ocr_source_relationship_test.dart'));
-    expect(script, contains('test/receipt_camera_phase8_storage_proof_timing_contract_test.dart'));
-    expect(script, contains('test/receipt_native_camera_phase8_storage_timing_test.dart'));
-    expect(script, contains('test/receipt_camera_completion_map_test.dart'));
-    expect(script, contains('test/receipt_camera_pipeline_handoff_status_test.dart'));
-    expect(script, contains('test/receipt_camera_active_phase_docs_test.dart'));
-    expect(script, contains('test/receipt_camera_release_one_blueprint_test.dart'));
-    expect(script, contains('test/receipt_camera_release_control_priority_test.dart'));
-    expect(script, contains('test/receipt_camera_native_baseline_policy_test.dart'));
-    expect(
-      script,
-      contains('test/receipt_camera_real_device_snapshot_contract_test.dart'),
-    );
-    expect(script, contains('test/receipt_real_device_matrix_gate_test.dart'));
-    expect(script, contains('test/receipt_real_device_test_script_test.dart'));
-    expect(script, contains('test/receipt_camera_world_class_readiness_test.dart'));
-    expect(script, contains('test/receipt_native_camera_shell_test.dart'));
-    expect(script, contains('test/receipt_camera_result_test.dart'));
-    expect(
-      script,
-      contains('test/receipt_camera_result_frozen_brain_install_test.dart'),
-    );
-    expect(
-      script,
-      contains('test/receipt_native_android_diagnostics_payload_test.dart'),
-    );
-    expect(
-      script,
-      contains('test/receipt_native_ios_project_membership_test.dart'),
-    );
-    expect(script, contains('test/receipt_ocr_source_completion_test.dart'));
-    expect(script, contains('dart analyze'));
-    expect(script, contains('lib/shared/widgets/receipt_capture'));
-    expect(script, contains('lib/shared/receipts'));
-    expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
-    expect(
-      script,
-      contains('tool/receipt_camera_changed_route_coverage_gate.dart'),
-    );
-    expect(script, contains('tool/receipt_external_dataset_local_audit.dart'));
-    expect(script, contains('tool/receipt_external_dataset_gate.dart'));
-    expect(script, contains('tool/receipt_external_fixture_schema_gate.dart'));
-    expect(
-      script,
-      contains('dart tool/receipt_bug_regression_ledger_gate.dart'),
-    );
-    expect(script, contains('dart tool/receipt_external_dataset_gate.dart'));
-    expect(
-      script,
-      contains('dart tool/receipt_external_dataset_local_audit.dart'),
-    );
-    expect(
-      script,
-      contains('dart tool/receipt_camera_changed_route_coverage_gate.dart'),
-    );
-    expect(
-      script,
-      contains('dart tool/receipt_external_fixture_schema_gate.dart'),
-    );
-    expect(script, contains('bash tool/receipt_camera_scope_gate.sh'));
-    expect(script, contains('dart tool/maintainiac_source_audit.dart'));
-    expect(script, contains('run_line_cap_gate'));
-    expect(script, contains('run_stale_contract_scan'));
-    expect(script, contains('git diff --check'));
+      expect(script, contains('--print-plan'));
+      expect(script, contains(r'mode="${1:-milestone}"'));
+      expect(
+        script,
+        contains(
+          'phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | phase8 | phase9 | core_remaining | quick | stitch | milestone | full',
+        ),
+      );
+      expect(script, contains('run_phase2'));
+      expect(script, contains('run_phase3'));
+      expect(script, contains('run_phase4'));
+      expect(script, contains('run_phase5'));
+      expect(script, contains('run_phase6'));
+      expect(script, contains('run_phase7'));
+      expect(script, contains('run_phase8'));
+      expect(script, contains('run_phase9'));
+      expect(script, contains('run_core_remaining'));
+      expect(script, contains('run_quick'));
+      expect(script, contains('run_stitch'));
+      expect(script, contains('run_milestone'));
+      expect(script, contains('run_full'));
+      expect(script, contains('phase2_tests=('));
+      expect(script, contains('phase3_tests=('));
+      expect(script, contains('phase4_tests=('));
+      expect(script, contains('phase5_tests=('));
+      expect(script, contains('phase6_tests=('));
+      expect(script, contains('phase7_tests=('));
+      expect(script, contains('phase8_tests=('));
+      expect(script, contains('phase9_tests=('));
+      expect(script, contains('core_remaining_tests=('));
+      expect(script, contains('stitch_tests=('));
+      expect(script, contains('milestone_only_tests=('));
+      expect(script, contains('full_only_tests=('));
+      expect(
+        script,
+        contains('test/receipt_capture_flow_handoff_order_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_camera_phase3_viewer_contract_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_camera_phase4_review_contract_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_photo_review_exit_completion_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_camera_phase5_long_receipt_contract_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_photo_review_retake_order_test.dart'),
+      );
+      expect(
+        script,
+        contains(
+          'test/receipt_camera_phase6_stitching_handoff_contract_test.dart',
+        ),
+      );
+      expect(
+        script,
+        contains('test/receipt_stitching_result_contract_test.dart'),
+      );
+      expect(
+        script,
+        contains(
+          'test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart',
+        ),
+      );
+      expect(
+        script,
+        contains('test/receipt_ocr_source_relationship_test.dart'),
+      );
+      expect(
+        script,
+        contains(
+          'test/receipt_camera_phase8_storage_proof_timing_contract_test.dart',
+        ),
+      );
+      expect(
+        script,
+        contains('test/receipt_native_camera_phase8_storage_timing_test.dart'),
+      );
+      expect(script, contains('test/receipt_camera_completion_map_test.dart'));
+      expect(
+        script,
+        contains('test/receipt_camera_pipeline_handoff_status_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_camera_active_phase_docs_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_camera_release_one_blueprint_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_camera_release_control_priority_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_camera_native_baseline_policy_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_camera_real_device_snapshot_contract_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_real_device_matrix_gate_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_real_device_test_script_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_camera_world_class_readiness_test.dart'),
+      );
+      expect(script, contains('test/receipt_native_camera_shell_test.dart'));
+      expect(script, contains('test/receipt_camera_result_test.dart'));
+      expect(
+        script,
+        contains('test/receipt_camera_result_frozen_brain_install_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_native_android_diagnostics_payload_test.dart'),
+      );
+      expect(
+        script,
+        contains('test/receipt_native_ios_project_membership_test.dart'),
+      );
+      expect(script, contains('test/receipt_ocr_source_completion_test.dart'));
+      expect(script, contains('dart analyze'));
+      expect(script, contains('lib/shared/widgets/receipt_capture'));
+      expect(script, contains('lib/shared/receipts'));
+      expect(script, contains('tool/receipt_bug_regression_ledger_gate.dart'));
+      expect(
+        script,
+        contains('tool/receipt_camera_changed_route_coverage_gate.dart'),
+      );
+      expect(
+        script,
+        contains('tool/receipt_external_dataset_local_audit.dart'),
+      );
+      expect(script, contains('tool/receipt_external_dataset_gate.dart'));
+      expect(
+        script,
+        contains('tool/receipt_external_fixture_schema_gate.dart'),
+      );
+      expect(
+        script,
+        contains('dart tool/receipt_bug_regression_ledger_gate.dart'),
+      );
+      expect(script, contains('dart tool/receipt_external_dataset_gate.dart'));
+      expect(
+        script,
+        contains('dart tool/receipt_external_dataset_local_audit.dart'),
+      );
+      expect(
+        script,
+        contains('dart tool/receipt_camera_changed_route_coverage_gate.dart'),
+      );
+      expect(
+        script,
+        contains('dart tool/receipt_external_fixture_schema_gate.dart'),
+      );
+      expect(script, contains('bash tool/receipt_camera_scope_gate.sh'));
+      expect(script, contains('dart tool/maintainiac_source_audit.dart'));
+      expect(script, contains('run_line_cap_gate'));
+      expect(script, contains('run_stale_contract_scan'));
+      expect(script, contains('git diff --check'));
 
-    final shellSyntaxBlock = script
-        .split('bash -n \\')
-        .last
-        .split('bash tool/receipt_camera_scope_gate.sh')
-        .first;
-    expect(
-      shellSyntaxBlock,
-      isNot(contains('tool/receipt_external_fixture_schema_gate.dart')),
-    );
-  });
+      final shellSyntaxBlock = script
+          .split('bash -n \\')
+          .last
+          .split('bash tool/receipt_camera_scope_gate.sh')
+          .first;
+      expect(
+        shellSyntaxBlock,
+        isNot(contains('tool/receipt_external_fixture_schema_gate.dart')),
+      );
+    },
+  );
 
   test('camera QA gate avoids rerunning broader packs already covered', () {
     final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
@@ -196,6 +276,24 @@ void main() {
       script,
       contains('test/receipt_camera_result_stitch_scanner_test.dart'),
     );
+    expect(
+      script,
+      contains('test/receipt_camera_phase5_long_receipt_contract_test.dart'),
+    );
+    expect(
+      script,
+      contains(
+        'test/receipt_camera_phase6_stitching_handoff_contract_test.dart',
+      ),
+    );
+    expect(
+      script,
+      contains('test/receipt_capture_flow_shareability_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_native_camera_session_limits_test.dart'),
+    );
     expect(script, contains('test/receipt_camera_fixture_matrix_test.dart'));
     expect(
       script,
@@ -209,6 +307,7 @@ void main() {
       contains('test/receipt_stitching_result_contract_test.dart'),
     );
     expect(script, contains('test/receipt_stitching_test.dart'));
+    expect(script, contains('test/receipt_stitching_variants_test.dart'));
     expect(
       script,
       contains('test/receipt_native_ios_bridge_long_receipt_quality_test.dart'),
@@ -233,7 +332,10 @@ void main() {
     expect(script, contains('run_phase9_stale_contract_scan() {'));
     expect(script, contains('docs/receipt_camera_ocr_master_pass_plan.md'));
     expect(script, contains('docs/receipt_camera_completion_map.md'));
-    expect(script, contains('docs/receipt_camera_ocr_pipeline_handoff_report.md'));
+    expect(
+      script,
+      contains('docs/receipt_camera_ocr_pipeline_handoff_report.md'),
+    );
     expect(script, contains('docs/receipt_camera_release_one_blueprint.md'));
     expect(script, contains('docs/receipt_camera_world_class_readiness.md'));
     expect(script, contains('docs/receipt_real_device_test_script.md'));
@@ -248,15 +350,23 @@ void main() {
       contains('test/receipt_camera_real_device_snapshot_contract_test.dart'),
     );
     expect(script, contains('Current active phase: Phase 8'));
-    expect(script, contains('Current active phase: Phase 9, Milestone validation'));
-    expect(script, contains('Current active phase: Phase 9, Milestone validation|'));
+    expect(
+      script,
+      contains('Current active phase: Phase 9, Milestone validation'),
+    );
+    expect(
+      script,
+      contains('Current active phase: Phase 9, Milestone validation|'),
+    );
     expect(
       script,
       contains('Active roadmap focus: Phase 2 receipt entry flow verification'),
     );
     expect(
       script,
-      contains('Active roadmap focus: Phase 6 through Phase 9 non-UI hardening and'),
+      contains(
+        'Active roadmap focus: Phase 6 through Phase 9 non-UI hardening and',
+      ),
     );
     expect(script, contains('1,500-2,500'));
     expect(script, contains('4,000-pass camera-app'));
@@ -287,7 +397,10 @@ void main() {
       milestoneBlock,
       isNot(contains(r'run_flutter_tests "${full_only_tests[@]}"')),
     );
-    expect(milestoneBlock, isNot(contains('receipt_camera_real_device_snapshot.sh')));
+    expect(
+      milestoneBlock,
+      isNot(contains('receipt_camera_real_device_snapshot.sh')),
+    );
   });
 
   test('camera QA gate can run detached without terminal monitoring', () {
@@ -302,7 +415,12 @@ void main() {
     ).readAsStringSync();
 
     expect(script, contains(r'mode="${1:-milestone}"'));
-    expect(script, contains('phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | phase8 | phase9 | core_remaining | quick | stitch | milestone | full'));
+    expect(
+      script,
+      contains(
+        'phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | phase8 | phase9 | core_remaining | quick | stitch | milestone | full',
+      ),
+    );
     expect(script, contains(r'receipt_camera_qa_${mode}'));
     expect(script, contains('tool/receipt_quiet_batch.sh'));
     expect(script, contains('tool/receipt_camera_qa_gate.sh'));
@@ -366,7 +484,6 @@ void main() {
     expect(stitchGate, contains('tool/receipt_camera_qa_gate.sh stitch'));
     expect(stitchGate, isNot(contains('flutter test')));
   });
-
 }
 
 String _sourceBlock(String source, String startToken, String endToken) {

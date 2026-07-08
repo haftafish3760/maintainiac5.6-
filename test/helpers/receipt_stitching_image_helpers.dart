@@ -45,7 +45,28 @@ img.Image receiptStitchingSection({
       );
     }
   }
+  _drawReceiptStitchingContinuityMarkers(image, seed: seed);
   return image;
+}
+
+void _drawReceiptStitchingContinuityMarkers(
+  img.Image image, {
+  required int seed,
+}) {
+  for (var index = 0; index < 14; index++) {
+    final y = 170 + index * 86;
+    final x = 64 + ((seed * 43 + index * 71) % 720);
+    final height = 34 + ((seed + index * 13) % 44);
+    final shade = 45 + ((seed * 7 + index * 19) % 80);
+    img.fillRect(
+      image,
+      x1: x,
+      y1: y.clamp(0, image.height - 1),
+      x2: (x + 12).clamp(0, image.width - 1),
+      y2: (y + height).clamp(0, image.height - 1),
+      color: img.ColorRgb8(shade, shade, shade),
+    );
+  }
 }
 
 img.Image blankDarkReceiptPhotoSection() {
@@ -58,6 +79,7 @@ void copyReceiptStitchingOverlap({
   required img.Image from,
   required img.Image to,
   required int pixels,
+  int dstY = 0,
 }) {
   final overlap = img.copyCrop(
     from,
@@ -66,7 +88,7 @@ void copyReceiptStitchingOverlap({
     width: from.width,
     height: pixels,
   );
-  img.compositeImage(to, overlap, dstX: 0, dstY: 0);
+  img.compositeImage(to, overlap, dstX: 0, dstY: dstY);
 }
 
 img.Image scaleReceiptStitchingShot(img.Image source, {required double scale}) {

@@ -184,11 +184,13 @@ class _ReceiptOverlapMatch {
     required this.pixels,
     required this.confidence,
     required this.nextImage,
+    int? nextSkipPixels,
     this.scaleCorrection = 1,
     this.rotationCorrectionDegrees = 0,
-  });
+  }) : nextSkipPixels = nextSkipPixels ?? pixels;
 
   final int pixels;
+  final int nextSkipPixels;
   final double confidence;
   final img.Image nextImage;
   final double scaleCorrection;
@@ -228,10 +230,12 @@ class _ReceiptStitchCandidate {
     required this.confidence,
     required this.scaleCorrection,
     required this.sampleHeight,
+    int? nextSkipPixels,
     this.rotationCorrectionDegrees = 0,
-  });
+  }) : nextSkipPixels = nextSkipPixels ?? pixels;
 
   final int pixels;
+  final int nextSkipPixels;
   final double confidence;
   final double scaleCorrection;
   final int sampleHeight;
