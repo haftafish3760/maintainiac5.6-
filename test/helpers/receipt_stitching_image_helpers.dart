@@ -130,6 +130,21 @@ img.Image rotateReceiptStitchingShot(
   return canvas;
 }
 
+img.Image shiftReceiptStitchingShot(
+  img.Image source, {
+  required int dx,
+  required int dy,
+}) {
+  final canvas = img.Image(
+    width: source.width,
+    height: source.height,
+    numChannels: 3,
+  );
+  img.fill(canvas, color: img.ColorRgb8(255, 255, 255));
+  img.compositeImage(canvas, source, dstX: dx, dstY: dy);
+  return canvas;
+}
+
 Future<File> writeTempReceiptStitchingImage(
   img.Image image,
   String name,

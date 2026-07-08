@@ -232,6 +232,31 @@ void main() {
     expect(result.ocrSourcePaths, hasLength(1));
   });
 
+  test('stitches receipt sections with modest horizontal handheld drift', () async {
+    final sectionA = receiptStitchingSection(seed: 64, topTextOffset: 0);
+    final sectionB = receiptStitchingSection(seed: 65, topTextOffset: 18);
+    copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 340);
+    final shiftedSecond = shiftReceiptStitchingShot(
+      sectionB,
+      dx: 34,
+      dy: 0,
+    );
+
+    final first = await writeTempReceiptStitchingImage(sectionA, 'shift_a');
+    final second = await writeTempReceiptStitchingImage(
+      shiftedSecond,
+      'shift_b',
+    );
+
+    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+      paths: [first.path, second.path],
+    );
+
+    expect(result.didStitch, isTrue, reason: result.detailLabel);
+    expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+    expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+  });
+
   test('stitches receipt sections with mild wrinkles and smudges', () async {
     final sectionA = addReceiptStitchingWear(
       receiptStitchingSection(seed: 62, topTextOffset: 0),
