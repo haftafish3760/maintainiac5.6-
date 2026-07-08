@@ -7,6 +7,7 @@ WorkSupplyItem? _directPlumbingFastMatch(String text) {
       _directPlumbingWaterTreatmentMatch(text) ??
       _directPlumbingRepairKitMatch(text) ??
       _directPlumbingHoseBibbRepairPartMatch(text) ??
+      _directPlumbingSolderingConsumableMatch(text) ??
       _directPlumbingHandToolMatch(text);
 }
 
@@ -270,6 +271,60 @@ WorkSupplyItem? _directPlumbingRepairKitMatch(String text) {
   return null;
 }
 
+WorkSupplyItem? _directPlumbingSolderingConsumableMatch(String text) {
+  final wantedName = switch (text) {
+    final value
+        when RegExp(
+          r'\b(lead\s*free\s+solder|lf\s+solder|plumbing\s+solder|sweat\s+solder|silver\s+bearing\s+solder|tin\s+antimony)\b',
+        ).hasMatch(value) =>
+      'lead-free plumbing solder',
+    final value
+        when RegExp(
+          r'\b(solder\s+flux|plumbing\s+flux|tinning\s+flux|paste\s+flux|water\s+soluble\s+flux)\b',
+        ).hasMatch(value) =>
+      'water soluble flux',
+    final value
+        when RegExp(
+          r'\b(acid\s+brush|flux\s+brush|solder\s+brush)\b',
+        ).hasMatch(value) =>
+      'acid brush',
+    final value
+        when RegExp(
+          r'\b(fitting\s+brush|fit\s+brush|copper\s+brush|tube\s+brush|wire\s+fitting\s+brush)\b',
+        ).hasMatch(value) =>
+      'copper fitting brush',
+    final value
+        when RegExp(
+          r'\b(sand\s+cloth|emery\s+cloth|abrasive\s+cloth)\b',
+        ).hasMatch(value) =>
+      'plumber sand cloth',
+    final value
+        when RegExp(
+          r'\b(heat\s+shield|flame\s+protector|torch\s+shield|flame\s+shield)\b',
+        ).hasMatch(value) =>
+      'soldering heat shield',
+    final value
+        when RegExp(
+          r'\b(ma[pb]{1,2}[-\s]*pro|ma[pb]{1,2}\s+gas|map\s+gas)\b',
+        ).hasMatch(value) =>
+      'map-pro torch fuel',
+    final value
+        when RegExp(
+              r'\b(propane|lp\s+fuel|propane\s+cylinder)\b',
+            ).hasMatch(value) &&
+            RegExp(r'\b(torch|fuel|cyl|cylinder|bottle)\b').hasMatch(value) =>
+      'propane torch fuel',
+    final value
+        when RegExp(
+          r'\b(torch\s+head|solder\s+torch|plumbing\s+torch|trigger\s+start\s+torch|self\s+lighting\s+torch)\b',
+        ).hasMatch(value) =>
+      'soldering torch head',
+    _ => null,
+  };
+  if (wantedName == null) return null;
+  return _firstPlumbingItemNamed(wantedName);
+}
+
 WorkSupplyItem? _firstPlumbingItemNamed(
   String requiredName, [
   List<String> additionalNameTokens = const [],
@@ -434,6 +489,56 @@ const plumbingReceiptTermAliases = {
     'bonding primer',
   ],
   'cement': ['cement', 'glue'],
+  'lead-free plumbing solder': [
+    'lead free solder',
+    'lf solder',
+    'plumbing solder',
+    'sweat solder',
+    'tin antimony solder',
+    'silver bearing solder',
+  ],
+  'water soluble flux': [
+    'solder flux',
+    'plumbing flux',
+    'tinning flux',
+    'paste flux',
+    'water soluble flux',
+  ],
+  'acid brush': ['acid brush', 'flux brush', 'solder brush'],
+  'copper fitting brush': [
+    'fitting brush',
+    'fit brush',
+    'copper brush',
+    'tube brush',
+    'wire fitting brush',
+  ],
+  'plumber sand cloth': ['sand cloth', 'emery cloth', 'abrasive cloth'],
+  'soldering heat shield': [
+    'heat shield',
+    'flame protector',
+    'torch shield',
+    'flame shield',
+  ],
+  'propane torch fuel': [
+    'propane bottle',
+    'propane cylinder',
+    'propane fuel',
+    'lp fuel',
+    'torch fuel',
+  ],
+  'map-pro torch fuel': [
+    'mapp gas',
+    'map gas',
+    'map-pro',
+    'map pro fuel',
+    'torch fuel',
+  ],
+  'soldering torch head': [
+    'torch head',
+    'solder torch',
+    'plumbing torch',
+    'trigger start torch',
+  ],
   'crimp ring': ['crimp ring', 'pex ring'],
   'clamp ring': ['clamp ring', 'cinch ring'],
 };

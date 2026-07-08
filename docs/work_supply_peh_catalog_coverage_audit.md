@@ -30,8 +30,8 @@ Plumbing coverage currently includes:
   iron, galvanized, cast/no-hub, valves, angle stops, supply lines, tubular
   drains, toilet repair, faucet/sink repair, shower/tub repair, water heater
   repair/install stock, pumps, well service, water treatment, softener salt,
-  hangers/supports, thread sealants, PVC/CPVC cement, hand tools, and legacy
-  repair bridges.
+  hangers/supports, thread sealants, PVC/CPVC cement, copper soldering
+  consumables, hand tools, and legacy repair bridges.
 
 Electrical coverage currently includes:
 - NM-B, THHN/THWN, MC/BX, low-voltage cable, breakers, AFCI/GFCI/dual-function

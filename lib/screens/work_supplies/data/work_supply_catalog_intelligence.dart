@@ -494,6 +494,14 @@ const _coreTierSignals = [
   'faucet',
   'water heater',
   'washer',
+  'solder',
+  'flux',
+  'fitting brush',
+  'sand cloth',
+  'emery cloth',
+  'heat shield',
+  'torch fuel',
+  'propane',
 ];
 
 const _electricalCoreCableSizes = [
@@ -1367,7 +1375,13 @@ const _consumableSignals = [
   'putty',
   'cement',
   'primer',
+  'solder',
+  'flux',
   'caulk',
+  'sand cloth',
+  'emery cloth',
+  'heat shield',
+  'torch fuel',
   'screw',
   'fastener',
 ];
@@ -1946,6 +1960,40 @@ List<String> _plumbingCoreFamilyTermsFor(WorkSupplyItem item, String shape) {
       'water filter',
     ];
   }
+  if (text.contains('solder')) {
+    return const [
+      'lead free solder',
+      'plumbing solder',
+      'sweat solder',
+      'lf solder',
+    ];
+  }
+  if (text.contains('flux')) {
+    return const ['solder flux', 'plumbing flux', 'tinning flux', 'paste flux'];
+  }
+  if (text.contains('acid brush')) {
+    return const ['acid brush', 'flux brush', 'solder brush'];
+  }
+  if (text.contains('fitting brush')) {
+    return const [
+      'fitting brush',
+      'copper fitting brush',
+      'tube brush',
+      'wire brush',
+    ];
+  }
+  if (text.contains('sand cloth') || text.contains('emery cloth')) {
+    return const ['sand cloth', 'emery cloth', 'abrasive cloth'];
+  }
+  if (text.contains('heat shield')) {
+    return const ['heat shield', 'flame protector', 'torch shield'];
+  }
+  if (text.contains('propane') || text.contains('map-pro')) {
+    return const ['torch fuel', 'propane fuel', 'map pro fuel'];
+  }
+  if (text.contains('torch head')) {
+    return const ['torch head', 'solder torch', 'plumbing torch'];
+  }
   if (text.contains('j hook') ||
       text.contains('pipe hook') ||
       text.contains('pipe hanger') ||
@@ -2045,6 +2093,19 @@ List<String> _plumbingSpanishCoreFamilyTermsFor(
   if (text.contains('softener') || text.contains('filter cartridge')) {
     return const ['suavizador agua', 'sal suavizador', 'filtro agua'];
   }
+  if (text.contains('solder')) return const ['soldadura plomeria'];
+  if (text.contains('flux')) return const ['fundente soldadura'];
+  if (text.contains('acid brush') || text.contains('fitting brush')) {
+    return const ['cepillo soldadura', 'cepillo cobre'];
+  }
+  if (text.contains('sand cloth') || text.contains('emery cloth')) {
+    return const ['tela esmeril', 'lija plomero'];
+  }
+  if (text.contains('heat shield')) return const ['protector calor'];
+  if (text.contains('propane') || text.contains('map-pro')) {
+    return const ['gas soplete', 'combustible soplete'];
+  }
+  if (text.contains('torch head')) return const ['cabezal soplete'];
   if (text.contains('j hook') ||
       text.contains('pipe hook') ||
       text.contains('pipe hanger') ||

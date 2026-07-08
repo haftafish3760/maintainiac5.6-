@@ -257,6 +257,25 @@ void main() {
     ]);
   });
 
+  test('plumbing core parses copper soldering consumable abbreviations', () {
+    _expectGoodPlumbingCore('HD LF SOLDER 1/8 8OZ PLUMBING', [
+      'lead-free plumbing solder',
+    ]);
+    _expectGoodPlumbingCore('LOWES WATER SOLUBLE SOLDER FLUX 4OZ', [
+      'water soluble flux',
+    ]);
+    _expectGoodPlumbingCore('ACE ACID BRUSH 3PK FLUX BRUSH', ['acid brush']);
+    _expectGoodPlumbingCore('FERG 3/4 COPPER FIT BRUSH', [
+      'copper fitting brush',
+    ]);
+    _expectGoodPlumbingCore('TRUE VALUE EMERY CLOTH PLUMBER ROLL', [
+      'plumber sand cloth',
+    ]);
+    _expectGoodPlumbingCore('LOCAL SUPPLY MAPP GAS TORCH FUEL 14.1OZ', [
+      'map-pro torch fuel',
+    ]);
+  });
+
   test(
     'plumbing core keeps ultra-vague merchant abbreviations out of good confidence',
     () {

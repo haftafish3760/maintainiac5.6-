@@ -901,6 +901,9 @@ int _plumbingReceiptScore(
   final receiptSaysSealServicePart = RegExp(
     r'\b(faucet washer|bib washer|seat washer|o ring|o-ring|oring|stem packing|valve packing|bonnet packing|packing nut|flush valve seal|tank gasket|tank to bowl|closet seal|toilet seal|hose washer|hose bibb washer|vacuum breaker|anti siphon|anti-siphon|pipe dope|thread sealant|ptfe tape|teflon tape|gas tape)\b',
   ).hasMatch(text);
+  final receiptSaysSolderingConsumable = RegExp(
+    r'\b(lead free solder|lf solder|plumbing solder|sweat solder|silver bearing solder|tin antimony|solder flux|plumbing flux|tinning flux|paste flux|water soluble flux|acid brush|flux brush|solder brush|fitting brush|fit brush|tube brush|sand cloth|emery cloth|abrasive cloth|heat shield|flame protector|torch shield|propane cylinder|propane bottle|propane fuel|mapp gas|map gas|map-pro|torch fuel|torch head|solder torch|plumbing torch)\b',
+  ).hasMatch(text);
   if (RegExp(r'\b(cond pump|condensate pump|little pump)\b').hasMatch(text)) {
     score -= 80;
   }
@@ -1139,6 +1142,87 @@ int _plumbingReceiptScore(
     if (text.contains('hose bibb') && itemName.contains('hose bibb')) {
       score += 52;
     }
+  }
+  if (receiptSaysSolderingConsumable &&
+      system == 'copper soldering consumables') {
+    score += 72;
+    for (final term in [
+      'lead-free plumbing solder',
+      'water soluble flux',
+      'acid brush',
+      'copper fitting brush',
+      'plumber sand cloth',
+      'soldering heat shield',
+      'propane torch fuel',
+      'map-pro torch fuel',
+      'soldering torch head',
+    ]) {
+      if (itemName.contains(term)) score += 18;
+    }
+    for (final term in [
+      'lead free solder',
+      'lf solder',
+      'plumbing solder',
+      'sweat solder',
+      'silver bearing solder',
+      'tin antimony',
+      'solder flux',
+      'plumbing flux',
+      'tinning flux',
+      'paste flux',
+      'water soluble flux',
+      'acid brush',
+      'flux brush',
+      'solder brush',
+      'fitting brush',
+      'fit brush',
+      'tube brush',
+      'sand cloth',
+      'emery cloth',
+      'abrasive cloth',
+      'heat shield',
+      'flame protector',
+      'torch shield',
+      'propane cylinder',
+      'propane bottle',
+      'propane fuel',
+      'mapp gas',
+      'map gas',
+      'map-pro',
+      'torch head',
+      'solder torch',
+      'plumbing torch',
+    ]) {
+      if (text.contains(term) &&
+          (itemName.contains(term.replaceAll('lead free', 'lead-free')) ||
+              item.aliases.any((alias) => _normalize(alias).contains(term)))) {
+        score += 64;
+      }
+    }
+    if (RegExp(r'\b(paint|electrical|hvac|refrigerant)\b').hasMatch(text)) {
+      score -= 42;
+    }
+    if (RegExp(
+      r'\b(ma[pb]{1,2}[-\s]*pro|ma[pb]{1,2}\s+gas|map\s+gas)\b',
+    ).hasMatch(text)) {
+      if (itemName.contains('map-pro torch fuel')) {
+        score += 120;
+      } else if (itemName.contains('propane torch fuel')) {
+        score -= 90;
+      }
+    }
+    if (RegExp(r'\b(propane|lp\s+fuel|propane\s+cylinder)\b').hasMatch(text)) {
+      if (itemName.contains('propane torch fuel')) {
+        score += 90;
+      } else if (itemName.contains('map-pro torch fuel')) {
+        score -= 70;
+      }
+    }
+  } else if (receiptSaysSolderingConsumable &&
+      category != 'consumables' &&
+      !itemName.contains('solder') &&
+      !itemName.contains('flux')) {
+    score -= 18;
   }
   final isWaterHeaterItem =
       category == 'water heater' || itemName.contains('water heater');
