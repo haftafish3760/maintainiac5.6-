@@ -71,13 +71,58 @@ void main() {
     ]);
     _expectGoodPlumbingCore('LOCAL HW 3 X 2 FERNCO RED CPLG', ['fernco']);
   });
+
+  test('plumbing core handles dirty regional service-house receipts', () {
+    _expectGoodPlumbingCore('MENARDS 1/2 SHKBITE PUSH CPLG LEADFREE', [
+      'push-fit',
+      'coupling',
+    ]);
+    _expectGoodPlumbingCore('TRUE VALUE 1-1/2 SJ TRAP ADPT NUT WASH', [
+      'trap adapter',
+    ]);
+    _expectGoodPlumbingCore('FASTENAL 3/4 WTR HTR UN1ON DIELECTRIC', [
+      'water heater',
+      'union',
+    ]);
+    _expectGoodPlumbingCore('NORTHERN TOOL 1-1/4 WELL PUMP CHK VALV', [
+      'check valve',
+    ]);
+    _expectGoodPlumbingCore('LOCAL SUPPLY 3/4 SOFTNER BYPASS VLV', [
+      'softener',
+      'bypass',
+    ]);
+  });
+
+  test('plumbing core handles mixed Spanish dirty service receipts', () {
+    _expectGoodPlumbingCore('FERG 1/2 CODO COBRE 90 CXC', [
+      'copper',
+      '90',
+    ], localePackId: 'es-US');
+    _expectGoodPlumbingCore('LOCAL 3/4 VALVULA BOLA FIP', [
+      'ball valve',
+    ], localePackId: 'es-US');
+    _expectGoodPlumbingCore('ACE TRAMPA LAVABO 1-1/2 KIT', [
+      'p-trap',
+    ], localePackId: 'es-US');
+    _expectGoodPlumbingCore('RURAL KING BOMBA POZO 1/2HP', [
+      'well pump',
+    ], localePackId: 'es-US');
+    _expectGoodPlumbingCore('SUPPLY CASA SAL SUAVIZADOR 40LB', [
+      'softener',
+    ], localePackId: 'es-US');
+  });
 }
 
-void _expectGoodPlumbingCore(String line, List<String> expectedTerms) {
+void _expectGoodPlumbingCore(
+  String line,
+  List<String> expectedTerms, {
+  String localePackId = '',
+}) {
   final match = matchReceiptLineToCatalog(
     line,
     tradeScope: 'Plumbing',
     maxCandidates: 420,
+    localePackId: localePackId,
   );
   expect(match, isNotNull, reason: line);
   final detail = '$line -> ${match!.item.name} / ${match.item.path}';

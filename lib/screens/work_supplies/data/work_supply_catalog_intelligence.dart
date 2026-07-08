@@ -141,7 +141,8 @@ bool _isElectricalCoreItem(WorkSupplyItem item, String text) {
     }
     return _isExpandedElectricalServiceCore(system, text);
   }
-  if (category == 'expanded electrical service stock') {
+  if (category == 'expanded electrical service stock' ||
+      category == 'electrical core supplemental service stock') {
     return _isExpandedElectricalServiceCore(system, text);
   }
   if (category == 'wire and cable') {
@@ -206,6 +207,17 @@ bool _isExpandedElectricalServiceCore(String system, String text) {
     return _hasAny(text, _electricalCoreDeviceSignals) ||
         _hasAny(text, _electricalCoreBoxSignals) ||
         _hasAny(text, _electricalCoreFixtureSignals);
+  }
+  if (system == 'device box and plate service stock') {
+    return _hasAny(text, _electricalCoreBoxSignals);
+  }
+  if (system == 'cable connector and wire termination stock') {
+    return _hasAny(text, _electricalCoreConsumableSignals);
+  }
+  if (system == 'residential safety and control stock') {
+    return _hasAny(text, _electricalCoreFixtureSignals) ||
+        _hasAny(text, _electricalCoreDeviceSignals) ||
+        _hasAny(text, _electricalCoreLightingSignals);
   }
   if (system == 'expanded boxes and covers') {
     return _hasAny(text, _electricalCoreBoxSignals) &&
@@ -577,6 +589,9 @@ const _electricalCoreBoxSignals = [
   'plastic bushing',
   'grounding clip',
   'box extender',
+  'device yoke repair clip',
+  'box support clip',
+  'goof ring',
   'mud ring',
   'weatherproof',
   'in-use cover',
@@ -584,14 +599,19 @@ const _electricalCoreBoxSignals = [
   'bell box',
   'outdoor cover',
   'bubble cover',
+  'extra duty cover',
+  'wp cover',
+  'device gasket',
 ];
 
 const _electricalCoreConsumableSignals = [
   'wire connector',
   'wire nut',
   'lever connector',
+  'wago',
   'push-in wire connector',
   'push in connector',
+  'push connector',
   'inline splice connector',
   'splice connector',
   'butt splice connector',
@@ -603,9 +623,13 @@ const _electricalCoreConsumableSignals = [
   'electrical tape',
   'ground screw',
   'ground pigtail',
+  'neutral pigtail',
   'cable staple',
   'romex connector',
   'nm connector',
+  'mc connector',
+  'flex connector',
+  'flexible metal connector',
   'device screw',
   'plate screw',
   'outlet spacer',
@@ -788,6 +812,13 @@ const _hvacCoreControlSignals = [
   'wire saver',
   'terminal strip',
   'spade terminal',
+  'ac disconnect',
+  'pullout disconnect',
+  'disconnect box',
+  'equipment whip',
+  'ac whip',
+  'surge protector',
+  'time delay fuse',
 ];
 
 const _hvacCoreCondensateSignals = [

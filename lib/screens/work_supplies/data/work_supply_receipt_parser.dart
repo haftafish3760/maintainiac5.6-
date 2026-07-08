@@ -1810,6 +1810,22 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(
+    r'\b(well pump|jet pump|shallow well|deep well|bomba pozo|bomba de pozo|bomba agua pozo)\b',
+  ).hasMatch(text) &&
+      !RegExp(r'\b(check|chk|valve|valv|switch|sw|gauge)\b').hasMatch(text)) {
+    final wantsShallow =
+        RegExp(r'\b(shallow|jet|superficial)\b').hasMatch(text);
+    final wantsDeep =
+        RegExp(r'\b(deep|submersible|sumergible|profundo)\b').hasMatch(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade != 'Plumbing' || !name.contains('well pump')) continue;
+      if (wantsShallow && !name.contains('shallow')) continue;
+      if (wantsDeep && !name.contains('deep')) continue;
+      return item;
+    }
+  }
+  if (RegExp(
         r'\b(valvula llenado|valvula de llenado|toilet fill|fill valve|ballcock)\b',
       ).hasMatch(text) &&
       RegExp(
@@ -3409,6 +3425,32 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
   }
+  if (RegExp(
+    r'\b(well|pozo)\b.*\b(check valve|chk valve|one way valve)\b',
+  ).hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('well pump check valve') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(
+    r'\b(sump|pump)\b.*\b(check valve|chk valve|one way valve)\b',
+  ).hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('pump check valve') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
   if (RegExp(r'\b(check valve|chk valve|one way valve)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
@@ -4232,6 +4274,18 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pex drop-ear elbow') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\bbrass\b').hasMatch(text) &&
+      RegExp(r'\b(union|unions|mip\s+x\s+fip|mip\s+fip)\b').hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('brass union') &&
           _nameMatchesReceiptSize(name, size)) {
         return item;
       }

@@ -139,6 +139,12 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'teflon tape',
     ],
     RegExp(
+      r'\b(softener salt|salt pellets|sal suavizador|sal ablandador|sal para suavizador)\b',
+    ): [
+      'water softener salt pellets',
+      'softener salt',
+    ],
+    RegExp(
       r'\b(well pressure gauge|pressure gauge|well gauge|manometro presion pozo|manometro de presion)\b',
     ): [
       'pressure gauge',
@@ -151,6 +157,14 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'well pressure switch',
       'pump pressure switch',
       'well switch',
+    ],
+    RegExp(
+      r'\b(well pump|jet pump|shallow well|deep well|bomba pozo|bomba de pozo|bomba agua pozo)\b',
+    ): [
+      'well pump',
+      'jet pump',
+      'shallow well pump',
+      'deep well pump',
     ],
     RegExp(
       r'\b(poly|polyethylene|well pipe)\b.*\b(insert|barb|barbed|coupling|adapter)\b',
@@ -295,6 +309,12 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       RegExp(r'\b(well|psi|pressure|presion|pozo)\b').hasMatch(text) &&
       itemText.contains('pressure gauge')) {
     score += 0.08;
+  }
+  if (RegExp(
+        r'\b(well pump|jet pump|shallow well|deep well|bomba pozo|bomba de pozo|bomba agua pozo)\b',
+      ).hasMatch(text) &&
+      itemText.contains('well pump')) {
+    score += 0.10;
   }
   return score;
 }

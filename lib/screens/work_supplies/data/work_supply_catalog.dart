@@ -50,6 +50,7 @@ part 'catalog/electrical/panels_and_service_equipment/panels_and_service_equipme
 part 'catalog/electrical/lighting/lighting_catalog.dart';
 part 'catalog/electrical/generated_electrical_support.dart';
 part 'catalog/electrical/generated_electrical_service_catalog.dart';
+part 'catalog/electrical/electrical_core_supplemental_catalog.dart';
 part 'catalog/electrical/generated_electrical_bulk_catalog.dart';
 part 'catalog/hvac/hvac_catalog.dart';
 part 'catalog/hvac/air_filters/air_filters_catalog.dart';
@@ -62,6 +63,7 @@ part 'catalog/hvac/motors_and_blower_parts/motors_and_blower_parts_catalog.dart'
 part 'catalog/hvac/ignition_and_gas_heat/ignition_and_gas_heat_catalog.dart';
 part 'catalog/hvac/refrigerant_service/refrigerant_service_catalog.dart';
 part 'catalog/hvac/generated_hvac_service_catalog.dart';
+part 'catalog/hvac/hvac_core_supplemental_catalog.dart';
 part 'catalog/hvac/generated_hvac_detail_catalog.dart';
 part 'catalog/hvac/generated_hvac_system_catalog.dart';
 part 'catalog/hvac/generated_hvac_equipment_catalog.dart';
