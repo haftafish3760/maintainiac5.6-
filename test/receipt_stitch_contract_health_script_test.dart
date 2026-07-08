@@ -138,6 +138,10 @@ void main() {
       source,
       contains('test/receipt_camera_stitch_candidate_metadata_test.dart'),
     );
+    expect(
+      source,
+      contains('test/receipt_native_camera_session_limits_test.dart'),
+    );
     expect(source, contains(r'exceeds $max_lines-line stitch test cap'));
     expect(source, contains('Receipt stitch source-size health: PASS'));
     expect(source, contains('milestone)'));
