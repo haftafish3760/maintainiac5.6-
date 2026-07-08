@@ -120,6 +120,41 @@ void main() {
     },
   );
 
+  test(
+    'stitching rejects recompressed duplicate receipt section repeated later in the stack',
+    () async {
+      final top = receiptStitchingSection(seed: 95, topTextOffset: 0);
+      final middle = receiptStitchingSection(seed: 96, topTextOffset: 18);
+      copyReceiptStitchingOverlap(from: top, to: middle, pixels: 330);
+
+      final first = await writeTempReceiptStitchingImageWithQuality(
+        top,
+        'duplicate_quality_non_neighbor_a',
+        quality: 94,
+      );
+      final second = await writeTempReceiptStitchingImage(
+        middle,
+        'duplicate_quality_non_neighbor_b',
+      );
+      final third = await writeTempReceiptStitchingImageWithQuality(
+        top,
+        'duplicate_quality_non_neighbor_c',
+        quality: 70,
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path, third.path],
+      );
+
+      expect(result.usedFallback, isTrue, reason: result.detailLabel);
+      expect(result.fallbackReasonCode, 'duplicate_section_image');
+      expect(result.failedPairIndex, 1);
+      expect(result.failedPairLabel, 'Photo 2 to 3');
+      expect(result.ocrSourcePaths, [first.path, second.path, third.path]);
+      expect(result.ocrSourceContractCode, 'fallback_duplicate_section_image');
+    },
+  );
+
   test('stitches receipt sections when the next photo is closer', () async {
     final sectionA = receiptStitchingSection(seed: 40, topTextOffset: 0);
     final sectionB = receiptStitchingSection(seed: 41, topTextOffset: 18);
