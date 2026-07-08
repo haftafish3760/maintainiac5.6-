@@ -170,9 +170,8 @@ void main() {
     expect(attachmentPanel, contains('class _ReceiptCaptureTargetGuidance'));
     expect(
       attachmentPanel,
-      contains('settings?.cameraLongReceiptTips != false'),
+      contains('_hasAttachment && settings?.cameraLongReceiptTips != false'),
     );
-    expect(attachmentPanel, contains('Long receipt? Scan top to bottom.'));
     expect(attachmentPanel, contains('Need another receipt section?'));
     expect(attachmentPanel, contains('Add Receipt Photo'));
     expect(attachmentPanel, contains('a little overlap'));

@@ -46,7 +46,7 @@ extension _ReceiptAttachmentPanelBuild on _SharedReceiptAttachmentPanelState {
           const SizedBox(height: 8),
           const ReceiptPickerStatus(),
         ],
-        if (settings?.cameraLongReceiptTips != false) ...[
+        if (_hasAttachment && settings?.cameraLongReceiptTips != false) ...[
           const SizedBox(height: 8),
           _ReceiptCaptureTargetGuidance(hasAttachment: _hasAttachment),
         ],
