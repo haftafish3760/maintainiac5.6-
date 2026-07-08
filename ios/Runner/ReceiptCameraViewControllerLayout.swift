@@ -81,7 +81,10 @@ extension ReceiptCameraViewController {
     guidanceLabel.text = guidanceText()
     guidanceLabel.textColor = .white
     guidanceLabel.font = .boldSystemFont(ofSize: 15)
-    guidanceLabel.numberOfLines = 2
+    guidanceLabel.numberOfLines = 1
+    guidanceLabel.lineBreakMode = .byTruncatingTail
+    guidanceLabel.adjustsFontSizeToFitWidth = true
+    guidanceLabel.minimumScaleFactor = 0.82
     guidanceLabel.backgroundColor = UIColor(white: 0.02, alpha: 0.50)
     guidanceLabel.layer.cornerRadius = 8
     guidanceLabel.layer.masksToBounds = true

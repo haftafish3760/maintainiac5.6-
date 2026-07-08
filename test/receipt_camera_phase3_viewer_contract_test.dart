@@ -85,6 +85,8 @@ void main() {
     expect(cameraActivity, contains('text = "Done"'));
     expect(cameraActivity, contains('text = "Add Photo"'));
     expect(cameraActivity, contains('visibility = View.GONE'));
+    expect(cameraActivity, contains('maxLines = 1'));
+    expect(cameraActivity, contains('ellipsize = TextUtils.TruncateAt.END'));
     expect(cameraActivity, contains('bottomReviewButton = Button(this).apply {'));
     expect(cameraActivity, isNot(contains('topBar.addView(doneButton)')));
     expect(cameraActivity, isNot(contains('doneButton = Button(this).apply {')));
@@ -117,6 +119,10 @@ void main() {
       contains('torchButton.setImage(UIImage(systemName: "flashlight.off.fill"), for: .normal)'),
     );
     expect(cameraController, contains('bottomBar.backgroundColor = .clear'));
+    expect(cameraController, contains('guidanceLabel.numberOfLines = 1'));
+    expect(cameraController, contains('guidanceLabel.lineBreakMode = .byTruncatingTail'));
+    expect(cameraController, contains('guidanceLabel.adjustsFontSizeToFitWidth = true'));
+    expect(cameraController, contains('guidanceLabel.minimumScaleFactor = 0.82'));
     expect(cameraController, contains('let viewerInfoStack = UIStackView()'));
     expect(cameraController, contains('viewerInfoStack.axis = .vertical'));
     expect(cameraController, contains('viewerInfoStack.addArrangedSubview(buildSettingsStatusStrip())'));
