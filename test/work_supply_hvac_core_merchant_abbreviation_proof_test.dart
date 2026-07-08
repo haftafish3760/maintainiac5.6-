@@ -77,6 +77,24 @@ void main() {
     _expectGoodHvacCore('GRAINGER BLADE FUSE 3A 5PK', ['fuse']);
     _expectGoodHvacCore('WINSUPPLY TIME DELAY RELAY 24V', ['relay']);
   });
+
+  test('hvac core parses refrigeration line service stock', () {
+    _expectGoodHvacCore('SUPPLY 3/4X3/8 LINE SET 50FT', ['line set']);
+    _expectGoodHvacCore('HD 3/4 WALL ARMAFLEX PIPE INSUL', ['insulation']);
+    _expectGoodHvacCore('LOWES AC LINESET COVER KIT WHITE', ['line set']);
+    _expectGoodHvacCore('GRAINGER R410A SERVICE VALVE CAP', ['service']);
+    _expectGoodHvacCore('WINSUPPLY CONDENSER PAD 36X36', ['pad']);
+  });
+
+  test('hvac core parses condensate repair and safety stock', () {
+    _expectGoodHvacCore('ACE CONDENSATE PAN 30X30', ['pan']);
+    _expectGoodHvacCore('SUPPLY EZ TRAP CONDENSATE 3/4 PVC', ['trap']);
+    _expectGoodHvacCore('LOWES FLOAT SWITCH SS2 CONDENSATE', ['switch']);
+    _expectGoodHvacCore('HD 3/4 PVC UNION COND DRAIN', ['condensate']);
+    _expectGoodHvacCore('LOCAL SUPPLY CONDENSATE NEUTRALIZER KIT', [
+      'neutralizer',
+    ]);
+  });
 }
 
 void _expectGoodHvacCore(String line, List<String> expectedTerms) {

@@ -160,6 +160,12 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
         ['liquidtight connector', 'flexible raceway part'],
     RegExp(r'\b(wire\s*nut|wirenut)\b'): ['wire connector', 'wire nut'],
     RegExp(r'\bground\s+screw\b'): ['ground screw'],
+    RegExp(r'\b(photocell|photoeye|photo eye)\b'): ['photocell'],
+    RegExp(r'\b(blank\s+wall\s+plate|wall\s+plate|cover\s+plate)\b'): [
+      'wall plate',
+      'cover plate',
+      'blank',
+    ],
     RegExp(r'\b(interruptor)\b.*\b(3\s*via|tres\s+vias?)\b'): [
       '3-way toggle switch',
       'toggle switch',
@@ -190,6 +196,33 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'foil hvac tape',
     ],
     RegExp(r'\bduct\s+mastic\b|\bmastic\b'): ['duct mastic', 'mastic'],
+    RegExp(r'\b(line\s*set|lineset|refrigerant line)\b'): [
+      'line set',
+      'refrigerant line',
+    ],
+    RegExp(r'\b(armaflex|pipe insulation|line insulation)\b'): [
+      'pipe insulation',
+      'line set insulation',
+      'insulation',
+    ],
+    RegExp(r'\b(condenser pad|equipment pad)\b'): [
+      'condenser pad',
+      'equipment pad',
+      'pad',
+    ],
+    RegExp(r'\b(condensate|cond)\b.*\b(pan|drain pan)\b'): [
+      'condensate pan',
+      'drain pan',
+      'pan',
+    ],
+    RegExp(r'\b(condensate|cond)\b.*\b(neutralizer|neutraliser)\b'): [
+      'condensate neutralizer',
+      'neutralizer',
+    ],
+    RegExp(r'\b(service valve cap|valve cap)\b'): [
+      'service valve cap',
+      'valve cap',
+    ],
   };
   for (final entry in serviceFamilies.entries) {
     if (entry.key.hasMatch(text) &&
@@ -217,6 +250,32 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
   if (RegExp(r'\b(hard\s+start|spp6|start kit)\b').hasMatch(text) &&
       itemText.contains('hard start')) {
     score += 0.08;
+  }
+  if (RegExp(r'\b(line\s*set|lineset|refrigerant line)\b').hasMatch(text) &&
+      itemText.contains('line set')) {
+    score += 0.12;
+  }
+  if (RegExp(r'\b(line\s*set|lineset)\b.*\b(cover|kit)\b').hasMatch(text) &&
+      itemText.contains('line set cover')) {
+    score += 0.12;
+  }
+  if (RegExp(r'\b(condensate|cond)\b.*\b(pan|drain pan)\b').hasMatch(text) &&
+      (itemText.contains('condensate pan') || itemText.contains('drain pan'))) {
+    score += 0.14;
+  }
+  if (RegExp(r'\b(condensate|cond)\b.*\b(pvc|drain)\b.*\b(union|fitting)\b')
+          .hasMatch(text) &&
+      itemText.contains('condensate pvc')) {
+    score += 0.12;
+  }
+  if (RegExp(r'\b(condensate|cond)\b.*\b(neutralizer|neutraliser)\b')
+          .hasMatch(text) &&
+      itemText.contains('neutralizer')) {
+    score += 0.12;
+  }
+  if (RegExp(r'\b(service valve cap|valve cap)\b').hasMatch(text) &&
+      itemText.contains('service valve cap')) {
+    score += 0.12;
   }
   if (RegExp(
         r'\b(well pressure gauge|pressure gauge|well gauge|manometro presion pozo|manometro de presion)\b',

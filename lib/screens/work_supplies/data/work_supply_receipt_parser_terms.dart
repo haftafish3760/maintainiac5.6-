@@ -68,6 +68,7 @@ const receiptTermAliases = {
   'smart dimmer': ['smart dimmer', 'wifi dimmer', 'wi-fi dimmer'],
   'motion switch': ['motion switch', 'occupancy sensor', 'vacancy sensor'],
   'timer switch': ['timer switch', 'countdown timer'],
+  'photocell': ['photocell', 'photoeye', 'photo eye'],
   '3-way switch': ['3 way switch', '3-way switch', 'three way switch'],
   'single-pole switch': ['single pole switch', '1p switch', '1 pole switch'],
   'smoke alarm': ['smoke alarm', 'smoke detector', 'smoke det'],

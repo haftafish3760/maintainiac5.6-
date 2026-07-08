@@ -125,6 +125,22 @@ bool _isEverydayNonPlumbingCore(WorkSupplyItem item, String text) {
 bool _isElectricalCoreItem(WorkSupplyItem item, String text) {
   final category = item.category.toLowerCase();
   final system = item.system.toLowerCase();
+  if (category == 'bulk electrical catalog pack') {
+    if (_hasAny(text, ['mc cable', 'armored cable']) &&
+        _hasAny(text, ['14/2', '12/2', '10/2'])) {
+      return true;
+    }
+    if (_hasAny(text, ['flexible raceway', 'flexible metal', 'fmc']) &&
+        _hasAny(text, ['1/2', '3/4', '1 in'])) {
+      return true;
+    }
+    if (text.contains('photocell')) return true;
+    if (_hasAny(text, ['wall plate', 'cover plate', 'blank plate']) &&
+        !_hasAny(text, ['4 gang', '5 gang', '6 gang'])) {
+      return true;
+    }
+    return _isExpandedElectricalServiceCore(system, text);
+  }
   if (category == 'expanded electrical service stock') {
     return _isExpandedElectricalServiceCore(system, text);
   }
@@ -151,6 +167,9 @@ bool _isElectricalCoreItem(WorkSupplyItem item, String text) {
     return _hasAny(text, _electricalCoreConsumableSignals) ||
         _hasAny(text, _electricalCoreGroundingSignals);
   }
+  if (category == 'lighting') {
+    return _hasAny(text, _electricalCoreLightingSignals);
+  }
   if (category == 'conduit and fittings') {
     return _hasAny(text, _electricalCoreRacewaySignals) &&
         _hasAny(text, _electricalCoreRacewaySizes);
@@ -163,6 +182,10 @@ bool _isExpandedElectricalServiceCore(String system, String text) {
     if (text.contains('service entrance')) return false;
     if (_hasAny(text, ['uf-b cable', 'underground feeder', 'direct burial']) &&
         _hasAny(text, ['14/2', '14/3', '12/2', '12/3', '10/2', '10/3'])) {
+      return true;
+    }
+    if (_hasAny(text, ['mc cable', 'armored cable']) &&
+        _hasAny(text, ['14/2', '12/2', '10/2'])) {
       return true;
     }
     if (_hasAny(text, ['thhn copper wire', 'thwn', 'building wire']) &&
@@ -662,6 +685,8 @@ const _electricalCoreFixtureSignals = [
   'doorbell transformer',
   'doorbell chime',
   'video doorbell',
+  'fan brace',
+  'ceiling fan brace',
 ];
 
 const _electricalCoreLightingSignals = [
@@ -775,6 +800,8 @@ const _hvacCoreCondensateSignals = [
   'wet switch',
   'overflow switch',
   'pan switch',
+  'condensate pan',
+  'drain pan',
   'primary drain line safety switch',
   'secondary drain pan float switch',
   'inline condensate float switch',
@@ -797,6 +824,8 @@ const _hvacCoreCondensateSignals = [
   'trap brush',
   'pump check valve',
   'replacement tubing kit',
+  'neutralizer',
+  'condensate neutralizer',
 ];
 
 const _hvacCoreSealSignals = [
@@ -807,6 +836,12 @@ const _hvacCoreSealSignals = [
   'duct sealant',
   'hvac service tape',
   'line set tape',
+  'line set',
+  'line set cover',
+  'line set cover kit',
+  'armaflex',
+  'pipe insulation',
+  'service valve cap',
   'ul181 tape',
   'foam gasket tape',
   'thumb gum',
@@ -838,6 +873,8 @@ const _hvacCoreAirDistributionSignals = [
   'duct strap',
   'hanger strap',
   'duct mastic',
+  'condenser pad',
+  'equipment pad',
   'mastic brush',
   'flex duct',
   'insulated flex duct',

@@ -100,6 +100,32 @@ void main() {
     ]);
     _expectGoodElectricalCore('RURAL KING 5/8 GROUND ROD 8FT', ['ground']);
   });
+
+  test('electrical core parses service-stock conduit and flex lines', () {
+    _expectGoodElectricalCore('HD 12/2 MC CABLE ALUM 250FT', ['mc cable']);
+    _expectGoodElectricalCore('LOWES 1/2 FLEX METAL CONDUIT 25FT', [
+      'flexible',
+    ]);
+    _expectGoodElectricalCore('ACE 1/2 EMT 1 HOLE STRAP 25PK', ['strap']);
+    _expectGoodElectricalCore('SUPPLY 3/4 PVC LB CONDUIT BODY', ['conduit']);
+    _expectGoodElectricalCore('GRAINGER 1/2 LIQUIDTIGHT FLEX CONDUIT', [
+      'liquidtight',
+    ]);
+  });
+
+  test('electrical core parses service lighting and repair stock', () {
+    _expectGoodElectricalCore('HD KEYLESS LAMPHOLDER PORCELAIN', [
+      'lampholder',
+    ]);
+    _expectGoodElectricalCore('LOWES CEILING FAN BRACE BOX KIT', ['fan']);
+    _expectGoodElectricalCore('ACE PHOTOEYE OUTDOOR LIGHT CONTROL', [
+      'photocell',
+    ]);
+    _expectGoodElectricalCore('SUPPLY WEATHERPROOF BELL BOX 1G GRAY', [
+      'weatherproof',
+    ]);
+    _expectGoodElectricalCore('TRUE VALUE BLANK WALL PLATE 1G WHT', ['plate']);
+  });
 }
 
 void _expectGoodElectricalCore(String line, List<String> expectedTerms) {

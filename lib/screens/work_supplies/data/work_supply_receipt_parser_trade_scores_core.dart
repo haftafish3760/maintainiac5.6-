@@ -600,6 +600,12 @@ int _electricalReceiptScore(
   final receiptSaysMcCable = RegExp(
     r'\b(mc|armored cable|metal clad|bx)\b',
   ).hasMatch(text);
+  final receiptSaysFlexibleRaceway = RegExp(
+    r'\b(flex|flexible|fmc|liquid\s*tight|liquidtight|sealtite)\b',
+  ).hasMatch(text);
+  final receiptSaysPhotocell = RegExp(
+    r'\b(photocell|photoeye|photo eye)\b',
+  ).hasMatch(text);
   final receiptSaysEmt = RegExp(r'\b(emt|thinwall)\b').hasMatch(text);
   final receiptSaysConduit = RegExp(r'\b(conduit|pipe)\b').hasMatch(text);
   final receiptSaysRacewayBody = RegExp(
@@ -640,6 +646,9 @@ int _electricalReceiptScore(
   final receiptSaysWeatherproofCover = RegExp(
     r'\b(weatherproof|extra duty|in use|in-use|bubble cover|outdoor cover)\b',
   ).hasMatch(text);
+  final receiptSaysWallPlate = RegExp(
+    r'\b(wall plate|cover plate|switch plate|device plate|blank plate)\b',
+  ).hasMatch(text);
   final receiptSaysPanelAccessory = RegExp(
     r'\b(ground bar|neutral bar|breaker filler|panel filler|panel label|circuit directory|panel schedule|interlock kit|surge protective)\b',
   ).hasMatch(text);
@@ -662,6 +671,17 @@ int _electricalReceiptScore(
   }
   if (receiptSaysMcCable && itemType.contains('armored cable')) score += 28;
   if (receiptSaysMcCable && itemType.contains('nm-b')) score -= 16;
+  if (receiptSaysFlexibleRaceway &&
+      (itemType.contains('flexible raceway') ||
+          itemName.contains('flexible raceway') ||
+          variant.contains('flexible metal') ||
+          variant.contains('fmc') ||
+          variant.contains('liquidtight'))) {
+    score += 54;
+  }
+  if (receiptSaysFlexibleRaceway && variant.contains('1/2 in')) score += 26;
+  if (receiptSaysFlexibleRaceway && variant.contains('1-1/2 in')) score -= 28;
+  if (receiptSaysFlexibleRaceway && system == 'emt') score -= 26;
   if (receiptSaysNmCable && system == 'conduit wire') score -= 20;
   if (receiptSaysThhn && system == 'nm-b cable') score -= 20;
   if (text.contains('with ground') && system == 'nm-b cable') score += 10;
@@ -733,6 +753,8 @@ int _electricalReceiptScore(
           itemName.contains('led'))) {
     score += 44;
   }
+  if (receiptSaysPhotocell && variant.contains('photocell')) score += 110;
+  if (receiptSaysPhotocell && !variant.contains('photocell')) score -= 36;
   if (text.contains('shop light') && itemName.contains('shop light')) {
     score += 36;
   }
@@ -767,6 +789,21 @@ int _electricalReceiptScore(
             text.contains('in-use')) &&
         itemName.contains('in-use cover')) {
       score += 82;
+    }
+  }
+  if (receiptSaysWallPlate && itemName.contains('cover plate')) {
+    score += 48;
+    if (text.contains('blank') && variant.contains('blank')) score += 32;
+    if (RegExp(r'\b(1g|1 gang|single gang)\b').hasMatch(text) &&
+        variant.contains('1 gang')) {
+      score += 28;
+    }
+    if (RegExp(r'\b(wht|white)\b').hasMatch(text)) {
+      if (variant.contains('white')) {
+        score += 42;
+      } else if (variant.contains('black') || variant.contains('brown')) {
+        score -= 42;
+      }
     }
   }
   if (receiptSaysBoxAccessory && itemType.contains('box accessories')) {
