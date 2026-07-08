@@ -153,6 +153,8 @@ void main() {
           'glare washed receipt source requires retake guidance',
           'partial crop source stays in crop or retake review',
           'weak low contrast text asks for review before OCR',
+          'wrinkled long receipt top section still asks for continuation',
+          'smudged long receipt overlap keeps duplicate review diagnostics',
           'card auth address and phone stay privacy metadata',
           'fleet card and reference rows never become purchase lines',
           'older phone keeps receipt OCR workload lean',

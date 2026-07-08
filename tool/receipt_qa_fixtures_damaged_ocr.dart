@@ -3,6 +3,99 @@ part of 'receipt_qa_runner.dart';
 final _damagedOcrReceiptQaFixtures = [
   _ReceiptQaFixture(
     pack: 'damaged_ocr',
+    name: 'wrinkled long receipt top section still asks for continuation',
+    merchantNeedle: 'cvs',
+    expectedMerchantName: 'CVS Pharmacy',
+    expectedDateIso: '2026-06-22',
+    expectTotal: false,
+    expectBottomCoverage: false,
+    expectLineItems: true,
+    expectedLineCount: 2,
+    expectedLineSubtotals: [12.49, 8.99],
+    expectedLineDescriptionNeedles: const ['paper towels', 'trash bags'],
+    photoQuality: const ReceiptPhotoQualityCheck(
+      width: 1800,
+      height: 2400,
+      focusScore: 15,
+      brightness: 142,
+      contrast: 30,
+      cropScore: .24,
+      textBandScore: 12,
+      isLikelyReadable: false,
+    ),
+    expectedPhotoPrimaryIssueLabel: 'check that no text is cut off',
+    expectedPhotoReviewActionCode: 'crop_or_retake_then_next',
+    expectedPhotoShouldRetakeBeforeOcr: false,
+    expectedPhotoCanContinueWithReview: true,
+    expectedPhotoNeedsReview: true,
+    expectedPhotoLightLabel: 'light OK',
+    expectedPhotoFocusLabel: 'sharp',
+    expectedPhotoWarningNeedles: const ['every receipt line'],
+    expectedPhotoGuidanceNeedles: const ['every line', 'part of the receipt'],
+    text: '''
+CVS PHARMACY
+06/22/2026
+PAPER TOWELS 12.49
+TRASH BAGS 8.99
+[wrinkled middle and missing bottom]
+''',
+  ),
+  _ReceiptQaFixture(
+    pack: 'damaged_ocr',
+    name: 'smudged long receipt overlap keeps duplicate review diagnostics',
+    merchantNeedle: 'advance',
+    expectedMerchantName: 'Advance Auto Parts',
+    expectedDateIso: '2026-06-24',
+    expectedSubtotal: 41.47,
+    expectedTax: 2.49,
+    expectedTotal: 43.96,
+    expectTax: true,
+    expectLineItems: true,
+    expectedLineCount: 4,
+    expectedLineSubtotals: [14.99, 8.49, 8.49, 9.50],
+    expectedLineDescriptionNeedles: const [
+      'shop towels',
+      'brake clean',
+      'brake clean',
+      'gloves',
+    ],
+    expectedParserTaskCounts: const {
+      'long_receipt_duplicate_text': 1,
+      'long_receipt_probable_overlap': 1,
+    },
+    photoQuality: const ReceiptPhotoQualityCheck(
+      width: 1800,
+      height: 2400,
+      focusScore: 10,
+      brightness: 146,
+      contrast: 14,
+      cropScore: .70,
+      textBandScore: 10,
+      isLikelyReadable: false,
+    ),
+    expectedPhotoPrimaryIssueLabel: 'low contrast',
+    expectedPhotoReviewActionCode: 'check_photo_then_next',
+    expectedPhotoShouldRetakeBeforeOcr: false,
+    expectedPhotoCanContinueWithReview: true,
+    expectedPhotoNeedsReview: true,
+    expectedPhotoLightLabel: 'light OK',
+    expectedPhotoFocusLabel: 'usable',
+    expectedPhotoWarningNeedles: const ['low contrast'],
+    expectedPhotoGuidanceNeedles: const ['printed text', 'stands out'],
+    text: '''
+ADVANCE AUTO PARTS
+06/24/2026
+SHOP TOWELS 14.99
+BRAKE CLEAN 8.49
+BRAKE CLEAN 8.49
+NITRILE GLOVES 9.50
+SUBTOTAL 41.47
+SALES TAX 2.49
+TOTAL 43.96
+''',
+  ),
+  _ReceiptQaFixture(
+    pack: 'damaged_ocr',
     name: 'blurry receipt source requires retake guidance',
     merchantNeedle: 'pilot',
     expectedMerchantName: 'Pilot Flying J',
