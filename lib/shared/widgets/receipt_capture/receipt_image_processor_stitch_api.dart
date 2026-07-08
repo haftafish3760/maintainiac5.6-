@@ -347,6 +347,7 @@ ReceiptStitchResult? _oversizedStitchFallback({
     fallbackReasonCode: 'output_too_large',
     confidence: confidences.isEmpty ? 0 : confidences.reduce(math.min),
     pairs: pairResults,
+    failedPairIndex: pairResults.isEmpty ? null : pairResults.last.pairIndex,
     stitchedWidth: targetWidth,
     stitchedHeight: expectedHeight,
   );
