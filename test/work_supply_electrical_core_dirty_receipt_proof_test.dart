@@ -35,6 +35,16 @@ void main() {
     _expectNoElectricalMatch('VISA APPROVED AUTH 9988');
     _expectNoElectricalMatch('CASHIER 04 REG 12 THANK Y0U');
   });
+
+  test('electrical core handles dirty random-store service receipts', () {
+    _expectGoodElectricalCore('GRAINGER 20A GFC1 WR RECPT WHT', ['gfci']);
+    _expectGoodElectricalCore('FASTENAL 1/2 EMT COMP CONN STL', ['connector']);
+    _expectGoodElectricalCore('LOCAL SUPPLY 12/2 MC CABLE ALUM 250FT', ['mc']);
+    _expectGoodElectricalCore('TRUE VALUE PHOTOEYE OUTDR LGT CTRL', [
+      'photocell',
+    ]);
+    _expectGoodElectricalCore('ACE 3/4 PVC LB B0DY GRY', ['conduit']);
+  });
 }
 
 void _expectGoodElectricalCore(String line, List<String> expectedTerms) {
