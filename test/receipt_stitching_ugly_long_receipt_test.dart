@@ -166,6 +166,73 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );
+
+  test(
+    'stitches narrow wrinkled receipt windows with small repeated overlap',
+    () async {
+      final tallReceipt = addReceiptStitchingWear(
+        fadeReceiptStitchingInk(
+          tallReceiptStitchingCanvas(sectionCount: 5),
+          amount: .18,
+        ),
+        seed: 881,
+        wrinkleCount: 16,
+        smudgeCount: 9,
+      );
+      final starts = <int>[0, 1220, 2440, 3660, 4880];
+      final files = <File>[];
+      for (var index = 0; index < starts.length; index++) {
+        var window = cropReceiptStitchingPhoneWindow(
+          tallReceipt,
+          y: starts[index],
+          height: 1500,
+        );
+        window = _narrowPhoneCapture(
+          window,
+          leftMargin: index.isEven ? 92 : 118,
+          rightMargin: index.isEven ? 108 : 84,
+        );
+        window = shiftReceiptStitchingShot(
+          window,
+          dx: index.isEven ? 20 : -24,
+          dy: 0,
+        );
+        if (index == 1 || index == 4) {
+          window = adjustReceiptStitchingBrightness(window, delta: 20);
+        }
+        if (index == 2) {
+          window = fadeReceiptStitchingInk(window, amount: .10);
+        }
+        if (index == 3) {
+          window = adjustReceiptStitchingBrightness(window, delta: -22);
+        }
+        files.add(
+          await writeTempReceiptStitchingImage(
+            window,
+            'narrow_wrinkled_low_overlap_$index',
+          ),
+        );
+      }
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: files.map((file) => file.path).toList(growable: false),
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(4));
+      expect(result.overlapPixels, hasLength(4));
+      expect(result.overlapPixelTotal, greaterThan(800));
+      expect(
+        result.pairs.map((pair) => pair.confidence),
+        everyElement(greaterThanOrEqualTo(.50)),
+      );
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.stitchedPixelCount, lessThan(16000000));
+      await _expectReadableStitchedArtifact(result);
+    },
+    timeout: const Timeout(Duration(minutes: 3)),
+  );
 }
 
 img.Image _uglySection({
@@ -229,4 +296,26 @@ img.Image _addFoldShadows(img.Image source) {
     );
   }
   return folded;
+}
+
+img.Image _narrowPhoneCapture(
+  img.Image source, {
+  required int leftMargin,
+  required int rightMargin,
+}) {
+  final canvas = img.Image(
+    width: source.width,
+    height: source.height,
+    numChannels: 3,
+  );
+  img.fill(canvas, color: img.ColorRgb8(238, 238, 234));
+  final cropped = img.copyCrop(
+    source,
+    x: leftMargin,
+    y: 0,
+    width: source.width - leftMargin - rightMargin,
+    height: source.height,
+  );
+  img.compositeImage(canvas, cropped, dstX: leftMargin, dstY: 0);
+  return canvas;
 }
