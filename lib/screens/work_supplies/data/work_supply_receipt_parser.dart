@@ -1181,6 +1181,21 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
     }
   }
 
+  final wantsHvacFoilTape =
+      RegExp(r'\b(foil|cinta|ul181|ul 181)\b').hasMatch(text) &&
+      RegExp(r'\b(tape|cinta|hvac)\b').hasMatch(text);
+  if (wantsHvacFoilTape) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'HVAC' &&
+          name.contains('foil tape') &&
+          !name.contains('foam') &&
+          !name.contains('cork')) {
+        return item;
+      }
+    }
+  }
+
   final wantsThermostat = RegExp(
     r'\b(tstat|thermostat|thermo stat|termostato)\b',
   ).hasMatch(text);
@@ -1313,7 +1328,9 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
   }
 
   final wantsCondensatePump = RegExp(
-    r'\b(condensate pump|cond pump|bomba condensado|bomba cond)\b',
+    r'\b(condensate pump|cond pump|cond pmp|bomba condensado|bomba cond)\b|'
+    r'\b(cond|condensate|condensado)\b.*\b(pump|pmp|bomba)\b|'
+    r'\b(bomba|pump|pmp)\b.*\b(cond|condensate|condensado)\b',
   ).hasMatch(text);
   if (wantsCondensatePump) {
     for (final item in workSupplyCatalogItems) {

@@ -213,6 +213,7 @@ bool _isHvacCoreItem(WorkSupplyItem item, String text) {
   if (_hasAny(text, _hvacCoreCondensateSignals)) return true;
   if (_hasAny(text, _hvacCoreSealSignals)) return true;
   if (_hasAny(text, _hvacCoreIgnitionSignals)) return true;
+  if (_hasAny(text, _hvacCoreControlSignals)) return true;
   if (_hasAny(text, _hvacProfessionalTierSignals)) return false;
   if (category == 'controls and electrical') {
     return _hasAny(text, _hvacCoreControlSignals);

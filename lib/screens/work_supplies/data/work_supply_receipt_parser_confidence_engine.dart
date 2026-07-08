@@ -168,13 +168,25 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'uf-b cable',
       'direct burial',
     ],
+    RegExp(r'\b(contactor|contctr|cntctr)\b'): ['contactor'],
     RegExp(r'\b(tstat|thermostat|termostato)\b'): ['thermostat'],
-    RegExp(r'\b(cond|condensate)\b.*\b(pump|bomba)\b'): ['condensate pump'],
+    RegExp(r'\b(cond|condensate)\b.*\b(pump|pmp|bomba)\b'): ['condensate pump'],
+    RegExp(r'\b(bomba)\b.*\b(condensado|condensate)\b'): ['condensate pump'],
+    RegExp(r'\b(cond|condensate)\b.*\b(float|flotador)\b.*\b(sw|switch)\b'): [
+      'condensate safety switch',
+      'float switch',
+    ],
     RegExp(r'\bflame\s+sensor\b'): ['flame sensor'],
     RegExp(r'\b(hot\s+surface\s+ignitor|hsi|ignitor)\b'): [
       'hot surface ignitor',
       'ignitor',
     ],
+    RegExp(r'\b(hard\s+start|spp6|start kit)\b'): ['hard start kit'],
+    RegExp(r'\b(cinta|foil|ul181|ul 181)\b.*\b(tape|cinta|hvac)\b'): [
+      'foil tape',
+      'foil hvac tape',
+    ],
+    RegExp(r'\bduct\s+mastic\b|\bmastic\b'): ['duct mastic', 'mastic'],
   };
   for (final entry in serviceFamilies.entries) {
     if (entry.key.hasMatch(text) &&
@@ -182,6 +194,14 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       score += entry.value.contains('p trap') ? 0.24 : 0.16;
       break;
     }
+  }
+  if (RegExp(r'\b(contactor|contctr|cntctr)\b').hasMatch(text) &&
+      itemText.contains('contactor')) {
+    score += 0.08;
+  }
+  if (RegExp(r'\b(hard\s+start|spp6|start kit)\b').hasMatch(text) &&
+      itemText.contains('hard start')) {
+    score += 0.08;
   }
   if (RegExp(
         r'\b(well pressure gauge|pressure gauge|well gauge|manometro presion pozo|manometro de presion)\b',
@@ -303,7 +323,7 @@ bool _isGenericFilterLine(
   WorkSupplyItem item,
   String? tradeScope,
 ) {
-  if (!RegExp(r'\bfilter\b').hasMatch(text)) return false;
+  if (!RegExp(r'\b(filter|filt)\b').hasMatch(text)) return false;
   final hasSpecificFilterEvidence =
       _hasHvacAirFilterReceiptEvidence(text) ||
       RegExp(
@@ -326,7 +346,7 @@ double _boundedReceiptConfidence(double confidence) {
 }
 
 bool _hasHvacAirFilterReceiptEvidence(String text) {
-  if (!RegExp(r'\bfilter\b').hasMatch(text)) return false;
+  if (!RegExp(r'\b(filter|filt)\b').hasMatch(text)) return false;
   if (RegExp(
     r'\b(drier|dri|secador|liquid|liq|linea|water|oil|fuel|pool|'
     r'grille|register|rack|base|housing)\b',
@@ -334,7 +354,7 @@ bool _hasHvacAirFilterReceiptEvidence(String text) {
     return false;
   }
   final hasAirFilterWords = RegExp(
-    r'\b(air|furn|furnace|pleated|merv|hvac|ac)\b',
+    r'\b(air|furn|furnace|pleated|merv\d*|hvac|ac)\b',
   ).hasMatch(text);
   return hasAirFilterWords &&
       (_nominalReceiptSize(text) != null || _receiptSizeMatrix(text) != null);

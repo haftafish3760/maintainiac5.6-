@@ -36,6 +36,38 @@ void main() {
     _expectNotGoodHvac('HD FILTER');
     _expectNotGoodHvac('ACE SWITCH');
   });
+
+  test('hvac core parses POS-noisy merchant lines', () {
+    _expectGoodHvacCore('HD 88231 2 @ 11.98 16X25X1 MERV8 FILT 23.96', [
+      'filter',
+    ]);
+    _expectGoodHvacCore('LOWES QTY1 45/5 MFD DUAL CAP DISC 10%', ['capacitor']);
+    _expectGoodHvacCore('ACE 120V COND PMP W/ SAFETY SW', ['condensate']);
+    _expectGoodHvacCore('SUPPLY 24V 40A 2P CONTCTR', ['contactor']);
+  });
+
+  test('hvac core parses Spanish and mixed-language receipts', () {
+    _expectGoodHvacCore('FERRETERIA FILTRO AIRE 20X20X1 MERV 8', ['filter']);
+    _expectGoodHvacCore('SUMINISTRO TERMOSTATO PROGRAMABLE 1H/1C', [
+      'thermostat',
+    ]);
+    _expectGoodHvacCore('LOCAL BOMBA CONDENSADO 120V', ['condensate']);
+    _expectGoodHvacCore('ACE CINTA FOIL HVAC UL181', ['tape']);
+  });
+
+  test('hvac core parses manufacturer-heavy service receipts', () {
+    _expectGoodHvacCore('HONEYWELL TSTAT PRO 1H/1C WHITE', ['thermostat']);
+    _expectGoodHvacCore('SUPCO SPP6 HARD START KIT', ['hard start']);
+    _expectGoodHvacCore('DIVERSITECH CONDENSATE PAN TABS', ['tablet']);
+    _expectGoodHvacCore('APRILAIRE 16X25X1 PLEATED FILTER', ['filter']);
+  });
+
+  test('hvac core parses supply-house shorthand service stock', () {
+    _expectGoodHvacCore('WINSUPPLY 35/5 UF DUAL RUN CAP', ['capacitor']);
+    _expectGoodHvacCore('GRAINGER 30A 1P 24V CONTACTOR', ['contactor']);
+    _expectGoodHvacCore('FERG COND FLOAT SW INLINE', ['switch']);
+    _expectGoodHvacCore('SUPPLY DUCT MASTIC QT UL181', ['mastic']);
+  });
 }
 
 void _expectGoodHvacCore(String line, List<String> expectedTerms) {
