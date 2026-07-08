@@ -68,6 +68,15 @@ void main() {
     _expectGoodHvacCore('FERG COND FLOAT SW INLINE', ['switch']);
     _expectGoodHvacCore('SUPPLY DUCT MASTIC QT UL181', ['mastic']);
   });
+
+  test('hvac core parses airflow duct repair and control service stock', () {
+    _expectGoodHvacCore('HD 6IN INS FLEX DUCT R6 25FT', ['flex duct']);
+    _expectGoodHvacCore('LOWES 6IN START COLLAR TAKEOFF', ['takeoff']);
+    _expectGoodHvacCore('ACE ZIP SCREW HVAC 1/2 100PK', ['screw']);
+    _expectGoodHvacCore('SUPPLY 24V TRANSFORMER 40VA', ['transformer']);
+    _expectGoodHvacCore('GRAINGER BLADE FUSE 3A 5PK', ['fuse']);
+    _expectGoodHvacCore('WINSUPPLY TIME DELAY RELAY 24V', ['relay']);
+  });
 }
 
 void _expectGoodHvacCore(String line, List<String> expectedTerms) {

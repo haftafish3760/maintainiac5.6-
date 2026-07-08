@@ -214,6 +214,7 @@ bool _isHvacCoreItem(WorkSupplyItem item, String text) {
   if (_hasAny(text, _hvacCoreSealSignals)) return true;
   if (_hasAny(text, _hvacCoreIgnitionSignals)) return true;
   if (_hasAny(text, _hvacCoreControlSignals)) return true;
+  if (_hasAny(text, _hvacCoreAirDistributionSignals)) return true;
   if (_hasAny(text, _hvacProfessionalTierSignals)) return false;
   if (category == 'controls and electrical') {
     return _hasAny(text, _hvacCoreControlSignals);
@@ -838,6 +839,8 @@ const _hvacCoreAirDistributionSignals = [
   'hanger strap',
   'duct mastic',
   'mastic brush',
+  'flex duct',
+  'insulated flex duct',
   'flex duct zip tie',
   'floor register',
   'return air grille',

@@ -169,6 +169,9 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'direct burial',
     ],
     RegExp(r'\b(contactor|contctr|cntctr)\b'): ['contactor'],
+    RegExp(r'\b(transformer|xfmr|transf)\b'): ['transformer'],
+    RegExp(r'\b(blade\s+fuse|fuse)\b'): ['fuse'],
+    RegExp(r'\b(time\s+delay\s+relay|relay)\b'): ['relay'],
     RegExp(r'\b(tstat|thermostat|termostato)\b'): ['thermostat'],
     RegExp(r'\b(cond|condensate)\b.*\b(pump|pmp|bomba)\b'): ['condensate pump'],
     RegExp(r'\b(bomba)\b.*\b(condensado|condensate)\b'): ['condensate pump'],
@@ -198,6 +201,18 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
   if (RegExp(r'\b(contactor|contctr|cntctr)\b').hasMatch(text) &&
       itemText.contains('contactor')) {
     score += 0.08;
+  }
+  if (RegExp(r'\b(transformer|xfmr|transf)\b').hasMatch(text) &&
+      itemText.contains('transformer')) {
+    score += 0.10;
+  }
+  if (RegExp(r'\b(blade\s+fuse|fuse)\b').hasMatch(text) &&
+      itemText.contains('fuse')) {
+    score += 0.10;
+  }
+  if (RegExp(r'\b(time\s+delay\s+relay|relay)\b').hasMatch(text) &&
+      itemText.contains('relay')) {
+    score += 0.10;
   }
   if (RegExp(r'\b(hard\s+start|spp6|start kit)\b').hasMatch(text) &&
       itemText.contains('hard start')) {
