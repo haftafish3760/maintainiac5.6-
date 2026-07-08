@@ -308,6 +308,34 @@ img.Image clipReceiptStitchingSide(
   return canvas;
 }
 
+img.Image clipReceiptStitchingVerticalEdge(
+  img.Image source, {
+  int top = 0,
+  int bottom = 0,
+}) {
+  final safeTop = top.clamp(0, source.height ~/ 3);
+  final safeBottom = bottom.clamp(0, source.height ~/ 3);
+  final clippedHeight = (source.height - safeTop - safeBottom).clamp(
+    source.height ~/ 3,
+    source.height,
+  );
+  final clipped = img.copyCrop(
+    source,
+    x: 0,
+    y: safeTop,
+    width: source.width,
+    height: clippedHeight,
+  );
+  final canvas = img.Image(
+    width: source.width,
+    height: source.height,
+    numChannels: 3,
+  );
+  img.fill(canvas, color: img.ColorRgb8(255, 255, 255));
+  img.compositeImage(canvas, clipped, dstY: safeTop);
+  return canvas;
+}
+
 img.Image tallReceiptStitchingCanvas({int sectionCount = 4}) {
   const sectionStride = 1120;
   final height = sectionStride * (sectionCount - 1) + 1500;

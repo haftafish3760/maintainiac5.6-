@@ -185,6 +185,39 @@ void main() {
     },
     timeout: _stitchingHeavyTimeout,
   );
+
+  test(
+    'requires review when repeated-line vertical edges are clipped',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 108, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 109, topTextOffset: 18);
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 330);
+      final clippedFirst = clipReceiptStitchingVerticalEdge(
+        sectionA,
+        bottom: 220,
+      );
+      final clippedSecond = clipReceiptStitchingVerticalEdge(
+        sectionB,
+        top: 210,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        clippedFirst,
+        'vertical_edge_crop_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        clippedSecond,
+        'vertical_edge_crop_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expectWeakOverlapRequiresReview(result);
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
 }
 
 void expectWeakOverlapRequiresReview(ReceiptStitchResult result) {

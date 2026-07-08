@@ -6,12 +6,28 @@ cd "$repo_root"
 
 mode="${1:-full}"
 
+run_flutter_test() {
+  local label="$1"
+  shift
+  local tmp
+  tmp="$(mktemp -t maintainiac_receipt_stitch_${label//[^A-Za-z0-9]/_}.XXXXXX)"
+  if flutter test "$@" -r compact > "$tmp" 2>&1; then
+    perl -pe 's/\r/\n/g' "$tmp" | grep -E 'All tests passed|Some tests failed' | tail -n 3
+    rm -f "$tmp"
+    return 0
+  fi
+  local exit_code=$?
+  echo "Receipt stitch $label failed. Log tail:" >&2
+  perl -pe 's/\r/\n/g' "$tmp" | tail -n 180 >&2
+  rm -f "$tmp"
+  return "$exit_code"
+}
+
 run_delayed_overlap() {
   echo "Receipt stitch delayed-overlap health"
-  flutter test \
+  run_flutter_test delayed-overlap \
     test/receipt_stitching_variants_test.dart \
-    --name 'delayed overlap' \
-    -r compact
+    --name 'delayed overlap'
   echo "Receipt stitch delayed-overlap health: PASS"
 }
 
@@ -24,7 +40,7 @@ run_edge_cases() {
     test/receipt_stitching_horizontal_drift_test.dart \
     test/receipt_stitching_worn_receipt_test.dart \
     test/receipt_stitching_weak_overlap_safety_test.dart \
-    --name 'delayed overlap|stronger handheld rotation|combined scale rotation and drift|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|continuation edge is clipped|severely cropped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order' \
+    --name 'delayed overlap|stronger handheld rotation|combined scale rotation and drift|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order' \
     --concurrency=1 \
     -r compact
   echo "Receipt stitch edge-case health: PASS"
