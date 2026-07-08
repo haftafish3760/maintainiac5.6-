@@ -46,9 +46,11 @@ void main() {
     expect(
       source,
       contains(
-        "--name 'delayed overlap|stronger handheld rotation|combined scale rotation and drift|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|cumulative horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|crops delayed-overlap top strip|continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order|boilerplate footer bands'",
+        "--name 'delayed overlap|stronger handheld rotation|combined scale rotation and drift|output dimensions|output pixel cap|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|cumulative horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|crops delayed-overlap top strip|continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order|boilerplate footer bands'",
       ),
     );
+    expect(source, contains('receipt_stitching_size_cap_test.dart'));
+    expect(source, contains('output dimensions|output pixel cap'));
     expect(
       source,
       contains('receipt_stitching_horizontal_placement_test.dart'),

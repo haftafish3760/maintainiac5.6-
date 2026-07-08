@@ -58,11 +58,12 @@ run_edge_cases() {
   run_flutter_test edge-case \
     test/receipt_stitching_variants_test.dart \
     test/receipt_stitching_scale_rotation_test.dart \
+    test/receipt_stitching_size_cap_test.dart \
     test/receipt_stitching_horizontal_placement_test.dart \
     test/receipt_stitching_horizontal_drift_test.dart \
     test/receipt_stitching_worn_receipt_test.dart \
     test/receipt_stitching_weak_overlap_safety_test.dart \
-    --name 'delayed overlap|stronger handheld rotation|combined scale rotation and drift|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|cumulative horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|crops delayed-overlap top strip|continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order|boilerplate footer bands' \
+    --name 'delayed overlap|stronger handheld rotation|combined scale rotation and drift|output dimensions|output pixel cap|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|cumulative horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|crops delayed-overlap top strip|continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order|boilerplate footer bands' \
     --concurrency=1
   echo "Receipt stitch edge-case health: PASS"
 }
