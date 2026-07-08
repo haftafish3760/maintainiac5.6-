@@ -232,29 +232,69 @@ void main() {
     expect(result.ocrSourcePaths, hasLength(1));
   });
 
-  test('stitches receipt sections with modest horizontal handheld drift', () async {
-    final sectionA = receiptStitchingSection(seed: 64, topTextOffset: 0);
-    final sectionB = receiptStitchingSection(seed: 65, topTextOffset: 18);
+  test(
+    'stitches receipt sections with modest horizontal handheld drift',
+    () async {
+      for (final drift in const [34, -42]) {
+        final sectionA = receiptStitchingSection(
+          seed: 64 + drift.abs(),
+          topTextOffset: 0,
+        );
+        final sectionB = receiptStitchingSection(
+          seed: 65 + drift.abs(),
+          topTextOffset: 18,
+        );
+        copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 340);
+        final shiftedSecond = shiftReceiptStitchingShot(
+          sectionB,
+          dx: drift,
+          dy: 0,
+        );
+
+        final first = await writeTempReceiptStitchingImage(
+          sectionA,
+          'shift_${drift}_a',
+        );
+        final second = await writeTempReceiptStitchingImage(
+          shiftedSecond,
+          'shift_${drift}_b',
+        );
+
+        final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+          paths: [first.path, second.path],
+        );
+
+        expect(result.didStitch, isTrue, reason: result.detailLabel);
+        expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+        expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      }
+    },
+  );
+
+  test('falls back when horizontal handheld drift makes the join unsafe', () async {
+    final sectionA = receiptStitchingSection(seed: 66, topTextOffset: 0);
+    final sectionB = receiptStitchingSection(seed: 67, topTextOffset: 18);
     copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 340);
     final shiftedSecond = shiftReceiptStitchingShot(
       sectionB,
-      dx: 34,
+      dx: 210,
       dy: 0,
     );
 
-    final first = await writeTempReceiptStitchingImage(sectionA, 'shift_a');
+    final first = await writeTempReceiptStitchingImage(sectionA, 'shift_bad_a');
     final second = await writeTempReceiptStitchingImage(
       shiftedSecond,
-      'shift_b',
+      'shift_bad_b',
     );
 
     final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
       paths: [first.path, second.path],
     );
 
-    expect(result.didStitch, isTrue, reason: result.detailLabel);
-    expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
-    expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+    expect(result.usedFallback, isTrue, reason: result.detailLabel);
+    expect(result.didStitch, isFalse);
+    expect(result.fallbackReasonCode, 'overlap_confidence_low');
+    expect(result.ocrSourceContractCode, 'fallback_overlap_untrusted_sources');
   });
 
   test('stitches receipt sections with mild wrinkles and smudges', () async {
