@@ -71,6 +71,31 @@ void main() {
     },
     timeout: _phoneWindowTimeout,
   );
+
+  test(
+    'stitches ragged phone-window captures from uneven scroll positions',
+    () async {
+      final files = await _writeRaggedPhoneWindowStack(
+        'ragged_phone_window_overlap',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [for (final file in files) file.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(4));
+      expect(result.overlapPixels, hasLength(4));
+      expect(
+        result.pairs.map((pair) => pair.confidence),
+        everyElement(greaterThanOrEqualTo(.50)),
+      );
+      expect(result.overlapPixelTotal, greaterThan(1200));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+    },
+    timeout: _phoneWindowTimeout,
+  );
 }
 
 void expectSkippedWindowRequiresReview(
@@ -172,6 +197,36 @@ Future<List<File>> _writeUglySevenSectionPhoneWindowStack(String prefix) async {
       dx: index.isEven ? 18 : -20,
       dy: 0,
     );
+    files.add(
+      await writeTempReceiptStitchingImage(capture, '${prefix}_$index'),
+    );
+  }
+  return files;
+}
+
+Future<List<File>> _writeRaggedPhoneWindowStack(String prefix) async {
+  final tallReceipt = tallReceiptStitchingCanvas(sectionCount: 5);
+  final starts = <int>[0, 1040, 2195, 3290, 4485];
+  final files = <File>[];
+  for (var index = 0; index < starts.length; index++) {
+    var capture = img.copyCrop(
+      tallReceipt,
+      x: 0,
+      y: starts[index],
+      width: tallReceipt.width,
+      height: 1500,
+    );
+    capture = shiftReceiptStitchingShot(
+      capture,
+      dx: index.isEven ? 22 : -18,
+      dy: 0,
+    );
+    if (index == 2) {
+      capture = rotateReceiptStitchingShot(capture, degrees: .6);
+    }
+    if (index == 3) {
+      capture = scaleReceiptStitchingShot(capture, scale: 1.04);
+    }
     files.add(
       await writeTempReceiptStitchingImage(capture, '${prefix}_$index'),
     );

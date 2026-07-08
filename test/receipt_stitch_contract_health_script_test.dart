@@ -40,7 +40,7 @@ void main() {
     expect(
       source,
       contains(
-        "--name 'phone-window captures|skipped phone-window|eleven-section|ugly seven-section'",
+        "--name 'phone-window captures|skipped phone-window|eleven-section|ugly seven-section|ragged phone-window'",
       ),
     );
     expect(source, contains('Receipt stitch phone-window health: PASS'));
