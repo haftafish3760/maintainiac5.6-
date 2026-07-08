@@ -244,6 +244,7 @@ run_milestone() {
   run_edge_cases
   run_size_caps
   run_phone_windows
+  run_transformed_phone_windows
   run_long_stack
   run_ugly_long_receipts
   run_section_order
@@ -265,6 +266,7 @@ run_core_stitch() {
   run_source_size
   run_long_stack
   run_ugly_long_receipts
+  run_transformed_phone_windows
   run_uploaded_screenshots
   run_size_caps
   run_bad_inputs

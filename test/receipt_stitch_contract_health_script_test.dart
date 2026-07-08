@@ -282,6 +282,7 @@ void main() {
     expect(coreSource, contains('run_manual_overlap'));
     expect(coreSource, contains('run_duplicates'));
     expect(coreSource, contains('run_size_caps'));
+    expect(coreSource, contains('run_transformed_phone_windows'));
     expect(coreSource, contains('run_section_order'));
     expect(coreSource, contains('run_ghost_handoff'));
     expect(coreSource, contains('run_handoff'));
@@ -296,6 +297,7 @@ void main() {
     expect(source, contains('run_edge_cases'));
     expect(source, contains('run_size_caps'));
     expect(source, contains('run_phone_windows'));
+    expect(source, contains('run_transformed_phone_windows'));
     expect(source, contains('run_long_stack'));
     expect(source, contains('run_ugly_long_receipts'));
     expect(source, contains('run_section_order'));
