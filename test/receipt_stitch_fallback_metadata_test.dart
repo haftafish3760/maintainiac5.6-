@@ -173,6 +173,11 @@ void main() {
     );
     expect(
       result.receiptReaderHandoffCounts,
+      containsPair('receipt_section_order_review_required', 1),
+    );
+    expect(metadata['receiptSectionOrderNeedsReview'], true);
+    expect(
+      result.receiptReaderHandoffCounts,
       isNot(contains('receipt_section_order_action_review_single_section')),
     );
     expect(

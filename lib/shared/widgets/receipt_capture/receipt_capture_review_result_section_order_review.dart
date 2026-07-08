@@ -91,7 +91,8 @@ extension ReceiptPhotoReviewResultSectionOrderReview
 
   bool get receiptSectionOrderNeedsReview =>
       receiptSectionOrderReviewActionCode.startsWith('review_') &&
-      (receiptSectionOrderReviewActionCode.contains('_before_ocr') ||
+      (receiptSectionOrderReviewActionCode == 'review_multi_section_order' ||
+          receiptSectionOrderReviewActionCode.contains('_before_ocr') ||
           receiptSectionOrderOutcome.endsWith('_invalid'));
 
   String get receiptSectionOrderReviewActionCode {
