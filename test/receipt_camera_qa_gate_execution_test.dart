@@ -216,6 +216,10 @@ void main() {
       );
       expect(
         phase9Plan,
+        contains('phase9 test/receipt_real_device_test_script_test.dart'),
+      );
+      expect(
+        phase9Plan,
         contains('phase9 test/receipt_camera_world_class_readiness_test.dart'),
       );
       expect(phase9Plan, isNot(contains('quick ')));
@@ -363,6 +367,10 @@ void main() {
       expect(
         fullPlan,
         contains('full test/receipt_camera_pipeline_handoff_status_test.dart'),
+      );
+      expect(
+        fullPlan,
+        contains('full test/receipt_real_device_test_script_test.dart'),
       );
       expect(
         fullPlan,

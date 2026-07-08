@@ -53,6 +53,7 @@ void main() {
     expect(script, contains('docs/receipt_camera_ocr_pipeline_handoff_report.md'));
     expect(script, contains('docs/receipt_camera_release_one_blueprint.md'));
     expect(script, contains('docs/receipt_camera_world_class_readiness.md'));
+    expect(script, contains('docs/receipt_real_device_test_script.md'));
     expect(script, contains('docs/receipt_native_camera_service_spec.md'));
     expect(script, contains('docs/receipt_camera_ocr_product_standard.md'));
     expect(script, contains('docs/receipt_camera_roadmap.md'));
@@ -147,6 +148,10 @@ void main() {
     expect(
       script,
       contains('test/receipt_camera_pipeline_handoff_status_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_real_device_test_script_test.dart'),
     );
     expect(
       script,
@@ -285,6 +290,10 @@ void main() {
     expect(
       stdout,
       contains('targeted test/receipt_camera_pipeline_handoff_status_test.dart'),
+    );
+    expect(
+      stdout,
+      contains('targeted test/receipt_real_device_test_script_test.dart'),
     );
     expect(
       stdout,

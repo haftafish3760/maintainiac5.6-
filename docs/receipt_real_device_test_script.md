@@ -95,6 +95,28 @@ not as proof that the receipt-camera app bundle is still wrong.
 
 Purpose:
 - Prove a normal short receipt can go from photo to app-assisted review.
+- Prove the Phase 2 receipt entry flow and Phase 3 camera viewer feel clean on
+  a real phone, not just in source contracts.
+
+Front-door proof before capture:
+- `Add Receipt` opens a simple chooser.
+- The chooser exposes `Capture Photo`, `Upload Photos`, `Upload PDF/File`, and
+  `Paste/Text`.
+- Choosing `Capture Photo` asks only the quick Receipt Assist question when it
+  is needed.
+- Manual entry remains available.
+- No compression, storage, or save-space setup wall appears before the first
+  photo.
+- The camera opens immediately after the choice.
+
+Live viewer proof:
+- The preview reads as full-screen on the device.
+- Back, settings gear, and torch stay on the screen edges.
+- The shutter is round and centered near the bottom.
+- No large black bars or oversized control sheets block the receipt preview.
+- `Done` or `Next` does not appear until there is at least one captured photo.
+- Preview tap focus stays off limits. The flow uses native autofocus plus the
+  explicit controls only.
 
 Steps:
 1. Open Expenses.
