@@ -395,15 +395,15 @@ void main() {
       );
       expect(
         cameraController,
-        contains(
-          'Detailed receipt details are on. OCR will show item details when it can.',
-        ),
+        contains('Review style: \\(review)'),
       );
       expect(
         cameraController,
-        contains(
-          'Price-only receipt details are on. OCR will focus on line prices and totals.',
-        ),
+        contains('? "Detailed receipt lines"'),
+      );
+      expect(
+        cameraController,
+        contains(': "Price-only receipt lines"'),
       );
       expect(cameraController, contains('Saved proof size'));
       expect(cameraController, contains('Save-space proof: local original'));
@@ -421,7 +421,7 @@ void main() {
       expect(cameraController, contains('dataSaverLevel = value'));
       expect(
         cameraController,
-        contains('OCR still reads the temporary full-quality photo first.'),
+        contains('OCR reads the temporary full-quality photo first.'),
       );
       expect(cameraController, contains('Receipt camera settings'));
       expect(cameraController, contains('showReceiptCameraSettings'));

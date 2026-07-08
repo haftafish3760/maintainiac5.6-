@@ -317,6 +317,7 @@ milestone_only_tests=(
   test/receipt_native_ios_bridge_exposure_shutter_contract_test.dart
   test/receipt_native_ios_bridge_false_positive_guard_test.dart
   test/receipt_native_ios_bridge_long_receipt_quality_test.dart
+  test/receipt_native_ios_settings_guidance_contract_test.dart
   test/receipt_native_ios_bridge_settings_close_test.dart
   test/receipt_native_ios_bridge_storage_contract_test.dart
   test/receipt_native_ios_bridge_ui_session_test.dart

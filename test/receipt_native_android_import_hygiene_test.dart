@@ -104,6 +104,7 @@ void main() {
         'android.graphics.Color',
         'android.graphics.Typeface',
         'android.graphics.drawable.GradientDrawable',
+        'android.text.TextUtils',
         'android.view.Gravity',
         'android.view.View',
         'android.view.ViewGroup',
