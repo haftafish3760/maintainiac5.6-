@@ -57,6 +57,22 @@ void main() {
     );
     expect(
       script,
+      contains('android/app/src/main/kotlin/com/maintainiac/ReceiptCameraActivity.kt'),
+    );
+    expect(
+      script,
+      contains('android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt'),
+    );
+    expect(
+      script,
+      contains('ios/Runner/ReceiptCameraViewController.swift'),
+    );
+    expect(
+      script,
+      contains('ios/Runner/ReceiptCameraViewControllerLiveReadability.swift'),
+    );
+    expect(
+      script,
       contains('android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt'),
     );
     expect(
@@ -72,6 +88,23 @@ void main() {
       script,
       contains('test/receipt_camera_phase3_viewer_contract_test.dart'),
     );
+    expect(
+      script,
+      contains('test/receipt_native_android_guidance_policy_gate_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_native_android_bridge_false_positive_guard_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_native_ios_guidance_warning_gate_test.dart'),
+    );
+    expect(
+      script,
+      contains('android/app/src/main/kotlin/com/maintainiac/MainActivity.kt | \\'),
+    );
+    expect(script, contains('ios/Runner/AppDelegate.swift)'));
     expect(
       script,
       contains('test/receipt_native_android_bridge_settings_quality_test.dart'),
@@ -179,6 +212,62 @@ void main() {
     expect(
       stdout,
       isNot(contains('milestone test/receipt_camera_phase4_review_contract_test.dart')),
+    );
+  });
+
+  test('camera changed gate can print exact targeted tests for native phase3 viewer files', () async {
+    final result = await Process.run('bash', [
+      'tool/receipt_camera_changed_gate.sh',
+      '--print-tests',
+    ], environment: {
+      'RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST': [
+        'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraActivity.kt',
+        'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt',
+        'ios/Runner/ReceiptCameraViewController.swift',
+        'ios/Runner/ReceiptCameraViewControllerLiveReadability.swift',
+      ].join('\n'),
+    });
+
+    expect(result.exitCode, 0);
+    final stdout = result.stdout.toString();
+    expect(stdout, contains('mode=milestone'));
+    expect(
+      stdout,
+      contains('targeted test/receipt_camera_phase3_viewer_contract_test.dart'),
+    );
+    expect(
+      stdout,
+      contains('targeted test/receipt_native_android_guidance_policy_gate_test.dart'),
+    );
+    expect(
+      stdout,
+      contains('targeted test/receipt_native_android_bridge_false_positive_guard_test.dart'),
+    );
+    expect(
+      stdout,
+      contains('targeted test/receipt_native_ios_guidance_warning_gate_test.dart'),
+    );
+    expect(
+      stdout,
+      isNot(contains('milestone test/receipt_camera_phase4_review_contract_test.dart')),
+    );
+  });
+
+  test('camera changed gate does not escalate native phase3 viewer files to full by default', () async {
+    final result = await Process.run('bash', [
+      'tool/receipt_camera_changed_gate.sh',
+      '--print-mode',
+    ], environment: {
+      'RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST': [
+        'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraActivity.kt',
+        'ios/Runner/ReceiptCameraViewController.swift',
+      ].join('\n'),
+    });
+
+    expect(result.exitCode, 0);
+    expect(
+      result.stdout.toString(),
+      contains('Receipt camera changed gate: selected milestone for tracked camera changes.'),
     );
   });
 }

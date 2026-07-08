@@ -89,6 +89,39 @@ while IFS= read -r path; do
         test/receipt_camera_phase3_viewer_contract_test.dart
       )
       ;;
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraActivity.kt | \
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraUiChrome.kt | \
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControls.kt | \
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControlReadiness.kt | \
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsLabels.kt | \
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraPreviousSectionGuide.kt)
+      targeted_tests+=(
+        test/receipt_camera_phase3_viewer_contract_test.dart
+      )
+      ;;
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt | \
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt | \
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraLiveReadabilitySignals.kt)
+      targeted_tests+=(
+        test/receipt_native_android_guidance_policy_gate_test.dart
+        test/receipt_native_android_bridge_false_positive_guard_test.dart
+      )
+      ;;
+    ios/Runner/ReceiptCameraViewController.swift | \
+    ios/Runner/ReceiptCameraViewControllerLayout.swift | \
+    ios/Runner/ReceiptCameraViewControllerControls.swift | \
+    ios/Runner/ReceiptCameraViewControllerLabels.swift | \
+    ios/Runner/ReceiptCameraViewControllerPreviousSectionGuide.swift)
+      targeted_tests+=(
+        test/receipt_camera_phase3_viewer_contract_test.dart
+      )
+      ;;
+    ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift | \
+    ios/Runner/ReceiptCameraViewControllerLiveReadability.swift)
+      targeted_tests+=(
+        test/receipt_native_ios_guidance_warning_gate_test.dart
+      )
+      ;;
     android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt)
       targeted_tests+=(
         test/receipt_native_android_bridge_settings_quality_test.dart
@@ -125,9 +158,7 @@ while IFS= read -r path; do
   esac
 
   case "$path" in
-    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraActivity.kt | \
     android/app/src/main/kotlin/com/maintainiac/MainActivity.kt | \
-    ios/Runner/ReceiptCameraViewController.swift | \
     ios/Runner/AppDelegate.swift)
       mode="full"
       break
