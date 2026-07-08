@@ -129,6 +129,29 @@ void main() {
   );
 
   test(
+    'stitching keeps vertically shifted adjacent duplicate review blocked',
+    () async {
+      final section = receiptStitchingSection(seed: 108, topTextOffset: 0);
+      final shiftedCopy = shiftReceiptStitchingShot(section, dx: 0, dy: 42);
+      final first = await writeTempReceiptStitchingImage(
+        section,
+        'duplicate_vertical_shift_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        shiftedCopy,
+        'duplicate_vertical_shift_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expectAdjacentDuplicateIsReviewBlocked(result);
+    },
+    timeout: const Timeout(Duration(minutes: 2)),
+  );
+
+  test(
     'stitching rejects duplicate receipt section images even when repeated later in the stack',
     () async {
       final top = receiptStitchingSection(seed: 92, topTextOffset: 0);
