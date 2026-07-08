@@ -92,6 +92,47 @@ void main() {
       );
     });
 
+    test('marks imported receipt photos as imported clear source before proof', () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const ['/tmp/imported-proof-top.jpg'],
+        ocrSourcePhotoPaths: const ['/tmp/imported-proof-top.jpg'],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: ReceiptStitchResult.notNeeded([
+          '/tmp/imported-proof-top.jpg',
+        ]),
+        captureDiagnosticsByPhotoPath: const {
+          '/tmp/imported-proof-top.jpg': {
+            'captureFlow': 'existing_receipt_photo_import',
+            'existingPhotoImportUsed': true,
+            'existingPhotoImportRole': 'user_selected_receipt_photo',
+          },
+        },
+      );
+
+      expect(
+        result.ocrSourceFirstDecisionCode,
+        'imported_receipt_source_before_saved_proof',
+      );
+      expect(result.ocrSourceProofRelationship, 'imported_clear_source');
+      expect(result.usesImportedReceiptPhotoSource, isTrue);
+      expect(result.ocrReadsClearSourceBeforeSavedProof, isTrue);
+      expect(
+        result.ocrSourceFirstReviewCue,
+        contains('imported receipt photo source before the smaller saved proof copy'),
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair(
+          'ocrSourceFirstDecisionCode',
+          'imported_receipt_source_before_saved_proof',
+        ),
+      );
+      expect(
+        result.privacySafeOcrSourceFirstSummary,
+        containsPair('ocrSourceProofRelationship', 'imported_clear_source'),
+      );
+    });
+
     test('marks stitched combined OCR source separately from generic copies', () {
       final result = ReceiptPhotoReviewResult(
         photoPaths: const ['/tmp/proof-top.jpg', '/tmp/proof-bottom.jpg'],

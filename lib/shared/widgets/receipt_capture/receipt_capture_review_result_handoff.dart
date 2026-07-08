@@ -1,6 +1,10 @@
 part of 'receipt_capture_models.dart';
 
 extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
+  bool get usesImportedReceiptPhotoSource {
+    return nativeCaptureSourcePolicyOutcome == 'existing_photo_import';
+  }
+
   bool get ocrReadsClearSourceBeforeSavedProof {
     return hasOcrSourcePhotos && !usedSavedProofAsOcrSourceFallback;
   }
@@ -72,6 +76,9 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
     if (stitchResult.didStitch) {
       return 'combined_receipt_source_before_saved_proof';
     }
+    if (usesImportedReceiptPhotoSource) {
+      return 'imported_receipt_source_before_saved_proof';
+    }
     if (scannerUsedEnhancedOcrSource) {
       return 'prepared_receipt_source_before_saved_proof';
     }
@@ -88,6 +95,7 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
     if (!hasOcrSourcePhotos) return 'missing_ocr_source';
     if (ocrUsesSavedProofOnlyAsFallback) return 'saved_proof_fallback';
     if (stitchResult.didStitch) return 'combined_clear_source';
+    if (usesImportedReceiptPhotoSource) return 'imported_clear_source';
     if (scannerUsedEnhancedOcrSource) return 'prepared_clear_source';
     if (scannerKeptTemporaryFullQualitySourceForQuality) {
       return 'temporary_full_quality_source';
@@ -100,6 +108,8 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
     return switch (ocrSourceFirstDecisionCode) {
       'prepared_receipt_source_before_saved_proof' =>
         'OCR is using the prepared clear receipt source before the smaller saved proof copy.',
+      'imported_receipt_source_before_saved_proof' =>
+        'OCR is using the imported receipt photo source before the smaller saved proof copy.',
       'temporary_full_quality_source_before_saved_proof' =>
         'OCR is using the temporary full-quality receipt source before the smaller saved proof copy.',
       'separate_receipt_source_before_saved_proof' =>

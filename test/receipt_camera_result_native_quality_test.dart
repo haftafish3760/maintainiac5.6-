@@ -53,6 +53,11 @@ void main() {
       result.privacySafeOcrHandoffEvidenceLabel,
       contains('captureSource=existing_photo_import'),
     );
+    expect(
+      result.ocrSourceFirstDecisionCode,
+      'imported_receipt_source_before_saved_proof',
+    );
+    expect(result.ocrSourceProofRelationship, 'imported_clear_source');
   });
 
   test(

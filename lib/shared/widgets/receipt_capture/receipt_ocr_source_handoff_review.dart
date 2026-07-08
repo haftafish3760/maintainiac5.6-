@@ -53,6 +53,7 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
       'ocr_source_first_ocr_source_missing_block_review',
       'ocr_source_first_saved_proof_fallback_review_required',
       'ocr_source_first_combined_receipt_source_before_saved_proof',
+      'ocr_source_first_imported_receipt_source_before_saved_proof',
       'ocr_source_first_prepared_receipt_source_before_saved_proof',
       'ocr_source_first_temporary_full_quality_source_before_saved_proof',
       'ocr_source_first_separate_receipt_source_before_saved_proof',
