@@ -243,7 +243,7 @@ void main() {
 
     expect(result.exitCode, 0);
     final stdout = result.stdout.toString();
-    expect(stdout, contains('mode=milestone'));
+    expect(stdout, contains('mode=phase3'));
     expect(
       stdout,
       contains('targeted test/receipt_camera_phase3_viewer_contract_test.dart'),
@@ -295,7 +295,7 @@ void main() {
 
     expect(result.exitCode, 0);
     final stdout = result.stdout.toString();
-    expect(stdout, contains('mode=milestone'));
+    expect(stdout, contains('mode=phase3'));
     expect(
       stdout,
       contains('targeted test/receipt_camera_phase3_viewer_contract_test.dart'),
@@ -326,7 +326,7 @@ void main() {
     );
   });
 
-  test('camera changed gate does not escalate native phase3 viewer files to full by default', () async {
+  test('camera changed gate keeps native phase3 viewer files on the phase3 lane by default', () async {
     final result = await Process.run('bash', [
       'tool/receipt_camera_changed_gate.sh',
       '--print-mode',
@@ -340,7 +340,7 @@ void main() {
     expect(result.exitCode, 0);
     expect(
       result.stdout.toString(),
-      contains('Receipt camera changed gate: selected milestone for tracked camera changes.'),
+      contains('Receipt camera changed gate: selected phase3 for tracked camera changes.'),
     );
   });
 

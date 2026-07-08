@@ -109,6 +109,9 @@ while IFS= read -r path; do
     lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_controls.dart | \
     lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart | \
     lib/shared/widgets/receipt_capture/receipt_native_camera_shell_guidance.dart)
+      if [[ "$mode" == "quick" ]]; then
+        mode="phase3"
+      fi
       targeted_tests+=(
         test/receipt_camera_phase3_viewer_contract_test.dart
       )
@@ -119,6 +122,9 @@ while IFS= read -r path; do
     android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControlReadiness.kt | \
     android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsLabels.kt | \
     android/app/src/main/kotlin/com/maintainiac/ReceiptCameraPreviousSectionGuide.kt)
+      if [[ "$mode" == "quick" ]]; then
+        mode="phase3"
+      fi
       targeted_tests+=(
         test/receipt_camera_phase3_viewer_contract_test.dart
         test/receipt_native_android_bridge_ui_contract_test.dart
@@ -127,6 +133,9 @@ while IFS= read -r path; do
     android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt | \
     android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt | \
     android/app/src/main/kotlin/com/maintainiac/ReceiptCameraLiveReadabilitySignals.kt)
+      if [[ "$mode" == "quick" ]]; then
+        mode="phase3"
+      fi
       targeted_tests+=(
         test/receipt_native_android_guidance_policy_gate_test.dart
         test/receipt_native_android_bridge_false_positive_guard_test.dart
@@ -137,6 +146,9 @@ while IFS= read -r path; do
     ios/Runner/ReceiptCameraViewControllerControls.swift | \
     ios/Runner/ReceiptCameraViewControllerLabels.swift | \
     ios/Runner/ReceiptCameraViewControllerPreviousSectionGuide.swift)
+      if [[ "$mode" == "quick" ]]; then
+        mode="phase3"
+      fi
       targeted_tests+=(
         test/receipt_camera_phase3_viewer_contract_test.dart
         test/receipt_native_ios_bridge_ui_session_test.dart
@@ -144,6 +156,9 @@ while IFS= read -r path; do
       ;;
     ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift | \
     ios/Runner/ReceiptCameraViewControllerLiveReadability.swift)
+      if [[ "$mode" == "quick" ]]; then
+        mode="phase3"
+      fi
       targeted_tests+=(
         test/receipt_native_ios_guidance_warning_gate_test.dart
       )
@@ -253,7 +268,7 @@ while IFS= read -r path; do
     test/receipt_ocr_source_* | \
     test/receipt_ocr_source_relationship_test.dart | \
     test/receipt_native_camera_phase8_storage_timing_test.dart)
-      if [[ "$mode" == "quick" || "$mode" == "milestone" || "$mode" == "stitch" || "$mode" == "phase6" ]]; then
+      if [[ "$mode" == "quick" || "$mode" == "phase3" || "$mode" == "milestone" || "$mode" == "stitch" || "$mode" == "phase6" ]]; then
         mode="core_remaining"
       fi
       ;;
