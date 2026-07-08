@@ -192,6 +192,10 @@ void main() {
       expect(phase9Plan, contains('mode=phase9'));
       expect(
         phase9Plan,
+        contains('phase9 test/receipt_camera_active_phase_docs_test.dart'),
+      );
+      expect(
+        phase9Plan,
         contains('phase9 test/receipt_camera_completion_map_test.dart'),
       );
       expect(

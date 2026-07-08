@@ -65,6 +65,7 @@ void main() {
     expect(script, contains('test/receipt_camera_phase8_storage_proof_timing_contract_test.dart'));
     expect(script, contains('test/receipt_native_camera_phase8_storage_timing_test.dart'));
     expect(script, contains('test/receipt_camera_completion_map_test.dart'));
+    expect(script, contains('test/receipt_camera_active_phase_docs_test.dart'));
     expect(script, contains('test/receipt_camera_release_one_blueprint_test.dart'));
     expect(script, contains('test/receipt_camera_release_control_priority_test.dart'));
     expect(script, contains('test/receipt_camera_native_baseline_policy_test.dart'));
@@ -229,6 +230,8 @@ void main() {
     expect(script, contains('docs/receipt_camera_world_class_readiness.md'));
     expect(script, contains('PROJECT_RULES.md'));
     expect(script, contains('Current active phase: Phase 8'));
+    expect(script, contains('Current active phase: Phase 3, Camera viewer'));
+    expect(script, contains('Active roadmap focus: Phase 2 receipt entry flow verification'));
     expect(script, contains('1,500-2,500'));
     expect(script, contains('4,000-pass camera-app'));
     expect(script, contains('tap-to-focus'));

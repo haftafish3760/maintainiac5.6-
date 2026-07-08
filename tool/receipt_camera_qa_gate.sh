@@ -83,6 +83,7 @@ phase8_tests=(
 )
 
 phase9_tests=(
+  test/receipt_camera_active_phase_docs_test.dart
   test/receipt_camera_completion_map_test.dart
   test/receipt_camera_release_one_blueprint_test.dart
   test/receipt_camera_release_control_priority_test.dart
@@ -203,6 +204,7 @@ phase9_audit_paths=(
   docs/receipt_camera_ocr_product_standard.md
   PROJECT_RULES.md
   README.md
+  test/receipt_camera_active_phase_docs_test.dart
   test/receipt_camera_completion_map_test.dart
   test/receipt_camera_release_one_blueprint_test.dart
   test/receipt_camera_release_control_priority_test.dart
@@ -326,6 +328,7 @@ stitch_tests=(
 )
 
 full_only_tests=(
+  test/receipt_camera_active_phase_docs_test.dart
   test/receipt_camera_completion_map_test.dart
   test/receipt_camera_footprint_audit_test.dart
   test/receipt_camera_help_flow_test.dart
@@ -621,7 +624,7 @@ run_phase9_stale_contract_scan() {
     docs/receipt_camera_world_class_readiness.md
     PROJECT_RULES.md
   )
-  local pattern='Current active phase: Phase 8|1,500-2,500|4,000-pass camera-app|tap-to-focus|tap to focus'
+  local pattern='Current active phase: Phase 8|Current active phase: Phase 3, Camera viewer|Active roadmap focus: Phase 2 receipt entry flow verification|1,500-2,500|4,000-pass camera-app|tap-to-focus|tap to focus'
 
   if rg -n "$pattern" "${scan_roots[@]}"; then
     echo "Stale Phase 9 milestone-validation contract found." >&2
