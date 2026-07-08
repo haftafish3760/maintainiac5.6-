@@ -198,6 +198,30 @@ void main() {
       expect(session.previousSectionGhostSlicePercent, 20);
     },
   );
+
+  test('continuation ghost normalizes direct native reason aliases', () {
+    final session = const ReceiptNativeCameraSettings(longReceiptMode: true)
+        .sessionFor(
+          deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+          nativeCapabilities: _nativeCapabilities,
+          previousSectionGuidePhotoPath: '/tmp/section-5.jpg',
+          previousSectionReasonCode: ' Missing Bottom Edge And Totals ',
+        );
+
+    expect(
+      session.previousSectionGuideReasonCode,
+      'missing_bottom_edge_and_totals',
+    );
+    expect(
+      session.previousSectionGhostGuidePolicy,
+      'bottom_overlap_ghost_at_top_repeat_3_to_5_lines',
+    );
+    expect(
+      session.previousSectionGhostGuideMatchTarget,
+      'subtotal_total_and_final_lines',
+    );
+    expect(session.previousSectionGhostOpacityOrDefault, .36);
+  });
 }
 
 const _nativeCapabilities = ReceiptNativeCameraCapabilities(

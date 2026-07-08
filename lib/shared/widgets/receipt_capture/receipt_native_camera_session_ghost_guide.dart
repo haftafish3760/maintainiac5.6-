@@ -8,7 +8,7 @@ extension ReceiptNativeCameraSessionGhostGuide
 
   String get previousSectionGuideReasonCode =>
       previousSectionReasonCode?.trim().isNotEmpty == true
-      ? previousSectionReasonCode!.trim().toLowerCase()
+      ? _ghostGuideReasonToken(previousSectionReasonCode!)
       : hasPreviousSectionGuide
       ? 'continue_long_receipt'
       : 'none';
@@ -120,4 +120,14 @@ double _boundedGhostGuideValue(
   if (boundedValue < min) return min;
   if (boundedValue > max) return max;
   return boundedValue;
+}
+
+String _ghostGuideReasonToken(String value) {
+  final token = value
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_|_$'), '');
+  return token.isEmpty ? 'unknown' : token;
 }
