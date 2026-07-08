@@ -103,6 +103,32 @@ void main() {
   );
 
   test(
+    'stitching keeps side-clipped duplicate receipt section images review blocked',
+    () async {
+      final section = receiptStitchingSection(seed: 101, topTextOffset: 0);
+      final clippedCopy = clipReceiptStitchingSide(
+        section,
+        left: 64,
+        right: 48,
+      );
+      final first = await writeTempReceiptStitchingImage(
+        section,
+        'duplicate_clipped_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        clippedCopy,
+        'duplicate_clipped_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expectAdjacentDuplicateIsReviewBlocked(result);
+    },
+  );
+
+  test(
     'stitching rejects duplicate receipt section images even when repeated later in the stack',
     () async {
       final top = receiptStitchingSection(seed: 92, topTextOffset: 0);
