@@ -248,10 +248,8 @@ void main() {
       contains('test/receipt_camera_real_device_snapshot_contract_test.dart'),
     );
     expect(script, contains('Current active phase: Phase 8'));
-    expect(
-      script,
-      isNot(contains('Current active phase: Phase 9, Milestone validation|')),
-    );
+    expect(script, contains('Current active phase: Phase 9, Milestone validation'));
+    expect(script, contains('Current active phase: Phase 9, Milestone validation|'));
     expect(
       script,
       contains('Active roadmap focus: Phase 2 receipt entry flow verification'),

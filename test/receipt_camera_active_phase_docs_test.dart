@@ -11,48 +11,49 @@ void main() {
       'docs/receipt_camera_roadmap.md',
     ).readAsStringSync();
 
+    expect(masterPlan, contains('Current active phase: Phase 2, Receipt entry flow.'));
     expect(
       masterPlan,
-      contains('Current active phase: Phase 9, Milestone validation.'),
+      contains('Phase 3 camera viewer work follows'),
     );
     expect(
       masterPlan,
-      contains('Phase 2 through Phase 8'),
+      contains('Existing targeted gates remain guardrails'),
     );
     expect(
       masterPlan,
-      contains('targeted gates are green'),
+      contains('compact source chooser'),
     );
     expect(
       masterPlan,
-      contains('active roadmap lane is final parity cleanup'),
+      contains('single Receipt Assist question'),
     );
     expect(
       masterPlan,
-      contains('closing milestone verification bundle'),
+      contains('not override the current roadmap order'),
     );
     expect(
       masterPlan,
-      isNot(contains('Current active phase: Phase 3, Camera viewer.')),
+      isNot(contains('Current active phase: Phase 9, Milestone validation.')),
     );
 
     expect(
       roadmap,
-      contains('Active roadmap focus: Phase 9 milestone validation.'),
+      contains('Active roadmap focus: Phase 2 receipt entry flow.'),
     );
     expect(
       roadmap,
-      contains('Phase 2 through Phase 8 targeted gates are green'),
+      contains('Current next work: finish the clean Add Receipt entry path first'),
     );
     expect(
       roadmap,
-      contains('Active pass lane. Phase 2 through Phase 9 targeted gates are green.'),
+      contains('Active pass lane. Phase 2 receipt entry flow is the current bundle'),
     );
     expect(
       roadmap,
       isNot(
         contains(
-          'Active roadmap focus: Phase 3 camera viewer.',
+          'Active roadmap focus: Phase 9 milestone validation.',
         ),
       ),
     );

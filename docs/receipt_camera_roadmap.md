@@ -6,12 +6,13 @@ Do not touch PDF, inventory, admin, maintenance, maps, invoices, cloud sync, or
 unrelated modules unless a documented receipt-camera dependency requires it.
 
 Current phase:
-- Active roadmap focus: Phase 9 milestone validation.
-- Phase 2 through Phase 8 targeted gates are green and now act as the
-  validated non-UI baseline for final camera-lane proof.
-- The current lane is evidence and validation work: keep the validated camera,
-  review, long-receipt, stitching, OCR-source, and storage-proof contracts
-  green while preparing real-device proof and final milestone closeout.
+- Active roadmap focus: Phase 2 receipt entry flow.
+- Current next work: finish the clean Add Receipt entry path first, then move
+  straight into Phase 3 camera viewer hardening.
+- Keep the existing targeted camera gates green while rebuilding confidence in
+  the shared entry flow and the first live viewer path.
+- Do not skip ahead to milestone closeout claims while Phase 2 or Phase 3
+  still need product-lane cleanup.
 - Current branch: `codex/expense-camera`
 
 Operating rules:
@@ -71,9 +72,9 @@ QA:
 - Test camera launch route does not require compression setup.
 
 Status:
-- Targeted gate is green. This phase now acts as the validated baseline for
-  Phase 3 viewer work, with real-device proof still pending later in the
-  roadmap.
+- In active progress. The compact chooser and first-use assist question are the
+  current working lane, and this phase stays open until the Add Receipt path is
+  clean enough to hand off directly into Phase 3 viewer work.
 
 ## Phase 3: Camera viewer
 
@@ -101,9 +102,9 @@ QA:
 - Regression for no tap-to-focus screen behavior.
 
 Status:
-- Targeted gate is green. Remaining work is real-device viewer proof and any
-  bounded polish needed to satisfy these requirements without rebuilding a pro
-  camera app.
+- Next after Phase 2. Existing viewer contracts stay useful, but this phase is
+  still open until the live camera view is cleaned up against the roadmap
+  requirements on real app flow, not just source-level contracts.
 
 ## Phase 4: Post-photo review
 
@@ -246,9 +247,10 @@ Exit criteria:
 - No PDF/inventory/admin drift.
 
 Status:
-- Active pass lane. Phase 2 through Phase 9 targeted gates are green. The
-  remaining work is final parity cleanup, real-device manual receipt proof, and
-  the closing milestone verification bundle.
+- Active pass lane. Phase 2 receipt entry flow is the current bundle, followed
+  immediately by Phase 3 camera viewer cleanup. Later targeted gates stay in
+  place as guardrails, but they are not permission to skip the current roadmap
+  order.
 
 Status:
 - Not complete.
