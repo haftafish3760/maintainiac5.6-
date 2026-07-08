@@ -58,6 +58,18 @@ void main() {
       'equipment whip',
     ]);
   });
+
+  test('hvac core covers supplemental service stock receipt language', () {
+    _expectGoodHvacCore('LOCAL HVAC 40/5 MFD DUAL RUN CAP 440V', [
+      'capacitor',
+    ]);
+    _expectGoodHvacCore('FERG 30A 2P CONTACT0R 24V COIL', ['contactor']);
+    _expectGoodHvacCore('WINSUPPLY 3A LOW VOLT FUSE PK', ['fuse']);
+    _expectGoodHvacCore('ACE C WIRE ADAPTER TSTAT', ['adapter']);
+    _expectGoodHvacCore('MENARDS NO RINSE COIL CLEANER', ['cleaner']);
+    _expectGoodHvacCore('FASTENAL FOAM GASKET TAPE ROLL', ['tape']);
+    _expectGoodHvacCore('RURAL KING 30X30 EQUIP PAD', ['pad']);
+  });
 }
 
 void _expectGoodHvacCore(String line, List<String> expectedTerms) {

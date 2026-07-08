@@ -100,6 +100,11 @@ List<Map<String, Object?>> _buildCases({
     final merchant = _merchants[index % _merchants.length];
     final pattern = recipe.patterns[index % recipe.patterns.length];
     final rawLine = '${merchant.prefix} $pattern ${_priceSuffix(index)}'.trim();
+    final receiptEnvelope = _receiptEnvelopeFor(
+      index: index,
+      merchant: merchant,
+      itemLine: rawLine,
+    );
     final id = [
       options.trade,
       options.scope,
@@ -115,6 +120,9 @@ List<Map<String, Object?>> _buildCases({
       'riskTags': [
         ...recipe.riskTags,
         merchant.riskTag,
+        'full_receipt_envelope',
+        'pos_noise',
+        'receipt_totals',
         ..._supplementalRiskTags(
           index: index,
           merchant: merchant,
@@ -127,6 +135,11 @@ List<Map<String, Object?>> _buildCases({
         'generated_batch',
       ],
       'rawLine': rawLine,
+      'receiptText': receiptEnvelope.text,
+      'receiptItemLines': receiptEnvelope.itemLines,
+      'receiptNoiseLines': receiptEnvelope.noiseLines,
+      'receiptTotals': receiptEnvelope.totals,
+      'receiptStructure': receiptEnvelope.structure,
       'expectedTrade': recipe.expectedTrade.isEmpty
           ? _title(options.trade)
           : recipe.expectedTrade,
@@ -144,6 +157,88 @@ List<Map<String, Object?>> _buildCases({
     index++;
   }
   return cases;
+}
+
+_SyntheticReceiptEnvelope _receiptEnvelopeFor({
+  required int index,
+  required _MerchantShape merchant,
+  required String itemLine,
+}) {
+  final transaction = (100000 + (index * 37)).toString();
+  final register = (1 + (index % 12)).toString().padLeft(2, '0');
+  final cashier = (100 + (index % 89)).toString();
+  final quantity = 1 + (index % 4);
+  final unitPrice = _money(2.49 + (index % 41) + ((index * 13) % 100) / 100);
+  final extended = _money(quantity * unitPrice);
+  final discount = index % 7 == 0 ? _money(extended * 0.10) : 0.0;
+  final taxable = extended - discount;
+  final tax = _money(taxable * 0.053);
+  final total = _money(taxable + tax);
+  final quantityLine = 'QTY $quantity @ ${unitPrice.toStringAsFixed(2)}';
+  final pricedItemLine = '$itemLine ${extended.toStringAsFixed(2)}';
+  final noiseLines = [
+    merchant.name.toUpperCase(),
+    'STORE ${1000 + (index % 899)}  REG $register  CASHIER $cashier',
+    'DATE 07/08/2026  TIME ${_receiptTime(index)}',
+    'TRANS $transaction  INVOICE ${transaction.substring(1)}',
+    'AISLE ${1 + (index % 44)} BAY ${1 + (index % 18)}',
+    if (discount > 0) 'DISCOUNT -${discount.toStringAsFixed(2)}',
+    'SUBTOTAL ${taxable.toStringAsFixed(2)}',
+    'TAX ${tax.toStringAsFixed(2)}',
+    'TOTAL ${total.toStringAsFixed(2)}',
+    'VISA APPROVED AUTH ${(9000 + index % 999).toString()}',
+    'THANK YOU FOR SHOPPING',
+  ];
+  final receiptLines = [
+    noiseLines[0],
+    noiseLines[1],
+    noiseLines[2],
+    noiseLines[3],
+    pricedItemLine,
+    quantityLine,
+    ...noiseLines.skip(4),
+  ];
+  return _SyntheticReceiptEnvelope(
+    text: receiptLines.join('\n'),
+    itemLines: [pricedItemLine],
+    noiseLines: noiseLines,
+    totals: {
+      'quantity': quantity,
+      'unitPrice': unitPrice,
+      'extended': extended,
+      'discount': discount,
+      'subtotal': taxable,
+      'tax': tax,
+      'total': total,
+    },
+    structure: const [
+      'store_header',
+      'date',
+      'time',
+      'register',
+      'cashier',
+      'transaction_number',
+      'invoice_number',
+      'item_lines',
+      'quantity',
+      'unit_price',
+      'extended_price',
+      'discount',
+      'tax',
+      'subtotal',
+      'total',
+      'tender_type',
+    ],
+  );
+}
+
+double _money(double value) => (value * 100).roundToDouble() / 100;
+
+String _receiptTime(int index) {
+  final hour = 6 + (index % 14);
+  final minute = (index * 11) % 60;
+  return '${hour.toString().padLeft(2, '0')}:'
+      '${minute.toString().padLeft(2, '0')}';
 }
 
 String _fixtureTradeScope(
@@ -415,6 +510,22 @@ class _MerchantShape {
   final String name;
   final String prefix;
   final String riskTag;
+}
+
+class _SyntheticReceiptEnvelope {
+  const _SyntheticReceiptEnvelope({
+    required this.text,
+    required this.itemLines,
+    required this.noiseLines,
+    required this.totals,
+    required this.structure,
+  });
+
+  final String text;
+  final List<String> itemLines;
+  final List<String> noiseLines;
+  final Map<String, Object?> totals;
+  final List<String> structure;
 }
 
 const _merchants = [

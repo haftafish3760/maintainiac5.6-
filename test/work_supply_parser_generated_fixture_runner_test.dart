@@ -81,6 +81,7 @@ void main() {
 
     final failures = <String>[];
     final timings = <Map<String, Object?>>[];
+    var parserCallCount = warmupLines.length;
     for (var index = 0; index < fixtures.length; index++) {
       final fixture = fixtures[index];
       _writeGeneratedFixtureProgress(
@@ -96,21 +97,30 @@ void main() {
         fixtureIds: fixtureIds,
       );
       final timer = Stopwatch()..start();
-      final match = matchReceiptLineToCatalog(
-        fixture.rawLine,
-        tradeScope: fixture.tradeScope,
-        localePackId: fixture.localePackId,
-        maxCandidates: 24,
-      );
+      final matches = [
+        for (final line in fixture.parserLines)
+          matchReceiptLineToCatalog(
+            line,
+            tradeScope: fixture.tradeScope,
+            localePackId: fixture.localePackId,
+            maxCandidates: 24,
+          ),
+      ];
+      parserCallCount += fixture.parserLines.length;
       timer.stop();
       timings.add({
         'id': fixture.id,
         'durationMs': timer.elapsedMilliseconds,
         'caseType': fixture.caseType,
+        'parserLineCount': fixture.parserLines.length,
       });
 
       if (fixture.expectUnknown) {
-        if (match != null && match.confidence > fixture.maxConfidence) {
+        final overconfident = matches.where(
+          (match) => match != null && match.confidence > fixture.maxConfidence,
+        );
+        if (overconfident.isNotEmpty) {
+          final match = overconfident.first!;
           failures.add(
             '${fixture.id}: expected review/unknown <= '
             '${fixture.maxConfidence}, got ${match.item.name} '
@@ -119,8 +129,18 @@ void main() {
         }
         continue;
       }
+      ReceiptLineMatch? match;
+      for (final candidate in matches) {
+        if (candidate != null) {
+          match = candidate;
+          break;
+        }
+      }
       if (match == null) {
-        failures.add('${fixture.id}: expected match, got null');
+        failures.add(
+          '${fixture.id}: expected match, got null for '
+          '${fixture.parserLines.join(' | ')}',
+        );
         continue;
       }
       if (fixture.expectedTrade.isNotEmpty &&
@@ -155,6 +175,7 @@ void main() {
       fixtureIds: fixtureIds,
       warmupCallCount: warmupLines.length,
       warmupEnabled: warmupEnabled,
+      parserCallCount: parserCallCount,
     );
     // ignore: avoid_print
     print(
@@ -217,6 +238,17 @@ void main() {
     expect(selected.map((fixture) => fixture.id), ['fixture_2', 'fixture_3']);
   });
 
+  test('generated fixture runner validates receipt envelope item lines', () {
+    const fixture = _GeneratedFixture(
+      id: 'fixture_receipt_envelope',
+      rawLine: 'SUBTOTAL 99.00',
+      receiptItemLines: ['LOWES TOILET WAX RING 4.98'],
+      caseType: 'clear_match',
+    );
+
+    expect(fixture.parserLines, ['LOWES TOILET WAX RING 4.98']);
+  });
+
   test('generated fixture warmup keeps each fixture trade scope', () {
     final probes = _warmupLinesFor(const [
       _GeneratedFixture(
@@ -268,6 +300,7 @@ void main() {
       fixtureIds: const {},
       warmupCallCount: 0,
       warmupEnabled: false,
+      parserCallCount: 1,
     );
 
     final report =
@@ -353,6 +386,7 @@ _GeneratedFixtureRunArtifact _writeGeneratedFixtureReport({
   required Set<String> fixtureIds,
   required int warmupCallCount,
   required bool warmupEnabled,
+  required int parserCallCount,
 }) {
   final directory = Directory(reportDir)..createSync(recursive: true);
   final stamp = DateTime.now().toUtc().toIso8601String().replaceAll(
@@ -380,7 +414,7 @@ _GeneratedFixtureRunArtifact _writeGeneratedFixtureReport({
     'writesProductionCatalog': false,
     'firebaseWritesAllowed': false,
     'ocrCameraExpensesTouched': false,
-    'parserCalls': checked + warmupCallCount,
+    'parserCalls': parserCallCount,
     'warmupCallCount': warmupCallCount,
     'generatedAtIso': DateTime.now().toUtc().toIso8601String(),
   };
@@ -452,6 +486,7 @@ class _GeneratedFixture {
     required this.id,
     required this.rawLine,
     required this.caseType,
+    this.receiptItemLines = const [],
     this.expectedTrade = '',
     this.expectedNameContains = '',
     this.tradeScope,
@@ -463,6 +498,7 @@ class _GeneratedFixture {
   final String id;
   final String rawLine;
   final String caseType;
+  final List<String> receiptItemLines;
   final String expectedTrade;
   final String expectedNameContains;
   final String? tradeScope;
@@ -470,11 +506,24 @@ class _GeneratedFixture {
   final bool expectUnknown;
   final double maxConfidence;
 
+  List<String> get parserLines {
+    final lines = receiptItemLines
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList(growable: false);
+    if (lines.isNotEmpty) return lines;
+    return rawLine.trim().isEmpty ? const [] : [rawLine.trim()];
+  }
+
   static _GeneratedFixture fromJson(Map<String, Object?> json) {
     return _GeneratedFixture(
       id: json['id'] as String? ?? 'generated_fixture_without_id',
       rawLine: json['rawLine'] as String? ?? '',
       caseType: json['caseType'] as String? ?? '',
+      receiptItemLines: [
+        for (final line in (json['receiptItemLines'] as List? ?? const []))
+          if (line != null) line.toString(),
+      ],
       expectedTrade: json['expectedTrade'] as String? ?? '',
       expectedNameContains: json['expectedNameContains'] as String? ?? '',
       tradeScope: json['tradeScope'] as String?,

@@ -65,6 +65,19 @@ double _specificityEvidenceScore(String text, WorkSupplyItem item) {
   ).hasMatch(itemText)) {
     score += 0.03;
   }
+  if (RegExp(r'\b(c\s*wire|common\s+wire|wire\s+saver)\b').hasMatch(text) &&
+      itemText.contains('common wire adapter')) {
+    score += 0.10;
+  }
+  if (RegExp(r'\b(surge|spd)\b').hasMatch(text) &&
+      itemText.contains('surge protector')) {
+    score += 0.10;
+  }
+  if (RegExp(r'\b(foam|gasket)\b').hasMatch(text) &&
+      RegExp(r'\btape\b').hasMatch(text) &&
+      itemText.contains('foam gasket tape')) {
+    score += 0.10;
+  }
   final rawItemText = '${item.name} ${item.variant} ${item.itemType}'
       .toLowerCase();
   if (_hasPTrapReceiptPhrase(text) &&

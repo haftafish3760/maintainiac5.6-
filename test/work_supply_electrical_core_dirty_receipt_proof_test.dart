@@ -70,6 +70,22 @@ void main() {
       'conduit',
     ]);
   });
+
+  test('electrical core covers supplemental service stock receipt language', () {
+    _expectGoodElectricalCore('ACE 20A PLUG FUSE 4PK', ['fuse']);
+    _expectGoodElectricalCore('TRUE VALUE 60A CART FUSE PAIR', ['fuse']);
+    _expectGoodElectricalCore('LOCAL ELEC SUPPLY WH SURGE PROTECTR SPD', [
+      'surge',
+    ]);
+    _expectGoodElectricalCore('SUPPLYHOUSE PANEL GROUND BAR KIT', ['ground']);
+    _expectGoodElectricalCore('MENARDS PORCLN KEYLESS LAMPHLDR', [
+      'lampholder',
+    ]);
+    _expectGoodElectricalCore('WINSUPPLY PHOTO EYE SWVL CONTROL 120V', [
+      'photo',
+    ]);
+    _expectGoodElectricalCore('FASTENAL SPLIT BOLT CONN GROUND', ['split']);
+  });
 }
 
 void _expectGoodElectricalCore(String line, List<String> expectedTerms) {

@@ -713,17 +713,43 @@ WorkSupplyItem? _directElectricalServiceRepairMatch(
       'wire marker',
     final value when RegExp(r'\bcircuit\s+directory\b').hasMatch(value) =>
       'circuit directory',
+    final value
+        when RegExp(r'\b(plug|cartridge|cart|fuse)\b').hasMatch(value) &&
+            RegExp(r'\bfuse\b').hasMatch(value) =>
+      'fuse',
+    final value when RegExp(r'\b(surge|spd)\b').hasMatch(value) =>
+      'surge protector',
+    final value
+        when RegExp(r'\b(panel|load\s*center)\b').hasMatch(value) &&
+            RegExp(r'\b(ground|neutral)\s+bar\b').hasMatch(value) =>
+      'bar kit',
+    final value when RegExp(r'\bsplit\s+bolt\b').hasMatch(value) =>
+      'split bolt',
     final value when RegExp(r'\bporcelain\s+lampholder\b').hasMatch(value) =>
       'porcelain lampholder',
     final value
         when RegExp(
-          r'\b(keyless|pull\s+chain|weatherproof)\s+lampholder\b',
+          r'\b(keyless|pull\s+chain|weatherproof)\s+lampholder\b|'
+          r'\b(porcln|porcelain|keyless|pull\s+chain|weatherproof)\s+'
+          r'(lamp\s*hldr|lamphldr)\b',
         ).hasMatch(value) =>
       'lampholder',
+    final value when RegExp(r'\b(photo\s*eye|photocell)\b').hasMatch(value) =>
+      'photo',
     _ => null,
   };
   if (wantedName == null) return null;
-  final size = wantedName == 'ground screw' ? null : _nominalReceiptSize(text);
+  final size =
+      {
+        'bar kit',
+        'fuse',
+        'ground screw',
+        'photo',
+        'split bolt',
+        'surge protector',
+      }.contains(wantedName)
+      ? null
+      : _nominalReceiptSize(text);
   WorkSupplyItem? fallback;
   for (final item in workSupplyCatalogItems) {
     final name = item.name.toLowerCase();
@@ -1235,6 +1261,50 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
         return item;
       }
     }
+  }
+
+  final wantsCommonWireAdapter =
+      RegExp(r'\b(c\s*wire|common\s+wire|wire\s+saver)\b').hasMatch(text) &&
+      RegExp(r'\b(adapter|adpt|tstat|thermostat)\b').hasMatch(text);
+  if (wantsCommonWireAdapter) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'HVAC' &&
+          (name.contains('common wire adapter') ||
+              name.contains('wire saver'))) {
+        return item;
+      }
+    }
+  }
+
+  final wantsCoilCleaner =
+      RegExp(r'\b(coil|evap|evaporator|condenser)\b').hasMatch(text) &&
+      RegExp(r'\b(cleaner|clean|no\s*rinse)\b').hasMatch(text);
+  if (wantsCoilCleaner) {
+    WorkSupplyItem? fallback;
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade != 'HVAC' || !name.contains('coil cleaner')) continue;
+      if (item.packTier == WorkSupplyPackTier.core) return item;
+      fallback ??= item;
+    }
+    return fallback;
+  }
+
+  final wantsEquipmentPad =
+      RegExp(r'\b(equip|equipment|condenser)\b').hasMatch(text) &&
+      RegExp(r'\b(pad)\b').hasMatch(text);
+  if (wantsEquipmentPad) {
+    WorkSupplyItem? fallback;
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'HVAC' &&
+          (name.contains('equipment pad') || name.contains('condenser pad'))) {
+        if (item.packTier == WorkSupplyPackTier.core) return item;
+        fallback ??= item;
+      }
+    }
+    return fallback;
   }
 
   final wantsThermostat = RegExp(
@@ -1871,13 +1941,15 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(
-    r'\b(well pump|jet pump|shallow well|deep well|bomba pozo|bomba de pozo|bomba agua pozo)\b',
-  ).hasMatch(text) &&
+        r'\b(well pump|jet pump|shallow well|deep well|bomba pozo|bomba de pozo|bomba agua pozo)\b',
+      ).hasMatch(text) &&
       !RegExp(r'\b(check|chk|valve|valv|switch|sw|gauge)\b').hasMatch(text)) {
-    final wantsShallow =
-        RegExp(r'\b(shallow|jet|superficial)\b').hasMatch(text);
-    final wantsDeep =
-        RegExp(r'\b(deep|submersible|sumergible|profundo)\b').hasMatch(text);
+    final wantsShallow = RegExp(
+      r'\b(shallow|jet|superficial)\b',
+    ).hasMatch(text);
+    final wantsDeep = RegExp(
+      r'\b(deep|submersible|sumergible|profundo)\b',
+    ).hasMatch(text);
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing' || !name.contains('well pump')) continue;
@@ -2487,6 +2559,14 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(water htr|wtr htr|water heater)\b').hasMatch(text) &&
       RegExp(r'\b(vacuum relief|vac relief)\b').hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('water heater install accessory') &&
+          name.contains('vacuum relief')) {
+        return item;
+      }
+    }
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
@@ -3499,6 +3579,19 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
   }
+  if (RegExp(r'\bpvc\b').hasMatch(text) &&
+      RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
+      !RegExp(r'\b(cpvc|primer|trap\s+primer|paint)\b').hasMatch(text)) {
+    final amount = _receiptPackageAmount(text, 'oz');
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('pvc cement') &&
+          (amount == null || _nameStartsWithAmount(name, amount, 'oz'))) {
+        return item;
+      }
+    }
+  }
   if (RegExp(
     r'\b(sump|pump)\b.*\b(check valve|chk valve|one way valve)\b',
   ).hasMatch(text)) {
@@ -4366,7 +4459,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
   }
-  if (RegExp(r'\bbrass\b').hasMatch(text) &&
+  if (RegExp(r'\b(brass|brs)\b').hasMatch(text) &&
       RegExp(r'\b(compression union|compression unions)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
@@ -5029,7 +5122,18 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(pvc|dwv)\b').hasMatch(text) &&
-      RegExp(r'\b(test tee|cleanout tee)\b').hasMatch(text)) {
+      RegExp(
+        r'\b(test\s+tee|test\s+t|cleanout\s+tee|clean\s*out\s+tee)\b',
+      ).hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('pvc dwv test tee') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('pvc dwv test tee')) {

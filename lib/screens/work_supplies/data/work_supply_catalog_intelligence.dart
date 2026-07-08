@@ -214,10 +214,29 @@ bool _isExpandedElectricalServiceCore(String system, String text) {
   if (system == 'cable connector and wire termination stock') {
     return _hasAny(text, _electricalCoreConsumableSignals);
   }
+  if (system == 'breaker and panel service stock') {
+    return _hasAny(text, _electricalCoreBreakerSignals) ||
+        _hasAny(text, _electricalCoreServiceEquipmentSignals) ||
+        _hasAny(text, [
+          'plug fuse',
+          'cartridge fuse',
+          'fuse pair',
+          'surge protector',
+          'ground bar kit',
+          'neutral bar kit',
+          'bonding screw',
+          'panel screw',
+          'handle tie',
+        ]);
+  }
   if (system == 'residential safety and control stock') {
     return _hasAny(text, _electricalCoreFixtureSignals) ||
         _hasAny(text, _electricalCoreDeviceSignals) ||
         _hasAny(text, _electricalCoreLightingSignals);
+  }
+  if (system == 'grounding bonding and small hardware stock') {
+    return _hasAny(text, _electricalCoreGroundingSignals) ||
+        _hasAny(text, ['anti oxidant', 'noalox', 'split bolt']);
   }
   if (system == 'expanded boxes and covers') {
     return _hasAny(text, _electricalCoreBoxSignals) &&
@@ -242,6 +261,7 @@ bool _isExpandedElectricalServiceCore(String system, String text) {
 bool _isHvacCoreItem(WorkSupplyItem item, String text) {
   final category = item.category.toLowerCase();
   final system = item.system.toLowerCase();
+  if (category == 'hvac core supplemental service stock') return true;
   if (category == 'air filters' || system == 'expanded air filters') {
     return _hasAny(text, _hvacCoreFilterSignals);
   }

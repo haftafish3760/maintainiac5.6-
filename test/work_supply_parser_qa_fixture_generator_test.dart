@@ -65,6 +65,18 @@ void main() {
       expect(fixtures.first['sourceType'], 'synthetic');
       expect(fixtures.first['reviewStatus'], 'generated-not-release-approved');
       expect(fixtures.any((entry) => entry['expectUnknown'] == true), isTrue);
+      expect(fixtures.first['receiptText'], isA<String>());
+      expect(fixtures.first['receiptText'].toString(), contains('TOTAL'));
+      expect(fixtures.first['receiptText'].toString(), contains('VISA'));
+      expect(fixtures.first['receiptItemLines'], isA<List>());
+      expect(fixtures.first['receiptNoiseLines'], isA<List>());
+      expect(fixtures.first['receiptTotals'], isA<Map>());
+      expect(fixtures.first['receiptStructure'].toString(), contains('tax'));
+      expect(fixtures.first['riskTags'].toString(), contains('pos_noise'));
+      expect(
+        fixtures.first['riskTags'].toString(),
+        contains('full_receipt_envelope'),
+      );
       final ambiguous = fixtures.cast<Map>().firstWhere(
         (entry) => entry['caseType'] == 'ambiguous_review',
       );
