@@ -201,6 +201,55 @@ void main() {
   );
 
   test(
+    'stitches receipt sections with only a few repeated guide lines',
+    () async {
+      final sectionA = addReceiptStitchingWear(
+        receiptStitchingSection(seed: 81, topTextOffset: 0),
+        seed: 810,
+        wrinkleCount: 7,
+        smudgeCount: 4,
+      );
+      final sectionB = addReceiptStitchingWear(
+        receiptStitchingSection(seed: 82, topTextOffset: 18),
+        seed: 820,
+        wrinkleCount: 8,
+        smudgeCount: 4,
+      );
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 210,
+        dstY: 24,
+      );
+      final shiftedSecond = shiftReceiptStitchingShot(
+        adjustReceiptStitchingBrightness(sectionB, delta: 16),
+        dx: -18,
+        dy: 0,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'few_repeated_lines_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        shiftedSecond,
+        'few_repeated_lines_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.overlapPixels.single, greaterThanOrEqualTo(190));
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
+
+  test(
     'keeps severe horizontal drift in weak-overlap review lane',
     () async {
       final sectionA = receiptStitchingSection(seed: 66, topTextOffset: 0);
