@@ -14,6 +14,10 @@ void main() {
     expect(source, contains(r'RECEIPT_STITCH_TEST_TIMEOUT_SECONDS:-600'));
     expect(source, contains(r'local test_pid=$!'));
     expect(source, contains(r'local watchdog_pid=$!'));
+    expect(source, contains('set +e'));
+    expect(source, contains(r'wait "$test_pid"'));
+    expect(source, contains(r'local exit_code=$?'));
+    expect(source, contains('set -e'));
     expect(source, contains(r'kill "$test_pid"'));
     expect(source, contains(r'kill "$watchdog_pid"'));
     expect(

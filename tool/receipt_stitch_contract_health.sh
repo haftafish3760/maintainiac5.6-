@@ -22,9 +22,13 @@ run_flutter_test() {
     fi
   ) &
   local watchdog_pid=$!
-  if wait "$test_pid"; then
-    kill "$watchdog_pid" 2>/dev/null || true
-    wait "$watchdog_pid" 2>/dev/null || true
+  set +e
+  wait "$test_pid"
+  local exit_code=$?
+  set -e
+  kill "$watchdog_pid" 2>/dev/null || true
+  wait "$watchdog_pid" 2>/dev/null || true
+  if [[ "$exit_code" -eq 0 ]]; then
     if perl -pe 's/\r/\n/g' "$tmp" | grep -q 'Some tests failed'; then
       echo "Receipt stitch $label reported failed tests despite a zero exit code. Log tail:" >&2
       perl -pe 's/\r/\n/g' "$tmp" | tail -n 180 >&2
@@ -35,9 +39,6 @@ run_flutter_test() {
     rm -f "$tmp"
     return 0
   fi
-  local exit_code=$?
-  kill "$watchdog_pid" 2>/dev/null || true
-  wait "$watchdog_pid" 2>/dev/null || true
   echo "Receipt stitch $label failed. Log tail:" >&2
   perl -pe 's/\r/\n/g' "$tmp" | tail -n 180 >&2
   rm -f "$tmp"
