@@ -212,6 +212,30 @@ while IFS= read -r path; do
   esac
 
   case "$path" in
+    lib/shared/widgets/receipt_capture/receipt_ocr_source_handoff.dart | \
+    lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart | \
+    lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_risk_flags.dart | \
+    lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_signals.dart | \
+    lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_risks.dart | \
+    lib/shared/widgets/receipt_capture/receipt_attachment_publish_helpers.dart | \
+    lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart | \
+    android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt | \
+    ios/Runner/ReceiptCameraViewControllerSessionSettings.swift | \
+    ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift | \
+    test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart | \
+    test/receipt_camera_phase8_storage_proof_timing_contract_test.dart | \
+    test/receipt_camera_result_stitch_handoff_followthrough_test.dart | \
+    test/receipt_camera_result_review_resume_test.dart | \
+    test/receipt_ocr_source_* | \
+    test/receipt_ocr_source_relationship_test.dart | \
+    test/receipt_native_camera_phase8_storage_timing_test.dart)
+      if [[ "$mode" == "quick" || "$mode" == "milestone" ]]; then
+        mode="core_remaining"
+      fi
+      ;;
+  esac
+
+  case "$path" in
     lib/shared/widgets/receipt_capture/*stitch* | \
     lib/shared/receipts/*stitch* | \
     test/helpers/receipt_stitching_* | \

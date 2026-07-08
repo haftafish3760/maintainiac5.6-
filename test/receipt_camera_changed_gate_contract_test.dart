@@ -18,6 +18,7 @@ void main() {
     );
     expect(script, contains('no tracked camera changes; skipping QA rerun'));
     expect(script, contains('mode="quick"'));
+    expect(script, contains('mode="core_remaining"'));
     expect(script, contains('mode="stitch"'));
     expect(script, contains('mode="milestone"'));
     expect(script, contains('mode="full"'));
@@ -121,6 +122,18 @@ void main() {
       script,
       contains('test/receipt_native_ios_bridge_settings_close_test.dart'),
     );
+    expect(
+      script,
+      contains('test/receipt_camera_phase6_stitching_handoff_contract_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_camera_phase8_storage_proof_timing_contract_test.dart'),
+    );
     expect(script, contains('awk \'!seen[\$0]++'));
     expect(script, contains('test/receipt_camera_qa_gate_contract_test.dart'));
     expect(
@@ -156,7 +169,7 @@ void main() {
 
     expect(result.exitCode, 0);
     final stdout = result.stdout.toString();
-    expect(stdout, contains('mode=milestone'));
+    expect(stdout, contains('mode=core_remaining'));
     expect(
       stdout,
       contains(
@@ -284,6 +297,42 @@ void main() {
     expect(
       result.stdout.toString(),
       contains('Receipt camera changed gate: selected milestone for tracked camera changes.'),
+    );
+  });
+
+  test('camera changed gate selects core remaining for stitch and OCR handoff files', () async {
+    final result = await Process.run('bash', [
+      'tool/receipt_camera_changed_gate.sh',
+      '--print-mode',
+    ], environment: {
+      'RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST': [
+        'lib/shared/widgets/receipt_capture/receipt_capture_stitch_models.dart',
+        'lib/shared/widgets/receipt_capture/receipt_ocr_source_handoff.dart',
+      ].join('\n'),
+    });
+
+    expect(result.exitCode, 0);
+    expect(
+      result.stdout.toString(),
+      contains('Receipt camera changed gate: selected core_remaining for tracked camera changes.'),
+    );
+  });
+
+  test('camera changed gate selects core remaining for storage timing files', () async {
+    final result = await Process.run('bash', [
+      'tool/receipt_camera_changed_gate.sh',
+      '--print-mode',
+    ], environment: {
+      'RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST': [
+        'lib/shared/widgets/receipt_capture/receipt_attachment_publish_helpers.dart',
+        'ios/Runner/ReceiptCameraViewControllerSessionSettings.swift',
+      ].join('\n'),
+    });
+
+    expect(result.exitCode, 0);
+    expect(
+      result.stdout.toString(),
+      contains('Receipt camera changed gate: selected core_remaining for tracked camera changes.'),
     );
   });
 }

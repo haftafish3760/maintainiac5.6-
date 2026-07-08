@@ -39,6 +39,24 @@ void main() {
     );
     expect(
       await selectedModeFor(
+        'lib/shared/widgets/receipt_capture/receipt_capture_stitch_models.dart',
+      ),
+      contains('selected stitch'),
+    );
+    expect(
+      await selectedModeFor(
+        'lib/shared/widgets/receipt_capture/receipt_ocr_source_handoff.dart',
+      ),
+      contains('selected core_remaining'),
+    );
+    expect(
+      await selectedModeFor(
+        'lib/shared/widgets/receipt_capture/receipt_attachment_publish_helpers.dart',
+      ),
+      contains('selected core_remaining'),
+    );
+    expect(
+      await selectedModeFor(
         'lib/shared/widgets/receipt_capture/receipt_capture_review_result.dart',
       ),
       contains('selected milestone'),
