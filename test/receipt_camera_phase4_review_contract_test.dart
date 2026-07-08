@@ -77,12 +77,12 @@ void main() {
       controls,
       contains('onContinue: continueEnabled ? onContinue : null'),
     );
-    expect(previewRow, contains("'Preparing'"));
-    expect(commonControls, contains("const Text('Preparing')"));
+    expect(previewRow, contains("'Opening'"));
+    expect(commonControls, contains("const Text('Opening')"));
     expect(
       commonControls,
       contains(
-        "final semanticLabel = savingPhotos ? 'Preparing receipt details' : label;",
+        "final semanticLabel = savingPhotos ? 'Opening receipt details' : label;",
       ),
     );
     expect(
@@ -95,7 +95,7 @@ void main() {
       controls,
       isNot(
         contains(
-          "const ReceiptPickerStatus(label: 'Preparing receipt details...')",
+          "const ReceiptPickerStatus(label: 'Opening receipt details...')",
         ),
       ),
     );

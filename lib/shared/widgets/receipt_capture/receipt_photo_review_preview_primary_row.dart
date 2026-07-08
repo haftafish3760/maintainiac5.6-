@@ -185,7 +185,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                             : const Icon(Icons.check_rounded),
                         label: savingPhotos
                             ? const Text(
-                                'Preparing',
+                                'Opening',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               )

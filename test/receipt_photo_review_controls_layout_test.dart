@@ -189,9 +189,9 @@ void main() {
     expect(controls, contains('onMatch: interactionLocked'));
     expect(controls, contains('onCrop: interactionLocked'));
     expect(controls, contains('selected: index == effectiveSelectedIndex'));
-    expect(commonControls, contains("'Preparing receipt details'"));
-    expect(commonControls, contains("const Text('Preparing')"));
-    expect(commonControls, isNot(contains("'Preparing receipt review'")));
+    expect(commonControls, contains("'Opening receipt details'"));
+    expect(commonControls, contains("const Text('Opening')"));
+    expect(commonControls, isNot(contains("'Opening receipt review'")));
     expect(controls, contains(': continueLabel'));
     expect(previewControls, contains(r"'Photo $current of $total'"));
     expect(previewControls, isNot(contains(r"'$current/$total'")));

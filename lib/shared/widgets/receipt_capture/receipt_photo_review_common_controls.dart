@@ -15,7 +15,7 @@ class _ReceiptPersistentContinueButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final semanticLabel = savingPhotos ? 'Preparing receipt details' : label;
+    final semanticLabel = savingPhotos ? 'Opening receipt details' : label;
     return Tooltip(
       message: semanticLabel,
       child: Semantics(
@@ -34,7 +34,7 @@ class _ReceiptPersistentContinueButton extends StatelessWidget {
               )
               : const Icon(Icons.check_rounded),
           label: savingPhotos
-              ? const Text('Preparing')
+              ? const Text('Opening')
               : _ReceiptNextReviewLabel(label: label),
           style: FilledButton.styleFrom(
             minimumSize: const Size.fromHeight(42),
