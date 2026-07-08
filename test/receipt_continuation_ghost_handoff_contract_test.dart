@@ -1,0 +1,114 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_flow.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_native_camera_contract.dart';
+
+void main() {
+  test('continuation ghost is inactive without a valid guide photo', () {
+    final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
+      previousPhotoPaths: const [
+        'relative-receipt.jpg',
+        'https://example.test/receipt.jpg',
+        '/tmp/receipt-note.txt',
+      ],
+      reasonCode: 'missing_bottom_edge_and_totals',
+      guidance: 'Repeat the last lines.',
+    );
+    final options = guide.applyTo(
+      const ReceiptCaptureFlowOptions(
+        module: ReceiptCaptureFlowModule.expenses,
+        forceLongReceiptMode: true,
+      ),
+    );
+    final session = ReceiptNativeCameraSettings(
+      longReceiptMode: options.forceLongReceiptMode ?? false,
+    ).sessionFor(
+      deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+      nativeCapabilities: _nativeCapabilities,
+      previousSectionGuidePhotoPath: options.previousSectionGuidePhotoPath,
+      previousSectionReasonCode: options.previousSectionReasonCode,
+      previousSectionGuidance: options.previousSectionGuidance,
+      previousSectionGhostSourceStartFraction:
+          options.previousSectionGhostSourceStartFraction,
+      previousSectionGhostSourceHeightFraction:
+          options.previousSectionGhostSourceHeightFraction,
+      previousSectionGhostOverlayTopFraction:
+          options.previousSectionGhostOverlayTopFraction,
+      previousSectionGhostOverlayHeightFraction:
+          options.previousSectionGhostOverlayHeightFraction,
+      previousSectionGhostOpacity: options.previousSectionGhostOpacity,
+    );
+
+    expect(guide.hasReason, isTrue);
+    expect(guide.hasGuidePhoto, isFalse);
+    expect(options.previousSectionReasonCode, 'missing_bottom_edge_and_totals');
+    expect(options.previousSectionGuidePhotoPath, isNull);
+    expect(session.hasPreviousSectionGuide, isFalse);
+    expect(session.previousSectionGhostGuidePolicy, 'not_requested');
+    expect(session.previousSectionGuideGuidance, isEmpty);
+    expect(
+      session.nativeControlContractTags,
+      isNot(contains('previous_section_ghost')),
+    );
+  });
+
+  test('continuation ghost activates from last valid local image path', () {
+    final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
+      previousPhotoPaths: const [
+        '/tmp/section-1.jpg',
+        'relative-section.jpg',
+        ' /tmp/section-2.PNG ',
+      ],
+      reasonCode: 'manual_add_photo_continuation',
+      guidance: 'Repeat the last readable lines.',
+    );
+    final options = guide.applyTo(
+      const ReceiptCaptureFlowOptions(
+        module: ReceiptCaptureFlowModule.expenses,
+        forceLongReceiptMode: true,
+      ),
+    );
+    final session = const ReceiptNativeCameraSettings(
+      longReceiptMode: true,
+    ).sessionFor(
+      deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+      nativeCapabilities: _nativeCapabilities,
+      previousSectionGuidePhotoPath: options.previousSectionGuidePhotoPath,
+      previousSectionReasonCode: options.previousSectionReasonCode,
+      previousSectionGuidance: options.previousSectionGuidance,
+      previousSectionGhostSourceStartFraction:
+          options.previousSectionGhostSourceStartFraction,
+      previousSectionGhostSourceHeightFraction:
+          options.previousSectionGhostSourceHeightFraction,
+      previousSectionGhostOverlayTopFraction:
+          options.previousSectionGhostOverlayTopFraction,
+      previousSectionGhostOverlayHeightFraction:
+          options.previousSectionGhostOverlayHeightFraction,
+      previousSectionGhostOpacity: options.previousSectionGhostOpacity,
+    );
+
+    expect(guide.guidePhotoPath, '/tmp/section-2.PNG');
+    expect(session.hasPreviousSectionGuide, isTrue);
+    expect(session.previousSectionGhostGuidePlacement, 'top_ghost_slice');
+    expect(session.previousSectionGhostSourceStartFractionOrDefault, .80);
+    expect(session.previousSectionGhostSourceHeightFractionOrDefault, .20);
+    expect(session.previousSectionGhostOverlayTopFractionOrDefault, 0);
+    expect(session.previousSectionGhostOverlayHeightFractionOrDefault, .20);
+    expect(session.previousSectionGhostSlicePercent, 20);
+    expect(
+      session.nativeControlContractTags,
+      contains('previous_section_ghost'),
+    );
+  });
+}
+
+const _nativeCapabilities = ReceiptNativeCameraCapabilities(
+  engine: ReceiptNativeCameraEngine.cameraX,
+  available: true,
+  cameraPermissionGranted: true,
+  cameraCount: 2,
+  hasRearCamera: true,
+  supportsYuvLiveFrames: true,
+  supportsNativeEdgeSignals: true,
+);

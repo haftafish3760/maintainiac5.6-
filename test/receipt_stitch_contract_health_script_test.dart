@@ -121,6 +121,10 @@ void main() {
       source,
       contains('receipt_camera_stitch_candidate_metadata_test.dart'),
     );
+    expect(
+      source,
+      contains('receipt_continuation_ghost_handoff_contract_test.dart'),
+    );
     expect(source, contains('receipt_stitch_fallback_metadata_test.dart'));
     expect(source, contains('receipt_stitching_artifact_copy_contract_test.dart'));
     expect(source, contains('receipt_stitching_result_contract_test.dart'));
@@ -175,6 +179,10 @@ void main() {
     expect(
       source,
       contains('test/receipt_camera_stitch_candidate_metadata_test.dart'),
+    );
+    expect(
+      source,
+      contains('test/receipt_continuation_ghost_handoff_contract_test.dart'),
     );
     expect(
       source,
@@ -275,6 +283,10 @@ void main() {
     expect(
       source,
       contains('receipt_camera_stitch_candidate_metadata_test.dart'),
+    );
+    expect(
+      source,
+      contains('receipt_continuation_ghost_handoff_contract_test.dart'),
     );
     expect(source, contains('receipt_stitch_fallback_metadata_test.dart'));
     expect(source, contains('Receipt stitch contract health: PASS'));

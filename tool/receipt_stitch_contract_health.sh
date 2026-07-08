@@ -136,6 +136,7 @@ run_handoff() {
     test/receipt_camera_phase6_stitching_handoff_contract_test.dart \
     test/receipt_camera_result_stitch_handoff_followthrough_test.dart \
     test/receipt_camera_stitch_candidate_metadata_test.dart \
+    test/receipt_continuation_ghost_handoff_contract_test.dart \
     test/receipt_stitch_fallback_metadata_test.dart \
     test/receipt_stitching_artifact_copy_contract_test.dart \
     test/receipt_stitching_result_contract_test.dart \
@@ -177,6 +178,7 @@ run_source_size() {
     test/receipt_camera_result_section_order_test.dart
     test/receipt_camera_result_section_order_follow_through_test.dart
     test/receipt_camera_result_section_order_invalid_context_test.dart
+    test/receipt_continuation_ghost_handoff_contract_test.dart
   )
   for file in "${test_files[@]}"; do
     local lines
@@ -242,6 +244,7 @@ run_full() {
     test/receipt_camera_phase6_stitching_handoff_contract_test.dart \
     test/receipt_camera_result_stitch_handoff_followthrough_test.dart \
     test/receipt_camera_stitch_candidate_metadata_test.dart \
+    test/receipt_continuation_ghost_handoff_contract_test.dart \
     test/receipt_stitch_fallback_metadata_test.dart
   echo "Receipt stitch contract health: PASS"
 }
