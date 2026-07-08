@@ -281,43 +281,46 @@ void main() {
       );
     });
 
-    test('marks duplicate receipt section fallback as OCR source review risk', () {
-      final result = ReceiptPhotoReviewResult(
-        photoPaths: const ['/tmp/proof-1.jpg', '/tmp/proof-2.jpg'],
-        ocrSourcePhotoPaths: const ['/tmp/ocr-1.jpg', '/tmp/ocr-2.jpg'],
-        dataSaverLevel: ReceiptDataSaverLevel.balanced,
-        stitchResult: ReceiptStitchResult.fallback(
-          inputPaths: ['/tmp/ocr-1.jpg', '/tmp/ocr-2.jpg'],
-          warning: 'Duplicate receipt section detected.',
-          fallbackReasonCode: 'duplicate_section_image',
-          failedPairIndex: 0,
-        ),
-      );
+    test(
+      'marks duplicate receipt section fallback as OCR source review risk',
+      () {
+        final result = ReceiptPhotoReviewResult(
+          photoPaths: const ['/tmp/proof-1.jpg', '/tmp/proof-2.jpg'],
+          ocrSourcePhotoPaths: const ['/tmp/ocr-1.jpg', '/tmp/ocr-2.jpg'],
+          dataSaverLevel: ReceiptDataSaverLevel.balanced,
+          stitchResult: ReceiptStitchResult.fallback(
+            inputPaths: ['/tmp/ocr-1.jpg', '/tmp/ocr-2.jpg'],
+            warning: 'Duplicate receipt section detected.',
+            fallbackReasonCode: 'duplicate_section_image',
+            failedPairIndex: 0,
+          ),
+        );
 
-      expect(
-        result.stitchResult.ocrSourceContractCode,
-        'fallback_duplicate_section_image',
-      );
-      expect(result.stitchResult.hasValidOcrSourceContract, isFalse);
-      expect(
-        result.ocrSourceReviewRiskCode,
-        'stitch_ocr_source_contract_review_required',
-      );
-      expect(
-        result.ocrSourceReviewRequirement,
-        'manual_review_required_before_saving_receipt',
-      );
-      expect(
-        result.receiptReaderHandoffCounts,
-        containsPair(
-          'stitch_ocr_source_contract_fallback_duplicate_section_image',
-          1,
-        ),
-      );
-      expect(
-        result.privacySafeOcrSourceFirstSummary,
-        containsPair('ocrSourcePathsMatchStitchContract', true),
-      );
-    });
+        expect(
+          result.stitchResult.ocrSourceContractCode,
+          'fallback_duplicate_section_image',
+        );
+        expect(result.stitchResult.hasValidOcrSourceContract, isFalse);
+        expect(
+          result.ocrSourceReviewRiskCode,
+          'stitch_ocr_source_contract_review_required',
+        );
+        expect(
+          result.ocrSourceReviewRequirement,
+          'manual_review_required_before_saving_receipt',
+        );
+        expect(
+          result.receiptReaderHandoffCounts,
+          containsPair(
+            'stitch_ocr_source_contract_fallback_duplicate_section_image',
+            1,
+          ),
+        );
+        expect(
+          result.privacySafeOcrSourceFirstSummary,
+          containsPair('ocrSourcePathsMatchStitchContract', true),
+        );
+      },
+    );
   });
 }

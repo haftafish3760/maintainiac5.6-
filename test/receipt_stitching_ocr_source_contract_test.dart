@@ -151,10 +151,7 @@ void main() {
       'stitched_ocr_source_reuses_input_section',
     );
     expect(aliasedStitch.hasValidOcrSourceContract, isFalse);
-    expect(
-      aliasedStitch.requiresOcrSourceReviewBeforeAssistedRead,
-      isTrue,
-    );
+    expect(aliasedStitch.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
     expect(
       aliasedStitch.assistedReadinessCode,
       'stitch_contract_review_required',
@@ -285,6 +282,75 @@ void main() {
       expect(
         review.privacySafeReceiptReaderHandoffMetadata,
         containsPair('stitchFailedPairLabel', 'Photo 2 to 3'),
+      );
+      expect(
+        review.privacySafeReceiptReaderHandoffMetadata.toString(),
+        isNot(contains('/private/')),
+      );
+    },
+  );
+
+  test(
+    'final OCR fallback rejects reordered separate source paths path-free',
+    () {
+      final preview = ReceiptStitchResult.fallback(
+        inputPaths: const [
+          '/tmp/top.jpg',
+          '/tmp/middle.jpg',
+          '/tmp/bottom.jpg',
+        ],
+        warning:
+            'Receipt photos did not match clearly enough to stitch safely.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+        failedPairIndex: 1,
+      );
+
+      final finalResult = preview.copyForFinalOcr(
+        inputPaths: const [
+          '/private/top.jpg',
+          '/private/middle.jpg',
+          '/private/bottom.jpg',
+        ],
+        ocrSourcePaths: const [
+          '/private/top.jpg',
+          '/private/bottom.jpg',
+          '/private/middle.jpg',
+        ],
+      );
+      final review = ReceiptPhotoReviewResult(
+        photoPaths: const [
+          '/private/proof-top.jpg',
+          '/private/proof-middle.jpg',
+          '/private/proof-bottom.jpg',
+        ],
+        ocrSourcePhotoPaths: finalResult.ocrSourcePaths,
+        stitchResult: finalResult,
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      );
+
+      expect(finalResult.usedFallback, isTrue);
+      expect(finalResult.failedPairLabel, 'Photo 2 to 3');
+      expect(
+        finalResult.ocrSourceContractCode,
+        'fallback_ordered_source_path_mismatch',
+      );
+      expect(finalResult.hasValidOcrSourceContract, isFalse);
+      expect(finalResult.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+      expect(
+        finalResult.assistedReadinessCode,
+        'stitch_contract_review_required',
+      );
+      expect(review.ocrSourcePathsMatchStitchContract, isTrue);
+      expect(
+        review.ocrSourceReviewRiskCode,
+        'stitch_ocr_source_contract_review_required',
+      );
+      expect(
+        review.privacySafeReceiptReaderHandoffMetadata,
+        containsPair(
+          'stitchOcrSourceContractCode',
+          'fallback_ordered_source_path_mismatch',
+        ),
       );
       expect(
         review.privacySafeReceiptReaderHandoffMetadata.toString(),
