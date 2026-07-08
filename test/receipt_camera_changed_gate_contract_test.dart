@@ -132,6 +132,10 @@ void main() {
     );
     expect(
       script,
+      contains('test/receipt_camera_attachment_helper_parity_test.dart'),
+    );
+    expect(
+      script,
       contains('test/receipt_camera_phase8_storage_proof_timing_contract_test.dart'),
     );
     expect(script, contains('awk \'!seen[\$0]++'));
@@ -209,6 +213,36 @@ void main() {
     expect(
       stdout,
       isNot(contains('milestone test/receipt_camera_phase3_viewer_contract_test.dart')),
+    );
+  });
+
+  test('camera changed gate prints helper-parity checks for late OCR helper files', () async {
+    final result = await Process.run('bash', [
+      'tool/receipt_camera_changed_gate.sh',
+      '--print-tests',
+    ], environment: {
+      'RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST': [
+        'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart',
+        'lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_risks.dart',
+      ].join('\n'),
+    });
+
+    expect(result.exitCode, 0);
+    final stdout = result.stdout.toString();
+    expect(stdout, contains('mode=core_remaining'));
+    expect(
+      stdout,
+      contains(
+        'targeted test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart',
+      ),
+    );
+    expect(
+      stdout,
+      contains('targeted test/receipt_camera_attachment_helper_parity_test.dart'),
+    );
+    expect(
+      stdout,
+      isNot(contains('milestone test/receipt_camera_phase4_review_contract_test.dart')),
     );
   });
 

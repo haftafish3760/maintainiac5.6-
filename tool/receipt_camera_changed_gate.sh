@@ -84,6 +84,18 @@ while IFS= read -r path; do
         test/receipt_capture_flow_assist_opt_in_contract_test.dart
       )
       ;;
+    lib/shared/widgets/receipt_capture/receipt_ocr_source_handoff.dart | \
+    lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart | \
+    lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_risk_flags.dart | \
+    lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_signals.dart | \
+    lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_risks.dart | \
+    lib/shared/widgets/receipt_capture/receipt_attachment_publish_helpers.dart | \
+    lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart)
+      targeted_tests+=(
+        test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart
+        test/receipt_camera_attachment_helper_parity_test.dart
+      )
+      ;;
     lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart)
       if [[ "$mode" == "quick" ]]; then
         mode="phase2"
