@@ -107,25 +107,37 @@ class _PickedReceiptPhotos {
                 'Phone camera backup; returns to Maintainiac review',
             'phoneCameraBackupUsed': true,
             'phoneCameraBackupHadPreviousSectionGuide': hadPreviousSectionGuide,
-            if (normalizedReasonCode != null)
-              'phoneCameraBackupPreviousSectionReasonCode':
-                  normalizedReasonCode,
-            if (guidance != null)
-              'phoneCameraBackupPreviousSectionGuidance': guidance,
+            ...?switch (normalizedReasonCode) {
+              final code? => {
+                'phoneCameraBackupPreviousSectionReasonCode': code,
+                'phoneCameraBackupPreviousSectionGhostGuideRepeatLineTarget':
+                    'repeat_3_to_5_readable_lines',
+                'phoneCameraBackupPreviousSectionGhostGuidePlacement':
+                    'top_ghost_slice',
+              },
+              null => null,
+            },
+            ...?switch (guidance) {
+              final previousGuidance? => {
+                'phoneCameraBackupPreviousSectionGuidance': previousGuidance,
+              },
+              null => null,
+            },
             if (missingBottomAndTotals)
               'phoneCameraBackupPreviousSectionMissingBottomAndTotals': true,
-            if (ghostGuidePolicy != null)
-              'phoneCameraBackupPreviousSectionGhostGuidePolicy':
-                  ghostGuidePolicy,
-            if (normalizedReasonCode != null)
-              'phoneCameraBackupPreviousSectionGhostGuideRepeatLineTarget':
-                  'repeat_3_to_5_readable_lines',
-            if (normalizedReasonCode != null)
-              'phoneCameraBackupPreviousSectionGhostGuidePlacement':
-                  'top_ghost_slice',
-            if (ghostGuideMatchTarget != null)
-              'phoneCameraBackupPreviousSectionGhostGuideMatchTarget':
-                  ghostGuideMatchTarget,
+            ...?switch (ghostGuidePolicy) {
+              final policy? => {
+                'phoneCameraBackupPreviousSectionGhostGuidePolicy': policy,
+              },
+              null => null,
+            },
+            ...?switch (ghostGuideMatchTarget) {
+              final matchTarget? => {
+                'phoneCameraBackupPreviousSectionGhostGuideMatchTarget':
+                    matchTarget,
+              },
+              null => null,
+            },
             if (usesNextContext)
               'phoneCameraBackupPreviousSectionGhostGuideUsesNextContext': true,
             'nativeCaptureFailureStage': 'maintainiac_camera_unavailable',

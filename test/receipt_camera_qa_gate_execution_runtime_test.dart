@@ -45,10 +45,12 @@ void main() {
     );
     expect(
       await selectedModeFor('ios/Runner/ReceiptCameraViewController.swift'),
-      contains('selected full'),
+      contains('selected milestone'),
     );
     expect(
-      await selectedModeFor('ios/Runner/ReceiptCameraViewControllerLabels.swift'),
+      await selectedModeFor(
+        'ios/Runner/ReceiptCameraViewControllerLabels.swift',
+      ),
       contains('selected milestone'),
     );
     expect(

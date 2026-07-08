@@ -39,9 +39,16 @@ void main() {
       expect(cameraActivity, contains('Add Photo'));
       expect(cameraActivity, contains('controls.add("add_photo")'));
       expect(cameraActivity, contains('Receipt camera settings'));
-      expect(cameraActivity, contains('doneButton'));
-      expect(cameraActivity, contains('doneButton.visibility = View.GONE'));
-      expect(cameraActivity, contains('doneButton.isEnabled = false'));
+      expect(cameraActivity, contains('bottomReviewButton'));
+      expect(
+        cameraActivity,
+        contains(
+          'contentDescription = "Done: review captured receipt photos in Maintainiac"',
+        ),
+      );
+      expect(cameraActivity, contains('visibility = View.GONE'));
+      expect(cameraActivity, contains('isEnabled = false'));
+      expect(cameraActivity, isNot(contains('doneButton')));
       expect(cameraActivity, contains('Finish'));
       expect(cameraActivity, contains('finishWithCapturedPhotos'));
       expect(cameraActivity, contains('capturedPhotoPaths'));
