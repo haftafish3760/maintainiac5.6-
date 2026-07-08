@@ -6,6 +6,7 @@ cd "$repo_root"
 
 if [[ "$#" -lt 2 ]]; then
   echo "Usage: $0 <receipt-section-1> <receipt-section-2> [receipt-section-3 ...]" >&2
+  echo "Set RECEIPT_STITCH_REAL_EXPECT=stitched to require a stitched output." >&2
   exit 64
 fi
 

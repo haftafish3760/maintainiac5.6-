@@ -17,6 +17,7 @@ void main() {
     final realProbeSource = realProbeScript.readAsStringSync();
     final realWindowProbeSource = realWindowProbeScript.readAsStringSync();
     expect(realProbeSource, contains('RECEIPT_STITCH_REAL_PATHS'));
+    expect(realProbeSource, contains('RECEIPT_STITCH_REAL_EXPECT=stitched'));
     expect(
       realProbeSource,
       contains('test/receipt_stitching_real_fixture_probe_test.dart'),
@@ -24,6 +25,10 @@ void main() {
     expect(realProbeSource, contains(r'Usage: $0 <receipt-section-1>'));
     expect(realProbeSource, contains('Missing receipt image:'));
     expect(realWindowProbeSource, contains('RECEIPT_STITCH_REAL_TALL_IMAGE'));
+    expect(
+      realWindowProbeSource,
+      contains('RECEIPT_STITCH_REAL_EXPECT=stitched'),
+    );
     expect(
       realWindowProbeSource,
       contains('RECEIPT_STITCH_REAL_WINDOW_HEIGHT'),
