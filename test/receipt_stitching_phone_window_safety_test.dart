@@ -26,6 +26,22 @@ void main() {
   );
 
   test(
+    'keeps out-of-order phone-window sections review-required',
+    () async {
+      final files = await _writeOutOfOrderPhoneWindowStack(
+        'out_of_order_phone_window',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [for (final file in files) file.path],
+      );
+
+      expectSkippedWindowRequiresReview(result, files);
+    },
+    timeout: _phoneWindowTimeout,
+  );
+
+  test(
     'preflights eleven-section phone window stacks at compact width',
     () async {
       final files = await _writeElevenSectionPhoneWindowStack(
@@ -144,6 +160,30 @@ Future<List<File>> _writeSkippedPhoneWindowStack(String prefix) async {
   for (var index = 0; index < captures.length; index++) {
     files.add(
       await writeTempReceiptStitchingImage(captures[index], '${prefix}_$index'),
+    );
+  }
+  return files;
+}
+
+Future<List<File>> _writeOutOfOrderPhoneWindowStack(String prefix) async {
+  final tallReceipt = tallReceiptStitchingCanvas(sectionCount: 4);
+  final starts = <int>[0, 2240, 1120, 3360];
+  final files = <File>[];
+  for (var index = 0; index < starts.length; index++) {
+    var capture = img.copyCrop(
+      tallReceipt,
+      x: 0,
+      y: starts[index],
+      width: tallReceipt.width,
+      height: 1500,
+    );
+    capture = shiftReceiptStitchingShot(
+      capture,
+      dx: index.isEven ? 18 : -16,
+      dy: 0,
+    );
+    files.add(
+      await writeTempReceiptStitchingImage(capture, '${prefix}_$index'),
     );
   }
   return files;
