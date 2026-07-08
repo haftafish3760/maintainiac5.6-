@@ -63,6 +63,7 @@ run_handoff() {
     test/receipt_camera_oversized_stitch_handoff_test.dart \
     test/receipt_camera_phase6_stitching_handoff_contract_test.dart \
     test/receipt_camera_result_stitch_handoff_followthrough_test.dart \
+    test/receipt_camera_stitch_candidate_metadata_test.dart \
     -r compact
   echo "Receipt stitch handoff health: PASS"
 }
@@ -141,15 +142,15 @@ run_full() {
 }
 
 case "$mode" in
-  delayed_overlap) run_delayed_overlap ;;
-  edge_cases) run_edge_cases ;;
-  phone_windows) run_phone_windows ;;
-  long_stack) run_long_stack ;;
-  duplicates) run_duplicates ;;
-  handoff) run_handoff ;;
-  source_size) run_source_size ;;
-  milestone) run_milestone ;;
-  full) run_full ;;
+  delayed_overlap) run_delayed_overlap; exit 0 ;;
+  edge_cases) run_edge_cases; exit 0 ;;
+  phone_windows) run_phone_windows; exit 0 ;;
+  long_stack) run_long_stack; exit 0 ;;
+  duplicates) run_duplicates; exit 0 ;;
+  handoff) run_handoff; exit 0 ;;
+  source_size) run_source_size; exit 0 ;;
+  milestone) run_milestone; exit 0 ;;
+  full) run_full; exit 0 ;;
   *)
     echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|long_stack|duplicates|handoff|source_size|milestone|full]" >&2
     exit 64
