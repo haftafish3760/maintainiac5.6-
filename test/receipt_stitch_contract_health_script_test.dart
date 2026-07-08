@@ -24,6 +24,7 @@ void main() {
     expect(source, contains('run_flutter_test handoff'));
     expect(source, contains('run_flutter_test full'));
     expect(source, contains('run_milestone()'));
+    expect(source, contains('run_fast()'));
     expect(source, contains('delayed_overlap)'));
     expect(source, contains("--name 'delayed overlap'"));
     expect(source, contains('Receipt stitch delayed-overlap health: PASS'));
@@ -149,6 +150,9 @@ void main() {
     );
     expect(source, contains(r'exceeds $max_lines-line stitch test cap'));
     expect(source, contains('Receipt stitch source-size health: PASS'));
+    expect(source, contains('fast)'));
+    expect(source, contains('run_phone_windows_fast'));
+    expect(source, contains('Receipt stitch fast health: PASS'));
     expect(source, contains('milestone)'));
     expect(source, contains('run_source_size'));
     expect(source, contains('run_edge_cases'));
@@ -162,7 +166,7 @@ void main() {
     expect(
       source,
       contains(
-        r'Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|bad_inputs|manual_overlap|duplicates|handoff|source_size|milestone|full]',
+        r'Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|bad_inputs|manual_overlap|duplicates|handoff|source_size|fast|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));

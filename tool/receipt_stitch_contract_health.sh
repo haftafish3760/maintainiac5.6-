@@ -163,6 +163,13 @@ run_milestone() {
   echo "Receipt stitch milestone health: PASS"
 }
 
+run_fast() {
+  run_source_size
+  run_bad_inputs
+  run_phone_windows_fast
+  echo "Receipt stitch fast health: PASS"
+}
+
 run_full() {
   echo "Receipt stitch contract health"
   run_source_size
@@ -203,10 +210,11 @@ case "$mode" in
   duplicates) run_duplicates; exit 0 ;;
   handoff) run_handoff; exit 0 ;;
   source_size) run_source_size; exit 0 ;;
+  fast) run_fast; exit 0 ;;
   milestone) run_milestone; exit 0 ;;
   full) run_full; exit 0 ;;
   *)
-    echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|bad_inputs|manual_overlap|duplicates|handoff|source_size|milestone|full]" >&2
+    echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|bad_inputs|manual_overlap|duplicates|handoff|source_size|fast|milestone|full]" >&2
     exit 64
     ;;
 esac
