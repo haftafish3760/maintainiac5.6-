@@ -87,26 +87,6 @@ const _receiptNativeCameraSettingDescriptors = <ReceiptNativeCameraSettingDescri
     defaultEnabled: true,
   ),
   ReceiptNativeCameraSettingDescriptor(
-    id: 'readability_warnings',
-    label: 'Experimental readability warnings',
-    description:
-        'Reserved for a future QA-proven mode. The native camera baseline ignores live blur, glare, low-light, and shadow warnings today.',
-    group: ReceiptNativeSettingGroup.receiptGuidance,
-    type: ReceiptNativeSettingType.toggle,
-    defaultEnabled: false,
-    advanced: true,
-  ),
-  ReceiptNativeCameraSettingDescriptor(
-    id: 'dirty_lens_warning',
-    label: 'Experimental dirty lens warning',
-    description:
-        'Reserved for a future QA-proven mode. The phone camera still owns normal focus and exposure behavior today.',
-    group: ReceiptNativeSettingGroup.receiptGuidance,
-    type: ReceiptNativeSettingType.toggle,
-    defaultEnabled: false,
-    advanced: true,
-  ),
-  ReceiptNativeCameraSettingDescriptor(
     id: 'long_receipt_mode',
     label: 'Long receipt photos',
     description:

@@ -165,6 +165,14 @@ void main() {
       expect(cameraActivity, isNot(contains('Receipt guidance warnings')));
       expect(
         cameraActivity,
+        isNot(contains('Experimental readability warnings')),
+      );
+      expect(
+        cameraActivity,
+        isNot(contains('Experimental dirty lens warning')),
+      );
+      expect(
+        cameraActivity,
         isNot(contains('Warn about shake, glare, low light')),
       );
       expect(

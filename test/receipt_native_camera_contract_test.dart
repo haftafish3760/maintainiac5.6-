@@ -117,8 +117,8 @@ void main() {
     expect(ids, isNot(contains('white_balance_lock')));
     expect(ids, contains('receipt_light'));
     expect(ids, contains('edge_detection'));
-    expect(ids, contains('readability_warnings'));
-    expect(ids, contains('dirty_lens_warning'));
+    expect(ids, isNot(contains('readability_warnings')));
+    expect(ids, isNot(contains('dirty_lens_warning')));
     expect(ids, contains('long_receipt_mode'));
     expect(ids, contains('image_cleanup'));
     expect(ids, contains('safe_capture_queue'));
@@ -145,17 +145,6 @@ void main() {
       autoCapture.description,
       contains('shutter button still works anytime'),
     );
-    final dirtyLens = descriptors.singleWhere(
-      (descriptor) => descriptor.id == 'dirty_lens_warning',
-    );
-    expect(dirtyLens.defaultEnabled, isFalse);
-    expect(dirtyLens.advanced, isTrue);
-    expect(dirtyLens.description, contains('future QA-proven mode'));
-    expect(
-      dirtyLens.description,
-      contains('phone camera still owns normal focus and exposure'),
-    );
-
     final edgeDetection = descriptors.singleWhere(
       (descriptor) => descriptor.id == 'edge_detection',
     );
@@ -163,20 +152,6 @@ void main() {
     expect(edgeDetection.label, contains('edges'));
     expect(edgeDetection.description, contains('crop'));
     expect(edgeDetection.description, contains('perspective correction'));
-
-    final readabilityWarnings = descriptors.singleWhere(
-      (descriptor) => descriptor.id == 'readability_warnings',
-    );
-    expect(readabilityWarnings.defaultEnabled, isFalse);
-    expect(readabilityWarnings.advanced, isTrue);
-    expect(readabilityWarnings.description, contains('blur'));
-    expect(readabilityWarnings.description, contains('glare'));
-    expect(readabilityWarnings.description, contains('low-light'));
-    expect(readabilityWarnings.description, contains('shadow warnings'));
-    expect(
-      readabilityWarnings.description,
-      contains('native camera baseline ignores live'),
-    );
 
     final longReceipt = descriptors.singleWhere(
       (descriptor) => descriptor.id == 'long_receipt_mode',
