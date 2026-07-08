@@ -35,6 +35,7 @@ phase3_tests=(
   test/receipt_camera_phase3_viewer_contract_test.dart
   test/receipt_native_camera_shell_test.dart
   test/receipt_native_camera_shell_controls_test.dart
+  test/receipt_native_ios_settings_guidance_contract_test.dart
   test/receipt_native_android_guidance_policy_gate_test.dart
   test/receipt_native_ios_guidance_warning_gate_test.dart
   test/receipt_native_android_bridge_false_positive_guard_test.dart
@@ -118,8 +119,10 @@ phase3_audit_paths=(
   lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_controls.dart
   lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart
   lib/shared/widgets/receipt_capture/receipt_native_camera_shell_guidance.dart
+  ios/Runner/ReceiptCameraViewControllerLabels.swift
   test/receipt_camera_phase3_viewer_contract_test.dart
   test/receipt_native_camera_shell_controls_test.dart
+  test/receipt_native_ios_settings_guidance_contract_test.dart
   test/receipt_native_android_guidance_policy_gate_test.dart
   test/receipt_native_ios_guidance_warning_gate_test.dart
   test/receipt_native_android_bridge_false_positive_guard_test.dart

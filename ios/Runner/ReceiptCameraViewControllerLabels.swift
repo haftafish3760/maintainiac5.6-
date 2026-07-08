@@ -81,15 +81,11 @@ extension ReceiptCameraViewController {
 
   func setReceiptReviewStyle(_ value: String) {
     reviewDepth = value
-    guidanceLabel.text = value == "detailedLines"
-      ? "Detailed receipt details are on. OCR will show item details when it can."
-      : "Price-only receipt details are on. OCR will focus on line prices and totals."
     updateSettingsStatusStrip()
   }
 
   func setDataSaverLevel(_ value: String) {
     dataSaverLevel = value
-    guidanceLabel.text = "Save-space proof size set to \(dataSaverLabel()). OCR still reads the temporary full-quality photo first."
     updateSettingsStatusStrip()
   }
 
