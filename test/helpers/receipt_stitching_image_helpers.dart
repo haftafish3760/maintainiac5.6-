@@ -79,6 +79,7 @@ void copyReceiptStitchingOverlap({
   required img.Image from,
   required img.Image to,
   required int pixels,
+  int dstX = 0,
   int dstY = 0,
 }) {
   final overlap = img.copyCrop(
@@ -88,7 +89,7 @@ void copyReceiptStitchingOverlap({
     width: from.width,
     height: pixels,
   );
-  img.compositeImage(to, overlap, dstX: 0, dstY: dstY);
+  img.compositeImage(to, overlap, dstX: dstX, dstY: dstY);
 }
 
 img.Image scaleReceiptStitchingShot(img.Image source, {required double scale}) {

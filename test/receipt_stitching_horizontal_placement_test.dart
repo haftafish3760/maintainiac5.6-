@@ -1,0 +1,59 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
+
+import 'helpers/receipt_stitching_image_helpers.dart';
+
+const _stitchingHeavyTimeout = Timeout(Duration(minutes: 2));
+
+void main() {
+  test('labels matched horizontal drift correction metadata', () {
+    const pair = ReceiptStitchPairResult(
+      pairIndex: 0,
+      overlapPixels: 340,
+      confidence: .82,
+      horizontalOffsetPixels: 72,
+    );
+
+    expect(pair.diagnosticCode, 'drift_adjusted');
+    expect(pair.summaryLabel, contains('shifted 72 px'));
+    expect(pair.matchEvidenceLabel, contains('drift fix'));
+    expect(pair.userCheckLabel, contains('sideways drift'));
+  });
+
+  test(
+    'keeps auto-cropped sideways continuation stitchable',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 120, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 121, topTextOffset: 18);
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 340,
+        dstY: 36,
+      );
+      final shiftedSecond = shiftReceiptStitchingShot(
+        sectionB,
+        dx: 80,
+        dy: 0,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'horizontal_placement_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        shiftedSecond,
+        'horizontal_placement_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
+}

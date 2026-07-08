@@ -33,9 +33,11 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
       _ReceiptStitchCandidate(
         pixels: match.pixels,
         nextSkipPixels: match.nextSkipPixels,
+        nextXOffsetPixels: match.nextXOffsetPixels,
         confidence: (match.confidence - scalePenalty).clamp(0.0, 1.0),
         scaleCorrection: scale,
         sampleHeight: candidateImage.height,
+        sampleWidth: candidateImage.width,
       ),
     );
   }
@@ -68,6 +70,7 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
         _ReceiptStitchCandidate(
           pixels: match.pixels,
           nextSkipPixels: match.nextSkipPixels,
+          nextXOffsetPixels: match.nextXOffsetPixels,
           confidence: (match.confidence - scalePenalty - rotationPenalty).clamp(
             0.0,
             1.0,
@@ -75,6 +78,7 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
           scaleCorrection: base.scaleCorrection,
           rotationCorrectionDegrees: rotationDegrees,
           sampleHeight: candidateImage.height,
+          sampleWidth: candidateImage.width,
         ),
       );
     }
@@ -101,6 +105,7 @@ _ReceiptOverlapMatch _materializeStitchCandidate({
     rotationDegrees: candidate.rotationCorrectionDegrees,
   );
   final scaleY = nextImage.height / math.max(1, candidate.sampleHeight);
+  final scaleX = nextImage.width / math.max(1, candidate.sampleWidth);
   final maxSafeOverlap = math.max(
     24,
     math.min(previousHeight, nextImage.height) - 1,
@@ -120,6 +125,7 @@ _ReceiptOverlapMatch _materializeStitchCandidate({
   return _ReceiptOverlapMatch(
     pixels: fullPixels,
     nextSkipPixels: fullSkipPixels,
+    nextXOffsetPixels: (candidate.nextXOffsetPixels * scaleX).round(),
     confidence: candidate.confidence,
     nextImage: nextImage,
     scaleCorrection: candidate.scaleCorrection,
@@ -255,6 +261,7 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
     previous: previous,
     next: next,
     pixels: bestPixels,
+    horizontalOffset: bestHorizontalOffset,
     nextYOffset: bestNextYOffset,
   );
   final offsetPenalty = _stitchHorizontalOffsetPenalty(
@@ -277,6 +284,7 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
   return _ReceiptOverlapMatch(
     pixels: bestPixels,
     nextSkipPixels: bestPixels + bestNextYOffset,
+    nextXOffsetPixels: bestHorizontalOffset,
     confidence: confidence,
     nextImage: next,
   );
@@ -318,16 +326,6 @@ List<int> _stitchNextTopOffsets(int height, int pixels) {
   if (maxOffset <= 0) return const [0];
   final offsets = <int>{0, 12, 24, 36, 48, 72, 96, 132, 168, 220};
   return offsets.where((offset) => offset <= maxOffset).toList(growable: false);
-}
-
-double _stitchHorizontalOffsetPenalty({
-  required int width,
-  required int offset,
-}) {
-  final unit = math.max(12, (width * .035).round());
-  final magnitude = offset.abs();
-  if (magnitude < unit * 2.5) return 0;
-  return .14;
 }
 
 int? _manualOverlapFor({

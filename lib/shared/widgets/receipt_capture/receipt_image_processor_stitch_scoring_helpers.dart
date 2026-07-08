@@ -156,6 +156,7 @@ double _overlapHorizontalDriftPenalty({
   required img.Image previous,
   required img.Image next,
   required int pixels,
+  int horizontalOffset = 0,
   int nextYOffset = 0,
 }) {
   final sampleWidth = math.min(previous.width, next.width);
@@ -168,8 +169,10 @@ double _overlapHorizontalDriftPenalty({
   var nextInkTotal = 0;
   for (var y = 0; y < pixels; y += stepY) {
     for (var x = sampleWidth ~/ 14; x < sampleWidth * 13 ~/ 14; x += stepX) {
+      final nextX = x + horizontalOffset;
+      if (nextX < 0 || nextX >= sampleWidth) continue;
       final previousLuma = _luma(previous.getPixel(x, previousStartY + y));
-      final nextLuma = _luma(next.getPixel(x, nextYOffset + y));
+      final nextLuma = _luma(next.getPixel(nextX, nextYOffset + y));
       if (previousLuma < 170) {
         previousWeightedX += x;
         previousInkTotal++;
@@ -189,6 +192,19 @@ double _overlapHorizontalDriftPenalty({
   if (delta <= safeDrift) return 0;
   return ((delta - safeDrift) / math.max(1, unsafeDrift - safeDrift) * .35)
       .clamp(0.0, .35);
+}
+
+double _stitchHorizontalOffsetPenalty({
+  required int width,
+  required int offset,
+}) {
+  final unit = math.max(12, (width * .035).round());
+  final magnitude = offset.abs();
+  if (magnitude < unit * 2.5) return 0;
+  final maxOffset = math.max(unit * 2, (width * .14).round());
+  final range = math.max(1, maxOffset - unit * 2.5);
+  final share = ((magnitude - unit * 2.5) / range).clamp(0.0, 1.0);
+  return (.04 + (.08 * share)).clamp(0.0, .12);
 }
 
 double _receiptImageBandDifference(

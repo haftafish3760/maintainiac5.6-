@@ -115,6 +115,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
     final normalized = <img.Image>[prepared.first];
     var expectedHeight = normalized.first.height;
     final overlaps = <int>[];
+    final horizontalOffsets = <int>[];
     final confidences = <double>[];
     final pairResults = <ReceiptStitchPairResult>[];
     ReceiptStitchResult? oversizedFallback() => _oversizedStitchFallback(
@@ -152,6 +153,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
           );
         }
         overlaps.add(manualOverlap);
+        horizontalOffsets.add(0);
         confidences.add(1);
         pairResults.add(
           ReceiptStitchPairResult(
@@ -190,6 +192,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
           );
         }
         overlaps.add(match.nextSkipPixels);
+        horizontalOffsets.add(match.nextXOffsetPixels);
         confidences.add(match.confidence);
         normalized.add(match.nextImage);
         pairResults.add(
@@ -199,6 +202,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             confidence: match.confidence,
             scaleCorrection: match.scaleCorrection,
             rotationCorrectionDegrees: match.rotationCorrectionDegrees,
+            horizontalOffsetPixels: match.nextXOffsetPixels,
           ),
         );
         expectedHeight += match.nextImage.height - match.nextSkipPixels;
@@ -218,7 +222,12 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
     y += normalized.first.height;
     for (var index = 1; index < normalized.length; index++) {
       y -= overlaps[index - 1];
-      img.compositeImage(canvas, normalized[index], dstX: 0, dstY: y);
+      img.compositeImage(
+        canvas,
+        normalized[index],
+        dstX: -horizontalOffsets[index - 1],
+        dstY: y,
+      );
       y += normalized[index].height;
     }
 

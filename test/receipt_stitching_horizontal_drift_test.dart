@@ -31,7 +31,12 @@ void main() {
       );
 
       expect(result.didStitch, isTrue, reason: result.detailLabel);
-      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(
+        result.pairs.single.confidence,
+        greaterThanOrEqualTo(.55),
+        reason:
+            'Selected horizontal offset must be reflected in confidence scoring.',
+      );
       expect(result.overlapPixels.single, greaterThan(120));
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       await _expectStitchedImageMatchesReportedSize(result);
