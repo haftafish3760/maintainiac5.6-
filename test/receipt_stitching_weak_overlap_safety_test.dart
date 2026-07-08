@@ -59,6 +59,49 @@ void main() {
   );
 
   test(
+    'requires review when a middle section is missing from a longer stack',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 104, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 105, topTextOffset: 18);
+      final sectionC = receiptStitchingSection(seed: 106, topTextOffset: 36);
+      final sectionD = receiptStitchingSection(seed: 107, topTextOffset: 54);
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 330);
+      copyReceiptStitchingOverlap(from: sectionB, to: sectionC, pixels: 330);
+      copyReceiptStitchingOverlap(from: sectionC, to: sectionD, pixels: 330);
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'missing_middle_stack_a',
+      );
+      final third = await writeTempReceiptStitchingImage(
+        sectionC,
+        'missing_middle_stack_c',
+      );
+      final fourth = await writeTempReceiptStitchingImage(
+        sectionD,
+        'missing_middle_stack_d',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, third.path, fourth.path],
+      );
+
+      expectWeakOverlapRequiresReview(result);
+      if (result.didStitch) {
+        expect(result.ocrSourcePaths, [result.stitchedPath]);
+        expect(
+          result.assistedReadinessCode,
+          'stitched_overlap_review_required',
+        );
+      } else {
+        expect(result.ocrSourcePaths, [first.path, third.path, fourth.path]);
+        expect(result.reviewPathLabel, '3 receipt sections top to bottom');
+      }
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
+
+  test(
     'requires review when receipt sections are provided in reverse order',
     () async {
       final sectionA = receiptStitchingSection(seed: 87, topTextOffset: 0);
@@ -112,13 +155,52 @@ void main() {
     },
     timeout: _stitchingHeavyTimeout,
   );
+
+  test(
+    'requires review when the previous section edge is severely cropped',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 102, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 103, topTextOffset: 18);
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 330);
+      final clippedFirst = clipReceiptStitchingSide(
+        sectionA,
+        left: 165,
+        right: 165,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        clippedFirst,
+        'severe_previous_crop_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        sectionB,
+        'severe_previous_crop_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expectWeakOverlapRequiresReview(result);
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
 }
 
 void expectWeakOverlapRequiresReview(ReceiptStitchResult result) {
   expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
   expect(result.reviewFocusPairLabel, anyOf('', 'Photo 1 to 2'));
   if (result.didStitch) {
-    expect(result.pairs.single.confidence, inInclusiveRange(.50, .69));
+    final reviewPairs = result.pairs
+        .where(
+          (pair) =>
+              !pair.usedManualAdjustment &&
+              pair.overlapPixels > 0 &&
+              pair.confidence >= .50 &&
+              pair.confidence < .70,
+        )
+        .toList(growable: false);
+    expect(reviewPairs, isNotEmpty);
     expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
     expect(result.assistedReadinessCode, 'stitched_overlap_review_required');
     expect(
