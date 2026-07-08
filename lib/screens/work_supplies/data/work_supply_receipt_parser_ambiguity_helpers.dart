@@ -73,6 +73,8 @@ bool _isBareElectricalPvcConduitShorthandLine(
 
 bool _isAmbiguousPlumbingCoreLine(String text, WorkSupplyItem item) {
   if (item.trade != 'Plumbing') return false;
+  if (_hasBrokenCriticalPlumbingFraction(text)) return true;
+  if (_isDirtyMaterialShapeOnlyPlumbingLine(text, item)) return true;
   if (RegExp(r'\bcopper\s+copper\b').hasMatch(text) &&
       !RegExp(
         r'\b(90|45|elbow|ell|tee|wye|coupling|cpl|cplg|adapter|adpt|'
@@ -94,6 +96,13 @@ bool _isAmbiguousPlumbingCoreLine(String text, WorkSupplyItem item) {
       ).hasMatch(text)) {
     return true;
   }
+  if (RegExp(r'\bfaucet\s+repair\s+kit\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(stem|cartridge|cart|washer|seat|aerator|o ring|o-ring|oring|'
+        r'handle|sprayer|diverter|pop up|pop-up)\b',
+      ).hasMatch(text)) {
+    return true;
+  }
   final hasAmbiguousShape = RegExp(
     r'\b(elbow|ell|elb|adapter|adpt|valve|coupling|cplg|coup)\b',
   ).hasMatch(text);
@@ -108,4 +117,47 @@ bool _isAmbiguousPlumbingCoreLine(String text, WorkSupplyItem item) {
     r'\b(angle|stop|ball|gate|check|prv|pressure|relief|vacuum|hose bibb|sillcock|fill|flush|toilet)\b',
   ).hasMatch(text);
   return !hasMaterial && !hasConnection && !hasSpecificValve;
+}
+
+bool _hasBrokenCriticalPlumbingFraction(String text) {
+  final normalized = _normalize(text);
+  if (RegExp(r'(^|\s)/\s*\d+\b').hasMatch(normalized)) return true;
+  if (RegExp(r'\b\d+\s*/(\s|$)').hasMatch(normalized)) return true;
+  if (RegExp(
+    r'\b\d+\s*/\s*\b(cop|copper|cu|pex|pvc|cpvc|abs|brass|cplg|coupling|'
+    r'ell|elb|elbow|tee|adpt|adapter|valv|valve)\b',
+  ).hasMatch(normalized)) {
+    return true;
+  }
+  if (RegExp(r'\b\d{2}\s+(cop|copper|cu)\s+(90|ell|elb|elbow)\b')
+      .hasMatch(normalized)) {
+    return true;
+  }
+  return false;
+}
+
+bool _isDirtyMaterialShapeOnlyPlumbingLine(String text, WorkSupplyItem item) {
+  final normalized = _normalize(text);
+  final itemText = _indexedReceiptTextFor(item);
+  final hasMaterial = RegExp(
+    r'\b(cop|copper|cu|pex|pvc|cpvc|abs|brass|galv|blk iron|black iron)\b',
+  ).hasMatch(normalized);
+  final hasShape = RegExp(
+    r'\b(90|45|ell|elb|elbow|tee|cplg|coupling|adpt|adapter|valv|valve)\b',
+  ).hasMatch(normalized);
+  if (!hasMaterial || !hasShape) return false;
+  final hasSize = _nominalReceiptSize(normalized) != null ||
+      _receiptSizeMatrix(normalized) != null;
+  final hasConnection = RegExp(
+    r'\b(cxc|c\s*x\s*c|mip|fip|male|female|sweat|wrot|press|propress|'
+    r'crimp|clamp|expansion|slip|solvent|sch|schedule|s40|dwv|cts|ips|'
+    r'push|sharkbite|compression)\b',
+  ).hasMatch(normalized);
+  final hasBrand = RegExp(
+    r'\b(nibco|mueller|viega|apollo|sharkbite|oatey|watts|fernco|zurn)\b',
+  ).hasMatch(normalized);
+  if (hasSize || hasConnection || hasBrand) return false;
+  return RegExp(
+    r'\b(copper|pex|pvc|cpvc|abs|brass|galvanized|black iron)\b',
+  ).hasMatch(itemText);
 }
