@@ -218,6 +218,36 @@ void main() {
     },
     timeout: _stitchingHeavyTimeout,
   );
+
+  test(
+    'requires review when boilerplate footer bands look like overlap',
+    () async {
+      final firstSection = receiptStitchingBoilerplateSection(
+        seed: 118,
+        label: 'returns',
+      );
+      final laterSection = receiptStitchingBoilerplateSection(
+        seed: 119,
+        label: 'survey',
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        firstSection,
+        'boilerplate_footer_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        laterSection,
+        'boilerplate_footer_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expectWeakOverlapRequiresReview(result);
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
 }
 
 void expectWeakOverlapRequiresReview(ReceiptStitchResult result) {

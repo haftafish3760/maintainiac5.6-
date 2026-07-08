@@ -75,6 +75,46 @@ img.Image blankDarkReceiptPhotoSection() {
   return image;
 }
 
+img.Image receiptStitchingBoilerplateSection({
+  required int seed,
+  required String label,
+}) {
+  final image = receiptStitchingSection(seed: seed, topTextOffset: 0);
+  final topBand = label.codeUnits.fold<int>(0, (sum, code) => sum + code) % 90;
+  final yStart = image.height - 360;
+  img.fillRect(
+    image,
+    x1: 42,
+    y1: yStart,
+    x2: image.width - 42,
+    y2: image.height - 64,
+    color: img.ColorRgb8(248, 248, 244),
+  );
+  for (var row = 0; row < 7; row++) {
+    final y = yStart + 26 + row * 42;
+    final indent = 90 + ((row * 31 + topBand) % 64);
+    img.fillRect(
+      image,
+      x1: indent,
+      y1: y,
+      x2: image.width - indent,
+      y2: y + 7,
+      color: img.ColorRgb8(36, 36, 36),
+    );
+    if (row.isOdd) {
+      img.fillRect(
+        image,
+        x1: 300,
+        y1: y + 17,
+        x2: 600,
+        y2: y + 23,
+        color: img.ColorRgb8(58, 58, 58),
+      );
+    }
+  }
+  return image;
+}
+
 void copyReceiptStitchingOverlap({
   required img.Image from,
   required img.Image to,
