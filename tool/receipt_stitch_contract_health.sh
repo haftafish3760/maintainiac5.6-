@@ -146,6 +146,7 @@ run_full() {
     test/receipt_camera_oversized_stitch_handoff_test.dart \
     test/receipt_camera_phase6_stitching_handoff_contract_test.dart \
     test/receipt_camera_result_stitch_handoff_followthrough_test.dart \
+    test/receipt_camera_stitch_candidate_metadata_test.dart \
     -r compact
   echo "Receipt stitch contract health: PASS"
 }
