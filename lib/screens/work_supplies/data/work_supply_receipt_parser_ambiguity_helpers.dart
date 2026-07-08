@@ -18,7 +18,8 @@ bool _isUnscopedAmbiguousReceiptLine(
   final itemText = _indexedReceiptTextFor(item);
   if (RegExp(r'\bpvc\b').hasMatch(normalized) &&
       RegExp(
-        r'\b(90|ell|elb|elbow|cement|cond|conduit|cplg|coupling|coup)\b',
+        r'\b(90|ell|elb|elbow|cement|cond|conduit|cplg|coupling|coup|'
+        r'union|pipe)\b',
       ).hasMatch(normalized)) {
     return true;
   }

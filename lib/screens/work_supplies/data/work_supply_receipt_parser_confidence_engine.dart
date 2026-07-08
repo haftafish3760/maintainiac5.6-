@@ -82,6 +82,16 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       itemText.contains('pvc schedule 40 90 elbow')) {
     score += 0.10;
   }
+  if (RegExp(r'\b(cop|cu|copper)\b').hasMatch(text) &&
+      !_hasBrokenCriticalPlumbingFraction(text) &&
+      RegExp(r'\b(90|90d|ell|elb|elbow)\b').hasMatch(text) &&
+      RegExp(r'\b(cxc|c\s*x\s*c|copper\s+copper|sweat|wrot)\b')
+          .hasMatch(text) &&
+      itemText.contains('copper') &&
+      itemText.contains('90') &&
+      itemText.contains('elbow')) {
+    score += 0.12;
+  }
   if (RegExp(
         r'\b(reducing cplg|reducing coupling|reducer coupling)\b',
       ).hasMatch(text) &&
@@ -406,6 +416,17 @@ bool _isCrossTradeCopperLine(
   if (RegExp(
     r'\b(refrigerant|acr|hvac|water|dwv|type l|type m)\b',
   ).hasMatch(text)) {
+    return false;
+  }
+  final hasCompletePlumbingFittingEvidence =
+      _nominalReceiptSize(text) != null &&
+      RegExp(r'\b(90|45|ell|elb|elbow|tee|coupling|cplg|adapter|adpt)\b')
+          .hasMatch(text) &&
+      RegExp(
+        r'\b(cxc|c\s*x\s*c|copper\s+copper|sweat|wrot|mip|fip|male|female)\b',
+      )
+          .hasMatch(text);
+  if (hasCompletePlumbingFittingEvidence && item.trade == 'Plumbing') {
     return false;
   }
   return item.trade == 'Plumbing' || item.trade == 'HVAC';
