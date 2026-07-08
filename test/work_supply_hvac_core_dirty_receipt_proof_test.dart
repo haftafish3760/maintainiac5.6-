@@ -36,6 +36,16 @@ void main() {
     _expectNoHvacMatch('CARD APPROVED AUTH 4402');
     _expectNoHvacMatch('CASHIER 11 REG 02 THANK Y0U');
   });
+
+  test('hvac core handles dirty random-store service receipts', () {
+    _expectGoodHvacCore('GRAINGER 40/5 MFD DUAL RUN CAP 440V', ['capacitor']);
+    _expectGoodHvacCore('WlNSUPPLY C0NDENSATE PUMP 120V', [
+      'condensate pump',
+    ]);
+    _expectGoodHvacCore('SUPPLYH0USE R410A SERV VALV CAP', ['valve cap']);
+    _expectGoodHvacCore('LOCAL SUPPLY 3/4X3/8 LINESET 50FT', ['line set']);
+    _expectGoodHvacCore('ACE HVAC F0IL TAPE UL181', ['tape']);
+  });
 }
 
 void _expectGoodHvacCore(String line, List<String> expectedTerms) {

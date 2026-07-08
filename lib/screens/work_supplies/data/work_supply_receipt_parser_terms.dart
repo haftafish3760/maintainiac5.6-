@@ -931,6 +931,7 @@ String _normalize(String value) {
       .replaceAll(RegExp(r'\boutdr\b'), 'outdoor')
       .replaceAll(RegExp(r'\blgt\b'), 'light')
       .replaceAll(RegExp(r'\bctrl\b'), 'control')
+      .replaceAll(RegExp(r'\blineset\b'), 'line set')
       .replaceAll(RegExp(r'\bkt\b'), 'kit')
       .replaceAll(RegExp(r'(?<=\d)"'), ' in')
       .replaceAll(RegExp(r'(?<=\d)x(?=\d)'), ' x ')
