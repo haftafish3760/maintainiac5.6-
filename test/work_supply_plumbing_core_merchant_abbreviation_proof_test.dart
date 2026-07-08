@@ -219,6 +219,26 @@ void main() {
     ]);
   });
 
+  test('plumbing core parses POS noise with quantities and prices', () {
+    _expectGoodPlumbingCore('HD 188742 2 @ 1.98 1/2 COP 90 CXC 3.96', [
+      'copper',
+      '90',
+    ]);
+    _expectGoodPlumbingCore('LOWES 32144 3/4 PVC SCH40 CPLG 2EA 4.28', [
+      'pvc schedule 40',
+      'coupling',
+    ]);
+    _expectGoodPlumbingCore('MENARDS SKU 8812 1-1/2 PVC DWV P TRAP 8.99', [
+      'p-trap',
+    ]);
+    _expectGoodPlumbingCore('FERG QTY1 3/4 PRV PRESS RED VALVE 89.00', [
+      'pressure reducing valve',
+    ]);
+    _expectGoodPlumbingCore('ACE DISC -1.00 3/8X12 TOILET CONN 6.49', [
+      'toilet',
+    ]);
+  });
+
   test(
     'plumbing core keeps ultra-vague merchant abbreviations out of good confidence',
     () {

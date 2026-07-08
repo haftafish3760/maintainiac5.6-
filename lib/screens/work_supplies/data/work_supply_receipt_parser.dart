@@ -5736,8 +5736,13 @@ bool _containsBareSingleInchSize(String text, String variant) {
 }
 
 String? _nominalReceiptSize(String text) {
-  final normalized = _normalize(text);
+  final normalized = _stripReceiptPosNoiseForSize(_normalize(text));
   for (final size in const ['1-1/2', '1-1/4', '2-1/2']) {
+    if (RegExp('(^| )${RegExp.escape(size)}( |\$)').hasMatch(normalized)) {
+      return size;
+    }
+  }
+  for (final size in const ['1/4', '3/8', '1/2', '5/8', '3/4']) {
     if (RegExp('(^| )${RegExp.escape(size)}( |\$)').hasMatch(normalized)) {
       return size;
     }
@@ -5746,6 +5751,19 @@ String? _nominalReceiptSize(String text) {
     r'(^| )(1/4|3/8|1/2|5/8|3/4|1-1/4|1-1/2|2-1/2|10|12|1|2|3|4|6|8)( |$)',
   ).firstMatch(normalized);
   return match?.group(2);
+}
+
+String _stripReceiptPosNoiseForSize(String normalized) {
+  return normalized
+      .replaceAll(RegExp(r'\b\d+\s+@\s+\d+(?:\.\d+)?\b'), ' ')
+      .replaceAll(RegExp(r'\b\d+\s+\d+\s+\d+\s+(?=1/4|3/8|1/2|5/8|3/4)\b'), ' ')
+      .replaceAll(RegExp(r'\bqty\s*\d+\b'), ' ')
+      .replaceAll(RegExp(r'\b\d+\s*ea\b'), ' ')
+      .replaceAll(RegExp(r'\bdisc\s+-?\d+(?:\.\d+)?\b'), ' ')
+      .replaceAll(RegExp(r'\bsku\s+\d+\b'), ' ')
+      .replaceAll(RegExp(r'\b\d{4,}\b'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
 }
 
 String? _receiptPackageAmount(String text, String unit) {
