@@ -28,7 +28,7 @@ void main() {
     expect(
       labels,
       contains(
-        "Photo 1 must be the top; every next photo should continue lower with 3-5 repeated readable lines.",
+        "Section 1 must be the top; every next section should continue lower with 3-5 repeated readable lines.",
       ),
     );
     expect(

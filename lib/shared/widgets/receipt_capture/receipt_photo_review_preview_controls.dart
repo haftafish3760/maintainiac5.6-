@@ -165,7 +165,9 @@ class _ReceiptPhotoCountBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = 'Photo $current of $total';
+    final label = total <= 1
+        ? 'Receipt Photo'
+        : 'Section $current of $total';
     return DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xFF111A1F),

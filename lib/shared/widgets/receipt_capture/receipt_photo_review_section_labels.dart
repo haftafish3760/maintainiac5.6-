@@ -6,10 +6,10 @@ class _ReceiptPhotoSectionLabels {
   static const sectionHeader = 'Receipt Sections';
 
   static String label({required int index, required int total}) {
-    if (total <= 1) return 'Photo';
-    if (index <= 0) return 'Top Photo';
-    if (index >= total - 1) return 'Bottom Photo';
-    return 'Middle Photo ${index + 1}';
+    if (total <= 1) return 'Receipt Photo';
+    if (index <= 0) return 'Top Section';
+    if (index >= total - 1) return 'Bottom Section';
+    return 'Middle Section ${index + 1}';
   }
 
   static String countLabel({required int index, required int total}) {
@@ -28,7 +28,7 @@ class _ReceiptPhotoSectionLabels {
       return 'If the receipt continues below this photo, add the next section.';
     }
     final selected = sectionNumberLabel(index: selectedIndex, total: total);
-    return '$selected selected. Photo 1 must be the top; every next photo should continue lower with 3-5 repeated readable lines.';
+    return '$selected selected. Section 1 must be the top; every next section should continue lower with 3-5 repeated readable lines.';
   }
 
   static String selectedReviewGuidance({

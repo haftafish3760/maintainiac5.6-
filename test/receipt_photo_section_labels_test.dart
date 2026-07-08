@@ -39,9 +39,10 @@ void main() {
           'lib/shared/widgets/receipt_capture/receipt_attachment_summary.dart',
         ).readAsString();
 
-    expect(labels, contains("return 'Top Photo'"));
-    expect(labels, contains("return 'Bottom Photo'"));
-    expect(labels, contains("return 'Middle Photo \${index + 1}'"));
+    expect(labels, contains("return 'Receipt Photo'"));
+    expect(labels, contains("return 'Top Section'"));
+    expect(labels, contains("return 'Bottom Section'"));
+    expect(labels, contains("return 'Middle Section \${index + 1}'"));
     expect(labels, contains('countLabel'));
     expect(labels, contains('orderHint'));
     expect(labels, contains('moveEarlierLabel'));

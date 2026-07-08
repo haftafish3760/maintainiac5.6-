@@ -16,6 +16,9 @@ void main() {
     final previewRow = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart',
     ).readAsString();
+    final previewControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_controls.dart',
+    ).readAsString();
     final previewTray = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_tray.dart',
     ).readAsString();
@@ -108,6 +111,9 @@ void main() {
     final contextControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_context_controls.dart',
     ).readAsString();
+    final previewControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_controls.dart',
+    ).readAsString();
     final previewRow = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart',
     ).readAsString();
@@ -142,6 +148,8 @@ void main() {
       previewRow,
       contains('_ReceiptPhotoCountBadge(current: current, total: total)'),
     );
+    expect(previewControls, contains("total <= 1"));
+    expect(previewControls, contains("'Section \$current of \$total'"));
     expect(previewRow, contains('maxLines: compact ? 1 : 2'));
     expect(previewRow, contains('SizedBox(height: compact ? 5 : 7)'));
     expect(
