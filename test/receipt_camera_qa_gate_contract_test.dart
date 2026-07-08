@@ -239,8 +239,15 @@ void main() {
     expect(script, contains('tool/receipt_real_device_result_start.sh'));
     expect(script, contains('PROJECT_RULES.md'));
     expect(script, contains('Current active phase: Phase 8'));
-    expect(script, contains('Current active phase: Phase 3, Camera viewer'));
-    expect(script, contains('Active roadmap focus: Phase 2 receipt entry flow verification'));
+    expect(script, contains('Current active phase: Phase 9, Milestone validation'));
+    expect(
+      script,
+      contains('Active roadmap focus: Phase 2 receipt entry flow verification'),
+    );
+    expect(
+      script,
+      contains('Active roadmap focus: Phase 6 through Phase 9 non-UI hardening and'),
+    );
     expect(script, contains('1,500-2,500'));
     expect(script, contains('4,000-pass camera-app'));
     expect(script, contains('tap-to-focus'));

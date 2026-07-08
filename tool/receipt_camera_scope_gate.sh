@@ -20,6 +20,7 @@ while IFS= read -r path; do
     .gitignore | \
     ios/Runner/ReceiptCamera*.swift | \
     ios/Runner/AppDelegate.swift | \
+    docs/receipt_camera_roadmap.md | \
     docs/receipt_camera_completion_map.md | \
     docs/receipt_camera_ocr_product_standard.md | \
     docs/receipt_camera_ocr_master_pass_plan.md | \

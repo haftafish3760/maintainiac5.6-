@@ -6,10 +6,11 @@ Do not touch PDF, inventory, admin, maintenance, maps, invoices, cloud sync, or
 unrelated modules unless a documented receipt-camera dependency requires it.
 
 Current phase:
-- Active roadmap focus: Phase 6 through Phase 9 non-UI hardening and
-  validation for stitch, OCR-source, storage-proof, and milestone gates.
-- Phase 2 receipt entry flow and Phase 3 camera viewer contracts remain part of
-  the roadmap, but they are not the active pass lane right now.
+- Active roadmap focus: Phase 3 camera viewer.
+- Phase 2 receipt entry flow is green on its targeted gate and now serves as
+  the entry-flow baseline for viewer work.
+- Phase 6 through Phase 9 hardening remains important, but it is no longer the
+  active roadmap lane ahead of the viewer milestone.
 - Current branch: `codex/expense-camera`
 
 Operating rules:
@@ -69,8 +70,9 @@ QA:
 - Test camera launch route does not require compression setup.
 
 Status:
-- Source contracts are in place. Resume only when the late non-UI validation
-  lane stops finding handoff or gate gaps.
+- Targeted gate is green. This phase now acts as the validated baseline for
+  Phase 3 viewer work, with real-device proof still pending later in the
+  roadmap.
 
 ## Phase 3: Camera viewer
 
@@ -98,8 +100,9 @@ QA:
 - Regression for no tap-to-focus screen behavior.
 
 Status:
-- Not the active pass lane right now; current work is finishing late non-UI
-  hardening and milestone validation before more viewer polish.
+- Active pass lane. The Phase 3 targeted gate is green, so the remaining work
+  here is viewer proof and polish against these requirements while keeping
+  receipt-entry behavior stable.
 
 ## Phase 4: Post-photo review
 

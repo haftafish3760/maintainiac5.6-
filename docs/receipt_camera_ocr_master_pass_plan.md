@@ -32,10 +32,10 @@ Current phase order:
 8. Storage proof decision.
 9. Milestone validation.
 
-Current active phase: Phase 9, Milestone validation for the late non-UI
-receipt-camera lane. Phase 2 and Phase 3 source contracts already exist; the
-current hardening work is proving stitch, OCR-source, storage-proof, and
-validation contracts before any new UI/device-polish swing.
+Current active phase: Phase 3, Camera viewer. Phase 2 receipt entry flow is
+green on its targeted gate and now acts as the validated baseline. Late
+non-UI hardening remains important, but the active roadmap lane has moved back
+to viewer behavior before more milestone-validation cleanup.
 
 Phase 2 acceptance rules:
 
