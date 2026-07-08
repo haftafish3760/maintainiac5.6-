@@ -52,6 +52,7 @@ void main() {
     expect(script, contains('tool/receipt_pipeline_failure_to_regression.dart'));
     expect(script, contains('tool/receipt_quiet_batch.sh'));
     expect(script, contains('tool/receipt_quiet_batch_status.sh'));
+    expect(script, contains('tool/receipt_quiet_batch_final_summary.sh'));
     expect(
       script,
       contains('test/receipt_pipeline_failure_to_regression_test.dart'),

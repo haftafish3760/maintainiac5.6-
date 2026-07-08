@@ -520,6 +520,69 @@ void main() {
     expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
   });
 
+  test('stitches receipt sections when continuation edge is clipped', () async {
+    final sectionA = receiptStitchingSection(seed: 76, topTextOffset: 0);
+    final sectionB = receiptStitchingSection(seed: 77, topTextOffset: 18);
+    copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 330);
+    final clippedSecond = clipReceiptStitchingSide(
+      sectionB,
+      left: 72,
+      right: 36,
+    );
+
+    final first = await writeTempReceiptStitchingImage(
+      sectionA,
+      'clipped_overlap_a',
+    );
+    final second = await writeTempReceiptStitchingImage(
+      clippedSecond,
+      'clipped_overlap_b',
+    );
+
+    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+      paths: [first.path, second.path],
+    );
+
+    expect(result.didStitch, isTrue, reason: result.detailLabel);
+    expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+    expect(result.overlapPixels.single, greaterThan(120));
+    expect(result.hasValidOcrSourceContract, isTrue);
+  });
+
+  test(
+    'stitches faded receipt sections when continuation edge is clipped',
+    () async {
+      final sectionA = fadeReceiptStitchingInk(
+        receiptStitchingSection(seed: 78, topTextOffset: 0),
+        amount: .52,
+      );
+      final sectionB = fadeReceiptStitchingInk(
+        receiptStitchingSection(seed: 79, topTextOffset: 18),
+        amount: .50,
+      );
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 330);
+      final clippedSecond = clipReceiptStitchingSide(sectionB, right: 84);
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'faded_clipped_overlap_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        clippedSecond,
+        'faded_clipped_overlap_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.overlapPixels.single, greaterThan(120));
+      expect(result.hasValidOcrSourceContract, isTrue);
+    },
+  );
+
   test(
     'falls back with output dimensions when receipt would be too large',
     () async {

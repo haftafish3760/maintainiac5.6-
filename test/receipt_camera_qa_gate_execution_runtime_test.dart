@@ -86,6 +86,10 @@ void main() {
       contains('selected milestone'),
     );
     expect(
+      await selectedModeFor('tool/receipt_quiet_batch_final_summary.sh'),
+      contains('selected milestone'),
+    );
+    expect(
       await selectedModeFor('tool/receipt_external_fixture_schema_gate.dart'),
       contains('selected milestone'),
     );

@@ -276,12 +276,14 @@ while IFS= read -r path; do
     tool/receipt_start_camera_qa_gate.sh | \
     tool/receipt_quiet_batch.sh | \
     tool/receipt_quiet_batch_status.sh | \
+    tool/receipt_quiet_batch_final_summary.sh | \
     test/receipt_camera_changed_gate_contract_test.dart | \
     test/receipt_camera_dataset_qa_gate_contract_test.dart | \
     test/receipt_camera_changed_route_coverage_gate_test.dart | \
     test/receipt_camera_qa_gate_contract_test.dart | \
     test/receipt_camera_qa_gate_execution_test.dart | \
     test/receipt_camera_qa_gate_execution_runtime_test.dart | \
+    test/receipt_quiet_batch_final_summary_script_test.dart | \
     test/receipt_external_dataset_local_audit_test.dart | \
     test/receipt_external_dataset_gate_test.dart | \
     test/receipt_external_fixture_schema_gate_test.dart | \

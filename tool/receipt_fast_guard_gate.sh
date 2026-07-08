@@ -21,6 +21,7 @@ bash -n \
   tool/receipt_ocr_pipeline_run.sh \
   tool/receipt_quiet_batch.sh \
   tool/receipt_quiet_batch_status.sh \
+  tool/receipt_quiet_batch_final_summary.sh \
   tool/receipt_quality_gate.sh \
   tool/receipt_start_ocr_pipeline.sh \
   tool/receipt_start_quiet_quality_gate.sh
@@ -66,6 +67,8 @@ RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_qa_gate_execution_tes
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_camera_qa_gate_execution_runtime_test.dart' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
+RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_quiet_batch_final_summary_script_test.dart' \
+  bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_camera_qa_gate.sh' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_camera_changed_route_coverage_gate.dart' \
@@ -75,6 +78,8 @@ RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_camera_scope_gate.sh' \
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_fast_guard_gate.sh' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_quiet_batch_status.sh' \
+  bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
+RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_quiet_batch_final_summary.sh' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
 RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_camera_real_device_snapshot.sh' \
   bash tool/receipt_camera_changed_gate.sh --print-mode >/dev/null
@@ -126,6 +131,7 @@ flutter test \
   test/receipt_camera_qa_gate_contract_test.dart \
   test/receipt_camera_qa_gate_execution_test.dart \
   test/receipt_camera_qa_gate_execution_runtime_test.dart \
+  test/receipt_quiet_batch_final_summary_script_test.dart \
   test/receipt_camera_footprint_audit_test.dart \
   test/receipt_camera_result_test.dart \
   test/receipt_photo_review_retake_order_test.dart \

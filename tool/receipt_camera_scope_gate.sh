@@ -63,6 +63,7 @@ while IFS= read -r path; do
 	    tool/receipt_fast_guard_gate.sh | \
 	    tool/receipt_quiet_batch.sh | \
 	    tool/receipt_quiet_batch_status.sh | \
+	    tool/receipt_quiet_batch_final_summary.sh | \
 	    tool/receipt_start_camera_qa_gate.sh | \
 	    test/receipt_bug_regression_ledger_archive_test.dart | \
 	    test/receipt_camera_changed_route_coverage_gate_test.dart | \

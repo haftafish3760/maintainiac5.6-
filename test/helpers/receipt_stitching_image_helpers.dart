@@ -254,3 +254,55 @@ img.Image fadeReceiptStitchingInk(img.Image source, {required double amount}) {
   }
   return faded;
 }
+
+img.Image blurReceiptStitchingShot(img.Image source, {required int radius}) {
+  final safeRadius = radius.clamp(1, 12);
+  final blurred = img.copyResize(source, width: source.width);
+  for (var y = safeRadius; y < source.height - safeRadius; y++) {
+    for (var x = safeRadius; x < source.width - safeRadius; x++) {
+      var r = 0;
+      var g = 0;
+      var b = 0;
+      var samples = 0;
+      for (var dy = -safeRadius; dy <= safeRadius; dy++) {
+        for (var dx = -safeRadius; dx <= safeRadius; dx++) {
+          final pixel = source.getPixel(x + dx, y + dy);
+          r += pixel.r.toInt();
+          g += pixel.g.toInt();
+          b += pixel.b.toInt();
+          samples++;
+        }
+      }
+      blurred.setPixelRgb(x, y, r ~/ samples, g ~/ samples, b ~/ samples);
+    }
+  }
+  return blurred;
+}
+
+img.Image clipReceiptStitchingSide(
+  img.Image source, {
+  int left = 0,
+  int right = 0,
+}) {
+  final safeLeft = left.clamp(0, source.width ~/ 3);
+  final safeRight = right.clamp(0, source.width ~/ 3);
+  final clippedWidth = (source.width - safeLeft - safeRight).clamp(
+    source.width ~/ 3,
+    source.width,
+  );
+  final clipped = img.copyCrop(
+    source,
+    x: safeLeft,
+    y: 0,
+    width: clippedWidth,
+    height: source.height,
+  );
+  final canvas = img.Image(
+    width: source.width,
+    height: source.height,
+    numChannels: 3,
+  );
+  img.fill(canvas, color: img.ColorRgb8(255, 255, 255));
+  img.compositeImage(canvas, clipped, dstX: safeLeft);
+  return canvas;
+}

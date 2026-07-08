@@ -63,9 +63,7 @@ void main() {
     );
     expect(
       script,
-      isNot(
-        contains('test/expense_receipt_parser_ocr_diagnostics_test.dart'),
-      ),
+      isNot(contains('test/expense_receipt_parser_ocr_diagnostics_test.dart')),
     );
     expect(script, contains('test/expense_release_one_blueprint_test.dart'));
     expect(script, contains('test/firestore_data_model_guard_test.dart'));
@@ -156,7 +154,19 @@ void main() {
     expect(
       script,
       contains(
+        "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='test/receipt_quiet_batch_final_summary_script_test.dart'",
+      ),
+    );
+    expect(
+      script,
+      contains(
         "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_quiet_batch_status.sh'",
+      ),
+    );
+    expect(
+      script,
+      contains(
+        "RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST='tool/receipt_quiet_batch_final_summary.sh'",
       ),
     );
     expect(
@@ -220,6 +230,10 @@ void main() {
     expect(
       script,
       contains('test/receipt_camera_qa_gate_execution_runtime_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_quiet_batch_final_summary_script_test.dart'),
     );
     expect(script, contains('test/receipt_camera_footprint_audit_test.dart'));
     expect(script, contains('test/receipt_camera_result_test.dart'));

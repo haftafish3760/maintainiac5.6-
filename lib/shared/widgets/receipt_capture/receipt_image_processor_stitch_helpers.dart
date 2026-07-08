@@ -258,10 +258,18 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
     width: previous.width,
     offset: bestHorizontalOffset,
   );
+  final texturePenalty = _overlapFlatTexturePenalty(
+    previous: previous,
+    next: next,
+    pixels: bestPixels,
+    horizontalOffset: bestHorizontalOffset,
+    nextYOffset: bestNextYOffset,
+  );
   final confidence =
       (visualConfidence * (.55 + (.45 * distinctiveness)) -
               horizontalDriftPenalty -
-              offsetPenalty)
+              offsetPenalty -
+              texturePenalty)
           .clamp(0.0, 1.0);
   return _ReceiptOverlapMatch(
     pixels: bestPixels,
@@ -419,6 +427,66 @@ double _overlapDifference({
       (rowProfileAverage * .22) +
       (columnProfileAverage * .20) +
       (centerPenalty * .08);
+}
+
+double _overlapFlatTexturePenalty({
+  required img.Image previous,
+  required img.Image next,
+  required int pixels,
+  required int horizontalOffset,
+  required int nextYOffset,
+}) {
+  final sampleWidth = math.min(previous.width, next.width);
+  final stepX = math.max(8, (sampleWidth / 72).round());
+  final stepY = math.max(4, (pixels / 42).round());
+  final previousStartY = previous.height - pixels;
+  final previousRatios = <double>[];
+  final nextRatios = <double>[];
+  final nextLumas = <double>[];
+  for (var y = 0; y < pixels; y += stepY) {
+    var previousInk = 0;
+    var nextInk = 0;
+    var samples = 0;
+    for (var x = sampleWidth ~/ 10; x < sampleWidth * 9 ~/ 10; x += stepX) {
+      final nextX = x + horizontalOffset;
+      if (nextX < 0 || nextX >= sampleWidth) continue;
+      if (_luma(previous.getPixel(x, previousStartY + y)) < 170) {
+        previousInk++;
+      }
+      final nextLuma = _luma(next.getPixel(nextX, nextYOffset + y));
+      nextLumas.add(nextLuma);
+      if (nextLuma < 170) {
+        nextInk++;
+      }
+      samples++;
+    }
+    if (samples == 0) continue;
+    previousRatios.add(previousInk / samples);
+    nextRatios.add(nextInk / samples);
+  }
+  if (previousRatios.length < 6 || nextRatios.length < 6) return .35;
+  final previousStats = _overlapInkProfileStats(previousRatios);
+  final nextStats = _overlapInkProfileStats(nextRatios);
+  final nextLumaStats = _overlapValueStats(nextLumas);
+  final nextLooksFlatDark = nextStats.mean > .70 && nextStats.variance < .0018;
+  final previousLooksReceiptLike = previousStats.variance > .004;
+  if (nextLooksFlatDark && previousLooksReceiptLike) return .48;
+  if (previousLooksReceiptLike && nextLumaStats.variance < 18) return .48;
+  return 0;
+}
+
+({double mean, double variance}) _overlapInkProfileStats(List<double> values) {
+  return _overlapValueStats(values);
+}
+
+({double mean, double variance}) _overlapValueStats(List<double> values) {
+  final mean = values.reduce((a, b) => a + b) / values.length;
+  var variance = 0.0;
+  for (final value in values) {
+    final delta = value - mean;
+    variance += delta * delta;
+  }
+  return (mean: mean, variance: variance / values.length);
 }
 
 double _overlapHorizontalDriftPenalty({
