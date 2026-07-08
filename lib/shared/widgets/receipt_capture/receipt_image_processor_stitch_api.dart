@@ -203,6 +203,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             scaleCorrection: match.scaleCorrection,
             rotationCorrectionDegrees: match.rotationCorrectionDegrees,
             horizontalOffsetPixels: match.nextXOffsetPixels,
+            verticalOffsetPixels: match.nextTopOffsetPixels,
           ),
         );
         expectedHeight += match.nextImage.height - match.nextSkipPixels;

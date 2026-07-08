@@ -155,6 +155,50 @@ void main() {
     },
     timeout: _stitchingHeavyTimeout,
   );
+
+  test(
+    'crops delayed-overlap top strip before compositing next section',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 96, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 97, topTextOffset: 18);
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 330,
+        dstY: 88,
+      );
+      _paintFullWidthContaminatedTopStrip(sectionB, height: 70);
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'delayed_overlap_preroll_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        sectionB,
+        'delayed_overlap_preroll_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+
+      final stitched = img.decodeImage(
+        await File(result.stitchedPath!).readAsBytes(),
+      );
+      expect(stitched, isNotNull);
+      expect(
+        _containsFullWidthDarkContamination(stitched!),
+        isFalse,
+        reason:
+            'Delayed-overlap pre-roll from the next photo must not overwrite the previous section.',
+      );
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
 }
 
 Future<void> _expectStitchedImageMatchesReportedSize(
@@ -167,4 +211,35 @@ Future<void> _expectStitchedImageMatchesReportedSize(
   expect(decoded!.width, result.stitchedWidth);
   expect(decoded.height, result.stitchedHeight);
   expect(result.ocrSourcePaths, [stitchedPath]);
+}
+
+void _paintFullWidthContaminatedTopStrip(
+  img.Image image, {
+  required int height,
+}) {
+  img.fillRect(
+    image,
+    x1: 0,
+    y1: 0,
+    x2: image.width - 1,
+    y2: height.clamp(1, image.height - 1),
+    color: img.ColorRgb8(4, 4, 4),
+  );
+}
+
+bool _containsFullWidthDarkContamination(img.Image image) {
+  final startY = (image.height * .18).round();
+  final endY = (image.height * .82).round();
+  for (var y = startY; y < endY; y += 4) {
+    var darkSamples = 0;
+    var samples = 0;
+    for (var x = image.width ~/ 20; x < image.width * 19 ~/ 20; x += 8) {
+      final pixel = image.getPixel(x, y);
+      final luma = (pixel.r + pixel.g + pixel.b) / 3;
+      if (luma < 36) darkSamples++;
+      samples++;
+    }
+    if (samples > 0 && darkSamples / samples > .82) return true;
+  }
+  return false;
 }

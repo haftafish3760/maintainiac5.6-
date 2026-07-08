@@ -95,4 +95,49 @@ void main() {
     expect(metadata.toString(), isNot(contains('/tmp/source-1.jpg')));
     expect(metadata.toString(), isNot(contains('/tmp/source-2.jpg')));
   });
+
+  test('stitched OCR handoff exposes delayed-overlap offset safely', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/proof-1.jpg', '/tmp/proof-2.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/stitched-delayed.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult(
+        status: ReceiptStitchStatus.stitched,
+        inputPaths: const ['/tmp/source-1.jpg', '/tmp/source-2.jpg'],
+        ocrSourcePaths: const ['/tmp/stitched-delayed.jpg'],
+        stitchedPath: '/tmp/stitched-delayed.jpg',
+        confidence: .79,
+        overlapPixels: const [330],
+        pairs: const [
+          ReceiptStitchPairResult(
+            pairIndex: 0,
+            overlapPixels: 330,
+            confidence: .79,
+            verticalOffsetPixels: 88,
+          ),
+        ],
+        stitchedWidth: 1200,
+        stitchedHeight: 2600,
+      ),
+    );
+
+    final metadata = result.privacySafeReceiptReaderHandoffMetadata;
+
+    expect(
+      metadata,
+      containsPair('stitchPairSafetySummaries', [
+        {
+          'startSectionNumber': 1,
+          'endSectionNumber': 2,
+          'overlapPixels': 330,
+          'confidencePercent': 79,
+          'usedManualAdjustment': false,
+          'verticalOffsetPixels': 88,
+          'diagnosticCode': 'delayed_overlap_adjusted',
+        },
+      ]),
+    );
+    expect(metadata.toString(), isNot(contains('/tmp/source-1.jpg')));
+    expect(metadata.toString(), isNot(contains('/tmp/source-2.jpg')));
+  });
 }

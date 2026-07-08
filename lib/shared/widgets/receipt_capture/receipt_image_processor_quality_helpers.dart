@@ -186,6 +186,7 @@ class _ReceiptOverlapMatch {
     required this.nextImage,
     int? nextSkipPixels,
     this.nextXOffsetPixels = 0,
+    this.nextTopOffsetPixels = 0,
     this.scaleCorrection = 1,
     this.rotationCorrectionDegrees = 0,
   }) : nextSkipPixels = nextSkipPixels ?? pixels;
@@ -193,6 +194,7 @@ class _ReceiptOverlapMatch {
   final int pixels;
   final int nextSkipPixels;
   final int nextXOffsetPixels;
+  final int nextTopOffsetPixels;
   final double confidence;
   final img.Image nextImage;
   final double scaleCorrection;

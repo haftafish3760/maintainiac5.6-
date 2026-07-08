@@ -208,6 +208,8 @@ List<Map<String, Object?>> _privacySafeStitchPairSummaries(
         'overlapPixels': pair.overlapPixels,
         'confidencePercent': (pair.confidence.clamp(0, 1) * 100).round(),
         'usedManualAdjustment': pair.usedManualAdjustment,
+        if (pair.verticalOffsetPixels > 0)
+          'verticalOffsetPixels': pair.verticalOffsetPixels,
         'diagnosticCode': pair.diagnosticCode,
       });
     }),

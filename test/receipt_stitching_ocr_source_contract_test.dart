@@ -93,6 +93,42 @@ void main() {
     expect(finalResult.usesDerivedCombinedOcrArtifact, isTrue);
   });
 
+  test('final stitched OCR handoff prefers provided OCR source path', () {
+    final preview = ReceiptStitchResult(
+      status: ReceiptStitchStatus.stitched,
+      inputPaths: const ['/tmp/raw-top.jpg', '/tmp/raw-bottom.jpg'],
+      ocrSourcePaths: const ['/tmp/disposable-preview-stitch.jpg'],
+      stitchedPath: '/tmp/disposable-preview-stitch.jpg',
+      confidence: .86,
+      overlapPixels: const [292],
+      pairs: const [
+        ReceiptStitchPairResult(
+          pairIndex: 0,
+          overlapPixels: 292,
+          confidence: .86,
+        ),
+      ],
+      stitchedWidth: 900,
+      stitchedHeight: 2660,
+    );
+
+    final finalResult = preview.copyForFinalOcr(
+      inputPaths: const [
+        '/private/original-top.jpg',
+        '/private/original-bottom.jpg',
+      ],
+      ocrSourcePaths: const ['/private/final-durable-stitch.jpg'],
+    );
+
+    expect(finalResult.ocrSourcePaths, ['/private/final-durable-stitch.jpg']);
+    expect(finalResult.stitchedPath, '/private/final-durable-stitch.jpg');
+    expect(
+      finalResult.stitchedPath,
+      isNot('/tmp/disposable-preview-stitch.jpg'),
+    );
+    expect(finalResult.ocrSourceContractCode, 'stitched_ocr_source_ready');
+  });
+
   test(
     'final OCR fallback preserves ordered separate source paths path-free',
     () {

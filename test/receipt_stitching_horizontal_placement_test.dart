@@ -20,6 +20,20 @@ void main() {
     expect(pair.userCheckLabel, contains('sideways drift'));
   });
 
+  test('labels delayed-overlap vertical correction metadata', () {
+    const pair = ReceiptStitchPairResult(
+      pairIndex: 0,
+      overlapPixels: 330,
+      confidence: .79,
+      verticalOffsetPixels: 88,
+    );
+
+    expect(pair.diagnosticCode, 'delayed_overlap_adjusted');
+    expect(pair.summaryLabel, contains('delayed 88px'));
+    expect(pair.matchEvidenceLabel, contains('delayed overlap'));
+    expect(pair.userCheckLabel, contains('delayed overlap'));
+  });
+
   test(
     'keeps auto-cropped sideways continuation stitchable',
     () async {
@@ -31,11 +45,7 @@ void main() {
         pixels: 340,
         dstY: 36,
       );
-      final shiftedSecond = shiftReceiptStitchingShot(
-        sectionB,
-        dx: 80,
-        dy: 0,
-      );
+      final shiftedSecond = shiftReceiptStitchingShot(sectionB, dx: 80, dy: 0);
 
       final first = await writeTempReceiptStitchingImage(
         sectionA,

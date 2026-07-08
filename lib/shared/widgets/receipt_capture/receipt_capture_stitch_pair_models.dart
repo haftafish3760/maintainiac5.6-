@@ -9,6 +9,7 @@ class ReceiptStitchPairResult {
     this.scaleCorrection = 1,
     this.rotationCorrectionDegrees = 0,
     this.horizontalOffsetPixels = 0,
+    this.verticalOffsetPixels = 0,
   });
 
   final int pairIndex;
@@ -18,6 +19,7 @@ class ReceiptStitchPairResult {
   final double scaleCorrection;
   final double rotationCorrectionDegrees;
   final int horizontalOffsetPixels;
+  final int verticalOffsetPixels;
 
   String get pairLabel => 'Photo ${pairIndex + 1} to ${pairIndex + 2}';
   double get _safeConfidence => _safeStitchUnitInterval(confidence);
@@ -26,6 +28,7 @@ class ReceiptStitchPairResult {
   double get _safeRotationCorrectionDegrees =>
       rotationCorrectionDegrees.isFinite ? rotationCorrectionDegrees : 0;
   int get _safeHorizontalOffsetPixels => horizontalOffsetPixels;
+  int get _safeVerticalOffsetPixels => verticalOffsetPixels;
   int get _confidencePercent => (_safeConfidence * 100).round();
   bool get hasTrustedOverlapEvidence =>
       usedManualAdjustment || (overlapPixels > 0 && _safeConfidence >= .50);
@@ -41,10 +44,13 @@ class ReceiptStitchPairResult {
     final driftText = _safeHorizontalOffsetPixels.abs() >= 24
         ? ', shifted ${_safeHorizontalOffsetPixels.abs()} px'
         : '';
+    final delayedText = _safeVerticalOffsetPixels >= 24
+        ? ', delayed ${_safeVerticalOffsetPixels}px'
+        : '';
     if ((_safeScaleCorrection - 1).abs() >= .03) {
-      return '$pairLabel: $_confidencePercent% match, $match, zoom adjusted$rotationText$driftText';
+      return '$pairLabel: $_confidencePercent% match, $match, zoom adjusted$rotationText$driftText$delayedText';
     }
-    return '$pairLabel: $_confidencePercent% match, $match$rotationText$driftText';
+    return '$pairLabel: $_confidencePercent% match, $match$rotationText$driftText$delayedText';
   }
 
   String get matchEvidenceLabel {
@@ -58,6 +64,9 @@ class ReceiptStitchPairResult {
     }
     if (_safeHorizontalOffsetPixels.abs() >= 24) {
       return '$_confidencePercent% with drift fix';
+    }
+    if (_safeVerticalOffsetPixels >= 24) {
+      return '$_confidencePercent% with delayed overlap';
     }
     return '$_confidencePercent% overlap';
   }
@@ -74,6 +83,7 @@ class ReceiptStitchPairResult {
       return 'straighten_adjusted';
     }
     if (_safeHorizontalOffsetPixels.abs() >= 24) return 'drift_adjusted';
+    if (_safeVerticalOffsetPixels >= 24) return 'delayed_overlap_adjusted';
     return 'overlap_matched';
   }
 
@@ -93,6 +103,9 @@ class ReceiptStitchPairResult {
     }
     if (_safeHorizontalOffsetPixels.abs() >= 24) {
       adjustments.add('sideways drift');
+    }
+    if (_safeVerticalOffsetPixels >= 24) {
+      adjustments.add('delayed overlap');
     }
     if (adjustments.isEmpty) {
       return '$pairLabel matched repeated receipt text.';

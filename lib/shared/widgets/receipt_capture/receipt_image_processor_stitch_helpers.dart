@@ -116,18 +116,27 @@ _ReceiptOverlapMatch _materializeStitchCandidate({
             math.min(maxSafeOverlap, 2400),
           )
           as int;
-  final fullSkipPixels =
-      (candidate.nextSkipPixels * scaleY).round().clamp(
-            fullPixels,
-            math.min(maxSafeOverlap, 2400),
-          )
-          as int;
+  final maxTopOffset = math.max(0, nextImage.height - fullPixels - 24);
+  final fullTopOffset =
+      (math.max(0, candidate.nextSkipPixels - candidate.pixels) * scaleY)
+          .round()
+          .clamp(0, maxTopOffset);
+  final stitchedNextImage = fullTopOffset == 0
+      ? nextImage
+      : img.copyCrop(
+          nextImage,
+          x: 0,
+          y: fullTopOffset,
+          width: nextImage.width,
+          height: nextImage.height - fullTopOffset,
+        );
   return _ReceiptOverlapMatch(
     pixels: fullPixels,
-    nextSkipPixels: fullSkipPixels,
+    nextSkipPixels: fullPixels,
     nextXOffsetPixels: (candidate.nextXOffsetPixels * scaleX).round(),
+    nextTopOffsetPixels: fullTopOffset,
     confidence: candidate.confidence,
-    nextImage: nextImage,
+    nextImage: stitchedNextImage,
     scaleCorrection: candidate.scaleCorrection,
     rotationCorrectionDegrees: candidate.rotationCorrectionDegrees,
   );
@@ -285,6 +294,7 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
     pixels: bestPixels,
     nextSkipPixels: bestPixels + bestNextYOffset,
     nextXOffsetPixels: bestHorizontalOffset,
+    nextTopOffsetPixels: bestNextYOffset,
     confidence: confidence,
     nextImage: next,
   );
@@ -308,9 +318,7 @@ List<int> _stitchHorizontalOffsets(int width) {
   final offsets = <int>[0];
   for (final multiple in const [1, 2, 3]) {
     final offset = unit * multiple;
-    offsets
-      ..add(-offset)
-      ..add(offset);
+    offsets.addAll([-offset, offset]);
   }
   final maxOffset = math.max(unit * 2, (width * .14).round());
   return offsets.where((offset) => offset.abs() <= maxOffset).toList();
