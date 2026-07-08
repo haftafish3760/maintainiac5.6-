@@ -130,7 +130,10 @@ void main() {
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       expect(result.overlapPixelTotal, greaterThan(0));
       expect(result.stitchedHeight, greaterThan(sectionA.height));
-      expect(result.detailLabel, contains('3 photos became 1 receipt image'));
+      expect(
+        result.detailLabel,
+        contains('3 receipt sections became 1 receipt image'),
+      );
     },
   );
 

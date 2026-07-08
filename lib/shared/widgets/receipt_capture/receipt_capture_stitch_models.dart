@@ -277,10 +277,10 @@ class ReceiptStitchResult {
       ReceiptStitchStatus.notNeeded =>
         inputPaths.length <= 1
             ? '1 photo to review'
-            : '${inputPaths.length} photos to review',
+            : '${inputPaths.length} receipt sections to review',
       ReceiptStitchStatus.stitched => '1 combined receipt image',
       ReceiptStitchStatus.fallback =>
-        '${inputPaths.length} photos top to bottom',
+        '${inputPaths.length} receipt sections top to bottom',
     };
   }
 
@@ -419,11 +419,11 @@ class ReceiptStitchResult {
       ReceiptStitchStatus.notNeeded =>
         inputPaths.length <= 1
             ? 'Single receipt photo ready for review.'
-            : 'Receipt photos ready for review.',
+            : 'Receipt sections ready for review.',
       ReceiptStitchStatus.stitched =>
-        'Receipt photos combined for app-assisted review.',
+        'Receipt sections combined for app-assisted review.',
       ReceiptStitchStatus.fallback =>
-        'Receipt photos will be reviewed separately.',
+        'Receipt sections will be reviewed separately.',
     };
   }
 
@@ -437,15 +437,15 @@ class ReceiptStitchResult {
       ReceiptStitchStatus.notNeeded =>
         inputPaths.length <= 1
             ? 'One photo was prepared for receipt details.'
-            : '${inputPaths.length} photos were prepared for receipt details.',
+            : '${inputPaths.length} receipt sections were prepared for receipt details.',
       ReceiptStitchStatus.stitched =>
-        '${inputPaths.length} photos became 1 receipt image'
+        '${inputPaths.length} receipt sections became 1 receipt image'
             '${stitchedSizeLabel.isEmpty ? '' : ' ($stitchedSizeLabel)'}. '
             '${usedManualAdjustment ? 'Manual match was used.' : 'Photo match confidence ${(_safeStitchUnitInterval(confidence) * 100).round()}%.'}'
             '${pairDiagnosticsLabel.isEmpty ? '' : ' $pairDiagnosticsLabel'}',
       ReceiptStitchStatus.fallback =>
         warning.trim().isEmpty
-            ? '${inputPaths.length} photos stayed separate because stitching confidence was too low.'
+            ? '${inputPaths.length} receipt sections stayed separate because stitching confidence was too low.'
             : failedPairLabel.isEmpty
             ? warning
             : '$failedPairLabel: $warning',

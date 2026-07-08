@@ -48,7 +48,10 @@ void main() {
       stitched.privacySafeOcrHandoffSafety,
       containsPair('stitchOcrSourceContractReady', true),
     );
-    expect(stitched.detailLabel, contains('3 photos became 1 receipt image'));
+    expect(
+      stitched.detailLabel,
+      contains('3 receipt sections became 1 receipt image'),
+    );
     expect(stitched.detailLabel, contains('1200 x 4200'));
     expect(stitched.detailLabel, contains('86%'));
     expect(stitched.stitchedPixelCount, 5040000);
@@ -81,7 +84,7 @@ void main() {
     expect(zoomAndTilt.diagnosticCode, 'zoom_and_straighten_adjusted');
     expect(zoomAndTilt.userCheckLabel, contains('zoom difference'));
     expect(zoomAndTilt.userCheckLabel, contains('slight tilt'));
-    expect(fallback.summaryLabel, contains('reviewed separately'));
+    expect(fallback.summaryLabel, contains('Receipt sections will be reviewed separately.'));
     expect(fallback.ocrSourceContractCode, 'fallback_ordered_sources_ready');
     expect(fallback.hasValidOcrSourceContract, isTrue);
     expect(fallback.requiresOcrSourceReviewBeforeAssistedRead, isTrue);

@@ -245,7 +245,7 @@ void main() {
     expect(models, contains('Overlap was not clear enough'));
     expect(models, contains('Receipt is too long for this device'));
     expect(models, contains('1 combined receipt image'));
-    expect(models, contains('photos top to bottom'));
+    expect(models, contains('receipt sections top to bottom'));
     expect(models, contains('make sure no middle section is missing'));
     expect(models, contains('Repeat 3-5 readable lines between sections'));
     expect(orderControls, contains('Receipt details open in this order.'));

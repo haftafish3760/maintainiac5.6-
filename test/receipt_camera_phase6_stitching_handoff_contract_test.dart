@@ -222,7 +222,7 @@ void main() {
       expect(result.hasValidOcrSourceContract, isFalse);
       expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
       expect(result.assistedReadinessCode, 'stitch_contract_review_required');
-      expect(result.reviewPathLabel, '3 photos top to bottom');
+      expect(result.reviewPathLabel, '3 receipt sections top to bottom');
       expect(
         result.ocrHandoffSafetyLabel,
         'OCR will read ordered sections because stitching was not trusted.',
