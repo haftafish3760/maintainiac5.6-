@@ -84,11 +84,12 @@ replacements = {
     "- Devices:": "- Devices: metadata only; verify during manual run",
     "- Receipt set:": "- Receipt set: NOT FILLED YET",
     "## Environment And Device Matrix": "## Environment And Device Matrix\n\n"
-    f"- Workspace: `{workspace}`\n"
-    f"- Metadata snapshot summary: `{snapshot_dir}/summary.txt`\n"
-    f"- Flutter devices snapshot log: `{snapshot_dir}/flutter_devices.txt`\n"
-    f"- ADB devices snapshot log: `{snapshot_dir}/adb_devices.txt`\n"
-    f"- Xcode devices snapshot log: `{snapshot_dir}/xcrun_devices.txt`\n"
+    f"- Workspace: `{workspace}`",
+    "- Metadata snapshot summary:": f"- Metadata snapshot summary: `{snapshot_dir}/summary.txt`",
+    "- Flutter devices snapshot log:": f"- Flutter devices snapshot log: `{snapshot_dir}/flutter_devices.txt`",
+    "- ADB devices snapshot log:": f"- ADB devices snapshot log: `{snapshot_dir}/adb_devices.txt`",
+    "- Xcode devices snapshot log:": f"- Xcode devices snapshot log: `{snapshot_dir}/xcrun_devices.txt`",
+    "- Workspace:": f"- Workspace: `{workspace}`\n"
     f"- Flutter devices snapshot: {flutter_summary}\n"
     f"- ADB devices snapshot: {adb_summary}\n"
     f"- Xcode devices snapshot: {xcrun_summary}",

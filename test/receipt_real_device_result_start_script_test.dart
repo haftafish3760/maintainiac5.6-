@@ -53,6 +53,30 @@ void main() {
       snapshotSummaryFile.readAsStringSync(),
       contains('purpose=metadata_only_no_install_no_ui_navigation'),
     );
+    expect(
+      RegExp(r'^- Metadata snapshot summary:', multiLine: true)
+          .allMatches(text)
+          .length,
+      1,
+    );
+    expect(
+      RegExp(r'^- Flutter devices snapshot log:', multiLine: true)
+          .allMatches(text)
+          .length,
+      1,
+    );
+    expect(
+      RegExp(r'^- ADB devices snapshot log:', multiLine: true)
+          .allMatches(text)
+          .length,
+      1,
+    );
+    expect(
+      RegExp(r'^- Xcode devices snapshot log:', multiLine: true)
+          .allMatches(text)
+          .length,
+      1,
+    );
 
     outputFile.deleteSync();
     snapshotSummaryFile.parent.listSync().whereType<File>().forEach((file) {
