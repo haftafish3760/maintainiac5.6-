@@ -38,6 +38,7 @@ case "$mode" in
     echo "Receipt stitch handoff health"
     flutter test \
       test/receipt_camera_phase5_long_receipt_contract_test.dart \
+      test/receipt_camera_low_confidence_stack_handoff_test.dart \
       test/receipt_camera_oversized_stitch_handoff_test.dart \
       test/receipt_camera_phase6_stitching_handoff_contract_test.dart \
       test/receipt_camera_result_stitch_handoff_followthrough_test.dart \
@@ -74,6 +75,7 @@ case "$mode" in
       test/receipt_stitching_variants_test.dart \
       test/receipt_stitching_weak_overlap_safety_test.dart \
       test/receipt_camera_result_stitch_scanner_test.dart \
+      test/receipt_camera_low_confidence_stack_handoff_test.dart \
       test/receipt_camera_oversized_stitch_handoff_test.dart \
       test/receipt_camera_phase6_stitching_handoff_contract_test.dart \
       test/receipt_camera_result_stitch_handoff_followthrough_test.dart \
