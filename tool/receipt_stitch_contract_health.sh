@@ -86,6 +86,21 @@ run_source_size() {
       exit 1
     fi
   done
+  local test_files=(
+    test/receipt_stitching_*_test.dart
+    test/receipt_stitch_fallback_metadata_test.dart
+    test/receipt_camera_low_confidence_stack_handoff_test.dart
+    test/receipt_camera_oversized_stitch_handoff_test.dart
+    test/receipt_camera_result_stitch_handoff_followthrough_test.dart
+  )
+  for file in "${test_files[@]}"; do
+    local lines
+    lines="$(wc -l < "$file" | tr -d ' ')"
+    if [[ "$lines" -gt "$max_lines" ]]; then
+      echo "$file: $lines lines exceeds $max_lines-line stitch test cap." >&2
+      exit 1
+    fi
+  done
   echo "Receipt stitch source-size health: PASS"
 }
 

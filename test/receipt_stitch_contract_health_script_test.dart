@@ -72,6 +72,14 @@ void main() {
     expect(source, contains('Receipt stitch source-size health'));
     expect(source, contains('receipt_image_processor_stitch_helpers.dart'));
     expect(source, contains(r'exceeds $max_lines-line stitch source cap'));
+    expect(source, contains('test/receipt_stitching_*_test.dart'));
+    expect(
+      source,
+      contains(
+        'test/receipt_camera_result_stitch_handoff_followthrough_test.dart',
+      ),
+    );
+    expect(source, contains(r'exceeds $max_lines-line stitch test cap'));
     expect(source, contains('Receipt stitch source-size health: PASS'));
     expect(source, contains('milestone)'));
     expect(source, contains('run_source_size'));
