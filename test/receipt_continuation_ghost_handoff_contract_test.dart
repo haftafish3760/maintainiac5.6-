@@ -101,6 +101,53 @@ void main() {
       contains('previous_section_ghost'),
     );
   });
+
+  test('continuation ghost clamps unsafe slice fractions for native handoff', () {
+    final options = const ReceiptCaptureFlowOptions(
+      module: ReceiptCaptureFlowModule.expenses,
+      forceLongReceiptMode: true,
+      previousSectionGuidePhotoPath: '/tmp/section-3.jpg',
+      previousSectionReasonCode: 'manual_add_photo_continuation',
+      previousSectionGuidance: 'Repeat the last readable lines.',
+      previousSectionGhostSourceStartFraction: 1.8,
+      previousSectionGhostSourceHeightFraction: -.4,
+      previousSectionGhostOverlayTopFraction: -.2,
+      previousSectionGhostOverlayHeightFraction: 1.4,
+      previousSectionGhostOpacity: 2.1,
+    );
+
+    final session = const ReceiptNativeCameraSettings(
+      longReceiptMode: true,
+    ).sessionFor(
+      deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+      nativeCapabilities: _nativeCapabilities,
+      previousSectionGuidePhotoPath: options.previousSectionGuidePhotoPath,
+      previousSectionReasonCode: options.previousSectionReasonCode,
+      previousSectionGuidance: options.previousSectionGuidance,
+      previousSectionGhostSourceStartFraction:
+          options.previousSectionGhostSourceStartFraction,
+      previousSectionGhostSourceHeightFraction:
+          options.previousSectionGhostSourceHeightFraction,
+      previousSectionGhostOverlayTopFraction:
+          options.previousSectionGhostOverlayTopFraction,
+      previousSectionGhostOverlayHeightFraction:
+          options.previousSectionGhostOverlayHeightFraction,
+      previousSectionGhostOpacity: options.previousSectionGhostOpacity,
+    );
+
+    expect(session.hasPreviousSectionGuide, isTrue);
+    expect(session.previousSectionGhostGuidePlacement, 'top_ghost_slice');
+    expect(session.previousSectionGhostSourceStartFractionOrDefault, .92);
+    expect(session.previousSectionGhostSourceHeightFractionOrDefault, .15);
+    expect(session.previousSectionGhostOverlayTopFractionOrDefault, 0);
+    expect(session.previousSectionGhostOverlayHeightFractionOrDefault, .20);
+    expect(session.previousSectionGhostOpacityOrDefault, .62);
+    expect(session.previousSectionGhostSlicePercent, 15);
+    expect(
+      session.nativeControlContractTags,
+      contains('previous_section_ghost'),
+    );
+  });
 }
 
 const _nativeCapabilities = ReceiptNativeCameraCapabilities(
