@@ -118,7 +118,10 @@ void main() {
       contains('_ReceiptFirstUseCameraAction.useReceiptAssist'),
     );
     expect(helpSheet, contains('_ReceiptFirstUseCameraAction.manualEntry'));
-    expect(attachmentPublishHelpers, contains('openReceiptCaptureSettings()'));
+    expect(
+      attachmentPublishHelpers,
+      isNot(contains('openReceiptCaptureSettings()')),
+    );
     expect(settingsSheet, contains('Expense Receipt Settings'));
     expect(
       settingsSheet,
