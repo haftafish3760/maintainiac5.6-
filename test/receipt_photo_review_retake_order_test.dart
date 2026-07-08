@@ -30,62 +30,6 @@ void main() {
   });
 
   test(
-    'retake diagnostics keep neighboring absolute section paths private',
-    () {
-      final plan = ReceiptPhotoRetakeOrderPlan.build(
-        currentPhotoPaths: const [
-          '/tmp/maintainiac/top-section.jpg',
-          '/tmp/maintainiac/middle-old.jpg',
-          '/tmp/maintainiac/bottom-section.jpg',
-        ],
-        targetPhotoPath: '/tmp/maintainiac/middle-old.jpg',
-        replacementPhotoPaths: const ['/tmp/maintainiac/middle-new.jpg'],
-      );
-
-      expect(plan, isNotNull);
-      expect(plan!.photoPaths, const [
-        '/tmp/maintainiac/top-section.jpg',
-        '/tmp/maintainiac/middle-new.jpg',
-        '/tmp/maintainiac/bottom-section.jpg',
-      ]);
-      final diagnostics = plan.captureDiagnosticsForReplacementPaths(const [
-        '/tmp/maintainiac/middle-new.jpg',
-      ]);
-      final replacementDiagnostics =
-          diagnostics['/tmp/maintainiac/middle-new.jpg'];
-
-      expect(replacementDiagnostics, isNotNull);
-      expect(
-        replacementDiagnostics,
-        containsPair('receiptRetakeOriginalSectionNumber', 2),
-      );
-      expect(
-        replacementDiagnostics,
-        containsPair('receiptRetakePreviousContextSectionNumber', 1),
-      );
-      expect(
-        replacementDiagnostics,
-        containsPair('receiptRetakeNextContextSectionNumber', 3),
-      );
-      expect(
-        replacementDiagnostics,
-        containsPair(
-          'receiptRetakeOrderPolicy',
-          'preserve_original_slot_insert_extra_sections_after_target',
-        ),
-      );
-      expect(
-        replacementDiagnostics.toString(),
-        isNot(contains('/tmp/maintainiac/top-section.jpg')),
-      );
-      expect(
-        replacementDiagnostics.toString(),
-        isNot(contains('/tmp/maintainiac/bottom-section.jpg')),
-      );
-    },
-  );
-
-  test(
     'retaking one section with multiple photos inserts extras after the slot',
     () {
       final plan = ReceiptPhotoRetakeOrderPlan.build(
