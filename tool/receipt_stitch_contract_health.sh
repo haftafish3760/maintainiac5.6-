@@ -192,6 +192,13 @@ run_ghost_handoff() {
   echo "Receipt stitch ghost-handoff health: PASS"
 }
 
+run_synthetic_dataset() {
+  echo "Receipt stitch synthetic-dataset health"
+  run_flutter_test synthetic-dataset \
+    test/receipt_synthetic_stitch_dataset_audit_test.dart
+  echo "Receipt stitch synthetic-dataset health: PASS"
+}
+
 run_source_size() {
   echo "Receipt stitch source-size health"
   local max_lines=500
@@ -338,13 +345,14 @@ case "$mode" in
   duplicates) run_duplicates; exit 0 ;;
   handoff) run_handoff; exit 0 ;;
   ghost_handoff) run_ghost_handoff; exit 0 ;;
+  synthetic_dataset) run_synthetic_dataset; exit 0 ;;
   source_size) run_source_size; exit 0 ;;
   fast) run_fast; exit 0 ;;
   core) run_core_stitch; exit 0 ;;
   milestone) run_milestone; exit 0 ;;
   full) run_full; exit 0 ;;
   *)
-    echo "Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|transformed_phone_windows|long_stack|ugly_long_receipts|transformed_ugly_receipts|store_receipt_shape|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|source_size|fast|core|milestone|full]" >&2
+    echo "Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|transformed_phone_windows|long_stack|ugly_long_receipts|transformed_ugly_receipts|store_receipt_shape|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|synthetic_dataset|source_size|fast|core|milestone|full]" >&2
     exit 64
     ;;
 esac
