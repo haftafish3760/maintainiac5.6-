@@ -188,6 +188,43 @@ void main() {
   );
 
   test(
+    'manual overlap supports exposure-shifted long receipt sections',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 24, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 25, topTextOffset: 22);
+      final sectionC = receiptStitchingSection(seed: 26, topTextOffset: 44);
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 255);
+      copyReceiptStitchingOverlap(from: sectionB, to: sectionC, pixels: 275);
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'manual_exposure_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        adjustReceiptStitchingBrightness(sectionB, delta: 34),
+        'manual_exposure_b',
+      );
+      final third = await writeTempReceiptStitchingImage(
+        adjustReceiptStitchingBrightness(sectionC, delta: -30),
+        'manual_exposure_c',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path, third.path],
+        manualOverlapPixels: const [255, 275],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.usedManualAdjustment, isTrue);
+      expect(result.overlapPixels, [255, 275]);
+      expect(result.pairs, hasLength(2));
+      expect(result.pairs.every((pair) => pair.usedManualAdjustment), isTrue);
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+    },
+  );
+
+  test(
     'manual overlap long receipt respects derived output size cap',
     () async {
       final tallReceipt = tallReceiptStitchingCanvas(sectionCount: 6);

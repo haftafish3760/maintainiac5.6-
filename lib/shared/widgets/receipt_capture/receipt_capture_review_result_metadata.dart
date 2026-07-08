@@ -84,6 +84,10 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
       'stitchUsedManualAdjustment': stitchResult.usedManualAdjustment,
       'stitchMatchedPairCount': stitchResult.matchedPairCount,
       'stitchMissingPairCount': stitchResult.missingPairCount,
+      if (stitchResult.pairs.isNotEmpty)
+        'stitchPairSafetySummaries': _privacySafeStitchPairSummaries(
+          stitchResult.pairs,
+        ),
       'stitchHasLowConfidenceAutomaticOverlap':
           stitchResult.hasLowConfidenceAutomaticOverlap,
       'stitchAllPairsHaveOverlapEvidence':
@@ -191,4 +195,21 @@ extension ReceiptPhotoReviewResultMetadata on ReceiptPhotoReviewResult {
         'stitchPairDiagnosticCounts': stitchPairDiagnosticCounts,
     });
   }
+}
+
+List<Map<String, Object?>> _privacySafeStitchPairSummaries(
+  List<ReceiptStitchPairResult> pairs,
+) {
+  return List<Map<String, Object?>>.unmodifiable(
+    pairs.map((pair) {
+      return Map<String, Object?>.unmodifiable({
+        'startSectionNumber': pair.pairIndex + 1,
+        'endSectionNumber': pair.pairIndex + 2,
+        'overlapPixels': pair.overlapPixels,
+        'confidencePercent': (pair.confidence.clamp(0, 1) * 100).round(),
+        'usedManualAdjustment': pair.usedManualAdjustment,
+        'diagnosticCode': pair.diagnosticCode,
+      });
+    }),
+  );
 }

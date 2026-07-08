@@ -5,7 +5,7 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
   required img.Image next,
   required int targetWidth,
 }) {
-  const comparisonWidth = 480;
+  const comparisonWidth = 420;
   final sampleWidth = math.min(
     comparisonWidth,
     math.min(previous.width, next.width),
@@ -193,7 +193,7 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
   var bestHorizontalOffset = 0;
   var bestNextYOffset = 0;
   final horizontalOffsets = _stitchHorizontalOffsets(previous.width);
-  for (var pixels = minPixels; pixels <= maxPixels; pixels += 18) {
+  for (var pixels = minPixels; pixels <= maxPixels; pixels += 24) {
     final nextTopOffsets = _stitchNextTopOffsets(next.height, pixels);
     for (final horizontalOffset in horizontalOffsets) {
       for (final nextYOffset in nextTopOffsets) {
@@ -222,9 +222,9 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
       }
     }
   }
-  final refinedStart = (bestPixels - 18).clamp(minPixels, maxPixels);
-  final refinedEnd = (bestPixels + 18).clamp(minPixels, maxPixels);
-  for (var pixels = refinedStart; pixels <= refinedEnd; pixels += 4) {
+  final refinedStart = (bestPixels - 24).clamp(minPixels, maxPixels);
+  final refinedEnd = (bestPixels + 24).clamp(minPixels, maxPixels);
+  for (var pixels = refinedStart; pixels <= refinedEnd; pixels += 6) {
     final nextTopOffsets = _stitchNextTopOffsets(next.height, pixels);
     for (final horizontalOffset in horizontalOffsets) {
       for (final nextYOffset in nextTopOffsets) {

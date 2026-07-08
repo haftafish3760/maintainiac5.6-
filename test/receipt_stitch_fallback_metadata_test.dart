@@ -59,4 +59,54 @@ void main() {
     expect(metadata.toString(), isNot(contains('top-ocr')));
     expect(metadata.toString(), isNot(contains('bottom-proof')));
   });
+
+  test('stitch fallback metadata keeps pair summaries path-free', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const [
+        '/private/top-proof.jpg',
+        '/private/bottom-proof.jpg',
+      ],
+      ocrSourcePhotoPaths: const [
+        '/private/top-ocr.jpg',
+        '/private/bottom-ocr.jpg',
+      ],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: [
+          '/private/top-ocr.jpg',
+          '/private/bottom-ocr.jpg',
+        ],
+        warning: 'Overlap was not trusted.',
+        fallbackReasonCode: 'overlap_confidence_low',
+        failedPairIndex: 0,
+        pairs: const [
+          ReceiptStitchPairResult(
+            pairIndex: 0,
+            overlapPixels: 214,
+            confidence: .46,
+          ),
+        ],
+      ),
+    );
+
+    final metadata = result.privacySafeReceiptReaderHandoffMetadata;
+
+    expect(
+      metadata,
+      containsPair('stitchPairSafetySummaries', [
+        {
+          'startSectionNumber': 1,
+          'endSectionNumber': 2,
+          'overlapPixels': 214,
+          'confidencePercent': 46,
+          'usedManualAdjustment': false,
+          'diagnosticCode': 'overlap_matched',
+        },
+      ]),
+    );
+    expect(metadata['stitchFallbackReasonCode'], 'overlap_confidence_low');
+    expect(metadata.toString(), isNot(contains('/private/')));
+    expect(metadata.toString(), isNot(contains('top-proof')));
+    expect(metadata.toString(), isNot(contains('bottom-ocr')));
+  });
 }

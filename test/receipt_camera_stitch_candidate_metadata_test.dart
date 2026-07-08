@@ -31,6 +31,19 @@ void main() {
     expect(metadata, containsPair('stitchCandidateWidth', 1200));
     expect(metadata, containsPair('stitchCandidateHeight', 2680));
     expect(metadata, containsPair('stitchCandidatePixelCount', 3216000));
+    expect(
+      metadata,
+      containsPair('stitchPairSafetySummaries', [
+        {
+          'startSectionNumber': 1,
+          'endSectionNumber': 2,
+          'overlapPixels': 320,
+          'confidencePercent': 88,
+          'usedManualAdjustment': false,
+          'diagnosticCode': 'overlap_matched',
+        },
+      ]),
+    );
     expect(metadata.toString(), isNot(contains('/tmp/source-1.jpg')));
     expect(metadata.toString(), isNot(contains('/tmp/source-2.jpg')));
     expect(metadata, containsPair('stitchOcrHandoffUsesCombinedImage', true));
@@ -65,6 +78,19 @@ void main() {
     final metadata = result.privacySafeReceiptReaderHandoffMetadata;
 
     expect(metadata, containsPair('stitchUsedManualAdjustment', true));
+    expect(
+      metadata,
+      containsPair('stitchPairSafetySummaries', [
+        {
+          'startSectionNumber': 1,
+          'endSectionNumber': 2,
+          'overlapPixels': 260,
+          'confidencePercent': 100,
+          'usedManualAdjustment': true,
+          'diagnosticCode': 'manual_overlap',
+        },
+      ]),
+    );
     expect(metadata, containsPair('stitchOcrHandoffUsesCombinedImage', true));
     expect(metadata.toString(), isNot(contains('/tmp/source-1.jpg')));
     expect(metadata.toString(), isNot(contains('/tmp/source-2.jpg')));
