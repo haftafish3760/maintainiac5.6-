@@ -33,7 +33,7 @@ run_delayed_overlap() {
 
 run_edge_cases() {
   echo "Receipt stitch edge-case health"
-  flutter test \
+  run_flutter_test edge-case \
     test/receipt_stitching_variants_test.dart \
     test/receipt_stitching_scale_rotation_test.dart \
     test/receipt_stitching_horizontal_placement_test.dart \
@@ -41,56 +41,47 @@ run_edge_cases() {
     test/receipt_stitching_worn_receipt_test.dart \
     test/receipt_stitching_weak_overlap_safety_test.dart \
     --name 'delayed overlap|stronger handheld rotation|combined scale rotation and drift|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order' \
-    --concurrency=1 \
-    -r compact
+    --concurrency=1
   echo "Receipt stitch edge-case health: PASS"
 }
 
 run_phone_windows() {
   echo "Receipt stitch phone-window health"
-  flutter test \
+  run_flutter_test phone-window \
     test/receipt_stitching_long_stack_test.dart \
     test/receipt_stitching_phone_window_safety_test.dart \
-    --name 'phone-window captures|mixed exposure and side crops|skipped phone-window|eleven-section|ugly seven-section|ragged phone-window' \
-    -r compact
+    --name 'phone-window captures|mixed exposure and side crops|skipped phone-window|eleven-section|ugly seven-section|ragged phone-window'
   echo "Receipt stitch phone-window health: PASS"
 }
 
 run_long_stack() {
   echo "Receipt stitch long-stack health"
-  flutter test \
-    test/receipt_stitching_long_stack_test.dart \
-    -r compact
+  run_flutter_test long-stack test/receipt_stitching_long_stack_test.dart
   echo "Receipt stitch long-stack health: PASS"
 }
 
 run_duplicates() {
   echo "Receipt stitch duplicate-section health"
-  flutter test \
-    test/receipt_stitching_duplicate_safety_test.dart \
-    -r compact
+  run_flutter_test duplicate-section test/receipt_stitching_duplicate_safety_test.dart
   echo "Receipt stitch duplicate-section health: PASS"
 }
 
 run_manual_overlap() {
   echo "Receipt stitch manual-overlap health"
-  flutter test \
-    test/receipt_stitching_manual_overlap_test.dart \
-    -r compact
+  run_flutter_test manual-overlap test/receipt_stitching_manual_overlap_test.dart
   echo "Receipt stitch manual-overlap health: PASS"
 }
 
 run_handoff() {
   echo "Receipt stitch handoff health"
-  flutter test \
+  run_flutter_test handoff \
     test/receipt_camera_phase5_long_receipt_contract_test.dart \
     test/receipt_camera_low_confidence_stack_handoff_test.dart \
     test/receipt_camera_oversized_stitch_handoff_test.dart \
     test/receipt_camera_phase6_stitching_handoff_contract_test.dart \
     test/receipt_camera_result_stitch_handoff_followthrough_test.dart \
     test/receipt_camera_stitch_candidate_metadata_test.dart \
-    test/receipt_stitch_fallback_metadata_test.dart \
-    -r compact
+    test/receipt_stitch_fallback_metadata_test.dart
   echo "Receipt stitch handoff health: PASS"
 }
 
@@ -147,7 +138,7 @@ run_milestone() {
 run_full() {
   echo "Receipt stitch contract health"
   run_source_size
-  flutter test \
+  run_flutter_test full \
     test/receipt_native_camera_session_limits_test.dart \
     test/receipt_capture_flow_shareability_test.dart \
     test/receipt_camera_phase5_long_receipt_contract_test.dart \
@@ -166,8 +157,7 @@ run_full() {
     test/receipt_camera_oversized_stitch_handoff_test.dart \
     test/receipt_camera_phase6_stitching_handoff_contract_test.dart \
     test/receipt_camera_result_stitch_handoff_followthrough_test.dart \
-    test/receipt_camera_stitch_candidate_metadata_test.dart \
-    -r compact
+    test/receipt_camera_stitch_candidate_metadata_test.dart
   echo "Receipt stitch contract health: PASS"
 }
 

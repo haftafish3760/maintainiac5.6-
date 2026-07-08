@@ -9,6 +9,17 @@ void main() {
 
     final source = script.readAsStringSync();
     expect(source, contains(r'mode="${1:-full}"'));
+    expect(source, contains('run_flutter_test()'));
+    expect(source, contains(r'> "$tmp" 2>&1'));
+    expect(source, contains(r"perl -pe 's/\r/\n/g'"));
+    expect(source, contains(r'Receipt stitch $label failed. Log tail:'));
+    expect(source, contains('tail -n 180'));
+    expect(source, contains('run_flutter_test delayed-overlap'));
+    expect(source, contains('run_flutter_test edge-case'));
+    expect(source, contains('run_flutter_test phone-window'));
+    expect(source, contains('run_flutter_test long-stack'));
+    expect(source, contains('run_flutter_test handoff'));
+    expect(source, contains('run_flutter_test full'));
     expect(source, contains('run_milestone()'));
     expect(source, contains('delayed_overlap)'));
     expect(source, contains("--name 'delayed overlap'"));
