@@ -51,4 +51,52 @@ void main() {
     expect(result.ocrSourceContractCode, 'fallback_unreadable_input_source');
     expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
   });
+
+  test('keeps ordered OCR sources when a stitch input is corrupted', () async {
+    final valid = await writeTempReceiptStitchingImage(
+      receiptStitchingSection(seed: 623, topTextOffset: 0),
+      'bad_input_corrupt_valid_section',
+    );
+    final corrupted = File(
+      '${Directory.systemTemp.path}/maintainiac_receipt_stitch_corrupt.jpg',
+    );
+    await corrupted.writeAsBytes(
+      const [0xFF, 0xD8, 0x00, 0x11, 0x22, 0x33, 0x44],
+      flush: true,
+    );
+
+    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+      paths: [valid.path, corrupted.path],
+    );
+
+    expectBadInputFallback(result, [valid.path, corrupted.path]);
+  });
+
+  test('keeps ordered OCR sources when a stitch input is the wrong type', () async {
+    final valid = await writeTempReceiptStitchingImage(
+      receiptStitchingSection(seed: 624, topTextOffset: 0),
+      'bad_input_wrong_type_valid_section',
+    );
+    final wrongType = File(
+      '${Directory.systemTemp.path}/maintainiac_receipt_stitch_wrong_type.txt',
+    );
+    await wrongType.writeAsString('not a receipt image', flush: true);
+
+    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+      paths: [valid.path, wrongType.path],
+    );
+
+    expectBadInputFallback(result, [valid.path, wrongType.path]);
+  });
+}
+
+void expectBadInputFallback(ReceiptStitchResult result, List<String> paths) {
+  expect(result.usedFallback, isTrue);
+  expect(result.didStitch, isFalse);
+  expect(result.fallbackReasonCode, 'decode_failed');
+  expect(result.userFallbackReasonLabel, 'One photo could not be read');
+  expect(result.ocrSourcePaths, paths);
+  expect(result.hasValidOcrSourceContract, isFalse);
+  expect(result.ocrSourceContractCode, 'fallback_unreadable_input_source');
+  expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
 }
