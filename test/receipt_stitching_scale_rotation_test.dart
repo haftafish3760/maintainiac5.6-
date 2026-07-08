@@ -126,4 +126,45 @@ void main() {
     },
     timeout: _stitchingHeavyTimeout,
   );
+
+  test(
+    'stitches receipt sections with combined scale rotation and drift',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 130, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 131, topTextOffset: 18);
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 340,
+        dstY: 24,
+      );
+      final transformedSecond = shiftReceiptStitchingShot(
+        rotateReceiptStitchingShot(
+          scaleReceiptStitchingShot(sectionB, scale: 1.06),
+          degrees: .8,
+        ),
+        dx: 24,
+        dy: 0,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'combined_transform_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        transformedSecond,
+        'combined_transform_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.pairs.single.diagnosticCode, isNotEmpty);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
 }

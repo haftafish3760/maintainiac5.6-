@@ -17,7 +17,7 @@ void main() {
     expect(
       source,
       contains(
-        "--name 'delayed overlap|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|continuation edge is clipped|severely cropped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order'",
+        "--name 'delayed overlap|combined scale rotation and drift|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|continuation edge is clipped|severely cropped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order'",
       ),
     );
     expect(
@@ -26,6 +26,7 @@ void main() {
     );
     expect(source, contains('receipt_stitching_weak_overlap_safety_test.dart'));
     expect(source, contains('--concurrency=1'));
+    expect(source, contains('receipt_stitching_scale_rotation_test.dart'));
     expect(source, contains('receipt_stitching_horizontal_drift_test.dart'));
     expect(source, contains('receipt_stitching_worn_receipt_test.dart'));
     expect(source, contains('Receipt stitch edge-case health: PASS'));
