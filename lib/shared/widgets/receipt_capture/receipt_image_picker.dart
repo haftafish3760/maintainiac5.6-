@@ -1,15 +1,17 @@
 import 'package:image_picker/image_picker.dart';
 
+import 'receipt_photo_path_identity.dart';
+
 class ReceiptPickedPhotoSet {
   ReceiptPickedPhotoSet(Iterable<String> paths)
     : paths = List.unmodifiable(paths);
 
   factory ReceiptPickedPhotoSet.fromFiles(Iterable<XFile?> files) {
     return ReceiptPickedPhotoSet(
-      files
-          .whereType<XFile>()
-          .map((file) => file.path.trim())
-          .where((path) => path.isNotEmpty),
+      uniqueNormalizedReceiptPhotoPaths([
+        for (final file in files.whereType<XFile>())
+          if (file.path.trim().isNotEmpty) file.path.trim(),
+      ]),
     );
   }
 

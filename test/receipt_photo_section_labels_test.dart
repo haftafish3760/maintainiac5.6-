@@ -64,6 +64,7 @@ void main() {
     expect(controls, contains('_ReceiptPhotoSectionLabels.retakeLabel'));
     expect(controls, isNot(contains("label: 'Retake',")));
     expect(picker, contains('pickMultiImage'));
+    expect(picker, contains('uniqueNormalizedReceiptPhotoPaths(['));
     expect(importActions, contains('_pickAndReviewMultiple'));
     expect(attachmentList, contains('Photos kept in receipt order'));
   });
@@ -88,4 +89,23 @@ void main() {
       throwsUnsupportedError,
     );
   });
+
+  test(
+    'uploaded receipt image sets collapse duplicate screenshots in order',
+    () {
+      final picked = ReceiptPickedPhotoSet.fromFiles([
+        XFile('/tmp/advance-email-top.png'),
+        XFile('/tmp/advance-email-top.png'),
+        XFile(' /tmp/advance-email-middle.png '),
+        XFile('/tmp/advance-email-middle.png'),
+        XFile('/tmp/advance-email-bottom.png'),
+      ]);
+
+      expect(picked.paths, [
+        '/tmp/advance-email-top.png',
+        '/tmp/advance-email-middle.png',
+        '/tmp/advance-email-bottom.png',
+      ]);
+    },
+  );
 }
