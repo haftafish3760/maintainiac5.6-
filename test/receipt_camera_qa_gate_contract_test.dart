@@ -218,6 +218,48 @@ void main() {
     expect(script, contains('continuous autofocus/readability guidance'));
   });
 
+  test('camera phase9 gate blocks retired receipt-camera milestone claims', () {
+    final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
+
+    expect(script, contains('run_phase9_stale_contract_scan() {'));
+    expect(script, contains('docs/receipt_camera_ocr_master_pass_plan.md'));
+    expect(script, contains('docs/receipt_camera_completion_map.md'));
+    expect(script, contains('docs/receipt_camera_release_one_blueprint.md'));
+    expect(script, contains('docs/receipt_camera_world_class_readiness.md'));
+    expect(script, contains('PROJECT_RULES.md'));
+    expect(script, contains('Current active phase: Phase 8'));
+    expect(script, contains('1,500-2,500'));
+    expect(script, contains('4,000-pass camera-app'));
+    expect(script, contains('tap-to-focus'));
+    expect(script, contains('tap to focus'));
+    expect(
+      script,
+      contains('echo "Stale Phase 9 milestone-validation contract found." >&2'),
+    );
+    expect(script, contains('run_phase9_stale_contract_scan'));
+  });
+
+  test('camera milestone gate composes quick plus milestone-only checks', () {
+    final script = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
+    final milestoneBlock = _sourceBlock(
+      script,
+      'run_milestone() {',
+      'run_full() {',
+    );
+
+    expect(milestoneBlock, contains('run_quick'));
+    expect(
+      milestoneBlock,
+      contains(r'run_flutter_tests "${milestone_only_tests[@]}"'),
+    );
+    expect(milestoneBlock, isNot(contains('run_phase9')));
+    expect(
+      milestoneBlock,
+      isNot(contains(r'run_flutter_tests "${full_only_tests[@]}"')),
+    );
+    expect(milestoneBlock, isNot(contains('receipt_camera_real_device_snapshot.sh')));
+  });
+
   test('camera QA gate can run detached without terminal monitoring', () {
     final script = File(
       'tool/receipt_start_camera_qa_gate.sh',
@@ -490,4 +532,12 @@ void main() {
     expect(script, contains('test/receipt_stitching_test.dart'));
     expect(script, contains('git diff --check'));
   });
+}
+
+String _sourceBlock(String source, String startToken, String endToken) {
+  final start = source.indexOf(startToken);
+  final end = source.indexOf(endToken, start);
+  expect(start, greaterThanOrEqualTo(0));
+  expect(end, greaterThan(start));
+  return source.substring(start, end);
 }
