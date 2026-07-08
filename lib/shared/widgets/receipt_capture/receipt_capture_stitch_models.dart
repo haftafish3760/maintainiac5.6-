@@ -129,6 +129,12 @@ class ReceiptStitchResult {
     if (inputPaths.isEmpty) {
       return usedFallback ? 'fallback_no_ocr_sources' : 'no_ocr_sources';
     }
+    if (_hasInvalidReceiptArtifactPaths(inputPaths)) {
+      return usedFallback ? 'fallback_invalid_input_sources' : 'invalid_input_sources';
+    }
+    if (_hasInvalidReceiptArtifactPaths(ocrSourcePaths)) {
+      return usedFallback ? 'fallback_invalid_ocr_sources' : 'invalid_ocr_sources';
+    }
     if (_hasDuplicateReceiptArtifactPaths(inputPaths)) {
       return usedFallback
           ? 'fallback_duplicate_input_sources'

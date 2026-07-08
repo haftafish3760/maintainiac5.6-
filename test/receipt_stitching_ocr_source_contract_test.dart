@@ -168,6 +168,49 @@ void main() {
     );
   });
 
+  test('stitched OCR source rejects unnormalized source paths', () {
+    final invalidInput = ReceiptStitchResult(
+      status: ReceiptStitchStatus.stitched,
+      inputPaths: const ['/tmp/top.jpg ', '/tmp/bottom.jpg'],
+      ocrSourcePaths: const ['/tmp/stitched.jpg'],
+      stitchedPath: '/tmp/stitched.jpg',
+      confidence: .82,
+      overlapPixels: const [260],
+      pairs: const [
+        ReceiptStitchPairResult(
+          pairIndex: 0,
+          overlapPixels: 260,
+          confidence: .82,
+        ),
+      ],
+    );
+    final invalidOcrSource = ReceiptStitchResult(
+      status: ReceiptStitchStatus.stitched,
+      inputPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+      ocrSourcePaths: const ['/tmp/stitched.jpg '],
+      stitchedPath: '/tmp/stitched.jpg',
+      confidence: .82,
+      overlapPixels: const [260],
+      pairs: const [
+        ReceiptStitchPairResult(
+          pairIndex: 0,
+          overlapPixels: 260,
+          confidence: .82,
+        ),
+      ],
+    );
+
+    expect(invalidInput.ocrSourceContractCode, 'invalid_input_sources');
+    expect(invalidInput.hasValidOcrSourceContract, isFalse);
+    expect(invalidInput.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+    expect(invalidOcrSource.ocrSourceContractCode, 'invalid_ocr_sources');
+    expect(invalidOcrSource.hasValidOcrSourceContract, isFalse);
+    expect(
+      invalidOcrSource.assistedReadinessCode,
+      'stitch_contract_review_required',
+    );
+  });
+
   test(
     'final OCR fallback preserves ordered separate source paths path-free',
     () {
