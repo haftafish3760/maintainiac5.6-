@@ -226,7 +226,6 @@ run_milestone() {
   run_bad_inputs
   run_manual_overlap
   run_duplicates
-  run_section_order
   run_handoff
   echo "Receipt stitch milestone health: PASS"
 }

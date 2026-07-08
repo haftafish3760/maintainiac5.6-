@@ -258,6 +258,11 @@ void main() {
     expect(coreSource, contains('run_handoff'));
     expect(source, contains('Receipt stitch core health: PASS'));
     expect(source, contains('milestone)'));
+    final milestoneStart = source.indexOf('run_milestone()');
+    final milestoneEnd = source.indexOf('run_fast()', milestoneStart);
+    expect(milestoneStart, greaterThanOrEqualTo(0));
+    expect(milestoneEnd, greaterThan(milestoneStart));
+    final milestoneSource = source.substring(milestoneStart, milestoneEnd);
     expect(source, contains('run_source_size'));
     expect(source, contains('run_edge_cases'));
     expect(source, contains('run_size_caps'));
@@ -269,6 +274,7 @@ void main() {
     expect(source, contains('run_manual_overlap'));
     expect(source, contains('run_duplicates'));
     expect(source, contains('run_handoff'));
+    expect('run_section_order'.allMatches(milestoneSource), hasLength(1));
     expect(source, contains('Receipt stitch milestone health: PASS'));
     expect(
       source,
