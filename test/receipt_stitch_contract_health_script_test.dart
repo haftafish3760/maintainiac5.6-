@@ -90,6 +90,7 @@ void main() {
       contains('receipt_camera_stitch_candidate_metadata_test.dart'),
     );
     expect(source, contains('receipt_stitch_fallback_metadata_test.dart'));
+    expect(source, contains('receipt_stitching_ocr_source_contract_test.dart'));
     expect(source, contains('Receipt stitch handoff health: PASS'));
     expect(source, contains('duplicates)'));
     expect(source, contains('Receipt stitch duplicate-section health'));
