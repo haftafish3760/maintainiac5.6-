@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_flow.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 void main() {
@@ -317,6 +318,14 @@ void main() {
           'receiptProofStoragePolicyOutcome',
           'temporary_ocr_source_original_quality_proof',
         ),
+      );
+      final attachment = ReceiptCaptureFlow.attachmentsFromReviewResult(
+        result,
+        ReceiptCaptureFlowModule.expenses,
+      ).single;
+      expect(
+        attachment.documentSignals,
+        contains('receipt_proof_storage_temporary_ocr_source_original_quality_proof'),
       );
     });
 
