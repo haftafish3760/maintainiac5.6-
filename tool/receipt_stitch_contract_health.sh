@@ -50,7 +50,8 @@ run_phone_windows() {
   run_flutter_test phone-window \
     test/receipt_stitching_long_stack_test.dart \
     test/receipt_stitching_phone_window_safety_test.dart \
-    --name 'phone-window captures|mixed exposure and side crops|skipped phone-window|eleven-section|ugly seven-section|ragged phone-window'
+    test/receipt_stitching_phone_window_edge_crop_test.dart \
+    --name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|eleven-section|ugly seven-section|ragged phone-window'
   echo "Receipt stitch phone-window health: PASS"
 }
 
@@ -105,6 +106,7 @@ run_source_size() {
     fi
   done
   local test_files=(
+    test/helpers/receipt_stitching_image_helpers.dart
     test/receipt_stitching_*_test.dart
     test/receipt_stitch_fallback_metadata_test.dart
     test/receipt_camera_low_confidence_stack_handoff_test.dart
@@ -145,11 +147,13 @@ run_full() {
     test/receipt_stitching_test.dart \
     test/receipt_stitching_manual_overlap_test.dart \
     test/receipt_stitching_duplicate_safety_test.dart \
+    test/receipt_stitching_ocr_source_contract_test.dart \
     test/receipt_stitching_scale_rotation_test.dart \
     test/receipt_stitching_horizontal_placement_test.dart \
     test/receipt_stitching_horizontal_drift_test.dart \
     test/receipt_stitching_worn_receipt_test.dart \
     test/receipt_stitching_long_stack_test.dart \
+    test/receipt_stitching_phone_window_edge_crop_test.dart \
     test/receipt_stitching_variants_test.dart \
     test/receipt_stitching_weak_overlap_safety_test.dart \
     test/receipt_camera_result_stitch_scanner_test.dart \
@@ -157,7 +161,8 @@ run_full() {
     test/receipt_camera_oversized_stitch_handoff_test.dart \
     test/receipt_camera_phase6_stitching_handoff_contract_test.dart \
     test/receipt_camera_result_stitch_handoff_followthrough_test.dart \
-    test/receipt_camera_stitch_candidate_metadata_test.dart
+    test/receipt_camera_stitch_candidate_metadata_test.dart \
+    test/receipt_stitch_fallback_metadata_test.dart
   echo "Receipt stitch contract health: PASS"
 }
 

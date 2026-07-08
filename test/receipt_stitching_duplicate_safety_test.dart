@@ -272,6 +272,63 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 2)),
   );
+
+  test(
+    'vertical-edge clipped duplicate repeated later requires review before assist',
+    () async {
+      final top = receiptStitchingSection(seed: 111, topTextOffset: 0);
+      final middle = receiptStitchingSection(seed: 112, topTextOffset: 16);
+      copyReceiptStitchingOverlap(from: top, to: middle, pixels: 320);
+      final clippedDuplicate = clipReceiptStitchingVerticalEdge(
+        top,
+        top: 52,
+        bottom: 44,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        top,
+        'duplicate_vertical_clipped_non_neighbor_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        middle,
+        'duplicate_vertical_clipped_non_neighbor_b',
+      );
+      final third = await writeTempReceiptStitchingImage(
+        clippedDuplicate,
+        'duplicate_vertical_clipped_non_neighbor_c',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path, third.path],
+      );
+
+      expect(
+        result.requiresOcrSourceReviewBeforeAssistedRead,
+        isTrue,
+        reason: result.detailLabel,
+      );
+      if (result.didStitch) {
+        expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
+        expect(
+          result.assistedReadinessCode,
+          'stitched_overlap_review_required',
+        );
+        expect(result.reviewFocusPairLabel, isNotEmpty);
+        expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      } else {
+        expect(result.usedFallback, isTrue, reason: result.detailLabel);
+        expect(result.fallbackReasonCode, 'duplicate_section_image');
+        expect(result.failedPairIndex, anyOf(0, 1));
+        expect(result.failedPairLabel, isNotEmpty);
+        expect(result.ocrSourcePaths, [first.path, second.path, third.path]);
+        expect(
+          result.ocrSourceContractCode,
+          'fallback_duplicate_section_image',
+        );
+      }
+    },
+    timeout: const Timeout(Duration(minutes: 2)),
+  );
 }
 
 void expectDuplicateRepeatIsReviewBlocked(

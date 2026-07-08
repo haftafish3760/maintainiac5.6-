@@ -51,8 +51,12 @@ void main() {
     );
     expect(
       source,
+      contains('test/receipt_stitching_phone_window_edge_crop_test.dart'),
+    );
+    expect(
+      source,
       contains(
-        "--name 'phone-window captures|mixed exposure and side crops|skipped phone-window|eleven-section|ugly seven-section|ragged phone-window'",
+        "--name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|skipped phone-window|eleven-section|ugly seven-section|ragged phone-window'",
       ),
     );
     expect(source, contains('Receipt stitch phone-window health: PASS'));
@@ -95,6 +99,10 @@ void main() {
     expect(source, contains('Receipt stitch source-size health'));
     expect(source, contains('receipt_image_processor_stitch_helpers.dart'));
     expect(source, contains(r'exceeds $max_lines-line stitch source cap'));
+    expect(
+      source,
+      contains('test/helpers/receipt_stitching_image_helpers.dart'),
+    );
     expect(source, contains('test/receipt_stitching_*_test.dart'));
     expect(
       source,
@@ -138,10 +146,15 @@ void main() {
     expect(source, contains('receipt_stitching_test.dart'));
     expect(source, contains('receipt_stitching_manual_overlap_test.dart'));
     expect(source, contains('receipt_stitching_duplicate_safety_test.dart'));
+    expect(source, contains('receipt_stitching_ocr_source_contract_test.dart'));
     expect(source, contains('receipt_stitching_scale_rotation_test.dart'));
     expect(source, contains('receipt_stitching_horizontal_drift_test.dart'));
     expect(source, contains('receipt_stitching_worn_receipt_test.dart'));
     expect(source, contains('receipt_stitching_long_stack_test.dart'));
+    expect(
+      source,
+      contains('receipt_stitching_phone_window_edge_crop_test.dart'),
+    );
     expect(source, contains('receipt_stitching_variants_test.dart'));
     expect(source, contains('receipt_camera_result_stitch_scanner_test.dart'));
     expect(
