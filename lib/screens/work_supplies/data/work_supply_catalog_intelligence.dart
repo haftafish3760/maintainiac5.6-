@@ -161,6 +161,14 @@ bool _isElectricalCoreItem(WorkSupplyItem item, String text) {
 bool _isExpandedElectricalServiceCore(String system, String text) {
   if (system == 'expanded wire and cable') {
     if (text.contains('service entrance')) return false;
+    if (_hasAny(text, ['uf-b cable', 'underground feeder', 'direct burial']) &&
+        _hasAny(text, ['14/2', '14/3', '12/2', '12/3', '10/2', '10/3'])) {
+      return true;
+    }
+    if (_hasAny(text, ['thhn copper wire', 'thwn', 'building wire']) &&
+        _hasAny(text, _electricalCoreWireSizes)) {
+      return true;
+    }
     return _hasAny(text, _electricalCoreCableSignals) &&
         !_hasAny(text, _electricalLargeWireSignals);
   }

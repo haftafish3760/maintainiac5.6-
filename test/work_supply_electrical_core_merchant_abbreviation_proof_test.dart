@@ -55,6 +55,51 @@ void main() {
       _expectNotGoodElectrical('MENARDS CONNECTOR KIT');
     },
   );
+
+  test('electrical core parses POS-noisy merchant lines', () {
+    _expectGoodElectricalCore('HD 188742 2 @ 1.98 1/2 EMT SS CONN 3.96', [
+      'emt',
+    ]);
+    _expectGoodElectricalCore('LOWES 043221 QTY2 15A TR DUP RECPT WHT', [
+      'duplex',
+    ]);
+    _expectGoodElectricalCore('ACE 90317 100PK TAN WIRENUT DISC 10%', ['wire']);
+    _expectGoodElectricalCore('MENARDS 7782 12-2 ROMEX W/G 250FT 148.00', [
+      'nm-b',
+    ]);
+  });
+
+  test('electrical core parses Spanish and mixed-language receipts', () {
+    _expectGoodElectricalCore('FERRETERIA CABLE ROMEX 12/2 CON TIERRA', [
+      'nm-b',
+    ]);
+    _expectGoodElectricalCore('SUMINISTRO CINTA ELECTRICA NEGRA 3PK', ['tape']);
+    _expectGoodElectricalCore('ACE CAJA ELECTRICA 1G OLD WORK', ['box']);
+    _expectGoodElectricalCore('LOCAL INTERRUPTOR 3 VIA BLANCO', ['switch']);
+    _expectGoodElectricalCore('LOWES TOMACORRIENTE GFCI 20A BLANCO', ['gfci']);
+  });
+
+  test('electrical core parses manufacturer-heavy service receipts', () {
+    _expectGoodElectricalCore('LEVITON 20A WR GFCI RECEPT WHT', ['gfci']);
+    _expectGoodElectricalCore('HUBBELL 1G EXTRA DUTY IN USE COVER', ['cover']);
+    _expectGoodElectricalCore('CARLON 3/4 PVC LB BODY GRAY', ['conduit']);
+    _expectGoodElectricalCore('HALO PORCELAIN LAMPHOLDER KEYLESS', [
+      'lampholder',
+    ]);
+    _expectGoodElectricalCore('IDEAL 3 PORT LEVER CONNECTOR 25PK', ['lever']);
+  });
+
+  test('electrical core parses supply-house and hardware shorthand', () {
+    _expectGoodElectricalCore('WINSUPPLY 1/2 EMT COMP CPLG', ['emt']);
+    _expectGoodElectricalCore('GRAINGER 3/4 LIQUIDTIGHT CONN', ['liquidtight']);
+    _expectGoodElectricalCore('FASTENAL #10 GREEN GROUND SCREW 100PK', [
+      'ground',
+    ]);
+    _expectGoodElectricalCore('TRUE VALUE 14/2 UF-B DIRECT BURIAL 50FT', [
+      'uf-b',
+    ]);
+    _expectGoodElectricalCore('RURAL KING 5/8 GROUND ROD 8FT', ['ground']);
+  });
 }
 
 void _expectGoodElectricalCore(String line, List<String> expectedTerms) {

@@ -151,6 +151,23 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'barbed coupling',
       'well service fitting',
     ],
+    RegExp(r'\b(tr|tamper resistant)\b.*\b(dup|duplex|recpt|recept|outlet)\b'):
+        ['duplex receptacle', 'tamper resistant'],
+    RegExp(r'\b(cinta electrica|cinta aislante|elec tape|electrical tape)\b'): [
+      'electrical tape',
+    ],
+    RegExp(r'\b(liquid\s*tight|liquidtight|sealtite)\b.*\b(conn|connector)\b'):
+        ['liquidtight connector', 'flexible raceway part'],
+    RegExp(r'\b(wire\s*nut|wirenut)\b'): ['wire connector', 'wire nut'],
+    RegExp(r'\bground\s+screw\b'): ['ground screw'],
+    RegExp(r'\b(interruptor)\b.*\b(3\s*via|tres\s+vias?)\b'): [
+      '3-way toggle switch',
+      'toggle switch',
+    ],
+    RegExp(r'\b(uf-b|ufb|uf cable|underground feeder|direct burial)\b'): [
+      'uf-b cable',
+      'direct burial',
+    ],
   };
   for (final entry in serviceFamilies.entries) {
     if (entry.key.hasMatch(text) &&

@@ -659,6 +659,10 @@ WorkSupplyItem? _directElectricalServiceRepairMatch(
     return null;
   }
   final wantedName = switch (text) {
+    final value when RegExp(r'\b(wire\s*nut|wirenut)\b').hasMatch(value) =>
+      'wire connector',
+    final value when RegExp(r'\bground\s+screw\b').hasMatch(value) =>
+      'ground screw',
     final value
         when RegExp(r'\b(romex|nm|nm-b)\b').hasMatch(value) &&
             RegExp(r'\b(connector|conn|clamp)\b').hasMatch(value) =>
@@ -719,13 +723,19 @@ WorkSupplyItem? _directElectricalServiceRepairMatch(
     _ => null,
   };
   if (wantedName == null) return null;
-  final size = _nominalReceiptSize(text);
+  final size = wantedName == 'ground screw' ? null : _nominalReceiptSize(text);
+  WorkSupplyItem? fallback;
   for (final item in workSupplyCatalogItems) {
     final name = item.name.toLowerCase();
     if (item.trade != 'Electrical' || !name.contains(wantedName)) continue;
-    if (size == null || _nameMatchesReceiptSize(name, size)) return item;
+    if (size != null && !_nameMatchesReceiptSize(name, size)) continue;
+    if (name.contains('electrical service repair part') ||
+        item.category.toLowerCase() == 'connectors and consumables') {
+      return item;
+    }
+    fallback ??= item;
   }
-  return null;
+  return fallback;
 }
 
 WorkSupplyItem? _directElectricalLowVoltageCableMatch(
@@ -755,6 +765,52 @@ WorkSupplyItem? _directElectricalLowVoltageCableMatch(
   return null;
 }
 
+WorkSupplyItem? _directElectricalWireCableMatch(
+  String text, {
+  String? tradeScope,
+}) {
+  if (tradeScope != null &&
+      tradeScope.trim().isNotEmpty &&
+      tradeScope.trim().toLowerCase() != 'electrical') {
+    return null;
+  }
+  if (RegExp(r'\b(conn|connector|staple|clamp)\b').hasMatch(text)) {
+    return null;
+  }
+  final wantedName = switch (text) {
+    final value
+        when RegExp(
+          r'\b(uf-b|ufb|uf cable|underground feeder|direct burial)\b',
+        ).hasMatch(value) =>
+      'uf-b cable',
+    final value
+        when RegExp(
+          r'\b(romex|nm-b|nmb|nm cable|house wire)\b',
+        ).hasMatch(value) =>
+      'nm-b cable',
+    final value when RegExp(r'\b(thhn|thwn|building wire)\b').hasMatch(value) =>
+      'thhn copper wire',
+    _ => null,
+  };
+  if (wantedName == null) return null;
+  final cableSize = RegExp(
+    r'\b(14[/-]2|14[/-]3|12[/-]2|12[/-]3|10[/-]2)\b',
+  ).firstMatch(text)?.group(1)?.replaceAll('-', '/');
+  final wireGauge = RegExp(
+    r'\b(14|12|10)\s*(awg|ga)\b',
+  ).firstMatch(text)?.group(1);
+  WorkSupplyItem? fallback;
+  for (final item in workSupplyCatalogItems) {
+    final name = item.name.toLowerCase();
+    if (item.trade != 'Electrical' || !name.contains(wantedName)) continue;
+    if (cableSize != null && !name.contains(cableSize)) continue;
+    if (wireGauge != null && !name.contains('$wireGauge awg')) continue;
+    if (item.packTier == WorkSupplyPackTier.core) return item;
+    fallback ??= item;
+  }
+  return fallback;
+}
+
 WorkSupplyItem? _directElectricalDeviceMatch(
   String text, {
   String? tradeScope,
@@ -780,6 +836,10 @@ WorkSupplyItem? _directElectricalDeviceMatch(
     final value
         when RegExp(r'\b(3\s*way|3-way|three way)\b').hasMatch(value) &&
             RegExp(r'\b(switch|sw)\b').hasMatch(value) =>
+      '3-way toggle switch',
+    final value
+        when RegExp(r'\b(3\s*via|tres\s+vias?)\b').hasMatch(value) &&
+            RegExp(r'\b(interruptor|switch|sw)\b').hasMatch(value) =>
       '3-way toggle switch',
     final value
         when RegExp(r'\b(single pole|1p)\b').hasMatch(value) &&
@@ -1015,6 +1075,21 @@ WorkSupplyItem? _directElectricalProfessionalMatch(
       if (item.trade == 'Electrical' &&
           name.contains('lb') &&
           name.contains('conduit body')) {
+        return item;
+      }
+    }
+  }
+
+  final wantsLiquidtightConnector =
+      RegExp(r'\b(liquid\s*tight|liquidtight|sealtite)\b').hasMatch(text) &&
+      RegExp(r'\b(conn|connector)\b').hasMatch(text);
+  if (wantsLiquidtightConnector) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Electrical' &&
+          name.contains('liquidtight connector') &&
+          (size == null || _nameMatchesReceiptSize(name, size))) {
         return item;
       }
     }
@@ -1547,6 +1622,11 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     tradeScope: tradeScope,
   );
   if (electricalLowVoltageCable != null) return electricalLowVoltageCable;
+  final electricalWireCable = _directElectricalWireCableMatch(
+    text,
+    tradeScope: tradeScope,
+  );
+  if (electricalWireCable != null) return electricalWireCable;
   final electricalDevice = _directElectricalDeviceMatch(
     text,
     tradeScope: tradeScope,
