@@ -305,7 +305,9 @@ void main() {
     expect(script, contains('test/receipt_camera_fixture_matrix_test.dart'));
     expect(
       script,
-      contains('test/receipt_camera_result_stitch_handoff_followthrough_test.dart'),
+      contains(
+        'test/receipt_camera_result_stitch_handoff_followthrough_test.dart',
+      ),
     );
     expect(
       script,
@@ -313,8 +315,14 @@ void main() {
     );
     expect(script, contains('test/receipt_ocr_source_relationship_test.dart'));
     expect(script, contains('test/receipt_stitch_fallback_metadata_test.dart'));
-    expect(script, contains('test/receipt_stitching_duplicate_safety_test.dart'));
-    expect(script, contains('test/receipt_stitching_horizontal_drift_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_stitching_duplicate_safety_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_stitching_horizontal_drift_test.dart'),
+    );
     expect(
       script,
       contains('test/receipt_stitching_horizontal_placement_test.dart'),
@@ -323,12 +331,19 @@ void main() {
     expect(script, contains('test/receipt_stitching_manual_overlap_test.dart'));
     expect(
       script,
+      contains('test/receipt_stitching_phone_window_safety_test.dart'),
+    );
+    expect(
+      script,
       contains('test/receipt_stitching_result_contract_test.dart'),
     );
     expect(script, contains('test/receipt_stitching_scale_rotation_test.dart'));
     expect(script, contains('test/receipt_stitching_test.dart'));
     expect(script, contains('test/receipt_stitching_variants_test.dart'));
-    expect(script, contains('test/receipt_stitching_weak_overlap_safety_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_stitching_weak_overlap_safety_test.dart'),
+    );
     expect(script, contains('test/receipt_stitching_worn_receipt_test.dart'));
     expect(
       script,

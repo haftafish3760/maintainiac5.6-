@@ -358,6 +358,7 @@ stitch_tests=(
   test/receipt_stitching_horizontal_placement_test.dart
   test/receipt_stitching_long_stack_test.dart
   test/receipt_stitching_manual_overlap_test.dart
+  test/receipt_stitching_phone_window_safety_test.dart
   test/receipt_stitching_result_contract_test.dart
   test/receipt_stitching_scale_rotation_test.dart
   test/receipt_stitching_test.dart
