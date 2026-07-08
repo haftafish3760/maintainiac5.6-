@@ -25,7 +25,10 @@ void main() {
         "--name 'delayed overlap|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|continuation edge is clipped|severely cropped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order'",
       ),
     );
-    expect(source, contains('receipt_stitching_horizontal_placement_test.dart'));
+    expect(
+      source,
+      contains('receipt_stitching_horizontal_placement_test.dart'),
+    );
     expect(source, contains('receipt_stitching_weak_overlap_safety_test.dart'));
     expect(source, contains('--concurrency=1'));
     expect(source, contains('receipt_stitching_horizontal_drift_test.dart'));
@@ -35,6 +38,10 @@ void main() {
     expect(source, contains('Receipt stitch long-stack health: PASS'));
     expect(source, contains('phone_windows)'));
     expect(source, contains('Receipt stitch phone-window health'));
+    expect(
+      source,
+      contains('test/receipt_stitching_phone_window_safety_test.dart'),
+    );
     expect(
       source,
       contains("--name 'phone-window captures|skipped phone-window'"),
@@ -49,7 +56,10 @@ void main() {
       source,
       contains('receipt_camera_low_confidence_stack_handoff_test.dart'),
     );
-    expect(source, contains('receipt_camera_oversized_stitch_handoff_test.dart'));
+    expect(
+      source,
+      contains('receipt_camera_oversized_stitch_handoff_test.dart'),
+    );
     expect(
       source,
       contains('receipt_camera_phase6_stitching_handoff_contract_test.dart'),
@@ -101,7 +111,10 @@ void main() {
       source,
       contains('receipt_camera_low_confidence_stack_handoff_test.dart'),
     );
-    expect(source, contains('receipt_camera_oversized_stitch_handoff_test.dart'));
+    expect(
+      source,
+      contains('receipt_camera_oversized_stitch_handoff_test.dart'),
+    );
     expect(
       source,
       contains('receipt_camera_phase6_stitching_handoff_contract_test.dart'),

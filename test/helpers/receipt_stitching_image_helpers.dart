@@ -307,3 +307,18 @@ img.Image clipReceiptStitchingSide(
   img.compositeImage(canvas, clipped, dstX: safeLeft);
   return canvas;
 }
+
+img.Image tallReceiptStitchingCanvas({int sectionCount = 4}) {
+  const sectionStride = 1120;
+  final height = sectionStride * (sectionCount - 1) + 1500;
+  final canvas = img.Image(width: 900, height: height, numChannels: 3);
+  img.fill(canvas, color: img.ColorRgb8(248, 248, 244));
+  for (var index = 0; index < sectionCount; index++) {
+    final section = receiptStitchingSection(
+      seed: 260 + index,
+      topTextOffset: index * 11,
+    );
+    img.compositeImage(canvas, section, dstX: 0, dstY: index * sectionStride);
+  }
+  return addReceiptStitchingWear(canvas, seed: 440, wrinkleCount: 11);
+}
