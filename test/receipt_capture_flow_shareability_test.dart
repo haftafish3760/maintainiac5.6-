@@ -122,9 +122,9 @@ void main() {
     expect(guide.hasGuidePhoto, isTrue);
     expect(guide.reasonCode, 'retake_top_with_next_context');
     expect(guide.ghostSourceStartFraction, 0);
-    expect(guide.ghostSourceHeightFraction, .22);
+    expect(guide.ghostSourceHeightFraction, .20);
     expect(guide.ghostOverlayTopFraction, 0);
-    expect(guide.ghostOverlayHeightFraction, .22);
+    expect(guide.ghostOverlayHeightFraction, .20);
     expect(guide.ghostOpacity, .32);
     expect(options.previousSectionGuidePhotoPath, '/tmp/receipt-section-2.jpg');
     expect(options.previousSectionReasonCode, 'retake_top_with_next_context');
@@ -133,9 +133,9 @@ void main() {
       'Use the next receipt section as context.',
     );
     expect(options.previousSectionGhostSourceStartFraction, 0);
-    expect(options.previousSectionGhostSourceHeightFraction, .22);
+    expect(options.previousSectionGhostSourceHeightFraction, .20);
     expect(options.previousSectionGhostOverlayTopFraction, 0);
-    expect(options.previousSectionGhostOverlayHeightFraction, .22);
+    expect(options.previousSectionGhostOverlayHeightFraction, .20);
     expect(options.previousSectionGhostOpacity, .32);
   });
 

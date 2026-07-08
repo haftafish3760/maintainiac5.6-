@@ -38,7 +38,7 @@ extension ReceiptNativeCameraSessionGhostGuide
 
   double get previousSectionGhostSourceStartFractionOrDefault {
     if (previousSectionGuideUsesNextContext) return 0;
-    final fallback = previousSectionGuideMissingBottomAndTotals ? .80 : .78;
+    const fallback = .80;
     return _boundedGhostGuideValue(
       previousSectionGhostSourceStartFraction,
       fallback: fallback,
@@ -48,12 +48,11 @@ extension ReceiptNativeCameraSessionGhostGuide
   }
 
   double get previousSectionGhostSourceHeightFractionOrDefault {
-    final fallback = previousSectionGuideMissingBottomAndTotals ? .20 : .22;
     return _boundedGhostGuideValue(
       previousSectionGhostSourceHeightFraction,
-      fallback: fallback,
-      min: .12,
-      max: .35,
+      fallback: .20,
+      min: .15,
+      max: .20,
     );
   }
 
@@ -69,8 +68,8 @@ extension ReceiptNativeCameraSessionGhostGuide
       _boundedGhostGuideValue(
         previousSectionGhostOverlayHeightFraction,
         fallback: previousSectionGhostSourceHeightFractionOrDefault,
-        min: .12,
-        max: .35,
+        min: .15,
+        max: .20,
       );
 
   double get previousSectionGhostOpacityOrDefault {
