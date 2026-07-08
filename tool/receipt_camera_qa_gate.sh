@@ -343,6 +343,7 @@ stitch_tests=(
   test/receipt_camera_fixture_matrix_test.dart
   test/receipt_camera_result_frozen_handoff_counts_test.dart
   test/receipt_camera_result_stitch_handoff_followthrough_test.dart
+  test/receipt_camera_stitch_candidate_metadata_test.dart
   test/receipt_camera_result_stitch_scanner_test.dart
   test/receipt_capture_flow_shareability_test.dart
   test/receipt_capture_flow_barcode_handoff_test.dart

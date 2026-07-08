@@ -311,6 +311,10 @@ void main() {
     );
     expect(
       script,
+      contains('test/receipt_camera_stitch_candidate_metadata_test.dart'),
+    );
+    expect(
+      script,
       contains('test/receipt_capture_flow_barcode_handoff_test.dart'),
     );
     expect(script, contains('test/receipt_ocr_source_relationship_test.dart'));
