@@ -8,7 +8,6 @@ internal fun ReceiptCameraActivity.visibleControlSet(): String {
         "settings",
         "manual_shutter",
     )
-    if (shouldShowSettingsStatusStrip()) controls.add("status")
     if (torchButton.isEnabled) controls.add("light")
     if (exposureControlsVisible()) controls.add("brightness")
     if (reviewNextControlReady()) {

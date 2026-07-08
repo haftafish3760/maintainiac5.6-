@@ -199,12 +199,9 @@ internal fun ReceiptCameraActivity.settingsStatusText(): String {
 }
 
 internal fun ReceiptCameraActivity.shouldShowSettingsStatusStrip(): Boolean {
-    return !assistedReceiptFill ||
-        reviewDepth == "detailedLines" ||
-        !longReceiptMode ||
-        !autoExposureAssistEnabled ||
-        dataSaverLevel != "balanced" ||
-        storageConstrained
+    // Keep the active preview chrome minimal. The full settings summary stays
+    // inside the dedicated receipt camera settings surface instead.
+    return false
 }
 
 internal fun ReceiptCameraActivity.buildBottomBar(): View {

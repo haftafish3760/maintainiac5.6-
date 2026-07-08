@@ -42,8 +42,6 @@ void main() {
     expect(cameraController, contains('func shouldShowSettingsStatusStrip() -> Bool'));
     expect(cameraController, contains('settingsStatusStrip.isHidden = !shouldShowSettingsStatusStrip()'));
     expect(cameraController, contains('settingsStatusStrip.isHidden = !shouldShowSettingsStatusStrip()'));
-    expect(cameraController, contains('dataSaverLevel != "balanced"'));
-    expect(cameraController, contains('storageConstrained'));
     expect(
       cameraController,
       contains(
@@ -314,11 +312,17 @@ void main() {
     );
     expect(
       cameraController,
-      contains('if shouldShowSettingsStatusStrip() {'),
+      isNot(contains('controls.append("status")')),
     );
     expect(
       cameraController,
-      contains('controls.append("status")'),
+      contains(
+        'func shouldShowSettingsStatusStrip() -> Bool {\n'
+        '    // Keep the live preview chrome minimal. The full settings summary stays\n'
+        '    // inside the dedicated receipt camera settings surface instead.\n'
+        '    return false\n'
+        '  }',
+      ),
     );
     expect(
       cameraController,

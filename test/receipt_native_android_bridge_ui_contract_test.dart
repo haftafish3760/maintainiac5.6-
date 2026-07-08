@@ -53,8 +53,6 @@ void main() {
       cameraActivity,
       contains('settingsStatusStrip.visibility = if (shouldShowSettingsStatusStrip()) {'),
     );
-    expect(cameraActivity, contains('dataSaverLevel != "balanced"'));
-    expect(cameraActivity, contains('storageConstrained'));
     expect(cameraActivity, contains('private fun safeReceiptReviewDepth'));
     expect(cameraActivity, contains('Regex("[\\\\s_-]+")'));
     expect(cameraActivity, contains('?.lowercase()'));
@@ -260,7 +258,17 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('if (shouldShowSettingsStatusStrip()) controls.add("status")'),
+      isNot(contains('controls.add("status")')),
+    );
+    expect(
+      cameraActivity,
+      contains(
+        'internal fun ReceiptCameraActivity.shouldShowSettingsStatusStrip(): Boolean {\n'
+        '    // Keep the active preview chrome minimal. The full settings summary stays\n'
+        '    // inside the dedicated receipt camera settings surface instead.\n'
+        '    return false\n'
+        '}',
+      ),
     );
     expect(
       cameraActivity,

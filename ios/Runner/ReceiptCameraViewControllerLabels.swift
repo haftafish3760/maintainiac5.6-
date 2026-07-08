@@ -48,12 +48,9 @@ extension ReceiptCameraViewController {
   }
 
   func shouldShowSettingsStatusStrip() -> Bool {
-    return !assistedReceiptFill ||
-      reviewDepth == "detailedLines" ||
-      !longReceiptMode ||
-      !autoExposureAssistEnabled ||
-      dataSaverLevel != "balanced" ||
-      storageConstrained
+    // Keep the live preview chrome minimal. The full settings summary stays
+    // inside the dedicated receipt camera settings surface instead.
+    return false
   }
 
   func dataSaverLabel() -> String {
@@ -98,9 +95,6 @@ extension ReceiptCameraViewController {
       "settings",
       "manual_shutter",
     ]
-    if shouldShowSettingsStatusStrip() {
-      controls.append("status")
-    }
     if !torchButton.isHidden && torchButton.isEnabled {
       controls.append("light")
     }
