@@ -84,6 +84,33 @@ void main() {
     },
     timeout: _longStackTimeout,
   );
+
+  test(
+    'stitches five ordered long-receipt sections with handheld drift',
+    () async {
+      final files = await _writeFiveSectionStackWithDrift('five_section_drift');
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [for (final file in files) file.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(4));
+      expect(result.overlapPixels, hasLength(4));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+      expect(
+        result.pairs.map((pair) => pair.confidence),
+        everyElement(greaterThanOrEqualTo(.50)),
+      );
+      expect(
+        result.sourcePreservationCode,
+        'original_sections_preserved_derived_stitched_ocr_artifact',
+      );
+      expect(result.stitchedPixelCount, lessThan(16000000));
+    },
+    timeout: _longStackTimeout,
+  );
 }
 
 void expectOutputTooLargeFallback(
@@ -116,6 +143,35 @@ Future<List<File>> _writeFiveSectionStack(String prefix) async {
   for (var index = 0; index < sections.length; index++) {
     files.add(
       await writeTempReceiptStitchingImage(sections[index], '${prefix}_$index'),
+    );
+  }
+  return files;
+}
+
+Future<List<File>> _writeFiveSectionStackWithDrift(String prefix) async {
+  final sections = [
+    for (var index = 0; index < 5; index++)
+      receiptStitchingSection(seed: 140 + index, topTextOffset: index * 12),
+  ];
+  for (var index = 1; index < sections.length; index++) {
+    copyReceiptStitchingOverlap(
+      from: sections[index - 1],
+      to: sections[index],
+      pixels: 340,
+      dstY: index.isEven ? 18 : 0,
+    );
+  }
+  final drifted = [
+    sections[0],
+    shiftReceiptStitchingShot(sections[1], dx: 24, dy: 0),
+    shiftReceiptStitchingShot(sections[2], dx: -18, dy: 0),
+    shiftReceiptStitchingShot(sections[3], dx: 30, dy: 0),
+    shiftReceiptStitchingShot(sections[4], dx: -24, dy: 0),
+  ];
+  final files = <File>[];
+  for (var index = 0; index < drifted.length; index++) {
+    files.add(
+      await writeTempReceiptStitchingImage(drifted[index], '${prefix}_$index'),
     );
   }
   return files;
