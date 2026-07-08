@@ -134,7 +134,7 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
       label: coverageDecision.isMissingBottomEdgeAndTotals
           ? 'Add Bottom Section'
           : coverageDecision.shouldPromptForMorePhotos
-          ? 'Add Next Section'
+          ? 'Add Another Photo'
           : 'Add Another Photo',
       onPressed: openingCamera ? null : onAddPhoto,
       emphasized: shouldEmphasizeAddSection,

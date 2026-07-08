@@ -75,7 +75,7 @@ extension _ReceiptPhotoReviewCompletionActions
             onPressed: () => Navigator.of(
               context,
             ).pop(_ReceiptContinueDecision.keepReviewing),
-            child: const Text('Stay In Review'),
+            child: const Text('Back to Photos'),
           ),
           TextButton(
             onPressed: () => Navigator.of(

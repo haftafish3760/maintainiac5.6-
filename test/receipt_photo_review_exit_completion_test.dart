@@ -129,16 +129,11 @@ void main() {
     expect(saveActions, isNot(contains('Delete Staged Photo')));
     expect(saveActions, isNot(contains('Delete Staged Photos')));
     final staging = await readReceiptNativeCaptureStagingSource();
-    expect(
-      staging,
-      contains('Done was pressed after photos were captured.'),
-    );
-    expect(
-      staging,
-      contains('Done was pressed before a photo was saved.'),
-    );
+    expect(staging, contains('Done was pressed after photos were captured.'));
+    expect(staging, contains('Done was pressed before a photo was saved.'));
     expect(staging, isNot(contains('Next was pressed')));
-    expect(saveActions, contains('Stay In Review'));
+    expect(saveActions, contains('Back to Photos'));
+    expect(saveActions, isNot(contains('Stay In Review')));
     expect(saveActions, contains('Text(nextLabel)'));
     expect(saveActions, contains('_selectedExitCoverageDecision()'));
     expect(models, contains('1 clear combined OCR image'));
@@ -162,7 +157,9 @@ void main() {
     expect(saveActions, contains("if (_cropProcessing) {"));
     expect(
       saveActions,
-      contains("_showCameraError('Finish or cancel crop before leaving this review.');"),
+      contains(
+        "_showCameraError('Finish or cancel crop before leaving this review.');",
+      ),
     );
     expect(
       saveActions,
@@ -214,6 +211,8 @@ void main() {
     final models = await readReceiptCaptureModelsSource();
     expect(models, contains('Add the bottom of this receipt?'));
     expect(models, contains('Add Bottom Section'));
+    expect(saveActions, contains('Back to Photos'));
+    expect(saveActions, isNot(contains('Stay In Review')));
     expect(saveActions, contains('await addAnotherReceiptPhoto();'));
     expect(saveActions, contains('return true;'));
   });
@@ -283,10 +282,7 @@ void main() {
       commonControls,
       contains('You can still use these photos, but review '),
     );
-    expect(
-      commonControls,
-      contains('every line before saving.'),
-    );
+    expect(commonControls, contains('every line before saving.'));
     expect(
       stitchControls,
       contains('You can still use each section in top-to-bottom order.'),

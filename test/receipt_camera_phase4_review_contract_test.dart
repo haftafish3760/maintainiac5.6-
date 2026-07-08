@@ -27,27 +27,56 @@ void main() {
         'Even for long receipts, start on the actual captured photo preview',
       ),
     );
-    expect(reviewScreen, contains('if (_photoPaths.isEmpty) return _buildEmptyReviewRecovery();'));
     expect(
       reviewScreen,
-      contains('final selectedPhotoIndex = _selectedIndex.clamp(0, _photoPaths.length - 1);'),
+      contains('if (_photoPaths.isEmpty) return _buildEmptyReviewRecovery();'),
     );
-    expect(reviewScreen, contains('final photoPath = _photoPaths[selectedPhotoIndex];'));
+    expect(
+      reviewScreen,
+      contains(
+        'final selectedPhotoIndex = _selectedIndex.clamp(0, _photoPaths.length - 1);',
+      ),
+    );
+    expect(
+      reviewScreen,
+      contains('final photoPath = _photoPaths[selectedPhotoIndex];'),
+    );
     expect(reviewScreen, isNot(contains("return _ReceiptReviewMode.stitch;")));
-    expect(controls, contains('final hasCapturedPhotos = photoPaths.isNotEmpty;'));
     expect(
       controls,
-      contains('final effectiveSavingPhotos = savingPhotos && hasCapturedPhotos;'),
+      contains('final hasCapturedPhotos = photoPaths.isNotEmpty;'),
+    );
+    expect(
+      controls,
+      contains(
+        'final effectiveSavingPhotos = savingPhotos && hasCapturedPhotos;',
+      ),
     );
     expect(controls, contains("return 'Use Receipt';"));
     expect(previewRow, contains("'Add Another Photo'"));
+    expect(previewTray, isNot(contains("'Add Next Section'")));
     expect(previewRow, contains('retakeLabel'));
     expect(previewRow, contains('continueLabel'));
-    expect(previewTray, contains('onRetake: interactionLocked ? null : onRetake'));
-    expect(previewTray, contains('onAddPhoto: interactionLocked ? null : onAddPhoto'));
-    expect(previewTray, contains('final effectiveSelectedIndex = photoPaths.isEmpty'));
-    expect(previewTray, contains('selectedIndex.clamp(0, photoPaths.length - 1);'));
-    expect(controls, contains('onContinue: continueEnabled ? onContinue : null'));
+    expect(
+      previewTray,
+      contains('onRetake: interactionLocked ? null : onRetake'),
+    );
+    expect(
+      previewTray,
+      contains('onAddPhoto: interactionLocked ? null : onAddPhoto'),
+    );
+    expect(
+      previewTray,
+      contains('final effectiveSelectedIndex = photoPaths.isEmpty'),
+    );
+    expect(
+      previewTray,
+      contains('selectedIndex.clamp(0, photoPaths.length - 1);'),
+    );
+    expect(
+      controls,
+      contains('onContinue: continueEnabled ? onContinue : null'),
+    );
     expect(previewRow, contains("'Preparing'"));
     expect(commonControls, contains("const Text('Preparing')"));
     expect(
@@ -64,7 +93,11 @@ void main() {
     );
     expect(
       controls,
-      isNot(contains("const ReceiptPickerStatus(label: 'Preparing receipt details...')")),
+      isNot(
+        contains(
+          "const ReceiptPickerStatus(label: 'Preparing receipt details...')",
+        ),
+      ),
     );
   });
 
@@ -105,12 +138,27 @@ void main() {
         'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
       ),
     );
-    expect(previewRow, contains('_ReceiptPhotoCountBadge(current: current, total: total)'));
+    expect(
+      previewRow,
+      contains('_ReceiptPhotoCountBadge(current: current, total: total)'),
+    );
     expect(previewRow, contains('maxLines: compact ? 1 : 2'));
     expect(previewRow, contains('SizedBox(height: compact ? 5 : 7)'));
     expect(
       contextControls,
-      contains('Use this photo only if the store, date, total, and item prices are readable.'),
+      contains(
+        'Use this photo only if the store, date, total, and item prices are readable.',
+      ),
     );
+    final completionActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_completion_actions.dart',
+    ).readAsString();
+    final exitActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_exit_actions.dart',
+    ).readAsString();
+    expect(completionActions, contains("const Text('Back to Photos')"));
+    expect(exitActions, contains("const Text('Back to Photos')"));
+    expect(completionActions, isNot(contains("const Text('Stay In Review')")));
+    expect(exitActions, isNot(contains("const Text('Stay In Review')")));
   });
 }

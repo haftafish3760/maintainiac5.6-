@@ -140,7 +140,7 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
             onPressed: () => Navigator.of(
               context,
             ).pop(_ReceiptReviewExitAction.keepReviewing),
-            child: const Text('Stay In Review'),
+            child: const Text('Back to Photos'),
           ),
           FilledButton(
             onPressed: () =>
