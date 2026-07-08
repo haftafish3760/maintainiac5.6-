@@ -59,8 +59,13 @@ void main() {
     expect(script, contains('docs/receipt_camera_roadmap.md'));
     expect(script, contains('PROJECT_RULES.md'));
     expect(script, contains('README.md'));
+    expect(script, contains('tool/receipt_camera_real_device_snapshot.sh'));
     expect(script, contains('tool/receipt_real_device_matrix_gate.dart'));
     expect(script, contains('test/receipt_real_device_matrix_gate_test.dart'));
+    expect(
+      script,
+      contains('test/receipt_camera_real_device_snapshot_contract_test.dart'),
+    );
     expect(
       script,
       contains('lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart'),
@@ -210,6 +215,32 @@ void main() {
       contains('targeted test/receipt_native_ios_bridge_settings_close_test.dart'),
     );
     expect(stdout, isNot(contains('quick test/receipt_camera_coverage_decision_test.dart')));
+  });
+
+  test('camera changed gate routes real-device snapshot tooling to phase9 coverage', () async {
+    final result = await Process.run('bash', [
+      'tool/receipt_camera_changed_gate.sh',
+      '--print-tests',
+    ], environment: {
+      'RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST':
+          'tool/receipt_camera_real_device_snapshot.sh',
+    });
+
+    expect(result.exitCode, 0);
+    final stdout = result.stdout.toString();
+    expect(stdout, contains('mode=phase9'));
+    expect(
+      stdout,
+      contains('targeted test/receipt_real_device_matrix_gate_test.dart'),
+    );
+    expect(
+      stdout,
+      contains('targeted test/receipt_camera_real_device_snapshot_contract_test.dart'),
+    );
+    expect(
+      stdout,
+      contains('targeted test/receipt_real_device_result_start_script_test.dart'),
+    );
   });
 
   test('camera changed gate can print exact targeted tests for phase2 entry flow files', () async {
