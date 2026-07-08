@@ -59,6 +59,8 @@ void main() {
     expect(script, contains('docs/receipt_camera_roadmap.md'));
     expect(script, contains('PROJECT_RULES.md'));
     expect(script, contains('README.md'));
+    expect(script, contains('tool/receipt_real_device_matrix_gate.dart'));
+    expect(script, contains('test/receipt_real_device_matrix_gate_test.dart'));
     expect(
       script,
       contains('lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart'),
@@ -148,6 +150,10 @@ void main() {
     expect(
       script,
       contains('test/receipt_camera_pipeline_handoff_status_test.dart'),
+    );
+    expect(
+      script,
+      contains('test/receipt_real_device_matrix_gate_test.dart'),
     );
     expect(
       script,
@@ -290,6 +296,10 @@ void main() {
     expect(
       stdout,
       contains('targeted test/receipt_camera_pipeline_handoff_status_test.dart'),
+    );
+    expect(
+      stdout,
+      contains('targeted test/receipt_real_device_matrix_gate_test.dart'),
     );
     expect(
       stdout,
