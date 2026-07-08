@@ -239,3 +239,18 @@ img.Image adjustReceiptStitchingBrightness(
   }
   return adjusted;
 }
+
+img.Image fadeReceiptStitchingInk(img.Image source, {required double amount}) {
+  final faded = img.copyResize(source, width: source.width);
+  final safeAmount = amount.clamp(0.0, 1.0);
+  for (final pixel in faded) {
+    final luma = (pixel.r + pixel.g + pixel.b) / 3;
+    if (luma < 210) {
+      pixel
+        ..r = (pixel.r + ((245 - pixel.r) * safeAmount)).clamp(0, 255)
+        ..g = (pixel.g + ((245 - pixel.g) * safeAmount)).clamp(0, 255)
+        ..b = (pixel.b + ((245 - pixel.b) * safeAmount)).clamp(0, 255);
+    }
+  }
+  return faded;
+}

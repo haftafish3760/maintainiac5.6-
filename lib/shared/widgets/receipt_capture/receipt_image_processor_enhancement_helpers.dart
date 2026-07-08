@@ -63,8 +63,7 @@ _ScannerImageDecision _enhanceReceiptForReadingWithDecision(
       ),
     );
   }
-  if (cleanupSettings.contrastBoost &&
-      (quality.isLowContrast || quality.textBandScore < 8)) {
+  if (cleanupSettings.contrastBoost) {
     candidates.add(_fadedReceiptEnhancement(base, quality));
   }
   if (cleanupSettings.sharpening &&
