@@ -115,6 +115,13 @@ run_ugly_long_receipts() {
   echo "Receipt stitch ugly-long-receipt health: PASS"
 }
 
+run_store_receipt_shape() {
+  echo "Receipt stitch store-receipt-shape health"
+  run_flutter_test store-receipt-shape \
+    test/receipt_stitching_store_receipt_shape_test.dart
+  echo "Receipt stitch store-receipt-shape health: PASS"
+}
+
 run_uploaded_screenshots() {
   echo "Receipt stitch uploaded-screenshot health"
   run_flutter_test uploaded-screenshot \
@@ -302,6 +309,7 @@ case "$mode" in
   phone_windows_fast) run_phone_windows_fast; exit 0 ;;
   long_stack) run_long_stack; exit 0 ;;
   ugly_long_receipts) run_ugly_long_receipts; exit 0 ;;
+  store_receipt_shape) run_store_receipt_shape; exit 0 ;;
   uploaded_screenshots) run_uploaded_screenshots; exit 0 ;;
   section_order) run_section_order; exit 0 ;;
   bad_inputs) run_bad_inputs; exit 0 ;;
@@ -315,7 +323,7 @@ case "$mode" in
   milestone) run_milestone; exit 0 ;;
   full) run_full; exit 0 ;;
   *)
-    echo "Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|source_size|fast|core|milestone|full]" >&2
+    echo "Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|store_receipt_shape|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|source_size|fast|core|milestone|full]" >&2
     exit 64
     ;;
 esac

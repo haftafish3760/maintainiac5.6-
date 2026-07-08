@@ -163,6 +163,11 @@ void main() {
     expect(source, contains('ugly_long_receipts)'));
     expect(source, contains('Receipt stitch ugly-long-receipt health'));
     expect(source, contains('receipt_stitching_ugly_long_receipt_test.dart'));
+    expect(source, contains('store_receipt_shape)'));
+    expect(source, contains('Receipt stitch store-receipt-shape health'));
+    expect(source, contains('run_flutter_test store-receipt-shape'));
+    expect(source, contains('receipt_stitching_store_receipt_shape_test.dart'));
+    expect(source, contains('Receipt stitch store-receipt-shape health: PASS'));
     expect(source, contains('Receipt stitch ugly-long-receipt health: PASS'));
     expect(source, contains('uploaded_screenshots)'));
     expect(source, contains('Receipt stitch uploaded-screenshot health'));
@@ -279,7 +284,7 @@ void main() {
     expect(
       source,
       contains(
-        r'Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|source_size|fast|core|milestone|full]',
+        r'Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|store_receipt_shape|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|source_size|fast|core|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));
@@ -311,6 +316,7 @@ void main() {
     expect(source, contains('receipt_stitching_horizontal_drift_test.dart'));
     expect(source, contains('receipt_stitching_worn_receipt_test.dart'));
     expect(source, contains('receipt_stitching_ugly_long_receipt_test.dart'));
+    expect(source, contains('receipt_stitching_store_receipt_shape_test.dart'));
     expect(source, contains('receipt_stitching_long_stack_test.dart'));
     expect(
       source,
