@@ -88,6 +88,29 @@ void main() {
 
     expectBadInputFallback(result, [valid.path, wrongType.path]);
   });
+
+  test('keeps non-local stitch input paths review blocked', () async {
+    final valid = await writeTempReceiptStitchingImage(
+      receiptStitchingSection(seed: 625, topTextOffset: 0),
+      'bad_input_non_local_valid_section',
+    );
+    const nonLocalPath = 'https://example.test/receipt-section.jpg';
+
+    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+      paths: [valid.path, nonLocalPath],
+    );
+
+    expect(result.usedFallback, isTrue);
+    expect(result.didStitch, isFalse);
+    expect(result.ocrSourcePaths, [valid.path, nonLocalPath]);
+    expect(result.hasValidOcrSourceContract, isFalse);
+    expect(result.ocrSourceContractCode, 'fallback_invalid_input_sources');
+    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+    expect(
+      result.assistedReadinessCode,
+      'stitch_contract_review_required',
+    );
+  });
 }
 
 void expectBadInputFallback(ReceiptStitchResult result, List<String> paths) {
