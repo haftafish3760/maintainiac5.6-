@@ -71,10 +71,10 @@ void main() {
         top: 260,
       );
 
-      final files = await _writeSections(
-        [sectionA, clippedSecond],
-        'ugly_missing_overlap',
-      );
+      final files = await _writeSections([
+        sectionA,
+        clippedSecond,
+      ], 'ugly_missing_overlap');
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: files.map((file) => file.path).toList(growable: false),
@@ -102,10 +102,12 @@ void main() {
       copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 330);
       copyReceiptStitchingOverlap(from: sectionB, to: sectionC, pixels: 330);
 
-      final files = await _writeSections(
-        [sectionA, sectionB, sectionB, sectionC],
-        'ugly_repeated_middle',
-      );
+      final files = await _writeSections([
+        sectionA,
+        sectionB,
+        sectionB,
+        sectionC,
+      ], 'ugly_repeated_middle');
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: files.map((file) => file.path).toList(growable: false),
@@ -336,6 +338,67 @@ void main() {
       expect(result.pairs, hasLength(2));
       expect(result.overlapPixels, hasLength(2));
       expect(result.overlapPixelTotal, greaterThan(540));
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.stitchedPixelCount, lessThan(16000000));
+      await _expectReadableStitchedArtifact(result);
+    },
+    timeout: const Timeout(Duration(minutes: 3)),
+  );
+
+  test(
+    'stitches dark-framed receipt photos with scale and rotation drift',
+    () async {
+      final sectionA = _uglySection(seed: 192, fade: .18, brightness: -6);
+      final sectionB = _uglySection(seed: 193, fade: .24, brightness: 20);
+      final sectionC = _uglySection(seed: 194, fade: .20, brightness: -16);
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 330,
+        dstX: 20,
+        dstY: 48,
+      );
+      copyReceiptStitchingOverlap(
+        from: sectionB,
+        to: sectionC,
+        pixels: 318,
+        dstX: -18,
+        dstY: 54,
+      );
+
+      final files = await _writeSections([
+        frameReceiptStitchingShotOnDarkSurface(sectionA, left: 84, right: 94),
+        frameReceiptStitchingShotOnDarkSurface(
+          rotateReceiptStitchingShot(
+            scaleReceiptStitchingShot(sectionB, scale: 1.04),
+            degrees: .7,
+          ),
+          left: 70,
+          top: 62,
+          right: 112,
+          bottom: 80,
+        ),
+        frameReceiptStitchingShotOnDarkSurface(
+          rotateReceiptStitchingShot(
+            scaleReceiptStitchingShot(sectionC, scale: .96),
+            degrees: -.7,
+          ),
+          left: 104,
+          top: 58,
+          right: 78,
+          bottom: 72,
+        ),
+      ], 'dark_surface_scale_rotation');
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: files.map((file) => file.path).toList(growable: false),
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(2));
+      expect(result.overlapPixelTotal, greaterThan(520));
+      expect(result.confidence, greaterThanOrEqualTo(.50));
       expect(result.ocrSourcePaths, [result.stitchedPath]);
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       expect(result.stitchedPixelCount, lessThan(16000000));
