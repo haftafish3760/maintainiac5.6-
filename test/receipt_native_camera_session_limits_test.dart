@@ -231,6 +231,38 @@ void main() {
     );
     expect(topRetakeGuide.previousSectionGhostOpacityOrDefault, .32);
     expect(topRetakeGuide.previousSectionGhostSlicePercent, 20);
+
+    final malformedFractionsGuide = const ReceiptNativeCameraSettings()
+        .sessionFor(
+          deviceCapability: const ReceiptDeviceCapability.highCapacity(),
+          nativeCapabilities: native,
+          previousSectionGuidePhotoPath: '/tmp/receipt-section-1.jpg',
+          previousSectionReasonCode: 'missing_bottom_edge_and_totals',
+          previousSectionGhostSourceStartFraction: -.45,
+          previousSectionGhostSourceHeightFraction: .98,
+          previousSectionGhostOverlayTopFraction: .82,
+          previousSectionGhostOverlayHeightFraction: double.nan,
+          previousSectionGhostOpacity: 1.7,
+        );
+    expect(
+      malformedFractionsGuide.previousSectionGhostSourceStartFractionOrDefault,
+      .65,
+    );
+    expect(
+      malformedFractionsGuide.previousSectionGhostSourceHeightFractionOrDefault,
+      .20,
+    );
+    expect(
+      malformedFractionsGuide.previousSectionGhostOverlayTopFractionOrDefault,
+      .30,
+    );
+    expect(
+      malformedFractionsGuide
+          .previousSectionGhostOverlayHeightFractionOrDefault,
+      .20,
+    );
+    expect(malformedFractionsGuide.previousSectionGhostOpacityOrDefault, .62);
+    expect(malformedFractionsGuide.previousSectionGhostSlicePercent, 20);
   });
 
   test('session rejects unsafe previous section guide photo paths', () {
