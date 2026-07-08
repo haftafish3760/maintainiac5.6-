@@ -46,6 +46,7 @@ void main() {
     );
     expect(map, contains('tool/receipt_real_device_result_gate.dart'));
     expect(map, contains('docs/receipt_real_device_result_template.md'));
+    expect(map, contains('tool/receipt_real_device_result_start.sh'));
     expect(map, contains('| Partial |'));
     expect(map, isNot(contains('| Missing |')));
     expect(

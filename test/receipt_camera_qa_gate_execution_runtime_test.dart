@@ -41,7 +41,7 @@ void main() {
       await selectedModeFor(
         'lib/shared/widgets/receipt_capture/receipt_capture_stitch_models.dart',
       ),
-      contains('selected stitch'),
+      contains('selected phase6'),
     );
     expect(
       await selectedModeFor(
@@ -63,19 +63,19 @@ void main() {
     );
     expect(
       await selectedModeFor('ios/Runner/ReceiptCameraViewController.swift'),
-      contains('selected milestone'),
+      contains('selected phase3'),
     );
     expect(
       await selectedModeFor(
         'ios/Runner/ReceiptCameraViewControllerLabels.swift',
       ),
-      contains('selected milestone'),
+      contains('selected phase3'),
     );
     expect(
       await selectedModeFor(
         'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraUiChrome.kt',
       ),
-      contains('selected milestone'),
+      contains('selected phase3'),
     );
     expect(
       await selectedModeFor('tool/receipt_camera_qa_gate.sh'),

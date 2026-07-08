@@ -75,7 +75,7 @@ extension _ReceiptPhotoReviewExitStitchActions
       final finalPath = await ReceiptImageProcessor.copyReceiptOcrArtifact(
         path: previewPath,
       );
-      return preview!.copyForFinalOcr(
+      return preview.copyForFinalOcr(
         inputPaths: preparedOcrPaths,
         ocrSourcePaths: [finalPath],
         stitchedPath: finalPath,

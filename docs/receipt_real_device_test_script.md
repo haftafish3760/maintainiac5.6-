@@ -13,6 +13,9 @@ This script is for controlled phone testing after a meaningful receipt-camera bu
 - Copy `docs/receipt_real_device_result_template.md` into
   `docs/receipt_real_device_runs/YYYY-MM-DD-device-batch.md` before a serious
   test session so the proof note stays structured and privacy-safe.
+- Or run `tool/receipt_real_device_result_start.sh [slug]` to generate that
+  note with branch, commit, workspace, and metadata-only device snapshots
+  already filled in.
 
 ## Device Targets
 

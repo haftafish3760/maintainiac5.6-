@@ -150,6 +150,10 @@ still requires manual receipt flows on the connected phones.
 those manual phone notes. A green template gate is not proof that the manual
 flows passed; it only proves the reporting lane is ready.
 
+`tool/receipt_real_device_result_start.sh` can prefill a new run note with
+branch, commit, workspace, and metadata-only device snapshots before the manual
+test session starts.
+
 ## Reliability Target
 
 The expected quality target after this map is completed and verified:

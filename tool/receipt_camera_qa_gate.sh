@@ -91,6 +91,7 @@ phase9_tests=(
   test/receipt_camera_native_baseline_policy_test.dart
   test/receipt_real_device_matrix_gate_test.dart
   test/receipt_real_device_result_gate_test.dart
+  test/receipt_real_device_result_start_script_test.dart
   test/receipt_real_device_test_script_test.dart
   test/receipt_camera_world_class_readiness_test.dart
 )
@@ -209,6 +210,7 @@ phase9_audit_paths=(
   docs/receipt_real_device_result_template.md
   tool/receipt_real_device_matrix_gate.dart
   tool/receipt_real_device_result_gate.dart
+  tool/receipt_real_device_result_start.sh
   docs/receipt_native_camera_service_spec.md
   docs/receipt_camera_ocr_product_standard.md
   PROJECT_RULES.md
@@ -221,6 +223,7 @@ phase9_audit_paths=(
   test/receipt_camera_native_baseline_policy_test.dart
   test/receipt_real_device_test_script_test.dart
   test/receipt_real_device_result_gate_test.dart
+  test/receipt_real_device_result_start_script_test.dart
   test/receipt_camera_world_class_readiness_test.dart
 )
 
@@ -253,6 +256,8 @@ quick_tests=(
   test/receipt_camera_dataset_qa_gate_contract_test.dart
   test/receipt_camera_qa_gate_contract_test.dart
   test/receipt_camera_qa_gate_execution_test.dart
+  test/receipt_camera_qa_gate_plan_coverage_test.dart
+  test/receipt_camera_qa_gate_scope_and_failure_contract_test.dart
   test/receipt_camera_qa_gate_execution_runtime_test.dart
 )
 
@@ -758,6 +763,7 @@ run_phase8() {
 
 run_phase9() {
   bash tool/receipt_camera_scope_gate.sh
+  bash -n tool/receipt_real_device_result_start.sh
   dart analyze \
     tool/receipt_real_device_result_gate.dart \
     tool/receipt_real_device_matrix_gate.dart \
@@ -806,6 +812,7 @@ run_quick() {
     tool/receipt_camera_qa_gate.sh \
     tool/receipt_camera_qa_summary.sh \
     tool/receipt_camera_real_device_snapshot.sh \
+    tool/receipt_real_device_result_start.sh \
     tool/receipt_camera_scope_gate.sh \
     tool/receipt_camera_stitch_gate.sh \
     tool/receipt_start_camera_qa_gate.sh

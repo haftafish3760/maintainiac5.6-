@@ -22,6 +22,8 @@ void main() {
       final source = report['source']! as Map<String, Object?>;
       final groups = source['groups']! as Map<String, Object?>;
       final artifacts = report['artifacts']! as Map<String, Object?>;
+      final androidArtifacts = artifacts['android']! as List<Object?>;
+      final iosArtifacts = artifacts['ios']! as List<Object?>;
       final androidCandidateStatuses =
           artifacts['androidInstallCandidateStatus']! as List<Object?>;
       final iosCandidateStatuses =
@@ -47,12 +49,22 @@ void main() {
       expect(groups.keys, contains('shared_receipt_contracts'));
       expect(groups.keys, contains('android_native_receipt_camera'));
       expect(groups.keys, contains('ios_native_receipt_camera'));
-      expect(artifacts['android'], isA<List<Object?>>());
-      expect(artifacts['ios'], isA<List<Object?>>());
+      expect(androidArtifacts, isA<List<Object?>>());
+      expect(iosArtifacts, isA<List<Object?>>());
       expect(artifacts['androidInstallCandidateBlockBytes'], greaterThan(0));
       expect(artifacts['iosInstallCandidateBlockBytes'], greaterThan(0));
-      expect(androidCandidateStatuses, isNotEmpty);
-      expect(iosCandidateStatuses, isNotEmpty);
+      expect(
+        androidCandidateStatuses.length,
+        androidArtifacts.length,
+        reason: 'Android install-candidate status rows should mirror found '
+            'Android build artifacts.',
+      );
+      expect(
+        iosCandidateStatuses.length,
+        iosArtifacts.length,
+        reason: 'iOS install-candidate status rows should mirror found iOS '
+            'build artifacts.',
+      );
       for (final status in [
         ...androidCandidateStatuses,
         ...iosCandidateStatuses,

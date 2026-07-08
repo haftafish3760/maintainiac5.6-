@@ -47,7 +47,7 @@ void main() {
         ),
       );
       expect(stitchExitActions, contains('ReceiptImageProcessor.copyReceiptOcrArtifact('));
-      expect(stitchExitActions, contains('preview!.copyForFinalOcr('));
+      expect(stitchExitActions, contains('preview.copyForFinalOcr('));
       expect(stitchExitActions, contains('return ReceiptImageProcessor.stitchReceiptPhotosForOcr('));
       expect(imageProcessor, contains('copyReceiptOcrArtifact'));
 

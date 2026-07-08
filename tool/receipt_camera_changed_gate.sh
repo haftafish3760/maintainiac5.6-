@@ -118,8 +118,10 @@ while IFS= read -r path; do
     README.md | \
     tool/receipt_real_device_matrix_gate.dart | \
     tool/receipt_real_device_result_gate.dart | \
+    tool/receipt_real_device_result_start.sh | \
     test/receipt_real_device_matrix_gate_test.dart | \
     test/receipt_real_device_result_gate_test.dart | \
+    test/receipt_real_device_result_start_script_test.dart | \
     test/receipt_camera_active_phase_docs_test.dart | \
     test/receipt_camera_completion_map_test.dart | \
     test/receipt_camera_pipeline_handoff_status_test.dart | \
@@ -140,6 +142,7 @@ while IFS= read -r path; do
         test/receipt_camera_native_baseline_policy_test.dart
         test/receipt_real_device_matrix_gate_test.dart
         test/receipt_real_device_result_gate_test.dart
+        test/receipt_real_device_result_start_script_test.dart
         test/receipt_real_device_test_script_test.dart
         test/receipt_camera_world_class_readiness_test.dart
       )

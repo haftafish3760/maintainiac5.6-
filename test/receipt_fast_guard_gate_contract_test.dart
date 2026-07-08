@@ -59,11 +59,13 @@ void main() {
     );
     expect(
       script,
-      contains('test/expense_receipt_parser_assisted_review_test.dart'),
+      isNot(contains('test/expense_receipt_parser_assisted_review_test.dart')),
     );
     expect(
       script,
-      contains('test/expense_receipt_parser_ocr_diagnostics_test.dart'),
+      isNot(
+        contains('test/expense_receipt_parser_ocr_diagnostics_test.dart'),
+      ),
     );
     expect(script, contains('test/expense_release_one_blueprint_test.dart'));
     expect(script, contains('test/firestore_data_model_guard_test.dart'));

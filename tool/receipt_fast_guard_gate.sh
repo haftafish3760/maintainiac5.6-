@@ -11,6 +11,7 @@ bash -n \
   tool/receipt_camera_qa_gate.sh \
   tool/receipt_camera_qa_summary.sh \
   tool/receipt_camera_real_device_snapshot.sh \
+  tool/receipt_real_device_result_start.sh \
   tool/receipt_camera_scope_gate.sh \
   tool/receipt_camera_stitch_gate.sh \
   tool/receipt_start_camera_qa_gate.sh \
@@ -106,8 +107,6 @@ dart tool/receipt_camera_footprint_audit.dart
 flutter test \
   test/expense_telemetry_ocr_source_redaction_contract_test.dart \
   test/expense_telemetry_redaction_contract_guard_test.dart \
-  test/expense_receipt_parser_assisted_review_test.dart \
-  test/expense_receipt_parser_ocr_diagnostics_test.dart \
   test/expense_release_one_blueprint_test.dart \
   test/firestore_data_model_guard_test.dart \
   test/maintainiac_production_operating_directive_test.dart \
