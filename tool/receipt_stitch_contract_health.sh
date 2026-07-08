@@ -100,7 +100,9 @@ run_source_size() {
     test/receipt_stitch_fallback_metadata_test.dart
     test/receipt_camera_low_confidence_stack_handoff_test.dart
     test/receipt_camera_oversized_stitch_handoff_test.dart
+    test/receipt_camera_phase6_stitching_handoff_contract_test.dart
     test/receipt_camera_result_stitch_handoff_followthrough_test.dart
+    test/receipt_camera_stitch_candidate_metadata_test.dart
   )
   for file in "${test_files[@]}"; do
     local lines
