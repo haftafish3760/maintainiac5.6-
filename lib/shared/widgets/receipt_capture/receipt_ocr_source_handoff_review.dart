@@ -233,10 +233,11 @@ extension ReceiptOcrSourceHandoffReview on ReceiptOcrSourceHandoffSummary {
 
   bool get hasSectionOrderReviewRisk =>
       _countForAny(sectionOrderSignalCounts, const [
-        'receipt_section_order_review_required',
-        'ocr_source_section_order_review_required',
-      ]) >
-      0;
+            'receipt_section_order_review_required',
+            'ocr_source_section_order_review_required',
+          ]) >
+          0 ||
+      sectionOrderReviewStatus != 'section_order_not_reported';
 
   String get sectionOrderReviewStatus {
     for (final token in const [

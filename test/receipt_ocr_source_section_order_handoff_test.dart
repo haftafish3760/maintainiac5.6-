@@ -110,4 +110,41 @@ void main() {
       );
     },
   );
+
+  test(
+    'ocr source handoff treats action-only section order as review risk',
+    () async {
+      final result = await const ReceiptOcrService()
+          .recognizeTextFromAttachments([
+            ReceiptAttachmentRecord(
+              id: 'action-only-section-order',
+              path: '',
+              kind: ReceiptAttachmentKind.emailText,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime(2026, 7, 8),
+              importedText: 'STORE\nTOTAL 9.99',
+              documentSignals: const [
+                'receipt_ocr_source_photo',
+                'receipt_section_order_action_review_multi_section_order',
+              ],
+            ),
+          ]);
+
+      final diagnostics = result.diagnostics;
+
+      expect(
+        diagnostics.ocrSourceHandoffContract['sectionOrderReviewStatus'],
+        'receipt_section_order_action_review_multi_section_order',
+      );
+      expect(
+        diagnostics.ocrSourceHandoffContract['sourceQualityReviewStatus'],
+        'section_order_review_required',
+      );
+      expect(
+        diagnostics.ocrSourceHandoffContract['sourceQualityReviewAction'],
+        'review_receipt_section_order',
+      );
+      expect(diagnostics.ocrSourcePhotoQualityRiskCounts, isEmpty);
+    },
+  );
 }
