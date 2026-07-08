@@ -17,7 +17,7 @@ void main() {
     expect(
       source,
       contains(
-        "--name 'delayed overlap|stronger handheld rotation|combined scale rotation and drift|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|continuation edge is clipped|severely cropped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order'",
+        "--name 'delayed overlap|stronger handheld rotation|combined scale rotation and drift|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|continuation edge is clipped|severely cropped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order'",
       ),
     );
     expect(
@@ -41,7 +41,7 @@ void main() {
     expect(
       source,
       contains(
-        "--name 'phone-window captures|skipped phone-window|eleven-section|ugly seven-section|ragged phone-window'",
+        "--name 'phone-window captures|mixed exposure and side crops|skipped phone-window|eleven-section|ugly seven-section|ragged phone-window'",
       ),
     );
     expect(source, contains('Receipt stitch phone-window health: PASS'));
