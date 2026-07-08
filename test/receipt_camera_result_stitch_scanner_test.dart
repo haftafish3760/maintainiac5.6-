@@ -67,6 +67,25 @@ void main() {
         ],
       ),
     );
+    final duplicateFallback = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/top-proof.jpg', '/tmp/top-proof-copy.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/top-ocr-copy.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: const ['/tmp/top-ocr.jpg', '/tmp/top-ocr-copy.jpg'],
+        warning:
+            'Two receipt photos appear to show the same section. Receipt details will use the photos separately.',
+        fallbackReasonCode: 'duplicate_section_image',
+        failedPairIndex: 0,
+        pairs: const [
+          ReceiptStitchPairResult(
+            pairIndex: 0,
+            overlapPixels: 0,
+            confidence: 1,
+          ),
+        ],
+      ),
+    );
 
     expect(stitched.nextReviewUsesCombinedReceiptImage, isTrue);
     expect(
@@ -225,6 +244,28 @@ void main() {
       fallback.stitchResult.ocrHandoffSafetyLabel,
       'OCR will read ordered sections because stitching was not trusted.',
     );
+    expect(duplicateFallback.nextReviewUsesOrderedSections, isTrue);
+    expect(
+      duplicateFallback
+          .receiptReaderHandoffCounts['stitch_ocr_source_contract_fallback_duplicate_section_image'],
+      1,
+    );
+    expect(
+      duplicateFallback
+          .stitchPairDiagnosticCounts['overlap_fallback_pair_1_to_2'],
+      1,
+    );
+    expect(
+      duplicateFallback.privacySafeReceiptReaderHandoffMetadata,
+      containsPair(
+        'stitchOcrHandoffSafetyCode',
+        'ordered_sections_after_duplicate_section_image_fallback',
+      ),
+    );
+    expect(
+      duplicateFallback.privacySafeReceiptReaderHandoffMetadata.toString(),
+      isNot(contains('/tmp/top-ocr')),
+    );
     expect(
       fallback.privacySafeReceiptReaderHandoffMetadata,
       containsPair(
@@ -345,5 +386,4 @@ void main() {
       contains('stitch_source_original_sections_preserved_ordered_ocr_sources'),
     );
   });
-
 }
