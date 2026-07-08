@@ -37,4 +37,143 @@ void main() {
     expect(template, contains('mark it `NOT RUN`'));
     expect(template, contains('docs/receipt_real_device_runs/YYYY-MM-DD-device-batch.md'));
   });
+
+  test('real-device result gate rejects run notes with missing snapshot files', () async {
+    final runDir = Directory('docs/receipt_real_device_runs');
+    runDir.createSync(recursive: true);
+
+    final runFile = File('${runDir.path}/9999-12-31-missing-snapshot-test.md');
+    addTearDown(() {
+      if (runFile.existsSync()) {
+        runFile.deleteSync();
+      }
+    });
+
+    runFile.writeAsStringSync(_runNote(
+      metadataSummary: '/tmp/does-not-exist-summary.txt',
+      flutterLog: '/tmp/does-not-exist-flutter.txt',
+      adbLog: '/tmp/does-not-exist-adb.txt',
+      xcodeLog: '/tmp/does-not-exist-xcode.txt',
+    ));
+
+    final result = await Process.run('dart', [
+      'tool/receipt_real_device_result_gate.dart',
+    ]);
+
+    expect(result.exitCode, 1);
+    expect(
+      result.stderr.toString(),
+      contains('points to a missing snapshot file for Metadata snapshot summary'),
+    );
+  });
+
+  test('real-device result gate accepts run notes with existing snapshot files', () async {
+    final runDir = Directory('docs/receipt_real_device_runs');
+    runDir.createSync(recursive: true);
+
+    final tempDir = await Directory.systemTemp.createTemp(
+      'receipt_real_device_gate_',
+    );
+    addTearDown(() async {
+      if (tempDir.existsSync()) {
+        await tempDir.delete(recursive: true);
+      }
+    });
+
+    final summary = File('${tempDir.path}/summary.txt')..writeAsStringSync('ok');
+    final flutter = File('${tempDir.path}/flutter_devices.txt')
+      ..writeAsStringSync('ok');
+    final adb = File('${tempDir.path}/adb_devices.txt')..writeAsStringSync('ok');
+    final xcode = File('${tempDir.path}/xcrun_devices.txt')
+      ..writeAsStringSync('ok');
+
+    final runFile = File('${runDir.path}/9999-12-31-existing-snapshot-test.md');
+    addTearDown(() {
+      if (runFile.existsSync()) {
+        runFile.deleteSync();
+      }
+    });
+
+    runFile.writeAsStringSync(_runNote(
+      metadataSummary: summary.path,
+      flutterLog: flutter.path,
+      adbLog: adb.path,
+      xcodeLog: xcode.path,
+    ));
+
+    final result = await Process.run('dart', [
+      'tool/receipt_real_device_result_gate.dart',
+    ]);
+
+    expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
+    expect(
+      result.stdout.toString(),
+      contains('Receipt real-device result gate: template=ok'),
+    );
+  });
+}
+
+String _runNote({
+  required String metadataSummary,
+  required String flutterLog,
+  required String adbLog,
+  required String xcodeLog,
+}) {
+  return '''
+# Receipt Real-Device Result Template
+
+## Session Metadata
+
+- Date: TEST
+- Branch: TEST
+- Commit: TEST
+- Build type: TEST
+- Tester: TEST
+- Devices: TEST
+- Receipt set: TEST
+
+## Environment And Device Matrix
+
+- Metadata snapshot summary: `$metadataSummary`
+- Flutter devices snapshot log: `$flutterLog`
+- ADB devices snapshot log: `$adbLog`
+- Xcode devices snapshot log: `$xcodeLog`
+
+- Older Android: NOT RUN
+- Current Android: NOT RUN
+- Additional Android: NOT RUN
+- iPhone: NOT RUN
+
+## Flow Results
+
+### Flow 1: Single Photo Receipt
+- Status: NOT RUN
+
+### Flow 2: Long Receipt Multi-Photo
+- Status: NOT RUN
+
+### Flow 3: Save-Space Preview
+- Status: NOT RUN
+
+### Flow 4: App-Assisted Filled Receipt Review
+- Status: NOT RUN
+
+### Flow 5: Manual Or No-Assist Receipt
+- Status: NOT RUN
+
+### Flow 6: Interruption And Recovery
+- Status: NOT RUN
+
+## Failure Reports
+
+- None.
+
+## Privacy And Diagnostics Check
+
+- Help Improve Receipt Camera defaulted off: NOT RUN
+
+## Exit Summary
+
+- Remaining risks: NOT RUN
+''';
 }

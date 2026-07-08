@@ -50,6 +50,13 @@ const _forbiddenRunContent = <String>[
   '<image',
 ];
 
+const _snapshotPathLabels = <String>[
+  'Metadata snapshot summary',
+  'Flutter devices snapshot log',
+  'ADB devices snapshot log',
+  'Xcode devices snapshot log',
+];
+
 void main() {
   final template = File(_templatePath);
   if (!template.existsSync()) {
@@ -94,6 +101,31 @@ void main() {
         'Run note ${runFile.path} contains forbidden content: ${forbidden.join(', ')}',
       );
     }
+
+    final missingSnapshotPaths = <String>[];
+    for (final label in _snapshotPathLabels) {
+      final path = _extractBacktickPath(text, label);
+      if (path == null || path.trim().isEmpty) {
+        missingSnapshotPaths.add(label);
+        continue;
+      }
+
+      if (!File(path).existsSync()) {
+        _fail(
+          'Receipt real-device result gate failed.\n'
+          'Run note ${runFile.path} points to a missing snapshot file for '
+          '$label: $path',
+        );
+      }
+    }
+
+    if (missingSnapshotPaths.isNotEmpty) {
+      _fail(
+        'Receipt real-device result gate failed.\n'
+        'Run note ${runFile.path} is missing snapshot file paths for: '
+        '${missingSnapshotPaths.join(', ')}',
+      );
+    }
   }
 
   stdout.writeln(
@@ -105,6 +137,11 @@ List<String> _missing(String source, List<String> requirements) => [
   for (final requirement in requirements)
     if (!source.contains(requirement)) requirement,
 ];
+
+String? _extractBacktickPath(String source, String label) {
+  final pattern = RegExp('- ${RegExp.escape(label)}: `([^`]+)`');
+  return pattern.firstMatch(source)?.group(1);
+}
 
 Never _fail(String message) {
   stderr.writeln(message);
