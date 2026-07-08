@@ -295,6 +295,50 @@ void main() {
     expect(duplicateReplacementPlan, isNull);
   });
 
+  test('section order plans reject padded or aliased target paths', () {
+    final retakePaddedTarget = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const [
+        '/tmp/receipt/top.jpg',
+        '/tmp/receipt/middle.jpg',
+        '/tmp/receipt/bottom.jpg',
+      ],
+      targetPhotoPath: ' /tmp/receipt/middle.jpg ',
+      replacementPhotoPaths: const ['/tmp/receipt/middle-new.jpg'],
+    );
+    final retakeAliasedTarget = ReceiptPhotoRetakeOrderPlan.build(
+      currentPhotoPaths: const [
+        '/tmp/receipt/top.jpg',
+        '/tmp/receipt/middle.jpg',
+        '/tmp/receipt/bottom.jpg',
+      ],
+      targetPhotoPath: '/tmp/receipt/../receipt/middle.jpg',
+      replacementPhotoPaths: const ['/tmp/receipt/middle-new.jpg'],
+    );
+    final insertPaddedAnchor = ReceiptPhotoInsertAfterOrderPlan.build(
+      currentPhotoPaths: const [
+        '/tmp/receipt/top.jpg',
+        '/tmp/receipt/middle.jpg',
+      ],
+      anchorIndex: 1,
+      anchorPhotoPath: ' /tmp/receipt/middle.jpg ',
+      insertedPhotoPaths: const ['/tmp/receipt/bottom.jpg'],
+    );
+    final moveAliasedSelection = ReceiptPhotoMoveOrderPlan.build(
+      currentPhotoPaths: const [
+        '/tmp/receipt/top.jpg',
+        '/tmp/receipt/middle.jpg',
+      ],
+      selectedIndex: 1,
+      selectedPhotoPath: '/tmp/receipt/../receipt/middle.jpg',
+      direction: -1,
+    );
+
+    expect(retakePaddedTarget, isNull);
+    expect(retakeAliasedTarget, isNull);
+    expect(insertPaddedAnchor, isNull);
+    expect(moveAliasedSelection, isNull);
+  });
+
   test('retaking the top section uses the next section as context', () {
     final context = ReceiptPhotoRetakeAlignmentContext.build(
       currentPhotoPaths: const ['top-old.jpg', 'middle.jpg', 'bottom.jpg'],
