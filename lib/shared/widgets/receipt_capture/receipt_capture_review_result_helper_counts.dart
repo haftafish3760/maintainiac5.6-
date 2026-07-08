@@ -78,6 +78,7 @@ extension ReceiptPhotoReviewResultHelpers on ReceiptPhotoReviewResult {
   String get nativeCaptureSourcePolicyOutcome {
     final counts = nativeCaptureSourcePolicyCounts;
     for (final policy in const [
+      'existing_photo_import',
       'document_scanner_backup',
       'phone_camera_backup',
       'native_recovery',

@@ -113,8 +113,7 @@ List<String> _nativeFocusReadabilityHealthCodes(
     codes.add('native_focus_status_unknown');
   }
 
-  if (readabilityPolicy ==
-      'native_camera_baseline_neutral_receipt_guidance') {
+  if (readabilityPolicy == 'native_camera_baseline_neutral_receipt_guidance') {
     codes.add('readability_guidance_neutral_workflow_ready');
   } else if (readabilityPolicy != 'unknown') {
     codes.add('readability_guidance_live_missing');
@@ -286,6 +285,10 @@ List<String> _nativeCapturePreviewParityHealthCodes(
 Set<String> _nativeCaptureSourcePoliciesFor(Map<String, Object?> diagnostics) {
   final policies = <String>{};
   final captureFlow = diagnostics['captureFlow']?.toString().trim() ?? '';
+  if (captureFlow == 'existing_receipt_photo_import' ||
+      diagnostics['existingPhotoImportUsed'] == true) {
+    policies.add('existing_photo_import');
+  }
   if (captureFlow == 'document_scanner_backup_receipt_photo' ||
       diagnostics['documentScannerBackupUsed'] == true) {
     policies.add('document_scanner_backup');

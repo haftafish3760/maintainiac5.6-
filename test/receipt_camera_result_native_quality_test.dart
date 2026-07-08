@@ -8,6 +8,53 @@ void main() {
     expectBridgedDimGlareCaptureWarnings();
   });
 
+  test('uploaded receipt photos are tracked as imported capture source', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const [
+        '/tmp/advance-email-top.png',
+        '/tmp/advance-email-bottom.png',
+      ],
+      ocrSourcePhotoPaths: const [
+        '/tmp/advance-email-top-ocr.png',
+        '/tmp/advance-email-bottom-ocr.png',
+      ],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.notNeeded([
+        '/tmp/advance-email-top-ocr.png',
+        '/tmp/advance-email-bottom-ocr.png',
+      ]),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/advance-email-top.png': {
+          'captureFlow': 'existing_receipt_photo_import',
+          'existingPhotoImportUsed': true,
+          'existingPhotoImportRole': 'user_selected_receipt_photo',
+        },
+        '/tmp/advance-email-bottom.png': {
+          'captureFlow': 'existing_receipt_photo_import',
+          'existingPhotoImportUsed': true,
+          'existingPhotoImportRole': 'user_selected_receipt_photo',
+        },
+      },
+    );
+
+    expect(
+      result.nativeCaptureSourcePolicyCounts,
+      containsPair('existing_photo_import', 2),
+    );
+    expect(result.nativeCaptureSourcePolicyOutcome, 'existing_photo_import');
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair(
+        'nativeCaptureSourcePolicyCounts',
+        result.nativeCaptureSourcePolicyCounts,
+      ),
+    );
+    expect(
+      result.privacySafeOcrHandoffEvidenceLabel,
+      contains('captureSource=existing_photo_import'),
+    );
+  });
+
   test(
     'document scanner backup is tracked as fallback-only capture source',
     () {
