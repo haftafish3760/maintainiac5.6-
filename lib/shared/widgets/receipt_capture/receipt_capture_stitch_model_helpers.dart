@@ -16,6 +16,15 @@ bool _hasDuplicateReceiptArtifactPaths(List<String> paths) {
   return false;
 }
 
+bool _receiptArtifactPathSetContains(List<String> paths, String candidate) {
+  final normalizedCandidate = normalizedReceiptPhotoPath(candidate);
+  if (normalizedCandidate == null) return false;
+  for (final path in paths) {
+    if (normalizedReceiptPhotoPath(path) == normalizedCandidate) return true;
+  }
+  return false;
+}
+
 ReceiptStitchResult _frozenStitchResult(ReceiptStitchResult result) {
   return ReceiptStitchResult(
     status: result.status,

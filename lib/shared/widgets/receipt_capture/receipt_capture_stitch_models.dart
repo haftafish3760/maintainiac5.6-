@@ -155,6 +155,9 @@ class ReceiptStitchResult {
       if (stitchedPath == null || ocrSourcePaths.length != 1) {
         return 'stitched_ocr_source_missing';
       }
+      if (_receiptArtifactPathSetContains(inputPaths, stitchedPath!)) {
+        return 'stitched_ocr_source_reuses_input_section';
+      }
       return _sameReceiptArtifactPath(ocrSourcePaths.single, stitchedPath!)
           ? 'stitched_ocr_source_ready'
           : 'stitched_ocr_source_path_mismatch';

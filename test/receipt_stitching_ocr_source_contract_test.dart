@@ -129,6 +129,45 @@ void main() {
     expect(finalResult.ocrSourceContractCode, 'stitched_ocr_source_ready');
   });
 
+  test('stitched OCR source cannot reuse an original section path', () {
+    final aliasedStitch = ReceiptStitchResult(
+      status: ReceiptStitchStatus.stitched,
+      inputPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+      ocrSourcePaths: const ['/tmp/top.jpg'],
+      stitchedPath: '/tmp/top.jpg',
+      confidence: .88,
+      overlapPixels: const [280],
+      pairs: const [
+        ReceiptStitchPairResult(
+          pairIndex: 0,
+          overlapPixels: 280,
+          confidence: .88,
+        ),
+      ],
+    );
+
+    expect(
+      aliasedStitch.ocrSourceContractCode,
+      'stitched_ocr_source_reuses_input_section',
+    );
+    expect(aliasedStitch.hasValidOcrSourceContract, isFalse);
+    expect(
+      aliasedStitch.requiresOcrSourceReviewBeforeAssistedRead,
+      isTrue,
+    );
+    expect(
+      aliasedStitch.assistedReadinessCode,
+      'stitch_contract_review_required',
+    );
+    expect(
+      aliasedStitch.privacySafeOcrHandoffSafety,
+      containsPair(
+        'stitchOcrSourceContractCode',
+        'stitched_ocr_source_reuses_input_section',
+      ),
+    );
+  });
+
   test(
     'final OCR fallback preserves ordered separate source paths path-free',
     () {
