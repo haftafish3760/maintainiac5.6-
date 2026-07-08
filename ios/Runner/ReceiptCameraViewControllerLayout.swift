@@ -97,6 +97,7 @@ extension ReceiptCameraViewController {
     viewerInfoStack.addArrangedSubview(buildSettingsStatusStrip())
     let previousSectionGuide = buildPreviousSectionGuide()
     viewerInfoStack.addArrangedSubview(previousSectionGuide)
+    updateViewerInfoStackVisibility()
     view.addSubview(buildExposureControls())
 
     let bottomBar = UIStackView()
@@ -195,6 +196,12 @@ extension ReceiptCameraViewController {
     NSLayoutConstraint.activate([
       previousSectionGuide.heightAnchor.constraint(equalToConstant: 102),
     ])
+  }
+
+  func updateViewerInfoStackVisibility() {
+    viewerInfoStack.isHidden =
+      settingsStatusStrip.isHidden &&
+      previousSectionGuidePanel.isHidden
   }
 
   func buildSettingsStatusStrip() -> UILabel {

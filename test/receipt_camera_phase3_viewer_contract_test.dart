@@ -127,6 +127,15 @@ void main() {
     expect(cameraController, contains('viewerInfoStack.axis = .vertical'));
     expect(cameraController, contains('viewerInfoStack.addArrangedSubview(buildSettingsStatusStrip())'));
     expect(cameraController, contains('viewerInfoStack.addArrangedSubview(previousSectionGuide)'));
+    expect(cameraController, contains('updateViewerInfoStackVisibility()'));
+    expect(
+      cameraController,
+      contains(
+        'viewerInfoStack.isHidden =\n'
+        '      settingsStatusStrip.isHidden &&\n'
+        '      previousSectionGuidePanel.isHidden',
+      ),
+    );
     expect(
       cameraController,
       contains('shutterButton.setImage(UIImage(systemName: "doc.text.viewfinder"), for: .normal)'),
