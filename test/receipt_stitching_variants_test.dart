@@ -329,6 +329,12 @@ void main() {
       expect(result.didStitch, isTrue, reason: result.detailLabel);
       expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
       expect(result.overlapPixels.single, greaterThan(340));
+      final normalizedSectionHeight =
+          (sectionA.height * result.stitchedWidth / sectionA.width).round();
+      expect(
+        result.stitchedHeight,
+        normalizedSectionHeight * 2 - result.overlapPixels.single,
+      );
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
     },
   );
