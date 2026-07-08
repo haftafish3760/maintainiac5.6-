@@ -285,6 +285,40 @@ void main() {
     );
   });
 
+  test('drift-adjusted stitched preview carries diagnostic handoff evidence', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/stitched-drift.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult(
+        status: ReceiptStitchStatus.stitched,
+        inputPaths: ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
+        ocrSourcePaths: ['/tmp/stitched-drift.jpg'],
+        stitchedPath: '/tmp/stitched-drift.jpg',
+        confidence: .82,
+        overlapPixels: [340],
+        pairs: [
+          ReceiptStitchPairResult(
+            pairIndex: 0,
+            overlapPixels: 340,
+            confidence: .82,
+            horizontalOffsetPixels: 72,
+          ),
+        ],
+      ),
+    );
+
+    expect(result.stitchPairDiagnosticCounts['drift_adjusted'], 1);
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('stitchPairDiagnosticCounts', result.stitchPairDiagnosticCounts),
+    );
+    expect(
+      result.privacySafeReceiptReaderHandoffMetadata,
+      containsPair('stitchMatchedPairCount', 1),
+    );
+  });
+
   test('native section order metadata preserves ghost guide handoff', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const [
