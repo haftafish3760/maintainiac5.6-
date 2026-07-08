@@ -38,6 +38,14 @@ void main() {
         stitchPreviewAsync,
         contains('// Best effort cleanup for app-created stitch previews.'),
       );
+      expect(
+        stitchExitActions,
+        contains(
+          'if (previewCanBeUsed &&\n'
+          '        (preview.usedFallback ||\n'
+          '            preview.status == ReceiptStitchStatus.notNeeded)) {',
+        ),
+      );
       expect(stitchExitActions, contains('ReceiptImageProcessor.copyReceiptOcrArtifact('));
       expect(stitchExitActions, contains('preview!.copyForFinalOcr('));
       expect(stitchExitActions, contains('return ReceiptImageProcessor.stitchReceiptPhotosForOcr('));
@@ -99,6 +107,39 @@ void main() {
         finalResult.privacySafeOcrHandoffSafety,
         containsPair('stitchOcrHandoffUsesOrderedSections', false),
       );
+    },
+  );
+
+  test(
+    'phase 6 ordered fallback preview can be rebound for final OCR without losing review metadata',
+    () {
+      final preview = ReceiptStitchResult.fallback(
+        inputPaths: ['/tmp/raw-top.jpg', '/tmp/raw-bottom.jpg'],
+        warning: 'Overlap was not clear enough.',
+        fallbackReasonCode: 'overlap_confidence_low',
+        confidence: .34,
+        failedPairIndex: 0,
+      );
+
+      final finalResult = preview.copyForFinalOcr(
+        inputPaths: const ['/tmp/prepared-top.jpg', '/tmp/prepared-bottom.jpg'],
+        ocrSourcePaths: const ['/tmp/prepared-top.jpg', '/tmp/prepared-bottom.jpg'],
+      );
+
+      expect(finalResult.usedFallback, isTrue);
+      expect(finalResult.didStitch, isFalse);
+      expect(finalResult.inputPaths, [
+        '/tmp/prepared-top.jpg',
+        '/tmp/prepared-bottom.jpg',
+      ]);
+      expect(finalResult.ocrSourcePaths, [
+        '/tmp/prepared-top.jpg',
+        '/tmp/prepared-bottom.jpg',
+      ]);
+      expect(finalResult.failedPairIndex, 0);
+      expect(finalResult.failedPairLabel, 'Photo 1 to 2');
+      expect(finalResult.fallbackReasonCode, 'overlap_confidence_low');
+      expect(finalResult.warning, 'Overlap was not clear enough.');
     },
   );
 

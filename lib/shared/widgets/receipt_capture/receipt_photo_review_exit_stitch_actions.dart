@@ -55,11 +55,23 @@ extension _ReceiptPhotoReviewExitStitchActions
     );
     final previewCanBeUsed =
         !_stitchPreviewInFlight &&
-        preview?.didStitch == true &&
-        previewPath != null &&
+        preview != null &&
         _stitchPreviewKey == _currentStitchPreviewKey() &&
         currentPathOrderMatches;
-    if (previewCanBeUsed && await File(previewPath).exists()) {
+    if (previewCanBeUsed &&
+        (preview.usedFallback ||
+            preview.status == ReceiptStitchStatus.notNeeded)) {
+      return preview.copyForFinalOcr(
+        inputPaths: preparedOcrPaths,
+        ocrSourcePaths: preparedOcrPaths,
+      );
+    }
+    final stitchedPreviewCanBeCopied =
+        !_stitchPreviewInFlight &&
+        preview?.didStitch == true &&
+        previewPath != null &&
+        previewCanBeUsed;
+    if (stitchedPreviewCanBeCopied && await File(previewPath).exists()) {
       final finalPath = await ReceiptImageProcessor.copyReceiptOcrArtifact(
         path: previewPath,
       );
