@@ -24,6 +24,28 @@ void main() {
     },
     timeout: _phoneWindowTimeout,
   );
+
+  test(
+    'preflights eleven-section phone window stacks at compact width',
+    () async {
+      final files = await _writeElevenSectionPhoneWindowStack(
+        'eleven_section_compact_width',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [for (final file in files) file.path],
+        maxOutputPixels: 500000,
+      );
+
+      expect(result.usedFallback, isTrue, reason: result.detailLabel);
+      expect(result.fallbackReasonCode, 'output_too_large');
+      expect(result.stitchedWidth, 820);
+      expect(result.pairs, isEmpty);
+      expect(result.stitchedPath, isNull);
+      expect(result.ocrSourcePaths, [for (final file in files) file.path]);
+    },
+    timeout: _phoneWindowTimeout,
+  );
 }
 
 void expectSkippedWindowRequiresReview(
@@ -72,6 +94,20 @@ Future<List<File>> _writeSkippedPhoneWindowStack(String prefix) async {
   for (var index = 0; index < captures.length; index++) {
     files.add(
       await writeTempReceiptStitchingImage(captures[index], '${prefix}_$index'),
+    );
+  }
+  return files;
+}
+
+Future<List<File>> _writeElevenSectionPhoneWindowStack(String prefix) async {
+  final files = <File>[];
+  for (var index = 0; index < 11; index++) {
+    final section = receiptStitchingSection(
+      seed: 520 + index,
+      topTextOffset: index * 7,
+    );
+    files.add(
+      await writeTempReceiptStitchingImage(section, '${prefix}_$index'),
     );
   }
   return files;
