@@ -84,6 +84,34 @@ void main() {
   });
 
   test(
+    'stitches receipt sections with stronger handheld rotation',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 62, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 63, topTextOffset: 18);
+      copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 340);
+      final rotatedSecond = rotateReceiptStitchingShot(sectionB, degrees: 2.0);
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'rotate_stronger_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        rotatedSecond,
+        'rotate_stronger_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
+
+  test(
     'stitches receipt sections with modest horizontal handheld drift',
     () async {
       for (final drift in const [18, -18]) {
