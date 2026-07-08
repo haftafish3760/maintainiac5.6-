@@ -62,20 +62,14 @@ void main() {
 
   test('stitch fallback metadata keeps pair summaries path-free', () {
     final result = ReceiptPhotoReviewResult(
-      photoPaths: const [
-        '/private/top-proof.jpg',
-        '/private/bottom-proof.jpg',
-      ],
+      photoPaths: const ['/private/top-proof.jpg', '/private/bottom-proof.jpg'],
       ocrSourcePhotoPaths: const [
         '/private/top-ocr.jpg',
         '/private/bottom-ocr.jpg',
       ],
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
       stitchResult: ReceiptStitchResult.fallback(
-        inputPaths: [
-          '/private/top-ocr.jpg',
-          '/private/bottom-ocr.jpg',
-        ],
+        inputPaths: ['/private/top-ocr.jpg', '/private/bottom-ocr.jpg'],
         warning: 'Overlap was not trusted.',
         fallbackReasonCode: 'overlap_confidence_low',
         failedPairIndex: 0,
@@ -108,5 +102,70 @@ void main() {
     expect(metadata.toString(), isNot(contains('/private/')));
     expect(metadata.toString(), isNot(contains('top-proof')));
     expect(metadata.toString(), isNot(contains('bottom-ocr')));
+  });
+
+  test('oversized stitch fallback keeps failed pair metadata path-free', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const [
+        '/private/proof-top.jpg',
+        '/private/proof-middle.jpg',
+        '/private/proof-bottom.jpg',
+      ],
+      ocrSourcePhotoPaths: const [
+        '/private/ocr-top.jpg',
+        '/private/ocr-middle.jpg',
+        '/private/ocr-bottom.jpg',
+      ],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: [
+          '/private/ocr-top.jpg',
+          '/private/ocr-middle.jpg',
+          '/private/ocr-bottom.jpg',
+        ],
+        warning: 'Receipt is too long to stitch safely on this device.',
+        fallbackReasonCode: 'output_too_large',
+        failedPairIndex: 1,
+        stitchedWidth: 1200,
+        stitchedHeight: 22000,
+        pairs: const [
+          ReceiptStitchPairResult(
+            pairIndex: 0,
+            overlapPixels: 280,
+            confidence: .82,
+          ),
+          ReceiptStitchPairResult(
+            pairIndex: 1,
+            overlapPixels: 260,
+            confidence: .78,
+          ),
+        ],
+      ),
+    );
+
+    final metadata = result.privacySafeReceiptReaderHandoffMetadata;
+
+    expect(metadata['stitchFallbackReasonCode'], 'output_too_large');
+    expect(metadata['stitchFailedPairLabel'], 'Photo 2 to 3');
+    expect(metadata['stitchFailedPairStartSectionNumber'], 2);
+    expect(metadata['stitchFailedPairEndSectionNumber'], 3);
+    expect(metadata['stitchCandidateWidth'], 1200);
+    expect(metadata['stitchCandidateHeight'], 22000);
+    expect(metadata['stitchCandidatePixelCount'], 26400000);
+    expect(
+      metadata['nextReviewMatchReadinessOutcome'],
+      'ocr_source_review_required_before_assist',
+    );
+    expect(
+      result.receiptReaderHandoffCounts,
+      containsPair('stitch_fallback_output_too_large', 1),
+    );
+    expect(
+      result.receiptReaderHandoffCounts,
+      containsPair('stitch_requires_ocr_source_review_before_assist', 1),
+    );
+    expect(metadata.toString(), isNot(contains('/private/')));
+    expect(metadata.toString(), isNot(contains('ocr-middle')));
+    expect(metadata.toString(), isNot(contains('proof-bottom')));
   });
 }
