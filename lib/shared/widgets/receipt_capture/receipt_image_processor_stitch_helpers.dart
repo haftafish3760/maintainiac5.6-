@@ -5,7 +5,7 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
   required img.Image next,
   required int targetWidth,
 }) {
-  const comparisonWidth = 620;
+  const comparisonWidth = 480;
   final sampleWidth = math.min(
     comparisonWidth,
     math.min(previous.width, next.width),
@@ -187,7 +187,7 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
   var bestHorizontalOffset = 0;
   var bestNextYOffset = 0;
   final horizontalOffsets = _stitchHorizontalOffsets(previous.width);
-  for (var pixels = minPixels; pixels <= maxPixels; pixels += 12) {
+  for (var pixels = minPixels; pixels <= maxPixels; pixels += 18) {
     final nextTopOffsets = _stitchNextTopOffsets(next.height, pixels);
     for (final horizontalOffset in horizontalOffsets) {
       for (final nextYOffset in nextTopOffsets) {
@@ -218,7 +218,7 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
   }
   final refinedStart = (bestPixels - 18).clamp(minPixels, maxPixels);
   final refinedEnd = (bestPixels + 18).clamp(minPixels, maxPixels);
-  for (var pixels = refinedStart; pixels <= refinedEnd; pixels += 3) {
+  for (var pixels = refinedStart; pixels <= refinedEnd; pixels += 4) {
     final nextTopOffsets = _stitchNextTopOffsets(next.height, pixels);
     for (final horizontalOffset in horizontalOffsets) {
       for (final nextYOffset in nextTopOffsets) {
@@ -298,7 +298,7 @@ bool _stitchCandidateBeatsCurrent({
 List<int> _stitchHorizontalOffsets(int width) {
   final unit = math.max(12, (width * .035).round());
   final offsets = <int>[0];
-  for (final multiple in const [1, 2, 3, 4]) {
+  for (final multiple in const [1, 2, 3]) {
     final offset = unit * multiple;
     offsets
       ..add(-offset)
@@ -316,7 +316,7 @@ List<int> _stitchNextTopOffsets(int height, int pixels) {
     math.max(0, math.min((height * .20).round(), height - pixels - 24)),
   );
   if (maxOffset <= 0) return const [0];
-  final offsets = <int>{0, 12, 24, 36, 48, 72, 96, 120, 156, 192, 220};
+  final offsets = <int>{0, 12, 24, 36, 48, 72, 96, 132, 168, 220};
   return offsets.where((offset) => offset <= maxOffset).toList(growable: false);
 }
 
