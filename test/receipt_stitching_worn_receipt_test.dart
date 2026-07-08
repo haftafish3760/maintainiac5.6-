@@ -59,6 +59,102 @@ void main() {
     },
     timeout: _stitchingHeavyTimeout,
   );
+
+  test(
+    'stitches adjacent receipt sections with changed brightness',
+    () async {
+      final sectionA = addReceiptStitchingWear(
+        receiptStitchingSection(seed: 92, topTextOffset: 0),
+        seed: 920,
+        wrinkleCount: 8,
+        smudgeCount: 4,
+      );
+      final sectionB = addReceiptStitchingWear(
+        receiptStitchingSection(seed: 93, topTextOffset: 16),
+        seed: 930,
+        wrinkleCount: 8,
+        smudgeCount: 4,
+      );
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 320,
+        dstY: 48,
+      );
+      final shiftedAndBrighterSecond = adjustReceiptStitchingBrightness(
+        shiftReceiptStitchingShot(sectionB, dx: 30, dy: 0),
+        delta: 42,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'worn_brightness_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        shiftedAndBrighterSecond,
+        'worn_brightness_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.pairs.single.overlapPixels, greaterThan(280));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      await _expectStitchedImageMatchesReportedSize(result);
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
+
+  test(
+    'stitches adjacent receipt sections with dimmed continuation',
+    () async {
+      final sectionA = addReceiptStitchingWear(
+        receiptStitchingSection(seed: 94, topTextOffset: 0),
+        seed: 940,
+        wrinkleCount: 9,
+        smudgeCount: 5,
+      );
+      final sectionB = addReceiptStitchingWear(
+        receiptStitchingSection(seed: 95, topTextOffset: 18),
+        seed: 950,
+        wrinkleCount: 9,
+        smudgeCount: 5,
+      );
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 318,
+        dstY: 54,
+      );
+      final shiftedAndDimmedSecond = adjustReceiptStitchingBrightness(
+        shiftReceiptStitchingShot(sectionB, dx: -28, dy: 0),
+        delta: -38,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'worn_dimmed_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        shiftedAndDimmedSecond,
+        'worn_dimmed_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.pairs.single.overlapPixels, greaterThan(275));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      await _expectStitchedImageMatchesReportedSize(result);
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
 }
 
 Future<void> _expectStitchedImageMatchesReportedSize(

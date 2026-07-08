@@ -12,6 +12,8 @@ double _overlapDifference({
   final stepY = math.max(4, (pixels / 36).round());
   var lumaTotal = 0.0;
   var lumaSamples = 0;
+  final previousLumas = <double>[];
+  final nextLumas = <double>[];
   var rowProfileTotal = 0.0;
   var rowProfileSamples = 0;
   var columnProfileTotal = 0.0;
@@ -31,6 +33,8 @@ double _overlapDifference({
       final a = _luma(previous.getPixel(x, previousStartY + y));
       final b = _luma(next.getPixel(nextX, nextYOffset + y));
       lumaTotal += (a - b).abs();
+      previousLumas.add(a);
+      nextLumas.add(b);
       lumaSamples++;
       if (a < 160) previousInk++;
       if (b < 160) nextInk++;
@@ -73,6 +77,14 @@ double _overlapDifference({
   }
   if (lumaSamples == 0) return double.infinity;
   final lumaAverage = lumaTotal / lumaSamples;
+  final exposureTolerantLumaAverage = _overlapExposureTolerantDifference(
+    previousLumas,
+    nextLumas,
+  );
+  final effectiveLumaAverage = math.min(
+    lumaAverage,
+    exposureTolerantLumaAverage,
+  );
   final rowProfileAverage = rowProfileSamples == 0
       ? double.infinity
       : rowProfileTotal / rowProfileSamples;
@@ -86,10 +98,31 @@ double _overlapDifference({
                 .abs() /
             sampleWidth *
             150;
-  return (lumaAverage * .50) +
+  return (effectiveLumaAverage * .50) +
       (rowProfileAverage * .22) +
       (columnProfileAverage * .20) +
       (centerPenalty * .08);
+}
+
+double _overlapExposureTolerantDifference(
+  List<double> previousLumas,
+  List<double> nextLumas,
+) {
+  final length = math.min(previousLumas.length, nextLumas.length);
+  if (length < 8) return double.infinity;
+  final previousMean = previousLumas.take(length).reduce((a, b) => a + b) /
+      length;
+  final nextMean = nextLumas.take(length).reduce((a, b) => a + b) / length;
+  var normalizedTotal = 0.0;
+  for (var index = 0; index < length; index++) {
+    normalizedTotal +=
+        ((previousLumas[index] - previousMean) -
+                (nextLumas[index] - nextMean))
+            .abs();
+  }
+  final normalizedAverage = normalizedTotal / length;
+  final exposureShiftPenalty = (previousMean - nextMean).abs() * .18;
+  return normalizedAverage + exposureShiftPenalty;
 }
 
 double _overlapFlatTexturePenalty({

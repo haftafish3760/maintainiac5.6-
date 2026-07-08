@@ -211,6 +211,31 @@ void main() {
     },
     timeout: _longStackTimeout,
   );
+
+  test(
+    'stitches six phone-window captures with mixed exposure and side crops',
+    () async {
+      final files = await _writeSixPhoneWindowExposureStack(
+        'six_phone_window_exposure_crops',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [for (final file in files) file.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(5));
+      expect(result.overlapPixels, hasLength(5));
+      expect(
+        result.pairs.map((pair) => pair.confidence),
+        everyElement(greaterThanOrEqualTo(.50)),
+      );
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.stitchedPixelCount, lessThan(16000000));
+    },
+    timeout: _longStackTimeout,
+  );
 }
 
 void expectOutputTooLargeFallback(
@@ -402,6 +427,41 @@ Future<List<File>> _writeSixPhoneWindowStack(String prefix) async {
     captures.add(
       shiftReceiptStitchingShot(cropped, dx: index.isEven ? 16 : -18, dy: 0),
     );
+  }
+  final files = <File>[];
+  for (var index = 0; index < captures.length; index++) {
+    files.add(
+      await writeTempReceiptStitchingImage(captures[index], '${prefix}_$index'),
+    );
+  }
+  return files;
+}
+
+Future<List<File>> _writeSixPhoneWindowExposureStack(String prefix) async {
+  final tallReceipt = tallReceiptStitchingCanvas(sectionCount: 6);
+  final starts = <int>[0, 1120, 2240, 3360, 4480, 5600];
+  final captures = <img.Image>[];
+  for (var index = 0; index < starts.length; index++) {
+    final window = img.copyCrop(
+      tallReceipt,
+      x: 0,
+      y: starts[index],
+      width: tallReceipt.width,
+      height: 1500,
+    );
+    final cropped = index.isEven
+        ? clipReceiptStitchingSide(window, right: 36)
+        : clipReceiptStitchingSide(window, left: 32);
+    final shifted = shiftReceiptStitchingShot(
+      cropped,
+      dx: index.isEven ? 15 : -17,
+      dy: 0,
+    );
+    final adjusted = adjustReceiptStitchingBrightness(
+      shifted,
+      delta: index.isEven ? 32 : -26,
+    );
+    captures.add(adjusted);
   }
   final files = <File>[];
   for (var index = 0; index < captures.length; index++) {
