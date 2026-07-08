@@ -211,6 +211,38 @@ void main() {
     },
     timeout: _longStackTimeout,
   );
+
+  test(
+    'keeps skipped phone-window middle section review-required',
+    () async {
+      final files = await _writeSkippedPhoneWindowStack(
+        'skipped_phone_window_middle',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [for (final file in files) file.path],
+      );
+
+      expect(
+        result.requiresOcrSourceReviewBeforeAssistedRead,
+        isTrue,
+        reason: result.detailLabel,
+      );
+      expect(
+        result.assistedReadinessCode,
+        isNot('stitched_overlap_verified_ready'),
+      );
+      if (result.didStitch) {
+        expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
+        expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      } else {
+        expect(result.usedFallback, isTrue, reason: result.detailLabel);
+        expect(result.fallbackReasonCode, 'overlap_confidence_low');
+        expect(result.ocrSourcePaths, [for (final file in files) file.path]);
+      }
+    },
+    timeout: _longStackTimeout,
+  );
 }
 
 void expectOutputTooLargeFallback(
@@ -400,9 +432,36 @@ Future<List<File>> _writeSixPhoneWindowStack(String prefix) async {
         ? clipReceiptStitchingSide(window, right: 42)
         : clipReceiptStitchingSide(window, left: 36);
     captures.add(
+      shiftReceiptStitchingShot(cropped, dx: index.isEven ? 16 : -18, dy: 0),
+    );
+  }
+  final files = <File>[];
+  for (var index = 0; index < captures.length; index++) {
+    files.add(
+      await writeTempReceiptStitchingImage(captures[index], '${prefix}_$index'),
+    );
+  }
+  return files;
+}
+
+Future<List<File>> _writeSkippedPhoneWindowStack(String prefix) async {
+  final tallReceipt = _tallReceiptCanvas(sectionCount: 5);
+  final starts = <int>[0, 1120, 3360, 4480];
+  final captures = <img.Image>[];
+  for (var index = 0; index < starts.length; index++) {
+    final window = img.copyCrop(
+      tallReceipt,
+      x: 0,
+      y: starts[index],
+      width: tallReceipt.width,
+      height: 1500,
+    );
+    captures.add(
       shiftReceiptStitchingShot(
-        cropped,
-        dx: index.isEven ? 16 : -18,
+        index.isEven
+            ? clipReceiptStitchingSide(window, right: 38)
+            : clipReceiptStitchingSide(window, left: 34),
+        dx: index.isEven ? 14 : -16,
         dy: 0,
       ),
     );
