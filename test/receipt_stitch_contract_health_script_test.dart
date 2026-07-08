@@ -112,6 +112,10 @@ void main() {
     expect(source, contains('source_size)'));
     expect(source, contains('Receipt stitch source-size health'));
     expect(source, contains('receipt_image_processor_stitch_helpers.dart'));
+    expect(
+      source,
+      contains('receipt_image_processor_stitch_transform_helpers.dart'),
+    );
     expect(source, contains(r'exceeds $max_lines-line stitch source cap'));
     expect(
       source,

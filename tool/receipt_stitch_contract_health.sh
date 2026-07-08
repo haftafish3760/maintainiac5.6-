@@ -112,6 +112,7 @@ run_source_size() {
     lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_api.dart
     lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_helpers.dart
     lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_scoring_helpers.dart
+    lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_transform_helpers.dart
   )
   local file
   for file in "${files[@]}"; do
