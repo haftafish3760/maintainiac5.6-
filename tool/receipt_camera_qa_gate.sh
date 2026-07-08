@@ -337,9 +337,12 @@ stitch_tests=(
   test/receipt_camera_long_receipt_guidance_test.dart
   test/receipt_camera_ocr_source_handoff_test.dart
   test/receipt_camera_phase5_long_receipt_contract_test.dart
+  test/receipt_camera_low_confidence_stack_handoff_test.dart
+  test/receipt_camera_oversized_stitch_handoff_test.dart
   test/receipt_camera_phase6_stitching_handoff_contract_test.dart
   test/receipt_camera_fixture_matrix_test.dart
   test/receipt_camera_result_frozen_handoff_counts_test.dart
+  test/receipt_camera_result_stitch_handoff_followthrough_test.dart
   test/receipt_camera_result_stitch_scanner_test.dart
   test/receipt_capture_flow_shareability_test.dart
   test/receipt_capture_flow_barcode_handoff_test.dart
@@ -350,10 +353,16 @@ stitch_tests=(
   test/receipt_photo_section_labels_test.dart
   test/receipt_photo_review_retake_order_test.dart
   test/receipt_stitch_fallback_metadata_test.dart
+  test/receipt_stitching_duplicate_safety_test.dart
+  test/receipt_stitching_horizontal_drift_test.dart
+  test/receipt_stitching_long_stack_test.dart
   test/receipt_stitching_manual_overlap_test.dart
   test/receipt_stitching_result_contract_test.dart
+  test/receipt_stitching_scale_rotation_test.dart
   test/receipt_stitching_test.dart
   test/receipt_stitching_variants_test.dart
+  test/receipt_stitching_weak_overlap_safety_test.dart
+  test/receipt_stitching_worn_receipt_test.dart
 )
 
 full_only_tests=(

@@ -159,6 +159,13 @@ while IFS= read -r path; do
       fi
       targeted_tests+=(
         test/receipt_camera_phase6_stitching_handoff_contract_test.dart
+        test/receipt_camera_low_confidence_stack_handoff_test.dart
+        test/receipt_camera_oversized_stitch_handoff_test.dart
+        test/receipt_camera_result_stitch_handoff_followthrough_test.dart
+        test/receipt_stitching_duplicate_safety_test.dart
+        test/receipt_stitching_long_stack_test.dart
+        test/receipt_stitching_variants_test.dart
+        test/receipt_stitching_weak_overlap_safety_test.dart
       )
       ;;
     lib/shared/widgets/receipt_capture/receipt_native_camera_shell.dart | \
