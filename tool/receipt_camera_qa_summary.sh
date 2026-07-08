@@ -47,6 +47,10 @@ case "$name" in
     name="receipt_camera_qa_phase9"
     failure_phase="camera_phase9_gate"
     ;;
+  core_remaining)
+    name="receipt_camera_qa_core_remaining"
+    failure_phase="camera_core_remaining_gate"
+    ;;
   quick)
     name="receipt_camera_qa_quick"
     failure_phase="camera_quick_gate"
@@ -89,7 +93,7 @@ fi
 if [[ "$status" == "stale" ]]; then
   echo "summary=batch_stale_requires_restart"
   case "$requested_name" in
-    phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | phase8 | phase9 | quick | stitch | milestone | full)
+    phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | phase8 | phase9 | core_remaining | quick | stitch | milestone | full)
       echo "restart_command=tool/receipt_start_camera_qa_gate.sh $requested_name"
       ;;
     *)

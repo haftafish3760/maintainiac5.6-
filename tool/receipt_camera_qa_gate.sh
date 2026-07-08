@@ -10,9 +10,9 @@ fi
 mode="${1:-milestone}"
 
 case "$mode" in
-  phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | phase8 | phase9 | quick | stitch | milestone | full) ;;
+  phase2 | phase3 | phase4 | phase5 | phase6 | phase7 | phase8 | phase9 | core_remaining | quick | stitch | milestone | full) ;;
   *)
-    echo "Usage: tool/receipt_camera_qa_gate.sh [--print-plan] [phase2|phase3|phase4|phase5|phase6|phase7|phase8|phase9|quick|stitch|milestone|full]" >&2
+    echo "Usage: tool/receipt_camera_qa_gate.sh [--print-plan] [phase2|phase3|phase4|phase5|phase6|phase7|phase8|phase9|core_remaining|quick|stitch|milestone|full]" >&2
     exit 64
     ;;
 esac
@@ -86,6 +86,12 @@ phase9_tests=(
   test/receipt_camera_release_one_blueprint_test.dart
   test/receipt_camera_release_control_priority_test.dart
   test/receipt_camera_native_baseline_policy_test.dart
+)
+
+core_remaining_tests=(
+  "${phase6_tests[@]}"
+  "${phase7_tests[@]}"
+  "${phase8_tests[@]}"
 )
 
 phase2_audit_paths=(
@@ -198,6 +204,13 @@ phase9_audit_paths=(
   test/receipt_camera_release_one_blueprint_test.dart
   test/receipt_camera_release_control_priority_test.dart
   test/receipt_camera_native_baseline_policy_test.dart
+)
+
+core_remaining_audit_paths=(
+  docs/receipt_camera_completion_map.md
+  "${phase6_audit_paths[@]}"
+  "${phase7_audit_paths[@]}"
+  "${phase8_audit_paths[@]}"
 )
 
 quick_tests=(
@@ -399,6 +412,9 @@ print_plan_for_mode() {
       ;;
     phase9)
       print_test_pack phase9 "${phase9_tests[@]}"
+      ;;
+    core_remaining)
+      print_test_pack core_remaining "${core_remaining_tests[@]}"
       ;;
     quick)
       print_test_pack quick "${quick_tests[@]}"
@@ -727,6 +743,32 @@ run_phase9() {
   git diff --check
 }
 
+run_core_remaining() {
+  bash tool/receipt_camera_scope_gate.sh
+  dart analyze \
+    lib/shared/widgets/receipt_capture/receipt_capture_models.dart \
+    lib/shared/widgets/receipt_capture/receipt_image_processor.dart \
+    lib/shared/receipts/receipt_ocr_contract.dart \
+    lib/shared/widgets/receipt_capture/receipt_ocr_source_handoff.dart \
+    lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart \
+    lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_risk_flags.dart \
+    lib/shared/widgets/receipt_capture/receipt_attachment_publish_helpers.dart \
+    lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart \
+    test/helpers/receipt_camera_source_readers.dart \
+    test/helpers/receipt_stitching_image_helpers.dart \
+    test/helpers/receipt_native_android_bridge_source_readers.dart \
+    test/helpers/receipt_native_ios_bridge_source_readers.dart \
+    "${core_remaining_tests[@]}"
+  dart tool/maintainiac_source_audit.dart \
+    "${core_remaining_audit_paths[@]}" \
+    --max-line-length=220
+  run_phase6_stale_contract_scan
+  run_phase7_stale_contract_scan
+  run_phase8_stale_contract_scan
+  run_flutter_tests "${core_remaining_tests[@]}"
+  git diff --check
+}
+
 run_quick() {
   bash -n \
     tool/android_receipt_camera_compile_gate.sh \
@@ -797,6 +839,7 @@ case "$mode" in
   phase7) run_phase7 ;;
   phase8) run_phase8 ;;
   phase9) run_phase9 ;;
+  core_remaining) run_core_remaining ;;
   quick) run_quick ;;
   stitch) run_stitch ;;
   milestone) run_milestone ;;

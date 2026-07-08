@@ -210,6 +210,30 @@ void main() {
       expect(phase9Plan, isNot(contains('milestone ')));
       expect(phase9Plan, isNot(contains('full ')));
 
+      final coreRemainingPlan = await planFor('core_remaining');
+      expect(coreRemainingPlan, contains('mode=core_remaining'));
+      expect(
+        coreRemainingPlan,
+        contains(
+          'core_remaining test/receipt_camera_phase6_stitching_handoff_contract_test.dart',
+        ),
+      );
+      expect(
+        coreRemainingPlan,
+        contains(
+          'core_remaining test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart',
+        ),
+      );
+      expect(
+        coreRemainingPlan,
+        contains(
+          'core_remaining test/receipt_camera_phase8_storage_proof_timing_contract_test.dart',
+        ),
+      );
+      expect(coreRemainingPlan, isNot(contains('quick ')));
+      expect(coreRemainingPlan, isNot(contains('milestone ')));
+      expect(coreRemainingPlan, isNot(contains('full ')));
+
       final quickPlan = await planFor('quick');
       expect(quickPlan, contains('mode=quick'));
       expect(

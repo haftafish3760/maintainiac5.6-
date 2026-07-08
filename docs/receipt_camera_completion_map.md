@@ -115,6 +115,19 @@ If a single planning anchor is required, use:
 Do not treat `450` as a promise. Treat it as the working anchor until the
 evidence table is updated.
 
+## Current Non-UI Punch List
+
+Use this punch list before any new camera UI polish:
+
+1. Finish Phase 6 stitch/fallback hardening for any remaining contract or
+   regression gaps.
+2. Finish Phase 7 OCR-source handoff follow-through for stitched, fallback, and
+   imported-photo paths.
+3. Finish Phase 8 storage-proof timing verification so OCR-source preservation
+   stays correct after capture/review.
+4. Run `tool/receipt_camera_qa_gate.sh core_remaining` before claiming the
+   non-UI camera lane is ready for live device/UI proof.
+
 ## Four-Phone Real-Device Proof
 
 The real-device path should use the user's available phones as the proof set:
