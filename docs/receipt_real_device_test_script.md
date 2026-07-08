@@ -117,6 +117,7 @@ Live viewer proof:
 - `Done` or `Next` does not appear until there is at least one captured photo.
 - Preview tap focus stays off limits. The flow uses native autofocus plus the
   explicit controls only.
+- The viewer does not hide the receipt behind a large control sheet.
 
 Steps:
 1. Open Expenses.
@@ -282,35 +283,7 @@ Report Back:
 - Did manual mode feel simpler?
 - Could you still view the proof later?
 
-## Flow 6: PDF Receipt Import
-
-Purpose:
-- Prove PDF receipts are handled safely.
-
-Steps:
-1. Start a receipt expense.
-2. Import a normal PDF receipt.
-3. Import or test a PDF that has little or no readable text.
-4. Import a long PDF if available.
-5. Continue through receipt review or proof-only handling.
-
-Expected:
-- Readable PDFs can fill the receipt review.
-- Unreadable PDFs stay attached as read-only proof.
-- Long PDFs are bounded by device-safe page limits.
-- The user is told when only part of a PDF is read.
-
-Must Never Happen:
-- No crash on unreadable PDFs.
-- No blocking a save just because PDF text cannot be read.
-- No treating a suspicious PDF as editable content.
-
-Report Back:
-- Did the PDF read into the form?
-- Did proof-only language make sense?
-- Did the full PDF remain viewable as proof?
-
-## Flow 7: Interruption And Recovery
+## Flow 6: Interruption And Recovery
 
 Purpose:
 - Prove drafts and proof files survive normal phone behavior.
@@ -363,5 +336,4 @@ The receipt camera flow is ready for broader real receipt testing only when:
 - App-assisted review opens after photo acceptance.
 - Business/personal/mixed classification works.
 - Save-space preview is understandable and does not affect OCR source quality.
-- PDF import is bounded and proof-safe.
 - Draft recovery survives app interruption.

@@ -6,6 +6,17 @@ const _requiredPhrases = <String>[
   'Galaxy S9 Plus class device',
   'Galaxy S24/S25 class device',
   'iPhone SE class device',
+  'Add Receipt',
+  'Capture Photo',
+  'Upload Photos',
+  'Upload PDF/File',
+  'Paste/Text',
+  'Receipt Assist question',
+  'camera opens immediately after the choice',
+  'preview reads as full-screen',
+  'settings gear',
+  'shutter is round and centered',
+  'preview tap focus stays off limits',
   'bright indoor light',
   'dim room',
   'direct glare',
@@ -34,6 +45,8 @@ const _forbiddenPhrases = <String>[
   'ocr reads original first',
   'original receipt images are source truth',
   'preserve full-size originals by default',
+  '## Flow 7: PDF Receipt Import',
+  'Purpose:\n- Prove PDF receipts are handled safely.',
 ];
 
 void main() {

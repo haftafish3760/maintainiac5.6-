@@ -30,5 +30,8 @@ void main() {
     expect(script, contains('torch'));
     expect(script, contains('shutter is round and centered'));
     expect(script, contains('preview tap focus stays off limits'));
+    expect(script, contains('viewer does not hide the receipt behind a large control sheet'));
+    expect(script, isNot(contains('prove pdf receipts are handled safely')));
+    expect(script, isNot(contains('pdf import is bounded and proof-safe')));
   });
 }
