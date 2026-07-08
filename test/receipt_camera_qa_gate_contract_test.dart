@@ -65,6 +65,7 @@ void main() {
     expect(script, contains('test/receipt_camera_phase8_storage_proof_timing_contract_test.dart'));
     expect(script, contains('test/receipt_native_camera_phase8_storage_timing_test.dart'));
     expect(script, contains('test/receipt_camera_completion_map_test.dart'));
+    expect(script, contains('test/receipt_camera_pipeline_handoff_status_test.dart'));
     expect(script, contains('test/receipt_camera_active_phase_docs_test.dart'));
     expect(script, contains('test/receipt_camera_release_one_blueprint_test.dart'));
     expect(script, contains('test/receipt_camera_release_control_priority_test.dart'));
@@ -226,6 +227,7 @@ void main() {
     expect(script, contains('run_phase9_stale_contract_scan() {'));
     expect(script, contains('docs/receipt_camera_ocr_master_pass_plan.md'));
     expect(script, contains('docs/receipt_camera_completion_map.md'));
+    expect(script, contains('docs/receipt_camera_ocr_pipeline_handoff_report.md'));
     expect(script, contains('docs/receipt_camera_release_one_blueprint.md'));
     expect(script, contains('docs/receipt_camera_world_class_readiness.md'));
     expect(script, contains('PROJECT_RULES.md'));

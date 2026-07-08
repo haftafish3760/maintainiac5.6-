@@ -200,6 +200,10 @@ void main() {
       );
       expect(
         phase9Plan,
+        contains('phase9 test/receipt_camera_pipeline_handoff_status_test.dart'),
+      );
+      expect(
+        phase9Plan,
         contains('phase9 test/receipt_camera_release_one_blueprint_test.dart'),
       );
       expect(
@@ -356,6 +360,10 @@ void main() {
 
       final fullPlan = await planFor('full');
       expect(fullPlan, contains('mode=full'));
+      expect(
+        fullPlan,
+        contains('full test/receipt_camera_pipeline_handoff_status_test.dart'),
+      );
       expect(
         fullPlan,
         contains(

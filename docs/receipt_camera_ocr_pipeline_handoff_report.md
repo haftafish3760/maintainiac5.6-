@@ -52,18 +52,22 @@ Maintainiac must then add its own business logic:
 - Privacy-safe diagnostics.
 - Low-storage and older-phone safe behavior.
 
-## Current Completion Estimate
+## Current Status Rule
 
-This is an estimate, not a guarantee:
+Do not treat this handoff as a live percentage scoreboard.
 
-- Native camera foundation: about 55-60%.
-- Receipt review/stitching flow: about 50-55%.
-- Local OCR handoff: about 45-50%.
-- Local parser intelligence: about 40-45%.
-- QA harness/testing maturity: about 25-30%.
-- Whole local receipt camera/OCR/parser system: about 45-50%.
+- Use `docs/receipt_camera_completion_map.md` for evidence-based completion
+  forecasts.
+- Use `docs/receipt_camera_roadmap.md` and
+  `docs/receipt_camera_ocr_master_pass_plan.md` for the active lane.
+- Treat this report as an operational handoff about boundaries, architecture,
+  and remaining work, not as proof that the receipt camera/OCR pipeline is a
+  fixed percentage complete.
 
-For just the camera and OCR pipeline, excluding deep category parser intelligence, the system is roughly 55-60% done. The remaining 40-45% is mostly real-device hardening, camera quality tuning, image cleanup, OCR confidence calibration, QA automation, and flow polish.
+The current late lane is non-UI hardening and milestone validation around
+stitching, OCR-source selection, storage-proof timing, and the supporting QA
+gates. Real-device capture proof still requires manual receipt flows and cannot
+be replaced by metadata snapshots or pass-count guesses.
 
 ## What Has Already Been Built Or Started
 

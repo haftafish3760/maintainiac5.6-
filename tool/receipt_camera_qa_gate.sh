@@ -85,6 +85,7 @@ phase8_tests=(
 phase9_tests=(
   test/receipt_camera_active_phase_docs_test.dart
   test/receipt_camera_completion_map_test.dart
+  test/receipt_camera_pipeline_handoff_status_test.dart
   test/receipt_camera_release_one_blueprint_test.dart
   test/receipt_camera_release_control_priority_test.dart
   test/receipt_camera_native_baseline_policy_test.dart
@@ -198,6 +199,7 @@ phase8_audit_paths=(
 phase9_audit_paths=(
   docs/receipt_camera_ocr_master_pass_plan.md
   docs/receipt_camera_completion_map.md
+  docs/receipt_camera_ocr_pipeline_handoff_report.md
   docs/receipt_camera_release_one_blueprint.md
   docs/receipt_camera_world_class_readiness.md
   docs/receipt_native_camera_service_spec.md
@@ -206,6 +208,7 @@ phase9_audit_paths=(
   README.md
   test/receipt_camera_active_phase_docs_test.dart
   test/receipt_camera_completion_map_test.dart
+  test/receipt_camera_pipeline_handoff_status_test.dart
   test/receipt_camera_release_one_blueprint_test.dart
   test/receipt_camera_release_control_priority_test.dart
   test/receipt_camera_native_baseline_policy_test.dart
@@ -333,6 +336,7 @@ full_only_tests=(
   test/receipt_camera_footprint_audit_test.dart
   test/receipt_camera_help_flow_test.dart
   test/receipt_camera_native_baseline_policy_test.dart
+  test/receipt_camera_pipeline_handoff_status_test.dart
   test/receipt_camera_world_class_readiness_test.dart
   test/receipt_camera_ocr_source_attachment_read_test.dart
   test/receipt_camera_release_control_priority_test.dart
@@ -620,6 +624,7 @@ run_phase9_stale_contract_scan() {
   local scan_roots=(
     docs/receipt_camera_ocr_master_pass_plan.md
     docs/receipt_camera_completion_map.md
+    docs/receipt_camera_ocr_pipeline_handoff_report.md
     docs/receipt_camera_release_one_blueprint.md
     docs/receipt_camera_world_class_readiness.md
     PROJECT_RULES.md
