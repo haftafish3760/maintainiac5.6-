@@ -457,11 +457,17 @@ class ReceiptStitchResult {
     required List<String> ocrSourcePaths,
     String? stitchedPath,
   }) {
+    final finalStitchedPath = stitchedPath ?? this.stitchedPath;
+    final finalOcrSourcePaths = status == ReceiptStitchStatus.stitched &&
+            finalStitchedPath != null &&
+            finalStitchedPath.trim().isNotEmpty
+        ? [finalStitchedPath]
+        : ocrSourcePaths;
     return ReceiptStitchResult(
       status: status,
       inputPaths: inputPaths,
-      ocrSourcePaths: ocrSourcePaths,
-      stitchedPath: stitchedPath ?? this.stitchedPath,
+      ocrSourcePaths: finalOcrSourcePaths,
+      stitchedPath: finalStitchedPath,
       confidence: confidence,
       overlapPixels: overlapPixels,
       pairs: pairs,
