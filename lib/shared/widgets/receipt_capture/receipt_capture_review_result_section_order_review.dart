@@ -30,7 +30,11 @@ extension ReceiptPhotoReviewResultSectionOrderOutcome
     if ((counts['policy_top_to_bottom_numbered_sections'] ?? 0) > 0) {
       return 'numbered_sections_top_to_bottom';
     }
-    if (counts.keys.any((key) => key.startsWith('multi_section_'))) {
+    if (counts.keys.any(
+      (key) =>
+          key.startsWith('multi_section_') ||
+          key.startsWith('inferred_multi_section_'),
+    )) {
       return 'multi_section_order_tracked';
     }
     return 'single_section_or_unordered';
@@ -117,7 +121,11 @@ extension ReceiptPhotoReviewResultSectionOrderReview
     if (outcome == 'manual_reorder_preserved') {
       return 'review_reordered_sections_then_continue';
     }
-    if (counts.keys.any((key) => key.startsWith('multi_section_'))) {
+    if (counts.keys.any(
+      (key) =>
+          key.startsWith('multi_section_') ||
+          key.startsWith('inferred_multi_section_'),
+    )) {
       return 'review_multi_section_order';
     }
     return 'review_single_section';

@@ -445,6 +445,21 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
         counts[code] = (counts[code] ?? 0) + 1;
       }
     }
+    final hasTrackedMultiSection = counts.keys.any(
+      (key) => key.startsWith('multi_section_'),
+    );
+    final inferredSectionCount = [
+      savedBackupPhotoCount,
+      ocrSourcePhotoCount,
+      stitchResult.inputPaths.length,
+      stitchResult.ocrSourcePaths.length,
+    ].fold<int>(0, (max, count) => count > max ? count : max);
+    if (!hasTrackedMultiSection && inferredSectionCount > 1) {
+      final bucket = inferredSectionCount > 9
+          ? 'inferred_multi_section_10_plus_sections'
+          : 'inferred_multi_section_${inferredSectionCount}_sections';
+      counts[bucket] = (counts[bucket] ?? 0) + 1;
+    }
     return Map.unmodifiable(counts);
   }
 }

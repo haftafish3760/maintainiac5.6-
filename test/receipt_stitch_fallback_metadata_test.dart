@@ -161,6 +161,21 @@ void main() {
       containsPair('stitch_fallback_output_too_large', 1),
     );
     expect(
+      result.receiptSectionOrderReviewActionCode,
+      'review_multi_section_order',
+    );
+    expect(
+      result.receiptReaderHandoffCounts,
+      containsPair(
+        'receipt_section_order_action_review_multi_section_order',
+        1,
+      ),
+    );
+    expect(
+      result.receiptReaderHandoffCounts,
+      isNot(contains('receipt_section_order_action_review_single_section')),
+    );
+    expect(
       result.receiptReaderHandoffCounts,
       containsPair('stitch_requires_ocr_source_review_before_assist', 1),
     );
