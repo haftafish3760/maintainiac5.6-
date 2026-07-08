@@ -122,7 +122,7 @@ void main() {
         pixels: 340,
         dstY: 18,
       );
-      final rotatedSecond = rotateReceiptStitchingShot(sectionB, degrees: 3.0);
+      final rotatedSecond = rotateReceiptStitchingShot(sectionB, degrees: 4.0);
 
       final first = await writeTempReceiptStitchingImage(
         sectionA,

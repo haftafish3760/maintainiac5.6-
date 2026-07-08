@@ -62,6 +62,8 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
       2.2,
       -3.0,
       3.0,
+      -4.0,
+      4.0,
     ]) {
       final candidateImage = _transformForStitchComparison(
         nextSample,
