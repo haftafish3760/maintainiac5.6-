@@ -91,11 +91,28 @@ void main() {
       expect(topControls, contains('bottom: false'));
       expect(
         topControls,
-        contains('padding: const EdgeInsets.fromLTRB(10, 8, 10, 0)'),
+        contains('padding: const EdgeInsets.fromLTRB(8, 6, 8, 0)'),
       );
       expect(bottomBar, contains('child: SafeArea('));
       expect(bottomBar, contains('top: false'));
       expect(bottomBar, contains('minimum: const EdgeInsets.only(bottom: 8)'));
+      expect(
+        bottomBar,
+        contains('padding: const EdgeInsets.fromLTRB(12, 6, 12, 6)'),
+      );
+    },
+  );
+
+  test(
+    'native camera shell avoids a full width bottom gradient bar over the preview',
+    () async {
+      final bottomBar = await File(
+        'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart',
+      ).readAsString();
+
+      expect(bottomBar, isNot(contains('LinearGradient(')));
+      expect(bottomBar, isNot(contains('Color(0xB8050607)')));
+      expect(bottomBar, contains('child: SafeArea('));
     },
   );
 

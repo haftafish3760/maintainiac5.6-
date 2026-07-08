@@ -150,8 +150,8 @@ class ReceiptNativeCameraShell extends StatelessWidget {
 
   double get _guidanceBottomOffset {
     if (capturedPhotoCount > 0 && onReviewCapturedPhotos != null) {
-      return 166;
+      return 140;
     }
-    return 112;
+    return 92;
   }
 }

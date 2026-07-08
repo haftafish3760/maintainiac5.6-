@@ -27,47 +27,38 @@ class _ReceiptNativeCameraBottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label: _semanticLabel,
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0x00050607), Color(0xB8050607)],
-          ),
-        ),
-        child: SafeArea(
-          top: false,
-          minimum: const EdgeInsets.only(bottom: 8),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (_showsNextStepStrip) ...[
-                  _ReceiptNativeCameraNextStepStrip(
-                    capturedPhotoCount: capturedPhotoCount,
-                    longReceiptMode: longReceiptMode,
-                    onAddPhoto: onAddPhoto,
-                    onReviewCapturedPhotos: onReviewCapturedPhotos!,
-                  ),
-                  const SizedBox(height: 10),
-                ],
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Expanded(child: SizedBox()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _ReceiptNativeCameraShutterButton(
-                        capturing: capturing,
-                        onPressed: capturing ? null : onCapture,
-                      ),
-                    ),
-                    const Expanded(child: SizedBox()),
-                  ],
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: 8),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_showsNextStepStrip) ...[
+                _ReceiptNativeCameraNextStepStrip(
+                  capturedPhotoCount: capturedPhotoCount,
+                  longReceiptMode: longReceiptMode,
+                  onAddPhoto: onAddPhoto,
+                  onReviewCapturedPhotos: onReviewCapturedPhotos!,
                 ),
+                const SizedBox(height: 8),
               ],
-            ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Expanded(child: SizedBox()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _ReceiptNativeCameraShutterButton(
+                      capturing: capturing,
+                      onPressed: capturing ? null : onCapture,
+                    ),
+                  ),
+                  const Expanded(child: SizedBox()),
+                ],
+              ),
+            ],
           ),
         ),
       ),

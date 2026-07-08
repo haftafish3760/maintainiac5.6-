@@ -67,7 +67,7 @@ class _ReceiptNativeCameraTopBar extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
+        padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
         child: Row(
           children: [
             _ReceiptNativeCameraIconButton(
