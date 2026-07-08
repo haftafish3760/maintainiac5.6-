@@ -347,6 +347,7 @@ bool _requiresShape(String text) {
 bool _requiresConnection(String text) {
   if (_isSmallRepairPartText(text)) return false;
   if (_isWaterTreatmentDirectText(text)) return false;
+  if (_isServiceToolOrConsumableText(text)) return false;
   return _hasAny(text, [
     'adapter',
     'copper',
@@ -725,21 +726,35 @@ bool _isServiceToolOrConsumableText(String text) {
     'basin wrench',
     'blade',
     'cement',
+    'acid brush',
     'crimp tool',
+    'copper fitting brush',
     'deburring tool',
     'drain snake',
+    'emery cloth',
+    'fitting brush',
+    'flux',
+    'heat shield',
     'hole saw',
+    'map-pro torch fuel',
     'pipe joint compound',
     'plumber putty',
+    'plumber sand cloth',
     'primer',
+    'propane torch fuel',
     'propress jaw',
     'ptfe tape',
     'reciprocating saw blade',
     'reaming tool',
+    'sand cloth',
     'sealant',
+    'solder',
+    'soldering torch head',
     'strap wrench',
     'thread tape',
+    'torch fuel',
     'tubing cutter',
+    'water soluble flux',
   ]);
 }
 
