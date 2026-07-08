@@ -1411,6 +1411,7 @@ List<String> _attributeTokensFor(
     ...item.aliases,
     ..._plumbingCoreAttributeTokensFor(item, material, size, shape),
     ..._electricalCoreAttributeTokensFor(item, material, size, shape),
+    ..._hvacCoreAttributeTokensFor(item, material, size, shape),
     ..._spanishSignalsFor(item, material, size, shape),
   ]);
 }
@@ -1502,6 +1503,7 @@ List<String> _negativeMatchTokensFor(
     if (shape.isNotEmpty && material.toLowerCase() != 'pvc') 'PVC DWV $shape',
     ..._plumbingCoreNegativeMatchTokensFor(item, material, shape, text),
     ..._electricalCoreNegativeMatchTokensFor(item, material, shape, text),
+    ..._hvacCoreNegativeMatchTokensFor(item, material, shape, text),
     ..._riskConflictNegativeMatchTokensFor(item, text),
   ]);
 }
@@ -1535,6 +1537,13 @@ List<String> _highImportanceTokensFor(
       shape,
     ),
     ..._electricalCoreHighImportanceTokensFor(
+      item,
+      material,
+      size,
+      connectionType,
+      shape,
+    ),
+    ..._hvacCoreHighImportanceTokensFor(
       item,
       material,
       size,
@@ -1651,6 +1660,94 @@ List<String> _plumbingCoreNegativeMatchTokensFor(
     if (_isWaterTreatmentCoreText(itemText)) 'table salt',
     if (shape != 'valve') 'gas appliance valve',
   ]);
+}
+
+List<String> _hvacCoreAttributeTokensFor(
+  WorkSupplyItem item,
+  String material,
+  String size,
+  String shape,
+) {
+  if (!_isHvacCoreItem(item, item.searchableText)) return const [];
+  return _cleanList([
+    'hvac-core',
+    'residential-service',
+    'service-truck',
+    'hardware-store-stock',
+    'supply-house-stock',
+    'user-review-required',
+    'english-us',
+    'spanish-us',
+    item.path,
+    material,
+    size,
+    shape,
+    ..._hvacCoreFamilyTermsFor(item),
+  ]);
+}
+
+List<String> _hvacCoreHighImportanceTokensFor(
+  WorkSupplyItem item,
+  String material,
+  String size,
+  String connectionType,
+  String shape,
+) {
+  if (!_isHvacCoreItem(item, item.searchableText)) return const [];
+  return _cleanList([
+    'hvac-core',
+    'residential-service',
+    item.system,
+    item.itemType,
+    item.variant,
+    material,
+    size,
+    connectionType,
+    shape,
+    ..._hvacCoreFamilyTermsFor(item),
+  ]);
+}
+
+List<String> _hvacCoreNegativeMatchTokensFor(
+  WorkSupplyItem item,
+  String material,
+  String shape,
+  String text,
+) {
+  if (!_isHvacCoreItem(item, text)) return const [];
+  final itemText = '$text ${item.name} ${item.itemType}'.toLowerCase();
+  return _cleanList([
+    if (!itemText.contains('water filter')) 'water filter',
+    if (!itemText.contains('filter drier')) 'filter drier',
+    if (!itemText.contains('conduit')) 'electrical conduit',
+    if (!itemText.contains('plumbing')) 'plumbing pvc',
+    if (!itemText.contains('irrigation')) 'irrigation tubing',
+    if (!itemText.contains('appliance')) 'appliance cord',
+    if (!itemText.contains('pool')) 'pool filter',
+  ]);
+}
+
+List<String> _hvacCoreFamilyTermsFor(WorkSupplyItem item) {
+  final text = item.searchableText;
+  if (_hasAny(text, _hvacCoreFilterSignals)) {
+    return const ['air filter', 'furnace filter', 'merv filter'];
+  }
+  if (_hasAny(text, _hvacCoreControlSignals)) {
+    return const ['hvac control', 'capacitor', 'contactor', 'relay'];
+  }
+  if (_hasAny(text, _hvacCoreCondensateSignals)) {
+    return const ['condensate', 'condensate drain', 'condensate pump'];
+  }
+  if (_hasAny(text, _hvacCoreSealSignals)) {
+    return const ['hvac tape', 'duct mastic', 'duct sealant'];
+  }
+  if (_hasAny(text, _hvacCoreAirDistributionSignals)) {
+    return const ['duct repair', 'flex duct', 'air distribution'];
+  }
+  if (_hasAny(text, _hvacCoreIgnitionSignals)) {
+    return const ['ignition', 'flame sensor', 'hot surface ignitor'];
+  }
+  return const ['hvac service stock'];
 }
 
 bool _isWaterTreatmentCoreText(String text) {
