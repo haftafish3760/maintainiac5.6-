@@ -175,46 +175,83 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
   var bestPixels = 0;
   var bestScore = double.infinity;
   var secondBestScore = double.infinity;
+  var bestHorizontalOffset = 0;
   for (var pixels = minPixels; pixels <= maxPixels; pixels += 12) {
-    final score = _overlapDifference(
-      previous: previous,
-      next: next,
-      pixels: pixels,
-    );
-    if (score < bestScore) {
-      secondBestScore = bestScore;
-      bestScore = score;
-      bestPixels = pixels;
-    } else if ((pixels - bestPixels).abs() > 36 && score < secondBestScore) {
-      secondBestScore = score;
+    for (final horizontalOffset in _stitchHorizontalOffsets(previous.width)) {
+      final score = _overlapDifference(
+        previous: previous,
+        next: next,
+        pixels: pixels,
+        horizontalOffset: horizontalOffset,
+      );
+      if (score < bestScore) {
+        secondBestScore = bestScore;
+        bestScore = score;
+        bestPixels = pixels;
+        bestHorizontalOffset = horizontalOffset;
+      } else if ((pixels - bestPixels).abs() > 36 && score < secondBestScore) {
+        secondBestScore = score;
+      }
     }
   }
   final refinedStart = (bestPixels - 18).clamp(minPixels, maxPixels);
   final refinedEnd = (bestPixels + 18).clamp(minPixels, maxPixels);
   for (var pixels = refinedStart; pixels <= refinedEnd; pixels += 3) {
-    final score = _overlapDifference(
-      previous: previous,
-      next: next,
-      pixels: pixels,
-    );
-    if (score < bestScore) {
-      secondBestScore = bestScore;
-      bestScore = score;
-      bestPixels = pixels;
-    } else if ((pixels - bestPixels).abs() > 36 && score < secondBestScore) {
-      secondBestScore = score;
+    for (final horizontalOffset in _stitchHorizontalOffsets(previous.width)) {
+      final score = _overlapDifference(
+        previous: previous,
+        next: next,
+        pixels: pixels,
+        horizontalOffset: horizontalOffset,
+      );
+      if (score < bestScore) {
+        secondBestScore = bestScore;
+        bestScore = score;
+        bestPixels = pixels;
+        bestHorizontalOffset = horizontalOffset;
+      } else if ((pixels - bestPixels).abs() > 36 && score < secondBestScore) {
+        secondBestScore = score;
+      }
     }
   }
   final visualConfidence = (1 - (bestScore / 64)).clamp(0.0, 1.0);
   final distinctiveness = secondBestScore.isFinite
       ? ((secondBestScore - bestScore) / 32).clamp(0.0, 1.0)
       : 1.0;
-  final confidence = visualConfidence * (.55 + (.45 * distinctiveness));
+  final horizontalDriftPenalty = _overlapHorizontalDriftPenalty(
+    previous: previous,
+    next: next,
+    pixels: bestPixels,
+  );
+  final offsetPenalty = _stitchHorizontalOffsetPenalty(
+    width: previous.width,
+    offset: bestHorizontalOffset,
+  );
+  final confidence =
+      (visualConfidence * (.55 + (.45 * distinctiveness)) -
+              horizontalDriftPenalty -
+              offsetPenalty)
+          .clamp(0.0, 1.0);
   return _ReceiptOverlapMatch(
     pixels: bestPixels,
     confidence: confidence,
     nextImage: next,
   );
+}
+
+List<int> _stitchHorizontalOffsets(int width) {
+  final unit = math.max(12, (width * .035).round());
+  return [0, -unit, unit, -unit * 2, unit * 2];
+}
+
+double _stitchHorizontalOffsetPenalty({
+  required int width,
+  required int offset,
+}) {
+  final unit = math.max(12, (width * .035).round());
+  final magnitude = offset.abs();
+  if (magnitude < unit * 2.5) return 0;
+  return .14;
 }
 
 int? _manualOverlapFor({
@@ -244,6 +281,7 @@ double _overlapDifference({
   required img.Image previous,
   required img.Image next,
   required int pixels,
+  int horizontalOffset = 0,
 }) {
   final sampleWidth = math.min(previous.width, next.width);
   final stepX = math.max(8, (sampleWidth / 64).round());
@@ -252,14 +290,22 @@ double _overlapDifference({
   var lumaSamples = 0;
   var rowProfileTotal = 0.0;
   var rowProfileSamples = 0;
+  var columnProfileTotal = 0.0;
+  var columnProfileSamples = 0;
+  var previousWeightedX = 0.0;
+  var nextWeightedX = 0.0;
+  var previousInkTotal = 0;
+  var nextInkTotal = 0;
   final previousStartY = previous.height - pixels;
   for (var y = 0; y < pixels; y += stepY) {
     var previousInk = 0;
     var nextInk = 0;
     var rowSamples = 0;
     for (var x = sampleWidth ~/ 10; x < sampleWidth * 9 ~/ 10; x += stepX) {
+      final nextX = x + horizontalOffset;
+      if (nextX < 0 || nextX >= sampleWidth) continue;
       final a = _luma(previous.getPixel(x, previousStartY + y));
-      final b = _luma(next.getPixel(x, y));
+      final b = _luma(next.getPixel(nextX, y));
       lumaTotal += (a - b).abs();
       lumaSamples++;
       if (a < 160) previousInk++;
@@ -273,12 +319,91 @@ double _overlapDifference({
       rowProfileSamples++;
     }
   }
+  for (var x = sampleWidth ~/ 12; x < sampleWidth * 11 ~/ 12; x += stepX) {
+    final nextX = x + horizontalOffset;
+    if (nextX < 0 || nextX >= sampleWidth) continue;
+    var previousInk = 0;
+    var nextInk = 0;
+    var columnSamples = 0;
+    for (var y = 0; y < pixels; y += stepY) {
+      final a = _luma(previous.getPixel(x, previousStartY + y));
+      final b = _luma(next.getPixel(nextX, y));
+      if (a < 170) {
+        previousInk++;
+        previousWeightedX += x;
+        previousInkTotal++;
+      }
+      if (b < 170) {
+        nextInk++;
+        nextWeightedX += x;
+        nextInkTotal++;
+      }
+      columnSamples++;
+    }
+    if (columnSamples > 0) {
+      final previousRatio = previousInk / columnSamples;
+      final nextRatio = nextInk / columnSamples;
+      columnProfileTotal += (previousRatio - nextRatio).abs() * 96;
+      columnProfileSamples++;
+    }
+  }
   if (lumaSamples == 0) return double.infinity;
   final lumaAverage = lumaTotal / lumaSamples;
   final rowProfileAverage = rowProfileSamples == 0
       ? double.infinity
       : rowProfileTotal / rowProfileSamples;
-  return (lumaAverage * .62) + (rowProfileAverage * .38);
+  final columnProfileAverage = columnProfileSamples == 0
+      ? double.infinity
+      : columnProfileTotal / columnProfileSamples;
+  final centerPenalty = previousInkTotal == 0 || nextInkTotal == 0
+      ? 0.0
+      : ((previousWeightedX / previousInkTotal) -
+                    (nextWeightedX / nextInkTotal))
+                .abs() /
+            sampleWidth *
+            150;
+  return (lumaAverage * .50) +
+      (rowProfileAverage * .22) +
+      (columnProfileAverage * .20) +
+      (centerPenalty * .08);
+}
+
+double _overlapHorizontalDriftPenalty({
+  required img.Image previous,
+  required img.Image next,
+  required int pixels,
+}) {
+  final sampleWidth = math.min(previous.width, next.width);
+  final stepX = math.max(6, (sampleWidth / 100).round());
+  final stepY = math.max(4, (pixels / 40).round());
+  final previousStartY = previous.height - pixels;
+  var previousWeightedX = 0.0;
+  var nextWeightedX = 0.0;
+  var previousInkTotal = 0;
+  var nextInkTotal = 0;
+  for (var y = 0; y < pixels; y += stepY) {
+    for (var x = sampleWidth ~/ 14; x < sampleWidth * 13 ~/ 14; x += stepX) {
+      final previousLuma = _luma(previous.getPixel(x, previousStartY + y));
+      final nextLuma = _luma(next.getPixel(x, y));
+      if (previousLuma < 170) {
+        previousWeightedX += x;
+        previousInkTotal++;
+      }
+      if (nextLuma < 170) {
+        nextWeightedX += x;
+        nextInkTotal++;
+      }
+    }
+  }
+  if (previousInkTotal < 12 || nextInkTotal < 12) return 0;
+  final delta =
+      ((previousWeightedX / previousInkTotal) - (nextWeightedX / nextInkTotal))
+          .abs();
+  final safeDrift = sampleWidth * .075;
+  final unsafeDrift = sampleWidth * .16;
+  if (delta <= safeDrift) return 0;
+  return ((delta - safeDrift) / math.max(1, unsafeDrift - safeDrift) * .35)
+      .clamp(0.0, .35);
 }
 
 bool _receiptImageBytesMatch(List<int> a, List<int> b) {

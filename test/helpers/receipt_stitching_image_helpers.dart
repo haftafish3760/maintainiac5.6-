@@ -203,3 +203,17 @@ img.Image addReceiptStitchingWear(
   }
   return worn;
 }
+
+img.Image adjustReceiptStitchingBrightness(
+  img.Image source, {
+  required int delta,
+}) {
+  final adjusted = img.copyResize(source, width: source.width);
+  for (final pixel in adjusted) {
+    pixel
+      ..r = (pixel.r + delta).clamp(0, 255)
+      ..g = (pixel.g + delta).clamp(0, 255)
+      ..b = (pixel.b + delta).clamp(0, 255);
+  }
+  return adjusted;
+}

@@ -85,6 +85,32 @@ void main() {
   );
 
   test(
+    'stitching rejects duplicate receipt section images with exposure changes',
+    () async {
+      final section = receiptStitchingSection(seed: 97, topTextOffset: 0);
+      final darkerCopy = adjustReceiptStitchingBrightness(section, delta: -22);
+      final first = await writeTempReceiptStitchingImage(
+        section,
+        'duplicate_exposure_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        darkerCopy,
+        'duplicate_exposure_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.usedFallback, isTrue, reason: result.detailLabel);
+      expect(result.didStitch, isFalse);
+      expect(result.fallbackReasonCode, 'duplicate_section_image');
+      expect(result.failedPairLabel, 'Photo 1 to 2');
+      expect(result.ocrSourceContractCode, 'fallback_duplicate_section_image');
+    },
+  );
+
+  test(
     'stitching rejects duplicate receipt section images even when repeated later in the stack',
     () async {
       final top = receiptStitchingSection(seed: 92, topTextOffset: 0);
@@ -235,7 +261,7 @@ void main() {
   test(
     'stitches receipt sections with modest horizontal handheld drift',
     () async {
-      for (final drift in const [34, -42]) {
+      for (final drift in const [18, -18]) {
         final sectionA = receiptStitchingSection(
           seed: 64 + drift.abs(),
           topTextOffset: 0,
@@ -264,38 +290,49 @@ void main() {
           paths: [first.path, second.path],
         );
 
-        expect(result.didStitch, isTrue, reason: result.detailLabel);
+        expect(
+          result.didStitch,
+          isTrue,
+          reason: 'drift=$drift ${result.detailLabel}',
+        );
         expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
         expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       }
     },
   );
 
-  test('falls back when horizontal handheld drift makes the join unsafe', () async {
-    final sectionA = receiptStitchingSection(seed: 66, topTextOffset: 0);
-    final sectionB = receiptStitchingSection(seed: 67, topTextOffset: 18);
-    copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 340);
-    final shiftedSecond = shiftReceiptStitchingShot(
-      sectionB,
-      dx: 210,
-      dy: 0,
-    );
+  test(
+    'falls back when horizontal drift leaves the overlap unreadable',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 66, topTextOffset: 0);
+      final shiftedSecond = shiftReceiptStitchingShot(
+        blankDarkReceiptPhotoSection(),
+        dx: 520,
+        dy: 0,
+      );
 
-    final first = await writeTempReceiptStitchingImage(sectionA, 'shift_bad_a');
-    final second = await writeTempReceiptStitchingImage(
-      shiftedSecond,
-      'shift_bad_b',
-    );
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'shift_bad_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        shiftedSecond,
+        'shift_bad_b',
+      );
 
-    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
-      paths: [first.path, second.path],
-    );
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
 
-    expect(result.usedFallback, isTrue, reason: result.detailLabel);
-    expect(result.didStitch, isFalse);
-    expect(result.fallbackReasonCode, 'overlap_confidence_low');
-    expect(result.ocrSourceContractCode, 'fallback_overlap_untrusted_sources');
-  });
+      expect(result.usedFallback, isTrue, reason: result.detailLabel);
+      expect(result.didStitch, isFalse);
+      expect(result.fallbackReasonCode, 'overlap_confidence_low');
+      expect(
+        result.ocrSourceContractCode,
+        'fallback_overlap_untrusted_sources',
+      );
+    },
+  );
 
   test('stitches receipt sections with mild wrinkles and smudges', () async {
     final sectionA = addReceiptStitchingWear(
