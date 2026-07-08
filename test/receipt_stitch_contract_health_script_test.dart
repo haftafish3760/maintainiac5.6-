@@ -78,8 +78,12 @@ void main() {
     );
     expect(
       source,
+      contains('test/receipt_stitching_uploaded_screenshot_test.dart'),
+    );
+    expect(
+      source,
       contains(
-        "--name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|tight-overlap phone windows with alternating vertical edge clips|skipped phone-window|out-of-order phone-window|dark display borders|status and nav bars|eleven-section|ugly seven-section|ragged phone-window|tight-overlap phone-window'",
+        "--name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|tight-overlap phone windows with alternating vertical edge clips|skipped phone-window|out-of-order phone-window|dark display borders|status and nav bars|uploaded long-receipt screenshots|eleven-section|ugly seven-section|ragged phone-window|tight-overlap phone-window'",
       ),
     );
     expect(source, contains('--concurrency=1'));
@@ -266,6 +270,7 @@ void main() {
       source,
       contains('receipt_stitching_phone_window_edge_crop_test.dart'),
     );
+    expect(source, contains('receipt_stitching_uploaded_screenshot_test.dart'));
     expect(source, contains('receipt_stitching_variants_test.dart'));
     expect(source, contains('receipt_camera_result_stitch_scanner_test.dart'));
     expect(

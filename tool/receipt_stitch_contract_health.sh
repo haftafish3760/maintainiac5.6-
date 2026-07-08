@@ -72,8 +72,9 @@ run_phone_windows() {
   run_flutter_test phone-window \
     test/receipt_stitching_long_stack_test.dart \
     test/receipt_stitching_phone_window_safety_test.dart \
+    test/receipt_stitching_uploaded_screenshot_test.dart \
     test/receipt_stitching_phone_window_edge_crop_test.dart \
-    --name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|tight-overlap phone windows with alternating vertical edge clips|skipped phone-window|out-of-order phone-window|dark display borders|status and nav bars|eleven-section|ugly seven-section|ragged phone-window|tight-overlap phone-window' \
+    --name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|tight-overlap phone windows with alternating vertical edge clips|skipped phone-window|out-of-order phone-window|dark display borders|status and nav bars|uploaded long-receipt screenshots|eleven-section|ugly seven-section|ragged phone-window|tight-overlap phone-window' \
     --concurrency=1
   echo "Receipt stitch phone-window health: PASS"
 }
@@ -245,6 +246,7 @@ run_full() {
     test/receipt_stitching_ugly_long_receipt_test.dart \
     test/receipt_stitching_long_stack_test.dart \
     test/receipt_stitching_phone_window_edge_crop_test.dart \
+    test/receipt_stitching_uploaded_screenshot_test.dart \
     test/receipt_stitching_variants_test.dart \
     test/receipt_stitching_weak_overlap_safety_test.dart \
     test/receipt_camera_result_stitch_scanner_test.dart \
