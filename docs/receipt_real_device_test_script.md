@@ -10,6 +10,9 @@ This script is for controlled phone testing after a meaningful receipt-camera bu
 - Test at least one short receipt and one long receipt that needs more than one photo.
 - Do not judge OCR from the smaller saved proof. OCR must happen from the best prepared image first.
 - A failed read is acceptable only if the app explains what happened and lets the user continue manually with the proof saved.
+- Copy `docs/receipt_real_device_result_template.md` into
+  `docs/receipt_real_device_runs/YYYY-MM-DD-device-batch.md` before a serious
+  test session so the proof note stays structured and privacy-safe.
 
 ## Device Targets
 

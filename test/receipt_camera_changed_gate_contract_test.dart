@@ -303,6 +303,10 @@ void main() {
     );
     expect(
       stdout,
+      contains('targeted test/receipt_real_device_result_gate_test.dart'),
+    );
+    expect(
+      stdout,
       contains('targeted test/receipt_real_device_test_script_test.dart'),
     );
     expect(

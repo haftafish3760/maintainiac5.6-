@@ -75,7 +75,7 @@ Receipt workflow scope excludes:
 | Barcode/QR handoff | Receipt capture can hand barcode/QR evidence forward without owning inventory work. | Service files and camera summary tests exist; flow proof can wait behind capture/stitch. | Partial |
 | Device/storage safety | Older devices reduce heavy work; low storage avoids unsafe processing. | Capability/storage and Phase 8 storage-proof timing contracts are green, and `tool/receipt_camera_qa_gate.sh core_remaining` passed on 2026-07-07 after analyzer cleanup. Real-device proof is still missing. | Partial |
 | Fixture QA | Synthetic and real receipt fixtures cover camera failure families. | Many camera tests exist; release-one camera fixture matrix exists and needs real receipt additions. | Partial |
-| Milestone quality gate | Targeted camera tests, source audit, doc gate, analyzer, and real-device notes pass together. | Phase 2 through Phase 9 targeted gates are green, the source/line-count/scope/regression gates are green, and `tool/receipt_camera_qa_gate.sh milestone` passed on 2026-07-07. iPhone stale native-asset contamination was reproduced and cleared with a clean rebuild plus native-asset preflight, but final real-device capture proof is still waiting on the remaining Flutter debug/native-assets run-mode blocker and manual device flows. Real-device notes are still the remaining gap. | Partial |
+| Milestone quality gate | Targeted camera tests, source audit, doc gate, analyzer, and real-device notes pass together. | Phase 2 through Phase 9 targeted gates are green, the source/line-count/scope/regression gates are green, and `tool/receipt_camera_qa_gate.sh milestone` passed on 2026-07-07. The real-device note template and gate now exist, so the remaining gap is not report structure; it is real-device capture proof plus the remaining Flutter debug/native-assets run-mode blocker and manual device flows. | Partial |
 
 ## Forecast Method
 
@@ -144,6 +144,11 @@ inflating pass estimates.
 `tool/receipt_camera_real_device_snapshot.sh` is metadata-only environment
 evidence. Do not treat that snapshot as receipt capture proof. Real-device proof
 still requires manual receipt flows on the connected phones.
+
+`tool/receipt_real_device_result_gate.dart` and
+`docs/receipt_real_device_result_template.md` define the expected structure for
+those manual phone notes. A green template gate is not proof that the manual
+flows passed; it only proves the reporting lane is ready.
 
 ## Reliability Target
 

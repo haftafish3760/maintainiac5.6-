@@ -40,4 +40,16 @@ void main() {
 
     expect(fastGate, contains('tool/receipt_real_device_matrix_gate.dart'));
   });
+
+  test('phase9 gate also carries the real-device result gate lane', () {
+    final cameraGate = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
+    final changedGate = File(
+      'tool/receipt_camera_changed_gate.sh',
+    ).readAsStringSync();
+
+    expect(cameraGate, contains('tool/receipt_real_device_result_gate.dart'));
+    expect(cameraGate, contains('test/receipt_real_device_result_gate_test.dart'));
+    expect(changedGate, contains('tool/receipt_real_device_result_gate.dart'));
+    expect(changedGate, contains('test/receipt_real_device_result_gate_test.dart'));
+  });
 }

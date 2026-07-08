@@ -90,6 +90,7 @@ phase9_tests=(
   test/receipt_camera_release_control_priority_test.dart
   test/receipt_camera_native_baseline_policy_test.dart
   test/receipt_real_device_matrix_gate_test.dart
+  test/receipt_real_device_result_gate_test.dart
   test/receipt_real_device_test_script_test.dart
   test/receipt_camera_world_class_readiness_test.dart
 )
@@ -205,7 +206,9 @@ phase9_audit_paths=(
   docs/receipt_camera_release_one_blueprint.md
   docs/receipt_camera_world_class_readiness.md
   docs/receipt_real_device_test_script.md
+  docs/receipt_real_device_result_template.md
   tool/receipt_real_device_matrix_gate.dart
+  tool/receipt_real_device_result_gate.dart
   docs/receipt_native_camera_service_spec.md
   docs/receipt_camera_ocr_product_standard.md
   PROJECT_RULES.md
@@ -217,6 +220,7 @@ phase9_audit_paths=(
   test/receipt_camera_release_control_priority_test.dart
   test/receipt_camera_native_baseline_policy_test.dart
   test/receipt_real_device_test_script_test.dart
+  test/receipt_real_device_result_gate_test.dart
   test/receipt_camera_world_class_readiness_test.dart
 )
 
@@ -755,6 +759,7 @@ run_phase8() {
 run_phase9() {
   bash tool/receipt_camera_scope_gate.sh
   dart analyze \
+    tool/receipt_real_device_result_gate.dart \
     tool/receipt_real_device_matrix_gate.dart \
     "${phase9_tests[@]}"
   dart tool/maintainiac_source_audit.dart \
