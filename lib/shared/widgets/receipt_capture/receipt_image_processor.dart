@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
+import 'package:path/path.dart' as path;
 
 import 'receipt_capture_models.dart';
 import 'receipt_photo_path_identity.dart';

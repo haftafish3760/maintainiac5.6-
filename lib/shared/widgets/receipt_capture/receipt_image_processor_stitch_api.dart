@@ -22,16 +22,14 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
     return ReceiptStitchResult.notNeeded(inputPaths);
   }
   if (!receiptPhotoPathsAreUniqueAndNormalized(inputPaths)) {
-    final hasInvalidPath = inputPaths.any(
-      (path) => normalizedReceiptPhotoPath(path) == null,
-    );
+    final duplicateOrAlias = _stitchInputPathsHaveDuplicateAliases(inputPaths);
     return ReceiptStitchResult.fallback(
       inputPaths: inputPaths,
       warning:
           'Receipt photos included invalid or repeated section paths. Receipt details will use the photos separately.',
-      fallbackReasonCode: hasInvalidPath
-          ? 'invalid_input_paths'
-          : 'duplicate_input_paths',
+      fallbackReasonCode: duplicateOrAlias
+          ? 'duplicate_input_paths'
+          : 'invalid_input_paths',
     );
   }
   if (!_stitchInputPathsAreUnique(inputPaths)) {
@@ -225,9 +223,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       }
     }
 
-    final horizontalPlacements = _stitchHorizontalPlacements(
-      horizontalOffsets,
-    );
+    final horizontalPlacements = _stitchHorizontalPlacements(horizontalOffsets);
     final minPlacementX = horizontalPlacements.reduce(math.min);
     final maxPlacementX = horizontalPlacements
         .map((x) => x + targetWidth)
@@ -313,6 +309,19 @@ bool _stitchInputPathsAreUnique(List<String> inputPaths) {
     if (!seen.add(normalized)) return false;
   }
   return true;
+}
+
+bool _stitchInputPathsHaveDuplicateAliases(List<String> inputPaths) {
+  final seen = <String>{};
+  for (final inputPath in inputPaths) {
+    final normalized = normalizedReceiptPhotoPath(inputPath);
+    final alias = normalized ?? path.normalize(inputPath);
+    if (alias.isEmpty || alias != inputPath && normalized == null) {
+      if (!inputPath.startsWith('/')) continue;
+    }
+    if (!seen.add(alias)) return true;
+  }
+  return false;
 }
 
 ReceiptStitchResult? _oversizedStitchFallback({
