@@ -202,6 +202,7 @@ run_source_size() {
     lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_helpers.dart
     lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_scoring_helpers.dart
     lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_transform_helpers.dart
+    tool/receipt_synthetic_stitch_dataset_audit.dart
   )
   local file
   for file in "${files[@]}"; do
@@ -215,6 +216,7 @@ run_source_size() {
   local test_files=(
     test/helpers/receipt_stitching_image_helpers.dart
     test/receipt_stitching_*_test.dart
+    test/receipt_synthetic_stitch_dataset_audit_test.dart
     test/receipt_stitch_fallback_metadata_test.dart
     test/receipt_camera_low_confidence_stack_handoff_test.dart
     test/receipt_camera_oversized_stitch_handoff_test.dart
