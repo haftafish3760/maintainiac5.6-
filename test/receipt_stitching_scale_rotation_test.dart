@@ -195,4 +195,72 @@ void main() {
     },
     timeout: _stitchingHeavyTimeout,
   );
+
+  test(
+    'stitches three sections with mixed handheld transforms',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 180, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 181, topTextOffset: 16);
+      final sectionC = receiptStitchingSection(seed: 182, topTextOffset: 32);
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 330,
+        dstY: 18,
+      );
+      copyReceiptStitchingOverlap(
+        from: sectionB,
+        to: sectionC,
+        pixels: 350,
+        dstY: 24,
+      );
+      final transformedSecond = shiftReceiptStitchingShot(
+        rotateReceiptStitchingShot(
+          scaleReceiptStitchingShot(sectionB, scale: 1.06),
+          degrees: .8,
+        ),
+        dx: 18,
+        dy: 0,
+      );
+      final transformedThird = shiftReceiptStitchingShot(
+        rotateReceiptStitchingShot(
+          scaleReceiptStitchingShot(sectionC, scale: .94),
+          degrees: -.8,
+        ),
+        dx: -18,
+        dy: 0,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'mixed_transform_stack_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        transformedSecond,
+        'mixed_transform_stack_b',
+      );
+      final third = await writeTempReceiptStitchingImage(
+        transformedThird,
+        'mixed_transform_stack_c',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path, third.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(2));
+      expect(result.overlapPixels, hasLength(2));
+      expect(
+        result.pairs.every((pair) => pair.confidence >= .50),
+        isTrue,
+        reason: result.pairDiagnosticsLabel,
+      );
+      expect(result.pairDiagnosticsLabel, contains('Photo 1 to 2'));
+      expect(result.pairDiagnosticsLabel, contains('Photo 2 to 3'));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.ocrSourcePaths, hasLength(1));
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
 }
