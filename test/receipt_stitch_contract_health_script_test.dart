@@ -74,6 +74,7 @@ void main() {
       source,
       contains('receipt_camera_stitch_candidate_metadata_test.dart'),
     );
+    expect(source, contains('receipt_stitch_fallback_metadata_test.dart'));
     expect(source, contains('Receipt stitch handoff health: PASS'));
     expect(source, contains('duplicates)'));
     expect(source, contains('Receipt stitch duplicate-section health'));
@@ -152,6 +153,7 @@ void main() {
       source,
       contains('receipt_camera_stitch_candidate_metadata_test.dart'),
     );
+    expect(source, contains('receipt_stitch_fallback_metadata_test.dart'));
     expect(source, contains('Receipt stitch contract health: PASS'));
     expect(source, isNot(contains('receipt_camera_qa_gate.sh full')));
   });

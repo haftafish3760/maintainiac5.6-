@@ -73,6 +73,7 @@ run_handoff() {
     test/receipt_camera_phase6_stitching_handoff_contract_test.dart \
     test/receipt_camera_result_stitch_handoff_followthrough_test.dart \
     test/receipt_camera_stitch_candidate_metadata_test.dart \
+    test/receipt_stitch_fallback_metadata_test.dart \
     -r compact
   echo "Receipt stitch handoff health: PASS"
 }
