@@ -12,6 +12,7 @@ part 'receipt_image_processor_models.dart';
 part 'receipt_image_processor_source_prep.dart';
 part 'receipt_image_processor_resize_helpers.dart';
 part 'receipt_image_processor_stitch_helpers.dart';
+part 'receipt_image_processor_stitch_transform_helpers.dart';
 part 'receipt_image_processor_stitch_scoring_helpers.dart';
 part 'receipt_image_processor_stitch_api.dart';
 part 'receipt_image_processor_scan_helpers.dart';
