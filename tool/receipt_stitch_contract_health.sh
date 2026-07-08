@@ -11,7 +11,20 @@ run_flutter_test() {
   shift
   local tmp
   tmp="$(mktemp -t maintainiac_receipt_stitch_${label//[^A-Za-z0-9]/_}.XXXXXX)"
-  if flutter test "$@" -r compact > "$tmp" 2>&1; then
+  local timeout_seconds="${RECEIPT_STITCH_TEST_TIMEOUT_SECONDS:-600}"
+  flutter test "$@" -r compact > "$tmp" 2>&1 &
+  local test_pid=$!
+  (
+    sleep "$timeout_seconds"
+    if kill -0 "$test_pid" 2>/dev/null; then
+      echo "Receipt stitch $label timed out after ${timeout_seconds}s." >> "$tmp"
+      kill "$test_pid" 2>/dev/null || true
+    fi
+  ) &
+  local watchdog_pid=$!
+  if wait "$test_pid"; then
+    kill "$watchdog_pid" 2>/dev/null || true
+    wait "$watchdog_pid" 2>/dev/null || true
     if perl -pe 's/\r/\n/g' "$tmp" | grep -q 'Some tests failed'; then
       echo "Receipt stitch $label reported failed tests despite a zero exit code. Log tail:" >&2
       perl -pe 's/\r/\n/g' "$tmp" | tail -n 180 >&2
@@ -23,6 +36,8 @@ run_flutter_test() {
     return 0
   fi
   local exit_code=$?
+  kill "$watchdog_pid" 2>/dev/null || true
+  wait "$watchdog_pid" 2>/dev/null || true
   echo "Receipt stitch $label failed. Log tail:" >&2
   perl -pe 's/\r/\n/g' "$tmp" | tail -n 180 >&2
   rm -f "$tmp"
