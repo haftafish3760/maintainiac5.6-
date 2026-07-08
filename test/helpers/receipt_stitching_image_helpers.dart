@@ -208,6 +208,35 @@ img.Image shiftReceiptStitchingShot(
   return canvas;
 }
 
+img.Image frameReceiptStitchingShotOnDarkSurface(
+  img.Image source, {
+  int left = 72,
+  int top = 54,
+  int right = 84,
+  int bottom = 68,
+  int surfaceShade = 18,
+}) {
+  final canvas = img.Image(
+    width: source.width + left + right,
+    height: source.height + top + bottom,
+    numChannels: 3,
+  );
+  img.fill(
+    canvas,
+    color: img.ColorRgb8(surfaceShade, surfaceShade, surfaceShade + 2),
+  );
+  img.fillRect(
+    canvas,
+    x1: left - 8,
+    y1: top - 6,
+    x2: left + source.width + 7,
+    y2: top + source.height + 8,
+    color: img.ColorRgb8(28, 28, 30),
+  );
+  img.compositeImage(canvas, source, dstX: left, dstY: top);
+  return canvas;
+}
+
 Future<File> writeTempReceiptStitchingImage(
   img.Image image,
   String name,

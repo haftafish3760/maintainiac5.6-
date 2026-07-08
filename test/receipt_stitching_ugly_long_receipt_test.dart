@@ -233,6 +233,116 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );
+
+  test(
+    'stitches dark-framed receipt photos without treating the phone surface as receipt',
+    () async {
+      final sectionA = _uglySection(seed: 172, fade: .16, brightness: 0);
+      final sectionB = _uglySection(seed: 173, fade: .24, brightness: 18);
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 336,
+        dstX: 18,
+        dstY: 42,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        frameReceiptStitchingShotOnDarkSurface(
+          sectionA,
+          left: 86,
+          top: 52,
+          right: 104,
+          bottom: 78,
+        ),
+        'dark_surface_two_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        frameReceiptStitchingShotOnDarkSurface(
+          shiftReceiptStitchingShot(sectionB, dx: 18, dy: 0),
+          left: 64,
+          top: 68,
+          right: 118,
+          bottom: 70,
+        ),
+        'dark_surface_two_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.overlapPixels.single, greaterThan(260));
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.stitchedWidth, lessThan(1700));
+      await _expectReadableStitchedArtifact(result, minHeight: 3000);
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
+
+  test(
+    'stitches three dark-framed long receipt photos with alternating drift',
+    () async {
+      final sectionA = _uglySection(seed: 182, fade: .18, brightness: -8);
+      final sectionB = _uglySection(seed: 183, fade: .22, brightness: 24);
+      final sectionC = _uglySection(seed: 184, fade: .20, brightness: -18);
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 320,
+        dstX: 24,
+        dstY: 54,
+      );
+      copyReceiptStitchingOverlap(
+        from: sectionB,
+        to: sectionC,
+        pixels: 312,
+        dstX: -26,
+        dstY: 48,
+      );
+
+      final files = await _writeSections([
+        frameReceiptStitchingShotOnDarkSurface(
+          shiftReceiptStitchingShot(sectionA, dx: 14, dy: 0),
+          left: 92,
+          top: 48,
+          right: 74,
+          bottom: 72,
+        ),
+        frameReceiptStitchingShotOnDarkSurface(
+          shiftReceiptStitchingShot(sectionB, dx: -22, dy: 0),
+          left: 70,
+          top: 64,
+          right: 112,
+          bottom: 84,
+        ),
+        frameReceiptStitchingShotOnDarkSurface(
+          shiftReceiptStitchingShot(sectionC, dx: 20, dy: 0),
+          left: 110,
+          top: 56,
+          right: 82,
+          bottom: 76,
+        ),
+      ], 'dark_surface_three');
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: files.map((file) => file.path).toList(growable: false),
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(2));
+      expect(result.overlapPixels, hasLength(2));
+      expect(result.overlapPixelTotal, greaterThan(540));
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.stitchedPixelCount, lessThan(16000000));
+      await _expectReadableStitchedArtifact(result);
+    },
+    timeout: const Timeout(Duration(minutes: 3)),
+  );
 }
 
 img.Image _uglySection({
@@ -263,14 +373,17 @@ Future<List<File>> _writeSections(List<img.Image> sections, String prefix) {
   ]);
 }
 
-Future<void> _expectReadableStitchedArtifact(ReceiptStitchResult result) async {
+Future<void> _expectReadableStitchedArtifact(
+  ReceiptStitchResult result, {
+  int minHeight = 3600,
+}) async {
   final stitchedPath = result.stitchedPath;
   expect(stitchedPath, isNotNull);
   final decoded = img.decodeImage(await File(stitchedPath!).readAsBytes());
   expect(decoded, isNotNull);
   expect(decoded!.width, result.stitchedWidth);
   expect(decoded.height, result.stitchedHeight);
-  expect(decoded.height, greaterThan(3600));
+  expect(decoded.height, greaterThan(minHeight));
 }
 
 img.Image _addFoldShadows(img.Image source) {
