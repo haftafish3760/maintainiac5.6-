@@ -221,6 +221,7 @@ run_full() {
     test/receipt_camera_result_section_order_follow_through_test.dart \
     test/receipt_camera_result_section_order_invalid_context_test.dart \
     test/receipt_stitching_test.dart \
+    test/receipt_stitching_artifact_copy_contract_test.dart \
     test/receipt_stitching_result_contract_test.dart \
     test/receipt_stitching_manual_overlap_test.dart \
     test/receipt_stitching_duplicate_safety_test.dart \
