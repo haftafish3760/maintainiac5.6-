@@ -34,7 +34,7 @@ run_phone_windows() {
   flutter test \
     test/receipt_stitching_long_stack_test.dart \
     test/receipt_stitching_phone_window_safety_test.dart \
-    --name 'phone-window captures|skipped phone-window|eleven-section' \
+    --name 'phone-window captures|skipped phone-window|eleven-section|ugly seven-section' \
     -r compact
   echo "Receipt stitch phone-window health: PASS"
 }

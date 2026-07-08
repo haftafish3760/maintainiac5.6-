@@ -46,6 +46,31 @@ void main() {
     },
     timeout: _phoneWindowTimeout,
   );
+
+  test(
+    'stitches ugly seven-section phone-window receipt stack',
+    () async {
+      final files = await _writeUglySevenSectionPhoneWindowStack(
+        'ugly_seven_phone_window',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [for (final file in files) file.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs, hasLength(6));
+      expect(result.overlapPixels, hasLength(6));
+      expect(
+        result.pairs.map((pair) => pair.confidence),
+        everyElement(greaterThanOrEqualTo(.50)),
+      );
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      expect(result.ocrSourcePaths, [result.stitchedPath]);
+      expect(result.stitchedPixelCount, lessThan(16000000));
+    },
+    timeout: _phoneWindowTimeout,
+  );
 }
 
 void expectSkippedWindowRequiresReview(
@@ -108,6 +133,47 @@ Future<List<File>> _writeElevenSectionPhoneWindowStack(String prefix) async {
     );
     files.add(
       await writeTempReceiptStitchingImage(section, '${prefix}_$index'),
+    );
+  }
+  return files;
+}
+
+Future<List<File>> _writeUglySevenSectionPhoneWindowStack(String prefix) async {
+  final tallReceipt = tallReceiptStitchingCanvas(sectionCount: 7);
+  final starts = <int>[0, 1120, 2240, 3360, 4480, 5600, 6720];
+  final files = <File>[];
+  for (var index = 0; index < starts.length; index++) {
+    final window = img.copyCrop(
+      tallReceipt,
+      x: 0,
+      y: starts[index],
+      width: tallReceipt.width,
+      height: 1500,
+    );
+    var capture = index.isEven
+        ? clipReceiptStitchingSide(window, right: 36 + index * 2)
+        : clipReceiptStitchingSide(window, left: 34 + index * 2);
+    if (index == 2 || index == 5) {
+      capture = fadeReceiptStitchingInk(capture, amount: .24);
+    }
+    if (index == 3) {
+      capture = addReceiptStitchingWear(
+        capture,
+        seed: 730,
+        wrinkleCount: 8,
+        smudgeCount: 5,
+      );
+    }
+    if (index == 4) {
+      capture = adjustReceiptStitchingBrightness(capture, delta: -18);
+    }
+    capture = shiftReceiptStitchingShot(
+      capture,
+      dx: index.isEven ? 18 : -20,
+      dy: 0,
+    );
+    files.add(
+      await writeTempReceiptStitchingImage(capture, '${prefix}_$index'),
     );
   }
   return files;
