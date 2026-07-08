@@ -3,6 +3,36 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_flow.d
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 void main() {
+  test('continuation guide uses last prior photo as the top ghost source', () {
+    final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
+      previousPhotoPaths: const [
+        ' /tmp/receipt-section-1.jpg ',
+        '',
+        '/tmp/receipt-section-2.jpg',
+      ],
+      reasonCode: ' manual_add_photo_continuation ',
+      guidance: ' Repeat the last lines. ',
+    );
+    final options = guide.applyTo(
+      const ReceiptCaptureFlowOptions(
+        module: ReceiptCaptureFlowModule.expenses,
+        forceLongReceiptMode: true,
+      ),
+    );
+
+    expect(guide.hasGuidePhoto, isTrue);
+    expect(guide.guidePhotoPath, '/tmp/receipt-section-2.jpg');
+    expect(guide.reasonCode, 'manual_add_photo_continuation');
+    expect(options.previousSectionGuidePhotoPath, '/tmp/receipt-section-2.jpg');
+    expect(options.previousSectionReasonCode, 'manual_add_photo_continuation');
+    expect(options.previousSectionGuidance, 'Repeat the last lines.');
+    expect(options.previousSectionGhostSourceStartFraction, .80);
+    expect(options.previousSectionGhostSourceHeightFraction, .20);
+    expect(options.previousSectionGhostOverlayTopFraction, 0);
+    expect(options.previousSectionGhostOverlayHeightFraction, .20);
+    expect(options.previousSectionGhostOpacity, .32);
+  });
+
   test(
     'review result preserves bottom-section continuation handoff context',
     () {

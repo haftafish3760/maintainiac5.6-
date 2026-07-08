@@ -83,6 +83,12 @@ run_duplicates() {
   echo "Receipt stitch duplicate-section health: PASS"
 }
 
+run_ugly_long_receipts() {
+  echo "Receipt stitch ugly-long-receipt health"
+  run_flutter_test ugly-long-receipt test/receipt_stitching_ugly_long_receipt_test.dart
+  echo "Receipt stitch ugly-long-receipt health: PASS"
+}
+
 run_bad_inputs() {
   echo "Receipt stitch bad-input health"
   run_flutter_test bad-input test/receipt_stitching_bad_input_test.dart
@@ -156,6 +162,7 @@ run_milestone() {
   run_edge_cases
   run_phone_windows
   run_long_stack
+  run_ugly_long_receipts
   run_bad_inputs
   run_manual_overlap
   run_duplicates
@@ -185,6 +192,7 @@ run_full() {
     test/receipt_stitching_horizontal_placement_test.dart \
     test/receipt_stitching_horizontal_drift_test.dart \
     test/receipt_stitching_worn_receipt_test.dart \
+    test/receipt_stitching_ugly_long_receipt_test.dart \
     test/receipt_stitching_long_stack_test.dart \
     test/receipt_stitching_phone_window_edge_crop_test.dart \
     test/receipt_stitching_variants_test.dart \
@@ -205,6 +213,7 @@ case "$mode" in
   phone_windows) run_phone_windows; exit 0 ;;
   phone_windows_fast) run_phone_windows_fast; exit 0 ;;
   long_stack) run_long_stack; exit 0 ;;
+  ugly_long_receipts) run_ugly_long_receipts; exit 0 ;;
   bad_inputs) run_bad_inputs; exit 0 ;;
   manual_overlap) run_manual_overlap; exit 0 ;;
   duplicates) run_duplicates; exit 0 ;;
@@ -214,7 +223,7 @@ case "$mode" in
   milestone) run_milestone; exit 0 ;;
   full) run_full; exit 0 ;;
   *)
-    echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|bad_inputs|manual_overlap|duplicates|handoff|source_size|fast|milestone|full]" >&2
+    echo "Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|bad_inputs|manual_overlap|duplicates|handoff|source_size|fast|milestone|full]" >&2
     exit 64
     ;;
 esac

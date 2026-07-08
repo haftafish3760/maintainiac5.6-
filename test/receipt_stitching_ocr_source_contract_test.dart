@@ -193,6 +193,14 @@ void main() {
       expect(finalResult.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
       expect(review.ocrSourcePathsMatchStitchContract, isTrue);
       expect(
+        review.ocrSourceReviewRiskCode,
+        'stitch_ocr_source_contract_review_required',
+      );
+      expect(
+        review.ocrSourceReviewRequirement,
+        'manual_review_required_before_saving_receipt',
+      );
+      expect(
         review.privacySafeReceiptReaderHandoffMetadata,
         containsPair('stitchFailedPairLabel', 'Photo 2 to 3'),
       );
