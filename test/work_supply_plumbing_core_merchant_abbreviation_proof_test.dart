@@ -183,6 +183,30 @@ void main() {
     _expectGoodPlumbingCore('WINSUPPLY T&P RELIEF VALVE 3/4', ['relief valve']);
   });
 
+  test('plumbing core parses supply-line and appliance connector receipts', () {
+    _expectGoodPlumbingCore('ACE 3/8X16 FAUCET SUPPLY LINE', ['faucet']);
+    _expectGoodPlumbingCore('TRUE VALUE 3/8X12 TOILET CONN', ['toilet']);
+    _expectGoodPlumbingCore('LOCAL SUPPLY ICEMAKER LINE 1/4X10FT', [
+      'ice maker',
+    ]);
+    _expectGoodPlumbingCore('FERG WASHER HOSE 3/4X5FT', ['washing machine']);
+    _expectGoodPlumbingCore('WINSUPPLY GAS FLEX CONN 1/2X36', [
+      'gas appliance',
+    ]);
+  });
+
+  test('plumbing core parses solvent, putty, and silicone receipts', () {
+    _expectGoodPlumbingCore('ACE PVC GLUE 8OZ', ['pvc cement']);
+    _expectGoodPlumbingCore('TRUE VALUE PURPLE PRIMER 4OZ', ['pvc primer']);
+    _expectGoodPlumbingCore('LOCAL SUPPLY CPVC YELLOW GLUE 8OZ', [
+      'cpvc cement',
+    ]);
+    _expectGoodPlumbingCore('FERG PLUMBERS PUTTY 14OZ', ['putty']);
+    _expectGoodPlumbingCore('WINSUPPLY CLEAR SILICONE KITCHEN BATH 10OZ', [
+      'silicone',
+    ]);
+  });
+
   test(
     'plumbing core keeps ultra-vague merchant abbreviations out of good confidence',
     () {

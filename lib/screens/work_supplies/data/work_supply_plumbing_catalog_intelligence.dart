@@ -53,6 +53,7 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
   if (category == 'seals packing and thread service') {
     return _hasAny(text, _plumbingCoreSealServiceSignals);
   }
+  if (category == 'supply lines' || category == 'consumables') return true;
   if (category == 'fittings' && _isCommonResidentialNoHubRepair(item)) {
     return true;
   }
@@ -128,7 +129,6 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
         _hasAny(type, _coreFittingTypes) &&
         _isCommonPlumbingVariant(item.variant);
   }
-  if (category == 'supply lines' || category == 'consumables') return true;
   return false;
 }
 
