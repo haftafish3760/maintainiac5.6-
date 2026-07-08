@@ -143,6 +143,13 @@ void main() {
     expect(source, contains('Receipt stitch ugly-long-receipt health'));
     expect(source, contains('receipt_stitching_ugly_long_receipt_test.dart'));
     expect(source, contains('Receipt stitch ugly-long-receipt health: PASS'));
+    expect(source, contains('uploaded_screenshots)'));
+    expect(source, contains('Receipt stitch uploaded-screenshot health'));
+    expect(source, contains('receipt_stitching_uploaded_screenshot_test.dart'));
+    expect(
+      source,
+      contains('Receipt stitch uploaded-screenshot health: PASS'),
+    );
     expect(source, contains('section_order)'));
     expect(source, contains('Receipt stitch section-order health'));
     expect(source, contains('receipt_photo_review_retake_order_test.dart'));
@@ -236,7 +243,7 @@ void main() {
     expect(
       source,
       contains(
-        r'Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|section_order|bad_inputs|manual_overlap|duplicates|handoff|source_size|fast|core|milestone|full]',
+        r'Usage: $0 [delayed_overlap|edge_cases|phone_windows|phone_windows_fast|long_stack|ugly_long_receipts|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|source_size|fast|core|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));
