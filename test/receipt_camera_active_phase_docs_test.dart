@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('active camera planning docs point to the current viewer lane', () {
+  test('active camera planning docs point to the current validation lane', () {
     final masterPlan = File(
       'docs/receipt_camera_ocr_master_pass_plan.md',
     ).readAsStringSync();
@@ -13,46 +13,46 @@ void main() {
 
     expect(
       masterPlan,
-      contains('Current active phase: Phase 3, Camera viewer.'),
+      contains('Current active phase: Phase 9, Milestone validation.'),
     );
     expect(
       masterPlan,
-      contains('Phase 2 receipt entry flow is'),
+      contains('Phase 2 through Phase 8'),
     );
     expect(
       masterPlan,
-      contains('green on its targeted gate'),
+      contains('targeted gates are green'),
     );
     expect(
       masterPlan,
-      contains('the active roadmap lane has moved back'),
+      contains('active roadmap lane is final parity cleanup'),
     );
     expect(
       masterPlan,
-      contains('to viewer behavior'),
+      contains('closing milestone verification bundle'),
     );
     expect(
       masterPlan,
-      isNot(contains('Current active phase: Phase 9, Milestone validation')),
+      isNot(contains('Current active phase: Phase 3, Camera viewer.')),
     );
 
     expect(
       roadmap,
-      contains('Active roadmap focus: Phase 3 camera viewer.'),
+      contains('Active roadmap focus: Phase 9 milestone validation.'),
     );
     expect(
       roadmap,
-      contains('Phase 2 receipt entry flow is green on its targeted gate'),
+      contains('Phase 2 through Phase 8 targeted gates are green'),
     );
     expect(
       roadmap,
-      contains('Active pass lane. The Phase 3 targeted gate is green'),
+      contains('Active pass lane. Phase 2 through Phase 9 targeted gates are green.'),
     );
     expect(
       roadmap,
       isNot(
         contains(
-          'Active roadmap focus: Phase 6 through Phase 9 non-UI hardening and',
+          'Active roadmap focus: Phase 3 camera viewer.',
         ),
       ),
     );

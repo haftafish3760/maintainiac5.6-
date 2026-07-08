@@ -22,6 +22,7 @@ void main() {
     );
     expect(script, contains('ios/Runner/ReceiptCamera*.swift'));
     expect(script, contains('docs/receipt_camera_completion_map.md'));
+    expect(script, contains('docs/receipt_camera_ocr_pipeline_handoff_report.md'));
     expect(script, contains('docs/receipt_camera_roadmap.md'));
     expect(script, contains('docs/receipt_camera_ocr_product_standard.md'));
     expect(script, contains('docs/receipt_camera_ocr_master_pass_plan.md'));

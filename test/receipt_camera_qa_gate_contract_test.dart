@@ -239,7 +239,10 @@ void main() {
     expect(script, contains('tool/receipt_real_device_result_start.sh'));
     expect(script, contains('PROJECT_RULES.md'));
     expect(script, contains('Current active phase: Phase 8'));
-    expect(script, contains('Current active phase: Phase 9, Milestone validation'));
+    expect(
+      script,
+      isNot(contains('Current active phase: Phase 9, Milestone validation|')),
+    );
     expect(
       script,
       contains('Active roadmap focus: Phase 2 receipt entry flow verification'),

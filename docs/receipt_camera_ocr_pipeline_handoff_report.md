@@ -2,7 +2,7 @@
 
 Last updated: 2026-07-01
 
-Workspace: `/Users/rbbie/Documents/Maintainiac_5.6`
+Workspace: `/Users/rbbie/Documents/Maintainiac_5.6_Active`
 
 ## Hard Boundaries
 

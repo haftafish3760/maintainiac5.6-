@@ -32,10 +32,10 @@ Current phase order:
 8. Storage proof decision.
 9. Milestone validation.
 
-Current active phase: Phase 3, Camera viewer. Phase 2 receipt entry flow is
-green on its targeted gate and now acts as the validated baseline. Late
-non-UI hardening remains important, but the active roadmap lane has moved back
-to viewer behavior before more milestone-validation cleanup.
+Current active phase: Phase 9, Milestone validation. Phase 2 through Phase 8
+targeted gates are green and now act as the validated non-UI baseline. The
+active roadmap lane is final parity cleanup, real-device proof preparation, and
+the closing milestone verification bundle.
 
 Phase 2 acceptance rules:
 

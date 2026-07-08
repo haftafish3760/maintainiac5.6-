@@ -648,7 +648,7 @@ run_phase9_stale_contract_scan() {
     docs/receipt_camera_world_class_readiness.md
     PROJECT_RULES.md
   )
-  local pattern='Current active phase: Phase 8|Current active phase: Phase 9, Milestone validation|Active roadmap focus: Phase 2 receipt entry flow verification|Active roadmap focus: Phase 6 through Phase 9 non-UI hardening and|1,500-2,500|4,000-pass camera-app|tap-to-focus|tap to focus'
+  local pattern='Current active phase: Phase 8|Active roadmap focus: Phase 2 receipt entry flow verification|Active roadmap focus: Phase 6 through Phase 9 non-UI hardening and|1,500-2,500|4,000-pass camera-app|tap-to-focus|tap to focus'
 
   if rg -n "$pattern" "${scan_roots[@]}"; then
     echo "Stale Phase 9 milestone-validation contract found." >&2

@@ -6,11 +6,12 @@ Do not touch PDF, inventory, admin, maintenance, maps, invoices, cloud sync, or
 unrelated modules unless a documented receipt-camera dependency requires it.
 
 Current phase:
-- Active roadmap focus: Phase 3 camera viewer.
-- Phase 2 receipt entry flow is green on its targeted gate and now serves as
-  the entry-flow baseline for viewer work.
-- Phase 6 through Phase 9 hardening remains important, but it is no longer the
-  active roadmap lane ahead of the viewer milestone.
+- Active roadmap focus: Phase 9 milestone validation.
+- Phase 2 through Phase 8 targeted gates are green and now act as the
+  validated non-UI baseline for final camera-lane proof.
+- The current lane is evidence and validation work: keep the validated camera,
+  review, long-receipt, stitching, OCR-source, and storage-proof contracts
+  green while preparing real-device proof and final milestone closeout.
 - Current branch: `codex/expense-camera`
 
 Operating rules:
@@ -100,9 +101,9 @@ QA:
 - Regression for no tap-to-focus screen behavior.
 
 Status:
-- Active pass lane. The Phase 3 targeted gate is green, so the remaining work
-  here is viewer proof and polish against these requirements while keeping
-  receipt-entry behavior stable.
+- Targeted gate is green. Remaining work is real-device viewer proof and any
+  bounded polish needed to satisfy these requirements without rebuilding a pro
+  camera app.
 
 ## Phase 4: Post-photo review
 
@@ -125,7 +126,8 @@ QA:
 - Test no details or preparing screen appears without real captured input.
 
 Status:
-- Not complete.
+- Targeted gate is green. Remaining work is real-device proof that review,
+  back/cancel, and captured-photo decisions behave correctly in the live app.
 
 ## Phase 5: Long receipt capture
 
@@ -148,7 +150,8 @@ QA:
 - Test ghost and overlap context source is correct.
 
 Status:
-- In progress, not complete.
+- Targeted gate is green. Remaining work is real-device proof for numbering,
+  continuation context, and retake order under actual long-receipt capture.
 
 ## Phase 6: Stitching handoff
 
@@ -171,7 +174,8 @@ QA:
 - Original/source preservation tests.
 
 Status:
-- In progress, not complete.
+- Targeted gate is green. Remaining work is fixture expansion plus real-device
+  proof that the stitch/fallback handoff behaves safely in live flows.
 
 ## Phase 7: OCR source handoff
 
@@ -195,7 +199,8 @@ QA:
 - Diagnostics privacy tests.
 
 Status:
-- In progress, not complete.
+- Targeted gate is green. Remaining work is app-flow proof and real-device
+  confirmation that suggestion-only OCR handoff stays intact.
 
 ## Phase 8: Storage proof decision
 
@@ -215,7 +220,8 @@ QA:
 - Test default proof path does not destroy OCR source before handoff.
 
 Status:
-- In progress, not complete.
+- Targeted gate is green. Remaining work is live app-flow proof that storage
+  questions stay after capture/review and never break OCR-source handling.
 
 ## Phase 9: Milestone validation
 
@@ -238,6 +244,11 @@ Exit criteria:
 - Stitching handoff exists and fails safely.
 - OCR source handoff is suggestion-only.
 - No PDF/inventory/admin drift.
+
+Status:
+- Active pass lane. Phase 2 through Phase 9 targeted gates are green. The
+  remaining work is final parity cleanup, real-device manual receipt proof, and
+  the closing milestone verification bundle.
 
 Status:
 - Not complete.

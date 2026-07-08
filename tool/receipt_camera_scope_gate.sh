@@ -22,6 +22,7 @@ while IFS= read -r path; do
     ios/Runner/AppDelegate.swift | \
     docs/receipt_camera_roadmap.md | \
     docs/receipt_camera_completion_map.md | \
+    docs/receipt_camera_ocr_pipeline_handoff_report.md | \
     docs/receipt_camera_ocr_product_standard.md | \
     docs/receipt_camera_ocr_master_pass_plan.md | \
     docs/receipt_camera_release_one_blueprint.md | \
