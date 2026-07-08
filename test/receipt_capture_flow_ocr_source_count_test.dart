@@ -120,4 +120,56 @@ void main() {
     expect(stitchActions, contains('paths: preparedOcrPaths'));
     expect(stitchActions, isNot(contains('paths: inputPaths')));
   });
+
+  test(
+    'imported receipt sources surface explicit upload signals in handoff attachments',
+    () {
+      final result = ReceiptPhotoReviewResult(
+        photoPaths: const [
+          '/tmp/advance-email-top.png',
+          '/tmp/advance-email-bottom.png',
+        ],
+        ocrSourcePhotoPaths: const [
+          '/tmp/advance-email-top-ocr.png',
+          '/tmp/advance-email-bottom-ocr.png',
+        ],
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: ReceiptStitchResult.notNeeded([
+          '/tmp/advance-email-top-ocr.png',
+          '/tmp/advance-email-bottom-ocr.png',
+        ]),
+        captureDiagnosticsByPhotoPath: const {
+          '/tmp/advance-email-top.png': {
+            'captureFlow': 'existing_receipt_photo_import',
+            'existingPhotoImportUsed': true,
+          },
+          '/tmp/advance-email-bottom.png': {
+            'captureFlow': 'existing_receipt_photo_import',
+            'existingPhotoImportUsed': true,
+          },
+        },
+      );
+
+      final attachments = ReceiptCaptureFlow.attachmentsFromReviewResult(
+        result,
+        ReceiptCaptureFlowModule.expenses,
+      );
+
+      expect(attachments, hasLength(2));
+      for (final attachment in attachments) {
+        expect(
+          attachment.documentSignals,
+          contains('native_capture_source_existing_photo_import'),
+        );
+        expect(
+          attachment.documentSignals,
+          contains('receipt_existing_photo_import'),
+        );
+        expect(
+          attachment.documentSignals,
+          contains('native_capture_source_health_available'),
+        );
+      }
+    },
+  );
 }

@@ -64,6 +64,8 @@ extension _ReceiptAttachmentNativeSignalDocuments
     return List.unmodifiable({
       'native_capture_source_health_available',
       'native_capture_source_${attachmentSignalToken(result.nativeCaptureSourcePolicyOutcome)}',
+      if ((counts['existing_photo_import'] ?? 0) > 0)
+        'receipt_existing_photo_import',
       for (final entry in counts.entries)
         'native_capture_source_${attachmentSignalToken(entry.key)}',
     });
