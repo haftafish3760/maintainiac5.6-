@@ -361,7 +361,15 @@ final electricalGeneratedServiceCatalogCategory = _category(
               ])
                 '$gang $part',
           ],
-          aliases: const ['bell box', 'outdoor cover', 'bubble cover'],
+          aliases: const [
+            'bell box',
+            'outdoor cover',
+            'weatherproof cover',
+            'wp cover',
+            'in use cover',
+            'in-use cover',
+            'bubble cover',
+          ],
         ),
       ),
     ]),

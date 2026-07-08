@@ -32,14 +32,19 @@ List<WorkSupplyMarketScope> _resolveWorkSupplyMarketScopes(
 WorkSupplyPackTier _resolveWorkSupplyPackTier(WorkSupplyItem item) {
   if (item.trade == 'Plumbing') return _resolvePlumbingPackTier(item);
   final text = item.searchableText;
-  if (_hasAny(text, _completeTierSignals)) return WorkSupplyPackTier.complete;
   if (item.trade == 'Electrical') {
+    if (_isElectricalLowVoltageCoreCable(text)) return WorkSupplyPackTier.core;
+    if (_isElectricalResidentialDisconnect(item)) {
+      return WorkSupplyPackTier.core;
+    }
     if (_isElectricalCoreItem(item, text)) return WorkSupplyPackTier.core;
     if (_hasAny(text, _electricalProfessionalTierSignals)) {
       return WorkSupplyPackTier.professional;
     }
+    if (_hasAny(text, _completeTierSignals)) return WorkSupplyPackTier.complete;
     return WorkSupplyPackTier.standard;
   }
+  if (_hasAny(text, _completeTierSignals)) return WorkSupplyPackTier.complete;
   if (item.trade == 'HVAC') {
     if (_isHvacCoreItem(item, text)) return WorkSupplyPackTier.core;
     if (_hasAny(text, _hvacProfessionalTierSignals)) {
@@ -98,6 +103,20 @@ WorkSupplyParserPriority _resolveWorkSupplyParserPriority(WorkSupplyItem item) {
   return WorkSupplyParserPriority.common;
 }
 
+bool _isElectricalLowVoltageCoreCable(String text) {
+  return _hasAny(text, ['low voltage cable', 'thermostat wire', 'stat wire']) &&
+      _hasAny(text, ['18/2', '18/4', '18/5', '16/2', '14/2']) &&
+      !text.contains('500 ft');
+}
+
+bool _isElectricalResidentialDisconnect(WorkSupplyItem item) {
+  final text = '${item.name} ${item.variant} ${item.itemType} ${item.system}'
+      .toLowerCase();
+  return _hasAny(text, ['disconnect', 'non-fusible', 'fusible', 'pullout']) &&
+      _hasAny(text, ['30 amp', '60 amp']) &&
+      !_hasAny(text, ['100 amp', '200 amp', 'safety switch']);
+}
+
 bool _isEverydayNonPlumbingCore(WorkSupplyItem item, String text) {
   if (item.trade == 'HVAC' && text.contains('condensate pump')) return true;
   return false;
@@ -106,7 +125,6 @@ bool _isEverydayNonPlumbingCore(WorkSupplyItem item, String text) {
 bool _isElectricalCoreItem(WorkSupplyItem item, String text) {
   final category = item.category.toLowerCase();
   final system = item.system.toLowerCase();
-  if (_hasAny(text, _electricalProfessionalTierSignals)) return false;
   if (category == 'expanded electrical service stock') {
     return _isExpandedElectricalServiceCore(system, text);
   }
@@ -120,12 +138,18 @@ bool _isElectricalCoreItem(WorkSupplyItem item, String text) {
   if (category == 'breakers') {
     return _hasAny(text, _electricalCoreBreakerSignals);
   }
+  if (category == 'panels and service equipment') {
+    return _hasAny(text, _electricalCoreServiceEquipmentSignals);
+  }
   if (category == 'boxes and covers') {
     return _hasAny(text, _electricalCoreBoxSignals);
   }
-  if (category == 'connectors and consumables' ||
-      category == 'grounding and bonding') {
+  if (category == 'connectors and consumables') {
     return _hasAny(text, _electricalCoreConsumableSignals);
+  }
+  if (category == 'grounding and bonding') {
+    return _hasAny(text, _electricalCoreConsumableSignals) ||
+        _hasAny(text, _electricalCoreGroundingSignals);
   }
   if (category == 'conduit and fittings') {
     return _hasAny(text, _electricalCoreRacewaySignals) &&
@@ -141,8 +165,11 @@ bool _isExpandedElectricalServiceCore(String system, String text) {
         !_hasAny(text, _electricalLargeWireSignals);
   }
   if (system == 'expanded breakers and disconnects') {
-    return _hasAny(text, _electricalCoreBreakerSignals) &&
-        !text.contains('safety switch');
+    return (_hasAny(text, _electricalCoreBreakerSignals) ||
+            _hasAny(text, _electricalCoreServiceEquipmentSignals)) &&
+        !text.contains('safety switch') &&
+        !text.contains('100 amp') &&
+        !text.contains('200 amp');
   }
   if (system == 'expanded devices and plates') {
     return _hasAny(text, _electricalCoreDeviceSignals) ||
@@ -154,6 +181,7 @@ bool _isExpandedElectricalServiceCore(String system, String text) {
         !_hasAny(text, _electricalLargeBoxSignals);
   }
   if (system == 'expanded raceway and fittings') {
+    if (_hasAny(text, _electricalCoreServiceEquipmentSignals)) return true;
     if (_hasAny(text, _electricalServiceEntranceSignals)) return false;
     return _hasAny(text, _electricalCoreRacewaySignals) &&
         _hasAny(text, _electricalCoreRacewaySizes);
@@ -200,18 +228,25 @@ List<String> _resolveWorkSupplyAliases(WorkSupplyItem item) {
   final text = item.searchableText;
   final size = item.trade == 'Plumbing'
       ? _resolvePlumbingSize(item, text)
+      : item.trade == 'Electrical'
+      ? _resolveElectricalSize(item, text)
       : _extractSize(text);
   final material = item.trade == 'Plumbing'
       ? _resolvePlumbingMaterial(item, text)
+      : item.trade == 'Electrical'
+      ? _resolveElectricalMaterial(item, text)
       : _firstMatched(text, _materialSignals);
   final shape = item.trade == 'Plumbing'
       ? _resolvePlumbingShape(item, text)
+      : item.trade == 'Electrical'
+      ? _resolveElectricalShape(item, text)
       : _firstMatched(text, _shapeSignals);
   final compactShape = _compactAliasShape(shape);
   return _cleanList([
     ...item.aliases,
     item.name,
     ..._spanishSignalsFor(item, material, size, shape),
+    ..._electricalCoreAliasTermsFor(item, material, size, shape),
     if (item.variant.isNotEmpty) '${item.variant} ${item.itemType}',
     if (size.isNotEmpty || material.isNotEmpty || compactShape.isNotEmpty)
       '$size $material $compactShape',
@@ -241,13 +276,19 @@ WorkSupplyItemIntelligence _resolveWorkSupplyItemIntelligence(
   final text = item.searchableText;
   final material = item.trade == 'Plumbing'
       ? _resolvePlumbingMaterial(item, text)
+      : item.trade == 'Electrical'
+      ? _resolveElectricalMaterial(item, text)
       : _firstMatched(text, _materialSignals);
   final size = item.trade == 'Plumbing'
       ? _resolvePlumbingSize(item, text)
+      : item.trade == 'Electrical'
+      ? _resolveElectricalSize(item, text)
       : _extractSize(text);
   final connectionType = _firstMatched(text, _connectionSignals);
   final shape = item.trade == 'Plumbing'
       ? _resolvePlumbingShape(item, text)
+      : item.trade == 'Electrical'
+      ? _resolveElectricalShape(item, text)
       : _firstMatched(text, _shapeSignals);
   final packQuantity = _extractPackQuantity(text);
   return WorkSupplyItemIntelligence(
@@ -387,7 +428,16 @@ const _coreTierSignals = [
   'washer',
 ];
 
-const _electricalCoreCableSizes = ['14/2', '14/3', '12/2', '12/3', '10/2'];
+const _electricalCoreCableSizes = [
+  '18/2',
+  '18/3',
+  '18/5',
+  '14/2',
+  '14/3',
+  '12/2',
+  '12/3',
+  '10/2',
+];
 
 const _electricalCoreWireSizes = ['14 awg', '12 awg', '10 awg'];
 
@@ -450,6 +500,21 @@ const _electricalCoreBreakerSignals = [
   'afci breaker',
   'dual function breaker',
   'arc fault breaker',
+];
+
+const _electricalCoreServiceEquipmentSignals = [
+  'ac disconnect',
+  'disconnect',
+  'pullout disconnect',
+  'non-fusible ac disconnect',
+  'fusible ac disconnect',
+  'panel cover',
+  'dead front',
+  'panel filler',
+  'filler plate',
+  'neutral ground bar',
+  'ground bar',
+  'neutral bar',
 ];
 
 const _electricalCoreBoxSignals = [
@@ -1262,12 +1327,15 @@ List<String> _receiptPatternsFor(
     for (final seed in seeds.take(5)) ..._vendorStyleReceiptPatterns(seed),
   ];
   return _cleanList([
-    for (final seed in seeds) seed,
-    for (final seed in seeds) seed.toUpperCase().replaceAll(' IN ', 'IN '),
-    ...vendorStyleSeeds,
-    ..._plumbingCoreReceiptPatternsFor(item, material, size, shape),
-    ..._spanishSignalsFor(item, material, size, shape),
-  ]).take(item.trade == 'Plumbing' ? 32 : 16).toList(growable: false);
+        for (final seed in seeds) seed,
+        for (final seed in seeds) seed.toUpperCase().replaceAll(' IN ', 'IN '),
+        ...vendorStyleSeeds,
+        ..._plumbingCoreReceiptPatternsFor(item, material, size, shape),
+        ..._electricalCoreReceiptPatternsFor(item, material, size, shape),
+        ..._spanishSignalsFor(item, material, size, shape),
+      ])
+      .take(item.trade == 'Plumbing' || item.trade == 'Electrical' ? 32 : 16)
+      .toList(growable: false);
 }
 
 List<String> _vendorStyleReceiptPatterns(String value) {
@@ -1313,6 +1381,8 @@ List<String> _attributeTokensFor(
 ) {
   final shape = item.trade == 'Plumbing'
       ? _resolvePlumbingShape(item, item.searchableText)
+      : item.trade == 'Electrical'
+      ? _resolveElectricalShape(item, item.searchableText)
       : _firstMatched(item.searchableText, _shapeSignals);
   return _cleanList([
     item.trade,
@@ -1325,6 +1395,7 @@ List<String> _attributeTokensFor(
     connectionType,
     ...item.aliases,
     ..._plumbingCoreAttributeTokensFor(item, material, size, shape),
+    ..._electricalCoreAttributeTokensFor(item, material, size, shape),
     ..._spanishSignalsFor(item, material, size, shape),
   ]);
 }
@@ -1415,6 +1486,7 @@ List<String> _negativeMatchTokensFor(
     if (shape.isNotEmpty && material.toLowerCase() != 'pex') 'PEX crimp $shape',
     if (shape.isNotEmpty && material.toLowerCase() != 'pvc') 'PVC DWV $shape',
     ..._plumbingCoreNegativeMatchTokensFor(item, material, shape, text),
+    ..._electricalCoreNegativeMatchTokensFor(item, material, shape, text),
     ..._riskConflictNegativeMatchTokensFor(item, text),
   ]);
 }
@@ -1441,6 +1513,13 @@ List<String> _highImportanceTokensFor(
     if (_containsWord(text, 'pvc')) item.system,
     if (_containsWord(text, 'pipe')) item.system,
     ..._plumbingCoreHighImportanceTokensFor(
+      item,
+      material,
+      size,
+      connectionType,
+      shape,
+    ),
+    ..._electricalCoreHighImportanceTokensFor(
       item,
       material,
       size,
@@ -1886,6 +1965,9 @@ bool _needsManualReview(
 ) {
   if (item.trade == 'Plumbing') {
     return _plumbingNeedsManualReview(item, material, size, shape);
+  }
+  if (item.trade == 'Electrical') {
+    return _electricalNeedsManualReview(item, material, size, shape);
   }
   final text = item.searchableText;
   return material.isEmpty ||

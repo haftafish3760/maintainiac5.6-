@@ -45,20 +45,31 @@ const receiptTermAliases = {
   'breaker': ['brkr', 'breaker', 'circuit breaker'],
   'single-pole breaker': ['single pole brkr', '1 pole breaker', '1p breaker'],
   'double-pole breaker': ['double pole brkr', '2 pole breaker', '2p breaker'],
-  'receptacle': ['recept', 'receptacle', 'outlet', 'wall socket'],
-  'duplex receptacle': ['duplex receptacle', 'duplex outlet'],
+  'receptacle': ['recept', 'recpt', 'receptacle', 'outlet', 'wall socket'],
+  'duplex receptacle': [
+    'duplex receptacle',
+    'duplex recept',
+    'duplex recpt',
+    'duplex outlet',
+  ],
+  'weather resistant': ['weather resistant', 'wr'],
+  'tamper resistant': ['tamper resistant', 'tr'],
   'emt conduit': ['emt conduit', 'emt pipe', 'thinwall', 'thin wall'],
   'pvc conduit': ['pvc cond', 'pvc conduit', 'pvc electrical conduit'],
   'emt connector': ['emt conn', 'set screw conn', 'set screw connector'],
   'emt coupling': ['emt coup', 'emt cplg', 'set screw coupling'],
   'conduit body': ['lb body', 'll body', 'lr body', 't body', 'c body'],
   'conduit body cover': ['body cover', 'lb cover', 'cover and gasket'],
+  'weatherproof cover': ['weatherproof cover', 'wp cover', 'outdoor cover'],
+  'in-use cover': ['in use cover', 'in-use cover', 'bubble cover'],
   'conduit strap': ['one hole strap', 'two hole strap', 'mini strap'],
   'conduit hanger': ['conduit hanger', 'minerallac', 'beam clamp'],
   'wire connector': ['wire nut', 'wire nuts', 'wirenut'],
   'smart dimmer': ['smart dimmer', 'wifi dimmer', 'wi-fi dimmer'],
   'motion switch': ['motion switch', 'occupancy sensor', 'vacancy sensor'],
   'timer switch': ['timer switch', 'countdown timer'],
+  '3-way switch': ['3 way switch', '3-way switch', 'three way switch'],
+  'single-pole switch': ['single pole switch', '1p switch', '1 pole switch'],
   'smoke alarm': ['smoke alarm', 'smoke detector', 'smoke det'],
   'carbon monoxide alarm': ['co alarm', 'carbon monoxide alarm', 'co det'],
   'doorbell transformer': ['doorbell transformer', 'bell transformer'],
@@ -83,7 +94,16 @@ const receiptTermAliases = {
   'mfd': ['mfd', 'uf', 'microfarad'],
   'contactor': ['contactor', 'compressor contactor'],
   'thermostat': ['thermostat', 't stat', 't-stat', 'stat'],
-  'thermostat wire': ['thermostat wire', 'stat wire', 'low voltage wire'],
+  'thermostat wire': [
+    'thermostat wire',
+    'stat wire',
+    'tstat wire',
+    't-stat wire',
+    'low volt stat wire',
+    'low voltage wire',
+    'low volt wire',
+    'lv wire',
+  ],
   'pleated filter': ['pleated filter', 'furnace filter', 'ac filter'],
   'filter rack': ['filter rack', 'filter base', 'air filter rack'],
   'return filter grille': [
@@ -919,6 +939,8 @@ String _normalize(String value) {
         (match) => '${match.group(1)}/${match.group(2)}',
       )
       .replaceAll(RegExp(r'\bnm\s*-?\s*b\b'), 'nm-b')
+      .replaceAll(RegExp(r'\blow\s+volt\b'), 'low voltage')
+      .replaceAll(RegExp(r'\blv\s+wire\b'), 'low voltage wire')
       .replaceAll(RegExp(r'\bsch\s*40\b'), 'schedule 40')
       .replaceAll(RegExp(r'\bsched\s*40\b'), 'schedule 40')
       .replaceAll(RegExp(r'\bs\s*40\b'), 'schedule 40')

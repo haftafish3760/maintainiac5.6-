@@ -728,6 +728,73 @@ WorkSupplyItem? _directElectricalServiceRepairMatch(
   return null;
 }
 
+WorkSupplyItem? _directElectricalLowVoltageCableMatch(
+  String text, {
+  String? tradeScope,
+}) {
+  if (tradeScope != null &&
+      tradeScope.trim().isNotEmpty &&
+      tradeScope.trim().toLowerCase() != 'electrical') {
+    return null;
+  }
+  if (!RegExp(
+    r'\b(low voltage|low volt|lv|stat wire|thermostat wire|control wire|doorbell wire)\b',
+  ).hasMatch(text)) {
+    return null;
+  }
+  final size = RegExp(
+    r'\b(18/2|18/4|18/5|18/7|16/2|14/2)\b',
+  ).firstMatch(text)?.group(1);
+  for (final item in workSupplyCatalogItems) {
+    final name = item.name.toLowerCase();
+    if (item.trade != 'Electrical' || !name.contains('low voltage cable')) {
+      continue;
+    }
+    if (size == null || name.startsWith('$size x ')) return item;
+  }
+  return null;
+}
+
+WorkSupplyItem? _directElectricalDeviceMatch(
+  String text, {
+  String? tradeScope,
+}) {
+  if (tradeScope != null &&
+      tradeScope.trim().isNotEmpty &&
+      tradeScope.trim().toLowerCase() != 'electrical') {
+    return null;
+  }
+  final wantedName = switch (text) {
+    final value
+        when RegExp(r'\b(gfci|gfi|ground fault)\b').hasMatch(value) &&
+            RegExp(r'\b(recpt|recept|receptacle|outlet)\b').hasMatch(value) =>
+      'gfci outlet',
+    final value
+        when RegExp(r'\b(duplex)\b').hasMatch(value) &&
+            RegExp(r'\b(recpt|recept|receptacle|outlet)\b').hasMatch(value) =>
+      'duplex receptacle',
+    final value
+        when RegExp(r'\b(dimmer|dimr)\b').hasMatch(value) &&
+            RegExp(r'\b(switch|sw)\b').hasMatch(value) =>
+      'dimmer switch',
+    final value
+        when RegExp(r'\b(3\s*way|3-way|three way)\b').hasMatch(value) &&
+            RegExp(r'\b(switch|sw)\b').hasMatch(value) =>
+      '3-way toggle switch',
+    final value
+        when RegExp(r'\b(single pole|1p)\b').hasMatch(value) &&
+            RegExp(r'\b(switch|sw)\b').hasMatch(value) =>
+      'single pole toggle switch',
+    _ => null,
+  };
+  if (wantedName == null) return null;
+  for (final item in workSupplyCatalogItems) {
+    final name = item.name.toLowerCase();
+    if (item.trade == 'Electrical' && name.contains(wantedName)) return item;
+  }
+  return null;
+}
+
 WorkSupplyItem? _directElectricalRacewayMatch(
   String text, {
   String? tradeScope,
@@ -739,13 +806,28 @@ WorkSupplyItem? _directElectricalRacewayMatch(
   }
   final isPvcConduit =
       RegExp(r'\bpvc\b').hasMatch(text) &&
-      RegExp(r'\b(cond|conduit)\b').hasMatch(text);
+      RegExp(r'\b(cond|conduit|elec|electrical)\b').hasMatch(text);
   if (!isPvcConduit) return null;
+  final wantedName = switch (text) {
+    final value when RegExp(r'\b(90|ell|elbow)\b').hasMatch(value) =>
+      'pvc electrical 90 elbow',
+    final value when RegExp(r'\b(cpl|cplg|coupling)\b').hasMatch(value) =>
+      'pvc electrical coupling',
+    final value
+        when RegExp(
+          r'\b(male|mip|terminal adapter|male adapter)\b',
+        ).hasMatch(value) =>
+      'pvc electrical male adapter',
+    final value
+        when RegExp(r'\b(female|fip|female adapter)\b').hasMatch(value) =>
+      'pvc electrical female adapter',
+    _ => 'pvc electrical conduit',
+  };
   final size = _nominalReceiptSize(text);
   for (final item in workSupplyCatalogItems) {
     final name = item.name.toLowerCase();
     if (item.trade == 'Electrical' &&
-        name.contains('pvc electrical conduit') &&
+        name.contains(wantedName) &&
         _nameMatchesReceiptSize(name, size)) {
       return item;
     }
@@ -952,17 +1034,6 @@ WorkSupplyItem? _directElectricalProfessionalMatch(
     }
   }
 
-  final wantsGroundRod =
-      RegExp(r'\b(grd|ground|grounding|tierra)\b').hasMatch(text) &&
-      RegExp(r'\b(rod|varilla)\b').hasMatch(text);
-  if (wantsGroundRod) {
-    for (final item in workSupplyCatalogItems) {
-      if (nameHas(item, 'ground rod') && !nameHas(item, 'clamp')) {
-        return item;
-      }
-    }
-  }
-
   final wantsGroundClamp =
       RegExp(r'\b(ground|grounding|tierra)\b').hasMatch(text) &&
       RegExp(r'\b(clamp|abrazadera)\b').hasMatch(text);
@@ -972,6 +1043,17 @@ WorkSupplyItem? _directElectricalProfessionalMatch(
       if (item.trade == 'Electrical' &&
           name.contains('ground') &&
           name.contains('clamp')) {
+        return item;
+      }
+    }
+  }
+
+  final wantsGroundRod =
+      RegExp(r'\b(grd|ground|grounding|tierra)\b').hasMatch(text) &&
+      RegExp(r'\b(rod|varilla)\b').hasMatch(text);
+  if (wantsGroundRod) {
+    for (final item in workSupplyCatalogItems) {
+      if (nameHas(item, 'ground rod') && !nameHas(item, 'clamp')) {
         return item;
       }
     }
@@ -1454,6 +1536,16 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     tradeScope: tradeScope,
   );
   if (electricalConsumable != null) return electricalConsumable;
+  final electricalLowVoltageCable = _directElectricalLowVoltageCableMatch(
+    text,
+    tradeScope: tradeScope,
+  );
+  if (electricalLowVoltageCable != null) return electricalLowVoltageCable;
+  final electricalDevice = _directElectricalDeviceMatch(
+    text,
+    tradeScope: tradeScope,
+  );
+  if (electricalDevice != null) return electricalDevice;
   final electricalProfessional = _directElectricalProfessionalMatch(
     text,
     tradeScope: tradeScope,
