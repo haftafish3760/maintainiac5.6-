@@ -80,7 +80,7 @@ void main() {
     expect(
       source,
       contains(
-        "--name 'delayed overlap|stronger handheld rotation|rough handheld rotation|combined scale rotation and drift|mixed handheld transforms|output dimensions|output pixel cap|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|cumulative horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|wrinkled receipt sections|crops delayed-overlap top strip|continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order|boilerplate footer bands'",
+        "--name 'delayed overlap|stronger handheld rotation|rough handheld rotation|combined scale rotation and drift|mixed handheld transforms|output dimensions|output pixel cap|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|cumulative horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|wrinkled receipt sections|multi-section wrinkled long receipt|crops delayed-overlap top strip|continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order|boilerplate footer bands'",
       ),
     );
     expect(source, contains('receipt_stitching_size_cap_test.dart'));
