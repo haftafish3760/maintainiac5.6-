@@ -3510,11 +3510,12 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(
-    r'\b(earthquake strap|seismic strap|water htr strap)\b',
+    r'\b(earthquake strap|seismic strap|water htr strap|wtr htr strap|heater strap|restraint strap)\b',
   ).hasMatch(text)) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
-      if (item.trade == 'Plumbing' && name.contains('earthquake strap')) {
+      if (item.trade == 'Plumbing' &&
+          name.contains('water heater restraint strap')) {
         return item;
       }
     }

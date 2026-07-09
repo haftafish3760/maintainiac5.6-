@@ -128,6 +128,16 @@ void main() {
     },
   );
 
+  test(
+    'plumbing core routes shorthand water-heater strap lines away from generic pipe straps',
+    () {
+      _expectGoodPlumbingCore('MENARDS UNIVERSAL WTR HTR STRAP 62.27', [
+        'water heater',
+        'strap',
+      ]);
+    },
+  );
+
   test('plumbing core handles mixed Spanish dirty service receipts', () {
     _expectGoodPlumbingCore('FERG 1/2 CODO COBRE 90 CXC', [
       'copper',

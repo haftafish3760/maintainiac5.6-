@@ -93,10 +93,11 @@ List<Map<String, Object?>> _buildCases({
   required _GeneratorOptions options,
   required List<WorkSupplyFixtureRecipe> recipes,
 }) {
+  final orderedRecipes = _prioritizeRecipesForLimitedBatch(recipes);
   final cases = <Map<String, Object?>>[];
   var index = 0;
   while (cases.length < options.limit) {
-    final recipe = recipes[index % recipes.length];
+    final recipe = orderedRecipes[index % orderedRecipes.length];
     final merchant = _merchants[index % _merchants.length];
     final pattern = recipe.patterns[index % recipe.patterns.length];
     final rawLine = '${merchant.prefix} $pattern ${_priceSuffix(index)}'.trim();
@@ -159,6 +160,45 @@ List<Map<String, Object?>> _buildCases({
   return cases;
 }
 
+List<WorkSupplyFixtureRecipe> _prioritizeRecipesForLimitedBatch(
+  List<WorkSupplyFixtureRecipe> recipes,
+) {
+  if (recipes.length < 2) return recipes;
+
+  const preferredCaseTypes = [
+    'ambiguous_review',
+    'receipt_noise',
+    'dangerous_generic',
+    'negative_match',
+    'quantity_price',
+    'clear_match',
+  ];
+
+  final prioritized = <WorkSupplyFixtureRecipe>[];
+  final seen = <String>{};
+
+  void addRecipe(WorkSupplyFixtureRecipe recipe) {
+    final key =
+        '${recipe.slug}|${recipe.caseType}|${recipe.patterns.join('|')}';
+    if (!seen.add(key)) return;
+    prioritized.add(recipe);
+  }
+
+  for (final caseType in preferredCaseTypes) {
+    for (final recipe in recipes) {
+      if (recipe.caseType != caseType) continue;
+      addRecipe(recipe);
+      break;
+    }
+  }
+
+  for (final recipe in recipes) {
+    addRecipe(recipe);
+  }
+
+  return prioritized;
+}
+
 _SyntheticReceiptEnvelope _receiptEnvelopeFor({
   required int index,
   required _MerchantShape merchant,
@@ -175,7 +215,10 @@ _SyntheticReceiptEnvelope _receiptEnvelopeFor({
   final tax = _money(taxable * 0.053);
   final total = _money(taxable + tax);
   final quantityLine = 'QTY $quantity @ ${unitPrice.toStringAsFixed(2)}';
-  final pricedItemLine = '$itemLine ${extended.toStringAsFixed(2)}';
+  // `itemLine` already carries the compact receipt-line price signal from the
+  // generator. Do not append a second amount here or the parser gets fed
+  // unrealistic double-priced item lines like `TEE 4.44 13.45`.
+  final pricedItemLine = itemLine;
   final noiseLines = [
     merchant.name.toUpperCase(),
     'STORE ${1000 + (index % 899)}  REG $register  CASHIER $cashier',

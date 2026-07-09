@@ -77,6 +77,13 @@ void main() {
         fixtures.first['riskTags'].toString(),
         contains('full_receipt_envelope'),
       );
+      expect(
+        fixtures.first['receiptItemLines'].toString(),
+        isNot(contains(RegExp(r'\d+\.\d{2}\s+\d+\.\d{2}'))),
+        reason:
+            'Generated receipt item lines should carry one item-line amount, '
+            'not a duplicated synthetic price suffix.',
+      );
       final ambiguous = fixtures.cast<Map>().firstWhere(
         (entry) => entry['caseType'] == 'ambiguous_review',
       );
@@ -160,6 +167,61 @@ void main() {
         }),
       );
       expect(tags, contains('supply_house'));
+    },
+  );
+
+  test(
+    'fixture generator front-loads review coverage into limited core batches',
+    () async {
+      final output = await Directory.systemTemp.createTemp(
+        'maintainiac_fixture_generator_review_coverage_',
+      );
+      addTearDown(() => output.delete(recursive: true));
+
+      final exit = await runWorkSupplyParserFixtureGenerator(
+        [
+          '--trade',
+          'plumbing',
+          '--scope',
+          'residential',
+          '--tier',
+          'core',
+          '--locale',
+          'en-US',
+          '--limit',
+          '100',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 0);
+      final generatedRoot = Directory(
+        '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
+      );
+      final fixtures =
+          jsonDecode(
+                File(
+                  '${generatedRoot.path}/generated_fixtures.json',
+                ).readAsStringSync(),
+              )
+              as List;
+      final manifest =
+          jsonDecode(
+                File('${generatedRoot.path}/manifest.json').readAsStringSync(),
+              )
+              as Map;
+
+      final caseTypes = (manifest['caseTypes'] as List)
+          .map((entry) => entry.toString())
+          .toSet();
+      expect(caseTypes, contains('ambiguous_review'));
+      expect(
+        fixtures.any((entry) => entry['caseType'] == 'ambiguous_review'),
+        isTrue,
+      );
     },
   );
 

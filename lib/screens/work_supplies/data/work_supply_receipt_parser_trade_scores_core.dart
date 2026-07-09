@@ -881,7 +881,7 @@ int _plumbingReceiptScore(
     r'\b(toilet wax|wax ring|fill valve|flush valve|flapper|tank lever|tank bolt|toilet flange|flange repair)\b',
   ).hasMatch(text);
   final receiptSaysWaterHeaterPart = RegExp(
-    r'\b(water heater|relief valve|t p valve|t and p valve|temperature pressure|drain valve|dielectric nipple|anode|anode rod|heating element|water heater element|thermostat)\b',
+    r'\b(water heater|wtr htr|heater strap|restraint strap|seismic strap|earthquake strap|relief valve|t p valve|t and p valve|temperature pressure|drain valve|dielectric nipple|anode|anode rod|heating element|water heater element|thermostat)\b',
   ).hasMatch(text);
   final receiptSaysSupplyLine = RegExp(
     r'\b(supply line|faucet connector|toilet connector|closet line|lav supply|braided line|dishwasher line|icemaker line|washer hose)\b',
@@ -1269,6 +1269,21 @@ int _plumbingReceiptScore(
     }
     if (text.contains('dielectric') && itemName.contains('dielectric')) {
       score += 48;
+    }
+    if (RegExp(
+          r'\b(heater strap|restraint strap|seismic strap|earthquake strap|wtr htr strap)\b',
+        ).hasMatch(text)) {
+      if (itemName.contains('water heater restraint strap') ||
+          item.aliases.any(
+            (alias) => _normalize(alias).contains('heater strap'),
+          ) ||
+          item.aliases.any(
+            (alias) => _normalize(alias).contains('restraint strap'),
+          )) {
+        score += 140;
+      } else if (itemName.contains('pipe strap')) {
+        score -= 72;
+      }
     }
   }
   if (receiptSaysPumpPart && isPumpItem) {

@@ -62,7 +62,17 @@ final plumbingWaterHeaterCategory = _category('Water Heater', [
         'Water Heater Restraint Strap',
         'kit',
         ['18 in', '24 in', 'universal'],
-        ['seismic strap', 'heater strap'],
+        [
+          'seismic strap',
+          'heater strap',
+          'water heater strap',
+          'restraint strap',
+          'earthquake strap',
+          'wtr htr strap',
+          'wtr htr restraint strap',
+          'universal water heater strap',
+          'universal wtr htr strap',
+        ],
       ),
     ),
     _type(
