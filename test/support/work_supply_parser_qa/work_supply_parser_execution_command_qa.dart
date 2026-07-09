@@ -42,6 +42,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       'tool/work_supply_parser_qa_peh_core_status_rollup.dart';
   static const _pehCoreMacWaveCommandsPath =
       'tool/work_supply_parser_qa_peh_core_mac_wave_commands.dart';
+  static const _pehCoreHandoffReadinessPath =
+      'tool/work_supply_parser_qa_peh_core_handoff_readiness.dart';
 
   static const _environmentVariables = [
     'PARSER_QA_STRICT',
@@ -269,6 +271,15 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       '--output',
       'build/parser_qa_pipeline/peh_core_mac_wave_commands.json',
     ]),
+    _CommandContract('peh_core_handoff_readiness', [
+      'dart run tool/work_supply_parser_qa_peh_core_handoff_readiness.dart',
+      '--windows-status',
+      'build/parser_qa_pipeline/peh_core_windows_status_rollup.json',
+      '--mac-wave',
+      'build/parser_qa_pipeline/peh_core_mac_wave_commands.json',
+      '--output',
+      'build/parser_qa_pipeline/peh_core_handoff_readiness.json',
+    ]),
   ];
 
   static const _toolSourceContracts = [
@@ -360,6 +371,21 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'mac_peh_core_measurement_',
         'work_supply_parser_qa_run_generated_fixtures.dart',
         'work_supply_parser_qa_generated_run_status.dart',
+      ],
+    ),
+    _ToolSourceContract(
+      name: 'peh_core_handoff_readiness_readout',
+      path: _pehCoreHandoffReadinessPath,
+      tokens: [
+        'QA_PEH_CORE_HANDOFF_READINESS',
+        'QA_PEH_CORE_HANDOFF_READINESS_ARTIFACT',
+        'handoffReady',
+        'readyForMacMeasurementWave',
+        'readyToClaimNinetyPlus',
+        'measurementCommandCount',
+        'rollupCommandCount',
+        'blockingFindings',
+        'nextActions',
       ],
     ),
     _ToolSourceContract(
@@ -700,6 +726,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       _generatedRunStatusPath: _read(_generatedRunStatusPath, failures),
       _pehCoreStatusRollupPath: _read(_pehCoreStatusRollupPath, failures),
       _pehCoreMacWaveCommandsPath: _read(_pehCoreMacWaveCommandsPath, failures),
+      _pehCoreHandoffReadinessPath: _read(_pehCoreHandoffReadinessPath, failures),
     };
     checked += _toolSourceContracts.length;
     for (final contract in _toolSourceContracts) {

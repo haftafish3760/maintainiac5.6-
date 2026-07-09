@@ -4481,3 +4481,17 @@ Release boundaries:
   test/work_supply_parser_qa_peh_core_mac_wave_commands_test.dart --reporter compact`
   passed `3/3`, and focused `inventory.execution_command_contract,qa.threshold_gate`
   passed with `111` checks and `0` failures.
+- **15:29 Harness Pass 5186:** Added
+  `tool/work_supply_parser_qa_peh_core_handoff_readiness.dart` plus focused
+  tests so the current Windows PEH checkpoint artifact and the exact next
+  Mac-wave command artifact can be validated together before handoff. Generated
+  `build/parser_qa_pipeline/peh_core_handoff_readiness.json`, which reports
+  `handoffReady=true`, `readyForMacMeasurementWave=true`,
+  `readyToClaimNinetyPlus=false`, `tradeCount=3`,
+  `measurementCommandCount=4`, `rollupCommandCount=2`, and one explicit next
+  action to keep the branch below a `90-95%` claim until Electrical and HVAC
+  clear their broader Mac wave. Verification: targeted `dart analyze` passed
+  for the new tool/test and the execution-command contract file, `flutter test
+  test/work_supply_parser_qa_peh_core_handoff_readiness_test.dart --reporter compact`
+  passed `2/2`, and focused `inventory.execution_command_contract,qa.threshold_gate`
+  passed with `113` checks and `0` failures.
