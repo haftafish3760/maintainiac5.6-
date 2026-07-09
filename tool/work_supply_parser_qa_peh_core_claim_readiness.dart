@@ -62,8 +62,9 @@ int runWorkSupplyParserQaPehCoreClaimReadiness(
           .whereType<Map>()
           .map((entry) => entry.cast<String, Object?>())
           .toList();
-  final plumbing =
-      windowsTrades.where((trade) => trade['trade'] == 'plumbing').firstOrNull;
+  Map<String, Object?>? windowsTrade(String tradeName) =>
+      windowsTrades.where((trade) => trade['trade'] == tradeName).firstOrNull;
+  final plumbing = windowsTrade('plumbing');
   if (plumbing == null) {
     blockingFindings.add('missing_plumbing_windows_trade');
   }
@@ -73,9 +74,8 @@ int runWorkSupplyParserQaPehCoreClaimReadiness(
           .whereType<Map>()
           .map((entry) => entry.cast<String, Object?>())
           .toList();
-  final electrical =
-      macTrades.where((trade) => trade['trade'] == 'electrical').firstOrNull;
-  final hvac = macTrades.where((trade) => trade['trade'] == 'hvac').firstOrNull;
+  Map<String, Object?>? macTrade(String tradeName) =>
+      macTrades.where((trade) => trade['trade'] == tradeName).firstOrNull;
 
   final tradeClaims = <Map<String, Object?>>[];
 
@@ -125,11 +125,23 @@ int runWorkSupplyParserQaPehCoreClaimReadiness(
     return ready;
   }
 
-  final plumbingReady = addWindowsTradeClaim('plumbing', plumbing);
-  final electricalReady = addMacTradeClaim('electrical', electrical);
-  final hvacReady = addMacTradeClaim('hvac', hvac);
+  bool addPreferredTradeClaim(String tradeName) {
+    final windowsTradeStatus = windowsTrade(tradeName);
+    if (windowsTradeStatus != null &&
+        windowsTradeStatus['readyToClaimNinetyPlus'] == true) {
+      return addWindowsTradeClaim(tradeName, windowsTradeStatus);
+    }
+    return addMacTradeClaim(tradeName, macTrade(tradeName));
+  }
 
-  if (macWaveStatus['readyToMergeIntoClaim'] != true) {
+  final plumbingReady = addWindowsTradeClaim('plumbing', plumbing);
+  final electricalReady = addPreferredTradeClaim('electrical');
+  final hvacReady = addPreferredTradeClaim('hvac');
+
+  final usesMacWave = tradeClaims.any(
+    (claim) => claim['source'] == 'mac_wave_status',
+  );
+  if (usesMacWave && macWaveStatus['readyToMergeIntoClaim'] != true) {
     blockingFindings.add('mac_wave_not_merge_ready');
     nextActions.add(
       'Do not claim PEH 90-95 percent readiness until peh_core_mac_wave_status.json reports readyToMergeIntoClaim=true.',
@@ -140,7 +152,7 @@ int runWorkSupplyParserQaPehCoreClaimReadiness(
       plumbingReady &&
       electricalReady &&
       hvacReady &&
-      macWaveStatus['readyToMergeIntoClaim'] == true;
+      (!usesMacWave || macWaveStatus['readyToMergeIntoClaim'] == true);
 
   final summary = {
     'schemaVersion': 1,

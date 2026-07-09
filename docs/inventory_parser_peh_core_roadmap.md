@@ -72,11 +72,12 @@ Generated from the current Windows-side evidence on 2026-07-09.
   - `1902` Core rows
   - `1902` release-ready rows
   - readiness audit currently reports `readyForMacValidation=true`
-  - focused Windows generated evidence now includes a clean `en-US`
-    `25/25` checkpoint at `1.0000` pass rate from
-    `windows_electrical_core_en_us_generated_run_status_25.json`
-  - next required Windows evidence is the matching `es-US` measured layer, then
-    the broader trade rollup, not another broad catalog rewrite
+  - focused Windows generated evidence now includes clean `en-US` and `es-US`
+    checkpoints at `25/25` each and an aggregate
+    `windows_electrical_core_generated_run_status_50.json` rollup at
+    `50/50`, `0` failures, `1.0000` pass rate, and `88` parser calls
+  - Electrical is no longer the active PEH gap on this branch; HVAC is the
+    only remaining measured-coverage gap
 - HVAC Core
   - `2695` Core rows
   - `2695` release-ready rows
@@ -134,12 +135,11 @@ order unless a shared parser rule blocks the active step.
 1. Use the existing Electrical release-ready catalog and metadata baseline.
 2. Preserve the clean Windows `en-US` focused checkpoint at `25/25` checked,
    `0` failures, `1.0000` pass rate, and `44` parser calls.
-3. Expand measured generated evidence from the current `12`-case sample plus
-   the new `en-US` checkpoint toward the `50`-checked target.
-4. Finish the matching `es-US` focused checkpoint before widening Electrical
-   again.
-5. Fix only real parser/metadata misses surfaced by the generated-fixture wave.
-6. Refresh the branch rollup and measurement-gap artifacts after each accepted
+3. Preserve the matching clean Windows `es-US` focused checkpoint at `25/25`
+   checked, `0` failures, `1.0000` pass rate, and `44` parser calls.
+4. Preserve the Electrical Windows trade rollup at `50/50` checked with local
+   safety flags clean.
+5. Refresh the branch rollup and measurement-gap artifacts after each accepted
    evidence increase.
 
 ### Stage 4: HVAC measured expansion

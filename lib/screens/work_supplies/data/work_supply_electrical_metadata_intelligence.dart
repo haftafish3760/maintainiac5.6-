@@ -287,7 +287,14 @@ List<String> _electricalSpanishCoreFamilyTermsFor(
   if (text.contains('breaker')) return const ['interruptor termico'];
   if (text.contains('box')) return const ['caja electrica'];
   if (text.contains('plate') || text.contains('cover')) {
-    return const ['placa electrica', 'cubierta electrica'];
+    return const [
+      'placa electrica',
+      'cubierta electrica',
+      'placa',
+      'placa decora',
+      'placa decorador',
+      'placa cubierta',
+    ];
   }
   if (text.contains('conduit') || text.contains('emt')) {
     return const ['conducto electrico', 'tubo electrico'];

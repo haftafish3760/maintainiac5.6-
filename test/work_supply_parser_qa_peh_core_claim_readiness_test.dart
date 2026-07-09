@@ -68,6 +68,74 @@ void main() {
     expect(stdout.content, contains('QA_PEH_CORE_CLAIM_READINESS'));
   });
 
+  test('PEH claim readiness prefers Windows trade proof before Mac fallback', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_peh_claim_windows_preferred_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+
+    _writeJson('build/parser_qa_pipeline/windows.json', {
+      'trades': [
+        {
+          'trade': 'plumbing',
+          'checkedTotal': 100,
+          'failureCount': 0,
+          'passRate': 1.0,
+          'readyToClaimNinetyPlus': true,
+        },
+        {
+          'trade': 'electrical',
+          'checkedTotal': 50,
+          'failureCount': 0,
+          'passRate': 1.0,
+          'readyToClaimNinetyPlus': true,
+        },
+      ],
+    });
+    _writeJson('build/parser_qa_pipeline/mac_wave_status.json', {
+      'readyToMergeIntoClaim': true,
+      'tradeStatuses': [
+        {
+          'trade': 'electrical',
+          'checkedTotal': 0,
+          'failureCount': 0,
+          'passRate': 0.0,
+          'readyToMerge': false,
+        },
+        {
+          'trade': 'hvac',
+          'checkedTotal': 50,
+          'failureCount': 0,
+          'passRate': 1.0,
+          'readyToMerge': true,
+        },
+      ],
+    });
+
+    final exit = runWorkSupplyParserQaPehCoreClaimReadiness(
+      const [
+        '--windows-status',
+        'build/parser_qa_pipeline/windows.json',
+        '--mac-wave-status',
+        'build/parser_qa_pipeline/mac_wave_status.json',
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final summary = _readJson(
+      'build/parser_qa_pipeline/peh_core_claim_readiness.json',
+    );
+    expect(summary['readyToClaimNinetyPlus'], isTrue);
+    expect(summary['blockingFindings'], isEmpty);
+    expect(summary['tradeClaims'].toString(), contains('windows_rollup'));
+    expect(summary['tradeClaims'].toString(), contains('mac_wave_status'));
+  });
+
   test('PEH claim readiness blocks missing or incomplete trade evidence', () {
     final root = Directory.systemTemp.createTempSync(
       'maintainiac_peh_claim_blocked_',

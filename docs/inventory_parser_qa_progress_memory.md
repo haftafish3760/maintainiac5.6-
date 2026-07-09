@@ -4650,6 +4650,34 @@ Release boundaries:
   checkpoint `windows_electrical_core_en_us_generated_run_status_25.json`
   now records `25/25` checked, `0` failures, `1.0000` pass rate, `44`
   parser calls, and local-only safety flags all false.
+- **19:35 Harness Pass 5230:** Finished the matching Electrical `es-US`
+  checkpoint and removed the branch's artificial Mac-only choke point for PEH
+  claim readiness. The initial focused `es-US` `25`-case run came back at
+  `25/25` checked with `2` misses at `0.9200` pass rate, both for Spanish
+  `PLACA DECORA` wall-plate wording. Fixed the Spanish branch by expanding the
+  wall-plate trigger in
+  `lib/screens/work_supplies/data/work_supply_receipt_parser_trade_scores_core.dart`
+  to recognize `placa`, `placa decora`, `placa decorador`, and
+  `cubierta electrica`, and by expanding Electrical metadata translation hints
+  in `lib/screens/work_supplies/data/work_supply_electrical_metadata_intelligence.dart`.
+  Added the direct regression
+  `electrical parser understands Spanish decora wall plate wording`, reran the
+  two failing generated fixture ids clean, and then reran the full focused
+  `es-US` checkpoint clean at `25/25`, `0` failures, `1.0000` pass rate, and
+  `44` parser calls. Rolled both Electrical locales into
+  `windows_electrical_core_generated_run_status_50.json`, which now records
+  `50/50` checked, `0` failures, `1.0000` pass rate, `88` parser calls, and
+  local-only safety flags all false. Refreshed
+  `peh_core_windows_status_rollup.json` and `peh_core_measurement_gap.json`,
+  which now show Electrical fully clear and HVAC as the only remaining PEH
+  coverage gap at `38` remaining checked cases. Also updated
+  `tool/work_supply_parser_qa_peh_core_claim_readiness.dart` so Electrical/HVAC
+  can claim from Windows evidence when a trade is already measured-ready there,
+  with Mac used only as fallback proof for not-yet-ready trades. Verification:
+  targeted `flutter test test/work_supply_parser_qa_peh_core_claim_readiness_test.dart
+  --reporter compact` passed; the live `peh_core_claim_readiness.json` now
+  reports Plumbing and Electrical ready from `windows_rollup` and only HVAC
+  still blocking the branch-level `90-95%` claim.
 - **13:18 Harness Pass 5223:** Added
   `tool/work_supply_parser_qa_peh_core_mac_handoff_script.dart` plus focused
   tests so the machine-readable Mac packet can be rendered into one runnable
