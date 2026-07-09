@@ -149,20 +149,61 @@ List<String> _receiptRetakeInvalidGuidanceCodes({
   required bool hasRetakeMetadata,
   required int? originalSection,
   required String guidance,
+  required Map<String, Object?> diagnostics,
 }) {
   if (!hasRetakeMetadata || guidance == 'unknown') return const [];
   if (originalSection == null) return const [];
+  final hasPrevious = _diagnosticBool(
+    diagnostics['receiptRetakeHasPreviousAlignmentContext'],
+  );
+  final hasNext = _diagnosticBool(
+    diagnostics['receiptRetakeHasNextAlignmentContext'],
+  );
+  final hasTwoSided = _diagnosticBool(
+    diagnostics['receiptRetakeHasTwoSidedAlignmentContext'],
+  );
+  final codes = <String>[];
   if (originalSection <= 1 &&
       guidance != 'retake_top_with_next_context' &&
       guidance != 'retake_single_section_no_context') {
-    return const ['retake_invalid_guidance_for_top_section'];
+    codes.add('retake_invalid_guidance_for_top_section');
   }
   if (originalSection > 1 &&
       (guidance == 'retake_top_with_next_context' ||
           guidance == 'retake_single_section_no_context')) {
-    return const ['retake_invalid_top_guidance_for_later_section'];
+    codes.add('retake_invalid_top_guidance_for_later_section');
   }
-  return const [];
+  switch (guidance) {
+    case 'retake_top_with_next_context':
+      if (hasNext != true) {
+        codes.add('retake_invalid_top_guidance_missing_next_context');
+      }
+      if (hasPrevious == true) {
+        codes.add('retake_invalid_top_guidance_with_previous_context');
+      }
+      if (hasTwoSided == true) {
+        codes.add('retake_invalid_top_guidance_with_two_sided_context');
+      }
+    case 'retake_middle_with_previous_next_context':
+      if (hasPrevious != true || hasNext != true || hasTwoSided != true) {
+        codes.add('retake_invalid_middle_guidance_context_mismatch');
+      }
+    case 'retake_bottom_with_previous_context':
+      if (hasPrevious != true) {
+        codes.add('retake_invalid_bottom_guidance_missing_previous_context');
+      }
+      if (hasNext == true) {
+        codes.add('retake_invalid_bottom_guidance_with_next_context');
+      }
+      if (hasTwoSided == true) {
+        codes.add('retake_invalid_bottom_guidance_with_two_sided_context');
+      }
+    case 'retake_single_section_no_context':
+      if (hasPrevious == true || hasNext == true || hasTwoSided == true) {
+        codes.add('retake_invalid_single_guidance_with_alignment_context');
+      }
+  }
+  return List.unmodifiable(codes);
 }
 
 List<String> _receiptRetakeInvalidPreviousGuideReasonCodes({

@@ -371,6 +371,7 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
         hasRetakeMetadata: hasRetakeMetadata,
         originalSection: retakeOriginalSection,
         guidance: retakeGuidance,
+        diagnostics: diagnostics,
       )) {
         counts[invalidCode] = (counts[invalidCode] ?? 0) + 1;
       }

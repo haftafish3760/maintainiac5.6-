@@ -136,6 +136,143 @@ void main() {
     expect(result.receiptSectionOrderNeedsReview, true);
   });
 
+  test('top retake guidance requires next-only context', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/top-new.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: ['/tmp/top-ocr.jpg'],
+        warning: 'Review retaken top section.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/top-new.jpg': {
+          'receiptRetakeOriginalSectionNumber': 1,
+          'receiptRetakeFinalSectionNumber': 1,
+          'receiptRetakeGuidanceCode': 'retake_top_with_next_context',
+          'receiptRetakeHasPreviousAlignmentContext': true,
+          'receiptRetakeHasNextAlignmentContext': false,
+          'receiptRetakeHasTwoSidedAlignmentContext': false,
+          'receiptRetakePreviousContextSectionNumber': 1,
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderOutcome, 'retake_order_invalid');
+    expect(
+      result
+          .receiptSectionOrderCounts['retake_invalid_top_guidance_missing_next_context'],
+      1,
+    );
+    expect(
+      result
+          .receiptSectionOrderCounts['retake_invalid_top_guidance_with_previous_context'],
+      1,
+    );
+    expect(result.receiptSectionOrderNeedsReview, true);
+  });
+
+  test('middle retake guidance requires two-sided context', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/middle-new.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/middle-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: ['/tmp/middle-ocr.jpg'],
+        warning: 'Review retaken middle section.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/middle-new.jpg': {
+          'receiptRetakeOriginalSectionNumber': 2,
+          'receiptRetakeFinalSectionNumber': 2,
+          'receiptRetakeGuidanceCode':
+              'retake_middle_with_previous_next_context',
+          'receiptRetakeHasPreviousAlignmentContext': true,
+          'receiptRetakeHasNextAlignmentContext': false,
+          'receiptRetakeHasTwoSidedAlignmentContext': false,
+          'receiptRetakePreviousContextSectionNumber': 1,
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderOutcome, 'retake_order_invalid');
+    expect(
+      result
+          .receiptSectionOrderCounts['retake_invalid_middle_guidance_context_mismatch'],
+      1,
+    );
+    expect(result.receiptSectionOrderNeedsReview, true);
+  });
+
+  test('bottom retake guidance rejects next or two-sided context', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/bottom-new.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/bottom-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: ['/tmp/bottom-ocr.jpg'],
+        warning: 'Review retaken bottom section.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/bottom-new.jpg': {
+          'receiptRetakeOriginalSectionNumber': 3,
+          'receiptRetakeFinalSectionNumber': 3,
+          'receiptRetakeGuidanceCode': 'retake_bottom_with_previous_context',
+          'receiptRetakeHasPreviousAlignmentContext': true,
+          'receiptRetakeHasNextAlignmentContext': true,
+          'receiptRetakeHasTwoSidedAlignmentContext': true,
+          'receiptRetakePreviousContextSectionNumber': 2,
+          'receiptRetakeNextContextSectionNumber': 4,
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderOutcome, 'retake_order_invalid');
+    expect(
+      result
+          .receiptSectionOrderCounts['retake_invalid_bottom_guidance_with_next_context'],
+      1,
+    );
+    expect(
+      result
+          .receiptSectionOrderCounts['retake_invalid_bottom_guidance_with_two_sided_context'],
+      1,
+    );
+    expect(result.receiptSectionOrderNeedsReview, true);
+  });
+
+  test('single-section retake guidance rejects alignment context', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/only-new.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/only-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: ['/tmp/only-ocr.jpg'],
+        warning: 'Review single retaken section.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/only-new.jpg': {
+          'receiptRetakeOriginalSectionNumber': 1,
+          'receiptRetakeFinalSectionNumber': 1,
+          'receiptRetakeGuidanceCode': 'retake_single_section_no_context',
+          'receiptRetakeHasPreviousAlignmentContext': true,
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderOutcome, 'retake_order_invalid');
+    expect(
+      result
+          .receiptSectionOrderCounts['retake_invalid_single_guidance_with_alignment_context'],
+      1,
+    );
+    expect(result.receiptSectionOrderNeedsReview, true);
+  });
+
   test('normal long receipt ghost guide is not treated as retake metadata', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
