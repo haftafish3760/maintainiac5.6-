@@ -154,12 +154,16 @@ order unless a shared parser rule blocks the active step.
    - HVAC expected checked total: `50`
    - Merge is blocked until both trade rollups exist, stay local-only safe, and
      clear the `0.90` pass-rate floor.
-3. Roll the Mac evidence back into the Windows-side rollup rather than making
+3. Track final claim readiness through `peh_core_claim_readiness.json`.
+   - The claim gate must stay red until Plumbing is ready from the Windows
+     rollup and Electrical/HVAC are merge-ready from the Mac wave.
+4. Roll the Mac evidence back into the Windows-side rollup rather than making
    undocumented claims in chat.
-4. Claim `90-95%` only after:
+5. Claim `90-95%` only after:
    - Plumbing measured evidence remains clean
    - Electrical measured evidence clears target
    - HVAC measured evidence clears target
+   - `peh_core_claim_readiness.json` reports `readyToClaimNinetyPlus=true`
    - branch rollup reports `readyToClaimNinetyPlus=true`
 
 ### 1. Plumbing Core

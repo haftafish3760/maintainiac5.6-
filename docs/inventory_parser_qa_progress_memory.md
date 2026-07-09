@@ -4533,3 +4533,24 @@ Release boundaries:
   --dart-define=PARSER_QA_PROFILE=smoke
   --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
   passed with `117` checks and `0` failures.
+- **12:52 Harness Pass 5200:** Added
+  `tool/work_supply_parser_qa_peh_core_claim_readiness.dart` plus focused
+  tests so the branch can make one machine-readable PEH release claim decision
+  instead of combining Windows and Mac evidence by hand. Generated
+  `build/parser_qa_pipeline/peh_core_claim_readiness.json`, which currently
+  reports `tradeClaimCount=3`, `readyToClaimNinetyPlus=false`, and
+  `readyToClaimNinetyFive=false`. The current live claim truth is explicit:
+  Plumbing is claim-ready from the Windows rollup (`100` checked,
+  `passRate=1.0`), while Electrical and HVAC are still blocked because
+  `peh_core_mac_wave_status.json` has not yet produced merge-ready Mac rollups.
+  Current blocking findings are `trade_not_ready:electrical`,
+  `trade_not_ready:hvac`, and `mac_wave_not_merge_ready`. Also refreshed the
+  PEH roadmap so Stage 5 now names both `peh_core_mac_wave_status.json` and
+  `peh_core_claim_readiness.json` as required stop-lines before any `90-95%`
+  claim. Verification: targeted `dart analyze` passed for the new tool/test
+  and the execution-command contract file, `flutter test
+  test/work_supply_parser_qa_peh_core_claim_readiness_test.dart
+  test/work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_PROFILE=smoke
+  --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
+  passed with `119` checks and `0` failures.
