@@ -4431,3 +4431,17 @@ Release boundaries:
   `build/parser_qa_reports/latest_work_supply_inventory_parser.json`. This
   closes the command-governance slice and leaves the branch ready for the next
   PEH measurement step.
+- **14:32 Harness Pass 5150:** Refreshed the current Windows-side measured PEH
+  status layer from reports already on disk without launching any new heavy
+  parser runs. Rewrote
+  `build/parser_qa_pipeline/plumbing_core_generated_run_status.json` with the
+  new pass-rate fields (`100` checked, `0` failures, `passRate=1.0`,
+  `underMinPassRateCells=0`), generated
+  `build/parser_qa_pipeline/electrical_core_generated_run_status_samples.json`
+  for the current Electrical sample evidence (`12` checked total, `0`
+  failures, `passRate=1.0`), and generated
+  `build/parser_qa_pipeline/hvac_core_generated_run_status_samples.json` for
+  the current HVAC sample evidence (`12` checked total, `0` failures,
+  `passRate=1.0`). Followed that by updating the PEH Windows evidence rollup,
+  the active PEH roadmap, and the canonical Mac measurement plan so they now
+  reflect the refreshed sample totals and the actual next Windows-vs-Mac split.

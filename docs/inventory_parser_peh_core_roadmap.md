@@ -83,14 +83,16 @@ Generated from the current Windows-side evidence on 2026-07-09.
 
 ## Immediate Execution Order
 
-1. Land the pending Plumbing parser runtime optimization.
-2. Keep Plumbing as the active trade until Windows-side focused/runtime-safe
+1. Keep Plumbing as the active trade until Windows-side focused/runtime-safe
    proof is exhausted.
-3. Reconcile Electrical Core readiness evidence against measured generated
-   status output.
-4. Reconcile HVAC Core readiness evidence against measured generated status
-   output.
-5. Roll up the PEH Windows evidence and refresh Mac handoff instructions.
+2. Preserve the refreshed Plumbing `100`-case measured status artifact with the
+   `0.90` pass-rate gate.
+3. Preserve the refreshed Electrical sample rollup at `12` checked cases and
+   keep it clearly labeled as sample-sized evidence, not final proof.
+4. Preserve the refreshed HVAC sample rollup at `12` checked cases and keep it
+   clearly labeled as sample-sized evidence, not final proof.
+5. Hand off the next broader Electrical/HVAC measurement wave to Mac using the
+   canonical PEH measurement plan.
 
 ### 1. Plumbing Core
 
@@ -110,11 +112,13 @@ Order:
 7. Complete synthetic fixture coverage for every required Plumbing Core family.
 8. Run Windows-safe focused validation first.
 9. Fix focused misses with parser/metadata regressions.
-10. Run measured Plumbing generated validation samples with the `0.90` floor.
+10. Preserve measured Plumbing generated validation with the `0.90` floor.
 11. Repeat focused hardening until Windows has no meaningful Plumbing work left
     except heavier platform validation.
 12. Hand Plumbing to Mac only after the measured Windows evidence is as high as
-    this machine can safely prove.
+    this machine can safely prove; on the current branch that means the
+    refreshed `100/100` status artifact plus the focused Menards runtime proof
+    remaining for Mac.
 
 ### 2. Electrical Core
 
@@ -135,8 +139,9 @@ Order:
 9. Run focused family parser checks.
 10. Fix failures with metadata/parser regressions.
 11. Run Electrical readiness audit until release-ready rows equal Core rows.
-12. Run isolated Electrical Core shards.
-13. Create Electrical Mac validation handoff.
+12. Refresh or preserve a measured Electrical generated-status artifact on
+    Windows when it can be done from existing reports without heavy reruns.
+13. Create or refresh the Electrical Mac validation handoff.
 
 Primary Electrical Core families:
 
@@ -170,8 +175,9 @@ Order:
 9. Run focused family parser checks.
 10. Fix failures with metadata/parser regressions.
 11. Run HVAC readiness audit until release-ready rows equal Core rows.
-12. Run isolated HVAC Core shards.
-13. Create HVAC Mac validation handoff.
+12. Refresh or preserve a measured HVAC generated-status artifact on Windows
+    when it can be done from existing reports without heavy reruns.
+13. Create or refresh the HVAC Mac validation handoff.
 
 Primary HVAC Core families:
 
@@ -256,6 +262,8 @@ Primary HVAC Core families:
 - Push milestone commits with human-readable EDT labels.
 - Prepare the Mac validation handoff using measured Windows-side evidence,
   not just readiness audits.
+- Keep Electrical and HVAC sample-sized Windows evidence explicitly labeled as
+  sample-sized until the broader `25 + 25` Mac wave clears the same gate.
 
 ## Completion Definition
 

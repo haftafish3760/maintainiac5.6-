@@ -13,7 +13,7 @@ guesswork or ad hoc report locations.
 
 - Repo: `C:\Users\rjenk\Documents\Mainteniac 5.6`
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit baseline: `9ebbb80`
+- Commit baseline: `f3876a9`
 - Area: inventory/catalog/parser/QA only
 - Do not touch: OCR, camera, stitching, expenses, UI, PDF, or unrelated
   modules

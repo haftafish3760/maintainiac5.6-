@@ -1,6 +1,6 @@
 # PEH Core Windows Evidence Rollup
 
-Generated: 2026-07-09 13:12 EDT
+Generated: 2026-07-09 14:32 EDT
 
 ## Scope
 
@@ -14,7 +14,7 @@ cross-platform release signoff.
 ## Source
 
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit at rollup start: `204284c`
+- Commit at rollup refresh: `f3876a9`
 
 ## Current Catalog Readiness
 
@@ -36,6 +36,8 @@ Measured generated evidence already recorded on Windows:
 - Failures: `0`
 - Parser calls: `100`
 - Measured pass rate: `1.0000`
+- Under minimum checked cells: `0`
+- Under minimum pass-rate cells: `0`
 
 Current limitation:
 
@@ -55,6 +57,14 @@ Current limitation:
 
 Measured generated sample evidence already present on disk:
 
+- Rollup status:
+  `build/parser_qa_pipeline/electrical_core_generated_run_status_samples.json`
+  - Checked total: `12`
+  - Failures: `0`
+  - Parser calls: `12`
+  - Measured pass rate: `1.0000`
+  - Under minimum checked cells: `0`
+  - Under minimum pass-rate cells: `0`
 - en-US sample status:
   `build/parser_qa_generated_run_samples/electrical/residential/core/en-US/reports/latest_generated_fixture_run.json`
   - Checked: `6`
@@ -86,6 +96,14 @@ Current limitation:
 
 Measured generated sample evidence already present on disk:
 
+- Rollup status:
+  `build/parser_qa_pipeline/hvac_core_generated_run_status_samples.json`
+  - Checked total: `12`
+  - Failures: `0`
+  - Parser calls: `22`
+  - Measured pass rate: `1.0000`
+  - Under minimum checked cells: `0`
+  - Under minimum pass-rate cells: `0`
 - en-US sample status:
   `build/parser_qa_generated_run_samples/hvac/residential/core/en-US/reports/latest_generated_fixture_run.json`
   - Checked: `6`
@@ -93,10 +111,10 @@ Measured generated sample evidence already present on disk:
   - Parser calls: `16`
   - Sample pass rate: `1.0000`
 - es-US sample status:
-  `build/parser_qa_pipeline/pass3021-peh-core-baby-5/hvac/residential/core/es-US/reports/latest_generated_fixture_run.json`
-  - Checked: `5`
+  `build/parser_qa_generated_run_samples/hvac/residential/core/es-US/reports/latest_generated_fixture_run.json`
+  - Checked: `6`
   - Failures: `0`
-  - Parser calls: `5`
+  - Parser calls: `6`
   - Sample pass rate: `1.0000`
 
 Current limitation:
@@ -119,7 +137,7 @@ proves otherwise.
 
 - All three PEH Core trades currently have clean Windows-side readiness audits.
 - Plumbing has stronger measured Windows evidence than the other two trades.
-- Electrical and HVAC already have clean measured sample runs on disk.
+- Electrical and HVAC already have clean measured sample rollups on disk.
 - Electrical and HVAC still need broader measured generated-fixture validation
   before any professional `90-95%` accuracy claim is attached to them.
 
@@ -128,9 +146,9 @@ proves otherwise.
 1. Use Mac to rerun the focused Plumbing runtime proof that still stalls on
    Windows.
 2. Use Mac to expand Electrical Core measured generated validation beyond the
-   current `6 + 6` sample.
+   current `6 + 6` sample (`12` checked total).
 3. Use Mac to expand HVAC Core measured generated validation beyond the current
-   `6 + 5` sample.
+   `6 + 6` sample (`12` checked total).
 4. After broader measured evidence exists for Electrical and HVAC, write branch
    level generated-status rollups for all PEH Core trades.
 
@@ -149,7 +167,7 @@ stopping at smoke-sized samples.
   - Enforce the reusable rollup gate with `--min-pass-rate 0.90`.
   - Maintain `0` failures and local-only safety flags.
 - HVAC Core
-  - Raise measured generated coverage from `11` total checked cases to at least
+  - Raise measured generated coverage from `12` total checked cases to at least
     `50` checked cases across `en-US` and `es-US`.
   - Enforce the reusable rollup gate with `--min-pass-rate 0.90`.
   - Maintain `0` failures and local-only safety flags.
