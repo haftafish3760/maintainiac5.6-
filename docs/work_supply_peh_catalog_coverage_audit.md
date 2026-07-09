@@ -1,6 +1,6 @@
 # PEH Catalog Coverage Audit
 
-Last updated: 2026-07-08 16:57 EDT
+Last updated: 2026-07-08 21:08 EDT
 
 Scope: Work supply inventory/catalog/parser readiness for residential Plumbing,
 Electrical, and HVAC. This audit is intentionally catalog-first. Generated
@@ -19,7 +19,7 @@ Result: passed, 2026-07-08.
 
 | Trade | Core | Standard | Professional | Complete | Core Download | Complete Download |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Plumbing | 1,198 | 1,835 | 12,344 | 12,480 | 70.6 KB | 627.7 KB |
+| Plumbing | 1,221 | 1,858 | 12,367 | 12,503 | 71.9 KB | 629.0 KB |
 | Electrical | 1,902 | 2,200 | 11,458 | 11,464 | 117.6 KB | 742.2 KB |
 | HVAC | 2,694 | 2,797 | 6,082 | 6,739 | 179.1 KB | 462.2 KB |
 
