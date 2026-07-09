@@ -4445,3 +4445,21 @@ Release boundaries:
   `passRate=1.0`). Followed that by updating the PEH Windows evidence rollup,
   the active PEH roadmap, and the canonical Mac measurement plan so they now
   reflect the refreshed sample totals and the actual next Windows-vs-Mac split.
+- **14:45 Harness Pass 5157:** Added
+  `tool/work_supply_parser_qa_peh_core_status_rollup.dart` plus focused tests
+  so the three current trade-specific measured-status files can be turned into
+  one branch-level PEH checkpoint without rerunning parser work. The live
+  artifact `build/parser_qa_pipeline/peh_core_windows_status_rollup.json`
+  confirms `missingTradeCount=0`, `unsafeTradeCount=0`, `failedTradeCount=0`,
+  `underTargetTradeCount=2`, `sampleSizedTradeCount=2`,
+  `readyForMacMeasurementWave=true`, and `readyToClaimNinetyPlus=false`, which
+  is the exact current branch truth: Plumbing clears the Windows measurement
+  floor, while Electrical and HVAC are still sample-sized and need the broader
+  Mac wave.
+- **14:51 Harness Pass 5161:** Verified the new PEH checkpoint tool at the
+  same governance layer that enforces the other parser-QA command contracts.
+  Targeted `dart analyze` passed for the new tool/test plus the execution
+  command contract file, `flutter test
+  test/work_supply_parser_qa_peh_core_status_rollup_test.dart --reporter compact`
+  passed `2/2`, and focused `inventory.execution_command_contract,qa.threshold_gate`
+  passed with `109` checks and `0` failures.

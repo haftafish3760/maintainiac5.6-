@@ -135,6 +135,15 @@ proves otherwise.
 
 ## What This Proves Right Now
 
+- Branch-level PEH checkpoint artifact:
+  `build/parser_qa_pipeline/peh_core_windows_status_rollup.json`
+  - missing trades: `0`
+  - unsafe trades: `0`
+  - failed trades: `0`
+  - under-target trades: `2`
+  - sample-sized trades: `2`
+  - ready for Mac measurement wave: `true`
+  - ready to claim `90-95%`: `false`
 - All three PEH Core trades currently have clean Windows-side readiness audits.
 - Plumbing has stronger measured Windows evidence than the other two trades.
 - Electrical and HVAC already have clean measured sample rollups on disk.

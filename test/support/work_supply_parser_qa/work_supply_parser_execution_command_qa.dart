@@ -38,6 +38,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       'tool/work_supply_parser_qa_gate_should_run.dart';
   static const _generatedRunStatusPath =
       'tool/work_supply_parser_qa_generated_run_status.dart';
+  static const _pehCoreStatusRollupPath =
+      'tool/work_supply_parser_qa_peh_core_status_rollup.dart';
 
   static const _environmentVariables = [
     'PARSER_QA_STRICT',
@@ -253,6 +255,13 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       '--min-pass-rate',
       '--output',
     ]),
+    _CommandContract('peh_core_status_rollup', [
+      'dart run tool/work_supply_parser_qa_peh_core_status_rollup.dart',
+      '--plumbing-status',
+      '--electrical-status',
+      '--hvac-status',
+      '--output',
+    ]),
   ];
 
   static const _toolSourceContracts = [
@@ -315,6 +324,21 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'durationMs',
         'firebaseWritesAllowed',
         'ocrCameraExpensesTouched',
+      ],
+    ),
+    _ToolSourceContract(
+      name: 'peh_core_status_rollup_readout',
+      path: _pehCoreStatusRollupPath,
+      tokens: [
+        'QA_PEH_CORE_STATUS_ROLLUP',
+        'QA_PEH_CORE_STATUS_ROLLUP_ARTIFACT',
+        'underTargetTradeCount',
+        'sampleSizedTradeCount',
+        'readyForMacMeasurementWave',
+        'readyToClaimNinetyPlus',
+        'plumbing',
+        'electrical',
+        'hvac',
       ],
     ),
     _ToolSourceContract(
@@ -653,6 +677,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       _gateLedgerPath: _read(_gateLedgerPath, failures),
       _gateShouldRunPath: _read(_gateShouldRunPath, failures),
       _generatedRunStatusPath: _read(_generatedRunStatusPath, failures),
+      _pehCoreStatusRollupPath: _read(_pehCoreStatusRollupPath, failures),
     };
     checked += _toolSourceContracts.length;
     for (final contract in _toolSourceContracts) {
