@@ -4594,3 +4594,22 @@ Release boundaries:
   --dart-define=PARSER_QA_PROFILE=smoke
   --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
   passed with `123` checks and `0` failures.
+- **13:04 Harness Pass 5215:** Added
+  `tool/work_supply_parser_qa_peh_core_mac_handoff_packet.dart` plus focused
+  tests so the Mac-side Electrical/HVAC measurement wave now has one canonical
+  machine-readable handoff packet. Generated
+  `build/parser_qa_pipeline/peh_core_mac_handoff_packet.json`, which records
+  the active branch, commit baseline, the four measurement commands, the two
+  rollup commands, the five expected output artifacts, and the one-shot
+  `work_supply_parser_qa_peh_core_refresh.dart` command the Mac side should
+  run after copying its rollups back. The current live packet reports
+  `readyForMacMeasurementWave=true`, `readyToClaimNinetyPlus=false`,
+  `measurementCommandCount=4`, and `rollupCommandCount=2`. Also refreshed the
+  PEH roadmap so Stage 5 now names the handoff packet as part of the external
+  execution contract. Verification: targeted `dart analyze` passed for the new
+  tool/test and the execution-command contract file, `flutter test
+  test/work_supply_parser_qa_peh_core_mac_handoff_packet_test.dart
+  test/work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_PROFILE=smoke
+  --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
+  passed with `125` checks and `0` failures.

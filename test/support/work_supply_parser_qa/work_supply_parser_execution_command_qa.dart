@@ -48,6 +48,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       'tool/work_supply_parser_qa_peh_core_merged_status_rollup.dart';
   static const _pehCoreRefreshPath =
       'tool/work_supply_parser_qa_peh_core_refresh.dart';
+  static const _pehCoreMacHandoffPacketPath =
+      'tool/work_supply_parser_qa_peh_core_mac_handoff_packet.dart';
   static const _pehCoreClaimReadinessPath =
       'tool/work_supply_parser_qa_peh_core_claim_readiness.dart';
   static const _pehCoreHandoffReadinessPath =
@@ -312,6 +314,19 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       '--hvac-status',
       'build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json',
     ]),
+    _CommandContract('peh_core_mac_handoff_packet', [
+      'dart run tool/work_supply_parser_qa_peh_core_mac_handoff_packet.dart',
+      '--branch',
+      'codex/inventory-parser-backup-20260702-2056',
+      '--commit',
+      'HEAD',
+      '--mac-wave',
+      'build/parser_qa_pipeline/peh_core_mac_wave_commands.json',
+      '--windows-status',
+      'build/parser_qa_pipeline/peh_core_windows_status_rollup.json',
+      '--output',
+      'build/parser_qa_pipeline/peh_core_mac_handoff_packet.json',
+    ]),
     _CommandContract('peh_core_claim_readiness', [
       'dart run tool/work_supply_parser_qa_peh_core_claim_readiness.dart',
       '--windows-status',
@@ -473,6 +488,20 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'macWaveStatusOutput',
         'mergedStatusOutput',
         'claimOutput',
+      ],
+    ),
+    _ToolSourceContract(
+      name: 'peh_core_mac_handoff_packet_readout',
+      path: _pehCoreMacHandoffPacketPath,
+      tokens: [
+        'QA_PEH_CORE_MAC_HANDOFF_PACKET',
+        'QA_PEH_CORE_MAC_HANDOFF_PACKET_ARTIFACT',
+        'measurementCommandCount',
+        'rollupCommandCount',
+        'expectedOutputs',
+        'refreshCommand',
+        'branch',
+        'commit',
       ],
     ),
     _ToolSourceContract(
@@ -862,6 +891,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       _pehCoreMacWaveStatusPath: _read(_pehCoreMacWaveStatusPath, failures),
       _pehCoreMergedStatusRollupPath: _read(_pehCoreMergedStatusRollupPath, failures),
       _pehCoreRefreshPath: _read(_pehCoreRefreshPath, failures),
+      _pehCoreMacHandoffPacketPath: _read(_pehCoreMacHandoffPacketPath, failures),
       _pehCoreClaimReadinessPath: _read(_pehCoreClaimReadinessPath, failures),
       _pehCoreHandoffReadinessPath: _read(_pehCoreHandoffReadinessPath, failures),
       _pehCoreMeasurementGapPath: _read(_pehCoreMeasurementGapPath, failures),
