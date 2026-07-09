@@ -1302,12 +1302,20 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
       RegExp(r'\b(equip|equipment|condenser)\b').hasMatch(text) &&
       RegExp(r'\b(pad)\b').hasMatch(text);
   if (wantsEquipmentPad) {
+    final matrix = _receiptSizeMatrix(text);
     WorkSupplyItem? fallback;
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'HVAC' &&
           (name.contains('equipment pad') || name.contains('condenser pad'))) {
-        if (item.packTier == WorkSupplyPackTier.core) return item;
+        if (matrix != null &&
+            item.packTier == WorkSupplyPackTier.core &&
+            name.contains(matrix)) {
+          return item;
+        }
+        if (item.packTier == WorkSupplyPackTier.core && matrix == null) {
+          return item;
+        }
         fallback ??= item;
       }
     }

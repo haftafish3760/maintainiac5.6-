@@ -98,8 +98,9 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
   if (RegExp(r'\b(cop|cu|copper)\b').hasMatch(text) &&
       !_hasBrokenCriticalPlumbingFraction(text) &&
       RegExp(r'\b(90|90d|ell|elb|elbow)\b').hasMatch(text) &&
-      RegExp(r'\b(cxc|c\s*x\s*c|copper\s+copper|sweat|wrot)\b')
-          .hasMatch(text) &&
+      RegExp(
+        r'\b(cxc|c\s*x\s*c|copper\s+copper|sweat|wrot)\b',
+      ).hasMatch(text) &&
       itemText.contains('copper') &&
       itemText.contains('90') &&
       itemText.contains('elbow')) {
@@ -227,9 +228,7 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       'hot surface ignitor',
       'ignitor',
     ],
-    RegExp(r'\b(hard\s+start|spp6|start kit|start kt)\b'): [
-      'hard start kit',
-    ],
+    RegExp(r'\b(hard\s+start|spp6|start kit|start kt)\b'): ['hard start kit'],
     RegExp(r'\b(cinta|foil|ul181|ul 181)\b.*\b(tape|cinta|hvac)\b'): [
       'foil tape',
       'foil hvac tape',
@@ -302,13 +301,15 @@ double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
       (itemText.contains('condensate pan') || itemText.contains('drain pan'))) {
     score += 0.14;
   }
-  if (RegExp(r'\b(condensate|cond)\b.*\b(pvc|drain)\b.*\b(union|fitting)\b')
-          .hasMatch(text) &&
+  if (RegExp(
+        r'\b(condensate|cond)\b.*\b(pvc|drain)\b.*\b(union|fitting)\b',
+      ).hasMatch(text) &&
       itemText.contains('condensate pvc')) {
     score += 0.12;
   }
-  if (RegExp(r'\b(condensate|cond)\b.*\b(neutralizer|neutraliser)\b')
-          .hasMatch(text) &&
+  if (RegExp(
+        r'\b(condensate|cond)\b.*\b(neutralizer|neutraliser)\b',
+      ).hasMatch(text) &&
       itemText.contains('neutralizer')) {
     score += 0.12;
   }
@@ -365,20 +366,34 @@ double _receiptAmbiguityRisk(
   if (_isVaguePushFitLine(text, item)) risk += 0.28;
   if (_isVaguePressureGaugeLine(text, item)) risk += 0.24;
   if (_isVagueSoftenerSaltLine(text, item)) risk += 0.30;
+  if (_isVagueHvacCapacitorLine(text, item)) risk += 0.38;
   return risk;
+}
+
+bool _isVagueHvacCapacitorLine(String text, WorkSupplyItem item) {
+  if (item.trade != 'HVAC') return false;
+  final itemText = _indexedReceiptTextFor(item);
+  if (!itemText.contains('capacitor')) return false;
+  if (!RegExp(r'\bcap\b').hasMatch(text)) return false;
+  if (!RegExp(r'\b\d{2}/5\b').hasMatch(text)) return false;
+  return !RegExp(
+    r'\b(mfd|uf|microfarad|dual\s+run|run\s+cap|440v|370v|volt|v)\b',
+  ).hasMatch(text);
 }
 
 bool _isBrokenElectricalSizeLine(String text, WorkSupplyItem item) {
   if (item.trade != 'Electrical') return false;
   final normalized = _normalize(text);
-  if (!RegExp(r'\b(nm-b|nmb|romex|mc|armored|wire|cable)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(nm-b|nmb|romex|mc|armored|wire|cable)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   if (RegExp(r'(^|\s)/\s*\d+\b').hasMatch(normalized)) return true;
   if (RegExp(r'\b\d+\s*/(\s|$)').hasMatch(normalized)) return true;
-  if (RegExp(r'\b\d+\s*/\s*\b(nm-b|nmb|romex|mc|wire|cable)\b')
-      .hasMatch(normalized)) {
+  if (RegExp(
+    r'\b\d+\s*/\s*\b(nm-b|nmb|romex|mc|wire|cable)\b',
+  ).hasMatch(normalized)) {
     return true;
   }
   return false;
@@ -453,12 +468,12 @@ bool _isCrossTradeCopperLine(
   }
   final hasCompletePlumbingFittingEvidence =
       _nominalReceiptSize(text) != null &&
-      RegExp(r'\b(90|45|ell|elb|elbow|tee|coupling|cplg|adapter|adpt)\b')
-          .hasMatch(text) &&
+      RegExp(
+        r'\b(90|45|ell|elb|elbow|tee|coupling|cplg|adapter|adpt)\b',
+      ).hasMatch(text) &&
       RegExp(
         r'\b(cxc|c\s*x\s*c|copper\s+copper|sweat|wrot|mip|fip|male|female)\b',
-      )
-          .hasMatch(text);
+      ).hasMatch(text);
   if (hasCompletePlumbingFittingEvidence && item.trade == 'Plumbing') {
     return false;
   }
