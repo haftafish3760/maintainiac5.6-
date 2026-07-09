@@ -148,9 +148,15 @@ order unless a shared parser rule blocks the active step.
 
 1. Hand off only the exact next Electrical/HVAC measurement commands recorded
    in `peh_core_mac_wave_commands.json`.
-2. Roll the Mac evidence back into the Windows-side rollup rather than making
+2. Track Mac progress through `peh_core_mac_wave_status.json` instead of chat
+   memory or folder browsing.
+   - Electrical expected checked total: `50`
+   - HVAC expected checked total: `50`
+   - Merge is blocked until both trade rollups exist, stay local-only safe, and
+     clear the `0.90` pass-rate floor.
+3. Roll the Mac evidence back into the Windows-side rollup rather than making
    undocumented claims in chat.
-3. Claim `90-95%` only after:
+4. Claim `90-95%` only after:
    - Plumbing measured evidence remains clean
    - Electrical measured evidence clears target
    - HVAC measured evidence clears target

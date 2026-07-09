@@ -4513,3 +4513,23 @@ Release boundaries:
   --dart-define=PARSER_QA_PROFILE=smoke
   --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
   passed with `115` checks and `0` failures.
+- **12:49 Harness Pass 5197:** Added
+  `tool/work_supply_parser_qa_peh_core_mac_wave_status.dart` plus focused
+  tests so the future Electrical/HVAC Mac measurement wave can be inspected as
+  one merge-readiness artifact instead of by manually browsing report folders.
+  Generated `build/parser_qa_pipeline/peh_core_mac_wave_status.json`, which
+  currently reports `measurementCommandCount=4`, `rollupCommandCount=2`,
+  `completedRollupCount=0`, `missingRollupCount=2`, `readyTradeCount=0`, and
+  `readyToMergeIntoClaim=false` because the expected Mac rollups do not exist
+  yet:
+  `build/parser_qa_pipeline/mac_electrical_core_generated_run_status_25.json`
+  and `build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json`.
+  Also refreshed the PEH roadmap so Stage 5 now explicitly uses
+  `peh_core_mac_wave_status.json` as the canonical Mac merge checkpoint.
+  Verification: targeted `dart analyze` passed for the new tool/test and the
+  execution-command contract file, `flutter test
+  test/work_supply_parser_qa_peh_core_mac_wave_status_test.dart
+  test/work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_PROFILE=smoke
+  --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
+  passed with `117` checks and `0` failures.
