@@ -4396,3 +4396,31 @@ Release boundaries:
   `es-US` before the branch should talk seriously about `90-95%` readiness for
   those trades. Commit: `fef7772`
   (`QA testing 2026-07-09 13:16 EDT: add PEH next measurement targets`).
+- **13:31 Harness Pass 5108:** Locked the current PEH Mac measurement commands
+  and commit anchors so the handoff docs stop drifting. The branch now records
+  the exact source commit and follow-through command set for Plumbing,
+  Electrical, and HVAC Core before the next deeper measurement wave. Commit:
+  `5082b8c`
+  (`QA testing 2026-07-09 13:31 EDT: lock current Mac handoff commits and measurement commands`).
+- **13:38 Harness Pass 5112:** Added the canonical
+  `docs/inventory_parser_peh_core_mac_measurement_plan.md` artifact so the next
+  Mac execution wave has one source of truth for Plumbing benchmark
+  confirmation plus the first `25 + 25` Electrical and HVAC generated-fixture
+  measurement passes. Commit: `f94bd32`
+  (`QA testing 2026-07-09 13:38 EDT: add PEH Mac measurement expansion plan`).
+- **13:50 Harness Pass 5133:** Hardened
+  `tool/work_supply_parser_qa_generated_run_status.dart` with a reusable
+  `--min-pass-rate` gate and regression coverage, so PEH rollups now fail when
+  a cell clears volume but still misses the release accuracy floor. Commit:
+  `4ef1d7b`
+  (`QA testing 2026-07-09 13:50 EDT: add generated status pass-rate gate for PEH rollups`).
+- **14:04 Harness Pass 5139:** Carried that pass-rate floor into the
+  release-one command manifest and command-governance layer. The release-one
+  command generator now emits `--min-pass-rate 0.90`, the harness-plan docs now
+  document `underMinPassRateCells`, `minPassRate`, `failureCount`, and
+  `passRate`, and the focused analyzer/test sweep stayed clean. Verification:
+  targeted `dart analyze` passed for the touched command/governance files, and
+  `flutter test test/work_supply_parser_qa_release_one_commands_test.dart
+  test/work_supply_parser_qa_generated_run_status_test.dart --reporter compact`
+  passed `15/15`. Pending next step: commit and push the refreshed
+  command-governance milestone.

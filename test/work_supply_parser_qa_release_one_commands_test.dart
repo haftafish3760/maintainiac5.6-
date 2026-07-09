@@ -33,6 +33,7 @@ void main() {
     expect(summary['fixtureRunTimeoutMs'], 600000);
     expect(summary['fixtureRunStaleReportTimeoutMs'], 300000);
     expect(summary['minGeneratedCheckedPerCell'], 500);
+    expect(summary['minGeneratedPassRate'], 0.9);
     expect(summary['liveServicesAllowed'], isFalse);
     expect(summary['writesProductionCatalog'], isFalse);
     expect(summary['firebaseWritesAllowed'], isFalse);
@@ -74,6 +75,8 @@ void main() {
     expect(generatedStatusCommand, contains('--require-complete'));
     expect(generatedStatusCommand, contains('--min-checked-per-cell'));
     expect(generatedStatusCommand, contains('500'));
+    expect(generatedStatusCommand, contains('--min-pass-rate'));
+    expect(generatedStatusCommand, contains('0.90'));
     expect(
       generatedStatusCommand,
       contains(
@@ -115,6 +118,19 @@ void main() {
 
     expect(exit, 64);
     expect(stderr.content, contains('--min-generated-checked-per-cell'));
+  });
+
+  test('release-one command manifest rejects invalid pass-rate gates', () {
+    final stderr = _MemorySink();
+
+    final exit = runWorkSupplyParserQaReleaseOneCommands(
+      const ['--min-generated-pass-rate', '1.25'],
+      stdout: _MemorySink(),
+      stderr: stderr,
+    );
+
+    expect(exit, 64);
+    expect(stderr.content, contains('--min-generated-pass-rate'));
   });
 }
 

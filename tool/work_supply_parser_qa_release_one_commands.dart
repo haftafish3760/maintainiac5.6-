@@ -7,7 +7,8 @@ const _usage =
     '[--limit 500] [--fixture-run-limit 50] '
     '[--fixture-run-timeout-ms 900000] '
     '[--fixture-run-stale-report-timeout-ms 300000] '
-    '[--min-generated-checked-per-cell 500]';
+    '[--min-generated-checked-per-cell 500] '
+    '[--min-generated-pass-rate 0.90]';
 
 const _trades = ['plumbing', 'electrical', 'hvac'];
 const _tiers = ['core', 'standard', 'professional', 'complete'];
@@ -45,15 +46,20 @@ int runWorkSupplyParserQaReleaseOneCommands(
   final minGeneratedCheckedPerCell =
       int.tryParse(_value(args, 'min-generated-checked-per-cell', '500')) ??
       500;
+  final minGeneratedPassRate =
+      double.tryParse(_value(args, 'min-generated-pass-rate', '0.90')) ?? 0.90;
   if (limit <= 0 ||
       fixtureRunLimit <= 0 ||
       fixtureRunTimeoutMs <= 0 ||
       fixtureRunStaleReportTimeoutMs <= 0 ||
-      minGeneratedCheckedPerCell <= 0) {
+      minGeneratedCheckedPerCell <= 0 ||
+      minGeneratedPassRate <= 0 ||
+      minGeneratedPassRate > 1) {
     stderr.writeln(
       '--limit, --fixture-run-limit, and '
       '--fixture-run-timeout-ms, --fixture-run-stale-report-timeout-ms, and '
-      '--min-generated-checked-per-cell must be positive.',
+      '--min-generated-checked-per-cell must be positive, and '
+      '--min-generated-pass-rate must be greater than 0 and at most 1.',
     );
     return 64;
   }
@@ -110,6 +116,7 @@ int runWorkSupplyParserQaReleaseOneCommands(
     'fixtureRunTimeoutMs': fixtureRunTimeoutMs,
     'fixtureRunStaleReportTimeoutMs': fixtureRunStaleReportTimeoutMs,
     'minGeneratedCheckedPerCell': minGeneratedCheckedPerCell,
+    'minGeneratedPassRate': minGeneratedPassRate,
     'generatedFixtureStatusCommand': [
       'dart',
       'run',
@@ -127,6 +134,8 @@ int runWorkSupplyParserQaReleaseOneCommands(
       '--require-complete',
       '--min-checked-per-cell',
       '$minGeneratedCheckedPerCell',
+      '--min-pass-rate',
+      minGeneratedPassRate.toStringAsFixed(2),
       '--output',
       'build/parser_qa_pipeline/release_one_generated_run_status.json',
     ],
