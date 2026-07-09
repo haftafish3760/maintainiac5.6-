@@ -51,19 +51,33 @@ void main() {
     },
   );
 
-  test('plumbing receipt parser handles threaded and DWV supply tickets', () {
+  test('plumbing receipt parser handles black iron nipple shorthand', () {
     final blackIronNipple = matchReceiptLineToCatalog('BI NIPPLE 1/2 X 6');
     expect(blackIronNipple, isNotNull);
     expect(blackIronNipple!.item.name, '1/2 x 6 in Black Iron Nipple');
+  });
 
+  test('plumbing receipt parser handles galvanized tee shorthand', () {
     final galvanizedTee = matchReceiptLineToCatalog('GALV STL TEE 3/4');
     expect(galvanizedTee, isNotNull);
     expect(galvanizedTee!.item.name, '3/4 in Galvanized Tee');
+  });
 
+  test('plumbing receipt parser handles PVC DWV sanitary tee shorthand', () {
     final sanitaryTee = matchReceiptLineToCatalog('PVC DWV 3 SAN TEE');
     expect(sanitaryTee, isNotNull);
     expect(sanitaryTee!.item.name, '3 in PVC DWV Sanitary Tee');
+  });
 
+  test('plumbing receipt parser handles Menards PVC sanitary tee line', () {
+    final menardsSanitaryTee = matchReceiptLineToCatalog(
+      'MENARDS 2 PVC SANITARY T 26.75',
+    );
+    expect(menardsSanitaryTee, isNotNull);
+    expect(menardsSanitaryTee!.item.name, '2 in PVC DWV Sanitary Tee');
+  });
+
+  test('plumbing receipt parser handles marvel adapter shorthand', () {
     final trapAdapter = matchReceiptLineToCatalog('1-1/2 MARVEL ADAPTER PVC');
     expect(trapAdapter, isNotNull);
     expect(trapAdapter!.item.name.toLowerCase(), contains('marvel adapter'));

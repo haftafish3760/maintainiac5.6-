@@ -72,6 +72,7 @@ void main() {
       isNot(contains('--dart-define=PARSER_QA_GENERATED_WARMUP=true')),
     );
     expect(stdout.content, contains('timeoutMs=12345'));
+    expect(stdout.content, contains('minPassRate=0.0000'));
     expect(stdout.content, contains('warmup=false'));
     expect(
       arguments,
@@ -83,6 +84,7 @@ void main() {
     expect(stdout.content, contains('runner=flutter-test'));
     expect(stdout.content, contains('QA_GENERATED_FIXTURE_RUN_CHUNK'));
     expect(stdout.content, contains('parserCalls=3'));
+    expect(stdout.content, contains('passRate=1.0000'));
     expect(stdout.content, contains('durationMs='));
     expect(stdout.content, contains('QA_GENERATED_FIXTURE_RUN_AGGREGATE'));
     expect(stdout.content, isNot(contains('flutter progress spam')));
@@ -477,6 +479,7 @@ void main() {
       expect(exit, 0, reason: stderr.content);
       expect(aggregate['checked'], 2);
       expect(aggregate['failureCount'], 0);
+      expect(aggregate['passRate'], 1.0);
       expect(aggregate['parserCalls'], 23);
       expect(aggregate['durationMs'], isA<int>());
       expect(aggregate['nonZeroChunkExitCount'], 0);
@@ -493,6 +496,100 @@ void main() {
         ),
         isTrue,
       );
+    },
+  );
+
+  test(
+    'generated fixture wrapper fails when aggregate pass rate is below the required floor',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_generated_fixture_runner_pass_rate_floor_',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final fixture = File('${root.path}/generated_fixtures.json')
+        ..writeAsStringSync(
+          const JsonEncoder.withIndent('  ').convert([
+            {
+              'id': 'fixture_1',
+              'caseType': 'clear_match',
+              'rawLine': 'LOWES TOILET WAX RING 4.98',
+              'expectedTrade': 'Plumbing',
+              'expectedNameContains': 'wax ring',
+              'tradeScope': 'Plumbing',
+            },
+            {
+              'id': 'fixture_2',
+              'caseType': 'clear_match',
+              'rawLine': 'LOWES NM-B 12/2 25FT',
+              'expectedTrade': 'Electrical',
+              'expectedNameContains': 'wire',
+              'tradeScope': 'Electrical',
+            },
+          ]),
+        );
+
+      var callIndex = 0;
+      final stdout = _MemorySink();
+      final stderr = _MemorySink();
+      final exit = await runGeneratedParserFixtures(
+        [
+          '--fixture',
+          fixture.path,
+          '--max-cases',
+          '2',
+          '--chunk-size',
+          '1',
+          '--min-pass-rate',
+          '0.90',
+          '--report-dir',
+          '${root.path}/reports',
+        ],
+        stdout: stdout,
+        stderr: stderr,
+        processRunner:
+            (
+              String command,
+              List<String> args, {
+              bool runInShell = false,
+            }) async {
+              callIndex++;
+              final reportDirArg = args.firstWhere(
+                (arg) => arg.startsWith(
+                  '--dart-define=PARSER_QA_GENERATED_REPORT_DIR=',
+                ),
+              );
+              final reportDir = reportDirArg.split('=').last;
+              Directory(reportDir).createSync(recursive: true);
+              final failureCount = callIndex == 1 ? 1 : 0;
+              File(
+                '$reportDir/latest_generated_fixture_run.json',
+              ).writeAsStringSync(
+                JsonEncoder.withIndent('  ').convert({
+                  'checked': 1,
+                  'failureCount': failureCount,
+                  'warmupMs': 0,
+                  'parserCalls': 1,
+                }),
+              );
+              return ProcessResult(90 + callIndex, 0, '', '');
+            },
+      );
+
+      final aggregate =
+          jsonDecode(
+                File(
+                  '${root.path}/reports/latest_generated_fixture_run.json',
+                ).readAsStringSync(),
+              )
+              as Map;
+
+      expect(exit, 1);
+      expect(aggregate['checked'], 2);
+      expect(aggregate['failureCount'], 1);
+      expect(aggregate['passRate'], 0.5);
+      expect(stderr.content, contains('below required minimum 0.9000'));
+      expect(stdout.content, contains('minPassRate=0.9000'));
+      expect(stdout.content, contains('passRate=0.5000'));
     },
   );
 
@@ -574,6 +671,7 @@ void main() {
       );
       expect(aggregate['startIndex'], 2);
       expect(aggregate['maxChunks'], 2);
+      expect(aggregate['minPassRate'], 0.0);
       expect(
         (aggregate['chunkReports'] as List).map(
           (chunk) => (chunk as Map)['startIndex'],
@@ -910,6 +1008,69 @@ void main() {
         aggregate['resumeCommand'],
         contains('--stale-report-timeout-ms 250'),
       );
+    },
+  );
+
+  test(
+    'generated fixture wrapper preserves min-pass-rate in aggregate resume command',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_generated_fixture_runner_resume_floor_',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final fixture = File('${root.path}/generated_fixtures.json')
+        ..writeAsStringSync(
+          const JsonEncoder.withIndent('  ').convert([
+            for (var index = 0; index < 2; index++)
+              {
+                'id': 'fixture_$index',
+                'caseType': 'clear_match',
+                'rawLine': 'LOWES TOILET WAX RING 4.98',
+                'expectedTrade': 'Plumbing',
+                'expectedNameContains': 'wax ring',
+                'tradeScope': 'Plumbing',
+              },
+          ]),
+        );
+
+      final stdout = _MemorySink();
+      final stderr = _MemorySink();
+      final exit = await runGeneratedParserFixtures(
+        [
+          '--fixture',
+          fixture.path,
+          '--max-cases',
+          '2',
+          '--chunk-size',
+          '1',
+          '--min-pass-rate',
+          '0.90',
+          '--report-dir',
+          '${root.path}/reports',
+        ],
+        stdout: stdout,
+        stderr: stderr,
+        processRunner:
+            (
+              String command,
+              List<String> args, {
+              bool runInShell = false,
+            }) async {
+              return ProcessResult(120, 124, '', 'timeout');
+            },
+      );
+
+      final aggregate =
+          jsonDecode(
+                File(
+                  '${root.path}/reports/latest_generated_fixture_run.json',
+                ).readAsStringSync(),
+              )
+              as Map;
+
+      expect(exit, 124);
+      expect(aggregate['minPassRate'], 0.9);
+      expect(aggregate['resumeCommand'], contains('--min-pass-rate 0.9000'));
     },
   );
 }

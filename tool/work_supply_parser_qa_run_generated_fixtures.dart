@@ -7,6 +7,7 @@ const _usage =
     '[--max-cases 1000] [--fixture-ids id1,id2] '
     '[--chunk-size 200] '
     '[--start-index 0] [--max-chunks 0] '
+    '[--min-pass-rate 0.90] '
     '[--report-dir build/parser_qa_reports/generated_fixtures] '
     '[--timeout-ms 900000] '
     '[--stale-report-timeout-ms 240000] '
@@ -57,6 +58,7 @@ Future<int> runGeneratedParserFixtures(
     'fixture=${options.fixturePath} maxCases=${options.maxCases} '
     'chunkSize=${options.chunkSize} chunks=${chunks.length} '
     'startIndex=${options.startIndex} maxChunks=${options.maxChunks} '
+    'minPassRate=${options.minPassRate.toStringAsFixed(4)} '
     'timeoutMs=${options.timeoutMs} '
     'staleReportTimeoutMs=${options.staleReportTimeoutMs} '
     'warmup=${options.warmup} '
@@ -130,11 +132,19 @@ Future<int> runGeneratedParserFixtures(
   stdout.writeln(
     'QA_GENERATED_FIXTURE_RUN_AGGREGATE '
     'checked=${aggregate.checked} failures=${aggregate.failures} '
+    'passRate=${aggregate.passRate.toStringAsFixed(4)} '
     'parserCalls=${aggregate.parserCalls} '
     'completedChunks=${chunkResults.length} plannedChunks=${chunks.length} '
     'report=${aggregate.reportPath}',
   );
   if (exitCode != 0) return exitCode;
+  if (aggregate.checked > 0 && aggregate.passRate < options.minPassRate) {
+    stderr.writeln(
+      'Generated fixture pass rate ${aggregate.passRate.toStringAsFixed(4)} '
+      'is below required minimum ${options.minPassRate.toStringAsFixed(4)}.',
+    );
+    return 1;
+  }
   if (aggregate.failures > 0) return 1;
   if (aggregate.checked > 0 && aggregate.parserCalls <= 0) return 1;
   return exitCode;
@@ -149,6 +159,7 @@ class _FixtureRunnerOptions {
     required this.chunkSize,
     required this.startIndex,
     required this.maxChunks,
+    required this.minPassRate,
     required this.timeoutMs,
     required this.staleReportTimeoutMs,
     required this.warmup,
@@ -162,6 +173,7 @@ class _FixtureRunnerOptions {
   final int chunkSize;
   final int startIndex;
   final int maxChunks;
+  final double minPassRate;
   final int timeoutMs;
   final int staleReportTimeoutMs;
   final bool warmup;
@@ -179,6 +191,8 @@ class _FixtureRunnerOptions {
         int.tryParse(_valueAfter(args, '--start-index') ?? '') ?? 0;
     final maxChunks =
         int.tryParse(_valueAfter(args, '--max-chunks') ?? '') ?? 0;
+    final minPassRate =
+        double.tryParse(_valueAfter(args, '--min-pass-rate') ?? '') ?? 0;
     return _FixtureRunnerOptions(
       fixturePath: _valueAfter(args, '--fixture') ?? '',
       maxCases: int.tryParse(_valueAfter(args, '--max-cases') ?? '') ?? 1000,
@@ -189,6 +203,7 @@ class _FixtureRunnerOptions {
       chunkSize: chunkSize <= 0 ? 200 : chunkSize,
       startIndex: startIndex < 0 ? 0 : startIndex,
       maxChunks: maxChunks < 0 ? 0 : maxChunks,
+      minPassRate: minPassRate.clamp(0, 1).toDouble(),
       timeoutMs: timeoutMs <= 0 ? 900000 : timeoutMs,
       staleReportTimeoutMs: staleReportTimeoutMs < 0 ? 0 : staleReportTimeoutMs,
       warmup: args.contains('--warmup'),
@@ -495,10 +510,12 @@ _AggregateRunSummary _writeAggregateReport({
     'chunkSize': options.chunkSize,
     'startIndex': options.startIndex,
     'maxChunks': options.maxChunks,
+    'minPassRate': options.minPassRate,
     'plannedChunkCount': plannedChunkCount,
     'completedChunkCount': completedChunkCount,
     'checked': checked,
     'failureCount': failures,
+    'passRate': _passRate(checked, failures),
     'parserCalls': parserCalls,
     'durationMs': durationMs,
     'nonZeroChunkExitCount': nonZeroChunkExitCount,
@@ -535,6 +552,7 @@ _AggregateRunSummary _writeAggregateReport({
     checked: checked,
     failures: failures,
     parserCalls: parserCalls,
+    passRate: _passRate(checked, failures),
     nonZeroChunkExitCount: nonZeroChunkExitCount,
     timedOutChunkCount: timedOutChunkCount,
     reportPath: latest.path,
@@ -574,6 +592,8 @@ String _resumeCommand(
     '--chunk-size ${options.chunkSize}',
     '--start-index $resumeIndex',
     if (options.maxChunks > 0) '--max-chunks ${options.maxChunks}',
+    if (options.minPassRate > 0)
+      '--min-pass-rate ${options.minPassRate.toStringAsFixed(4)}',
     if (options.fixtureIds.isNotEmpty)
       '--fixture-ids ${options.fixtureIds.join(',')}',
     '--report-dir ${options.reportDir}',
@@ -585,6 +605,13 @@ String _resumeCommand(
 int? _intField(String line, String name) {
   final match = RegExp('(?:^| )$name=([0-9]+)(?: |\$)').firstMatch(line);
   return int.tryParse(match?.group(1) ?? '');
+}
+
+double _passRate(int checked, int failures) {
+  if (checked <= 0) return 0;
+  final passed = checked - failures;
+  if (passed <= 0) return 0;
+  return passed / checked;
 }
 
 class _ChunkRunSummary {
@@ -628,6 +655,7 @@ class _AggregateRunSummary {
     required this.checked,
     required this.failures,
     required this.parserCalls,
+    required this.passRate,
     required this.nonZeroChunkExitCount,
     required this.timedOutChunkCount,
     required this.reportPath,
@@ -636,6 +664,7 @@ class _AggregateRunSummary {
   final int checked;
   final int failures;
   final int parserCalls;
+  final double passRate;
   final int nonZeroChunkExitCount;
   final int timedOutChunkCount;
   final String reportPath;

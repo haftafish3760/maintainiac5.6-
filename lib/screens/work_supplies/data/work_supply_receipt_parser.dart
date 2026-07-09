@@ -78,6 +78,13 @@ final _receiptCatalogEntryById = {
   for (final entry in _receiptCatalogIndex) entry.item.id: entry,
 };
 
+final List<WorkSupplyItem> _plumbingPvcDwvSanitaryTeeItems = [
+  for (final item in workSupplyCatalogItems)
+    if (item.trade == 'Plumbing' &&
+        item.name.toLowerCase().contains('pvc dwv sanitary tee'))
+      item,
+];
+
 final List<_ReceiptVendorMappingEntry> _receiptVendorMappingIndex = [
   for (final entry in _receiptCatalogIndex)
     for (final mapping in entry.item.intelligence.vendorMappings)
@@ -164,6 +171,22 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   final normalized = _normalize(rawText);
   if (_isReceiptNoiseLine(normalized)) return null;
   if (_looksLikeHostileInputText(rawText, normalized)) return null;
+  final directPvcDwvSanitaryTee = _directPvcDwvSanitaryTeeReceiptMatch(
+    normalized,
+  );
+  if (directPvcDwvSanitaryTee != null) {
+    return ReceiptLineMatch(
+      rawText: rawText,
+      item: directPvcDwvSanitaryTee,
+      confidence: _directReceiptConfidence(
+        normalized,
+        directPvcDwvSanitaryTee,
+        tradeScope: tradeScope,
+        originalText: normalized,
+      ),
+      matchedTerms: _directMatchedTerms(normalized, directPvcDwvSanitaryTee),
+    );
+  }
   if (tradeScope != null && tradeScope.trim().toLowerCase() == 'plumbing') {
     final sumpBarbedAdapter = _directScopedPlumbingSumpBarbedAdapterMatch(
       normalized,
@@ -5748,6 +5771,10 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       tradeScope.trim().toLowerCase() != 'plumbing') {
     return null;
   }
+  if (_hasStrongDirectPlumbingEvidence(text)) {
+    final plumbingDirect = _directPlumbingFastMatch(text);
+    if (plumbingDirect != null) return plumbingDirect;
+  }
   if (RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
       !RegExp(r'\b(cpvc|primer|trap\s+primer|paint)\b').hasMatch(text)) {
@@ -5966,6 +5993,32 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
           _nameMatchesReceiptSize(name, size)) {
         return item;
       }
+    }
+  }
+  return null;
+}
+
+bool _hasStrongDirectPlumbingEvidence(String text) {
+  return RegExp(
+    r'\b(dwv|pex|cpvc|sharkbite|angle stop|supply stop|straight stop|'
+    r'quarter turn stop|p trap|p-trap|trap adapter|marvel adapter|'
+    r'san tee|sanitary tee|sanitary t|cleanout|closet flange|wax ring|'
+    r'hose bibb|sillcock|water heater|softener|well pump|well pressure)\b',
+  ).hasMatch(text);
+}
+
+WorkSupplyItem? _directPvcDwvSanitaryTeeReceiptMatch(String text) {
+  if (!RegExp(r'\b(pvc|dwv|drain)\b').hasMatch(text)) return null;
+  if (!RegExp(r'\b(san tee|sanitary tee|sanitary tees|sanitary t)\b').hasMatch(text)) {
+    return null;
+  }
+  final size = _nominalReceiptSize(text);
+  for (final item in _plumbingPvcDwvSanitaryTeeItems) {
+    final name = item.name.toLowerCase();
+    if (_nameMatchesReceiptMatrix(name, text) ||
+        _receiptMatchesVariant(text, item.variant) ||
+        _nameMatchesReceiptSize(name, size)) {
+      return item;
     }
   }
   return null;

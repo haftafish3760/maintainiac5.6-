@@ -58,19 +58,33 @@ like a professional catalog/parser team would handle it.
 
 ### 1. Plumbing Core
 
-Status: ready for Mac validation based on the latest local readiness audit.
+Status: active until Windows-side catalog, metadata, fixture, and focused
+generated-validation work are exhausted.
 
-Required before reopening Plumbing:
+Order:
 
-- Only fix confirmed failures from the background full validation or Mac
-  validation.
-- Do not add new Plumbing Core items unless a documented catalog gap proves the
-  item belongs in release-one Core.
-- Every confirmed Plumbing parser bug gets a regression fixture.
+1. Reconfirm exact Plumbing Core count and family distribution.
+2. Reconfirm Core membership against normal residential service-truck reality.
+3. Add any missing release-one Core items that belong in normal residential
+   truck stock.
+4. Move or flag non-Core/specialty rows without deleting useful catalog data.
+5. Complete release-ready metadata on every Plumbing Core row.
+6. Complete English, Spanish, merchant-abbreviation, and ambiguity-negative
+   coverage for those rows.
+7. Complete synthetic fixture coverage for every required Plumbing Core family.
+8. Run Windows-safe focused validation first.
+9. Fix focused misses with parser/metadata regressions.
+10. Run measured Plumbing generated validation samples with the `0.90` floor.
+11. Repeat focused hardening until Windows has no meaningful Plumbing work left
+    except heavier platform validation.
+12. Hand Plumbing to Mac only after the measured Windows evidence is as high as
+    this machine can safely prove.
 
 ### 2. Electrical Core
 
-Active work now.
+Start only after Plumbing Core is Windows-complete except for heavier Mac
+validation, unless a shared parser collision requires a joint Plumbing /
+Electrical fix.
 
 Order:
 
@@ -102,8 +116,9 @@ Primary Electrical Core families:
 
 ### 3. HVAC Core
 
-Start only after Electrical Core is ready for Mac validation, unless a shared
-parser collision requires a joint Electrical/HVAC fix.
+Start only after Electrical Core is Windows-complete except for heavier Mac
+validation, unless a shared parser collision requires a joint Electrical / HVAC
+fix.
 
 Order:
 
@@ -138,11 +153,70 @@ Primary HVAC Core families:
 - Use cheap scripts to check counts, family membership, metadata depth,
   duplicate aliases, collision risk, Spanish coverage, fixture coverage, and
   readiness JSON.
+- Use measured generated-fixture pass-rate gates for release claims.
+  - A green readiness audit is not enough to claim `90-95%` accuracy.
+  - We must record `checked`, `failureCount`, `passRate`, and `parserCalls`
+    from the generated fixture runner.
+  - `0.90` is the minimum release floor for any PEH Core accuracy claim.
+  - `0.95` is the stretch target after the first measured floor is cleared.
+  - We raise the floor only with real evidence, not optimism.
 - Use focused parser fixture reruns for changed families.
 - Use family shards after focused failures are clean.
 - Use full Core validation only at trade-level milestones.
+- On this Windows machine, prefer Dart/tooling checks and focused generated
+  slices before broad Flutter-based validation, because startup cost is high and
+  can hide true parser behavior.
 - While a long run is active, do not watch it. Work on the next catalog or
   fixture batch, then inspect final logs.
+
+## Validation Ladder
+
+1. Catalog scope and family membership.
+2. Release-ready metadata depth.
+3. English, Spanish, abbreviation, and ambiguity-negative coverage.
+4. Synthetic fixture coverage for the family being edited.
+5. Windows-safe focused generated validation.
+6. Trade-level measured generated validation with the `0.90` floor.
+7. Mac-side heavier validation after Windows-side hardening is exhausted.
+
+## Accuracy Phase Roadmap
+
+### Pass 5060-5062: Measurement Gate
+
+- Finish the generated fixture runner accuracy gate.
+- Add `--min-pass-rate` support and write `passRate` into aggregate reports.
+- Add regression tests so the runner fails when measured accuracy drops below
+  the requested floor.
+- Keep this gate local-only and inventory/parser/QA-only.
+
+### Pass 5063-5068: Plumbing Accuracy Proof
+
+- Run focused Plumbing Core generated validation samples with the `0.90` floor.
+- Record actual measured pass rate and top misses.
+- Fix the biggest miss families first, then rerun the same sample.
+- Do not claim `95%` until repeated measured runs support it.
+
+### Pass 5069-5076: Electrical Accuracy Proof
+
+- Run focused Electrical Core generated validation samples with the same floor.
+- Repair the most frequent abbreviation, ambiguity, and merchant-style misses.
+- Rerun until the measured sample clears the floor or the exact blockers are
+  documented.
+
+### Pass 5077-5084: HVAC Accuracy Proof
+
+- Run focused HVAC Core generated validation samples with the same floor.
+- Repair the top misses in controls, condensate, filters, and duct/service
+  stock wording.
+- Rerun until the measured sample clears the floor or the exact blockers are
+  documented.
+
+### Pass 5085+: Rollup and Handoff
+
+- Capture the measured PEH Core percentages in progress memory and reports.
+- Push milestone commits with human-readable EDT labels.
+- Prepare the Mac validation handoff using measured Windows-side evidence,
+  not just readiness audits.
 
 ## Completion Definition
 
@@ -155,6 +229,8 @@ Each trade can move to Mac validation only when:
 - Ambiguity rules exist for cross-trade/shared-use items.
 - Synthetic receipt fixtures cover the family.
 - Focused parser evidence is clean.
+- Measured generated-fixture validation clears the agreed minimum pass-rate
+  floor for the active release claim.
 - Readiness audit reports zero critical, zero needs-work, and all Core rows
   release-ready.
 - The milestone commit is pushed with a human-readable EDT label.
