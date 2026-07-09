@@ -4469,3 +4469,15 @@ Release boundaries:
   Electrical/HVAC both reference the branch-level
   `peh_core_windows_status_rollup.json` stop-line, and HVAC now reflects the
   refreshed `6 + 6` sample state instead of the older `6 + 5` evidence wording.
+- **15:16 Harness Pass 5178:** Added
+  `tool/work_supply_parser_qa_peh_core_mac_wave_commands.dart` plus focused
+  tests so the exact next Mac-side PEH measurement wave is available as a
+  machine-readable artifact instead of only prose. Generated
+  `build/parser_qa_pipeline/peh_core_mac_wave_commands.json`, which now holds
+  the four `25`-case Electrical/HVAC measurement commands, the two generated
+  status rollup commands, and the focused Plumbing Menards runtime command.
+  Verification: targeted `dart analyze` passed for the new tool/test and the
+  execution-command contract file, `flutter test
+  test/work_supply_parser_qa_peh_core_mac_wave_commands_test.dart --reporter compact`
+  passed `3/3`, and focused `inventory.execution_command_contract,qa.threshold_gate`
+  passed with `111` checks and `0` failures.

@@ -40,6 +40,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       'tool/work_supply_parser_qa_generated_run_status.dart';
   static const _pehCoreStatusRollupPath =
       'tool/work_supply_parser_qa_peh_core_status_rollup.dart';
+  static const _pehCoreMacWaveCommandsPath =
+      'tool/work_supply_parser_qa_peh_core_mac_wave_commands.dart';
 
   static const _environmentVariables = [
     'PARSER_QA_STRICT',
@@ -262,6 +264,11 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       '--hvac-status',
       '--output',
     ]),
+    _CommandContract('peh_core_mac_wave_commands', [
+      'dart run tool/work_supply_parser_qa_peh_core_mac_wave_commands.dart',
+      '--output',
+      'build/parser_qa_pipeline/peh_core_mac_wave_commands.json',
+    ]),
   ];
 
   static const _toolSourceContracts = [
@@ -339,6 +346,20 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'plumbing',
         'electrical',
         'hvac',
+      ],
+    ),
+    _ToolSourceContract(
+      name: 'peh_core_mac_wave_commands_readout',
+      path: _pehCoreMacWaveCommandsPath,
+      tokens: [
+        'QA_PEH_CORE_MAC_WAVE_COMMANDS',
+        'QA_PEH_CORE_MAC_WAVE_COMMANDS_ARTIFACT',
+        'measurementCommandCount',
+        'rollupCommandCount',
+        'plumbingFocusedRuntimeCommand',
+        'mac_peh_core_measurement_',
+        'work_supply_parser_qa_run_generated_fixtures.dart',
+        'work_supply_parser_qa_generated_run_status.dart',
       ],
     ),
     _ToolSourceContract(
@@ -678,6 +699,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       _gateShouldRunPath: _read(_gateShouldRunPath, failures),
       _generatedRunStatusPath: _read(_generatedRunStatusPath, failures),
       _pehCoreStatusRollupPath: _read(_pehCoreStatusRollupPath, failures),
+      _pehCoreMacWaveCommandsPath: _read(_pehCoreMacWaveCommandsPath, failures),
     };
     checked += _toolSourceContracts.length;
     for (final contract in _toolSourceContracts) {
