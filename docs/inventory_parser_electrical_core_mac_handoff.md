@@ -12,9 +12,9 @@ unrelated modules while following this handoff.
 
 - Repository: `https://github.com/haftafish3760/maintainiac5.6-.git`
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit: `9ebbb80`
+- Commit: `5275746`
 - Commit label:
-  `QA testing 2026-07-09 14:21 EDT: record generated pass-rate governance proof`
+  `QA testing 2026-07-09 14:51 EDT: add PEH core status checkpoint rollup`
 
 ## Windows Evidence Already Completed
 
@@ -44,6 +44,14 @@ Family coverage already recorded in the current readiness audit includes:
 
 Measured generated sample evidence already on disk:
 
+- rollup status:
+  `build/parser_qa_pipeline/electrical_core_generated_run_status_samples.json`
+  - Checked total: `12`
+  - Failures: `0`
+  - Parser calls: `12`
+  - Measured pass rate: `1.0000`
+  - Under minimum checked cells: `0`
+  - Under minimum pass-rate cells: `0`
 - en-US:
   `build/parser_qa_generated_run_samples/electrical/residential/core/en-US/reports/latest_generated_fixture_run.json`
   - Checked: `6`
@@ -68,9 +76,16 @@ same environment-level FFI/build-hook compiler crash seen in other bounded
 parser tools. Treat that as a Windows environment issue unless a narrower
 parser failure proves otherwise.
 
+Branch-level PEH checkpoint status also exists:
+
+- `build/parser_qa_pipeline/peh_core_windows_status_rollup.json`
+  - ready for Mac measurement wave: `true`
+  - ready to claim `90-95%`: `false`
+  - Electrical remains sample-sized until the broader Mac wave clears.
+
 ## Mac Validation Commands
 
-Run from the repo root on the Mac after checking out commit `9ebbb80`.
+Run from the repo root on the Mac after checking out commit `5275746`.
 
 ```bash
 dart format --set-exit-if-changed \

@@ -12,9 +12,9 @@ unrelated modules while following this handoff.
 
 - Repository: `https://github.com/haftafish3760/maintainiac5.6-.git`
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit: `9ebbb80`
+- Commit: `5275746`
 - Commit label:
-  `QA testing 2026-07-09 14:21 EDT: record generated pass-rate governance proof`
+  `QA testing 2026-07-09 14:51 EDT: add PEH core status checkpoint rollup`
 
 ## Windows Evidence Already Completed
 
@@ -29,6 +29,8 @@ unrelated modules while following this handoff.
   `build/parser_qa_curation/plumbing_core/latest_plumbing_core_readiness_audit.json`
 - Plumbing Core generated benchmark status passed:
   `build/parser_qa_pipeline/plumbing_core_generated_run_status.json`
+- Branch-level PEH checkpoint passed for Mac-wave readiness:
+  `build/parser_qa_pipeline/peh_core_windows_status_rollup.json`
 - Plumbing Core generated benchmark review-seed status passed:
   `build/parser_qa_pipeline/plumbing_core_generated_run_status_100_reviewseed_v5.json`
 
@@ -68,7 +70,7 @@ still worth validating on Mac:
 
 ## Mac Validation Commands
 
-Run from the repo root on the Mac after checking out commit `9ebbb80`.
+Run from the repo root on the Mac after checking out commit `5275746`.
 
 ```bash
 dart format --set-exit-if-changed \

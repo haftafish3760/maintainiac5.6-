@@ -4463,3 +4463,9 @@ Release boundaries:
   test/work_supply_parser_qa_peh_core_status_rollup_test.dart --reporter compact`
   passed `2/2`, and focused `inventory.execution_command_contract,qa.threshold_gate`
   passed with `109` checks and `0` failures.
+- **14:58 Harness Pass 5165:** Refreshed the Plumbing, Electrical, HVAC, and
+  shared PEH Mac handoff docs to the new checkpoint baseline commit and the new
+  branch-level rollup artifact. The handoffs now point at commit `5275746`,
+  Electrical/HVAC both reference the branch-level
+  `peh_core_windows_status_rollup.json` stop-line, and HVAC now reflects the
+  refreshed `6 + 6` sample state instead of the older `6 + 5` evidence wording.

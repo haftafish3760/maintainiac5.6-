@@ -13,7 +13,7 @@ guesswork or ad hoc report locations.
 
 - Repo: `C:\Users\rjenk\Documents\Mainteniac 5.6`
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit baseline: `f3876a9`
+- Commit baseline: `5275746`
 - Area: inventory/catalog/parser/QA only
 - Do not touch: OCR, camera, stitching, expenses, UI, PDF, or unrelated
   modules
@@ -183,6 +183,10 @@ The current Windows branch already proves:
 - Plumbing has stronger measured evidence.
 - Electrical and HVAC have clean readiness audits.
 - Electrical and HVAC only have smoke-sized measured samples so far.
+- The branch-level checkpoint artifact
+  `build/parser_qa_pipeline/peh_core_windows_status_rollup.json` is green for
+  Mac-wave readiness but still blocks any `90-95%` branch claim because
+  Electrical and HVAC remain under their checked-case targets.
 
 This plan is the shortest professional path from that state to stronger,
 measured, trade-specific proof without drifting into unrelated work.
