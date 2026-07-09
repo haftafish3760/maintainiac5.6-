@@ -4495,3 +4495,21 @@ Release boundaries:
   test/work_supply_parser_qa_peh_core_handoff_readiness_test.dart --reporter compact`
   passed `2/2`, and focused `inventory.execution_command_contract,qa.threshold_gate`
   passed with `113` checks and `0` failures.
+- **12:44 Harness Pass 5194:** Added
+  `tool/work_supply_parser_qa_peh_core_measurement_gap.dart` plus focused
+  tests so the current branch can publish the exact remaining PEH measured
+  coverage gap instead of relying on prose. Generated
+  `build/parser_qa_pipeline/peh_core_measurement_gap.json`, which reports
+  `readyToClaimNinetyPlus=false`, `readyForMacMeasurementWave=true`,
+  `tradeGapCount=3`, `totalRemainingChecked=76`, and the exact remaining
+  measured work by trade: Electrical `38`, HVAC `38`, Plumbing `0`. Also
+  refreshed `docs/inventory_parser_peh_core_roadmap.md` so the active
+  execution map is explicit: preserve the Windows checkpoint artifacts, keep
+  Plumbing Windows-complete, then expand measured Electrical/HVAC evidence
+  before any `90-95%` claim. Verification: targeted `dart analyze` passed for
+  the new tool/test and the execution-command contract file, `flutter test
+  test/work_supply_parser_qa_peh_core_measurement_gap_test.dart
+  test/work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_PROFILE=smoke
+  --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
+  passed with `115` checks and `0` failures.

@@ -44,6 +44,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       'tool/work_supply_parser_qa_peh_core_mac_wave_commands.dart';
   static const _pehCoreHandoffReadinessPath =
       'tool/work_supply_parser_qa_peh_core_handoff_readiness.dart';
+  static const _pehCoreMeasurementGapPath =
+      'tool/work_supply_parser_qa_peh_core_measurement_gap.dart';
 
   static const _environmentVariables = [
     'PARSER_QA_STRICT',
@@ -280,6 +282,13 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       '--output',
       'build/parser_qa_pipeline/peh_core_handoff_readiness.json',
     ]),
+    _CommandContract('peh_core_measurement_gap', [
+      'dart run tool/work_supply_parser_qa_peh_core_measurement_gap.dart',
+      '--windows-status',
+      'build/parser_qa_pipeline/peh_core_windows_status_rollup.json',
+      '--output',
+      'build/parser_qa_pipeline/peh_core_measurement_gap.json',
+    ]),
   ];
 
   static const _toolSourceContracts = [
@@ -386,6 +395,20 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'rollupCommandCount',
         'blockingFindings',
         'nextActions',
+      ],
+    ),
+    _ToolSourceContract(
+      name: 'peh_core_measurement_gap_readout',
+      path: _pehCoreMeasurementGapPath,
+      tokens: [
+        'QA_PEH_CORE_MEASUREMENT_GAP',
+        'QA_PEH_CORE_MEASUREMENT_GAP_ARTIFACT',
+        'totalRemainingChecked',
+        'remainingChecked',
+        'nextTradesByRemainingGap',
+        'electrical',
+        'hvac',
+        'plumbing',
       ],
     ),
     _ToolSourceContract(
@@ -727,6 +750,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       _pehCoreStatusRollupPath: _read(_pehCoreStatusRollupPath, failures),
       _pehCoreMacWaveCommandsPath: _read(_pehCoreMacWaveCommandsPath, failures),
       _pehCoreHandoffReadinessPath: _read(_pehCoreHandoffReadinessPath, failures),
+      _pehCoreMeasurementGapPath: _read(_pehCoreMeasurementGapPath, failures),
     };
     checked += _toolSourceContracts.length;
     for (final contract in _toolSourceContracts) {

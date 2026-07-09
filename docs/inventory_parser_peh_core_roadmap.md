@@ -94,6 +94,68 @@ Generated from the current Windows-side evidence on 2026-07-09.
 5. Hand off the next broader Electrical/HVAC measurement wave to Mac using the
    canonical PEH measurement plan.
 
+## Active Execution Map
+
+This is the exact ordered map for the current branch. Do not drift out of this
+order unless a shared parser rule blocks the active step.
+
+### Stage 1: Windows checkpoint governance
+
+1. Preserve the current branch truth in machine-readable artifacts.
+   - `peh_core_windows_status_rollup.json`
+   - `peh_core_mac_wave_commands.json`
+   - `peh_core_handoff_readiness.json`
+2. Preserve the explicit remaining-gap artifact so the branch cannot overclaim
+   progress.
+   - `peh_core_measurement_gap.json`
+   - Current remaining checked coverage:
+     - Plumbing: `0`
+     - Electrical: `38`
+     - HVAC: `38`
+3. Keep the harness-governance layer enforcing those artifacts and fields.
+4. Do not claim `90-95%` PEH readiness while Electrical/HVAC are still below
+   their measured target counts.
+
+### Stage 2: Plumbing Windows completion
+
+1. Keep Plumbing as the active Windows trade until there is no meaningful
+   Windows-safe parser/catalog/fixture work left.
+2. Preserve the measured `100/100` generated checkpoint.
+3. Preserve or refresh focused runtime-safe evidence for the remaining Menards
+   PVC sanitary-tee path.
+4. Do not reopen broad Plumbing catalog rewrites unless new evidence proves a
+   real gap.
+
+### Stage 3: Electrical measured expansion
+
+1. Use the existing Electrical release-ready catalog and metadata baseline.
+2. Expand measured generated evidence from the current `12`-case sample toward
+   the `50`-checked target.
+3. Fix only real parser/metadata misses surfaced by the generated-fixture wave.
+4. Refresh the branch rollup and measurement-gap artifacts after each accepted
+   evidence increase.
+
+### Stage 4: HVAC measured expansion
+
+1. Use the existing HVAC release-ready catalog and metadata baseline.
+2. Expand measured generated evidence from the current `12`-case sample toward
+   the `50`-checked target.
+3. Fix only real parser/metadata misses surfaced by the generated-fixture wave.
+4. Refresh the branch rollup and measurement-gap artifacts after each accepted
+   evidence increase.
+
+### Stage 5: Mac handoff and heavier validation
+
+1. Hand off only the exact next Electrical/HVAC measurement commands recorded
+   in `peh_core_mac_wave_commands.json`.
+2. Roll the Mac evidence back into the Windows-side rollup rather than making
+   undocumented claims in chat.
+3. Claim `90-95%` only after:
+   - Plumbing measured evidence remains clean
+   - Electrical measured evidence clears target
+   - HVAC measured evidence clears target
+   - branch rollup reports `readyToClaimNinetyPlus=true`
+
 ### 1. Plumbing Core
 
 Status: active until Windows-side catalog, metadata, fixture, and focused
