@@ -4613,3 +4613,21 @@ Release boundaries:
   --dart-define=PARSER_QA_PROFILE=smoke
   --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
   passed with `125` checks and `0` failures.
+- **13:18 Harness Pass 5223:** Added
+  `tool/work_supply_parser_qa_peh_core_mac_handoff_script.dart` plus focused
+  tests so the machine-readable Mac packet can be rendered into one runnable
+  shell script at `build/parser_qa_pipeline/peh_core_mac_handoff.sh`. The live
+  script now includes the four measurement commands, the two rollup commands,
+  and the one-shot `work_supply_parser_qa_peh_core_refresh.dart` command in
+  execution order. A real bug was fixed before accepting this pass: the first
+  version leaked Windows-style backslashes into the refresh command, which
+  would have broken the Mac run path. The generator now normalizes shell paths
+  to POSIX-style separators before quoting them. Also refreshed the PEH roadmap
+  so Stage 5 now explicitly calls for materializing the packet into the shell
+  script before external execution. Verification: targeted `dart analyze`
+  passed for the new tool/test and the execution-command contract file,
+  `flutter test test/work_supply_parser_qa_peh_core_mac_handoff_script_test.dart
+  test/work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_PROFILE=smoke
+  --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
+  passed with `127` checks and `0` failures.

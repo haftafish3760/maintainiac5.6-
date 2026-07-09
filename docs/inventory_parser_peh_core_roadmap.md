@@ -169,9 +169,11 @@ order unless a shared parser rule blocks the active step.
 6. Publish the external run contract through
    `peh_core_mac_handoff_packet.json` so the Mac side gets one canonical
    machine-readable packet instead of scattered commands.
-7. Roll the Mac evidence back into the Windows-side rollup rather than making
+7. Materialize that packet into `peh_core_mac_handoff.sh` before external
+   execution so the Mac side can run one prepared script with POSIX-safe paths.
+8. Roll the Mac evidence back into the Windows-side rollup rather than making
    undocumented claims in chat.
-8. Claim `90-95%` only after:
+9. Claim `90-95%` only after:
    - Plumbing measured evidence remains clean
    - Electrical measured evidence clears target
    - HVAC measured evidence clears target

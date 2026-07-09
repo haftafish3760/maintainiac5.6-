@@ -50,6 +50,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       'tool/work_supply_parser_qa_peh_core_refresh.dart';
   static const _pehCoreMacHandoffPacketPath =
       'tool/work_supply_parser_qa_peh_core_mac_handoff_packet.dart';
+  static const _pehCoreMacHandoffScriptPath =
+      'tool/work_supply_parser_qa_peh_core_mac_handoff_script.dart';
   static const _pehCoreClaimReadinessPath =
       'tool/work_supply_parser_qa_peh_core_claim_readiness.dart';
   static const _pehCoreHandoffReadinessPath =
@@ -327,6 +329,13 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       '--output',
       'build/parser_qa_pipeline/peh_core_mac_handoff_packet.json',
     ]),
+    _CommandContract('peh_core_mac_handoff_script', [
+      'dart run tool/work_supply_parser_qa_peh_core_mac_handoff_script.dart',
+      '--packet',
+      'build/parser_qa_pipeline/peh_core_mac_handoff_packet.json',
+      '--output',
+      'build/parser_qa_pipeline/peh_core_mac_handoff.sh',
+    ]),
     _CommandContract('peh_core_claim_readiness', [
       'dart run tool/work_supply_parser_qa_peh_core_claim_readiness.dart',
       '--windows-status',
@@ -500,6 +509,21 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'rollupCommandCount',
         'expectedOutputs',
         'refreshCommand',
+        'branch',
+        'commit',
+      ],
+    ),
+    _ToolSourceContract(
+      name: 'peh_core_mac_handoff_script_readout',
+      path: _pehCoreMacHandoffScriptPath,
+      tokens: [
+        'QA_PEH_CORE_MAC_HANDOFF_SCRIPT',
+        'QA_PEH_CORE_MAC_HANDOFF_SCRIPT_ARTIFACT',
+        'measurementCommandCount',
+        'rollupCommandCount',
+        'hasRefreshCommand',
+        'packetPath',
+        'output',
         'branch',
         'commit',
       ],
@@ -892,6 +916,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       _pehCoreMergedStatusRollupPath: _read(_pehCoreMergedStatusRollupPath, failures),
       _pehCoreRefreshPath: _read(_pehCoreRefreshPath, failures),
       _pehCoreMacHandoffPacketPath: _read(_pehCoreMacHandoffPacketPath, failures),
+      _pehCoreMacHandoffScriptPath: _read(_pehCoreMacHandoffScriptPath, failures),
       _pehCoreClaimReadinessPath: _read(_pehCoreClaimReadinessPath, failures),
       _pehCoreHandoffReadinessPath: _read(_pehCoreHandoffReadinessPath, failures),
       _pehCoreMeasurementGapPath: _read(_pehCoreMeasurementGapPath, failures),
