@@ -52,13 +52,17 @@ void main() {
     expect(status['missingCells'], 0);
     expect(status['failedCells'], 0);
     expect(status['unsafeCells'], 0);
+    expect(status['underMinPassRateCells'], 0);
     expect(status['checkedTotal'], 220);
+    expect(status['failureCount'], 0);
+    expect(status['passRate'], 1.0);
     expect(status['parserCalls'], 252);
     expect(status['durationMs'], 16000);
     expect(status['liveServicesAllowed'], isFalse);
     final cells = status['cells'] as List;
     expect(cells, everyElement(containsPair('localOnlySafe', true)));
     expect(cells, everyElement(containsPair('safetyMissingFields', isEmpty)));
+    expect(cells, everyElement(containsPair('passRate', 1.0)));
   });
 
   test(
@@ -137,6 +141,7 @@ void main() {
     expect(exit, 0);
     expect(status['presentCells'], 1);
     expect(status['checkedTotal'], 25);
+    expect(status['passRate'], 1.0);
     expect(status['durationMs'], 1200);
     expect(cells.single, containsPair('reportPath', contains('build/direct')));
     expect(cells.single, containsPair('localOnlySafe', true));
@@ -382,6 +387,54 @@ void main() {
     expect(cells.single, containsPair('underMinChecked', true));
     expect(cells.single, containsPair('minCheckedPerCell', 50));
     expect(cells.single, containsPair('localOnlySafe', false));
+  });
+
+  test('generated run status fails cells below the minimum pass-rate gate', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_generated_run_min_pass_rate_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+    _writeRun(
+      'build/reports/electrical/residential/core/en-US/reports/latest_generated_fixture_run.json',
+      checked: 10,
+      failureCount: 2,
+      parserCalls: 10,
+    );
+
+    final exit = runWorkSupplyParserQaGeneratedRunStatus(
+      [
+        '--report-root',
+        'build/reports',
+        '--trades',
+        'electrical',
+        '--tiers',
+        'core',
+        '--locales',
+        'en-US',
+        '--require-complete',
+        '--min-pass-rate',
+        '0.90',
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    final status = _readJson(
+      'build/parser_qa_pipeline/core_generated_run_status.json',
+    );
+    final cells = status['cells'] as List;
+
+    expect(exit, 1);
+    expect(status['underMinPassRateCells'], 1);
+    expect(status['minPassRate'], 0.9);
+    expect(status['failureCount'], 2);
+    expect(status['passRate'], 0.8);
+    expect(cells.single, containsPair('underMinPassRate', true));
+    expect(cells.single, containsPair('minPassRate', 0.9));
+    expect(cells.single, containsPair('passRate', 0.8));
   });
 
   test('generated run status fails incomplete chunk reports', () {

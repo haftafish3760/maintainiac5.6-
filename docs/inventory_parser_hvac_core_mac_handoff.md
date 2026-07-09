@@ -120,6 +120,7 @@ Expected minimum result from those two commands together:
 
 - total checked: `50`
 - total failures: `0`
+- rollup gate: `generated_run_status --min-pass-rate 0.90`
 - each aggregate pass rate: at least `0.9000`
 - local-only safety flags all false
 

@@ -94,6 +94,7 @@ dart run tool/work_supply_parser_qa_generated_run_status.dart \
   --locales en-US,es-US \
   --require-complete \
   --min-checked-per-cell 25 \
+  --min-pass-rate 0.90 \
   --output build/parser_qa_pipeline/mac_electrical_core_generated_run_status_25.json
 ```
 
@@ -105,7 +106,9 @@ Electrical minimum pass criteria:
 - failed cells: `0`
 - unsafe cells: `0`
 - underMinCheckedCells: `0`
+- underMinPassRateCells: `0`
 - checkedTotal: `50`
+- rollup pass rate: at least `0.9000`
 - measured pass-rate floor preserved by each aggregate run
 
 ## HVAC Measurement Wave
@@ -145,6 +148,7 @@ dart run tool/work_supply_parser_qa_generated_run_status.dart \
   --locales en-US,es-US \
   --require-complete \
   --min-checked-per-cell 25 \
+  --min-pass-rate 0.90 \
   --output build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json
 ```
 
@@ -156,7 +160,9 @@ HVAC minimum pass criteria:
 - failed cells: `0`
 - unsafe cells: `0`
 - underMinCheckedCells: `0`
+- underMinPassRateCells: `0`
 - checkedTotal: `50`
+- rollup pass rate: at least `0.9000`
 - measured pass-rate floor preserved by each aggregate run
 
 ## Result Interpretation

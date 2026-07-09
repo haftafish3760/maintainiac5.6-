@@ -146,10 +146,12 @@ stopping at smoke-sized samples.
 - Electrical Core
   - Raise measured generated coverage from `12` total checked cases to at least
     `50` checked cases across `en-US` and `es-US`.
+  - Enforce the reusable rollup gate with `--min-pass-rate 0.90`.
   - Maintain `0` failures and local-only safety flags.
 - HVAC Core
   - Raise measured generated coverage from `11` total checked cases to at least
     `50` checked cases across `en-US` and `es-US`.
+  - Enforce the reusable rollup gate with `--min-pass-rate 0.90`.
   - Maintain `0` failures and local-only safety flags.
 - PEH rollup threshold
   - Do not describe Electrical or HVAC as `90-95%` ready until their measured
