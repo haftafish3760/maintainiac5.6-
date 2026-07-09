@@ -42,11 +42,26 @@ Family coverage already recorded in the current readiness audit includes:
 - Grounding and bonding
 - Lighting and alarms
 
+Measured generated sample evidence already on disk:
+
+- en-US:
+  `build/parser_qa_generated_run_samples/electrical/residential/core/en-US/reports/latest_generated_fixture_run.json`
+  - Checked: `6`
+  - Failures: `0`
+  - Parser calls: `6`
+  - Sample pass rate: `1.0000`
+- es-US:
+  `build/parser_qa_generated_run_samples/electrical/residential/core/es-US/reports/latest_generated_fixture_run.json`
+  - Checked: `6`
+  - Failures: `0`
+  - Parser calls: `6`
+  - Sample pass rate: `1.0000`
+
 ## Current Windows Limitation
 
 The Electrical readiness audit artifact is present and clean, but the measured
-generated pass-rate artifact is not yet rolled up on this branch the way
-Plumbing is.
+generated pass-rate evidence is still only sample-sized on this branch and is
+not yet broad enough to support a serious `0.90-0.95` release claim.
 
 Also, direct `dart run` refresh attempts on this Windows box currently hit the
 same environment-level FFI/build-hook compiler crash seen in other bounded
