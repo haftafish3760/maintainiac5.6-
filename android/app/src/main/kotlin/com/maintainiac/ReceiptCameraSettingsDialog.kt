@@ -42,6 +42,10 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         orientation = LinearLayout.VERTICAL
         setPadding(dp(18), dp(12), dp(18), dp(18))
     }
+    content.addView(settingSummary(
+        "Current receipt flow",
+        "Capture or upload, review photos, use receipt, then review filled details. Brightness and light stay on the camera viewer.",
+    ))
     content.addView(settingSectionHeader("ACCOUNT AND STORAGE"))
     content.addView(settingSwitch(
         "Back up receipt photos",
@@ -180,6 +184,10 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     content.addView(settingSummary(
         "Capture order",
         "Take the first photo, review it, add another section only when the receipt continues, then use the receipt.",
+    ))
+    content.addView(settingSummary(
+        "Photo review decisions",
+        "Retake fixes the current photo. Add Another is only for long receipts. Use Receipt starts OCR and opens the details review.",
     ))
     content.addView(settingSectionHeader("IMAGE HANDOFF"))
     content.addView(settingSummary(

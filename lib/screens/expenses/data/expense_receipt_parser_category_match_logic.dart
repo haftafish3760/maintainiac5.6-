@@ -5,7 +5,7 @@ bool _hasSpecificItemCategory(String text) {
       .replaceAll(
         RegExp(
           r'\b(coupon|mfr coupon|manufacturer coupon|promo|promotion|'
-          r'discount|disc|markdown|price match|price adjustment|savings|'
+          r'discount|disc|descuento|descuentos|markdown|price match|price adjustment|savings|'
           r'saved|reward|rewards|loyalty|member savings|fuel rewards?|'
           r'fuel perks?|return|returned|refund|credit|store credit|rebate|'
           r'instant rebate)\b',
@@ -29,11 +29,12 @@ _CategoryMatch? _contextDefaultMatch(
       ((merchantProfile?.defaultCategory == 'Fuel' &&
               _looksLikeFuelMeasuredLine(text)) ||
           _looksLikeStrongFuelReceiptLine(text) ||
+          _looksLikeEvEnergyReceiptLine(text) ||
           (secondary.contains('Fuel') &&
               _looksLikeGenericMerchantLine(text)))) {
     return const _CategoryMatch(
       category: 'Fuel',
-      confidence: .8,
+      confidence: .86,
       reason: 'Receipt-level fuel signals matched this merchant.',
     );
   }
@@ -104,15 +105,28 @@ bool _looksLikeGenericMaterialSupplyLine(String text) {
   ).hasMatch(text);
 }
 
+bool _looksLikeEvEnergyReceiptLine(String text) {
+  return RegExp(
+    r'\b(?:energy|energia|energ[ií]a|sesi[oó]n de carga|carga el[eé]ctrica|carga ev)\b',
+  ).hasMatch(text);
+}
+
 bool _looksLikeFuelMeasuredLine(String text) {
   return RegExp(
-    r'\b(gallons?|galns|gals?|gal\b|kwh|price\s*/\s*g(?:al)?|price\s*per\s*gal|\$\s*/\s*gal|ppu|ppg|ppl|fuel amount|fuel amt|amount|fuel sale|fuel total)\b',
+    r'\b(gallons?|galns|gals?|gal\b|vol(?:ume)?|amt\b|kwh|kg|gge|cng|compressed natural gas|propane|lpg|lp gas|autogas|hydrogen|h2 fuel|fuel cell|price\s*/\s*g(?:al)?|price\s*/\s*gge|price\s*/\s*kg|price\s*per\s*gal|\$\s*/\s*gal|ppu|ppg|ppl|ppge|ppkg|fuel amount|fuel amt|amount|fuel sale|fuel total)\b',
   ).hasMatch(text);
 }
 
 bool _looksLikeStrongFuelReceiptLine(String text) {
   return RegExp(
-    r'\b(unleaded|regular|midgrade|premium|diesel|def|gasoline|fuel sale|fuel total|fuel amount|fuel amt|gallons?|galns|gals?|gal\b|price\s*/\s*g(?:al)?|price\s*per\s*gal|\$\s*/\s*gal|ppu|ppg|ppl)\b',
+    r'\b(unleaded|regular|midgrade|premium|diesel|di[eé]sel|def|'
+    r'gasoline|gasolina|combustible|propane|lpg|lp gas|autogas|auto gas|hydrogen|h2 fuel|fuel cell|'
+    r'electric|charging|chargepoint|supercharger|sesi[oó]n de carga|'
+    r'fuel sale|fuel total|'
+    r'energy sale|energy delivered|'
+    r'fuel amount|fuel amt|gallons?|galns|gals?|gal\b|vol(?:ume)?|amt\b|kwh|kg|gge|cng|propane|lpg|hydrogen|'
+    r'price\s*/\s*g(?:al)?|price\s*/\s*kwh|price\s*per\s*gal|'
+    r'price\s*per\s*kwh|\$\s*/\s*gal|\$\s*/\s*kwh|ppu|ppg|ppl)\b',
   ).hasMatch(text);
 }
 
@@ -223,7 +237,7 @@ String _parserExpenseFamilyForCategory({
     return 'materials';
   }
   if (RegExp(
-    r'\b(?:fuel|diesel|gasoline|unleaded|pump|gallon)\b',
+    r'\b(?:fuel|diesel|gasoline|unleaded|pump|gallon|cng|gge|propane|lpg|autogas|hydrogen|h2)\b',
   ).hasMatch(clean)) {
     return 'fuel';
   }

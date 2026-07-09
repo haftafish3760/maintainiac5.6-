@@ -12,7 +12,7 @@ bool _fuelLineQuantityNeedsReview(ExpenseReceiptLineRecord line) {
   if (_fuelLineHasParsedQuantityEvidence(line)) return false;
   final raw = line.rawReceiptText.toLowerCase();
   final hasExplicitQuantity = RegExp(
-    r'\b(\d+(?:\.\d+)?)\s*(gal|gals|gallon|gallons|gl|g|kwh|l|liter|liters|litre|litres)\b|\b(gal|gals|gallon|gallons|gl|volume|vol|qty|qnty|quantity|fuel\s+qty|fuel\s+volume|kwh)\s*[:#]?\s*(\d+(?:\.\d+)?)\b',
+    r'\b(\d+(?:\.\d+)?)\s*(gal|gals|gallon|gallons|gl|g|kwh|kg|gge|dge|l|liter|liters|litre|litres)\b|\b(gal|gals|gallon|gallons|gl|volume|vol|qty|qnty|quantity|fuel\s+qty|fuel\s+volume|kwh|kg|gge|dge)\s*[:#]?\s*(\d+(?:\.\d+)?)\b',
   ).hasMatch(raw);
   return !hasExplicitQuantity;
 }
@@ -23,6 +23,9 @@ bool _fuelLineHasParsedQuantityEvidence(ExpenseReceiptLineRecord line) {
   return unit == 'gallon' ||
       unit == 'liter' ||
       unit == 'litre' ||
+      unit == 'gge' ||
+      unit == 'dge' ||
+      unit == 'kg' ||
       unit == 'kwh';
 }
 

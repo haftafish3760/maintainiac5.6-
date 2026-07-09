@@ -20,6 +20,7 @@ dart analyze \
   tool/receipt_qa_scoring_checks.dart \
   tool/receipt_qa_scoring_matchers.dart \
   tool/receipt_qa_scoring_review.dart \
+  tool/fuel_synthetic_parser_runner.dart \
   tool/receipt_qa_runner.dart
 
 bash tool/receipt_fast_guard_gate.sh
@@ -29,7 +30,9 @@ dart tool/maintainiac_source_audit.dart
 dart tool/receipt_camera_io_guard.dart
 dart tool/receipt_camera_footprint_audit.dart
 dart run tool/receipt_qa_runner.dart --fail-under=1.0 --summary-json
+dart run tool/fuel_synthetic_parser_runner.dart --preset=milestone --fail-under=1.0 --summary-json
 flutter test \
+  test/fuel_synthetic_parser_runner_contract_test.dart \
   test/receipt_qa_runner_contract_test.dart \
   test/receipt_qa_runner_pack_focus_test.dart \
   test/receipt_camera_footprint_audit_test.dart \

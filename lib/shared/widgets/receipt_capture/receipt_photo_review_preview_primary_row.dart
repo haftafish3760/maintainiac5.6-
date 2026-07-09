@@ -32,8 +32,6 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shouldAddNextSection = coverageDecision.shouldPromptForMorePhotos;
-    final shouldCheckBottomFirst =
-        coverageDecision.isMissingBottomEdgeAndTotals;
     final retakeLabel = _ReceiptPhotoSectionLabels.retakeLabel(
       index: current - 1,
       total: total,
@@ -52,6 +50,9 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
         : shouldAddNextSection
         ? 'Add the next receipt section with overlap from this photo'
         : 'Add another receipt photo if the receipt continues';
+    final continueIcon = continueLabel == 'Check Photo Match'
+        ? Icons.join_full_rounded
+        : Icons.check_rounded;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xFF0D1316),
@@ -161,15 +162,11 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                   child: Tooltip(
                     message: savingPhotos
                         ? 'Opening receipt details'
-                        : shouldCheckBottomFirst
-                        ? 'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice before receipt details'
                         : continueLabel,
                     child: Semantics(
                       button: true,
                       label: savingPhotos
                           ? 'Opening receipt details'
-                          : shouldCheckBottomFirst
-                          ? 'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice before receipt details'
                           : continueLabel,
                       child: FilledButton.icon(
                         onPressed: savingPhotos ? null : onContinue,
@@ -182,7 +179,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Icon(Icons.check_rounded),
+                            : Icon(continueIcon),
                         label: savingPhotos
                             ? const Text(
                                 'Opening',
@@ -211,5 +208,95 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _ReceiptReviewDecisionHeader extends StatelessWidget {
+  const _ReceiptReviewDecisionHeader({
+    required this.photoCount,
+    required this.coverageDecision,
+    required this.continueLabel,
+    required this.compact,
+  });
+
+  final int photoCount;
+  final ReceiptPhotoCoverageDecision coverageDecision;
+  final String continueLabel;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = photoCount > 1
+        ? 'Review $photoCount receipt sections'
+        : 'Review receipt photo';
+    final guidance = _guidance;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xDD101719),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: const Color(0xFF344047)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(9, compact ? 6 : 8, 9, compact ? 6 : 8),
+        child: Row(
+          children: [
+            Icon(
+              photoCount > 1
+                  ? Icons.receipt_long_rounded
+                  : Icons.photo_camera_back_rounded,
+              color: const Color(0xFFFFD166),
+              size: compact ? 16 : 18,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: const Color(0xFFE8ECEE),
+                      fontSize: compact ? 11 : 12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                  if (!compact) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      guidance,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFFC8D0D3),
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        height: 1.15,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String get _guidance {
+    if (coverageDecision.isMissingBottomEdgeAndTotals) {
+      return 'Add the bottom section if the receipt continues. Use Receipt only when this is complete.';
+    }
+    if (coverageDecision.shouldPromptForMorePhotos) {
+      return 'Add another photo if more receipt lines continue below this section.';
+    }
+    if (photoCount > 1 && continueLabel == 'Check Photo Match') {
+      return 'Check the overlap match once, then use the receipt.';
+    }
+    return 'Use Receipt opens the details review. Add Another is only for long receipts.';
   }
 }

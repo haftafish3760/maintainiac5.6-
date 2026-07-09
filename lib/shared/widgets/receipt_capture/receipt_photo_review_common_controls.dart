@@ -29,9 +29,9 @@ class _ReceiptPersistentContinueButton extends StatelessWidget {
                   height: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
+                    color: Colors.white,
+                  ),
+                )
               : const Icon(Icons.check_rounded),
           label: savingPhotos
               ? const Text('Opening')
@@ -68,7 +68,7 @@ class _ReceiptNextReviewLabel extends StatelessWidget {
     if (normalized == 'Check Photo Match') {
       return const _ReceiptStackedButtonLabel(
         primary: 'Check',
-        secondary: 'Photo Match',
+        secondary: 'Match',
       );
     }
     return Text(normalized, maxLines: 1, overflow: TextOverflow.ellipsis);

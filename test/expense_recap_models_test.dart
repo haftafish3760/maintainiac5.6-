@@ -187,6 +187,96 @@ void main() {
   );
 
   test(
+    'expense recap counts EV charging fees in electric cost per mile',
+    () async {
+      final ledger = ExpenseLedgerController.memory();
+      await ledger.saveReceipt(
+        ExpenseReceiptRecord(
+          id: 'ev-charge-1',
+          receiptDate: DateTime(2026, 6, 5),
+          merchantName: 'EVgo',
+          vehicleId: 'van_ev',
+          odometerReading: 40000,
+          lines: const [
+            ExpenseReceiptLineRecord(
+              id: 'ev-energy-1',
+              description: 'Charging session',
+              category: 'Fuel',
+              use: ExpenseLineUse.business,
+              quantity: 40,
+              unitsPerPackage: 1,
+              unit: 'kWh',
+              subtotal: 16,
+              fuelType: 'Electric',
+            ),
+            ExpenseReceiptLineRecord(
+              id: 'ev-session-fee',
+              description: 'Session fee',
+              category: 'Charging Fees',
+              use: ExpenseLineUse.business,
+              quantity: 1,
+              unitsPerPackage: 1,
+              unit: 'each',
+              subtotal: 1.25,
+            ),
+          ],
+        ),
+      );
+      await ledger.saveReceipt(
+        ExpenseReceiptRecord(
+          id: 'ev-charge-2',
+          receiptDate: DateTime(2026, 6, 6),
+          merchantName: 'EVgo',
+          vehicleId: 'van_ev',
+          odometerReading: 40120,
+          lines: const [
+            ExpenseReceiptLineRecord(
+              id: 'ev-energy-2',
+              description: 'Charging session',
+              category: 'Fuel',
+              use: ExpenseLineUse.business,
+              quantity: 30,
+              unitsPerPackage: 1,
+              unit: 'kWh',
+              subtotal: 12,
+              fuelType: 'Electric',
+            ),
+            ExpenseReceiptLineRecord(
+              id: 'ev-idle-fee',
+              description: 'Idle fee',
+              category: 'Charging Fees',
+              use: ExpenseLineUse.business,
+              quantity: 1,
+              unitsPerPackage: 1,
+              unit: 'each',
+              subtotal: 2.75,
+            ),
+          ],
+        ),
+      );
+
+      final report = ExpenseRecapReport.fromLedger(
+        ledger,
+        ExpenseDateRange(
+          start: DateTime(2026, 6, 1),
+          end: DateTime(2026, 6, 30),
+        ),
+      );
+
+      expect(report.fuelExpense, 32);
+      expect(report.liquidFuelExpense, 0);
+      expect(report.electricFuelExpense, 32);
+      expect(report.fuelUnits, 0);
+      expect(report.electricKwh, 70);
+      expect(report.odometerMiles, 120);
+      expect(report.averageMpg, isNull);
+      expect(report.milesPerKwh, closeTo(1.714, .001));
+      expect(report.averageElectricKwhPrice, closeTo(.4571, .0001));
+      expect(report.electricFuelCostPerMile, closeTo(.2667, .0001));
+    },
+  );
+
+  test(
     'business-only vehicle usage leaves vehicle expenses business',
     () async {
       final ledger = ExpenseLedgerController.memory();

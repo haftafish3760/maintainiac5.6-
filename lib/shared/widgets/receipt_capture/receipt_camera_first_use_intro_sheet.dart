@@ -76,7 +76,7 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         const Text(
-                          'Receipt Assist reads the photo and suggests totals and lines. You review everything before saving.',
+                          'Receipt Assist reads the accepted photo and suggests totals and lines. You review everything before saving.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: Color(0xFFC7D0D4),
@@ -98,6 +98,8 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
                             letterSpacing: 0,
                           ),
                         ),
+                        const SizedBox(height: 14),
+                        const _ReceiptAssistPromiseCard(),
                       ],
                     ),
                   ),
@@ -143,6 +145,53 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiptAssistPromiseCard extends StatelessWidget {
+  const _ReceiptAssistPromiseCard();
+
+  @override
+  Widget build(BuildContext context) {
+    const promises = [
+      (Icons.visibility_rounded, 'You approve photos first'),
+      (Icons.edit_note_rounded, 'You can edit every field'),
+      (Icons.lock_outline_rounded, 'Manual entry stays available'),
+    ];
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF101719),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF344047)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+        child: Column(
+          children: [
+            for (final promise in promises) ...[
+              Row(
+                children: [
+                  Icon(promise.$1, color: const Color(0xFFFFD166), size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      promise.$2,
+                      style: const TextStyle(
+                        color: Color(0xFFE8ECEE),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (promise != promises.last) const SizedBox(height: 7),
+            ],
           ],
         ),
       ),

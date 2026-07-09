@@ -179,6 +179,11 @@ String _combinedReceiptLineRow({
   if (!_looksLikePendingLineDescription(pending, merchantProfile, context)) {
     return pricedRow;
   }
+  if (_looksLikeFuelPendingDetailRow(pending) &&
+      !_looksLikeFuelMeasuredLine(pricedRow.toLowerCase()) &&
+      !_looksLikeStrongFuelReceiptLine(pricedRow.toLowerCase())) {
+    return pricedRow;
+  }
   final pricedDescription = _cleanLineDescription(pricedRow);
   if (pricedDescription.length > 4 &&
       _looksLikeSpecificLineDescription(
@@ -198,6 +203,14 @@ String _combinedReceiptLineRow({
   return pricedRow;
 }
 
+bool _looksLikeFuelPendingDetailRow(String row) {
+  final lower = row.toLowerCase();
+  return RegExp(
+    r'\b(fuel\s+qty|fuel\s+volume|gallons?|galns|gals?|price\s*/\s*gal|'
+    r'ppg|ppu|ppl|price\s*/\s*kwh|kwh|gge|ppge|kg|ppkg)\b',
+  ).hasMatch(lower);
+}
+
 bool _looksLikePendingLineDescription(
   String row,
   _MerchantProfile? merchantProfile,
@@ -210,6 +223,11 @@ bool _looksLikePendingLineDescription(
       _datePattern.hasMatch(clean) ||
       _hasReceiptTimeCandidateRow(clean) ||
       _isAdministrativeRow(lower) ||
+      _looksLikePrivateFuelIdentityRow(
+        _normalizeReceiptSummaryKeywordText(lower),
+      ) ||
+      (context.looksLikeFuelReceipt &&
+          _looksLikeFuelPerUnitAdjustmentMetadataRow(clean)) ||
       _looksLikeAddressOrContactRow(lower) ||
       _looksLikeMerchantHeaderRow(lower, merchantProfile)) {
     return false;

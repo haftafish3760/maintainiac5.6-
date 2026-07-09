@@ -18,15 +18,38 @@ Map<String, int> _parserExcludedLineCountsFor(List<String> rows) {
       add('private');
       continue;
     }
+    if (_looksLikePrivateFuelIdentityRow(normalized)) {
+      add('identityDetail');
+      add('private');
+      continue;
+    }
     if (RegExp(
-      r'\b(auth|authcode|approval|authorization|invoice|order|ref(?:erence)?|terminal|trace|transaction|trans)\b',
-    ).hasMatch(lower)) {
+      r'\b(auth|authcode|pre[- ]?auth|preauthorization|approval|'
+      r'authorization|invoice|order|ref(?:erence)?|terminal|trace|'
+      r'transaction|trans)\b',
+    ).hasMatch(normalized)) {
       add('transaction');
       add('private');
       _addTransactionPrivacySubtypes(normalized, add);
     }
   }
   return Map.unmodifiable(counts);
+}
+
+bool _looksLikePrivateFuelIdentityRow(String normalized) {
+  if (RegExp(
+    r'\b(loyalty|rewards?|member|membership|club card|shopper|alt id|'
+    r'account|acct|customer id|cust id|driver id|driver no|employee id|'
+    r'vehicle id|vehicle no|unit no|truck no|tractor no|trailer no|'
+    r'vin|license plate|plate|tag no|phone|email|e-mail)\b',
+  ).hasMatch(normalized)) {
+    return true;
+  }
+  return RegExp(
+    r'\b(?:[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|'
+    r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})\b',
+    caseSensitive: false,
+  ).hasMatch(normalized);
 }
 
 void _addTenderPrivacySubtypes(String normalized, void Function(String) add) {
@@ -52,7 +75,9 @@ void _addTenderPrivacySubtypes(String normalized, void Function(String) add) {
   ).hasMatch(normalized)) {
     add('tenderBalanceDetail');
   }
-  if (RegExp(r'\b(fleet card|fuel card)\b').hasMatch(normalized)) {
+  if (RegExp(
+    r'\b(fleet card|fuel card|card flota|flota card|wex|efs|comdata|voyager|fleet one)\b',
+  ).hasMatch(normalized)) {
     add('fleetTender');
   }
   _addTransactionPrivacySubtypes(normalized, add);
@@ -63,7 +88,7 @@ void _addTransactionPrivacySubtypes(
   void Function(String) add,
 ) {
   if (RegExp(
-    r'\b(auth|authcode|approval|authorization)\b',
+    r'\b(auth|authcode|pre[- ]?auth|preauthorization|approval|authorization)\b',
   ).hasMatch(normalized)) {
     add('authDetail');
   }

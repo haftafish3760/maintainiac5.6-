@@ -242,11 +242,12 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
       _receiptReadAttemptedWithoutText = false;
       _receiptReadHandoffProofCount = result.photoPaths.length;
       _receiptReadHandoffOcrSourceCount = result.ocrSourcePhotoPaths.length;
-      _receiptReadHandoffDecision = result.nextReviewHandoffLabel;
-      _receiptReadHandoffAction = result.acceptedPhotoHandoffActionLabel;
+      _receiptReadHandoffDecision = 'Reading receipt';
+      _receiptReadHandoffAction =
+          'Extracting text from the accepted receipt photo. Receipt details will appear here automatically when the reader finishes.';
       _receiptReadHandoffRouteResult =
-          result.acceptedPhotoHandoffRouteResultLabel;
-      _receiptReadHandoffStage = 'Opening receipt details from accepted photo';
+          'Accepted photo review is moving directly into receipt details. Add another section only if OCR later shows the bottom of the receipt is missing.';
+      _receiptReadHandoffStage = 'Extracting receipt text';
       _receiptReadHandoffCoverageWarning = handoffWarnings;
       _receiptBrainLowStorageDownloadRiskCounts =
           result.receiptBrainLowStorageDownloadRiskCounts;
@@ -271,6 +272,6 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
     });
     _scheduleDraftSave();
     _recordReceiptPhotoPreparationTelemetry(result);
-    _scrollToReceiptCapture();
+    _scrollToReceiptReview();
   }
 }

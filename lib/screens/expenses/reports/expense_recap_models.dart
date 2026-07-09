@@ -1,3 +1,4 @@
+import '../data/fuel_economy_metrics.dart';
 import '../data/expense_ledger_models.dart';
 import '../data/expense_ledger_store.dart';
 
@@ -79,6 +80,8 @@ class ExpenseRecapReport {
     required this.categoryTotals,
     required this.vehicleExpense,
     required this.fuelExpense,
+    required this.liquidFuelExpense,
+    required this.electricFuelExpense,
     required this.maintenanceExpense,
     required this.repairExpense,
     required this.materialsExpense,
@@ -93,6 +96,7 @@ class ExpenseRecapReport {
     required this.largestReceiptTitle,
     required this.largestReceiptTotal,
     required this.fuelUnits,
+    required this.electricKwh,
     required this.odometerMiles,
     required this.businessVehicleMiles,
     required this.personalVehicleMiles,
@@ -105,7 +109,7 @@ class ExpenseRecapReport {
     Map<String, ExpenseVehicleUsageSnapshot> vehicleUsage = const {},
   }) {
     final categoryTotals = <String, double>{};
-    final fuelOdometers = <int>[];
+    final includedReceipts = <ExpenseReceiptRecord>[];
     final usageTotals = _VehicleUsageTotals();
     var receiptCount = 0;
     var lineCount = 0;
@@ -123,7 +127,6 @@ class ExpenseRecapReport {
     var insuranceExpense = 0.0;
     var loanLeaseExpense = 0.0;
     var uncategorizedExpense = 0.0;
-    var fuelUnits = 0.0;
     var receiptsMissingProof = 0;
     var splitReceiptCount = 0;
     var largestReceiptTitle = 'No receipts';
@@ -132,6 +135,7 @@ class ExpenseRecapReport {
     for (final receipt in ledger.receipts) {
       if (!range.contains(receipt.receiptDate)) continue;
       if (vehicleId != null && receipt.vehicleId != vehicleId) continue;
+      includedReceipts.add(receipt);
       receiptCount += 1;
       lineCount += receipt.lines.length;
       totalExpenses += receipt.total;
@@ -164,9 +168,6 @@ class ExpenseRecapReport {
         if (_vehicleCategories.contains(normalized)) vehicleExpense += amount;
         if (normalized == 'fuel' || normalized == 'charging fees') {
           fuelExpense += amount;
-          fuelUnits += line.quantity;
-          final odometer = line.odometerReading;
-          if (odometer != null && odometer > 0) fuelOdometers.add(odometer);
         }
         if (normalized == 'maintenance') maintenanceExpense += amount;
         if (normalized == 'repair') repairExpense += amount;
@@ -184,10 +185,7 @@ class ExpenseRecapReport {
       }
     }
 
-    fuelOdometers.sort();
-    final odometerMiles = fuelOdometers.length < 2
-        ? null
-        : fuelOdometers.last - fuelOdometers.first;
+    final fuelEconomy = FuelEconomyMetrics.fromReceipts(includedReceipts);
     return ExpenseRecapReport(
       range: range,
       receiptCount: receiptCount,
@@ -198,6 +196,8 @@ class ExpenseRecapReport {
       categoryTotals: Map.unmodifiable(categoryTotals),
       vehicleExpense: vehicleExpense,
       fuelExpense: fuelExpense,
+      liquidFuelExpense: fuelEconomy.liquidFuelExpense,
+      electricFuelExpense: fuelEconomy.electricFuelExpense,
       maintenanceExpense: maintenanceExpense,
       repairExpense: repairExpense,
       materialsExpense: materialsExpense,
@@ -211,8 +211,9 @@ class ExpenseRecapReport {
       uncategorizedExpense: uncategorizedExpense,
       largestReceiptTitle: largestReceiptTitle,
       largestReceiptTotal: largestReceiptTotal,
-      fuelUnits: fuelUnits,
-      odometerMiles: odometerMiles,
+      fuelUnits: fuelEconomy.liquidGallons,
+      electricKwh: fuelEconomy.electricKwh,
+      odometerMiles: fuelEconomy.odometerMiles,
       businessVehicleMiles: usageTotals.businessMiles,
       personalVehicleMiles: usageTotals.personalMiles,
     );
@@ -227,6 +228,8 @@ class ExpenseRecapReport {
   final Map<String, double> categoryTotals;
   final double vehicleExpense;
   final double fuelExpense;
+  final double liquidFuelExpense;
+  final double electricFuelExpense;
   final double maintenanceExpense;
   final double repairExpense;
   final double materialsExpense;
@@ -241,6 +244,7 @@ class ExpenseRecapReport {
   final String largestReceiptTitle;
   final double largestReceiptTotal;
   final double fuelUnits;
+  final double electricKwh;
   final int? odometerMiles;
   final double businessVehicleMiles;
   final double personalVehicleMiles;
@@ -257,13 +261,23 @@ class ExpenseRecapReport {
       : personalVehicleMiles / totalVehicleUsageMiles;
   double? get vehicleCostPerMile => _perMile(vehicleExpense);
   double? get fuelCostPerMile => _perMile(fuelExpense);
+  double? get liquidFuelCostPerMile => _perMile(liquidFuelExpense);
+  double? get electricFuelCostPerMile => _perMile(electricFuelExpense);
   double? get totalCostPerMile => _perMile(totalExpenses);
   double? get averageFuelPrice =>
-      fuelUnits <= 0 ? null : fuelExpense / fuelUnits;
+      fuelUnits <= 0 ? null : liquidFuelExpense / fuelUnits;
+  double? get averageElectricKwhPrice =>
+      electricKwh <= 0 ? null : electricFuelExpense / electricKwh;
   double? get averageMpg {
     final miles = odometerMiles;
     if (miles == null || miles <= 0 || fuelUnits <= 0) return null;
     return miles / fuelUnits;
+  }
+
+  double? get milesPerKwh {
+    final miles = odometerMiles;
+    if (miles == null || miles <= 0 || electricKwh <= 0) return null;
+    return miles / electricKwh;
   }
 
   double? _perMile(double amount) {

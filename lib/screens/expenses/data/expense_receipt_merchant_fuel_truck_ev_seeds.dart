@@ -266,6 +266,25 @@ const _fuelMerchantTruckEvSeeds = [
     regions: _evRegions,
   ),
   _MerchantSeed(
+    'Clean Energy',
+    r'\b(clean energy|clean energy fuels)\b',
+    merchantType: FuelMerchantType.fuelBrand,
+    regions: _evRegions,
+  ),
+  _MerchantSeed(
+    'Suburban Propane',
+    r'\b(suburban propane)\b',
+    merchantType: FuelMerchantType.fuelBrand,
+    regions: _allUsRegions,
+  ),
+  _MerchantSeed(
+    'True Zero',
+    r'\b(true zero|truezero)\b',
+    merchantType: FuelMerchantType.fuelBrand,
+    regions: _westRegions,
+    states: ['CA'],
+  ),
+  _MerchantSeed(
     'Tesla Supercharger',
     r'\b(tesla supercharger|supercharger)\b',
     merchantType: FuelMerchantType.evCharging,

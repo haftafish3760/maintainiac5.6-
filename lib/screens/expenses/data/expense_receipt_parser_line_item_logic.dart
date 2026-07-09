@@ -16,7 +16,9 @@ List<_ParsedReceiptLine> _readLineItems(
     final lower = row.toLowerCase();
     if (_isAdministrativeRow(lower) ||
         _datePattern.hasMatch(row) ||
-        _hasReceiptTimeCandidateRow(row) ||
+        (_hasReceiptTimeCandidateRow(row) &&
+            !_looksLikeFuelMeasuredLine(lower) &&
+            !_looksLikeStrongFuelReceiptLine(lower)) ||
         _isIgnoredMoneySummaryRow(lower)) {
       pendingDescriptionRow = null;
       continue;
@@ -150,10 +152,14 @@ List<_ParsedReceiptLine> _readLineItems(
       ),
     );
   }
-  if (output.isEmpty && context.looksLikeFuelReceipt && totals.total != null) {
+  final hasFuelLine = output.any((line) => line.record.category == 'Fuel');
+  if (!hasFuelLine && context.looksLikeFuelReceipt) {
+    final fallbackAmount =
+        _measuredFuelSaleAmountFromRows(rows, context) ?? totals.total;
+    if (fallbackAmount == null) return output;
     final fallback = _fallbackFuelLineFromReceiptRows(
       rows: rows,
-      amount: totals.total!,
+      amount: fallbackAmount,
       parserDepth: parserDepth,
     );
     if (fallback != null) output.add(fallback);
@@ -161,12 +167,44 @@ List<_ParsedReceiptLine> _readLineItems(
   return output;
 }
 
+double? _measuredFuelSaleAmountFromRows(
+  List<String> rows,
+  _ReceiptParseContext context,
+) {
+  for (final row in rows) {
+    final lower = row.toLowerCase();
+    if (!_looksLikeFuelMeasuredLine(lower) &&
+        !_looksLikeStrongFuelReceiptLine(lower)) {
+      continue;
+    }
+    if (_isAdministrativeRow(lower) ||
+        _isTenderTotalRow(lower) ||
+        _isTaxRow(lower) ||
+        _isIgnoredMoneySummaryRow(lower)) {
+      continue;
+    }
+    if (RegExp(
+      r'\b(session fee|idle fee|parking fee|charging fee|cuota de sesi[oó]n|tarifa por inactividad|estacionamiento)\b',
+    ).hasMatch(lower)) {
+      continue;
+    }
+    final amount = _lastMoneyAmount(row) ?? _lineAmountForRow(row, context);
+    if (amount != null && amount > 0) return amount;
+  }
+  return null;
+}
+
 ExpenseLineUse _lineUseFor({
   required String rawRow,
   required String description,
 }) {
   final text = '$rawRow $description'.toLowerCase();
-  if (RegExp(r'\b(personal|personal use|non[- ]?business)\b').hasMatch(text)) {
+  if (RegExp(
+    r'\b(personal|personal use|non[- ]?business|cig(?:arette)?s?|cigar|'
+    r'tobacco|nicotine|vape|beer|wine|alcohol|liquor|lottery|lotto|'
+    r'scratch(?:er|off)?|atm fee|atm surcharge|cash advance|cerveza|'
+    r'cigarrillos?|loter[ií]a)\b',
+  ).hasMatch(text)) {
     return ExpenseLineUse.personal;
   }
   return ExpenseLineUse.business;
@@ -199,10 +237,6 @@ bool _isFuelSaleLineItemRow({
   if (!RegExp(
     r'\b(fuel sale|fuel amount|fuel amt|pump total)\b',
   ).hasMatch(normalized)) {
-    return false;
-  }
-  final receiptTotal = totals.total;
-  if (receiptTotal != null && (amount - receiptTotal).abs() < .01) {
     return false;
   }
   return true;

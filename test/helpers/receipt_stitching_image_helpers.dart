@@ -233,6 +233,27 @@ img.Image rippleReceiptStitchingRows(
   return canvas;
 }
 
+img.Image addReceiptStitchingGlareBand(
+  img.Image source, {
+  required int y,
+  required int height,
+  int alpha = 104,
+}) {
+  final glared = img.copyResize(source, width: source.width);
+  final safeY = y.clamp(0, glared.height - 1);
+  final safeHeight = height.clamp(1, glared.height - safeY);
+  final safeAlpha = alpha.clamp(24, 180);
+  img.fillRect(
+    glared,
+    x1: 48,
+    y1: safeY,
+    x2: glared.width - 48,
+    y2: safeY + safeHeight - 1,
+    color: img.ColorRgba8(255, 255, 255, safeAlpha),
+  );
+  return glared;
+}
+
 img.Image frameReceiptStitchingShotOnDarkSurface(
   img.Image source, {
   int left = 72,

@@ -282,6 +282,56 @@ void main() {
   );
 
   test(
+    'stitches worn receipt when continuation overlap has a glare band',
+    () async {
+      final sectionA = addReceiptStitchingWear(
+        receiptStitchingSection(seed: 131, topTextOffset: 0),
+        seed: 1310,
+        wrinkleCount: 11,
+        smudgeCount: 6,
+      );
+      final sectionB = addReceiptStitchingWear(
+        receiptStitchingSection(seed: 132, topTextOffset: 18),
+        seed: 1320,
+        wrinkleCount: 10,
+        smudgeCount: 6,
+      );
+      copyReceiptStitchingOverlap(
+        from: sectionA,
+        to: sectionB,
+        pixels: 340,
+        dstY: 44,
+      );
+      final glaredSecond = addReceiptStitchingGlareBand(
+        shiftReceiptStitchingShot(sectionB, dx: -18, dy: 0),
+        y: 76,
+        height: 92,
+        alpha: 116,
+      );
+
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'worn_glare_overlap_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        glaredSecond,
+        'worn_glare_overlap_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.overlapPixels.single, greaterThan(280));
+      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      await _expectStitchedImageMatchesReportedSize(result);
+    },
+    timeout: _stitchingHeavyTimeout,
+  );
+
+  test(
     'crops delayed-overlap top strip before compositing next section',
     () async {
       final sectionA = receiptStitchingSection(seed: 96, topTextOffset: 0);

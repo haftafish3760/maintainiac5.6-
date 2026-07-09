@@ -5,14 +5,19 @@ bool _isAdministrativeRow(String lower) {
     return true;
   }
   return RegExp(
-    r'\b(receipt|invoice|cashier|order|auth|authcode|approval|'
-    r'authorization|card|visa|mastercard|amex|discover|debit|cash|'
-    r'tender|payment|paid|change due|subtotal|sub total|sales tax|tax|'
+    r'\b(receipt|invoice|cashier|order|auth|authcode|pre[- ]?auth|'
+    r'preauthorization|approval|authorization|authorization hold|'
+    r'card|visa|mastercard|amex|discover|debit|cash|'
+    r'tarjeta|efectivo|cambio|autorizaci[oó]n|tender|payment|paid|'
+    r'change due|subtotal|sub total|sales tax|tax|impuesto|'
     r'total|amount paid|balance due|begin bal|beginning bal|ending bal|'
     r'end bal|thank you|survey|tel|terminal|account|transaction|'
     r'transaction amt|trans|ref(?:erence)?|trace|batch|driver id|'
-    r'vehicle id|fleet card|cashback|cash back|gift card|store card|'
-    r'ebt|snap|fsa|hsa|odometer|mileage|miles|next service due|'
+    r'vehicle id|vehicle no|unit no|truck no|tractor no|trailer no|'
+    r'vin|license plate|plate|tag no|club card|alt id|customer id|cust id|'
+    r'fleet card|cashback|cash back|gift card|store card|'
+    r'ebt|snap|fsa|hsa|odometer|odo|hubometer|hub\s*miles|'
+    r'od[oó]metro|mileage|miles|next service due|'
     r'service due|every\s+\d+)\b',
   ).hasMatch(lower);
 }
@@ -103,7 +108,11 @@ bool _isIgnoredMoneySummaryRow(String lower) {
     return true;
   }
   if (RegExp(
-    r'\b(cash back|cashback|change due|rounding|round up|donation|gift card balance|begin bal|beginning bal|ending bal|end bal|remaining balance|balance remaining|previous balance|new balance|available balance)\b',
+    r'\b(cash back|cashback|change due|refund due|prepay refund|'
+    r'unused prepay refund|remaining prepay|prepay balance|rounding|'
+    r'round up|donation|gift card balance|begin bal|beginning bal|'
+    r'ending bal|end bal|remaining balance|balance remaining|'
+    r'previous balance|new balance|available balance)\b',
   ).hasMatch(normalized)) {
     return true;
   }
@@ -123,6 +132,13 @@ bool _isIgnoredMoneySummaryRow(String lower) {
 String _normalizeReceiptSummaryKeywordText(String value) {
   return value
       .toLowerCase()
+      .replaceAll(RegExp(r'\btarjeta\b'), 'card')
+      .replaceAll(RegExp(r'\befectivo\b'), 'cash')
+      .replaceAll(RegExp(r'\bcambio\b'), 'change due')
+      .replaceAll(RegExp(r'\bautorizaci[oó]n\b'), 'authorization')
+      .replaceAll(RegExp(r'\bimpuesto\b'), 'tax')
+      .replaceAll(RegExp(r'\bventa\s+(?:de\s+)?combustible\b'), 'fuel sale')
+      .replaceAll(RegExp(r'\bcombustible\b'), 'fuel')
       .replaceAll(RegExp(r'\bt[0o]tal\b'), 'total')
       .replaceAll(RegExp(r'\bsubt[0o]tal\b'), 'subtotal')
       .replaceAll(RegExp(r'\bam[0o]unt\b'), 'amount')

@@ -81,10 +81,6 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
     final quality = _qualityChecksByPath[photoPath];
     final coverageDecision = _coverageDecisionForPhotoPath(photoPath);
     if (_reviewMode == _ReceiptReviewMode.preview &&
-        coverageDecision.isMissingBottomEdgeAndTotals) {
-      return 'Add Bottom Section';
-    }
-    if (_reviewMode == _ReceiptReviewMode.preview &&
         coverageDecision.shouldPromptForMorePhotos) {
       return 'Use Receipt';
     }

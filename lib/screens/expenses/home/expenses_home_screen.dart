@@ -132,6 +132,8 @@ class _ExpenseHomeContent extends StatelessWidget {
                 onToday: onToday,
               ),
               const SizedBox(height: 8),
+              const ReceiptDraftsPanel(),
+              const SizedBox(height: 8),
               _ExpenseTotalsPanel(
                 period: _ExpenseViewPeriod.day,
                 anchorDate: anchorDate,
@@ -143,8 +145,6 @@ class _ExpenseHomeContent extends StatelessWidget {
                 period: _ExpenseViewPeriod.day,
                 anchorDate: anchorDate,
               ),
-              const SizedBox(height: 8),
-              const _ReceiptDraftsPanel(),
               const SizedBox(height: 8),
               _RecentLedgerPanel(day: anchorDate),
               const SizedBox(height: 10),

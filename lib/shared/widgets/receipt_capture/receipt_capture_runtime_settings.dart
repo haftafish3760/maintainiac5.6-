@@ -276,6 +276,38 @@ class _ReceiptScannerBehaviorSettings extends StatelessWidget {
   }
 }
 
+class _ReceiptPostCaptureWorkflowSettings extends StatelessWidget {
+  const _ReceiptPostCaptureWorkflowSettings();
+
+  @override
+  Widget build(BuildContext context) {
+    return _ReceiptSettingsSection(
+      icon: Icons.fact_check_rounded,
+      title: 'After You Take Photos',
+      subtitle: 'The app should never hide what happens next.',
+      children: const [
+        _ReceiptSettingsNote(
+          icon: Icons.photo_library_rounded,
+          text:
+              'Photo Review comes first. Retake bad photos, add another section for long receipts, or use the receipt when the proof looks readable.',
+        ),
+        SizedBox(height: 6),
+        _ReceiptSettingsNote(
+          icon: Icons.manage_search_rounded,
+          text:
+              'Receipt Assist reads the full-quality temporary source before the smaller saved proof copy is made.',
+        ),
+        SizedBox(height: 6),
+        _ReceiptSettingsNote(
+          icon: Icons.edit_note_rounded,
+          text:
+              'Manual entry stays available after every capture, upload, OCR failure, or parser miss.',
+        ),
+      ],
+    );
+  }
+}
+
 class _ReceiptDiagnosticsSettings extends StatelessWidget {
   const _ReceiptDiagnosticsSettings({required this.settings});
 

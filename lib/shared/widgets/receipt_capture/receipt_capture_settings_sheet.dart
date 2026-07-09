@@ -125,10 +125,12 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
+              _ReceiptSettingsOverviewCard(settings: settings, area: area),
+              const SizedBox(height: 8),
               const _ReceiptSettingsNote(
-                icon: Icons.save_rounded,
+                icon: Icons.route_rounded,
                 text:
-                    'Changes save as soon as you choose them. Apply Settings closes this screen.',
+                    'Recommended flow: add receipt, review photos, use receipt, then review the filled details. Capture settings do not replace your phone camera software.',
               ),
               const SizedBox(height: 8),
               const _ReceiptBackupStorageSummary(),
@@ -147,6 +149,8 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
               ],
               const SizedBox(height: 8),
               _ReceiptScannerBehaviorSettings(settings: settings),
+              const SizedBox(height: 8),
+              const _ReceiptPostCaptureWorkflowSettings(),
               const SizedBox(height: 8),
               _ReceiptDiagnosticsSettings(settings: settings),
               const SizedBox(height: 8),
@@ -297,5 +301,133 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
       ReceiptCaptureArea.maintenanceRepair =>
         'Let Maintainiac Help Fill Maintenance Receipts',
     };
+  }
+}
+
+class _ReceiptSettingsOverviewCard extends StatelessWidget {
+  const _ReceiptSettingsOverviewCard({
+    required this.settings,
+    required this.area,
+  });
+
+  final ReceiptCaptureSettingsController settings;
+  final ReceiptCaptureArea area;
+
+  @override
+  Widget build(BuildContext context) {
+    final assistOn = settings.appAssistedEnabledFor(area);
+    final backupOn = settings.receiptPhotoBackupEnabled;
+    final proofLabel = settings.defaultDataSaverUsesDeviceRecommendation
+        ? settings.deviceCapability.recommendedSpaceSavingLabel
+        : settings.defaultDataSaverLevel.label;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0E1416),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF3D4A50)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 11),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Current Receipt Flow',
+              style: TextStyle(
+                color: Color(0xFFE8ECEE),
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                _ReceiptSettingsStatusChip(
+                  icon: assistOn
+                      ? Icons.auto_awesome_rounded
+                      : Icons.edit_note_rounded,
+                  label: assistOn ? 'Receipt Assist On' : 'Manual Entry',
+                  emphasized: assistOn,
+                ),
+                _ReceiptSettingsStatusChip(
+                  icon: backupOn
+                      ? Icons.cloud_done_rounded
+                      : Icons.cloud_off_rounded,
+                  label: backupOn ? 'Photo Backup On' : 'Photo Backup Off',
+                  emphasized: backupOn,
+                ),
+                _ReceiptSettingsStatusChip(
+                  icon: Icons.photo_size_select_large_rounded,
+                  label: proofLabel,
+                  emphasized: false,
+                ),
+                _ReceiptSettingsStatusChip(
+                  icon: Icons.receipt_long_rounded,
+                  label: settings.cameraLongReceiptTips
+                      ? 'Long Receipt Tips'
+                      : 'Simple Capture',
+                  emphasized: settings.cameraLongReceiptTips,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiptSettingsStatusChip extends StatelessWidget {
+  const _ReceiptSettingsStatusChip({
+    required this.icon,
+    required this.label,
+    required this.emphasized,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool emphasized;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: emphasized ? const Color(0xFFFFD166) : const Color(0xFF161D20),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: emphasized ? const Color(0xFFFFD166) : const Color(0xFF526168),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 15,
+              color: emphasized
+                  ? const Color(0xFF101416)
+                  : const Color(0xFFE8ECEE),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                color: emphasized
+                    ? const Color(0xFF101416)
+                    : const Color(0xFFE8ECEE),
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

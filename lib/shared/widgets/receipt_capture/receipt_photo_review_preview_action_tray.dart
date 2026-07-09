@@ -73,6 +73,13 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                _ReceiptReviewDecisionHeader(
+                  photoCount: photoCount,
+                  coverageDecision: coverageDecision,
+                  continueLabel: continueLabel,
+                  compact: compactControls,
+                ),
+                SizedBox(height: compactControls ? 5 : 7),
                 _ReceiptPreviewPrimaryRow(
                   current: effectiveSelectedIndex + 1,
                   total: photoCount,

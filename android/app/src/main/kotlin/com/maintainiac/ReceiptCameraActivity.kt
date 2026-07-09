@@ -32,6 +32,8 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal lateinit var topBar: LinearLayout
     internal lateinit var shutterButton: ImageButton
     internal lateinit var torchButton: ImageButton
+    internal lateinit var quickControlsButton: ImageButton
+    internal lateinit var quickControlsPanel: LinearLayout
     internal lateinit var addPhotoButton: Button
     internal lateinit var bottomBar: LinearLayout
     internal lateinit var bottomReviewButton: Button
@@ -50,6 +52,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var assistedReceiptFill = true
     internal var longReceiptMode = true
     internal var autoCaptureEnabled = false
+    internal var quickControlsOpen = false
     internal var autoCaptureAllowed = false
     internal var deviceTier = "medium"
     internal var settingsContractVersion = "receipt_native_camera_settings_v1"

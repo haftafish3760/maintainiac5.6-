@@ -19,6 +19,9 @@ void main() {
     expect(script, contains('tool/receipt_qa_scoring.dart'));
     expect(script, contains('tool/receipt_qa_scoring_review.dart'));
     expect(script, contains('tool/receipt_qa_fixtures_long_receipt.dart'));
+    expect(script, contains('tool/fuel_synthetic_parser_runner.dart'));
+    expect(script, contains('--preset=milestone'));
+    expect(script, contains('test/fuel_synthetic_parser_runner_contract_test.dart'));
     expect(script, contains('flutter test'));
     expect(script, contains('test/receipt_qa_runner_contract_test.dart'));
     expect(script, contains('test/receipt_qa_runner_pack_focus_test.dart'));

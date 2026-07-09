@@ -70,12 +70,12 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
         : Icons.add_photo_alternate_rounded;
     return ReceiptFormPanel(
       title: processingInFlight
-          ? 'Preparing Receipt Details'
+          ? 'Getting Receipt Ready'
           : reviewReady
           ? 'Receipt Details Ready'
           : 'Receipt Details Need Review',
       subtitle: processingInFlight
-          ? 'Your receipt proof is saved. Maintainiac is still reading the clearest OCR source before the storage-saving proof copy. Keep this screen open until receipt details finish opening.'
+          ? 'Your receipt proof is saved. Maintainiac is extracting text and filling receipt details now. Keep this screen open.'
           : reviewReady
           ? 'Your receipt proof is saved. Maintainiac read the clear OCR source before the storage-saving proof copy; review what it filled in below before saving.'
           : 'Your receipt proof is saved. Maintainiac already prepared receipt details, but this receipt still needs review before saving.',
@@ -130,7 +130,7 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Receipt details are still opening from the accepted photo. Review opens after OCR and parsing finish this handoff.',
+                  'Step 1 of 2: extracting receipt text. Step 2: filling receipt details for review.',
                   style: TextStyle(
                     color: Color(0xFFC8D0D3),
                     fontSize: 11,
@@ -178,7 +178,7 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           processingInFlight
-              ? 'Keep this screen open while receipt details finish opening. Add or retake photos only if the receipt coverage is wrong.'
+              ? 'This should usually finish in seconds on newer phones. If it cannot read the receipt, manual review stays available below.'
               : reviewReady
               ? 'Review the store, date, total, tax, item prices, and Business/Personal/Mixed choices below before saving.'
               : 'Do not go back unless you want to keep checking the photo. OCR uses the clearest source first; when receipt details are ready, check the store, date, total, tax, and item prices before saving.',
@@ -208,7 +208,7 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
                     : const Icon(Icons.fact_check_rounded),
                 label: Text(
                   processingInFlight
-                      ? 'Preparing'
+                      ? 'Reading Receipt'
                       : reviewReady
                       ? 'Review Details'
                       : manualReviewOnly
@@ -234,23 +234,24 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            OutlinedButton.icon(
-              onPressed: onAddOrRetakePhoto,
-              icon: Icon(photoRecoveryIcon),
-              label: Text(photoRecoveryLabel),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFFFD166),
-                side: const BorderSide(color: Color(0xFFFFD166), width: 1.2),
-                minimumSize: const Size(0, 44),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                textStyle: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0,
+            if (!processingInFlight)
+              OutlinedButton.icon(
+                onPressed: onAddOrRetakePhoto,
+                icon: Icon(photoRecoveryIcon),
+                label: Text(photoRecoveryLabel),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFFFD166),
+                  side: const BorderSide(color: Color(0xFFFFD166), width: 1.2),
+                  minimumSize: const Size(0, 44),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ],

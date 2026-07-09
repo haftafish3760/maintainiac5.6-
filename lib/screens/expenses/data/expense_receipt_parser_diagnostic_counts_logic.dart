@@ -111,6 +111,10 @@ Map<String, int> _parserTaskCountsFor({
     'reference_detail_line_excluded',
     parserExcludedLineCounts['referenceDetail'] ?? 0,
   );
+  add(
+    'identity_detail_line_excluded',
+    parserExcludedLineCounts['identityDetail'] ?? 0,
+  );
   add('barcode_line_excluded', strongerCount('barcodeCandidate', 'barcode'));
   add('footer_line_excluded', layoutSignalCounts['footerCandidate'] ?? 0);
   add(

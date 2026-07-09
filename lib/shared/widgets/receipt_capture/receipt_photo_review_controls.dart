@@ -259,10 +259,6 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
       diagnostics: selectedCaptureDiagnostics,
     );
     if (reviewMode == _ReceiptReviewMode.preview &&
-        coverageDecision.isMissingBottomEdgeAndTotals) {
-      return 'Add Bottom Section';
-    }
-    if (reviewMode == _ReceiptReviewMode.preview &&
         coverageDecision.shouldPromptForMorePhotos) {
       return 'Use Receipt';
     }

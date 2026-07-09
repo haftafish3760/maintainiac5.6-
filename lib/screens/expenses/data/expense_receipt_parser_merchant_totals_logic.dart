@@ -10,6 +10,8 @@ String _normalizeOcrRow(String value) {
       .replaceAll(RegExp(r'\bSUBT0TAL\b', caseSensitive: false), 'SUBTOTAL')
       .replaceAll(RegExp(r'\bAM0UNT\b', caseSensitive: false), 'AMOUNT')
       .replaceAll(RegExp(r'\bPR0DUCT\b', caseSensitive: false), 'PRODUCT')
+      .replaceAll(RegExp(r'\bPR[1I!|]CE\b', caseSensitive: false), 'PRICE')
+      .replaceAll(RegExp(r'\bFUE[1I!|]\b', caseSensitive: false), 'FUEL')
       .replaceAll(RegExp(r'\bR0AD\b', caseSensitive: false), 'ROAD')
       .replaceAll(RegExp(r'\bD1ESEL\b', caseSensitive: false), 'DIESEL')
       .replaceAll(RegExp(r'\bDIE5EL\b', caseSensitive: false), 'DIESEL')
@@ -140,7 +142,10 @@ bool _looksLikeFuelDetailHeaderOnly(String lower) {
     r'\b(pump|product|gallons?|galns|gals?|fuel\s*vol(?:ume)?|'
     r'vol(?:ume)?|qty|qnty|quantity|price\s*/\s*g(?:al)?|'
     r'price\s*/\s*gal|price\s*per\s*gal|\$\s*/\s*gal|ppu|ppg|'
-    r'ppl|fuel sale|fuel total|fuel amount|fuel amt|card|cash|visa|'
+    r'ppl|cng|compressed natural gas|gge|price\s*/\s*gge|ppge|'
+    r'propane|lpg|lp gas|autogas|auto gas|'
+    r'hydrogen|h2 fuel|fuel cell|kg h2|price\s*/\s*kg|ppkg|'
+    r'fuel sale|fuel total|fuel amount|fuel amt|card|cash|visa|'
     r'mastercard)\b',
   ).hasMatch(lower);
 }

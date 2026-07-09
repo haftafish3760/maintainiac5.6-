@@ -78,11 +78,17 @@ class _ReceiptParseContext {
     final text = rows.join(' ').toLowerCase();
     return _ReceiptParseContext(
       looksLikeFuelReceipt: RegExp(
-        r'\b(pump|island|fuel|motor fuel|diesel|dsl|ulsd|reefer|'
+        r'\b(pump|island|nozzle|hose|fueling point|fueling position|fuel|motor fuel|combustible|gasolina|'
+        r'diesel|di[eé]sel|dsl|ulsd|reefer|bomba|surtidor|'
         r'unl\b|unleaded|regular|midgrade|premium|gasoline|gallons?|'
-        r'gal\b|def fluid|diesel exhaust fluid|kwh|ev charge|'
-        r'chargepoint|supercharger|octane|grade|price per gallon|'
-        r'price/gal|ppu|ppg)\b',
+        r'gal\b|gal[oó]n|gal[oó]nes|def fluid|diesel exhaust fluid|'
+        r'cng|compressed natural gas|gas natural comprimido|gge|'
+        r'propane|lpg|lp gas|autogas|auto gas|'
+        r'hydrogen|h2 fuel|fuel cell|kg h2|'
+        r'kwh|ev charge|ev charging|energy sale|energy delivered|'
+        r'chargepoint|supercharger|octane|grade|'
+        r'price per gallon|price/gal|precio\s*/?\s*gal[oó]n|'
+        r'precio\s+por\s+gal[oó]n|ppu|ppg|amt\b|vol\b)\b',
       ).hasMatch(text),
       looksLikeFoodReceipt: RegExp(
         r'\b(combo|meal|sandwich|burger|fries|drink|coffee|breakfast|lunch|dinner|taco|biscuit|restaurant)\b',

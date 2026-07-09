@@ -9,28 +9,13 @@ extension _ReceiptPhotoReviewCompletionActions
     if (_completionPromptedPhotoPaths.contains(photoPath)) return true;
     final decision = _coverageDecisionForPhoto(photoPath);
     if (!decision.shouldPromptForMorePhotos) return true;
-    final userDecision = await _showSinglePhotoCompletionDialog(decision);
-    if (!_reviewWorkActive) return false;
-    switch (userDecision) {
-      case _ReceiptContinueDecision.continueAnyway:
-        _completionPromptedPhotoPaths.add(photoPath);
-        _recordReceiptCompletionDecision(
-          photoPath,
-          decision: userDecision,
-          coverageDecision: decision,
-        );
-        return true;
-      case _ReceiptContinueDecision.addNextSection:
-        _recordReceiptCompletionDecision(
-          photoPath,
-          decision: userDecision,
-          coverageDecision: decision,
-        );
-        await addAnotherReceiptPhoto();
-        return false;
-      case _ReceiptContinueDecision.keepReviewing:
-        return false;
-    }
+    _completionPromptedPhotoPaths.add(photoPath);
+    _recordReceiptCompletionDecision(
+      photoPath,
+      decision: _ReceiptContinueDecision.continueAnyway,
+      coverageDecision: decision,
+    );
+    return true;
   }
 
   String? get _completionCheckPhotoPath {
@@ -45,65 +30,6 @@ extension _ReceiptPhotoReviewCompletionActions
       return null;
     }
     return _photoPaths.last;
-  }
-
-  Future<_ReceiptContinueDecision> _showSinglePhotoCompletionDialog(
-    ReceiptPhotoCoverageDecision decision,
-  ) async {
-    if (!_reviewWorkActive) return _ReceiptContinueDecision.keepReviewing;
-    final result = await showDialog<_ReceiptContinueDecision>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF161D20),
-        title: Text(
-          decision.completionDialogTitle,
-          style: const TextStyle(
-            color: Color(0xFFE8ECEE),
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        content: Text(
-          decision.completionDialogMessage,
-          style: const TextStyle(
-            color: Color(0xFFC8D0D3),
-            fontWeight: FontWeight.w700,
-            height: 1.25,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(
-              context,
-            ).pop(_ReceiptContinueDecision.keepReviewing),
-            child: const Text('Back to Photos'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(
-              context,
-            ).pop(_ReceiptContinueDecision.continueAnyway),
-            style: TextButton.styleFrom(
-              foregroundColor: decision.isMissingBottomEdgeAndTotals
-                  ? const Color(0xFFFFD166)
-                  : null,
-            ),
-            child: Text(decision.continueAnywayButtonLabel),
-          ),
-          FilledButton.icon(
-            onPressed: () => Navigator.of(
-              context,
-            ).pop(_ReceiptContinueDecision.addNextSection),
-            icon: const Icon(Icons.add_a_photo_rounded),
-            label: Text(decision.addSectionButtonLabel),
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF28A745),
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-    if (!_reviewWorkActive) return _ReceiptContinueDecision.keepReviewing;
-    return result ?? _ReceiptContinueDecision.keepReviewing;
   }
 
   void _recordReceiptCompletionDecision(

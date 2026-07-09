@@ -89,8 +89,8 @@ class _UpcomingExpensesPanel extends StatelessWidget {
   }
 }
 
-class _ReceiptDraftsPanel extends StatelessWidget {
-  const _ReceiptDraftsPanel();
+class ReceiptDraftsPanel extends StatelessWidget {
+  const ReceiptDraftsPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -105,16 +105,23 @@ class _ReceiptDraftsPanel extends StatelessWidget {
     return _SolidSection(
       backgroundColor: _paper,
       borderColor: const Color(0xFF3E4A50),
-      padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const _SectionHeader(
-            eyebrow: 'DRAFTS',
-            title: 'Unfinished receipts',
-            detail: 'Resume a receipt that was not saved yet.',
+          const Text(
+            'Receipt Draft',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Color(0xFFF0F4F2),
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              height: 1.05,
+              letterSpacing: 0,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 7),
           for (final draft in drafts) _DraftRow(draft: draft),
         ],
       ),
@@ -133,7 +140,7 @@ class _DraftRow extends StatelessWidget {
         ? '1 line'
         : '${draft.lines.length} lines';
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 6),
       child: Material(
         color: _ink,
         borderRadius: BorderRadius.circular(6),
@@ -141,10 +148,10 @@ class _DraftRow extends StatelessWidget {
           onTap: () => _openDraft(context, draft),
           borderRadius: BorderRadius.circular(6),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
             child: Row(
               children: [
-                Icon(Icons.edit_note_rounded, color: _gold, size: 22),
+                Icon(Icons.edit_note_rounded, color: _gold, size: 19),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
@@ -156,19 +163,19 @@ class _DraftRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFF0F4F2),
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0,
                         ),
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Text(
                         '${_shortDate(draft.receiptDate)} | $lineText | ${_money(draft.total)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFC8D0D3),
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0,
                         ),
@@ -176,13 +183,20 @@ class _DraftRow extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  onPressed: () =>
-                      ExpenseDraftScope.maybeOf(context)?.deleteDraft(draft.id),
-                  icon: Icon(
-                    Icons.delete_outline_rounded,
-                    color: _red,
-                    size: 20,
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () =>
+                        ExpenseDraftScope.maybeOf(context)?.deleteDraft(draft.id),
+                    borderRadius: BorderRadius.circular(6),
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(
+                        Icons.delete_outline_rounded,
+                        color: _red,
+                        size: 18,
+                      ),
+                    ),
                   ),
                 ),
               ],

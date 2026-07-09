@@ -38,6 +38,7 @@ internal fun ReceiptCameraActivity.buildContentView(): View {
     cameraRootView.addView(buildPreviousSectionGuide())
     cameraRootView.addView(buildSettingsStatusStrip())
     cameraRootView.addView(buildExposureControls())
+    cameraRootView.addView(buildQuickControlsPanel())
     cameraRootView.addView(buildBottomBar())
     return cameraRootView
 }
@@ -76,6 +77,10 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
         requestCloseCamera(backDispatchPath = "top_bar_back_button")
     })
     topBar.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
+    quickControlsButton = iconButton("Receipt quick controls", R.drawable.ic_receipt_camera_quick_controls) {
+        toggleReceiptQuickControls()
+    }
+    topBar.addView(quickControlsButton)
     topBar.addView(iconButton("Receipt camera settings", R.drawable.ic_receipt_camera_settings) {
         showReceiptCameraSettings()
     })
@@ -87,6 +92,138 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
     }
     topBar.addView(torchButton)
     return topBar
+}
+
+internal fun ReceiptCameraActivity.buildQuickControlsPanel(): View {
+    quickControlsPanel = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        setPadding(dp(8), dp(7), dp(8), dp(7))
+        background = quickControlsDrawable()
+        visibility = View.GONE
+        layoutParams = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            Gravity.TOP,
+        ).apply {
+            topMargin = dp(70)
+            leftMargin = dp(14)
+            rightMargin = dp(14)
+        }
+    }
+    updateReceiptQuickControlsPanel()
+    return quickControlsPanel
+}
+
+internal fun ReceiptCameraActivity.toggleReceiptQuickControls() {
+    quickControlsOpen = !quickControlsOpen
+    updateReceiptQuickControlsPanel()
+}
+
+internal fun ReceiptCameraActivity.updateReceiptQuickControlsPanel() {
+    if (!hasInitializedReceiptCameraField { quickControlsPanel }) return
+    quickControlsPanel.removeAllViews()
+    quickControlsPanel.visibility = if (quickControlsOpen) View.VISIBLE else View.GONE
+    if (!quickControlsOpen) return
+    quickControlsPanel.addView(quickControlChip(
+        label = if (assistedReceiptFill) "Assist On" else "Manual",
+        selected = assistedReceiptFill,
+    ) {
+        assistedReceiptFill = !assistedReceiptFill
+        guidance.text = if (assistedReceiptFill) {
+            "Receipt Assist will help fill details after review."
+        } else {
+            "Manual receipt entry is on."
+        }
+        updateReceiptQuickControlsPanel()
+        updateSettingsStatusStrip()
+    })
+    quickControlsPanel.addView(quickControlChip(
+        label = if (longReceiptMode) "Long On" else "Single",
+        selected = longReceiptMode,
+    ) {
+        if (!longReceiptMode && !canUseLongReceiptMode()) {
+            guidance.text = "Long receipt mode is unavailable for this device or storage setting."
+            return@quickControlChip
+        }
+        longReceiptMode = !longReceiptMode
+        guidance.text = if (longReceiptMode) {
+            "Long receipt mode on. Add sections from top to bottom."
+        } else {
+            "Single photo mode on."
+        }
+        updateDoneButton()
+        updateReceiptQuickControlsPanel()
+        updateSettingsStatusStrip()
+    })
+    quickControlsPanel.addView(quickControlChip(
+        label = if (autoCaptureEnabled) "Steady On" else "Steady Off",
+        selected = autoCaptureEnabled,
+    ) {
+        if (!autoCaptureEnabled && !isAutoCaptureCurrentlyAllowed()) {
+            guidance.text = autoCaptureBlockedMessage()
+            return@quickControlChip
+        }
+        autoCaptureEnabled = !autoCaptureEnabled
+        guidance.text = if (autoCaptureEnabled) {
+            "Steady shot helper is on. Manual shutter still works."
+        } else {
+            "Steady shot helper is off."
+        }
+        updateReceiptQuickControlsPanel()
+        updateSettingsStatusStrip()
+    })
+    quickControlsPanel.addView(quickControlChip(
+        label = receiptProofSizeLabel(dataSaverLevel).replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase() else it.toString()
+        },
+        selected = false,
+    ) {
+        dataSaverLevel = nextReceiptProofLevel(dataSaverLevel)
+        guidance.text = "Saved proof size: ${receiptProofSizeLabel(dataSaverLevel)}."
+        updateReceiptQuickControlsPanel()
+        updateSettingsStatusStrip()
+    })
+    quickControlsPanel.addView(quickControlChip(
+        label = "Settings",
+        selected = false,
+    ) {
+        quickControlsOpen = false
+        updateReceiptQuickControlsPanel()
+        showReceiptCameraSettings()
+    })
+}
+
+internal fun ReceiptCameraActivity.quickControlChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+): View {
+    return Button(this).apply {
+        text = label
+        isAllCaps = false
+        setTextColor(if (selected) Color.rgb(16, 20, 22) else Color.WHITE)
+        setBackgroundColor(if (selected) Color.rgb(255, 209, 102) else Color.argb(112, 5, 6, 7))
+        setOnClickListener { onClick() }
+        layoutParams = LinearLayout.LayoutParams(
+            0,
+            dp(42),
+            1f,
+        ).apply {
+            leftMargin = dp(3)
+            rightMargin = dp(3)
+        }
+    }
+}
+
+internal fun ReceiptCameraActivity.nextReceiptProofLevel(current: String): String {
+    return when (current) {
+        "light" -> "balanced"
+        "balanced" -> "strong"
+        "strong" -> "maximum"
+        "maximum" -> "original"
+        else -> "light"
+    }
 }
 
 internal fun ReceiptCameraActivity.buildGuidance(): View {
@@ -282,6 +419,11 @@ internal fun ReceiptCameraActivity.applyEdgeToEdgeReceiptInsets() {
             rightMargin = dp(18) + insets.right
             bottomMargin = dp(154) + insets.bottom
         }
+        quickControlsPanel.updateLayoutParams<FrameLayout.LayoutParams> {
+            leftMargin = dp(14) + insets.left
+            rightMargin = dp(14) + insets.right
+            topMargin = dp(70) + insets.top
+        }
         previousSectionGuidePanel.updateLayoutParams<FrameLayout.LayoutParams> {
             leftMargin = dp(18) + insets.left
             rightMargin = dp(18) + insets.right
@@ -316,6 +458,14 @@ internal fun ReceiptCameraActivity.pillDrawable(color: Int): GradientDrawable {
     return GradientDrawable().apply {
         setColor(color)
         cornerRadius = dp(999).toFloat()
+    }
+}
+
+internal fun ReceiptCameraActivity.quickControlsDrawable(): GradientDrawable {
+    return GradientDrawable().apply {
+        setColor(Color.argb(156, 5, 6, 7))
+        cornerRadius = dp(12).toFloat()
+        setStroke(dp(1), Color.argb(118, 255, 255, 255))
     }
 }
 

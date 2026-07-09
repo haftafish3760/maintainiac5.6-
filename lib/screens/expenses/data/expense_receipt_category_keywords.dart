@@ -4,16 +4,36 @@ final _categoryRules = [
   _CategoryKeywordRule(
     category: 'Fuel',
     pattern: RegExp(
-      r'\b(diesel|dsl|ulsd|b20|b10|reefer fuel|tractor diesel|'
-      r'truck diesel|def fluid|diesel exhaust fluid|gasoline|gas |fuel|'
+      r'\b(diesel|dsl|d1|d2|ulsd|b5|b10|b20|b99|b100|biodiesel|'
+      r'reefer fuel|tractor diesel|'
+      r'truck diesel|off road diesel|off-road diesel|dyed diesel|'
+      r'red dye diesel|red dyed diesel|farm diesel|ag diesel|'
+      r'renewable diesel|rd99|r99|hpr diesel|hpr fuel|'
+      r'def fluid|diesel exhaust fluid|gasoline|gas |fuel|'
       r'fuel sale|motor fuel|unl\b|reg unl|unleaded|plus unleaded|'
       r'premium|regular|midgrade|super unleaded|no ethanol|ethanol free|'
-      r'e85|flex fuel|ethanol|octane|87 octane|89 octane|91 octane|'
-      r'93 octane|pump|island|ev charge|charging|chargepoint|'
+      r'non ethanol|rec fuel|recreational fuel|marine gas|marine fuel|e0|'
+      r'cng|lng|compressed natural gas|liquefied natural gas|'
+      r'gas natural comprimido|gge|dge|'
+      r'propane|lpg|lp gas|autogas|auto gas|'
+      r'hydrogen|h2 fuel|fuel cell|kg h2|'
+      r'e10|e15|e20|e30|e50|e85|flex fuel|ethanol|'
+      r'octane|87 octane|89 octane|91 octane|'
+      r'93 octane|pump|island|ev charge|charging|carga el[eé]ctrica|'
+      r'carga ev|sesi[oó]n de carga|energy sale|energy delivered|energia delivered|'
+      r'energ[ií]a|chargepoint|'
       r'tesla supercharger|supercharger|kerosene|kero)\b',
     ),
     confidence: .94,
     reason: 'Fuel keyword matched.',
+  ),
+  _CategoryKeywordRule(
+    category: 'Charging Fees',
+    pattern: RegExp(
+      r'\b(ev charging fee|charging fee|session fee|idle fee|ev parking fee|connection fee|station fee|cuota de sesi[oó]n|tarifa de sesi[oó]n|tarifa por inactividad|cuota de carga|tarifa de carga)\b',
+    ),
+    confidence: .9,
+    reason: 'EV charging fee keyword matched.',
   ),
   _CategoryKeywordRule(
     category: 'Maintenance',
@@ -55,7 +75,8 @@ final _categoryRules = [
       r'\b(car wash|wash wax|microfiber|funnel|tire shine|'
       r'glass cleaner|degreaser|floor mat|phone mount|charger cable|'
       r'jumper cable|booster cable|ratchet strap|bungee|cargo strap|'
-      r'air freshener|ice scraper|snow brush|shop towels?)\b',
+      r'air freshener|ice scraper|snow brush|shop towels?|'
+      r'lavado de auto|lavado de carro)\b',
     ),
     confidence: .82,
     reason: 'Vehicle supply keyword matched.',
@@ -71,7 +92,7 @@ final _categoryRules = [
   _CategoryKeywordRule(
     category: 'Parking',
     pattern: RegExp(
-      r'\b(parking|parking fee|garage|meter|valet|parkmobile|spot hero|spothero)\b',
+      r'\b(parking|parking fee|garage|meter|valet|parkmobile|spot hero|spothero|estacionamiento)\b',
     ),
     confidence: .9,
     reason: 'Parking keyword matched.',
@@ -136,17 +157,28 @@ final _categoryRules = [
       r'\b(grocery|groceries|produce|plu|milk|bread|eggs|cheese|meat|'
       r'chicken breast|water case|case water|bottled water|soda|fruit|'
       r'bananas?|apples?|lettuce|paper towels|toilet paper|snack pack|'
-      r'granola|yogurt)\b',
+      r'granola|yogurt|agua|botella|agua botella)\b',
     ),
     confidence: .82,
     reason: 'Grocery keyword matched.',
+  ),
+  _CategoryKeywordRule(
+    category: 'Personal',
+    pattern: RegExp(
+      r'\b(cig(?:arette)?s?|cigar|tobacco|nicotine|vape|beer|wine|'
+      r'alcohol|liquor|lottery|lotto|scratch(?:er|off)?|atm fee|'
+      r'atm surcharge|cash advance|cerveza|cigarrillos?|loter[ií]a)\b',
+    ),
+    confidence: .9,
+    reason: 'Personal convenience item keyword matched.',
   ),
   _CategoryKeywordRule(
     category: 'Meals',
     pattern: RegExp(
       r'\b(meal|food|coffee|snacks?|restaurant|sandwich|sub\b|burger|'
       r'pizza|breakfast|lunch|dinner|combo|fries|drink|biscuit|chicken|'
-      r'taco|burrito|wrap|salad|donut|doughnut|latte)\b',
+      r'taco|burrito|wrap|salad|donut|doughnut|latte|cafe|'
+      r'comida|bebida)\b|café',
     ),
     confidence: .84,
     reason: 'Meal keyword matched.',

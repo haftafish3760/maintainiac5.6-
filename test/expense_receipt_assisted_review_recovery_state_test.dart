@@ -89,9 +89,9 @@ void main() {
       acceptedPhotoHandler.indexOf(
         '_recordReceiptPhotoPreparationTelemetry(result);',
       ),
-      lessThan(acceptedPhotoHandler.indexOf('_scrollToReceiptCapture();')),
+      lessThan(acceptedPhotoHandler.indexOf('_scrollToReceiptReview();')),
     );
-    expect(acceptedPhotoHandler, isNot(contains('_scrollToReceiptReview();')));
+    expect(acceptedPhotoHandler, isNot(contains('_scrollToReceiptCapture();')));
     expect(
       acceptedPhotoHandler,
       isNot(contains('_scrollToReceiptFlowKey(_receiptReviewKey')),
@@ -106,14 +106,9 @@ void main() {
     );
     expect(
       acceptedPhotoHandler,
-      contains(
-        "_receiptReadHandoffStage = 'Opening receipt details from accepted photo';",
-      ),
+      contains("_receiptReadHandoffStage = 'Extracting receipt text';"),
     );
-    expect(
-      entryScreen,
-      contains("'Opening receipt details from accepted photo'"),
-    );
+    expect(entryScreen, contains("'Extracting receipt text'"));
     expect(
       entryScreen,
       contains('String get _receiptParsedDetailsRouteResultLabel'),
@@ -263,6 +258,12 @@ void main() {
       contains(
         'Keep this screen open. Receipt details appear here as soon as the store, date, total, and item prices are ready.',
       ),
+    );
+    expect(parseReview, contains("'Getting Receipt Ready'"));
+    expect(parseReview, contains("'Reading Receipt'"));
+    expect(
+      parseReview,
+      contains('if (!processingInFlight)\n              OutlinedButton.icon'),
     );
     expect(entryScreen, contains('_receiptReadAttemptedWithoutText = true;'));
     expect(

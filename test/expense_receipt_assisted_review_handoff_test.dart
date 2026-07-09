@@ -13,10 +13,7 @@ void main() {
     final parseModels = source.parseModels;
     final receiptModels = source.receiptModels;
     final telemetry = source.telemetry;
-    expect(
-      entryScreen,
-      contains('processingInFlight: _scanningReceiptPhotos'),
-    );
+    expect(entryScreen, contains('processingInFlight: _scanningReceiptPhotos'));
     expect(
       entryScreen,
       contains('onAddOrRetakePhoto: _scrollToReceiptPhotoRecovery'),
@@ -29,7 +26,13 @@ void main() {
     );
     expect(
       entryScreen,
-      contains('_receiptReadHandoffDecision = result.nextReviewHandoffLabel'),
+      contains("_receiptReadHandoffDecision = 'Reading receipt'"),
+    );
+    expect(
+      entryScreen,
+      isNot(
+        contains('_receiptReadHandoffDecision = result.nextReviewHandoffLabel'),
+      ),
     );
     expect(
       entryScreen,
@@ -76,22 +79,28 @@ void main() {
     expect(
       entryScreen,
       contains(
-        '_receiptReadHandoffRouteResult =\n          result.acceptedPhotoHandoffRouteResultLabel',
+        '_receiptReadHandoffRouteResult =\n          \'Accepted photo review is moving directly into receipt details.',
+      ),
+    );
+    expect(
+      entryScreen,
+      isNot(
+        contains(
+          '_receiptReadHandoffRouteResult =\n          result.acceptedPhotoHandoffRouteResultLabel',
+        ),
       ),
     );
     expect(parseReview, contains("stageLabel.trim().isEmpty"));
-    expect(parseReview, contains('Preparing receipt details'));
+    expect(parseReview, contains('Getting Receipt Ready'));
     expect(
       parseReview,
       contains(
-        'Receipt details are still opening from the accepted photo. Review opens after OCR and parsing finish this handoff.',
+        'Step 1 of 2: extracting receipt text. Step 2: filling receipt details for review.',
       ),
     );
     expect(
       parseReview,
-      contains(
-        "decision.toLowerCase().contains('add bottom receipt section')",
-      ),
+      contains("decision.toLowerCase().contains('add bottom receipt section')"),
     );
     expect(
       parseReview,
@@ -113,14 +122,20 @@ void main() {
     );
     expect(
       parseReview,
-      contains(
-        "processingInFlight\n                      ? 'Preparing'",
-      ),
+      contains("processingInFlight\n                      ? 'Reading Receipt'"),
     );
     expect(
       entryScreen,
       contains(
-        '_receiptReadHandoffAction = result.acceptedPhotoHandoffActionLabel',
+        'Extracting text from the accepted receipt photo. Receipt details will appear here automatically when the reader finishes.',
+      ),
+    );
+    expect(
+      entryScreen,
+      isNot(
+        contains(
+          '_receiptReadHandoffAction = result.acceptedPhotoHandoffActionLabel',
+        ),
       ),
     );
     expect(

@@ -11,6 +11,7 @@ final _groceryMerchantProfiles = [
       'Vehicle Supplies',
       'Tools',
       'Meals',
+      'Fuel',
       'Office Supplies',
       'Cleaning Supplies',
     ],
@@ -57,6 +58,13 @@ final _groceryMerchantProfiles = [
 
 const _groceryFuelMerchantSeeds = [
   _MerchantSeed('Kroger', r'\b(kroger)\b'),
+  _MerchantSeed('Fred Meyer', r'\b(fred meyer)\b'),
+  _MerchantSeed('King Soopers', r'\b(king soopers)\b'),
+  _MerchantSeed('Smith\'s', r"\b(smith'?s food|smith'?s fuel|smiths)\b"),
+  _MerchantSeed('Ralphs', r'\b(ralphs)\b'),
+  _MerchantSeed('Fry\'s', r"\b(fry'?s food|fry'?s fuel|frys)\b"),
+  _MerchantSeed('Dillons', r'\b(dillons)\b'),
+  _MerchantSeed('QFC', r'\b(qfc|quality food centers?)\b'),
   _MerchantSeed('Meijer', r'\b(meijer)\b'),
   _MerchantSeed('H-E-B', r'\b(h-e-b|heb)\b'),
   _MerchantSeed('Safeway', r'\b(safeway)\b'),
@@ -64,6 +72,10 @@ const _groceryFuelMerchantSeeds = [
   _MerchantSeed('Giant Food', r'\b(giant food|giant)\b'),
   _MerchantSeed('Stop & Shop', r'\b(stop ?& ?shop|stop and shop)\b'),
   _MerchantSeed('Harris Teeter', r'\b(harris teeter)\b'),
+  _MerchantSeed(
+    'BJ\'s Wholesale Club',
+    r"\b(bj'?s wholesale|bj'?s gas|bjs gas)\b",
+  ),
 ];
 
 const _groceryMerchantSeeds = [

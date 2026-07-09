@@ -78,28 +78,28 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
           action: _ReceiptImportAction.camera,
           icon: Icons.photo_camera_rounded,
           label: 'Capture Photo',
-          detail: 'Open Maintainiac receipt camera.',
+          detail: 'Take receipt photos, review them, then read the receipt.',
           color: Color(0xFF8EF6A4),
         ),
       const _ReceiptImportSource(
         action: _ReceiptImportAction.image,
         icon: Icons.photo_library_rounded,
         label: 'Upload Photos',
-        detail: 'Use saved receipt photos.',
+        detail: 'Choose one or more receipt images from this device.',
         color: Color(0xFFFFD166),
       ),
       const _ReceiptImportSource(
         action: _ReceiptImportAction.pdf,
         icon: Icons.folder_rounded,
         label: 'Upload PDF/File',
-        detail: 'Import downloaded receipts.',
+        detail: 'Use a downloaded receipt file or emailed PDF.',
         color: Color(0xFFA9DFFF),
       ),
       const _ReceiptImportSource(
         action: _ReceiptImportAction.pasteText,
         icon: Icons.content_paste_rounded,
         label: 'Paste/Text',
-        detail: 'Paste or enter receipt text.',
+        detail: 'Use copied receipt text when there is no photo.',
         color: Color(0xFF8FD3FF),
       ),
     ];
@@ -114,7 +114,7 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
               children: [
                 const Expanded(
                   child: Text(
-                    'Capture or upload receipt',
+                    'Add Receipt',
                     style: TextStyle(
                       color: Color(0xFFE8ECEE),
                       fontSize: 18,
@@ -130,6 +130,19 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 6),
+            const Text(
+              'Choose the source first. You review photos before Maintainiac reads anything.',
+              style: TextStyle(
+                color: Color(0xFFC8D0D3),
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                height: 1.25,
+                letterSpacing: 0,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const _ReceiptImportFlowPreview(),
             const SizedBox(height: 12),
             GridView.count(
               crossAxisCount: 2,
@@ -148,6 +161,98 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ReceiptImportFlowPreview extends StatelessWidget {
+  const _ReceiptImportFlowPreview();
+
+  @override
+  Widget build(BuildContext context) {
+    const steps = [
+      ('1', 'Capture or upload'),
+      ('2', 'Review photos'),
+      ('3', 'Use receipt'),
+    ];
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0E1416),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF344047)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+        child: Row(
+          children: [
+            for (var i = 0; i < steps.length; i++) ...[
+              Expanded(
+                child: _ReceiptImportStepBadge(
+                  number: steps[i].$1,
+                  label: steps[i].$2,
+                ),
+              ),
+              if (i != steps.length - 1)
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 5),
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    color: Color(0xFF95A3A8),
+                    size: 18,
+                  ),
+                ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiptImportStepBadge extends StatelessWidget {
+  const _ReceiptImportStepBadge({required this.number, required this.label});
+
+  final String number;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFD166),
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+            child: Text(
+              number,
+              style: const TextStyle(
+                color: Color(0xFF101416),
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 5),
+        Expanded(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFFE8ECEE),
+              fontSize: 10.5,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -205,9 +310,8 @@ class _ReceiptTextImportSheet extends StatelessWidget {
               icon: Icons.content_paste_rounded,
               title: 'Paste Text',
               detail: 'Paste copied receipt text now.',
-              onTap: () => Navigator.of(
-                context,
-              ).pop(_ReceiptTextImportAction.pasteText),
+              onTap: () =>
+                  Navigator.of(context).pop(_ReceiptTextImportAction.pasteText),
             ),
             const SizedBox(height: 8),
             _ReceiptTextImportTile(
@@ -282,10 +386,7 @@ class _ReceiptTextImportTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: Color(0xFF8FA0A8),
-              ),
+              const Icon(Icons.chevron_right_rounded, color: Color(0xFF8FA0A8)),
             ],
           ),
         ),
