@@ -5,6 +5,12 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
 
 const _defaultOutputDir = 'build/parser_qa_curation/plumbing_core';
+const _generatedChaosStatusPath =
+    'build/parser_qa_pipeline/'
+    'plumbing_core_generated_run_status_100_reviewseed_v5.json';
+const _generatedChaosManifestPath =
+    'build/parser_qa_generated_benchmark/work_supply_parser/plumbing/'
+    'residential/core/en-US/manifest.json';
 
 void main(List<String> args) {
   final outputDir = _argValue(args, '--output-dir') ?? _defaultOutputDir;
@@ -38,6 +44,7 @@ void main(List<String> args) {
 }
 
 Map<String, Object?> buildPlumbingCoreReadinessAudit() {
+  final generatedChaosEvidence = _loadGeneratedChaosEvidence();
   final coreRows =
       workSupplyCatalogItems
           .where(
@@ -48,7 +55,10 @@ Map<String, Object?> buildPlumbingCoreReadinessAudit() {
           )
           .toList(growable: false)
         ..sort((left, right) => left.name.compareTo(right.name));
-  final findings = [for (final item in coreRows) _readinessFinding(item)]
+  final findings = [
+    for (final item in coreRows)
+      _readinessFinding(item, generatedChaosEvidence: generatedChaosEvidence),
+  ]
     ..sort(_findingSort);
   final families = [
     for (final family in _familyContracts)
@@ -73,7 +83,12 @@ Map<String, Object?> buildPlumbingCoreReadinessAudit() {
       'parserShardPrerequisite':
           'Run broad generated parser shards only after family readiness '
           'queues are closed or intentionally waived with a reason.',
+      'generatedChaosEvidencePrerequisite':
+          'Mark Plumbing Core release-ready only when the focused '
+          'plumbing/residential/core generated chaos artifact is present, '
+          'passed, local-only safe, and covers the required case types.',
     },
+    'evidence': {'generatedChaos': generatedChaosEvidence.toJson()},
     'summary': _summary(findings),
     'familyReadiness': [for (final family in families) family.toJson()],
     'actionQueues': _actionQueues(findings),
@@ -81,7 +96,10 @@ Map<String, Object?> buildPlumbingCoreReadinessAudit() {
   };
 }
 
-_ReadinessFinding _readinessFinding(WorkSupplyItem item) {
+_ReadinessFinding _readinessFinding(
+  WorkSupplyItem item, {
+  required _GeneratedChaosEvidence generatedChaosEvidence,
+}) {
   final text = item.searchableText.toLowerCase();
   final directText = _directText(item);
   final family = _classifyFamily(_familyText(item));
@@ -147,7 +165,12 @@ _ReadinessFinding _readinessFinding(WorkSupplyItem item) {
     warnings.add('legacy_material_review');
   }
 
-  final parserEvidence = _parserEvidenceStatus(item, text, family);
+  final parserEvidence = _parserEvidenceStatus(
+    item,
+    text,
+    family,
+    generatedChaosEvidence: generatedChaosEvidence,
+  );
   if (parserEvidence != 'focused_parser_evidence_present') {
     issues.add(parserEvidence);
   }
@@ -395,7 +418,15 @@ bool _hasNegativeForRisk(WorkSupplyItem item, String risk) {
   };
 }
 
-String _parserEvidenceStatus(WorkSupplyItem item, String text, String family) {
+String _parserEvidenceStatus(
+  WorkSupplyItem item,
+  String text,
+  String family, {
+  required _GeneratedChaosEvidence generatedChaosEvidence,
+}) {
+  if (!generatedChaosEvidence.ready) {
+    return 'missing_generated_chaos_evidence';
+  }
   if (_familiesWithFocusedParserEvidence.contains(family)) {
     return 'focused_parser_evidence_present';
   }
@@ -1055,6 +1086,120 @@ class _FamilyContract {
 
   final String name;
   final List<String> signals;
+}
+
+class _GeneratedChaosEvidence {
+  const _GeneratedChaosEvidence({
+    required this.statusPath,
+    required this.manifestPath,
+    required this.statusFileExists,
+    required this.manifestFileExists,
+    required this.cellPassed,
+    required this.localOnlySafe,
+    required this.checked,
+    required this.parserCalls,
+    required this.caseTypes,
+  });
+
+  final String statusPath;
+  final String manifestPath;
+  final bool statusFileExists;
+  final bool manifestFileExists;
+  final bool cellPassed;
+  final bool localOnlySafe;
+  final int checked;
+  final int parserCalls;
+  final Set<String> caseTypes;
+
+  bool get ready =>
+      statusFileExists &&
+      manifestFileExists &&
+      cellPassed &&
+      localOnlySafe &&
+      checked >= 100 &&
+      parserCalls >= 100 &&
+      caseTypes.containsAll(_requiredGeneratedChaosCaseTypes);
+
+  Map<String, Object?> toJson() => {
+    'statusPath': statusPath,
+    'manifestPath': manifestPath,
+    'statusFileExists': statusFileExists,
+    'manifestFileExists': manifestFileExists,
+    'cellPassed': cellPassed,
+    'localOnlySafe': localOnlySafe,
+    'checked': checked,
+    'parserCalls': parserCalls,
+    'caseTypes': caseTypes.toList()..sort(),
+    'requiredCaseTypes': _requiredGeneratedChaosCaseTypes.toList()..sort(),
+    'ready': ready,
+  };
+}
+
+const _requiredGeneratedChaosCaseTypes = {
+  'ambiguous_review',
+  'clear_match',
+  'dangerous_generic',
+  'negative_match',
+  'quantity_price',
+  'receipt_noise',
+};
+
+_GeneratedChaosEvidence _loadGeneratedChaosEvidence() {
+  final statusFile = File(_generatedChaosStatusPath);
+  final manifestFile = File(_generatedChaosManifestPath);
+  var cellPassed = false;
+  var localOnlySafe = false;
+  var checked = 0;
+  var parserCalls = 0;
+  var caseTypes = <String>{};
+
+  if (statusFile.existsSync()) {
+    final decoded = jsonDecode(statusFile.readAsStringSync());
+    if (decoded is Map<String, Object?>) {
+      final cells = decoded['cells'];
+      if (cells is List) {
+        for (final entry in cells) {
+          if (entry is! Map) continue;
+          final cellMap = entry.cast<String, Object?>();
+          if (cellMap['cellId'] != 'plumbing_residential_core_en_US') continue;
+          cellPassed = cellMap['status'] == 'passed';
+          checked = (cellMap['checked'] as num?)?.toInt() ?? 0;
+          parserCalls = (cellMap['parserCalls'] as num?)?.toInt() ?? 0;
+          final safetyFlags =
+              (cellMap['safetyFlags'] as Map?)?.cast<String, Object?>() ??
+              const <String, Object?>{};
+          localOnlySafe =
+              safetyFlags['liveServicesAllowed'] == false &&
+              safetyFlags['writesProductionCatalog'] == false &&
+              safetyFlags['firebaseWritesAllowed'] == false &&
+              safetyFlags['ocrCameraExpensesTouched'] == false;
+          break;
+        }
+      }
+    }
+  }
+
+  if (manifestFile.existsSync()) {
+    final decoded = jsonDecode(manifestFile.readAsStringSync());
+    if (decoded is Map<String, Object?>) {
+      final rawCaseTypes = decoded['caseTypes'];
+      if (rawCaseTypes is List) {
+        caseTypes = rawCaseTypes.map((entry) => '$entry').toSet();
+      }
+    }
+  }
+
+  return _GeneratedChaosEvidence(
+    statusPath: _generatedChaosStatusPath,
+    manifestPath: _generatedChaosManifestPath,
+    statusFileExists: statusFile.existsSync(),
+    manifestFileExists: manifestFile.existsSync(),
+    cellPassed: cellPassed,
+    localOnlySafe: localOnlySafe,
+    checked: checked,
+    parserCalls: parserCalls,
+    caseTypes: caseTypes,
+  );
 }
 
 class _FamilyReadiness {

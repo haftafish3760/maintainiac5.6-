@@ -12,6 +12,8 @@ void main() {
       _writeLatestReport(report);
       final summary = report['summary']! as Map<String, Object?>;
       final actionQueues = report['actionQueues']! as Map<String, Object?>;
+      final evidence = report['evidence']! as Map<String, Object?>;
+      final generatedChaos = evidence['generatedChaos']! as Map<String, Object?>;
 
       expect(
         report['schema'],
@@ -24,6 +26,20 @@ void main() {
       expect(summary['metadataReadyCandidates'], summary['coreRows']);
       expect(summary['releaseReadyItems'], summary['coreRows']);
       expect(summary['readyForMacValidation'], isTrue);
+      expect(generatedChaos['ready'], isTrue);
+      expect(generatedChaos['checked'], greaterThanOrEqualTo(100));
+      expect(generatedChaos['parserCalls'], greaterThanOrEqualTo(100));
+      expect(
+        generatedChaos['caseTypes'],
+        containsAll([
+          'ambiguous_review',
+          'clear_match',
+          'dangerous_generic',
+          'negative_match',
+          'quantity_price',
+          'receipt_noise',
+        ]),
+      );
       expect(actionQueues['finishFirst'], isA<List<Map<String, Object?>>>());
       expect(
         actionQueues['criticalMetadata'],
