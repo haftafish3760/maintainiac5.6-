@@ -31,6 +31,30 @@ class WorkSupplyParserEstimateSectionSuite extends QaSuite {
       estimateSectionTrade: '',
       expectedTopTrade: 'Plumbing',
     ),
+    _EstimateSectionCase(
+      id: 'plumbing_section_prefers_soft_copper_tubing',
+      line: '3/4 COPPER TUBING',
+      estimateSectionTrade: 'Plumbing',
+      expectedTopTrade: 'Plumbing',
+    ),
+    _EstimateSectionCase(
+      id: 'hvac_section_prefers_acr_copper_tubing',
+      line: '3/4 COPPER TUBING',
+      estimateSectionTrade: 'HVAC',
+      expectedTopTrade: 'HVAC',
+    ),
+    _EstimateSectionCase(
+      id: 'electrical_section_prefers_conduit_coupling',
+      line: '3/4 PVC CPLG',
+      estimateSectionTrade: 'Electrical',
+      expectedTopTrade: 'Electrical',
+    ),
+    _EstimateSectionCase(
+      id: 'hvac_section_prefers_condensate_coupling',
+      line: '3/4 PVC CPLG',
+      estimateSectionTrade: 'HVAC',
+      expectedTopTrade: 'HVAC',
+    ),
   ];
 
   @override
@@ -129,6 +153,42 @@ class WorkSupplyParserEstimateSectionSuite extends QaSuite {
   }
 
   WorkSupplyParserCandidate _candidateFor(String line) {
+    if (line == '3/4 COPPER TUBING') {
+      return WorkSupplyParserCandidate(
+        rawLine: line,
+        cleanedLine: line.toLowerCase(),
+        reviewStatus: 'multiplePossibleMatches',
+        suggestedInventoryAction: WorkSupplyParserSuggestedAction.reviewOnly,
+        warnings: const ['mixed_trade_copper_tubing_ambiguity'],
+        missingFields: const ['tradeContext'],
+        possibleMatches: const [
+          WorkSupplyParserPossibleMatch(
+            canonicalItemId: 'PLUMBING-COPPER-TUBING-3-4',
+            canonicalItemName: '3/4 in Soft Copper Tubing',
+            detectedTrade: 'Plumbing',
+            confidenceScore: .73,
+            confidenceReasons: ['copper material', 'tubing token', '3/4 size'],
+          ),
+          WorkSupplyParserPossibleMatch(
+            canonicalItemId: 'HVAC-ACR-COPPER-TUBING-3-4',
+            canonicalItemName: '3/4 in ACR Copper Tubing',
+            detectedTrade: 'HVAC',
+            confidenceScore: .72,
+            confidenceReasons: ['copper material', 'tubing token', '3/4 size'],
+          ),
+          WorkSupplyParserPossibleMatch(
+            canonicalItemId: 'ELECTRICAL-COPPER-GROUND-3-4',
+            canonicalItemName: '3/4 in Copper Bonding Stock',
+            detectedTrade: 'Electrical',
+            confidenceScore: .41,
+            confidenceReasons: ['copper material', 'shared stock wording'],
+          ),
+        ],
+        confidenceScore: .73,
+        confidenceReasons: const ['3/4 copper tubing is shared by multiple lanes'],
+      );
+    }
+
     return WorkSupplyParserCandidate(
       rawLine: line,
       cleanedLine: line.toLowerCase(),

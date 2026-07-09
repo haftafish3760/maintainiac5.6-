@@ -51,6 +51,30 @@ class WorkSupplyParserContextSuite extends QaSuite {
       ambiguousWithoutScope: true,
     ),
     _ContextCase(
+      line: '1/2 COPPER TUBING',
+      risk:
+          'Copper tubing can be plumbing water tube or HVAC copper stock without stronger evidence.',
+      ambiguousWithoutScope: true,
+    ),
+    _ContextCase(
+      line: '3/4 SOFT COPPER TUBING',
+      risk:
+          'Soft copper tubing should bias plumbing when the receipt gives water-supply style wording.',
+      expectedScopedTrade: 'Plumbing',
+    ),
+    _ContextCase(
+      line: '3/8 ACR COPPER TUBING',
+      risk:
+          'ACR wording should bias HVAC refrigeration tubing instead of plumbing copper stock.',
+      expectedScopedTrade: 'HVAC',
+    ),
+    _ContextCase(
+      line: '3/8 COPPER LINE SET',
+      risk:
+          'Line-set wording should bias HVAC and reject generic plumbing copper matches.',
+      expectedScopedTrade: 'HVAC',
+    ),
+    _ContextCase(
       line: 'FOIL TAPE',
       risk: 'Tape appears in HVAC, drywall, electrical, and general supplies.',
       ambiguousWithoutScope: true,
@@ -81,6 +105,30 @@ class WorkSupplyParserContextSuite extends QaSuite {
       line: '3/4 COUPLING',
       risk: 'Coupling can belong to plumbing, electrical, HVAC, or fasteners.',
       ambiguousWithoutScope: true,
+    ),
+    _ContextCase(
+      line: '3/4 PVC COND CPLG',
+      risk:
+          'COND wording should bias HVAC condensate fittings instead of electrical conduit or plumbing pressure PVC.',
+      expectedScopedTrade: 'HVAC',
+    ),
+    _ContextCase(
+      line: '3/4 PVC CONDUIT CPLG',
+      risk:
+          'Conduit wording should bias electrical conduit fittings instead of plumbing or HVAC condensate.',
+      expectedScopedTrade: 'Electrical',
+    ),
+    _ContextCase(
+      line: '1 IN PVC TEE',
+      risk:
+          'Small PVC tee is shared enough across trades that it should stay conservative without extra context.',
+      ambiguousWithoutScope: true,
+    ),
+    _ContextCase(
+      line: '18/5 STAT WIRE',
+      risk:
+          'STAT wire should bias HVAC low-voltage control wire instead of wall thermostats or unrelated wire stock.',
+      expectedScopedTrade: 'HVAC',
     ),
   ];
 

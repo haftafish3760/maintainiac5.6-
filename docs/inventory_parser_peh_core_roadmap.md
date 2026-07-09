@@ -35,6 +35,10 @@ like a professional catalog/parser team would handle it.
    - Cover box stores, supply houses, hardware stores, local/regional
      suppliers, counter-sale lines, unknown merchants, abbreviations, OCR-like
      noise, Spanish wording, and mixed-trade receipts.
+   - Mixed-trade receipts are mandatory PEH proof, not stretch coverage.
+   - Small shared materials such as `3/4 in PVC` and `1 in PVC` must stay
+     conservative until the receipt provides trade context like `conduit`,
+     `condensate`, `dwv`, `sch40`, `san tee`, or similar disambiguating words.
    - Use synthetic examples only. Do not copy private receipts into the repo.
 4. Run focused validation while building.
    - Use scripts and Dart/tool checks first when they prove the behavior.
@@ -150,6 +154,22 @@ order unless a shared parser rule blocks the active step.
 3. Fix only real parser/metadata misses surfaced by the generated-fixture wave.
 4. Refresh the branch rollup and measurement-gap artifacts after each accepted
    evidence increase.
+
+### Stage 4B: Mixed PEH ambiguity proof
+
+1. Add explicit mixed-trade PEH regressions for overlapping receipt language.
+2. Force conservative review behavior for bare shared-material lines such as:
+   - `3/4 PVC`
+   - `1 IN PVC`
+   - `3/4 PVC CPLG`
+   - `1 IN PVC TEE`
+3. Force direct-trade selection only when the receipt adds strong context such
+   as:
+   - Electrical: `conduit`, `terminal adapter`, `male adapter`
+   - HVAC: `cond`, `condensate`, `drain`, `trap`, `vent`
+   - Plumbing: `dwv`, `sch40`, `pressure`, `cleanout`, `san tee`
+4. Treat mixed-trade receipt proof as part of PEH readiness, not a post-claim
+   cleanup item.
 
 ### Stage 5: Mac handoff and heavier validation
 
@@ -316,7 +336,9 @@ Primary HVAC Core families:
 4. Synthetic fixture coverage for the family being edited.
 5. Windows-safe focused generated validation.
 6. Trade-level measured generated validation with the `0.90` floor.
-7. Mac-side heavier validation after Windows-side hardening is exhausted.
+7. Mixed-trade PEH ambiguity validation across plumbing/electrical/HVAC shared
+   materials.
+8. Mac-side heavier validation after Windows-side hardening is exhausted.
 
 ## Accuracy Phase Roadmap
 
@@ -372,6 +394,8 @@ Each trade can move to Mac validation only when:
 - Focused parser evidence is clean.
 - Measured generated-fixture validation clears the agreed minimum pass-rate
   floor for the active release claim.
+- Mixed-trade PEH ambiguity regressions are clean for shared materials like
+  small PVC, tubing, and overlapping service-stock wording.
 - Readiness audit reports zero critical, zero needs-work, and all Core rows
   release-ready.
 - The milestone commit is pushed with a human-readable EDT label.

@@ -391,9 +391,10 @@ Every parser workflow bridge must return an `InventoryParseCandidate` with raw e
 
 Required bridge rules:
 
-- `context_boost_changes_ranking_not_truth`: selected job type, enabled trade packs, active plumbing estimate section, active electrical estimate section, active HVAC estimate section, vehicle inventory, previous corrections, merchant type, user business type, and mixed remodel context can change ranking but cannot erase ambiguity.
+- `context_boost_changes_ranking_not_truth`: selected job type, enabled trade packs, active plumbing estimate section, active electrical estimate section, active HVAC estimate section, active plumbing invoice section, active electrical invoice section, active HVAC invoice section, vehicle inventory, previous corrections, merchant type, user business type, and mixed remodel context can change ranking but cannot erase ambiguity.
 - `mixed_trade_job_keeps_ambiguity_visible`: mixed remodel receipts and jobs must keep plausible Plumbing, Electrical, HVAC, and shared material candidates visible until user review.
 - `estimate_section_routes_candidate`: an estimate section may suggest a destination trade section/category of work but does not turn the candidate into a confirmed line.
+- `invoice_section_routes_candidate`: an invoice section may suggest a destination trade section/category of work but does not turn the candidate into a confirmed line.
 - `job_material_output_is_review_only`: job-material suggestions remain review-only until the user confirms the material and destination job.
 - `inventory_add_is_review_only`: inventory-add suggestions remain review-only until the user confirms item identity, quantity, unit, location, and ownership.
 - `invoice_output_waits_for_user_approval`: invoice output waits for user approval and must not mutate an invoice, estimate, job, or inventory source record silently.

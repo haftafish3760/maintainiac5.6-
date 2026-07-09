@@ -551,4 +551,26 @@ void main() {
     expect(airCleaner!.item.trade, 'HVAC');
     expect(airCleaner.item.name, contains('Ionizing Wire'));
   });
+
+  test('hvac parser keeps thermostat wire off wall thermostats', () {
+    final thermostatWire = matchReceiptLineToCatalog(
+      '18/5 STAT WIRE',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(thermostatWire, isNotNull);
+    expect(thermostatWire!.item.trade, 'HVAC');
+    expect(thermostatWire.item.name, contains('Thermostat Wire'));
+  });
+
+  test('hvac parser recognizes water panel wording without humidifier token', () {
+    final waterPanel = matchReceiptLineToCatalog(
+      'MODEL 35 WATER PANEL',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(waterPanel, isNotNull);
+    expect(waterPanel!.item.trade, 'HVAC');
+    expect(waterPanel.item.name, contains('Water Panel'));
+  });
 }

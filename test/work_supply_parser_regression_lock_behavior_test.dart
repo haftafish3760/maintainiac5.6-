@@ -192,6 +192,73 @@ void main() {
         expect(match.needsReview, isTrue, reason: entry.key);
       }
     });
+
+    test('mixed PEH receipt lines keep overlapping materials in the right trade', () {
+      final mixedReceiptExpectations = {
+        '3/4 PVC COND CPLG': 'HVAC',
+        '3/4 PVC COND COUPLING': 'HVAC',
+        '3/4 PVC CONDUIT CPLG': 'Electrical',
+        '3/4 PVC COND MALE ADPT': 'Electrical',
+        '1/2 PEX TEE': 'Plumbing',
+        '3/4 SOFT COPPER TUBING': 'Plumbing',
+        '3/8 ACR COPPER TUBING': 'HVAC',
+        '3/4 COPPER REPAIR COUPLING': 'Plumbing',
+        '3/8 COPPER LINE SET': 'HVAC',
+        '18/5 STAT WIRE': 'HVAC',
+        'VINYL CONDENSATE TUBING': 'Plumbing',
+      };
+
+      for (final entry in mixedReceiptExpectations.entries) {
+        final match = matchReceiptLineToCatalog(entry.key, maxCandidates: 320);
+        expect(match, isNotNull, reason: entry.key);
+        expect(match!.item.trade, entry.value, reason: entry.key);
+      }
+    });
+
+    test('bare small PVC sizes stay conservative until the receipt gives context', () {
+      final dangerousCases = {
+        '3/4 PVC': 'Could be plumbing pressure, electrical conduit, or HVAC.',
+        '1 IN PVC': 'Could be plumbing pressure, electrical conduit, or HVAC.',
+        '3/4 PVC CPLG': 'Coupling alone still lacks trade context at these sizes.',
+        '1 IN PVC TEE': 'Tee alone still lacks trade context at these sizes.',
+      };
+
+      for (final entry in dangerousCases.entries) {
+        final match = matchReceiptLineToCatalog(entry.key, maxCandidates: 320);
+        if (match == null) continue;
+        expect(
+          match.confidenceLevel,
+          isNot(ReceiptConfidenceLevel.good),
+          reason:
+              '${entry.key} matched ${match.item.trade} / ${match.item.name} '
+              'at ${match.confidence}. ${entry.value}',
+        );
+        expect(match.needsReview, isTrue, reason: entry.key);
+      }
+    });
+
+    test('bare copper and tubing lines stay conservative until the receipt gives trade context', () {
+      final dangerousCases = {
+        '3/4 COPPER': 'Could be plumbing water tube or HVAC copper stock.',
+        '1/2 COPPER TUBING': 'Could be plumbing tube or HVAC refrigerant tube.',
+        '3/8 COPPER': 'Could be HVAC line-set copper or other copper stock.',
+        'COPPER COIL': 'Could point to multiple plumbing or HVAC uses.',
+        'TUBING 3/4': 'Tubing alone is too vague without trade context.',
+      };
+
+      for (final entry in dangerousCases.entries) {
+        final match = matchReceiptLineToCatalog(entry.key, maxCandidates: 320);
+        if (match == null) continue;
+        expect(
+          match.confidenceLevel,
+          isNot(ReceiptConfidenceLevel.good),
+          reason:
+              '${entry.key} matched ${match.item.trade} / ${match.item.name} '
+              'at ${match.confidence}. ${entry.value}',
+        );
+        expect(match.needsReview, isTrue, reason: entry.key);
+      }
+    });
   });
 }
 
@@ -243,7 +310,7 @@ const _parserLocks = [
     locale: 'en-US',
     trade: 'Electrical',
     packTier: 'core',
-    expectedNameContains: 'conduit',
+    expectedNameContains: 'electrical',
     expectedReviewStatus: 'review-only',
     expectedConfidenceBand: 'good',
     expectedFailureCategory: 'none',

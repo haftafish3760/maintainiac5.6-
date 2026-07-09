@@ -1367,9 +1367,9 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
     return fallback;
   }
 
-  final wantsThermostat = RegExp(
-    r'\b(tstat|thermostat|thermo stat|termostato)\b',
-  ).hasMatch(text);
+  final wantsThermostat =
+      RegExp(r'\b(tstat|thermostat|thermo stat|termostato)\b').hasMatch(text) &&
+      !RegExp(r'\b(wire|cable)\b').hasMatch(text);
   if (wantsThermostat) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -1447,7 +1447,18 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
     }
   }
 
-  final wantsHumidifierPart = RegExp(r'\bhumidifier\b').hasMatch(text);
+  final wantsWaterPanel = RegExp(r'\bwater\s+panel\b').hasMatch(text);
+  if (wantsWaterPanel) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'HVAC' && name.contains('humidifier water panel')) {
+        return item;
+      }
+    }
+  }
+
+  final wantsHumidifierPart =
+      RegExp(r'\bhumidifier\b').hasMatch(text) || wantsWaterPanel;
   if (wantsHumidifierPart) {
     final wantedName = switch (text) {
       final value when RegExp(r'\b(pad|water\s+panel)\b').hasMatch(value) =>
@@ -1764,6 +1775,22 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
 }
 
 WorkSupplyItem? _directUnscopedHvacEvidenceMatch(String text) {
+  final wantsCondensateCoupling =
+      RegExp(r'\bpvc\b').hasMatch(text) &&
+      RegExp(r'\b(cond|condensate)\b').hasMatch(text) &&
+      RegExp(r'\b(cplg|cplgs|coupling|coupler|coup|acople)\b').hasMatch(text);
+  if (wantsCondensateCoupling) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'HVAC' &&
+          name.contains('condensate pvc coupling') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+
   final wantsCondensatePump = RegExp(
     r'\b(little\s+pump|condensate\s+pump|cond\s+pump|bomba\s+condensado)\b',
   ).hasMatch(text);
@@ -1872,6 +1899,8 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   final hvacCore = _directHvacCoreMatch(text, tradeScope: tradeScope);
   if (hvacCore != null) return hvacCore;
   if (tradeScope == null || tradeScope.trim().isEmpty) {
+    final unscopedElectrical = _directUnscopedElectricalEvidenceMatch(text);
+    if (unscopedElectrical != null) return unscopedElectrical;
     final unscopedHvac = _directUnscopedHvacEvidenceMatch(text);
     if (unscopedHvac != null) return unscopedHvac;
   }
@@ -5137,7 +5166,9 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\bpvc\b').hasMatch(text) &&
-      !RegExp(r'\b(dwv|drain|abs|black|reducing|reducer)\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(dwv|drain|abs|black|reducing|reducer|cond|condensate|conduit|elec|electrical)\b',
+      ).hasMatch(text) &&
       RegExp(r'\b(cplg|cplgs|coupling|coupler)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
@@ -5916,6 +5947,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(sch40|sch 40|schedule 40)\b').hasMatch(text) &&
       RegExp(r'\b(coupling|cplg|coup)\b').hasMatch(text) &&
+      !RegExp(r'\b(cond|condensate|conduit|elec|electrical)\b').hasMatch(text) &&
       !RegExp(r'\b(reducing|reducer)\b').hasMatch(text);
   if (wantsPvcSch40Coupling) {
     final size = _nominalReceiptSize(text);
@@ -5991,6 +6023,41 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
           _nameMatchesReceiptSize(name, size)) {
         return item;
       }
+    }
+  }
+  return null;
+}
+
+WorkSupplyItem? _directUnscopedElectricalEvidenceMatch(String text) {
+  final wantsConduitStylePvcPart =
+      RegExp(r'\bpvc\b').hasMatch(text) &&
+      RegExp(r'\b(cond|conduit|elec|electrical)\b').hasMatch(text) &&
+      RegExp(
+        r'\b(male|mip|terminal adapter|male adapter|female|fip|female adapter|body|lb)\b',
+      ).hasMatch(text);
+  if (!wantsConduitStylePvcPart) return null;
+  final size = _nominalReceiptSize(text);
+  final wantedName = switch (text) {
+    final value when RegExp(r'\b(lb)\b').hasMatch(value) => 'lb conduit body',
+    final value when RegExp(r'\b(body)\b').hasMatch(value) =>
+      'conduit body',
+    final value
+        when RegExp(
+          r'\b(male|mip|terminal adapter|male adapter)\b',
+        ).hasMatch(value) =>
+      'pvc electrical male adapter',
+    final value
+        when RegExp(r'\b(female|fip|female adapter)\b').hasMatch(value) =>
+      'pvc electrical female adapter',
+    _ => null,
+  };
+  if (wantedName == null) return null;
+  for (final item in workSupplyCatalogItems) {
+    final name = item.name.toLowerCase();
+    if (item.trade == 'Electrical' &&
+        name.contains(wantedName) &&
+        _nameMatchesReceiptSize(name, size)) {
+      return item;
     }
   }
   return null;
