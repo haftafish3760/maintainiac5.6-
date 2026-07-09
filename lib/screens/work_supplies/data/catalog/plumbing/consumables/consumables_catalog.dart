@@ -26,7 +26,13 @@ final plumbingConsumablesCategory = _category('Consumables', [
         'PVC Cement',
         'can',
         ['4 oz', '8 oz', '16 oz'],
-        ['glue', 'solvent cement'],
+        [
+          'glue',
+          'pvc glue',
+          'solvent cement',
+          'clear cement',
+          'clear pvc glue',
+        ],
       ),
     ),
     _type(
@@ -35,7 +41,7 @@ final plumbingConsumablesCategory = _category('Consumables', [
         'CPVC Cement',
         'can',
         ['4 oz', '8 oz', '16 oz'],
-        ['cpvc glue', 'yellow glue'],
+        ['cpvc glue', 'yellow glue', 'cpvc solvent cement'],
       ),
     ),
     _type(

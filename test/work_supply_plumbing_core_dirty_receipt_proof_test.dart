@@ -119,6 +119,15 @@ void main() {
     ]);
   });
 
+  test(
+    'plumbing core keeps noisy pvc glue receipts out of 8 inch dwv fittings',
+    () {
+      _expectGoodPlumbingCore('LOCAL HDW 8 OZ PVC GLUE 71.90 94.77', [
+        'pvc cement',
+      ]);
+    },
+  );
+
   test('plumbing core handles mixed Spanish dirty service receipts', () {
     _expectGoodPlumbingCore('FERG 1/2 CODO COBRE 90 CXC', [
       'copper',

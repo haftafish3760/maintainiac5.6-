@@ -84,16 +84,32 @@ double _specificityEvidenceScore(String text, WorkSupplyItem item) {
       (rawItemText.contains('p-trap') || rawItemText.contains('p trap'))) {
     score += 0.24;
   }
-  score += _plumbingCoreReceiptEvidenceScore(text, itemText);
+  score += _plumbingCoreReceiptEvidenceScore(text, item, itemText);
   return score;
 }
 
-double _plumbingCoreReceiptEvidenceScore(String text, String itemText) {
+double _plumbingCoreReceiptEvidenceScore(
+  String text,
+  WorkSupplyItem item,
+  String itemText,
+) {
   var score = 0.0;
   if (RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(90|90d|ell|elb|elbow)\b').hasMatch(text) &&
       itemText.contains('pvc schedule 40 90 elbow')) {
     score += 0.10;
+  }
+  if (RegExp(r'\bpvc\b').hasMatch(text) &&
+      RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
+      itemText.contains('pvc cement')) {
+    score += 0.20;
+    final amount = _receiptPackageAmount(text, 'oz');
+    if (_itemMatchesPackageAmount(item, amount, 'oz')) {
+      score += 0.12;
+    }
+    if (RegExp(r'\bclear\b').hasMatch(text) && itemText.contains('clear')) {
+      score += 0.04;
+    }
   }
   if (RegExp(r'\b(cop|cu|copper)\b').hasMatch(text) &&
       !_hasBrokenCriticalPlumbingFraction(text) &&

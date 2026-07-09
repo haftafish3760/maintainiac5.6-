@@ -53,6 +53,18 @@ int _receiptFallbackSpecificityScore(String text, _ReceiptCatalogEntry entry) {
       score -= 150;
     }
   }
+  if (RegExp(r'\bpvc\b').hasMatch(text) &&
+      RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text)) {
+    if (entry.item.trade == 'Plumbing' && itemName.contains('pvc cement')) {
+      score += 420;
+      final amount = _receiptPackageAmount(text, 'oz');
+      if (_itemMatchesPackageAmount(entry.item, amount, 'oz')) score += 180;
+    } else if (entry.item.trade == 'Plumbing' &&
+        (itemName.contains('pvc schedule 40') ||
+            itemName.contains('pvc dwv'))) {
+      score -= 260;
+    }
+  }
   if (RegExp(
     r'\b(hose bibb? vac|hose bibb? vacuum|hose bibb? vac brkr|vac brkr|vacuum breaker)\b',
   ).hasMatch(text)) {

@@ -2574,11 +2574,13 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(water htr|wtr htr|water heater)\b').hasMatch(text) &&
       RegExp(r'\b(vacuum relief|vac relief)\b').hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('water heater install accessory') &&
-          name.contains('vacuum relief')) {
+          name.contains('vacuum relief') &&
+          _nameMatchesReceiptSize(name, size)) {
         return item;
       }
     }
@@ -3156,7 +3158,8 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       if (item.trade == 'Plumbing' &&
           name.contains('thread sealant supply') &&
           (_receiptContainsVariantTokens(text, item.variant) ||
-              (amount != null && _nameStartsWithAmount(name, amount, 'oz')) ||
+              (amount != null &&
+                  _itemMatchesPackageAmount(item, amount, 'oz')) ||
               (wantsPasteOrDope &&
                   (name.contains('pipe joint compound') ||
                       name.contains('ptfe paste') ||
@@ -3174,7 +3177,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pipe joint compound') &&
-          _nameStartsWithAmount(name, amount, 'oz')) {
+          _itemMatchesPackageAmount(item, amount, 'oz')) {
         return item;
       }
     }
@@ -3186,8 +3189,8 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('plumber putty') &&
-          (_nameStartsWithAmount(name, ozAmount, 'oz') ||
-              _nameStartsWithAmount(name, lbAmount, 'lb'))) {
+          (_itemMatchesPackageAmount(item, ozAmount, 'oz') ||
+              _itemMatchesPackageAmount(item, lbAmount, 'lb'))) {
         return item;
       }
     }
@@ -3202,7 +3205,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing' ||
           !name.contains('silicone sealant') ||
-          !_nameStartsWithAmount(name, amount, 'oz')) {
+          !_itemMatchesPackageAmount(item, amount, 'oz')) {
         continue;
       }
       if ((wantsClear && name.contains('clear')) ||
@@ -3231,7 +3234,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc primer') &&
-          _nameStartsWithAmount(name, amount, 'oz')) {
+          _itemMatchesPackageAmount(item, amount, 'oz')) {
         return item;
       }
     }
@@ -3602,7 +3605,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc cement') &&
-          (amount == null || _nameStartsWithAmount(name, amount, 'oz'))) {
+          (amount == null || _itemMatchesPackageAmount(item, amount, 'oz'))) {
         return item;
       }
     }
@@ -4449,6 +4452,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\bbrass\b').hasMatch(text) &&
+      !RegExp(r'\b(comp|compression)\b').hasMatch(text) &&
       RegExp(r'\b(union|unions|mip\s+x\s+fip|mip\s+fip)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
@@ -4949,7 +4953,21 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\bpvc\b').hasMatch(text) &&
+      RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
+      !RegExp(r'\b(cpvc|primer|trap\s+primer|paint)\b').hasMatch(text)) {
+    final amount = _receiptPackageAmount(text, 'oz');
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('pvc cement') &&
+          (amount == null || _itemMatchesPackageAmount(item, amount, 'oz'))) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\bpvc\b').hasMatch(text) &&
       !RegExp(r'\b(dwv|drain|abs|black)\b').hasMatch(text) &&
+      !RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
       RegExp(r'\bstreet\b').hasMatch(text) &&
       RegExp(r'\b90\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
@@ -4964,6 +4982,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\bpvc\b').hasMatch(text) &&
       !RegExp(r'\b(dwv|drain|abs|black)\b').hasMatch(text) &&
+      !RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
       RegExp(r'\b45\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
@@ -4977,6 +4996,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\bpvc\b').hasMatch(text) &&
       !RegExp(r'\b(dwv|drain|abs|black|street|45)\b').hasMatch(text) &&
+      !RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
       RegExp(r'\b(90|90d|ell|elb|elbow)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
@@ -5020,7 +5040,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\bpvc\b').hasMatch(text) &&
       !RegExp(
-        r'\b(dwv|drain|abs|black|cleanout|clean out|test tee)\b',
+        r'\b(dwv|drain|abs|black|cleanout|clean out|test tee|test\s+t|cement|solvent\s+cement|glue)\b',
       ).hasMatch(text) &&
       RegExp(r'\b(tee|tees|t)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
@@ -5677,6 +5697,19 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       tradeScope.trim().toLowerCase() != 'plumbing') {
     return null;
   }
+  if (RegExp(r'\bpvc\b').hasMatch(text) &&
+      RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
+      !RegExp(r'\b(cpvc|primer|trap\s+primer|paint)\b').hasMatch(text)) {
+    final amount = _receiptPackageAmount(text, 'oz');
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('pvc cement') &&
+          (amount == null || _itemMatchesPackageAmount(item, amount, 'oz'))) {
+        return item;
+      }
+    }
+  }
   final legacyAdapter = _directPlumbingLegacyAdapterFastMatch(text);
   if (legacyAdapter != null) return legacyAdapter;
   final wantsTubularPTrap = RegExp(
@@ -6100,6 +6133,13 @@ String _stripReceiptPosNoiseForSize(String normalized) {
   return normalized
       .replaceAll(RegExp(r'\b\d+\s+@\s+\d+(?:\.\d+)?\b'), ' ')
       .replaceAll(RegExp(r'\b\d+\s+\d+\s+\d+\s+(?=1/4|3/8|1/2|5/8|3/4)\b'), ' ')
+      .replaceAll(
+        RegExp(
+          r'\b\d+(?:\.\d+)?\s+(?:oz|ounce|ounces|lb|lbs|pound|pounds|'
+          r'gal|gallon|gallons|qt|quart|quarts|pt|pint|pints|ml|l|pk|pack)\b',
+        ),
+        ' ',
+      )
       .replaceAll(RegExp(r'\bqty\s*\d+\b'), ' ')
       .replaceAll(RegExp(r'\b\d+\s*ea\b'), ' ')
       .replaceAll(RegExp(r'\bdisc\s+-?\d+(?:\.\d+)?\b'), ' ')
@@ -6117,9 +6157,17 @@ String? _receiptPackageAmount(String text, String unit) {
   return match?.group(2);
 }
 
-bool _nameStartsWithAmount(String name, String? amount, String unit) {
+bool _itemMatchesPackageAmount(
+  WorkSupplyItem item,
+  String? amount,
+  String unit,
+) {
   if (amount == null) return false;
-  return name.startsWith('$amount $unit ');
+  final variant = _normalize(item.variant);
+  final name = _normalize(item.name);
+  return variant.startsWith('$amount $unit ') ||
+      variant == '$amount $unit' ||
+      name.startsWith('$amount $unit ');
 }
 
 bool _nameMatchesReceiptSize(String name, String? size) {
