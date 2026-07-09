@@ -162,9 +162,13 @@ order unless a shared parser rule blocks the active step.
    - Plumbing source: Windows rollup
    - Electrical source: Mac rollup
    - HVAC source: Mac rollup
-5. Roll the Mac evidence back into the Windows-side rollup rather than making
+5. Refresh the downstream PEH truth stack through
+   `work_supply_parser_qa_peh_core_refresh.dart` whenever new Mac evidence
+   lands, so Mac-wave status, merged rollup, and claim readiness are rebuilt
+   together.
+6. Roll the Mac evidence back into the Windows-side rollup rather than making
    undocumented claims in chat.
-6. Claim `90-95%` only after:
+7. Claim `90-95%` only after:
    - Plumbing measured evidence remains clean
    - Electrical measured evidence clears target
    - HVAC measured evidence clears target

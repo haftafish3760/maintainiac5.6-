@@ -4575,3 +4575,22 @@ Release boundaries:
   --dart-define=PARSER_QA_PROFILE=smoke
   --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
   passed with `121` checks and `0` failures.
+- **13:00 Harness Pass 5209:** Added
+  `tool/work_supply_parser_qa_peh_core_refresh.dart` plus focused tests so one
+  command can rebuild the downstream PEH truth stack after new Mac evidence
+  lands. The refresh command reruns the Mac-wave status, merged-status rollup,
+  and claim-readiness tools in order and emits one `QA_PEH_CORE_REFRESH`
+  summary with `macWaveExit`, `mergedExit`, and `claimExit`. Live refresh
+  evidence on the current branch reports `macWaveExit=1`, `mergedExit=2`, and
+  `claimExit=1`, which is the correct blocked state while
+  `mac_electrical_core_generated_run_status_25.json` and
+  `mac_hvac_core_generated_run_status_25.json` are still missing. Also
+  refreshed the PEH roadmap so Stage 5 now explicitly says to use the refresh
+  command whenever new Mac evidence lands. Verification: targeted
+  `dart analyze` passed for the new tool/test and the execution-command
+  contract file, `flutter test
+  test/work_supply_parser_qa_peh_core_refresh_test.dart
+  test/work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_PROFILE=smoke
+  --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
+  passed with `123` checks and `0` failures.
