@@ -39,6 +39,25 @@ final plumbingPumpsCategory = _category('Pumps', [
       ),
     ),
     _type(
+      'Pump Discharge Adapters',
+      _variants(
+        'Sump Pump Discharge Adapter',
+        'each',
+        [
+          '1-1/4 in PVC adapter',
+          '1-1/4 in barbed adapter',
+          '1-1/2 in PVC adapter',
+          '1-1/2 in barbed adapter',
+        ],
+        [
+          'sump pump adapter',
+          'pump adapter',
+          'barbed adapter',
+          'pvc adapter',
+        ],
+      ),
+    ),
+    _type(
       'Condensate Pump Tubing',
       _variants(
         'Condensate Pump Tubing',

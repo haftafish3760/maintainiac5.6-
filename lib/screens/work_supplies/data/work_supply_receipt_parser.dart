@@ -164,6 +164,30 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   final normalized = _normalize(rawText);
   if (_isReceiptNoiseLine(normalized)) return null;
   if (_looksLikeHostileInputText(rawText, normalized)) return null;
+  if (tradeScope != null && tradeScope.trim().toLowerCase() == 'plumbing') {
+    final sumpBarbedAdapter = _directScopedPlumbingSumpBarbedAdapterMatch(
+      normalized,
+    );
+    if (sumpBarbedAdapter != null) {
+      return ReceiptLineMatch(
+        rawText: rawText,
+        item: sumpBarbedAdapter,
+        confidence: _directReceiptConfidence(
+          normalized,
+          sumpBarbedAdapter,
+          tradeScope: tradeScope,
+          originalText: normalized,
+        ),
+        matchedTerms: _directMatchedTerms(normalized, sumpBarbedAdapter),
+      );
+    }
+  }
+  if (_isScopedPlumbingDangerousElbowReviewLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isScopedPlumbingDangerousGenericAdapterReviewLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isUnscopedDangerousShortLine(normalized, tradeScope)) return null;
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
@@ -4360,6 +4384,19 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
   }
+  if (RegExp(r'\b(sump pump|submersible sump)\b').hasMatch(text) &&
+      RegExp(r'\b(barb|barbed)\b').hasMatch(text) &&
+      RegExp(r'\b(adapter|adpt)\b').hasMatch(text)) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('sump pump discharge part') &&
+          item.variant.toLowerCase().contains('barbed adapter') &&
+          _receiptContainsVariantTokens(text, item.variant)) {
+        return item;
+      }
+    }
+  }
   if (RegExp(r'\b(float switch|sump float|pump switch)\b').hasMatch(text)) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -5689,7 +5726,20 @@ bool _isReceiptNoiseLine(String text) {
     r'^(subtotal|sub total|total|sales tax|tax|cash|change|card approved|'
     r'credit card|debit card|visa|mastercard|amex|discover|approval|'
     r'balance due|amount due)(\s+\d+(?:\.\d{2})?)?$',
-  ).hasMatch(text);
+  ).hasMatch(text) ||
+      RegExp(
+        r'^(subtotal|sub total|total|sales tax|tax|cash|change|'
+        r'card approved|credit card|debit card|visa|mastercard|amex|'
+        r'discover|approval|balance due|amount due)'
+        r'(\s+\d+(?:\s+\d{2})?)?$',
+      ).hasMatch(text) ||
+      RegExp(
+        r'^(visa|mastercard|amex|discover|credit card|debit card)\s+'
+        r'approved(?:\s+auth)?\s+\d+$',
+      ).hasMatch(text) ||
+      RegExp(
+        r'^cashier\s+\d+\s+reg\s+\d+\s+thank\s+you$',
+      ).hasMatch(text);
 }
 
 WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
@@ -5707,6 +5757,21 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       if (item.trade == 'Plumbing' &&
           name.contains('pvc cement') &&
           (amount == null || _itemMatchesPackageAmount(item, amount, 'oz'))) {
+        return item;
+      }
+    }
+  }
+  if (RegExp(
+        r'\b(?:1/2|3/4|1|1-1/4|1-1/2|2|3|4)(?:\s+in)?\s+pvc\b',
+      ).hasMatch(text) &&
+      RegExp(r'\b(90|ell|el|elb|elbow)\b').hasMatch(text) &&
+      !RegExp(r'\b(dwv|abs|cpvc)\b').hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('pvc schedule 40 elbow') &&
+          _nameMatchesReceiptSize(name, size)) {
         return item;
       }
     }
@@ -6031,6 +6096,64 @@ bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
     _ => false,
   };
 }
+
+bool _isScopedPlumbingDangerousElbowReviewLine(String text, String? tradeScope) {
+  if (tradeScope == null || tradeScope.trim().toLowerCase() != 'plumbing') {
+    return false;
+  }
+  if (!RegExp(r'\bpvc\b').hasMatch(text)) return false;
+  if (!RegExp(r'\b(90|ell|el|elb|elbow)\b').hasMatch(text)) return false;
+  if (RegExp(
+    r'\b(?:1/2|3/4|1|1-1/4|1-1/2|2|3|4)(?:\s+in)?\s+pvc\b',
+  ).hasMatch(text)) {
+    return false;
+  }
+  if (RegExp(
+    r'\b(dwv|sch\s*40|schedule\s*40|sch\s*80|schedule\s*80|pressure|cpvc|abs)\b',
+  ).hasMatch(text)) {
+    return false;
+  }
+  return true;
+}
+
+bool _isScopedPlumbingDangerousGenericAdapterReviewLine(
+  String text,
+  String? tradeScope,
+) {
+  if (tradeScope == null || tradeScope.trim().toLowerCase() != 'plumbing') {
+    return false;
+  }
+  if (!RegExp(r'\b(adapter|adpt)\b').hasMatch(text)) return false;
+  if (RegExp(
+    r'\b(male|female|mip|fip|mnpt|fnpt|trap|marvel|desanco|compression|comp|'
+    r'cpvc|pvc|pex|copper|brass|brs|barb|thread|sweat|slip)\b',
+  ).hasMatch(text)) {
+    return false;
+  }
+  return true;
+}
+
+  WorkSupplyItem? _directScopedPlumbingSumpBarbedAdapterMatch(String text) {
+    if (!RegExp(r'\b(sump pump|submersible sump)\b').hasMatch(text)) return null;
+    if (!RegExp(r'\b(barb|barbed)\b').hasMatch(text)) return null;
+    if (!RegExp(r'\b(adapter|adpt)\b').hasMatch(text)) return null;
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final searchable = _indexedReceiptTextFor(item);
+      final name = item.name.toLowerCase();
+      final variant = item.variant.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          searchable.contains('barbed adapter') &&
+          searchable.contains('sump pump') &&
+          (name.contains('sump pump discharge adapter') ||
+              name.contains('sump pump discharge part')) &&
+          variant.contains('barbed adapter') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+    return null;
+  }
 
 List<String> _receiptTokenAlternates(String token) {
   return switch (token) {

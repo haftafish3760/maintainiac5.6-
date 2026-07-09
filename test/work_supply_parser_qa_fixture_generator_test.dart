@@ -87,6 +87,9 @@ void main() {
       final ambiguous = fixtures.cast<Map>().firstWhere(
         (entry) => entry['caseType'] == 'ambiguous_review',
       );
+      final receiptNoise = fixtures.cast<Map>().firstWhere(
+        (entry) => entry['caseType'] == 'receipt_noise',
+      );
       expect(
         ambiguous['tradeScope'],
         'Plumbing',
@@ -94,6 +97,13 @@ void main() {
             'Ambiguous dangerous-word fixtures must stay scoped to the '
             'pack under test so generated-cell QA can prove the review case '
             'belongs to the correct trade family.',
+      );
+      expect(
+        receiptNoise['rawLine'].toString(),
+        anyOf(startsWith('SUBTOTAL'), startsWith('VISA APPROVED')),
+        reason:
+            'Receipt-noise fixtures should stay as real totals/payment noise '
+            'lines instead of being converted into fake merchant item lines.',
       );
     },
   );
@@ -799,7 +809,7 @@ void main() {
           '--locale',
           'en-US',
           '--limit',
-          '8',
+          '14',
           '--include-risk-tags',
           'sump_discharge',
           '--output-dir',
@@ -826,13 +836,15 @@ void main() {
               )
               as Map;
 
-      expect(fixtures, hasLength(8));
+      expect(fixtures, hasLength(14));
       expect(manifest['includeRiskTags'], ['sump_discharge']);
       final ids = _fixtureIds(fixtures);
       expect(ids, contains('sump_discharge_hose_kit'));
       expect(ids, contains('sump_rubber_coupling'));
       expect(ids, contains('sump_pvc_adapter'));
       expect(ids, contains('sump_barbed_adapter'));
+      expect(ids, contains('sump_pump'));
+      expect(ids, contains('condensate_pump_tubing'));
       expect(_riskTags(manifest), contains('sump_discharge'));
       expect(_riskTags(manifest), isNot(contains('pvc_dwv')));
     },

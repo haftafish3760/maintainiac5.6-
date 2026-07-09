@@ -459,10 +459,14 @@ String _classifyFamily(String text) {
     return 'sump pump discharge service';
   }
   if (_hasAnySignal(text, [
+    'sump pump',
     'battery backup sensor',
+    'condensate pump tubing',
+    'condensate tubing',
     'float switch',
     'high water alarm',
     'pump control part',
+    'vinyl tubing',
   ])) {
     return 'sump pump discharge service';
   }
@@ -960,11 +964,15 @@ const _familyContracts = [
     'water filter',
   ]),
   _FamilyContract('sump pump discharge service', [
+    'condensate pump tubing',
+    'condensate tubing',
     'discharge hose',
     'quiet check valve',
     'rubber coupling',
     'standard check valve',
+    'sump pump',
     'sump pump discharge',
+    'vinyl tubing',
   ]),
   _FamilyContract('service consumables and tools', [
     'basin wrench',

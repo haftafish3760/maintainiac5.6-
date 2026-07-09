@@ -298,6 +298,29 @@ const englishPlumbingCoreRecipes = [
     patterns: ['1-1/4 SUMP BARBED ADAPTER', '1-1/2 BARBED ADAPTER SUMP PUMP'],
   ),
   WorkSupplyFixtureRecipe(
+    slug: 'sump_pump',
+    caseType: 'clear_match',
+    expectedNameContains: 'Sump Pump',
+    riskTags: ['sump_discharge', 'sump', 'pump', 'service_truck'],
+    patterns: [
+      '1/4 HP SUMP PUMP',
+      '1/3 HP SUBMERSIBLE SUMP',
+      '1/2 HP SUMP PUMP',
+      '3/4 HP SUMP PUMP',
+    ],
+  ),
+  WorkSupplyFixtureRecipe(
+    slug: 'condensate_pump_tubing',
+    caseType: 'clear_match',
+    expectedNameContains: 'Condensate Pump Tubing',
+    riskTags: ['sump_discharge', 'condensate_tubing', 'vinyl_tubing', 'pump'],
+    patterns: [
+      '3/8 VINYL TUBING CONDENSATE PUMP',
+      '3/8 X 50 CONDENSATE TUBING',
+      '1/2 X 20 VINYL TUBING COND PUMP',
+    ],
+  ),
+  WorkSupplyFixtureRecipe(
     slug: 'brass_male_adapter',
     caseType: 'clear_match',
     expectedNameContains: 'Brass Male Adapter',

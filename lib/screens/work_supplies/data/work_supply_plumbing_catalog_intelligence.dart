@@ -81,6 +81,18 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
     return _hasAny(text, _plumbingCoreValveAndWaterHeaterSignals) ||
         !_hasPlumbingProfessionalSignal(text);
   }
+  if (category == 'pumps' && system == 'sump and condensate') {
+    return _hasAny(text, [
+      'sump pump',
+      'pump check valve',
+      'discharge hose',
+      'float switch',
+      'pump discharge adapter',
+      'barbed adapter',
+      'pvc adapter',
+      'condensate pump tubing',
+    ]);
+  }
   if (category == 'pumps' && system == 'well service') {
     return _hasAny(text, _plumbingCoreWellServiceSignals);
   }

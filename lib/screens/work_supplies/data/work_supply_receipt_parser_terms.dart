@@ -526,7 +526,7 @@ const receiptTermAliases = {
   'floor adhesive': ['floor adhesive', 'vinyl adhesive', 'wood adhesive'],
   'floor install kit': ['floor install kit', 'pull bar', 'tapping block'],
   'floor fastener': ['floor cleat', 'floor staple', 'hardwood cleat'],
-  'adapter': ['adapt', 'adptr', 'adapter'],
+  'adapter': ['adapt', 'adptr', 'adapter', 'adpt', 'adpts'],
   'tile': ['tile', 'ceramic', 'porcelain'],
   'thinset': ['thinset', 'thin set', 'tile mortar'],
   'grout': ['grout'],

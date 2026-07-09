@@ -55,6 +55,7 @@ void main() {
     () {
       _expectReviewPlumbing('C0P 90');
       _expectReviewPlumbing('PEX ADPT');
+      _expectReviewPlumbing('ACE ADPT 1/2');
       _expectReviewPlumbing('CPVC CPLG');
       _expectReviewPlumbing('RUBBER REPAIR');
       _expectReviewPlumbing('FAUCET REPAIR KIT');
@@ -63,6 +64,7 @@ void main() {
 
   test('plumbing core ignores dirty receipt totals and payment noise', () {
     _expectNoPlumbingMatch('SUBT0TAL 43.28');
+    _expectNoPlumbingMatch('SUBTOTAL 43 28');
     _expectNoPlumbingMatch('T0TAL DUE 46.72');
     _expectNoPlumbingMatch('VISA APPROVED AUTH 12345');
     _expectNoPlumbingMatch('CASHIER 08 REG 03 THANK Y0U');
@@ -72,6 +74,7 @@ void main() {
     _expectGoodPlumbingCore('FERG QTY1 WATTS PRV PRESS RED VLV 3/4', [
       'pressure reducing valve',
     ]);
+    _expectGoodPlumbingCore('LOCAL 1 IN PVC 90', ['pvc schedule 40', 'elbow']);
     _expectGoodPlumbingCore('WlNSUPPLY 1/2 ANG ST0P COMP X OD CHR', [
       'angle stop',
     ]);
@@ -80,6 +83,17 @@ void main() {
     ]);
     _expectGoodPlumbingCore('SUPPLYH0USE 3/4 VAC BRKR H0SE BIBB', ['vacuum']);
     _expectGoodPlumbingCore('LOCAL HW 3 X 2 FERNCO RED CPLG', ['fernco']);
+    _expectGoodPlumbingCore('LOWES 1-1/2 BARBED ADAPTER SUMP PUMP 38.59', [
+      'sump pump',
+      'barbed adapter',
+    ]);
+    _expectGoodPlumbingCore('LOCAL 1/2 HP SUMP PUMP 129.99', ['sump pump']);
+    _expectGoodPlumbingCore('FERG 3/8 X 50 CONDENSATE TUBING VINYL', [
+      'condensate pump tubing',
+    ]);
+    _expectGoodPlumbingCore('FERG 3/4 BRS COMP ADPT 42.87', [
+      'brass compression adapter',
+    ]);
   });
 
   test('plumbing core handles dirty regional service-house receipts', () {
@@ -125,6 +139,14 @@ void main() {
       _expectGoodPlumbingCore('LOCAL HDW 8 OZ PVC GLUE 71.90 94.77', [
         'pvc cement',
       ]);
+    },
+  );
+
+  test(
+    'plumbing core keeps bare pvc elbow abbreviations in review even with trade scope',
+    () {
+      _expectReviewPlumbing('HD PVC EL 3/4');
+      _expectReviewPlumbing('LOWES PVC 90 1/2');
     },
   );
 

@@ -100,11 +100,14 @@ List<Map<String, Object?>> _buildCases({
     final recipe = orderedRecipes[index % orderedRecipes.length];
     final merchant = _merchants[index % _merchants.length];
     final pattern = recipe.patterns[index % recipe.patterns.length];
-    final rawLine = '${merchant.prefix} $pattern ${_priceSuffix(index)}'.trim();
+    final rawLine = recipe.caseType == 'receipt_noise'
+        ? pattern.trim()
+        : '${merchant.prefix} $pattern ${_priceSuffix(index)}'.trim();
     final receiptEnvelope = _receiptEnvelopeFor(
       index: index,
       merchant: merchant,
       itemLine: rawLine,
+      includeQuantityLine: recipe.caseType != 'receipt_noise',
     );
     final id = [
       options.trade,
@@ -203,6 +206,7 @@ _SyntheticReceiptEnvelope _receiptEnvelopeFor({
   required int index,
   required _MerchantShape merchant,
   required String itemLine,
+  required bool includeQuantityLine,
 }) {
   final transaction = (100000 + (index * 37)).toString();
   final register = (1 + (index % 12)).toString().padLeft(2, '0');
@@ -238,7 +242,7 @@ _SyntheticReceiptEnvelope _receiptEnvelopeFor({
     noiseLines[2],
     noiseLines[3],
     pricedItemLine,
-    quantityLine,
+    if (includeQuantityLine) quantityLine,
     ...noiseLines.skip(4),
   ];
   return _SyntheticReceiptEnvelope(
