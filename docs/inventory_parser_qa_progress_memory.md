@@ -4629,6 +4629,27 @@ Release boundaries:
   --dart-define=PARSER_QA_PROFILE=smoke
   --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
   passed with `127` checks and `0` failures.
+- **18:45 Harness Pass 5229:** Moved back into real PEH trade evidence and
+  hardened Electrical Core `en-US` generated-fixture behavior instead of
+  staying in governance-only work. A first `25`-case probe with `5`-case
+  chunks proved the Windows bottleneck was process startup, not semantics:
+  chunk `1/5` passed, then chunk `2/5` stalled under the `240000ms`
+  stale-report guard before any parser case completed. I reran the remaining
+  Electrical `en-US` slice as one warmup-assisted chunk, which surfaced two
+  real parser misses for `DECORA WALL PLATE` lines selecting a blank cover
+  plate item. Fixed the scorer in
+  `lib/screens/work_supplies/data/work_supply_receipt_parser_trade_scores_core.dart`
+  so wall-plate lines explicitly reward `decorator/decora` variants and
+  penalize `blank` variants unless the receipt actually says `blank`, then
+  added a direct regression in
+  `test/work_supply_electrical_receipt_parser_test.dart`. Verification:
+  targeted `flutter test test/work_supply_electrical_receipt_parser_test.dart
+  --plain-name "electrical parser keeps decorator wall plates off blank cover
+  plates" --reporter compact` passed, the two failing generated fixture ids
+  reran clean under `wall_plate_fix_reports`, and the promoted focused Windows
+  checkpoint `windows_electrical_core_en_us_generated_run_status_25.json`
+  now records `25/25` checked, `0` failures, `1.0000` pass rate, `44`
+  parser calls, and local-only safety flags all false.
 - **13:18 Harness Pass 5223:** Added
   `tool/work_supply_parser_qa_peh_core_mac_handoff_script.dart` plus focused
   tests so the machine-readable Mac packet can be rendered into one runnable

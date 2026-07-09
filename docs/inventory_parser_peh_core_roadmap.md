@@ -72,8 +72,11 @@ Generated from the current Windows-side evidence on 2026-07-09.
   - `1902` Core rows
   - `1902` release-ready rows
   - readiness audit currently reports `readyForMacValidation=true`
-  - next required Windows evidence is the measured generated-status layer, not
-    another broad catalog rewrite
+  - focused Windows generated evidence now includes a clean `en-US`
+    `25/25` checkpoint at `1.0000` pass rate from
+    `windows_electrical_core_en_us_generated_run_status_25.json`
+  - next required Windows evidence is the matching `es-US` measured layer, then
+    the broader trade rollup, not another broad catalog rewrite
 - HVAC Core
   - `2695` Core rows
   - `2695` release-ready rows
@@ -129,10 +132,14 @@ order unless a shared parser rule blocks the active step.
 ### Stage 3: Electrical measured expansion
 
 1. Use the existing Electrical release-ready catalog and metadata baseline.
-2. Expand measured generated evidence from the current `12`-case sample toward
-   the `50`-checked target.
-3. Fix only real parser/metadata misses surfaced by the generated-fixture wave.
-4. Refresh the branch rollup and measurement-gap artifacts after each accepted
+2. Preserve the clean Windows `en-US` focused checkpoint at `25/25` checked,
+   `0` failures, `1.0000` pass rate, and `44` parser calls.
+3. Expand measured generated evidence from the current `12`-case sample plus
+   the new `en-US` checkpoint toward the `50`-checked target.
+4. Finish the matching `es-US` focused checkpoint before widening Electrical
+   again.
+5. Fix only real parser/metadata misses surfaced by the generated-fixture wave.
+6. Refresh the branch rollup and measurement-gap artifacts after each accepted
    evidence increase.
 
 ### Stage 4: HVAC measured expansion

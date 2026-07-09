@@ -181,6 +181,30 @@ void main() {
     expect(bubbleCover.item.name, contains('Weatherproof'));
   });
 
+  test('electrical parser keeps decorator wall plates off blank cover plates', () {
+    final homeDepot = matchReceiptLineToCatalog(
+      'HD 1G DECORA WALL PLATE 11.70',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(homeDepot, isNotNull);
+    expect(homeDepot!.item.trade, 'Electrical');
+    expect(homeDepot.item.name, contains('Wall Plate'));
+    expect(homeDepot.item.name, contains('Decorator'));
+    expect(homeDepot.item.name, isNot(contains('Blank')));
+
+    final ace = matchReceiptLineToCatalog(
+      'ACE 1G DECORA WALL PLATE 23.54',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(ace, isNotNull);
+    expect(ace!.item.trade, 'Electrical');
+    expect(ace.item.name, contains('Wall Plate'));
+    expect(ace.item.name, contains('Decorator'));
+    expect(ace.item.name, isNot(contains('Blank')));
+  });
+
   test('electrical parser understands service connector repair stock', () {
     final romexConnector = matchReceiptLineToCatalog(
       '1/2IN ROMEX CONNECTOR 10PK',

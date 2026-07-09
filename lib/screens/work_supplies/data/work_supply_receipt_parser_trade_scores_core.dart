@@ -796,6 +796,7 @@ int _electricalReceiptScore(
   if (receiptSaysWallPlate && itemName.contains('cover plate')) {
     score += 48;
     if (text.contains('blank') && variant.contains('blank')) score += 32;
+    if (!text.contains('blank') && variant.contains('blank')) score -= 36;
     if (RegExp(r'\b(1g|1 gang|single gang)\b').hasMatch(text) &&
         variant.contains('1 gang')) {
       score += 28;
@@ -806,6 +807,27 @@ int _electricalReceiptScore(
       } else if (variant.contains('black') || variant.contains('brown')) {
         score -= 42;
       }
+    }
+  }
+  if (receiptSaysWallPlate && itemName.contains('wall plate')) {
+    score += 54;
+    if (RegExp(r'\b(decora|decorator)\b').hasMatch(text)) {
+      if (variant.contains('decorator')) {
+        score += 58;
+      } else if (variant.contains('blank') ||
+          variant.contains('toggle') ||
+          variant.contains('duplex')) {
+        score -= 52;
+      }
+    }
+    if (text.contains('blank')) {
+      if (variant.contains('blank')) {
+        score += 36;
+      } else {
+        score -= 26;
+      }
+    } else if (variant.contains('blank')) {
+      score -= 32;
     }
   }
   if (receiptSaysBoxAccessory && itemType.contains('box accessories')) {
