@@ -167,12 +167,17 @@ String _reportPathFor(
   if (File(matrixPath).existsSync()) return matrixPath;
   final directPath =
       '${options.reportRoot}/reports/latest_generated_fixture_run.json';
+  final rootAggregatePath =
+      '${options.reportRoot}/latest_generated_fixture_run.json';
   final singleCell =
       options.trades.length == 1 &&
       options.scopes.length == 1 &&
       options.tiers.length == 1 &&
       options.locales.length == 1;
   if (singleCell && File(directPath).existsSync()) return directPath;
+  if (singleCell && File(rootAggregatePath).existsSync()) {
+    return rootAggregatePath;
+  }
   return matrixPath;
 }
 
