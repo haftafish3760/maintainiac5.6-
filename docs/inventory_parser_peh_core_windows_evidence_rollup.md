@@ -133,3 +133,25 @@ proves otherwise.
    `6 + 5` sample.
 4. After broader measured evidence exists for Electrical and HVAC, write branch
    level generated-status rollups for all PEH Core trades.
+
+## Next Measurement Targets
+
+These are the immediate minimum targets for the next round of Mac-side measured
+validation so the branch moves toward a real `0.90-0.95` claim instead of
+stopping at smoke-sized samples.
+
+- Plumbing Core
+  - Reconfirm the focused Menards sanitary-tee runtime proof on Mac.
+  - Keep the existing `100`-case measured benchmark green.
+- Electrical Core
+  - Raise measured generated coverage from `12` total checked cases to at least
+    `50` checked cases across `en-US` and `es-US`.
+  - Maintain `0` failures and local-only safety flags.
+- HVAC Core
+  - Raise measured generated coverage from `11` total checked cases to at least
+    `50` checked cases across `en-US` and `es-US`.
+  - Maintain `0` failures and local-only safety flags.
+- PEH rollup threshold
+  - Do not describe Electrical or HVAC as `90-95%` ready until their measured
+    generated evidence is materially larger than the current smoke-sized sample
+    set and still clears the requested floor.
