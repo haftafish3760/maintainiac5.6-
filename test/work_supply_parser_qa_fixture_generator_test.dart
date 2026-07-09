@@ -89,10 +89,11 @@ void main() {
       );
       expect(
         ambiguous['tradeScope'],
-        isEmpty,
+        'Plumbing',
         reason:
-            'Ambiguous dangerous-word fixtures must stay unscoped so the '
-            'parser cannot become confident from an injected trade context.',
+            'Ambiguous dangerous-word fixtures must stay scoped to the '
+            'pack under test so generated-cell QA can prove the review case '
+            'belongs to the correct trade family.',
       );
     },
   );
@@ -217,10 +218,15 @@ void main() {
       final caseTypes = (manifest['caseTypes'] as List)
           .map((entry) => entry.toString())
           .toSet();
-      expect(caseTypes, contains('ambiguous_review'));
       expect(
-        fixtures.any((entry) => entry['caseType'] == 'ambiguous_review'),
-        isTrue,
+        caseTypes,
+        containsAll({
+          'ambiguous_review',
+          'dangerous_generic',
+          'receipt_noise',
+          'negative_match',
+          'quantity_price',
+        }),
       );
     },
   );

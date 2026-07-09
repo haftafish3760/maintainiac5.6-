@@ -230,7 +230,7 @@ const englishPlumbingCoreRecipes = [
     patterns: [
       '1-1/2 PVC DWV TRAP ADAPTER',
       '2 PVC DWV TRAP ADAPTER',
-      '1-1/2 PVC DWV MARVEL ADAPTER',
+      '1-1/2 PVC TRAP ADAPTER',
     ],
   ),
   WorkSupplyFixtureRecipe(
@@ -1221,6 +1221,43 @@ const englishPlumbingCoreRecipes = [
     maxConfidence: .81,
     riskTags: ['dangerous_word', 'pvc', 'cross_trade', 'needs_review'],
     patterns: ['PVC EL 3/4', 'PVC 90 1/2'],
+  ),
+  WorkSupplyFixtureRecipe(
+    slug: 'dangerous_generic_adapter',
+    caseType: 'dangerous_generic',
+    expectedTrade: '',
+    expectedNameContains: '',
+    expectUnknown: true,
+    maxConfidence: .78,
+    riskTags: ['dangerous_word', 'adapter', 'cross_trade', 'needs_review'],
+    patterns: ['ADAPTER 3/4', 'ADPT 1/2'],
+  ),
+  WorkSupplyFixtureRecipe(
+    slug: 'receipt_noise_totals',
+    caseType: 'receipt_noise',
+    expectedTrade: '',
+    expectedNameContains: 'noise',
+    expectUnknown: true,
+    maxConfidence: .20,
+    riskTags: ['noise_line', 'receipt_totals', 'needs_review'],
+    patterns: ['SUBTOTAL 18.42', 'VISA APPROVED 9001'],
+  ),
+  WorkSupplyFixtureRecipe(
+    slug: 'negative_match_cleanup',
+    caseType: 'negative_match',
+    expectedTrade: '',
+    expectedNameContains: '',
+    expectUnknown: true,
+    maxConfidence: .18,
+    riskTags: ['negative_match', 'cleanup', 'non_inventory'],
+    patterns: ['SHOP TOWELS 6PK', 'TRASH BAGS 30GAL'],
+  ),
+  WorkSupplyFixtureRecipe(
+    slug: 'quantity_price_copper_coupling',
+    caseType: 'quantity_price',
+    expectedNameContains: 'Copper Coupling',
+    riskTags: ['quantity', 'price', 'copper', 'coupling', 'service_fitting'],
+    patterns: ['1/2 COP CPL', '3/4 COP CPL'],
   ),
 ];
 
