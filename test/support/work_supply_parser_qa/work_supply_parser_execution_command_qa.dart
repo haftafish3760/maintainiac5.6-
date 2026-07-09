@@ -318,10 +318,6 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
     ]),
     _CommandContract('peh_core_mac_handoff_packet', [
       'dart run tool/work_supply_parser_qa_peh_core_mac_handoff_packet.dart',
-      '--branch',
-      'codex/inventory-parser-backup-20260702-2056',
-      '--commit',
-      'HEAD',
       '--mac-wave',
       'build/parser_qa_pipeline/peh_core_mac_wave_commands.json',
       '--windows-status',

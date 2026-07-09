@@ -4613,6 +4613,22 @@ Release boundaries:
   --dart-define=PARSER_QA_PROFILE=smoke
   --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
   passed with `125` checks and `0` failures.
+- **13:11 Harness Pass 5228:** Tightened
+  `tool/work_supply_parser_qa_peh_core_mac_handoff_packet.dart` so it now
+  auto-resolves the current git branch and short HEAD SHA when `--branch` and
+  `--commit` are not explicitly supplied. This fixed a real drift problem:
+  earlier live packets could lag behind the actual branch tip if the caller
+  forgot to update the baseline manually. The packet now regenerates directly
+  from the repo state and the live artifact was refreshed to current commit
+  `4d11371`. The git-backed test remains in place, and the missing-git path now
+  degrades cleanly to `unknown-branch` / `unknown-commit` instead of throwing.
+  Verification: targeted `dart analyze` passed for the packet tool/test and the
+  execution-command contract file, `flutter test
+  test/work_supply_parser_qa_peh_core_mac_handoff_packet_test.dart
+  test/work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_PROFILE=smoke
+  --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
+  passed with `127` checks and `0` failures.
 - **13:18 Harness Pass 5223:** Added
   `tool/work_supply_parser_qa_peh_core_mac_handoff_script.dart` plus focused
   tests so the machine-readable Mac packet can be rendered into one runnable

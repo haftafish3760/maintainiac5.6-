@@ -3,8 +3,8 @@ import 'dart:io';
 
 const _usage =
     'dart run tool/work_supply_parser_qa_peh_core_mac_handoff_packet.dart '
-    '[--branch codex/inventory-parser-backup-20260702-2056] '
-    '[--commit HEAD] '
+    '[--branch <auto-from-git>] '
+    '[--commit <auto-from-git>] '
     '[--mac-wave build/parser_qa_pipeline/peh_core_mac_wave_commands.json] '
     '[--windows-status build/parser_qa_pipeline/peh_core_windows_status_rollup.json] '
     '[--output build/parser_qa_pipeline/peh_core_mac_handoff_packet.json]';
@@ -28,12 +28,8 @@ int runWorkSupplyParserQaPehCoreMacHandoffPacket(
     return 0;
   }
 
-  final branch = _value(
-    args,
-    'branch',
-    'codex/inventory-parser-backup-20260702-2056',
-  );
-  final commit = _value(args, 'commit', 'HEAD');
+  final branchOverride = _optionalValue(args, 'branch');
+  final commitOverride = _optionalValue(args, 'commit');
   final macWavePath = _value(
     args,
     'mac-wave',
@@ -56,6 +52,15 @@ int runWorkSupplyParserQaPehCoreMacHandoffPacket(
     stderr.writeln('--mac-wave and --windows-status must both exist.');
     return 66;
   }
+
+  final branch =
+      branchOverride ??
+      _gitValue(['rev-parse', '--abbrev-ref', 'HEAD']) ??
+      'unknown-branch';
+  final commit =
+      commitOverride ??
+      _gitValue(['rev-parse', '--short', 'HEAD']) ??
+      'unknown-commit';
 
   final macWave =
       jsonDecode(macWaveFile.readAsStringSync()) as Map<String, Object?>;
@@ -125,10 +130,22 @@ int runWorkSupplyParserQaPehCoreMacHandoffPacket(
 }
 
 String _value(List<String> args, String key, String fallback) {
+  return _optionalValue(args, key) ?? fallback;
+}
+
+String? _optionalValue(List<String> args, String key) {
   for (var index = 0; index < args.length; index++) {
     final arg = args[index];
     if (arg == '--$key' && index + 1 < args.length) return args[index + 1];
     if (arg.startsWith('--$key=')) return arg.substring(key.length + 3);
   }
-  return fallback;
+  return null;
+}
+
+String? _gitValue(List<String> command) {
+  final result = Process.runSync('git', command);
+  if (result.exitCode != 0) {
+    return null;
+  }
+  return result.stdout.toString().trim();
 }
