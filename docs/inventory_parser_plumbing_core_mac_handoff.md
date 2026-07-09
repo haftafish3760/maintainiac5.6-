@@ -1,6 +1,6 @@
 # Plumbing Core Mac Validation Handoff
 
-Generated: 2026-07-07 09:58 EDT
+Generated: 2026-07-09 11:55 EDT
 
 ## Scope
 
@@ -12,9 +12,9 @@ unrelated modules while following this handoff.
 
 - Repository: `https://github.com/haftafish3760/maintainiac5.6-.git`
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit: `6a42355`
+- Commit: `384603f`
 - Commit label:
-  `QA testing 2026-07-07 0958 EDT: lock Plumbing Core readiness audit`
+  `QA testing 2026-07-09 11:54 EDT: add PEH roadmap, pass-rate gates, and plumbing sanitary-tee fast path`
 
 ## Windows Evidence Already Completed
 
@@ -27,28 +27,57 @@ unrelated modules while following this handoff.
   `build/parser_qa_reports/generated_fixtures/toilet_faucet_73_shard3_corrected_20260707_094538`
 - Plumbing Core readiness audit passed:
   `build/parser_qa_curation/plumbing_core/latest_plumbing_core_readiness_audit.json`
+- Plumbing Core generated benchmark status passed:
+  `build/parser_qa_pipeline/plumbing_core_generated_run_status.json`
+- Plumbing Core generated benchmark review-seed status passed:
+  `build/parser_qa_pipeline/plumbing_core_generated_run_status_100_reviewseed_v5.json`
 
 Final Windows readiness JSON:
 
-- Core rows: `1122`
-- Release-ready items: `1122`
-- Metadata-ready candidates: `1122`
+- Core rows: `1241`
+- Release-ready items: `1241`
+- Metadata-ready candidates: `1241`
 - Needs-work items: `0`
 - Critical items: `0`
 - Readiness floor: `100`
 - Readiness average: `100`
 - Ready for Mac validation: `true`
 
+Generated benchmark evidence already present on Windows:
+
+- Focused generated benchmark cell: `100` checked
+- Failure count: `0`
+- Parser calls: `100`
+- Local-only safe: `true`
+- Chunk status: complete with `0` non-zero exits and `0` timed-out chunks
+
+## Current Windows Limitation
+
+Windows deterministic evidence is strong, but one focused runtime bottleneck is
+still worth validating on Mac:
+
+- A focused `flutter test --no-pub` rerun for
+  `plumbing receipt parser handles Menards PVC sanitary tee line`
+  still hangs past the normal 2-minute Codex shell timeout on this older
+  Windows box.
+- The parser code now includes a dedicated cached fast path for
+  `PVC/DWV sanitary tee` lines before the broader unscoped matcher chain.
+- The Windows-side generated benchmark artifacts still show `100/100` passing,
+  so this looks like a focused runtime/perf-validation problem rather than a
+  known catalog-readiness failure.
+
 ## Mac Validation Commands
 
-Run from the repo root on the Mac after checking out commit `6a42355`.
+Run from the repo root on the Mac after checking out commit `384603f`.
 
 ```bash
 dart format --set-exit-if-changed \
   tool/work_supply_plumbing_core_readiness_audit.dart \
   test/work_supply_plumbing_core_readiness_audit_test.dart \
   test/work_supply_parser_qa_run_generated_fixtures_test.dart \
-  tool/work_supply_parser_qa_run_generated_fixtures.dart
+  tool/work_supply_parser_qa_run_generated_fixtures.dart \
+  lib/screens/work_supplies/data/work_supply_receipt_parser.dart \
+  test/work_supply_plumbing_receipt_parser_test.dart
 ```
 
 ```bash
@@ -56,7 +85,9 @@ dart analyze \
   tool/work_supply_plumbing_core_readiness_audit.dart \
   test/work_supply_plumbing_core_readiness_audit_test.dart \
   tool/work_supply_parser_qa_run_generated_fixtures.dart \
-  test/work_supply_parser_qa_run_generated_fixtures_test.dart
+  test/work_supply_parser_qa_run_generated_fixtures_test.dart \
+  lib/screens/work_supplies/data/work_supply_receipt_parser.dart \
+  test/work_supply_plumbing_receipt_parser_test.dart
 ```
 
 ```bash
@@ -66,6 +97,11 @@ flutter test test/work_supply_parser_qa_run_generated_fixtures_test.dart \
 
 ```bash
 flutter test test/work_supply_plumbing_core_readiness_audit_test.dart
+```
+
+```bash
+flutter test test/work_supply_plumbing_receipt_parser_test.dart \
+  --plain-name "plumbing receipt parser handles Menards PVC sanitary tee line"
 ```
 
 ## Optional Mac Parser Proof
@@ -99,9 +135,14 @@ dart run tool/work_supply_parser_qa_run_generated_fixtures.dart \
 
 - Analyzer has no issues for the touched QA/audit files.
 - Runner offset regression passes.
+- Runner minimum pass-rate regression passes.
 - Plumbing Core readiness audit passes.
-- Generated readiness JSON still reports `1122/1122` release-ready,
+- Generated readiness JSON still reports `1241/1241` release-ready,
   `0` needs-work, `0` critical, and `readyForMacValidation=true`.
+- Generated benchmark status still reports `100` checked, `0` failures, and
+  `parserCalls=100`.
+- The focused Menards sanitary-tee parser test passes in a reasonable runtime on
+  Mac.
 - No production services are used.
 - No Firebase writes are allowed.
 - No OCR, camera, expenses, UI, PDF, or unrelated modules are edited.
