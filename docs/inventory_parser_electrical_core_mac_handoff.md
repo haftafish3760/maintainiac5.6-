@@ -12,9 +12,9 @@ unrelated modules while following this handoff.
 
 - Repository: `https://github.com/haftafish3760/maintainiac5.6-.git`
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit: `25850ec`
+- Commit: `9ebbb80`
 - Commit label:
-  `QA testing 2026-07-09 13:21 EDT: log PEH Windows evidence refresh in progress memory`
+  `QA testing 2026-07-09 14:21 EDT: record generated pass-rate governance proof`
 
 ## Windows Evidence Already Completed
 
@@ -70,7 +70,7 @@ parser failure proves otherwise.
 
 ## Mac Validation Commands
 
-Run from the repo root on the Mac after checking out commit `25850ec`.
+Run from the repo root on the Mac after checking out commit `9ebbb80`.
 
 ```bash
 dart format --set-exit-if-changed \
