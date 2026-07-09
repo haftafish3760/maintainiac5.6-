@@ -21,6 +21,10 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     whiteBalanceMode = intent.getStringExtra("whiteBalanceMode") ?: "auto"
     whiteBalanceLockEnabled = false
     dataSaverLevel = intent.getStringExtra("dataSaverLevel") ?: "balanced"
+    askSavedProofSizeEachReceipt = intent.getBooleanExtra(
+        "askSavedProofSizeEachReceipt",
+        false,
+    )
     storageSafetyLevel = intent.getStringExtra("storageSafetyLevel") ?: dataSaverLevel
     storageConstrained = intent.getBooleanExtra("storageConstrained", false)
     storageSafetyReason = intent.getStringExtra("storageSafetyReason") ?: "normal"

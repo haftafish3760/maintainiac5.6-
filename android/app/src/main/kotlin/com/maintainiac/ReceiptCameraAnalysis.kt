@@ -5,6 +5,7 @@ import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import android.view.Surface
 import android.widget.Toast
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
@@ -27,6 +28,7 @@ internal fun ReceiptCameraActivity.startCamera() {
             val targetRotation = previewView.display?.rotation ?: Surface.ROTATION_0
             val preview = Preview.Builder()
                 .setTargetRotation(targetRotation)
+                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
                 .applyReceiptContinuousFocusIfEnabled(this)
                 .build().apply {
                 setSurfaceProvider(previewView.surfaceProvider)
@@ -35,6 +37,7 @@ internal fun ReceiptCameraActivity.startCamera() {
             stillCaptureJpegQuality = receiptStillJpegQuality()
             imageCapture = ImageCapture.Builder()
                 .setTargetRotation(targetRotation)
+                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
                 .setCaptureMode(captureMode)
                 .setJpegQuality(stillCaptureJpegQuality)
                 .applyReceiptContinuousFocusIfEnabled(this)

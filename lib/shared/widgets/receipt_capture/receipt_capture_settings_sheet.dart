@@ -14,7 +14,7 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1F2528),
+      backgroundColor: const Color(0xFFF5F7F8),
       body: SafeArea(
         child: Column(
           children: [
@@ -43,7 +43,7 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Color(0xFFE8ECEE),
+                        color: Color(0xFF172126),
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0,
@@ -107,7 +107,7 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 Text(
                   _ReceiptCaptureSettingsScreen._settingsTitle(area),
                   style: const TextStyle(
-                    color: Color(0xFFE8ECEE),
+                    color: Color(0xFF172126),
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0,
@@ -117,28 +117,30 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
               ],
               Text(
                 _settingsSubtitle(area),
-                style: TextStyle(
-                  color: const Color(0xFFC7D0D4),
+                style: const TextStyle(
+                  color: Color(0xFF536167),
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0,
                 ),
               ),
               const SizedBox(height: 12),
-              _ReceiptSettingsNote(
+              const _ReceiptSettingsNote(
                 icon: Icons.save_rounded,
-                text: hasSavedReceiptProof
-                    ? 'Changes save as soon as you tap a switch or size choice. Apply Settings closes this screen.'
-                    : 'Changes save as soon as you tap a switch. Apply Settings closes this screen. Saved proof size appears after you capture or attach a receipt first.',
+                text:
+                    'Changes save as soon as you choose them. Apply Settings closes this screen.',
               ),
               const SizedBox(height: 8),
-              _ReceiptSettingsSwitch(
+              const _ReceiptBackupStorageSummary(),
+              const SizedBox(height: 8),
+              _ReceiptAssistSettings(
+                settings: settings,
+                area: area,
                 title: _assistedReceiptTitle(area),
                 detail: _assistedReceiptDetail(area),
-                value: settings.appAssistedEnabledFor(area),
-                onChanged: (value) =>
-                    _setAppAssistedForArea(settings, area, value),
               ),
+              const SizedBox(height: 8),
+              _ReceiptDataSaverDefaultPicker(settings: settings),
               if (expenseSettings != null) ...[
                 const SizedBox(height: 8),
                 _ExpenseReceiptReviewDefaultPicker(settings: expenseSettings),
@@ -146,22 +148,35 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
               const SizedBox(height: 8),
               _ReceiptScannerBehaviorSettings(settings: settings),
               const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () => _showReceiptCameraHelp(context),
-                icon: const Icon(Icons.help_outline_rounded),
-                label: const Text('Receipt Photo Help'),
+              _ReceiptDiagnosticsSettings(settings: settings),
+              const SizedBox(height: 8),
+              const _ReceiptSettingsNote(
+                icon: Icons.light_mode_rounded,
+                text:
+                    'Brightness and light controls stay on the camera viewer, not in Settings, so you can see the receipt while adjusting them.',
               ),
-              if (hasSavedReceiptProof) ...[
-                const SizedBox(height: 8),
-                _ReceiptDataSaverDefaultPicker(settings: settings),
-              ] else ...[
+              if (!hasSavedReceiptProof) ...[
                 const SizedBox(height: 8),
                 const _ReceiptSettingsNote(
                   icon: Icons.photo_library_outlined,
                   text:
-                      'Saved Receipt Proof Size appears after your first receipt photo or file is attached. Capture first, then review the saved proof size with real receipt proof.',
+                      'After a receipt photo is attached, the review screen shows the actual proof size and lets you inspect readability before saving.',
                 ),
               ],
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => _showReceiptCameraHelp(context),
+                icon: const Icon(Icons.help_outline_rounded),
+                label: const Text('Receipt Photo Help'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF172126),
+                  side: const BorderSide(color: Color(0xFF9AA7AD)),
+                  minimumSize: const Size.fromHeight(44),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 onPressed: () =>
@@ -169,8 +184,8 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 icon: const Icon(Icons.restart_alt_rounded),
                 label: const Text('Reset Receipt Photo Defaults'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFFFFD166),
-                  side: const BorderSide(color: Color(0xFFFFD166)),
+                  foregroundColor: const Color(0xFF8A5A00),
+                  side: const BorderSide(color: Color(0xFFC7922E)),
                   minimumSize: const Size.fromHeight(44),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
@@ -279,21 +294,6 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
         'Let Maintainiac Help Fill Material Receipts',
       ReceiptCaptureArea.maintenanceRepair =>
         'Let Maintainiac Help Fill Maintenance Receipts',
-    };
-  }
-
-  static Future<void> _setAppAssistedForArea(
-    ReceiptCaptureSettingsController settings,
-    ReceiptCaptureArea area,
-    bool value,
-  ) {
-    return switch (area) {
-      ReceiptCaptureArea.expenses => settings.setAppAssistedExpenses(value),
-      ReceiptCaptureArea.materialsInventory => settings.setAppAssistedMaterials(
-        value,
-      ),
-      ReceiptCaptureArea.maintenanceRepair =>
-        settings.setAppAssistedMaintenance(value),
     };
   }
 }

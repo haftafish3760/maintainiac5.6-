@@ -2,7 +2,7 @@ import '../storage/app_storage_guard.dart';
 
 enum CloudBackupTier {
   localOnly('Local only', 0),
-  freeTrial('Free cloud backup', 25 * 1024 * 1024),
+  freeTrial('Free cloud backup', 100 * 1024 * 1024),
   adFreeStarter('Ad-free starter', 250 * 1024 * 1024),
   oneGig('1 GB backup', 1024 * 1024 * 1024),
   fleet('Fleet backup', 50 * 1024 * 1024 * 1024);

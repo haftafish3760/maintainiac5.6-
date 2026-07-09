@@ -59,6 +59,7 @@ void main() {
     expect(settings.cameraVoiceCapture, isFalse);
     expect(settings.cameraLongReceiptTips, isTrue);
     expect(settings.cameraDiagnosticsImprovementOptIn, isFalse);
+    expect(settings.askSavedProofSizeEachReceipt, isFalse);
 
     await settings.setReceiptAssistChoiceMadeFor(
       ReceiptCaptureArea.expenses,
@@ -78,6 +79,7 @@ void main() {
     await settings.setCameraVoiceCapture(true);
     await settings.setCameraLongReceiptTips(false);
     await settings.setCameraDiagnosticsImprovementOptIn(true);
+    await settings.setAskSavedProofSizeEachReceipt(true);
 
     expect(settings.cameraSetupComplete, isFalse);
     expect(
@@ -103,6 +105,7 @@ void main() {
     expect(settings.cameraVoiceCapture, isTrue);
     expect(settings.cameraLongReceiptTips, isFalse);
     expect(settings.cameraDiagnosticsImprovementOptIn, isTrue);
+    expect(settings.askSavedProofSizeEachReceipt, isTrue);
   });
 
   test('stores receipt performance mode preference', () async {
@@ -184,17 +187,21 @@ void main() {
       final displaySource = await _readReceiptCaptureSettingsDisplaySource();
 
       expect(source, contains('_ReceiptCameraRuntimeSummary'));
-      expect(source, contains('defaultDataSaverLocalOnlyReadinessSummary'));
-      expect(source, contains('defaultDataSaverFirstInstallBoundarySummary'));
       expect(source, contains('defaultDataSaverInstallFootprintSummary'));
       expect(source, contains('defaultDataSaverProofTargetSummary'));
-      expect(
-        source,
-        contains('defaultDataSaverCanRunBaseReceiptFlowLocallyNow'),
-      );
       expect(source, contains('effectiveCameraRuntimeProfile'));
       expect(source, contains('profile.summaryLabel'));
       expect(source, contains('profile.notesLabel'));
+      expect(source, contains('Backup Storage'));
+      expect(source, contains('Backup account'));
+      expect(source, contains('Storage remaining'));
+      expect(source, contains('CloudBackupStatusSnapshot.notConnected'));
+      expect(source, contains('Ask Every Receipt'));
+      expect(source, contains('askSavedProofSizeEachReceipt'));
+      expect(
+        source,
+        contains('Brightness and light controls stay on the camera viewer'),
+      );
       expect(source, contains('Help Improve Receipt Camera'));
       expect(source, contains('cameraDiagnosticsImprovementOptIn'));
       expect(source, contains('_receiptCaptureDiagnosticsImprovementEnabled'));
@@ -204,7 +211,10 @@ void main() {
         contains("'adminDiagnosticOwnerImagePreviewAllowed': false"),
       );
       expect(source, contains('Automatic photo capture stays off'));
-      expect(source, contains('You stay in control'));
+      expect(
+        source,
+        contains('shutter button remains the primary capture action'),
+      );
       expect(source, contains('Receipt images and receipt text stay out'));
       expect(displaySource, isNot(contains('deviceModel')));
       expect(displaySource, isNot(contains('availableRamLabel')));
@@ -224,6 +234,7 @@ void main() {
     await settings.setCameraVoiceCapture(true);
     await settings.setCameraLongReceiptTips(false);
     await settings.setCameraDiagnosticsImprovementOptIn(true);
+    await settings.setAskSavedProofSizeEachReceipt(true);
     await settings.setDefaultDataSaverLevel(ReceiptDataSaverLevel.maximum);
     await settings.setReceiptPerformanceMode(
       ReceiptPerformanceMode.maximumPerformance,
@@ -252,6 +263,7 @@ void main() {
     expect(settings.cameraVoiceCapture, isFalse);
     expect(settings.cameraLongReceiptTips, isTrue);
     expect(settings.cameraDiagnosticsImprovementOptIn, isFalse);
+    expect(settings.askSavedProofSizeEachReceipt, isFalse);
     expect(settings.defaultDataSaverUsesDeviceRecommendation, isTrue);
     expect(settings.receiptPerformanceMode, ReceiptPerformanceMode.automatic);
   });

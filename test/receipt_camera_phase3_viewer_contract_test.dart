@@ -33,7 +33,7 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('scaleType = PreviewView.ScaleType.FILL_CENTER'),
+      contains('scaleType = PreviewView.ScaleType.FIT_CENTER'),
     );
     expect(
       cameraActivity,

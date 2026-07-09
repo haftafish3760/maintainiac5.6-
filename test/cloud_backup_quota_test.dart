@@ -5,19 +5,19 @@ import 'package:maintaniac/shared/backup/cloud_backup_status.dart';
 
 void main() {
   group('CloudBackupQuotaPolicy', () {
-    test('free cloud backup tier is 25 MB', () {
+    test('free cloud backup tier is 100 MB', () {
       expect(
         CloudBackupQuotaPolicy.defaultTrialTier,
         CloudBackupTier.freeTrial,
       );
-      expect(CloudBackupTier.freeTrial.quotaBytes, 25 * 1024 * 1024);
-      expect(CloudBackupTier.freeTrial.quotaLabel, '25 MB');
+      expect(CloudBackupTier.freeTrial.quotaBytes, 100 * 1024 * 1024);
+      expect(CloudBackupTier.freeTrial.quotaLabel, '100 MB');
     });
 
     test('local-only mode never treats pending files as cloud uploads', () {
       final check = CloudBackupQuotaPolicy.check(
         tier: CloudBackupTier.freeTrial,
-        usedBytes: 24 * 1024 * 1024,
+        usedBytes: 96 * 1024 * 1024,
         pendingBytes: 4 * 1024 * 1024,
       );
 
@@ -26,7 +26,7 @@ void main() {
       expect(check.willAttemptCloudBackup, isFalse);
       expect(check.statusLabel, 'Off');
       expect(check.detailLabel, contains('Cloud backup is off'));
-      expect(check.detailLabel, contains('25 MB'));
+      expect(check.detailLabel, contains('100 MB'));
     });
 
     test('enabled backup detects files that fit the current tier', () {
@@ -42,7 +42,7 @@ void main() {
       expect(check.wouldExceedCloudTier, isFalse);
       expect(check.allowsLocalSave, isTrue);
       expect(check.willAttemptCloudBackup, isTrue);
-      expect(check.remainingAfterSaveLabel, '10 MB');
+      expect(check.remainingAfterSaveLabel, '85 MB');
       expect(check.statusLabel, 'Ready');
     });
 
@@ -51,7 +51,7 @@ void main() {
       () {
         final check = CloudBackupQuotaPolicy.check(
           tier: CloudBackupTier.freeTrial,
-          usedBytes: 24 * 1024 * 1024,
+          usedBytes: 99 * 1024 * 1024,
           pendingBytes: 3 * 1024 * 1024,
           backupEnabled: true,
         );
@@ -61,7 +61,7 @@ void main() {
         expect(check.allowsLocalSave, isTrue);
         expect(check.willAttemptCloudBackup, isFalse);
         expect(check.statusLabel, 'Over limit');
-        expect(check.detailLabel, contains('27 MB of 25 MB'));
+        expect(check.detailLabel, contains('102 MB of 100 MB'));
       },
     );
 
@@ -81,7 +81,7 @@ void main() {
 
       expect(check.usedBytes, 0);
       expect(check.pendingBytes, 0);
-      expect(check.remainingLabel, '25 MB');
+      expect(check.remainingLabel, '100 MB');
     });
   });
 

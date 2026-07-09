@@ -1,32 +1,105 @@
 package com.maintainiac
 
-import android.app.AlertDialog
+import android.app.Dialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.view.View
+import android.view.ViewGroup
+import android.view.Window
 import android.widget.LinearLayout
 import android.widget.ScrollView
+import android.widget.TextView
 
 internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     settingsOpenCount += 1
+    val dialog = Dialog(this).apply {
+        requestWindowFeature(Window.FEATURE_NO_TITLE)
+    }
+    val root = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        setBackgroundColor(Color.rgb(245, 247, 248))
+    }
+    root.addView(LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        setPadding(dp(12), dp(12), dp(12), dp(8))
+        setBackgroundColor(Color.rgb(17, 24, 27))
+        addView(TextView(this@showReceiptCameraSettings).apply {
+            text = "Receipt Camera Settings"
+            setTextColor(Color.WHITE)
+            textSize = 20f
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        })
+        addView(android.widget.Button(this@showReceiptCameraSettings).apply {
+            text = "Done"
+            isAllCaps = false
+            setOnClickListener { dialog.dismiss() }
+        })
+    })
     val content = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
-        setPadding(dp(18), dp(10), dp(18), dp(4))
+        setPadding(dp(18), dp(12), dp(18), dp(18))
     }
+    content.addView(settingSectionHeader("ACCOUNT AND STORAGE"))
+    content.addView(settingMetricRow(
+        "Storage remaining",
+        receiptBackupRemainingLabel(),
+        receiptBackupStorageDetailText(),
+    ))
+    content.addView(settingMetricRow(
+        "Estimated receipt room",
+        receiptBackupEstimatedReceiptCountLabel(),
+        receiptBackupEstimatedReceiptDetailText(),
+    ))
+    content.addView(settingChoiceGroup(
+        title = "Saved proof size",
+        detail = "OCR reads the clearest temporary source first. This controls the smaller proof copy kept for review and backup.",
+        selectedValue = dataSaverLevel,
+        options = listOf(
+            "light" to "High quality",
+            "balanced" to "Balanced",
+            "strong" to "Save storage",
+            "maximum" to "Maximum savings",
+            "original" to "Keep original locally",
+        ),
+    ) { selected ->
+        dataSaverLevel = selected
+        updateSettingsStatusStrip()
+    })
+    content.addView(settingSwitch(
+        "Ask proof size each receipt",
+        "Show the proof-size choice during receipt review instead of always using this default.",
+        askSavedProofSizeEachReceipt,
+    ) {
+        askSavedProofSizeEachReceipt = it
+        updateSettingsStatusStrip()
+    })
+    content.addView(settingSectionHeader("RECEIPT ASSIST"))
     content.addView(settingSwitch(
         "Let Maintainiac help fill this receipt",
-        "After photos are accepted, open receipt details instead of dropping back to the blank form.",
+        "Read the photo and suggest receipt fields. You review everything before saving.",
         assistedReceiptFill,
     ) {
         assistedReceiptFill = it
         updateSettingsStatusStrip()
     })
     content.addView(settingSummary(
-        "Maintainiac receipt camera",
-        "These settings control this receipt scanner, not the phone's regular camera app.",
+        "Manual entry stays available",
+        "Turning Receipt Assist off keeps the photo attached and lets you fill the receipt form yourself.",
     ))
-    content.addView(settingSummary(
-        "Capture quality",
-        "Take the clearest receipt photo for OCR first. Save-space proof size is applied only after receipt assistance uses the clearest source.",
-    ))
+    content.addView(settingChoiceGroup(
+        title = "Receipt details style",
+        detail = "Choose the review screen Maintainiac opens after receipt text is read.",
+        selectedValue = reviewDepth,
+        options = listOf(
+            "pricesOnly" to "Price-only review",
+            "detailedLines" to "Detailed line review",
+        ),
+    ) { selected ->
+        reviewDepth = selected
+        updateSettingsStatusStrip()
+    })
+    content.addView(settingSectionHeader("CAPTURE FLOW"))
     content.addView(settingSwitch(
         "Long receipt mode",
         "Start at the top, add sections in order, and repeat a few readable lines so Maintainiac can match the receipt pieces.",
@@ -63,15 +136,15 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         updateSettingsStatusStrip()
     })
     content.addView(settingSwitch(
-        "Auto brightness assist",
-        "Make small brightness corrections for dark receipts or glare. Manual Brightness still wins.",
-        autoExposureAssistEnabled,
+        "Receipt framing checks",
+        "Warn when paper edges may be cut off or the receipt may be too far away. These checks never block the shutter button.",
+        receiptGuidanceWarningsEnabled(),
     ) {
-        autoExposureAssistEnabled = it
+        setReceiptGuidanceWarningsEnabled(it)
         guidance.text = if (it) {
-            "Auto brightness assist is on."
+            "Receipt framing checks are on."
         } else {
-            "Auto brightness assist is off. Use Brightness manually."
+            "Receipt framing checks are off. Manual shutter still works."
         }
         updateSettingsStatusStrip()
     })
@@ -94,82 +167,142 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         }
         updateSettingsStatusStrip()
     })
-    content.addView(settingSwitch(
-        "Receipt framing checks",
-        "Warn when the receipt may be too far away, text may be small, or paper edges may be cut off. The phone's native camera still owns focus, blur, glare, and exposure behavior.",
-        receiptGuidanceWarningsEnabled(),
-    ) {
-        setReceiptGuidanceWarningsEnabled(it)
-        guidance.text = if (it) {
-            "Receipt framing checks are on."
-        } else {
-            "Receipt framing checks are off. Manual shutter still works."
-        }
-        updateSettingsStatusStrip()
-    })
     content.addView(settingSummary(
-        "Image cleanup",
-        "Crop, straighten, grayscale, contrast, and shadow cleanup are prepared after capture.",
+        "Capture order",
+        "Take the first photo, review it, add another section only when the receipt continues, then use the receipt.",
+    ))
+    content.addView(settingSectionHeader("IMAGE HANDOFF"))
+    content.addView(settingSummary(
+        "Text reading source",
+        "Maintainiac reads from the clearest temporary photo first. Smaller saved proof copies are made after the receipt has been read.",
     ))
     content.addView(settingSummary(
-        "Receipt reader",
-        "OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.",
+        "Long receipt stitching",
+        "Sections are numbered top to bottom. Overlap is kept so review and stitching can match repeated lines.",
     ))
-    content.addView(settingChoiceGroup(
-        title = "Receipt details style",
-        detail = "Choose what Maintainiac shows after OCR reads the receipt.",
-        selectedValue = reviewDepth,
-        options = listOf(
-            "pricesOnly" to "Prices only",
-            "detailedLines" to "Detailed lines",
-        ),
-    ) { selected ->
-        reviewDepth = selected
-        updateSettingsStatusStrip()
-    })
-    if (capturedPhotoPaths.isNotEmpty()) {
-        content.addView(settingChoiceGroup(
-            title = "Save-space proof size",
-            detail = "OCR reads the clear source first. This only changes the smaller saved proof kept for proof and cloud backup.",
-            selectedValue = dataSaverLevel,
-            options = listOf(
-                "original" to "Local original",
-                "light" to "High quality",
-                "balanced" to "Normal proof",
-                "strong" to "Low storage",
-                "maximum" to "Tiny proof",
-            ),
-        ) { selected ->
-            dataSaverLevel = selected
-            updateSettingsStatusStrip()
-        })
-    } else {
-        content.addView(settingSummary(
-            "Saved proof size",
-            "Saved proof size appears after your first receipt photo is captured. Capture first, then review the saved proof size with real receipt proof.",
-        ))
-    }
+    content.addView(settingSectionHeader("CAMERA CONTROLS"))
     content.addView(settingSummary(
-        "Manual shutter",
-        "The shutter button always works immediately. Automatic capture is optional and never blocks a clear manual photo.",
+        "Brightness and light",
+        "Brightness and the receipt light stay on the live camera screen so you can see the receipt while adjusting them.",
     ))
     content.addView(settingSummary(
-        "Camera controls",
-        "Hold steady for the phone camera's autofocus. Pinch to zoom if the print is small. Use Brightness anytime.",
+        "Focus",
+        "The phone camera owns autofocus. Maintainiac does not use tap-to-focus on the preview.",
+    ))
+    content.addView(settingSectionHeader("PRIVACY AND DIAGNOSTICS"))
+    content.addView(settingSummary(
+        "Improve receipt capture",
+        "Receipt diagnostics must stay privacy-safe. Receipt images are not shown to the app owner from this screen.",
     ))
     val scroll = ScrollView(this).apply {
-        isFillViewport = false
+        isFillViewport = true
         addView(content)
     }
-    AlertDialog.Builder(this)
-        .setTitle("Receipt Camera Settings")
-        .setView(scroll)
-        .setNegativeButton("Reset brightness") { _, _ -> resetExposure() }
-        .setNeutralButton("Reset receipt camera defaults") { _, _ ->
+    root.addView(scroll, LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        0,
+        1f,
+    ))
+    root.addView(android.widget.Button(this).apply {
+        text = "Reset Receipt Camera Defaults"
+        isAllCaps = false
+        setOnClickListener {
             resetReceiptCameraDefaults()
+            dialog.dismiss()
         }
-        .setPositiveButton("Done", null)
-        .show()
+        layoutParams = LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+        ).apply {
+            leftMargin = dp(18)
+            rightMargin = dp(18)
+            bottomMargin = dp(14)
+        }
+    })
+    dialog.setContentView(root)
+    dialog.setOnShowListener {
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.rgb(245, 247, 248)))
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+        )
+    }
+    dialog.show()
+}
+
+internal fun ReceiptCameraActivity.receiptBackupRemainingLabel(): String {
+    val quotaBytes = receiptBackupQuotaBytes()
+    val usedBytes = receiptBackupUsedBytes()
+    val remainingBytes = (quotaBytes - usedBytes).coerceIn(0, quotaBytes)
+    return "${formatReceiptBytes(remainingBytes)} of ${formatReceiptBytes(quotaBytes)}"
+}
+
+internal fun ReceiptCameraActivity.receiptBackupStorageDetailText(): String {
+    val connection = receiptBackupConnectionLabel()
+    val usedBytes = receiptBackupUsedBytes()
+    return "$connection. ${formatReceiptBytes(usedBytes)} already used for receipt backup."
+}
+
+internal fun ReceiptCameraActivity.receiptBackupEstimatedReceiptCountLabel(): String {
+    val quotaBytes = receiptBackupQuotaBytes()
+    val usedBytes = receiptBackupUsedBytes()
+    val remainingBytes = (quotaBytes - usedBytes).coerceIn(0, quotaBytes)
+    val proofBytes = receiptProofTargetBytesFor(dataSaverLevel)
+    val estimatedReceipts = if (proofBytes > 0) remainingBytes / proofBytes else 0
+    return "~$estimatedReceipts receipts"
+}
+
+internal fun ReceiptCameraActivity.receiptBackupEstimatedReceiptDetailText(): String {
+    return "Based on ${receiptProofSizeLabel(dataSaverLevel)} saved proof copies. Actual count depends on receipt length and image quality."
+}
+
+internal fun ReceiptCameraActivity.receiptBackupConnectionLabel(): String {
+    return intent.getStringExtra("receiptBackupConnectionLabel")
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: "Backup account not connected"
+}
+
+internal fun ReceiptCameraActivity.receiptBackupQuotaBytes(): Long {
+    return intent.getLongExtra("receiptBackupQuotaBytes", 100L * 1024L * 1024L)
+        .coerceAtLeast(0L)
+}
+
+internal fun ReceiptCameraActivity.receiptBackupUsedBytes(): Long {
+    return intent.getLongExtra("receiptBackupUsedBytes", 0L)
+        .coerceAtLeast(0L)
+}
+
+internal fun ReceiptCameraActivity.receiptProofTargetBytesFor(level: String): Long {
+    return when (level) {
+        "original" -> 4L * 1024L * 1024L
+        "light" -> 650L * 1024L
+        "strong" -> 150L * 1024L
+        "maximum" -> 80L * 1024L
+        else -> 300L * 1024L
+    }
+}
+
+internal fun ReceiptCameraActivity.receiptProofSizeLabel(level: String): String {
+    return when (level) {
+        "original" -> "original local"
+        "light" -> "high quality"
+        "strong" -> "save storage"
+        "maximum" -> "maximum savings"
+        else -> "balanced"
+    }
+}
+
+internal fun ReceiptCameraActivity.formatReceiptBytes(bytes: Long): String {
+    val gib = 1024.0 * 1024.0 * 1024.0
+    val mib = 1024.0 * 1024.0
+    val kib = 1024.0
+    return when {
+        bytes >= 1024L * 1024L * 1024L -> String.format("%.1f GB", bytes / gib)
+        bytes >= 1024L * 1024L -> String.format("%.0f MB", bytes / mib)
+        bytes >= 1024L -> String.format("%.0f KB", bytes / kib)
+        else -> "$bytes B"
+    }
 }
 
 internal fun ReceiptCameraActivity.resetReceiptCameraDefaults() {
@@ -179,6 +312,7 @@ internal fun ReceiptCameraActivity.resetReceiptCameraDefaults() {
     autoCaptureEnabled = false
     reviewDepth = "pricesOnly"
     dataSaverLevel = "balanced"
+    askSavedProofSizeEachReceipt = false
     autoExposureAssistEnabled = true
     liveAnalysisEnabled = true
     edgeDetectionEnabled = true

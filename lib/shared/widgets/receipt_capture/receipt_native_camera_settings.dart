@@ -43,6 +43,7 @@ class ReceiptNativeCameraSettings {
     this.queueAcceptedCaptureLocally = true,
     this.ocrUsesOriginalFirst = true,
     this.dataSaverLevel = ReceiptDataSaverLevel.balanced,
+    this.askSavedProofSizeEachReceipt = false,
   });
 
   final bool assistedReceiptFill;
@@ -86,6 +87,7 @@ class ReceiptNativeCameraSettings {
   final bool queueAcceptedCaptureLocally;
   final bool ocrUsesOriginalFirst;
   final ReceiptDataSaverLevel dataSaverLevel;
+  final bool askSavedProofSizeEachReceipt;
 
   bool get usesContinuousFocusPrimary =>
       focusMode == ReceiptNativeFocusMode.continuous;

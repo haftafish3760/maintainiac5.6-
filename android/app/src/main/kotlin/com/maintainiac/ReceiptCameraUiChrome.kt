@@ -29,7 +29,7 @@ internal fun ReceiptCameraActivity.buildContentView(): View {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT,
         )
-        scaleType = PreviewView.ScaleType.FILL_CENTER
+        scaleType = PreviewView.ScaleType.FIT_CENTER
     }
     cameraRootView.addView(previewView)
     cameraRootView.addView(buildReceiptFrameGuide())
