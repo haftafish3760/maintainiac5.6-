@@ -44,6 +44,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       'tool/work_supply_parser_qa_peh_core_mac_wave_commands.dart';
   static const _pehCoreMacWaveStatusPath =
       'tool/work_supply_parser_qa_peh_core_mac_wave_status.dart';
+  static const _pehCoreMergedStatusRollupPath =
+      'tool/work_supply_parser_qa_peh_core_merged_status_rollup.dart';
   static const _pehCoreClaimReadinessPath =
       'tool/work_supply_parser_qa_peh_core_claim_readiness.dart';
   static const _pehCoreHandoffReadinessPath =
@@ -284,6 +286,17 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       '--output',
       'build/parser_qa_pipeline/peh_core_mac_wave_status.json',
     ]),
+    _CommandContract('peh_core_merged_status_rollup', [
+      'dart run tool/work_supply_parser_qa_peh_core_merged_status_rollup.dart',
+      '--plumbing-status',
+      'build/parser_qa_pipeline/plumbing_core_generated_run_status.json',
+      '--electrical-status',
+      'build/parser_qa_pipeline/mac_electrical_core_generated_run_status_25.json',
+      '--hvac-status',
+      'build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json',
+      '--output',
+      'build/parser_qa_pipeline/peh_core_merged_status_rollup.json',
+    ]),
     _CommandContract('peh_core_claim_readiness', [
       'dart run tool/work_supply_parser_qa_peh_core_claim_readiness.dart',
       '--windows-status',
@@ -415,6 +428,22 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'tradeStatuses',
         'blockingFindings',
         'nextActions',
+      ],
+    ),
+    _ToolSourceContract(
+      name: 'peh_core_merged_status_rollup_readout',
+      path: _pehCoreMergedStatusRollupPath,
+      tokens: [
+        'QA_PEH_CORE_MERGED_STATUS_ROLLUP',
+        'QA_PEH_CORE_MERGED_STATUS_ROLLUP_ARTIFACT',
+        'readyForMergedClaimWave',
+        'readyToClaimNinetyPlus',
+        'underTargetTradeCount',
+        'sampleSizedTradeCount',
+        'source',
+        'plumbing',
+        'electrical',
+        'hvac',
       ],
     ),
     _ToolSourceContract(
@@ -802,6 +831,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       _pehCoreStatusRollupPath: _read(_pehCoreStatusRollupPath, failures),
       _pehCoreMacWaveCommandsPath: _read(_pehCoreMacWaveCommandsPath, failures),
       _pehCoreMacWaveStatusPath: _read(_pehCoreMacWaveStatusPath, failures),
+      _pehCoreMergedStatusRollupPath: _read(_pehCoreMergedStatusRollupPath, failures),
       _pehCoreClaimReadinessPath: _read(_pehCoreClaimReadinessPath, failures),
       _pehCoreHandoffReadinessPath: _read(_pehCoreHandoffReadinessPath, failures),
       _pehCoreMeasurementGapPath: _read(_pehCoreMeasurementGapPath, failures),

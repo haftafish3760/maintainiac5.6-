@@ -157,13 +157,19 @@ order unless a shared parser rule blocks the active step.
 3. Track final claim readiness through `peh_core_claim_readiness.json`.
    - The claim gate must stay red until Plumbing is ready from the Windows
      rollup and Electrical/HVAC are merge-ready from the Mac wave.
-4. Roll the Mac evidence back into the Windows-side rollup rather than making
+4. Build the first mixed-platform PEH checkpoint through
+   `peh_core_merged_status_rollup.json`.
+   - Plumbing source: Windows rollup
+   - Electrical source: Mac rollup
+   - HVAC source: Mac rollup
+5. Roll the Mac evidence back into the Windows-side rollup rather than making
    undocumented claims in chat.
-5. Claim `90-95%` only after:
+6. Claim `90-95%` only after:
    - Plumbing measured evidence remains clean
    - Electrical measured evidence clears target
    - HVAC measured evidence clears target
    - `peh_core_claim_readiness.json` reports `readyToClaimNinetyPlus=true`
+   - `peh_core_merged_status_rollup.json` reports `readyToClaimNinetyPlus=true`
    - branch rollup reports `readyToClaimNinetyPlus=true`
 
 ### 1. Plumbing Core

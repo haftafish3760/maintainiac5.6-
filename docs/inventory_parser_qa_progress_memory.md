@@ -4554,3 +4554,24 @@ Release boundaries:
   --dart-define=PARSER_QA_PROFILE=smoke
   --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
   passed with `119` checks and `0` failures.
+- **12:57 Harness Pass 5205:** Added
+  `tool/work_supply_parser_qa_peh_core_merged_status_rollup.dart` plus focused
+  tests so the repo can publish one mixed-platform PEH checkpoint the moment
+  the Electrical/HVAC Mac rollups exist. Generated
+  `build/parser_qa_pipeline/peh_core_merged_status_rollup.json`, which
+  currently reports `missingTradeCount=2`, `unsafeTradeCount=2`,
+  `underTargetTradeCount=2`, `readyForMergedClaimWave=false`, and
+  `readyToClaimNinetyPlus=false`. The live mixed-platform truth is now
+  explicit: Plumbing is present from the Windows rollup and claim-ready, while
+  Electrical and HVAC are both still missing because
+  `mac_electrical_core_generated_run_status_25.json` and
+  `mac_hvac_core_generated_run_status_25.json` do not exist yet. Also
+  refreshed the PEH roadmap so Stage 5 now requires
+  `peh_core_merged_status_rollup.json` before any `90-95%` PEH claim.
+  Verification: targeted `dart analyze` passed for the new tool/test and the
+  execution-command contract file, `flutter test
+  test/work_supply_parser_qa_peh_core_merged_status_rollup_test.dart
+  test/work_supply_parser_qa_harness_test.dart --reporter compact
+  --dart-define=PARSER_QA_PROFILE=smoke
+  --dart-define=PARSER_QA_SUITES=inventory.execution_command_contract,qa.threshold_gate`
+  passed with `121` checks and `0` failures.
