@@ -4364,3 +4364,35 @@ Release boundaries:
   focused readiness audit passed and the generated JSON now reports Plumbing
   Core at 1122/1122 release-ready, 1122/1122 metadata-ready, 0 needs-work, 0
   critical, readiness floor 100, average 100, and ready for Mac validation.
+## 2026-07-09 PEH Windows Evidence Refresh
+
+- **12:59 Harness Pass 5087:** Landed the pending Plumbing parser runtime
+  optimization on the active inventory/parser branch by replacing the eager
+  global receipt-text map with on-demand cached receipt text in
+  `lib/screens/work_supplies/data/work_supply_receipt_parser.dart`. Also pinned
+  the live PEH roadmap snapshot in
+  `docs/inventory_parser_peh_core_roadmap.md` with the real Windows counts:
+  Plumbing `1241`, Electrical `1902`, and HVAC `2695` Core rows. Commit:
+  `72412be` (`QA testing 2026-07-09 12:59 EDT: cache plumbing receipt text and pin PEH roadmap snapshot`).
+- **13:03 Harness Pass 5090:** Added Mac handoff documents for Electrical Core
+  and HVAC Core so all three PEH Core trades now have explicit Mac follow-up
+  docs instead of Plumbing-only evidence. The new handoffs are
+  `docs/inventory_parser_electrical_core_mac_handoff.md` and
+  `docs/inventory_parser_hvac_core_mac_handoff.md`. Commit: `204284c`
+  (`QA testing 2026-07-09 13:03 EDT: add electrical and hvac core Mac handoffs`).
+- **13:14 Harness Pass 5098:** Wrote
+  `docs/inventory_parser_peh_core_windows_evidence_rollup.md` to capture the
+  current Windows-side truth: Plumbing has the strongest measured evidence with
+  `100` checked / `0` failures / pass rate `1.0000`, while Electrical and HVAC
+  currently have only smoke-sized measured sample evidence on disk
+  (`6 + 6` checked for Electrical, `6 + 5` checked for HVAC) even though their
+  readiness audits are clean. Updated the Electrical and HVAC Mac handoffs to
+  state that clearly. Commit: `b11429b`
+  (`QA testing 2026-07-09 13:14 EDT: roll up PEH Windows evidence and sample coverage`).
+- **13:16 Harness Pass 5101:** Added explicit next measurement targets to the
+  PEH Windows evidence rollup so the Mac follow-through is measurable instead
+  of vague. Plumbing keeps the existing `100`-case benchmark green, while
+  Electrical and HVAC each need at least `50` checked cases across `en-US` and
+  `es-US` before the branch should talk seriously about `90-95%` readiness for
+  those trades. Commit: `fef7772`
+  (`QA testing 2026-07-09 13:16 EDT: add PEH next measurement targets`).
