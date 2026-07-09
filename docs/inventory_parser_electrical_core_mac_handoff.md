@@ -12,9 +12,9 @@ unrelated modules while following this handoff.
 
 - Repository: `https://github.com/haftafish3760/maintainiac5.6-.git`
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit: `72412be`
+- Commit: `25850ec`
 - Commit label:
-  `QA testing 2026-07-09 12:59 EDT: cache plumbing receipt text and pin PEH roadmap snapshot`
+  `QA testing 2026-07-09 13:21 EDT: log PEH Windows evidence refresh in progress memory`
 
 ## Windows Evidence Already Completed
 
@@ -70,7 +70,7 @@ parser failure proves otherwise.
 
 ## Mac Validation Commands
 
-Run from the repo root on the Mac after checking out commit `72412be`.
+Run from the repo root on the Mac after checking out commit `25850ec`.
 
 ```bash
 dart format --set-exit-if-changed \
@@ -95,6 +95,38 @@ validate the measured Electrical Core generated-fixture status layer before any
 `90-95%` accuracy claim is attached to Electrical.
 
 Do not treat the readiness audit alone as the final accuracy proof.
+
+Use these exact next-step commands to raise Electrical measured coverage from
+the current `12` checked cases to at least `50` checked cases:
+
+```bash
+dart run tool/work_supply_parser_qa_run_generated_fixtures.dart \
+  --fixture build/parser_qa_generated/work_supply_parser/electrical/residential/core/en-US/generated_fixtures.json \
+  --max-cases 25 \
+  --chunk-size 25 \
+  --min-pass-rate 0.90 \
+  --timeout-ms 900000 \
+  --stale-report-timeout-ms 240000 \
+  --report-dir build/parser_qa_reports/generated_fixtures/mac_electrical_core_en_us_25
+```
+
+```bash
+dart run tool/work_supply_parser_qa_run_generated_fixtures.dart \
+  --fixture build/parser_qa_generated/work_supply_parser/electrical/residential/core/es-US/generated_fixtures.json \
+  --max-cases 25 \
+  --chunk-size 25 \
+  --min-pass-rate 0.90 \
+  --timeout-ms 900000 \
+  --stale-report-timeout-ms 240000 \
+  --report-dir build/parser_qa_reports/generated_fixtures/mac_electrical_core_es_us_25
+```
+
+Expected minimum result from those two commands together:
+
+- total checked: `50`
+- total failures: `0`
+- each aggregate pass rate: at least `0.9000`
+- local-only safety flags all false
 
 ## Pass Criteria
 
