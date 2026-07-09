@@ -70,13 +70,11 @@ final List<_ReceiptCatalogEntry> _receiptCatalogIndex = [
     ),
 ];
 
-final _receiptCatalogTextById = {
-  for (final entry in _receiptCatalogIndex) entry.item.id: entry.normalizedText,
-};
-
 final _receiptCatalogEntryById = {
   for (final entry in _receiptCatalogIndex) entry.item.id: entry,
 };
+
+final Map<String, String> _receiptTextCacheByItemId = {};
 
 final List<WorkSupplyItem> _plumbingPvcDwvSanitaryTeeItems = [
   for (final item in workSupplyCatalogItems)
@@ -6248,8 +6246,10 @@ List<String> _termsContainedIn(String text, String haystack) {
 }
 
 String _indexedReceiptTextFor(WorkSupplyItem item) {
-  return _receiptCatalogTextById[item.id] ??
-      _normalize('${item.searchableText} ${item.aliases.join(' ')}');
+  return _receiptTextCacheByItemId.putIfAbsent(
+    item.id,
+    () => _normalize('${item.searchableText} ${item.aliases.join(' ')}'),
+  );
 }
 
 ({WorkSupplyItem item, List<String> terms, int score}) _scoredReceiptCandidate(

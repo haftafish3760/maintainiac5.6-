@@ -56,6 +56,42 @@ like a professional catalog/parser team would handle it.
 
 ## Trade Sequence
 
+## Current Windows Snapshot
+
+Generated from the current Windows-side evidence on 2026-07-09.
+
+- Plumbing Core
+  - `1241` Core rows
+  - `1241` release-ready rows
+  - measured generated benchmark status already recorded at `100/100` checked,
+    `0` failures, `100` parser calls
+  - still has one focused Windows runtime bottleneck around the Menards PVC
+    sanitary-tee parser rerun, so Mac remains the better place for the final
+    focused runtime proof
+- Electrical Core
+  - `1902` Core rows
+  - `1902` release-ready rows
+  - readiness audit currently reports `readyForMacValidation=true`
+  - next required Windows evidence is the measured generated-status layer, not
+    another broad catalog rewrite
+- HVAC Core
+  - `2695` Core rows
+  - `2695` release-ready rows
+  - readiness audit currently reports `readyForMacValidation=true`
+  - next required Windows evidence is the measured generated-status layer, not
+    another broad catalog rewrite
+
+## Immediate Execution Order
+
+1. Land the pending Plumbing parser runtime optimization.
+2. Keep Plumbing as the active trade until Windows-side focused/runtime-safe
+   proof is exhausted.
+3. Reconcile Electrical Core readiness evidence against measured generated
+   status output.
+4. Reconcile HVAC Core readiness evidence against measured generated status
+   output.
+5. Roll up the PEH Windows evidence and refresh Mac handoff instructions.
+
 ### 1. Plumbing Core
 
 Status: active until Windows-side catalog, metadata, fixture, and focused
@@ -168,6 +204,9 @@ Primary HVAC Core families:
   can hide true parser behavior.
 - While a long run is active, do not watch it. Work on the next catalog or
   fixture batch, then inspect final logs.
+- On this Windows box, treat `dart run` compile crashes inside the current
+  FFI/build-hook path as environment failures unless a narrower parser or audit
+  signal proves they are caused by inventory/parser code.
 
 ## Validation Ladder
 
