@@ -59,6 +59,7 @@ void main() {
     expect(settings.cameraVoiceCapture, isFalse);
     expect(settings.cameraLongReceiptTips, isTrue);
     expect(settings.cameraDiagnosticsImprovementOptIn, isFalse);
+    expect(settings.receiptPhotoBackupEnabled, isFalse);
     expect(settings.askSavedProofSizeEachReceipt, isFalse);
 
     await settings.setReceiptAssistChoiceMadeFor(
@@ -79,6 +80,7 @@ void main() {
     await settings.setCameraVoiceCapture(true);
     await settings.setCameraLongReceiptTips(false);
     await settings.setCameraDiagnosticsImprovementOptIn(true);
+    await settings.setReceiptPhotoBackupEnabled(true);
     await settings.setAskSavedProofSizeEachReceipt(true);
 
     expect(settings.cameraSetupComplete, isFalse);
@@ -105,6 +107,7 @@ void main() {
     expect(settings.cameraVoiceCapture, isTrue);
     expect(settings.cameraLongReceiptTips, isFalse);
     expect(settings.cameraDiagnosticsImprovementOptIn, isTrue);
+    expect(settings.receiptPhotoBackupEnabled, isTrue);
     expect(settings.askSavedProofSizeEachReceipt, isTrue);
   });
 
@@ -192,7 +195,9 @@ void main() {
       expect(source, contains('effectiveCameraRuntimeProfile'));
       expect(source, contains('profile.summaryLabel'));
       expect(source, contains('profile.notesLabel'));
-      expect(source, contains('Backup Storage'));
+      expect(source, contains('Backup And Storage'));
+      expect(source, contains('Back Up Receipt Photos'));
+      expect(source, contains('receiptPhotoBackupEnabled'));
       expect(source, contains('Backup account'));
       expect(source, contains('Storage remaining'));
       expect(source, contains('CloudBackupStatusSnapshot.notConnected'));
@@ -234,6 +239,7 @@ void main() {
     await settings.setCameraVoiceCapture(true);
     await settings.setCameraLongReceiptTips(false);
     await settings.setCameraDiagnosticsImprovementOptIn(true);
+    await settings.setReceiptPhotoBackupEnabled(true);
     await settings.setAskSavedProofSizeEachReceipt(true);
     await settings.setDefaultDataSaverLevel(ReceiptDataSaverLevel.maximum);
     await settings.setReceiptPerformanceMode(
@@ -263,6 +269,7 @@ void main() {
     expect(settings.cameraVoiceCapture, isFalse);
     expect(settings.cameraLongReceiptTips, isTrue);
     expect(settings.cameraDiagnosticsImprovementOptIn, isFalse);
+    expect(settings.receiptPhotoBackupEnabled, isFalse);
     expect(settings.askSavedProofSizeEachReceipt, isFalse);
     expect(settings.defaultDataSaverUsesDeviceRecommendation, isTrue);
     expect(settings.receiptPerformanceMode, ReceiptPerformanceMode.automatic);

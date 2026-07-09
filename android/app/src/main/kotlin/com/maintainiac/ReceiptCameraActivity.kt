@@ -60,6 +60,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var whiteBalanceMode = "auto"
     internal var whiteBalanceLockEnabled = false
     internal var dataSaverLevel = "balanced"
+    internal var receiptPhotoBackupEnabled = false
     internal var askSavedProofSizeEachReceipt = false
     internal var storageSafetyLevel = "balanced"
     internal var storageConstrained = false
@@ -109,7 +110,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var bestShotCandidateCount = 3
     internal var cameraResolutionTier = "high"
     internal var cameraWorkloadTier = "balanced"
-    internal val nativePreviewScaleMode = "fit_center_full_receipt"
+    internal val nativePreviewScaleMode = "fill_center_full_receipt"
     internal val nativeControlDensity = "compact_receipt_controls"
     internal var previewExposurePolicy = "receipt_paper_metering_safe_auto_lift_manual_slider"
     internal var previewBrightnessGuardPolicy = "avoid_dark_preview_full_receipt_sampling"

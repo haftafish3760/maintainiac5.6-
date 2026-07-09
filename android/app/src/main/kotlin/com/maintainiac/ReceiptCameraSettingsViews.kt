@@ -27,13 +27,13 @@ internal fun ReceiptCameraActivity.settingSwitch(
         layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         addView(TextView(activity).apply {
             text = title
-            setTextColor(Color.BLACK)
+            setTextColor(Color.rgb(232, 236, 238))
             textSize = 15f
             setTypeface(typeface, Typeface.BOLD)
         })
         addView(TextView(activity).apply {
             text = detail
-            setTextColor(Color.DKGRAY)
+            setTextColor(Color.rgb(200, 208, 211))
             textSize = 12f
         })
     })
@@ -50,13 +50,13 @@ internal fun ReceiptCameraActivity.settingSummary(title: String, detail: String)
         orientation = LinearLayout.VERTICAL
         addView(TextView(activity).apply {
             text = title
-            setTextColor(Color.BLACK)
+            setTextColor(Color.rgb(232, 236, 238))
             textSize = 15f
             setTypeface(typeface, Typeface.BOLD)
         })
         addView(TextView(activity).apply {
             text = detail
-            setTextColor(Color.DKGRAY)
+            setTextColor(Color.rgb(200, 208, 211))
             textSize = 12f
         })
     }
@@ -74,13 +74,13 @@ internal fun ReceiptCameraActivity.settingChoiceGroup(
         orientation = LinearLayout.VERTICAL
         addView(TextView(activity).apply {
             text = title
-            setTextColor(Color.BLACK)
+            setTextColor(Color.rgb(232, 236, 238))
             textSize = 15f
             setTypeface(typeface, Typeface.BOLD)
         })
         addView(TextView(activity).apply {
             text = detail
-            setTextColor(Color.DKGRAY)
+            setTextColor(Color.rgb(200, 208, 211))
             textSize = 12f
         })
         addView(LinearLayout(activity).apply {
@@ -118,7 +118,7 @@ internal fun ReceiptCameraActivity.settingChoiceGroup(
 internal fun ReceiptCameraActivity.settingSectionHeader(title: String): View {
     return TextView(this).apply {
         text = title
-        setTextColor(Color.rgb(65, 78, 84))
+        setTextColor(Color.rgb(255, 209, 102))
         textSize = 12f
         setTypeface(typeface, Typeface.BOLD)
         setPadding(dp(2), dp(13), dp(2), dp(5))
@@ -135,20 +135,20 @@ internal fun ReceiptCameraActivity.settingMetricRow(
         orientation = LinearLayout.VERTICAL
         addView(TextView(activity).apply {
             text = label
-            setTextColor(Color.rgb(83, 97, 103))
+            setTextColor(Color.rgb(149, 163, 168))
             textSize = 11f
             setTypeface(typeface, Typeface.BOLD)
         })
         addView(TextView(activity).apply {
             text = value
-            setTextColor(Color.rgb(23, 33, 38))
+            setTextColor(Color.rgb(255, 209, 102))
             textSize = 19f
             setTypeface(typeface, Typeface.BOLD)
             setPadding(0, dp(2), 0, dp(2))
         })
         addView(TextView(activity).apply {
             text = detail
-            setTextColor(Color.rgb(78, 91, 97))
+            setTextColor(Color.rgb(200, 208, 211))
             textSize = 12f
         })
     }
@@ -158,9 +158,9 @@ private fun ReceiptCameraActivity.settingCard(): LinearLayout {
     return LinearLayout(this).apply {
         setPadding(dp(12), dp(10), dp(12), dp(10))
         background = GradientDrawable().apply {
-            setColor(Color.WHITE)
+            setColor(Color.rgb(14, 20, 22))
             cornerRadius = dp(6).toFloat()
-            setStroke(dp(1), Color.rgb(212, 220, 224))
+            setStroke(dp(1), Color.rgb(61, 74, 80))
         }
         layoutParams = LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,

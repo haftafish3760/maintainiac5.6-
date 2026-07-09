@@ -14,6 +14,7 @@ ReceiptNativeCameraSettings _cameraSettingsFor(
     autoCaptureEnabled:
         options.forceAutoCapture ?? settings?.cameraAutoCapture ?? false,
     reviewDepth: options.effectiveReviewDepth,
+    receiptPhotoBackupEnabled: settings?.receiptPhotoBackupEnabled ?? false,
     dataSaverLevel:
         options.initialDataSaverLevel ??
         settings?.defaultDataSaverLevel ??

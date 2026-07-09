@@ -42,6 +42,7 @@ class ReceiptNativeCameraSettings {
     this.saveOriginalTemporarily = true,
     this.queueAcceptedCaptureLocally = true,
     this.ocrUsesOriginalFirst = true,
+    this.receiptPhotoBackupEnabled = false,
     this.dataSaverLevel = ReceiptDataSaverLevel.balanced,
     this.askSavedProofSizeEachReceipt = false,
   });
@@ -86,6 +87,7 @@ class ReceiptNativeCameraSettings {
   final bool saveOriginalTemporarily;
   final bool queueAcceptedCaptureLocally;
   final bool ocrUsesOriginalFirst;
+  final bool receiptPhotoBackupEnabled;
   final ReceiptDataSaverLevel dataSaverLevel;
   final bool askSavedProofSizeEachReceipt;
 

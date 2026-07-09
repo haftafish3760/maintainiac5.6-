@@ -14,7 +14,7 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7F8),
+      backgroundColor: const Color(0xFF161D20),
       body: SafeArea(
         child: Column(
           children: [
@@ -43,7 +43,7 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Color(0xFF172126),
+                        color: Color(0xFFE8ECEE),
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0,
@@ -107,7 +107,7 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 Text(
                   _ReceiptCaptureSettingsScreen._settingsTitle(area),
                   style: const TextStyle(
-                    color: Color(0xFF172126),
+                    color: Color(0xFFE8ECEE),
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0,
@@ -118,7 +118,7 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
               Text(
                 _settingsSubtitle(area),
                 style: const TextStyle(
-                  color: Color(0xFF536167),
+                  color: Color(0xFFC8D0D3),
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0,
@@ -169,8 +169,9 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 icon: const Icon(Icons.help_outline_rounded),
                 label: const Text('Receipt Photo Help'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF172126),
-                  side: const BorderSide(color: Color(0xFF9AA7AD)),
+                  foregroundColor: const Color(0xFFE8ECEE),
+                  side: const BorderSide(color: Color(0xFF526168)),
+                  backgroundColor: const Color(0xFF1F2528),
                   minimumSize: const Size.fromHeight(44),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
@@ -184,8 +185,9 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 icon: const Icon(Icons.restart_alt_rounded),
                 label: const Text('Reset Receipt Photo Defaults'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF8A5A00),
+                  foregroundColor: const Color(0xFFFFD166),
                   side: const BorderSide(color: Color(0xFFC7922E)),
+                  backgroundColor: const Color(0xFF1F2528),
                   minimumSize: const Size.fromHeight(44),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),

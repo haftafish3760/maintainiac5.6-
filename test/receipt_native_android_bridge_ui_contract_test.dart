@@ -51,7 +51,9 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('settingsStatusStrip.visibility = if (shouldShowSettingsStatusStrip()) {'),
+      contains(
+        'settingsStatusStrip.visibility = if (shouldShowSettingsStatusStrip()) {',
+      ),
     );
     expect(cameraActivity, contains('private fun safeReceiptReviewDepth'));
     expect(cameraActivity, contains('Regex("[\\\\s_-]+")'));
@@ -60,6 +62,8 @@ void main() {
     expect(cameraActivity, contains('"pricesonly" -> "pricesOnly"'));
     expect(cameraActivity, contains('Receipt Camera Settings'));
     expect(cameraActivity, contains('ACCOUNT AND STORAGE'));
+    expect(cameraActivity, contains('Back up receipt photos'));
+    expect(cameraActivity, contains('receiptPhotoBackupEnabled'));
     expect(cameraActivity, contains('RECEIPT ASSIST'));
     expect(cameraActivity, contains('CAPTURE FLOW'));
     expect(cameraActivity, contains('IMAGE HANDOFF'));
@@ -77,7 +81,9 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('Fill the screen with readable receipt text. Auto capture can help when the receipt is steady.'),
+      contains(
+        'Fill the screen with readable receipt text. Auto capture can help when the receipt is steady.',
+      ),
     );
     expect(
       cameraActivity,
@@ -107,7 +113,10 @@ void main() {
       cameraActivity,
       contains('"reviewNextButtonPlacement" to "bottom_only_after_capture"'),
     );
-    expect(cameraActivity, isNot(contains('internal lateinit var doneButton: Button')));
+    expect(
+      cameraActivity,
+      isNot(contains('internal lateinit var doneButton: Button')),
+    );
     expect(
       cameraActivity,
       contains(
@@ -164,14 +173,8 @@ void main() {
       cameraActivity,
       contains('ViewCompat.setOnApplyWindowInsetsListener(cameraRootView)'),
     );
-    expect(
-      cameraActivity,
-      contains('WindowInsetsCompat.Type.systemBars() or'),
-    );
-    expect(
-      cameraActivity,
-      contains('WindowInsetsCompat.Type.displayCutout()'),
-    );
+    expect(cameraActivity, contains('WindowInsetsCompat.Type.systemBars() or'));
+    expect(cameraActivity, contains('WindowInsetsCompat.Type.displayCutout()'));
     expect(cameraActivity, contains('topBar.updatePadding('));
     expect(cameraActivity, contains('bottomBar.updatePadding('));
     expect(cameraActivity, contains('receiptFrameGuide.updateLayoutParams'));
@@ -234,12 +237,14 @@ void main() {
     expect(cameraActivity, contains('Color.argb(104, 5, 6, 7)'));
     expect(cameraActivity, contains('Color.argb(138, 255, 209, 102)'));
     expect(cameraActivity, contains('alpha = 0.54f'));
-    expect(cameraActivity, contains('PreviewView.ScaleType.FIT_CENTER'));
-    expect(cameraActivity, isNot(contains('PreviewView.ScaleType.FILL_CENTER')));
+    expect(cameraActivity, contains('PreviewView.ScaleType.FILL_CENTER'));
+    expect(cameraActivity, isNot(contains('PreviewView.ScaleType.FIT_CENTER')));
     expect(cameraActivity, contains('nativePreviewScaleMode'));
     expect(
       cameraActivity,
-      contains('internal val nativePreviewScaleMode = "fit_center_full_receipt"'),
+      contains(
+        'internal val nativePreviewScaleMode = "fill_center_full_receipt"',
+      ),
     );
     expect(cameraActivity, contains('nativeControlDensity'));
     expect(
@@ -260,10 +265,7 @@ void main() {
         '    )',
       ),
     );
-    expect(
-      cameraActivity,
-      isNot(contains('controls.add("status")')),
-    );
+    expect(cameraActivity, isNot(contains('controls.add("status")')));
     expect(
       cameraActivity,
       contains(
@@ -278,10 +280,7 @@ void main() {
       cameraActivity,
       contains('previousSectionGuidePanel.visibility == View.VISIBLE'),
     );
-    expect(
-      cameraActivity,
-      contains('addPhotoButton.isEnabled'),
-    );
+    expect(cameraActivity, contains('addPhotoButton.isEnabled'));
     expect(
       cameraActivity,
       contains('if (torchButton.isEnabled) controls.add("light")'),
@@ -302,11 +301,19 @@ void main() {
         'internal fun ReceiptCameraActivity.reviewNextControlReady(): Boolean',
       ),
     );
-    expect(cameraActivity, contains('bottomReviewButton.visibility == View.VISIBLE'));
-    expect(cameraActivity, isNot(contains('doneButton.visibility == View.VISIBLE')));
     expect(
       cameraActivity,
-      contains('internal fun ReceiptCameraActivity.reviewNextControlActualStatus(): String'),
+      contains('bottomReviewButton.visibility == View.VISIBLE'),
+    );
+    expect(
+      cameraActivity,
+      isNot(contains('doneButton.visibility == View.VISIBLE')),
+    );
+    expect(
+      cameraActivity,
+      contains(
+        'internal fun ReceiptCameraActivity.reviewNextControlActualStatus(): String',
+      ),
     );
     expect(cameraActivity, contains('return controls.joinToString("|")'));
     expect(

@@ -99,6 +99,10 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
       _readBool(_Keys.cameraLongReceiptTips, true);
   bool get cameraDiagnosticsImprovementOptIn =>
       _readBool(_Keys.cameraDiagnosticsImprovementOptIn, false);
+  bool get receiptPhotoBackupEnabled =>
+      _readBool(_Keys.receiptPhotoBackupEnabled, false);
+  bool get askSavedProofSizeEachReceipt =>
+      _readBool(_Keys.askSavedProofSizeEachReceipt, false);
   bool get googleVisionAccess => _readBool(_Keys.googleVisionAccess, false);
   int get monthlyGoogleVisionLimit =>
       _readInt(_Keys.monthlyGoogleVisionLimit, 30);
@@ -150,6 +154,10 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
       _writeBool(_Keys.cameraLongReceiptTips, value);
   Future<void> setCameraDiagnosticsImprovementOptIn(bool value) =>
       _writeBool(_Keys.cameraDiagnosticsImprovementOptIn, value);
+  Future<void> setReceiptPhotoBackupEnabled(bool value) =>
+      _writeBool(_Keys.receiptPhotoBackupEnabled, value);
+  Future<void> setAskSavedProofSizeEachReceipt(bool value) =>
+      _writeBool(_Keys.askSavedProofSizeEachReceipt, value);
   Future<void> setGoogleVisionAccess(bool value) =>
       _writeBool(_Keys.googleVisionAccess, value);
   Future<void> setMonthlyGoogleVisionLimit(int value) async {
@@ -188,6 +196,8 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
     await _box.put(_Keys.cameraVoiceCapture, false);
     await _box.put(_Keys.cameraLongReceiptTips, true);
     await _box.put(_Keys.cameraDiagnosticsImprovementOptIn, false);
+    await _box.put(_Keys.receiptPhotoBackupEnabled, false);
+    await _box.put(_Keys.askSavedProofSizeEachReceipt, false);
     await _box.delete(_Keys.defaultDataSaverLevel);
     await _box.put(
       _Keys.receiptPerformanceMode,
@@ -299,6 +309,9 @@ class _Keys {
   static const cameraLongReceiptTips = 'camera_long_receipt_tips';
   static const cameraDiagnosticsImprovementOptIn =
       'camera_diagnostics_improvement_opt_in';
+  static const receiptPhotoBackupEnabled = 'receipt_photo_backup_enabled';
+  static const askSavedProofSizeEachReceipt =
+      'ask_saved_proof_size_each_receipt';
   static const defaultDataSaverLevel = 'default_data_saver_level';
   static const receiptPerformanceMode = 'receipt_performance_mode';
   static const googleVisionAccess = 'google_vision_access';

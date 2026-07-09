@@ -17,7 +17,7 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     }
     val root = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
-        setBackgroundColor(Color.rgb(245, 247, 248))
+        setBackgroundColor(Color.rgb(22, 29, 32))
     }
     root.addView(LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
@@ -33,6 +33,8 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         addView(android.widget.Button(this@showReceiptCameraSettings).apply {
             text = "Done"
             isAllCaps = false
+            setTextColor(Color.rgb(16, 20, 22))
+            setBackgroundColor(Color.rgb(255, 209, 102))
             setOnClickListener { dialog.dismiss() }
         })
     })
@@ -41,6 +43,14 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         setPadding(dp(18), dp(12), dp(18), dp(18))
     }
     content.addView(settingSectionHeader("ACCOUNT AND STORAGE"))
+    content.addView(settingSwitch(
+        "Back up receipt photos",
+        "When enabled, saved proof copies can use Maintainiac backup. Full-size originals stay temporary unless you choose to keep them.",
+        receiptPhotoBackupEnabled,
+    ) {
+        receiptPhotoBackupEnabled = it
+        updateSettingsStatusStrip()
+    })
     content.addView(settingMetricRow(
         "Storage remaining",
         receiptBackupRemainingLabel(),
@@ -206,6 +216,8 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     root.addView(android.widget.Button(this).apply {
         text = "Reset Receipt Camera Defaults"
         isAllCaps = false
+        setTextColor(Color.rgb(255, 209, 102))
+        setBackgroundColor(Color.rgb(31, 37, 40))
         setOnClickListener {
             resetReceiptCameraDefaults()
             dialog.dismiss()
@@ -221,7 +233,7 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     })
     dialog.setContentView(root)
     dialog.setOnShowListener {
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.rgb(245, 247, 248)))
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.rgb(22, 29, 32)))
         dialog.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -308,6 +320,7 @@ internal fun ReceiptCameraActivity.formatReceiptBytes(bytes: Long): String {
 internal fun ReceiptCameraActivity.resetReceiptCameraDefaults() {
     settingsResetCount += 1
     assistedReceiptFill = true
+    receiptPhotoBackupEnabled = false
     longReceiptMode = canUseLongReceiptMode()
     autoCaptureEnabled = false
     reviewDepth = "pricesOnly"

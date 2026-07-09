@@ -104,6 +104,7 @@ Map<String, Object?> _sessionArguments(
     'saveOriginalTemporarily': settings.saveOriginalTemporarily,
     'queueAcceptedCaptureLocally': settings.queueAcceptedCaptureLocally,
     'ocrUsesOriginalFirst': settings.ocrUsesOriginalFirst,
+    'receiptPhotoBackupEnabled': settings.receiptPhotoBackupEnabled,
     'dataSaverLevel': settings.dataSaverLevel.name,
     'askSavedProofSizeEachReceipt': settings.askSavedProofSizeEachReceipt,
     'storageSafetyLevel': config.storageSafetyLevel.name,

@@ -96,22 +96,20 @@ void main() {
         isNot(contains(r'"receipt_${System.currentTimeMillis()}.jpg"')),
       );
       expect(cameraActivity, contains('Dialog(this)'));
+      expect(cameraActivity, contains('dialog.window?.setLayout('));
+      expect(cameraActivity, contains('ViewGroup.LayoutParams.MATCH_PARENT'));
       expect(
         cameraActivity,
-        contains('dialog.window?.setLayout('),
-      );
-      expect(
-        cameraActivity,
-        contains('ViewGroup.LayoutParams.MATCH_PARENT'),
-      );
-      expect(
-        cameraActivity,
-        contains('dialog.window?.setBackgroundDrawable(ColorDrawable(Color.rgb(245, 247, 248)))'),
+        contains(
+          'dialog.window?.setBackgroundDrawable(ColorDrawable(Color.rgb(22, 29, 32)))',
+        ),
       );
       expect(cameraActivity, isNot(contains('AlertDialog.Builder')));
       expect(cameraActivity, contains('ScrollView(this)'));
       expect(cameraActivity, contains('addView(content)'));
       expect(cameraActivity, contains('ACCOUNT AND STORAGE'));
+      expect(cameraActivity, contains('Back up receipt photos'));
+      expect(cameraActivity, contains('receiptPhotoBackupEnabled'));
       expect(cameraActivity, contains('Backup account'));
       expect(cameraActivity, contains('Storage remaining'));
       expect(cameraActivity, contains('Estimated receipt room'));
@@ -134,10 +132,7 @@ void main() {
           'Long receipt mode is unavailable for this device or storage setting.',
         ),
       );
-      expect(
-        cameraActivity,
-        contains('The phone camera owns autofocus.'),
-      );
+      expect(cameraActivity, contains('The phone camera owns autofocus.'));
       expect(
         cameraActivity,
         isNot(contains('continuous autofocus/readability guidance')),
@@ -152,9 +147,7 @@ void main() {
       );
       expect(
         cameraActivity,
-        contains(
-          'Automatic capture is on. Hold steady, or capture anytime.',
-        ),
+        contains('Automatic capture is on. Hold steady, or capture anytime.'),
       );
       expect(cameraActivity, isNot(contains('Auto brightness assist')));
       expect(cameraActivity, isNot(contains('Manual Brightness still wins.')));
@@ -201,10 +194,7 @@ void main() {
         cameraActivity,
         isNot(contains('Warn about shake, glare, low light')),
       );
-      expect(
-        cameraActivity,
-        contains('The phone camera owns autofocus.'),
-      );
+      expect(cameraActivity, contains('The phone camera owns autofocus.'));
       expect(cameraActivity, contains('receiptGuidanceWarningsEnabled'));
       expect(cameraActivity, contains('setReceiptGuidanceWarningsEnabled'));
       expect(
@@ -286,10 +276,15 @@ void main() {
       expect(cameraActivity, contains('Receipt details style'));
       expect(
         cameraActivity,
-        contains('Choose the review screen Maintainiac opens after receipt text is read.'),
+        contains(
+          'Choose the review screen Maintainiac opens after receipt text is read.',
+        ),
       );
       expect(cameraActivity, contains('"pricesOnly" to "Price-only review"'));
-      expect(cameraActivity, contains('"detailedLines" to "Detailed line review"'));
+      expect(
+        cameraActivity,
+        contains('"detailedLines" to "Detailed line review"'),
+      );
       expect(cameraActivity, contains('safeReceiptReviewDepth'));
       expect(cameraActivity, contains('reviewDepth = safeReceiptReviewDepth('));
       expect(cameraActivity, contains('Saved proof size'));

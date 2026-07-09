@@ -13,16 +13,16 @@ class _ReceiptCameraRuntimeSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFFFF),
+        color: const Color(0xFF161D20),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFFD4DCE0)),
+        border: Border.all(color: const Color(0xFF3D4A50)),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(9, 7, 9, 7),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.tune_rounded, color: Color(0xFF2B6CB0), size: 18),
+            const Icon(Icons.tune_rounded, color: Color(0xFFFFD166), size: 18),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -33,7 +33,7 @@ class _ReceiptCameraRuntimeSummary extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: Color(0xFF172126),
+                      color: Color(0xFFE8ECEE),
                       fontSize: 12,
                       fontWeight: FontWeight.w900,
                       height: 1.16,
@@ -46,7 +46,7 @@ class _ReceiptCameraRuntimeSummary extends StatelessWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: Color(0xFF4E5B61),
+                      color: Color(0xFFC8D0D3),
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       height: 1.18,
@@ -59,7 +59,7 @@ class _ReceiptCameraRuntimeSummary extends StatelessWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: Color(0xFF66757D),
+                      color: Color(0xFF95A3A8),
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
                       height: 1.18,
@@ -91,10 +91,17 @@ class _ReceiptBackupStorageSummary extends StatelessWidget {
         : policy.targetLabel;
     return _ReceiptSettingsSection(
       icon: Icons.cloud_done_rounded,
-      title: 'Backup Storage',
-      subtitle:
-          'Shows the receipt backup quota Maintainiac will use for this account.',
+      title: 'Backup And Storage',
+      subtitle: 'Choose whether receipt proof photos use Maintainiac backup.',
       children: [
+        _ReceiptSettingsSwitch(
+          title: 'Back Up Receipt Photos',
+          detail:
+              'When enabled, saved proof copies can be included in Maintainiac cloud backup. Original full-size photos stay temporary unless you choose to keep them.',
+          value: settings.receiptPhotoBackupEnabled,
+          onChanged: settings.setReceiptPhotoBackupEnabled,
+        ),
+        const SizedBox(height: 8),
         _ReceiptStorageMetricRow(
           label: 'Backup account',
           value: cloudStatus.connectionState.label,
@@ -105,7 +112,7 @@ class _ReceiptBackupStorageSummary extends StatelessWidget {
           label: 'Storage remaining',
           value: '${quotaCheck.remainingLabel} of ${quotaCheck.quotaLabel}',
           detail: policy.keepsOriginalLocalOnly
-              ? 'Original photos stay local by default. Backup should use a smaller proof copy.'
+              ? 'Original photos stay local by default. Backup should use a smaller proof copy when enabled.'
               : 'At about $sizeLabel per receipt, that is roughly $estimate receipt proofs before extra storage.',
         ),
       ],
@@ -138,9 +145,9 @@ class _ReceiptStorageMetricRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F7F8),
+        color: const Color(0xFF161D20),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFFD4DCE0)),
+        border: Border.all(color: const Color(0xFF3D4A50)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -148,7 +155,7 @@ class _ReceiptStorageMetricRow extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              color: Color(0xFF536167),
+              color: Color(0xFF95A3A8),
               fontSize: 11,
               fontWeight: FontWeight.w800,
               letterSpacing: 0,
@@ -158,7 +165,7 @@ class _ReceiptStorageMetricRow extends StatelessWidget {
           Text(
             value,
             style: const TextStyle(
-              color: Color(0xFF172126),
+              color: Color(0xFFFFD166),
               fontSize: 17,
               fontWeight: FontWeight.w900,
               letterSpacing: 0,
@@ -168,7 +175,7 @@ class _ReceiptStorageMetricRow extends StatelessWidget {
           Text(
             detail,
             style: const TextStyle(
-              color: Color(0xFF4E5B61),
+              color: Color(0xFFC8D0D3),
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
               height: 1.22,
@@ -311,12 +318,13 @@ class _ReceiptSettingsSwitch extends StatelessWidget {
     return SwitchListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 2),
       activeThumbColor: const Color(0xFF2B6CB0),
+      activeTrackColor: const Color(0xFF87C6FF),
       title: Text(
         title,
         style: TextStyle(
           color: onChanged == null
               ? const Color(0xFF7E8A90)
-              : const Color(0xFF172126),
+              : const Color(0xFFE8ECEE),
           fontWeight: FontWeight.w900,
           letterSpacing: 0,
         ),
@@ -324,7 +332,7 @@ class _ReceiptSettingsSwitch extends StatelessWidget {
       subtitle: Text(
         detail,
         style: const TextStyle(
-          color: Color(0xFF4E5B61),
+          color: Color(0xFFC8D0D3),
           fontSize: 11.5,
           fontWeight: FontWeight.w700,
           letterSpacing: 0,
@@ -354,12 +362,12 @@ class _ReceiptSettingsSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFF0E1416),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFFD4DCE0)),
+        border: Border.all(color: const Color(0xFF3D4A50)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x12000000),
+            color: Color(0x33000000),
             blurRadius: 10,
             offset: Offset(0, 3),
           ),
@@ -371,7 +379,7 @@ class _ReceiptSettingsSection extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, color: const Color(0xFF2B6CB0), size: 20),
+              Icon(icon, color: const Color(0xFFFFD166), size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -380,7 +388,7 @@ class _ReceiptSettingsSection extends StatelessWidget {
                     Text(
                       title,
                       style: const TextStyle(
-                        color: Color(0xFF172126),
+                        color: Color(0xFFE8ECEE),
                         fontSize: 15,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0,
@@ -390,7 +398,7 @@ class _ReceiptSettingsSection extends StatelessWidget {
                     Text(
                       subtitle,
                       style: const TextStyle(
-                        color: Color(0xFF536167),
+                        color: Color(0xFFC8D0D3),
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
                         height: 1.22,
@@ -421,20 +429,20 @@ class _ReceiptSettingsNote extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(9, 8, 9, 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F7F8),
+        color: const Color(0xFF161D20),
         borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: const Color(0xFFD4DCE0)),
+        border: Border.all(color: const Color(0xFF3D4A50)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: const Color(0xFF2B6CB0), size: 17),
+          Icon(icon, color: const Color(0xFFFFD166), size: 17),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
               style: const TextStyle(
-                color: Color(0xFF4E5B61),
+                color: Color(0xFFC8D0D3),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 height: 1.25,

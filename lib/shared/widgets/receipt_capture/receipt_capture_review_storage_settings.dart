@@ -8,130 +8,63 @@ class _ReceiptDataSaverDefaultPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cloudAssistPlan = settings.defaultDataSaverCloudAssistPlan;
-    final installChoice = settings.defaultDataSaverParserPackInstallChoice;
-    final routingPlan = settings.defaultDataSaverParserPackRoutingPlan;
-    final receiptBrain = settings.defaultDataSaverReceiptBrain;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF101719),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFF445159)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            'Saved Receipt Proof Size',
-            style: TextStyle(
-              color: Color(0xFFE8ECEE),
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Choose the default saved proof size for receipt photos. Smaller files save phone space and cloud backup storage. OCR still uses the clearest receipt source first.',
-            style: TextStyle(
-              color: Color(0xFFC7D0D4),
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0,
-            ),
-          ),
+    return _ReceiptSettingsSection(
+      icon: Icons.photo_size_select_large_rounded,
+      title: 'Saved Proof Size',
+      subtitle:
+          'Choose the default backup copy size. OCR still reads from the clearest source first.',
+      children: [
+        _ReceiptSettingsSwitch(
+          title: 'Ask Every Receipt',
+          detail:
+              'Show the saved-proof size choice during receipt review instead of always using the default below.',
+          value: settings.askSavedProofSizeEachReceipt,
+          onChanged: settings.setAskSavedProofSizeEachReceipt,
+        ),
+        const SizedBox(height: 6),
+        _ReceiptSettingsNote(
+          icon: Icons.photo_size_select_large_rounded,
+          text: settings.defaultDataSaverProofTargetSummary,
+        ),
+        if (cloudAssistPlan.hasOptionalCloudAssist ||
+            settings.defaultDataSaverShouldOfferOptionalLocalParserPacks) ...[
           const SizedBox(height: 6),
           const _ReceiptSettingsNote(
-            icon: Icons.visibility_rounded,
+            icon: Icons.cloud_queue_rounded,
             text:
-                'You preview the actual saved proof after taking a photo. On the photo review screen, open Receipt Details And Saved Proof to see what this size looks like before keeping it.',
-          ),
-          const SizedBox(height: 6),
-          _ReceiptSettingsNote(
-            icon: Icons.photo_size_select_large_rounded,
-            text: settings.defaultDataSaverProofTargetSummary,
-          ),
-          if (cloudAssistPlan.hasOptionalCloudAssist ||
-              settings.defaultDataSaverShouldOfferOptionalLocalParserPacks) ...[
-            const SizedBox(height: 6),
-            _ReceiptSettingsNote(
-              icon: Icons.cloud_queue_rounded,
-              text: installChoice.userFacingDownloadChoiceLabel,
-            ),
-          ],
-          const SizedBox(height: 6),
-          _ReceiptSettingsNote(
-            icon: Icons.memory_rounded,
-            text: settings.defaultDataSaverReceiptCapabilitySummary,
-          ),
-          const SizedBox(height: 6),
-          _ReceiptSettingsNote(
-            icon: settings.defaultDataSaverCanRunBaseReceiptFlowLocallyNow
-                ? Icons.offline_bolt_rounded
-                : Icons.report_problem_rounded,
-            text: settings.defaultDataSaverLocalOnlyReadinessSummary,
-          ),
-          const SizedBox(height: 6),
-          _ReceiptSettingsNote(
-            icon: Icons.mobile_friendly_rounded,
-            text: settings.defaultDataSaverFirstInstallBoundarySummary,
-          ),
-          const SizedBox(height: 6),
-          _ReceiptSettingsNote(
-            icon: Icons.system_update_alt_rounded,
-            text: settings
-                .defaultDataSaverFootprintSummary
-                .userFacingInstallChoiceSummary,
-          ),
-          const SizedBox(height: 6),
-          _ReceiptSettingsNote(
-            icon: Icons.inventory_2_rounded,
-            text: settings
-                .defaultDataSaverFootprintSummary
-                .userFacingBaseVersusFullOfflineSummary,
-          ),
-          const SizedBox(height: 6),
-          _ReceiptSettingsNote(
-            icon: Icons.route_rounded,
-            text: routingPlan.userFacingCategoryPackSummary,
-          ),
-          if (receiptBrain.userFacingStorageWarning.trim().isNotEmpty) ...[
-            const SizedBox(height: 6),
-            _ReceiptSettingsNote(
-              icon: Icons.sd_storage_rounded,
-              text: receiptBrain.userFacingStorageWarning,
-            ),
-          ],
-          if (settings.defaultDataSaverUsesDeviceRecommendation) ...[
-            const SizedBox(height: 6),
-            Text(
-              'Current default: ${settings.deviceCapability.recommendedSpaceSavingLabel}.',
-              style: const TextStyle(
-                color: Color(0xFF9BA8AE),
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0,
-              ),
-            ),
-          ],
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              _ReceiptRecommendedDataSaverChoice(
-                selected: settings.defaultDataSaverUsesDeviceRecommendation,
-                onTap: settings.useRecommendedDataSaverLevel,
-              ),
-              for (final level in _receiptBackupLevels)
-                _ReceiptDataSaverChoice(
-                  level: level,
-                  selected: settings.defaultDataSaverLevel == level,
-                  onTap: () => settings.setDefaultDataSaverLevel(level),
-                ),
-            ],
+                'Extra cloud or offline receipt help must remain optional and user-approved. The receipt photo flow should work before any optional download.',
           ),
         ],
-      ),
+        if (settings.defaultDataSaverUsesDeviceRecommendation) ...[
+          const SizedBox(height: 6),
+          Text(
+            'Current default: ${settings.deviceCapability.recommendedSpaceSavingLabel}.',
+            style: const TextStyle(
+              color: Color(0xFFC8D0D3),
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0,
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            _ReceiptRecommendedDataSaverChoice(
+              selected: settings.defaultDataSaverUsesDeviceRecommendation,
+              onTap: settings.useRecommendedDataSaverLevel,
+            ),
+            for (final level in _receiptBackupLevels)
+              _ReceiptDataSaverChoice(
+                level: level,
+                selected: settings.defaultDataSaverLevel == level,
+                onTap: () => settings.setDefaultDataSaverLevel(level),
+              ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -159,7 +92,7 @@ class _ReceiptRecommendedDataSaverChoice extends StatelessWidget {
       label: const Text('Recommended Size'),
       onSelected: (_) => onTap(),
       selectedColor: const Color(0xFFFFD166),
-      backgroundColor: const Color(0xFF172126),
+      backgroundColor: const Color(0xFF161D20),
       labelStyle: TextStyle(
         color: selected ? const Color(0xFF101416) : const Color(0xFFE8ECEE),
         fontWeight: FontWeight.w900,
@@ -198,7 +131,7 @@ class _ReceiptDataSaverChoice extends StatelessWidget {
           label: Text(label),
           onSelected: (_) => onTap(),
           selectedColor: const Color(0xFFFFD166),
-          backgroundColor: const Color(0xFF172126),
+          backgroundColor: const Color(0xFF161D20),
           labelStyle: TextStyle(
             color: selected ? const Color(0xFF101416) : const Color(0xFFE8ECEE),
             fontWeight: FontWeight.w900,

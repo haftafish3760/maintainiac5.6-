@@ -21,6 +21,7 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     whiteBalanceMode = intent.getStringExtra("whiteBalanceMode") ?: "auto"
     whiteBalanceLockEnabled = false
     dataSaverLevel = intent.getStringExtra("dataSaverLevel") ?: "balanced"
+    receiptPhotoBackupEnabled = intent.getBooleanExtra("receiptPhotoBackupEnabled", false)
     askSavedProofSizeEachReceipt = intent.getBooleanExtra(
         "askSavedProofSizeEachReceipt",
         false,
