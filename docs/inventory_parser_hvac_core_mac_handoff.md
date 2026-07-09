@@ -123,6 +123,10 @@ Expected minimum result from those two commands together:
 - each aggregate pass rate: at least `0.9000`
 - local-only safety flags all false
 
+Canonical plan:
+
+- `docs/inventory_parser_peh_core_mac_measurement_plan.md`
+
 ## Pass Criteria
 
 - Analyzer has no issues for the touched HVAC audit files.

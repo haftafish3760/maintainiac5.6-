@@ -131,6 +131,10 @@ dart run tool/work_supply_parser_qa_run_generated_fixtures.dart \
   --report-dir build/parser_qa_reports/generated_fixtures/mac_toilet_faucet_73_shard3
 ```
 
+Canonical follow-through plan:
+
+- `docs/inventory_parser_peh_core_mac_measurement_plan.md`
+
 ## Pass Criteria
 
 - Analyzer has no issues for the touched QA/audit files.
