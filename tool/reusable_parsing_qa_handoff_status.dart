@@ -122,14 +122,21 @@ int runReusableParsingQaHandoffStatus(
   final scriptExecutionBranch =
       _extractScriptCommentValue(pehScript, '# Branch: ') ??
       'unknown-script-branch';
+  final docsOnlyExecutionDrift =
+      currentBranch == windowsWorkingBranch &&
+      _isDocsOnlyHandoffDrift(
+        root,
+        baseCommit: packetExecutionCommit,
+        headCommit: headFull,
+      );
   final executionPacketAlignedToHead =
       currentBranch != windowsWorkingBranch ||
       (packetExecutionBranch == currentBranch &&
-          packetExecutionCommit == headShort);
+          (packetExecutionCommit == headShort || docsOnlyExecutionDrift));
   final executionScriptAlignedToHead =
       currentBranch != windowsWorkingBranch ||
       (scriptExecutionBranch == currentBranch &&
-          scriptExecutionCommit == headShort);
+          (scriptExecutionCommit == headShort || docsOnlyExecutionDrift));
 
   final agrees =
       _extractSingleLineValue(
@@ -284,6 +291,33 @@ bool _sameStrings(List<String> left, List<String> right) {
     if (left[index] != right[index]) return false;
   }
   return true;
+}
+
+bool _isDocsOnlyHandoffDrift(
+  String root, {
+  required String baseCommit,
+  required String headCommit,
+}) {
+  if (baseCommit.isEmpty || headCommit.isEmpty || baseCommit == 'unknown-execution-commit') {
+    return false;
+  }
+  final result = Process.runSync(
+    'git',
+    ['diff', '--name-only', '$baseCommit..$headCommit'],
+    workingDirectory: root,
+  );
+  if (result.exitCode != 0) return false;
+  final files = result.stdout
+      .toString()
+      .split(RegExp(r'\r?\n'))
+      .map((line) => line.trim().replaceAll('\\', '/'))
+      .where((line) => line.isNotEmpty)
+      .toList(growable: false);
+  if (files.isEmpty) return false;
+  final tradeHandoffPattern = RegExp(
+    r'^docs/inventory_parser_(plumbing|electrical|hvac)_core_mac_handoff\.md$',
+  );
+  return files.every(tradeHandoffPattern.hasMatch);
 }
 
 String? _gitValue(List<String> command, String root) {

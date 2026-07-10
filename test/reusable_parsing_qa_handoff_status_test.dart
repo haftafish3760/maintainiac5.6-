@@ -223,6 +223,49 @@ void main() {
     expect(payload['parityApplicable'], isTrue);
     expect(payload['packetExecutionHeadAligned'], isFalse);
   });
+
+  test('handoff status accepts docs-only trade handoff drift from execution head', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_reusable_handoff_status_docs_only_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+
+    _writeHandoffFixture(
+      root,
+      branch: 'codex/reusable-parsing-qa-foundation',
+      validatedFloorCommit: 'abc1234',
+      validatedFloorLabel:
+          'Reusable parsing QA 2026-07-09 20:17 EDT: validated floor',
+      currentBranchOverride: 'codex/inventory-parser-backup-20260702-2056',
+    );
+
+    final doc = File(
+      '${root.path}/docs/inventory_parser_hvac_core_mac_handoff.md',
+    )..createSync(recursive: true);
+    doc.writeAsStringSync('# HVAC Core Mac Validation Handoff\n');
+    Process.runSync('git', ['add', doc.path], workingDirectory: root.path);
+    Process.runSync(
+      'git',
+      ['commit', '-m', 'docs-only handoff refresh'],
+      workingDirectory: root.path,
+    );
+
+    final stdout = _MemorySink();
+    final stderr = _MemorySink();
+    final exit = runReusableParsingQaHandoffStatus(
+      ['--root', root.path],
+      stdout: stdout,
+      stderr: stderr,
+    );
+
+    expect(exit, 0);
+    expect(stderr.content, isEmpty);
+
+    final payload = _extractJsonPayload(stdout.content);
+    expect(payload['parityApplicable'], isTrue);
+    expect(payload['packetExecutionHeadAligned'], isTrue);
+    expect(payload['scriptExecutionHeadAligned'], isTrue);
+  });
 }
 
 Map<String, Object?> _extractJsonPayload(String stdout) {
@@ -395,6 +438,8 @@ void _writeHandoffFixture(
     'commit': packetExecutionCommit ?? headShort,
     'readyForMacMeasurementWave': true,
     'readyToClaimNinetyPlus': false,
+    'totalRemainingChecked': 38,
+    'nextTradesByRemainingGap': ['hvac'],
   });
 
   final script = File(
