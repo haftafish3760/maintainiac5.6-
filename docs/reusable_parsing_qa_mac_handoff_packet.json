@@ -4,9 +4,9 @@
   "purpose": "Prevent duplicate work and give the Mac Mini one Git-tracked reusable parsing QA handoff source.",
   "primaryBranch": "codex/reusable-parsing-qa-foundation",
   "windowsWorkingBranch": "codex/inventory-parser-backup-20260702-2056",
-  "baselineCommit": "c84686d",
-  "baselineCommitFull": "c84686d786afe1de332b37d42586b39a111559fe",
-  "baselineCommitLabel": "Reusable parsing QA 2026-07-09 20:28 EDT: add live handoff checkpoint",
+  "baselineCommit": "492359f",
+  "baselineCommitFull": "492359f75a00ff957d134bd1b1aabdc97ade48dd",
+  "baselineCommitLabel": "Inventory parser QA 2026-07-09 08:38 PM EDT: front-load HVAC core sample families",
   "baselineRule": "Pull the latest HEAD from codex/reusable-parsing-qa-foundation, then read docs/reusable_parsing_qa_handoff_marker.md before running anything.",
   "handoffMarkerPath": "docs/reusable_parsing_qa_handoff_marker.md",
   "runbookPath": "docs/reusable_parsing_qa_mac_runbook.md",
@@ -189,7 +189,7 @@
       "build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json"
     ]
   ],
-  "generatedAtEdt": "2026-07-09 20:28 EDT",
+  "generatedAtEdt": "2026-07-09 20:38 EDT",
   "scopeBoundaryPath": "docs/reusable_parsing_qa_scope_boundary.md",
   "reusableFoundationPaths": [
     "test/support/parser_qa_platform/",
@@ -220,5 +220,5 @@
   ],
   "checkpointJsonPath": "docs/reusable_parsing_qa_checkpoint.json",
   "checkpointMarkdownPath": "docs/reusable_parsing_qa_checkpoint.md",
-  "windowsCheckpointSyncCommand": "dart run tool/reusable_parsing_qa_handoff_sync.dart --root . --branch codex/reusable-parsing-qa-foundation --commit c84686d --commit-full c84686d786afe1de332b37d42586b39a111559fe --label \"Reusable parsing QA 2026-07-09 20:28 EDT: add live handoff checkpoint\" --updated-at \"2026-07-09 20:28 EDT\""
+  "windowsCheckpointSyncCommand": "dart run tool/reusable_parsing_qa_handoff_sync.dart --root . --branch codex/reusable-parsing-qa-foundation --commit 492359f --commit-full 492359f75a00ff957d134bd1b1aabdc97ade48dd --label \"Inventory parser QA 2026-07-09 08:38 PM EDT: front-load HVAC core sample families\" --updated-at \"2026-07-09 20:38 EDT\""
 }
