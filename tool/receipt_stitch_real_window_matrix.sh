@@ -24,6 +24,7 @@ if [[ "${#configs[@]}" -eq 0 ]]; then
   configs=("900:620" "900:760" "720:520")
 fi
 
+matrix=""
 for config in "${configs[@]}"; do
   if [[ "$config" != *:* ]]; then
     echo "Invalid matrix config: $config" >&2
@@ -33,13 +34,18 @@ for config in "${configs[@]}"; do
   height="${config%%:*}"
   stride="${config##*:}"
   echo "Receipt stitch real-window matrix: ${height}x${stride}"
-  RECEIPT_STITCH_REAL_TALL_IMAGE="$source_image" \
-  RECEIPT_STITCH_REAL_WINDOW_HEIGHT="$height" \
-  RECEIPT_STITCH_REAL_WINDOW_STRIDE="$stride" \
-    flutter test \
-      test/receipt_stitching_real_fixture_probe_test.dart \
-      --plain-name 'real tall receipt probe crops local receipt windows before stitching' \
-      -r compact
+  if [[ -z "$matrix" ]]; then
+    matrix="${height}:${stride}"
+  else
+    matrix="${matrix}|${height}:${stride}"
+  fi
 done
+
+RECEIPT_STITCH_REAL_TALL_IMAGE="$source_image" \
+RECEIPT_STITCH_REAL_WINDOW_MATRIX="$matrix" \
+  flutter test \
+    test/receipt_stitching_real_fixture_probe_test.dart \
+    --plain-name 'real tall receipt matrix probes multiple crop windows in one run' \
+    -r compact
 
 echo "Receipt stitch real-window matrix: PASS"

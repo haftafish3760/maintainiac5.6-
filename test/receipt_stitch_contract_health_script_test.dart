@@ -55,6 +55,14 @@ void main() {
     expect(realWindowMatrixSource, contains('720:520'));
     expect(
       realWindowMatrixSource,
+      contains('RECEIPT_STITCH_REAL_WINDOW_MATRIX'),
+    );
+    expect(
+      realWindowMatrixSource,
+      contains('real tall receipt matrix probes multiple crop windows'),
+    );
+    expect(
+      realWindowMatrixSource,
       contains('Receipt stitch real-window matrix: PASS'),
     );
     expect(

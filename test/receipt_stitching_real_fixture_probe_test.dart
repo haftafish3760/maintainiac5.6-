@@ -65,6 +65,41 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 4)),
   );
+
+  test(
+    'real tall receipt matrix probes multiple crop windows in one run',
+    () async {
+      final sourcePath = Platform.environment['RECEIPT_STITCH_REAL_TALL_IMAGE']
+          ?.trim();
+      final configs = _realWindowMatrixConfigs();
+      if (sourcePath == null || sourcePath.isEmpty || configs.isEmpty) {
+        markTestSkipped(
+          'Set RECEIPT_STITCH_REAL_TALL_IMAGE and '
+          'RECEIPT_STITCH_REAL_WINDOW_MATRIX to run the local matrix probe.',
+        );
+        return;
+      }
+      expect(File(sourcePath).existsSync(), isTrue, reason: sourcePath);
+      final bytes = await File(sourcePath).readAsBytes();
+      final source = img.decodeImage(bytes);
+      expect(source, isNotNull, reason: sourcePath);
+
+      for (final config in configs) {
+        final sectionPaths = await _writeTallReceiptWindows(
+          source!,
+          sourcePath: sourcePath,
+          windowHeight: config.height,
+          stride: config.stride,
+        );
+        expect(sectionPaths.length, greaterThanOrEqualTo(2));
+        final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+          paths: sectionPaths,
+        );
+        _expectRealProbeOutcome(result, sectionPaths);
+      }
+    },
+    timeout: const Timeout(Duration(minutes: 8)),
+  );
 }
 
 void _expectRealProbeOutcome(ReceiptStitchResult result, List<String> paths) {
@@ -112,6 +147,36 @@ int _intEnv(String key, int fallback) {
   final raw = Platform.environment[key];
   final parsed = raw == null ? null : int.tryParse(raw.trim());
   return parsed == null || parsed <= 0 ? fallback : parsed;
+}
+
+List<_RealWindowMatrixConfig> _realWindowMatrixConfigs() {
+  final raw = Platform.environment['RECEIPT_STITCH_REAL_WINDOW_MATRIX'];
+  if (raw == null || raw.trim().isEmpty) return const [];
+  return raw
+      .split('|')
+      .map((entry) => entry.trim())
+      .where((entry) => entry.isNotEmpty)
+      .map(_RealWindowMatrixConfig.parse)
+      .whereType<_RealWindowMatrixConfig>()
+      .toList(growable: false);
+}
+
+class _RealWindowMatrixConfig {
+  const _RealWindowMatrixConfig({required this.height, required this.stride});
+
+  final int height;
+  final int stride;
+
+  static _RealWindowMatrixConfig? parse(String value) {
+    final parts = value.split(':');
+    if (parts.length != 2) return null;
+    final height = int.tryParse(parts[0].trim());
+    final stride = int.tryParse(parts[1].trim());
+    if (height == null || stride == null || height <= 0 || stride <= 0) {
+      return null;
+    }
+    return _RealWindowMatrixConfig(height: height, stride: stride);
+  }
 }
 
 Future<List<String>> _writeTallReceiptWindows(
