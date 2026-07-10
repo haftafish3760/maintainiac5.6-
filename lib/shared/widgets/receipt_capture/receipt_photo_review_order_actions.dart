@@ -14,6 +14,9 @@ extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
       targetPhotoPath: targetPhotoPath,
     );
     if (removalPlan == null) return;
+    final removalDiagnostics = removalPlan.captureDiagnosticsForRemainingPaths(
+      removalPlan.photoPaths,
+    );
     String? removedGeneratedPath;
     Set<String> staleDataSaverPreviewPaths = const {};
     _updateReviewState(() {
@@ -26,6 +29,12 @@ extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
       _photoPaths
         ..clear()
         ..addAll(removalPlan.photoPaths);
+      _captureDiagnosticsByPath.addAll(
+        _mergeOrderCaptureDiagnostics(
+          _captureDiagnosticsByPath,
+          removalDiagnostics,
+        ),
+      );
       _selectedIndex = removalPlan.selectedIndex;
     });
     unawaited(_deleteStaleDataSaverPreviewFiles(staleDataSaverPreviewPaths));

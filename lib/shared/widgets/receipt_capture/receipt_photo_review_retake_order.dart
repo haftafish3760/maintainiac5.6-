@@ -261,14 +261,43 @@ class ReceiptPhotoInsertAfterOrderPlan {
 
 class ReceiptPhotoRemovalOrderPlan {
   const ReceiptPhotoRemovalOrderPlan._({
+    required this.originalPhotoPaths,
     required this.photoPaths,
     required this.selectedIndex,
     required this.removedPhotoPath,
+    required this.removedIndex,
   });
 
+  final List<String> originalPhotoPaths;
   final List<String> photoPaths;
   final int selectedIndex;
   final String removedPhotoPath;
+  final int removedIndex;
+
+  int get removedSectionNumber => removedIndex + 1;
+
+  Map<String, Map<String, Object?>> captureDiagnosticsForRemainingPaths(
+    List<String> remainingPhotoPaths,
+  ) {
+    if (!_orderedPhotoPathsMatch(photoPaths, remainingPhotoPaths)) {
+      return const {};
+    }
+    return {
+      for (var index = 0; index < remainingPhotoPaths.length; index++)
+        remainingPhotoPaths[index]: {
+          'receiptRemoveOriginalSectionNumber': removedSectionNumber,
+          'receiptRemoveFinalSectionNumber': index + 1,
+          'receiptRemoveFinalSectionCount': photoPaths.length,
+          'receiptRemoveRemainingSectionOriginalNumber':
+              originalPhotoPaths.indexOf(remainingPhotoPaths[index]) + 1,
+          'receiptRemoveSectionShifted':
+              originalPhotoPaths.indexOf(remainingPhotoPaths[index]) + 1 !=
+              index + 1,
+          'receiptRemoveOrderPolicy':
+              'remove_selected_section_preserve_remaining_order',
+        },
+    };
+  }
 
   static ReceiptPhotoRemovalOrderPlan? build({
     required List<String> currentPhotoPaths,
@@ -287,11 +316,13 @@ class ReceiptPhotoRemovalOrderPlan {
     final updatedPaths = List<String>.of(currentPhotoPaths)
       ..removeAt(targetIndex);
     return ReceiptPhotoRemovalOrderPlan._(
+      originalPhotoPaths: List.unmodifiable(currentPhotoPaths),
       photoPaths: List.unmodifiable(updatedPaths),
       selectedIndex: targetIndex >= updatedPaths.length
           ? updatedPaths.length - 1
           : targetIndex,
       removedPhotoPath: targetPhotoPath,
+      removedIndex: targetIndex,
     );
   }
 }

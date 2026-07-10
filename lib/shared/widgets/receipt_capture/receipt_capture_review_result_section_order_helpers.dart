@@ -440,3 +440,14 @@ List<String> _receiptManualReorderContextCodes(
   }
   return List.unmodifiable(codes);
 }
+
+List<String> _receiptRemovalContextCodes(Map<String, Object?> diagnostics) {
+  final codes = <String>[];
+  if (_diagnosticBool(diagnostics['receiptRemoveSectionShifted']) == true) {
+    codes.add('remove_section_shifted');
+  }
+  if (_diagnosticBool(diagnostics['receiptRemoveSectionShifted']) == false) {
+    codes.add('remove_section_not_shifted');
+  }
+  return List.unmodifiable(codes);
+}

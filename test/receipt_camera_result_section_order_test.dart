@@ -383,6 +383,40 @@ void main() {
     );
   });
 
+  test('removed section metadata records later section shifts', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: const ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
+        warning: 'Review remaining receipt sections after removal.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/bottom.jpg': {
+          'receiptRemoveOriginalSectionNumber': 2,
+          'receiptRemoveFinalSectionNumber': 2,
+          'receiptRemoveFinalSectionCount': 2,
+          'receiptRemoveRemainingSectionOriginalNumber': 3,
+          'receiptRemoveSectionShifted': true,
+          'receiptRemoveOrderPolicy':
+              'remove_selected_section_preserve_remaining_order',
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderCounts['remove_original_section_2'], 1);
+    expect(result.receiptSectionOrderCounts['remove_final_section_2'], 1);
+    expect(result.receiptSectionOrderCounts['remove_final_section_count_2'], 1);
+    expect(result.receiptSectionOrderCounts['remove_section_shifted'], 1);
+    expect(
+      result
+          .receiptReaderHandoffCounts['receipt_section_order_remove_section_shifted'],
+      1,
+    );
+  });
+
   test('manual reorder metadata is summarized without leaking paths', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg', '/tmp/middle.jpg'],

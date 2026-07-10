@@ -135,6 +135,45 @@ void main() {
   );
 
   test(
+    'removal diagnostics preserve remaining section order after a shift',
+    () {
+      final plan = ReceiptPhotoRemovalOrderPlan.build(
+        currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'bottom.jpg'],
+        targetIndex: 1,
+        targetPhotoPath: 'middle.jpg',
+      );
+
+      expect(plan, isNotNull);
+      expect(plan!.removedSectionNumber, 2);
+      expect(plan.photoPaths, const ['top.jpg', 'bottom.jpg']);
+      final diagnostics = plan.captureDiagnosticsForRemainingPaths(const [
+        'top.jpg',
+        'bottom.jpg',
+      ]);
+      expect(
+        diagnostics['top.jpg'],
+        containsPair('receiptRemoveRemainingSectionOriginalNumber', 1),
+      );
+      expect(
+        diagnostics['top.jpg'],
+        containsPair('receiptRemoveSectionShifted', false),
+      );
+      expect(
+        diagnostics['bottom.jpg'],
+        containsPair('receiptRemoveRemainingSectionOriginalNumber', 3),
+      );
+      expect(
+        diagnostics['bottom.jpg'],
+        containsPair('receiptRemoveFinalSectionNumber', 2),
+      );
+      expect(
+        diagnostics['bottom.jpg'],
+        containsPair('receiptRemoveSectionShifted', true),
+      );
+    },
+  );
+
+  test(
     'top-section multi-photo retake stays before the original next section',
     () {
       final plan = ReceiptPhotoRetakeOrderPlan.build(

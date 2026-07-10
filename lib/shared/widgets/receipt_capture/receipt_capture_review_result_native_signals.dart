@@ -275,6 +275,15 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       final manualReorderPolicy = _diagnosticToken(
         diagnostics['receiptManualReorderPolicy']?.toString() ?? '',
       );
+      final removalOriginalSection = _diagnosticPositiveInt(
+        diagnostics['receiptRemoveOriginalSectionNumber'],
+      );
+      final removalFinalSection = _diagnosticPositiveInt(
+        diagnostics['receiptRemoveFinalSectionNumber'],
+      );
+      final removalFinalCount = _diagnosticPositiveInt(
+        diagnostics['receiptRemoveFinalSectionCount'],
+      );
       if (sectionCount != null) {
         final bucket = sectionCount <= 1
             ? 'single_section'
@@ -351,6 +360,24 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
         final bucket = manualReorderFinalSection > 9
             ? 'manual_reorder_final_section_10_plus'
             : 'manual_reorder_final_section_$manualReorderFinalSection';
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
+      if (removalOriginalSection != null) {
+        final bucket = removalOriginalSection > 9
+            ? 'remove_original_section_10_plus'
+            : 'remove_original_section_$removalOriginalSection';
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
+      if (removalFinalSection != null) {
+        final bucket = removalFinalSection > 9
+            ? 'remove_final_section_10_plus'
+            : 'remove_final_section_$removalFinalSection';
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
+      if (removalFinalCount != null) {
+        final bucket = removalFinalCount > 9
+            ? 'remove_final_section_count_10_plus'
+            : 'remove_final_section_count_$removalFinalCount';
         counts[bucket] = (counts[bucket] ?? 0) + 1;
       }
       for (final invalidCode in _receiptRetakeInvalidOrderCodes(
@@ -443,6 +470,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
         counts[code] = (counts[code] ?? 0) + 1;
       }
       for (final code in _receiptManualReorderContextCodes(diagnostics)) {
+        counts[code] = (counts[code] ?? 0) + 1;
+      }
+      for (final code in _receiptRemovalContextCodes(diagnostics)) {
         counts[code] = (counts[code] ?? 0) + 1;
       }
     }
