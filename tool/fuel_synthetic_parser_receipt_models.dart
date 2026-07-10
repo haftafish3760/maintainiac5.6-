@@ -305,6 +305,13 @@ const _products = [
     basePrice: 2.669,
   ),
   _FuelSyntheticProduct(
+    label: 'HD-5',
+    spanishLabel: 'HD-5 Propano',
+    fuelType: 'Propane',
+    unit: 'gallon',
+    basePrice: 2.689,
+  ),
+  _FuelSyntheticProduct(
     label: 'H2 HYDROGEN FUEL',
     spanishLabel: 'Hidrogeno H2',
     fuelType: 'Hydrogen',
