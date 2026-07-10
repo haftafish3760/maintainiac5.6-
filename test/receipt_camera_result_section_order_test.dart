@@ -458,6 +458,40 @@ void main() {
     expect(result.receiptSectionOrderNeedsReview, isTrue);
   });
 
+  test('removal metadata with an impossible final section requires review', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/bottom.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/bottom-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: const ['/tmp/bottom-ocr.jpg'],
+        warning: 'Review removed receipt section order.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/bottom.jpg': {
+          'receiptRemoveOriginalSectionNumber': 2,
+          'receiptRemoveFinalSectionNumber': 3,
+          'receiptRemoveFinalSectionCount': 2,
+          'receiptRemoveRemainingSectionOriginalNumber': 3,
+          'receiptRemoveSectionShifted': true,
+        },
+      },
+    );
+
+    expect(
+      result
+          .receiptSectionOrderCounts['remove_invalid_final_section_out_of_range'],
+      1,
+    );
+    expect(result.receiptSectionOrderOutcome, 'remove_order_invalid');
+    expect(
+      result.receiptSectionOrderReviewActionCode,
+      'review_removed_section_order_before_ocr',
+    );
+    expect(result.receiptSectionOrderNeedsReview, isTrue);
+  });
+
   test('manual reorder metadata is summarized without leaking paths', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg', '/tmp/middle.jpg'],

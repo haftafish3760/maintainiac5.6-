@@ -461,10 +461,14 @@ List<String> _receiptRemovalInvalidOrderCodes(
   final finalSection = _diagnosticPositiveInt(
     diagnostics['receiptRemoveFinalSectionNumber'],
   );
+  final finalSectionCount = _diagnosticPositiveInt(
+    diagnostics['receiptRemoveFinalSectionCount'],
+  );
   final shifted = _diagnosticBool(diagnostics['receiptRemoveSectionShifted']);
   final hasRemovalMetadata =
       originalSection != null ||
       finalSection != null ||
+      finalSectionCount != null ||
       shifted != null ||
       _diagnosticPositiveInt(
             diagnostics['receiptRemoveOriginalSectionNumber'],
@@ -478,8 +482,16 @@ List<String> _receiptRemovalInvalidOrderCodes(
   if (finalSection == null) {
     codes.add('remove_invalid_missing_final_section');
   }
+  if (finalSectionCount == null) {
+    codes.add('remove_invalid_missing_final_section_count');
+  }
   if (shifted == null) {
     codes.add('remove_invalid_missing_shift_flag');
+  }
+  if (finalSection != null &&
+      finalSectionCount != null &&
+      finalSection > finalSectionCount) {
+    codes.add('remove_invalid_final_section_out_of_range');
   }
   if (originalSection != null && finalSection != null && shifted != null) {
     final expectedShifted = originalSection != finalSection;
