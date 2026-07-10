@@ -4,9 +4,9 @@
   "purpose": "Prevent duplicate work and give the Mac Mini one Git-tracked reusable parsing QA handoff source.",
   "primaryBranch": "codex/reusable-parsing-qa-foundation",
   "windowsWorkingBranch": "codex/inventory-parser-backup-20260702-2056",
-  "baselineCommit": "451211e",
-  "baselineCommitFull": "451211ee4a172f53810539c60b391696150e2b73",
-  "baselineCommitLabel": "Reusable parsing QA 2026-07-09 20:54 EDT: fold parity into handoff status",
+  "baselineCommit": "322a388",
+  "baselineCommitFull": "322a388e1240d8c8367a67a6a84d4767d71b5f1f",
+  "baselineCommitLabel": "Reusable parsing QA 2026-07-09 09:01 PM EDT: register handoff parity coverage",
   "baselineRule": "Pull the latest HEAD from codex/reusable-parsing-qa-foundation, then read docs/reusable_parsing_qa_handoff_marker.md before running anything.",
   "handoffMarkerPath": "docs/reusable_parsing_qa_handoff_marker.md",
   "runbookPath": "docs/reusable_parsing_qa_mac_runbook.md",
@@ -189,7 +189,7 @@
       "build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json"
     ]
   ],
-  "generatedAtEdt": "2026-07-09 20:54 EDT",
+  "generatedAtEdt": "2026-07-09 21:06 EDT",
   "scopeBoundaryPath": "docs/reusable_parsing_qa_scope_boundary.md",
   "reusableFoundationPaths": [
     "test/support/parser_qa_platform/",
@@ -220,5 +220,5 @@
   ],
   "checkpointJsonPath": "docs/reusable_parsing_qa_checkpoint.json",
   "checkpointMarkdownPath": "docs/reusable_parsing_qa_checkpoint.md",
-  "windowsCheckpointSyncCommand": "dart run tool/reusable_parsing_qa_handoff_sync.dart --root . --branch codex/reusable-parsing-qa-foundation --commit 451211e --commit-full 451211ee4a172f53810539c60b391696150e2b73 --label \"Reusable parsing QA 2026-07-09 20:54 EDT: fold parity into handoff status\" --updated-at \"2026-07-09 20:54 EDT\""
+  "windowsCheckpointSyncCommand": "dart run tool/reusable_parsing_qa_handoff_sync.dart --root . --branch codex/reusable-parsing-qa-foundation --commit 322a388 --commit-full 322a388e1240d8c8367a67a6a84d4767d71b5f1f --label \"Reusable parsing QA 2026-07-09 09:01 PM EDT: register handoff parity coverage\" --updated-at \"2026-07-09 21:06 EDT\""
 }

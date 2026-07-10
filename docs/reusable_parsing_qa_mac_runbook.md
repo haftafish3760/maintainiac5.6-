@@ -1,6 +1,6 @@
 # Reusable Parsing QA Mac Mini Runbook
 
-Last updated: 2026-07-09 20:54 EDT
+Last updated: 2026-07-09 21:06 EDT
 
 This runbook is the plain-English companion to:
 
@@ -12,7 +12,7 @@ This runbook is the plain-English companion to:
 ## Start Here
 
 1. Check out branch `codex/reusable-parsing-qa-foundation`.
-2. Confirm the branch is at or after validated floor commit `451211e`.
+2. Confirm the branch is at or after validated floor commit `322a388`.
 3. Read `docs/reusable_parsing_qa_handoff_marker.md` before running anything.
 4. Read `docs/reusable_parsing_qa_scope_boundary.md` to separate reusable parser QA work from
    inventory-specific Windows ownership.
@@ -47,7 +47,7 @@ Do not rebuild these unless a new regression proves they are wrong:
 ## Current Measurement Reality
 
 - Plumbing already has the stronger Windows-side generated evidence.
-- Electrical already has the current Windows-side sample-sized proof.
+- Electrical already has the stronger Windows-side measured evidence.
 - HVAC is the remaining top measured gap from the current PEH artifacts.
 - The branch is ready for a Mac measurement wave.
 - The branch is not yet ready for a `90-95%` claim across PEH.
