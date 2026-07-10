@@ -371,6 +371,7 @@ stitch_tests=(
   test/receipt_stitching_long_stack_test.dart
   test/receipt_stitching_manual_overlap_test.dart
   test/receipt_stitching_ocr_source_contract_test.dart
+  test/receipt_stitching_passenger_seat_test.dart
   test/receipt_stitching_phone_window_edge_crop_test.dart
   test/receipt_stitching_phone_window_safety_test.dart
   test/receipt_stitching_real_fixture_probe_test.dart
