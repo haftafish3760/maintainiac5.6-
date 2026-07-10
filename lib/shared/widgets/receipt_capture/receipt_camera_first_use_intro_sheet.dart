@@ -1,14 +1,18 @@
 part of 'receipt_attachment_panel.dart';
 
 class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
-  const _ReceiptFirstUseCameraIntroSheet({required this.area});
+  const _ReceiptFirstUseCameraIntroSheet({
+    required this.area,
+    required this.uiConfig,
+  });
 
   final ReceiptCaptureArea area;
+  final ReceiptCaptureUiConfig uiConfig;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF050607),
+      backgroundColor: uiConfig.pageBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -22,19 +26,19 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
                     icon: const Icon(Icons.arrow_back_rounded),
                     color: Colors.white,
                     style: IconButton.styleFrom(
-                      backgroundColor: const Color(0xDD11181B),
+                      backgroundColor: uiConfig.surfaceColor,
                       minimumSize: const Size(46, 46),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
-                        side: const BorderSide(color: Color(0xFF526168)),
+                        side: BorderSide(color: uiConfig.borderColor),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Receipt Assist',
+                      uiConfig.firstUseTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -63,8 +67,8 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
                           size: 44,
                         ),
                         const SizedBox(height: 18),
-                        const Text(
-                          'Would you like Maintainiac to help fill out receipt details?',
+                        Text(
+                          uiConfig.firstUsePrompt,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: Color(0xFFE8ECEE),
@@ -75,8 +79,8 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          'Receipt Assist reads the accepted photo and suggests totals and lines. You review everything before saving.',
+                        Text(
+                          uiConfig.firstUseExplanation,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: Color(0xFFC7D0D4),
@@ -87,19 +91,22 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        Text(
-                          'Manual entry is always available for ${area.label.toLowerCase()} receipts.',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Color(0xFF8FA0A8),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            height: 1.25,
-                            letterSpacing: 0,
+                        if (uiConfig.showManualEntryReminder) ...[
+                          Text(
+                            'Manual entry is always available for ${area.label.toLowerCase()} receipts.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color(0xFF8FA0A8),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              height: 1.25,
+                              letterSpacing: 0,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 14),
-                        const _ReceiptAssistPromiseCard(),
+                          const SizedBox(height: 14),
+                        ],
+                        if (uiConfig.showFirstUsePromiseList)
+                          _ReceiptAssistPromiseCard(uiConfig: uiConfig),
                       ],
                     ),
                   ),
@@ -116,9 +123,9 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
                       context,
                     ).pop(_ReceiptFirstUseCameraAction.useReceiptAssist),
                     icon: const Icon(Icons.auto_awesome_rounded),
-                    label: const Text('Yes, Use Receipt Assist'),
+                    label: Text(uiConfig.enableAssistLabel),
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF28A745),
+                      backgroundColor: uiConfig.primaryActionColor,
                       foregroundColor: Colors.white,
                       minimumSize: const Size.fromHeight(52),
                       shape: RoundedRectangleBorder(
@@ -132,7 +139,7 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
                       context,
                     ).pop(_ReceiptFirstUseCameraAction.manualEntry),
                     icon: const Icon(Icons.edit_note_rounded),
-                    label: const Text('No, Manual Entry'),
+                    label: Text(uiConfig.manualEntryLabel),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFFFD166),
                       side: const BorderSide(color: Color(0xFFFFD166)),
@@ -153,7 +160,9 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
 }
 
 class _ReceiptAssistPromiseCard extends StatelessWidget {
-  const _ReceiptAssistPromiseCard();
+  const _ReceiptAssistPromiseCard({required this.uiConfig});
+
+  final ReceiptCaptureUiConfig uiConfig;
 
   @override
   Widget build(BuildContext context) {
@@ -164,9 +173,9 @@ class _ReceiptAssistPromiseCard extends StatelessWidget {
     ];
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFF101719),
+        color: uiConfig.surfaceColor,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF344047)),
+        border: Border.all(color: uiConfig.borderColor),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),

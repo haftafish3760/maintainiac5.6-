@@ -86,6 +86,9 @@ void main() {
     final firstUseSheet = await File(
       'lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart',
     ).readAsString();
+    final uiConfig = await File(
+      'lib/shared/widgets/receipt_capture/receipt_capture_ui_config.dart',
+    ).readAsString();
     final cameraActions = await File(
       'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
     ).readAsString();
@@ -104,15 +107,13 @@ void main() {
           'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
         ).readAsString();
 
-    expect(firstUseSheet, contains('Receipt Assist'));
+    expect(firstUseSheet, contains('uiConfig.firstUseTitle'));
+    expect(firstUseSheet, contains('uiConfig.firstUsePrompt'));
+    expect(firstUseSheet, contains('uiConfig.enableAssistLabel'));
+    expect(firstUseSheet, contains('uiConfig.manualEntryLabel'));
+    expect(uiConfig, contains('class ReceiptCaptureUiConfig'));
     expect(
-      firstUseSheet,
-      contains('Would you like Maintainiac to help fill out receipt details?'),
-    );
-    expect(firstUseSheet, contains('Yes, Use Receipt Assist'));
-    expect(firstUseSheet, contains('No, Manual Entry'));
-    expect(
-      firstUseSheet,
+      uiConfig,
       contains(
         'Receipt Assist reads the accepted photo and suggests totals and lines. You review everything before saving.',
       ),

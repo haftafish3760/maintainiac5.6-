@@ -13,6 +13,7 @@ import 'receipt_capture_flow.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_capture_diagnostics_policy.dart';
 import 'receipt_capture_settings_store.dart';
+import 'receipt_capture_ui_config.dart';
 import 'receipt_image_processor.dart';
 import 'receipt_image_picker.dart';
 import 'receipt_assistance_policy.dart';
@@ -83,6 +84,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
     this.onReceiptCaptureDiagnostic,
     this.receiptContinuationReasonCode,
     this.receiptContinuationGuidance,
+    this.uiConfig = const ReceiptCaptureUiConfig(),
   });
 
   final bool hasReceipt;
@@ -99,6 +101,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
   final ValueChanged<Map<String, Object?>>? onReceiptCaptureDiagnostic;
   final String? receiptContinuationReasonCode;
   final String? receiptContinuationGuidance;
+  final ReceiptCaptureUiConfig uiConfig;
 
   @override
   State<SharedReceiptAttachmentPanel> createState() =>

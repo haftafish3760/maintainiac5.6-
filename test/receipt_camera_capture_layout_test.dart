@@ -5,171 +5,175 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers/receipt_camera_capture_layout_source_readers.dart';
 
 void main() {
-  test(
-    'receipt import uses Maintainiac native camera before any fallback',
-    () async {
-      final pubspec = await File('pubspec.yaml').readAsString();
-      final actions = await readReceiptAttachmentImportActionsSource();
-      final flow = await readReceiptCaptureFlowSource();
-      final scanner = await File(
-        'lib/shared/widgets/receipt_capture/receipt_scanner_service.dart',
-      ).readAsString();
-      final imagePicker = await File(
-        'lib/shared/widgets/receipt_capture/receipt_image_picker.dart',
-      ).readAsString();
-      final importSheet = await File(
-        'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
-      ).readAsString();
-      final standard = await File(
-        'docs/receipt_camera_ocr_product_standard.md',
-      ).readAsString();
-      final resultModels = await readReceiptCaptureModelsSource();
-      final oldFlutterCameraScreen = File(
-        'lib/shared/widgets/receipt_capture/receipt_camera_screen.dart',
-      );
+  test('receipt import uses Maintainiac native camera before any fallback', () async {
+    final pubspec = await File('pubspec.yaml').readAsString();
+    final actions = await readReceiptAttachmentImportActionsSource();
+    final reviewReadActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart',
+    ).readAsString();
+    final cameraFallbackActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_camera_fallback_actions.dart',
+    ).readAsString();
+    final flow = await readReceiptCaptureFlowSource();
+    final scanner = await File(
+      'lib/shared/widgets/receipt_capture/receipt_scanner_service.dart',
+    ).readAsString();
+    final imagePicker = await File(
+      'lib/shared/widgets/receipt_capture/receipt_image_picker.dart',
+    ).readAsString();
+    final importSheet = await File(
+      'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
+    ).readAsString();
+    final standard = await File(
+      'docs/receipt_camera_ocr_product_standard.md',
+    ).readAsString();
+    final resultModels = await readReceiptCaptureModelsSource();
+    final oldFlutterCameraScreen = File(
+      'lib/shared/widgets/receipt_capture/receipt_camera_screen.dart',
+    );
 
-      expect(
-        pubspec,
-        isNot(contains(RegExp(r'^\s*camera:\s', multiLine: true))),
-      );
-      expect(pubspec, isNot(contains('package:camera')));
-      expect(oldFlutterCameraScreen.existsSync(), isFalse);
-      expect(actions, contains('_takeMaintainiacNativeCameraPhoto'));
-      expect(actions, contains('_MaintainiacNativeCameraPhotoOutcome'));
-      expect(actions, contains('ReceiptCaptureFlow().captureAndReview'));
-      expect(
-        actions.indexOf('_takeMaintainiacNativeCameraPhoto(settings)'),
-        lessThan(
-          actions.indexOf('_openReceiptBackupCaptureAfterNativeUnavailable'),
-        ),
-      );
-      expect(flow, contains('ReceiptCameraPermission'));
-      expect(
-        flow.indexOf('ReceiptCameraPermission().ensureReady()'),
-        lessThan(flow.indexOf('readCapabilities()')),
-      );
-      expect(flow, contains('ReceiptNativeCameraService'));
-      expect(flow, contains('readCapabilities'));
-      expect(flow, contains('captureReceipt'));
-      expect(flow, contains('_stagedDataSaverLevelFor('));
-      expect(flow, contains("capture.captureDiagnostics['dataSaverLevel']"));
-      expect(
-        flow.indexOf('final stagedDataSaverLevel = _stagedDataSaverLevelFor('),
-        lessThan(flow.indexOf('staged = await flow._staging.stage(')),
-      );
-      expect(flow, contains('dataSaverLevel: stagedDataSaverLevel'));
-      expect(
-        flow,
-        contains('on ReceiptNativeCameraCanceledException catch (error)'),
-      );
-      expect(flow, contains("'closeAction': error.closeAction"));
-      expect(
-        actions,
-        contains(
-          'nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.canceled',
-        ),
-      );
-      expect(
-        flow.indexOf('on ReceiptNativeCameraCanceledException catch (error)'),
-        lessThan(flow.indexOf('on ReceiptNativeCameraUnavailableException')),
-      );
-      expect(
-        actions.indexOf('_takeMaintainiacNativeCameraPhoto(settings)'),
-        lessThan(actions.indexOf('NativeReceiptScannerService')),
-      );
-      expect(
+    expect(pubspec, isNot(contains(RegExp(r'^\s*camera:\s', multiLine: true))));
+    expect(pubspec, isNot(contains('package:camera')));
+    expect(oldFlutterCameraScreen.existsSync(), isFalse);
+    expect(actions, contains('_takeMaintainiacNativeCameraPhoto'));
+    expect(actions, contains('_MaintainiacNativeCameraPhotoOutcome'));
+    expect(actions, contains('ReceiptCaptureFlow().captureAndReview'));
+    expect(
+      actions.indexOf('_takeMaintainiacNativeCameraPhoto(settings)'),
+      lessThan(
         actions.indexOf('_openReceiptBackupCaptureAfterNativeUnavailable'),
-        lessThan(actions.indexOf('NativeReceiptScannerService')),
-      );
-      expect(actions, isNot(contains('_takeNativeCameraPhotoFallback')));
-      expect(actions, contains('_takePhoneCameraBackupPhoto'));
-      expect(
-        actions,
-        contains('ReceiptImagePicker.takeBackupReceiptPhotoSet()'),
-      );
-      expect(
-        actions,
-        isNot(contains('ReceiptImagePicker.takeReceiptPhotoSet()')),
-      );
-      expect(actions, contains('phone_camera_backup_receipt_photo'));
-      expect(actions, contains('document_scanner_backup_receipt_photo'));
-      expect(
-        actions,
-        contains(
-          "'backupCaptureAuthorizedBy': 'maintainiac_native_unavailable'",
-        ),
-      );
-      expect(actions, contains("'stockCameraUiAllowedAsPrimary': false"));
-      expect(actions, contains("'documentScannerBackupRole': 'fallback_only'"));
-      expect(
-        actions,
-        contains(
-          'Opening the phone camera as backup capture; the photo still returns to Maintainiac receipt review.',
-        ),
-      );
-      final backupHelperStart = actions.indexOf(
-        'Future<void> _openReceiptBackupCaptureAfterNativeUnavailable',
-      );
-      final backupHelperEnd = actions.indexOf(
-        'Future<void> _reviewDocumentScannerBackup',
-        backupHelperStart,
-      );
-      final backupHelperBlock = actions.substring(
-        backupHelperStart,
-        backupHelperEnd,
-      );
-      expect(
-        backupHelperBlock.indexOf('NativeReceiptScannerService'),
-        lessThan(backupHelperBlock.indexOf('_takePhoneCameraBackupPhoto')),
-      );
-      expect(actions, isNot(contains('ReceiptCameraScreen(')));
-      expect(actions, isNot(contains("import 'receipt_camera_screen.dart'")));
-      expect(actions, isNot(contains('CameraController')));
-      expect(actions, isNot(contains('CameraPreview')));
-      expect(actions, contains('initialSelectedIndex: firstNewPhotoIndex'));
-      expect(actions, contains('uniqueNormalizedReceiptPhotoPaths('));
-      expect(actions, contains('initialCaptureDiagnosticsByPath'));
-      expect(actions, contains('receiptBrainDiagnosticsByPath'));
-      expect(actions, contains('_defaultReceiptBrainDiagnosticMetadata'));
-      expect(actions, contains('receiptBrainFootprintSummaryFor'));
-      expect(actions, contains('...footprint.toPrivacySafeDiagnostics()'));
-      expect(
-        actions,
-        contains('receipt_attachment_import_default_local_policy'),
-      );
-      expect(actions, contains('existing_receipt_photo_import'));
-      expect(flow, contains('staged.captureDiagnosticsByPhotoPath'));
-      expect(importSheet, contains('Capture Photo'));
-      expect(importSheet, isNot(contains('Scan Receipt')));
-      expect(scanner, contains('return Platform.isIOS;'));
-      expect(
-        scanner,
-        contains('Do not make receipt capture wait on a Play Services'),
-      );
-      expect(scanner, isNot(contains('Platform.isAndroid')));
-      expect(
-        imagePicker,
-        contains('Backup receipt capture uses the phone camera'),
-      );
-      expect(imagePicker, contains('camera service first'));
-      expect(
-        imagePicker,
-        contains(
-          'static Future<ReceiptPickedPhotoSet> takeBackupReceiptPhotoSet()',
-        ),
-      );
-      expect(imagePicker, contains('return takeBackupReceiptPhotoSet();'));
-      expect(
-        standard,
-        contains(
-          'Android receipt capture should use Maintainiac UI backed by CameraX',
-        ),
-      );
-      expect(resultModels, isNot(contains('flutter_camera_native_backend')));
-      expect(resultModels, contains('maintainiac_native_android'));
-      expect(resultModels, contains('maintainiac_native_ios'));
-    },
-  );
+      ),
+    );
+    expect(flow, contains('ReceiptCameraPermission'));
+    expect(
+      flow.indexOf('ReceiptCameraPermission().ensureReady()'),
+      lessThan(flow.indexOf('readCapabilities()')),
+    );
+    expect(flow, contains('ReceiptNativeCameraService'));
+    expect(flow, contains('readCapabilities'));
+    expect(flow, contains('captureReceipt'));
+    expect(flow, contains('_stagedDataSaverLevelFor('));
+    expect(flow, contains("capture.captureDiagnostics['dataSaverLevel']"));
+    expect(
+      flow.indexOf('final stagedDataSaverLevel = _stagedDataSaverLevelFor('),
+      lessThan(flow.indexOf('staged = await flow._staging.stage(')),
+    );
+    expect(flow, contains('dataSaverLevel: stagedDataSaverLevel'));
+    expect(
+      flow,
+      contains('on ReceiptNativeCameraCanceledException catch (error)'),
+    );
+    expect(flow, contains("'closeAction': error.closeAction"));
+    expect(
+      actions,
+      contains(
+        'nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.canceled',
+      ),
+    );
+    expect(
+      flow.indexOf('on ReceiptNativeCameraCanceledException catch (error)'),
+      lessThan(flow.indexOf('on ReceiptNativeCameraUnavailableException')),
+    );
+    expect(
+      actions.indexOf('_takeMaintainiacNativeCameraPhoto(settings)'),
+      lessThan(actions.indexOf('NativeReceiptScannerService')),
+    );
+    expect(
+      actions.indexOf('_openReceiptBackupCaptureAfterNativeUnavailable'),
+      lessThan(actions.indexOf('NativeReceiptScannerService')),
+    );
+    expect(actions, isNot(contains('_takeNativeCameraPhotoFallback')));
+    expect(actions, contains('_takePhoneCameraBackupPhoto'));
+    expect(actions, contains('ReceiptImagePicker.takeBackupReceiptPhotoSet()'));
+    expect(
+      actions,
+      isNot(contains('ReceiptImagePicker.takeReceiptPhotoSet()')),
+    );
+    expect(actions, contains('phone_camera_backup_receipt_photo'));
+    expect(actions, contains('document_scanner_backup_receipt_photo'));
+    expect(
+      actions,
+      contains("'backupCaptureAuthorizedBy': 'maintainiac_native_unavailable'"),
+    );
+    expect(actions, contains("'stockCameraUiAllowedAsPrimary': false"));
+    expect(actions, contains("'documentScannerBackupRole': 'fallback_only'"));
+    expect(
+      actions,
+      contains(
+        'Opening the phone camera as backup capture; the photo still returns to Maintainiac receipt review.',
+      ),
+    );
+    final backupHelperStart = actions.indexOf(
+      'Future<void> _openReceiptBackupCaptureAfterNativeUnavailable',
+    );
+    final backupHelperEnd = actions.indexOf(
+      'Future<void> _reviewDocumentScannerBackup',
+      backupHelperStart,
+    );
+    final backupHelperBlock = actions.substring(
+      backupHelperStart,
+      backupHelperEnd,
+    );
+    expect(
+      backupHelperBlock.indexOf('NativeReceiptScannerService'),
+      lessThan(backupHelperBlock.indexOf('_takePhoneCameraBackupPhoto')),
+    );
+    expect(actions, isNot(contains('ReceiptCameraScreen(')));
+    expect(actions, isNot(contains("import 'receipt_camera_screen.dart'")));
+    expect(actions, isNot(contains('CameraController')));
+    expect(actions, isNot(contains('CameraPreview')));
+    expect(
+      reviewReadActions,
+      contains('initialSelectedIndex: importOrder.firstImportedPhotoIndex'),
+    );
+    expect(reviewReadActions, contains('ReceiptPhotoImportOrderPlan.build('));
+    expect(actions, contains('initialCaptureDiagnosticsByPath'));
+    expect(actions, contains('receiptBrainDiagnosticsByPath'));
+    expect(
+      cameraFallbackActions,
+      contains('_defaultReceiptBrainDiagnosticMetadata'),
+    );
+    expect(cameraFallbackActions, contains('receiptBrainFootprintSummaryFor'));
+    expect(
+      cameraFallbackActions,
+      contains('...footprint.toPrivacySafeDiagnostics()'),
+    );
+    expect(
+      cameraFallbackActions,
+      contains('receipt_attachment_import_default_local_policy'),
+    );
+    expect(actions, contains('existing_receipt_photo_import'));
+    expect(flow, contains('staged.captureDiagnosticsByPhotoPath'));
+    expect(importSheet, contains('Capture Photo'));
+    expect(importSheet, isNot(contains('Scan Receipt')));
+    expect(scanner, contains('return Platform.isIOS;'));
+    expect(
+      scanner,
+      contains('Do not make receipt capture wait on a Play Services'),
+    );
+    expect(scanner, isNot(contains('Platform.isAndroid')));
+    expect(
+      imagePicker,
+      contains('Backup receipt capture uses the phone camera'),
+    );
+    expect(imagePicker, contains('camera service first'));
+    expect(
+      imagePicker,
+      contains(
+        'static Future<ReceiptPickedPhotoSet> takeBackupReceiptPhotoSet()',
+      ),
+    );
+    expect(imagePicker, contains('return takeBackupReceiptPhotoSet();'));
+    expect(
+      standard,
+      contains(
+        'Android receipt capture should use Maintainiac UI backed by CameraX',
+      ),
+    );
+    expect(resultModels, isNot(contains('flutter_camera_native_backend')));
+    expect(resultModels, contains('maintainiac_native_android'));
+    expect(resultModels, contains('maintainiac_native_ios'));
+  });
 
   test('review add-photo flow also uses native capture before fallback', () async {
     final actions = await readReceiptPhotoReviewSaveActionsSource();
@@ -287,6 +291,9 @@ void main() {
       final intro = await File(
         'lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart',
       ).readAsString();
+      final uiConfig = await File(
+        'lib/shared/widgets/receipt_capture/receipt_capture_ui_config.dart',
+      ).readAsString();
       final bottomBar = await File(
         'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart',
       ).readAsString();
@@ -306,19 +313,23 @@ void main() {
       expect(firstUseBlock, contains('fullscreenDialog: true'));
       expect(firstUseBlock, isNot(contains('showModalBottomSheet')));
       expect(intro, contains('return Scaffold('));
-      expect(intro, contains('Receipt Assist'));
+      expect(intro, contains('uiConfig.firstUseTitle'));
+      expect(intro, contains('uiConfig.firstUsePrompt'));
+      expect(intro, contains('uiConfig.enableAssistLabel'));
+      expect(intro, contains('uiConfig.manualEntryLabel'));
+      expect(uiConfig, contains("this.firstUseTitle = 'Receipt Assist'"));
       expect(
-        intro,
+        uiConfig,
         contains(
           'Would you like Maintainiac to help fill out receipt details?',
         ),
       );
-      expect(intro, contains('Yes, Use Receipt Assist'));
-      expect(intro, contains('No, Manual Entry'));
       expect(intro, isNot(contains('Receipt Camera Setup')));
       expect(intro, isNot(contains('ListView(')));
       expect(intro, isNot(contains('Continue To Camera')));
       expect(intro, isNot(contains('Open Receipt Settings')));
+      expect(intro, contains('showFirstUsePromiseList'));
+      expect(intro, contains('showManualEntryReminder'));
       expect(bottomBar, contains('SafeArea('));
       expect(bottomBar, contains('minimum: const EdgeInsets.only(bottom: 8)'));
       expect(bottomBar, contains('_ReceiptNativeCameraShutterButton'));

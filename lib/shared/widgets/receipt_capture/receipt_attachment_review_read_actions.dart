@@ -19,6 +19,7 @@ extension _ReceiptAttachmentReviewReadActions
       appNativeRoute(
         context,
         ReceiptPhotoReviewScreen(
+          uiConfig: widget.uiConfig.review,
           initialPhotoPaths: importOrder.mergedPhotoPaths,
           initialDataSaverLevel: _dataSaverLevel,
           initialSelectedIndex: importOrder.firstImportedPhotoIndex,
@@ -111,6 +112,7 @@ extension _ReceiptAttachmentReviewReadActions
       appNativeRoute(
         context,
         ReceiptPhotoReviewScreen(
+          uiConfig: widget.uiConfig.review,
           initialPhotoPaths: _photoPaths,
           initialDataSaverLevel: _dataSaverLevel,
           initialQualityChecksByPath: _photoQualityByPath,

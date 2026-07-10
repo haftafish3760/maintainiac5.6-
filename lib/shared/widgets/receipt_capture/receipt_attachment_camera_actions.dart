@@ -256,8 +256,10 @@ extension _ReceiptAttachmentCameraActions
         .push<_ReceiptFirstUseCameraAction>(
           MaterialPageRoute(
             fullscreenDialog: true,
-            builder: (context) =>
-                _ReceiptFirstUseCameraIntroSheet(area: widget.area),
+            builder: (context) => _ReceiptFirstUseCameraIntroSheet(
+              area: widget.area,
+              uiConfig: widget.uiConfig,
+            ),
           ),
         );
     if (!mounted || action == null) return false;
