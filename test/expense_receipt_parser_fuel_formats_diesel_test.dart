@@ -44,6 +44,23 @@ HUBOMETER 77840
     expect(splitStyle.diagnostics.parserTaskCount('fuel_line_ready'), 1);
   });
 
+  test('parses red diesel shorthand as off-road diesel', () {
+    final parsed = parseExpenseReceiptText('''
+EQUIPMENT FUEL DEPOT
+06/30/2026
+RED DIESEL 12.500 @ 3.799 47.49
+TOTAL 47.49
+''');
+
+    expect(parsed.lines, hasLength(1));
+    final fuel = parsed.lines.single;
+    expect(fuel.category, 'Fuel');
+    expect(fuel.fuelType, 'Diesel');
+    expect(fuel.quantity, 12.5);
+    expect(fuel.unitPrice, 3.799);
+    expect(fuel.subtotal, 47.49);
+  });
+
   test('parses renewable diesel labels as diesel fuel', () {
     final rd99 = parseExpenseReceiptText('''
 WEST COAST FUEL

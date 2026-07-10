@@ -221,7 +221,7 @@ String? _fuelTypeSignalFor(String text) {
     return 'Hydrogen';
   }
   if (RegExp(
-    r'\b(reefer|tractor diesel|truck diesel|on\s*road\s+diesel|highway\s+diesel|clear\s+diesel|ultra\s+low\s+sulfur\s+diesel|off\s*road diesel|off\s*road\s+diesel|dyed\s+diesel|red\s+dyed?\s+diesel|farm\s+diesel|ag\s+diesel|renewable\s+diesel|rd20|rd99|r20|r99|hvo|hvo100|hydrotreated\s+vegetable\s+oil|hpr\s+diesel|hpr\s+fuel|biodiesel|diesel|dsl|d2|d1|ulsd|b100|b99|b20|b10|b5)\b',
+    r'\b(reefer|tractor diesel|truck diesel|on\s*road\s+diesel|highway\s+diesel|clear\s+diesel|ultra\s+low\s+sulfur\s+diesel|off\s*road diesel|off\s*road\s+diesel|dyed\s+diesel|red(?:\s+dyed?)?\s+diesel|farm\s+diesel|ag\s+diesel|renewable\s+diesel|rd20|rd99|r20|r99|hvo|hvo100|hydrotreated\s+vegetable\s+oil|hpr\s+diesel|hpr\s+fuel|biodiesel|diesel|dsl|d2|d1|ulsd|b100|b99|b20|b10|b5)\b',
   ).hasMatch(text)) {
     return 'Diesel';
   }
@@ -275,7 +275,7 @@ String? _receiptPrimaryFuelTypeSignalFor(String text) {
 final _dieselFuelTypeSignalPattern = RegExp(
   r'\b(reefer|tractor diesel|truck diesel|on\s*road\s+diesel|'
   r'highway\s+diesel|clear\s+diesel|ultra\s+low\s+sulfur\s+diesel|off\s*road diesel|'
-  r'off\s*road\s+diesel|dyed\s+diesel|red\s+dyed?\s+diesel|'
+  r'off\s*road\s+diesel|dyed\s+diesel|red(?:\s+dyed?)?\s+diesel|'
   r'farm\s+diesel|ag\s+diesel|renewable\s+diesel|rd20|rd99|r20|r99|'
   r'hvo|hvo100|hydrotreated\s+vegetable\s+oil|hpr\s+diesel|hpr\s+fuel|'
   r'biodiesel|diesel|dsl|d2|d1|ulsd|'

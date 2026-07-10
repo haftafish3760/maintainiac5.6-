@@ -8,7 +8,7 @@ final _categoryRules = [
       r'highway diesel|on road diesel|on-road diesel|b5|b10|b20|b99|b100|biodiesel|'
       r'reefer fuel|tractor diesel|'
       r'truck diesel|off road diesel|off-road diesel|dyed diesel|'
-      r'red dye diesel|red dyed diesel|farm diesel|ag diesel|'
+      r'red diesel|red dye diesel|red dyed diesel|farm diesel|ag diesel|'
       r'renewable diesel|rd20|rd99|r20|r99|hvo|hvo100|'
       r'hydrotreated vegetable oil|hpr diesel|hpr fuel|'
       r'def fluid|diesel exhaust fluid|gasoline|gas |fuel|'
