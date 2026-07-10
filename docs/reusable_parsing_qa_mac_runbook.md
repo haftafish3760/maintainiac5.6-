@@ -1,6 +1,6 @@
 # Reusable Parsing QA Mac Mini Runbook
 
-Last updated: 2026-07-09 20:05 EDT
+Last updated: 2026-07-09 20:06 EDT
 
 This runbook is the plain-English companion to:
 
@@ -10,7 +10,7 @@ This runbook is the plain-English companion to:
 ## Start Here
 
 1. Check out branch `codex/reusable-parsing-qa-foundation`.
-2. Confirm the branch is at or after commit `4fa3fc2`.
+2. Confirm the branch is at or after commit `fe15ba3`.
 3. Read `docs/reusable_parsing_qa_handoff_marker.md` before running anything.
 4. Use `docs/reusable_parsing_qa_mac_handoff_packet.json` as the exact command
    source of truth.
