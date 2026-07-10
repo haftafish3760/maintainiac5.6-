@@ -167,6 +167,30 @@ AppGeneratedPdfExportEstimate estimateExpenseExportPdf({
   );
 }
 
+AppGeneratedPdfImageLoader expenseReceiptImageLoaderForExport({
+  required ExpenseExportSnapshot snapshot,
+  Map<String, String> thumbnailPathsByAttachmentId = const {},
+}) {
+  final fullPathsByAttachmentId = <String, String>{
+    for (final receipt in snapshot.receipts)
+      for (final attachment in receipt.attachments)
+        if (attachment.isPhoto && attachment.path.trim().isNotEmpty)
+          attachment.id: attachment.path,
+  };
+  return ({
+    required String attachmentId,
+    required AppGeneratedPdfExportMode mode,
+  }) async {
+    final sourcePath = mode == AppGeneratedPdfExportMode.thumbnails
+        ? thumbnailPathsByAttachmentId[attachmentId]
+        : fullPathsByAttachmentId[attachmentId];
+    if (sourcePath == null || sourcePath.trim().isEmpty) return null;
+    final file = File(sourcePath);
+    if (!await file.exists()) return null;
+    return file.readAsBytes();
+  };
+}
+
 Future<File> _writeZipPackage(
   ExpenseExportSnapshot snapshot,
   ExpenseExportFileSet files,
