@@ -1,6 +1,11 @@
 part of 'expense_receipt_parser.dart';
 
 bool _looksLikeAddressOrContactRow(String lower) {
+  if (RegExp(
+    r'\b(?:on|off)[-\s]?road\s+(?:clear\s+)?diesel\b',
+  ).hasMatch(lower)) {
+    return false;
+  }
   if (RegExp(r'\b[a-z]{2}\s+\d{5}(?:-\d{4})?\b').hasMatch(lower)) {
     return true;
   }

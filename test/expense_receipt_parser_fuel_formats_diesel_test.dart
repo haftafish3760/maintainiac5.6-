@@ -63,6 +63,38 @@ TOTAL 47.49
     expect(fuel.subtotal, 47.49);
   });
 
+  test('keeps on-road and off-road diesel labels separate on one receipt', () {
+    final parsed = parseExpenseReceiptText('''
+COMMERCIAL FUEL DEPOT
+07/02/2026
+OFF-ROAD DIESEL 5.000 @ 3.199 16.00
+ON-ROAD CLEAR DIESEL 10.000 @ 3.899 38.99
+TOTAL 54.99
+ODOMETER 238420
+''');
+
+    final dieselLines = parsed.lines
+        .where((line) => line.fuelType == 'Diesel')
+        .toList();
+    expect(dieselLines, hasLength(2));
+    final offRoad = dieselLines.singleWhere(
+      (line) => line.description.toLowerCase().contains('off-road'),
+    );
+    expect(offRoad.quantity, 5);
+    expect(offRoad.unitPrice, 3.199);
+    expect(offRoad.subtotal, 16);
+    expect(offRoad.odometerReading, 238420);
+
+    final onRoad = dieselLines.singleWhere(
+      (line) => line.description.toLowerCase().contains('on-road'),
+    );
+    expect(onRoad.quantity, 10);
+    expect(onRoad.unitPrice, 3.899);
+    expect(onRoad.subtotal, 38.99);
+    expect(onRoad.odometerReading, 238420);
+    expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 2);
+  });
+
   test('parses intermediate biodiesel blends such as B2 ULSD', () {
     final parsed = parseExpenseReceiptText('''
 FLEET FUEL DEPOT

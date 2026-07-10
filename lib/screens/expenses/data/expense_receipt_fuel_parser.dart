@@ -356,15 +356,14 @@ String _fuelDescriptionWithRoadClassification({
 
 String? _dieselRoadClassificationFor(List<String> receiptRows) {
   final text = _normalizeFuelSignalText(receiptRows.join(' '));
-  if (RegExp(
+  final hasOffRoad = RegExp(
     r'\b(off[-\s]?road|dyed\s+diesel|red(?:\s+dyed?)?\s+diesel|farm\s+diesel|ag\s+diesel)\b',
-  ).hasMatch(text)) {
-    return 'Off-road';
-  }
-  if (RegExp(r'\b(on[-\s]?road|highway|clear\s+diesel)\b').hasMatch(text)) {
-    return 'On-road';
-  }
-  return null;
+  ).hasMatch(text);
+  final hasOnRoad = RegExp(
+    r'\b(on[-\s]?road|highway|clear\s+diesel)\b',
+  ).hasMatch(text);
+  if (hasOffRoad == hasOnRoad) return null;
+  return hasOffRoad ? 'Off-road' : 'On-road';
 }
 
 String? _fuelOctaneFor(List<String> receiptRows) {
