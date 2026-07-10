@@ -184,6 +184,29 @@ void main() {
       AppGeneratedPdfPreviewAction.printDismissed,
     ]);
   });
+
+  testWidgets('generated PDF preview shows unsigned customer warning', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppGeneratedPdfPreviewScreen(
+          document: _document(
+            signatureState: AppGeneratedPdfSignatureState.unsigned,
+          ),
+          service: _FakeGeneratedPdfService(
+            tempPath: '${Directory.systemTemp.path}/unsigned-preview.pdf',
+          ),
+        ),
+      ),
+    );
+    await _pumpPdfPreview(tester);
+
+    expect(
+      find.text('Customer signature is still required for this document.'),
+      findsOneWidget,
+    );
+  });
 }
 
 Future<void> _pumpPdfPreview(WidgetTester tester) async {
@@ -192,7 +215,10 @@ Future<void> _pumpPdfPreview(WidgetTester tester) async {
   }
 }
 
-AppGeneratedPdfDocument _document() {
+AppGeneratedPdfDocument _document({
+  AppGeneratedPdfSignatureState signatureState =
+      AppGeneratedPdfSignatureState.notRequired,
+}) {
   return AppGeneratedPdfDocument(
     kind: AppGeneratedPdfKind.invoice,
     title: 'Invoice INV-100',
@@ -201,6 +227,7 @@ AppGeneratedPdfDocument _document() {
     createdAt: DateTime(2026, 6, 26),
     sourceModule: 'invoices',
     sourceRecordId: 'invoice_100',
+    signatureState: signatureState,
   );
 }
 

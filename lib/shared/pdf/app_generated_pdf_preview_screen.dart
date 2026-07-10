@@ -277,6 +277,16 @@ class _GeneratedPdfReady extends StatelessWidget {
                 'File: ${document.safeFileName}\nSize: ${_formatBytes(generated.byteSize)}',
                 style: const TextStyle(fontSize: 12, height: 1.3),
               ),
+              if (document.signatureStateMessage.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Text(
+                  document.signatureStateMessage,
+                  style: const TextStyle(
+                    color: Color(0xFF9B2C2C),
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
