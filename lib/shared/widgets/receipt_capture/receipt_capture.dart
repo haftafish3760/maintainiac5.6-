@@ -4,6 +4,7 @@ export 'receipt_assistance_policy.dart';
 export 'receipt_barcode_scanner_service.dart';
 export 'receipt_capture_flow.dart';
 export 'receipt_capture_models.dart';
+export 'receipt_capture_storage_estimate.dart';
 export 'receipt_capture_settings_store.dart';
 export 'receipt_edge_cropper.dart';
 export 'receipt_image_picker.dart';

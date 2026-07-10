@@ -55,15 +55,24 @@ run_delayed_overlap() {
 
 run_edge_cases() {
   echo "Receipt stitch edge-case health"
-  run_flutter_test edge-case \
+  run_flutter_test edge-case-transforms \
     test/receipt_stitching_variants_test.dart \
     test/receipt_stitching_scale_rotation_test.dart \
+    test/receipt_stitching_horizontal_drift_test.dart \
+    --name 'delayed overlap|stronger handheld rotation|rough handheld rotation|combined scale rotation and drift|mixed handheld transforms|horizontal drift correction|wider handheld horizontal drift|cumulative horizontal drift' \
+    --concurrency=1
+  run_flutter_test edge-case-size-placement \
     test/receipt_stitching_size_cap_test.dart \
     test/receipt_stitching_horizontal_placement_test.dart \
-    test/receipt_stitching_horizontal_drift_test.dart \
+    --name 'output dimensions|output pixel cap|auto-cropped sideways continuation' \
+    --concurrency=1
+  run_flutter_test edge-case-worn \
     test/receipt_stitching_worn_receipt_test.dart \
+    --name 'blurred continuation overlap|faded worn receipt sections|changed brightness|dimmed continuation|wrinkled receipt sections|multi-section wrinkled long receipt|crops delayed-overlap top strip' \
+    --concurrency=1
+  run_flutter_test edge-case-weak-overlap \
     test/receipt_stitching_weak_overlap_safety_test.dart \
-    --name 'delayed overlap|stronger handheld rotation|rough handheld rotation|combined scale rotation and drift|mixed handheld transforms|output dimensions|output pixel cap|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|cumulative horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|wrinkled receipt sections|multi-section wrinkled long receipt|crops delayed-overlap top strip|continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order|boilerplate footer bands' \
+    --name 'continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order|boilerplate footer bands' \
     --concurrency=1
   echo "Receipt stitch edge-case health: PASS"
 }

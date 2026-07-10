@@ -62,7 +62,10 @@ void main() {
     expect(source, contains('reported failed tests despite a zero exit code'));
     expect(source, contains('tail -n 180'));
     expect(source, contains('run_flutter_test delayed-overlap'));
-    expect(source, contains('run_flutter_test edge-case'));
+    expect(source, contains('run_flutter_test edge-case-transforms'));
+    expect(source, contains('run_flutter_test edge-case-size-placement'));
+    expect(source, contains('run_flutter_test edge-case-worn'));
+    expect(source, contains('run_flutter_test edge-case-weak-overlap'));
     expect(source, contains('run_flutter_test size-cap'));
     expect(source, contains('run_flutter_test phone-window'));
     expect(source, contains('run_flutter_test phone-window-fast'));
@@ -75,7 +78,10 @@ void main() {
     expect(source, contains('run_flutter_test long-stack-phone'));
     expect(source, contains('run_flutter_test long-stack-side-crops'));
     expect(source, contains('run_flutter_test long-stack-exposure-crops'));
-    expect(source, contains('test/receipt_stitching_extreme_aspect_ratio_test.dart'));
+    expect(
+      source,
+      contains('test/receipt_stitching_extreme_aspect_ratio_test.dart'),
+    );
     expect(source, contains('run_flutter_test bad-input'));
     expect(source, contains('run_flutter_test handoff'));
     expect(source, contains('run_flutter_test full'));
@@ -86,12 +92,10 @@ void main() {
     expect(source, contains("--name 'delayed overlap'"));
     expect(source, contains('Receipt stitch delayed-overlap health: PASS'));
     expect(source, contains('edge_cases)'));
-    expect(
-      source,
-      contains(
-        "--name 'delayed overlap|stronger handheld rotation|rough handheld rotation|combined scale rotation and drift|mixed handheld transforms|output dimensions|output pixel cap|horizontal drift correction|auto-cropped sideways continuation|blurred continuation overlap|wider handheld horizontal drift|cumulative horizontal drift|faded worn receipt sections|changed brightness|dimmed continuation|wrinkled receipt sections|multi-section wrinkled long receipt|crops delayed-overlap top strip|continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order|boilerplate footer bands'",
-      ),
-    );
+    expect(source, contains('delayed overlap|stronger handheld rotation'));
+    expect(source, contains('output dimensions|output pixel cap'));
+    expect(source, contains('faded worn receipt sections|changed brightness'));
+    expect(source, contains('continuation edge is clipped|severely cropped'));
     expect(source, contains('receipt_stitching_size_cap_test.dart'));
     expect(source, contains('output dimensions|output pixel cap'));
     expect(
@@ -112,7 +116,10 @@ void main() {
     expect(source, contains('Receipt stitch long-stack health: PASS'));
     expect(source, contains('extreme_aspect_ratio)'));
     expect(source, contains('Receipt stitch extreme-aspect-ratio health'));
-    expect(source, contains('receipt_stitching_extreme_aspect_ratio_test.dart'));
+    expect(
+      source,
+      contains('receipt_stitching_extreme_aspect_ratio_test.dart'),
+    );
     expect(source, contains('bad_inputs)'));
     expect(source, contains('Receipt stitch bad-input health'));
     expect(source, contains('receipt_stitching_bad_input_test.dart'));

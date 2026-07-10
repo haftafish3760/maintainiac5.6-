@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:maintaniac/shared/backup/cloud_backup_quota.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_settings_store.dart';
@@ -136,6 +137,36 @@ void main() {
       ),
     );
   });
+
+  test(
+    'routes cloud proof photo estimates through the settings controller',
+    () async {
+      final settings = await ReceiptCaptureSettingsController.create();
+
+      await settings.setDefaultDataSaverLevel(ReceiptDataSaverLevel.strong);
+
+      final estimate = settings.defaultDataSaverStorageEstimate(
+        photoCount: 3,
+        averageOriginalPhotoBytes: 20 * 1024 * 1024,
+        cloudQuota: CloudBackupQuotaPolicy.check(
+          tier: CloudBackupTier.freeTrial,
+          usedBytes: 50 * 1024 * 1024,
+          pendingBytes: 0,
+          backupEnabled: true,
+        ),
+      );
+
+      expect(estimate.dataSaverLevel, ReceiptDataSaverLevel.strong);
+      expect(estimate.estimatedBytesPerSavedProof, 125 * 1024);
+      expect(estimate.estimatedProofBytesForCapture, 375 * 1024);
+      expect(estimate.estimatedOriginalBytesForCapture, 60 * 1024 * 1024);
+      expect(
+        estimate.approximatePhotosRemainingLabel,
+        'About 409 more photos at this setting',
+      );
+      expect(estimate.toPrivacySafeDiagnostics(), isNot(contains('path')));
+    },
+  );
 
   test(
     'allows only the small optional parser pack on strong space saving',

@@ -13,6 +13,19 @@ extension ReceiptCaptureSettingsDataSaver on ReceiptCaptureSettingsController {
     return defaultDataSaverLevel.proofTargetSizePolicy;
   }
 
+  ReceiptCaptureStorageEstimate defaultDataSaverStorageEstimate({
+    required CloudBackupQuotaCheck cloudQuota,
+    int photoCount = 1,
+    int averageOriginalPhotoBytes = 24 * 1024 * 1024,
+  }) {
+    return ReceiptCaptureStorageEstimate(
+      dataSaverLevel: defaultDataSaverLevel,
+      cloudQuota: cloudQuota,
+      photoCount: photoCount,
+      averageOriginalPhotoBytes: averageOriginalPhotoBytes,
+    );
+  }
+
   String get defaultDataSaverProofTargetSummary {
     final policy = defaultDataSaverProofTargetSizePolicy;
     final target = policy.keepsOriginalLocalOnly
