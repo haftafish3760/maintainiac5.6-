@@ -58,3 +58,21 @@ shared parser-platform behavior, it belongs in the reusable lane.
 If a task changes Work Supplies parser behavior, PEH inventory-specific hardening,
 or Windows-owned roadmap/progress state, it stays in the Windows lane until a
 new committed handoff explicitly promotes it.
+
+## Merchant Extraction Boundary
+
+- Merchant extraction for Work Supplies inventory receipts is not a separate
+  free-floating lane right now.
+- If the work is about merchant-aware parser behavior, merchant abbreviation
+  recipes, merchant fixture families, merchant-context review safety, or
+  merchant-related QA gates for Work Supplies receipt parsing, it belongs to
+  the current Windows inventory/parser lane.
+- If the work is about building a reusable merchant extraction contract,
+  reusable merchant normalization platform pieces, or parser-domain tooling
+  meant to serve multiple receipt/parser domains beyond Work Supplies, it
+  belongs to the reusable parser QA lane.
+- The Mac Mini should not start a broader reusable merchant-extraction rewrite
+  while the current PEH measurement wave is still the active blocker.
+- Broader reusable merchant extraction can begin only after the current PEH
+  handoff checkpoint is advanced and explicitly says that broader parser-domain
+  extraction is next.
