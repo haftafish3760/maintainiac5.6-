@@ -27,6 +27,8 @@ void main() {
           'receiptRetakeHasTwoSidedAlignmentContext': true,
           'receiptRetakePreviousContextSectionNumber': 1,
           'receiptRetakeNextContextSectionNumber': 3,
+          'receiptRetakePreviousContextFinalSectionNumber': 1,
+          'receiptRetakeNextContextFinalSectionNumber': 3,
           'receiptRetakeOrderPolicy':
               'preserve_original_slot_insert_extra_sections_after_target',
           'receiptLineText': 'private line should not leak',
@@ -64,6 +66,15 @@ void main() {
     );
     expect(
       result.receiptSectionOrderCounts['retake_next_context_section_3'],
+      1,
+    );
+    expect(
+      result
+          .receiptSectionOrderCounts['retake_previous_context_final_section_1'],
+      1,
+    );
+    expect(
+      result.receiptSectionOrderCounts['retake_next_context_final_section_3'],
       1,
     );
     expect(
@@ -134,6 +145,8 @@ void main() {
           'receiptInsertCount': 1,
           'receiptInsertFinalSectionCount': 4,
           'receiptInsertPreservedAnchorSlot': true,
+          'receiptInsertFollowingContextSectionNumber': 3,
+          'receiptInsertFollowingContextFinalSectionNumber': 4,
           'receiptInsertOrderPolicy':
               'insert_new_sections_after_selected_anchor',
           'receiptLineText': 'private inserted line should not leak',
@@ -158,6 +171,15 @@ void main() {
       1,
     );
     expect(result.receiptSectionOrderCounts['insert_preserved_anchor_slot'], 1);
+    expect(
+      result.receiptSectionOrderCounts['insert_following_context_section_3'],
+      1,
+    );
+    expect(
+      result
+          .receiptSectionOrderCounts['insert_following_context_final_section_4'],
+      1,
+    );
     expect(
       result
           .receiptReaderHandoffCounts['receipt_section_order_insert_preserved_anchor_slot'],
@@ -251,6 +273,9 @@ void main() {
           'receiptRetakePreservedOriginalSlot': true,
           'receiptRetakeOriginalSectionNumber': 3,
           'receiptRetakeFinalSectionNumber': 2,
+          'receiptRetakeReplacementCount': 2,
+          'receiptRetakeNextContextSectionNumber': 3,
+          'receiptRetakeNextContextFinalSectionNumber': 2,
           'receiptRetakeGuidanceCode':
               'retake_middle_with_previous_next_context',
           'receiptRetakeOrderPolicy':
@@ -267,6 +292,11 @@ void main() {
     );
     expect(
       result.receiptSectionOrderCounts['retake_invalid_preserved_slot_moved'],
+      1,
+    );
+    expect(
+      result
+          .receiptSectionOrderCounts['retake_invalid_next_context_final_section_mismatch'],
       1,
     );
     expect(
@@ -311,6 +341,9 @@ void main() {
         '/tmp/middle-extra.jpg': {
           'receiptInsertAfterAnchorSectionNumber': 3,
           'receiptInsertFinalSectionNumber': 2,
+          'receiptInsertCount': 1,
+          'receiptInsertFollowingContextSectionNumber': 4,
+          'receiptInsertFollowingContextFinalSectionNumber': 2,
           'receiptInsertPreservedAnchorSlot': true,
           'receiptInsertOrderPolicy':
               'insert_new_sections_after_selected_anchor',
@@ -331,6 +364,11 @@ void main() {
     expect(
       result
           .receiptSectionOrderCounts['insert_invalid_preserved_anchor_overlap'],
+      1,
+    );
+    expect(
+      result
+          .receiptSectionOrderCounts['insert_invalid_following_context_final_section_mismatch'],
       1,
     );
     expect(

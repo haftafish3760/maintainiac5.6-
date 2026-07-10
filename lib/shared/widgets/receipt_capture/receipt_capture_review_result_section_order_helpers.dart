@@ -30,6 +30,15 @@ List<String> _receiptRetakeInvalidOrderCodes({
   final nextSection = _diagnosticPositiveInt(
     diagnostics['receiptRetakeNextContextSectionNumber'],
   );
+  final previousFinalSection = _diagnosticPositiveInt(
+    diagnostics['receiptRetakePreviousContextFinalSectionNumber'],
+  );
+  final nextFinalSection = _diagnosticPositiveInt(
+    diagnostics['receiptRetakeNextContextFinalSectionNumber'],
+  );
+  final replacementCount = _diagnosticPositiveInt(
+    diagnostics['receiptRetakeReplacementCount'],
+  );
   final hasRetakeMetadata =
       originalSection != null ||
       finalSection != null ||
@@ -41,6 +50,8 @@ List<String> _receiptRetakeInvalidOrderCodes({
       hasTwoSided != null ||
       previousSection != null ||
       nextSection != null ||
+      previousFinalSection != null ||
+      nextFinalSection != null ||
       _diagnosticToken(
             diagnostics['receiptRetakeGuidanceCode']?.toString() ?? '',
           ) !=
@@ -57,6 +68,17 @@ List<String> _receiptRetakeInvalidOrderCodes({
   }
   if (originalSection == null || finalSection == null) {
     return List.unmodifiable(codes);
+  }
+  if (previousFinalSection != null &&
+      previousSection != null &&
+      previousFinalSection != previousSection) {
+    codes.add('retake_invalid_previous_context_final_section_mismatch');
+  }
+  if (nextFinalSection != null &&
+      nextSection != null &&
+      replacementCount != null &&
+      nextFinalSection != nextSection + replacementCount - 1) {
+    codes.add('retake_invalid_next_context_final_section_mismatch');
   }
   if (finalSection < originalSection) {
     codes.add('retake_invalid_final_before_original');
@@ -229,6 +251,13 @@ List<String> _receiptInsertInvalidOrderCodes({
   final offset = _diagnosticZeroOrPositiveInt(
     diagnostics['receiptInsertAfterOffset'],
   );
+  final followingSection = _diagnosticPositiveInt(
+    diagnostics['receiptInsertFollowingContextSectionNumber'],
+  );
+  final followingFinalSection = _diagnosticPositiveInt(
+    diagnostics['receiptInsertFollowingContextFinalSectionNumber'],
+  );
+  final insertCount = _diagnosticPositiveInt(diagnostics['receiptInsertCount']);
   final preservedAnchor = _diagnosticBool(
     diagnostics['receiptInsertPreservedAnchorSlot'],
   );
@@ -237,6 +266,8 @@ List<String> _receiptInsertInvalidOrderCodes({
       finalSection != null ||
       offset != null ||
       preservedAnchor != null ||
+      followingSection != null ||
+      followingFinalSection != null ||
       _diagnosticToken(
             diagnostics['receiptInsertOrderPolicy']?.toString() ?? '',
           ) !=
@@ -249,6 +280,12 @@ List<String> _receiptInsertInvalidOrderCodes({
   }
   if (anchorSection == null || finalSection == null) {
     return List.unmodifiable(codes);
+  }
+  if (followingFinalSection != null &&
+      followingSection != null &&
+      insertCount != null &&
+      followingFinalSection != followingSection + insertCount) {
+    codes.add('insert_invalid_following_context_final_section_mismatch');
   }
   if (finalSection <= anchorSection) {
     codes.add('insert_invalid_final_not_after_anchor');
@@ -335,6 +372,26 @@ List<String> _receiptRetakeContextCodes(Map<String, Object?> diagnostics) {
           : 'retake_next_context_section_$nextSection',
     );
   }
+  final previousFinalSection = _diagnosticPositiveInt(
+    diagnostics['receiptRetakePreviousContextFinalSectionNumber'],
+  );
+  if (previousFinalSection != null) {
+    codes.add(
+      previousFinalSection > 9
+          ? 'retake_previous_context_final_section_10_plus'
+          : 'retake_previous_context_final_section_$previousFinalSection',
+    );
+  }
+  final nextFinalSection = _diagnosticPositiveInt(
+    diagnostics['receiptRetakeNextContextFinalSectionNumber'],
+  );
+  if (nextFinalSection != null) {
+    codes.add(
+      nextFinalSection > 9
+          ? 'retake_next_context_final_section_10_plus'
+          : 'retake_next_context_final_section_$nextFinalSection',
+    );
+  }
   return List.unmodifiable(codes);
 }
 
@@ -349,6 +406,26 @@ List<String> _receiptInsertContextCodes(Map<String, Object?> diagnostics) {
   );
   if (offset != null) {
     codes.add(offset > 9 ? 'insert_offset_10_plus' : 'insert_offset_$offset');
+  }
+  final followingSection = _diagnosticPositiveInt(
+    diagnostics['receiptInsertFollowingContextSectionNumber'],
+  );
+  if (followingSection != null) {
+    codes.add(
+      followingSection > 9
+          ? 'insert_following_context_section_10_plus'
+          : 'insert_following_context_section_$followingSection',
+    );
+  }
+  final followingFinalSection = _diagnosticPositiveInt(
+    diagnostics['receiptInsertFollowingContextFinalSectionNumber'],
+  );
+  if (followingFinalSection != null) {
+    codes.add(
+      followingFinalSection > 9
+          ? 'insert_following_context_final_section_10_plus'
+          : 'insert_following_context_final_section_$followingFinalSection',
+    );
   }
   return List.unmodifiable(codes);
 }
